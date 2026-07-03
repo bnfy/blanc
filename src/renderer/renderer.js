@@ -31,7 +31,7 @@
 
   // Icon set: 16px grid, 1.5px rounded strokes, currentColor (see styles.css).
   const ICONS = {
-    reload: '<svg viewBox="0 0 16 16"><path d="M13.25 8a5.25 5.25 0 1 1-1.54-3.71"/><path d="M13.25 1.75v3h-3"/></svg>',
+    reload: '<svg viewBox="0 0 16 16"><path d="M14 8a6 6 0 1 1-6-6c1.68 0 3.29.67 4.49 1.83L14 5.33"/><path d="M14 2v3.33h-3.33"/></svg>',
     stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
     minimize: '<svg viewBox="0 0 16 16"><path d="M3.5 8h9"/></svg>',
