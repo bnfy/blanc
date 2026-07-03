@@ -1,4 +1,4 @@
-const { protocol, net, ipcMain, session } = require('electron');
+const { app, protocol, net, ipcMain, session } = require('electron');
 const path = require('path');
 const { pathToFileURL } = require('url');
 const bookmarks = require('./bookmarks');
@@ -72,6 +72,8 @@ function setupPages(hooks = {}) {
     ),
   }));
   handle('pages:settings:set', (partial) => settings.setSettings(partial ?? {}));
+
+  handle('pages:app-version', () => app.getVersion());
 
   handle('pages:extensions:list', () => listExtensions(session.defaultSession));
   handle('pages:extensions:remove', (id) => removeExtension(session.defaultSession, id));

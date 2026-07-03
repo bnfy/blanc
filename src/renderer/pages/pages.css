@@ -255,3 +255,16 @@ button.danger:hover { color: var(--text); background: var(--danger); border-colo
   text-transform: uppercase;
 }
 .newtab-links a:hover { color: var(--accent); }
+
+.newtab-version {
+  position: fixed;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  opacity: 0.6;
+  user-select: none;
+}

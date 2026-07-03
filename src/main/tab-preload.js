@@ -7,6 +7,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 if (window.location.protocol === 'bowser:') {
   contextBridge.exposeInMainWorld('bowserPages', {
+    appVersion: () => ipcRenderer.invoke('pages:app-version'),
     bookmarks: {
       list: () => ipcRenderer.invoke('pages:bookmarks:list'),
       remove: (id) => ipcRenderer.invoke('pages:bookmarks:remove', id),
