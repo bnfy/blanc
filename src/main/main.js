@@ -270,6 +270,10 @@ function registerIpcHandlers() {
   ipcMain.handle('tabs:create', (_e, url) => {
     const id = createTab(url || newTabUrl());
     setActiveTab(id);
+    // A blank "New Tab" (no explicit url) is a launchpad — put the cursor
+    // in the address bar. A url means the caller has somewhere specific
+    // to go, so leave focus on the page.
+    if (!url) focusAddressBar();
     return id;
   });
   ipcMain.handle('tabs:close', (_e, id) => closeTab(id));
@@ -328,7 +332,7 @@ function buildMenu() {
     {
       label: 'File',
       submenu: [
-        { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => setActiveTab(createTab()) },
+        { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => { setActiveTab(createTab()); focusAddressBar(); } },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => activeTabId && closeTab(activeTabId) },
         { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: checkForUpdatesManually }, { type: 'separator' }]),
@@ -452,7 +456,10 @@ app.whenReady().then(async () => {
   createMainWindow();
 
   const firstTabId = createTab();
-  win.webContents.once('did-finish-load', () => setActiveTab(firstTabId));
+  win.webContents.once('did-finish-load', () => {
+    setActiveTab(firstTabId);
+    focusAddressBar();
+  });
 
   // Web store + preinstalled extensions load in the background — network
   // installs on first run shouldn't block the window.
