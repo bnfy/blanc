@@ -11,24 +11,39 @@
     <div id="titlebar">
       <div id="trafficSpacer"></div>
       <div id="tabStrip" role="tablist"></div>
-      <button id="newTabBtn" class="no-drag icon-btn" title="New Tab (Ctrl/Cmd+T)">+</button>
+      <button id="newTabBtn" class="no-drag icon-btn" title="New Tab (Ctrl/Cmd+T)">
+        <svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>
+      </button>
       <div id="dragFill"></div>
       <div id="windowControls" class="no-drag"></div>
     </div>
     <div id="toolbar" class="no-drag">
-      <button id="backBtn" class="nav-btn" title="Back" disabled>&#8249;</button>
-      <button id="fwdBtn" class="nav-btn" title="Forward" disabled>&#8250;</button>
-      <button id="reloadBtn" class="nav-btn" title="Reload">&#8635;</button>
+      <button id="backBtn" class="nav-btn" title="Back" disabled>
+        <svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>
+      </button>
+      <button id="fwdBtn" class="nav-btn" title="Forward" disabled>
+        <svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>
+      </button>
+      <button id="reloadBtn" class="nav-btn" title="Reload"></button>
       <div id="addressWrap">
         <div id="loadingBar"></div>
         <input id="addressInput" class="mono" spellcheck="false" autocomplete="off" placeholder="Search or enter address" />
         <div id="shieldBadge" title="Ads/trackers blocked on this page" hidden>0</div>
       </div>
       <browser-action-list id="actionList"></browser-action-list>
-      <button id="starBtn" class="nav-btn" title="Bookmark this page (Ctrl/Cmd+D)">&#9734;</button>
-      <button id="downloadsBtn" class="nav-btn" title="Downloads (Ctrl/Cmd+Shift+J)">&#8595;<span id="downloadsBadge" hidden></span></button>
-      <button id="historyBtn" class="nav-btn" title="History (Ctrl/Cmd+Y)">&#9719;</button>
-      <button id="settingsBtn" class="nav-btn" title="Settings (Ctrl/Cmd+,)">&#9881;&#xFE0E;</button>
+      <button id="starBtn" class="nav-btn" title="Bookmark this page (Ctrl/Cmd+D)">
+        <svg viewBox="0 0 16 16"><path id="starPath" d="M8 2.25l1.79 3.63 4.01.58-2.9 2.83.68 3.99L8 11.4l-3.58 1.88.68-3.99-2.9-2.83 4.01-.58z"/></svg>
+      </button>
+      <button id="downloadsBtn" class="nav-btn" title="Downloads (Ctrl/Cmd+Shift+J)">
+        <svg viewBox="0 0 16 16"><path d="M8 2.5v7.25M4.75 6.75 8 10l3.25-3.25M3 13.25h10"/></svg>
+        <span id="downloadsBadge" hidden></span>
+      </button>
+      <button id="historyBtn" class="nav-btn" title="History (Ctrl/Cmd+Y)">
+        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 4.75V8l2.25 1.5"/></svg>
+      </button>
+      <button id="settingsBtn" class="nav-btn" title="Settings (Ctrl/Cmd+,)">
+        <svg viewBox="0 0 16 16"><path d="M2.5 4.75h6M12 4.75h1.5M2.5 11.25h1.5M7.5 11.25h6"/><circle cx="10.25" cy="4.75" r="1.75"/><circle cx="5.75" cy="11.25" r="1.75"/></svg>
+      </button>
     </div>
   </div>
   <script src="renderer.js"></script>

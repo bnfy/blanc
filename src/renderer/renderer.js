@@ -29,6 +29,16 @@
   let state = { tabs: [], activeTabId: null };
   let addressBarEditing = false;
 
+  // Icon set: 16px grid, 1.5px rounded strokes, currentColor (see styles.css).
+  const ICONS = {
+    reload: '<svg viewBox="0 0 16 16"><path d="M13.25 8a5.25 5.25 0 1 1-1.54-3.71"/><path d="M13.25 1.75v3h-3"/></svg>',
+    stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
+    close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
+    minimize: '<svg viewBox="0 0 16 16"><path d="M3.5 8h9"/></svg>',
+    maximize: '<svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></svg>',
+  };
+  reloadBtn.innerHTML = ICONS.reload;
+
   // While a tab is being dragged we own the strip's DOM order; incoming
   // broadcasts are parked and applied when the drag ends.
   let draggedTabId = null;
@@ -36,18 +46,18 @@
 
   // --- Window controls (non-mac only; macOS gets native traffic lights) ---
   if (platform !== 'darwin') {
-    const mk = (label, title, onClick, extraClass) => {
+    const mk = (icon, title, onClick, extraClass) => {
       const b = document.createElement('button');
-      b.textContent = label;
+      b.innerHTML = icon;
       b.title = title;
       if (extraClass) b.classList.add(extraClass);
       b.addEventListener('click', onClick);
       return b;
     };
     windowControls.append(
-      mk('–', 'Minimize', () => window.browserAPI.minimizeWindow()),
-      mk('□', 'Maximize / Restore', () => window.browserAPI.maximizeWindow()),
-      mk('✕', 'Close', () => window.browserAPI.closeWindow(), 'close-btn')
+      mk(ICONS.minimize, 'Minimize', () => window.browserAPI.minimizeWindow()),
+      mk(ICONS.maximize, 'Maximize / Restore', () => window.browserAPI.maximizeWindow()),
+      mk(ICONS.close, 'Close', () => window.browserAPI.closeWindow(), 'close-btn')
     );
   }
 
@@ -86,7 +96,7 @@
 
       const close = document.createElement('div');
       close.className = 'tab-close';
-      close.textContent = '✕';
+      close.innerHTML = ICONS.close;
       close.addEventListener('click', (e) => {
         e.stopPropagation();
         window.browserAPI.closeTab(tab.id);
@@ -130,8 +140,12 @@
     backBtn.disabled = !tab?.canGoBack;
     fwdBtn.disabled = !tab?.canGoForward;
     loadingBar.classList.toggle('active', !!tab?.isLoading);
-    reloadBtn.textContent = tab?.isLoading ? '✕' : '↻';
-    reloadBtn.title = tab?.isLoading ? 'Stop' : 'Reload';
+    const wantStop = !!tab?.isLoading;
+    if (reloadBtn.dataset.mode !== (wantStop ? 'stop' : 'reload')) {
+      reloadBtn.dataset.mode = wantStop ? 'stop' : 'reload';
+      reloadBtn.innerHTML = wantStop ? ICONS.stop : ICONS.reload;
+      reloadBtn.title = wantStop ? 'Stop' : 'Reload';
+    }
 
     const blocked = tab?.blockedCount ?? 0;
     shieldBadge.hidden = blocked === 0;
@@ -142,7 +156,6 @@
     if (tab?.wcId != null) actionList.setAttribute('tab', String(tab.wcId));
 
     starBtn.disabled = !tab || !isBookmarkable(tab.url);
-    starBtn.textContent = tab?.bookmarked ? '★' : '☆';
     starBtn.classList.toggle('starred', !!tab?.bookmarked);
 
     if (!addressBarEditing) {

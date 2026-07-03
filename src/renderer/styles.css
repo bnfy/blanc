@@ -64,6 +64,22 @@ input:focus-visible {
   outline-offset: 1px;
 }
 
+/* One icon language everywhere: 16px grid, 1.5px rounded strokes,
+   currentColor so icons inherit each button's text color and theme. */
+button svg,
+.tab-close svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.tab-close svg { width: 10px; height: 10px; }
+#windowControls svg { width: 12px; height: 12px; }
+
 #chrome {
   display: flex;
   flex-direction: column;
@@ -266,6 +282,7 @@ body:not(.mac) #trafficSpacer {
 #addressInput { padding-right: 48px; }
 
 #starBtn.starred { color: var(--accent); }
+#starBtn.starred svg path { fill: currentColor; }
 
 #actionList {
   display: flex;
