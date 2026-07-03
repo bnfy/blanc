@@ -226,6 +226,18 @@ function reorderTab(id, toIndex) {
   broadcastTabs();
 }
 
+/** Cmd/Ctrl+1–8 jump to that tab; 9 jumps to the last (browser convention). */
+function selectTabAtIndex(index) {
+  const id = index >= 8 ? tabOrder[tabOrder.length - 1] : tabOrder[index];
+  if (id) setActiveTab(id);
+}
+
+function cycleTab(direction) {
+  if (!activeTabId || tabOrder.length < 2) return;
+  const i = tabOrder.indexOf(activeTabId);
+  setActiveTab(tabOrder[(i + direction + tabOrder.length) % tabOrder.length]);
+}
+
 /** Focus an existing tab already on this internal page, or open one. */
 function openInternalPage(url) {
   const existing = tabOrder.find((id) => tabs.get(id)?.url.startsWith(url));
@@ -334,6 +346,19 @@ function buildMenu() {
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => openInternalPage('bowser://settings/') },
         { type: 'separator' },
         { role: 'toggleDevTools' },
+      ],
+    },
+    {
+      label: 'Tabs',
+      submenu: [
+        { label: 'Next Tab', accelerator: 'Ctrl+Tab', click: () => cycleTab(1) },
+        { label: 'Previous Tab', accelerator: 'Ctrl+Shift+Tab', click: () => cycleTab(-1) },
+        { type: 'separator' },
+        ...Array.from({ length: 9 }, (_, i) => ({
+          label: i === 8 ? 'Last Tab' : `Tab ${i + 1}`,
+          accelerator: `CmdOrCtrl+${i + 1}`,
+          click: () => selectTabAtIndex(i),
+        })),
       ],
     },
     {

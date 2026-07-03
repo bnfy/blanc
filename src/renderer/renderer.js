@@ -85,10 +85,12 @@
       el.setAttribute('role', 'tab');
       el.dataset.tabId = tab.id;
       el.draggable = true;
+      el.title = tab.url && !tab.url.startsWith('bowser://') ? `${tab.title}\n${tab.url}` : tab.title;
 
       const favicon = document.createElement('div');
-      favicon.className = 'tab-favicon' + (tab.favicon ? ' has-icon' : '');
-      if (tab.favicon) favicon.style.backgroundImage = `url("${tab.favicon}")`;
+      favicon.className =
+        'tab-favicon' + (tab.isLoading ? ' loading' : tab.favicon ? ' has-icon' : '');
+      if (tab.favicon && !tab.isLoading) favicon.style.backgroundImage = `url("${tab.favicon}")`;
 
       const title = document.createElement('div');
       title.className = 'tab-title';
@@ -104,6 +106,9 @@
 
       el.append(favicon, title, close);
       el.addEventListener('click', () => window.browserAPI.switchTab(tab.id));
+      el.addEventListener('auxclick', (e) => {
+        if (e.button === 1) window.browserAPI.closeTab(tab.id); // middle-click closes
+      });
 
       // --- Drag-to-reorder ---
       el.addEventListener('dragstart', (e) => {
@@ -180,6 +185,13 @@
     tabStrip.insertBefore(draggedEl, nextEl ?? tabIndicator);
   });
   tabStrip.addEventListener('drop', (e) => e.preventDefault());
+
+  // Double-click on empty titlebar area zooms the window (desktop convention).
+  document.getElementById('titlebar').addEventListener('dblclick', (e) => {
+    if (e.target.id === 'titlebar' || e.target.id === 'dragFill' || e.target.id === 'trafficSpacer') {
+      window.browserAPI.maximizeWindow();
+    }
+  });
 
   // --- Toolbar wiring ---
   newTabBtn.addEventListener('click', () => window.browserAPI.createTab());
