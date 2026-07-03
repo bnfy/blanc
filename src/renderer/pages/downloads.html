@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';" />
+  <title>Downloads</title>
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+  <div class="page">
+    <nav class="page-nav">
+      <a href="bowser://bookmarks/">Bookmarks</a>
+      <a href="bowser://history/">History</a>
+      <a href="bowser://downloads/" class="current">Downloads</a>
+      <a href="bowser://settings/">Settings</a>
+    </nav>
+    <h1>Downloads</h1>
+    <div class="toolbar-row">
+      <div class="spacer"></div>
+      <button id="clearFinished">Clear finished</button>
+    </div>
+    <div id="list" class="row-list"></div>
+  </div>
+  <script src="downloads.js"></script>
+</body>
+</html>

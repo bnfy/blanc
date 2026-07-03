@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';" />
+  <title>History</title>
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+  <div class="page">
+    <nav class="page-nav">
+      <a href="bowser://bookmarks/">Bookmarks</a>
+      <a href="bowser://history/" class="current">History</a>
+      <a href="bowser://downloads/">Downloads</a>
+      <a href="bowser://settings/">Settings</a>
+    </nav>
+    <h1>History</h1>
+    <div class="toolbar-row">
+      <input id="search" type="text" placeholder="Search history" />
+      <button id="clearAll" class="danger">Clear all</button>
+    </div>
+    <div id="list" class="row-list"></div>
+  </div>
+  <script src="history.js"></script>
+</body>
+</html>

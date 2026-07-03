@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';" />
+  <title>Settings</title>
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body>
+  <div class="page">
+    <nav class="page-nav">
+      <a href="bowser://bookmarks/">Bookmarks</a>
+      <a href="bowser://history/">History</a>
+      <a href="bowser://downloads/">Downloads</a>
+      <a href="bowser://settings/" class="current">Settings</a>
+    </nav>
+    <h1>Settings</h1>
+
+    <div class="setting">
+      <div class="label">
+        <span>Search engine</span>
+        <span class="hint">Used when the address bar input isn't a URL</span>
+      </div>
+      <select id="searchEngine"></select>
+    </div>
+
+    <div class="setting">
+      <div class="label">
+        <span>Block ads &amp; trackers</span>
+        <span class="hint">EasyList + EasyPrivacy at the network layer, plus element hiding</span>
+      </div>
+      <label class="toggle">
+        <input id="adblockEnabled" type="checkbox" />
+        <span class="track"></span>
+      </label>
+    </div>
+
+    <div class="setting">
+      <div class="label">
+        <span>New tab page</span>
+        <span class="hint">Leave empty for the built-in new tab page</span>
+      </div>
+      <input id="homePage" type="url" placeholder="bowser://newtab/" />
+    </div>
+
+    <h1 class="section-title">Extensions</h1>
+    <p class="section-hint">
+      Install more from the
+      <a href="https://chromewebstore.google.com/" class="inline-link">Chrome Web Store</a>.
+      Password managers run standalone (no desktop-app/biometric unlock).
+    </p>
+    <div id="extensionList" class="row-list"></div>
+  </div>
+  <script src="settings.js"></script>
+</body>
+</html>

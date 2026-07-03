@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+  <title>Browser Starter</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="chrome">
+    <div id="titlebar">
+      <div id="trafficSpacer"></div>
+      <div id="tabStrip" role="tablist"></div>
+      <button id="newTabBtn" class="no-drag icon-btn" title="New Tab (Ctrl/Cmd+T)">+</button>
+      <div id="dragFill"></div>
+      <div id="windowControls" class="no-drag"></div>
+    </div>
+    <div id="toolbar" class="no-drag">
+      <button id="backBtn" class="nav-btn" title="Back" disabled>&#8249;</button>
+      <button id="fwdBtn" class="nav-btn" title="Forward" disabled>&#8250;</button>
+      <button id="reloadBtn" class="nav-btn" title="Reload">&#8635;</button>
+      <div id="addressWrap">
+        <div id="loadingBar"></div>
+        <input id="addressInput" class="mono" spellcheck="false" autocomplete="off" placeholder="Search or enter address" />
+        <div id="shieldBadge" title="Ads/trackers blocked on this page" hidden>0</div>
+      </div>
+      <browser-action-list id="actionList"></browser-action-list>
+      <button id="starBtn" class="nav-btn" title="Bookmark this page (Ctrl/Cmd+D)">&#9734;</button>
+      <button id="downloadsBtn" class="nav-btn" title="Downloads (Ctrl/Cmd+Shift+J)">&#8595;<span id="downloadsBadge" hidden></span></button>
+      <button id="historyBtn" class="nav-btn" title="History (Ctrl/Cmd+Y)">&#9719;</button>
+      <button id="settingsBtn" class="nav-btn" title="Settings (Ctrl/Cmd+,)">&#9881;&#xFE0E;</button>
+    </div>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>
