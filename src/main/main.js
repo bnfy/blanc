@@ -177,7 +177,7 @@ function createTab(url = newTabUrl()) {
   return id;
 }
 
-function setActiveTab(id) {
+function setActiveTab(id, { focusContent = true } = {}) {
   const next = tabs.get(id);
   if (!next) return;
 
@@ -187,7 +187,11 @@ function setActiveTab(id) {
   activeTabId = id;
   win.contentView.addChildView(next.view);
   resizeActiveView();
-  next.view.webContents.focus();
+  // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
+  // blank new tab we instead want the chrome's address bar, and OS focus
+  // can't reliably be stolen back from a child view once granted — so skip
+  // focusing the content and let focusAddressBar() claim the chrome.
+  if (focusContent) next.view.webContents.focus();
   extensionHost?.selectTab(next.view.webContents);
   broadcastTabs();
 }
@@ -263,17 +267,24 @@ function refreshBookmarkFlags() {
 }
 
 function focusAddressBar() {
-  if (win && !win.isDestroyed()) win.webContents.send('chrome:focus-address-bar');
+  if (!win || win.isDestroyed()) return;
+  // setActiveTab() just handed OS-level keyboard focus to the tab's
+  // WebContentsView; reclaim it for the chrome window's own webContents
+  // before asking its renderer to focus the input, or the caret shows in
+  // the DOM but keystrokes keep routing to the page.
+  win.webContents.focus();
+  win.webContents.send('chrome:focus-address-bar');
 }
 
 function registerIpcHandlers() {
   ipcMain.handle('tabs:create', (_e, url) => {
     const id = createTab(url || newTabUrl());
-    setActiveTab(id);
-    // A blank "New Tab" (no explicit url) is a launchpad — put the cursor
-    // in the address bar. A url means the caller has somewhere specific
-    // to go, so leave focus on the page.
-    if (!url) focusAddressBar();
+    // A blank "New Tab" (no explicit url) is a launchpad — keep OS focus on
+    // the chrome so the address bar can take it. A url means the caller has
+    // somewhere specific to go, so focus the page content.
+    const blank = !url;
+    setActiveTab(id, { focusContent: !blank });
+    if (blank) focusAddressBar();
     return id;
   });
   ipcMain.handle('tabs:close', (_e, id) => closeTab(id));
@@ -332,7 +343,7 @@ function buildMenu() {
     {
       label: 'File',
       submenu: [
-        { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => { setActiveTab(createTab()); focusAddressBar(); } },
+        { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => { setActiveTab(createTab(), { focusContent: false }); focusAddressBar(); } },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => activeTabId && closeTab(activeTabId) },
         { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: checkForUpdatesManually }, { type: 'separator' }]),
@@ -457,7 +468,7 @@ app.whenReady().then(async () => {
 
   const firstTabId = createTab();
   win.webContents.once('did-finish-load', () => {
-    setActiveTab(firstTabId);
+    setActiveTab(firstTabId, { focusContent: false });
     focusAddressBar();
   });
 
