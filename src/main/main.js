@@ -16,6 +16,27 @@ const { JsonStore } = require('./store');
 const NEW_TAB_URL = 'bowser://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 
+// Dev runs (`npm start`) get their own userData so a dev instance never
+// shares — and corrupts — the installed app's profile: two Chromium
+// browser processes writing one profile's LevelDB/extension state
+// SIGSEGVs both (observed 2026-07-04, identical CrBrowserMain crashes in
+// dev and installed builds within seconds of each other).
+if (!app.isPackaged) {
+  app.setPath('userData', `${app.getPath('userData')}-Dev`);
+}
+
+// One instance per profile: a second launch defers to the first.
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (win && !win.isDestroyed()) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+  });
+}
+
 // Must happen before app 'ready'.
 registerPagesScheme();
 
@@ -246,10 +267,21 @@ function createTab(url = newTabUrl()) {
   });
 
   // Open target="_blank" / window.open() as a new managed tab instead of a
-  // separate, unmanaged Electron window.
-  wc.setWindowOpenHandler(({ url: targetUrl }) => {
+  // separate, unmanaged Electron window. Cmd/Ctrl+click arrives as
+  // 'background-tab' — open it without stealing focus (browser convention).
+  wc.setWindowOpenHandler(({ url: targetUrl, disposition }) => {
+    const prevActiveTabId = activeTabId;
     const newId = createTab(targetUrl);
-    setActiveTab(newId);
+    if (disposition !== 'background-tab') {
+      setActiveTab(newId);
+    } else if (prevActiveTabId && activeTabId !== prevActiveTabId) {
+      // createTab() -> extensionHost?.addTab() synchronously runs
+      // electron-chrome-extensions' own TabsAPI.observeTab/onActivated,
+      // which unconditionally activates every newly-added tab via our
+      // `selectTab` delegate — racing ahead of the disposition check above.
+      // Snap focus back to whatever was active before this tab was created.
+      setActiveTab(prevActiveTabId);
+    }
     return { action: 'deny' };
   });
 
