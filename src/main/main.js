@@ -180,6 +180,12 @@ function createTab(url = newTabUrl()) {
     }
   });
 
+  wc.on('found-in-page', (_e, result) => {
+    if (id === activeTabId) {
+      win.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
+    }
+  });
+
   // Open target="_blank" / window.open() as a new managed tab instead of a
   // separate, unmanaged Electron window.
   wc.setWindowOpenHandler(({ url: targetUrl }) => {
@@ -300,6 +306,26 @@ function refreshBookmarkFlags() {
   broadcastTabs();
 }
 
+const ZOOM_STEP = 0.5;
+const ZOOM_MIN = -8;
+const ZOOM_MAX = 8;
+
+function zoomActiveTab(delta) {
+  const wc = tabs.get(activeTabId)?.view.webContents;
+  if (!wc) return;
+  const level = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, wc.getZoomLevel() + delta));
+  wc.setZoomLevel(level);
+}
+
+function resetZoomForActiveTab() {
+  tabs.get(activeTabId)?.view.webContents.setZoomLevel(0);
+}
+
+function openFindBar() {
+  if (!win || win.isDestroyed()) return;
+  win.webContents.send('chrome:open-find-bar');
+}
+
 function focusAddressBar() {
   if (!win || win.isDestroyed()) return;
   // setActiveTab() just handed OS-level keyboard focus to the tab's
@@ -365,6 +391,8 @@ function registerIpcHandlers() {
     }
   });
   ipcMain.handle('tabs:get-all', () => ({ tabs: serializeTabs(), activeTabId }));
+  ipcMain.handle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
+  ipcMain.handle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
   ipcMain.handle('downloads:summary', () => ({ activeCount: activeCount() }));
   ipcMain.handle('extensions:list', () => listExtensions(session.defaultSession));
 
@@ -406,6 +434,7 @@ function buildMenu() {
       submenu: [
         { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => setActiveTab(createTab(), { focusContent: false, focusAddress: true }) },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => activeTabId && closeTab(activeTabId) },
+        { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.print() },
         { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: checkForUpdatesManually }, { type: 'separator' }]),
         isMac ? { role: 'close' } : { role: 'quit' },
@@ -416,7 +445,13 @@ function buildMenu() {
       label: 'View',
       submenu: [
         { label: 'Focus Address Bar', accelerator: 'CmdOrCtrl+L', click: focusAddressBar },
+        { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: openFindBar },
         { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reload() },
+        { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', click: () => zoomActiveTab(ZOOM_STEP) },
+        // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
+        { label: 'Zoom In', accelerator: 'CmdOrCtrl+=', visible: false, click: () => zoomActiveTab(ZOOM_STEP) },
+        { label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', click: () => zoomActiveTab(-ZOOM_STEP) },
+        { label: 'Actual Size', accelerator: 'CmdOrCtrl+0', click: resetZoomForActiveTab },
         { type: 'separator' },
         { label: 'Downloads', accelerator: 'CmdOrCtrl+Shift+J', click: () => openInternalPage('bowser://downloads/') },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => openInternalPage('bowser://settings/') },

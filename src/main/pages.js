@@ -77,6 +77,8 @@ function setupPages(hooks = {}) {
 
   handle('pages:extensions:list', () => listExtensions(session.defaultSession));
   handle('pages:extensions:remove', (id) => removeExtension(session.defaultSession, id));
+
+  handle('pages:clear-browsing-data', () => session.defaultSession.clearStorageData());
 }
 
 module.exports = { registerPagesScheme, setupPages };

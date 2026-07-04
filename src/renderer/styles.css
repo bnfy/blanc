@@ -371,6 +371,41 @@ body:not(.mac) #trafficSpacer {
 }
 #downloadsBtn.has-active { color: var(--accent); }
 
+/* ---------- Row 3: find bar (shown on demand) ---------- */
+
+#findBar {
+  height: var(--toolbar-h);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+  border-top: 1px solid var(--border);
+}
+#findBar[hidden] { display: none; }
+
+#findInput {
+  flex: 1 1 auto;
+  max-width: 260px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+#findInput::placeholder { color: var(--text-dim); }
+#findInput:focus { outline: none; border-color: var(--accent); }
+
+#findCount {
+  min-width: 44px;
+  padding: 0 6px;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+
 .tab.dragging { opacity: 0.5; }
 
 #loadingBar {

@@ -26,6 +26,8 @@ contextBridge.exposeInMainWorld('browserAPI', {
   getAllTabs: () => ipcRenderer.invoke('tabs:get-all'),
   getDownloadsSummary: () => ipcRenderer.invoke('downloads:summary'),
   getExtensions: () => ipcRenderer.invoke('extensions:list'),
+  findInPage: (id, query, options) => ipcRenderer.invoke('tabs:find', id, query, options),
+  stopFindInPage: (id) => ipcRenderer.invoke('tabs:find-stop', id),
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
 
@@ -47,5 +49,15 @@ contextBridge.exposeInMainWorld('browserAPI', {
     const listener = () => callback();
     ipcRenderer.on('chrome:focus-address-bar', listener);
     return () => ipcRenderer.removeListener('chrome:focus-address-bar', listener);
+  },
+  onOpenFindBar: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on('chrome:open-find-bar', listener);
+    return () => ipcRenderer.removeListener('chrome:open-find-bar', listener);
+  },
+  onFindResult: (callback) => {
+    const listener = (_e, payload) => callback(payload);
+    ipcRenderer.on('chrome:find-result', listener);
+    return () => ipcRenderer.removeListener('chrome:find-result', listener);
   },
 });

@@ -15,6 +15,8 @@ const DEFAULTS = {
   // Empty string = the built-in bowser://newtab page.
   homePage: '',
   theme: 'system',
+  // Lowercased hostnames, no protocol/path/www. prefix.
+  adblockExceptions: [],
 };
 
 let store = null;
@@ -38,6 +40,15 @@ function setSettings(partial) {
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (typeof partial.homePage === 'string') clean.homePage = partial.homePage.trim();
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
+  if (Array.isArray(partial.adblockExceptions)) {
+    clean.adblockExceptions = [
+      ...new Set(
+        partial.adblockExceptions
+          .filter((h) => typeof h === 'string')
+          .map((h) => h.trim().toLowerCase().replace(/^www\./, ''))
+      ),
+    ];
+  }
   s.update((data) => Object.assign(data, clean));
   for (const fn of listeners) fn(getSettings());
   return getSettings();

@@ -73,4 +73,90 @@
   }
 
   refreshExtensions();
+
+  // --- Ad-block exceptions ---
+  const exceptionInput = document.getElementById('exceptionInput');
+  const exceptionAdd = document.getElementById('exceptionAdd');
+  const exceptionList = document.getElementById('exceptionList');
+
+  function normalizeHostname(input) {
+    try {
+      return new URL(input.includes('://') ? input : `https://${input}`).hostname
+        .toLowerCase()
+        .replace(/^www\./, '');
+    } catch {
+      return null;
+    }
+  }
+
+  async function refreshExceptions() {
+    const { settings: current } = await window.bowserPages.settings.get();
+    const exceptions = current.adblockExceptions ?? [];
+    exceptionList.replaceChildren();
+
+    if (exceptions.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = 'No exceptions added.';
+      exceptionList.append(empty);
+      return;
+    }
+
+    for (const hostname of [...exceptions].sort()) {
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const main = document.createElement('div');
+      main.className = 'main';
+      const title = document.createElement('div');
+      title.className = 'title';
+      title.textContent = hostname;
+      main.append(title);
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      const remove = document.createElement('button');
+      remove.className = 'danger';
+      remove.textContent = 'Remove';
+      remove.addEventListener('click', async () => {
+        await window.bowserPages.settings.set({
+          adblockExceptions: exceptions.filter((h) => h !== hostname),
+        });
+        refreshExceptions();
+      });
+      actions.append(remove);
+
+      row.append(main, actions);
+      exceptionList.append(row);
+    }
+  }
+
+  async function addException() {
+    const hostname = normalizeHostname(exceptionInput.value.trim());
+    if (!hostname) return;
+    const { settings: current } = await window.bowserPages.settings.get();
+    const exceptions = new Set(current.adblockExceptions ?? []);
+    exceptions.add(hostname);
+    await window.bowserPages.settings.set({ adblockExceptions: [...exceptions] });
+    exceptionInput.value = '';
+    refreshExceptions();
+  }
+
+  exceptionAdd.addEventListener('click', addException);
+  exceptionInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addException();
+  });
+
+  refreshExceptions();
+
+  // --- Clear browsing data ---
+  const clearBrowsingData = document.getElementById('clearBrowsingData');
+  const clearBrowsingDataStatus = document.getElementById('clearBrowsingDataStatus');
+
+  clearBrowsingData.addEventListener('click', async () => {
+    if (!confirm('Clear all cookies, cache, and site data? You will be logged out of everything.')) return;
+    await window.bowserPages.clearBrowsingData();
+    clearBrowsingDataStatus.textContent = 'Cleared.';
+    setTimeout(() => { clearBrowsingDataStatus.textContent = ''; }, 2000);
+  });
 })();

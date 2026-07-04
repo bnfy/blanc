@@ -22,6 +22,12 @@
   const extensionsPopover = document.getElementById('extensionsPopover');
   const extensionsEmpty = document.getElementById('extensionsEmpty');
   const actionList = document.getElementById('actionList');
+  const findBar = document.getElementById('findBar');
+  const findInput = document.getElementById('findInput');
+  const findCount = document.getElementById('findCount');
+  const findPrevBtn = document.getElementById('findPrevBtn');
+  const findNextBtn = document.getElementById('findNextBtn');
+  const findCloseBtn = document.getElementById('findCloseBtn');
 
   let tabIndicator = document.getElementById('tabIndicator');
   if (!tabIndicator) {
@@ -33,6 +39,7 @@
   let state = { tabs: [], activeTabId: null };
   let addressBarEditing = false;
   let extensionsOpen = false;
+  let findLastQuery = null;
   let installedExtensionCount = 0;
   let actionObserver = null;
   let actionObserveAttempts = 0;
@@ -390,6 +397,8 @@
     if (e.key === 'Escape' && extensionsOpen) {
       setExtensionsOpen(false);
       extensionsBtn.focus();
+    } else if (e.key === 'Escape' && !findBar.hidden) {
+      closeFindBar();
     }
   });
 
@@ -410,6 +419,42 @@
     }
   });
 
+  // --- Find in page ---
+  function openFindBar() {
+    findBar.hidden = false;
+    requestAnimationFrame(reportLayout);
+    findInput.focus();
+    findInput.select();
+  }
+
+  function closeFindBar() {
+    findBar.hidden = true;
+    requestAnimationFrame(reportLayout);
+    findInput.value = '';
+    findCount.textContent = '';
+    findLastQuery = null;
+    if (state.activeTabId) window.browserAPI.stopFindInPage(state.activeTabId);
+  }
+
+  function runFind(options) {
+    const query = findInput.value;
+    if (!state.activeTabId || !query) {
+      findCount.textContent = '';
+      return;
+    }
+    window.browserAPI.findInPage(state.activeTabId, query, options);
+    findLastQuery = query;
+  }
+
+  findInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      runFind({ forward: true, findNext: findInput.value === findLastQuery });
+    }
+  });
+  findPrevBtn.addEventListener('click', () => runFind({ forward: false, findNext: true }));
+  findNextBtn.addEventListener('click', () => runFind({ forward: true, findNext: true }));
+  findCloseBtn.addEventListener('click', () => closeFindBar());
+
   // --- Downloads badge ---
   function renderDownloads({ activeCount }) {
     downloadsBadge.hidden = activeCount === 0;
@@ -423,12 +468,17 @@
       pendingState = payload;
       return;
     }
+    if (!findBar.hidden && payload.activeTabId !== state.activeTabId) closeFindBar();
     state = payload;
     render();
   });
   window.browserAPI.onDownloadsUpdated(renderDownloads);
   window.browserAPI.onFocusAddressBar(() => {
     addressInput.focus();
+  });
+  window.browserAPI.onOpenFindBar(openFindBar);
+  window.browserAPI.onFindResult(({ activeMatchOrdinal, matches }) => {
+    findCount.textContent = matches > 0 && findInput.value ? `${activeMatchOrdinal}/${matches}` : '';
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
