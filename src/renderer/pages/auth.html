@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;" />
+  <title>Sign in</title>
+  <link rel="icon" href="icon.svg" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body class="auth-body">
+  <h1 class="section-title">Sign in</h1>
+  <p id="authHost" class="section-hint"></p>
+  <form id="authForm">
+    <input id="authUser" type="text" placeholder="Username" autocomplete="username" autofocus />
+    <input id="authPass" type="password" placeholder="Password" autocomplete="current-password" />
+    <div class="toolbar-row">
+      <button type="submit">Sign in</button>
+      <button type="button" id="authCancel">Cancel</button>
+    </div>
+  </form>
+  <script src="auth.js"></script>
+</body>
+</html>

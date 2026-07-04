@@ -286,3 +286,16 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
   opacity: 0.6;
   user-select: none;
 }
+
+/* ---------- Basic-auth dialog (bowser://auth) ---------- */
+
+.auth-body { padding: 20px 24px; }
+.auth-body form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.auth-body input {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+}

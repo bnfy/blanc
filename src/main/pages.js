@@ -12,7 +12,7 @@ const { listExtensions, removeExtension } = require('./extensions');
 // file:// so they get a real origin, and so ordinary web content can never
 // link into arbitrary local files.
 const PAGES_DIR = path.join(__dirname, '../renderer/pages');
-const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'settings', 'error']);
+const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'settings', 'error', 'auth']);
 
 /** Must run before app 'ready'. */
 function registerPagesScheme() {

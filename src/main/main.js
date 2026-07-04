@@ -8,6 +8,7 @@ const { setupPermissionPolicy } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { setupDownloads, activeCount } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
+const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const history = require('./history');
@@ -720,6 +721,16 @@ app.whenReady().then(async () => {
   settings.onSettingsChanged((s) => {
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();
+  });
+
+  // HTTP basic/digest auth: without this handler, 401-protected sites
+  // (routers, staging servers) simply fail.
+  app.on('login', (event, _wc, _details, authInfo, callback) => {
+    event.preventDefault();
+    promptForCredentials(hasLiveWindow() ? win : null, authInfo).then((creds) => {
+      if (creds) callback(creds.username, creds.password);
+      else callback(); // no args = cancel the request
+    });
   });
 
   registerIpcHandlers();
