@@ -7,6 +7,7 @@ const { registerPagesScheme, setupPages } = require('./pages');
 const { setupPermissionPolicy } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { setupDownloads, activeCount } = require('./downloads');
+const { attachContextMenu } = require('./context-menu');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const history = require('./history');
@@ -250,6 +251,11 @@ function createTab(url = newTabUrl()) {
     const newId = createTab(targetUrl);
     setActiveTab(newId);
     return { action: 'deny' };
+  });
+
+  attachContextMenu(wc, {
+    openBackgroundTab: (targetUrl) => createTab(targetUrl),
+    openTab: (targetUrl) => setActiveTab(createTab(targetUrl)),
   });
 
   // Load failures surface via the did-fail-load handler above; the
