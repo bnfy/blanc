@@ -147,22 +147,16 @@ also editable in Settings).
 files. The user-facing name for bookmarks is **Favorites** (heart icon);
 the identifiers keep the classic name.
 
-**No Chrome extensions.** Bowser used to embed
-[`electron-chrome-extensions`](https://github.com/samuelmaddock/electron-browser-shell)
-+ `electron-chrome-web-store` for "Add to Chrome" support. It was removed:
-the extension runtime was the app's main source of hard crashes (MV3
-service workers tripping missing `chrome.webRequest` bindings, faulting
-inside Chromium), and the one thing it was kept for — password managers —
-can't work in *any* custom browser shell: both Apple's iCloud Passwords
-helper and 1Password's native messaging verify the browser's code
-signature against an OS/vendor allowlist. (Bowser has since been added to
-Apple's allowlist source data —
-[apple/password-manager-resources#1137](https://github.com/apple/password-manager-resources/pull/1137)
-— which takes effect if Apple ships it in a macOS update.) Ad blocking,
-the other big extension use case, is built in at the network layer
-instead. Removing the runtime also let the chrome run fully sandboxed and
-dropped a GPL-3.0 licensing constraint. For passwords, use the macOS
-Passwords app's menu-bar quick access alongside Bowser.
+**No Chrome extensions — by design.** The two things most people install
+extensions for are covered natively: ad blocking is built in at the
+network layer (above), and password managers can't integrate with a
+custom browser shell anyway — they verify the browser's code signature
+against vendor allowlists. (Bowser is now in Apple's allowlist source
+data via
+[apple/password-manager-resources#1137](https://github.com/apple/password-manager-resources/pull/1137);
+meanwhile, the macOS Passwords menu-bar app works well alongside Bowser.)
+Skipping an extension runtime also keeps the whole chrome sandboxed and
+the app small.
 
 **Persistence** is deliberately boring: one JSON file per store
 (`settings.json`, `bookmarks.json`, `history.json`, `downloads.json`,
