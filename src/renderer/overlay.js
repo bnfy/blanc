@@ -244,20 +244,34 @@
     return 0;
   }
 
+  /** What a candidate is matched against: title + host + a capped path.
+   * Query strings and fragments are deliberately excluded — OAuth/token
+   * URLs carry kilobytes of base64 that in-order-matches almost any
+   * typed query, which turned one dead Google consent URL in history
+   * into the top "result" for every address typed. */
+  function matchableText(title, url) {
+    try {
+      const u = new URL(url || '');
+      return `${title || ''} ${u.host}${u.pathname.slice(0, 64)}`;
+    } catch {
+      return `${title || ''} ${(url || '').slice(0, 100)}`;
+    }
+  }
+
   const stripUrl = (u) => (u || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
 
   function switcherResults(query) {
     const results = [];
     for (const t of state.tabs) {
-      const s = matchScore(query, `${t.title || ''} ${tabDomain(t) || t.url || ''}`);
+      const s = matchScore(query, matchableText(t.title, t.url));
       if (s) results.push({ kind: 'tab', title: t.title || 'New Tab', sub: tabDomain(t), tab: t, score: s + 0.2 });
     }
     for (const f of favorites) {
-      const s = matchScore(query, `${f.title || ''} ${f.url || ''}`);
+      const s = matchScore(query, matchableText(f.title, f.url));
       if (s) results.push({ kind: 'favorite', title: f.title, sub: stripUrl(f.url), url: f.url, score: s + 0.1 });
     }
     for (const h of historyEntries) {
-      const s = matchScore(query, `${h.title || ''} ${h.url || ''}`);
+      const s = matchScore(query, matchableText(h.title, h.url));
       if (s) results.push({ kind: 'history', title: h.title, sub: stripUrl(h.url), url: h.url, score: s });
     }
     const seen = new Set();

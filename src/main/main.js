@@ -458,14 +458,16 @@ function createTab(url = newTabUrl(), { private: isPrivate = false } = {}) {
     tab.themeColor = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
     scheduleBroadcastTabs();
   });
-  wc.on('did-navigate', (_e, url) => {
+  wc.on('did-navigate', (_e, url, httpResponseCode) => {
     const shouldReclaimChromeFocus = url === tab.url && tabsWantingAddressBarFocus.has(id) && activeTabId === id;
     if (url !== tab.url) tabsWantingAddressBarFocus.delete(id);
     tab.blockedCount = 0;
     tab.pageBg = null; // a new page's tint mustn't linger from the old one
     tab.themeColor = null;
     syncNavState();
-    if (!tab.private) history.addVisit(url, wc.getTitle());
+    // Error responses stay out of history — a dead one-shot OAuth URL
+    // recorded here resurfaces in the Quick Switcher as a destination.
+    if (!tab.private && (httpResponseCode ?? 200) < 400) history.addVisit(url, wc.getTitle());
     broadcastTabs();
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
   });
