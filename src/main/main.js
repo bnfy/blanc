@@ -524,12 +524,29 @@ function createTab(url = newTabUrl(), { private: isPrivate = false } = {}) {
     }
   });
 
-  // Open target="_blank" / window.open() as a new managed tab instead of a
-  // separate, unmanaged Electron window. Cmd/Ctrl+click arrives as
-  // 'background-tab' — open it without stealing focus (browser convention).
-  // Children of a private tab stay private — a target=_blank popup must
-  // not silently start recording history again.
+  // Open target="_blank" links as managed tabs, but let window.open with
+  // explicit features ('new-window': OAuth/SSO popups, payment flows)
+  // become a REAL child window — those flows need window.opener +
+  // postMessage back to the page that opened them, and detaching them
+  // into an opener-less tab breaks sign-in (observed: GitHub's "Sign in
+  // with Google" looping until accounts.google.com 400'd on corrupted
+  // state). Cmd/Ctrl+click arrives as 'background-tab' — open it without
+  // stealing focus (browser convention). Children of a private tab stay
+  // private — a popup must not silently start recording history again.
   wc.setWindowOpenHandler(({ url: targetUrl, disposition }) => {
+    if (disposition === 'new-window') {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          autoHideMenuBar: true,
+          webPreferences: {
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true,
+          },
+        },
+      };
+    }
     const newId = createTab(targetUrl, { private: tab.private });
     if (disposition !== 'background-tab') setActiveTab(newId);
     return { action: 'deny' };
