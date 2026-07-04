@@ -140,8 +140,8 @@ DuckDuckGo, Google, Bing, Brave).
 | `Cmd/Ctrl+T` / `Cmd/Ctrl+W` | new / close tab |
 | `Cmd/Ctrl+L` | focus address bar |
 | `Cmd/Ctrl+R` | reload |
-| `Cmd/Ctrl+D` | bookmark this page |
-| `Cmd+Alt+B` / `Ctrl+Shift+O` | bookmarks |
+| `Cmd/Ctrl+D` | add to favorites |
+| `Cmd+Alt+B` / `Ctrl+Shift+O` | favorites |
 | `Cmd/Ctrl+Y` | history |
 | `Cmd/Ctrl+Shift+J` | downloads |
 | `Cmd/Ctrl+,` | settings |

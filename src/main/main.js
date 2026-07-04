@@ -623,10 +623,10 @@ function buildMenu() {
       ],
     },
     {
-      label: 'Bookmarks',
+      label: 'Favorites',
       submenu: [
-        { label: 'Bookmark This Page', accelerator: 'CmdOrCtrl+D', click: toggleBookmarkForActiveTab },
-        { label: 'Show Bookmarks', accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: () => openInternalPage('bowser://bookmarks/') },
+        { label: 'Add to Favorites', accelerator: 'CmdOrCtrl+D', click: toggleBookmarkForActiveTab },
+        { label: 'Show Favorites', accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: () => openInternalPage('bowser://bookmarks/') },
         { label: 'Show History', accelerator: 'CmdOrCtrl+Y', click: () => openInternalPage('bowser://history/') },
       ],
     },

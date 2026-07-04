@@ -8,7 +8,7 @@
     if (items.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'empty';
-      empty.textContent = 'No bookmarks yet — hit the ☆ in the toolbar (or Ctrl/Cmd+D) on any page.';
+      empty.textContent = 'No favorites yet. Press Ctrl/Cmd+D on a page to add one.';
       list.append(empty);
       return;
     }
