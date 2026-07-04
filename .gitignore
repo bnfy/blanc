@@ -5,3 +5,4 @@ out/
 *.log
 .DS_Store
 brand/Branding.ai
+.superpowers/
