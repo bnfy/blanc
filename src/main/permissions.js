@@ -14,7 +14,7 @@ const PROMPTED = new Set(['media', 'geolocation', 'notifications']);
 let store = null;
 const ensureStore = () => (store ??= new JsonStore('site-permissions', { decisions: {} }));
 
-/** @type {((req: {origin: string, permission: string, mediaTypes: string[]}) => Promise<boolean>) | null} */
+/** @type {((req: {origin: string, permission: string, mediaTypes: string[]}) => Promise<boolean | null>) | null} */
 let prompter = null;
 function setPermissionPrompter(fn) { prompter = fn; }
 
@@ -57,7 +57,11 @@ function setupPermissionPolicy(session) {
     if (saved) return callback(saved === 'allow');
     if (!prompter) return callback(false);
 
+    // null = the prompt couldn't be shown (no window). Deny for now but
+    // DON'T persist it, or a transient no-window moment would silently
+    // block the site forever. Only a real Allow/Block answer is remembered.
     const allow = await prompter({ origin, permission, mediaTypes: details.mediaTypes ?? [] });
+    if (allow === null) return callback(false);
     rememberDecision(origin, permission, allow);
     callback(allow);
   });

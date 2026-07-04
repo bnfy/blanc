@@ -84,6 +84,15 @@ let tabOrder = [];
 let activeTabId = null;
 const tabsWantingAddressBarFocus = new Set();
 
+// Outstanding permission prompts awaiting the user's Allow/Block, keyed by
+// prompt id → the Promise resolver. Flushed if the window dies mid-prompt
+// so the underlying Chromium request never hangs.
+const pendingPermissionPrompts = new Map();
+function flushPermissionPrompts() {
+  for (const resolve of pendingPermissionPrompts.values()) resolve(null); // null = never answered
+  pendingPermissionPrompts.clear();
+}
+
 // Height (in CSS px) the renderer's chrome (title/tab row + toolbar) takes
 // up. The renderer measures its own layout and reports it here, so this
 // is just a sane default before the first report arrives.
@@ -661,7 +670,7 @@ function createMainWindow() {
   win.loadFile(path.join(__dirname, '../renderer/index.html'));
   win.on('resize', resizeActiveView);
   win.on('focus', refocusAddressBarIfWanted);
-  win.on('closed', () => { win = null; });
+  win.on('closed', () => { win = null; flushPermissionPrompts(); });
 
   // Tabs survive window close (macOS dock-reopen recreates the window);
   // re-attach the active tab's view or the new window sits over nothing.
@@ -683,11 +692,13 @@ app.whenReady().then(async () => {
   });
 
   setupPermissionPolicy(ses);
-  const pendingPermissionPrompts = new Map();
   let permissionPromptCounter = 0;
+  // Resolve null when there's no window to ask through — the policy treats
+  // null as "not answered" and denies for now WITHOUT persisting, so a
+  // transient no-window moment can't permanently block a site.
   setPermissionPrompter(({ origin, permission, mediaTypes }) =>
     new Promise((resolve) => {
-      if (!hasLiveWindow()) return resolve(false);
+      if (!hasLiveWindow()) return resolve(null);
       const promptId = ++permissionPromptCounter;
       pendingPermissionPrompts.set(promptId, resolve);
       win.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
