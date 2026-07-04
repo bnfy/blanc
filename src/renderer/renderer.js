@@ -283,18 +283,27 @@
       el.title = tab.url && !tab.url.startsWith('bowser://') ? `${tab.title}\n${tab.url}` : tab.title;
 
       const favicon = document.createElement('div');
+      const isInternal = tab.url.startsWith('bowser://');
+      const hasIcon = !!tab.favicon || isInternal;
       favicon.className =
-        'tab-favicon' + (tab.isLoading ? ' loading' : tab.favicon ? ' has-icon' : '');
-      if (tab.favicon && !tab.isLoading) {
-        favicon.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
+        'tab-favicon' + (tab.isLoading ? ' loading' : hasIcon ? ' has-icon' : '');
+      if (!tab.isLoading) {
+        if (tab.favicon) {
+          favicon.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
+        } else if (isInternal) {
+          // Internal pages carry the Bowser mark.
+          favicon.style.backgroundImage = 'url("pages/icon.svg")';
+        }
       }
 
       const title = document.createElement('div');
       title.className = 'tab-title';
       title.textContent = tab.isLoading ? 'Loading…' : (tab.title || 'New Tab');
 
-      const close = document.createElement('div');
+      const close = document.createElement('button');
       close.className = 'tab-close';
+      close.setAttribute('aria-label', 'Close tab');
+      close.title = 'Close tab';
       close.innerHTML = ICONS.close;
       close.addEventListener('click', (e) => {
         e.stopPropagation();

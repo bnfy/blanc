@@ -41,11 +41,18 @@ function applyTheme() {
 }
 
 function findTabByWebContents(wc) {
+  // During app teardown the extension host reports destroyed webContents
+  // while other tabs' contents are already gone — view.webContents becomes
+  // undefined then, so every access here must tolerate dead tabs.
+  if (!wc || wc.isDestroyed?.()) return null;
   for (const tab of tabs.values()) {
-    if (tab.view.webContents.id === wc.id) return tab;
+    const tabWc = tab.view.webContents;
+    if (tabWc && !tabWc.isDestroyed() && tabWc.id === wc.id) return tab;
   }
   return null;
 }
+
+const hasLiveWindow = () => !!win && !win.isDestroyed();
 
 /** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number }>} */
 const tabs = new Map();
@@ -85,8 +92,13 @@ function serializeTabs() {
 let sessionStore = null;
 const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0 }));
 
+let isQuitting = false;
+app.on('before-quit', () => { isQuitting = true; });
+
 function persistSession() {
-  if (tabs.size === 0) return; // don't wipe the saved session during teardown
+  // Teardown closes tabs one by one; saving then would erode the session
+  // file down to whatever closed last before the process exits.
+  if (isQuitting || tabs.size === 0) return;
   ensureSessionStore().update((d) => {
     d.urls = tabOrder
       .map((id) => {
@@ -254,6 +266,13 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // stack overflows (crashes the main process).
   if (id === activeTabId) return;
 
+  // No window to attach to (quitting, or macOS with all windows closed):
+  // just track the selection so window recreation attaches the right tab.
+  if (!hasLiveWindow()) {
+    activeTabId = id;
+    return;
+  }
+
   const prevId = activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
   if (prev) win.contentView.removeChildView(prev.view);
@@ -300,23 +319,27 @@ function closeTab(id) {
   }
 
   const wasActive = id === activeTabId;
-  if (wasActive) win.contentView.removeChildView(tab.view);
+  if (wasActive && hasLiveWindow()) win.contentView.removeChildView(tab.view);
 
   const closedIndex = tabOrder.indexOf(id);
   tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
   tabOrder = tabOrder.filter((tid) => tid !== id);
-  tab.view.webContents.close();
+  const wc = tab.view.webContents;
+  if (wc && !wc.isDestroyed()) wc.close();
 
   if (wasActive) {
     if (tabOrder.length > 0) {
       // Prefer the tab that was to the right of the closed one.
       setActiveTab(tabOrder[Math.min(closedIndex, tabOrder.length - 1)]);
-    } else {
+    } else if (hasLiveWindow()) {
       activeTabId = null;
       setActiveTab(createTab());
+    } else {
+      // Quitting or window already gone — don't spawn replacement tabs.
+      activeTabId = null;
     }
-    return; // setActiveTab already broadcasts
+    if (hasLiveWindow()) return; // setActiveTab already broadcasts
   }
   broadcastTabs();
 }
