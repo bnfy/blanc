@@ -28,6 +28,10 @@
   const findPrevBtn = document.getElementById('findPrevBtn');
   const findNextBtn = document.getElementById('findNextBtn');
   const findCloseBtn = document.getElementById('findCloseBtn');
+  const permissionBar = document.getElementById('permissionBar');
+  const permissionText = document.getElementById('permissionText');
+  const permAllowBtn = document.getElementById('permAllowBtn');
+  const permBlockBtn = document.getElementById('permBlockBtn');
 
   let tabIndicator = document.getElementById('tabIndicator');
   if (!tabIndicator) {
@@ -490,6 +494,47 @@
   findPrevBtn.addEventListener('click', () => runFind({ forward: false, findNext: true }));
   findNextBtn.addEventListener('click', () => runFind({ forward: true, findNext: true }));
   findCloseBtn.addEventListener('click', () => closeFindBar());
+
+  // --- Permission prompts (one visible at a time, FIFO) ---
+  const permissionQueue = [];
+  let activePermissionPrompt = null;
+
+  function describePermission({ permission, mediaTypes }) {
+    if (permission === 'media') {
+      const wantsAudio = mediaTypes.includes('audio');
+      const wantsVideo = mediaTypes.includes('video');
+      if (wantsAudio && wantsVideo) return 'use your camera and microphone';
+      if (wantsVideo) return 'use your camera';
+      return 'use your microphone';
+    }
+    if (permission === 'geolocation') return 'know your location';
+    if (permission === 'notifications') return 'show notifications';
+    return `use “${permission}”`;
+  }
+
+  function showNextPermissionPrompt() {
+    activePermissionPrompt = permissionQueue.shift() ?? null;
+    permissionBar.hidden = !activePermissionPrompt;
+    if (activePermissionPrompt) {
+      const host = new URL(activePermissionPrompt.origin).host;
+      permissionText.textContent = `${host} wants to ${describePermission(activePermissionPrompt)}`;
+    }
+    requestAnimationFrame(reportLayout);
+  }
+
+  function answerPermissionPrompt(allow) {
+    if (!activePermissionPrompt) return;
+    window.browserAPI.respondPermission(activePermissionPrompt.id, allow);
+    showNextPermissionPrompt();
+  }
+
+  permAllowBtn.addEventListener('click', () => answerPermissionPrompt(true));
+  permBlockBtn.addEventListener('click', () => answerPermissionPrompt(false));
+
+  window.browserAPI.onPermissionPrompt((payload) => {
+    permissionQueue.push(payload);
+    if (!activePermissionPrompt) showNextPermissionPrompt();
+  });
 
   // --- Downloads badge ---
   function renderDownloads({ activeCount }) {

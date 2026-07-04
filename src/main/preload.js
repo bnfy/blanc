@@ -29,6 +29,13 @@ contextBridge.exposeInMainWorld('browserAPI', {
   findInPage: (id, query, options) => ipcRenderer.invoke('tabs:find', id, query, options),
   stopFindInPage: (id) => ipcRenderer.invoke('tabs:find-stop', id),
 
+  respondPermission: (id, allow) => ipcRenderer.send('permissions:respond', { id, allow }),
+  onPermissionPrompt: (callback) => {
+    const listener = (_e, payload) => callback(payload);
+    ipcRenderer.on('permissions:prompt', listener);
+    return () => ipcRenderer.removeListener('permissions:prompt', listener);
+  },
+
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
 
   minimizeWindow: () => ipcRenderer.send('window:minimize'),

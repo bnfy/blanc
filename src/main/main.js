@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const { setupAdBlocker, setAdBlockEnabled, getBlocker } = require('./adblock');
 const { createExtensionHost, initWebStore, listExtensions } = require('./extensions');
 const { registerPagesScheme, setupPages } = require('./pages');
-const { setupPermissionPolicy } = require('./permissions');
+const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { setupDownloads, activeCount } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
@@ -683,6 +683,21 @@ app.whenReady().then(async () => {
   });
 
   setupPermissionPolicy(ses);
+  const pendingPermissionPrompts = new Map();
+  let permissionPromptCounter = 0;
+  setPermissionPrompter(({ origin, permission, mediaTypes }) =>
+    new Promise((resolve) => {
+      if (!hasLiveWindow()) return resolve(false);
+      const promptId = ++permissionPromptCounter;
+      pendingPermissionPrompts.set(promptId, resolve);
+      win.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
+    })
+  );
+  ipcMain.on('permissions:respond', (_e, { id, allow }) => {
+    pendingPermissionPrompts.get(id)?.(!!allow);
+    pendingPermissionPrompts.delete(id);
+  });
+
   setupDownloads(ses, broadcastDownloads);
   setupPages({ onDataChanged: refreshBookmarkFlags });
 
