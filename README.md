@@ -1,5 +1,7 @@
 # Bowser
 
+![Bowser's Island chrome floating over github.com — tab dots, the current domain, and the ad-block counter in a single pill](docs/island-chrome.png)
+
 A minimal Electron browser with **Island chrome**: instead of a tab strip
 and toolbar, a single floating pill sits top-center over the page — tab
 dots, the current site, and an ad-block counter. Click it (or hit
