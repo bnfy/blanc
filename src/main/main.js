@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, dialog } = require('electron');
 const path = require('path');
 const crypto = require('crypto');
 const { setupAdBlocker, setAdBlockEnabled, getBlocker } = require('./adblock');
@@ -258,6 +258,20 @@ function createTab(url = newTabUrl()) {
     if (!isMainFrame || errorCode === -3 || !validatedURL) return;
     const q = new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
     wc.loadURL(`bowser://error/?${q}`).catch(() => {});
+  });
+
+  // A page's beforeunload can block close/navigation; surface Chrome's
+  // Leave/Stay choice instead of silently refusing.
+  wc.on('will-prevent-unload', (event) => {
+    const choice = dialog.showMessageBoxSync(hasLiveWindow() ? win : undefined, {
+      type: 'question',
+      buttons: ['Leave', 'Stay'],
+      defaultId: 0,
+      cancelId: 1,
+      message: 'Leave this page?',
+      detail: 'Changes you made may not be saved.',
+    });
+    if (choice === 0) event.preventDefault(); // preventing the prevention lets the unload proceed
   });
 
   wc.on('found-in-page', (_e, result) => {
