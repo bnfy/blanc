@@ -53,6 +53,10 @@
     return state.tabs.find((t) => t.id === state.activeTabId) || null;
   }
 
+  function shieldTooltip(blocked) {
+    return `Bowser blocked ${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
+  }
+
   /** Short label for a tab's location: host for web pages, page name for
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
@@ -125,6 +129,7 @@
     const blocked = tab?.blockedCount ?? 0;
     pillShield.hidden = blocked === 0;
     pillShield.textContent = String(blocked);
+    pillShield.title = shieldTooltip(blocked);
 
     // The private theme scope follows the active tab.
     if (tab?.private) document.documentElement.dataset.theme = 'private';

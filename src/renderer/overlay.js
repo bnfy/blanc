@@ -137,6 +137,7 @@
       const shield = document.createElement('span');
       shield.className = 'shield';
       shield.textContent = String(tab.blockedCount);
+      shield.title = `Bowser blocked ${tab.blockedCount} ${tab.blockedCount === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
       row.append(shield);
     }
 
