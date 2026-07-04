@@ -32,7 +32,16 @@ echo "==> Cleaning dist/"
 rm -rf dist
 
 echo "==> Building (unpublished)"
-npx electron-builder --publish never
+BUILD_CMD=(npx electron-builder --publish never)
+if command -v op >/dev/null; then
+  if ! op run --env-file=.env.1password --no-masking -- "${BUILD_CMD[@]}"; then
+    echo "==> op run failed (1Password locked, or 'Apple Notarization' item missing?) — see .env.1password / CLAUDE.md." >&2
+    exit 1
+  fi
+else
+  echo "==> Note: 1Password CLI not found — building unnotarized. See .env.1password / CLAUDE.md."
+  "${BUILD_CMD[@]}"
+fi
 
 ASSETS=(
   "dist/Bowser-$VERSION-arm64-mac.zip"
