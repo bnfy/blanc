@@ -5,7 +5,6 @@ const bookmarks = require('./bookmarks');
 const history = require('./history');
 const downloads = require('./downloads');
 const settings = require('./settings');
-const { listExtensions, removeExtension } = require('./extensions');
 const { listDecisions, removeDecision } = require('./permissions');
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
@@ -75,9 +74,6 @@ function setupPages(hooks = {}) {
   handle('pages:settings:set', (partial) => settings.setSettings(partial ?? {}));
 
   handle('pages:app-version', () => app.getVersion());
-
-  handle('pages:extensions:list', () => listExtensions(session.defaultSession));
-  handle('pages:extensions:remove', (id) => removeExtension(session.defaultSession, id));
 
   handle('pages:permissions:list', () => listDecisions());
   handle('pages:permissions:remove', (key) => removeDecision(String(key)));

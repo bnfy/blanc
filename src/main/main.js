@@ -3,7 +3,6 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { setupAdBlocker, setAdBlockEnabled, getBlocker } = require('./adblock');
-const { createExtensionHost, initWebStore, listExtensions } = require('./extensions');
 const { registerPagesScheme, setupPages } = require('./pages');
 const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
@@ -38,63 +37,38 @@ if (!app.requestSingleInstanceLock()) {
     }
   });
 
-  // Self-heal an extension-state crash loop caused by an unclean exit.
-  //
-  // Our extensions run with a sanitized/shimmed service worker (see
-  // extensions.js). When the process exits uncleanly (crash, force-quit,
-  // OOM), the profile's extension + service-worker state can be left in a
-  // shape where, on the next launch, a preinstalled extension's worker
-  // fails to start and electron-chrome-extensions faults inside Chromium
-  // (V8 traced-reference use-after-free, SIGSEGV at 0x130) — crash-looping
-  // until the state is cleared by hand. Clearing ONLY the Service Worker
-  // cache is NOT enough (verified): the worker still fails to start against
-  // the pre-existing extension registration. Only a full reset of the
-  // extension + service-worker state — so everything re-registers cleanly,
-  // like a first install — recovers reliably.
-  //
-  // A sentinel written on start and removed on a clean quit detects the
-  // unclean case. Scoped to extension/worker dirs only: cookies, history,
-  // bookmarks, downloads and settings (separate files) are untouched. The
-  // preinstalled managers reinstall automatically on the next launch.
-  //
-  // Trade-off: a user-installed (non-preinstalled) extension would need
-  // re-adding after an unclean exit. Acceptable versus a hard crash loop,
-  // and unclean exits are rare with the single-instance lock and the
-  // renderer-freeze fix in place. Must run before app 'ready'.
-  const VOLATILE_EXTENSION_DIRS = [
-    'Service Worker', 'Extensions', 'Extension State', 'Extension Scripts', 'Extension Rules',
+  // Chrome-extension support used to live here (electron-chrome-extensions
+  // + web store, plus crash-loop recovery for extension profile state). It
+  // was removed: the password managers it existed for are blocked from
+  // working in any non-allowlisted browser at the OS/vendor level, and the
+  // extension runtime was the app's main source of hard crashes. Leftover
+  // extension profile state from older versions is cleared below. (The
+  // profile's 'Service Worker' dir is left alone — it also holds ordinary
+  // websites' service workers, and with no extension runtime a stale
+  // extension worker registration in there is inert.)
+  const staleExtensionState = [
+    'Extensions', 'Extension State', 'Extension Scripts', 'Extension Rules', '.running',
   ];
-  const runningSentinel = path.join(app.getPath('userData'), '.running');
   try {
-    if (fs.existsSync(runningSentinel)) {
-      for (const dir of VOLATILE_EXTENSION_DIRS) {
-        fs.rmSync(path.join(app.getPath('userData'), dir), { recursive: true, force: true });
-      }
+    for (const entry of staleExtensionState) {
+      fs.rmSync(path.join(app.getPath('userData'), entry), { recursive: true, force: true });
     }
-    fs.mkdirSync(app.getPath('userData'), { recursive: true });
-    fs.writeFileSync(runningSentinel, String(process.pid));
   } catch (err) {
-    console.warn('[recovery] extension-state sentinel handling failed:', err.message);
+    console.warn('[cleanup] could not clear stale extension state:', err.message);
   }
-  app.on('will-quit', () => {
-    try { fs.rmSync(runningSentinel, { force: true }); } catch {}
-  });
 }
 
 // Must happen before app 'ready'.
 registerPagesScheme();
 
-// Strip the app and Electron tokens from the UA so sites (and the Chrome
-// Web Store in particular) treat us as a plain Chrome build.
+// Strip the app and Electron tokens from the UA so sites treat us as a
+// plain Chrome build.
 app.userAgentFallback = app.userAgentFallback
   .replace(/\sbowser\/[\d.]+/i, '')
   .replace(/\sElectron\/[\d.]+/, '');
 
 /** @type {BrowserWindow | null} */
 let win = null;
-
-/** @type {import('electron-chrome-extensions').ElectronChromeExtensions | null} */
-let extensionHost = null;
 
 // Window background behind everything, matching the CSS --bg tokens so
 // resizes and load flashes stay in-theme.
@@ -104,18 +78,6 @@ const chromeBackgroundColor = () => (nativeTheme.shouldUseDarkColors ? '#0e0e0e'
 // chrome UI, internal pages, and the web content itself see one theme.
 function applyTheme() {
   nativeTheme.themeSource = settings.getSettings().theme;
-}
-
-function findTabByWebContents(wc) {
-  // During app teardown the extension host reports destroyed webContents
-  // while other tabs' contents are already gone — view.webContents becomes
-  // undefined then, so every access here must tolerate dead tabs.
-  if (!wc || wc.isDestroyed?.()) return null;
-  for (const tab of tabs.values()) {
-    const tabWc = tab.view.webContents;
-    if (tabWc && !tabWc.isDestroyed() && tabWc.id === wc.id) return tab;
-  }
-  return null;
 }
 
 const hasLiveWindow = () => !!win && !win.isDestroyed();
@@ -248,7 +210,6 @@ function createTab(url = newTabUrl()) {
   const tab = {
     id,
     view,
-    wcId: view.webContents.id,
     title: 'New Tab',
     url,
     isLoading: false,
@@ -260,7 +221,6 @@ function createTab(url = newTabUrl()) {
   };
   tabs.set(id, tab);
   tabOrder.push(id);
-  if (win) extensionHost?.addTab(view.webContents, win);
 
   const wc = view.webContents;
   const syncNavState = () => {
@@ -346,18 +306,8 @@ function createTab(url = newTabUrl()) {
   // separate, unmanaged Electron window. Cmd/Ctrl+click arrives as
   // 'background-tab' — open it without stealing focus (browser convention).
   wc.setWindowOpenHandler(({ url: targetUrl, disposition }) => {
-    const prevActiveTabId = activeTabId;
     const newId = createTab(targetUrl);
-    if (disposition !== 'background-tab') {
-      setActiveTab(newId);
-    } else if (prevActiveTabId && activeTabId !== prevActiveTabId) {
-      // createTab() -> extensionHost?.addTab() synchronously runs
-      // electron-chrome-extensions' own TabsAPI.observeTab/onActivated,
-      // which unconditionally activates every newly-added tab via our
-      // `selectTab` delegate — racing ahead of the disposition check above.
-      // Snap focus back to whatever was active before this tab was created.
-      setActiveTab(prevActiveTabId);
-    }
+    if (disposition !== 'background-tab') setActiveTab(newId);
     return { action: 'deny' };
   });
 
@@ -376,11 +326,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   const next = tabs.get(id);
   if (!next) return;
 
-  // Re-selecting the active tab must be a no-op: the extension host's
-  // selectTab delegate calls back into this function, so without this
-  // guard an extension-initiated tab activation recurses through
-  // extensionHost.selectTab → onActivated → delegate → here until the
-  // stack overflows (crashes the main process).
+  // Re-selecting the active tab is a no-op.
   if (id === activeTabId) return;
 
   // No window to attach to (quitting, or macOS with all windows closed):
@@ -411,7 +357,6 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // can be claimed asynchronously by the attached child view, so blank-tab
   // activation keeps reclaiming focus until the user navigates or switches.
   if (focusContent) next.view.webContents.focus();
-  extensionHost?.selectTab(next.view.webContents);
   broadcastTabs();
   if (shouldFocusAddress) {
     reclaimAddressBarFocus(id);
@@ -599,7 +544,6 @@ function registerIpcHandlers() {
   ipcMain.handle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
   ipcMain.handle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
   ipcMain.handle('downloads:summary', () => ({ activeCount: activeCount() }));
-  ipcMain.handle('extensions:list', () => listExtensions(session.defaultSession));
 
   ipcMain.on('chrome:layout', (_e, { height }) => {
     if (typeof height === 'number' && height > 0) {
@@ -703,10 +647,7 @@ function createMainWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
-      // The chrome UI renders only our own local page, never web content.
-      // Unsandboxed so the preload can require() the browser-action module
-      // that renders extension toolbar icons/popups.
-      sandbox: false,
+      sandbox: true,
     },
   });
 
@@ -755,24 +696,6 @@ app.whenReady().then(async () => {
   setupDownloads(ses, broadcastDownloads);
   setupPages({ onDataChanged: refreshBookmarkFlags });
 
-  // chrome.* API host must exist before any tab is created; the delegate
-  // maps extension-initiated tab actions onto our tab model.
-  extensionHost = createExtensionHost(ses, {
-    createTab: (details) => {
-      const id = createTab(details.url || newTabUrl());
-      if (details.active !== false) setActiveTab(id);
-      return [tabs.get(id).view.webContents, win];
-    },
-    selectTab: (wc) => {
-      const tab = findTabByWebContents(wc);
-      if (tab) setActiveTab(tab.id);
-    },
-    removeTab: (wc) => {
-      const tab = findTabByWebContents(wc);
-      if (tab) closeTab(tab.id);
-    },
-  });
-
   await setupAdBlocker(ses, { enabled: settings.getSettings().adblockEnabled });
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
@@ -816,10 +739,6 @@ app.whenReady().then(async () => {
   win.webContents.once('did-finish-load', () => {
     setActiveTab(firstTabId, { focusContent: !fresh, focusAddress: fresh });
   });
-
-  // Web store + preinstalled extensions load in the background — network
-  // installs on first run shouldn't block the window.
-  initWebStore(ses).catch((err) => console.warn('[extensions] web store init failed:', err.message));
 
   setupAutoUpdater();
 

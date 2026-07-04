@@ -1,14 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Registers the <browser-action-list> custom element that renders
-// extension toolbar icons and anchors their popups.
-try {
-  const { injectBrowserAction } = require('electron-chrome-extensions/browser-action');
-  injectBrowserAction();
-} catch (err) {
-  console.warn('[preload] browser action UI unavailable:', err.message);
-}
-
 contextBridge.exposeInMainWorld('browserAPI', {
   platform: process.platform,
 
@@ -25,7 +16,6 @@ contextBridge.exposeInMainWorld('browserAPI', {
   openPage: (name) => ipcRenderer.invoke('tabs:open-page', name),
   getAllTabs: () => ipcRenderer.invoke('tabs:get-all'),
   getDownloadsSummary: () => ipcRenderer.invoke('downloads:summary'),
-  getExtensions: () => ipcRenderer.invoke('extensions:list'),
   findInPage: (id, query, options) => ipcRenderer.invoke('tabs:find', id, query, options),
   stopFindInPage: (id) => ipcRenderer.invoke('tabs:find-stop', id),
 

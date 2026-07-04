@@ -47,7 +47,6 @@ other Macs.
 ```
 src/main/main.js         Window + per-tab WebContentsView lifecycle, IPC, menu/shortcuts
 src/main/adblock.js      Network + cosmetic ad blocking (@ghostery/adblocker-electron)
-src/main/extensions.js   Chrome extension support (electron-chrome-extensions + web store)
 src/main/pages.js        bowser:// scheme for internal pages + their guarded IPC API
 src/main/permissions.js  Explicit deny-by-default permission policy for web content
 src/main/downloads.js    Download tracking (will-download), open/show/cancel actions
@@ -73,8 +72,8 @@ Tab order lives in the main process (`tabOrder`); the strip supports
 drag-to-reorder, which round-trips through `tabs:reorder` so main stays
 authoritative.
 
-**Security posture:** every `WebContentsView` runs with
-`contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`.
+**Security posture:** the chrome window and every `WebContentsView` run
+with `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`.
 Tabs carry `tab-preload.js`, but it exposes its `bowserPages` bridge only
 when the document is one of our own `bowser://` pages (re-checked on every
 navigation), and the main process re-verifies the sender URL on every
@@ -103,27 +102,19 @@ arbitrary local files. They talk to their stores through the guarded
 `bowserPages` bridge described above. Toolbar buttons, menu items, and the
 new-tab page all link to them.
 
-**Chrome extensions** run through
+**No Chrome extensions.** Bowser used to embed
 [`electron-chrome-extensions`](https://github.com/samuelmaddock/electron-browser-shell)
-(note: GPL-3.0 — fine for private use, needs a paid license to ship
-proprietary builds) plus `electron-chrome-web-store`, so "Add to Chrome"
-works on chromewebstore.google.com and installed extensions auto-update.
-Toolbar icons/popups render via the `<browser-action-list>` element in the
-chrome UI (which is why the chrome window runs unsandboxed — it never
-loads web content). Dashlane and 1Password are preinstalled on first run.
-`extensions.js` also sanitizes installed extensions: Electron has no
-`chrome.webRequest` for extensions (a manifest requesting it crash-loops
-the worker at the C++ level), so the permission is stripped and a no-op
-shim is injected into the extension's service worker.
-
-Extension status: **Dashlane works** (sign in inside the extension —
-desktop-app/biometric unlock is impossible for any custom browser, since
-native messaging verifies browser code signatures against an allowlist).
-**1Password does not work yet**: its background worker is an ES-module
-service worker, which Electron can't attach preload scripts to, so the
-extension-API layer never reaches it — tracked upstream in
-[electron#49984](https://github.com/electron/electron/issues/49984) and
-[electron-browser-shell#172](https://github.com/samuelmaddock/electron-browser-shell/issues/172).
++ `electron-chrome-web-store` for "Add to Chrome" support. It was removed:
+the extension runtime was the app's main source of hard crashes (MV3
+service workers tripping missing `chrome.webRequest` bindings, faulting
+inside Chromium), and the one thing it was kept for — password managers —
+can't work in *any* custom browser shell: both Apple's iCloud Passwords
+helper and 1Password's native messaging verify the browser's code
+signature against an OS/vendor allowlist that a custom shell can't join.
+Ad blocking (the other big extension use case) is built in at the network
+layer instead. Removing the runtime also let the chrome window run fully
+sandboxed and dropped the GPL-3.0 licensing constraint. For passwords, use
+the macOS Passwords app's menu-bar quick access alongside Bowser.
 
 **Persistence** is deliberately boring: one JSON file per store
 (`settings.json`, `bookmarks.json`, `history.json`, `downloads.json`) in
@@ -157,9 +148,6 @@ DuckDuckGo, Google, Bing, Brave).
 
 ## What's still left
 
-- **1Password extension** — blocked on Electron supporting preloads for
-  ES-module extension service workers (see links above). Re-test after
-  Electron upgrades; the install/sanitize plumbing is already in place.
 - **Per-site permission prompts** — the policy is a global allow/deny
   table; granting a specific site camera access needs a prompt UI.
 - **Address bar suggestions** from history/bookmarks while typing.

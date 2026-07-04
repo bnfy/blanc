@@ -20,8 +20,6 @@
   },
   "dependencies": {
     "@ghostery/adblocker-electron": "^2.18.1",
-    "electron-chrome-extensions": "^4.9.0",
-    "electron-chrome-web-store": "^0.13.0",
     "electron-updater": "^6.8.9"
   },
   "build": {
