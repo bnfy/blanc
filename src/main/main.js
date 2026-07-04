@@ -6,7 +6,7 @@ const { setupAdBlocker, setAdBlockEnabled, getBlocker } = require('./adblock');
 const { registerPagesScheme, setupPages } = require('./pages');
 const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
-const { setupDownloads, activeCount } = require('./downloads');
+const { setupDownloads } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
@@ -16,6 +16,8 @@ const { JsonStore } = require('./store');
 
 const NEW_TAB_URL = 'bowser://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
+// The query flag tells the newtab page to show private copy + theme.
+const PRIVATE_NEW_TAB_URL = 'bowser://newtab/?private=1';
 
 // Dev runs (`npm start`) get their own userData so a dev instance never
 // shares — and corrupts — the installed app's profile: two Chromium
@@ -82,7 +84,7 @@ function applyTheme() {
 
 const hasLiveWindow = () => !!win && !win.isDestroyed();
 
-/** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number }>} */
+/** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
 /** Display order of tab ids — the single source of truth for the strip. */
 let tabOrder = [];
@@ -98,10 +100,107 @@ function flushPermissionPrompts() {
   pendingPermissionPrompts.clear();
 }
 
-// Height (in CSS px) the renderer's chrome (title/tab row + toolbar) takes
-// up. The renderer measures its own layout and reports it here, so this
+// Height (in CSS px) of the chrome strip the resting island pill floats
+// in. The renderer measures its own layout and reports it here, so this
 // is just a sane default before the first report arrives.
-let chromeHeight = 88;
+let chromeHeight = 56;
+
+// The island's expanded states (command bar, ⌘L palette, find capsule)
+// render in a separate always-on-top WebContentsView so they float OVER
+// the web content instead of growing the strip and shifting content down.
+// It is attached to win.contentView only while something is showing.
+/** @type {WebContentsView | null} */
+let overlayView = null;
+/** @type {null | 'panel' | 'palette' | 'find'} */
+let overlayMode = null;
+
+// Find mode keeps the overlay's bounds tight around the capsule so the
+// rest of the page stays clickable while stepping through matches. Sized
+// to fit the capsule (top 60 + ~42 tall) plus its full shadow extent.
+const FIND_OVERLAY = { width: 560, height: 160 };
+
+function overlayBounds() {
+  const { width, height } = win.getContentBounds();
+  if (overlayMode === 'find') {
+    // Below the strip, so the pill stays clickable while find is open and
+    // the strip's drag region can't shadow the capsule.
+    return {
+      x: Math.round((width - FIND_OVERLAY.width) / 2),
+      y: chromeHeight,
+      width: FIND_OVERLAY.width,
+      height: Math.max(0, Math.min(FIND_OVERLAY.height, height - chromeHeight)),
+    };
+  }
+  return { x: 0, y: 0, width, height };
+}
+
+function createOverlay() {
+  overlayView = new WebContentsView({
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  overlayView.setBackgroundColor('#00000000'); // page shows through around the panel
+  overlayView.webContents.loadFile(path.join(__dirname, '../renderer/overlay.html'));
+
+  // A show requested before the overlay document finished its first load
+  // would be lost — leaving an invisible view blocking clicks. Replay it.
+  overlayView.webContents.once('did-finish-load', () => {
+    if (overlayMode) {
+      overlayView.webContents.send('overlay:show', { mode: overlayMode });
+      overlayView.webContents.focus();
+    }
+  });
+
+  // Dismiss on Escape at the main-process level so it works no matter
+  // which element inside the overlay holds focus.
+  overlayView.webContents.on('before-input-event', (event, input) => {
+    if (overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
+      event.preventDefault();
+      hideOverlay();
+    }
+  });
+
+  // Losing focus (page click, cmd-tab, devtools) with the command bar open
+  // would leave a stale panel floating over the page. Find mode survives
+  // blur deliberately — users click around the page between matches.
+  overlayView.webContents.on('blur', () => {
+    if (!overlayMode || overlayMode === 'find') return;
+    // A freshly attached blank tab's view can momentarily grab focus while
+    // its address-focus reclaim is still pending — that's not a dismissal;
+    // the reclaim will re-assert overlay focus on the next tick.
+    if (activeTabId && tabsWantingAddressBarFocus.has(activeTabId)) return;
+    hideOverlay({ refocusContent: false });
+  });
+}
+
+function showOverlay(mode) {
+  if (!hasLiveWindow() || !overlayView) return;
+  overlayMode = mode;
+  // (Re-)adding moves the overlay to the top of the child-view stack.
+  win.contentView.addChildView(overlayView);
+  overlayView.setBounds(overlayBounds());
+  overlayView.webContents.send('overlay:show', { mode });
+  overlayView.webContents.focus();
+  win.webContents.send('chrome:island-state', { mode });
+}
+
+function hideOverlay({ refocusContent = true } = {}) {
+  if (!overlayMode) return;
+  overlayMode = null;
+  // A dismissed command bar means the user is done addressing — stop any
+  // pending blank-tab focus reclaim so a page click can't reopen it.
+  if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
+  if (hasLiveWindow() && overlayView) {
+    win.contentView.removeChildView(overlayView);
+    overlayView.webContents.send('overlay:hide');
+    win.webContents.send('chrome:island-state', { mode: null });
+    if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
+  }
+}
 
 function normalizeAddressInput(input) {
   const trimmed = input.trim();
@@ -136,8 +235,10 @@ function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
   // file down to whatever closed last before the process exits.
   if (isQuitting || tabs.size === 0) return;
+  // Private tabs leave no trail — they never enter the session file.
+  const persistable = tabOrder.filter((id) => !tabs.get(id)?.private);
   ensureSessionStore().update((d) => {
-    d.urls = tabOrder
+    d.urls = persistable
       .map((id) => {
         const url = tabs.get(id)?.url;
         // Persist the address that failed, not the error page wrapping it,
@@ -152,14 +253,16 @@ function persistSession() {
         return url;
       })
       .filter(Boolean);
-    d.activeIndex = Math.max(0, tabOrder.indexOf(activeTabId));
+    d.activeIndex = Math.max(0, persistable.indexOf(activeTabId));
   });
 }
 
 function broadcastTabs() {
   persistSession();
   if (!win || win.isDestroyed()) return;
-  win.webContents.send('tabs:updated', { tabs: serializeTabs(), activeTabId });
+  const payload = { tabs: serializeTabs(), activeTabId };
+  win.webContents.send('tabs:updated', payload);
+  overlayView?.webContents.send('tabs:updated', payload);
 }
 
 // The blocked-request counter can tick many times a second during a page
@@ -173,25 +276,128 @@ function scheduleBroadcastTabs() {
   }, 100);
 }
 
-function broadcastDownloads() {
-  if (!win || win.isDestroyed()) return;
-  win.webContents.send('downloads:updated', { activeCount: activeCount() });
-}
-
 function resizeActiveView() {
-  if (!win || win.isDestroyed() || !activeTabId) return;
-  const tab = tabs.get(activeTabId);
-  if (!tab) return;
-  const bounds = win.getContentBounds();
-  tab.view.setBounds({
-    x: 0,
-    y: chromeHeight,
-    width: bounds.width,
-    height: Math.max(0, bounds.height - chromeHeight),
-  });
+  if (!win || win.isDestroyed()) return;
+  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  if (tab) {
+    const bounds = win.getContentBounds();
+    tab.view.setBounds({
+      x: 0,
+      y: chromeHeight,
+      width: bounds.width,
+      height: Math.max(0, bounds.height - chromeHeight),
+    });
+  }
+  if (overlayMode && overlayView) overlayView.setBounds(overlayBounds());
 }
 
-function createTab(url = newTabUrl()) {
+/** Pick the sharpest favicon from a page's declared icon links. The pill
+ * renders icons at 14px CSS (28+ device px on retina), so a 16px .ico —
+ * which is what `page-favicon-updated`'s first entry usually is — scales
+ * up blurry. Preference: SVG, then declared sizes ≥32 (nearest 64 wins),
+ * then apple-touch-icon (~180px, slightly demoted: often has a solid
+ * background), then undeclared PNGs over undeclared ICOs. */
+function pickBestFavicon(candidates) {
+  let best = null;
+  let bestScore = -1;
+  for (const c of candidates) {
+    if (!c || typeof c.href !== 'string' || c.href.length > 2048) continue;
+    if (!/^(https?:|data:image\/)/i.test(c.href)) continue;
+    const sizes = typeof c.sizes === 'string' ? c.sizes.slice(0, 100) : '';
+    const appleTouch = typeof c.rel === 'string' && /apple-touch-icon/i.test(c.rel);
+    const declared = Math.max(0, ...[...sizes.matchAll(/(\d+)[x×]\d+/gi)].map((m) => Number(m[1])));
+    const size = declared || (appleTouch ? 180 : 0);
+    let score;
+    if (/\.svg(\?|#|$)/i.test(c.href) || /\bany\b/i.test(sizes)) score = 1e6;
+    else if (size >= 32) score = 100000 + (10000 - Math.abs(size - 64)) - (appleTouch ? 500 : 0);
+    else if (size === 0) score = /\.ico(\?|$)/i.test(c.href) ? 100 : 1000;
+    else score = size;
+    if (score > bestScore) {
+      bestScore = score;
+      best = c.href;
+    }
+  }
+  return best;
+}
+
+/** Asynchronously refine a tab's favicon beyond Chromium's first-listed
+ * URL. Runs in the page context, so everything returned is validated in
+ * pickBestFavicon before it touches chrome CSS. */
+async function upgradeFavicon(tab) {
+  const urlAtStart = tab.url;
+  try {
+    const candidates = await tab.view.webContents.executeJavaScript(
+      `[...document.querySelectorAll('link[rel~="icon"], link[rel~="apple-touch-icon"]')]
+        .slice(0, 20)
+        .map((l) => ({ href: l.href, sizes: l.getAttribute('sizes') || '', rel: l.rel }))`
+    );
+    if (!Array.isArray(candidates) || candidates.length > 20) return;
+    if (!tabs.has(tab.id) || tab.url !== urlAtStart) return; // navigated away meanwhile
+    const best = pickBestFavicon(candidates);
+    if (best && best !== tab.favicon) {
+      tab.favicon = best;
+      scheduleBroadcastTabs();
+    }
+  } catch {
+    /* page gone mid-query — Chromium's default pick stands */
+  }
+}
+
+/** Most common color in a captured image, as #rrggbb (bitmap is BGRA).
+ * The top rows of a page are usually a solid header/background color, so
+ * the mode is robust where an average would go muddy. */
+function dominantColor(image) {
+  const { width, height } = image.getSize();
+  if (!width || !height) return null;
+  const bitmap = image.toBitmap();
+  const counts = new Map();
+  for (let i = 0; i + 3 < bitmap.length; i += 16) { // every 4th pixel is plenty
+    const rgb = (bitmap[i + 2] << 16) | (bitmap[i + 1] << 8) | bitmap[i];
+    counts.set(rgb, (counts.get(rgb) ?? 0) + 1);
+  }
+  let best = null;
+  let bestCount = 0;
+  for (const [rgb, count] of counts) {
+    if (count > bestCount) {
+      best = rgb;
+      bestCount = count;
+    }
+  }
+  return best === null ? null : `#${best.toString(16).padStart(6, '0')}`;
+}
+
+/** Sample the top two pixel rows of a tab's rendered page — the edge that
+ * visually abuts the chrome strip. Fails harmlessly for hidden views;
+ * setActiveTab resamples on activation. */
+async function samplePageTint(tab) {
+  if (!tabs.has(tab.id)) return;
+  if (tab.private || !/^https?:\/\//.test(tab.url)) {
+    if (tab.pageBg) {
+      tab.pageBg = null;
+      scheduleBroadcastTabs();
+    }
+    return;
+  }
+  const { width } = tab.view.getBounds();
+  if (!width || tab.view.webContents.isLoading()) return;
+  try {
+    const image = await tab.view.webContents.capturePage({ x: 0, y: 0, width, height: 2 });
+    const color = dominantColor(image);
+    if (color && color !== tab.pageBg) {
+      tab.pageBg = color;
+      scheduleBroadcastTabs();
+    }
+  } catch {
+    /* view hidden or gone — nothing to paint from */
+  }
+}
+
+/** Give the page a beat to paint after load before sampling its color. */
+function scheduleSampleTint(tab) {
+  setTimeout(() => samplePageTint(tab), 150);
+}
+
+function createTab(url = newTabUrl(), { private: isPrivate = false } = {}) {
   const id = crypto.randomUUID();
   const view = new WebContentsView({
     webPreferences: {
@@ -218,6 +424,11 @@ function createTab(url = newTabUrl()) {
     favicon: null,
     bookmarked: false,
     blockedCount: 0,
+    private: isPrivate,
+    // Strip tint ("faux header"): the page's top-edge color, so the chrome
+    // strip can paint itself as a continuation of the site's own header.
+    pageBg: null, // sampled from rendered pixels — authoritative
+    themeColor: null, // the page's <meta name="theme-color"> — fallback
   };
   tabs.set(id, tab);
   tabOrder.push(id);
@@ -232,24 +443,35 @@ function createTab(url = newTabUrl()) {
 
   wc.on('page-title-updated', (_e, title) => {
     tab.title = title;
-    history.updateTitle(tab.url, title);
+    if (!tab.private) history.updateTitle(tab.url, title);
     broadcastTabs();
   });
-  wc.on('page-favicon-updated', (_e, favicons) => { tab.favicon = favicons[0] ?? null; broadcastTabs(); });
+  wc.on('page-favicon-updated', (_e, favicons) => {
+    tab.favicon = favicons[0] ?? null; // immediate, possibly low-res
+    broadcastTabs();
+    upgradeFavicon(tab); // async refinement to the sharpest declared icon
+  });
   wc.on('did-start-loading', () => { tab.isLoading = true; broadcastTabs(); });
-  wc.on('did-stop-loading', () => { tab.isLoading = false; syncNavState(); broadcastTabs(); });
+  wc.on('did-stop-loading', () => { tab.isLoading = false; syncNavState(); broadcastTabs(); scheduleSampleTint(tab); });
+  wc.on('did-change-theme-color', (_e, color) => {
+    // Chromium reports '#rrggbb' or null; validated because it feeds chrome CSS.
+    tab.themeColor = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
+    scheduleBroadcastTabs();
+  });
   wc.on('did-navigate', (_e, url) => {
     const shouldReclaimChromeFocus = url === tab.url && tabsWantingAddressBarFocus.has(id) && activeTabId === id;
     if (url !== tab.url) tabsWantingAddressBarFocus.delete(id);
     tab.blockedCount = 0;
+    tab.pageBg = null; // a new page's tint mustn't linger from the old one
+    tab.themeColor = null;
     syncNavState();
-    history.addVisit(url, wc.getTitle());
+    if (!tab.private) history.addVisit(url, wc.getTitle());
     broadcastTabs();
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
   });
   wc.on('did-navigate-in-page', (_e, url, isMainFrame) => {
     syncNavState();
-    if (isMainFrame) history.addVisit(url, wc.getTitle());
+    if (isMainFrame && !tab.private) history.addVisit(url, wc.getTitle());
     broadcastTabs();
   });
   wc.once('did-finish-load', () => {
@@ -298,22 +520,24 @@ function createTab(url = newTabUrl()) {
 
   wc.on('found-in-page', (_e, result) => {
     if (id === activeTabId) {
-      win.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
+      overlayView?.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
     }
   });
 
   // Open target="_blank" / window.open() as a new managed tab instead of a
   // separate, unmanaged Electron window. Cmd/Ctrl+click arrives as
   // 'background-tab' — open it without stealing focus (browser convention).
+  // Children of a private tab stay private — a target=_blank popup must
+  // not silently start recording history again.
   wc.setWindowOpenHandler(({ url: targetUrl, disposition }) => {
-    const newId = createTab(targetUrl);
+    const newId = createTab(targetUrl, { private: tab.private });
     if (disposition !== 'background-tab') setActiveTab(newId);
     return { action: 'deny' };
   });
 
   attachContextMenu(wc, {
-    openBackgroundTab: (targetUrl) => createTab(targetUrl),
-    openTab: (targetUrl) => setActiveTab(createTab(targetUrl)),
+    openBackgroundTab: (targetUrl) => createTab(targetUrl, { private: tab.private }),
+    openTab: (targetUrl) => setActiveTab(createTab(targetUrl, { private: tab.private })),
   });
 
   // Load failures surface via the did-fail-load handler above; the
@@ -336,6 +560,9 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
     return;
   }
 
+  // Find state is per-tab; a stale capsule over a different page misleads.
+  if (overlayMode === 'find') hideOverlay({ refocusContent: false });
+
   const prevId = activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
   if (prev) win.contentView.removeChildView(prev.view);
@@ -351,12 +578,16 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
   if (shouldFocusAddress) next.view.setVisible(false);
   win.contentView.addChildView(next.view);
+  // The freshly attached tab view must not stack above an open overlay.
+  if (overlayMode && overlayView) win.contentView.addChildView(overlayView);
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
   // blank new tab we instead want the chrome's address bar, and OS focus
   // can be claimed asynchronously by the attached child view, so blank-tab
   // activation keeps reclaiming focus until the user navigates or switches.
   if (focusContent) next.view.webContents.focus();
+  // Background tabs can't be pixel-sampled; catch up when they surface.
+  if (!next.pageBg) scheduleSampleTint(next);
   broadcastTabs();
   if (shouldFocusAddress) {
     reclaimAddressBarFocus(id);
@@ -375,7 +606,8 @@ function closeTab(id) {
   const tab = tabs.get(id);
   if (!tab) return;
 
-  if (tab.url && !tab.url.startsWith('bowser://newtab')) {
+  // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
+  if (tab.url && !tab.private && !tab.url.startsWith('bowser://newtab')) {
     recentlyClosedUrls.push(tab.url);
     if (recentlyClosedUrls.length > 25) recentlyClosedUrls.shift();
   }
@@ -473,19 +705,17 @@ function resetZoomForActiveTab() {
 
 function openFindBar() {
   if (!win || win.isDestroyed()) return;
-  win.webContents.send('chrome:open-find-bar');
+  showOverlay('find');
 }
 
 function focusAddressBar() {
   if (!win || win.isDestroyed()) return;
-  // setActiveTab() just handed OS-level keyboard focus to the tab's
-  // WebContentsView; reclaim it for the chrome window's own webContents
-  // before asking its renderer to focus the input, or the caret shows in
-  // the DOM but keystrokes keep routing to the page.
+  // setActiveTab() may just have handed OS-level keyboard focus to the
+  // tab's WebContentsView; showOverlay reclaims it for the overlay's
+  // webContents so the address input actually receives keystrokes.
   win.focus();
-  win.blurWebView();
-  win.webContents.focus();
-  win.webContents.send('chrome:focus-address-bar');
+  // Reasserts must not downgrade an already-summoned palette to a panel.
+  showOverlay(overlayMode && overlayMode !== 'find' ? overlayMode : 'panel');
 }
 
 function shouldReclaimAddressBarFocus(id) {
@@ -511,8 +741,9 @@ function refocusAddressBarIfWanted() {
 }
 
 function registerIpcHandlers() {
-  ipcMain.handle('tabs:create', (_e, url) => {
-    const id = createTab(url || newTabUrl());
+  ipcMain.handle('tabs:create', (_e, url, opts) => {
+    const isPrivate = !!opts?.private;
+    const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), { private: isPrivate });
     // A blank "New Tab" (no explicit url) is a launchpad — keep OS focus on
     // the chrome so the address bar can take it. A url means the caller has
     // somewhere specific to go, so focus the page content.
@@ -543,13 +774,49 @@ function registerIpcHandlers() {
   ipcMain.handle('tabs:get-all', () => ({ tabs: serializeTabs(), activeTabId }));
   ipcMain.handle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
   ipcMain.handle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
-  ipcMain.handle('downloads:summary', () => ({ activeCount: activeCount() }));
 
   ipcMain.on('chrome:layout', (_e, { height }) => {
     if (typeof height === 'number' && height > 0) {
       chromeHeight = height;
       resizeActiveView();
     }
+  });
+
+  ipcMain.on('chrome:open-island', () => showOverlay('panel'));
+  ipcMain.on('chrome:open-find', () => showOverlay('find'));
+  ipcMain.on('overlay:close', () => hideOverlay());
+
+  // Data + actions behind the island's slash commands and Quick Switcher.
+  ipcMain.handle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
+  ipcMain.handle('chrome:favorites-list', () => bookmarks.listBookmarks());
+  ipcMain.handle('chrome:history-clear', () => history.clearHistory());
+  ipcMain.handle('chrome:adblock-toggle', () => {
+    const next = !settings.getSettings().adblockEnabled;
+    settings.setSettings({ adblockEnabled: next });
+    return next;
+  });
+  // "/off-leash" — allow ads on the active tab's site, then reload it so
+  // the exception actually takes effect on what's shown.
+  ipcMain.handle('chrome:adblock-exempt-active', () => {
+    const tab = activeTabId ? tabs.get(activeTabId) : null;
+    if (!tab) return null;
+    try {
+      const hostname = new URL(tab.url).hostname.replace(/^www\./, '');
+      if (!hostname) return null;
+      const { adblockExceptions } = settings.getSettings();
+      settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
+      tab.view.webContents.reload();
+      return hostname;
+    } catch {
+      return null;
+    }
+  });
+  ipcMain.handle('chrome:cycle-theme', () => {
+    const order = ['system', 'light', 'dark'];
+    const current = settings.getSettings().theme;
+    const next = order[(order.indexOf(current) + 1) % order.length];
+    settings.setSettings({ theme: next });
+    return next;
   });
 
   ipcMain.on('window:minimize', () => win?.minimize());
@@ -582,6 +849,7 @@ function buildMenu() {
       label: 'File',
       submenu: [
         { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => setActiveTab(createTab(), { focusContent: false, focusAddress: true }) },
+        { label: 'New Private Tab', accelerator: 'CmdOrCtrl+Shift+N', click: () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }) },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => activeTabId && closeTab(activeTabId) },
         { label: 'Reopen Closed Tab', accelerator: 'CmdOrCtrl+Shift+T', click: reopenClosedTab },
         { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.print() },
@@ -594,7 +862,7 @@ function buildMenu() {
     {
       label: 'View',
       submenu: [
-        { label: 'Focus Address Bar', accelerator: 'CmdOrCtrl+L', click: focusAddressBar },
+        { label: 'Search & Commands', accelerator: 'CmdOrCtrl+L', click: () => { if (hasLiveWindow()) { win.focus(); showOverlay('palette'); } } },
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: openFindBar },
         { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reload() },
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', click: () => zoomActiveTab(ZOOM_STEP) },
@@ -652,9 +920,17 @@ function createMainWindow() {
   });
 
   win.loadFile(path.join(__dirname, '../renderer/index.html'));
+  createOverlay();
   win.on('resize', resizeActiveView);
   win.on('focus', refocusAddressBarIfWanted);
-  win.on('closed', () => { win = null; flushPermissionPrompts(); });
+  win.on('closed', () => {
+    win = null;
+    // Unlike tabs, the overlay doesn't outlive its window — recreated fresh.
+    overlayMode = null;
+    if (overlayView && !overlayView.webContents.isDestroyed()) overlayView.webContents.close();
+    overlayView = null;
+    flushPermissionPrompts();
+  });
 
   // Tabs survive window close (macOS dock-reopen recreates the window);
   // re-attach the active tab's view or the new window sits over nothing.
@@ -693,7 +969,7 @@ app.whenReady().then(async () => {
     pendingPermissionPrompts.delete(id);
   });
 
-  setupDownloads(ses, broadcastDownloads);
+  setupDownloads(ses);
   setupPages({ onDataChanged: refreshBookmarkFlags });
 
   await setupAdBlocker(ses, { enabled: settings.getSettings().adblockEnabled });

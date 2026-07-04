@@ -9,59 +9,22 @@
 </head>
 <body>
   <div id="chrome">
-    <div id="titlebar">
-      <div id="trafficSpacer"></div>
-      <div id="tabStrip" role="tablist"></div>
-      <button id="newTabBtn" class="no-drag icon-btn" title="New Tab (Ctrl/Cmd+T)">
-        <svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>
-      </button>
-      <div id="dragFill"></div>
-      <div id="windowControls" class="no-drag"></div>
-    </div>
-    <div id="toolbar" class="no-drag">
-      <button id="backBtn" class="nav-btn" title="Back" disabled>
-        <svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>
-      </button>
-      <button id="fwdBtn" class="nav-btn" title="Forward" disabled>
-        <svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>
-      </button>
-      <button id="reloadBtn" class="nav-btn" title="Reload"></button>
-      <div id="addressWrap">
-        <div id="loadingBar"></div>
-        <input id="addressInput" class="mono" spellcheck="false" autocomplete="off" placeholder="Search or enter address" />
-        <div id="shieldBadge" title="Ads/trackers blocked on this page" hidden>0</div>
+    <div id="strip">
+      <div id="islandPill" class="no-drag" role="button" tabindex="0" title="Search, tabs & commands (Ctrl/Cmd+L)">
+        <div id="pillDots"></div>
+        <span id="pillFavicon" class="favicon"></span>
+        <span id="pillDomain">new tab</span>
+        <button id="pillPrivateChip" title="Leave private mode — closes this tab" hidden>private
+          <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+        </button>
+        <span id="pillShield" class="shield" title="Ads/trackers blocked on this page" hidden>0</span>
       </div>
-      <button id="starBtn" class="nav-btn" title="Add to favorites (Ctrl/Cmd+D)">
-        <svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>
-      </button>
-      <button id="downloadsBtn" class="nav-btn" title="Downloads (Ctrl/Cmd+Shift+J)">
-        <svg viewBox="0 0 16 16"><path d="M8 2.5v7.25M4.75 6.75 8 10l3.25-3.25M3 13.25h10"/></svg>
-        <span id="downloadsBadge" hidden></span>
-      </button>
-      <button id="historyBtn" class="nav-btn" title="History (Ctrl/Cmd+Y)">
-        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75"/><path d="M8 4.75V8l2.25 1.5"/></svg>
-      </button>
-      <button id="settingsBtn" class="nav-btn" title="Settings (Ctrl/Cmd+,)">
-        <svg viewBox="0 0 16 16"><path d="M2.5 4.75h6M12 4.75h1.5M2.5 11.25h1.5M7.5 11.25h6"/><circle cx="10.25" cy="4.75" r="1.75"/><circle cx="5.75" cy="11.25" r="1.75"/></svg>
-      </button>
-    </div>
-    <div id="findBar" class="no-drag" hidden>
-      <input id="findInput" class="mono" spellcheck="false" autocomplete="off" placeholder="Find in page" />
-      <div id="findCount"></div>
-      <button id="findPrevBtn" class="nav-btn" title="Previous match">
-        <svg viewBox="0 0 16 16"><path d="M4.5 10.25 8 6.75l3.5 3.5"/></svg>
-      </button>
-      <button id="findNextBtn" class="nav-btn" title="Next match">
-        <svg viewBox="0 0 16 16"><path d="M4.5 5.75 8 9.25l3.5-3.5"/></svg>
-      </button>
-      <button id="findCloseBtn" class="nav-btn" title="Close">
-        <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
-      </button>
-    </div>
-    <div id="permissionBar" class="no-drag" hidden>
-      <span id="permissionText"></span>
-      <button id="permAllowBtn">Allow</button>
-      <button id="permBlockBtn">Block</button>
+      <div id="permissionBar" class="no-drag" hidden>
+        <span id="permissionText"></span>
+        <button id="permAllowBtn">Allow</button>
+        <button id="permBlockBtn">Block</button>
+      </div>
+      <div id="windowControls" class="no-drag"></div>
     </div>
   </div>
   <script src="renderer.js"></script>

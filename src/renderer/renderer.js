@@ -1,61 +1,39 @@
+// Renderer for the chrome strip — the slim band the resting island pill
+// floats in, plus window controls and permission prompts. The island's
+// expanded states live in a separate overlay WebContentsView (overlay.js)
+// so they can float over the web content.
 (() => {
   const { platform } = window.browserAPI;
-  if (platform === 'darwin') document.body.classList.add('mac');
+  const isMac = platform === 'darwin';
+  if (isMac) document.body.classList.add('mac');
 
   const chromeEl = document.getElementById('chrome');
-  const tabStrip = document.getElementById('tabStrip');
-  const newTabBtn = document.getElementById('newTabBtn');
+  const stripEl = document.getElementById('strip');
+  const islandPill = document.getElementById('islandPill');
+  const pillDots = document.getElementById('pillDots');
+  const pillFavicon = document.getElementById('pillFavicon');
+  const pillDomain = document.getElementById('pillDomain');
+  const pillShield = document.getElementById('pillShield');
+  const pillPrivateChip = document.getElementById('pillPrivateChip');
   const windowControls = document.getElementById('windowControls');
-  const backBtn = document.getElementById('backBtn');
-  const fwdBtn = document.getElementById('fwdBtn');
-  const reloadBtn = document.getElementById('reloadBtn');
-  const addressInput = document.getElementById('addressInput');
-  const loadingBar = document.getElementById('loadingBar');
-  const shieldBadge = document.getElementById('shieldBadge');
-  const starBtn = document.getElementById('starBtn');
-  const downloadsBtn = document.getElementById('downloadsBtn');
-  const downloadsBadge = document.getElementById('downloadsBadge');
-  const historyBtn = document.getElementById('historyBtn');
-  const settingsBtn = document.getElementById('settingsBtn');
-  const findBar = document.getElementById('findBar');
-  const findInput = document.getElementById('findInput');
-  const findCount = document.getElementById('findCount');
-  const findPrevBtn = document.getElementById('findPrevBtn');
-  const findNextBtn = document.getElementById('findNextBtn');
-  const findCloseBtn = document.getElementById('findCloseBtn');
   const permissionBar = document.getElementById('permissionBar');
   const permissionText = document.getElementById('permissionText');
   const permAllowBtn = document.getElementById('permAllowBtn');
   const permBlockBtn = document.getElementById('permBlockBtn');
 
-  let tabIndicator = document.getElementById('tabIndicator');
-  if (!tabIndicator) {
-    tabIndicator = document.createElement('div');
-    tabIndicator.id = 'tabIndicator';
-    tabStrip.appendChild(tabIndicator);
-  }
-
   let state = { tabs: [], activeTabId: null };
-  let addressBarEditing = false;
-  let findLastQuery = null;
+  /** Overlay mode mirrored from main — the pill hides while the command
+   * bar is expanded in place ('panel'); the palette keeps it visible. */
+  let islandMode = null;
 
-  // Icon set: 16px grid, 1.5px rounded strokes, currentColor (see styles.css).
   const ICONS = {
-    reload: '<svg viewBox="0 0 16 16"><path d="M14 8a6 6 0 1 1-6-6c1.68 0 3.29.67 4.49 1.83L14 5.33"/><path d="M14 2v3.33h-3.33"/></svg>',
-    stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
     minimize: '<svg viewBox="0 0 16 16"><path d="M3.5 8h9"/></svg>',
     maximize: '<svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></svg>',
   };
-  reloadBtn.innerHTML = ICONS.reload;
-
-  // While a tab is being dragged we own the strip's DOM order; incoming
-  // broadcasts are parked and applied when the drag ends.
-  let draggedTabId = null;
-  let pendingState = null;
 
   // --- Window controls (non-mac only; macOS gets native traffic lights) ---
-  if (platform !== 'darwin') {
+  if (!isMac) {
     const mk = (icon, title, onClick, extraClass) => {
       const b = document.createElement('button');
       b.innerHTML = icon;
@@ -75,231 +53,112 @@
     return state.tabs.find((t) => t.id === state.activeTabId) || null;
   }
 
-  const isInternalUrl = (url) => url.startsWith('bowser://') || url.startsWith('file://');
-  const isBookmarkable = (url) => /^https?:\/\//.test(url);
-
-  function addressDisplayValue(tab) {
-    if (!tab) return '';
-    if (tab.url.startsWith('bowser://newtab') || tab.url.startsWith('file://')) return '';
-    // The error page carries the failed URL in its query — show that, so
-    // the user sees (and can edit/retry) the address they typed.
-    if (tab.url.startsWith('bowser://error')) {
-      try {
-        return new URL(tab.url).searchParams.get('url') || tab.url;
-      } catch {
-        return tab.url;
-      }
+  /** Short label for a tab's location: host for web pages, page name for
+   * internal ones, empty for a blank new tab. */
+  function tabDomain(tab) {
+    if (!tab?.url || tab.url.startsWith('bowser://newtab')) return '';
+    try {
+      const u = new URL(tab.url);
+      return u.protocol === 'bowser:' ? `bowser://${u.host}` : u.host;
+    } catch {
+      return tab.url;
     }
-    return tab.url;
+  }
+
+  function setFavicon(el, tab) {
+    el.className = 'favicon' + (tab?.isLoading ? ' loading' : '');
+    el.style.backgroundImage = '';
+    if (!tab || tab.isLoading) return;
+    if (tab.favicon) {
+      el.classList.add('has-icon');
+      el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
+    } else if (tab.url.startsWith('bowser://')) {
+      el.classList.add('has-icon');
+      el.style.backgroundImage = 'url("pages/icon.svg")'; // Bowser mark
+    }
+  }
+
+  /** Faux header: paint the strip with the active page's own top-edge
+   * color so it reads as a continuation of the site, not a chrome bar.
+   * Private tabs keep the private theme untinted. */
+  function applyStripTint(tab) {
+    const tint = (!tab?.private && (tab?.pageBg || tab?.themeColor)) || null;
+    if (!tint) {
+      stripEl.style.removeProperty('--page-bg');
+      stripEl.classList.remove('tint-dark');
+      return;
+    }
+    stripEl.style.setProperty('--page-bg', tint);
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(tint.slice(i, i + 2), 16));
+    stripEl.classList.toggle('tint-dark', 0.299 * r + 0.587 * g + 0.114 * b < 128);
   }
 
   function render() {
-    // Tab strip
-    tabStrip.querySelectorAll('.tab').forEach((el) => el.remove());
-    let activeEl = null;
-
-    for (const tab of state.tabs) {
-      const el = document.createElement('div');
-      el.className = 'tab' + (tab.id === state.activeTabId ? ' active' : '');
-      el.setAttribute('role', 'tab');
-      el.dataset.tabId = tab.id;
-      el.draggable = true;
-      el.title = tab.url && !tab.url.startsWith('bowser://') ? `${tab.title}\n${tab.url}` : tab.title;
-
-      const favicon = document.createElement('div');
-      const isInternal = tab.url.startsWith('bowser://');
-      const hasIcon = !!tab.favicon || isInternal;
-      favicon.className =
-        'tab-favicon' + (tab.isLoading ? ' loading' : hasIcon ? ' has-icon' : '');
-      if (!tab.isLoading) {
-        if (tab.favicon) {
-          favicon.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
-        } else if (isInternal) {
-          // Internal pages carry the Bowser mark.
-          favicon.style.backgroundImage = 'url("pages/icon.svg")';
-        }
-      }
-
-      const title = document.createElement('div');
-      title.className = 'tab-title';
-      title.textContent = tab.isLoading ? 'Loading…' : (tab.title || 'New Tab');
-
-      const close = document.createElement('button');
-      close.className = 'tab-close';
-      close.setAttribute('aria-label', 'Close tab');
-      close.title = 'Close tab';
-      close.innerHTML = ICONS.close;
-      close.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.browserAPI.closeTab(tab.id);
-      });
-
-      el.append(favicon, title, close);
-      el.addEventListener('click', () => window.browserAPI.switchTab(tab.id));
-      el.addEventListener('auxclick', (e) => {
-        if (e.button === 1) window.browserAPI.closeTab(tab.id); // middle-click closes
-      });
-
-      // --- Drag-to-reorder ---
-      el.addEventListener('dragstart', (e) => {
-        draggedTabId = tab.id;
-        el.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', tab.id);
-      });
-      el.addEventListener('dragend', () => {
-        el.classList.remove('dragging');
-        const finalIndex = [...tabStrip.querySelectorAll('.tab')].indexOf(el);
-        const id = draggedTabId;
-        draggedTabId = null;
-        if (id) window.browserAPI.reorderTab(id, finalIndex);
-        if (pendingState) {
-          state = pendingState;
-          pendingState = null;
-          render();
-        }
-      });
-
-      tabStrip.insertBefore(el, tabIndicator);
-      if (tab.id === state.activeTabId) activeEl = el;
-    }
-
-    // Signature active-tab indicator: slide/resize under the active tab
-    if (activeEl) {
-      tabIndicator.style.width = `${activeEl.offsetWidth}px`;
-      tabIndicator.style.transform = `translateX(${activeEl.offsetLeft}px)`;
-    }
-
-    // Toolbar state
     const tab = activeTab();
-    backBtn.disabled = !tab?.canGoBack;
-    fwdBtn.disabled = !tab?.canGoForward;
-    loadingBar.classList.toggle('active', !!tab?.isLoading);
-    const wantStop = !!tab?.isLoading;
-    if (reloadBtn.dataset.mode !== (wantStop ? 'stop' : 'reload')) {
-      reloadBtn.dataset.mode = wantStop ? 'stop' : 'reload';
-      reloadBtn.innerHTML = wantStop ? ICONS.stop : ICONS.reload;
-      reloadBtn.title = wantStop ? 'Stop' : 'Reload';
-    }
+
+    pillDots.replaceChildren(
+      ...state.tabs.map((t) => {
+        const dot = document.createElement('button');
+        dot.className =
+          'island-dot' +
+          (t.id === state.activeTabId ? ' active' : '') +
+          (t.isLoading ? ' loading' : '') +
+          (t.private ? ' private' : '');
+        dot.title = t.title || 'New Tab';
+        dot.setAttribute('aria-label', `Switch to ${t.title || 'New Tab'}`);
+        dot.addEventListener('click', (e) => {
+          e.stopPropagation(); // switch without expanding
+          window.browserAPI.switchTab(t.id);
+        });
+        return dot;
+      })
+    );
+
+    setFavicon(pillFavicon, tab);
+    pillDomain.textContent = tab?.isLoading
+      ? 'Loading…'
+      : tabDomain(tab) || (tab?.private ? 'private tab' : 'new tab');
+    pillDomain.classList.toggle('dim', !!tab?.isLoading);
+
+    pillPrivateChip.hidden = !tab?.private;
 
     const blocked = tab?.blockedCount ?? 0;
-    shieldBadge.hidden = blocked === 0;
-    shieldBadge.textContent = String(blocked);
+    pillShield.hidden = blocked === 0;
+    pillShield.textContent = String(blocked);
 
-    starBtn.disabled = !tab || !isBookmarkable(tab.url);
-    starBtn.classList.toggle('starred', !!tab?.bookmarked);
+    // The private theme scope follows the active tab.
+    if (tab?.private) document.documentElement.dataset.theme = 'private';
+    else delete document.documentElement.dataset.theme;
 
-    if (!addressBarEditing) {
-      addressInput.value = addressDisplayValue(tab);
-    }
+    applyStripTint(tab);
+
+    islandPill.style.visibility = islandMode === 'panel' ? 'hidden' : '';
+
+    // The strip's draggable region is registered at the WINDOW level and
+    // hit-tests above every WebContentsView — with the command bar overlay
+    // expanded over the strip band, it would swallow clicks meant for the
+    // panel's input row (the ✕, nav buttons). Suspend it while overlaid.
+    stripEl.classList.toggle('drag-suspended', islandMode === 'panel' || islandMode === 'palette');
   }
 
-  // Reordering happens live while dragging over the strip: the dragged tab
-  // slots in before whichever tab's midpoint the cursor is left of.
-  tabStrip.addEventListener('dragover', (e) => {
-    if (!draggedTabId) return;
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-
-    const draggedEl = tabStrip.querySelector('.tab.dragging');
-    if (!draggedEl) return;
-    const siblings = [...tabStrip.querySelectorAll('.tab:not(.dragging)')];
-    const nextEl = siblings.find((el) => {
-      const rect = el.getBoundingClientRect();
-      return e.clientX < rect.left + rect.width / 2;
-    });
-    tabStrip.insertBefore(draggedEl, nextEl ?? tabIndicator);
+  // Quick exit: clicking the pill's private chip closes the private tab.
+  pillPrivateChip.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (state.activeTabId) window.browserAPI.closeTab(state.activeTabId);
   });
-  tabStrip.addEventListener('drop', (e) => e.preventDefault());
 
-  // Double-click on empty titlebar area zooms the window (desktop convention).
-  document.getElementById('titlebar').addEventListener('dblclick', (e) => {
-    if (e.target.id === 'titlebar' || e.target.id === 'dragFill' || e.target.id === 'trafficSpacer') {
-      window.browserAPI.maximizeWindow();
+  islandPill.addEventListener('click', () => window.browserAPI.openIsland());
+  islandPill.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      window.browserAPI.openIsland();
     }
   });
 
-  // --- Toolbar wiring ---
-  newTabBtn.addEventListener('click', () => window.browserAPI.createTab());
-  backBtn.addEventListener('click', () => state.activeTabId && window.browserAPI.goBack(state.activeTabId));
-  fwdBtn.addEventListener('click', () => state.activeTabId && window.browserAPI.goForward(state.activeTabId));
-  reloadBtn.addEventListener('click', () => {
-    if (!state.activeTabId) return;
-    const tab = activeTab();
-    tab?.isLoading ? window.browserAPI.stop(state.activeTabId) : window.browserAPI.reload(state.activeTabId);
+  // Double-click on empty strip area zooms the window (desktop convention).
+  stripEl.addEventListener('dblclick', (e) => {
+    if (e.target === stripEl) window.browserAPI.maximizeWindow();
   });
-  starBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
-  downloadsBtn.addEventListener('click', () => window.browserAPI.openPage('downloads'));
-  historyBtn.addEventListener('click', () => window.browserAPI.openPage('history'));
-  settingsBtn.addEventListener('click', () => window.browserAPI.openPage('settings'));
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !findBar.hidden) {
-      closeFindBar();
-    }
-  });
-
-  addressInput.addEventListener('focus', () => {
-    addressBarEditing = true;
-    addressInput.select();
-  });
-  addressInput.addEventListener('blur', () => {
-    addressBarEditing = false;
-    render();
-  });
-  addressInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && state.activeTabId) {
-      window.browserAPI.navigate(state.activeTabId, addressInput.value);
-      addressInput.blur();
-    } else if (e.key === 'Escape') {
-      addressInput.blur();
-    }
-  });
-
-  // --- Find in page ---
-  function openFindBar() {
-    findBar.hidden = false;
-    requestAnimationFrame(reportLayout);
-    findInput.focus();
-    findInput.select();
-  }
-
-  function closeFindBar() {
-    findBar.hidden = true;
-    requestAnimationFrame(reportLayout);
-    findInput.value = '';
-    findCount.textContent = '';
-    findLastQuery = null;
-    if (state.activeTabId) window.browserAPI.stopFindInPage(state.activeTabId);
-  }
-
-  function runFind(options) {
-    const query = findInput.value;
-    if (!state.activeTabId || !query) {
-      findCount.textContent = '';
-      return;
-    }
-    window.browserAPI.findInPage(state.activeTabId, query, options);
-    findLastQuery = query;
-  }
-
-  // Search live as the user types; Enter/Shift+Enter step through matches.
-  findInput.addEventListener('input', () => {
-    if (!findInput.value) {
-      findCount.textContent = '';
-      findLastQuery = null;
-      if (state.activeTabId) window.browserAPI.stopFindInPage(state.activeTabId);
-      return;
-    }
-    runFind({ forward: true, findNext: false });
-  });
-  findInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      runFind({ forward: !e.shiftKey, findNext: findInput.value === findLastQuery });
-    }
-  });
-  findPrevBtn.addEventListener('click', () => runFind({ forward: false, findNext: true }));
-  findNextBtn.addEventListener('click', () => runFind({ forward: true, findNext: true }));
-  findCloseBtn.addEventListener('click', () => closeFindBar());
 
   // --- Permission prompts (one visible at a time, FIFO) ---
   const permissionQueue = [];
@@ -325,7 +184,6 @@
       const host = new URL(activePermissionPrompt.origin).host;
       permissionText.textContent = `${host} wants to ${describePermission(activePermissionPrompt)}`;
     }
-    requestAnimationFrame(reportLayout);
   }
 
   function answerPermissionPrompt(allow) {
@@ -342,39 +200,21 @@
     if (!activePermissionPrompt) showNextPermissionPrompt();
   });
 
-  // --- Downloads badge ---
-  function renderDownloads({ activeCount }) {
-    downloadsBadge.hidden = activeCount === 0;
-    downloadsBadge.textContent = activeCount > 0 ? String(activeCount) : '';
-    downloadsBtn.classList.toggle('has-active', activeCount > 0);
-  }
-
-  // --- IPC subscriptions ---
+  // --- State sync ---
   window.browserAPI.onTabsUpdated((payload) => {
-    if (draggedTabId) {
-      pendingState = payload;
-      return;
-    }
-    if (!findBar.hidden && payload.activeTabId !== state.activeTabId) closeFindBar();
     state = payload;
     render();
   });
-  window.browserAPI.onDownloadsUpdated(renderDownloads);
-  window.browserAPI.onFocusAddressBar(() => {
-    addressInput.focus();
-  });
-  window.browserAPI.onOpenFindBar(openFindBar);
-  window.browserAPI.onFindResult(({ activeMatchOrdinal, matches }) => {
-    findCount.textContent = matches > 0 && findInput.value ? `${activeMatchOrdinal}/${matches}` : '';
+  window.browserAPI.onIslandState(({ mode }) => {
+    islandMode = mode;
+    render();
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
     render();
   });
-  window.browserAPI.getDownloadsSummary().then(renderDownloads);
 
-  // --- Report chrome height so the main process can size the active
-  // WebContentsView to fill exactly the remaining space. ---
+  // --- Report strip height so main can size tab views below it. ---
   const reportLayout = () => {
     window.browserAPI.reportChromeLayout(chromeEl.getBoundingClientRect().height);
   };

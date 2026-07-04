@@ -32,6 +32,22 @@
   }
 }
 
+/* Private mode — a green-cast night: deeper than dark mode, sage-light
+   accent. Applied by pages loaded in a private tab (keep in sync with
+   styles.css). */
+:root[data-theme="private"] {
+  --bg: #0c110e;
+  --surface: #121a15;
+  --surface-raised: #18231c;
+  --border: #2b3a30;
+  --text: #f4f4f1;
+  --text-dim: #8fac99;
+  --accent: #a8c8b0;
+  --accent-dim: rgba(168, 200, 176, 0.16);
+  --danger: #ff3b30;
+  --on-danger: #0c110e;
+}
+
 * { box-sizing: border-box; }
 
 html, body {

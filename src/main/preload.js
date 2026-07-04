@@ -3,7 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('browserAPI', {
   platform: process.platform,
 
-  createTab: (url) => ipcRenderer.invoke('tabs:create', url),
+  createTab: (url, opts) => ipcRenderer.invoke('tabs:create', url, opts),
   closeTab: (id) => ipcRenderer.invoke('tabs:close', id),
   switchTab: (id) => ipcRenderer.invoke('tabs:switch', id),
   navigate: (id, url) => ipcRenderer.invoke('tabs:navigate', id, url),
@@ -15,7 +15,6 @@ contextBridge.exposeInMainWorld('browserAPI', {
   toggleBookmark: () => ipcRenderer.invoke('tabs:toggle-bookmark'),
   openPage: (name) => ipcRenderer.invoke('tabs:open-page', name),
   getAllTabs: () => ipcRenderer.invoke('tabs:get-all'),
-  getDownloadsSummary: () => ipcRenderer.invoke('downloads:summary'),
   findInPage: (id, query, options) => ipcRenderer.invoke('tabs:find', id, query, options),
   stopFindInPage: (id) => ipcRenderer.invoke('tabs:find-stop', id),
 
@@ -28,6 +27,17 @@ contextBridge.exposeInMainWorld('browserAPI', {
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
 
+  openIsland: () => ipcRenderer.send('chrome:open-island'),
+  openFindBar: () => ipcRenderer.send('chrome:open-find'),
+  closeOverlay: () => ipcRenderer.send('overlay:close'),
+
+  listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
+  listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
+  clearHistory: () => ipcRenderer.invoke('chrome:history-clear'),
+  toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),
+  allowAdsOnActiveSite: () => ipcRenderer.invoke('chrome:adblock-exempt-active'),
+  cycleTheme: () => ipcRenderer.invoke('chrome:cycle-theme'),
+
   minimizeWindow: () => ipcRenderer.send('window:minimize'),
   maximizeWindow: () => ipcRenderer.send('window:maximize'),
   closeWindow: () => ipcRenderer.send('window:close'),
@@ -37,20 +47,20 @@ contextBridge.exposeInMainWorld('browserAPI', {
     ipcRenderer.on('tabs:updated', listener);
     return () => ipcRenderer.removeListener('tabs:updated', listener);
   },
-  onDownloadsUpdated: (callback) => {
+  onOverlayShow: (callback) => {
     const listener = (_e, payload) => callback(payload);
-    ipcRenderer.on('downloads:updated', listener);
-    return () => ipcRenderer.removeListener('downloads:updated', listener);
+    ipcRenderer.on('overlay:show', listener);
+    return () => ipcRenderer.removeListener('overlay:show', listener);
   },
-  onFocusAddressBar: (callback) => {
+  onOverlayHide: (callback) => {
     const listener = () => callback();
-    ipcRenderer.on('chrome:focus-address-bar', listener);
-    return () => ipcRenderer.removeListener('chrome:focus-address-bar', listener);
+    ipcRenderer.on('overlay:hide', listener);
+    return () => ipcRenderer.removeListener('overlay:hide', listener);
   },
-  onOpenFindBar: (callback) => {
-    const listener = () => callback();
-    ipcRenderer.on('chrome:open-find-bar', listener);
-    return () => ipcRenderer.removeListener('chrome:open-find-bar', listener);
+  onIslandState: (callback) => {
+    const listener = (_e, payload) => callback(payload);
+    ipcRenderer.on('chrome:island-state', listener);
+    return () => ipcRenderer.removeListener('chrome:island-state', listener);
   },
   onFindResult: (callback) => {
     const listener = (_e, payload) => callback(payload);
