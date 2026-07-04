@@ -260,6 +260,15 @@ function createTab(url = newTabUrl()) {
     wc.loadURL(`bowser://error/?${q}`).catch(() => {});
   });
 
+  // A tab whose renderer dies (OOM, GPU fault, kill -9) otherwise sits
+  // blank forever; loadURL spawns a fresh renderer, so route it to the
+  // error page with the original URL for one-click retry.
+  wc.on('render-process-gone', (_e, details) => {
+    if (details.reason === 'clean-exit') return;
+    const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
+    wc.loadURL(`bowser://error/?${q}`).catch(() => {});
+  });
+
   // A page's beforeunload can block close/navigation; surface Chrome's
   // Leave/Stay choice instead of silently refusing.
   wc.on('will-prevent-unload', (event) => {
