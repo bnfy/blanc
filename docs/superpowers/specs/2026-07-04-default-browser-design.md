@@ -14,9 +14,14 @@ default-protocol-client API doesn't exist.
 ## Parts
 
 **1. Packaging eligibility.** `build.protocols` in `package.json` claiming `http` +
-`https` (role Viewer) → electron-builder emits `CFBundleURLTypes` into Info.plist, which
-is what makes macOS list Bowser as a browser candidate. Packaged builds only; a dev run
-must never register the bare Electron binary.
+`https` (role Viewer) → electron-builder emits `CFBundleURLTypes` into Info.plist.
+**Amended post-release (v0.7.2):** scheme claims alone are NOT enough — LaunchServices
+only flags an app `web-browser` (what System Settings' picker keys on) when it also
+claims HTML documents. `build.mac.extendInfo` adds `CFBundleDocumentTypes` with
+`public.html` and `public.xhtml`, one UTI per dict, `CFBundleTypeRole: Viewer` — the
+exact shape Brave/Chrome use. Bundling extra UTIs (e.g. Apple's derived
+`com.apple.default-app.web-browser`) into one dict makes LS drop the claim silently.
+Packaged builds only; a dev run must never register the bare Electron binary.
 
 **2. Setting = live OS state.** Not persisted in settings.json — LaunchServices owns it.
 Two guarded IPC handlers in `src/main/pages.js` (exposed via `bowserPages` in

@@ -1,7 +1,7 @@
 {
   "name": "bowser",
   "productName": "Bowser",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
   "type": "commonjs",
@@ -47,6 +47,18 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
+      "extendInfo": {
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeRole": "Viewer",
+            "LSItemContentTypes": ["public.html"]
+          },
+          {
+            "CFBundleTypeRole": "Viewer",
+            "LSItemContentTypes": ["public.xhtml"]
+          }
+        ]
+      },
       "target": [
         "dmg",
         "zip"
