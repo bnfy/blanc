@@ -598,6 +598,7 @@ function setTabGroup(tabId, groupId) {
   tab.groupId = groupId || null;
   pruneEmptyGroups();
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 /** "/group work" — move a tab into the named group, creating it on first
@@ -614,6 +615,7 @@ function groupTabByName(tabId, rawName) {
   tab.groupId = group.id;
   pruneEmptyGroups();
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 function toggleGroupCollapsed(groupId) {
@@ -890,6 +892,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // Adopted window.open children are loaded by Chromium itself as part of
   // the window-open dance — a competing loadURL here would cancel it.
   if (!adopted) wc.loadURL(url).catch(() => {});
+  scheduleMenuRebuild();
   return id;
 }
 
@@ -906,8 +909,11 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // No window to attach to (quitting, or macOS with all windows closed):
   // just track the selection so window recreation attaches the right tab.
+  // The menu bar persists on macOS even with no windows open, so it still
+  // needs to reflect the new activeTabId.
   if (!hasLiveWindow()) {
     activeTabId = id;
+    scheduleMenuRebuild();
     return;
   }
 
@@ -947,6 +953,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // Background tabs can't be pixel-sampled; catch up when they surface.
   if (!next.pageBg) scheduleSampleTint(next);
   broadcastTabs();
+  scheduleMenuRebuild();
   if (shouldFocusAddress) {
     reclaimAddressBarFocus(id);
     setImmediate(() => {
@@ -992,9 +999,10 @@ function closeTab(id) {
       // Quitting or window already gone — don't spawn replacement tabs.
       activeTabId = null;
     }
-    if (hasLiveWindow()) return; // setActiveTab already broadcasts
+    if (hasLiveWindow()) return; // setActiveTab already broadcasts and schedules a menu rebuild
   }
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 function reopenClosedTab() {
@@ -1009,6 +1017,7 @@ function reorderTab(id, toIndex) {
   tabOrder.splice(from, 1);
   tabOrder.splice(clamped, 0, id);
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 /** Cmd/Ctrl+1–9. With groups: n jumps to the nth cluster — a group's
@@ -1048,12 +1057,14 @@ function toggleBookmarkForActiveTab() {
   if (!tab || !/^https?:\/\//.test(tab.url)) return;
   tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title);
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 /** Bookmark state can change from the bookmarks page; re-derive per tab. */
 function refreshBookmarkFlags() {
   for (const tab of tabs.values()) tab.bookmarked = bookmarks.isBookmarked(tab.url);
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 const ZOOM_STEP = 0.5;
@@ -1199,6 +1210,22 @@ function registerIpcHandlers() {
   ipcMain.on('window:minimize', () => win?.minimize());
   ipcMain.on('window:maximize', () => (win?.isMaximized() ? win.unmaximize() : win?.maximize()));
   ipcMain.on('window:close', () => win?.close());
+}
+
+// The native menu's dynamic content (tab list, favorites list, Pin/Mute/
+// Add-to-Favorites labels) must stay live, but must NOT rebuild at the
+// high frequency page-load events (title/favicon/navigation) fire at —
+// see the discrete mutation functions below, which call this explicitly.
+// Debounced (not called on every invocation immediately) so several
+// mutations in quick succession — e.g. closeGroup closing several tabs
+// in a loop — still only rebuild once.
+let menuRebuildTimer = null;
+function scheduleMenuRebuild() {
+  if (menuRebuildTimer) return;
+  menuRebuildTimer = setTimeout(() => {
+    menuRebuildTimer = null;
+    buildMenu();
+  }, 100);
 }
 
 function buildMenu() {
