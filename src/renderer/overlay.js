@@ -426,6 +426,14 @@
     return 0;
   }
 
+  /** matchScore's genuine-substring tier — the only one confident enough
+   * to auto-navigate on bare Enter. The loose in-order fallback (score 1)
+   * is too permissive: a long-lived history entry can in-order-match
+   * almost any query sharing a few letters, once silently hijacking Enter
+   * away from whatever was actually typed. Kind bonuses (below) top out at
+   * +0.3, so they can never lift a weak match up to this tier. */
+  const STRONG_MATCH_SCORE = 2;
+
   /** What a candidate is matched against: title + host + a capped path.
    * Query strings and fragments are deliberately excluded — OAuth/token
    * URLs carry kilobytes of base64 that in-order-matches almost any
@@ -483,7 +491,12 @@
     window.browserAPI.closeOverlay();
   }
 
-  function resultRow(result, isTop) {
+  // isTop: the best-ranked result — always visually highlighted, so the
+  // list keeps a consistent "here's our best guess" cue. isEnterTarget:
+  // whether bare Enter actually acts on it (only a strong match, see
+  // STRONG_MATCH_SCORE) — separate from isTop so the ↵ glyph, which
+  // promises specific behavior, never appears when that promise is false.
+  function resultRow(result, isTop, isEnterTarget) {
     const row = document.createElement('div');
     row.className = 'island-row' + (isTop ? ' active' : '');
 
@@ -506,7 +519,7 @@
     tag.textContent = result.kind;
 
     row.append(favicon, title, sub, tag);
-    if (isTop) row.append(enterGlyph());
+    if (isEnterTarget) row.append(enterGlyph());
     row.addEventListener('click', () => pickResult(result));
     return row;
   }
@@ -530,7 +543,7 @@
       visibleResults = switcherResults(value.trim().toLowerCase());
       islandList.replaceChildren(
         ...(visibleResults.length
-          ? visibleResults.map((r, i) => resultRow(r, i === 0))
+          ? visibleResults.map((r, i) => resultRow(r, i === 0, i === 0 && r.score >= STRONG_MATCH_SCORE))
           : [emptyRow('no matches — ↵ opens as address or search')])
       );
     } else {
@@ -651,9 +664,15 @@
   });
   addressInput.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
+    // See STRONG_MATCH_SCORE: weak matches stay visible and clickable,
+    // just not auto-selected — there's no keyboard way to move selection
+    // off the top result anyway (observed: a dead one-shot Google OAuth
+    // link stayed ranked #1 for "gemini.google.com", "www.google.com",
+    // etc. via the weak in-order fallback, making the whole domain look
+    // unreachable).
     if (visibleCommands.length) {
       runCommand(visibleCommands[0]);
-    } else if (visibleResults.length) {
+    } else if (visibleResults.length && visibleResults[0].score >= STRONG_MATCH_SCORE) {
       pickResult(visibleResults[0]);
     } else if (inputTouched && addressInput.value.startsWith('/')) {
       // "no matching command" — do nothing rather than search for "/typo"

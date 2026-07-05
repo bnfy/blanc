@@ -2,6 +2,7 @@ const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { pathToFileURL } = require('url');
 const { setupAdBlocker, setAdBlockEnabled, getBlocker } = require('./adblock');
 const { registerPagesScheme, setupPages } = require('./pages');
 const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
@@ -68,7 +69,40 @@ if (!app.requestSingleInstanceLock()) {
 // the command line, at startup or through 'second-instance'.
 const pendingExternalUrls = [];
 let externalUrlsFlushable = false;
-const urlsFromArgv = (argv) => argv.filter((a) => /^https?:\/\//.test(a));
+
+/** Best-effort path -> file:// URL. Electron's 'open-file' contract types
+ * the path as always a non-empty absolute string, but nothing else calling
+ * this guards a raw filesystem string before handing it to Node — fail
+ * closed (null) rather than let a malformed path crash the main process. */
+function toFileUrl(filePath) {
+  try {
+    return pathToFileURL(filePath).href;
+  } catch {
+    return null;
+  }
+}
+
+/** Local document paths: bare filenames/paths ending in .htm/.html/.xhtml
+ * that exist on disk and aren't already a URI (so "https://x/a.html" isn't
+ * mistaken for a bare path). The scheme check requires "://", not just
+ * ":", so a Windows drive letter ("C:\...") isn't misread as a URI scheme
+ * and silently rejected — matches normalizeAddressInput's own scheme
+ * regex below, which this function is also called from. The extension
+ * list must stay in sync with package.json's mac.extendInfo.
+ * CFBundleDocumentTypes (public.html/public.xhtml) by hand — JSON can't
+ * carry a comment pointing back here. */
+function localDocumentUrl(input) {
+  if (!/\.(x?html?)$/i.test(input)) return null;
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(input)) return null;
+  if (!fs.existsSync(input)) return null;
+  return toFileUrl(input);
+}
+
+// http(s) links, plus local document paths (Windows/Linux file
+// associations and `bowser file.html` pass a bare path on the command
+// line; macOS double-clicks arrive via 'open-file' below instead).
+const urlsFromArgv = (argv) =>
+  argv.map((a) => (/^https?:\/\//.test(a) ? a : localDocumentUrl(a))).filter(Boolean);
 
 function openExternalUrl(url) {
   if (!externalUrlsFlushable || !hasLiveWindow()) {
@@ -88,6 +122,16 @@ function flushExternalUrls() {
 app.on('open-url', (event, url) => {
   event.preventDefault();
   openExternalUrl(url);
+});
+
+// Double-clicked local files (Bowser is declared as an HTML viewer via
+// CFBundleDocumentTypes) arrive as 'open-file', not 'open-url'. Same
+// queueing as links: pre-ready events wait for the window + session
+// restore, then land as the active tab.
+app.on('open-file', (event, filePath) => {
+  event.preventDefault();
+  const url = toFileUrl(filePath);
+  if (url) openExternalUrl(url);
 });
 
 // Must happen before app 'ready'.
@@ -279,6 +323,11 @@ function normalizeAddressInput(input) {
   }
   if (/^localhost(:\d+)?(\/|$)/.test(trimmed)) return `http://${trimmed}`;
   if (/^(\d{1,3}\.){3}\d{1,3}(:\d+)?(\/|$)/.test(trimmed)) return `http://${trimmed}`; // bare IPv4
+  // A local filename ("notes.html") looks exactly like a domain to the
+  // regex below — check disk first so typing one opens it, the same way
+  // double-clicking it (via urlsFromArgv/open-file) already does.
+  const localDoc = localDocumentUrl(trimmed);
+  if (localDoc) return localDoc;
   const looksLikeDomain = /^[^\s]+\.[a-zA-Z]{2,}(\/[^\s]*)?$/.test(trimmed);
   if (looksLikeDomain) return `https://${trimmed}`;
   return settings.searchUrlFor(trimmed);
@@ -615,6 +664,14 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // strip can paint itself as a continuation of the site's own header.
     pageBg: null, // sampled from rendered pixels — authoritative
     themeColor: null, // the page's <meta name="theme-color"> — fallback
+    // Set by did-navigate from the response code; gates BOTH addVisit
+    // there and updateTitle below, so a URL recorded during an earlier
+    // valid visit can't have its title silently rewritten to reflect a
+    // later dead reload (page-title-updated has no response code of its
+    // own to check). Starts true — the split-second before a tab's first
+    // real navigation shouldn't behave differently from before this flag
+    // existed.
+    historyEligible: true,
   };
   tabs.set(id, tab);
   tabOrder.push(id);
@@ -629,7 +686,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   wc.on('page-title-updated', (_e, title) => {
     tab.title = title;
-    if (!tab.private) history.updateTitle(tab.url, title);
+    if (tab.historyEligible) history.updateTitle(tab.url, title);
     broadcastTabs();
   });
   wc.on('page-favicon-updated', (_e, favicons) => {
@@ -653,13 +710,14 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     syncNavState();
     // Error responses stay out of history — a dead one-shot OAuth URL
     // recorded here resurfaces in the Quick Switcher as a destination.
-    if (!tab.private && (httpResponseCode ?? 200) < 400) history.addVisit(url, wc.getTitle());
+    tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
+    if (tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
   });
   wc.on('did-navigate-in-page', (_e, url, isMainFrame) => {
     syncNavState();
-    if (isMainFrame && !tab.private) history.addVisit(url, wc.getTitle());
+    if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
   });
   wc.once('did-finish-load', () => {
