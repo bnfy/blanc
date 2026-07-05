@@ -131,6 +131,11 @@ const tabs = new Map();
 /** Display order of tab ids — the single source of truth for the strip. */
 let tabOrder = [];
 let activeTabId = null;
+/** Named tab groups in display order — pill clusters follow this order,
+ * ungrouped tabs trail. Groups have no color by design (Island Tab Groups
+ * handoff): identity is a lowercase mono name. Empty groups are pruned.
+ * @type {{ id: string, name: string, collapsed: boolean }[]} */
+let groups = [];
 const tabsWantingAddressBarFocus = new Set();
 
 // Outstanding permission prompts awaiting the user's Allow/Block, keyed by
@@ -267,8 +272,10 @@ function serializeTabs() {
 }
 
 // Open tabs persist across launches (restored in app.whenReady).
+// `groupIds` is parallel to `urls` (null = ungrouped); `groups` holds the
+// group records those ids point at.
 let sessionStore = null;
-const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0 }));
+const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0, groups: [], groupIds: [] }));
 
 let isQuitting = false;
 app.on('before-quit', () => { isQuitting = true; });
@@ -280,21 +287,28 @@ function persistSession() {
   // Private tabs leave no trail — they never enter the session file.
   const persistable = tabOrder.filter((id) => !tabs.get(id)?.private);
   ensureSessionStore().update((d) => {
-    d.urls = persistable
+    // Build url/groupId pairs before filtering so the two arrays can't
+    // fall out of alignment when a tab has no persistable url.
+    const entries = persistable
       .map((id) => {
-        const url = tabs.get(id)?.url;
+        const tab = tabs.get(id);
+        let url = tab?.url;
         // Persist the address that failed, not the error page wrapping it,
         // so the next launch retries the real destination.
         if (url?.startsWith('bowser://error')) {
           try {
-            return new URL(url).searchParams.get('url') || url;
+            url = new URL(url).searchParams.get('url') || url;
           } catch {
-            return url;
+            /* keep the error url */
           }
         }
-        return url;
+        return url ? { url, groupId: tab.groupId ?? null } : null;
       })
       .filter(Boolean);
+    d.urls = entries.map((e) => e.url);
+    d.groupIds = entries.map((e) => e.groupId);
+    // Groups referenced only by private tabs stay out of the file too.
+    d.groups = groups.filter((g) => entries.some((e) => e.groupId === g.id));
     // Only update when the active tab is actually in the persisted list —
     // during startup (no active tab yet) or with a private tab active,
     // indexOf is -1 and writing 0 would corrupt the last good index.
@@ -306,7 +320,7 @@ function persistSession() {
 function broadcastTabs() {
   persistSession();
   if (!win || win.isDestroyed()) return;
-  const payload = { tabs: serializeTabs(), activeTabId };
+  const payload = { tabs: serializeTabs(), activeTabId, groups };
   win.webContents.send('tabs:updated', payload);
   overlayView?.webContents.send('tabs:updated', payload);
 }
@@ -443,7 +457,82 @@ function scheduleSampleTint(tab) {
   setTimeout(() => samplePageTint(tab), 150);
 }
 
-function createTab(url = newTabUrl(), { private: isPrivate = false } = {}) {
+// --- Tab groups (Island Tab Groups design) ---
+
+/** Pill/panel cluster order: each non-empty group in group order, then a
+ * trailing pseudo-cluster of ungrouped tabs. Cmd/Ctrl+1–9 jump by this. */
+function clusterList() {
+  const list = [];
+  for (const g of groups) {
+    const tabIds = tabOrder.filter((id) => tabs.get(id)?.groupId === g.id);
+    if (tabIds.length) list.push({ group: g, tabIds });
+  }
+  const loose = tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId);
+  if (loose.length) list.push({ group: null, tabIds: loose });
+  return list;
+}
+
+/** A group exists only while it holds tabs — closing or moving out the
+ * last one dissolves it (same convention as Chrome's tab groups). */
+function pruneEmptyGroups() {
+  if (!groups.length) return;
+  const used = new Set();
+  for (const tab of tabs.values()) if (tab.groupId) used.add(tab.groupId);
+  groups = groups.filter((g) => used.has(g.id));
+}
+
+function setTabGroup(tabId, groupId) {
+  const tab = tabs.get(tabId);
+  if (!tab) return;
+  // A requested group that no longer exists (a picker click racing the
+  // group's dissolution) is a no-op — it must not ungroup the tab instead.
+  if (groupId && !groups.some((g) => g.id === groupId)) return;
+  tab.groupId = groupId || null;
+  pruneEmptyGroups();
+  broadcastTabs();
+}
+
+/** "/group work" — move a tab into the named group, creating it on first
+ * use. Names are lowercase mono labels, per the design. */
+function groupTabByName(tabId, rawName) {
+  const tab = tabs.get(tabId);
+  const name = String(rawName ?? '').trim().toLowerCase().slice(0, 40);
+  if (!tab || !name) return;
+  let group = groups.find((g) => g.name === name);
+  if (!group) {
+    group = { id: crypto.randomUUID(), name, collapsed: false };
+    groups.push(group);
+  }
+  tab.groupId = group.id;
+  pruneEmptyGroups();
+  broadcastTabs();
+}
+
+function toggleGroupCollapsed(groupId) {
+  const group = groups.find((g) => g.id === groupId);
+  if (!group) return;
+  group.collapsed = !group.collapsed;
+  broadcastTabs();
+}
+
+/** Jump to a group: activate its first tab and unfold it. */
+function focusGroup(groupId) {
+  const group = groups.find((g) => g.id === groupId);
+  if (!group) return;
+  group.collapsed = false;
+  const first = tabOrder.find((id) => tabs.get(id)?.groupId === groupId);
+  // setActiveTab broadcasts, but no-ops when the tab is already active —
+  // the unfold still has to reach the renderers.
+  if (first && first !== activeTabId) setActiveTab(first);
+  else broadcastTabs();
+}
+
+function closeGroup(groupId) {
+  const ids = tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  for (const id of ids) closeTab(id);
+}
+
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null } = {}) {
   const id = crypto.randomUUID();
   const view = new WebContentsView({
     webPreferences: {
@@ -471,6 +560,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false } = {}) {
     bookmarked: false,
     blockedCount: 0,
     private: isPrivate,
+    groupId: groupId && groups.some((g) => g.id === groupId) ? groupId : null,
     // Strip tint ("faux header"): the page's top-edge color, so the chrome
     // strip can paint itself as a continuation of the site's own header.
     pageBg: null, // sampled from rendered pixels — authoritative
@@ -595,14 +685,15 @@ function createTab(url = newTabUrl(), { private: isPrivate = false } = {}) {
         },
       };
     }
-    const newId = createTab(targetUrl, { private: tab.private });
+    // Children stay in their opener's group, like Chrome's tab groups.
+    const newId = createTab(targetUrl, { private: tab.private, groupId: tab.groupId });
     if (disposition !== 'background-tab') setActiveTab(newId);
     return { action: 'deny' };
   });
 
   attachContextMenu(wc, {
-    openBackgroundTab: (targetUrl) => createTab(targetUrl, { private: tab.private }),
-    openTab: (targetUrl) => setActiveTab(createTab(targetUrl, { private: tab.private })),
+    openBackgroundTab: (targetUrl) => createTab(targetUrl, { private: tab.private, groupId: tab.groupId }),
+    openTab: (targetUrl) => setActiveTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId })),
   });
 
   // Load failures surface via the did-fail-load handler above; the
@@ -684,6 +775,7 @@ function closeTab(id) {
   tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
   tabOrder = tabOrder.filter((tid) => tid !== id);
+  pruneEmptyGroups();
   const wc = tab.view.webContents;
   if (wc && !wc.isDestroyed()) wc.close();
 
@@ -717,8 +809,17 @@ function reorderTab(id, toIndex) {
   broadcastTabs();
 }
 
-/** Cmd/Ctrl+1–8 jump to that tab; 9 jumps to the last (browser convention). */
+/** Cmd/Ctrl+1–9. With groups: n jumps to the nth cluster — a group's
+ * first tab, unfolding it (Island Tab Groups design). Without groups the
+ * browser convention stands: 1–8 jump to that tab, 9 to the last. */
 function selectTabAtIndex(index) {
+  if (groups.length) {
+    const cluster = clusterList()[index];
+    if (!cluster) return;
+    if (cluster.group) focusGroup(cluster.group.id);
+    else setActiveTab(cluster.tabIds[0]);
+    return;
+  }
   const id = index >= 8 ? tabOrder[tabOrder.length - 1] : tabOrder[index];
   if (id) setActiveTab(id);
 }
@@ -808,7 +909,11 @@ function refocusAddressBarIfWanted() {
 function registerIpcHandlers() {
   ipcMain.handle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
-    const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), { private: isPrivate });
+    const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), {
+      private: isPrivate,
+      // "New tab in <group>": a fresh tab joins the active tab's group.
+      groupId: isPrivate ? null : tabs.get(activeTabId)?.groupId ?? null,
+    });
     // A blank "New Tab" (no explicit url) is a launchpad — keep OS focus on
     // the chrome so the address bar can take it. A url means the caller has
     // somewhere specific to go, so focus the page content.
@@ -830,13 +935,18 @@ function registerIpcHandlers() {
   ipcMain.handle('tabs:reload', (_e, id) => tabs.get(id)?.view.webContents.reload());
   ipcMain.handle('tabs:stop', (_e, id) => tabs.get(id)?.view.webContents.stop());
   ipcMain.handle('tabs:reorder', (_e, id, toIndex) => reorderTab(id, toIndex));
+  ipcMain.handle('tabs:set-group', (_e, id, groupId) => setTabGroup(id, groupId ?? null));
+  ipcMain.handle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name));
+  ipcMain.handle('tabs:toggle-group-collapsed', (_e, groupId) => toggleGroupCollapsed(groupId));
+  ipcMain.handle('tabs:focus-group', (_e, groupId) => focusGroup(groupId));
+  ipcMain.handle('tabs:close-group', (_e, groupId) => closeGroup(groupId));
   ipcMain.handle('tabs:toggle-bookmark', () => toggleBookmarkForActiveTab());
   ipcMain.handle('tabs:open-page', (_e, name) => {
     if (['bookmarks', 'history', 'downloads', 'settings'].includes(name)) {
       openInternalPage(`bowser://${name}/`);
     }
   });
-  ipcMain.handle('tabs:get-all', () => ({ tabs: serializeTabs(), activeTabId }));
+  ipcMain.handle('tabs:get-all', () => ({ tabs: serializeTabs(), activeTabId, groups }));
   ipcMain.handle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
   ipcMain.handle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
 
@@ -913,7 +1023,7 @@ function buildMenu() {
     {
       label: 'File',
       submenu: [
-        { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => setActiveTab(createTab(), { focusContent: false, focusAddress: true }) },
+        { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => setActiveTab(createTab(newTabUrl(), { groupId: tabs.get(activeTabId)?.groupId }), { focusContent: false, focusAddress: true }) },
         { label: 'New Private Tab', accelerator: 'CmdOrCtrl+Shift+N', click: () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }) },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => activeTabId && closeTab(activeTabId) },
         { label: 'Reopen Closed Tab', accelerator: 'CmdOrCtrl+Shift+T', click: reopenClosedTab },
@@ -948,8 +1058,9 @@ function buildMenu() {
         { label: 'Next Tab', accelerator: 'Ctrl+Tab', click: () => cycleTab(1) },
         { label: 'Previous Tab', accelerator: 'Ctrl+Shift+Tab', click: () => cycleTab(-1) },
         { type: 'separator' },
+        // "Tab or Group": with groups these jump to the nth pill cluster.
         ...Array.from({ length: 9 }, (_, i) => ({
-          label: i === 8 ? 'Last Tab' : `Tab ${i + 1}`,
+          label: i === 8 ? 'Last Tab or Group' : `Tab or Group ${i + 1}`,
           accelerator: `CmdOrCtrl+${i + 1}`,
           click: () => selectTabAtIndex(i),
         })),
@@ -1081,7 +1192,12 @@ app.whenReady().then(async () => {
   // did-start-loading in the same tick), which would overwrite activeIndex
   // before it's read.
   const saved = structuredClone(ensureSessionStore().data);
-  const restoredIds = saved.urls.map((u) => createTab(u));
+  // Groups first, so createTab's groupId validation sees them.
+  groups = (Array.isArray(saved.groups) ? saved.groups : [])
+    .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
+    .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed }));
+  const restoredIds = saved.urls.map((u, i) => createTab(u, { groupId: saved.groupIds?.[i] ?? null }));
+  pruneEmptyGroups(); // drop groups none of the restored tabs point at
   const fresh = restoredIds.length === 0;
   const firstTabId = fresh
     ? createTab()

@@ -149,12 +149,41 @@ button svg {
   cursor: pointer;
 }
 
+/* Dot clusters: one cluster per tab group (group order), ungrouped tabs
+   trail. The active tab's cluster is full-strength; others dim. */
 #pillDots {
   display: flex;
-  gap: 5px;
+  gap: 10px;
   align-items: center;
   flex: 0 0 auto;
 }
+
+.pill-cluster {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.pill-cluster.dim .island-dot { opacity: 0.55; }
+
+/* Collapsed, non-active group: a bordered capsule of mini-dots; click
+   jumps to the group. */
+.pill-cluster.folded {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+.pill-cluster.folded:hover { border-color: var(--accent); }
+
+.dot-mini {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border);
+  flex: 0 0 auto;
+}
+.dot-mini.accent { background: var(--accent); }
 
 .island-dot {
   width: 6px;
@@ -188,6 +217,15 @@ button svg {
   color: var(--text);
 }
 #pillDomain.dim { color: var(--text-dim); }
+
+/* Active tab's group name, shown before the domain ("work ·"). */
+#pillGroupName {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  flex: 0 0 auto;
+}
+#pillGroupName[hidden] { display: none; }
 
 [data-theme="private"] #islandPill { border: 1px dashed var(--text-dim); }
 
@@ -396,6 +434,67 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
 .island-row .row-close:hover { background: var(--border); color: var(--text); }
 .island-row .row-close svg { width: 12px; height: 12px; stroke-width: 1.75; }
 
+/* Group header: caret · name · count ————— ⌘n. Click folds/unfolds. */
+.island-ghead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 3px;
+  cursor: pointer;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  user-select: none;
+  white-space: nowrap;
+}
+.island-ghead:hover { color: var(--text); }
+.island-ghead.static { cursor: default; }
+.island-ghead.static:hover { color: var(--text-dim); }
+.island-ghead .ghead-rule { flex: 1 1 auto; height: 1px; background: var(--border); }
+.island-ghead .ghead-n { opacity: 0.7; flex: 0 0 auto; }
+.island-ghead .ghead-name.dim { opacity: 0.7; }
+.island-ghead .ghead-spacer { width: 10px; flex: 0 0 auto; }
+.island-ghead svg.caret {
+  width: 10px;
+  height: 10px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 120ms ease;
+}
+.island-ghead svg.caret.open { transform: rotate(90deg); }
+
+/* Collapsed group's stand-in row. */
+.island-row.folded-row { color: var(--text-dim); }
+.island-row.folded-row .row-folded-label { font-size: 12.5px; white-space: nowrap; }
+.row-cluster { display: flex; gap: 3px; align-items: center; flex: 0 0 auto; }
+
+/* Per-tab group chip ("group" / current group name) — revealed on row
+   hover like the close button; also used by the inline picker. */
+.row-grp {
+  opacity: 0;
+  height: 18px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  flex: 0 0 auto;
+}
+.island-row:hover .row-grp,
+.row-grp.open,
+.row-grp:focus-visible { opacity: 1; }
+.row-grp:hover { color: var(--accent); border-color: var(--accent); }
+
+.group-picker { display: flex; gap: 4px; flex: 0 0 auto; }
+
+/* Group results in the Quick Switcher use the mono voice. */
+.island-row .row-title.mono { font-family: var(--font-mono); font-size: 12.5px; flex: 0 0 auto; }
+
 .island-row.newtab { color: var(--text-dim); }
 .island-row.newtab .row-title { color: inherit; font-size: 12.5px; flex: 0 0 auto; }
 .island-row.newtab svg { width: 14px; height: 14px; }
@@ -577,5 +676,6 @@ body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
   .island-dot,
   .island-dot.loading { transition: none; animation: none; }
   .favicon.loading { animation: none; }
+  .island-ghead svg.caret { transition: none; }
   #strip { transition: none; }
 }

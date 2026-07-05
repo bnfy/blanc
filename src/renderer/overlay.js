@@ -26,9 +26,11 @@
   const findNextBtn = document.getElementById('findNextBtn');
   const findCloseBtn = document.getElementById('findCloseBtn');
 
-  let state = { tabs: [], activeTabId: null };
+  let state = { tabs: [], activeTabId: null, groups: [] };
   /** @type {null | 'panel' | 'palette' | 'find'} */
   let mode = null;
+  /** Tab id whose inline group picker ("→ work · → none") is open. */
+  let pickingTabId = null;
   // The address input's value is only ours to overwrite while untouched;
   // once the user types, incoming tab updates must not clobber it.
   let inputTouched = false;
@@ -50,6 +52,32 @@
 
   function activeTab() {
     return state.tabs.find((t) => t.id === state.activeTabId) || null;
+  }
+
+  const groupById = (id) => state.groups.find((g) => g.id === id) || null;
+
+  /** Cluster order: each non-empty group in group order, then the
+   * ungrouped tabs. (Keep in sync with renderer.js.) */
+  function clusterTabs() {
+    const clusters = [];
+    for (const g of state.groups) {
+      const gtabs = state.tabs.filter((t) => t.groupId === g.id);
+      if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
+    }
+    const loose = state.tabs.filter((t) => !t.groupId);
+    if (loose.length) clusters.push({ group: null, tabs: loose });
+    return clusters;
+  }
+
+  function miniDotCluster(count, accented) {
+    const cluster = document.createElement('span');
+    cluster.className = 'row-cluster';
+    for (let i = 0; i < count; i++) {
+      const mini = document.createElement('span');
+      mini.className = 'dot-mini' + (accented ? ' accent' : '');
+      cluster.append(mini);
+    }
+    return cluster;
   }
 
   const isFavoritable = (url) => /^https?:\/\//.test(url || '');
@@ -157,6 +185,17 @@
       row.append(shield);
     }
 
+    const grp = document.createElement('button');
+    grp.className = 'row-grp';
+    grp.title = 'Move to group';
+    grp.textContent = tab.groupId ? groupById(tab.groupId)?.name ?? 'group' : 'group';
+    grp.addEventListener('click', (e) => {
+      e.stopPropagation();
+      pickingTabId = pickingTabId === tab.id ? null : tab.id;
+      renderList();
+    });
+    row.append(grp);
+
     const close = document.createElement('button');
     close.className = 'row-close';
     close.title = 'Close tab';
@@ -168,6 +207,35 @@
     });
     row.append(close);
 
+    // Inline picker: move to another existing group, or out of the current
+    // one. New groups come from the /group command.
+    if (pickingTabId === tab.id) {
+      const picker = document.createElement('span');
+      picker.className = 'group-picker';
+      picker.addEventListener('click', (e) => e.stopPropagation());
+      for (const g of state.groups.filter((g) => g.id !== tab.groupId)) {
+        const btn = document.createElement('button');
+        btn.className = 'row-grp open';
+        btn.textContent = `→ ${g.name}`;
+        btn.addEventListener('click', () => {
+          pickingTabId = null;
+          window.browserAPI.setTabGroup(tab.id, g.id);
+        });
+        picker.append(btn);
+      }
+      if (tab.groupId) {
+        const none = document.createElement('button');
+        none.className = 'row-grp open';
+        none.textContent = '→ none';
+        none.addEventListener('click', () => {
+          pickingTabId = null;
+          window.browserAPI.setTabGroup(tab.id, null);
+        });
+        picker.append(none);
+      }
+      row.append(picker);
+    }
+
     row.addEventListener('click', () => {
       window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
@@ -178,10 +246,51 @@
     return row;
   }
 
+  const CARET = '<svg class="caret" viewBox="0 0 10 10"><path d="M3.5 2 L7 5 L3.5 8"/></svg>';
+
+  /** "work — 3 ————— ⌘1": click folds/unfolds the group. */
+  function groupHeaderRow(group, count, clusterIndex) {
+    const row = document.createElement('div');
+    row.className = 'island-ghead';
+    row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-rule"></span><span class="ghead-n">${modKey}${clusterIndex + 1}</span>`;
+    row.querySelector('.caret').classList.toggle('open', !group.collapsed);
+    row.querySelector('.ghead-name').textContent = group.name;
+    row.querySelectorAll('.ghead-n')[0].textContent = String(count);
+    row.title = group.collapsed ? 'Unfold group' : 'Fold group';
+    row.addEventListener('click', () => window.browserAPI.toggleGroupCollapsed(group.id));
+    return row;
+  }
+
+  /** Dim header above the trailing ungrouped tabs (only when groups exist). */
+  function looseHeaderRow() {
+    const row = document.createElement('div');
+    row.className = 'island-ghead static';
+    row.innerHTML = '<span class="ghead-spacer"></span><span class="ghead-name dim">no group</span><span class="ghead-rule"></span>';
+    return row;
+  }
+
+  /** Collapsed group's stand-in row: mini-dots + "N tabs tucked away". */
+  function foldedGroupRow(group, gtabs) {
+    const row = document.createElement('div');
+    row.className = 'island-row folded-row';
+    const label = document.createElement('span');
+    label.className = 'row-folded-label';
+    label.textContent = `${gtabs.length} ${gtabs.length === 1 ? 'tab' : 'tabs'} tucked away`;
+    const hint = document.createElement('span');
+    hint.className = 'row-kbd';
+    hint.textContent = 'click to unfold';
+    row.append(miniDotCluster(Math.min(gtabs.length, 5), false), label, hint);
+    row.addEventListener('click', () => window.browserAPI.toggleGroupCollapsed(group.id));
+    return row;
+  }
+
   function newTabRow() {
     const row = document.createElement('div');
     row.className = 'island-row newtab';
-    row.innerHTML = `${ICONS.plus}<span class="row-title">New tab</span><span class="row-kbd">${modKey}T</span>`;
+    // A fresh tab joins the active tab's group (main mirrors this).
+    const group = groupById(activeTab()?.groupId);
+    row.innerHTML = `${ICONS.plus}<span class="row-title"></span><span class="row-kbd">${modKey}T</span>`;
+    row.querySelector('.row-title').textContent = group ? `New tab in ${group.name}` : 'New tab';
     row.addEventListener('click', () => {
       window.browserAPI.closeOverlay();
       window.browserAPI.createTab(); // main reopens the panel focused on the blank tab
@@ -211,6 +320,15 @@
     { cmd: '/new', hint: 'Open a new tab', run: () => window.browserAPI.createTab() },
     { cmd: '/private', hint: 'Open a private tab — history stays untouched', run: () => window.browserAPI.createTab(null, { private: true }) },
     { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
+    { cmd: '/group', hint: 'Move this tab into a group — /group work', run: (input) => {
+      const name = (input ?? '').replace(/^\/group\s*/, '').trim();
+      if (name && state.activeTabId) window.browserAPI.groupTabByName(state.activeTabId, name);
+    } },
+    { cmd: '/ungroup', hint: 'Take this tab out of its group', run: () => state.activeTabId && window.browserAPI.setTabGroup(state.activeTabId, null) },
+    { cmd: '/close-group', hint: 'Close every tab in this group', run: () => {
+      const groupId = activeTab()?.groupId;
+      if (groupId) window.browserAPI.closeGroup(groupId);
+    } },
     { cmd: '/find', hint: 'Find in page', run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/adblock', hint: 'Toggle ad & tracker blocking', run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/off-leash', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
@@ -218,10 +336,12 @@
   ];
 
   function runCommand(command) {
+    // Commands like "/group work" read their argument from the typed input.
+    const input = addressInput.value;
     // Close first: commands that open something (a page, a fresh tab) rely
     // on main re-showing the overlay in a clean state where needed.
     if (!command.keepOverlay) window.browserAPI.closeOverlay();
-    command.run();
+    command.run(input);
   }
 
   function commandRow(command, isTop) {
@@ -289,6 +409,14 @@
 
   function switcherResults(query) {
     const results = [];
+    // Group names rank above their member tabs — "wor" jumps to the whole
+    // work cluster, not one tab in it.
+    for (const g of state.groups) {
+      const count = state.tabs.filter((t) => t.groupId === g.id).length;
+      if (!count) continue;
+      const s = matchScore(query, g.name);
+      if (s) results.push({ kind: 'group', title: g.name, sub: `${count} ${count === 1 ? 'tab' : 'tabs'}`, group: g, count, score: s + 0.3 });
+    }
     for (const t of state.tabs) {
       const s = matchScore(query, matchableText(t.title, t.url));
       if (s) results.push({ kind: 'tab', title: t.title || 'New Tab', sub: tabDomain(t), tab: t, score: s + 0.2 });
@@ -305,7 +433,7 @@
     return results
       .sort((a, b) => b.score - a.score)
       .filter((r) => {
-        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.url;
+        const key = r.kind === 'tab' ? `tab:${r.tab.id}` : r.kind === 'group' ? `group:${r.group.id}` : r.url;
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -314,7 +442,8 @@
   }
 
   function pickResult(result) {
-    if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
+    if (result.kind === 'group') window.browserAPI.focusGroup(result.group.id);
+    else if (result.kind === 'tab') window.browserAPI.switchTab(result.tab.id);
     else if (state.activeTabId) window.browserAPI.navigate(state.activeTabId, result.url);
     window.browserAPI.closeOverlay();
   }
@@ -323,11 +452,14 @@
     const row = document.createElement('div');
     row.className = 'island-row' + (isTop ? ' active' : '');
 
-    const favicon = document.createElement('span');
-    setFavicon(favicon, result.tab ?? null);
+    // Group results lead with their dot cluster instead of a favicon.
+    const favicon = result.kind === 'group'
+      ? miniDotCluster(Math.min(result.count, 4), true)
+      : document.createElement('span');
+    if (result.kind !== 'group') setFavicon(favicon, result.tab ?? null);
 
     const title = document.createElement('span');
-    title.className = 'row-title';
+    title.className = 'row-title' + (result.kind === 'group' ? ' mono' : '');
     title.textContent = result.title || result.url || '';
 
     const sub = document.createElement('span');
@@ -367,12 +499,22 @@
           : [emptyRow('no matches — ↵ opens as address or search')])
       );
     } else {
-      islandList.replaceChildren(...state.tabs.map(tabRow), newTabRow(), newPrivateTabRow());
+      const clusters = clusterTabs();
+      const rows = [];
+      for (const { group, tabs: gtabs } of clusters) {
+        if (group) rows.push(groupHeaderRow(group, gtabs.length, clusters.findIndex((c) => c.group === group)));
+        else if (clusters.length > 1) rows.push(looseHeaderRow());
+        if (group?.collapsed) rows.push(foldedGroupRow(group, gtabs));
+        else rows.push(...gtabs.map(tabRow));
+      }
+      islandList.replaceChildren(...rows, newTabRow(), newPrivateTabRow());
     }
 
     islandHint.textContent = activeTab()?.private
       ? 'private · nothing here is saved to history · esc to dismiss'
-      : `esc to dismiss · ${modKey}L summons · / for commands`;
+      : state.groups.length
+        ? `esc to dismiss · /group moves this tab · ${modKey}1–9 jumps between groups`
+        : `esc to dismiss · ${modKey}L summons · / for commands`;
   }
 
   function renderPanel() {
@@ -394,6 +536,7 @@
     findBar.hidden = next !== 'find';
 
     if (next === 'panel' || next === 'palette') {
+      if (!reshow) pickingTabId = null;
       refreshSwitcherData();
       renderPanel();
       // A reassert (main re-focusing the same open panel) must not clobber
@@ -426,6 +569,7 @@
     panelAnchor.hidden = true;
     findBar.hidden = true;
     inputTouched = false;
+    pickingTabId = null;
   });
 
   // Click on the backdrop (anywhere outside the panel) dismisses.

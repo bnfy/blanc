@@ -11,6 +11,7 @@
   const stripEl = document.getElementById('strip');
   const islandPill = document.getElementById('islandPill');
   const pillDots = document.getElementById('pillDots');
+  const pillGroupName = document.getElementById('pillGroupName');
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
   const pillShield = document.getElementById('pillShield');
@@ -22,7 +23,7 @@
   const permAllowBtn = document.getElementById('permAllowBtn');
   const permBlockBtn = document.getElementById('permBlockBtn');
 
-  let state = { tabs: [], activeTabId: null };
+  let state = { tabs: [], activeTabId: null, groups: [] };
   /** Overlay mode mirrored from main — the pill hides while the command
    * bar is expanded in place ('panel'); the palette keeps it visible. */
   let islandMode = null;
@@ -111,26 +112,76 @@
     stripEl.classList.toggle('tint-dark', 0.299 * r + 0.587 * g + 0.114 * b < 128);
   }
 
+  /** Pill cluster order: each non-empty group in group order, then the
+   * ungrouped tabs. (Keep in sync with overlay.js.) */
+  function clusterTabs() {
+    const clusters = [];
+    for (const g of state.groups) {
+      const gtabs = state.tabs.filter((t) => t.groupId === g.id);
+      if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
+    }
+    const loose = state.tabs.filter((t) => !t.groupId);
+    if (loose.length) clusters.push({ group: null, tabs: loose });
+    return clusters;
+  }
+
+  function tabDot(t) {
+    const dot = document.createElement('button');
+    dot.className =
+      'island-dot' +
+      (t.id === state.activeTabId ? ' active' : '') +
+      (t.isLoading ? ' loading' : '') +
+      (t.private ? ' private' : '');
+    dot.title = t.title || 'New Tab';
+    dot.setAttribute('aria-label', `Switch to ${t.title || 'New Tab'}`);
+    dot.addEventListener('click', (e) => {
+      e.stopPropagation(); // switch without expanding
+      window.browserAPI.switchTab(t.id);
+    });
+    return dot;
+  }
+
   function render() {
     const tab = activeTab();
 
+    const clusters = clusterTabs();
     pillDots.replaceChildren(
-      ...state.tabs.map((t) => {
-        const dot = document.createElement('button');
-        dot.className =
-          'island-dot' +
-          (t.id === state.activeTabId ? ' active' : '') +
-          (t.isLoading ? ' loading' : '') +
-          (t.private ? ' private' : '');
-        dot.title = t.title || 'New Tab';
-        dot.setAttribute('aria-label', `Switch to ${t.title || 'New Tab'}`);
-        dot.addEventListener('click', (e) => {
-          e.stopPropagation(); // switch without expanding
-          window.browserAPI.switchTab(t.id);
-        });
-        return dot;
+      ...clusters.map(({ group, tabs: gtabs }) => {
+        const isActiveCluster = group ? tab?.groupId === group.id : !tab?.groupId;
+        const folded = group && group.collapsed && !isActiveCluster;
+        // The folded capsule is a button like the dots, so it stays
+        // keyboard-reachable; expanded clusters are plain wrappers.
+        const cluster = document.createElement(folded ? 'button' : 'span');
+        if (folded) {
+          // Folded capsule: a bordered pill of mini-dots; click jumps to
+          // the group (activates its first tab and unfolds it).
+          cluster.className = 'pill-cluster folded';
+          cluster.title = `${group.name} · ${gtabs.length} ${gtabs.length === 1 ? 'tab' : 'tabs'}`;
+          cluster.setAttribute('aria-label', `Jump to group ${group.name}`);
+          cluster.addEventListener('click', (e) => {
+            e.stopPropagation();
+            window.browserAPI.focusGroup(group.id);
+          });
+          cluster.append(
+            ...gtabs.slice(0, 4).map(() => {
+              const mini = document.createElement('span');
+              mini.className = 'dot-mini';
+              return mini;
+            })
+          );
+        } else {
+          cluster.className = 'pill-cluster' + (isActiveCluster ? '' : ' dim');
+          if (group) cluster.title = group.name;
+          else if (clusters.length > 1) cluster.title = 'no group';
+          cluster.append(...gtabs.map(tabDot));
+        }
+        return cluster;
       })
     );
+
+    const activeGroup = state.groups.find((g) => g.id === tab?.groupId) || null;
+    pillGroupName.hidden = !activeGroup;
+    pillGroupName.textContent = activeGroup ? `${activeGroup.name} ·` : '';
 
     setFavicon(pillFavicon, tab);
     pillDomain.textContent = tab?.isLoading
@@ -172,6 +223,9 @@
 
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
   islandPill.addEventListener('keydown', (e) => {
+    // Only when the pill itself is focused — a focused child button (tab
+    // dot, folded group capsule) must keep its own Enter/Space activation.
+    if (e.target !== islandPill) return;
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       window.browserAPI.openIsland();
