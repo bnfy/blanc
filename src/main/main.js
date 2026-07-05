@@ -295,7 +295,11 @@ function persistSession() {
         return url;
       })
       .filter(Boolean);
-    d.activeIndex = Math.max(0, persistable.indexOf(activeTabId));
+    // Only update when the active tab is actually in the persisted list —
+    // during startup (no active tab yet) or with a private tab active,
+    // indexOf is -1 and writing 0 would corrupt the last good index.
+    const idx = persistable.indexOf(activeTabId);
+    if (idx >= 0) d.activeIndex = idx;
   });
 }
 
@@ -1072,7 +1076,11 @@ app.whenReady().then(async () => {
   createMainWindow();
 
   // Restore the previous session's tabs; fall back to a single new tab.
-  const saved = ensureSessionStore().data;
+  // Snapshot, don't alias: .data is the live store object, and createTab
+  // below synchronously triggers persistSession (loadURL emits
+  // did-start-loading in the same tick), which would overwrite activeIndex
+  // before it's read.
+  const saved = structuredClone(ensureSessionStore().data);
   const restoredIds = saved.urls.map((u) => createTab(u));
   const fresh = restoredIds.length === 0;
   const firstTabId = fresh
