@@ -75,6 +75,22 @@ function setupPages(hooks = {}) {
 
   handle('pages:app-version', () => app.getVersion());
 
+  // Default-browser state lives in LaunchServices/the OS, not settings.json.
+  // canSet: a dev run must never register the bare Electron binary as a
+  // browser, and Linux has no default-protocol-client API in Electron.
+  const defaultBrowserStatus = () => ({
+    isDefault: app.isDefaultProtocolClient('http'),
+    canSet: app.isPackaged && process.platform !== 'linux',
+  });
+  handle('pages:default-browser:get', () => defaultBrowserStatus());
+  handle('pages:default-browser:set', () => {
+    if (defaultBrowserStatus().canSet) {
+      app.setAsDefaultProtocolClient('http');
+      app.setAsDefaultProtocolClient('https');
+    }
+    return defaultBrowserStatus();
+  });
+
   handle('pages:permissions:list', () => listDecisions());
   handle('pages:permissions:remove', (key) => removeDecision(String(key)));
 

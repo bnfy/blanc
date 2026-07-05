@@ -26,6 +26,31 @@
   homePage.addEventListener('change', () =>
     window.bowserPages.settings.set({ homePage: homePage.value }));
 
+  // --- Default browser (live OS state, nothing stored) ---
+  const defaultBrowserSetting = document.getElementById('defaultBrowserSetting');
+  if (navigator.platform.includes('Linux')) {
+    defaultBrowserSetting.remove();
+  } else {
+    const defaultBrowserBtn = document.getElementById('defaultBrowserBtn');
+    const defaultBrowserState = document.getElementById('defaultBrowserState');
+    const defaultBrowserHint = document.getElementById('defaultBrowserHint');
+    const applyDefaultBrowser = ({ isDefault, canSet }) => {
+      defaultBrowserBtn.hidden = isDefault;
+      defaultBrowserState.hidden = !isDefault;
+      defaultBrowserBtn.disabled = !canSet;
+      if (!canSet && !isDefault) defaultBrowserHint.textContent = 'Available in the installed app';
+    };
+    defaultBrowserBtn.addEventListener('click', async () => {
+      applyDefaultBrowser(await window.bowserPages.defaultBrowser.set());
+    });
+    // The macOS confirmation dialog happens outside the app — re-check
+    // whenever the user comes back to this page.
+    window.addEventListener('focus', async () => {
+      applyDefaultBrowser(await window.bowserPages.defaultBrowser.get());
+    });
+    applyDefaultBrowser(await window.bowserPages.defaultBrowser.get());
+  }
+
   // --- App icon colorways (Dock icon is macOS-only) ---
   const appIconSetting = document.getElementById('appIconSetting');
   if (!navigator.platform.startsWith('Mac')) {

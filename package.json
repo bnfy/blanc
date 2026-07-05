@@ -34,6 +34,13 @@
     "directories": {
       "output": "dist"
     },
+    "protocols": [
+      {
+        "name": "Web URL",
+        "schemes": ["http", "https"],
+        "role": "Viewer"
+      }
+    ],
     "files": [
       "src/**/*",
       "package.json"

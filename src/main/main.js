@@ -32,7 +32,8 @@ if (!app.isPackaged) {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_e, commandLine) => {
+    for (const url of urlsFromArgv(commandLine)) openExternalUrl(url);
     if (win && !win.isDestroyed()) {
       if (win.isMinimized()) win.restore();
       win.focus();
@@ -59,6 +60,34 @@ if (!app.requestSingleInstanceLock()) {
     console.warn('[cleanup] could not clear stale extension state:', err.message);
   }
 }
+
+// URLs handed over by the OS when Bowser is the default browser. macOS
+// delivers them via 'open-url' (which can fire before 'ready' — those queue
+// until the window and session restore are up); Windows/Linux pass them on
+// the command line, at startup or through 'second-instance'.
+const pendingExternalUrls = [];
+let externalUrlsFlushable = false;
+const urlsFromArgv = (argv) => argv.filter((a) => /^https?:\/\//.test(a));
+
+function openExternalUrl(url) {
+  if (!externalUrlsFlushable || !hasLiveWindow()) {
+    pendingExternalUrls.push(url);
+    return;
+  }
+  setActiveTab(createTab(url));
+  if (win.isMinimized()) win.restore();
+  win.focus();
+}
+
+function flushExternalUrls() {
+  externalUrlsFlushable = true;
+  for (const url of pendingExternalUrls.splice(0)) openExternalUrl(url);
+}
+
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  openExternalUrl(url);
+});
 
 // Must happen before app 'ready'.
 registerPagesScheme();
@@ -972,6 +1001,9 @@ function createMainWindow() {
     const id = activeTabId;
     activeTabId = null; // force setActiveTab to treat it as a fresh attach
     setActiveTab(id);
+    // An 'open-url' with no window queues; opening it is why the window
+    // was recreated (macOS dock-reopen path).
+    flushExternalUrls();
   });
 }
 
@@ -1048,6 +1080,11 @@ app.whenReady().then(async () => {
     : restoredIds[Math.min(Math.max(0, saved.activeIndex), restoredIds.length - 1)];
   win.webContents.once('did-finish-load', () => {
     setActiveTab(firstTabId, { focusContent: !fresh, focusAddress: fresh });
+    // Cold-start URL handoff: anything queued by pre-ready 'open-url'
+    // events, or passed on the command line, opens after session restore
+    // so the link lands as the active tab.
+    pendingExternalUrls.push(...urlsFromArgv(process.argv.slice(1)));
+    flushExternalUrls();
   });
 
   setupAutoUpdater();

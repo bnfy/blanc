@@ -32,6 +32,10 @@ if (window.location.protocol === 'bowser:') {
       list: () => ipcRenderer.invoke('pages:permissions:list'),
       remove: (key) => ipcRenderer.invoke('pages:permissions:remove', key),
     },
+    defaultBrowser: {
+      get: () => ipcRenderer.invoke('pages:default-browser:get'),
+      set: () => ipcRenderer.invoke('pages:default-browser:set'),
+    },
     clearBrowsingData: () => ipcRenderer.invoke('pages:clear-browsing-data'),
   });
 }

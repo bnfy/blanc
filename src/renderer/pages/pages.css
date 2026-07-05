@@ -216,6 +216,13 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
 .setting .label .hint { color: var(--text-dim); font-size: 12px; }
 .setting input[type="url"] { width: 280px; }
 
+/* Default-browser row: quiet confirmation once Bowser holds the role. */
+#defaultBrowserState {
+  color: var(--accent);
+  font-size: 12px;
+  flex: 0 0 auto;
+}
+
 /* App icon colorway picker — a row of rounded-square previews. */
 .icon-grid { display: flex; gap: 14px; }
 .icon-swatch {
