@@ -9,12 +9,16 @@ const SEARCH_ENGINES = {
 
 const THEMES = ['system', 'light', 'dark'];
 
+// Dock icon colorways — each id maps to src/renderer/pages/icon-<id>.png.
+const APP_ICONS = ['default', 'midnight', 'cream', 'forest', 'sage'];
+
 const DEFAULTS = {
   searchEngine: 'duckduckgo',
   adblockEnabled: true,
   // Empty string = the built-in bowser://newtab page.
   homePage: '',
   theme: 'system',
+  appIcon: 'default',
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
 };
@@ -40,6 +44,7 @@ function setSettings(partial) {
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (typeof partial.homePage === 'string') clean.homePage = partial.homePage.trim();
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
+  if (APP_ICONS.includes(partial.appIcon)) clean.appIcon = partial.appIcon;
   if (Array.isArray(partial.adblockExceptions)) {
     clean.adblockExceptions = [
       ...new Set(
@@ -64,4 +69,4 @@ function searchUrlFor(query) {
   return engine.url(query);
 }
 
-module.exports = { SEARCH_ENGINES, getSettings, setSettings, onSettingsChanged, searchUrlFor };
+module.exports = { SEARCH_ENGINES, APP_ICONS, getSettings, setSettings, onSettingsChanged, searchUrlFor };

@@ -26,6 +26,46 @@
   homePage.addEventListener('change', () =>
     window.bowserPages.settings.set({ homePage: homePage.value }));
 
+  // --- App icon colorways (Dock icon is macOS-only) ---
+  const appIconSetting = document.getElementById('appIconSetting');
+  if (!navigator.platform.startsWith('Mac')) {
+    appIconSetting.remove();
+  } else {
+    const appIconGrid = document.getElementById('appIconGrid');
+    const APP_ICONS = [
+      ['default', 'Default'],
+      ['midnight', 'Midnight'],
+      ['cream', 'Cream'],
+      ['forest', 'Forest'],
+      ['sage', 'Sage'],
+    ];
+    const selectAppIcon = (id) => {
+      for (const btn of appIconGrid.children) {
+        btn.classList.toggle('active', btn.dataset.icon === id);
+        btn.setAttribute('aria-checked', String(btn.dataset.icon === id));
+      }
+    };
+    for (const [id, label] of APP_ICONS) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'icon-swatch';
+      btn.dataset.icon = id;
+      btn.setAttribute('role', 'radio');
+      const img = document.createElement('img');
+      img.src = `icon-${id}.png`;
+      img.alt = '';
+      const name = document.createElement('span');
+      name.textContent = label;
+      btn.append(img, name);
+      btn.addEventListener('click', async () => {
+        await window.bowserPages.settings.set({ appIcon: id });
+        selectAppIcon(id);
+      });
+      appIconGrid.append(btn);
+    }
+    selectAppIcon(settings.appIcon ?? 'default');
+  }
+
   // --- Site permissions ---
   const permissionList = document.getElementById('permissionList');
   const PERMISSION_LABELS = { media: 'Camera/microphone', geolocation: 'Location', notifications: 'Notifications' };

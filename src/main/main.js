@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, dialog } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -80,6 +80,19 @@ const chromeBackgroundColor = () => (nativeTheme.shouldUseDarkColors ? '#0e0e0e'
 // chrome UI, internal pages, and the web content itself see one theme.
 function applyTheme() {
   nativeTheme.themeSource = settings.getSettings().theme;
+}
+
+// Swap the macOS Dock icon to the chosen colorway. Runtime-only by design:
+// the bundle's .icns (what Finder shows) is inside the code-signing seal and
+// can't be rewritten per-user, so this runs on every launch instead.
+function applyAppIcon() {
+  if (process.platform !== 'darwin' || !app.dock) return;
+  const id = settings.getSettings().appIcon;
+  const file = settings.APP_ICONS.includes(id) ? id : 'default';
+  const icon = nativeImage.createFromPath(
+    path.join(__dirname, '../renderer/pages', `icon-${file}.png`)
+  );
+  if (!icon.isEmpty()) app.dock.setIcon(icon);
 }
 
 const hasLiveWindow = () => !!win && !win.isDestroyed();
@@ -966,6 +979,7 @@ app.whenReady().then(async () => {
   const ses = session.defaultSession;
 
   applyTheme();
+  applyAppIcon();
   nativeTheme.on('updated', () => {
     if (win && !win.isDestroyed()) win.setBackgroundColor(chromeBackgroundColor());
   });
@@ -1008,6 +1022,7 @@ app.whenReady().then(async () => {
   settings.onSettingsChanged((s) => {
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();
+    applyAppIcon();
   });
 
   // HTTP basic/digest auth: without this handler, 401-protected sites
