@@ -6,6 +6,7 @@ const { setupAdBlocker, setAdBlockEnabled, getBlocker } = require('./adblock');
 const { registerPagesScheme, setupPages } = require('./pages');
 const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
+const { sendLaunchPing } = require('./telemetry');
 const { setupDownloads } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
 const { promptForCredentials } = require('./auth-dialog');
@@ -1173,6 +1174,7 @@ app.whenReady().then(async () => {
 
   applyTheme();
   applyAppIcon();
+  if (settings.getSettings().usagePing) sendLaunchPing();
   nativeTheme.on('updated', () => {
     if (win && !win.isDestroyed()) win.setBackgroundColor(chromeBackgroundColor());
   });
