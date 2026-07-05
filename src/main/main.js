@@ -203,7 +203,7 @@ function applyAppIcon() {
 
 const hasLiveWindow = () => !!win && !win.isDestroyed();
 
-/** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pageBg: string | null, themeColor: string | null }>} */
+/** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
 /** Display order of tab ids — the single source of truth for the strip. */
 let tabOrder = [];
@@ -357,7 +357,7 @@ function serializeTabs() {
 // `groupIds` is parallel to `urls` (null = ungrouped); `groups` holds the
 // group records those ids point at.
 let sessionStore = null;
-const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0, groups: [], groupIds: [] }));
+const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [] }));
 
 // Rolling ads-blocked counter for the start page's margin note. Weeks
 // start Monday 00:00 local; the count resets lazily on the first touch
@@ -404,11 +404,12 @@ function persistSession() {
             /* keep the error url */
           }
         }
-        return url ? { id, url, groupId: tab.groupId ?? null } : null;
+        return url ? { id, url, groupId: tab.groupId ?? null, pinned: !!tab.pinned } : null;
       })
       .filter(Boolean);
     d.urls = entries.map((e) => e.url);
     d.groupIds = entries.map((e) => e.groupId);
+    d.pinned = entries.map((e) => e.pinned);
     // Groups referenced only by private tabs stay out of the file too.
     d.groups = groups.filter((g) => entries.some((e) => e.groupId === g.id));
     // Only update when the active tab is actually in the persisted list —
@@ -642,6 +643,25 @@ function closeGroup(groupId) {
   for (const id of ids) closeTab(id);
 }
 
+function toggleTabPinned(id) {
+  const tab = tabs.get(id);
+  if (!tab) return false;
+  tab.pinned = !tab.pinned;
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return tab.pinned;
+}
+
+function toggleTabMuted(id) {
+  const tab = tabs.get(id);
+  if (!tab) return false;
+  tab.muted = !tab.muted;
+  tab.view.webContents.setAudioMuted(tab.muted);
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return tab.muted;
+}
+
 const TAB_WEB_PREFERENCES = {
   contextIsolation: true,
   nodeIntegration: false,
@@ -654,7 +674,7 @@ const TAB_WEB_PREFERENCES = {
   preload: path.join(__dirname, 'tab-preload.js'),
 };
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false } = {}) {
   const id = crypto.randomUUID();
   // An adopted view (window.open child, see the window-open handler) arrives
   // already constructed by Chromium with the opener relationship wired up;
@@ -674,6 +694,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     bookmarked: false,
     blockedCount: 0,
     private: isPrivate,
+    pinned,
+    muted: false,
     groupId: groupId && groups.some((g) => g.id === groupId) ? groupId : null,
     // Strip tint ("faux header"): the page's top-edge color, so the chrome
     // strip can paint itself as a continuation of the site's own header.
@@ -1154,6 +1176,8 @@ function registerIpcHandlers() {
   ipcMain.handle('tabs:focus-group', (_e, groupId) => focusGroup(groupId));
   ipcMain.handle('tabs:close-group', (_e, groupId) => closeGroup(groupId));
   ipcMain.handle('tabs:toggle-bookmark', () => toggleBookmarkForActiveTab());
+  ipcMain.handle('tabs:toggle-pinned', (_e, id) => toggleTabPinned(id));
+  ipcMain.handle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
   ipcMain.handle('tabs:open-page', (_e, name) => {
     if (['bookmarks', 'history', 'downloads', 'settings'].includes(name)) {
       openInternalPage(`blanc://${name}/`);
@@ -1445,7 +1469,7 @@ app.whenReady().then(async () => {
   groups = (Array.isArray(saved.groups) ? saved.groups : [])
     .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
     .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed }));
-  const restoredIds = saved.urls.map((u, i) => createTab(u, { groupId: saved.groupIds?.[i] ?? null }));
+  const restoredIds = saved.urls.map((u, i) => createTab(u, { groupId: saved.groupIds?.[i] ?? null, pinned: !!saved.pinned?.[i] }));
   pruneEmptyGroups(); // drop groups none of the restored tabs point at
   const fresh = restoredIds.length === 0;
   const firstTabId = fresh

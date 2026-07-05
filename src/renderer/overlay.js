@@ -355,6 +355,8 @@
     { cmd: '/new', hint: 'Open a new tab', run: () => window.browserAPI.createTab() },
     { cmd: '/private', hint: 'Open a private tab — history stays untouched', run: () => window.browserAPI.createTab(null, { private: true }) },
     { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
+    { cmd: '/pin', hint: 'Pin or unpin this tab', run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
+    { cmd: '/mute', hint: 'Mute or unmute this tab', run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
     { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"', run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
       if (name && state.activeTabId) window.browserAPI.groupTabByName(state.activeTabId, name);
