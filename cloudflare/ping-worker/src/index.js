@@ -4,6 +4,24 @@
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 
+const GA_MEASUREMENT_ID = 'G-MN8BLY6GE9';
+const GA_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
+
+// Mirrors each ping into GA4 so app launches sit next to website traffic.
+// client_id is random per event — no persistent id, so GA's *user* counts
+// are meaningless by design; only event counts (launches) are real.
+function forwardToGA(env, { version, platform, arch }) {
+  if (!env.GA_API_SECRET) return Promise.resolve();
+  const url = `${GA_ENDPOINT}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${env.GA_API_SECRET}`;
+  return fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      client_id: crypto.randomUUID(),
+      events: [{ name: 'app_launch', params: { app_version: version, platform, arch } }],
+    }),
+  }).catch((err) => console.warn('GA forward failed:', err.message));
+}
+
 // Not atomic (KV has no increment primitive) — a handful of concurrent
 // pings can undercount by a request or two. Fine here: nothing downstream
 // needs an exact number, only the aggregate trend.
@@ -16,7 +34,7 @@ function todayKey() {
   return `day:${new Date().toISOString().slice(0, 10)}`;
 }
 
-async function handlePing(request, env) {
+async function handlePing(request, env, ctx) {
   let body;
   try {
     body = await request.json();
@@ -26,6 +44,7 @@ async function handlePing(request, env) {
 
   const version = typeof body.version === 'string' ? body.version.slice(0, 32) : 'unknown';
   const platform = ALLOWED_PLATFORMS.has(body.platform) ? body.platform : 'unknown';
+  const arch = typeof body.arch === 'string' ? body.arch.slice(0, 16) : 'unknown';
 
   await Promise.all([
     bump(env.PINGS, 'total'),
@@ -33,6 +52,8 @@ async function handlePing(request, env) {
     bump(env.PINGS, `version:${version}`),
     bump(env.PINGS, `platform:${platform}`),
   ]);
+
+  ctx.waitUntil(forwardToGA(env, { version, platform, arch }));
 
   return new Response(null, { status: 204 });
 }
@@ -54,9 +75,9 @@ async function handleStats(request, env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (request.method === 'POST' && url.pathname === '/ping') return handlePing(request, env);
+    if (request.method === 'POST' && url.pathname === '/ping') return handlePing(request, env, ctx);
     if (request.method === 'GET' && url.pathname === '/stats') return handleStats(request, env);
     return new Response('not found', { status: 404 });
   },
