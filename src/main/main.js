@@ -98,6 +98,25 @@ app.userAgentFallback = app.userAgentFallback
   .replace(/\sbowser\/[\d.]+/i, '')
   .replace(/\sElectron\/[\d.]+/, '');
 
+// Hide the FedCM API. Must happen before app 'ready', and silently no-ops
+// if Chromium ever retires the "FedCm" feature name (an Electron bump that
+// brings back Google-login 400s should recheck here first). Chromium ships
+// the JS surface (IdentityCredential) but Electron has no account-chooser
+// UI behind it, so FedCM calls can only ever fail with "Error retrieving
+// a token". Google Identity Services feature-detects the API, commits to
+// the FedCM sign-in path, and after its popup completes dies at
+// accounts.google.com/gis_transform with a 400 — "Sign in with Google"
+// broken on every site using GIS. With the API absent, GIS falls back to
+// its legacy popup flow, which works (see setWindowOpenHandler's
+// 'new-window' handling). Comma-joined with any existing value: repeated
+// disable-features switches replace, not merge, so appending blind would
+// clobber argv flags (and a future second appendSwitch would drop FedCm).
+const priorDisabledFeatures = app.commandLine.getSwitchValue('disable-features');
+app.commandLine.appendSwitch(
+  'disable-features',
+  priorDisabledFeatures ? `${priorDisabledFeatures},FedCm` : 'FedCm'
+);
+
 /** @type {BrowserWindow | null} */
 let win = null;
 
