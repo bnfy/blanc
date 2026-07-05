@@ -390,14 +390,6 @@ a.ledger-label:hover { color: var(--accent); }
 
 .ledger-empty { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
 
-/* The sprite renders a fixed-palette pixel-art doberman (black + rust) —
-   no theme hook needed, unlike the earlier hand-drawn grid sprite. */
-.ledger-dog {
-  position: fixed;
-  right: 110px;
-  bottom: 96px;
-}
-
 .ledger-footer {
   position: fixed;
   left: 120px;
@@ -415,7 +407,6 @@ a.ledger-label:hover { color: var(--accent); }
 }
 .ledger-version { opacity: 0.6; font-size: 11px; }
 
-@media (max-width: 900px) { .ledger-dog { display: none; } }
 @media (max-width: 720px) {
   .ledger-body { padding: 90px 48px 140px; }
   .ledger-footer { left: 48px; right: 48px; }
