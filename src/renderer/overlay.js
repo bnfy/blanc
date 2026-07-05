@@ -11,6 +11,7 @@
   const backdrop = document.getElementById('backdrop');
   const panelAnchor = document.getElementById('panelAnchor');
   const addressInput = document.getElementById('addressInput');
+  const panelInsecure = document.getElementById('panelInsecure');
   const islandList = document.getElementById('islandList');
   const islandHint = document.getElementById('islandHint');
   const backBtn = document.getElementById('backBtn');
@@ -68,6 +69,19 @@
     return tab.url;
   }
 
+  /** Warning-only security check: true just for plain HTTP to a non-loopback
+   * host — https, bowser:, file:, and local dev servers show no indicator.
+   * (Keep in sync with renderer.js.) */
+  function connectionInsecure(url) {
+    if (!url?.startsWith('http://')) return false;
+    try {
+      const host = new URL(url).hostname;
+      return !(host === 'localhost' || host.endsWith('.localhost') || /^127\./.test(host) || host === '[::1]');
+    } catch {
+      return false;
+    }
+  }
+
   /** Short label for a tab's location: host for web pages, page name for
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
@@ -108,6 +122,7 @@
     heartBtn.disabled = !tab || !isFavoritable(tab.url);
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
     heartBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page (Ctrl/Cmd+D)';
+    panelInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
   }
 
   function tabRow(tab) {

@@ -14,6 +14,7 @@
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
   const pillShield = document.getElementById('pillShield');
+  const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const windowControls = document.getElementById('windowControls');
   const permissionBar = document.getElementById('permissionBar');
@@ -66,6 +67,19 @@
       return u.protocol === 'bowser:' ? `bowser://${u.host}` : u.host;
     } catch {
       return tab.url;
+    }
+  }
+
+  /** Warning-only security check: true just for plain HTTP to a non-loopback
+   * host — https, bowser:, file:, and local dev servers show no indicator.
+   * (Keep in sync with overlay.js.) */
+  function connectionInsecure(url) {
+    if (!url?.startsWith('http://')) return false;
+    try {
+      const host = new URL(url).hostname;
+      return !(host === 'localhost' || host.endsWith('.localhost') || /^127\./.test(host) || host === '[::1]');
+    } catch {
+      return false;
     }
   }
 
@@ -123,6 +137,10 @@
       ? 'Loading…'
       : tabDomain(tab) || (tab?.private ? 'private tab' : 'new tab');
     pillDomain.classList.toggle('dim', !!tab?.isLoading);
+
+    // Hidden while loading too — the domain says "Loading…" and the old
+    // page's security state mustn't linger under it.
+    pillInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
 
     pillPrivateChip.hidden = !tab?.private;
 
