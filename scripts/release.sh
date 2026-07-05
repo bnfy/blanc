@@ -12,14 +12,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-REPO="bnfy/bowser"
+REPO="bnfy/blanc"
 VERSION=$(node -p "require('./package.json').version")
 TAG="v$VERSION"
 
 command -v gh >/dev/null || { echo "gh CLI not found — required to publish releases." >&2; exit 1; }
 gh auth status >/dev/null 2>&1 || { echo "gh CLI not authenticated. Run: gh auth login" >&2; exit 1; }
 
-echo "==> Releasing Bowser $VERSION ($TAG)"
+echo "==> Releasing Blanc $VERSION ($TAG)"
 
 NEWER_ELECTRON=$(npm view electron version 2>/dev/null || true)
 INSTALLED_ELECTRON=$(node -p "require('./node_modules/electron/package.json').version" 2>/dev/null || true)
@@ -44,10 +44,10 @@ else
 fi
 
 ASSETS=(
-  "dist/Bowser-$VERSION-arm64-mac.zip"
-  "dist/Bowser-$VERSION-arm64-mac.zip.blockmap"
-  "dist/Bowser-$VERSION-arm64.dmg"
-  "dist/Bowser-$VERSION-arm64.dmg.blockmap"
+  "dist/Blanc-$VERSION-arm64-mac.zip"
+  "dist/Blanc-$VERSION-arm64-mac.zip.blockmap"
+  "dist/Blanc-$VERSION-arm64.dmg"
+  "dist/Blanc-$VERSION-arm64.dmg.blockmap"
   "dist/latest-mac.yml"
 )
 for f in "${ASSETS[@]}"; do
