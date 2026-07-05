@@ -10,7 +10,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap">
 <style>
   /* The site is always dark, regardless of system theme. */
   :root {
@@ -592,7 +591,7 @@
   .download { border-top: 1px solid var(--border); padding: 120px 40px 110px; text-align: center; position: relative; z-index: 1; transition: border-color 0.3s; }
   .download .lockup { display: flex; align-items: center; justify-content: center; gap: 14px; color: var(--text); transition: color 0.3s; }
   .download .lockup svg.dog { height: 34px; width: 31px; color: var(--accent); display: block; transition: color 0.3s; }
-  .download .lockup .wm { font-family: "Instrument Serif", serif; font-size: 40px; line-height: 1; display: block; }
+  .download .lockup svg.wm { height: 36px; width: auto; display: block; }
   .download .links { margin-top: 40px; font-family: var(--font-mono); font-size: 14px; display: flex; gap: 28px; justify-content: center; }
   .download .links a { color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 2px; white-space: nowrap; transition: color 0.3s, border-color 0.3s; }
   .download .links a:hover { color: var(--text); border-color: var(--accent); }
@@ -869,7 +868,7 @@
 <section class="download" id="download">
   <div class="lockup">
     <svg class="dog" viewBox="0 0 149.21 199.16"><path fill="currentColor" d="M132.49,99.93c24.35,25.21,21.69,65.88-5.32,88.01-8.6,6.52-18.14,11.22-29.43,11.22H0S.05,0,.05,0l97.73.34c20.2.07,36.1,15.44,41.57,33.81,5.91,21.3-.72,42.38-18.13,56.78,3.89,3.02,7.96,5.58,11.27,9.01ZM123.05,76.28c11.02-13.76,12.6-31.98,4.74-47.57-6.27-10.66-16.79-19.78-29.98-19.81l-89.13-.21.04,134.11c17.74-38.18,51.53-61.94,94.24-58.73,7.99.6,14.76-1.14,20.08-7.79ZM9.18,186.44l95.77-92.67c-20.99-3.85-41.54,1.86-58.47,14.63-24.42,18.43-37.97,47.69-37.31,78.04ZM116.56,184.68c15.98-9.69,24.44-26.82,23.9-45.09s-10.27-34.19-26.36-42.19L17.5,190.42l81.36-.05c6.08,0,12.28-2.41,17.7-5.69Z"></path></svg>
-    <span class="wm">Blanc</span>
+    <svg class="wm" viewBox="0 0 351.62 101.76"><g fill="currentColor"><path d="M63.3,83.19c-5.87,12.75-18.26,19.41-31.64,18.44-9.16-.66-16.58-4.98-21.84-12.74l-.45,11.57-9.33-.22L0,.24,9.48,0l.18,42.66c7.07-9.28,16.97-13.34,28.44-12.25,9.53.91,19.25,6.76,24.28,16.37,5.84,11.17,6.4,24.5.92,36.4ZM55.07,77.9c3.27-7.82,3.03-16.4.12-23.88-3.34-8.57-10.88-14.12-18.99-14.91-9.13-.89-17.77,2.98-22.63,10.92-5.74,9.36-5.91,21.46-.52,30.97,4.63,8.16,13.07,12.44,22.04,11.86,8.52-.56,16.23-6,19.97-14.95Z"></path><path d="M136.9,99.6c-8.83-3.13-13.31-11.25-12.85-19.65.45-8.25,6.27-15.15,15.06-17.45,6.82-1.79,14.08-2.11,21.23-2.73l13.91-1.19c2.51-6.58.59-14.54-6.21-17.57-11.02-4.9-28.23-2.69-31.39,10.19l-9.09-2.15c3.73-18.12,26.26-22.11,42.95-16.56,9.81,3.26,14.15,11.86,14.23,21.76l.35,45.88-8.67.1-1.26-9.59c-9.02,11.09-25.49,13.49-38.25,8.96ZM142.61,92.1c8.8,2.37,18.67,1.16,25.7-4.26,6.47-4.99,7.55-13.25,6.82-21.13l-18.41,1.29c-11.75.82-23.23,2.88-22.81,13.71.18,4.64,3.05,8.88,8.71,10.4Z"></path><path d="M243.55,38.88c-11.64-1.35-22.01,6.45-22.12,18.31l-.4,43.1-9.66-.1-.02-68.4,9.41-.25.29,10.17c5.18-8.2,13.08-11.75,22.75-11.64,12.45.14,23.16,8.81,23.27,21.94l.39,48.18-9.35.18-.23-46.04c-.04-8.31-6.12-14.51-14.34-15.46Z"></path><path d="M299.24,75.2c3.12,11.58,12.96,18.27,24.28,17.71,8.65-.42,15.52-4.66,19.1-12.79l9,2.91c-4.12,10.89-14.19,17.39-25.84,18.5-19.36,1.85-35.06-11.03-37.14-30.37-1.44-13.39,2.72-26.92,13.98-34.95,15.93-11.36,42.66-6.57,48.98,12.84l-9.17,2.61c-3.28-7.95-10.3-12.31-18.73-12.72-10.26-.5-19.2,4.8-23.12,14.32-2.77,6.74-3.38,14.39-1.35,21.93Z"></path><rect x="45.19" y="45.28" width="100.35" height="9.8" transform="translate(45.12 145.51) rotate(-89.96)"></rect></g></svg>
   </div>
   <div class="links">
     <a class="primary" id="mac-dl" href="https://github.com/bnfy/blanc/releases/latest">macOS ↓</a>
