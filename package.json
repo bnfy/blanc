@@ -1,6 +1,6 @@
 {
-  "name": "bowser",
-  "productName": "Bowser",
+  "name": "blanc",
+  "productName": "Blanc",
   "version": "0.9.3",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
@@ -28,7 +28,7 @@
     "publish": {
       "provider": "github",
       "owner": "bnfy",
-      "repo": "bowser",
+      "repo": "blanc",
       "releaseType": "release"
     },
     "directories": {
