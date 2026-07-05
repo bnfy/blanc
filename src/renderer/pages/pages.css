@@ -216,7 +216,7 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
 .setting .label .hint { color: var(--text-dim); font-size: 12px; }
 .setting input[type="url"] { width: 280px; }
 
-/* Default-browser row: quiet confirmation once Bowser holds the role. */
+/* Default-browser row: quiet confirmation once Blanc holds the role. */
 #defaultBrowserState {
   color: var(--accent);
   font-size: 12px;
@@ -301,8 +301,7 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
 /* ---------- new tab: "ledger" start page ----------
    From the Start Page exploration (1a) in the Bowser Design System: one
    left-aligned column that reads like a well-kept notebook — date,
-   "Where to?", favorites, tab groups — with the sprite denned bottom-right
-   and a quiet margin-note footer. */
+   "Where to?", favorites, tab groups — with a quiet margin-note footer. */
 
 .ledger-body { padding: 150px 120px 140px; }
 
@@ -454,7 +453,7 @@ a.ledger-label:hover { color: var(--accent); }
 }
 .newtab-links a:hover { color: var(--accent); }
 
-/* ---------- Basic-auth dialog (bowser://auth) ---------- */
+/* ---------- Basic-auth dialog (blanc://auth) ---------- */
 
 .auth-body { padding: 20px 24px; }
 .auth-body form { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
