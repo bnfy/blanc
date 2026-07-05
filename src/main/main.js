@@ -776,12 +776,14 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
     if (tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
+    scheduleMenuRebuild();
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
   });
   wc.on('did-navigate-in-page', (_e, url, isMainFrame) => {
     syncNavState();
     if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
+    scheduleMenuRebuild();
   });
   wc.once('did-finish-load', () => {
     if (shouldReclaimAddressBarFocus(id)) {
@@ -1115,6 +1117,21 @@ function toggleBookmarkForActiveTab() {
   scheduleMenuRebuild();
 }
 
+/** "Add All Open Tabs to Favorites" — mirrors toggleBookmarkForActiveTab's
+ * own URL guard. Skips private tabs (favorites never populate from private
+ * browsing) and anything already favorited (idempotent). */
+function addAllTabsToFavorites() {
+  for (const id of tabOrder) {
+    const tab = tabs.get(id);
+    if (!tab || tab.private) continue;
+    if (!/^https?:\/\//.test(tab.url)) continue;
+    if (bookmarks.isBookmarked(tab.url)) continue;
+    tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title);
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
 /** Bookmark state can change from the bookmarks page; re-derive per tab. */
 function refreshBookmarkFlags() {
   for (const tab of tabs.values()) tab.bookmarked = bookmarks.isBookmarked(tab.url);
@@ -1312,6 +1329,15 @@ function tabMenuItems() {
   });
 }
 
+/** Native-menu items for the most-recently-added favorites, newest first. */
+function favoritesMenuItems() {
+  const all = bookmarks.listBookmarks(); // oldest-first
+  return all.slice(-20).reverse().map((b) => ({
+    label: (b.title || b.url).length > 120 ? `${(b.title || b.url).slice(0, 119)}…` : (b.title || b.url),
+    click: () => setActiveTab(createTab(b.url)),
+  }));
+}
+
 function buildMenu() {
   const isMac = process.platform === 'darwin';
   const appMenu = isMac
@@ -1407,7 +1433,25 @@ function buildMenu() {
     {
       label: 'Favorites',
       submenu: [
-        { label: 'Add to Favorites', accelerator: 'CmdOrCtrl+D', click: toggleBookmarkForActiveTab },
+        {
+          label: tabs.get(activeTabId)?.bookmarked ? 'Remove from Favorites' : 'Add to Favorites',
+          accelerator: 'CmdOrCtrl+D',
+          // Same guard as toggleBookmarkForActiveTab itself — blanc://
+          // pages and blank tabs can't be favorited, so don't offer to.
+          enabled: /^https?:\/\//.test(tabs.get(activeTabId)?.url ?? ''),
+          click: toggleBookmarkForActiveTab,
+        },
+        {
+          label: 'Add All Open Tabs to Favorites',
+          enabled: tabOrder.some((id) => tabs.get(id) && !tabs.get(id).private && /^https?:\/\//.test(tabs.get(id).url)),
+          click: addAllTabsToFavorites,
+        },
+        { type: 'separator' },
+        ...favoritesMenuItems(),
+        ...(bookmarks.listBookmarks().length > 20
+          ? [{ label: 'Show All Favorites…', click: () => openInternalPage('blanc://bookmarks/') }]
+          : []),
+        { type: 'separator' },
         { label: 'Show Favorites', accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: () => openInternalPage('blanc://bookmarks/') },
         { label: 'Show History', accelerator: 'CmdOrCtrl+Y', click: () => openInternalPage('blanc://history/') },
       ],
