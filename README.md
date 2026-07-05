@@ -208,6 +208,23 @@ Settings: DuckDuckGo, Google, Bing, Brave).
   across tabs/favorites/history, but the input doesn't complete as you
   type.
 
+## Rebrand cleanup still pending
+
+This app was renamed from "Bowser" to Blanc — the code, package identity,
+and visual assets are done, but a few infra steps are deliberately not yet
+live:
+
+- The Cloudflare ping-worker source is renamed to `blanc-ping`
+  (`cloudflare/ping-worker/`), but it hasn't been redeployed — the old
+  `bowser-ping` Worker is still the one actually running.
+- The marketing site's copy points at `blancbrowser.com`, but nothing is
+  deployed there yet — `getbowser.com` is still the live site, and whether/how
+  to redirect it once the new one is up hasn't been decided.
+- This file's still-old-name architecture references were updated, but a
+  fuller pass to make sure nothing else in the repo (scripts, docs, comments)
+  assumes "Bowser" would be worth a final sweep before the first real
+  "Blanc" release ships.
+
 ## Known rough edges
 
 - `normalizeAddressInput()`'s domain-detection regex is intentionally
