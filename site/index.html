@@ -39,6 +39,24 @@
   a { color: inherit; }
   .mono { font-family: var(--font-mono); }
 
+  /* Consent banner */
+  .consent {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 100; display: flex; align-items: center; gap: 14px;
+    max-width: calc(100vw - 32px); flex-wrap: wrap; justify-content: center;
+    padding: 12px 16px; background: var(--surface-raised);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+  }
+  .consent[hidden] { display: none; }
+  .consent button {
+    font-family: var(--font-mono); font-size: 12px; padding: 6px 12px;
+    border-radius: var(--radius); border: 1px solid var(--accent);
+    background: var(--accent); color: var(--bg); cursor: pointer;
+  }
+  .consent button.ghost { background: transparent; color: var(--text-dim); border-color: var(--border); }
+
   body {
     /* Subtle technical blueprint grid pattern */
     background-image: 
@@ -820,6 +838,12 @@
   <span class="line">zero bloat <b>|</b> fast focus · © 2026</span>
 </footer>
 
+<div id="consent" class="consent" hidden>
+  <span>Anonymous analytics help us gauge interest — allow?</span>
+  <button id="consentAllow">Allow</button>
+  <button id="consentDeny" class="ghost">No thanks</button>
+</div>
+
 <script>
   // ---------- Hero control pill interactivity ----------
   const island = document.getElementById('island');
@@ -1119,6 +1143,40 @@
       if (dmg) document.getElementById('mac-dl').href = dmg.browser_download_url;
     })
     .catch(() => {});
+
+  // ---------- Consent-gated analytics ----------
+  // Nothing Google-related loads until the visitor clicks Allow; the choice
+  // sticks in localStorage. Wrapped so a failure means no banner and no GA,
+  // never a broken page.
+  try {
+    const GA_ID = 'G-MN8BLY6GE9';
+    const loadGA = () => {
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag('js', new Date());
+      gtag('config', GA_ID);
+    };
+    const consent = localStorage.getItem('ga-consent');
+    if (consent === 'granted') {
+      loadGA();
+    } else if (consent !== 'denied') {
+      const banner = document.getElementById('consent');
+      banner.hidden = false;
+      document.getElementById('consentAllow').addEventListener('click', () => {
+        localStorage.setItem('ga-consent', 'granted');
+        banner.hidden = true;
+        loadGA();
+      });
+      document.getElementById('consentDeny').addEventListener('click', () => {
+        localStorage.setItem('ga-consent', 'denied');
+        banner.hidden = true;
+      });
+    }
+  } catch (e) { /* no banner, no GA */ }
 </script>
 </body>
 </html>
