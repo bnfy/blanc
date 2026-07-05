@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap">
 <style>
   /* The site is always dark, regardless of system theme. */
   :root {
@@ -591,7 +592,7 @@
   .download { border-top: 1px solid var(--border); padding: 120px 40px 110px; text-align: center; position: relative; z-index: 1; transition: border-color 0.3s; }
   .download .lockup { display: flex; align-items: center; justify-content: center; gap: 14px; color: var(--text); transition: color 0.3s; }
   .download .lockup svg.dog { height: 34px; width: 31px; color: var(--accent); display: block; transition: color 0.3s; }
-  .download .lockup svg.wm { width: 132px; display: block; }
+  .download .lockup .wm { font-family: "Instrument Serif", serif; font-size: 40px; line-height: 1; display: block; }
   .download .links { margin-top: 40px; font-family: var(--font-mono); font-size: 14px; display: flex; gap: 28px; justify-content: center; }
   .download .links a { color: var(--text-dim); text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 2px; white-space: nowrap; transition: color 0.3s, border-color 0.3s; }
   .download .links a:hover { color: var(--text); border-color: var(--accent); }
@@ -868,7 +869,7 @@
 <section class="download" id="download">
   <div class="lockup">
     <svg class="dog" viewBox="0 0 149.21 199.16"><path fill="currentColor" d="M132.49,99.93c24.35,25.21,21.69,65.88-5.32,88.01-8.6,6.52-18.14,11.22-29.43,11.22H0S.05,0,.05,0l97.73.34c20.2.07,36.1,15.44,41.57,33.81,5.91,21.3-.72,42.38-18.13,56.78,3.89,3.02,7.96,5.58,11.27,9.01ZM123.05,76.28c11.02-13.76,12.6-31.98,4.74-47.57-6.27-10.66-16.79-19.78-29.98-19.81l-89.13-.21.04,134.11c17.74-38.18,51.53-61.94,94.24-58.73,7.99.6,14.76-1.14,20.08-7.79ZM9.18,186.44l95.77-92.67c-20.99-3.85-41.54,1.86-58.47,14.63-24.42,18.43-37.97,47.69-37.31,78.04ZM116.56,184.68c15.98-9.69,24.44-26.82,23.9-45.09s-10.27-34.19-26.36-42.19L17.5,190.42l81.36-.05c6.08,0,12.28-2.41,17.7-5.69Z"></path></svg>
-    <svg class="wm" viewBox="0 0 295.94 63.21"><g fill="currentColor"><polygon points="142.19 18.02 149.37 17.82 141.68 62.03 131.98 62.04 125.59 31.95 118.96 62.17 109.19 62.01 101.54 17.81 108.63 17.74 114.8 55.45 122.18 23.6 129.78 23.6 136.41 55.23 142.19 18.02"></polygon><path d="M10.98,57.8c-.69,1.35-1.29,4.06-2.27,4.07l-5.59.1,1.11-7.45-.07-48.42L.31,4.66c-.86-.32.25-3.79,1.11-4.13C3.46-.27,7.85-.11,10.81.6l.1,23.14c3.85-4.55,8.18-6.77,13.47-6.8s11.04,1.97,13.73,7.34c6.94,13.83,2.77,35.69-11.01,38.19-6.37,1.15-10.82.31-16.13-4.67ZM32.2,49.3c2.33-7.29,2.63-15.66-1.09-22.04-2.69-4.61-8.16-5-13.12-3.24-3.36,1.19-7.25,5.58-7.09,10.4l.47,14.74c.16,5.05,6,7.65,10.06,7.85,4.71.24,9.01-2.22,10.77-7.71Z"></path><path d="M240.36,53.04l2.75,5.73c-13.01,7.29-29.27,5.39-33.73-7.91-4.77-14.21.27-31.35,14.86-33.66,6.04-.96,12.47.47,16.6,5.3,4.67,5.45,5.07,13.08,4.28,19.54l-29.81.02c-.21,5.54,2.29,11.85,8,13.79s10.32.9,17.05-2.8ZM238.19,36.53c0-4.11-1.03-8.63-4.15-11.23-3.56-2.96-9.17-2.79-13.02-.3-3.21,2.07-5.16,6.83-5.48,11.56l22.65-.04Z"></path><path d="M87.86,56.12c-7.24,9.53-23.77,9.41-30.41-.11-6.2-8.89-5.76-22.06-.01-31.05,6.83-10.68,24.25-10.92,31.39-.5,6.22,9.07,6.02,22.47-.96,31.66ZM84.25,48.18c3.18-11.66.44-24.55-10.15-25.24-4.37-.28-9.07,1.9-11.14,6.7-2.33,5.39-2.52,12.19-1.29,17.89s5.39,9.42,10.79,9.54c5.17.12,10.11-2.69,11.8-8.88Z"></path><path d="M195.46,51.61c-1.24,11.89-22.13,15.31-35.56,6.2l3.54-5.6c6.84,4.6,13.4,6.15,20.75,3.45,1.81-.67,3.89-3.97,3.93-5.72s-2.19-4.88-4.05-5.49l-12.96-4.23c-4.5-1.47-8.09-5.29-8.5-9.27-.51-5.03,1.88-10,6.7-11.97,8.33-3.41,17.11-2.55,25.16,2.4l-3.56,4.56c-9.95-5.23-21.2-3.07-20.94,3.01.39,9.52,27.38,4.55,25.49,22.67Z"></path><path d="M256.92,62.13l-.07-5.77,10.73-.14V23.58s-7.72-.14-7.72-.14c-1.1-.02-2.67-2.46-2.44-3.46s2.15-2.36,3.21-2.34l12.71.22.76,6.96c5.26-7.19,13.79-9.7,21.83-6.76l-1.8,9.31-4.47-.09c-.83-.02-1.08-2.36-1.36-3.44-6.23-1.42-13.69,3.48-13.74,10.56l-.15,21.68,11.22.26-.09,5.76-28.63.05Z"></path></g></svg>
+    <span class="wm">Blanc</span>
   </div>
   <div class="links">
     <a class="primary" id="mac-dl" href="https://github.com/bnfy/blanc/releases/latest">macOS ↓</a>
