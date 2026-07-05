@@ -91,10 +91,10 @@
 
   function addressDisplayValue(tab) {
     if (!tab) return '';
-    if (tab.url.startsWith('bowser://newtab') || tab.url.startsWith('file://')) return '';
+    if (tab.url.startsWith('blanc://newtab') || tab.url.startsWith('file://')) return '';
     // The error page carries the failed URL in its query — show that, so
     // the user sees (and can edit/retry) the address they typed.
-    if (tab.url.startsWith('bowser://error')) {
+    if (tab.url.startsWith('blanc://error')) {
       try {
         return new URL(tab.url).searchParams.get('url') || tab.url;
       } catch {
@@ -105,7 +105,7 @@
   }
 
   /** Warning-only security check: true just for plain HTTP to a non-loopback
-   * host — https, bowser:, file:, and local dev servers show no indicator.
+   * host — https, blanc:, file:, and local dev servers show no indicator.
    * (Keep in sync with renderer.js.) */
   function connectionInsecure(url) {
     if (!url?.startsWith('http://')) return false;
@@ -120,10 +120,10 @@
   /** Short label for a tab's location: host for web pages, page name for
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
-    if (!tab?.url || tab.url.startsWith('bowser://newtab')) return '';
+    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
     try {
       const u = new URL(tab.url);
-      return u.protocol === 'bowser:' ? `bowser://${u.host}` : u.host;
+      return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host;
     } catch {
       return tab.url;
     }
@@ -136,9 +136,9 @@
     if (tab.favicon) {
       el.classList.add('has-icon');
       el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
-    } else if (tab.url.startsWith('bowser://')) {
+    } else if (tab.url.startsWith('blanc://')) {
       el.classList.add('has-icon');
-      el.style.backgroundImage = 'url("pages/icon.svg")'; // Bowser mark
+      el.style.backgroundImage = 'url("pages/icon.svg")'; // Blanc mark
     }
   }
 
@@ -189,7 +189,7 @@
       const shield = document.createElement('span');
       shield.className = 'shield';
       shield.textContent = String(tab.blockedCount);
-      shield.title = `Bowser blocked ${tab.blockedCount} ${tab.blockedCount === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
+      shield.title = `Blanc blocked ${tab.blockedCount} ${tab.blockedCount === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
       row.append(shield);
     }
 

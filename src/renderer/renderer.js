@@ -56,23 +56,23 @@
   }
 
   function shieldTooltip(blocked) {
-    return `Bowser blocked ${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
+    return `Blanc blocked ${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
   }
 
   /** Short label for a tab's location: host for web pages, page name for
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
-    if (!tab?.url || tab.url.startsWith('bowser://newtab')) return '';
+    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
     try {
       const u = new URL(tab.url);
-      return u.protocol === 'bowser:' ? `bowser://${u.host}` : u.host;
+      return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host;
     } catch {
       return tab.url;
     }
   }
 
   /** Warning-only security check: true just for plain HTTP to a non-loopback
-   * host — https, bowser:, file:, and local dev servers show no indicator.
+   * host — https, blanc:, file:, and local dev servers show no indicator.
    * (Keep in sync with overlay.js.) */
   function connectionInsecure(url) {
     if (!url?.startsWith('http://')) return false;
@@ -91,9 +91,9 @@
     if (tab.favicon) {
       el.classList.add('has-icon');
       el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
-    } else if (tab.url.startsWith('bowser://')) {
+    } else if (tab.url.startsWith('blanc://')) {
       el.classList.add('has-icon');
-      el.style.backgroundImage = 'url("pages/icon.svg")'; // Bowser mark
+      el.style.backgroundImage = 'url("pages/icon.svg")'; // Blanc mark
     }
   }
 
