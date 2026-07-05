@@ -602,6 +602,9 @@
   footer { border-top: 1px solid var(--border); padding: 26px 40px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); position: relative; z-index: 1; transition: border-color 0.3s, color 0.3s; }
   footer .line { white-space: nowrap; }
   footer .line b { color: var(--accent); font-weight: 400; transition: color 0.3s; }
+  footer .social { display: block; margin-top: 8px; }
+  footer .social a { color: var(--text-dim); text-decoration: none; transition: color 0.15s; }
+  footer .social a:hover { color: var(--accent); }
 
   @media (max-width: 768px) {
     .top-nav { right: 50%; transform: translateX(50%); top: 16px; }
@@ -880,6 +883,7 @@
 
 <footer>
   <span class="line">zero bloat <b>|</b> fast focus · © 2026</span>
+  <span class="line social"><a href="https://www.threads.net/@blancbrowser" target="_blank" rel="noopener">Threads</a> · <a href="https://www.instagram.com/blancbrowser/" target="_blank" rel="noopener">Instagram</a></span>
 </footer>
 
 <div id="consent" class="consent" hidden>
