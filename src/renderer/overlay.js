@@ -6,6 +6,7 @@
   const { platform } = window.browserAPI;
   const isMac = platform === 'darwin';
   const modKey = isMac ? '⌘' : 'ctrl+';
+  const modShiftKey = isMac ? '⌘⇧' : 'ctrl+shift+';
 
   const backdrop = document.getElementById('backdrop');
   const panelAnchor = document.getElementById('panelAnchor');
@@ -169,6 +170,17 @@
     row.addEventListener('click', () => {
       window.browserAPI.closeOverlay();
       window.browserAPI.createTab(); // main reopens the panel focused on the blank tab
+    });
+    return row;
+  }
+
+  function newPrivateTabRow() {
+    const row = document.createElement('div');
+    row.className = 'island-row newtab';
+    row.innerHTML = `${ICONS.plus}<span class="row-title">New private tab</span><span class="row-private">private</span><span class="row-kbd">${modShiftKey}N</span>`;
+    row.addEventListener('click', () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.createTab(null, { private: true });
     });
     return row;
   }
@@ -340,7 +352,7 @@
           : [emptyRow('no matches — ↵ opens as address or search')])
       );
     } else {
-      islandList.replaceChildren(...state.tabs.map(tabRow), newTabRow());
+      islandList.replaceChildren(...state.tabs.map(tabRow), newTabRow(), newPrivateTabRow());
     }
 
     islandHint.textContent = activeTab()?.private
