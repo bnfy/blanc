@@ -15,6 +15,9 @@
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --radius: 6px;
+  /* File, not data: URI — the pages' CSP has no img-src data: allowance,
+     and CSS can't recolor a background image, hence one SVG per theme. */
+  --select-caret: url("select-caret.svg");
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +32,7 @@
     --accent-dim: rgba(93, 139, 107, 0.16);
     --danger: #ff3b30;
     --on-danger: #f4f4f1;
+    --select-caret: url("select-caret-dark.svg");
   }
 }
 
@@ -46,6 +50,7 @@
   --accent-dim: rgba(168, 200, 176, 0.16);
   --danger: #ff3b30;
   --on-danger: #0c110e;
+  --select-caret: url("select-caret-dark.svg");
 }
 
 * { box-sizing: border-box; }
@@ -103,6 +108,16 @@ input[type="text"], input[type="url"], select {
   font-family: var(--font-mono);
   font-size: 12.5px;
   padding: 6px 10px;
+}
+/* Chromium's built-in caret drifts off-center once the control is custom-
+   styled — draw our own, centered against the right edge. */
+select {
+  appearance: none;
+  padding-right: 28px;
+  background-image: var(--select-caret);
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 10px 6px;
 }
 input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible {
   outline: 2px solid var(--accent);
