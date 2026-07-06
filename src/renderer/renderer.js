@@ -117,10 +117,10 @@
   function clusterTabs() {
     const clusters = [];
     for (const g of state.groups) {
-      const gtabs = state.tabs.filter((t) => t.groupId === g.id);
+      const gtabs = state.tabs.filter((t) => t.groupId === g.id && !t.pinned);
       if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
     }
-    const loose = state.tabs.filter((t) => !t.groupId);
+    const loose = state.tabs.filter((t) => !t.groupId && !t.pinned);
     if (loose.length) clusters.push({ group: null, tabs: loose });
     return clusters;
   }
@@ -144,8 +144,15 @@
   function render() {
     const tab = activeTab();
 
+    const pinnedTabs = state.tabs.filter((t) => t.pinned);
+    const pinnedShelf = document.createElement('span');
+    pinnedShelf.className = 'pill-cluster pinned-shelf';
+    pinnedShelf.title = `${pinnedTabs.length} pinned ${pinnedTabs.length === 1 ? 'tab' : 'tabs'}`;
+    pinnedShelf.append(...pinnedTabs.map(tabDot));
+
     const clusters = clusterTabs();
     pillDots.replaceChildren(
+      ...(pinnedTabs.length ? [pinnedShelf] : []),
       ...clusters.map(({ group, tabs: gtabs }) => {
         const isActiveCluster = group ? tab?.groupId === group.id : !tab?.groupId;
         const folded = group && group.collapsed && !isActiveCluster;
