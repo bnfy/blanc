@@ -78,6 +78,10 @@ function setupPages(hooks = {}) {
 
   handle('pages:app-version', () => app.getVersion());
 
+  // Help → Keyboard Shortcuts: the list is introspected from the live
+  // application menu in main.js, reached through a hook like startPage.
+  handle('pages:shortcuts:list', () => hooks.shortcuts?.list() ?? []);
+
   // Start page (the ledger new tab): tab groups + the weekly blocked
   // counter live in main.js, reached through hooks rather than a module.
   handle('pages:start:data', () => ({

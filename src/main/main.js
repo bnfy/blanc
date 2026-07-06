@@ -1414,6 +1414,53 @@ function favoritesMenuItems() {
   }));
 }
 
+// --- Keyboard shortcuts inventory (Help → Keyboard Shortcuts page) ---
+
+/** 'Alt+CmdOrCtrl+Left' → '⌥⌘←' on macOS, 'Alt+Ctrl+Left' elsewhere —
+ * same per-platform glyph convention the overlay uses. */
+function formatAccelerator(accelerator) {
+  const parts = String(accelerator).split('+');
+  const key = parts.pop();
+  const KEYS = { Left: '←', Right: '→', Up: '↑', Down: '↓', Plus: '+' };
+  const label = KEYS[key] ?? key;
+  if (process.platform !== 'darwin') {
+    return [...parts.map((m) => (m === 'CmdOrCtrl' || m === 'CommandOrControl' ? 'Ctrl' : m)), label].join('+');
+  }
+  const MAC = { CmdOrCtrl: '⌘', CommandOrControl: '⌘', Cmd: '⌘', Ctrl: '⌃', Alt: '⌥', Option: '⌥', Shift: '⇧' };
+  const order = ['⌃', '⌥', '⇧', '⌘'];
+  const mods = parts.map((m) => MAC[m] ?? m).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  return [...mods, label].join('');
+}
+
+/** Rows for blanc://shortcuts/, read from the LIVE application menu so the
+ * page can never drift from the real bindings, plus static extras for the
+ * island's non-menu keys. Hidden items (silent aliases like ⌘=) are
+ * skipped; the nine ⌘1–9 items collapse into one row. */
+function listShortcuts() {
+  const rows = [];
+  let collapsedTabJumps = false;
+  for (const top of Menu.getApplicationMenu()?.items ?? []) {
+    for (const item of top.submenu?.items ?? []) {
+      if (!item.accelerator || item.visible === false) continue;
+      if (/^CmdOrCtrl\+[1-9]$/.test(item.accelerator)) {
+        if (!collapsedTabJumps) {
+          collapsedTabJumps = true;
+          rows.push({ category: top.label, label: 'Tab or Group 1–9', keys: `${formatAccelerator('CmdOrCtrl+1')}–9` });
+        }
+        continue;
+      }
+      rows.push({ category: top.label, label: item.label, keys: formatAccelerator(item.accelerator) });
+    }
+  }
+  const mod = process.platform === 'darwin' ? '⌘' : 'Ctrl+';
+  rows.push(
+    { category: 'Island', label: 'Dismiss island panel / find bar', keys: 'Esc' },
+    { category: 'Island', label: 'Open address or run command (in command bar)', keys: 'Return' },
+    { category: 'Island', label: 'Open link in background tab', keys: `${mod}click` },
+  );
+  return rows;
+}
+
 function buildMenu() {
   const isMac = process.platform === 'darwin';
   const appMenu = isMac
@@ -1635,6 +1682,7 @@ app.whenReady().then(async () => {
       focusGroup,
       blockedThisWeek: () => adblockWeekStats().data.blocked,
     },
+    shortcuts: { list: listShortcuts },
   });
 
   await setupAdBlocker(ses, { enabled: settings.getSettings().adblockEnabled });
