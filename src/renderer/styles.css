@@ -335,7 +335,7 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 body[data-mode="palette"] #panelAnchor { top: 120px; }
 
 #islandPanel {
-  width: 560px;
+  width: 620px;
   max-width: calc(100vw - 24px);
   background: var(--surface-raised);
   border: 1px solid var(--border);
@@ -498,6 +498,63 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
 .row-grp.open,
 .row-grp:focus-visible { opacity: 1; }
 .row-grp:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Pin/mute row buttons — same reserved-space/hover-reveal convention as
+   .row-close: always occupy layout width, opacity-faded until hovered/
+   focused, but stay visible and accent-filled (like .shield/.row-private)
+   whenever the tab is actually pinned or muted. */
+.row-pin,
+.row-mute {
+  opacity: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex: 0 0 auto;
+}
+.row-pin svg,
+.row-mute svg { width: 14px; height: 14px; stroke-width: 1.75; }
+.island-row:hover .row-pin,
+.island-row:hover .row-mute,
+.row-pin:focus-visible,
+.row-mute:focus-visible { opacity: 1; }
+.row-pin:hover,
+.row-mute:hover { background: var(--border); color: var(--text); }
+.row-pin.on,
+.row-mute.on { opacity: 1; color: var(--accent); background: var(--accent-dim); }
+
+.row-favicon-wrap { position: relative; flex: 0 0 auto; }
+.row-mute-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+}
+/* .row-mute-badge's svg is inside a <span>, not a <button>, so it does
+   NOT inherit the global `button svg { fill: none; stroke: currentColor;
+   ... }` rule — set the same properties explicitly here, or it renders
+   as a filled black shape instead of a stroked icon. */
+.row-mute-badge svg {
+  width: 7px;
+  height: 7px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 .group-picker { display: flex; gap: 4px; flex: 0 0 auto; }
 
