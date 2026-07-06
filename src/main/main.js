@@ -1587,6 +1587,13 @@ function buildMenu() {
         { label: 'Show History', accelerator: 'CmdOrCtrl+Y', click: () => openInternalPage('blanc://history/') },
       ],
     },
+    {
+      label: 'Help',
+      ...(isMac ? { role: 'help' } : {}),
+      submenu: [
+        { label: 'Keyboard Shortcuts', accelerator: 'CmdOrCtrl+/', click: () => openInternalPage('blanc://shortcuts/') },
+      ],
+    },
   ];
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
