@@ -527,7 +527,11 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
 .row-pin.on,
 .row-mute.on { opacity: 1; color: var(--accent); background: var(--accent-dim); }
 
-.row-favicon-wrap { position: relative; flex: 0 0 auto; }
+/* display: flex matters — .favicon's width/height only apply when it's
+   blockified as a flex item (it was previously a direct child of the
+   .island-row flex container; a plain inline wrapper collapses it to
+   zero size and the icon vanishes). */
+.row-favicon-wrap { position: relative; display: flex; flex: 0 0 auto; }
 .row-mute-badge {
   position: absolute;
   bottom: -3px;
