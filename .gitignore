@@ -6,3 +6,4 @@ out/
 .DS_Store
 brand/
 .superpowers/
+.playwright-cli/
