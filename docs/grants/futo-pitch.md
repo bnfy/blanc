@@ -1,7 +1,8 @@
 # FUTO pitch — Blanc (draft)
 
 > Short email-style pitch for https://futo.org (rolling submissions,
-> grants@futo.org). Review and send personally — nothing has been sent.
+> **grantapps@futo.org** — verified against futo.org/grants 2026-07-06).
+> Review and send personally — nothing has been sent.
 
 Subject: Grant inquiry — Blanc, an independent ad-blocking-first desktop browser
 

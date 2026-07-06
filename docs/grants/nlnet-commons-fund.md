@@ -1,8 +1,11 @@
 # NLnet Commons Fund application — Blanc (draft)
 
-> Draft for https://nlnet.nl/commonsfund/ — answers map to the actual form
-> fields. Review, adjust the budget to taste, and submit before the next
-> deadline (calls close on the 1st of every even month). Nothing here has
+> Draft for NLnet's standard application form. **Status 2026-07-06:** the
+> NGI Zero Commons Fund closed its final call on 2026-06-01, and NLnet has
+> paused regular open calls while transitioning to a new "Open Internet
+> Stack" effort — regular calls reopen after the summer (check
+> https://nlnet.nl/propose/ around September 2026). The questions below
+> match NLnet's long-standing form and should carry over. Nothing here has
 > been submitted.
 
 ## Project name
