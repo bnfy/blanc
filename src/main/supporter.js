@@ -7,10 +7,11 @@ const settings = require('./settings');
 // revalidation, no lockout, works offline. Perks are cosmetics; anything
 // heavier would betray the brand (see the phase-1 monetization spec).
 
-// The Polar organization id (public, not a secret). Empty until the Polar
-// account exists — see docs/polar-setup.md. With it empty, activation
-// degrades to a clear message instead of a request.
-const POLAR_ORGANIZATION_ID = '';
+// The Polar organization id (public, not a secret) — the production org
+// "bnfy" (see docs/polar-setup.md). Note: dev runs hit the sandbox API
+// below, where this production id doesn't exist — testing activation in
+// dev requires temporarily swapping in a sandbox org id + test key.
+const POLAR_ORGANIZATION_ID = '6f675077-6cb1-4965-8db8-15838e5fdb38';
 
 // Packaged builds hit production; dev runs hit Polar's sandbox so test
 // keys never touch real data (mirrors the app.isPackaged telemetry guard).
