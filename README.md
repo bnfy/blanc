@@ -86,10 +86,16 @@ and `version`, then `npm run release`. That builds, signs, and notarizes
 the macOS artifacts locally (see `scripts/release.sh`), then dispatches
 [`release-windows-linux.yml`](.github/workflows/release-windows-linux.yml)
 to build the NSIS installer and AppImage on their native runners and
-upload them onto the same release. The Windows build is signed only if
-the `CSC_LINK`/`CSC_KEY_PASSWORD` repo secrets are set — without them it
-still builds, but users hit a SmartScreen "unknown publisher" warning.
-Running installs pick releases up on their next check (startup + every
+upload them onto the same release. The Windows build signs via Azure
+Trusted Signing if configured (repo secrets `AZURE_TENANT_ID`/
+`AZURE_CLIENT_ID`/`AZURE_CLIENT_SECRET` + repo variables
+`AZURE_TRUSTED_SIGNING_ENDPOINT`/`AZURE_CODE_SIGNING_ACCOUNT_NAME`/
+`AZURE_CERTIFICATE_PROFILE_NAME`/`AZURE_PUBLISHER_NAME`), else falls back
+to a traditional cert via `CSC_LINK`/`CSC_KEY_PASSWORD` secrets, else
+builds unsigned — unsigned (or freshly-OV-signed) installers hit a
+SmartScreen "unknown publisher" warning until reputation builds up, which
+Azure Trusted Signing skips. Running installs pick releases up on their
+next check (startup + every
 4 h, or **Check for Updates…** in the menu) and prompt to restart. Dev
 builds (`npm start`) skip all of this.
 

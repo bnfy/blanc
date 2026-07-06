@@ -29,16 +29,33 @@ jobs:
 
       - run: npm ci
 
-      - name: Build (signed if a code-signing cert is configured)
+      - name: Build (Azure Trusted Signing, else CSC_LINK, else unsigned)
         shell: bash
         env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_ENDPOINT: ${{ vars.AZURE_TRUSTED_SIGNING_ENDPOINT }}
+          AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
+          AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
+          AZURE_PUBLISHER_NAME: ${{ vars.AZURE_PUBLISHER_NAME }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: |
-          if [ -z "$CSC_LINK" ]; then
-            echo "::warning::CSC_LINK repo secret not set — building an UNSIGNED Windows installer. Users will see a SmartScreen 'unknown publisher' warning. Set CSC_LINK/CSC_KEY_PASSWORD secrets to sign."
+          if [ -n "$AZURE_CLIENT_ID" ] && [ -n "$AZURE_CODE_SIGNING_ACCOUNT" ]; then
+            echo "==> Signing via Azure Trusted Signing ($AZURE_CODE_SIGNING_ACCOUNT/$AZURE_CERT_PROFILE)"
+            npx electron-builder --win --publish never \
+              --config.win.azureSignOptions.publisherName="$AZURE_PUBLISHER_NAME" \
+              --config.win.azureSignOptions.endpoint="$AZURE_ENDPOINT" \
+              --config.win.azureSignOptions.certificateProfileName="$AZURE_CERT_PROFILE" \
+              --config.win.azureSignOptions.codeSigningAccountName="$AZURE_CODE_SIGNING_ACCOUNT"
+          elif [ -n "$CSC_LINK" ]; then
+            echo "==> Signing via CSC_LINK (traditional Authenticode cert)"
+            npx electron-builder --win --publish never
+          else
+            echo "::warning::No Windows signing configured (neither AZURE_CLIENT_ID/AZURE_CODE_SIGNING_ACCOUNT_NAME nor CSC_LINK are set) — building an UNSIGNED installer. Users will see a SmartScreen 'unknown publisher' warning."
+            npx electron-builder --win --publish never
           fi
-          npx electron-builder --win --publish never
 
       - name: Verify build artifacts
         shell: bash
