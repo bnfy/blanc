@@ -1404,6 +1404,7 @@ function buildMenu() {
         { label: 'Search & Commands', accelerator: 'CmdOrCtrl+L', click: () => { if (hasLiveWindow()) { win.focus(); showOverlay('palette'); } } },
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: openFindBar },
         { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reload() },
+        { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reloadIgnoringCache() },
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', click: () => zoomActiveTab(ZOOM_STEP) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+=', visible: false, click: () => zoomActiveTab(ZOOM_STEP) },
