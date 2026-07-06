@@ -12,14 +12,14 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-REPO="bnfy/bowser"
+REPO="bnfy/blanc"
 VERSION=$(node -p "require('./package.json').version")
 TAG="v$VERSION"
 
 command -v gh >/dev/null || { echo "gh CLI not found — required to publish releases." >&2; exit 1; }
 gh auth status >/dev/null 2>&1 || { echo "gh CLI not authenticated. Run: gh auth login" >&2; exit 1; }
 
-echo "==> Releasing Bowser $VERSION ($TAG)"
+echo "==> Releasing Blanc $VERSION ($TAG)"
 
 NEWER_ELECTRON=$(npm view electron version 2>/dev/null || true)
 INSTALLED_ELECTRON=$(node -p "require('./node_modules/electron/package.json').version" 2>/dev/null || true)
@@ -44,10 +44,10 @@ else
 fi
 
 ASSETS=(
-  "dist/Bowser-$VERSION-arm64-mac.zip"
-  "dist/Bowser-$VERSION-arm64-mac.zip.blockmap"
-  "dist/Bowser-$VERSION-arm64.dmg"
-  "dist/Bowser-$VERSION-arm64.dmg.blockmap"
+  "dist/Blanc-$VERSION-arm64-mac.zip"
+  "dist/Blanc-$VERSION-arm64-mac.zip.blockmap"
+  "dist/Blanc-$VERSION-arm64.dmg"
+  "dist/Blanc-$VERSION-arm64.dmg.blockmap"
   "dist/latest-mac.yml"
 )
 for f in "${ASSETS[@]}"; do
@@ -69,9 +69,9 @@ echo "==> Done: https://github.com/$REPO/releases/tag/$TAG"
 # needs a real Windows toolchain. Instead, dispatch the CI workflow that
 # builds both on their native runners and uploads onto this same tag.
 echo "==> Dispatching Windows/Linux CI build for $TAG"
-if ! gh workflow run release-windows-linux.yml --repo "$REPO" -f tag="$TAG" 2>/tmp/bowser-release-wf-dispatch.err; then
+if ! gh workflow run release-windows-linux.yml --repo "$REPO" -f tag="$TAG" 2>/tmp/release-wf-dispatch.err; then
   echo "==> Could not dispatch release-windows-linux.yml — it may not exist on the default branch yet (workflow_dispatch only works off the default branch), or gh may be missing the 'workflow' scope." >&2
-  cat /tmp/bowser-release-wf-dispatch.err >&2
+  cat /tmp/release-wf-dispatch.err >&2
   echo "==> Build Windows/Linux manually once resolved: gh workflow run release-windows-linux.yml --repo $REPO -f tag=$TAG" >&2
   exit 0
 fi

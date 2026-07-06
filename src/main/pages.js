@@ -8,7 +8,7 @@ const settings = require('./settings');
 const { listDecisions, removeDecision } = require('./permissions');
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
-// tab page) are served over a dedicated `bowser://` scheme instead of
+// tab page) are served over a dedicated `blanc://` scheme instead of
 // file:// so they get a real origin, and so ordinary web content can never
 // link into arbitrary local files.
 const PAGES_DIR = path.join(__dirname, '../renderer/pages');
@@ -17,7 +17,7 @@ const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'set
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
   protocol.registerSchemesAsPrivileged([
-    { scheme: 'bowser', privileges: { standard: true, secure: true } },
+    { scheme: 'blanc', privileges: { standard: true, secure: true } },
   ]);
 }
 
@@ -25,11 +25,11 @@ function registerPagesScheme() {
  * (e.g. so the star button updates when a bookmark is deleted from the
  * bookmarks page). */
 function setupPages(hooks = {}) {
-  protocol.handle('bowser', (request) => {
+  protocol.handle('blanc', (request) => {
     const { host, pathname } = new URL(request.url);
     if (!KNOWN_PAGES.has(host)) return new Response('Not found', { status: 404 });
 
-    // `bowser://bookmarks/` serves the page itself; any deeper path is a
+    // `blanc://bookmarks/` serves the page itself; any deeper path is a
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
     const name = pathname === '/' ? `${host}.html` : path.basename(pathname);
     if (!/^[\w.-]+$/.test(name)) return new Response('Bad request', { status: 400 });
@@ -37,12 +37,12 @@ function setupPages(hooks = {}) {
   });
 
   // Every handler below double-checks the sender really is an internal
-  // page — the preload only exposes the API on bowser:// documents, but
+  // page — the preload only exposes the API on blanc:// documents, but
   // IPC channels are reachable by name, so the main process must not
   // trust that alone.
   const handle = (channel, fn) => {
     ipcMain.handle(channel, (event, ...args) => {
-      if (!event.sender.getURL().startsWith('bowser://')) {
+      if (!event.sender.getURL().startsWith('blanc://')) {
         throw new Error(`${channel}: denied for ${event.sender.getURL()}`);
       }
       return fn(...args);

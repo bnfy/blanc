@@ -56,23 +56,23 @@
   }
 
   function shieldTooltip(blocked) {
-    return `Bowser blocked ${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
+    return `Blanc blocked ${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
   }
 
   /** Short label for a tab's location: host for web pages, page name for
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
-    if (!tab?.url || tab.url.startsWith('bowser://newtab')) return '';
+    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
     try {
       const u = new URL(tab.url);
-      return u.protocol === 'bowser:' ? `bowser://${u.host}` : u.host;
+      return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host;
     } catch {
       return tab.url;
     }
   }
 
   /** Warning-only security check: true just for plain HTTP to a non-loopback
-   * host — https, bowser:, file:, and local dev servers show no indicator.
+   * host — https, blanc:, file:, and local dev servers show no indicator.
    * (Keep in sync with overlay.js.) */
   function connectionInsecure(url) {
     if (!url?.startsWith('http://')) return false;
@@ -91,9 +91,9 @@
     if (tab.favicon) {
       el.classList.add('has-icon');
       el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
-    } else if (tab.url.startsWith('bowser://')) {
+    } else if (tab.url.startsWith('blanc://')) {
       el.classList.add('has-icon');
-      el.style.backgroundImage = 'url("pages/icon.svg")'; // Bowser mark
+      el.style.backgroundImage = 'url("pages/icon.svg")'; // Blanc mark
     }
   }
 
@@ -117,10 +117,10 @@
   function clusterTabs() {
     const clusters = [];
     for (const g of state.groups) {
-      const gtabs = state.tabs.filter((t) => t.groupId === g.id);
+      const gtabs = state.tabs.filter((t) => t.groupId === g.id && !t.pinned);
       if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
     }
-    const loose = state.tabs.filter((t) => !t.groupId);
+    const loose = state.tabs.filter((t) => !t.groupId && !t.pinned);
     if (loose.length) clusters.push({ group: null, tabs: loose });
     return clusters;
   }
@@ -144,8 +144,15 @@
   function render() {
     const tab = activeTab();
 
+    const pinnedTabs = state.tabs.filter((t) => t.pinned);
+    const pinnedShelf = document.createElement('span');
+    pinnedShelf.className = 'pill-cluster pinned-shelf';
+    pinnedShelf.title = `${pinnedTabs.length} pinned ${pinnedTabs.length === 1 ? 'tab' : 'tabs'}`;
+    pinnedShelf.append(...pinnedTabs.map(tabDot));
+
     const clusters = clusterTabs();
     pillDots.replaceChildren(
+      ...(pinnedTabs.length ? [pinnedShelf] : []),
       ...clusters.map(({ group, tabs: gtabs }) => {
         const isActiveCluster = group ? tab?.groupId === group.id : !tab?.groupId;
         const folded = group && group.collapsed && !isActiveCluster;

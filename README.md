@@ -1,6 +1,6 @@
-# Bowser
+# Blanc Browser
 
-![Bowser's Island chrome floating over github.com — tab dots, the current domain, and the ad-block counter in a single pill](docs/island-chrome.png)
+![Blanc's Island chrome floating over github.com — tab dots, the current domain, and the ad-block counter in a single pill](docs/island-chrome.png)
 
 A minimal Electron browser with **Island chrome**: instead of a tab strip
 and toolbar, a single floating pill sits top-center over the page — tab
@@ -16,7 +16,7 @@ builds.
 ## Install
 
 Grab the latest build from
-[Releases](https://github.com/bnfy/bowser/releases/latest): macOS (dmg/zip,
+[Releases](https://github.com/bnfy/blanc/releases/latest): macOS (dmg/zip,
 arm64, signed & notarized), Windows (NSIS installer), or Linux (AppImage).
 Installed copies keep themselves current via auto-update.
 
@@ -104,7 +104,7 @@ builds (`npm start`) skip all of this.
 ```
 src/main/main.js         Window, per-tab WebContentsViews, island overlay, IPC, menu
 src/main/adblock.js      Network + cosmetic ad blocking (@ghostery/adblocker-electron)
-src/main/pages.js        bowser:// scheme for internal pages + their guarded IPC API
+src/main/pages.js        blanc:// scheme for internal pages + their guarded IPC API
 src/main/permissions.js  Deny-by-default permission policy + per-site prompt decisions
 src/main/downloads.js    Download tracking (will-download), open/show/cancel actions
 src/main/bookmarks.js    Favorites store
@@ -115,7 +115,7 @@ src/main/context-menu.js Right-click menu for web content
 src/main/auth-dialog.js  HTTP basic/digest auth prompt
 src/main/updater.js      electron-updater wiring
 src/main/preload.js      contextBridge API for the chrome strip + island overlay
-src/main/tab-preload.js  contextBridge API for bowser:// internal pages only
+src/main/tab-preload.js  contextBridge API for blanc:// internal pages only
 src/renderer/            The chrome: strip + resting pill (index.html), island overlay (overlay.html)
 src/renderer/pages/      Internal pages: newtab, favorites, history, downloads, settings
 ```
@@ -134,11 +134,11 @@ state lives in the main process; both chrome documents just reflect
 **Security posture:** the chrome strip, the overlay, and every tab run
 with `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`.
 Tabs carry `tab-preload.js`, but it exposes its `bowserPages` bridge only
-when the document is one of our own `bowser://` pages (re-checked on every
+when the document is one of our own `blanc://` pages (re-checked on every
 navigation), and the main process re-verifies the sender URL on every
 `pages:*` IPC call — so ordinary web content still gets zero access to
 Node, Electron internals, or browser data. The richer `browserAPI` bridge
-is only ever attached to Bowser's own chrome documents.
+is only ever attached to Blanc's own chrome documents.
 
 **Permissions:** deny-by-default. Camera, microphone, geolocation, and
 notifications surface a per-site Allow/Block prompt in the chrome; the
@@ -154,7 +154,7 @@ tab and surface as the accent badge in the pill. Toggle the engine in
 Settings (or `/adblock`); exempt individual sites per-site (`/off-leash`,
 also editable in Settings).
 
-**Internal pages** (`bowser://newtab`, `bookmarks`, `history`,
+**Internal pages** (`blanc://newtab`, `bookmarks`, `history`,
 `downloads`, `settings`) are served over a privileged custom scheme by
 `pages.js` — a real origin, so web content can't link into arbitrary local
 files. The user-facing name for bookmarks is **Favorites** (heart icon);
@@ -167,7 +167,10 @@ custom browser shell anyway — they verify the browser's code signature
 against vendor allowlists. (Bowser is now in Apple's allowlist source
 data via
 [apple/password-manager-resources#1137](https://github.com/apple/password-manager-resources/pull/1137);
-meanwhile, the macOS Passwords menu-bar app works well alongside Bowser.)
+meanwhile, the macOS Passwords menu-bar app works well alongside it. The
+PR predates this app's rename to Blanc and refers to it by its former
+name — a follow-up PR to Apple's allowlist under the new name is a
+later, separate task.)
 Skipping an extension runtime also keeps the whole chrome sandboxed and
 the app small.
 
@@ -209,7 +212,7 @@ Settings: DuckDuckGo, Google, Bing, Brave).
 
 ## What's still left
 
-- **Multi-window** — Bowser is deliberately single-window for now.
+- **Multi-window** — Blanc is deliberately single-window for now.
 - **Passkeys** — WebAuthn works for security keys; platform passkeys via
   Apple Passwords await Apple's grant of the
   `com.apple.developer.web-browser.public-key-credential` entitlement
@@ -217,6 +220,23 @@ Settings: DuckDuckGo, Google, Bing, Brave).
 - **Inline address autocomplete** — the quick switcher covers search
   across tabs/favorites/history, but the input doesn't complete as you
   type.
+
+## Rebrand cleanup still pending
+
+This app was renamed from "Bowser" to Blanc — the code, package identity,
+and visual assets are done, but a few infra steps are deliberately not yet
+live:
+
+- The Cloudflare ping-worker source is renamed to `blanc-ping`
+  (`cloudflare/ping-worker/`), but it hasn't been redeployed — the old
+  `bowser-ping` Worker is still the one actually running.
+- The marketing site's copy points at `blancbrowser.com`, but nothing is
+  deployed there yet — `getbowser.com` is still the live site, and whether/how
+  to redirect it once the new one is up hasn't been decided.
+- This file's still-old-name architecture references were updated, but a
+  fuller pass to make sure nothing else in the repo (scripts, docs, comments)
+  assumes "Bowser" would be worth a final sweep before the first real
+  "Blanc" release ships.
 
 ## Known rough edges
 

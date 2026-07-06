@@ -40,7 +40,7 @@ function promptForCredentials(parent, authInfo) {
       };
 
       ipcMain.once(`auth:submit:${id}`, (event, creds) => {
-        if (!event.sender.getURL().startsWith('bowser://auth')) return;
+        if (!event.sender.getURL().startsWith('blanc://auth')) return;
         if (creds && typeof creds.username === 'string' && typeof creds.password === 'string') {
           done({ username: creds.username, password: creds.password });
         } else {
@@ -50,7 +50,7 @@ function promptForCredentials(parent, authInfo) {
       dialogWin.on('closed', () => done(null));
 
       const q = new URLSearchParams({ id: String(id), host: authInfo.host ?? '', realm: authInfo.realm ?? '' });
-      dialogWin.loadURL(`bowser://auth/?${q}`);
+      dialogWin.loadURL(`blanc://auth/?${q}`);
     });
 
   chain = chain.then(run, run);

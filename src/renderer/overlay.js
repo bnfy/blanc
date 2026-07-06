@@ -54,6 +54,8 @@
     stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
     plus: '<svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>',
+    pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
+    mute: '<svg viewBox="0 0 16 16"><path d="M2 6h3l4-3.5v11L5 10H2z"/><path d="M11 5.5l3 5M14 5.5l-3 5"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -68,10 +70,10 @@
   function clusterTabs() {
     const clusters = [];
     for (const g of state.groups) {
-      const gtabs = state.tabs.filter((t) => t.groupId === g.id);
+      const gtabs = state.tabs.filter((t) => t.groupId === g.id && !t.pinned);
       if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
     }
-    const loose = state.tabs.filter((t) => !t.groupId);
+    const loose = state.tabs.filter((t) => !t.groupId && !t.pinned);
     if (loose.length) clusters.push({ group: null, tabs: loose });
     return clusters;
   }
@@ -91,10 +93,10 @@
 
   function addressDisplayValue(tab) {
     if (!tab) return '';
-    if (tab.url.startsWith('bowser://newtab') || tab.url.startsWith('file://')) return '';
+    if (tab.url.startsWith('blanc://newtab') || tab.url.startsWith('file://')) return '';
     // The error page carries the failed URL in its query — show that, so
     // the user sees (and can edit/retry) the address they typed.
-    if (tab.url.startsWith('bowser://error')) {
+    if (tab.url.startsWith('blanc://error')) {
       try {
         return new URL(tab.url).searchParams.get('url') || tab.url;
       } catch {
@@ -105,7 +107,7 @@
   }
 
   /** Warning-only security check: true just for plain HTTP to a non-loopback
-   * host — https, bowser:, file:, and local dev servers show no indicator.
+   * host — https, blanc:, file:, and local dev servers show no indicator.
    * (Keep in sync with renderer.js.) */
   function connectionInsecure(url) {
     if (!url?.startsWith('http://')) return false;
@@ -120,10 +122,10 @@
   /** Short label for a tab's location: host for web pages, page name for
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
-    if (!tab?.url || tab.url.startsWith('bowser://newtab')) return '';
+    if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
     try {
       const u = new URL(tab.url);
-      return u.protocol === 'bowser:' ? `bowser://${u.host}` : u.host;
+      return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host;
     } catch {
       return tab.url;
     }
@@ -136,9 +138,9 @@
     if (tab.favicon) {
       el.classList.add('has-icon');
       el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
-    } else if (tab.url.startsWith('bowser://')) {
+    } else if (tab.url.startsWith('blanc://')) {
       el.classList.add('has-icon');
-      el.style.backgroundImage = 'url("pages/icon.svg")'; // Bowser mark
+      el.style.backgroundImage = 'url("pages/icon.svg")'; // Blanc mark
     }
   }
 
@@ -165,8 +167,17 @@
     row.className = 'island-row' + (tab.id === state.activeTabId ? ' active' : '');
     row.dataset.tabId = tab.id;
 
+    const faviconWrap = document.createElement('span');
+    faviconWrap.className = 'row-favicon-wrap';
     const favicon = document.createElement('span');
     setFavicon(favicon, tab);
+    faviconWrap.append(favicon);
+    if (tab.muted) {
+      const muteBadge = document.createElement('span');
+      muteBadge.className = 'row-mute-badge';
+      muteBadge.innerHTML = ICONS.mute;
+      faviconWrap.append(muteBadge);
+    }
 
     const title = document.createElement('span');
     title.className = 'row-title';
@@ -176,7 +187,7 @@
     sub.className = 'row-sub';
     sub.textContent = tabDomain(tab);
 
-    row.append(favicon, title, sub);
+    row.append(faviconWrap, title, sub);
 
     if (tab.private) {
       const tag = document.createElement('span');
@@ -189,9 +200,31 @@
       const shield = document.createElement('span');
       shield.className = 'shield';
       shield.textContent = String(tab.blockedCount);
-      shield.title = `Bowser blocked ${tab.blockedCount} ${tab.blockedCount === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
+      shield.title = `Blanc blocked ${tab.blockedCount} ${tab.blockedCount === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
       row.append(shield);
     }
+
+    const pin = document.createElement('button');
+    pin.className = 'row-pin' + (tab.pinned ? ' on' : '');
+    pin.title = tab.pinned ? 'Unpin tab' : 'Pin tab';
+    pin.setAttribute('aria-label', pin.title);
+    pin.innerHTML = ICONS.pin;
+    pin.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.browserAPI.toggleTabPinned(tab.id);
+    });
+    row.append(pin);
+
+    const mute = document.createElement('button');
+    mute.className = 'row-mute' + (tab.muted ? ' on' : '');
+    mute.title = tab.muted ? 'Unmute tab' : 'Mute tab';
+    mute.setAttribute('aria-label', mute.title);
+    mute.innerHTML = ICONS.mute;
+    mute.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.browserAPI.toggleTabMuted(tab.id);
+    });
+    row.append(mute);
 
     const grp = document.createElement('button');
     grp.className = 'row-grp';
@@ -283,6 +316,23 @@
 
   const CARET = '<svg class="caret" viewBox="0 0 10 10"><path d="M3.5 2 L7 5 L3.5 8"/></svg>';
 
+  /** "pinned" section header — same dim-rule visual language as a group
+   * header, but static (no fold/unfold — pinned tabs are always shown). */
+  function pinnedHeaderRow(count) {
+    const row = document.createElement('div');
+    row.className = 'island-ghead static';
+    const name = document.createElement('span');
+    name.className = 'ghead-name';
+    name.textContent = 'pinned';
+    const rule = document.createElement('span');
+    rule.className = 'ghead-rule';
+    const n = document.createElement('span');
+    n.className = 'ghead-n';
+    n.textContent = String(count);
+    row.append(name, rule, n);
+    return row;
+  }
+
   /** "work — 3 ————— ⌘1": click folds/unfolds the group. */
   function groupHeaderRow(group, count, clusterIndex) {
     const row = document.createElement('div');
@@ -355,7 +405,9 @@
     { cmd: '/new', hint: 'Open a new tab', run: () => window.browserAPI.createTab() },
     { cmd: '/private', hint: 'Open a private tab — history stays untouched', run: () => window.browserAPI.createTab(null, { private: true }) },
     { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
-    { cmd: '/group', hint: 'Move this tab into a group — /group work', run: (input) => {
+    { cmd: '/pin', hint: 'Pin or unpin this tab', run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
+    { cmd: '/mute', hint: 'Mute or unmute this tab', run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
+    { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"', run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
       if (name && state.activeTabId) window.browserAPI.groupTabByName(state.activeTabId, name);
     } },
@@ -426,6 +478,14 @@
     return 0;
   }
 
+  /** matchScore's genuine-substring tier — the only one confident enough
+   * to auto-navigate on bare Enter. The loose in-order fallback (score 1)
+   * is too permissive: a long-lived history entry can in-order-match
+   * almost any query sharing a few letters, once silently hijacking Enter
+   * away from whatever was actually typed. Kind bonuses (below) top out at
+   * +0.3, so they can never lift a weak match up to this tier. */
+  const STRONG_MATCH_SCORE = 2;
+
   /** What a candidate is matched against: title + host + a capped path.
    * Query strings and fragments are deliberately excluded — OAuth/token
    * URLs carry kilobytes of base64 that in-order-matches almost any
@@ -483,7 +543,12 @@
     window.browserAPI.closeOverlay();
   }
 
-  function resultRow(result, isTop) {
+  // isTop: the best-ranked result — always visually highlighted, so the
+  // list keeps a consistent "here's our best guess" cue. isEnterTarget:
+  // whether bare Enter actually acts on it (only a strong match, see
+  // STRONG_MATCH_SCORE) — separate from isTop so the ↵ glyph, which
+  // promises specific behavior, never appears when that promise is false.
+  function resultRow(result, isTop, isEnterTarget) {
     const row = document.createElement('div');
     row.className = 'island-row' + (isTop ? ' active' : '');
 
@@ -506,7 +571,7 @@
     tag.textContent = result.kind;
 
     row.append(favicon, title, sub, tag);
-    if (isTop) row.append(enterGlyph());
+    if (isEnterTarget) row.append(enterGlyph());
     row.addEventListener('click', () => pickResult(result));
     return row;
   }
@@ -530,7 +595,7 @@
       visibleResults = switcherResults(value.trim().toLowerCase());
       islandList.replaceChildren(
         ...(visibleResults.length
-          ? visibleResults.map((r, i) => resultRow(r, i === 0))
+          ? visibleResults.map((r, i) => resultRow(r, i === 0, i === 0 && r.score >= STRONG_MATCH_SCORE))
           : [emptyRow('no matches — ↵ opens as address or search')])
       );
     } else {
@@ -540,8 +605,14 @@
       const pickerValue = prevPickerInput?.value ?? '';
       const pickerHadFocus = prevPickerInput && document.activeElement === prevPickerInput;
 
-      const clusters = clusterTabs();
+      const pinned = state.tabs.filter((t) => t.pinned);
       const rows = [];
+      if (pinned.length) {
+        rows.push(pinnedHeaderRow(pinned.length));
+        rows.push(...pinned.map(tabRow));
+      }
+
+      const clusters = clusterTabs();
       for (const { group, tabs: gtabs } of clusters) {
         if (group) rows.push(groupHeaderRow(group, gtabs.length, clusters.findIndex((c) => c.group === group)));
         else if (clusters.length > 1) rows.push(looseHeaderRow());
@@ -580,7 +651,7 @@
 
   // --- Mode switching (driven by main via overlay:show / overlay:hide) ---
 
-  function applyMode(next) {
+  function applyMode(next, prefill) {
     const reshow = mode === next;
     mode = next;
     document.body.dataset.mode = next ?? '';
@@ -592,14 +663,22 @@
       if (!reshow) pickingTabId = null;
       refreshSwitcherData();
       renderPanel();
-      // A reassert (main re-focusing the same open panel) must not clobber
-      // what the user already typed.
-      if (!reshow || !inputTouched) {
+      if (prefill) {
+        // A menu-triggered command (e.g. "New Group…") arrives pre-typed —
+        // land the cursor at the end, ready to type the rest, rather than
+        // selecting the whole string the way a fresh open does below.
+        inputTouched = true;
+        addressInput.value = prefill;
+        renderList();
+      } else if (!reshow || !inputTouched) {
+        // A reassert (main re-focusing the same open panel) must not
+        // clobber what the user already typed.
         inputTouched = false;
         addressInput.value = addressDisplayValue(activeTab());
       }
       addressInput.focus();
-      addressInput.select();
+      if (prefill) addressInput.setSelectionRange(prefill.length, prefill.length);
+      else addressInput.select();
     } else if (next === 'find') {
       findInput.focus();
       findInput.select();
@@ -613,7 +692,7 @@
     findLastQuery = null;
   }
 
-  window.browserAPI.onOverlayShow(({ mode: next }) => applyMode(next));
+  window.browserAPI.onOverlayShow(({ mode: next, prefill }) => applyMode(next, prefill));
   window.browserAPI.onOverlayHide(() => {
     if (mode === 'find') resetFind();
     mode = null;
@@ -651,9 +730,15 @@
   });
   addressInput.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
+    // See STRONG_MATCH_SCORE: weak matches stay visible and clickable,
+    // just not auto-selected — there's no keyboard way to move selection
+    // off the top result anyway (observed: a dead one-shot Google OAuth
+    // link stayed ranked #1 for "gemini.google.com", "www.google.com",
+    // etc. via the weak in-order fallback, making the whole domain look
+    // unreachable).
     if (visibleCommands.length) {
       runCommand(visibleCommands[0]);
-    } else if (visibleResults.length) {
+    } else if (visibleResults.length && visibleResults[0].score >= STRONG_MATCH_SCORE) {
       pickResult(visibleResults[0]);
     } else if (inputTouched && addressInput.value.startsWith('/')) {
       // "no matching command" — do nothing rather than search for "/typo"

@@ -1,7 +1,7 @@
 {
-  "name": "bowser",
-  "productName": "Bowser",
-  "version": "0.9.2",
+  "name": "blanc",
+  "productName": "Blanc",
+  "version": "0.9.5",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
   "type": "commonjs",
@@ -24,11 +24,11 @@
   },
   "build": {
     "appId": "me.bnfy.bowser",
-    "productName": "Bowser",
+    "productName": "Blanc",
     "publish": {
       "provider": "github",
       "owner": "bnfy",
-      "repo": "bowser",
+      "repo": "blanc",
       "releaseType": "release"
     },
     "directories": {
@@ -48,6 +48,7 @@
     "mac": {
       "category": "public.app-category.productivity",
       "extendInfo": {
+        "CFBundleDisplayName": "Blanc Browser",
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeRole": "Viewer",

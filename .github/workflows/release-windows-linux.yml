@@ -61,7 +61,8 @@ jobs:
         shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          for f in "dist/Bowser Setup $VERSION.exe" "dist/Bowser Setup $VERSION.exe.blockmap" "dist/latest.yml"; do
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          for f in "dist/$PRODUCT_NAME Setup $VERSION.exe" "dist/$PRODUCT_NAME Setup $VERSION.exe.blockmap" "dist/latest.yml"; do
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
 
@@ -71,9 +72,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
           gh release upload "${{ inputs.tag }}" \
-            "dist/Bowser Setup $VERSION.exe" \
-            "dist/Bowser Setup $VERSION.exe.blockmap" \
+            "dist/$PRODUCT_NAME Setup $VERSION.exe" \
+            "dist/$PRODUCT_NAME Setup $VERSION.exe.blockmap" \
             "dist/latest.yml" \
             --repo "${{ github.repository }}" --clobber
 
@@ -96,7 +98,8 @@ jobs:
       - name: Verify build artifacts
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          for f in "dist/Bowser-$VERSION-x86_64.AppImage" "dist/Bowser-$VERSION-x86_64.AppImage.blockmap" "dist/latest-linux.yml"; do
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          for f in "dist/$PRODUCT_NAME-$VERSION-x86_64.AppImage" "dist/$PRODUCT_NAME-$VERSION-x86_64.AppImage.blockmap" "dist/latest-linux.yml"; do
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
 
@@ -105,8 +108,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
           gh release upload "${{ inputs.tag }}" \
-            "dist/Bowser-$VERSION-x86_64.AppImage" \
-            "dist/Bowser-$VERSION-x86_64.AppImage.blockmap" \
+            "dist/$PRODUCT_NAME-$VERSION-x86_64.AppImage" \
+            "dist/$PRODUCT_NAME-$VERSION-x86_64.AppImage.blockmap" \
             "dist/latest-linux.yml" \
             --repo "${{ github.repository }}" --clobber

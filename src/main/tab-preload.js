@@ -1,11 +1,11 @@
 // Preload attached to every tab WebContentsView. Web content gets NOTHING
 // from it: the bridge is only exposed when the document is one of our own
-// bowser:// internal pages (the check re-runs on every navigation, so a
+// blanc:// internal pages (the check re-runs on every navigation, so a
 // tab that leaves an internal page loses the API). The main process
 // additionally verifies the sender URL on every pages:* IPC call.
 const { contextBridge, ipcRenderer } = require('electron');
 
-if (window.location.protocol === 'bowser:') {
+if (window.location.protocol === 'blanc:') {
   contextBridge.exposeInMainWorld('bowserPages', {
     appVersion: () => ipcRenderer.invoke('pages:app-version'),
     bookmarks: {

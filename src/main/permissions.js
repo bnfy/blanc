@@ -23,7 +23,14 @@ const keyFor = (origin, permission) => `${origin}|${permission}`;
 function normalizedOrigin(rawUrl) {
   try {
     const origin = new URL(rawUrl).origin;
-    return origin.startsWith('http') ? origin : null; // only real sites get prompts
+    // Only real sites get prompts. This also — deliberately — denies every
+    // PROMPTED permission for file:// tabs with no prompt shown: origin is
+    // the literal string 'null' for file:// (and any other opaque origin),
+    // there's nowhere to persist a decision keyed by a filesystem path, and
+    // real browsers restrict these same permissions for file:// too. Not a
+    // bug to "fix" by prompting local files — silent-deny is the intended,
+    // safe default here.
+    return origin.startsWith('http') ? origin : null;
   } catch {
     return null;
   }
