@@ -203,7 +203,7 @@ function applyAppIcon() {
 
 const hasLiveWindow = () => !!win && !win.isDestroyed();
 
-/** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pageBg: string | null, themeColor: string | null }>} */
+/** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
 /** Display order of tab ids — the single source of truth for the strip. */
 let tabOrder = [];
@@ -237,6 +237,9 @@ let chromeHeight = 56;
 let overlayView = null;
 /** @type {null | 'panel' | 'palette' | 'find'} */
 let overlayMode = null;
+/** Companion to overlayMode, replayed alongside it below if the overlay's
+ * first load hadn't finished when showOverlay was called. */
+let overlayPrefill = null;
 
 // Find mode keeps the overlay's bounds tight around the capsule so the
 // rest of the page stays clickable while stepping through matches. Sized
@@ -274,7 +277,7 @@ function createOverlay() {
   // would be lost — leaving an invisible view blocking clicks. Replay it.
   overlayView.webContents.once('did-finish-load', () => {
     if (overlayMode) {
-      overlayView.webContents.send('overlay:show', { mode: overlayMode });
+      overlayView.webContents.send('overlay:show', { mode: overlayMode, prefill: overlayPrefill });
       overlayView.webContents.focus();
     }
   });
@@ -301,13 +304,14 @@ function createOverlay() {
   });
 }
 
-function showOverlay(mode) {
+function showOverlay(mode, { prefill } = {}) {
   if (!hasLiveWindow() || !overlayView) return;
   overlayMode = mode;
+  overlayPrefill = prefill ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
   win.contentView.addChildView(overlayView);
   overlayView.setBounds(overlayBounds());
-  overlayView.webContents.send('overlay:show', { mode });
+  overlayView.webContents.send('overlay:show', { mode, prefill });
   overlayView.webContents.focus();
   win.webContents.send('chrome:island-state', { mode });
 }
@@ -357,7 +361,7 @@ function serializeTabs() {
 // `groupIds` is parallel to `urls` (null = ungrouped); `groups` holds the
 // group records those ids point at.
 let sessionStore = null;
-const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0, groups: [], groupIds: [] }));
+const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [] }));
 
 // Rolling ads-blocked counter for the start page's margin note. Weeks
 // start Monday 00:00 local; the count resets lazily on the first touch
@@ -404,11 +408,12 @@ function persistSession() {
             /* keep the error url */
           }
         }
-        return url ? { id, url, groupId: tab.groupId ?? null } : null;
+        return url ? { id, url, groupId: tab.groupId ?? null, pinned: !!tab.pinned } : null;
       })
       .filter(Boolean);
     d.urls = entries.map((e) => e.url);
     d.groupIds = entries.map((e) => e.groupId);
+    d.pinned = entries.map((e) => e.pinned);
     // Groups referenced only by private tabs stay out of the file too.
     d.groups = groups.filter((g) => entries.some((e) => e.groupId === g.id));
     // Only update when the active tab is actually in the persisted list —
@@ -572,10 +577,10 @@ function scheduleSampleTint(tab) {
 function clusterList() {
   const list = [];
   for (const g of groups) {
-    const tabIds = tabOrder.filter((id) => tabs.get(id)?.groupId === g.id);
+    const tabIds = tabOrder.filter((id) => tabs.get(id)?.groupId === g.id && !tabs.get(id)?.pinned);
     if (tabIds.length) list.push({ group: g, tabIds });
   }
-  const loose = tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId);
+  const loose = tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId && !tabs.get(id).pinned);
   if (loose.length) list.push({ group: null, tabIds: loose });
   return list;
 }
@@ -598,6 +603,7 @@ function setTabGroup(tabId, groupId) {
   tab.groupId = groupId || null;
   pruneEmptyGroups();
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 /** "/group work" — move a tab into the named group, creating it on first
@@ -614,6 +620,7 @@ function groupTabByName(tabId, rawName) {
   tab.groupId = group.id;
   pruneEmptyGroups();
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 function toggleGroupCollapsed(groupId) {
@@ -628,7 +635,12 @@ function focusGroup(groupId) {
   const group = groups.find((g) => g.id === groupId);
   if (!group) return;
   group.collapsed = false;
-  const first = tabOrder.find((id) => tabs.get(id)?.groupId === groupId);
+  const groupTabIds = tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  // Prefer the first unpinned member — a pinned tab in this group renders
+  // in the pinned shelf/section, not this group's own cluster, so jumping
+  // to it here would look like landing in the wrong place. Only fall back
+  // to a pinned one if the group has no unpinned tabs at all.
+  const first = groupTabIds.find((id) => !tabs.get(id)?.pinned) ?? groupTabIds[0];
   // setActiveTab broadcasts, but no-ops when the tab is already active —
   // the unfold still has to reach the renderers.
   if (first && first !== activeTabId) setActiveTab(first);
@@ -638,6 +650,42 @@ function focusGroup(groupId) {
 function closeGroup(groupId) {
   const ids = tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
   for (const id of ids) closeTab(id);
+}
+
+function toggleTabPinned(id) {
+  const tab = tabs.get(id);
+  if (!tab) return false;
+  tab.pinned = !tab.pinned;
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return tab.pinned;
+}
+
+function toggleTabMuted(id) {
+  const tab = tabs.get(id);
+  if (!tab) return false;
+  tab.muted = !tab.muted;
+  tab.view.webContents.setAudioMuted(tab.muted);
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return tab.muted;
+}
+
+function duplicateTab(id) {
+  const source = tabs.get(id);
+  if (!source) return;
+  const insertAt = tabOrder.indexOf(id) + 1;
+  const history = source.view.webContents.navigationHistory;
+  const entries = history.getAllEntries();
+  const newId = createTab(source.url, {
+    private: source.private,
+    groupId: source.groupId,
+    pinned: source.pinned,
+    // Only worth restoring if there's more than just the current page.
+    restoreHistory: entries.length > 1 ? { entries, index: history.getActiveIndex() } : null,
+  });
+  reorderTab(newId, insertAt);
+  return newId;
 }
 
 const TAB_WEB_PREFERENCES = {
@@ -652,7 +700,7 @@ const TAB_WEB_PREFERENCES = {
   preload: path.join(__dirname, 'tab-preload.js'),
 };
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, restoreHistory = null } = {}) {
   const id = crypto.randomUUID();
   // An adopted view (window.open child, see the window-open handler) arrives
   // already constructed by Chromium with the opener relationship wired up;
@@ -672,6 +720,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     bookmarked: false,
     blockedCount: 0,
     private: isPrivate,
+    pinned,
+    muted: false,
     groupId: groupId && groups.some((g) => g.id === groupId) ? groupId : null,
     // Strip tint ("faux header"): the page's top-edge color, so the chrome
     // strip can paint itself as a continuation of the site's own header.
@@ -726,12 +776,23 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
     if (tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
+    // did-navigate fires once per real top-level navigation (redirect
+    // chains fire it per hop, but that's a bounded burst the debounce
+    // already coalesces) — not the sustained-frequency case Task 1 exists
+    // to avoid. The menu's Favorites label/dynamic list depend on
+    // tab.url/.bookmarked, which this event just changed via syncNavState.
+    scheduleMenuRebuild();
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
   });
   wc.on('did-navigate-in-page', (_e, url, isMainFrame) => {
     syncNavState();
     if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
+    // Deliberately no scheduleMenuRebuild() here — unlike did-navigate,
+    // this fires on every hash change/pushState and can be sustained and
+    // frequent on SPA-heavy sites (exactly the rebuild-storm case Task 1
+    // avoids). The menu may lag slightly behind in-page route changes;
+    // it catches up on the next real navigation or tab-lifecycle event.
   });
   wc.once('did-finish-load', () => {
     if (shouldReclaimAddressBarFocus(id)) {
@@ -889,7 +950,14 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // rejected promise here is the same event and must not crash main.
   // Adopted window.open children are loaded by Chromium itself as part of
   // the window-open dance — a competing loadURL here would cancel it.
-  if (!adopted) wc.loadURL(url).catch(() => {});
+  if (!adopted) {
+    // navigationHistory.restore() performs its own navigation and must be
+    // the tab's first — used by duplicateTab below instead of a plain
+    // loadURL when the source tab has real back/forward history to clone.
+    if (restoreHistory) wc.navigationHistory.restore(restoreHistory).catch(() => {});
+    else wc.loadURL(url).catch(() => {});
+  }
+  scheduleMenuRebuild();
   return id;
 }
 
@@ -906,8 +974,11 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // No window to attach to (quitting, or macOS with all windows closed):
   // just track the selection so window recreation attaches the right tab.
+  // The menu bar persists on macOS even with no windows open, so it still
+  // needs to reflect the new activeTabId.
   if (!hasLiveWindow()) {
     activeTabId = id;
+    scheduleMenuRebuild();
     return;
   }
 
@@ -947,6 +1018,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // Background tabs can't be pixel-sampled; catch up when they surface.
   if (!next.pageBg) scheduleSampleTint(next);
   broadcastTabs();
+  scheduleMenuRebuild();
   if (shouldFocusAddress) {
     reclaimAddressBarFocus(id);
     setImmediate(() => {
@@ -992,9 +1064,10 @@ function closeTab(id) {
       // Quitting or window already gone — don't spawn replacement tabs.
       activeTabId = null;
     }
-    if (hasLiveWindow()) return; // setActiveTab already broadcasts
+    if (hasLiveWindow()) return; // setActiveTab already broadcasts and schedules a menu rebuild
   }
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 function reopenClosedTab() {
@@ -1009,14 +1082,16 @@ function reorderTab(id, toIndex) {
   tabOrder.splice(from, 1);
   tabOrder.splice(clamped, 0, id);
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 /** Cmd/Ctrl+1–9. With groups: n jumps to the nth cluster — a group's
  * first tab, unfolding it (Island Tab Groups design). Without groups the
  * browser convention stands: 1–8 jump to that tab, 9 to the last. */
 function selectTabAtIndex(index) {
-  if (groups.length) {
-    const cluster = clusterList()[index];
+  const clusters = clusterList();
+  if (groups.length && clusters.length) {
+    const cluster = clusters[index];
     if (!cluster) return;
     if (cluster.group) focusGroup(cluster.group.id);
     else setActiveTab(cluster.tabIds[0]);
@@ -1048,12 +1123,29 @@ function toggleBookmarkForActiveTab() {
   if (!tab || !/^https?:\/\//.test(tab.url)) return;
   tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title);
   broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** "Add All Open Tabs to Favorites" — mirrors toggleBookmarkForActiveTab's
+ * own URL guard. Skips private tabs (favorites never populate from private
+ * browsing) and anything already favorited (idempotent). */
+function addAllTabsToFavorites() {
+  for (const id of tabOrder) {
+    const tab = tabs.get(id);
+    if (!tab || tab.private) continue;
+    if (!/^https?:\/\//.test(tab.url)) continue;
+    if (bookmarks.isBookmarked(tab.url)) continue;
+    tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title);
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 /** Bookmark state can change from the bookmarks page; re-derive per tab. */
 function refreshBookmarkFlags() {
   for (const tab of tabs.values()) tab.bookmarked = bookmarks.isBookmarked(tab.url);
   broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 const ZOOM_STEP = 0.5;
@@ -1143,6 +1235,9 @@ function registerIpcHandlers() {
   ipcMain.handle('tabs:focus-group', (_e, groupId) => focusGroup(groupId));
   ipcMain.handle('tabs:close-group', (_e, groupId) => closeGroup(groupId));
   ipcMain.handle('tabs:toggle-bookmark', () => toggleBookmarkForActiveTab());
+  ipcMain.handle('tabs:toggle-pinned', (_e, id) => toggleTabPinned(id));
+  ipcMain.handle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
+  ipcMain.handle('tabs:duplicate', (_e, id) => duplicateTab(id));
   ipcMain.handle('tabs:open-page', (_e, name) => {
     if (['bookmarks', 'history', 'downloads', 'settings'].includes(name)) {
       openInternalPage(`blanc://${name}/`);
@@ -1199,6 +1294,57 @@ function registerIpcHandlers() {
   ipcMain.on('window:minimize', () => win?.minimize());
   ipcMain.on('window:maximize', () => (win?.isMaximized() ? win.unmaximize() : win?.maximize()));
   ipcMain.on('window:close', () => win?.close());
+}
+
+// The native menu's dynamic content (tab list, favorites list, Pin/Mute/
+// Add-to-Favorites labels) must stay live, but must NOT rebuild at the
+// high frequency page-load events (title/favicon/navigation) fire at —
+// see the discrete mutation functions below, which call this explicitly.
+// Debounced (not called on every invocation immediately) so several
+// mutations in quick succession — e.g. closeGroup closing several tabs
+// in a loop — still only rebuild once.
+let menuRebuildTimer = null;
+function scheduleMenuRebuild() {
+  if (menuRebuildTimer) return;
+  menuRebuildTimer = setTimeout(() => {
+    menuRebuildTimer = null;
+    buildMenu();
+  }, 100);
+}
+
+/** Native-menu items for every open tab, ordered pinned-first then by
+ * cluster (matching the pill and panel switcher). Clicking jumps to it.
+ * Titles/domains reflect state as of the last menu rebuild, not the
+ * current instant — see the Global Constraints note on this. */
+function tabMenuItems() {
+  const pinnedIds = tabOrder.filter((id) => tabs.get(id)?.pinned);
+  const orderedIds = [...pinnedIds, ...clusterList().flatMap((c) => c.tabIds)];
+  return orderedIds.map((id) => {
+    const tab = tabs.get(id);
+    const group = tab.groupId ? groups.find((g) => g.id === tab.groupId) : null;
+    let domain = tab.url;
+    try {
+      domain = new URL(tab.url).hostname || tab.url;
+    } catch {
+      /* not a parseable URL (blank tab, blanc:// page) — show it as-is */
+    }
+    const label = `${tab.title || 'New Tab'} — ${domain}${group ? ` (${group.name})` : ''}`;
+    return {
+      label: label.length > 120 ? `${label.slice(0, 119)}…` : label,
+      type: 'checkbox',
+      checked: id === activeTabId,
+      click: () => setActiveTab(id),
+    };
+  });
+}
+
+/** Native-menu items for the most-recently-added favorites, newest first. */
+function favoritesMenuItems() {
+  const all = bookmarks.listBookmarks(); // oldest-first
+  return all.slice(-20).reverse().map((b) => ({
+    label: (b.title || b.url).length > 120 ? `${(b.title || b.url).slice(0, 119)}…` : (b.title || b.url),
+    click: () => setActiveTab(createTab(b.url)),
+  }));
 }
 
 function buildMenu() {
@@ -1260,18 +1406,61 @@ function buildMenu() {
         { label: 'Next Tab', accelerator: 'Ctrl+Tab', click: () => cycleTab(1) },
         { label: 'Previous Tab', accelerator: 'Ctrl+Shift+Tab', click: () => cycleTab(-1) },
         { type: 'separator' },
+        { label: 'Duplicate Tab', enabled: !!activeTabId, click: () => activeTabId && duplicateTab(activeTabId) },
+        { label: tabs.get(activeTabId)?.pinned ? 'Unpin Tab' : 'Pin Tab', enabled: !!activeTabId, click: () => activeTabId && toggleTabPinned(activeTabId) },
+        { label: tabs.get(activeTabId)?.muted ? 'Unmute Tab' : 'Mute Tab', enabled: !!activeTabId, click: () => activeTabId && toggleTabMuted(activeTabId) },
+        { type: 'separator' },
+        {
+          label: 'New Group…',
+          enabled: !!activeTabId,
+          click: () => { if (hasLiveWindow()) { win.focus(); showOverlay('palette', { prefill: '/group ' }); } },
+        },
+        {
+          label: 'Ungroup Tab',
+          enabled: !!tabs.get(activeTabId)?.groupId,
+          click: () => activeTabId && setTabGroup(activeTabId, null),
+        },
+        {
+          label: 'Close Group',
+          enabled: !!tabs.get(activeTabId)?.groupId,
+          click: () => {
+            const groupId = tabs.get(activeTabId)?.groupId;
+            if (groupId) closeGroup(groupId);
+          },
+        },
+        { type: 'separator' },
         // "Tab or Group": with groups these jump to the nth pill cluster.
         ...Array.from({ length: 9 }, (_, i) => ({
           label: i === 8 ? 'Last Tab or Group' : `Tab or Group ${i + 1}`,
           accelerator: `CmdOrCtrl+${i + 1}`,
           click: () => selectTabAtIndex(i),
         })),
+        { type: 'separator' },
+        ...tabMenuItems(),
       ],
     },
     {
       label: 'Favorites',
       submenu: [
-        { label: 'Add to Favorites', accelerator: 'CmdOrCtrl+D', click: toggleBookmarkForActiveTab },
+        {
+          label: tabs.get(activeTabId)?.bookmarked ? 'Remove from Favorites' : 'Add to Favorites',
+          accelerator: 'CmdOrCtrl+D',
+          // Same guard as toggleBookmarkForActiveTab itself — blanc://
+          // pages and blank tabs can't be favorited, so don't offer to.
+          enabled: /^https?:\/\//.test(tabs.get(activeTabId)?.url ?? ''),
+          click: toggleBookmarkForActiveTab,
+        },
+        {
+          label: 'Add All Open Tabs to Favorites',
+          enabled: tabOrder.some((id) => tabs.get(id) && !tabs.get(id).private && /^https?:\/\//.test(tabs.get(id).url)),
+          click: addAllTabsToFavorites,
+        },
+        { type: 'separator' },
+        ...favoritesMenuItems(),
+        ...(bookmarks.listBookmarks().length > 20
+          ? [{ label: 'Show All Favorites…', click: () => openInternalPage('blanc://bookmarks/') }]
+          : []),
+        { type: 'separator' },
         { label: 'Show Favorites', accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: () => openInternalPage('blanc://bookmarks/') },
         { label: 'Show History', accelerator: 'CmdOrCtrl+Y', click: () => openInternalPage('blanc://history/') },
       ],
@@ -1418,7 +1607,7 @@ app.whenReady().then(async () => {
   groups = (Array.isArray(saved.groups) ? saved.groups : [])
     .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
     .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed }));
-  const restoredIds = saved.urls.map((u, i) => createTab(u, { groupId: saved.groupIds?.[i] ?? null }));
+  const restoredIds = saved.urls.map((u, i) => createTab(u, { groupId: saved.groupIds?.[i] ?? null, pinned: !!saved.pinned?.[i] }));
   pruneEmptyGroups(); // drop groups none of the restored tabs point at
   const fresh = restoredIds.length === 0;
   const firstTabId = fresh

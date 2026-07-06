@@ -1589,3 +1589,9 @@ and doesn't inherit the global icon rule.
 EOF
 )"
 ```
+
+---
+
+## Post-implementation correction: `did-navigate` also schedules a menu rebuild
+
+Discovered during Task 5's own verification: the Favorites menu's dynamic label/list depend on `tab.url`/`.bookmarked`, but navigating an *existing* tab (not creating/closing/activating one) never called `scheduleMenuRebuild()` — only tab-lifecycle events did. `did-navigate` (fires once per real top-level navigation) now calls it too, since it's a discrete, bounded event even across a redirect chain (the debounce coalesces a burst of hops into one rebuild). `did-navigate-in-page` deliberately does **not** call it — that event fires on every SPA pushState/hash change and can sustain a high rate on route-heavy sites, which is exactly the rebuild-storm case this task's design avoids. The Tabs/Favorites menus may lag slightly behind in-page route changes; they catch up on the next real navigation or tab-lifecycle event.
