@@ -29,6 +29,9 @@ if (window.location.protocol === 'blanc:') {
       data: () => ipcRenderer.invoke('pages:start:data'),
       focusGroup: (id) => ipcRenderer.invoke('pages:start:focus-group', id),
     },
+    shortcuts: {
+      list: () => ipcRenderer.invoke('pages:shortcuts:list'),
+    },
     settings: {
       get: () => ipcRenderer.invoke('pages:settings:get'),
       set: (partial) => ipcRenderer.invoke('pages:settings:set', partial),

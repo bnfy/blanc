@@ -586,6 +586,29 @@ function clusterList() {
   return list;
 }
 
+/** clusterList() plus a leading pseudo-cluster for pinned tabs, each slot
+ * tagged with a stable key — the one definition of "cluster order" shared
+ * by Cmd/Ctrl+1–9 and the ⌥⌘ arrow navigation. */
+function clusterSlots() {
+  const slots = clusterList().map(({ group, tabIds }) => ({
+    key: group ? group.id : 'loose',
+    group,
+    tabIds,
+  }));
+  const pinnedIds = tabOrder.filter((id) => tabs.get(id)?.pinned);
+  if (pinnedIds.length) slots.unshift({ key: 'pinned', group: null, tabIds: pinnedIds });
+  return slots;
+}
+
+/** Cluster key → most recently active tab id there, so ⌥⌘↑/↓ lands back
+ * where you were in each group. In-memory only — a remembered tab that
+ * closed or moved simply fails the lookup and the first tab wins. */
+const lastActiveByCluster = new Map();
+
+function clusterKeyForTab(tab) {
+  return tab.pinned ? 'pinned' : (tab.groupId ?? 'loose');
+}
+
 /** A group exists only while it holds tabs — closing or moving out the
  * last one dissolves it (same convention as Chrome's tab groups). */
 function pruneEmptyGroups() {
@@ -756,6 +779,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     broadcastTabs();
   });
   wc.on('page-favicon-updated', (_e, favicons) => {
+    console.error('[DIAG favicon] page-favicon-updated', tab.id, tab.url, favicons);
     tab.favicon = favicons[0] ?? null; // immediate, possibly low-res
     if (tab.bookmarked) bookmarks.updateFavicon(tab.url, tab.favicon);
     broadcastTabs();
@@ -774,6 +798,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     tab.blockedCount = 0;
     tab.pageBg = null; // a new page's tint mustn't linger from the old one
     tab.themeColor = null;
+    console.error('[DIAG favicon] did-navigate reset', tab.id, url);
     tab.favicon = null; // ditto — the old page's icon mustn't linger either
     syncNavState();
     // Error responses stay out of history — a dead one-shot OAuth URL
@@ -977,6 +1002,8 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // Re-selecting the active tab is a no-op.
   if (id === activeTabId) return;
 
+  lastActiveByCluster.set(clusterKeyForTab(next), id);
+
   // No window to attach to (quitting, or macOS with all windows closed):
   // just track the selection so window recreation attaches the right tab.
   // The menu bar persists on macOS even with no windows open, so it still
@@ -1094,14 +1121,11 @@ function reorderTab(id, toIndex) {
  * first tab, unfolding it (Island Tab Groups design). Without groups the
  * browser convention stands: 1–8 jump to that tab, 9 to the last. */
 function selectTabAtIndex(index) {
-  const pinnedIds = tabOrder.filter((id) => tabs.get(id)?.pinned);
-  const clusters = clusterList();
-  if (groups.length && (pinnedIds.length || clusters.length)) {
-    // Pinned tabs are excluded from clusterList()'s own clusters (they get
-    // their own pill shelf/panel section instead) — surface them as a
-    // leading slot here too, so Cmd+1-9 can still reach them instead of
-    // silently skipping every pinned tab whenever a group exists.
-    const slots = pinnedIds.length ? [{ tabIds: pinnedIds }, ...clusters] : clusters;
+  // clusterSlots() surfaces pinned tabs as a leading slot, so Cmd+1-9 can
+  // still reach them instead of silently skipping every pinned tab
+  // whenever a group exists.
+  const slots = clusterSlots();
+  if (groups.length && slots.length) {
     const slot = slots[index];
     if (!slot) return;
     if (slot.group) focusGroup(slot.group.id);
@@ -1116,6 +1140,33 @@ function cycleTab(direction) {
   if (!activeTabId || tabOrder.length < 2) return;
   const i = tabOrder.indexOf(activeTabId);
   setActiveTab(tabOrder[(i + direction + tabOrder.length) % tabOrder.length]);
+}
+
+/** ⌥⌘←/→: previous/next tab within the active tab's cluster, wrapping.
+ * With no groups and no pins everything is one loose cluster, so this
+ * degrades to plain tab cycling (same result as Ctrl+Tab). */
+function cycleTabInCluster(direction) {
+  if (!activeTabId) return;
+  const slot = clusterSlots().find((s) => s.tabIds.includes(activeTabId));
+  if (!slot) return cycleTab(direction);
+  if (slot.tabIds.length < 2) return;
+  const i = slot.tabIds.indexOf(activeTabId);
+  setActiveTab(slot.tabIds[(i + direction + slot.tabIds.length) % slot.tabIds.length]);
+}
+
+/** ⌥⌘↑/↓: previous/next cluster in ⌘1–9 order (pinned shelf → groups →
+ * loose), wrapping. Lands on the cluster's last-active tab and unfolds a
+ * collapsed group, consistent with focusGroup(). */
+function cycleCluster(direction) {
+  if (!activeTabId) return;
+  const slots = clusterSlots();
+  if (slots.length < 2) return;
+  const from = slots.findIndex((s) => s.tabIds.includes(activeTabId));
+  if (from === -1) return;
+  const target = slots[(from + direction + slots.length) % slots.length];
+  if (target.group) target.group.collapsed = false;
+  const remembered = lastActiveByCluster.get(target.key);
+  setActiveTab(target.tabIds.includes(remembered) ? remembered : target.tabIds[0]);
 }
 
 /** Focus an existing tab already on this internal page, or open one. */
@@ -1363,6 +1414,53 @@ function favoritesMenuItems() {
   }));
 }
 
+// --- Keyboard shortcuts inventory (Help → Keyboard Shortcuts page) ---
+
+/** 'Alt+CmdOrCtrl+Left' → '⌥⌘←' on macOS, 'Alt+Ctrl+Left' elsewhere —
+ * same per-platform glyph convention the overlay uses. */
+function formatAccelerator(accelerator) {
+  const parts = String(accelerator).split('+');
+  const key = parts.pop();
+  const KEYS = { Left: '←', Right: '→', Up: '↑', Down: '↓', Plus: '+' };
+  const label = KEYS[key] ?? key;
+  if (process.platform !== 'darwin') {
+    return [...parts.map((m) => (m === 'CmdOrCtrl' || m === 'CommandOrControl' ? 'Ctrl' : m)), label].join('+');
+  }
+  const MAC = { CmdOrCtrl: '⌘', CommandOrControl: '⌘', Cmd: '⌘', Ctrl: '⌃', Alt: '⌥', Option: '⌥', Shift: '⇧' };
+  const order = ['⌃', '⌥', '⇧', '⌘'];
+  const mods = parts.map((m) => MAC[m] ?? m).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  return [...mods, label].join('');
+}
+
+/** Rows for blanc://shortcuts/, read from the LIVE application menu so the
+ * page can never drift from the real bindings, plus static extras for the
+ * island's non-menu keys. Hidden items (silent aliases like ⌘=) are
+ * skipped; the nine ⌘1–9 items collapse into one row. */
+function listShortcuts() {
+  const rows = [];
+  let collapsedTabJumps = false;
+  for (const top of Menu.getApplicationMenu()?.items ?? []) {
+    for (const item of top.submenu?.items ?? []) {
+      if (!item.accelerator || item.visible === false) continue;
+      if (/^CmdOrCtrl\+[1-9]$/.test(item.accelerator)) {
+        if (!collapsedTabJumps) {
+          collapsedTabJumps = true;
+          rows.push({ category: top.label, label: 'Tab or Group 1–9', keys: `${formatAccelerator('CmdOrCtrl+1')}–9` });
+        }
+        continue;
+      }
+      rows.push({ category: top.label, label: item.label, keys: formatAccelerator(item.accelerator) });
+    }
+  }
+  const mod = process.platform === 'darwin' ? '⌘' : 'Ctrl+';
+  rows.push(
+    { category: 'Island', label: 'Dismiss island panel / find bar', keys: 'Esc' },
+    { category: 'Island', label: 'Open address or run command (in command bar)', keys: 'Return' },
+    { category: 'Island', label: 'Open link in background tab', keys: `${mod}click` },
+  );
+  return rows;
+}
+
 function buildMenu() {
   const isMac = process.platform === 'darwin';
   const appMenu = isMac
@@ -1422,6 +1520,10 @@ function buildMenu() {
       submenu: [
         { label: 'Next Tab', accelerator: 'Ctrl+Tab', click: () => cycleTab(1) },
         { label: 'Previous Tab', accelerator: 'Ctrl+Shift+Tab', click: () => cycleTab(-1) },
+        { label: 'Next Tab in Group', accelerator: 'Alt+CmdOrCtrl+Right', click: () => cycleTabInCluster(1) },
+        { label: 'Previous Tab in Group', accelerator: 'Alt+CmdOrCtrl+Left', click: () => cycleTabInCluster(-1) },
+        { label: 'Next Group', accelerator: 'Alt+CmdOrCtrl+Down', click: () => cycleCluster(1) },
+        { label: 'Previous Group', accelerator: 'Alt+CmdOrCtrl+Up', click: () => cycleCluster(-1) },
         { type: 'separator' },
         { label: 'Duplicate Tab', enabled: !!activeTabId, click: () => activeTabId && duplicateTab(activeTabId) },
         { label: tabs.get(activeTabId)?.pinned ? 'Unpin Tab' : 'Pin Tab', enabled: !!activeTabId, click: () => activeTabId && toggleTabPinned(activeTabId) },
@@ -1483,6 +1585,13 @@ function buildMenu() {
         { type: 'separator' },
         { label: 'Show Favorites', accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: () => openInternalPage('blanc://bookmarks/') },
         { label: 'Show History', accelerator: 'CmdOrCtrl+Y', click: () => openInternalPage('blanc://history/') },
+      ],
+    },
+    {
+      label: 'Help',
+      ...(isMac ? { role: 'help' } : {}),
+      submenu: [
+        { label: 'Keyboard Shortcuts', accelerator: 'CmdOrCtrl+/', click: () => openInternalPage('blanc://shortcuts/') },
       ],
     },
   ];
@@ -1580,6 +1689,7 @@ app.whenReady().then(async () => {
       focusGroup,
       blockedThisWeek: () => adblockWeekStats().data.blocked,
     },
+    shortcuts: { list: listShortcuts },
   });
 
   await setupAdBlocker(ses, { enabled: settings.getSettings().adblockEnabled });

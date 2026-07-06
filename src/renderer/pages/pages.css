@@ -461,3 +461,30 @@ a.ledger-label:hover { color: var(--accent); }
   background: var(--surface-raised);
   color: var(--text);
 }
+
+/* ---------- Keyboard shortcuts (blanc://shortcuts) ---------- */
+
+.shortcut-section { margin-top: 30px; }
+
+.shortcut-list { display: flex; flex-direction: column; }
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.shortcut-row kbd {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px 8px;
+  white-space: nowrap;
+}

@@ -1,0 +1,4 @@
+# GitHub natively supports Polar as a funding platform — this adds the
+# repo "Sponsor" button with no approval process. The handle must match
+# the Polar organization slug (see docs/polar-setup.md).
+polar: bnfy

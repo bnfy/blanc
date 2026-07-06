@@ -400,6 +400,8 @@
   // --- Slash commands ---
 
   const COMMANDS = [
+    // Also listed on blanc://shortcuts/ — update SLASH_COMMANDS in
+    // pages/shortcuts.js when adding or changing a command here.
     { cmd: '/favorites', hint: 'Open favorites', run: () => window.browserAPI.openPage('bookmarks') },
     { cmd: '/history', hint: 'Open browsing history', run: () => window.browserAPI.openPage('history') },
     { cmd: '/downloads', hint: 'Open downloads', run: () => window.browserAPI.openPage('downloads') },

@@ -12,7 +12,7 @@ const { listDecisions, removeDecision } = require('./permissions');
 // file:// so they get a real origin, and so ordinary web content can never
 // link into arbitrary local files.
 const PAGES_DIR = path.join(__dirname, '../renderer/pages');
-const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'settings', 'error', 'auth']);
+const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'settings', 'error', 'auth', 'shortcuts']);
 
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
@@ -77,6 +77,10 @@ function setupPages(hooks = {}) {
   handle('pages:settings:set', (partial) => settings.setSettings(partial ?? {}));
 
   handle('pages:app-version', () => app.getVersion());
+
+  // Help → Keyboard Shortcuts: the list is introspected from the live
+  // application menu in main.js, reached through a hook like startPage.
+  handle('pages:shortcuts:list', () => hooks.shortcuts?.list() ?? []);
 
   // Start page (the ledger new tab): tab groups + the weekly blocked
   // counter live in main.js, reached through hooks rather than a module.
