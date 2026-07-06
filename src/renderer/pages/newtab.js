@@ -43,16 +43,34 @@ window.bowserPages?.bookmarks.list().then((items) => {
     const row = document.createElement('a');
     row.className = 'fav';
     row.href = b.url;
+    const host = hostOf(b.url);
     const tile = document.createElement('span');
     tile.className = 'tile';
-    tile.textContent = (hostOf(b.url) || b.title || '').trim().charAt(0).toLowerCase() || '·';
+    // Letter shows immediately and synchronously — never a blank tile
+    // while a favicon is (maybe slowly) loading. Private tabs skip the
+    // favicon entirely: fetching a bookmarked site's icon on every new
+    // private tab would be a live network trace, which private mode
+    // otherwise avoids.
+    tile.textContent = (host || b.title || '').trim().charAt(0).toLowerCase() || '·';
+    if (!isPrivate && b.favicon) {
+      const probe = new Image();
+      probe.onload = () => {
+        tile.textContent = '';
+        tile.classList.add('has-icon');
+        tile.style.backgroundImage = `url("${b.favicon.replace(/["\\]/g, '\\$&')}")`;
+      };
+      // A stored favicon URL can go stale (site changed/removed it) —
+      // clear it so future loads stop retrying a dead request.
+      probe.onerror = () => window.bowserPages?.bookmarks.clearFavicon(b.url);
+      probe.src = b.favicon;
+    }
     const name = document.createElement('span');
     name.className = 'name';
     name.textContent = b.title || b.url;
-    const host = document.createElement('span');
-    host.className = 'host';
-    host.textContent = hostOf(b.url);
-    row.append(tile, name, host);
+    const hostEl = document.createElement('span');
+    hostEl.className = 'host';
+    hostEl.textContent = host;
+    row.append(tile, name, hostEl);
     list.appendChild(row);
   }
 });

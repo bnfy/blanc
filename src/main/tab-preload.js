@@ -11,6 +11,7 @@ if (window.location.protocol === 'blanc:') {
     bookmarks: {
       list: () => ipcRenderer.invoke('pages:bookmarks:list'),
       remove: (id) => ipcRenderer.invoke('pages:bookmarks:remove', id),
+      clearFavicon: (url) => ipcRenderer.invoke('pages:bookmarks:clear-favicon', url),
     },
     history: {
       list: (opts) => ipcRenderer.invoke('pages:history:list', opts),

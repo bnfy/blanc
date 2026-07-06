@@ -54,6 +54,9 @@ function setupPages(hooks = {}) {
     bookmarks.removeBookmark(id);
     hooks.onDataChanged?.();
   });
+  // The start page reports a stored favicon URL that failed to load, so
+  // it's cleared and stops being retried on future loads.
+  handle('pages:bookmarks:clear-favicon', (url) => bookmarks.updateFavicon(url, null));
 
   handle('pages:history:list', (opts) => history.listHistory(opts ?? {}));
   handle('pages:history:remove', (url, visitedAt) => history.removeVisit(url, visitedAt));

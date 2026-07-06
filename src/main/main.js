@@ -509,6 +509,7 @@ async function upgradeFavicon(tab) {
     const best = pickBestFavicon(candidates);
     if (best && best !== tab.favicon) {
       tab.favicon = best;
+      if (tab.bookmarked) bookmarks.updateFavicon(tab.url, best);
       scheduleBroadcastTabs();
     }
   } catch {
@@ -756,6 +757,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   });
   wc.on('page-favicon-updated', (_e, favicons) => {
     tab.favicon = favicons[0] ?? null; // immediate, possibly low-res
+    if (tab.bookmarked) bookmarks.updateFavicon(tab.url, tab.favicon);
     broadcastTabs();
     upgradeFavicon(tab); // async refinement to the sharpest declared icon
   });
@@ -772,6 +774,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     tab.blockedCount = 0;
     tab.pageBg = null; // a new page's tint mustn't linger from the old one
     tab.themeColor = null;
+    tab.favicon = null; // ditto — the old page's icon mustn't linger either
     syncNavState();
     // Error responses stay out of history — a dead one-shot OAuth URL
     // recorded here resurfaces in the Quick Switcher as a destination.
@@ -1128,8 +1131,8 @@ function openInternalPage(url) {
 
 function toggleBookmarkForActiveTab() {
   const tab = activeTabId ? tabs.get(activeTabId) : null;
-  if (!tab || !/^https?:\/\//.test(tab.url)) return;
-  tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title);
+  if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
+  tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
   broadcastTabs();
   scheduleMenuRebuild();
 }
@@ -1143,7 +1146,7 @@ function addAllTabsToFavorites() {
     if (!tab || tab.private) continue;
     if (!/^https?:\/\//.test(tab.url)) continue;
     if (bookmarks.isBookmarked(tab.url)) continue;
-    tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title);
+    tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
   }
   broadcastTabs();
   scheduleMenuRebuild();
