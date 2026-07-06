@@ -176,6 +176,15 @@ button svg {
 }
 .pill-cluster.folded:hover { border-color: var(--accent); }
 
+/* Pinned tabs get their own bordered capsule at the very start of the
+   dot list, always unfolded — same visual language as .folded above, but
+   individual dots stay clickable (no click-to-jump on the capsule itself). */
+.pill-cluster.pinned-shelf {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 6px;
+}
+
 .dot-mini {
   width: 4px;
   height: 4px;
