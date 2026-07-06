@@ -1280,7 +1280,7 @@ function registerIpcHandlers() {
     settings.setSettings({ adblockEnabled: next });
     return next;
   });
-  // "/off-leash" — allow ads on the active tab's site, then reload it so
+  // "/allow-ads" — allow ads on the active tab's site, then reload it so
   // the exception actually takes effect on what's shown.
   ipcMain.handle('chrome:adblock-exempt-active', () => {
     const tab = activeTabId ? tabs.get(activeTabId) : null;

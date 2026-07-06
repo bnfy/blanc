@@ -420,8 +420,8 @@
       if (groupId) window.browserAPI.closeGroup(groupId);
     } },
     { cmd: '/find', hint: 'Find in page', run: () => window.browserAPI.openFindBar(), keepOverlay: true },
-    { cmd: '/adblock', hint: 'Toggle ad & tracker blocking', run: () => window.browserAPI.toggleAdblock() },
-    { cmd: '/off-leash', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
+    { cmd: '/block-ads', hint: 'Toggle ad & tracker blocking', run: () => window.browserAPI.toggleAdblock() },
+    { cmd: '/allow-ads', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
     { cmd: '/theme', hint: 'Cycle appearance (system → light → dark)', run: () => window.browserAPI.cycleTheme() },
   ];
 

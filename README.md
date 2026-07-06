@@ -61,8 +61,8 @@ the page — they never push content around.
 | `/new` `/private` `/close` | tab management |
 | `/find` | find in page |
 | `/clear` | clear browsing history |
-| `/adblock` | toggle ad & tracker blocking |
-| `/off-leash` | allow ads on the current site |
+| `/block-ads` | toggle ad & tracker blocking |
+| `/allow-ads` | allow ads on the current site |
 | `/theme` | cycle appearance (system → light → dark) |
 
 **Quick switcher** — type anything else and it matches loosely (substring
@@ -151,7 +151,7 @@ engine to `session.defaultSession` once at startup, covering every tab.
 Request-level blocking isn't bound by MV3's rule caps; cosmetic filtering
 rides on the library's session preload. Blocked requests are counted per
 tab and surface as the accent badge in the pill. Toggle the engine in
-Settings (or `/adblock`); exempt individual sites per-site (`/off-leash`,
+Settings (or `/block-ads`); exempt individual sites per-site (`/allow-ads`,
 also editable in Settings).
 
 **Internal pages** (`blanc://newtab`, `bookmarks`, `history`,
