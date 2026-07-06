@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -125,6 +125,19 @@ function openExternalUrl(url) {
   setActiveTab(createTab(url));
   if (win.isMinimized()) win.restore();
   win.focus();
+}
+
+// Protocols handed off to the OS instead of navigated — a mailto: click
+// should open the user's mail app, not die silently (Chromium has no
+// external-protocol UI in Electron). Deliberately a small allowlist:
+// launching arbitrary registered URL schemes is a run-anything vector.
+const HANDOFF_PROTOCOLS = new Set(['mailto:', 'tel:', 'facetime:', 'sms:']);
+function isHandoffProtocol(url) {
+  try {
+    return HANDOFF_PROTOCOLS.has(new URL(url).protocol);
+  } catch {
+    return false;
+  }
 }
 
 function flushExternalUrls() {
@@ -852,6 +865,10 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     if (/^blanc:/i.test(targetUrl) && !wc.getURL().startsWith('blanc://')) {
       event.preventDefault();
     }
+    if (isHandoffProtocol(targetUrl)) {
+      event.preventDefault();
+      shell.openExternal(targetUrl).catch(() => {});
+    }
   });
 
   // Show a real error page instead of leaving a blank/stale view.
@@ -932,6 +949,12 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
       // web → chrome:// the same way). Only blanc:// pages themselves may
       // open blanc:// children.
       if (/^blanc:/i.test(targetUrl) && !targetWc.getURL().startsWith('blanc://')) {
+        return { action: 'deny' };
+      }
+      // target="_blank" mailto:/tel: links otherwise spawn a dead child
+      // tab — hand them to the OS like the will-navigate path does.
+      if (isHandoffProtocol(targetUrl)) {
+        shell.openExternal(targetUrl).catch(() => {});
         return { action: 'deny' };
       }
       if (disposition === 'new-window') {
