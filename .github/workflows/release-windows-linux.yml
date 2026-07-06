@@ -99,7 +99,9 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
-          for f in "dist/$PRODUCT_NAME-$VERSION.AppImage" "dist/$PRODUCT_NAME-$VERSION.AppImage.blockmap" "dist/latest-linux.yml"; do
+          # No separate .blockmap here: for AppImage, electron-builder embeds
+          # the block map inside the AppImage itself (mac/win emit separate files).
+          for f in "dist/$PRODUCT_NAME-$VERSION.AppImage" "dist/latest-linux.yml"; do
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
 
@@ -111,6 +113,5 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           gh release upload "${{ inputs.tag }}" \
             "dist/$PRODUCT_NAME-$VERSION.AppImage" \
-            "dist/$PRODUCT_NAME-$VERSION.AppImage.blockmap" \
             "dist/latest-linux.yml" \
             --repo "${{ github.repository }}" --clobber
