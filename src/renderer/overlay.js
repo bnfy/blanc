@@ -216,16 +216,18 @@
     });
     row.append(pin);
 
-    const mute = document.createElement('button');
-    mute.className = 'row-mute' + (tab.muted ? ' on' : '');
-    mute.title = tab.muted ? 'Unmute tab' : 'Mute tab';
-    mute.setAttribute('aria-label', mute.title);
-    mute.innerHTML = ICONS.mute;
-    mute.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.browserAPI.toggleTabMuted(tab.id);
-    });
-    row.append(mute);
+    if (tab.audible || tab.muted) {
+      const mute = document.createElement('button');
+      mute.className = 'row-mute' + (tab.muted ? ' on' : '');
+      mute.title = tab.muted ? 'Unmute tab' : 'Mute tab';
+      mute.setAttribute('aria-label', mute.title);
+      mute.innerHTML = ICONS.mute;
+      mute.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.browserAPI.toggleTabMuted(tab.id);
+      });
+      row.append(mute);
+    }
 
     const grp = document.createElement('button');
     grp.className = 'row-grp';

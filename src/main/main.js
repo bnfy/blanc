@@ -225,7 +225,7 @@ function applyAppIcon() {
 
 const hasLiveWindow = () => !!win && !win.isDestroyed();
 
-/** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, pageBg: string | null, themeColor: string | null }>} */
+/** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, audible: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
 /** Display order of tab ids — the single source of truth for the strip. */
 let tabOrder = [];
@@ -769,6 +769,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     private: isPrivate,
     pinned,
     muted,
+    audible: false,
     groupId: groupId && groups.some((g) => g.id === groupId) ? groupId : null,
     // Strip tint ("faux header"): the page's top-edge color, so the chrome
     // strip can paint itself as a continuation of the site's own header.
@@ -794,6 +795,13 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     tab.url = wc.getURL();
     tab.bookmarked = bookmarks.isBookmarked(tab.url);
   };
+
+  wc.on('audio-state-changed', () => {
+    // Coalesced like did-change-theme-color: audio transitions aren't urgent,
+    // and a media that flips audible/silent needn't rebuild the session synchronously.
+    tab.audible = wc.isCurrentlyAudible();
+    scheduleBroadcastTabs();
+  });
 
   wc.on('page-title-updated', (_e, title) => {
     tab.title = title;
