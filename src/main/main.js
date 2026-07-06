@@ -776,6 +776,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
     if (tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
+    // did-navigate fires once per real top-level navigation (redirect
+    // chains fire it per hop, but that's a bounded burst the debounce
+    // already coalesces) — not the sustained-frequency case Task 1 exists
+    // to avoid. The menu's Favorites label/dynamic list depend on
+    // tab.url/.bookmarked, which this event just changed via syncNavState.
     scheduleMenuRebuild();
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
   });
@@ -783,7 +788,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     syncNavState();
     if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
-    scheduleMenuRebuild();
+    // Deliberately no scheduleMenuRebuild() here — unlike did-navigate,
+    // this fires on every hash change/pushState and can be sustained and
+    // frequent on SPA-heavy sites (exactly the rebuild-storm case Task 1
+    // avoids). The menu may lag slightly behind in-page route changes;
+    // it catches up on the next real navigation or tab-lifecycle event.
   });
   wc.once('did-finish-load', () => {
     if (shouldReclaimAddressBarFocus(id)) {
