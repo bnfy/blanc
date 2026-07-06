@@ -226,9 +226,10 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
   flex: 0 0 auto;
 }
 
-/* App icon colorway picker — rounded-square previews, wrapping into rows
-   now that free + supporter colorways outgrow a single line. */
-.icon-grid { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 14px; row-gap: 18px; }
+/* App icon colorway picker — too many colorways for the label/control
+   row, so this setting stacks: label on top, swatches wrapping below. */
+#appIconSetting { flex-direction: column; align-items: flex-start; gap: 16px; }
+.icon-grid { display: flex; flex-wrap: wrap; gap: 14px; row-gap: 18px; }
 .icon-swatch {
   display: flex;
   flex-direction: column;
