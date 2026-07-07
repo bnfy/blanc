@@ -78,7 +78,8 @@ Endpoints, all keyed by `accountId` in the path/body, all seeing only ciphertext
 
 - `GET  /v1/blob/:accountId/:store` → `{ version, blob }` or 404. `version` is an opaque etag for optimistic concurrency.
 - `PUT  /v1/blob/:accountId/:store` with `{ ifVersion, blob }` → 200 `{ version }`, or **409** if `ifVersion` is stale (someone else wrote). 409 drives a client pull-merge-retry.
-- No list, no enumerate, no auth token beyond possession of `accountId` — knowledge of the account id *is* the capability, and it's unguessable without the passphrase. (Abuse/rate-limiting by IP is a Worker-side concern, not a data-access one.)
+- No list, no enumerate, no auth token beyond possession of `accountId` — knowledge of the account id *is* the capability, and it's unguessable without the passphrase.
+- **Per-`accountId` rate limit on `GET`** (decided §14) — throttles online passphrase-guessing against a known account id. Cheap KV/Durable-Object counter; the real defense behind scrypt, since it caps guesses/minute regardless of passphrase strength.
 
 ## 8. Sync flow (main process)
 
@@ -92,6 +93,7 @@ Blob sync is **pull → decrypt → merge → encrypt → push**, per store, nev
 ## 9. Identity, setup & recovery UX
 
 - Settings → **Sync** section: handle field + passphrase field + "Turn on sync." A short, honest note: *"Blanc encrypts your data on this device. We store only unreadable ciphertext and can't recover it if you forget your passphrase."*
+- **Minimum-strength nudge** on the passphrase field (decided §14) — reject obviously-weak passphrases at setup (a length floor + a cheap client-side estimator), since with no server-side account there is no reset. Paired with the §7 rate limit, this covers both weak-passphrase and online-guessing angles.
 - Enabling on a second device with the same handle+passphrase pulls and merges automatically — no separate "link device" step (the derivation *is* the link).
 - No device list, no account dashboard, no deactivation server-call in v1. "Turn off sync" is local: stop syncing, optionally wipe the local passphrase. A "Delete my synced data" button issues a `DELETE` for the account's blobs.
 
@@ -125,8 +127,8 @@ Blob sync is **pull → decrypt → merge → encrypt → push**, per store, nev
 - Any paid gating (free forever, per §2).
 - Conflict UI — merges are automatic and non-destructive; there is nothing to resolve by hand.
 
-## 14. Open questions
+## 14. Decisions (resolved 2026-07-07)
 
-- **Handle collisions / brute-force:** handle-as-salt namespaces accounts and makes brute-force per-account, but a weak passphrase is still weak. Add a minimum-strength nudge? A server-side per-`accountId` rate limit on `GET` is cheap insurance.
-- **Settings scope:** is `appIcon` device-local (supporter-gating) or synced-but-validated-per-device? Leaning device-local for v1.
-- **BYO escape hatch (deferred, not chosen):** the "point stores at a sync folder" option (iCloud/Syncthing, zero backend) was considered and set aside in favor of hosted E2EE for one-click UX. Worth keeping on the roadmap as a power-user/offline-only alternative and a grant-story bullet.
+- **Brute-force hardening — both defenses.** Ship a client-side minimum-strength nudge at setup (§9) *and* a server-side per-`accountId` rate limit on `GET` (§7). scrypt + handle-as-salt make each guess slow and per-account; the nudge blocks weak passphrases and the rate limit caps online guessing — belt and suspenders, both cheap.
+- **`appIcon` is device-local.** It is filtered out of the settings blob entirely (§4); each device keeps its own Dock colorway. Sidesteps the supporter-gating interplay and avoids surprises. (Safe either way — `isAppIconAllowed()` already sanitizes on read — but not syncing it is the simplest v1.)
+- **BYO sync folder — roadmap only, not built.** The zero-backend "point stores at iCloud/Syncthing" option stays a documented future alternative for the self-hosting/offline-only crowd (and a grant-story bullet), but v1 is hosted E2EE only. Building folder-sync well fights the load-once/debounced-write model (whole-file clobbering) and would split effort — deferred deliberately, not dropped.
