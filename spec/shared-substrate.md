@@ -32,6 +32,11 @@ divergent implementation (D1/D2). You neutralize the drift by sharing the *input
 even though the *runtime* differs. Two platforms blocking different trackers on the
 same page is the single most visible parity failure — this prevents it.
 
+**Backend design:** the per-platform compile targets, the iOS rule-cap curation,
+and the exception/cosmetic/shield-count divergences are specced in
+[`blocking-backends.md`](./blocking-backends.md). The pipeline owns the iOS
+"what got dropped" decision, since only it sees the whole corpus.
+
 ---
 
 ## S2 — Design tokens

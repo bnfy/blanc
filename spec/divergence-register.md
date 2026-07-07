@@ -28,12 +28,14 @@ capabilities, and this is non-negotiable — you cannot ship a common engine.
   escape. Accept it; it is the platform ceiling.
 
 **Parity contract that still holds:** blocking is on by default; a per-tab shield
-count is shown; the trackers blocked come from the *same source lists* (→ shared
-substrate) even though the compiled form differs; `/allow-ads` and `/block-ads`
-work identically from the user's side.
+count is shown (with the iOS caveat in D13); the trackers blocked come from the
+*same source lists* (→ shared substrate) even though the compiled form differs;
+`/allow-ads` and `/block-ads` work identically from the user's side.
 
 **Do not** flatten Android down to iOS's declarative model to make the code
 "match." Android is where the differentiator survives — let it be powerful.
+
+**Detailed design:** [`blocking-backends.md`](./blocking-backends.md).
 
 **Status:** Accepted, foundational.
 
@@ -47,12 +49,15 @@ work identically from the user's side.
   exceptions list per request; cheap, instant.
 - **iOS:** content rule lists are compiled and attached to the web view, so a
   per-site exception means **swapping/recompiling or layering rule lists** — costlier
-  and not instant. Plan for a precompiled "with exceptions" variant or a per-tab
-  rule-list swap.
+  and not instant. Recommended pattern (see `blocking-backends.md`): a small,
+  separately-recompiled `ignore-previous-rules` list keyed on the allowlist,
+  applied last, so the base lists stay cached.
 
 **Parity contract:** adding/removing a site exception has the same *user-visible*
 effect (ads allowed/blocked on that origin) and the same persisted
 `adblockExceptions` shape everywhere; only the latency/mechanism differs.
+
+**Detailed design:** [`blocking-backends.md`](./blocking-backends.md).
 
 **Status:** Accepted.
 
@@ -251,3 +256,47 @@ forms inside Blanc tabs. This is a feature **mobile gains** over desktop — tra
 as such, not as desktop being behind.
 
 **Status:** Accepted; an intentional *positive* divergence.
+
+---
+
+## D13 — Shield count fidelity
+**Features:** F12, F1 (the pill's shield count)
+**Why:** Surfaced while speccing the backends (`blocking-backends.md`). Whether the
+app can observe individual blocked requests depends on the engine model.
+
+- **Desktop:** exact — the Ghostery engine emits a `request-blocked` event per
+  block (main.js already counts these per tab).
+- **Android:** exact — `shouldInterceptRequest` is programmatic, so a per-tab
+  counter increments on each block.
+- **iOS:** **not directly available** — `WKContentRuleList` blocks silently with no
+  per-request callback. Recommended: show a binary "protected / paused" state
+  instead of a live count (an approximate number that disagrees with reality is
+  worse than none).
+
+**Parity contract:** protection status is always visible; the *precision* of the
+count differs — exact on desktop/Android, a protected-state indicator on iOS. The
+F12-1 acceptance step is relaxed on iOS accordingly.
+
+**Detailed design:** [`blocking-backends.md`](./blocking-backends.md).
+
+**Status:** Accepted; iOS shield UX is an open decision (binary state recommended).
+
+---
+
+## D14 — Cosmetic filtering fidelity
+**Features:** F12
+**Why:** Element-hiding (vs. request-blocking) has different ceilings per engine.
+
+- **Desktop:** the library drives full cosmetic filtering (including procedural).
+- **Android:** no cosmetic API — inject element-hiding CSS/JS on page load
+  (`onPageStarted`/`onPageFinished`); can do procedural hiding, but hand-rolled.
+- **iOS:** `css-display-none` rules only — static selectors, a **subset**;
+  procedural cosmetics (`:has`, scriptlets) are dropped.
+
+**Parity contract:** obvious ad elements are hidden everywhere; the depth of
+cosmetic coverage differs (full desktop / procedural-but-manual Android / static
+iOS). Not a bug — a documented ceiling.
+
+**Detailed design:** [`blocking-backends.md`](./blocking-backends.md).
+
+**Status:** Accepted; the mobile cosmetic scope is an open decision.

@@ -84,9 +84,12 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 ## Coverage check
 
 - Every feature `F1–F24` has ≥1 scenario. ✅
-- Every divergence `D1–D12` is exercised by ≥1 scenario **except** `D11`
-  (window model) — it has no discrete behavioural assertion; it is verified
-  implicitly wherever island scenarios (F1) run on each platform's windowing.
-  Add a dedicated `D11` scenario if a concrete assertion emerges.
+- Every divergence `D1–D14` is exercised by ≥1 scenario **except** `D11` (window
+  model), `D13` (shield-count fidelity), and `D14` (cosmetic depth) — these have no
+  discrete behavioural assertion. D11 is verified implicitly wherever island
+  scenarios (F1) run on each platform's windowing; D13/D14 are covered within the
+  F12 contract (F12-1's shield assertion is relaxed on iOS per D13 — see
+  [`../blocking-backends.md`](../blocking-backends.md)). Add dedicated scenarios if
+  concrete assertions emerge.
 - Mobile-gained / platform-specific outcomes (F22, F24) correctly carry platform
   tags rather than `@all`.

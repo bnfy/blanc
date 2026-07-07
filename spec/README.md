@@ -42,6 +42,9 @@ bug.
 - [`divergence-register.md`](./divergence-register.md) — every deliberate
   platform split, with rationale and the parity contract that still holds across
   the split.
+- [`blocking-backends.md`](./blocking-backends.md) — deep-dive design for the
+  differentiator (F12): the two mobile backends (iOS `WKContentRuleList`, Android
+  `shouldInterceptRequest`) concretely, and the D1/D2/D13/D14 divergences.
 
 ### 2. Shared substrate — ship it from one place so it can't drift
 - [`shared-substrate.md`](./shared-substrate.md) — the artifacts (filter-rule
