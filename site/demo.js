@@ -317,10 +317,10 @@
   // ---- scenes: one linear workflow, ~3–4s each ----
   const SCENES = [
     { view: 'rest',  layout: 'base',    current: 'github',  hold: 3200, cap: 'No tab strip, no toolbar — just one small island.' },
-    { view: 'rest',  layout: 'base',    current: 'github',  scroll: true, hold: 4200, cap: 'Scroll the page and the Blanc Island stays out of the way.' },
+    { view: 'rest',  layout: 'base',    current: 'github',  scroll: true, hold: 4200, cap: 'Scroll the page and the island stays out of the way.' },
     { view: 'panel', layout: 'base',    current: 'github',  hold: 3300, cap: 'Open it and the whole session is already sorted.' },
     { view: 'panel', layout: 'base',    current: 'github',  panel: 'switcher', typed: 'scr', hold: 3400, cap: 'A few letters jumps from GitHub to Scroll.' },
-    { view: 'rest',  layout: 'base',    current: 'scroll',  hold: 2800, cap: 'Scroll fills the window while the Blanc Island stays small.' },
+    { view: 'rest',  layout: 'base',    current: 'scroll',  hold: 2800, cap: 'Scroll fills the window while the island stays small.' },
     { view: 'panel', layout: 'pinned',  current: 'scroll',  panel: 'commands', typed: '/pin', justPin: 'scroll', hold: 3800, cap: 'Commands handle the little browser chores.' },
     { view: 'panel', layout: 'grouped', current: 'netflix', justGroup: 'watch', hold: 4200, cap: 'YouTube and Netflix sit together in a watch group.' },
     { view: 'panel', layout: 'folded',  current: 'netflix', hold: 3300, cap: 'Folded groups stay tucked away until you jump back.' },
