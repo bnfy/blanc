@@ -137,8 +137,8 @@ button svg {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 12px;
-  padding: 6px 14px;
+  margin-top: 10px;
+  padding: 4px 14px;
   /* Clear the macOS traffic lights / window controls on narrow windows. */
   max-width: calc(100vw - 170px);
   background: var(--surface-raised);
@@ -158,41 +158,56 @@ button svg {
   flex: 0 0 auto;
 }
 
-.pill-cluster {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-  flex: 0 0 auto;
-}
-.pill-cluster.dim .island-dot { opacity: 0.55; }
-
-/* Collapsed, non-active group: a bordered capsule of mini-dots; click
-   jumps to the group. */
-.pill-cluster.folded {
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 6px;
+.pill-overflow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  background: transparent;
+  border: none;
+  padding: 0 2px;
   cursor: pointer;
-}
-.pill-cluster.folded:hover { border-color: var(--accent); }
-
-/* Pinned tabs get their own bordered capsule at the very start of the
-   dot list, always unfolded — same visual language as .folded above, but
-   individual dots stay clickable (no click-to-jump on the capsule itself). */
-.pill-cluster.pinned-shelf {
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 2px 6px;
-}
-
-.dot-mini {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--border);
   flex: 0 0 auto;
 }
-.dot-mini.accent { background: var(--accent); }
+.pill-overflow:hover { color: var(--accent); }
+
+.pill-btns { display: flex; align-items: center; gap: 1px; flex: 0 0 auto; }
+.pill-btn {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  position: relative;
+}
+/* `display: inline-flex` above defeats the `hidden` attribute's UA
+   `display: none`; restore it (higher specificity) so the contextual
+   downloads button can hide itself. */
+.pill-btn[hidden] { display: none; }
+.pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
+.pill-btn:disabled { color: var(--border); cursor: default; background: transparent; }
+.pill-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.pill-btn.on { color: var(--accent); }
+.pill-btn.on svg { fill: var(--accent); stroke: var(--accent); }
+.pill-sep { width: 1px; height: 15px; background: var(--border); flex: 0 0 auto; margin: 0 2px; }
+
+/* Download button: a thin accent progress ring around the tray icon while
+   a download is in flight (--dl-progress is 0..1, set from renderer.js). */
+.pill-download.active { color: var(--accent); }
+.pill-download.active::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) calc(var(--dl-progress, 0) * 360deg), var(--border) 0);
+  -webkit-mask: radial-gradient(circle, transparent 6px, #000 7px);
+  mask: radial-gradient(circle, transparent 6px, #000 7px);
+}
 
 .island-dot {
   width: 6px;
@@ -224,6 +239,10 @@ button svg {
   font-family: var(--font-mono);
   font-size: 12.5px;
   color: var(--text);
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 #pillDomain.dim { color: var(--text-dim); }
 
@@ -488,6 +507,11 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
 .island-row.folded-row { color: var(--text-dim); }
 .island-row.folded-row .row-folded-label { font-size: 12.5px; white-space: nowrap; }
 .row-cluster { display: flex; gap: 3px; align-items: center; flex: 0 0 auto; }
+/* Mini-dots inside the panel's folded-group indicator + Quick-Switcher group
+   rows (overlay.js miniDotCluster). Shared stylesheet — do not delete with the
+   pill styles. */
+.dot-mini { width: 4px; height: 4px; border-radius: 50%; background: var(--border); flex: 0 0 auto; }
+.dot-mini.accent { background: var(--accent); }
 
 /* Per-tab group chip ("group" / current group name) — revealed on row
    hover like the close button; also used by the inline picker. */

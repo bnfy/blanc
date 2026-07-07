@@ -11,6 +11,8 @@
   const stripEl = document.getElementById('strip');
   const islandPill = document.getElementById('islandPill');
   const pillDots = document.getElementById('pillDots');
+  const pillNav = document.getElementById('pillNav');
+  const pillActions = document.getElementById('pillActions');
   const pillGroupName = document.getElementById('pillGroupName');
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
@@ -33,6 +35,59 @@
     minimize: '<svg viewBox="0 0 16 16"><path d="M3.5 8h9"/></svg>',
     maximize: '<svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></svg>',
   };
+
+  const PILL_ICONS = {
+    back: '<svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>',
+    forward: '<svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>',
+    reload: '<svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-5-5c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
+    stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
+    heart: '<svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>',
+    download: '<svg viewBox="0 0 16 16"><path d="M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9"/></svg>',
+  };
+
+  /** A quiet icon button for the pill. stopPropagation keeps a click on the
+   * button from bubbling to the pill (which would open the panel). */
+  function pillButton(iconKey, title, onClick) {
+    const b = document.createElement('button');
+    b.className = 'pill-btn';
+    b.innerHTML = PILL_ICONS[iconKey];
+    b.title = title;
+    b.setAttribute('aria-label', title);
+    b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); });
+    return b;
+  }
+
+  const backBtn = pillButton('back', 'Back', () => state.activeTabId && window.browserAPI.goBack(state.activeTabId));
+  const forwardBtn = pillButton('forward', 'Forward', () => state.activeTabId && window.browserAPI.goForward(state.activeTabId));
+  pillNav.append(backBtn, forwardBtn);
+
+  const reloadBtn = pillButton('reload', 'Reload', () => {
+    const t = activeTab();
+    if (!t) return;
+    if (t.isLoading) window.browserAPI.stop(t.id);
+    else window.browserAPI.reload(t.id);
+  });
+  const favoriteBtn = pillButton('heart', 'Favorite this page', () => window.browserAPI.toggleBookmark());
+  pillActions.append(reloadBtn, favoriteBtn);
+
+  let downloadState = { active: 0, hasRecent: false, receivedBytes: 0, totalBytes: 0 };
+  const downloadsBtn = pillButton('download', 'Downloads', () => {
+    window.browserAPI.openPage('downloads');
+    window.browserAPI.acknowledgeDownloads();
+  });
+  downloadsBtn.classList.add('pill-download');
+  downloadsBtn.hidden = true;
+  pillActions.append(downloadsBtn);
+
+  function renderDownloads() {
+    const { active, hasRecent, receivedBytes, totalBytes } = downloadState;
+    downloadsBtn.hidden = !(active > 0 || hasRecent);
+    downloadsBtn.classList.toggle('active', active > 0);
+    const pct = active > 0 && totalBytes > 0 ? Math.min(1, receivedBytes / totalBytes) : 0;
+    downloadsBtn.style.setProperty('--dl-progress', String(pct));
+    downloadsBtn.title = active > 0 ? `Downloading — ${active} active` : 'Downloads';
+  }
+  renderDownloads();
 
   // --- Window controls (non-mac only; macOS gets native traffic lights) ---
   if (!isMac) {
@@ -113,17 +168,35 @@
     stripEl.classList.toggle('tint-dark', 0.299 * r + 0.587 * g + 0.114 * b < 128);
   }
 
-  /** Pill cluster order: each non-empty group in group order, then the
-   * ungrouped tabs. (Keep in sync with overlay.js.) */
-  function clusterTabs() {
-    const clusters = [];
-    for (const g of state.groups) {
-      const gtabs = state.tabs.filter((t) => t.groupId === g.id && !t.pinned);
-      if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
-    }
-    const loose = state.tabs.filter((t) => !t.groupId && !t.pinned);
-    if (loose.length) clusters.push({ group: null, tabs: loose });
-    return clusters;
+  const DOT_CAP = 8;
+
+  /** Dots for the pill: the ACTIVE tab's group only (null groupId = the
+   * ungrouped set), pins excluded except the active tab itself so you always
+   * see where you are. Capped at DOT_CAP with a trailing "+k" that opens the
+   * panel; the window slides only when needed to keep the active dot visible.
+   * The pill deliberately does NOT map other groups — that lives in ⌘L. */
+  function activeGroupDots() {
+    const tab = activeTab();
+    if (!tab) return [];
+    const g = tab.groupId ?? null;
+    const members = state.tabs.filter(
+      (t) => (t.groupId ?? null) === g && (!t.pinned || t.id === state.activeTabId)
+    );
+    if (members.length <= DOT_CAP) return members.map(tabDot);
+
+    const activeIdx = Math.max(0, members.indexOf(tab));
+    const start = activeIdx < DOT_CAP ? 0 : Math.min(activeIdx - (DOT_CAP - 1), members.length - DOT_CAP);
+    const nodes = members.slice(start, start + DOT_CAP).map(tabDot);
+
+    const hidden = members.length - DOT_CAP;
+    const more = document.createElement('button');
+    more.className = 'pill-overflow';
+    more.textContent = `+${hidden}`;
+    more.title = `${hidden} more ${hidden === 1 ? 'tab' : 'tabs'} in this group — open the list`;
+    more.setAttribute('aria-label', more.title);
+    more.addEventListener('click', (e) => { e.stopPropagation(); window.browserAPI.openIsland(); });
+    nodes.push(more);
+    return nodes;
   }
 
   function tabDot(t) {
@@ -145,50 +218,22 @@
   function render() {
     const tab = activeTab();
 
-    const pinnedTabs = state.tabs.filter((t) => t.pinned);
-    const pinnedShelf = document.createElement('span');
-    pinnedShelf.className = 'pill-cluster pinned-shelf';
-    pinnedShelf.title = `${pinnedTabs.length} pinned ${pinnedTabs.length === 1 ? 'tab' : 'tabs'}`;
-    pinnedShelf.append(...pinnedTabs.map(tabDot));
+    backBtn.disabled = !tab?.canGoBack;
+    forwardBtn.disabled = !tab?.canGoForward;
+    const reloadMode = tab?.isLoading ? 'stop' : 'reload';
+    if (reloadBtn.dataset.mode !== reloadMode) {
+      reloadBtn.dataset.mode = reloadMode;
+      reloadBtn.innerHTML = PILL_ICONS[reloadMode];
+      reloadBtn.title = reloadMode === 'stop' ? 'Stop' : 'Reload';
+    }
+    // Favorites only apply to real web pages (blanc:// and private tabs are
+    // no-ops in main), so mirror the overlay and disable the heart otherwise.
+    const favoritable = /^https?:\/\//.test(tab?.url || '');
+    favoriteBtn.disabled = !favoritable;
+    favoriteBtn.classList.toggle('on', favoritable && !!tab?.bookmarked);
+    favoriteBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page';
 
-    const clusters = clusterTabs();
-    pillDots.replaceChildren(
-      ...(pinnedTabs.length ? [pinnedShelf] : []),
-      ...clusters.map(({ group, tabs: gtabs }) => {
-        // A pinned active tab isn't a member of any cluster here (it's
-        // excluded into the pinned shelf instead), so no cluster should
-        // ever claim to be the active one on its behalf.
-        const isActiveCluster = !tab?.pinned && (group ? tab?.groupId === group.id : !tab?.groupId);
-        const folded = group && group.collapsed && !isActiveCluster;
-        // The folded capsule is a button like the dots, so it stays
-        // keyboard-reachable; expanded clusters are plain wrappers.
-        const cluster = document.createElement(folded ? 'button' : 'span');
-        if (folded) {
-          // Folded capsule: a bordered pill of mini-dots; click jumps to
-          // the group (activates its first tab and unfolds it).
-          cluster.className = 'pill-cluster folded';
-          cluster.title = `${group.name} · ${gtabs.length} ${gtabs.length === 1 ? 'tab' : 'tabs'}`;
-          cluster.setAttribute('aria-label', `Jump to group ${group.name}`);
-          cluster.addEventListener('click', (e) => {
-            e.stopPropagation();
-            window.browserAPI.focusGroup(group.id);
-          });
-          cluster.append(
-            ...gtabs.slice(0, 4).map(() => {
-              const mini = document.createElement('span');
-              mini.className = 'dot-mini';
-              return mini;
-            })
-          );
-        } else {
-          cluster.className = 'pill-cluster' + (isActiveCluster ? '' : ' dim');
-          if (group) cluster.title = group.name;
-          else if (clusters.length > 1) cluster.title = 'no group';
-          cluster.append(...gtabs.map(tabDot));
-        }
-        return cluster;
-      })
-    );
+    pillDots.replaceChildren(...activeGroupDots());
 
     const activeGroup = state.groups.find((g) => g.id === tab?.groupId) || null;
     pillGroupName.hidden = !activeGroup;
@@ -296,6 +341,10 @@
   window.browserAPI.onIslandState(({ mode }) => {
     islandMode = mode;
     render();
+  });
+  window.browserAPI.onDownloadsActivity((payload) => {
+    downloadState = payload;
+    renderDownloads();
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;

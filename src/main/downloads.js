@@ -12,6 +12,10 @@ const ensureStore = () => (store ??= new JsonStore('downloads', { items: [] }));
 /** @type {Map<string, { record: object, item: Electron.DownloadItem }>} */
 const active = new Map();
 
+/** A download finished as `completed` and hasn't been looked at yet — drives
+ * the pill's contextual downloads button. Cleared by acknowledgeDownloads(). */
+let hasRecent = false;
+
 /** @type {(() => void) | null} notify the chrome UI that something changed */
 let onChanged = null;
 
@@ -64,6 +68,7 @@ function setupDownloads(session, notifyChanged) {
         d.items.unshift(record);
         if (d.items.length > MAX_PERSISTED) d.items.length = MAX_PERSISTED;
       });
+      if (state === 'completed') hasRecent = true;
       broadcast();
     });
 
@@ -100,10 +105,28 @@ function clearFinishedDownloads() {
   broadcast();
 }
 
+function acknowledgeDownloads() {
+  hasRecent = false;
+}
+
+/** Snapshot for the chrome pill: how many are in-flight, whether a finished
+ * one is still unacknowledged, and aggregate bytes for a progress ring. */
+function downloadsActivity() {
+  let receivedBytes = 0;
+  let totalBytes = 0;
+  for (const { record } of active.values()) {
+    receivedBytes += record.receivedBytes;
+    totalBytes += record.totalBytes;
+  }
+  return { active: active.size, hasRecent, receivedBytes, totalBytes };
+}
+
 module.exports = {
   setupDownloads,
   listDownloads,
   activeCount,
+  acknowledgeDownloads,
+  downloadsActivity,
   cancelDownload,
   openDownload,
   showDownloadInFolder,

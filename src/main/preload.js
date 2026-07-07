@@ -55,6 +55,12 @@ contextBridge.exposeInMainWorld('browserAPI', {
     ipcRenderer.on('tabs:updated', listener);
     return () => ipcRenderer.removeListener('tabs:updated', listener);
   },
+  onDownloadsActivity: (callback) => {
+    const listener = (_e, payload) => callback(payload);
+    ipcRenderer.on('chrome:downloads', listener);
+    return () => ipcRenderer.removeListener('chrome:downloads', listener);
+  },
+  acknowledgeDownloads: () => ipcRenderer.send('chrome:downloads-ack'),
   onOverlayShow: (callback) => {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('overlay:show', listener);

@@ -14,6 +14,7 @@
   const listEl = document.getElementById('demoList');
   const footEl = document.getElementById('demoFoot');
   const capEl = document.getElementById('demoCaption');
+  const heartEl = document.getElementById('demoHeart');
 
   const NORMAL_FOOT = 'esc to dismiss · ⌘L summons · / for commands';
   const GROUP_FOOT = 'esc to dismiss · /group moves this tab · ⌘1–9 jumps groups';
@@ -264,22 +265,20 @@
 
   function renderPill(layName, current, opts) {
     opts = opts || {};
+    const DOT_CAP = 8;
     const lay = LAYOUTS[layName];
-    let dots = '<span class="pin-shelf">' + lay.pinned.map(() => '<span></span>').join('') + '</span>';
-    lay.groups.forEach((g) => {
-      const active = g.ids.includes(current);
-      const folded = g.collapsed && !active;
-      dots += `<span class="cluster${active ? ' on' : ''}${folded ? ' folded' : ''}">` +
-              g.ids.map((id) => `<span class="${id === current ? 'cur' : ''}"></span>`).join('') + '</span>';
-    });
-    const looseActive = lay.loose.includes(current);
-    dots += `<span class="cluster${looseActive ? ' on' : ''}">` +
-            lay.loose.map((id) => `<span class="${id === current ? 'cur' : ''}"></span>`).join('') + '</span>';
+    const group = activeGroup(lay, current);
+    // The pill shows only the active tab's group (or the ungrouped set) as
+    // dots — pins and other groups live in the panel now, matching the app.
+    // Capped at DOT_CAP with a quiet "+N" for the rest.
+    const members = group ? group.ids : lay.loose;
+    const shown = members.slice(0, DOT_CAP);
+    let dots = shown.map((id) => `<span class="${id === current ? 'cur' : ''}"></span>`).join('');
+    if (members.length > DOT_CAP) dots += `<span class="dot-more">+${members.length - DOT_CAP}</span>`;
     dotsEl.innerHTML = dots;
 
     const t = TABS[current];
     favEl.style.backgroundImage = t.fav ? `url('${ICON_BASE}${t.fav}.ico')` : 'none';
-    const group = activeGroup(lay, current);
     if (group) {
       groupNameEl.textContent = `${group.name} ·`;
       groupNameEl.hidden = false;
@@ -289,6 +288,8 @@
     domainEl.textContent = t.domain;
     shieldEl.hidden = t.shield === 0;
     shieldEl.textContent = t.shield;
+    // Favorite (heart) fills for the sites the demo treats as favorites.
+    heartEl.classList.toggle('on', SEARCH_TAGS[current] === 'favorite');
   }
 
   function setCap(text) {

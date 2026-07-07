@@ -8,7 +8,7 @@ const { registerPagesScheme, setupPages } = require('./pages');
 const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
-const { setupDownloads } = require('./downloads');
+const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
@@ -458,6 +458,11 @@ function broadcastTabs() {
   const payload = { tabs: serializeTabs(), activeTabId, groups };
   win.webContents.send('tabs:updated', payload);
   overlayView?.webContents.send('tabs:updated', payload);
+}
+
+function broadcastDownloadsActivity() {
+  if (!win || win.isDestroyed()) return;
+  win.webContents.send('chrome:downloads', downloadsActivity());
 }
 
 // The blocked-request counter can tick many times a second during a page
@@ -1370,6 +1375,10 @@ function registerIpcHandlers() {
   ipcMain.on('chrome:open-island', () => showOverlay('panel'));
   ipcMain.on('chrome:open-find', () => showOverlay('find'));
   ipcMain.on('overlay:close', () => hideOverlay());
+  ipcMain.on('chrome:downloads-ack', () => {
+    acknowledgeDownloads();
+    broadcastDownloadsActivity();
+  });
 
   // Data + actions behind the island's slash commands and Quick Switcher.
   ipcMain.handle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
@@ -1784,7 +1793,7 @@ app.whenReady().then(async () => {
     pendingPermissionPrompts.delete(id);
   });
 
-  setupDownloads(ses);
+  setupDownloads(ses, broadcastDownloadsActivity);
   setupPages({
     onDataChanged: refreshBookmarkFlags,
     // The start page's ledger sections read live tab-group state and the
