@@ -39,76 +39,42 @@
   const favStyle = (t) => t.fav ? `background-image:url('${ICON_BASE}${t.fav}.ico')` : '';
 
   /* ---- real page renders for the tabs a scene can land on ----
-     mShots serves a small "generating…" placeholder until a screenshot
-     exists, so each preload retries until a full-width render comes back;
-     until then the skeleton bars stay visible. Some sites use a second
-     screenshot provider for more reliable real-site renders. */
+     Desktop and mobile layouts are pre-captured and bundled under
+     site/shots/{desktop,mobile}/ rather than pulled live. The live services
+     were unreliable in both directions: mobile-viewport requests 403'd, and a
+     live desktop render silently drifts (and letterboxes) when a site
+     redesigns. Bundling ships a controlled crop that always loads instantly;
+     until an image loads the skeleton bars stay visible. */
   const shotEl = document.getElementById('demoShot');
-  // The stage is 900 CSS px wide at desktop; request a 2x mShots render
-  // so the real-site backgrounds stay crisp when the service provides it.
-  const SHOT_W = 1800;
-  // On phones, show each site's real mobile layout instead of a zoomed-in
-  // slice of the desktop render. These are pre-captured, bundled locally
-  // (site/shots/<id>.jpg) — the live screenshot services rate-limit and
-  // fail (403) on per-request mobile-viewport renders, so a static asset is
-  // the only reliable path. Desktop keeps the live renders below. This
-  // tracks the SAME 560px breakpoint the compact-pill CSS uses, and stays
-  // reactive (see the change listener below) so a rotation across it doesn't
-  // leave the pill and the background render from different modes.
+  // Which render set to use tracks the SAME 560px breakpoint as the compact-
+  // pill CSS, and stays reactive (change listener below) so a rotation across
+  // it never leaves the pill and its background render from different modes.
   const mobileMq = window.matchMedia('(max-width: 560px)');
   let MOBILE = mobileMq.matches;
-  // Bundled mobile shots are 390px wide and always load complete (no async
-  // "generating" placeholder like the live services), so any successful load
-  // counts as ready. Desktop live renders must clear a real-size bar.
-  let MIN_READY_SHOT_W = MOBILE ? 300 : 1000;
-  const SHOT_PAGES = {
-    github: 'https://github.com',
-    notion: 'https://www.notion.so',
-    scroll: 'https://scrollapp.co',
-    netflix: 'https://www.netflix.com',
-  };
+  const SHOT_IDS = ['github', 'notion', 'scroll', 'netflix']; // sites with a bundled render
   const shots = {}; // id -> { src, ready }
   let currentShotId = null;
 
-  function shotSrc(id, tries) {
-    if (MOBILE) {
-      return 'shots/' + id + '.jpg';
-    }
-    if (id === 'github' || id === 'notion' || id === 'scroll') {
-      return 'https://image.thum.io/get/width/' + SHOT_W + '/' + SHOT_PAGES[id];
-    }
-    return 'https://s0.wp.com/mshots/v1/' + encodeURIComponent(SHOT_PAGES[id]) + '?w=' + SHOT_W + (tries ? '&r=' + tries : '');
-  }
+  const shotSrc = (id) => 'shots/' + (MOBILE ? 'mobile' : 'desktop') + '/' + id + '.jpg';
 
   function preloadShot(id) {
     if (shots[id]) return;
-    const rec = shots[id] = { src: '', ready: false, tries: 0 };
-    const attempt = () => {
-      const img = new Image();
-      const src = shotSrc(id, rec.tries);
-      img.onload = () => {
-        if (img.naturalWidth >= MIN_READY_SHOT_W) {
-          rec.src = src; rec.ready = true;
-          showShot(currentShotId); // in case this tab is on screen right now
-        } else if (++rec.tries < 8) setTimeout(attempt, 2500);
-      };
-      img.onerror = () => { if (++rec.tries < 8) setTimeout(attempt, 2500); };
-      img.src = src;
-    };
-    attempt();
+    const rec = shots[id] = { src: '', ready: false };
+    const img = new Image();
+    const src = shotSrc(id);
+    img.onload = () => { rec.src = src; rec.ready = true; showShot(currentShotId); };
+    img.src = src;
   }
-  Object.keys(SHOT_PAGES).forEach(preloadShot);
+  SHOT_IDS.forEach(preloadShot);
 
-  // Crossing the 560px breakpoint (mainly a phone rotation) swaps mobile
-  // local shots for desktop live renders and vice versa. Re-pick so the
-  // background never disagrees with the pill the CSS is now showing: drop the
-  // cached other-mode shots, re-preload for the new mode, and refresh the
-  // on-screen tab (skeleton until the new shot is ready).
+  // Crossing the 560px breakpoint (mainly a phone rotation) swaps the desktop
+  // renders for the mobile ones and vice versa. Drop the cached other-mode
+  // shots, re-preload for the new mode, and refresh the on-screen tab so the
+  // background never disagrees with the pill the CSS is now showing.
   mobileMq.addEventListener('change', (e) => {
     MOBILE = e.matches;
-    MIN_READY_SHOT_W = MOBILE ? 300 : 1000;
-    Object.keys(shots).forEach((id) => delete shots[id]);
-    Object.keys(SHOT_PAGES).forEach(preloadShot);
+    SHOT_IDS.forEach((id) => delete shots[id]);
+    SHOT_IDS.forEach(preloadShot);
     showShot(currentShotId);
   });
 
