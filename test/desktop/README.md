@@ -54,21 +54,25 @@ display (macOS); prefix `xvfb-run -a` on headless Linux.
 ## What's implemented vs. backlog
 
 The **`runnable`** profile is the subset wired to real assertions today — the
-scenarios drivable purely through main-process state:
+scenarios drivable purely through main-process state or pure app logic:
 
-| Implemented (13) | |
+| Implemented (23 rows) | |
 |---|---|
 | F2-1..F2-4 | tab reopen / duplicate / pin-order / new-tab-ungrouped |
 | F3-1, F3-4 | group create+move / prune-on-empty |
+| F5-1, F5-2, F5-3 | address normalization / search routing (4 engines) / OS hand-off |
+| F7-2 | slash-command effects (/new, /downloads, /find) |
 | F9-1, F9-2 | favorite active page / add-all-tabs |
 | F10-2 | clear history |
 | F12-3 | ad-block global toggle |
 | F14-1..F14-3 | settings validation (engine / supporter-icon fallback / exception normalization) |
+| F17-1 | supporter unlock → app icon applied |
 
-Run `npm run test:acceptance:dry` — **13 scenarios, 47 steps, 0 undefined**.
+Run `npm run test:acceptance:dry` — **23 scenarios, 79 steps, 0 undefined**
+(Scenario Outlines expand per example: F5-2 → 4 rows, F7-2 → 3).
 
 The **`default`** profile (`not @mobile`) selects the whole desktop-applicable
-set — **51 scenarios** (Scenario Outlines expand per example). The other **38 are
+set — **51 scenarios** (Scenario Outlines expand per example). The other **28 are
 backlog**: they report as `undefined` until their step definitions are written.
 They fall into three groups, by what they additionally need:
 
@@ -83,12 +87,17 @@ They fall into three groups, by what they additionally need:
 3. **OS-level behaviour** — OS URI hand-off, telemetry ping capture, the desktop
    updater. Need process/network mocking.
 
-### A deliberate proxy
+### Deliberate proxies
 
-Steps like *"X appears on the favorites page"* assert against the **store the page
-renders from** (`bookmarks.listBookmarks()`), not the rendered DOM — a store-level
-proxy for the page. When the internal-pages DOM automation (group 1) lands, these
-can be tightened to assert the actual rendered list.
+Two places assert a level below the literal step text, because it's the reliable,
+offline-verifiable signal. Both tighten once the DOM-automation backlog lands.
+
+- **Favorites** — *"X appears on the favorites page"* checks the **store the page
+  renders from** (`bookmarks.listBookmarks()`), not the rendered DOM.
+- **Address routing (F5)** — *"the active tab navigates to …"* checks the app's
+  **routing decision** (`normalizeAddressInput` / the hand-off predicate), not an
+  actual external navigation, which can't complete offline. The heuristic is the
+  substantive, deterministic part.
 
 ## Verification status
 

@@ -39,6 +39,7 @@ Before(async function () {
   ctx.tabByName = {};
   ctx.activeExpectedUrl = null;
   ctx.lastNewTabId = null;
+  ctx.enteredInput = null;
   await ctx.app.evaluate(() => globalThis.__blanc.reset());
 });
 

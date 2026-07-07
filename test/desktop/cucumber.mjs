@@ -18,14 +18,17 @@ const common = {
   require: ['test/desktop/support/**/*.js', 'test/desktop/steps/**/*.js'],
 };
 
-// The scenarios implemented in runnable.steps.js (by their stable @F#-n ids).
+// The scenarios implemented in steps/ (by their stable @F#-n ids).
 const RUNNABLE = [
   '@F2-1', '@F2-2', '@F2-3', '@F2-4',
   '@F3-1', '@F3-4',
+  '@F5-1', '@F5-2', '@F5-3',
+  '@F7-2',
   '@F9-1', '@F9-2',
   '@F10-2',
   '@F12-3',
   '@F14-1', '@F14-2', '@F14-3',
+  '@F17-1',
 ].join(' or ');
 
 export default { ...common, tags: 'not @mobile' };

@@ -29,10 +29,20 @@ function install(refs) {
     groupTabByName,
     reopenClosedTab,
     newTabUrl,
+    normalizeAddressInput,
+    handoffProtocols,
+    openInternalPage,
+    openFindBar,
+    getOverlayMode,
+    showOverlay,
   } = refs;
 
   const activeWc = () => tabs.get(getActiveTabId())?.view?.webContents;
+  // The tab model's committed .url is the app's own source of truth (see
+  // openInternalPage) and is set synchronously, so it is more reliable in
+  // tests than webContents.getURL(), which lags until a navigation commits.
   const urlOf = (t) => {
+    if (typeof t.url === 'string' && t.url) return t.url;
     try { return t.view.webContents.getURL(); } catch { return ''; }
   };
   const lc = (s) => String(s).trim().toLowerCase();
@@ -118,6 +128,17 @@ function install(refs) {
       settings.setSettings({ adblockExceptions: [...cur, h] });
     },
     exceptions() { return settings.getSettings().adblockExceptions; },
+    setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
+
+    // ---- address routing / overlay ----
+    resolveAddress(input) { return normalizeAddressInput(input); },
+    wouldHandOff(url) {
+      try { return handoffProtocols.has(new URL(url).protocol); } catch { return false; }
+    },
+    openDownloads() { openInternalPage('blanc://downloads/'); },
+    openFind() { openFindBar(); },
+    openPalette() { showOverlay('palette'); },
+    overlayMode() { return getOverlayMode(); },
 
     // ---- isolation between scenarios ----
     reset() {

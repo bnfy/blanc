@@ -1822,6 +1822,8 @@ app.whenReady().then(async () => {
     require('./test-hook').install({
       tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, groupTabByName, reopenClosedTab, newTabUrl,
+      normalizeAddressInput, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      getOverlayMode: () => overlayMode, showOverlay,
     });
   } else {
     await setupAdBlocker(ses, { enabled: settings.getSettings().adblockEnabled });

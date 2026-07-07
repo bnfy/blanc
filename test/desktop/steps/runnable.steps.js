@@ -67,6 +67,9 @@ When('I run the slash command {string}', async function (cmd) {
   if (head === '/group') return this.call('groupActiveByName', rest.join(' '));
   if (head === '/clear') return this.call('clearHistory');
   if (head === '/block-ads') return this.call('toggleAdblock');
+  if (head === '/new') { ctx.lastNewTabId = await this.call('newTab'); return; }
+  if (head === '/downloads') return this.call('openDownloads');
+  if (head === '/find') return this.call('openFind');
   return 'pending'; // other commands not in the runnable set yet
 });
 
