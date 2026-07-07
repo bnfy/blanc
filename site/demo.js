@@ -297,6 +297,9 @@
     typeTimer = null;
   }
 
+  const TYPE_MS = 85;        // per-character typing cadence — snappy, still legible
+  const POST_TYPE_HOLD = 1900; // linger after typing finishes, to read the result + caption
+
   function typeInput(text, renderPartial, renderBeforeTyping) {
     stopTyping();
     typedEl.textContent = '';
@@ -308,19 +311,19 @@
       typedEl.textContent = partial;
       renderPartial(partial);
       if (i >= text.length) stopTyping();
-    }, 135);
+    }, TYPE_MS);
   }
 
   // ---- scenes: one linear workflow, ~3–4s each ----
   const SCENES = [
-    { view: 'rest',  layout: 'base',    current: 'github',  hold: 3200, cap: 'Real pages, just the Blanc Island for browser chrome.' },
+    { view: 'rest',  layout: 'base',    current: 'github',  hold: 3200, cap: 'No tab strip, no toolbar — just one small island.' },
     { view: 'rest',  layout: 'base',    current: 'github',  scroll: true, hold: 4200, cap: 'Scroll the page and the Blanc Island stays out of the way.' },
-    { view: 'panel', layout: 'base',    current: 'github',  hold: 4300, cap: 'Open it and the whole session is already sorted.' },
+    { view: 'panel', layout: 'base',    current: 'github',  hold: 3300, cap: 'Open it and the whole session is already sorted.' },
     { view: 'panel', layout: 'base',    current: 'github',  panel: 'switcher', typed: 'scr', hold: 3400, cap: 'A few letters jumps from GitHub to Scroll.' },
     { view: 'rest',  layout: 'base',    current: 'scroll',  hold: 2800, cap: 'Scroll fills the window while the Blanc Island stays small.' },
     { view: 'panel', layout: 'pinned',  current: 'scroll',  panel: 'commands', typed: '/pin', justPin: 'scroll', hold: 3800, cap: 'Commands handle the little browser chores.' },
     { view: 'panel', layout: 'grouped', current: 'netflix', justGroup: 'watch', hold: 4200, cap: 'YouTube and Netflix sit together in a watch group.' },
-    { view: 'panel', layout: 'folded',  current: 'netflix', hold: 4000, cap: 'Folded groups stay tucked away until you jump back.' },
+    { view: 'panel', layout: 'folded',  current: 'netflix', hold: 3300, cap: 'Folded groups stay tucked away until you jump back.' },
     { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', hold: 4200, cap: 'The same input finds tabs, favorites, and history.' },
     { view: 'rest',  layout: 'grouped', current: 'notion', hold: 3200, cap: 'Enter switches to Notion, with the page back in front.' },
     { view: 'panel', layout: 'grouped', current: 'github',  panel: 'commands', typed: '/allow', hold: 3400, cap: 'Need a site exception? Type /allow-ads.' },
@@ -362,8 +365,13 @@
   }
 
   function tick() {
-    applyScene(SCENES[idx]);
-    timer = setTimeout(() => { idx = (idx + 1) % SCENES.length; tick(); }, SCENES[idx].hold);
+    const s = SCENES[idx];
+    applyScene(s);
+    // Typing scenes advance a fixed beat after the keystrokes land, not on a
+    // long fixed hold — otherwise the panel sits idle for seconds once the
+    // short typed string is done. Everything else keeps its authored hold.
+    const hold = s.typed ? s.typed.length * TYPE_MS + POST_TYPE_HOLD : s.hold;
+    timer = setTimeout(() => { idx = (idx + 1) % SCENES.length; tick(); }, hold);
   }
   tick();
 })();
