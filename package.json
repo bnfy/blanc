@@ -15,7 +15,10 @@
     "tokens:build": "node tokens/build.mjs",
     "tokens:check": "node tokens/build.mjs --check",
     "settings:build": "node settings-schema/build.mjs",
-    "settings:check": "node settings-schema/build.mjs --check"
+    "settings:check": "node settings-schema/build.mjs --check",
+    "copy:build": "node copy/build.mjs",
+    "copy:check": "node copy/build.mjs --check",
+    "substrate:check": "npm run tokens:check && npm run settings:check && npm run copy:check"
   },
   "author": "",
   "license": "UNLICENSED",

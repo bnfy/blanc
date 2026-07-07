@@ -76,6 +76,16 @@ permission prompts (F13), the "private" chip, colorway labels (F17), etc.
 **Why shared:** the lowercase-mono voice is part of the brand identity. Copy drift
 is the most common silent parity failure and the easiest to prevent.
 
+**Status — first slice built (`copy/`).** The **slash-command** catalog is done:
+`copy/slash-commands.json` is the source, `npm run copy:build` emits
+`generated/{SlashCommands.strings,slash_commands.xml}`, and `npm run copy:check`
+guards **both** desktop copies (`overlay.js` command table and
+`pages/shortcuts.js` reference list — hand-synced today) against drift. Same
+guard-not-overwrite posture as S2/S5. Still open (same pattern): settings field
+labels, newtab ledger copy, empty states, permission-prompt text. Note the
+**app-icon and search-engine labels are owned by S5** (`settings-schema/`) — not
+duplicated here. See `copy/README.md`.
+
 ---
 
 ## S4 — Internal `blanc://` pages as a shared web bundle
@@ -143,8 +153,9 @@ fails on one, that's exactly where the drift is.
 
 ## Priority order for building the substrate
 
-1. **S5 settings schema** — ✅ built (`settings-schema/`). **S3 copy** — still open;
-   cheapest remaining, prevents the most common silent drift.
+1. **S5 settings schema** — ✅ built (`settings-schema/`). **S3 copy** — ✅ first
+   slice built (`copy/`, slash commands); remaining copy (settings labels, newtab,
+   prompts) follows the same pattern.
 2. **S2 design tokens** — ✅ built (`tokens/`); guards desktop, generates mobile.
 3. **S4 internal pages bundle** — biggest single parity win; do it before
    reimplementing any `blanc://` page natively.
