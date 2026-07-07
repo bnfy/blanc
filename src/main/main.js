@@ -1841,6 +1841,10 @@ app.whenReady().then(async () => {
   // Runs after stores + setupPages so its triggers see a live app; failures
   // are swallowed and surfaced only in Settings (never block startup).
   sync.init();
+  // A sync pull that merged in favorites from another device refreshes the
+  // pill's favorite state; open internal pages still pull on their next load,
+  // as with any cross-surface bookmark change.
+  bookmarks.onMerged(refreshBookmarkFlags);
 
   // HTTP basic/digest auth: without this handler, 401-protected sites
   // (routers, staging servers) simply fail.

@@ -162,9 +162,13 @@ function mergeFromSync(remote) {
   s.update((data) => {
     Object.assign(data, clean);
     data._syncMeta ??= {};
-    for (const k of Object.keys(clean)) data._syncMeta[k] = winners[k];
+    // Advance the clock for EVERY conceded key — including ones sanitize
+    // rejected (e.g. an enum value a newer app version introduced) — so a
+    // value we can't apply can't re-win every sync and loop forever.
+    for (const k of keys) data._syncMeta[k] = winners[k];
   });
-  for (const fn of listeners) fn(getSettings());
+  // Notify (→ app re-applies theme/adblock) only when something was adopted.
+  if (Object.keys(clean).length) for (const fn of listeners) fn(getSettings());
 }
 
 function searchUrlFor(query) {

@@ -25,5 +25,6 @@ data — no IPs, no ids, no browsing data, consistent with `../ping-worker`.
 
 `accountId` is 64 hex chars; `store` is one of `bookmarks`, `settings`. No
 secrets or tokens: possession of the (unguessable) `accountId` is the
-capability. A per-`accountId` GET rate limit (30/min) throttles online
-guessing.
+capability. A per-client-IP limit (120/min, all methods) is the anti-guessing
+throttle — each passphrase guess derives a fresh `accountId`, so the
+per-`accountId` GET limit (30/min) is only anti-hammering of a single account.

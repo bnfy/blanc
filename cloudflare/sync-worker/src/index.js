@@ -6,22 +6,28 @@
 
 const STORES = new Set(['bookmarks', 'settings']); // history/session added in a later phase
 const MAX_BLOB_BYTES = 512 * 1024;                 // favorites+settings are tiny; raise for history
-const RATE_LIMIT = 30;                             // GETs per accountId per minute (anti-brute-force, spec §7)
+const RATE_LIMIT = 30;                             // GETs per accountId per minute — anti-hammering of one account
+const IP_RATE_LIMIT = 120;                         // requests per client IP per minute — the anti-guessing throttle
 
 const blobKey = (a, s) => `blob:${a}:${s}`;
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } });
 
-// KV has no atomic increment; a few concurrent GETs can undercount by one or
-// two — fine for coarse throttling. A Durable Object is the drop-in upgrade
-// if strictness is ever needed.
-async function rateLimited(env, accountId) {
-  const k = `rl:${accountId}:${Math.floor(Date.now() / 60000)}`;
+// KV has no atomic increment, so these counters are coarse (concurrent bursts
+// can under-count). A Durable Object is the drop-in upgrade for a hard limit.
+async function bumpLimited(env, key, max) {
+  const k = `${key}:${Math.floor(Date.now() / 60000)}`;
   const n = parseInt((await env.SYNC.get(k)) ?? '0', 10);
-  if (n >= RATE_LIMIT) return true;
+  if (n >= max) return true;
   await env.SYNC.put(k, String(n + 1), { expirationTtl: 120 });
   return false;
 }
+
+// Per-accountId GET limit — anti-hammering of a single account. It is NOT the
+// brute-force defense: a passphrase guess derives a *fresh* accountId, so
+// guessing is throttled per-IP (below), not per-account.
+const rateLimited = (env, accountId) => bumpLimited(env, `rl:${accountId}`, RATE_LIMIT);
+const ipRateLimited = (env, ip) => (ip ? bumpLimited(env, `ip:${ip}`, IP_RATE_LIMIT) : Promise.resolve(false));
 
 async function handleGet(env, accountId, store) {
   if (await rateLimited(env, accountId)) return json({ error: 'rate-limited' }, 429);
@@ -55,8 +61,20 @@ export default {
     const m = url.pathname.match(/^\/v1\/blob\/([0-9a-f]{64})(?:\/([a-z]+))?$/);
     if (!m) return new Response('not found', { status: 404 });
     const [, accountId, store] = m;
+
+    // Per-IP throttle across ALL methods — the actual anti-guessing defense,
+    // and it also caps unauthenticated PUT/DELETE against a known accountId.
+    if (await ipRateLimited(env, request.headers.get('CF-Connecting-IP'))) {
+      return json({ error: 'rate-limited' }, 429);
+    }
+
     if (request.method === 'DELETE') return handleDelete(env, accountId);
     if (store && !STORES.has(store)) return new Response('unknown store', { status: 404 });
+    // GET/PUT address one store; only DELETE is account-wide. Requiring the
+    // segment stops a storeless PUT from writing an unwipeable orphan key.
+    if ((request.method === 'GET' || request.method === 'PUT') && !store) {
+      return new Response('store required', { status: 404 });
+    }
     if (request.method === 'GET') return handleGet(env, accountId, store);
     if (request.method === 'PUT') {
       let body;
