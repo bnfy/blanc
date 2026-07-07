@@ -82,23 +82,29 @@ const ARTIFACTS = { 'BlancSettings.swift': genSwift(), 'BlancSettings.kt': genKo
 
 // ---- parse the stable structures out of settings.js ----
 function parseSettingsJs() {
-  const js = fs.readFileSync(path.join(ROOT, spec.source), 'utf8');
-  const pairs = (block) => [...(block ?? '').matchAll(/(\w+):\s*'([^']+)'/g)].map((m) => ({ id: m[1], label: m[2] }));
-  const engines = [...js.matchAll(/(\w+):\s*\{\s*label:\s*'([^']+)'/g)].map((m) => ({ id: m[1], label: m[2] }));
+  // Strip /* */ block comments, and anchor every pattern to line start (^\s*, /m)
+  // so a `//` line comment (or a commented-out key) is never read as a live value
+  // — that would let real drift pass. Anchoring is used instead of stripping `//`
+  // because a value string can legitimately contain `//` (e.g. a homePage URL).
+  const js = fs.readFileSync(path.join(ROOT, spec.source), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  // Label maps can be single-line (SUPPORTER_ICON_LABELS) so line-anchoring
+  // won't work; strip // line comments instead (label values never contain //).
+  const pairs = (block) => [...String(block ?? '').replace(/\/\/.*$/gm, '').matchAll(/(\w+):\s*'([^']+)'/g)].map((m) => ({ id: m[1], label: m[2] }));
+  const engines = [...js.matchAll(/^\s*(\w+):\s*\{\s*label:\s*'([^']+)'/gm)].map((m) => ({ id: m[1], label: m[2] }));
   const themes = [...(js.match(/const THEMES = \[([^\]]*)\]/)?.[1] ?? '').matchAll(/'([^']+)'/g)].map((m) => m[1]);
   const appIcons = pairs(js.match(/const APP_ICON_LABELS = \{([\s\S]*?)\}/)?.[1]);
   const supporterIcons = pairs(js.match(/const SUPPORTER_ICON_LABELS = \{([\s\S]*?)\}/)?.[1]);
   const D = js.match(/const DEFAULTS = \{([\s\S]*?)\n\};/)?.[1] ?? '';
   const s = (re) => D.match(re)?.[1];
   const defaults = {
-    searchEngine: s(/searchEngine:\s*'([^']*)'/),
-    adblockEnabled: s(/adblockEnabled:\s*(true|false)/),
-    homePage: /homePage:\s*''/.test(D) ? '' : s(/homePage:\s*'([^']*)'/),
-    theme: s(/theme:\s*'([^']*)'/),
-    appIcon: s(/appIcon:\s*'([^']*)'/),
-    usagePing: s(/usagePing:\s*(true|false)/),
-    adblockExceptionsEmpty: /adblockExceptions:\s*\[\]/.test(D),
-    supporterNull: /supporter:\s*null/.test(D),
+    searchEngine: s(/^\s*searchEngine:\s*'([^']*)'/m),
+    adblockEnabled: s(/^\s*adblockEnabled:\s*(true|false)/m),
+    homePage: s(/^\s*homePage:\s*'([^']*)'/m),
+    theme: s(/^\s*theme:\s*'([^']*)'/m),
+    appIcon: s(/^\s*appIcon:\s*'([^']*)'/m),
+    usagePing: s(/^\s*usagePing:\s*(true|false)/m),
+    adblockExceptionsEmpty: /^\s*adblockExceptions:\s*\[\]/m.test(D),
+    supporterNull: /^\s*supporter:\s*null/m.test(D),
   };
   return { engines, themes, appIcons, supporterIcons, defaults };
 }

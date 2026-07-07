@@ -1815,10 +1815,13 @@ app.whenReady().then(async () => {
     shortcuts: { list: listShortcuts },
   });
 
-  // BLANC_TEST launches offline for the acceptance harness: skip the network
-  // ad-engine build (getBlocker() stays null, and the listener below is
-  // null-safe) and install the test-only main-process surface instead.
-  if (process.env.BLANC_TEST) {
+  // The acceptance harness launches offline: skip the network ad-engine build
+  // (getBlocker() stays null, and the listener below is null-safe) and install
+  // the test-only main-process surface instead. Gate is airtight — only an
+  // UNPACKAGED dev run with BLANC_TEST exactly "1"; never a packaged build, and
+  // BLANC_TEST=0/false stays off.
+  const isAcceptanceTest = !app.isPackaged && process.env.BLANC_TEST === '1';
+  if (isAcceptanceTest) {
     require('./test-hook').install({
       tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, groupTabByName, reopenClosedTab, newTabUrl,

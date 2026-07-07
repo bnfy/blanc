@@ -34,7 +34,11 @@ function expected(consumer) {
 }
 
 // ---- parse the :root / dark / private blocks out of a live CSS file ----
-function parseCss(css) {
+function parseCss(cssRaw) {
+  // Strip comments first so a commented-out `--token: value;` (or a comment
+  // containing `}`/`:root`) can't be parsed as a live declaration and let real
+  // drift pass silently.
+  const css = cssRaw.replace(/\/\*[\s\S]*?\*\//g, '');
   const bare = [...css.matchAll(/:root\s*\{([^}]*)\}/g)].map((m) => m[1]); // [0]=light, [1]=dark inner
   const priv = css.match(/:root\[data-theme="private"\]\s*\{([^}]*)\}/);
   const decls = (block) => {

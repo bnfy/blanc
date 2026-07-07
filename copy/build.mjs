@@ -36,14 +36,16 @@ function genXml() {
 const ARTIFACTS = { 'SlashCommands.strings': genStrings(), 'slash_commands.xml': genXml() };
 
 // ---- parse the two desktop copies ----
+// Both parsers strip /* */ block comments and anchor to line start (^\s*, /m) so
+// a commented-out command entry can't be read as a live one and let drift pass.
 function parseOverlay() {
-  const js = fs.readFileSync(path.join(ROOT, spec.sources.overlay), 'utf8');
-  return [...js.matchAll(/cmd:\s*'([^']+)',\s*hint:\s*'([^']*)'/g)].map((m) => ({ command: m[1], hint: m[2] }));
+  const js = fs.readFileSync(path.join(ROOT, spec.sources.overlay), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  return [...js.matchAll(/^\s*\{\s*cmd:\s*'([^']+)',\s*hint:\s*'([^']*)'/gm)].map((m) => ({ command: m[1], hint: m[2] }));
 }
 function parseShortcuts() {
-  const js = fs.readFileSync(path.join(ROOT, spec.sources.shortcuts), 'utf8');
+  const js = fs.readFileSync(path.join(ROOT, spec.sources.shortcuts), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   const block = js.match(/const SLASH_COMMANDS = \[([\s\S]*?)\];/)?.[1] ?? '';
-  return [...block.matchAll(/\['([^']+)',\s*'([^']*)'\]/g)].map((m) => ({ command: m[1], hint: m[2] }));
+  return [...block.matchAll(/^\s*\['([^']+)',\s*'([^']*)'\]/gm)].map((m) => ({ command: m[1], hint: m[2] }));
 }
 
 function diffList(name, actual, expected) {

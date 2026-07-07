@@ -37,7 +37,6 @@ function install(refs) {
     showOverlay,
   } = refs;
 
-  const activeWc = () => tabs.get(getActiveTabId())?.view?.webContents;
   // The tab model's committed .url is the app's own source of truth (see
   // openInternalPage) and is set synchronously, so it is more reliable in
   // tests than webContents.getURL(), which lags until a navigation commits.
@@ -93,10 +92,13 @@ function install(refs) {
 
     // ---- favorites (bookmarks store) ----
     favoriteActive() {
-      const wc = activeWc();
-      if (!wc) return;
-      const url = wc.getURL();
-      if (!bookmarks.isBookmarked(url)) bookmarks.toggleBookmark(url, wc.getTitle() || url);
+      const t = tabs.get(getActiveTabId());
+      if (!t) return;
+      // Favorite the tab MODEL's url — what the real app's favorite action uses
+      // and what state()/the F9 wait observe — so the wait and the action agree
+      // (getURL() lags until navigation commits, which made this race/flake).
+      const url = urlOf(t);
+      if (!bookmarks.isBookmarked(url)) bookmarks.toggleBookmark(url, t.title || url);
     },
     favoriteAllTabs() {
       for (const t of tabs.values()) {
@@ -106,7 +108,7 @@ function install(refs) {
         }
       }
     },
-    activeFavorited() { const wc = activeWc(); return !!wc && bookmarks.isBookmarked(wc.getURL()); },
+    activeFavorited() { const t = tabs.get(getActiveTabId()); return !!t && bookmarks.isBookmarked(urlOf(t)); },
     bookmarkUrls() { return bookmarks.listBookmarks().map((b) => b.url); },
 
     // ---- history store ----
