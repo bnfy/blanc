@@ -19,11 +19,17 @@ The user then pointed to Brave's Settings screen as a reference they like: a per
 ## 2. Decisions locked (round 2, with the user, 2026-07-07)
 
 - **Sidebar behaves as a table of contents, not Brave's subpage router.** Blanc has 4 categories vs. Brave's ~15; some (Supporter) are a single small card. Clicking a sidebar entry scroll-jumps to that section on one continuous page; the sidebar highlights whichever section is currently in view via scroll-spy. (Rejected: true subpages per category — bigger architectural change than this surface warrants, and tiny categories would feel like empty pages on their own.)
-- **`settings.html` gets its own wider layout**, not the shared 760px `.page` column. Favorites/History/Downloads keep their existing 760px centered layout untouched — this is additive/settings-only, no shared-layout risk.
+- **All four internal pages share one width (900px).** *(Superseded the initial "widen Settings only, leave the list pages at 760px" call — see §2a.)* Settings needs the extra room for its sidebar + card column; keeping the other three at 760px meant the shared top nav bar, its divider, and the page title visibly shifted position/width when tabbing between pages. A centered block can't stay put while its width changes, so the only way to hold the top chrome stable is one shared width — bumped the base `.page` rule to 900px rather than special-casing Settings.
+- **Settings is the first tab** in the shared top nav (`Settings · Favorites · History · Downloads`), moved ahead of the three list pages. Nav order is duplicated by hand across all four page HTML files (flat-served, no shared partial), so the reorder touches each.
 - **Sidebar is text-only, no icons.** Matches the existing `.page-nav` treatment (uppercase, tracked, dim) rather than importing Brave's icon language, which would be a bigger stylistic import than asked for.
 - **Cards are flat: border + radius only, no shadow.** `pages.css` today has zero shadows anywhere (unlike the main chrome's `styles.css`, which uses `--shadow-pill`/`--shadow-popover`). Keeping cards flat avoids introducing a new visual primitive to this file.
 - **Card background: `var(--surface-raised)`**, not the subtler `var(--surface)` — deliberately chosen for stronger contrast against the page background, closer to Brave's white-card-on-gray look. Already used elsewhere (inputs/buttons), so no new token.
 - **Category label sits above and outside its card**, on the page background — not as the first row inside the bordered panel. Matches the reference screenshot exactly.
+
+## 2a. Post-implementation adjustments (same day, after seeing round 2 running)
+
+- **Unified page width (900px) across all four internal pages.** The original round-2 plan widened only Settings and left Favorites/History/Downloads at 760px. In practice, switching tabs then jumped the shared top nav + divider + title as the centered block's width changed. Fixed by making 900px the shared `.page` width; the list pages just render slightly wider rows. Verified via measurement: nav left edge and width are now pixel-identical across all four pages.
+- **Settings moved to the first nav position.**
 
 ## 3. Information architecture
 

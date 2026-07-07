@@ -11,142 +11,175 @@
 <body>
   <div class="page">
     <nav class="page-nav">
+      <a href="blanc://settings/" class="current">Settings</a>
       <a href="blanc://bookmarks/">Favorites</a>
       <a href="blanc://history/">History</a>
       <a href="blanc://downloads/">Downloads</a>
-      <a href="blanc://settings/" class="current">Settings</a>
     </nav>
     <h1>Settings</h1>
 
-    <div class="setting">
-      <div class="label">
-        <span>Appearance</span>
-        <span class="hint">System follows your macOS/Windows theme</span>
+    <div class="settings-shell">
+      <nav class="settings-nav">
+        <a href="#group-general" data-group="general">General</a>
+        <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
+        <a href="#group-sync" data-group="sync">Sync</a>
+        <a href="#group-supporter" data-group="supporter">Supporter</a>
+      </nav>
+
+      <div class="settings-content">
+        <section class="settings-group" id="group-general">
+          <h2 class="group-title">General</h2>
+          <div class="settings-card">
+            <div class="setting">
+              <div class="label">
+                <span>Appearance</span>
+                <span class="hint">System follows your macOS/Windows theme</span>
+              </div>
+              <select id="theme">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </div>
+
+            <div class="setting" id="appIconSetting">
+              <div class="label">
+                <span>App icon</span>
+                <span class="hint">Changes the Dock icon; Finder keeps the standard one</span>
+              </div>
+              <div class="icon-scroller">
+                <button id="appIconPrev" class="icon-caret" type="button" aria-label="Scroll colorways left"><svg width="10" height="10" viewBox="0 0 12 12"><path d="M7.5 2 3.5 6l4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <div id="appIconGrid" class="icon-grid" role="radiogroup" aria-label="App icon"></div>
+                <button id="appIconNext" class="icon-caret" type="button" aria-label="Scroll colorways right"><svg width="10" height="10" viewBox="0 0 12 12"><path d="M4.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              </div>
+            </div>
+
+            <div class="setting" id="defaultBrowserSetting">
+              <div class="label">
+                <span>Default browser</span>
+                <span class="hint" id="defaultBrowserHint">Open web links from other apps in Blanc</span>
+              </div>
+              <button id="defaultBrowserBtn">Make default…</button>
+              <span id="defaultBrowserState" hidden>Blanc is your default browser</span>
+            </div>
+
+            <div class="setting">
+              <div class="label">
+                <span>Search engine</span>
+                <span class="hint">Used when the address bar input isn't a URL</span>
+              </div>
+              <select id="searchEngine"></select>
+            </div>
+
+            <div class="setting">
+              <div class="label">
+                <span>New tab page</span>
+                <span class="hint">Leave empty for the built-in new tab page</span>
+              </div>
+              <input id="homePage" type="url" placeholder="blanc://newtab/" />
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-group" id="group-privacy">
+          <h2 class="group-title">Privacy &amp; Security</h2>
+          <div class="settings-card">
+            <div class="setting">
+              <div class="label">
+                <span>Block ads &amp; trackers</span>
+                <span class="hint">EasyList + EasyPrivacy at the network layer, plus element hiding</span>
+              </div>
+              <label class="toggle">
+                <input id="adblockEnabled" type="checkbox" />
+                <span class="track"></span>
+              </label>
+            </div>
+
+            <div class="group-subsection">
+              <h3 class="section-title">Ad-block exceptions</h3>
+              <p class="section-hint">
+                Sites listed here load with ad-blocking turned off, e.g. for sites that break under it.
+              </p>
+              <div class="toolbar-row">
+                <input id="exceptionInput" type="text" placeholder="example.com" />
+                <button id="exceptionAdd">Add</button>
+              </div>
+              <div id="exceptionList" class="row-list"></div>
+            </div>
+
+            <div class="group-subsection">
+              <h3 class="section-title">Site permissions</h3>
+              <p class="section-hint">
+                Sites you've allowed or blocked from using your camera, microphone, location, or notifications.
+              </p>
+              <div id="permissionList" class="row-list"></div>
+            </div>
+
+            <div class="setting">
+              <div class="label">
+                <span>Help improve Blanc</span>
+                <span class="hint">Sends an anonymous ping (app version, OS) when Blanc launches. No browsing data, no id.</span>
+              </div>
+              <label class="toggle">
+                <input id="usagePing" type="checkbox" />
+                <span class="track"></span>
+              </label>
+            </div>
+
+            <h3 class="section-title">Clear browsing data</h3>
+            <p class="section-hint">
+              Removes cookies, cache, and site data for every site. You'll be logged out of everything.
+            </p>
+            <div class="toolbar-row">
+              <button id="clearBrowsingData" class="danger">Clear cookies, cache &amp; site data</button>
+              <span id="clearBrowsingDataStatus" class="section-hint"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-group" id="group-sync">
+          <h2 class="group-title">Sync</h2>
+          <div class="settings-card">
+            <p class="section-hint">
+              Sync your favorites and settings across devices. Blanc encrypts everything on this
+              device with your passphrase and stores only unreadable data — we can’t read it, and
+              can’t recover it if you forget your passphrase.
+            </p>
+            <div id="syncSetup">
+              <div class="toolbar-row">
+                <input id="syncHandle" type="text" placeholder="Sync name" autocomplete="off" spellcheck="false" maxlength="64" />
+                <input id="syncPassphrase" type="password" placeholder="Passphrase" autocomplete="off" />
+                <button id="syncEnable">Turn on sync</button>
+              </div>
+              <p class="section-hint" id="syncSetupStatus" role="status"></p>
+            </div>
+            <div id="syncActive" hidden>
+              <p class="section-hint" id="syncActiveStatus" role="status"></p>
+              <div class="toolbar-row">
+                <button id="syncNow">Sync now</button>
+                <button id="syncDisable" class="danger">Turn off sync</button>
+                <label class="inline-check"><input id="syncWipe" type="checkbox" /> also delete synced data</label>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-group" id="group-supporter">
+          <h2 class="group-title" id="supporterTitle">Supporter</h2>
+          <div class="settings-card">
+            <p class="section-hint">
+              Supporting Blanc unlocks three extra icon colorways — ember, plum, and gold.
+              One purchase, activated once; Blanc never phones home afterwards.
+            </p>
+            <div class="toolbar-row" id="supporterActivateRow">
+              <input id="supporterKey" type="text" placeholder="License key" autocomplete="off" spellcheck="false" maxlength="200" />
+              <button id="supporterActivate">Activate</button>
+            </div>
+            <p class="section-hint" id="supporterStatus" role="status"></p>
+          </div>
+        </section>
       </div>
-      <select id="theme">
-        <option value="system">System</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-      </select>
     </div>
-
-    <div class="setting" id="appIconSetting">
-      <div class="label">
-        <span>App icon</span>
-        <span class="hint">Changes the Dock icon; Finder keeps the standard one</span>
-      </div>
-      <div class="icon-scroller">
-        <button id="appIconPrev" class="icon-caret" type="button" aria-label="Scroll colorways left"><svg width="10" height="10" viewBox="0 0 12 12"><path d="M7.5 2 3.5 6l4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-        <div id="appIconGrid" class="icon-grid" role="radiogroup" aria-label="App icon"></div>
-        <button id="appIconNext" class="icon-caret" type="button" aria-label="Scroll colorways right"><svg width="10" height="10" viewBox="0 0 12 12"><path d="M4.5 2l4 4-4 4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-      </div>
-    </div>
-
-    <div class="setting" id="defaultBrowserSetting">
-      <div class="label">
-        <span>Default browser</span>
-        <span class="hint" id="defaultBrowserHint">Open web links from other apps in Blanc</span>
-      </div>
-      <button id="defaultBrowserBtn">Make default…</button>
-      <span id="defaultBrowserState" hidden>Blanc is your default browser</span>
-    </div>
-
-    <div class="setting">
-      <div class="label">
-        <span>Search engine</span>
-        <span class="hint">Used when the address bar input isn't a URL</span>
-      </div>
-      <select id="searchEngine"></select>
-    </div>
-
-    <div class="setting">
-      <div class="label">
-        <span>Block ads &amp; trackers</span>
-        <span class="hint">EasyList + EasyPrivacy at the network layer, plus element hiding</span>
-      </div>
-      <label class="toggle">
-        <input id="adblockEnabled" type="checkbox" />
-        <span class="track"></span>
-      </label>
-    </div>
-
-    <div class="setting">
-      <div class="label">
-        <span>New tab page</span>
-        <span class="hint">Leave empty for the built-in new tab page</span>
-      </div>
-      <input id="homePage" type="url" placeholder="blanc://newtab/" />
-    </div>
-
-    <div class="setting">
-      <div class="label">
-        <span>Help improve Blanc</span>
-        <span class="hint">Sends an anonymous ping (app version, OS) when Blanc launches. No browsing data, no id.</span>
-      </div>
-      <label class="toggle">
-        <input id="usagePing" type="checkbox" />
-        <span class="track"></span>
-      </label>
-    </div>
-
-    <h1 class="section-title">Ad-block exceptions</h1>
-    <p class="section-hint">
-      Sites listed here load with ad-blocking turned off, e.g. for sites that break under it.
-    </p>
-    <div class="toolbar-row">
-      <input id="exceptionInput" type="text" placeholder="example.com" />
-      <button id="exceptionAdd">Add</button>
-    </div>
-    <div id="exceptionList" class="row-list"></div>
-
-    <h1 class="section-title">Site permissions</h1>
-    <p class="section-hint">
-      Sites you've allowed or blocked from using your camera, microphone, location, or notifications.
-    </p>
-    <div id="permissionList" class="row-list"></div>
-
-    <h1 class="section-title">Clear browsing data</h1>
-    <p class="section-hint">
-      Removes cookies, cache, and site data for every site. You'll be logged out of everything.
-    </p>
-    <div class="toolbar-row">
-      <button id="clearBrowsingData" class="danger">Clear cookies, cache &amp; site data</button>
-      <span id="clearBrowsingDataStatus" class="section-hint"></span>
-    </div>
-
-    <h1 class="section-title">Sync</h1>
-    <p class="section-hint">
-      Sync your favorites and settings across devices. Blanc encrypts everything on this
-      device with your passphrase and stores only unreadable data — we can’t read it, and
-      can’t recover it if you forget your passphrase.
-    </p>
-    <div id="syncSetup">
-      <div class="toolbar-row">
-        <input id="syncHandle" type="text" placeholder="Sync name" autocomplete="off" spellcheck="false" maxlength="64" />
-        <input id="syncPassphrase" type="password" placeholder="Passphrase" autocomplete="off" />
-        <button id="syncEnable">Turn on sync</button>
-      </div>
-      <p class="section-hint" id="syncSetupStatus" role="status"></p>
-    </div>
-    <div id="syncActive" hidden>
-      <p class="section-hint" id="syncActiveStatus" role="status"></p>
-      <div class="toolbar-row">
-        <button id="syncNow">Sync now</button>
-        <button id="syncDisable" class="danger">Turn off sync</button>
-        <label class="inline-check"><input id="syncWipe" type="checkbox" /> also delete synced data</label>
-      </div>
-    </div>
-
-    <h1 class="section-title" id="supporterTitle">Supporter</h1>
-    <p class="section-hint">
-      Supporting Blanc unlocks three extra icon colorways — ember, plum, and gold.
-      One purchase, activated once; Blanc never phones home afterwards.
-    </p>
-    <div class="toolbar-row" id="supporterActivateRow">
-      <input id="supporterKey" type="text" placeholder="License key" autocomplete="off" spellcheck="false" maxlength="200" />
-      <button id="supporterActivate">Activate</button>
-    </div>
-    <p class="section-hint" id="supporterStatus" role="status"></p>
   </div>
   <script src="settings.js"></script>
 </body>

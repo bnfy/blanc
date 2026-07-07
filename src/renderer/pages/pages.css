@@ -69,8 +69,12 @@ html, body {
   font-size: 13px;
 }
 
+/* One shared width across every internal page (Favorites/History/Downloads/
+   Settings) so the top nav bar, its divider, and the page title never shift
+   position when switching tabs. Settings needs the room for its sidebar +
+   card column; the list pages just breathe a little wider. */
 .page {
-  max-width: 760px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 32px 24px 64px;
 }
@@ -81,6 +85,12 @@ html, body {
   margin-bottom: 28px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
+  /* Stays put while the page scrolls. The background masks content passing
+     underneath; without it the scrolling cards would show through the text. */
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
 }
 .page-nav a {
   color: var(--text-dim);
@@ -338,13 +348,74 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
 
 .section-title {
   margin-top: 40px;
+  margin-bottom: 20px;
   font-size: 16px;
+  font-weight: 600;
 }
 .section-hint {
   color: var(--text-dim);
   font-size: 12px;
   margin: 0 0 12px;
 }
+
+/* ---------- settings: sidebar + card layout ----------
+   Width comes from the shared .page rule (900px, same as every other
+   internal page) so switching tabs never shifts the top nav or divider. */
+.settings-shell {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  margin-top: 28px;
+}
+
+.settings-nav {
+  position: sticky;
+  /* Sticks below the sticky top nav (~29px tall) with a little breathing room,
+     rather than sliding up underneath it. */
+  top: 52px;
+  flex: 0 0 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.settings-nav a {
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 7px 0 7px 10px;
+  border-left: 2px solid transparent;
+}
+.settings-nav a:hover { color: var(--text); }
+.settings-nav a.current { color: var(--accent); border-left-color: var(--accent); }
+
+.settings-content { flex: 1 1 auto; min-width: 0; }
+
+.settings-group + .settings-group { margin-top: 40px; }
+.group-title {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.settings-card {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+}
+/* The last row in a card sits right above its own border — a trailing
+   hairline there would double up against it. */
+.settings-card > .setting:last-child { border-bottom: none; }
+
+/* Ad-block exceptions / Site permissions read as children of the toggle
+   above them, not peers of the Privacy & Security category itself. */
+.group-subsection { margin-left: 12px; }
 .inline-link { color: var(--accent); text-decoration: none; }
 .inline-link:hover { text-decoration: underline; }
 

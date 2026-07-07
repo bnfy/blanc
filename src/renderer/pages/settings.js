@@ -375,4 +375,59 @@
       render(res.status);
     });
   })();
+
+  // --- Settings sidebar: scroll-spy + click-to-scroll ---
+  (function initSettingsNav() {
+    const links = [...document.querySelectorAll('.settings-nav a')];
+    const activeGroups = links.map((link) => document.getElementById(`group-${link.dataset.group}`)).filter(Boolean);
+
+    const setCurrent = (group) => {
+      for (const link of links) link.classList.toggle('current', link.dataset.group === group);
+    };
+
+    // Score each group by how much of *itself* is on screen, highest wins.
+    // (A fixed trigger line — the usual scroll-spy trick — fails here:
+    // Privacy & Security's card is taller than Sync + Supporter combined, so
+    // near the page bottom there's no scroll room left for their headers to
+    // ever cross the line, and they'd be skipped.) On a positive tie (two
+    // short trailing sections both fully visible) the later one wins, so
+    // scrolling down keeps advancing; a zero-tie leaves `best` on the first
+    // group rather than cascading to the last.
+    function updateCurrent() {
+      let best = null;
+      let bestRatio = -1;
+      for (const group of activeGroups) {
+        const rect = group.getBoundingClientRect();
+        const visible = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0));
+        const ratio = rect.height > 0 ? visible / rect.height : 0;
+        if (ratio > bestRatio || (ratio > 0 && ratio === bestRatio)) { bestRatio = ratio; best = group; }
+      }
+      if (best) setCurrent(best.id.replace('group-', ''));
+    }
+
+    // A sidebar click pins its target through the smooth-scroll animation.
+    // Otherwise clicking a short trailing section (Sync) — whose scrollIntoView
+    // clamps at the page bottom, leaving it tied with Supporter — would let the
+    // scorer settle the highlight on Supporter instead.
+    let pinnedUntil = 0;
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        if (Date.now() >= pinnedUntil) updateCurrent();
+        ticking = false;
+      });
+    });
+    updateCurrent();
+
+    for (const link of links) {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        setCurrent(link.dataset.group);
+        pinnedUntil = Date.now() + 800; // outlasts the smooth-scroll animation
+        document.getElementById(`group-${link.dataset.group}`)?.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
+  })();
 })();
