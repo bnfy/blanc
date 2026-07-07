@@ -111,6 +111,14 @@ failure (e.g. a different default search engine, or one platform accepting an ic
 id another rejects). The **sanitize-on-read == validate-on-write** rule for
 `appIcon` must be identical everywhere.
 
+**Status — built (`settings-schema/`).** `settings-schema/schema.json` is the
+source; `npm run settings:build` emits `generated/BlancSettings.{swift,kt}` (the
+`BlancSearchEngine` / `BlancThemePreference` / `BlancAppIcon` enums + defaults),
+and `npm run settings:check` guards `src/main/settings.js` against drift from it
+(ids, labels, and defaults). Same guard-not-overwrite posture as S2. The
+imperative validation logic (`setSettings`) stays prose in the schema + F14
+acceptance (F14-1/2/3), not codegen. See `settings-schema/README.md`.
+
 ---
 
 ## S6 — Acceptance scenarios
@@ -135,14 +143,13 @@ fails on one, that's exactly where the drift is.
 
 ## Priority order for building the substrate
 
-1. **S3 copy** and **S5 settings schema** — cheapest, prevent the most common
-   silent drift, needed by nearly every feature.
-2. **S2 design tokens** — unblocks native chrome (F1/F15) on both platforms and
-   pays down desktop's existing duplication.
+1. **S5 settings schema** — ✅ built (`settings-schema/`). **S3 copy** — still open;
+   cheapest remaining, prevents the most common silent drift.
+2. **S2 design tokens** — ✅ built (`tokens/`); guards desktop, generates mobile.
 3. **S4 internal pages bundle** — biggest single parity win; do it before
    reimplementing any `blanc://` page natively.
-4. **S1 filter pipeline** — the differentiator; more involved (per-platform
-   compile targets) but the most visible failure if skipped.
-5. **S6 acceptance scenarios** — first cut written (`acceptance/`); writing the
-   desktop step-definitions against the shipping app is the cheapest way to
-   validate the phrasing, then iOS/Android bindings follow.
+4. **S1 filter pipeline** — the differentiator; backend design specced in
+   [`blocking-backends.md`](./blocking-backends.md); the compile pipeline itself is
+   still to build.
+5. **S6 acceptance scenarios** — ✅ first cut + desktop harness (23 scenarios
+   executing, `test/desktop/`); iOS/Android bindings follow.

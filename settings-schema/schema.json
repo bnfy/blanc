@@ -1,0 +1,46 @@
+{
+  "$note": "Single source of truth for the settings schema (substrate S5). Guards src/main/settings.js against drift (npm run settings:check) and generates mobile Swift/Kotlin enums + defaults (npm run settings:build). Enums and defaults MUST NOT fork across platforms; labels are shared copy. The `appIcon` value is sanitized on read the same way it is validated on write, and supporter icons are allowed only when a supporter license is active (see settings.js isAppIconAllowed). `supporter` is written only by the activation flow, never by generic setSettings.",
+  "source": "src/main/settings.js",
+  "searchEngines": [
+    { "id": "duckduckgo", "label": "DuckDuckGo" },
+    { "id": "google", "label": "Google" },
+    { "id": "bing", "label": "Bing" },
+    { "id": "brave", "label": "Brave Search" }
+  ],
+  "themes": ["system", "light", "dark"],
+  "appIcons": [
+    { "id": "paper", "label": "Paper" },
+    { "id": "ink", "label": "Ink" },
+    { "id": "graphite", "label": "Graphite" },
+    { "id": "default", "label": "Evergreen" },
+    { "id": "midnight", "label": "Midnight" },
+    { "id": "cream", "label": "Cream" },
+    { "id": "forest", "label": "Forest" },
+    { "id": "sage", "label": "Sage" }
+  ],
+  "supporterIcons": [
+    { "id": "ember", "label": "Ember" },
+    { "id": "plum", "label": "Plum" },
+    { "id": "gold", "label": "Gold" }
+  ],
+  "defaults": {
+    "searchEngine": "duckduckgo",
+    "adblockEnabled": true,
+    "homePage": "",
+    "theme": "system",
+    "appIcon": "paper",
+    "adblockExceptions": [],
+    "usagePing": false,
+    "supporter": null
+  },
+  "settings": [
+    { "key": "searchEngine", "type": "enum", "enum": "searchEngines", "default": "duckduckgo" },
+    { "key": "adblockEnabled", "type": "boolean", "default": true },
+    { "key": "homePage", "type": "string", "default": "", "note": "trimmed on write; empty = blanc://newtab" },
+    { "key": "theme", "type": "enum", "enum": "themes", "default": "system", "note": "drives nativeTheme.themeSource" },
+    { "key": "appIcon", "type": "enum", "enum": "appIcons+supporterIcons", "default": "paper", "note": "supporter ids allowed only when supporter active; sanitize-on-read == validate-on-write" },
+    { "key": "adblockExceptions", "type": "string[]", "default": [], "normalize": "trim, lowercase, strip leading www., dedupe" },
+    { "key": "usagePing", "type": "boolean", "default": false },
+    { "key": "supporter", "type": "opaque", "default": null, "note": "written only by the Polar activation flow (setSupporter), never generic setSettings" }
+  ]
+}
