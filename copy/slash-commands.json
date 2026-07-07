@@ -1,0 +1,26 @@
+{
+  "$note": "Single source of truth for slash-command copy (substrate S3). Guards the two desktop copies against drift — overlay.js (the live command table) and pages/shortcuts.js (the reference list on blanc://shortcuts/), which are hand-synced today (overlay.js even carries a comment saying so) — and generates mobile string resources. `hint` is the primary user-facing description (what overlay.js shows and what mobile would use). `doc` overrides the pages/shortcuts.js listing where it deliberately differs (only /group: the palette shows an input helper, the reference page shows a description).",
+  "sources": {
+    "overlay": "src/renderer/overlay.js",
+    "shortcuts": "src/renderer/pages/shortcuts.js"
+  },
+  "commands": [
+    { "command": "/favorites", "hint": "Open favorites" },
+    { "command": "/history", "hint": "Open browsing history" },
+    { "command": "/downloads", "hint": "Open downloads" },
+    { "command": "/settings", "hint": "Open settings" },
+    { "command": "/clear", "hint": "Clear browsing history" },
+    { "command": "/new", "hint": "Open a new tab" },
+    { "command": "/private", "hint": "Open a private tab (history stays untouched)" },
+    { "command": "/close", "hint": "Close this tab" },
+    { "command": "/pin", "hint": "Pin or unpin this tab" },
+    { "command": "/mute", "hint": "Mute or unmute this tab" },
+    { "command": "/group", "hint": "Type a space, then a group name — e.g. \"work\"", "doc": { "command": "/group <name>", "hint": "Move this tab into a group, creating it on first use" } },
+    { "command": "/ungroup", "hint": "Take this tab out of its group" },
+    { "command": "/close-group", "hint": "Close every tab in this group" },
+    { "command": "/find", "hint": "Find in page" },
+    { "command": "/block-ads", "hint": "Toggle ad & tracker blocking" },
+    { "command": "/allow-ads", "hint": "Allow ads on this site" },
+    { "command": "/theme", "hint": "Cycle appearance (system → light → dark)" }
+  ]
+}
