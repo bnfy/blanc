@@ -37,4 +37,3 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     Then the system offers to fill the saved credentials
     When I complete a passkey sign-in
     Then the platform authenticator is invoked
-</content>

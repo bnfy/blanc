@@ -24,4 +24,3 @@ Feature: Supporter colorways and session restore
     Then the group "work" is restored with its 2 tabs
     And the group "play" is restored with its 1 tab
     And no private tab is restored
-</content>

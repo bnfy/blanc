@@ -14,4 +14,3 @@ Feature: Downloads
     Given a completed download
     When I open the completed download
     Then the file opens through the platform's normal file mechanism
-</content>

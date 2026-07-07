@@ -32,4 +32,3 @@ Feature: Settings and theming
   Scenario: Private tabs use the private theme scope
     When the active tab is private
     Then the chrome uses the private palette
-</content>

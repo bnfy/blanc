@@ -90,4 +90,3 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
   Add a dedicated `D11` scenario if a concrete assertion emerges.
 - Mobile-gained / platform-specific outcomes (F22, F24) correctly carry platform
   tags rather than `@all`.
-</content>

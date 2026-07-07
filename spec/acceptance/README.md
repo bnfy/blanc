@@ -81,4 +81,3 @@ A feature's row in [`../parity-matrix.md`](../parity-matrix.md) should not move 
 - Scenarios are written; **step definitions are not** — those are the first
   per-platform task, and writing the desktop bindings first (against the shipping
   app) is the cheapest way to validate that the scenarios are phrased correctly.
-</content>

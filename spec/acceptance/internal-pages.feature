@@ -18,4 +18,3 @@ Feature: Internal blanc:// pages
     Given the new-tab page is open
     When I follow its "History" navigation link
     Then the history page opens under the blanc scheme
-</content>

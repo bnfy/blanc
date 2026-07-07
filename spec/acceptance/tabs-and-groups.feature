@@ -57,4 +57,3 @@ Feature: Tabs and tab groups
     Given a group "solo" with 1 tab
     When I close the last tab in "solo"
     Then the group "solo" no longer exists
-</content>

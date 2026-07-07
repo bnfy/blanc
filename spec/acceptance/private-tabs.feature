@@ -25,4 +25,3 @@ Feature: Private tabs
     Given the active tab is private
     When a link in the page opens a new tab
     Then the new tab is private
-</content>

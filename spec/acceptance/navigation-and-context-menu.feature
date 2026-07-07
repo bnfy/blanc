@@ -34,4 +34,3 @@ Feature: Address input, search, and link handling
     And I choose "Open link in background tab"
     Then a new tab opens on that link without switching to it
     And the new tab is in the group "work"
-</content>

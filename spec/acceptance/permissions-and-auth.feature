@@ -15,4 +15,3 @@ Feature: Permissions and authentication prompts
     Then a credential prompt is shown
     When I submit valid credentials
     Then the navigation proceeds
-</content>

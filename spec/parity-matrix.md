@@ -49,4 +49,3 @@ Two rows invert the usual desktop-leads pattern:
   interception, like desktop) and *weakest on iOS* (declarative, capped). Keep the
   Android backend powerful; do not flatten it to the iOS ceiling for symmetry — see
   D1.
-</content>

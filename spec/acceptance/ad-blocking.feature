@@ -28,4 +28,3 @@ Feature: Ad and tracker blocking
     Then ad/tracker blocking is disabled
     When I run the slash command "/block-ads"
     Then ad/tracker blocking is enabled
-</content>

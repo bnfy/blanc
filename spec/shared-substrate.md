@@ -132,4 +132,3 @@ fails on one, that's exactly where the drift is.
 5. **S6 acceptance scenarios** — first cut written (`acceptance/`); writing the
    desktop step-definitions against the shipping app is the cheapest way to
    validate the phrasing, then iOS/Android bindings follow.
-</content>

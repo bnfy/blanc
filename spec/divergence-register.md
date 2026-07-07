@@ -251,4 +251,3 @@ forms inside Blanc tabs. This is a feature **mobile gains** over desktop — tra
 as such, not as desktop being behind.
 
 **Status:** Accepted; an intentional *positive* divergence.
-</content>

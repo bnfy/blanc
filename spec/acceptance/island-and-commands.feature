@@ -62,4 +62,3 @@ Feature: Island chrome, command palette, and slash commands
       | /new       | a new ungrouped tab opens on the new-tab page     |
       | /downloads | the downloads page opens                          |
       | /find      | the find bar is shown                             |
-</content>

@@ -319,4 +319,3 @@ From the desktop `DEFAULTS`:
   desktop.
 - **Acceptance:** On a login form in a Blanc tab, the OS AutoFill affordance offers
   saved credentials; a passkey sign-in invokes the platform authenticator.
-</content>

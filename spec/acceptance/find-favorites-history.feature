@@ -37,4 +37,3 @@ Feature: Find in page, favorites, and history
     Given history has at least one entry
     When I run the slash command "/clear"
     Then history is empty
-</content>

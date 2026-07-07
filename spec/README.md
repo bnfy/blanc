@@ -107,5 +107,3 @@ wins as the cross-platform contract; where `CLAUDE.md` describes desktop
 mechanics, it stays authoritative for desktop. The shared substrate should
 eventually feed desktop too (e.g. design tokens and the filter pipeline), which
 would retire some of desktop's current hand-synced duplication.
-</content>
-</invoke>
