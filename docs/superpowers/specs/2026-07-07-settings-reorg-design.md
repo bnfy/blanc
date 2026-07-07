@@ -1,65 +1,80 @@
 # Blanc — Settings screen reorganization
 
-**Date:** 2026-07-07
-**Status:** Approved — brainstorm converged, implementing directly (no separate implementation plan)
-**Surfaces:** `src/renderer/pages/settings.html`, `src/renderer/pages/pages.css`. `src/renderer/pages/settings.js` is unaffected — verified it only ever looks up elements by `getElementById`, never by DOM position/parent structure, so no logic changes are needed.
+**Date:** 2026-07-07 (revised same day — see §0)
+**Status:** Approved (round 2) — implementing directly (no separate implementation plan)
+**Surfaces:** `src/renderer/pages/settings.html`, `src/renderer/pages/pages.css`, `src/renderer/pages/settings.js` (new: scroll-spy + click-to-scroll for the sidebar — this round is the first to need JS changes).
 
 ---
 
+## 0. Revision note
+
+Round 1 of this spec shipped a "regroup only" version: four labeled categories (General, Privacy & Security, Sync, Supporter) using a quiet uppercase eyebrow header, no new navigation, no card motif — explicitly ruling out both. After seeing it running, the user's feedback was that sections still felt jumbled: the category header's underline used the same 1px `var(--border)` hairline as every ordinary row divider below it, so a category boundary didn't read as a bigger break than an individual row.
+
+The user then pointed to Brave's Settings screen as a reference they like: a persistent left sidebar for jumping between categories, and each group of settings bounded in its own white card panel on a gray background. This round **reverses both explicitly-declined items from round 1** (no nav chrome, no card motif) based on that concrete example. Round 1's IA work (four categories, item groupings/ordering) carries forward unchanged — this round is about visual separation and wayfinding, not regrouping the content again.
+
 ## 1. Problem
 
-Settings has grown one control at a time as features shipped (App icon, Default browser, Sync, Supporter, …) and is now a single flat page: 7 controls at the top with **no section header at all** (Appearance, App icon, Default browser, Search engine, Block ads & trackers, New tab page, Help improve Blanc), followed by 5 headed sections (Ad-block exceptions, Site permissions, Clear browsing data, Sync, Supporter) that sit at the same visual weight regardless of how related or how consequential they are. Nothing signals category (a theme preference and a destructive "clear all cookies" button read identically), and closely related controls are scattered (the "Block ads & trackers" toggle and its own "Ad-block exceptions" list are sections apart).
+(Unchanged from round 1.) Settings had grown one control at a time as features shipped, ending up as a single flat page with inconsistent or absent section headers, unrelated controls (a theme preference, a destructive "clear all cookies" button) at identical visual weight, and closely related controls scattered apart (the ad-block toggle and its own exceptions list were sections away from each other).
 
-The user identified the core issue as **lack of grouping** specifically — not missing navigation and not missing visual weight/hierarchy for risk. Scope is deliberately narrow: reorganize the existing controls into clearly labeled categories on the same single-scroll page. No new navigation chrome (sidebar, sticky anchors, tabs), no card/panel visual motif, no restructuring beyond grouping.
+## 2. Decisions locked (round 2, with the user, 2026-07-07)
 
-## 2. Decisions locked (with the user, 2026-07-07)
-
-- **Four top-level categories:** General, Privacy & Security, Sync, Supporter. (Rejected: merging Sync + Supporter into one "Account & Extras" group — they don't share a real conceptual home, and collapsing them would recreate the same junk-drawer problem this work is meant to fix.)
-- **Visual treatment: quiet uppercase "eyebrow" category header + rule**, reusing existing tokens (`--text-dim`, `--border`) and the same styling language as `.page-nav`. (Rejected: card/panel-style grouped sections — introduces a new visual motif that doesn't exist anywhere else in Blanc's chrome, a bigger departure from the flat/quiet aesthetic than this task calls for.)
-- **No new navigation aid.** The page stays one continuous scroll; categories are a visual/organizational grouping only.
-- **Skip a separate implementation-plan step.** Given the small, fully-scoped surface (two files, no JS changes), the user asked to go straight from this spec to implementation.
+- **Sidebar behaves as a table of contents, not Brave's subpage router.** Blanc has 4 categories vs. Brave's ~15; some (Supporter) are a single small card. Clicking a sidebar entry scroll-jumps to that section on one continuous page; the sidebar highlights whichever section is currently in view via scroll-spy. (Rejected: true subpages per category — bigger architectural change than this surface warrants, and tiny categories would feel like empty pages on their own.)
+- **`settings.html` gets its own wider layout**, not the shared 760px `.page` column. Favorites/History/Downloads keep their existing 760px centered layout untouched — this is additive/settings-only, no shared-layout risk.
+- **Sidebar is text-only, no icons.** Matches the existing `.page-nav` treatment (uppercase, tracked, dim) rather than importing Brave's icon language, which would be a bigger stylistic import than asked for.
+- **Cards are flat: border + radius only, no shadow.** `pages.css` today has zero shadows anywhere (unlike the main chrome's `styles.css`, which uses `--shadow-pill`/`--shadow-popover`). Keeping cards flat avoids introducing a new visual primitive to this file.
+- **Card background: `var(--surface-raised)`**, not the subtler `var(--surface)` — deliberately chosen for stronger contrast against the page background, closer to Brave's white-card-on-gray look. Already used elsewhere (inputs/buttons), so no new token.
+- **Category label sits above and outside its card**, on the page background — not as the first row inside the bordered panel. Matches the reference screenshot exactly.
 
 ## 3. Information architecture
+
+Unchanged from round 1:
 
 | Category | Contents (in order) |
 |---|---|
 | **General** | Appearance (theme), App icon, Default browser, Search engine, New tab page |
-| **Privacy & Security** | Block ads & trackers *(toggle)*, Ad-block exceptions *(nested directly under the toggle — currently a separate section far below it)*, Site permissions, Help improve Blanc *(telemetry ping — it's a data-sharing toggle, belongs here rather than standing alone)*, Clear browsing data *(destructive, placed last)* |
-| **Sync** | Unchanged content (setup form / active state), now a top-level group instead of a mid-page section |
-| **Supporter** | Unchanged content, same treatment |
+| **Privacy & Security** | Block ads & trackers *(toggle)*, Ad-block exceptions *(nested directly under the toggle)*, Site permissions, Help improve Blanc *(telemetry ping)*, Clear browsing data *(destructive, placed last)* |
+| **Sync** | Unchanged content (setup form / active state) |
+| **Supporter** | Unchanged content |
 
-Within **General**, order follows a natural flow: appearance/identity (theme, app icon) → system integration (default browser) → navigation behavior (search engine, new tab page). Within **Privacy & Security**, the ad-block toggle now sits directly above its own exceptions list, followed by site permissions, then the lower-stakes telemetry toggle, then the single destructive action last.
+## 4. Layout
 
-## 4. Visual treatment
-
-New category header style, additive to `pages.css`:
-
-```css
-.settings-group + .settings-group { margin-top: 48px; }
-.group-title {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-  padding-bottom: 8px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid var(--border);
-}
+```
+┌─ .settings-shell (~900px, replaces .page for this file) ──────────┐
+│ ┌─ .settings-nav ─┐  ┌─ .settings-content (scrolls) ─────────────┐ │
+│ │ (sticky)        │  │                                          │ │
+│ │  General        │  │  GENERAL                                 │ │
+│ │ >Privacy & Sec. │  │  ┌──────────────────────────────────────┐│ │
+│ │  Sync           │  │  │ card: var(--surface-raised),         ││ │
+│ │  Supporter      │  │  │ 1px solid var(--border), radius 6px  ││ │
+│ │                 │  │  └──────────────────────────────────────┘│ │
+│ │                 │  │  PRIVACY & SECURITY                      │ │
+│ │                 │  │  ┌──────────────────────────────────────┐│ │
+│ │                 │  │  │ ...                                  ││ │
+└─┴─────────────────┴──┴──────────────────────────────────────────┴─┘
 ```
 
-This produces three distinct visual weights where there were two: page title (`<h1>`, 20px/600) → category (`.group-title`, 11px uppercase/tracked) → existing subsection headers (`.section-title`, 16px, e.g. "Ad-block exceptions") → row (`.setting`). All existing row/toggle/list styling is untouched. Items nested under a subsection within a category (Ad-block exceptions, Site permissions under Privacy & Security) get 12px of left indent so they read as children of the toggle/category above rather than peers of it.
+- `.settings-nav`: `position: sticky`, narrow (~150px), text labels only, styled like `.page-nav` (uppercase, tracked, `var(--text-dim)`); active entry gets `color: var(--accent)` + a small left accent bar — the vertical-list equivalent of `.page-nav a.current`.
+- `.settings-content`: the four category cards, each preceded by its (now page-background, not in-card) `.group-title` label.
+- The top-level `.page-nav` (Favorites/History/Downloads/Settings) is untouched and sits above this new layout, unchanged — it answers "which internal page," the new sidebar answers "which part of Settings."
 
-## 5. Implementation notes
+## 5. Card styling details
 
-- Wrap the existing `.setting` / `.section-title` blocks in `settings.html` into four `<section class="settings-group">` blocks, each with a leading `.group-title` label. Every element keeps its existing `id` — no renames.
-- The "locked icon swatch → jump to Supporter" click handler (`settings.js`, `getElementById('supporterTitle').scrollIntoView(...)`) keeps working unmodified since that id stays in the DOM, just inside a new wrapper.
-- `pages.css` is shared across all `blanc://` pages (bookmarks/history/downloads/settings); the new `.settings-group` / `.group-title` rules are additive and settings-only, no risk to the other pages.
-- No IPC, no `settings.js` changes, no CSP changes.
+- `background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius);` with internal horizontal padding (rows currently have vertical-only padding since they ran edge-to-edge on the flat page — inside a bordered card they need left/right padding too).
+- Rows within a card keep their existing divider between them (`.setting`'s current `border-bottom`), matching Brave's own internal-row dividers — but the **last** row/subsection in each card must not carry a trailing `border-bottom`, or it doubles up against the card's own bottom edge.
+- Nested subsections (Ad-block exceptions, Site permissions under Privacy & Security) keep their round-1 12px left indent *inside* the card — orthogonal to the card boundary, still needed to read as children of the toggle above them.
 
-## 6. Out of scope
+## 6. New behavior in `settings.js`
 
-- Any new navigation (sidebar, sticky anchor list, tabs) — explicitly declined.
-- Card/panel visual motif — explicitly declined.
+This round is the first requiring JS changes:
+
+- An `IntersectionObserver` watches each `.settings-group` card; whichever is most in-view gets its matching `.settings-nav` entry marked active (swap the accent-color/left-bar class).
+- Each `.settings-nav` entry gets a click handler that smooth-scrolls its target card into view (`scrollIntoView({ behavior: 'smooth' })`, consistent with the existing locked-icon-swatch → Supporter jump already in this file).
+- The existing `getElementById('supporterTitle').scrollIntoView(...)` jump keeps working unmodified — that id stays put, just now inside a card rather than a flat `<h1>`.
+
+## 7. Out of scope
+
+- True per-category subpages (routing/state) — explicitly declined in favor of scroll-spy.
+- Sidebar icons — text-only, matching existing `.page-nav` language.
+- Card shadows — flat border-only, matching `pages.css`'s existing lack of shadows.
 - Changing what any individual control does, its copy, or its IPC wiring.
-- Applying the same grouped-header treatment to other internal pages (bookmarks/history/downloads) — not requested; could be a future consistency pass if those pages grow similarly cluttered.
+- Applying this treatment to other internal pages (bookmarks/history/downloads) — not requested.
