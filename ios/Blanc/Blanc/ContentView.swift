@@ -24,15 +24,17 @@ struct ContentView: View {
 
     private var addressPill: some View {
         HStack(spacing: 10) {
-            HStack(spacing: 8) {
-                tabDots
+            Button { showPalette = true } label: {
+                HStack(spacing: 8) {
+                    tabDots
 
-                Text(displayDomain)
-                    .lineLimit(1)
-                    .foregroundStyle(.primary)
+                    Text(displayDomain)
+                        .lineLimit(1)
+                        .foregroundStyle(.primary)
+                }
             }
-            .contentShape(Rectangle())
-            .onTapGesture { showPalette = true }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Open palette")
 
             Spacer(minLength: 0)
 

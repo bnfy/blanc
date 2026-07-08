@@ -34,15 +34,6 @@ final class QuickSwitcherTests: XCTestCase {
         XCTAssertEqual(results.count, 1)
     }
 
-    func testMatchableTextStripsQueryString() {
-        let text = QuickSwitcher.matchableText(
-            title: "OAuth",
-            url: URL(string: "https://accounts.google.com/o/oauth2?token=abc123xyz")!
-        )
-        XCTAssertFalse(text.contains("abc123xyz"))
-        XCTAssertTrue(text.contains("accounts.google.com"))
-    }
-
     func testStrongMatchBeatsWeak() {
         let strong = makeTab(title: "gmail inbox", url: "https://gmail.com")
         let weak = makeTab(title: "game library", url: "https://games.example.com")
@@ -77,5 +68,13 @@ final class QuickSwitcherTests: XCTestCase {
         let tab = makeTab(title: "test", url: "https://test.com")
         let results = QuickSwitcher.search(query: "", tabs: [tab])
         XCTAssertTrue(results.isEmpty)
+    }
+
+    func testQueryStringNotSearchable() {
+        let tab = makeTab(title: "Login", url: "https://auth.example.com/callback?token=abc123")
+        let tokenResults = QuickSwitcher.search(query: "abc123", tabs: [tab])
+        XCTAssertTrue(tokenResults.isEmpty)
+        let hostResults = QuickSwitcher.search(query: "auth", tabs: [tab])
+        XCTAssertEqual(hostResults.count, 1)
     }
 }

@@ -38,7 +38,7 @@ enum QuickSwitcher {
             .prefix(6))
     }
 
-    static func matchScore(query: String, text: String) -> Double {
+    private static func matchScore(query: String, text: String) -> Double {
         let t = text.lowercased()
         if t.contains(query) { return 2 }
         var qi = query.startIndex
@@ -51,7 +51,7 @@ enum QuickSwitcher {
         return 0
     }
 
-    static func matchableText(title: String, url: URL) -> String {
+    private static func matchableText(title: String, url: URL) -> String {
         let host = url.host ?? ""
         let path = String(url.path.prefix(64))
         return "\(title) \(host)\(path)"
