@@ -32,7 +32,7 @@ struct PaletteSheet: View {
 
                 listContent
             }
-            .navigationTitle("Palette")
+            .navigationTitle("Blanc")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
