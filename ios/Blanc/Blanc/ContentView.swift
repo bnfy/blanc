@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var manager = TabsManager()
+    @State private var showTabList = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -16,6 +17,9 @@ struct ContentView: View {
 
             addressPill
         }
+        .sheet(isPresented: $showTabList) {
+            TabListSheet(manager: manager)
+        }
     }
 
     private var addressPill: some View {
@@ -29,6 +33,8 @@ struct ContentView: View {
                 Image(systemName: "chevron.right")
             }
             .disabled(!(manager.activeTab?.canGoForward ?? false))
+
+            tabDots
 
             TextField("Search or enter address", text: addressBinding)
                 .textInputAutocapitalization(.never)
@@ -47,6 +53,10 @@ struct ContentView: View {
                 Image(systemName:
                     manager.activeTab?.isLoading == true ? "xmark" : "arrow.clockwise")
             }
+
+            Button { manager.createTab() } label: {
+                Image(systemName: "plus")
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -62,6 +72,34 @@ struct ContentView: View {
             get: { manager.activeTab?.addressText ?? "" },
             set: { manager.activeTab?.addressText = $0 }
         )
+    }
+
+    private var tabDots: some View {
+        let maxVisible = 8
+        let overflow = manager.tabs.count > maxVisible
+        let visible = overflow ? Array(manager.tabs.prefix(maxVisible - 1)) : manager.tabs
+        let overflowCount = manager.tabs.count - visible.count
+
+        return HStack(spacing: 6) {
+            ForEach(visible) { tab in
+                Circle()
+                    .fill(tab.id == manager.activeTabId
+                          ? Color.primary
+                          : Color.secondary.opacity(0.4))
+                    .frame(width: 7, height: 7)
+                    .onTapGesture { manager.setActive(tab.id) }
+                    .onLongPressGesture {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        manager.closeTab(tab.id)
+                    }
+            }
+            if overflow {
+                Text("+\(overflowCount)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .onTapGesture { showTabList = true }
+            }
+        }
     }
 }
 
