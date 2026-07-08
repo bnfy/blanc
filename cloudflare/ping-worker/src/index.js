@@ -15,6 +15,7 @@
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?$/;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const GA_MEASUREMENT_ID = 'G-MN8BLY6GE9';
 const GA_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
@@ -123,6 +124,7 @@ async function handlePing(request, env, ctx, now) {
   } catch {
     return new Response('bad request', { status: 400 });
   }
+  if (!body || typeof body !== 'object') return new Response('bad request', { status: 400 });
 
   const version = typeof body.version === 'string' && VERSION_RE.test(body.version.slice(0, 32))
     ? body.version.slice(0, 32)
@@ -132,8 +134,8 @@ async function handlePing(request, env, ctx, now) {
   // Opaque random token from the client; cap length defensively. Absent for
   // pre-metrics clients — those still count as launches, just not as uniques.
   const installId =
-    typeof body.installId === 'string' && body.installId.trim()
-      ? body.installId.trim().slice(0, 64)
+    typeof body.installId === 'string' && UUID_RE.test(body.installId.trim())
+      ? body.installId.trim()
       : null;
   const sessionId =
     typeof body.sessionId === 'number' && Number.isFinite(body.sessionId)
@@ -216,7 +218,7 @@ function pickRecent(map, n) {
 // GET /stats — bearer-token-gated readout so the counts are visible
 // without opening the Cloudflare dashboard's KV browser.
 async function handleStats(request, env, now) {
-  if (request.headers.get('Authorization') !== `Bearer ${env.STATS_TOKEN}`) {
+  if (!env.STATS_TOKEN || request.headers.get('Authorization') !== `Bearer ${env.STATS_TOKEN}`) {
     return new Response('unauthorized', { status: 401 });
   }
 

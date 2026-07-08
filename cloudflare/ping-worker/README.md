@@ -2,7 +2,7 @@
 
 Collector for Blanc's anonymous launch ping (Settings → "Help improve
 Blanc", on by default, opt-out). Receives `POST /ping` with
-`{installId, version, platform, arch}` and tallies counts in Workers KV.
+`{installId, sessionId, version, platform, arch}` and tallies counts in Workers KV.
 `GET /stats` (bearer-token gated) returns launch totals **and** active-user
 metrics.
 
