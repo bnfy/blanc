@@ -214,7 +214,7 @@ From the desktop `DEFAULTS`:
 | `theme` | `system` | system/light/dark |
 | `appIcon` | `paper` | a free icon id, or a supporter id **iff** supporter active |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
-| `usagePing` | `false` | boolean (F21) |
+| `usagePing` | `true` | boolean (F21) |
 | `supporter` | `null` | written only by the activation flow, never generic writes (F17) |
 
 - `appIcon` is **sanitized on read** the same way it is validated on write: a
@@ -287,13 +287,19 @@ From the desktop `DEFAULTS`:
 
 ## F21 — Telemetry (usage ping)
 
-- Single **opt-in** launch ping, **off by default** (`usagePing`), **packaged
-  builds only**, anonymous `{version, platform, arch}`, no persistent id,
-  fire-and-forget (a failed/blocked ping never affects startup or surfaces to the
-  user). Endpoint is the shared `blanc-ping` worker.
-- **Acceptance:** With the setting off, no ping is sent; enabling it sends exactly
-  one anonymous ping at launch in a packaged build; blocking the network changes
-  nothing user-visible.
+- Single launch ping, **on by default, opt-out** (`usagePing`), **packaged
+  builds only**, fire-and-forget (a failed/blocked ping never affects startup or
+  surfaces to the user). Payload: `{installId, sessionId, version, platform,
+  arch}`. `installId` is a random per-install token stored in its own
+  `install.json` (not in settings, never synced) — it maps to a device install,
+  never a person. `sessionId` is a random 32-bit integer per launch for GA4
+  session tracking. Endpoint is the shared `blanc-ping` worker, which dedupes
+  repeat launches into DAU/WAU/MAU via TTL'd `seen:*` flags and optionally
+  mirrors to GA4.
+- **Acceptance:** With the setting off, no ping is sent; with the default (on),
+  exactly one ping is sent at launch in a packaged build; blocking the network
+  changes nothing user-visible; deleting `install.json` resets the install
+  identity.
 
 ## F22 — Distribution & updates
 

@@ -36,6 +36,6 @@ object BlancSettingsDefaults {
     const val homePage = ""
     val theme = BlancThemePreference.SYSTEM
     val appIcon = BlancAppIcon.PAPER
-    const val usagePing = false
+    const val usagePing = true
     // adblockExceptions defaults to emptyList(); supporter defaults to null (structural).
 }
