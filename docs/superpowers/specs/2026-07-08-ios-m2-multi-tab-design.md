@@ -36,12 +36,24 @@ wastes memory, and fights WKWebView's own rendering lifecycle.
 | `isLoading` | `Bool` | From `WKNavigationDelegate` |
 | `pageTitle` | `String` | From `WKNavigationDelegate` |
 | `webView` | `WKWebView` (`@ObservationIgnored`) | Created at init, owned for lifetime |
+| `navigationDelegate` | `TabNavigationDelegate` (`@ObservationIgnored`) | Strong ref, lives as long as the tab |
 
-Methods: `submitAddress()`, `goBack()`, `goForward()`, `reload()`, `stop()`.
+The navigation delegate is a **tab-owned** `NSObject` conforming to
+`WKNavigationDelegate`, not a `UIViewRepresentable.Coordinator`. This is
+critical: inactive tabs may still be loading, and tearing down the
+representable (when the tab is no longer active) must not orphan the delegate.
+`TabNavigationDelegate` is created alongside the `WKWebView` at `TabModel`
+init and writes state (`isLoading`, `canGoBack`, etc.) back to the owning
+`TabModel`. It also enforces OS hand-off: the `decidePolicyFor` check for
+`mailto:`/`tel:`/`facetime:`/`sms:` (M1's `OSHandoff.schemes`) lives here.
 
-The `AddressNormalizer` is **not** per-tab — it moves to `TabsManager` (one
-instance, shared). `TabModel.submitAddress()` calls through to the manager's
-normalizer.
+Methods: `submitAddress(using normalizer: AddressNormalizer)`, `goBack()`,
+`goForward()`, `reload()`, `stop()`.
+
+`submitAddress(using:)` takes the shared normalizer as a parameter — no
+back-reference to `TabsManager`, no retain-cycle risk. It also checks
+`OSHandoff.isHandoff()` before normalizing, preserving M1's hand-off path for
+`mailto:` etc. typed into the address bar.
 
 ### TabsManager
 
@@ -64,17 +76,21 @@ Methods:
 - `setActive(_ id: UUID)` — sets `activeTabId`. The `ContentView` observes
   this and swaps the displayed `WebView`.
 
-Owns the shared `AddressNormalizer` instance.
+Owns the shared `AddressNormalizer` instance. `submitActiveTabAddress()`
+is the convenience entry point: calls
+`activeTab.submitAddress(using: normalizer)`.
 
 ## WebView changes
 
-The existing `WebView` (`UIViewRepresentable`) changes from creating a
-`WKWebView` to receiving one:
+The existing `WebView` (`UIViewRepresentable`) becomes a thin wrapper — it
+receives and displays a tab-owned `WKWebView`, nothing more:
 
 - `init(tab: TabModel)` — takes the tab model (which owns the web view).
 - `makeUIView` returns `tab.webView` directly — no allocation.
-- `makeCoordinator` wires the `WKNavigationDelegate` to write state back to
-  the owning `TabModel`.
+- No `Coordinator` needed. The `WKNavigationDelegate` is already wired by
+  `TabModel` (via `TabNavigationDelegate`) for the lifetime of the tab, not
+  the lifetime of the representable. This means background tabs keep their
+  delegate even when their `WebView` wrapper is torn down.
 - When the active tab changes, SwiftUI sees a new `TabModel` identity, tears
   down the old representable, and builds a new one around the new tab's
   `WKWebView`.
@@ -94,7 +110,10 @@ the address field:
 - Each dot represents a tab. The active tab's dot is filled; others are
   dimmed.
 - Capped at **8 dots**. If more tabs exist, the last position shows `+N`
-  text (e.g. `+3`).
+  text (e.g. `+3`). **Tapping `+N` presents a minimal tab-list sheet**
+  (native `.sheet`) showing every tab's title and URL — tapping a row
+  switches to it, swiping a row closes it. This keeps all tabs reachable
+  without the full command palette (deferred to M3).
 - **Tapping** a dot switches to that tab (`TabsManager.setActive`).
 - **Long-pressing** a dot closes that tab (`TabsManager.closeTab`). A brief
   haptic confirms the action.
