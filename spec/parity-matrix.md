@@ -18,8 +18,8 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F3 | Tab groups | SHIPPED | PLANNED | PLANNED | Names not colors (lowercase mono). Group exists only while non-empty. Pill renders only the active group. Same create/move/ungroup/close-group actions. | — |
 | F4 | Private tabs | SHIPPED | PLANNED | PLANNED | Never in history/session/reopen; inherited by child tabs; shared Chromium session; private theme + quick-exit chip. | — |
 | F5 | Address input & search | SHIPPED | PARTIAL | PLANNED | Same normalization heuristic + engine choice (DuckDuckGo/Google/Bing/Brave). OS hand-off for `mailto:`/`tel:`/etc. | D4 |
-| F6 | Command palette & Quick Switcher | SHIPPED | PLANNED | PLANNED | ⌘L-equivalent summons it; loose/in-order match across tabs, favorites, history, group names; groups ranked above tabs. | D7 |
-| F7 | Slash commands | SHIPPED | PLANNED | PLANNED | The full command set (see F7 in features.md) with identical names + hints. | D7 |
+| F6 | Command palette & Quick Switcher | SHIPPED | PARTIAL | PLANNED | ⌘L-equivalent summons it; loose/in-order match across tabs, favorites, history, group names; groups ranked above tabs. | D7 |
+| F7 | Slash commands | SHIPPED | PARTIAL | PLANNED | The full command set (see F7 in features.md) with identical names + hints. | D7 |
 | F8 | Find in page | SHIPPED | PLANNED | PLANNED | Capsule over content, match nav, page stays interactive. | — |
 | F9 | Favorites | SHIPPED | PLANNED | PLANNED | Heart toggle, "Add all open tabs", favorites page + newtab favorites. Internal id stays `bookmarks`. | — |
 | F10 | History | SHIPPED | PLANNED | PLANNED | Per-visit record + title update, capped 5000, clearable, excluded for private tabs. | — |
