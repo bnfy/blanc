@@ -24,7 +24,6 @@
 /* Begin PBXFileReference section */
 		502D57F72FFEBF0C00B5B1DE /* Blanc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Blanc.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		502D58042FFEBF0D00B5B1DE /* BlancTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlancTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-
 		502D582F2FFEC0C300B5B1DE /* Tokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
 		502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlancSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
