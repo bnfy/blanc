@@ -65,7 +65,9 @@ class JsonStore {
 }
 
 app.on('before-quit', () => {
-  for (const store of instances) store.flush();
+  for (const store of instances) {
+    if (store.saveTimer) store.flush();
+  }
 });
 
 module.exports = { JsonStore };

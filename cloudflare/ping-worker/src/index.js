@@ -14,6 +14,7 @@
 //      no name/account/IP/browsing data is ever stored beside it.
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
+const VERSION_RE = /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?$/;
 
 const GA_MEASUREMENT_ID = 'G-MN8BLY6GE9';
 const GA_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
@@ -38,13 +39,13 @@ const MONTH_SEEN_TTL = 800 * 24 * 3600; // ~26 months of monthly cohorts (retent
 // User properties (platform, arch, app_version) are set once per client_id
 // and stick to the user in GA's user-scoped reports / explorations.
 function forwardToGA(env, { version, platform, arch, installId, sessionId }) {
-  if (!env.GA_API_SECRET) return Promise.resolve();
+  if (!env.GA_API_SECRET || !installId) return Promise.resolve();
   const url = `${GA_ENDPOINT}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${env.GA_API_SECRET}`;
   const sid = sessionId || String((Math.random() * 0x7FFFFFFF) >>> 0);
   return fetch(url, {
     method: 'POST',
     body: JSON.stringify({
-      client_id: installId || crypto.randomUUID(),
+      client_id: installId,
       user_properties: {
         app_version: { value: version },
         platform: { value: platform },
@@ -53,7 +54,7 @@ function forwardToGA(env, { version, platform, arch, installId, sessionId }) {
       events: [{
         name: 'app_launch',
         params: {
-          session_id: sid,
+          session_id: parseInt(sid, 10),
           engagement_time_msec: 1,
           app_version: version,
           platform,
@@ -77,11 +78,14 @@ async function bump(kv, key) {
 // get-then-bump is only racy for concurrent launches of the SAME install in
 // the SAME period (vanishingly rare, and worst case over-counts by one),
 // which is within the same best-effort tolerance as bump() above.
+// The counter is bumped BEFORE the seen flag is written so a crash between
+// the two loses idempotency (possible +1 overcount on next launch) rather
+// than permanently losing the count (undercount with no recovery).
 async function markActive(kv, scope, bucket, installId, ttl) {
   const seenKey = `seen:${scope}:${bucket}:${installId}`;
   if ((await kv.get(seenKey)) !== null) return;
-  await kv.put(seenKey, '1', { expirationTtl: ttl });
   await bump(kv, `active:${scope}:${bucket}`);
+  await kv.put(seenKey, '1', { expirationTtl: ttl });
 }
 
 // ---- UTC period buckets ----
@@ -120,7 +124,9 @@ async function handlePing(request, env, ctx, now) {
     return new Response('bad request', { status: 400 });
   }
 
-  const version = typeof body.version === 'string' ? body.version.slice(0, 32) : 'unknown';
+  const version = typeof body.version === 'string' && VERSION_RE.test(body.version.slice(0, 32))
+    ? body.version.slice(0, 32)
+    : 'unknown';
   const platform = ALLOWED_PLATFORMS.has(body.platform) ? body.platform : 'unknown';
   const arch = typeof body.arch === 'string' ? body.arch.slice(0, 16) : 'unknown';
   // Opaque random token from the client; cap length defensively. Absent for
@@ -130,7 +136,9 @@ async function handlePing(request, env, ctx, now) {
       ? body.installId.trim().slice(0, 64)
       : null;
   const sessionId =
-    typeof body.sessionId === 'number' ? String(Math.floor(body.sessionId)) : null;
+    typeof body.sessionId === 'number' && Number.isFinite(body.sessionId)
+      ? String(Math.floor(body.sessionId))
+      : null;
 
   // GA mirror is queued before the KV writes so a KV failure can't cost
   // the launch event too.
@@ -157,16 +165,20 @@ async function handlePing(request, env, ctx, now) {
   return new Response(null, { status: 204 });
 }
 
-// Read every key under a prefix into { suffix: intValue }. Counters are one
-// key per period, so these maps are small.
+// Read every key under a prefix into { suffix: intValue }. Gets within each
+// list page run in parallel to stay within Workers' CPU/wall-clock budget.
 async function readMap(kv, prefix) {
   const out = {};
   let cursor;
   do {
     const res = await kv.list({ prefix, cursor });
-    for (const { name } of res.keys) {
-      out[name.slice(prefix.length)] = parseInt((await kv.get(name)) ?? '0', 10);
-    }
+    const entries = await Promise.all(
+      res.keys.map(async ({ name }) => [
+        name.slice(prefix.length),
+        parseInt((await kv.get(name)) ?? '0', 10),
+      ])
+    );
+    for (const [k, v] of entries) out[k] = v;
     cursor = res.list_complete ? undefined : res.cursor;
   } while (cursor);
   return out;
