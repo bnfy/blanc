@@ -33,6 +33,9 @@ function sendLaunchPing() {
 
   const payload = JSON.stringify({
     installId: installId(),
+    // Each app launch is a GA4 session; session_id is a random positive
+    // 32-bit integer per the Measurement Protocol spec.
+    sessionId: (Math.random() * 0x7FFFFFFF) >>> 0,
     version: app.getVersion(),
     platform: process.platform,
     arch: process.arch,

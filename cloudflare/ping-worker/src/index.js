@@ -27,18 +27,39 @@ const DAY_SEEN_TTL = 90 * 24 * 3600; // ~3 months of daily-cohort history
 const WEEK_SEEN_TTL = 400 * 24 * 3600; // >1 year of weekly cohorts
 const MONTH_SEEN_TTL = 800 * 24 * 3600; // ~26 months of monthly cohorts (retention)
 
-// Mirrors each ping into GA4 so app launches sit next to website traffic.
-// When the client sends an install id we pass it as GA's client_id, so GA's
-// own user/retention counts line up with ours; without one (older clients) we
-// fall back to a random id, which only inflates GA's user count harmlessly.
-function forwardToGA(env, { version, platform, arch, installId }) {
+// Mirrors each ping into GA4 so app launches sit next to website traffic in
+// one dashboard. Three things make GA4's Measurement Protocol actually count
+// the user as "active" in its built-in reports:
+//   1. client_id — stable per install (the install id); GA keys users on this.
+//   2. session_id — a random number per launch; GA needs it to count sessions.
+//   3. engagement_time_msec > 0 — without this GA silently drops the user from
+//      its Active Users metric. We send 1ms (nominal) since the ping is a
+//      point event, not a timed session.
+// User properties (platform, arch, app_version) are set once per client_id
+// and stick to the user in GA's user-scoped reports / explorations.
+function forwardToGA(env, { version, platform, arch, installId, sessionId }) {
   if (!env.GA_API_SECRET) return Promise.resolve();
   const url = `${GA_ENDPOINT}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${env.GA_API_SECRET}`;
+  const sid = sessionId || String((Math.random() * 0x7FFFFFFF) >>> 0);
   return fetch(url, {
     method: 'POST',
     body: JSON.stringify({
       client_id: installId || crypto.randomUUID(),
-      events: [{ name: 'app_launch', params: { app_version: version, platform, arch } }],
+      user_properties: {
+        app_version: { value: version },
+        platform: { value: platform },
+        arch: { value: arch },
+      },
+      events: [{
+        name: 'app_launch',
+        params: {
+          session_id: sid,
+          engagement_time_msec: 1,
+          app_version: version,
+          platform,
+          arch,
+        },
+      }],
     }),
   }).catch((err) => console.warn('GA forward failed:', err.message));
 }
@@ -108,10 +129,12 @@ async function handlePing(request, env, ctx, now) {
     typeof body.installId === 'string' && body.installId.trim()
       ? body.installId.trim().slice(0, 64)
       : null;
+  const sessionId =
+    typeof body.sessionId === 'number' ? String(Math.floor(body.sessionId)) : null;
 
   // GA mirror is queued before the KV writes so a KV failure can't cost
   // the launch event too.
-  ctx.waitUntil(forwardToGA(env, { version, platform, arch, installId }));
+  ctx.waitUntil(forwardToGA(env, { version, platform, arch, installId, sessionId }));
 
   // KV get/put can throw transiently; the counts are best-effort anyway
   // (see bump()), so log and still 204 rather than turning a blip into a
