@@ -306,3 +306,24 @@ iOS). Not a bug — a documented ceiling.
 **Detailed design:** [`blocking-backends.md`](./blocking-backends.md).
 
 **Status:** Accepted; **iOS cosmetic scope decided 2026-07-07: static `css-display-none` only** (procedural dropped). Android cosmetic depth (procedural via injection) finalized when Android is built.
+
+---
+
+## D15 — Chrome surface material
+**Features:** F1
+**Why:** iOS 26 introduces Liquid Glass, a platform-native translucent material
+with no desktop/Android equivalent.
+
+- **Desktop:** opaque token-defined surface (`--surface-raised` + `--border`
+  custom properties in `styles.css`).
+- **iOS (26+):** `.glassEffect(.regular.interactive, in: .capsule)` — the
+  platform-native translucent material. Falls back to the token surface on
+  iOS 17–25 via `#available(iOS 26, *)`.
+- **Android:** token-defined surface (same as desktop).
+
+**Parity contract:** the island pill is present and functional on every
+platform; the *material treatment* differs — opaque tokens on desktop/Android,
+Liquid Glass on iOS 26+. The pill's layout, content, and interaction model
+are identical.
+
+**Status:** Accepted; **iOS material decided 2026-07-08: Liquid Glass with token fallback.**
