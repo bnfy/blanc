@@ -75,7 +75,7 @@ struct ContentView: View {
     }
 
     private var tabDots: some View {
-        let maxVisible = 5
+        let maxVisible = 3
         let overflow = manager.tabs.count > maxVisible
         let visible = overflow ? Array(manager.tabs.prefix(maxVisible - 1)) : manager.tabs
         let overflowCount = manager.tabs.count - visible.count

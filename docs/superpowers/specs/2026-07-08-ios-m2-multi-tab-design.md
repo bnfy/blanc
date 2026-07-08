@@ -109,7 +109,7 @@ the address field:
 
 - Each dot represents a tab. The active tab's dot is filled; others are
   dimmed.
-- Capped at **5 dots** on mobile (vs. 8 on desktop). If more tabs exist,
+- Capped at **3 dots** on mobile (vs. 8 on desktop). If more tabs exist,
   the last position shows `+N` text (e.g. `+3`).
 - The dots are **visual indicators only** — individual dots are not tap
   targets (too small for thumbs at 7pt). **Tapping anywhere in the dot
