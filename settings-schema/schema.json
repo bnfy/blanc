@@ -30,7 +30,7 @@
     "theme": "system",
     "appIcon": "paper",
     "adblockExceptions": [],
-    "usagePing": false,
+    "usagePing": true,
     "supporter": null
   },
   "$internalDefaults": "Keys present in settings.js DEFAULTS that are intentionally desktop-only (not mobile-parity settings); settings:check allowlists these instead of requiring them in the schema.",
@@ -42,7 +42,7 @@
     { "key": "theme", "type": "enum", "enum": "themes", "default": "system", "note": "drives nativeTheme.themeSource" },
     { "key": "appIcon", "type": "enum", "enum": "appIcons+supporterIcons", "default": "paper", "note": "supporter ids allowed only when supporter active; sanitize-on-read == validate-on-write" },
     { "key": "adblockExceptions", "type": "string[]", "default": [], "normalize": "trim, lowercase, strip leading www., dedupe" },
-    { "key": "usagePing", "type": "boolean", "default": false },
+    { "key": "usagePing", "type": "boolean", "default": true },
     { "key": "supporter", "type": "opaque", "default": null, "note": "written only by the Polar activation flow (setSupporter), never generic setSettings" }
   ]
 }

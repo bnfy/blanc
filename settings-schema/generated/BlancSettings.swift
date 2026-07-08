@@ -65,6 +65,6 @@ public struct BlancSettingsDefaults {
     public static let homePage: String = ""
     public static let theme: BlancThemePreference = .system
     public static let appIcon: BlancAppIcon = .paper
-    public static let usagePing: Bool = false
+    public static let usagePing: Bool = true
     // adblockExceptions defaults to []; supporter defaults to nil (structural).
 }

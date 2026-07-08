@@ -44,8 +44,10 @@ const DEFAULTS = {
   appIcon: 'paper',
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
-  // Opt-in, anonymous "app launched" ping — see main/telemetry.js. Off by default.
-  usagePing: false,
+  // Anonymous "app launched" ping — see main/telemetry.js. On by default
+  // (opt-out in Settings); no browsing data, only version/OS plus a random
+  // per-install id used solely to count distinct active users.
+  usagePing: true,
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.

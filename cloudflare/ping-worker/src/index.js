@@ -1,22 +1,43 @@
-// Collector for Blanc's opt-in launch ping (see src/main/telemetry.js in
+// Collector for Blanc's anonymous launch ping (see src/main/telemetry.js in
 // the main repo). Tallies anonymous counts in Workers KV — no IPs, no
-// persistent ids, no browsing data are ever stored.
+// browsing data are ever stored.
+//
+// Two things are counted, from one ping:
+//   1. Launches — every ping bumps aggregate counters (total, per-day,
+//      per-version, per-platform). One person launching 10× counts as 10.
+//   2. Active users — the ping carries a random, per-install id (the client
+//      mints it once and reuses it). The first ping from a given install in a
+//      given day/week/month flips that period's "seen" flag and bumps that
+//      period's unique counter, so repeat launches are deduped into distinct
+//      active users (DAU/WAU/MAU) and growth over time. The install id is an
+//      opaque random token — it maps to a device install, never a person, and
+//      no name/account/IP/browsing data is ever stored beside it.
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 
 const GA_MEASUREMENT_ID = 'G-MN8BLY6GE9';
 const GA_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
+// How long each period's per-install "seen" flags live. The unique COUNTERS
+// (active:*) never expire — they're the growth history. The seen flags only
+// need to outlive their own period (for dedup) plus enough slack to compute
+// retention against adjacent periods, so they're given generous but bounded
+// TTLs to keep KV from growing without limit.
+const DAY_SEEN_TTL = 90 * 24 * 3600; // ~3 months of daily-cohort history
+const WEEK_SEEN_TTL = 400 * 24 * 3600; // >1 year of weekly cohorts
+const MONTH_SEEN_TTL = 800 * 24 * 3600; // ~26 months of monthly cohorts (retention)
+
 // Mirrors each ping into GA4 so app launches sit next to website traffic.
-// client_id is random per event — no persistent id, so GA's *user* counts
-// are meaningless by design; only event counts (launches) are real.
-function forwardToGA(env, { version, platform, arch }) {
+// When the client sends an install id we pass it as GA's client_id, so GA's
+// own user/retention counts line up with ours; without one (older clients) we
+// fall back to a random id, which only inflates GA's user count harmlessly.
+function forwardToGA(env, { version, platform, arch, installId }) {
   if (!env.GA_API_SECRET) return Promise.resolve();
   const url = `${GA_ENDPOINT}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${env.GA_API_SECRET}`;
   return fetch(url, {
     method: 'POST',
     body: JSON.stringify({
-      client_id: crypto.randomUUID(),
+      client_id: installId || crypto.randomUUID(),
       events: [{ name: 'app_launch', params: { app_version: version, platform, arch } }],
     }),
   }).catch((err) => console.warn('GA forward failed:', err.message));
@@ -30,11 +51,47 @@ async function bump(kv, key) {
   await kv.put(key, String(current + 1));
 }
 
-function todayKey() {
-  return `day:${new Date().toISOString().slice(0, 10)}`;
+// Count an install as active in a period the first time it's seen there. The
+// seen flag makes this idempotent across the install's repeat launches; the
+// get-then-bump is only racy for concurrent launches of the SAME install in
+// the SAME period (vanishingly rare, and worst case over-counts by one),
+// which is within the same best-effort tolerance as bump() above.
+async function markActive(kv, scope, bucket, installId, ttl) {
+  const seenKey = `seen:${scope}:${bucket}:${installId}`;
+  if ((await kv.get(seenKey)) !== null) return;
+  await kv.put(seenKey, '1', { expirationTtl: ttl });
+  await bump(kv, `active:${scope}:${bucket}`);
 }
 
-async function handlePing(request, env, ctx) {
+// ---- UTC period buckets ----
+function dayBucket(d) {
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+function monthBucket(d) {
+  return d.toISOString().slice(0, 7); // YYYY-MM
+}
+function weekBucket(dt) {
+  // ISO-8601 week: GGGG-Www, week belonging to the year of its Thursday.
+  const d = new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth(), dt.getUTCDate()));
+  const dayNum = (d.getUTCDay() + 6) % 7; // Mon=0 .. Sun=6
+  d.setUTCDate(d.getUTCDate() - dayNum + 3); // Thursday of this week
+  const isoYear = d.getUTCFullYear();
+  const week1Thursday = new Date(Date.UTC(isoYear, 0, 4));
+  const w1Day = (week1Thursday.getUTCDay() + 6) % 7;
+  week1Thursday.setUTCDate(week1Thursday.getUTCDate() - w1Day + 3);
+  const week = 1 + Math.round((d - week1Thursday) / (7 * 86400000));
+  return `${isoYear}-W${String(week).padStart(2, '0')}`;
+}
+function prevMonthBucket(dt) {
+  const d = new Date(Date.UTC(dt.getUTCFullYear(), dt.getUTCMonth() - 1, 1));
+  return monthBucket(d);
+}
+
+function todayLaunchKey(now) {
+  return `day:${dayBucket(now)}`;
+}
+
+async function handlePing(request, env, ctx, now) {
   let body;
   try {
     body = await request.json();
@@ -45,35 +102,132 @@ async function handlePing(request, env, ctx) {
   const version = typeof body.version === 'string' ? body.version.slice(0, 32) : 'unknown';
   const platform = ALLOWED_PLATFORMS.has(body.platform) ? body.platform : 'unknown';
   const arch = typeof body.arch === 'string' ? body.arch.slice(0, 16) : 'unknown';
+  // Opaque random token from the client; cap length defensively. Absent for
+  // pre-metrics clients — those still count as launches, just not as uniques.
+  const installId =
+    typeof body.installId === 'string' && body.installId.trim()
+      ? body.installId.trim().slice(0, 64)
+      : null;
 
   // GA mirror is queued before the KV writes so a KV failure can't cost
   // the launch event too.
-  ctx.waitUntil(forwardToGA(env, { version, platform, arch }));
+  ctx.waitUntil(forwardToGA(env, { version, platform, arch, installId }));
 
   // KV get/put can throw transiently; the counts are best-effort anyway
   // (see bump()), so log and still 204 rather than turning a blip into a
   // dropped ping — the client (src/main/telemetry.js) never retries.
-  await Promise.all([
+  const work = [
     bump(env.PINGS, 'total'),
-    bump(env.PINGS, todayKey()),
+    bump(env.PINGS, todayLaunchKey(now)),
     bump(env.PINGS, `version:${version}`),
     bump(env.PINGS, `platform:${platform}`),
-  ]).catch((err) => console.error('KV bump failed:', err.message));
+  ];
+  if (installId) {
+    work.push(
+      markActive(env.PINGS, 'day', dayBucket(now), installId, DAY_SEEN_TTL),
+      markActive(env.PINGS, 'week', weekBucket(now), installId, WEEK_SEEN_TTL),
+      markActive(env.PINGS, 'month', monthBucket(now), installId, MONTH_SEEN_TTL)
+    );
+  }
+  await Promise.all(work).catch((err) => console.error('KV write failed:', err.message));
 
   return new Response(null, { status: 204 });
 }
 
+// Read every key under a prefix into { suffix: intValue }. Counters are one
+// key per period, so these maps are small.
+async function readMap(kv, prefix) {
+  const out = {};
+  let cursor;
+  do {
+    const res = await kv.list({ prefix, cursor });
+    for (const { name } of res.keys) {
+      out[name.slice(prefix.length)] = parseInt((await kv.get(name)) ?? '0', 10);
+    }
+    cursor = res.list_complete ? undefined : res.cursor;
+  } while (cursor);
+  return out;
+}
+
+// Gather the set of install ids seen in one period, for cohort/retention math.
+// Capped so a runaway install base can't blow the Worker's memory/time budget;
+// truncation is surfaced in the response rather than silently miscomputed.
+async function collectSeen(kv, scope, bucket, cap = 50000) {
+  const prefix = `seen:${scope}:${bucket}:`;
+  const ids = new Set();
+  let cursor;
+  let truncated = false;
+  do {
+    const res = await kv.list({ prefix, cursor });
+    for (const { name } of res.keys) ids.add(name.slice(prefix.length));
+    cursor = res.list_complete ? undefined : res.cursor;
+    if (ids.size >= cap) {
+      truncated = true;
+      break;
+    }
+  } while (cursor);
+  return { ids, truncated };
+}
+
+function pickRecent(map, n) {
+  return Object.fromEntries(
+    Object.keys(map)
+      .sort()
+      .slice(-n)
+      .map((k) => [k, map[k]])
+  );
+}
+
 // GET /stats — bearer-token-gated readout so the counts are visible
 // without opening the Cloudflare dashboard's KV browser.
-async function handleStats(request, env) {
+async function handleStats(request, env, now) {
   if (request.headers.get('Authorization') !== `Bearer ${env.STATS_TOKEN}`) {
     return new Response('unauthorized', { status: 401 });
   }
-  const { keys } = await env.PINGS.list();
-  const stats = {};
-  for (const { name } of keys) {
-    stats[name] = parseInt((await env.PINGS.get(name)) ?? '0', 10);
-  }
+
+  const [total, byDay, byVersion, byPlatform, daily, weekly, monthly] = await Promise.all([
+    env.PINGS.get('total'),
+    readMap(env.PINGS, 'day:'),
+    readMap(env.PINGS, 'version:'),
+    readMap(env.PINGS, 'platform:'),
+    readMap(env.PINGS, 'active:day:'),
+    readMap(env.PINGS, 'active:week:'),
+    readMap(env.PINGS, 'active:month:'),
+  ]);
+
+  // Month-over-month retention: of the installs active last month, how many
+  // came back this month. Bounded by collectSeen's cap.
+  const thisMonth = monthBucket(now);
+  const lastMonth = prevMonthBucket(now);
+  const [cohort, current] = await Promise.all([
+    collectSeen(env.PINGS, 'month', lastMonth),
+    collectSeen(env.PINGS, 'month', thisMonth),
+  ]);
+  let returned = 0;
+  for (const id of cohort.ids) if (current.ids.has(id)) returned++;
+  const cohortSize = cohort.ids.size;
+
+  const stats = {
+    launches: {
+      total: parseInt(total ?? '0', 10),
+      byDay,
+      byVersion,
+      byPlatform,
+    },
+    activeUsers: {
+      daily: pickRecent(daily, 30),
+      weekly: pickRecent(weekly, 12),
+      monthly: pickRecent(monthly, 12),
+    },
+    retention: {
+      cohortMonth: lastMonth,
+      returnedInMonth: thisMonth,
+      cohortSize,
+      returned,
+      rate: cohortSize ? Number((returned / cohortSize).toFixed(4)) : 0,
+      truncated: cohort.truncated || current.truncated,
+    },
+  };
   return new Response(JSON.stringify(stats, null, 2), {
     headers: { 'Content-Type': 'application/json' },
   });
@@ -82,8 +236,9 @@ async function handleStats(request, env) {
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (request.method === 'POST' && url.pathname === '/ping') return handlePing(request, env, ctx);
-    if (request.method === 'GET' && url.pathname === '/stats') return handleStats(request, env);
+    const now = new Date();
+    if (request.method === 'POST' && url.pathname === '/ping') return handlePing(request, env, ctx, now);
+    if (request.method === 'GET' && url.pathname === '/stats') return handleStats(request, env, now);
     return new Response('not found', { status: 404 });
   },
 };
