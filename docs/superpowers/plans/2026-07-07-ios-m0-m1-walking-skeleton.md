@@ -16,7 +16,7 @@ Every task's requirements implicitly include these (exact values, from the roadm
 - **Bundle identifier: `me.bnfy.blanc`** (all-lowercase — override Xcode's auto-capitalized `me.bnfy.Blanc`).
 - **Product / module name: `Blanc`.** Tests use `@testable import Blanc`.
 - **Device family: iPhone only.** iPad/Mac deferred (D11).
-- **Location: monorepo.** Xcode project at `ios/Blanc.xcodeproj`, sources at `ios/Blanc/`, tests at `ios/BlancTests/`. Nothing outside `ios/` is created or modified by this plan except `docs/…` (this file) and, if absent, root ignores.
+- **Location: monorepo.** Xcode project at `ios/Blanc.xcodeproj`, sources at `ios/Blanc/`, tests at `ios/BlancTests/`. Nothing outside `ios/` is created or modified by this plan except `docs/…` (this file), the `spec/` parity-tracking files updated by the DoD task (Task 7 — `spec/parity-matrix.md`, `spec/acceptance/index.md`), and, if absent, root ignores.
 - **New `.swift` files must join the `Blanc` target.** Create each via Xcode (File → New → File → Swift File) so it's added to the target — or, if created on disk directly, use **Add Files to "Blanc"…** and check the Blanc target. Any task that adds files must `git add ios/Blanc.xcodeproj` too (the project file records target membership; without it the file won't compile).
 - **Generated substrate is referenced, never copied or hand-edited.** Add `tokens/generated/Tokens.swift` and `settings-schema/generated/BlancSettings.swift` to the target *in place* (uncheck "Copy items if needed"). They are produced by `npm run tokens:build` / `settings:build`; never edit `*/generated/*`.
 - **Search-engine URLs — verbatim, F5 parity** (from `src/main/settings.js` `SEARCH_ENGINES`):
@@ -48,7 +48,7 @@ Xcode → File → New → Project → **iOS → App**. Set:
 - Product Name: `Blanc`
 - Organization Identifier: `me.bnfy`
 - Interface: **SwiftUI**, Language: **Swift**
-- Storage: **None**, **check "Include Tests"**
+- Storage: **None**, **check "Include Tests"** — if Xcode 16+ shows a **Testing System** picker, choose **XCTest** (not Swift Testing; this plan's tests are XCTest)
 Click Next, choose the repository's `ios/` directory as the location (create it if the dialog doesn't show it), and **uncheck "Create Git repository"** (this repo already has one). Result: `ios/Blanc.xcodeproj`, `ios/Blanc/`, `ios/BlancTests/`.
 
 - [ ] **Step 2: Fix the three project settings that don't match the constraints**
@@ -356,6 +356,11 @@ final class AddressNormalizerTests: XCTestCase {
         XCTAssertEqual(g.searchURL(for: "cats").absoluteString,
                        "https://www.google.com/search?q=cats")
     }
+    func testSingleCharTldIsSearchNotDomain() {
+        // "example.c" has a 1-char TLD; the domain regex requires {2,}, so search.
+        XCTAssertEqual(n.normalize("example.c").absoluteString,
+                       "https://duckduckgo.com/?q=example.c")
+    }
 }
 ```
 
@@ -553,7 +558,7 @@ Make the `Coordinator` the `WKNavigationDelegate` so the model reflects real pag
 
 **Interfaces:**
 - Consumes: `BrowserModel`, `WebView`.
-- Produces (added to `BrowserModel`): `var canGoBack: Bool`, `var canGoForward: Bool`, `var isLoading: Bool`, `var pageTitle: String`, `weak var webView: WKWebView?`, `func goBack()`, `func goForward()`, `func reload()`, `func stop()`.
+- Produces (added to `BrowserModel`): `var canGoBack: Bool`, `var canGoForward: Bool`, `var isLoading: Bool`, `var pageTitle: String`, `@ObservationIgnored weak var webView: WKWebView?`, `func goBack()`, `func goForward()`, `func reload()`, `func stop()`.
 
 - [ ] **Step 1: Grow the model with nav state and commands**
 
@@ -565,7 +570,7 @@ In `ios/Blanc/BrowserModel.swift`, add `import WebKit` at the top and these memb
     var isLoading = false
     var pageTitle = ""
 
-    weak var webView: WKWebView?   // set by the Coordinator in makeUIView
+    @ObservationIgnored weak var webView: WKWebView?   // imperative handle, not observed state
 
     func goBack()    { webView?.goBack() }
     func goForward() { webView?.goForward() }
@@ -624,7 +629,16 @@ struct WebView: UIViewRepresentable {
             model.canGoBack = webView.canGoBack
             model.canGoForward = webView.canGoForward
             model.pageTitle = webView.title ?? ""
-            if let u = webView.url { model.addressText = u.absoluteString }
+            if let u = webView.url {
+                // Keep currentURL truthful: link taps and back/forward move the
+                // page with no load() call. Set lastRequested *first* so the
+                // resulting updateUIView sees currentURL == lastRequested and does
+                // NOT reload — and so a view/coordinator recreation reloads where
+                // we actually are, not a stale typed URL.
+                lastRequested = u
+                model.currentURL = u
+                model.addressText = u.absoluteString
+            }
         }
     }
 }
@@ -794,11 +808,51 @@ git commit -m "ios: OS hand-off for mailto/tel/facetime/sms (M1.3, D4)"
 
 ---
 
+### Task 6 (parallel logistics — start during M0): Request the default-browser entitlement
+
+Roadmap §7 mandates requesting this *during M0–M1* so Apple has granted it by the M6 beta. It has approval lead time and **no code dependency** — run it in parallel with Task 0. This task is the one exception to "ends in a commit": its deliverable is a submitted request, not a repo artifact.
+
+- [ ] **Step 1: Submit the request**
+
+In the Apple Developer portal (developer.apple.com), request the managed **default-browser** capability (`com.apple.developer.web-browser`). It is **not** self-serve — Apple reviews and grants it, which is exactly why it starts now rather than at M6.
+
+- [ ] **Step 2: Record it and note the deferred wiring**
+
+Note the request date/status in your logistics tracker. The actual wiring — adding `com.apple.developer.web-browser` to the app's `.entitlements` and the default-browser `Info.plist` keys — happens at **M6 once granted**, not here. No commit in this plan.
+
+---
+
+### Task 7 (DoD): Update the parity matrix
+
+Reflect what M0–M1 delivered in the authoritative spec tracking (roadmap §8: "Definition of Done includes parity matrix updated").
+
+**Files:**
+- Modify: `spec/parity-matrix.md`, `spec/acceptance/index.md`
+
+- [ ] **Step 1: Set the iOS status cells in `spec/parity-matrix.md`**
+
+- **F5** iOS → `PARTIAL` (address/search implemented + unit-tested; iOS acceptance step-defs are the separate S6 track).
+- **F1** iOS → `PARTIAL` (a minimal resting address surface only; the full pill/palette is M3).
+- **F23** iOS **stays `DIVERGENT (D10)`** — do *not* relabel; pinch-zoom via `WKWebView` now realizes that divergence.
+
+- [ ] **Step 2: Leave `spec/acceptance/index.md` iOS cells honest**
+
+Keep F5-1/F5-2/F5-3 iOS cells as ⬜ (not run) — automated iOS verification requires the iOS step-definition track (S6), which is **not** in this plan. Do not mark them ✅. (Optional: add a one-line footnote that F5 is implemented pending step-def binding.)
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add spec/parity-matrix.md spec/acceptance/index.md
+git commit -m "spec: iOS parity matrix — F5/F1 PARTIAL after M0-M1 walking skeleton"
+```
+
+---
+
 ## Milestone exit criteria (M0–M1)
 
-A single-tab browser that: launches natively; loads web content full-screen; navigates from typed URLs, domains, `localhost`/IPv4, and search queries (DuckDuckGo default, matching desktop `normalizeAddressInput`); supports back/forward/reload with live enabled/disabled state; and hands `mailto:`/`tel:`/`facetime:`/`sms:` to the OS. All `AddressNormalizer`, `OSHandoff`, and hex-parser logic is unit-tested and green.
+A single-tab browser that: launches natively; loads web content full-screen; navigates from typed URLs, domains, `localhost`/IPv4, and search queries (DuckDuckGo default, matching desktop `normalizeAddressInput`); supports back/forward/reload with live enabled/disabled state; and hands `mailto:`/`tel:`/`facetime:`/`sms:` to the OS. All `AddressNormalizer`, `OSHandoff`, and hex-parser logic is unit-tested and green. In parallel, the default-browser entitlement request is submitted (Task 6 — Apple lead time).
 
-**Parity-matrix note (per the roadmap DoD):** this delivers F5 in full and *part* of F1 (a resting address surface) and F23 (pinch-zoom is free via `WKWebView`). Update the iOS cells accordingly — F5 → `SHIPPED`, F1/F23 stay `PARTIAL` — when M0–M1 lands. **Not** in scope here: tabs (F2, M2), the full island/palette (F1, M3), internal pages (F16, M4), ad-blocking (F12, M5).
+**Parity-matrix (DoD → Task 7):** F5 iOS → `PARTIAL` (address/search implemented + unit-tested; iOS acceptance step-defs are the separate S6 track), F1 iOS → `PARTIAL` (minimal address surface only; the full pill/palette is M3), and F23 iOS **stays `DIVERGENT (D10)`** — pinch-zoom via `WKWebView` realizes that divergence rather than relabeling it. **Not** in scope here: tabs (F2, M2), the full island/palette (F1, M3), internal pages (F16, M4), ad-blocking (F12, M5).
 
 ## Next milestone
 
