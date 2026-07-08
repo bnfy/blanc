@@ -180,7 +180,7 @@ app.userAgentFallback = app.userAgentFallback
 // Hide the FedCM API. Must happen before app 'ready', and silently no-ops
 // if Chromium ever retires the "FedCm" feature name (an Electron bump that
 // brings back Google-login 400s should recheck here first — also see the
-// Sec-CH-UA client-hints patch in app.whenReady below). Chromium ships
+// CDP client-hints override and onBeforeSendHeaders fallback below). Chromium ships
 // the JS surface (IdentityCredential) but Electron has no account-chooser
 // UI behind it, so FedCM calls can only ever fail with "Error retrieving
 // a token". Google Identity Services feature-detects the API, commits to
@@ -196,6 +196,45 @@ app.commandLine.appendSwitch(
   'disable-features',
   priorDisabledFeatures ? `${priorDisabledFeatures},FedCm` : 'FedCm'
 );
+
+// Override client-hints branding at the Chromium level via CDP so both HTTP
+// Sec-CH-UA headers AND navigator.userAgentData.brands report Chrome.
+// Google Identity Services checks brands client-side before opening the
+// OAuth popup; onBeforeSendHeaders only patches HTTP headers and can't
+// reach the JS-visible API under contextIsolation. The debugger session is
+// lightweight, invisible (no infobar in Electron), and coexists with
+// DevTools. Must be registered before app 'ready' so the very first
+// webContents (the chrome window) is caught.
+const chromeMajor = process.versions.chrome?.split('.')[0];
+const chromeFull = process.versions.chrome;
+if (chromeMajor) {
+  const uaMetadata = {
+    brands: [
+      { brand: 'Chromium', version: chromeMajor },
+      { brand: 'Google Chrome', version: chromeMajor },
+      { brand: 'Not)A;Brand', version: '99' },
+    ],
+    fullVersionList: [
+      { brand: 'Chromium', version: chromeFull },
+      { brand: 'Google Chrome', version: chromeFull },
+      { brand: 'Not)A;Brand', version: '99.0.0.0' },
+    ],
+    platform: process.platform === 'darwin' ? 'macOS' :
+              process.platform === 'win32' ? 'Windows' : 'Linux',
+    platformVersion: '',
+    architecture: process.arch === 'x64' ? 'x86' : process.arch,
+    model: '',
+    mobile: false,
+  };
+  app.on('web-contents-created', (_event, wc) => {
+    try { wc.debugger.attach('1.3'); } catch { return; }
+    wc.debugger.sendCommand('Emulation.setUserAgentOverride', {
+      userAgent: app.userAgentFallback,
+      userAgentMetadata: uaMetadata,
+    }).catch(() => {});
+    wc.debugger.on('detach', () => {});
+  });
+}
 
 /** @type {BrowserWindow | null} */
 let win = null;
@@ -1770,27 +1809,26 @@ function createMainWindow() {
 app.whenReady().then(async () => {
   const ses = session.defaultSession;
 
-  // Patch Sec-CH-UA client hints to include the Chrome brand — the
-  // client-hints companion to the userAgentFallback stripping above (and
-  // the FedCm disable). Electron's Chromium sends "Chromium" without
-  // "Google Chrome", and Google's OAuth endpoints reject that with "This
-  // browser or app may not be secure". Chromium populates these header
-  // names in lowercase (services/network/public/cpp/client_hints.cc), and
-  // Electron's net_converter passes them through without case-normalizing.
-  // Electron only allows ONE listener per webRequest event per session
-  // (same constraint adblock.js documents for onBeforeRequest) — if a
-  // future feature also needs onBeforeSendHeaders, compose inside this
-  // handler rather than registering a second one.
-  const chromeMajor = process.versions.chrome?.split('.')[0];
+  // Fallback: patch Sec-CH-UA HTTP headers for webContents where the CDP
+  // debugger couldn't attach (e.g. already in use). The CDP override above
+  // handles both HTTP and navigator.userAgentData; this catches leftovers.
+  // Replaces the entire value to match Chrome's exact brand format, and
+  // adds the header if absent (Electron may omit it on first request to
+  // an origin before the server's Accept-CH response arrives). Electron
+  // only allows ONE listener per webRequest event per session (same
+  // constraint adblock.js documents for onBeforeRequest) — if a future
+  // feature also needs onBeforeSendHeaders, compose inside this handler
+  // rather than registering a second one.
   if (chromeMajor) {
-    const chromeFull = process.versions.chrome;
+    const chUa = `"Chromium";v="${chromeMajor}", "Google Chrome";v="${chromeMajor}", "Not)A;Brand";v="99"`;
+    const chUaFull = `"Chromium";v="${chromeFull}", "Google Chrome";v="${chromeFull}", "Not)A;Brand";v="99.0.0.0"`;
     ses.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
       const h = details.requestHeaders;
-      if (h['sec-ch-ua'] && !h['sec-ch-ua'].includes('Google Chrome')) {
-        h['sec-ch-ua'] += `, "Google Chrome";v="${chromeMajor}"`;
+      if (!h['sec-ch-ua'] || !h['sec-ch-ua'].includes('Google Chrome')) {
+        h['sec-ch-ua'] = chUa;
       }
-      if (h['sec-ch-ua-full-version-list'] && !h['sec-ch-ua-full-version-list'].includes('Google Chrome')) {
-        h['sec-ch-ua-full-version-list'] += `, "Google Chrome";v="${chromeFull}"`;
+      if (!h['sec-ch-ua-full-version-list'] || !h['sec-ch-ua-full-version-list'].includes('Google Chrome')) {
+        h['sec-ch-ua-full-version-list'] = chUaFull;
       }
       callback({ requestHeaders: h });
     });
