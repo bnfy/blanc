@@ -109,14 +109,13 @@ the address field:
 
 - Each dot represents a tab. The active tab's dot is filled; others are
   dimmed.
-- Capped at **8 dots**. If more tabs exist, the last position shows `+N`
-  text (e.g. `+3`). **Tapping `+N` presents a minimal tab-list sheet**
-  (native `.sheet`) showing every tab's title and URL — tapping a row
-  switches to it, swiping a row closes it. This keeps all tabs reachable
-  without the full command palette (deferred to M3).
-- **Tapping** a dot switches to that tab (`TabsManager.setActive`).
-- **Long-pressing** a dot closes that tab (`TabsManager.closeTab`). A brief
-  haptic confirms the action.
+- Capped at **5 dots** on mobile (vs. 8 on desktop). If more tabs exist,
+  the last position shows `+N` text (e.g. `+3`).
+- The dots are **visual indicators only** — individual dots are not tap
+  targets (too small for thumbs at 7pt). **Tapping anywhere in the dot
+  cluster** opens a tab-list sheet (native `.sheet`) showing every tab's
+  title and URL; tapping a row switches to it, swiping a row closes it.
+  Tab switching and closing both happen through the sheet.
 - A `+` button at the trailing end of the pill creates a new tab
   (`TabsManager.createTab`).
 

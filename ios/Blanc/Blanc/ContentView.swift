@@ -75,7 +75,7 @@ struct ContentView: View {
     }
 
     private var tabDots: some View {
-        let maxVisible = 8
+        let maxVisible = 5
         let overflow = manager.tabs.count > maxVisible
         let visible = overflow ? Array(manager.tabs.prefix(maxVisible - 1)) : manager.tabs
         let overflowCount = manager.tabs.count - visible.count
@@ -87,19 +87,15 @@ struct ContentView: View {
                           ? Color.primary
                           : Color.secondary.opacity(0.4))
                     .frame(width: 7, height: 7)
-                    .onTapGesture { manager.setActive(tab.id) }
-                    .onLongPressGesture {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        manager.closeTab(tab.id)
-                    }
             }
             if overflow {
                 Text("+\(overflowCount)")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
-                    .onTapGesture { showTabList = true }
             }
         }
+        .contentShape(Rectangle())
+        .onTapGesture { showTabList = true }
     }
 }
 
