@@ -1,36 +1,51 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var model = BrowserModel(start: URL(string: "https://example.com")!)
+    @State private var manager = TabsManager()
 
     var body: some View {
         ZStack(alignment: .bottom) {
             (Color(blancHex: BlancTokens.bg(.light)) ?? .white)
                 .ignoresSafeArea()
-            WebView(model: model)
-                .ignoresSafeArea(edges: .top)
+
+            if let tab = manager.activeTab {
+                WebView(tab: tab)
+                    .id(tab.id)
+                    .ignoresSafeArea(edges: .top)
+            }
+
             addressPill
         }
     }
 
     private var addressPill: some View {
         HStack(spacing: 10) {
-            Button { model.goBack() } label: { Image(systemName: "chevron.left") }
-                .disabled(!model.canGoBack)
-            Button { model.goForward() } label: { Image(systemName: "chevron.right") }
-                .disabled(!model.canGoForward)
+            Button { manager.activeTab?.goBack() } label: {
+                Image(systemName: "chevron.left")
+            }
+            .disabled(!(manager.activeTab?.canGoBack ?? false))
 
-            TextField("Search or enter address", text: $model.addressText)
+            Button { manager.activeTab?.goForward() } label: {
+                Image(systemName: "chevron.right")
+            }
+            .disabled(!(manager.activeTab?.canGoForward ?? false))
+
+            TextField("Search or enter address", text: addressBinding)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .keyboardType(.webSearch)
                 .submitLabel(.go)
-                .onSubmit { model.submitAddress() }
+                .onSubmit { manager.submitActiveTabAddress() }
 
             Button {
-                model.isLoading ? model.stop() : model.reload()
+                if manager.activeTab?.isLoading == true {
+                    manager.activeTab?.stop()
+                } else {
+                    manager.activeTab?.reload()
+                }
             } label: {
-                Image(systemName: model.isLoading ? "xmark" : "arrow.clockwise")
+                Image(systemName:
+                    manager.activeTab?.isLoading == true ? "xmark" : "arrow.clockwise")
             }
         }
         .padding(.horizontal, 14)
@@ -40,6 +55,13 @@ struct ContentView: View {
         .overlay(Capsule().stroke(Color(blancHex: BlancTokens.border(.light)) ?? .gray))
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
+    }
+
+    private var addressBinding: Binding<String> {
+        Binding(
+            get: { manager.activeTab?.addressText ?? "" },
+            set: { manager.activeTab?.addressText = $0 }
+        )
     }
 }
 
