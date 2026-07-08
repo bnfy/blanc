@@ -78,11 +78,22 @@ final class QuickSwitcherTests: XCTestCase {
         XCTAssertTrue(text.contains("accounts.google.com"))
     }
 
-    func testResultsSortedByScore() {
-        let exact = makeTab(title: "gmail inbox", url: "https://mail.google.com")
-        let fuzzy = makeTab(title: "game library", url: "https://games.example.com")
-        let results = QuickSwitcher.search(query: "gml", tabs: [fuzzy, exact])
-        XCTAssertEqual(results[0].tab.id, exact.id)
+    func testStrongMatchBeatsWeak() {
+        let strong = makeTab(title: "gmail inbox", url: "https://gmail.com")
+        let weak = makeTab(title: "game library", url: "https://games.example.com")
+        // "gmail" is a substring of "gmail inbox" → score 2.2
+        // "gmail" in-order matches "game library" (g...a...m...l...) → score 1.2
+        let results = QuickSwitcher.search(query: "gmail", tabs: [weak, strong])
+        XCTAssertEqual(results[0].tab.id, strong.id)
+    }
+
+    func testEqualScorePreservesTabOrder() {
+        let first = makeTab(title: "game library", url: "https://games.example.com")
+        let second = makeTab(title: "good morning list", url: "https://gml.example.com")
+        // Both in-order match "gml" → score 1.2 each; first wins by tab position
+        let results = QuickSwitcher.search(query: "gml", tabs: [first, second])
+        XCTAssertEqual(results[0].tab.id, first.id)
+        XCTAssertEqual(results[1].tab.id, second.id)
     }
 
     func testCapAt6() {
@@ -121,6 +132,7 @@ import Foundation
 struct SwitcherResult {
     let tab: TabModel
     let score: Double
+    let index: Int
     let title: String
     let subtitle: String
 }
@@ -135,7 +147,7 @@ enum QuickSwitcher {
         var results: [SwitcherResult] = []
         var seen = Set<UUID>()
 
-        for tab in tabs {
+        for (index, tab) in tabs.enumerated() {
             guard !seen.contains(tab.id) else { continue }
             let text = matchableText(title: tab.pageTitle, url: tab.currentURL)
             let s = matchScore(query: q, text: text)
@@ -144,12 +156,15 @@ enum QuickSwitcher {
             results.append(SwitcherResult(
                 tab: tab,
                 score: s + 0.2,
+                index: index,
                 title: tab.pageTitle.isEmpty ? "New Tab" : tab.pageTitle,
                 subtitle: tab.currentURL.host ?? tab.currentURL.absoluteString
             ))
         }
 
-        return Array(results.sorted { $0.score > $1.score }.prefix(6))
+        return Array(results
+            .sorted { $0.score != $1.score ? $0.score > $1.score : $0.index < $1.index }
+            .prefix(6))
     }
 
     static func matchScore(query: String, text: String) -> Double {
@@ -177,7 +192,7 @@ enum QuickSwitcher {
 
 Run: `xcodebuild test -project ios/Blanc/Blanc.xcodeproj -scheme Blanc -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:BlancTests/QuickSwitcherTests 2>&1 | tail -20`
 
-Expected: all 9 tests pass.
+Expected: all 10 tests pass.
 
 - [ ] **Step 5: Commit**
 
@@ -191,7 +206,7 @@ git commit -m "ios: add QuickSwitcher matching logic with tests"
 ### Task 2: SlashCommand — command model + copy integration + tests
 
 **Files:**
-- Copy: `copy/generated/SlashCommands.strings` → `ios/Blanc/Blanc/SlashCommands.strings`
+- Symlink: `ios/Blanc/Blanc/SlashCommands.strings` → `copy/generated/SlashCommands.strings`
 - Create: `ios/Blanc/Blanc/SlashCommand.swift`
 - Create: `ios/Blanc/BlancTests/SlashCommandTests.swift`
 
@@ -199,18 +214,22 @@ git commit -m "ios: add QuickSwitcher matching logic with tests"
 - Consumes: `TabsManager` (passed to `execute` closures: `createTab()`, `closeTab(_:)`, `activeTabId`)
 - Produces: `SlashCommand.available: [SlashCommand]`, `SlashCommand.filter(prefix:) -> [SlashCommand]`
 
-- [ ] **Step 1: Copy the generated strings file into the iOS project**
+- [ ] **Step 1: Symlink the generated strings file into the iOS project**
 
 ```bash
-cp copy/generated/SlashCommands.strings ios/Blanc/Blanc/SlashCommands.strings
+ln -s ../../../copy/generated/SlashCommands.strings ios/Blanc/Blanc/SlashCommands.strings
 ```
 
-Xcode 26's filesystem-synchronized groups auto-include this in the app
-target as a bundle resource. Verify it's there:
+A symlink, not a copy — the single source of truth stays in
+`copy/generated/` where `copy/build.mjs` writes it. Xcode 26's
+filesystem-synchronized groups auto-include the symlink target in the app
+bundle as a resource. Verify:
 
 ```bash
 ls -la ios/Blanc/Blanc/SlashCommands.strings
 ```
+
+Expected: symlink pointing to `../../../copy/generated/SlashCommands.strings`.
 
 - [ ] **Step 2: Write the tests**
 
@@ -602,6 +621,7 @@ struct ContentView: View {
 }
 
 private struct PillStyle: ViewModifier {
+    @ViewBuilder
     func body(content: Content) -> some View {
         if #available(iOS 26, *) {
             content.glassEffect(.regular.interactive, in: .capsule)
