@@ -79,7 +79,11 @@ final class ContentBlocker {
         }
     }
 
-    static func loadBundledBlocklist(in bundle: Bundle = .main) -> (version: String, json: String)? {
+    /// Returns the blocklist version plus a *lazy* loader for the rule JSON.
+    /// Only the tiny `blocklist.meta.json` is read eagerly; the multi-megabyte
+    /// `blocklist.json` is read only if `prepare` misses the compiled cache, so
+    /// a warm launch never pays a large synchronous file read on the main thread.
+    static func loadBundledBlocklist(in bundle: Bundle = .main) -> (version: String, loadJSON: () -> String?)? {
         guard let generatedDir = bundle.resourceURL?.appendingPathComponent("generated") else { return nil }
 
         let metaURL = generatedDir.appendingPathComponent("blocklist.meta.json")
@@ -88,18 +92,16 @@ final class ContentBlocker {
               let version = meta["version"] as? String else { return nil }
 
         let jsonURL = generatedDir.appendingPathComponent("blocklist.json")
-        guard let json = try? String(contentsOf: jsonURL, encoding: .utf8) else { return nil }
-
-        return (version, json)
+        return (version, { try? String(contentsOf: jsonURL, encoding: .utf8) })
     }
 
-    func prepare(version: String, jsonString: String) {
+    func prepare(version: String, jsonProvider: @escaping () -> String?) {
         store.lookupRuleList(forIdentifier: version) { [weak self] found in
             guard let self else { return }
             if found {
                 self.isReady = true
                 self.drainPending()
-            } else {
+            } else if let jsonString = jsonProvider() {
                 self.compile(version: version, jsonString: jsonString)
             }
         }

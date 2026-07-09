@@ -59,7 +59,7 @@ final class ContentBlockerTests: XCTestCase {
         let store = FakeRuleListStore()
         store.lookupResult = true
         let blocker = ContentBlocker(store: store)
-        blocker.prepare(version: "abc", jsonString: "[]")
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
 
         XCTAssertTrue(blocker.isReady)
     }
@@ -69,7 +69,7 @@ final class ContentBlockerTests: XCTestCase {
         store.lookupResult = false
         store.compileResult = false
         let blocker = ContentBlocker(store: store)
-        blocker.prepare(version: "abc", jsonString: "[]")
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
 
         XCTAssertFalse(blocker.isReady)
 
@@ -84,7 +84,7 @@ final class ContentBlockerTests: XCTestCase {
         let store = FakeRuleListStore()
         store.lookupResult = true
         let blocker = ContentBlocker(store: store)
-        blocker.prepare(version: "abc", jsonString: "[]")
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
 
         let target = FakeAttachTarget()
         blocker.attach(to: target)
@@ -97,7 +97,7 @@ final class ContentBlockerTests: XCTestCase {
         store.lookupResult = false
         store.compileResult = false
         let blocker = ContentBlocker(store: store)
-        blocker.prepare(version: "abc", jsonString: "[]")
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
 
         let target1 = FakeAttachTarget()
         let target2 = FakeAttachTarget()
@@ -118,7 +118,7 @@ final class ContentBlockerTests: XCTestCase {
         let store = FakeRuleListStore()
         store.lookupResult = true
         let blocker = ContentBlocker(store: store)
-        blocker.prepare(version: "abc", jsonString: "[]")
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
 
         let target = FakeAttachTarget()
         blocker.attach(to: target)
@@ -127,11 +127,54 @@ final class ContentBlockerTests: XCTestCase {
         XCTAssertEqual(target.attachCount, 2)
     }
 
+    func testCacheHitDoesNotLoadJSON() {
+        let store = FakeRuleListStore()
+        store.lookupResult = true
+        let blocker = ContentBlocker(store: store)
+
+        var providerCalls = 0
+        blocker.prepare(version: "abc", jsonProvider: {
+            providerCalls += 1
+            return "[]"
+        })
+
+        // On a warm cache the multi-MB rule JSON must never be read.
+        XCTAssertEqual(providerCalls, 0)
+        XCTAssertTrue(blocker.isReady)
+    }
+
+    func testCacheMissLoadsJSONOnce() {
+        let store = FakeRuleListStore()
+        store.lookupResult = false
+        store.compileResult = true
+        let blocker = ContentBlocker(store: store)
+
+        var providerCalls = 0
+        blocker.prepare(version: "abc", jsonProvider: {
+            providerCalls += 1
+            return "[]"
+        })
+
+        // The fake defers the lookup result until flushed (mirrors the async store).
+        XCTAssertEqual(providerCalls, 0)
+
+        store.flushLookup(found: false)
+
+        // Miss → provider read exactly once, then compiled.
+        XCTAssertEqual(providerCalls, 1)
+        XCTAssertTrue(blocker.isReady)
+    }
+
     // MARK: - Integration Test
 
     func testBundledBlocklistCompilesInWebKit() {
         guard let loaded = ContentBlocker.loadBundledBlocklist() else {
             XCTFail("loadBundledBlocklist returned nil")
+            return
+        }
+
+        guard let json = loaded.loadJSON() else {
+            XCTFail("loadJSON returned nil")
             return
         }
 
@@ -143,7 +186,7 @@ final class ContentBlockerTests: XCTestCase {
         let exp = expectation(description: "compile bundled blocklist")
         store.compileContentRuleList(
             forIdentifier: "integration-\(loaded.version)",
-            encodedContentRuleList: loaded.json
+            encodedContentRuleList: json
         ) { ruleList, error in
             if ruleList == nil {
                 XCTFail("Compile failed: \(error?.localizedDescription ?? "unknown")")

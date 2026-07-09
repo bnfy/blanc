@@ -10,7 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)));
 const SOURCES = path.join(ROOT, 'sources');
@@ -137,7 +137,7 @@ function isHostname(d) {
   return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/.test(d);
 }
 
-function patternToRegex(pattern) {
+export function patternToRegex(pattern) {
   let p = pattern;
 
   let prefix = '';
@@ -156,8 +156,13 @@ function patternToRegex(pattern) {
     p = p.slice(0, -1);
   }
 
+  // Escape every JS/WebKit regex metacharacter that can appear literally in a
+  // filter's path. `$` matters especially: WebKit reads an unescaped mid-pattern
+  // `$` as an end-of-URL anchor and rejects the WHOLE list (WKErrorDomain 6), so
+  // a single such filter silently disables all blocking. `^` and `*` are handled
+  // separately below because they carry ABP meaning (separator / wildcard).
   const escaped = p
-    .replace(/[.+?{}()[\]\\|]/g, '\\$&')
+    .replace(/[.+?${}()[\]\\|]/g, '\\$&')
     .replace(/\^/g, '[^a-zA-Z0-9_.%-]')
     .replace(/\*/g, '.*');
 
@@ -246,4 +251,8 @@ function check() {
   console.log(`adblock:check OK — generated blocklist matches the pinned sources (${g.rules.length} rules).`);
 }
 
-process.argv.includes('--check') ? check() : build();
+// Only run when invoked directly (`node adblock/build.mjs`), not when a unit
+// test imports patternToRegex.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  process.argv.includes('--check') ? check() : build();
+}

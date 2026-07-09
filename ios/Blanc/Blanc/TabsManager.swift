@@ -26,7 +26,7 @@ final class TabsManager {
 
     init() {
         if let loaded = ContentBlocker.loadBundledBlocklist() {
-            contentBlocker.prepare(version: loaded.version, jsonString: loaded.json)
+            contentBlocker.prepare(version: loaded.version, jsonProvider: loaded.loadJSON)
         }
         createTab()
     }
