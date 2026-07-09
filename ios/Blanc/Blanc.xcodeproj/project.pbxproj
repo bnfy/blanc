@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		502D58302FFEC0C300B5B1DE /* Tokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502D582F2FFEC0C300B5B1DE /* Tokens.swift */; };
 		502D58322FFEC0EE00B5B1DE /* BlancSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */; };
+		502D58412FFED0A000B5B1DE /* pages in Resources */ = {isa = PBXBuildFile; fileRef = 502D58402FFED0A000B5B1DE /* pages */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,6 +27,7 @@
 		502D58042FFEBF0D00B5B1DE /* BlancTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BlancTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		502D582F2FFEC0C300B5B1DE /* Tokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
 		502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlancSettings.swift; sourceTree = "<group>"; };
+		502D58402FFED0A000B5B1DE /* pages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pages; path = ../../src/renderer/pages; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -58,6 +60,7 @@
 		502D57EE2FFEBF0C00B5B1DE = {
 			isa = PBXGroup;
 			children = (
+				502D58402FFED0A000B5B1DE /* pages */,
 				502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */,
 				502D582F2FFEC0C300B5B1DE /* Tokens.swift */,
 				502D57F92FFEBF0C00B5B1DE /* Blanc */,
@@ -160,6 +163,7 @@
 		502D57F52FFEBF0C00B5B1DE /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			files = (
+				502D58412FFED0A000B5B1DE /* pages in Resources */,
 			);
 		};
 		502D58022FFEBF0D00B5B1DE /* Resources */ = {

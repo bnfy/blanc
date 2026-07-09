@@ -15,15 +15,23 @@ final class TabModel: Identifiable {
     let webView: WKWebView
     let navigationDelegate: TabNavigationDelegate
 
-    init(url: URL) {
+    init(url: URL, configuration: WKWebViewConfiguration) {
         self.currentURL = url
         self.addressText = url.absoluteString
-        self.webView = WKWebView()
+        self.webView = WKWebView(frame: .zero, configuration: configuration)
         webView.allowsBackForwardNavigationGestures = true
         self.navigationDelegate = TabNavigationDelegate()
         navigationDelegate.tab = self
         webView.navigationDelegate = navigationDelegate
         navigationDelegate.load(url, in: webView)
+    }
+
+    /// Convenience initializer for tests and previews — uses a bare web-view
+    /// configuration (no `blanc://` scheme handler or bridge). Production tabs
+    /// are built by `TabsManager.createTab`, which threads the configured
+    /// setup through `WebViewConfiguration.make`.
+    convenience init(url: URL) {
+        self.init(url: url, configuration: WKWebViewConfiguration())
     }
 
     func submitAddress(using normalizer: AddressNormalizer) {

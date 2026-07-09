@@ -8,6 +8,11 @@ final class TabsManager {
 
     let normalizer = AddressNormalizer(searchEngine: BlancSettingsDefaults.searchEngine)
 
+    @ObservationIgnored private let schemeHandler = BlancSchemeHandler()
+    @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
+
+    static let newTabURL = URL(string: "blanc://newtab/")!
+
     var activeTab: TabModel? {
         guard let activeTabId else { return nil }
         return tabs.first { $0.id == activeTabId }
@@ -18,8 +23,9 @@ final class TabsManager {
     }
 
     @discardableResult
-    func createTab(url: URL = URL(string: "https://example.com")!) -> UUID {
-        let tab = TabModel(url: url)
+    func createTab(url: URL = TabsManager.newTabURL) -> UUID {
+        let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
+        let tab = TabModel(url: url, configuration: config)
         tabs.append(tab)
         activeTabId = tab.id
         return tab.id

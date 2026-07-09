@@ -61,7 +61,11 @@ struct ContentView: View {
     }
 
     private var displayDomain: String {
-        manager.activeTab?.currentURL.host ?? "New Tab"
+        guard let url = manager.activeTab?.currentURL else { return "New Tab" }
+        if url.scheme == "blanc" {
+            return url.host == "newtab" ? "New Tab" : (url.host ?? "New Tab")
+        }
+        return url.host ?? "New Tab"
     }
 
     private var tabDots: some View {
