@@ -28,8 +28,13 @@ Node script. `npm run adblock:build` runs it.
 
 **Processing:** for each line:
 - Skip comments (`!`), cosmetic rules (`##`, `#@#`, `#?#`), empty lines.
-- Skip rules with `$`-options that have no WKContentRuleList equivalent
-  (e.g. `$csp`, `$redirect`, `$removeparam`, `$replace`).
+- Skip rules with unsupported `$`-options. **M5 supported options
+  allowlist:** `third-party`, `~third-party`, `image`, `script`,
+  `stylesheet`, `font`, `media`, `popup`, `xmlhttprequest`,
+  `websocket`, `other`. Everything else — including `$domain` (has a
+  WK equivalent `if-domain`/`unless-domain` but adds complexity deferred
+  to M15), `$csp`, `$redirect`, `$removeparam`, `$replace`,
+  `$badfilter` — is skipped.
 - Convert supported network filters to a WKContentRuleList entry:
   ```json
   {
@@ -102,11 +107,18 @@ queue) is `@ObservationIgnored` — only `isReady: Bool` drives UI.
 
 ### 2.2 Attaching to tabs
 
-`WebViewConfiguration.make` gains a `contentBlocker: ContentBlocker?`
-parameter. If the blocker has a compiled rule list, it's added to the
-config's `userContentController` immediately. If the lookup/compile is still
-in flight, the tab's `WKWebView` is enqueued and the rule list attached on
-completion via `webView.configuration.userContentController.add(ruleList)`.
+`ContentBlocker` exposes an `attach(to webView: WKWebView)` method.
+`TabsManager.createTab` calls it after constructing the `TabModel`:
+
+- If the rule list is already compiled, `attach` adds it to
+  `webView.configuration.userContentController` immediately.
+- If the lookup/compile is still in flight, `attach` enqueues the
+  `WKWebView` and drains the queue on completion via
+  `webView.configuration.userContentController.add(ruleList)`.
+
+`WebViewConfiguration.make` does **not** take a `contentBlocker` parameter —
+the rule list can't be added at configuration time because it may not exist
+yet, and enqueuing requires a live `WKWebView` reference (not just a config).
 
 ### 2.3 Ownership
 
@@ -168,9 +180,13 @@ behaviour — the footer is deferred until a counting mechanism is designed
 - **Converter** (`adblock/build.mjs`): run it; verify `blocklist.json` is
   valid JSON, rule count < 150k, meta version is a hex string, skipped-rule
   log is non-empty (proves cosmetic rules were dropped, not silently included).
-- **ContentBlocker** (`BlancTests/ContentBlockerTests.swift`): unit tests for
-  cache-hit vs. cache-miss paths, the enqueue/attach flow, and `isReady`
-  state transitions.
+- **ContentBlocker** (`BlancTests/ContentBlockerTests.swift`): testable via a
+  `RuleListStoring` protocol (wrapping `WKContentRuleListStore`'s
+  lookup/compile APIs) and a fake that returns a pre-built
+  `WKContentRuleList` synchronously or after a delay. Tests: cache-hit path
+  sets `isReady` immediately, cache-miss path sets `isReady` after compile
+  completes, `attach(to:)` adds the rule list when ready, `attach(to:)`
+  enqueues and drains when compile completes later.
 - **Integration**: load a page with known ad resources in the simulator;
   verify they're blocked (network inspector shows no requests to ad domains).
   Manual, not automated at M5.
