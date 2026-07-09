@@ -10,6 +10,7 @@
 		502D58302FFEC0C300B5B1DE /* Tokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502D582F2FFEC0C300B5B1DE /* Tokens.swift */; };
 		502D58322FFEC0EE00B5B1DE /* BlancSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */; };
 		502D58412FFED0A000B5B1DE /* pages in Resources */ = {isa = PBXBuildFile; fileRef = 502D58402FFED0A000B5B1DE /* pages */; };
+		502D58422FFED0A000B5B1DE /* generated in Resources */ = {isa = PBXBuildFile; fileRef = 502D58432FFED0A000B5B1DE /* generated */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,6 +29,7 @@
 		502D582F2FFEC0C300B5B1DE /* Tokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tokens.swift; sourceTree = "<group>"; };
 		502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlancSettings.swift; sourceTree = "<group>"; };
 		502D58402FFED0A000B5B1DE /* pages */ = {isa = PBXFileReference; lastKnownFileType = folder; name = pages; path = ../../src/renderer/pages; sourceTree = "<group>"; };
+		502D58432FFED0A000B5B1DE /* generated */ = {isa = PBXFileReference; lastKnownFileType = folder; name = generated; path = ../../adblock/generated; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -61,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				502D58402FFED0A000B5B1DE /* pages */,
+				502D58432FFED0A000B5B1DE /* generated */,
 				502D58312FFEC0EE00B5B1DE /* BlancSettings.swift */,
 				502D582F2FFEC0C300B5B1DE /* Tokens.swift */,
 				502D57F92FFEBF0C00B5B1DE /* Blanc */,
@@ -164,6 +167,7 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				502D58412FFED0A000B5B1DE /* pages in Resources */,
+				502D58422FFED0A000B5B1DE /* generated in Resources */,
 			);
 		};
 		502D58022FFEBF0D00B5B1DE /* Resources */ = {

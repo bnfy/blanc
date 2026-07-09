@@ -10,6 +10,7 @@ final class TabsManager {
 
     @ObservationIgnored private let schemeHandler = BlancSchemeHandler()
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
+    @ObservationIgnored private let contentBlocker = ContentBlocker()
 
     static let newTabURL = URL(string: "blanc://newtab/")!
 
@@ -19,6 +20,9 @@ final class TabsManager {
     }
 
     init() {
+        if let loaded = ContentBlocker.loadBundledBlocklist() {
+            contentBlocker.prepare(version: loaded.version, jsonString: loaded.json)
+        }
         createTab()
     }
 
@@ -26,6 +30,7 @@ final class TabsManager {
     func createTab(url: URL = TabsManager.newTabURL) -> UUID {
         let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
         let tab = TabModel(url: url, configuration: config)
+        contentBlocker.attach(to: tab.webView)
         tabs.append(tab)
         activeTabId = tab.id
         return tab.id

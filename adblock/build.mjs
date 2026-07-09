@@ -36,6 +36,15 @@ function parseFilter(raw) {
     line = line.slice(2);
   }
 
+  // Regex filters (/regex/ or /regex/$opts) need special handling
+  // beyond M5 scope — skip them (≈1.4% of rules)
+  const regexClose = line.lastIndexOf('/');
+  if (line.startsWith('/') && regexClose > 0
+      && (regexClose === line.length - 1 || line[regexClose + 1] === '$')) {
+    skipped.unsupported++;
+    return null;
+  }
+
   let pattern = line;
   let options = {};
   const dollarIdx = line.lastIndexOf('$');
@@ -101,7 +110,7 @@ function patternToRegex(pattern) {
   }
 
   const escaped = p
-    .replace(/[.+?{}()[\]\\]/g, '\\$&')
+    .replace(/[.+?{}()[\]\\|]/g, '\\$&')
     .replace(/\^/g, '[^a-zA-Z0-9_.%-]')
     .replace(/\*/g, '.*');
 
