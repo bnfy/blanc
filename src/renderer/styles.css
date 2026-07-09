@@ -614,10 +614,6 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
 /* Group results in the Quick Switcher use the mono voice. */
 .island-row .row-title.mono { font-family: var(--font-mono); font-size: 12.5px; flex: 0 0 auto; }
 
-.island-row.newtab { color: var(--text-dim); }
-.island-row.newtab .row-title { color: inherit; font-size: 12.5px; flex: 0 0 auto; }
-.island-row.newtab svg { width: 14px; height: 14px; }
-
 .row-kbd {
   font-family: var(--font-mono);
   font-size: 11px;
@@ -677,6 +673,69 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
   color: var(--text-dim);
   padding: 10px;
 }
+
+/* ---------- Island: expanded-panel footer action bar ----------
+   New tab / private launchers on the left, quick-access page shortcuts
+   (favorites, history, downloads, settings) on the right. A static row
+   below the list — always visible, unlike the old in-list "New tab"/
+   "private" rows it replaces, so it stays put while the list shows
+   commands or Quick-Switcher results. */
+#islandFooter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-new {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.footer-new:hover { background: var(--surface); color: var(--text); }
+.footer-new svg { width: 13px; height: 13px; }
+
+/* Private launcher: hairline separator on its left, and its label wears the
+   dashed underline that marks private throughout the chrome. */
+.footer-new.private {
+  margin-left: 2px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
+}
+.footer-private-label { border-bottom: 1px dashed var(--text-dim); }
+
+.footer-kbd {
+  font-size: 10.5px;
+  opacity: 0.55;
+  margin-left: 2px;
+}
+
+.footer-spacer { flex: 1 1 auto; }
+
+.footer-act {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  padding: 0;
+  flex: 0 0 auto;
+}
+.footer-act:hover { background: var(--surface); color: var(--text); }
+.footer-act svg { width: 15px; height: 15px; }
 
 #islandHint {
   font-family: var(--font-mono);
