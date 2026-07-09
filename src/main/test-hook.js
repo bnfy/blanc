@@ -21,6 +21,7 @@ function install(refs) {
     getTabOrder,
     getGroups,
     getActiveTabId,
+    clusterSlots,
     createTab,
     setActiveTab,
     closeTab,
@@ -63,6 +64,11 @@ function install(refs) {
       return {
         tabs: list,
         tabOrder: [...getTabOrder()],
+        clusters: clusterSlots().map((slot) => ({
+          key: slot.key,
+          groupId: slot.group?.id ?? null,
+          tabIds: [...slot.tabIds],
+        })),
         groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
         activeTabId: getActiveTabId(),
       };

@@ -111,10 +111,18 @@ Then('{string} is marked pinned', async function (name) {
   assert.ok(t && t.pinned === true, `${name} should be pinned`);
 });
 
+Then('{string} is shown inside the group {string}', async function (tabName, groupName) {
+  const s = await this.state();
+  const group = s.groups.find((g) => g.name === groupName.toLowerCase());
+  const cluster = s.clusters.find((c) => c.groupId === group?.id);
+  assert.ok(group && cluster?.tabIds.includes(ctx.tabByName[tabName]), `${tabName} should render inside ${groupName}`);
+});
+
 Then('{string} is ordered before {string}', async function (a, b) {
   const s = await this.state();
-  const ia = s.tabOrder.indexOf(ctx.tabByName[a]);
-  const ib = s.tabOrder.indexOf(ctx.tabByName[b]);
+  const displayedOrder = s.clusters.flatMap((cluster) => cluster.tabIds);
+  const ia = displayedOrder.indexOf(ctx.tabByName[a]);
+  const ib = displayedOrder.indexOf(ctx.tabByName[b]);
   assert.ok(ia >= 0 && ib >= 0 && ia < ib, `${a} (${ia}) should be before ${b} (${ib})`);
 });
 

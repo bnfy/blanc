@@ -42,6 +42,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F3-2 | Pill shows only active group | — | ✅ | ⬜ | ⬜ |
 | F3-3 | Collapse tucks tabs away | — | ✅ | ⬜ | ⬜ |
 | F3-4 | Last tab prunes group | — | ✅ | ⬜ | ⬜ |
+| F3-5 | Grouped pin stays in group | — | ✅ | ⬜ | ⬜ |
 | F4-1 | Private not recorded / not reopenable | — | ✅ | ⬜ | ⬜ |
 | F4-2 | Private styling + quick exit | — | ✅ | ⬜ | ⬜ |
 | F4-3 | Child tabs inherit privacy | — | ✅ | ⬜ | ⬜ |

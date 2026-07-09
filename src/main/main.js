@@ -662,11 +662,17 @@ function scheduleSampleTint(tab) {
 // --- Tab groups (Island Tab Groups design) ---
 
 /** Pill/panel cluster order: each non-empty group in group order, then a
- * trailing pseudo-cluster of ungrouped tabs. Cmd/Ctrl+1–9 jump by this. */
+ * trailing pseudo-cluster of ungrouped, unpinned tabs. Pinned members stay
+ * inside their named group and lead that group's rows; only ungrouped pins
+ * use the standalone pinned shelf. Cmd/Ctrl+1–9 jump by this. */
 function clusterList() {
   const list = [];
   for (const g of groups) {
-    const tabIds = tabOrder.filter((id) => tabs.get(id)?.groupId === g.id && !tabs.get(id)?.pinned);
+    const members = tabOrder.filter((id) => tabs.get(id)?.groupId === g.id);
+    const tabIds = [
+      ...members.filter((id) => tabs.get(id)?.pinned),
+      ...members.filter((id) => !tabs.get(id)?.pinned),
+    ];
     if (tabIds.length) list.push({ group: g, tabIds });
   }
   const loose = tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId && !tabs.get(id).pinned);
@@ -674,16 +680,16 @@ function clusterList() {
   return list;
 }
 
-/** clusterList() plus a leading pseudo-cluster for pinned tabs, each slot
- * tagged with a stable key — the one definition of "cluster order" shared
- * by Cmd/Ctrl+1–9 and the ⌥⌘ arrow navigation. */
+/** clusterList() plus a leading pseudo-cluster for ungrouped pinned tabs,
+ * each slot tagged with a stable key — the one definition of "cluster order"
+ * shared by Cmd/Ctrl+1–9 and the ⌥⌘ arrow navigation. */
 function clusterSlots() {
   const slots = clusterList().map(({ group, tabIds }) => ({
     key: group ? group.id : 'loose',
     group,
     tabIds,
   }));
-  const pinnedIds = tabOrder.filter((id) => tabs.get(id)?.pinned);
+  const pinnedIds = tabOrder.filter((id) => tabs.get(id)?.pinned && !tabs.get(id)?.groupId);
   if (pinnedIds.length) slots.unshift({ key: 'pinned', group: null, tabIds: pinnedIds });
   return slots;
 }
@@ -694,7 +700,7 @@ function clusterSlots() {
 const lastActiveByCluster = new Map();
 
 function clusterKeyForTab(tab) {
-  return tab.pinned ? 'pinned' : (tab.groupId ?? 'loose');
+  return tab.groupId ?? (tab.pinned ? 'pinned' : 'loose');
 }
 
 /** A group exists only while it holds tabs — closing or moving out the
@@ -747,12 +753,7 @@ function focusGroup(groupId) {
   const group = groups.find((g) => g.id === groupId);
   if (!group) return;
   group.collapsed = false;
-  const groupTabIds = tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
-  // Prefer the first unpinned member — a pinned tab in this group renders
-  // in the pinned shelf/section, not this group's own cluster, so jumping
-  // to it here would look like landing in the wrong place. Only fall back
-  // to a pinned one if the group has no unpinned tabs at all.
-  const first = groupTabIds.find((id) => !tabs.get(id)?.pinned) ?? groupTabIds[0];
+  const first = clusterList().find(({ group: g }) => g?.id === groupId)?.tabIds[0];
   // setActiveTab broadcasts, but no-ops when the tab is already active —
   // the unfold still has to reach the renderers.
   if (first && first !== activeTabId) setActiveTab(first);
@@ -1234,9 +1235,8 @@ function reorderTab(id, toIndex) {
  * first tab, unfolding it (Island Tab Groups design). Without groups the
  * browser convention stands: 1–8 jump to that tab, 9 to the last. */
 function selectTabAtIndex(index) {
-  // clusterSlots() surfaces pinned tabs as a leading slot, so Cmd+1-9 can
-  // still reach them instead of silently skipping every pinned tab
-  // whenever a group exists.
+  // clusterSlots() surfaces ungrouped pins as a leading slot. Grouped pins
+  // remain reachable through their group's own slot.
   const slots = clusterSlots();
   if (groups.length && slots.length) {
     const slot = slots[index];
@@ -1267,9 +1267,9 @@ function cycleTabInCluster(direction) {
   setActiveTab(slot.tabIds[(i + direction + slot.tabIds.length) % slot.tabIds.length]);
 }
 
-/** ⌥⌘↑/↓: previous/next cluster in ⌘1–9 order (pinned shelf → groups →
- * loose), wrapping. Lands on the cluster's last-active tab and unfolds a
- * collapsed group, consistent with focusGroup(). */
+/** ⌥⌘↑/↓: previous/next cluster in ⌘1–9 order (ungrouped pinned
+ * shelf → groups → loose), wrapping. Lands on the cluster's last-active
+ * tab and unfolds a collapsed group, consistent with focusGroup(). */
 function cycleCluster(direction) {
   if (!activeTabId) return;
   const slots = clusterSlots();
@@ -1496,16 +1496,17 @@ function scheduleMenuRebuild() {
   }, 100);
 }
 
-/** Native-menu items for every open tab, ordered pinned-first then by
- * cluster (matching the pill and panel switcher). Clicking jumps to it.
+/** Native-menu items for every open tab in cluster order (matching the pill
+ * and panel switcher), with pins first within their own cluster. Clicking jumps to it.
  * Titles/domains reflect state as of the last menu rebuild, not the
  * current instant — see the Global Constraints note on this. */
 function tabMenuItems() {
   // Private tabs leave no trace anywhere else in the app (history, session,
   // favorites) — the native menu must not be the one place that leaks a
   // private tab's real title/domain.
-  const pinnedIds = tabOrder.filter((id) => tabs.get(id)?.pinned && !tabs.get(id)?.private);
-  const orderedIds = [...pinnedIds, ...clusterList().flatMap((c) => c.tabIds).filter((id) => !tabs.get(id)?.private)];
+  const orderedIds = clusterSlots()
+    .flatMap((slot) => slot.tabIds)
+    .filter((id) => !tabs.get(id)?.private);
   return orderedIds.map((id) => {
     const tab = tabs.get(id);
     const group = tab.groupId ? groups.find((g) => g.id === tab.groupId) : null;
@@ -1930,7 +1931,7 @@ app.whenReady().then(async () => {
   const isAcceptanceTest = !app.isPackaged && process.env.BLANC_TEST === '1';
   if (isAcceptanceTest) {
     require('./test-hook').install({
-      tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId,
+      tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, groupTabByName, reopenClosedTab, newTabUrl,
       normalizeAddressInput, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       getOverlayMode: () => overlayMode, showOverlay,

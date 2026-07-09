@@ -171,17 +171,21 @@
   const DOT_CAP = 8;
 
   /** Dots for the pill: the ACTIVE tab's group only (null groupId = the
-   * ungrouped set), pins excluded except the active tab itself so you always
-   * see where you are. Capped at DOT_CAP with a trailing "+k" that opens the
-   * panel; the window slides only when needed to keep the active dot visible.
-   * The pill deliberately does NOT map other groups — that lives in ⌘L. */
+   * ungrouped set). Grouped pins stay in that group and lead its dots; the
+   * standalone pinned shelf remains only for ungrouped pins. Capped at
+   * DOT_CAP with a trailing "+k" that opens the panel; the window slides only
+   * when needed to keep the active dot visible. The pill deliberately does
+   * NOT map other groups — that lives in ⌘L. */
   function activeGroupDots() {
     const tab = activeTab();
     if (!tab) return [];
     const g = tab.groupId ?? null;
-    const members = state.tabs.filter(
-      (t) => (t.groupId ?? null) === g && (!t.pinned || t.id === state.activeTabId)
-    );
+    const members = state.tabs
+      .filter((t) => (
+        (t.groupId ?? null) === g &&
+        (g !== null || !t.pinned || t.id === state.activeTabId)
+      ))
+      .sort((a, b) => Number(b.pinned) - Number(a.pinned));
     if (members.length <= DOT_CAP) return members.map(tabDot);
 
     const activeIdx = Math.max(0, members.indexOf(tab));

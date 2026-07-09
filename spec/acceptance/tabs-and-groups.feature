@@ -57,3 +57,10 @@ Feature: Tabs and tab groups
     Given a group "solo" with 1 tab
     When I close the last tab in "solo"
     Then the group "solo" no longer exists
+
+  @F3-5 @F3 @all
+  Scenario: Pinning a grouped tab keeps it in that group
+    Given the active tab is in a group named "work"
+    When I pin "anchor"
+    Then "anchor" is marked pinned
+    And "anchor" is shown inside the group "work"

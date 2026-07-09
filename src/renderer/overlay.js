@@ -65,12 +65,15 @@
 
   const groupById = (id) => state.groups.find((g) => g.id === id) || null;
 
-  /** Cluster order: each non-empty group in group order, then the
-   * ungrouped tabs. (Keep in sync with renderer.js.) */
+  /** Cluster order: each non-empty group in group order, then ungrouped,
+   * unpinned tabs. Pins lead their named group; only ungrouped pins use the
+   * standalone shelf. (Keep in sync with main.js.) */
   function clusterTabs() {
     const clusters = [];
     for (const g of state.groups) {
-      const gtabs = state.tabs.filter((t) => t.groupId === g.id && !t.pinned);
+      const gtabs = state.tabs
+        .filter((t) => t.groupId === g.id)
+        .sort((a, b) => Number(b.pinned) - Number(a.pinned));
       if (gtabs.length) clusters.push({ group: g, tabs: gtabs });
     }
     const loose = state.tabs.filter((t) => !t.groupId && !t.pinned);
@@ -319,8 +322,8 @@
 
   const CARET = '<svg class="caret" viewBox="0 0 10 10"><path d="M3.5 2 L7 5 L3.5 8"/></svg>';
 
-  /** "pinned" section header — same dim-rule visual language as a group
-   * header, but static (no fold/unfold — pinned tabs are always shown). */
+  /** "pinned" section header for pins without a named group — same dim-rule
+   * visual language as a group header, but static. */
   function pinnedHeaderRow(count) {
     const row = document.createElement('div');
     row.className = 'island-ghead static';
@@ -607,7 +610,7 @@
       const pickerValue = prevPickerInput?.value ?? '';
       const pickerHadFocus = prevPickerInput && document.activeElement === prevPickerInput;
 
-      const pinned = state.tabs.filter((t) => t.pinned);
+      const pinned = state.tabs.filter((t) => t.pinned && !t.groupId);
       const rows = [];
       if (pinned.length) {
         rows.push(pinnedHeaderRow(pinned.length));
@@ -615,8 +618,9 @@
       }
 
       const clusters = clusterTabs();
-      for (const { group, tabs: gtabs } of clusters) {
-        if (group) rows.push(groupHeaderRow(group, gtabs.length, clusters.findIndex((c) => c.group === group)));
+      const shortcutOffset = pinned.length ? 1 : 0;
+      for (const [clusterIndex, { group, tabs: gtabs }] of clusters.entries()) {
+        if (group) rows.push(groupHeaderRow(group, gtabs.length, clusterIndex + shortcutOffset));
         else if (clusters.length > 1) rows.push(looseHeaderRow());
         if (group?.collapsed) rows.push(foldedGroupRow(group, gtabs));
         else rows.push(...gtabs.map(tabRow));
@@ -639,7 +643,7 @@
     islandHint.textContent = activeTab()?.private
       ? 'private · nothing here is saved to history · esc to dismiss'
       : state.groups.length
-        ? `esc to dismiss · /group moves this tab · ${modKey}1–9 jumps between groups`
+        ? `esc to dismiss · /group moves this tab · ${modKey}1–9 jumps between sections`
         : `esc to dismiss · ${modKey}L summons · / for commands`;
   }
 

@@ -48,7 +48,8 @@ toolbar (Bowser Design System "Island Chrome").
   tab's identity, title, and scroll position persist.
 - **Acceptance:** Open a tab, close it, reopen-closed → same URL returns. Duplicate
   a tab → a second tab with the same URL. Pin a tab → it is marked pinned and
-  ordered ahead of unpinned tabs.
+  ordered ahead of unpinned tabs in its current group. An ungrouped pin uses the
+  standalone pinned section; pinning never changes group membership.
 
 ## F3 — Tab groups
 
@@ -56,9 +57,10 @@ toolbar (Bowser Design System "Island Chrome").
   while it holds ≥1 tab (auto-pruned when empty).
 - Create/join via `/group <name>` (find-or-create) or an inline picker on the
   tab row; leave via `/ungroup`; close all via `/close-group`.
-- The **pill renders only the active tab's group** as dots + name. Other groups
-  and pinned tabs live in the palette panel (per-group headers, foldable;
-  collapsed group shows an "N tabs tucked away" row).
+- The **pill renders only the active tab's group** as dots + name. A group's
+  pinned tabs stay inside it and lead its rows/dots; only ungrouped pins use the
+  standalone pinned section. Other groups live in the palette panel (per-group
+  headers, foldable; collapsed group shows an "N tabs tucked away" row).
 - The Quick Switcher (F6) matches group names, ranked above tabs; picking a group
   focuses it (unfolding if collapsed). The nth-cluster shortcut (D7) focuses the
   nth *group's* first tab when groups exist.
