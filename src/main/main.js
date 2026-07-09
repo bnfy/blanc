@@ -1,6 +1,7 @@
 const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 const crypto = require('crypto');
 const { pathToFileURL } = require('url');
 const { setupAdBlocker, setAdBlockEnabled, getBlocker } = require('./adblock');
@@ -171,11 +172,45 @@ app.on('open-file', (event, filePath) => {
 // Must happen before app 'ready'.
 registerPagesScheme();
 
-// Strip the app and Electron tokens from the UA so sites treat us as a
-// plain Chrome build.
-app.userAgentFallback = app.userAgentFallback
-  .replace(/\sblanc\/[\d.]+/i, '')
-  .replace(/\sElectron\/[\d.]+/, '');
+const chromeMajor = process.versions.chrome?.split('.')[0];
+const chromeFull = process.versions.chrome;
+const chromeReducedVersion = chromeMajor ? `${chromeMajor}.0.0.0` : null;
+
+function chromeLikeUserAgent(ua) {
+  let next = ua
+    .replace(/\sblanc\/[\d.]+/i, '')
+    .replace(/\sElectron\/[\d.]+/, '');
+  if (chromeReducedVersion) {
+    next = next.replace(/Chrome\/[\d.]+/, `Chrome/${chromeReducedVersion}`);
+  }
+  return next;
+}
+
+function chromeClientHintPlatform() {
+  if (process.platform === 'darwin') return 'macOS';
+  if (process.platform === 'win32') return 'Windows';
+  if (process.platform === 'linux') return 'Linux';
+  return process.platform;
+}
+
+function chromeClientHintArchitecture() {
+  if (process.arch === 'arm64') return 'arm';
+  if (process.arch === 'x64' || process.arch === 'ia32') return 'x86';
+  return process.arch;
+}
+
+function chromeClientHintBitness() {
+  return process.arch.includes('64') ? '64' : '32';
+}
+
+function chromeClientHintPlatformVersion() {
+  if (process.platform === 'darwin') return os.release();
+  return '';
+}
+
+// Strip Electron/app tokens and use Chrome's reduced UA form so sites see
+// the same low-entropy UA shape as desktop Chrome.
+app.userAgentFallback = chromeLikeUserAgent(app.userAgentFallback);
 
 // Hide the FedCM API. Must happen before app 'ready', and silently no-ops
 // if Chromium ever retires the "FedCm" feature name (an Electron bump that
@@ -205,26 +240,28 @@ app.commandLine.appendSwitch(
 // lightweight, invisible (no infobar in Electron), and coexists with
 // DevTools. Must be registered before app 'ready' so the very first
 // webContents (the chrome window) is caught.
-const chromeMajor = process.versions.chrome?.split('.')[0];
-const chromeFull = process.versions.chrome;
 if (chromeMajor) {
+  const greaseBrand = { brand: 'Not;A=Brand', version: '8' };
+  const chromeBrands = [
+    greaseBrand,
+    { brand: 'Chromium', version: chromeMajor },
+    { brand: 'Google Chrome', version: chromeMajor },
+  ];
+  const chromeFullVersionList = [
+    { brand: greaseBrand.brand, version: `${greaseBrand.version}.0.0.0` },
+    { brand: 'Chromium', version: chromeFull },
+    { brand: 'Google Chrome', version: chromeFull },
+  ];
   const uaMetadata = {
-    brands: [
-      { brand: 'Chromium', version: chromeMajor },
-      { brand: 'Google Chrome', version: chromeMajor },
-      { brand: 'Not)A;Brand', version: '99' },
-    ],
-    fullVersionList: [
-      { brand: 'Chromium', version: chromeFull },
-      { brand: 'Google Chrome', version: chromeFull },
-      { brand: 'Not)A;Brand', version: '99.0.0.0' },
-    ],
-    platform: process.platform === 'darwin' ? 'macOS' :
-              process.platform === 'win32' ? 'Windows' : 'Linux',
-    platformVersion: '',
-    architecture: process.arch === 'x64' ? 'x86' : process.arch,
+    brands: chromeBrands,
+    fullVersionList: chromeFullVersionList,
+    platform: chromeClientHintPlatform(),
+    platformVersion: chromeClientHintPlatformVersion(),
+    architecture: chromeClientHintArchitecture(),
+    bitness: chromeClientHintBitness(),
     model: '',
     mobile: false,
+    wow64: false,
   };
   app.on('web-contents-created', (_event, wc) => {
     try { wc.debugger.attach('1.3'); } catch { return; }
@@ -1016,6 +1053,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
           overrideBrowserWindowOptions: {
             autoHideMenuBar: true,
             webPreferences: {
+              preload: path.join(__dirname, 'tab-preload.js'),
               contextIsolation: true,
               nodeIntegration: false,
               sandbox: true,
@@ -1820,16 +1858,23 @@ app.whenReady().then(async () => {
   // feature also needs onBeforeSendHeaders, compose inside this handler
   // rather than registering a second one.
   if (chromeMajor) {
-    const chUa = `"Chromium";v="${chromeMajor}", "Google Chrome";v="${chromeMajor}", "Not)A;Brand";v="99"`;
-    const chUaFull = `"Chromium";v="${chromeFull}", "Google Chrome";v="${chromeFull}", "Not)A;Brand";v="99.0.0.0"`;
+    const chUa = `"Not;A=Brand";v="8", "Chromium";v="${chromeMajor}", "Google Chrome";v="${chromeMajor}"`;
+    const chUaFull = `"Not;A=Brand";v="8.0.0.0", "Chromium";v="${chromeFull}", "Google Chrome";v="${chromeFull}"`;
+    const setHeader = (headers, name, value, { add = false } = {}) => {
+      const existing = Object.keys(headers).find((key) => key.toLowerCase() === name);
+      if (existing || add) headers[existing || name] = value;
+    };
     ses.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
       const h = details.requestHeaders;
-      if (!h['sec-ch-ua'] || !h['sec-ch-ua'].includes('Google Chrome')) {
-        h['sec-ch-ua'] = chUa;
-      }
-      if (!h['sec-ch-ua-full-version-list'] || !h['sec-ch-ua-full-version-list'].includes('Google Chrome')) {
-        h['sec-ch-ua-full-version-list'] = chUaFull;
-      }
+      setHeader(h, 'sec-ch-ua', chUa, { add: true });
+      setHeader(h, 'sec-ch-ua-full-version-list', chUaFull, { add: true });
+      setHeader(h, 'sec-ch-ua-platform', `"${chromeClientHintPlatform()}"`);
+      setHeader(h, 'sec-ch-ua-platform-version', `"${chromeClientHintPlatformVersion()}"`);
+      setHeader(h, 'sec-ch-ua-arch', `"${chromeClientHintArchitecture()}"`);
+      setHeader(h, 'sec-ch-ua-bitness', `"${chromeClientHintBitness()}"`);
+      setHeader(h, 'sec-ch-ua-model', '""');
+      setHeader(h, 'sec-ch-ua-mobile', '?0');
+      setHeader(h, 'sec-ch-ua-wow64', '?0');
       callback({ requestHeaders: h });
     });
   }
