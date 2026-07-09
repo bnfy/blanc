@@ -25,6 +25,12 @@
   const findPrevBtn = document.getElementById('findPrevBtn');
   const findNextBtn = document.getElementById('findNextBtn');
   const findCloseBtn = document.getElementById('findCloseBtn');
+  const footerNewTab = document.getElementById('footerNewTab');
+  const footerNewPrivate = document.getElementById('footerNewPrivate');
+  const footerFavorites = document.getElementById('footerFavorites');
+  const footerHistory = document.getElementById('footerHistory');
+  const footerDownloads = document.getElementById('footerDownloads');
+  const footerSettings = document.getElementById('footerSettings');
 
   let state = { tabs: [], activeTabId: null, groups: [] };
   /** @type {null | 'panel' | 'palette' | 'find'} */
@@ -53,7 +59,6 @@
     reload: '<svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-5-5c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
     stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
-    plus: '<svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>',
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2 6h3l4-3.5v11L5 10H2z"/><path d="M11 5.5l3 5M14 5.5l-3 5"/></svg>',
   };
@@ -375,28 +380,6 @@
     return row;
   }
 
-  function newTabRow() {
-    const row = document.createElement('div');
-    row.className = 'island-row newtab';
-    row.innerHTML = `${ICONS.plus}<span class="row-title">New tab</span><span class="row-kbd">${modKey}T</span>`;
-    row.addEventListener('click', () => {
-      window.browserAPI.closeOverlay();
-      window.browserAPI.createTab(); // main reopens the panel focused on the blank tab
-    });
-    return row;
-  }
-
-  function newPrivateTabRow() {
-    const row = document.createElement('div');
-    row.className = 'island-row newtab';
-    row.innerHTML = `${ICONS.plus}<span class="row-title">New private tab</span><span class="row-private">private</span><span class="row-kbd">${modShiftKey}N</span>`;
-    row.addEventListener('click', () => {
-      window.browserAPI.closeOverlay();
-      window.browserAPI.createTab(null, { private: true });
-    });
-    return row;
-  }
-
   // --- Slash commands ---
 
   const COMMANDS = [
@@ -625,7 +608,7 @@
         if (group?.collapsed) rows.push(foldedGroupRow(group, gtabs));
         else rows.push(...gtabs.map(tabRow));
       }
-      islandList.replaceChildren(...rows, newTabRow(), newPrivateTabRow());
+      islandList.replaceChildren(...rows);
 
       const pickerInput = islandList.querySelector('.group-picker-input');
       if (pickerInput && pickerValue) pickerInput.value = pickerValue;
@@ -729,6 +712,33 @@
       : window.browserAPI.reload(state.activeTabId);
   });
   heartBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
+
+  // --- Footer action bar (static: new tab / private launchers + quick pages) ---
+  // These moved out of the scrollable list so they stay put while it shows
+  // slash commands or Quick-Switcher results. Platform-correct shortcut hints.
+  document.getElementById('footerNewTabKbd').textContent = `${modKey}T`;
+  document.getElementById('footerNewPrivateKbd').textContent = `${modShiftKey}N`;
+  footerNewTab.title = `New tab (${modKey}T)`;
+  footerNewPrivate.title = `New private tab (${modShiftKey}N)`;
+
+  footerNewTab.addEventListener('click', () => {
+    window.browserAPI.closeOverlay();
+    window.browserAPI.createTab(); // main reopens the panel focused on the blank tab
+  });
+  footerNewPrivate.addEventListener('click', () => {
+    window.browserAPI.closeOverlay();
+    window.browserAPI.createTab(null, { private: true });
+  });
+  // Each shortcut opens its internal page; close first so main can re-show
+  // the overlay cleanly where needed (mirrors runCommand for /favorites etc).
+  const openPageFromFooter = (name) => {
+    window.browserAPI.closeOverlay();
+    window.browserAPI.openPage(name);
+  };
+  footerFavorites.addEventListener('click', () => openPageFromFooter('bookmarks'));
+  footerHistory.addEventListener('click', () => openPageFromFooter('history'));
+  footerDownloads.addEventListener('click', () => openPageFromFooter('downloads'));
+  footerSettings.addEventListener('click', () => openPageFromFooter('settings'));
 
   addressInput.addEventListener('input', () => {
     inputTouched = true;
