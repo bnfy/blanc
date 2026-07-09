@@ -11,12 +11,22 @@ on:
       tag:
         description: "Release tag to build and upload to (e.g. v0.9.1)"
         required: true
+      platform:
+        description: "Platform jobs to run"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - windows
+          - linux
 
 permissions:
   contents: write
 
 jobs:
   windows:
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'windows' }}
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -62,7 +72,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
-          for f in "dist/$PRODUCT_NAME Setup $VERSION.exe" "dist/$PRODUCT_NAME Setup $VERSION.exe.blockmap" "dist/latest.yml"; do
+          for f in "dist/$PRODUCT_NAME-Setup-$VERSION.exe" "dist/$PRODUCT_NAME-Setup-$VERSION.exe.blockmap" "dist/latest.yml"; do
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
 
@@ -74,12 +84,13 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           gh release upload "${{ inputs.tag }}" \
-            "dist/$PRODUCT_NAME Setup $VERSION.exe" \
-            "dist/$PRODUCT_NAME Setup $VERSION.exe.blockmap" \
+            "dist/$PRODUCT_NAME-Setup-$VERSION.exe" \
+            "dist/$PRODUCT_NAME-Setup-$VERSION.exe.blockmap" \
             "dist/latest.yml" \
             --repo "${{ github.repository }}"
 
   linux:
+    if: ${{ inputs.platform == 'all' || inputs.platform == 'linux' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
