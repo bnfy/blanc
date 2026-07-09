@@ -22,6 +22,7 @@ extension WKWebView: RuleListAttaching {
     func attachContentBlockingRules(from blocker: ContentBlocker) {
         guard let ruleList = blocker.compiledRuleList else { return }
         configuration.userContentController.add(ruleList)
+        reload()
     }
 }
 

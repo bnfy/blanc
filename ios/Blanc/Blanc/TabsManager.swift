@@ -1,5 +1,6 @@
 import Observation
 import Foundation
+import WebKit
 
 @Observable
 final class TabsManager {
@@ -33,8 +34,13 @@ final class TabsManager {
     @discardableResult
     func createTab(url: URL = TabsManager.newTabURL) -> UUID {
         let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
+        if let ruleList = contentBlocker.compiledRuleList {
+            config.userContentController.add(ruleList)
+        }
         let tab = TabModel(url: url, configuration: config)
-        contentBlocker.attach(to: tab.webView)
+        if !contentBlocker.isReady {
+            contentBlocker.attach(to: tab.webView)
+        }
         tabs.append(tab)
         activeTabId = tab.id
         return tab.id
