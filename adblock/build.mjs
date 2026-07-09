@@ -1,3 +1,12 @@
+// Blanc ad-block converter: pinned EasyList + EasyPrivacy -> WKContentRuleList
+// JSON for the iOS/WebKit backend (see spec/blocking-backends.md).
+//
+//   node adblock/build.mjs           regenerate generated/{blocklist.json,blocklist.meta.json}
+//   node adblock/build.mjs --check   verify the committed generated/ files still match what the
+//                                    pinned sources produce. Exit 1 on drift (sources refreshed
+//                                    without a rebuild). The adblock analogue of tokens/settings/
+//                                    copy's substrate drift guards.
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -160,49 +169,81 @@ function patternToRegex(pattern) {
 }
 
 const files = ['easylist.txt', 'easyprivacy.txt'];
-const blockRules = [];
-const exceptionRules = [];
+const OUT_JSON = path.join(OUT, 'blocklist.json');
+const OUT_META = path.join(OUT, 'blocklist.meta.json');
 
-for (const file of files) {
-  const content = fs.readFileSync(path.join(SOURCES, file), 'utf8');
-  for (const line of content.split('\n')) {
-    const parsed = parseFilter(line);
-    if (!parsed) continue;
-    if (parsed.isException) exceptionRules.push(parsed.rule);
-    else blockRules.push(parsed.rule);
+// Parse the pinned sources into the exact artifact strings that get written to
+// disk, so build() and check() produce/compare byte-identical output.
+function generate() {
+  const blockRules = [];
+  const exceptionRules = [];
+  for (const file of files) {
+    const content = fs.readFileSync(path.join(SOURCES, file), 'utf8');
+    for (const line of content.split('\n')) {
+      const parsed = parseFilter(line);
+      if (!parsed) continue;
+      if (parsed.isException) exceptionRules.push(parsed.rule);
+      else blockRules.push(parsed.rule);
+    }
   }
+  const rules = [...blockRules, ...exceptionRules];
+  const json = JSON.stringify(rules, null, 2);
+  const hash = createHash('sha256').update(json).digest('hex').slice(0, 8);
+  const pinned = JSON.parse(fs.readFileSync(path.join(SOURCES, 'pinned.json'), 'utf8'));
+  const metaJson = JSON.stringify(
+    { version: hash, ruleCount: rules.length, sourceDate: pinned.date },
+    null,
+    2
+  );
+  return { rules, blockRules, exceptionRules, json, metaJson, hash };
 }
 
-const rules = [...blockRules, ...exceptionRules];
+function build() {
+  const g = generate();
+  console.log(`Block rules:     ${g.blockRules.length}`);
+  console.log(`Exception rules: ${g.exceptionRules.length}`);
+  console.log(`Total rules:     ${g.rules.length}`);
+  console.log(`Skipped:`);
+  console.log(`  Cosmetic:      ${skipped.cosmetic}`);
+  console.log(`  Unsupported:   ${skipped.unsupported}`);
+  console.log(`  Unparseable:   ${skipped.unparseable}`);
+  console.log(`  Comments:      ${skipped.comment}`);
+  console.log(`  Empty/header:  ${skipped.empty}`);
 
-console.log(`Block rules:     ${blockRules.length}`);
-console.log(`Exception rules: ${exceptionRules.length}`);
-console.log(`Total rules:     ${rules.length}`);
-console.log(`Skipped:`);
-console.log(`  Cosmetic:      ${skipped.cosmetic}`);
-console.log(`  Unsupported:   ${skipped.unsupported}`);
-console.log(`  Unparseable:   ${skipped.unparseable}`);
-console.log(`  Comments:      ${skipped.comment}`);
-console.log(`  Empty/header:  ${skipped.empty}`);
+  if (g.rules.length > MAX_RULES) {
+    console.error(`FATAL: ${g.rules.length} rules exceeds the ${MAX_RULES} ceiling.`);
+    process.exit(1);
+  }
 
-if (rules.length > MAX_RULES) {
-  console.error(`FATAL: ${rules.length} rules exceeds the ${MAX_RULES} ceiling.`);
-  process.exit(1);
+  fs.mkdirSync(OUT, { recursive: true });
+  fs.writeFileSync(OUT_JSON, g.json);
+  fs.writeFileSync(OUT_META, g.metaJson);
+  console.log(`\nWrote ${g.rules.length} rules to generated/blocklist.json (version: ${g.hash})`);
 }
 
-fs.mkdirSync(OUT, { recursive: true });
+// Verify the committed blocklist is what the pinned sources currently produce —
+// the adblock analogue of tokens/settings/copy's --check drift guards. Exit 1 if
+// generated/ is stale (someone refreshed the sources without rebuilding).
+function check() {
+  const g = generate();
+  let failed = false;
 
-const json = JSON.stringify(rules, null, 2);
-fs.writeFileSync(path.join(OUT, 'blocklist.json'), json);
+  if (g.rules.length > MAX_RULES) {
+    failed = true;
+    console.error(`FATAL: ${g.rules.length} rules exceeds the ${MAX_RULES} ceiling.`);
+  }
 
-const pinned = JSON.parse(fs.readFileSync(path.join(SOURCES, 'pinned.json'), 'utf8'));
+  for (const [rel, content] of [['blocklist.json', g.json], ['blocklist.meta.json', g.metaJson]]) {
+    const p = path.join(OUT, rel);
+    const onDisk = fs.existsSync(p) ? fs.readFileSync(p, 'utf8') : null;
+    if (onDisk !== content) {
+      failed = true;
+      console.error(`STALE: adblock/generated/${rel} — run \`npm run adblock:build\``);
+    }
+  }
 
-const hash = createHash('sha256').update(json).digest('hex').slice(0, 8);
-const meta = {
-  version: hash,
-  ruleCount: rules.length,
-  sourceDate: pinned.date,
-};
-fs.writeFileSync(path.join(OUT, 'blocklist.meta.json'), JSON.stringify(meta, null, 2));
+  if (failed) { console.error('\nadblock:check failed.'); process.exit(1); }
+  console.log(`adblock:check OK — generated blocklist matches the pinned sources (${g.rules.length} rules).`);
+}
 
-console.log(`\nWrote ${rules.length} rules to generated/blocklist.json (version: ${hash})`);
+process.argv.includes('--check') ? check() : build();
