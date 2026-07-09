@@ -16,13 +16,14 @@
     "test:acceptance:dry": "cucumber-js -c test/desktop/cucumber.mjs -p dry",
     "test:acceptance:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable",
     "adblock:build": "node adblock/build.mjs",
+    "adblock:check": "node adblock/build.mjs --check",
     "tokens:build": "node tokens/build.mjs",
     "tokens:check": "node tokens/build.mjs --check",
     "settings:build": "node settings-schema/build.mjs",
     "settings:check": "node settings-schema/build.mjs --check",
     "copy:build": "node copy/build.mjs",
     "copy:check": "node copy/build.mjs --check",
-    "substrate:check": "npm run tokens:check && npm run settings:check && npm run copy:check"
+    "substrate:check": "npm run tokens:check && npm run settings:check && npm run copy:check && npm run adblock:check"
   },
   "author": "",
   "license": "UNLICENSED",

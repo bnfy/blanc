@@ -23,13 +23,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - name: tokens / settings / copy match their sources
+      - name: tokens / settings / copy / adblock match their sources
         # Drift guards — the build.mjs checkers use only node builtins,
         # no dependency install needed for this step.
         run: |
           node tokens/build.mjs --check
           node settings-schema/build.mjs --check
           node copy/build.mjs --check
+          node adblock/build.mjs --check
       - run: npm ci
       - name: Unit regression tests
         run: npm run test:unit
