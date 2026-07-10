@@ -110,4 +110,40 @@ final class TabsManagerTests: XCTestCase {
         XCTAssertEqual(m.settingsStore.adblockEnabled, false)
         XCTAssertFalse(m.isAdBlockReady)
     }
+
+    // MARK: - applySettingsPatch
+
+    func testPatchThemeUpdatesStore() {
+        let m = makeManager()
+        m.applySettingsPatch(["theme": "dark"])
+        XCTAssertEqual(m.settingsStore.theme, .dark)
+    }
+
+    func testPatchSearchEngineUpdatesNormalizer() {
+        let m = makeManager()
+        m.applySettingsPatch(["searchEngine": "google"])
+        XCTAssertEqual(m.settingsStore.searchEngine, .google)
+        XCTAssertEqual(m.normalizer.searchEngine, .google)
+    }
+
+    func testPatchInvalidEnumIsDropped() {
+        let m = makeManager()
+        m.applySettingsPatch(["theme": "neon"])
+        XCTAssertEqual(m.settingsStore.theme, BlancSettingsDefaults.theme)
+    }
+
+    func testPatchUnknownKeyIsDropped() {
+        let m = makeManager()
+        m.applySettingsPatch(["unknownKey": "value"])
+        m.settingsStore.flush()   // `.atomic` write creates the file even on first save
+        let data = try! Data(contentsOf: m.settingsStore.testFileURL)
+        let dict = try! JSONSerialization.jsonObject(with: data) as! [String: Any]
+        XCTAssertNil(dict["unknownKey"], "bridge patch must not persist unknown keys")
+    }
+
+    func testPatchAdblockDisabledUpdatesStore() {
+        let m = makeManager()
+        m.applySettingsPatch(["adblockEnabled": false])
+        XCTAssertEqual(m.settingsStore.adblockEnabled, false)
+    }
 }

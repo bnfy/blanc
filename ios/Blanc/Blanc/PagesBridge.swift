@@ -138,14 +138,21 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         }
     }
 
-    /// The `{ settings, searchEngines, appIcons, supporterIcons }` payload
-    /// `settings.js` reads on load, built from the generated substrate so
-    /// values track `BlancSettingsDefaults` (no hardcoded defaults).
-    private static func settingsBootstrap() -> JSONValue {
+    /// The `{ settings, searchEngines, appIcons, supporterIcons, capabilities }`
+    /// payload `settings.js` reads on load, built from the generated substrate so
+    /// values track `BlancSettingsDefaults`. `theme`/`searchEngine`/`adblockEnabled`
+    /// are parameterized so the live store can override the defaults;
+    /// `capabilities` lists the features this platform actually implements, so
+    /// `settings.js` hides the rest (iOS ships only theme/searchEngine/adblock).
+    private static func settingsBootstrap(
+        theme: BlancThemePreference = BlancSettingsDefaults.theme,
+        searchEngine: BlancSearchEngine = BlancSettingsDefaults.searchEngine,
+        adblockEnabled: Bool = BlancSettingsDefaults.adblockEnabled
+    ) -> JSONValue {
         let settings = JSONValue.object([
-            ("theme", .string(BlancSettingsDefaults.theme.rawValue)),
-            ("searchEngine", .string(BlancSettingsDefaults.searchEngine.rawValue)),
-            ("adblockEnabled", .bool(BlancSettingsDefaults.adblockEnabled)),
+            ("theme", .string(theme.rawValue)),
+            ("searchEngine", .string(searchEngine.rawValue)),
+            ("adblockEnabled", .bool(adblockEnabled)),
             ("homePage", .string(BlancSettingsDefaults.homePage)),
             ("usagePing", .bool(BlancSettingsDefaults.usagePing)),
             ("appIcon", .string(BlancSettingsDefaults.appIcon.rawValue)),
@@ -163,7 +170,25 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
             ("searchEngines", searchEngines),
             ("appIcons", appIcons),
             ("supporterIcons", supporter),
+            ("capabilities", .array([
+                .string("theme"),
+                .string("searchEngine"),
+                .string("adblockEnabled"),
+            ])),
         ])
+    }
+
+    /// Live settings for the instance path — overrides the bootstrap defaults with
+    /// the manager's current store so `settings.get` reflects real values.
+    private func liveSettingsBootstrap() -> JSONValue {
+        guard let store = manager?.settingsStore else {
+            return Self.settingsBootstrap()
+        }
+        return Self.settingsBootstrap(
+            theme: store.theme,
+            searchEngine: store.searchEngine,
+            adblockEnabled: store.adblockEnabled
+        )
     }
 
     // MARK: JS shim
@@ -254,9 +279,24 @@ final class PagesBridge: NSObject, WKScriptMessageHandler {
         let method = body["method"] as? String ?? ""
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
 
+        // settings.get/set need the live store + the manager's dispatch path, so
+        // they're handled on the instance; everything else uses the pure static
+        // response table.
+        let result: BridgeResult
+        if group == "settings", method == "get" {
+            result = .value(liveSettingsBootstrap())
+        } else if group == "settings", method == "set" {
+            if let patch = body["args"] as? [String: Any] {
+                manager?.applySettingsPatch(patch)
+            }
+            result = .value(.null)
+        } else {
+            result = Self.response(group: group, method: method, appVersion: version)
+        }
+
         let payload: String
         let ok: Bool
-        switch Self.response(group: group, method: method, appVersion: version) {
+        switch result {
         case .value(let v): payload = v.serialized; ok = true
         case .reject(let message): payload = JSONValue.string(message).serialized; ok = false
         }

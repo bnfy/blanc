@@ -83,4 +83,58 @@ final class TabsManager {
     func submitActiveTabAddress() {
         activeTab?.submitAddress(using: normalizer)
     }
+
+    /// Single dispatch path for bridge settings changes. Validates each field by
+    /// type, applies side effects (search engine → normalizer, adblock → tabs),
+    /// then routes the accepted values through `SettingsStore.update`, which
+    /// persists them. Unknown/invalid keys are ignored.
+    func applySettingsPatch(_ patch: [String: Any]) {
+        var themeUpdate: BlancThemePreference?
+        var engineUpdate: BlancSearchEngine?
+        var adblockUpdate: Bool?
+
+        if let raw = patch["theme"] as? String,
+           let value = BlancThemePreference(rawValue: raw) {
+            themeUpdate = value
+        }
+
+        if let raw = patch["searchEngine"] as? String,
+           let value = BlancSearchEngine(rawValue: raw) {
+            engineUpdate = value
+            normalizer.searchEngine = value
+        }
+
+        if let enabled = patch["adblockEnabled"] as? Bool {
+            adblockUpdate = enabled
+            applyAdblockToggle(enabled)
+        }
+
+        // One validated mutation that also schedules the debounced save.
+        settingsStore.update(theme: themeUpdate, searchEngine: engineUpdate, adblockEnabled: adblockUpdate)
+    }
+
+    private func applyAdblockToggle(_ enabled: Bool) {
+        contentBlocker.setEnabled(enabled)
+        if enabled {
+            if contentBlocker.isReady {
+                for tab in tabs {
+                    if let ruleList = contentBlocker.compiledRuleList {
+                        tab.webView.configuration.userContentController.add(ruleList)
+                        tab.webView.reload()
+                    }
+                }
+            } else {
+                // Cold-compile still in flight: queue each tab; drainPending attaches
+                // once the list is ready (setEnabled(true) re-opened attachment).
+                for tab in tabs {
+                    contentBlocker.attach(to: tab.webView)
+                }
+            }
+        } else {
+            for tab in tabs {
+                tab.webView.configuration.userContentController.removeAllContentRuleLists()
+                tab.webView.reload()
+            }
+        }
+    }
 }
