@@ -141,7 +141,6 @@
 
   const PIN_ICON = '<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>';
   const CARET_ICON = '<svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg>';
-  const PLUS_ICON = '<svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg>';
   const COMMANDS = [
     { cmd: '/favorites', hint: 'Open favorites' },
     { cmd: '/history', hint: 'Open browsing history' },
@@ -241,9 +240,8 @@
       html += secHead('no group', null, null, false);
       lay.loose.forEach((id) => { html += tabRow(id, { hl: id === opts.current }); });
     }
-    const group = activeGroup(lay, opts.current);
-    html += `<div class="trow"><span class="plus">${PLUS_ICON}</span><span class="title">${group ? `New tab in ${group.name}` : 'New tab'}</span><span class="kbd">⌘T</span></div>`;
-    html += `<div class="trow"><span class="plus">${PLUS_ICON}</span><span class="title">New private tab</span><span class="private-tag">private</span><span class="kbd">⌘⇧N</span></div>`;
+    // New-tab / private launchers live in the panel's footer bar (static
+    // markup), not as list rows — mirrors the app's #islandFooter.
     listEl.innerHTML = html;
   }
 
