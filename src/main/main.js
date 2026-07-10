@@ -22,6 +22,7 @@ const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const history = require('./history');
 const { JsonStore } = require('./store');
+const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -895,12 +896,14 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     tab.blockedCount = 0;
     tab.pageBg = null; // a new page's tint mustn't linger from the old one
     tab.themeColor = null;
-    // Only clear on an actual URL change: some sites (e.g. cnn.com) fire a
-    // second did-navigate for the same URL (a client-side soft reload),
-    // and page-favicon-updated doesn't necessarily refire when nothing
-    // changed from Chromium's perspective — blanking here unconditionally
-    // would then leave a correct favicon permanently cleared.
-    if (url !== tab.url) tab.favicon = null;
+    // Only clear on a genuine CROSS-ORIGIN navigation. Chromium doesn't
+    // re-fire page-favicon-updated for a same-origin navigation whose favicon
+    // is unchanged/already cached (e.g. apple.com/ -> apple.com/mac/), and a
+    // favicon.ico-only site has no <link> for upgradeFavicon to restore from —
+    // so blanking on same-origin (or on an identical-URL soft reload, as
+    // cnn.com fires) would leave a correct favicon permanently cleared. See
+    // favicon-policy.js + test/unit/favicon-policy.test.js.
+    if (shouldClearFaviconOnNavigate(tab.url, url)) tab.favicon = null;
     syncNavState();
     // Error responses stay out of history — a dead one-shot OAuth URL
     // recorded here resurfaces in the Quick Switcher as a destination.
