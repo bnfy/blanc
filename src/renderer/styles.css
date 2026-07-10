@@ -694,26 +694,27 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
   align-items: center;
   gap: 5px;
   height: 28px;
-  padding: 0 8px;
-  border-radius: var(--radius);
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
   color: var(--text-dim);
   font-family: var(--font-mono);
   font-size: 12px;
   white-space: nowrap;
   flex: 0 0 auto;
 }
-.footer-new:hover { background: var(--surface); color: var(--text); }
+.footer-new:hover { border-color: var(--text-dim); color: var(--text); }
 .footer-new svg { width: 13px; height: 13px; }
 
-/* Private launcher: hairline separator on its left, and its label wears the
-   dashed underline that marks private throughout the chrome. */
+/* Private launcher: the same pill, but a dashed border — the dashed marker
+   that denotes private throughout the chrome (so the label no longer needs
+   its own dashed underline). */
 .footer-new.private {
-  margin-left: 2px;
-  padding-left: 10px;
-  border-left: 1px solid var(--border);
-  border-radius: 0;
+  margin-left: 4px;
+  border-style: dashed;
+  border-color: var(--text-dim);
 }
-.footer-private-label { border-bottom: 1px dashed var(--text-dim); }
 
 .footer-kbd {
   font-size: 10.5px;
