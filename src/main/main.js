@@ -23,6 +23,7 @@ const bookmarks = require('./bookmarks');
 const history = require('./history');
 const { JsonStore } = require('./store');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
+const { setupWebAuthn } = require('./webauthn');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -1837,6 +1838,15 @@ function createMainWindow() {
 
 app.whenReady().then(async () => {
   const ses = session.defaultSession;
+
+  // Enables device-bound Touch ID passkeys in signed macOS builds. Existing
+  // iCloud Passwords passkeys remain gated on Apple's browser entitlement.
+  setupWebAuthn({
+    app,
+    session: ses,
+    dialog,
+    getParentWindow: () => (hasLiveWindow() ? win : null),
+  });
 
   // Unlike a webPreferences preload, a session preload also reaches adopted
   // target=_blank children without replacing the Chromium-created opener
