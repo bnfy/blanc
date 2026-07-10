@@ -13,6 +13,8 @@ final class TabsManager {
     @ObservationIgnored private let schemeHandler = BlancSchemeHandler()
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
     @ObservationIgnored private let contentBlocker = ContentBlocker()
+    @ObservationIgnored private let sessionStore: SessionStore
+    @ObservationIgnored private var isRestoringSession = false
 
     static let newTabURL = URL(string: "blanc://newtab/")!
 
@@ -25,9 +27,10 @@ final class TabsManager {
         contentBlocker.isReady && contentBlocker.enabled
     }
 
-    init(settingsDirectory: URL? = nil) {
+    init(settingsDirectory: URL? = nil, sessionDirectory: URL? = nil) {
         let store = SettingsStore(directory: settingsDirectory)
         self.settingsStore = store
+        self.sessionStore = SessionStore(directory: sessionDirectory)
         self.normalizer = AddressNormalizer(searchEngine: store.searchEngine)
 
         contentBlocker.enabled = store.adblockEnabled
@@ -38,7 +41,22 @@ final class TabsManager {
         if let loaded = ContentBlocker.loadBundledBlocklist() {
             contentBlocker.prepare(version: loaded.version, jsonProvider: loaded.loadJSON)
         }
-        createTab()
+
+        let savedURLs = sessionStore.urls.compactMap { URL(string: $0) }
+        if savedURLs.isEmpty {
+            createTab()
+        } else {
+            // Rebuild tabs without persisting each intermediate state, then set the
+            // active tab (clamped to range) and write the session once.
+            isRestoringSession = true
+            for url in savedURLs {
+                createTab(url: url)
+            }
+            let clampedIndex = min(max(sessionStore.activeIndex, 0), tabs.count - 1)
+            activeTabId = tabs[clampedIndex].id
+            isRestoringSession = false
+            persistSession()
+        }
     }
 
     @discardableResult
@@ -51,8 +69,13 @@ final class TabsManager {
         if contentBlocker.enabled && !contentBlocker.isReady {
             contentBlocker.attach(to: tab.webView)
         }
+        // Re-persist whenever this tab settles on a new URL (navigation/redirect).
+        tab.navigationDelegate.onURLChange = { [weak self] _ in
+            self?.persistSession()
+        }
         tabs.append(tab)
         activeTabId = tab.id
+        persistSession()
         return tab.id
     }
 
@@ -73,15 +96,33 @@ final class TabsManager {
             let nextIndex = min(index, tabs.count - 1)
             activeTabId = tabs[nextIndex].id
         }
+        persistSession()
     }
 
     func setActive(_ id: UUID) {
         guard tabs.contains(where: { $0.id == id }) else { return }
         activeTabId = id
+        persistSession()
     }
 
     func submitActiveTabAddress() {
         activeTab?.submitAddress(using: normalizer)
+    }
+
+    /// Snapshots the open tabs' URLs + active index to the session store
+    /// (debounced). Suppressed while restoring so intermediate createTab calls
+    /// don't overwrite the saved session mid-rebuild.
+    func persistSession() {
+        guard !isRestoringSession else { return }
+        guard !tabs.isEmpty else { return }
+        let urls = tabs.map { $0.currentURL.absoluteString }
+        let activeIdx = tabs.firstIndex(where: { $0.id == activeTabId }) ?? 0
+        sessionStore.save(urls: urls, activeIndex: activeIdx)
+    }
+
+    /// Test seam: collapse the 250ms session-save debounce to disk immediately.
+    func flushSession() {
+        sessionStore.flush()
     }
 
     /// Single dispatch path for bridge settings changes. Validates each field by

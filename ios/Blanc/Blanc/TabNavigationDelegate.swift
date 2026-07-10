@@ -5,6 +5,7 @@ import UIKit
 final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
     weak var tab: TabModel?
     private var lastRequested: URL?
+    var onURLChange: ((URL) -> Void)?
 
     func load(_ url: URL, in webView: WKWebView) {
         guard url != lastRequested else { return }
@@ -55,8 +56,20 @@ final class TabNavigationDelegate: NSObject, WKNavigationDelegate {
         tab.pageTitle = webView.title ?? ""
         if let u = webView.url {
             lastRequested = u
-            tab.currentURL = u
-            tab.addressText = u.absoluteString
+            applyURL(u, to: tab)
+        }
+    }
+
+    /// Updates the tab's URL fields and fires `onURLChange` only when the URL
+    /// actually changed — a same-URL reload must not trigger a session write.
+    /// Split out of `sync` (internal, not private) so the change-detection is
+    /// unit-testable without a live navigation.
+    func applyURL(_ newURL: URL, to tab: TabModel) {
+        let changed = newURL != tab.currentURL
+        tab.currentURL = newURL
+        tab.addressText = newURL.absoluteString
+        if changed {
+            onURLChange?(newURL)
         }
     }
 }

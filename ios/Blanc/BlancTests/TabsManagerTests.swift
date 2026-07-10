@@ -7,8 +7,11 @@ final class TabsManagerTests: XCTestCase {
             .appendingPathComponent("TabsManagerTests-\(UUID().uuidString)")
     }
 
-    private func makeManager() -> TabsManager {
-        TabsManager(settingsDirectory: tmpDir())
+    private func makeManager(settingsDir: URL? = nil, sessionDir: URL? = nil) -> TabsManager {
+        TabsManager(
+            settingsDirectory: settingsDir ?? tmpDir(),
+            sessionDirectory: sessionDir ?? tmpDir()
+        )
     }
 
     func testInitCreatesOneTab() {
@@ -145,5 +148,65 @@ final class TabsManagerTests: XCTestCase {
         let m = makeManager()
         m.applySettingsPatch(["adblockEnabled": false])
         XCTAssertEqual(m.settingsStore.adblockEnabled, false)
+    }
+
+    // MARK: - Session restore
+
+    func testRestoresTabsFromSession() {
+        let sessionDir = tmpDir()
+        let dict: [String: Any] = [
+            "urls": ["https://a.test/", "https://b.test/"],
+            "activeIndex": 1,
+        ]
+        let data = try! JSONSerialization.data(withJSONObject: dict)
+        try! FileManager.default.createDirectory(at: sessionDir, withIntermediateDirectories: true)
+        try! data.write(to: sessionDir.appendingPathComponent("session.json"))
+
+        let m = makeManager(sessionDir: sessionDir)
+        XCTAssertEqual(m.tabs.count, 2)
+        XCTAssertEqual(m.tabs[0].currentURL.absoluteString, "https://a.test/")
+        XCTAssertEqual(m.tabs[1].currentURL.absoluteString, "https://b.test/")
+        XCTAssertEqual(m.activeTab?.id, m.tabs[1].id)
+    }
+
+    func testEmptySessionCreatesBlankTab() {
+        let m = makeManager()
+        XCTAssertEqual(m.tabs.count, 1)
+        XCTAssertEqual(m.tabs[0].currentURL.absoluteString, "blanc://newtab/")
+    }
+
+    func testActiveIndexClampedToRange() {
+        let sessionDir = tmpDir()
+        let dict: [String: Any] = ["urls": ["https://a.test/"], "activeIndex": 99]
+        let data = try! JSONSerialization.data(withJSONObject: dict)
+        try! FileManager.default.createDirectory(at: sessionDir, withIntermediateDirectories: true)
+        try! data.write(to: sessionDir.appendingPathComponent("session.json"))
+
+        let m = makeManager(sessionDir: sessionDir)
+        XCTAssertEqual(m.tabs.count, 1)
+        XCTAssertEqual(m.activeTab?.id, m.tabs[0].id)
+    }
+
+    func testCorruptSessionCreatesBlankTab() {
+        let sessionDir = tmpDir()
+        try! FileManager.default.createDirectory(at: sessionDir, withIntermediateDirectories: true)
+        try! "broken".data(using: .utf8)!
+            .write(to: sessionDir.appendingPathComponent("session.json"))
+
+        let m = makeManager(sessionDir: sessionDir)
+        XCTAssertEqual(m.tabs.count, 1)
+        XCTAssertEqual(m.tabs[0].currentURL.absoluteString, "blanc://newtab/")
+    }
+
+    func testPersistSessionWritesTabURLsToDisk() {
+        let sessionDir = tmpDir()
+        let m = makeManager(sessionDir: sessionDir)
+        m.createTab(url: URL(string: "https://test.com/")!)
+        m.flushSession()   // collapse the debounce so the file is on disk to read
+
+        let data = try! Data(contentsOf: sessionDir.appendingPathComponent("session.json"))
+        let dict = try! JSONSerialization.jsonObject(with: data) as! [String: Any]
+        XCTAssertEqual(dict["urls"] as? [String], ["blanc://newtab/", "https://test.com/"])
+        XCTAssertEqual(dict["activeIndex"] as? Int, 1)
     }
 }
