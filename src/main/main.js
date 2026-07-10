@@ -1388,11 +1388,15 @@ function registerIpcHandlers() {
     const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), {
       private: isPrivate,
     });
-    // A blank "New Tab" (no explicit url) is a launchpad — keep OS focus on
-    // the chrome so the address bar can take it. A url means the caller has
-    // somewhere specific to go, so focus the page content.
+    // A blank "New Tab" (no explicit url) is normally a launchpad — keep OS
+    // focus on the chrome so the address bar can take it. A url means the
+    // caller has somewhere specific to go, so focus the page content. The
+    // island footer's New-tab/Private buttons opt out with focusAddress:false:
+    // they close the panel and land the user directly on the fresh tab rather
+    // than re-summoning the launchpad.
     const blank = !url;
-    setActiveTab(id, { focusContent: !blank, focusAddress: blank });
+    const focusAddress = opts?.focusAddress ?? blank;
+    setActiveTab(id, { focusContent: !focusAddress, focusAddress });
     return id;
   });
   ipcMain.handle('tabs:close', (_e, id) => closeTab(id));

@@ -390,8 +390,8 @@
     { cmd: '/downloads', hint: 'Open downloads', run: () => window.browserAPI.openPage('downloads') },
     { cmd: '/settings', hint: 'Open settings', run: () => window.browserAPI.openPage('settings') },
     { cmd: '/clear', hint: 'Clear browsing history', run: () => window.browserAPI.clearHistory() },
-    { cmd: '/new', hint: 'Open a new tab', run: () => window.browserAPI.createTab() },
-    { cmd: '/private', hint: 'Open a private tab (history stays untouched)', run: () => window.browserAPI.createTab(null, { private: true }) },
+    { cmd: '/new', hint: 'Open a new tab', run: () => window.browserAPI.createTab(null, { focusAddress: false }) },
+    { cmd: '/private', hint: 'Open a private tab (history stays untouched)', run: () => window.browserAPI.createTab(null, { private: true, focusAddress: false }) },
     { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
     { cmd: '/pin', hint: 'Pin or unpin this tab', run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
     { cmd: '/mute', hint: 'Mute or unmute this tab', run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
@@ -721,13 +721,15 @@
   footerNewTab.title = `New tab (${modKey}T)`;
   footerNewPrivate.title = `New private tab (${modShiftKey}N)`;
 
+  // focusAddress:false keeps the panel closed and lands the user on the fresh
+  // tab, rather than main re-summoning the launchpad (its default for ⌘T).
   footerNewTab.addEventListener('click', () => {
     window.browserAPI.closeOverlay();
-    window.browserAPI.createTab(); // main reopens the panel focused on the blank tab
+    window.browserAPI.createTab(null, { focusAddress: false });
   });
   footerNewPrivate.addEventListener('click', () => {
     window.browserAPI.closeOverlay();
-    window.browserAPI.createTab(null, { private: true });
+    window.browserAPI.createTab(null, { private: true, focusAddress: false });
   });
   // Each shortcut opens its internal page; close first so main can re-show
   // the overlay cleanly where needed (mirrors runCommand for /favorites etc).
