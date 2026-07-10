@@ -1,7 +1,7 @@
 import Foundation
 
 struct AddressNormalizer {
-    let searchEngine: BlancSearchEngine
+    var searchEngine: BlancSearchEngine
 
     private static let queryAllowed: CharacterSet = {
         var s = CharacterSet()

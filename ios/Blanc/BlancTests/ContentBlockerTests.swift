@@ -243,6 +243,77 @@ final class ContentBlockerTests: XCTestCase {
         XCTAssertEqual(kept.attachCount, 1, "targets still queued at drain time are attached")
     }
 
+    // MARK: - Enabled gate
+
+    func testAttachIsNoOpWhenDisabled() {
+        let store = FakeRuleListStore()
+        store.lookupResult = true
+        let blocker = ContentBlocker(store: store)
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
+        blocker.setEnabled(false)
+
+        let target = FakeAttachTarget()
+        blocker.attach(to: target)
+        XCTAssertEqual(target.attachCount, 0)
+    }
+
+    func testDrainSkipsWhenDisabled() {
+        let store = FakeRuleListStore()
+        store.lookupResult = false
+        store.compileResult = false
+        let blocker = ContentBlocker(store: store)
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
+
+        let target = FakeAttachTarget()
+        blocker.attach(to: target)
+        blocker.setEnabled(false)
+
+        store.flushLookup(found: false)
+        store.flushCompile()
+
+        XCTAssertEqual(target.attachCount, 0, "drain must not attach when disabled")
+    }
+
+    func testSetEnabledFalseClearsPendingTargets() {
+        let store = FakeRuleListStore()
+        store.lookupResult = false
+        store.compileResult = false
+        let blocker = ContentBlocker(store: store)
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
+
+        let target = FakeAttachTarget()
+        blocker.attach(to: target)
+        blocker.setEnabled(false)
+        blocker.setEnabled(true)
+
+        store.flushLookup(found: false)
+        store.flushCompile()
+
+        XCTAssertEqual(target.attachCount, 0,
+            "re-enabling after disable must not drain stale targets (queue was cleared)")
+    }
+
+    func testPrepareWhileDisabledReadiesAndReenableAttaches() {
+        // A persisted "adblock disabled" launch must still compile the list, so a
+        // later enable has a ready engine to attach — otherwise isReady never flips
+        // true and tabs queue forever. (TabsManager.init always calls prepare.)
+        let store = FakeRuleListStore()
+        store.lookupResult = true            // warm cache: prepare → isReady immediately
+        let blocker = ContentBlocker(store: store)
+        blocker.setEnabled(false)
+        blocker.prepare(version: "abc", jsonProvider: { "[]" })
+
+        XCTAssertTrue(blocker.isReady, "prepare must complete even while disabled")
+
+        let target = FakeAttachTarget()
+        blocker.attach(to: target)
+        XCTAssertEqual(target.attachCount, 0, "attach is a no-op while disabled")
+
+        blocker.setEnabled(true)
+        blocker.attach(to: target)
+        XCTAssertEqual(target.attachCount, 1, "re-enable after a disabled-launch prepare attaches")
+    }
+
     // MARK: - Integration Test
 
     func testBundledBlocklistCompilesInWebKit() {

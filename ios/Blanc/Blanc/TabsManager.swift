@@ -7,7 +7,8 @@ final class TabsManager {
     private(set) var tabs: [TabModel] = []
     var activeTabId: UUID?
 
-    let normalizer = AddressNormalizer(searchEngine: BlancSettingsDefaults.searchEngine)
+    let settingsStore: SettingsStore
+    var normalizer: AddressNormalizer
 
     @ObservationIgnored private let schemeHandler = BlancSchemeHandler()
     @ObservationIgnored private lazy var bridge = PagesBridge(manager: self)
@@ -21,10 +22,19 @@ final class TabsManager {
     }
 
     var isAdBlockReady: Bool {
-        contentBlocker.isReady
+        contentBlocker.isReady && contentBlocker.enabled
     }
 
-    init() {
+    init(settingsDirectory: URL? = nil) {
+        let store = SettingsStore(directory: settingsDirectory)
+        self.settingsStore = store
+        self.normalizer = AddressNormalizer(searchEngine: store.searchEngine)
+
+        contentBlocker.enabled = store.adblockEnabled
+
+        // Always compile the blocklist, even when disabled — `enabled` gates only
+        // attachment (see ContentBlocker). Skipping prepare while disabled would
+        // leave isReady forever false, so a later enable would queue tabs forever.
         if let loaded = ContentBlocker.loadBundledBlocklist() {
             contentBlocker.prepare(version: loaded.version, jsonProvider: loaded.loadJSON)
         }
@@ -34,11 +44,11 @@ final class TabsManager {
     @discardableResult
     func createTab(url: URL = TabsManager.newTabURL) -> UUID {
         let config = WebViewConfiguration.make(schemeHandler: schemeHandler, bridge: bridge)
-        if let ruleList = contentBlocker.compiledRuleList {
+        if contentBlocker.enabled, let ruleList = contentBlocker.compiledRuleList {
             config.userContentController.add(ruleList)
         }
         let tab = TabModel(url: url, configuration: config)
-        if !contentBlocker.isReady {
+        if contentBlocker.enabled && !contentBlocker.isReady {
             contentBlocker.attach(to: tab.webView)
         }
         tabs.append(tab)

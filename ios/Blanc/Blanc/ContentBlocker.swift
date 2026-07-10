@@ -85,6 +85,9 @@ final class ContentBlocker {
     }
 
     var isReady = false
+    /// Runtime blocking toggle (Settings → adblock). Gates *attachment* only;
+    /// the engine is still compiled at launch so a later enable has a ready list.
+    var enabled: Bool = true
 
     @ObservationIgnored var compiledRuleList: WKContentRuleList?
     @ObservationIgnored private let store: RuleListStoring
@@ -126,6 +129,7 @@ final class ContentBlocker {
     }
 
     func attach(to target: RuleListAttaching) {
+        guard enabled else { return }
         if isReady {
             target.attachContentBlockingRules(from: self)
         } else {
@@ -140,6 +144,16 @@ final class ContentBlocker {
     /// skips any box whose target deallocated while queued.
     func cancelPending(for target: RuleListAttaching) {
         pendingTargets.removeAll { $0.target === target }
+    }
+
+    /// Toggles request blocking at runtime (Settings). Disabling clears the
+    /// pending-attach queue so a later re-enable during the cold-compile window
+    /// produces exactly one attachment per tab, not a stale duplicate.
+    func setEnabled(_ newValue: Bool) {
+        enabled = newValue
+        if !newValue {
+            pendingTargets.removeAll()
+        }
     }
 
     private func compile(version: String, jsonString: String) {
@@ -161,6 +175,7 @@ final class ContentBlocker {
     private func drainPending() {
         let boxes = pendingTargets
         pendingTargets.removeAll()
+        guard enabled else { return }
         for box in boxes {
             // Skip any target that deallocated while queued (e.g. a tab closed mid-compile).
             box.target?.attachContentBlockingRules(from: self)

@@ -2,15 +2,24 @@ import XCTest
 @testable import Blanc
 
 final class TabsManagerTests: XCTestCase {
+    private func tmpDir() -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("TabsManagerTests-\(UUID().uuidString)")
+    }
+
+    private func makeManager() -> TabsManager {
+        TabsManager(settingsDirectory: tmpDir())
+    }
+
     func testInitCreatesOneTab() {
-        let m = TabsManager()
+        let m = makeManager()
         XCTAssertEqual(m.tabs.count, 1)
         XCTAssertNotNil(m.activeTabId)
         XCTAssertNotNil(m.activeTab)
     }
 
     func testCreateTabAddsAndActivates() {
-        let m = TabsManager()
+        let m = makeManager()
         let before = m.tabs.count
         let id = m.createTab()
         XCTAssertEqual(m.tabs.count, before + 1)
@@ -18,7 +27,7 @@ final class TabsManagerTests: XCTestCase {
     }
 
     func testCloseTabRemoves() {
-        let m = TabsManager()
+        let m = makeManager()
         let id = m.createTab()
         let count = m.tabs.count
         m.closeTab(id)
@@ -26,7 +35,7 @@ final class TabsManagerTests: XCTestCase {
     }
 
     func testCloseActivePicksRightNeighbor() {
-        let m = TabsManager()
+        let m = makeManager()
         let _ = m.createTab(url: URL(string: "https://b.test")!)
         let c = m.createTab(url: URL(string: "https://c.test")!)
         let b = m.tabs[1].id
@@ -36,7 +45,7 @@ final class TabsManagerTests: XCTestCase {
     }
 
     func testCloseRightmostActivePicksLeft() {
-        let m = TabsManager()
+        let m = makeManager()
         let a = m.tabs[0].id
         let b = m.createTab(url: URL(string: "https://b.test")!)
         m.closeTab(b)
@@ -44,7 +53,7 @@ final class TabsManagerTests: XCTestCase {
     }
 
     func testCloseLastCreatesNew() {
-        let m = TabsManager()
+        let m = makeManager()
         let onlyId = m.tabs[0].id
         m.closeTab(onlyId)
         XCTAssertEqual(m.tabs.count, 1)
@@ -53,7 +62,7 @@ final class TabsManagerTests: XCTestCase {
     }
 
     func testSetActive() {
-        let m = TabsManager()
+        let m = makeManager()
         let a = m.tabs[0].id
         let _ = m.createTab()
         m.setActive(a)
@@ -61,23 +70,44 @@ final class TabsManagerTests: XCTestCase {
     }
 
     func testSetActiveIgnoresUnknownId() {
-        let m = TabsManager()
+        let m = makeManager()
         let before = m.activeTabId
         m.setActive(UUID())
         XCTAssertEqual(m.activeTabId, before)
     }
 
     func testActiveTabMatchesId() {
-        let m = TabsManager()
+        let m = makeManager()
         let id = m.createTab(url: URL(string: "https://test.com")!)
         XCTAssertEqual(m.activeTab?.id, id)
     }
 
     func testCloseNonActivePreservesActive() {
-        let m = TabsManager()
+        let m = makeManager()
         let a = m.tabs[0].id
         let b = m.createTab()
         m.closeTab(a)
         XCTAssertEqual(m.activeTabId, b)
+    }
+
+    func testInitReadsStoredSearchEngine() {
+        let dir = tmpDir()
+        let data = try! JSONSerialization.data(withJSONObject: ["searchEngine": "brave"])
+        try! FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try! data.write(to: dir.appendingPathComponent("settings.json"))
+
+        let m = TabsManager(settingsDirectory: dir)
+        XCTAssertEqual(m.normalizer.searchEngine, .brave)
+    }
+
+    func testInitReadsStoredAdblockDisabled() {
+        let dir = tmpDir()
+        let data = try! JSONSerialization.data(withJSONObject: ["adblockEnabled": false])
+        try! FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try! data.write(to: dir.appendingPathComponent("settings.json"))
+
+        let m = TabsManager(settingsDirectory: dir)
+        XCTAssertEqual(m.settingsStore.adblockEnabled, false)
+        XCTAssertFalse(m.isAdBlockReady)
     }
 }

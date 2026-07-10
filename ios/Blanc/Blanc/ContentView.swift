@@ -1,12 +1,17 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var manager = TabsManager()
+    let manager: TabsManager
     @State private var showPalette = false
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var theme: BlancTheme {
+        resolvedTheme(preference: manager.settingsStore.theme, systemScheme: colorScheme)
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            (Color(blancHex: BlancTokens.bg(.light)) ?? .white)
+            (Color(blancHex: BlancTokens.bg(theme)) ?? .white)
                 .ignoresSafeArea()
 
             if let tab = manager.activeTab {
@@ -62,7 +67,7 @@ struct ContentView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .modifier(PillStyle())
+        .modifier(PillStyle(theme: theme))
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
     }
@@ -99,17 +104,19 @@ struct ContentView: View {
 }
 
 private struct PillStyle: ViewModifier {
+    let theme: BlancTheme
+
     @ViewBuilder
     func body(content: Content) -> some View {
         if #available(iOS 26, *) {
             content.glassEffect(.regular.interactive(), in: .capsule)
         } else {
             content
-                .background(Color(blancHex: BlancTokens.surfaceRaised(.light)) ?? .white)
+                .background(Color(blancHex: BlancTokens.surfaceRaised(theme)) ?? .white)
                 .clipShape(Capsule())
-                .overlay(Capsule().stroke(Color(blancHex: BlancTokens.border(.light)) ?? .gray))
+                .overlay(Capsule().stroke(Color(blancHex: BlancTokens.border(theme)) ?? .gray))
         }
     }
 }
 
-#Preview { ContentView() }
+#Preview { ContentView(manager: TabsManager()) }

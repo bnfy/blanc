@@ -9,9 +9,20 @@ import SwiftUI
 
 @main
 struct BlancApp: App {
+    @State private var manager = TabsManager()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(manager: manager)
+                .preferredColorScheme(preferredScheme)
+        }
+    }
+
+    private var preferredScheme: ColorScheme? {
+        switch manager.settingsStore.theme {
+        case .system: return nil
+        case .light: return .light
+        case .dark: return .dark
         }
     }
 }
