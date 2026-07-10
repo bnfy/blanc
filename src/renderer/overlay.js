@@ -191,6 +191,7 @@
     const title = document.createElement('span');
     title.className = 'row-title';
     title.textContent = tab.isLoading ? 'Loading…' : tab.title || 'New Tab';
+    if (tab.title) title.title = tab.title;
 
     const sub = document.createElement('span');
     sub.className = 'row-sub';
