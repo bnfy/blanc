@@ -80,7 +80,7 @@ final class PagesBridgeTests: XCTestCase {
             return XCTFail("settings.get should be an object")
         }
         let keys = pairs.map(\.0)
-        XCTAssertEqual(keys, ["settings", "searchEngines", "appIcons", "supporterIcons"])
+        XCTAssertEqual(keys, ["settings", "searchEngines", "appIcons", "supporterIcons", "capabilities"])
 
         let dict = Dictionary(uniqueKeysWithValues: pairs)
         // 4 search engines, 8 free icons, 3 supporter icons.
@@ -99,6 +99,22 @@ final class PagesBridgeTests: XCTestCase {
             XCTAssertEqual(sd["searchEngine"], JSONValue.string(BlancSettingsDefaults.searchEngine.rawValue))
             XCTAssertEqual(sd["supporterActive"], JSONValue.bool(false))
         } else { XCTFail("settings must be an object") }
+    }
+
+    // settings.get advertises the platform capabilities settings.js gates on.
+    func testSettingsGetCapabilities() {
+        guard case .object(let pairs) = value("settings", "get") else {
+            return XCTFail("settings.get should be an object")
+        }
+        let dict = Dictionary(uniqueKeysWithValues: pairs)
+        guard case .array(let caps)? = dict["capabilities"] else {
+            return XCTFail("capabilities must be an array")
+        }
+        let capStrings = caps.compactMap { val -> String? in
+            if case .string(let s) = val { return s }
+            return nil
+        }
+        XCTAssertEqual(Set(capStrings), Set(["theme", "searchEngine", "adblockEnabled"]))
     }
 
     // shortcuts.list is stubbed (typeable via the address bar), not rejected.

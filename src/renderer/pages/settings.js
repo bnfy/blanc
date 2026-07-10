@@ -1,11 +1,22 @@
 (async () => {
+  const { settings, searchEngines, appIcons, supporterIcons, capabilities } =
+    await window.bowserPages.settings.get();
+
+  // Desktop sends no `capabilities` field → every feature is supported and this
+  // file behaves exactly as before. A platform that DOES send the list (iOS)
+  // gets each unsupported feature skipped ENTIRELY — no child getElementById, no
+  // bridge call to an unimplemented method, no listener — then its control is
+  // removed. Guarding (not merely removing) matters because several sections
+  // `await` a bridge method on load; an unimplemented one rejects and would
+  // abort this whole IIFE, and removing a container first makes its children
+  // un-findable by id (getElementById → null → `.addEventListener` throws).
+  const cap = capabilities ? new Set(capabilities) : null;
+  const supports = (feature) => !cap || cap.has(feature);
+
+  // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');
   const searchEngine = document.getElementById('searchEngine');
   const adblockEnabled = document.getElementById('adblockEnabled');
-  const homePage = document.getElementById('homePage');
-  const usagePing = document.getElementById('usagePing');
-
-  const { settings, searchEngines, appIcons, supporterIcons } = await window.bowserPages.settings.get();
 
   for (const [key, label] of Object.entries(searchEngines)) {
     const opt = document.createElement('option');
@@ -16,8 +27,6 @@
   theme.value = settings.theme ?? 'system';
   searchEngine.value = settings.searchEngine;
   adblockEnabled.checked = settings.adblockEnabled;
-  homePage.value = settings.homePage;
-  usagePing.checked = settings.usagePing;
 
   theme.addEventListener('change', () =>
     window.bowserPages.settings.set({ theme: theme.value }));
@@ -25,14 +34,30 @@
     window.bowserPages.settings.set({ searchEngine: searchEngine.value }));
   adblockEnabled.addEventListener('change', () =>
     window.bowserPages.settings.set({ adblockEnabled: adblockEnabled.checked }));
-  homePage.addEventListener('change', () =>
-    window.bowserPages.settings.set({ homePage: homePage.value }));
-  usagePing.addEventListener('change', () =>
-    window.bowserPages.settings.set({ usagePing: usagePing.checked }));
+
+  // --- Home page ---
+  if (supports('homePage')) {
+    const homePage = document.getElementById('homePage');
+    homePage.value = settings.homePage;
+    homePage.addEventListener('change', () =>
+      window.bowserPages.settings.set({ homePage: homePage.value }));
+  } else {
+    document.getElementById('homePage')?.closest('.setting')?.remove();
+  }
+
+  // --- Usage ping ---
+  if (supports('usagePing')) {
+    const usagePing = document.getElementById('usagePing');
+    usagePing.checked = settings.usagePing;
+    usagePing.addEventListener('change', () =>
+      window.bowserPages.settings.set({ usagePing: usagePing.checked }));
+  } else {
+    document.getElementById('usagePing')?.closest('.setting')?.remove();
+  }
 
   // --- Default browser (live OS state, nothing stored) ---
   const defaultBrowserSetting = document.getElementById('defaultBrowserSetting');
-  if (navigator.platform.includes('Linux')) {
+  if (!supports('defaultBrowser') || navigator.platform.includes('Linux')) {
     defaultBrowserSetting.remove();
   } else {
     const defaultBrowserBtn = document.getElementById('defaultBrowserBtn');
@@ -56,6 +81,10 @@
   }
 
   // --- App icon colorways (Dock icon is macOS-only) ---
+  // These four bindings stay in IIFE scope unconditionally because the Supporter
+  // section below reads `supporterActive` and calls `renderAppIconGrid`. The
+  // function/const definitions are inert until called; only the executable tail
+  // (render vs. remove) is gated.
   const appIconSetting = document.getElementById('appIconSetting');
   let supporterActive = settings.supporterActive ?? false;
   const appIconGrid = document.getElementById('appIconGrid');
@@ -125,7 +154,7 @@
     iconNext.disabled = appIconGrid.scrollLeft >= max - 1;
   }
 
-  if (!navigator.platform.startsWith('Mac')) {
+  if (!supports('appIcon') || !navigator.platform.startsWith('Mac')) {
     appIconSetting.remove();
   } else {
     iconPrev.addEventListener('click', () =>
@@ -138,246 +167,277 @@
   }
 
   // --- Supporter activation ---
-  const supporterActivateRow = document.getElementById('supporterActivateRow');
-  const supporterKey = document.getElementById('supporterKey');
-  const supporterActivateBtn = document.getElementById('supporterActivate');
-  const supporterStatus = document.getElementById('supporterStatus');
+  if (supports('supporter')) {
+    const supporterActivateRow = document.getElementById('supporterActivateRow');
+    const supporterKey = document.getElementById('supporterKey');
+    const supporterActivateBtn = document.getElementById('supporterActivate');
+    const supporterStatus = document.getElementById('supporterStatus');
 
-  function renderSupporterState() {
-    if (!supporterActive) return;
-    supporterActivateRow.hidden = true;
-    const when = settings.supporterActivatedAt
-      ? new Date(settings.supporterActivatedAt).toLocaleDateString()
-      : null;
-    supporterStatus.textContent = when
-      ? `You’re a supporter — thank you. Activated ${when}.`
-      : 'You’re a supporter — thank you.';
-  }
-  renderSupporterState();
-
-  async function activateSupporter() {
-    // Also guards the Enter-keydown listener below — without this, OS
-    // key-repeat while holding Enter fires concurrent activation requests.
-    if (supporterActivateBtn.disabled) return;
-    supporterActivateBtn.disabled = true;
-    supporterStatus.textContent = 'Activating…';
-    const result = await window.bowserPages.settings.activateSupporter(supporterKey.value);
-    supporterActivateBtn.disabled = false;
-    if (result.ok) {
-      supporterActive = true;
-      settings.supporterActivatedAt = result.activatedAt;
-      renderSupporterState();
-      if (navigator.platform.startsWith('Mac')) renderAppIconGrid();
-    } else {
-      supporterStatus.textContent = result.message;
+    function renderSupporterState() {
+      if (!supporterActive) return;
+      supporterActivateRow.hidden = true;
+      const when = settings.supporterActivatedAt
+        ? new Date(settings.supporterActivatedAt).toLocaleDateString()
+        : null;
+      supporterStatus.textContent = when
+        ? `You’re a supporter — thank you. Activated ${when}.`
+        : 'You’re a supporter — thank you.';
     }
+    renderSupporterState();
+
+    async function activateSupporter() {
+      // Also guards the Enter-keydown listener below — without this, OS
+      // key-repeat while holding Enter fires concurrent activation requests.
+      if (supporterActivateBtn.disabled) return;
+      supporterActivateBtn.disabled = true;
+      supporterStatus.textContent = 'Activating…';
+      const result = await window.bowserPages.settings.activateSupporter(supporterKey.value);
+      supporterActivateBtn.disabled = false;
+      if (result.ok) {
+        supporterActive = true;
+        settings.supporterActivatedAt = result.activatedAt;
+        renderSupporterState();
+        if (navigator.platform.startsWith('Mac')) renderAppIconGrid();
+      } else {
+        supporterStatus.textContent = result.message;
+      }
+    }
+    supporterActivateBtn.addEventListener('click', activateSupporter);
+    supporterKey.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') activateSupporter();
+    });
+  } else {
+    document.getElementById('group-supporter')?.remove();
   }
-  supporterActivateBtn.addEventListener('click', activateSupporter);
-  supporterKey.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') activateSupporter();
-  });
 
   // --- Site permissions ---
-  const permissionList = document.getElementById('permissionList');
-  const PERMISSION_LABELS = { media: 'Camera/microphone', geolocation: 'Location', notifications: 'Notifications' };
+  if (supports('permissions')) {
+    const permissionList = document.getElementById('permissionList');
+    const PERMISSION_LABELS = { media: 'Camera/microphone', geolocation: 'Location', notifications: 'Notifications' };
 
-  async function refreshPermissions() {
-    const decisions = await window.bowserPages.permissions.list();
-    permissionList.replaceChildren();
+    async function refreshPermissions() {
+      const decisions = await window.bowserPages.permissions.list();
+      permissionList.replaceChildren();
 
-    const entries = Object.entries(decisions);
-    if (entries.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'empty';
-      empty.textContent = 'No saved decisions. Sites ask the first time they need something.';
-      permissionList.append(empty);
-      return;
-    }
+      const entries = Object.entries(decisions);
+      if (entries.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No saved decisions. Sites ask the first time they need something.';
+        permissionList.append(empty);
+        return;
+      }
 
-    for (const [key, decision] of entries.sort(([a], [b]) => a.localeCompare(b))) {
-      const [origin, permission] = key.split('|');
-      const row = document.createElement('div');
-      row.className = 'row';
+      for (const [key, decision] of entries.sort(([a], [b]) => a.localeCompare(b))) {
+        const [origin, permission] = key.split('|');
+        const row = document.createElement('div');
+        row.className = 'row';
 
-      const main = document.createElement('div');
-      main.className = 'main';
-      const title = document.createElement('div');
-      title.className = 'title';
-      title.textContent = new URL(origin).host;
-      main.append(title);
+        const main = document.createElement('div');
+        main.className = 'main';
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = new URL(origin).host;
+        main.append(title);
 
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent = `${PERMISSION_LABELS[permission] ?? permission} — ${decision === 'allow' ? 'Allowed' : 'Blocked'}`;
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = `${PERMISSION_LABELS[permission] ?? permission} — ${decision === 'allow' ? 'Allowed' : 'Blocked'}`;
 
-      const actions = document.createElement('div');
-      actions.className = 'actions';
-      const remove = document.createElement('button');
-      remove.className = 'danger';
-      remove.textContent = 'Remove';
-      remove.addEventListener('click', async () => {
-        await window.bowserPages.permissions.remove(key);
-        refreshPermissions();
-      });
-      actions.append(remove);
-
-      row.append(main, meta, actions);
-      permissionList.append(row);
-    }
-  }
-
-  refreshPermissions();
-
-  // --- Ad-block exceptions ---
-  const exceptionInput = document.getElementById('exceptionInput');
-  const exceptionAdd = document.getElementById('exceptionAdd');
-  const exceptionList = document.getElementById('exceptionList');
-
-  function normalizeHostname(input) {
-    try {
-      return new URL(input.includes('://') ? input : `https://${input}`).hostname
-        .toLowerCase()
-        .replace(/^www\./, '');
-    } catch {
-      return null;
-    }
-  }
-
-  async function refreshExceptions() {
-    const { settings: current } = await window.bowserPages.settings.get();
-    const exceptions = current.adblockExceptions ?? [];
-    exceptionList.replaceChildren();
-
-    if (exceptions.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'empty';
-      empty.textContent = 'No exceptions added.';
-      exceptionList.append(empty);
-      return;
-    }
-
-    for (const hostname of [...exceptions].sort()) {
-      const row = document.createElement('div');
-      row.className = 'row';
-
-      const main = document.createElement('div');
-      main.className = 'main';
-      const title = document.createElement('div');
-      title.className = 'title';
-      title.textContent = hostname;
-      main.append(title);
-
-      const actions = document.createElement('div');
-      actions.className = 'actions';
-      const remove = document.createElement('button');
-      remove.className = 'danger';
-      remove.textContent = 'Remove';
-      remove.addEventListener('click', async () => {
-        await window.bowserPages.settings.set({
-          adblockExceptions: exceptions.filter((h) => h !== hostname),
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const remove = document.createElement('button');
+        remove.className = 'danger';
+        remove.textContent = 'Remove';
+        remove.addEventListener('click', async () => {
+          await window.bowserPages.permissions.remove(key);
+          refreshPermissions();
         });
-        refreshExceptions();
-      });
-      actions.append(remove);
+        actions.append(remove);
 
-      row.append(main, actions);
-      exceptionList.append(row);
-    }
-  }
-
-  async function addException() {
-    const hostname = normalizeHostname(exceptionInput.value.trim());
-    if (!hostname) return;
-    const { settings: current } = await window.bowserPages.settings.get();
-    const exceptions = new Set(current.adblockExceptions ?? []);
-    exceptions.add(hostname);
-    await window.bowserPages.settings.set({ adblockExceptions: [...exceptions] });
-    exceptionInput.value = '';
-    refreshExceptions();
-  }
-
-  exceptionAdd.addEventListener('click', addException);
-  exceptionInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') addException();
-  });
-
-  refreshExceptions();
-
-  // --- Clear browsing data ---
-  const clearBrowsingData = document.getElementById('clearBrowsingData');
-  const clearBrowsingDataStatus = document.getElementById('clearBrowsingDataStatus');
-
-  clearBrowsingData.addEventListener('click', async () => {
-    if (!confirm('Clear all cookies, cache, and site data? You will be logged out of everything.')) return;
-    await window.bowserPages.clearBrowsingData();
-    clearBrowsingDataStatus.textContent = 'Cleared.';
-    setTimeout(() => { clearBrowsingDataStatus.textContent = ''; }, 2000);
-  });
-
-  // --- Sync ---
-  (function initSync() {
-    const setup = document.getElementById('syncSetup');
-    const active = document.getElementById('syncActive');
-    const handleEl = document.getElementById('syncHandle');
-    const passEl = document.getElementById('syncPassphrase');
-    const enableBtn = document.getElementById('syncEnable');
-    const setupStatus = document.getElementById('syncSetupStatus');
-    const activeStatus = document.getElementById('syncActiveStatus');
-    const nowBtn = document.getElementById('syncNow');
-    const disableBtn = document.getElementById('syncDisable');
-    const wipeEl = document.getElementById('syncWipe');
-
-    const when = (ts) => (ts ? new Date(ts).toLocaleString() : 'never');
-    function render(status, note) {
-      const on = !!status.enabled;
-      setup.hidden = on;
-      active.hidden = !on;
-      if (on) {
-        const base = status.lastError
-          ? `Sync is on (${status.handle}). ${status.lastError}`
-          : `Sync is on (${status.handle}). Last synced ${when(status.lastSyncedAt)}.`;
-        activeStatus.textContent = note ? `${note} ${base}` : base;
-      } else {
-        setupStatus.textContent = note || '';
+        row.append(main, meta, actions);
+        permissionList.append(row);
       }
     }
 
-    window.bowserPages.settings.syncGet().then(render).catch(() => {});
+    refreshPermissions();
+  } else {
+    document.getElementById('permissionList')?.closest('.group-subsection')?.remove();
+  }
 
-    async function enable() {
-      if (enableBtn.disabled) return;
-      enableBtn.disabled = true;
-      setupStatus.textContent = 'Turning on sync…';
-      const res = await window.bowserPages.settings.syncEnable({ handle: handleEl.value, passphrase: passEl.value });
-      enableBtn.disabled = false;
-      passEl.value = '';
-      // Sync can be ON even when the first sync failed (offline), so always
-      // reflect the real status. A brand-new account gets a heads-up in case
-      // the passphrase was mistyped — a wrong one silently starts a new one.
-      const note = res.created
-        ? `Started a new sync account for “${handleEl.value.trim()}”. If you have data on another device, turn sync off and check the name and passphrase match exactly.`
-        : (res.ok ? null : res.message);
-      render(res.status, note);
+  // --- Ad-block exceptions ---
+  if (supports('adblockExceptions')) {
+    const exceptionInput = document.getElementById('exceptionInput');
+    const exceptionAdd = document.getElementById('exceptionAdd');
+    const exceptionList = document.getElementById('exceptionList');
+
+    function normalizeHostname(input) {
+      try {
+        return new URL(input.includes('://') ? input : `https://${input}`).hostname
+          .toLowerCase()
+          .replace(/^www\./, '');
+      } catch {
+        return null;
+      }
     }
-    enableBtn.addEventListener('click', enable);
-    passEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') enable(); });
 
-    nowBtn.addEventListener('click', async () => {
-      nowBtn.disabled = true;
-      activeStatus.textContent = 'Syncing…';
-      render(await window.bowserPages.settings.syncNow());
-      nowBtn.disabled = false;
+    async function refreshExceptions() {
+      const { settings: current } = await window.bowserPages.settings.get();
+      const exceptions = current.adblockExceptions ?? [];
+      exceptionList.replaceChildren();
+
+      if (exceptions.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.textContent = 'No exceptions added.';
+        exceptionList.append(empty);
+        return;
+      }
+
+      for (const hostname of [...exceptions].sort()) {
+        const row = document.createElement('div');
+        row.className = 'row';
+
+        const main = document.createElement('div');
+        main.className = 'main';
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = hostname;
+        main.append(title);
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        const remove = document.createElement('button');
+        remove.className = 'danger';
+        remove.textContent = 'Remove';
+        remove.addEventListener('click', async () => {
+          await window.bowserPages.settings.set({
+            adblockExceptions: exceptions.filter((h) => h !== hostname),
+          });
+          refreshExceptions();
+        });
+        actions.append(remove);
+
+        row.append(main, actions);
+        exceptionList.append(row);
+      }
+    }
+
+    async function addException() {
+      const hostname = normalizeHostname(exceptionInput.value.trim());
+      if (!hostname) return;
+      const { settings: current } = await window.bowserPages.settings.get();
+      const exceptions = new Set(current.adblockExceptions ?? []);
+      exceptions.add(hostname);
+      await window.bowserPages.settings.set({ adblockExceptions: [...exceptions] });
+      exceptionInput.value = '';
+      refreshExceptions();
+    }
+
+    exceptionAdd.addEventListener('click', addException);
+    exceptionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addException();
     });
 
-    disableBtn.addEventListener('click', async () => {
-      const res = await window.bowserPages.settings.syncDisable({ wipeRemote: wipeEl.checked });
-      wipeEl.checked = false;
-      render(res.status);
+    refreshExceptions();
+  } else {
+    document.getElementById('exceptionInput')?.closest('.group-subsection')?.remove();
+  }
+
+  // --- Clear browsing data ---
+  if (supports('clearBrowsingData')) {
+    const clearBrowsingData = document.getElementById('clearBrowsingData');
+    const clearBrowsingDataStatus = document.getElementById('clearBrowsingDataStatus');
+
+    clearBrowsingData.addEventListener('click', async () => {
+      if (!confirm('Clear all cookies, cache, and site data? You will be logged out of everything.')) return;
+      await window.bowserPages.clearBrowsingData();
+      clearBrowsingDataStatus.textContent = 'Cleared.';
+      setTimeout(() => { clearBrowsingDataStatus.textContent = ''; }, 2000);
     });
-  })();
+  } else {
+    const clearRow = document.getElementById('clearBrowsingData')?.closest('.toolbar-row');
+    if (clearRow) {
+      let prev = clearRow.previousElementSibling;
+      if (prev && prev.tagName === 'P') { const p = prev; prev = p.previousElementSibling; p.remove(); }
+      if (prev && prev.tagName === 'H3') prev.remove();
+      clearRow.remove();
+    }
+  }
+
+  // --- Sync ---
+  if (supports('sync')) {
+    (function initSync() {
+      const setup = document.getElementById('syncSetup');
+      const active = document.getElementById('syncActive');
+      const handleEl = document.getElementById('syncHandle');
+      const passEl = document.getElementById('syncPassphrase');
+      const enableBtn = document.getElementById('syncEnable');
+      const setupStatus = document.getElementById('syncSetupStatus');
+      const activeStatus = document.getElementById('syncActiveStatus');
+      const nowBtn = document.getElementById('syncNow');
+      const disableBtn = document.getElementById('syncDisable');
+      const wipeEl = document.getElementById('syncWipe');
+
+      const when = (ts) => (ts ? new Date(ts).toLocaleString() : 'never');
+      function render(status, note) {
+        const on = !!status.enabled;
+        setup.hidden = on;
+        active.hidden = !on;
+        if (on) {
+          const base = status.lastError
+            ? `Sync is on (${status.handle}). ${status.lastError}`
+            : `Sync is on (${status.handle}). Last synced ${when(status.lastSyncedAt)}.`;
+          activeStatus.textContent = note ? `${note} ${base}` : base;
+        } else {
+          setupStatus.textContent = note || '';
+        }
+      }
+
+      window.bowserPages.settings.syncGet().then(render).catch(() => {});
+
+      async function enable() {
+        if (enableBtn.disabled) return;
+        enableBtn.disabled = true;
+        setupStatus.textContent = 'Turning on sync…';
+        const res = await window.bowserPages.settings.syncEnable({ handle: handleEl.value, passphrase: passEl.value });
+        enableBtn.disabled = false;
+        passEl.value = '';
+        // Sync can be ON even when the first sync failed (offline), so always
+        // reflect the real status. A brand-new account gets a heads-up in case
+        // the passphrase was mistyped — a wrong one silently starts a new one.
+        const note = res.created
+          ? `Started a new sync account for “${handleEl.value.trim()}”. If you have data on another device, turn sync off and check the name and passphrase match exactly.`
+          : (res.ok ? null : res.message);
+        render(res.status, note);
+      }
+      enableBtn.addEventListener('click', enable);
+      passEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') enable(); });
+
+      nowBtn.addEventListener('click', async () => {
+        nowBtn.disabled = true;
+        activeStatus.textContent = 'Syncing…';
+        render(await window.bowserPages.settings.syncNow());
+        nowBtn.disabled = false;
+      });
+
+      disableBtn.addEventListener('click', async () => {
+        const res = await window.bowserPages.settings.syncDisable({ wipeRemote: wipeEl.checked });
+        wipeEl.checked = false;
+        render(res.status);
+      });
+    })();
+  } else {
+    document.getElementById('group-sync')?.remove();
+  }
 
   // --- Settings sidebar: scroll-spy + click-to-scroll ---
   (function initSettingsNav() {
+    // Drop nav links whose group was removed above (unsupported on this platform).
+    for (const link of [...document.querySelectorAll('.settings-nav a')]) {
+      if (!document.getElementById(`group-${link.dataset.group}`)) link.remove();
+    }
+
     const links = [...document.querySelectorAll('.settings-nav a')];
     const activeGroups = links.map((link) => document.getElementById(`group-${link.dataset.group}`)).filter(Boolean);
 
