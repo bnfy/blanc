@@ -67,6 +67,9 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.inherit.plist",
       "extendInfo": {
         "CFBundleDisplayName": "Blanc Browser",
         "CFBundleDocumentTypes": [

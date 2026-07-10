@@ -213,8 +213,10 @@ Settings: DuckDuckGo, Google, Bing, Brave).
 ## What's still left
 
 - **Multi-window** — Blanc is deliberately single-window for now.
-- **Passkeys** — WebAuthn works for security keys; platform passkeys via
-  Apple Passwords await Apple's grant of the
+- **Passkeys** — WebAuthn works with security keys. On supported Macs, Blanc
+  can also create and use device-bound Touch ID passkeys stored in its own
+  Secure Enclave keychain group. Existing iCloud Passwords and third-party
+  credential-manager passkeys still await Apple's grant of the
   `com.apple.developer.web-browser.public-key-credential` entitlement
   (requested).
 - **Inline address autocomplete** — the quick switcher covers search
