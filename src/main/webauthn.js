@@ -54,6 +54,13 @@ async function chooseWebAuthnAccount({ dialog, getParentWindow, details }) {
  * separate managed capability is required for iCloud/credential-provider
  * passkeys, while this feature stores device-bound passkeys in Blanc's own
  * Secure Enclave access group.
+ *
+ * Electron seals credential metadata with a per-session secret kept in the
+ * session's prefs, so the in-memory private session mints a fresh secret every
+ * launch: passkeys created in private tabs become unusable once Blanc quits,
+ * and normal-profile passkeys stay invisible to private tabs (spec D16).
+ * The access group itself is app-global — Electron offers no per-session
+ * opt-out, so private-tab ceremonies can't be selectively disabled.
  */
 function setupWebAuthn({ app, session, dialog, getParentWindow, platform = process.platform }) {
   if (platform !== 'darwin' || typeof app?.configureWebAuthn !== 'function') return false;
