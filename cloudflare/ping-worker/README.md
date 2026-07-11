@@ -80,9 +80,11 @@ person). GA can't be purged from here, and note the right mechanism: GA4's
 "Data deletion request" (Admin) only scrubs event/user-property *parameter*
 text — it does not remove data keyed to a client id. Removing pre-migration
 client ids means GA4's user-deletion path: per-user via User Explorer's
-"Delete user" (impractical beyond a handful) or in bulk via the User Deletion
-API. Otherwise, let the property's configured event-data retention age those
-events out. The privacy policy discloses this transition either way.
+"Delete user" (impractical beyond a handful) or programmatically via the
+Analytics Admin API's [`properties.submitUserDeletion`](https://developers.google.com/analytics/devguides/config/admin/v1/rest/v1alpha/properties/submitUserDeletion),
+passing each token as the `clientId` (the legacy standalone User Deletion API
+is retired). Otherwise, let the property's configured event-data retention age
+those events out. The privacy policy discloses this transition either way.
 
 ## Checking the numbers
 

@@ -14,18 +14,39 @@ test.before(async () => {
 const RAW_ID = '01234567-89ab-4cde-8f01-23456789abcd';
 const HEX64 = /^[0-9a-f]{64}$/;
 
-function fakeKV() {
+// Faithful to Cloudflare's list-keys semantics: keys come back in
+// lexicographic order, the opaque cursor resumes AFTER the last key returned
+// (so deletes during iteration can't skip keys), and — explicitly permitted
+// by the API — a page may be EMPTY with list_complete:false, which callers
+// must page through rather than treat as done. emptyPageOnCall injects one
+// such page on the Nth list() call.
+function fakeKV({ pageSize = Infinity, emptyPageOnCall = 0 } = {}) {
   const map = new Map();
-  return {
+  const kv = {
     map,
+    listCalls: 0,
+    emptyPageServed: false,
     async get(key) { return map.has(key) ? map.get(key) : null; },
     async put(key, value) { map.set(key, String(value)); },
     async delete(key) { map.delete(key); },
-    async list({ prefix = '' } = {}) {
-      const keys = [...map.keys()].filter((k) => k.startsWith(prefix)).map((name) => ({ name }));
-      return { keys, list_complete: true };
+    async list({ prefix = '', cursor } = {}) {
+      kv.listCalls++;
+      if (kv.listCalls === emptyPageOnCall) {
+        kv.emptyPageServed = true;
+        return { keys: [], list_complete: false, cursor: cursor ?? 'after:' };
+      }
+      const after = cursor ? cursor.slice('after:'.length) : '';
+      const remaining = [...map.keys()].filter((k) => k.startsWith(prefix) && k > after).sort();
+      const page = remaining.slice(0, pageSize);
+      const done = page.length === remaining.length;
+      return {
+        keys: page.map((name) => ({ name })),
+        list_complete: done,
+        cursor: done ? undefined : `after:${page[page.length - 1]}`,
+      };
     },
   };
+  return kv;
 }
 
 // Runs one ping and resolves after the KV writes AND the waitUntil'd GA
@@ -136,7 +157,10 @@ test('purge-legacy-ids deletes raw-UUID markers and nothing else', async () => {
 });
 
 test('purging more than one budget of legacy keys takes multiple calls to done:true', async () => {
-  const env = { PINGS: fakeKV(), STATS_TOKEN: 'stats-token' };
+  // 100-key pages force real cursor handling (805 legacy keys ≈ 9 pages),
+  // and the third list() call returns Cloudflare's permitted empty page
+  // with list_complete:false — the worker must page through it, not stop.
+  const env = { PINGS: fakeKV({ pageSize: 100, emptyPageOnCall: 3 }), STATS_TOKEN: 'stats-token' };
   const hashed = 'b'.repeat(64);
   // 805 legacy markers — 800 is the per-invocation delete budget, so the
   // real migration path is call → done:false → call again → done:true.
@@ -158,6 +182,8 @@ test('purging more than one budget of legacy keys takes multiple calls to done:t
   const first = await purge();
   assert.equal(first.done, false, 'the budget stops the first call short');
   assert.equal(first.deleted, 800);
+  assert.ok(env.PINGS.listCalls >= 9, 'the worker actually paged (100-key pages)');
+  assert.equal(env.PINGS.emptyPageServed, true, 'the empty list_complete:false page was served mid-run');
 
   const second = await purge();
   assert.equal(second.done, true);
