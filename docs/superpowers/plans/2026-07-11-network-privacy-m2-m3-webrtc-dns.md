@@ -1256,6 +1256,13 @@ Then change the release-create line (currently line 113) to bind the tag to that
 gh release create "$TAG" "${ASSETS[@]}" --repo "$REPO" --title "$VERSION" --target "$LOCAL_HEAD" --generate-notes
 ```
 
+Then syntax-check the edited script before relying on it at release time (a slip here wouldn't surface until `npm run release`):
+
+```bash
+bash -n scripts/release.sh && echo "release.sh syntax OK"
+```
+Expected: `release.sh syntax OK`, exit 0.
+
 - [ ] **Step 3: Bump the app version (both manifest files)**
 
 Use npm so `package.json` and `package-lock.json` are updated together (a hand-edit of `package.json` alone leaves the lockfile at 0.16.0, and `release.sh` treats both as release-source metadata):
