@@ -70,6 +70,12 @@ if [ -n "$NEWER_ELECTRON" ] && [ -n "$INSTALLED_ELECTRON" ] && [ "$NEWER_ELECTRO
   echo "    Chromium can't be swapped at runtime — consider bumping the devDependency for this release."
 fi
 
+# The embedded provisioning profile must list the exact certificate this
+# build will be signed with, or the restricted keychain-access-groups
+# entitlement is unauthorized and AMFI kills the shipped app at spawn.
+echo "==> Preflight: signing identity vs embedded provisioning profile"
+node scripts/preflight-mac-signing.mjs
+
 echo "==> Cleaning dist/"
 rm -rf dist
 
