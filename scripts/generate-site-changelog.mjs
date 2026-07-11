@@ -29,11 +29,14 @@ function escapeXml(value) {
     .replaceAll("'", '&apos;');
 }
 
+// Accepts bnfy/blanc and bnfy/bowser: releases up to v0.15.x were published
+// while the repo was still named "bowser", so their generated notes carry the
+// old path. GitHub 301s renamed-repo URLs, and it is still our repo.
 function blancGithubUrl(value, allowedKinds = ['pull', 'compare', 'releases']) {
   try {
     const url = new URL(value);
     if (url.protocol !== 'https:' || url.hostname !== 'github.com' || url.port || url.username || url.password) return null;
-    const match = url.pathname.match(/^\/bnfy\/blanc\/(pull|compare|releases)(?:\/|$)/);
+    const match = url.pathname.match(/^\/bnfy\/(?:blanc|bowser)\/(pull|compare|releases)(?:\/|$)/);
     if (!match || !allowedKinds.includes(match[1])) return null;
     return url.href;
   } catch {
@@ -179,6 +182,8 @@ function releaseHtml(release) {
 </article>`;
 }
 
+const BRAND_MARK = '<svg class="site-brand-mark" viewBox="0 0 149.21 199.16" aria-hidden="true"><path fill="currentColor" d="M132.49,99.93c24.35,25.21,21.69,65.88-5.32,88.01-8.6,6.52-18.14,11.22-29.43,11.22H0S.05,0,.05,0l97.73.34c20.2.07,36.1,15.44,41.57,33.81,5.91,21.3-.72,42.38-18.13,56.78,3.89,3.02,7.96,5.58,11.27,9.01ZM123.05,76.28c11.02-13.76,12.6-31.98,4.74-47.57-6.27-10.66-16.79-19.78-29.98-19.81l-89.13-.21.04,134.11c17.74-38.18,51.53-61.94,94.24-58.73,7.99.6,14.76-1.14,20.08-7.79ZM9.18,186.44l95.77-92.67c-20.99-3.85-41.54,1.86-58.47,14.63-24.42,18.43-37.97,47.69-37.31,78.04ZM116.56,184.68c15.98-9.69,24.44-26.82,23.9-45.09s-10.27-34.19-26.36-42.19L17.5,190.42l81.36-.05c6.08,0,12.28-2.41,17.7-5.69Z"></path></svg>';
+
 function renderChangelog(releases) {
   const items = releases.map(releaseHtml).join('\n');
   return `<!DOCTYPE html>
@@ -189,12 +194,48 @@ function renderChangelog(releases) {
 <title>Blanc Browser Changelog — What’s new</title>
 <meta name="description" content="See what changed in each Blanc Browser release, from new features to security, privacy, and platform fixes.">
 <meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#ffffff">
+<meta name="application-name" content="Blanc Browser">
 <link rel="canonical" href="${CHANGELOG_URL}">
+<meta property="og:site_name" content="Blanc Browser">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Blanc Browser Changelog — What’s new">
+<meta property="og:description" content="See what changed in each Blanc Browser release, from new features to security, privacy, and platform fixes.">
+<meta property="og:url" content="${CHANGELOG_URL}">
+<meta property="og:image" content="https://blancbrowser.com/og-image.png">
+<meta property="og:image:alt" content="Blanc Browser marketing page showing the Blanc Island over real websites.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Blanc Browser Changelog — What’s new">
+<meta name="twitter:description" content="See what changed in each Blanc Browser release, from new features to security, privacy, and platform fixes.">
+<meta name="twitter:image" content="https://blancbrowser.com/og-image.png">
 <link rel="alternate" type="application/rss+xml" title="Blanc Browser Changelog" href="/changelog.xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="stylesheet" href="styles.css?v=20260710-2">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="styles.css?v=20260711-1">
 </head>
 <body data-page="changelog">
+
+<header class="site-header site-header--solid">
+  <nav class="site-nav" aria-label="Primary navigation">
+    <a class="site-brand" href="index.html" aria-label="Blanc Browser home">
+      ${BRAND_MARK}
+      <span>Blanc</span>
+    </a>
+    <div class="site-nav-links">
+      <a href="features.html">features</a>
+      <a href="changelog.html" class="is-current" aria-current="page">changelog</a>
+    </div>
+    <a class="site-nav-cta" href="download.html">download blanc</a>
+  </nav>
+</header>
+
 <main class="changelog-page">
   <header class="changelog-hero">
     <p class="section-kicker">shipping in public</p>
@@ -205,6 +246,19 @@ function renderChangelog(releases) {
 ${items || '    <p>No published releases yet.</p>'}
   </section>
 </main>
+
+<footer class="compact-footer">
+  <span>zero bloat <b>|</b> fast focus · © 2026 · Built by <a href="https://bnfy.me" target="_blank" rel="noopener">Bananify</a></span>
+  <span><a href="features.html">Features</a> · <a href="download.html">Download</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></span>
+</footer>
+
+<div id="consent" class="consent" hidden>
+  <span>Anonymous analytics help us gauge interest — allow?</span>
+  <button id="consentAllow">Allow</button>
+  <button id="consentDeny" class="ghost">No thanks</button>
+</div>
+
+<script src="site.js" defer></script>
 </body>
 </html>
 `;

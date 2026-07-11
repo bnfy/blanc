@@ -58,6 +58,17 @@ test('non-Blanc links are rendered as escaped text, never active links', () => {
   assert.ok(!html.includes('href="https://example.com'));
 });
 
+test('pre-rename bnfy/bowser release links stay clickable', () => {
+  const notes = changelog.parseGeneratedNotes([
+    '## What\'s Changed',
+    '* fix(updater): quit-and-install on Windows by @bnfy in https://github.com/bnfy/bowser/pull/7',
+    '**Full Changelog**: https://github.com/bnfy/bowser/compare/v0.9.2...v0.9.3',
+  ].join('\n'));
+  assert.equal(notes.changes[0].url, 'https://github.com/bnfy/bowser/pull/7');
+  assert.equal(notes.compareUrl, 'https://github.com/bnfy/bowser/compare/v0.9.2...v0.9.3');
+  assert.deepEqual(notes.extraParagraphs, []);
+});
+
 test('GitHub-looking URLs with embedded credentials are not trusted', () => {
   const notes = changelog.parseGeneratedNotes(
     '* fix: misleading host by @attacker in https://evil.example@github.com/bnfy/blanc/pull/9'
