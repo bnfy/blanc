@@ -610,3 +610,13 @@ a.ledger-label:hover { color: var(--accent); }
   padding: 2px 8px;
   white-space: nowrap;
 }
+
+/* Favorites page: import header + folder sections */
+.page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.page-head h1 { margin-bottom: 12px; }
+#importStatus { margin: 0 0 16px; min-height: 16px; }

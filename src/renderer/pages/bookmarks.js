@@ -1,5 +1,27 @@
 (async () => {
   const list = document.getElementById('list');
+  const importBtn = document.getElementById('importBtn');
+  const importStatus = document.getElementById('importStatus');
+
+  const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+  function importSummary(added, skipped) {
+    if (added === 0 && skipped > 0) return `All ${plural(skipped, 'favorite')} were already saved.`;
+    const tail = skipped > 0 ? ` (skipped ${skipped} already saved)` : '';
+    return `Imported ${plural(added, 'favorite')}${tail}.`;
+  }
+
+  importBtn.addEventListener('click', async () => {
+    importBtn.disabled = true;
+    importStatus.textContent = 'Choose a bookmarks file…';
+    const res = await window.bowserPages.bookmarks.import();
+    importBtn.disabled = false;
+    if (res.cancelled) { importStatus.textContent = ''; return; }
+    if (res.error === 'empty') { importStatus.textContent = 'No bookmarks found in that file.'; return; }
+    if (res.error === 'unreadable') { importStatus.textContent = "Couldn't read that file."; return; }
+    if (res.error === 'too-large') { importStatus.textContent = 'That file is too large to import.'; return; }
+    importStatus.textContent = importSummary(res.added, res.skipped);
+    refresh();
+  });
 
   async function refresh() {
     const items = await window.bowserPages.bookmarks.list();
