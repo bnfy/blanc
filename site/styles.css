@@ -306,6 +306,11 @@ body.has-consent .hero { padding-bottom: 154px; }
 .site-nav-cta { display: inline-flex; align-items: center; justify-content: center; min-height: 34px; padding: 0 13px; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent); color: var(--bg); text-decoration: none; font-family: var(--font-mono); font-size: 12px; white-space: nowrap; transition: opacity 0.15s ease; }
 .site-nav-cta:hover { opacity: 0.84; }
 .site-nav-cta.is-current { pointer-events: none; }
+/* Secondary nav links (about) yield to features/changelog on narrow headers;
+   every page's footer keeps the full link set. */
+@media (max-width: 640px) {
+  .site-nav-links a.nav-secondary { display: none; }
+}
 a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 /* ---------- home: product proof ---------- */
