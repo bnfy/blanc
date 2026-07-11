@@ -20,6 +20,7 @@ const { attachContextMenu } = require('./context-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
+const { groupFavoritesForMenu } = require('./bookmark-data');
 const history = require('./history');
 const { JsonStore } = require('./store');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
@@ -1609,11 +1610,19 @@ function tabMenuItems() {
 
 /** Native-menu items for the most-recently-added favorites, newest first. */
 function favoritesMenuItems() {
-  const all = bookmarks.listBookmarks(); // oldest-first
-  return all.slice(-20).reverse().map((b) => ({
-    label: (b.title || b.url).length > 120 ? `${(b.title || b.url).slice(0, 119)}…` : (b.title || b.url),
-    click: () => setActiveTab(createTab(b.url)),
-  }));
+  const label = (b) => {
+    const t = b.title || b.url;
+    return t.length > 120 ? `${t.slice(0, 119)}…` : t;
+  };
+  const open = (b) => ({ label: label(b), click: () => setActiveTab(createTab(b.url)) });
+  // Folders as submenus first (alphabetical), then ungrouped favorites inline —
+  // mirroring the Favorites page. Everything is shown; folders keep the menu
+  // navigable regardless of favorite count (no flat cap).
+  const { folders, ungrouped } = groupFavoritesForMenu(bookmarks.listBookmarks());
+  const items = folders.map((f) => ({ label: f.name, submenu: f.items.map(open) }));
+  if (folders.length && ungrouped.length) items.push({ type: 'separator' });
+  items.push(...ungrouped.map(open));
+  return items;
 }
 
 // --- Keyboard shortcuts inventory (Help → Keyboard Shortcuts page) ---
@@ -1832,9 +1841,6 @@ function buildMenu() {
         },
         { type: 'separator' },
         ...favoritesMenuItems(),
-        ...(bookmarks.listBookmarks().length > 20
-          ? [{ label: 'Show All Favorites…', click: () => openInternalPage('blanc://bookmarks/') }]
-          : []),
         { type: 'separator' },
         { label: 'Show Favorites', accelerator: isMac ? 'Cmd+Alt+B' : 'Ctrl+Shift+O', click: () => openInternalPage('blanc://bookmarks/') },
         { label: 'Show History', accelerator: 'CmdOrCtrl+Y', click: () => openInternalPage('blanc://history/') },
