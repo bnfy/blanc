@@ -1,0 +1,50 @@
+[
+  {
+    "url": "https://api.github.com/repos/bnfy/blanc/releases/1",
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/v0.15.5",
+    "tag_name": "v0.15.5",
+    "name": "0.15.5",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-07-11T04:49:12Z",
+    "body": "## What's Changed\n* fix(webauthn): Touch ID passkeys — entitlement, provisioning profile, verified signing chain by @bnfy in https://github.com/bnfy/blanc/pull/32\n\n\n**Full Changelog**: https://github.com/bnfy/blanc/compare/v0.15.4...v0.15.5"
+  },
+  {
+    "url": "https://api.github.com/repos/bnfy/blanc/releases/2",
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/v0.15.4",
+    "tag_name": "v0.15.4",
+    "name": "0.15.4",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-07-11T02:03:25Z",
+    "body": "## What's Changed\n* fix(pages): private new tabs open blank — register blanc:// on the private session by @bnfy in https://github.com/bnfy/blanc/pull/35\n\n\n**Full Changelog**: https://github.com/bnfy/blanc/compare/v0.15.3...v0.15.4"
+  },
+  {
+    "url": "https://api.github.com/repos/bnfy/blanc/releases/3",
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/v0.15.3",
+    "tag_name": "v0.15.3",
+    "name": "0.15.3",
+    "draft": false,
+    "prerelease": false,
+    "published_at": "2026-07-11T01:15:52Z",
+    "body": "## What's Changed\n* fix(webauthn): restore Touch ID passkeys without restricted entitlement by @bnfy in https://github.com/bnfy/blanc/pull/31\n* fix(security): harden desktop browser boundaries by @bnfy in https://github.com/bnfy/blanc/pull/33\n* fix(privacy): audit follow-ups — telemetry pipeline, sync wipe, negative security tests by @bnfy in https://github.com/bnfy/blanc/pull/34\n\n\n**Full Changelog**: https://github.com/bnfy/blanc/compare/v0.15.1...v0.15.3"
+  },
+  {
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/v0.16.0-draft",
+    "tag_name": "v0.16.0-draft",
+    "name": "draft",
+    "draft": true,
+    "prerelease": false,
+    "published_at": "2026-07-12T00:00:00Z",
+    "body": "Not public"
+  },
+  {
+    "html_url": "https://github.com/bnfy/blanc/releases/tag/v0.16.0-beta.1",
+    "tag_name": "v0.16.0-beta.1",
+    "name": "beta",
+    "draft": false,
+    "prerelease": true,
+    "published_at": "2026-07-12T00:00:00Z",
+    "body": "Not stable"
+  }
+]

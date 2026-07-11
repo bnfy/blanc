@@ -12,6 +12,8 @@
     "predist:dir": "node scripts/preflight-mac-signing.mjs",
     "dist:dir": "electron-builder --dir",
     "release": "scripts/release.sh",
+    "site:changelog": "node scripts/generate-site-changelog.mjs",
+    "site:changelog:check": "node scripts/generate-site-changelog.mjs --check",
     "test:unit": "node --test test/unit/*.test.js",
     "test:oauth:desktop": "node --test test/oauth/desktop.test.js",
     "test:oauth:live": "node scripts/oauth-canary.js",
