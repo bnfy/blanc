@@ -337,8 +337,8 @@ are identical.
 with a per-session secret that Electron keeps in the session's preferences, and
 the private session is deliberately non-persistent — its secret cannot survive a
 quit. Electron's WebAuthn configuration is app-global, so desktop also cannot
-selectively disable private-tab ceremonies (an upstream per-session opt-out has
-been requested).
+selectively disable private-tab ceremonies (upstream per-session opt-out
+requested: [electron/electron#52302](https://github.com/electron/electron/issues/52302)).
 
 - **Desktop:** private tabs never see the normal profile's passkeys (consistent
   with the session isolation in F4), and a passkey *created* in a private tab is
@@ -355,5 +355,6 @@ profile's store. Only the desktop treats private-*created* passkeys as
 ephemeral, and says so in the private-tab copy.
 
 **Status:** Accepted 2026-07-10 (Electron 43 offers no per-session WebAuthn
-opt-out; renderer-side blocking would be bypassable). Revisit if upstream gains
-one. Hardware acceptance: F4-6.
+opt-out; renderer-side blocking would be bypassable). Revisit if
+[electron/electron#52302](https://github.com/electron/electron/issues/52302)
+lands. Hardware acceptance: F4-6.
