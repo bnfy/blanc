@@ -36,6 +36,7 @@ cd cloudflare/ping-worker
 npx wrangler login                              # opens a browser to authorize
 npx wrangler kv namespace create PINGS          # copy the returned id into wrangler.toml
 npx wrangler secret put STATS_TOKEN             # pick any long random string, save it somewhere safe
+npx wrangler secret put INSTALL_HASH_SECRET     # long random string; HMAC key for install ids — without it, unique-install counting is skipped (fail closed)
 npx wrangler secret put GA_API_SECRET           # optional: GA4 Measurement Protocol API secret; when set, pings are mirrored to GA as app_launch events
 npx wrangler deploy
 ```

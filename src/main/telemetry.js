@@ -23,6 +23,17 @@ function installId() {
   return installStore.data.id;
 }
 
+// Settings → "Reset install ID": mint a fresh id immediately (rather than
+// nulling and lazily re-minting) so the store never holds a "no id" state a
+// crash could resurrect, and the caller can confirm the reset happened.
+// From the collector's perspective the install simply counts as brand new.
+function resetInstallId() {
+  installStore ??= new JsonStore('install', { id: null });
+  installStore.update((d) => { d.id = randomUUID(); });
+  installStore.flush();
+  return true;
+}
+
 // On by default (Settings → usagePing, opt-out). Fire-and-forget: a failed or
 // blocked ping must never affect startup or show the user anything. Carries
 // only version/platform/arch plus the anonymous install id above — enough to
@@ -50,4 +61,4 @@ function sendLaunchPing() {
   });
 }
 
-module.exports = { sendLaunchPing };
+module.exports = { sendLaunchPing, resetInstallId };
