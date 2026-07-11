@@ -178,13 +178,18 @@
   }
 
   let openMenu = null;
-  function closeMenu() { openMenu?.remove(); openMenu = null; }
+  let openAnchor = null;
+  function closeMenu() { openMenu?.remove(); openMenu = null; openAnchor = null; }
   document.addEventListener('click', (e) => {
     if (openMenu && !openMenu.contains(e.target) && !e.target.classList.contains('folder-chip')) closeMenu();
   });
 
   function openPicker(anchor, b, allNames) {
-    if (openMenu) { closeMenu(); return; }
+    // Same chip toggles the picker closed; a different chip closes the old one
+    // and opens the new one in a single click (not two).
+    const sameAnchor = openAnchor === anchor;
+    if (openMenu) closeMenu();
+    if (sameAnchor) return;
     const menu = document.createElement('div');
     menu.className = 'folder-picker';
     const pick = async (fn) => { await fn(); closeMenu(); refresh(); };
@@ -221,6 +226,7 @@
 
     anchor.parentElement.append(menu);
     openMenu = menu;
+    openAnchor = anchor;
     nameInput.focus();
   }
 
