@@ -7,12 +7,13 @@ const { resetInstallId } = require('../../src/main/telemetry');
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function fakeStore(id) {
+function fakeStore(id, { writable = true } = {}) {
   return {
     data: { id },
     flushes: 0,
     update(fn) { fn(this.data); },
-    flush() { this.flushes += 1; },
+    // Mirrors JsonStore.flush's contract: true iff the write reached disk.
+    flush() { this.flushes += 1; return writable; },
   };
 }
 
@@ -23,6 +24,13 @@ test('reset mints a fresh id and persists it immediately', () => {
   assert.notEqual(store.data.id, '11111111-2222-4333-8444-555555555555');
   assert.match(store.data.id, UUID_RE, 'the new id is a well-formed token');
   assert.equal(store.flushes, 1, 'flushed now, not on the debounce — a crash must not resurrect the old id');
+});
+
+test('a failed disk write must not be reported as a successful reset', () => {
+  // The old id survives on disk when the write fails, so it comes back next
+  // launch — telling the user "reset" would be false.
+  const store = fakeStore('11111111-2222-4333-8444-555555555555', { writable: false });
+  assert.equal(resetInstallId(store), false);
 });
 
 test('every reset yields a new identity — no null gap, no reuse', () => {

@@ -63,18 +63,26 @@ store, and it must run **before** the updated policy page is published:
 curl -X POST -H "Authorization: Bearer <STATS_TOKEN>" https://<worker-url>/admin/purge-legacy-ids
 ```
 
-Re-run until it returns `{"done": true}` (each call deletes up to 800 keys to
-stay inside the Workers subrequest budget; the endpoint is idempotent). Only
-legacy-UUID-format keys are deleted — HMAC keys and the aggregate counters are
-untouched. Expect a one-time discontinuity: installs re-count as new in the
+Re-run until it returns `{"done": true}` (each call deletes up to 800 keys —
+under the ~1,000-operation ceiling a single Worker invocation gets; the
+endpoint is idempotent). **Quota note:** on Workers' free tier, KV allows only
+1,000 *deletes per day* account-wide, so purging a store with more than ~1,000
+legacy markers will hit the daily cap partway — keep re-running across daily
+quota resets (UTC midnight) until `done:true`; on a paid plan it completes in
+one sitting. Only legacy-UUID-format keys are deleted — HMAC keys and the
+aggregate counters are untouched. Expect a one-time discontinuity: installs re-count as new in the
 current day/week/month buckets, and the month-over-month retention figure is
 meaningless across the migration boundary.
 
 **Google Analytics history:** events mirrored before the migration carried the
 raw random token as GA's `client_id` (it identified the install, never a
-person). GA can't be purged from here — either delete/reset the GA4 property
-data (Admin → Data deletion request) or let its configured event retention age
-those events out. The privacy policy discloses this transition either way.
+person). GA can't be purged from here, and note the right mechanism: GA4's
+"Data deletion request" (Admin) only scrubs event/user-property *parameter*
+text — it does not remove data keyed to a client id. Removing pre-migration
+client ids means GA4's user-deletion path: per-user via User Explorer's
+"Delete user" (impractical beyond a handful) or in bulk via the User Deletion
+API. Otherwise, let the property's configured event-data retention age those
+events out. The privacy policy discloses this transition either way.
 
 ## Checking the numbers
 

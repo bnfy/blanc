@@ -55,8 +55,10 @@
     const resetInstallId = document.getElementById('resetInstallId');
     const resetInstallIdStatus = document.getElementById('resetInstallIdStatus');
     resetInstallId.addEventListener('click', async () => {
-      await window.bowserPages.resetInstallId();
-      resetInstallIdStatus.textContent = 'Reset — this install now counts as brand new.';
+      const ok = await window.bowserPages.resetInstallId();
+      resetInstallIdStatus.textContent = ok
+        ? 'Reset — this install now counts as brand new.'
+        : 'Couldn’t save the reset — check disk space and try again.';
       setTimeout(() => { resetInstallIdStatus.textContent = ''; }, 3000);
     });
   } else {

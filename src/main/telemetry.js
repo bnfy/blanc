@@ -35,12 +35,13 @@ function installId() {
 
 // Settings → "Reset install ID": mint a fresh id immediately (rather than
 // nulling and lazily re-minting) so the store never holds a "no id" state a
-// crash could resurrect, and the caller can confirm the reset happened.
+// crash could resurrect. Success is the WRITE succeeding, not the attempt —
+// the settings page tells the user the reset stuck, so a swallowed disk
+// error must not read as done (the old id would come back next launch).
 // From the collector's perspective the install simply counts as brand new.
 function resetInstallId(store = ensureInstallStore()) {
   store.update((d) => { d.id = randomUUID(); });
-  store.flush();
-  return true;
+  return store.flush() === true;
 }
 
 // On by default (Settings → usagePing, opt-out). Fire-and-forget: a failed or

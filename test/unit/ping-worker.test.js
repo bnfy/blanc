@@ -135,6 +135,40 @@ test('purge-legacy-ids deletes raw-UUID markers and nothing else', async () => {
   assert.equal(env.PINGS.map.get('active:month:2026-06'), '17', 'aggregates survive');
 });
 
+test('purging more than one budget of legacy keys takes multiple calls to done:true', async () => {
+  const env = { PINGS: fakeKV(), STATS_TOKEN: 'stats-token' };
+  const hashed = 'b'.repeat(64);
+  // 805 legacy markers — 800 is the per-invocation delete budget, so the
+  // real migration path is call → done:false → call again → done:true.
+  for (let i = 0; i < 805; i++) {
+    const suffix = String(i).padStart(12, '0');
+    env.PINGS.map.set(`seen:day:2026-07-10:01234567-89ab-4cde-8f01-${suffix}`, '1');
+  }
+  env.PINGS.map.set(`seen:day:2026-07-11:${hashed}`, '1');
+  env.PINGS.map.set('active:day:2026-07-10', '805');
+
+  const purge = () => worker.fetch(
+    new Request('https://ping.test/admin/purge-legacy-ids', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer stats-token' },
+    }),
+    env, { waitUntil: () => {} }
+  ).then((res) => res.json());
+
+  const first = await purge();
+  assert.equal(first.done, false, 'the budget stops the first call short');
+  assert.equal(first.deleted, 800);
+
+  const second = await purge();
+  assert.equal(second.done, true);
+  assert.equal(second.deleted, 5, 'the rerun finishes the remainder');
+
+  const keys = [...env.PINGS.map.keys()];
+  assert.equal(keys.filter((k) => k.startsWith('seen:') && !k.endsWith(hashed)).length, 0);
+  assert.ok(keys.includes(`seen:day:2026-07-11:${hashed}`), 'hashed markers survive both passes');
+  assert.equal(env.PINGS.map.get('active:day:2026-07-10'), '805', 'aggregates survive both passes');
+});
+
 test('purge-legacy-ids is bearer-gated and fails closed without a token', async () => {
   const kv = fakeKV();
   kv.map.set(`seen:day:2026-07-10:${RAW_ID}`, '1');
