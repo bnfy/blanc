@@ -491,6 +491,30 @@
 
   const stripUrl = (u) => (u || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
 
+  /** True when the typed text is a real navigation target rather than a search
+   * query — mirrors the navigate branches of normalizeAddressInput (main.js)
+   * and the HANDOFF_PROTOCOLS allowlist (external-protocols.js). When it's an
+   * address, bare Enter navigates instead of letting a Quick-Switcher match
+   * hijack it — a tab whose *title* merely contains "getbowser.com" must not
+   * steal Enter away from actually opening getbowser.com. Kept in hand-sync
+   * with those sources.
+   *
+   * Main can also navigate existing local .htm/.html/.xhtml paths. Paths
+   * without whitespace are covered by the domain-shaped fallback below.
+   * Whitespace-bearing local paths cannot be distinguished here from
+   * multi-word searches without filesystem access, so they remain an accepted
+   * narrow false negative. */
+  function looksLikeAddress(input) {
+    const trimmed = (input || '').trim();
+    if (!trimmed) return false;
+    const scheme = trimmed.match(/^([a-zA-Z][a-zA-Z0-9+.-]*):\/\//)?.[1]?.toLowerCase();
+    if (scheme) return !['javascript', 'data', 'vbscript'].includes(scheme);
+    if (/^(mailto|tel|facetime|sms):/i.test(trimmed)) return true;       // OS-handoff URIs (no "://")
+    if (/^localhost(:\d+)?(\/|$)/.test(trimmed)) return true;
+    if (/^(\d{1,3}\.){3}\d{1,3}(:\d+)?(\/|$)/.test(trimmed)) return true; // bare IPv4
+    return /^[^\s]+\.[a-zA-Z]{2,}(\/[^\s]*)?$/.test(trimmed);             // bare domain
+  }
+
   function switcherResults(query) {
     const results = [];
     // Group names rank above their member tabs — "wor" jumps to the whole
@@ -582,9 +606,13 @@
       );
     } else if (inputTouched && value.trim()) {
       visibleResults = switcherResults(value.trim().toLowerCase());
+      // When the input is itself an address, Enter navigates (see the keydown
+      // handler) — so no result is the Enter target, and the ↵ glyph (which
+      // promises Enter acts on that row) must not appear on any of them.
+      const enterNavigates = looksLikeAddress(value);
       islandList.replaceChildren(
         ...(visibleResults.length
-          ? visibleResults.map((r, i) => resultRow(r, i === 0, i === 0 && r.score >= STRONG_MATCH_SCORE))
+          ? visibleResults.map((r, i) => resultRow(r, i === 0, i === 0 && !enterNavigates && r.score >= STRONG_MATCH_SCORE))
           : [emptyRow('no matches — ↵ opens as address or search')])
       );
     } else {
@@ -757,7 +785,10 @@
     // unreachable).
     if (visibleCommands.length) {
       runCommand(visibleCommands[0]);
-    } else if (visibleResults.length && visibleResults[0].score >= STRONG_MATCH_SCORE) {
+    } else if (visibleResults.length && visibleResults[0].score >= STRONG_MATCH_SCORE && !looksLikeAddress(addressInput.value)) {
+      // A strong switcher match claims Enter — UNLESS what was typed is itself
+      // an address (getbowser.com), in which case navigation wins over a tab
+      // that merely mentions it. Falls through to the navigate branch below.
       pickResult(visibleResults[0]);
     } else if (inputTouched && addressInput.value.startsWith('/')) {
       // "no matching command" — do nothing rather than search for "/typo"
