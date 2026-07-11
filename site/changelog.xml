@@ -162,7 +162,7 @@ Document tonight&apos;s Windows/Linux release gotchas in CLAUDE.md</description>
       <link>https://github.com/bnfy/blanc/releases/tag/v0.9.2</link>
       <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.9.2</guid>
       <pubDate>Sun, 05 Jul 2026 19:05:07 GMT</pubDate>
-      <description>Add opt-in anonymous launch ping telemetry</description>
+      <description>Add opt-in launch ping telemetry</description>
     </item>
   </channel>
 </rss>

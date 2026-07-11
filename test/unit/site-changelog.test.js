@@ -69,6 +69,23 @@ test('pre-rename bnfy/bowser release links stay clickable', () => {
   assert.deepEqual(notes.extraParagraphs, []);
 });
 
+test('new-contributor notes become linked text instead of raw URLs', () => {
+  const notes = changelog.parseGeneratedNotes([
+    '## What\'s Changed',
+    '* Add getbowser.com marketing site by @bnfy in https://github.com/bnfy/bowser/pull/1',
+    '',
+    '## New Contributors',
+    '* @bnfy made their first contribution in https://github.com/bnfy/bowser/pull/1',
+    '',
+    '**Full Changelog**: https://github.com/bnfy/bowser/compare/v0.6.2...v0.7.0',
+  ].join('\n'));
+  assert.deepEqual(notes.changes[1], {
+    text: '@bnfy made their first contribution',
+    url: 'https://github.com/bnfy/bowser/pull/1',
+  });
+  assert.deepEqual(notes.extraParagraphs, []);
+});
+
 test('GitHub-looking URLs with embedded credentials are not trusted', () => {
   const notes = changelog.parseGeneratedNotes(
     '* fix: misleading host by @attacker in https://evil.example@github.com/bnfy/blanc/pull/9'

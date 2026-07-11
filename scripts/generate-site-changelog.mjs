@@ -101,7 +101,7 @@ function parseGeneratedNotes(body = '') {
 
   for (const rawLine of String(body).split(/\r?\n/)) {
     const line = rawLine.trim();
-    if (!line || /^#{1,6}\s+What(?:'|’)?s Changed$/i.test(line)) continue;
+    if (!line || /^#{1,6}\s+(?:What(?:'|’)?s Changed|New Contributors)$/i.test(line)) continue;
 
     const compare = line.match(/^\*\*Full Changelog\*\*:\s*(\S+)$/i);
     if (compare) {
@@ -113,8 +113,11 @@ function parseGeneratedNotes(body = '') {
     if (/^[-*]\s+/.test(line)) {
       const bullet = line.replace(/^[-*]\s+/, '');
       const generated = bullet.match(/^(.*?)\s+by\s+@[^\s]+\s+in\s+(https:\/\/\S+)$/i);
+      const contributor = bullet.match(/^(@[^\s]+) made their first contribution in (https:\/\/\S+)$/i);
       if (generated) {
         changes.push({ text: generated[1].trim(), url: blancGithubUrl(generated[2], ['pull']) });
+      } else if (contributor) {
+        changes.push({ text: `${contributor[1]} made their first contribution`, url: blancGithubUrl(contributor[2], ['pull']) });
       } else {
         changes.push({ text: bullet, url: null });
       }
@@ -253,7 +256,7 @@ ${items || '    <p>No published releases yet.</p>'}
 </footer>
 
 <div id="consent" class="consent" hidden>
-  <span>Anonymous analytics help us gauge interest — allow?</span>
+  <span>Optional analytics help us gauge interest — allow?</span>
   <button id="consentAllow">Allow</button>
   <button id="consentDeny" class="ghost">No thanks</button>
 </div>
