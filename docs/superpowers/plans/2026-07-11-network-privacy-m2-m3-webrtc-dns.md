@@ -4,7 +4,7 @@
 
 **Goal:** Ship one "network privacy" app release adding two settings-driven, session-level protections to Blanc: WebRTC IP-handling policy (F26) and encrypted DNS / DoH (F25), each with a Settings control, parity-spec entries, and an honest security-page section.
 
-**Architecture:** A new pure, Electron-free module `src/main/network-privacy.js` holds all the decision logic (setting value → Electron policy string / host-resolver options, plus DoH-template validation) so it can be unit-tested in isolation like `permission-decisions.js`. `settings.js` gains the two enums + string key through the S5 substrate (schema.json + the hand-written `build.mjs` generator + regenerated mobile artifacts). `main.js` applies WebRTC policy per-tab at the single `createTab` choke point and configures DoH per-session on both browsing sessions, re-applying both live from the existing `onSettingsChanged` listener. The internal Settings page gets two Privacy controls.
+**Architecture:** A new pure, Electron-free module `src/main/network-privacy.js` holds all the decision logic (setting value → Electron policy string / host-resolver options, plus DoH-template validation) so it can be unit-tested in isolation like `permission-decisions.js`. `settings.js` gains the two enums + string key through the S5 substrate (schema.json + the hand-written `build.mjs` generator + regenerated mobile artifacts). `main.js` applies WebRTC policy per-tab at the single `createTab` choke point and configures DoH **process-wide** via one `app.configureHostResolver` call (clearing both browsing sessions' resolver caches on live changes), re-applying both live from the existing `onSettingsChanged` listener. The internal Settings page gets two Privacy controls.
 
 **Tech Stack:** Electron 43.1.0 (pinned), Node's built-in `node:test`, the existing `JsonStore` settings layer, the `settings-schema` codegen substrate, static internal HTML pages served over `blanc://`.
 
@@ -47,6 +47,8 @@
   - `SECURE_DNS_TEMPLATES: { cloudflare, quad9, mullvad: string }`
   - `isValidDohTemplate(str: unknown): boolean` — raw-string DoH template validation.
   - `hostResolverOptionsFor(secureDns: string, secureDnsTemplate: string): { secureDnsMode: 'off'|'automatic'|'secure', secureDnsServers?: string[] }` (no `enableBuiltInResolver` — see Global Constraints)
+  - `reconcileSecureDnsWrite(prev: {secureDns, secureDnsTemplate}, incoming: object): {secureDns, secureDnsTemplate}` — strict-custom write rule (rejects invalid custom transitions).
+  - `coerceSecureDnsRead(secureDns: string, secureDnsTemplate: string, fallback: string): string` — read coercion for corrupted custom state.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -62,6 +64,8 @@ const {
   SECURE_DNS_TEMPLATES,
   isValidDohTemplate,
   hostResolverOptionsFor,
+  reconcileSecureDnsWrite,
+  coerceSecureDnsRead,
 } = require('../../src/main/network-privacy');
 
 test('webrtcPolicyFor maps settings to Electron policy strings', () => {
@@ -92,6 +96,10 @@ test('isValidDohTemplate rejects malformed templates', () => {
   assert.equal(isValidDohTemplate('https://host/{?dns}/tail'), false); // token not terminal
   assert.equal(isValidDohTemplate('https://host/{?dns}{?dns}'), false); // repeated token
   assert.equal(isValidDohTemplate('https://host/{foo}'), false); // wrong token
+  assert.equal(isValidDohTemplate('https://host/dns-query{'), false); // unmatched opening brace
+  assert.equal(isValidDohTemplate('https://host/oops}'), false); // unmatched closing brace
+  assert.equal(isValidDohTemplate('https://host/a{b/c'), false); // stray brace mid-path
+  assert.equal(isValidDohTemplate('https://host/{?dns}}'), false); // valid token + stray brace
   assert.equal(isValidDohTemplate('https://' + 'a'.repeat(2100)), false); // oversize
   assert.equal(isValidDohTemplate(42), false);
   assert.equal(isValidDohTemplate(null), false);
@@ -132,6 +140,64 @@ test('hostResolverOptionsFor: custom stays strict (secure) — never degrades to
     secureDnsMode: 'secure', secureDnsServers: ['https://dns.nextdns.io/abc123'],
   });
   assert.equal(hostResolverOptionsFor('custom', 'https://dns.nextdns.io/abc123').secureDnsMode, 'secure');
+});
+
+const VALID = 'https://dns.nextdns.io/abc123';
+
+test('reconcileSecureDnsWrite: valid atomic custom write is accepted', () => {
+  assert.deepEqual(
+    reconcileSecureDnsWrite({ secureDns: 'auto', secureDnsTemplate: '' }, { secureDns: 'custom', secureDnsTemplate: VALID }),
+    { secureDns: 'custom', secureDnsTemplate: VALID },
+  );
+});
+
+test('reconcileSecureDnsWrite: selecting custom without a valid template is rejected (keeps previous)', () => {
+  // sanitize drops an invalid template, so the partial reaching here is often just {secureDns:'custom'}.
+  assert.deepEqual(
+    reconcileSecureDnsWrite({ secureDns: 'auto', secureDnsTemplate: '' }, { secureDns: 'custom' }),
+    { secureDns: 'auto', secureDnsTemplate: '' },
+  );
+  assert.deepEqual(
+    reconcileSecureDnsWrite({ secureDns: 'off', secureDnsTemplate: '' }, { secureDns: 'custom', secureDnsTemplate: '' }),
+    { secureDns: 'off', secureDnsTemplate: '' },
+  );
+});
+
+test('reconcileSecureDnsWrite: clearing the template while custom is active is rejected (preserves last valid)', () => {
+  assert.deepEqual(
+    reconcileSecureDnsWrite({ secureDns: 'custom', secureDnsTemplate: VALID }, { secureDnsTemplate: '' }),
+    { secureDns: 'custom', secureDnsTemplate: VALID },
+  );
+});
+
+test('reconcileSecureDnsWrite: replacing with another valid template is accepted', () => {
+  const V2 = 'https://dns.quad9.net/dns-query';
+  assert.deepEqual(
+    reconcileSecureDnsWrite({ secureDns: 'custom', secureDnsTemplate: VALID }, { secureDnsTemplate: V2 }),
+    { secureDns: 'custom', secureDnsTemplate: V2 },
+  );
+});
+
+test('reconcileSecureDnsWrite: switching away from custom keeps the (now-unused) template', () => {
+  assert.deepEqual(
+    reconcileSecureDnsWrite({ secureDns: 'custom', secureDnsTemplate: VALID }, { secureDns: 'off' }),
+    { secureDns: 'off', secureDnsTemplate: VALID },
+  );
+});
+
+test('reconcileSecureDnsWrite: a non-DNS partial leaves DNS untouched', () => {
+  assert.deepEqual(
+    reconcileSecureDnsWrite({ secureDns: 'cloudflare', secureDnsTemplate: '' }, { theme: 'dark' }),
+    { secureDns: 'cloudflare', secureDnsTemplate: '' },
+  );
+});
+
+test('coerceSecureDnsRead: corrupted custom reads back as the fallback; valid custom and others pass through', () => {
+  assert.equal(coerceSecureDnsRead('custom', 'garbage', 'auto'), 'auto');
+  assert.equal(coerceSecureDnsRead('custom', '', 'auto'), 'auto');
+  assert.equal(coerceSecureDnsRead('custom', VALID, 'auto'), 'custom');
+  assert.equal(coerceSecureDnsRead('off', '', 'auto'), 'off');
+  assert.equal(coerceSecureDnsRead('quad9', '', 'auto'), 'quad9');
 });
 ```
 
@@ -192,9 +258,15 @@ function isValidDohTemplate(str) {
   if (tokens.length > 1) return false;
   if (tokens.length === 1 && (tokens[0] !== '{?dns}' || !str.endsWith('{?dns}'))) return false;
 
-  // Validate the non-template portion is a real https URL (braces stripped first).
+  // Remove the one permitted terminal {?dns}, then reject any remaining raw brace.
+  // The token regex only matches balanced {...}, so a stray '{' or '}' (e.g.
+  // '.../dns-query{' or '.../oops}') yields zero tokens and would otherwise slip
+  // through new URL(), which silently percent-encodes lone braces.
+  const base = str.replace('{?dns}', '');
+  if (base.includes('{') || base.includes('}')) return false;
+
   try {
-    const u = new URL(str.replace('{?dns}', ''));
+    const u = new URL(base);
     if (u.protocol !== 'https:') return false;
   } catch {
     return false;
@@ -228,12 +300,43 @@ function hostResolverOptionsFor(secureDns, secureDnsTemplate) {
   }
 }
 
+// Cross-field write rule for the DNS settings. Given the currently-persisted
+// { secureDns, secureDnsTemplate } and an already-sanitized incoming partial,
+// return the pair to persist. Strict-custom invariant (F25): a change that would
+// leave secureDns='custom' without a valid template is REJECTED wholesale — both
+// fields revert to their previous values — rather than silently degrading to
+// plaintext-capable Automatic. Only reconciles when the incoming partial actually
+// touches a DNS field.
+function reconcileSecureDnsWrite(prev, incoming) {
+  const touchesDns = 'secureDns' in incoming || 'secureDnsTemplate' in incoming;
+  if (!touchesDns) return { secureDns: prev.secureDns, secureDnsTemplate: prev.secureDnsTemplate };
+  const next = {
+    secureDns: 'secureDns' in incoming ? incoming.secureDns : prev.secureDns,
+    secureDnsTemplate: 'secureDnsTemplate' in incoming ? incoming.secureDnsTemplate : prev.secureDnsTemplate,
+  };
+  if (next.secureDns === 'custom' && !isValidDohTemplate(next.secureDnsTemplate)) {
+    return { secureDns: prev.secureDns, secureDnsTemplate: prev.secureDnsTemplate };
+  }
+  return next;
+}
+
+// Read-side coercion for a corrupted persisted state (e.g. a hand-edited
+// settings.json): 'custom' without a valid template reads back as `fallback`
+// (the default), never as plaintext-capable custom. The write rule above keeps a
+// live user action from ever producing this state.
+function coerceSecureDnsRead(secureDns, secureDnsTemplate, fallback) {
+  if (secureDns === 'custom' && !isValidDohTemplate(secureDnsTemplate)) return fallback;
+  return secureDns;
+}
+
 module.exports = {
   WEBRTC_IP_HANDLING_POLICY,
   webrtcPolicyFor,
   SECURE_DNS_TEMPLATES,
   isValidDohTemplate,
   hostResolverOptionsFor,
+  reconcileSecureDnsWrite,
+  coerceSecureDnsRead,
 };
 ```
 
@@ -272,7 +375,7 @@ git commit -m "Add pure network-privacy decision module (WebRTC + DoH mapping)"
 At the top of `src/main/settings.js`, add the import (near the other requires):
 
 ```js
-const { isValidDohTemplate } = require('./network-privacy');
+const { isValidDohTemplate, reconcileSecureDnsWrite, coerceSecureDnsRead } = require('./network-privacy');
 ```
 
 Immediately after the existing `const THEMES = ['system', 'light', 'dark'];` (line 10), add:
@@ -308,27 +411,26 @@ In `sanitize()` (lines 97–117), after the `theme` line (`if (THEMES.includes(p
   }
 ```
 
-Then, in **`setSettings()`** (lines 119–130), after `const clean = sanitize(partial);` and before the `s.update(...)` call, add the cross-field write-guard (the store's current values are readable as `s.data.*`):
+Then, in **`setSettings()`** (lines 119–130), after `const clean = sanitize(partial);` and before the `s.update(...)` call, reconcile the DNS fields against current state via the pure helper (the store's current values are readable as `s.data.*`):
 
 ```js
-  // Strict-mode invariant (F25): never let secureDns='custom' persist without a
-  // valid template — that would silently become plaintext-capable Automatic at the
-  // resolver. Reject the DNS part of a change that would leave custom+invalid,
-  // preserving the last valid configuration rather than falling back.
-  const nextSecureDns = 'secureDns' in clean ? clean.secureDns : s.data.secureDns;
-  const nextTemplate = 'secureDnsTemplate' in clean ? clean.secureDnsTemplate : s.data.secureDnsTemplate;
-  if (nextSecureDns === 'custom' && !isValidDohTemplate(nextTemplate)) {
-    delete clean.secureDns;
-    delete clean.secureDnsTemplate;
+  // Strict-custom invariant (F25): an invalid custom transition must not degrade to
+  // plaintext-capable Automatic. reconcileSecureDnsWrite (unit-tested) rejects such a
+  // change, preserving the last valid configuration.
+  if ('secureDns' in clean || 'secureDnsTemplate' in clean) {
+    const dns = reconcileSecureDnsWrite(
+      { secureDns: s.data.secureDns, secureDnsTemplate: s.data.secureDnsTemplate },
+      clean,
+    );
+    clean.secureDns = dns.secureDns;
+    clean.secureDnsTemplate = dns.secureDnsTemplate;
   }
 ```
 
-Finally, in **`getSettings()`** (lines 84–88), add a read-side coercion mirroring the existing `appIcon` line — for a *corrupted* stored state only (a hand-edited settings.json), since the write-guard prevents a valid user action from ever producing custom+invalid:
+Finally, in **`getSettings()`** (lines 84–88), add a read-side coercion next to the existing `appIcon` line — for a *corrupted* stored state only (a hand-edited settings.json), since the write rule prevents a valid user action from ever producing custom+invalid:
 
 ```js
-  if (data.secureDns === 'custom' && !isValidDohTemplate(data.secureDnsTemplate)) {
-    data.secureDns = DEFAULTS.secureDns;
-  }
+  data.secureDns = coerceSecureDnsRead(data.secureDns, data.secureDnsTemplate, DEFAULTS.secureDns);
 ```
 
 - [ ] **Step 3: Extend `schema.json`**
@@ -580,7 +682,7 @@ let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
 ```
 
-- [ ] **Step 2: Configure both sessions once, after `ready`, and seed the state**
+- [ ] **Step 2: Configure DoH process-wide once, after `ready`, and seed the state**
 
 In the `app.whenReady().then(async () => { ... })` handler, immediately after `const browsingSessions = [ses, privateSes];` (line 1931), add:
 
@@ -619,16 +721,22 @@ Extend the `settings.onSettingsChanged((s) => { ... })` block (as left by Task 3
   });
 ```
 
-- [ ] **Step 4: Manual verification (DoH) — macOS, Windows, and Linux**
+- [ ] **Step 4: Manual DoH verification — with a concrete per-platform path**
 
-Electron's built-in resolver defaults differ by platform, so this is a three-platform check, not a single-machine one. On each of macOS, Windows, and Linux, run `npm start` and:
+Electron's built-in resolver defaults differ by platform, so this is a cross-platform check. The environments have different, explicitly-defined execution paths so this step can't silently block or be skipped:
+
+- **macOS (this dev machine) — required, blocks release.** Run `npm start` and verify steps 1–5.
+- **Windows (Parallels VM or the real hardware the release process already uses to confirm installs) — required, blocks release.** Same steps 1–5.
+- **Linux — covered by the automated pre-release smoke (Task 8) plus a spot-check on the CI-built AppImage when a Linux box is available.** Manual pre-release Linux DoH testing isn't feasible on this Apple-Silicon setup (x86_64 emulation is impractical; Parallels Linux VMs are ARM64-only), which matches the project's established model (mac+win on hardware, Linux via CI — see CLAUDE.md). The omit-`enableBuiltInResolver` default is expected-safe on Linux because `secureDnsMode: 'secure'` uses Chromium's built-in DoH path regardless of the getaddrinfo preference; any Linux-specific DoH regression is handled as a follow-up patch release, recorded as a known limitation rather than silently assumed.
+
+Steps 1–5 (run on macOS **and** Windows):
 1. Settings → Privacy → DNS = **Cloudflare**; visit `https://one.one.one.one/help` → "Using DNS over HTTPS (DoH): **Yes**".
 2. DNS = **Custom** with a garbage-but-well-formed template (e.g. `https://doh.invalid.example/dns-query`); attempt any navigation → it **fails** (proves no silent plaintext fallback in secure mode).
-3. DNS = **Auto**; browsing works everywhere.
+3. DNS = **Auto**; browsing works.
 4. Change provider while the app is running (e.g. Cloudflare → Off → Quad9) → each switch takes effect **without a restart** (cache-clear working).
-5. **Off must preserve system DNS:** with a system-level VPN/corporate resolver active, set DNS = Off and confirm name resolution still goes through that resolver (not a browser-side DoH path).
+5. **Off preserves system DNS:** with a system-level VPN/corporate resolver active, set DNS = Off and confirm resolution still goes through that resolver (not a browser-side DoH path).
 
-**Testing-gated `enableBuiltInResolver` decision:** if and only if strict/secure DoH (steps 1–2) does *not* activate on Windows or Linux — where Chromium's built-in resolver is off by default — add `enableBuiltInResolver: true` to the `secure` and `automatic` return branches of `hostResolverOptionsFor` **only** (never `off`), update that unit test, and re-run steps 1–5 on all three platforms. Do not add it preemptively; record the outcome in the commit message.
+**Testing-gated `enableBuiltInResolver` decision:** if strict/secure DoH (steps 1–2) does *not* activate on **Windows** (macOS defaults the built-in resolver on), add `enableBuiltInResolver: true` to the `secure` and `automatic` return branches of `hostResolverOptionsFor` **only** (never `off`), update that unit test, and re-run steps 1–5 on macOS + Windows. Do not add it preemptively; record the outcome in the commit message.
 
 (The option-building is unit-tested in Task 1; this verifies the live Electron wiring and the platform-specific resolver behavior.)
 
@@ -637,7 +745,7 @@ Electron's built-in resolver defaults differ by platform, so this is a three-pla
 ```bash
 git status --short   # expect only src/main/main.js
 git add src/main/main.js
-git commit -m "Configure encrypted DNS per session, live on settings change (F25)"
+git commit -m "Configure encrypted DNS process-wide, live on settings change (F25)"
 ```
 
 ---
@@ -645,12 +753,13 @@ git commit -m "Configure encrypted DNS per session, live on settings change (F25
 ### Task 5: Settings-page Privacy controls
 
 **Files:**
+- Modify: `src/main/pages.js` (`pages:settings:set` handler, lines 145–147 — return `clientSettings()`)
 - Modify: `src/renderer/pages/settings.html` (`#group-privacy` section, ~line 84)
-- Modify: `src/renderer/pages/settings.js` (load + change wiring, following the theme/searchEngine pattern at lines 16–36 and the conditional-visibility pattern at 399–401)
-- Modify: `src/renderer/pages/pages.css` only if a new class is genuinely needed (prefer reusing existing `.setting`, `.setting-note` styles)
+- Modify: `src/renderer/pages/settings.js` (load + change wiring, following the theme/searchEngine pattern at lines 16–36 and the `supports()` guard at 39–45)
+- Modify: `src/renderer/pages/pages.css` (one rule: `.hint.field-error`)
 
 **Interfaces:**
-- Consumes: settings keys from Task 2, round-tripped via `window.bowserPages.settings.get()/set()` (no IPC changes — `clientSettings()` already forwards all non-secret keys, per `pages.js:128`).
+- Consumes: settings keys from Task 2, round-tripped via `window.bowserPages.settings.get()/set()`. `set()` now resolves to the persisted `clientSettings()` projection (this task's Step 2), which the renderer uses to reflect actual state and show rejection feedback.
 
 - [ ] **Step 1: Add the two controls to `settings.html`**
 
@@ -686,15 +795,33 @@ Inside the `.settings-card` of `<section id="group-privacy">` (line 86+), add th
             <div class="setting" id="secureDnsCustomRow" hidden>
               <div class="label">
                 <span>Custom DoH template</span>
-                <span class="hint" id="secureDnsTemplateHint">An https:// DoH URL (RFC 8484). An invalid entry is ignored and the previous provider is kept.</span>
+                <span class="hint">An https:// DoH URL (RFC 8484), e.g. https://dns.nextdns.io/&lt;profile&gt;.</span>
+                <span class="hint field-error" id="secureDnsError" hidden>That is not a valid DoH URL — the previous provider is still in use.</span>
               </div>
               <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" />
             </div>
 ```
 
-- [ ] **Step 2: Wire load + change in `settings.js`**
+- [ ] **Step 2: Make `pages:settings:set` return the persisted settings, and add the error style**
 
-In `src/renderer/pages/settings.js`, after the existing simple bindings (theme/searchEngine/adblock, lines 16–36), add both controls behind `supports(...)` guards — mirroring the `homePage` guard at lines 39–45, so D17/D18 (no iOS controls) are honored by the same mechanism:
+The renderer decides validity from the *actual persisted state* (the main process is the sole validator — no duplicated regex in the renderer). For that, the write IPC must echo the result back. In `src/main/pages.js`, change the `pages:settings:set` handler (lines 145–147) to return the non-secret projection (`clientSettings()`, the same one `pages:settings:get` returns — never raw `getSettings()`, which includes the `supporter` key):
+
+```js
+handle('pages:settings:set', (partial) => {
+  settings.setSettings(partial ?? {});
+  return clientSettings();
+});
+```
+
+Then add the error style to `src/renderer/pages/pages.css` (uses the existing `--danger` token — lines 13/34/52 — so it themes in light/dark/private):
+
+```css
+.hint.field-error { color: var(--danger); }
+```
+
+- [ ] **Step 3: Wire load + change in `settings.js`**
+
+In `src/renderer/pages/settings.js`, after the existing simple bindings (theme/searchEngine/adblock, lines 16–36), add both controls behind `supports(...)` guards — mirroring the `homePage` guard at lines 39–45, so D17/D18 (no iOS controls) are honored by the same mechanism. The DNS control does **not** re-implement the validator: it sends the change and reads back the persisted result, so the main process's guard is the single source of truth and the UI reflects reality:
 
 ```js
   if (supports('webrtcPolicy')) {
@@ -710,49 +837,46 @@ In `src/renderer/pages/settings.js`, after the existing simple bindings (theme/s
     const secureDns = document.getElementById('secureDns');
     const secureDnsRow = document.getElementById('secureDnsCustomRow');
     const secureDnsTemplate = document.getElementById('secureDnsTemplate');
+    const secureDnsError = document.getElementById('secureDnsError');
 
-    // Inline mirror of the main-process isValidDohTemplate for UX only; the main
-    // process is the source of truth and re-validates + guards on write.
-    const looksLikeValidTemplate = (t) => {
-      if (typeof t !== 'string' || t.length === 0 || t.length > 2048) return false;
-      if (!t.startsWith('https://') || t.includes('#')) return false;
-      const authority = t.slice(8).split(/[/?]/)[0];
-      if (!authority || authority.includes('@')) return false;
-      const tokens = t.match(/\{[^}]*\}/g) || [];
-      if (tokens.length > 1) return false;
-      if (tokens.length === 1 && (tokens[0] !== '{?dns}' || !t.endsWith('{?dns}'))) return false;
-      try { return new URL(t.replace('{?dns}', '')).protocol === 'https:'; } catch { return false; }
+    // Reflect a persisted-settings snapshot back into the controls, and show the
+    // error only when the user asked for custom but the persisted provider is not
+    // custom (i.e. the main-process guard rejected an invalid template).
+    const applyState = (s, attempted) => {
+      secureDns.value = s.secureDns ?? 'auto';
+      secureDnsTemplate.value = s.secureDnsTemplate ?? '';
+      secureDnsRow.hidden = secureDns.value !== 'custom';
+      const rejected = attempted === 'custom' && secureDns.value !== 'custom';
+      secureDnsError.hidden = !rejected;
+      secureDnsTemplate.setAttribute('aria-invalid', rejected ? 'true' : 'false');
     };
 
-    const commitCustomDns = () => {
-      const t = secureDnsTemplate.value.trim();
-      const ok = looksLikeValidTemplate(t);
-      secureDnsTemplate.setAttribute('aria-invalid', ok ? 'false' : 'true');
-      // Only persist secureDns=custom together with a valid template — never switch
-      // to custom with an invalid one (the main process would reject it anyway).
-      if (ok) window.bowserPages.settings.set({ secureDns: 'custom', secureDnsTemplate: t });
+    // Send the change and re-render from the ACTUAL persisted result (set() now
+    // returns the settings). No client-side DoH validation — the main process is
+    // the single validator, so the UI can never disagree with what was stored.
+    const commit = async (partial, attempted) => {
+      const next = await window.bowserPages.settings.set(partial);
+      applyState(next, attempted);
     };
 
-    secureDns.value = settings.secureDns ?? 'auto';
-    secureDnsTemplate.value = settings.secureDnsTemplate ?? '';
-    secureDnsRow.hidden = secureDns.value !== 'custom';
+    applyState(settings, null); // initial render from the get() payload
 
     secureDns.addEventListener('change', () => {
-      secureDnsRow.hidden = secureDns.value !== 'custom';
       if (secureDns.value === 'custom') {
-        commitCustomDns(); // persists only if the (possibly pre-filled) template is valid
+        commit({ secureDns: 'custom', secureDnsTemplate: secureDnsTemplate.value.trim() }, 'custom');
       } else {
-        window.bowserPages.settings.set({ secureDns: secureDns.value });
+        commit({ secureDns: secureDns.value }, secureDns.value);
       }
     });
-    secureDnsTemplate.addEventListener('change', commitCustomDns);
+    secureDnsTemplate.addEventListener('change', () =>
+      commit({ secureDns: 'custom', secureDnsTemplate: secureDnsTemplate.value.trim() }, 'custom'));
   } else {
     document.getElementById('secureDns')?.closest('.setting')?.remove();
     document.getElementById('secureDnsCustomRow')?.remove();
   }
 ```
 
-- [ ] **Step 3: Relaunch and verify the controls**
+- [ ] **Step 4: Relaunch and verify the controls**
 
 Because chrome/internal-page HTML/CSS/JS is loaded once, restart the app rather than reloading:
 
@@ -762,15 +886,15 @@ npm start
 Open `blanc://settings` → Privacy section. Verify:
 - WebRTC select shows both options; changing it persists (reopen Settings → value retained).
 - Encrypted DNS select shows all six options; selecting "Custom provider…" reveals the custom-template `.setting` row.
-- A bad URL in the custom field marks the input `aria-invalid` and does **not** switch the stored provider (reopen Settings → the previous provider is still selected — the strict-custom write-guard held).
-- A valid template persists (reopen Settings → Custom selected, template retained).
-- Selecting a named provider hides the custom row.
+- A bad URL in the custom field shows the red `#secureDnsError` message, marks the input `aria-invalid`, and reverts the provider select to the previous value (reopen Settings → previous provider still selected — the strict-custom write-guard held, and the UI reflects the true persisted state).
+- A valid template clears the error and persists (reopen Settings → Custom selected, template retained).
+- Selecting a named provider hides the custom row and clears any error.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git status --short   # expect settings.html, settings.js, and pages.css only if changed
-git add src/renderer/pages/settings.html src/renderer/pages/settings.js
+git status --short   # expect pages.js, settings.html, settings.js, pages.css
+git add src/main/pages.js src/renderer/pages/settings.html src/renderer/pages/settings.js src/renderer/pages/pages.css
 git commit -m "Add WebRTC + encrypted-DNS controls to Settings → Privacy"
 ```
 
@@ -875,7 +999,7 @@ git commit -m "Add F25/F26 features and D17/D18 divergences for network privacy"
 **Files:**
 - Modify: `site/features/security.html` (add one "On the network" section with two articles; update the page `<meta name="description">` to include the shipped capabilities)
 
-**Interfaces:** none. Deploys *after* the release is cut (Task 8), never before.
+**Interfaces:** none. Deploys *after* the release is cut (Task 9), never before.
 
 - [ ] **Step 1: Add the network section to the security page**
 
@@ -921,7 +1045,126 @@ git commit -m "Add WebRTC + encrypted-DNS sections to the security page"
 
 ---
 
-### Task 8: Version bump, full verification, and release (user-gated)
+### Task 8: Pre-release cross-platform launch smoke (Linux execution path)
+
+**Files:**
+- Modify: `src/main/test-hook.js` (add `secureDns` / `webrtcPolicy` readers to `globalThis.__blanc`)
+- Create: `test/desktop/dns-smoke.mjs` (standalone Playwright-Electron smoke)
+- Create: `.github/workflows/prerelease-smoke.yml` (windows-latest + ubuntu-latest)
+
+**Interfaces:**
+- Consumes: the DoH startup config (Task 4) and settings keys (Task 2). This is the concrete, automated cross-platform execution path Task 4 Step 4 defers Linux to — and a second belt for Windows.
+
+**Why this exists:** Task 4's manual DoH check runs on macOS + Windows, but Linux has no pre-release manual path on the Apple-Silicon dev machine. This smoke launches the real app headlessly on ubuntu-latest (and windows-latest) with `BLANC_TEST=1` and asserts it starts *and* that `app.configureHostResolver` ran without throwing — catching a Linux/Windows launch or DoH-config regression before the immutable release, not after.
+
+- [ ] **Step 1: Expose the network-privacy settings on the test hook**
+
+In `src/main/test-hook.js`, in the `globalThis.__blanc = { ... }` object (near the other settings readers like `adblockEnabled()` at line 141), add:
+
+```js
+    secureDns() { return settings.getSettings().secureDns; },
+    secureDnsTemplate() { return settings.getSettings().secureDnsTemplate; },
+    webrtcPolicy() { return settings.getSettings().webrtcPolicy; },
+```
+
+- [ ] **Step 2: Write the smoke script**
+
+Create `test/desktop/dns-smoke.mjs` (models the harness's `_electron.launch` + `BLANC_TEST=1` from `test/desktop/support/hooks.js`):
+
+```js
+// Headless launch smoke: proves the app starts and app.configureHostResolver ran
+// without throwing on this platform, and that the network-privacy defaults are live.
+// Run by .github/workflows/prerelease-smoke.yml on windows-latest + ubuntu-latest.
+import { _electron } from 'playwright';
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import process from 'node:process';
+
+const app = await _electron.launch({
+  args: [path.resolve('.')],
+  env: { ...process.env, BLANC_TEST: '1' },
+});
+try {
+  // Wait for the main window (proves startup didn't crash — a configureHostResolver
+  // throw in the ready handler would prevent this).
+  await app.firstWindow();
+  const dns = await app.evaluate(() => globalThis.__blanc.secureDns());
+  const webrtc = await app.evaluate(() => globalThis.__blanc.webrtcPolicy());
+  assert.equal(dns, 'auto', `expected default secureDns=auto, got ${dns}`);
+  assert.equal(webrtc, 'standard', `expected default webrtcPolicy=standard, got ${webrtc}`);
+  console.log(`dns-smoke OK on ${process.platform}: secureDns=${dns} webrtcPolicy=${webrtc}`);
+} finally {
+  await app.close();
+}
+```
+
+Add an npm script to `package.json` (`scripts`): `"test:dns-smoke": "node test/desktop/dns-smoke.mjs"`.
+
+- [ ] **Step 3: Add the CI workflow**
+
+Create `.github/workflows/prerelease-smoke.yml` (models `parity-guards.yml` for setup; matrix over the two platforms, `xvfb-run` on Linux per the acceptance harness README):
+
+```yaml
+name: Pre-release smoke
+
+# Launches the real app headlessly on Linux and Windows with BLANC_TEST=1 and asserts
+# it starts and app.configureHostResolver ran without throwing — the pre-release
+# cross-platform execution path for the network-privacy DoH config (see the M2+M3 plan).
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/main/**'
+      - 'test/desktop/**'
+      - '.github/workflows/prerelease-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: DNS/WebRTC launch smoke (Linux, headless)
+        if: runner.os == 'Linux'
+        run: xvfb-run -a npm run test:dns-smoke
+      - name: DNS/WebRTC launch smoke (Windows)
+        if: runner.os == 'Windows'
+        run: npm run test:dns-smoke
+```
+
+- [ ] **Step 4: Verify locally (macOS), then commit**
+
+Locally the smoke runs headed but still passes:
+
+```bash
+npm run test:dns-smoke
+```
+Expected: `dns-smoke OK on darwin: secureDns=auto webrtcPolicy=standard`, exit 0.
+
+```bash
+git status --short   # expect test-hook.js, dns-smoke.mjs, prerelease-smoke.yml, package.json
+git add src/main/test-hook.js test/desktop/dns-smoke.mjs .github/workflows/prerelease-smoke.yml package.json
+git commit -m "Add pre-release DNS/WebRTC launch smoke (Linux + Windows CI)"
+```
+
+- [ ] **Step 5: Confirm the workflow runs green on both runners**
+
+Because `workflow_dispatch` only works once the workflow file is on the default branch (same constraint as `release-windows-linux.yml`, per CLAUDE.md), the first run happens via the `pull_request` trigger (the commit touches `src/main/**` and the workflow file) or after this lands on `main`. Confirm both the `ubuntu-latest` and `windows-latest` jobs pass before treating Task 4's Linux path as satisfied. A red smoke blocks the release (Task 9 Step 5).
+
+---
+
+### Task 9: Version bump, full verification, and release (user-gated)
 
 **Files:**
 - Modify: `package.json` **and** `package-lock.json` (`version` 0.16.0 → 0.17.0 in both — the lockfile records it at its top level and at `packages[""]`)
@@ -953,6 +1196,13 @@ npm run substrate:check
 npm run test:acceptance:dry
 ```
 Expected: all three exit 0. If any fails, stop and fix before releasing.
+
+Also confirm the **cross-platform release prerequisites** are met (these gate the release, not just the bump):
+- macOS DoH verification (Task 4 Step 4) done on this machine.
+- Windows DoH verification (Task 4 Step 4) done on Parallels/hardware.
+- The Task 8 pre-release smoke is **green on both `ubuntu-latest` and `windows-latest`**.
+
+If any is missing, do not release — complete it first (or, for a red smoke, fix the regression it caught).
 
 - [ ] **Step 4: Commit the bump**
 
@@ -995,11 +1245,13 @@ git tag -d m2m3-base
 
 ## Self-Review Notes
 
-- **Spec coverage:** F26 WebRTC (Tasks 1,3,5,6,7), F25 DoH (Tasks 1,2,4,5,6,7), settings + S5 generator extension (Task 2, all six hardcoded categories per the review's warning), device-local not-synced (Task 2 Step 1 comment + Global Constraints), parity F25/F26 + D17/D18 (Task 6), security-page sections (Task 7), release + version bump (Task 8). D13 is deliberately untouched — it belongs to M4 (shield report), not this release.
+- **Spec coverage:** F26 WebRTC (Tasks 1,3,5,6,7), F25 DoH (Tasks 1,2,4,5,6,7), settings + S5 generator extension (Task 2, all six hardcoded categories per the review's warning), device-local not-synced (Task 2 Step 1 comment + Global Constraints), parity F25/F26 + D17/D18 (Task 6), security-page sections (Task 7), pre-release cross-platform smoke (Task 8), release + version bump (Task 9). D13 is deliberately untouched — it belongs to M4 (shield report), not this release.
 - **Electron API (verified against `electron.d.ts`):** `app.configureHostResolver` is process-wide (App method, line 1044), called once after `ready`; `clearHostResolverCache` is per-Session (line 12902) and its promises are collected with `Promise.allSettled`. `enableBuiltInResolver` is deliberately NOT forced (it would break the Off/system-resolver contract on Win/Linux) — its addition is a testing-gated, per-mode decision in Task 4 Step 4.
 - **Strict DNS never falls back:** enforced in the settings layer (setSettings reject + getSettings coerce, Task 2 Step 2), so `hostResolverOptionsFor`'s `custom` branch is unconditionally strict-secure — verified by unit test (Task 1) and manual test (Task 5 Step 3).
 - **Capability guards:** both new controls are wrapped in `supports(...)` with `.remove()` fallbacks (Task 5 Step 2), matching `homePage`/`appIcon`, so D17/D18's "no iOS controls" holds by construction.
-- **Lockfile:** the version bump uses `npm version --no-git-tag-version` and stages `package.json` + `package-lock.json` together (Task 8 Steps 2, 4).
+- **Lockfile:** the version bump uses `npm version --no-git-tag-version` and stages `package.json` + `package-lock.json` together (Task 9 Steps 2, 4).
+- **Cross-platform verification is achievable, not hand-waved:** macOS (dev machine) + Windows (Parallels/hardware) manual DoH checks, Linux via the Task 8 launch smoke on `ubuntu-latest` + a CI-AppImage spot-check — all release prerequisites (Task 9 Step 5).
+- **Validator hardened:** `isValidDohTemplate` rejects unmatched raw braces (Task 1), and the strict-custom state machine (`reconcileSecureDnsWrite`/`coerceSecureDnsRead`) is unit-tested for valid/invalid/atomic/clearing/corrupted cases (Task 1); the renderer holds no duplicate validator — it round-trips through the main process (Task 5).
 - **Honesty rules** are enforced with a strengthened grep gate (Task 7 Step 3, now catching "closes a … leak") and baked into every label/copy string; "strict" is only an internal enum id, never a user-facing word; the WebRTC claim is "reduces one proxy-bypass risk", never "closes the leak".
 - **Type/name consistency:** `webrtcPolicyFor`, `hostResolverOptionsFor`, `isValidDohTemplate`, `applyWebrtcPolicyToAllTabs`, `lastSecureDns`/`lastSecureDnsTemplate`, and the setting keys `webrtcPolicy`/`secureDns`/`secureDnsTemplate` are used identically across Tasks 1–5.
 - **Change-detection is DNS-only** (`lastSecureDns`/`lastSecureDnsTemplate`, owned entirely by Task 4) so the listener never reconfigures DNS or clears the resolver cache on unrelated settings writes; WebRTC reapplies unconditionally because the per-tab call is cheap and idempotent. No require-time settings-store access.
