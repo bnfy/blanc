@@ -29,15 +29,28 @@ function escapeXml(value) {
     .replaceAll("'", '&apos;');
 }
 
+// The app shipped as "Bowser" through v0.15.x, so old release notes still carry
+// the former name and its `getbowser.com` domain. The marketing site must only
+// ever present the current name — scrub the legacy name out of any release-note
+// text before it reaches a visitor.
+function scrubLegacyName(text) {
+  return String(text)
+    .replace(/getbowser\.com/gi, 'blancbrowser.com')
+    .replace(/\bbowser\b/gi, 'Blanc');
+}
+
 // Accepts bnfy/blanc and bnfy/bowser: releases up to v0.15.x were published
 // while the repo was still named "bowser", so their generated notes carry the
-// old path. GitHub 301s renamed-repo URLs, and it is still our repo.
+// old path. Rewrite it to the current name so no "bowser" URL ever reaches a
+// visitor — GitHub 301s renamed-repo URLs and PR/tag numbers survive a rename,
+// so the rewritten link resolves to the same place.
 function blancGithubUrl(value, allowedKinds = ['pull', 'compare', 'releases']) {
   try {
     const url = new URL(value);
     if (url.protocol !== 'https:' || url.hostname !== 'github.com' || url.port || url.username || url.password) return null;
     const match = url.pathname.match(/^\/bnfy\/(?:blanc|bowser)\/(pull|compare|releases)(?:\/|$)/);
     if (!match || !allowedKinds.includes(match[1])) return null;
+    url.pathname = url.pathname.replace('/bnfy/bowser/', '/bnfy/blanc/');
     return url.href;
   } catch {
     return null;
@@ -99,6 +112,8 @@ function parseGeneratedNotes(body = '') {
   const extraParagraphs = [];
   let compareUrl = null;
 
+  if (!body) return { changes, compareUrl, extraParagraphs };
+
   for (const rawLine of String(body).split(/\r?\n/)) {
     const line = rawLine.trim();
     if (!line || /^#{1,6}\s+(?:What(?:'|’)?s Changed|New Contributors)$/i.test(line)) continue;
@@ -106,7 +121,7 @@ function parseGeneratedNotes(body = '') {
     const compare = line.match(/^\*\*Full Changelog\*\*:\s*(\S+)$/i);
     if (compare) {
       compareUrl = blancGithubUrl(compare[1], ['compare']);
-      if (!compareUrl) extraParagraphs.push(line.replace(/\*\*/g, ''));
+      if (!compareUrl) extraParagraphs.push(scrubLegacyName(line.replace(/\*\*/g, '')));
       continue;
     }
 
@@ -115,16 +130,16 @@ function parseGeneratedNotes(body = '') {
       const generated = bullet.match(/^(.*?)\s+by\s+@[^\s]+\s+in\s+(https:\/\/\S+)$/i);
       const contributor = bullet.match(/^(@[^\s]+) made their first contribution in (https:\/\/\S+)$/i);
       if (generated) {
-        changes.push({ text: generated[1].trim(), url: blancGithubUrl(generated[2], ['pull']) });
+        changes.push({ text: scrubLegacyName(generated[1].trim()), url: blancGithubUrl(generated[2], ['pull']) });
       } else if (contributor) {
-        changes.push({ text: `${contributor[1]} made their first contribution`, url: blancGithubUrl(contributor[2], ['pull']) });
+        changes.push({ text: scrubLegacyName(`${contributor[1]} made their first contribution`), url: blancGithubUrl(contributor[2], ['pull']) });
       } else {
-        changes.push({ text: bullet, url: null });
+        changes.push({ text: scrubLegacyName(bullet), url: null });
       }
       continue;
     }
 
-    extraParagraphs.push(line.replace(/^#{1,6}\s+/, '').replace(/\*\*/g, ''));
+    extraParagraphs.push(scrubLegacyName(line.replace(/^#{1,6}\s+/, '').replace(/\*\*/g, '')));
   }
 
   return { changes, compareUrl, extraParagraphs };
@@ -221,7 +236,7 @@ function renderChangelog(releases) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="styles.css?v=20260711-1">
+<link rel="stylesheet" href="styles.css?v=20260711-3">
 </head>
 <body data-page="changelog">
 
@@ -246,13 +261,17 @@ function renderChangelog(releases) {
     <h1>Every Blanc release, in one place.</h1>
     <p>This page mirrors Blanc’s published GitHub releases, newest first. <a href="/changelog.xml">Subscribe via RSS</a>.</p>
   </header>
-  <section class="release-list" aria-label="Blanc releases">
+${releases.length ? `  <div class="changelog-search">
+    <input type="search" id="changelog-search" class="changelog-search-input" placeholder="Search ${releases.length} releases…" aria-label="Search releases" autocomplete="off" spellcheck="false">
+  </div>
+` : ''}  <section class="release-list" aria-label="Blanc releases">
 ${items || '    <p>No published releases yet.</p>'}
+    <p class="release-empty" hidden>No releases match your search.</p>
   </section>
 </main>
 
 <footer class="compact-footer">
-  <span>built in Rochester, NY · no investors · © 2026 · <a href="https://bnfy.me" target="_blank" rel="noopener">Bananify</a></span>
+  <span>built independently · no investors · © 2026 · <a href="https://bnfy.me" target="_blank" rel="noopener">Bananify</a></span>
   <span><a href="features.html">Features</a> · <a href="about.html">About</a> · <a href="changelog.html">Changelog</a> · <a href="download.html">Download</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a></span>
 </footer>
 
@@ -263,6 +282,26 @@ ${items || '    <p>No published releases yet.</p>'}
 </div>
 
 <script src="site.js" defer></script>
+<script>
+(function () {
+  var input = document.getElementById('changelog-search');
+  if (!input) return;
+  var releases = Array.prototype.slice.call(document.querySelectorAll('.release-list .release'));
+  var empty = document.querySelector('.release-empty');
+  var haystack = releases.map(function (el) { return el.textContent.toLowerCase(); });
+  function apply() {
+    var query = input.value.trim().toLowerCase();
+    var visible = 0;
+    for (var i = 0; i < releases.length; i++) {
+      var match = !query || haystack[i].indexOf(query) !== -1;
+      releases[i].hidden = !match;
+      if (match) visible++;
+    }
+    if (empty) empty.hidden = visible !== 0;
+  }
+  input.addEventListener('input', apply);
+})();
+</script>
 </body>
 </html>
 `;
@@ -372,6 +411,7 @@ export {
   renderChangelog,
   renderRss,
   run,
+  scrubLegacyName,
   writeOutputs,
 };
 

@@ -374,7 +374,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .download-whatsnew { margin: -96px 0 96px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
 .download-whatsnew a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .download-whatsnew a:hover { color: var(--accent); border-color: var(--accent); }
-.download-note { margin: 0 auto 96px; }
+.download-note { margin: 0 auto; }
+.download-note + .download-details { margin-top: 128px; }
 .download-note > p:not(.section-kicker) a { color: inherit; border-bottom: 1px solid var(--border); padding-bottom: 1px; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
 .download-note > p:not(.section-kicker) a:hover { color: var(--accent); border-color: var(--accent); }
 .compact-footer { display: flex; flex-direction: row; justify-content: space-between; gap: 14px 30px; padding: 22px max(24px, calc((100vw - 1132px) / 2)); border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); opacity: 0.8; }
@@ -387,7 +388,13 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .changelog-hero > p:last-child { max-width: 52ch; margin: 20px auto 0; color: var(--text-dim); font-size: 16px; line-height: 1.65; text-wrap: balance; }
 .changelog-hero a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .changelog-hero a:hover { color: var(--accent); border-color: var(--accent); }
+.changelog-search { margin: 0 0 32px; }
+.changelog-search-input { width: 100%; padding: 13px 16px; font-family: var(--font-mono); font-size: 13px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color 0.15s, background 0.15s; }
+.changelog-search-input::placeholder { color: var(--text-dim); }
+.changelog-search-input:focus { outline: none; border-color: var(--accent); background: var(--bg); }
 .release-list { border-top: 1px solid var(--border); }
+.release[hidden] { display: none; }
+.release-empty { padding: 44px 0; color: var(--text-dim); font-family: var(--font-mono); font-size: 13px; text-align: center; }
 .release { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 28px; padding: 34px 0 38px; border-bottom: 1px solid var(--border); scroll-margin-top: 82px; }
 .release-meta time { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
 .release-body h2 { margin: -4px 0 0; font-size: 21px; font-weight: 500; letter-spacing: -0.02em; }
@@ -546,7 +553,8 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
   .download-page { padding: 78px 18px 68px; }
   .download-options { grid-template-columns: 1fr; margin: 52px 0 80px; }
   .download-whatsnew { margin: -56px 0 64px; }
-  .download-note { margin-bottom: 72px; padding: 28px 20px; }
+  .download-note { padding: 28px 20px; }
+  .download-note + .download-details { margin-top: 96px; }
   /* Stacked on one column, the tall bottom-aligned cards become mostly-empty
      boxes — make them compact and top-aligned so each is a tight tap target. */
   .platform-card { min-height: auto; justify-content: flex-start; padding: 22px 24px; }

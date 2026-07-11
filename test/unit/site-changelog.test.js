@@ -58,15 +58,35 @@ test('non-Blanc links are rendered as escaped text, never active links', () => {
   assert.ok(!html.includes('href="https://example.com'));
 });
 
-test('pre-rename bnfy/bowser release links stay clickable', () => {
+test('pre-rename bnfy/bowser release links are rewritten to the current repo name', () => {
   const notes = changelog.parseGeneratedNotes([
     '## What\'s Changed',
     '* fix(updater): quit-and-install on Windows by @bnfy in https://github.com/bnfy/bowser/pull/7',
     '**Full Changelog**: https://github.com/bnfy/bowser/compare/v0.9.2...v0.9.3',
   ].join('\n'));
-  assert.equal(notes.changes[0].url, 'https://github.com/bnfy/bowser/pull/7');
-  assert.equal(notes.compareUrl, 'https://github.com/bnfy/bowser/compare/v0.9.2...v0.9.3');
+  assert.equal(notes.changes[0].url, 'https://github.com/bnfy/blanc/pull/7');
+  assert.equal(notes.compareUrl, 'https://github.com/bnfy/blanc/compare/v0.9.2...v0.9.3');
   assert.deepEqual(notes.extraParagraphs, []);
+});
+
+test('the legacy Bowser name is scrubbed from visitor-facing release text', () => {
+  assert.equal(changelog.scrubLegacyName('Bowser rebrand release: identity rebrand.'), 'Blanc rebrand release: identity rebrand.');
+  assert.equal(changelog.scrubLegacyName('Add getbowser.com marketing site'), 'Add blancbrowser.com marketing site');
+
+  const notes = changelog.parseGeneratedNotes([
+    '## What\'s Changed',
+    '* Rename Bowser to Blanc by @bnfy in https://github.com/bnfy/bowser/pull/3',
+    '',
+    'Bowser rebrand release: identity rebrand.',
+  ].join('\n'));
+  assert.equal(notes.changes[0].text, 'Rename Blanc to Blanc');
+  assert.deepEqual(notes.extraParagraphs, ['Blanc rebrand release: identity rebrand.']);
+  assert.ok(!changelog.renderChangelog(changelog.normalizeReleases([{
+    html_url: 'https://github.com/bnfy/bowser/releases/tag/v0.2.0',
+    tag_name: 'v0.2.0', name: '0.2.0', draft: false, prerelease: false,
+    published_at: '2026-07-04T00:00:00Z',
+    body: 'Bowser rebrand release: identity rebrand.',
+  }])).toLowerCase().includes('bowser'));
 });
 
 test('new-contributor notes become linked text instead of raw URLs', () => {
@@ -79,9 +99,13 @@ test('new-contributor notes become linked text instead of raw URLs', () => {
     '',
     '**Full Changelog**: https://github.com/bnfy/bowser/compare/v0.6.2...v0.7.0',
   ].join('\n'));
+  assert.deepEqual(notes.changes[0], {
+    text: 'Add blancbrowser.com marketing site',
+    url: 'https://github.com/bnfy/blanc/pull/1',
+  });
   assert.deepEqual(notes.changes[1], {
     text: '@bnfy made their first contribution',
-    url: 'https://github.com/bnfy/bowser/pull/1',
+    url: 'https://github.com/bnfy/blanc/pull/1',
   });
   assert.deepEqual(notes.extraParagraphs, []);
 });
