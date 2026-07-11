@@ -248,6 +248,47 @@ function pickRecent(map, n) {
   );
 }
 
+// POST /admin/purge-legacy-ids — one-shot migration for the 2026-07-11 HMAC
+// change: pings before it wrote seen:* markers keyed by the RAW install UUID
+// (some monthly ones with the old 800-day TTL). Deleting them is what makes
+// the privacy policy's "the raw install ID is never stored" true for the
+// whole store, not just for new pings. Deletes ONLY keys whose install
+// segment matches the old UUID format — 64-hex HMAC keys and the aggregate
+// active:*/day:*/version:* counters are untouched. Bounded per invocation to
+// stay inside the Workers subrequest budget; idempotent, so re-run until it
+// returns done:true. Note: deleting the legacy markers breaks active-user
+// dedup and retention cohorts ACROSS the migration boundary only — installs
+// re-count as new once, then dedup as before.
+const PURGE_DELETE_BUDGET = 800;
+const purgeReport = (obj) =>
+  new Response(JSON.stringify(obj), { headers: { 'Content-Type': 'application/json' } });
+async function handlePurgeLegacy(request, env) {
+  if (!env.STATS_TOKEN || request.headers.get('Authorization') !== `Bearer ${env.STATS_TOKEN}`) {
+    return new Response('unauthorized', { status: 401 });
+  }
+  let scanned = 0;
+  let deleted = 0;
+  let cursor;
+  for (;;) {
+    const res = await env.PINGS.list({ prefix: 'seen:', cursor });
+    for (const { name } of res.keys) {
+      scanned++;
+      // Buckets never contain ':' (YYYY-MM-DD / GGGG-Www / YYYY-MM), so the
+      // final segment is always the install token.
+      const installSegment = name.slice(name.lastIndexOf(':') + 1);
+      if (UUID_RE.test(installSegment)) {
+        await env.PINGS.delete(name);
+        deleted++;
+        if (deleted >= PURGE_DELETE_BUDGET) {
+          return purgeReport({ scanned, deleted, done: false });
+        }
+      }
+    }
+    if (res.list_complete) return purgeReport({ scanned, deleted, done: true });
+    cursor = res.cursor;
+  }
+}
+
 // GET /stats — bearer-token-gated readout so the counts are visible
 // without opening the Cloudflare dashboard's KV browser.
 async function handleStats(request, env, now) {
@@ -309,6 +350,7 @@ export default {
     const now = new Date();
     if (request.method === 'POST' && url.pathname === '/ping') return handlePing(request, env, ctx, now);
     if (request.method === 'GET' && url.pathname === '/stats') return handleStats(request, env, now);
+    if (request.method === 'POST' && url.pathname === '/admin/purge-legacy-ids') return handlePurgeLegacy(request, env);
     return new Response('not found', { status: 404 });
   },
 };

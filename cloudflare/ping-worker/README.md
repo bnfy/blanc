@@ -51,6 +51,31 @@ subdomain, add a route in the Cloudflare dashboard (Workers & Pages →
 blanc-ping → Settings → Triggers → Custom Domains) once
 `blancbrowser.com`'s DNS is on Cloudflare.
 
+## One-time migration: purge legacy raw install ids (2026-07-11)
+
+Pings sent before the HMAC change wrote `seen:*` markers keyed by the **raw**
+install UUID (some monthly ones with the old 800-day TTL). After deploying the
+HMAC worker and setting `INSTALL_HASH_SECRET`, purge them — this is what makes
+the privacy policy's "the raw install ID is never stored" hold for the whole
+store, and it must run **before** the updated policy page is published:
+
+```
+curl -X POST -H "Authorization: Bearer <STATS_TOKEN>" https://<worker-url>/admin/purge-legacy-ids
+```
+
+Re-run until it returns `{"done": true}` (each call deletes up to 800 keys to
+stay inside the Workers subrequest budget; the endpoint is idempotent). Only
+legacy-UUID-format keys are deleted — HMAC keys and the aggregate counters are
+untouched. Expect a one-time discontinuity: installs re-count as new in the
+current day/week/month buckets, and the month-over-month retention figure is
+meaningless across the migration boundary.
+
+**Google Analytics history:** events mirrored before the migration carried the
+raw random token as GA's `client_id` (it identified the install, never a
+person). GA can't be purged from here — either delete/reset the GA4 property
+data (Admin → Data deletion request) or let its configured event retention age
+those events out. The privacy policy discloses this transition either way.
+
 ## Checking the numbers
 
 ```

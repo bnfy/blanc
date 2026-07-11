@@ -42,8 +42,10 @@ test('private-session permission grants live only in memory', async (t) => {
     true
   );
 
-  // ...but a fresh private session — the state after closing the last
-  // private tab, or relaunching the app — starts with nothing.
+  // ...but a fresh private session — the state after Blanc exits and
+  // relaunches — starts with nothing. (Closing the last private tab does NOT
+  // reset this: the private partition and its in-memory grants live for the
+  // whole process lifetime.)
   const nextLaunch = fakeSession();
   setupPermissionPolicy(nextLaunch, { persistDecisions: false });
   assert.equal(

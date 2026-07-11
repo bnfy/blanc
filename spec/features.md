@@ -309,7 +309,11 @@ From the desktop `DEFAULTS`:
   longer. Settings offers a **"Reset install ID"** button (mints a fresh id in
   `install.json`; the install counts as brand new from the next ping). The
   privacy policy (`site/privacy.html`) describes exactly this pipeline — keep
-  the two in lockstep.
+  the two in lockstep. Pre-migration `seen:*` markers (raw UUIDs, some with
+  the old 800d TTL) are purged via the worker's bearer-gated
+  `POST /admin/purge-legacy-ids` — run to `done:true` after deploy and BEFORE
+  publishing the policy page (see the worker README); pre-migration GA events
+  carried the raw token, disclosed in the policy's transition note.
 - **Acceptance:** With the setting off, no ping is sent; with the default (on),
   exactly one ping is sent at launch in a packaged build; blocking the network
   changes nothing user-visible; deleting `install.json` — or the Settings
