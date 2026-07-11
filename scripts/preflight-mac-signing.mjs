@@ -41,6 +41,17 @@ try {
   fail(`could not decode ${profileRel}: ${error.message}`);
 }
 
+if (!/<key>ProvisionsAllDevices<\/key>\s*<true\s*\/>/.test(plist) ||
+    plist.includes('<key>ProvisionedDevices</key>')) {
+  fail([
+    `${profileRel} is not an all-devices Developer ID profile.`,
+    'A device-listed (development-type) profile would make the release launch',
+    'only on registered Macs — every other install, including auto-updating',
+    'ones, would be killed at spawn. Regenerate it on the portal as a',
+    'Developer ID *distribution* profile.',
+  ].join('\n'));
+}
+
 const certsKey = plist.indexOf('<key>DeveloperCertificates</key>');
 if (certsKey === -1) fail(`${profileRel} embeds no DeveloperCertificates`);
 const certsXml = plist.slice(certsKey, plist.indexOf('</array>', certsKey));

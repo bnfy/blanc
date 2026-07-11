@@ -70,3 +70,12 @@ test('a provisioning profile is wired in and authorizes the WebAuthn group', () 
     `profile application-identifier ${appId[1]} must cover ${WEBAUTHN_KEYCHAIN_ACCESS_GROUP}`,
   );
 });
+
+test('the profile provisions all devices — a device-listed profile would strand every other Mac', () => {
+  // A Developer ID profile carries ProvisionsAllDevices; a development-type
+  // profile instead carries a ProvisionedDevices allowlist, and shipping one
+  // would make releases (and auto-updates) launch only on registered Macs.
+  const profile = readBuildFile(pkg.build.mac.provisioningProfile);
+  assert.match(profile, /<key>ProvisionsAllDevices<\/key>\s*<true\s*\/>/);
+  assert.equal(profile.includes('<key>ProvisionedDevices</key>'), false);
+});
