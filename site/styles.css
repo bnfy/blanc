@@ -369,6 +369,14 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .download-footnote p { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.65; }
 .download-footnote a, .compact-footer a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
 .download-footnote a:hover, .compact-footer a:hover { color: var(--accent); border-color: var(--accent); }
+/* "See what changed" sits in the download-options gap, so it pulls up into
+   the options' 120px bottom margin and restores the section rhythm below. */
+.download-whatsnew { margin: -96px 0 96px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+.download-whatsnew a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
+.download-whatsnew a:hover { color: var(--accent); border-color: var(--accent); }
+.download-note { margin: 0 auto 96px; }
+.download-note > p:not(.section-kicker) a { color: inherit; border-bottom: 1px solid var(--border); padding-bottom: 1px; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
+.download-note > p:not(.section-kicker) a:hover { color: var(--accent); border-color: var(--accent); }
 .compact-footer { display: flex; flex-direction: row; justify-content: space-between; gap: 14px 30px; padding: 22px max(24px, calc((100vw - 1132px) / 2)); border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); opacity: 0.8; }
 .compact-footer b { color: var(--accent); font-weight: 400; }
 
@@ -537,6 +545,8 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
   .home-close { margin: 0 18px 72px; padding: 58px 20px; }
   .download-page { padding: 78px 18px 68px; }
   .download-options { grid-template-columns: 1fr; margin: 52px 0 80px; }
+  .download-whatsnew { margin: -56px 0 64px; }
+  .download-note { margin-bottom: 72px; padding: 28px 20px; }
   /* Stacked on one column, the tall bottom-aligned cards become mostly-empty
      boxes — make them compact and top-aligned so each is a tight tap target. */
   .platform-card { min-height: auto; justify-content: flex-start; padding: 22px 24px; }
