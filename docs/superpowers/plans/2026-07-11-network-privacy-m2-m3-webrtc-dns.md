@@ -13,15 +13,18 @@
 ## Global Constraints
 
 - **Two features, one release.** Tasks keep WebRTC (Task 3) and DoH (Task 4) separable so a reviewer can gate each, but they ship together as one version bump.
-- **Verified Electron 43.1.0 API facts (these CORRECT the spec, which predates the version check):**
-  - DoH is **`session.configureHostResolver(options)`** — a **per-Session** method, called on **both** `ses` and `privateSes`. `app.configureHostResolver` does **not** exist in Electron 43; the spec's "process-wide, one call" wording is wrong for this version.
+- **Verified Electron 43.1.0 API facts (confirmed against `node_modules/electron/electron.d.ts`):**
+  - DoH is **`app.configureHostResolver(options)`** — a **process-wide App method** (`electron.d.ts:1044`, inside `interface App`), called **once** after `ready`. It is NOT a Session method: `class Session` (`electron.d.ts:12288`) exposes only `clearHostResolverCache` (`electron.d.ts:12902`). This matches the original spec; an earlier draft of this plan wrongly put it on Session — do not reintroduce `sess.configureHostResolver`, which does not exist.
   - `configureHostResolver` **must be called after the `ready` event**.
-  - `enableBuiltInResolver` defaults to **true on macOS, false on Windows/Linux** — so DoH silently won't function on Win/Linux unless every `configureHostResolver` call sets `enableBuiltInResolver: true`.
+  - **Do NOT force `enableBuiltInResolver`.** Electron documents it as "prefer Chromium's built-in resolver over getaddrinfo" (default: on for macOS, off for Windows/Linux), not a DoH prerequisite. Forcing it would move Windows/Linux off the system resolver in the **Off** position, contradicting "Off — use the system resolver" and possibly altering VPN/corporate DNS. Omit it entirely; only add it **per-mode** (never for `off`) if cross-platform testing proves a specific mode needs it (Task 4 Step 4 records this as a testing-gated decision).
   - `secureDnsMode` accepts exactly `'off' | 'automatic' | 'secure'`; servers go in `secureDnsServers: string[]`.
   - WebRTC is **`webContents.setWebRTCIPHandlingPolicy(policy)`** accepting exactly `'default' | 'default_public_interface_only' | 'default_public_and_private_interfaces' | 'disable_non_proxied_udp'`.
-  - Live DNS transitions use **`session.clearHostResolverCache(): Promise<void>`**.
+  - Live DNS transitions: re-call `app.configureHostResolver(opts)` once, then clear **both** browsing sessions' caches via `session.clearHostResolverCache(): Promise<void>` — handle the returned promises (`Promise.allSettled`) so a failed clear can't become an unhandled rejection.
+- **Strict DNS never falls back (F25 hard rule).** `custom` is persisted only alongside a valid template: `setSettings` rejects an invalid custom transition (preserving the last valid config), and `getSettings` coerces a corrupted stored `custom` state to the default on read (the `appIcon` symmetry pattern). `hostResolverOptionsFor` therefore never returns `automatic` for `custom`.
+- **New Settings controls are capability-guarded.** Initialize them behind `supports('webrtcPolicy')` / `supports('secureDns')` and `.remove()` the markup when unsupported, exactly like `homePage`/`appIcon` — so D17/D18 (no iOS controls) are honored by the same mechanism.
+- **Version bump updates BOTH `package.json` and `package-lock.json`** (the lockfile records the version at its top level and at `packages[""]`). Use `npm version 0.17.0 --no-git-tag-version`, which edits both, and stage both.
 - **Honesty rules (verbatim intent from the spec — enforce in every user-facing string):**
-  - WebRTC strict mode is labeled **"Disable direct UDP"**, never "relay-only" or "closes the leak entirely." Stored enum ids stay `standard`/`strict`; only labels carry the honest wording.
+  - WebRTC strict mode is labeled **"Disable direct UDP"**, never "relay-only," "closes the leak," or "closes the leak entirely." The precise claim is that it **blocks a specific direct-UDP proxy-bypass path** / reduces that bypass risk — it does not close an entire WebRTC leak. Stored enum ids stay `standard`/`strict`; only labels carry the honest wording.
   - DoH copy must state: it does not hide destination IPs; hostnames may still leak via TLS metadata when ECH is unavailable; provider choice is a trust decision; **Auto does not guarantee encrypted DNS** (opportunistic, falls back to plaintext). Strict provider positions hard-fail rather than fall back.
   - Per-provider DoH labels state each resolver's real behavior: Cloudflare unfiltered, **Quad9 blocks known-malware domains + validates DNSSEC**, Mullvad base/unfiltered.
 - **Device-local settings.** `webrtcPolicy`, `secureDns`, `secureDnsTemplate` are **NOT** added to `SYNCED_KEYS` in `settings.js` (device/network-specific in v1).
@@ -43,7 +46,7 @@
   - `webrtcPolicyFor(value: string): string` — maps a `webrtcPolicy` setting to an Electron policy string; unknown → the `standard` mapping.
   - `SECURE_DNS_TEMPLATES: { cloudflare, quad9, mullvad: string }`
   - `isValidDohTemplate(str: unknown): boolean` — raw-string DoH template validation.
-  - `hostResolverOptionsFor(secureDns: string, secureDnsTemplate: string): { enableBuiltInResolver: true, secureDnsMode: 'off'|'automatic'|'secure', secureDnsServers?: string[] }`
+  - `hostResolverOptionsFor(secureDns: string, secureDnsTemplate: string): { secureDnsMode: 'off'|'automatic'|'secure', secureDnsServers?: string[] }` (no `enableBuiltInResolver` — see Global Constraints)
 
 - [ ] **Step 1: Write the failing test**
 
@@ -94,40 +97,41 @@ test('isValidDohTemplate rejects malformed templates', () => {
   assert.equal(isValidDohTemplate(null), false);
 });
 
-test('hostResolverOptionsFor always enables the built-in resolver (required on Win/Linux)', () => {
+test('hostResolverOptionsFor never sets enableBuiltInResolver (Off must keep the system resolver)', () => {
   for (const v of ['auto', 'off', 'cloudflare', 'quad9', 'mullvad', 'custom']) {
-    assert.equal(hostResolverOptionsFor(v, '').enableBuiltInResolver, true);
+    assert.ok(!('enableBuiltInResolver' in hostResolverOptionsFor(v, 'https://dns.example/dns-query')));
   }
 });
 
 test('hostResolverOptionsFor: auto and unknown are opportunistic automatic with no servers', () => {
-  assert.deepEqual(hostResolverOptionsFor('auto', ''), { enableBuiltInResolver: true, secureDnsMode: 'automatic' });
-  assert.deepEqual(hostResolverOptionsFor('mystery', ''), { enableBuiltInResolver: true, secureDnsMode: 'automatic' });
+  assert.deepEqual(hostResolverOptionsFor('auto', ''), { secureDnsMode: 'automatic' });
+  assert.deepEqual(hostResolverOptionsFor('mystery', ''), { secureDnsMode: 'automatic' });
 });
 
 test('hostResolverOptionsFor: off disables DoH', () => {
-  assert.deepEqual(hostResolverOptionsFor('off', ''), { enableBuiltInResolver: true, secureDnsMode: 'off' });
+  assert.deepEqual(hostResolverOptionsFor('off', ''), { secureDnsMode: 'off' });
 });
 
 test('hostResolverOptionsFor: named providers hard-fail on their own template', () => {
   assert.deepEqual(hostResolverOptionsFor('cloudflare', ''), {
-    enableBuiltInResolver: true, secureDnsMode: 'secure', secureDnsServers: ['https://cloudflare-dns.com/dns-query'],
+    secureDnsMode: 'secure', secureDnsServers: ['https://cloudflare-dns.com/dns-query'],
   });
   assert.deepEqual(hostResolverOptionsFor('quad9', ''), {
-    enableBuiltInResolver: true, secureDnsMode: 'secure', secureDnsServers: ['https://dns.quad9.net/dns-query'],
+    secureDnsMode: 'secure', secureDnsServers: ['https://dns.quad9.net/dns-query'],
   });
   assert.deepEqual(hostResolverOptionsFor('mullvad', ''), {
-    enableBuiltInResolver: true, secureDnsMode: 'secure', secureDnsServers: ['https://dns.mullvad.net/dns-query'],
+    secureDnsMode: 'secure', secureDnsServers: ['https://dns.mullvad.net/dns-query'],
   });
 });
 
-test('hostResolverOptionsFor: valid custom template is used in secure mode; invalid falls back to automatic', () => {
+test('hostResolverOptionsFor: custom stays strict (secure) — never degrades to automatic', () => {
+  // The settings layer guarantees a valid template accompanies 'custom' (setSettings
+  // rejects invalid custom transitions; getSettings coerces corrupted state). So the
+  // custom branch is always strict-secure — it must NEVER return automatic.
   assert.deepEqual(hostResolverOptionsFor('custom', 'https://dns.nextdns.io/abc123'), {
-    enableBuiltInResolver: true, secureDnsMode: 'secure', secureDnsServers: ['https://dns.nextdns.io/abc123'],
+    secureDnsMode: 'secure', secureDnsServers: ['https://dns.nextdns.io/abc123'],
   });
-  // invalid/empty custom template never hard-fails browsing — degrade to opportunistic
-  assert.deepEqual(hostResolverOptionsFor('custom', ''), { enableBuiltInResolver: true, secureDnsMode: 'automatic' });
-  assert.deepEqual(hostResolverOptionsFor('custom', 'http://bad'), { enableBuiltInResolver: true, secureDnsMode: 'automatic' });
+  assert.equal(hostResolverOptionsFor('custom', 'https://dns.nextdns.io/abc123').secureDnsMode, 'secure');
 });
 ```
 
@@ -198,29 +202,29 @@ function isValidDohTemplate(str) {
   return true;
 }
 
-// Build the options object for session.configureHostResolver(). enableBuiltInResolver
-// is ALWAYS true: it defaults off on Windows/Linux, and DoH cannot function there
-// without it. Named providers and a valid custom template use secureDnsMode 'secure'
-// (hard-fail, no plaintext fallback); auto is 'automatic' (opportunistic, may fall
-// back to plaintext by design); off disables DoH. An invalid/empty custom template
-// degrades to 'automatic' rather than hard-failing all browsing.
+// Build the options object for app.configureHostResolver() (process-wide, Electron
+// 43). We deliberately do NOT set enableBuiltInResolver — it defaults on for macOS,
+// off for Windows/Linux, and forcing it would push Off/system-resolver users off
+// their configured DNS. Named providers use secureDnsMode 'secure' (hard-fail, no
+// plaintext fallback); auto is 'automatic' (opportunistic, may fall back to plaintext
+// by design); off disables DoH.
+//
+// 'custom' is ALWAYS strict-secure and never degrades to automatic: the settings
+// layer (setSettings reject + getSettings coerce) guarantees a valid template
+// accompanies 'custom', so a valid strict choice is never silently downgraded.
 function hostResolverOptionsFor(secureDns, secureDnsTemplate) {
-  const base = { enableBuiltInResolver: true };
   switch (secureDns) {
     case 'off':
-      return { ...base, secureDnsMode: 'off' };
+      return { secureDnsMode: 'off' };
     case 'cloudflare':
     case 'quad9':
     case 'mullvad':
-      return { ...base, secureDnsMode: 'secure', secureDnsServers: [SECURE_DNS_TEMPLATES[secureDns]] };
+      return { secureDnsMode: 'secure', secureDnsServers: [SECURE_DNS_TEMPLATES[secureDns]] };
     case 'custom':
-      if (isValidDohTemplate(secureDnsTemplate)) {
-        return { ...base, secureDnsMode: 'secure', secureDnsServers: [secureDnsTemplate] };
-      }
-      return { ...base, secureDnsMode: 'automatic' };
+      return { secureDnsMode: 'secure', secureDnsServers: [secureDnsTemplate] };
     case 'auto':
     default:
-      return { ...base, secureDnsMode: 'automatic' };
+      return { secureDnsMode: 'automatic' };
   }
 }
 
@@ -288,7 +292,7 @@ In `DEFAULTS` (lines 51–71), add these three keys just after `adblockException
   secureDnsTemplate: '',
 ```
 
-- [ ] **Step 2: Add the sanitize clauses in `settings.js`**
+- [ ] **Step 2: Add the sanitize clauses and the strict-custom guards in `settings.js`**
 
 In `sanitize()` (lines 97–117), after the `theme` line (`if (THEMES.includes(partial.theme)) clean.theme = partial.theme;`, line 105), add:
 
@@ -296,10 +300,34 @@ In `sanitize()` (lines 97–117), after the `theme` line (`if (THEMES.includes(p
   if (WEBRTC_POLICIES.includes(partial.webrtcPolicy)) clean.webrtcPolicy = partial.webrtcPolicy;
   if (SECURE_DNS_OPTIONS.includes(partial.secureDns)) clean.secureDns = partial.secureDns;
   if (typeof partial.secureDnsTemplate === 'string') {
-    // Persist only a valid template or empty string; a garbage custom URL drops to ''
-    // (hostResolverOptionsFor then degrades 'custom' + '' to opportunistic 'automatic').
+    // Accept only an empty string or a valid template. An invalid value is DROPPED
+    // (key omitted from clean) so it can never overwrite a good stored template; the
+    // cross-field guard in setSettings then decides the secureDns transition.
     const t = partial.secureDnsTemplate.trim();
-    clean.secureDnsTemplate = t === '' || isValidDohTemplate(t) ? t : '';
+    if (t === '' || isValidDohTemplate(t)) clean.secureDnsTemplate = t;
+  }
+```
+
+Then, in **`setSettings()`** (lines 119–130), after `const clean = sanitize(partial);` and before the `s.update(...)` call, add the cross-field write-guard (the store's current values are readable as `s.data.*`):
+
+```js
+  // Strict-mode invariant (F25): never let secureDns='custom' persist without a
+  // valid template — that would silently become plaintext-capable Automatic at the
+  // resolver. Reject the DNS part of a change that would leave custom+invalid,
+  // preserving the last valid configuration rather than falling back.
+  const nextSecureDns = 'secureDns' in clean ? clean.secureDns : s.data.secureDns;
+  const nextTemplate = 'secureDnsTemplate' in clean ? clean.secureDnsTemplate : s.data.secureDnsTemplate;
+  if (nextSecureDns === 'custom' && !isValidDohTemplate(nextTemplate)) {
+    delete clean.secureDns;
+    delete clean.secureDnsTemplate;
+  }
+```
+
+Finally, in **`getSettings()`** (lines 84–88), add a read-side coercion mirroring the existing `appIcon` line — for a *corrupted* stored state only (a hand-edited settings.json), since the write-guard prevents a valid user action from ever producing custom+invalid:
+
+```js
+  if (data.secureDns === 'custom' && !isValidDohTemplate(data.secureDnsTemplate)) {
+    data.secureDns = DEFAULTS.secureDns;
   }
 ```
 
@@ -324,7 +352,7 @@ In the `"settings"` array (lines 38–47), after the `theme` entry, add:
 
 ```json
     { "key": "webrtcPolicy", "type": "enum", "enum": "webrtcPolicies", "default": "standard", "note": "maps to webContents.setWebRTCIPHandlingPolicy; strict = disable_non_proxied_udp" },
-    { "key": "secureDns", "type": "enum", "enum": "secureDnsOptions", "default": "auto", "note": "session.configureHostResolver secureDnsMode; strict positions hard-fail" },
+    { "key": "secureDns", "type": "enum", "enum": "secureDnsOptions", "default": "auto", "note": "app.configureHostResolver secureDnsMode; strict positions hard-fail" },
     { "key": "secureDnsTemplate", "type": "string", "default": "", "note": "custom DoH RFC8484 template; validated raw (not URL-normalized)" },
 ```
 
@@ -531,13 +559,13 @@ git commit -m "Apply WebRTC IP-handling policy per tab, live on settings change 
 
 ---
 
-### Task 4: Configure encrypted DNS per session (F25)
+### Task 4: Configure encrypted DNS process-wide (F25)
 
 **Files:**
-- Modify: `src/main/main.js` (per-session config after line 1931; live re-config in the `onSettingsChanged` block)
+- Modify: `src/main/main.js` (process-wide config after line 1931; live re-config + cache clears in the `onSettingsChanged` block)
 
 **Interfaces:**
-- Consumes: `hostResolverOptionsFor` from Task 1 (imported in Task 3 Step 1); `ses`, `privateSes`, `browsingSessions` closure vars (lines 1929–1931).
+- Consumes: `hostResolverOptionsFor` from Task 1 (imported in Task 3 Step 1); `app` (imported at `main.js:1`); `browsingSessions` closure var (line 1931, used only for the cache clears).
 - Produces: module-scope `lastSecureDns` / `lastSecureDnsTemplate` (owned entirely by this task) and the DNS branch of the shared listener.
 
 - [ ] **Step 1: Declare DNS change-tracking state (module scope)**
@@ -557,14 +585,15 @@ let lastSecureDnsTemplate = null;
 In the `app.whenReady().then(async () => { ... })` handler, immediately after `const browsingSessions = [ses, privateSes];` (line 1931), add:
 
 ```js
-  // Encrypted DNS (DoH). configureHostResolver is a per-Session API in Electron 43
-  // (NOT app-level) and must run after 'ready'. Configure BOTH browsing sessions;
-  // private tabs share privateSes, so they inherit this by construction.
+  // Encrypted DNS (DoH). app.configureHostResolver is process-wide in Electron 43
+  // (an App method — electron.d.ts:1044) and must run after 'ready'. ONE call covers
+  // every session, including the private-browsing session, so private tabs inherit
+  // it by construction. Deliberately no enableBuiltInResolver (see Global Constraints:
+  // forcing it would move the Off position off the system resolver on Win/Linux).
   {
     lastSecureDns = settings.getSettings().secureDns;
     lastSecureDnsTemplate = settings.getSettings().secureDnsTemplate;
-    const opts = hostResolverOptionsFor(lastSecureDns, lastSecureDnsTemplate);
-    for (const s of browsingSessions) s.configureHostResolver(opts);
+    app.configureHostResolver(hostResolverOptionsFor(lastSecureDns, lastSecureDnsTemplate));
   }
 ```
 
@@ -581,12 +610,11 @@ Extend the `settings.onSettingsChanged((s) => { ... })` block (as left by Task 3
     if (s.secureDns !== lastSecureDns || s.secureDnsTemplate !== lastSecureDnsTemplate) {
       lastSecureDns = s.secureDns;
       lastSecureDnsTemplate = s.secureDnsTemplate;
-      const opts = hostResolverOptionsFor(s.secureDns, s.secureDnsTemplate);
-      for (const sess of browsingSessions) {
-        sess.configureHostResolver(opts);
-        // Clear cached lookups so the new resolver takes effect without a restart.
-        sess.clearHostResolverCache();
-      }
+      app.configureHostResolver(hostResolverOptionsFor(s.secureDns, s.secureDnsTemplate));
+      // Clear cached lookups on both sessions so the new resolver takes effect without
+      // a restart. clearHostResolverCache returns a promise; Promise.allSettled collects
+      // any rejection so a failed clear can't surface as an unhandled rejection.
+      Promise.allSettled(browsingSessions.map((sess) => sess.clearHostResolverCache()));
     }
   });
 ```
@@ -598,8 +626,11 @@ Electron's built-in resolver defaults differ by platform, so this is a three-pla
 2. DNS = **Custom** with a garbage-but-well-formed template (e.g. `https://doh.invalid.example/dns-query`); attempt any navigation → it **fails** (proves no silent plaintext fallback in secure mode).
 3. DNS = **Auto**; browsing works everywhere.
 4. Change provider while the app is running (e.g. Cloudflare → Off → Quad9) → each switch takes effect **without a restart** (cache-clear working).
+5. **Off must preserve system DNS:** with a system-level VPN/corporate resolver active, set DNS = Off and confirm name resolution still goes through that resolver (not a browser-side DoH path).
 
-(The option-building is unit-tested in Task 1; this verifies the live Electron wiring and the cross-platform built-in-resolver requirement.)
+**Testing-gated `enableBuiltInResolver` decision:** if and only if strict/secure DoH (steps 1–2) does *not* activate on Windows or Linux — where Chromium's built-in resolver is off by default — add `enableBuiltInResolver: true` to the `secure` and `automatic` return branches of `hostResolverOptionsFor` **only** (never `off`), update that unit test, and re-run steps 1–5 on all three platforms. Do not add it preemptively; record the outcome in the commit message.
+
+(The option-building is unit-tested in Task 1; this verifies the live Electron wiring and the platform-specific resolver behavior.)
 
 - [ ] **Step 5: Commit**
 
@@ -623,89 +654,102 @@ git commit -m "Configure encrypted DNS per session, live on settings change (F25
 
 - [ ] **Step 1: Add the two controls to `settings.html`**
 
-Inside the `.settings-card` of `<section id="group-privacy">` (line 86+), add two `.setting` blocks. Labels carry the honest wording; option `value`s are the stored enum ids:
+Inside the `.settings-card` of `<section id="group-privacy">` (line 86+), add three `.setting` blocks that reuse the established `.setting > .label > span + span.hint` structure (mirroring the Search-engine and New-tab-page settings at lines 66–80). Labels carry the honest wording; option `value`s are the stored enum ids. The custom-template field is its own `.setting` row (`#secureDnsCustomRow`) that shows only for the Custom provider, so its copy never joins the select's flex row:
 
 ```html
-        <div class="setting">
-          <label for="webrtcPolicy">WebRTC</label>
-          <select id="webrtcPolicy">
-            <option value="standard">Standard — hide non-default addresses</option>
-            <option value="strict">Disable direct UDP — for proxy users; may break or degrade some video calls</option>
-          </select>
-          <p class="setting-note">Controls which network addresses WebRTC may reveal. Standard hides non-default-route and multi-homed addresses.</p>
-        </div>
-        <div class="setting">
-          <label for="secureDns">Encrypted DNS</label>
-          <select id="secureDns">
-            <option value="auto">Automatic — upgrade when available (may fall back to unencrypted)</option>
-            <option value="off">Off — use the system resolver (best with a VPN's own DNS)</option>
-            <option value="cloudflare">Cloudflare — unfiltered</option>
-            <option value="quad9">Quad9 — blocks known-malware domains, validates DNSSEC</option>
-            <option value="mullvad">Mullvad — unfiltered</option>
-            <option value="custom">Custom provider…</option>
-          </select>
-          <p class="setting-note">Encrypts DNS lookups between Blanc and the chosen resolver. It does not hide the sites you visit from your network, and it makes the resolver a party you trust. Automatic does not guarantee encryption. Strict providers may block captive-portal login pages — switch to Automatic to get through.</p>
-          <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" hidden>
-          <p class="setting-note" id="secureDnsTemplateError" hidden>Enter a valid https:// DoH template.</p>
-        </div>
+            <div class="setting">
+              <div class="label">
+                <span>WebRTC</span>
+                <span class="hint">Limits which network addresses WebRTC may reveal. Standard hides non-default-route and multi-homed addresses.</span>
+              </div>
+              <select id="webrtcPolicy">
+                <option value="standard">Standard — hide non-default addresses</option>
+                <option value="strict">Disable direct UDP — for proxy users; may break or degrade some video calls</option>
+              </select>
+            </div>
+
+            <div class="setting">
+              <div class="label">
+                <span>Encrypted DNS</span>
+                <span class="hint">Encrypts DNS lookups between Blanc and the chosen resolver. It does not hide the sites you visit from your network, and it makes the resolver a party you trust. Automatic does not guarantee encryption. Strict providers may block captive-portal login pages — switch to Automatic to get through.</span>
+              </div>
+              <select id="secureDns">
+                <option value="auto">Automatic — upgrade when available (may fall back to unencrypted)</option>
+                <option value="off">Off — use the system resolver (best with a VPN's own DNS)</option>
+                <option value="cloudflare">Cloudflare — unfiltered</option>
+                <option value="quad9">Quad9 — blocks known-malware domains, validates DNSSEC</option>
+                <option value="mullvad">Mullvad — unfiltered</option>
+                <option value="custom">Custom provider…</option>
+              </select>
+            </div>
+
+            <div class="setting" id="secureDnsCustomRow" hidden>
+              <div class="label">
+                <span>Custom DoH template</span>
+                <span class="hint" id="secureDnsTemplateHint">An https:// DoH URL (RFC 8484). An invalid entry is ignored and the previous provider is kept.</span>
+              </div>
+              <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" />
+            </div>
 ```
 
 - [ ] **Step 2: Wire load + change in `settings.js`**
 
-In `src/renderer/pages/settings.js`, after the existing simple bindings (theme/searchEngine/adblock, lines 16–36), add:
+In `src/renderer/pages/settings.js`, after the existing simple bindings (theme/searchEngine/adblock, lines 16–36), add both controls behind `supports(...)` guards — mirroring the `homePage` guard at lines 39–45, so D17/D18 (no iOS controls) are honored by the same mechanism:
 
 ```js
-  const webrtcPolicy = document.getElementById('webrtcPolicy');
-  webrtcPolicy.value = settings.webrtcPolicy ?? 'standard';
-  webrtcPolicy.addEventListener('change', () =>
-    window.bowserPages.settings.set({ webrtcPolicy: webrtcPolicy.value }));
+  if (supports('webrtcPolicy')) {
+    const webrtcPolicy = document.getElementById('webrtcPolicy');
+    webrtcPolicy.value = settings.webrtcPolicy ?? 'standard';
+    webrtcPolicy.addEventListener('change', () =>
+      window.bowserPages.settings.set({ webrtcPolicy: webrtcPolicy.value }));
+  } else {
+    document.getElementById('webrtcPolicy')?.closest('.setting')?.remove();
+  }
 
-  const secureDns = document.getElementById('secureDns');
-  const secureDnsTemplate = document.getElementById('secureDnsTemplate');
-  const secureDnsTemplateError = document.getElementById('secureDnsTemplateError');
+  if (supports('secureDns')) {
+    const secureDns = document.getElementById('secureDns');
+    const secureDnsRow = document.getElementById('secureDnsCustomRow');
+    const secureDnsTemplate = document.getElementById('secureDnsTemplate');
 
-  const syncCustomVisibility = () => {
-    const isCustom = secureDns.value === 'custom';
-    secureDnsTemplate.hidden = !isCustom;
-    if (!isCustom) secureDnsTemplateError.hidden = true;
-  };
+    // Inline mirror of the main-process isValidDohTemplate for UX only; the main
+    // process is the source of truth and re-validates + guards on write.
+    const looksLikeValidTemplate = (t) => {
+      if (typeof t !== 'string' || t.length === 0 || t.length > 2048) return false;
+      if (!t.startsWith('https://') || t.includes('#')) return false;
+      const authority = t.slice(8).split(/[/?]/)[0];
+      if (!authority || authority.includes('@')) return false;
+      const tokens = t.match(/\{[^}]*\}/g) || [];
+      if (tokens.length > 1) return false;
+      if (tokens.length === 1 && (tokens[0] !== '{?dns}' || !t.endsWith('{?dns}'))) return false;
+      try { return new URL(t.replace('{?dns}', '')).protocol === 'https:'; } catch { return false; }
+    };
 
-  secureDns.value = settings.secureDns ?? 'auto';
-  secureDnsTemplate.value = settings.secureDnsTemplate ?? '';
-  syncCustomVisibility();
+    const commitCustomDns = () => {
+      const t = secureDnsTemplate.value.trim();
+      const ok = looksLikeValidTemplate(t);
+      secureDnsTemplate.setAttribute('aria-invalid', ok ? 'false' : 'true');
+      // Only persist secureDns=custom together with a valid template — never switch
+      // to custom with an invalid one (the main process would reject it anyway).
+      if (ok) window.bowserPages.settings.set({ secureDns: 'custom', secureDnsTemplate: t });
+    };
 
-  secureDns.addEventListener('change', () => {
-    syncCustomVisibility();
-    // For custom, only persist secureDns=custom once a valid template exists; otherwise
-    // keep secureDns as-is until the field validates (avoids a silent auto fallback).
-    if (secureDns.value === 'custom') {
-      commitCustomDns();
-    } else {
-      window.bowserPages.settings.set({ secureDns: secureDns.value });
-    }
-  });
+    secureDns.value = settings.secureDns ?? 'auto';
+    secureDnsTemplate.value = settings.secureDnsTemplate ?? '';
+    secureDnsRow.hidden = secureDns.value !== 'custom';
 
-  const looksLikeValidTemplate = (t) => {
-    // Mirror of main-process isValidDohTemplate for inline UX only; the main process
-    // is the source of truth and re-validates on write.
-    if (typeof t !== 'string' || t.length === 0 || t.length > 2048) return false;
-    if (!t.startsWith('https://') || t.includes('#')) return false;
-    const authority = t.slice(8).split(/[/?]/)[0];
-    if (!authority || authority.includes('@')) return false;
-    const tokens = t.match(/\{[^}]*\}/g) || [];
-    if (tokens.length > 1) return false;
-    if (tokens.length === 1 && (tokens[0] !== '{?dns}' || !t.endsWith('{?dns}'))) return false;
-    try { return new URL(t.replace('{?dns}', '')).protocol === 'https:'; } catch { return false; }
-  };
-
-  const commitCustomDns = () => {
-    const t = secureDnsTemplate.value.trim();
-    const ok = looksLikeValidTemplate(t);
-    secureDnsTemplateError.hidden = ok || t === '';
-    if (ok) window.bowserPages.settings.set({ secureDns: 'custom', secureDnsTemplate: t });
-  };
-
-  secureDnsTemplate.addEventListener('change', commitCustomDns);
+    secureDns.addEventListener('change', () => {
+      secureDnsRow.hidden = secureDns.value !== 'custom';
+      if (secureDns.value === 'custom') {
+        commitCustomDns(); // persists only if the (possibly pre-filled) template is valid
+      } else {
+        window.bowserPages.settings.set({ secureDns: secureDns.value });
+      }
+    });
+    secureDnsTemplate.addEventListener('change', commitCustomDns);
+  } else {
+    document.getElementById('secureDns')?.closest('.setting')?.remove();
+    document.getElementById('secureDnsCustomRow')?.remove();
+  }
 ```
 
 - [ ] **Step 3: Relaunch and verify the controls**
@@ -717,8 +761,10 @@ npm start
 ```
 Open `blanc://settings` → Privacy section. Verify:
 - WebRTC select shows both options; changing it persists (reopen Settings → value retained).
-- Encrypted DNS select shows all six options; selecting "Custom provider…" reveals the URL field; a bad URL shows the inline error and does not switch the mode; a valid template persists and hides the error.
-- Selecting a named provider hides the custom field.
+- Encrypted DNS select shows all six options; selecting "Custom provider…" reveals the custom-template `.setting` row.
+- A bad URL in the custom field marks the input `aria-invalid` and does **not** switch the stored provider (reopen Settings → the previous provider is still selected — the strict-custom write-guard held).
+- A valid template persists (reopen Settings → Custom selected, template retained).
+- Selecting a named provider hides the custom row.
 
 - [ ] **Step 4: Commit**
 
@@ -776,8 +822,8 @@ Append after the D16 entry:
 **Features:** F25
 **Why:** In-app DoH control depends on the platform's network stack.
 
-- **Desktop:** full control via `session.configureHostResolver` (Electron 43,
-  per-session, `enableBuiltInResolver: true` required on Windows/Linux).
+- **Desktop:** full control via `app.configureHostResolver` (Electron 43,
+  process-wide, applied after `ready`).
 - **Android:** OS-level Private DNS (DoT) exists; per-app DoH control to be
   assessed at port time.
 - **iOS:** WKWebView exposes no in-app DoH control; encrypted DNS is an OS concern
@@ -839,7 +885,7 @@ In `site/features/security.html`, insert a new section after the "the sensitive 
   <section class="feature-copy-grid" aria-labelledby="security-network-title">
     <div><p class="section-kicker">on the network</p><h2 id="security-network-title">Respecting the VPN you already chose.</h2></div>
     <div class="feature-copy-list">
-      <article><h3>WebRTC stays in its lane.</h3><p>WebRTC can reveal network addresses that sidestep a proxy. Blanc limits it to your default connection by default, and an optional &ldquo;disable direct UDP&rdquo; mode stops it from opening direct paths around an application proxy. It is not a promise of anonymity — it closes a specific, well-known leak.</p></article>
+      <article><h3>WebRTC stays in its lane.</h3><p>WebRTC can reveal network addresses that sidestep a proxy. Blanc limits it to your default connection by default, and an optional &ldquo;disable direct UDP&rdquo; mode blocks a specific direct-UDP path around an application proxy. It is not a promise of anonymity — it reduces one well-known proxy-bypass risk.</p></article>
       <article><h3>DNS you can encrypt — or hand to your VPN.</h3><p>Blanc can send DNS lookups over an encrypted connection (DoH) to Cloudflare, Quad9, Mullvad, or a provider you name — or stay out of the way and leave DNS to your system or VPN. Encryption hides your lookups from the network in transit; it does not hide the sites themselves, and it makes the resolver a party you choose to trust. Automatic mode upgrades opportunistically and is not a guarantee.</p></article>
     </div>
   </section>
@@ -861,9 +907,9 @@ cd site && python3 -m http.server 8124 &
 Open `http://localhost:8124/features/security.html`; confirm the new section renders in the page style. Then the hard-rule sweep — no over-claims:
 
 ```bash
-grep -niE "relay-only|closes the leak entirely|anonymous( browsing)?|hides (the )?sites you visit|guarantees? (encrypt|privacy)" site/features/security.html
+grep -niE "relay-only|closes?( a| the)?( specific| well-known)? leak|anonymous( browsing)?|hides (the )?sites you visit|guarantees? (encrypt|privacy)" site/features/security.html
 ```
-Expected: no output. Stop the server when done (`kill %1`).
+Expected: no output (the strengthened pattern now catches "closes a … leak" phrasings, not just "closes the leak entirely"). Stop the server when done (`kill %1`).
 
 - [ ] **Step 4: Commit (do NOT deploy yet)**
 
@@ -878,7 +924,7 @@ git commit -m "Add WebRTC + encrypted-DNS sections to the security page"
 ### Task 8: Version bump, full verification, and release (user-gated)
 
 **Files:**
-- Modify: `package.json` (`version` 0.16.0 → 0.17.0)
+- Modify: `package.json` **and** `package-lock.json` (`version` 0.16.0 → 0.17.0 in both — the lockfile records it at its top level and at `packages[""]`)
 
 **Interfaces:** none. This task cuts a real public release — its final step is gated on explicit user go-ahead, like M1's deploy.
 
@@ -886,9 +932,18 @@ git commit -m "Add WebRTC + encrypted-DNS sections to the security page"
 
 Per CLAUDE.md, releasing is the moment to consider bumping `electron` (it tracks Chromium stable, which can't be swapped out of a running app). Check whether a newer 43.x/stable is available and worth taking. If bumping, do it as its own commit and re-run the full suite (the verified API facts in this plan are for 43.1.0 — re-verify `configureHostResolver`/`setWebRTCIPHandlingPolicy` still match if you move a major version). If not bumping, note that explicitly and proceed. Do not bump silently.
 
-- [ ] **Step 2: Bump the app version**
+- [ ] **Step 2: Bump the app version (both manifest files)**
 
-In `package.json`, change `"version": "0.16.0"` to `"version": "0.17.0"`.
+Use npm so `package.json` and `package-lock.json` are updated together (a hand-edit of `package.json` alone leaves the lockfile at 0.16.0, and `release.sh` treats both as release-source metadata):
+
+```bash
+npm version 0.17.0 --no-git-tag-version
+```
+Expected: prints `v0.17.0`; `git status --short` now shows both `package.json` and `package-lock.json` modified. Confirm the lockfile changed:
+
+```bash
+grep -c '"version": "0.17.0"' package-lock.json   # expect >= 2 (top-level + packages[""])
+```
 
 - [ ] **Step 3: Full pre-release verification**
 
@@ -902,8 +957,8 @@ Expected: all three exit 0. If any fails, stop and fix before releasing.
 - [ ] **Step 4: Commit the bump**
 
 ```bash
-git status --short   # expect only package.json
-git add package.json
+git status --short   # expect package.json AND package-lock.json
+git add package.json package-lock.json
 git commit -m "Release v0.17.0: WebRTC leak protection + encrypted DNS"
 ```
 
@@ -941,7 +996,10 @@ git tag -d m2m3-base
 ## Self-Review Notes
 
 - **Spec coverage:** F26 WebRTC (Tasks 1,3,5,6,7), F25 DoH (Tasks 1,2,4,5,6,7), settings + S5 generator extension (Task 2, all six hardcoded categories per the review's warning), device-local not-synced (Task 2 Step 1 comment + Global Constraints), parity F25/F26 + D17/D18 (Task 6), security-page sections (Task 7), release + version bump (Task 8). D13 is deliberately untouched — it belongs to M4 (shield report), not this release.
-- **Electron-API corrections vs. spec** are called out in Global Constraints and re-stated at each use site (per-session `configureHostResolver`, mandatory `enableBuiltInResolver`, `clearHostResolverCache` for live transitions).
-- **Honesty rules** are enforced with a grep gate (Task 7 Step 3) and baked into every label/copy string; "strict" is only an internal enum id, never a user-facing word.
+- **Electron API (verified against `electron.d.ts`):** `app.configureHostResolver` is process-wide (App method, line 1044), called once after `ready`; `clearHostResolverCache` is per-Session (line 12902) and its promises are collected with `Promise.allSettled`. `enableBuiltInResolver` is deliberately NOT forced (it would break the Off/system-resolver contract on Win/Linux) — its addition is a testing-gated, per-mode decision in Task 4 Step 4.
+- **Strict DNS never falls back:** enforced in the settings layer (setSettings reject + getSettings coerce, Task 2 Step 2), so `hostResolverOptionsFor`'s `custom` branch is unconditionally strict-secure — verified by unit test (Task 1) and manual test (Task 5 Step 3).
+- **Capability guards:** both new controls are wrapped in `supports(...)` with `.remove()` fallbacks (Task 5 Step 2), matching `homePage`/`appIcon`, so D17/D18's "no iOS controls" holds by construction.
+- **Lockfile:** the version bump uses `npm version --no-git-tag-version` and stages `package.json` + `package-lock.json` together (Task 8 Steps 2, 4).
+- **Honesty rules** are enforced with a strengthened grep gate (Task 7 Step 3, now catching "closes a … leak") and baked into every label/copy string; "strict" is only an internal enum id, never a user-facing word; the WebRTC claim is "reduces one proxy-bypass risk", never "closes the leak".
 - **Type/name consistency:** `webrtcPolicyFor`, `hostResolverOptionsFor`, `isValidDohTemplate`, `applyWebrtcPolicyToAllTabs`, `lastSecureDns`/`lastSecureDnsTemplate`, and the setting keys `webrtcPolicy`/`secureDns`/`secureDnsTemplate` are used identically across Tasks 1–5.
 - **Change-detection is DNS-only** (`lastSecureDns`/`lastSecureDnsTemplate`, owned entirely by Task 4) so the listener never reconfigures DNS or clears the resolver cache on unrelated settings writes; WebRTC reapplies unconditionally because the per-tab call is cheap and idempotent. No require-time settings-store access.
