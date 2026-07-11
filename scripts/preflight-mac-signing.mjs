@@ -96,7 +96,7 @@ const qualifier = typeof pkg.build.mac.identity === 'string'
   ? pkg.build.mac.identity
   : (process.env.CSC_NAME ?? null);
 
-function cscLinkFingerprints(link, password) {
+function cscLinkCertificates(link, password) {
   if (/^https?:\/\//.test(link)) {
     fail('CSC_LINK is a URL — the preflight can only validate a local file or base64 p12. Download it and point CSC_LINK at the file.');
   }
@@ -104,7 +104,9 @@ function cscLinkFingerprints(link, password) {
     ? readFileSync(link)
     : Buffer.from(link.replace(/^data:[^,]*;base64,/, ''), 'base64');
   const env = { ...process.env, PREFLIGHT_CSC_PW: password ?? '' };
-  const args = ['pkcs12', '-nokeys', '-passin', 'env:PREFLIGHT_CSC_PW'];
+  // -clcerts isolates the client (signing) certificate: a p12 that also
+  // bundles its CA chain must not have the chain treated as possible signers.
+  const args = ['pkcs12', '-clcerts', '-nokeys', '-passin', 'env:PREFLIGHT_CSC_PW'];
   let pem;
   try {
     pem = run('openssl', args, { input: p12, env });
@@ -116,17 +118,29 @@ function cscLinkFingerprints(link, password) {
     }
   }
   const blocks = pem.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g) ?? [];
-  if (!blocks.length) fail('the CSC_LINK p12 contains no certificate.');
+  if (!blocks.length) fail('the CSC_LINK p12 contains no client certificate.');
   return blocks.map((block) => {
-    const info = run('openssl', ['x509', '-noout', '-fingerprint', '-sha1'], { input: block });
-    return (info.match(/Fingerprint=([0-9A-F:]+)/i)?.[1] ?? '').replaceAll(':', '').toUpperCase();
+    const info = run('openssl', ['x509', '-noout', '-fingerprint', '-sha1', '-subject'], { input: block });
+    return {
+      fingerprint: (info.match(/Fingerprint=([0-9A-F:]+)/i)?.[1] ?? '').replaceAll(':', '').toUpperCase(),
+      label: info.match(/CN\s*=\s*([^,\n]+)/)?.[1] ?? 'CSC_LINK certificate',
+    };
   });
 }
 
 let candidates;
 if (process.env.CSC_LINK) {
-  candidates = cscLinkFingerprints(process.env.CSC_LINK, process.env.CSC_KEY_PASSWORD)
-    .map((fingerprint) => ({ fingerprint, label: 'CSC_LINK certificate' }));
+  // electron-builder imports the p12 into a temporary keychain and resolves
+  // the identity there with the same qualifier — mirror that: the p12's
+  // client cert must match the pin, or builder and preflight would disagree
+  // about what is selectable.
+  const p12Certs = cscLinkCertificates(process.env.CSC_LINK, process.env.CSC_KEY_PASSWORD);
+  candidates = qualifier
+    ? p12Certs.filter((cert) => `${cert.fingerprint} "${cert.label}"`.includes(qualifier))
+    : p12Certs;
+  if (!candidates.length) {
+    fail(`the CSC_LINK client certificate (${p12Certs.map((c) => `${c.fingerprint.slice(0, 8)}… (${c.label})`).join(', ')}) does not match build.mac.identity/CSC_NAME "${qualifier}".`);
+  }
 } else {
   const identityList = run('security', ['find-identity', '-v', '-p', 'codesigning']);
   const identities = [...identityList.matchAll(/^\s*\d+\) ([0-9A-F]{40}) "(.+)"$/gm)]
