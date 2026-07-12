@@ -1254,8 +1254,16 @@ Then change the release-create line (currently line 113) to bind the tag to that
 
 ```bash
 # Explicit privacy-boundary disclosure required by the F25 spec, prepended to the
-# auto-generated changelog. Written to a temp notes file passed as --notes-file.
+# auto-generated changelog. Fails CLOSED: if the changelog can't be generated we
+# abort BEFORE publishing an immutable release with incomplete notes.
 NOTES_FILE="$(mktemp)"
+trap 'rm -f "$NOTES_FILE"' EXIT
+# gh api returns the same changelog --generate-notes would. Require it to succeed
+# AND be non-empty — no `|| true`, so a transient API failure stops the release.
+if ! GENERATED="$(gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG" -f target_commitish="$LOCAL_HEAD" --jq .body)" || [ -z "$GENERATED" ]; then
+  echo "Failed to generate the release changelog — aborting before publish." >&2
+  exit 1
+fi
 {
   echo "### Network privacy (v$VERSION)"
   echo
@@ -1268,13 +1276,12 @@ NOTES_FILE="$(mktemp)"
   echo
   echo "---"
   echo
-  gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG" -f target_commitish="$LOCAL_HEAD" --jq .body 2>/dev/null || true
+  printf '%s\n' "$GENERATED"
 } > "$NOTES_FILE"
 gh release create "$TAG" "${ASSETS[@]}" --repo "$REPO" --title "$VERSION" --target "$LOCAL_HEAD" --notes-file "$NOTES_FILE"
-rm -f "$NOTES_FILE"
 ```
 
-(`gh api .../releases/generate-notes` returns the same changelog `--generate-notes` would, so the boundary text leads and the changelog follows; if that API call is unavailable the release still publishes with just the boundary disclosure, which is the spec-required part.)
+(The `trap ... EXIT` removes `NOTES_FILE` on any exit — success, the abort above, or a later failure. Note this assignment-in-`if` pattern catches the failure even under `set -e`, where a plain `X="$(failing-cmd)"` would not abort.)
 
 Then syntax-check the edited script before relying on it at release time (a slip here wouldn't surface until `npm run release`):
 
