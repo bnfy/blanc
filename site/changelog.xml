@@ -13,14 +13,9 @@
       <pubDate>Sun, 12 Jul 2026 02:15:26 GMT</pubDate>
       <description>Add /save [folder] slash command
 Network privacy (M2+M3): WebRTC leak protection + encrypted DNS
-Network privacy (v0.17.0)
-This release adds WebRTC leak protection and optional encrypted DNS (DoH).
-Encrypted DNS hides your DNS lookups from the network *in transit* to the
-resolver you choose — it does not hide the sites you visit (destination
-IPs remain visible to your network), and choosing a provider is a trust
-decision. Automatic mode upgrades opportunistically and can fall back to
-unencrypted DNS; only the named-provider and custom positions are strict.
----</description>
+Blanc v0.17.0 adds two privacy features that respect the VPN or proxy you already use: WebRTC leak protection and optional encrypted DNS (DoH).
+Encrypted DNS hides your DNS lookups from the network in transit to the resolver you choose. It does not hide the sites you visit — destination IPs stay visible to your network — and choosing a provider is a trust decision. Automatic mode upgrades opportunistically and can fall back to unencrypted DNS; only the named-provider and custom positions are strict.
+WebRTC leak protection keeps WebRTC from exposing addresses beyond your default connection, with an optional &quot;disable direct UDP&quot; mode for use behind an application proxy.</description>
     </item>
     <item>
       <title>Blanc 0.16.0</title>
