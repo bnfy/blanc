@@ -947,7 +947,60 @@ async function fillActiveTabFrom1Password() {
   }
 }
 
-async function initSpikePackaging() { /* filled in Task 4 */ }
+// SPIKE (1Password fill feasibility) — headless criterion 3(a). Gated on its
+// OWN env var so it can run without a GUI/account: load the SDK package inside
+// packaged Electron (asar resolution + @1password/sdk-core's eager core_bg.wasm
+// compile), log ONE line, set a real exit code, and terminate. app.exit() is
+// used (not app.quit()) so native handles the SDK may open can't stall exit.
+async function runPackageProbeIfRequested() {
+  if (process.env.BLANC_1P_PACKAGE_PROBE !== '1') return false;
+  try {
+    require('./onepassword').probePackageLoad();
+    console.log('[1p-spike] package probe: PASS (require resolved + WASM compiled)');
+    app.exit(0);
+  } catch (err) {
+    console.warn(`[1p-spike] package probe: FAIL — ${err?.message || err}`);
+    app.exit(1);
+  }
+  return true; // unreachable after app.exit; kept for call-site clarity
+}
+
+// SPIKE (1Password fill feasibility) — GUI startup checks. Gated
+// BLANC_1P_SPIKE === '1'. Two independent lines:
+//   3(a) package probe — does the SDK module LOAD in this build?
+//   3(b) core smoke    — does DesktopAuth dlopen + authenticate under a
+//                        notarized/hardened build?
+async function initSpikePackaging() {
+  if (process.env.BLANC_1P_SPIKE !== '1') return;
+
+  // 3(a): load the package (asar loader active, eager core_bg.wasm compile).
+  try {
+    require('./onepassword').probePackageLoad();
+    console.log('[1p-spike] package probe: PASS (require resolved + WASM compiled)');
+  } catch (err) {
+    console.warn(`[1p-spike] package probe: FAIL — ${err?.message || err}`);
+  }
+
+  // 3(b): the native bridge round-trip. Decisive by default — everything is a
+  // FAIL unless it matches the biometric-cancel signature (/cancell?ed/i), a
+  // best-effort INCONCLUSIVE (bridge state then unknowable). "denied"/"not
+  // allowed"/policy/auth errors are real FAILs (the round-trip did not work). A
+  // genuine cancel misread as FAIL isn't worth chasing for throwaway code — just
+  // re-run the smoke without cancelling.
+  try {
+    const client = await require('./onepassword').getClient();
+    await client.vaults.list();
+    console.log('[1p-spike] core smoke: PASS (DesktopAuth + vaults.list)');
+  } catch (err) {
+    const msg = err?.message || String(err);
+    if (/cancell?ed/i.test(msg)) {
+      console.log(`[1p-spike] core smoke: INCONCLUSIVE (biometric cancelled) — ${msg}`);
+    } else {
+      const bridge = /dlopen|libop_sdk_ipc_client|image not found|code ?sign|library/i.test(msg);
+      console.warn(`[1p-spike] core smoke: FAIL${bridge ? ' (native bridge did not load)' : ''} — ${msg}`);
+    }
+  }
+}
 // ─── end SPIKE ────────────────────────────────────────────────────────────
 
 function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null } = {}) {
@@ -2077,6 +2130,7 @@ let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
 
 app.whenReady().then(async () => {
+  if (await runPackageProbeIfRequested()) return; // SPIKE — headless 3(a); app.exit() already fired
   const ses = session.defaultSession;
   const privateSes = getPrivateBrowsingSession();
   const browsingSessions = [ses, privateSes];
@@ -2222,6 +2276,8 @@ app.whenReady().then(async () => {
     await setupAdBlocker(ses, { enabled: settings.getSettings().adblockEnabled });
     attachAdBlockerToSession(privateSes, { enabled: settings.getSettings().adblockEnabled });
   }
+
+  initSpikePackaging(); // SPIKE (1Password fill feasibility) — fire-and-forget, gated on BLANC_1P_SPIKE
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
   // of the frame the request came from.
