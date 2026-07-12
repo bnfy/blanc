@@ -710,9 +710,9 @@ Then sanity-check the headless probe exits cleanly with a code (it needs no acco
 
 ```bash
 BLANC_1P_PACKAGE_PROBE=1 npm start
-status=$?
-echo "exit=$status"
-test "$status" -eq 0   # same reason as Task 5 Step 1 — don't let echo mask a FAIL
+rc=$?   # NOT `status` — that's a read-only special variable in zsh (macOS default shell)
+echo "exit=$rc"
+test "$rc" -eq 0   # same reason as Task 5 Step 1 — don't let echo mask a FAIL
 ```
 Expected: one `[1p-spike] package probe: PASS …` line, the app quits on its own, and `exit=0`. *(In dev this loads from `node_modules`, so it should always PASS; the meaningful run is the packaged one in Task 5 Step 1.)*
 
@@ -733,14 +733,14 @@ Manual verification only — no code. Proves the SDK survives a real build: (a) 
 
 - [ ] **Step 1: Criterion 3(a) — the SDK module actually loads in a packaged app**
 
-Build an unpacked packaged app and run the **headless probe** (`BLANC_1P_PACKAGE_PROBE=1`) — it needs no account, loads the SDK, logs one line, and self-terminates with an exit code, so the criterion reduces to a captured `status=$?` + `test`. Do **not** pipe the GUI startup into `grep`: Blanc is long-running, so `grep -m1` would orphan the app, could EPIPE its next write, and (matching PASS *and* FAIL) its exit status wouldn't mean "passed." Also don't try host-Node `require.resolve` against `app.asar`: plain `node` has no ASAR loader hook (false `MODULE_NOT_FOUND`) and `require.resolve` never executes the module, so it can't prove the eager `core_bg.wasm` compile the criterion is about.
+Build an unpacked packaged app and run the **headless probe** (`BLANC_1P_PACKAGE_PROBE=1`) — it needs no account, loads the SDK, logs one line, and self-terminates with an exit code, so the criterion reduces to a captured `rc=$?` + `test`. Do **not** pipe the GUI startup into `grep`: Blanc is long-running, so `grep -m1` would orphan the app, could EPIPE its next write, and (matching PASS *and* FAIL) its exit status wouldn't mean "passed." Also don't try host-Node `require.resolve` against `app.asar`: plain `node` has no ASAR loader hook (false `MODULE_NOT_FOUND`) and `require.resolve` never executes the module, so it can't prove the eager `core_bg.wasm` compile the criterion is about.
 
 ```bash
 npm run dist:dir
 BLANC_1P_PACKAGE_PROBE=1 "dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc" --user-data-dir="$(mktemp -d)"
-status=$?
-echo "exit=$status"
-test "$status" -eq 0   # propagates the probe's real result as this block's exit status
+rc=$?   # NOT `status` — that's a read-only special variable in zsh (macOS default shell)
+echo "exit=$rc"
+test "$rc" -eq 0   # propagates the probe's real result as this block's exit status
 ```
 Expected: one line `[1p-spike] package probe: PASS (require resolved + WASM compiled)`, the app quits on its own, and `exit=0` (the `test` succeeds). A `package probe: FAIL` + `exit=1` (the `test` fails) means the module (or its eager `core_bg.wasm`) isn't loadable from inside the asar — add an `asarUnpack` glob for `@1password/sdk` to `package.json` `build.asarUnpack`, rebuild, and re-run. *(The trailing `test` matters: `…; echo "exit=$?"` alone would leave the block's exit status as `echo`'s 0, so an automated executor would read every run as a pass. Per the spec, the native `SharedLibCore` path doesn't itself use the bundled WASM, so the unpack may be unnecessary — this probe decides it. `dist/mac-arm64` is the Apple-Silicon output dir; adjust for an Intel/`--x64` build.)*
 
@@ -882,7 +882,7 @@ git commit -m "spike(1p): tear down feasibility spike (findings retained in spec
 - *Quarantine check reused an already-launched bundle* → Task 5 Step 4 now uses a **second pristine extraction**, stamps + verifies `com.apple.quarantine` before any launch, then `open`s it. ✅
 
 **Code-review fixes applied (Codex, round 3):**
-- *`; echo "exit=$?"` masked a probe failure as success* → Task 5 Step 1 now captures `status=$?` and ends on `test "$status" -eq 0`, so the block's exit status is the probe's. ✅
+- *`; echo "exit=$?"` masked a probe failure as success* → Task 5 Step 1 now captures the code (`rc=$?` — not `status`, which zsh reserves read-only; found by executing the block) and ends on `test "$rc" -eq 0`, so the block's exit status is the probe's. ✅
 - *Quarantine `open` used the real profile* → Task 5 Step 4 passes a throwaway profile through LaunchServices: `open "$FRESH" --args --user-data-dir="$(mktemp -d)"`. ✅
 - *Wrong-arch zip name* (`Blanc-<v>-mac.zip` is x64; arm64 is `Blanc-<v>-arm64-mac.zip`, per `scripts/release.sh`) → Task 5 Step 2 builds `--arm64` only and Step 4 globs `dist/Blanc-*-arm64-mac.zip`. ✅
 - *Dangling "tighten the cancel regex in Task 5" with no such step* → reworded to best-effort INCONCLUSIVE; a misclassified cancel is simply re-run (no stranded step). ✅
