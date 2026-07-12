@@ -5,7 +5,15 @@
     <link>https://blancbrowser.com/changelog</link>
     <description>New features, fixes, and platform updates in Blanc Browser.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 12 Jul 2026 02:15:26 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 12 Jul 2026 04:53:56 GMT</lastBuildDate>
+    <item>
+      <title>Blanc 0.18.0</title>
+      <link>https://github.com/bnfy/blanc/releases/tag/v0.18.0</link>
+      <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.18.0</guid>
+      <pubDate>Sun, 12 Jul 2026 04:53:56 GMT</pubDate>
+      <description>Blanc v0.18.0 sharpens the everyday chrome. The resting Island pill is larger and easier to read, and each tab dot now blooms into a small disc showing that tab&apos;s favicon when you hover or focus it — so you can see which tab you&apos;re switching to before you click.
+The Favorites page gets a quieter, ledger-style layout: row and folder actions become understated text revealed on hover or focus, folder names move into their section headers, and dates line up in a right-aligned column.</description>
+    </item>
     <item>
       <title>Blanc 0.17.0</title>
       <link>https://github.com/bnfy/blanc/releases/tag/v0.17.0</link>
@@ -161,13 +169,6 @@ Document tonight&apos;s Windows/Linux release gotchas in CLAUDE.md</description>
       <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.9.5</guid>
       <pubDate>Mon, 06 Jul 2026 02:25:39 GMT</pubDate>
       <description>Expand native Tabs/Favorites menus: pin, mute, duplicate tab</description>
-    </item>
-    <item>
-      <title>Blanc 0.9.4</title>
-      <link>https://github.com/bnfy/blanc/releases/tag/v0.9.4</link>
-      <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.9.4</guid>
-      <pubDate>Sun, 05 Jul 2026 21:39:17 GMT</pubDate>
-      <description></description>
     </item>
   </channel>
 </rss>
