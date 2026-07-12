@@ -56,9 +56,17 @@
     <p>This page mirrors Blanc’s published GitHub releases, newest first. <a href="/changelog.xml">Subscribe via RSS</a>.</p>
   </header>
   <div class="changelog-search">
-    <input type="search" id="changelog-search" class="changelog-search-input" placeholder="Search 41 releases…" aria-label="Search releases" autocomplete="off" spellcheck="false">
+    <input type="search" id="changelog-search" class="changelog-search-input" placeholder="Search 42 releases…" aria-label="Search releases" autocomplete="off" spellcheck="false">
   </div>
   <section class="release-list" aria-label="Blanc releases">
+<article class="release" id="v0-17-0">
+  <div class="release-meta"><time datetime="2026-07-12">July 12, 2026</time></div>
+  <div class="release-body">
+    <h2><a href="#v0-17-0">Blanc 0.17.0</a></h2>
+    <ul class="release-changes"><li><a href="https://github.com/bnfy/blanc/pull/38" target="_blank" rel="noopener">Add /save [folder] slash command</a></li><li><a href="https://github.com/bnfy/blanc/pull/39" target="_blank" rel="noopener">Network privacy (M2+M3): WebRTC leak protection + encrypted DNS</a></li></ul><p>Network privacy (v0.17.0)</p><p>This release adds WebRTC leak protection and optional encrypted DNS (DoH).</p><p>Encrypted DNS hides your DNS lookups from the network *in transit* to the</p><p>resolver you choose — it does not hide the sites you visit (destination</p><p>IPs remain visible to your network), and choosing a provider is a trust</p><p>decision. Automatic mode upgrades opportunistically and can fall back to</p><p>unencrypted DNS; only the named-provider and custom positions are strict.</p><p>---</p>
+    <p class="release-links"><a href="https://github.com/bnfy/blanc/compare/v0.16.0...v0.17.0" target="_blank" rel="noopener">full changelog</a><span aria-hidden="true"> · </span><a href="https://github.com/bnfy/blanc/releases/tag/v0.17.0" target="_blank" rel="noopener">GitHub release</a></p>
+  </div>
+</article>
 <article class="release" id="v0-16-0">
   <div class="release-meta"><time datetime="2026-07-11">July 11, 2026</time></div>
   <div class="release-body">

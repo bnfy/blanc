@@ -5,7 +5,23 @@
     <link>https://blancbrowser.com/changelog</link>
     <description>New features, fixes, and platform updates in Blanc Browser.</description>
     <language>en-us</language>
-    <lastBuildDate>Sat, 11 Jul 2026 19:50:36 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 12 Jul 2026 02:15:26 GMT</lastBuildDate>
+    <item>
+      <title>Blanc 0.17.0</title>
+      <link>https://github.com/bnfy/blanc/releases/tag/v0.17.0</link>
+      <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.17.0</guid>
+      <pubDate>Sun, 12 Jul 2026 02:15:26 GMT</pubDate>
+      <description>Add /save [folder] slash command
+Network privacy (M2+M3): WebRTC leak protection + encrypted DNS
+Network privacy (v0.17.0)
+This release adds WebRTC leak protection and optional encrypted DNS (DoH).
+Encrypted DNS hides your DNS lookups from the network *in transit* to the
+resolver you choose — it does not hide the sites you visit (destination
+IPs remain visible to your network), and choosing a provider is a trust
+decision. Automatic mode upgrades opportunistically and can fall back to
+unencrypted DNS; only the named-provider and custom positions are strict.
+---</description>
+    </item>
     <item>
       <title>Blanc 0.16.0</title>
       <link>https://github.com/bnfy/blanc/releases/tag/v0.16.0</link>
@@ -156,13 +172,6 @@ Document tonight&apos;s Windows/Linux release gotchas in CLAUDE.md</description>
       <link>https://github.com/bnfy/blanc/releases/tag/v0.9.4</link>
       <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.9.4</guid>
       <pubDate>Sun, 05 Jul 2026 21:39:17 GMT</pubDate>
-      <description></description>
-    </item>
-    <item>
-      <title>Blanc 0.9.3</title>
-      <link>https://github.com/bnfy/blanc/releases/tag/v0.9.3</link>
-      <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.9.3</guid>
-      <pubDate>Sun, 05 Jul 2026 20:24:57 GMT</pubDate>
       <description></description>
     </item>
   </channel>
