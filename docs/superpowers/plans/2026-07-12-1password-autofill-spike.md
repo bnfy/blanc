@@ -478,10 +478,15 @@ async function fillActiveTabFrom1Password() {
     if (matches.length === 0) return log('no-match', expectedHost);
     chosen = matches[0];
     if (matches.length > 1) {
+      // The vault search was async — if the window died meanwhile, don't ask
+      // the user to choose a login for a window that no longer exists (the
+      // post-reveal re-validation would abort anyway). Also keeps `win` safe
+      // to pass as the dialog parent (documented overloads only).
+      if (!hasLiveWindow()) return log('abort-window-changed');
       const buttons = matches.map((m) => m.title || '(untitled)');
       const cancelId = buttons.length;
       buttons.push('Cancel');
-      const { response } = await dialog.showMessageBox(hasLiveWindow() ? win : undefined, {
+      const { response } = await dialog.showMessageBox(win, {
         type: 'question',
         title: 'Fill from 1Password',
         message: `Choose a login for ${expectedHost}`,
@@ -546,8 +551,10 @@ In `createTab`, immediately after `const wc = view.webContents;` (~line 909), ad
       if (input.type !== 'keyDown' || input.isAutoRepeat) return;
       if (input.code !== 'KeyP') return; // physical key — ⌥ mutates input.key on macOS
       if (!(input.meta && input.alt && !input.control && !input.shift)) return; // one modifier off ⌘P Print
-      if (onePasswordFillInFlight) return; // single-flight
+      // Consume the chord BEFORE the single-flight check — a recognized second
+      // press must not fall through to the page, it just doesn't start a fill.
       event.preventDefault();
+      if (onePasswordFillInFlight) return; // single-flight
       onePasswordFillInFlight = true;
       fillActiveTabFrom1Password()
         .catch((err) => console.warn('[1p-spike] fill error:', err?.message))
@@ -876,6 +883,10 @@ git commit -m "spike(1p): tear down feasibility spike (findings retained in spec
 - *Quarantine `open` used the real profile* → Task 5 Step 4 passes a throwaway profile through LaunchServices: `open "$FRESH" --args --user-data-dir="$(mktemp -d)"`. ✅
 - *Wrong-arch zip name* (`Blanc-<v>-mac.zip` is x64; arm64 is `Blanc-<v>-arm64-mac.zip`, per `scripts/release.sh`) → Task 5 Step 2 builds `--arm64` only and Step 4 globs `dist/Blanc-*-arm64-mac.zip`. ✅
 - *Dangling "tighten the cancel regex in Task 5" with no such step* → reworded to best-effort INCONCLUSIVE; a misclassified cancel is simply re-run (no stranded step). ✅
+
+**Code-review fixes applied (Codex, round 4 — on the Task 3 implementation):**
+- *Second recognized chord press leaked to the page* → `event.preventDefault()` moved before the single-flight check: a recognized chord is always consumed; in-flight just means no new fill. ✅
+- *Chooser could call `dialog.showMessageBox(undefined, options)` (undocumented overload) after window closure* → pre-gate with `if (!hasLiveWindow()) return log('abort-window-changed');` and pass `win` plainly — matching the documented-overloads-only discipline of `webauthn.js`. ✅
 
 **Placeholder scan:** the only intentional stub is `initSpikePackaging()` in Task 3 Step 3, explicitly replaced with full code in Task 4 Step 1 (called out in both places). No `TODO`/"handle edge cases"/uncoded steps remain.
 
