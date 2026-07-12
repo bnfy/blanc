@@ -1,7 +1,7 @@
-// SPIKE (1Password fill feasibility) — throwaway; remove or keep env-gated
-// before any release. This module owns the 1Password SDK client and ALL
-// credential handling. `@1password/sdk` is require()d lazily (Task 2) so a
-// normal packaged startup never loads it.
+// SPIKE (1Password fill feasibility) — throwaway; MUST be removed before any
+// release (plan Task 6 — env-gating alone is not release-safety). This module
+// owns the 1Password SDK client and ALL credential handling. `@1password/sdk`
+// is require()d lazily so a normal packaged startup never loads it.
 
 /** Extract a comparable hostname from a possibly scheme-less / malformed
  * stored 1Password website value. `www.`-stripped. Returns null on garbage
