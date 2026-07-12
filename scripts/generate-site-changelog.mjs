@@ -170,9 +170,23 @@ function normalizeReleases(raw) {
     .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
 }
 
+// Releases are cut by the maker in New York, but GitHub's published_at is UTC — an
+// evening-EDT release lands on the next UTC day, so a UTC-rendered date reads as
+// "tomorrow". Render changelog dates in the project's home timezone so they match
+// the date the release was actually cut (America/New_York handles EDT/EST for us).
+const RELEASE_TZ = 'America/New_York';
+
 function humanDate(iso) {
   return new Intl.DateTimeFormat('en-US', {
-    timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric',
+    timeZone: RELEASE_TZ, year: 'numeric', month: 'long', day: 'numeric',
+  }).format(new Date(iso));
+}
+
+// Machine-readable YYYY-MM-DD for <time datetime>, in the same timezone as humanDate
+// so the two never disagree (en-CA yields ISO-style YYYY-MM-DD).
+function machineDate(iso) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: RELEASE_TZ, year: 'numeric', month: '2-digit', day: '2-digit',
   }).format(new Date(iso));
 }
 
@@ -191,7 +205,7 @@ function releaseHtml(release) {
     : '';
 
   return `<article class="release" id="${escapeHtml(release.anchor)}">
-  <div class="release-meta"><time datetime="${escapeHtml(release.publishedAt.slice(0, 10))}">${escapeHtml(humanDate(release.publishedAt))}</time></div>
+  <div class="release-meta"><time datetime="${escapeHtml(machineDate(release.publishedAt))}">${escapeHtml(humanDate(release.publishedAt))}</time></div>
   <div class="release-body">
     <h2><a href="#${escapeHtml(release.anchor)}">Blanc ${escapeHtml(release.version)}</a></h2>
     ${notes}${extras}
