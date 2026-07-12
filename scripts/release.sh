@@ -120,9 +120,14 @@ for f in "${ASSETS[@]}"; do
 done
 
 echo "==> Creating GitHub release $TAG"
-# Explicit privacy-boundary disclosure required by the F25 spec, prepended to the
-# auto-generated changelog. Fails CLOSED: if the changelog can't be generated we
-# abort BEFORE publishing an immutable release with incomplete notes.
+# Hand-written, per-release summary prepended to GitHub's auto-generated notes.
+# REWRITE THIS every release to describe what actually shipped. Keep each
+# paragraph on ONE line: generate-site-changelog.mjs splits the release body by
+# newline and turns every non-bullet line into its own <p>, so a hard-wrapped
+# paragraph fragments on the marketing changelog (and a literal "---" becomes a
+# stray paragraph — hence no separator rule here, just a blank line between
+# paragraphs). Fails CLOSED: if the changelog can't be generated we abort BEFORE
+# publishing an immutable release with incomplete notes.
 NOTES_FILE="$(mktemp)"
 trap 'rm -f "$NOTES_FILE"' EXIT
 if ! GENERATED="$(gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG" -f target_commitish="$LOCAL_HEAD" --jq .body)" || [ -z "$GENERATED" ]; then
@@ -130,16 +135,9 @@ if ! GENERATED="$(gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG
   exit 1
 fi
 {
-  echo "### Network privacy (v$VERSION)"
+  echo "Blanc v$VERSION sharpens the everyday chrome. The resting Island pill is larger and easier to read, and each tab dot now blooms into a small disc showing that tab's favicon when you hover or focus it — so you can see which tab you're switching to before you click."
   echo
-  echo "This release adds WebRTC leak protection and optional encrypted DNS (DoH)."
-  echo "Encrypted DNS hides your DNS lookups from the network *in transit* to the"
-  echo "resolver you choose — it does **not** hide the sites you visit (destination"
-  echo "IPs remain visible to your network), and choosing a provider is a trust"
-  echo "decision. Automatic mode upgrades opportunistically and can fall back to"
-  echo "unencrypted DNS; only the named-provider and custom positions are strict."
-  echo
-  echo "---"
+  echo "The Favorites page gets a quieter, ledger-style layout: row and folder actions become understated text revealed on hover or focus, folder names move into their section headers, and dates line up in a right-aligned column."
   echo
   printf '%s\n' "$GENERATED"
 } > "$NOTES_FILE"
