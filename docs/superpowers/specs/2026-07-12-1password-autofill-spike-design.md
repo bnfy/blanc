@@ -320,3 +320,42 @@ above**, so a silent no-op isn't misread as that signal.
   `initSpikeCoreSmoke` logs PASS only if `createClient(DesktopAuth)` + `vaults.list()` succeed
   (INCONCLUSIVE on biometric cancel; FAIL otherwise). The flag also enables the chord for the
   auth+fill fallback.
+
+## Findings (executed 2026-07-12)
+
+**Verdict: FEASIBLE.** Every success criterion passed. A Blanc-native engine that fills
+from the inside via the 1Password SDK is a viable path to storeless password-manager
+support. The spike code was removed after these findings were recorded (plan Task 6);
+the implementation plan (`docs/superpowers/plans/2026-07-12-1password-autofill-spike.md`)
+holds the working reference code in its Task 1–4 blocks.
+
+| Criterion | Result | Evidence |
+|---|---|---|
+| 1 — fill + retain via `npm start` | **PASS** | `[1p-spike] filled user+pass` on a real Login item (Instagram); both fields populated and retained, no form submission. Silent reuse within the ~10-min SDK session. |
+| 2 — SDK auth + personal-vault read from Electron main | **PASS** | `DesktopAuth` prompt (dev: names the unsigned `Electron` binary, still authorizable) → `vaults.list`/`items.list` overview matching worked; only the chosen item decrypted. |
+| 3(a) — packaged module + eager WASM | **PASS** | `[1p-spike] package probe: PASS (require resolved + WASM compiled)` from inside `app.asar`, exit 0 — on both the `dist:dir` and notarized bundles. **No `asarUnpack` needed.** |
+| 3(b) — native bridge under hardened runtime + notarization | **PASS** | Notarized/stapled arm64 build (`codesign` valid, `spctl` `Notarized Developer ID`, staple valid): `[1p-spike] core smoke: PASS (DesktopAuth + vaults.list)` — the `dlopen` of `libop_sdk_ipc_client.dylib` works under `disable-library-validation`. Touch ID prompt names **Blanc**. |
+| Signed-build end-to-end fill (optional) | **PASS** | `[1p-spike] filled user+pass` in the notarized build. |
+| Quarantined first-open | **PASS** | Pristine extraction + `com.apple.quarantine` + LaunchServices `open` → launched with no Gatekeeper block (under App Translocation, isolated profile). |
+
+**Untested** (missing fixtures / un-hittable timing windows — guards stand on code review):
+multi-match chooser + Cancel; reload/SPA/tab-switch/window-close mid-auth; Touch ID
+blur-refocus. Exercise these early in the full engine's test plan.
+
+**Learnings for the full engine:**
+- `SharedLibCore` is *not* a public export of `@1password/sdk@0.4.0` — it lives in
+  `dist/shared_lib_core.js`, selected internally by `client_builder.js` when `DesktopAuth`
+  is used. Never referenced directly; re-verify on any SDK bump.
+- The eager `core_bg.wasm` compile loads fine from inside asar — no unpack config, ever,
+  unless an SDK bump changes the loading strategy (the headless probe detects that).
+- A blank new tab is a *silent* no-op for a tab-`wc` chord: Blanc parks focus in the
+  address overlay, which has no listener. A real engine wanting the shortcut to work there
+  must also listen on the overlay's webContents (or use a menu accelerator).
+- `op run` authorization for the notarization env is human-gated and times out unattended —
+  run the packaging build attended.
+- Shell/exec gotchas that bit during execution: `status` is read-only in zsh (use `rc=$?`);
+  piping the build through `tail` swallowed a real failure exit; `codesign`/`spctl`/`stapler`
+  falsely report invalid inside a sandboxed/restricted shell (macOS trust services
+  unavailable) — verify from a normal shell.
+- ⌘\ Universal Autofill remains dead in Blanc (outside-in via Accessibility); the inside
+  path is the only one, as the feasibility context predicted.
