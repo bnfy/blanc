@@ -28,6 +28,7 @@ const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
 const { setupWebAuthn } = require('./webauthn');
 const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
+const { applyDockAppIcon } = require('./app-icon');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -313,19 +314,15 @@ function applyTheme() {
   nativeTheme.themeSource = settings.getSettings().theme;
 }
 
-// Swap the macOS Dock icon to the chosen colorway. Runtime-only by design:
-// the bundle's .icns (what Finder shows) is inside the code-signing seal and
-// can't be rewritten per-user, so this runs on every launch instead.
+// Swap the macOS Dock icon to the chosen colorway. Packaged macOS 26+ builds
+// use a named Icon Composer stack, leaving Default/Dark/Clear/Tinted rendering
+// (and tint color) to macOS. Dev/older systems retain the flat PNG fallback.
 function applyAppIcon() {
-  if (process.platform !== 'darwin' || !app.dock) return;
   // getSettings() already falls back an unauthorized/stale supporter icon
   // (hand-edited or copied settings.json) to the default — nothing further
   // to validate here.
   const { appIcon } = settings.getSettings();
-  const icon = nativeImage.createFromPath(
-    path.join(__dirname, '../renderer/pages', `icon-${appIcon}.png`)
-  );
-  if (!icon.isEmpty()) app.dock.setIcon(icon);
+  applyDockAppIcon({ app, nativeImage, appIcon });
 }
 
 const hasLiveWindow = () => !!win && !win.isDestroyed();

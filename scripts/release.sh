@@ -43,6 +43,7 @@ RELEASE_SOURCES=(
   package-lock.json
   scripts/release.sh
   scripts/preflight-mac-signing.mjs
+  scripts/after-pack-app-icons.js
   scripts/after-sign-verify.js
   .github/workflows/release-windows-linux.yml
   scripts/generate-site-changelog.mjs
@@ -135,9 +136,9 @@ if ! GENERATED="$(gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG
   exit 1
 fi
 {
-  echo "Blanc v$VERSION sharpens the everyday chrome. The resting Island pill is larger and easier to read, and each tab dot now blooms into a small disc showing that tab's favicon when you hover or focus it — so you can see which tab you're switching to before you click."
+  echo "Blanc v$VERSION brings fully adaptive app icons to macOS 26 and later. Every Dock colorway is now an Icon Composer stack that follows the user's Icon & Widget Style — Default, Dark, Clear, or Tinted — including the system-selected tint color, while older macOS releases retain the existing flat icons."
   echo
-  echo "The Favorites page gets a quieter, ledger-style layout: row and folder actions become understated text revealed on hover or focus, folder names move into their section headers, and dates line up in a right-aligned column."
+  echo "This release also updates Electron to 43.1.1, electron-builder to 26.15.3, and Cucumber to 13.1.1, bringing the latest Chromium patch and a clean dependency audit."
   echo
   printf '%s\n' "$GENERATED"
 } > "$NOTES_FILE"

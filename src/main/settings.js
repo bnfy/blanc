@@ -1,5 +1,6 @@
 const { JsonStore } = require('./store');
 const { isValidDohTemplate, reconcileSecureDnsWrite, coerceSecureDnsRead } = require('./network-privacy');
+const APP_ICON_ASSETS = require('./app-icon-assets');
 
 const SEARCH_ENGINES = {
   duckduckgo: { label: 'DuckDuckGo', url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
@@ -39,6 +40,14 @@ const APP_ICONS = Object.keys(APP_ICON_LABELS);
 // key (see main/supporter.js). Gated at validation time, not render time.
 const SUPPORTER_ICON_LABELS = { ember: 'Ember', plum: 'Plum', gold: 'Gold' };
 const SUPPORTER_ICONS = Object.keys(SUPPORTER_ICON_LABELS);
+
+// A selectable id without a packaged native stack would silently fall back to
+// Paper on macOS 26+, so fail fast during startup if the two sources drift.
+const missingNativeAppIcons = [...APP_ICONS, ...SUPPORTER_ICONS]
+  .filter((id) => !APP_ICON_ASSETS[id]);
+if (missingNativeAppIcons.length) {
+  throw new Error(`Missing native app-icon assets: ${missingNativeAppIcons.join(', ')}`);
+}
 
 function normalizeAdblockHostname(value) {
   if (typeof value !== 'string') return null;
