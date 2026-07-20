@@ -5,7 +5,15 @@
     <link>https://blancbrowser.com/changelog</link>
     <description>New features, fixes, and platform updates in Blanc Browser.</description>
     <language>en-us</language>
-    <lastBuildDate>Sun, 12 Jul 2026 04:53:56 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 20 Jul 2026 04:42:28 GMT</lastBuildDate>
+    <item>
+      <title>Blanc 0.19.0</title>
+      <link>https://github.com/bnfy/blanc/releases/tag/v0.19.0</link>
+      <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.19.0</guid>
+      <pubDate>Mon, 20 Jul 2026 04:42:28 GMT</pubDate>
+      <description>Blanc v0.19.0 brings fully adaptive app icons to macOS 26 and later. Every Dock colorway is now an Icon Composer stack that follows the user&apos;s Icon &amp; Widget Style — Default, Dark, Clear, or Tinted — including the system-selected tint color, while older macOS releases retain the existing flat icons.
+This release also updates Electron to 43.1.1, electron-builder to 26.15.3, and Cucumber to 13.1.1, bringing the latest Chromium patch and a clean dependency audit.</description>
+    </item>
     <item>
       <title>Blanc 0.18.0</title>
       <link>https://github.com/bnfy/blanc/releases/tag/v0.18.0</link>
@@ -162,13 +170,6 @@ Document tonight&apos;s Windows/Linux release gotchas in CLAUDE.md</description>
       <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.9.6</guid>
       <pubDate>Mon, 06 Jul 2026 04:21:56 GMT</pubDate>
       <description></description>
-    </item>
-    <item>
-      <title>Blanc 0.9.5</title>
-      <link>https://github.com/bnfy/blanc/releases/tag/v0.9.5</link>
-      <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.9.5</guid>
-      <pubDate>Mon, 06 Jul 2026 02:25:39 GMT</pubDate>
-      <description>Expand native Tabs/Favorites menus: pin, mute, duplicate tab</description>
     </item>
   </channel>
 </rss>
