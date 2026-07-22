@@ -113,7 +113,7 @@
   const shots = {}; // id -> { src, ready }
   let currentShotId = null;
 
-  const shotSrc = (id) => 'shots/' + (MOBILE ? 'mobile' : 'desktop') + '/' + id + '.jpg';
+  const shotSrc = (id) => '/shots/' + (MOBILE ? 'mobile' : 'desktop') + '/' + id + '.jpg';
 
   function preloadShot(id) {
     if (shots[id]) return;

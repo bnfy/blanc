@@ -1,7 +1,7 @@
 /* The site is always light, regardless of system theme — white canvas,
    black accent, quiet gray surfaces. */
 :root {
-  --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-ui: "Inter Variable", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --radius: 6px;
 
