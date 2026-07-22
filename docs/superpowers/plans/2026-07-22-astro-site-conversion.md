@@ -1100,11 +1100,13 @@ Releases may have been published after the `site-pre-astro` tag, so the tag's co
 
 ```bash
 mkdir -p site/.parity
-gh api --paginate 'repos/bnfy/blanc/releases?per_page=100' > site/.parity/raw-releases.json
+gh api --paginate --slurp 'repos/bnfy/blanc/releases?per_page=100' > site/.parity/raw-releases.json
 node scripts/generate-site-changelog.mjs --input site/.parity/raw-releases.json
 git show site-pre-astro:scripts/generate-site-changelog.mjs > site/.parity/old-generator.mjs
 node site/.parity/old-generator.mjs --input site/.parity/raw-releases.json --output-dir site/.parity/old
 ```
+
+(`--slurp` matters: plain `--paginate` emits one JSON document *per page*, which stops being a single valid JSON value at >100 releases — and both generators' `--input` paths use a single `JSON.parse`. `--slurp` wraps the pages in one array-of-arrays, which `normalizeReleases()` already flattens.)
 
 Expected: `site/src/data/releases.json` written (commit it — it is the committed artifact replacing `changelog.html`), and `site/.parity/old/changelog.html` + `site/.parity/old/changelog.xml` written (the expectations; NOT committed). Add to `.gitignore`:
 
@@ -1363,25 +1365,29 @@ git rm site/index.html site/download.html site/features.html site/about.html sit
 Run: `npm run site:build && node site/scripts/verify-parity.mjs --strict --changelog-dir site/.parity/old`
 Expected: 14 OK, exit 0. (The comparator reads baselines from the git tag and `site/.parity/`, never the working tree — deleting the legacy files cannot affect it.)
 
-- [ ] **Step 3: Add sharp + mozjpeg and the LOSSLESS recompression script**
+- [ ] **Step 3: Add sharp + jpegtran-bin and the LOSSLESS recompression script**
 
-Run: `npm --prefix site install --save-dev sharp mozjpeg`
+Run: `npm --prefix site install --save-dev sharp jpegtran-bin`
 
-The shots are already-compressed JPEGs — a quality re-encode would stack generational loss. So: **lossless only**, with an automatic decoded-pixel-equality gate on every file (objective fidelity check covering all images — desktop and mobile shots, OG assets, everything — no eyeballing as the safety net). JPEGs go through mozjpeg's `jpegtran` (Huffman/progressive optimization — DCT coefficients untouched); PNGs through sharp's max-effort lossless re-encode. `-copy none` strips EXIF/metadata, which these marketing assets don't need.
+(`jpegtran-bin`, NOT `mozjpeg` — the `mozjpeg` npm package ships `cjpeg`, the lossy compressor; `jpegtran-bin` ships the lossless transformer this script needs.)
+
+The shots are already-compressed JPEGs — a quality re-encode would stack generational loss. So: **lossless only**, with an automatic gate on every file: replaced only if smaller AND decoded-pixel-identical AND carrying the identical ICC profile. The profile check is not optional — `feature-island.png` and `feature-ad-blocking.png` are **Display P3**, the JPEG shots carry sRGB profiles, and sharp's raw decode converts to sRGB, so a pixel compare alone would pass while a stripped profile silently changed wide-gamut rendering. Hence: jpegtran runs with `-copy all` (keeps ICC/markers), sharp PNG output uses `.keepIccProfile()`, and the gate byte-compares profiles. If the ICC assertion ever rejects an otherwise-good PNG gain, a structural optimizer (`oxipng`, which preserves chunks by default) is the fallback — don't weaken the gate.
 
 Create `site/scripts/compress-images.mjs`:
 
 ```js
 #!/usr/bin/env node
 // Re-runnable, LOSSLESS-only: optimize public/ images in place. A file is
-// replaced only when the optimized version is BOTH smaller AND decodes to
-// pixel-identical RGBA — anything else is kept and reported.
+// replaced only when the optimized version is smaller AND decodes to
+// pixel-identical RGBA AND carries a byte-identical ICC profile (several
+// assets are Display P3 — stripping or converting the profile is a shipped
+// rendering change that pixel comparison in sRGB space cannot see).
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import mozjpeg from 'mozjpeg';
+import jpegtran from 'jpegtran-bin';
 import sharp from 'sharp';
 
 const PUB = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../public');
@@ -1396,13 +1402,20 @@ function walk(dir) {
   return out;
 }
 
-async function pixelsEqual(bufA, bufB) {
+async function iccOf(buf) {
+  return (await sharp(buf).metadata()).icc ?? null;
+}
+
+async function sameImage(bufA, bufB) {
   const [a, b] = await Promise.all([
     sharp(bufA).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
     sharp(bufB).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
   ]);
-  return a.info.width === b.info.width && a.info.height === b.info.height
-    && a.data.equals(b.data);
+  if (a.info.width !== b.info.width || a.info.height !== b.info.height) return 'size mismatch';
+  if (!a.data.equals(b.data)) return 'PIXEL MISMATCH';
+  const [iccA, iccB] = await Promise.all([iccOf(bufA), iccOf(bufB)]);
+  if ((iccA === null) !== (iccB === null) || (iccA !== null && !iccA.equals(iccB))) return 'ICC PROFILE MISMATCH';
+  return null; // identical
 }
 
 let before = 0; let after = 0;
@@ -1412,19 +1425,20 @@ for (const file of walk(PUB)) {
   let out;
   if (/\.jpe?g$/i.test(file)) {
     const tmp = path.join(os.tmpdir(), `blanc-jpg-${path.basename(file)}`);
-    execFileSync(mozjpeg, ['-copy', 'none', '-optimize', '-progressive', '-outfile', tmp, file]);
+    execFileSync(jpegtran, ['-copy', 'all', '-optimize', '-progressive', '-outfile', tmp, file]);
     out = fs.readFileSync(tmp);
     fs.rmSync(tmp);
   } else {
-    out = await sharp(src).png({ compressionLevel: 9, effort: 10, palette: false }).toBuffer();
+    out = await sharp(src).keepIccProfile().png({ compressionLevel: 9, effort: 10, palette: false }).toBuffer();
   }
-  if (out.length < src.length && await pixelsEqual(src, out)) {
+  const mismatch = out.length < src.length ? await sameImage(src, out) : 'no gain';
+  if (mismatch === null) {
     fs.writeFileSync(file, out);
     after += out.length;
-    console.log(`${path.relative(PUB, file)}: ${src.length} -> ${out.length} (pixel-identical)`);
+    console.log(`${path.relative(PUB, file)}: ${src.length} -> ${out.length} (identical pixels + profile)`);
   } else {
     after += src.length;
-    console.log(`${path.relative(PUB, file)}: kept (${out.length >= src.length ? 'no gain' : 'PIXEL MISMATCH — not replaced'})`);
+    console.log(`${path.relative(PUB, file)}: kept (${mismatch})`);
   }
 }
 console.log(`total: ${(before / 1024).toFixed(0)}KiB -> ${(after / 1024).toFixed(0)}KiB`);
@@ -1433,7 +1447,13 @@ console.log(`total: ${(before / 1024).toFixed(0)}KiB -> ${(after / 1024).toFixed
 - [ ] **Step 4: Run it and sanity-check**
 
 Run: `node site/scripts/compress-images.mjs`
-Expected: per-file report; every replaced file says `pixel-identical`, any `PIXEL MISMATCH` line means the file was left untouched (investigate if one appears — it indicates a decoder edge case, not shipped damage). Because replacement requires decoded-pixel equality, no visual review is needed for fidelity; do one quick render check (`npm run site:dev`, load `/` and one feature page) to confirm nothing structural broke, and `git diff --stat site/public` to see the byte savings.
+Expected: per-file report; every replaced file says `identical pixels + profile`; `kept (no gain)` is normal; a `PIXEL MISMATCH`/`ICC PROFILE MISMATCH` line means the file was left untouched (investigate if one appears — it indicates a tool edge case, not shipped damage). Verify profiles survived on the wide-gamut assets:
+
+```bash
+sips -g profile site/public/feature-island.png site/public/feature-ad-blocking.png
+```
+
+Expected: both still report `Display P3`. Then one quick render check (`npm run site:dev`, load `/` and one feature page) and `git diff --stat site/public` for the byte savings.
 
 - [ ] **Step 5: Commit**
 
@@ -1719,22 +1739,35 @@ git add .github/workflows/site.yml site/CLAUDE.md README.md docs/polar-setup.md 
 Run: `npm run test:unit && npm run site:build && node site/scripts/verify-parity.mjs --strict --changelog-dir site/.parity/old`
 Expected: all green.
 
-- [ ] **Step 2: Clean worktree, then push commits and the baseline tag**
+- [ ] **Step 2: Clean worktree (fail-closed), then push commits and the baseline tag**
 
 ```bash
-test -z "$(git status --porcelain)" && echo CLEAN || echo "DIRTY — commit or stash before deploying"
-git push origin main && git push origin site-pre-astro
+set -e
+[ -z "$(git status --porcelain)" ] || { echo "DIRTY — commit or stash before deploying" >&2; exit 1; }
+HEAD_SHA=$(git rev-parse HEAD)
+git push origin main
+git push origin site-pre-astro
+echo "pushed $HEAD_SHA"
 ```
 
-Expected: `CLEAN` (a dirty tree means the deploy wouldn't correspond to committed code — stop and commit first), then both pushes succeed. (The tag is referenced by the parity scripts in `site/scripts/`; pushing it keeps them functional for other clones.)
+Expected: prints `pushed <sha>`; a dirty tree exits 1 **before** anything is pushed (the deploy must correspond to committed, CI-validated code). Keep `$HEAD_SHA` for Step 3. (The tag is referenced by the parity scripts in `site/scripts/`; pushing it keeps them functional for other clones.)
 
-- [ ] **Step 3: Wait for the Site workflow to pass**
+- [ ] **Step 3: Wait for the Site workflow run FOR THAT COMMIT to pass**
+
+Grabbing the latest run immediately after pushing races against run creation and can watch the *previous* run. Poll for a run filtered by the exact commit, then watch it:
 
 ```bash
-gh run watch "$(gh run list --workflow=site.yml --branch=main --limit=1 --json databaseId --jq '.[0].databaseId')" --exit-status
+RUN_ID=""
+for i in $(seq 1 24); do
+  RUN_ID=$(gh run list --workflow=site.yml --commit "$HEAD_SHA" --limit 1 --json databaseId --jq '.[0].databaseId')
+  [ -n "$RUN_ID" ] && break
+  sleep 5
+done
+[ -n "$RUN_ID" ] || { echo "no Site run appeared for $HEAD_SHA after 2min" >&2; exit 1; }
+gh run watch "$RUN_ID" --exit-status
 ```
 
-Expected: exit 0 (workflow green). If it fails, fix, commit, push, and repeat — do NOT deploy a commit CI hasn't validated.
+Expected: exit 0 (workflow green for exactly `$HEAD_SHA`). If it fails, fix, commit, push, and repeat from Step 2 — do NOT deploy a commit CI hasn't validated.
 
 - [ ] **Step 4: Deploy (after user confirmation)**
 
