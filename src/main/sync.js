@@ -38,8 +38,11 @@ const STORES = [
   { name: 'settings', export: settings.exportForSync, merge: settings.mergeFromSync },
   {
     name: 'session',
-    export: () => tabsync.exportForSync(tabSyncContext()),
-    merge: (remote) => tabsync.mergeFromSync(remote, tabSyncContext()),
+    // ctx is the run-scoped context syncNow snapshotted — NOT re-resolved
+    // here, so a credential change during the network round-trip can't leak
+    // one account's devices into another (PR #41 review, P1).
+    export: (ctx) => tabsync.exportForSync(ctx),
+    merge: (remote, ctx) => tabsync.mergeFromSync(remote, ctx),
     // Repair comparison (spec §6): a true no-op skips the PUT; anything else
     // — including a remote blob that lost our unchanged entry — uploads.
     equals: (exported, remote) => tabsync.equalsRemote(exported, remote),
@@ -51,6 +54,12 @@ let syncing = false, timer = null, tabTimer = null;
  * null = all stores, array = just those names. */
 let pendingNames;
 const unionNames = (a, b) => (a === null || b === null ? null : [...new Set([...a, ...b])]);
+/** Credential/consent generation. Bumped whenever the account identity or
+ * the tab-share consent changes (enable, disable, setSyncTabs); every sync
+ * run snapshots it and aborts at its next checkpoint once it's stale, so an
+ * in-flight response from the OLD account can never be merged or re-uploaded
+ * under the NEW one (or recreate a just-wiped account's blob). */
+let syncGen = 0;
 // True only while a pull's merge() applies remote data, so the local-change
 // triggers can distinguish a sync-induced settings change from a genuine user
 // edit and not schedule a redundant follow-up sync.
@@ -93,6 +102,7 @@ async function enable({ handle, passphrase }) {
     return { ok: false, message: 'Use a longer passphrase — 16+ characters, or 10+ with mixed characters.', status: status() };
   }
   const { accountId, key } = deriveKeys(h, p);
+  syncGen += 1; // new identity — strand any in-flight run from the old one
   ensureStore().update((d) => {
     d.enabled = true; d.handle = h; d.accountId = accountId; d.key = key.toString('base64'); d.lastError = null;
   });
@@ -134,6 +144,7 @@ async function disable({ wipeRemote = false } = {}) {
       return { ok: false, message: decision.message, status: status() };
     }
   }
+  syncGen += 1; // identity gone — strand any in-flight run
   ensureStore().update((s) => { s.enabled = false; s.handle = ''; s.accountId = ''; s.key = ''; s.lastError = null; });
   // The cached device map must not outlive the account it came from — and
   // the UI must stop listing other devices the moment sync is off.
@@ -143,13 +154,20 @@ async function disable({ wipeRemote = false } = {}) {
   return { ok: true, status: status() };
 }
 
-async function syncOne(accountId, key, desc, attempt = 0) {
+/** `run` is immutable for the whole sync pass: `run.ctx` is the tab-sync
+ * context snapshotted when the pass began (never re-resolved after an await,
+ * so a mid-flight credential change can't cross account boundaries), and
+ * `run.stale()` is checked after every await so a stranded pass aborts
+ * before it merges, exports, or writes anything. */
+async function syncOne(accountId, key, desc, run, attempt = 0) {
   const url = `${SYNC_ENDPOINT}/v1/blob/${accountId}/${desc.name}`;
   const getRes = await net.fetch(url);
+  if (run.stale()) throw new SyncError('stale');
   let version = null, remote = null;
   if (getRes.status === 200) {
     let body;
     try { body = await getRes.json(); } catch { throw new SyncError('server'); }
+    if (run.stale()) throw new SyncError('stale');
     version = body.version;
     try { remote = JSON.parse(decrypt(key, body.blob)); }
     catch { throw new SyncError('bad-passphrase'); }
@@ -160,17 +178,21 @@ async function syncOne(accountId, key, desc, attempt = 0) {
   }
   if (remote) {
     applyingRemote = true;
-    try { desc.merge(remote); } finally { applyingRemote = false; }
+    try { desc.merge(remote, run.ctx); } finally { applyingRemote = false; }
   }
-  const payload = desc.export();
+  const payload = desc.export(run.ctx);
   if (remote && desc.equals?.(payload, remote)) return; // true no-op — skip the PUT
   const blob = encrypt(key, JSON.stringify(payload));
+  if (run.stale()) throw new SyncError('stale'); // last gate before the write
   const putRes = await net.fetch(url, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ifVersion: version, blob }),
   });
-  if (putRes.status === 409 && attempt < 3) return syncOne(accountId, key, desc, attempt + 1); // re-pull-merge
+  if (putRes.status === 409 && attempt < 3) {
+    if (run.stale()) throw new SyncError('stale');
+    return syncOne(accountId, key, desc, run, attempt + 1); // re-pull-merge
+  }
   if (putRes.status === 409) throw new SyncError('conflict');
   if (!putRes.ok) throw new SyncError(`http-${putRes.status}`);
 }
@@ -185,26 +207,37 @@ async function syncNow(names = null) {
   syncing = true;
   const accountId = d.accountId;            // snapshot so a mid-flight disable can't redirect writes
   const key = Buffer.from(d.key, 'base64');
-  let firstError = null;
+  // The whole pass runs under ONE generation and ONE tab-sync context; a
+  // credential/consent change mid-flight strands it at the next checkpoint.
+  const gen = syncGen;
+  const run = { ctx: tabSyncContext(), stale: () => gen !== syncGen };
+  let firstError = null, stranded = false;
   try {
     for (const desc of STORES) {
       if (names && !names.includes(desc.name)) continue;
       if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
-      try { await syncOne(accountId, key, desc); }
-      catch (err) { firstError ??= err; }
+      try { await syncOne(accountId, key, desc, run); }
+      catch (err) {
+        if (err instanceof SyncError && err.message === 'stale') { stranded = true; break; }
+        firstError ??= err;
+      }
     }
   } finally { syncing = false; }
   // If sync was turned off mid-flight, don't stamp status onto a disabled store.
   if (!ensureStore().data.enabled) return { ok: false, message: 'Sync is off.' };
-  ensureStore().update((s) => {
-    if (firstError) s.lastError = describe(firstError);
-    else { s.lastError = null; s.lastSyncedAt = Date.now(); }
-  });
+  // A stranded pass stamps nothing: its results belong to a dead generation.
+  if (!stranded) {
+    ensureStore().update((s) => {
+      if (firstError) s.lastError = describe(firstError);
+      else { s.lastError = null; s.lastSyncedAt = Date.now(); }
+    });
+  }
   if (pendingNames !== undefined) {
     const next = pendingNames;
     pendingNames = undefined;
-    return syncNow(next);
+    return syncNow(next); // re-runs under the CURRENT generation and context
   }
+  if (stranded) return { ok: true };
   return firstError ? { ok: false, message: describe(firstError) } : { ok: true };
 }
 
@@ -224,6 +257,7 @@ function scheduleTabs(delay = 15000) {
 /** The per-device "share this device's open tabs" consent (spec §3). Turning
  * it off publishes a retraction on the prompt sync below. */
 function setSyncTabs(on) {
+  syncGen += 1; // consent changed — a stale in-flight export must not publish under the old setting
   ensureStore().update((d) => { d.syncTabs = !!on; });
   if (ensureStore().data.enabled) scheduleTabs(1000);
   return status();

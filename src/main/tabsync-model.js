@@ -54,10 +54,26 @@ function sanitizeEntry(raw) {
   };
 }
 
-/** Union by deviceId, last-writer-wins per entry on updatedAt (each device
- * only ever rewrites its own entry, so this is commutative and idempotent —
- * spec §5). Remote entries are sanitized; both sides prune at 30 days. */
-function mergeDevices(local, remote, { now }) {
+/** LWW winner with a deterministic equal-clock rule (PR #41 review, P2):
+ * a plain "local wins ties" made merge order-dependent, so two peers holding
+ * different same-clock entries for a third device would never converge. On a
+ * tie: our OWN entry is authoritative on this device — the stored full entry
+ * must never lose to its budget-trimmed upload copy, which shares its clock
+ * by design (exportDevices); for other devices a retraction wins, then the
+ * lexicographically smaller canonical form. Symmetric for non-own ids, so
+ * mergeDevices(a, b) === mergeDevices(b, a). */
+function winner(local, remote, isOwn) {
+  if (remote.updatedAt !== local.updatedAt) return remote.updatedAt > local.updatedAt ? remote : local;
+  if (isOwn) return local;
+  if (!!remote.retracted !== !!local.retracted) return remote.retracted ? remote : local;
+  return canonical(remote) < canonical(local) ? remote : local;
+}
+
+/** Union by deviceId, last-writer-wins per entry on updatedAt with the
+ * deterministic tie rule above (each device only ever rewrites its own
+ * entry, so this is commutative and idempotent across peers — spec §5).
+ * Remote entries are sanitized; both sides prune at 30 days. */
+function mergeDevices(local, remote, { now, ownId }) {
   const out = {};
   for (const [id, e] of Object.entries(local ?? {})) {
     if (e && Number.isFinite(e.updatedAt)) out[id] = e;
@@ -66,7 +82,7 @@ function mergeDevices(local, remote, { now }) {
     const e = sanitizeEntry(raw);
     if (!e) continue;
     const cur = out[id];
-    if (!cur || e.updatedAt > cur.updatedAt) out[id] = e;
+    out[id] = cur ? winner(cur, e, id === ownId) : e;
   }
   for (const [id, e] of Object.entries(out)) {
     if (now - e.updatedAt > PRUNE_MS) delete out[id];
@@ -162,7 +178,7 @@ function exportDevices({ devices, deviceId, syncTabs, snapshot, name, platform, 
   const own = ownEntryFor({ syncTabs, prev: next[deviceId] ?? null, snapshot, name, platform, now });
   if (own) next[deviceId] = own;
   else delete next[deviceId];
-  const store = mergeDevices(next, {}, { now }); // prunes our cache at 30 days
+  const store = mergeDevices(next, {}, { now, ownId: deviceId }); // prunes our cache at 30 days
   const upload = applyBudget(store, deviceId, maxBytes ? { maxBytes } : {});
   return { store, upload };
 }

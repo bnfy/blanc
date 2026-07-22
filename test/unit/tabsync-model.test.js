@@ -76,6 +76,31 @@ test('mergeDevices: a retraction LWW-beats a stale copy and cannot be resurrecte
   assert.deepEqual(b.d1, retraction);
 });
 
+test('mergeDevices is commutative on equal-clock ties (deterministic tie-breaker)', () => {
+  // Same device id, same clock, different contents — each side must pick the
+  // SAME winner or two peers merging the same pair diverge (PR #41, P2).
+  const x = { d1: entry({ name: 'Version X', updatedAt: NOW }) };
+  const y = { d1: entry({ name: 'Version Y', updatedAt: NOW }) };
+  const xy = m.mergeDevices(x, y, { now: NOW });
+  const yx = m.mergeDevices(y, x, { now: NOW });
+  assert.deepEqual(xy, yx);
+  // A same-clock retraction beats a same-clock live entry from either side.
+  const live = { d1: entry({ updatedAt: NOW }) };
+  const gone = { d1: { retracted: true, updatedAt: NOW } };
+  assert.deepEqual(m.mergeDevices(live, gone, { now: NOW }).d1, { retracted: true, updatedAt: NOW });
+  assert.deepEqual(m.mergeDevices(gone, live, { now: NOW }).d1, { retracted: true, updatedAt: NOW });
+});
+
+test('mergeDevices: own entry wins equal-clock ties — the stored full entry never loses to its trimmed upload copy', () => {
+  const full = entry({ tabs: [aTab(), aTab({ url: 'https://b.example/' })], updatedAt: NOW });
+  const trimmed = entry({ tabs: [aTab()], updatedAt: NOW }); // budget-trimmed upload shares the clock by design
+  const out = m.mergeDevices({ me: full }, { me: trimmed }, { now: NOW, ownId: 'me' });
+  assert.deepEqual(out.me, full);
+  // ...but a strictly newer remote own entry still wins (restored-backup case)
+  const newer = entry({ tabs: [aTab()], updatedAt: NOW + 1 });
+  assert.deepEqual(m.mergeDevices({ me: full }, { me: newer }, { now: NOW + 1, ownId: 'me' }).me, newer);
+});
+
 test('mergeDevices prunes entries older than 30 days on both sides, retracted included', () => {
   const out = m.mergeDevices(
     { old: entry({ updatedAt: NOW - 31 * DAY }), live: entry({ updatedAt: NOW - HOUR }) },

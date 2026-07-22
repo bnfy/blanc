@@ -82,7 +82,7 @@ function mergeFromSync(remote, ctx) {
   const s = rebind(ctx.accountId);
   const before = model.canonical(s.data.devices);
   s.update((d) => {
-    d.devices = model.mergeDevices(d.devices, remote?.devices, { now: Date.now() });
+    d.devices = model.mergeDevices(d.devices, remote?.devices, { now: Date.now(), ownId: ctx.deviceId });
   });
   // Tell the UI surfaces (overlay panel, open start pages) when a pull
   // actually changed what they'd render — they read a cache, and a
@@ -95,11 +95,15 @@ function mergeFromSync(remote, ctx) {
 /** Skip-PUT repair check (spec §6): true only for a genuine no-op. */
 const equalsRemote = (exported, remote) => model.devicesEqual(exported?.devices, remote?.devices);
 
+// Reads rebind too (PR #41 review, P2): a mismatched sync.json/tab-sync.json
+// pair (hand-copied files, crash between writes) must never render — or
+// heartbeat against — another account's cached devices. rebind() wipes the
+// cache on mismatch before anything reads it.
 const getRemoteDevices = (ctx) =>
-  model.displayDevices(ensureStore().data.devices, ctx.deviceId, { now: Date.now() });
+  model.displayDevices(rebind(ctx.accountId).data.devices, ctx.deviceId, { now: Date.now() });
 
 const heartbeatDue = (ctx) =>
-  model.heartbeatDue(ensureStore().data.devices[ctx.deviceId], Date.now());
+  model.heartbeatDue(rebind(ctx.accountId).data.devices[ctx.deviceId], Date.now());
 
 /** Sync turned off entirely: the UI must stop showing other devices, and a
  * later re-enable (possibly under new credentials) starts clean. deviceId
