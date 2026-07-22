@@ -5,7 +5,17 @@
     <link>https://blancbrowser.com/changelog</link>
     <description>New features, fixes, and platform updates in Blanc Browser.</description>
     <language>en-us</language>
-    <lastBuildDate>Mon, 20 Jul 2026 04:42:28 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 22 Jul 2026 10:18:12 GMT</lastBuildDate>
+    <item>
+      <title>Blanc 0.20.0</title>
+      <link>https://github.com/bnfy/blanc/releases/tag/v0.20.0</link>
+      <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.20.0</guid>
+      <pubDate>Wed, 22 Jul 2026 10:18:12 GMT</pubDate>
+      <description>Tab Sync: open tabs from your other devices (F27)
+Blanc v0.20.0 introduces Tab Sync: see your open tabs from your other devices. Turn on &quot;share this device&apos;s open tabs&quot; under Settings → Sync and each machine publishes a snapshot of its tabs — browse them from the ⌘L panel, the Quick Switcher, or the start page on any synced device, and open one locally with a click. It&apos;s a menu, not a mirror: nothing ever force-opens or closes a tab on another machine.
+Sharing is off by default and per-device, private tabs never leave the machine, and like the rest of Profile Sync the snapshots are end-to-end encrypted — the sync server only ever stores ciphertext it cannot read.
+This release also updates Electron to 43.2.0 for the latest Chromium stable.</description>
+    </item>
     <item>
       <title>Blanc 0.19.0</title>
       <link>https://github.com/bnfy/blanc/releases/tag/v0.19.0</link>
@@ -163,13 +173,6 @@ Monetization phase 1: Blanc Supporter license, support rails, grant drafts</desc
 Fix Windows/Linux release workflow: real filenames, cert-profile gate
 Drop nonexistent .blockmap from the Linux AppImage asset list
 Document tonight&apos;s Windows/Linux release gotchas in CLAUDE.md</description>
-    </item>
-    <item>
-      <title>Blanc 0.9.6</title>
-      <link>https://github.com/bnfy/blanc/releases/tag/v0.9.6</link>
-      <guid isPermaLink="true">https://github.com/bnfy/blanc/releases/tag/v0.9.6</guid>
-      <pubDate>Mon, 06 Jul 2026 04:21:56 GMT</pubDate>
-      <description></description>
     </item>
   </channel>
 </rss>
