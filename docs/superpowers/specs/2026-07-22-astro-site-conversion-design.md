@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-22
 **Status:** Approved
-**Scope:** Convert the marketing site (`site/`) from hand-maintained static HTML to an Astro project. Faithful port plus agreed modernizations: self-hosted fonts, hashed CSS/JS bundling, auto-generated sitemap, offline image compression. Same look, same deployed URLs, same SEO/meta output.
+**Scope:** Convert the marketing site (`site/`) from hand-maintained static HTML to an Astro project. Faithful port plus agreed modernizations: self-hosted fonts, hashed CSS/JS bundling, auto-generated sitemap, offline image compression. Same look, same deployed URLs, same SEO/meta output — plus exactly one narrow copy change: the privacy policy's website-fonts disclosure, which self-hosting makes false (see §3).
 
 ## Goals
 
@@ -12,7 +12,7 @@
 
 ## Non-goals
 
-- No redesign, no copy changes, no new pages.
+- No redesign, no copy changes (sole exception: the privacy-policy fonts disclosure, §3), no new pages.
 - No content collections / blog scaffolding (the "foundation for growth" option was explicitly not chosen).
 - No change to the Cloudflare Pages project, domain, or direct-upload deployment model.
 
@@ -44,7 +44,9 @@
 ```
 site/
   package.json            astro + fontsource packages; scripts: dev, build, preview
-  astro.config.mjs        site: 'https://blancbrowser.com', build: { format: 'file' }
+  package-lock.json       committed (npm ci in CI requires it)
+  astro.config.mjs        site: 'https://blancbrowser.com', build: { format: 'file',
+                          inlineStylesheets: 'never' }, vite.build.assetsInlineLimit: 0
   src/
     layouts/BaseLayout.astro
     components/BrandMark.astro   the brand SVG (currently pasted verbatim ~16 places)
@@ -77,18 +79,29 @@ site/
 - Root `package.json` proxy scripts: `site:dev` → `npm --prefix site run dev`, `site:build` → `npm --prefix site run build`, `site:deploy` → build + `npx wrangler pages deploy site/dist --project-name=blancbrowser`.
 - The old committed `site/changelog.html`, `site/changelog.xml`, `site/sitemap.xml` are deleted (all three become build outputs); `releases.json` replaces `changelog.html` as the committed generated artifact.
 
-### 2. BaseLayout & head contract
+### 2. BaseLayout, variants & head contract
+
+Today's pages are **not** uniform — the layout must model three existing profiles explicitly so the differences stay intentional, not accidental:
+
+| Pages | Header | Footer | `site.js` + consent | `data-page` | OG/Twitter |
+|---|---|---|---|---|---|
+| `index` | `site-header` (non-solid) | full `<footer>` (social icons) | yes (+ `demo.js`) | `home` | **rich**: adds `og:image:secure_url`/`type`/`width`/`height`, `og:locale` |
+| `download`, `features`, `about`, `changelog`, `features/*` | `site-header--solid` | `compact-footer` | yes | per-page | **standard**: title/description/url/image/alt + twitter card |
+| `privacy`, `terms` | `legal-top` (mark + wordmark link home, no nav) | full `<footer>` (social icons) | **no** | none (plain `<body>`) | **none**; `robots` is plain `index,follow` (no `max-image-preview:large`), no `theme-color` companions beyond what those pages carry today |
 
 `BaseLayout.astro` props:
 
 - `title`, `description` — required.
 - `path` — the canonical path (`/`, `/features/island`, …). Drives `<link rel="canonical">`, `og:url`, and nav current-page highlighting.
-- `page` — `data-page` value on `<body>` (used by `site.js` analytics payloads).
-- `ogTitle` / `ogDescription` — default to `title`/`description` (today's pages sometimes differ; preserve exact current values per page).
-- `ogImage` / `ogImageAlt` — default `og-image.png` + its alt; feature pages pass their `feature-*.png`.
+- `page` — `data-page` value on `<body>`; optional (legal pages omit it).
+- `header` — `'island' | 'solid' | 'legal'` (naming indicative), selecting the three header treatments above.
+- `footer` — `'full' | 'compact'`.
+- `analytics` — boolean; gates the consent banner **and** the `site.js` include (legal pages ship neither today).
+- `social` — `'rich' | 'standard' | 'none'`, selecting the OG/Twitter profile. `ogTitle`/`ogDescription` default to `title`/`description` (today's values sometimes differ; preserve exact current values per page); `ogImage`/`ogImageAlt` default to `og-image.png` + its alt, feature pages pass their `feature-*.png`.
+- `robots` — defaults to `index,follow,max-image-preview:large`; legal pages pass `index,follow`.
 - A named `head` slot for page-specific extras: index's JSON-LD `@graph`, feature pages' JSON-LD, changelog's `<link rel="alternate" type="application/rss+xml">`.
 
-The layout renders: charset/viewport, title/description/robots/theme-color/application-name/apple-mobile-web-app-title, canonical, full OG/Twitter block, favicon links, font imports, stylesheet, `<Header/>`, `<slot/>` (page body), `<Footer/>`, `<Consent/>`, and the `site.js` script.
+The layout renders: charset/viewport, title/description/robots/theme-color/application-name/apple-mobile-web-app-title (the latter two only where present today), canonical, the selected OG/Twitter profile, favicon links, font imports, stylesheet, the selected `<Header/>` variant, `<slot/>` (page body), the selected `<Footer/>` variant, and — when `analytics` — `<Consent/>` and the `site.js` script. Each variant's markup is ported verbatim from the current pages; the head-diff verification (§7) must confirm *absence* as well as presence (e.g. no OG block may appear on `privacy`/`terms`).
 
 **JSON-LD `softwareVersion`** on index is read from the **root** `package.json` at build time (`import pkg from '../../../package.json'`). `release.sh`'s sed of `site/index.html` is deleted; the routine post-release site redeploy picks up the new version by rebuilding.
 
@@ -97,8 +110,10 @@ Every page's `<head>` output must match today's modulo the intended deltas (font
 ### 3. Styles, fonts, scripts
 
 - **CSS:** `src/styles/site.css` imported in BaseLayout frontmatter → one bundled, content-hashed stylesheet. Hand-bumped `?v=` query strings die.
-- **Fonts:** `@fontsource-variable/inter` (weight axis covers today's `100..900`) + `@fontsource/jetbrains-mono` (400/500/700), imported in CSS. Same `font-family` names, so `site.css` needs no changes beyond removing nothing (font-family declarations already match). Google Fonts `<link>`s and preconnects removed. This deletes a live third-party request — a privacy win consistent with the brand.
-- **Scripts:** `site.js` included by BaseLayout, `demo.js` only by `index.astro`, both as Astro-processed `<script>` (bundled, hashed, module semantics — both files are IIFE-wrapped and order-independent, so module deferral is equivalent to today's `defer`). Only code change: `demo.js` `shotSrc` becomes `'/shots/…'`. The changelog search script stays inline (`is:inline`) on `changelog.astro`. GA consent logic verbatim, including the `G-MN8BLY6GE9` id and `data-track` delegation.
+- **Fonts:** `@fontsource-variable/inter` + `@fontsource/jetbrains-mono` (400/500/700), imported in CSS. **Family-name caveat:** the fontsource variable package declares `Inter Variable`, not `Inter` — so `--font-ui` in `site.css` is updated to `"Inter Variable", "Inter", -apple-system, …` (keeping `"Inter"` as a fallback). Without this the site silently falls back to system fonts. `site/styles.css` is *not* under the `tokens/` substrate guard (that covers the app's renderer CSS), so this edit needs no `tokens.json` change. JetBrains Mono's static package declares `JetBrains Mono` as-is; `--font-mono` is untouched. The variable Inter also preserves today's rendering exactly — the current Google link serves variable `wght@100..900`. Google Fonts `<link>`s and preconnects removed.
+- **Privacy-policy copy (the one allowed copy change):** self-hosting makes the website-section disclosure in `privacy.html` ("**Fonts** load from Google Fonts, so Google may see your IP address…") false. Replace that bullet with an accurate self-hosted statement and bump the `legal-updated` date. The **app**-section disclosure ("it loads its interface fonts from Google Fonts") stays — the Electron UI still loads Google Fonts.
+- **No inlining — explicit asset contract:** Astro inlines processed scripts/styles below Vite's 4096-byte `assetsInlineLimit`, and `site.js` is 4,023 bytes — "bundled and hashed" would silently become "inlined". Set `vite: { build: { assetsInlineLimit: 0 } }` and `build: { inlineStylesheets: 'never' }` in `astro.config.mjs`; verification (§7) asserts `dist/` contains external hashed `.css`/`.js` files that pages reference.
+- **Scripts:** `site.js` included by BaseLayout (when `analytics`, per §2), `demo.js` only by `index.astro`, both as Astro-processed `<script>` (bundled, hashed, module semantics — both files are IIFE-wrapped and order-independent, so module deferral is equivalent to today's `defer`). Only code change: `demo.js` `shotSrc` becomes `'/shots/…'`. The changelog search script stays inline (`is:inline`) on `changelog.astro`. GA consent logic verbatim, including the `G-MN8BLY6GE9` id and `data-track` delegation.
 - **Images:** everything stays in `public/` at stable paths. Modernization = one-time offline recompression (lossless/near-lossless — e.g. `oxipng`/`jpegtran`-class tools) of `shots/*.jpg` and the PNGs. No Astro image pipeline: OG images and runtime-computed shot URLs cannot be hashed, and nothing else references images statically.
 
 ### 4. Changelog pipeline
@@ -116,28 +131,34 @@ Every page's `<head>` output must match today's modulo the intended deltas (font
 
 `@astrojs/sitemap` is **not** used — it emits a fixed-name `sitemap-index.xml`, changing the URL Search Console already knows. Instead, a small custom `src/pages/sitemap.xml.js` endpoint:
 
-- Enumerates the real page list at build time (glob over `src/pages/*.astro` + `src/pages/features/*.astro`, or an explicit list — implementation's choice, but it must fail loudly if a page is missing rather than silently shrinking).
+- Is driven by an **explicit route manifest** carrying the fields today's sitemap actually has: `{ path, changefreq, priority }` per route (today: `/` is `weekly`/`1.0`, `/download` `monthly`/`0.9`, feature pages `monthly`/`0.8`, etc. — copy every current value exactly).
+- **Asserts at build time** that the manifest and the discovered Astro pages (`src/pages/**/*.astro`) match exactly — a page missing from the manifest or a manifest entry with no page fails the build loudly; the sitemap can never silently shrink or drift.
 - Serves at the existing `/sitemap.xml` URL with extensionless `<loc>` URLs exactly as today.
 - `<lastmod>` = build date, replacing the `release.sh` sed.
+
+Both generated XML endpoints (`sitemap.xml`, `changelog.xml`) must be served with an XML content type — as `.xml` build outputs Cloudflare Pages does this by extension; post-deploy verification (§7) confirms the `Content-Type` headers.
 
 `robots.txt` stays in `public/` unchanged (it already points at `/sitemap.xml`).
 
 ### 6. Tooling, CI & docs impact
 
 - **`release.sh`:** delete the "Syncing site metadata" block (both seds and the associated `git diff` check/message). Changelog step untouched.
-- **CI:** new path-filtered job (in `parity-guards.yml` or a small new workflow) triggered on `site/**` changes: `npm ci` + `npm run build` in `site/`, so a PR can't break the site build. `site:changelog:check` is *not* added to CI (it needs `gh` auth and live GitHub data; it remains a release-time/manual guard, as today).
+- **Lockfile:** `site/package-lock.json` is committed — `npm ci` requires it.
+- **CI:** a **dedicated workflow** (e.g. `.github/workflows/site.yml`), not a bolt-on to `parity-guards.yml`. Path filters: `site/**`, **root `package.json`** (a build input — the JSON-LD `softwareVersion` imports it), and `scripts/generate-site-changelog.mjs` (part of the `releases.json` contract). Job: `npm ci` + `npm run build` in `site/`, with `actions/setup-node` npm caching keyed on `cache-dependency-path: site/package-lock.json`. `site:changelog:check` is *not* added to CI (it needs `gh` auth and live GitHub data; it remains a release-time/manual guard, as today).
 - **`site/CLAUDE.md`:** rewritten — build step now exists (`site:dev`/`site:build`), deploy is `wrangler pages deploy site/dist`, changelog data flow (`releases.json` → Astro), corrected page list (add `sync`, `security`), note that `release.sh` no longer seds site files. Root `CLAUDE.md`/`AGENTS.md` untouched (site guidance already delegated to `site/CLAUDE.md`).
+- **Other live deploy commands:** the old `wrangler pages deploy site` command also appears in `README.md` (rename-status section, ~line 234) and `docs/polar-setup.md` (step 6) — both updated to the new `site/dist` form (or the `npm run site:deploy` proxy), not just `site/CLAUDE.md`.
 - **Deploy:** `npx wrangler pages deploy site/dist --project-name=blancbrowser` (only the path changes).
 
 ### 7. Verification
 
 Faithfulness is the whole game; verify before deploying:
 
-1. **Head diff:** script that renders old and new versions of every page and diffs `<head>` metadata (title, description, canonical, robots, full OG/Twitter set, JSON-LD). Only intended deltas allowed: font links, hashed asset URLs, removed `?v=` params.
+1. **Head diff:** script that renders old and new versions of every page and diffs `<head>` metadata (title, description, canonical, robots, full OG/Twitter set, JSON-LD). Only intended deltas allowed: font links, hashed asset URLs, removed `?v=` params, the privacy-policy copy change. The diff must confirm **absence as well as presence** — e.g. `privacy`/`terms` must still carry no OG/Twitter block, no `site.js`, no consent markup (§2's variant table is the contract).
 2. **Visual diff:** Playwright screenshots of all 14 pages at desktop and ≤560px mobile widths, old vs. new, compared for regressions (fonts self-hosted vs. CDN may cause sub-pixel metric shifts; judge those by eye once).
 3. **Behavior:** Island demo plays on index (shots load from `/shots/…`), consent banner allow/deny + GA load, download-link resolution against the GitHub API, changelog search, `data-track` attributes present.
-4. **Machine outputs:** `/changelog.xml` validates as RSS 2.0 with identical item shape; `/sitemap.xml` lists exactly today's URL set; `dist/` file layout matches today's deployed layout (`diff <(find …)`).
+4. **Machine outputs:** `/changelog.xml` validates as RSS 2.0 with identical item shape; `/sitemap.xml` entries compared **field-by-field** against today's file — `loc`, `changefreq`, and `priority` all identical per route (`lastmod` = build date is the one allowed delta); `dist/` contains external content-hashed `.css`/`.js` files referenced by the pages (nothing inlined, per §3); `dist/` file layout matches today's deployed layout (`diff <(find …)`).
 5. **Repo checks:** `npm run test:unit` green (updated changelog tests), `npm --prefix site run build` green, `release.sh` dry-read to confirm the deleted block isn't referenced elsewhere.
+6. **Post-deploy:** `/sitemap.xml` and `/changelog.xml` served with an XML `Content-Type`; spot-check canonicals and one feature page's OG tags on the live domain.
 
 ## Risks & mitigations
 
@@ -148,11 +169,11 @@ Faithfulness is the whole game; verify before deploying:
 
 ## Implementation order (for the plan)
 
-1. Scaffold Astro project in `site/` (config, package.json, root proxy scripts) with one page ported end-to-end (`about.html` — simplest) to prove layout + build format + deploy layout.
-2. BaseLayout + components; port remaining static pages.
-3. Fonts + asset bundling + link normalization.
+1. Scaffold Astro project in `site/` (config incl. the no-inlining options, package.json + committed lockfile, root proxy scripts) with one page ported end-to-end (`about.html` — simplest) to prove layout + build format + deploy layout.
+2. BaseLayout with the three variants (§2) + components; port remaining static pages, including the legal pages' no-analytics/no-OG profile.
+3. Fonts (incl. the `Inter Variable` token fix and the privacy-policy copy change) + asset bundling + link normalization.
 4. Changelog: generator → JSON, `changelog.astro`, `changelog.xml.js`, unit-test updates.
-5. `sitemap.xml.js`; delete `release.sh` metadata block.
+5. `sitemap.xml.js` with route manifest + build-time assertion; delete `release.sh` metadata block.
 6. Image recompression pass.
-7. Verification suite (§7), CI job, `site/CLAUDE.md` rewrite.
+7. Verification suite (§7), dedicated CI workflow, `site/CLAUDE.md` rewrite + README/polar-setup deploy-command updates.
 8. Deploy + post-deploy spot checks.
