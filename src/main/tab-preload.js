@@ -33,6 +33,11 @@ if (window.location.protocol === 'blanc:') {
     start: {
       data: () => ipcRenderer.invoke('pages:start:data'),
       focusGroup: (id) => ipcRenderer.invoke('pages:start:focus-group', id),
+      // Subscribe-only: main pushes fresh remote-device tabs when a sync
+      // pull lands after the page first painted (tab sync).
+      onRemoteTabs: (callback) => {
+        ipcRenderer.on('pages:start:remote-tabs', (_event, devices) => callback(devices));
+      },
     },
     shortcuts: {
       list: () => ipcRenderer.invoke('pages:shortcuts:list'),

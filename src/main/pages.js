@@ -172,6 +172,7 @@ function setupPages(hooks = {}) {
   handle('pages:start:data', () => ({
     groups: hooks.startPage?.groups() ?? [],
     blockedThisWeek: hooks.startPage?.blockedThisWeek() ?? 0,
+    remoteDevices: hooks.startPage?.remoteDevices() ?? [],
   }));
   handle('pages:start:focus-group', (id) => hooks.startPage?.focusGroup(String(id)));
 
