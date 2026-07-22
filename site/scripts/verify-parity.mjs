@@ -146,6 +146,8 @@ function bodyText(html, { fromFeatures, isNew }) {
   // The script PROFILE is asserted separately (scriptCount below), so a
   // missing demo.js or a stray site.js on a legal page still fails.
   body = body.replace(/<script\b[^>]*\bsrc="[^"]*"[^>]*><\/script>\s*/g, '');
+  // HTML comments carry no rendered meaning and Astro strips them at build.
+  body = body.replace(/<!--[\s\S]*?-->/g, '');
   if (!isNew) body = rewriteLinks(body, fromFeatures);
   // XML-style self-closing (<path .../> in inline SVG) and explicit
   // open/close (<path ...></path>, Astro's serialization) parse to the same
