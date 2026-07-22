@@ -60,6 +60,13 @@ const unionNames = (a, b) => (a === null || b === null ? null : [...new Set([...
  * in-flight response from the OLD account can never be merged or re-uploaded
  * under the NEW one (or recreate a just-wiped account's blob). */
 let syncGen = 0;
+/** Resolves when the currently-running pass has fully settled — dispatched
+ * network requests included. `disable()` awaits it before wiping: a PUT
+ * already on the wire can't be recalled, so the DELETE must not race it. */
+let passSettled = Promise.resolve();
+/** True while disable() drains and wipes: no new pass may start, or the
+ * drain barrier would be meaningless. */
+let suspended = false;
 // True only while a pull's merge() applies remote data, so the local-change
 // triggers can distinguish a sync-induced settings change from a genuine user
 // edit and not schedule a redundant follow-up sync.
@@ -123,35 +130,46 @@ async function disable({ wipeRemote = false } = {}) {
   timer = null;
   clearTimeout(tabTimer);
   tabTimer = null;
-  const d = ensureStore().data;
-  if (wipeRemote && d.accountId) {
-    // The wipe must be confirmed before the credentials are erased: the
-    // accountId is the only handle on the server copy, so clearing it after
-    // a failed DELETE would strand unreachable ciphertext while telling the
-    // user it's gone. On failure, keep the record intact (sync stays enabled)
-    // and report, so "erase server copy" can be retried — or the user can
-    // turn sync off without the wipe. The clear-vs-keep rule is pinned by
-    // sync-wipe.js and its unit test.
-    let outcome;
-    try {
-      const res = await net.fetch(`${SYNC_ENDPOINT}/v1/blob/${d.accountId}`, { method: 'DELETE' });
-      outcome = { status: res.status };
-    } catch {
-      outcome = { error: true };
+  // Barrier (PR #41 re-review): a dispatched PUT can't be recalled, and a
+  // stale check after its response can't undo the server mutation. So before
+  // touching the server or the credentials: (1) block new passes, (2) strand
+  // the active one at its next checkpoint, (3) WAIT for it to settle —
+  // network included. Only then is the DELETE (or the credential clear) safe.
+  suspended = true;
+  syncGen += 1;
+  try {
+    await passSettled;
+    const d = ensureStore().data;
+    if (wipeRemote && d.accountId) {
+      // The wipe must be confirmed before the credentials are erased: the
+      // accountId is the only handle on the server copy, so clearing it after
+      // a failed DELETE would strand unreachable ciphertext while telling the
+      // user it's gone. On failure, keep the record intact (sync stays enabled)
+      // and report, so "erase server copy" can be retried — or the user can
+      // turn sync off without the wipe. The clear-vs-keep rule is pinned by
+      // sync-wipe.js and its unit test.
+      let outcome;
+      try {
+        const res = await net.fetch(`${SYNC_ENDPOINT}/v1/blob/${d.accountId}`, { method: 'DELETE' });
+        outcome = { status: res.status };
+      } catch {
+        outcome = { error: true };
+      }
+      const decision = wipeDecision(outcome);
+      if (!decision.clearCredentials) {
+        return { ok: false, message: decision.message, status: status() };
+      }
     }
-    const decision = wipeDecision(outcome);
-    if (!decision.clearCredentials) {
-      return { ok: false, message: decision.message, status: status() };
-    }
+    ensureStore().update((s) => { s.enabled = false; s.handle = ''; s.accountId = ''; s.key = ''; s.lastError = null; });
+    // The cached device map must not outlive the account it came from — and
+    // the UI must stop listing other devices the moment sync is off.
+    // (syncTabs and deviceId survive: consent and identity are per-device,
+    // not per-account.)
+    tabsync.onSyncDisabled();
+    return { ok: true, status: status() };
+  } finally {
+    suspended = false; // a failed wipe keeps sync enabled — future passes must run
   }
-  syncGen += 1; // identity gone — strand any in-flight run
-  ensureStore().update((s) => { s.enabled = false; s.handle = ''; s.accountId = ''; s.key = ''; s.lastError = null; });
-  // The cached device map must not outlive the account it came from — and
-  // the UI must stop listing other devices the moment sync is off.
-  // (syncTabs and deviceId survive: consent and identity are per-device,
-  // not per-account.)
-  tabsync.onSyncDisabled();
-  return { ok: true, status: status() };
 }
 
 /** `run` is immutable for the whole sync pass: `run.ctx` is the tab-sync
@@ -199,46 +217,54 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
 
 async function syncNow(names = null) {
   const d = ensureStore().data;
-  if (!d.enabled || !d.accountId || !d.key) return { ok: false, message: 'Sync is off.' };
+  // `suspended` bars new passes while disable() drains and wipes — a fresh
+  // pass dispatching requests mid-drain would defeat the barrier.
+  if (suspended || !d.enabled || !d.accountId || !d.key) return { ok: false, message: 'Sync is off.' };
   if (syncing) { // coalesce concurrent triggers
     pendingNames = pendingNames === undefined ? names : unionNames(pendingNames, names);
     return { ok: true };
   }
   syncing = true;
-  const accountId = d.accountId;            // snapshot so a mid-flight disable can't redirect writes
-  const key = Buffer.from(d.key, 'base64');
-  // The whole pass runs under ONE generation and ONE tab-sync context; a
-  // credential/consent change mid-flight strands it at the next checkpoint.
-  const gen = syncGen;
-  const run = { ctx: tabSyncContext(), stale: () => gen !== syncGen };
-  let firstError = null, stranded = false;
+  // Everything below — network requests included — settles before this
+  // resolves; disable() awaits it as its drain barrier.
+  let settle;
+  passSettled = new Promise((resolve) => { settle = resolve; });
   try {
-    for (const desc of STORES) {
-      if (names && !names.includes(desc.name)) continue;
-      if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
-      try { await syncOne(accountId, key, desc, run); }
-      catch (err) {
-        if (err instanceof SyncError && err.message === 'stale') { stranded = true; break; }
-        firstError ??= err;
+    const accountId = d.accountId;          // snapshot so a mid-flight disable can't redirect writes
+    const key = Buffer.from(d.key, 'base64');
+    // The whole pass runs under ONE generation and ONE tab-sync context; a
+    // credential/consent change mid-flight strands it at the next checkpoint.
+    const gen = syncGen;
+    const run = { ctx: tabSyncContext(), stale: () => gen !== syncGen };
+    let firstError = null, stranded = false;
+    try {
+      for (const desc of STORES) {
+        if (names && !names.includes(desc.name)) continue;
+        if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
+        try { await syncOne(accountId, key, desc, run); }
+        catch (err) {
+          if (err instanceof SyncError && err.message === 'stale') { stranded = true; break; }
+          firstError ??= err;
+        }
       }
+    } finally { syncing = false; }
+    // If sync was turned off mid-flight, don't stamp status onto a disabled store.
+    if (!ensureStore().data.enabled) return { ok: false, message: 'Sync is off.' };
+    // A stranded pass stamps nothing: its results belong to a dead generation.
+    if (!stranded) {
+      ensureStore().update((s) => {
+        if (firstError) s.lastError = describe(firstError);
+        else { s.lastError = null; s.lastSyncedAt = Date.now(); }
+      });
     }
-  } finally { syncing = false; }
-  // If sync was turned off mid-flight, don't stamp status onto a disabled store.
-  if (!ensureStore().data.enabled) return { ok: false, message: 'Sync is off.' };
-  // A stranded pass stamps nothing: its results belong to a dead generation.
-  if (!stranded) {
-    ensureStore().update((s) => {
-      if (firstError) s.lastError = describe(firstError);
-      else { s.lastError = null; s.lastSyncedAt = Date.now(); }
-    });
-  }
-  if (pendingNames !== undefined) {
-    const next = pendingNames;
-    pendingNames = undefined;
-    return syncNow(next); // re-runs under the CURRENT generation and context
-  }
-  if (stranded) return { ok: true };
-  return firstError ? { ok: false, message: describe(firstError) } : { ok: true };
+    if (pendingNames !== undefined) {
+      const next = pendingNames;
+      pendingNames = undefined;
+      return syncNow(next); // re-runs under the CURRENT generation and context
+    }
+    if (stranded) return { ok: true };
+    return firstError ? { ok: false, message: describe(firstError) } : { ok: true };
+  } finally { settle(); }
 }
 
 function schedule(delay = 4000) {
