@@ -242,3 +242,84 @@ Then('the ad-block exceptions do not contain {string}', async function (h) {
 Then('browser chrome remains on its trusted local document', async function () {
   assert.match(await this.call('chromeUrl'), /^file:\/\/.*\/src\/renderer\/index\.html$/);
 });
+
+// ---------- Utility sheet (F16-2, F16-4, F16-5) ----------
+
+/** Poll the sheet state — fixed sleeps turn slow CI into flakes; a missing
+ * state change must time out loudly. */
+async function untilSurface(world, predicate, what, ms = 5000) {
+  const deadline = Date.now() + ms;
+  for (;;) {
+    const surf = await world.call('utilitySurface');
+    if (predicate(surf)) return surf;
+    if (Date.now() > deadline) throw new Error(`timed out waiting for ${what}; last: ${JSON.stringify(surf)}`);
+    await new Promise((r) => setTimeout(r, 100));
+  }
+}
+
+const sheetHostFor = (name) => (name === 'favorites' ? 'bookmarks' : name);
+
+Given('the new-tab page is open', async function () {
+  await this.call('newTab'); // opens blanc://newtab as the active tab
+});
+
+Given('a favorite for {string} exists', async function (host) {
+  await this.call('seedFavorite', `https://${host}/`, host);
+});
+
+Given('the favorites page is open in the utility sheet', async function () {
+  await this.call('openFavoritesSheet');
+  await untilSurface(this, (s) => s.visible, 'favorites sheet to open');
+  this.tabStateBefore = await this.call('state');
+});
+
+When('I follow its {string} navigation link', async function (label) {
+  assert.strictEqual(label, 'Favorites', 'the ledger has exactly one nav link');
+  this.tabStateBefore = await this.call('state');
+  await this.call('followNewtabFavoritesLink');
+  await untilSurface(this, (s) => s.visible, 'sheet to open from ledger link');
+});
+
+When('I open the downloads page', async function () {
+  this.tabStateBefore = await this.call('state');
+  await this.call('openDownloads');
+  await untilSurface(this, (s) => s.visible, 'downloads sheet to open');
+});
+
+When('I activate that favorite', async function () {
+  await this.call('clickFirstSheetLink');
+  await this.waitForState((s) => s.tabs.length === this.tabStateBefore.tabs.length + 1);
+});
+
+Then('the {word} page opens in the utility sheet', async function (name) {
+  const surf = await untilSurface(this, (s) => s.visible, `${name} sheet`);
+  assert.strictEqual(surf.url, `blanc://${sheetHostFor(name)}/`);
+});
+
+Then('the {word} page opens in the utility sheet under the blanc scheme', async function (name) {
+  const surf = await untilSurface(this, (s) => s.visible, `${name} sheet`);
+  assert.ok(surf.url.startsWith(`blanc://${sheetHostFor(name)}/`),
+    `sheet url ${surf.url} should be blanc://${sheetHostFor(name)}/`);
+});
+
+Then('no new tab is created', async function () {
+  const now = await this.call('state');
+  assert.strictEqual(now.tabs.length, this.tabStateBefore.tabs.length);
+});
+
+Then('the active tab and tab order are unchanged', async function () {
+  const now = await this.call('state');
+  assert.strictEqual(now.activeTabId, this.tabStateBefore.activeTabId);
+  assert.deepStrictEqual(now.tabOrder, this.tabStateBefore.tabOrder);
+});
+
+Then('exactly one new tab opens on {string}', async function (host) {
+  const now = await this.call('state');
+  assert.strictEqual(now.tabs.length, this.tabStateBefore.tabs.length + 1);
+  assert.ok(now.tabs.some((t) => t.url.includes(host)),
+    `a tab should be on ${host}: ${JSON.stringify(now.tabs.map((t) => t.url))}`);
+});
+
+Then('the utility sheet is dismissed', async function () {
+  await untilSurface(this, (s) => !s.visible, 'sheet to dismiss');
+});

@@ -169,6 +169,28 @@ function install(refs) {
     openPalette() { showOverlay('palette'); },
     overlayMode() { return getOverlayMode(); },
     utilitySurface() { return getUtilitySheetState(); },
+    openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
+
+    // ---- utility sheet drive helpers (acceptance) ----
+    // Both click helpers ASSERT the anchor exists — an optional-chained
+    // click would silently no-op and turn a rendering regression into a
+    // downstream timeout instead of a pointed failure.
+    async followNewtabFavoritesLink() {
+      const t = tabs.get(getActiveTabId());
+      const clicked = await t.view.webContents.executeJavaScript(
+        `(() => { const a = document.querySelector('a[href="blanc://bookmarks/"]'); if (a) a.click(); return !!a; })()`);
+      if (!clicked) throw new Error('newtab ledger has no favorites link');
+    },
+    seedFavorite(url, title) {
+      if (!bookmarks.isBookmarked(url)) bookmarks.toggleBookmark(url, title || url);
+    },
+    async clickFirstSheetLink() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) throw new Error('sheet not open');
+      const clicked = await wc.executeJavaScript(
+        `(() => { const a = document.querySelector('a[href^="https"], a[href^="http"]'); if (a) a.click(); return !!a; })()`);
+      if (!clicked) throw new Error('no outbound link rendered in sheet');
+    },
     attemptChromeNavigation(url) { return attemptChromeNavigation(String(url)); },
     chromeUrl() { return getChromeUrl(); },
 
