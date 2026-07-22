@@ -2196,6 +2196,12 @@ app.whenReady().then(async () => {
     onDataChanged: refreshBookmarkFlags,
     // Parent for the favorites-import file dialog (evaluated lazily at click).
     getMainWindow: () => (hasLiveWindow() ? win : undefined),
+    // Utility sheet: only the sheet view itself may close the sheet — the
+    // strict pages:surface:close guard verifies the sender against this.
+    utilitySheet: {
+      isSheetSender: (wc) => !!utilitySheetView && wc === utilitySheetView.webContents,
+      close: () => hideUtilitySheet(),
+    },
     // The start page's ledger sections read live tab-group state and the
     // rolling blocked counter, both owned here.
     startPage: {
