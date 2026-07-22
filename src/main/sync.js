@@ -1,7 +1,10 @@
+const os = require('os');
+const crypto = require('crypto');
 const { net } = require('electron');
 const { JsonStore } = require('./store');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
+const tabsync = require('./tabsync');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const { wipeDecision } = require('./sync-wipe');
 
@@ -10,18 +13,44 @@ const { wipeDecision } = require('./sync-wipe');
 // opaque accountId and can't read anything. See the design spec.
 const SYNC_ENDPOINT = 'https://blanc-sync.bnfy-441.workers.dev'; // wrangler dev -> http://127.0.0.1:8787
 
+let store = null;
+const ensureStore = () => (store ??= new JsonStore('sync', {
+  enabled: false, handle: '', accountId: '', key: '', lastSyncedAt: 0, lastError: null,
+  deviceId: '', syncTabs: false,
+}));
+
+/** What tabsync needs from this device's identity on every export/merge.
+ * deviceId is a random UUID minted here once — deliberately NOT the
+ * telemetry installId (nothing may attach to that). */
+function tabSyncContext() {
+  const s = ensureStore();
+  if (!s.data.deviceId) s.update((d) => { d.deviceId = crypto.randomUUID(); });
+  const d = s.data;
+  return {
+    accountId: d.accountId, deviceId: d.deviceId, syncTabs: !!d.syncTabs,
+    deviceName: os.hostname(), platform: process.platform,
+  };
+}
+
 // Order doesn't matter; each store syncs independently.
 const STORES = [
   { name: 'bookmarks', export: bookmarks.exportForSync, merge: bookmarks.mergeFromSync },
   { name: 'settings', export: settings.exportForSync, merge: settings.mergeFromSync },
+  {
+    name: 'session',
+    export: () => tabsync.exportForSync(tabSyncContext()),
+    merge: (remote) => tabsync.mergeFromSync(remote, tabSyncContext()),
+    // Repair comparison (spec §6): a true no-op skips the PUT; anything else
+    // — including a remote blob that lost our unchanged entry — uploads.
+    equals: (exported, remote) => tabsync.equalsRemote(exported, remote),
+  },
 ];
 
-let store = null;
-const ensureStore = () => (store ??= new JsonStore('sync', {
-  enabled: false, handle: '', accountId: '', key: '', lastSyncedAt: 0, lastError: null,
-}));
-
-let syncing = false, pending = false, timer = null;
+let syncing = false, timer = null, tabTimer = null;
+/** Coalesced re-run request while a sync is in flight: undefined = none,
+ * null = all stores, array = just those names. */
+let pendingNames;
+const unionNames = (a, b) => (a === null || b === null ? null : [...new Set([...a, ...b])]);
 // True only while a pull's merge() applies remote data, so the local-change
 // triggers can distinguish a sync-induced settings change from a genuine user
 // edit and not schedule a redundant follow-up sync.
@@ -31,7 +60,10 @@ class SyncError extends Error {}
 
 function status() {
   const d = ensureStore().data;
-  return { enabled: d.enabled, handle: d.handle, lastSyncedAt: d.lastSyncedAt, lastError: d.lastError };
+  return {
+    enabled: d.enabled, handle: d.handle, lastSyncedAt: d.lastSyncedAt,
+    lastError: d.lastError, syncTabs: !!d.syncTabs,
+  };
 }
 
 // length OR variety — a client-side nudge (spec §14), not a security boundary
@@ -79,6 +111,8 @@ async function enable({ handle, passphrase }) {
 async function disable({ wipeRemote = false } = {}) {
   clearTimeout(timer);
   timer = null;
+  clearTimeout(tabTimer);
+  tabTimer = null;
   const d = ensureStore().data;
   if (wipeRemote && d.accountId) {
     // The wipe must be confirmed before the credentials are erased: the
@@ -101,6 +135,11 @@ async function disable({ wipeRemote = false } = {}) {
     }
   }
   ensureStore().update((s) => { s.enabled = false; s.handle = ''; s.accountId = ''; s.key = ''; s.lastError = null; });
+  // The cached device map must not outlive the account it came from — and
+  // the UI must stop listing other devices the moment sync is off.
+  // (syncTabs and deviceId survive: consent and identity are per-device,
+  // not per-account.)
+  tabsync.onSyncDisabled();
   return { ok: true, status: status() };
 }
 
@@ -123,7 +162,9 @@ async function syncOne(accountId, key, desc, attempt = 0) {
     applyingRemote = true;
     try { desc.merge(remote); } finally { applyingRemote = false; }
   }
-  const blob = encrypt(key, JSON.stringify(desc.export()));
+  const payload = desc.export();
+  if (remote && desc.equals?.(payload, remote)) return; // true no-op — skip the PUT
+  const blob = encrypt(key, JSON.stringify(payload));
   const putRes = await net.fetch(url, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -134,16 +175,20 @@ async function syncOne(accountId, key, desc, attempt = 0) {
   if (!putRes.ok) throw new SyncError(`http-${putRes.status}`);
 }
 
-async function syncNow() {
+async function syncNow(names = null) {
   const d = ensureStore().data;
   if (!d.enabled || !d.accountId || !d.key) return { ok: false, message: 'Sync is off.' };
-  if (syncing) { pending = true; return { ok: true }; } // coalesce concurrent triggers
+  if (syncing) { // coalesce concurrent triggers
+    pendingNames = pendingNames === undefined ? names : unionNames(pendingNames, names);
+    return { ok: true };
+  }
   syncing = true;
   const accountId = d.accountId;            // snapshot so a mid-flight disable can't redirect writes
   const key = Buffer.from(d.key, 'base64');
   let firstError = null;
   try {
     for (const desc of STORES) {
+      if (names && !names.includes(desc.name)) continue;
       if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
       try { await syncOne(accountId, key, desc); }
       catch (err) { firstError ??= err; }
@@ -155,13 +200,54 @@ async function syncNow() {
     if (firstError) s.lastError = describe(firstError);
     else { s.lastError = null; s.lastSyncedAt = Date.now(); }
   });
-  if (pending) { pending = false; return syncNow(); }
+  if (pendingNames !== undefined) {
+    const next = pendingNames;
+    pendingNames = undefined;
+    return syncNow(next);
+  }
   return firstError ? { ok: false, message: describe(firstError) } : { ok: true };
 }
 
 function schedule(delay = 4000) {
   clearTimeout(timer);
   timer = setTimeout(() => { syncNow().catch(() => {}); }, delay);
+}
+
+/** Tab churn gets its OWN trailing timer (spec §6): schedule() clears the
+ * shared one on every call, so routing 15s tab debounces through it would
+ * keep postponing a pending 4s favorites/settings sync. Session-only. */
+function scheduleTabs(delay = 15000) {
+  clearTimeout(tabTimer);
+  tabTimer = setTimeout(() => { syncNow(['session']).catch(() => {}); }, delay);
+}
+
+/** The per-device "share this device's open tabs" consent (spec §3). Turning
+ * it off publishes a retraction on the prompt sync below. */
+function setSyncTabs(on) {
+  ensureStore().update((d) => { d.syncTabs = !!on; });
+  if (ensureStore().data.enabled) scheduleTabs(1000);
+  return status();
+}
+
+let lastSessionRefresh = 0;
+/** Freshness pull on window focus / panel open (spec §6), throttled to one
+ * per minute. Session-only: keeps it off the other blobs and inside the
+ * worker's per-account GET limit. Errors stay silent — this is a background
+ * freshness path, not a user-initiated sync. */
+function refreshSession() {
+  const d = ensureStore().data;
+  if (!d.enabled) return;
+  const now = Date.now();
+  if (now - lastSessionRefresh < 60_000) return;
+  lastSessionRefresh = now;
+  syncNow(['session']).catch(() => {});
+}
+
+/** Other devices' tabs for the UI ([] whenever sync is off). */
+function listRemoteDevices() {
+  const d = ensureStore().data;
+  if (!d.enabled) return [];
+  return tabsync.getRemoteDevices(tabSyncContext());
 }
 
 function init() {
@@ -173,6 +259,19 @@ function init() {
   const onLocalChange = () => { if (ensureStore().data.enabled && !applyingRemote) schedule(); };
   settings.onSettingsChanged(onLocalChange);
   bookmarks.onChanged(onLocalChange);
+  // Tab-driven publishes: fingerprint-gated upstream (tabsync.noteTabsChanged),
+  // debounced 15s here, and only while this device actually shares its tabs.
+  tabsync.onChanged(() => {
+    const d = ensureStore().data;
+    if (d.enabled && d.syncTabs) scheduleTabs();
+  });
+  // Heartbeat (spec §6): hourly check; republishes once our entry is 24h old
+  // so a long-running device with stable tabs never ages past the 30-day
+  // prune on other devices.
+  setInterval(() => {
+    const d = ensureStore().data;
+    if (d.enabled && d.syncTabs && tabsync.heartbeatDue(tabSyncContext())) scheduleTabs(5000);
+  }, 60 * 60 * 1000);
 }
 
-module.exports = { init, enable, disable, syncNow, status };
+module.exports = { init, enable, disable, syncNow, status, setSyncTabs, refreshSession, listRemoteDevices };
