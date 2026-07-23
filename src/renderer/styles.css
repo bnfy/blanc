@@ -801,6 +801,27 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
   flex: 0 0 auto;
 }
 
+/* Default-engine autocomplete rows use a magnifier instead of pretending to
+   have a page favicon. */
+.row-search-icon {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+.row-search-icon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 /* "private" tag on private tabs in the switcher list */
 .island-row .row-private {
   font-family: var(--font-mono);

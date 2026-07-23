@@ -16,6 +16,7 @@
   // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');
   const searchEngine = document.getElementById('searchEngine');
+  const searchSuggestions = document.getElementById('searchSuggestions');
   const adblockEnabled = document.getElementById('adblockEnabled');
 
   for (const [key, label] of Object.entries(searchEngines)) {
@@ -26,12 +27,15 @@
   }
   theme.value = settings.theme ?? 'system';
   searchEngine.value = settings.searchEngine;
+  searchSuggestions.checked = settings.searchSuggestions ?? true;
   adblockEnabled.checked = settings.adblockEnabled;
 
   theme.addEventListener('change', () =>
     window.bowserPages.settings.set({ theme: theme.value }));
   searchEngine.addEventListener('change', () =>
     window.bowserPages.settings.set({ searchEngine: searchEngine.value }));
+  searchSuggestions.addEventListener('change', () =>
+    window.bowserPages.settings.set({ searchSuggestions: searchSuggestions.checked }));
   adblockEnabled.addEventListener('change', () =>
     window.bowserPages.settings.set({ adblockEnabled: adblockEnabled.checked }));
 

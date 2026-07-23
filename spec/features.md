@@ -97,6 +97,14 @@ toolbar (Bowser Design System "Island Chrome").
   the selected engine.
 - **Search engines:** `duckduckgo` (default), `google`, `bing`, `brave`. → substrate
   (engine table).
+- Search-like input blends the local Quick Switcher with best-effort autocomplete
+  from the selected engine. Engine completions never claim bare Enter: the existing
+  confident-local-match rule still applies, otherwise the exact typed query remains
+  the search target. A completion only wins after explicit pointer/arrow selection.
+  URL-like text, slash commands, sensitive-looking or pasted values, and input
+  typed in private tabs are never sent for autocomplete. The device-local
+  `searchSuggestions` setting (default `true`) lets the user turn provider
+  requests off entirely; provider failure falls back to local results + Enter.
 - **OS hand-off** (`handOffToOs`) is checked *before* normalization for bare
   `mailto:` / `tel:` / `facetime:` / `sms:` URIs and page-initiated navigations to
   them — handed to the OS instead of treated as a query (D4).
@@ -218,6 +226,7 @@ From the desktop `DEFAULTS`:
 | Key | Default | Values / rule |
 |-----|---------|---------------|
 | `searchEngine` | `duckduckgo` | one of duckduckgo/google/bing/brave |
+| `searchSuggestions` | `true` | boolean; device-local, never synced, private tabs override off |
 | `adblockEnabled` | `true` | boolean |
 | `homePage` | `""` | empty = `blanc://newtab`; else a URL |
 | `theme` | `system` | system/light/dark |

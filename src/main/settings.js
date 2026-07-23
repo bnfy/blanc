@@ -16,8 +16,9 @@ const WEBRTC_POLICIES = ['standard', 'strict'];
 const SECURE_DNS_OPTIONS = ['auto', 'off', 'cloudflare', 'quad9', 'mullvad', 'custom'];
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
-// excludes appIcon (device-local), usagePing (per-install consent), and
-// supporter (never — that would be license sharing).
+// excludes appIcon and searchSuggestions (device-local), usagePing
+// (per-install consent), and supporter (never — that would be license
+// sharing).
 const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions'];
 
 // Dock icon colorways — id maps to src/renderer/pages/icon-<id>.png; order
@@ -64,6 +65,9 @@ function normalizeAdblockHostname(value) {
 
 const DEFAULTS = {
   searchEngine: 'duckduckgo',
+  // Live address-bar prefixes are sent to the selected search provider.
+  // Device-local and user-disableable; private tabs override it off.
+  searchSuggestions: true,
   adblockEnabled: true,
   // Empty string = the built-in blanc://newtab page.
   homePage: '',
@@ -101,6 +105,9 @@ function ensureStore() {
 // must never reach a renderer or applyAppIcon() as if it were still valid.
 function getSettings() {
   const data = { ...ensureStore().data };
+  if (typeof data.searchSuggestions !== 'boolean') {
+    data.searchSuggestions = DEFAULTS.searchSuggestions;
+  }
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
   // Read coercion for a corrupted stored state (hand-edited settings.json): custom
   // without a valid template reads back as the default, never as plaintext-capable
@@ -120,6 +127,9 @@ function sanitize(partial) {
   const clean = {};
   if (typeof partial.searchEngine === 'string' && SEARCH_ENGINES[partial.searchEngine]) {
     clean.searchEngine = partial.searchEngine;
+  }
+  if (typeof partial.searchSuggestions === 'boolean') {
+    clean.searchSuggestions = partial.searchSuggestions;
   }
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
@@ -189,8 +199,9 @@ function setSupporter(record) {
 }
 
 // Snapshot the synced keys plus their per-key timestamps for the sync engine
-// to encrypt. Only SYNCED_KEYS cross the wire — supporter, appIcon, usagePing
-// and _syncMeta's non-synced entries never leave.
+// to encrypt. Only SYNCED_KEYS cross the wire — supporter, appIcon,
+// searchSuggestions, usagePing, and _syncMeta's non-synced entries never
+// leave.
 function exportForSync() {
   const d = ensureStore().data;
   const values = {}, meta = {};

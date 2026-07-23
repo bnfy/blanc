@@ -17,7 +17,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F2 | Tabs (create/close/switch/reopen/duplicate/pin/mute) | SHIPPED | PARTIAL | PLANNED | Same lifecycle + same reopen-closed and pin/mute semantics. Pins remain in their current group and lead it; ungrouped pins use a standalone shelf. Plain new tab is always ungrouped. | D8 |
 | F3 | Tab groups | SHIPPED | PLANNED | PLANNED | Names not colors (lowercase mono). Group exists only while non-empty. Pill renders only the active group, including its pins. Same create/move/ungroup/close-group actions. | — |
 | F4 | Private tabs | SHIPPED | PLANNED | PLANNED | Never in history/session/reopen; inherited by child tabs; isolated non-persistent web session; private theme + quick-exit chip. | — |
-| F5 | Address input & search | SHIPPED | PARTIAL | PLANNED | Same normalization heuristic + engine choice (DuckDuckGo/Google/Bing/Brave). OS hand-off for `mailto:`/`tel:`/etc. | D4 |
+| F5 | Address input & search | SHIPPED | PARTIAL | PLANNED | Same normalization heuristic + engine choice (DuckDuckGo/Google/Bing/Brave). Best-effort autocomplete follows the current default; opt-out, private tabs, pasted/dropped text, local paths, URL-like input, and credential-like prefixes stay local. OS hand-off for `mailto:`/`tel:`/etc. | D4 |
 | F6 | Command palette & Quick Switcher | SHIPPED | PARTIAL | PLANNED | ⌘L-equivalent summons it; loose/in-order match across tabs, favorites, history, group names; groups ranked above tabs. | D7 |
 | F7 | Slash commands | SHIPPED | PARTIAL | PLANNED | The full command set (see F7 in features.md) with identical names + hints. | D7 |
 | F8 | Find in page | SHIPPED | PLANNED | PLANNED | Capsule over content, match nav, page stays interactive. | — |
@@ -26,7 +26,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F11 | Downloads | SHIPPED | PLANNED | PLANNED | Downloads list UI + progress, capped 200. | D3 |
 | F12 | Ad/tracker blocking | SHIPPED | PARTIAL | PLANNED | Ads/trackers blocked by default; per-tab shield count; per-site allow; global toggle. Filter data shared. | D1, D2, D13, D14 |
 | F13 | Permissions | SHIPPED | PLANNED | PLANNED | Explicit per-permission prompts with the same policy/copy. | — |
-| F14 | Settings | SHIPPED | PARTIAL | PLANNED | Same keys, defaults, validation (search engine, adblock, home page, theme, app icon, exceptions, usage ping, supporter). | D5, D6 |
+| F14 | Settings | SHIPPED | PARTIAL | PLANNED | Same keys, defaults, and validation (search engine, device-local `searchSuggestions`, adblock, home page, theme, app icon, exceptions, usage ping, supporter). | D5, D6 |
 | F15 | Theming | SHIPPED | SHIPPED | PLANNED | system/light/dark + private scope; propagates to chrome, internal pages, web content live, no restart. | — |
 | F16 | Internal `blanc://` pages | SHIPPED | PARTIAL | PLANNED | newtab ledger, favorites, history, downloads, settings, shortcuts, error, auth — same content/copy; utility pages present as a transient chrome surface (desktop: sheet), never tabs. | — |
 | F17 | Supporter & app icons | SHIPPED | PLANNED | PLANNED | 8 free + 3 supporter colorways; supporter unlock is trusted-forever, offline-OK, cosmetic-only. | D5, D6 |

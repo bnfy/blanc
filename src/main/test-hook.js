@@ -36,10 +36,17 @@ function install(refs) {
     openFindBar,
     getOverlayMode,
     showOverlay,
+    hideOverlay,
     showUtilityPage,
     hideUtilitySheet,
     getUtilitySheetState,
     getUtilitySheetWebContents,
+    getOverlayWebContents,
+    setTestSearchSuggestionFixture,
+    clearTestSearchSuggestionFixture,
+    getTestSearchSuggestionRequests,
+    setTestSearchNavigationCapture,
+    getTestSearchSubmission,
     getPrivateBrowsingSession,
     attemptChromeNavigation,
     getChromeUrl,
@@ -145,6 +152,9 @@ function install(refs) {
     adblockEnabled() { return settings.getSettings().adblockEnabled; },
     setSearchEngine(x) { settings.setSettings({ searchEngine: x }); },
     searchEngine() { return settings.getSettings().searchEngine; },
+    setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
+    searchSuggestions() { return settings.getSettings().searchSuggestions; },
+    settingsSyncValues() { return settings.exportForSync().values; },
     setAppIcon(x) { settings.setSettings({ appIcon: x }); },
     appIcon() { return settings.getSettings().appIcon; },
     secureDns() { return settings.getSettings().secureDns; },
@@ -167,7 +177,68 @@ function install(refs) {
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openFind() { openFindBar(); },
     openPalette() { showOverlay('palette'); },
+    closeOverlay() { hideOverlay({ refocusContent: false }); },
     overlayMode() { return getOverlayMode(); },
+    setSearchSuggestionFixture(suggestions) {
+      setTestSearchSuggestionFixture(suggestions);
+    },
+    searchSuggestionRequests() {
+      return getTestSearchSuggestionRequests();
+    },
+    captureSearchNavigation(enabled) {
+      setTestSearchNavigationCapture(enabled);
+    },
+    capturedSearchSubmission() {
+      return getTestSearchSubmission();
+    },
+    async editAddressInput(value, inputType = 'insertText') {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      return wc.executeJavaScript(`(() => {
+        const input = document.getElementById('addressInput');
+        if (!input) return false;
+        input.value = ${JSON.stringify(String(value))};
+        input.dispatchEvent(new InputEvent('input', {
+          bubbles: true,
+          inputType: ${JSON.stringify(String(inputType))},
+          data: null
+        }));
+        return true;
+      })()`);
+    },
+    async pressAddressKey(key, modifiers = {}) {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      const init = {
+        key: String(key),
+        bubbles: true,
+        altKey: !!modifiers.altKey,
+        ctrlKey: !!modifiers.ctrlKey,
+        metaKey: !!modifiers.metaKey,
+        shiftKey: !!modifiers.shiftKey,
+      };
+      return wc.executeJavaScript(`(() => {
+        const input = document.getElementById('addressInput');
+        if (!input) return false;
+        input.dispatchEvent(new KeyboardEvent('keydown', ${JSON.stringify(init)}));
+        return true;
+      })()`);
+    },
+    async addressResultRows() {
+      const wc = getOverlayWebContents();
+      if (!wc) return [];
+      return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-row')].map((row) => ({
+        title: row.querySelector('.row-title')?.textContent ?? '',
+        tag: row.querySelector('.row-tag')?.textContent ?? '',
+        active: row.classList.contains('active'),
+        enter: !!row.querySelector('.row-enter')
+      }))`);
+    },
+    async overlayRendererMode() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript('document.body.dataset.mode || null');
+    },
     utilitySurface() { return getUtilitySheetState(); },
     openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
 
@@ -212,6 +283,7 @@ function install(refs) {
     // ---- isolation between scenarios ----
     reset() {
       // No scenario inherits another's open surface.
+      hideOverlay({ refocusContent: false });
       hideUtilitySheet();
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());
@@ -222,6 +294,7 @@ function install(refs) {
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',
+        searchSuggestions: true,
         adblockEnabled: true,
         homePage: '',
         theme: 'system',
@@ -229,6 +302,8 @@ function install(refs) {
         adblockExceptions: [],
       });
       settings.setSupporter(null);
+      clearTestSearchSuggestionFixture();
+      setTestSearchNavigationCapture(false);
     },
   };
 }

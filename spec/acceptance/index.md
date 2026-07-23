@@ -9,7 +9,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 > Desktop is the shipped reference, so its `@all` cells are ✅ (behaviour verified
 > in the shipping app; automated step-defs are a separate track). iOS/Android are
-> greenfield → ⬜. Scenario count: **53** across 13 `.feature` files.
+> greenfield → ⬜. The grid below tracks stable scenario IDs across 13 `.feature`
+> files.
 
 ## Files
 
@@ -51,6 +52,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F5-1 | Domain navigates | — | ✅ | ⬜ | ⬜ |
 | F5-2 | Query searches (4 engines) | — | ✅ | ⬜ | ⬜ |
 | F5-3 | `mailto:` hands off to OS | D4 | ✅ | ⬜ | ⬜ |
+| F5-4 | Autocomplete follows the current default engine | — | ✅ | ⬜ | ⬜ |
+| F5-5 | Autocomplete privacy gates keep text local | — | ✅ | ⬜ | ⬜ |
 | F6-1 | Quick Switcher matches tabs + favorites | — | ✅ | ⬜ | ⬜ |
 | F6-2 | Quick Switcher matches + focuses group | — | ✅ | ⬜ | ⬜ |
 | F7-1 | Slash prefix filters commands | — | ✅ | ⬜ | ⬜ |
@@ -69,6 +72,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F14-1 | Invalid search engine rejected | — | ✅ | ⬜ | ⬜ |
 | F14-2 | Unlicensed supporter icon → default | D5 | ✅ | ⬜ | ⬜ |
 | F14-3 | Exception hostnames normalized | — | ✅ | ⬜ | ⬜ |
+| F14-4 | Search-suggestion opt-out stays device-local | — | ✅ | ⬜ | ⬜ |
 | F15-1 | Dark recolors chrome + page live | — | ✅ | ⬜ | ⬜ |
 | F15-2 | Private theme scope | — | ✅ | ⬜ | ⬜ |
 | F16-1 | Newtab ledger contents | — | ✅ | ⬜ | ⬜ |

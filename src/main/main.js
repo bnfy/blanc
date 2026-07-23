@@ -34,11 +34,15 @@ const { setupWebAuthn } = require('./webauthn');
 const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
 const { applyDockAppIcon } = require('./app-icon');
+const { createSearchSuggestionService } = require('./search-suggestions');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 // The query flag tells the newtab page to show private copy + theme.
 const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
+// Exact, unpackaged-only gate for the Electron acceptance harness. A stray
+// BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
+const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
 
 // Dev runs (`npm start`) get their own userData so a dev instance never
 // shares — and corrupts — the installed app's profile: two Chromium
@@ -429,6 +433,36 @@ let activeTabId = null;
  * @type {{ id: string, name: string, collapsed: boolean }[]} */
 let groups = [];
 const tabsWantingAddressBarFocus = new Set();
+const searchSuggestionService = createSearchSuggestionService();
+// One live provider request per trusted chrome surface. A newer query aborts
+// the older one even before the renderer's generation guard discards it.
+const searchSuggestionRequests = new WeakMap();
+// Deterministic, network-free hooks for the Electron acceptance run. They are
+// reachable only through test-hook.js under acceptanceTestMode; production
+// builds always use the active tab's session.
+let testSearchSuggestionFixture = null;
+let testSearchSuggestionRequests = [];
+let testSearchNavigationCapture = false;
+let testSearchSubmission = null;
+
+function setTestSearchSuggestionFixture(suggestions) {
+  if (!acceptanceTestMode) return;
+  testSearchSuggestionFixture = Array.isArray(suggestions)
+    ? suggestions.filter((value) => typeof value === 'string')
+    : [];
+  testSearchSuggestionRequests = [];
+}
+
+function clearTestSearchSuggestionFixture() {
+  testSearchSuggestionFixture = null;
+  testSearchSuggestionRequests = [];
+}
+
+function setTestSearchNavigationCapture(enabled) {
+  if (!acceptanceTestMode) return;
+  testSearchNavigationCapture = !!enabled;
+  testSearchSubmission = null;
+}
 
 // Outstanding permission prompts awaiting the user's Allow/Block, keyed by
 // prompt id → the Promise resolver. Flushed if the window dies mid-prompt
@@ -513,6 +547,10 @@ function createOverlay() {
   // would leave a stale panel floating over the page. Find mode survives
   // blur deliberately — users click around the page between matches.
   overlayView.webContents.on('blur', () => {
+    // Playwright's Electron main-process evaluate calls steal focus from the
+    // guest view while the acceptance harness inspects it. Keep the real blur
+    // policy in production; tests dismiss explicitly between edit sessions.
+    if (acceptanceTestMode) return;
     if (!overlayMode || overlayMode === 'find') return;
     // A freshly attached blank tab's view can momentarily grab focus while
     // its address-focus reclaim is still pending — that's not a dismissal;
@@ -1740,6 +1778,30 @@ function registerIpcHandlers() {
     tabsWantingAddressBarFocus.delete(id);
     tab.view.webContents.loadURL(target);
   });
+  // Search completions are query text, not navigation targets: a suggestion
+  // such as "example.com" must search for that text instead of being
+  // reclassified as a bare domain by normalizeAddressInput().
+  chromeHandle('tabs:search', (_e, id, query, _requestedEngine) => {
+    const tab = tabs.get(id);
+    if (!tab || typeof query !== 'string' || !query.trim()) return;
+    // The renderer may still be showing completions returned by the previous
+    // default after Settings or Profile Sync changes it. Treat its provider id
+    // as display metadata only: submission always honors the current default.
+    const currentEngine = settings.getSettings().searchEngine;
+    const engine = settings.SEARCH_ENGINES[currentEngine]
+      ?? settings.SEARCH_ENGINES.duckduckgo;
+    const target = engine.url(query.trim());
+    tabsWantingAddressBarFocus.delete(id);
+    if (testSearchNavigationCapture) {
+      testSearchSubmission = {
+        engine: settings.SEARCH_ENGINES[currentEngine] ? currentEngine : 'duckduckgo',
+        query: query.trim(),
+        url: target,
+      };
+      return target;
+    }
+    return tab.view.webContents.loadURL(target);
+  });
   chromeHandle('tabs:back', (_e, id) => tabs.get(id)?.view.webContents.navigationHistory.goBack());
   chromeHandle('tabs:forward', (_e, id) => tabs.get(id)?.view.webContents.navigationHistory.goForward());
   chromeHandle('tabs:reload', (_e, id) => tabs.get(id)?.view.webContents.reload());
@@ -1783,6 +1845,69 @@ function registerIpcHandlers() {
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => sync.listRemoteDevices());
+  chromeHandle('chrome:search-suggestions', async (event, query) => {
+    const currentSettings = settings.getSettings();
+    const configuredEngine = currentSettings.searchEngine;
+    const engineId = settings.SEARCH_ENGINES[configuredEngine] ? configuredEngine : 'duckduckgo';
+    const engine = settings.SEARCH_ENGINES[engineId];
+    const response = { engine: engineId, label: engine.label, suggestions: [] };
+
+    searchSuggestionRequests.get(event.sender)?.abort();
+
+    // The opt-out, private tabs, and local document paths are hard stops at
+    // the trusted main-process boundary. Exact-query search still works; only
+    // live provider suggestions pause.
+    const tab = activeTabId ? tabs.get(activeTabId) : null;
+    const localDoc = typeof query === 'string' ? localDocumentUrl(query.trim()) : null;
+    if (!currentSettings.searchSuggestions || !tab || tab.private || localDoc) return response;
+
+    const controller = new AbortController();
+    searchSuggestionRequests.set(event.sender, controller);
+
+    try {
+      response.suggestions = await searchSuggestionService.get({
+        engine: engineId,
+        query,
+        locale: app.getLocale(),
+        fetchImpl: testSearchSuggestionFixture
+          ? async (url, options) => {
+            testSearchSuggestionRequests.push({
+              engine: engineId,
+              query: typeof query === 'string' ? query.trim() : '',
+              url,
+              credentials: options?.credentials ?? null,
+            });
+            return {
+              ok: true,
+              headers: { get: () => null },
+              text: async () => JSON.stringify([query, testSearchSuggestionFixture]),
+            };
+          }
+          : tab.view.webContents.session.fetch.bind(tab.view.webContents.session),
+        signal: controller.signal,
+      });
+      // A sync merge can change the default engine while this request is in
+      // flight. Never label old-provider completions as if they belong to the
+      // newly selected engine; the next keystroke will fetch the fresh set.
+      const latestSettings = settings.getSettings();
+      const latestConfiguredEngine = latestSettings.searchEngine;
+      const latestEngineId = settings.SEARCH_ENGINES[latestConfiguredEngine]
+        ? latestConfiguredEngine
+        : 'duckduckgo';
+      if (!latestSettings.searchSuggestions || latestEngineId !== engineId) {
+        return {
+          engine: latestEngineId,
+          label: settings.SEARCH_ENGINES[latestEngineId].label,
+          suggestions: [],
+        };
+      }
+      return response;
+    } finally {
+      if (searchSuggestionRequests.get(event.sender) === controller) {
+        searchSuggestionRequests.delete(event.sender);
+      }
+    }
+  });
   chromeHandle('chrome:history-clear', () => history.clearHistory());
   chromeHandle('chrome:adblock-toggle', () => {
     const next = !settings.getSettings().adblockEnabled;
@@ -2346,16 +2471,21 @@ app.whenReady().then(async () => {
   // the test-only main-process surface instead. Gate is airtight — only an
   // UNPACKAGED dev run with BLANC_TEST exactly "1"; never a packaged build, and
   // BLANC_TEST=0/false stays off.
-  const isAcceptanceTest = !app.isPackaged && process.env.BLANC_TEST === '1';
-  if (isAcceptanceTest) {
+  if (acceptanceTestMode) {
     require('./test-hook').install({
       tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, groupTabByName, reopenClosedTab, newTabUrl,
       normalizeAddressInput, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
-      getOverlayMode: () => overlayMode, showOverlay, getPrivateBrowsingSession,
+      getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
       getUtilitySheetWebContents: () => utilitySheetView?.webContents ?? null,
+      getOverlayWebContents: () => overlayView?.webContents ?? null,
+      setTestSearchSuggestionFixture,
+      clearTestSearchSuggestionFixture,
+      getTestSearchSuggestionRequests: () => structuredClone(testSearchSuggestionRequests),
+      setTestSearchNavigationCapture,
+      getTestSearchSubmission: () => structuredClone(testSearchSubmission),
       attemptChromeNavigation: (url) => win?.webContents.executeJavaScript(
         `location.href = ${JSON.stringify(String(url))}`
       ),

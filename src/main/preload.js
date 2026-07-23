@@ -7,6 +7,7 @@ contextBridge.exposeInMainWorld('browserAPI', {
   closeTab: (id) => ipcRenderer.invoke('tabs:close', id),
   switchTab: (id) => ipcRenderer.invoke('tabs:switch', id),
   navigate: (id, url) => ipcRenderer.invoke('tabs:navigate', id, url),
+  search: (id, query, engine) => ipcRenderer.invoke('tabs:search', id, query, engine),
   goBack: (id) => ipcRenderer.invoke('tabs:back', id),
   goForward: (id) => ipcRenderer.invoke('tabs:forward', id),
   reload: (id) => ipcRenderer.invoke('tabs:reload', id),
@@ -43,6 +44,7 @@ contextBridge.exposeInMainWorld('browserAPI', {
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
+  searchSuggestions: (query) => ipcRenderer.invoke('chrome:search-suggestions', query),
   onRemoteTabsUpdated: (callback) => {
     const listener = (_event, devices) => callback(devices);
     ipcRenderer.on('chrome:remote-tabs-updated', listener);

@@ -94,6 +94,7 @@ When('I add all open tabs to favorites', async function () {
 });
 
 When('I attempt to set the search engine to {string}', async function (x) { await this.call('setSearchEngine', x); });
+When('I turn search suggestions off', async function () { await this.call('setSearchSuggestions', false); });
 When('settings contain the app icon {string}', async function (x) { await this.call('setAppIcon', x); });
 When('I add {string} to the ad-block exceptions', async function (h) { await this.call('addException', h); });
 
@@ -223,6 +224,15 @@ Then('ad\\/tracker blocking is disabled', async function () {
 
 Then('the search engine remains unchanged', async function () {
   assert.strictEqual(await this.call('searchEngine'), 'duckduckgo');
+});
+
+Then('search suggestions are disabled', async function () {
+  assert.strictEqual(await this.call('searchSuggestions'), false);
+});
+
+Then('the search-suggestions preference remains device-local', async function () {
+  const values = await this.call('settingsSyncValues');
+  assert.ok(!Object.hasOwn(values, 'searchSuggestions'));
 });
 
 Then('the effective app icon is {string}', async function (x) {
