@@ -4,7 +4,7 @@ compatibility_date = "2026-07-01"
 
 # Created by `wrangler kv namespace create SUBSCRIBERS` — paste the returned id below.
 kv_namespaces = [
-  { binding = "SUBSCRIBERS", id = "" }
+  { binding = "SUBSCRIBERS", id = "17fe04a02a7a4418b9097e0dd6ede5b9" }
 ]
 
 # ADMIN_TOKEN is a secret, not a var — it lives in 1Password (vault Dev, item
