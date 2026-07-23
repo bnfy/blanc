@@ -794,6 +794,9 @@ body.sheet .page h1:focus { outline: none; }
      its max-content width (~900px) inside the narrow card. */
   body.sheet .settings-shell { flex-direction: column; align-items: stretch; gap: 16px; }
   body.sheet .settings-nav { position: static; flex: none; flex-direction: row; flex-wrap: wrap; }
+  /* High zoom (level 3 ≈ 173%) squeezes even the top nav past the card
+     width — wrap it rather than letting the links + ✕ escape the card. */
+  body.sheet .page-nav { flex-wrap: wrap; row-gap: 6px; }
   body.sheet .settings-content { width: 100%; max-width: 100%; min-width: 0; }
   body.sheet .setting { flex-wrap: wrap; }
   /* Toolbar rows (sync form, defaults bar) hold fixed-width controls too. */

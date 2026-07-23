@@ -35,6 +35,19 @@ Feature: Internal blanc:// pages
     Then exactly one new tab opens on "kept.example"
     And the utility sheet is dismissed
 
+  @F16-6 @F16 @all
+  Scenario: Untrusted web content cannot summon the utility sheet
+    When untrusted web content navigates itself to the settings page
+    Then the utility sheet remains closed
+    When untrusted web content window-opens the settings page
+    Then the utility sheet remains closed
+
+  @F16-7 @F16 @desktop
+  Scenario: Re-invoking the shown utility page toggles it closed regardless of URL spelling
+    Given the settings page is open in the utility sheet via a typed address
+    When the settings page is invoked again by the menu
+    Then the utility sheet is dismissed
+
   @F16-3 @F16 @desktop
   Scenario: Privileged browser chrome cannot navigate to web content
     When browser chrome attempts to navigate to "https://example.com"

@@ -323,3 +323,40 @@ Then('exactly one new tab opens on {string}', async function (host) {
 Then('the utility sheet is dismissed', async function () {
   await untilSurface(this, (s) => !s.visible, 'sheet to dismiss');
 });
+
+// F16-6: the P1 regression class this guards — utility routing running
+// BEFORE the web→blanc denial in a navigation handler — is an ordering
+// bug, so the coverage must drive the real handlers with real web content.
+const HOSTILE_NAVIGATE = 'data:text/html,<script>location.href="blanc://settings/"</script>';
+const HOSTILE_WINDOW_OPEN = 'data:text/html,<script>window.open("blanc://settings/")</script>';
+
+/** Negative assertions can't poll for success — give a mis-routed summon a
+ * bounded window to land before declaring the sheet stayed closed. */
+const settle = (ms) => new Promise((r) => setTimeout(r, ms));
+
+When('untrusted web content navigates itself to the settings page', async function () {
+  await this.call('openTab', HOSTILE_NAVIGATE);
+  await settle(700);
+});
+
+When('untrusted web content window-opens the settings page', async function () {
+  await this.call('openTab', HOSTILE_WINDOW_OPEN);
+  await settle(700);
+});
+
+Then('the utility sheet remains closed', async function () {
+  const surf = await this.call('utilitySurface');
+  assert.strictEqual(surf.visible, false,
+    `web content summoned the sheet: ${JSON.stringify(surf)}`);
+});
+
+// F16-7: toggle must compare page identity, not URL spelling — typed
+// addresses arrive without the trailing slash the menu items carry.
+Given('the settings page is open in the utility sheet via a typed address', async function () {
+  await this.call('openTab', 'blanc://settings'); // typed spelling, no trailing slash
+  await untilSurface(this, (s) => s.visible, 'settings sheet (typed spelling)');
+});
+
+When('the settings page is invoked again by the menu', async function () {
+  await this.call('openTab', 'blanc://settings/'); // canonical menu spelling
+});
