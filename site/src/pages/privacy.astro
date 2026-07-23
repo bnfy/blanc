@@ -14,10 +14,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <main class="legal-doc">
   <p class="eyebrow">privacy</p>
   <h1>Privacy Policy</h1>
-  <p class="legal-updated">Last updated: July 22, 2026</p>
+  <p class="legal-updated">Last updated: July 23, 2026</p>
 
   <div class="legal-tldr">
-    <p><strong>The short version.</strong> Blanc is built to collect as little as possible. Your browsing history, downloads, and favorites stay on your device — we never receive them. The installed app sends one small usage ping you can switch off, and nothing else leaves your device unless you opt in. This website uses analytics only if you allow it.</p>
+    <p><strong>The short version.</strong> Blanc is built to collect as little as possible. Your browsing history, downloads, and favorites stay on your device — we never receive them. The installed app sends one small usage ping you can switch off, and nothing else leaves your device unless you opt in. This website uses analytics only if you allow it, and its newsletter only ever knows your email address if you choose to give it.</p>
   </div>
 
   <h2>Who this covers</h2>
@@ -89,6 +89,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   </ul>
   <p>We run no advertising networks and no cross-site trackers here, and we don't sell your data.</p>
 
+  <h3>Newsletter (optional)</h3>
+  <p>The site's footer has a small form where you can leave your email address to get Blanc's release notes by email. If you use it, here is everything that happens:</p>
+  <ul>
+    <li>We store <strong>your email address and the time you signed up — nothing else.</strong> No name, no IP address, and nothing about your visit is kept alongside it.</li>
+    <li>The list lives in our own storage (a Cloudflare Workers datastore we operate) — no newsletter service or marketing platform receives it.</li>
+    <li>We use it only to send occasional release notes. It's never shared, sold, or linked to any other data — including the app's usage ping.</li>
+    <li>Every email we send includes an unsubscribe path, and you can also just write to <a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a> — we'll delete your address promptly either way.</li>
+  </ul>
+
   <h2>Children</h2>
   <p>Blanc isn't directed at children under 13, and we don't knowingly collect personal information from them.</p>
 
@@ -100,6 +109,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <li>Reset your install ID with the "Reset install ID" button in Settings, or by clearing the app's data.</li>
     <li>Clear your history, downloads, and favorites from within Blanc.</li>
     <li>Allow or decline analytics on this site, and change your mind by clearing the site's stored choice in your browser.</li>
+    <li>Skip the newsletter entirely, or unsubscribe any time — your address is deleted, not just muted.</li>
   </ul>
   <p>If you're in the European Union, the United Kingdom, California, or a similar place, you have rights over your personal data, including the right to access or delete it. We don't sell personal data. Because we hold so little — a pseudonymous install ping and, only if you enable sync, encrypted data we can't read — there's usually very little to act on, but you're welcome to email us at <a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a> with any request.</p>
 

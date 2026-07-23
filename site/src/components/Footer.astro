@@ -1,13 +1,16 @@
 ---
+import NewsletterForm from './NewsletterForm.astro';
 const { variant = 'compact' } = Astro.props;
 ---
 {variant === 'compact' ? (
   <footer class="compact-footer">
+    <NewsletterForm />
     <span>built independently · no investors · © 2026 · <a href="https://bnfy.me" target="_blank" rel="noopener">Bananify</a></span>
     <span><a href="/features">Features</a> · <a href="/about">About</a> · <a href="/changelog">Changelog</a> · <a href="/download">Download</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span>
   </footer>
 ) : (
   <footer>
+    <NewsletterForm />
     <span class="foot-copy">built independently · no investors · © 2026 · <a href="https://bnfy.me" target="_blank" rel="noopener">Bananify</a></span>
     <span class="foot-links">
       <a href="/features">Features</a>
