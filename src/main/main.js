@@ -1793,11 +1793,19 @@ function registerIpcHandlers() {
       return null;
     }
   });
-  chromeHandle('chrome:cycle-theme', () => {
+  chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
     const current = settings.getSettings().theme;
-    const next = order[(order.indexOf(current) + 1) % order.length];
-    settings.setSettings({ theme: next });
+    const requested = typeof requestedTheme === 'string'
+      ? requestedTheme.trim().toLowerCase()
+      : '';
+    // Bare /theme keeps the original cycle behavior. An explicit argument is
+    // authoritative; invalid arguments are a no-op instead of unexpectedly
+    // advancing to some other appearance.
+    const next = requested
+      ? (order.includes(requested) ? requested : current)
+      : order[(order.indexOf(current) + 1) % order.length];
+    if (next !== current) settings.setSettings({ theme: next });
     return next;
   });
 
@@ -1949,7 +1957,7 @@ const SLASH_COMMANDS = [
   ['/find', 'Find in page'],
   ['/block-ads', 'Toggle ad & tracker blocking'],
   ['/allow-ads', 'Allow ads on this site'],
-  ['/theme', 'Cycle appearance (system → light → dark)'],
+  ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via

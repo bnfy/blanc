@@ -141,11 +141,11 @@ copy → substrate):
 | `/find` | Find in page |
 | `/block-ads` | Toggle ad & tracker blocking |
 | `/allow-ads` | Allow ads on this site |
-| `/theme` | Cycle appearance (system → light → dark) |
+| `/theme [system\|light\|dark]` | Cycle appearance, or switch directly to system, light, or dark |
 
 - Prefix filtering: typing `/gr` narrows to `/group`; typing `/` alone lists all.
-- **Acceptance:** Typing `/the` then Return cycles the theme; `/group work` moves
-  the active tab into `work`.
+- **Acceptance:** Typing `/the` then Return cycles the theme; `/theme dark`
+  selects dark directly; `/group work` moves the active tab into `work`.
 
 ## F8 — Find in page
 

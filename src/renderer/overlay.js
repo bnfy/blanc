@@ -496,7 +496,10 @@
     { cmd: '/find', hint: 'Find in page', run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: 'Toggle ad & tracker blocking', run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
-    { cmd: '/theme', hint: 'Cycle appearance (system → light → dark)', run: () => window.browserAPI.cycleTheme() },
+    { cmd: '/theme', hint: 'Cycle appearance, or choose system / light / dark', run: (input) => {
+      const requested = (input ?? '').replace(/^\/theme\s*/, '').trim();
+      window.browserAPI.cycleTheme(requested || null);
+    } },
   ];
 
   function runCommand(command) {
