@@ -754,11 +754,20 @@ body.sheet .page {
   width: 100%;
   max-width: 900px;
   max-height: 100%;
+  /* Put the top gutter inside the sticky nav instead of on this scrollport.
+     Sticky children stop at a scroll container's padding edge, which left
+     this gutter uncovered while settings cards passed underneath it. */
+  padding-top: 0;
   overflow-y: auto;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+}
+body.sheet .page-nav {
+  /* Preserves the original 32px breathing room while making the nav's opaque
+     box reach the top edge of the scrolling sheet. */
+  padding-top: 32px;
 }
 /* The programmatically-focused heading (sheet.js's initial-focus target,
    tabindex=-1) must not wear Chromium's default focus ring — it isn't
@@ -815,7 +824,8 @@ body.sheet .page h1:focus { outline: none; }
    break words as a last resort. */
 @media (max-width: 359px) {
   body.sheet { padding: 8px; }
-  body.sheet .page { padding: 16px 12px 24px; overflow-wrap: anywhere; }
+  body.sheet .page { padding: 0 12px 24px; overflow-wrap: anywhere; }
+  body.sheet .page-nav { padding-top: 16px; }
   body.sheet .setting .label { min-width: 0; }
   body.sheet .row .actions.bookmark-actions { min-width: 0; }
   body.sheet .folder-section .row .meta { min-width: 0; }
