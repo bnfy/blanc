@@ -126,11 +126,9 @@ if ! GENERATED="$(gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG
   exit 1
 fi
 {
-  echo "Blanc v$VERSION introduces Tab Sync: see your open tabs from your other devices. Turn on \"share this device's open tabs\" under Settings → Sync and each machine publishes a snapshot of its tabs — browse them from the ⌘L panel, the Quick Switcher, or the start page on any synced device, and open one locally with a click. It's a menu, not a mirror: nothing ever force-opens or closes a tab on another machine."
+  echo "Blanc v$VERSION clears the clutter out of the ⌘L command panel. Favorites, History, Downloads, Settings, and Shortcuts now open as a sheet that floats over the page you're on instead of taking up a tab — open one, glance or change what you need, and dismiss it with Esc or a click, leaving your tab strip for actual browsing. Anything you open from it, like a favorite or a history entry, still opens as a normal tab."
   echo
-  echo "Sharing is off by default and per-device, private tabs never leave the machine, and like the rest of Profile Sync the snapshots are end-to-end encrypted — the sync server only ever stores ciphertext it cannot read."
-  echo
-  echo "This release also updates Electron to 43.2.0 for the latest Chromium stable."
+  echo "The panel's tab list is quieter too: every row now shows just the site's icon and title at rest and reveals the address and controls when you hover or focus it, while long titles fade out softly instead of being cut off with an ellipsis. The tab you're currently on keeps its address in view, so you never lose track of where you are."
   echo
   printf '%s\n' "$GENERATED"
 } > "$NOTES_FILE"
