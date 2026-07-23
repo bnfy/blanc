@@ -1,5 +1,30 @@
 [
   {
+    "tag": "v0.22.0",
+    "version": "0.22.0",
+    "name": "0.22.0",
+    "publishedAt": "2026-07-23T23:38:47.000Z",
+    "humanDate": "July 23, 2026",
+    "machineDate": "2026-07-23",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v0.22.0",
+    "anchor": "v0-22-0",
+    "changes": [
+      {
+        "text": "Add newsletter signup with honeypot and KV storage",
+        "url": "https://github.com/bnfy/blanc/pull/46"
+      },
+      {
+        "text": "Sync tab favicons safely",
+        "url": "https://github.com/bnfy/blanc/pull/47"
+      }
+    ],
+    "compareUrl": "https://github.com/bnfy/blanc/compare/v0.21.0...v0.22.0",
+    "extraParagraphs": [
+      "Blanc v0.22.0 turns the Island into a full search surface. Start typing in ⌘L and Blanc now blends your open tabs, groups, Favorites, and history with live suggestions from the search engine you chose in Settings; arrow through the six-row list or press Enter to search exactly what you typed. Suggestions can be switched off, and private tabs, pasted text, addresses, local paths, and sensitive-looking input never leave the device for autocomplete.",
+      "Tabs synced from your other Blanc devices now carry their site icons too. The source device converts each favicon into a tiny inert PNG inside a separate end-to-end-encrypted sidecar, so another device never contacts a remote tab's site just to draw its row; strict budgets, cancellation, mixed-version compatibility, and graceful fallback keep this cosmetic layer from interfering with tab sync."
+    ]
+  },
+  {
     "tag": "v0.21.0",
     "version": "0.21.0",
     "name": "0.21.0",
