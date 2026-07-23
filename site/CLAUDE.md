@@ -43,6 +43,19 @@ freshness guard (release-time/manual — not in CI; needs `gh`). Never hand-edit
 longer seds any site file — the JSON-LD version and sitemap `lastmod` both
 resolve at build time, so the routine post-release redeploy picks them up.
 
+**Newsletter signup:** the footer form (`src/components/NewsletterForm.astro`,
+rendered by both `Footer.astro` variants, legal pages included — it's a form,
+not analytics) posts `{email, website}` to the `blanc-newsletter` Worker
+(`cloudflare/newsletter-worker/` in the repo root; deploy/export/unsubscribe
+runbook in its README). `website` is a honeypot; the Worker keeps a filled one
+off the list but quarantines the address (`hp:`, 30-day TTL, visible in the
+export) since autofill is the one way a human trips it — see the README.
+The endpoint constant lives in the component, so a Worker URL change
+means a site redeploy. The Worker stores only email + signup timestamp in KV;
+no double opt-in yet and unsubscribe is manual (token-gated DELETE) until a
+sending provider is chosen. The privacy page's "Newsletter (optional)" section
+describes exactly this contract — change them together or not at all.
+
 **Sitemap:** `src/pages/sitemap.xml.js` — an explicit route manifest with
 per-route `changefreq`/`priority`, asserted at build time against the real
 page list (adding/removing a page without updating the manifest fails the

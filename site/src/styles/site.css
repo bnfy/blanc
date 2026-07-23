@@ -396,7 +396,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .download-note + .download-details { margin-top: 128px; }
 .download-note > p:not(.section-kicker) a { color: inherit; border-bottom: 1px solid var(--border); padding-bottom: 1px; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
 .download-note > p:not(.section-kicker) a:hover { color: var(--accent); border-color: var(--accent); }
-.compact-footer { display: flex; flex-direction: row; justify-content: space-between; gap: 14px 30px; padding: 22px max(24px, calc((100vw - 1132px) / 2)); border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); opacity: 0.8; }
+.compact-footer { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 14px 30px; padding: 22px max(24px, calc((100vw - 1132px) / 2)); border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); opacity: 0.8; }
 .compact-footer b { color: var(--accent); font-weight: 400; }
 
 /* ---------- changelog ---------- */
@@ -525,6 +525,20 @@ footer .foot-ic svg { width: 14px; height: 14px; display: block; fill: currentCo
    in visual weight without turning bold. */
 footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-linejoin: round; stroke-linecap: round; }
 
+/* Footer newsletter signup (both footer variants) — posts to the
+   blanc-newsletter Worker; see site/src/components/NewsletterForm.astro. */
+.foot-news { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 10px; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+.compact-footer .foot-news { flex-basis: 100%; justify-content: flex-start; }
+.foot-news-controls { display: inline-flex; align-items: center; gap: 8px; }
+.foot-news [hidden] { display: none; }
+.foot-news input[type="email"] { width: 200px; padding: 6px 10px; font-family: var(--font-mono); font-size: 12px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color 0.15s, background 0.15s; }
+.foot-news input[type="email"]::placeholder { color: var(--text-dim); }
+.foot-news input[type="email"]:focus { outline: none; border-color: var(--accent); background: var(--bg); }
+.foot-news button { font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer; }
+.foot-news button:disabled { opacity: 0.6; cursor: default; }
+.foot-news-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
+.foot-news-status:empty { display: none; }
+
 @media (max-width: 480px) {
   html { scroll-padding-top: 64px; }
   footer { padding: 20px 16px; }
@@ -582,6 +596,7 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
   .download-details { grid-template-columns: 1fr; gap: 36px; padding-bottom: 72px; }
   .download-footnote { grid-template-columns: 1fr; gap: 14px; }
   .compact-footer { flex-direction: column; padding: 20px 18px; text-align: center; }
+  .compact-footer .foot-news { justify-content: center; }
   .feature-page { padding: 0 18px 72px; }
   .breadcrumb { padding-top: 24px; }
   .feature-hero--hub { padding: 78px 0 58px; }
