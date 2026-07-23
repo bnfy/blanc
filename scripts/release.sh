@@ -126,9 +126,9 @@ if ! GENERATED="$(gh api "repos/$REPO/releases/generate-notes" -f tag_name="$TAG
   exit 1
 fi
 {
-  echo "Blanc v$VERSION clears the clutter out of the ⌘L command panel. Favorites, History, Downloads, Settings, and Shortcuts now open as a sheet that floats over the page you're on instead of taking up a tab — open one, glance or change what you need, and dismiss it with Esc or a click, leaving your tab strip for actual browsing. Anything you open from it, like a favorite or a history entry, still opens as a normal tab."
+  echo "Blanc v$VERSION turns the Island into a full search surface. Start typing in ⌘L and Blanc now blends your open tabs, groups, Favorites, and history with live suggestions from the search engine you chose in Settings; arrow through the six-row list or press Enter to search exactly what you typed. Suggestions can be switched off, and private tabs, pasted text, addresses, local paths, and sensitive-looking input never leave the device for autocomplete."
   echo
-  echo "The panel's tab list is quieter too: every row now shows just the site's icon and title at rest and reveals the address and controls when you hover or focus it, while long titles fade out softly instead of being cut off with an ellipsis. The tab you're currently on keeps its address in view, so you never lose track of where you are."
+  echo "Tabs synced from your other Blanc devices now carry their site icons too. The source device converts each favicon into a tiny inert PNG inside a separate end-to-end-encrypted sidecar, so another device never contacts a remote tab's site just to draw its row; strict budgets, cancellation, mixed-version compatibility, and graceful fallback keep this cosmetic layer from interfering with tab sync."
   echo
   printf '%s\n' "$GENERATED"
 } > "$NOTES_FILE"
