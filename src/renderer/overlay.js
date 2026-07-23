@@ -436,7 +436,7 @@
     const row = document.createElement('div');
     row.className = 'island-row tab-row';
     const favicon = document.createElement('span');
-    setFavicon(favicon, null); // snapshots carry no favicon — default glyph
+    setFavicon(favicon, tab);
     const title = document.createElement('span');
     title.className = 'row-title';
     title.textContent = tab.title || tab.url;
@@ -630,7 +630,7 @@
     for (const device of remoteDevices) {
       for (const t of device.tabs) {
         const s = matchScore(query, matchableText(t.title, t.url));
-        if (s) results.push({ kind: 'remote', title: t.title || t.url, sub: `${hostOfUrl(t.url)} · ${device.name}`, url: t.url, score: s + 0.05 });
+        if (s) results.push({ kind: 'remote', title: t.title || t.url, sub: `${hostOfUrl(t.url)} · ${device.name}`, url: t.url, tab: t, score: s + 0.05 });
       }
     }
     for (const h of historyEntries) {

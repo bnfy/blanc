@@ -386,8 +386,10 @@ From the desktop `DEFAULTS`:
 - With Profile Sync enabled and the per-device **"share this device's open
   tabs"** toggle on (**off by default** — a device's tabs never upload without
   an explicit act on that device), each device publishes an E2EE snapshot of
-  its open tabs (url, title, group, pinned; http(s) only, bounded) under the
-  sync account. Other devices browse it **read-only** — ⌘L panel (folded
+  its open tabs (url, title, group, pinned; http(s) only, bounded) plus a
+  separately-budgeted E2EE sidecar of source-rasterized, bounded PNG favicons
+  under the sync account. Favicon source URLs never cross devices and remote
+  surfaces never load them. Other devices browse it **read-only** — ⌘L panel (folded
   per-device sections), Quick Switcher (ranked below local tabs and
   favorites), start page — and open individual tabs locally. Never a merged
   live session: nothing force-opens or closes remotely. Private tabs never

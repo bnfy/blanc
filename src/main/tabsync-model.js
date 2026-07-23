@@ -72,11 +72,15 @@ function winner(local, remote, isOwn) {
 /** Union by deviceId, last-writer-wins per entry on updatedAt with the
  * deterministic tie rule above (each device only ever rewrites its own
  * entry, so this is commutative and idempotent across peers — spec §5).
- * Remote entries are sanitized; both sides prune at 30 days. */
+ * Both cached and remote entries are sanitized; this also migrates away any
+ * unknown tab fields written by an experimental/newer client, keeping the
+ * deployed session shape stable across mixed-version accounts. Both sides
+ * prune at 30 days. */
 function mergeDevices(local, remote, { now, ownId }) {
   const out = {};
-  for (const [id, e] of Object.entries(local ?? {})) {
-    if (e && Number.isFinite(e.updatedAt)) out[id] = e;
+  for (const [id, raw] of Object.entries(local ?? {})) {
+    const e = sanitizeEntry(raw);
+    if (e) out[id] = e;
   }
   for (const [id, raw] of Object.entries(remote ?? {})) {
     const e = sanitizeEntry(raw);

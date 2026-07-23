@@ -17,6 +17,7 @@ const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
 const tabsync = require('./tabsync');
+const tabicons = require('./tabicons');
 const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
 const { promptForCredentials } = require('./auth-dialog');
@@ -814,6 +815,7 @@ async function upgradeFavicon(tab) {
       tab.favicon = best;
       if (tab.bookmarked) bookmarks.updateFavicon(tab.url, best);
       scheduleBroadcastTabs();
+      sync.captureTabIcon(tab).catch(() => {});
     }
   } catch {
     /* page gone mid-query — Chromium's default pick stands */
@@ -1120,10 +1122,19 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     tab.favicon = favicons[0] ?? null; // immediate, possibly low-res
     if (tab.bookmarked) bookmarks.updateFavicon(tab.url, tab.favicon);
     broadcastTabs();
+    sync.captureTabIcon(tab).catch(() => {});
     upgradeFavicon(tab); // async refinement to the sharpest declared icon
   });
   wc.on('did-start-loading', () => { tab.isLoading = true; broadcastTabs(); });
-  wc.on('did-stop-loading', () => { tab.isLoading = false; syncNavState(); broadcastTabs(); scheduleSampleTint(tab); });
+  wc.on('did-stop-loading', () => {
+    tab.isLoading = false;
+    syncNavState();
+    broadcastTabs();
+    scheduleSampleTint(tab);
+    // Same-origin navigations can retain their favicon without firing
+    // page-favicon-updated; associate the already-known icon with the new URL.
+    sync.captureTabIcon(tab).catch(() => {});
+  });
   wc.on('did-change-theme-color', (_e, color) => {
     // Chromium reports '#rrggbb' or null; validated because it feeds chrome CSS.
     tab.themeColor = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
@@ -1161,6 +1172,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     syncNavState();
     if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
+    if (isMainFrame) sync.captureTabIcon(tab).catch(() => {});
     // Deliberately no scheduleMenuRebuild() here — unlike did-navigate,
     // this fires on every hash change/pushState and can be sustained and
     // frequent on SPA-heavy sites (exactly the rebuild-storm case Task 1
@@ -2391,9 +2403,12 @@ app.whenReady().then(async () => {
     tabList: tabOrder.map((id) => tabs.get(id)).filter(Boolean),
     groups,
   }));
+  tabicons.setSnapshotProvider(() => ({
+    tabList: tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+  }));
   // A pull changed the cached device map: push the fresh list to the open
   // surfaces (overlay panel; any tab currently on the start page).
-  tabsync.onRemoteChanged(() => {
+  const pushRemoteDevices = () => {
     const devices = sync.listRemoteDevices();
     overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
     for (const tab of tabs.values()) {
@@ -2401,7 +2416,9 @@ app.whenReady().then(async () => {
         tab.view.webContents.send('pages:start:remote-tabs', devices);
       }
     }
-  });
+  };
+  tabsync.onRemoteChanged(pushRemoteDevices);
+  tabicons.onRemoteChanged(pushRemoteDevices);
   // Profile sync: sync-on-launch if configured, then follow local changes.
   // Runs after stores + setupPages so its triggers see a live app; failures
   // are swallowed and surfaced only in Settings (never block startup).

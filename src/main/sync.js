@@ -5,6 +5,7 @@ const { JsonStore } = require('./store');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const tabsync = require('./tabsync');
+const tabicons = require('./tabicons');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const { wipeDecision } = require('./sync-wipe');
 
@@ -47,9 +48,19 @@ const STORES = [
     // — including a remote blob that lost our unchanged entry — uploads.
     equals: (exported, remote) => tabsync.equalsRemote(exported, remote),
   },
+  {
+    // Optional sidecar: older deployed Workers return 404 on PUT, which the
+    // sync pipeline treats as a quiet no-op until the store is available.
+    // Keeping this separate preserves the mixed-version `session` schema.
+    name: 'icons',
+    optional: true,
+    export: (ctx) => tabicons.exportForSync(ctx),
+    merge: (remote, ctx) => tabicons.mergeFromSync(remote, ctx),
+    equals: (exported, remote) => tabicons.equalsRemote(exported, remote),
+  },
 ];
 
-let syncing = false, timer = null, tabTimer = null;
+let syncing = false, timer = null, sessionTimer = null, iconTimer = null;
 /** Coalesced re-run request while a sync is in flight: undefined = none,
  * null = all stores, array = just those names. */
 let pendingNames;
@@ -110,9 +121,11 @@ async function enable({ handle, passphrase }) {
   }
   const { accountId, key } = deriveKeys(h, p);
   syncGen += 1; // new identity — strand any in-flight run from the old one
+  tabicons.cancelCaptures();
   ensureStore().update((d) => {
     d.enabled = true; d.handle = h; d.accountId = accountId; d.key = key.toString('base64'); d.lastError = null;
   });
+  refreshTabIcons().catch(() => {});
   // Joining existing data, or starting fresh? A mistyped passphrase derives a
   // *different* accountId → 404 → a silent new account, so the UI warns when
   // nothing was found. null = couldn't tell (offline).
@@ -128,8 +141,10 @@ async function enable({ handle, passphrase }) {
 async function disable({ wipeRemote = false } = {}) {
   clearTimeout(timer);
   timer = null;
-  clearTimeout(tabTimer);
-  tabTimer = null;
+  clearTimeout(sessionTimer);
+  sessionTimer = null;
+  clearTimeout(iconTimer);
+  iconTimer = null;
   // Barrier (PR #41 re-review): a dispatched PUT can't be recalled, and a
   // stale check after its response can't undo the server mutation. So before
   // touching the server or the credentials: (1) block new passes, (2) strand
@@ -137,6 +152,7 @@ async function disable({ wipeRemote = false } = {}) {
   // network included. Only then is the DELETE (or the credential clear) safe.
   suspended = true;
   syncGen += 1;
+  tabicons.cancelCaptures();
   try {
     await passSettled;
     const d = ensureStore().data;
@@ -166,6 +182,7 @@ async function disable({ wipeRemote = false } = {}) {
     // (syncTabs and deviceId survive: consent and identity are per-device,
     // not per-account.)
     tabsync.onSyncDisabled();
+    tabicons.onSyncDisabled();
     return { ok: true, status: status() };
   } finally {
     suspended = false; // a failed wipe keeps sync enabled — future passes must run
@@ -212,6 +229,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     return syncOne(accountId, key, desc, run, attempt + 1); // re-pull-merge
   }
   if (putRes.status === 409) throw new SyncError('conflict');
+  if (desc.optional && putRes.status === 404) return;
   if (!putRes.ok) throw new SyncError(`http-${putRes.status}`);
 }
 
@@ -236,22 +254,27 @@ async function syncNow(names = null) {
     // credential/consent change mid-flight strands it at the next checkpoint.
     const gen = syncGen;
     const run = { ctx: tabSyncContext(), stale: () => gen !== syncGen };
-    let firstError = null, stranded = false;
+    let firstError = null, stranded = false, ranRequiredStore = false;
     try {
       for (const desc of STORES) {
         if (names && !names.includes(desc.name)) continue;
         if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
+        if (!desc.optional) ranRequiredStore = true;
         try { await syncOne(accountId, key, desc, run); }
         catch (err) {
           if (err instanceof SyncError && err.message === 'stale') { stranded = true; break; }
-          firstError ??= err;
+          // Cosmetic sidecars degrade to fallback UI; they must never make
+          // Favorites/settings/session sync report a failure.
+          if (!desc.optional) firstError ??= err;
         }
       }
     } finally { syncing = false; }
     // If sync was turned off mid-flight, don't stamp status onto a disabled store.
     if (!ensureStore().data.enabled) return { ok: false, message: 'Sync is off.' };
     // A stranded pass stamps nothing: its results belong to a dead generation.
-    if (!stranded) {
+    // Cosmetic-only passes must not erase a real required-store error or make
+    // lastSyncedAt imply that Favorites/settings/session were refreshed.
+    if (!stranded && ranRequiredStore) {
       ensureStore().update((s) => {
         if (firstError) s.lastError = describe(firstError);
         else { s.lastError = null; s.lastSyncedAt = Date.now(); }
@@ -272,42 +295,91 @@ function schedule(delay = 4000) {
   timer = setTimeout(() => { syncNow().catch(() => {}); }, delay);
 }
 
-/** Tab churn gets its OWN trailing timer (spec §6): schedule() clears the
- * shared one on every call, so routing 15s tab debounces through it would
- * keep postponing a pending 4s favorites/settings sync. Session-only. */
+/** Tab churn gets timers separate from both favorites/settings and cosmetic
+ * icon work. A page rotating favicons must never postpone the primary session
+ * snapshot (especially the prompt consent-change retraction/publication). */
+function scheduleSession(delay = 15000) {
+  clearTimeout(sessionTimer);
+  sessionTimer = setTimeout(() => { syncNow(['session']).catch(() => {}); }, delay);
+}
+
+function scheduleIcons(delay = 15000) {
+  clearTimeout(iconTimer);
+  iconTimer = setTimeout(() => { syncNow(['icons']).catch(() => {}); }, delay);
+}
+
 function scheduleTabs(delay = 15000) {
-  clearTimeout(tabTimer);
-  tabTimer = setTimeout(() => { syncNow(['session']).catch(() => {}); }, delay);
+  scheduleSession(delay);
+  scheduleIcons(delay);
 }
 
 /** The per-device "share this device's open tabs" consent (spec §3). Turning
  * it off publishes a retraction on the prompt sync below. */
 function setSyncTabs(on) {
   syncGen += 1; // consent changed — a stale in-flight export must not publish under the old setting
+  tabicons.cancelCaptures();
   ensureStore().update((d) => { d.syncTabs = !!on; });
   if (ensureStore().data.enabled) scheduleTabs(1000);
+  if (on) refreshTabIcons().catch(() => {});
   return status();
 }
 
 let lastSessionRefresh = 0;
 /** Freshness pull on window focus / panel open (spec §6), throttled to one
- * per minute. Session-only: keeps it off the other blobs and inside the
- * worker's per-account GET limit. Errors stay silent — this is a background
- * freshness path, not a user-initiated sync. */
+ * per minute. Session + icon-sidecar only: keeps it off favorites/settings
+ * and inside the worker's per-account GET limit. Errors stay silent — this
+ * is a background freshness path, not a user-initiated sync. */
 function refreshSession() {
   const d = ensureStore().data;
   if (!d.enabled) return;
   const now = Date.now();
   if (now - lastSessionRefresh < 60_000) return;
   lastSessionRefresh = now;
-  syncNow(['session']).catch(() => {});
+  syncNow(['session', 'icons']).catch(() => {});
 }
 
-/** Other devices' tabs for the UI ([] whenever sync is off). */
+/** A generation-bound capture run. Favicon rasterization is asynchronous,
+ * so credentials/consent must still match before its result enters a store. */
+function iconCaptureRun() {
+  const d = ensureStore().data;
+  if (!d.enabled || !d.syncTabs) return null;
+  const gen = syncGen;
+  const ctx = tabSyncContext();
+  return {
+    ctx,
+    isCurrent: () => {
+      const current = ensureStore().data;
+      return gen === syncGen &&
+        current.enabled &&
+        current.syncTabs &&
+        current.accountId === ctx.accountId &&
+        current.deviceId === ctx.deviceId;
+    },
+  };
+}
+
+function captureTabIcon(tab) {
+  const run = iconCaptureRun();
+  return run
+    ? tabicons.captureTab(tab, run.ctx, { isCurrent: run.isCurrent })
+    : Promise.resolve(false);
+}
+
+function refreshTabIcons() {
+  const run = iconCaptureRun();
+  return run
+    ? tabicons.refreshCurrent(run.ctx, { isCurrent: run.isCurrent })
+    : Promise.resolve(false);
+}
+
+/** Other devices' tabs for the UI ([] whenever sync is off). The sidecar is
+ * joined only for the trusted renderer projection; the session wire format
+ * remains unchanged. */
 function listRemoteDevices() {
   const d = ensureStore().data;
   if (!d.enabled) return [];
-  return tabsync.getRemoteDevices(tabSyncContext());
+  const ctx = tabSyncContext();
+  return tabicons.attachToRemoteDevices(tabsync.getRemoteDevices(ctx), ctx);
 }
 
 function init() {
@@ -325,13 +397,31 @@ function init() {
     const d = ensureStore().data;
     if (d.enabled && d.syncTabs) scheduleTabs();
   });
+  tabicons.onChanged(() => {
+    const d = ensureStore().data;
+    if (d.enabled && d.syncTabs) scheduleIcons();
+  });
+  refreshTabIcons().catch(() => {});
   // Heartbeat (spec §6): hourly check; republishes once our entry is 24h old
   // so a long-running device with stable tabs never ages past the 30-day
   // prune on other devices.
   setInterval(() => {
     const d = ensureStore().data;
-    if (d.enabled && d.syncTabs && tabsync.heartbeatDue(tabSyncContext())) scheduleTabs(5000);
+    if (!d.enabled || !d.syncTabs) return;
+    const ctx = tabSyncContext();
+    if (tabsync.heartbeatDue(ctx)) scheduleSession(5000);
+    if (tabicons.heartbeatDue(ctx)) scheduleIcons(5000);
   }, 60 * 60 * 1000);
 }
 
-module.exports = { init, enable, disable, syncNow, status, setSyncTabs, refreshSession, listRemoteDevices };
+module.exports = {
+  init,
+  enable,
+  disable,
+  syncNow,
+  status,
+  setSyncTabs,
+  refreshSession,
+  listRemoteDevices,
+  captureTabIcon,
+};
