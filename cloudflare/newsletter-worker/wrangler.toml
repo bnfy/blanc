@@ -7,10 +7,11 @@ kv_namespaces = [
   { binding = "SUBSCRIBERS", id = "" }
 ]
 
-# ADMIN_TOKEN is a secret, not a var — set it with:
-#   wrangler secret put ADMIN_TOKEN
-# It gates GET /subscribers (export) and DELETE /subscriber (removal). Without
-# it those endpoints refuse every request (fail closed); /subscribe still works.
+# ADMIN_TOKEN is a secret, not a var — it lives in 1Password (vault Dev, item
+# "Blanc Newsletter Admin") and is piped into `wrangler secret put ADMIN_TOKEN`
+# via `op read`; see README.md for the exact commands. It gates GET /subscribers
+# (export) and DELETE /subscriber (removal). Without it those endpoints refuse
+# every request (fail closed); /subscribe still works.
 
 # Workers Logs — keeps a searchable history of invocations/exceptions in the
 # dashboard, so a runtime 500 can be diagnosed after the fact instead of

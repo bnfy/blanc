@@ -45,16 +45,39 @@ list is never quarantined.
 
 ## Deploy
 
-Requires a Cloudflare account and `wrangler` (installed on demand via `npx`,
-no need to add it as a repo dependency).
+Requires `wrangler` (installed on demand via `npx`, no need to add it as a
+repo dependency) and the 1Password CLI — all credentialed commands run
+through `op`, per the house rule (see `scripts/release.sh` for the same
+pattern with notarization). Two 1Password items are involved, both in vault
+**Dev**:
+
+- **"Cloudflare API"** (`credential` field) — the Cloudflare API token
+  wrangler authenticates with, mapped to `CLOUDFLARE_API_TOKEN` by
+  `cloudflare/.env.1password` (shared by the workers; adjust that one file
+  if the item lives elsewhere). No `wrangler login` needed or wanted.
+- **"Blanc Newsletter Admin"** (`password` field) — the worker's
+  `ADMIN_TOKEN`, created below; needed again whenever you export the list
+  or remove an address.
 
 ```
 cd cloudflare/newsletter-worker
-npx wrangler login                                 # opens a browser to authorize
-npx wrangler kv namespace create SUBSCRIBERS       # copy the returned id into wrangler.toml
-npx wrangler secret put ADMIN_TOKEN                # pick any long random string, save it somewhere safe
-npx wrangler deploy
+
+# One-time: mint the admin token straight into 1Password (never touches
+# clipboard or shell history).
+op item create --category=password --vault=Dev --title="Blanc Newsletter Admin" \
+  --generate-password='letters,digits,64'
+
+# Copy the printed id into wrangler.toml and commit it:
+op run --env-file=../.env.1password -- npx wrangler kv namespace create SUBSCRIBERS
+
+op read "op://Dev/Blanc Newsletter Admin/password" | \
+  op run --env-file=../.env.1password -- npx wrangler secret put ADMIN_TOKEN
+
+op run --env-file=../.env.1password -- npx wrangler deploy
 ```
+
+If the token can't be resolved (locked vault, wrong item name) `op` fails
+loudly — there is no unauthenticated fallback to stumble into.
 
 `wrangler deploy` prints the live URL, something like
 `https://blanc-newsletter.<your-subdomain>.workers.dev`. The footer form
@@ -72,7 +95,8 @@ redeploy too.
 ## Exporting the list
 
 ```
-curl -H "Authorization: Bearer <ADMIN_TOKEN>" https://<worker-url>/subscribers
+curl -H "Authorization: Bearer $(op read 'op://Dev/Blanc Newsletter Admin/password')" \
+  https://<worker-url>/subscribers
 ```
 
 Returns JSON like:
@@ -96,7 +120,7 @@ before a send; anything plausible gets rescued, the rest expires.
 ## Removing an address (unsubscribe / data deletion)
 
 ```
-curl -X DELETE -H "Authorization: Bearer <ADMIN_TOKEN>" \
+curl -X DELETE -H "Authorization: Bearer $(op read 'op://Dev/Blanc Newsletter Admin/password')" \
   "https://<worker-url>/subscriber?email=a@example.com"
 ```
 
