@@ -596,6 +596,7 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
   .download-details { grid-template-columns: 1fr; gap: 36px; padding-bottom: 72px; }
   .download-footnote { grid-template-columns: 1fr; gap: 14px; }
   .compact-footer { flex-direction: column; padding: 20px 18px; text-align: center; }
+  .compact-footer .foot-news { justify-content: center; }
   .feature-page { padding: 0 18px 72px; }
   .breadcrumb { padding-top: 24px; }
   .feature-hero--hub { padding: 78px 0 58px; }
