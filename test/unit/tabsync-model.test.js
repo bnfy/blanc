@@ -38,7 +38,13 @@ test('sanitizeEntry: drops garbage, enforces http(s)/caps, passes retractions', 
     tabs: [
       aTab(),
       { url: 'javascript:alert(1)', title: 'x' },
-      { url: 'https://ok.example/', title: 7, pinned: 'yes', groupId: 9 },
+      {
+        url: 'https://ok.example/',
+        title: 7,
+        favicon: 'data:image/png;base64,AAAA',
+        pinned: 'yes',
+        groupId: 9,
+      },
       null,
     ],
     groups: [{ id: 'g1', name: 'work' }, { id: 2, name: 'bad' }, null],
@@ -50,6 +56,23 @@ test('sanitizeEntry: drops garbage, enforces http(s)/caps, passes retractions', 
     { url: 'https://ok.example/', title: '', groupId: null, pinned: true },
   ]);
   assert.deepEqual(dirty.groups, [{ id: 'g1', name: 'work' }]);
+});
+
+test('session compatibility: inline favicon fields are removed from cached and remote entries', () => {
+  const withInlineIcon = entry({
+    tabs: [aTab({ favicon: 'https://tracker.example/device-specific.png' })],
+  });
+  const out = m.mergeDevices(
+    { cached: withInlineIcon },
+    { remote: withInlineIcon },
+    { now: NOW, ownId: 'me' }
+  );
+  for (const device of Object.values(out)) {
+    assert.deepEqual(Object.keys(device.tabs[0]).sort(), ['groupId', 'pinned', 'title', 'url']);
+  }
+  // Once cleaned, the ordinary repair comparison sees a stable deployed
+  // shape instead of an add/strip write loop between client versions.
+  assert.equal(m.devicesEqual(out, JSON.parse(JSON.stringify(out))), true);
 });
 
 test('mergeDevices: union by deviceId, LWW per entry, remote sanitized', () => {

@@ -38,15 +38,21 @@ test('persistableEntries keeps id/groupId/pinned aligned per entry', () => {
 
 test('syncSnapshot: http(s)-only, url-length skip, title truncation, private excluded', () => {
   const snap = syncSnapshot([
-    tab({ title: 'x'.repeat(500) }),
+    tab({ title: 'x'.repeat(500), favicon: 'https://a.example/icon.svg' }),
     tab({ id: 'b', url: 'file:///etc/hosts' }),
     tab({ id: 'c', url: 'blanc://settings/' }),
     tab({ id: 'd', private: true }),
     tab({ id: 'e', url: 'https://long.example/' + 'p'.repeat(2100) }),
-    tab({ id: 'f', url: 'blanc://error/?url=' + encodeURIComponent('https://fail.example/') }),
+    tab({
+      id: 'f',
+      url: 'blanc://error/?url=' + encodeURIComponent('https://fail.example/'),
+      favicon: 'javascript:alert(1)',
+    }),
   ], []);
   assert.deepEqual(snap.tabs.map((t) => t.url), ['https://a.example/x', 'https://fail.example/']);
   assert.equal(snap.tabs[0].title.length, 200);
+  // Mixed-version contract: icon metadata lives in the optional sidecar and
+  // must never change the deployed session-tab shape.
   assert.deepEqual(Object.keys(snap.tabs[0]).sort(), ['groupId', 'pinned', 'title', 'url']);
 });
 
