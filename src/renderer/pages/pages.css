@@ -808,6 +808,24 @@ body.sheet .page h1:focus { outline: none; }
   body.sheet .toolbar-row input,
   body.sheet .toolbar-row select { max-width: 100%; min-width: 0; }
 }
+/* Ultra-narrow = high zoom: the window minimum is 640 physical px, so a
+   CSS viewport this small only occurs zoomed (~2×+); the sheet must stay
+   inside its card all the way to ZOOM_MAX (level 8 ≈ 430%, ~99px card).
+   Release the remaining intrinsic minimums, spend less on gutters, and
+   break words as a last resort. */
+@media (max-width: 359px) {
+  body.sheet { padding: 8px; }
+  body.sheet .page { padding: 16px 12px 24px; overflow-wrap: anywhere; }
+  body.sheet .setting .label { min-width: 0; }
+  body.sheet .row .actions.bookmark-actions { min-width: 0; }
+  body.sheet .folder-section .row .meta { min-width: 0; }
+  body.sheet .folder-picker { min-width: 0; max-width: 100%; }
+  /* Shortcut rows are label ⟷ kbd with a nowrap chord — let the row wrap so
+     the kbd drops below the label, and let a long chord break as a last
+     resort rather than push the card wide. */
+  body.sheet .shortcut-row { flex-wrap: wrap; gap: 4px 12px; }
+  body.sheet .shortcut-row kbd { white-space: normal; }
+}
 @media (prefers-color-scheme: dark) {
   body.sheet { background: rgba(0, 0, 0, 0.35); }
 }

@@ -37,9 +37,10 @@ Feature: Internal blanc:// pages
 
   @F16-6 @F16 @all
   Scenario: Untrusted web content cannot summon the utility sheet
-    When untrusted web content navigates itself to the settings page
+    Given a tab open on untrusted web content
+    When the page navigates itself to the settings page
     Then the utility sheet remains closed
-    When untrusted web content window-opens the settings page
+    When the page window-opens the settings page
     Then the utility sheet remains closed
 
   @F16-7 @F16 @desktop

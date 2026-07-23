@@ -184,6 +184,21 @@ function install(refs) {
     seedFavorite(url, title) {
       if (!bookmarks.isBookmarked(url)) bookmarks.toggleBookmark(url, title || url);
     },
+    // F16-6 attack drivers: run the hostile expression in the ACTIVE tab's
+    // real page context and resolve only after it executed — a scenario
+    // must never pass because an inline script silently failed to run.
+    async attemptNavigateActiveTab(url) {
+      const t = tabs.get(getActiveTabId());
+      const ran = await t.view.webContents.executeJavaScript(
+        `(() => { location.href = ${JSON.stringify(String(url))}; return true; })()`);
+      if (ran !== true) throw new Error('navigation attempt did not execute');
+    },
+    async attemptWindowOpenActiveTab(url) {
+      const t = tabs.get(getActiveTabId());
+      const ran = await t.view.webContents.executeJavaScript(
+        `(() => { window.open(${JSON.stringify(String(url))}); return true; })()`);
+      if (ran !== true) throw new Error('window.open attempt did not execute');
+    },
     async clickFirstSheetLink() {
       const wc = getUtilitySheetWebContents();
       if (!wc) throw new Error('sheet not open');

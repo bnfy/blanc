@@ -326,22 +326,41 @@ Then('the utility sheet is dismissed', async function () {
 
 // F16-6: the P1 regression class this guards — utility routing running
 // BEFORE the web→blanc denial in a navigation handler — is an ordering
-// bug, so the coverage must drive the real handlers with real web content.
-const HOSTILE_NAVIGATE = 'data:text/html,<script>location.href="blanc://settings/"</script>';
-const HOSTILE_WINDOW_OPEN = 'data:text/html,<script>window.open("blanc://settings/")</script>';
+// bug, so the coverage must drive the real handlers from a real committed
+// web document, with execution PROOF: the test-hook attack drivers resolve
+// only after the hostile expression ran in the page (a scenario must never
+// pass because an inline script silently failed to load).
 
 /** Negative assertions can't poll for success — give a mis-routed summon a
  * bounded window to land before declaring the sheet stayed closed. */
 const settle = (ms) => new Promise((r) => setTimeout(r, ms));
 
-When('untrusted web content navigates itself to the settings page', async function () {
-  await this.call('openTab', HOSTILE_NAVIGATE);
-  await settle(700);
+// A data: URL is an OPAQUE origin — the vector that actually reaches the
+// blanc:// navigation handlers. http content cannot: Chromium blocks
+// http→blanc:// upstream, so will-navigate never fires from it (verified by
+// mutation — an http-origin attack can't summon the sheet even with the
+// trust gate removed, so an http fixture would make this test vacuous).
+const UNTRUSTED_DOC = 'data:text/html,<title>untrusted</title><body>x</body>';
+
+Given('a tab open on untrusted web content', async function () {
+  const id = await this.call('openTab', UNTRUSTED_DOC);
+  ctx.tabByName.hostile = id;
+  // The attack only exercises the handlers if the document actually
+  // committed — gate on the tab's committed URL, not just creation.
+  await this.waitForState((s) => {
+    const t = s.tabs.find((x) => x.id === id);
+    return t && t.loadedUrl.startsWith('data:') && !t.loading;
+  });
 });
 
-When('untrusted web content window-opens the settings page', async function () {
-  await this.call('openTab', HOSTILE_WINDOW_OPEN);
-  await settle(700);
+When('the page navigates itself to the settings page', async function () {
+  await this.call('attemptNavigateActiveTab', 'blanc://settings/');
+  await settle(500);
+});
+
+When('the page window-opens the settings page', async function () {
+  await this.call('attemptWindowOpenActiveTab', 'blanc://settings/');
+  await settle(500);
 });
 
 Then('the utility sheet remains closed', async function () {
