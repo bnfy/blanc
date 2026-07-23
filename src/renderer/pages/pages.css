@@ -789,13 +789,21 @@ body.sheet .page h1:focus { outline: none; }
    and let controls shrink. Viewport == sheet view == window content area,
    so a plain media query is correct. */
 @media (max-width: 719px) {
-  body.sheet .settings-shell { flex-direction: column; gap: 16px; }
+  /* align-items must flip to stretch: in column direction the base rule's
+     flex-start is the CROSS axis, which would leave .settings-content at
+     its max-content width (~900px) inside the narrow card. */
+  body.sheet .settings-shell { flex-direction: column; align-items: stretch; gap: 16px; }
   body.sheet .settings-nav { position: static; flex: none; flex-direction: row; flex-wrap: wrap; }
+  body.sheet .settings-content { width: 100%; max-width: 100%; min-width: 0; }
   body.sheet .setting { flex-wrap: wrap; }
+  /* Toolbar rows (sync form, defaults bar) hold fixed-width controls too. */
+  body.sheet .toolbar-row { flex-wrap: wrap; }
   /* ALL controls, not just text inputs — Settings has fixed-width url and
      password fields (sync form) that would still overflow under zoom. */
   body.sheet .setting input,
-  body.sheet .setting select { max-width: 100%; min-width: 0; }
+  body.sheet .setting select,
+  body.sheet .toolbar-row input,
+  body.sheet .toolbar-row select { max-width: 100%; min-width: 0; }
 }
 @media (prefers-color-scheme: dark) {
   body.sheet { background: rgba(0, 0, 0, 0.35); }

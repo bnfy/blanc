@@ -515,12 +515,19 @@ function createUtilitySheet() {
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
 }
 
+/** Page identity, not URL spelling: each utility page is one document per
+ * blanc:// host, and accepted spellings differ (typed "blanc://settings"
+ * vs the menu's "blanc://settings/"). */
+function sameUtilityPage(a, b) {
+  try { return new URL(a).host === new URL(b).host; } catch { return false; }
+}
+
 function showUtilityPage(url) {
   if (!hasLiveWindow()) return;
   // Toggle: a direct re-invocation (menu/accelerator) of the shown page
   // closes it. Overlay-hosted entry points can never hit this — summoning
   // the overlay already dismissed the sheet.
-  if (utilitySheetUrl === url) return hideUtilitySheet();
+  if (utilitySheetUrl && sameUtilityPage(utilitySheetUrl, url)) return hideUtilitySheet();
   // One floating layer at a time, in both directions.
   hideOverlay({ refocusContent: false });
   if (!utilitySheetView) createUtilitySheet();
@@ -1091,10 +1098,14 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // doesn't fire will-navigate, so only page-initiated hops are caught.
   wc.on('will-navigate', (event, targetUrl) => {
     // Utility pages never load in a tab — the newtab ledger links to
-    // blanc://bookmarks/ and blanc:→blanc: hops are otherwise legal.
+    // blanc://bookmarks/ and blanc:→blanc: hops are otherwise legal. Only
+    // an INTERNAL page may summon the sheet: for web content this is a
+    // plain denial, same as any other web → blanc:// attempt below —
+    // otherwise any page could pop (and focus-steal via) privileged chrome
+    // with location.href = "blanc://settings/".
     if (isUtilityUrl(targetUrl)) {
       event.preventDefault();
-      openInternalPage(targetUrl);
+      if (wc.getURL().startsWith('blanc://')) openInternalPage(targetUrl);
       return;
     }
     if (/^blanc:/i.test(targetUrl) && !wc.getURL().startsWith('blanc://')) {
@@ -1180,10 +1191,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
       // Utility pages never become tabs — and an adopted child must never
       // reach createTab's guard: by createWindow time the guest webContents
       // already exists, and a null return would leave it half-built and
-      // unmanaged. Route to the sheet, deny the child outright. (Only
-      // blanc:// pages can reach this line — web → blanc is denied below.)
+      // unmanaged. Deny the child outright, and route to the sheet ONLY
+      // for an internal opener — web content asking for a blanc:// child
+      // gets the same silent denial it always did, never a focused sheet.
       if (isUtilityUrl(targetUrl)) {
-        openInternalPage(targetUrl);
+        if (targetWc.getURL().startsWith('blanc://')) openInternalPage(targetUrl);
         return { action: 'deny' };
       }
       // Web content must not mint privileged internal pages (Chrome blocks
