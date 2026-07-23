@@ -51,10 +51,11 @@ through `op`, per the house rule (see `scripts/release.sh` for the same
 pattern with notarization). Two 1Password items are involved, both in vault
 **Dev**:
 
-- **"Cloudflare API"** (`credential` field) — the Cloudflare API token
-  wrangler authenticates with, mapped to `CLOUDFLARE_API_TOKEN` by
-  `cloudflare/.env.1password` (shared by the workers; adjust that one file
-  if the item lives elsewhere). No `wrangler login` needed or wanted.
+- **"Cloudflare API Token blancbrowser"** (`credential` field) — the
+  Cloudflare API token wrangler authenticates with, mapped to
+  `CLOUDFLARE_API_TOKEN` by `cloudflare/.env.1password` (shared by the
+  workers; adjust that one file if the item lives elsewhere). No
+  `wrangler login` needed or wanted.
 - **"Blanc Newsletter Admin"** (`password` field) — the worker's
   `ADMIN_TOKEN`, created below; needed again whenever you export the list
   or remove an address.
