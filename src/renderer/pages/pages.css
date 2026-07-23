@@ -115,6 +115,12 @@ h1 {
   align-items: center;
   margin-bottom: 16px;
 }
+.toolbar-row > input[type="text"],
+.toolbar-row > input[type="url"],
+.toolbar-row > input[type="password"] {
+  flex: 1 1 160px;
+  min-width: 0;
+}
 /* Inline "also delete synced data" checkbox next to Turn-off-sync. */
 .inline-check {
   display: inline-flex;
@@ -123,6 +129,7 @@ h1 {
   font-size: 12.5px;
   color: var(--text-dim);
 }
+.toolbar-row > .inline-check { min-width: 0; white-space: normal; }
 input[type="text"], input[type="url"], input[type="password"], select {
   background: var(--surface-raised);
   border: 1px solid var(--border);
@@ -237,9 +244,22 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
   padding: 16px 0;
   border-bottom: 1px solid var(--border);
 }
-.setting .label { display: flex; flex-direction: column; gap: 3px; min-width: 160px; }
+.setting .label {
+  flex: 1 1 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 160px;
+}
 .setting .label .hint { color: var(--text-dim); font-size: 12px; }
-.setting input[type="url"] { width: 280px; }
+.setting > select {
+  /* Native selects use their longest option as an intrinsic minimum. Let the
+     control shrink inside the row instead of widening the whole sheet. */
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(360px, 100%);
+}
+.setting input[type="url"] { width: 280px; max-width: 100%; min-width: 0; }
 
 /* Default-browser row: quiet confirmation once Blanc holds the role. */
 #defaultBrowserState {
@@ -373,9 +393,10 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
 
 .settings-nav {
   position: sticky;
-  /* Sticks below the sticky top nav (~29px tall) with a little breathing room,
-     rather than sliding up underneath it. */
-  top: 52px;
+  /* The sheet's sticky top band is 69px tall: 32px top gutter + 24px close
+     row + 12px bottom padding + 1px divider. Keep another 16px between it
+     and this sidebar so the first link can never slide underneath. */
+  top: 85px;
   flex: 0 0 150px;
   display: flex;
   flex-direction: column;
@@ -758,6 +779,9 @@ body.sheet .page {
      Sticky children stop at a scroll container's padding edge, which left
      this gutter uncovered while settings cards passed underneath it. */
   padding-top: 0;
+  /* The utility sheet itself is vertical-only. The app-icon picker keeps its
+     own intentional horizontal scrollport inside `.icon-grid`. */
+  overflow-x: hidden;
   overflow-y: auto;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -816,6 +840,13 @@ body.sheet .page h1:focus { outline: none; }
   body.sheet .setting select,
   body.sheet .toolbar-row input,
   body.sheet .toolbar-row select { max-width: 100%; min-width: 0; }
+  /* Permission rows have three peers (site, decision, action), unlike the
+     simpler exception rows. Give them a second line before they can widen the
+     sheet at small widths or high zoom. */
+  body.sheet #permissionList .row { flex-wrap: wrap; }
+  body.sheet #permissionList .row .main { flex: 1 1 100%; }
+  body.sheet #permissionList .row .meta { flex: 1 1 auto; min-width: 0; }
+  body.sheet #permissionList .row .actions { margin-left: auto; }
 }
 /* Ultra-narrow = high zoom: the window minimum is 640 physical px, so a
    CSS viewport this small only occurs zoomed (~2×+); the sheet must stay
@@ -826,6 +857,8 @@ body.sheet .page h1:focus { outline: none; }
   body.sheet { padding: 8px; }
   body.sheet .page { padding: 0 12px 24px; overflow-wrap: anywhere; }
   body.sheet .page-nav { padding-top: 16px; }
+  body.sheet .settings-card { padding-inline: 12px; }
+  body.sheet .group-subsection { margin-left: 0; }
   body.sheet .setting .label { min-width: 0; }
   body.sheet .row .actions.bookmark-actions { min-width: 0; }
   body.sheet .folder-section .row .meta { min-width: 0; }
