@@ -283,7 +283,7 @@ do not ship a partial rail or delay P0.
 
 **Required by final staging on Day 13:**
 
-- [ ] Concise Island-first announcement and final release notes.
+- [x] Concise Island-first announcement and final release notes.
 - [ ] Final Stable download/checksum links.
 - [ ] Screenshot replacement only where the accepted UI changed.
 - [ ] Responsive, keyboard, link, social-card, and site-build verification.

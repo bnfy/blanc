@@ -8,9 +8,9 @@ period**
 **The independent desktop browser combines an Island-based tab-and-command
 interface with built-in blocking, private tabs, and optional encrypted sync.**
 
-Bananify today announced Blanc 1.0, an independent desktop browser
-designed around a simple idea: the browser's controls should appear when they
-are useful and leave the page alone when they are not.
+Bananify today announced Blanc 1.0, an independent desktop browser designed
+around a simple idea: the browser's controls should appear when they are
+useful and leave the page alone when they are not.
 
 Blanc replaces the familiar horizontal tab strip and toolbar with the Island,
 a compact floating control that brings together navigation, search, tabs,
@@ -37,15 +37,15 @@ Blanc is free. An optional one-time Blanc Supporter purchase costs US$19 plus
 applicable taxes and unlocks three additional cosmetic app-icon colorways;
 functional features are not placed behind the purchase.
 
-Blanc 1.0's first verified release is planned for Apple Silicon Macs after its
-signed and notarized release candidate completes a seven-day quiet test period.
-Pre-1.0 Blanc builds are already available for Intel Macs, Windows, and Linux;
-those platforms will join the 1.0 release only after their exact 1.0 packages
-pass applicable signing/notarization, install, launch, and migration gates.
+Blanc 1.0 is available first for Apple Silicon Macs. Its exact package was
+signed, notarized, stapled, clean-installed, migration-tested from the previous
+Stable release, and held through a seven-day release-candidate test period.
+Pre-1.0 Blanc builds remain available for Intel Macs, Windows, and Linux; those
+platforms will join the 1.0 line only after their exact packages pass
+applicable signing or notarization, install, launch, and migration gates.
 
 Review materials, verified downloads, screenshots, limitations, and contact
-information will be available from the unlisted Blanc reviewer page when the
-accepted release candidate is distributed.
+information are available from Blanc's reviewer page.
 
 ### About Blanc
 

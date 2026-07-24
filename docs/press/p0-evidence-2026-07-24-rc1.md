@@ -61,6 +61,22 @@ the expected five-file manifest, hashed, re-verified with `SHA256SUMS`, and
 then published without rebuilding. Public logged-out asset requests and the
 reviewer page links succeed.
 
+## Live reviewer surface
+
+- The committed Astro build was deployed to the existing Cloudflare Pages
+  production project after the previous production deployment was found to
+  serve the home page at `/press`.
+- `https://blancbrowser.com/press` now serves the reviewer kit with its
+  canonical, `noindex,nofollow,noarchive`, Open Graph, and Twitter metadata.
+- Desktop and 390px-wide browser checks show no horizontal overflow.
+- Keyboard navigation reaches every press action and screenshot link with a
+  visible focus treatment.
+- The page, social card, screenshots, RC DMG, checksum manifest, and GitHub
+  release URLs return successful public responses; the browser console reports
+  no warnings or errors.
+- The accepted vertical-tabs UI still needs a clean native recapture before
+  the screenshot gate can close.
+
 ## Candidate-window gates still open
 
 - At least one active human tester must install and use this exact RC.
