@@ -23,6 +23,7 @@ const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
+const iconRaster = require('./icon-raster');
 const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
 const { promptForCredentials } = require('./auth-dialog');
@@ -2534,6 +2535,10 @@ function createMainWindow() {
     if (utilitySheetView && !utilitySheetView.webContents.isDestroyed()) utilitySheetView.webContents.close();
     utilitySheetView = null;
     utilitySheetUrl = null;
+    // The detached favicon rasterizer view isn't a BrowserWindow, so it would
+    // otherwise linger past the last window (blocking `window-all-closed` quit
+    // on Windows/Linux). Recreated lazily on the next non-PNG capture.
+    iconRaster.dispose();
     flushPermissionPrompts();
   });
 

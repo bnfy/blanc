@@ -8,6 +8,17 @@ const { nativeImage } = require('electron');
 const { JsonStore } = require('./store');
 const { validFavicon } = require('./bookmark-validate');
 const model = require('./tabicons-model');
+const iconRaster = require('./icon-raster');
+
+// Non-PNG favicons rasterize through a live WebContentsView (icon-raster.js).
+// Keeping that behind an injectable seam lets the capture orchestration below
+// stay unit-testable under `node --test`, where no Electron renderer exists.
+let raster = (dataUrl, signal) => iconRaster.rasterize(dataUrl, signal);
+function setRasterizer(fn) {
+  raster = typeof fn === 'function'
+    ? fn
+    : (dataUrl, signal) => iconRaster.rasterize(dataUrl, signal);
+}
 
 const FETCH_TIMEOUT_MS = 3000;
 const MAX_SOURCE_CACHE = 256;
@@ -129,9 +140,14 @@ async function rasterizeSource(source, browsingSession, signal) {
   try {
     if (signal?.aborted) return null;
     if (source.toLowerCase().startsWith('data:image/')) {
-      const bytes = model.sourcePngFromDataUrl(source);
-      if (signal?.aborted) return null;
-      return bytes ? pngData(nativeImage.createFromBuffer(bytes)) : null;
+      // An inline favicon. PNG keeps the dimension-guarded native decode; any
+      // other image type (svg, gif, …) is rasterized in the sandboxed renderer.
+      if (/^data:image\/png[;,]/i.test(source)) {
+        const bytes = model.sourcePngFromDataUrl(source);
+        return bytes ? pngData(nativeImage.createFromBuffer(bytes)) : null;
+      }
+      const dataUrl = model.boundedImageDataUrl(source);
+      return dataUrl ? model.validIconData(await raster(dataUrl, signal)) : null;
     }
     if (!browsingSession?.fetch || !model.isPublicHttpSource(source)) return null;
     const timeoutController = new AbortController();
@@ -151,11 +167,21 @@ async function rasterizeSource(source, browsingSession, signal) {
       });
       if (!response.ok || requestSignal.aborted) return null;
       const contentType = response.headers?.get?.('content-type')?.split(';', 1)[0]?.trim()?.toLowerCase();
-      if (contentType !== 'image/png') return null;
+      const isPng = contentType === 'image/png';
+      // Reject non-image responses before reading the body at all.
+      if (!isPng && !model.isImageMediaType(contentType)) return null;
       const bytes = await readBounded(response);
-      if (requestSignal.aborted) return null;
-      const png = model.validSourcePngBytes(bytes);
-      return png ? pngData(nativeImage.createFromBuffer(png)) : null;
+      if (requestSignal.aborted || !bytes) return null;
+      if (isPng) {
+        // PNG: cheap header/dimension guard, then decode natively — unchanged.
+        const png = model.validSourcePngBytes(bytes);
+        return png ? pngData(nativeImage.createFromBuffer(png)) : null;
+      }
+      // ICO/SVG/GIF/…: hand the bounded bytes to the renderer canvas. The fetch
+      // guards above (public-only, cookie/referrer-free, redirect-off) still
+      // gate what gets here; the renderer only ever sees inert `data:` bytes.
+      const dataUrl = model.imageSourceToDataUrl(contentType, bytes);
+      return dataUrl ? model.validIconData(await raster(dataUrl, signal)) : null;
     } finally {
       clearTimeout(timeout);
     }
@@ -499,6 +525,7 @@ function onSyncDisabled() {
 
 module.exports = {
   setSnapshotProvider,
+  setRasterizer,
   onChanged,
   onRemoteChanged,
   cancelCaptures,
