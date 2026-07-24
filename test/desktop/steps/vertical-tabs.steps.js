@@ -191,6 +191,17 @@ async function waitForOrder(world, expected) {
   );
 }
 
+async function dragRailTo(page, targetWidth) {
+  const handle = page.locator('#verticalTabsResizeHandle');
+  const box = await handle.boundingBox();
+  assert.ok(box, 'vertical tab resize handle should have a rendered box');
+  const y = Math.min(box.y + 180, box.y + box.height / 2);
+  await page.mouse.move(box.x + box.width / 2, y);
+  await page.mouse.down();
+  await page.mouse.move(targetWidth, y, { steps: 12 });
+  await page.mouse.up();
+}
+
 function assertBounds(actual, expected, label) {
   assert.deepEqual(actual, expected, `${label}: ${JSON.stringify(actual)}`);
 }
@@ -234,6 +245,263 @@ When('Profile Sync receives a different tab-layout preference', async function (
 
 Then('the tab layout remains {string}', async function (layout) {
   assert.equal(await this.call('tabLayout'), layout);
+});
+
+Then('the Island footer offers vertical tabs', async function () {
+  const control = await this.call('islandLayoutToggleState');
+  assert.deepEqual(control, {
+    title: 'Turn vertical tabs on',
+    label: 'Vertical tabs',
+    pressed: 'false',
+  });
+});
+
+Then('the Island footer offers Island tabs', async function () {
+  const control = await this.call('islandLayoutToggleState');
+  assert.deepEqual(control, {
+    title: 'Turn vertical tabs off',
+    label: 'Vertical tabs',
+    pressed: 'true',
+  });
+});
+
+When('I toggle the tab layout from the Island footer', async function () {
+  const previous = await this.call('tabLayout');
+  const expected = previous === 'vertical' ? 'island' : 'vertical';
+  assert.equal(await this.call('clickIslandLayoutToggle'), true);
+  await waitForValue(
+    () => this.call('tabLayout'),
+    (layout) => layout === expected,
+    `${expected} tab layout from Island footer`
+  );
+});
+
+When('I press the vertical-tabs keyboard shortcut', async function () {
+  const previous = await this.call('tabLayout');
+  const expected = previous === 'vertical' ? 'island' : 'vertical';
+  assert.equal(await this.call('pressVerticalTabsShortcut'), true);
+  await waitForValue(
+    () => this.call('tabLayout'),
+    (layout) => layout === expected,
+    `${expected} tab layout from keyboard shortcut`
+  );
+});
+
+When('I drag the vertical tab resize handle to {int} pixels', async function (width) {
+  const page = await showRail(this);
+  await dragRailTo(page, width);
+  const expected = Math.max(200, Math.min(360, width));
+  await waitForValue(
+    () => this.call('verticalTabsWidth'),
+    (value) => value === expected,
+    `${expected}px preferred vertical tab width`
+  );
+});
+
+When('I double-click the vertical tab resize handle', async function () {
+  const page = await showRail(this);
+  await page.locator('#verticalTabsResizeHandle').dblclick({ position: { x: 4, y: 180 } });
+  await waitForValue(
+    () => this.call('verticalTabsWidth'),
+    (value) => value === 248,
+    'default vertical tab width'
+  );
+});
+
+Then('the rendered vertical tab width is {int} pixels', async function (width) {
+  const page = await showRail(this);
+  await waitForValue(
+    async () => {
+      const box = await page.locator('#verticalTabsRail').boundingBox();
+      return box?.width ?? null;
+    },
+    (value) => value === width,
+    `${width}px rendered vertical tab width`
+  );
+  const metrics = await this.call('verticalTabsMetrics');
+  assert.equal(metrics.verticalTabsWidth, width);
+});
+
+Then('the preferred vertical tab width is {int} pixels', async function (width) {
+  assert.equal(await this.call('verticalTabsWidth'), width);
+  const metrics = await this.call('verticalTabsMetrics');
+  assert.equal(metrics.verticalTabsPreferredWidth, width);
+});
+
+When('I resize the desktop window to {int} by {int}', async function (width, height) {
+  await this.call('setWindowContentSize', width, height);
+  await waitForValue(
+    () => this.call('windowContentBounds'),
+    (bounds) => bounds?.width === width && bounds?.height === height,
+    `${width}x${height} content bounds`
+  );
+});
+
+Then('the Profile Sync payload does not contain the vertical-tab width preference', async function () {
+  const values = await this.call('settingsSyncValues');
+  assert.equal(Object.hasOwn(values, 'verticalTabsWidth'), false);
+});
+
+Given('the rail contains a truncated title and a fully visible title', async function () {
+  const longId = await openLoadedTab(this, 'marquee-long');
+  const shortId = await openLoadedTab(this, 'marquee-short');
+  const longTitle =
+    'A deliberately long vertical tab title whose hidden ending should become readable on hover';
+  const shortTitle = 'Notes';
+  await this.call('setTabPresentation', longId, { title: longTitle });
+  await this.call('setTabPresentation', shortId, { title: shortTitle });
+  this.verticalTitleIds = { longId, shortId };
+  const page = await showRail(this);
+  await page.locator(
+    `.vertical-tab-row[data-tab-id="${longId}"] .vertical-tab-title-text`
+  ).waitFor();
+  await page.locator(
+    `.vertical-tab-row[data-tab-id="${shortId}"] .vertical-tab-title-text`
+  ).waitFor();
+});
+
+Then('only the long vertical tab title overflows its viewport', async function () {
+  const page = await chromePage();
+  const measure = (id) => page.locator(
+    `.vertical-tab-row[data-tab-id="${id}"] .vertical-tab-title`
+  ).evaluate((viewport) => {
+    const text = viewport.querySelector('.vertical-tab-title-text');
+    return {
+      viewport: viewport.clientWidth,
+      content: text?.scrollWidth ?? 0,
+    };
+  });
+  const long = await measure(this.verticalTitleIds.longId);
+  const short = await measure(this.verticalTitleIds.shortId);
+  assert.ok(long.content > long.viewport + 1, `long title should overflow: ${JSON.stringify(long)}`);
+  assert.ok(short.content <= short.viewport + 1, `short title should fit: ${JSON.stringify(short)}`);
+});
+
+When('I hover the overflowing vertical tab row outside its title', async function () {
+  const page = await chromePage();
+  await page.locator(
+    `.vertical-tab-row[data-tab-id="${this.verticalTitleIds.longId}"] .vertical-tab-favicon`
+  ).hover();
+  await sleep(500);
+});
+
+Then('neither vertical tab title scrolls', async function () {
+  const page = await chromePage();
+  for (const id of [this.verticalTitleIds.longId, this.verticalTitleIds.shortId]) {
+    const scrolling = await page.locator(
+      `.vertical-tab-row[data-tab-id="${id}"] .vertical-tab-title`
+    ).evaluate((viewport) => viewport.classList.contains('scrolling'));
+    assert.equal(scrolling, false);
+  }
+});
+
+When('I hover the truncated vertical tab title', async function () {
+  const page = await chromePage();
+  await page.locator(
+    `.vertical-tab-row[data-tab-id="${this.verticalTitleIds.longId}"] .vertical-tab-title`
+  ).hover();
+});
+
+Then('the truncated title scrolls toward its hidden end', async function () {
+  const page = await chromePage();
+  const id = this.verticalTitleIds.longId;
+  await page.waitForFunction((tabId) => {
+    const viewport = document.querySelector(
+      `.vertical-tab-row[data-tab-id="${tabId}"] .vertical-tab-title`
+    );
+    const text = viewport?.querySelector('.vertical-tab-title-text');
+    if (!viewport?.classList.contains('scrolling') || !text) return false;
+    const transform = getComputedStyle(text).transform;
+    if (!transform || transform === 'none') return false;
+    return new DOMMatrixReadOnly(transform).m41 < -0.5;
+  }, id);
+});
+
+When('I move the pointer away from the vertical tab title', async function () {
+  const page = await chromePage();
+  await page.locator('.vertical-tabs-toolbar').hover();
+});
+
+Then('the truncated title returns to its starting position', async function () {
+  const page = await chromePage();
+  const title = page.locator(
+    `.vertical-tab-row[data-tab-id="${this.verticalTitleIds.longId}"] .vertical-tab-title`
+  );
+  await page.waitForFunction((tabId) => {
+    const viewport = document.querySelector(
+      `.vertical-tab-row[data-tab-id="${tabId}"] .vertical-tab-title`
+    );
+    const text = viewport?.querySelector('.vertical-tab-title-text');
+    if (!viewport || !text || viewport.classList.contains('scrolling')) return false;
+    const transform = getComputedStyle(text).transform;
+    return transform === 'none' || new DOMMatrixReadOnly(transform).m41 === 0;
+  }, this.verticalTitleIds.longId);
+  assert.equal(await title.getAttribute('data-overflowing'), null);
+});
+
+When('I hover the fully visible vertical tab title', async function () {
+  const page = await chromePage();
+  await page.locator(
+    `.vertical-tab-row[data-tab-id="${this.verticalTitleIds.shortId}"] .vertical-tab-title`
+  ).hover();
+  await sleep(650);
+});
+
+Then('the fully visible title remains still', async function () {
+  const page = await chromePage();
+  const result = await page.locator(
+    `.vertical-tab-row[data-tab-id="${this.verticalTitleIds.shortId}"] .vertical-tab-title`
+  ).evaluate((viewport) => {
+    const text = viewport.querySelector('.vertical-tab-title-text');
+    const transform = text ? getComputedStyle(text).transform : 'none';
+    return {
+      scrolling: viewport.classList.contains('scrolling'),
+      x: transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41,
+    };
+  });
+  assert.equal(result.scrolling, false);
+  assert.equal(result.x, 0);
+});
+
+When(
+  'reduced motion is preferred and I hover the truncated vertical tab title',
+  async function () {
+    const page = await chromePage();
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.locator(
+      `.vertical-tab-row[data-tab-id="${this.verticalTitleIds.longId}"] .vertical-tab-title`
+    ).hover();
+    await sleep(650);
+  }
+);
+
+Then('the truncated title remains still with its full accessible name', async function () {
+  const page = await chromePage();
+  try {
+    const result = await page.locator(
+      `.vertical-tab-row[data-tab-id="${this.verticalTitleIds.longId}"]`
+    ).evaluate((row) => {
+      const viewport = row.querySelector('.vertical-tab-title');
+      const text = viewport?.querySelector('.vertical-tab-title-text');
+      const primary = row.querySelector('.vertical-tab-primary');
+      const transform = text ? getComputedStyle(text).transform : 'none';
+      return {
+        reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+        scrolling: viewport?.classList.contains('scrolling') ?? false,
+        x: transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41,
+        title: primary?.title ?? '',
+        ariaLabel: primary?.getAttribute('aria-label') ?? '',
+        visibleText: text?.textContent ?? '',
+      };
+    });
+    assert.equal(result.reducedMotion, true);
+    assert.equal(result.scrolling, false);
+    assert.equal(result.x, 0);
+    assert.equal(result.title, result.visibleText);
+    assert.ok(result.ariaLabel.includes(result.visibleText));
+  } finally {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+  }
 });
 
 // ---------- F28-2: no guest reload ----------
@@ -288,15 +556,18 @@ Given('a {int} by {int} desktop window with the vertical tab layout', async func
   await showRail(this);
 });
 
-When('an ordinary tab is active below the {int} pixel strip', async function (stripHeight) {
-  const state = await this.state();
-  await this.call('activateTab', state.activeTabId, true);
-  await waitForValue(
-    () => this.call('activeGuestBounds'),
-    (bounds) => bounds?.y === stripHeight,
-    `active guest below ${stripHeight}px strip`
-  );
-});
+When(
+  'an ordinary tab is active below the {int} pixel sampled safe-area gutter',
+  async function (stripHeight) {
+    const state = await this.state();
+    await this.call('activateTab', state.activeTabId, true);
+    await waitForValue(
+      () => this.call('activeGuestBounds'),
+      (bounds) => bounds?.y === stripHeight,
+      `active guest below ${stripHeight}px sampled safe-area gutter`
+    );
+  }
+);
 
 Then(
   'its guest bounds are x {int}, y {int}, width {int}, height {int}',
@@ -309,13 +580,23 @@ Then(
   }
 );
 
-Then('the resting Island is centered over the page pane', async function () {
+Then(
+  'the vertical rail bounds are x {int}, y {int}, width {int}, height {int}',
+  async function (x, y, width, height) {
+    const page = await chromePage();
+    const rail = await page.locator('#verticalTabsRail').boundingBox();
+    assert.ok(rail, 'vertical rail should have a rendered box');
+    assertBounds(rail, { x, y, width, height }, 'vertical rail bounds');
+  }
+);
+
+Then('the resting Island is centered over the website pane', async function () {
   const page = await chromePage();
   const box = await page.locator('#islandPill').boundingBox();
   assert.ok(box, 'resting Island should be visible');
   const expectedCenter = 248 + (this.verticalWindow.width - 248) / 2;
   assert.ok(Math.abs(box.x + box.width / 2 - expectedCenter) <= 1,
-    `Island center ${box.x + box.width / 2} should equal page-pane center ${expectedCenter}`);
+    `Island center ${box.x + box.width / 2} should equal website-pane center ${expectedCenter}`);
 });
 
 When('I open a utility page', async function () {
@@ -360,7 +641,7 @@ Then(
   }
 );
 
-Then('the expanded Island is centered over the page pane', async function () {
+Then('the expanded Island is centered over the website pane', async function () {
   const overlay = await this.call('overlayBounds');
   const panel = await this.call('overlayElementRect', '#islandPanel');
   assert.ok(panel, 'expanded Island panel should render');
@@ -382,7 +663,7 @@ Then(
   }
 );
 
-Then('the expanded Island remains centered over the page pane', async function () {
+Then('the expanded Island remains centered over the website pane', async function () {
   const overlay = await this.call('overlayBounds');
   const panel = await this.call('overlayElementRect', '#islandPanel');
   assert.ok(panel, 'palette Island should render');
@@ -431,8 +712,8 @@ Then('the find capsule does not overlap the vertical tab rail', async function (
       scrollWidth: element.scrollWidth,
     };
   });
-  assert.ok(pill.left >= 248 && pill.right <= 640,
-    `resting Island ${JSON.stringify(pill)} must stay inside the minimum page pane`);
+  assert.ok(pill.left >= 248 && pill.right <= this.verticalWindow.width,
+    `resting Island ${JSON.stringify(pill)} must stay inside the minimum website pane`);
   assert.ok(pill.scrollWidth <= pill.clientWidth + 1,
     `resting Island content overflows at minimum width: ${JSON.stringify(pill)}`);
 });

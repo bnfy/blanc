@@ -10,8 +10,9 @@
   const useIslandButton = document.getElementById('verticalTabsUseIsland');
   const newTabButton = document.getElementById('verticalTabsNew');
   const newTabShortcut = document.getElementById('verticalTabsNewShortcut');
+  const resizeHandle = document.getElementById('verticalTabsResizeHandle');
   const announcer = document.getElementById('verticalTabsAnnouncer');
-  if (!api || !rail || !list || !useIslandButton || !newTabButton) return;
+  if (!api || !rail || !list || !useIslandButton || !newTabButton || !resizeHandle) return;
 
   const ICONS = {
     close: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
@@ -20,6 +21,7 @@
     muted: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.25h2L8 3.5v9L5 9.75H3zM10.25 6.25l3.5 3.5M13.75 6.25l-3.5 3.5"/></svg>',
     caret: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.75 4 4.25-4 4.25"/></svg>',
   };
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   // Derived render bookkeeping and pointer/focus interaction state only.
   // The authoritative tab/group model is never copied out of renderer.js.
@@ -27,6 +29,16 @@
   let pendingFocusKey = null;
   let dragState = null;
   let suppressFocusRestore = false;
+  let resizeState = null;
+  let resizePreviewFrame = 0;
+  let queuedPreviewWidth = null;
+  let widthMetrics = {
+    width: 248,
+    preferredWidth: 248,
+    minWidth: 200,
+    maxWidth: 360,
+    defaultWidth: 248,
+  };
 
   newTabShortcut.textContent = api.platform === 'darwin' ? '⌘T' : 'Ctrl T';
 
@@ -80,6 +92,52 @@
     requestAnimationFrame(() => { announcer.textContent = message; });
   }
 
+  function applyWidthMetrics(payload = {}) {
+    const width = Number(payload.verticalTabsWidth);
+    if (!Number.isFinite(width) || width <= 0) return false;
+    const preferredWidth = Number(payload.verticalTabsPreferredWidth);
+    const minWidth = Number(payload.verticalTabsMinWidth);
+    const maxWidth = Number(payload.verticalTabsMaxWidth);
+    const defaultWidth = Number(payload.verticalTabsDefaultWidth);
+    widthMetrics = {
+      width,
+      preferredWidth: Number.isFinite(preferredWidth) ? preferredWidth : width,
+      minWidth: Number.isFinite(minWidth) ? minWidth : 200,
+      maxWidth: Number.isFinite(maxWidth) ? maxWidth : 360,
+      defaultWidth: Number.isFinite(defaultWidth) ? defaultWidth : 248,
+    };
+    document.documentElement.style.setProperty('--vertical-tabs-w', `${width}px`);
+    resizeHandle.setAttribute('aria-valuemin', String(widthMetrics.minWidth));
+    resizeHandle.setAttribute('aria-valuemax', String(widthMetrics.maxWidth));
+    resizeHandle.setAttribute('aria-valuenow', String(width));
+    resizeHandle.setAttribute('aria-valuetext', `${width} pixels`);
+    return true;
+  }
+
+  function commitWidth(width, message) {
+    invoke('resize vertical tabs', async () => {
+      const committed = await api.setVerticalTabsWidth(width);
+      if (message) announce(message(committed));
+    });
+  }
+
+  function queueWidthPreview(width) {
+    queuedPreviewWidth = width;
+    if (resizePreviewFrame) return;
+    resizePreviewFrame = requestAnimationFrame(() => {
+      resizePreviewFrame = 0;
+      const queued = queuedPreviewWidth;
+      queuedPreviewWidth = null;
+      api.previewVerticalTabsWidth(queued);
+    });
+  }
+
+  function clearQueuedWidthPreview() {
+    if (resizePreviewFrame) cancelAnimationFrame(resizePreviewFrame);
+    resizePreviewFrame = 0;
+    queuedPreviewWidth = null;
+  }
+
   function faviconFor(tab) {
     const favicon = document.createElement('span');
     favicon.className = `favicon vertical-tab-favicon${tab.isLoading ? ' loading' : ''}`;
@@ -101,6 +159,34 @@
     marker.title = label;
     marker.setAttribute('aria-hidden', 'true');
     return marker;
+  }
+
+  function startTitleScroll(viewport, text) {
+    if (reducedMotion.matches) return;
+    const overflow = Math.ceil(text.scrollWidth - viewport.clientWidth);
+    if (overflow <= 1) return;
+    // Travel at a steady reading speed, bounded so unusually long page titles
+    // neither race past nor leave the user waiting indefinitely.
+    const duration = Math.max(1600, Math.min(12000, Math.round(overflow / 0.045)));
+    viewport.style.setProperty('--vertical-tab-title-offset', `${-overflow}px`);
+    viewport.style.setProperty('--vertical-tab-title-duration', `${duration}ms`);
+    viewport.dataset.overflowing = 'true';
+    viewport.classList.add('scrolling');
+    // The native tooltip would cover the moving title. Screen readers retain
+    // the complete button aria-label; reduced-motion users keep the tooltip
+    // because this function exits before removing it.
+    viewport.closest('.vertical-tab-primary')?.removeAttribute('title');
+  }
+
+  function stopTitleScroll(viewport) {
+    viewport.classList.remove('scrolling');
+    viewport.style.removeProperty('--vertical-tab-title-offset');
+    viewport.style.removeProperty('--vertical-tab-title-duration');
+    delete viewport.dataset.overflowing;
+    const primary = viewport.closest('.vertical-tab-primary');
+    if (primary && !primary.hasAttribute('title')) {
+      primary.title = viewport.textContent;
+    }
   }
 
   function visiblePrimaryButtons() {
@@ -192,6 +278,8 @@
     primary.draggable = true;
 
     primary.addEventListener('dragstart', (event) => {
+      const scrollingTitle = primary.querySelector('.vertical-tab-title.scrolling');
+      if (scrollingTitle) stopTitleScroll(scrollingTitle);
       dragState = { id: tab.id, bucket: tabBucket, title: titleFor(tab) };
       row.classList.add('dragging');
       if (event.dataTransfer) {
@@ -281,7 +369,13 @@
     primary.appendChild(faviconFor(tab));
     const titleEl = document.createElement('span');
     titleEl.className = 'vertical-tab-title';
-    titleEl.textContent = title;
+    titleEl.setAttribute('aria-hidden', 'true');
+    const titleText = document.createElement('span');
+    titleText.className = 'vertical-tab-title-text';
+    titleText.textContent = title;
+    titleEl.appendChild(titleText);
+    titleEl.addEventListener('pointerenter', () => startTitleScroll(titleEl, titleText));
+    titleEl.addEventListener('pointerleave', () => stopTitleScroll(titleEl));
     primary.appendChild(titleEl);
 
     if (tab.private) {
@@ -396,10 +490,6 @@
       activeMarker.setAttribute('aria-hidden', 'true');
       header.appendChild(activeMarker);
     }
-    const rule = document.createElement('span');
-    rule.className = 'vertical-tabs-group-rule';
-    rule.setAttribute('aria-hidden', 'true');
-    header.appendChild(rule);
 
     header.addEventListener('click', () => {
       pendingFocusKey = header.dataset.focusKey;
@@ -450,8 +540,7 @@
 
   function render(payload = {}) {
     const layout = payload.tabLayout === 'vertical' ? 'vertical' : 'island';
-    const width = payload.verticalTabsWidth;
-    if (!Number.isFinite(width) || width <= 0) {
+    if (!applyWidthMetrics(payload)) {
       // A vertical payload without main's authoritative width is incomplete;
       // fail closed to Island instead of inventing renderer geometry.
       document.documentElement.dataset.tabLayout = 'island';
@@ -460,7 +549,6 @@
       return;
     }
     document.documentElement.dataset.tabLayout = layout;
-    document.documentElement.style.setProperty('--vertical-tabs-w', `${width}px`);
     rail.hidden = layout !== 'vertical';
     rail.dataset.activeTabId = payload.activeTabId || '';
     if (layout !== 'vertical') {
@@ -520,6 +608,72 @@
   newTabButton.addEventListener('click', () => {
     invokeLeavingRail('create tab', () => api.createTab(null, { focusAddress: true }));
   });
+  resizeHandle.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+    event.preventDefault();
+    resizeState = {
+      pointerId: event.pointerId,
+      startWidth: widthMetrics.preferredWidth,
+      lastWidth: widthMetrics.width,
+    };
+    resizeHandle.setPointerCapture(event.pointerId);
+    document.documentElement.dataset.verticalTabsResizing = 'true';
+  });
+  resizeHandle.addEventListener('pointermove', (event) => {
+    if (!resizeState || resizeState.pointerId !== event.pointerId) return;
+    const width = Math.round(event.clientX);
+    resizeState.lastWidth = width;
+    queueWidthPreview(width);
+  });
+  resizeHandle.addEventListener('pointerup', (event) => {
+    if (!resizeState || resizeState.pointerId !== event.pointerId) return;
+    const width = resizeState.lastWidth;
+    resizeState = null;
+    clearQueuedWidthPreview();
+    delete document.documentElement.dataset.verticalTabsResizing;
+    if (resizeHandle.hasPointerCapture(event.pointerId)) {
+      resizeHandle.releasePointerCapture(event.pointerId);
+    }
+    commitWidth(width, (committed) => `Vertical tabs width ${committed} pixels`);
+  });
+  resizeHandle.addEventListener('pointercancel', (event) => {
+    if (!resizeState || resizeState.pointerId !== event.pointerId) return;
+    const startWidth = resizeState.startWidth;
+    resizeState = null;
+    clearQueuedWidthPreview();
+    delete document.documentElement.dataset.verticalTabsResizing;
+    api.previewVerticalTabsWidth(startWidth);
+  });
+  resizeHandle.addEventListener('lostpointercapture', () => {
+    if (!resizeState) return;
+    const width = resizeState.lastWidth;
+    resizeState = null;
+    clearQueuedWidthPreview();
+    delete document.documentElement.dataset.verticalTabsResizing;
+    commitWidth(width, (committed) => `Vertical tabs width ${committed} pixels`);
+  });
+  resizeHandle.addEventListener('dblclick', (event) => {
+    event.preventDefault();
+    commitWidth(
+      widthMetrics.defaultWidth,
+      (committed) => `Vertical tabs width reset to ${committed} pixels`
+    );
+  });
+  resizeHandle.addEventListener('keydown', (event) => {
+    let nextWidth = null;
+    const step = event.shiftKey ? 24 : 8;
+    if (event.key === 'ArrowLeft') nextWidth = widthMetrics.width - step;
+    if (event.key === 'ArrowRight') nextWidth = widthMetrics.width + step;
+    if (event.key === 'Home') nextWidth = widthMetrics.minWidth;
+    if (event.key === 'End') nextWidth = widthMetrics.maxWidth;
+    if (event.key === 'Enter' || event.key === ' ') {
+      nextWidth = widthMetrics.defaultWidth;
+    }
+    if (nextWidth === null) return;
+    event.preventDefault();
+    event.stopPropagation();
+    commitWidth(nextWidth, (committed) => `Vertical tabs width ${committed} pixels`);
+  });
   rail.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape' || !rail.dataset.activeTabId) return;
     event.preventDefault();
@@ -534,6 +688,16 @@
   // deliberately focuses a rail control again.
   rail.addEventListener('focusin', () => {
     suppressFocusRestore = false;
+  });
+
+  api.onVerticalTabsWidth((metrics) => {
+    applyWidthMetrics(metrics);
+  });
+  reducedMotion.addEventListener?.('change', (event) => {
+    if (!event.matches) return;
+    for (const title of rail.querySelectorAll('.vertical-tab-title.scrolling')) {
+      stopTitleScroll(title);
+    }
   });
 
   window.blancVerticalTabs = Object.freeze({ render });

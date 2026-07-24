@@ -35,21 +35,15 @@
   </div>
   <aside id="verticalTabsRail" class="vertical-tabs-rail no-drag" aria-label="Vertical tabs" hidden>
     <div class="vertical-tabs-toolbar">
-      <span class="vertical-tabs-heading">tabs</span>
       <button
         id="verticalTabsUseIsland"
         class="vertical-tabs-layout-button"
         type="button"
-        title="Keep tabs in the Island"
-        aria-label="Use Island tab layout"
+        title="Turn vertical tabs off"
+        aria-label="Turn vertical tabs off"
         data-focus-key="layout:island"
       >
-        <svg viewBox="0 0 16 16" aria-hidden="true">
-          <rect x="1.75" y="4.25" width="12.5" height="7.5" rx="3.75"></rect>
-          <circle cx="5.25" cy="8" r="0.75"></circle>
-          <circle cx="8" cy="8" r="0.75"></circle>
-        </svg>
-        <span>Island</span>
+        <span class="vertical-tabs-layout-icon" aria-hidden="true"></span>
       </button>
     </div>
     <div id="verticalTabsList" class="vertical-tabs-list" role="list" aria-label="Open tabs"></div>
@@ -66,6 +60,18 @@
         <kbd id="verticalTabsNewShortcut"></kbd>
       </button>
     </div>
+    <div
+      id="verticalTabsResizeHandle"
+      class="vertical-tabs-resize-handle"
+      role="separator"
+      aria-label="Resize vertical tabs"
+      aria-orientation="vertical"
+      aria-valuemin="200"
+      aria-valuemax="360"
+      aria-valuenow="248"
+      tabindex="0"
+      title="Drag to resize; double-click to reset"
+    ></div>
     <div id="verticalTabsAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   </aside>
   <script src="vertical-tabs.js"></script>

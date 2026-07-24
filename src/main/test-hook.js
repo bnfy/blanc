@@ -35,6 +35,8 @@ function install(refs) {
     reopenClosedTab,
     newTabUrl,
     setTabLayout,
+    setVerticalTabsWidth,
+    getVerticalTabsMetrics,
     broadcastTabs,
     getRailActivationSerial,
     normalizeAddressInput,
@@ -224,6 +226,26 @@ function install(refs) {
     settingsSyncValues() { return settings.exportForSync().values; },
     tabLayout() { return settings.getSettings().tabLayout; },
     setTabLayout(layout) { return setTabLayout(layout); },
+    pressVerticalTabsShortcut() {
+      const accelerator = Menu.getApplicationMenu()
+        ?.getMenuItemById('toggle-vertical-tabs')
+        ?.accelerator;
+      if (!['CmdOrCtrl+Alt+V', 'CommandOrControl+Alt+V'].includes(accelerator)) {
+        throw new Error(`unexpected vertical-tabs accelerator: ${accelerator}`);
+      }
+      const wc = getChromeWebContents();
+      if (!wc) throw new Error('chrome webContents unavailable');
+      const modifiers = process.platform === 'darwin'
+        ? ['meta', 'alt']
+        : ['control', 'alt'];
+      wc.focus();
+      wc.sendInputEvent({ type: 'keyDown', keyCode: 'V', modifiers });
+      wc.sendInputEvent({ type: 'keyUp', keyCode: 'V', modifiers });
+      return true;
+    },
+    verticalTabsWidth() { return settings.getSettings().verticalTabsWidth; },
+    setVerticalTabsWidth(width) { return setVerticalTabsWidth(width); },
+    verticalTabsMetrics() { return getVerticalTabsMetrics(); },
     mergeRemoteTabLayout(layout) {
       settings.mergeFromSync({
         values: { tabLayout: layout },
@@ -335,6 +357,29 @@ function install(refs) {
           x: rect.x, y: rect.y, width: rect.width, height: rect.height,
           display: style.display, visibility: style.visibility
         };
+      })()`);
+    },
+    async islandLayoutToggleState() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('footerTabLayout');
+        if (!button) return null;
+        return {
+          title: button.title,
+          label: button.getAttribute('aria-label'),
+          pressed: button.getAttribute('aria-pressed')
+        };
+      })()`);
+    },
+    async clickIslandLayoutToggle() {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('footerTabLayout');
+        if (!button) return false;
+        button.click();
+        return true;
       })()`);
     },
     async activePageState() {
@@ -493,6 +538,7 @@ function install(refs) {
         homePage: '',
         theme: 'system',
         tabLayout: 'island',
+        verticalTabsWidth: 248,
         appIcon: 'paper',
         adblockExceptions: [],
       });

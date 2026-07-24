@@ -2,7 +2,10 @@
 // outside main.js makes the 640px minimum-window edge case testable without
 // Electron and gives the renderer one authoritative rail-width constant.
 
-const VERTICAL_TABS_WIDTH = 248;
+const VERTICAL_TABS_DEFAULT_WIDTH = 248;
+const VERTICAL_TABS_MIN_WIDTH = 200;
+const VERTICAL_TABS_MAX_WIDTH = 360;
+const VERTICAL_TABS_MIN_PAGE_WIDTH = 392;
 const FIND_OVERLAY_MAX_WIDTH = 560;
 const FIND_OVERLAY_HEIGHT = 160;
 // #findBar is 480px wide and uses max-width: calc(100vw - 24px). Exposing the
@@ -21,19 +24,46 @@ function dimension(value) {
   return Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0;
 }
 
+function normalizeVerticalTabsWidth(value) {
+  if (!Number.isFinite(value)) return VERTICAL_TABS_DEFAULT_WIDTH;
+  return Math.max(
+    VERTICAL_TABS_MIN_WIDTH,
+    Math.min(VERTICAL_TABS_MAX_WIDTH, Math.round(value))
+  );
+}
+
 /**
- * @param {{width: number, height: number, chromeHeight: number, tabLayout?: string}} input
+ * @param {{
+ *   width: number,
+ *   height: number,
+ *   chromeHeight: number,
+ *   tabLayout?: string,
+ *   verticalTabsWidth?: number,
+ * }} input
  */
-function calculateChromeLayout({ width, height, chromeHeight, tabLayout = 'island' }) {
+function calculateChromeLayout({
+  width,
+  height,
+  chromeHeight,
+  tabLayout = 'island',
+  verticalTabsWidth = VERTICAL_TABS_DEFAULT_WIDTH,
+}) {
   const windowWidth = dimension(width);
   const windowHeight = dimension(height);
   const stripHeight = Math.min(dimension(chromeHeight), windowHeight);
   const layout = normalizeTabLayout(tabLayout);
-  // BrowserWindow enforces a 640px minimum width, so the vertical rail is
-  // always the full 248px in production. The min() is a defensive guard for
-  // unit callers and transient zero-sized content bounds during teardown.
+  const preferredRailWidth = normalizeVerticalTabsWidth(verticalTabsWidth);
+  // BrowserWindow enforces a 640px minimum width, so production can honor the
+  // 200px rail minimum while still preserving at least 392px for the website.
+  // The outer max is window-aware: a wider saved preference temporarily
+  // compresses at a narrow window and returns when room is available again.
+  const verticalTabsMaxWidth = Math.min(
+    VERTICAL_TABS_MAX_WIDTH,
+    Math.max(0, windowWidth - VERTICAL_TABS_MIN_PAGE_WIDTH)
+  );
+  const effectiveRailWidth = Math.min(preferredRailWidth, verticalTabsMaxWidth);
   const railWidth = layout === 'vertical'
-    ? Math.min(VERTICAL_TABS_WIDTH, windowWidth)
+    ? effectiveRailWidth
     : 0;
   const pageWidth = Math.max(0, windowWidth - railWidth);
   const pageHeight = Math.max(0, windowHeight - stripHeight);
@@ -44,6 +74,9 @@ function calculateChromeLayout({ width, height, chromeHeight, tabLayout = 'islan
     width: pageWidth,
     height: pageHeight,
   };
+  // In vertical mode the website pane becomes the visual frame. Keep resting
+  // and expanded Island states on that pane's centerline; find is page-scoped
+  // below the sampled safe-area gutter as well.
   const panelBounds = {
     x: railWidth,
     y: 0,
@@ -60,13 +93,20 @@ function calculateChromeLayout({ width, height, chromeHeight, tabLayout = 'islan
 
   return {
     tabLayout: layout,
-    verticalTabsWidth: VERTICAL_TABS_WIDTH,
+    verticalTabsWidth: effectiveRailWidth,
+    verticalTabsPreferredWidth: preferredRailWidth,
+    verticalTabsMinWidth: Math.min(VERTICAL_TABS_MIN_WIDTH, verticalTabsMaxWidth),
+    verticalTabsMaxWidth,
+    verticalTabsDefaultWidth: Math.min(VERTICAL_TABS_DEFAULT_WIDTH, verticalTabsMaxWidth),
     railWidth,
+    // Unlike the page pane, the vertical rail owns the complete left edge.
+    // Its chrome background extends behind the macOS traffic-light safe area
+    // while website content retains the sampled 64px gutter below the Island.
     railBounds: {
       x: 0,
-      y: stripHeight,
+      y: 0,
       width: railWidth,
-      height: pageHeight,
+      height: windowHeight,
     },
     // Guest tabs and the utility sheet intentionally share exact bounds.
     pageBounds,
@@ -75,7 +115,8 @@ function calculateChromeLayout({ width, height, chromeHeight, tabLayout = 'islan
     panelBounds,
     paletteBounds: { ...panelBounds },
     findBounds,
-    // The root chrome renderer uses this pane to center the resting Island.
+    // The root chrome renderer mirrors these bounds so the resting Island
+    // centers over the same website pane as its expanded states.
     islandBounds: {
       x: railWidth,
       y: 0,
@@ -90,11 +131,15 @@ function calculateChromeLayout({ width, height, chromeHeight, tabLayout = 'islan
 }
 
 module.exports = {
-  VERTICAL_TABS_WIDTH,
+  VERTICAL_TABS_DEFAULT_WIDTH,
+  VERTICAL_TABS_MIN_WIDTH,
+  VERTICAL_TABS_MAX_WIDTH,
+  VERTICAL_TABS_MIN_PAGE_WIDTH,
   FIND_OVERLAY_MAX_WIDTH,
   FIND_OVERLAY_HEIGHT,
   FIND_CAPSULE_WIDTH,
   FIND_CAPSULE_HORIZONTAL_GUTTER,
   normalizeTabLayout,
+  normalizeVerticalTabsWidth,
   calculateChromeLayout,
 };

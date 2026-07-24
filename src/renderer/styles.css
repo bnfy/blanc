@@ -123,9 +123,10 @@ button svg {
 }
 #windowControls svg { width: 12px; height: 12px; }
 
-/* ---------- Chrome strip: a slim reserved band the resting pill floats
-   in. The island's expanded states render in a separate overlay
-   WebContentsView (overlay.html) stacked over the web content. ---------- */
+/* ---------- Sampled safe-area gutter: a slim main-pane margin the resting
+   pill floats in without covering website pixels. The vertical rail paints
+   over its left edge and reaches the window top; expanded Island states render
+   in a separate overlay WebContentsView (overlay.html). ---------- */
 
 .no-drag { -webkit-app-region: no-drag; }
 /* While the command bar overlay covers the strip, window-drag must not
@@ -158,22 +159,21 @@ button svg {
 }
 
 /* ---------- Vertical tabs: optional trusted-chrome rail ----------
-   The rail starts below the strip, while the strip's resting Island stays
-   centered over the remaining page pane. Main uses the same width payload
-   for guest/sheet/overlay bounds. ---------- */
+   The rail starts below the strip and reserves space only from page-scoped
+   surfaces. With the rail now owning the full left edge, the remaining website
+   pane is the visual frame for both resting and expanded Island states. ---------- */
 
 :root[data-tab-layout="vertical"] #strip {
   padding-left: var(--vertical-tabs-w);
 }
 
 :root[data-tab-layout="vertical"] #islandPill {
-  /* Non-mac window buttons remain at the page pane's right edge. */
+  /* Non-mac window buttons remain at the website pane's right edge. */
   max-width: calc((100vw - var(--vertical-tabs-w) - 150px) / var(--pill-zoom));
 }
 
-/* macOS traffic lights sit inside the reserved 248px rail, so subtracting the
-   Island layout's old 170px left clearance would unnecessarily crush the pill
-   at the 640px minimum window width. */
+/* macOS traffic lights live inside the rail, so only a small pane-side
+   clearance is needed at the 640px minimum. */
 :root[data-tab-layout="vertical"][data-platform="darwin"] #islandPill {
   max-width: calc((100vw - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
 }
@@ -188,7 +188,7 @@ button svg {
 .vertical-tabs-rail {
   position: fixed;
   z-index: 5;
-  top: var(--strip-h);
+  top: 0;
   bottom: 0;
   left: 0;
   width: var(--vertical-tabs-w);
@@ -196,7 +196,7 @@ button svg {
   flex-direction: column;
   min-height: 0;
   background: var(--bg);
-  border-right: 1px solid var(--border);
+  border-right: none;
   color: var(--text);
 }
 
@@ -204,52 +204,111 @@ button svg {
   display: none;
 }
 
+/* A restrained inset shadow separates trusted chrome from the website pane
+   without consuming page width. It stays inside the rail because the guest
+   WebContentsView begins at the rail boundary and owns native hit-testing on
+   the other side. */
+.vertical-tabs-rail::after {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.012) 38%,
+    rgba(0, 0, 0, 0.035) 72%,
+    rgba(0, 0, 0, 0.058) 100%
+  );
+}
+
+.vertical-tabs-resize-handle {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.vertical-tabs-resize-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+:root[data-vertical-tabs-resizing="true"],
+:root[data-vertical-tabs-resizing="true"] * {
+  cursor: col-resize !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vertical-tabs-rail::after {
+    background: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.055) 38%,
+      rgba(0, 0, 0, 0.14) 72%,
+      rgba(0, 0, 0, 0.22) 100%
+    );
+  }
+}
+
+:root[data-theme="private"] .vertical-tabs-rail::after {
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.07) 38%,
+    rgba(0, 0, 0, 0.18) 72%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+}
+
 .vertical-tabs-toolbar {
   min-height: 44px;
   padding: 8px 10px 7px 14px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid var(--border);
+  justify-content: flex-end;
   flex: 0 0 auto;
 }
 
-.vertical-tabs-heading {
-  flex: 1 1 auto;
-  min-width: 0;
-  color: var(--text-dim);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
+/* The rail background owns the entire left edge. On macOS its first row also
+   acts as the title-bar safe area: content starts after the native traffic
+   lights, while the main pane's sampled website gutter remains independent. */
+body.mac .vertical-tabs-toolbar {
+  min-height: var(--strip-h);
+  padding: 8px 10px 7px 96px;
 }
 
 .vertical-tabs-layout-button {
+  width: 28px;
   height: 28px;
-  display: inline-flex;
+  display: grid;
+  place-items: center;
   align-items: center;
-  gap: 6px;
-  padding: 0 9px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  padding: 0;
+  border-radius: var(--radius);
   color: var(--text-dim);
-  font-family: var(--font-mono);
-  font-size: 10.5px;
 }
 
 .vertical-tabs-layout-button:hover {
-  border-color: var(--text-dim);
   background: var(--surface);
   color: var(--text);
 }
 
-.vertical-tabs-layout-button svg {
-  width: 16px;
-  height: 16px;
-}
-
-.vertical-tabs-layout-button svg circle {
-  fill: currentColor;
-  stroke: none;
+.vertical-tabs-layout-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  background: currentColor;
+  -webkit-mask: url("panel-left.svg") center / contain no-repeat;
+  mask: url("panel-left.svg") center / contain no-repeat;
 }
 
 .vertical-tabs-list {
@@ -350,13 +409,6 @@ button svg {
   flex: 0 0 auto;
 }
 
-.vertical-tabs-group-rule {
-  height: 1px;
-  min-width: 8px;
-  background: var(--border);
-  flex: 1 1 auto;
-}
-
 .vertical-tab-row {
   position: relative;
   min-width: 0;
@@ -423,10 +475,33 @@ button svg {
   min-width: 0;
   flex: 1 1 auto;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text);
   font-size: 12.5px;
+}
+
+.vertical-tab-title-text {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateX(0);
+}
+
+/* Direct title hover opts into a one-way reading pass only when JS measures
+   real overflow. It pauses briefly, moves at a distance-derived steady speed,
+   then holds the end until the pointer leaves and the ellipsis returns. */
+.vertical-tab-title.scrolling .vertical-tab-title-text {
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  transform: translateX(var(--vertical-tab-title-offset));
+  transition:
+    transform var(--vertical-tab-title-duration) linear 600ms;
 }
 
 .vertical-tab-row.loading .vertical-tab-title {
@@ -1289,8 +1364,8 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
 }
 
 /* ---------- Island: expanded-panel footer action bar ----------
-   New tab / private launchers on the left, quick-access page shortcuts
-   (favorites, history, downloads, settings) on the right. A static row
+   New tab / private launchers on the left, quick-access page shortcuts and
+   the tab-layout toggle on the right. A static row
    below the list — always visible, unlike the old in-list "New tab"/
    "private" rows it replaces, so it stays put while the list shows
    commands or Quick-Switcher results. */
@@ -1350,6 +1425,10 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
   flex: 0 0 auto;
 }
 .footer-act:hover { background: var(--surface); color: var(--text); }
+.footer-act[aria-pressed="true"] {
+  background: var(--accent-dim);
+  color: var(--text);
+}
 .footer-act svg { width: 15px; height: 15px; }
 
 #islandHint {
@@ -1473,6 +1552,15 @@ body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
   .dot-peek { transition: none; }
   .island-ghead svg.caret { transition: none; }
   .vertical-tabs-group-caret { transition: none; }
+  .vertical-tab-title.scrolling .vertical-tab-title-text {
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transform: none;
+    transition: none;
+  }
   .island-row.tab-row .row-sub,
   .island-row.tab-row .row-tag,
   .island-row.tab-row .row-remote-pin { transition: none; }

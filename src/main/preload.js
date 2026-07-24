@@ -40,6 +40,15 @@ contextBridge.exposeInMainWorld('browserAPI', {
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
   setTabLayout: (layout) => ipcRenderer.invoke('chrome:set-tab-layout', layout),
+  previewVerticalTabsWidth: (width) =>
+    ipcRenderer.send('chrome:preview-vertical-tabs-width', width),
+  setVerticalTabsWidth: (width) =>
+    ipcRenderer.invoke('chrome:set-vertical-tabs-width', width),
+  onVerticalTabsWidth: (callback) => {
+    const listener = (_event, metrics) => callback(metrics);
+    ipcRenderer.on('chrome:vertical-tabs-width', listener);
+    return () => ipcRenderer.removeListener('chrome:vertical-tabs-width', listener);
+  },
 
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),

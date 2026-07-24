@@ -401,9 +401,13 @@ it, that's a documented capability gap, not a behavioral promise broken.
 wide, resizable window. Reserving the same geometry on a phone would consume the
 content area and fight the platform's native navigation model.
 
-- **Desktop:** optional fixed 248px left rail below the 64px strip. It is another
-  presentation of the canonical tab/group model; the Island remains the sole
-  address, search, and command surface.
+- **Desktop:** optional 200–360px full-height left rail, defaulting and
+  resetting to 248px. Its width is directly adjustable and device-local; a
+  narrow window temporarily caps the rendered rail to preserve at least 392px
+  for the page without overwriting the saved preference. The page pane keeps a
+  64px sampled-color safe-area gutter for the floating Island, which remains
+  the sole address, search, and command surface. The rail is another
+  presentation of the canonical tab/group model.
 - **iOS:** no reserved rail. Use the native full-screen tab overview while
   preserving Blanc's tab identity, private state, pinning, and named groups.
 - **Android:** no reserved rail. Use the native full-screen tab overview while

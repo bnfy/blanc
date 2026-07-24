@@ -1,9 +1,9 @@
 @vertical-tabs
 Feature: Desktop vertical tabs
   The optional desktop rail is a live presentation of the canonical tab model.
-  It reserves the page pane without replacing the Island, reloading tabs, or
-  turning remote-device snapshots into local rows. Mobile uses its native tab
-  overview under D19.
+  It reserves the page pane without moving or replacing the Island, reloading
+  tabs, or turning remote-device snapshots into local rows. Mobile uses its
+  native tab overview under D19.
 
   @F28-1 @F28 @desktop @D19
   Scenario: The layout defaults to Island, persists locally, and never syncs
@@ -17,6 +17,75 @@ Feature: Desktop vertical tabs
     When Profile Sync receives a different tab-layout preference
     Then the tab layout remains "vertical"
 
+  @F28-13 @F28 @desktop @D19
+  Scenario: The expanded Island toggles the tab layout in either direction
+    Given a fresh desktop settings profile
+    When I open the Island panel
+    Then the Island footer offers vertical tabs
+    When I toggle the tab layout from the Island footer
+    Then the tab layout is "vertical"
+    And the vertical tab rail is shown
+    When I open the Island panel
+    Then the Island footer offers Island tabs
+    When I toggle the tab layout from the Island footer
+    Then the tab layout is "island"
+
+  @F28-14 @F28 @desktop @D19
+  Scenario: The vertical-tabs keyboard shortcut toggles the layout in either direction
+    Given a fresh desktop settings profile
+    When I press the vertical-tabs keyboard shortcut
+    Then the tab layout is "vertical"
+    And the vertical tab rail is shown
+    When I press the vertical-tabs keyboard shortcut
+    Then the tab layout is "island"
+
+  @F28-15 @F28 @desktop @D19
+  Scenario: The rail resizes directly within its supported range and resets
+    Given a 1000 by 700 desktop window with the vertical tab layout
+    Then the rendered vertical tab width is 248 pixels
+    When I drag the vertical tab resize handle to 320 pixels
+    Then the rendered vertical tab width is 320 pixels
+    And its guest bounds are x 320, y 64, width 680, height 636
+    When I drag the vertical tab resize handle to 120 pixels
+    Then the rendered vertical tab width is 200 pixels
+    When I drag the vertical tab resize handle to 500 pixels
+    Then the rendered vertical tab width is 360 pixels
+    When I double-click the vertical tab resize handle
+    Then the rendered vertical tab width is 248 pixels
+    And the preferred vertical tab width is 248 pixels
+
+  @F28-16 @F28 @desktop @D19
+  Scenario: A narrow window caps the rail without overwriting its preference
+    Given a 1000 by 700 desktop window with the vertical tab layout
+    When I drag the vertical tab resize handle to 360 pixels
+    And I resize the desktop window to 640 by 480
+    Then the rendered vertical tab width is 248 pixels
+    And the page pane starts at x 248 and is 392 pixels wide
+    And the preferred vertical tab width is 360 pixels
+    When I resize the desktop window to 1000 by 700
+    Then the rendered vertical tab width is 360 pixels
+    And the page pane starts at x 360 and is 640 pixels wide
+    And the Profile Sync payload does not contain the vertical-tab width preference
+    When I relaunch Blanc
+    Then the tab layout is "vertical"
+    And the rendered vertical tab width is 360 pixels
+
+  @F28-17 @F28 @desktop @D19
+  Scenario: Direct title hover reveals only genuinely truncated tab titles
+    Given a 1000 by 700 desktop window with the vertical tab layout
+    And the rail contains a truncated title and a fully visible title
+    Then only the long vertical tab title overflows its viewport
+    When I hover the overflowing vertical tab row outside its title
+    Then neither vertical tab title scrolls
+    When I hover the truncated vertical tab title
+    Then the truncated title scrolls toward its hidden end
+    When I move the pointer away from the vertical tab title
+    Then the truncated title returns to its starting position
+    When I hover the fully visible vertical tab title
+    Then the fully visible title remains still
+    When reduced motion is preferred and I hover the truncated vertical tab title
+    Then the truncated title remains still with its full accessible name
+
   @F28-2 @F28 @desktop @D19
   Scenario: Changing tab layout does not reload guest content
     Given an active web tab with a load counter and unsaved in-page state
@@ -29,22 +98,23 @@ Feature: Desktop vertical tabs
   @F28-3 @F28 @desktop @D19
   Scenario: Guest content and the utility sheet use the vertical page pane
     Given a 1000 by 700 desktop window with the vertical tab layout
-    When an ordinary tab is active below the 64 pixel strip
+    When an ordinary tab is active below the 64 pixel sampled safe-area gutter
     Then its guest bounds are x 248, y 64, width 752, height 636
-    And the resting Island is centered over the page pane
+    And the vertical rail bounds are x 0, y 0, width 248, height 700
+    And the resting Island is centered over the website pane
     When I open a utility page
     Then its sheet bounds are x 248, y 64, width 752, height 636
     And the rail remains visible and unobscured
 
   @F28-4 @F28 @desktop @D19
-  Scenario: Panel and palette exclude the rail while expanding from the strip
+  Scenario: Panel and palette stay pane-centered above the sampled safe-area gutter
     Given a 1000 by 700 desktop window with the vertical tab layout
     When I open the Island panel
     Then the panel overlay bounds are x 248, y 0, width 752, height 700
-    And the expanded Island is centered over the page pane
+    And the expanded Island is centered over the website pane
     When I replace the panel with the command palette
     Then the palette overlay bounds are x 248, y 0, width 752, height 700
-    And the expanded Island remains centered over the page pane
+    And the expanded Island remains centered over the website pane
 
   @F28-5 @F28 @desktop @D19
   Scenario: Find remains inside the page pane at the minimum window size

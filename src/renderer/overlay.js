@@ -30,6 +30,7 @@
   const footerFavorites = document.getElementById('footerFavorites');
   const footerHistory = document.getElementById('footerHistory');
   const footerDownloads = document.getElementById('footerDownloads');
+  const footerTabLayout = document.getElementById('footerTabLayout');
   const footerSettings = document.getElementById('footerSettings');
 
   let state = { tabs: [], activeTabId: null, groups: [] };
@@ -194,6 +195,12 @@
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
     heartBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page (Ctrl/Cmd+D)';
     panelInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
+
+    const verticalTabsActive = state.tabLayout === 'vertical';
+    footerTabLayout.title = verticalTabsActive
+      ? 'Turn vertical tabs off'
+      : 'Turn vertical tabs on';
+    footerTabLayout.setAttribute('aria-pressed', String(verticalTabsActive));
   }
 
   function tabRow(tab) {
@@ -1052,6 +1059,10 @@
   footerFavorites.addEventListener('click', () => openPageFromFooter('bookmarks'));
   footerHistory.addEventListener('click', () => openPageFromFooter('history'));
   footerDownloads.addEventListener('click', () => openPageFromFooter('downloads'));
+  footerTabLayout.addEventListener('click', () => {
+    const nextLayout = state.tabLayout === 'vertical' ? 'island' : 'vertical';
+    window.browserAPI.setTabLayout(nextLayout);
+  });
   footerSettings.addEventListener('click', () => openPageFromFooter('settings'));
 
   addressInput.addEventListener('compositionstart', () => {

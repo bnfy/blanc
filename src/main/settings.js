@@ -3,6 +3,10 @@ const { app } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { isValidDohTemplate, reconcileSecureDnsWrite, coerceSecureDnsRead } = require('./network-privacy');
+const {
+  VERTICAL_TABS_DEFAULT_WIDTH,
+  normalizeVerticalTabsWidth,
+} = require('./chrome-layout');
 const APP_ICON_ASSETS = require('./app-icon-assets');
 
 const SEARCH_ENGINES = {
@@ -21,9 +25,9 @@ const SECURE_DNS_OPTIONS = ['auto', 'off', 'cloudflare', 'quad9', 'mullvad', 'cu
 const FIRST_RUN_VERSION = 1;
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
-// excludes tabLayout, appIcon, and searchSuggestions (device-local),
-// usagePing (per-install consent), and supporter (never — that would be
-// license sharing).
+// excludes tabLayout, verticalTabsWidth, appIcon, and searchSuggestions
+// (device-local), usagePing (per-install consent), and supporter (never —
+// that would be license sharing).
 const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions'];
 
 // Dock icon colorways — id maps to src/renderer/pages/icon-<id>.png; order
@@ -79,6 +83,9 @@ const DEFAULTS = {
   theme: 'system',
   // Device-local presentation preference; deliberately not Profile Synced.
   tabLayout: 'island',
+  // Preferred rail width. The live layout may temporarily cap it to preserve
+  // the minimum website pane, but that window-size cap is never persisted.
+  verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
   appIcon: 'paper',
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
@@ -159,6 +166,7 @@ function getSettings() {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
+  data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
   // Read coercion for a corrupted stored state (hand-edited settings.json): custom
   // without a valid template reads back as the default, never as plaintext-capable
@@ -187,6 +195,9 @@ function sanitize(partial) {
   if (typeof partial.homePage === 'string') clean.homePage = partial.homePage.trim();
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
+  if (Number.isFinite(partial.verticalTabsWidth)) {
+    clean.verticalTabsWidth = normalizeVerticalTabsWidth(partial.verticalTabsWidth);
+  }
   if (WEBRTC_POLICIES.includes(partial.webrtcPolicy)) clean.webrtcPolicy = partial.webrtcPolicy;
   if (SECURE_DNS_OPTIONS.includes(partial.secureDns)) clean.secureDns = partial.secureDns;
   if (typeof partial.secureDnsTemplate === 'string') {

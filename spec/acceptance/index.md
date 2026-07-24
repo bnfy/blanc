@@ -94,8 +94,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F27-3 | Sharing-off retracts this device | — | ✅ | ⬜ | ⬜ |
 | F28-1 | Layout default, persistence, and no-sync rule | D19 | ✅ | ➖ | ➖ |
 | F28-2 | Layout switching preserves live guest content | D19 | ✅ | ➖ | ➖ |
-| F28-3 | Guest and utility-sheet page-pane geometry | D19 | ✅ | ➖ | ➖ |
-| F28-4 | Panel and palette page-pane geometry | D19 | ✅ | ➖ | ➖ |
+| F28-3 | Full-height rail and safe-area page-pane geometry | D19 | ✅ | ➖ | ➖ |
+| F28-4 | Panel and palette website-pane geometry | D19 | ✅ | ➖ | ➖ |
 | F28-5 | Find geometry at 640×480 | D19 | ✅ | ➖ | ➖ |
 | F28-6 | Canonical buckets, groups, and remote-tab scope | D19 | ✅ | ➖ | ➖ |
 | F28-7 | Identity, private, loading, pin, and audio states | D19 | ✅ | ➖ | ➖ |
@@ -104,6 +104,11 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F28-10 | Same-bucket drag reorder | D19 | ✅ | ➖ | ➖ |
 | F28-11 | Cross-bucket drag rejection | D19 | ✅ | ➖ | ➖ |
 | F28-12 | Roving keyboard and accessible action flow | D19 | ✅ | ➖ | ➖ |
+| F28-13 | Expanded-Island two-way layout toggle | D19 | ✅ | ➖ | ➖ |
+| F28-14 | Global vertical-tabs keyboard toggle | D19 | ✅ | ➖ | ➖ |
+| F28-15 | Constrained direct rail resize and reset | D19 | ✅ | ➖ | ➖ |
+| F28-16 | Non-destructive narrow-window width cap and persistence | D19 | ✅ | ➖ | ➖ |
+| F28-17 | Overflow-only tab-title hover scrolling | D19 | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

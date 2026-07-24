@@ -46,20 +46,25 @@ Try:
 
 ## Minute 3 — optional vertical tabs
 
-Choose **View → Tab Layout → Vertical Tabs**, or use Settings → General → Tab
-layout. The Island remains centered over the page pane and remains the only
-address/search/command surface. The left rail should preserve existing tabs,
-pins, named groups, private state, loading/audio state, and ordering without
+Choose **View → Tab Layout → Vertical Tabs**, use Settings → General → Tab
+layout, use the sidebar button in the expanded Island footer, or press
+**Command-Option-V** (**Ctrl-Alt-V** elsewhere). The Island remains centered
+over the website pane in a safe-area gutter tinted from the active website,
+while the rail runs all the way to the top. The Island remains the only
+address/search/command surface. The rail should preserve existing tabs, pins,
+named groups, private state, loading/audio state, and ordering without
 reloading the active page.
 
 Exercise the rail:
 
+- drag its right edge wider or narrower, then double-click to reset to 248px;
+- hover a truncated tab title and confirm it scrolls to reveal the hidden end;
 - switch and close a tab;
 - middle-click a row to close it;
 - fold and unfold a named group;
 - drag a tab within the same pinned/group bucket;
 - use Arrow keys, Home/End, and Enter/Space on focused rows;
-- use the rail's Island-layout control to return.
+- use the rail's sidebar icon to turn vertical tabs off.
 
 ## Minute 4 — blocking and private state
 

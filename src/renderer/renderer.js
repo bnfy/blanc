@@ -327,7 +327,7 @@
   function render() {
     // The rail is a presentation of this same trusted payload, not another
     // tab store. Its module also applies the layout attribute/width used to
-    // center the resting Island over the remaining page pane.
+    // center the resting Island over the remaining website pane.
     window.blancVerticalTabs?.render(state);
 
     const tab = activeTab();

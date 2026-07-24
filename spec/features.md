@@ -235,6 +235,7 @@ From the desktop `DEFAULTS`:
 | `homePage` | `""` | empty = `blanc://newtab`; else a URL |
 | `theme` | `system` | system/light/dark |
 | `tabLayout` | `island` | desktop-only `island`/`vertical`; device-local, never synced (F28/D19) |
+| `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
 | `appIcon` | `paper` | a free icon id, or a supporter id **iff** supporter active |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `usagePing` | `true` | boolean (F21) |
@@ -421,21 +422,37 @@ From the desktop `DEFAULTS`:
   Changing it is a live presentation change over the existing main-owned tab
   model: it neither reloads guest content nor creates a second tab/workspace
   store. Mobile uses its native tab overview instead (D19).
-- The desktop vertical layout is a fixed **248px left rail** in the trusted
-  chrome document, beginning below the 64px strip. The Island remains the only
-  address, search, and command surface. Guest tabs and the utility sheet occupy
-  the remaining page pane. Panel and palette overlays exclude the rail
-  horizontally but retain `y = 0`, so the Island expands in place; resting and
-  expanded Island states share the page-pane center. Find is centered in that
-  pane and capped at 560px. At the supported 640×480 minimum, the pane is 392px
-  wide and the visible find capsule fits within 368px of it without touching
-  the rail.
+- The desktop vertical layout is a **resizable 200–360px full-height left
+  rail** in the trusted chrome document, defaulting to 248px. Its invisible
+  right-edge separator supports pointer drag, Left/Right and Home/End keyboard
+  adjustment, and double-click or Enter/Space reset to 248px. The preferred
+  width persists on the device and never syncs. When the window narrows, only
+  the rendered width is temporarily capped so the website retains at least
+  392px; widening restores the saved preference. The Island remains the only
+  address, search, and command surface. Guest tabs and the utility sheet
+  occupy the remaining page pane below a 64px safe-area gutter whose color is
+  sampled from the active website; the Island floats in that gutter without
+  covering website pixels.
+  The resting Island plus its panel and palette share the remaining website
+  pane's centerline; find remains page-scoped, centered in that pane and capped
+  at 560px. A subtle, noninteractive inset fade along the rail's right edge
+  gives the pane depth without reducing website width. At the
+  supported 640×480 minimum, the pane is 392px wide and the visible find
+  capsule fits within 368px of it without touching the rail. The expanded
+  Island footer has an accessible two-way vertical-tabs toggle, while the
+  rail's unlabeled top bar contains a single accessible sidebar icon that turns
+  vertical tabs off. The top bar and group labels use spacing instead of
+  divider rules. `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout
+  from anywhere.
 - The rail renders local tabs from the canonical tab order: ungrouped pins,
   named groups (group pins first), then loose tabs, followed by the new-tab
   action. Rows expose favicon and title plus active, loading, private, pinned,
-  audible, and muted states. Group headers fold/unfold, including an explicit
-  collapsed-active state. Remote-device tabs stay in the Quick Switcher and
-  start page; they never become rail rows.
+  audible, and muted states. Directly hovering a genuinely truncated title
+  starts a delayed, reduced-motion-aware reading pass to its hidden end;
+  fully visible titles stay still and pointer exit restores the ellipsis.
+  Group headers fold/unfold, including an explicit collapsed-active state.
+  Remote-device tabs stay in the Quick Switcher and start page; they never
+  become rail rows.
 - Pointer actions switch, close, middle-click close, create a new tab, and
   fold/unfold groups. Drag reorder is accepted only within the same
   `{groupId,pinned}` bucket; `beforeId: null` means the validated source
@@ -451,7 +468,9 @@ From the desktop `DEFAULTS`:
   focus to the active page.
 - **Acceptance:** The desktop scenarios in
   [`acceptance/vertical-tabs.feature`](./acceptance/vertical-tabs.feature)
-  verify the default, persistence, no-sync rule, no-reload layout switching,
+  verify the default, persistence, no-sync rule, constrained rail resizing and
+  reset, non-destructive narrow-window cap, overflow-only title hover reading,
+  no-reload layout switching,
   guest/sheet/panel/palette/find geometry (including 640×480), canonical row
   states and actions, group/private/loading/audio behavior, accepted and
   rejected reorder paths, activation cleanup/focus, and keyboard flow.

@@ -97,14 +97,19 @@ second workspace system.
 Contract:
 
 - `tabLayout`: `island | vertical`, device-local, default `island`;
-- fixed 248px left rail below the 64px strip;
+- 200–360px full-height left rail, default/reset 248px, with a device-local
+  preferred width;
+- direct pointer and keyboard resizing; narrow windows temporarily cap the
+  rendered rail to preserve a 392px page pane without overwriting preference;
 - rendered in the existing trusted BrowserWindow chrome document;
 - Island remains the only address/search/command surface;
-- guest tabs and utility sheet use the remaining page pane;
-- panel/palette exclude the rail horizontally but retain `y=0` so the Island
-  expands in place;
+- guest tabs and utility sheet use the remaining page pane below a 64px
+  active-website-tinted safe-area gutter, so the Island never covers page pixels;
+- panel/palette exclude the rail and retain `y=0` so the Island expands in place;
 - find width clamps to the available page pane;
-- resting and expanded Island share the page-pane center;
+- resting and expanded Island share the website-pane center;
+- the expanded Island footer toggles the vertical rail in either direction;
+- `⌘⌥V` on macOS / `Ctrl+Alt+V` elsewhere toggles the layout globally;
 - current pins, named groups, group collapse, private styling, loading/audio
   state, and tab ordering remain visible;
 - switch, close, middle-close, new tab, group fold/unfold, and same-bucket drag
@@ -275,7 +280,7 @@ real defect turns one item into a blocker:
 - full accessibility audit beyond changed surfaces;
 - performance benchmark program;
 - 10+ tester / 30 tester-day study;
-- right/compact/resizable vertical tabs;
+- right-side or compact vertical-tab variants;
 - press-kit automation and extended media variants;
 - a deferred demo video if it was cut as P2;
 - source-of-truth rendering for every public fact;

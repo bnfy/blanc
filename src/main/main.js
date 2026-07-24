@@ -43,8 +43,8 @@ const { applyDockAppIcon } = require('./app-icon');
 const { createSearchSuggestionService } = require('./search-suggestions');
 const { createAdblockStartupController } = require('./adblock-startup');
 const {
-  VERTICAL_TABS_WIDTH,
   normalizeTabLayout,
+  normalizeVerticalTabsWidth,
   calculateChromeLayout,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
@@ -588,16 +588,22 @@ function flushPermissionPrompts() {
   pendingPermissionPrompts.clear();
 }
 
-// Height (in CSS px) of the chrome strip the resting island pill floats
-// in. The renderer measures its own layout and reports it here, so this
-// is just a sane default before the first report arrives — keep it in step
-// with the `--strip-h` token (styles.css) so the initial web-view offset
-// doesn't jump on the first layout report.
+// Height (in CSS px) of the sampled safe-area gutter the resting Island floats
+// in. The renderer measures its own layout and reports it here, so this is just
+// a sane default before the first report arrives — keep it in step with the
+// `--strip-h` token (styles.css) so the initial web-view offset doesn't jump.
 let chromeHeight = 64;
 // Device-local presentation preference. Settings owns validation and
 // persistence; this live copy makes every child-view bounds calculation use
 // one coherent value throughout a layout transition.
-let tabLayout = normalizeTabLayout(settings.getSettings().tabLayout);
+const initialPresentationSettings = settings.getSettings();
+let tabLayout = normalizeTabLayout(initialPresentationSettings.tabLayout);
+// This is the saved preference, not necessarily the current rendered width.
+// calculateChromeLayout temporarily caps it when the window is too narrow to
+// preserve the 392px website pane.
+let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
+  initialPresentationSettings.verticalTabsWidth
+);
 
 // The island's expanded states (command bar, ⌘L palette, find capsule)
 // render in a separate always-on-top WebContentsView so they float OVER
@@ -613,7 +619,23 @@ let overlayPrefill = null;
 
 function currentChromeLayout() {
   const { width, height } = win.getContentBounds();
-  return calculateChromeLayout({ width, height, chromeHeight, tabLayout });
+  return calculateChromeLayout({
+    width,
+    height,
+    chromeHeight,
+    tabLayout,
+    verticalTabsWidth: verticalTabsPreferredWidth,
+  });
+}
+
+function verticalTabsMetrics(layout = currentChromeLayout()) {
+  return {
+    verticalTabsWidth: layout.verticalTabsWidth,
+    verticalTabsPreferredWidth: layout.verticalTabsPreferredWidth,
+    verticalTabsMinWidth: layout.verticalTabsMinWidth,
+    verticalTabsMaxWidth: layout.verticalTabsMaxWidth,
+    verticalTabsDefaultWidth: layout.verticalTabsDefaultWidth,
+  };
 }
 
 function overlayBounds() {
@@ -634,6 +656,7 @@ function createOverlay() {
   });
   overlayView.setBackgroundColor('#00000000'); // page shows through around the panel
   lockPrivilegedNavigation(overlayView.webContents, CHROME_OVERLAY_URL);
+  installVerticalTabsShortcut(overlayView.webContents);
   overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
 
   // A show requested before the overlay document finished its first load
@@ -714,6 +737,7 @@ function createUtilitySheet() {
   utilitySheetView = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
   utilitySheetView.setBackgroundColor('#00000000');
   const wc = utilitySheetView.webContents;
+  installVerticalTabsShortcut(wc);
   // Esc dismisses no matter what inside the page holds focus (mirrors the
   // island overlay's handler).
   wc.on('before-input-event', (event, input) => {
@@ -886,12 +910,13 @@ function broadcastTabs() {
   persistSession();
   tabsync.noteTabsChanged();
   if (!win || win.isDestroyed()) return;
+  const widthMetrics = verticalTabsMetrics();
   const payload = {
     tabs: serializeTabs(),
     activeTabId,
     groups,
     tabLayout,
-    verticalTabsWidth: VERTICAL_TABS_WIDTH,
+    ...widthMetrics,
   };
   win.webContents.send('tabs:updated', payload);
   overlayView?.webContents.send('tabs:updated', payload);
@@ -922,6 +947,36 @@ function resizeActiveView() {
   if (utilitySheetUrl && utilitySheetView) {
     utilitySheetView.setBounds(layout.utilityBounds);
   }
+  // The BrowserWindow renderer and native child views must move in the same
+  // frame. A dedicated geometry event avoids turning every pointermove or
+  // window resize into a tab/session-sync broadcast.
+  win.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
+}
+
+function applyVerticalTabsWidth(nextWidth) {
+  const next = normalizeVerticalTabsWidth(nextWidth);
+  if (next === verticalTabsPreferredWidth) return false;
+  verticalTabsPreferredWidth = next;
+  if (hasLiveWindow()) resizeActiveView();
+  return true;
+}
+
+function previewVerticalTabsWidth(nextWidth) {
+  applyVerticalTabsWidth(nextWidth);
+  return hasLiveWindow()
+    ? verticalTabsMetrics()
+    : { verticalTabsPreferredWidth };
+}
+
+function setVerticalTabsWidth(nextWidth) {
+  const next = normalizeVerticalTabsWidth(nextWidth);
+  // Pointer previews already moved the live geometry; this write commits the
+  // preference once at drag end instead of churning settings.json per pixel.
+  if (settings.getSettings().verticalTabsWidth === next) {
+    applyVerticalTabsWidth(next);
+    return next;
+  }
+  return settings.setSettings({ verticalTabsWidth: next }).verticalTabsWidth;
 }
 
 function applyTabLayout(nextLayout) {
@@ -949,6 +1004,31 @@ function setTabLayout(nextLayout) {
   // onSettingsChanged synchronously calls applyTabLayout after the validated
   // write, keeping menu, geometry, and renderer payload in one transition.
   return normalizeTabLayout(settings.setSettings({ tabLayout: nextLayout }).tabLayout);
+}
+
+function toggleTabLayout() {
+  return setTabLayout(tabLayout === 'vertical' ? 'island' : 'vertical');
+}
+
+function installVerticalTabsShortcut(webContents) {
+  webContents.on('before-input-event', (event, input) => {
+    const primaryModifier = process.platform === 'darwin'
+      ? input.meta && !input.control
+      : input.control && !input.meta;
+    if (
+      input.type !== 'keyDown' ||
+      input.isAutoRepeat ||
+      String(input.key).toLowerCase() !== 'v' ||
+      !input.alt ||
+      !primaryModifier ||
+      input.shift
+    ) return;
+    // Handle this before page dispatch so the shortcut is reliable no matter
+    // which WebContentsView owns focus. preventDefault also suppresses the
+    // duplicate native-menu accelerator dispatch for this same key event.
+    event.preventDefault();
+    toggleTabLayout();
+  });
 }
 
 /** Pick the sharpest favicon from a page's declared icon links. The pill
@@ -1278,6 +1358,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   tabOrder.push(id);
 
   const wc = view.webContents;
+  installVerticalTabsShortcut(wc);
   // WebRTC IP-handling policy applies per-webContents; this is the single choke
   // point every tab (fresh or adopted window.open child) passes through.
   wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
@@ -2024,7 +2105,7 @@ function registerIpcHandlers() {
     activeTabId,
     groups,
     tabLayout,
-    verticalTabsWidth: VERTICAL_TABS_WIDTH,
+    ...verticalTabsMetrics(),
   }));
   chromeHandle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
   chromeHandle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
@@ -2039,6 +2120,10 @@ function registerIpcHandlers() {
   chromeOn('chrome:open-island', () => showOverlay('panel'));
   chromeOn('chrome:open-find', () => showOverlay('find'));
   chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));
+  chromeOn('chrome:preview-vertical-tabs-width', (_e, width) =>
+    previewVerticalTabsWidth(width));
+  chromeHandle('chrome:set-vertical-tabs-width', (_e, width) =>
+    setVerticalTabsWidth(width));
   chromeOn('overlay:close', () => hideOverlay());
   chromeOn('chrome:downloads-ack', () => {
     acknowledgeDownloads();
@@ -2321,6 +2406,7 @@ const COMMON_KEYSTROKES = [
   ['Reopen Closed Tab', 'CmdOrCtrl+Shift+T'],
   ['Search & Commands', 'CmdOrCtrl+L'],
   ['Find in Page', 'CmdOrCtrl+F'],
+  ['Toggle Vertical Tabs', 'CmdOrCtrl+Alt+V'],
   ['Next Tab', 'Ctrl+Tab'],
   ['Previous Tab', 'Ctrl+Shift+Tab'],
   ['Next Tab in Group', 'Alt+CmdOrCtrl+Right'],
@@ -2382,6 +2468,12 @@ function buildMenu() {
         { label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', click: () => zoomActiveTab(-ZOOM_STEP) },
         { label: 'Actual Size', accelerator: 'CmdOrCtrl+0', click: resetZoomForActiveTab },
         { type: 'separator' },
+        {
+          id: 'toggle-vertical-tabs',
+          label: 'Toggle Vertical Tabs',
+          accelerator: 'CmdOrCtrl+Alt+V',
+          click: toggleTabLayout,
+        },
         {
           label: 'Tab Layout',
           submenu: [
@@ -2520,6 +2612,7 @@ function createMainWindow() {
   });
 
   lockPrivilegedNavigation(win.webContents, CHROME_INDEX_URL);
+  installVerticalTabsShortcut(win.webContents);
   win.loadFile(CHROME_INDEX_FILE);
   createOverlay();
   win.on('resize', resizeActiveView);
@@ -2753,7 +2846,8 @@ app.whenReady().then(async () => {
       tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
-      setTabLayout, broadcastTabs,
+      setTabLayout, setVerticalTabsWidth, broadcastTabs,
+      getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
@@ -2799,6 +2893,7 @@ app.whenReady().then(async () => {
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();
     applyAppIcon();
+    applyVerticalTabsWidth(s.verticalTabsWidth);
     applyTabLayout(s.tabLayout);
     // WebRTC reapply is unconditional — setWebRTCIPHandlingPolicy is a cheap,
     // idempotent per-tab call and settings writes are infrequent/user-initiated.
