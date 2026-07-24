@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: July 23, 2026
+Last updated: July 24, 2026
 
 ## The short version
 
@@ -19,7 +19,7 @@ extension runtime.
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Planned press candidate | 1.0.0-rc.1 — not yet built or distributed |
+| Press candidate | [1.0.0-rc.1](https://github.com/bnfy/blanc/releases/tag/v1.0.0-rc.1) — published prerelease |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
 | Optional purchase | Blanc Supporter, US$19 one time, plus applicable taxes; unlocks three cosmetic app-icon colorways |
@@ -65,8 +65,8 @@ extension runtime.
 
 ## Availability note
 
-The planned first press release candidate is deliberately limited to macOS on
-Apple Silicon. Intel macOS, Windows, and Linux remain outside the 1.0
+The first press release candidate is deliberately limited to macOS on Apple
+Silicon. Intel macOS, Windows, and Linux remain outside the 1.0
 press-build matrix until their exact packages pass applicable signing and
 notarization requirements plus native clean-install, launch, and same-profile
 migration checks. See [known limitations](./known-limitations.md).

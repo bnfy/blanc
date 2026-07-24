@@ -1,13 +1,13 @@
 # Blanc 1.0 press-build limitations
 
-Last updated: July 23, 2026
+Last updated: July 24, 2026
 
 These are product boundaries, not buried footnotes. Reviewers should evaluate
 the release candidate with them in view.
 
-## Planned release-candidate availability
+## Release-candidate availability
 
-- The planned press build is for **Apple Silicon Macs only**.
+- The `v1.0.0-rc.1` press build is for **Apple Silicon Macs only**.
 - Intel macOS, Windows, Linux, iPhone, iPad, and Android will not be included
   in this candidate.
 - A platform will not be added to the launch claim merely because a package can

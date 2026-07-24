@@ -9,6 +9,13 @@ active candidate window, and publish `v1.0.0` on Day 14.
 **Operating rule:** Criticality outranks feature order. P0 work always gets the
 next available owner. P2 work never moves the date.
 
+**Current checkpoint (July 24, 2026):** `v1.0.0-rc.1` is published as an
+Apple Silicon-only prerelease from commit `03741ec`. The exact candidate
+passed the source, signing/notarization, packaged first-run, migration,
+manifest, checksum, and public-download gates. The candidate window is open;
+final RC screenshots, an active human tester, and seven consecutive quiet days
+remain.
+
 ## Priority model
 
 | Priority | Definition | Release consequence |
@@ -33,8 +40,8 @@ Rules:
 
 ### P0.1 Prove external release paths — Day 0, hard cutoff Day 2
 
-- [ ] Freeze unrelated work and record one clean source commit.
-- [ ] Confirm Apple Developer ID identity, provisioning profile, notarization
+- [x] Freeze unrelated work and record one clean source commit.
+- [x] Confirm Apple Developer ID identity, provisioning profile, notarization
       credentials, stapling, and native test access for each Mac architecture
       intended for distribution.
 - [ ] Confirm Azure Trusted Signing for Windows. If unavailable, prove the
@@ -46,9 +53,9 @@ Rules:
       build.
 - [ ] Confirm an x86_64 Linux runner and launch-test target if Linux is
       distributed.
-- [ ] Confirm GitHub workflow permissions/secrets, site deployment access,
+- [x] Confirm GitHub workflow permissions/secrets, site deployment access,
       press/support/security contacts, and one release owner.
-- [ ] Publish the final distributed platform/architecture matrix internally by
+- [x] Publish the final distributed platform/architecture matrix internally by
       the end of Day 2. Omit any unverified target; do not add days.
 
 ### P0.2 Make first launch fail safe — Days 1–2
@@ -68,32 +75,32 @@ Rules:
 
 **Required behavior:**
 
-- [ ] Create and show local BrowserWindow chrome before remote filter
+- [x] Create and show local BrowserWindow chrome before remote filter
       initialization.
-- [ ] Permit the local start/privacy surface immediately while queuing
+- [x] Permit the local start/privacy surface immediately while queuing
       restored, command-line, and newly requested `http(s)` guest navigation
       until enabled blocking is ready.
-- [ ] Attach blocking and release queued navigation on success.
-- [ ] On failure, keep the app usable and show Retry and explicit “Continue
+- [x] Attach blocking and release queued navigation on success.
+- [x] On failure, keep the app usable and show Retry and explicit “Continue
       without blocking” actions.
-- [ ] Never show blocking as active when no engine is attached.
-- [ ] Catch the startup promise so an offline list fetch cannot terminate the
+- [x] Never show blocking as active when no engine is attached.
+- [x] Catch the startup promise so an offline list fetch cannot terminate the
       ready chain.
-- [ ] On a truly fresh profile, show one compact privacy card with
+- [x] On a truly fresh profile, show one compact privacy card with
       search-suggestion and usage-ping choices.
-- [ ] Send neither suggestions nor the launch ping until those choices are
+- [x] Send neither suggestions nor the launch ping until those choices are
       committed. Existing/migrated profiles skip the card.
-- [ ] Preserve the explicit `BLANC_TEST=1` blocker behavior.
-- [ ] Cover success, rejection, offline fetch, corrupt cache, retry, continue,
+- [x] Preserve the explicit `BLANC_TEST=1` blocker behavior.
+- [x] Cover success, rejection, offline fetch, corrupt cache, retry, continue,
       and queued-navigation release with targeted tests.
 
 **Remove the undeclared startup request:**
 
-- [ ] Self-host licensed Inter and JetBrains Mono WOFF2 assets in the existing
+- [x] Self-host licensed Inter and JetBrains Mono WOFF2 assets in the existing
       chrome and flat internal-page asset locations.
-- [ ] Remove Google Fonts links and external font CSP hosts from chrome and
+- [x] Remove Google Fonts links and external font CSP hosts from chrome and
       internal pages.
-- [ ] Verify a fresh launch makes no font-host request.
+- [x] Verify a fresh launch makes no font-host request.
 
 ### P0.3 Make every public claim true — Days 1–2
 
@@ -114,18 +121,18 @@ Rules:
 
 **Acceptance:**
 
-- [ ] Private-tabs copy describes the shipped isolated, in-memory behavior.
-- [ ] Privacy copy discloses suggestion prefixes/guards, default-on opt-out
+- [x] Private-tabs copy describes the shipped isolated, in-memory behavior.
+- [x] Privacy copy discloses suggestion prefixes/guards, default-on opt-out
       usage ping fields, filter refresh, update checks, optional sync, and
       supporter activation.
-- [ ] Sync copy includes optional open-tab and encrypted-icon sync.
-- [ ] Proprietary Blanc is not called open source.
-- [ ] Download counts are not labelled installs.
-- [ ] Marketing fixtures make no undeclared favicon requests.
-- [ ] Mac downloads provide an explicit link for every distributed
+- [x] Sync copy includes optional open-tab and encrypted-icon sync.
+- [x] Proprietary Blanc is not called open source.
+- [x] Download counts are not labelled installs.
+- [x] Marketing fixtures make no undeclared favicon requests.
+- [x] Mac downloads provide an explicit link for every distributed
       architecture; if only one ships, name that limitation instead of
       implying universal Mac support.
-- [ ] A focused `public-truth` test rejects known stale phrases and
+- [x] A focused `public-truth` test rejects known stale phrases and
       settings-default mismatches.
 
 ### P0.4 Make release staging fail closed — Days 1–4
@@ -142,17 +149,17 @@ Rules:
 
 **Acceptance:**
 
-- [ ] Candidate and Stable modes are explicit.
-- [ ] Every platform builds from one immutable tag/commit.
-- [ ] macOS signing/notarization failure is fatal.
-- [ ] Windows release rules enforce the Stable/Preview/omitted decision above.
-- [ ] Workflow dispatch or registration failure is fatal before publication.
-- [ ] All expected artifacts, updater metadata, blockmaps, and SHA-256 hashes
+- [x] Candidate and Stable modes are explicit.
+- [x] Every platform builds from one immutable tag/commit.
+- [x] macOS signing/notarization failure is fatal.
+- [x] Windows release rules enforce the Stable/Preview/omitted decision above.
+- [x] Workflow dispatch or registration failure is fatal before publication.
+- [x] All expected artifacts, updater metadata, blockmaps, and SHA-256 hashes
       stage in one draft before publication.
-- [ ] Verification runs against the exact staged artifact set. Do not rebuild
+- [x] Verification runs against the exact staged artifact set. Do not rebuild
       between verification and publication.
-- [ ] Stable updater discovery ignores the prerelease.
-- [ ] Release notes are checked in rather than hard-coded in the script.
+- [x] Stable updater discovery ignores the prerelease.
+- [x] Release notes are checked in rather than hard-coded in the script.
 
 ### P0.5 Verify the release, not only the source — Days 3–5
 
@@ -170,17 +177,17 @@ site:build
 artifact/signature/checksum checks
 ```
 
-- [ ] Confirm current secure Electron/Chromium and review production
+- [x] Confirm current secure Electron/Chromium and review production
       dependency advisories.
-- [ ] Review changed privileged IPC, startup queue, navigation policy, and
+- [x] Review changed privileged IPC, startup queue, navigation policy, and
       first-run IPC sender validation.
-- [ ] Run packaged cold-online, cold-offline, and failed-filter launch outside
+- [x] Run packaged cold-online, cold-offline, and failed-filter launch outside
       acceptance mode.
-- [ ] Run clean install/launch on every distributed platform/architecture.
-- [ ] Install and launch current Stable `v0.22.0`, create representative
+- [x] Run clean install/launch on every distributed platform/architecture.
+- [x] Install and launch current Stable `v0.22.0`, create representative
       session/settings data, then install and launch the RC against that same
       profile and verify migration and restore.
-- [ ] Produce a short evidence report keyed to the exact source commit and
+- [x] Produce a short evidence report keyed to the exact source commit and
       staged artifact hashes.
 
 **P0 exit gate:** No known data-loss/security/core-browsing issue; safe first
@@ -196,16 +203,16 @@ Island remains the default and sole address/search/command surface.
 
 **Day 1 — geometry and setting**
 
-- [ ] Create `src/main/chrome-layout.js` and table-driven
+- [x] Create `src/main/chrome-layout.js` and table-driven
       `test/unit/chrome-layout.test.js`.
-- [ ] Add validated, device-local `tabLayout: 'island' | 'vertical'`; exclude
+- [x] Add validated, device-local `tabLayout: 'island' | 'vertical'`; exclude
       it from sync and mobile generation.
-- [ ] Define the sole runtime width source as
+- [x] Define the sole runtime width source as
       `VERTICAL_TABS_WIDTH = 248` in `chrome-layout.js` and pass it in the
       trusted layout payload.
-- [ ] Replace guest, utility-sheet, panel/palette, find, and pill ad hoc bounds
+- [x] Replace guest, utility-sheet, panel/palette, find, and pill ad hoc bounds
       with the pure geometry helper.
-- [ ] Add the Settings control, checked View-menu item, and rail control to
+- [x] Add the Settings control, checked View-menu item, and rail control to
       return to Island.
 
 Geometry:
@@ -220,34 +227,34 @@ Find                    max 560px, centered inside the current page pane
 
 **Day 2 — credible rail**
 
-- [ ] Create `src/renderer/vertical-tabs.js`, `src/main/tab-order.js`, and
+- [x] Create `src/renderer/vertical-tabs.js`, `src/main/tab-order.js`, and
       `test/unit/tab-order.test.js`.
-- [ ] Render from the existing main-owned `tabs:updated` model; do not create
+- [x] Render from the existing main-owned `tabs:updated` model; do not create
       another tab store or refactor `overlay.js`.
-- [ ] Show ungrouped pins, named groups with pins first, loose tabs, and a
+- [x] Show ungrouped pins, named groups with pins first, loose tabs, and a
       final new-tab action.
-- [ ] Show favicon/title, active/loading/private, pinned, audible/muted, and
+- [x] Show favicon/title, active/loading/private, pinned, audible/muted, and
       collapsed-active-group state.
-- [ ] Support switch, close, middle-click close, new tab, group fold/unfold,
+- [x] Support switch, close, middle-click close, new tab, group fold/unfold,
       and drag reorder only within an identical `{groupId,pinned}` bucket.
-- [ ] Define `beforeId:null` as the end of the validated source bucket.
-- [ ] Make row primary and close actions accessible siblings with roving
+- [x] Define `beforeId:null` as the end of the validated source bucket.
+- [x] Make row primary and close actions accessible siblings with roving
       primary focus, Arrow/Home/End, Enter/Space, visible focus, and labels.
-- [ ] Make rail activation atomically dismiss floating surfaces, activate once,
+- [x] Make rail activation atomically dismiss floating surfaces, activate once,
       and focus content—even for the already-active tab.
-- [ ] Keep pin/mute/duplicate/group-membership editing in Island/native menus
+- [x] Keep pin/mute/duplicate/group-membership editing in Island/native menus
       for v1.0 and remote tabs in Quick Switcher/start page.
 
 **Day 3 — acceptance cutoff**
 
-- [ ] Add `F28`, `D19`, parity entries, and
+- [x] Add `F28`, `D19`, parity entries, and
       `spec/acceptance/vertical-tabs.feature`.
-- [ ] Cover default/persistence/no-sync, no reload on layout switch, every
+- [x] Cover default/persistence/no-sync, no reload on layout switch, every
       surface's geometry, row actions, groups, private state, reorder, and
       keyboard flow.
-- [ ] At 640×480, verify the page pane is 392px and the visible find capsule
+- [x] At 640×480, verify the page pane is 392px and the visible find capsule
       fits within 368px without overlapping the rail.
-- [ ] Relaunch Electron to verify chrome changes.
+- [x] Relaunch Electron to verify chrome changes.
 
 **P1 vertical exit gate:** The whole MVP passes by the end of Day 3. Otherwise
 remove the incomplete feature and every vertical-tabs press claim from v1.0;
@@ -267,12 +274,12 @@ do not ship a partial rail or delay P0.
 
 **Required by RC distribution on Day 5:**
 
-- [ ] Unlisted stable `/press` URL for embargoed reviewers.
-- [ ] One-page fact sheet, five-minute guide, known limitations, pricing,
+- [x] Unlisted stable `/press` URL for embargoed reviewers.
+- [x] One-page fact sheet, five-minute guide, known limitations, pricing,
       platform matrix, studio bio, and press/support/security contacts.
 - [ ] Representative RC screenshots covering the Island, search/panel,
       vertical tabs if included, and private or blocking behavior.
-- [ ] Working RC download/checksum links.
+- [x] Working RC download/checksum links.
 
 **Required by final staging on Day 13:**
 
