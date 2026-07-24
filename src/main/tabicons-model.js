@@ -91,6 +91,52 @@ function sourcePngFromDataUrl(source) {
   return validSourcePngBytes(bytes);
 }
 
+// Non-PNG favicons (ICO, SVG, GIF, …) can't be decoded by nativeImage, so they
+// take the renderer-canvas path (icon-raster.js) instead of the native PNG
+// guard above. The model's job for these is only to confirm an image MIME type
+// and bound the payload; Chromium's own <img> decoder does the parsing, and the
+// canvas output is re-validated as a 16x16 PNG before it can be stored.
+const IMAGE_MEDIA_TYPE = /^image\/[a-z0-9][a-z0-9.+-]*$/;
+// A base64 image data URL can't exceed this many chars for MAX_SOURCE_BYTES of
+// bytes; percent-encoded inline SVG favicons stay well under it too.
+const MAX_SOURCE_DATA_URL = Math.ceil(MAX_SOURCE_BYTES / 3) * 4 + 64;
+
+function normalizeImageMediaType(contentType) {
+  if (typeof contentType !== 'string') return null;
+  const type = contentType.split(';', 1)[0].trim().toLowerCase();
+  return IMAGE_MEDIA_TYPE.test(type) ? type : null;
+}
+
+const isImageMediaType = (contentType) => normalizeImageMediaType(contentType) !== null;
+
+/** The image MIME type of a `data:` URL, or null when it isn't an image. */
+function dataUrlMediaType(source) {
+  if (typeof source !== 'string') return null;
+  const comma = source.indexOf(',');
+  if (comma < 0) return null;
+  const match = /^data:([a-z0-9][a-z0-9.+-]*\/[a-z0-9][a-z0-9.+-]*)(?:;[^,]*)?$/i.exec(source.slice(0, comma));
+  return match && IMAGE_MEDIA_TYPE.test(match[1].toLowerCase()) ? match[1].toLowerCase() : null;
+}
+
+/** Wrap fetched non-PNG image bytes into a base64 data URL for the renderer. */
+function imageSourceToDataUrl(contentType, raw) {
+  const type = normalizeImageMediaType(contentType);
+  if (!type) return null;
+  if (!Buffer.isBuffer(raw) && !(raw instanceof Uint8Array)) return null;
+  const bytes = Buffer.isBuffer(raw)
+    ? raw
+    : Buffer.from(raw.buffer, raw.byteOffset, raw.byteLength);
+  if (bytes.length < 1 || bytes.length > MAX_SOURCE_BYTES) return null;
+  return `data:${type};base64,${bytes.toString('base64')}`;
+}
+
+/** Accept a favicon that is itself an inert, bounded image `data:` URL. The
+ * original encoding is preserved for the renderer's <img> to decode. */
+function boundedImageDataUrl(source) {
+  if (typeof source !== 'string' || source.length > MAX_SOURCE_DATA_URL) return null;
+  return dataUrlMediaType(source) ? source : null;
+}
+
 function isPrivateIpv4(host) {
   const parts = host.split('.').map(Number);
   if (parts.length !== 4 || parts.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) return false;
@@ -324,6 +370,10 @@ module.exports = {
   validIconData,
   validSourcePngBytes,
   sourcePngFromDataUrl,
+  isImageMediaType,
+  dataUrlMediaType,
+  imageSourceToDataUrl,
+  boundedImageDataUrl,
   sanitizeIcon,
   sanitizeEntry,
   fingerprint,
