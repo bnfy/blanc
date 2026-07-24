@@ -89,29 +89,47 @@ The two `github.io` lines differing is the whole point of `allowPrivateDomains`.
 
 - [ ] **Step 3: Probe the isolated-world return contract (throwaway)**
 
-Add this temporary probe to `src/main/main.js`, immediately inside the `initSpikePackaging` function body (right after its `if (process.env.BLANC_1P_SPIKE !== '1') return;` line):
+**Placement matters:** `initSpikePackaging()` is called at `main.js:2280`, *before*
+`createMainWindow()` at `main.js:2334` — so there is no window yet at that point,
+and a probe there would find `BrowserWindow.getAllWindows()[0]` undefined and prove
+nothing. Put the probe **after** window creation and hang it off `did-finish-load`,
+and make a missing window a loud **failure**, never a silent skip.
+
+Add this temporary block to `src/main/main.js` immediately **after** the
+`createMainWindow();` line inside `app.whenReady()`:
 
 ```js
   // TEMPORARY PROBE (Task 1 Step 3) — delete in Step 5.
-  try {
-    const probeWin = require('electron').BrowserWindow.getAllWindows()[0];
-    if (probeWin) {
-      const r = await probeWin.webContents.executeJavaScriptInIsolatedWorld(1001, [
-        { code: '(function () { return { ok: true, n: 42 }; })();' },
-      ]);
-      console.log('[1p-probe] isolated-world returned:', JSON.stringify(r));
+  if (process.env.BLANC_1P_PROBE === '1') {
+    const probeWin = BrowserWindow.getAllWindows()[0];
+    if (!probeWin) {
+      console.error('[1p-probe] FAIL — no window after createMainWindow()');
+    } else {
+      probeWin.webContents.once('did-finish-load', async () => {
+        try {
+          const r = await probeWin.webContents.executeJavaScriptInIsolatedWorld(1001, [
+            { code: '(function () { return { ok: true, n: 42 }; })();' },
+          ]);
+          console.log('[1p-probe] isolated-world returned:', JSON.stringify(r));
+        } catch (e) {
+          console.error('[1p-probe] FAIL — threw:', e?.message);
+        }
+      });
     }
-  } catch (e) {
-    console.warn('[1p-probe] isolated-world threw:', e?.message);
   }
 ```
 
 - [ ] **Step 4: Run the probe**
 
-Run: `BLANC_1P_SPIKE=1 npm start`
-Expected: `[1p-probe] isolated-world returned: {"ok":true,"n":42}`
+Run: `BLANC_1P_PROBE=1 npm start`
+Expected, once the window finishes loading: `[1p-probe] isolated-world returned: {"ok":true,"n":42}`
 
-If it prints `undefined` instead, the status object does **not** round-trip. Do not invent a sentinel/readback workaround — record the result in the spec's *Isolated-world return plumbing* risk bullet and stop; the plan needs revision before Task 4. (Quit the app when done.)
+Three failure modes, all of which must stop the plan rather than be worked around:
+- **No line at all** → the probe never ran; re-check the placement (it must be after `createMainWindow()`).
+- **`[1p-probe] FAIL — …`** → no window, or the call threw.
+- **`{"ok":true,"n":42}` not returned** (e.g. `undefined`) → the status object does **not** round-trip.
+
+In the last case do **not** invent a sentinel/readback workaround — record the result in the spec's *Isolated-world return plumbing* risk bullet and stop; Tasks 4–5 need revision first. (Quit the app when done.)
 
 - [ ] **Step 5: Remove the probe**
 
@@ -320,6 +338,33 @@ test('selectFields: password step with no username field', () => {
   assert.deepEqual(r, { passwordIndex: 0, usernameIndex: null });
 });
 
+test('selectFields: signup form (new-password only) gets NO password', () => {
+  // Writing the SAVED password into a new-password field would leak the
+  // existing credential into a form meant for a new one.
+  const r = selectFields([
+    cand(0, { type: 'email', name: 'email', formKey: 1 }),
+    cand(1, { type: 'password', autocomplete: 'new-password', formKey: 1 }),
+  ]);
+  assert.equal(r.passwordIndex, null);
+});
+
+test('selectFields: change-password form fills current-password, not new', () => {
+  const r = selectFields([
+    cand(0, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
+    cand(1, { type: 'password', autocomplete: 'new-password', formKey: 1 }),
+    cand(2, { type: 'password', autocomplete: 'new-password', formKey: 1 }),
+  ]);
+  assert.equal(r.passwordIndex, 0);
+});
+
+test('selectFields: current-password preferred even when it comes later', () => {
+  const r = selectFields([
+    cand(0, { type: 'password', formKey: 1 }),
+    cand(1, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
+  ]);
+  assert.equal(r.passwordIndex, 1);
+});
+
 test('selectFields: username step via autocomplete=username', () => {
   const r = selectFields([cand(0, { type: 'email', autocomplete: 'username' })]);
   assert.deepEqual(r, { passwordIndex: null, usernameIndex: 0 });
@@ -465,11 +510,22 @@ function isUsernameCandidate(c) {
   return !isSearchLike(c) && !isNewsletterLike(c);
 }
 
+/** A password field we may write the SAVED password into. Excludes
+ * `autocomplete="new-password"`: that marks a signup or change-password field,
+ * and writing the existing credential there would leak it into a form meant for
+ * a new value. (HTML autofill spec distinguishes current- vs new-password.) */
+function isFillablePassword(c) {
+  return c.type === 'password' && c.isVisible && c.autocomplete !== 'new-password';
+}
+
 /** Choose which fields to fill. Pure: takes descriptors, returns indices.
  * Never guesses — an ambiguous page yields nulls rather than a wrong fill. */
 function selectFields(cands) {
   const list = Array.isArray(cands) ? cands : [];
-  const pw = list.find((c) => c.type === 'password' && c.isVisible) || null;
+  // Prefer an explicit current-password; otherwise the first fillable one.
+  // new-password fields are excluded entirely by isFillablePassword.
+  const pwPool = list.filter(isFillablePassword);
+  const pw = pwPool.find((c) => c.autocomplete === 'current-password') || pwPool[0] || null;
   const passwordIndex = pw ? pw.i : null;
   let usernameIndex = null;
 
@@ -652,7 +708,7 @@ Then add the shared-source helper directly below it:
 /** The helper sources both injected scripts share, so the page runs exactly
  * the functions the unit tests import. */
 function sharedSelectionSource() {
-  return [candBlob, isSearchLike, isNewsletterLike, loginEvidence, isUsernameCandidate, selectFields, collectCandidates]
+  return [candBlob, isSearchLike, isNewsletterLike, loginEvidence, isUsernameCandidate, isFillablePassword, selectFields, collectCandidates]
     .map((fn) => fn.toString())
     .join('\n');
 }
@@ -788,15 +844,29 @@ Rewires `fillActiveTabFrom1Password` to the inspect → reveal → re-validate �
 Append to `test/unit/onepassword-match.test.js`:
 
 ```js
-test('FILL_WORLD_ID is a dedicated isolated world (not main, not preload)', () => {
+test('fill path injects into a dedicated isolated world at BOTH call sites', () => {
   const fs = require('node:fs');
   const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+
+  // The constant itself must name a legal custom world.
   const m = src.match(/FILL_WORLD_ID\s*=\s*(\d+)/);
   assert.ok(m, 'FILL_WORLD_ID constant not found in main.js');
   const id = Number(m[1]);
   assert.ok(id >= 1000, 'custom isolated worlds must use id >= 1000');
-  assert.notEqual(id, 0);    // main world
+  assert.notEqual(id, 0);    // page main world
   assert.notEqual(id, 999);  // Electron context-isolation / preload world
+
+  // ...and it must actually be USED for both injections. Asserting only the
+  // constant would stay green if the calls regressed to executeJavaScript().
+  const isolated = src.match(/executeJavaScriptInIsolatedWorld\(\s*FILL_WORLD_ID\s*,/g) || [];
+  assert.equal(isolated.length, 2, 'expected 2 isolated-world injections (inspect + fill)');
+
+  // The credential-bearing injection must never fall back to the main world.
+  // (A credential-free wc.executeJavaScript('performance.timeOrigin') is fine.)
+  assert.ok(
+    !/executeJavaScript\(\s*source\s*\)/.test(src),
+    'fill must not use main-world executeJavaScript(source)'
+  );
 });
 ```
 
@@ -831,8 +901,12 @@ In `src/main/main.js`, replace the whole phase-2 block — from the comment line
     const inspect = await wc.executeJavaScriptInIsolatedWorld(FILL_WORLD_ID, [
       { code: onepassword.buildInspectScript({ expectedURL, expectedTimeOrigin: capturedTimeOrigin }) },
     ]);
-    if (inspect?.originMismatch) return log('origin-or-focus-mismatch');
-    if (!inspect?.hasPassword && !inspect?.hasUsername) return log('no-fillable-field');
+    // Validate the shape BEFORE reading fields: an undefined/garbage result is a
+    // plumbing failure and must fail closed, not masquerade as the benign
+    // `no-fillable-field` outcome.
+    if (!inspect || typeof inspect !== 'object') return log('fill-error');
+    if (inspect.originMismatch) return log('origin-or-focus-mismatch');
+    if (!inspect.hasPassword && !inspect.hasUsername) return log('no-fillable-field');
 
     // Only now — with a fillable field confirmed — decrypt the chosen item.
     const { username, password } = await onepassword.revealCredential(chosen.vaultId, chosen.itemId);
@@ -855,10 +929,11 @@ In `src/main/main.js`, replace the whole phase-2 block — from the comment line
       password: inspect.hasPassword ? password : null,
     });
     const status = await wc.executeJavaScriptInIsolatedWorld(FILL_WORLD_ID, [{ code: source }]);
-    if (status?.originMismatch) return log('origin-or-focus-mismatch');
-    if (status?.filledPass && status?.filledUser) return log('filled', 'user+pass');
-    if (status?.filledUser) return log('filled', 'user-only (multi-step step 1)');
-    if (status?.filledPass) return log('filled', 'pass-only (username field not found)');
+    if (!status || typeof status !== 'object') return log('fill-error'); // fail closed
+    if (status.originMismatch) return log('origin-or-focus-mismatch');
+    if (status.filledPass && status.filledUser) return log('filled', 'user+pass');
+    if (status.filledUser) return log('filled', 'user-only (multi-step step 1)');
+    if (status.filledPass) return log('filled', 'pass-only (username field not found)');
     return log('nothing-filled');
   } catch {
     return log('fill-error'); // no binding, no message — a credential is in memory
@@ -889,6 +964,23 @@ Verify, reading the `[1p-spike]` lines:
 - **Single-page login on a subdomain** of a saved item → `filled user+pass`.
 - **A page with only a search box** → `no-fillable-field`, and the search box is **not** filled.
 - **React/framework login** (any modern SPA login form) → the value **sticks** after filling (the native setter + `input`/`change` events defeat the framework's controlled-input tracking) and submitting uses the filled value.
+- **Signup / password-reset page** (a form whose password input is
+  `autocomplete="new-password"`) → the saved password is **not** written. Expect
+  `filled user-only (multi-step step 1)` if the email field is filled, or
+  `no-fillable-field`. Confirm the password box is still empty.
+- **DOM replacement between phases** — on a login page, open DevTools on that tab
+  and schedule the form's removal, then trigger the chord inside that window:
+
+  ```js
+  setTimeout(() => document.querySelector('input[type=password]')?.closest('form')?.remove(), 250);
+  ```
+
+  Press `⌥⌘P` immediately. Expected: **no value is written anywhere**, the outcome
+  is `nothing-filled` (or an `abort-*` line if the mutation also disturbed
+  focus/URL), and **no `[1p-spike]` line contains a credential**. If the removal
+  lands after the fill completes, shorten the delay and retry. This is the
+  observable check that the isolated realm holds the credential when the expected
+  field disappears.
 - **Regression:** an exact-host single-page login still → `filled user+pass`.
 
 - [ ] **Step 8: Commit**
@@ -962,6 +1054,10 @@ git commit -m "docs(1password): dev-usage guide reflects subdomain + multi-step 
 - Binding-less catch → fixed `fill-error` from the reveal onward; `setup-error` unchanged pre-reveal → Task 5 Step 4. ✅
 - Shared helpers embedded via `.toString()` so tested code == shipped code → Task 4 Step 3 (`sharedSelectionSource`), asserted in Task 4 Step 1. ✅
 - `selectFields` rules — search/newsletter exclusion (substring, camelCase-safe), login-positive evidence, focus as in-scope tie-break only, no lone-field fallback, form-scoped anchoring → Task 3 Step 3 + fixtures. ✅
+- **`new-password` exclusion / `current-password` preference** (beyond the spec — closes a signup/reset leak where the *saved* password would be written into a field meant for a new one) → Task 3 Step 3 `isFillablePassword` + three fixtures + the signup manual check. ✅
+- Plumbing failures fail closed as `fill-error` (shape-validated results, not misread as `no-fillable-field`/`nothing-filled`) → Task 5 Step 4. ✅
+- Isolated world actually *used* at both call sites, not merely declared → Task 5 Step 1 regression test. ✅
+- DOM-replacement-between-phases verification → Task 5 Step 7. ✅
 - `collectCandidates` `formKey` via `Map<form, index>` (never `form.id`) → Task 4 Step 3, covered by the two-anonymous-forms fixture. ✅
 - Orchestrator outcome map incl. `no-fillable-field` and `filled user-only` → Task 5 Step 4. ✅
 - Isolated-world return-plumbing risk verified before it's built on → Task 1 Steps 3–5 (probe, then removed). ✅
@@ -969,7 +1065,7 @@ git commit -m "docs(1password): dev-usage guide reflects subdomain + multi-step 
 - Manual matrix (subdomain, multi-step, search-only, React native-setter, regression) → Task 5 Step 7. ✅
 - Non-goals (shadow DOM, iframes, auto-advance, TOTP, per-item 1P URL rules) → nothing introduced; restated in Task 6. ✅
 
-**Deliberately not covered:** the spec's *DOM replacement between phases* manual check. It needs a page scripted to mutate itself mid-flow, which no step here sets up; the design's protection against it (isolated realm + synchronous select-then-set + fill-side re-selection) is structural rather than something these steps assert. Flagged here rather than left as an implied-but-absent test.
+**Previously uncovered, now closed:** the spec's *DOM replacement between phases* check was initially omitted on the grounds that the protection is structural. That was wrong — structural protection is not verification — so Task 5 Step 7 now scripts the mutation via DevTools and asserts the observable outcome (nothing written, no credential in any log line).
 
 **Placeholder scan:** no `TBD`/`TODO`/"handle edge cases"/uncoded steps. The one temporary artifact — the Task 1 isolated-world probe — is explicitly added in Step 3 and deleted in Step 5, with a `grep` confirming removal.
 
