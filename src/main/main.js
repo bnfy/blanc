@@ -3,7 +3,12 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { pathToFileURL } = require('url');
-const { setupAdBlocker, attachAdBlockerToSession, setAdBlockEnabled, getBlocker } = require('./adblock');
+const {
+  setupAdBlocker,
+  attachAdBlockerToSession,
+  setAdBlockEnabled,
+  onRequestBlocked,
+} = require('./adblock');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -35,6 +40,13 @@ const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-pr
 const { isTrustedSender } = require('./ipc-trust');
 const { applyDockAppIcon } = require('./app-icon');
 const { createSearchSuggestionService } = require('./search-suggestions');
+const { createAdblockStartupController } = require('./adblock-startup');
+const {
+  VERTICAL_TABS_WIDTH,
+  normalizeTabLayout,
+  calculateChromeLayout,
+} = require('./chrome-layout');
+const { reorderWithinBucket } = require('./tab-order');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -43,6 +55,26 @@ const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+// Exact packaged-smoke gate for the corrupt-cache/offline recovery path.
+// It is deliberately inert in ordinary launches and keeps the acceptance
+// harness's unpackaged-only semantics unchanged.
+const requestedPackagedAdblockFailureTestMode =
+  app.isPackaged && process.env.BLANC_TEST === '1'
+    ? process.env.BLANC_TEST_ADBLOCK_FAILURE
+    : null;
+const packagedAdblockFailureTestMode =
+  requestedPackagedAdblockFailureTestMode === 'once' ||
+  requestedPackagedAdblockFailureTestMode === 'always'
+    ? requestedPackagedAdblockFailureTestMode
+    : null;
+let packagedAdblockInitializationFailuresRemaining =
+  packagedAdblockFailureTestMode === 'once' ? 1 : 0;
+const packagedAdblockTestFetch = (...args) => {
+  if (packagedAdblockFailureTestMode === 'always') {
+    return Promise.reject(new Error('packaged smoke: simulated offline fetch'));
+  }
+  return fetch(...args);
+};
 
 // Dev runs (`npm start`) get their own userData so a dev instance never
 // shares — and corrupts — the installed app's profile: two Chromium
@@ -65,6 +97,25 @@ if (app.isPackaged) {
     fs.cpSync(oldUserDataDir, newUserDataDir, { recursive: true });
   }
 }
+
+// Snapshot whether this is a genuinely new Blanc profile before Chromium's
+// ready phase creates its own directories. settings.json is not sufficient:
+// old versions did not write it until a setting changed, while session.json
+// and the other product stores still prove the app has run before.
+const existingProfileMarkers = [
+  'settings.json',
+  'session.json',
+  'history.json',
+  'bookmarks.json',
+  'downloads.json',
+  'sync.json',
+  'install.json',
+];
+settings.setExistingProfileHint(
+  existingProfileMarkers.some((name) =>
+    fs.existsSync(path.join(app.getPath('userData'), name))
+  )
+);
 
 // One instance per profile: a second launch defers to the first.
 if (!app.requestSingleInstanceLock()) {
@@ -105,6 +156,69 @@ if (!app.requestSingleInstanceLock()) {
 // the command line, at startup or through 'second-instance'.
 const pendingExternalUrls = [];
 let externalUrlsFlushable = false;
+
+// While enabled blocking is compiling its lists, main-frame HTTP(S)
+// navigations are held here. Local blanc:// chrome remains available, so an
+// offline filter failure always has a usable recovery surface.
+let startupNavigationGateActive = false;
+const startupQueuedNavigations = new Map();
+
+function installStartupNavigationGate(sessions) {
+  startupNavigationGateActive = true;
+  const listener = (details, callback) => {
+    if (
+      !startupNavigationGateActive ||
+      details.resourceType !== 'mainFrame' ||
+      !/^https?:/i.test(details.url)
+    ) {
+      callback({});
+      return;
+    }
+    if (Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
+      startupQueuedNavigations.set(details.webContentsId, details.url);
+    }
+    callback({ cancel: true });
+  };
+  for (const browsingSession of sessions) {
+    browsingSession.webRequest.onBeforeRequest(
+      { urls: ['http://*/*', 'https://*/*'] },
+      listener
+    );
+  }
+}
+
+function releaseStartupNavigationGate(sessions, { blockerAttached }) {
+  startupNavigationGateActive = false;
+  // A successful blocker attachment has already replaced the temporary
+  // listener with its own network filter. Clearing here would remove the
+  // blocker we just installed.
+  if (!blockerAttached) {
+    for (const browsingSession of sessions) {
+      browsingSession.webRequest.onBeforeRequest(null);
+    }
+  }
+
+  const queued = [...startupQueuedNavigations.entries()];
+  startupQueuedNavigations.clear();
+  for (const [webContentsId, url] of queued) {
+    const tab = [...tabs.values()].find(
+      (candidate) => candidate.view.webContents.id === webContentsId
+    );
+    if (!tab || tab.view.webContents.isDestroyed()) continue;
+    tab.view.webContents.loadURL(url).catch(() => {});
+  }
+}
+
+let launchPingSent = false;
+function maybeSendLaunchPing() {
+  if (
+    launchPingSent ||
+    !settings.isFirstRunComplete() ||
+    !settings.getSettings().usagePing
+  ) return;
+  launchPingSent = true;
+  sendLaunchPing();
+}
 
 /** Best-effort path -> file:// URL. Electron's 'open-file' contract types
  * the path as always a non-empty absolute string, but nothing else calling
@@ -479,6 +593,10 @@ function flushPermissionPrompts() {
 // with the `--strip-h` token (styles.css) so the initial web-view offset
 // doesn't jump on the first layout report.
 let chromeHeight = 64;
+// Device-local presentation preference. Settings owns validation and
+// persistence; this live copy makes every child-view bounds calculation use
+// one coherent value throughout a layout transition.
+let tabLayout = normalizeTabLayout(settings.getSettings().tabLayout);
 
 // The island's expanded states (command bar, ⌘L palette, find capsule)
 // render in a separate always-on-top WebContentsView so they float OVER
@@ -492,24 +610,16 @@ let overlayMode = null;
  * first load hadn't finished when showOverlay was called. */
 let overlayPrefill = null;
 
-// Find mode keeps the overlay's bounds tight around the capsule so the
-// rest of the page stays clickable while stepping through matches. Sized
-// to fit the capsule (top 60 + ~42 tall) plus its full shadow extent.
-const FIND_OVERLAY = { width: 560, height: 160 };
+function currentChromeLayout() {
+  const { width, height } = win.getContentBounds();
+  return calculateChromeLayout({ width, height, chromeHeight, tabLayout });
+}
 
 function overlayBounds() {
-  const { width, height } = win.getContentBounds();
-  if (overlayMode === 'find') {
-    // Below the strip, so the pill stays clickable while find is open and
-    // the strip's drag region can't shadow the capsule.
-    return {
-      x: Math.round((width - FIND_OVERLAY.width) / 2),
-      y: chromeHeight,
-      width: FIND_OVERLAY.width,
-      height: Math.max(0, Math.min(FIND_OVERLAY.height, height - chromeHeight)),
-    };
-  }
-  return { x: 0, y: 0, width, height };
+  const layout = currentChromeLayout();
+  if (overlayMode === 'find') return layout.findBounds;
+  if (overlayMode === 'palette') return layout.paletteBounds;
+  return layout.panelBounds;
 }
 
 function createOverlay() {
@@ -702,7 +812,15 @@ function serializeTabs() {
   return tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
-    .map(({ view, ...rest }) => rest);
+    .map(({ view, ...rest }) => {
+      // A page-favicon URL belongs to the tab's browsing session. Sending a
+      // private tab's remote URL into persistent chrome would make the chrome
+      // session fetch it again merely to paint the pill/overlay/rail, escaping
+      // the non-persistent private-session boundary. Private rows deliberately
+      // use the renderer's neutral fallback instead.
+      if (rest.private && rest.favicon) return { ...rest, favicon: null };
+      return rest;
+    });
 }
 
 // Open tabs persist across launches (restored in app.whenReady).
@@ -732,12 +850,13 @@ function adblockWeekStats() {
 }
 
 let isQuitting = false;
+let sessionPersistenceSuspended = false;
 app.on('before-quit', () => { isQuitting = true; });
 
 function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
   // file down to whatever closed last before the process exits.
-  if (isQuitting || tabs.size === 0) return;
+  if (isQuitting || sessionPersistenceSuspended || tabs.size === 0) return;
   ensureSessionStore().update((d) => {
     // Private tabs leave no trail, error pages persist their real
     // destination, url-less tabs drop — all in session-snapshot.js so tab
@@ -766,7 +885,13 @@ function broadcastTabs() {
   persistSession();
   tabsync.noteTabsChanged();
   if (!win || win.isDestroyed()) return;
-  const payload = { tabs: serializeTabs(), activeTabId, groups };
+  const payload = {
+    tabs: serializeTabs(),
+    activeTabId,
+    groups,
+    tabLayout,
+    verticalTabsWidth: VERTICAL_TABS_WIDTH,
+  };
   win.webContents.send('tabs:updated', payload);
   overlayView?.webContents.send('tabs:updated', payload);
 }
@@ -789,21 +914,40 @@ function scheduleBroadcastTabs() {
 
 function resizeActiveView() {
   if (!win || win.isDestroyed()) return;
+  const layout = currentChromeLayout();
   const tab = activeTabId ? tabs.get(activeTabId) : null;
-  if (tab) {
-    const bounds = win.getContentBounds();
-    tab.view.setBounds({
-      x: 0,
-      y: chromeHeight,
-      width: bounds.width,
-      height: Math.max(0, bounds.height - chromeHeight),
-    });
-  }
+  if (tab) tab.view.setBounds(layout.pageBounds);
   if (overlayMode && overlayView) overlayView.setBounds(overlayBounds());
   if (utilitySheetUrl && utilitySheetView) {
-    const b = win.getContentBounds();
-    utilitySheetView.setBounds({ x: 0, y: chromeHeight, width: b.width, height: Math.max(0, b.height - chromeHeight) });
+    utilitySheetView.setBounds(layout.utilityBounds);
   }
+}
+
+function applyTabLayout(nextLayout) {
+  const next = normalizeTabLayout(nextLayout);
+  if (next === tabLayout) return false;
+  tabLayout = next;
+
+  if (hasLiveWindow()) {
+    // A floating overlay is tied to the old pane center. Dismiss it in the
+    // same main-process turn, then rebound the attached page/sheet without
+    // navigating either document. The Settings sheet stays open so its own
+    // layout choice does not eject the user mid-interaction.
+    hideOverlay({ refocusContent: false });
+    resizeActiveView();
+    if (!utilitySheetUrl) tabs.get(activeTabId)?.view.webContents.focus();
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return true;
+}
+
+function setTabLayout(nextLayout) {
+  if (nextLayout !== 'island' && nextLayout !== 'vertical') return tabLayout;
+  if (nextLayout === tabLayout) return tabLayout;
+  // onSettingsChanged synchronously calls applyTabLayout after the validated
+  // write, keeping menu, geometry, and renderer payload in one transition.
+  return normalizeTabLayout(settings.setSettings({ tabLayout: nextLayout }).tabLayout);
 }
 
 /** Pick the sharpest favicon from a page's declared icon links. The pill
@@ -1256,6 +1400,17 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // rapid re-navigation) and must not be treated as a failure.
   wc.on('did-fail-load', (_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
     if (!isMainFrame || errorCode === -3 || !validatedURL) return;
+    // The temporary startup gate deliberately cancels HTTP(S) main-frame
+    // loads until blocking is attached (or the user explicitly continues
+    // without it). Keep the tab blank and replay its queued URL afterward
+    // instead of replacing it with a misleading network error page.
+    if (
+      startupNavigationGateActive &&
+      startupQueuedNavigations.has(wc.id) &&
+      /^https?:/i.test(validatedURL)
+    ) {
+      return;
+    }
     const q = new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
   });
@@ -1495,6 +1650,31 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
 }
 
+let railActivationSerial = 0;
+
+function activateTabFromRail(id) {
+  const tab = tabs.get(id);
+  if (!tab || tab.view.webContents.isDestroyed()) return false;
+  railActivationSerial += 1;
+
+  // One guarded main-process action owns the complete interaction so a
+  // renderer cannot leave an old sheet/panel stacked over the selected tab.
+  hideOverlay({ refocusContent: false });
+  hideUtilitySheet({ refocusContent: false });
+
+  if (id !== activeTabId) {
+    setActiveTab(id, { focusContent: true });
+  } else {
+    // setActiveTab deliberately no-ops for an already-active tab; the rail
+    // contract still requires that click/keyboard activation focus content.
+    tabsWantingAddressBarFocus.delete(id);
+    tab.view.setVisible(true);
+    resizeActiveView();
+    tab.view.webContents.focus();
+  }
+  return true;
+}
+
 /** URLs of recently closed tabs, oldest first (Cmd/Ctrl+Shift+T pops). */
 const recentlyClosedUrls = [];
 
@@ -1549,6 +1729,19 @@ function reorderTab(id, toIndex) {
   tabOrder.splice(clamped, 0, id);
   broadcastTabs();
   scheduleMenuRebuild();
+}
+
+function reorderTabWithinBucket(id, beforeId) {
+  // Renderer input is only a proposal. Main re-resolves both ids against its
+  // live model and rejects a stale/cross-group/cross-pin target.
+  const next = reorderWithinBucket(tabOrder, tabs, id, beforeId);
+  if (!next) return false;
+  if (next.some((tabId, index) => tabOrder[index] !== tabId)) {
+    tabOrder = next;
+    broadcastTabs();
+    scheduleMenuRebuild();
+  }
+  return true;
 }
 
 /** Cmd/Ctrl+1–9. With groups: n jumps to the nth cluster — a group's
@@ -1765,6 +1958,7 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
+  chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
   chromeHandle('tabs:navigate', (_e, id, url) => {
     const tab = tabs.get(id);
     if (!tab) return;
@@ -1807,6 +2001,8 @@ function registerIpcHandlers() {
   chromeHandle('tabs:reload', (_e, id) => tabs.get(id)?.view.webContents.reload());
   chromeHandle('tabs:stop', (_e, id) => tabs.get(id)?.view.webContents.stop());
   chromeHandle('tabs:reorder', (_e, id, toIndex) => reorderTab(id, toIndex));
+  chromeHandle('tabs:reorder-within-bucket', (_e, id, beforeId) =>
+    reorderTabWithinBucket(id, beforeId));
   chromeHandle('tabs:set-group', (_e, id, groupId) => setTabGroup(id, groupId ?? null));
   chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name));
   chromeHandle('tabs:toggle-group-collapsed', (_e, groupId) => toggleGroupCollapsed(groupId));
@@ -1822,7 +2018,13 @@ function registerIpcHandlers() {
       openInternalPage(`blanc://${name}/`);
     }
   });
-  chromeHandle('tabs:get-all', () => ({ tabs: serializeTabs(), activeTabId, groups }));
+  chromeHandle('tabs:get-all', () => ({
+    tabs: serializeTabs(),
+    activeTabId,
+    groups,
+    tabLayout,
+    verticalTabsWidth: VERTICAL_TABS_WIDTH,
+  }));
   chromeHandle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
   chromeHandle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
 
@@ -1835,6 +2037,7 @@ function registerIpcHandlers() {
 
   chromeOn('chrome:open-island', () => showOverlay('panel'));
   chromeOn('chrome:open-find', () => showOverlay('find'));
+  chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));
   chromeOn('overlay:close', () => hideOverlay());
   chromeOn('chrome:downloads-ack', () => {
     acknowledgeDownloads();
@@ -1859,7 +2062,13 @@ function registerIpcHandlers() {
     // live provider suggestions pause.
     const tab = activeTabId ? tabs.get(activeTabId) : null;
     const localDoc = typeof query === 'string' ? localDocumentUrl(query.trim()) : null;
-    if (!currentSettings.searchSuggestions || !tab || tab.private || localDoc) return response;
+    if (
+      !settings.isFirstRunComplete() ||
+      !currentSettings.searchSuggestions ||
+      !tab ||
+      tab.private ||
+      localDoc
+    ) return response;
 
     const controller = new AbortController();
     searchSuggestionRequests.set(event.sender, controller);
@@ -1894,7 +2103,11 @@ function registerIpcHandlers() {
       const latestEngineId = settings.SEARCH_ENGINES[latestConfiguredEngine]
         ? latestConfiguredEngine
         : 'duckduckgo';
-      if (!latestSettings.searchSuggestions || latestEngineId !== engineId) {
+      if (
+        !settings.isFirstRunComplete() ||
+        !latestSettings.searchSuggestions ||
+        latestEngineId !== engineId
+      ) {
         return {
           engine: latestEngineId,
           label: settings.SEARCH_ENGINES[latestEngineId].label,
@@ -2168,6 +2381,24 @@ function buildMenu() {
         { label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', click: () => zoomActiveTab(-ZOOM_STEP) },
         { label: 'Actual Size', accelerator: 'CmdOrCtrl+0', click: resetZoomForActiveTab },
         { type: 'separator' },
+        {
+          label: 'Tab Layout',
+          submenu: [
+            {
+              label: 'Island',
+              type: 'radio',
+              checked: tabLayout === 'island',
+              click: () => setTabLayout('island'),
+            },
+            {
+              label: 'Vertical Tabs',
+              type: 'radio',
+              checked: tabLayout === 'vertical',
+              click: () => setTabLayout('vertical'),
+            },
+          ],
+        },
+        { type: 'separator' },
         { label: 'Downloads', accelerator: 'CmdOrCtrl+Shift+J', click: () => openInternalPage('blanc://downloads/') },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => openInternalPage('blanc://settings/') },
         { type: 'separator' },
@@ -2338,6 +2569,15 @@ app.whenReady().then(async () => {
   const ses = session.defaultSession;
   const privateSes = getPrivateBrowsingSession();
   const browsingSessions = [ses, privateSes];
+  // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
+  // locally so existing suggestion/navigation scenarios exercise their
+  // intended feature instead of the onboarding card; telemetry is disabled.
+  if (acceptanceTestMode && !settings.isFirstRunComplete()) {
+    settings.completeFirstRunPrivacyChoices({
+      searchSuggestions: true,
+      usagePing: false,
+    });
+  }
   // Encrypted DNS (DoH). app.configureHostResolver is process-wide in Electron 43
   // (an App method) and must run after 'ready'. ONE call covers every session,
   // including the private-browsing session, so private tabs inherit it by
@@ -2410,7 +2650,6 @@ app.whenReady().then(async () => {
   applyTheme();
   lastNativeThemeAppearance = resolvedThemeAppearance();
   applyAppIcon();
-  if (settings.getSettings().usagePing) sendLaunchPing();
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', handleNativeThemeUpdated);
 
@@ -2435,6 +2674,28 @@ app.whenReady().then(async () => {
 
   setupDownloads(ses, broadcastDownloadsActivity);
   setupDownloads(privateSes, broadcastDownloadsActivity);
+  let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
+  let adblockStartupController = null;
+  let releaseStartup = async () => {};
+  const startPageStatus = () => {
+    const current = settings.getSettings();
+    return {
+      startup: adblockStartupState,
+      privacy: {
+        required: !settings.isFirstRunComplete(),
+        searchSuggestions: current.searchSuggestions,
+        usagePing: current.usagePing,
+      },
+    };
+  };
+  const broadcastStartPageStatus = () => {
+    const status = startPageStatus();
+    for (const tab of tabs.values()) {
+      if (tab.url?.startsWith('blanc://newtab')) {
+        tab.view.webContents.send('pages:start:status', status);
+      }
+    }
+  };
   setupPages({
     sessions: browsingSessions,
     onDataChanged: refreshBookmarkFlags,
@@ -2462,25 +2723,48 @@ app.whenReady().then(async () => {
       focusGroup,
       blockedThisWeek: () => adblockWeekStats().data.blocked,
       remoteDevices: () => sync.listRemoteDevices(),
+      status: startPageStatus,
+      retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
+      continueWithoutAdblock: () =>
+        adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
+      completePrivacy: (choices) => {
+        const result = settings.completeFirstRunPrivacyChoices(choices);
+        if (result.completed) {
+          maybeSendLaunchPing();
+          broadcastStartPageStatus();
+        }
+        return { completed: result.completed, error: result.error ?? null };
+      },
     },
     shortcuts: { list: listShortcuts },
   });
 
   // The acceptance harness launches offline: skip the network ad-engine build
-  // (getBlocker() stays null, and the listener below is null-safe) and install
-  // the test-only main-process surface instead. Gate is airtight — only an
+  // and install the test-only main-process surface instead. Gate is airtight — only an
   // UNPACKAGED dev run with BLANC_TEST exactly "1"; never a packaged build, and
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
       tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId, clusterSlots,
-      createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, groupTabByName, reopenClosedTab, newTabUrl,
+      createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
+      groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
+      setTabLayout, broadcastTabs,
+      getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
       getUtilitySheetWebContents: () => utilitySheetView?.webContents ?? null,
       getOverlayWebContents: () => overlayView?.webContents ?? null,
+      getChromeWebContents: () => win?.webContents ?? null,
+      setWindowContentSize: (width, height) => {
+        if (!hasLiveWindow()) return;
+        win.setContentSize(width, height);
+        resizeActiveView();
+      },
+      getWindowContentBounds: () => hasLiveWindow() ? win.getContentBounds() : null,
+      getUtilitySheetBounds: () => utilitySheetView?.getBounds() ?? null,
+      getOverlayBounds: () => overlayView?.getBounds() ?? null,
       setTestSearchSuggestionFixture,
       clearTestSearchSuggestionFixture,
       getTestSearchSuggestionRequests: () => structuredClone(testSearchSuggestionRequests),
@@ -2491,14 +2775,11 @@ app.whenReady().then(async () => {
       ),
       getChromeUrl: () => win?.webContents.getURL() ?? '',
     });
-  } else {
-    await setupAdBlocker(ses, { enabled: settings.getSettings().adblockEnabled });
-    attachAdBlockerToSession(privateSes, { enabled: settings.getSettings().adblockEnabled });
   }
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
   // of the frame the request came from.
-  getBlocker()?.on('request-blocked', (request) => {
+  onRequestBlocked((request) => {
     adblockWeekStats().update((d) => { d.blocked += 1; });
     for (const tab of tabs.values()) {
       if (tab.view.webContents.id === request.tabId) {
@@ -2513,6 +2794,7 @@ app.whenReady().then(async () => {
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();
     applyAppIcon();
+    applyTabLayout(s.tabLayout);
     // WebRTC reapply is unconditional — setWebRTCIPHandlingPolicy is a cheap,
     // idempotent per-tab call and settings writes are infrequent/user-initiated.
     applyWebrtcPolicyToAllTabs();
@@ -2574,40 +2856,128 @@ app.whenReady().then(async () => {
 
   registerIpcHandlers();
   buildMenu();
-  createMainWindow();
 
-  // Restore the previous session's tabs; fall back to a single new tab.
-  // Snapshot, don't alias: .data is the live store object, and createTab
-  // below synchronously triggers persistSession (loadURL emits
-  // did-start-loading in the same tick), which would overwrite activeIndex
-  // before it's read.
+  // Snapshot the previous session before the local startup tab exists. Tab
+  // broadcasts are temporarily prevented from overwriting this snapshot.
   const saved = structuredClone(ensureSessionStore().data);
-  // Stale sessions from before the utility sheet may hold utility-page
-  // tabs; drop them (zipped — groupIds/pinned/activeIndex stay aligned)
-  // so the createTab replay never routes through the sheet guard.
   const cleaned = filterRestoredSession(saved, isUtilityUrl);
   saved.urls = cleaned.urls;
   saved.groupIds = cleaned.groupIds;
   saved.pinned = cleaned.pinned;
   saved.activeIndex = cleaned.activeIndex;
-  // Groups first, so createTab's groupId validation sees them.
   groups = (Array.isArray(saved.groups) ? saved.groups : [])
     .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
     .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed }));
-  const restoredIds = saved.urls.map((u, i) => createTab(u, { groupId: saved.groupIds?.[i] ?? null, pinned: !!saved.pinned?.[i] }));
-  pruneEmptyGroups(); // drop groups none of the restored tabs point at
-  const fresh = restoredIds.length === 0;
-  const firstTabId = fresh
-    ? createTab()
-    : restoredIds[Math.min(Math.max(0, saved.activeIndex), restoredIds.length - 1)];
-  win.webContents.once('did-finish-load', () => {
-    setActiveTab(firstTabId, { focusContent: !fresh, focusAddress: fresh });
-    // Cold-start URL handoff: anything queued by pre-ready 'open-url'
-    // events, or passed on the command line, opens after session restore
-    // so the link lands as the active tab.
+  sessionPersistenceSuspended = true;
+
+  const blockingRequested =
+    !acceptanceTestMode && settings.getSettings().adblockEnabled;
+  if (blockingRequested) installStartupNavigationGate(browsingSessions);
+
+  createMainWindow();
+  const startupTabId = createTab(NEW_TAB_URL);
+  const chromeReady = new Promise((resolve) => {
+    win.webContents.once('did-finish-load', () => {
+      if (tabs.has(startupTabId)) {
+        // Keep focus in the local page so first-run/recovery actions are
+        // immediately visible and keyboard reachable.
+        setActiveTab(startupTabId, { focusContent: true });
+      }
+      resolve();
+    });
+  });
+
+  let startupReleased = false;
+  releaseStartup = async ({ blocking, preservePreference = false }) => {
+    if (startupReleased) return;
+    startupReleased = true;
+    await chromeReady;
+
+    if (!blocking && !preservePreference && settings.getSettings().adblockEnabled) {
+      // “Continue without blocking” is an explicit effective-state change,
+      // not a shield that stays visually enabled while no engine exists.
+      settings.setSettings({ adblockEnabled: false });
+    }
+    if (blockingRequested) {
+      releaseStartupNavigationGate(browsingSessions, {
+        blockerAttached: blocking,
+      });
+    }
+
+    const restoredIds = saved.urls.map((url, index) => createTab(url, {
+      groupId: saved.groupIds?.[index] ?? null,
+      pinned: !!saved.pinned?.[index],
+    }));
+    pruneEmptyGroups();
+    if (restoredIds.length) {
+      const target = restoredIds[
+        Math.min(Math.max(0, saved.activeIndex), restoredIds.length - 1)
+      ];
+      if (tabs.has(startupTabId)) closeTab(startupTabId);
+      setActiveTab(target, { focusContent: true });
+    }
+
+    sessionPersistenceSuspended = false;
+    persistSession();
+
+    // Cold-start URL handoff waits until the blocker decision and session
+    // restore are both complete.
     pendingExternalUrls.push(...urlsFromArgv(process.argv.slice(1)));
     flushExternalUrls();
-  });
+    maybeSendLaunchPing();
+  };
+
+  if (acceptanceTestMode) {
+    adblockStartupState = { phase: 'skipped', attempt: 0, error: null };
+    broadcastStartPageStatus();
+    await releaseStartup({ blocking: false, preservePreference: true });
+  } else if (!blockingRequested) {
+    adblockStartupState = { phase: 'disabled', attempt: 0, error: null };
+    broadcastStartPageStatus();
+    await releaseStartup({ blocking: false, preservePreference: true });
+    // Keep the engine warm so enabling the setting later in this run works,
+    // but never hold browsing for a feature the user turned off.
+    setupAdBlocker(ses, { enabled: false }).then(() => {
+      attachAdBlockerToSession(privateSes, {
+        enabled: settings.getSettings().adblockEnabled,
+      });
+      setAdBlockEnabled(settings.getSettings().adblockEnabled);
+    }).catch((err) => {
+      console.warn('[adblock] background initialization failed:', err.message);
+    });
+  } else {
+    adblockStartupController = createAdblockStartupController({
+      initialize: async () => {
+        if (packagedAdblockInitializationFailuresRemaining > 0) {
+          packagedAdblockInitializationFailuresRemaining -= 1;
+          throw new Error('packaged smoke: simulated first initialization failure');
+        }
+        await setupAdBlocker(ses, {
+          enabled: settings.getSettings().adblockEnabled,
+          fetchImpl: packagedAdblockFailureTestMode
+            ? packagedAdblockTestFetch
+            : fetch,
+        });
+        attachAdBlockerToSession(privateSes, {
+          enabled: settings.getSettings().adblockEnabled,
+        });
+      },
+      onStateChange: (state) => {
+        adblockStartupState = state;
+        broadcastStartPageStatus();
+        if (state.phase === 'failed' && tabs.has(startupTabId)) {
+          setActiveTab(startupTabId, { focusContent: true });
+        }
+      },
+      onReleased: ({ blocking }) => releaseStartup({ blocking }),
+    });
+    // The controller converts filter failures into local UI state. This
+    // catch is only for an unexpected release/restore failure and prevents
+    // an unhandled ready-chain rejection.
+    adblockStartupController.start().catch((err) => {
+      console.error('[startup] could not release browsing:', err);
+    });
+  }
 
   setupAutoUpdater();
 

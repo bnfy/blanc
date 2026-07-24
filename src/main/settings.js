@@ -1,4 +1,7 @@
 const { JsonStore } = require('./store');
+const { app } = require('electron');
+const fs = require('fs');
+const path = require('path');
 const { isValidDohTemplate, reconcileSecureDnsWrite, coerceSecureDnsRead } = require('./network-privacy');
 const APP_ICON_ASSETS = require('./app-icon-assets');
 
@@ -10,15 +13,17 @@ const SEARCH_ENGINES = {
 };
 
 const THEMES = ['system', 'light', 'dark'];
+const TAB_LAYOUTS = ['island', 'vertical'];
 
 // Network-privacy enums (bare arrays, like THEMES — build.mjs parses them by name).
 const WEBRTC_POLICIES = ['standard', 'strict'];
 const SECURE_DNS_OPTIONS = ['auto', 'off', 'cloudflare', 'quad9', 'mullvad', 'custom'];
+const FIRST_RUN_VERSION = 1;
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
-// excludes appIcon and searchSuggestions (device-local), usagePing
-// (per-install consent), and supporter (never — that would be license
-// sharing).
+// excludes tabLayout, appIcon, and searchSuggestions (device-local),
+// usagePing (per-install consent), and supporter (never — that would be
+// license sharing).
 const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions'];
 
 // Dock icon colorways — id maps to src/renderer/pages/icon-<id>.png; order
@@ -72,6 +77,8 @@ const DEFAULTS = {
   // Empty string = the built-in blanc://newtab page.
   homePage: '',
   theme: 'system',
+  // Device-local presentation preference; deliberately not Profile Synced.
+  tabLayout: 'island',
   appIcon: 'paper',
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
@@ -83,6 +90,11 @@ const DEFAULTS = {
   // (opt-out in Settings); no browsing data, only version/OS plus a random
   // per-install id used solely to count distinct active users.
   usagePing: true,
+  // Device-local completion marker for the compact first-run privacy card.
+  // Existing profiles are promoted to the current version when their
+  // pre-existing settings file is first opened; only a truly missing
+  // settings file starts at 0.
+  onboardingVersion: 0,
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
@@ -93,10 +105,45 @@ const DEFAULTS = {
 };
 
 let store = null;
+let existingProfileHint = null;
 const listeners = new Set();
 
+function setExistingProfileHint(existed) {
+  if (store) throw new Error('setExistingProfileHint must run before settings are loaded');
+  existingProfileHint = !!existed;
+}
+
 function ensureStore() {
-  if (!store) store = new JsonStore('settings', DEFAULTS);
+  if (!store) {
+    const settingsFile = path.join(app.getPath('userData'), 'settings.json');
+    const profileAlreadyExisted = existingProfileHint ?? fs.existsSync(settingsFile);
+    let storedSettings = null;
+    try {
+      storedSettings = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
+    } catch {
+      // Missing/corrupt settings have no trustworthy onboarding marker.
+    }
+    const hasOnboardingMarker =
+      storedSettings &&
+      Object.prototype.hasOwnProperty.call(storedSettings, 'onboardingVersion');
+    store = new JsonStore('settings', DEFAULTS);
+    // Profiles created before the first-run card already made their privacy
+    // choices through Settings (or accepted the then-current defaults).
+    // An explicit marker — including version 0 — belongs to the new flow and
+    // must survive a quit before the user decides.
+    const legacyProfile =
+      profileAlreadyExisted &&
+      (!fs.existsSync(settingsFile) || (storedSettings && !hasOnboardingMarker));
+    if (legacyProfile && store.data.onboardingVersion < FIRST_RUN_VERSION) {
+      store.data.onboardingVersion = FIRST_RUN_VERSION;
+      store.flush();
+    } else if (!profileAlreadyExisted || !storedSettings) {
+      // Persist version 0 immediately. Other stores (especially session.json)
+      // may appear before the choice is made; this marker prevents the next
+      // launch from mistaking that interrupted first run for a legacy profile.
+      store.flush();
+    }
+  }
   return store;
 }
 
@@ -108,6 +155,10 @@ function getSettings() {
   if (typeof data.searchSuggestions !== 'boolean') {
     data.searchSuggestions = DEFAULTS.searchSuggestions;
   }
+  if (!Number.isInteger(data.onboardingVersion) || data.onboardingVersion < 0) {
+    data.onboardingVersion = DEFAULTS.onboardingVersion;
+  }
+  if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
   // Read coercion for a corrupted stored state (hand-edited settings.json): custom
   // without a valid template reads back as the default, never as plaintext-capable
@@ -135,6 +186,7 @@ function sanitize(partial) {
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
   if (typeof partial.homePage === 'string') clean.homePage = partial.homePage.trim();
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
+  if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (WEBRTC_POLICIES.includes(partial.webrtcPolicy)) clean.webrtcPolicy = partial.webrtcPolicy;
   if (SECURE_DNS_OPTIONS.includes(partial.secureDns)) clean.secureDns = partial.secureDns;
   if (typeof partial.secureDnsTemplate === 'string') {
@@ -185,6 +237,46 @@ function onSettingsChanged(fn) {
   listeners.add(fn);
 }
 
+function isFirstRunComplete() {
+  return ensureStore().data.onboardingVersion >= FIRST_RUN_VERSION;
+}
+
+/**
+ * Persist both network-affecting first-run choices and the completion marker
+ * in one synchronous commit. Callers must not start suggestions or telemetry
+ * unless `completed` is true.
+ */
+function completeFirstRunPrivacyChoices(partial = {}) {
+  if (isFirstRunComplete()) {
+    return { completed: true, settings: getSettings() };
+  }
+  if (
+    typeof partial.searchSuggestions !== 'boolean' ||
+    typeof partial.usagePing !== 'boolean'
+  ) {
+    return { completed: false, error: 'invalid-choices' };
+  }
+
+  const s = ensureStore();
+  const previous = {
+    searchSuggestions: s.data.searchSuggestions,
+    usagePing: s.data.usagePing,
+    onboardingVersion: s.data.onboardingVersion,
+  };
+  s.update((data) => {
+    data.searchSuggestions = partial.searchSuggestions;
+    data.usagePing = partial.usagePing;
+    data.onboardingVersion = FIRST_RUN_VERSION;
+  });
+  if (!s.flush()) {
+    Object.assign(s.data, previous);
+    return { completed: false, error: 'write-failed' };
+  }
+  const next = getSettings();
+  for (const fn of listeners) fn(next);
+  return { completed: true, settings: next };
+}
+
 function isSupporterActive() {
   return !!ensureStore().data.supporter;
 }
@@ -199,9 +291,8 @@ function setSupporter(record) {
 }
 
 // Snapshot the synced keys plus their per-key timestamps for the sync engine
-// to encrypt. Only SYNCED_KEYS cross the wire — supporter, appIcon,
-// searchSuggestions, usagePing, and _syncMeta's non-synced entries never
-// leave.
+// to encrypt. Only SYNCED_KEYS cross the wire — supporter, tabLayout, appIcon,
+// searchSuggestions, usagePing, and _syncMeta's non-synced entries never leave.
 function exportForSync() {
   const d = ensureStore().data;
   const values = {}, meta = {};
@@ -247,13 +338,17 @@ function searchUrlFor(query) {
 
 module.exports = {
   SEARCH_ENGINES,
+  TAB_LAYOUTS,
   APP_ICONS,
   APP_ICON_LABELS,
   SUPPORTER_ICONS,
   SUPPORTER_ICON_LABELS,
   getSettings,
+  setExistingProfileHint,
   setSettings,
   onSettingsChanged,
+  isFirstRunComplete,
+  completeFirstRunPrivacyChoices,
   searchUrlFor,
   isSupporterActive,
   isAppIconAllowed,

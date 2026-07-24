@@ -7,9 +7,10 @@ The dashboard. One row per feature (`F#`), one column per platform, plus the
 Status values: `SHIPPED` · `PARTIAL` · `PLANNED` · `DIVERGENT (D#)` · `N/A`.
 See [`README.md`](./README.md#status-legend) for meanings.
 
-> Desktop is the reference implementation and is `SHIPPED` across the board.
-> iOS/Android are greenfield — all `PLANNED` — so the live content of this table
-> today is the **Parity contract** and **Divergence** columns.
+> Desktop is the reference implementation; newly specified work may remain
+> `PARTIAL` or `PLANNED` until its acceptance gate passes. iOS/Android are still
+> mostly greenfield, so the live content of this table today is chiefly the
+> **Parity contract** and **Divergence** columns.
 
 | ID | Feature | Desktop | iOS | Android | Parity contract (must be identical) | Divergence |
 |----|---------|---------|-----|---------|-------------------------------------|------------|
@@ -33,11 +34,12 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F18 | Session persistence & restore | SHIPPED | PARTIAL | PLANNED | Restore tabs + groups; private tabs excluded; same `session.json` shape (adapted per platform store). | D8 |
 | F19 | Context menu (link/page actions) | SHIPPED | PLANNED | PLANNED | Same actions (open in new/background tab, copy link, etc.); OS hand-off honored. | D4, D7 |
 | F20 | Basic-auth dialog | SHIPPED | PLANNED | PLANNED | Same modal auth prompt behaviour. | — |
-| F21 | Telemetry (usage ping) | SHIPPED | PLANNED | PLANNED | Opt-in, off by default, packaged-only, anonymous `{version,platform,arch}`, fire-and-forget. | — |
+| F21 | Telemetry (usage ping) | SHIPPED | PLANNED | PLANNED | A fresh profile must commit its on/off choice before any ping; the choice is presented on by default and remains device-local. When enabled, packaged builds send one fire-and-forget launch ping with `{installId,sessionId,version,platform,arch}` and no browsing data. | — |
 | F22 | Distribution & updates | SHIPPED | N/A | N/A | User gets updates; no in-app updater fighting the OS store. | D9 |
 | F23 | Zoom / page scaling | SHIPPED | DIVERGENT (D10) | DIVERGENT (D10) | Page can be scaled; desktop discrete zoom vs mobile pinch/native reflow. | D10 |
 | F24 | Password AutoFill / passkeys | N/A | PLANNED | PLANNED | On mobile, native credential provider + platform passkeys work in-webview. | D12 |
 | F27 | Tab Sync (other-device tab list) | SHIPPED | PLANNED | PLANNED | Per-device opt-in, off by default, publish-only gating; read-only browsing in panel/switcher/start page; http(s)-only bounded snapshots plus a separately-budgeted E2EE icon sidecar; retraction + 30-day prune + 24 h heartbeat. Optional favicons are inert bounded PNG bytes—never remote URLs loaded by a receiving device. | — |
+| F28 | Vertical tabs | SHIPPED | DIVERGENT (D19) | DIVERGENT (D19) | The logical tabs/groups and their identity, lifecycle, private/media state, and organization remain available. Desktop may present them in an optional persistent rail without replacing the Island or reloading content; mobile uses its native tab overview. | D19 |
 
 ## Notes on the "mobile-only wins"
 
