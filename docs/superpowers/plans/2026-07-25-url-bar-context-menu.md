@@ -360,16 +360,21 @@ git commit -m "Add buildAddressMenu(): pure address-bar menu descriptors"
 
 ---
 
-### Task 3: Extract `navigateTabToAddress()` + `pasteAndGo()` in main.js
+### Task 3: Extract `navigateTabToAddress()` + `pasteAndGo()` in main.js, with a real-navigation regression scenario
 
 **Files:**
-- Modify: `src/main/main.js` (the `tabs:navigate` handler around line 2044; new functions near it or near `normalizeAddressInput` ~line 816)
+- Modify: `src/main/main.js` (the `tabs:navigate` handler around line 2044; new functions near `normalizeAddressInput` ~line 816)
+- Modify: `spec/acceptance/navigation-and-context-menu.feature` (new `@F5-6` scenario after F5-5)
+- Modify: `spec/acceptance/index.md` (F5-6 row after F5-5)
+- Modify: `test/desktop/cucumber.mjs` (add `'@F5-6'` to the RUNNABLE list after `'@F5-5'`)
+- Modify: `src/main/test-hook.js` (new `submitAddressInput()` method)
+- Modify: `test/desktop/steps/runnable.steps.js` (three new steps)
 
 **Interfaces:**
-- Consumes: existing `tabs`, `handOffToOs`, `normalizeAddressInput`, `isUtilityUrl`, `openInternalPage`, `tabsWantingAddressBarFocus`, `hideOverlay` — all already in main.js module scope.
-- Produces: `navigateTabToAddress(id, rawText)` and `pasteAndGo(id, rawText)` in main.js module scope. Task 4 wires `pasteAndGo` into the menu; Task 5 passes it to the test hook.
+- Consumes: existing `tabs`, `handOffToOs`, `normalizeAddressInput`, `isUtilityUrl`, `openInternalPage`, `tabsWantingAddressBarFocus`, `hideOverlay` — all already in main.js module scope; existing hook methods `editAddressInput`, `openPanel`, `overlayMode`, `getOverlayWebContents`.
+- Produces: `navigateTabToAddress(id, rawText)` and `pasteAndGo(id, rawText)` in main.js module scope (Task 4 wires `pasteAndGo` into the menu; Task 5 passes it to the test hook); `__blanc.submitAddressInput()`; step definitions `Given the island panel is open` and `Then the active tab loads the address of {string}` (Task 5 REUSES both — it must not redefine them).
 
-This is a pure refactor plus one new 4-line wrapper — no behaviour change to the IPC path, so no new unit test; the existing acceptance F5 scenarios (typed navigation, mailto hand-off) are the regression net.
+The extraction itself is a pure refactor plus one 4-line wrapper, so it gets no unit test — but the existing F5 scenarios are bound model-level (`resolveAddress()` / `wouldHandOff()`, see extended.steps.js) and never invoke `tabs:navigate` or a real load. The scenario added here closes that gap: panel open → edit the input → Enter → wait for the committed URL, driving the renderer's keydown path through the real IPC into the extracted function.
 
 - [ ] **Step 1: Extract the handler body**
 
@@ -427,16 +432,92 @@ function pasteAndGo(id, rawText) {
 
 (Preserve the two comments — they move with the code. `trusted: true` stays correct for the menu path: the navigation originates in an explicit user click on a menu item, not page-controlled content.)
 
-- [ ] **Step 2: Verify the refactor**
+- [ ] **Step 2: Add the F5-6 real-navigation scenario**
+
+In `spec/acceptance/navigation-and-context-menu.feature`, after the F5-5 scenario:
+
+```gherkin
+  @F5-6 @F5 @all
+  Scenario: Submitting an address in the command bar performs a real navigation
+    Given a tab open on "plain"
+    And the island panel is open
+    When I submit the address of "other" in the command bar
+    Then the active tab loads the address of "other"
+```
+
+(`@all`: the behaviour — a submitted address really navigates — is a
+cross-platform contract like F5-1; only this desktop binding is new. The
+fixtures server serves any `/site/<name>`, so "plain"/"other" need no
+registration.)
+
+In `spec/acceptance/index.md`, after the F5-5 row:
+
+```markdown
+| F5-6 | Command-bar submit commits a real navigation | — | ✅ | ⬜ | ⬜ |
+```
+
+In `test/desktop/cucumber.mjs`, add `'@F5-6',` after `'@F5-5',` in RUNNABLE.
+
+- [ ] **Step 3: Add the `submitAddressInput` hook method**
+
+In `src/main/test-hook.js`, next to the existing `editAddressInput` method:
+
+```js
+    async submitAddressInput() {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      // Dispatch Enter on the address input so the renderer's own keydown
+      // handler runs — the same path a user's keystroke takes into the
+      // tabs:navigate IPC and navigateTabToAddress().
+      return wc.executeJavaScript(`(() => {
+        const input = document.getElementById('addressInput');
+        if (!input) return false;
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        return true;
+      })()`);
+    },
+```
+
+- [ ] **Step 4: Add the step definitions**
+
+In `test/desktop/steps/runnable.steps.js`:
+
+```js
+// ---------- F5-6: real navigation through the command bar ----------
+
+Given('the island panel is open', async function () {
+  await this.call('openPanel'); // existing hook method: showOverlay('panel')
+  assert.equal(await this.call('overlayMode'), 'panel');
+});
+
+When('I submit the address of {string} in the command bar', async function (name) {
+  const url = this.fixtureUrl(name);
+  // editAddressInput dispatches a real input event (inputTouched flips), so
+  // the renderer treats the value as typed; Enter then navigates it.
+  await this.call('editAddressInput', url);
+  await this.call('submitAddressInput');
+});
+
+Then('the active tab loads the address of {string}', async function (name) {
+  const url = this.fixtureUrl(name);
+  await this.waitForState((s) =>
+    s.tabs.some((t) => t.id === s.activeTabId && t.url === url));
+});
+```
+
+- [ ] **Step 5: Verify the refactor**
 
 Run: `npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop`
-Expected: all PASS — F5-1/2/3 (typed domain, search, mailto hand-off) exercise the extracted path end-to-end.
+Expected: all PASS, including the new F5-6 — which fails against a botched
+extraction (it commits a real load through `navigateTabToAddress()`), unlike
+the model-level F5-1/2/3.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add src/main/main.js
-git commit -m "Extract navigateTabToAddress() + pasteAndGo() from tabs:navigate"
+git add src/main/main.js src/main/test-hook.js spec/acceptance/navigation-and-context-menu.feature \
+  spec/acceptance/index.md test/desktop/cucumber.mjs test/desktop/steps/runnable.steps.js
+git commit -m "Extract navigateTabToAddress() + pasteAndGo(); add F5-6 real-navigation scenario"
 ```
 
 ---
@@ -540,23 +621,30 @@ function attachAddressMenu(wc, deps) {
     // above — an abort path there would leak it set and permanently disarm
     // blur dismissal.
     deps.setMenuOpen(true);
-    menu.popup({
-      window: deps.getWindow(),
-      // params.x/y are overlay-webContents-relative; popup wants
-      // window-relative. Explicit coordinates also make keyboard invocation
-      // (Shift+F10 / menu key) land at Chromium's caret-anchored position
-      // instead of the mouse.
-      x: Math.round(bounds.x + params.x),
-      y: Math.round(bounds.y + params.y),
-      // Electron's context-menu guide recommends forwarding sourceType so
-      // Windows/Linux can adjust for keyboard vs. mouse invocation.
-      sourceType: params.menuSourceType,
-      frame: params.frame ?? undefined,
-      callback: () => {
-        deps.setMenuOpen(false);
-        deps.onMenuClosed();
-      },
-    });
+    try {
+      menu.popup({
+        window: deps.getWindow(),
+        // params.x/y are overlay-webContents-relative; popup wants
+        // window-relative. Explicit coordinates also make keyboard invocation
+        // (Shift+F10 / menu key) land at Chromium's caret-anchored position
+        // instead of the mouse.
+        x: Math.round(bounds.x + params.x),
+        y: Math.round(bounds.y + params.y),
+        // Electron's context-menu guide recommends forwarding sourceType so
+        // Windows/Linux can adjust for keyboard vs. mouse invocation.
+        sourceType: params.menuSourceType,
+        frame: params.frame ?? undefined,
+        callback: () => {
+          deps.setMenuOpen(false);
+          deps.onMenuClosed();
+        },
+      });
+    } catch {
+      // A synchronous popup failure would otherwise leave the flag set and
+      // permanently disarm blur dismissal. Same abort-silently policy as the
+      // executeJavaScript rejection above.
+      deps.setMenuOpen(false);
+    }
   });
 }
 
@@ -636,7 +724,7 @@ Expected: PASS (nothing new is exercised yet; this catches require-path typos an
 - [ ] **Step 5: Live smoke test (relaunch — chrome documents load once)**
 
 Kill any running dev instance, then `npm start`. Verify:
-1. ⌘L, right-click the address input → menu appears with all ten items, at the click point.
+1. ⌘L, right-click the address input → menu appears at the click point with all nine commands (Undo, Redo, Cut, Copy, Copy Clean Link, Paste, Paste and Go, Delete, Select All) and two separators.
 2. Panel stays open while the menu is up; Escape closes the menu, panel remains, caret/selection intact.
 3. Right-click the find bar (⌘F) and panel chrome → nothing (as before).
 4. Copy Clean Link on a page with `?utm_source=…` → clipboard holds the stripped URL.
@@ -665,9 +753,10 @@ Everything in this task lands in ONE commit: the parity-guards CI runs `test:acc
 - Modify: `src/main/test-hook.js` (new hook methods + refs)
 - Modify: `src/main/main.js` (pass `pasteAndGo` in the test-hook refs, ~line 2845)
 - Modify: `test/desktop/steps/runnable.steps.js` (new step definitions)
+- Modify: `test/desktop/support/context.js` + `test/desktop/support/hooks.js` (per-scenario reset of the new state)
 
 **Interfaces:**
-- Consumes: `buildAddressMenu` (Task 2), `runAddressMenuItem` (Task 4), `pasteAndGo` (Task 3), existing hook plumbing (`getActiveTabId`, `getOverlayWebContents`, `getOverlayMode`, `showOverlay`, `world.call`, `world.waitForState`, `world.fixtureUrl`).
+- Consumes: `buildAddressMenu` (Task 2), `runAddressMenuItem` (Task 4), `pasteAndGo` (Task 3), Task 3's step definitions `Given the island panel is open` and `Then the active tab loads the address of {string}` (reused, NOT redefined), existing hook plumbing (`getActiveTabId`, `getOverlayWebContents`, `getOverlayMode`, `world.call`, `world.waitForState`, `world.fixtureUrl`).
 - Produces: `__blanc.addressMenu({ fieldText })`, `__blanc.runAddressMenuItem(id, fieldText)`, `__blanc.setClipboardText(text)`, `__blanc.readClipboardText()`.
 
 - [ ] **Step 1: Add the scenarios**
@@ -756,14 +845,8 @@ Given('the active tab is on {string} with query {string}', async function (name,
   await this.waitForState((s) => s.tabs.some((t) => t.id === id && t.url === url));
 });
 
-Given('the island panel is open', async function () {
-  await this.call('openPanel'); // existing hook method: showOverlay('panel')
-  assert.equal(await this.call('overlayMode'), 'panel');
-});
-
 Given('the clipboard holds the address of {string}', async function (name) {
-  ctx.pasteTargetUrl = this.fixtureUrl(name);
-  await this.call('setClipboardText', ctx.pasteTargetUrl);
+  await this.call('setClipboardText', this.fixtureUrl(name));
 });
 
 When('I open the command-bar context menu', async function () {
@@ -802,20 +885,38 @@ Then('the clipboard holds the page address with query {string}', async function 
   assert.equal(await this.call('readClipboardText'), expected);
 });
 
-Then('the active tab loads the address of {string}', async function (name) {
-  const url = this.fixtureUrl(name);
-  await this.waitForState((s) =>
-    s.tabs.some((t) => t.id === s.activeTabId && t.url === url));
-});
-
 Then('the island is closed', async function () {
   assert.equal(await this.call('overlayMode'), null);
 });
 ```
 
-Also add the context slots to `test/desktop/support/context.js` if it initializes named slots explicitly (check its shape; if it's a plain mutable object, no change needed).
+(`Given the island panel is open` and `Then the active tab loads the address
+of {string}` were defined in Task 3 — the F19-3 scenario reuses them; do NOT
+redefine them here, Cucumber fails on ambiguous matches.)
 
-Final ambiguity sweep before committing: grep both step files for each new expression (`island panel is open`, `island is closed`, `with query`, `command-bar context menu`, `loads the address of`, `clipboard holds`) — Cucumber fails on ambiguous matches, and `Given the island panel is open` in particular may already exist for an island scenario; if an identical-text step exists, reuse it and delete the duplicate from this list.
+**Per-scenario state reset (load-bearing):** `ctx` is module-scoped and
+survives across scenarios — F19-2 leaves `addressMenuItems` populated, and
+F19-3's choose-step would then reuse those stale descriptors, whose
+`paste-and-go` was built against the clipboard **before** F19-3's Given wrote
+to it (disabled if it was empty) — a guaranteed ordering-dependent failure.
+Follow the existing convention (`tabByName` et al.):
+
+In `test/desktop/support/context.js`, add to the exported object:
+
+```js
+  addressMenuItems: null,
+  addressMenuFieldText: null,
+```
+
+In `test/desktop/support/hooks.js`, add to the `Before` hook alongside the
+existing resets:
+
+```js
+  ctx.addressMenuItems = null;
+  ctx.addressMenuFieldText = null;
+```
+
+Final ambiguity sweep before committing: grep both step files for each new expression (`island is closed`, `with query`, `command-bar context menu`, `clipboard holds`) — Cucumber fails on ambiguous matches.
 
 - [ ] **Step 4: Register the scenarios as runnable**
 
@@ -850,7 +951,8 @@ Expected: PASS.
 ```bash
 git add spec/acceptance/navigation-and-context-menu.feature spec/acceptance/index.md \
   test/desktop/cucumber.mjs test/desktop/steps/runnable.steps.js \
-  test/desktop/support/context.js src/main/test-hook.js src/main/main.js
+  test/desktop/support/context.js test/desktop/support/hooks.js \
+  src/main/test-hook.js src/main/main.js
 git commit -m "Add F19-2/F19-3 acceptance scenarios for the address-bar menu"
 ```
 
@@ -975,5 +1077,6 @@ Summarize results against the checklist. Any failure: stop, use superpowers:syst
 - `runAddressMenuItem`'s hook binding (Task 5) uses all-true `editFlags`; the flag→enabled mapping is covered by Task 2's unit tests, so the acceptance layer only asserts the layers a real click exercises (descriptors → action → clipboard/navigation/overlay).
 - `wc.delete()` is the Electron WebContents editing method matching the `canDelete` flag (present alongside cut/copy/paste since Electron 1.x).
 - Fixture names "plain"/"other" in Task 5 are final — the fixtures server serves any `/site/<name>` path, no registration exists to update.
-- The F19-3 navigation assertion deliberately avoids the pre-existing `the active tab navigates to {string}` expression (extended.steps.js:62, model-level, no real navigation) — see Task 5 Step 1's conflict note.
-```
+- The F19-3 navigation assertion deliberately avoids the pre-existing `the active tab navigates to {string}` expression (extended.steps.js:62, model-level, no real navigation) — see Task 5 Step 1's conflict note. `Given the island panel is open` and `Then the active tab loads the address of {string}` are defined once, in Task 3, and reused by Task 5.
+- The new `ctx` fields (`addressMenuItems`, `addressMenuFieldText`) are declared in context.js and cleared in the `Before` hook, matching `tabByName` et al. — module-scoped state that leaked across scenarios would make F19-3 fail depending on scenario order.
+- `menu.popup()` is wrapped in try/catch so a synchronous popup failure can't leak `addressMenuOpen` set and permanently disarm blur dismissal.
