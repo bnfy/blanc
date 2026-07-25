@@ -39,7 +39,7 @@ Enabled state comes from Blink's own `params.editFlags` (`canUndo`, `canRedo`,
 than inferred. Two items add their own condition:
 
 - **Copy Clean Link** — enabled iff `cleanLink()` returns non-null for the
-  active tab's URL.
+  field's current text.
 - **Paste and Go** — enabled iff `editFlags.canPaste` **and**
   `clipboard.readText().trim()` is non-empty.
 
@@ -72,6 +72,37 @@ message from the renderer: the event carries `editFlags` and the cursor
 position, and it cannot race a separately-sent IPC message. No new preload
 surface and no new IPC channel are needed.
 
+### Reading the field value
+
+`params` does not carry the input's value, and Copy Clean Link operates on it
+(below). The handler reads it on demand:
+
+```js
+const fieldText = await wc.executeJavaScript(
+  'document.getElementById("addressInput")?.value ?? ""');
+```
+
+One awaited round-trip into Blanc's own chrome document, then the menu is
+built and popped. This keeps the no-new-preload/no-race property above: a
+renderer-side "report value on contextmenu" send would travel a different pipe
+than the `context-menu` event with no ordering guarantee between them.
+
+### Placement — mouse and keyboard
+
+The menu pops at explicit coordinates rather than Electron's default
+cursor position:
+
+```js
+menu.popup({ window: win, x: overlayBounds.x + params.x, y: overlayBounds.y + params.y });
+```
+
+`params.x/y` are overlay-webContents-relative, so they are offset by the
+overlay view's bounds origin (popup coordinates are window-relative). This
+makes keyboard invocation correct for free: Shift+F10 / the menu key fires the
+same DOM `contextmenu` → browser `context-menu` chain with Chromium's
+caret-anchored coordinates, so the menu lands at the field's caret instead of
+wherever the mouse happens to be.
+
 ### Module split
 
 Pure logic is separated from the Electron shim so it runs under `node --test`
@@ -80,14 +111,16 @@ precedent.
 
 | File | Role |
 |---|---|
-| `src/main/clean-link.js` *(new)* | pure `cleanLink(url)` → cleaned URL string, or `null` if not http(s) |
-| `src/main/address-menu-model.js` *(new)* | pure `buildAddressMenu({ editFlags, clipboardText, tabUrl })` → array of `{ id, label, accelerator, enabled }` and `{ type: 'separator' }` descriptors |
+| `src/main/clean-link.js` *(new)* | pure `cleanLink(text)` → cleaned URL string, or `null` if the text isn't an http(s) URL |
+| `src/main/address-menu-model.js` *(new)* | pure `buildAddressMenu({ editFlags, clipboardText, fieldText })` → array of `{ id, label, accelerator, enabled }` and `{ type: 'separator' }` descriptors |
 | `src/main/address-menu.js` *(new)* | thin Electron layer: binds the `context-menu` event, feeds the model, maps `id` → action, pops the menu |
 | `src/renderer/overlay.js` | the suppressing listener above |
 | `src/main/main.js` | attach on `overlayView`, inject actions, blur guard, extract `navigateTabToAddress()` |
 | `spec/features.md` | extend F19 |
 | `spec/divergence-register.md` | new **D20** entry for the desktop-only URL-bar menu |
 | `spec/parity-matrix.md` | F19 row: add D20 to its divergences column |
+| `spec/acceptance/navigation-and-context-menu.feature` | new `@F19-2`/`@F19-3` scenarios (below) |
+| `spec/acceptance/index.md` | scenario rows for F19-2/F19-3, tagged D20 |
 
 `address-menu.js` takes its actions as injected callbacks and does **not**
 require `main.js`, mirroring how `context-menu.js` avoids that cycle.
@@ -106,30 +139,43 @@ Accelerators are displayed for the items that have a real keyboard equivalent �
 Paste and Go, and Delete have no shortcut and show none; the menu is their only
 entry point.
 
-**Copy Clean Link** writes `cleanLink(activeTabUrl)` to the clipboard.
+**Copy Clean Link** writes `cleanLink(fieldText)` to the clipboard.
 
 **Paste and Go** reads `clipboard.readText()` and routes it through the same
 path as pressing Enter in the address bar.
 
-### Copy Clean Link operates on the tab URL, not the field text
+### Copy Clean Link operates on the visible field text
 
-When the field is untouched the two are identical. When the user has typed a
-search query, "cleaning" that string is meaningless — so the menu item reads
-the active tab's URL and disables itself whenever that URL is not http(s)
-(`blanc://` pages, `file://`, `view-source:`).
+The item cleans what the user is looking at. When the field is untouched that
+is the active tab's URL (`addressDisplayValue()` returns `tab.url` verbatim);
+once the user has edited or typed, copying anything other than the visible
+value would silently act on a different object than the one on screen.
 
-`cleanLink(url)`:
+`cleanLink(text)`:
 
-1. Returns `null` unless the URL parses and its protocol is `http:` or `https:`.
-2. Deletes every query parameter whose lowercased name starts with `utm_`.
-3. Deletes these exact parameters: `fbclid`, `gclid`, `dclid`, `gbraid`,
-   `wbraid`, `msclkid`, `ttclid`, `twclid`, `igshid`, `yclid`, `mc_eid`,
-   `_openstat`, `vero_id`, `s_cid`.
+1. Returns `null` unless the trimmed text parses as a URL with protocol
+   `http:` or `https:` — so a typed search query, a scheme-less fragment of an
+   address, a `blanc://` page, `file://`, and `view-source:` all disable the
+   item rather than "cleaning" a non-link.
+2. Deletes every query parameter whose name starts with `utm_` and each of
+   these exact names: `fbclid`, `gclid`, `dclid`, `gbraid`, `wbraid`,
+   `msclkid`, `ttclid`, `twclid`, `igshid`, `yclid`, `mc_eid`, `_openstat`,
+   `vero_id`, `s_cid`. **All name matching is case-insensitive**
+   (`UTM_SOURCE` and `FBCLID` are stripped too).
+3. **Surviving parameters keep their original order and their original
+   encoding.** The implementation splits the raw query string on `&` and
+   filters segments — it must not round-trip through `URLSearchParams`, which
+   re-encodes values (`%20`↔`+`, unreserved-character normalization) and would
+   corrupt signed or encoding-sensitive URLs.
 4. Drops a trailing bare `?` when stripping empties the query string.
 5. Leaves the fragment untouched — fragments are load-bearing on many sites.
 
-The list is deliberately conservative and curated. Over-stripping silently
-breaks links, which is worse than leaving a tracker on one.
+The list is deliberately conservative and curated, consistent with Brave's own
+clean-link guidelines: a cleaned URL must retain functionality, and generic
+parameters must not be stripped globally (Brave's larger production list leans
+on domain scopes and exclusions to stay safe — machinery a v1 doesn't need).
+Over-stripping silently breaks links, which is worse than leaving a tracker on
+one.
 
 ### Paste and Go reuses the existing navigation path
 
@@ -154,31 +200,64 @@ would vanish the instant the menu opened, leaving the menu floating over
 nothing.
 
 `main.js` gains an `addressMenuOpen` flag, set immediately before
-`Menu.popup()` and cleared in its `callback`. The `blur` handler returns early
-while it is set. The callback also refocuses the overlay — but only if
-`overlayMode` is still live, since Paste and Go deliberately closes it.
+`Menu.popup()` and cleared in its close `callback`. The `blur` handler returns
+early while it is set.
+
+The close callback must not blindly refocus Blanc — if the user switched apps
+while the menu was open, stealing focus back would be hostile. On close:
+
+- `!win.isFocused()` → `hideOverlay({ refocusContent: false })`: the window
+  lost focus while the guard was suppressing the normal blur dismissal, so
+  the callback performs the dismissal the guard swallowed, without touching
+  focus.
+- window still focused and `overlayMode` still live → refocus the overlay's
+  `webContents` (the popup took focus from it).
+- `overlayMode` gone (Paste and Go closed it) → nothing.
 
 ## Testing
 
 **Unit (`node --test`):**
 
 - `test/unit/clean-link.test.js` — `utm_*` prefix stripping; each exact
-  parameter; non-tracking params preserved; fragment preserved; trailing `?`
-  dropped; ordering of surviving params preserved; `null` for `blanc://`,
-  `file://`, `view-source:`, and unparseable input; a URL with no query
-  returned unchanged.
+  parameter; case-insensitive matching (`UTM_SOURCE`, `FBCLID`); non-tracking
+  params preserved in original order **with original encoding** (a `%20` /
+  `+` / percent-encoded value survives byte-for-byte); fragment preserved;
+  trailing `?` dropped; `null` for search-query text, `blanc://`, `file://`,
+  `view-source:`, and unparseable input; a URL with no query returned
+  unchanged.
 - `test/unit/address-menu-model.test.js` — item order and labels; every
   `editFlags` combination maps to the right enabled state; Copy Clean Link
-  disabled for a non-http tab URL; Paste and Go disabled on empty clipboard
-  even when `canPaste` is true.
+  disabled when `fieldText` isn't an http(s) URL; Paste and Go disabled on
+  empty/whitespace clipboard even when `canPaste` is true.
+
+**Acceptance (parity substrate):** two scenarios in
+`spec/acceptance/navigation-and-context-menu.feature`, tagged `@desktop`
+(never `@all` — the surface is desktop-only per D20) plus `@D20`:
+
+- `@F19-2` — right-clicking the command bar over a URL with tracking
+  parameters offers Copy Clean Link, and choosing it puts the URL minus
+  `utm_*`/click-id parameters on the clipboard, other parameters intact.
+- `@F19-3` — with a URL on the clipboard, Paste and Go navigates the active
+  tab to it and closes the island.
+
+Both get rows in `spec/acceptance/index.md` (✅ desktop only; the mobile
+columns stay ⬜ n/a per D20). A native `Menu.popup()` cannot be driven by the
+Playwright harness, so the desktop step definitions bind through the pure
+layer — `buildAddressMenu()` + `cleanLink()` for F19-2's menu contents and
+clipboard result, and the extracted `navigateTabToAddress()` via the test hook
+for F19-3 — asserting the same observable outcomes the menu produces.
 
 **Manual (chrome changes cannot be verified by reload — the app must be
 relaunched):**
 
 - Right-click the address input with and without a selection.
+- Invoke via keyboard (Shift+F10 / menu key) — menu appears at the field's
+  caret, not at the mouse position.
 - Right-click the find bar and the group-name picker — both stay dead.
 - Confirm the panel stays open while the menu is up, and that the caret and
   selection survive after dismissing it.
+- Cmd-Tab to another app while the menu is open — Blanc must not steal focus
+  back when the menu closes; the panel is dismissed.
 - Paste and Go with a URL, with a search phrase, and with a `mailto:` URI.
 
 ## Non-goals
