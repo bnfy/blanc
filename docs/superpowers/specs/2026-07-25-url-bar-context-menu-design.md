@@ -87,13 +87,36 @@ built and popped. This keeps the no-new-preload/no-race property above: a
 renderer-side "report value on contextmenu" send would travel a different pipe
 than the `context-menu` event with no ordering guarantee between them.
 
+The await introduces its own lifecycle window, which the handler closes
+explicitly:
+
+- The `executeJavaScript` call is wrapped in try/catch; if it rejects (the
+  overlay's webContents destroyed or mid-navigation), the handler aborts
+  silently — no menu, no fallback.
+- After the await resolves, the handler revalidates before popping: the
+  window is still live (`hasLiveWindow()`), the overlay view still exists and
+  its webContents isn't destroyed, and `overlayMode` is still `'panel'` or
+  `'palette'` — the only modes in which `#addressInput` is on screen. Any
+  check failing aborts. Without this, an overlay dismissed during the
+  round-trip (Escape races the right-click) would get a menu popped over
+  nothing.
+- The `addressMenuOpen` blur-guard flag is set only after revalidation, next
+  to the actual `popup()` call — never across the await, where an abort path
+  could leak it set.
+
 ### Placement — mouse and keyboard
 
 The menu pops at explicit coordinates rather than Electron's default
 cursor position:
 
 ```js
-menu.popup({ window: win, x: overlayBounds.x + params.x, y: overlayBounds.y + params.y });
+menu.popup({
+  window: win,
+  x: overlayBounds.x + params.x,
+  y: overlayBounds.y + params.y,
+  sourceType: params.menuSourceType,
+  frame: params.frame,
+});
 ```
 
 `params.x/y` are overlay-webContents-relative, so they are offset by the
@@ -102,6 +125,11 @@ makes keyboard invocation correct for free: Shift+F10 / the menu key fires the
 same DOM `contextmenu` → browser `context-menu` chain with Chromium's
 caret-anchored coordinates, so the menu lands at the field's caret instead of
 wherever the mouse happens to be.
+
+`sourceType` forwards `params.menuSourceType`, which Electron's context-menu
+guide specifically recommends so Windows/Linux can adjust menu behaviour for
+keyboard vs. mouse invocation; `frame` forwards `params.frame` when available
+so the popup is associated with the originating render frame.
 
 ### Module split
 
@@ -115,12 +143,12 @@ precedent.
 | `src/main/address-menu-model.js` *(new)* | pure `buildAddressMenu({ editFlags, clipboardText, fieldText })` → array of `{ id, label, accelerator, enabled }` and `{ type: 'separator' }` descriptors |
 | `src/main/address-menu.js` *(new)* | thin Electron layer: binds the `context-menu` event, feeds the model, maps `id` → action, pops the menu |
 | `src/renderer/overlay.js` | the suppressing listener above |
-| `src/main/main.js` | attach on `overlayView`, inject actions, blur guard, extract `navigateTabToAddress()` |
+| `src/main/main.js` | attach on `overlayView`, inject actions, blur guard, extract `navigateTabToAddress()` + `pasteAndGo()` |
 | `spec/features.md` | extend F19 |
 | `spec/divergence-register.md` | new **D20** entry for the desktop-only URL-bar menu |
 | `spec/parity-matrix.md` | F19 row: add D20 to its divergences column |
-| `spec/acceptance/navigation-and-context-menu.feature` | new `@F19-2`/`@F19-3` scenarios (below) |
-| `spec/acceptance/index.md` | scenario rows for F19-2/F19-3, tagged D20 |
+| `spec/acceptance/navigation-and-context-menu.feature` | new `@F19-2`/`@F19-3` scenarios (below; land with their step definitions) |
+| `spec/acceptance/index.md` | scenario rows for F19-2/F19-3, tagged D20 (✅ desktop, ➖ mobile) |
 
 `address-menu.js` takes its actions as injected callbacks and does **not**
 require `main.js`, mirroring how `context-menu.js` avoids that cycle.
@@ -186,11 +214,16 @@ addresses to the sheet instead of the tab, then `loadURL`. That body is
 extracted into `navigateTabToAddress(id, rawText)`; the IPC handler and Paste
 and Go both call it. Duplicating the sequence would let the two drift.
 
+Paste and Go itself is one level up: a `pasteAndGo(id, rawText)` wrapper that
+calls `navigateTabToAddress(id, rawText)` **and then `hideOverlay()`** —
+matching Enter's navigate-and-dismiss. The menu action and the F19-3
+acceptance binding both go through this exact wrapper, so the scenario's
+"navigates and closes the island" promise is asserted against the same code
+path the menu runs, not just the navigation half.
+
 `trusted: true` is correct here for the same reason it is correct for typed
 text: the navigation originates in an explicit user click on a menu item, not
 in page-controlled content.
-
-After navigating, Paste and Go dismisses the overlay — matching Enter.
 
 ### The blur guard
 
@@ -230,8 +263,8 @@ while the menu was open, stealing focus back would be hostile. On close:
   disabled when `fieldText` isn't an http(s) URL; Paste and Go disabled on
   empty/whitespace clipboard even when `canPaste` is true.
 
-**Acceptance (parity substrate):** two scenarios in
-`spec/acceptance/navigation-and-context-menu.feature`, tagged `@desktop`
+**Acceptance (parity substrate):** the implementation will add two scenarios
+to `spec/acceptance/navigation-and-context-menu.feature`, tagged `@desktop`
 (never `@all` — the surface is desktop-only per D20) plus `@D20`:
 
 - `@F19-2` — right-clicking the command bar over a URL with tracking
@@ -240,12 +273,19 @@ while the menu was open, stealing focus back would be hostile. On close:
 - `@F19-3` — with a URL on the clipboard, Paste and Go navigates the active
   tab to it and closes the island.
 
-Both get rows in `spec/acceptance/index.md` (✅ desktop only; the mobile
-columns stay ⬜ n/a per D20). A native `Menu.popup()` cannot be driven by the
-Playwright harness, so the desktop step definitions bind through the pure
-layer — `buildAddressMenu()` + `cleanLink()` for F19-2's menu contents and
-clipboard result, and the extracted `navigateTabToAddress()` via the test hook
-for F19-3 — asserting the same observable outcomes the menu produces.
+Both will get rows in `spec/acceptance/index.md`: ✅ desktop, `➖` in the
+mobile columns (the index's marker for platform-N/A, per D20 — not `⬜`,
+which means not-yet-built). These substrate files land **in the implementation
+commit together with their step definitions**, not before: the parity-guards
+CI runs `test:acceptance:dry` on every push, and a scenario whose steps don't
+resolve would fail it.
+
+A native `Menu.popup()` cannot be driven by the Playwright harness, so the
+desktop step definitions bind through the same code paths the menu runs —
+`buildAddressMenu()` + `cleanLink()` for F19-2's menu contents and clipboard
+result, and the `pasteAndGo()` wrapper via the test hook for F19-3, whose
+overlay-dismissal half is exactly what the scenario's "closes the island"
+step asserts.
 
 **Manual (chrome changes cannot be verified by reload — the app must be
 relaunched):**
