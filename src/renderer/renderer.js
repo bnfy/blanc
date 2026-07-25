@@ -20,6 +20,7 @@
   const pillShield = document.getElementById('pillShield');
   const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
+  const pillSourceChip = document.getElementById('pillSourceChip');
   const windowControls = document.getElementById('windowControls');
   const permissionBar = document.getElementById('permissionBar');
   const permissionText = document.getElementById('permissionText');
@@ -132,12 +133,23 @@
     return `Blanc blocked ${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
   }
 
+  /** The page URL behind a `view-source:` URL, else null. Chromium's
+   * view-source: is a non-special scheme, so `new URL(...).host` is '' and
+   * the pill would fall back to the literal "new tab".
+   * (Keep in sync with overlay.js.) */
+  function viewSourceTarget(url) {
+    if (!url?.startsWith('view-source:')) return null;
+    // A bare "view-source:" has no page behind it — null, not '', so callers
+    // can trust a truthy result to be a URL worth parsing.
+    return url.slice('view-source:'.length) || null;
+  }
+
   /** Short label for a tab's location: host for web pages, page name for
    * internal ones, empty for a blank new tab. */
   function tabDomain(tab) {
     if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
     try {
-      const u = new URL(tab.url);
+      const u = new URL(viewSourceTarget(tab.url) ?? tab.url);
       return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host;
     } catch {
       return tab.url;
@@ -371,6 +383,12 @@
     pillInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
 
     pillPrivateChip.hidden = !tab?.private;
+    // A view-source tab is opened fresh, so Back is dead and the island has
+    // no per-tab close control — without this chip the tab is a dead end.
+    // Suppressed on a private tab (view-source inherits the opener's privacy):
+    // the private chip already closes the tab, and two adjacent ✕ chips doing
+    // the same thing is noise.
+    pillSourceChip.hidden = !viewSourceTarget(tab?.url) || !!tab?.private;
 
     const blocked = tab?.blockedCount ?? 0;
     pillShield.hidden = blocked === 0;
@@ -392,11 +410,15 @@
     stripEl.classList.toggle('drag-suspended', islandMode === 'panel' || islandMode === 'palette');
   }
 
-  // Quick exit: clicking the pill's private chip closes the private tab.
-  pillPrivateChip.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (state.activeTabId) window.browserAPI.closeTab(state.activeTabId);
-  });
+  // Quick exit: either chip closes the active tab — the private chip leaves
+  // private mode, the source chip is the way back out of a page-source tab
+  // (whose Back is dead). One shared handler so the two can't drift apart.
+  for (const chip of [pillPrivateChip, pillSourceChip]) {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (state.activeTabId) window.browserAPI.closeTab(state.activeTabId);
+    });
+  }
 
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
   islandPill.addEventListener('keydown', (e) => {

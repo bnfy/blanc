@@ -150,13 +150,24 @@
     }
   }
 
+  /** The page URL behind a `view-source:` URL, else null. Chromium's
+   * view-source: is a non-special scheme, so `new URL(...).host` is '' and
+   * the row would fall back to the literal "new tab".
+   * (Keep in sync with renderer.js.) */
+  function viewSourceTarget(url) {
+    if (!url?.startsWith('view-source:')) return null;
+    // A bare "view-source:" has no page behind it — null, not '', so callers
+    // can trust a truthy result to be a URL worth parsing.
+    return url.slice('view-source:'.length) || null;
+  }
+
   /** Short label for a tab's location: host for web pages (sans the noise
    * "www." carries in a list this dense), page name for internal ones,
    * empty for a blank new tab. */
   function tabDomain(tab) {
     if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
     try {
-      const u = new URL(tab.url);
+      const u = new URL(viewSourceTarget(tab.url) ?? tab.url);
       return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host.replace(/^www\./, '');
     } catch {
       return tab.url;

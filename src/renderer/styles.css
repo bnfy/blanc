@@ -800,7 +800,12 @@ body.mac .vertical-tabs-toolbar {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-dim);
-  flex: 0 1 12ch;
+  /* `auto` basis, not `12ch`: a 12ch basis RESERVES twelve characters even
+     for a short name ("news ·" claimed 57px for 40px of text), and the
+     deficit came out of #pillDomain — the only freely-shrinkable sibling —
+     so the URL truncated with the pill nowhere near its max-width. The
+     max-width still caps long group names at 12ch. */
+  flex: 0 1 auto;
   min-width: 0;
   max-width: 12ch;
   overflow: hidden;
@@ -811,21 +816,32 @@ body.mac .vertical-tabs-toolbar {
 
 [data-theme="private"] #islandPill { border: 1px dashed var(--text-dim); }
 
-/* Quick exit chip on private tabs — clicking it closes the tab. */
-#pillPrivateChip {
+/* Quick exit chips — clicking one closes the tab. Shared geometry; the
+   private chip keeps the dashed accent treatment that marks the mode, while
+   the source chip stays quiet (solid, dim) since it's only a view. */
+#pillPrivateChip,
+#pillSourceChip {
   display: flex;
   align-items: center;
   gap: 4px;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--accent);
-  border: 1px dashed var(--accent);
   border-radius: 999px;
   padding: 0 6px;
   flex: 0 0 auto;
 }
-#pillPrivateChip[hidden] { display: none; }
-#pillPrivateChip svg { width: 8px; height: 8px; stroke-width: 2; }
+#pillPrivateChip {
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+}
+#pillSourceChip {
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+#pillPrivateChip[hidden],
+#pillSourceChip[hidden] { display: none; }
+#pillPrivateChip svg,
+#pillSourceChip svg { width: 8px; height: 8px; stroke-width: 2; }
 
 .shield {
   font-family: var(--font-mono);
