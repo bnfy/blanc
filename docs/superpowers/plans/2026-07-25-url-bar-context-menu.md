@@ -367,12 +367,11 @@ git commit -m "Add buildAddressMenu(): pure address-bar menu descriptors"
 - Modify: `spec/acceptance/navigation-and-context-menu.feature` (new `@F5-6` scenario after F5-5)
 - Modify: `spec/acceptance/index.md` (F5-6 row after F5-5)
 - Modify: `test/desktop/cucumber.mjs` (add `'@F5-6'` to the RUNNABLE list after `'@F5-5'`)
-- Modify: `src/main/test-hook.js` (new `submitAddressInput()` method)
 - Modify: `test/desktop/steps/runnable.steps.js` (three new steps)
 
 **Interfaces:**
-- Consumes: existing `tabs`, `handOffToOs`, `normalizeAddressInput`, `isUtilityUrl`, `openInternalPage`, `tabsWantingAddressBarFocus`, `hideOverlay` — all already in main.js module scope; existing hook methods `editAddressInput`, `openPanel`, `overlayMode`, `getOverlayWebContents`.
-- Produces: `navigateTabToAddress(id, rawText)` and `pasteAndGo(id, rawText)` in main.js module scope (Task 4 wires `pasteAndGo` into the menu; Task 5 passes it to the test hook); `__blanc.submitAddressInput()`; step definitions `Given the island panel is open` and `Then the active tab loads the address of {string}` (Task 5 REUSES both — it must not redefine them).
+- Consumes: existing `tabs`, `handOffToOs`, `normalizeAddressInput`, `isUtilityUrl`, `openInternalPage`, `tabsWantingAddressBarFocus`, `hideOverlay` — all already in main.js module scope; existing hook methods `editAddressInput`, `pressAddressKey`, `openPanel`, `closeOverlay`, `overlayRendererMode` (no new hook surface needed).
+- Produces: `navigateTabToAddress(id, rawText)` and `pasteAndGo(id, rawText)` in main.js module scope (Task 4 wires `pasteAndGo` into the menu; Task 5 passes it to the test hook); step definitions `Given the island panel is open` and `Then the active tab loads the address of {string}` (Task 5 REUSES both — it must not redefine them).
 
 The extraction itself is a pure refactor plus one 4-line wrapper, so it gets no unit test — but the existing F5 scenarios are bound model-level (`resolveAddress()` / `wouldHandOff()`, see extended.steps.js) and never invoke `tabs:navigate` or a real load. The scenario added here closes that gap: panel open → edit the input → Enter → wait for the committed URL, driving the renderer's keydown path through the real IPC into the extracted function.
 
@@ -458,36 +457,37 @@ In `spec/acceptance/index.md`, after the F5-5 row:
 
 In `test/desktop/cucumber.mjs`, add `'@F5-6',` after `'@F5-5',` in RUNNABLE.
 
-- [ ] **Step 3: Add the `submitAddressInput` hook method**
+- [ ] **Step 3: Add the step definitions**
 
-In `src/main/test-hook.js`, next to the existing `editAddressInput` method:
-
-```js
-    async submitAddressInput() {
-      const wc = getOverlayWebContents();
-      if (!wc) throw new Error('overlay is not open');
-      // Dispatch Enter on the address input so the renderer's own keydown
-      // handler runs — the same path a user's keystroke takes into the
-      // tabs:navigate IPC and navigateTabToAddress().
-      return wc.executeJavaScript(`(() => {
-        const input = document.getElementById('addressInput');
-        if (!input) return false;
-        input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-        return true;
-      })()`);
-    },
-```
-
-- [ ] **Step 4: Add the step definitions**
-
-In `test/desktop/steps/runnable.steps.js`:
+In `test/desktop/steps/runnable.steps.js` — no new hook surface: Enter goes
+through the existing `pressAddressKey` method (test-hook.js:309), which
+dispatches the same keyboard event a user's keystroke produces. (The
+renderer-mode poll below is inline because extended.steps.js's `waitForValue`
+helper is file-local, not on the World.)
 
 ```js
 // ---------- F5-6: real navigation through the command bar ----------
 
+async function waitForRendererMode(world, wanted, label) {
+  const deadline = Date.now() + 5000;
+  for (;;) {
+    const mode = await world.call('overlayRendererMode');
+    if (mode === wanted) return;
+    if (Date.now() > deadline) throw new Error(`timed out waiting for ${label}; last mode: ${mode}`);
+    await new Promise((r) => setTimeout(r, 50));
+  }
+}
+
 Given('the island panel is open', async function () {
-  await this.call('openPanel'); // existing hook method: showOverlay('panel')
-  assert.equal(await this.call('overlayMode'), 'panel');
+  // openPanel() flips main's overlayMode synchronously, but the RENDERER
+  // processes overlay:show later — and that handler resets inputTouched and
+  // rewrites the input's value, silently undoing an edit that raced it.
+  // Same close→wait→open→wait dance as extended.steps.js's
+  // openAutocompletePalette(): poll the renderer's mode, not main's.
+  await this.call('closeOverlay');
+  await waitForRendererMode(this, null, 'overlay renderer to leave its previous edit session');
+  await this.call('openPanel');
+  await waitForRendererMode(this, 'panel', 'overlay renderer to enter panel mode');
 });
 
 When('I submit the address of {string} in the command bar', async function (name) {
@@ -495,27 +495,29 @@ When('I submit the address of {string} in the command bar', async function (name
   // editAddressInput dispatches a real input event (inputTouched flips), so
   // the renderer treats the value as typed; Enter then navigates it.
   await this.call('editAddressInput', url);
-  await this.call('submitAddressInput');
+  assert.strictEqual(await this.call('pressAddressKey', 'Enter'), true);
 });
 
 Then('the active tab loads the address of {string}', async function (name) {
   const url = this.fixtureUrl(name);
+  // loadedUrl is the committed WebContents URL — the model's t.url is set
+  // synchronously before any load and would pass against a botched loadURL.
   await this.waitForState((s) =>
-    s.tabs.some((t) => t.id === s.activeTabId && t.url === url));
+    s.tabs.some((t) => t.id === s.activeTabId && t.loadedUrl === url && t.loading === false));
 });
 ```
 
-- [ ] **Step 5: Verify the refactor**
+- [ ] **Step 4: Verify the refactor**
 
 Run: `npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop`
 Expected: all PASS, including the new F5-6 — which fails against a botched
-extraction (it commits a real load through `navigateTabToAddress()`), unlike
-the model-level F5-1/2/3.
+extraction (it waits for a committed real load through
+`navigateTabToAddress()`), unlike the model-level F5-1/2/3.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
-git add src/main/main.js src/main/test-hook.js spec/acceptance/navigation-and-context-menu.feature \
+git add src/main/main.js spec/acceptance/navigation-and-context-menu.feature \
   spec/acceptance/index.md test/desktop/cucumber.mjs test/desktop/steps/runnable.steps.js
 git commit -m "Extract navigateTabToAddress() + pasteAndGo(); add F5-6 real-navigation scenario"
 ```
@@ -1080,3 +1082,5 @@ Summarize results against the checklist. Any failure: stop, use superpowers:syst
 - The F19-3 navigation assertion deliberately avoids the pre-existing `the active tab navigates to {string}` expression (extended.steps.js:62, model-level, no real navigation) — see Task 5 Step 1's conflict note. `Given the island panel is open` and `Then the active tab loads the address of {string}` are defined once, in Task 3, and reused by Task 5.
 - The new `ctx` fields (`addressMenuItems`, `addressMenuFieldText`) are declared in context.js and cleared in the `Before` hook, matching `tabByName` et al. — module-scoped state that leaked across scenarios would make F19-3 fail depending on scenario order.
 - `menu.popup()` is wrapped in try/catch so a synchronous popup failure can't leak `addressMenuOpen` set and permanently disarm blur dismissal.
+- F5-6 waits on `overlayRendererMode()` (renderer truth), not main's `overlayMode` — the renderer's `overlay:show` handler lands after `openPanel()` returns and resets `inputTouched`/the input value, which would silently undo an edit that raced it. Enter reuses the existing `pressAddressKey` hook method; no new hook surface.
+- Load assertions use `t.loadedUrl === url && t.loading === false` — the committed WebContents URL, per the hook's own guidance; the model's `t.url` is set synchronously before any load and would pass against a botched `loadURL`.
