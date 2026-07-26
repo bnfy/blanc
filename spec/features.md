@@ -307,8 +307,18 @@ From the desktop `DEFAULTS`:
   save/relevant page actions. Children inherit group + privacy (F2/F4). OS hand-off
   (D4) honored for `mailto:` etc. Gesture entry point diverges (D7 — long-press on
   mobile vs right-click on desktop).
+- **URL-bar menu (desktop only — D20):** the command bar's address input offers
+  Undo/Redo, Cut/Copy/Paste, Delete, Select All, plus **Copy Clean Link**
+  (copies the field's visible text minus a curated tracking-parameter list —
+  `utm_*` and known click-ids, case-insensitive, surviving params byte-intact)
+  and **Paste and Go** (clipboard text through the full typed-address pipeline —
+  OS hand-off, search-vs-URL heuristic, utility-sheet routing — then the island
+  closes).
 - **Acceptance:** Long-press/right-click a link → "open in background tab" opens it
   without switching away, inheriting the opener's group.
+- **Acceptance (desktop):** Copy Clean Link on a URL with `utm_*`/click-id
+  params yields the URL without them, other params intact; Paste and Go with a
+  URL on the clipboard navigates the active tab and closes the island.
 
 ## F20 — Basic-auth dialog
 

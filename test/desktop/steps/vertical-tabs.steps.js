@@ -8,18 +8,11 @@ const TEST_FAVICON =
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function waitForValue(read, predicate, label, timeout = 7000) {
-  const deadline = Date.now() + timeout;
-  let last;
-  for (;;) {
-    last = await read();
-    if (predicate(last)) return last;
-    if (Date.now() > deadline) {
-      throw new Error(`timed out waiting for ${label}; last: ${JSON.stringify(last)}`);
-    }
-    await sleep(50);
-  }
-}
+const poll = require('./../support/poll');
+// Rail scenarios drive real window resizes/animations, so they keep a longer
+// default deadline than the shared helper's 5s — semantics live in support/poll.
+const waitForValue = (read, predicate, label, timeout = 7000) =>
+  poll.waitForValue(read, predicate, label, timeout);
 
 async function chromePage() {
   const deadline = Date.now() + 7000;

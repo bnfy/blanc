@@ -8,4 +8,6 @@ module.exports = {
   tabByName: {},
   activeExpectedUrl: null,
   lastNewTabId: null,
+  addressMenuItems: null,
+  addressMenuFieldText: null,
 };

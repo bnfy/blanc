@@ -54,6 +54,13 @@ Feature: Address input, search, and link handling
     And I undo the command-bar deletion
     Then the autocomplete provider has not received a request
 
+  @F5-6 @F5 @all
+  Scenario: Submitting an address in the command bar performs a real navigation
+    Given a tab open on "plain"
+    And the island panel is open
+    When I submit the address of "other" in the command bar
+    Then the active tab loads the address of "other"
+
   @F19-1 @F19 @all @D4 @D7
   Scenario: Open link in a background tab inherits the opener's group
     Given the active tab is in a group named "work"
@@ -61,3 +68,21 @@ Feature: Address input, search, and link handling
     And I choose "Open link in background tab"
     Then a new tab opens on that link without switching to it
     And the new tab is in the group "work"
+
+  @F19-2 @F19 @desktop @D20
+  Scenario: Copy Clean Link strips tracking parameters, keeping the rest
+    Given the active tab is on "plain" with query "?id=42&utm_source=news&fbclid=abc"
+    And the island panel is open
+    When I open the command-bar context menu
+    Then the "Copy Clean Link" item is enabled
+    When I choose "Copy Clean Link" from the command-bar context menu
+    Then the clipboard holds the page address with query "?id=42"
+
+  @F19-3 @F19 @desktop @D20
+  Scenario: Paste and Go navigates the active tab and closes the island
+    Given a tab open on "plain"
+    And the island panel is open
+    And the clipboard holds the address of "other"
+    When I choose "Paste and Go" from the command-bar context menu
+    Then the active tab loads the address of "other"
+    And the island is closed

@@ -11,7 +11,14 @@
 const settings = require('./settings');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
-const { Menu } = require('electron');
+const { Menu, clipboard } = require('electron');
+const { buildAddressMenu } = require('./address-menu-model');
+const {
+  runAddressMenuItem,
+  readAddressFieldText,
+  isAddressMenuAttached,
+  ADDRESS_INPUT_ID,
+} = require('./address-menu');
 
 /**
  * @param {object} refs - live references from main.js's module scope.
@@ -40,6 +47,7 @@ function install(refs) {
     broadcastTabs,
     getRailActivationSerial,
     normalizeAddressInput,
+    pasteAndGo,
     handoffProtocols,
     openInternalPage,
     openFindBar,
@@ -267,6 +275,47 @@ function install(refs) {
     exceptions() { return settings.getSettings().adblockExceptions; },
     setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
 
+    // ---- address-bar context menu (F19-2/F19-3) ----
+    // A native Menu.popup() can't be driven by Playwright, so these bind the
+    // same pure/action layers the popup runs: buildAddressMenu for contents,
+    // runAddressMenuItem for the click paths (incl. the pasteAndGo wrapper).
+    setClipboardText(text) { clipboard.writeText(text); },
+    readClipboardText() { return clipboard.readText(); },
+    addressMenuWired() { return isAddressMenuAttached(); },
+    async addressFieldText() {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      // The PRODUCTION read (shared id constant + executeJavaScript), so the
+      // acceptance binding exercises the real field-read path, not a copy.
+      return readAddressFieldText(wc);
+    },
+    addressMenu({ fieldText }) {
+      return buildAddressMenu({
+        // In the real event Blink reports all-true flags for a focused,
+        // populated input; the flag→enabled mapping is unit-tested.
+        editFlags: {
+          canUndo: true, canRedo: true, canCut: true, canCopy: true,
+          canPaste: true, canDelete: true, canSelectAll: true,
+        },
+        clipboardText: clipboard.readText(),
+        fieldText,
+      });
+    },
+    runAddressMenuItem(id, fieldText) {
+      return runAddressMenuItem(id, {
+        wc: getOverlayWebContents(),
+        fieldText,
+        actions: {
+          // Mirror the production closure (main.js) exactly, guard included —
+          // the hook must not exercise a path a real click can't take.
+          pasteAndGo: (text) => {
+            const id = getActiveTabId();
+            if (id) pasteAndGo(id, text);
+          },
+        },
+      });
+    },
+
     // ---- address routing / overlay ----
     resolveAddress(input) { return normalizeAddressInput(input); },
     wouldHandOff(url) {
@@ -295,7 +344,7 @@ function install(refs) {
       const wc = getOverlayWebContents();
       if (!wc) throw new Error('overlay is not open');
       return wc.executeJavaScript(`(() => {
-        const input = document.getElementById('addressInput');
+        const input = document.getElementById(${JSON.stringify(ADDRESS_INPUT_ID)});
         if (!input) return false;
         input.value = ${JSON.stringify(String(value))};
         input.dispatchEvent(new InputEvent('input', {
@@ -318,7 +367,7 @@ function install(refs) {
         shiftKey: !!modifiers.shiftKey,
       };
       return wc.executeJavaScript(`(() => {
-        const input = document.getElementById('addressInput');
+        const input = document.getElementById(${JSON.stringify(ADDRESS_INPUT_ID)});
         if (!input) return false;
         input.dispatchEvent(new KeyboardEvent('keydown', ${JSON.stringify(init)}));
         return true;

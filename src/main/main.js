@@ -26,6 +26,7 @@ const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
+const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
@@ -616,6 +617,13 @@ let overlayMode = null;
 /** Companion to overlayMode, replayed alongside it below if the overlay's
  * first load hadn't finished when showOverlay was called. */
 let overlayPrefill = null;
+/** Native address-bar context menu up: suppress the overlay's blur
+ * dismissal — the popup's close callback owns what happens next.
+ * A generation ticket, not a boolean: if a second popup ever supersedes the
+ * first (two right-clicks racing the handler's await), the stale popup's
+ * close callback must not disarm the guard under the live one. 0 = no menu. */
+let addressMenuTicket = 0;
+let addressMenuSeq = 0;
 
 function currentChromeLayout() {
   const { width, height } = win.getContentBounds();
@@ -646,6 +654,9 @@ function overlayBounds() {
 }
 
 function createOverlay() {
+  // A menu open when the previous window died may never have fired its close
+  // callback — never let a leaked ticket disarm the new overlay's blur guard.
+  addressMenuTicket = 0;
   overlayView = new WebContentsView({
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -681,6 +692,9 @@ function createOverlay() {
   // would leave a stale panel floating over the page. Find mode survives
   // blur deliberately — users click around the page between matches.
   overlayView.webContents.on('blur', () => {
+    // A native address-bar context menu takes OS focus; that blur is not a
+    // dismissal — the popup's close callback owns what happens next.
+    if (addressMenuTicket) return;
     // Playwright's Electron main-process evaluate calls steal focus from the
     // guest view while the acceptance harness inspects it. Keep the real blur
     // policy in production; tests dismiss explicitly between edit sessions.
@@ -692,6 +706,47 @@ function createOverlay() {
     if (activeTabId && tabsWantingAddressBarFocus.has(activeTabId)) return;
     hideOverlay({ refocusContent: false });
   });
+
+  attachAddressMenu(overlayView.webContents, {
+    isOverlayLive: () =>
+      hasLiveWindow()
+      && overlayView && !overlayView.webContents.isDestroyed()
+      && (overlayMode === 'panel' || overlayMode === 'palette'),
+    getWindow: () => win,
+    getOverlayBounds: () => overlayBounds(),
+    acquireMenuGuard: () => { addressMenuTicket = ++addressMenuSeq; return addressMenuTicket; },
+    releaseMenuGuard: (ticket) => {
+      // A stale popup (superseded by a newer one) must not disarm the guard
+      // or run close policy under the live menu.
+      if (ticket !== addressMenuTicket) return;
+      addressMenuTicket = 0;
+      if (!hasLiveWindow()) return;
+      if (win.isFocused()) return refocusOverlayAfterMenu();
+      // Never steal focus back from another app: if the window lost focus
+      // while the guard was suppressing blur dismissal, perform the dismissal
+      // the guard swallowed — without touching focus. But sample focus AFTER
+      // a beat: GTK can return focus to the window asynchronously once the
+      // popup closes, and reading it synchronously would misread an ordinary
+      // item selection as an app switch (dismissing the island and swallowing
+      // the very edit the item performed).
+      setTimeout(() => {
+        if (addressMenuTicket || !hasLiveWindow()) return;
+        if (!win.isFocused()) return hideOverlay({ refocusContent: false });
+        refocusOverlayAfterMenu();
+      }, 80);
+    },
+    actions: {
+      pasteAndGo: (text) => { if (activeTabId) pasteAndGo(activeTabId, text); },
+    },
+  });
+}
+
+/** The popup took focus from the overlay; hand it back if a panel/palette is
+ * still up (overlayMode gone — e.g. Paste and Go closed it — nothing to do). */
+function refocusOverlayAfterMenu() {
+  if (overlayMode === 'panel' || overlayMode === 'palette') {
+    overlayView?.webContents.focus();
+  }
 }
 
 function showOverlay(mode, { prefill } = {}) {
@@ -831,6 +886,32 @@ function normalizeAddressInput(input) {
   const looksLikeDomain = /^[^\s]+\.[a-zA-Z]{2,}(\/[^\s]*)?$/.test(trimmed);
   if (looksLikeDomain) return `https://${trimmed}`;
   return settings.searchUrlFor(trimmed);
+}
+
+/** The full typed-address routing pipeline — shared by the tabs:navigate IPC
+ * handler and the address-bar menu's Paste and Go, so the two can't drift. */
+function navigateTabToAddress(id, rawText) {
+  const tab = tabs.get(id);
+  if (!tab) return;
+  // Checked against the raw address-bar text, before normalizeAddressInput
+  // — a bare mailto:/tel: URI has no "://" and would otherwise fall
+  // through its domain-guessing heuristic into an unreachable https:// URL.
+  if (handOffToOs(rawText, { trusted: true })) return;
+  const target = normalizeAddressInput(rawText);
+  // A typed utility address opens the sheet, never navigates the tab.
+  if (isUtilityUrl(target)) return openInternalPage(target);
+  tabsWantingAddressBarFocus.delete(id);
+  // Rapid re-navigation (Enter twice, Paste and Go twice) aborts the in-flight
+  // load — loadURL rejects with ERR_ABORTED; that's routine, not an error.
+  tab.view.webContents.loadURL(target).catch(() => {});
+}
+
+/** Paste and Go = navigate + dismiss the island, exactly like pressing Enter.
+ * The menu action and the F19-3 acceptance binding both use THIS wrapper, so
+ * the scenario's "closes the island" half asserts the real code path. */
+function pasteAndGo(id, rawText) {
+  navigateTabToAddress(id, rawText);
+  hideOverlay();
 }
 
 function serializeTabs() {
@@ -2041,19 +2122,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
-  chromeHandle('tabs:navigate', (_e, id, url) => {
-    const tab = tabs.get(id);
-    if (!tab) return;
-    // Checked against the raw address-bar text, before normalizeAddressInput
-    // — a bare mailto:/tel: URI has no "://" and would otherwise fall
-    // through its domain-guessing heuristic into an unreachable https:// URL.
-    if (handOffToOs(url, { trusted: true })) return;
-    const target = normalizeAddressInput(url);
-    // A typed utility address opens the sheet, never navigates the tab.
-    if (isUtilityUrl(target)) return openInternalPage(target);
-    tabsWantingAddressBarFocus.delete(id);
-    tab.view.webContents.loadURL(target);
-  });
+  chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
   // Search completions are query text, not navigation targets: a suggestion
   // such as "example.com" must search for that text instead of being
   // reclassified as a bare domain by normalizeAddressInput().
@@ -2849,7 +2918,7 @@ app.whenReady().then(async () => {
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,
-      normalizeAddressInput, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),

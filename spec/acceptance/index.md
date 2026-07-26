@@ -55,6 +55,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F5-3 | `mailto:` hands off to OS | D4 | ✅ | ⬜ | ⬜ |
 | F5-4 | Autocomplete follows the current default engine | — | ✅ | ⬜ | ⬜ |
 | F5-5 | Autocomplete privacy gates keep text local | — | ✅ | ⬜ | ⬜ |
+| F5-6 | Command-bar submit commits a real navigation | — | ✅ | ⬜ | ⬜ |
 | F6-1 | Quick Switcher matches tabs + favorites | — | ✅ | ⬜ | ⬜ |
 | F6-2 | Quick Switcher matches + focuses group | — | ✅ | ⬜ | ⬜ |
 | F7-1 | Slash prefix filters commands | — | ✅ | ⬜ | ⬜ |
@@ -83,6 +84,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F17-2 | Non-supporter locked + fallback | — | ✅ | ⬜ | ⬜ |
 | F18-1 | Relaunch restores groups, not private | D8 | ✅ | ⬜ | ⬜ |
 | F19-1 | Background tab inherits group | D4, D7 | ✅ | ⬜ | ⬜ |
+| F19-2 | Copy Clean Link strips tracking params | D20 | ✅ | ➖ | ➖ |
+| F19-3 | Paste and Go navigates + closes island | D20 | ✅ | ➖ | ➖ |
 | F20-1 | Basic-auth prompt | — | ✅ | ⬜ | ⬜ |
 | F21-1 | Usage ping off by default / single | — | ✅ | ⬜ | ⬜ |
 | F22-1 | Desktop in-app updater | D9 | ✅ | ➖ | ➖ |

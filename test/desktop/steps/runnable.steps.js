@@ -1,6 +1,7 @@
 const assert = require('node:assert');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('./../support/context');
+const { openOverlaySurface } = require('./../support/poll');
 
 // Step definitions for the desktop-runnable scenario set (see the `runnable`
 // profile in cucumber.mjs). Every step is intent-level and drives the app
@@ -388,4 +389,80 @@ Given('the settings page is open in the utility sheet via a typed address', asyn
 
 When('the settings page is invoked again by the menu', async function () {
   await this.call('openTab', 'blanc://settings/'); // canonical menu spelling
+});
+
+// ---------- F5-6: real navigation through the command bar ----------
+
+Given('the island panel is open', async function () {
+  await openOverlaySurface(this, 'openPanel', 'panel');
+});
+
+When('I submit the address of {string} in the command bar', async function (name) {
+  const url = this.fixtureUrl(name);
+  // editAddressInput dispatches a real input event (inputTouched flips), so
+  // the renderer treats the value as typed; Enter then navigates it.
+  await this.call('editAddressInput', url);
+  assert.strictEqual(await this.call('pressAddressKey', 'Enter'), true);
+});
+
+Then('the active tab loads the address of {string}', async function (name) {
+  const url = this.fixtureUrl(name);
+  // loadedUrl is the committed WebContents URL — the model's t.url is set
+  // synchronously before any load and would pass against a botched loadURL.
+  await this.waitForState((s) =>
+    s.tabs.some((t) => t.id === s.activeTabId && t.loadedUrl === url && t.loading === false));
+});
+
+// ---------- F19-2 / F19-3: address-bar context menu ----------
+
+Given('the active tab is on {string} with query {string}', async function (name, query) {
+  const url = this.fixtureUrl(name) + query;
+  const id = await this.call('openTab', url);
+  ctx.tabByName[name] = id;
+  ctx.activeExpectedUrl = url;
+  await this.waitForState((s) => s.tabs.some((t) => t.id === id && t.url === url));
+});
+
+Given('the clipboard holds the address of {string}', async function (name) {
+  await this.call('setClipboardText', this.fixtureUrl(name));
+});
+
+// Binding note: a native popup can't be driven by the harness, so "opening"
+// the menu captures the descriptors the popup would show. It still asserts
+// the real wiring exists (attachAddressMenu installed) and reads fieldText
+// through the production executeJavaScript path — which requires the island
+// to actually be open, exactly like the real menu.
+async function captureAddressMenu(world) {
+  assert.equal(await world.call('addressMenuWired'), true,
+    'attachAddressMenu is wired to the overlay');
+  ctx.addressMenuFieldText = await world.call('addressFieldText');
+  ctx.addressMenuItems = await world.call('addressMenu', { fieldText: ctx.addressMenuFieldText });
+}
+
+When('I open the command-bar context menu', async function () {
+  await captureAddressMenu(this);
+});
+
+Then('the {string} item is enabled', async function (label) {
+  const item = ctx.addressMenuItems.find((i) => i.label === label);
+  assert.ok(item, `menu has "${label}"`);
+  assert.equal(item.enabled, true, `"${label}" enabled`);
+});
+
+When('I choose {string} from the command-bar context menu', async function (label) {
+  // F19-3 skips the explicit "open" step: capture lazily, same shared helper.
+  if (!ctx.addressMenuItems) await captureAddressMenu(this);
+  const item = ctx.addressMenuItems.find((i) => i.label === label);
+  assert.ok(item, `menu has "${label}"`);
+  assert.equal(item.enabled, true, `"${label}" enabled`);
+  await this.call('runAddressMenuItem', item.id, ctx.addressMenuFieldText);
+});
+
+Then('the clipboard holds the page address with query {string}', async function (query) {
+  const expected = ctx.activeExpectedUrl.split('?')[0] + query;
+  assert.equal(await this.call('readClipboardText'), expected);
+});
+
+Then('the island is closed', async function () {
+  assert.equal(await this.call('overlayMode'), null);
 });
