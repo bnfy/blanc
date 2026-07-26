@@ -32,7 +32,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F16 | Internal `blanc://` pages | SHIPPED | PARTIAL | PLANNED | newtab ledger, favorites, history, downloads, settings, shortcuts, error, auth — same content/copy; utility pages present as a transient chrome surface (desktop: sheet), never tabs. | — |
 | F17 | Supporter & app icons | SHIPPED | PLANNED | PLANNED | 8 free + 3 supporter colorways; supporter unlock is trusted-forever, offline-OK, cosmetic-only. | D5, D6 |
 | F18 | Session persistence & restore | SHIPPED | PARTIAL | PLANNED | Restore tabs + groups; private tabs excluded; same `session.json` shape (adapted per platform store). | D8 |
-| F19 | Context menu (link/page actions) | SHIPPED | PLANNED | PLANNED | Same actions (open in new/background tab, copy link, etc.); OS hand-off honored. | D4, D7 |
+| F19 | Context menu (link/page actions) | SHIPPED | PLANNED | PLANNED | Same actions (open in new/background tab, copy link, etc.); OS hand-off honored. | D4, D7, D20 |
 | F20 | Basic-auth dialog | SHIPPED | PLANNED | PLANNED | Same modal auth prompt behaviour. | — |
 | F21 | Telemetry (usage ping) | SHIPPED | PLANNED | PLANNED | A fresh profile must commit its on/off choice before any ping; the choice is presented on by default and remains device-local. When enabled, packaged builds send one fire-and-forget launch ping with `{installId,sessionId,version,platform,arch}` and no browsing data. | — |
 | F22 | Distribution & updates | SHIPPED | N/A | N/A | User gets updates; no in-app updater fighting the OS store. | D9 |

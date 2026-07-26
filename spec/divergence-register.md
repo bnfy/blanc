@@ -420,3 +420,31 @@ rail; identical rail geometry, pointer drag behavior, and a synced layout
 preference are not parity requirements.
 
 **Status:** Accepted 2026-07-23.
+
+## D20 — URL-bar context menu (desktop only)
+**Features:** F19, F5
+
+**Why:** A pointer right-click on the address field is a desktop-only gesture.
+Mobile address fields inherit the platform's own text-selection menu
+(Cut/Copy/Paste/Select All arrive for free from the OS), and replacing or
+augmenting that menu fights platform conventions for marginal gain.
+
+- **Desktop:** native context menu on the island's address input: Undo, Redo,
+  Cut, Copy, **Copy Clean Link**, Paste, **Paste and Go**, Delete, Select All.
+  Copy Clean Link strips a curated tracking-parameter list (`utm_*` prefix plus
+  known click-ids, case-insensitive) from the field's visible text, preserving
+  the order and encoding of surviving parameters; disabled when the text isn't
+  an http(s) URL. Paste and Go routes clipboard text through the same pipeline
+  as a typed address (OS hand-off, search heuristic, utility routing) and
+  dismisses the island.
+- **iOS:** no custom menu; the system text-selection menu applies. No Copy
+  Clean Link / Paste and Go equivalent in v1.
+- **Android:** no custom menu; the system text-selection menu applies. No Copy
+  Clean Link / Paste and Go equivalent in v1.
+
+**Parity contract:** basic text editing on the address field works everywhere
+via each platform's native affordances. Copy Clean Link and Paste and Go are
+desktop conveniences, not parity requirements; if a platform later gains them,
+the cleaning rules must match `src/main/clean-link.js` exactly.
+
+**Status:** Accepted 2026-07-25.
