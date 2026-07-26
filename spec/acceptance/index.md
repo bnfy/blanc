@@ -55,6 +55,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F5-3 | `mailto:` hands off to OS | D4 | ✅ | ⬜ | ⬜ |
 | F5-4 | Autocomplete follows the current default engine | — | ✅ | ⬜ | ⬜ |
 | F5-5 | Autocomplete privacy gates keep text local | — | ✅ | ⬜ | ⬜ |
+| F5-6 | Command-bar submit commits a real navigation | — | ✅ | ⬜ | ⬜ |
 | F6-1 | Quick Switcher matches tabs + favorites | — | ✅ | ⬜ | ⬜ |
 | F6-2 | Quick Switcher matches + focuses group | — | ✅ | ⬜ | ⬜ |
 | F7-1 | Slash prefix filters commands | — | ✅ | ⬜ | ⬜ |

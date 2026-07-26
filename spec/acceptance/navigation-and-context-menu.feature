@@ -54,6 +54,13 @@ Feature: Address input, search, and link handling
     And I undo the command-bar deletion
     Then the autocomplete provider has not received a request
 
+  @F5-6 @F5 @all
+  Scenario: Submitting an address in the command bar performs a real navigation
+    Given a tab open on "plain"
+    And the island panel is open
+    When I submit the address of "other" in the command bar
+    Then the active tab loads the address of "other"
+
   @F19-1 @F19 @all @D4 @D7
   Scenario: Open link in a background tab inherits the opener's group
     Given the active tab is in a group named "work"

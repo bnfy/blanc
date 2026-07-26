@@ -833,6 +833,30 @@ function normalizeAddressInput(input) {
   return settings.searchUrlFor(trimmed);
 }
 
+/** The full typed-address routing pipeline — shared by the tabs:navigate IPC
+ * handler and the address-bar menu's Paste and Go, so the two can't drift. */
+function navigateTabToAddress(id, rawText) {
+  const tab = tabs.get(id);
+  if (!tab) return;
+  // Checked against the raw address-bar text, before normalizeAddressInput
+  // — a bare mailto:/tel: URI has no "://" and would otherwise fall
+  // through its domain-guessing heuristic into an unreachable https:// URL.
+  if (handOffToOs(rawText, { trusted: true })) return;
+  const target = normalizeAddressInput(rawText);
+  // A typed utility address opens the sheet, never navigates the tab.
+  if (isUtilityUrl(target)) return openInternalPage(target);
+  tabsWantingAddressBarFocus.delete(id);
+  tab.view.webContents.loadURL(target);
+}
+
+/** Paste and Go = navigate + dismiss the island, exactly like pressing Enter.
+ * The menu action and the F19-3 acceptance binding both use THIS wrapper, so
+ * the scenario's "closes the island" half asserts the real code path. */
+function pasteAndGo(id, rawText) {
+  navigateTabToAddress(id, rawText);
+  hideOverlay();
+}
+
 function serializeTabs() {
   return tabOrder
     .map((id) => tabs.get(id))
@@ -2041,19 +2065,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
-  chromeHandle('tabs:navigate', (_e, id, url) => {
-    const tab = tabs.get(id);
-    if (!tab) return;
-    // Checked against the raw address-bar text, before normalizeAddressInput
-    // — a bare mailto:/tel: URI has no "://" and would otherwise fall
-    // through its domain-guessing heuristic into an unreachable https:// URL.
-    if (handOffToOs(url, { trusted: true })) return;
-    const target = normalizeAddressInput(url);
-    // A typed utility address opens the sheet, never navigates the tab.
-    if (isUtilityUrl(target)) return openInternalPage(target);
-    tabsWantingAddressBarFocus.delete(id);
-    tab.view.webContents.loadURL(target);
-  });
+  chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
   // Search completions are query text, not navigation targets: a suggestion
   // such as "example.com" must search for that text instead of being
   // reclassified as a bare domain by normalizeAddressInput().

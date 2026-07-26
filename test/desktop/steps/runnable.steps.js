@@ -389,3 +389,43 @@ Given('the settings page is open in the utility sheet via a typed address', asyn
 When('the settings page is invoked again by the menu', async function () {
   await this.call('openTab', 'blanc://settings/'); // canonical menu spelling
 });
+
+// ---------- F5-6: real navigation through the command bar ----------
+
+async function waitForRendererMode(world, wanted, label) {
+  const deadline = Date.now() + 5000;
+  for (;;) {
+    const mode = await world.call('overlayRendererMode');
+    if (mode === wanted) return;
+    if (Date.now() > deadline) throw new Error(`timed out waiting for ${label}; last mode: ${mode}`);
+    await new Promise((r) => setTimeout(r, 50));
+  }
+}
+
+Given('the island panel is open', async function () {
+  // openPanel() flips main's overlayMode synchronously, but the RENDERER
+  // processes overlay:show later — and that handler resets inputTouched and
+  // rewrites the input's value, silently undoing an edit that raced it.
+  // Same close→wait→open→wait dance as extended.steps.js's
+  // openAutocompletePalette(): poll the renderer's mode, not main's.
+  await this.call('closeOverlay');
+  await waitForRendererMode(this, null, 'overlay renderer to leave its previous edit session');
+  await this.call('openPanel');
+  await waitForRendererMode(this, 'panel', 'overlay renderer to enter panel mode');
+});
+
+When('I submit the address of {string} in the command bar', async function (name) {
+  const url = this.fixtureUrl(name);
+  // editAddressInput dispatches a real input event (inputTouched flips), so
+  // the renderer treats the value as typed; Enter then navigates it.
+  await this.call('editAddressInput', url);
+  assert.strictEqual(await this.call('pressAddressKey', 'Enter'), true);
+});
+
+Then('the active tab loads the address of {string}', async function (name) {
+  const url = this.fixtureUrl(name);
+  // loadedUrl is the committed WebContents URL — the model's t.url is set
+  // synchronously before any load and would pass against a botched loadURL.
+  await this.waitForState((s) =>
+    s.tabs.some((t) => t.id === s.activeTabId && t.loadedUrl === url && t.loading === false));
+});
