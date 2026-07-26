@@ -1226,4 +1226,12 @@
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
   });
+
+  // Only the address input gets a context menu (see src/main/address-menu.js).
+  // Cancelling the DOM event here stops Chromium from ever dispatching the
+  // browser-side context-menu event for the find bar, the group-name picker,
+  // and the panel chrome — they stay inert, exactly as before.
+  document.addEventListener('contextmenu', (e) => {
+    if (!e.target.closest('#addressInput')) e.preventDefault();
+  });
 })();

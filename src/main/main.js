@@ -26,6 +26,7 @@ const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
+const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
@@ -616,6 +617,9 @@ let overlayMode = null;
 /** Companion to overlayMode, replayed alongside it below if the overlay's
  * first load hadn't finished when showOverlay was called. */
 let overlayPrefill = null;
+/** Native address-bar context menu up: suppress the overlay's blur
+ * dismissal — the popup's close callback owns what happens next. */
+let addressMenuOpen = false;
 
 function currentChromeLayout() {
   const { width, height } = win.getContentBounds();
@@ -681,6 +685,9 @@ function createOverlay() {
   // would leave a stale panel floating over the page. Find mode survives
   // blur deliberately — users click around the page between matches.
   overlayView.webContents.on('blur', () => {
+    // A native address-bar context menu takes OS focus; that blur is not a
+    // dismissal — the popup's close callback owns what happens next.
+    if (addressMenuOpen) return;
     // Playwright's Electron main-process evaluate calls steal focus from the
     // guest view while the acceptance harness inspects it. Keep the real blur
     // policy in production; tests dismiss explicitly between edit sessions.
@@ -691,6 +698,30 @@ function createOverlay() {
     // the reclaim will re-assert overlay focus on the next tick.
     if (activeTabId && tabsWantingAddressBarFocus.has(activeTabId)) return;
     hideOverlay({ refocusContent: false });
+  });
+
+  attachAddressMenu(overlayView.webContents, {
+    isOverlayLive: () =>
+      hasLiveWindow()
+      && overlayView && !overlayView.webContents.isDestroyed()
+      && (overlayMode === 'panel' || overlayMode === 'palette'),
+    getWindow: () => win,
+    getOverlayBounds: () => overlayBounds(),
+    setMenuOpen: (open) => { addressMenuOpen = open; },
+    // Never steal focus back from another app: if the window lost focus
+    // while the guard was suppressing blur dismissal, perform the dismissal
+    // the guard swallowed — without touching focus.
+    onMenuClosed: () => {
+      if (!hasLiveWindow()) return;
+      if (!win.isFocused()) return hideOverlay({ refocusContent: false });
+      if (overlayMode === 'panel' || overlayMode === 'palette') {
+        overlayView.webContents.focus(); // the popup took focus from it
+      }
+      // overlayMode gone (Paste and Go closed it): nothing to do.
+    },
+    actions: {
+      pasteAndGo: (text) => { if (activeTabId) pasteAndGo(activeTabId, text); },
+    },
   });
 }
 
