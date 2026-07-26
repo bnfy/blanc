@@ -429,3 +429,57 @@ Then('the active tab loads the address of {string}', async function (name) {
   await this.waitForState((s) =>
     s.tabs.some((t) => t.id === s.activeTabId && t.loadedUrl === url && t.loading === false));
 });
+
+// ---------- F19-2 / F19-3: address-bar context menu ----------
+
+Given('the active tab is on {string} with query {string}', async function (name, query) {
+  const url = this.fixtureUrl(name) + query;
+  const id = await this.call('openTab', url);
+  ctx.tabByName[name] = id;
+  ctx.activeExpectedUrl = url;
+  await this.waitForState((s) => s.tabs.some((t) => t.id === id && t.url === url));
+});
+
+Given('the clipboard holds the address of {string}', async function (name) {
+  await this.call('setClipboardText', this.fixtureUrl(name));
+});
+
+When('I open the command-bar context menu', async function () {
+  // Binding note (test/desktop/README.md convention): a native popup can't
+  // be driven, so "open" captures the menu the popup would show, built from
+  // the same descriptors — with fieldText = the untouched field's value,
+  // which is the active tab's URL.
+  const state = await this.state();
+  const active = state.tabs.find((t) => t.id === state.activeTabId);
+  ctx.addressMenuFieldText = active.url;
+  ctx.addressMenuItems = await this.call('addressMenu', { fieldText: active.url });
+});
+
+Then('the {string} item is enabled', async function (label) {
+  const item = ctx.addressMenuItems.find((i) => i.label === label);
+  assert.ok(item, `menu has "${label}"`);
+  assert.equal(item.enabled, true, `"${label}" enabled`);
+});
+
+When('I choose {string} from the command-bar context menu', async function (label) {
+  if (!ctx.addressMenuItems) {
+    // F19-3 skips the explicit "open" step: capture with the current field text.
+    const state = await this.state();
+    const active = state.tabs.find((t) => t.id === state.activeTabId);
+    ctx.addressMenuFieldText = active.url;
+    ctx.addressMenuItems = await this.call('addressMenu', { fieldText: active.url });
+  }
+  const item = ctx.addressMenuItems.find((i) => i.label === label);
+  assert.ok(item, `menu has "${label}"`);
+  assert.equal(item.enabled, true, `"${label}" enabled`);
+  await this.call('runAddressMenuItem', item.id, ctx.addressMenuFieldText);
+});
+
+Then('the clipboard holds the page address with query {string}', async function (query) {
+  const expected = ctx.activeExpectedUrl.split('?')[0] + query;
+  assert.equal(await this.call('readClipboardText'), expected);
+});
+
+Then('the island is closed', async function () {
+  assert.equal(await this.call('overlayMode'), null);
+});

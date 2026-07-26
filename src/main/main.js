@@ -2892,7 +2892,7 @@ app.whenReady().then(async () => {
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,
-      normalizeAddressInput, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),

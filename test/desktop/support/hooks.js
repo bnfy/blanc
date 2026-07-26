@@ -51,6 +51,8 @@ Before(async function () {
   ctx.activeExpectedUrl = null;
   ctx.lastNewTabId = null;
   ctx.enteredInput = null;
+  ctx.addressMenuItems = null;
+  ctx.addressMenuFieldText = null;
   await ctx.app.evaluate(() => globalThis.__blanc.reset());
 });
 

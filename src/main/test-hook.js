@@ -11,7 +11,9 @@
 const settings = require('./settings');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
-const { Menu } = require('electron');
+const { Menu, clipboard } = require('electron');
+const { buildAddressMenu } = require('./address-menu-model');
+const { runAddressMenuItem } = require('./address-menu');
 
 /**
  * @param {object} refs - live references from main.js's module scope.
@@ -40,6 +42,7 @@ function install(refs) {
     broadcastTabs,
     getRailActivationSerial,
     normalizeAddressInput,
+    pasteAndGo,
     handoffProtocols,
     openInternalPage,
     openFindBar,
@@ -266,6 +269,34 @@ function install(refs) {
     },
     exceptions() { return settings.getSettings().adblockExceptions; },
     setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
+
+    // ---- address-bar context menu (F19-2/F19-3) ----
+    // A native Menu.popup() can't be driven by Playwright, so these bind the
+    // same pure/action layers the popup runs: buildAddressMenu for contents,
+    // runAddressMenuItem for the click paths (incl. the pasteAndGo wrapper).
+    setClipboardText(text) { clipboard.writeText(text); },
+    readClipboardText() { return clipboard.readText(); },
+    addressMenu({ fieldText }) {
+      return buildAddressMenu({
+        // In the real event Blink reports all-true flags for a focused,
+        // populated input; the flag→enabled mapping is unit-tested.
+        editFlags: {
+          canUndo: true, canRedo: true, canCut: true, canCopy: true,
+          canPaste: true, canDelete: true, canSelectAll: true,
+        },
+        clipboardText: clipboard.readText(),
+        fieldText,
+      });
+    },
+    runAddressMenuItem(id, fieldText) {
+      return runAddressMenuItem(id, {
+        wc: getOverlayWebContents(),
+        fieldText,
+        actions: {
+          pasteAndGo: (text) => { pasteAndGo(getActiveTabId(), text); },
+        },
+      });
+    },
 
     // ---- address routing / overlay ----
     resolveAddress(input) { return normalizeAddressInput(input); },
