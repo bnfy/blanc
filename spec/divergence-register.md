@@ -436,7 +436,11 @@ augmenting that menu fights platform conventions for marginal gain.
   the order and encoding of surviving parameters; disabled when the text isn't
   an http(s) URL. Paste and Go routes clipboard text through the same pipeline
   as a typed address (OS hand-off, search heuristic, utility routing) and
-  dismisses the island.
+  dismisses the island. Known v1 limitation: the menu is pointer-invoked on
+  macOS (no keyboard context-menu gesture exists there — Shift+F10/menu-key
+  work on Windows/Linux), so Copy Clean Link and Paste and Go have no
+  keyboard-only or VoiceOver path on macOS; a slash-command fallback is the
+  natural future fix.
 - **iOS:** no custom menu; the system text-selection menu applies. No Copy
   Clean Link / Paste and Go equivalent in v1.
 - **Android:** no custom menu; the system text-selection menu applies. No Copy

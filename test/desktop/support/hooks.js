@@ -12,6 +12,7 @@ setDefaultTimeout(60_000);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 let userDataDir;
 let fixturesHandle;
+let savedClipboard = null;
 
 async function launchApp() {
   const electronApp = await _electron.launch({
@@ -44,6 +45,12 @@ BeforeAll({ timeout: 120_000 }, async () => {
     if (ctx.app) await ctx.app.close();
     ctx.app = await launchApp();
   };
+
+  // The F19 scenarios write the REAL system clipboard — save the developer's
+  // clipboard now and restore it in AfterAll so a local run doesn't clobber it.
+  savedClipboard = await ctx.app
+    .evaluate(() => globalThis.__blanc.readClipboardText())
+    .catch(() => null);
 });
 
 Before(async function () {
@@ -57,6 +64,11 @@ Before(async function () {
 });
 
 AfterAll(async () => {
+  if (ctx.app && savedClipboard !== null) {
+    await ctx.app
+      .evaluate((_electron, text) => globalThis.__blanc.setClipboardText(text), savedClipboard)
+      .catch(() => {});
+  }
   if (ctx.app) await ctx.app.close();
   ctx.app = null;
   ctx.relaunch = null;

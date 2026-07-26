@@ -13,7 +13,12 @@ const history = require('./history');
 const bookmarks = require('./bookmarks');
 const { Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
-const { runAddressMenuItem } = require('./address-menu');
+const {
+  runAddressMenuItem,
+  readAddressFieldText,
+  isAddressMenuAttached,
+  ADDRESS_INPUT_ID,
+} = require('./address-menu');
 
 /**
  * @param {object} refs - live references from main.js's module scope.
@@ -276,6 +281,14 @@ function install(refs) {
     // runAddressMenuItem for the click paths (incl. the pasteAndGo wrapper).
     setClipboardText(text) { clipboard.writeText(text); },
     readClipboardText() { return clipboard.readText(); },
+    addressMenuWired() { return isAddressMenuAttached(); },
+    async addressFieldText() {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      // The PRODUCTION read (shared id constant + executeJavaScript), so the
+      // acceptance binding exercises the real field-read path, not a copy.
+      return readAddressFieldText(wc);
+    },
     addressMenu({ fieldText }) {
       return buildAddressMenu({
         // In the real event Blink reports all-true flags for a focused,
@@ -293,7 +306,12 @@ function install(refs) {
         wc: getOverlayWebContents(),
         fieldText,
         actions: {
-          pasteAndGo: (text) => { pasteAndGo(getActiveTabId(), text); },
+          // Mirror the production closure (main.js) exactly, guard included —
+          // the hook must not exercise a path a real click can't take.
+          pasteAndGo: (text) => {
+            const id = getActiveTabId();
+            if (id) pasteAndGo(id, text);
+          },
         },
       });
     },
@@ -326,7 +344,7 @@ function install(refs) {
       const wc = getOverlayWebContents();
       if (!wc) throw new Error('overlay is not open');
       return wc.executeJavaScript(`(() => {
-        const input = document.getElementById('addressInput');
+        const input = document.getElementById(${JSON.stringify(ADDRESS_INPUT_ID)});
         if (!input) return false;
         input.value = ${JSON.stringify(String(value))};
         input.dispatchEvent(new InputEvent('input', {
@@ -349,7 +367,7 @@ function install(refs) {
         shiftKey: !!modifiers.shiftKey,
       };
       return wc.executeJavaScript(`(() => {
-        const input = document.getElementById('addressInput');
+        const input = document.getElementById(${JSON.stringify(ADDRESS_INPUT_ID)});
         if (!input) return false;
         input.dispatchEvent(new KeyboardEvent('keydown', ${JSON.stringify(init)}));
         return true;

@@ -72,6 +72,7 @@ Feature: Address input, search, and link handling
   @F19-2 @F19 @desktop @D20
   Scenario: Copy Clean Link strips tracking parameters, keeping the rest
     Given the active tab is on "plain" with query "?id=42&utm_source=news&fbclid=abc"
+    And the island panel is open
     When I open the command-bar context menu
     Then the "Copy Clean Link" item is enabled
     When I choose "Copy Clean Link" from the command-bar context menu

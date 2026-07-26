@@ -618,8 +618,12 @@ let overlayMode = null;
  * first load hadn't finished when showOverlay was called. */
 let overlayPrefill = null;
 /** Native address-bar context menu up: suppress the overlay's blur
- * dismissal — the popup's close callback owns what happens next. */
-let addressMenuOpen = false;
+ * dismissal — the popup's close callback owns what happens next.
+ * A generation ticket, not a boolean: if a second popup ever supersedes the
+ * first (two right-clicks racing the handler's await), the stale popup's
+ * close callback must not disarm the guard under the live one. 0 = no menu. */
+let addressMenuTicket = 0;
+let addressMenuSeq = 0;
 
 function currentChromeLayout() {
   const { width, height } = win.getContentBounds();
@@ -650,6 +654,9 @@ function overlayBounds() {
 }
 
 function createOverlay() {
+  // A menu open when the previous window died may never have fired its close
+  // callback — never let a leaked ticket disarm the new overlay's blur guard.
+  addressMenuTicket = 0;
   overlayView = new WebContentsView({
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -687,7 +694,7 @@ function createOverlay() {
   overlayView.webContents.on('blur', () => {
     // A native address-bar context menu takes OS focus; that blur is not a
     // dismissal — the popup's close callback owns what happens next.
-    if (addressMenuOpen) return;
+    if (addressMenuTicket) return;
     // Playwright's Electron main-process evaluate calls steal focus from the
     // guest view while the acceptance harness inspects it. Keep the real blur
     // policy in production; tests dismiss explicitly between edit sessions.
@@ -707,22 +714,39 @@ function createOverlay() {
       && (overlayMode === 'panel' || overlayMode === 'palette'),
     getWindow: () => win,
     getOverlayBounds: () => overlayBounds(),
-    setMenuOpen: (open) => { addressMenuOpen = open; },
-    // Never steal focus back from another app: if the window lost focus
-    // while the guard was suppressing blur dismissal, perform the dismissal
-    // the guard swallowed — without touching focus.
-    onMenuClosed: () => {
+    acquireMenuGuard: () => { addressMenuTicket = ++addressMenuSeq; return addressMenuTicket; },
+    releaseMenuGuard: (ticket) => {
+      // A stale popup (superseded by a newer one) must not disarm the guard
+      // or run close policy under the live menu.
+      if (ticket !== addressMenuTicket) return;
+      addressMenuTicket = 0;
       if (!hasLiveWindow()) return;
-      if (!win.isFocused()) return hideOverlay({ refocusContent: false });
-      if (overlayMode === 'panel' || overlayMode === 'palette') {
-        overlayView.webContents.focus(); // the popup took focus from it
-      }
-      // overlayMode gone (Paste and Go closed it): nothing to do.
+      if (win.isFocused()) return refocusOverlayAfterMenu();
+      // Never steal focus back from another app: if the window lost focus
+      // while the guard was suppressing blur dismissal, perform the dismissal
+      // the guard swallowed — without touching focus. But sample focus AFTER
+      // a beat: GTK can return focus to the window asynchronously once the
+      // popup closes, and reading it synchronously would misread an ordinary
+      // item selection as an app switch (dismissing the island and swallowing
+      // the very edit the item performed).
+      setTimeout(() => {
+        if (addressMenuTicket || !hasLiveWindow()) return;
+        if (!win.isFocused()) return hideOverlay({ refocusContent: false });
+        refocusOverlayAfterMenu();
+      }, 80);
     },
     actions: {
       pasteAndGo: (text) => { if (activeTabId) pasteAndGo(activeTabId, text); },
     },
   });
+}
+
+/** The popup took focus from the overlay; hand it back if a panel/palette is
+ * still up (overlayMode gone — e.g. Paste and Go closed it — nothing to do). */
+function refocusOverlayAfterMenu() {
+  if (overlayMode === 'panel' || overlayMode === 'palette') {
+    overlayView?.webContents.focus();
+  }
 }
 
 function showOverlay(mode, { prefill } = {}) {
@@ -877,7 +901,9 @@ function navigateTabToAddress(id, rawText) {
   // A typed utility address opens the sheet, never navigates the tab.
   if (isUtilityUrl(target)) return openInternalPage(target);
   tabsWantingAddressBarFocus.delete(id);
-  tab.view.webContents.loadURL(target);
+  // Rapid re-navigation (Enter twice, Paste and Go twice) aborts the in-flight
+  // load — loadURL rejects with ERR_ABORTED; that's routine, not an error.
+  tab.view.webContents.loadURL(target).catch(() => {});
 }
 
 /** Paste and Go = navigate + dismiss the island, exactly like pressing Enter.

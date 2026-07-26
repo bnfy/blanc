@@ -55,6 +55,14 @@ test('cleanLink: null for anything that is not an http(s) URL', () => {
   assert.equal(cleanLink(undefined), null);
 });
 
+test('cleanLink: percent-encoded tracking names are decoded for matching', () => {
+  assert.equal(cleanLink('https://ex.com/?%75tm_source=x&a=1'), 'https://ex.com/?a=1');
+  assert.equal(cleanLink('https://ex.com/?utm%5Fsource=x&a=1'), 'https://ex.com/?a=1');
+  assert.equal(cleanLink('https://ex.com/?%46%42clid=x&a=1'), 'https://ex.com/?a=1');
+  // an undecodable name must not throw, and non-tracking raw forms survive
+  assert.equal(cleanLink('https://ex.com/?%ZZbad=1&fbclid=x'), 'https://ex.com/?%ZZbad=1');
+});
+
 test('cleanLink: valueless and empty-valued params are preserved when non-tracking', () => {
   assert.equal(cleanLink('https://ex.com/?flag&utm_source=x&empty='), 'https://ex.com/?flag&empty=');
 });

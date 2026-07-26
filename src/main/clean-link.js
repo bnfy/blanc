@@ -13,7 +13,15 @@ const TRACKING_EXACT = new Set([
 ]);
 
 function isTrackingParam(rawName) {
-  const name = rawName.toLowerCase();
+  // Match on the DECODED name: %75tm_source reaches every standards-compliant
+  // consumer (URLSearchParams, server query parsers) as utm_source, so it must
+  // be stripped too. Only the match decodes — surviving segments keep their
+  // original bytes. An undecodable name falls back to its raw form.
+  let name = rawName;
+  try {
+    name = decodeURIComponent(rawName);
+  } catch {}
+  name = name.toLowerCase();
   return name.startsWith('utm_') || TRACKING_EXACT.has(name);
 }
 

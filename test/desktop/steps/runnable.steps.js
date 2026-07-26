@@ -1,6 +1,7 @@
 const assert = require('node:assert');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('./../support/context');
+const { openOverlaySurface } = require('./../support/poll');
 
 // Step definitions for the desktop-runnable scenario set (see the `runnable`
 // profile in cucumber.mjs). Every step is intent-level and drives the app
@@ -392,26 +393,8 @@ When('the settings page is invoked again by the menu', async function () {
 
 // ---------- F5-6: real navigation through the command bar ----------
 
-async function waitForRendererMode(world, wanted, label) {
-  const deadline = Date.now() + 5000;
-  for (;;) {
-    const mode = await world.call('overlayRendererMode');
-    if (mode === wanted) return;
-    if (Date.now() > deadline) throw new Error(`timed out waiting for ${label}; last mode: ${mode}`);
-    await new Promise((r) => setTimeout(r, 50));
-  }
-}
-
 Given('the island panel is open', async function () {
-  // openPanel() flips main's overlayMode synchronously, but the RENDERER
-  // processes overlay:show later — and that handler resets inputTouched and
-  // rewrites the input's value, silently undoing an edit that raced it.
-  // Same close→wait→open→wait dance as extended.steps.js's
-  // openAutocompletePalette(): poll the renderer's mode, not main's.
-  await this.call('closeOverlay');
-  await waitForRendererMode(this, null, 'overlay renderer to leave its previous edit session');
-  await this.call('openPanel');
-  await waitForRendererMode(this, 'panel', 'overlay renderer to enter panel mode');
+  await openOverlaySurface(this, 'openPanel', 'panel');
 });
 
 When('I submit the address of {string} in the command bar', async function (name) {
@@ -444,15 +427,20 @@ Given('the clipboard holds the address of {string}', async function (name) {
   await this.call('setClipboardText', this.fixtureUrl(name));
 });
 
+// Binding note: a native popup can't be driven by the harness, so "opening"
+// the menu captures the descriptors the popup would show. It still asserts
+// the real wiring exists (attachAddressMenu installed) and reads fieldText
+// through the production executeJavaScript path — which requires the island
+// to actually be open, exactly like the real menu.
+async function captureAddressMenu(world) {
+  assert.equal(await world.call('addressMenuWired'), true,
+    'attachAddressMenu is wired to the overlay');
+  ctx.addressMenuFieldText = await world.call('addressFieldText');
+  ctx.addressMenuItems = await world.call('addressMenu', { fieldText: ctx.addressMenuFieldText });
+}
+
 When('I open the command-bar context menu', async function () {
-  // Binding note (test/desktop/README.md convention): a native popup can't
-  // be driven, so "open" captures the menu the popup would show, built from
-  // the same descriptors — with fieldText = the untouched field's value,
-  // which is the active tab's URL.
-  const state = await this.state();
-  const active = state.tabs.find((t) => t.id === state.activeTabId);
-  ctx.addressMenuFieldText = active.url;
-  ctx.addressMenuItems = await this.call('addressMenu', { fieldText: active.url });
+  await captureAddressMenu(this);
 });
 
 Then('the {string} item is enabled', async function (label) {
@@ -462,13 +450,8 @@ Then('the {string} item is enabled', async function (label) {
 });
 
 When('I choose {string} from the command-bar context menu', async function (label) {
-  if (!ctx.addressMenuItems) {
-    // F19-3 skips the explicit "open" step: capture with the current field text.
-    const state = await this.state();
-    const active = state.tabs.find((t) => t.id === state.activeTabId);
-    ctx.addressMenuFieldText = active.url;
-    ctx.addressMenuItems = await this.call('addressMenu', { fieldText: active.url });
-  }
+  // F19-3 skips the explicit "open" step: capture lazily, same shared helper.
+  if (!ctx.addressMenuItems) await captureAddressMenu(this);
   const item = ctx.addressMenuItems.find((i) => i.label === label);
   assert.ok(item, `menu has "${label}"`);
   assert.equal(item.enabled, true, `"${label}" enabled`);

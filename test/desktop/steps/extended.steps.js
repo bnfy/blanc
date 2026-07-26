@@ -1,6 +1,7 @@
 const assert = require('node:assert');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('./../support/context');
+const { waitForValue, openOverlaySurface } = require('./../support/poll');
 
 // Second batch of desktop step definitions, all drivable through pure app logic
 // or observable main-process state (so they are reliable without a live GUI run):
@@ -21,32 +22,8 @@ const SEARCH_PREFIX = {
   brave: 'https://search.brave.com/search?q=',
 };
 
-async function waitForValue(read, predicate, label, timeout = 5000) {
-  const deadline = Date.now() + timeout;
-  let last;
-  for (;;) {
-    last = await read();
-    if (predicate(last)) return last;
-    if (Date.now() > deadline) {
-      throw new Error(`timed out waiting for ${label}; last: ${JSON.stringify(last)}`);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-}
-
 async function openAutocompletePalette(world) {
-  await world.call('closeOverlay');
-  await waitForValue(
-    () => world.call('overlayRendererMode'),
-    (mode) => mode == null,
-    'overlay renderer to leave its previous edit session'
-  );
-  await world.call('openPalette');
-  await waitForValue(
-    () => world.call('overlayRendererMode'),
-    (mode) => mode === 'palette',
-    'overlay renderer to enter palette mode'
-  );
+  await openOverlaySurface(world, 'openPalette', 'palette');
 }
 
 // ---------- F5: address input & search ----------
