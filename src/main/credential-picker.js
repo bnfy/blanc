@@ -26,7 +26,14 @@ function createPickerController({
     if (!p) return;                       // already settled, or none open
     pending = null;
     clearTimer(p.timer);
-    if (getOverlayMode() === 'credential-picker') hideOverlay();
+    // Teardown is BEST-EFFORT and must never prevent settlement. hideOverlay
+    // touches a WebContentsView that may already be destroyed — likeliest on
+    // exactly the window-closed / render-process-gone routes — and an escaping
+    // throw would leave the fill awaiting a promise nothing resolves, which is
+    // the wedge this controller exists to prevent.
+    if (getOverlayMode() === 'credential-picker') {
+      try { hideOverlay(); } catch { /* view already gone — nothing to undo */ }
+    }
     p.resolve({ index, reason });
   }
 

@@ -1083,8 +1083,15 @@ test('T6-wiring: ranking precedes inspection, enumeration follows consent', () =
 test('T6-wiring: consent copy is candidate-neutral when a picker will follow', () => {
   const fs = require('node:fs');
   const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
-  assert.ok(/kept\.length === 1 \?[^\n]*title/.test(src),
+  const start = src.indexOf('async function fillActiveTabFrom1Password');
+  const end = src.indexOf('\nasync function ', start + 1);
+  const fn = src.slice(start, end === -1 ? undefined : end);
+  // The ternary spans lines, so the pattern must CROSS newlines — a [^\n]
+  // class would stay red against the correct implementation.
+  assert.ok(/kept\.length === 1[\s\S]{0,160}kept\[0\]\.title/.test(fn),
     'only a single survivor may be named in the consent prompt');
+  assert.ok(/Fill a saved password into this form/.test(fn),
+    'the multi-survivor branch must be candidate-neutral');
 });
 ```
 
@@ -1154,6 +1161,21 @@ const pickerController = createPickerController({
     return;
   }
 ```
+
+**(a2)** Still in `hideOverlay`, clear the prefill. Today it sets
+`overlayMode = null` but leaves `overlayPrefill` holding the last payload — for
+a picker that is the username/title/vault rows, referenced in main indefinitely
+after the picker closes. Put it immediately beside the mode reset, **before** any
+call that touches the possibly-dying view, so a throw from `removeChildView` or
+`send` cannot strand the rows:
+
+```js
+  overlayMode = null;
+  overlayPrefill = null;   // vault rows must not outlive the picker
+```
+
+This matters for the partial-show recovery too: the controller's
+`hideOverlay()` call is what clears main's copy of those rows.
 
 **(b)** Top of `showOverlay`, after the live-window guard:
 
@@ -1274,8 +1296,16 @@ with:
 
 - [ ] **Step 11: Confirm no stale chooser remains**
 
-Run: `grep -n "showMessageBox" src/main/main.js`
-Expected: only `will-prevent-unload` and the consent dialog — **no** chooser over `matches`.
+Do **not** count `showMessageBox` call sites: `main.js` legitimately has four —
+the external-protocol prompt, the old chooser, the consent dialog, and a
+`showMessageBoxSync` for `will-prevent-unload` — so a bare count proves nothing
+and "only two remain" would be false. Check for the chooser's own markers:
+
+```bash
+grep -n "Choose a login for\|matches\.map(\|matches\.length > 1" src/main/main.js
+```
+Expected: **no output**. Those three are the chooser's message string, its button
+construction, and its guard; the unrelated dialogs contain none of them.
 
 - [ ] **Step 12: Tests + syntax**
 

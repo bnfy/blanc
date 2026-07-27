@@ -5,6 +5,7 @@ const { createPickerController } = require('../../src/main/credential-picker');
 
 /** A controller wired to fakes, with handles to inspect what it did. */
 function harness({ overlayAvailable = true, overlayThrows = false } = {}) {
+  let hideThrows = false;
   const calls = { shown: [], hidden: 0, timers: 0, cleared: 0 };
   let mode = null;
   let timerFn = null;
@@ -18,7 +19,13 @@ function harness({ overlayAvailable = true, overlayThrows = false } = {}) {
       if (!overlayAvailable) return false;   // mirrors main's live-window guard
       mode = m; calls.shown.push(opts); return true;
     },
-    hideOverlay: () => { mode = null; calls.hidden += 1; },
+    hideOverlay: () => {
+      calls.hidden += 1;
+      // The real hideOverlay touches a WebContentsView that may already be
+      // destroyed — exactly the state the window-closed routes fire in.
+      if (hideThrows) throw new Error('view is destroyed');
+      mode = null;
+    },
     getOverlayMode: () => mode,
     isOverlaySender: (event) => event && event.fromOverlay === true,
     randomUUID: () => 'req-1',
@@ -26,7 +33,12 @@ function harness({ overlayAvailable = true, overlayThrows = false } = {}) {
     clearTimer: () => { calls.cleared += 1; },
     timeoutMs: 60000,
   });
-  return { ctl, calls, fireTimeout: () => timerFn && timerFn(), getMode: () => mode };
+  return {
+    ctl, calls,
+    fireTimeout: () => timerFn && timerFn(),
+    getMode: () => mode,
+    hideWillThrow: () => { hideThrows = true; },
+  };
 }
 
 const ROWS = [
@@ -128,6 +140,22 @@ test('picker: a PARTIAL (thrown) show settles and tears the overlay back down', 
   assert.equal(h.ctl.isPending(), false, 'a thrown show must leave no stale pending state');
   assert.equal(h.calls.hidden, 1, 'the partially-shown overlay must be torn down');
   assert.equal(h.getMode(), null, 'no vault rows may remain resident after a failed show');
+});
+
+test('picker: a THROWING teardown still settles the promise exactly once', async () => {
+  // hideOverlay touches a possibly-destroyed view, which is likeliest on the
+  // very routes that fire when the window dies. If the throw escaped, the fill
+  // would await a promise nothing resolves — the wedge this controller exists
+  // to prevent.
+  const h = harness();
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  h.hideWillThrow();
+  h.ctl.settle(null, 'window-closed');
+  assert.deepEqual(await p, { index: null, reason: 'window-closed' },
+    'teardown failure must not prevent settlement');
+  assert.equal(h.ctl.isPending(), false);
+  h.ctl.settle(null, 'timeout');   // still exactly-once afterwards
+  assert.equal(h.calls.cleared, 1);
 });
 
 test('picker: rows reach the overlay with exactly four keys', async () => {
