@@ -1418,6 +1418,17 @@ In `src/renderer/overlay.js`, before `applyMode`:
       list.append(more);
     }
 
+    // Picker mode is MODAL: styles.css hides the panel's own controls (address
+    // bar, nav, favorite, footer, Settings) so the user can't navigate or open
+    // a tab mid-selection. That hides the panel's dismiss button too, so the
+    // picker renders its OWN cancel affordance.
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'cred-cancel';
+    cancel.textContent = 'Cancel';
+    cancel.addEventListener('click', () => choosePicker(null));
+    list.append(cancel);
+
     islandList.replaceChildren(list);
     highlightPicker();
   }
@@ -1452,18 +1463,23 @@ In `applyMode`, extend the two visibility lines and add a branch:
       renderCredentialPicker(prefill);
 ```
 
-Branch **both** user-dismissal affordances so they produce `dismissed` (with
-best-effort focus return) rather than `hidden`. In the backdrop/scrim click
-handler **and** in the existing dismiss-button (`dismissBtn`) handler, before
-whatever they call today:
+The picker's cancel affordances are the **scrim** and the in-list **Cancel**
+button (added in Step 3); both call `choosePicker(null)`, which settles as
+`dismissed` (best-effort focus return). The panel's own `dismissBtn` is hidden
+by the modal isolation in Step 5, so it is no longer a picker affordance. In the
+backdrop/scrim click handler, before whatever it calls today:
 
 ```js
     if (mode === 'credential-picker') return choosePicker(null);
 ```
 
-Redirecting only the scrim would leave the visible Cancel affordance settling as
-`hidden`, which is the one route the spec says must not restore focus — so the
-button would silently behave differently from the scrim beside it.
+Guard the panel's other click handlers too, as defense-in-depth in case the
+isolation CSS ever regresses: at the top of the shared panel-actions/footer
+click handling, ignore clicks while a picker is showing:
+
+```js
+    if (mode === 'credential-picker') return;   // modal — panel controls are inert
+```
 
 In the overlay's `keydown` listener:
 
@@ -1503,6 +1519,16 @@ Use the repository's ACTUAL tokens. `--radius-sm`, `--fg`, `--fg-dim` and
 match that rather than inventing a hover token.
 
 ```css
+/* Modal isolation: in picker mode the panel shows ONLY the rows + Cancel, so a
+   user can't type an address, hit a nav/favorite button, open a tab, or reach
+   Settings while a credential decrypt is pending. display:none also removes
+   these from the tab order and makes them unfocusable, which the Task 8
+   assertion checks. Scoped to the picker mode only — panel/palette are
+   unaffected. */
+body[data-mode="credential-picker"] .panel-row,
+body[data-mode="credential-picker"] #islandFooter,
+body[data-mode="credential-picker"] #islandHint { display: none; }
+
 .cred-list { display: flex; flex-direction: column; gap: 2px; }
 .cred-row {
   display: grid;
@@ -1524,14 +1550,29 @@ match that rather than inventing a hover token.
 .cred-meta { grid-area: meta; color: var(--text-dim); font-size: 11px; }
 .cred-vault { grid-area: vault; align-self: center; color: var(--text-dim); font-size: 11px; }
 .cred-more { padding: 6px 10px; color: var(--text-dim); font-size: 11px; }
+.cred-cancel {
+  margin-top: 4px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.cred-cancel:hover { background: var(--surface); color: var(--text); }
 ```
 
-Verify before committing — no invented tokens may survive:
+Verify before committing — no invented tokens may survive, and the isolation
+selectors must reference elements that exist:
 
 ```bash
 grep -oE 'var\(--[a-z-]+\)' src/renderer/styles.css | sort -u | head -20
+grep -c 'id="islandFooter"\|id="islandHint"\|class="panel-row"' src/renderer/overlay.html
 ```
-Every token used above must appear in that list.
+Every token used above must appear in the first list; the second must print `3`
+(the three isolation targets all exist).
 
 - [ ] **Step 6: Tests**
 
@@ -1549,8 +1590,11 @@ BLANC_1P_ACCOUNT="<your-account>" npm start
 On `https://accounts.google.com/` press ⌥⌘P. Verify: an Island list of usernames
 (not a native button row); ↑/↓ move the highlight; Enter fills; Escape logs
 `chooser-cancel escape`; clicking the scrim logs `chooser-cancel dismissed`; the
-truncation line appears when more than ten matched. On `https://www.google.com/`
-verify **no picker** — one candidate fills directly.
+truncation line appears when more than ten matched. **Modal isolation:** confirm
+the address bar, footer buttons, Settings, and hint are all gone while the picker
+is up — only the rows and the Cancel button show — and that clicking the in-list
+Cancel logs `chooser-cancel dismissed`. On `https://www.google.com/` verify **no
+picker** — one candidate fills directly.
 
 - [ ] **Step 8: Commit**
 
@@ -1585,11 +1629,18 @@ desktop *and* misrepresent this dev-only spike as part of the F24 contract. This
 is desktop-and-spike-only, so it lives under `test/desktop/features/` with its
 own tag, and the config learns that path explicitly.
 
+This task also proves the **modal isolation** from Task 7: in picker mode the
+panel's own controls (address bar, footer, Settings) must be neither displayed
+nor focusable, so a user can't navigate or open a tab while a decrypt is pending.
+That is a real-DOM property — `display:none` removes an element from layout and
+the focus order — so it belongs here, not in a source guard.
+
 **Interfaces:**
 - Consumes: the `credential-picker` mode (Task 7); the hook's existing
   `showOverlay` and `getOverlayWebContents` collaborators; the World's
   `this.call(method, ...args)`.
-- Produces: hook methods `showCredentialPicker(rows)` and `readPickerDom()`.
+- Produces: hook methods `showCredentialPicker(rows)`, `readPickerDom()`, and
+  `readPickerIsolation()`.
 
 - [ ] **Step 1: Add the test-hook methods**
 
@@ -1616,6 +1667,29 @@ In `src/main/test-hook.js`, alongside `openPanel()` / `openPalette()`:
         };
       })()`);
     },
+    /** Probe the panel's own controls for modal isolation. `shown` uses
+     * getClientRects (empty under display:none, and independent of offsetParent
+     * quirks); `focusable` actually attempts focus and checks activeElement, so
+     * a display:none control can't pass. */
+    readPickerIsolation() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const probe = (sel) => {
+          const el = document.querySelector(sel);
+          if (!el) return { present: false };
+          const shown = el.getClientRects().length > 0;
+          try { el.focus(); } catch (_) {}
+          return { present: true, shown, focusable: document.activeElement === el };
+        };
+        return {
+          address: probe('#addressInput'),
+          footer: probe('#islandFooter'),
+          settings: probe('#footerSettings'),
+          cancel: probe('.cred-cancel'),
+        };
+      })()`);
+    },
 ```
 
 - [ ] **Step 2: Write the failing scenario**
@@ -1632,6 +1706,12 @@ Feature: 1Password credential picker (dev spike)
     When the credential picker is shown with hostile vault strings
     Then the picker row shows them as literal text
     And the picker row contains no injected elements
+
+  @spike-1p-picker
+  Scenario: picker mode isolates the panel's own controls
+    When the credential picker is shown with hostile vault strings
+    Then the address bar, footer, and Settings are hidden and unfocusable
+    And the Cancel button is available
 ```
 
 - [ ] **Step 3: Teach the config the path and the tag**
@@ -1669,14 +1749,14 @@ for line in sys.stdin:
     if 'pickle' in o: pickles[o['pickle']['id']]=o['pickle']['name']
     if 'testCase' in o: selected.add(o['testCase']['pickleId'])
 names={pickles[i] for i in selected if i in pickles}
-target='vault strings render as literal text'
-print('parsed :', target in pickles.values())
-print('SELECTED:', target in names)
+for target in ['vault strings render as literal text',
+               \"picker mode isolates the panel's own controls\"]:
+    print(target[:40], '-> parsed', target in pickles.values(), 'SELECTED', target in names)
 "
 ```
-Expected: **both `True`**. `parsed True` with `SELECTED False` means the feature
-path is wired but the tag is not in `RUNNABLE`; both `False` means the path
-itself is not in `common.paths`.
+Expected: **both scenarios `parsed True` and `SELECTED True`**. `parsed True`
+with `SELECTED False` means the feature path is wired but the tag is not in
+`RUNNABLE`; both `False` means the path itself is not in `common.paths`.
 
 - [ ] **Step 4: Write the step definitions (CommonJS)**
 
@@ -1716,6 +1796,25 @@ Then('the picker row contains no injected elements', function () {
   assert.equal(this.pickerDom.injected, 0, 'no element may be created from vault data');
   assert.equal(this.pickerDom.pwned, 'undefined', 'no injected handler may run');
 });
+
+Then('the address bar, footer, and Settings are hidden and unfocusable', async function () {
+  const iso = await this.call('readPickerIsolation');
+  assert.ok(iso, 'the isolation probe must return');
+  for (const key of ['address', 'footer', 'settings']) {
+    assert.ok(iso[key].present, `#${key} must exist in the panel`);
+    assert.equal(iso[key].shown, false, `${key} must not be displayed in picker mode`);
+    assert.equal(iso[key].focusable, false, `${key} must not be focusable in picker mode`);
+  }
+});
+
+Then('the Cancel button is available', function () {
+  // Reuses the probe from the previous step (stored on the World is optional;
+  // re-reading is cheap and keeps the step independent).
+  return this.call('readPickerIsolation').then((iso) => {
+    assert.ok(iso.cancel.present, 'the picker must render its own Cancel');
+    assert.equal(iso.cancel.shown, true, 'Cancel must be visible — it is the only dismissal control left');
+  });
+});
 ```
 
 - [ ] **Step 5: Dry-run to confirm the steps resolve**
@@ -1724,10 +1823,11 @@ Run: `npm run test:acceptance:dry`
 Expected: the three new steps resolve — no "undefined step" warnings, and the
 scenario appears in the selected set (if it doesn't, the tag isn't in `RUNNABLE`).
 
-- [ ] **Step 6: Run the scenario**
+- [ ] **Step 6: Run the scenarios**
 
 Run: `npm run test:acceptance:desktop`
-Expected: the `credential-picker` scenario passes.
+Expected: both `credential-picker` scenarios pass — the XSS-inert render and the
+modal isolation.
 
 - [ ] **Step 7: Commit**
 
@@ -1808,6 +1908,8 @@ git commit -m "docs(1password): dev-usage covers ranking and the Island picker"
 - Consent copy candidate-neutral when a picker follows → Task 6 Step 9 + test. ✅
 - `dismissed` reachable from the scrim and from the picker's own cancel → Task 7 Step 4. ✅
 - Rows cleared from the renderer on hide → Task 7 Step 4. ✅
+- **Modal isolation:** picker mode hides the address bar, footer and Settings (display:none, so unfocusable) and provides its own Cancel → Task 7 Steps 3+5, asserted real-DOM in Task 8. ✅
+- **Window close settles the picker before resetting `overlayMode`**, so vault rows don't survive a dock reopen → Task 6 (wired + ordering test). ✅
 - `textContent`-only + source guard + real-DOM scenario → Tasks 7 and 8. ✅
 - Truncation line → Task 7 Step 3. ✅
 - Dev-usage doc → Task 9. ✅

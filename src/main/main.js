@@ -3012,6 +3012,14 @@ function createMainWindow() {
   win.on('resize', resizeActiveView);
   win.on('focus', refocusAddressBarIfWanted);
   win.on('closed', () => {
+    // Settle any pending picker BEFORE resetting overlayMode. The overlay's own
+    // 'destroyed' listener also settles, but it fires after webContents.close()
+    // below — by which point overlayMode is already null, so settle would see no
+    // picker mode and skip hideOverlay, stranding overlayPrefill's vault rows
+    // across a macOS dock reopen. Settling here, while the mode is still live,
+    // is what clears them. (hasLiveWindow() is already false, so hideOverlay
+    // clears the rows and skips the view ops rather than throwing.)
+    pickerController.settle(null, 'window-closed');
     win = null;
     // Unlike tabs, the overlay doesn't outlive its window — recreated fresh.
     overlayMode = null;
