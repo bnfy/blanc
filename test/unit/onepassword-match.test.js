@@ -16,8 +16,39 @@ test('matchesHost: scheme-less stored value matches', () => {
   assert.equal(matchesHost(['github.com'], 'github.com'), true);
 });
 
-test('matchesHost: subdomain must NOT match', () => {
-  assert.equal(matchesHost(['https://login.github.com'], 'github.com'), false);
+test('matchesHost: subdomain NOW matches its registrable domain', () => {
+  assert.equal(matchesHost(['https://google.com'], 'accounts.google.com'), true);
+});
+
+test('matchesHost: deep-subdomain item matches the parent domain', () => {
+  assert.equal(matchesHost(['https://accounts.google.com'], 'google.com'), true);
+});
+
+test('matchesHost: cross-tenant private domains must NOT match (github.io)', () => {
+  assert.equal(matchesHost(['https://alice.github.io'], 'bob.github.io'), false);
+});
+
+test('matchesHost: cross-tenant private domains must NOT match (vercel.app)', () => {
+  assert.equal(matchesHost(['https://one.vercel.app'], 'two.vercel.app'), false);
+});
+
+test('matchesHost: same private-domain tenant still matches', () => {
+  assert.equal(matchesHost(['https://alice.github.io'], 'alice.github.io'), true);
+});
+
+test('matchesHost: public suffix is not collapsed (co.uk)', () => {
+  assert.equal(matchesHost(['https://foo.co.uk'], 'bar.co.uk'), false);
+  assert.equal(matchesHost(['https://shop.foo.co.uk'], 'foo.co.uk'), true);
+});
+
+test('matchesHost: localhost falls back to exact host', () => {
+  assert.equal(matchesHost(['http://localhost'], 'localhost'), true);
+  assert.equal(matchesHost(['http://localhost'], 'other-host'), false);
+});
+
+test('matchesHost: raw IP falls back to exact host', () => {
+  assert.equal(matchesHost(['http://127.0.0.1'], '127.0.0.1'), true);
+  assert.equal(matchesHost(['http://127.0.0.1'], '192.168.1.5'), false);
 });
 
 test('matchesHost: substring trap must NOT match', () => {

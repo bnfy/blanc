@@ -1,3 +1,5 @@
+const { getDomain } = require('tldts-experimental');
+
 // SPIKE (1Password fill feasibility) — throwaway; MUST be removed before any
 // release (plan Task 6 — env-gating alone is not release-safety). This module
 // owns the 1Password SDK client and ALL credential handling. `@1password/sdk`
@@ -19,13 +21,27 @@ function normalizeHost(value) {
   return host.replace(/^www\./i, '').toLowerCase();
 }
 
-/** True iff any of a Login item's stored website URLs resolves to `host`
- * (both sides `www.`-stripped, EXACT equality — deliberately not substring,
- * so `github.com.evil.com` cannot match `github.com`). */
+/** Reduce a normalized host to its registrable domain (eTLD+1) for matching.
+ * `allowPrivateDomains: true` is REQUIRED: without it `user.github.io` collapses
+ * to `github.io`, so two tenants would cross-match and a single wrong match
+ * fills silently. Falls back to the exact host when there is no public suffix
+ * at all (localhost, raw IPs, single-label intranet names). */
+function registrableKey(host) {
+  return getDomain(host, { allowPrivateDomains: true }) || host;
+}
+
+/** True iff any of a Login item's stored website URLs shares a registrable
+ * domain with `host` — so an item saved for `google.com` matches
+ * `accounts.google.com`, while `github.com.evil.com` (registrable domain
+ * `evil.com`) still cannot match `github.com`. */
 function matchesHost(itemUrls, host) {
-  const target = normalizeHost(host);
-  if (!target || !Array.isArray(itemUrls)) return false;
-  return itemUrls.some((u) => normalizeHost(u) === target);
+  const targetHost = normalizeHost(host);
+  if (!targetHost || !Array.isArray(itemUrls)) return false;
+  const targetKey = registrableKey(targetHost);
+  return itemUrls.some((u) => {
+    const h = normalizeHost(u);
+    return h != null && registrableKey(h) === targetKey;
+  });
 }
 
 /** Build the IIFE source injected via executeJavaScript(source). All four
