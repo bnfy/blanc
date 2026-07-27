@@ -935,18 +935,22 @@ test('T5: heuristic targets are confirmed before anything is decrypted', () => {
   assert.ok(/selection-changed/.test(src), 'the selectionChanged status needs an outcome');
 });
 
-test('T5: tab focus is restored after every modal dialog, before validation', () => {
+test('T5: focus is restored after the consent modal and reaches the picker flow', () => {
   const fs = require('node:fs');
   const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
   assert.ok(/async function restoreTabFocus/.test(src),
     'a focus-restoration helper is required — a modal returns focus to the chrome document');
-  // Both dialogs steal focus: the multi-match chooser (before inspect, whose
-  // injected guard calls document.hasFocus()) and the heuristic confirmation
-  // (before the post-reveal wc.isFocused() guard).
-  const calls = src.match(/await restoreTabFocus\(/g) || [];
-  assert.ok(calls.length >= 2,
-    `expected focus restoration after both dialogs, found ${calls.length}`);
-  // It must run before the confirmation's re-validation, not after.
+  // This once asserted TWO call sites, for the consent modal and the native
+  // multi-match chooser. The chooser is gone: ranking removes it in the common
+  // case, and when a picker is still needed its focus handling lives in
+  // credential-fill-flow.js, where the nine-reason policy and the
+  // failed-restoration abort are covered BEHAVIOURALLY. What main.js still owns
+  // is the consent gate and passing the helper into the flow.
+  assert.ok(/if \(!\(await restoreTabFocus\(wc\)\)\) return log\('abort-wc-changed'\)/.test(src),
+    "the consent modal's restoration must be gated");
+  assert.ok(/restoreTabFocus: \(\) => restoreTabFocus\(wc\)/.test(src),
+    'the flow must receive the helper so the picker path can restore focus too');
+  // The consent restoration must run before the re-validation that reads focus.
   const restoreAfterConfirm = src.indexOf('await restoreTabFocus', src.indexOf("log('user-declined')"));
   const revalidate = src.indexOf("log('abort-wc-changed')", src.indexOf("log('user-declined')"));
   assert.ok(restoreAfterConfirm > -1 && restoreAfterConfirm < revalidate,
@@ -1180,4 +1184,57 @@ test('revealUsernames: carries the ranking metadata through unchanged', async ()
   assert.equal(rows[0].host, 'accounts.google.com');
   assert.equal(rows[0].vaultName, 'Personal');
   assert.equal(rows[0].itemId, 'i1');
+});
+
+// ===========================================================================
+// Task 6 — main.js wiring (behavior is proven in credential-picker /
+// credential-fill-flow tests; these assert the Electron plumbing)
+// ===========================================================================
+
+test('T6-wiring: every settlement route is wired in main', () => {
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+  for (const reason of ['escape', 'mode-replaced', 'hidden', 'blur', 'tab-changed', 'window-closed']) {
+    assert.ok(src.includes(`'${reason}'`), `settlement route '${reason}' must be wired`);
+  }
+  assert.ok(/isTrustedSender\(event,\s*\[overlayView\]\)/.test(src),
+    'the reply channel must accept the overlay alone, never the chrome window');
+  assert.ok(/overlayPrefill = null/.test(src),
+    'hideOverlay must clear overlayPrefill — vault rows may not outlive the picker');
+});
+
+test('T6-wiring: ranking precedes inspection, the flow follows consent', () => {
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+  // Slice to the orchestrator: indexOf on a bare name would find the function
+  // DEFINITION, which sits above it.
+  const start = src.indexOf('async function fillActiveTabFrom1Password');
+  const end = src.indexOf('\nasync function ', start + 1);
+  const fn = src.slice(start, end === -1 ? undefined : end);
+  const rank = fn.indexOf('rankMatches(');
+  const inspect = fn.indexOf('buildInspectScript(');
+  const consent = fn.indexOf("passwordBasis !== 'authoritative'");
+  const flow = fn.indexOf('chooseAndReveal(');
+  assert.ok(rank > -1 && inspect > -1 && consent > -1 && flow > -1,
+    'all four must appear in the orchestrator');
+  assert.ok(rank < inspect, 'ranking is metadata-only and must precede inspection');
+  assert.ok(inspect < consent, 'consent needs the inspect result');
+  assert.ok(consent < flow,
+    'nothing may be decrypted before the page is judged fillable and consented to');
+  assert.ok(/kept\.length === 0/.test(fn) || /!kept\.length/.test(fn),
+    'the defensive empty-tier case must be handled');
+});
+
+test('T6-wiring: consent copy is candidate-neutral when a picker will follow', () => {
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+  const start = src.indexOf('async function fillActiveTabFrom1Password');
+  const end = src.indexOf('\nasync function ', start + 1);
+  const fn = src.slice(start, end === -1 ? undefined : end);
+  // The ternary spans lines, so the pattern must CROSS newlines — a [^\n]
+  // class would stay red against the correct implementation.
+  assert.ok(/kept\.length === 1[\s\S]{0,160}kept\[0\]\.title/.test(fn),
+    'only a single survivor may be named in the consent prompt');
+  assert.ok(/Fill a saved password into this form/.test(fn),
+    'the multi-survivor branch must be candidate-neutral');
 });

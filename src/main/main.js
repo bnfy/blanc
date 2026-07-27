@@ -684,7 +684,8 @@ function createOverlay() {
   overlayView.webContents.on('before-input-event', (event, input) => {
     if (overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      hideOverlay();
+      if (overlayMode === 'credential-picker') pickerController.settle(null, 'escape');
+      else hideOverlay();
     }
   });
 
@@ -704,8 +705,13 @@ function createOverlay() {
     // its address-focus reclaim is still pending — that's not a dismissal;
     // the reclaim will re-assert overlay focus on the next tick.
     if (activeTabId && tabsWantingAddressBarFocus.has(activeTabId)) return;
+    if (overlayMode === 'credential-picker') return pickerController.settle(null, 'blur');
     hideOverlay({ refocusContent: false });
   });
+
+  // A dying overlay must settle any pending picker, or the fill awaits forever.
+  overlayView.webContents.on('destroyed', () => pickerController.settle(null, 'window-closed'));
+  overlayView.webContents.on('render-process-gone', () => pickerController.settle(null, 'window-closed'));
 
   attachAddressMenu(overlayView.webContents, {
     isOverlayLive: () =>
@@ -750,7 +756,12 @@ function refocusOverlayAfterMenu() {
 }
 
 function showOverlay(mode, { prefill } = {}) {
-  if (!hasLiveWindow() || !overlayView) return;
+  // Returns whether the overlay was actually shown: requestPick treats a
+  // non-true result as window-closed rather than waiting out its timeout.
+  if (!hasLiveWindow() || !overlayView) return false;
+  if (overlayMode === 'credential-picker' && mode !== 'credential-picker') {
+    pickerController.settle(null, 'mode-replaced');
+  }
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
   hideUtilitySheet({ refocusContent: false });
@@ -765,11 +776,22 @@ function showOverlay(mode, { prefill } = {}) {
   overlayView.webContents.send('overlay:show', { mode, prefill });
   overlayView.webContents.focus();
   win.webContents.send('chrome:island-state', { mode });
+  return true;
 }
 
 function hideOverlay({ refocusContent = true } = {}) {
   if (!overlayMode) return;
+  // 'hidden' is deliberately no-restore: hideOverlay has six callers and the
+  // cause can't be attributed, so it fails safe. RETURN after delegating —
+  // settle() clears its pending state before calling its injected hide
+  // collaborator, which re-enters here and performs the teardown. Falling
+  // through would run the removal/send/focus body a second time.
+  if (pickerController.isPending()) {
+    pickerController.settle(null, 'hidden');
+    return;
+  }
   overlayMode = null;
+  overlayPrefill = null;   // vault rows must not outlive the picker
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
@@ -1388,6 +1410,22 @@ let onePasswordFillInFlight = false;
 // both forbidden; Electron reserves ids >= 1000 for custom worlds.
 const FILL_WORLD_ID = 1001;
 
+const { createPickerController } = require('./credential-picker');
+const { chooseAndReveal } = require('./credential-fill-flow');
+
+// Exactly-once owner of picker resolution. Behaviour is covered by
+// test/unit/credential-picker.test.js; this is only the Electron wiring.
+const pickerController = createPickerController({
+  showOverlay,
+  hideOverlay: () => hideOverlay({ refocusContent: false }),
+  getOverlayMode: () => overlayMode,
+  isOverlaySender: (event) => isTrustedSender(event, [overlayView]),
+  randomUUID: () => crypto.randomUUID(),
+  setTimer: (fn, ms) => setTimeout(fn, ms),
+  clearTimer: (t) => clearTimeout(t),
+  timeoutMs: 60_000,
+});
+
 /** A modal dialog returns focus to the CHROME document, not to the tab. Both
  * the main-side `wc.isFocused()` guard and the injected `document.hasFocus()`
  * check require the tab to hold focus, so every dialog in this flow must hand
@@ -1396,7 +1434,10 @@ const FILL_WORLD_ID = 1001;
  * focus settles asynchronously (see reclaimAddressBarFocus), hence the bounded
  * re-assert rather than a single call. */
 async function restoreTabFocus(wc) {
-  if (hasLiveWindow()) win.focus();
+  // Only re-assert the WINDOW when Blanc is already frontmost. A picker
+  // dismissed by ⌘-Tab must not drag the window back over whatever the user
+  // switched to. (Same instinct as the overlay blur guard further up.)
+  if (hasLiveWindow() && win.isFocused()) win.focus();
   for (let attempt = 0; attempt < 10; attempt++) {
     if (wc.isDestroyed()) return false;
     wc.focus();
@@ -1409,7 +1450,9 @@ async function restoreTabFocus(wc) {
 async function fillActiveTabFrom1Password() {
   const log = (result, extra) => console.log(`[1p-spike] ${result}${extra ? ' ' + extra : ''}`);
   const onepassword = require('./onepassword'); // ./onepassword only — the SDK stays lazy inside it
-  let capturedTabId, tab, wc, expectedURL, expectedHost, capturedEpoch, capturedTimeOrigin, chosen;
+  let capturedTabId, tab, wc, expectedURL, expectedHost, capturedEpoch, capturedTimeOrigin;
+  let kept = [];
+  let truncated = 0;
 
   // ── PHASE 1 (pre-reveal): NO credential is in memory yet, so err.message is
   //    safe to log for diagnosis. ──
@@ -1427,30 +1470,13 @@ async function fillActiveTabFrom1Password() {
 
     const matches = await onepassword.findLogins(expectedHost);
     if (matches.length === 0) return log('no-match', expectedHost);
-    chosen = matches[0];
-    if (matches.length > 1) {
-      // The vault search was async — if the window died meanwhile, don't ask
-      // the user to choose a login for a window that no longer exists (the
-      // post-reveal re-validation would abort anyway). Also keeps `win` safe
-      // to pass as the dialog parent (documented overloads only).
-      if (!hasLiveWindow()) return log('abort-window-changed');
-      const buttons = matches.map((m) => m.title || '(untitled)');
-      const cancelId = buttons.length;
-      buttons.push('Cancel');
-      const { response } = await dialog.showMessageBox(win, {
-        type: 'question',
-        title: 'Fill from 1Password',
-        message: `Choose a login for ${expectedHost}`,
-        buttons,
-        cancelId,
-        noLink: true,
-      });
-      if (response < 0 || response >= matches.length) return log('chooser-cancel');
-      chosen = matches[response];
-      // The chooser took focus; inspect's in-page guard needs it back. If it
-      // doesn't come back, stop here rather than injecting into an unfocused tab.
-      if (!(await restoreTabFocus(wc))) return log('abort-wc-changed');
-    }
+    // Rank on METADATA only — no decryption here. One survivor is the common
+    // case and needs no picker at all: on www.google.com this turns 20
+    // candidates into 1.
+    const ranked = onepassword.rankMatches(matches, expectedHost);
+    if (ranked.kept.length === 0) return log('no-match', expectedHost); // never fall back to the unranked list
+    kept = ranked.kept;
+    truncated = ranked.truncated;
   } catch (err) {
     return log('setup-error', err?.message); // pre-reveal only — credential-free
   }
@@ -1491,7 +1517,9 @@ async function fillActiveTabFrom1Password() {
       const { response } = await dialog.showMessageBox(win, {
         type: 'question',
         title: 'Fill from 1Password',
-        message: `Fill your ${chosen.title || 'saved'} password into this form?`,
+        message: kept.length === 1
+          ? `Fill your ${kept[0].title || 'saved'} password into this form?`
+          : 'Fill a saved password into this form?',
         detail: `${expectedHost} didn't identify its sign-in field, so Blanc inferred it. `
           + 'Only continue if this is a sign-in form — not a sign-up or password-reset page.',
         buttons: ['Fill', 'Cancel'],
@@ -1516,8 +1544,31 @@ async function fillActiveTabFrom1Password() {
     }
 
     // Only now — with a fillable field confirmed and, if heuristic, explicitly
-    // approved — decrypt the chosen item.
-    const { username, password } = await onepassword.revealCredential(chosen.vaultId, chosen.itemId);
+    // approved — choose a credential (picker if several survive) and read it.
+    // Behaviour lives in credential-fill-flow.js and is covered by
+    // test/unit/credential-fill-flow.test.js.
+    const picked = await chooseAndReveal({
+      kept,
+      truncated,
+      host: expectedHost,
+      deps: {
+        revealUsernames: (list) => onepassword.revealUsernames(list),
+        requestPick: (rows, trunc, host) => pickerController.requestPick(rows, trunc, host),
+        restoreTabFocus: () => restoreTabFocus(wc),
+        revalidate: () => {
+          if (!hasLiveWindow() || !win.isFocused()) return 'abort-window-changed';
+          if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return 'abort-tab-changed';
+          if (wc.isDestroyed()) return 'abort-wc-changed';
+          if (tab.navEpoch !== capturedEpoch) return 'abort-navigated';
+          if (wc.getURL() !== expectedURL) return 'abort-url-changed';
+          return null;
+        },
+        revealCredential: (c) => onepassword.revealCredential(c.vaultId, c.itemId),
+      },
+    });
+    if (picked.outcome === 'chooser-cancel') return log('chooser-cancel', picked.detail);
+    if (picked.outcome !== 'ok') return log(picked.outcome);
+    const { username, password } = picked.credential;
     if (password == null && username == null) return log('empty-item');
 
     // Re-validate after the async reveal.
@@ -2007,6 +2058,10 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // Re-selecting the active tab is a no-op.
   if (id === activeTabId) return;
 
+  // A genuine switch cancels a live picker (this sits AFTER the no-op above, so
+  // re-selecting the same tab doesn't).
+  pickerController.settle(null, 'tab-changed');
+
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.
   hideUtilitySheet({ refocusContent: false });
@@ -2104,6 +2159,10 @@ const recentlyClosedUrls = [];
 function closeTab(id) {
   const tab = tabs.get(id);
   if (!tab) return;
+
+  // Only the picker's own tab closing cancels it — an unrelated background tab
+  // must not.
+  if (id === activeTabId) pickerController.settle(null, 'tab-changed');
 
   // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
   if (tab.url && !tab.private && !tab.url.startsWith('blanc://newtab')) {
@@ -2359,6 +2418,12 @@ function chromeOn(channel, handler) {
 }
 
 function registerIpcHandlers() {
+  // Credential-picker reply. Validation lives in the controller (two stages: a
+  // reply that can't prove it belongs to THIS request changes no state).
+  ipcMain.on('chrome:credential-pick', (event, payload) => {
+    pickerController.handleReply(event, payload);
+  });
+
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
     // A plain new tab is deliberately ungrouped — createTab defaults groupId
