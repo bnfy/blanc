@@ -1,7 +1,7 @@
 # 1Password fill — credential picker: ranking + Island UI
 
 **Date:** 2026-07-27
-**Status:** Approved for planning (rev. 2 — after security review)
+**Status:** Approved for planning (rev. 3 — after two security-review rounds)
 **Branch:** `feature/1password-fill` (builds on the matching-improvements work)
 
 ## What
@@ -62,9 +62,16 @@ The order is therefore part of the design, not an implementation detail:
 4. reject unsafe pages → `no-fillable-field` (**still nothing decrypted**)
 5. **heuristic consent**, if the target was inferred → may end in `user-declined`
    (**still nothing decrypted**)
-6. `revealUsernames(kept)` — **first decryption**, ≤ `PICKER_MAX`, only reached
-   on a page already judged fillable and already consented to
-7. **picker** → selection or `chooser-cancel`
+6. **if `kept.length > 1`:** `revealUsernames(kept)` — **first decryption**,
+   ≤ `PICKER_MAX`, only reached on a page already judged fillable and already
+   consented to
+7. **if `kept.length > 1`:** **picker** → selection or `chooser-cancel`
+
+   With exactly one survivor, steps 6 and 7 are **skipped entirely** — no
+   enumeration, no picker, no overlay — and the flow goes straight from consent
+   to step 8. Ranking's whole purpose is to reach this branch: on
+   `www.google.com` it turns 20 candidates into one and nothing is decrypted
+   until step 9.
 8. re-validate identity (window / tab / wc / epoch / URL)
 9. `revealCredential(chosen)` — the one password that will be typed
 10. fill
@@ -132,17 +139,29 @@ across runs rather than dependent on array order.
 
 For each candidate (already capped at 10), call `items.get()`, read **only** the
 built-in `username` field (`id === 'username'`), and build a **fresh object**.
-The decrypted `Item` — including its password — goes out of scope immediately
-and is never attached to the result. A missing username yields `null`, rendered
-as `(no username)`.
+The decrypted `Item` — including its password — is never attached to the result.
+A missing username yields `null`, rendered as `(no username)`.
+
+**Sequential, not parallel.** The calls run in a plain `for … await` loop, and
+each `Item` reference is released before the next call. `Promise.all` would hold
+ten decrypted items — with their passwords — live simultaneously, which is
+precisely what this design is trying not to do. The cost is latency on a list
+capped at ten; that is the right trade.
+
+**Any failure aborts the whole picker** as a fixed `fill-error`. Enumeration
+runs after the first `items.get()`, so it is inside the binding-less catch: a
+partial list is never shown, and no SDK error string is logged.
 
 Two properties this preserves:
 
-- **Passwords are dropped, not held.** After the user picks, the existing
+- **Passwords are released, not carried.** After the user picks, the existing
   `revealCredential(chosen.vaultId, chosen.itemId)` re-reads that single item.
-  This costs one extra decrypt but keeps the invariant that **exactly one
-  password is in memory at fill time**. Holding ten decrypted passwords across
-  an open dialog would be strictly worse.
+  This costs one extra decrypt so that **only the selected password is
+  deliberately retained or referenced** at fill time. Note the honest limit:
+  JavaScript offers no way to guarantee a released string has been collected or
+  zeroed, so this is about what the code *holds*, not about what remains in
+  process memory. Carrying ten decrypted items across an open picker would be
+  strictly worse on exactly that measure.
 - **Bounded and conditional.** Decryption happens only when a picker is
   genuinely needed (≥2 survivors after ranking), and never for more than
   `PICKER_MAX` items.
@@ -172,23 +191,31 @@ renderer as the password is.
 { requestId, index }   // index: number | null (null = cancelled)
 ```
 
-**Reply validation — fail closed on every count.** The shared preload serves
-*both* chrome renderers, and `isTrustedSender` accepts any target it is handed,
-so the handler must be scoped deliberately. A reply is honoured only when **all**
-hold; anything else is ignored (and, if a pick is pending, settles it as
-cancelled):
+**Reply validation — two stages, and the first must be inert.** A reply that
+fails to prove it belongs to *this* request must change **no state at all**.
+Treating it as a cancellation would let a late reply from a closed picker cancel
+a different, live one.
 
-- `event.sender === overlayView.webContents` **exactly** — the chrome window is
-  not an acceptable sender for this channel, so `isTrustedSender` is passed the
-  overlay alone, never the pair;
-- a pick is currently pending, and `overlayMode === 'credential-picker'`;
-- `requestId` matches the pending request — it is `crypto.randomUUID()`, not a
-  counter, so a stale or guessed id cannot collide;
-- `index` is `null`, **or** an integer (`Number.isInteger`) in
-  `[0, candidates.length)` — fractional, negative, out-of-range, `NaN`, string
-  and coercible values are all rejected;
-- the pending request has not already settled — the first valid reply wins and
-  every later one is inert.
+**Stage 1 — identity. Failure ⇒ return, zero state change:**
+
+- `event.sender === overlayView.webContents` **exactly** — the shared preload
+  serves both chrome renderers, so `isTrustedSender` is passed the overlay
+  alone, never the pair; the chrome window is not an acceptable sender here;
+- a pick is currently pending and has not already settled;
+- `overlayMode === 'credential-picker'`;
+- `requestId` **strictly equals** the pending request's — it is
+  `crypto.randomUUID()`, not a counter, so a stale or guessed id cannot collide.
+
+**Stage 2 — payload. Failure ⇒ cancel *this* request** (the reply is provably
+from the current overlay for the current request, so a malformed `index` means
+the picker itself misbehaved and the safe response is to abandon it):
+
+- `index` is `null`, **or** an integer (`Number.isInteger`) within
+  `[0, candidates.length)`. Fractional, negative, out-of-range, `NaN`, string
+  and coercible values are all rejected.
+
+The first reply that clears both stages wins; every later one fails stage 1 on
+"already settled" and is inert.
 
 **Settlement — one owner, exactly once.** Today `hideOverlay()` is called from
 six places and `showOverlay(mode)` can overwrite `overlayMode`; none of them
@@ -197,7 +224,8 @@ promise that never settles — wedging `onePasswordFillInFlight` and every futur
 ⌥⌘P. All of it therefore routes through a single main-process function:
 
 ```js
-settleCredentialPick(index /* number | null */, { restoreFocus })
+settleCredentialPick(index /* number | null */, reason)
+// resolves the pending promise with { index, reason }
 ```
 
 Idempotent by construction: it returns immediately unless a pending request
@@ -219,13 +247,32 @@ Every route that can end a picker must call it:
 | Window closed / overlay `webContents` destroyed / `render-process-gone` | `null` |
 | 60s timeout | `null` |
 
-**Focus restoration is conditional.** `restoreFocus` is false when Blanc itself
-is not frontmost — a blur caused by ⌘-Tab must not drag the window back to the
-foreground. This mirrors the existing precedent at `main.js:734`
-(`if (!win.isFocused()) return hideOverlay({ refocusContent: false })`), and
-requires `restoreTabFocus` to make its `win.focus()` conditional rather than
-unconditional. When restoration *is* attempted and fails, the flow aborts —
-after username enumeration but **before** the selected credential is re-read.
+**Focus is the orchestrator's job, and its failure is observable.** Settlement
+only resolves; it never restores focus itself. The orchestrator awaits
+`{ index, reason }` and then:
+
+- **`index !== null`** (reason `selected`) — `await restoreTabFocus(wc)` and
+  **gate on the boolean**: a false result returns `abort-wc-changed`
+  **before** `revealCredential`, exactly as the consent gate does. Without
+  awaiting the result there is no observable contract at all and the flow would
+  proceed to decrypt into an unfocused tab.
+- **`index === null`** — log `chooser-cancel`. Focus is then restored only
+  **best-effort and only for `escape`**, where the user is demonstrably still in
+  Blanc; the result is not gated, since nothing further happens.
+
+Per-route focus policy — restoration is attempted only where Blanc is
+demonstrably frontmost:
+
+| Reason | Restore focus? |
+|---|---|
+| `selected` | **Yes — and gated.** Failure ⇒ `abort-wc-changed`, no decrypt |
+| `escape` | Best-effort, ungated |
+| `blur`, `tab-changed`, `window-closed`, `mode-replaced`, `timeout`, `invalid-reply` | **No** — Blanc may not be frontmost, and pulling it forward would be user-hostile |
+
+This requires `restoreTabFocus` to make its `win.focus()` **conditional** on the
+window already being focused rather than unconditional — mirroring the existing
+precedent at `main.js:734`
+(`if (!win.isFocused()) return hideOverlay({ refocusContent: false })`).
 
 ## Part 4 — Row content
 
@@ -327,13 +374,31 @@ vault; showing TOTP or other fields; touching the fill path.
   (asserted against the main.js source for the wiring, and directly for the
   helper's idempotence).
 
-**Adversarial rendering fixture (required):** a candidate whose `title`,
-`username` and `vaultName` are
-`<img src=x onerror="window.__pwned=1">` / `"><script>alert(1)</script>` /
-`</span><b>x` must render as **literal text**. Assert the row's `textContent`
-equals the input and that `querySelector('img, script, b')` is null — i.e. no
-element was created from vault data. This is the test that keeps the
-`innerHTML` convention next door from leaking into picker rows.
+**Adversarial rendering — two guards, because the unit suite has no DOM.**
+`test/unit/` runs under plain `node --test` and this repo deliberately carries
+**no DOM library** (jsdom was rejected earlier for visibility fixtures and has
+not been added), so a `document`-based assertion cannot live there. Split it:
+
+1. **Source guard (unit, always-on).** Read `src/renderer/overlay.js` and assert
+   the picker render path contains **no** `innerHTML`, `insertAdjacentHTML`, or
+   `outerHTML`. Cheap, runs on every `npm run test:unit`, and catches the
+   realistic regression — an author following the `innerHTML` convention used
+   ~10 lines away. Scope the assertion to the picker function's source slice, not
+   the whole file, since the existing scaffolding legitimately uses `innerHTML`
+   with static strings.
+2. **Real-DOM fixture (desktop acceptance).** In the existing Cucumber +
+   Playwright-Electron harness (`test/desktop/`, `npm run test:acceptance:desktop`),
+   drive a picker whose `title`, `username` and `vaultName` are
+   `<img src=x onerror="window.__pwned=1">`, `"><script>alert(1)</script>` and
+   `</span><b>x`. Assert the row's `textContent` equals the input verbatim, that
+   `querySelector('img, script, b')` inside the row is `null`, and that
+   `window.__pwned` is `undefined` — i.e. no element was created and no handler
+   ran. Rows are supplied through the harness's existing test-hook surface, so
+   the scenario needs no live vault.
+
+If the acceptance harness turns out not to reach the overlay renderer, the
+fallback is an explicit `jsdom` devDependency for this one assertion — a
+deliberate, recorded decision, not a silent drop of the test.
 
 **Manual:**
 
