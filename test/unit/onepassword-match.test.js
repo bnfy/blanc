@@ -69,20 +69,20 @@ test('matchesHost: malformed stored url is skipped, not thrown', () => {
 });
 
 test('buildFillScript: embeds expectedURL and timeOrigin via JSON.stringify', () => {
-  const s = buildFillScript({ expectedURL: 'https://github.com/login', expectedTimeOrigin: 1234.5, username: 'u', password: 'p' });
+  const s = buildFillScript({ expectedURL: 'https://github.com/login', expectedTimeOrigin: 1234.5, username: 'u', password: 'p', nonce: 'n1' });
   assert.ok(s.includes(JSON.stringify('https://github.com/login')));
   assert.ok(s.includes('1234.5'));
 });
 
 test('buildFillScript: dangerous credential chars are safely escaped', () => {
   const nasty = 'a"b\\c\nd\'e';
-  const s = buildFillScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: null, password: nasty });
+  const s = buildFillScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: null, password: nasty, nonce: 'n1' });
   assert.ok(s.includes(JSON.stringify(nasty)));       // embedded encoded
   assert.ok(!s.includes('"' + nasty + '"'));          // never the raw sequence in double quotes
 });
 
 test('buildFillScript: contains identity guard, visibility check, native setter', () => {
-  const s = buildFillScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: 'u', password: 'p' });
+  const s = buildFillScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: 'u', password: 'p', nonce: 'n1' });
   assert.ok(s.includes('location.href'));
   assert.ok(s.includes('document.hasFocus()'));
   assert.ok(s.includes('performance.timeOrigin'));
@@ -90,9 +90,10 @@ test('buildFillScript: contains identity guard, visibility check, native setter'
   assert.ok(s.includes('HTMLInputElement.prototype'));
 });
 
-test('buildFillScript: null username still embeds a null literal (fills password only)', () => {
-  const s = buildFillScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: null, password: 'p' });
-  assert.ok(s.includes('null !== null'));  // the USER !== null guard resolves to false at runtime
+test('buildFillScript: a null username is embedded as a null literal (fills password only)', () => {
+  const s = buildFillScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: null, password: 'p', nonce: 'n1' });
+  assert.ok(/var USER = null;/.test(s), 'the USER guard resolves to false at runtime');
+  assert.ok(s.includes(JSON.stringify('p')));
 });
 
 test('requiring onepassword.js does NOT eagerly load the 1Password SDK', () => {
@@ -634,4 +635,199 @@ test('AUDIT5: a real form scope still fills both fields', () => {
     cand(1, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
   ]);
   assert.deepEqual(pick(r), { passwordIndex: 1, usernameIndex: 0 });
+});
+
+// ===========================================================================
+// Task 4 — injected sources: buildInspectScript / buildFillScript
+// ===========================================================================
+const vm = require('node:vm');
+const {
+  buildInspectScript, FORMLIKE_OWNER_SELECTOR,
+} = require('../../src/main/onepassword');
+
+const SRC_ARGS = { expectedURL: 'https://x.test/', expectedTimeOrigin: 1 };
+
+/** A stub <form>/container that the adapter can read as an owner. */
+function stubOwner(over = {}) {
+  const attrs = over.attrs || {};
+  return {
+    getAttribute: (a) => (a in attrs ? attrs[a] : null),
+    querySelector: () => over.submit || null,
+    ...over,
+  };
+}
+
+/** A stub <input>. `attrs` backs getAttribute (autocomplete, placeholder, …). */
+function stubInput(over = {}) {
+  const attrs = over.attrs || {};
+  return {
+    tagName: 'INPUT',
+    type: 'text',
+    name: '',
+    id: '',
+    form: null,
+    labels: [],
+    isConnected: true,
+    offsetParent: {},
+    parentElement: null,
+    getAttribute: (a) => (a in attrs ? attrs[a] : null),
+    closest: () => null,
+    checkVisibility: () => true,
+    getBoundingClientRect: () => ({ width: 120, height: 24, top: 10, left: 10, right: 130, bottom: 34 }),
+    dispatchEvent: () => true,
+    ...over,
+  };
+}
+
+/** A VM context mirroring the isolated world, with an INSTRUMENTED value setter
+ * so every test can assert what was actually written to the DOM — a status flag
+ * alone does not prove a credential stayed out. */
+function makeCtx(inputs, writes) {
+  function HTMLInputElement() {}
+  Object.defineProperty(HTMLInputElement.prototype, 'value', {
+    configurable: true,
+    get() { return this._v || ''; },
+    set(v) { this._v = v; writes.push(v); },
+  });
+  for (const el of inputs) Object.setPrototypeOf(el, HTMLInputElement.prototype);
+  const sb = {
+    location: { href: 'https://x.test/' },
+    performance: { timeOrigin: 1 },
+    document: { hasFocus: () => true, querySelectorAll: () => inputs, activeElement: null },
+    window: { innerWidth: 1024, innerHeight: 768 },
+    getComputedStyle: () => ({ clipPath: 'none', clip: 'auto', overflow: 'visible' }),
+    HTMLInputElement,
+    Event: function Event(t) { this.type = t; },
+    Map, Object, String, Array, Math, RegExp, JSON, Boolean, Number,
+  };
+  sb.globalThis = sb;
+  return vm.createContext(sb);
+}
+
+/** An annotated login form: username + password sharing ONE real owner, so the
+ * scope is a real form (not the null scope, which fills the password only). */
+function loginFixture() {
+  const owner = stubOwner({ attrs: { id: 'login' }, submit: { textContent: 'Sign in' } });
+  return [
+    stubInput({ type: 'text', name: 'username', form: owner, attrs: { autocomplete: 'username' } }),
+    stubInput({ type: 'password', name: 'password', form: owner, attrs: { autocomplete: 'current-password' } }),
+  ];
+}
+
+test('T4: both builders REQUIRE a nonce', () => {
+  assert.throws(() => buildInspectScript({ ...SRC_ARGS }), /nonce/);
+  assert.throws(() => buildFillScript({ ...SRC_ARGS, username: 'u', password: 'p' }), /nonce/);
+});
+
+test('T4: inspect source carries NO credential literal and never writes', () => {
+  const s = buildInspectScript({ ...SRC_ARGS, nonce: 'n1' });
+  assert.ok(s.includes(JSON.stringify('https://x.test/')));
+  assert.ok(s.includes('hasPassword'));
+  assert.ok(!s.includes('setNative'), 'inspect must not contain the setter');
+});
+
+test('T4: both sources embed the SAME selection logic', () => {
+  const a = buildInspectScript({ ...SRC_ARGS, nonce: 'n1' });
+  const b = buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'u', password: 'p' });
+  for (const fn of ['function selectFields', 'function collectCandidates',
+    'function pickPasswordInScope', 'function usernameRank', 'function scopeLooksLikeLogin']) {
+    assert.ok(a.includes(fn), `inspect missing ${fn}`);
+    assert.ok(b.includes(fn), `fill missing ${fn}`);
+  }
+});
+
+test('T4: fill source embeds only the credentials provided, safely escaped', () => {
+  const only = buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'alice', password: null });
+  assert.ok(only.includes(JSON.stringify('alice')));
+  assert.ok(/var PASS = null;/.test(only));
+  const nasty = 'a"b\\c\nd\'e';
+  const esc = buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: null, password: nasty });
+  assert.ok(esc.includes(JSON.stringify(nasty)));
+  assert.ok(!esc.includes('"' + nasty + '"'));
+});
+
+test('T4 runtime: unchanged DOM fills both fields', () => {
+  const writes = [];
+  const inputs = loginFixture();
+  const ctx = makeCtx(inputs, writes);
+  const insp = vm.runInContext(buildInspectScript({ ...SRC_ARGS, nonce: 'n1' }), ctx);
+  assert.equal(insp.originMismatch, false);
+  assert.equal(insp.hasPassword, true);
+  assert.equal(insp.passwordBasis, 'authoritative');
+  const filled = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'u', password: 'p' }), ctx);
+  assert.equal(filled.filledPass, true);
+  assert.equal(filled.filledUser, true);
+  assert.deepEqual(writes, ['p', 'u']);
+});
+
+test('T4 runtime: replay is rejected (stash is single-use) and writes nothing', () => {
+  const writes = [];
+  const ctx = makeCtx(loginFixture(), writes);
+  vm.runInContext(buildInspectScript({ ...SRC_ARGS, nonce: 'n1' }), ctx);
+  vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'u', password: 'p' }), ctx);
+  const before = writes.length;
+  const replay = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'u', password: 'p' }), ctx);
+  assert.equal(replay.selectionChanged, true);
+  assert.equal(writes.length, before, 'a rejected fill must not write');
+});
+
+test('T4 runtime: nonce mismatch is rejected and writes nothing', () => {
+  const writes = [];
+  const ctx = makeCtx(loginFixture(), writes);
+  vm.runInContext(buildInspectScript({ ...SRC_ARGS, nonce: 'n1' }), ctx);
+  const bad = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'OTHER', username: 'u', password: 'p' }), ctx);
+  assert.equal(bad.selectionChanged, true);
+  assert.equal(writes.length, 0);
+});
+
+test('T4 runtime: element REPLACED between passes is rejected and writes nothing', () => {
+  const writes = [];
+  const inputs = loginFixture();
+  const ctx = makeCtx(inputs, writes);
+  vm.runInContext(buildInspectScript({ ...SRC_ARGS, nonce: 'n1' }), ctx);
+  // The page swaps the password node for a different one with identical markup.
+  const owner = inputs[1].form;
+  const replacement = stubInput({ type: 'password', name: 'password', form: owner, attrs: { autocomplete: 'current-password' } });
+  Object.setPrototypeOf(replacement, Object.getPrototypeOf(inputs[1]));
+  inputs[1] = replacement;
+  const out = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'u', password: 'p' }), ctx);
+  assert.equal(out.selectionChanged, true, 'a swapped element must invalidate the authorization');
+  assert.equal(writes.length, 0);
+});
+
+test('T4 runtime: BASIS change between passes is rejected and writes nothing', () => {
+  const writes = [];
+  const inputs = loginFixture();
+  const ctx = makeCtx(inputs, writes);
+  const insp = vm.runInContext(buildInspectScript({ ...SRC_ARGS, nonce: 'n1' }), ctx);
+  assert.equal(insp.passwordBasis, 'authoritative');
+  // Same node, but the site drops the annotation -> the basis degrades to
+  // heuristic, which the user never authorized.
+  inputs[1].getAttribute = () => null;
+  const out = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'u', password: 'p' }), ctx);
+  assert.equal(out.selectionChanged, true, 'a basis downgrade must invalidate the authorization');
+  assert.equal(writes.length, 0);
+});
+
+test('T4 runtime: a disconnected authorized element is rejected', () => {
+  const writes = [];
+  const inputs = loginFixture();
+  const ctx = makeCtx(inputs, writes);
+  vm.runInContext(buildInspectScript({ ...SRC_ARGS, nonce: 'n1' }), ctx);
+  inputs[1].isConnected = false;
+  const out = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'u', password: 'p' }), ctx);
+  assert.equal(out.selectionChanged, true);
+  assert.equal(writes.length, 0);
+});
+
+test('T4: owner selector is TOKEN-aware, never substring', () => {
+  // [class*=auth i] matched page-wide wrappers (authenticated-layout) and
+  // unrelated classes (author-profile), merging every form-less widget.
+  assert.ok(!FORMLIKE_OWNER_SELECTOR.includes('*='),
+    'substring attribute matchers are forbidden for scope ownership');
+  assert.ok(FORMLIKE_OWNER_SELECTOR.includes('[class~=login]'));
+  assert.ok(FORMLIKE_OWNER_SELECTOR.includes('[role=form]'));
+  for (const bad of ['authenticated-layout', 'author-profile', 'authors']) {
+    assert.ok(!FORMLIKE_OWNER_SELECTOR.includes(bad));
+  }
 });

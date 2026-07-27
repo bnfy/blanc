@@ -610,6 +610,10 @@ function selectFields(cands) {
     }
   }
 
+  // `passwordBasis` records HOW the field was chosen: 'authoritative' (the site
+  // declared current-password, uncontradicted) fills silently; 'heuristic'
+  // (inferred from structure + wording) must be confirmed by the user first.
+  const passwordBasis = pw ? (isAuthoritativeCurrent(pw) ? 'authoritative' : 'heuristic') : null;
   return { passwordIndex, usernameIndex, passwordBasis };
 }
 ```

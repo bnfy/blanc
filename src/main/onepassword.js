@@ -299,52 +299,204 @@ function selectFields(cands) {
   return { passwordIndex, usernameIndex, passwordBasis };
 }
 
-/** Build the IIFE source injected via executeJavaScript(source). All four
- * inputs are embedded with JSON.stringify (credential strings included), and
- * the IIFE resolves to a STATUS OBJECT ONLY — never the credential values.
- * Its first act is the synchronous identity guard (see the spec's TOCTOU
- * discussion): a new document changes performance.timeOrigin; an SPA
- * pushState route change keeps timeOrigin but changes location.href. */
-function buildFillScript({ expectedURL, expectedTimeOrigin, username, password }) {
+/** Scope-ownership markers for form-less inputs. TOKEN-aware (`~=`) on purpose:
+ * a substring matcher like `[class*=auth]` matches page-wide wrappers
+ * (`authenticated-layout`) and unrelated classes (`author-profile`), which
+ * would merge every form-less widget on the page into one scope and re-open the
+ * cross-widget username leak the null-scope rule exists to prevent. */
+const FORMLIKE_OWNER_SELECTOR = [
+  '[role=form]', 'fieldset', 'dialog',
+  '[class~=login]', '[class~=login-form]', '[class~=loginForm]',
+  '[class~=signin]', '[class~=sign-in]', '[class~=signin-form]', '[class~=sign-in-form]',
+  '[class~=auth-form]', '[class~=authForm]',
+  '[id=login]', '[id=login-form]', '[id=loginForm]',
+  '[id=signin]', '[id=sign-in]', '[id=signin-form]',
+].join(', ');
+
+/** DOM adapter (runs in the page): every <input> in document order, described
+ * as plain data for `selectFields`. */
+function collectCandidates(OWNER_SELECTOR) {
+  var inputs = document.querySelectorAll('input');
+  var ownerKeys = new Map();
+  var out = [];
+  for (var i = 0; i < inputs.length; i++) {
+    var el = inputs[i];
+    // Scope identity. A real <form> is authoritative; otherwise the nearest
+    // token-matched form-like container. Anything else stays null, and a null
+    // password scope fills the password only.
+    var owner = el.form || (el.closest ? el.closest(OWNER_SELECTOR) : null);
+    var key = null;
+    if (owner) {
+      if (!ownerKeys.has(owner)) ownerKeys.set(owner, ownerKeys.size);
+      key = ownerKeys.get(owner);
+    }
+    // Visibility: geometry, viewport intersection and clipping (own + ancestor).
+    var visible = true;
+    if (el.type === 'hidden' || el.offsetParent === null) {
+      visible = false;
+    } else {
+      visible = typeof el.checkVisibility === 'function'
+        ? el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+        : true;
+      if (visible) {
+        var rc = el.getBoundingClientRect();
+        var vw = window.innerWidth || 0;
+        var vh = window.innerHeight || 0;
+        var onScreen = rc.width > 0 && rc.height > 0
+          && rc.right > 0 && rc.bottom > 0 && rc.left < vw && rc.top < vh;
+        var clipped = false;
+        try {
+          var cs = getComputedStyle(el);
+          clipped = !!((cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto'));
+        } catch (e) { clipped = false; }
+        var anc = el.parentElement;
+        var hops = 0;
+        while (anc && hops++ < 20 && onScreen && !clipped) {
+          var acs = null;
+          try { acs = getComputedStyle(anc); } catch (e2) { acs = null; }
+          if (acs && (acs.overflow !== 'visible' || (acs.clipPath && acs.clipPath !== 'none'))) {
+            var ar = anc.getBoundingClientRect();
+            if (ar.width === 0 || ar.height === 0
+              || rc.right <= ar.left || rc.left >= ar.right
+              || rc.bottom <= ar.top || rc.top >= ar.bottom) { onScreen = false; }
+            if (acs.clipPath && acs.clipPath !== 'none') clipped = true;
+          }
+          anc = anc.parentElement;
+        }
+        visible = onScreen && !clipped;
+      }
+    }
+    out.push({
+      i: i,
+      type: String(el.type || '').toLowerCase(),
+      autocomplete: String(el.getAttribute('autocomplete') || '').toLowerCase(),
+      name: el.name || '',
+      id: el.id || '',
+      placeholder: el.getAttribute('placeholder') || '',
+      ariaLabel: el.getAttribute('aria-label') || '',
+      // FIELD-LOCAL copy only. Submit text must never land here: one "Log in"
+      // button would promote every field to username evidence, and one
+      // "Confirm" would disqualify a legitimate current-password field.
+      labelText: (function () {
+        var parts = [];
+        var labels = el.labels || [];
+        for (var li = 0; li < labels.length; li++) parts.push(labels[li].textContent || '');
+        var wrap = el.closest ? el.closest('label') : null;
+        if (wrap) parts.push(wrap.textContent || '');
+        return parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+      })(),
+      // SCOPE-LEVEL copy, read only by scopeLooksLikeSignup/scopeLooksLikeLogin.
+      formText: (function () {
+        if (!owner) return '';
+        var parts = [
+          owner.getAttribute('name') || '',
+          owner.getAttribute('id') || '',
+          owner.getAttribute('class') || '',
+        ];
+        var submit = owner.querySelector
+          ? owner.querySelector('button[type=submit], input[type=submit], button:not([type])')
+          : null;
+        if (submit) parts.push(submit.textContent || submit.value || '');
+        return parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+      })(),
+      formKey: key,
+      isVisible: visible,
+      isFocused: el === document.activeElement,
+      inSearchScope: !!(el.closest && el.closest('[role="search"]')),
+    });
+  }
+  return { els: inputs, cands: out };
+}
+
+/** Every function the injected sources transitively need. An omission is
+ * invisible to a parse check and surfaces in the page as a ReferenceError at
+ * fill time, so the runtime VM tests exercise a real login fixture. */
+function sharedSelectionSource() {
+  return [
+    candBlob, acHas, isSearchLike, isNewsletterLike, loginEvidence,
+    isUsernameCandidate, isFillablePassword, isAuthoritativeCurrent,
+    isNewPasswordish, scopeBlob, scopeLooksLikeSignup, scopeLooksLikeLogin,
+    pickPasswordInScope, usernameRank, selectFields, collectCandidates,
+  ].map((fn) => fn.toString()).join('\n');
+}
+
+/** Credential-FREE inspection source. Reports only what exists and how it was
+ * chosen, and leaves an authorization stash the fill pass must match. */
+function buildInspectScript({ expectedURL, expectedTimeOrigin, nonce }) {
+  if (typeof nonce !== 'string' || !nonce) throw new Error('buildInspectScript requires a nonce');
+  const U = JSON.stringify(expectedURL);
+  const TO = JSON.stringify(expectedTimeOrigin);
+  const N = JSON.stringify(nonce);
+  const SEL = JSON.stringify(FORMLIKE_OWNER_SELECTOR);
+  return `(function () {
+    if (location.href !== ${U} || !document.hasFocus() || performance.timeOrigin !== ${TO}) {
+      return { originMismatch: true };
+    }
+    ${sharedSelectionSource()}
+    var collected = collectCandidates(${SEL});
+    var picked = selectFields(collected.cands);
+    globalThis.__blancFill = {
+      nonce: ${N},
+      pwEl: picked.passwordIndex !== null ? collected.els[picked.passwordIndex] : null,
+      userEl: picked.usernameIndex !== null ? collected.els[picked.usernameIndex] : null,
+      basis: picked.passwordBasis,
+    };
+    return {
+      originMismatch: false,
+      hasPassword: picked.passwordIndex !== null,
+      hasUsername: picked.usernameIndex !== null,
+      passwordBasis: picked.passwordBasis,
+    };
+  })();`;
+}
+
+/** Credential-bearing fill source, injected into a DEDICATED ISOLATED WORLD.
+ * Only the credentials passed in are embedded — a null value is never written.
+ * Before writing it verifies the authorization stash left by the inspect pass
+ * (matching nonce, identical live element references, unchanged basis), so the
+ * consent that was given — or the silent-fill decision that was made — is bound
+ * to those exact elements rather than to whatever `selectFields` resolves to a
+ * moment later. Selection and setting happen synchronously in one execution, so
+ * page JS gets no window between them. Resolves to a STATUS OBJECT ONLY. */
+function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, nonce }) {
+  if (typeof nonce !== 'string' || !nonce) throw new Error('buildFillScript requires a nonce');
   const U = JSON.stringify(expectedURL);
   const TO = JSON.stringify(expectedTimeOrigin);
   const USER = JSON.stringify(username ?? null);
   const PASS = JSON.stringify(password ?? null);
+  const N = JSON.stringify(nonce);
+  const SEL = JSON.stringify(FORMLIKE_OWNER_SELECTOR);
   return `(function () {
     if (location.href !== ${U} || !document.hasFocus() || performance.timeOrigin !== ${TO}) {
       return { originMismatch: true, filledUser: false, filledPass: false };
     }
-    var isVisible = function (el) {
-      if (!el || el.type === 'hidden' || el.offsetParent === null) return false;
-      var r = el.getBoundingClientRect();
-      return r.width > 0 && r.height > 0;
-    };
+    var USER = ${USER};
+    var PASS = ${PASS};
+    var auth = globalThis.__blancFill;
+    if (!auth || auth.nonce !== ${N}) {
+      return { selectionChanged: true, filledUser: false, filledPass: false };
+    }
+    ${sharedSelectionSource()}
     var setNative = function (el, value) {
       var d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
       d.set.call(el, value);
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     };
-    var pw = null;
-    var pwlist = document.querySelectorAll('input[type=password]');
-    for (var i = 0; i < pwlist.length; i++) { if (isVisible(pwlist[i])) { pw = pwlist[i]; break; } }
-    if (!pw) return { originMismatch: false, filledUser: false, filledPass: false, noPasswordField: true };
-    var filledPass = false, filledUser = false;
-    if (${PASS} !== null) { setNative(pw, ${PASS}); filledPass = true; }
-    var isText = function (el) { return el && el.tagName === 'INPUT' && (el.type === 'text' || el.type === 'email'); };
-    var user = null;
-    var active = document.activeElement;
-    if (isText(active) && isVisible(active)) {
-      user = active;
-    } else {
-      var scope = pw.form || document;
-      var texts = scope.querySelectorAll('input[type=text], input[type=email]');
-      for (var j = 0; j < texts.length; j++) {
-        if (!isVisible(texts[j])) continue;
-        if (pw.compareDocumentPosition(texts[j]) & Node.DOCUMENT_POSITION_PRECEDING) user = texts[j];
-      }
+    var collected = collectCandidates(${SEL});
+    var picked = selectFields(collected.cands);
+    var pwEl = picked.passwordIndex !== null ? collected.els[picked.passwordIndex] : null;
+    var userEl = picked.usernameIndex !== null ? collected.els[picked.usernameIndex] : null;
+    if (picked.passwordBasis !== auth.basis
+        || pwEl !== auth.pwEl || userEl !== auth.userEl
+        || (pwEl && !pwEl.isConnected) || (userEl && !userEl.isConnected)) {
+      globalThis.__blancFill = null;
+      return { selectionChanged: true, filledUser: false, filledPass: false };
     }
-    if (user && ${USER} !== null) { setNative(user, ${USER}); filledUser = true; }
+    globalThis.__blancFill = null; // single use
+    var filledPass = false, filledUser = false;
+    if (pwEl && PASS !== null) { setNative(pwEl, PASS); filledPass = true; }
+    if (userEl && USER !== null) { setNative(userEl, USER); filledUser = true; }
     return { originMismatch: false, filledUser: filledUser, filledPass: filledPass };
   })();`;
 }
@@ -420,4 +572,4 @@ function probePackageLoad() {
   require('@1password/sdk'); // lazy — the only other place this is required
 }
 
-module.exports = { matchesHost, selectFields, buildFillScript, getClient, findLogins, revealCredential, probePackageLoad };
+module.exports = { matchesHost, selectFields, FORMLIKE_OWNER_SELECTOR, buildInspectScript, buildFillScript, getClient, findLogins, revealCredential, probePackageLoad };
