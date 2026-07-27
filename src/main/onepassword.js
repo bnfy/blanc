@@ -54,7 +54,7 @@ function matchesHost(itemUrls, host) {
 /** Lowercased blob of every identifying attribute, for signal matching.
  * String()-coerced: page attributes reach us as data and must never throw. */
 function candBlob(c) {
-  return [c.name, c.id, c.autocomplete, c.placeholder, c.ariaLabel]
+  return [c.name, c.id, c.autocomplete, c.placeholder, c.ariaLabel, c.labelText]
     .filter(Boolean)
     .map(String)
     .join(' ')
@@ -150,9 +150,16 @@ function scopeLooksLikeSignup(scope) {
  * An explicit `current-password` token overrides the count, since that is the
  * site telling us exactly where the existing credential belongs. */
 function pickPasswordInScope(scopePasswords, scopeAll) {
+  // A scope announcing a registration flow is never a login target, even if a
+  // field in it carries a current-password token.
+  if (scopeLooksLikeSignup(scopeAll)) return null;
+
   // 1. Authoritative: the site declared this field holds the existing password.
-  const explicit = scopePasswords.find(isAuthoritativeCurrent);
-  if (explicit) return explicit;
+  //    Two of them in one scope is contradictory (e.g. two form-less login
+  //    widgets sharing the null scope) — fail closed rather than pick one.
+  const explicit = scopePasswords.filter(isAuthoritativeCurrent);
+  if (explicit.length > 1) return null;
+  if (explicit.length === 1) return explicit[0];
 
   // 2. Heuristic. Structure first: 2+ visible password fields means signup /
   //    change / reset, never a login form.
@@ -173,8 +180,13 @@ function pickPasswordInScope(scopePasswords, scopeAll) {
   return only;
 }
 
-/** Rank a username candidate: 2 = strong login evidence, 1 = medium, 0 = none. */
+/** Rank a username candidate: 3 = the site said so outright
+ * (autocomplete=username), 2 = strong wording, 1 = medium, 0 = none. An
+ * explicit annotation must outrank a regex guess — otherwise a field merely
+ * *containing* "account" (e.g. accountRecoveryEmail) ties with it and document
+ * order decides. */
 function usernameRank(c) {
+  if (acHas(c, 'username')) return 3;
   const ev = loginEvidence(c);
   return ev === 'strong' ? 2 : ev === 'medium' ? 1 : 0;
 }
@@ -243,13 +255,11 @@ function selectFields(cands) {
         usernameIndex = preceding.length ? preceding[preceding.length - 1].i : null;
       }
     }
-  } else if (pw && pw.formKey !== null) {
-    // No labelled candidate anywhere. Fall back to plain adjacency, but ONLY
-    // inside a real <form> — on a form-less page every input shares the null
-    // scope, and proximity there means nothing.
-    const preceding = inScope.filter((c) => c.i < pw.i);
-    usernameIndex = preceding.length ? preceding[preceding.length - 1].i : null;
   }
+  // Deliberately NO evidence-free fallback: adjacency alone would type the
+  // username into whatever happens to precede the password (a coupon box, an
+  // unlabelled search field). When nothing carries login evidence we fill the
+  // password only and leave the username to the user.
 
   return { passwordIndex, usernameIndex };
 }

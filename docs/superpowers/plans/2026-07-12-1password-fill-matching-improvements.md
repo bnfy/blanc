@@ -476,6 +476,13 @@ function candBlob(c) {
     .toLowerCase();
 }
 
+/** `autocomplete` is a SPACE-SEPARATED token list per the HTML spec
+ * (e.g. "section-login current-password webauthn"), so membership must be
+ * tested by token, never by whole-string equality. */
+function acHas(c, token) {
+  return String(c.autocomplete || '').toLowerCase().split(/\s+/).indexOf(token) !== -1;
+}
+
 /** Search boxes must never receive a username. Substring (not word-boundary)
  * matching so camelCase ids like `siteSearch`/`queryInput` are caught. */
 function isSearchLike(c) {
@@ -497,9 +504,9 @@ function isNewsletterLike(c) {
 /** 'strong' | 'medium' | null — how confident we are this is a LOGIN field. */
 function loginEvidence(c) {
   const blob = candBlob(c);
-  if (c.autocomplete === 'username') return 'strong';
+  if (acHas(c, 'username')) return 'strong';
   if (/user(name)?|login|account|identifier|loginfmt/.test(blob)) return 'strong';
-  if (c.type === 'email' || c.autocomplete === 'email' || blob.includes('email')) return 'medium';
+  if (c.type === 'email' || acHas(c, 'email') || blob.includes('email')) return 'medium';
   return null;
 }
 
@@ -516,7 +523,7 @@ function isUsernameCandidate(c) {
  * and writing the existing credential there would leak it into a form meant for
  * a new value. (HTML autofill spec distinguishes current- vs new-password.) */
 function isFillablePassword(c) {
-  return c.type === 'password' && c.isVisible && c.autocomplete !== 'new-password';
+  return c.type === 'password' && c.isVisible && !acHas(c, 'new-password');
 }
 
 /** Choose which fields to fill. Pure: takes descriptors, returns indices.
@@ -526,7 +533,7 @@ function selectFields(cands) {
   // Prefer an explicit current-password; otherwise the first fillable one.
   // new-password fields are excluded entirely by isFillablePassword.
   const pwPool = list.filter(isFillablePassword);
-  const pw = pwPool.find((c) => c.autocomplete === 'current-password') || pwPool[0] || null;
+  const pw = pwPool.find((c) => acHas(c, 'current-password')) || pwPool[0] || null;
   const passwordIndex = pw ? pw.i : null;
   let usernameIndex = null;
 
@@ -678,9 +685,20 @@ function collectCandidates() {
       if (!formKeys.has(el.form)) formKeys.set(el.form, formKeys.size);
       key = formKeys.get(el.form);
     }
+    // Visibility must account for CSS: opacity:0 / visibility:hidden fields can
+    // still report an offsetParent and a non-zero rect, so an invisible decoy
+    // carrying autocomplete="current-password" would otherwise be treated as a
+    // real target. checkVisibility() covers those; keep the geometric checks as
+    // the fallback for engines without it.
     var visible = true;
     if (el.type === 'hidden' || el.offsetParent === null) {
       visible = false;
+    } else if (typeof el.checkVisibility === 'function') {
+      visible = el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
+      if (visible) {
+        var rc = el.getBoundingClientRect();
+        visible = rc.width > 0 && rc.height > 0;
+      }
     } else {
       var r = el.getBoundingClientRect();
       visible = r.width > 0 && r.height > 0;
@@ -693,6 +711,22 @@ function collectCandidates() {
       id: el.id || '',
       placeholder: el.getAttribute('placeholder') || '',
       ariaLabel: el.getAttribute('aria-label') || '',
+      // Visible copy, not just attributes: a great many signup forms use
+      // generic input names ("password") and put "Create a password" / "Sign
+      // up" in the <label> or submit button. Without this text the negative
+      // evidence in selectFields sees nothing and the form reads as a login.
+      labelText: (function () {
+        var parts = [];
+        var labels = el.labels || [];
+        for (var li = 0; li < labels.length; li++) parts.push(labels[li].textContent || '');
+        var wrap = el.closest('label');
+        if (wrap) parts.push(wrap.textContent || '');
+        if (el.form) {
+          var submit = el.form.querySelector('button[type=submit], input[type=submit], button:not([type])');
+          if (submit) parts.push(submit.textContent || submit.value || '');
+        }
+        return parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+      })(),
       formKey: key,
       isVisible: visible,
       isFocused: el === document.activeElement,
@@ -709,10 +743,36 @@ Then add the shared-source helper directly below it:
 /** The helper sources both injected scripts share, so the page runs exactly
  * the functions the unit tests import. */
 function sharedSelectionSource() {
-  return [candBlob, isSearchLike, isNewsletterLike, loginEvidence, isUsernameCandidate, isFillablePassword, selectFields, collectCandidates]
+  return [
+    candBlob, acHas, isSearchLike, isNewsletterLike, loginEvidence,
+    isUsernameCandidate, isFillablePassword, isAuthoritativeCurrent,
+    isNewPasswordish, scopeLooksLikeSignup, pickPasswordInScope, usernameRank,
+    selectFields, collectCandidates,
+  ]
     .map((fn) => fn.toString())
     .join('\n');
 }
+```
+
+**This list must contain EVERY function `selectFields` transitively calls.** An
+omission is invisible to a parse-only check (`vm.Script` compiles unresolved
+identifiers fine) and only surfaces in the page as
+`ReferenceError: pickPasswordInScope is not defined` — i.e. a silent no-fill in
+production. Guard it with a **runtime** VM fixture, not just a parse check:
+
+```js
+// In the unit tests: run the generated source in a VM with a stub DOM and
+// assert it actually evaluates.
+const vm = require('node:vm');
+const src = buildInspectScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 1 });
+const sandbox = {
+  location: { href: 'https://x.test/' },
+  document: { hasFocus: () => true, querySelectorAll: () => [], activeElement: null },
+  performance: { timeOrigin: 1 },
+  Map,
+};
+const out = vm.runInNewContext(src, sandbox);   // throws on a missing helper
+assert.equal(out.originMismatch, false);
 ```
 
 - [ ] **Step 4: Add `buildInspectScript` and rewrite `buildFillScript`**

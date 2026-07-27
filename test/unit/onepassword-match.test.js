@@ -454,3 +454,67 @@ test('AUDIT2: unannotated but login-ish form still fills', () => {
   ]);
   assert.deepEqual(r, { passwordIndex: 1, usernameIndex: 0 });
 });
+
+// --- Review round 3 regressions ---------------------------------------------
+
+test('AUDIT3: signup wording in scope overrides a stray current-password token', () => {
+  const r = selectFields([
+    cand(0, { type: 'email', name: 'signup_email', formKey: 1 }),
+    cand(1, { type: 'password', name: 'pw', autocomplete: 'current-password', formKey: 1 }),
+  ]);
+  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null });
+});
+
+test('AUDIT3: two form-less login widgets fail closed instead of splitting credentials', () => {
+  const r = selectFields([
+    cand(0, { name: 'username', autocomplete: 'username' }),
+    cand(1, { type: 'password', autocomplete: 'current-password' }),
+    cand(2, { name: 'user2', autocomplete: 'username', isFocused: true }),
+    cand(3, { type: 'password', autocomplete: 'current-password' }),
+  ]);
+  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null },
+    'two authoritative password fields in one scope must not be guessed between');
+});
+
+test('AUDIT3: explicit autocomplete=username outranks regex-matched wording', () => {
+  const before = selectFields([
+    cand(0, { name: 'accountRecoveryEmail', formKey: 1 }),
+    cand(1, { name: 'u', autocomplete: 'username', formKey: 1 }),
+    cand(2, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
+  ]);
+  assert.equal(before.usernameIndex, 1);
+  // ...and still wins when the regex-matched field comes later in the document.
+  const after = selectFields([
+    cand(0, { name: 'u', autocomplete: 'username', formKey: 1 }),
+    cand(1, { name: 'accountRecoveryEmail', formKey: 1 }),
+    cand(2, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
+  ]);
+  assert.equal(after.usernameIndex, 0);
+});
+
+test('AUDIT3: no evidence-free adjacency guess (coupon box keeps its value)', () => {
+  const r = selectFields([
+    cand(0, { name: 'couponCode', placeholder: 'Coupon', formKey: 1 }),
+    cand(1, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
+  ]);
+  assert.equal(r.passwordIndex, 1);
+  assert.equal(r.usernameIndex, null, 'password fills; username is left to the user');
+});
+
+test('AUDIT3: label/button copy is consulted (generic input attrs, signup labels)', () => {
+  // The dominant real-world signup shape: name="password", all the signal is in
+  // the <label> and submit button, which collectCandidates supplies as labelText.
+  const r = selectFields([
+    cand(0, { type: 'email', name: 'email', formKey: 1, labelText: 'Email address Sign up' }),
+    cand(1, { type: 'password', name: 'password', formKey: 1, labelText: 'Create a password Sign up' }),
+  ]);
+  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null });
+});
+
+test('AUDIT3: label copy does not break an ordinary login form', () => {
+  const r = selectFields([
+    cand(0, { type: 'text', name: 'u', formKey: 1, labelText: 'Username Sign in' }),
+    cand(1, { type: 'password', name: 'p', formKey: 1, labelText: 'Password Sign in' }),
+  ]);
+  assert.deepEqual(r, { passwordIndex: 1, usernameIndex: 0 });
+});
