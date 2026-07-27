@@ -678,7 +678,8 @@ test('buildInspectScript: carries NO credential literal', () => {
   assert.ok(s.includes(JSON.stringify('https://x.test/')));
   assert.ok(s.includes('hasPassword'));
   assert.ok(!s.includes('password:'));       // no credential key
-  assert.ok(!s.includes('setNative'));       // inspect never writes
+  assert.ok(!s.includes('setValue'));        // inspect never writes
+  assert.ok(!s.includes('notify'));          // ...and never notifies
 });
 
 test('buildInspectScript: embeds the shared selection logic', () => {
@@ -933,7 +934,7 @@ assert.equal(out.passwordBasis, 'authoritative');
 //   4. nonce mismatch            -> selectionChanged true
 //   5. replay: running the fill source twice -> second run selectionChanged
 //      (the stash is single-use)
-// Assert in every failure case that setNative was never called — a status flag
+// Assert in every failure case that setValue was never called — a status flag
 // alone does not prove the credential stayed out of the DOM.
 const args = { expectedURL: 'https://x.test/', expectedTimeOrigin: 1 };
 
@@ -1035,26 +1036,40 @@ function buildInspectScript({ expectedURL, expectedTimeOrigin, nonce }) {
 
 /** Credential-bearing fill source, injected into a DEDICATED ISOLATED WORLD.
  * Only the credentials passed in are embedded — a null value is never written.
- * Selection and setting happen synchronously in one execution, so page JS gets
- * no window to mutate the DOM or hook the setter between them. Resolves to a
- * STATUS OBJECT ONLY, never the credential values. */
+ * Before writing it verifies the authorization stash left by the inspect pass
+ * (matching nonce, identical live element references, unchanged basis), so the
+ * consent that was given — or the silent-fill decision that was made — is bound
+ * to those exact elements rather than to whatever `selectFields` resolves to a
+ * moment later. Selection and setting happen synchronously in one execution, so
+ * page JS gets no window between them. Resolves to a STATUS OBJECT ONLY. */
 function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, nonce }) {
   if (typeof nonce !== 'string' || !nonce) throw new Error('buildFillScript requires a nonce');
   const U = JSON.stringify(expectedURL);
   const TO = JSON.stringify(expectedTimeOrigin);
   const USER = JSON.stringify(username ?? null);
   const PASS = JSON.stringify(password ?? null);
+  const N = JSON.stringify(nonce);
+  const SEL = JSON.stringify(FORMLIKE_OWNER_SELECTOR);
   return `(function () {
+    // Consume the authorization BEFORE ANY early return — the identity guard
+    // included. Every attempt spends it, so neither a wrong-nonce probe nor an
+    // attempt rejected for lost focus / changed URL can be followed by a valid
+    // replay of the same source. A genuine retry must run a fresh inspect.
+    var auth = globalThis.__blancFill;
+    globalThis.__blancFill = null;
     if (location.href !== ${U} || !document.hasFocus() || performance.timeOrigin !== ${TO}) {
       return { originMismatch: true, filledUser: false, filledPass: false };
     }
     var USER = ${USER};
     var PASS = ${PASS};
+    if (!auth || auth.nonce !== ${N}) {
+      return { selectionChanged: true, filledUser: false, filledPass: false };
+    }
     ${sharedSelectionSource()}
-    // Assignment and notification are SEPARATE phases (1P-AUTH-001). Dispatching
-    // after each write lets the first field's handler run page code before the
-    // second is written — long enough to disconnect or swap the authorized node,
-    // so the second credential lands somewhere never verified.
+    // Assignment and notification are SEPARATE phases. Dispatching after each
+    // write would let the first field's handler run page code before the second
+    // is written — long enough to disconnect or swap the authorized node, so the
+    // second credential lands somewhere never verified.
     var setValue = function (el, value) {
       var d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
       d.set.call(el, value);
@@ -1063,32 +1078,23 @@ function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, 
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     };
-    // Re-select, then verify the decision the user (or the authoritative check)
-    // actually authorized still holds: same nonce, same live elements, same
-    // basis. A page that swapped its annotated field for an unannotated one
-    // during the async gap changes none of URL/timeOrigin/navEpoch — this is
-    // what catches it.
-    // EVERY attempt consumes the authorization (1P-AUTH-002), including a
-    // rejected one — otherwise a wrong-nonce probe can be followed by a replay.
-    var auth = globalThis.__blancFill;
-    globalThis.__blancFill = null;
-    if (!auth || auth.nonce !== ${JSON.stringify(nonce)}) {
-      return { selectionChanged: true, filledUser: false, filledPass: false };
-    }
-    var collected = collectCandidates();
+    var collected = collectCandidates(${SEL});
     var picked = selectFields(collected.cands);
     var pwEl = picked.passwordIndex !== null ? collected.els[picked.passwordIndex] : null;
     var userEl = picked.usernameIndex !== null ? collected.els[picked.usernameIndex] : null;
     if (picked.passwordBasis !== auth.basis
         || pwEl !== auth.pwEl || userEl !== auth.userEl
         || (pwEl && !pwEl.isConnected) || (userEl && !userEl.isConnected)) {
-      globalThis.__blancFill = null;
       return { selectionChanged: true, filledUser: false, filledPass: false };
     }
-    globalThis.__blancFill = null; // single use
     var filledPass = false, filledUser = false;
-    if (pwEl && PASS !== null) { setNative(pwEl, PASS); filledPass = true; }
-    if (userEl && USER !== null) { setNative(userEl, USER); filledUser = true; }
+    // Phase 1 — write every authorized value. No page code runs in between.
+    if (pwEl && PASS !== null) { setValue(pwEl, PASS); filledPass = true; }
+    if (userEl && USER !== null) { setValue(userEl, USER); filledUser = true; }
+    // Phase 2 — notify. Frameworks still observe the native setter plus these
+    // bubbling events, so controlled inputs keep the value.
+    if (filledPass) notify(pwEl);
+    if (filledUser) notify(userEl);
     return { originMismatch: false, filledUser: filledUser, filledPass: filledPass };
   })();`;
 }

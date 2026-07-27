@@ -467,15 +467,17 @@ function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, 
   const N = JSON.stringify(nonce);
   const SEL = JSON.stringify(FORMLIKE_OWNER_SELECTOR);
   return `(function () {
+    // Consume the authorization BEFORE ANY early return — the identity guard
+    // included. Every attempt spends it, so neither a wrong-nonce probe nor an
+    // attempt rejected for lost focus / changed URL can be followed by a valid
+    // replay of the same source. A genuine retry must run a fresh inspect.
+    var auth = globalThis.__blancFill;
+    globalThis.__blancFill = null;
     if (location.href !== ${U} || !document.hasFocus() || performance.timeOrigin !== ${TO}) {
       return { originMismatch: true, filledUser: false, filledPass: false };
     }
     var USER = ${USER};
     var PASS = ${PASS};
-    // Consume the authorization FIRST: every attempt spends it, including a
-    // rejected one, so a wrong-nonce probe cannot be followed by a valid replay.
-    var auth = globalThis.__blancFill;
-    globalThis.__blancFill = null;
     if (!auth || auth.nonce !== ${N}) {
       return { selectionChanged: true, filledUser: false, filledPass: false };
     }
@@ -499,10 +501,8 @@ function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, 
     if (picked.passwordBasis !== auth.basis
         || pwEl !== auth.pwEl || userEl !== auth.userEl
         || (pwEl && !pwEl.isConnected) || (userEl && !userEl.isConnected)) {
-      globalThis.__blancFill = null;
       return { selectionChanged: true, filledUser: false, filledPass: false };
     }
-    globalThis.__blancFill = null; // single use
     var filledPass = false, filledUser = false;
     // Phase 1 — write every authorized value. No page code runs in between.
     if (pwEl && PASS !== null) { setValue(pwEl, PASS); filledPass = true; }

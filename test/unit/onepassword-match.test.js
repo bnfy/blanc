@@ -723,7 +723,8 @@ test('T4: inspect source carries NO credential literal and never writes', () => 
   const s = buildInspectScript({ ...SRC_ARGS, nonce: 'n1' });
   assert.ok(s.includes(JSON.stringify('https://x.test/')));
   assert.ok(s.includes('hasPassword'));
-  assert.ok(!s.includes('setNative'), 'inspect must not contain the setter');
+  assert.ok(!s.includes('setValue'), 'inspect must not contain the setter');
+  assert.ok(!s.includes('function notify'), 'inspect must not contain the notifier');
 });
 
 test('T4: both sources embed the SAME selection logic', () => {
@@ -869,5 +870,23 @@ test('T4 runtime: a wrong nonce CONSUMES the authorization (1P-AUTH-002)', () =>
   // the authorization, so a failed guess can't be followed by a valid replay.
   const after = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'good', username: 'U', password: 'P' }), ctx);
   assert.equal(after.selectionChanged, true, 'a rejected attempt must still consume the stash');
+  assert.equal(writes.length, 0, 'neither attempt may write');
+});
+
+test('T4 runtime: an originMismatch attempt CONSUMES the authorization', () => {
+  // Losing focus mid-flow must not leave a replayable authorization: the same
+  // fill source must fail after focus returns, forcing a fresh inspect.
+  const writes = [];
+  const inputs = loginFixture();
+  let focused = true;
+  const ctx = makeCtx(inputs, writes);
+  ctx.document.hasFocus = () => focused;
+  vm.runInContext(buildInspectScript({ ...SRC_ARGS, nonce: 'n1' }), ctx);
+  focused = false;
+  const missed = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'U', password: 'P' }), ctx);
+  assert.equal(missed.originMismatch, true);
+  focused = true;
+  const replay = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'U', password: 'P' }), ctx);
+  assert.equal(replay.selectionChanged, true, 'a rejected identity check must still spend the stash');
   assert.equal(writes.length, 0, 'neither attempt may write');
 });
