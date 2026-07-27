@@ -1652,7 +1652,8 @@ the focus order — so it belongs here, not in a source guard.
   `showOverlay` and `getOverlayWebContents` collaborators; the World's
   `this.call(method, ...args)`.
 - Produces: hook methods `showCredentialPicker(rows)`, `readPickerDom()`,
-  `readPickerIsolation()`, and `pressEnterOnPickerCancel()`.
+  `readPickerIsolation()`, `pressEnterOnPickerCancel()`, and
+  `clickHiddenControlInPicker(selector)`.
 
 - [ ] **Step 1: Add the test-hook methods**
 
@@ -1685,22 +1686,52 @@ In `src/main/test-hook.js`, alongside `openPanel()` / `openPalette()`:
     },
     /** Focus the Cancel button and press Enter, capturing the reply. Proves
      * Enter-on-Cancel dismisses rather than selecting the highlighted row.
-     * sendCredentialPick is stubbed so no real IPC fires. */
-    pressEnterOnPickerCancel() {
+     *
+     * The reply is captured in MAIN, not the renderer: contextBridge copies and
+     * freezes the exposed `browserAPI`, so `window.browserAPI.sendCredentialPick`
+     * cannot be reassigned from page code — a renderer stub is silently ignored
+     * and the real IPC fires anyway. Instead attach a temporary `ipcMain`
+     * listener, scoped to the overlay's own sender so nothing else can spoof it,
+     * and let the real send arrive. The event is dispatched FROM the Cancel
+     * button (bubbling to the document handler) with the button focused, exactly
+     * as a real Enter press would arrive. */
+    async pressEnterOnPickerCancel() {
+      const { ipcMain } = require('electron');
       const wc = getOverlayWebContents();
       if (!wc) return null;
-      return wc.executeJavaScript(`(() => {
-        const calls = [];
-        const orig = window.browserAPI.sendCredentialPick;
-        window.browserAPI.sendCredentialPick = (id, index) => calls.push({ id, index });
-        try {
-          document.querySelector('.cred-cancel').focus();
-          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-        } finally {
-          window.browserAPI.sendCredentialPick = orig;
-        }
-        return calls;
+      const replies = [];
+      const listener = (event, payload) => { if (event.sender === wc) replies.push(payload); };
+      ipcMain.on('chrome:credential-pick', listener);
+      try {
+        await wc.executeJavaScript(`(() => {
+          const cancel = document.querySelector('.cred-cancel');
+          if (!cancel) throw new Error('picker Cancel button is not rendered');
+          cancel.focus();
+          cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+          return true;
+        })()`);
+        await new Promise((r) => setTimeout(r, 50)); // the send crosses the IPC boundary async
+      } finally {
+        ipcMain.removeListener('chrome:credential-pick', listener);
+      }
+      return replies;
+    },
+    /** Click a panel control that modal isolation has hidden, and report whether
+     * the picker survived. `.click()` dispatches and bubbles even on a
+     * display:none element, so this reaches the capture-phase guard — which is
+     * the ONLY thing that stops the click when CSS has already removed the
+     * control from view. Deleting the guard makes this open Settings. */
+    async clickHiddenControlInPicker(selector) {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      await wc.executeJavaScript(`(() => {
+        const el = document.querySelector(${JSON.stringify(selector)});
+        if (!el) throw new Error('control not found: ' + ${JSON.stringify(selector)});
+        el.click();
+        return true;
       })()`);
+      await new Promise((r) => setTimeout(r, 50)); // let any erroneous open settle
+      return { overlayMode: getOverlayMode(), sheet: getUtilitySheetState() };
     },
     /** Probe the panel's own controls for modal isolation. `shown` uses
      * getClientRects (empty under display:none, and independent of offsetParent
@@ -1754,6 +1785,12 @@ Feature: 1Password credential picker (dev spike)
     When the credential picker is shown with hostile vault strings
     And Enter is pressed while the Cancel button has focus
     Then the reply is a dismissal, not a selection
+
+  @spike-1p-picker
+  Scenario: the modal guard swallows clicks on hidden panel controls
+    When the credential picker is shown with hostile vault strings
+    And a hidden panel control is clicked while the picker is up
+    Then the picker stays open and no utility sheet appears
 ```
 
 - [ ] **Step 3: Teach the config the path and the tag**
@@ -1793,11 +1830,12 @@ for line in sys.stdin:
 names={pickles[i] for i in selected if i in pickles}
 for target in ['vault strings render as literal text',
                \"picker mode isolates the panel's own controls\",
-               'Enter on the Cancel button dismisses rather than selecting']:
+               'Enter on the Cancel button dismisses rather than selecting',
+               'the modal guard swallows clicks on hidden panel controls']:
     print(target[:40], '-> parsed', target in pickles.values(), 'SELECTED', target in names)
 "
 ```
-Expected: **all three scenarios `parsed True` and `SELECTED True`**. `parsed True`
+Expected: **all four scenarios `parsed True` and `SELECTED True`**. `parsed True`
 with `SELECTED False` means the feature path is wired but the tag is not in
 `RUNNABLE`; both `False` means the path itself is not in `common.paths`.
 
@@ -1856,8 +1894,24 @@ When('Enter is pressed while the Cancel button has focus', async function () {
 });
 
 Then('the reply is a dismissal, not a selection', function () {
-  assert.deepEqual(this.pickerReplies, [{ id: 'test-request', index: null }],
+  // The real IPC payload is { requestId, index } (see preload.sendCredentialPick),
+  // and showCredentialPicker fixes requestId to 'test-request'.
+  assert.deepEqual(this.pickerReplies, [{ requestId: 'test-request', index: null }],
     'Enter on Cancel must send a null (dismissal) reply, not select the highlighted row');
+});
+
+When('a hidden panel control is clicked while the picker is up', async function () {
+  // #footerSettings is display:none under modal isolation; only the capture-phase
+  // guard stops its click from opening Settings.
+  this.guardResult = await this.call('clickHiddenControlInPicker', '#footerSettings');
+});
+
+Then('the picker stays open and no utility sheet appears', function () {
+  assert.ok(this.guardResult, 'the guard probe must return');
+  assert.equal(this.guardResult.overlayMode, 'credential-picker',
+    'the click must not dismiss or replace the picker');
+  assert.equal(this.guardResult.sheet.visible, false,
+    'no utility sheet may open from a picker-mode click — deleting the capture guard fails here');
 });
 
 Then('the address bar, footer, and Settings are hidden and unfocusable', async function () {
@@ -1889,9 +1943,10 @@ scenario appears in the selected set (if it doesn't, the tag isn't in `RUNNABLE`
 - [ ] **Step 6: Run the scenarios**
 
 Run: `npm run test:acceptance:desktop`
-Expected: all three `credential-picker` scenarios pass — the XSS-inert render
-(including the hostile vault name), the modal isolation, and Enter-on-Cancel
-dismissing rather than selecting.
+Expected: all four `credential-picker` scenarios pass — the XSS-inert render
+(including the hostile vault name), the modal isolation, Enter-on-Cancel
+dismissing rather than selecting, and the capture-phase guard swallowing a click
+on a hidden control.
 
 - [ ] **Step 7: Commit**
 
@@ -1972,8 +2027,8 @@ git commit -m "docs(1password): dev-usage covers ranking and the Island picker"
 - Consent copy candidate-neutral when a picker follows → Task 6 Step 9 + test. ✅
 - `dismissed` reachable from the scrim and from the picker's own cancel → Task 7 Step 4. ✅
 - Rows cleared from the renderer on hide → Task 7 Step 4. ✅
-- **Modal isolation:** picker mode hides the address bar, footer and Settings (display:none, so unfocusable) and provides its own Cancel → Task 7 Steps 3+5, asserted real-DOM in Task 8; a capture-phase `document` click guard is defense-in-depth against CSS regression. ✅
-- **Enter on Cancel dismisses** (not selects the highlighted row) → Task 7 Step 4 `onCancel` branch, asserted real-DOM in Task 8. ✅
+- **Modal isolation:** picker mode hides the address bar, footer and Settings (display:none, so unfocusable) and provides its own Cancel → Task 7 Steps 3+5, asserted real-DOM in Task 8. A capture-phase `document` click guard is defense-in-depth against CSS regression, and is itself exercised — clicking a hidden `#footerSettings` must not open the sheet (deleting the guard fails that scenario). ✅
+- **Enter on Cancel dismisses** (not selects the highlighted row) → Task 7 Step 4 `onCancel` branch, asserted real-DOM in Task 8 by capturing the real `chrome:credential-pick` IPC in main (contextBridge freezes `browserAPI`, so a renderer stub can't work). ✅
 - **Hostile `vaultName` is exercised** — two distinct vaults so the `.cred-vault` element renders, first name hostile, asserted literal → Task 8. ✅
 - **Window close settles the picker before resetting `overlayMode`**, so vault rows don't survive a dock reopen → Task 6 (wired + ordering test). ✅
 - `textContent`-only + source guard + real-DOM scenario → Tasks 7 and 8. ✅
