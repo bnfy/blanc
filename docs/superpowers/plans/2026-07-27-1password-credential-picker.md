@@ -1776,6 +1776,7 @@ the assertion can be separate steps:
         const within = (el) => { const r = el.getBoundingClientRect(); return r.top >= lr.top - 0.5 && r.bottom <= lr.bottom + 0.5; };
         return {
           rows: rows.length,
+          truncationShown: !!document.querySelector('.cred-more'),
           cardFitsViewport: panel.getBoundingClientRect().bottom <= window.innerHeight + 0.5,
           listScrolls: list.scrollHeight > list.clientHeight + 1,
           lastRowReachable: within(rows[rows.length - 1]),
@@ -1895,8 +1896,8 @@ const HOSTILE_USER = '"><script>alert(1)</script>';
 const HOSTILE_HOST = '</span><b>x';
 const HOSTILE_VAULT = '<img src=y onerror="window.__pwnedVault=1">';
 
-async function startAndRender(world, rows) {
-  await world.call('startCredentialPick', rows);
+async function startAndRender(world, rows, truncated = 0) {
+  await world.call('startCredentialPick', rows, truncated);
   // showOverlay sends overlay:show asynchronously — poll until the rows render.
   await waitForValue(() => world.call('readPickerDom'), (d) => d !== null, 'picker rows to render');
 }
@@ -1926,7 +1927,10 @@ When('the credential picker is requested with ten rows', async function () {
     username: `user${i}@example.test`, title: 'Example',
     host: 'secure.example.test', vaultName: 'Personal',
   }));
-  await startAndRender(this, rows);
+  // truncated = 8 is the live worst case (accounts.google.com: 18 tier-1 matches,
+  // 10 kept, 8 truncated) — so the .cred-more line renders and adds to the height
+  // this scenario must keep scrollable.
+  await startAndRender(this, rows, 8);
 });
 
 When('the second row is clicked', async function () {
@@ -1999,6 +2003,8 @@ Then('the last row and Cancel are reachable', async function () {
   const r = await this.call('readPickerReachability');
   assert.ok(r, 'the reachability probe must return');
   assert.equal(r.rows, 10, 'all ten rows must render');
+  assert.equal(r.truncationShown, true, 'the truncation line must render (truncated = 8)');
+  assert.equal(r.listScrolls, true, 'the content must exceed the cap — otherwise this proves nothing');
   assert.equal(r.cardFitsViewport, true, 'the card must not overflow the 480px viewport');
   assert.equal(r.lastRowReachable, true, 'the last row must be reachable (scrolled into the list)');
   assert.equal(r.cancelReachable, true, 'Cancel must be reachable');
