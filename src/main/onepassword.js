@@ -599,7 +599,9 @@ async function getClient() {
 }
 
 /** Match Login items against `expectedHost` on OVERVIEWS only — no secret is
- * decrypted here. Skips a vault that can't be listed (logged by caller). */
+ * decrypted here. Returns the metadata rankMatches needs: normalized hosts, the
+ * vault's display name, and updatedAt for ordering. Skips a vault that can't be
+ * listed rather than aborting the whole search. */
 async function findLogins(expectedHost) {
   const client = await getClient();
   const matches = [];
@@ -614,9 +616,17 @@ async function findLogins(expectedHost) {
     for (const ov of overviews) {
       if (ov.category !== 'Login') continue;
       const urls = Array.isArray(ov.websites) ? ov.websites.map((w) => w.url) : [];
-      if (matchesHost(urls, expectedHost)) {
-        matches.push({ vaultId: vault.id, itemId: ov.id, title: ov.title });
-      }
+      if (!matchesHost(urls, expectedHost)) continue;
+      // Normalize once here so ranking never re-parses; drop unparseable ones.
+      const hosts = [...new Set(urls.map(normalizeHost).filter(Boolean))];
+      matches.push({
+        vaultId: vault.id,
+        vaultName: vault.title || '',
+        itemId: ov.id,
+        title: ov.title || '',
+        hosts,
+        updatedAt: ov.updatedAt instanceof Date ? ov.updatedAt : new Date(0),
+      });
     }
   }
   return matches;
