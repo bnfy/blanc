@@ -583,12 +583,13 @@ const assert = require('node:assert/strict');
 const { createPickerController } = require('../../src/main/credential-picker');
 
 /** A controller wired to fakes, with handles to inspect what it did. */
-function harness({ overlayAvailable = true } = {}) {
+function harness({ overlayAvailable = true, overlayThrows = false } = {}) {
   const calls = { shown: [], hidden: 0, timers: 0, cleared: 0 };
   let mode = null;
   let timerFn = null;
   const ctl = createPickerController({
     showOverlay: (m, opts) => {
+      if (overlayThrows) throw new Error('overlay is gone');
       if (!overlayAvailable) return false;   // mirrors main's live-window guard
       mode = m; calls.shown.push(opts); return true;
     },
@@ -689,6 +690,16 @@ test('picker: an unavailable overlay settles immediately instead of hanging', as
   assert.equal(h.ctl.isPending(), false, 'no stale pending state may survive a failed show');
 });
 
+test('picker: a THROWN show also settles instead of rejecting', async () => {
+  // showOverlay can throw if the window or WebContentsView dies after its own
+  // guard. The promise must resolve window-closed, not reject with pending
+  // state still installed and no timer running.
+  const h = harness({ overlayThrows: true });
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  assert.deepEqual(await p, { index: null, reason: 'window-closed' });
+  assert.equal(h.ctl.isPending(), false, 'a thrown show must leave no stale pending state');
+});
+
 test('picker: rows reach the overlay with exactly four keys', async () => {
   const h = harness();
   const p = h.ctl.requestPick(ROWS, 3, 'x.test');
@@ -751,8 +762,16 @@ function createPickerController({
       // Show FIRST, and treat a failed show as window-closed. Installing the
       // pending state and then discovering the overlay is gone would leave the
       // fill waiting out the full timeout.
-      const shown = showOverlay('credential-picker', { prefill: { requestId, host, rows, truncated } });
-      if (shown === false) {
+      // showOverlay can also THROW if the window or view dies after its own
+      // guard. Either way the request must not stay installed with no timer —
+      // the fill would await a promise nothing will ever settle.
+      let shown = false;
+      try {
+        shown = showOverlay('credential-picker', { prefill: { requestId, host, rows, truncated } });
+      } catch {
+        shown = false;
+      }
+      if (shown !== true) {
         pending = null;
         resolve({ index: null, reason: 'window-closed' });
         return;
@@ -1036,8 +1055,7 @@ test('T6-wiring: ranking precedes inspection, enumeration follows consent', () =
   // Slice to the orchestrator: indexOf on a bare name would find the function
   // DEFINITION, which sits above it.
   const start = src.indexOf('async function fillActiveTabFrom1Password');
-  const end = src.indexOf('
-async function ', start + 1);
+  const end = src.indexOf('\nasync function ', start + 1);
   const fn = src.slice(start, end === -1 ? undefined : end);
   const rank = fn.indexOf('rankMatches(');
   const inspect = fn.indexOf('buildInspectScript(');
@@ -1053,8 +1071,7 @@ async function ', start + 1);
 test('T6-wiring: consent copy is candidate-neutral when a picker will follow', () => {
   const fs = require('node:fs');
   const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
-  assert.ok(/kept\.length === 1 \?[^
-]*title/.test(src),
+  assert.ok(/kept\.length === 1 \?[^\n]*title/.test(src),
     'only a single survivor may be named in the consent prompt');
 });
 ```
@@ -1115,7 +1132,15 @@ const pickerController = createPickerController({
 ```js
   // 'hidden' is deliberately no-restore: hideOverlay has six callers and the
   // cause can't be attributed, so it fails safe.
-  if (overlayMode === 'credential-picker') pickerController.settle(null, 'hidden');
+  //
+  // RETURN after delegating. settle() clears its pending state BEFORE calling
+  // its injected hide collaborator, which re-enters this function and performs
+  // the teardown. Falling through would then run the removal/send/focus body a
+  // second time.
+  if (pickerController.isPending()) {
+    pickerController.settle(null, 'hidden');
+    return;
+  }
 ```
 
 **(b)** Top of `showOverlay`, after the live-window guard:
@@ -1139,10 +1164,20 @@ const pickerController = createPickerController({
     if (overlayMode === 'credential-picker') return pickerController.settle(null, 'blur');
 ```
 
-**(e)** In `setActiveTab` and in `closeTab`:
+**(e)** Scope both call sites — an unrelated background tab closing must not
+cancel a live picker. In `setActiveTab`, place it **after** the same-tab early
+return so only a genuine switch settles:
 
 ```js
+  // (after the `if (id === activeTabId) return;`-style no-op guard)
   pickerController.settle(null, 'tab-changed');
+```
+
+In `closeTab`, settle only when the tab being closed is the one the picker
+belongs to:
+
+```js
+  if (id === activeTabId) pickerController.settle(null, 'tab-changed');
 ```
 
 **(f)** In `createOverlay()`, after the other overlay listeners, and in the window `closed` handler:
@@ -1269,8 +1304,7 @@ test('T7: the picker render path never uses innerHTML', () => {
   const src = fs.readFileSync(require.resolve('../../src/renderer/overlay.js'), 'utf8');
   const start = src.indexOf('function renderCredentialPicker');
   assert.ok(start > -1, 'renderCredentialPicker must exist');
-  const end = src.indexOf('
-  function ', start + 1);
+  const end = src.indexOf('\n  function ', start + 1);
   const body = src.slice(start, end === -1 ? undefined : end);
   for (const sink of ['innerHTML', 'insertAdjacentHTML', 'outerHTML']) {
     assert.ok(!body.includes(sink), `${sink} must never appear in the picker render path`);
@@ -1376,12 +1410,18 @@ In `applyMode`, extend the two visibility lines and add a branch:
       renderCredentialPicker(prefill);
 ```
 
-In the **backdrop/scrim click handler**, branch before the existing dismissal so
-the scrim produces `dismissed`, not `hidden`:
+Branch **both** user-dismissal affordances so they produce `dismissed` (with
+best-effort focus return) rather than `hidden`. In the backdrop/scrim click
+handler **and** in the existing dismiss-button (`dismissBtn`) handler, before
+whatever they call today:
 
 ```js
     if (mode === 'credential-picker') return choosePicker(null);
 ```
+
+Redirecting only the scrim would leave the visible Cancel affordance settling as
+`hidden`, which is the one route the spec says must not restore focus — so the
+button would silently behave differently from the scrim beside it.
 
 In the overlay's `keydown` listener:
 
@@ -1396,17 +1436,29 @@ In the overlay's `keydown` listener:
 ```
 
 In `onOverlayHide`, clear **both** the request and the rendered rows — leaving
-them would keep vault-derived strings resident in the privileged renderer:
+them would keep vault-derived strings resident in the privileged renderer.
+Capture whether this was a picker **at the top of the handler**, before `mode`
+and `document.body.dataset.mode` are reset; testing the flag afterwards would
+always read false and the rows would never be cleared:
 
 ```js
+  window.browserAPI.onOverlayHide(() => {
+    const wasPicker = mode === 'credential-picker';   // BEFORE the resets below
+    // ... existing teardown (mode = null, dataset.mode = '', hidden flags) ...
     pickerRequestId = null;
     pickerIndex = 0;
-    if (document.body.dataset.mode === 'credential-picker') islandList.replaceChildren();
+    if (wasPicker) islandList.replaceChildren();
+  });
 ```
 
 - [ ] **Step 5: Add styles**
 
 In `src/renderer/styles.css`, near the other island row rules:
+
+Use the repository's ACTUAL tokens. `--radius-sm`, `--fg`, `--fg-dim` and
+`--hover` do not exist in `styles.css`; the real ones are `--radius`, `--text`,
+`--text-dim` and `--surface`, and `.island-row:hover` uses `var(--surface)` —
+match that rather than inventing a hover token.
 
 ```css
 .cred-list { display: flex; flex-direction: column; gap: 2px; }
@@ -1418,19 +1470,26 @@ In `src/renderer/styles.css`, near the other island row rules:
   width: 100%;
   padding: 7px 10px;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: transparent;
-  color: var(--fg);
+  color: var(--text);
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
-.cred-row:hover, .cred-row.sel { background: var(--hover); }
+.cred-row:hover, .cred-row.sel { background: var(--surface); }
 .cred-user { grid-area: user; font-weight: 500; }
-.cred-meta { grid-area: meta; color: var(--fg-dim); font-size: 11px; }
-.cred-vault { grid-area: vault; align-self: center; color: var(--fg-dim); font-size: 11px; }
-.cred-more { padding: 6px 10px; color: var(--fg-dim); font-size: 11px; }
+.cred-meta { grid-area: meta; color: var(--text-dim); font-size: 11px; }
+.cred-vault { grid-area: vault; align-self: center; color: var(--text-dim); font-size: 11px; }
+.cred-more { padding: 6px 10px; color: var(--text-dim); font-size: 11px; }
 ```
+
+Verify before committing — no invented tokens may survive:
+
+```bash
+grep -oE 'var\(--[a-z-]+\)' src/renderer/styles.css | sort -u | head -20
+```
+Every token used above must appear in that list.
 
 - [ ] **Step 6: Tests**
 
@@ -1470,10 +1529,19 @@ in the `RUNNABLE` list. A feature placed anywhere else, or an `.mjs` step file,
 is silently skipped — the suite would pass without ever running this.
 
 **Files:**
-- Create: `spec/acceptance/credential-picker.feature`
+- Create: `test/desktop/features/credential-picker.feature`
 - Create: `test/desktop/steps/credential-picker.steps.js`
-- Modify: `test/desktop/cucumber.mjs` (add the tag to `RUNNABLE`)
+- Modify: `test/desktop/cucumber.mjs` (add the desktop feature path **and** the tag)
 - Modify: `src/main/test-hook.js`
+
+**Why not `spec/acceptance/` and `@F24-1`:** `spec/acceptance/` holds the
+**platform-neutral** feature contract shared with the future mobile ports, and
+`@F24-1` is already taken — `spec/acceptance/platform-services.feature:41` uses
+it for a `@mobile @D12` scenario ("Saved credentials and passkeys work in a
+tab"). Adding that tag to `RUNNABLE` would select the existing mobile scenario on
+desktop *and* misrepresent this dev-only spike as part of the F24 contract. This
+is desktop-and-spike-only, so it lives under `test/desktop/features/` with its
+own tag, and the config learns that path explicitly.
 
 **Interfaces:**
 - Consumes: the `credential-picker` mode (Task 7); the hook's existing
@@ -1510,24 +1578,43 @@ In `src/main/test-hook.js`, alongside `openPanel()` / `openPalette()`:
 
 - [ ] **Step 2: Write the failing scenario**
 
-Create `spec/acceptance/credential-picker.feature`:
+Create `test/desktop/features/credential-picker.feature`:
 
 ```gherkin
-Feature: 1Password credential picker
+Feature: 1Password credential picker (dev spike)
   The picker renders vault-supplied strings, which are untrusted text in a
   privileged renderer. They must never become markup.
 
-  @F24-1
+  @spike-1p-picker
   Scenario: vault strings render as literal text
     When the credential picker is shown with hostile vault strings
     Then the picker row shows them as literal text
     And the picker row contains no injected elements
 ```
 
-- [ ] **Step 3: Register the tag as runnable**
+- [ ] **Step 3: Teach the config the path and the tag**
 
-In `test/desktop/cucumber.mjs`, add `'@F24-1'` to the `RUNNABLE` array. Without
-this the scenario is selected out and never executes.
+In `test/desktop/cucumber.mjs`, `common.paths` currently lists only
+`spec/acceptance/**/*.feature`, so a feature anywhere else is never loaded and
+the suite would pass **without running this scenario at all**. Add the desktop
+path, and add the unique tag to `RUNNABLE`:
+
+```js
+const common = {
+  paths: ['spec/acceptance/**/*.feature', 'test/desktop/features/**/*.feature'],
+  require: ['test/desktop/support/**/*.js', 'test/desktop/steps/**/*.js'],
+};
+```
+
+and in the `RUNNABLE` array add `'@spike-1p-picker'`.
+
+Confirm it is actually selected — a silently-skipped security test is worse than
+no test:
+
+```bash
+npm run test:acceptance:dry 2>&1 | grep -c "vault strings render as literal text"
+```
+Expected: `1`. If it prints `0`, the path or the tag is not wired.
 
 - [ ] **Step 4: Write the step definitions (CommonJS)**
 
@@ -1537,6 +1624,7 @@ Create `test/desktop/steps/credential-picker.steps.js`:
 'use strict';
 const { When, Then } = require('@cucumber/cucumber');
 const assert = require('node:assert/strict');
+const { waitForValue } = require('../support/poll');
 
 const HOSTILE_TITLE = '<img src=x onerror="window.__pwned=1">';
 const HOSTILE_USER = '"><script>alert(1)</script>';
@@ -1546,7 +1634,14 @@ When('the credential picker is shown with hostile vault strings', async function
   await this.call('showCredentialPicker', [
     { username: HOSTILE_USER, title: HOSTILE_TITLE, host: HOSTILE_HOST, vaultName: 'Personal' },
   ]);
-  this.pickerDom = await this.call('readPickerDom');
+  // showOverlay sends overlay:show ASYNCHRONOUSLY, so reading straight away can
+  // observe null before the renderer has handled it — the same race
+  // openOverlaySurface already documents. Poll instead.
+  this.pickerDom = await waitForValue(
+    () => this.call('readPickerDom'),
+    (dom) => dom !== null,
+    'credential picker row to render',
+  );
 });
 
 Then('the picker row shows them as literal text', function () {
