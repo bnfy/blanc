@@ -46,7 +46,8 @@
   "dependencies": {
     "@1password/sdk": "0.4.0",
     "@ghostery/adblocker-electron": "^2.18.1",
-    "electron-updater": "^6.8.9"
+    "electron-updater": "^6.8.9",
+    "tldts-experimental": "7.4.6"
   },
   "build": {
     "appId": "me.bnfy.bowser",
