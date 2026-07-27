@@ -81,8 +81,42 @@ The packaged `rc.2` app was launched four times against a brand-new, empty
 - The updater runs and correctly declines to downgrade.
 - No crash, hang, or renderer fault across the four launches.
 
-This exercises clean-profile first run. It is not a substitute for the
-migration smoke, which remains open below.
+This exercises clean-profile first run. The migration smoke is recorded
+separately below.
+
+## Same-profile migration from public Stable v0.22.0
+
+Run `2026-07-27`. Both apps were extracted from their **published** DMGs
+(`v0.22.0` and `v1.0.0-rc.2`), each downloaded logged-out, so the test used
+distributed artifacts rather than local builds.
+
+A profile was seeded with deliberately non-default state — Brave search,
+dark theme, vertical tabs at a custom 312px width, the `forest` app icon, a
+custom home page, an ad-block exception, suggestions and the usage ping both
+off, four tabs across two named groups (one collapsed) with an ungrouped pin
+and a group-local pin, one Favorite, and history. `v0.22.0` was launched
+against it, rendered its window, and was quit gracefully so its stores
+flushed. It normalized and rewrote the profile, and grew history from two
+entries to four by actually visiting the restored tabs — confirming it
+authored the state rather than merely reading it.
+
+`rc.2` was then launched against that same `v0.22.0`-authored profile and
+quit gracefully. Comparing before and after:
+
+- All twelve seeded settings survive verbatim, including `tabLayout`,
+  `verticalTabsWidth`, `appIcon`, `adblockExceptions`, and both opt-outs.
+- The session survives exactly: tab URLs, active index, `groupIds`, the
+  pinned array, and both group records including the collapsed flag.
+- The Favorite survives with its URL, title, **and its original `id`**, with
+  no tombstone introduced.
+- Every pre-upgrade history URL survives; the count grows 4 → 7 as `rc.2`
+  visits the restored tabs.
+
+Twenty-one programmatic equality checks pass with zero failures. The rendered
+window independently corroborates it: dark theme applied, the rail at the
+custom 312px width rather than the 248px default, the `migrate` group
+unfolded with its pinned member, the `folded` group still collapsed, and the
+Island's heart filled for the restored Favorite.
 
 ## Exact public artifact hashes
 
@@ -135,8 +169,6 @@ every file against the published `SHA256SUMS`. Published sizes are 138521990
   This satisfies at least one active tester on the one distributed
   platform/architecture, and should be restated at Stable with the observed
   defect count.
-- **Same-profile migration smoke** from public Stable `v0.22.0` to the
-  candidate has not been re-run for `rc.2`.
 - **Cold-online startup, pre-consent, persisted opt-out, corrupt-cache/offline
   recovery, Retry, and Continue-without-blocking** paths have not been re-run
   for `rc.2`.
