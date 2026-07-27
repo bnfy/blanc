@@ -1197,8 +1197,17 @@ test('T6-wiring: every settlement route is wired in main', () => {
   for (const reason of ['escape', 'mode-replaced', 'hidden', 'blur', 'tab-changed', 'window-closed']) {
     assert.ok(src.includes(`'${reason}'`), `settlement route '${reason}' must be wired`);
   }
-  assert.ok(/isTrustedSender\(event,\s*\[overlayView\]\)/.test(src),
-    'the reply channel must accept the overlay alone, never the chrome window');
+  // The reply channel must accept the overlay alone — but as a { webContents,
+  // url } target, NOT a bare overlayView. A bare WebContentsView has no `.url`,
+  // so isTrustedSender's frame.url === target.url check rejects every reply and
+  // the picker rows go silently unclickable (regression: fixed in this file's
+  // isOverlaySender wiring; behaviour covered by ipc-trust.test.js).
+  const senderLine = src.slice(src.indexOf('isOverlaySender:'), src.indexOf('isOverlaySender:') + 220);
+  assert.ok(/webContents:\s*overlayView\.webContents/.test(senderLine)
+    && /url:\s*CHROME_OVERLAY_URL/.test(senderLine),
+    'the picker reply sender must be a { webContents, url } target, never a bare overlayView');
+  assert.ok(!/isTrustedSender\(event,\s*\[overlayView\]\)/.test(src),
+    'the bare-overlayView form (no url) must never return — it rejects every reply');
   assert.ok(/overlayPrefill = null/.test(src),
     'hideOverlay must clear overlayPrefill — vault rows may not outlive the picker');
 });

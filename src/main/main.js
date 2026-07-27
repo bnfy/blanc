@@ -1419,7 +1419,14 @@ const pickerController = createPickerController({
   showOverlay,
   hideOverlay: () => hideOverlay({ refocusContent: false }),
   getOverlayMode: () => overlayMode,
-  isOverlaySender: (event) => isTrustedSender(event, [overlayView]),
+  // isTrustedSender expects { webContents, url } targets and checks frame.url
+  // against target.url — a bare WebContentsView has no `.url`, so it would
+  // reject EVERY reply (the picker's rows would be silently unclickable).
+  // Mirror isTrustedChromeSender's shape exactly.
+  isOverlaySender: (event) => isTrustedSender(event,
+    overlayView && !overlayView.webContents.isDestroyed()
+      ? [{ webContents: overlayView.webContents, url: CHROME_OVERLAY_URL }]
+      : []),
   randomUUID: () => crypto.randomUUID(),
   setTimer: (fn, ms) => setTimeout(fn, ms),
   clearTimer: (t) => clearTimeout(t),
