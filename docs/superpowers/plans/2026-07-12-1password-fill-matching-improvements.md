@@ -1285,10 +1285,13 @@ Verify, reading the `[1p-spike]` lines:
 - **Single-page login on a subdomain** of a saved item → `filled user+pass`.
 - **A page with only a search box** → `no-fillable-field`, and the search box is **not** filled.
 - **React/framework login** (any modern SPA login form) → the value **sticks** after filling (the native setter + `input`/`change` events defeat the framework's controlled-input tracking) and submitting uses the filled value.
-- **Signup / password-reset page** (a form whose password input is
-  `autocomplete="new-password"`) → the saved password is **not** written. Expect
-  `filled user-only (multi-step step 1)` if the email field is filled, or
-  `no-fillable-field`. Confirm the password box is still empty.
+- **Signup / password-reset page** → **always `no-fillable-field`**, with
+  *neither* field written. A page whose password Blanc refuses is judged unsafe
+  as a whole, so `selectFields` zeroes the username too (`refusedPassword`) —
+  a partial `filled user-only` is not a possible outcome here. Confirm both the
+  password box **and** the email/username box are still empty. This holds
+  whether the refusal came from the `new-password` token, from two or more
+  password fields, or from signup wording.
 - **Two login widgets inside one `<section>`** (no `<form>` on either) → they must
   receive **different** `formKey`s, or none at all. If a shared key appears, the
   adapter is over-grouping and the cross-widget username leak is back: verify
@@ -1404,7 +1407,7 @@ git commit -m "docs(1password): dev-usage guide reflects subdomain + multi-step 
 - Orchestrator outcome map incl. `no-fillable-field` and `filled user-only` → Task 5 Step 4. ✅
 - Isolated-world return-plumbing risk verified before it's built on → Task 1 Steps 3–5 (probe, then removed). ✅
 - Unit matrix (matching + `selectFields` fixtures + source assertions + world-id guard) → Tasks 2–5. ✅
-- Manual matrix (subdomain, multi-step, search-only, React native-setter, regression) → Task 5 Step 7. ✅
+- Manual matrix → Task 5 Step 7. **Partially executed (2026-07-27):** ✅ subdomain, multi-match chooser, heuristic confirmation, DOM replacement (`selection-changed`), search-only and signup (`no-fillable-field`). ⬜ **Not run:** the real multi-step flow and React/SPA value persistence — see the execution record; do not treat this row as complete.
 - Non-goals (shadow DOM, iframes, auto-advance, TOTP, per-item 1P URL rules) → nothing introduced; restated in Task 6. ✅
 
 **Previously uncovered, now closed:** the spec's *DOM replacement between phases* check was initially omitted on the grounds that the protection is structural. That was wrong — structural protection is not verification — so Task 5 Step 7 scripts the mutation via DevTools and asserts the observable outcome: `selection-changed`, nothing written, no credential in any log line. **Executed 2026-07-27 — PASS.**
