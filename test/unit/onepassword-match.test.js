@@ -1272,3 +1272,22 @@ test('T7: the picker render path never uses innerHTML', () => {
   }
   assert.ok(body.includes('textContent'), 'vault values must be set via textContent');
 });
+
+// ===========================================================================
+// Stale-client recovery (invalid client id)
+// ===========================================================================
+const { isStaleClientError } = require('../../src/main/onepassword');
+
+test('isStaleClientError: matches the SDK "invalid client id" message', () => {
+  assert.equal(isStaleClientError(new Error('invalid client id')), true);
+  assert.equal(isStaleClientError(new Error('Invalid Client ID: 3')), true, 'case-insensitive');
+});
+
+test('isStaleClientError: does NOT match unrelated errors', () => {
+  for (const msg of ['network timeout', 'vault not found', 'user declined', '']) {
+    assert.equal(isStaleClientError(new Error(msg)), false, msg);
+  }
+  assert.equal(isStaleClientError(null), false);
+  assert.equal(isStaleClientError(undefined), false);
+  assert.equal(isStaleClientError({}), false, 'a non-Error without .message is safe');
+});

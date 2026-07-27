@@ -607,12 +607,38 @@ async function getClient() {
   return cachedClient;
 }
 
+/** The SDK's client is a numeric handle into its native core. Two things can
+ * invalidate it under us: the `Client` object being GC'd (the SDK's own
+ * FinalizationRegistry then calls `release_client`), and the DesktopAuth session
+ * lapsing. After either, every call on the cached handle fails with "invalid
+ * client id" — and since getClient() caches forever, it would stay broken until
+ * the app restarts. Detect that specific error so the caller can drop the dead
+ * handle and re-authenticate. */
+function isStaleClientError(err) {
+  return /invalid client id/i.test((err && err.message) || '');
+}
+
 /** Match Login items against `expectedHost` on OVERVIEWS only — no secret is
  * decrypted here. Returns the metadata rankMatches needs: normalized hosts, the
  * vault's display name, and updatedAt for ordering. Skips a vault that can't be
- * listed rather than aborting the whole search. */
+ * listed rather than aborting the whole search.
+ *
+ * findLogins is every fill flow's first client call, so it is where a stale
+ * handle surfaces. On "invalid client id" it drops the dead client and re-auths
+ * ONCE (a fresh Touch ID), so a lapsed session self-heals on the same press
+ * instead of staying broken until the app restarts. The refresh updates
+ * `cachedClient`, so the later reveal calls in the same flow use the live one. */
 async function findLogins(expectedHost) {
-  const client = await getClient();
+  try {
+    return await findLoginsWith(await getClient(), expectedHost);
+  } catch (err) {
+    if (!isStaleClientError(err)) throw err;
+    cachedClient = null;
+    return await findLoginsWith(await getClient(), expectedHost);
+  }
+}
+
+async function findLoginsWith(client, expectedHost) {
   const matches = [];
   const vaults = await client.vaults.list();
   for (const vault of vaults) {
@@ -701,4 +727,4 @@ function probePackageLoad() {
   require('@1password/sdk'); // lazy — the only other place this is required
 }
 
-module.exports = { matchesHost, PICKER_MAX, tierOf, rankMatches, isValidPickIndex, selectFields, FORMLIKE_OWNER_SELECTOR, buildInspectScript, buildFillScript, getClient, findLogins, revealCredential, revealUsernames, probePackageLoad };
+module.exports = { matchesHost, PICKER_MAX, tierOf, rankMatches, isValidPickIndex, isStaleClientError, selectFields, FORMLIKE_OWNER_SELECTOR, buildInspectScript, buildFillScript, getClient, findLogins, revealCredential, revealUsernames, probePackageLoad };
