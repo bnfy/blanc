@@ -647,6 +647,41 @@ async function revealCredential(vaultId, itemId) {
   return { username: read('username'), password: read('password') };
 }
 
+/** Read the usernames of the ranked candidates so the picker can label its rows.
+ *
+ * This is the one place that decrypts more than a single item, and it is
+ * deliberately bounded: the caller has already capped the list at PICKER_MAX and
+ * only reaches here when a picker is genuinely needed. Two properties matter:
+ *
+ *  - SEQUENTIAL. `Promise.all` would hold every decrypted Item — passwords
+ *    included — live at once. The loop releases each before the next call.
+ *  - NO PASSWORD ESCAPES. Rows are built fresh; the Item is never attached.
+ *
+ * `client` is injectable so the concurrency and failure contracts can be tested
+ * without the SDK. A rejection here must abort the whole picker (fixed
+ * `fill-error`), never show a partial list. */
+async function revealUsernames(candidates, { client } = {}) {
+  const sdk = client || (await getClient());
+  const rows = [];
+  for (const c of candidates) {
+    let item = await sdk.items.get(c.vaultId, c.itemId);
+    const fields = Array.isArray(item.fields) ? item.fields : [];
+    const found = fields.find((f) => f.id === 'username');
+    const username = found && typeof found.value === 'string' ? found.value : null;
+    item = null; // release before the next decrypt
+    rows.push({
+      vaultId: c.vaultId,
+      vaultName: c.vaultName,
+      itemId: c.itemId,
+      title: c.title,
+      host: c.host,
+      updatedAt: c.updatedAt,
+      username,
+    });
+  }
+  return rows;
+}
+
 /** Criterion 3(a) probe: force-load the SDK package — module resolution +
  * @1password/sdk-core's eager core_bg.wasm compile — WITHOUT authenticating.
  * Throws if the package can't load. Lives here (not in main.js) so the
@@ -657,4 +692,4 @@ function probePackageLoad() {
   require('@1password/sdk'); // lazy — the only other place this is required
 }
 
-module.exports = { matchesHost, PICKER_MAX, tierOf, rankMatches, selectFields, FORMLIKE_OWNER_SELECTOR, buildInspectScript, buildFillScript, getClient, findLogins, revealCredential, probePackageLoad };
+module.exports = { matchesHost, PICKER_MAX, tierOf, rankMatches, selectFields, FORMLIKE_OWNER_SELECTOR, buildInspectScript, buildFillScript, getClient, findLogins, revealCredential, revealUsernames, probePackageLoad };

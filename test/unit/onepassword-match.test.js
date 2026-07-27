@@ -1099,3 +1099,85 @@ test('rankMatches: real-vault shape — accounts.google.com keeps only tier 1, c
   assert.equal(r.truncated, tier1.length - PICKER_MAX);
   assert.ok(r.kept.every((k) => k.itemId.startsWith('acc')), 'no tier-2 or tier-3 item may survive');
 });
+
+// ===========================================================================
+// Credential picker — username enumeration
+// ===========================================================================
+const { revealUsernames } = require('../../src/main/onepassword');
+
+/** A fake SDK client that records peak concurrency and can fail on demand. */
+function fakeClient({ failAt = null } = {}) {
+  const state = { inFlight: 0, peak: 0, calls: 0 };
+  return {
+    state,
+    items: {
+      async get(vaultId, itemId) {
+        state.calls += 1;
+        state.inFlight += 1;
+        state.peak = Math.max(state.peak, state.inFlight);
+        await new Promise((r) => setImmediate(r)); // force a real await point
+        try {
+          if (failAt !== null && state.calls === failAt) throw new Error('SDK-SECRET-DETAIL');
+          return {
+            fields: [
+              { id: 'username', value: 'user-' + itemId },
+              { id: 'password', value: 'PASSWORD-' + itemId },
+            ],
+          };
+        } finally {
+          state.inFlight -= 1;
+        }
+      },
+    },
+  };
+}
+
+function pcnd(n) {
+  return {
+    vaultId: 'v1', vaultName: 'Personal', itemId: 'i' + n, title: 'google.com',
+    host: 'accounts.google.com', updatedAt: new Date('2026-07-12T19:01:42Z'),
+  };
+}
+
+test('revealUsernames: returns usernames and NEVER a password', async () => {
+  const client = fakeClient();
+  const rows = await revealUsernames([pcnd(1), pcnd(2)], { client });
+  assert.deepEqual(rows.map((r) => r.username), ['user-i1', 'user-i2']);
+  for (const r of rows) {
+    assert.ok(!('password' in r), 'no password key may exist on a row');
+    assert.ok(!JSON.stringify(r).includes('PASSWORD-'), 'no password value may survive');
+  }
+});
+
+test('revealUsernames: holds at most ONE decrypted item at a time', async () => {
+  const client = fakeClient();
+  await revealUsernames(Array.from({ length: 10 }, (_, n) => pcnd(n)), { client });
+  assert.equal(client.state.peak, 1,
+    'Promise.all would hold ten decrypted items live — enumeration must be sequential');
+  assert.equal(client.state.calls, 10);
+});
+
+test('revealUsernames: a mid-list failure rejects and yields no partial list', async () => {
+  const client = fakeClient({ failAt: 3 });
+  await assert.rejects(
+    () => revealUsernames(Array.from({ length: 10 }, (_, n) => pcnd(n)), { client }),
+    /SDK-SECRET-DETAIL/,
+    'it must reject so the caller can abort the whole picker'
+  );
+  assert.equal(client.state.calls, 3, 'it must stop at the failure, not continue the list');
+});
+
+test('revealUsernames: a missing username field yields null, not a throw', async () => {
+  const client = {
+    items: { async get() { return { fields: [{ id: 'password', value: 'x' }] }; } },
+  };
+  const rows = await revealUsernames([pcnd(1)], { client });
+  assert.equal(rows[0].username, null);
+});
+
+test('revealUsernames: carries the ranking metadata through unchanged', async () => {
+  const rows = await revealUsernames([pcnd(1)], { client: fakeClient() });
+  assert.equal(rows[0].host, 'accounts.google.com');
+  assert.equal(rows[0].vaultName, 'Personal');
+  assert.equal(rows[0].itemId, 'i1');
+});
