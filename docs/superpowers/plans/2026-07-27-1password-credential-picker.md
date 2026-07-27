@@ -1473,12 +1473,20 @@ backdrop/scrim click handler, before whatever it calls today:
     if (mode === 'credential-picker') return choosePicker(null);
 ```
 
-Guard the panel's other click handlers too, as defense-in-depth in case the
-isolation CSS ever regresses: at the top of the shared panel-actions/footer
-click handling, ignore clicks while a picker is showing:
+Defense-in-depth: the panel's controls have **individual** click listeners (there
+is no shared handler to guard), so add **one** capture-phase listener on
+`document` — it runs before those bubble-phase listeners and swallows any click
+that isn't a picker control while a picker is up, in case the isolation CSS ever
+regresses. Add it once, next to the other overlay listeners:
 
 ```js
-    if (mode === 'credential-picker') return;   // modal — panel controls are inert
+  document.addEventListener('click', (e) => {
+    if (mode !== 'credential-picker') return;
+    // Picker controls stay live; everything else in the panel is inert.
+    if (e.target.closest('.cred-row, .cred-cancel, #backdrop')) return;
+    e.stopPropagation();
+    e.preventDefault();
+  }, true);   // capture — beats the per-control listeners
 ```
 
 In the overlay's `keydown` listener:
@@ -1486,9 +1494,13 @@ In the overlay's `keydown` listener:
 ```js
     if (mode === 'credential-picker') {
       const rows = islandList.querySelectorAll('.cred-row');
+      // Enter while Cancel holds focus must DISMISS, not select the still-
+      // highlighted row. This handler intercepts Enter (preventDefault), so the
+      // button's own activation never fires — the choice has to be routed here.
+      const onCancel = document.activeElement?.classList.contains('cred-cancel');
       if (e.key === 'ArrowDown') { e.preventDefault(); pickerIndex = Math.min(pickerIndex + 1, rows.length - 1); highlightPicker(); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); pickerIndex = Math.max(pickerIndex - 1, 0); highlightPicker(); }
-      else if (e.key === 'Enter') { e.preventDefault(); choosePicker(pickerIndex); }
+      else if (e.key === 'Enter') { e.preventDefault(); choosePicker(onCancel ? null : pickerIndex); }
       return;   // Escape is handled in main via before-input-event
     }
 ```
@@ -1639,8 +1651,8 @@ the focus order — so it belongs here, not in a source guard.
 - Consumes: the `credential-picker` mode (Task 7); the hook's existing
   `showOverlay` and `getOverlayWebContents` collaborators; the World's
   `this.call(method, ...args)`.
-- Produces: hook methods `showCredentialPicker(rows)`, `readPickerDom()`, and
-  `readPickerIsolation()`.
+- Produces: hook methods `showCredentialPicker(rows)`, `readPickerDom()`,
+  `readPickerIsolation()`, and `pressEnterOnPickerCancel()`.
 
 - [ ] **Step 1: Add the test-hook methods**
 
@@ -1652,19 +1664,42 @@ In `src/main/test-hook.js`, alongside `openPanel()` / `openPalette()`:
         prefill: { requestId: 'test-request', host: 'example.test', rows, truncated: 0 },
       });
     },
-    /** Read the rendered picker back out of the overlay's DOM. Returns plain
-     * data so the step file needs no Playwright page handle. */
+    /** Read the rendered picker back out of the overlay's DOM. Scans the whole
+     * list (not just the first row) so a hostile vaultName — rendered only when
+     * two vaults differ — is covered too. Returns plain data so the step file
+     * needs no Playwright page handle. */
     readPickerDom() {
       const wc = getOverlayWebContents();
       if (!wc) return null;
       return wc.executeJavaScript(`(() => {
-        const row = document.querySelector('.cred-row');
-        if (!row) return null;
+        const list = document.querySelector('.cred-list');
+        if (!list) return null;
         return {
-          text: row.textContent,
-          injected: row.querySelectorAll('img, script, b, iframe').length,
+          text: list.textContent,
+          vaults: [...list.querySelectorAll('.cred-vault')].length,
+          injected: list.querySelectorAll('img, script, b, iframe').length,
           pwned: typeof window.__pwned,
+          pwnedVault: typeof window.__pwnedVault,
         };
+      })()`);
+    },
+    /** Focus the Cancel button and press Enter, capturing the reply. Proves
+     * Enter-on-Cancel dismisses rather than selecting the highlighted row.
+     * sendCredentialPick is stubbed so no real IPC fires. */
+    pressEnterOnPickerCancel() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const calls = [];
+        const orig = window.browserAPI.sendCredentialPick;
+        window.browserAPI.sendCredentialPick = (id, index) => calls.push({ id, index });
+        try {
+          document.querySelector('.cred-cancel').focus();
+          document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        } finally {
+          window.browserAPI.sendCredentialPick = orig;
+        }
+        return calls;
       })()`);
     },
     /** Probe the panel's own controls for modal isolation. `shown` uses
@@ -1705,6 +1740,7 @@ Feature: 1Password credential picker (dev spike)
   Scenario: vault strings render as literal text
     When the credential picker is shown with hostile vault strings
     Then the picker row shows them as literal text
+    And the hostile vault name renders as literal text
     And the picker row contains no injected elements
 
   @spike-1p-picker
@@ -1712,6 +1748,12 @@ Feature: 1Password credential picker (dev spike)
     When the credential picker is shown with hostile vault strings
     Then the address bar, footer, and Settings are hidden and unfocusable
     And the Cancel button is available
+
+  @spike-1p-picker
+  Scenario: Enter on the Cancel button dismisses rather than selecting
+    When the credential picker is shown with hostile vault strings
+    And Enter is pressed while the Cancel button has focus
+    Then the reply is a dismissal, not a selection
 ```
 
 - [ ] **Step 3: Teach the config the path and the tag**
@@ -1750,11 +1792,12 @@ for line in sys.stdin:
     if 'testCase' in o: selected.add(o['testCase']['pickleId'])
 names={pickles[i] for i in selected if i in pickles}
 for target in ['vault strings render as literal text',
-               \"picker mode isolates the panel's own controls\"]:
+               \"picker mode isolates the panel's own controls\",
+               'Enter on the Cancel button dismisses rather than selecting']:
     print(target[:40], '-> parsed', target in pickles.values(), 'SELECTED', target in names)
 "
 ```
-Expected: **both scenarios `parsed True` and `SELECTED True`**. `parsed True`
+Expected: **all three scenarios `parsed True` and `SELECTED True`**. `parsed True`
 with `SELECTED False` means the feature path is wired but the tag is not in
 `RUNNABLE`; both `False` means the path itself is not in `common.paths`.
 
@@ -1771,10 +1814,15 @@ const { waitForValue } = require('../support/poll');
 const HOSTILE_TITLE = '<img src=x onerror="window.__pwned=1">';
 const HOSTILE_USER = '"><script>alert(1)</script>';
 const HOSTILE_HOST = '</span><b>x';
+const HOSTILE_VAULT = '<img src=y onerror="window.__pwnedVault=1">';
 
 When('the credential picker is shown with hostile vault strings', async function () {
+  // TWO distinct vaults, so `multiVault` is true and the .cred-vault element is
+  // actually rendered — a single row would leave the hostile vaultName
+  // unexercised. The hostile string is on the FIRST vault.
   await this.call('showCredentialPicker', [
-    { username: HOSTILE_USER, title: HOSTILE_TITLE, host: HOSTILE_HOST, vaultName: 'Personal' },
+    { username: HOSTILE_USER, title: HOSTILE_TITLE, host: HOSTILE_HOST, vaultName: HOSTILE_VAULT },
+    { username: 'second@example.test', title: 'Second', host: 'example.test', vaultName: 'Work' },
   ]);
   // showOverlay sends overlay:show ASYNCHRONOUSLY, so reading straight away can
   // observe null before the renderer has handled it — the same race
@@ -1792,9 +1840,24 @@ Then('the picker row shows them as literal text', function () {
   assert.ok(this.pickerDom.text.includes(HOSTILE_USER));
 });
 
+Then('the hostile vault name renders as literal text', function () {
+  assert.ok(this.pickerDom.vaults >= 1, 'the vault element must actually be rendered (two distinct vaults)');
+  assert.ok(this.pickerDom.text.includes(HOSTILE_VAULT), 'the hostile vault name must appear as literal characters');
+  assert.equal(this.pickerDom.pwnedVault, 'undefined', 'no handler from a hostile vault name may run');
+});
+
 Then('the picker row contains no injected elements', function () {
   assert.equal(this.pickerDom.injected, 0, 'no element may be created from vault data');
   assert.equal(this.pickerDom.pwned, 'undefined', 'no injected handler may run');
+});
+
+When('Enter is pressed while the Cancel button has focus', async function () {
+  this.pickerReplies = await this.call('pressEnterOnPickerCancel');
+});
+
+Then('the reply is a dismissal, not a selection', function () {
+  assert.deepEqual(this.pickerReplies, [{ id: 'test-request', index: null }],
+    'Enter on Cancel must send a null (dismissal) reply, not select the highlighted row');
 });
 
 Then('the address bar, footer, and Settings are hidden and unfocusable', async function () {
@@ -1826,14 +1889,15 @@ scenario appears in the selected set (if it doesn't, the tag isn't in `RUNNABLE`
 - [ ] **Step 6: Run the scenarios**
 
 Run: `npm run test:acceptance:desktop`
-Expected: both `credential-picker` scenarios pass — the XSS-inert render and the
-modal isolation.
+Expected: all three `credential-picker` scenarios pass — the XSS-inert render
+(including the hostile vault name), the modal isolation, and Enter-on-Cancel
+dismissing rather than selecting.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add spec/acceptance/credential-picker.feature test/desktop src/main/test-hook.js
-git commit -m "test(1password): adversarial real-DOM scenario for picker rendering"
+git add test/desktop/features/credential-picker.feature test/desktop src/main/test-hook.js
+git commit -m "test(1password): adversarial real-DOM scenarios for picker rendering, isolation and keyboard dismissal"
 ```
 
 ---
@@ -1908,7 +1972,9 @@ git commit -m "docs(1password): dev-usage covers ranking and the Island picker"
 - Consent copy candidate-neutral when a picker follows → Task 6 Step 9 + test. ✅
 - `dismissed` reachable from the scrim and from the picker's own cancel → Task 7 Step 4. ✅
 - Rows cleared from the renderer on hide → Task 7 Step 4. ✅
-- **Modal isolation:** picker mode hides the address bar, footer and Settings (display:none, so unfocusable) and provides its own Cancel → Task 7 Steps 3+5, asserted real-DOM in Task 8. ✅
+- **Modal isolation:** picker mode hides the address bar, footer and Settings (display:none, so unfocusable) and provides its own Cancel → Task 7 Steps 3+5, asserted real-DOM in Task 8; a capture-phase `document` click guard is defense-in-depth against CSS regression. ✅
+- **Enter on Cancel dismisses** (not selects the highlighted row) → Task 7 Step 4 `onCancel` branch, asserted real-DOM in Task 8. ✅
+- **Hostile `vaultName` is exercised** — two distinct vaults so the `.cred-vault` element renders, first name hostile, asserted literal → Task 8. ✅
 - **Window close settles the picker before resetting `overlayMode`**, so vault rows don't survive a dock reopen → Task 6 (wired + ordering test). ✅
 - `textContent`-only + source guard + real-DOM scenario → Tasks 7 and 8. ✅
 - Truncation line → Task 7 Step 3. ✅
