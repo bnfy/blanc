@@ -1200,11 +1200,18 @@ This matters for the partial-show recovery too: the controller's
 
 **(e)** Scope both call sites — an unrelated background tab closing must not
 cancel a live picker. In `setActiveTab`, place it **after** the same-tab early
-return so only a genuine switch settles:
+return so only a genuine switch settles — and guard on `activeTabId !== null`,
+because the window's `did-finish-load` re-attach nulls `activeTabId` and calls
+`setActiveTab(sameId)` to force a fresh attach. That is an initial attach, not a
+tab change; without the guard it settles the picker `'tab-changed'`. Harmless in
+production (no picker exists at window creation) but it tears down a picker in a
+test that runs right after launch:
 
 ```js
   // (after the `if (id === activeTabId) return;`-style no-op guard)
-  pickerController.settle(null, 'tab-changed');
+  // Only a switch FROM a real tab settles — the initial re-attach (activeTabId
+  // nulled by did-finish-load) is not a tab change.
+  if (activeTabId !== null) pickerController.settle(null, 'tab-changed');
 ```
 
 In `closeTab`, settle only when the tab being closed is the one the picker
@@ -1717,6 +1724,7 @@ the assertion can be separate steps:
         const list = document.querySelector('.cred-list');
         if (!list) return null;
         return {
+          rows: list.querySelectorAll('.cred-row').length,
           text: list.textContent,
           vaults: [...list.querySelectorAll('.cred-vault')].length,
           injected: list.querySelectorAll('img, script, b, iframe').length,
@@ -1897,9 +1905,23 @@ const HOSTILE_HOST = '</span><b>x';
 const HOSTILE_VAULT = '<img src=y onerror="window.__pwnedVault=1">';
 
 async function startAndRender(world, rows, truncated = 0) {
+  // The established overlay-sync pattern (see support/poll.js openOverlaySurface):
+  // reset()'s overlay:hide is processed by the renderer ASYNCHRONOUSLY, so a bare
+  // readPickerDom could observe the PRIOR scenario's picker (a stale requestId)
+  // before the hide/show cycle completes. Close, wait for the renderer to leave
+  // its mode, start, then wait for credential-picker mode AND the NEW fixture.
+  await world.call('closeOverlay');
+  await waitForValue(() => world.call('overlayRendererMode'), (m) => m == null,
+    'overlay renderer to leave the previous picker');
   await world.call('startCredentialPick', rows, truncated);
-  // showOverlay sends overlay:show asynchronously — poll until the rows render.
-  await waitForValue(() => world.call('readPickerDom'), (d) => d !== null, 'picker rows to render');
+  const expectedRows = rows.length;
+  const firstUser = rows[0].username;
+  await waitForValue(
+    async () => ({ mode: await world.call('overlayRendererMode'), dom: await world.call('readPickerDom') }),
+    (v) => v.mode === 'credential-picker' && v.dom
+      && v.dom.rows === expectedRows && v.dom.text.includes(firstUser),
+    'the new picker fixture to render (mode + row count + first username)',
+  );
 }
 
 When('the credential picker is requested with two rows', async function () {

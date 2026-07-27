@@ -346,7 +346,7 @@ function install(refs) {
       return wc.executeJavaScript(`(() => {
         const rows = document.querySelectorAll('.cred-row');
         if (!rows[${JSON.stringify(index)}]) throw new Error('no picker row at index ' + ${JSON.stringify(index)});
-        rows[${JSON.stringify(index)}].click(); // real click -> choosePicker -> real IPC
+        rows[${JSON.stringify(index)}].click();
         return true;
       })()`);
     },
@@ -370,6 +370,7 @@ function install(refs) {
         const list = document.querySelector('.cred-list');
         if (!list) return null;
         return {
+          rows: list.querySelectorAll('.cred-row').length,
           text: list.textContent,
           vaults: [...list.querySelectorAll('.cred-vault')].length,
           injected: list.querySelectorAll('img, script, b, iframe').length,

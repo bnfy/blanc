@@ -2065,9 +2065,13 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // Re-selecting the active tab is a no-op.
   if (id === activeTabId) return;
 
-  // A genuine switch cancels a live picker (this sits AFTER the no-op above, so
-  // re-selecting the same tab doesn't).
-  pickerController.settle(null, 'tab-changed');
+  // A genuine switch cancels a live picker — but only a switch FROM a real tab.
+  // The window's did-finish-load re-attach nulls activeTabId to force a fresh
+  // attach of the same tab; that is an initial attach, not a tab change, and
+  // must not settle a picker (harmless in production, where no picker exists at
+  // window creation — but in tests a picker scenario running right after launch
+  // would otherwise be torn down by that deferred re-attach).
+  if (activeTabId !== null) pickerController.settle(null, 'tab-changed');
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.

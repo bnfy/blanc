@@ -9,9 +9,23 @@ const HOSTILE_HOST = '</span><b>x';
 const HOSTILE_VAULT = '<img src=y onerror="window.__pwnedVault=1">';
 
 async function startAndRender(world, rows, truncated = 0) {
+  // The established overlay-sync pattern (see support/poll.js openOverlaySurface):
+  // reset()'s overlay:hide is processed by the renderer ASYNCHRONOUSLY, so a bare
+  // readPickerDom could observe the PRIOR scenario's picker (a stale requestId)
+  // before the hide/show cycle completes. Close, wait for the renderer to leave
+  // its mode, start, then wait for credential-picker mode AND the NEW fixture.
+  await world.call('closeOverlay');
+  await waitForValue(() => world.call('overlayRendererMode'), (m) => m == null,
+    'overlay renderer to leave the previous picker');
   await world.call('startCredentialPick', rows, truncated);
-  // showOverlay sends overlay:show asynchronously — poll until the rows render.
-  await waitForValue(() => world.call('readPickerDom'), (d) => d !== null, 'picker rows to render');
+  const expectedRows = rows.length;
+  const firstUser = rows[0].username;
+  await waitForValue(
+    async () => ({ mode: await world.call('overlayRendererMode'), dom: await world.call('readPickerDom') }),
+    (v) => v.mode === 'credential-picker' && v.dom
+      && v.dom.rows === expectedRows && v.dom.text.includes(firstUser),
+    'the new picker fixture to render (mode + row count + first username)',
+  );
 }
 
 When('the credential picker is requested with two rows', async function () {
