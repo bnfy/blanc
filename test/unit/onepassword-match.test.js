@@ -969,3 +969,133 @@ test('T5: a FAILED focus restoration aborts before decrypting', () => {
   assert.ok(firstGate > -1 && firstGate < reveal,
     'focus must be confirmed restored BEFORE revealCredential');
 });
+
+// ===========================================================================
+// Credential picker — ranking
+// ===========================================================================
+const { tierOf, rankMatches, PICKER_MAX } = require('../../src/main/onepassword');
+
+/** Candidate factory. `hosts` are already normalized, as findLogins emits them. */
+function cnd(over = {}) {
+  return {
+    vaultId: 'v1', vaultName: 'Personal', itemId: 'i' + Math.random().toString(36).slice(2),
+    title: 'google.com', hosts: ['google.com'], updatedAt: new Date('2026-07-12T19:01:42Z'),
+    ...over,
+  };
+}
+
+test('tierOf: exact host is tier 1', () => {
+  assert.equal(tierOf('accounts.google.com', 'accounts.google.com'), 1);
+});
+
+test('tierOf: page is a subdomain of the item host -> tier 2', () => {
+  assert.equal(tierOf('google.com', 'accounts.google.com'), 2);
+});
+
+test('tierOf: sibling subdomain -> tier 3', () => {
+  assert.equal(tierOf('mail.google.com', 'accounts.google.com'), 3);
+});
+
+test('tierOf: different registrable domain -> null', () => {
+  assert.equal(tierOf('example.com', 'google.com'), null);
+});
+
+test('tierOf: a partial label is not a subdomain match', () => {
+  // "notgoogle.com" must not read as a subdomain of "google.com".
+  assert.equal(tierOf('google.com', 'notgoogle.com'), null);
+});
+
+test('rankMatches: keeps ONLY the best tier', () => {
+  const r = rankMatches([
+    cnd({ itemId: 'a', hosts: ['mail.google.com'] }),        // tier 3
+    cnd({ itemId: 'b', hosts: ['google.com'] }),             // tier 2
+    cnd({ itemId: 'c', hosts: ['accounts.google.com'] }),    // tier 1
+  ], 'accounts.google.com');
+  assert.equal(r.tier, 1);
+  assert.deepEqual(r.kept.map((k) => k.itemId), ['c']);
+  assert.equal(r.truncated, 0);
+});
+
+test('rankMatches: resolves the host that earned the tier', () => {
+  const r = rankMatches([cnd({ hosts: ['zz.google.com', 'accounts.google.com'] })], 'accounts.google.com');
+  assert.equal(r.kept[0].host, 'accounts.google.com');
+});
+
+test('rankMatches: equal-tier hosts resolve to the lexicographically smallest', () => {
+  // Both are tier 3; the displayed host must not depend on array order.
+  const a = rankMatches([cnd({ hosts: ['zz.google.com', 'aa.google.com'] })], 'accounts.google.com');
+  const b = rankMatches([cnd({ hosts: ['aa.google.com', 'zz.google.com'] })], 'accounts.google.com');
+  assert.equal(a.kept[0].host, 'aa.google.com');
+  assert.equal(b.kept[0].host, 'aa.google.com');
+});
+
+test('rankMatches: sorts by updatedAt descending', () => {
+  const r = rankMatches([
+    cnd({ itemId: 'old', updatedAt: new Date('2020-01-01') }),
+    cnd({ itemId: 'new', updatedAt: new Date('2026-01-01') }),
+  ], 'google.com');
+  assert.deepEqual(r.kept.map((k) => k.itemId), ['new', 'old']);
+});
+
+test('rankMatches: identical updatedAt is broken deterministically', () => {
+  // This vault's items were bulk-imported and share a timestamp to the second,
+  // so the comparator must fall through to title -> host -> itemId.
+  const same = new Date('2026-07-12T19:01:42Z');
+  const input = [
+    cnd({ itemId: 'i3', title: 'b', hosts: ['google.com'], updatedAt: same }),
+    cnd({ itemId: 'i1', title: 'a', hosts: ['google.com'], updatedAt: same }),
+    cnd({ itemId: 'i2', title: 'a', hosts: ['google.com'], updatedAt: same }),
+  ];
+  const forward = rankMatches(input, 'google.com').kept.map((k) => k.itemId);
+  const reversed = rankMatches([...input].reverse(), 'google.com').kept.map((k) => k.itemId);
+  assert.deepEqual(forward, ['i1', 'i2', 'i3']);
+  assert.deepEqual(reversed, forward, 'input order must not affect the result');
+});
+
+test('rankMatches: caps at PICKER_MAX and reports the remainder', () => {
+  const input = Array.from({ length: 17 }, (_, n) =>
+    cnd({ itemId: 'i' + String(n).padStart(2, '0'), hosts: ['google.com'] }));
+  const r = rankMatches(input, 'google.com');
+  assert.equal(PICKER_MAX, 10);
+  assert.equal(r.kept.length, 10);
+  assert.equal(r.truncated, input.length - 10);
+});
+
+test('rankMatches: no candidate reaches a tier -> empty, defensive', () => {
+  const r = rankMatches([cnd({ hosts: ['example.com'] })], 'google.com');
+  assert.deepEqual(r.kept, []);
+  assert.equal(r.tier, null);
+  assert.equal(r.truncated, 0);
+});
+
+test('rankMatches: empty input is safe', () => {
+  assert.deepEqual(rankMatches([], 'google.com'), { tier: null, kept: [], truncated: 0 });
+});
+
+test('rankMatches: real-vault shape — www.google.com collapses to one', () => {
+  // Derived from the 2026-07-27 vault probe: one item saved for google.com,
+  // the rest for accounts.google.com / mail.google.com.
+  const input = [
+    cnd({ itemId: 'bare', hosts: ['google.com'] }),
+    ...Array.from({ length: 17 }, (_, n) => cnd({ itemId: 'acc' + n, hosts: ['accounts.google.com'] })),
+    cnd({ itemId: 'mail', hosts: ['mail.google.com'] }),
+  ];
+  // Pass the RAW page host so normalization is exercised end-to-end rather than
+  // pre-applied by the test. normalizeHost strips a leading `www.`, so this
+  // reduces to `google.com` and the bare item is tier 1.
+  const r = rankMatches(input, 'www.google.com');
+  assert.equal(r.tier, 1);
+  assert.deepEqual(r.kept.map((k) => k.itemId), ['bare'], 'ranking must remove the picker here');
+});
+
+test('rankMatches: real-vault shape — accounts.google.com keeps only tier 1, capped', () => {
+  const tier1 = Array.from({ length: 17 }, (_, n) =>
+    cnd({ itemId: 'acc' + String(n).padStart(2, '0'), hosts: ['accounts.google.com'] }));
+  const input = [cnd({ itemId: 'bare', hosts: ['google.com'] }), ...tier1,
+    cnd({ itemId: 'mail', hosts: ['mail.google.com'] })];
+  const r = rankMatches(input, 'accounts.google.com');
+  assert.equal(r.tier, 1);
+  assert.equal(r.kept.length, PICKER_MAX);
+  assert.equal(r.truncated, tier1.length - PICKER_MAX);
+  assert.ok(r.kept.every((k) => k.itemId.startsWith('acc')), 'no tier-2 or tier-3 item may survive');
+});

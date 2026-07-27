@@ -44,6 +44,67 @@ function matchesHost(itemUrls, host) {
   });
 }
 
+/** How many candidates the picker may show — and therefore the maximum number
+ * of items whose usernames are decrypted. */
+const PICKER_MAX = 10;
+
+/** How well an item's website host fits the page. Lower is better.
+ *   1 — the same host
+ *   2 — the item covers the page's parent domain (item google.com, page accounts.google.com)
+ *   3 — same registrable domain, unrelated subdomain (item mail.google.com)
+ *   null — unrelated (matchesHost should already have excluded these)
+ * Both arguments are expected to be normalizeHost output. */
+function tierOf(itemHost, pageHost) {
+  if (!itemHost || !pageHost) return null;
+  if (itemHost === pageHost) return 1;
+  // The leading dot matters: "notgoogle.com" must not read as a subdomain of
+  // "google.com".
+  if (pageHost.endsWith('.' + itemHost)) return 2;
+  if (registrableKey(itemHost) === registrableKey(pageHost)) return 3;
+  return null;
+}
+
+/** Keep only the best-fitting tier of candidates, deterministically ordered and
+ * capped. One survivor means no picker is needed at all — which is the point: a
+ * registrable-domain match otherwise drags in a site's whole item family. */
+function rankMatches(candidates, pageHost) {
+  const page = normalizeHost(pageHost);
+  const scored = [];
+  for (const c of Array.isArray(candidates) ? candidates : []) {
+    let best = null;
+    let bestHost = null;
+    for (const h of Array.isArray(c.hosts) ? c.hosts : []) {
+      const t = tierOf(h, page);
+      if (t === null) continue;
+      // Equal tiers resolve to the lexicographically smaller host so the
+      // displayed value doesn't depend on array order.
+      if (best === null || t < best || (t === best && h < bestHost)) {
+        best = t;
+        bestHost = h;
+      }
+    }
+    if (best !== null) scored.push({ ...c, tier: best, host: bestHost });
+  }
+  if (!scored.length) return { tier: null, kept: [], truncated: 0 };
+
+  const tier = Math.min(...scored.map((s) => s.tier));
+  const inTier = scored.filter((s) => s.tier === tier);
+
+  // Deterministic total order. updatedAt alone is not enough: bulk-imported
+  // items share a timestamp to the second, which would leave the surviving
+  // PICKER_MAX at the mercy of SDK listing order.
+  inTier.sort((a, b) => {
+    const at = a.updatedAt instanceof Date ? a.updatedAt.getTime() : 0;
+    const bt = b.updatedAt instanceof Date ? b.updatedAt.getTime() : 0;
+    if (at !== bt) return bt - at;                                  // newest first
+    if (a.title !== b.title) return String(a.title) < String(b.title) ? -1 : 1;
+    if (a.host !== b.host) return a.host < b.host ? -1 : 1;
+    return String(a.itemId) < String(b.itemId) ? -1 : 1;
+  });
+
+  return { tier, kept: inTier.slice(0, PICKER_MAX), truncated: Math.max(0, inTier.length - PICKER_MAX) };
+}
+
 /* ---------------------------------------------------------------------------
  * Field selection. These helpers are embedded into the injected script(s) via
  * Function.prototype.toString(), so they must stay self-contained (no module
@@ -586,4 +647,4 @@ function probePackageLoad() {
   require('@1password/sdk'); // lazy — the only other place this is required
 }
 
-module.exports = { matchesHost, selectFields, FORMLIKE_OWNER_SELECTOR, buildInspectScript, buildFillScript, getClient, findLogins, revealCredential, probePackageLoad };
+module.exports = { matchesHost, PICKER_MAX, tierOf, rankMatches, selectFields, FORMLIKE_OWNER_SELECTOR, buildInspectScript, buildFillScript, getClient, findLogins, revealCredential, probePackageLoad };
