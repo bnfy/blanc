@@ -1,13 +1,13 @@
 # Blanc 1.0 — five-minute reviewer guide
 
-This guide applies to Blanc 1.0.0-rc.1 for Apple Silicon. Distribute it only
+This guide applies to Blanc 1.0.0-rc.2 for Apple Silicon. Distribute it only
 after that exact candidate has been signed, notarized, stapled, hashed, and
 published. For the product's explicit boundaries, read
 [known limitations](./known-limitations.md).
 
 ## Before opening Blanc
 
-1. Download `Blanc-1.0.0-rc.1-arm64.dmg` and `SHA256SUMS` from the unlisted
+1. Download `Blanc-1.0.0-rc.2-arm64.dmg` and `SHA256SUMS` from the unlisted
    reviewer page.
 2. Verify the DMG hash against the checksum file.
 3. Drag Blanc to Applications and launch it normally. The build should open
@@ -43,6 +43,19 @@ Try:
 - `/group review` to name the current tab's group;
 - `/private` to open a private tab;
 - `/find` to open the compact find capsule.
+
+New in rc.2, right-click the expanded Island's address field. Alongside the
+standard editing items it offers two Blanc actions:
+
+- **Copy Clean Link** copies the visible address with known tracking
+  parameters removed. Load a URL carrying `utm_*` values or a `fbclid`/`gclid`
+  and confirm they are gone while every other parameter survives byte-for-byte
+  in its original order. The item is disabled when the field does not hold an
+  http(s) URL.
+- **Paste and Go** navigates to the clipboard through the same pipeline as a
+  typed address — search-versus-address detection and OS hand-off for
+  `mailto:`-style links included — then closes the Island. Compare it against
+  pasting manually and pressing Enter; the two paths should agree.
 
 ## Minute 3 — optional vertical tabs
 
@@ -82,6 +95,14 @@ history, session restore, or reopen-closed. Closing the chip is the quick exit.
 Open Favorites, History, Downloads, Settings, or Shortcuts. These utilities
 appear as a temporary sheet over the current page rather than consuming tabs.
 Dismiss with Escape or the scrim.
+
+Also new in rc.2: right-click a page's background and choose **View Page
+Source**. Blanc opens Chromium's own syntax-highlighted source view in a new
+tab rather than navigating the current one, so Back never loses your place.
+The item appears for http(s) pages only — local files and Blanc's own
+`blanc://` pages are deliberately out of scope. On a normal tab the Island
+carries a source chip to close the view; on a private tab the existing
+`private` chip already does that job.
 
 That interaction is the product thesis in miniature: browser tools should be
 present when requested and absent when the page is the task.

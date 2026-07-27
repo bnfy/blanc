@@ -1,13 +1,13 @@
 # Blanc 1.0 press-build limitations
 
-Last updated: July 24, 2026
+Last updated: July 27, 2026
 
 These are product boundaries, not buried footnotes. Reviewers should evaluate
 the release candidate with them in view.
 
 ## Release-candidate availability
 
-- The `v1.0.0-rc.1` press build is for **Apple Silicon Macs only**.
+- The `v1.0.0-rc.2` press build is for **Apple Silicon Macs only**.
 - Intel macOS, Windows, Linux, iPhone, iPad, and Android will not be included
   in this candidate.
 - A platform will not be added to the launch claim merely because a package can
@@ -29,6 +29,28 @@ the release candidate with them in view.
 - There is no mobile app in this release.
 - The typed-address classifier is intentionally lightweight and can
   misclassify unusual dotted search text as a domain.
+
+## Address-bar menu and page source (new in rc.2)
+
+- The address field's context menu is **pointer-invoked on macOS**. Copy Clean
+  Link and Paste and Go have no keyboard-only path on the shipped platform;
+  the menu handles keyboard invocation where the OS sends it, and macOS has no
+  Shift-F10 or menu-key convention to send.
+- **Copy Clean Link is a curated remover, not a general one.** It strips the
+  `utm_` prefix family plus a short, explicit list of click identifiers
+  (`fbclid`, `gclid`, `dclid`, `gbraid`, `wbraid`, `msclkid`, `ttclid`,
+  `twclid`, `igshid`, `yclid`, `mc_eid`, `_openstat`, `vero_id`, `s_cid`).
+  Generic or site-specific tracking parameters are left alone on purpose:
+  over-stripping silently breaks links, which is worse than leaving one
+  parameter behind, and domain-scoped rules are machinery this release does
+  not carry. It offers no protection against tracking that does not live in a
+  query parameter.
+- Copy Clean Link acts only on http(s) URLs; the item is disabled otherwise.
+  Surviving parameters keep their original order and encoding byte-for-byte,
+  so signed URLs are not corrupted.
+- **View Page Source is http(s) only.** It will not open a source view for
+  local files or for Blanc's own `blanc://` internal pages. That restriction
+  is a boundary, not an oversight.
 
 ## Privacy and network behavior
 
