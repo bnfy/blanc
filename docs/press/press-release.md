@@ -56,6 +56,6 @@ instead of a conventional horizontal tab strip and toolbar. Learn more at
 
 ### Press contact
 
-Anthony Loria<br>
-Bananify / Blanc Browser<br>
+Bananify<br>
+Publisher of Blanc Browser<br>
 [support@blancbrowser.com](mailto:support@blancbrowser.com)

@@ -28,7 +28,6 @@ extension runtime.
 | Blocking | EasyList + EasyPrivacy through a browser-level request blocker and cosmetic filtering |
 | Sync | Optional, passphrase-derived end-to-end encryption for Favorites and eligible settings (search engine, blocking state and exceptions, home page, and theme); open-tab sharing is a separate per-device opt-in |
 | Publisher | Bananify |
-| Release owner | Anthony Loria |
 | Website | [blancbrowser.com](https://blancbrowser.com) |
 | Press/support/security contact | [support@blancbrowser.com](mailto:support@blancbrowser.com) |
 
