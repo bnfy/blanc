@@ -1087,7 +1087,18 @@ body[data-mode="credential-picker"] .panel-row,
 body[data-mode="credential-picker"] #islandFooter,
 body[data-mode="credential-picker"] #islandHint { display: none; }
 
-.cred-list { display: flex; flex-direction: column; gap: 2px; }
+.cred-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  /* Cap to the overlay viewport so a full 10-row picker can't overflow a short
+     window (e.g. 640×480) — body is overflow:hidden, so without this the last
+     rows and Cancel would be clipped and unreachable. The budget covers the
+     12px anchor offset, the panel's padding, and a bottom margin; anything
+     past it scrolls, keeping every row and Cancel reachable. */
+  max-height: calc(100vh - 56px);
+  overflow-y: auto;
+}
 .cred-row {
   display: grid;
   grid-template-columns: 1fr auto;
