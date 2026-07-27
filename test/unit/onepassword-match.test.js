@@ -335,13 +335,17 @@ test('AUDIT P3: explicit autocomplete=username beats an adjacent unmarked field'
   assert.equal(r.usernameIndex, 0);
 });
 
-test('AUDIT P4: on a form-less SPA page, focus cannot beat login evidence', () => {
+test('AUDIT P4: on a form-less SPA page, focus cannot steer the username', () => {
+  // Form-less inputs all share formKey null, which is the ABSENCE of a scope —
+  // so the username is declined outright and only the password is filled. Task
+  // 4's adapter restores username filling here by deriving a real container
+  // key for form-less inputs; until then this is the safe behavior.
   const r = selectFields([
     cand(0, { name: 'couponCode', placeholder: 'Coupon', isFocused: true }),
     cand(1, { name: 'username', autocomplete: 'username' }),
     cand(2, { type: 'password', autocomplete: 'current-password' }),
   ]);
-  assert.deepEqual(pick(r), { passwordIndex: 2, usernameIndex: 1 });
+  assert.deepEqual(pick(r), { passwordIndex: 2, usernameIndex: null });
 });
 
 test('AUDIT P5: non-string attributes do not throw', () => {
@@ -610,4 +614,24 @@ test('AUDIT4: basis is reported on the adversarial signup fixtures too', () => {
     cand(0, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
   ]);
   assert.equal(annotated.passwordBasis, 'authoritative');
+});
+
+test('AUDIT5: form-less scope fills the password only, even for a unique username', () => {
+  // A UNIQUE higher-ranked candidate in another form-less widget is still a
+  // different widget — uniqueness is not membership.
+  const r = selectFields([
+    cand(0, { name: 'user1' }),
+    cand(1, { type: 'password', autocomplete: 'current-password' }),
+    cand(2, { name: 'u2', autocomplete: 'username' }),
+  ]);
+  assert.equal(r.passwordIndex, 1);
+  assert.equal(r.usernameIndex, null);
+});
+
+test('AUDIT5: a real form scope still fills both fields', () => {
+  const r = selectFields([
+    cand(0, { name: 'u', autocomplete: 'username', formKey: 1 }),
+    cand(1, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
+  ]);
+  assert.deepEqual(pick(r), { passwordIndex: 1, usernameIndex: 0 });
 });

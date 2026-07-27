@@ -269,14 +269,18 @@ function selectFields(cands) {
   const bestRank = inScope.reduce((m, c) => Math.max(m, usernameRank(c)), 0);
   let usernameIndex = null;
 
-  if (bestRank > 0) {
+  if (pw && pw.formKey === null) {
+    // Form-less password scope: `null` is not a boundary, it is the ABSENCE of
+    // one — every form-less input on the page shares it, so any username we
+    // picked could belong to an unrelated widget. Fill the password only.
+    // (Lifting this needs real container identity from the adapter, not a
+    // better tie-break: uniqueness of a candidate says nothing about whether it
+    // belongs to the same widget.)
+    usernameIndex = null;
+  } else if (bestRank > 0) {
     const pool = inScope.filter((c) => usernameRank(c) === bestRank);
     if (pool.length === 1) {
       usernameIndex = pool[0].i;
-    } else if (pw && pw.formKey === null) {
-      // Form-less scope: `null` is not a boundary, it is the absence of one, so
-      // a tie here may span unrelated widgets. Decline rather than guess.
-      usernameIndex = null;
     } else {
       const focused = pool.find((c) => c.isFocused);
       if (focused) usernameIndex = focused.i;

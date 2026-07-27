@@ -141,7 +141,14 @@ is exported for tests.
 
 - **`collectCandidates()`** (DOM adapter, in page) — ordered array of `input`
   descriptors in document order:
-  `{ i, type, autocomplete, name, id, placeholder, ariaLabel, formKey, isVisible, isFocused, inSearchScope }`.
+  `{ i, type, autocomplete, name, id, placeholder, ariaLabel, labelText, formText, formKey, isVisible, isFocused, inSearchScope }`.
+  `labelText` is **field-local** (own/wrapping `<label>`); `formText` is
+  **scope-level** (submit-button copy, form name/id) and is read only by
+  `scopeLooksLikeSignup`/`scopeLooksLikeLogin` — mixing them lets one button's
+  wording contaminate every field's evidence. `formKey` is a real `<form>` where
+  one exists, else a nearest-widget-container key; only truly orphaned inputs
+  stay `null`, and a `null` password scope fills the **password only** (the
+  absence of a boundary is not a boundary).
   `type`/`autocomplete` lowercased; `isVisible` = `offsetParent !== null` +
   non-zero client rect + not `type="hidden"`; `isFocused` = `=== document.activeElement`;
   `inSearchScope` = inside a `[role="search"]`. **`formKey`** = a stable index

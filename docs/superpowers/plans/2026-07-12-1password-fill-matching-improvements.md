@@ -132,6 +132,45 @@ Three failure modes, all of which must stop the plan rather than be worked aroun
 
 In the last case do **not** invent a sentinel/readback workaround — record the result in the spec's *Isolated-world return plumbing* risk bullet and stop; Tasks 4–5 need revision first. (Quit the app when done.)
 
+- [ ] **Step 4b: Probe isolated-world PERSISTENCE (the nonce design depends on it)**
+
+The Task 4/5 binding assumes two separate `executeJavaScriptInIsolatedWorld`
+calls share one realm — that call two sees call one's `globalThis.__blancFill`
+**and the identical element wrapper**, and that a navigation clears it. None of
+that is proven by Step 3's single call. Extend the temporary probe:
+
+```js
+      probeWin.webContents.once('did-finish-load', async () => {
+        const W = 1001;
+        const ex = (code) => probeWin.webContents.executeJavaScriptInIsolatedWorld(W, [{ code }]);
+        try {
+          await ex('globalThis.__probe = { el: document.body, n: "abc" }; 1;');
+          const r = await ex(
+            '(function(){ var p = globalThis.__probe; return { seen: !!p, sameEl: !!p && p.el === document.body, n: p && p.n }; })();'
+          );
+          console.log('[1p-probe] persistence:', JSON.stringify(r));
+          await probeWin.webContents.loadURL('about:blank');
+          const after = await ex('(function(){ return { seen: !!globalThis.__probe }; })();');
+          console.log('[1p-probe] after-nav:', JSON.stringify(after));
+        } catch (e) {
+          console.error('[1p-probe] FAIL — threw:', e?.message);
+        }
+      });
+```
+
+Run: `BLANC_1P_PROBE=1 npm start`
+Expected:
+```
+[1p-probe] persistence: {"seen":true,"sameEl":true,"n":"abc"}
+[1p-probe] after-nav: {"seen":false}
+```
+`sameEl:true` is the load-bearing result — the binding compares element
+references across calls. If `seen` is false, or `sameEl` is false, **stop**: the
+nonce/element protocol cannot work as designed and Tasks 4–5 need rework (a
+DOM-fingerprint comparison instead of reference identity). If `after-nav` still
+reports `seen:true`, the state outlives documents and the fill must also verify
+`document` identity, not just the nonce.
+
 - [ ] **Step 5: Remove the probe**
 
 Delete the temporary probe block added in Step 3.
@@ -680,10 +719,17 @@ function collectCandidates() {
   var out = [];
   for (var i = 0; i < inputs.length; i++) {
     var el = inputs[i];
+    // Scope identity. A real <form> is authoritative. Form-less inputs (common
+    // in SPA logins) would otherwise ALL share the null scope, which is the
+    // absence of a boundary — selectFields then fills the password only. Derive
+    // a container key instead: the nearest plausible widget ancestor. Only
+    // inputs with no such ancestor stay null.
     var key = null;
-    if (el.form) {
-      if (!formKeys.has(el.form)) formKeys.set(el.form, formKeys.size);
-      key = formKeys.get(el.form);
+    var owner = el.form
+      || el.closest('[role=form], fieldset, dialog, section, article, [class*=login i], [class*=signin i], [class*=auth i], [id*=login i], [id*=signin i]');
+    if (owner) {
+      if (!formKeys.has(owner)) formKeys.set(owner, formKeys.size);
+      key = formKeys.get(owner);
     }
     // Visibility must account for CSS: opacity:0 / visibility:hidden fields can
     // still report an offsetParent and a non-zero rect, so an invisible decoy
@@ -693,8 +739,14 @@ function collectCandidates() {
     var visible = true;
     if (el.type === 'hidden' || el.offsetParent === null) {
       visible = false;
-    } else if (typeof el.checkVisibility === 'function') {
-      visible = el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
+    } else {
+      // checkVisibility (where available) covers opacity/visibility/content-
+      // visibility; the geometry + ancestor-clipping checks below run in BOTH
+      // branches, because a positive-size field can still be parked off-screen
+      // or clipped away by an ancestor.
+      visible = typeof el.checkVisibility === 'function'
+        ? el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+        : true;
       if (visible) {
         // checkVisibility still reports TRUE for a positive-size field parked
         // off-screen (left:-10000px, translateX(-10000px)) or clipped away, so
@@ -711,11 +763,25 @@ function collectCandidates() {
           var cs = getComputedStyle(el);
           clipped = (cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto');
         } catch (e) { clipped = false; }
+        // Ancestor clipping: an overflow:hidden / clipped ancestor can hide a
+        // positive-size input entirely. Conservatively require the field's rect
+        // to intersect every scrollable/clipping ancestor's rect.
+        var anc = el.parentElement;
+        var hops = 0;
+        while (anc && hops++ < 20 && onScreen && !clipped) {
+          var acs = null;
+          try { acs = getComputedStyle(anc); } catch (e) { acs = null; }
+          if (acs && (acs.overflow !== 'visible' || (acs.clipPath && acs.clipPath !== 'none'))) {
+            var ar = anc.getBoundingClientRect();
+            if (ar.width === 0 || ar.height === 0
+              || rc.right <= ar.left || rc.left >= ar.right
+              || rc.bottom <= ar.top || rc.top >= ar.bottom) { onScreen = false; }
+            if (acs.clipPath && acs.clipPath !== 'none') clipped = true;
+          }
+          anc = anc.parentElement;
+        }
         visible = onScreen && !clipped;
       }
-    } else {
-      var r = el.getBoundingClientRect();
-      visible = r.width > 0 && r.height > 0;
     }
     out.push({
       i: i,
@@ -725,20 +791,25 @@ function collectCandidates() {
       id: el.id || '',
       placeholder: el.getAttribute('placeholder') || '',
       ariaLabel: el.getAttribute('aria-label') || '',
-      // Visible copy, not just attributes: a great many signup forms use
-      // generic input names ("password") and put "Create a password" / "Sign
-      // up" in the <label> or submit button. Without this text the negative
-      // evidence in selectFields sees nothing and the form reads as a login.
+      // FIELD-LOCAL copy only — the field's own <label>(s) and any wrapping
+      // label. Submit-button text must NOT go here: one "Log in" button would
+      // otherwise promote every field in the form to username evidence, and one
+      // "Confirm" button would disqualify a legitimate current-password field.
       labelText: (function () {
         var parts = [];
         var labels = el.labels || [];
         for (var li = 0; li < labels.length; li++) parts.push(labels[li].textContent || '');
         var wrap = el.closest('label');
         if (wrap) parts.push(wrap.textContent || '');
-        if (el.form) {
-          var submit = el.form.querySelector('button[type=submit], input[type=submit], button:not([type])');
-          if (submit) parts.push(submit.textContent || submit.value || '');
-        }
+        return parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+      })(),
+      // SCOPE-LEVEL copy, consumed only by scopeLooksLikeSignup /
+      // scopeLooksLikeLogin: the form's submit button and its name/id.
+      formText: (function () {
+        if (!el.form) return '';
+        var parts = [el.form.getAttribute('name') || '', el.form.getAttribute('id') || ''];
+        var submit = el.form.querySelector('button[type=submit], input[type=submit], button:not([type])');
+        if (submit) parts.push(submit.textContent || submit.value || '');
         return parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 200);
       })(),
       formKey: key,
@@ -760,7 +831,8 @@ function sharedSelectionSource() {
   return [
     candBlob, acHas, isSearchLike, isNewsletterLike, loginEvidence,
     isUsernameCandidate, isFillablePassword, isAuthoritativeCurrent,
-    isNewPasswordish, scopeLooksLikeSignup, pickPasswordInScope, usernameRank,
+    isNewPasswordish, scopeBlob, scopeLooksLikeSignup, scopeLooksLikeLogin,
+    pickPasswordInScope, usernameRank,
     selectFields, collectCandidates,
   ]
     .map((fn) => fn.toString())
@@ -808,6 +880,24 @@ assert.equal(out.originMismatch, false);
 assert.equal(out.hasPassword, true, 'the fixture must exercise the password path');
 assert.equal(out.passwordBasis, 'authoritative');
 // Repeat for buildFillScript so both generated sources are proven to evaluate.
+
+// REQUIRED: a committed two-pass test over ONE persistent vm.Context, mirroring
+// the real isolated world. It must cover, at minimum:
+//   1. unchanged DOM            -> fills, filledPass true
+//   2. password element replaced -> selectionChanged true, NOTHING written
+//   3. basis changes (annotated field swapped for an unannotated one)
+//                                -> selectionChanged true
+//   4. nonce mismatch            -> selectionChanged true
+//   5. replay: running the fill source twice -> second run selectionChanged
+//      (the stash is single-use)
+// Assert in every failure case that setNative was never called — a status flag
+// alone does not prove the credential stayed out of the DOM.
+const ctx = vm.createContext(sandbox);
+vm.runInContext(buildInspectScript({ ...args, nonce: 'n1' }), ctx);
+const filled = vm.runInContext(buildFillScript({ ...args, nonce: 'n1', username: 'u', password: 'p' }), ctx);
+assert.equal(filled.filledPass, true);
+const replay = vm.runInContext(buildFillScript({ ...args, nonce: 'n1', username: 'u', password: 'p' }), ctx);
+assert.equal(replay.selectionChanged, true, 'the authorization stash must be single-use');
 ```
 
 - [ ] **Step 4: Add `buildInspectScript` and rewrite `buildFillScript`**
@@ -817,7 +907,8 @@ Replace the entire existing `buildFillScript` function **and its JSDoc block** (
 ```js
 /** Credential-FREE inspection source. Reports only whether fillable fields
  * exist, so the main process can decide which credential (if any) to send. */
-function buildInspectScript({ expectedURL, expectedTimeOrigin }) {
+function buildInspectScript({ expectedURL, expectedTimeOrigin, nonce }) {
+  if (typeof nonce !== 'string' || !nonce) throw new Error('buildInspectScript requires a nonce');
   const U = JSON.stringify(expectedURL);
   const TO = JSON.stringify(expectedTimeOrigin);
   return `(function () {
@@ -853,6 +944,7 @@ function buildInspectScript({ expectedURL, expectedTimeOrigin }) {
  * no window to mutate the DOM or hook the setter between them. Resolves to a
  * STATUS OBJECT ONLY, never the credential values. */
 function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, nonce }) {
+  if (typeof nonce !== 'string' || !nonce) throw new Error('buildFillScript requires a nonce');
   const U = JSON.stringify(expectedURL);
   const TO = JSON.stringify(expectedTimeOrigin);
   const USER = JSON.stringify(username ?? null);
@@ -1018,8 +1110,11 @@ In `src/main/main.js`, replace the whole phase-2 block — from the comment line
   //    credential. Both injections run in a dedicated ISOLATED WORLD, so the
   //    page cannot hook the setter or read the embedded credential. ──
   try {
+    // One nonce per invocation, binding this flow's authorization to the exact
+    // elements the inspect pass chose.
+    const nonce = crypto.randomUUID();
     const inspect = await wc.executeJavaScriptInIsolatedWorld(FILL_WORLD_ID, [
-      { code: onepassword.buildInspectScript({ expectedURL, expectedTimeOrigin: capturedTimeOrigin }) },
+      { code: onepassword.buildInspectScript({ expectedURL, expectedTimeOrigin: capturedTimeOrigin, nonce }) },
     ]);
     // Validate the shape BEFORE reading fields: an undefined/garbage result is a
     // plumbing failure and must fail closed, not masquerade as the benign
@@ -1082,6 +1177,7 @@ In `src/main/main.js`, replace the whole phase-2 block — from the comment line
     const source = onepassword.buildFillScript({
       expectedURL,
       expectedTimeOrigin: capturedTimeOrigin,
+      nonce,
       username: inspect.hasUsername ? username : null,
       password: inspect.hasPassword ? password : null,
     });
