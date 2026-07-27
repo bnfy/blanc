@@ -815,7 +815,7 @@ module.exports = { createPickerController, PICK_REASONS };
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `node --test test/unit/credential-picker.test.js`
-Expected: PASS — all eleven cases.
+Expected: PASS — all twelve cases.
 
 - [ ] **Step 6: Full suite + syntax**
 

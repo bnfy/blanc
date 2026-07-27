@@ -105,6 +105,15 @@ function rankMatches(candidates, pageHost) {
   return { tier, kept: inTier.slice(0, PICKER_MAX), truncated: Math.max(0, inTier.length - PICKER_MAX) };
 }
 
+/** Stage-2 reply validation: `null` cancels, otherwise it must be an integer
+ * index into the candidate list. Fractional, negative, out-of-range, NaN,
+ * string, and MISSING values all fail closed — a payload with no `index` is
+ * malformed, not a dismissal. Pure so the rejection cases are testable. */
+function isValidPickIndex(index, len) {
+  if (index === null) return true;
+  return Number.isInteger(index) && index >= 0 && index < len;
+}
+
 /* ---------------------------------------------------------------------------
  * Field selection. These helpers are embedded into the injected script(s) via
  * Function.prototype.toString(), so they must stay self-contained (no module
@@ -692,4 +701,4 @@ function probePackageLoad() {
   require('@1password/sdk'); // lazy — the only other place this is required
 }
 
-module.exports = { matchesHost, PICKER_MAX, tierOf, rankMatches, selectFields, FORMLIKE_OWNER_SELECTOR, buildInspectScript, buildFillScript, getClient, findLogins, revealCredential, revealUsernames, probePackageLoad };
+module.exports = { matchesHost, PICKER_MAX, tierOf, rankMatches, isValidPickIndex, selectFields, FORMLIKE_OWNER_SELECTOR, buildInspectScript, buildFillScript, getClient, findLogins, revealCredential, revealUsernames, probePackageLoad };
