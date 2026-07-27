@@ -846,6 +846,8 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
    inside an over-tall box. */
 .press-gallery img { display: block; width: 100%; height: auto; aspect-ratio: 1.904 / 1; object-fit: cover; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
 .press-gallery-shot--vertical img { aspect-ratio: 1400 / 875; object-fit: contain; }
+.press-review-copy { display: grid; gap: 18px; margin: 0; }
+.press-review-copy p { margin: 0; color: var(--text-dim); font-size: 15px; line-height: 1.72; }
 .press-review-steps { margin: 0; padding: 0; border-top: 1px solid var(--border); list-style: none; }
 .press-review-steps li { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 14px; padding: 20px 0 22px; border-bottom: 1px solid var(--border); }
 .press-review-steps li > span { color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; }

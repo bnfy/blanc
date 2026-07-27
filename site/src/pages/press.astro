@@ -9,8 +9,8 @@ const DOWNLOAD_URL = `${RELEASE_BASE}/download/${TAG}/Blanc-${VERSION}-arm64.dmg
 const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
 ---
 <BaseLayout
-  title="Blanc 1.0 Press Kit — Reviewer materials"
-  description="Embargoed reviewer materials for Blanc 1.0: verified Apple Silicon release candidate, facts, screenshots, review guide, limitations, and press contact."
+  title="Blanc 1.0 Press Kit"
+  description="Press materials for Blanc 1.0: the independent Apple Silicon browser with an Island instead of a tab strip — facts, screenshots, limitations, and press contact."
   path="/press"
   page="press"
   header="legal"
@@ -18,21 +18,21 @@ const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
   analytics={false}
   robots="noindex,nofollow,noarchive"
   ogTitle="Blanc 1.0 — The browser in one small Island"
-  ogDescription="Reviewer materials for Blanc 1.0, the independent browser with an Island instead of a permanent tab strip."
+  ogDescription="Press materials for Blanc 1.0, the independent browser with an Island instead of a permanent tab strip."
   ogImage="/press/blanc-1.0-social.png"
-  ogImageAlt="Blanc 1.0 reviewer kit: the browser in one small Island."
+  ogImageAlt="Blanc 1.0 press kit: the browser in one small Island."
 >
 <main class="press-page">
   <section class="press-hero" aria-labelledby="press-title">
-    <p class="section-kicker">embargoed reviewer kit · {TAG}</p>
+    <p class="section-kicker">press kit · {TAG}</p>
     <h1 id="press-title">The browser in one small Island.</h1>
-    <p>Blanc keeps search, tabs, named groups, page controls, and commands close—then leaves the page alone. The 1.0 release candidate adds an optional vertical tab rail without creating a second browser interface.</p>
-    <div class="press-actions" aria-label="Reviewer downloads">
-      <a class="press-primary-action" href={DOWNLOAD_URL}>download Apple Silicon RC</a>
+    <p>Blanc keeps search, tabs, named groups, page controls, and commands close—then leaves the page alone. 1.0 adds an optional vertical tab rail without creating a second browser interface.</p>
+    <div class="press-actions" aria-label="Downloads">
+      <a class="press-primary-action" href={DOWNLOAD_URL}>download for Apple Silicon</a>
       <a class="press-secondary-action" href={CHECKSUM_URL}>verify SHA-256</a>
       <a class="press-secondary-action" href={RELEASE_URL}>release notes</a>
     </div>
-    <p class="press-availability"><strong>Review scope:</strong> macOS on Apple Silicon. Signed, notarized, and distributed as a prerelease after exact-artifact verification.</p>
+    <p class="press-availability"><strong>Availability:</strong> macOS on Apple Silicon. Signed, notarized, and published only after the exact artifact and its SHA-256 manifest were verified.</p>
   </section>
 
   <figure class="press-lead-shot">
@@ -68,7 +68,7 @@ const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
     <div class="press-section-heading">
       <div>
         <p class="section-kicker">screenshots</p>
-        <h2 id="press-gallery-title">Representative release-candidate views.</h2>
+        <h2 id="press-gallery-title">Representative views of the shipping build.</h2>
       </div>
       <p>Open the full-resolution file, then save it for editorial use. Product UI may not be materially altered.</p>
     </div>
@@ -77,7 +77,7 @@ const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
         <a href="/press/vertical-tabs.png">
           <img src="/press/vertical-tabs.png" width="1400" height="875" alt="Blanc with its optional vertical tab rail open beside a web page." />
         </a>
-        <figcaption>Optional vertical tabs · RC</figcaption>
+        <figcaption>Optional vertical tabs</figcaption>
       </figure>
       <figure>
         <a href="/feature-command-palette.png">
@@ -102,16 +102,14 @@ const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
 
   <section class="press-review" aria-labelledby="press-review-title">
     <div>
-      <p class="section-kicker">five-minute review</p>
+      <p class="section-kicker">what to look at</p>
       <h2 id="press-review-title">The shortest path through the product thesis.</h2>
     </div>
-    <ol class="press-review-steps">
-      <li><span>01</span><div><strong>Launch cleanly.</strong><p>Review and commit the two first-run privacy choices. The local chrome appears even while blocking filters prepare.</p></div></li>
-      <li><span>02</span><div><strong>Open the Island.</strong><p>Press Command-L, switch among local results, type <code>/</code>, and create a named group with <code>/group review</code>.</p></div></li>
-      <li><span>03</span><div><strong>Turn on the rail.</strong><p>Choose View → Tab Layout → Vertical Tabs. Tabs move to the left without reloading the active page; search and commands remain in the Island.</p></div></li>
-      <li><span>04</span><div><strong>Check protection.</strong><p>Visit an ad-supported page, inspect the shield count, and open a private tab to see its separate in-memory state.</p></div></li>
-      <li><span>05</span><div><strong>Open a utility.</strong><p>Favorites, History, Downloads, Settings, and Shortcuts float as a sheet instead of consuming another tab.</p></div></li>
-    </ol>
+    <div class="press-review-copy">
+      <p><strong>The Island.</strong> Command-L navigates, searches, switches among tabs, and reaches Favorites, history, and named groups; <code>/</code> runs a browser command. It is the only surface that addresses the web, and it is not a permanent strip drawn across the page.</p>
+      <p><strong>Optional vertical tabs.</strong> View → Tab Layout → Vertical Tabs moves tabs to a resizable left rail without reloading the active page. The Island stays the address and command surface, so the rail adds an overview rather than a second interface.</p>
+      <p><strong>Built-in blocking and private tabs.</strong> EasyList and EasyPrivacy filtering runs at the browser session layer rather than through an extension, and the Island's shield is a per-tab request count rather than a promise that every ad or tracker is gone. Private tabs use a separate in-memory session that is discarded when Blanc quits.</p>
+    </div>
   </section>
 
   <aside class="press-limits" aria-labelledby="press-limits-title">
@@ -120,7 +118,7 @@ const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
     <div class="press-limit-grid">
       <p><strong>No extensions or password import.</strong> The extension runtime was deliberately removed after native crashes and could not make allowlisted password-manager bridges work.</p>
       <p><strong>No zero-telemetry slogan.</strong> First run commits the documented search-suggestion and usage-ping choices before either path may send.</p>
-      <p><strong>No universal launch matrix.</strong> This candidate is Apple Silicon only. Other targets remain out until their exact native packages pass the same gate.</p>
+      <p><strong>No universal launch matrix.</strong> 1.0 is Apple Silicon only. Other targets remain out until their exact native packages pass the same gate.</p>
       <p><strong>No “blocks everything” promise.</strong> Blocking is integrated and on by default, but filters remain best effort.</p>
     </div>
   </aside>
@@ -131,7 +129,7 @@ const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
     <p><strong>Anthony Loria</strong><br />Bananify / Blanc Browser<br /><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a></p>
     <p>Bananify is the independent studio publishing Blanc. Anthony Loria
       created and leads development of the browser.</p>
-    <p>Use <strong>Security</strong> in the subject for private vulnerability reports. Include the RC version, macOS version, Mac model, steps, expected result, and observed result for product feedback.</p>
+    <p>Use <strong>Security</strong> in the subject for private vulnerability reports. Include the Blanc version, macOS version, Mac model, steps, expected result, and observed result for product feedback.</p>
   </section>
 </main>
 </BaseLayout>
