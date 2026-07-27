@@ -2087,19 +2087,27 @@ In "Notes & limits", after the registrable-domain bullet, add:
 
 - [ ] **Step 2: Add the new outcomes**
 
-In the troubleshooting table:
+Replace the stale bare `chooser-cancel` row with the **complete** closed enum —
+the orchestrator logs `chooser-cancel <reason>`, so every possible reason must be
+explainable:
 
 ```markdown
-| `chooser-cancel dismissed` / `chooser-cancel escape` | You cancelled the picker. Nothing was filled. |
+| `chooser-cancel dismissed` / `chooser-cancel escape` | You cancelled the picker — the Cancel button or a click outside (`dismissed`), or Escape (`escape`). Nothing was filled. |
+| `chooser-cancel blur` / `chooser-cancel tab-changed` | The picker closed because you switched away — to another app (`blur`) or another tab (`tab-changed`). Nothing was filled. |
+| `chooser-cancel mode-replaced` / `chooser-cancel hidden` / `chooser-cancel window-closed` | The picker was dismissed by another Blanc action — opening another Island panel (`mode-replaced`), the overlay being hidden another way (`hidden`), or the window/overlay closing (`window-closed`). Nothing was filled. |
 | `chooser-cancel timeout` | The picker sat open for 60s and closed itself. Press ⌥⌘P again. |
-| `chooser-cancel blur` / `chooser-cancel tab-changed` | The picker closed because you switched away. Nothing was filled. |
-| `chooser-cancel invalid-reply` | The picker sent something malformed and was abandoned. Press ⌥⌘P again. |
+| `chooser-cancel invalid-reply` | The picker sent a malformed reply and was abandoned (shouldn't happen in normal use). Press ⌥⌘P again. |
 ```
 
 - [ ] **Step 3: Verify accuracy**
 
-Run: `grep -n "exact host\|first visible password" docs/1password-dev-usage.md`
-Expected: no output.
+Run: `grep -n "multi-match chooser\|first visible password\|native chooser" docs/1password-dev-usage.md`
+Expected: no output — those name the old native chooser and pre-ranking field
+rule. ("exact host" now appears legitimately in the ranking description, so it is
+no longer a stale-term signal.) Also confirm every closed `chooser-cancel`
+reason is documented: `for r in dismissed escape blur tab-changed mode-replaced
+hidden window-closed timeout invalid-reply; do grep -q "chooser-cancel $r"
+docs/1password-dev-usage.md || echo "MISSING $r"; done` prints nothing.
 
 - [ ] **Step 4: Commit**
 

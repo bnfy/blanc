@@ -55,8 +55,9 @@ echo 'export BLANC_1P_ACCOUNT="you@example.com"' >> ~/.zshrc
 2. Press **⌥⌘P** (Option-Command-P).
 3. First trigger per ~10-minute SDK session: approve the 1Password prompt (Touch ID or password).
    **In dev the prompt names "Electron," not "Blanc"** — expected, because the dev binary is unsigned. A signed build names Blanc.
-4. **You may get a confirmation dialog** — see below. Otherwise the fields fill
-   and the terminal logs `[1p-spike] filled user+pass`.
+4. **You may get a confirmation dialog** (inferred field) or a **username
+   picker** (several logins match) — see below. Otherwise the fields fill and the
+   terminal logs `[1p-spike] filled user+pass`.
 
 ### Why a dialog sometimes appears
 
@@ -84,6 +85,31 @@ Two presses, no state kept in between:
 1. Username screen → **⌥⌘P** → `filled user-only (multi-step step 1)`
 2. Advance to the password screen → **⌥⌘P** again → `filled pass-only …`
 
+### When several logins match
+
+Most of the time you won't see a picker. Matches are ranked by how well the
+saved website fits the page — an item saved for the **exact host** beats one
+saved for the **parent domain**, which beats a **sibling subdomain** — and only
+the best tier is offered. Where one item clearly fits, Blanc fills it without
+asking (on `www.google.com` this collapses a whole family of `google.com` items
+to one).
+
+When several items genuinely tie, the Island shows a list **labelled by
+username** — the only field that reliably tells near-duplicate items apart — with
+the item title and matched host beneath each. **↑/↓** move the highlight,
+**Enter** fills the highlighted row, and **Cancel** / **Escape** / a click
+outside dismisses it. At most **10** are shown; if more matched, the last line
+says how many were left out (narrow it in 1Password). While the picker is up the
+rest of the Island is inert — you can't type an address or open a tab until you
+pick or cancel.
+
+Reading those usernames means Blanc decrypts each listed item — but only when a
+picker is actually needed, never more than 10, and only after the page has been
+judged fillable. Blanc doesn't deliberately keep a decrypted item once it has
+taken the username; only the one you pick is read again to fill it. (JavaScript
+can't guarantee a released value is collected or zeroed, so this describes what
+Blanc holds, not what remains in process memory.)
+
 ## Troubleshooting — read the `[1p-spike]` line in the terminal
 
 | Log line | Meaning / fix |
@@ -91,7 +117,11 @@ Two presses, no state kept in between:
 | *(nothing at all after ⌥⌘P)* | You're on a blank new tab — focus is in the address bar, which has no chord listener. Navigate to a real page first. |
 | `no-match <host>` | No Login item shares a **registrable domain** with this page. An item saved for `example.com` covers any `*.example.com`, but not a different registrable domain — so `example.co.uk` or a separate tenant host (`you.github.io`) needs its own entry. Add or fix the item's website field in 1Password (`www.` is ignored). |
 | `non-http-noop` | Active tab isn't http/https (internal page, `file://`, blank tab). Go to the login page. |
-| `chooser-cancel` | You dismissed the multi-match chooser. |
+| `chooser-cancel dismissed` / `chooser-cancel escape` | You cancelled the picker — the Cancel button or a click outside (`dismissed`), or Escape (`escape`). Nothing was filled. |
+| `chooser-cancel blur` / `chooser-cancel tab-changed` | The picker closed because you switched away — to another app (`blur`) or another tab (`tab-changed`). Nothing was filled. |
+| `chooser-cancel mode-replaced` / `chooser-cancel hidden` / `chooser-cancel window-closed` | The picker was dismissed by another Blanc action — opening another Island panel (`mode-replaced`), the overlay being hidden another way (`hidden`), or the window/overlay closing (`window-closed`). Nothing was filled. |
+| `chooser-cancel timeout` | The picker sat open for 60s and closed itself. Press ⌥⌘P again. |
+| `chooser-cancel invalid-reply` | The picker sent a malformed reply and was abandoned (shouldn't happen in normal use). Press ⌥⌘P again. |
 | `setup-error BLANC_1P_ACCOUNT is not set` | Env var missing — pass it or export it. |
 | `fill-error` / an SDK or auth error | 1Password app not running/unlocked, or the Developer "integrate" toggle is off. |
 | `abort-navigated` / `abort-url-changed` / `abort-tab-changed` / `abort-window-changed` / `abort-wc-changed` | The page navigated, or you switched tab/window, or the tab lost focus, while the flow was waiting on 1Password or a dialog — the fill aborts for safety and writes nothing. Retry. |
@@ -113,6 +143,11 @@ Two presses, no state kept in between:
   never matches `bob.github.io`), and `localhost`/raw IPs fall back to exact-host.
   1Password's own per-item URL rules (`AnywhereOnWebsite`/`ExactDomain`/`Never`)
   are **not** read — Blanc applies one uniform rule.
+- **Ties are ranked, then picked.** When several items share the registrable
+  domain, Blanc keeps only the best host tier (exact host > parent domain >
+  sibling subdomain), so usually one item wins and fills without a prompt. A
+  genuine tie shows the username picker — see [When several logins
+  match](#when-several-logins-match).
 - **Signup and password-reset pages are declined on purpose.** Writing your
   *existing* password into a "Create a password" box is the failure this feature
   most has to avoid, so Blanc refuses when a form has two or more password fields
