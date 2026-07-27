@@ -589,7 +589,11 @@ function harness({ overlayAvailable = true, overlayThrows = false } = {}) {
   let timerFn = null;
   const ctl = createPickerController({
     showOverlay: (m, opts) => {
-      if (overlayThrows) throw new Error('overlay is gone');
+      // Mirror the REAL failure shape: the live showOverlay sets overlayMode and
+      // overlayPrefill before addChildView/send/focus, so a throw can leave that
+      // state behind. Setting mode first is what lets the test catch a partial
+      // failure rather than a tidy no-op.
+      if (overlayThrows) { mode = m; throw new Error('overlay is gone'); }
       if (!overlayAvailable) return false;   // mirrors main's live-window guard
       mode = m; calls.shown.push(opts); return true;
     },
@@ -690,14 +694,16 @@ test('picker: an unavailable overlay settles immediately instead of hanging', as
   assert.equal(h.ctl.isPending(), false, 'no stale pending state may survive a failed show');
 });
 
-test('picker: a THROWN show also settles instead of rejecting', async () => {
-  // showOverlay can throw if the window or WebContentsView dies after its own
-  // guard. The promise must resolve window-closed, not reject with pending
-  // state still installed and no timer running.
+test('picker: a PARTIAL (thrown) show settles and tears the overlay back down', async () => {
+  // The real showOverlay assigns overlayMode/overlayPrefill before it can throw,
+  // so a throw may leave vault rows resident. Clearing only our own pending
+  // state would strand them.
   const h = harness({ overlayThrows: true });
   const p = h.ctl.requestPick(ROWS, 0, 'x.test');
   assert.deepEqual(await p, { index: null, reason: 'window-closed' });
   assert.equal(h.ctl.isPending(), false, 'a thrown show must leave no stale pending state');
+  assert.equal(h.calls.hidden, 1, 'the partially-shown overlay must be torn down');
+  assert.equal(h.getMode(), null, 'no vault rows may remain resident after a failed show');
 });
 
 test('picker: rows reach the overlay with exactly four keys', async () => {
@@ -762,9 +768,12 @@ function createPickerController({
       // Show FIRST, and treat a failed show as window-closed. Installing the
       // pending state and then discovering the overlay is gone would leave the
       // fill waiting out the full timeout.
-      // showOverlay can also THROW if the window or view dies after its own
-      // guard. Either way the request must not stay installed with no timer —
-      // the fill would await a promise nothing will ever settle.
+      // showOverlay can also THROW — and it can throw PARTWAY THROUGH. The real
+      // one assigns overlayMode and overlayPrefill before addChildView/send/
+      // focus, any of which can fail on a dying window. So a throw does not
+      // mean "nothing happened": vault rows may already be sitting in
+      // overlayPrefill. Clear the request AND best-effort tear the overlay back
+      // down, rather than only dropping our own state.
       let shown = false;
       try {
         shown = showOverlay('credential-picker', { prefill: { requestId, host, rows, truncated } });
@@ -773,6 +782,9 @@ function createPickerController({
       }
       if (shown !== true) {
         pending = null;
+        if (getOverlayMode() === 'credential-picker') {
+          try { hideOverlay(); } catch { /* already gone — nothing more to undo */ }
+        }
         resolve({ index: null, reason: 'window-closed' });
         return;
       }
@@ -1608,13 +1620,33 @@ const common = {
 
 and in the `RUNNABLE` array add `'@spike-1p-picker'`.
 
-Confirm it is actually selected — a silently-skipped security test is worse than
-no test:
+Confirm it is actually **selected** — a silently-skipped security test is worse
+than no test. Note the dry profile's progress formatter prints only dashes and
+aggregate counts, never scenario names, so grepping its output returns 0 whether
+or not the scenario ran. And a `pickle` envelope alone proves only that the file
+was *parsed*: 89 pickles are parsed but just 55 are selected by the tag filter.
+Selection is proven by a `testCase` envelope referencing that pickle's id:
 
 ```bash
-npm run test:acceptance:dry 2>&1 | grep -c "vault strings render as literal text"
+npx cucumber-js -c test/desktop/cucumber.mjs -p dry --format message 2>/dev/null | python3 -c "
+import sys, json
+pickles={}; selected=set()
+for line in sys.stdin:
+    line=line.strip()
+    if not line: continue
+    try: o=json.loads(line)
+    except: continue
+    if 'pickle' in o: pickles[o['pickle']['id']]=o['pickle']['name']
+    if 'testCase' in o: selected.add(o['testCase']['pickleId'])
+names={pickles[i] for i in selected if i in pickles}
+target='vault strings render as literal text'
+print('parsed :', target in pickles.values())
+print('SELECTED:', target in names)
+"
 ```
-Expected: `1`. If it prints `0`, the path or the tag is not wired.
+Expected: **both `True`**. `parsed True` with `SELECTED False` means the feature
+path is wired but the tag is not in `RUNNABLE`; both `False` means the path
+itself is not in `common.paths`.
 
 - [ ] **Step 4: Write the step definitions (CommonJS)**
 
