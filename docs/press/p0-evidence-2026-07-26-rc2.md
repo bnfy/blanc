@@ -120,6 +120,9 @@ every file against the published `SHA256SUMS`. Published sizes are 138521990
   Fixed by adding `height: auto`, and the vertical shot's hardcoded
   `aspect-ratio: 1400 / 888` was corrected to `1400 / 875`. All four images now
   render at their natural aspect with no horizontal overflow at 1280px.
+- The editorial dimensions are pinned in three places that must agree:
+  `test/unit/press-kit.test.js`, the `img` attributes in `press.astro`, and the
+  `aspect-ratio` in `site.css`. All three were moved to 1400×875 together.
 
 ## Candidate-window gates still open
 

@@ -17,7 +17,7 @@ function pngSize(relativePath) {
 test('press-kit raster assets exist at their declared editorial dimensions', () => {
   assert.deepEqual(
     pngSize('site/public/press/vertical-tabs.png'),
-    { width: 1400, height: 888 }
+    { width: 1400, height: 875 }
   );
   assert.deepEqual(
     pngSize('site/public/press/blanc-1.0-social.png'),
