@@ -282,8 +282,9 @@ only resolves; it never restores focus itself. The orchestrator awaits
   awaiting the result there is no observable contract at all and the flow would
   proceed to decrypt into an unfocused tab.
 - **`index === null`** — log `chooser-cancel`. Focus is then restored only
-  **best-effort and only for `escape`**, where the user is demonstrably still in
-  Blanc; the result is not gated, since nothing further happens.
+  **best-effort and only for `dismissed` or `escape`**, the cancellation routes
+  where the user is demonstrably still in Blanc and acting on the picker; the
+  result is not gated, since nothing further happens.
 
 The full per-route policy is the `reason` table in the settlement section below;
 in short, only `selected` (gated), `dismissed` and `escape` (both best-effort)
