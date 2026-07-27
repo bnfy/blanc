@@ -177,7 +177,10 @@ test('rankMatches: real-vault shape — www.google.com collapses to one', () => 
     ...Array.from({ length: 17 }, (_, n) => cnd({ itemId: 'acc' + n, hosts: ['accounts.google.com'] })),
     cnd({ itemId: 'mail', hosts: ['mail.google.com'] }),
   ];
-  const r = rankMatches(input, 'google.com');           // page www.google.com normalizes to this
+  // Pass the RAW page host so normalization is exercised end-to-end rather than
+  // pre-applied by the test. normalizeHost strips a leading `www.`, so this
+  // reduces to `google.com` and the bare item is tier 1.
+  const r = rankMatches(input, 'www.google.com');
   assert.equal(r.tier, 1);
   assert.deepEqual(r.kept.map((k) => k.itemId), ['bare'], 'ranking must remove the picker here');
 });
@@ -536,9 +539,472 @@ git commit -m "feat(1password): sequential capped username enumeration for the p
 
 ---
 
-### Task 4: Picker lifecycle in main — settlement, reply validation, IPC
+### Task 4: `credential-picker.js` — the lifecycle controller
 
-The exactly-once owner of picker resolution, plus the hardened reply channel. Built before the orchestrator so Task 5 has something to await, and before the renderer so the contract is fixed first.
+The spec requires **behavioral** proof that a stale reply leaves the live request
+pending, that settlement is idempotent, and that the reason enum drives focus
+policy. Source-presence assertions cannot prove any of that, so the lifecycle
+moves into its own module whose Electron collaborators are injected. `main.js`
+wires the real ones; the tests wire fakes.
+
+**Files:**
+- Create: `src/main/credential-picker.js`
+- Test: `test/unit/credential-picker.test.js`
+
+**Interfaces:**
+- Consumes: `isValidPickIndex` (Task 4 Step 3 adds it to `onepassword.js`).
+- Produces: `createPickerController(deps) → { requestPick, settle, handleReply, isPending }` where
+  `deps = { showOverlay, hideOverlay, getOverlayMode, isOverlaySender, randomUUID, setTimer, clearTimer, timeoutMs }`.
+  `requestPick(rows, truncated, host) → Promise<{ index: number|null, reason: string }>`.
+
+- [ ] **Step 1: Add the pure index validator**
+
+In `src/main/onepassword.js`, add after `rankMatches`, and add `isValidPickIndex` to the exports:
+
+```js
+/** Stage-2 reply validation: `null` cancels, otherwise it must be an integer
+ * index into the candidate list. Fractional, negative, out-of-range, NaN,
+ * string, and MISSING values all fail closed — a payload with no `index` is
+ * malformed, not a dismissal. Pure so the rejection cases are testable. */
+function isValidPickIndex(index, len) {
+  if (index === null) return true;
+  return Number.isInteger(index) && index >= 0 && index < len;
+}
+```
+
+- [ ] **Step 2: Write the failing behavioral tests**
+
+Create `test/unit/credential-picker.test.js`:
+
+```js
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { createPickerController } = require('../../src/main/credential-picker');
+
+/** A controller wired to fakes, with handles to inspect what it did. */
+function harness({ overlayAvailable = true } = {}) {
+  const calls = { shown: [], hidden: 0, timers: 0, cleared: 0 };
+  let mode = null;
+  let timerFn = null;
+  const ctl = createPickerController({
+    showOverlay: (m, opts) => {
+      if (!overlayAvailable) return false;   // mirrors main's live-window guard
+      mode = m; calls.shown.push(opts); return true;
+    },
+    hideOverlay: () => { mode = null; calls.hidden += 1; },
+    getOverlayMode: () => mode,
+    isOverlaySender: (event) => event && event.fromOverlay === true,
+    randomUUID: () => 'req-1',
+    setTimer: (fn) => { timerFn = fn; calls.timers += 1; return 'T'; },
+    clearTimer: () => { calls.cleared += 1; },
+    timeoutMs: 60000,
+  });
+  return { ctl, calls, fireTimeout: () => timerFn && timerFn(), getMode: () => mode };
+}
+
+const ROWS = [{ username: 'a@x', title: 't', host: 'h', vaultName: 'Personal' }, { username: 'b@x', title: 't', host: 'h', vaultName: 'Personal' }];
+
+test('picker: a valid reply resolves with the chosen index', async () => {
+  const h = harness();
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1', index: 1 });
+  assert.deepEqual(await p, { index: 1, reason: 'selected' });
+});
+
+test('picker: an explicit null index is a dismissal', async () => {
+  const h = harness();
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1', index: null });
+  assert.deepEqual(await p, { index: null, reason: 'dismissed' });
+});
+
+test('picker: a MISSING index is malformed, not a dismissal', async () => {
+  const h = harness();
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1' });
+  assert.deepEqual(await p, { index: null, reason: 'invalid-reply' });
+});
+
+test('picker: a WRONG-SENDER reply leaves the request pending', async () => {
+  const h = harness();
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  h.ctl.handleReply({ fromOverlay: false }, { requestId: 'req-1', index: 0 });
+  assert.equal(h.ctl.isPending(), true, 'stage-1 failure must change NO state');
+  // ...and a later valid reply still works.
+  h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1', index: 0 });
+  assert.deepEqual(await p, { index: 0, reason: 'selected' });
+});
+
+test('picker: a STALE requestId leaves the request pending', async () => {
+  const h = harness();
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  h.ctl.handleReply({ fromOverlay: true }, { requestId: 'OLD', index: 0 });
+  assert.equal(h.ctl.isPending(), true, 'a late reply from a closed picker must not cancel a live one');
+  h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1', index: 1 });
+  assert.deepEqual(await p, { index: 1, reason: 'selected' });
+});
+
+test('picker: an out-of-range index cancels THIS request as invalid-reply', async () => {
+  for (const bad of [-1, 2, 1.5, '0', NaN]) {
+    const h = harness();
+    const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+    h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1', index: bad });
+    assert.deepEqual(await p, { index: null, reason: 'invalid-reply' }, `${String(bad)}`);
+  }
+});
+
+test('picker: settlement is exactly-once', async () => {
+  const h = harness();
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  h.ctl.settle(0, 'selected');
+  h.ctl.settle(null, 'timeout');          // must be inert
+  h.ctl.settle(null, 'blur');             // must be inert
+  assert.deepEqual(await p, { index: 0, reason: 'selected' });
+  assert.equal(h.ctl.isPending(), false);
+  assert.equal(h.calls.cleared, 1, 'the timer is cleared exactly once');
+});
+
+test('picker: the timeout settles the request', async () => {
+  const h = harness();
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  h.fireTimeout();
+  assert.deepEqual(await p, { index: null, reason: 'timeout' });
+});
+
+test('picker: every cancellation reason resolves the promise', async () => {
+  for (const reason of ['escape', 'blur', 'mode-replaced', 'hidden', 'tab-changed', 'window-closed']) {
+    const h = harness();
+    const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+    h.ctl.settle(null, reason);
+    assert.deepEqual(await p, { index: null, reason }, reason);
+  }
+});
+
+test('picker: an unavailable overlay settles immediately instead of hanging', async () => {
+  const h = harness({ overlayAvailable: false });
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test');
+  assert.deepEqual(await p, { index: null, reason: 'window-closed' },
+    'a failed show must not leave the fill awaiting a 60s timeout');
+  assert.equal(h.ctl.isPending(), false, 'no stale pending state may survive a failed show');
+});
+
+test('picker: rows reach the overlay with exactly four keys', async () => {
+  const h = harness();
+  const p = h.ctl.requestPick(ROWS, 3, 'x.test');
+  const sent = h.calls.shown[0].prefill;
+  assert.equal(sent.truncated, 3);
+  for (const row of sent.rows) {
+    assert.deepEqual(Object.keys(row).sort(), ['host', 'title', 'username', 'vaultName']);
+  }
+  h.ctl.settle(null, 'escape');
+  await p;
+});
+```
+
+- [ ] **Step 3: Run the tests to verify they fail**
+
+Run: `node --test test/unit/credential-picker.test.js`
+Expected: FAIL — `Cannot find module '../../src/main/credential-picker'`.
+
+- [ ] **Step 4: Implement the controller**
+
+Create `src/main/credential-picker.js`:
+
+```js
+'use strict';
+// SPIKE (1Password fill feasibility) — remove before release.
+//
+// The exactly-once owner of credential-picker resolution. Every route that can
+// end a picker goes through `settle`, or the fill would await a promise that
+// never resolves and wedge the single-flight flag. Electron collaborators are
+// injected so the lifecycle contracts are testable without a window.
+const { isValidPickIndex } = require('./onepassword');
+
+/** Closed reason enum. Focus policy is derived from it, so there is no default. */
+const PICK_REASONS = Object.freeze([
+  'selected', 'dismissed', 'escape', 'invalid-reply',
+  'mode-replaced', 'hidden', 'blur', 'tab-changed', 'window-closed', 'timeout',
+]);
+
+function createPickerController({
+  showOverlay, hideOverlay, getOverlayMode, isOverlaySender,
+  randomUUID, setTimer, clearTimer, timeoutMs,
+}) {
+  let pending = null; // { requestId, rowCount, resolve, timer }
+
+  /** Resolve exactly once. State is cleared BEFORE resolving so anything running
+   * synchronously off the resolution cannot observe a half-torn-down request. */
+  function settle(index, reason) {
+    const p = pending;
+    if (!p) return;                       // already settled, or none open
+    pending = null;
+    clearTimer(p.timer);
+    if (getOverlayMode() === 'credential-picker') hideOverlay();
+    p.resolve({ index, reason });
+  }
+
+  function requestPick(rows, truncated, host) {
+    return new Promise((resolve) => {
+      const requestId = randomUUID();
+      pending = { requestId, rowCount: rows.length, resolve, timer: null };
+      // Show FIRST, and treat a failed show as window-closed. Installing the
+      // pending state and then discovering the overlay is gone would leave the
+      // fill waiting out the full timeout.
+      const shown = showOverlay('credential-picker', { prefill: { requestId, host, rows, truncated } });
+      if (shown === false) {
+        pending = null;
+        resolve({ index: null, reason: 'window-closed' });
+        return;
+      }
+      pending.timer = setTimer(() => settle(null, 'timeout'), timeoutMs);
+    });
+  }
+
+  /** Two stages. Stage 1 proves the reply belongs to THIS request and failing it
+   * changes NO state — otherwise a late reply from a closed picker could cancel
+   * a different, live one. Only a stage-1-clean reply may be cancelled by a
+   * malformed index. */
+  function handleReply(event, payload) {
+    if (!isOverlaySender(event)) return;                       // overlay only
+    if (!pending) return;
+    if (getOverlayMode() !== 'credential-picker') return;
+    if (!payload || payload.requestId !== pending.requestId) return;
+    const index = Object.prototype.hasOwnProperty.call(payload, 'index') ? payload.index : undefined;
+    if (!isValidPickIndex(index, pending.rowCount)) return settle(null, 'invalid-reply');
+    settle(index, index === null ? 'dismissed' : 'selected');
+  }
+
+  return { requestPick, settle, handleReply, isPending: () => pending !== null };
+}
+
+module.exports = { createPickerController, PICK_REASONS };
+```
+
+- [ ] **Step 5: Run the tests to verify they pass**
+
+Run: `node --test test/unit/credential-picker.test.js`
+Expected: PASS — all eleven cases.
+
+- [ ] **Step 6: Full suite + syntax**
+
+Run: `node --check src/main/credential-picker.js && npm run test:unit`
+Expected: `node --check` silent; suite PASS, 0 failures.
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add src/main/credential-picker.js src/main/onepassword.js test/unit/credential-picker.test.js
+git commit -m "feat(1password): injectable picker lifecycle controller with behavioral tests"
+```
+
+---
+
+### Task 5: `credential-fill-flow.js` — the choose-and-reveal sequence
+
+The other half the spec demands behavioral proof of: a single survivor bypassing
+enumeration and the picker, a failed focus restoration never reaching
+`revealCredential`, and an enumeration failure never opening a picker or leaking
+the SDK message. Extracting this sequence from `main.js` is what makes those
+assertable — and it isolates the decision logic from Electron plumbing, which is
+worth doing regardless.
+
+**Files:**
+- Create: `src/main/credential-fill-flow.js`
+- Test: `test/unit/credential-fill-flow.test.js`
+
+**Interfaces:**
+- Consumes: nothing from other tasks directly — all collaborators are injected.
+- Produces: `chooseAndReveal({ kept, truncated, host, deps }) → Promise<{ outcome, detail?, chosen?, credential? }>` where
+  `deps = { revealUsernames, requestPick, restoreTabFocus, revalidate, revealCredential }`.
+  `outcome` is one of `'ok'`, `'chooser-cancel'`, `'abort-wc-changed'`, `'fill-error'`, or whatever string `revalidate` returns.
+
+- [ ] **Step 1: Write the failing behavioral tests**
+
+Create `test/unit/credential-fill-flow.test.js`:
+
+```js
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { chooseAndReveal } = require('../../src/main/credential-fill-flow');
+
+function cand(n) {
+  return { vaultId: 'v', vaultName: 'Personal', itemId: 'i' + n, title: 't', host: 'h', updatedAt: new Date(0) };
+}
+
+/** Collaborators that record what was called, so contracts are asserted on
+ * CALLS — not on log text, which would pass even if a decrypt had happened. */
+function deps(over = {}) {
+  const seen = { revealUsernames: 0, requestPick: 0, restoreTabFocus: 0, revealCredential: 0 };
+  return {
+    seen,
+    async revealUsernames(list) {
+      seen.revealUsernames += 1;
+      return list.map((c) => ({ ...c, username: 'u-' + c.itemId }));
+    },
+    async requestPick() { seen.requestPick += 1; return { index: 0, reason: 'selected' }; },
+    async restoreTabFocus() { seen.restoreTabFocus += 1; return true; },
+    revalidate() { return null; },                 // null = still valid
+    async revealCredential() { seen.revealCredential += 1; return { username: 'u', password: 'p' }; },
+    ...over,
+  };
+}
+
+test('flow: ONE survivor bypasses enumeration and the picker entirely', async () => {
+  const d = deps();
+  const r = await chooseAndReveal({ kept: [cand(1)], truncated: 0, host: 'x.test', deps: d });
+  assert.equal(r.outcome, 'ok');
+  assert.equal(d.seen.revealUsernames, 0, 'nothing may be decrypted for a single survivor');
+  assert.equal(d.seen.requestPick, 0, 'no picker may open for a single survivor');
+  assert.equal(d.seen.revealCredential, 1);
+});
+
+test('flow: several survivors enumerate then pick', async () => {
+  const d = deps();
+  const r = await chooseAndReveal({ kept: [cand(1), cand(2)], truncated: 0, host: 'x.test', deps: d });
+  assert.equal(r.outcome, 'ok');
+  assert.equal(d.seen.revealUsernames, 1);
+  assert.equal(d.seen.requestPick, 1);
+  assert.equal(r.chosen.itemId, 'i1');
+});
+
+test('flow: enumeration failure never opens a picker and never leaks the SDK message', async () => {
+  const d = deps({ async revealUsernames() { throw new Error('SDK-SECRET-DETAIL'); } });
+  const r = await chooseAndReveal({ kept: [cand(1), cand(2)], truncated: 0, host: 'x.test', deps: d });
+  assert.equal(r.outcome, 'fill-error');
+  assert.equal(d.seen.requestPick, 0, 'no partial picker may be shown');
+  assert.equal(d.seen.revealCredential, 0);
+  assert.ok(!JSON.stringify(r).includes('SDK-SECRET-DETAIL'), 'the SDK message must not escape');
+});
+
+test('flow: FAILED focus restoration never calls revealCredential', async () => {
+  const d = deps({ async restoreTabFocus() { return false; } });
+  const r = await chooseAndReveal({ kept: [cand(1), cand(2)], truncated: 0, host: 'x.test', deps: d });
+  assert.equal(r.outcome, 'abort-wc-changed');
+  assert.equal(d.seen.revealCredential, 0,
+    'asserted on the CALL — a log assertion would pass even if the decrypt had happened');
+});
+
+test('flow: cancellation restores focus only for dismissed and escape', async () => {
+  for (const [reason, expected] of [['dismissed', 1], ['escape', 1], ['blur', 0],
+    ['tab-changed', 0], ['window-closed', 0], ['timeout', 0], ['mode-replaced', 0],
+    ['hidden', 0], ['invalid-reply', 0]]) {
+    const d = deps({ async requestPick() { return { index: null, reason }; } });
+    const r = await chooseAndReveal({ kept: [cand(1), cand(2)], truncated: 0, host: 'x.test', deps: d });
+    assert.equal(r.outcome, 'chooser-cancel');
+    assert.equal(r.detail, reason);
+    assert.equal(d.seen.restoreTabFocus, expected, `focus policy for ${reason}`);
+    assert.equal(d.seen.revealCredential, 0);
+  }
+});
+
+test('flow: a failed re-validation after selection aborts before decrypting', async () => {
+  const d = deps({ revalidate: () => 'abort-navigated' });
+  const r = await chooseAndReveal({ kept: [cand(1), cand(2)], truncated: 0, host: 'x.test', deps: d });
+  assert.equal(r.outcome, 'abort-navigated');
+  assert.equal(d.seen.revealCredential, 0);
+});
+
+test('flow: rows handed to the picker carry exactly four keys', async () => {
+  let captured = null;
+  const d = deps({ async requestPick(rows) { captured = rows; return { index: 0, reason: 'selected' }; } });
+  await chooseAndReveal({ kept: [cand(1), cand(2)], truncated: 0, host: 'x.test', deps: d });
+  for (const row of captured) {
+    assert.deepEqual(Object.keys(row).sort(), ['host', 'title', 'username', 'vaultName'],
+      'no vaultId, no itemId, never a password');
+  }
+});
+```
+
+- [ ] **Step 2: Run the tests to verify they fail**
+
+Run: `node --test test/unit/credential-fill-flow.test.js`
+Expected: FAIL — `Cannot find module '../../src/main/credential-fill-flow'`.
+
+- [ ] **Step 3: Implement**
+
+Create `src/main/credential-fill-flow.js`:
+
+```js
+'use strict';
+// SPIKE (1Password fill feasibility) — remove before release.
+//
+// The post-consent decision sequence: choose a credential (picker if needed) and
+// read it. Collaborators are injected so the security contracts — one survivor
+// never decrypts, a failed focus restoration never reaches revealCredential, an
+// enumeration failure never opens a picker — are asserted on CALLS rather than
+// on log text.
+
+/** Reasons where the user is demonstrably still in Blanc acting on the picker,
+ * so returning focus to the page is right. Everything else may fire while Blanc
+ * is in the background, where pulling it forward would be user-hostile. */
+const RESTORE_ON_CANCEL = new Set(['dismissed', 'escape']);
+
+async function chooseAndReveal({ kept, truncated, host, deps }) {
+  let chosen = kept[0];
+
+  if (kept.length > 1) {
+    let rows;
+    try {
+      // FIRST DECRYPTION. Only reached on a page already judged fillable and
+      // already consented to. A failure aborts the whole picker with a fixed
+      // outcome — never a partial list, never the SDK's message.
+      const revealed = await deps.revealUsernames(kept);
+      rows = revealed.map((r) => ({
+        username: r.username, title: r.title, host: r.host, vaultName: r.vaultName,
+      }));
+    } catch {
+      return { outcome: 'fill-error' };
+    }
+
+    const { index, reason } = await deps.requestPick(rows, truncated, host);
+    if (index === null) {
+      if (RESTORE_ON_CANCEL.has(reason)) await deps.restoreTabFocus(); // best-effort, ungated
+      return { outcome: 'chooser-cancel', detail: reason };
+    }
+    chosen = kept[index];
+
+    // The overlay took focus. GATE on its return before any further decrypt.
+    if (!(await deps.restoreTabFocus())) return { outcome: 'abort-wc-changed' };
+    const aborted = deps.revalidate();
+    if (aborted) return { outcome: aborted };
+  }
+
+  try {
+    const credential = await deps.revealCredential(chosen);
+    return { outcome: 'ok', chosen, credential };
+  } catch {
+    return { outcome: 'fill-error' };
+  }
+}
+
+module.exports = { chooseAndReveal, RESTORE_ON_CANCEL };
+```
+
+- [ ] **Step 4: Run the tests to verify they pass**
+
+Run: `node --test test/unit/credential-fill-flow.test.js`
+Expected: PASS — all seven cases, including the nine-reason focus-policy table.
+
+- [ ] **Step 5: Full suite + syntax**
+
+Run: `node --check src/main/credential-fill-flow.js && npm run test:unit`
+Expected: `node --check` silent; suite PASS, 0 failures.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add src/main/credential-fill-flow.js test/unit/credential-fill-flow.test.js
+git commit -m "feat(1password): extract choose-and-reveal flow with behavioral contract tests"
+```
+
+---
+
+### Task 6: Wire both modules into `main.js`
+
+The behavior is proven in Tasks 4–5; this task is the Electron wiring, so source
+assertions are the right tool here.
 
 **Files:**
 - Modify: `src/main/main.js`
@@ -546,102 +1012,61 @@ The exactly-once owner of picker resolution, plus the hardened reply channel. Bu
 - Test: `test/unit/onepassword-match.test.js`
 
 **Interfaces:**
-- Consumes: `overlayView`, `overlayMode`, `showOverlay`/`hideOverlay`, `restoreTabFocus`, `isTrustedSender`.
-- Produces:
-  - `isValidPickIndex(index, len) → boolean` (exported for test via `module.exports` on main is not possible; see Step 1 — it lives in `onepassword.js` as a pure helper)
-  - `requestCredentialPick(rows, truncated, host) → Promise<{ index: number|null, reason: string }>`
-  - `settleCredentialPick(index, reason) → void` — idempotent
-  - `PICK_TIMEOUT_MS = 60_000`
+- Consumes: `createPickerController` (Task 4), `chooseAndReveal` (Task 5), `rankMatches` (Task 1).
+- Produces: the reordered `fillActiveTabFrom1Password`; `pickerController` module state.
 
-- [ ] **Step 1: Write the failing tests**
+- [ ] **Step 1: Write the failing wiring tests**
 
-The index validator is pure, so it lives in `onepassword.js` where the unit suite can reach it. The rest is asserted against `main.js` source. Append to `test/unit/onepassword-match.test.js`:
+Append to `test/unit/onepassword-match.test.js`:
 
 ```js
-// ===========================================================================
-// Credential picker — reply validation + settlement wiring
-// ===========================================================================
-const { isValidPickIndex } = require('../../src/main/onepassword');
-
-test('isValidPickIndex: null means cancel and is valid', () => {
-  assert.equal(isValidPickIndex(null, 3), true);
-});
-
-test('isValidPickIndex: in-range integers are valid', () => {
-  assert.equal(isValidPickIndex(0, 3), true);
-  assert.equal(isValidPickIndex(2, 3), true);
-});
-
-test('isValidPickIndex: everything else fails closed', () => {
-  for (const bad of [-1, 3, 1.5, NaN, Infinity, '0', '1', true, undefined, {}, []]) {
-    assert.equal(isValidPickIndex(bad, 3), false, `${String(bad)} must be rejected`);
+test('T6-wiring: every settlement route is wired in main', () => {
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+  for (const reason of ['escape', 'mode-replaced', 'hidden', 'blur', 'tab-changed', 'window-closed']) {
+    assert.ok(src.includes(`'${reason}'`), `settlement route '${reason}' must be wired`);
   }
+  assert.ok(/isTrustedSender\(event,\s*\[overlayView\]\)/.test(src),
+    'the reply channel must accept the overlay alone, never the chrome window');
 });
 
-test('T-picker: main wires an exactly-once settlement owner', () => {
+test('T6-wiring: ranking precedes inspection, enumeration follows consent', () => {
   const fs = require('node:fs');
   const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
-  assert.ok(/function settleCredentialPick\(/.test(src), 'settleCredentialPick is required');
-  // Every reason in the closed enum must appear as a settlement call site.
-  for (const reason of ['selected', 'dismissed', 'escape', 'invalid-reply',
-    'mode-replaced', 'hidden', 'blur', 'tab-changed', 'window-closed', 'timeout']) {
-    assert.ok(src.includes(`'${reason}'`), `reason '${reason}' must be wired`);
-  }
+  // Slice to the orchestrator: indexOf on a bare name would find the function
+  // DEFINITION, which sits above it.
+  const start = src.indexOf('async function fillActiveTabFrom1Password');
+  const end = src.indexOf('
+async function ', start + 1);
+  const fn = src.slice(start, end === -1 ? undefined : end);
+  const rank = fn.indexOf('rankMatches(');
+  const inspect = fn.indexOf('buildInspectScript(');
+  const consent = fn.indexOf("passwordBasis !== 'authoritative'");
+  const flow = fn.indexOf('chooseAndReveal(');
+  assert.ok(rank > -1 && inspect > -1 && consent > -1 && flow > -1, 'all four must appear in the orchestrator');
+  assert.ok(rank < inspect, 'ranking is metadata-only and must precede inspection');
+  assert.ok(inspect < consent, 'consent needs the inspect result');
+  assert.ok(consent < flow, 'nothing may be decrypted before the page is judged fillable and consented to');
+  assert.ok(/kept\.length === 0/.test(fn) || /!kept\.length/.test(fn), 'the defensive empty-tier case must be handled');
 });
 
-test('T-picker: the reply handler is scoped to the OVERLAY sender alone', () => {
+test('T6-wiring: consent copy is candidate-neutral when a picker will follow', () => {
   const fs = require('node:fs');
   const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
-  const handler = src.slice(src.indexOf("ipcMain.on('chrome:credential-pick'"));
-  assert.ok(handler.length > 0, 'the chrome:credential-pick handler must exist');
-  const body = handler.slice(0, handler.indexOf('\n  });'));
-  assert.ok(/isTrustedSender\(event,\s*\[overlayView\]\)/.test(body),
-    'the chrome window is not an acceptable sender for this channel');
-  assert.ok(!/win\b/.test(body.replace(/window-closed/g, '')),
-    'the handler must not accept the chrome window as a sender');
-});
-
-test('T-picker: selection gates on focus restoration before decrypting', () => {
-  const fs = require('node:fs');
-  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
-  const pickAt = src.indexOf('requestCredentialPick(');
-  const gateAt = src.indexOf('await restoreTabFocus(wc)', pickAt);
-  const revealAt = src.indexOf('revealCredential(', pickAt);
-  assert.ok(pickAt > -1 && gateAt > -1 && revealAt > -1);
-  assert.ok(gateAt < revealAt,
-    'focus must be confirmed restored before the selected credential is read');
+  assert.ok(/kept\.length === 1 \?[^
+]*title/.test(src),
+    'only a single survivor may be named in the consent prompt');
 });
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [ ] **Step 2: Run to verify they fail**
 
 Run: `node --test test/unit/onepassword-match.test.js`
-Expected: FAIL — `isValidPickIndex is not a function`.
+Expected: FAIL — `rankMatches(` not found in the orchestrator slice.
 
-- [ ] **Step 3: Add the pure index validator**
+- [ ] **Step 3: Make `restoreTabFocus`'s window focus conditional**
 
-In `src/main/onepassword.js`, add after `rankMatches`, and add `isValidPickIndex` to the exports:
-
-```js
-/** Stage-2 reply validation: `null` cancels, otherwise it must be an integer
- * index into the candidate list. Fractional, negative, out-of-range, NaN and
- * string values all fail closed. Pure so the rejection cases are testable
- * without Electron. */
-function isValidPickIndex(index, len) {
-  if (index === null) return true;
-  return Number.isInteger(index) && index >= 0 && index < len;
-}
-```
-
-- [ ] **Step 4: Make `restoreTabFocus`'s window focus conditional**
-
-In `src/main/main.js`, in `restoreTabFocus` (around line 1398), replace:
-
-```js
-  if (hasLiveWindow()) win.focus();
-```
-
-with:
+In `src/main/main.js`, in `restoreTabFocus`, replace `if (hasLiveWindow()) win.focus();` with:
 
 ```js
   // Only re-assert the WINDOW when Blanc is already frontmost. A picker
@@ -650,287 +1075,176 @@ with:
   if (hasLiveWindow() && win.isFocused()) win.focus();
 ```
 
-- [ ] **Step 5: Add the picker lifecycle**
+- [ ] **Step 4: Make `showOverlay` report success**
 
-In `src/main/main.js`, add directly below the `FILL_WORLD_ID` constant:
+`requestPick` treats a falsy return as `window-closed`, so `showOverlay` must
+say whether it showed. In `src/main/main.js`, change its guard and add a return:
 
 ```js
-// --- Credential picker lifecycle -------------------------------------------
-// One pending request at a time, owned entirely by settleCredentialPick. Every
-// route that can end a picker — selection, dismissal, Escape, a replaced mode,
-// hideOverlay, a tab switch, window death, timeout — must go through it, or the
-// fill will await a promise that never settles and wedge onePasswordFillInFlight.
-const PICK_TIMEOUT_MS = 60_000;
-let pendingPick = null; // { requestId, candidates, resolve, timer }
-
-/** Resolve the pending pick exactly once. Clears all state BEFORE resolving so
- * a handler running synchronously off the resolution can't see a half-torn-down
- * request. `index` is null for every cancellation reason. */
-function settleCredentialPick(index, reason) {
-  const pending = pendingPick;
-  if (!pending) return; // already settled, or none open — idempotent by design
-  pendingPick = null;
-  clearTimeout(pending.timer);
-  // Drop the vault-derived rows from the renderer as well as from main.
-  if (overlayMode === 'credential-picker') hideOverlay({ refocusContent: false });
-  overlayPrefill = null;
-  pending.resolve({ index, reason });
-}
-
-/** Show the picker and await the user's choice. Rows must already be free of
- * secrets and ids — see buildPickerRows in the orchestrator. */
-function requestCredentialPick(rows, truncated, host) {
-  return new Promise((resolve) => {
-    const requestId = crypto.randomUUID();
-    pendingPick = {
-      requestId,
-      candidates: rows,
-      resolve,
-      timer: setTimeout(() => settleCredentialPick(null, 'timeout'), PICK_TIMEOUT_MS),
-    };
-    showOverlay('credential-picker', { prefill: { requestId, host, rows, truncated } });
-  });
-}
+function showOverlay(mode, { prefill } = {}) {
+  if (!hasLiveWindow() || !overlayView) return false;
 ```
 
-- [ ] **Step 6: Wire every settlement route**
+and add `return true;` as the last line of the function. Existing callers ignore
+the value, so this is additive.
 
-In `src/main/main.js`:
+- [ ] **Step 5: Instantiate the controller**
 
-**(a)** At the top of `hideOverlay` (line ~770), immediately after `if (!overlayMode) return;`:
+In `src/main/main.js`, below the `FILL_WORLD_ID` constant:
 
 ```js
-  // A picker dismissed by any other caller still has a promise awaiting it.
+const { createPickerController } = require('./credential-picker');
+const { chooseAndReveal } = require('./credential-fill-flow');
+
+const pickerController = createPickerController({
+  showOverlay,
+  hideOverlay: () => hideOverlay({ refocusContent: false }),
+  getOverlayMode: () => overlayMode,
+  isOverlaySender: (event) => isTrustedSender(event, [overlayView]),
+  randomUUID: () => crypto.randomUUID(),
+  setTimer: (fn, ms) => setTimeout(fn, ms),
+  clearTimer: (t) => clearTimeout(t),
+  timeoutMs: 60_000,
+});
+```
+
+- [ ] **Step 6: Wire the settlement routes**
+
+**(a)** Top of `hideOverlay`, after `if (!overlayMode) return;`:
+
+```js
   // 'hidden' is deliberately no-restore: hideOverlay has six callers and the
   // cause can't be attributed, so it fails safe.
-  if (overlayMode === 'credential-picker' && pendingPick) settleCredentialPick(null, 'hidden');
+  if (overlayMode === 'credential-picker') pickerController.settle(null, 'hidden');
 ```
 
-**(b)** At the top of `showOverlay` (line ~752), immediately after the `if (!hasLiveWindow() || !overlayView) return;` guard:
+**(b)** Top of `showOverlay`, after the live-window guard:
 
 ```js
-  if (overlayMode === 'credential-picker' && mode !== 'credential-picker' && pendingPick) {
-    settleCredentialPick(null, 'mode-replaced');
+  if (overlayMode === 'credential-picker' && mode !== 'credential-picker') {
+    pickerController.settle(null, 'mode-replaced');
   }
 ```
 
-**(c)** In the overlay's `before-input-event` Escape handler (line ~687), replace `hideOverlay();` with:
+**(c)** In the overlay Escape handler, replace `hideOverlay();` with:
 
 ```js
-      if (overlayMode === 'credential-picker') settleCredentialPick(null, 'escape');
+      if (overlayMode === 'credential-picker') pickerController.settle(null, 'escape');
       else hideOverlay();
 ```
 
-**(d)** In the overlay `blur` handler (line ~707), before the existing `hideOverlay({ refocusContent: false });`:
+**(d)** In the overlay `blur` handler, before its `hideOverlay(...)`:
 
 ```js
-    if (overlayMode === 'credential-picker') return settleCredentialPick(null, 'blur');
+    if (overlayMode === 'credential-picker') return pickerController.settle(null, 'blur');
 ```
 
-**(e)** In `setActiveTab`, immediately after the existing `hideOverlay(...)` call for tab switches (line ~1073) — and in `closeTab` where the captured tab dies — add:
+**(e)** In `setActiveTab` and in `closeTab`:
 
 ```js
-  if (pendingPick) settleCredentialPick(null, 'tab-changed');
+  pickerController.settle(null, 'tab-changed');
 ```
 
-**(f)** In `createOverlay()`, after the existing overlay `webContents` listeners:
+**(f)** In `createOverlay()`, after the other overlay listeners, and in the window `closed` handler:
 
 ```js
-  overlayView.webContents.on('destroyed', () => settleCredentialPick(null, 'window-closed'));
-  overlayView.webContents.on('render-process-gone', () => settleCredentialPick(null, 'window-closed'));
+  overlayView.webContents.on('destroyed', () => pickerController.settle(null, 'window-closed'));
+  overlayView.webContents.on('render-process-gone', () => pickerController.settle(null, 'window-closed'));
 ```
 
-and in the window's `closed` handler:
+**(g)** In `registerIpcHandlers()`:
 
 ```js
-  settleCredentialPick(null, 'window-closed');
+  ipcMain.on('chrome:credential-pick', (event, payload) => pickerController.handleReply(event, payload));
 ```
 
-- [ ] **Step 7: Add the reply handler**
+- [ ] **Step 7: Add the preload bridge**
 
-In `src/main/main.js`, inside `registerIpcHandlers()`:
-
-```js
-  // Two-stage validation. Stage 1 proves the reply belongs to THIS request and
-  // failing it changes NO state — otherwise a late reply from a closed picker
-  // could cancel a different, live one. Only a stage-1-clean reply may be
-  // cancelled by a malformed index.
-  ipcMain.on('chrome:credential-pick', (event, payload) => {
-    if (!isTrustedSender(event, [overlayView])) return;      // overlay ONLY, never the chrome window
-    const pending = pendingPick;
-    if (!pending) return;
-    if (overlayMode !== 'credential-picker') return;
-    if (!payload || payload.requestId !== pending.requestId) return;
-    // Stage 2: from here the reply is provably ours, so a bad index means the
-    // picker misbehaved and we abandon this request.
-    const index = payload.index === undefined ? null : payload.index;
-    if (!onepassword.isValidPickIndex(index, pending.candidates.length)) {
-      return settleCredentialPick(null, 'invalid-reply');
-    }
-    settleCredentialPick(index, index === null ? 'dismissed' : 'selected');
-  });
-```
-
-- [ ] **Step 8: Add the preload bridge**
-
-In `src/main/preload.js`, inside the `browserAPI` object:
+In `src/main/preload.js`, inside `browserAPI`:
 
 ```js
   sendCredentialPick: (requestId, index) =>
     ipcRenderer.send('chrome:credential-pick', { requestId, index }),
 ```
 
-- [ ] **Step 9: Run tests + syntax**
+- [ ] **Step 8: Replace the phase-1 chooser with ranking**
 
-Run: `node --check src/main/main.js && node --check src/main/preload.js && node --test test/unit/onepassword-match.test.js`
-Expected: all pass.
-
-- [ ] **Step 10: Full suite**
-
-Run: `npm run test:unit`
-Expected: PASS, 0 failures.
-
-- [ ] **Step 11: Commit**
-
-```bash
-git add src/main/main.js src/main/preload.js src/main/onepassword.js test/unit/onepassword-match.test.js
-git commit -m "feat(1password): picker lifecycle — exactly-once settlement, two-stage reply validation"
-```
-
----
-
-### Task 5: Reorder the orchestrator around the picker
-
-Moves selection *after* inspection and consent, so nothing is decrypted for a page that will be refused, and wires the picker into the flow.
-
-**Files:**
-- Modify: `src/main/main.js` (`fillActiveTabFrom1Password`, phase 1 lines ~1414–1456 and phase 2)
-- Test: `test/unit/onepassword-match.test.js`
-
-**Interfaces:**
-- Consumes: `rankMatches`, `revealUsernames`, `requestCredentialPick`, `restoreTabFocus`, `revealCredential`.
-- Produces: the reordered flow; new log outcome `no-match` for the defensive empty-tier case (already an existing outcome string).
-
-- [ ] **Step 1: Write the failing tests**
-
-Append to `test/unit/onepassword-match.test.js`:
-
-```js
-test('T5-order: ranking and inspection precede any decryption', () => {
-  const fs = require('node:fs');
-  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
-  const rank = src.indexOf('rankMatches(');
-  const inspect = src.indexOf('buildInspectScript(');
-  const consent = src.indexOf("passwordBasis !== 'authoritative'");
-  const enumerate = src.indexOf('revealUsernames(');
-  const pick = src.indexOf('requestCredentialPick(');
-  const reveal = src.indexOf('revealCredential(');
-  assert.ok(rank > -1 && inspect > -1 && consent > -1 && enumerate > -1 && pick > -1 && reveal > -1);
-  assert.ok(rank < inspect, 'ranking is metadata-only and must precede inspection');
-  assert.ok(inspect < consent, 'consent needs the inspect result');
-  assert.ok(consent < enumerate,
-    'NOTHING may be decrypted before the page is judged fillable and consented to');
-  assert.ok(enumerate < pick, 'rows must be labelled before the picker opens');
-  assert.ok(pick < reveal, 'the selected credential is read only after a choice');
-});
-
-test('T5-order: enumeration and the picker are skipped for a single survivor', () => {
-  const fs = require('node:fs');
-  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
-  assert.ok(/kept\.length > 1/.test(src),
-    'a single survivor must bypass revealUsernames and the picker entirely');
-  assert.ok(/kept\.length === 0/.test(src) || /!kept\.length/.test(src),
-    'the defensive empty-tier case must be handled');
-});
-```
-
-- [ ] **Step 2: Run to verify they fail**
-
-Run: `node --test test/unit/onepassword-match.test.js`
-Expected: FAIL — `rankMatches(` not found in `main.js`.
-
-- [ ] **Step 3: Replace the phase-1 chooser with ranking only**
-
-In `src/main/main.js`, replace the whole `if (matches.length > 1) { … }` block in phase 1 (lines ~1431–1453, including its `dialog.showMessageBox` and the `restoreTabFocus` call that followed it) with:
+In `fillActiveTabFrom1Password`, replace the whole `if (matches.length > 1) { … }` block (its `dialog.showMessageBox` and the `restoreTabFocus` call that followed) with:
 
 ```js
     // Rank on METADATA only — no decryption here. One survivor is the common
     // case and needs no picker at all.
-    const { kept, truncated } = onepassword.rankMatches(matches, expectedHost);
-    if (kept.length === 0) return log('no-match', expectedHost); // defensive: never use the unranked list
-    pickerTruncated = truncated;
-    pickerCandidates = kept;
-    chosen = kept[0]; // provisional; replaced by the picker when kept.length > 1
+    const ranked = onepassword.rankMatches(matches, expectedHost);
+    if (ranked.kept.length === 0) return log('no-match', expectedHost); // never fall back to the unranked list
+    kept = ranked.kept;
+    truncated = ranked.truncated;
 ```
 
-and declare `pickerCandidates` / `pickerTruncated` alongside the other phase-1 `let` bindings at the top of the function.
+and declare `let kept = []; let truncated = 0;` with the other phase-1 bindings.
 
-- [ ] **Step 4: Insert enumeration + picker into phase 2**
+- [ ] **Step 9: Make the consent copy candidate-neutral**
 
-In phase 2, immediately **after** the consent block (after its `if (!(await restoreTabFocus(wc))) return log('abort-wc-changed');`) and **before** `const { username, password } = await onepassword.revealCredential(...)`:
+The consent gate now runs *before* selection, so it may only name an item when
+there is exactly one survivor. In the consent `dialog.showMessageBox` call,
+replace the `message:` line with:
 
 ```js
-    // Several equally-good candidates: label them with usernames and let the
-    // user choose. This is the first decryption in the flow, and it is reached
-    // only on a page already judged fillable and already consented to.
-    if (pickerCandidates.length > 1) {
-      const rows = await onepassword.revealUsernames(pickerCandidates);
-      const { index, reason } = await requestCredentialPick(
-        // Only these four keys reach the renderer — no vaultId, no itemId,
-        // never a password.
-        rows.map((r) => ({
-          username: r.username,
-          title: r.title,
-          host: r.host,
-          vaultName: r.vaultName,
-        })),
-        pickerTruncated,
-        expectedHost,
-      );
-      if (index === null) {
-        // Best-effort focus return only where the user is demonstrably still
-        // in Blanc; ungated, since nothing further happens.
-        if (reason === 'dismissed' || reason === 'escape') await restoreTabFocus(wc);
-        return log('chooser-cancel', reason);
-      }
-      chosen = pickerCandidates[index];
-      // The overlay took focus. Gate on its return BEFORE decrypting.
-      if (!(await restoreTabFocus(wc))) return log('abort-wc-changed');
-      if (!hasLiveWindow() || !win.isFocused()) return log('abort-window-changed');
-      if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
-      if (wc.isDestroyed()) return log('abort-wc-changed');
-      if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
-      if (wc.getURL() !== expectedURL) return log('abort-url-changed');
-    }
+        message: kept.length === 1
+          ? `Fill your ${kept[0].title || 'saved'} password into this form?`
+          : 'Fill a saved password into this form?',
 ```
 
-- [ ] **Step 5: Run tests + syntax**
+- [ ] **Step 10: Call the flow**
 
-Run: `node --check src/main/main.js && node --test test/unit/onepassword-match.test.js`
-Expected: PASS.
+In phase 2, replace the line
+`const { username, password } = await onepassword.revealCredential(chosen.vaultId, chosen.itemId);`
+with:
 
-- [ ] **Step 6: Confirm no stale chooser remains**
+```js
+    const picked = await chooseAndReveal({
+      kept,
+      truncated,
+      host: expectedHost,
+      deps: {
+        revealUsernames: (list) => onepassword.revealUsernames(list),
+        requestPick: (rows, trunc, host) => pickerController.requestPick(rows, trunc, host),
+        restoreTabFocus: () => restoreTabFocus(wc),
+        revalidate: () => {
+          if (!hasLiveWindow() || !win.isFocused()) return 'abort-window-changed';
+          if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return 'abort-tab-changed';
+          if (wc.isDestroyed()) return 'abort-wc-changed';
+          if (tab.navEpoch !== capturedEpoch) return 'abort-navigated';
+          if (wc.getURL() !== expectedURL) return 'abort-url-changed';
+          return null;
+        },
+        revealCredential: (c) => onepassword.revealCredential(c.vaultId, c.itemId),
+      },
+    });
+    if (picked.outcome === 'chooser-cancel') return log('chooser-cancel', picked.detail);
+    if (picked.outcome !== 'ok') return log(picked.outcome);
+    const { username, password } = picked.credential;
+```
+
+- [ ] **Step 11: Confirm no stale chooser remains**
 
 Run: `grep -n "showMessageBox" src/main/main.js`
-Expected: the `will-prevent-unload` and consent dialogs only — **no** chooser over `matches`.
+Expected: only `will-prevent-unload` and the consent dialog — **no** chooser over `matches`.
 
-- [ ] **Step 7: Full suite**
+- [ ] **Step 12: Tests + syntax**
 
-Run: `npm run test:unit`
-Expected: PASS, 0 failures.
+Run: `node --check src/main/main.js && node --check src/main/preload.js && npm run test:unit`
+Expected: all pass, 0 failures.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 13: Commit**
 
 ```bash
-git add src/main/main.js test/unit/onepassword-match.test.js
-git commit -m "feat(1password): rank before inspect, pick after consent"
+git add src/main/main.js src/main/preload.js test/unit/onepassword-match.test.js
+git commit -m "feat(1password): wire ranking, picker controller and fill flow into main"
 ```
 
 ---
 
-### Task 6: The overlay picker UI
-
-The renderer half: a `'credential-picker'` mode whose rows are built with `createElement` + `textContent` only.
+### Task 7: The overlay picker UI
 
 **Files:**
 - Modify: `src/renderer/overlay.js`
@@ -938,24 +1252,25 @@ The renderer half: a `'credential-picker'` mode whose rows are built with `creat
 - Test: `test/unit/onepassword-match.test.js` (source guard)
 
 **Interfaces:**
-- Consumes: `window.browserAPI.onOverlayShow` (existing), `window.browserAPI.sendCredentialPick(requestId, index)` (Task 4).
-- Produces: the `credential-picker` mode; rows rendered from `{ username, title, host, vaultName }`.
+- Consumes: `window.browserAPI.onOverlayShow`, `window.browserAPI.sendCredentialPick(requestId, index)`.
+- Produces: the `credential-picker` mode.
 
 - [ ] **Step 1: Write the failing source guard**
 
 Append to `test/unit/onepassword-match.test.js`:
 
 ```js
-test('T6: the picker render path never uses innerHTML', () => {
-  // Vault strings are untrusted text entering a PRIVILEGED renderer that holds
-  // the browserAPI bridge. overlay.js uses innerHTML ~10 lines away for static
-  // scaffolding, so the local convention is the dangerous one — this guard
-  // scopes to the picker function only.
+test('T7: the picker render path never uses innerHTML', () => {
+  // Vault strings are untrusted text entering a PRIVILEGED renderer holding the
+  // browserAPI bridge. overlay.js uses innerHTML ~10 lines away for static
+  // scaffolding, so the local convention is the dangerous one — scope the guard
+  // to the picker function only.
   const fs = require('node:fs');
   const src = fs.readFileSync(require.resolve('../../src/renderer/overlay.js'), 'utf8');
   const start = src.indexOf('function renderCredentialPicker');
   assert.ok(start > -1, 'renderCredentialPicker must exist');
-  const end = src.indexOf('\n  function ', start + 1);
+  const end = src.indexOf('
+  function ', start + 1);
   const body = src.slice(start, end === -1 ? undefined : end);
   for (const sink of ['innerHTML', 'insertAdjacentHTML', 'outerHTML']) {
     assert.ok(!body.includes(sink), `${sink} must never appear in the picker render path`);
@@ -971,7 +1286,7 @@ Expected: FAIL — `renderCredentialPicker must exist`.
 
 - [ ] **Step 3: Add the renderer**
 
-In `src/renderer/overlay.js`, add before `applyMode`:
+In `src/renderer/overlay.js`, before `applyMode`:
 
 ```js
   let pickerRequestId = null;
@@ -981,14 +1296,15 @@ In `src/renderer/overlay.js`, add before `applyMode`:
    *
    * EVERY value here (`username`, `title`, `host`, `vaultName`) is untrusted
    * text from the user's vault, arriving in a privileged renderer. Build nodes
-   * with createElement and set text with textContent — never innerHTML, not
-   * even for the truncation line. A vault item titled `<img src=x onerror=…>`
-   * must render as those literal characters.
+   * with createElement and set text with textContent — never innerHTML, not even
+   * for the truncation line. A vault item titled `<img src=x onerror=…>` must
+   * render as those literal characters.
    */
   function renderCredentialPicker(prefill) {
     pickerRequestId = prefill?.requestId ?? null;
     pickerIndex = 0;
     const rows = Array.isArray(prefill?.rows) ? prefill.rows : [];
+    const multiVault = new Set(rows.map((r) => r.vaultName)).size > 1;
     const list = document.createElement('div');
     list.className = 'cred-list';
 
@@ -1008,7 +1324,7 @@ In `src/renderer/overlay.js`, add before `applyMode`:
 
       row.append(primary, secondary);
 
-      if (r.vaultName && rows.some((o) => o.vaultName !== r.vaultName)) {
+      if (multiVault && r.vaultName) {
         const vault = document.createElement('span');
         vault.className = 'cred-vault';
         vault.textContent = r.vaultName;
@@ -1036,31 +1352,38 @@ In `src/renderer/overlay.js`, add before `applyMode`:
     rows[pickerIndex]?.focus();
   }
 
+  /** One reply per request. `index` null is an explicit dismissal, which main
+   * settles as `dismissed` (best-effort focus return) rather than `hidden`. */
   function choosePicker(index) {
     if (pickerRequestId === null) return;
     const id = pickerRequestId;
-    pickerRequestId = null; // one reply per request
+    pickerRequestId = null;
     window.browserAPI.sendCredentialPick(id, index);
   }
 ```
 
-- [ ] **Step 4: Wire the mode**
+- [ ] **Step 4: Wire the mode, the scrim, and teardown**
 
-In `applyMode`, add a branch alongside the existing ones:
+In `applyMode`, extend the two visibility lines and add a branch:
+
+```js
+    backdrop.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
+    panelAnchor.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
+```
 
 ```js
     } else if (next === 'credential-picker') {
       renderCredentialPicker(prefill);
 ```
 
-and in the same function's visibility lines, make the panel anchor visible for the picker:
+In the **backdrop/scrim click handler**, branch before the existing dismissal so
+the scrim produces `dismissed`, not `hidden`:
 
 ```js
-    panelAnchor.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
-    backdrop.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
+    if (mode === 'credential-picker') return choosePicker(null);
 ```
 
-Add keyboard handling in the overlay's existing `keydown` listener:
+In the overlay's `keydown` listener:
 
 ```js
     if (mode === 'credential-picker') {
@@ -1068,16 +1391,17 @@ Add keyboard handling in the overlay's existing `keydown` listener:
       if (e.key === 'ArrowDown') { e.preventDefault(); pickerIndex = Math.min(pickerIndex + 1, rows.length - 1); highlightPicker(); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); pickerIndex = Math.max(pickerIndex - 1, 0); highlightPicker(); }
       else if (e.key === 'Enter') { e.preventDefault(); choosePicker(pickerIndex); }
-      return;
+      return;   // Escape is handled in main via before-input-event
     }
 ```
 
-Escape is already handled in main via `before-input-event` (Task 4c) — the renderer must not also send a reply for it.
-
-And in `onOverlayHide`, clear the request so a late click can't reply:
+In `onOverlayHide`, clear **both** the request and the rendered rows — leaving
+them would keep vault-derived strings resident in the privileged renderer:
 
 ```js
     pickerRequestId = null;
+    pickerIndex = 0;
+    if (document.body.dataset.mode === 'credential-picker') islandList.replaceChildren();
 ```
 
 - [ ] **Step 5: Add styles**
@@ -1108,20 +1432,24 @@ In `src/renderer/styles.css`, near the other island row rules:
 .cred-more { padding: 6px 10px; color: var(--fg-dim); font-size: 11px; }
 ```
 
-- [ ] **Step 6: Run tests + full suite**
+- [ ] **Step 6: Tests**
 
-Run: `node --test test/unit/onepassword-match.test.js && npm run test:unit`
+Run: `npm run test:unit`
 Expected: PASS, 0 failures.
 
 - [ ] **Step 7: Manual smoke**
 
-Chrome documents load once at window creation, so **relaunch** rather than ⌘R:
+Chrome documents load once at window creation — **relaunch**, don't ⌘R:
 
 ```bash
 BLANC_1P_ACCOUNT="<your-account>" npm start
 ```
 
-On `https://accounts.google.com/` press ⌥⌘P. Verify: the Island shows a list of usernames (not a native button row); ↑/↓ move the highlight; Enter fills; Escape logs `chooser-cancel escape`; the truncation line reads `N more not shown` when more than ten matched.
+On `https://accounts.google.com/` press ⌥⌘P. Verify: an Island list of usernames
+(not a native button row); ↑/↓ move the highlight; Enter fills; Escape logs
+`chooser-cancel escape`; clicking the scrim logs `chooser-cancel dismissed`; the
+truncation line appears when more than ten matched. On `https://www.google.com/`
+verify **no picker** — one candidate fills directly.
 
 - [ ] **Step 8: Commit**
 
@@ -1132,143 +1460,170 @@ git commit -m "feat(1password): Island credential picker with textContent-only r
 
 ---
 
-### Task 7: Adversarial real-DOM fixture
+### Task 8: Adversarial real-DOM scenario
 
-The source guard in Task 6 proves the picker path contains no `innerHTML`; this proves the rendered result is inert. It needs a real DOM, which `node --test` does not provide, so it lives in the existing Playwright-Electron harness.
+The source guard proves the picker path contains no `innerHTML`; this proves the
+rendered result is inert. It must live where the harness actually looks: the
+config loads features from **`spec/acceptance/**/*.feature`** and steps from
+**`test/desktop/steps/**/*.js`** (CommonJS), and runs only scenarios whose tag is
+in the `RUNNABLE` list. A feature placed anywhere else, or an `.mjs` step file,
+is silently skipped — the suite would pass without ever running this.
 
 **Files:**
-- Create: `test/desktop/features/credential-picker.feature`
-- Modify: `test/desktop/steps/` (a new step file, following the existing step-definition pattern)
-- Modify: `src/main/test-hook.js` (expose a picker trigger)
+- Create: `spec/acceptance/credential-picker.feature`
+- Create: `test/desktop/steps/credential-picker.steps.js`
+- Modify: `test/desktop/cucumber.mjs` (add the tag to `RUNNABLE`)
+- Modify: `src/main/test-hook.js`
 
 **Interfaces:**
-- Consumes: the `credential-picker` overlay mode (Task 6), the existing `globalThis.__blanc` test surface.
-- Produces: a Cucumber scenario asserting vault strings render as literal text.
+- Consumes: the `credential-picker` mode (Task 7); the hook's existing
+  `showOverlay` and `getOverlayWebContents` collaborators; the World's
+  `this.call(method, ...args)`.
+- Produces: hook methods `showCredentialPicker(rows)` and `readPickerDom()`.
 
-- [ ] **Step 1: Expose a test-only picker trigger**
+- [ ] **Step 1: Add the test-hook methods**
 
-In `src/main/test-hook.js`, add to the installed surface:
+In `src/main/test-hook.js`, alongside `openPanel()` / `openPalette()`:
 
 ```js
-    showCredentialPicker: (rows, truncated = 0) =>
+    showCredentialPicker(rows) {
       showOverlay('credential-picker', {
-        prefill: { requestId: 'test-request', host: 'example.test', rows, truncated },
-      }),
+        prefill: { requestId: 'test-request', host: 'example.test', rows, truncated: 0 },
+      });
+    },
+    /** Read the rendered picker back out of the overlay's DOM. Returns plain
+     * data so the step file needs no Playwright page handle. */
+    readPickerDom() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const row = document.querySelector('.cred-row');
+        if (!row) return null;
+        return {
+          text: row.textContent,
+          injected: row.querySelectorAll('img, script, b, iframe').length,
+          pwned: typeof window.__pwned,
+        };
+      })()`);
+    },
 ```
-
-and pass `showOverlay` through from `main.js`'s `test-hook` install call (it is already passed — confirm it is in the destructured options; if not, add it).
 
 - [ ] **Step 2: Write the failing scenario**
 
-Create `test/desktop/features/credential-picker.feature`:
+Create `spec/acceptance/credential-picker.feature`:
 
 ```gherkin
 Feature: 1Password credential picker
   The picker renders vault-supplied strings, which are untrusted text in a
   privileged renderer. They must never become markup.
 
+  @F24-1
   Scenario: vault strings render as literal text
-    Given the app is running
-    When the credential picker is shown with a hostile item title
-    Then the picker row shows the title as literal text
+    When the credential picker is shown with hostile vault strings
+    Then the picker row shows them as literal text
     And the picker row contains no injected elements
 ```
 
-- [ ] **Step 3: Write the step definitions**
+- [ ] **Step 3: Register the tag as runnable**
 
-Create `test/desktop/steps/credential-picker.steps.mjs`, following the existing steps' import style:
+In `test/desktop/cucumber.mjs`, add `'@F24-1'` to the `RUNNABLE` array. Without
+this the scenario is selected out and never executes.
+
+- [ ] **Step 4: Write the step definitions (CommonJS)**
+
+Create `test/desktop/steps/credential-picker.steps.js`:
 
 ```js
-import { Given, When, Then } from '@cucumber/cucumber';
-import assert from 'node:assert/strict';
+'use strict';
+const { When, Then } = require('@cucumber/cucumber');
+const assert = require('node:assert/strict');
 
-const HOSTILE = '<img src=x onerror="window.__pwned=1">';
+const HOSTILE_TITLE = '<img src=x onerror="window.__pwned=1">';
+const HOSTILE_USER = '"><script>alert(1)</script>';
+const HOSTILE_HOST = '</span><b>x';
 
-When('the credential picker is shown with a hostile item title', async function () {
-  await this.app.evaluate(({ }, payload) => globalThis.__blanc.showCredentialPicker(payload), [
-    { username: '"><script>alert(1)</script>', title: HOSTILE, host: '</span><b>x', vaultName: 'Personal' },
+When('the credential picker is shown with hostile vault strings', async function () {
+  await this.call('showCredentialPicker', [
+    { username: HOSTILE_USER, title: HOSTILE_TITLE, host: HOSTILE_HOST, vaultName: 'Personal' },
   ]);
+  this.pickerDom = await this.call('readPickerDom');
 });
 
-Then('the picker row shows the title as literal text', async function () {
-  const overlay = await this.overlayWindow();
-  const text = await overlay.locator('.cred-row .cred-meta').first().textContent();
-  assert.ok(text.includes(HOSTILE), 'the raw markup must appear as visible characters');
+Then('the picker row shows them as literal text', function () {
+  assert.ok(this.pickerDom, 'the picker row must render');
+  assert.ok(this.pickerDom.text.includes(HOSTILE_TITLE), 'the raw markup must appear as visible characters');
+  assert.ok(this.pickerDom.text.includes(HOSTILE_USER));
 });
 
-Then('the picker row contains no injected elements', async function () {
-  const overlay = await this.overlayWindow();
-  const injected = await overlay.locator('.cred-row img, .cred-row script, .cred-row b').count();
-  assert.equal(injected, 0, 'no element may be created from vault data');
-  const pwned = await overlay.evaluate(() => window.__pwned);
-  assert.equal(pwned, undefined, 'no injected handler may run');
+Then('the picker row contains no injected elements', function () {
+  assert.equal(this.pickerDom.injected, 0, 'no element may be created from vault data');
+  assert.equal(this.pickerDom.pwned, 'undefined', 'no injected handler may run');
 });
 ```
 
-*(If the harness has no `overlayWindow()` helper, add one alongside the existing window helpers in the world/support file — the overlay is a separate `WebContentsView`, so it is reached as its own Playwright page.)*
-
-- [ ] **Step 4: Dry-run to check step resolution**
+- [ ] **Step 5: Dry-run to confirm the steps resolve**
 
 Run: `npm run test:acceptance:dry`
-Expected: the three new steps resolve (no "undefined step" warnings).
+Expected: the three new steps resolve — no "undefined step" warnings, and the
+scenario appears in the selected set (if it doesn't, the tag isn't in `RUNNABLE`).
 
-- [ ] **Step 5: Run the scenario**
+- [ ] **Step 6: Run the scenario**
 
 Run: `npm run test:acceptance:desktop`
 Expected: the `credential-picker` scenario passes.
 
-If the harness cannot reach the overlay renderer, **stop and record it** in the spec's testing section, then add `jsdom` as an explicit devDependency and port this assertion to a unit test — a deliberate, recorded decision, not a silent drop.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add test/desktop src/main/test-hook.js
-git commit -m "test(1password): adversarial real-DOM fixture for picker rendering"
+git add spec/acceptance/credential-picker.feature test/desktop src/main/test-hook.js
+git commit -m "test(1password): adversarial real-DOM scenario for picker rendering"
 ```
 
 ---
 
-### Task 8: Update the dev-usage doc
-
-User-visible behavior changed — the picker looks different, appears less often, and has new outcomes.
+### Task 9: Update the dev-usage doc
 
 **Files:**
 - Modify: `docs/1password-dev-usage.md`
 
 - [ ] **Step 1: Document ranking and the picker**
 
-In the "Notes & limits" section, after the registrable-domain bullet, add:
+In "Notes & limits", after the registrable-domain bullet, add:
 
 ```markdown
 - **You'll rarely see a picker.** Matches are ranked by how well the saved
   website fits the page — an item saved for the exact host beats one saved for
   the parent domain, which beats a sibling subdomain — and only the best tier is
-  offered. On a site where one item clearly fits, Blanc fills it without asking.
+  offered. Where one item clearly fits, Blanc fills it without asking.
 - **When several items tie**, the Island shows a list labelled by **username**
   (the only field that reliably distinguishes near-duplicate items), with the
-  item title and matched host beneath. ↑/↓ to move, Enter to fill, Escape to
-  cancel. At most 10 are shown; if more matched, the last line says how many
-  were left out.
-- Reading those usernames means Blanc briefly decrypts each listed item — but
-  only when a picker is actually needed, never more than 10, and only after the
-  page has been judged fillable. The passwords are released immediately; only
-  the one you pick is read again to fill.
+  item title and matched host beneath. ↑/↓ to move, Enter to fill, Escape or a
+  click outside to cancel. At most 10 are shown; if more matched, the last line
+  says how many were left out.
+- Reading those usernames means Blanc decrypts each listed item — but only when
+  a picker is actually needed, never more than 10, and only after the page has
+  been judged fillable. Blanc does not deliberately retain or reference a
+  decrypted item once it has taken the username, and only the one you pick is
+  read again in order to fill it. (JavaScript offers no way to guarantee a
+  released value is collected or zeroed, so this describes what Blanc holds, not
+  what remains in process memory.)
 ```
 
 - [ ] **Step 2: Add the new outcomes**
 
-In the troubleshooting table, add:
+In the troubleshooting table:
 
 ```markdown
 | `chooser-cancel dismissed` / `chooser-cancel escape` | You cancelled the picker. Nothing was filled. |
 | `chooser-cancel timeout` | The picker sat open for 60s and closed itself. Press ⌥⌘P again. |
 | `chooser-cancel blur` / `chooser-cancel tab-changed` | The picker closed because you switched away. Nothing was filled. |
+| `chooser-cancel invalid-reply` | The picker sent something malformed and was abandoned. Press ⌥⌘P again. |
 ```
 
 - [ ] **Step 3: Verify accuracy**
 
 Run: `grep -n "exact host\|first visible password" docs/1password-dev-usage.md`
-Expected: no output (no stale matching claims).
+Expected: no output.
 
 - [ ] **Step 4: Commit**
 
@@ -1282,24 +1637,26 @@ git commit -m "docs(1password): dev-usage covers ranking and the Island picker"
 ## Self-Review
 
 **Spec coverage:**
-- Orchestration order (rank → inspect → reject → consent → enumerate → pick → re-validate → reveal → fill) → Task 5 Steps 3–4, asserted by the `T5-order` test. ✅
-- Logging boundary moves to the first `items.get()` → enumeration sits inside phase 2's binding-less catch (Task 5 Step 4). ✅
-- `kept.length === 1` skips enumeration and picker; `=== 0` logs `no-match` → Task 5 Step 3 + `T5-order` test. ✅
-- Tiers, best-tier-only, deterministic comparator, smallest-host, cap + `truncated` → Task 1. ✅
-- `findLogins` richer shape → Task 2. ✅
-- Sequential enumeration, ≤ `PICKER_MAX`, injectable client, no password on rows, failure aborts → Task 3. ✅
-- Closed `reason` enum, exactly-once settlement, all ten routes, conditional `win.focus()` → Task 4 Steps 4–6. ✅
-- Two-stage reply validation (stage 1 inert, stage 2 cancels), overlay-only sender, random `requestId`, index validation → Task 4 Steps 3, 7. ✅
-- Rows carry only four keys → Task 5 Step 4 (the `.map` is the enforcement point). ✅
-- Focus policy: `selected` gated before decrypt, `dismissed`/`escape` best-effort, others none → Task 5 Step 4. ✅
-- `textContent`-only rendering + source guard + adversarial DOM fixture → Tasks 6 and 7. ✅
-- Truncation line → Task 6 Step 3. ✅
-- Dev-usage doc → Task 8. ✅
+- Orchestration order → Task 6 Steps 8–10, asserted by the `T6-wiring` order test (sliced to the orchestrator, so it can't match the function definition). ✅
+- Logging boundary at the first `items.get()` → `chooseAndReveal` returns `fill-error` for any enumeration/reveal failure, never a message (Task 5). ✅
+- One survivor skips enumeration **and** the picker; zero survivors log `no-match` → Task 5 test 1, Task 6 Step 8. ✅
+- Tiers, best-tier-only, deterministic comparator, smallest host, cap + `truncated` → Task 1. ✅
+- `findLogins` shape → Task 2. ✅
+- Sequential capped enumeration, injectable client, no password on rows, failure aborts → Task 3. ✅
+- Closed reason enum, exactly-once settlement, all ten routes, conditional `win.focus()` → Tasks 4 and 6. ✅
+- Two-stage validation with stage 1 **inert**, overlay-only sender, random `requestId`, index validation incl. **missing** index → Task 4. ✅
+- Unavailable overlay settles as `window-closed` instead of hanging → Task 4 test + `requestPick`. ✅
+- Rows carry exactly four keys → asserted in both Task 4 and Task 5. ✅
+- Focus policy per reason, gated on `selected` → Task 5's nine-reason table. ✅
+- Consent copy candidate-neutral when a picker follows → Task 6 Step 9 + test. ✅
+- `dismissed` reachable from the scrim and from the picker's own cancel → Task 7 Step 4. ✅
+- Rows cleared from the renderer on hide → Task 7 Step 4. ✅
+- `textContent`-only + source guard + real-DOM scenario → Tasks 7 and 8. ✅
+- Truncation line → Task 7 Step 3. ✅
+- Dev-usage doc → Task 9. ✅
 
-**Deliberately not covered:** type-to-filter and remembering a choice per host — both listed as spec non-goals.
+**Deliberately not covered:** type-to-filter and remembering a choice per host — both spec non-goals.
 
-**Known risk carried into execution:** Task 7 assumes the acceptance harness can drive the overlay renderer as its own Playwright page. Step 5 states the fallback explicitly (record it, add `jsdom`, port the assertion) rather than leaving the test to be silently dropped.
+**Placeholder scan:** no `TBD`/`TODO`/"handle errors appropriately"; every code step carries the actual code.
 
-**Placeholder scan:** no `TBD`/`TODO`/"handle errors appropriately". Every code step carries the actual code. The one conditional instruction — Task 7's harness fallback — names its decision and its recorded outcome.
-
-**Type consistency:** `findLogins` (Task 2) emits `{vaultId, vaultName, itemId, title, hosts, updatedAt}`, exactly the shape `rankMatches` (Task 1) consumes; `rankMatches` adds `tier` and `host`, which `revealUsernames` (Task 3) reads and passes through; the orchestrator (Task 5) maps those rows down to the four renderer keys `{username, title, host, vaultName}` that `renderCredentialPicker` (Task 6) reads. `requestCredentialPick` resolves `{index, reason}` in Task 4 and is destructured as such in Task 5. `isValidPickIndex(index, len)` is defined in Task 4 Step 3 and called in Task 4 Step 7 with `pending.candidates.length`.
+**Type consistency:** `findLogins` (T2) → `{vaultId, vaultName, itemId, title, hosts, updatedAt}` is exactly what `rankMatches` (T1) consumes; `rankMatches` adds `tier`/`host`; `revealUsernames` (T3) reads those and adds `username`; `chooseAndReveal` (T5) maps to the four renderer keys `{username, title, host, vaultName}`, which `createPickerController.requestPick` (T4) forwards and `renderCredentialPicker` (T7) reads. `requestPick` resolves `{index, reason}` in T4 and is destructured as such in T5. `isValidPickIndex(index, len)` is defined in T4 Step 1 and called in T4 Step 4 with `pending.rowCount`. `showOverlay` returns a boolean from T6 Step 4, which `requestPick` checks.
