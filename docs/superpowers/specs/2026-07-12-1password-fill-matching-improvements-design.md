@@ -258,6 +258,24 @@ navigation (stateless — per-press), TOTP, and 1Password's per-item
 - Regression: exact-host single-page login → `filled user+pass`; `localhost`/IP
   dev login still matches.
 
+## Confirmation gate for heuristic targets (added after audit round 3)
+
+`selectFields` reports **how** it chose a password field:
+
+- **`authoritative`** — the site's own `autocomplete="current-password"`,
+  uncontradicted by a `new-password` token or by its own "Confirm"/"New"
+  wording. Filled **silently**; this covers most major sites.
+- **`heuristic`** — inferred from structure (exactly one visible password field
+  in scope) plus wording. Those wording signals (`create|choose|new|confirm|
+  sign-up|register`…) are **English-only**, so a localized signup page matches
+  none of them and would read as a login form. A heuristic target therefore
+  requires an explicit **native confirmation dialog before anything is
+  decrypted**; cancelling logs `user-declined` and reveals no secret.
+
+A dialog is language-independent, which is why it — and not a longer wordlist —
+is the actual boundary. A username-only fill needs no prompt: it writes no
+secret.
+
 ## Risks / edge cases
 
 - **Cross-tenant over-match** — **mitigated for PSL-listed private suffixes** by

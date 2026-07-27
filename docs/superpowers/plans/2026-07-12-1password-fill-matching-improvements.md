@@ -602,7 +602,7 @@ Builds the two injected sources. The inspect source carries **no credential** an
 **Interfaces:**
 - Consumes: `selectFields` and its helpers (Task 3).
 - Produces:
-  - `buildInspectScript({ expectedURL, expectedTimeOrigin }) → string` — IIFE resolving to `{ originMismatch: true }` or `{ originMismatch: false, hasPassword: boolean, hasUsername: boolean }`.
+  - `buildInspectScript({ expectedURL, expectedTimeOrigin }) → string` — IIFE resolving to `{ originMismatch: true }` or `{ originMismatch: false, hasPassword: boolean, hasUsername: boolean, passwordBasis: 'authoritative'|'heuristic'|null }`. `passwordBasis` comes straight from `selectFields` and decides whether the fill needs user confirmation (see Task 5).
   - `buildFillScript({ expectedURL, expectedTimeOrigin, username, password }) → string` — IIFE resolving to `{ originMismatch: true, filledUser: false, filledPass: false }` or `{ originMismatch: false, filledUser: boolean, filledPass: boolean }`. `username`/`password` may be `null`; a `null` value is never written.
 
 - [ ] **Step 1: Write the failing tests**
@@ -796,6 +796,7 @@ function buildInspectScript({ expectedURL, expectedTimeOrigin }) {
       originMismatch: false,
       hasPassword: picked.passwordIndex !== null,
       hasUsername: picked.usernameIndex !== null,
+      passwordBasis: picked.passwordBasis,
     };
   })();`;
 }
@@ -969,7 +970,27 @@ In `src/main/main.js`, replace the whole phase-2 block — from the comment line
     if (inspect.originMismatch) return log('origin-or-focus-mismatch');
     if (!inspect.hasPassword && !inspect.hasUsername) return log('no-fillable-field');
 
-    // Only now — with a fillable field confirmed — decrypt the chosen item.
+    // A HEURISTIC password target was inferred from structure + English-language
+    // wording, which does not survive localization — never fill one silently.
+    // Confirm BEFORE decrypting, so a declined prompt costs no secret exposure.
+    if (inspect.hasPassword && inspect.passwordBasis !== 'authoritative') {
+      if (!hasLiveWindow()) return log('abort-window-changed');
+      const { response } = await dialog.showMessageBox(win, {
+        type: 'question',
+        title: 'Fill from 1Password',
+        message: `Fill your ${chosen.title || 'saved'} password into this form?`,
+        detail: `${expectedHost} didn't identify its sign-in field, so Blanc inferred it. `
+          + `Only continue if this is a sign-in form — not a sign-up or password-reset page.`,
+        buttons: ['Fill', 'Cancel'],
+        defaultId: 0,
+        cancelId: 1,
+        noLink: true,
+      });
+      if (response !== 0) return log('user-declined');
+    }
+
+    // Only now — with a fillable field confirmed and, if heuristic, explicitly
+    // approved by the user — decrypt the chosen item.
     const { username, password } = await onepassword.revealCredential(chosen.vaultId, chosen.itemId);
     if (password == null && username == null) return log('empty-item');
 

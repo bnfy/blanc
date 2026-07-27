@@ -227,11 +227,18 @@ function selectFields(cands) {
     }
   }
   const passwordIndex = pw ? pw.i : null;
+  // How we chose it. `authoritative` means the site itself declared the field
+  // holds the existing credential, so it can be filled silently. `heuristic`
+  // means we INFERRED it from structure and wording — and that inference rests
+  // on English-language signals, so a localized signup page could reach here.
+  // The orchestrator must confirm with the user before filling a heuristic
+  // target (and before decrypting anything).
+  const passwordBasis = pw ? (isAuthoritativeCurrent(pw) ? 'authoritative' : 'heuristic') : null;
 
   // A page that HAS a password field we refused to fill is a page we've judged
   // unsafe (signup / reset / ambiguous). Don't hand it the username either.
   const refusedPassword = !pw && list.some((c) => c.type === 'password' && c.isVisible);
-  if (refusedPassword) return { passwordIndex: null, usernameIndex: null };
+  if (refusedPassword) return { passwordIndex: null, usernameIndex: null, passwordBasis: null };
 
   // Username: EVIDENCE FIRST in both branches. An explicit autocomplete=username
   // outranks mere adjacency or focus; focus only breaks ties inside the best
@@ -261,7 +268,7 @@ function selectFields(cands) {
   // unlabelled search field). When nothing carries login evidence we fill the
   // password only and leave the username to the user.
 
-  return { passwordIndex, usernameIndex };
+  return { passwordIndex, usernameIndex, passwordBasis };
 }
 
 /** Build the IIFE source injected via executeJavaScript(source). All four

@@ -124,17 +124,23 @@ function cand(i, over = {}) {
   };
 }
 
+// selectFields also reports passwordBasis; these assertions predate it and
+// only care about WHICH fields were chosen, so project to the two indices.
+function pick(r) {
+  return { passwordIndex: r.passwordIndex, usernameIndex: r.usernameIndex };
+}
+
 test('selectFields: standard single-page login picks both fields', () => {
   const r = selectFields([
     cand(0, { type: 'text', name: 'username', formKey: 1 }),
     cand(1, { type: 'password', formKey: 1 }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 1, usernameIndex: 0 });
+  assert.deepEqual(pick(r), { passwordIndex: 1, usernameIndex: 0 });
 });
 
 test('selectFields: password step with no username field', () => {
   const r = selectFields([cand(0, { type: 'password', formKey: 1 })]);
-  assert.deepEqual(r, { passwordIndex: 0, usernameIndex: null });
+  assert.deepEqual(pick(r), { passwordIndex: 0, usernameIndex: null });
 });
 
 test('selectFields: signup form (new-password only) gets NO password', () => {
@@ -187,17 +193,17 @@ test('selectFields: autocomplete is parsed as TOKENS, not whole-string', () => {
 
 test('selectFields: username step via autocomplete=username', () => {
   const r = selectFields([cand(0, { type: 'email', autocomplete: 'username' })]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: 0 });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: 0 });
 });
 
 test('selectFields: Microsoft-style username step (name=loginfmt)', () => {
   const r = selectFields([cand(0, { type: 'email', name: 'loginfmt' })]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: 0 });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: 0 });
 });
 
 test('selectFields: focused GENERIC field is not evidence — no fill', () => {
   const r = selectFields([cand(0, { type: 'text', isFocused: true })]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: null });
 });
 
 test('selectFields: camelCase search ids are excluded even when focused', () => {
@@ -205,12 +211,12 @@ test('selectFields: camelCase search ids are excluded even when focused', () => 
     cand(0, { type: 'text', id: 'siteSearch', isFocused: true }),
     cand(1, { type: 'text', name: 'queryInput' }),
   ]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: null });
 });
 
 test('selectFields: sole newsletter email is excluded', () => {
   const r = selectFields([cand(0, { type: 'email', id: 'newsletter-email' })]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: null });
 });
 
 test('selectFields: login email wins over a newsletter email', () => {
@@ -218,7 +224,7 @@ test('selectFields: login email wins over a newsletter email', () => {
     cand(0, { type: 'email', id: 'newsletter-email' }),
     cand(1, { type: 'email', name: 'email' }),
   ]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: 1 });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: 1 });
 });
 
 test('selectFields: two ambiguous emails, none strong or focused -> no fill', () => {
@@ -226,7 +232,7 @@ test('selectFields: two ambiguous emails, none strong or focused -> no fill', ()
     cand(0, { type: 'email', name: 'email' }),
     cand(1, { type: 'email', name: 'contactEmail' }),
   ]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: null });
 });
 
 test('selectFields: focus breaks ties among positive candidates', () => {
@@ -234,7 +240,7 @@ test('selectFields: focus breaks ties among positive candidates', () => {
     cand(0, { type: 'email', name: 'email' }),
     cand(1, { type: 'email', name: 'contactEmail', isFocused: true }),
   ]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: 1 });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: 1 });
 });
 
 test('selectFields: focused field in ANOTHER form does not take the username', () => {
@@ -243,7 +249,7 @@ test('selectFields: focused field in ANOTHER form does not take the username', (
     cand(1, { type: 'text', name: 'username', formKey: 1 }),                 // login form
     cand(2, { type: 'password', formKey: 1 }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 2, usernameIndex: 1 });
+  assert.deepEqual(pick(r), { passwordIndex: 2, usernameIndex: 1 });
 });
 
 test('selectFields: two anonymous forms stay separate (formKey identity)', () => {
@@ -252,7 +258,7 @@ test('selectFields: two anonymous forms stay separate (formKey identity)', () =>
     cand(1, { type: 'text', name: 'user', formKey: 1 }),    // anonymous login form
     cand(2, { type: 'password', formKey: 1 }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 2, usernameIndex: 1 });
+  assert.deepEqual(pick(r), { passwordIndex: 2, usernameIndex: 1 });
 });
 
 test('selectFields: hidden/honeypot inputs are ignored', () => {
@@ -262,11 +268,11 @@ test('selectFields: hidden/honeypot inputs are ignored', () => {
     cand(2, { type: 'text', name: 'username', formKey: 1 }),
     cand(3, { type: 'password', formKey: 1 }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 3, usernameIndex: 2 });
+  assert.deepEqual(pick(r), { passwordIndex: 3, usernameIndex: 2 });
 });
 
 test('selectFields: no inputs at all', () => {
-  assert.deepEqual(selectFields([]), { passwordIndex: null, usernameIndex: null });
+  assert.deepEqual(pick(selectFields([])), { passwordIndex: null, usernameIndex: null });
 });
 
 // --- Audit regressions (adversarial workflow, 2026-07): a login form has
@@ -299,7 +305,7 @@ test('AUDIT P1: a signup form before the login form does not steal the fill', ()
     cand(3, { name: 'username', formKey: 2 }),
     cand(4, { type: 'password', name: 'password', formKey: 2 }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 4, usernameIndex: 3 });
+  assert.deepEqual(pick(r), { passwordIndex: 4, usernameIndex: 3 });
 });
 
 test('AUDIT P1: password-reset page (new + confirm, no current) gets NO password', () => {
@@ -335,7 +341,7 @@ test('AUDIT P4: on a form-less SPA page, focus cannot beat login evidence', () =
     cand(1, { name: 'username', autocomplete: 'username' }),
     cand(2, { type: 'password', autocomplete: 'current-password' }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 2, usernameIndex: 1 });
+  assert.deepEqual(pick(r), { passwordIndex: 2, usernameIndex: 1 });
 });
 
 test('AUDIT P5: non-string attributes do not throw', () => {
@@ -403,7 +409,7 @@ test('AUDIT2: an explicit current-password login form beats a focused signup for
     cand(2, { type: 'email', name: 'email', formKey: 2, isFocused: true }),
     cand(3, { type: 'password', placeholder: 'Create a password', formKey: 2 }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 1, usernameIndex: 0 });
+  assert.deepEqual(pick(r), { passwordIndex: 1, usernameIndex: 0 });
 });
 
 test('AUDIT2: an INVISIBLE focused input cannot elect which form gets filled', () => {
@@ -444,7 +450,7 @@ test('AUDIT2: ordinary annotated login still fills both fields', () => {
     cand(0, { name: 'username', autocomplete: 'username', formKey: 1 }),
     cand(1, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 1, usernameIndex: 0 });
+  assert.deepEqual(pick(r), { passwordIndex: 1, usernameIndex: 0 });
 });
 
 test('AUDIT2: unannotated but login-ish form still fills', () => {
@@ -452,7 +458,7 @@ test('AUDIT2: unannotated but login-ish form still fills', () => {
     cand(0, { name: 'username', placeholder: 'Username', formKey: 1 }),
     cand(1, { type: 'password', name: 'password', placeholder: 'Password', formKey: 1 }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 1, usernameIndex: 0 });
+  assert.deepEqual(pick(r), { passwordIndex: 1, usernameIndex: 0 });
 });
 
 // --- Review round 3 regressions ---------------------------------------------
@@ -462,7 +468,7 @@ test('AUDIT3: signup wording in scope overrides a stray current-password token',
     cand(0, { type: 'email', name: 'signup_email', formKey: 1 }),
     cand(1, { type: 'password', name: 'pw', autocomplete: 'current-password', formKey: 1 }),
   ]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: null });
 });
 
 test('AUDIT3: two form-less login widgets fail closed instead of splitting credentials', () => {
@@ -472,7 +478,7 @@ test('AUDIT3: two form-less login widgets fail closed instead of splitting crede
     cand(2, { name: 'user2', autocomplete: 'username', isFocused: true }),
     cand(3, { type: 'password', autocomplete: 'current-password' }),
   ]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null },
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: null },
     'two authoritative password fields in one scope must not be guessed between');
 });
 
@@ -508,7 +514,7 @@ test('AUDIT3: label/button copy is consulted (generic input attrs, signup labels
     cand(0, { type: 'email', name: 'email', formKey: 1, labelText: 'Email address Sign up' }),
     cand(1, { type: 'password', name: 'password', formKey: 1, labelText: 'Create a password Sign up' }),
   ]);
-  assert.deepEqual(r, { passwordIndex: null, usernameIndex: null });
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: null });
 });
 
 test('AUDIT3: label copy does not break an ordinary login form', () => {
@@ -516,5 +522,38 @@ test('AUDIT3: label copy does not break an ordinary login form', () => {
     cand(0, { type: 'text', name: 'u', formKey: 1, labelText: 'Username Sign in' }),
     cand(1, { type: 'password', name: 'p', formKey: 1, labelText: 'Password Sign in' }),
   ]);
-  assert.deepEqual(r, { passwordIndex: 1, usernameIndex: 0 });
+  assert.deepEqual(pick(r), { passwordIndex: 1, usernameIndex: 0 });
+});
+
+// --- passwordBasis: authoritative fills silently, heuristic must be confirmed -
+
+test('passwordBasis: authoritative when the site declares current-password', () => {
+  const r = selectFields([
+    cand(0, { name: 'username', autocomplete: 'username', formKey: 1 }),
+    cand(1, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
+  ]);
+  assert.equal(r.passwordIndex, 1);
+  assert.equal(r.passwordBasis, 'authoritative');
+});
+
+test('passwordBasis: heuristic when inferred from structure + wording', () => {
+  const r = selectFields([
+    cand(0, { name: 'username', placeholder: 'Username', formKey: 1 }),
+    cand(1, { type: 'password', name: 'password', formKey: 1 }),
+  ]);
+  assert.equal(r.passwordIndex, 1);
+  assert.equal(r.passwordBasis, 'heuristic',
+    'an unannotated login form is a guess and must be confirmed before filling');
+});
+
+test('passwordBasis: null when no password is selected', () => {
+  const r = selectFields([cand(0, { type: 'email', autocomplete: 'username' })]);
+  assert.equal(r.passwordIndex, null);
+  assert.equal(r.passwordBasis, null);
+});
+
+test('passwordBasis: bare password step is heuristic (no annotation to trust)', () => {
+  const r = selectFields([cand(0, { type: 'password', name: 'password', formKey: 1 })]);
+  assert.equal(r.passwordIndex, 0);
+  assert.equal(r.passwordBasis, 'heuristic');
 });
