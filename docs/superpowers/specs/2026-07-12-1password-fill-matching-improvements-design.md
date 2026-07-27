@@ -101,8 +101,13 @@ selection/setter to redirect or capture the write.
 → chooser if needed → a chosen item):
 
 1. **Inspect (credential-free, isolated world).** Run the identity guard, collect
-   candidate inputs, run the shared `selectFields`, return booleans only:
-   `{ originMismatch } | { originMismatch: false, hasPassword, hasUsername }`.
+   candidate inputs, run the shared `selectFields`, and return **no credential
+   material** — booleans plus the selection basis:
+   `{ originMismatch } | { originMismatch: false, hasPassword, hasUsername, passwordBasis }`,
+   where `passwordBasis` is `'authoritative' | 'heuristic' | null`. The pass also
+   stashes the decision (element references + basis + a per-flow nonce) in the
+   isolated world, so the fill pass can prove it is acting on the same elements
+   that were authorized.
    `originMismatch` → `origin-or-focus-mismatch`; `!hasPassword && !hasUsername`
    → `no-fillable-field` — **and nothing is decrypted** in that case.
 2. **Reveal (main process).** Only now, with a fillable field confirmed, call
@@ -155,7 +160,14 @@ is exported for tests.
     `autocomplete==='email'`, or blob contains `email`; else `null`.
   - `candidate` = visible `text`/`email`/`tel`, **not** search-like, **not**
     newsletter-like.
-  - **`passwordIndex`** = first visible `type==='password'`.
+  - **`passwordIndex`** — chosen **per form scope**, never "first on the page":
+    a scope announcing signup (fields *or* submit copy) is rejected outright;
+    otherwise an uncontradicted `current-password` field wins (two of them in one
+    scope fail closed); otherwise the scope must hold **exactly one visible
+    password field** (2+ ⇒ signup/change/reset), that field must not read as
+    new-password-ish, and the scope must carry login evidence. Across scopes, an
+    authoritative scope outranks focus and only a *visible* focused element may
+    break a tie.
   - **`usernameIndex`**:
     - *Password present* (single-page / password step): define the password's
       **scope** = candidates sharing the password's `formKey` (when it is
@@ -275,6 +287,22 @@ navigation (stateless — per-press), TOTP, and 1Password's per-item
 A dialog is language-independent, which is why it — and not a longer wordlist —
 is the actual boundary. A username-only fill needs no prompt: it writes no
 secret.
+
+## Residual: annotation is trusted unconditionally
+
+A field carrying an uncontradicted `autocomplete="current-password"` is filled
+**silently**, on the reasoning that the site has declared where the existing
+credential belongs. That trust is not language-aware: a **localized** signup page
+whose password field carries a stray `current-password` token — and whose signup
+wording our English regexes cannot read — is classified `authoritative` and fills
+without a prompt. The confirmation dialog is therefore language-independent **for
+heuristic targets only**, not universally.
+
+Accepted deliberately: annotating a signup field as `current-password` is a site
+bug, and prompting on every annotated field would put a dialog in front of the
+majority of correct fills. Revisit if it proves wrong in practice — the
+alternative is to prompt for annotated fields that carry no corroborating login
+evidence.
 
 ## Risks / edge cases
 

@@ -602,7 +602,7 @@ Builds the two injected sources. The inspect source carries **no credential** an
 **Interfaces:**
 - Consumes: `selectFields` and its helpers (Task 3).
 - Produces:
-  - `buildInspectScript({ expectedURL, expectedTimeOrigin }) → string` — IIFE resolving to `{ originMismatch: true }` or `{ originMismatch: false, hasPassword: boolean, hasUsername: boolean, passwordBasis: 'authoritative'|'heuristic'|null }`. `passwordBasis` comes straight from `selectFields` and decides whether the fill needs user confirmation (see Task 5).
+  - `buildInspectScript({ expectedURL, expectedTimeOrigin, nonce }) → string` — IIFE resolving to `{ originMismatch: true }` or `{ originMismatch: false, hasPassword: boolean, hasUsername: boolean, passwordBasis: 'authoritative'|'heuristic'|null }`. `passwordBasis` comes straight from `selectFields` and decides whether the fill needs user confirmation (see Task 5).
   - `buildFillScript({ expectedURL, expectedTimeOrigin, username, password }) → string` — IIFE resolving to `{ originMismatch: true, filledUser: false, filledPass: false }` or `{ originMismatch: false, filledUser: boolean, filledPass: boolean }`. `username`/`password` may be `null`; a `null` value is never written.
 
 - [ ] **Step 1: Write the failing tests**
@@ -696,8 +696,22 @@ function collectCandidates() {
     } else if (typeof el.checkVisibility === 'function') {
       visible = el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
       if (visible) {
+        // checkVisibility still reports TRUE for a positive-size field parked
+        // off-screen (left:-10000px, translateX(-10000px)) or clipped away, so
+        // require it to actually intersect the viewport and not be clipped —
+        // otherwise an invisible decoy carrying current-password would be
+        // treated as a real target.
         var rc = el.getBoundingClientRect();
-        visible = rc.width > 0 && rc.height > 0;
+        var vw = window.innerWidth || 0;
+        var vh = window.innerHeight || 0;
+        var onScreen = rc.width > 0 && rc.height > 0
+          && rc.right > 0 && rc.bottom > 0 && rc.left < vw && rc.top < vh;
+        var clipped = false;
+        try {
+          var cs = getComputedStyle(el);
+          clipped = (cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto');
+        } catch (e) { clipped = false; }
+        visible = onScreen && !clipped;
       }
     } else {
       var r = el.getBoundingClientRect();
@@ -765,14 +779,35 @@ production. Guard it with a **runtime** VM fixture, not just a parse check:
 // assert it actually evaluates.
 const vm = require('node:vm');
 const src = buildInspectScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 1 });
+// The stub MUST return real inputs. An empty list short-circuits selectFields
+// before it calls pickPasswordInScope/usernameRank, so an incomplete helper
+// closure would still pass. Use a representative annotated login form.
+function stubInput(over) {
+  return Object.assign({
+    type: 'text', name: '', id: '', value: '', form: null, labels: [],
+    getAttribute: () => null, closest: () => null, isConnected: true,
+    getBoundingClientRect: () => ({ width: 120, height: 24, top: 10, left: 10, right: 130, bottom: 34 }),
+    offsetParent: {}, checkVisibility: () => true, dispatchEvent: () => true,
+  }, over);
+}
+const inputs = [
+  stubInput({ type: 'text', name: 'username', getAttribute: (a) => (a === 'autocomplete' ? 'username' : null) }),
+  stubInput({ type: 'password', getAttribute: (a) => (a === 'autocomplete' ? 'current-password' : null) }),
+];
 const sandbox = {
   location: { href: 'https://x.test/' },
-  document: { hasFocus: () => true, querySelectorAll: () => [], activeElement: null },
+  document: { hasFocus: () => true, querySelectorAll: () => inputs, activeElement: null },
   performance: { timeOrigin: 1 },
-  Map,
+  window: { innerWidth: 1024, innerHeight: 768 },
+  getComputedStyle: () => ({ clipPath: 'none', clip: 'auto' }),
+  globalThis: {}, Map, Object, String, Array, Math, RegExp, Event,
 };
-const out = vm.runInNewContext(src, sandbox);   // throws on a missing helper
+sandbox.globalThis = sandbox;
+const out = vm.runInNewContext(src, sandbox);   // throws on ANY missing helper
 assert.equal(out.originMismatch, false);
+assert.equal(out.hasPassword, true, 'the fixture must exercise the password path');
+assert.equal(out.passwordBasis, 'authoritative');
+// Repeat for buildFillScript so both generated sources are proven to evaluate.
 ```
 
 - [ ] **Step 4: Add `buildInspectScript` and rewrite `buildFillScript`**
@@ -792,6 +827,17 @@ function buildInspectScript({ expectedURL, expectedTimeOrigin }) {
     ${sharedSelectionSource()}
     var collected = collectCandidates();
     var picked = selectFields(collected.cands);
+    // Stash the DECISION — element references, basis, and this flow's nonce — in
+    // the isolated world. The page cannot read or forge it (separate realm), and
+    // the fill pass re-checks it, so the user's consent (or the silent-fill
+    // decision) is bound to these exact elements rather than to "whatever
+    // selectFields picks a moment later".
+    globalThis.__blancFill = {
+      nonce: ${JSON.stringify(nonce)},
+      pwEl: picked.passwordIndex !== null ? collected.els[picked.passwordIndex] : null,
+      userEl: picked.usernameIndex !== null ? collected.els[picked.usernameIndex] : null,
+      basis: picked.passwordBasis,
+    };
     return {
       originMismatch: false,
       hasPassword: picked.passwordIndex !== null,
@@ -806,7 +852,7 @@ function buildInspectScript({ expectedURL, expectedTimeOrigin }) {
  * Selection and setting happen synchronously in one execution, so page JS gets
  * no window to mutate the DOM or hook the setter between them. Resolves to a
  * STATUS OBJECT ONLY, never the credential values. */
-function buildFillScript({ expectedURL, expectedTimeOrigin, username, password }) {
+function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, nonce }) {
   const U = JSON.stringify(expectedURL);
   const TO = JSON.stringify(expectedTimeOrigin);
   const USER = JSON.stringify(username ?? null);
@@ -824,17 +870,29 @@ function buildFillScript({ expectedURL, expectedTimeOrigin, username, password }
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     };
+    // Re-select, then verify the decision the user (or the authoritative check)
+    // actually authorized still holds: same nonce, same live elements, same
+    // basis. A page that swapped its annotated field for an unannotated one
+    // during the async gap changes none of URL/timeOrigin/navEpoch — this is
+    // what catches it.
+    var auth = globalThis.__blancFill;
+    if (!auth || auth.nonce !== ${JSON.stringify(nonce)}) {
+      return { selectionChanged: true, filledUser: false, filledPass: false };
+    }
     var collected = collectCandidates();
     var picked = selectFields(collected.cands);
+    var pwEl = picked.passwordIndex !== null ? collected.els[picked.passwordIndex] : null;
+    var userEl = picked.usernameIndex !== null ? collected.els[picked.usernameIndex] : null;
+    if (picked.passwordBasis !== auth.basis
+        || pwEl !== auth.pwEl || userEl !== auth.userEl
+        || (pwEl && !pwEl.isConnected) || (userEl && !userEl.isConnected)) {
+      globalThis.__blancFill = null;
+      return { selectionChanged: true, filledUser: false, filledPass: false };
+    }
+    globalThis.__blancFill = null; // single use
     var filledPass = false, filledUser = false;
-    if (picked.passwordIndex !== null && PASS !== null) {
-      setNative(collected.els[picked.passwordIndex], PASS);
-      filledPass = true;
-    }
-    if (picked.usernameIndex !== null && USER !== null) {
-      setNative(collected.els[picked.usernameIndex], USER);
-      filledUser = true;
-    }
+    if (pwEl && PASS !== null) { setNative(pwEl, PASS); filledPass = true; }
+    if (userEl && USER !== null) { setNative(userEl, USER); filledUser = true; }
     return { originMismatch: false, filledUser: filledUser, filledPass: filledPass };
   })();`;
 }
@@ -966,7 +1024,17 @@ In `src/main/main.js`, replace the whole phase-2 block — from the comment line
     // Validate the shape BEFORE reading fields: an undefined/garbage result is a
     // plumbing failure and must fail closed, not masquerade as the benign
     // `no-fillable-field` outcome.
-    if (!inspect || typeof inspect !== 'object') return log('fill-error');
+    // Validate the SHAPE strictly — a malformed/partial result is a plumbing
+    // failure and must fail closed, not fall through to a benign branch.
+    const basisOk = inspect && (inspect.passwordBasis === null
+      || inspect.passwordBasis === 'authoritative' || inspect.passwordBasis === 'heuristic');
+    if (!inspect || typeof inspect !== 'object'
+        || typeof inspect.originMismatch !== 'boolean'
+        || (!inspect.originMismatch
+            && (typeof inspect.hasPassword !== 'boolean'
+                || typeof inspect.hasUsername !== 'boolean' || !basisOk))) {
+      return log('fill-error');
+    }
     if (inspect.originMismatch) return log('origin-or-focus-mismatch');
     if (!inspect.hasPassword && !inspect.hasUsername) return log('no-fillable-field');
 
@@ -987,6 +1055,13 @@ In `src/main/main.js`, replace the whole phase-2 block — from the comment line
         noLink: true,
       });
       if (response !== 0) return log('user-declined');
+      // The dialog was modal and async: re-validate identity immediately on
+      // acceptance, BEFORE decrypting. The post-reveal checks below still run.
+      if (!hasLiveWindow() || !win.isFocused()) return log('abort-window-changed');
+      if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
+      if (wc.isDestroyed()) return log('abort-wc-changed');
+      if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
+      if (wc.getURL() !== expectedURL) return log('abort-url-changed');
     }
 
     // Only now — with a fillable field confirmed and, if heuristic, explicitly
@@ -1013,6 +1088,9 @@ In `src/main/main.js`, replace the whole phase-2 block — from the comment line
     const status = await wc.executeJavaScriptInIsolatedWorld(FILL_WORLD_ID, [{ code: source }]);
     if (!status || typeof status !== 'object') return log('fill-error'); // fail closed
     if (status.originMismatch) return log('origin-or-focus-mismatch');
+    // The page changed what selectFields resolves to between authorization and
+    // fill — nothing was written.
+    if (status.selectionChanged) return log('selection-changed');
     if (status.filledPass && status.filledUser) return log('filled', 'user+pass');
     if (status.filledUser) return log('filled', 'user-only (multi-step step 1)');
     if (status.filledPass) return log('filled', 'pass-only (username field not found)');

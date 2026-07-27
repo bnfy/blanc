@@ -557,3 +557,57 @@ test('passwordBasis: bare password step is heuristic (no annotation to trust)', 
   assert.equal(r.passwordIndex, 0);
   assert.equal(r.passwordBasis, 'heuristic');
 });
+
+// --- Review round 4 -----------------------------------------------------------
+
+test('AUDIT4: form-less page with two username widgets fills no username', () => {
+  // One authoritative password, but two equally-annotated username fields in the
+  // shared null scope: focus must not pull the username out of another widget.
+  const r = selectFields([
+    cand(0, { name: 'user1', autocomplete: 'username' }),
+    cand(1, { type: 'password', autocomplete: 'current-password' }),
+    cand(2, { name: 'user2', autocomplete: 'username', isFocused: true }),
+  ]);
+  assert.equal(r.passwordIndex, 1);
+  assert.equal(r.usernameIndex, null, 'ambiguous form-less scope must not guess a username');
+});
+
+test('AUDIT4: submit-button copy does not promote an unrelated field', () => {
+  // "Login" on the button must not make a coupon box look like a username.
+  const r = selectFields([
+    cand(0, { name: 'couponCode', formKey: 1, labelText: 'Coupon code', formText: 'Log in' }),
+    cand(1, { type: 'password', name: 'p', formKey: 1, labelText: 'Password', formText: 'Log in' }),
+  ]);
+  assert.equal(r.usernameIndex, null);
+  assert.equal(r.passwordIndex, 1, 'a Log in button is scope-level login evidence');
+  assert.equal(r.passwordBasis, 'heuristic');
+});
+
+test('AUDIT4: a Confirm submit button does not disqualify a current-password field', () => {
+  const r = selectFields([
+    cand(0, { name: 'username', formKey: 1, labelText: 'Username', formText: 'Confirm' }),
+    cand(1, { type: 'password', autocomplete: 'current-password', formKey: 1, labelText: 'Password', formText: 'Confirm' }),
+  ]);
+  assert.equal(r.passwordIndex, 1);
+  assert.equal(r.passwordBasis, 'authoritative');
+});
+
+test('AUDIT4: signup wording on the FORM (not the inputs) still declines', () => {
+  const r = selectFields([
+    cand(0, { type: 'email', name: 'email', formKey: 1, labelText: 'Email', formText: 'Create account' }),
+    cand(1, { type: 'password', name: 'password', formKey: 1, labelText: 'Password', formText: 'Create account' }),
+  ]);
+  assert.deepEqual(pick(r), { passwordIndex: null, usernameIndex: null });
+});
+
+test('AUDIT4: basis is reported on the adversarial signup fixtures too', () => {
+  const signup = selectFields([
+    cand(0, { type: 'email', name: 'email', formKey: 1 }),
+    cand(1, { type: 'password', placeholder: 'Create a password', formKey: 1 }),
+  ]);
+  assert.equal(signup.passwordBasis, null, 'a declined form reports no basis');
+  const annotated = selectFields([
+    cand(0, { type: 'password', autocomplete: 'current-password', formKey: 1 }),
+  ]);
+  assert.equal(annotated.passwordBasis, 'authoritative');
+});

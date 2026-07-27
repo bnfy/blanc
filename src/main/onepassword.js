@@ -131,10 +131,28 @@ function isNewPasswordish(c) {
     .test(candBlob(c));
 }
 
-/** Does anything in this form scope announce a registration flow? */
+/** Copy that belongs to the FORM, not to any one field (submit-button text,
+ * form name/id). Kept out of candBlob deliberately: a single "Log in" button
+ * would otherwise make every field in the form look like a username, and a
+ * "Confirm" button would disqualify a legitimate current-password field. */
+function scopeBlob(scope) {
+  for (const c of scope) {
+    if (c.formText) return String(c.formText).toLowerCase();
+  }
+  return '';
+}
+
+/** Does this form scope announce a registration flow — via its own fields or
+ * its submit-button/form copy? */
 function scopeLooksLikeSignup(scope) {
-  return scope.some((c) => /sign.?up|register|create.?account|new.?account|registration/
-    .test(candBlob(c)));
+  const re = /sign.?up|register|create.?account|new.?account|registration/;
+  return re.test(scopeBlob(scope)) || scope.some((c) => re.test(candBlob(c)));
+}
+
+/** Does the form itself announce a sign-in flow? Scope-level positive evidence,
+ * so a login form whose inputs are generically named still qualifies. */
+function scopeLooksLikeLogin(scope) {
+  return /sign.?in|log.?in|login|logon/.test(scopeBlob(scope));
 }
 
 /** Pick the login password inside ONE form scope, or null.
@@ -175,7 +193,9 @@ function pickPasswordInScope(scopePasswords, scopeAll) {
   //    (no text inputs at all, e.g. Google's second screen) is allowed; a form
   //    whose only text fields look unrelated (a profile form) is not.
   const texts = scopeAll.filter(isUsernameCandidate);
-  if (texts.length && !texts.some((c) => loginEvidence(c) !== null)) return null;
+  if (texts.length && !texts.some((c) => loginEvidence(c) !== null) && !scopeLooksLikeLogin(scopeAll)) {
+    return null;
+  }
 
   return only;
 }
@@ -253,6 +273,10 @@ function selectFields(cands) {
     const pool = inScope.filter((c) => usernameRank(c) === bestRank);
     if (pool.length === 1) {
       usernameIndex = pool[0].i;
+    } else if (pw && pw.formKey === null) {
+      // Form-less scope: `null` is not a boundary, it is the absence of one, so
+      // a tie here may span unrelated widgets. Decline rather than guess.
+      usernameIndex = null;
     } else {
       const focused = pool.find((c) => c.isFocused);
       if (focused) usernameIndex = focused.i;
