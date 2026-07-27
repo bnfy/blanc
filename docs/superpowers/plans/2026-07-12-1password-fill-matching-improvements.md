@@ -729,67 +729,31 @@ In `src/main/onepassword.js`, add `collectCandidates` immediately after `selectF
 
 ```js
 /** DOM adapter (runs in the page): every <input> in document order, described
- * as plain data for `selectFields`. `formKey` is a stable index per distinct
- * form ELEMENT — never `form.id`, since forms may lack ids or share them, and
- * two anonymous forms must not merge. */
-function collectCandidates() {
+ * as plain data for `selectFields`. */
+function collectCandidates(OWNER_SELECTOR) {
   var inputs = document.querySelectorAll('input');
-  var formKeys = new Map();
+  var ownerKeys = new Map();
   var out = [];
   for (var i = 0; i < inputs.length; i++) {
     var el = inputs[i];
-    // Scope identity. A real <form> is authoritative. Form-less inputs (common
-    // in SPA logins) would otherwise ALL share the null scope, which is the
-    // absence of a boundary — selectFields then fills the password only. Derive
-    // a container key instead: the nearest plausible widget ancestor. Only
-    // inputs with no such ancestor stay null.
-    // Scope identity. A real <form> is authoritative. For form-less inputs
-    // (common in SPA logins) derive a container key — but ONLY from
-    // form-like boundaries. Generic sectioning elements (`section`, `article`,
-    // `div`) are NOT boundaries: two unrelated login widgets routinely share
-    // one, and grouping them re-opens exactly the cross-widget username leak
-    // the null-scope rule exists to prevent. Inputs with no defensible owner
-    // stay null, and a null password scope fills the password only.
+    // Scope identity. A real <form> is authoritative; otherwise the nearest
+    // token-matched form-like container. Anything else stays null, and a null
+    // password scope fills the password only.
+    var owner = el.form || (el.closest ? el.closest(OWNER_SELECTOR) : null);
     var key = null;
-    // Markers are TOKEN-aware (`~=`), never substring. `[class*=auth i]` would
-    // match page-wide wrappers like `authenticated-layout` and unrelated
-    // classes like `author-profile`, merging every form-less widget on the page
-    // back into one scope — the exact leak the null-scope rule prevents.
-    var owner = el.form
-      || el.closest([
-        '[role=form]', 'fieldset', 'dialog',
-        '[class~=login]', '[class~=login-form]', '[class~=loginForm]',
-        '[class~=signin]', '[class~=sign-in]', '[class~=signin-form]', '[class~=sign-in-form]',
-        '[class~=auth-form]', '[class~=authForm]',
-        '[id=login]', '[id=login-form]', '[id=loginForm]',
-        '[id=signin]', '[id=sign-in]', '[id=signin-form]',
-      ].join(', '));
     if (owner) {
-      if (!formKeys.has(owner)) formKeys.set(owner, formKeys.size);
-      key = formKeys.get(owner);
+      if (!ownerKeys.has(owner)) ownerKeys.set(owner, ownerKeys.size);
+      key = ownerKeys.get(owner);
     }
-    // Visibility must account for CSS: opacity:0 / visibility:hidden fields can
-    // still report an offsetParent and a non-zero rect, so an invisible decoy
-    // carrying autocomplete="current-password" would otherwise be treated as a
-    // real target. checkVisibility() covers those; keep the geometric checks as
-    // the fallback for engines without it.
+    // Visibility: geometry, viewport intersection and clipping (own + ancestor).
     var visible = true;
     if (el.type === 'hidden' || el.offsetParent === null) {
       visible = false;
     } else {
-      // checkVisibility (where available) covers opacity/visibility/content-
-      // visibility; the geometry + ancestor-clipping checks below run in BOTH
-      // branches, because a positive-size field can still be parked off-screen
-      // or clipped away by an ancestor.
       visible = typeof el.checkVisibility === 'function'
         ? el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
         : true;
       if (visible) {
-        // checkVisibility still reports TRUE for a positive-size field parked
-        // off-screen (left:-10000px, translateX(-10000px)) or clipped away, so
-        // require it to actually intersect the viewport and not be clipped —
-        // otherwise an invisible decoy carrying current-password would be
-        // treated as a real target.
         var rc = el.getBoundingClientRect();
         var vw = window.innerWidth || 0;
         var vh = window.innerHeight || 0;
@@ -798,16 +762,13 @@ function collectCandidates() {
         var clipped = false;
         try {
           var cs = getComputedStyle(el);
-          clipped = (cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto');
+          clipped = !!((cs.clipPath && cs.clipPath !== 'none') || (cs.clip && cs.clip !== 'auto'));
         } catch (e) { clipped = false; }
-        // Ancestor clipping: an overflow:hidden / clipped ancestor can hide a
-        // positive-size input entirely. Conservatively require the field's rect
-        // to intersect every scrollable/clipping ancestor's rect.
         var anc = el.parentElement;
         var hops = 0;
         while (anc && hops++ < 20 && onScreen && !clipped) {
           var acs = null;
-          try { acs = getComputedStyle(anc); } catch (e) { acs = null; }
+          try { acs = getComputedStyle(anc); } catch (e2) { acs = null; }
           if (acs && (acs.overflow !== 'visible' || (acs.clipPath && acs.clipPath !== 'none'))) {
             var ar = anc.getBoundingClientRect();
             if (ar.width === 0 || ar.height === 0
@@ -822,44 +783,41 @@ function collectCandidates() {
     }
     out.push({
       i: i,
-      type: (el.type || '').toLowerCase(),
-      autocomplete: (el.getAttribute('autocomplete') || '').toLowerCase(),
+      type: String(el.type || '').toLowerCase(),
+      autocomplete: String(el.getAttribute('autocomplete') || '').toLowerCase(),
       name: el.name || '',
       id: el.id || '',
       placeholder: el.getAttribute('placeholder') || '',
       ariaLabel: el.getAttribute('aria-label') || '',
-      // FIELD-LOCAL copy only — the field's own <label>(s) and any wrapping
-      // label. Submit-button text must NOT go here: one "Log in" button would
-      // otherwise promote every field in the form to username evidence, and one
-      // "Confirm" button would disqualify a legitimate current-password field.
+      // FIELD-LOCAL copy only. Submit text must never land here: one "Log in"
+      // button would promote every field to username evidence, and one
+      // "Confirm" would disqualify a legitimate current-password field.
       labelText: (function () {
         var parts = [];
         var labels = el.labels || [];
         for (var li = 0; li < labels.length; li++) parts.push(labels[li].textContent || '');
-        var wrap = el.closest('label');
+        var wrap = el.closest ? el.closest('label') : null;
         if (wrap) parts.push(wrap.textContent || '');
         return parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 200);
       })(),
-      // SCOPE-LEVEL copy, consumed only by scopeLooksLikeSignup /
-      // scopeLooksLikeLogin: the form's submit button and its name/id.
+      // SCOPE-LEVEL copy, read only by scopeLooksLikeSignup/scopeLooksLikeLogin.
       formText: (function () {
-        // Derived from the SAME owner as formKey — otherwise a form-less
-        // container always reports '' and loses its scope-level signup/login
-        // evidence.
         if (!owner) return '';
         var parts = [
           owner.getAttribute('name') || '',
           owner.getAttribute('id') || '',
           owner.getAttribute('class') || '',
         ];
-        var submit = owner.querySelector('button[type=submit], input[type=submit], button:not([type])');
+        var submit = owner.querySelector
+          ? owner.querySelector('button[type=submit], input[type=submit], button:not([type])')
+          : null;
         if (submit) parts.push(submit.textContent || submit.value || '');
         return parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 200);
       })(),
       formKey: key,
       isVisible: visible,
       isFocused: el === document.activeElement,
-      inSearchScope: !!el.closest('[role="search"]'),
+      inSearchScope: !!(el.closest && el.closest('[role="search"]')),
     });
   }
   return { els: inputs, cands: out };
@@ -1001,26 +959,23 @@ assert.equal(writes.length, w3, 'a nonce mismatch must not write');
 Replace the entire existing `buildFillScript` function **and its JSDoc block** (currently lines 31–79) with:
 
 ```js
-/** Credential-FREE inspection source. Reports only whether fillable fields
- * exist, so the main process can decide which credential (if any) to send. */
+/** Credential-FREE inspection source. Reports only what exists and how it was
+ * chosen, and leaves an authorization stash the fill pass must match. */
 function buildInspectScript({ expectedURL, expectedTimeOrigin, nonce }) {
   if (typeof nonce !== 'string' || !nonce) throw new Error('buildInspectScript requires a nonce');
   const U = JSON.stringify(expectedURL);
   const TO = JSON.stringify(expectedTimeOrigin);
+  const N = JSON.stringify(nonce);
+  const SEL = JSON.stringify(FORMLIKE_OWNER_SELECTOR);
   return `(function () {
     if (location.href !== ${U} || !document.hasFocus() || performance.timeOrigin !== ${TO}) {
       return { originMismatch: true };
     }
     ${sharedSelectionSource()}
-    var collected = collectCandidates();
+    var collected = collectCandidates(${SEL});
     var picked = selectFields(collected.cands);
-    // Stash the DECISION — element references, basis, and this flow's nonce — in
-    // the isolated world. The page cannot read or forge it (separate realm), and
-    // the fill pass re-checks it, so the user's consent (or the silent-fill
-    // decision) is bound to these exact elements rather than to "whatever
-    // selectFields picks a moment later".
     globalThis.__blancFill = {
-      nonce: ${JSON.stringify(nonce)},
+      nonce: ${N},
       pwEl: picked.passwordIndex !== null ? collected.els[picked.passwordIndex] : null,
       userEl: picked.usernameIndex !== null ? collected.els[picked.usernameIndex] : null,
       basis: picked.passwordBasis,
@@ -1439,4 +1394,4 @@ git commit -m "docs(1password): dev-usage guide reflects subdomain + multi-step 
 
 **Placeholder scan:** no `TBD`/`TODO`/"handle edge cases"/uncoded steps. The one temporary artifact — the Task 1 isolated-world probe — is explicitly added in Step 3 and deleted in Step 5, with a `grep` confirming removal.
 
-**Type consistency:** `selectFields(cands) → { passwordIndex, usernameIndex, passwordBasis }` (Task 3) is consumed by both injected scripts (Task 4); the inspect result carries `hasPassword`/`hasUsername`/`passwordBasis`, which the orchestrator branches on and uses to decide whether to prompt (Task 5). `collectCandidates() → { els, cands }` — `cands[].i` indexes `els`, which is how the fill pass resolves an index back to an element. Descriptor keys (`i`, `type`, `autocomplete`, `name`, `id`, `placeholder`, `ariaLabel`, **`labelText`** (field-local), **`formText`** (scope-level), `formKey`, `isVisible`, `isFocused`, `inSearchScope`) are identical in the test factory (Task 3 Step 1) and the DOM adapter (Task 4 Step 3) — the split matters, since merging submit copy into `labelText` reintroduces the coupon/Confirm regressions. Both builders additionally require a `nonce` (they throw without one). `buildFillScript`'s status keys (`originMismatch`, **`selectionChanged`**, `filledUser`, `filledPass`) match the orchestrator's branches exactly, including the `selection-changed` outcome.
+**Type consistency:** `selectFields(cands) → { passwordIndex, usernameIndex, passwordBasis }` (Task 3) is consumed by both injected scripts (Task 4); the inspect result carries `hasPassword`/`hasUsername`/`passwordBasis`, which the orchestrator branches on and uses to decide whether to prompt (Task 5). `collectCandidates(OWNER_SELECTOR) → { els, cands }` — `cands[].i` indexes `els`, which is how the fill pass resolves an index back to an element. Descriptor keys (`i`, `type`, `autocomplete`, `name`, `id`, `placeholder`, `ariaLabel`, **`labelText`** (field-local), **`formText`** (scope-level), `formKey`, `isVisible`, `isFocused`, `inSearchScope`) are identical in the test factory (Task 3 Step 1) and the DOM adapter (Task 4 Step 3) — the split matters, since merging submit copy into `labelText` reintroduces the coupon/Confirm regressions. Both builders additionally require a `nonce` (they throw without one). `buildFillScript`'s status keys (`originMismatch`, **`selectionChanged`**, `filledUser`, `filledPass`) match the orchestrator's branches exactly, including the `selection-changed` outcome.
