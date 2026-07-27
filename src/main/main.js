@@ -1141,7 +1141,9 @@ async function fillActiveTabFrom1Password() {
       });
       if (response < 0 || response >= matches.length) return log('chooser-cancel');
       chosen = matches[response];
-      await restoreTabFocus(wc); // the chooser took focus; inspect needs it back
+      // The chooser took focus; inspect's in-page guard needs it back. If it
+      // doesn't come back, stop here rather than injecting into an unfocused tab.
+      if (!(await restoreTabFocus(wc))) return log('abort-wc-changed');
     }
   } catch (err) {
     return log('setup-error', err?.message); // pre-reveal only — credential-free
@@ -1192,9 +1194,12 @@ async function fillActiveTabFrom1Password() {
         noLink: true,
       });
       if (response !== 0) return log('user-declined');
-      // The sheet took focus; hand it back to the tab before the checks below
-      // (and before the fill's own document.hasFocus() guard) look at it.
-      await restoreTabFocus(wc);
+      // The sheet took focus; hand it back before the checks below (and before
+      // the fill's own document.hasFocus() guard) look at it. If restoration
+      // FAILS we must stop here — continuing would decrypt the credential and
+      // only then abort on the post-reveal focus guard, which is exactly the
+      // prompt-then-do-nothing failure this helper exists to prevent.
+      if (!(await restoreTabFocus(wc))) return log('abort-wc-changed');
       // The dialog was modal and async: re-validate immediately on acceptance,
       // BEFORE decrypting. The post-reveal checks below still run.
       if (!hasLiveWindow() || !win.isFocused()) return log('abort-window-changed');

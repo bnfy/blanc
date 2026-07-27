@@ -952,3 +952,20 @@ test('T5: tab focus is restored after every modal dialog, before validation', ()
   assert.ok(restoreAfterConfirm > -1 && restoreAfterConfirm < revalidate,
     'focus must be restored before the identity re-validation that checks it');
 });
+
+test('T5: a FAILED focus restoration aborts before decrypting', () => {
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+  // restoreTabFocus reports whether focus actually came back. Ignoring that
+  // return value re-creates the very bug it was added for: prompt the user,
+  // decrypt, then abort on the post-reveal focus guard.
+  const calls = src.match(/await restoreTabFocus\(wc\)/g) || [];
+  const gated = src.match(/if\s*\(!\(await restoreTabFocus\(wc\)\)\)/g) || [];
+  assert.equal(gated.length, calls.length,
+    'every restoreTabFocus call must be gated on its result');
+  // And the gate must precede the decrypt.
+  const firstGate = src.search(/if\s*\(!\(await restoreTabFocus\(wc\)\)\)/);
+  const reveal = src.indexOf('revealCredential(');
+  assert.ok(firstGate > -1 && firstGate < reveal,
+    'focus must be confirmed restored BEFORE revealCredential');
+});

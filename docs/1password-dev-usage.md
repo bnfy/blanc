@@ -89,7 +89,7 @@ Two presses, no state kept in between:
 | Log line | Meaning / fix |
 |---|---|
 | *(nothing at all after ⌥⌘P)* | You're on a blank new tab — focus is in the address bar, which has no chord listener. Navigate to a real page first. |
-| `no-match <host>` | No Login item whose website host matches. Add/fix the item's website in 1Password (exact host; leading `www.` is fine). |
+| `no-match <host>` | No Login item shares a **registrable domain** with this page. An item saved for `example.com` covers any `*.example.com`, but not a different registrable domain — so `example.co.uk` or a separate tenant host (`you.github.io`) needs its own entry. Add or fix the item's website field in 1Password (`www.` is ignored). |
 | `non-http-noop` | Active tab isn't http/https (internal page, `file://`, blank tab). Go to the login page. |
 | `chooser-cancel` | You dismissed the multi-match chooser. |
 | `setup-error BLANC_1P_ACCOUNT is not set` | Env var missing — pass it or export it. |
@@ -128,9 +128,20 @@ Two presses, no state kept in between:
   never filled, and an ambiguous page no-ops rather than guessing.
 - Still unsupported: shadow-DOM inputs, cross-origin iframes, TOTP, saving new or
   updated items, and login-vs-signup disambiguation beyond the rules above.
-- Credentials are handled **main-process only** — never persisted, logged, synced,
-  or transmitted; only the selected item is decrypted, and only after a fillable
-  field is confirmed. The credential-bearing injection runs in a **dedicated
-  isolated world** (id 1001), so page scripts can't hook the setter or read the
-  value in flight. Once written into a field, the page can read it — inherent to
-  every autofill.
+- **Where your credential actually goes.** Blanc never persists, logs, syncs or
+  transmits it, and decrypts only the one selected item — and only after a
+  fillable field is confirmed, plus your approval if the target was inferred. But
+  it does not stay in the main process: to fill a form it necessarily crosses
+  into the renderer, and then into the page's own DOM. Concretely:
+  1. Decrypted in the **main process** (never written to disk or the network).
+  2. Sent to the renderer and evaluated in a **dedicated isolated world** (id
+     1001) — a JS realm the page cannot read or hook, so it cannot tamper with
+     the setter or scrape the value in flight.
+  3. **Written into the form field**, at which point it is ordinary page state:
+     the site's own scripts can read it, and an `input`/`change` handler runs
+     immediately afterward. That is true of every autofill, including
+     1Password's own extension — filling a field and keeping it secret from the
+     page are mutually exclusive.
+
+  So the accurate guarantee is: confined to the main process and the **one
+  verified field** you authorized, never anywhere else.

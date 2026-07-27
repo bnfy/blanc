@@ -1301,7 +1301,8 @@ Verify, reading the `[1p-spike]` lines:
   ```
 
   Press `⌥⌘P` immediately. Expected: **no value is written anywhere**, the outcome
-  is `nothing-filled` (or an `abort-*` line if the mutation also disturbed
+  is **`selection-changed`** — the authorization stash no longer matches the
+  live elements — (or an `abort-*` line if the mutation also disturbed
   focus/URL), and **no `[1p-spike]` line contains a credential**. If the removal
   lands after the fill completes, shorten the delay and retry. This is the
   observable check that the isolated realm holds the credential when the expected
@@ -1406,7 +1407,9 @@ git commit -m "docs(1password): dev-usage guide reflects subdomain + multi-step 
 - Manual matrix (subdomain, multi-step, search-only, React native-setter, regression) → Task 5 Step 7. ✅
 - Non-goals (shadow DOM, iframes, auto-advance, TOTP, per-item 1P URL rules) → nothing introduced; restated in Task 6. ✅
 
-**Previously uncovered, now closed:** the spec's *DOM replacement between phases* check was initially omitted on the grounds that the protection is structural. That was wrong — structural protection is not verification — so Task 5 Step 7 now scripts the mutation via DevTools and asserts the observable outcome (nothing written, no credential in any log line).
+**Previously uncovered, now closed:** the spec's *DOM replacement between phases* check was initially omitted on the grounds that the protection is structural. That was wrong — structural protection is not verification — so Task 5 Step 7 scripts the mutation via DevTools and asserts the observable outcome: `selection-changed`, nothing written, no credential in any log line. **Executed 2026-07-27 — PASS.**
+
+**Still unexercised (do not read the checklist as covering these):** the real multi-step flow (username screen → password screen) and React/SPA value persistence. Both are behavioral confirmations of implemented, unit-tested paths rather than open questions — but they have *not* been run against a live site, and the manual matrix above should not be treated as complete until they are.
 
 **Placeholder scan:** no `TBD`/`TODO`/"handle edge cases"/uncoded steps. The one temporary artifact — the Task 1 isolated-world probe — is explicitly added in Step 3 and deleted in Step 5, with a `grep` confirming removal.
 
