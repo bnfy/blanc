@@ -1255,3 +1255,20 @@ test('T6-wiring: the window close settles the picker BEFORE resetting overlayMod
   assert.ok(settleAt < resetAt,
     'settle must run BEFORE overlayMode is reset, or the vault rows leak');
 });
+
+test('T7: the picker render path never uses innerHTML', () => {
+  // Vault strings are untrusted text entering a PRIVILEGED renderer holding the
+  // browserAPI bridge. overlay.js uses innerHTML ~10 lines away for static
+  // scaffolding, so the local convention is the dangerous one — scope the guard
+  // to the picker function only.
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/renderer/overlay.js'), 'utf8');
+  const start = src.indexOf('function renderCredentialPicker');
+  assert.ok(start > -1, 'renderCredentialPicker must exist');
+  const end = src.indexOf('\n  function ', start + 1);
+  const body = src.slice(start, end === -1 ? undefined : end);
+  for (const sink of ['innerHTML', 'insertAdjacentHTML', 'outerHTML']) {
+    assert.ok(!body.includes(sink), `${sink} must never appear in the picker render path`);
+  }
+  assert.ok(body.includes('textContent'), 'vault values must be set via textContent');
+});
