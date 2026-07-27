@@ -890,3 +890,65 @@ test('T4 runtime: an originMismatch attempt CONSUMES the authorization', () => {
   assert.equal(replay.selectionChanged, true, 'a rejected identity check must still spend the stash');
   assert.equal(writes.length, 0, 'neither attempt may write');
 });
+
+// ===========================================================================
+// Task 5 — orchestrator wiring (asserted against main.js source)
+// ===========================================================================
+
+test('T5: fill path injects into a dedicated isolated world at BOTH call sites', () => {
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+
+  const m = src.match(/FILL_WORLD_ID\s*=\s*(\d+)/);
+  assert.ok(m, 'FILL_WORLD_ID constant not found in main.js');
+  const id = Number(m[1]);
+  assert.ok(id >= 1000, 'custom isolated worlds must use id >= 1000');
+  assert.notEqual(id, 0);    // page main world
+  assert.notEqual(id, 999);  // Electron context-isolation / preload world
+
+  // It must actually be USED for both injections — asserting only the constant
+  // stays green if the calls regress to main-world executeJavaScript.
+  const isolated = src.match(/executeJavaScriptInIsolatedWorld\(\s*FILL_WORLD_ID\s*,/g) || [];
+  assert.equal(isolated.length, 2, 'expected 2 isolated-world injections (inspect + fill)');
+  assert.ok(!/executeJavaScript\(\s*source\s*\)/.test(src),
+    'the credential-bearing fill must never use main-world executeJavaScript');
+});
+
+test('T5: orchestrator mints one nonce and passes it to both builders', () => {
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+  assert.ok(/const nonce = crypto\.randomUUID\(\)/.test(src), 'a per-invocation nonce is required');
+  assert.ok(/buildInspectScript\(\{[^}]*nonce[^}]*\}\)/s.test(src), 'inspect must receive the nonce');
+  assert.ok(/buildFillScript\(\{[\s\S]*?nonce,[\s\S]*?\}\)/.test(src), 'fill must receive the same nonce');
+});
+
+test('T5: heuristic targets are confirmed before anything is decrypted', () => {
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+  const confirmAt = src.search(/passwordBasis !== 'authoritative'/);
+  const revealAt = src.search(/revealCredential\(/);
+  assert.ok(confirmAt > -1, 'a heuristic-target confirmation gate is required');
+  assert.ok(revealAt > -1, 'revealCredential must be called');
+  assert.ok(confirmAt < revealAt,
+    'the confirmation must run BEFORE revealCredential — declining must cost no decrypt');
+  assert.ok(/user-declined/.test(src), 'a declined prompt needs its own outcome');
+  assert.ok(/selection-changed/.test(src), 'the selectionChanged status needs an outcome');
+});
+
+test('T5: tab focus is restored after every modal dialog, before validation', () => {
+  const fs = require('node:fs');
+  const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
+  assert.ok(/async function restoreTabFocus/.test(src),
+    'a focus-restoration helper is required — a modal returns focus to the chrome document');
+  // Both dialogs steal focus: the multi-match chooser (before inspect, whose
+  // injected guard calls document.hasFocus()) and the heuristic confirmation
+  // (before the post-reveal wc.isFocused() guard).
+  const calls = src.match(/await restoreTabFocus\(/g) || [];
+  assert.ok(calls.length >= 2,
+    `expected focus restoration after both dialogs, found ${calls.length}`);
+  // It must run before the confirmation's re-validation, not after.
+  const restoreAfterConfirm = src.indexOf('await restoreTabFocus', src.indexOf("log('user-declined')"));
+  const revalidate = src.indexOf("log('abort-wc-changed')", src.indexOf("log('user-declined')"));
+  assert.ok(restoreAfterConfirm > -1 && restoreAfterConfirm < revalidate,
+    'focus must be restored before the identity re-validation that checks it');
+});

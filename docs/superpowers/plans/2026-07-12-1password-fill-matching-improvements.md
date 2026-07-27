@@ -1308,6 +1308,22 @@ Verify, reading the `[1p-spike]` lines:
   field disappears.
 - **Regression:** an exact-host single-page login still → `filled user+pass`.
 
+> **Execution record (2026-07-27):** PASS on the safety-critical rows — multi-match
+> chooser restores tab focus and continues; accepted heuristic fill logs
+> `filled user+pass`; DOM replacement between phases logs `selection-changed`
+> with **both replacement-fixture fields left empty** and no replacement loop;
+> search-only and signup fixtures log `no-fillable-field`.
+> **Not yet exercised:** the real multi-step flow (username screen → password
+> screen) and React/SPA value persistence. Both are behavioral confirmations of
+> already-implemented paths, not open questions — run them opportunistically.
+>
+> One blocker was found and fixed during this matrix: a modal dialog returns
+> focus to the chrome document, so the post-reveal `wc.isFocused()` guard
+> aborted with `abort-wc-changed` after the user had already approved the
+> prompt. The multi-match chooser had the same defect one step earlier, where it
+> would have failed the injected `document.hasFocus()` guard. Both now call
+> `restoreTabFocus()`.
+
 - [ ] **Step 8: Commit**
 
 ```bash

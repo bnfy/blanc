@@ -1077,6 +1077,28 @@ const TAB_WEB_PREFERENCES = {
 // verified page, and every outcome logs a result line, never a value.
 const ONE_PASSWORD_SPIKE_ENABLED = !app.isPackaged || process.env.BLANC_1P_SPIKE === '1';
 let onePasswordFillInFlight = false;
+// Dedicated isolated world for the credential-bearing injections. 0 is the
+// page's main world and 999 is Electron's context-isolation/preload world —
+// both forbidden; Electron reserves ids >= 1000 for custom worlds.
+const FILL_WORLD_ID = 1001;
+
+/** A modal dialog returns focus to the CHROME document, not to the tab. Both
+ * the main-side `wc.isFocused()` guard and the injected `document.hasFocus()`
+ * check require the tab to hold focus, so every dialog in this flow must hand
+ * it back before the next validation — otherwise the flow aborts with
+ * `abort-wc-changed` having shown the user a prompt for nothing. WebContentsView
+ * focus settles asynchronously (see reclaimAddressBarFocus), hence the bounded
+ * re-assert rather than a single call. */
+async function restoreTabFocus(wc) {
+  if (hasLiveWindow()) win.focus();
+  for (let attempt = 0; attempt < 10; attempt++) {
+    if (wc.isDestroyed()) return false;
+    wc.focus();
+    if (wc.isFocused()) return true;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  }
+  return !wc.isDestroyed() && wc.isFocused();
+}
 
 async function fillActiveTabFrom1Password() {
   const log = (result, extra) => console.log(`[1p-spike] ${result}${extra ? ' ' + extra : ''}`);
@@ -1119,37 +1141,99 @@ async function fillActiveTabFrom1Password() {
       });
       if (response < 0 || response >= matches.length) return log('chooser-cancel');
       chosen = matches[response];
+      await restoreTabFocus(wc); // the chooser took focus; inspect needs it back
     }
   } catch (err) {
     return log('setup-error', err?.message); // pre-reveal only — credential-free
   }
 
-  // ── PHASE 2 (reveal + fill): a credential is in memory from revealCredential
-  //    onward. This whole block is a BINDING-LESS try — every failure (a
-  //    page-controlled executeJavaScript rejection, OR any other throw once the
-  //    credential exists) logs a FIXED classification, so no error string can
-  //    ever echo the credential. ──
+  // ── PHASE 2 (inspect → confirm → reveal → fill). The inspect pass carries NO
+  //    credential, so a page with no login form decrypts nothing. From the
+  //    reveal onward this is a BINDING-LESS try: every failure logs a FIXED
+  //    classification, so no page- or SDK-controlled message can echo the
+  //    credential. Both injections run in a dedicated ISOLATED WORLD, where the
+  //    page can neither hook the setter nor read the embedded credential. ──
   try {
+    // One nonce per invocation binds this flow's authorization to the exact
+    // elements the inspect pass chose.
+    const nonce = crypto.randomUUID();
+    const inspect = await wc.executeJavaScriptInIsolatedWorld(FILL_WORLD_ID, [
+      { code: onepassword.buildInspectScript({ expectedURL, expectedTimeOrigin: capturedTimeOrigin, nonce }) },
+    ]);
+
+    // Validate the SHAPE strictly — a malformed or partial result is a plumbing
+    // failure and must fail closed, not fall through to a benign branch.
+    const basisOk = inspect && (inspect.passwordBasis === null
+      || inspect.passwordBasis === 'authoritative' || inspect.passwordBasis === 'heuristic');
+    if (!inspect || typeof inspect !== 'object'
+        || typeof inspect.originMismatch !== 'boolean'
+        || (!inspect.originMismatch
+            && (typeof inspect.hasPassword !== 'boolean'
+                || typeof inspect.hasUsername !== 'boolean' || !basisOk))) {
+      return log('fill-error');
+    }
+    if (inspect.originMismatch) return log('origin-or-focus-mismatch');
+    if (!inspect.hasPassword && !inspect.hasUsername) return log('no-fillable-field');
+
+    // A HEURISTIC target was inferred from structure and English-language
+    // wording, which does not survive localization — never fill one silently.
+    // Confirm BEFORE decrypting, so declining costs no secret exposure.
+    if (inspect.hasPassword && inspect.passwordBasis !== 'authoritative') {
+      if (!hasLiveWindow()) return log('abort-window-changed');
+      const { response } = await dialog.showMessageBox(win, {
+        type: 'question',
+        title: 'Fill from 1Password',
+        message: `Fill your ${chosen.title || 'saved'} password into this form?`,
+        detail: `${expectedHost} didn't identify its sign-in field, so Blanc inferred it. `
+          + 'Only continue if this is a sign-in form — not a sign-up or password-reset page.',
+        buttons: ['Fill', 'Cancel'],
+        defaultId: 0,
+        cancelId: 1,
+        noLink: true,
+      });
+      if (response !== 0) return log('user-declined');
+      // The sheet took focus; hand it back to the tab before the checks below
+      // (and before the fill's own document.hasFocus() guard) look at it.
+      await restoreTabFocus(wc);
+      // The dialog was modal and async: re-validate immediately on acceptance,
+      // BEFORE decrypting. The post-reveal checks below still run.
+      if (!hasLiveWindow() || !win.isFocused()) return log('abort-window-changed');
+      if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
+      if (wc.isDestroyed()) return log('abort-wc-changed');
+      if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
+      if (wc.getURL() !== expectedURL) return log('abort-url-changed');
+    }
+
+    // Only now — with a fillable field confirmed and, if heuristic, explicitly
+    // approved — decrypt the chosen item.
     const { username, password } = await onepassword.revealCredential(chosen.vaultId, chosen.itemId);
     if (password == null && username == null) return log('empty-item');
 
-    // Re-validate after the async auth/chooser: same live+focused window, same
-    // active tab, live+focused webContents, unchanged epoch, exact same URL.
+    // Re-validate after the async reveal.
     if (!hasLiveWindow() || !win.isFocused()) return log('abort-window-changed');
     if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
     if (wc.isDestroyed() || !wc.isFocused()) return log('abort-wc-changed');
     if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
     if (wc.getURL() !== expectedURL) return log('abort-url-changed');
 
-    // Injection runs in the page's MAIN WORLD (a hostile page could override the
-    // value setter to throw an Error echoing the value) — the binding-less catch
-    // below is what makes that message unloggable.
-    const source = onepassword.buildFillScript({ expectedURL, expectedTimeOrigin: capturedTimeOrigin, username, password });
-    const status = await wc.executeJavaScript(source); // single-arg, no userGesture
-    if (status?.originMismatch) return log('origin-or-focus-mismatch');
-    if (status?.noPasswordField) return log('no-password-field');
-    if (status?.filledPass && status?.filledUser) return log('filled', 'user+pass');
-    if (status?.filledPass) return log('filled', 'pass-only (username field not found)');
+    // Send ONLY the credential this step needs: on a username-only screen the
+    // password never reaches the renderer at all.
+    const source = onepassword.buildFillScript({
+      expectedURL,
+      expectedTimeOrigin: capturedTimeOrigin,
+      nonce,
+      username: inspect.hasUsername ? username : null,
+      password: inspect.hasPassword ? password : null,
+    });
+    const status = await wc.executeJavaScriptInIsolatedWorld(FILL_WORLD_ID, [{ code: source }]);
+    if (!status || typeof status !== 'object') return log('fill-error'); // fail closed
+    if (status.originMismatch) return log('origin-or-focus-mismatch');
+    // The page changed what selectFields resolves to between authorization and
+    // fill — nothing was written.
+    if (status.selectionChanged) return log('selection-changed');
+    if (status.filledPass && status.filledUser) return log('filled', 'user+pass');
+    if (status.filledUser) return log('filled', 'user-only (multi-step step 1)');
+    if (status.filledPass) return log('filled', 'pass-only (username field not found)');
     return log('nothing-filled');
   } catch {
     return log('fill-error'); // no binding, no message — a credential is in memory
