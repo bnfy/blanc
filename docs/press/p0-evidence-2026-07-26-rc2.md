@@ -48,6 +48,13 @@ offered the candidate; the three checks above are what establish isolation.
 - All 280 unit tests pass, 0 fail (259 at rc.1).
 - Acceptance wiring resolves all 55 scenarios and 364 steps with no undefined
   or ambiguous steps (52 and 345 at rc.1).
+- **All 55 runnable desktop scenarios, 364 steps, and 2 hooks pass against
+  Electron** (52 and 345 at rc.1).
+- Deterministic Google OAuth compatibility passes (1 test, 0 fail), and the
+  native DNS smoke reports `dns-smoke OK on darwin`.
+- `npm audit` at the release gate finds 0 vulnerabilities.
+- `npm run release:verify:press` — the exact composite gate `release.sh` runs
+  before staging a release — completes successfully end to end.
 - GitHub Actions on `91e2756`: Pre-release smoke `30187706740`, Parity guards
   `30187904707`, and Site `30187904735` all conclude success.
 
@@ -81,8 +88,25 @@ The packaged `rc.2` app was launched four times against a brand-new, empty
 - The updater runs and correctly declines to downgrade.
 - No crash, hang, or renderer fault across the four launches.
 
-This exercises clean-profile first run. The migration smoke is recorded
-separately below.
+This exercises clean-profile first run by hand. The repository's own
+`npm run test:packaged:first-run` was then run against the same packaged
+`rc.2` build and reports `packaged-first-run-smoke OK`. It drives three
+labelled scenarios through Playwright-Electron — `packaged-first-run`,
+`packaged-filter-retry`, and `packaged-filter-failure` — asserting that:
+
+- search suggestions and the usage ping each reflect their current default
+  before any choice is committed, and **no telemetry install id is created
+  before consent**;
+- cold-online blocker initialization releases browsing rather than hanging;
+- a one-shot filter failure exposes **Retry**, and a successful Retry rebuilds
+  blocking, releases the queued navigation, and leaves blocking enabled;
+- a corrupt-cache/offline startup surfaces the recovery actions with
+  `Blocking could not start.`, and **Continue without blocking** both releases
+  the startup gate and persists the effective setting.
+
+That closes the cold-online startup, pre-consent, persisted opt-out,
+corrupt-cache/offline recovery, Retry, and Continue-without-blocking paths for
+`rc.2`.
 
 ## Same-profile migration from public Stable v0.22.0
 
@@ -117,6 +141,13 @@ window independently corroborates it: dark theme applied, the rail at the
 custom 312px width rather than the 248px default, the `migrate` group
 unfolded with its pinned member, the `folded` group still collapsed, and the
 Island's heart filled for the restored Favorite.
+
+The repository's own migration harness was then run over the same pair —
+`BLANC_STABLE_EXECUTABLE` pointing at the extracted `v0.22.0` app and the
+candidate resolving to the packaged `rc.2` build — and reports
+`packaged-migration-smoke OK: Blanc-0.22.0.app -> candidate`. The canonical
+script is the gate of record; the manual run above is corroboration with a
+wider state surface.
 
 ## Exact public artifact hashes
 
@@ -169,11 +200,8 @@ every file against the published `SHA256SUMS`. Published sizes are 138521990
   This satisfies at least one active tester on the one distributed
   platform/architecture, and should be restated at Stable with the observed
   defect count.
-- **Cold-online startup, pre-consent, persisted opt-out, corrupt-cache/offline
-  recovery, Retry, and Continue-without-blocking** paths have not been re-run
-  for `rc.2`.
-- **Deterministic Google OAuth compatibility and native DNS smoke** have not
-  been re-run locally for `rc.2` beyond what Pre-release smoke `30187706740`
-  covers.
 - Final Stable links, checksums, release notes, and site staging remain Day 13
   work.
+
+Every automation and packaged-behavior gate now has a `rc.2` result. The only
+gates left are the elapsed-time one and the Day 13 staging work.
