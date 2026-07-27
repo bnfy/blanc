@@ -3261,6 +3261,7 @@ app.whenReady().then(async () => {
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
+      pickerController, // SPIKE (1Password fill) — acceptance drives the real controller
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
       getUtilitySheetWebContents: () => utilitySheetView?.webContents ?? null,
