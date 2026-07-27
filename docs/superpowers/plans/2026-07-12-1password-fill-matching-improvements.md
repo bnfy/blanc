@@ -164,6 +164,15 @@ Expected:
 [1p-probe] persistence: {"seen":true,"sameEl":true,"n":"abc"}
 [1p-probe] after-nav: {"seen":false}
 ```
+> **Executed 2026-07-27 — PASS.** Actual output:
+> ```
+> [1p-probe] persistence: {"seen":true,"sameEl":true,"n":"abc"}
+> [1p-probe] after-nav:   {"seen":false}
+> ```
+> Isolated-world globals and element-wrapper identity both survive across two
+> separate `executeJavaScriptInIsolatedWorld` calls, and navigation clears the
+> state. The nonce/element binding in Tasks 4–5 rests on verified behavior.
+
 `sameEl:true` is the load-bearing result — the binding compares element
 references across calls. If `seen` is false, or `sameEl` is false, **stop**: the
 nonce/element protocol cannot work as designed and Tasks 4–5 need rework (a
@@ -642,7 +651,7 @@ Builds the two injected sources. The inspect source carries **no credential** an
 - Consumes: `selectFields` and its helpers (Task 3).
 - Produces:
   - `buildInspectScript({ expectedURL, expectedTimeOrigin, nonce }) → string` — IIFE resolving to `{ originMismatch: true }` or `{ originMismatch: false, hasPassword: boolean, hasUsername: boolean, passwordBasis: 'authoritative'|'heuristic'|null }`. `passwordBasis` comes straight from `selectFields` and decides whether the fill needs user confirmation (see Task 5).
-  - `buildFillScript({ expectedURL, expectedTimeOrigin, username, password }) → string` — IIFE resolving to `{ originMismatch: true, filledUser: false, filledPass: false }` or `{ originMismatch: false, filledUser: boolean, filledPass: boolean }`. `username`/`password` may be `null`; a `null` value is never written.
+  - `buildFillScript({ expectedURL, expectedTimeOrigin, username, password, nonce }) → string` — IIFE resolving to `{ originMismatch: true, filledUser: false, filledPass: false }`, `{ selectionChanged: true, filledUser: false, filledPass: false }` (the authorization stash no longer matches — nothing written), or `{ originMismatch: false, filledUser: boolean, filledPass: boolean }`. `username`/`password` may be `null`; a `null` value is never written. `nonce` is **required** — both builders throw without it, so the authorization binding cannot be skipped by accident.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -655,8 +664,13 @@ const { matchesHost, buildFillScript, buildInspectScript, selectFields } = requi
 **Delete** the existing test named `buildFillScript: null username still embeds a null literal (fills password only)` (its `'null !== null'` assertion no longer describes the generated source). Then append:
 
 ```js
+test('builders REQUIRE a nonce (authorization binding cannot be skipped)', () => {
+  assert.throws(() => buildInspectScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0 }), /nonce/);
+  assert.throws(() => buildFillScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: 'u', password: 'p' }), /nonce/);
+});
+
 test('buildInspectScript: carries NO credential literal', () => {
-  const s = buildInspectScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 5 });
+  const s = buildInspectScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 5, nonce: 'n1' });
   assert.ok(s.includes(JSON.stringify('https://x.test/')));
   assert.ok(s.includes('hasPassword'));
   assert.ok(!s.includes('password:'));       // no credential key
@@ -664,7 +678,7 @@ test('buildInspectScript: carries NO credential literal', () => {
 });
 
 test('buildInspectScript: embeds the shared selection logic', () => {
-  const s = buildInspectScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0 });
+  const s = buildInspectScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 0, nonce: 'n1' });
   assert.ok(s.includes('function selectFields'));
   assert.ok(s.includes('function collectCandidates'));
   assert.ok(s.includes('function isSearchLike'));
@@ -672,7 +686,7 @@ test('buildInspectScript: embeds the shared selection logic', () => {
 
 test('buildFillScript: embeds only the credentials provided', () => {
   const s = buildFillScript({
-    expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: 'alice', password: null,
+    expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: 'alice', password: null, nonce: 'n1',
   });
   assert.ok(s.includes(JSON.stringify('alice')));
   assert.ok(s.includes('var PASS = null;'));
@@ -681,7 +695,7 @@ test('buildFillScript: embeds only the credentials provided', () => {
 test('buildFillScript: dangerous credential chars are safely escaped', () => {
   const nasty = 'a"b\\c\nd\'e';
   const s = buildFillScript({
-    expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: null, password: nasty,
+    expectedURL: 'https://x.test/', expectedTimeOrigin: 0, username: null, password: nasty, nonce: 'n1',
   });
   assert.ok(s.includes(JSON.stringify(nasty)));
   assert.ok(!s.includes('"' + nasty + '"'));
@@ -689,7 +703,7 @@ test('buildFillScript: dangerous credential chars are safely escaped', () => {
 
 test('buildFillScript: keeps the identity guard and native setter', () => {
   const s = buildFillScript({
-    expectedURL: 'https://x.test/', expectedTimeOrigin: 7, username: 'u', password: 'p',
+    expectedURL: 'https://x.test/', expectedTimeOrigin: 7, username: 'u', password: 'p', nonce: 'n1',
   });
   assert.ok(s.includes('location.href'));
   assert.ok(s.includes('document.hasFocus()'));
@@ -724,9 +738,16 @@ function collectCandidates() {
     // absence of a boundary — selectFields then fills the password only. Derive
     // a container key instead: the nearest plausible widget ancestor. Only
     // inputs with no such ancestor stay null.
+    // Scope identity. A real <form> is authoritative. For form-less inputs
+    // (common in SPA logins) derive a container key — but ONLY from
+    // form-like boundaries. Generic sectioning elements (`section`, `article`,
+    // `div`) are NOT boundaries: two unrelated login widgets routinely share
+    // one, and grouping them re-opens exactly the cross-widget username leak
+    // the null-scope rule exists to prevent. Inputs with no defensible owner
+    // stay null, and a null password scope fills the password only.
     var key = null;
     var owner = el.form
-      || el.closest('[role=form], fieldset, dialog, section, article, [class*=login i], [class*=signin i], [class*=auth i], [id*=login i], [id*=signin i]');
+      || el.closest('[role=form], fieldset, dialog, [class*=login i], [class*=signin i], [class*=sign-in i], [class*=auth i], [id*=login i], [id*=signin i]');
     if (owner) {
       if (!formKeys.has(owner)) formKeys.set(owner, formKeys.size);
       key = formKeys.get(owner);
@@ -806,9 +827,16 @@ function collectCandidates() {
       // SCOPE-LEVEL copy, consumed only by scopeLooksLikeSignup /
       // scopeLooksLikeLogin: the form's submit button and its name/id.
       formText: (function () {
-        if (!el.form) return '';
-        var parts = [el.form.getAttribute('name') || '', el.form.getAttribute('id') || ''];
-        var submit = el.form.querySelector('button[type=submit], input[type=submit], button:not([type])');
+        // Derived from the SAME owner as formKey — otherwise a form-less
+        // container always reports '' and loses its scope-level signup/login
+        // evidence.
+        if (!owner) return '';
+        var parts = [
+          owner.getAttribute('name') || '',
+          owner.getAttribute('id') || '',
+          owner.getAttribute('class') || '',
+        ];
+        var submit = owner.querySelector('button[type=submit], input[type=submit], button:not([type])');
         if (submit) parts.push(submit.textContent || submit.value || '');
         return parts.join(' ').replace(/\s+/g, ' ').trim().slice(0, 200);
       })(),
@@ -850,7 +878,7 @@ production. Guard it with a **runtime** VM fixture, not just a parse check:
 // In the unit tests: run the generated source in a VM with a stub DOM and
 // assert it actually evaluates.
 const vm = require('node:vm');
-const src = buildInspectScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 1 });
+const src = buildInspectScript({ expectedURL: 'https://x.test/', expectedTimeOrigin: 1, nonce: 'n1' });
 // The stub MUST return real inputs. An empty list short-circuits selectFields
 // before it calls pickPasswordInScope/usernameRank, so an incomplete helper
 // closure would still pass. Use a representative annotated login form.
@@ -1012,7 +1040,7 @@ Run:
 node -e "
 const vm = require('node:vm');
 const op = require('./src/main/onepassword');
-const args = { expectedURL: 'https://x.test/', expectedTimeOrigin: 1 };
+const args = { expectedURL: 'https://x.test/', expectedTimeOrigin: 1, nonce: 'n1' };
 new vm.Script(op.buildInspectScript(args));
 new vm.Script(op.buildFillScript({ ...args, username: 'u', password: 'p' }));
 console.log('both sources parse OK');
@@ -1224,6 +1252,10 @@ Verify, reading the `[1p-spike]` lines:
   `autocomplete="new-password"`) → the saved password is **not** written. Expect
   `filled user-only (multi-step step 1)` if the email field is filled, or
   `no-fillable-field`. Confirm the password box is still empty.
+- **Two login widgets inside one `<section>`** (no `<form>` on either) → they must
+  receive **different** `formKey`s, or none at all. If a shared key appears, the
+  adapter is over-grouping and the cross-widget username leak is back: verify
+  with `⌥⌘P` that the username is not taken from the other widget.
 - **DOM replacement between phases** — on a login page, open DevTools on that tab
   and schedule the form's removal, then trigger the chord inside that window:
 

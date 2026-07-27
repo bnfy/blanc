@@ -176,14 +176,20 @@ is exported for tests.
     authoritative scope outranks focus and only a *visible* focused element may
     break a tie.
   - **`usernameIndex`**:
-    - *Password present* (single-page / password step): define the password's
-      **scope** = candidates sharing the password's `formKey` (when it is
-      non-null); if the password has no form (`formKey` null), scope =
-      candidates also with `formKey` null. Within that scope: the focused
-      candidate **if it is in scope**, else the nearest scope candidate preceding
-      the password in document order. A focused field *outside* the password's
-      form is **not** used — otherwise Blanc could type the username into an
-      unrelated field while filling the login form's password.
+    - *Password present, real scope* (`formKey` non-null — a `<form>` or a
+      form-like container): candidates sharing that `formKey`, ranked
+      evidence-first (explicit `autocomplete=username` outranks wording, which
+      outranks email-ish); focus breaks ties only **within** the best tier; a
+      same-tier tie falls back to the candidate immediately preceding the
+      password. A focused field outside the scope is never used.
+    - *Password present, form-less scope* (`formKey` null): **no username is
+      filled at all.** `null` is not a scope, it is the absence of one — every
+      orphaned input on the page shares it, so even a uniquely-ranked candidate
+      may belong to an unrelated widget. Uniqueness is not membership. The
+      adapter mitigates this by deriving a container key from form-like
+      boundaries only (`[role=form]`, `fieldset`, `dialog`, login/auth-classed
+      containers) — never generic `section`/`article`/`div`, which routinely
+      hold two unrelated widgets.
     - *No password* (username step): from candidates with `loginEvidence != null`
       (call them *positives*) — **no lone-field fallback, no bare guessing**:
       `pool` = the `strong` positives if any, else all positives; if `pool` has
@@ -200,6 +206,8 @@ is exported for tests.
 - `filledPass && filledUser` → `filled` `user+pass`
 - `filledUser && !filledPass` → `filled` `user-only (multi-step step 1)`
 - `filledPass && !filledUser` → `filled` `pass-only (username field not found)`
+- fill reports `selectionChanged` (nonce, element identity, liveness or basis no
+  longer match what was authorized) → `selection-changed`, **nothing written**
 - otherwise → `nothing-filled`
 
 Unchanged: `revealCredential` decrypts only the chosen item (and now only after
@@ -294,6 +302,18 @@ navigation (stateless — per-press), TOTP, and 1Password's per-item
 A dialog is language-independent, which is why it — and not a longer wordlist —
 is the actual boundary. A username-only fill needs no prompt: it writes no
 secret.
+
+## Residual: same-node relabeling
+
+Authorization binds the **element identity and basis** that inspect chose, not
+the surrounding form's semantics. A page that keeps the same password node but
+relabels its context between the two passes — swapping the submit-button copy
+from "Sign in" to "Create account", say, while `selectFields` still resolves to
+that node with an unchanged basis — is not detected. Accepted for this
+iteration: the reproduced replacement attack (swapping the annotated field for
+an unannotated one) *is* caught, and binding whole-form semantics would mean
+re-deriving and comparing every scope-level signal. Revisit if consent should
+cover form semantics rather than field identity.
 
 ## Residual: annotation is trusted unconditionally
 
