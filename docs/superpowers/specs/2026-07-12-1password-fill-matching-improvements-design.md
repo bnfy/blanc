@@ -123,7 +123,10 @@ selection/setter to redirect or capture the write.
    sets the fields in the same execution — page JS gets no window between select
    and set to mutate the DOM or hook the setter. If the expected field is absent
    (DOM changed since inspect), the credential is simply not written; it never
-   leaves the isolated realm. Returns `{ originMismatch, filledUser, filledPass }`.
+   leaves the isolated realm. Returns `{ originMismatch, filledUser, filledPass }`,
+   or `{ selectionChanged: true, filledUser: false, filledPass: false }` when the
+   authorization stash no longer matches (nonce, element identity, liveness or
+   basis) — in which case **nothing is written**.
 
 **Everything from the reveal (step 2) onward runs inside the binding-less catch
 → fixed `fill-error`** — once a credential is in main-process memory, no failure
@@ -149,15 +152,25 @@ is exported for tests.
   one exists, else a nearest-widget-container key; only truly orphaned inputs
   stay `null`, and a `null` password scope fills the **password only** (the
   absence of a boundary is not a boundary).
-  `type`/`autocomplete` lowercased; `isVisible` = `offsetParent !== null` +
-  non-zero client rect + not `type="hidden"`; `isFocused` = `=== document.activeElement`;
-  `inSearchScope` = inside a `[role="search"]`. **`formKey`** = a stable index
-  assigned per distinct `input.form` **element identity** via a
-  `Map<HTMLFormElement, number>` (`null` when `input.form` is null) — *not*
-  `form.id`, since forms may lack ids or share them.
-- **`selectFields(cands)`** (pure) → `{ passwordIndex, usernameIndex }` (either
-  may be `null`). Helpers over a lowercased `name+id+autocomplete+placeholder+ariaLabel`
-  blob:
+  `type`/`autocomplete` lowercased; `isVisible` requires not `type="hidden"`, a
+  live `offsetParent`, `checkVisibility({checkOpacity, checkVisibilityCSS})`
+  where available, a non-zero rect that **intersects the viewport**, and no
+  clipping by the field or any ancestor — an off-screen (`left:-10000px`) or
+  clipped decoy carrying `current-password` must not read as a real target.
+  `isFocused` = `=== document.activeElement`; `inSearchScope` = inside a
+  `[role="search"]`. **`formKey`** = a stable index assigned per distinct **owner
+  element identity** via a `Map<Element, number>` — *not* `form.id`, since forms
+  may lack ids or share them. The owner is `input.form` when there is one, else
+  the nearest **token-matched** form-like container (`[role=form]`, `fieldset`,
+  `dialog`, `[class~=login]`/`[class~=signin]`/`[class~=auth-form]` and
+  friends). Substring matchers are forbidden here: `[class*=auth]` would match
+  `authenticated-layout` and merge every form-less widget on the page. An input
+  with no such owner keeps `formKey: null`.
+- **`selectFields(cands)`** (pure) → `{ passwordIndex, usernameIndex, passwordBasis }`
+  (`passwordBasis` is `'authoritative' | 'heuristic' | null`; the indices may be
+  `null`). Helpers over a lowercased **field-local** blob
+  (`name+id+autocomplete+placeholder+ariaLabel+labelText`); scope-level
+  `formText` is read separately and never merged in:
   - `isSearchLike` — `type==='search'`, `inSearchScope`, blob **contains**
     `search`/`query` (substring, so camelCase `siteSearch`/`queryInput` are
     caught), or `name`/`id` exactly `q`/`s`.
@@ -302,6 +315,23 @@ navigation (stateless — per-press), TOTP, and 1Password's per-item
 A dialog is language-independent, which is why it — and not a longer wordlist —
 is the actual boundary. A username-only fill needs no prompt: it writes no
 secret.
+
+### Forbidden return sentinel vs. the deliberate authorization stash
+
+These are different things and only one is prohibited:
+
+- **Forbidden — a cross-call *return channel*.** If
+  `executeJavaScriptInIsolatedWorld` failed to resolve a value, writing the
+  status somewhere for a later call to read back would leave state that goes
+  stale across navigation and silently misreports. The flow instead **fails
+  closed as `fill-error`**.
+- **Deliberate — the authorization stash.** The inspect pass leaves
+  `{nonce, pwEl, userEl, basis}` in the isolated world so the fill pass can prove
+  it is acting on the elements that were actually authorized. It is
+  **single-use** (cleared on read), **nonce-scoped** to one invocation, and
+  cleared by navigation — verified by Task 1's persistence probe
+  (`sameEl:true`, `after-nav.seen:false`). It carries no credential and is not a
+  return channel.
 
 ## Residual: same-node relabeling
 

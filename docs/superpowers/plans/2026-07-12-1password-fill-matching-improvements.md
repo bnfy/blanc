@@ -610,7 +610,7 @@ function selectFields(cands) {
     }
   }
 
-  return { passwordIndex, usernameIndex };
+  return { passwordIndex, usernameIndex, passwordBasis };
 }
 ```
 
@@ -746,8 +746,19 @@ function collectCandidates() {
     // the null-scope rule exists to prevent. Inputs with no defensible owner
     // stay null, and a null password scope fills the password only.
     var key = null;
+    // Markers are TOKEN-aware (`~=`), never substring. `[class*=auth i]` would
+    // match page-wide wrappers like `authenticated-layout` and unrelated
+    // classes like `author-profile`, merging every form-less widget on the page
+    // back into one scope — the exact leak the null-scope rule prevents.
     var owner = el.form
-      || el.closest('[role=form], fieldset, dialog, [class*=login i], [class*=signin i], [class*=sign-in i], [class*=auth i], [id*=login i], [id*=signin i]');
+      || el.closest([
+        '[role=form]', 'fieldset', 'dialog',
+        '[class~=login]', '[class~=login-form]', '[class~=loginForm]',
+        '[class~=signin]', '[class~=sign-in]', '[class~=signin-form]', '[class~=sign-in-form]',
+        '[class~=auth-form]', '[class~=authForm]',
+        '[id=login]', '[id=login-form]', '[id=loginForm]',
+        '[id=signin]', '[id=sign-in]', '[id=signin-form]',
+      ].join(', '));
     if (owner) {
       if (!formKeys.has(owner)) formKeys.set(owner, formKeys.size);
       key = formKeys.get(owner);
@@ -920,12 +931,64 @@ assert.equal(out.passwordBasis, 'authoritative');
 //      (the stash is single-use)
 // Assert in every failure case that setNative was never called — a status flag
 // alone does not prove the credential stayed out of the DOM.
-const ctx = vm.createContext(sandbox);
-vm.runInContext(buildInspectScript({ ...args, nonce: 'n1' }), ctx);
+const args = { expectedURL: 'https://x.test/', expectedTimeOrigin: 1 };
+
+// The sandbox needs an INSTRUMENTED value setter: a status flag alone does not
+// prove the credential stayed out of the DOM, so every failure case asserts the
+// write count did not move.
+const writes = [];
+function makeCtx(inputs) {
+  const HTMLInputElement = function () {};
+  Object.defineProperty(HTMLInputElement.prototype, 'value', {
+    configurable: true,
+    get() { return this._v || ''; },
+    set(v) { this._v = v; writes.push(v); },
+  });
+  for (const el of inputs) Object.setPrototypeOf(el, HTMLInputElement.prototype);
+  const sb = {
+    location: { href: 'https://x.test/' },
+    performance: { timeOrigin: 1 },
+    document: { hasFocus: () => true, querySelectorAll: () => inputs, activeElement: null },
+    window: { innerWidth: 1024, innerHeight: 768 },
+    getComputedStyle: () => ({ clipPath: 'none', clip: 'auto', overflow: 'visible' }),
+    HTMLInputElement,
+    Event: function Event(t) { this.type = t; },
+    Map, Object, String, Array, Math, RegExp, JSON,
+  };
+  sb.globalThis = sb;
+  return vm.createContext(sb);
+}
+
+// 1. Unchanged DOM -> fills.
+const inputs = [
+  stubInput({ type: 'text', name: 'username', getAttribute: (a) => (a === 'autocomplete' ? 'username' : null) }),
+  stubInput({ type: 'password', getAttribute: (a) => (a === 'autocomplete' ? 'current-password' : null) }),
+];
+const ctx = makeCtx(inputs);
+const insp = vm.runInContext(buildInspectScript({ ...args, nonce: 'n1' }), ctx);
+assert.equal(insp.passwordBasis, 'authoritative');
 const filled = vm.runInContext(buildFillScript({ ...args, nonce: 'n1', username: 'u', password: 'p' }), ctx);
 assert.equal(filled.filledPass, true);
+assert.equal(writes.length, 2, 'username + password written');
+
+// 2. Replay -> single-use stash, and NOTHING further is written.
+const before = writes.length;
 const replay = vm.runInContext(buildFillScript({ ...args, nonce: 'n1', username: 'u', password: 'p' }), ctx);
 assert.equal(replay.selectionChanged, true, 'the authorization stash must be single-use');
+assert.equal(writes.length, before, 'a rejected fill must not write');
+
+// 3. Nonce mismatch -> rejected, nothing written.
+const ctx3 = makeCtx(inputs.map((i) => stubInput(i)));
+vm.runInContext(buildInspectScript({ ...args, nonce: 'n1' }), ctx3);
+const w3 = writes.length;
+const bad = vm.runInContext(buildFillScript({ ...args, nonce: 'DIFFERENT', username: 'u', password: 'p' }), ctx3);
+assert.equal(bad.selectionChanged, true);
+assert.equal(writes.length, w3, 'a nonce mismatch must not write');
+
+// 4. Element replaced between passes -> rejected, nothing written.
+// 5. Basis changed (annotated field swapped for an unannotated one) -> rejected.
+//    Both follow the same shape: re-run inspect, mutate `inputs` in place, then
+//    run the fill source and assert selectionChanged with an unchanged write count.
 ```
 
 - [ ] **Step 4: Add `buildInspectScript` and rewrite `buildFillScript`**
@@ -1357,4 +1420,4 @@ git commit -m "docs(1password): dev-usage guide reflects subdomain + multi-step 
 
 **Placeholder scan:** no `TBD`/`TODO`/"handle edge cases"/uncoded steps. The one temporary artifact — the Task 1 isolated-world probe — is explicitly added in Step 3 and deleted in Step 5, with a `grep` confirming removal.
 
-**Type consistency:** `selectFields(cands) → { passwordIndex, usernameIndex }` (Task 3) is consumed by both injected scripts (Task 4) and drives `hasPassword`/`hasUsername` in the inspect result, which the orchestrator branches on (Task 5). `collectCandidates() → { els, cands }` — `cands[].i` indexes `els`, which is how the fill pass resolves an index back to an element. Descriptor keys (`type`, `autocomplete`, `name`, `id`, `placeholder`, `ariaLabel`, `formKey`, `isVisible`, `isFocused`, `inSearchScope`) are identical in the test factory (Task 3 Step 1) and the DOM adapter (Task 4 Step 3). `buildFillScript`'s status keys (`originMismatch`, `filledUser`, `filledPass`) match the orchestrator's branches exactly.
+**Type consistency:** `selectFields(cands) → { passwordIndex, usernameIndex, passwordBasis }` (Task 3) is consumed by both injected scripts (Task 4); the inspect result carries `hasPassword`/`hasUsername`/`passwordBasis`, which the orchestrator branches on and uses to decide whether to prompt (Task 5). `collectCandidates() → { els, cands }` — `cands[].i` indexes `els`, which is how the fill pass resolves an index back to an element. Descriptor keys (`i`, `type`, `autocomplete`, `name`, `id`, `placeholder`, `ariaLabel`, **`labelText`** (field-local), **`formText`** (scope-level), `formKey`, `isVisible`, `isFocused`, `inSearchScope`) are identical in the test factory (Task 3 Step 1) and the DOM adapter (Task 4 Step 3) — the split matters, since merging submit copy into `labelText` reintroduces the coupon/Confirm regressions. Both builders additionally require a `nonce` (they throw without one). `buildFillScript`'s status keys (`originMismatch`, **`selectionChanged`**, `filledUser`, `filledPass`) match the orchestrator's branches exactly, including the `selection-changed` outcome.
