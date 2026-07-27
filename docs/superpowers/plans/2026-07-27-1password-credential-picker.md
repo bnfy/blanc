@@ -1617,58 +1617,99 @@ git commit -m "feat(1password): Island credential picker with textContent-only r
 
 ---
 
-### Task 8: Adversarial real-DOM scenario
+### Task 8: Acceptance scenarios — reply path, isolation, XSS, overflow
 
-The source guard proves the picker path contains no `innerHTML`; this proves the
-rendered result is inert. It must live where the harness actually looks: the
-config loads features from **`spec/acceptance/**/*.feature`** and steps from
-**`test/desktop/steps/**/*.js`** (CommonJS), and runs only scenarios whose tag is
-in the `RUNNABLE` list. A feature placed anywhere else, or an `.mjs` step file,
-is silently skipped — the suite would pass without ever running this.
+The picker's most important contract is the one a source guard can't see: a real
+click on a real row, sent over the real IPC, must be **accepted by the real
+`pickerController.handleReply`** and settle the request. So every scenario here
+**routes through `pickerController.requestPick()`** — the same call the fill flow
+makes — and observes the promise it returns. A scenario that only watched raw IPC
+with its own listener would pass even if `handleReply` rejected the sender (this
+is exactly how the `isOverlaySender` shape bug survived every earlier test).
+
+Six scenarios, all real-DOM: a row click resolves as a selection; hostile vault
+strings (title AND vaultName) render as literal text; picker mode isolates the
+panel's own controls; Enter on Cancel dismisses; the capture guard swallows a
+click on a hidden control; and a full 10-row picker stays reachable in a 640×480
+window.
+
+The harness config loads features from **`spec/acceptance/**/*.feature`** and
+steps from **`test/desktop/steps/**/*.js`** (CommonJS), running only scenarios
+whose tag is in `RUNNABLE`. A feature placed anywhere else, or an `.mjs` step
+file, is silently skipped — so the feature goes under a path the config is taught
+explicitly, with a unique tag.
 
 **Files:**
 - Create: `test/desktop/features/credential-picker.feature`
 - Create: `test/desktop/steps/credential-picker.steps.js`
 - Modify: `test/desktop/cucumber.mjs` (add the desktop feature path **and** the tag)
 - Modify: `src/main/test-hook.js`
+- Modify: `src/main/main.js` (pass `pickerController` into the test-hook refs)
 
 **Why not `spec/acceptance/` and `@F24-1`:** `spec/acceptance/` holds the
-**platform-neutral** feature contract shared with the future mobile ports, and
-`@F24-1` is already taken — `spec/acceptance/platform-services.feature:41` uses
-it for a `@mobile @D12` scenario ("Saved credentials and passkeys work in a
-tab"). Adding that tag to `RUNNABLE` would select the existing mobile scenario on
-desktop *and* misrepresent this dev-only spike as part of the F24 contract. This
-is desktop-and-spike-only, so it lives under `test/desktop/features/` with its
-own tag, and the config learns that path explicitly.
-
-This task also proves the **modal isolation** from Task 7: in picker mode the
-panel's own controls (address bar, footer, Settings) must be neither displayed
-nor focusable, so a user can't navigate or open a tab while a decrypt is pending.
-That is a real-DOM property — `display:none` removes an element from layout and
-the focus order — so it belongs here, not in a source guard.
+**platform-neutral** contract shared with the future mobile ports, and `@F24-1`
+is already taken — `spec/acceptance/platform-services.feature:41` uses it for a
+`@mobile @D12` scenario. Adding that tag to `RUNNABLE` would select a mobile
+scenario on desktop and misrepresent this dev-only spike as part of the F24
+contract. So it lives under `test/desktop/features/` with tag `@spike-1p-picker`.
 
 **Interfaces:**
-- Consumes: the `credential-picker` mode (Task 7); the hook's existing
-  `showOverlay` and `getOverlayWebContents` collaborators; the World's
-  `this.call(method, ...args)`.
-- Produces: hook methods `showCredentialPicker(rows)`, `readPickerDom()`,
-  `readPickerIsolation()`, `pressEnterOnPickerCancel()`, and
-  `clickHiddenControlInPicker(selector)`.
+- Consumes: `pickerController` (passed into the test-hook refs from `main.js`),
+  the hook's existing `getOverlayWebContents` / `getOverlayMode` /
+  `setWindowContentSize` collaborators, and the World's `this.call(method, ...)`.
+- Produces: hook methods `startCredentialPick(rows, truncated)`,
+  `awaitCredentialPick()`, `clickPickerRow(index)`, `pressEnterOnPickerCancel()`,
+  `readPickerDom()`, `readPickerIsolation()`, `clickHiddenControlInPicker(sel)`,
+  and `readPickerReachability()`.
 
-- [ ] **Step 1: Add the test-hook methods**
+- [ ] **Step 1: Pass `pickerController` into the test-hook**
 
-In `src/main/test-hook.js`, alongside `openPanel()` / `openPalette()`:
+In `src/main/main.js`, find the `installTestHook`/`test-hook` install call (the
+one guarded by `!app.isPackaged && process.env.BLANC_TEST === '1'`) and add
+`pickerController` to the refs object it passes. In `src/main/test-hook.js`, add
+`pickerController` to the destructured `refs` at the top of `install(refs)`.
+
+- [ ] **Step 2: Add the test-hook methods**
+
+In `src/main/test-hook.js`, alongside `openPanel()` / `openPalette()`. A module-
+scoped `pendingPick` holds the promise `requestPick` returns, so the click and
+the assertion can be separate steps:
 
 ```js
-    showCredentialPicker(rows) {
-      showOverlay('credential-picker', {
-        prefill: { requestId: 'test-request', host: 'example.test', rows, truncated: 0 },
-      });
+    // --- credential picker (1Password fill SPIKE) ---
+    // Route through the REAL controller, so a row click exercises the real
+    // handleReply -> isOverlaySender -> settle path. A side-channel IPC listener
+    // would pass even if handleReply rejected the sender.
+    startCredentialPick(rows, truncated = 0) {
+      pendingPick = pickerController.requestPick(rows, truncated, 'example.test');
+      return true;
     },
-    /** Read the rendered picker back out of the overlay's DOM. Scans the whole
-     * list (not just the first row) so a hostile vaultName — rendered only when
-     * two vaults differ — is covered too. Returns plain data so the step file
-     * needs no Playwright page handle. */
+    awaitCredentialPick() {
+      return pendingPick; // resolves { index, reason } once a reply/settle lands
+    },
+    clickPickerRow(index) {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const rows = document.querySelectorAll('.cred-row');
+        if (!rows[${JSON.stringify(index)}]) throw new Error('no picker row at index ' + ${JSON.stringify(index)});
+        rows[${JSON.stringify(index)}].click(); // real click -> choosePicker -> real IPC
+        return true;
+      })()`);
+    },
+    pressEnterOnPickerCancel() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      // Just press Enter on the focused Cancel — the reply is observed via
+      // awaitCredentialPick (the real promise), not a side channel.
+      return wc.executeJavaScript(`(() => {
+        const cancel = document.querySelector('.cred-cancel');
+        if (!cancel) throw new Error('picker Cancel button is not rendered');
+        cancel.focus();
+        cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+        return true;
+      })()`);
+    },
     readPickerDom() {
       const wc = getOverlayWebContents();
       if (!wc) return null;
@@ -1684,72 +1725,6 @@ In `src/main/test-hook.js`, alongside `openPanel()` / `openPalette()`:
         };
       })()`);
     },
-    /** Focus the Cancel button and press Enter, capturing the reply. Proves
-     * Enter-on-Cancel dismisses rather than selecting the highlighted row.
-     *
-     * The reply is captured in MAIN, not the renderer: contextBridge copies and
-     * freezes the exposed `browserAPI`, so `window.browserAPI.sendCredentialPick`
-     * cannot be reassigned from page code — a renderer stub is silently ignored
-     * and the real IPC fires anyway. Instead attach a temporary `ipcMain`
-     * listener, scoped to the overlay's own sender so nothing else can spoof it,
-     * and let the real send arrive. The event is dispatched FROM the Cancel
-     * button (bubbling to the document handler) with the button focused, exactly
-     * as a real Enter press would arrive. */
-    async pressEnterOnPickerCancel() {
-      const { ipcMain } = require('electron');
-      const wc = getOverlayWebContents();
-      if (!wc) return null;
-      // Resolve on the FIRST sender-scoped reply — no fixed wait, so a slow
-      // runner can't false-fail — with a bounded fallback so a genuine miss
-      // fails the assertion (reply === null) instead of hanging the run. The
-      // listener is attached synchronously here, before the dispatch below, so
-      // the reply can't be missed.
-      const reply = new Promise((resolve) => {
-        const listener = (event, payload) => {
-          if (event.sender !== wc) return;
-          ipcMain.removeListener('chrome:credential-pick', listener);
-          clearTimeout(timer);
-          resolve(payload);
-        };
-        const timer = setTimeout(() => {
-          ipcMain.removeListener('chrome:credential-pick', listener);
-          resolve(null);
-        }, 2000);
-        ipcMain.on('chrome:credential-pick', listener);
-      });
-      await wc.executeJavaScript(`(() => {
-        const cancel = document.querySelector('.cred-cancel');
-        if (!cancel) throw new Error('picker Cancel button is not rendered');
-        cancel.focus();
-        cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-        return true;
-      })()`);
-      return reply;
-    },
-    /** Prove the capture-phase modal guard swallows a click on a hidden panel
-     * control — FULLY SYNCHRONOUS, so it can't false-green on a delayed Settings
-     * open. A temporary observer on the control records whether the click
-     * reached it. The guard lives on `document` in the capture phase and calls
-     * stopPropagation, so with the guard the event never descends to the target;
-     * without it, the observer fires. `.click()` dispatches and propagates even
-     * on a display:none element, so the guard is genuinely exercised. */
-    clickHiddenControlInPicker(selector) {
-      const wc = getOverlayWebContents();
-      if (!wc) return null;
-      return wc.executeJavaScript(`(() => {
-        const el = document.querySelector(${JSON.stringify(selector)});
-        if (!el) throw new Error('control not found: ' + ${JSON.stringify(selector)});
-        let reached = false;
-        const obs = () => { reached = true; };
-        el.addEventListener('click', obs);
-        try { el.click(); } finally { el.removeEventListener('click', obs); }
-        return { reached };
-      })()`);
-    },
-    /** Probe the panel's own controls for modal isolation. `shown` uses
-     * getClientRects (empty under display:none, and independent of offsetParent
-     * quirks); `focusable` actually attempts focus and checks activeElement, so
-     * a display:none control can't pass. */
     readPickerIsolation() {
       const wc = getOverlayWebContents();
       if (!wc) return null;
@@ -1769,49 +1744,106 @@ In `src/main/test-hook.js`, alongside `openPanel()` / `openPalette()`:
         };
       })()`);
     },
+    clickHiddenControlInPicker(selector) {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      // Fully synchronous: a temporary observer records whether the click
+      // reached the control. The capture-phase guard calls stopPropagation, so
+      // with the guard the target is never reached; without it, it fires.
+      return wc.executeJavaScript(`(() => {
+        const el = document.querySelector(${JSON.stringify(selector)});
+        if (!el) throw new Error('control not found: ' + ${JSON.stringify(selector)});
+        let reached = false;
+        const obs = () => { reached = true; };
+        el.addEventListener('click', obs);
+        try { el.click(); } finally { el.removeEventListener('click', obs); }
+        return { reached };
+      })()`);
+    },
+    readPickerReachability() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      // Scroll the list to the bottom, then report whether the card fits the
+      // viewport and the last row + Cancel are within the scrolled list box.
+      return wc.executeJavaScript(`(() => {
+        const list = document.querySelector('.cred-list');
+        const rows = document.querySelectorAll('.cred-row');
+        const cancel = document.querySelector('.cred-cancel');
+        const panel = document.getElementById('islandPanel');
+        if (!list || !rows.length || !cancel || !panel) return null;
+        list.scrollTop = list.scrollHeight;
+        const lr = list.getBoundingClientRect();
+        const within = (el) => { const r = el.getBoundingClientRect(); return r.top >= lr.top - 0.5 && r.bottom <= lr.bottom + 0.5; };
+        return {
+          rows: rows.length,
+          cardFitsViewport: panel.getBoundingClientRect().bottom <= window.innerHeight + 0.5,
+          listScrolls: list.scrollHeight > list.clientHeight + 1,
+          lastRowReachable: within(rows[rows.length - 1]),
+          cancelReachable: within(cancel),
+        };
+      })()`);
+    },
 ```
 
-- [ ] **Step 2: Write the failing scenario**
+Declare `let pendingPick = null;` in the `install` scope (next to the other
+module-scoped test state such as `focusObservation`).
+
+The existing `reset()` already calls `hideOverlay(...)`, which settles a pending
+picker as `'hidden'` (Task 6 wiring) and restores the 1280×800 window — so a
+scenario that starts a pick but never clicks/cancels is cleaned up between
+scenarios without extra teardown.
+
+- [ ] **Step 3: Write the feature**
 
 Create `test/desktop/features/credential-picker.feature`:
 
 ```gherkin
 Feature: 1Password credential picker (dev spike)
-  The picker renders vault-supplied strings, which are untrusted text in a
-  privileged renderer. They must never become markup.
+  The picker's replies must be accepted by the real controller, its rows must
+  render vault strings inertly, its mode must be modal, and a full list must stay
+  reachable in a short window.
+
+  @spike-1p-picker
+  Scenario: a row click resolves as a selection
+    When the credential picker is requested with two rows
+    And the second row is clicked
+    Then the pick resolves as selected index 1
 
   @spike-1p-picker
   Scenario: vault strings render as literal text
-    When the credential picker is shown with hostile vault strings
+    When the credential picker is requested with hostile vault strings
     Then the picker row shows them as literal text
     And the hostile vault name renders as literal text
     And the picker row contains no injected elements
 
   @spike-1p-picker
   Scenario: picker mode isolates the panel's own controls
-    When the credential picker is shown with hostile vault strings
+    When the credential picker is requested with hostile vault strings
     Then the address bar, footer, and Settings are hidden and unfocusable
     And the Cancel button is available
 
   @spike-1p-picker
   Scenario: Enter on the Cancel button dismisses rather than selecting
-    When the credential picker is shown with hostile vault strings
+    When the credential picker is requested with two rows
     And Enter is pressed while the Cancel button has focus
-    Then the reply is a dismissal, not a selection
+    Then the pick resolves as dismissed
 
   @spike-1p-picker
   Scenario: the modal guard swallows clicks on hidden panel controls
-    When the credential picker is shown with hostile vault strings
+    When the credential picker is requested with hostile vault strings
     And a hidden panel control is clicked while the picker is up
     Then the click never reaches the control
+
+  @spike-1p-picker
+  Scenario: a full picker stays reachable in a short window
+    Given the window is 640 by 480
+    When the credential picker is requested with ten rows
+    Then the last row and Cancel are reachable
 ```
 
-- [ ] **Step 3: Teach the config the path and the tag**
+- [ ] **Step 4: Teach the config the path and the tag**
 
-In `test/desktop/cucumber.mjs`, `common.paths` currently lists only
-`spec/acceptance/**/*.feature`, so a feature anywhere else is never loaded and
-the suite would pass **without running this scenario at all**. Add the desktop
-path, and add the unique tag to `RUNNABLE`:
+In `test/desktop/cucumber.mjs`, add the desktop feature path and the tag:
 
 ```js
 const common = {
@@ -1820,14 +1852,9 @@ const common = {
 };
 ```
 
-and in the `RUNNABLE` array add `'@spike-1p-picker'`.
-
-Confirm it is actually **selected** — a silently-skipped security test is worse
-than no test. Note the dry profile's progress formatter prints only dashes and
-aggregate counts, never scenario names, so grepping its output returns 0 whether
-or not the scenario ran. And a `pickle` envelope alone proves only that the file
-was *parsed*: 89 pickles are parsed but just 55 are selected by the tag filter.
-Selection is proven by a `testCase` envelope referencing that pickle's id:
+and add `'@spike-1p-picker'` to the `RUNNABLE` array. Confirm all six scenarios
+are actually **selected** (a `pickle` envelope proves only parsing; a `testCase`
+envelope proves selection):
 
 ```bash
 npx cucumber-js -c test/desktop/cucumber.mjs -p dry --format message 2>/dev/null | python3 -c "
@@ -1841,24 +1868,25 @@ for line in sys.stdin:
     if 'pickle' in o: pickles[o['pickle']['id']]=o['pickle']['name']
     if 'testCase' in o: selected.add(o['testCase']['pickleId'])
 names={pickles[i] for i in selected if i in pickles}
-for target in ['vault strings render as literal text',
-               \"picker mode isolates the panel's own controls\",
-               'Enter on the Cancel button dismisses rather than selecting',
-               'the modal guard swallows clicks on hidden panel controls']:
-    print(target[:40], '-> parsed', target in pickles.values(), 'SELECTED', target in names)
+picker=[n for n in names if n in {
+  'a row click resolves as a selection',
+  'vault strings render as literal text',
+  \"picker mode isolates the panel's own controls\",
+  'Enter on the Cancel button dismisses rather than selecting',
+  'the modal guard swallows clicks on hidden panel controls',
+  'a full picker stays reachable in a short window'}]
+print('selected picker scenarios:', len(picker))
 "
 ```
-Expected: **all four scenarios `parsed True` and `SELECTED True`**. `parsed True`
-with `SELECTED False` means the feature path is wired but the tag is not in
-`RUNNABLE`; both `False` means the path itself is not in `common.paths`.
+Expected: `selected picker scenarios: 6`.
 
-- [ ] **Step 4: Write the step definitions (CommonJS)**
+- [ ] **Step 5: Write the step definitions (CommonJS)**
 
 Create `test/desktop/steps/credential-picker.steps.js`:
 
 ```js
 'use strict';
-const { When, Then } = require('@cucumber/cucumber');
+const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('node:assert/strict');
 const { waitForValue } = require('../support/poll');
 
@@ -1867,63 +1895,82 @@ const HOSTILE_USER = '"><script>alert(1)</script>';
 const HOSTILE_HOST = '</span><b>x';
 const HOSTILE_VAULT = '<img src=y onerror="window.__pwnedVault=1">';
 
-When('the credential picker is shown with hostile vault strings', async function () {
-  // TWO distinct vaults, so `multiVault` is true and the .cred-vault element is
-  // actually rendered — a single row would leave the hostile vaultName
-  // unexercised. The hostile string is on the FIRST vault.
-  await this.call('showCredentialPicker', [
+async function startAndRender(world, rows) {
+  await world.call('startCredentialPick', rows);
+  // showOverlay sends overlay:show asynchronously — poll until the rows render.
+  await waitForValue(() => world.call('readPickerDom'), (d) => d !== null, 'picker rows to render');
+}
+
+When('the credential picker is requested with two rows', async function () {
+  await startAndRender(this, [
+    { username: 'first@example.test', title: 'Example', host: 'example.test', vaultName: 'Personal' },
+    { username: 'second@example.test', title: 'Example', host: 'example.test', vaultName: 'Personal' },
+  ]);
+});
+
+When('the credential picker is requested with hostile vault strings', async function () {
+  // TWO distinct vaults so the .cred-vault element renders and the hostile
+  // vaultName is exercised; the hostile strings are on the FIRST row.
+  await startAndRender(this, [
     { username: HOSTILE_USER, title: HOSTILE_TITLE, host: HOSTILE_HOST, vaultName: HOSTILE_VAULT },
     { username: 'second@example.test', title: 'Second', host: 'example.test', vaultName: 'Work' },
   ]);
-  // showOverlay sends overlay:show ASYNCHRONOUSLY, so reading straight away can
-  // observe null before the renderer has handled it — the same race
-  // openOverlaySurface already documents. Poll instead.
-  this.pickerDom = await waitForValue(
-    () => this.call('readPickerDom'),
-    (dom) => dom !== null,
-    'credential picker row to render',
-  );
 });
 
-Then('the picker row shows them as literal text', function () {
-  assert.ok(this.pickerDom, 'the picker row must render');
-  assert.ok(this.pickerDom.text.includes(HOSTILE_TITLE), 'the raw markup must appear as visible characters');
-  assert.ok(this.pickerDom.text.includes(HOSTILE_USER));
+Given('the window is 640 by 480', async function () {
+  await this.call('setWindowContentSize', 640, 480);
+});
+
+When('the credential picker is requested with ten rows', async function () {
+  const rows = Array.from({ length: 10 }, (_, i) => ({
+    username: `user${i}@example.test`, title: 'Example',
+    host: 'secure.example.test', vaultName: 'Personal',
+  }));
+  await startAndRender(this, rows);
+});
+
+When('the second row is clicked', async function () {
+  await this.call('clickPickerRow', 1);
+});
+
+When('Enter is pressed while the Cancel button has focus', async function () {
+  await this.call('pressEnterOnPickerCancel');
+});
+
+When('a hidden panel control is clicked while the picker is up', async function () {
+  this.guardResult = await this.call('clickHiddenControlInPicker', '#footerSettings');
+});
+
+Then('the pick resolves as selected index 1', async function () {
+  // The REAL requestPick promise — this only resolves if handleReply accepted
+  // the sender and settled. Against the bare-overlayView wiring bug it would
+  // hang here and time out.
+  const result = await this.call('awaitCredentialPick');
+  assert.deepEqual(result, { index: 1, reason: 'selected' });
+});
+
+Then('the pick resolves as dismissed', async function () {
+  const result = await this.call('awaitCredentialPick');
+  assert.deepEqual(result, { index: null, reason: 'dismissed' });
+});
+
+Then('the picker row shows them as literal text', async function () {
+  const dom = await this.call('readPickerDom');
+  assert.ok(dom, 'the picker row must render');
+  assert.ok(dom.text.includes(HOSTILE_TITLE), 'the raw markup must appear as visible characters');
+  assert.ok(dom.text.includes(HOSTILE_USER));
+  this.pickerDom = dom;
 });
 
 Then('the hostile vault name renders as literal text', function () {
-  assert.ok(this.pickerDom.vaults >= 1, 'the vault element must actually be rendered (two distinct vaults)');
-  assert.ok(this.pickerDom.text.includes(HOSTILE_VAULT), 'the hostile vault name must appear as literal characters');
+  assert.ok(this.pickerDom.vaults >= 1, 'the vault element must render (two distinct vaults)');
+  assert.ok(this.pickerDom.text.includes(HOSTILE_VAULT), 'the hostile vault name must be literal');
   assert.equal(this.pickerDom.pwnedVault, 'undefined', 'no handler from a hostile vault name may run');
 });
 
 Then('the picker row contains no injected elements', function () {
   assert.equal(this.pickerDom.injected, 0, 'no element may be created from vault data');
   assert.equal(this.pickerDom.pwned, 'undefined', 'no injected handler may run');
-});
-
-When('Enter is pressed while the Cancel button has focus', async function () {
-  this.pickerReply = await this.call('pressEnterOnPickerCancel');
-});
-
-Then('the reply is a dismissal, not a selection', function () {
-  // The real IPC payload is { requestId, index } (see preload.sendCredentialPick),
-  // and showCredentialPicker fixes requestId to 'test-request'. A null here means
-  // the bounded fallback fired — no reply arrived — which is a real failure.
-  assert.deepEqual(this.pickerReply, { requestId: 'test-request', index: null },
-    'Enter on Cancel must send a null (dismissal) reply, not select the highlighted row');
-});
-
-When('a hidden panel control is clicked while the picker is up', async function () {
-  // #footerSettings is display:none under modal isolation; only the capture-phase
-  // guard stops its click from reaching the control.
-  this.guardResult = await this.call('clickHiddenControlInPicker', '#footerSettings');
-});
-
-Then('the click never reaches the control', function () {
-  assert.ok(this.guardResult, 'the guard probe must return');
-  assert.equal(this.guardResult.reached, false,
-    'the capture-phase guard must stop the click before the target — deleting the guard makes it reach');
 });
 
 Then('the address bar, footer, and Settings are hidden and unfocusable', async function () {
@@ -1936,39 +1983,52 @@ Then('the address bar, footer, and Settings are hidden and unfocusable', async f
   }
 });
 
-Then('the Cancel button is available', function () {
-  // Reuses the probe from the previous step (stored on the World is optional;
-  // re-reading is cheap and keeps the step independent).
-  return this.call('readPickerIsolation').then((iso) => {
-    assert.ok(iso.cancel.present, 'the picker must render its own Cancel');
-    assert.equal(iso.cancel.shown, true, 'Cancel must be visible — it is the only dismissal control left');
-  });
+Then('the Cancel button is available', async function () {
+  const iso = await this.call('readPickerIsolation');
+  assert.ok(iso.cancel.present, 'the picker must render its own Cancel');
+  assert.equal(iso.cancel.shown, true, 'Cancel must be visible');
+});
+
+Then('the click never reaches the control', function () {
+  assert.ok(this.guardResult, 'the guard probe must return');
+  assert.equal(this.guardResult.reached, false,
+    'the capture-phase guard must stop the click before the target');
+});
+
+Then('the last row and Cancel are reachable', async function () {
+  const r = await this.call('readPickerReachability');
+  assert.ok(r, 'the reachability probe must return');
+  assert.equal(r.rows, 10, 'all ten rows must render');
+  assert.equal(r.cardFitsViewport, true, 'the card must not overflow the 480px viewport');
+  assert.equal(r.lastRowReachable, true, 'the last row must be reachable (scrolled into the list)');
+  assert.equal(r.cancelReachable, true, 'Cancel must be reachable');
 });
 ```
 
-- [ ] **Step 5: Dry-run to confirm the steps resolve**
+- [ ] **Step 6: Dry-run to confirm steps resolve**
 
 Run: `npm run test:acceptance:dry`
-Expected: the three new steps resolve — no "undefined step" warnings, and the
-scenario appears in the selected set (if it doesn't, the tag isn't in `RUNNABLE`).
+Expected: no "undefined step" warnings, and the selection check from Step 4
+prints `6`.
 
-- [ ] **Step 6: Run the scenarios**
+- [ ] **Step 7: Run the scenarios**
 
 Run: `npm run test:acceptance:desktop`
-Expected: all four `credential-picker` scenarios pass — the XSS-inert render
-(including the hostile vault name), the modal isolation, Enter-on-Cancel
-dismissing rather than selecting, and the capture-phase guard swallowing a click
-on a hidden control.
+Expected: all six pass. The selection scenario is the load-bearing one — it goes
+through the real `handleReply`/`isOverlaySender`, so it would hang-then-fail
+against the bare-`overlayView` sender bug fixed in `fe1a84b`.
 
-- [ ] **Step 7: Commit**
+If the harness cannot reach the overlay renderer, **stop and record it** in the
+spec's testing section, then add `jsdom` and port the DOM assertions to unit
+tests — a deliberate, recorded decision, not a silent drop. (Selection and
+dismissal still need the main-process controller, so those stay acceptance-only.)
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git add test/desktop/features/credential-picker.feature test/desktop src/main/test-hook.js
-git commit -m "test(1password): adversarial real-DOM scenarios for picker rendering, isolation and keyboard dismissal"
+git add test/desktop/features/credential-picker.feature test/desktop src/main/test-hook.js src/main/main.js
+git commit -m "test(1password): acceptance scenarios routed through the real picker controller"
 ```
-
----
-
 ### Task 9: Update the dev-usage doc
 
 **Files:**
@@ -2040,8 +2100,10 @@ git commit -m "docs(1password): dev-usage covers ranking and the Island picker"
 - `dismissed` reachable from the scrim and from the picker's own cancel → Task 7 Step 4. ✅
 - Rows cleared from the renderer on hide → Task 7 Step 4. ✅
 - **Modal isolation:** picker mode hides the address bar, footer and Settings (display:none, so unfocusable) and provides its own Cancel → Task 7 Steps 3+5, asserted real-DOM in Task 8. A capture-phase `document` click guard is defense-in-depth against CSS regression, and is itself exercised by a synchronous observer — a click on hidden `#footerSettings` must never reach the control (deleting the guard makes it reach, failing that scenario; no timing wait, so no false-green). ✅
-- **Enter on Cancel dismisses** (not selects the highlighted row) → Task 7 Step 4 `onCancel` branch, asserted real-DOM in Task 8 by capturing the real `chrome:credential-pick` IPC in main (contextBridge freezes `browserAPI`, so a renderer stub can't work). ✅
+- **A row click is accepted by the REAL controller** — Task 8's selection scenario routes through `pickerController.requestPick()` and asserts the promise resolves `{index:1, reason:'selected'}`, exercising `handleReply`/`isOverlaySender`. This is the test that would have caught the bare-`overlayView` sender bug (`fe1a84b`); the earlier side-channel-IPC version did not. ✅
+- **Enter on Cancel dismisses** (not selects the highlighted row) → Task 7 Step 4 `onCancel` branch, asserted in Task 8 by pressing Enter on Cancel and awaiting the real `requestPick` promise → `{index:null, reason:'dismissed'}`. ✅
 - **Hostile `vaultName` is exercised** — two distinct vaults so the `.cred-vault` element renders, first name hostile, asserted literal → Task 8. ✅
+- **A full 10-row picker stays reachable in a 640×480 window** — `.cred-list` cap + scroll (Task 7 CSS), asserted real-DOM in Task 8: card fits the viewport, last row and Cancel reachable after scroll. ✅
 - **Window close settles the picker before resetting `overlayMode`**, so vault rows don't survive a dock reopen → Task 6 (wired + ordering test). ✅
 - `textContent`-only + source guard + real-DOM scenario → Tasks 7 and 8. ✅
 - Truncation line → Task 7 Step 3. ✅
