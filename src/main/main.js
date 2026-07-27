@@ -1517,11 +1517,11 @@ async function fillActiveTabFrom1Password() {
       const { response } = await dialog.showMessageBox(win, {
         type: 'question',
         title: 'Fill from 1Password',
-        message: kept.length === 1
-          ? `Fill your ${kept[0].title || 'saved'} password into this form?`
-          : 'Fill a saved password into this form?',
-        detail: `${expectedHost} didn't identify its sign-in field, so Blanc inferred it. `
-          + 'Only continue if this is a sign-in form — not a sign-up or password-reset page.',
+        message: kept.length === 1 && kept[0].title
+          ? `Use your saved ${kept[0].title} password?`
+          : 'Use your saved password?',
+        detail: "This page didn't clearly mark its login field, so Blanc made its best guess. "
+          + 'Go ahead if this is where you sign in.',
         buttons: ['Fill', 'Cancel'],
         defaultId: 0,
         cancelId: 1,

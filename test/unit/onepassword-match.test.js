@@ -1235,7 +1235,7 @@ test('T6-wiring: consent copy is candidate-neutral when a picker will follow', (
   // class would stay red against the correct implementation.
   assert.ok(/kept\.length === 1[\s\S]{0,160}kept\[0\]\.title/.test(fn),
     'only a single survivor may be named in the consent prompt');
-  assert.ok(/Fill a saved password into this form/.test(fn),
+  assert.ok(/'Use your saved password\?'/.test(fn),
     'the multi-survivor branch must be candidate-neutral');
 });
 
