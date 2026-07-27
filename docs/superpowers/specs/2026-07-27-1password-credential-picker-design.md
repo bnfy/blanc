@@ -1,7 +1,7 @@
 # 1Password fill — credential picker: ranking + Island UI
 
 **Date:** 2026-07-27
-**Status:** Approved for planning (rev. 3 — after two security-review rounds)
+**Status:** Approved for planning (rev. 4 — after three security-review rounds)
 **Branch:** `feature/1password-fill` (builds on the matching-improvements work)
 
 ## What
@@ -82,9 +82,11 @@ steps 1–5 may log `setup-error` with a message. A username enumeration that
 throws must not surface an SDK error string.
 
 **Consent wording.** The consent gate is about the *form*, and now precedes item
-selection. With exactly one candidate it names the item (`title` is overview
-metadata — no decryption needed); with several it says "a saved password", and
-the picker that follows names the item.
+selection. With exactly one **survivor** (post-ranking, i.e. the case where no
+picker will follow) it names that item — `title` is overview metadata, so no
+decryption is needed to do so. With several survivors it says "a saved
+password", and the picker that follows names the item. The count that matters
+is the survivor count, never the original candidate count.
 
 ## Part 1 — Ranking
 
@@ -133,6 +135,13 @@ across runs rather than dependent on array order.
 
 `kept.length === 1` → fill it, no picker. `> 1` → picker over `kept`.
 
+**`kept.length === 0` is defensive.** `matchesHost` has already established that
+every candidate shares a registrable domain with the page, so `tierOf` should
+never return `null` for all of them. If it somehow does — a normalization edge
+case, a future change to either function — treat it as **no match**: log
+`no-match` and stop. Never fall back to the unranked list, which would defeat
+the ranking gate entirely.
+
 ## Part 2 — Usernames
 
 **`revealUsernames(candidates) → Promise<Array<{vaultId, vaultName, itemId, title, host, updatedAt, username}>>`**
@@ -141,6 +150,12 @@ For each candidate (already capped at 10), call `items.get()`, read **only** the
 built-in `username` field (`id === 'username'`), and build a **fresh object**.
 The decrypted `Item` — including its password — is never attached to the result.
 A missing username yields `null`, rendered as `(no username)`.
+
+**Signature carries a test seam:** `revealUsernames(candidates, { client } = {})`.
+When `client` is omitted it uses the cached `getClient()` as everything else
+does; tests inject a fake that counts concurrent `items.get()` calls and can
+throw on the Nth. Without this seam the concurrency and failure contracts below
+could only be asserted by reading source, which would not prove behavior.
 
 **Sequential, not parallel.** The calls run in a plain `for … await` loop, and
 each `Item` reference is released before the next call. `Promise.all` would hold
@@ -234,18 +249,28 @@ timeout, the pending resolver, the retained candidate list, `overlayPrefill`,
 and asks the overlay to drop its rows — no vault-derived strings linger in the
 renderer after the picker closes.
 
-Every route that can end a picker must call it:
+**The `reason` enum is closed and total** — focus policy is derived from it, so
+every route must map to exactly one value. There is no default case:
 
-| Route | Result |
-|---|---|
-| Valid `chrome:credential-pick` reply | the chosen index |
-| Escape (`before-input-event`) while in picker mode | `null` |
-| Overlay blur | `null` |
-| `showOverlay(otherMode)` replacing the picker | `null` |
-| `hideOverlay()` from any caller | `null` |
-| Active tab switched or the captured tab closed | `null` |
-| Window closed / overlay `webContents` destroyed / `render-process-gone` | `null` |
-| 60s timeout | `null` |
+| `reason` | Route | `index` | Restore focus? |
+|---|---|---|---|
+| `selected` | Valid reply carrying an in-range index | number | **Yes — gated** |
+| `dismissed` | Valid reply carrying `index: null` — the picker's own Cancel affordance **and** its scrim click, which the renderer implements as this same reply rather than a separate channel | `null` | Best-effort |
+| `escape` | Escape via `before-input-event` while in picker mode | `null` | Best-effort |
+| `invalid-reply` | Reply cleared stage 1 but failed stage 2 (malformed `index`) | `null` | No |
+| `mode-replaced` | `showOverlay(otherMode)` replaced the picker | `null` | No |
+| `hidden` | `hideOverlay()` from any other caller | `null` | No |
+| `blur` | Overlay lost focus | `null` | No |
+| `tab-changed` | Active tab switched, or the captured tab closed | `null` | No |
+| `window-closed` | Window closed, overlay `webContents` destroyed, or `render-process-gone` | `null` | No |
+| `timeout` | 60s elapsed | `null` | No |
+
+`selected`, `dismissed` and `escape` are the three routes where the user is
+demonstrably still in Blanc and acting on the picker, so restoring focus is
+right. Everything else may fire while Blanc is background — restoring there
+would pull the window forward unbidden. `hidden` is deliberately in the
+no-restore group: `hideOverlay()` has six callers and the reason cannot be
+attributed, so it fails safe.
 
 **Focus is the orchestrator's job, and its failure is observable.** Settlement
 only resolves; it never restores focus itself. The orchestrator awaits
@@ -260,16 +285,9 @@ only resolves; it never restores focus itself. The orchestrator awaits
   **best-effort and only for `escape`**, where the user is demonstrably still in
   Blanc; the result is not gated, since nothing further happens.
 
-Per-route focus policy — restoration is attempted only where Blanc is
-demonstrably frontmost:
-
-| Reason | Restore focus? |
-|---|---|
-| `selected` | **Yes — and gated.** Failure ⇒ `abort-wc-changed`, no decrypt |
-| `escape` | Best-effort, ungated |
-| `blur`, `tab-changed`, `window-closed`, `mode-replaced`, `timeout`, `invalid-reply` | **No** — Blanc may not be frontmost, and pulling it forward would be user-hostile |
-
-This requires `restoreTabFocus` to make its `win.focus()` **conditional** on the
+The full per-route policy is the `reason` table in the settlement section below;
+in short, only `selected` (gated), `dismissed` and `escape` (both best-effort)
+restore focus. This requires `restoreTabFocus` to make its `win.focus()` **conditional** on the
 window already being focused rather than unconditional — mirroring the existing
 precedent at `main.js:734`
 (`if (!win.isFocused()) return hideOverlay({ refocusContent: false })`).
@@ -324,7 +342,10 @@ ambiguity, and the decrypted passwords are discarded before the picker opens.
   page, which is inherent to autofill: once written, the page's own scripts can
   read it and may transmit it. The claim is scoped to the picker surface, not to
   the credential's whole life.
-- Exactly one password is in memory at fill time (the re-read after selection).
+- Only the **selected** password is deliberately retained or referenced at fill
+  time (the re-read after selection); the enumerated ones are released first.
+  As above, this is a statement about what the code holds, not a guarantee that
+  released strings have been collected or zeroed.
 - The fill itself is unchanged: isolated world, nonce + element-identity
   authorization, single-use stash, confirmation gate for heuristic targets.
 - **Blanc** never persists, logs, syncs or transmits it; `[1p-spike]` lines
@@ -373,6 +394,32 @@ vault; showing TOTP or other fields; touching the fill path.
   pending state; each route in the settlement table resolves the promise
   (asserted against the main.js source for the wiring, and directly for the
   helper's idempotence).
+
+**Contract tests for the lifecycle rules (each proves a rule that would
+otherwise be prose):**
+
+- **A rejected reply leaves the live request pending.** Feed the validator a
+  wrong-sender reply and a stale-`requestId` reply; assert the pending request
+  is *still pending* after each (no resolution, no state change), then feed a
+  valid reply and assert it resolves with the chosen index. This is the
+  regression guard for rev.2's contradiction, where a stale reply could cancel a
+  different live picker.
+- **Selection + failed focus restoration never decrypts.** With
+  `restoreTabFocus` stubbed to return `false`, assert the flow returns
+  `abort-wc-changed` and that `revealCredential` was **never called** — asserted
+  on the call, not on log text, since a log line would pass even if the decrypt
+  had happened.
+- **Enumeration holds at most one item at a time.** Inject a fake client whose
+  `items.get()` increments a counter on entry and decrements on exit; assert the
+  observed maximum is **1** across a 10-candidate list. Separately, make the
+  3rd call reject and assert: the picker never opens, the outcome is the fixed
+  `fill-error`, no partial row list is emitted, and the thrown SDK message does
+  not appear in any log line.
+- **One survivor bypasses both steps.** With `kept.length === 1`, assert
+  `revealUsernames` is not called and no `overlay:show` with mode
+  `credential-picker` is sent — the flow goes straight to `revealCredential`.
+  This is the test that keeps ranking's payoff from silently regressing into
+  "always show a picker".
 
 **Adversarial rendering — two guards, because the unit suite has no DOM.**
 `test/unit/` runs under plain `node --test` and this repo deliberately carries
