@@ -1,7 +1,7 @@
 # 1Password fill — credential picker: ranking + Island UI
 
 **Date:** 2026-07-27
-**Status:** Approved for planning
+**Status:** Approved for planning (rev. 2 — after security review)
 **Branch:** `feature/1password-fill` (builds on the matching-improvements work)
 
 ## What
@@ -47,6 +47,38 @@ same tier and ranking cannot break the tie.
 
 Hence both changes, and hence the deliberate relaxation below.
 
+## Orchestration order (load-bearing)
+
+The chooser today runs in **phase 1**, before the page is inspected. Dropping
+the new picker in place would call `items.get()` on up to ten items *before
+knowing whether the page is fillable at all* — decrypting on a search page or a
+signup form — and would do so inside the phase-1 catch, which logs
+`err.message`. Both are regressions of invariants this feature already holds.
+The order is therefore part of the design, not an implementation detail:
+
+1. `findLogins(host)` — **overviews only, nothing decrypted**
+2. `rankMatches(...)` — metadata only
+3. **inspect** (credential-free, isolated world)
+4. reject unsafe pages → `no-fillable-field` (**still nothing decrypted**)
+5. **heuristic consent**, if the target was inferred → may end in `user-declined`
+   (**still nothing decrypted**)
+6. `revealUsernames(kept)` — **first decryption**, ≤ `PICKER_MAX`, only reached
+   on a page already judged fillable and already consented to
+7. **picker** → selection or `chooser-cancel`
+8. re-validate identity (window / tab / wc / epoch / URL)
+9. `revealCredential(chosen)` — the one password that will be typed
+10. fill
+
+**Logging boundary moves with step 6.** Everything from the first `items.get()`
+onward runs inside the binding-less catch that logs a fixed `fill-error`; only
+steps 1–5 may log `setup-error` with a message. A username enumeration that
+throws must not surface an SDK error string.
+
+**Consent wording.** The consent gate is about the *form*, and now precedes item
+selection. With exactly one candidate it names the item (`title` is overview
+metadata — no decryption needed); with several it says "a saved password", and
+the picker that follows names the item.
+
 ## Part 1 — Ranking
 
 `findLogins` grows the metadata ranking needs. New shape:
@@ -79,8 +111,18 @@ An item with several websites takes its **best** (lowest) tier.
    `hosts` array.
 2. Keep **only** the best non-empty tier — lower tiers are discarded entirely,
    not merely sorted below.
-3. Sort that tier by `updatedAt` **descending**.
+3. Sort that tier **deterministically**. `updatedAt` alone is not enough: this
+   vault's items were bulk-imported in one operation and share a timestamp to
+   the second, so an `updatedAt`-only sort leaves the order — and therefore
+   *which ten survive the cap* — at the mercy of unspecified SDK listing order.
+   Full comparator, each key breaking the previous tie:
+   `updatedAt` **desc** → `title` asc → `host` asc → `itemId` asc.
+   `itemId` is unique, so the ordering is total and reproducible.
 4. Cap at **10** (`PICKER_MAX`). `truncated` = how many were dropped by the cap.
+
+**Which host earns the tier.** An item may have several websites at its best
+tier; take the lexicographically smallest, so the displayed host is stable
+across runs rather than dependent on array order.
 
 `kept.length === 1` → fill it, no picker. `> 1` → picker over `kept`.
 
@@ -130,19 +172,60 @@ renderer as the password is.
 { requestId, index }   // index: number | null (null = cancelled)
 ```
 
-Main holds a pending resolver keyed by `requestId` and ignores replies bearing a
-stale one, so a late reply from a previous flow cannot select for this one.
+**Reply validation — fail closed on every count.** The shared preload serves
+*both* chrome renderers, and `isTrustedSender` accepts any target it is handed,
+so the handler must be scoped deliberately. A reply is honoured only when **all**
+hold; anything else is ignored (and, if a pick is pending, settles it as
+cancelled):
 
-**Lifecycle:**
+- `event.sender === overlayView.webContents` **exactly** — the chrome window is
+  not an acceptable sender for this channel, so `isTrustedSender` is passed the
+  overlay alone, never the pair;
+- a pick is currently pending, and `overlayMode === 'credential-picker'`;
+- `requestId` matches the pending request — it is `crypto.randomUUID()`, not a
+  counter, so a stale or guessed id cannot collide;
+- `index` is `null`, **or** an integer (`Number.isInteger`) in
+  `[0, candidates.length)` — fractional, negative, out-of-range, `NaN`, string
+  and coercible values are all rejected;
+- the pending request has not already settled — the first valid reply wins and
+  every later one is inert.
 
-- Escape, scrim click, and overlay blur all mean **cancel** → resolve `null` →
-  `chooser-cancel`.
-- A **60s timeout** resolves `null`. Without it a renderer crash would leave
-  `onePasswordFillInFlight` stuck true, wedging every future ⌥⌘P.
-- On any outcome the overlay is hidden and `restoreTabFocus(wc)` runs — the
-  overlay takes focus exactly as the native dialog did, and the existing helper
-  already handles the bounded re-assert. Its failure is gated as it is
-  everywhere else: no focus, no fill.
+**Settlement — one owner, exactly once.** Today `hideOverlay()` is called from
+six places and `showOverlay(mode)` can overwrite `overlayMode`; none of them
+resolve anything, so a picker could be dismissed while the fill still awaits a
+promise that never settles — wedging `onePasswordFillInFlight` and every future
+⌥⌘P. All of it therefore routes through a single main-process function:
+
+```js
+settleCredentialPick(index /* number | null */, { restoreFocus })
+```
+
+Idempotent by construction: it returns immediately unless a pending request
+exists, and clears that state **before** resolving. On every path it clears the
+timeout, the pending resolver, the retained candidate list, `overlayPrefill`,
+and asks the overlay to drop its rows — no vault-derived strings linger in the
+renderer after the picker closes.
+
+Every route that can end a picker must call it:
+
+| Route | Result |
+|---|---|
+| Valid `chrome:credential-pick` reply | the chosen index |
+| Escape (`before-input-event`) while in picker mode | `null` |
+| Overlay blur | `null` |
+| `showOverlay(otherMode)` replacing the picker | `null` |
+| `hideOverlay()` from any caller | `null` |
+| Active tab switched or the captured tab closed | `null` |
+| Window closed / overlay `webContents` destroyed / `render-process-gone` | `null` |
+| 60s timeout | `null` |
+
+**Focus restoration is conditional.** `restoreFocus` is false when Blanc itself
+is not frontmost — a blur caused by ⌘-Tab must not drag the window back to the
+foreground. This mirrors the existing precedent at `main.js:734`
+(`if (!win.isFocused()) return hideOverlay({ refocusContent: false })`), and
+requires `restoreTabFocus` to make its `win.focus()` conditional rather than
+unconditional. When restoration *is* attempted and fails, the flow aborts —
+after username enumeration but **before** the selected credential is re-read.
 
 ## Part 4 — Row content
 
@@ -154,6 +237,21 @@ google.com · accounts.google.com      ← title · matched host
 
 Keyboard: ↑/↓ move, Enter selects, Escape cancels. Styling follows the existing
 island row conventions, including the `data-theme="private"` scope.
+
+**Safe rendering is mandatory, not stylistic.** `username`, `title`, `host` and
+`vaultName` are **untrusted strings from the vault** — a user can title an item
+anything, and imported items frequently carry junk — entering a *privileged*
+chrome renderer that holds the `browserAPI` bridge. `overlay.js` uses
+`innerHTML` in about ten places today (row scaffolding at lines 389, 402, 454),
+so the established local pattern is exactly the dangerous one. The rule for
+picker rows:
+
+- build every element with `document.createElement`;
+- set every vault-derived value with **`textContent`** only;
+- **never** `innerHTML`, `insertAdjacentHTML`, or a template literal containing
+  vault data — including for the truncation line and any title attribute.
+
+Covered by an adversarial fixture (below), not left to review.
 
 When `truncated > 0`, a final **non-selectable** line reads
 `N more not shown — narrow it in 1Password`. Silent truncation would read as
@@ -171,15 +269,20 @@ exactly 1. This is the relaxation that makes the feature usable at all on a
 vault like this one; it is bounded by `PICKER_MAX`, conditional on genuine
 ambiguity, and the decrypted passwords are discarded before the picker opens.
 
-**Held:**
+**Held (stated precisely):**
 
-- **No password ever reaches the renderer.** Rows carry usernames and metadata
-  only — and not even vault/item ids.
+- **No password reaches the *overlay* renderer.** Picker rows carry usernames
+  and metadata only — not even vault or item ids. The *selected* password does
+  of course reach the target tab's isolated world and is then written into the
+  page, which is inherent to autofill: once written, the page's own scripts can
+  read it and may transmit it. The claim is scoped to the picker surface, not to
+  the credential's whole life.
 - Exactly one password is in memory at fill time (the re-read after selection).
 - The fill itself is unchanged: isolated world, nonce + element-identity
   authorization, single-use stash, confirmation gate for heuristic targets.
-- Nothing is persisted, logged, synced or transmitted; `[1p-spike]` lines still
-  carry no values.
+- **Blanc** never persists, logs, syncs or transmits it; `[1p-spike]` lines
+  still carry no values. (What the *page* does with a filled field is outside
+  Blanc's control, as with any autofill.)
 
 ## Non-goals
 
@@ -205,9 +308,32 @@ vault; showing TOTP or other fields; touching the fill path.
   Assert the relationship (`kept.length === 10 && truncated === tier1Count - 10`)
   rather than a hard-coded number, so the fixture can be regenerated from the
   vault without the test becoming a lie.
+- `tierOf` / `rankMatches` **determinism**: candidates with identical
+  `updatedAt` sort by `title` → `host` → `itemId`; shuffling the input array
+  yields an identical `kept` list (run the same fixture in several orders and
+  assert equality) — this is the property the cap depends on.
+- **Host selection**: an item whose best tier is reached by several websites
+  reports the lexicographically smallest.
 - Picker payload builder: rows contain **only** `username`/`title`/`host`/
-  `vaultName` — asserted by key comparison, so adding a field later cannot
-  silently leak `vaultId`, `itemId` or a password into the renderer payload.
+  `vaultName` — asserted by exact key-set comparison, so adding a field later
+  cannot silently leak `vaultId`, `itemId` or a password into the renderer
+  payload.
+- **Reply validation** (pure predicate, extracted so it is testable without
+  Electron): accepts `null` and in-range integers; rejects `-1`, `len`, `1.5`,
+  `'0'`, `NaN`, `undefined`, and a mismatched `requestId`. A second valid reply
+  for a settled request is inert.
+- **Settlement is exactly-once**: settling twice resolves once and leaves no
+  pending state; each route in the settlement table resolves the promise
+  (asserted against the main.js source for the wiring, and directly for the
+  helper's idempotence).
+
+**Adversarial rendering fixture (required):** a candidate whose `title`,
+`username` and `vaultName` are
+`<img src=x onerror="window.__pwned=1">` / `"><script>alert(1)</script>` /
+`</span><b>x` must render as **literal text**. Assert the row's `textContent`
+equals the input and that `querySelector('img, script, b')` is null — i.e. no
+element was created from vault data. This is the test that keeps the
+`innerHTML` convention next door from leaking into picker rows.
 
 **Manual:**
 
@@ -221,12 +347,18 @@ vault; showing TOTP or other fields; touching the fill path.
 ## Risks
 
 - **`updatedAt` is edit time, not last-used time** — 1Password exposes no
-  last-used on the overview, so "most recently updated first" is a proxy. It
-  orders the list; it never decides the fill.
+  last-used on the overview, so "most recently updated first" is a proxy. And
+  because the cap is applied *after* sorting, it does more than order the list:
+  on a tier larger than `PICKER_MAX` it decides which items remain reachable at
+  all. The deterministic tie-breakers keep that selection reproducible rather
+  than arbitrary, and the truncation line tells the user it happened — but a
+  genuinely-wanted item can still fall outside the ten.
 - **Cap of 10 hides matches** on pathological vaults. Surfaced by the truncation
   line rather than hidden, and ranking usually keeps the tier far below the cap.
 - **Overlay is a renderer.** Mitigated by sending the minimum viable payload
   (no ids, no secrets) and asserting that shape in a test.
 - **Focus round-trip.** The overlay steals focus like the dialog did; reusing
-  `restoreTabFocus` keeps one code path for the fix, and its failure aborts
-  before any decrypt.
+  `restoreTabFocus` keeps one code path. Note the abort point has moved: a
+  failure now occurs *after* username enumeration has decrypted up to ten items,
+  so it aborts before the **selected credential is re-read**, not "before any
+  decrypt". Those enumerated passwords were already discarded at step 6.
