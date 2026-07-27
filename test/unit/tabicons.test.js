@@ -96,25 +96,20 @@ test('capture rejects non-image responses before decoding or serializing them', 
   assert.equal(payload.devices['device-a'].icons.some((icon) => icon.url === tab.url), false);
 });
 
-test('capture validates PNG format and dimensions before nativeImage decode, including data URLs', async () => {
+test('PNG sources are format- and dimension-guarded before nativeImage decode', async () => {
   const before = decodeCount;
   const huge = Buffer.from(PNG_BYTES);
   huge.writeUInt32BE(1025, 16);
   const cases = [
     {
-      favicon: 'https://unsafe.example/vector.svg',
-      fetch: async () => response('image/svg+xml', Buffer.from('<svg/>')),
-    },
-    {
+      // An image/png label over non-PNG bytes must not smuggle another format
+      // past the guard into the decoder.
       favicon: 'https://unsafe.example/spoofed.png',
       fetch: async () => response('image/png', Buffer.from('<svg/>')),
     },
     {
+      // A PNG whose IHDR claims oversized dimensions is rejected pre-decode.
       favicon: `data:image/png;base64,${huge.toString('base64')}`,
-      fetch: null,
-    },
-    {
-      favicon: 'data:image/svg+xml;base64,PHN2Zy8+',
       fetch: null,
     },
   ];
@@ -129,6 +124,75 @@ test('capture validates PNG format and dimensions before nativeImage decode, inc
     assert.equal(await tabicons.captureTab(tab, ctx), false, item.favicon);
   }
   assert.equal(decodeCount, before);
+});
+
+test('non-PNG favicons rasterize through the renderer seam and store the result', async () => {
+  const seen = [];
+  tabicons.setRasterizer(async (dataUrl) => {
+    seen.push(dataUrl);
+    return PNG_DATA;
+  });
+  try {
+    const httpSvg = {
+      url: 'https://vector-page.example/',
+      favicon: 'https://vector-page.example/icon.svg',
+      private: false,
+      view: {
+        webContents: {
+          session: {
+            fetch: async () => response('image/svg+xml', Buffer.from('<svg viewBox="0 0 16 16"/>')),
+          },
+        },
+      },
+    };
+    const inlineSvg = {
+      url: 'https://inline-page.example/',
+      favicon: 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTYgMTYiLz4=',
+      private: false,
+      view: null,
+    };
+    tabicons.setSnapshotProvider(() => ({ tabList: [httpSvg, inlineSvg] }));
+
+    assert.equal(await tabicons.captureTab(httpSvg, ctx), true);
+    assert.equal(await tabicons.captureTab(inlineSvg, ctx), true);
+
+    assert.equal(seen.length, 2);
+    assert.ok(
+      seen[0].startsWith('data:image/svg+xml;base64,'),
+      'fetched non-PNG bytes are wrapped as an image data URL for the renderer'
+    );
+    assert.equal(seen[1], inlineSvg.favicon, 'an inline image data URL passes through unchanged');
+
+    const icons = tabicons.exportForSync(ctx).devices['device-a'].icons;
+    assert.ok(icons.some((i) => i.url === httpSvg.url && i.data === PNG_DATA));
+    assert.ok(icons.some((i) => i.url === inlineSvg.url && i.data === PNG_DATA));
+  } finally {
+    tabicons.setRasterizer(null);
+  }
+});
+
+test('a rasterizer result that is not a bounded 16x16 PNG is discarded', async () => {
+  tabicons.setRasterizer(async () => 'data:image/svg+xml,<svg/>'); // not a PNG data URL
+  try {
+    const tab = {
+      url: 'https://bad-raster.example/',
+      favicon: 'https://bad-raster.example/icon.svg',
+      private: false,
+      view: {
+        webContents: {
+          session: { fetch: async () => response('image/svg+xml', Buffer.from('<svg/>')) },
+        },
+      },
+    };
+    tabicons.setSnapshotProvider(() => ({ tabList: [tab] }));
+    assert.equal(await tabicons.captureTab(tab, ctx), false);
+    assert.equal(
+      tabicons.exportForSync(ctx).devices['device-a'].icons.some((i) => i.url === tab.url),
+      false
+    );
+  } finally {
+    tabicons.setRasterizer(null);
+  }
 });
 
 test('capture never fetches obvious localhost, LAN, or link-local sources', async () => {

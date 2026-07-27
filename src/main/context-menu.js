@@ -1,5 +1,6 @@
 const { Menu, clipboard } = require('electron');
 const settings = require('./settings');
+const { VIEW_SOURCE_PREFIX, canViewSource } = require('./view-source');
 
 /**
  * Right-click menu for tab web content. Electron ships NO default context
@@ -66,6 +67,20 @@ function attachContextMenu(wc, actions) {
       push({ label: 'Back', enabled: wc.navigationHistory.canGoBack(), click: () => wc.navigationHistory.goBack() });
       push({ label: 'Forward', enabled: wc.navigationHistory.canGoForward(), click: () => wc.navigationHistory.goForward() });
       push({ label: 'Reload', click: () => wc.reload() });
+      // New tab, NOT in-place — and don't "simplify" this to wc.loadURL().
+      // Chromium REPLACES the current history entry when navigating to
+      // view-source: of the page you're already on (measured: entry count
+      // stays flat), so Back would silently skip the article you were
+      // reading and land on whatever preceded it. A fresh tab leaves Back
+      // dead instead, which the pill's "source" chip exists to escape.
+      // `pageURL` is the top-level document even when the right-click
+      // landed inside a subframe.
+      if (canViewSource(params.pageURL)) {
+        push({
+          label: 'View Page Source',
+          click: () => actions.openTab(`${VIEW_SOURCE_PREFIX}${params.pageURL}`),
+        });
+      }
       sep();
     }
 

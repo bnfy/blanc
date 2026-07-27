@@ -9,7 +9,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 > Desktop is the shipped reference, so its `@all` cells are ✅ (behaviour verified
 > in the shipping app; automated step-defs are a separate track). iOS/Android are
-> greenfield → ⬜. The grid below tracks stable scenario IDs across 13 `.feature`
+> greenfield → ⬜. The grid below tracks stable scenario IDs across 14 `.feature`
 > files.
 
 ## Files
@@ -29,6 +29,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Supporter & session | `supporter-and-session.feature` | F17, F18 |
 | Platform services | `platform-services.feature` | F21, F22, F23, F24 |
 | Tab sync | `sync.feature` | F27 |
+| Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 
 ## Grid
 
@@ -54,6 +55,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F5-3 | `mailto:` hands off to OS | D4 | ✅ | ⬜ | ⬜ |
 | F5-4 | Autocomplete follows the current default engine | — | ✅ | ⬜ | ⬜ |
 | F5-5 | Autocomplete privacy gates keep text local | — | ✅ | ⬜ | ⬜ |
+| F5-6 | Command-bar submit commits a real navigation | — | ✅ | ⬜ | ⬜ |
 | F6-1 | Quick Switcher matches tabs + favorites | — | ✅ | ⬜ | ⬜ |
 | F6-2 | Quick Switcher matches + focuses group | — | ✅ | ⬜ | ⬜ |
 | F7-1 | Slash prefix filters commands | — | ✅ | ⬜ | ⬜ |
@@ -82,6 +84,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F17-2 | Non-supporter locked + fallback | — | ✅ | ⬜ | ⬜ |
 | F18-1 | Relaunch restores groups, not private | D8 | ✅ | ⬜ | ⬜ |
 | F19-1 | Background tab inherits group | D4, D7 | ✅ | ⬜ | ⬜ |
+| F19-2 | Copy Clean Link strips tracking params | D20 | ✅ | ➖ | ➖ |
+| F19-3 | Paste and Go navigates + closes island | D20 | ✅ | ➖ | ➖ |
 | F20-1 | Basic-auth prompt | — | ✅ | ⬜ | ⬜ |
 | F21-1 | Usage ping off by default / single | — | ✅ | ⬜ | ⬜ |
 | F22-1 | Desktop in-app updater | D9 | ✅ | ➖ | ➖ |
@@ -91,6 +95,23 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F27-1 | Sharing open tabs off by default | — | ✅ | ⬜ | ⬜ |
 | F27-2 | Remote tab opens locally as new ungrouped tab | — | ✅ | ⬜ | ⬜ |
 | F27-3 | Sharing-off retracts this device | — | ✅ | ⬜ | ⬜ |
+| F28-1 | Layout default, persistence, and no-sync rule | D19 | ✅ | ➖ | ➖ |
+| F28-2 | Layout switching preserves live guest content | D19 | ✅ | ➖ | ➖ |
+| F28-3 | Full-height rail and safe-area page-pane geometry | D19 | ✅ | ➖ | ➖ |
+| F28-4 | Panel and palette website-pane geometry | D19 | ✅ | ➖ | ➖ |
+| F28-5 | Find geometry at 640×480 | D19 | ✅ | ➖ | ➖ |
+| F28-6 | Canonical buckets, groups, and remote-tab scope | D19 | ✅ | ➖ | ➖ |
+| F28-7 | Identity, private, loading, pin, and audio states | D19 | ✅ | ➖ | ➖ |
+| F28-8 | Rail pointer and retained menu actions | D19 | ✅ | ➖ | ➖ |
+| F28-9 | Activation dismisses surfaces and focuses content | D19 | ✅ | ➖ | ➖ |
+| F28-10 | Same-bucket drag reorder | D19 | ✅ | ➖ | ➖ |
+| F28-11 | Cross-bucket drag rejection | D19 | ✅ | ➖ | ➖ |
+| F28-12 | Roving keyboard and accessible action flow | D19 | ✅ | ➖ | ➖ |
+| F28-13 | Expanded-Island two-way layout toggle | D19 | ✅ | ➖ | ➖ |
+| F28-14 | Global vertical-tabs keyboard toggle | D19 | ✅ | ➖ | ➖ |
+| F28-15 | Constrained direct rail resize and reset | D19 | ✅ | ➖ | ➖ |
+| F28-16 | Non-destructive narrow-window width cap and persistence | D19 | ✅ | ➖ | ➖ |
+| F28-17 | Overflow-only tab-title hover scrolling | D19 | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -98,13 +119,14 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Every feature `F1–F24` has ≥1 scenario. ✅
-- Every divergence `D1–D14` is exercised by ≥1 scenario **except** `D11` (window
-  model), `D13` (shield-count fidelity), and `D14` (cosmetic depth) — these have no
-  discrete behavioural assertion. D11 is verified implicitly wherever island
-  scenarios (F1) run on each platform's windowing; D13/D14 are covered within the
-  F12 contract (F12-1's shield assertion is relaxed on iOS per D13 — see
-  [`../blocking-backends.md`](../blocking-backends.md)). Add dedicated scenarios if
-  concrete assertions emerge.
-- Mobile-gained / platform-specific outcomes (F22, F24) correctly carry platform
-  tags rather than `@all`.
+- Features `F1–F24` and `F27–F28` have ≥1 Gherkin scenario. F25 (DoH) and F26
+  (WebRTC policy) retain manual acceptance contracts in `features.md` but have
+  not yet been transcribed into this suite.
+- The suite explicitly tags D1–D10, D12, D16, and D19. D11 is exercised
+  implicitly wherever Island scenarios run against platform windowing; D13/D14
+  are covered within the F12 contract (F12-1's shield assertion is relaxed on
+  iOS per D13 — see
+  [`../blocking-backends.md`](../blocking-backends.md)). D15, D17, and D18 do
+  not yet have discrete Gherkin assertions.
+- Mobile-gained / platform-specific outcomes (F22, F24, F28) correctly carry
+  platform tags rather than `@all`.

@@ -30,6 +30,7 @@
   const footerFavorites = document.getElementById('footerFavorites');
   const footerHistory = document.getElementById('footerHistory');
   const footerDownloads = document.getElementById('footerDownloads');
+  const footerTabLayout = document.getElementById('footerTabLayout');
   const footerSettings = document.getElementById('footerSettings');
 
   let state = { tabs: [], activeTabId: null, groups: [] };
@@ -149,13 +150,24 @@
     }
   }
 
+  /** The page URL behind a `view-source:` URL, else null. Chromium's
+   * view-source: is a non-special scheme, so `new URL(...).host` is '' and
+   * the row would fall back to the literal "new tab".
+   * (Keep in sync with renderer.js.) */
+  function viewSourceTarget(url) {
+    if (!url?.startsWith('view-source:')) return null;
+    // A bare "view-source:" has no page behind it — null, not '', so callers
+    // can trust a truthy result to be a URL worth parsing.
+    return url.slice('view-source:'.length) || null;
+  }
+
   /** Short label for a tab's location: host for web pages (sans the noise
    * "www." carries in a list this dense), page name for internal ones,
    * empty for a blank new tab. */
   function tabDomain(tab) {
     if (!tab?.url || tab.url.startsWith('blanc://newtab')) return '';
     try {
-      const u = new URL(tab.url);
+      const u = new URL(viewSourceTarget(tab.url) ?? tab.url);
       return u.protocol === 'blanc:' ? `blanc://${u.host}` : u.host.replace(/^www\./, '');
     } catch {
       return tab.url;
@@ -194,6 +206,12 @@
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
     heartBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page (Ctrl/Cmd+D)';
     panelInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
+
+    const verticalTabsActive = state.tabLayout === 'vertical';
+    footerTabLayout.title = verticalTabsActive
+      ? 'Turn vertical tabs off'
+      : 'Turn vertical tabs on';
+    footerTabLayout.setAttribute('aria-pressed', String(verticalTabsActive));
   }
 
   function tabRow(tab) {
@@ -1052,6 +1070,10 @@
   footerFavorites.addEventListener('click', () => openPageFromFooter('bookmarks'));
   footerHistory.addEventListener('click', () => openPageFromFooter('history'));
   footerDownloads.addEventListener('click', () => openPageFromFooter('downloads'));
+  footerTabLayout.addEventListener('click', () => {
+    const nextLayout = state.tabLayout === 'vertical' ? 'island' : 'vertical';
+    window.browserAPI.setTabLayout(nextLayout);
+  });
   footerSettings.addEventListener('click', () => openPageFromFooter('settings'));
 
   addressInput.addEventListener('compositionstart', () => {
@@ -1203,5 +1225,13 @@
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
+  });
+
+  // Only the address input gets a context menu (see src/main/address-menu.js).
+  // Cancelling the DOM event here stops Chromium from ever dispatching the
+  // browser-side context-menu event for the find bar, the group-name picker,
+  // and the panel chrome — they stay inert, exactly as before.
+  document.addEventListener('contextmenu', (e) => {
+    if (!e.target.closest('#addressInput')) e.preventDefault();
   });
 })();

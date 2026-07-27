@@ -44,6 +44,61 @@ test('source PNG guard rejects alternate formats and dimension bombs before deco
   );
 });
 
+test('image media type detection accepts real favicon MIME types and rejects others', () => {
+  for (const ok of [
+    'image/png', 'image/svg+xml', 'image/x-icon', 'image/vnd.microsoft.icon',
+    'image/webp', 'IMAGE/GIF', 'image/jpeg; charset=binary',
+  ]) {
+    assert.equal(m.isImageMediaType(ok), true, ok);
+  }
+  for (const bad of [
+    'text/html', 'application/octet-stream', 'image', 'image/', '',
+    null, undefined, 'text/html; image/png',
+  ]) {
+    assert.equal(m.isImageMediaType(bad), false, String(bad));
+  }
+});
+
+test('dataUrlMediaType reads the image type from base64 and percent-encoded data URLs', () => {
+  assert.equal(m.dataUrlMediaType('data:image/svg+xml;base64,PHN2Zy8+'), 'image/svg+xml');
+  assert.equal(m.dataUrlMediaType('data:image/png,AAAA'), 'image/png');
+  assert.equal(m.dataUrlMediaType('data:IMAGE/X-Icon;base64,AAAA'), 'image/x-icon');
+  assert.equal(m.dataUrlMediaType('data:text/html;base64,AAAA'), null);
+  assert.equal(m.dataUrlMediaType('https://a.example/icon.svg'), null);
+  assert.equal(m.dataUrlMediaType('data:,AAAA'), null);
+});
+
+test('imageSourceToDataUrl wraps only bounded image bytes', () => {
+  const bytes = Buffer.from('<svg viewBox="0 0 16 16"/>');
+  assert.equal(
+    m.imageSourceToDataUrl('image/svg+xml; charset=utf-8', bytes),
+    `data:image/svg+xml;base64,${bytes.toString('base64')}`
+  );
+  assert.equal(m.imageSourceToDataUrl('text/html', bytes), null);
+  assert.equal(m.imageSourceToDataUrl('image/png', Buffer.alloc(0)), null, 'empty rejected');
+  assert.equal(
+    m.imageSourceToDataUrl('image/png', Buffer.alloc(m.MAX_SOURCE_BYTES + 1)),
+    null,
+    'oversized rejected'
+  );
+  assert.equal(m.imageSourceToDataUrl('image/png', 'not-bytes'), null);
+});
+
+test('boundedImageDataUrl passes inert image data URLs and bounds their size', () => {
+  const svg = 'data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTYgMTYiLz4=';
+  const percent = 'data:image/svg+xml,%3Csvg%2F%3E';
+  assert.equal(m.boundedImageDataUrl(svg), svg);
+  assert.equal(m.boundedImageDataUrl(percent), percent, 'percent-encoded inline SVG is preserved');
+  assert.equal(m.boundedImageDataUrl('data:text/html;base64,AAAA'), null);
+  assert.equal(
+    m.boundedImageDataUrl(`data:image/png;base64,${'A'.repeat(m.MAX_SOURCE_BYTES * 2)}`),
+    null,
+    'oversized length rejected'
+  );
+  assert.equal(m.boundedImageDataUrl('https://a.example/i.svg'), null);
+  assert.equal(m.boundedImageDataUrl(null), null);
+});
+
 test('network icon sources reject obvious local and private-network targets', () => {
   assert.equal(m.isPublicHttpSource('https://cdn.example/icon.png'), true);
   assert.equal(m.isPublicHttpSource('http://8.8.8.8/icon.png'), true);

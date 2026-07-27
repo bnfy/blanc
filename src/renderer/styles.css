@@ -3,6 +3,21 @@
    dashed borders + a "private" chip, not by a color cast. The theme follows
    Electron's nativeTheme (Settings → Appearance), which drives
    prefers-color-scheme here. */
+@font-face {
+  font-family: "Inter";
+  src: url("pages/inter-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("pages/jetbrains-mono-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
+
 :root {
   --bg: #ffffff;
   --surface: #f7f7f7;
@@ -108,9 +123,10 @@ button svg {
 }
 #windowControls svg { width: 12px; height: 12px; }
 
-/* ---------- Chrome strip: a slim reserved band the resting pill floats
-   in. The island's expanded states render in a separate overlay
-   WebContentsView (overlay.html) stacked over the web content. ---------- */
+/* ---------- Sampled safe-area gutter: a slim main-pane margin the resting
+   pill floats in without covering website pixels. The vertical rail paints
+   over its left edge and reaches the window top; expanded Island states render
+   in a separate overlay WebContentsView (overlay.html). ---------- */
 
 .no-drag { -webkit-app-region: no-drag; }
 /* While the command bar overlay covers the strip, window-drag must not
@@ -140,6 +156,500 @@ button svg {
 #strip.tint-dark #windowControls button:hover {
   background: rgba(255, 255, 255, 0.14);
   color: #f5f5f5;
+}
+
+/* ---------- Vertical tabs: optional trusted-chrome rail ----------
+   The rail starts below the strip and reserves space only from page-scoped
+   surfaces. With the rail now owning the full left edge, the remaining website
+   pane is the visual frame for both resting and expanded Island states. ---------- */
+
+:root[data-tab-layout="vertical"] #strip {
+  padding-left: var(--vertical-tabs-w);
+}
+
+:root[data-tab-layout="vertical"] #islandPill {
+  /* Non-mac window buttons remain at the website pane's right edge. */
+  max-width: calc((100vw - var(--vertical-tabs-w) - 150px) / var(--pill-zoom));
+}
+
+/* macOS traffic lights live inside the rail, so only a small pane-side
+   clearance is needed at the 640px minimum. */
+:root[data-tab-layout="vertical"][data-platform="darwin"] #islandPill {
+  max-width: calc((100vw - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
+}
+
+/* In vertical mode the rail is the persistent tab presentation. The Island
+   keeps navigation, active-page context, search, and every expanded command
+   function without duplicating its resting dot switcher. */
+:root[data-tab-layout="vertical"] #pillDots {
+  display: none;
+}
+
+.vertical-tabs-rail {
+  position: fixed;
+  z-index: 5;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--vertical-tabs-w);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--bg);
+  border-right: none;
+  color: var(--text);
+}
+
+.vertical-tabs-rail[hidden] {
+  display: none;
+}
+
+/* A restrained inset shadow separates trusted chrome from the website pane
+   without consuming page width. It stays inside the rail because the guest
+   WebContentsView begins at the rail boundary and owns native hit-testing on
+   the other side. */
+.vertical-tabs-rail::after {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  pointer-events: none;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.012) 38%,
+    rgba(0, 0, 0, 0.035) 72%,
+    rgba(0, 0, 0, 0.058) 100%
+  );
+}
+
+.vertical-tabs-resize-handle {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.vertical-tabs-resize-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+:root[data-vertical-tabs-resizing="true"],
+:root[data-vertical-tabs-resizing="true"] * {
+  cursor: col-resize !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .vertical-tabs-rail::after {
+    background: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.055) 38%,
+      rgba(0, 0, 0, 0.14) 72%,
+      rgba(0, 0, 0, 0.22) 100%
+    );
+  }
+}
+
+:root[data-theme="private"] .vertical-tabs-rail::after {
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.07) 38%,
+    rgba(0, 0, 0, 0.18) 72%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+}
+
+.vertical-tabs-toolbar {
+  min-height: 44px;
+  padding: 8px 10px 7px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+/* The rail background owns the entire left edge. On macOS its first row also
+   acts as the title-bar safe area: content starts after the native traffic
+   lights, while the main pane's sampled website gutter remains independent. */
+body.mac .vertical-tabs-toolbar {
+  min-height: var(--strip-h);
+  padding: 8px 10px 7px 96px;
+}
+
+.vertical-tabs-layout-button {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  align-items: center;
+  padding: 0;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+}
+
+.vertical-tabs-layout-button:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.vertical-tabs-layout-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  background: currentColor;
+  -webkit-mask: url("panel-left.svg") center / contain no-repeat;
+  mask: url("panel-left.svg") center / contain no-repeat;
+}
+
+.vertical-tabs-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  padding: 7px 8px 12px;
+}
+
+.vertical-tabs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vertical-tabs-section + .vertical-tabs-section {
+  margin-top: 8px;
+}
+
+.vertical-tabs-section-heading {
+  height: 24px;
+  margin: 0;
+  padding: 0 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.vertical-tabs-section-heading span {
+  opacity: 0.65;
+}
+
+.vertical-tabs-group-header {
+  width: 100%;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 7px;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-align: left;
+}
+
+.vertical-tabs-group-header:hover,
+.vertical-tabs-group-header.contains-active {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.vertical-tabs-group-caret {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  transition: transform 120ms ease;
+}
+
+.vertical-tabs-group-caret svg {
+  width: 12px;
+  height: 12px;
+}
+
+.vertical-tabs-group-header:not(.collapsed) .vertical-tabs-group-caret {
+  transform: rotate(90deg);
+}
+
+.vertical-tabs-group-name {
+  max-width: 108px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+}
+
+.vertical-tabs-group-count {
+  opacity: 0.65;
+  flex: 0 0 auto;
+}
+
+.vertical-tabs-group-active {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+
+.vertical-tab-row {
+  position: relative;
+  min-width: 0;
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 1px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+}
+
+.vertical-tab-row:hover {
+  background: var(--surface);
+}
+
+.vertical-tab-row.active {
+  background: var(--accent-dim);
+}
+
+.vertical-tab-row.private {
+  border-style: dashed;
+  border-color: var(--border);
+}
+
+.vertical-tab-row.private.active {
+  border-color: var(--text-dim);
+}
+
+.vertical-tab-primary {
+  width: 100%;
+  height: 34px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px 0 8px;
+  border-radius: calc(var(--radius) - 1px);
+  text-align: left;
+  cursor: grab;
+}
+
+.vertical-tab-primary:active {
+  cursor: grabbing;
+}
+
+.vertical-tab-primary:focus-visible,
+.vertical-tab-close:focus-visible,
+.vertical-tabs-group-header:focus-visible,
+.vertical-tabs-layout-button:focus-visible,
+.vertical-tabs-new:focus-visible {
+  position: relative;
+  z-index: 2;
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.vertical-tab-favicon {
+  width: 16px;
+  height: 16px;
+}
+
+.vertical-tab-title {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--text);
+  font-size: 12.5px;
+}
+
+.vertical-tab-title-text {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateX(0);
+}
+
+/* Direct title hover opts into a one-way reading pass only when JS measures
+   real overflow. It pauses briefly, moves at a distance-derived steady speed,
+   then holds the end until the pointer leaves and the ellipsis returns. */
+.vertical-tab-title.scrolling .vertical-tab-title-text {
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  transform: translateX(var(--vertical-tab-title-offset));
+  transition:
+    transform var(--vertical-tab-title-duration) linear 600ms;
+}
+
+.vertical-tab-row.loading .vertical-tab-title {
+  color: var(--text-dim);
+}
+
+.vertical-tab-private {
+  max-width: 50px;
+  overflow: hidden;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 0 1 auto;
+}
+
+.vertical-tab-state {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  flex: 0 0 auto;
+}
+
+.vertical-tab-state svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.vertical-tab-audio:not(.muted) {
+  color: var(--text);
+}
+
+.vertical-tab-audio.muted {
+  opacity: 0.75;
+}
+
+.vertical-tab-close {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 50%;
+  color: var(--text-dim);
+  opacity: 0;
+}
+
+.vertical-tab-row:hover .vertical-tab-close,
+.vertical-tab-row:focus-within .vertical-tab-close,
+.vertical-tab-row.active .vertical-tab-close {
+  opacity: 1;
+}
+
+.vertical-tab-close:hover {
+  background: var(--border);
+  color: var(--text);
+}
+
+.vertical-tab-close svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 1.75;
+}
+
+.vertical-tab-row.dragging {
+  opacity: 0.45;
+}
+
+.vertical-tab-row.drop-before::before,
+.vertical-tab-row.drop-after::after {
+  content: '';
+  position: absolute;
+  z-index: 4;
+  left: 7px;
+  right: 7px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+.vertical-tab-row.drop-before::before {
+  top: -2px;
+}
+
+.vertical-tab-row.drop-after::after {
+  bottom: -2px;
+}
+
+.vertical-tabs-footer {
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.vertical-tabs-new {
+  width: 100%;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border-radius: var(--radius);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: left;
+}
+
+.vertical-tabs-new:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.vertical-tabs-new svg {
+  width: 14px;
+  height: 14px;
+}
+
+.vertical-tabs-new kbd {
+  margin-left: auto;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 400;
+  opacity: 0.65;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 /* ---------- Island: resting pill ---------- */
@@ -290,27 +800,48 @@ button svg {
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-dim);
-  flex: 0 0 auto;
+  /* `auto` basis, not `12ch`: a 12ch basis RESERVES twelve characters even
+     for a short name ("news ·" claimed 57px for 40px of text), and the
+     deficit came out of #pillDomain — the only freely-shrinkable sibling —
+     so the URL truncated with the pill nowhere near its max-width. The
+     max-width still caps long group names at 12ch. */
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 12ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 #pillGroupName[hidden] { display: none; }
 
 [data-theme="private"] #islandPill { border: 1px dashed var(--text-dim); }
 
-/* Quick exit chip on private tabs — clicking it closes the tab. */
-#pillPrivateChip {
+/* Quick exit chips — clicking one closes the tab. Shared geometry; the
+   private chip keeps the dashed accent treatment that marks the mode, while
+   the source chip stays quiet (solid, dim) since it's only a view. */
+#pillPrivateChip,
+#pillSourceChip {
   display: flex;
   align-items: center;
   gap: 4px;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: var(--accent);
-  border: 1px dashed var(--accent);
   border-radius: 999px;
   padding: 0 6px;
   flex: 0 0 auto;
 }
-#pillPrivateChip[hidden] { display: none; }
-#pillPrivateChip svg { width: 8px; height: 8px; stroke-width: 2; }
+#pillPrivateChip {
+  color: var(--accent);
+  border: 1px dashed var(--accent);
+}
+#pillSourceChip {
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+#pillPrivateChip[hidden],
+#pillSourceChip[hidden] { display: none; }
+#pillPrivateChip svg,
+#pillSourceChip svg { width: 8px; height: 8px; stroke-width: 2; }
 
 .shield {
   font-family: var(--font-mono);
@@ -849,8 +1380,8 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
 }
 
 /* ---------- Island: expanded-panel footer action bar ----------
-   New tab / private launchers on the left, quick-access page shortcuts
-   (favorites, history, downloads, settings) on the right. A static row
+   New tab / private launchers on the left, quick-access page shortcuts and
+   the tab-layout toggle on the right. A static row
    below the list — always visible, unlike the old in-list "New tab"/
    "private" rows it replaces, so it stays put while the list shows
    commands or Quick-Switcher results. */
@@ -910,6 +1441,10 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
   flex: 0 0 auto;
 }
 .footer-act:hover { background: var(--surface); color: var(--text); }
+.footer-act[aria-pressed="true"] {
+  background: var(--accent-dim);
+  color: var(--text);
+}
 .footer-act svg { width: 15px; height: 15px; }
 
 #islandHint {
@@ -1032,6 +1567,16 @@ body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
   /* Peek still appears on hover/focus, just without the fade + pop. */
   .dot-peek { transition: none; }
   .island-ghead svg.caret { transition: none; }
+  .vertical-tabs-group-caret { transition: none; }
+  .vertical-tab-title.scrolling .vertical-tab-title-text {
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transform: none;
+    transition: none;
+  }
   .island-row.tab-row .row-sub,
   .island-row.tab-row .row-tag,
   .island-row.tab-row .row-remote-pin { transition: none; }

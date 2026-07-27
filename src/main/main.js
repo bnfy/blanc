@@ -3,7 +3,12 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { pathToFileURL } = require('url');
-const { setupAdBlocker, attachAdBlockerToSession, setAdBlockEnabled, getBlocker } = require('./adblock');
+const {
+  setupAdBlocker,
+  attachAdBlockerToSession,
+  setAdBlockEnabled,
+  onRequestBlocked,
+} = require('./adblock');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -18,8 +23,10 @@ const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
+const iconRaster = require('./icon-raster');
 const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
+const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
@@ -35,6 +42,13 @@ const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-pr
 const { isTrustedSender } = require('./ipc-trust');
 const { applyDockAppIcon } = require('./app-icon');
 const { createSearchSuggestionService } = require('./search-suggestions');
+const { createAdblockStartupController } = require('./adblock-startup');
+const {
+  normalizeTabLayout,
+  normalizeVerticalTabsWidth,
+  calculateChromeLayout,
+} = require('./chrome-layout');
+const { reorderWithinBucket } = require('./tab-order');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -43,6 +57,26 @@ const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+// Exact packaged-smoke gate for the corrupt-cache/offline recovery path.
+// It is deliberately inert in ordinary launches and keeps the acceptance
+// harness's unpackaged-only semantics unchanged.
+const requestedPackagedAdblockFailureTestMode =
+  app.isPackaged && process.env.BLANC_TEST === '1'
+    ? process.env.BLANC_TEST_ADBLOCK_FAILURE
+    : null;
+const packagedAdblockFailureTestMode =
+  requestedPackagedAdblockFailureTestMode === 'once' ||
+  requestedPackagedAdblockFailureTestMode === 'always'
+    ? requestedPackagedAdblockFailureTestMode
+    : null;
+let packagedAdblockInitializationFailuresRemaining =
+  packagedAdblockFailureTestMode === 'once' ? 1 : 0;
+const packagedAdblockTestFetch = (...args) => {
+  if (packagedAdblockFailureTestMode === 'always') {
+    return Promise.reject(new Error('packaged smoke: simulated offline fetch'));
+  }
+  return fetch(...args);
+};
 
 // Dev runs (`npm start`) get their own userData so a dev instance never
 // shares — and corrupts — the installed app's profile: two Chromium
@@ -65,6 +99,25 @@ if (app.isPackaged) {
     fs.cpSync(oldUserDataDir, newUserDataDir, { recursive: true });
   }
 }
+
+// Snapshot whether this is a genuinely new Blanc profile before Chromium's
+// ready phase creates its own directories. settings.json is not sufficient:
+// old versions did not write it until a setting changed, while session.json
+// and the other product stores still prove the app has run before.
+const existingProfileMarkers = [
+  'settings.json',
+  'session.json',
+  'history.json',
+  'bookmarks.json',
+  'downloads.json',
+  'sync.json',
+  'install.json',
+];
+settings.setExistingProfileHint(
+  existingProfileMarkers.some((name) =>
+    fs.existsSync(path.join(app.getPath('userData'), name))
+  )
+);
 
 // One instance per profile: a second launch defers to the first.
 if (!app.requestSingleInstanceLock()) {
@@ -105,6 +158,69 @@ if (!app.requestSingleInstanceLock()) {
 // the command line, at startup or through 'second-instance'.
 const pendingExternalUrls = [];
 let externalUrlsFlushable = false;
+
+// While enabled blocking is compiling its lists, main-frame HTTP(S)
+// navigations are held here. Local blanc:// chrome remains available, so an
+// offline filter failure always has a usable recovery surface.
+let startupNavigationGateActive = false;
+const startupQueuedNavigations = new Map();
+
+function installStartupNavigationGate(sessions) {
+  startupNavigationGateActive = true;
+  const listener = (details, callback) => {
+    if (
+      !startupNavigationGateActive ||
+      details.resourceType !== 'mainFrame' ||
+      !/^https?:/i.test(details.url)
+    ) {
+      callback({});
+      return;
+    }
+    if (Number.isInteger(details.webContentsId) && details.webContentsId > 0) {
+      startupQueuedNavigations.set(details.webContentsId, details.url);
+    }
+    callback({ cancel: true });
+  };
+  for (const browsingSession of sessions) {
+    browsingSession.webRequest.onBeforeRequest(
+      { urls: ['http://*/*', 'https://*/*'] },
+      listener
+    );
+  }
+}
+
+function releaseStartupNavigationGate(sessions, { blockerAttached }) {
+  startupNavigationGateActive = false;
+  // A successful blocker attachment has already replaced the temporary
+  // listener with its own network filter. Clearing here would remove the
+  // blocker we just installed.
+  if (!blockerAttached) {
+    for (const browsingSession of sessions) {
+      browsingSession.webRequest.onBeforeRequest(null);
+    }
+  }
+
+  const queued = [...startupQueuedNavigations.entries()];
+  startupQueuedNavigations.clear();
+  for (const [webContentsId, url] of queued) {
+    const tab = [...tabs.values()].find(
+      (candidate) => candidate.view.webContents.id === webContentsId
+    );
+    if (!tab || tab.view.webContents.isDestroyed()) continue;
+    tab.view.webContents.loadURL(url).catch(() => {});
+  }
+}
+
+let launchPingSent = false;
+function maybeSendLaunchPing() {
+  if (
+    launchPingSent ||
+    !settings.isFirstRunComplete() ||
+    !settings.getSettings().usagePing
+  ) return;
+  launchPingSent = true;
+  sendLaunchPing();
+}
 
 /** Best-effort path -> file:// URL. Electron's 'open-file' contract types
  * the path as always a non-empty absolute string, but nothing else calling
@@ -473,12 +589,22 @@ function flushPermissionPrompts() {
   pendingPermissionPrompts.clear();
 }
 
-// Height (in CSS px) of the chrome strip the resting island pill floats
-// in. The renderer measures its own layout and reports it here, so this
-// is just a sane default before the first report arrives — keep it in step
-// with the `--strip-h` token (styles.css) so the initial web-view offset
-// doesn't jump on the first layout report.
+// Height (in CSS px) of the sampled safe-area gutter the resting Island floats
+// in. The renderer measures its own layout and reports it here, so this is just
+// a sane default before the first report arrives — keep it in step with the
+// `--strip-h` token (styles.css) so the initial web-view offset doesn't jump.
 let chromeHeight = 64;
+// Device-local presentation preference. Settings owns validation and
+// persistence; this live copy makes every child-view bounds calculation use
+// one coherent value throughout a layout transition.
+const initialPresentationSettings = settings.getSettings();
+let tabLayout = normalizeTabLayout(initialPresentationSettings.tabLayout);
+// This is the saved preference, not necessarily the current rendered width.
+// calculateChromeLayout temporarily caps it when the window is too narrow to
+// preserve the 392px website pane.
+let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
+  initialPresentationSettings.verticalTabsWidth
+);
 
 // The island's expanded states (command bar, ⌘L palette, find capsule)
 // render in a separate always-on-top WebContentsView so they float OVER
@@ -491,28 +617,46 @@ let overlayMode = null;
 /** Companion to overlayMode, replayed alongside it below if the overlay's
  * first load hadn't finished when showOverlay was called. */
 let overlayPrefill = null;
+/** Native address-bar context menu up: suppress the overlay's blur
+ * dismissal — the popup's close callback owns what happens next.
+ * A generation ticket, not a boolean: if a second popup ever supersedes the
+ * first (two right-clicks racing the handler's await), the stale popup's
+ * close callback must not disarm the guard under the live one. 0 = no menu. */
+let addressMenuTicket = 0;
+let addressMenuSeq = 0;
 
-// Find mode keeps the overlay's bounds tight around the capsule so the
-// rest of the page stays clickable while stepping through matches. Sized
-// to fit the capsule (top 60 + ~42 tall) plus its full shadow extent.
-const FIND_OVERLAY = { width: 560, height: 160 };
+function currentChromeLayout() {
+  const { width, height } = win.getContentBounds();
+  return calculateChromeLayout({
+    width,
+    height,
+    chromeHeight,
+    tabLayout,
+    verticalTabsWidth: verticalTabsPreferredWidth,
+  });
+}
+
+function verticalTabsMetrics(layout = currentChromeLayout()) {
+  return {
+    verticalTabsWidth: layout.verticalTabsWidth,
+    verticalTabsPreferredWidth: layout.verticalTabsPreferredWidth,
+    verticalTabsMinWidth: layout.verticalTabsMinWidth,
+    verticalTabsMaxWidth: layout.verticalTabsMaxWidth,
+    verticalTabsDefaultWidth: layout.verticalTabsDefaultWidth,
+  };
+}
 
 function overlayBounds() {
-  const { width, height } = win.getContentBounds();
-  if (overlayMode === 'find') {
-    // Below the strip, so the pill stays clickable while find is open and
-    // the strip's drag region can't shadow the capsule.
-    return {
-      x: Math.round((width - FIND_OVERLAY.width) / 2),
-      y: chromeHeight,
-      width: FIND_OVERLAY.width,
-      height: Math.max(0, Math.min(FIND_OVERLAY.height, height - chromeHeight)),
-    };
-  }
-  return { x: 0, y: 0, width, height };
+  const layout = currentChromeLayout();
+  if (overlayMode === 'find') return layout.findBounds;
+  if (overlayMode === 'palette') return layout.paletteBounds;
+  return layout.panelBounds;
 }
 
 function createOverlay() {
+  // A menu open when the previous window died may never have fired its close
+  // callback — never let a leaked ticket disarm the new overlay's blur guard.
+  addressMenuTicket = 0;
   overlayView = new WebContentsView({
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -523,6 +667,7 @@ function createOverlay() {
   });
   overlayView.setBackgroundColor('#00000000'); // page shows through around the panel
   lockPrivilegedNavigation(overlayView.webContents, CHROME_OVERLAY_URL);
+  installVerticalTabsShortcut(overlayView.webContents);
   overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
 
   // A show requested before the overlay document finished its first load
@@ -547,6 +692,9 @@ function createOverlay() {
   // would leave a stale panel floating over the page. Find mode survives
   // blur deliberately — users click around the page between matches.
   overlayView.webContents.on('blur', () => {
+    // A native address-bar context menu takes OS focus; that blur is not a
+    // dismissal — the popup's close callback owns what happens next.
+    if (addressMenuTicket) return;
     // Playwright's Electron main-process evaluate calls steal focus from the
     // guest view while the acceptance harness inspects it. Keep the real blur
     // policy in production; tests dismiss explicitly between edit sessions.
@@ -558,6 +706,47 @@ function createOverlay() {
     if (activeTabId && tabsWantingAddressBarFocus.has(activeTabId)) return;
     hideOverlay({ refocusContent: false });
   });
+
+  attachAddressMenu(overlayView.webContents, {
+    isOverlayLive: () =>
+      hasLiveWindow()
+      && overlayView && !overlayView.webContents.isDestroyed()
+      && (overlayMode === 'panel' || overlayMode === 'palette'),
+    getWindow: () => win,
+    getOverlayBounds: () => overlayBounds(),
+    acquireMenuGuard: () => { addressMenuTicket = ++addressMenuSeq; return addressMenuTicket; },
+    releaseMenuGuard: (ticket) => {
+      // A stale popup (superseded by a newer one) must not disarm the guard
+      // or run close policy under the live menu.
+      if (ticket !== addressMenuTicket) return;
+      addressMenuTicket = 0;
+      if (!hasLiveWindow()) return;
+      if (win.isFocused()) return refocusOverlayAfterMenu();
+      // Never steal focus back from another app: if the window lost focus
+      // while the guard was suppressing blur dismissal, perform the dismissal
+      // the guard swallowed — without touching focus. But sample focus AFTER
+      // a beat: GTK can return focus to the window asynchronously once the
+      // popup closes, and reading it synchronously would misread an ordinary
+      // item selection as an app switch (dismissing the island and swallowing
+      // the very edit the item performed).
+      setTimeout(() => {
+        if (addressMenuTicket || !hasLiveWindow()) return;
+        if (!win.isFocused()) return hideOverlay({ refocusContent: false });
+        refocusOverlayAfterMenu();
+      }, 80);
+    },
+    actions: {
+      pasteAndGo: (text) => { if (activeTabId) pasteAndGo(activeTabId, text); },
+    },
+  });
+}
+
+/** The popup took focus from the overlay; hand it back if a panel/palette is
+ * still up (overlayMode gone — e.g. Paste and Go closed it — nothing to do). */
+function refocusOverlayAfterMenu() {
+  if (overlayMode === 'panel' || overlayMode === 'palette') {
+    overlayView?.webContents.focus();
+  }
 }
 
 function showOverlay(mode, { prefill } = {}) {
@@ -603,6 +792,7 @@ function createUtilitySheet() {
   utilitySheetView = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
   utilitySheetView.setBackgroundColor('#00000000');
   const wc = utilitySheetView.webContents;
+  installVerticalTabsShortcut(wc);
   // Esc dismisses no matter what inside the page holds focus (mirrors the
   // island overlay's handler).
   wc.on('before-input-event', (event, input) => {
@@ -698,11 +888,45 @@ function normalizeAddressInput(input) {
   return settings.searchUrlFor(trimmed);
 }
 
+/** The full typed-address routing pipeline — shared by the tabs:navigate IPC
+ * handler and the address-bar menu's Paste and Go, so the two can't drift. */
+function navigateTabToAddress(id, rawText) {
+  const tab = tabs.get(id);
+  if (!tab) return;
+  // Checked against the raw address-bar text, before normalizeAddressInput
+  // — a bare mailto:/tel: URI has no "://" and would otherwise fall
+  // through its domain-guessing heuristic into an unreachable https:// URL.
+  if (handOffToOs(rawText, { trusted: true })) return;
+  const target = normalizeAddressInput(rawText);
+  // A typed utility address opens the sheet, never navigates the tab.
+  if (isUtilityUrl(target)) return openInternalPage(target);
+  tabsWantingAddressBarFocus.delete(id);
+  // Rapid re-navigation (Enter twice, Paste and Go twice) aborts the in-flight
+  // load — loadURL rejects with ERR_ABORTED; that's routine, not an error.
+  tab.view.webContents.loadURL(target).catch(() => {});
+}
+
+/** Paste and Go = navigate + dismiss the island, exactly like pressing Enter.
+ * The menu action and the F19-3 acceptance binding both use THIS wrapper, so
+ * the scenario's "closes the island" half asserts the real code path. */
+function pasteAndGo(id, rawText) {
+  navigateTabToAddress(id, rawText);
+  hideOverlay();
+}
+
 function serializeTabs() {
   return tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
-    .map(({ view, ...rest }) => rest);
+    .map(({ view, ...rest }) => {
+      // A page-favicon URL belongs to the tab's browsing session. Sending a
+      // private tab's remote URL into persistent chrome would make the chrome
+      // session fetch it again merely to paint the pill/overlay/rail, escaping
+      // the non-persistent private-session boundary. Private rows deliberately
+      // use the renderer's neutral fallback instead.
+      if (rest.private && rest.favicon) return { ...rest, favicon: null };
+      return rest;
+    });
 }
 
 // Open tabs persist across launches (restored in app.whenReady).
@@ -732,12 +956,13 @@ function adblockWeekStats() {
 }
 
 let isQuitting = false;
+let sessionPersistenceSuspended = false;
 app.on('before-quit', () => { isQuitting = true; });
 
 function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
   // file down to whatever closed last before the process exits.
-  if (isQuitting || tabs.size === 0) return;
+  if (isQuitting || sessionPersistenceSuspended || tabs.size === 0) return;
   ensureSessionStore().update((d) => {
     // Private tabs leave no trail, error pages persist their real
     // destination, url-less tabs drop — all in session-snapshot.js so tab
@@ -766,7 +991,14 @@ function broadcastTabs() {
   persistSession();
   tabsync.noteTabsChanged();
   if (!win || win.isDestroyed()) return;
-  const payload = { tabs: serializeTabs(), activeTabId, groups };
+  const widthMetrics = verticalTabsMetrics();
+  const payload = {
+    tabs: serializeTabs(),
+    activeTabId,
+    groups,
+    tabLayout,
+    ...widthMetrics,
+  };
   win.webContents.send('tabs:updated', payload);
   overlayView?.webContents.send('tabs:updated', payload);
 }
@@ -789,21 +1021,95 @@ function scheduleBroadcastTabs() {
 
 function resizeActiveView() {
   if (!win || win.isDestroyed()) return;
+  const layout = currentChromeLayout();
   const tab = activeTabId ? tabs.get(activeTabId) : null;
-  if (tab) {
-    const bounds = win.getContentBounds();
-    tab.view.setBounds({
-      x: 0,
-      y: chromeHeight,
-      width: bounds.width,
-      height: Math.max(0, bounds.height - chromeHeight),
-    });
-  }
+  if (tab) tab.view.setBounds(layout.pageBounds);
   if (overlayMode && overlayView) overlayView.setBounds(overlayBounds());
   if (utilitySheetUrl && utilitySheetView) {
-    const b = win.getContentBounds();
-    utilitySheetView.setBounds({ x: 0, y: chromeHeight, width: b.width, height: Math.max(0, b.height - chromeHeight) });
+    utilitySheetView.setBounds(layout.utilityBounds);
   }
+  // The BrowserWindow renderer and native child views must move in the same
+  // frame. A dedicated geometry event avoids turning every pointermove or
+  // window resize into a tab/session-sync broadcast.
+  win.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
+}
+
+function applyVerticalTabsWidth(nextWidth) {
+  const next = normalizeVerticalTabsWidth(nextWidth);
+  if (next === verticalTabsPreferredWidth) return false;
+  verticalTabsPreferredWidth = next;
+  if (hasLiveWindow()) resizeActiveView();
+  return true;
+}
+
+function previewVerticalTabsWidth(nextWidth) {
+  applyVerticalTabsWidth(nextWidth);
+  return hasLiveWindow()
+    ? verticalTabsMetrics()
+    : { verticalTabsPreferredWidth };
+}
+
+function setVerticalTabsWidth(nextWidth) {
+  const next = normalizeVerticalTabsWidth(nextWidth);
+  // Pointer previews already moved the live geometry; this write commits the
+  // preference once at drag end instead of churning settings.json per pixel.
+  if (settings.getSettings().verticalTabsWidth === next) {
+    applyVerticalTabsWidth(next);
+    return next;
+  }
+  return settings.setSettings({ verticalTabsWidth: next }).verticalTabsWidth;
+}
+
+function applyTabLayout(nextLayout) {
+  const next = normalizeTabLayout(nextLayout);
+  if (next === tabLayout) return false;
+  tabLayout = next;
+
+  if (hasLiveWindow()) {
+    // A floating overlay is tied to the old pane center. Dismiss it in the
+    // same main-process turn, then rebound the attached page/sheet without
+    // navigating either document. The Settings sheet stays open so its own
+    // layout choice does not eject the user mid-interaction.
+    hideOverlay({ refocusContent: false });
+    resizeActiveView();
+    if (!utilitySheetUrl) tabs.get(activeTabId)?.view.webContents.focus();
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
+  return true;
+}
+
+function setTabLayout(nextLayout) {
+  if (nextLayout !== 'island' && nextLayout !== 'vertical') return tabLayout;
+  if (nextLayout === tabLayout) return tabLayout;
+  // onSettingsChanged synchronously calls applyTabLayout after the validated
+  // write, keeping menu, geometry, and renderer payload in one transition.
+  return normalizeTabLayout(settings.setSettings({ tabLayout: nextLayout }).tabLayout);
+}
+
+function toggleTabLayout() {
+  return setTabLayout(tabLayout === 'vertical' ? 'island' : 'vertical');
+}
+
+function installVerticalTabsShortcut(webContents) {
+  webContents.on('before-input-event', (event, input) => {
+    const primaryModifier = process.platform === 'darwin'
+      ? input.meta && !input.control
+      : input.control && !input.meta;
+    if (
+      input.type !== 'keyDown' ||
+      input.isAutoRepeat ||
+      String(input.key).toLowerCase() !== 'v' ||
+      !input.alt ||
+      !primaryModifier ||
+      input.shift
+    ) return;
+    // Handle this before page dispatch so the shortcut is reliable no matter
+    // which WebContentsView owns focus. preventDefault also suppresses the
+    // duplicate native-menu accelerator dispatch for this same key event.
+    event.preventDefault();
+    toggleTabLayout();
+  });
 }
 
 /** Pick the sharpest favicon from a page's declared icon links. The pill
@@ -1366,6 +1672,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   tabOrder.push(id);
 
   const wc = view.webContents;
+  installVerticalTabsShortcut(wc);
+
   // SPIKE (1Password fill feasibility) — ⌥⌘P on the tab's OWN webContents
   // (the overlay before-input-event listener never sees page-focused keys).
   if (ONE_PASSWORD_SPIKE_ENABLED) {
@@ -1515,6 +1823,17 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // rapid re-navigation) and must not be treated as a failure.
   wc.on('did-fail-load', (_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
     if (!isMainFrame || errorCode === -3 || !validatedURL) return;
+    // The temporary startup gate deliberately cancels HTTP(S) main-frame
+    // loads until blocking is attached (or the user explicitly continues
+    // without it). Keep the tab blank and replay its queued URL afterward
+    // instead of replacing it with a misleading network error page.
+    if (
+      startupNavigationGateActive &&
+      startupQueuedNavigations.has(wc.id) &&
+      /^https?:/i.test(validatedURL)
+    ) {
+      return;
+    }
     const q = new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
   });
@@ -1754,6 +2073,31 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
 }
 
+let railActivationSerial = 0;
+
+function activateTabFromRail(id) {
+  const tab = tabs.get(id);
+  if (!tab || tab.view.webContents.isDestroyed()) return false;
+  railActivationSerial += 1;
+
+  // One guarded main-process action owns the complete interaction so a
+  // renderer cannot leave an old sheet/panel stacked over the selected tab.
+  hideOverlay({ refocusContent: false });
+  hideUtilitySheet({ refocusContent: false });
+
+  if (id !== activeTabId) {
+    setActiveTab(id, { focusContent: true });
+  } else {
+    // setActiveTab deliberately no-ops for an already-active tab; the rail
+    // contract still requires that click/keyboard activation focus content.
+    tabsWantingAddressBarFocus.delete(id);
+    tab.view.setVisible(true);
+    resizeActiveView();
+    tab.view.webContents.focus();
+  }
+  return true;
+}
+
 /** URLs of recently closed tabs, oldest first (Cmd/Ctrl+Shift+T pops). */
 const recentlyClosedUrls = [];
 
@@ -1808,6 +2152,19 @@ function reorderTab(id, toIndex) {
   tabOrder.splice(clamped, 0, id);
   broadcastTabs();
   scheduleMenuRebuild();
+}
+
+function reorderTabWithinBucket(id, beforeId) {
+  // Renderer input is only a proposal. Main re-resolves both ids against its
+  // live model and rejects a stale/cross-group/cross-pin target.
+  const next = reorderWithinBucket(tabOrder, tabs, id, beforeId);
+  if (!next) return false;
+  if (next.some((tabId, index) => tabOrder[index] !== tabId)) {
+    tabOrder = next;
+    broadcastTabs();
+    scheduleMenuRebuild();
+  }
+  return true;
 }
 
 /** Cmd/Ctrl+1–9. With groups: n jumps to the nth cluster — a group's
@@ -2024,19 +2381,8 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
-  chromeHandle('tabs:navigate', (_e, id, url) => {
-    const tab = tabs.get(id);
-    if (!tab) return;
-    // Checked against the raw address-bar text, before normalizeAddressInput
-    // — a bare mailto:/tel: URI has no "://" and would otherwise fall
-    // through its domain-guessing heuristic into an unreachable https:// URL.
-    if (handOffToOs(url, { trusted: true })) return;
-    const target = normalizeAddressInput(url);
-    // A typed utility address opens the sheet, never navigates the tab.
-    if (isUtilityUrl(target)) return openInternalPage(target);
-    tabsWantingAddressBarFocus.delete(id);
-    tab.view.webContents.loadURL(target);
-  });
+  chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
+  chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
   // Search completions are query text, not navigation targets: a suggestion
   // such as "example.com" must search for that text instead of being
   // reclassified as a bare domain by normalizeAddressInput().
@@ -2066,6 +2412,8 @@ function registerIpcHandlers() {
   chromeHandle('tabs:reload', (_e, id) => tabs.get(id)?.view.webContents.reload());
   chromeHandle('tabs:stop', (_e, id) => tabs.get(id)?.view.webContents.stop());
   chromeHandle('tabs:reorder', (_e, id, toIndex) => reorderTab(id, toIndex));
+  chromeHandle('tabs:reorder-within-bucket', (_e, id, beforeId) =>
+    reorderTabWithinBucket(id, beforeId));
   chromeHandle('tabs:set-group', (_e, id, groupId) => setTabGroup(id, groupId ?? null));
   chromeHandle('tabs:group-by-name', (_e, id, name) => groupTabByName(id, name));
   chromeHandle('tabs:toggle-group-collapsed', (_e, groupId) => toggleGroupCollapsed(groupId));
@@ -2081,7 +2429,13 @@ function registerIpcHandlers() {
       openInternalPage(`blanc://${name}/`);
     }
   });
-  chromeHandle('tabs:get-all', () => ({ tabs: serializeTabs(), activeTabId, groups }));
+  chromeHandle('tabs:get-all', () => ({
+    tabs: serializeTabs(),
+    activeTabId,
+    groups,
+    tabLayout,
+    ...verticalTabsMetrics(),
+  }));
   chromeHandle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
   chromeHandle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
 
@@ -2094,6 +2448,11 @@ function registerIpcHandlers() {
 
   chromeOn('chrome:open-island', () => showOverlay('panel'));
   chromeOn('chrome:open-find', () => showOverlay('find'));
+  chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));
+  chromeOn('chrome:preview-vertical-tabs-width', (_e, width) =>
+    previewVerticalTabsWidth(width));
+  chromeHandle('chrome:set-vertical-tabs-width', (_e, width) =>
+    setVerticalTabsWidth(width));
   chromeOn('overlay:close', () => hideOverlay());
   chromeOn('chrome:downloads-ack', () => {
     acknowledgeDownloads();
@@ -2118,7 +2477,13 @@ function registerIpcHandlers() {
     // live provider suggestions pause.
     const tab = activeTabId ? tabs.get(activeTabId) : null;
     const localDoc = typeof query === 'string' ? localDocumentUrl(query.trim()) : null;
-    if (!currentSettings.searchSuggestions || !tab || tab.private || localDoc) return response;
+    if (
+      !settings.isFirstRunComplete() ||
+      !currentSettings.searchSuggestions ||
+      !tab ||
+      tab.private ||
+      localDoc
+    ) return response;
 
     const controller = new AbortController();
     searchSuggestionRequests.set(event.sender, controller);
@@ -2153,7 +2518,11 @@ function registerIpcHandlers() {
       const latestEngineId = settings.SEARCH_ENGINES[latestConfiguredEngine]
         ? latestConfiguredEngine
         : 'duckduckgo';
-      if (!latestSettings.searchSuggestions || latestEngineId !== engineId) {
+      if (
+        !settings.isFirstRunComplete() ||
+        !latestSettings.searchSuggestions ||
+        latestEngineId !== engineId
+      ) {
         return {
           engine: latestEngineId,
           label: settings.SEARCH_ENGINES[latestEngineId].label,
@@ -2366,6 +2735,7 @@ const COMMON_KEYSTROKES = [
   ['Reopen Closed Tab', 'CmdOrCtrl+Shift+T'],
   ['Search & Commands', 'CmdOrCtrl+L'],
   ['Find in Page', 'CmdOrCtrl+F'],
+  ['Toggle Vertical Tabs', 'CmdOrCtrl+Alt+V'],
   ['Next Tab', 'Ctrl+Tab'],
   ['Previous Tab', 'Ctrl+Shift+Tab'],
   ['Next Tab in Group', 'Alt+CmdOrCtrl+Right'],
@@ -2426,6 +2796,30 @@ function buildMenu() {
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+=', visible: false, click: () => zoomActiveTab(ZOOM_STEP) },
         { label: 'Zoom Out', accelerator: 'CmdOrCtrl+-', click: () => zoomActiveTab(-ZOOM_STEP) },
         { label: 'Actual Size', accelerator: 'CmdOrCtrl+0', click: resetZoomForActiveTab },
+        { type: 'separator' },
+        {
+          id: 'toggle-vertical-tabs',
+          label: 'Toggle Vertical Tabs',
+          accelerator: 'CmdOrCtrl+Alt+V',
+          click: toggleTabLayout,
+        },
+        {
+          label: 'Tab Layout',
+          submenu: [
+            {
+              label: 'Island',
+              type: 'radio',
+              checked: tabLayout === 'island',
+              click: () => setTabLayout('island'),
+            },
+            {
+              label: 'Vertical Tabs',
+              type: 'radio',
+              checked: tabLayout === 'vertical',
+              click: () => setTabLayout('vertical'),
+            },
+          ],
+        },
         { type: 'separator' },
         { label: 'Downloads', accelerator: 'CmdOrCtrl+Shift+J', click: () => openInternalPage('blanc://downloads/') },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => openInternalPage('blanc://settings/') },
@@ -2547,6 +2941,7 @@ function createMainWindow() {
   });
 
   lockPrivilegedNavigation(win.webContents, CHROME_INDEX_URL);
+  installVerticalTabsShortcut(win.webContents);
   win.loadFile(CHROME_INDEX_FILE);
   createOverlay();
   win.on('resize', resizeActiveView);
@@ -2562,6 +2957,10 @@ function createMainWindow() {
     if (utilitySheetView && !utilitySheetView.webContents.isDestroyed()) utilitySheetView.webContents.close();
     utilitySheetView = null;
     utilitySheetUrl = null;
+    // The detached favicon rasterizer view isn't a BrowserWindow, so it would
+    // otherwise linger past the last window (blocking `window-all-closed` quit
+    // on Windows/Linux). Recreated lazily on the next non-PNG capture.
+    iconRaster.dispose();
     flushPermissionPrompts();
   });
 
@@ -2598,6 +2997,15 @@ app.whenReady().then(async () => {
   const ses = session.defaultSession;
   const privateSes = getPrivateBrowsingSession();
   const browsingSessions = [ses, privateSes];
+  // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
+  // locally so existing suggestion/navigation scenarios exercise their
+  // intended feature instead of the onboarding card; telemetry is disabled.
+  if (acceptanceTestMode && !settings.isFirstRunComplete()) {
+    settings.completeFirstRunPrivacyChoices({
+      searchSuggestions: true,
+      usagePing: false,
+    });
+  }
   // Encrypted DNS (DoH). app.configureHostResolver is process-wide in Electron 43
   // (an App method) and must run after 'ready'. ONE call covers every session,
   // including the private-browsing session, so private tabs inherit it by
@@ -2670,7 +3078,6 @@ app.whenReady().then(async () => {
   applyTheme();
   lastNativeThemeAppearance = resolvedThemeAppearance();
   applyAppIcon();
-  if (settings.getSettings().usagePing) sendLaunchPing();
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', handleNativeThemeUpdated);
 
@@ -2695,6 +3102,28 @@ app.whenReady().then(async () => {
 
   setupDownloads(ses, broadcastDownloadsActivity);
   setupDownloads(privateSes, broadcastDownloadsActivity);
+  let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
+  let adblockStartupController = null;
+  let releaseStartup = async () => {};
+  const startPageStatus = () => {
+    const current = settings.getSettings();
+    return {
+      startup: adblockStartupState,
+      privacy: {
+        required: !settings.isFirstRunComplete(),
+        searchSuggestions: current.searchSuggestions,
+        usagePing: current.usagePing,
+      },
+    };
+  };
+  const broadcastStartPageStatus = () => {
+    const status = startPageStatus();
+    for (const tab of tabs.values()) {
+      if (tab.url?.startsWith('blanc://newtab')) {
+        tab.view.webContents.send('pages:start:status', status);
+      }
+    }
+  };
   setupPages({
     sessions: browsingSessions,
     onDataChanged: refreshBookmarkFlags,
@@ -2722,25 +3151,49 @@ app.whenReady().then(async () => {
       focusGroup,
       blockedThisWeek: () => adblockWeekStats().data.blocked,
       remoteDevices: () => sync.listRemoteDevices(),
+      status: startPageStatus,
+      retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
+      continueWithoutAdblock: () =>
+        adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
+      completePrivacy: (choices) => {
+        const result = settings.completeFirstRunPrivacyChoices(choices);
+        if (result.completed) {
+          maybeSendLaunchPing();
+          broadcastStartPageStatus();
+        }
+        return { completed: result.completed, error: result.error ?? null };
+      },
     },
     shortcuts: { list: listShortcuts },
   });
 
   // The acceptance harness launches offline: skip the network ad-engine build
-  // (getBlocker() stays null, and the listener below is null-safe) and install
-  // the test-only main-process surface instead. Gate is airtight — only an
+  // and install the test-only main-process surface instead. Gate is airtight — only an
   // UNPACKAGED dev run with BLANC_TEST exactly "1"; never a packaged build, and
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
       tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId, clusterSlots,
-      createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, groupTabByName, reopenClosedTab, newTabUrl,
-      normalizeAddressInput, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
+      groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
+      setTabLayout, setVerticalTabsWidth, broadcastTabs,
+      getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
+      getRailActivationSerial: () => railActivationSerial,
+      normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
       getUtilitySheetWebContents: () => utilitySheetView?.webContents ?? null,
       getOverlayWebContents: () => overlayView?.webContents ?? null,
+      getChromeWebContents: () => win?.webContents ?? null,
+      setWindowContentSize: (width, height) => {
+        if (!hasLiveWindow()) return;
+        win.setContentSize(width, height);
+        resizeActiveView();
+      },
+      getWindowContentBounds: () => hasLiveWindow() ? win.getContentBounds() : null,
+      getUtilitySheetBounds: () => utilitySheetView?.getBounds() ?? null,
+      getOverlayBounds: () => overlayView?.getBounds() ?? null,
       setTestSearchSuggestionFixture,
       clearTestSearchSuggestionFixture,
       getTestSearchSuggestionRequests: () => structuredClone(testSearchSuggestionRequests),
@@ -2751,16 +3204,13 @@ app.whenReady().then(async () => {
       ),
       getChromeUrl: () => win?.webContents.getURL() ?? '',
     });
-  } else {
-    await setupAdBlocker(ses, { enabled: settings.getSettings().adblockEnabled });
-    attachAdBlockerToSession(privateSes, { enabled: settings.getSettings().adblockEnabled });
   }
 
   initSpikePackaging(); // SPIKE (1Password fill feasibility) — fire-and-forget, gated on BLANC_1P_SPIKE
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
   // of the frame the request came from.
-  getBlocker()?.on('request-blocked', (request) => {
+  onRequestBlocked((request) => {
     adblockWeekStats().update((d) => { d.blocked += 1; });
     for (const tab of tabs.values()) {
       if (tab.view.webContents.id === request.tabId) {
@@ -2775,6 +3225,8 @@ app.whenReady().then(async () => {
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();
     applyAppIcon();
+    applyVerticalTabsWidth(s.verticalTabsWidth);
+    applyTabLayout(s.tabLayout);
     // WebRTC reapply is unconditional — setWebRTCIPHandlingPolicy is a cheap,
     // idempotent per-tab call and settings writes are infrequent/user-initiated.
     applyWebrtcPolicyToAllTabs();
@@ -2836,40 +3288,128 @@ app.whenReady().then(async () => {
 
   registerIpcHandlers();
   buildMenu();
-  createMainWindow();
 
-  // Restore the previous session's tabs; fall back to a single new tab.
-  // Snapshot, don't alias: .data is the live store object, and createTab
-  // below synchronously triggers persistSession (loadURL emits
-  // did-start-loading in the same tick), which would overwrite activeIndex
-  // before it's read.
+  // Snapshot the previous session before the local startup tab exists. Tab
+  // broadcasts are temporarily prevented from overwriting this snapshot.
   const saved = structuredClone(ensureSessionStore().data);
-  // Stale sessions from before the utility sheet may hold utility-page
-  // tabs; drop them (zipped — groupIds/pinned/activeIndex stay aligned)
-  // so the createTab replay never routes through the sheet guard.
   const cleaned = filterRestoredSession(saved, isUtilityUrl);
   saved.urls = cleaned.urls;
   saved.groupIds = cleaned.groupIds;
   saved.pinned = cleaned.pinned;
   saved.activeIndex = cleaned.activeIndex;
-  // Groups first, so createTab's groupId validation sees them.
   groups = (Array.isArray(saved.groups) ? saved.groups : [])
     .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
     .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed }));
-  const restoredIds = saved.urls.map((u, i) => createTab(u, { groupId: saved.groupIds?.[i] ?? null, pinned: !!saved.pinned?.[i] }));
-  pruneEmptyGroups(); // drop groups none of the restored tabs point at
-  const fresh = restoredIds.length === 0;
-  const firstTabId = fresh
-    ? createTab()
-    : restoredIds[Math.min(Math.max(0, saved.activeIndex), restoredIds.length - 1)];
-  win.webContents.once('did-finish-load', () => {
-    setActiveTab(firstTabId, { focusContent: !fresh, focusAddress: fresh });
-    // Cold-start URL handoff: anything queued by pre-ready 'open-url'
-    // events, or passed on the command line, opens after session restore
-    // so the link lands as the active tab.
+  sessionPersistenceSuspended = true;
+
+  const blockingRequested =
+    !acceptanceTestMode && settings.getSettings().adblockEnabled;
+  if (blockingRequested) installStartupNavigationGate(browsingSessions);
+
+  createMainWindow();
+  const startupTabId = createTab(NEW_TAB_URL);
+  const chromeReady = new Promise((resolve) => {
+    win.webContents.once('did-finish-load', () => {
+      if (tabs.has(startupTabId)) {
+        // Keep focus in the local page so first-run/recovery actions are
+        // immediately visible and keyboard reachable.
+        setActiveTab(startupTabId, { focusContent: true });
+      }
+      resolve();
+    });
+  });
+
+  let startupReleased = false;
+  releaseStartup = async ({ blocking, preservePreference = false }) => {
+    if (startupReleased) return;
+    startupReleased = true;
+    await chromeReady;
+
+    if (!blocking && !preservePreference && settings.getSettings().adblockEnabled) {
+      // “Continue without blocking” is an explicit effective-state change,
+      // not a shield that stays visually enabled while no engine exists.
+      settings.setSettings({ adblockEnabled: false });
+    }
+    if (blockingRequested) {
+      releaseStartupNavigationGate(browsingSessions, {
+        blockerAttached: blocking,
+      });
+    }
+
+    const restoredIds = saved.urls.map((url, index) => createTab(url, {
+      groupId: saved.groupIds?.[index] ?? null,
+      pinned: !!saved.pinned?.[index],
+    }));
+    pruneEmptyGroups();
+    if (restoredIds.length) {
+      const target = restoredIds[
+        Math.min(Math.max(0, saved.activeIndex), restoredIds.length - 1)
+      ];
+      if (tabs.has(startupTabId)) closeTab(startupTabId);
+      setActiveTab(target, { focusContent: true });
+    }
+
+    sessionPersistenceSuspended = false;
+    persistSession();
+
+    // Cold-start URL handoff waits until the blocker decision and session
+    // restore are both complete.
     pendingExternalUrls.push(...urlsFromArgv(process.argv.slice(1)));
     flushExternalUrls();
-  });
+    maybeSendLaunchPing();
+  };
+
+  if (acceptanceTestMode) {
+    adblockStartupState = { phase: 'skipped', attempt: 0, error: null };
+    broadcastStartPageStatus();
+    await releaseStartup({ blocking: false, preservePreference: true });
+  } else if (!blockingRequested) {
+    adblockStartupState = { phase: 'disabled', attempt: 0, error: null };
+    broadcastStartPageStatus();
+    await releaseStartup({ blocking: false, preservePreference: true });
+    // Keep the engine warm so enabling the setting later in this run works,
+    // but never hold browsing for a feature the user turned off.
+    setupAdBlocker(ses, { enabled: false }).then(() => {
+      attachAdBlockerToSession(privateSes, {
+        enabled: settings.getSettings().adblockEnabled,
+      });
+      setAdBlockEnabled(settings.getSettings().adblockEnabled);
+    }).catch((err) => {
+      console.warn('[adblock] background initialization failed:', err.message);
+    });
+  } else {
+    adblockStartupController = createAdblockStartupController({
+      initialize: async () => {
+        if (packagedAdblockInitializationFailuresRemaining > 0) {
+          packagedAdblockInitializationFailuresRemaining -= 1;
+          throw new Error('packaged smoke: simulated first initialization failure');
+        }
+        await setupAdBlocker(ses, {
+          enabled: settings.getSettings().adblockEnabled,
+          fetchImpl: packagedAdblockFailureTestMode
+            ? packagedAdblockTestFetch
+            : fetch,
+        });
+        attachAdBlockerToSession(privateSes, {
+          enabled: settings.getSettings().adblockEnabled,
+        });
+      },
+      onStateChange: (state) => {
+        adblockStartupState = state;
+        broadcastStartPageStatus();
+        if (state.phase === 'failed' && tabs.has(startupTabId)) {
+          setActiveTab(startupTabId, { focusContent: true });
+        }
+      },
+      onReleased: ({ blocking }) => releaseStartup({ blocking }),
+    });
+    // The controller converts filter failures into local UI state. This
+    // catch is only for an unexpected release/restore failure and prevents
+    // an unhandled ready-chain rejection.
+    adblockStartupController.start().catch((err) => {
+      console.error('[startup] could not release browsing:', err);
+    });
+  }
 
   setupAutoUpdater();
 

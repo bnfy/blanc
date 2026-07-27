@@ -1,6 +1,6 @@
 # Tab Sync — open tabs from your other devices
 
-**Date:** 2026-07-21 (revised 2026-07-23)
+**Date:** 2026-07-21 (revised 2026-07-24)
 **Status:** Approved
 **Builds on:** [2026-07-07-profile-sync-design.md](2026-07-07-profile-sync-design.md) — this is the "session" store that spec deferred (§4, v2+) and the worker reserved (`// history/session added in a later phase`).
 
@@ -66,9 +66,15 @@ must be successful, declare an image content type, arrive within three
 seconds, and stay under 256 KB. Redirects are disabled, and localhost,
 `.local`, loopback, link-local, RFC1918/unique-local, and other reserved
 literal targets are rejected before fetch so capture cannot become a new LAN
-probe. The source is then decoded and rasterized to a 16×16 PNG; only a
-bounded `data:image/png;base64,...` value with a valid PNG signature/IHDR and
-16×16 dimensions can enter the sidecar or renderer projection. Receiving
+probe. A PNG source is decoded natively after a cheap header/dimension guard;
+other formats (ICO — usually BMP-framed — SVG, GIF, …), which `nativeImage`
+cannot decode, are drawn into a 16×16 canvas inside a locked-down, detached
+`WebContentsView` (`icon-raster.js`) — an SVG loaded via `<img>` runs no scripts
+and fetches no external resources, so untrusted vectors stay inert, and the
+renderer only ever sees inert `data:` bytes, never a live URL. Either path
+rasterizes to a 16×16 PNG; only a bounded `data:image/png;base64,...` value
+with a valid PNG signature/IHDR and 16×16 dimensions can enter the sidecar or
+renderer projection. Receiving
 chrome never contacts a remote tab's site merely to draw the list. The
 sidecar has its own 256 KB plaintext budget and discards cosmetic icon records
 before its limit; it can never evict a tab or device from the primary session
@@ -124,7 +130,7 @@ Unit tests (`test/unit/`, node --test) — most of the surface lives in the pure
 - Account binding: a changed `accountId` discards all cached remote entries (and only then); `deviceId` survives the rebind.
 - Snapshot builder (`session-snapshot.js`): private-tab exclusion, private-only group exclusion, error-URL unwrapping in `persistableEntries`; HTTP(S)-only filter, URL-length skip, and caps in `syncSnapshot`; `persistableEntries` output unchanged from today's `persistSession` behavior. Its exact tab keys are regression-pinned so icon work cannot drift the mixed-version wire schema.
 - Session fingerprint: identical snapshots hash equal; blocked-count/loading-flag-only changes don't alter it; url/title changes, group membership/order moves, tab reorders, and device renames all do; `updatedAt` alone never does. The icon sidecar has its own content fingerprint and clock.
-- Icon sidecar: accepts only bounded PNG data URLs with PNG structure, sanitizes/deduplicates remote records, preserves LWW/retraction/pruning semantics, trims icons without touching session tabs, and joins data only into the trusted renderer projection. Capture tests pin cookie-free/referrer-free fetching, rejection of non-PNG responses, cancellation on consent changes, and newest-source survival through queue pressure. An older Worker rejecting the optional store does not fail profile sync or overwrite required-store status.
+- Icon sidecar: accepts only bounded PNG data URLs with PNG structure, sanitizes/deduplicates remote records, preserves LWW/retraction/pruning semantics, trims icons without touching session tabs, and joins data only into the trusted renderer projection. Capture tests pin cookie-free/referrer-free fetching, rejection of non-image responses, rasterization of non-PNG image formats (ICO/SVG) through the sandboxed canvas, cancellation on consent changes, and newest-source survival through queue pressure. An older Worker rejecting the optional store does not fail profile sync or overwrite required-store status.
 - Repair comparison: a remote map missing our unchanged entry → differs → PUT; identical maps → no write.
 - Heartbeat: an own entry older than 24 h is due for republish even with an unchanged fingerprint.
 - Size budget: own-tabs trimming first, stale-other-device dropping second, output always under the plaintext budget.
