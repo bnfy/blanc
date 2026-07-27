@@ -1520,8 +1520,8 @@ async function fillActiveTabFrom1Password() {
         message: kept.length === 1 && kept[0].title
           ? `Use your saved ${kept[0].title} password?`
           : 'Use your saved password?',
-        detail: "This page didn't clearly mark its login field, so Blanc made its best guess. "
-          + 'Go ahead if this is where you sign in.',
+        detail: "To protect your password, Blanc double-checks before filling on a page that doesn't "
+          + 'clearly label its login field. Continue if this is where you sign in.',
         buttons: ['Fill', 'Cancel'],
         defaultId: 0,
         cancelId: 1,
