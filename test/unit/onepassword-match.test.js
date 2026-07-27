@@ -831,3 +831,43 @@ test('T4: owner selector is TOKEN-aware, never substring', () => {
     assert.ok(!FORMLIKE_OWNER_SELECTOR.includes(bad));
   }
 });
+
+test('T4 runtime: no page code runs BETWEEN credential writes (1P-AUTH-001)', () => {
+  // The password field's own input handler disconnects the username node. If
+  // notification is interleaved with assignment, the username lands in a node
+  // that is no longer in the document.
+  const writes = [];
+  const inputs = loginFixture();
+  const [userEl, pwEl] = inputs;
+  pwEl.dispatchEvent = () => { userEl.isConnected = false; return true; };
+  const ctx = makeCtx(inputs, writes);
+  // Record connectedness AT WRITE TIME, not afterwards.
+  const seen = [];
+  const proto = Object.getPrototypeOf(pwEl);
+  const desc = Object.getOwnPropertyDescriptor(proto, 'value');
+  Object.defineProperty(proto, 'value', {
+    configurable: true,
+    get: desc.get,
+    set(v) { seen.push({ v, connected: this.isConnected }); desc.set.call(this, v); },
+  });
+  vm.runInContext(buildInspectScript({ ...SRC_ARGS, nonce: 'n1' }), ctx);
+  vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'n1', username: 'USER', password: 'PASS' }), ctx);
+  assert.ok(seen.length > 0, 'something must have been written');
+  for (const w of seen) {
+    assert.equal(w.connected, true,
+      `wrote ${JSON.stringify(w.v)} into a disconnected node — page code ran between writes`);
+  }
+});
+
+test('T4 runtime: a wrong nonce CONSUMES the authorization (1P-AUTH-002)', () => {
+  const writes = [];
+  const ctx = makeCtx(loginFixture(), writes);
+  vm.runInContext(buildInspectScript({ ...SRC_ARGS, nonce: 'good' }), ctx);
+  const bad = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'WRONG', username: 'U', password: 'P' }), ctx);
+  assert.equal(bad.selectionChanged, true);
+  // The formerly-correct nonce must NOT succeed afterwards: any attempt spends
+  // the authorization, so a failed guess can't be followed by a valid replay.
+  const after = vm.runInContext(buildFillScript({ ...SRC_ARGS, nonce: 'good', username: 'U', password: 'P' }), ctx);
+  assert.equal(after.selectionChanged, true, 'a rejected attempt must still consume the stash');
+  assert.equal(writes.length, 0, 'neither attempt may write');
+});

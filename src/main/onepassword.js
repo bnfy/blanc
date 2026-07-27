@@ -472,14 +472,23 @@ function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, 
     }
     var USER = ${USER};
     var PASS = ${PASS};
+    // Consume the authorization FIRST: every attempt spends it, including a
+    // rejected one, so a wrong-nonce probe cannot be followed by a valid replay.
     var auth = globalThis.__blancFill;
+    globalThis.__blancFill = null;
     if (!auth || auth.nonce !== ${N}) {
       return { selectionChanged: true, filledUser: false, filledPass: false };
     }
     ${sharedSelectionSource()}
-    var setNative = function (el, value) {
+    // Assignment and notification are SEPARATE phases. Dispatching after each
+    // write would let the first field's handler run page code before the second
+    // is written — long enough to disconnect or swap the authorized node, so the
+    // second credential lands somewhere never verified.
+    var setValue = function (el, value) {
       var d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
       d.set.call(el, value);
+    };
+    var notify = function (el) {
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     };
@@ -495,8 +504,13 @@ function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, 
     }
     globalThis.__blancFill = null; // single use
     var filledPass = false, filledUser = false;
-    if (pwEl && PASS !== null) { setNative(pwEl, PASS); filledPass = true; }
-    if (userEl && USER !== null) { setNative(userEl, USER); filledUser = true; }
+    // Phase 1 — write every authorized value. No page code runs in between.
+    if (pwEl && PASS !== null) { setValue(pwEl, PASS); filledPass = true; }
+    if (userEl && USER !== null) { setValue(userEl, USER); filledUser = true; }
+    // Phase 2 — notify. Frameworks still observe the native setter plus these
+    // bubbling events, so controlled inputs keep the value.
+    if (filledPass) notify(pwEl);
+    if (filledUser) notify(userEl);
     return { originMismatch: false, filledUser: filledUser, filledPass: filledPass };
   })();`;
 }

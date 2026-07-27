@@ -1051,9 +1051,15 @@ function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, 
     var USER = ${USER};
     var PASS = ${PASS};
     ${sharedSelectionSource()}
-    var setNative = function (el, value) {
+    // Assignment and notification are SEPARATE phases (1P-AUTH-001). Dispatching
+    // after each write lets the first field's handler run page code before the
+    // second is written — long enough to disconnect or swap the authorized node,
+    // so the second credential lands somewhere never verified.
+    var setValue = function (el, value) {
       var d = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
       d.set.call(el, value);
+    };
+    var notify = function (el) {
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     };
@@ -1062,7 +1068,10 @@ function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, 
     // basis. A page that swapped its annotated field for an unannotated one
     // during the async gap changes none of URL/timeOrigin/navEpoch — this is
     // what catches it.
+    // EVERY attempt consumes the authorization (1P-AUTH-002), including a
+    // rejected one — otherwise a wrong-nonce probe can be followed by a replay.
     var auth = globalThis.__blancFill;
+    globalThis.__blancFill = null;
     if (!auth || auth.nonce !== ${JSON.stringify(nonce)}) {
       return { selectionChanged: true, filledUser: false, filledPass: false };
     }
