@@ -841,8 +841,11 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
 .press-gallery figure { min-width: 0; margin: 0; }
 .press-gallery a { display: block; border-radius: 8px; transition: opacity 0.15s; }
 .press-gallery a:hover { opacity: 0.82; }
-.press-gallery img { display: block; width: 100%; aspect-ratio: 1.904 / 1; object-fit: cover; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
-.press-gallery-shot--vertical img { aspect-ratio: 1400 / 888; object-fit: contain; }
+/* height: auto is load-bearing — without it the img height attribute stays a
+   definite length, which makes aspect-ratio inert and letterboxes every shot
+   inside an over-tall box. */
+.press-gallery img { display: block; width: 100%; height: auto; aspect-ratio: 1.904 / 1; object-fit: cover; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.press-gallery-shot--vertical img { aspect-ratio: 1400 / 875; object-fit: contain; }
 .press-review-steps { margin: 0; padding: 0; border-top: 1px solid var(--border); list-style: none; }
 .press-review-steps li { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 14px; padding: 20px 0 22px; border-bottom: 1px solid var(--border); }
 .press-review-steps li > span { color: var(--text-dim); font-family: var(--font-mono); font-size: 11px; }
