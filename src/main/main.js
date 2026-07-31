@@ -1221,7 +1221,11 @@ function serializeTabs() {
         siteInfo: buildSiteInfo(effectiveUrl, {
           certificateRecord,
           certificateError,
-          blockedCount: rest.blockedCount,
+          // Acceptance fixtures must own every site-information input. The
+          // harness can set a synthetic origin while its reset new-tab load is
+          // still settling; that late navigation resets the live counter but
+          // must not change the fixture's asserted protection state.
+          blockedCount: siteSecurityFixture?.blockedCount ?? rest.blockedCount,
         }),
       };
       // A page-favicon URL belongs to the tab's browsing session. Sending a

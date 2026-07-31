@@ -464,11 +464,11 @@ function install(refs) {
       tab.certificateError = null;
       tab.blockedCount = 3;
       if (kind === 'secure') {
-        tab.siteSecurityFixture = { url: 'https://secure.example/path' };
+        tab.siteSecurityFixture = { url: 'https://secure.example/path', blockedCount: 3 };
       } else if (kind === 'insecure') {
-        tab.siteSecurityFixture = { url: 'http://plain.example/path' };
+        tab.siteSecurityFixture = { url: 'http://plain.example/path', blockedCount: 3 };
       } else if (kind === 'local') {
-        tab.siteSecurityFixture = { url: 'http://localhost:3000/path' };
+        tab.siteSecurityFixture = { url: 'http://localhost:3000/path', blockedCount: 3 };
       } else {
         return false;
       }

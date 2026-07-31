@@ -154,8 +154,13 @@ Then('the private tab uses a different web session from ordinary tabs', async fu
   const privateTab = s.tabs.find((t) => t.id === ctx.privateTabId);
   assert.equal(privateTab?.sessionKind, 'private');
   assert.ok(
-    s.tabs.some((t) => !t.private && t.sessionKind === 'default'),
-    'an ordinary tab should remain on the persistent default session'
+    s.tabs.some((t) =>
+      !t.private &&
+      t.sessionKind === 'normal' &&
+      t.sessionProfileId === 'default' &&
+      t.matchesProfileSession
+    ),
+    'an ordinary Personal tab should remain on its persistent normal session'
   );
 });
 
