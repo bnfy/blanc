@@ -99,6 +99,27 @@ When('I close the private tab', async function () {
   await this.call('closeTab', ctx.privateTabId);
 });
 
+When('a link in the page opens a new tab', async function () {
+  const openerUrl = this.fixtureUrl('private-opener');
+  const childUrl = this.fixtureUrl('private-child');
+  await this.call('activateTab', ctx.privateTabId, false);
+  assert.equal(await this.call('navigateActiveTab', openerUrl), true,
+    'the private opener tab should be available for navigation');
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === ctx.privateTabId && tab.loadedUrl === openerUrl && tab.loading === false), { timeout: 15000 });
+  await this.call('attemptWindowOpenActiveTab', childUrl);
+  const state = await this.waitForState((next) => next.tabs.some((tab) =>
+    tab.id !== ctx.privateTabId && tab.loadedUrl === childUrl && tab.loading === false), { timeout: 15000 });
+  ctx.privateChildTabId = state.tabs.find((tab) =>
+    tab.id !== ctx.privateTabId && tab.loadedUrl === childUrl)?.id ?? null;
+});
+
+When('I activate the {string} chip', async function (name) {
+  assert.equal(name, 'private', 'only the private quick-exit chip is desktop-runnable');
+  assert.equal(await this.call('clickPrivateChip'), true,
+    'the visible private chip should accept the quick-exit action');
+});
+
 When('I reopen the last closed tab', async function () { await this.call('reopenClosed'); });
 When('I duplicate the active tab', async function () { await this.call('duplicateActive'); });
 When('I pin {string}', async function (name) { await this.call('pinTab', ctx.tabByName[name]); });
@@ -366,6 +387,36 @@ Then('no tab open on {string} is restored', async function (name) {
   const state = await this.state();
   assert.ok(!state.tabs.some((tab) => tab.url === url || tab.loadedUrl === url),
     `${name} must not be restored from the recently-closed stack`);
+});
+
+Then('the island uses the private theme', async function () {
+  const chrome = await waitForValue(
+    () => this.call('privateChrome'),
+    (state) => state?.theme === 'private',
+    'the island to enter the private theme'
+  );
+  assert.equal(chrome.theme, 'private');
+});
+
+Then('the island shows a {string} chip', async function (name) {
+  assert.equal(name, 'private', 'only the private quick-exit chip is desktop-runnable');
+  const chrome = await waitForValue(
+    () => this.call('privateChrome'),
+    (state) => state?.privateChipVisible === true,
+    'the private quick-exit chip'
+  );
+  assert.equal(chrome.privateChipVisible, true);
+});
+
+Then('the private tab closes', async function () {
+  await this.waitForState((state) => !state.tabs.some((tab) => tab.id === ctx.privateTabId));
+});
+
+Then('the new tab is private', async function () {
+  const state = await this.state();
+  const child = state.tabs.find((tab) => tab.id === ctx.privateChildTabId);
+  assert.equal(child?.private, true, 'a child opened from a private tab must remain private');
+  assert.equal(child?.sessionKind, 'private', 'the child must use the private session');
 });
 
 // NOTE: `/` is the alternation operator in Cucumber Expressions, so the literal

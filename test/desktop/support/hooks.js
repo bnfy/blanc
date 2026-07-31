@@ -123,6 +123,7 @@ Before(async function () {
   ctx.lastNewTabId = null;
   ctx.privateTabId = null;
   ctx.privateVisitUrl = null;
+  ctx.privateChildTabId = null;
   ctx.enteredInput = null;
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;

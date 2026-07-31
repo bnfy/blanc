@@ -449,6 +449,27 @@ function install(refs) {
         background: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
       }))()`);
     },
+    privateChrome() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const chip = document.getElementById('pillPrivateChip');
+        return {
+          theme: document.documentElement.dataset.theme ?? null,
+          privateChipVisible: !!chip && !chip.hidden,
+        };
+      })()`);
+    },
+    clickPrivateChip() {
+      const wc = getChromeWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const chip = document.getElementById('pillPrivateChip');
+        if (!chip || chip.hidden) return false;
+        chip.click();
+        return true;
+      })()`);
+    },
     utilityPalette() {
       const wc = getUtilitySheetWebContents();
       if (!wc) return null;
