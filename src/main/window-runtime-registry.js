@@ -26,6 +26,7 @@ function createRuntime(id, browserWindow, profileId) {
     tabOrder: [],
     groups: [],
     recentlyClosed: [],
+    glanceTabId: null,
     tabIds: new Set(),
   };
 }

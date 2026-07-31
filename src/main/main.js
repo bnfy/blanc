@@ -84,6 +84,7 @@ const {
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
 const { addRecentlyClosed, takeRecentlyClosed } = require('./recently-closed-tabs');
+const { splitPageBounds } = require('./split-view-layout');
 const {
   captureRequestStillValid,
 } = require('./display-share-request');
@@ -1388,8 +1389,17 @@ function resizeActiveView() {
   const browserWindow = currentBrowserWindow();
   if (!browserWindow) return;
   const layout = currentChromeLayout();
-  const tab = tabState.activeTabId ? tabs.get(tabState.activeTabId) : null;
-  if (tab) tab.view.setBounds(layout.pageBounds);
+  const activeTab = tabState.activeTabId ? tabs.get(tabState.activeTabId) : null;
+  const glanceTab = currentWorkspaceRuntime()?.glanceTabId
+    ? tabs.get(currentWorkspaceRuntime().glanceTabId)
+    : null;
+  if (activeTab && glanceTab && glanceTab !== activeTab) {
+    const split = splitPageBounds(layout.pageBounds);
+    activeTab.view.setBounds(split.primary);
+    glanceTab.view.setBounds(split.glance);
+  } else if (activeTab) {
+    activeTab.view.setBounds(layout.pageBounds);
+  }
   if (chromeState.overlayMode && chromeState.overlayView) chromeState.overlayView.setBounds(overlayBounds());
   if (chromeState.utilitySheetUrl && chromeState.utilitySheetView) {
     chromeState.utilitySheetView.setBounds(layout.utilityBounds);
@@ -2349,6 +2359,13 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   }));
 
   wc.on('focus', bindWindowRuntime(runtime, () => {
+    // A click inside the secondary Glance view promotes it to the active
+    // pane. The promotion swaps the two already-owned tabs; it never creates
+    // a tab or crosses a window/profile boundary.
+    if (runtime.glanceTabId === id && tabState.activeTabId !== id) {
+      setActiveTab(id);
+      return;
+    }
     if (shouldReclaimAddressBarFocus(id)) {
       reclaimAddressBarFocus(id, { consume: true });
     }
@@ -2624,7 +2641,15 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   const prevId = tabState.activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
-  if (prev) {
+  // Choosing the Glance pane promotes it to the active/browser-controlled
+  // side and leaves the prior active tab visible as Glance. No cross-profile
+  // lookup is possible: both ids are owned by this runtime.
+  if (id === runtime.glanceTabId) {
+    runtime.glanceTabId = prev && windowRuntimeRegistry.ownerForTab(prev.id) === runtime.id
+      ? prev.id
+      : null;
+  }
+  if (prev && prev.id !== runtime.glanceTabId) {
     browserWindow.contentView.removeChildView(prev.view);
     // A detached view's document still reports visibilityState 'visible',
     // so Chromium never background-throttles its timers (the newtab sprite
@@ -2694,6 +2719,54 @@ function activateTabFromRail(id) {
   return true;
 }
 
+function setGlanceTab(id) {
+  const runtime = currentWorkspaceRuntime();
+  const browserWindow = currentBrowserWindow();
+  const tab = tabs.get(id);
+  if (
+    !runtime || !browserWindow || !tab || id === tabState.activeTabId ||
+    windowRuntimeRegistry.ownerForTab(id) !== runtime.id
+  ) return false;
+
+  const previous = runtime.glanceTabId ? tabs.get(runtime.glanceTabId) : null;
+  if (previous && previous !== tab) {
+    browserWindow.contentView.removeChildView(previous.view);
+    previous.view.setVisible(false);
+  }
+  runtime.glanceTabId = id;
+  tab.view.setVisible(true);
+  browserWindow.contentView.addChildView(tab.view);
+  if (chromeState.overlayMode && chromeState.overlayView) {
+    browserWindow.contentView.addChildView(chromeState.overlayView);
+  }
+  if (chromeState.utilitySheetUrl && chromeState.utilitySheetView) {
+    browserWindow.contentView.addChildView(chromeState.utilitySheetView);
+  }
+  resizeActiveView();
+  broadcastTabs();
+  return true;
+}
+
+function openGlance() {
+  const candidate = tabState.tabOrder.find((id) => id !== tabState.activeTabId);
+  return candidate ? setGlanceTab(candidate) : false;
+}
+
+function closeGlance() {
+  const runtime = currentWorkspaceRuntime();
+  const browserWindow = currentBrowserWindow();
+  const tab = runtime?.glanceTabId ? tabs.get(runtime.glanceTabId) : null;
+  if (!runtime?.glanceTabId) return false;
+  runtime.glanceTabId = null;
+  if (tab && browserWindow) {
+    browserWindow.contentView.removeChildView(tab.view);
+    tab.view.setVisible(false);
+  }
+  resizeActiveView();
+  broadcastTabs();
+  return true;
+}
+
 function closeTab(id, { recordForReopen = true } = {}) {
   const tab = tabs.get(id);
   const runtime = currentWorkspaceRuntime();
@@ -2718,6 +2791,11 @@ function closeTab(id, { recordForReopen = true } = {}) {
 
   const wasActive = id === tabState.activeTabId;
   const browserWindow = currentBrowserWindow();
+  const wasGlance = id === runtime.glanceTabId;
+  if (wasGlance) runtime.glanceTabId = null;
+  if (wasGlance && browserWindow) {
+    browserWindow.contentView.removeChildView(tab.view);
+  }
   if (wasActive && browserWindow) browserWindow.contentView.removeChildView(tab.view);
 
   const closedIndex = tabState.tabOrder.indexOf(id);
@@ -3510,6 +3588,17 @@ function buildMenu() {
           ],
         },
         { type: 'separator' },
+        {
+          label: 'Open Glance',
+          enabled: tabState.tabOrder.length > 1 && !currentWorkspaceRuntime()?.glanceTabId,
+          click: openGlance,
+        },
+        {
+          label: 'Close Glance',
+          enabled: !!currentWorkspaceRuntime()?.glanceTabId,
+          click: closeGlance,
+        },
+        { type: 'separator' },
         { label: 'Downloads', accelerator: 'CmdOrCtrl+Shift+J', click: () => openInternalPage('blanc://downloads/') },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => openInternalPage('blanc://settings/') },
         { type: 'separator' },
@@ -3765,6 +3854,7 @@ function windowRuntimeSnapshots() {
     profileId: runtime.profileId,
     tabOrder: [...runtime.tabOrder],
     activeTabId: runtime.activeTabId,
+    glanceTabId: runtime.glanceTabId,
     tabs: runtime.tabOrder.map((tabId) => {
       const tab = tabs.get(tabId);
       return tab ? { id: tab.id, url: tab.url } : null;
@@ -4061,6 +4151,7 @@ app.whenReady().then(async () => {
       tabs, getTabOrder: () => tabState.tabOrder, getGroups: () => tabState.groups, getActiveTabId: () => tabState.activeTabId, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
+      openGlance, closeGlance, getGlanceTabId: () => currentWorkspaceRuntime()?.glanceTabId ?? null,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       openNewWindow, openNewProfileWindow, windowRuntimeSnapshots, tabSessionInfo,
       closeWindowRuntime, focusWindowRuntime, persistedWorkspaceIds,

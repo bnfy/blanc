@@ -47,8 +47,9 @@ When('I open a tab in the secondary browser window', async function () {
   await waitForValue(
     () => this.call('windowRuntimes'),
     (runtimes) => runtimes.find((runtime) => runtime.id === this.secondaryWindowId)
-      ?.tabs.some((tab) => tab.id === tabId && tab.url === this.secondaryWindowUrl),
-    'the secondary window tab to be recorded in its workspace',
+      ?.tabs.some((tab) => tab.id === tabId && tab.url === this.secondaryWindowUrl)
+      && runtimes.find((runtime) => runtime.id === this.secondaryWindowId)?.activeTabId === tabId,
+    'the secondary window tab to be active in its workspace',
   );
   await waitForValue(
     () => this.call('persistedWorkspaceIds'),

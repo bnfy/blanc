@@ -179,3 +179,17 @@ Runtime ownership is also the profile privacy boundary: a tab closed in one
 window/profile cannot be reopened from another. Closing a secondary window
 releases its tabs without adding them to any recovery stack; closing a window
 means closing that workspace, not silently moving its tab history into Personal.
+
+## Split view / Glance decision
+
+Glance is a temporary second tab pane inside one window runtime. It chooses a
+second tab already owned by that runtime, retains the primary tab as the
+browser-controlled active tab, and lays the two views side-by-side. When the
+usable page pane is narrow (notably with vertical tabs), it stacks them instead
+of making unusably thin columns. Clicking or selecting the Glance tab promotes
+it and swaps the two local roles.
+
+Glance state is intentionally in-memory and is not included in session restore
+or Tab Sync. The native View menu opens or closes it; closing a Glance tab
+returns its sibling to full-page bounds. Because both tab ids are verified
+against the same runtime, it cannot show another window or profile's content.

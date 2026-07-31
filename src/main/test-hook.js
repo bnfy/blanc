@@ -42,6 +42,9 @@ function install(refs) {
     reorderTabWithinBucket,
     reopenClosedTab,
     newTabUrl,
+    openGlance,
+    closeGlance,
+    getGlanceTabId,
     setTabLayout,
     setVerticalTabsWidth,
     getVerticalTabsMetrics,
@@ -167,6 +170,7 @@ function install(refs) {
         })),
         groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
         activeTabId: getActiveTabId(),
+        glanceTabId: getGlanceTabId(),
       };
     },
 
@@ -186,6 +190,8 @@ function install(refs) {
     muteTab(id) { toggleTabMuted(id); },
     closeTab(id) { closeTab(id); },
     reopenClosed() { reopenClosedTab(); },
+    openGlance() { return openGlance(); },
+    closeGlance() { return closeGlance(); },
     groupActiveByName(name) { groupTabByName(getActiveTabId(), name); },
     groupTabByName(id, name) { groupTabByName(id, name); },
     activateTab(id, focusContent = false) { setActiveTab(id, { focusContent: !!focusContent }); },
