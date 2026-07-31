@@ -10,9 +10,10 @@ function validRuntimeId(value) {
   return typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
 }
 
-function createRuntime(id, browserWindow) {
+function createRuntime(id, browserWindow, profileId) {
   return {
     id,
+    profileId,
     browserWindow,
     overlayView: null,
     overlayMode: null,
@@ -43,14 +44,18 @@ function createWindowRuntimeRegistry() {
     return runtime;
   }
 
-  function register({ id, browserWindow }) {
+  function register({ id, browserWindow, profileId = 'default' }) {
     if (!validRuntimeId(id)) throw new Error('Invalid window runtime id');
+    if (!validRuntimeId(profileId)) throw new Error('Invalid local profile id');
     if (!browserWindow) throw new Error('A BrowserWindow is required');
     const existing = runtimes.get(id);
+    if (existing && existing.profileId !== profileId) {
+      throw new Error('Window runtime profile cannot change while it exists');
+    }
     if (existing?.browserWindow && existing.browserWindow !== browserWindow) {
       throw new Error('Window runtime is already attached: ' + id);
     }
-    const runtime = existing ?? createRuntime(id, browserWindow);
+    const runtime = existing ?? createRuntime(id, browserWindow, profileId);
     if (runtime.browserWindow && runtime.browserWindow !== browserWindow) {
       windowOwners.delete(runtime.browserWindow);
     }

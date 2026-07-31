@@ -61,6 +61,7 @@ const {
   removeWorkspaceWindow,
   replaceObject,
 } = require('./session-workspace');
+const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 const { createWindowRuntimeRegistry } = require('./window-runtime-registry');
 const { isUtilityUrl } = require('./utility-pages');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
@@ -1225,6 +1226,7 @@ function persistSession() {
     const nextWindow = {
       ...previous,
       id: runtime.id,
+      profileId: runtime.profileId,
       urls: entries.map((e) => e.url),
       groupIds: entries.map((e) => e.groupId),
       pinned: entries.map((e) => e.pinned),
@@ -3504,7 +3506,10 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-function createMainWindow({ runtimeId = activeWorkspaceWindowId } = {}) {
+function createMainWindow({
+  runtimeId = activeWorkspaceWindowId,
+  profileId = DEFAULT_PROFILE_ID,
+} = {}) {
   const browserWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -3523,6 +3528,7 @@ function createMainWindow({ runtimeId = activeWorkspaceWindowId } = {}) {
   const runtime = windowRuntimeRegistry.register({
     id: runtimeId,
     browserWindow,
+    profileId,
   });
   if (!primaryWindowRuntime || runtime.id === PRIMARY_WINDOW_ID) {
     primaryWindowRuntime = runtime;
@@ -3605,7 +3611,12 @@ function createWindowRuntimeId() {
 }
 
 function openNewWindow() {
-  const runtime = createMainWindow({ runtimeId: createWindowRuntimeId() });
+  const runtime = createMainWindow({
+    runtimeId: createWindowRuntimeId(),
+    // A normal New Window stays in the user's current local profile. A later
+    // profile-picker command will supply a different persistent identity.
+    profileId: currentWorkspaceRuntime()?.profileId ?? DEFAULT_PROFILE_ID,
+  });
   return withWindowRuntime(runtime, () => {
     const tabId = createTab(newTabUrl());
     if (tabId) setActiveTab(tabId, { focusContent: false, focusAddress: true });
@@ -3619,6 +3630,7 @@ function openNewWindow() {
 function windowRuntimeSnapshots() {
   return windowRuntimeRegistry.all().map((runtime) => ({
     id: runtime.id,
+    profileId: runtime.profileId,
     tabOrder: [...runtime.tabOrder],
     activeTabId: runtime.activeTabId,
     tabs: runtime.tabOrder.map((tabId) => {
@@ -4036,7 +4048,10 @@ app.whenReady().then(async () => {
     Number(a.id === activeWorkspaceWindowId) - Number(b.id === activeWorkspaceWindowId));
   const startupTabs = new Map();
   const startupRuntimes = startupWindows.map((saved) => {
-    const runtime = createMainWindow({ runtimeId: saved.id });
+    const runtime = createMainWindow({
+      runtimeId: saved.id,
+      profileId: saved.profileId,
+    });
     withWindowRuntime(runtime, () => {
       tabState.groups = saved.groups;
       startupTabs.set(runtime.id, createTab(NEW_TAB_URL));

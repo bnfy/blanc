@@ -25,6 +25,7 @@ test('legacy flat session migrates losslessly into the primary workspace', () =>
   assert.equal(result.workspace.activeWindowId, PRIMARY_WINDOW_ID);
   assert.deepEqual(result.workspace.windows, [{
     id: PRIMARY_WINDOW_ID,
+    profileId: 'default',
     urls: ['https://one.example/', 'https://two.example/'],
     activeIndex: 1,
     groups: [{ id: 'work', name: 'work', collapsed: true }],
@@ -33,9 +34,9 @@ test('legacy flat session migrates losslessly into the primary workspace', () =>
   }]);
 });
 
-test('current workspace keeps distinct tab ownership and selects the active owner', () => {
+test('v1 workspace migrates each window into the default local profile', () => {
   const result = readSessionWorkspace({
-    version: SESSION_WORKSPACE_VERSION,
+    version: 1,
     activeWindowId: 'second',
     windows: [
       { id: 'primary', urls: ['https://one.example/'] },
@@ -43,9 +44,23 @@ test('current workspace keeps distinct tab ownership and selects the active owne
     ],
   });
 
-  assert.equal(result.migrated, false);
+  assert.equal(result.migrated, true);
   assert.equal(activeWorkspaceWindow(result.workspace).id, 'second');
+  assert.equal(activeWorkspaceWindow(result.workspace).profileId, 'default');
   assert.equal(activeWorkspaceWindow(result.workspace).urls[0], 'https://two.example/');
+});
+
+test('current workspace preserves a named local profile identity', () => {
+  const result = readSessionWorkspace({
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: 'work-window',
+    windows: [{
+      id: 'work-window', profileId: 'profile_work', urls: ['https://work.example/'],
+    }],
+  });
+
+  assert.equal(result.migrated, false);
+  assert.equal(result.workspace.windows[0].profileId, 'profile_work');
 });
 
 test('replacement updates one owner without rewriting other window workspaces', () => {

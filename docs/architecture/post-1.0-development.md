@@ -136,3 +136,16 @@ product/privacy decision before it is enabled.
 Named local browsing profiles remain the next architecture slice. They need
 separate persistent Chromium partitions and an explicit data-boundary/migration
 contract; they are not inferred from these independent window workspaces.
+
+## Local-profile identity decision
+
+Workspace schema v2 gives every window an explicit `profileId`. Existing v1
+workspaces migrate to the permanent `default` local profile, so future profile
+creation never has to infer ownership from a window title or cookie jar. The
+pure local-profile registry has the same forward-compatibility rule as the
+workspace: a newer registry remains untouched by an older build.
+
+This is identity and migration groundwork only. It deliberately does not expose
+a profile picker yet: a visible named profile must first bind its persistent
+Chromium partition and define which local product records belong to it. Calling
+shared cookies or history a separate profile would be misleading.

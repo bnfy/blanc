@@ -1,12 +1,13 @@
 // Versioned, Electron-free persistence model for the browser workspace.
 //
 // v0 was a single flat session.json record. v1 wraps that record in a stable
-// window workspace so later multi-window support can add owners without
-// inventing another migration format. Keep this module pure: main.js is not
-// loadable under node --test, and migrations need fixture coverage before UI
-// wiring.
+// window workspace; v2 adds an explicit local-profile identity to each window.
+// Keep this module pure: main.js is not loadable under node --test, and
+// migrations need fixture coverage before UI wiring.
 
-const SESSION_WORKSPACE_VERSION = 1;
+const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
+
+const SESSION_WORKSPACE_VERSION = 2;
 const PRIMARY_WINDOW_ID = 'primary';
 
 function validWindowId(value) {
@@ -34,6 +35,7 @@ function normalizeWindowState(input = {}, fallbackId = PRIMARY_WINDOW_ID) {
     : 0;
   return {
     id: validWindowId(input.id) ? input.id : fallbackId,
+    profileId: validProfileId(input.profileId) ? input.profileId : DEFAULT_PROFILE_ID,
     urls,
     activeIndex,
     groups: Array.isArray(input.groups)
@@ -63,7 +65,10 @@ function readSessionWorkspace(raw) {
     return { supported: false, migrated: false, workspace: emptyWorkspace() };
   }
 
-  if (source.version === SESSION_WORKSPACE_VERSION && Array.isArray(source.windows)) {
+  if (
+    (source.version === SESSION_WORKSPACE_VERSION || source.version === 1) &&
+    Array.isArray(source.windows)
+  ) {
     const used = new Set();
     const windows = source.windows
       .map((windowState, index) => normalizeWindowState(
@@ -81,7 +86,7 @@ function readSessionWorkspace(raw) {
       : windows[0].id;
     return {
       supported: true,
-      migrated: false,
+      migrated: source.version !== SESSION_WORKSPACE_VERSION,
       workspace: { version: SESSION_WORKSPACE_VERSION, activeWindowId, windows },
     };
   }

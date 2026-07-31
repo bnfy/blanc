@@ -31,6 +31,21 @@ test('each runtime owns isolated overlay and utility-sheet state', () => {
   assert.equal(two.utilitySheetUrl, 'blanc://settings/');
 });
 
+test('a runtime keeps its local profile identity across a native re-attach', () => {
+  const registry = createWindowRuntimeRegistry();
+  const first = {};
+  const runtime = registry.register({ id: 'one', profileId: 'work', browserWindow: first });
+
+  registry.detach('one', first);
+  registry.register({ id: 'one', profileId: 'work', browserWindow: {} });
+
+  assert.equal(runtime.profileId, 'work');
+  assert.throws(
+    () => registry.register({ id: 'one', profileId: 'personal', browserWindow: {} }),
+    /profile cannot change/
+  );
+});
+
 test('tab ownership is exclusive and active identity is local to its runtime', () => {
   const registry = createWindowRuntimeRegistry();
   const one = registry.register({ id: 'one', browserWindow: {} });
