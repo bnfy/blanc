@@ -302,6 +302,92 @@
     document.getElementById('group-supporter')?.remove();
   }
 
+  // --- Local profiles ---
+  if (supports('localProfiles')) {
+    const profileList = document.getElementById('profilesList');
+    const profileName = document.getElementById('newProfileName');
+    const profileCreate = document.getElementById('newProfileCreate');
+    const profileStatus = document.getElementById('profilesStatus');
+
+    async function refreshProfiles() {
+      const { currentId, profiles } = await window.bowserPages.profiles.list();
+      profileList.replaceChildren();
+      for (const profile of profiles) {
+        const row = document.createElement('div');
+        row.className = 'row';
+
+        const main = document.createElement('div');
+        main.className = 'main';
+        const title = document.createElement('div');
+        title.className = 'title';
+        title.textContent = profile.name;
+        const meta = document.createElement('div');
+        meta.className = 'meta';
+        meta.textContent = profile.id === 'default'
+          ? 'Your original Blanc data. Personal is permanent.'
+          : (profile.id === currentId ? 'Current window' : 'Separate local browser data');
+        main.append(title, meta);
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        if (profile.id !== 'default') {
+          const open = document.createElement('button');
+          open.textContent = 'Open';
+          open.addEventListener('click', () => window.bowserPages.profiles.open(profile.id));
+
+          const rename = document.createElement('button');
+          rename.textContent = 'Rename';
+          rename.addEventListener('click', async () => {
+            const nextName = prompt('Rename this profile:', profile.name);
+            if (nextName === null) return;
+            const result = await window.bowserPages.profiles.rename(profile.id, nextName);
+            profileStatus.textContent = result.ok ? 'Renamed.' : (result.message ?? 'Couldn’t rename that profile.');
+            if (result.ok) refreshProfiles();
+          });
+
+          const remove = document.createElement('button');
+          remove.className = 'danger';
+          remove.textContent = 'Delete';
+          remove.addEventListener('click', async () => {
+            const confirmation = prompt(
+              `Delete “${profile.name}” permanently? This closes all of its windows and clears its local browser data. Downloaded files stay where you saved them.\n\nType the profile name to continue.`,
+            );
+            if (confirmation === null) return;
+            const result = await window.bowserPages.profiles.remove(profile.id, confirmation);
+            profileStatus.textContent = result.ok ? 'Deleted.' : (result.message ?? 'Couldn’t delete that profile.');
+            if (result.ok) refreshProfiles();
+          });
+          actions.append(open, rename, remove);
+        }
+        row.append(main, actions);
+        profileList.append(row);
+      }
+    }
+
+    async function createProfile() {
+      if (profileCreate.disabled) return;
+      profileCreate.disabled = true;
+      const result = await window.bowserPages.profiles.create(profileName.value);
+      profileCreate.disabled = false;
+      if (!result?.ok || !result.profile) {
+        profileStatus.textContent = result?.message ?? 'Couldn’t create that profile.';
+        return;
+      }
+      const profile = result.profile;
+      profileName.value = '';
+      profileStatus.textContent = `Created ${profile.name}.`;
+      refreshProfiles();
+    }
+
+    profileCreate.addEventListener('click', createProfile);
+    profileName.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') createProfile();
+    });
+    refreshProfiles().catch(() => { profileStatus.textContent = 'Couldn’t load profiles.'; });
+  } else {
+    document.getElementById('group-profiles')?.remove();
+  }
+
   // --- Site permissions ---
   if (supports('permissions')) {
     const permissionList = document.getElementById('permissionList');

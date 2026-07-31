@@ -63,6 +63,13 @@ if (window.location.protocol === 'blanc:') {
       syncNow: () => ipcRenderer.invoke('pages:settings:sync-now'),
       syncTabsSet: (on) => ipcRenderer.invoke('pages:settings:sync-tabs-set', on),
     },
+    profiles: {
+      list: () => ipcRenderer.invoke('pages:profiles:list'),
+      create: (name) => ipcRenderer.invoke('pages:profiles:create', name),
+      open: (id) => ipcRenderer.invoke('pages:profiles:open', id),
+      rename: (id, name) => ipcRenderer.invoke('pages:profiles:rename', id, name),
+      remove: (id, confirmation) => ipcRenderer.invoke('pages:profiles:remove', id, confirmation),
+    },
     permissions: {
       list: () => ipcRenderer.invoke('pages:permissions:list'),
       remove: (key) => ipcRenderer.invoke('pages:permissions:remove', key),

@@ -17,7 +17,7 @@ require.cache[electronId] = {
 };
 
 delete require.cache[require.resolve('../../src/main/store')];
-const { JsonStore } = require('../../src/main/store');
+const { JsonStore, discardProfileStoreEntries } = require('../../src/main/store');
 const { withLocalProfile, setFocusedLocalProfile } = require('../../src/main/local-profile-context');
 
 test.after(() => {
@@ -51,4 +51,19 @@ test('profile stores retain default files and isolate named-profile records', ()
     JSON.parse(fs.readFileSync(path.join(userData, 'profiles', 'work', 'history.json'), 'utf8')).entries,
     ['work-entry']
   );
+});
+
+test('discarding a named profile cancels pending profile-store writes', async () => {
+  const store = new JsonStore('downloads', { items: [] }, { scope: 'profile' });
+  const profileDir = path.join(userData, 'profiles', 'cleanup');
+
+  withLocalProfile('cleanup', () => {
+    store.update((data) => data.items.push('never-written'));
+  });
+  assert.equal(discardProfileStoreEntries('cleanup'), true);
+  fs.rmSync(profileDir, { recursive: true, force: true });
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  assert.equal(fs.existsSync(profileDir), false);
+  assert.equal(discardProfileStoreEntries('default'), false);
 });

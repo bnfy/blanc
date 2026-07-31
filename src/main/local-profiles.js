@@ -4,6 +4,8 @@ const {
   normalizeProfileName,
   readLocalProfiles,
   addLocalProfile,
+  renameLocalProfile: renameLocalProfileRecord,
+  removeLocalProfile: removeLocalProfileRecord,
 } = require('./local-profile-model');
 
 const MAX_LOCAL_PROFILES = 16;
@@ -49,7 +51,22 @@ function createLocalProfileManager({ store, makeId = crypto.randomUUID, now = Da
     return next.profiles.find((candidate) => candidate.id === profile.id);
   }
 
-  return { list, get, create };
+  function rename(id, name) {
+    const registry = supportedRegistry();
+    const next = renameLocalProfileRecord(registry, id, name);
+    store.update((data) => Object.assign(data, next));
+    return next.profiles.find((profile) => profile.id === id) ?? null;
+  }
+
+  function remove(id) {
+    const registry = supportedRegistry();
+    const removed = registry.profiles.find((profile) => profile.id === id) ?? null;
+    const next = removeLocalProfileRecord(registry, id);
+    store.update((data) => Object.assign(data, next));
+    return removed;
+  }
+
+  return { list, get, create, rename, remove };
 }
 
 let manager = null;
@@ -65,6 +82,8 @@ function ensureManager() {
 const listLocalProfiles = () => ensureManager().list();
 const getLocalProfile = (id = DEFAULT_PROFILE_ID) => ensureManager().get(id);
 const createLocalProfile = (name) => ensureManager().create(name);
+const renameLocalProfile = (id, name) => ensureManager().rename(id, name);
+const removeLocalProfile = (id) => ensureManager().remove(id);
 
 module.exports = {
   MAX_LOCAL_PROFILES,
@@ -72,4 +91,6 @@ module.exports = {
   listLocalProfiles,
   getLocalProfile,
   createLocalProfile,
+  renameLocalProfile,
+  removeLocalProfile,
 };

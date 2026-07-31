@@ -202,6 +202,19 @@ function setupPages(hooks = {}) {
   });
   handle('pages:settings:supporter-activate', (key) => supporter.activateSupporter(key));
 
+  // Local profiles are device identities, so manage them only from Settings
+  // (not from a normal web tab) and keep the destructive confirmation check in
+  // main. The caller's runtime is resolved above before these hooks run.
+  handle('pages:profiles:list', () => hooks.profiles?.list() ?? {
+    currentId: 'default', profiles: [{ id: 'default', name: 'Personal', createdAt: 0 }],
+  }, { host: 'settings' });
+  handle('pages:profiles:create', (name) => hooks.profiles?.create(String(name ?? '')) ?? null, { host: 'settings' });
+  handle('pages:profiles:open', (id) => hooks.profiles?.open(String(id ?? '')) ?? null, { host: 'settings' });
+  handle('pages:profiles:rename', (id, name) =>
+    hooks.profiles?.rename(String(id ?? ''), String(name ?? '')) ?? { ok: false }, { host: 'settings' });
+  handle('pages:profiles:remove', (id, confirmation) =>
+    hooks.profiles?.remove(String(id ?? ''), String(confirmation ?? '')) ?? { ok: false }, { host: 'settings' });
+
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
   handle('pages:settings:sync-get', () => sync.status());

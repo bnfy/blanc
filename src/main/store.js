@@ -2,7 +2,7 @@ const { app } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { activeLocalProfileId } = require('./local-profile-context');
-const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
 
 const SAVE_DELAY_MS = 250;
 // A pure trailing debounce never fires while updates keep arriving faster
@@ -122,4 +122,18 @@ app.on('before-quit', () => {
   }
 });
 
-module.exports = { JsonStore };
+// A profile deletion removes its whole `profiles/<opaque-id>/` tree after
+// this call. Drop every cached entry and timer first, otherwise a delayed
+// write from a feature store could recreate one of those records afterward.
+function discardProfileStoreEntries(profileId) {
+  if (!validProfileId(profileId) || profileId === DEFAULT_PROFILE_ID) return false;
+  for (const store of instances) {
+    if (store.scope !== 'profile') continue;
+    const entry = store.entries.get(profileId);
+    if (entry?.saveTimer) clearTimeout(entry.saveTimer);
+    store.entries.delete(profileId);
+  }
+  return true;
+}
+
+module.exports = { JsonStore, discardProfileStoreEntries };

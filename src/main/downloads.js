@@ -22,6 +22,7 @@ const active = new Map(); // id -> { record, item, profileId }
 /** A download finished as `completed` and hasn't been looked at yet — drives
  * the pill's contextual downloads button. Cleared by acknowledgeDownloads(). */
 const recentProfileIds = new Set();
+const deletedProfileIds = new Set();
 
 /** @type {(() => void) | null} notify the chrome UI that something changed */
 let onChanged = null;
@@ -71,6 +72,13 @@ function setupDownloads(session, notifyChanged, { profileId = DEFAULT_PROFILE_ID
       record.receivedBytes = item.getReceivedBytes();
       record.finishedAt = Date.now();
       active.delete(id);
+      // A profile deletion cancels in-flight downloads. Their delayed `done`
+      // event must not write a new downloads.json after the profile directory
+      // was deliberately removed; downloaded files themselves are untouched.
+      if (deletedProfileIds.has(profileId)) {
+        broadcast();
+        return;
+      }
       ensureStore().update((d) => {
         d.items.unshift(record);
         if (d.items.length > MAX_PERSISTED) d.items.length = MAX_PERSISTED;
@@ -122,6 +130,17 @@ function acknowledgeDownloads() {
   recentProfileIds.delete(activeLocalProfileId());
 }
 
+function discardProfileDownloads(profileId) {
+  deletedProfileIds.add(profileId);
+  recentProfileIds.delete(profileId);
+  for (const [id, entry] of active) {
+    if (entry.profileId !== profileId) continue;
+    active.delete(id);
+    entry.item.cancel();
+  }
+  broadcast();
+}
+
 /** Snapshot for the chrome pill: how many are in-flight, whether a finished
  * one is still unacknowledged, and aggregate bytes for a progress ring. */
 function downloadsActivity() {
@@ -151,4 +170,5 @@ module.exports = {
   openDownload,
   showDownloadInFolder,
   clearFinishedDownloads,
+  discardProfileDownloads,
 };

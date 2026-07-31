@@ -51,6 +51,10 @@ function install(refs) {
     broadcastTabs,
     openNewWindow,
     openNewProfileWindow,
+    openExistingProfileWindow,
+    renameNamedLocalProfile,
+    deleteNamedLocalProfile,
+    listLocalProfiles,
     windowRuntimeSnapshots: getWindowRuntimeSnapshots,
     tabSessionInfo,
     closeWindowRuntime: closeWindowRuntimeById,
@@ -224,6 +228,10 @@ function install(refs) {
     // acceptance needs a deterministic way to assert the runtime boundary.
     openWindow() { return openNewWindow(); },
     openProfileWindow(name) { return openNewProfileWindow(name).id; },
+    openExistingProfileWindow(id) { return openExistingProfileWindow(id); },
+    localProfiles() { return listLocalProfiles(); },
+    renameProfile(id, name) { return renameNamedLocalProfile(id, name); },
+    deleteProfile(id, confirmation) { return deleteNamedLocalProfile(id, confirmation); },
     windowRuntimes() { return getWindowRuntimeSnapshots(); },
     closeWindow(id) { return closeWindowRuntimeById(id); },
     focusWindow(id) { return focusWindowRuntime(id); },
@@ -366,6 +374,16 @@ function install(refs) {
     },
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
+    readSettingsProfilesDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        nav: document.querySelector('[data-group="profiles"]')?.textContent ?? '',
+        createLabel: document.getElementById('newProfileCreate')?.textContent ?? '',
+        names: [...document.querySelectorAll('#profilesList .title')].map((node) => node.textContent),
+        actions: [...document.querySelectorAll('#profilesList button')].map((node) => node.textContent),
+      }))()`);
+    },
     openFind() { openFindBar(); },
     openPanel() { showOverlay('panel'); },
     openPalette() { showOverlay('palette'); },

@@ -164,7 +164,25 @@ named profile cannot export its Favorites, tabs, or favicon sidecar through
 that pre-existing consent. Tab Sync remains the Personal primary workspace
 only. The native Profiles menu can create a new named window or reopen an
 existing profile; the Island and native window title show the active profile
-name. Renaming and deletion remain separate destructive-lifecycle work.
+name.
+
+## Named-profile lifecycle decision
+
+Settings now exposes the device-local profile list and the native Profiles
+menu links to that management surface. Personal is permanent: it cannot be
+renamed or deleted. A named profile may be renamed in place; every live window
+with that identity immediately receives the updated title and Island label.
+
+Deletion is intentionally explicit: Settings requires the exact visible
+profile name before main accepts the request. It closes every window in that
+profile, removes all of its saved workspace records, clears normal and private
+partition storage/cache/auth data, and removes its profile-local Favorites,
+history, downloads record, and permission files. Downloaded files remain in
+the location the user chose — a profile record is not authority to delete
+arbitrary files. Device settings, telemetry, Personal, Profile Sync, and every
+other profile are untouched. If that profile is the last live window, Blanc
+opens Personal first so deletion cannot accidentally quit the app on
+Windows/Linux.
 
 ## Tab lifecycle recovery decision
 

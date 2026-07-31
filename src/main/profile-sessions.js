@@ -57,7 +57,19 @@ function createProfileSessionRegistry({ defaultSession, fromPartition }) {
     return [...unique];
   }
 
-  return { normal, private: privateSession, forProfile, all };
+  // Partitions cannot be destroyed while Electron is running, but after a
+  // named profile is deleted they must no longer be reachable through the
+  // registry (or be included in future policy/apply-all loops). Its opaque id
+  // is never reused, so a later create cannot inherit these Session objects.
+  function remove(profileId) {
+    const id = normalizedProfileId(profileId);
+    if (id === DEFAULT_PROFILE_ID) return false;
+    const hadNormal = normalByProfile.delete(id);
+    const hadPrivate = privateByProfile.delete(id);
+    return hadNormal || hadPrivate;
+  }
+
+  return { normal, private: privateSession, forProfile, all, remove };
 }
 
 module.exports = {

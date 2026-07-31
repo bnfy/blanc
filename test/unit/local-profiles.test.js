@@ -51,3 +51,17 @@ test('a newer profile registry is read-only and profile creation has a hard cap'
   const capped = createLocalProfileManager({ store: fakeStore({ version: 1, profiles }) });
   assert.throws(() => capped.create('One more'), /up to/);
 });
+
+test('the profile manager updates a named identity without touching Personal', () => {
+  const store = fakeStore();
+  const manager = createLocalProfileManager({ store, makeId: () => 'work', now: () => 1 });
+  const work = manager.create('Work');
+
+  assert.equal(manager.rename(work.id, 'Studio').name, 'Studio');
+  assert.equal(manager.get(work.id).name, 'Studio');
+  assert.equal(manager.remove(work.id).id, work.id);
+  assert.equal(manager.get(work.id), null);
+  assert.equal(manager.get('default').name, 'Personal');
+  assert.throws(() => manager.remove('default'), /Personal cannot/);
+  assert.equal(store.updates, 3);
+});

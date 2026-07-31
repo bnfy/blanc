@@ -39,3 +39,17 @@ test('profile sessions cache independently without creating a default persistent
   ]);
   assert.equal(registry.all().length, 3);
 });
+
+test('deleting a named profile removes both of its cached sessions', () => {
+  const defaultSession = { name: 'default' };
+  const registry = createProfileSessionRegistry({
+    defaultSession,
+    fromPartition: (partition) => ({ partition }),
+  });
+  registry.forProfile('work');
+
+  assert.equal(registry.remove('work'), true);
+  assert.deepEqual(registry.all(), [defaultSession]);
+  assert.equal(registry.remove('work'), false);
+  assert.equal(registry.remove('default'), false);
+});

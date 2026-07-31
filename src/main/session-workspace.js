@@ -147,6 +147,22 @@ function removeWorkspaceWindow(workspace, id) {
   };
 }
 
+function removeProfileWorkspaces(workspace, profileId) {
+  const parsed = readSessionWorkspace(workspace);
+  if (!parsed.supported || !validProfileId(profileId) || profileId === DEFAULT_PROFILE_ID) {
+    return parsed.workspace;
+  }
+  const windows = parsed.workspace.windows.filter((windowState) => windowState.profileId !== profileId);
+  const activeWindowId = windows.some((windowState) => windowState.id === parsed.workspace.activeWindowId)
+    ? parsed.workspace.activeWindowId
+    : windows[0]?.id ?? PRIMARY_WINDOW_ID;
+  return {
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId,
+    windows,
+  };
+}
+
 function replaceObject(target, next) {
   for (const key of Object.keys(target)) delete target[key];
   Object.assign(target, next);
@@ -161,5 +177,6 @@ module.exports = {
   activeWorkspaceWindow,
   replaceWorkspaceWindow,
   removeWorkspaceWindow,
+  removeProfileWorkspaces,
   replaceObject,
 };

@@ -5,6 +5,11 @@ const { When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
 
 When('I close a Personal tab and open a named local profile window', async function () {
+  // Earlier scenarios can intentionally leave a secondary Personal window
+  // alive. This contract exercises the permanent primary workspace's recovery
+  // stack, so bind the setup to it rather than whichever window happened to
+  // hold native focus after the previous scenario.
+  assert.equal(await this.call('focusWindow', 'primary'), true);
   this.personalRecoveryUrl = this.fixtureUrl('personal-recovery');
   const personalTab = await this.call('openTab', this.personalRecoveryUrl);
   await this.call('closeTab', personalTab);

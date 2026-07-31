@@ -42,7 +42,12 @@ const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
-const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
+const {
+  setupDownloads,
+  downloadsActivity,
+  acknowledgeDownloads,
+  discardProfileDownloads,
+} = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
 const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
@@ -50,7 +55,7 @@ const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu } = require('./bookmark-data');
 const history = require('./history');
-const { JsonStore } = require('./store');
+const { JsonStore, discardProfileStoreEntries } = require('./store');
 const { persistableEntries } = require('./session-snapshot');
 const { filterRestoredSession } = require('./session-restore');
 const {
@@ -59,6 +64,7 @@ const {
   activeWorkspaceWindow,
   replaceWorkspaceWindow,
   removeWorkspaceWindow,
+  removeProfileWorkspaces,
   replaceObject,
 } = require('./session-workspace');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
@@ -1326,6 +1332,19 @@ function removePersistedWorkspace(runtimeId) {
     }
     replaceObject(data, removeWorkspaceWindow(parsed.workspace, runtimeId));
   });
+}
+
+function removePersistedProfileWorkspaces(profileId) {
+  if (isQuitting || sessionPersistenceSuspended || sessionPersistenceReadOnly) return false;
+  ensureSessionStore().update((data) => {
+    const parsed = readSessionWorkspace(data);
+    if (!parsed.supported) {
+      sessionPersistenceReadOnly = true;
+      return;
+    }
+    replaceObject(data, removeProfileWorkspaces(parsed.workspace, profileId));
+  });
+  return !sessionPersistenceReadOnly;
 }
 
 function persistSessionForRuntime(runtime) {
@@ -3540,6 +3559,7 @@ function buildMenu() {
       label: 'Profiles',
       submenu: [
         { label: 'New Profile Window', click: () => openNewProfileWindow() },
+        { label: 'Manage Profiles…', click: () => openInternalPage('blanc://settings/') },
         { type: 'separator' },
         ...localProfileItems,
       ],
@@ -3722,7 +3742,7 @@ function createMainWindow({
     minWidth: 640,
     minHeight: 480,
     backgroundColor: chromeBackgroundColor(),
-    title: profileId === DEFAULT_PROFILE_ID ? 'Blanc' : `Blanc — ${profile?.name ?? 'Profile'}`,
+    title: profileWindowTitle(profile),
     frame: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
@@ -3782,12 +3802,18 @@ function createMainWindow({
     // Secondary windows own independent tab lifecycles. The primary keeps its
     // tabs for the macOS dock-reopen behavior; closing a secondary window is
     // an explicit user close, so its tabs and persisted workspace end here.
-    if (!isQuitting && closingRuntime.id !== PRIMARY_WINDOW_ID) {
+    // A confirmed profile deletion is terminal even for a hand-edited or
+    // restored named primary workspace — it must never retain a dock-reopen
+    // path into data that the deletion is clearing.
+    if (deletingProfileIds.has(closingRuntime.profileId) || (!isQuitting && closingRuntime.id !== PRIMARY_WINDOW_ID)) {
       for (const tabId of [...closingRuntime.tabOrder]) {
         closeTab(tabId, { recordForReopen: false });
       }
       removePersistedWorkspace(closingRuntime.id);
       windowRuntimeRegistry.discard(closingRuntime.id, closingWindow);
+      if (deletingProfileIds.has(closingRuntime.profileId) && primaryWindowRuntime === closingRuntime) {
+        primaryWindowRuntime = null;
+      }
     } else if (closingRuntime) {
       windowRuntimeRegistry.detach(closingRuntime.id, closingWindow);
     }
@@ -3846,6 +3872,126 @@ function openNewProfileWindow(name) {
   openNewWindow({ profileId: profile.id });
   scheduleMenuRebuild();
   return profile;
+}
+
+function createNamedLocalProfileWindow(name) {
+  try {
+    return { ok: true, profile: openNewProfileWindow(name) };
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t create that profile.' };
+  }
+}
+
+function openExistingProfileWindow(profileId) {
+  const profile = localProfiles.getLocalProfile(profileId);
+  if (!profile) return null;
+  return openNewWindow({ profileId: profile.id });
+}
+
+function profileWindowTitle(profile) {
+  return profile?.id === DEFAULT_PROFILE_ID ? 'Blanc' : `Blanc — ${profile?.name ?? 'Profile'}`;
+}
+
+function refreshProfilePresentation(profile) {
+  forEachLiveWindowRuntime((runtime) => {
+    if (runtime.profileId !== profile.id) return;
+    runtime.browserWindow.setTitle(profileWindowTitle(profile));
+    broadcastTabs();
+  });
+  scheduleMenuRebuild();
+}
+
+function renameNamedLocalProfile(profileId, name) {
+  try {
+    const profile = localProfiles.renameLocalProfile(profileId, name);
+    if (!profile) return { ok: false, message: 'That profile no longer exists.' };
+    refreshProfilePresentation(profile);
+    return { ok: true, profile };
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t rename that profile.' };
+  }
+}
+
+function namedProfileDataDirectory(profileId) {
+  if (profileId === DEFAULT_PROFILE_ID) throw new Error('Personal cannot be deleted');
+  const root = path.resolve(app.getPath('userData'), 'profiles');
+  const target = path.resolve(root, profileId);
+  if (path.dirname(target) !== root) throw new Error('Invalid local profile data path');
+  return target;
+}
+
+async function destroyProfileWindow(runtime) {
+  const browserWindow = runtime.browserWindow;
+  if (!browserWindow || browserWindow.isDestroyed()) return;
+  await new Promise((resolve) => {
+    browserWindow.once('closed', resolve);
+    // Profile deletion was explicitly confirmed. A site's beforeunload dialog
+    // must not be able to retain a profile whose cookies and records are being
+    // erased, so use the same terminal lifecycle as a process shutdown.
+    browserWindow.destroy();
+  });
+}
+
+async function clearNamedProfileSessions(profileId) {
+  const { normal, private: privateSession } = browsingSessionsForProfile(profileId);
+  const sessions = [normal, privateSession];
+  await Promise.all(sessions.flatMap((browsingSession) => [
+    browsingSession.clearStorageData(),
+    browsingSession.clearCache(),
+    browsingSession.clearAuthCache(),
+  ]));
+}
+
+const deletingProfileIds = new Set();
+async function deleteNamedLocalProfile(profileId, confirmation) {
+  const profile = localProfiles.getLocalProfile(profileId);
+  if (!profile || profile.id === DEFAULT_PROFILE_ID) {
+    return { ok: false, message: 'Only a named profile can be deleted.' };
+  }
+  if (confirmation !== profile.name) {
+    return { ok: false, message: `Type “${profile.name}” exactly to delete this profile.` };
+  }
+  if (sessionPersistenceReadOnly) {
+    return { ok: false, message: 'This Blanc build cannot safely remove a newer saved workspace.' };
+  }
+  if (deletingProfileIds.has(profile.id)) {
+    return { ok: false, message: 'That profile is already being deleted.' };
+  }
+
+  deletingProfileIds.add(profile.id);
+  try {
+    // On Windows/Linux, closing the final BrowserWindow quits the app. Always
+    // create a Personal window first when this profile is the last live one.
+    const hasSurvivingWindow = windowRuntimeRegistry.all().some((runtime) =>
+      runtime.profileId !== profile.id &&
+      runtime.browserWindow &&
+      !runtime.browserWindow.isDestroyed());
+    if (!hasSurvivingWindow) openNewWindow({ profileId: DEFAULT_PROFILE_ID });
+
+    const runtimes = windowRuntimeRegistry.all()
+      .filter((runtime) => runtime.profileId === profile.id);
+    await Promise.all(runtimes.map(destroyProfileWindow));
+
+    // clearStorageData removes cookies, local/session storage, IndexedDB,
+    // service workers, and other partition state; cache/auth are separate
+    // Electron stores. The profile's downloaded files are intentionally left
+    // in the user's chosen download location.
+    await clearNamedProfileSessions(profile.id);
+    discardProfileDownloads(profile.id);
+    discardProfileStoreEntries(profile.id);
+    fs.rmSync(namedProfileDataDirectory(profile.id), { recursive: true, force: true });
+    if (!removePersistedProfileWorkspaces(profile.id)) {
+      throw new Error('Couldn’t remove this profile’s saved workspaces.');
+    }
+    profileSessionRegistry?.remove(profile.id);
+    localProfiles.removeLocalProfile(profile.id);
+    scheduleMenuRebuild();
+    return { ok: true, profile };
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t delete that profile.' };
+  } finally {
+    deletingProfileIds.delete(profile.id);
+  }
 }
 
 function windowRuntimeSnapshots() {
@@ -4104,6 +4250,16 @@ app.whenReady().then(async () => {
         return { completed: result.completed, error: result.error ?? null };
       },
     },
+    profiles: {
+      list: () => ({
+        currentId: profileIdForCurrentRuntime(),
+        profiles: localProfiles.listLocalProfiles(),
+      }),
+      create: createNamedLocalProfileWindow,
+      open: openExistingProfileWindow,
+      rename: renameNamedLocalProfile,
+      remove: deleteNamedLocalProfile,
+    },
     shortcuts: { list: listShortcuts },
   });
 
@@ -4153,7 +4309,10 @@ app.whenReady().then(async () => {
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
       openGlance, closeGlance, getGlanceTabId: () => currentWorkspaceRuntime()?.glanceTabId ?? null,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
-      openNewWindow, openNewProfileWindow, windowRuntimeSnapshots, tabSessionInfo,
+      openNewWindow, openNewProfileWindow, openExistingProfileWindow,
+      renameNamedLocalProfile, deleteNamedLocalProfile,
+      listLocalProfiles: () => localProfiles.listLocalProfiles(),
+      windowRuntimeSnapshots, tabSessionInfo,
       closeWindowRuntime, focusWindowRuntime, persistedWorkspaceIds,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,

@@ -7,6 +7,8 @@ const {
   emptyLocalProfiles,
   readLocalProfiles,
   addLocalProfile,
+  renameLocalProfile,
+  removeLocalProfile,
 } = require('../../src/main/local-profile-model');
 
 test('a missing local-profile registry creates the permanent default profile', () => {
@@ -34,4 +36,19 @@ test('a newer local-profile registry remains read-only to this build', () => {
   const parsed = readLocalProfiles({ version: LOCAL_PROFILE_VERSION + 1, profiles: [] });
   assert.equal(parsed.supported, false);
   assert.equal(parsed.registry.profiles[0].id, DEFAULT_PROFILE_ID);
+});
+
+test('named profiles can be renamed and deleted, while Personal remains permanent', () => {
+  const withWork = addLocalProfile(emptyLocalProfiles(), {
+    id: 'profile_work', name: 'Work', createdAt: 12,
+  });
+  const renamed = renameLocalProfile(withWork, 'profile_work', '  Studio   work ');
+
+  assert.equal(renamed.profiles.find((profile) => profile.id === 'profile_work').name, 'Studio work');
+  assert.deepEqual(removeLocalProfile(renamed, 'profile_work').profiles.map((profile) => profile.id), [
+    DEFAULT_PROFILE_ID,
+  ]);
+  assert.throws(() => renameLocalProfile(renamed, DEFAULT_PROFILE_ID, 'Mine'), /named local profile/);
+  assert.throws(() => removeLocalProfile(renamed, DEFAULT_PROFILE_ID), /Personal cannot/);
+  assert.throws(() => renameLocalProfile(renamed, 'profile_work', '   '), /name is required/);
 });

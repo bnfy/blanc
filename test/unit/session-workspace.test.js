@@ -8,6 +8,7 @@ const {
   activeWorkspaceWindow,
   replaceWorkspaceWindow,
   removeWorkspaceWindow,
+  removeProfileWorkspaces,
 } = require('../../src/main/session-workspace');
 
 test('legacy flat session migrates losslessly into the primary workspace', () => {
@@ -114,6 +115,23 @@ test('closing a secondary workspace removes it without dropping the primary', ()
   assert.equal(next.activeWindowId, 'primary');
   assert.deepEqual(next.windows.map((windowState) => windowState.id), ['primary']);
   assert.equal(removeWorkspaceWindow(first, 'primary').windows.length, 2);
+});
+
+test('deleting a named profile removes every one of its saved workspaces', () => {
+  const first = readSessionWorkspace({
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: 'studio-two',
+    windows: [
+      { id: 'primary', profileId: 'default', urls: ['https://personal.example/'] },
+      { id: 'studio-one', profileId: 'profile_studio', urls: ['https://one.example/'] },
+      { id: 'studio-two', profileId: 'profile_studio', urls: ['https://two.example/'] },
+    ],
+  }).workspace;
+
+  const next = removeProfileWorkspaces(first, 'profile_studio');
+  assert.deepEqual(next.windows.map((windowState) => windowState.id), ['primary']);
+  assert.equal(next.activeWindowId, 'primary');
+  assert.equal(removeProfileWorkspaces(first, 'default').windows.length, 3);
 });
 
 test('newer session records are preserved rather than downgraded', () => {

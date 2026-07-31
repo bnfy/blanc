@@ -79,6 +79,39 @@ function addLocalProfile(registry, profile) {
   };
 }
 
+function renameLocalProfile(registry, id, name) {
+  const parsed = readLocalProfiles(registry);
+  if (!parsed.supported) return parsed.registry;
+  if (!validProfileId(id) || id === DEFAULT_PROFILE_ID) {
+    throw new Error('Only a named local profile can be renamed');
+  }
+  const nextName = normalizeProfileName(name, '');
+  if (!nextName) throw new Error('A profile name is required');
+  let found = false;
+  const profiles = parsed.registry.profiles.map((profile) => {
+    if (profile.id !== id) return profile;
+    found = true;
+    return { ...profile, name: nextName };
+  });
+  if (!found) throw new Error('Unknown local profile');
+  return { version: LOCAL_PROFILE_VERSION, profiles };
+}
+
+function removeLocalProfile(registry, id) {
+  const parsed = readLocalProfiles(registry);
+  if (!parsed.supported) return parsed.registry;
+  if (!validProfileId(id) || id === DEFAULT_PROFILE_ID) {
+    throw new Error('Personal cannot be deleted');
+  }
+  if (!parsed.registry.profiles.some((profile) => profile.id === id)) {
+    throw new Error('Unknown local profile');
+  }
+  return {
+    version: LOCAL_PROFILE_VERSION,
+    profiles: parsed.registry.profiles.filter((profile) => profile.id !== id),
+  };
+}
+
 module.exports = {
   LOCAL_PROFILE_VERSION,
   DEFAULT_PROFILE_ID,
@@ -89,4 +122,6 @@ module.exports = {
   emptyLocalProfiles,
   readLocalProfiles,
   addLocalProfile,
+  renameLocalProfile,
+  removeLocalProfile,
 };
