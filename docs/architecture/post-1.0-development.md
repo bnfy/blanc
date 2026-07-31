@@ -82,3 +82,19 @@ Main-frame certificate failures are rejected and routed to a dedicated
 is deliberately no bypass path or trust exception. This milestone does not yet
 claim phishing/malware reputation protection; a deceptive-site threat feed and
 its update/failure policy remain the next independent security slice.
+
+## Versioned workspace decision
+
+The single-window app persists through a versioned workspace record before a
+second BrowserWindow is exposed. The legacy flat tab-session fields become the
+primary workspace, preserving URL order, group membership, pins, collapsed
+state, and the active tab. The current process owns only that primary workspace,
+but its read/write path preserves other named workspaces already present in the
+record instead of flattening or discarding them.
+
+Migration and normalization live in the pure session-workspace module and are
+fixture-tested. A session created by a newer schema version is treated as
+read-only by an older process: Blanc opens an ephemeral primary workspace and
+does not overwrite the unrecognized file. The next slice can therefore add a
+window registry, per-window chrome/overlay/sheet views, and explicit tab
+ownership without another storage-format break.

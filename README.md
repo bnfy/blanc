@@ -202,9 +202,11 @@ the app small.
 **Persistence** is deliberately boring: one JSON file per store
 (`settings.json`, `bookmarks.json`, `history.json`, `downloads.json`,
 `session.json`, `site-permissions.json`) in userData, written through a
-shared debounced `JsonStore`. History is capped at 5000 entries, the
-download log at 200. Open tabs are restored on the next launch — private
-tabs excepted.
+shared debounced `JsonStore`. Session state is versioned as named window
+workspaces; existing flat sessions migrate into the primary workspace before
+multi-window support adds more owners. History is capped at 5000 entries, the
+download log at 200. Open tabs are restored on the next launch — private tabs
+excepted.
 
 **Theming:** one green identity in two lights — bone by day, charcoal by
 night, pine (deep) or sage (bright) as the accent depending on which —

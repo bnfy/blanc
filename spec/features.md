@@ -295,9 +295,12 @@ From the desktop `DEFAULTS`:
 - On relaunch, restore open tabs **and** groups (parallel `groupIds`). **Private
   tabs are excluded** from the file; groups referenced only by private tabs are not
   persisted.
-- The desktop shape is `session.json` (`urls` + parallel `groupIds` + `groups`);
-  mobile uses its platform store but preserves the same **logical** shape and
-  restore behaviour (D8 for eviction/restore of live web views).
+- The desktop record is a versioned session workspace. Each window owns the
+  familiar URLs + parallel groupIds/pinned + groups shape; the first workspace
+  is named primary. Legacy flat session records migrate losslessly into that
+  primary workspace before any future multi-window state is added. Mobile uses
+  its platform store but preserves the same **logical** shape and restore
+  behaviour (D8 for eviction/restore of live web views).
 - **Acceptance:** With 2 groups and a private tab open, relaunch restores both
   groups and their tabs and does **not** restore the private tab.
 

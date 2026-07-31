@@ -52,6 +52,13 @@ const history = require('./history');
 const { JsonStore } = require('./store');
 const { persistableEntries } = require('./session-snapshot');
 const { filterRestoredSession } = require('./session-restore');
+const {
+  PRIMARY_WINDOW_ID,
+  readSessionWorkspace,
+  activeWorkspaceWindow,
+  replaceWorkspaceWindow,
+  replaceObject,
+} = require('./session-workspace');
 const { isUtilityUrl } = require('./utility-pages');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
 const { setupWebAuthn } = require('./webauthn');
@@ -1021,11 +1028,14 @@ function serializeTabs() {
     });
 }
 
-// Open tabs persist across launches (restored in app.whenReady).
-// `groupIds` is parallel to `urls` (null = ungrouped); `groups` holds the
-// group records those ids point at.
+// Open tabs persist across launches through a versioned workspace record. Each
+// window carries URLs plus parallel group/pin metadata and group records.
+// This initial slice owns the primary window; future windows keep separate
+// records instead of sharing a flat global session.
 let sessionStore = null;
-const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [] }));
+let sessionPersistenceReadOnly = false;
+let activeWorkspaceWindowId = PRIMARY_WINDOW_ID;
+const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', {}));
 
 // Rolling ads-blocked counter for the start page's margin note. Weeks
 // start Monday 00:00 local; the count resets lazily on the first touch
@@ -1054,17 +1064,32 @@ app.on('before-quit', () => { isQuitting = true; });
 function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
   // file down to whatever closed last before the process exits.
-  if (isQuitting || sessionPersistenceSuspended || tabs.size === 0) return;
+  if (isQuitting || sessionPersistenceSuspended || sessionPersistenceReadOnly || tabs.size === 0) return;
   ensureSessionStore().update((d) => {
+    const parsed = readSessionWorkspace(d);
+    if (!parsed.supported) {
+      // A newer Blanc understood this file first. Preserve it verbatim rather
+      // than replacing its windows with this older process's one window.
+      sessionPersistenceReadOnly = true;
+      return;
+    }
+    const previous = parsed.workspace.windows.find((windowState) =>
+      windowState.id === activeWorkspaceWindowId
+    ) ?? activeWorkspaceWindow(parsed.workspace);
     // Private tabs leave no trail, error pages persist their real
     // destination, url-less tabs drop — all in session-snapshot.js so tab
     // sync shares the exact same filter.
     const entries = persistableEntries(tabOrder.map((id) => tabs.get(id)));
-    d.urls = entries.map((e) => e.url);
-    d.groupIds = entries.map((e) => e.groupId);
-    d.pinned = entries.map((e) => e.pinned);
+    const nextWindow = {
+      ...previous,
+      id: activeWorkspaceWindowId,
+      urls: entries.map((e) => e.url),
+      groupIds: entries.map((e) => e.groupId),
+      pinned: entries.map((e) => e.pinned),
+      activeIndex: previous.activeIndex,
+    };
     // Groups referenced only by private tabs stay out of the file too.
-    d.groups = groups.filter((g) => entries.some((e) => e.groupId === g.id));
+    nextWindow.groups = groups.filter((g) => entries.some((e) => e.groupId === g.id));
     // Only update when the active tab is actually in the persisted list —
     // during startup (no active tab yet) or with a private tab active,
     // indexOf is -1 and writing 0 would corrupt the last good index.
@@ -1075,7 +1100,8 @@ function persistSession() {
     // the wrong tab. -1 (startup, private or url-less active tab) keeps
     // the last good index, as before.
     const idx = entries.findIndex((e) => e.id === activeTabId);
-    if (idx >= 0) d.activeIndex = idx;
+    if (idx >= 0) nextWindow.activeIndex = idx;
+    replaceObject(d, replaceWorkspaceWindow(parsed.workspace, nextWindow));
   });
 }
 
@@ -3608,7 +3634,15 @@ app.whenReady().then(async () => {
 
   // Snapshot the previous session before the local startup tab exists. Tab
   // broadcasts are temporarily prevented from overwriting this snapshot.
-  const saved = structuredClone(ensureSessionStore().data);
+  const storedWorkspace = readSessionWorkspace(ensureSessionStore().data);
+  sessionPersistenceReadOnly = !storedWorkspace.supported;
+  if (sessionPersistenceReadOnly) {
+    console.warn('[session] newer workspace version found; leaving session.json untouched');
+  } else if (storedWorkspace.migrated) {
+    ensureSessionStore().update((data) => replaceObject(data, storedWorkspace.workspace));
+  }
+  const saved = structuredClone(activeWorkspaceWindow(storedWorkspace.workspace));
+  activeWorkspaceWindowId = saved.id;
   const cleaned = filterRestoredSession(saved, isUtilityUrl);
   saved.urls = cleaned.urls;
   saved.groupIds = cleaned.groupIds;
