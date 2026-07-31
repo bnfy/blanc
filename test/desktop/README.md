@@ -85,9 +85,9 @@ scenarios drivable purely through main-process state or pure app logic:
 | F12-3 | ad-block global toggle |
 | F14-1..F14-4 | settings validation + device-local search-suggestion opt-out |
 | F16-2..F16-7 | utility-sheet routing, isolation, actions, and toggle behavior |
-| F17-1 | supporter unlock → app icon applied |
+| F17-1, F17-2 | supporter unlock and locked-colorway fallback |
 
-Run `npm run test:acceptance:dry` — **78 scenarios, 468 steps, 0 undefined**
+Run `npm run test:acceptance:dry` — **79 scenarios, 472 steps, 0 undefined**
 (Scenario Outlines expand per example: F5-2 → 4 rows, F7-2 → 3).
 
 The **`default`** profile (`not @mobile`) selects the whole desktop-applicable

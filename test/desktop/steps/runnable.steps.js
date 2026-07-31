@@ -342,6 +342,23 @@ Then('the effective app icon is {string}', async function (x) {
   assert.strictEqual(await this.call('appIcon'), x);
 });
 
+Then('the supporter colorways are shown as locked', async function () {
+  await this.call('openSettings');
+  const icons = await waitForValue(
+    () => this.call('readSettingsIconDom'),
+    (items) => Array.isArray(items) && ['ember', 'plum', 'gold'].every((id) =>
+      items.some((item) => item.id === id && item.locked)),
+    'locked supporter colorways in Settings'
+  );
+  assert.equal(icons.filter((item) => item.locked).length, 3);
+});
+
+Then('selecting one leaves the app icon at {string}', async function (icon) {
+  assert.equal(await this.call('clickSettingsIcon', 'ember'), true,
+    'the locked Ember colorway should be rendered as a selectable control');
+  assert.equal(await this.call('appIcon'), icon);
+});
+
 Then('the ad-block exceptions contain {string}', async function (h) {
   const ex = await this.call('exceptions');
   assert.ok(ex.includes(h.toLowerCase()), `exceptions ${JSON.stringify(ex)} should contain ${h.toLowerCase()}`);

@@ -419,6 +419,26 @@ function install(refs) {
         actions: [...document.querySelectorAll('#profilesList button')].map((node) => node.textContent),
       }))()`);
     },
+    readSettingsIconDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => [...document.querySelectorAll('#appIconGrid .icon-swatch')]
+        .map((node) => ({
+          id: node.dataset.icon,
+          locked: node.classList.contains('locked'),
+          selected: node.classList.contains('active'),
+        })))()`);
+    },
+    clickSettingsIcon(id) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const icon = document.querySelector(${JSON.stringify(`#appIconGrid .icon-swatch[data-icon="${String(id)}"]`)});
+        if (!icon) return false;
+        icon.click();
+        return true;
+      })()`);
+    },
     openFind() { openFindBar(); },
     openPanel() { showOverlay('panel'); },
     openPalette() { showOverlay('palette'); },
