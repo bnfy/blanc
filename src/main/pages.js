@@ -98,7 +98,7 @@ function setupPages(hooks = {}) {
     if (!trusted) {
       throw new Error(`pages:surface:close: denied for ${event.senderFrame?.url ?? event.sender.getURL()}`);
     }
-    hooks.utilitySheet.close();
+    hooks.utilitySheet.close(event.sender);
   });
 
   handle('pages:bookmarks:list', () => bookmarks.listBookmarks());

@@ -90,3 +90,34 @@ test('a runtime cannot be attached to a second live BrowserWindow', () => {
     /already attached/
   );
 });
+
+test('chrome surfaces resolve only to their owning runtime', () => {
+  const registry = createWindowRuntimeRegistry();
+  const chromeOne = {};
+  const chromeTwo = {};
+  const overlayOne = { webContents: {} };
+  const sheetTwo = { webContents: {} };
+  const one = registry.register({ id: 'one', browserWindow: { webContents: chromeOne } });
+  const two = registry.register({ id: 'two', browserWindow: { webContents: chromeTwo } });
+
+  registry.setOverlay('one', { view: overlayOne });
+  registry.setUtilitySheet('two', { view: sheetTwo });
+
+  assert.equal(registry.getByBrowserWindow(one.browserWindow), one);
+  assert.equal(registry.getByChromeWebContents(chromeOne), one);
+  assert.equal(registry.getByChromeWebContents(overlayOne.webContents), one);
+  assert.equal(registry.getByChromeWebContents(chromeTwo), two);
+  assert.equal(registry.getByChromeWebContents(sheetTwo.webContents), two);
+  assert.equal(registry.getByChromeWebContents({}), null);
+});
+
+test('detaching a window removes its native ownership lookup', () => {
+  const registry = createWindowRuntimeRegistry();
+  const browserWindow = { webContents: {} };
+  registry.register({ id: 'one', browserWindow });
+
+  registry.detach('one', browserWindow);
+
+  assert.equal(registry.getByBrowserWindow(browserWindow), null);
+  assert.equal(registry.getByChromeWebContents(browserWindow.webContents), null);
+});

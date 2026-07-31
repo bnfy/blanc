@@ -31,6 +31,11 @@ function createRuntime(id, browserWindow) {
 function createWindowRuntimeRegistry() {
   const runtimes = new Map();
   const tabOwners = new Map();
+  // BrowserWindow owns the chrome document, while the overlay and sheet are
+  // sibling WebContentsViews. Keep their association in the runtime rather
+  // than trusting an IPC payload to name a window. A future second window can
+  // therefore only operate on the runtime that actually owns its sender.
+  const windowOwners = new WeakMap();
 
   function requireRuntime(id) {
     const runtime = runtimes.get(id);
@@ -46,7 +51,11 @@ function createWindowRuntimeRegistry() {
       throw new Error('Window runtime is already attached: ' + id);
     }
     const runtime = existing ?? createRuntime(id, browserWindow);
+    if (runtime.browserWindow && runtime.browserWindow !== browserWindow) {
+      windowOwners.delete(runtime.browserWindow);
+    }
     runtime.browserWindow = browserWindow;
+    windowOwners.set(browserWindow, runtime);
     runtimes.set(id, runtime);
     return runtime;
   }
@@ -57,6 +66,7 @@ function createWindowRuntimeRegistry() {
   function detach(id, browserWindow) {
     const runtime = requireRuntime(id);
     if (browserWindow && runtime.browserWindow !== browserWindow) return null;
+    if (runtime.browserWindow) windowOwners.delete(runtime.browserWindow);
     runtime.browserWindow = null;
     runtime.overlayView = null;
     runtime.overlayMode = null;
@@ -120,6 +130,28 @@ function createWindowRuntimeRegistry() {
     return runtimes.get(id) ?? null;
   }
 
+  function getByBrowserWindow(browserWindow) {
+    return (browserWindow && windowOwners.get(browserWindow)) ?? null;
+  }
+
+  // Chrome IPC is valid only from the BrowserWindow's own renderer or its
+  // registered overlay. Utility sheets are included so their guarded close
+  // action can resolve ownership too, but ordinary tab WebContents are never
+  // classified as trusted chrome by this lookup.
+  function getByChromeWebContents(webContents) {
+    if (!webContents) return null;
+    for (const runtime of runtimes.values()) {
+      if (runtime.browserWindow?.webContents === webContents) return runtime;
+      if (runtime.overlayView?.webContents === webContents) return runtime;
+      if (runtime.utilitySheetView?.webContents === webContents) return runtime;
+    }
+    return null;
+  }
+
+  function all() {
+    return [...runtimes.values()];
+  }
+
   return {
     register,
     detach,
@@ -130,6 +162,9 @@ function createWindowRuntimeRegistry() {
     releaseTab,
     setActiveTab,
     ownerForTab,
+    getByBrowserWindow,
+    getByChromeWebContents,
+    all,
   };
 }
 

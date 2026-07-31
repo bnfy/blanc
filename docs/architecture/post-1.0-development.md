@@ -112,6 +112,23 @@ order, groups, and active-tab selection live on that runtime; only the
 process-wide map that locates native tab resources remains shared. Closing the
 native window detaches only native chrome:
 the runtime retains tab ownership and the selected tab for a macOS dock
-reopen, while the destroyed overlay/sheet references are cleared. The next
-increment will bind BrowserWindow focus, IPC, and menu actions to an explicit
-runtime, remove the remaining primary aliases, then expose New Window.
+reopen, while the destroyed overlay/sheet references are cleared.
+
+## Focused runtime routing decision
+
+Every trusted chrome IPC is resolved from its native sender through the
+registry before its handler runs; no renderer can select another window by
+passing an id. `AsyncLocalStorage` carries that runtime across tab, overlay,
+sheet, and menu callbacks so background activity is broadcast only to its own
+chrome surface. Permission prompts also record their requesting runtime, so an
+answer in one window cannot settle another window's request.
+
+The remaining `win` reference is now a startup/test compatibility alias only;
+runtime-aware operations resolve the focused or callback-bound BrowserWindow.
+This leaves the visible New Window command as a UI and session-restore change,
+rather than a second set of global-state exceptions.
+
+Tab Sync remains deliberately scoped to the primary workspace for now. The
+existing opt-in consent covered one workspace; exporting tabs from additional
+windows would expand the synced browsing-data scope and needs a separate
+product/privacy decision before it is enabled.

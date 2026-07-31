@@ -28,7 +28,7 @@ const ensureStore = () => {
   return store;
 };
 
-/** @type {((req: {origin: string, permission: string, mediaTypes: string[]}) => Promise<boolean | null>) | null} */
+/** @type {((req: {origin: string, permission: string, mediaTypes: string[], webContents: object}) => Promise<boolean | null>) | null} */
 let prompter = null;
 function setPermissionPrompter(fn) { prompter = fn; }
 
@@ -85,7 +85,7 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     }
   };
 
-  session.setPermissionRequestHandler(async (_wc, permission, callback, details) => {
+  session.setPermissionRequestHandler(async (webContents, permission, callback, details) => {
     const requestedMediaTypes = normalizedMediaTypes(details?.mediaTypes);
     // Electron 43 sends getDisplayMedia through a preliminary `media` request
     // with an EMPTY mediaTypes array before invoking the dedicated display
@@ -121,7 +121,11 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     // null = the prompt couldn't be shown (no window). Deny for now but
     // DON'T persist it, or a transient no-window moment would silently
     // block the site forever. Only a real Allow/Block answer is remembered.
-    const allow = await prompter({ origin, permission, mediaTypes });
+    const promptRequest = { origin, permission, mediaTypes };
+    // Electron always supplies the requester. Keep test doubles and legacy
+    // collaborators shape-compatible when they intentionally omit it.
+    if (webContents) promptRequest.webContents = webContents;
+    const allow = await prompter(promptRequest);
     if (allow === null) return callback(false);
     saveDecision(origin, permission, mediaTypes, allow);
     callback(allow);
