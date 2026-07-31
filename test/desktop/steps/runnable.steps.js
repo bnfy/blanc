@@ -28,6 +28,18 @@ Given('tabs open on {string} and {string}', async function (a, b) {
   await openNamed(this, b);
 });
 
+Given('{int} tabs are open', async function (count) {
+  assert.equal(count, 2, 'the desktop F1-2 binding currently exercises two tabs');
+  const initialId = (await this.state()).activeTabId;
+  ctx.paletteTabIds = [];
+  for (let index = 1; index <= count; index += 1) {
+    ctx.paletteTabIds.push(await this.call('openTab', this.fixtureUrl(`palette-${index}`)));
+  }
+  await this.call('closeTab', initialId);
+  await this.waitForState((state) =>
+    state.tabs.length === count && ctx.paletteTabIds.every((id) => state.tabs.some((tab) => tab.id === id)));
+});
+
 Given('the active tab has no group', async function () { await openNamed(this, 'plain'); });
 
 Given('the active tab is in a group named {string}', async function (name) {
@@ -38,6 +50,31 @@ Given('the active tab is in a group named {string}', async function (name) {
 Given('a group {string} with 1 tab', async function (name) {
   await openNamed(this, `${name}-1`);
   await this.call('groupActiveByName', name);
+});
+
+Given('a group named {string} with {int} tabs', async function (name, count) {
+  assert.ok(count > 0, 'a group must have at least one tab');
+  ctx.groupTabIds = [];
+  for (let index = 1; index <= count; index += 1) {
+    const id = await this.call('openTab', this.fixtureUrl(`${name}-${index}`));
+    await this.call('groupTabByName', id, name);
+    ctx.groupTabIds.push(id);
+  }
+});
+
+Given('the active tab is in {string} on a page where {int} requests were blocked', async function (name, count) {
+  const state = await this.state();
+  const group = state.groups.find((candidate) => candidate.name === name.toLowerCase());
+  const tab = state.tabs.find((candidate) => candidate.groupId === group?.id);
+  assert.ok(tab, `group ${name} should have a tab to make active`);
+  const url = this.fixtureUrl(`${name}-active`);
+  ctx.activeIslandUrl = url;
+  await this.call('activateTab', tab.id, false);
+  assert.equal(await this.call('navigateActiveTab', url), true,
+    'the active grouped tab should accept the fixture navigation');
+  await this.waitForState((next) => next.tabs.some((candidate) =>
+    candidate.id === tab.id && candidate.loadedUrl === url && candidate.loading === false), { timeout: 15000 });
+  assert.equal(await this.call('setTabPresentation', tab.id, { blockedCount: count }), true);
 });
 
 Given('history has at least one entry', async function () { await this.call('seedHistory'); });
@@ -121,6 +158,7 @@ When('I activate the {string} chip', async function (name) {
 });
 
 When('I reopen the last closed tab', async function () { await this.call('reopenClosed'); });
+When('the island is at rest', async function () { await this.call('closeOverlay'); });
 When('I duplicate the active tab', async function () { await this.call('duplicateActive'); });
 When('I pin {string}', async function (name) { await this.call('pinTab', ctx.tabByName[name]); });
 When('I open a new tab', async function () { ctx.lastNewTabId = await this.call('newTab'); });
@@ -417,6 +455,91 @@ Then('the new tab is private', async function () {
   const child = state.tabs.find((tab) => tab.id === ctx.privateChildTabId);
   assert.equal(child?.private, true, 'a child opened from a private tab must remain private');
   assert.equal(child?.sessionKind, 'private', 'the child must use the private session');
+});
+
+Then('the command bar is shown over the page content', async function () {
+  const [bounds, panel, guest] = await Promise.all([
+    this.call('overlayBounds'),
+    waitForValue(
+      () => this.call('overlayElementRect', '#islandPanel'),
+      (rect) => rect && rect.width > 0 && rect.height > 0,
+      'the visible expanded island panel'
+    ),
+    this.call('activeGuestBounds'),
+  ]);
+  assert.ok(bounds && guest, 'the overlay and active guest must both be attached');
+  assert.equal(bounds.y, 0, 'the palette overlay starts at the window top');
+  assert.ok(bounds.height > guest.height && guest.y > bounds.y,
+    'the overlay extends over the guest page instead of reserving layout space above it');
+  assert.ok(panel.y >= 0 && panel.y < bounds.height,
+    'the command bar must render inside the overlay');
+});
+
+Then('the list area shows the tab switcher', async function () {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => Array.isArray(items) && items.length === ctx.paletteTabIds.length &&
+      items.some((item) => item.active),
+    'one rendered switcher row per open tab'
+  );
+  assert.equal(rows.length, ctx.paletteTabIds.length);
+});
+
+Then('the island shows back and forward controls', async function () {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.navTitles.includes('Back') && state.navTitles.includes('Forward'),
+    'the Island navigation controls'
+  );
+  assert.deepEqual(island.navTitles, ['Back', 'Forward']);
+});
+
+Then('the island shows {int} group dots', async function (count) {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.dotCount === count,
+    `${count} Island group dots`
+  );
+  assert.equal(island.dotCount, count);
+});
+
+Then('the island shows the group name {string}', async function (name) {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.groupName === `${name.toLowerCase()} ·`,
+    `the ${name} group name in the Island`
+  );
+  assert.equal(island.groupName, `${name.toLowerCase()} ·`);
+});
+
+Then("the island shows the active page's domain", async function () {
+  const expectedDomain = new URL(ctx.activeIslandUrl).host;
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.domain === expectedDomain,
+    'the active page domain in the Island'
+  );
+  assert.equal(island.domain, expectedDomain);
+});
+
+Then('the island shows a shield count of {int}', async function (count) {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.shieldCount === String(count),
+    `the Island shield count of ${count}`
+  );
+  assert.equal(island.shieldCount, String(count));
+});
+
+Then('the island shows the trailing action cluster', async function () {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.actionTitles.includes('Reload') &&
+      state.actionTitles.some((title) => /favorite/i.test(title)),
+    'the Island trailing action cluster'
+  );
+  assert.ok(island.actionTitles.includes('Reload'));
+  assert.ok(island.actionTitles.some((title) => /favorite/i.test(title)));
 });
 
 // NOTE: `/` is the alternation operator in Cucumber Expressions, so the literal

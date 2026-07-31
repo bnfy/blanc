@@ -124,6 +124,9 @@ Before(async function () {
   ctx.privateTabId = null;
   ctx.privateVisitUrl = null;
   ctx.privateChildTabId = null;
+  ctx.paletteTabIds = null;
+  ctx.groupTabIds = null;
+  ctx.activeIslandUrl = null;
   ctx.enteredInput = null;
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;

@@ -217,6 +217,9 @@ function install(refs) {
       if (typeof patch.title === 'string') tab.title = patch.title;
       if (typeof patch.favicon === 'string' || patch.favicon === null) tab.favicon = patch.favicon;
       if (typeof patch.isLoading === 'boolean') tab.isLoading = patch.isLoading;
+      if (Number.isInteger(patch.blockedCount) && patch.blockedCount >= 0) {
+        tab.blockedCount = patch.blockedCount;
+      }
       if (typeof patch.audible === 'boolean') tab.audible = patch.audible;
       if (typeof patch.muted === 'boolean') {
         tab.muted = patch.muted;
@@ -448,6 +451,24 @@ function install(refs) {
         theme: document.documentElement.dataset.theme ?? null,
         background: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
       }))()`);
+    },
+    islandChrome() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const group = document.getElementById('pillGroupName');
+        const shield = document.getElementById('pillShield');
+        return {
+          navTitles: [...document.querySelectorAll('#pillNav button')].map((button) => button.title),
+          dotCount: document.querySelectorAll('#pillDots .island-dot').length,
+          groupName: group?.hidden ? '' : (group?.textContent ?? '').trim(),
+          domain: document.getElementById('pillDomain')?.textContent ?? '',
+          shieldCount: shield?.hidden ? null : shield?.textContent ?? null,
+          actionTitles: [...document.querySelectorAll('#pillActions button')]
+            .filter((button) => !button.hidden)
+            .map((button) => button.title),
+        };
+      })()`);
     },
     privateChrome() {
       const wc = getChromeWebContents();

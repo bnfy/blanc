@@ -74,6 +74,7 @@ scenarios drivable purely through main-process state or pure app logic:
 
 | Implemented scenario coverage | |
 |---|---|
+| F1-1, F1-2 | resting Island state (group/dots/domain/shield/actions) and expanded command palette with live tab switcher |
 | F2-1..F2-4 | tab reopen / duplicate / pin-order / new-tab-ungrouped |
 | F3-1, F3-4, F3-5 | group create+move / prune-on-empty / grouped-pin ordering |
 | F4-1..F4-5 | private history/reopen isolation / private chrome quick-exit / child inheritance / private-session isolation / private start-page load |
