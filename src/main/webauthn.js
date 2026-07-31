@@ -10,6 +10,11 @@
 const APPLE_TEAM_ID = 'XYGUCY4498';
 const BUNDLE_ID = 'me.bnfy.bowser';
 const WEBAUTHN_KEYCHAIN_ACCESS_GROUP = `${APPLE_TEAM_ID}.${BUNDLE_ID}`;
+// app.configureWebAuthn is process-global, while account chooser listeners
+// are per Session. Named browser profiles may create sessions after startup,
+// so remember both boundaries and attach each exactly once.
+const configuredApps = new WeakSet();
+const attachedSessions = new WeakSet();
 
 function accountLabel(account, index) {
   const label = account?.displayName || account?.name;
@@ -65,19 +70,24 @@ async function chooseWebAuthnAccount({ dialog, getParentWindow, details }) {
 function setupWebAuthn({ app, session, dialog, getParentWindow, platform = process.platform }) {
   if (platform !== 'darwin' || typeof app?.configureWebAuthn !== 'function') return false;
 
-  try {
-    app.configureWebAuthn({
-      touchID: { keychainAccessGroup: WEBAUTHN_KEYCHAIN_ACCESS_GROUP },
-    });
-  } catch (error) {
-    // An unsigned dev build has no keychain-access-groups entitlement. Keep
-    // normal browser startup working there; signed releases surface the API.
-    console.warn('Unable to enable Touch ID WebAuthn:', error.message);
-    return false;
+  if (!configuredApps.has(app)) {
+    try {
+      app.configureWebAuthn({
+        touchID: { keychainAccessGroup: WEBAUTHN_KEYCHAIN_ACCESS_GROUP },
+      });
+      configuredApps.add(app);
+    } catch (error) {
+      // An unsigned dev build has no keychain-access-groups entitlement. Keep
+      // normal browser startup working there; signed releases surface the API.
+      console.warn('Unable to enable Touch ID WebAuthn:', error.message);
+      return false;
+    }
   }
 
   const sessions = Array.isArray(session) ? session : [session];
   for (const targetSession of sessions) {
+    if (!targetSession || attachedSessions.has(targetSession)) continue;
+    attachedSessions.add(targetSession);
     targetSession.on('select-webauthn-account', (_event, details, callback) => {
       let resolved = false;
       const finish = (credentialId) => {

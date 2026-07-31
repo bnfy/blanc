@@ -133,10 +133,6 @@ existing opt-in consent covered one workspace; exporting tabs from additional
 windows would expand the synced browsing-data scope and needs a separate
 product/privacy decision before it is enabled.
 
-Named local browsing profiles remain the next architecture slice. They need
-separate persistent Chromium partitions and an explicit data-boundary/migration
-contract; they are not inferred from these independent window workspaces.
-
 ## Local-profile identity decision
 
 Workspace schema v2 gives every window an explicit `profileId`. Existing v1
@@ -145,14 +141,26 @@ creation never has to infer ownership from a window title or cookie jar. The
 pure local-profile registry has the same forward-compatibility rule as the
 workspace: a newer registry remains untouched by an older build.
 
-This is identity and migration groundwork only. It deliberately does not expose
-a profile picker yet: a visible named profile must first bind its persistent
-Chromium partition and define which local product records belong to it. Calling
-shared cookies or history a separate profile would be misleading.
+The device-local `profiles.json` registry provides bounded, opaque identities
+plus human-readable names. It is distinct from `profiles/<opaque-id>/`, which
+holds product records. The default `Personal` identity is implicit on older
+installs; it continues to use every shipped root file, so upgrading does not
+copy or move data. A named profile uses its own bounded Favorites, history,
+downloads, and remembered-permission JSON records under that directory.
 
-The first data seam is now profile-scoped JSON storage for Favorites, history,
-downloads, and remembered site permissions. The default profile continues to
-use the existing root files so upgrading does not copy or move any user data;
-additional profiles use their own bounded files under `profiles/<opaque-id>/`.
-Settings, supporter status, telemetry, and Profile Sync remain device-level for
-now, and Tab Sync remains default-profile-only under its existing consent.
+Each named profile receives its own persistent Chromium partition
+`persist:blanc-profile-<id>`. Its private tabs use a separate, non-persistent
+`private-browsing-<id>` partition, so neither normal cookies nor ephemeral
+private state can cross between named profiles. Before a profile's first tab
+loads, main installs the same internal-page handler, certificate observer,
+permission policy, download routing, compatibility preload, WebAuthn chooser,
+client-hint fallback, startup gate, and ad-block policy used by the default
+sessions. A profile-local “clear browsing data” action clears only that
+profile's normal/private sessions.
+
+Settings, supporter status, telemetry, and Profile Sync remain device-level.
+Profile Sync and its remote-tab presentation stay confined to Personal; a
+named profile cannot export its Favorites, tabs, or favicon sidecar through
+that pre-existing consent. Tab Sync remains the Personal primary workspace
+only. The profile picker remains intentionally unexposed until the Island can
+show the active profile and let people choose or name one without ambiguity.

@@ -62,6 +62,8 @@ const {
   replaceObject,
 } = require('./session-workspace');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const { createProfileSessionRegistry } = require('./profile-sessions');
+const localProfiles = require('./local-profiles');
 const {
   withLocalProfile,
   setFocusedLocalProfile,
@@ -452,6 +454,34 @@ if (chromeMajor) {
   });
 }
 
+// Session-level fallback for webContents where the CDP user-agent override
+// cannot attach. Kept as a reusable installer because named profiles allocate
+// their sessions after this startup block has run.
+function installChromeClientHintHeaderFallback(browsingSession) {
+  if (!chromeMajor || !browsingSession) return;
+  const chUa = `"Not;A=Brand";v="8", "Chromium";v="${chromeMajor}", "Google Chrome";v="${chromeMajor}"`;
+  const chUaFull = `"Not;A=Brand";v="8.0.0.0", "Chromium";v="${chromeFull}", "Google Chrome";v="${chromeFull}"`;
+  const setHeader = (headers, name, value, { add = false } = {}) => {
+    const existing = Object.keys(headers).find((key) => key.toLowerCase() === name);
+    if (existing || add) headers[existing || name] = value;
+  };
+  browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
+    const h = details.requestHeaders;
+    setHeader(h, 'sec-ch-ua', chUa, { add: true });
+    // High-entropy hints remain opt-in: Chromium only sends them after an
+    // origin negotiates Accept-CH, and Blanc mirrors that behavior.
+    setHeader(h, 'sec-ch-ua-full-version-list', chUaFull);
+    setHeader(h, 'sec-ch-ua-platform', `"${chromeClientHintPlatform()}"`);
+    setHeader(h, 'sec-ch-ua-platform-version', `"${chromeClientHintPlatformVersion()}"`);
+    setHeader(h, 'sec-ch-ua-arch', `"${chromeClientHintArchitecture()}"`);
+    setHeader(h, 'sec-ch-ua-bitness', `"${chromeClientHintBitness()}"`);
+    setHeader(h, 'sec-ch-ua-model', '""');
+    setHeader(h, 'sec-ch-ua-mobile', '?0');
+    setHeader(h, 'sec-ch-ua-wow64', '?0');
+    callback({ requestHeaders: h });
+  });
+}
+
 /** @type {BrowserWindow | null} */
 let win = null;
 // win remains the transition alias while the single-window code is being
@@ -557,11 +587,39 @@ const tabState = {
     if (runtime) runtime.groups = Array.isArray(value) ? value : [];
   },
 };
-/** Non-persistent session shared by all private tabs for this app run. */
-let privateBrowsingSession = null;
-const PRIVATE_PARTITION = 'private-browsing'; // no `persist:` prefix = memory only
-const getPrivateBrowsingSession = () =>
-  (privateBrowsingSession ??= session.fromPartition(PRIVATE_PARTITION));
+// The shipped default profile retains Electron's defaultSession and its
+// existing private-browsing partition. Named profiles are allocated lazily
+// after the app is ready, then receive the same policy installation below.
+let profileSessionRegistry = null;
+let fallbackPrivateBrowsingSession = null;
+let installProfileSessionPolicies = () => {};
+
+function profileIdForCurrentRuntime() {
+  return currentWorkspaceRuntime()?.profileId ?? DEFAULT_PROFILE_ID;
+}
+
+function getNormalBrowsingSession(profileId = profileIdForCurrentRuntime()) {
+  return profileSessionRegistry?.normal(profileId) ?? session.defaultSession;
+}
+
+function getPrivateBrowsingSession(profileId = profileIdForCurrentRuntime()) {
+  return profileSessionRegistry?.private(profileId)
+    ?? (fallbackPrivateBrowsingSession ??= session.fromPartition('private-browsing'));
+}
+
+function browsingSessionsForProfile(profileId = profileIdForCurrentRuntime()) {
+  if (profileSessionRegistry) return profileSessionRegistry.forProfile(profileId);
+  return {
+    profileId: DEFAULT_PROFILE_ID,
+    normal: session.defaultSession,
+    private: getPrivateBrowsingSession(DEFAULT_PROFILE_ID),
+  };
+}
+
+function allBrowsingSessions() {
+  return profileSessionRegistry?.all()
+    ?? [session.defaultSession, getPrivateBrowsingSession(DEFAULT_PROFILE_ID)];
+}
 
 const CHROME_INDEX_FILE = path.join(__dirname, '../renderer/index.html');
 const CHROME_OVERLAY_FILE = path.join(__dirname, '../renderer/overlay.html');
@@ -1275,7 +1333,12 @@ function persistSessionForRuntime(runtime) {
 function broadcastTabs() {
   const runtime = currentWorkspaceRuntime();
   persistSession();
-  tabsync.noteTabsChanged();
+  // Existing Tab Sync consent covers only Personal's primary workspace. A
+  // named profile's local tab churn must not schedule a snapshot (or expose
+  // its favicon work) through that older consent surface.
+  if (runtime?.id === PRIMARY_WINDOW_ID && runtime.profileId === DEFAULT_PROFILE_ID) {
+    tabsync.noteTabsChanged();
+  }
   const browserWindow = currentBrowserWindow();
   if (!runtime || !browserWindow) return;
   const widthMetrics = verticalTabsMetrics();
@@ -2111,8 +2174,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   const adopted = !!view;
   view ??= new WebContentsView({
     webPreferences: isPrivate
-      ? { ...TAB_WEB_PREFERENCES, session: getPrivateBrowsingSession() }
-      : TAB_WEB_PREFERENCES,
+      ? { ...TAB_WEB_PREFERENCES, session: getPrivateBrowsingSession(runtime.profileId) }
+      : { ...TAB_WEB_PREFERENCES, session: getNormalBrowsingSession(runtime.profileId) },
   });
 
   const tab = {
@@ -3522,6 +3585,10 @@ function createMainWindow({
   runtimeId = activeWorkspaceWindowId,
   profileId = DEFAULT_PROFILE_ID,
 } = {}) {
+  // A workspace is allowed to reference only a profile registered on this
+  // device. Unknown/future ids fall back to Personal instead of silently
+  // creating an unlabelled persistent Chromium partition from session.json.
+  profileId = localProfiles.getLocalProfile(profileId)?.id ?? DEFAULT_PROFILE_ID;
   const browserWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -3542,6 +3609,10 @@ function createMainWindow({
     browserWindow,
     profileId,
   });
+  // A restored named workspace can be the first use of that profile in this
+  // process. Attach its normal/private Session policies before any tab or
+  // blanc:// page is created, so it cannot briefly fall back to default data.
+  installProfileSessionPolicies(runtime.profileId);
   if (!primaryWindowRuntime || runtime.id === PRIMARY_WINDOW_ID) {
     primaryWindowRuntime = runtime;
   }
@@ -3622,12 +3693,13 @@ function createWindowRuntimeId() {
   return `window_${crypto.randomUUID().replace(/-/g, '')}`;
 }
 
-function openNewWindow() {
+function openNewWindow(options = {}) {
+  const profileId = options?.profileId ?? currentWorkspaceRuntime()?.profileId ?? DEFAULT_PROFILE_ID;
   const runtime = createMainWindow({
     runtimeId: createWindowRuntimeId(),
-    // A normal New Window stays in the user's current local profile. A later
-    // profile-picker command will supply a different persistent identity.
-    profileId: currentWorkspaceRuntime()?.profileId ?? DEFAULT_PROFILE_ID,
+    // A normal New Window stays in the current local profile; named profile
+    // creation supplies a different identity explicitly below.
+    profileId,
   });
   return withWindowRuntime(runtime, () => {
     const tabId = createTab(newTabUrl());
@@ -3637,6 +3709,12 @@ function openNewWindow() {
     broadcastTabs();
     return runtime.id;
   });
+}
+
+function openNewProfileWindow(name) {
+  const profile = localProfiles.createLocalProfile(name);
+  openNewWindow({ profileId: profile.id });
+  return profile;
 }
 
 function windowRuntimeSnapshots() {
@@ -3652,6 +3730,23 @@ function windowRuntimeSnapshots() {
     groups: runtime.groups.map(({ id, name, collapsed }) => ({ id, name, collapsed })),
     attached: !!runtime.browserWindow && !runtime.browserWindow.isDestroyed(),
   }));
+}
+
+function tabSessionInfo(tab) {
+  const runtime = windowRuntimeRegistry.get(tab?.runtimeId);
+  const profileId = runtime?.profileId ?? DEFAULT_PROFILE_ID;
+  const tabSession = tab?.view?.webContents?.session;
+  const privateSession = getPrivateBrowsingSession(profileId);
+  const normalSession = getNormalBrowsingSession(profileId);
+  const defaultNormalSession = getNormalBrowsingSession(DEFAULT_PROFILE_ID);
+  const defaultPrivateSession = getPrivateBrowsingSession(DEFAULT_PROFILE_ID);
+  return {
+    profileId,
+    kind: tabSession === privateSession ? 'private' : 'normal',
+    matchesProfileSession: tabSession === (tab?.private ? privateSession : normalSession),
+    isolatedFromDefault: profileId === DEFAULT_PROFILE_ID
+      || (tabSession !== defaultNormalSession && tabSession !== defaultPrivateSession),
+  };
 }
 
 function closeWindowRuntime(id) {
@@ -3683,9 +3778,12 @@ let lastSecureDnsTemplate = null;
 
 app.whenReady().then(async () => {
   if (await runPackageProbeIfRequested()) return; // SPIKE — headless 3(a); app.exit() already fired
-  const ses = session.defaultSession;
-  const privateSes = getPrivateBrowsingSession();
-  const browsingSessions = [ses, privateSes];
+  profileSessionRegistry = createProfileSessionRegistry({
+    defaultSession: session.defaultSession,
+    fromPartition: session.fromPartition.bind(session),
+  });
+  const { normal: ses, private: privateSes } = browsingSessionsForProfile(DEFAULT_PROFILE_ID);
+  const browsingSessions = allBrowsingSessions();
   for (const browsingSession of browsingSessions) {
     certificateObserver.observe(browsingSession);
   }
@@ -3740,31 +3838,8 @@ app.whenReady().then(async () => {
   // constraint adblock.js documents for onBeforeRequest) — if a future
   // feature also needs onBeforeSendHeaders, compose inside this handler
   // rather than registering a second one.
-  if (chromeMajor) {
-    const chUa = `"Not;A=Brand";v="8", "Chromium";v="${chromeMajor}", "Google Chrome";v="${chromeMajor}"`;
-    const chUaFull = `"Not;A=Brand";v="8.0.0.0", "Chromium";v="${chromeFull}", "Google Chrome";v="${chromeFull}"`;
-    const setHeader = (headers, name, value, { add = false } = {}) => {
-      const existing = Object.keys(headers).find((key) => key.toLowerCase() === name);
-      if (existing || add) headers[existing || name] = value;
-    };
-    for (const browsingSession of browsingSessions) {
-      browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
-        const h = details.requestHeaders;
-        setHeader(h, 'sec-ch-ua', chUa, { add: true });
-        // High-entropy hint: only rewrite it when Chromium already decided to
-        // send it (i.e. the server negotiated it via Accept-CH), matching real
-        // Chrome — don't force it onto every request like the low-entropy hints.
-        setHeader(h, 'sec-ch-ua-full-version-list', chUaFull);
-        setHeader(h, 'sec-ch-ua-platform', `"${chromeClientHintPlatform()}"`);
-        setHeader(h, 'sec-ch-ua-platform-version', `"${chromeClientHintPlatformVersion()}"`);
-        setHeader(h, 'sec-ch-ua-arch', `"${chromeClientHintArchitecture()}"`);
-        setHeader(h, 'sec-ch-ua-bitness', `"${chromeClientHintBitness()}"`);
-        setHeader(h, 'sec-ch-ua-model', '""');
-        setHeader(h, 'sec-ch-ua-mobile', '?0');
-        setHeader(h, 'sec-ch-ua-wow64', '?0');
-        callback({ requestHeaders: h });
-      });
-    }
+  for (const browsingSession of browsingSessions) {
+    installChromeClientHintHeaderFallback(browsingSession);
   }
 
   applyTheme();
@@ -3773,8 +3848,8 @@ app.whenReady().then(async () => {
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', handleNativeThemeUpdated);
 
-  setupPermissionPolicy(ses);
-  setupPermissionPolicy(privateSes, { persistDecisions: false });
+  setupPermissionPolicy(ses, { profileId: DEFAULT_PROFILE_ID });
+  setupPermissionPolicy(privateSes, { persistDecisions: false, profileId: DEFAULT_PROFILE_ID });
   let permissionPromptCounter = 0;
   // Resolve null when there's no window to ask through — the policy treats
   // null as "not answered" and denies for now WITHOUT persisting, so a
@@ -3824,8 +3899,15 @@ app.whenReady().then(async () => {
       }
     }
   };
-  setupPages({
+  const pages = setupPages({
     sessions: browsingSessions,
+    // Settings' “clear browsing data” action is profile-local: it clears the
+    // calling profile's normal and private cookies/cache, never another local
+    // profile's Chromium partition.
+    getBrowsingSessions: () => {
+      const pair = browsingSessionsForProfile(profileIdForCurrentRuntime());
+      return [pair.normal, pair.private];
+    },
     onDataChanged: refreshBookmarkFlags,
     // Internal pages are tab views, while utility sheets are chrome views.
     // Resolve both from their actual sender before a page hook reads local
@@ -3884,6 +3966,41 @@ app.whenReady().then(async () => {
     shortcuts: { list: listShortcuts },
   });
 
+  // Late-created profile sessions must receive every security and browser
+  // policy the default sessions got above. Keep the guard at the Session
+  // boundary, not the window boundary: two windows for one profile share a
+  // Chromium partition and must not register duplicate Electron handlers.
+  const policyInstalledSessions = new WeakSet(browsingSessions);
+  installProfileSessionPolicies = (profileId) => {
+    const pair = browsingSessionsForProfile(profileId);
+    const attach = (browsingSession, { persistDecisions }) => {
+      if (policyInstalledSessions.has(browsingSession)) return;
+      policyInstalledSessions.add(browsingSession);
+      certificateObserver.observe(browsingSession);
+      setupWebAuthn({
+        app,
+        session: browsingSession,
+        dialog,
+        getParentWindow: () => currentBrowserWindow(),
+      });
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'chrome-compat-preload.js'),
+      });
+      installChromeClientHintHeaderFallback(browsingSession);
+      setupPermissionPolicy(browsingSession, { profileId: pair.profileId, persistDecisions });
+      setupDownloads(browsingSession, broadcastDownloadsActivity, { profileId: pair.profileId });
+      pages.attachSession(browsingSession);
+      if (startupNavigationGateActive) installStartupNavigationGate([browsingSession]);
+      attachAdBlockerToSession(browsingSession, {
+        enabled: settings.getSettings().adblockEnabled,
+      });
+    };
+    attach(pair.normal, { persistDecisions: true });
+    attach(pair.private, { persistDecisions: false });
+    return pair;
+  };
+
   // The acceptance harness launches offline: skip the network ad-engine build
   // and install the test-only main-process surface instead. Gate is airtight — only an
   // UNPACKAGED dev run with BLANC_TEST exactly "1"; never a packaged build, and
@@ -3894,7 +4011,8 @@ app.whenReady().then(async () => {
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
-      openNewWindow, windowRuntimeSnapshots, closeWindowRuntime, persistedWorkspaceIds,
+      openNewWindow, openNewProfileWindow, windowRuntimeSnapshots, tabSessionInfo,
+      closeWindowRuntime, persistedWorkspaceIds,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
@@ -3958,7 +4076,7 @@ app.whenReady().then(async () => {
       // Clear cached lookups on both sessions so the new resolver takes effect without
       // a restart. clearHostResolverCache returns a promise; Promise.allSettled collects
       // any rejection so a failed clear can't surface as an unhandled rejection.
-      Promise.allSettled(browsingSessions.map((sess) => sess.clearHostResolverCache()));
+      Promise.allSettled(allBrowsingSessions().map((sess) => sess.clearHostResolverCache()));
     }
   });
 
@@ -3980,14 +4098,17 @@ app.whenReady().then(async () => {
   // A pull changed the cached device map: push the fresh list to the open
   // surfaces (overlay panel; any tab currently on the start page).
   const pushRemoteDevices = () => {
-    const devices = sync.listRemoteDevices();
     for (const runtime of windowRuntimeRegistry.all()) {
-      runtime.overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
-    }
-    for (const tab of tabs.values()) {
-      if (tab.url?.startsWith('blanc://newtab')) {
-        tab.view.webContents.send('pages:start:remote-tabs', devices);
-      }
+      withWindowRuntime(runtime, () => {
+        const devices = sync.listRemoteDevices();
+        runtime.overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
+        for (const tabId of runtime.tabOrder) {
+          const tab = tabs.get(tabId);
+          if (tab?.url?.startsWith('blanc://newtab')) {
+            tab.view.webContents.send('pages:start:remote-tabs', devices);
+          }
+        }
+      });
     }
   };
   tabsync.onRemoteChanged(pushRemoteDevices);
@@ -4054,7 +4175,13 @@ app.whenReady().then(async () => {
 
   const blockingRequested =
     !acceptanceTestMode && settings.getSettings().adblockEnabled;
-  if (blockingRequested) installStartupNavigationGate(browsingSessions);
+  // A hand-edited/future workspace can already reference a named profile on
+  // startup. Materialize and secure those sessions before the temporary
+  // navigation gate is installed, so restored tabs cannot race unfiltered.
+  for (const profileId of new Set(savedWindows.map((saved) => saved.profileId))) {
+    installProfileSessionPolicies(profileId);
+  }
+  if (blockingRequested) installStartupNavigationGate(allBrowsingSessions());
 
   // Restore each workspace in its own BrowserWindow. Put the previously
   // focused window last so it is the frontmost native window after launch.
@@ -4096,7 +4223,7 @@ app.whenReady().then(async () => {
       settings.setSettings({ adblockEnabled: false });
     }
     if (blockingRequested) {
-      releaseStartupNavigationGate(browsingSessions, {
+      releaseStartupNavigationGate(allBrowsingSessions(), {
         blockerAttached: blocking,
       });
     }
@@ -4142,9 +4269,11 @@ app.whenReady().then(async () => {
     // Keep the engine warm so enabling the setting later in this run works,
     // but never hold browsing for a feature the user turned off.
     setupAdBlocker(ses, { enabled: false }).then(() => {
-      attachAdBlockerToSession(privateSes, {
-        enabled: settings.getSettings().adblockEnabled,
-      });
+      for (const browsingSession of allBrowsingSessions()) {
+        attachAdBlockerToSession(browsingSession, {
+          enabled: settings.getSettings().adblockEnabled,
+        });
+      }
       setAdBlockEnabled(settings.getSettings().adblockEnabled);
     }).catch((err) => {
       console.warn('[adblock] background initialization failed:', err.message);
@@ -4162,9 +4291,11 @@ app.whenReady().then(async () => {
             ? packagedAdblockTestFetch
             : fetch,
         });
-        attachAdBlockerToSession(privateSes, {
-          enabled: settings.getSettings().adblockEnabled,
-        });
+        for (const browsingSession of allBrowsingSessions()) {
+          attachAdBlockerToSession(browsingSession, {
+            enabled: settings.getSettings().adblockEnabled,
+          });
+        }
       },
       onStateChange: (state) => {
         adblockStartupState = state;

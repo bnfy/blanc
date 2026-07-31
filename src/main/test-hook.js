@@ -47,7 +47,9 @@ function install(refs) {
     getVerticalTabsMetrics,
     broadcastTabs,
     openNewWindow,
+    openNewProfileWindow,
     windowRuntimeSnapshots: getWindowRuntimeSnapshots,
+    tabSessionInfo,
     closeWindowRuntime: closeWindowRuntimeById,
     persistedWorkspaceIds: getPersistedWorkspaceIds,
     getRailActivationSerial,
@@ -147,7 +149,10 @@ function install(refs) {
           private: !!t.private,
           webContentsId: t.view.webContents.id,
           bounds: t.view.getBounds(),
-          sessionKind: t.view.webContents.session === getPrivateBrowsingSession() ? 'private' : 'default',
+          sessionKind: tabSessionInfo(t).kind,
+          sessionProfileId: tabSessionInfo(t).profileId,
+          matchesProfileSession: tabSessionInfo(t).matchesProfileSession,
+          sessionIsolatedFromDefault: tabSessionInfo(t).isolatedFromDefault,
           sessionPersistent: sessionPersistentOf(t),
         });
       }
@@ -211,6 +216,7 @@ function install(refs) {
     // window ownership is driven by the native File menu/accelerator, while
     // acceptance needs a deterministic way to assert the runtime boundary.
     openWindow() { return openNewWindow(); },
+    openProfileWindow(name) { return openNewProfileWindow(name).id; },
     windowRuntimes() { return getWindowRuntimeSnapshots(); },
     closeWindow(id) { return closeWindowRuntimeById(id); },
     persistedWorkspaceIds() { return getPersistedWorkspaceIds(); },

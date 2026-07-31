@@ -64,8 +64,14 @@ function setupPages(hooks = {}) {
   // moved to its own isolated `session.fromPartition`. Register the handler
   // on every browsing session passed in. (The privileged-scheme registration
   // in registerPagesScheme is process-global and needs no per-session repeat.)
+  const attachedSessions = new WeakSet();
+  const attachSession = (ses) => {
+    if (!ses || attachedSessions.has(ses)) return;
+    attachedSessions.add(ses);
+    ses.protocol.handle('blanc', serveBlanc);
+  };
   const sessions = hooks.sessions?.length ? hooks.sessions : [session.defaultSession];
-  for (const ses of sessions) ses.protocol.handle('blanc', serveBlanc);
+  for (const ses of sessions) attachSession(ses);
 
   // Every handler below double-checks the sender really is an internal
   // page — the preload only exposes the API on blanc:// documents, but
@@ -266,12 +272,18 @@ function setupPages(hooks = {}) {
 
   // The settings page promises "cookies, cache & site data" — clear both.
   handle('pages:clear-browsing-data', () => {
-    const browsingSessions = hooks.sessions ?? [session.defaultSession];
+    const browsingSessions = hooks.getBrowsingSessions?.() ?? hooks.sessions ?? [session.defaultSession];
     return Promise.all(browsingSessions.flatMap((browsingSession) => [
       browsingSession.clearStorageData(),
       browsingSession.clearCache(),
     ]));
   });
+
+  // Named local profiles are created after startup. They need the same
+  // privileged internal-page handler before their first blanc:// new tab
+  // navigates, but IPC handlers above remain process-global and are installed
+  // only once.
+  return { attachSession };
 }
 
 module.exports = { registerPagesScheme, setupPages };

@@ -3,6 +3,8 @@ const {
   storedDecision,
   rememberDecision,
 } = require('./permission-decisions');
+const { withLocalProfile } = require('./local-profile-context');
+const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 
 /**
  * Permission policy for web content. Electron's default is ALLOW
@@ -72,7 +74,10 @@ function removeDecision(key) {
   ensureStore().update((d) => { delete d.decisions[key]; });
 }
 
-function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
+function setupPermissionPolicy(
+  session,
+  { persistDecisions = true, profileId = DEFAULT_PROFILE_ID } = {}
+) {
   // Incognito/private sessions use this in-memory map. Normal browsing keeps
   // using site-permissions.json and remains manageable from Settings.
   const ephemeralDecisions = {};
@@ -85,7 +90,8 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     }
   };
 
-  session.setPermissionRequestHandler(async (webContents, permission, callback, details) => {
+  session.setPermissionRequestHandler(async (webContents, permission, callback, details) =>
+    withLocalProfile(profileId, async () => {
     const requestedMediaTypes = normalizedMediaTypes(details?.mediaTypes);
     // Electron 43 sends getDisplayMedia through a preliminary `media` request
     // with an EMPTY mediaTypes array before invoking the dedicated display
@@ -128,12 +134,14 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     const allow = await prompter(promptRequest);
     if (allow === null) return callback(false);
     saveDecision(origin, permission, mediaTypes, allow);
-    callback(allow);
-  });
+      callback(allow);
+    })
+  );
 
   // Synchronous checks (navigator.permissions.query, Notification.permission)
   // must agree with the request handler or sites see inconsistent state.
-  session.setPermissionCheckHandler((_wc, permission, requestingOrigin, details) => {
+  session.setPermissionCheckHandler((_wc, permission, requestingOrigin, details) =>
+    withLocalProfile(profileId, () => {
     if (permission === 'display-capture') {
       return !!normalizedOrigin(requestingOrigin || details?.requestingUrl);
     }
@@ -144,10 +152,12 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     const mediaType = permission === 'media' && ['audio', 'video'].includes(details?.mediaType)
       ? details.mediaType
       : null;
-    return storedDecision(readDecisions(), origin, permission, mediaType) === 'allow';
-  });
+      return storedDecision(readDecisions(), origin, permission, mediaType) === 'allow';
+    })
+  );
 
-  session.setDisplayMediaRequestHandler(async (request, callback) => {
+  session.setDisplayMediaRequestHandler(async (request, callback) =>
+    withLocalProfile(profileId, async () => {
     let answered = false;
     const answer = (streams = {}) => {
       if (answered) return;
@@ -182,7 +192,8 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     } catch {
       answer({});
     }
-  });
+    })
+  );
 }
 
 module.exports = {
