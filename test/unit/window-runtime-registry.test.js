@@ -121,3 +121,16 @@ test('detaching a window removes its native ownership lookup', () => {
   assert.equal(registry.getByBrowserWindow(browserWindow), null);
   assert.equal(registry.getByChromeWebContents(browserWindow.webContents), null);
 });
+
+test('discarding a secondary runtime removes its ownership and registry record', () => {
+  const registry = createWindowRuntimeRegistry();
+  const browserWindow = { webContents: {} };
+  registry.register({ id: 'secondary', browserWindow });
+  registry.claimTab('secondary', 'tab-a');
+
+  registry.discard('secondary', browserWindow);
+
+  assert.equal(registry.get('secondary'), null);
+  assert.equal(registry.ownerForTab('tab-a'), null);
+  assert.deepEqual(registry.all(), []);
+});

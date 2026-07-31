@@ -82,7 +82,12 @@ function setupPages(hooks = {}) {
       if (!trusted) {
         throw new Error(`${channel}: denied for ${event.senderFrame?.url ?? event.sender.getURL()}`);
       }
-      return fn(...args);
+      // A blanc:// tab belongs to one browser workspace just like ordinary
+      // content. Let main bind its sender to that runtime before hooks read
+      // window-local state (start-page groups, a sheet's dialog parent, etc.).
+      // The fallback keeps this module usable by the isolated/unit wiring.
+      const invoke = () => fn(...args);
+      return hooks.runInPageRuntime ? hooks.runInPageRuntime(event, invoke) : invoke();
     });
   };
 

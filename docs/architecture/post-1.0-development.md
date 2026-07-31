@@ -8,7 +8,7 @@ must not be merged into, rebased onto, or used to rebuild that release.
 1. F29 display sharing
 2. Browser-data migration and onboarding
 3. HTTPS/threat/site-information baseline
-4. Versioned profiles and multi-window ownership
+4. Independent windows and local-profile architecture
 5. Tab lifecycle recovery
 6. Split view and Glance
 
@@ -85,19 +85,19 @@ its update/failure policy remain the next independent security slice.
 
 ## Versioned workspace decision
 
-The single-window app persists through a versioned workspace record before a
-second BrowserWindow is exposed. The legacy flat tab-session fields become the
-primary workspace, preserving URL order, group membership, pins, collapsed
-state, and the active tab. The current process owns only that primary workspace,
-but its read/write path preserves other named workspaces already present in the
-record instead of flattening or discarding them.
+The single-window app persists through a versioned workspace record. The legacy
+flat tab-session fields become the primary workspace, preserving URL order,
+group membership, pins, collapsed state, and the active tab. Every visible
+BrowserWindow now receives its own workspace record; restore reopens those
+records as separate windows and returns the previously focused one to the
+front.
 
 Migration and normalization live in the pure session-workspace module and are
 fixture-tested. A session created by a newer schema version is treated as
 read-only by an older process: Blanc opens an ephemeral primary workspace and
-does not overwrite the unrecognized file. The next slice can therefore add a
-window registry, per-window chrome/overlay/sheet views, and explicit tab
-ownership without another storage-format break.
+does not overwrite the unrecognized file. Closing a secondary window follows
+normal browser semantics: its tabs are released and its saved workspace is
+removed. The primary retains its dock-reopen behavior on macOS.
 
 ## Window-runtime registry decision
 
@@ -107,12 +107,11 @@ BrowserWindow reference, its overlay and utility-sheet views/state, its active
 tab id, and the set of tab ids it owns. A tab may have exactly one runtime
 owner; a runtime cannot attach to two live BrowserWindows.
 
-The current primary window is registered now. Its overlay/sheet state, tab
-order, groups, and active-tab selection live on that runtime; only the
-process-wide map that locates native tab resources remains shared. Closing the
-native window detaches only native chrome:
-the runtime retains tab ownership and the selected tab for a macOS dock
-reopen, while the destroyed overlay/sheet references are cleared.
+Every live window is registered. Its overlay/sheet state, tab order, groups,
+and active-tab selection live on that runtime; only the process-wide map that
+locates native tab resources remains shared. A secondary window is discarded
+after its owned tabs are released; primary-window closure detaches native chrome
+for the macOS dock-reopen path while clearing destroyed overlay/sheet references.
 
 ## Focused runtime routing decision
 
@@ -125,10 +124,15 @@ answer in one window cannot settle another window's request.
 
 The remaining `win` reference is now a startup/test compatibility alias only;
 runtime-aware operations resolve the focused or callback-bound BrowserWindow.
-This leaves the visible New Window command as a UI and session-restore change,
-rather than a second set of global-state exceptions.
+Shared presentation changes (theme, Island/vertical layout, and rail width)
+are applied to every live runtime without moving tabs or chrome state between
+windows.
 
 Tab Sync remains deliberately scoped to the primary workspace for now. The
 existing opt-in consent covered one workspace; exporting tabs from additional
 windows would expand the synced browsing-data scope and needs a separate
 product/privacy decision before it is enabled.
+
+Named local browsing profiles remain the next architecture slice. They need
+separate persistent Chromium partitions and an explicit data-boundary/migration
+contract; they are not inferred from these independent window workspaces.

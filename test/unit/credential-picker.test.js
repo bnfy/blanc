@@ -4,10 +4,11 @@ const assert = require('node:assert/strict');
 const { createPickerController } = require('../../src/main/credential-picker');
 
 /** A controller wired to fakes, with handles to inspect what it did. */
-function harness({ overlayAvailable = true, overlayThrows = false } = {}) {
+function harness({ overlayAvailable = true, overlayThrows = false, runtimeId = null } = {}) {
   let hideThrows = false;
   const calls = { shown: [], hidden: 0, timers: 0, cleared: 0 };
   let mode = null;
+  let currentRuntimeId = runtimeId;
   let timerFn = null;
   const ctl = createPickerController({
     showOverlay: (m, opts) => {
@@ -27,6 +28,7 @@ function harness({ overlayAvailable = true, overlayThrows = false } = {}) {
       mode = null;
     },
     getOverlayMode: () => mode,
+    getRuntimeId: () => currentRuntimeId,
     isOverlaySender: (event) => event && event.fromOverlay === true,
     randomUUID: () => 'req-1',
     setTimer: (fn) => { timerFn = fn; calls.timers += 1; return 'T'; },
@@ -38,6 +40,7 @@ function harness({ overlayAvailable = true, overlayThrows = false } = {}) {
     fireTimeout: () => timerFn && timerFn(),
     getMode: () => mode,
     hideWillThrow: () => { hideThrows = true; },
+    setRuntimeId: (value) => { currentRuntimeId = value; },
   };
 }
 
@@ -73,6 +76,20 @@ test('picker: a WRONG-SENDER reply leaves the request pending', async () => {
   h.ctl.handleReply({ fromOverlay: false }, { requestId: 'req-1', index: 0 });
   assert.equal(h.ctl.isPending(), true, 'stage-1 failure must change NO state');
   // ...and a later valid reply still works.
+  h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1', index: 0 });
+  assert.deepEqual(await p, { index: 0, reason: 'selected' });
+});
+
+test('picker: another window cannot answer or settle a runtime-owned request', async () => {
+  const h = harness({ runtimeId: 'one' });
+  const p = h.ctl.requestPick(ROWS, 0, 'x.test', { runtimeId: 'one' });
+
+  h.setRuntimeId('two');
+  h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1', index: 0 });
+  assert.equal(h.ctl.settleForRuntime('two', null, 'window-closed'), false);
+  assert.equal(h.ctl.isPending(), true);
+
+  h.setRuntimeId('one');
   h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1', index: 0 });
   assert.deepEqual(await p, { index: 0, reason: 'selected' });
 });

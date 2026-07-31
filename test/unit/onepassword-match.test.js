@@ -1256,7 +1256,7 @@ test('T6-wiring: the window close settles the picker BEFORE resetting runtime ov
   const start = src.indexOf("browserWindow.on('closed'");
   assert.ok(start > -1, 'the window closed handler must exist');
   const slice = src.slice(start, start + 1_200);
-  const settleAt = slice.indexOf("pickerController.settle(null, 'window-closed')");
+  const settleAt = slice.indexOf("pickerController.settleForRuntime(runtime.id, null, 'window-closed')");
   const resetAt = slice.indexOf('chromeState.overlayMode = null');
   assert.ok(settleAt > -1, 'the closed handler must settle a pending picker');
   assert.ok(resetAt > -1, 'the closed handler resets the runtime overlay mode');

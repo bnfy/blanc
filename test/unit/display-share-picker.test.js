@@ -8,6 +8,7 @@ const {
 
 function harness() {
   let mode = null;
+  let runtimeId = null;
   let shown = null;
   let reply = null;
   const timers = new Set();
@@ -20,6 +21,7 @@ function harness() {
     },
     hideOverlay: () => { mode = null; },
     getOverlayMode: () => mode,
+    getRuntimeId: () => runtimeId,
     isOverlaySender: (event) => event?.trusted === true,
     randomUUID: () => 'request-1',
     setTimer: (fn) => {
@@ -40,6 +42,7 @@ function harness() {
       origin: 'https://meet.example',
       webContentsId: options.webContentsId ?? 41,
       canShareAudio: options.canShareAudio ?? false,
+      runtimeId: options.runtimeId ?? null,
     });
     promise.then((value) => { reply = value; });
     return promise;
@@ -52,6 +55,7 @@ function harness() {
     get shown() { return shown; },
     get reply() { return reply; },
     timers,
+    setRuntimeId: (value) => { runtimeId = value; },
   };
 }
 
@@ -136,6 +140,21 @@ test('navigation cancels only the request owned by that webContents', async () =
     shareAudio: false,
     reason: 'navigation',
   });
+});
+
+test('another window cannot answer or cancel a runtime-owned display request', async () => {
+  const h = harness();
+  h.setRuntimeId('one');
+  const resultPromise = h.begin({ runtimeId: 'one' });
+
+  h.setRuntimeId('two');
+  h.controller.handleReply({ trusted: true }, { requestId: 'request-1', index: 0 });
+  assert.equal(h.controller.cancelForRuntime('two', 'window-closed'), false);
+  assert.equal(h.controller.isPending(), true);
+
+  h.setRuntimeId('one');
+  h.controller.handleReply({ trusted: true }, { requestId: 'request-1', index: 0 });
+  assert.equal((await resultPromise).reason, 'selected');
 });
 
 test('a second request settles the first before becoming pending', async () => {

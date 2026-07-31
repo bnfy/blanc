@@ -27,6 +27,7 @@ function createDisplaySharePickerController({
   showOverlay,
   hideOverlay,
   getOverlayMode,
+  getRuntimeId = () => null,
   isOverlaySender,
   randomUUID,
   setTimer,
@@ -58,6 +59,7 @@ function createDisplaySharePickerController({
     origin,
     webContentsId,
     canShareAudio = false,
+    runtimeId = null,
   }) {
     if (pending) settle(null, 'mode-replaced');
     if (!Array.isArray(sources) || sources.length === 0) {
@@ -74,6 +76,7 @@ function createDisplaySharePickerController({
         sources,
         webContentsId,
         canShareAudio: !!canShareAudio,
+        runtimeId,
         resolve,
         timer: null,
       };
@@ -105,6 +108,7 @@ function createDisplaySharePickerController({
 
   function handleReply(event, payload) {
     if (!isOverlaySender(event) || !pending) return;
+    if (pending.runtimeId && pending.runtimeId !== getRuntimeId()) return;
     if (getOverlayMode() !== 'display-share-picker') return;
     if (!payload || payload.requestId !== pending.requestId) return;
 
@@ -130,12 +134,20 @@ function createDisplaySharePickerController({
     return true;
   }
 
+  function cancelForRuntime(runtimeId, reason) {
+    if (pending?.runtimeId !== runtimeId) return false;
+    settle(null, reason);
+    return true;
+  }
+
   return {
     requestPick,
     settle,
     handleReply,
     cancelForWebContents,
+    cancelForRuntime,
     isPending: () => pending !== null,
+    isPendingForRuntime: (runtimeId) => pending?.runtimeId === runtimeId,
   };
 }
 

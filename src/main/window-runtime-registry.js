@@ -77,6 +77,18 @@ function createWindowRuntimeRegistry() {
     return runtime;
   }
 
+  // A user-closed secondary window has no dock-reopen contract. Remove its
+  // runtime after its tab resources have been released so it cannot appear in
+  // later broadcasts or a future session restore.
+  function discard(id, browserWindow) {
+    const runtime = requireRuntime(id);
+    if (browserWindow && runtime.browserWindow !== browserWindow) return null;
+    if (runtime.browserWindow) windowOwners.delete(runtime.browserWindow);
+    for (const tabId of runtime.tabIds) tabOwners.delete(tabId);
+    runtimes.delete(id);
+    return runtime;
+  }
+
   function setOverlay(id, { view, mode = null, prefill = null } = {}) {
     const runtime = requireRuntime(id);
     runtime.overlayView = view ?? null;
@@ -155,6 +167,7 @@ function createWindowRuntimeRegistry() {
   return {
     register,
     detach,
+    discard,
     get,
     setOverlay,
     setUtilitySheet,

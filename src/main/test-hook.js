@@ -11,7 +11,7 @@
 const settings = require('./settings');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
-const { Menu, clipboard } = require('electron');
+const { app, Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const {
   runAddressMenuItem,
@@ -46,6 +46,10 @@ function install(refs) {
     setVerticalTabsWidth,
     getVerticalTabsMetrics,
     broadcastTabs,
+    openNewWindow,
+    windowRuntimeSnapshots: getWindowRuntimeSnapshots,
+    closeWindowRuntime: closeWindowRuntimeById,
+    persistedWorkspaceIds: getPersistedWorkspaceIds,
     getRailActivationSerial,
     normalizeAddressInput,
     pasteAndGo,
@@ -200,6 +204,23 @@ function install(refs) {
       const g = getGroups().find((x) => x.name === lc(name));
       if (!g) return;
       for (const [id, t] of tabs) if (t.groupId === g.id) closeTab(id);
+    },
+
+    // ---- browser windows ----
+    // These are intentionally limited to the test-only hook: production
+    // window ownership is driven by the native File menu/accelerator, while
+    // acceptance needs a deterministic way to assert the runtime boundary.
+    openWindow() { return openNewWindow(); },
+    windowRuntimes() { return getWindowRuntimeSnapshots(); },
+    closeWindow(id) { return closeWindowRuntimeById(id); },
+    persistedWorkspaceIds() { return getPersistedWorkspaceIds(); },
+    quitApplication() {
+      // Defer until the Electron evaluate response has crossed the process
+      // boundary. app.quit() fires before-quit, which preserves every window
+      // workspace; closing BrowserWindows individually is deliberately a
+      // different action for secondary windows.
+      setImmediate(() => app.quit());
+      return true;
     },
 
     // ---- favorites (bookmarks store) ----

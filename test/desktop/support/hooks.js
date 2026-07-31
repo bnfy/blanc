@@ -96,7 +96,17 @@ BeforeAll({ timeout: 120_000 }, async () => {
   // F28-1 exercises a genuine process relaunch against this same profile,
   // rather than a renderer reload or an in-memory persistence proxy.
   ctx.relaunch = async () => {
-    if (ctx.app) await ctx.app.close();
+    if (ctx.app) {
+      const appToClose = ctx.app;
+      const child = appToClose.process();
+      const exited = new Promise((resolve) => {
+        if (child.exitCode !== null) resolve();
+        else child.once('exit', resolve);
+      });
+      await appToClose.evaluate(() => globalThis.__blanc.quitApplication());
+      await exited;
+      ctx.app = null;
+    }
     ctx.app = await launchApp();
   };
 
