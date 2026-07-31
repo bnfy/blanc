@@ -49,6 +49,18 @@ test('tab ownership is exclusive and active identity is local to its runtime', (
   assert.equal(registry.ownerForTab('tab-a'), null);
 });
 
+test('tab order and group state belong to the runtime, not the registry', () => {
+  const registry = createWindowRuntimeRegistry();
+  const one = registry.register({ id: 'one', browserWindow: {} });
+  const two = registry.register({ id: 'two', browserWindow: {} });
+
+  one.tabOrder.push('tab-a');
+  one.groups.push({ id: 'work', name: 'work', collapsed: false });
+
+  assert.deepEqual(two.tabOrder, []);
+  assert.deepEqual(two.groups, []);
+});
+
 test('detaching native chrome preserves local tabs for a replacement window', () => {
   const registry = createWindowRuntimeRegistry();
   const firstWindow = {};

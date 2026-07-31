@@ -107,10 +107,11 @@ BrowserWindow reference, its overlay and utility-sheet views/state, its active
 tab id, and the set of tab ids it owns. A tab may have exactly one runtime
 owner; a runtime cannot attach to two live BrowserWindows.
 
-The current primary window is registered now, and its overlay/sheet state plus
-tab selection live on that runtime while the remaining single-window callers
-are extracted. Closing the native window detaches only native chrome:
+The current primary window is registered now. Its overlay/sheet state, tab
+order, groups, and active-tab selection live on that runtime; only the
+process-wide map that locates native tab resources remains shared. Closing the
+native window detaches only native chrome:
 the runtime retains tab ownership and the selected tab for a macOS dock
 reopen, while the destroyed overlay/sheet references are cleared. The next
-increment will pass an explicit runtime through tab, surface, IPC, and menu
-operations, remove the remaining primary aliases, then expose New Window.
+increment will bind BrowserWindow focus, IPC, and menu actions to an explicit
+runtime, remove the remaining primary aliases, then expose New Window.

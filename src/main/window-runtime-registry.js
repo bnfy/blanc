@@ -22,6 +22,8 @@ function createRuntime(id, browserWindow) {
     utilitySheetView: null,
     utilitySheetUrl: null,
     activeTabId: null,
+    tabOrder: [],
+    groups: [],
     tabIds: new Set(),
   };
 }
