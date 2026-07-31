@@ -727,6 +727,16 @@ body.mac .vertical-tabs-toolbar {
 .pill-btn.on { color: var(--accent); }
 .pill-btn.on svg { fill: var(--accent); stroke: var(--accent); }
 .pill-sep { width: 1px; height: 15px; background: var(--border); flex: 0 0 auto; margin: 0 2px; }
+.pill-profile-name {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.035em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 92px;
+  flex: 0 1 auto;
+}
 
 /* Download button: a thin accent progress ring around the tray icon while
    a download is in flight (--dl-progress is 0..1, set from renderer.js). */

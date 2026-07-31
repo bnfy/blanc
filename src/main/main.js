@@ -1346,6 +1346,10 @@ function broadcastTabs() {
     tabs: serializeTabs(),
     activeTabId: tabState.activeTabId,
     groups: tabState.groups,
+    profile: (() => {
+      const profile = localProfiles.getLocalProfile(runtime.profileId);
+      return { id: runtime.profileId, name: profile?.name ?? 'Personal' };
+    })(),
     tabLayout,
     ...widthMetrics,
   };
@@ -3396,6 +3400,10 @@ function buildMenu() {
   // has no mnemonics, so leave labels untouched there.
   const mn = escapeMenuLabel; // literal '&' → '&&' on Win/Linux; see helper
   const favItems = favoritesMenuItems(); // computed once; drives the separator below
+  const localProfileItems = localProfiles.listLocalProfiles().map((profile) => ({
+    label: profile.name,
+    click: () => openNewWindow({ profileId: profile.id }),
+  }));
   const appMenu = isMac
     ? [{
         label: app.name,
@@ -3419,6 +3427,7 @@ function buildMenu() {
       label: 'File',
       submenu: [
         { label: 'New Window', accelerator: 'CmdOrCtrl+N', click: openNewWindow },
+        { label: 'New Profile Window', click: () => openNewProfileWindow() },
         { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }) },
         { label: 'New Private Tab', accelerator: 'CmdOrCtrl+Shift+N', click: () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }) },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => tabState.activeTabId && closeTab(tabState.activeTabId) },
@@ -3427,6 +3436,14 @@ function buildMenu() {
         { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: checkForUpdatesManually }, { type: 'separator' }]),
         isMac ? { role: 'close' } : { role: 'quit' },
+      ],
+    },
+    {
+      label: 'Profiles',
+      submenu: [
+        { label: 'New Profile Window', click: () => openNewProfileWindow() },
+        { type: 'separator' },
+        ...localProfileItems,
       ],
     },
     { role: 'editMenu' }, // required for copy/paste/undo to work in inputs
@@ -3588,13 +3605,15 @@ function createMainWindow({
   // A workspace is allowed to reference only a profile registered on this
   // device. Unknown/future ids fall back to Personal instead of silently
   // creating an unlabelled persistent Chromium partition from session.json.
-  profileId = localProfiles.getLocalProfile(profileId)?.id ?? DEFAULT_PROFILE_ID;
+  const profile = localProfiles.getLocalProfile(profileId);
+  profileId = profile?.id ?? DEFAULT_PROFILE_ID;
   const browserWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 640,
     minHeight: 480,
     backgroundColor: chromeBackgroundColor(),
+    title: profileId === DEFAULT_PROFILE_ID ? 'Blanc' : `Blanc — ${profile?.name ?? 'Profile'}`,
     frame: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
@@ -3714,6 +3733,7 @@ function openNewWindow(options = {}) {
 function openNewProfileWindow(name) {
   const profile = localProfiles.createLocalProfile(name);
   openNewWindow({ profileId: profile.id });
+  scheduleMenuRebuild();
   return profile;
 }
 

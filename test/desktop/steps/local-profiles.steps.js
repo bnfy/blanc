@@ -15,9 +15,20 @@ When('I open a named local profile window', async function () {
   this.privateProfileTabId = await this.call(
     'openTab', this.fixtureUrl('local-profile-private'), { private: true }
   );
+  await waitForValue(
+    () => this.call('islandProfileLabel'),
+    (label) => label === 'Work ·',
+    'the visible named-profile Island label',
+  );
 });
 
 Then('the named profile uses isolated normal and private browser sessions', async function () {
+  const menuLabels = await waitForValue(
+    () => this.call('nativeMenuLabels'),
+    (labels) => labels.includes('Profiles') && labels.includes('New Profile Window') && labels.includes('Work'),
+    'the profile menu entries',
+  );
+  assert.ok(menuLabels.includes('Profiles'));
   const state = await waitForValue(
     () => this.call('state'),
     (current) => current.tabs.some((tab) => tab.id === this.normalProfileTabId)

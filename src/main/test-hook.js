@@ -934,6 +934,13 @@ function install(refs) {
     },
     attemptChromeNavigation(url) { return attemptChromeNavigation(String(url)); },
     chromeUrl() { return getChromeUrl(); },
+    islandProfileLabel() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(
+        `document.getElementById('pillProfileName')?.textContent ?? ''`
+      );
+    },
 
     // ---- isolation between scenarios ----
     reset() {

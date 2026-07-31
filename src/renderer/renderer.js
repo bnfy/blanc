@@ -14,6 +14,7 @@
   const pillDots = document.getElementById('pillDots');
   const pillNav = document.getElementById('pillNav');
   const pillActions = document.getElementById('pillActions');
+  const pillProfileName = document.getElementById('pillProfileName');
   const pillGroupName = document.getElementById('pillGroupName');
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
@@ -31,6 +32,7 @@
     tabs: [],
     activeTabId: null,
     groups: [],
+    profile: { id: 'default', name: 'Personal' },
     tabLayout: 'island',
   };
   /** Overlay mode mirrored from main — the pill hides while the command
@@ -356,6 +358,9 @@
     }
 
     const activeGroup = state.groups.find((g) => g.id === tab?.groupId) || null;
+    const namedProfile = state.profile?.id && state.profile.id !== 'default';
+    pillProfileName.hidden = !namedProfile;
+    pillProfileName.textContent = namedProfile ? `${state.profile.name} ·` : '';
     pillGroupName.hidden = !activeGroup;
     pillGroupName.textContent = activeGroup ? `${activeGroup.name} ·` : '';
 
