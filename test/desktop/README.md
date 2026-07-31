@@ -79,7 +79,7 @@ scenarios drivable purely through main-process state or pure app logic:
 | F3-1..F3-5 | group create+move / active-group Island projection / collapsed panel row / prune-on-empty / grouped-pin ordering |
 | F4-1..F4-5 | private history/reopen isolation / private chrome quick-exit / child inheritance / private-session isolation / private start-page load |
 | F5-1..F5-5 | address routing / 4 engines / OS hand-off / autocomplete routing + privacy |
-| F7-2 | slash-command effects (/new, /downloads, /find) |
+| F7-1, F7-2 | live slash-prefix filtering and command effects (/new, /downloads, /find) |
 | F9-1, F9-2 | favorite active page / add-all-tabs |
 | F10-1, F10-2 | committed-title history record and clear history |
 | F11-1, F11-2 | streamed download progress/completion and completed-file opening |

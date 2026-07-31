@@ -159,6 +159,16 @@ When('I collapse the group {string}', async function (name) {
     candidate.id === group.id && candidate.collapsed === true));
 });
 
+When('I type {string}', async function (value) {
+  await waitForValue(
+    () => this.call('overlayRendererMode'),
+    (mode) => mode === 'palette',
+    'the command palette renderer before typing'
+  );
+  assert.equal(await this.call('editAddressInput', value, 'insertText'), true,
+    'the command palette input should accept typed text');
+});
+
 When('a link in the page opens a new tab', async function () {
   const openerUrl = this.fixtureUrl('private-opener');
   const childUrl = this.fixtureUrl('private-child');
@@ -550,6 +560,21 @@ Then('the panel shows a {string} row for {string}', async function (label, name)
     `the collapsed ${name} group row in the panel`
   );
   assert.ok(groups.foldedLabels.includes(label));
+});
+
+Then('the command {string} is listed', async function (command) {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => items.some((item) => item.command === command),
+    `${command} in the slash-command list`
+  );
+  assert.ok(rows.some((item) => item.command === command));
+});
+
+Then('the command {string} is not listed', async function (command) {
+  const rows = await this.call('addressResultRows');
+  assert.ok(!rows.some((item) => item.command === command),
+    `${command} should not match the typed slash prefix`);
 });
 
 Then("the island shows the active page's domain", async function () {

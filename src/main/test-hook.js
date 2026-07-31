@@ -834,6 +834,7 @@ function install(refs) {
       if (!wc) return [];
       return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-row')].map((row) => ({
         title: row.querySelector('.row-title')?.textContent ?? '',
+        command: row.querySelector('.row-cmd')?.textContent ?? '',
         tag: row.querySelector('.row-tag')?.textContent ?? '',
         active: row.classList.contains('active'),
         enter: !!row.querySelector('.row-enter')
