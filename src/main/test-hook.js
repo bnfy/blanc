@@ -501,6 +501,50 @@ function install(refs) {
       }))()`);
     },
     openFind() { openFindBar(); },
+    async setFindQuery(query) {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const input = document.getElementById('findInput');
+        if (!input) return false;
+        input.value = ${JSON.stringify(String(query))};
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
+      })()`);
+    },
+    async findUi() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        query: document.getElementById('findInput')?.value ?? '',
+        count: document.getElementById('findCount')?.textContent ?? '',
+      }))()`);
+    },
+    async stepFind(direction) {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      const id = direction === 'previous' ? 'findPrevBtn' : 'findNextBtn';
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById(${JSON.stringify(id)});
+        if (!button) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    async clickActivePageProbe() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return null;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('acceptance-page-action');
+        if (!button) return null;
+        button.click();
+        const rect = button.getBoundingClientRect();
+        return {
+          clicks: Number(button.dataset.clicks || 0),
+          rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        };
+      })()`);
+    },
     openPanel() { showOverlay('panel'); },
     openPalette() { showOverlay('palette'); },
 

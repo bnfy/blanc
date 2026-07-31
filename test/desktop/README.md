@@ -81,6 +81,7 @@ scenarios drivable purely through main-process state or pure app logic:
 | F5-1..F5-5 | address routing / 4 engines / OS hand-off / autocomplete routing + privacy |
 | F6-1, F6-2 | Quick Switcher matches open tabs/Favorites and ranks/focuses group results |
 | F7-1, F7-2 | live slash-prefix filtering and command effects (/new, /downloads, /find) |
+| F8-1 | Chromium find match count/navigation with a clickable guest page outside the capsule |
 | F9-1, F9-2 | favorite active page / add-all-tabs |
 | F10-1, F10-2 | committed-title history record and clear history |
 | F11-1, F11-2 | streamed download progress/completion and completed-file opening |
@@ -90,7 +91,7 @@ scenarios drivable purely through main-process state or pure app logic:
 | F16-2..F16-7 | utility-sheet routing, isolation, actions, and toggle behavior |
 | F17-1, F17-2 | supporter unlock and locked-colorway fallback |
 
-Run `npm run test:acceptance:dry` — **91 scenarios, 548 steps, 0 undefined**
+Run `npm run test:acceptance:dry` — **92 scenarios, 555 steps, 0 undefined**
 (Scenario Outlines expand per example: F5-2 → 4 rows, F7-2 → 3).
 
 The **`default`** profile (`not @mobile`) selects the whole desktop-applicable

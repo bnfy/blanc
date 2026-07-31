@@ -145,6 +145,7 @@ Before(async function () {
   ctx.paletteTabIds = null;
   ctx.groupTabIds = null;
   ctx.activeIslandUrl = null;
+  ctx.findTabId = null;
   ctx.enteredInput = null;
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;

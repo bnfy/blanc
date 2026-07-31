@@ -33,9 +33,11 @@ function start() {
       `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title></head>` +
       `<body><h1>${name}</h1><p>widget widget widget</p>` +
       `<input id="acceptance-draft" aria-label="Unsaved draft">` +
+      `<button id="acceptance-page-action" data-clicks="0" style="display:block;margin-top:260px">Page action</button>` +
       `<script>` +
       `const key='acceptance-load-count';` +
       `sessionStorage.setItem(key,String(Number(sessionStorage.getItem(key)||0)+1));` +
+      `document.getElementById('acceptance-page-action').addEventListener('click',(event)=>{event.currentTarget.dataset.clicks=String(Number(event.currentTarget.dataset.clicks||0)+1)});` +
       `</script></body></html>`
     );
   });

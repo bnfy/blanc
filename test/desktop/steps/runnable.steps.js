@@ -106,6 +106,15 @@ Given('a favorite for {string}', async function (name) {
   await this.call('seedFavorite', this.fixtureUrl(name), name);
 });
 
+Given('a page containing the word {string} {int} times', async function (word, count) {
+  assert.equal(word, 'widget', 'the local desktop fixture contains the widget probe');
+  assert.equal(count, 3, 'the desktop fixture has exactly three widget occurrences');
+  const url = this.fixtureUrl('find-page');
+  ctx.findTabId = await this.call('openTab', url);
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === ctx.findTabId && tab.loadedUrl === url && tab.loading === false), { timeout: 15000 });
+});
+
 Given('there is no active supporter license', async function () { await this.call('clearSupporter'); });
 
 Given('an internal blanc page is open', async function () {
@@ -180,6 +189,16 @@ When('I type {string}', async function (value) {
   );
   assert.equal(await this.call('editAddressInput', value, 'insertText'), true,
     'the command palette input should accept typed text');
+});
+
+When('I search for {string}', async function (query) {
+  await waitForValue(
+    () => this.call('overlayRendererMode'),
+    (mode) => mode === 'find',
+    'the find overlay renderer before searching'
+  );
+  assert.equal(await this.call('setFindQuery', query), true,
+    'the find input should accept the query');
 });
 
 When('I choose the group result {string}', async function (name) {
@@ -602,6 +621,48 @@ Then('the results include the tab {string}', async function (name) {
     `the open ${name} tab in Quick Switcher results`
   );
   assert.ok(rows.some((item) => item.title === name && item.tag === 'tab'));
+});
+
+Then('the match count shows {int}', async function (count) {
+  const find = await waitForValue(
+    () => this.call('findUi'),
+    (state) => new RegExp(`^\\d+/${count}$`).test(state?.count ?? ''),
+    `${count} native find matches`,
+    15000
+  );
+  assert.match(find.count, new RegExp(`^\\d+/${count}$`));
+});
+
+Then('I can navigate to the next and previous match', async function () {
+  assert.equal(await this.call('stepFind', 'next'), true, 'the Next match control should be clickable');
+  const next = await waitForValue(
+    () => this.call('findUi'),
+    (state) => state?.count === '2/3',
+    'the second native find match',
+    15000
+  );
+  assert.equal(next.count, '2/3');
+  assert.equal(await this.call('stepFind', 'previous'), true, 'the Previous match control should be clickable');
+  const previous = await waitForValue(
+    () => this.call('findUi'),
+    (state) => state?.count === '1/3',
+    'the first native find match after stepping backward',
+    15000
+  );
+  assert.equal(previous.count, '1/3');
+});
+
+Then('the page content outside the find bar remains clickable', async function () {
+  const [overlay, guest, probe] = await Promise.all([
+    this.call('overlayBounds'),
+    this.call('activeGuestBounds'),
+    this.call('clickActivePageProbe'),
+  ]);
+  assert.ok(overlay && guest && probe, 'the find overlay, guest page, and probe control should exist');
+  const probeY = guest.y + probe.rect.y + probe.rect.height / 2;
+  assert.ok(probeY > overlay.y + overlay.height,
+    'the guest-page control must sit outside the find overlay bounds');
+  assert.equal(probe.clicks, 1, 'the visible guest-page control should receive its click');
 });
 
 Then('the results include the favorite {string}', async function (name) {
