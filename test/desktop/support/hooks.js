@@ -37,6 +37,24 @@ async function launchApp() {
   return electronApp;
 }
 
+async function resetScenarioApp() {
+  // A guest navigation can be tearing down at the exact moment Playwright
+  // asks Electron's main process to run the reset hook. Electron then reports
+  // its transient execution-context-destroyed error even though the app is
+  // still healthy. Retrying that one known handoff race keeps scenarios
+  // isolated without hiding an unavailable hook or any other reset failure.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await ctx.app.evaluate(() => globalThis.__blanc.reset());
+      return;
+    } catch (error) {
+      const transient = /Execution context was destroyed/i.test(String(error?.message ?? error));
+      if (!transient || attempt === 2) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
+}
+
 BeforeAll({ timeout: 120_000 }, async () => {
   fixturesHandle = await fixtures.start();
   ctx.fixturesBase = fixturesHandle.base;
@@ -131,7 +149,7 @@ Before(async function () {
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;
   ctx.downloadPath = null;
-  await ctx.app.evaluate(() => globalThis.__blanc.reset());
+  await resetScenarioApp();
 });
 
 AfterAll(async () => {

@@ -90,7 +90,7 @@ scenarios drivable purely through main-process state or pure app logic:
 | F16-2..F16-7 | utility-sheet routing, isolation, actions, and toggle behavior |
 | F17-1, F17-2 | supporter unlock and locked-colorway fallback |
 
-Run `npm run test:acceptance:dry` — **81 scenarios, 481 steps, 0 undefined**
+Run `npm run test:acceptance:dry` — **91 scenarios, 548 steps, 0 undefined**
 (Scenario Outlines expand per example: F5-2 → 4 rows, F7-2 → 3).
 
 The **`default`** profile (`not @mobile`) selects the whole desktop-applicable
