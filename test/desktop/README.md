@@ -80,14 +80,14 @@ scenarios drivable purely through main-process state or pure app logic:
 | F5-1..F5-5 | address routing / 4 engines / OS hand-off / autocomplete routing + privacy |
 | F7-2 | slash-command effects (/new, /downloads, /find) |
 | F9-1, F9-2 | favorite active page / add-all-tabs |
-| F10-2 | clear history |
+| F10-1, F10-2 | committed-title history record and clear history |
 | F11-1, F11-2 | streamed download progress/completion and completed-file opening |
 | F12-3 | ad-block global toggle |
 | F14-1..F14-4 | settings validation + device-local search-suggestion opt-out |
 | F16-2..F16-7 | utility-sheet routing, isolation, actions, and toggle behavior |
 | F17-1 | supporter unlock → app icon applied |
 
-Run `npm run test:acceptance:dry` — **77 scenarios, 465 steps, 0 undefined**
+Run `npm run test:acceptance:dry` — **78 scenarios, 468 steps, 0 undefined**
 (Scenario Outlines expand per example: F5-2 → 4 rows, F7-2 → 3).
 
 The **`default`** profile (`not @mobile`) selects the whole desktop-applicable

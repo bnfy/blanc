@@ -67,6 +67,14 @@ When('I pin {string}', async function (name) { await this.call('pinTab', ctx.tab
 When('I open a new tab', async function () { ctx.lastNewTabId = await this.call('newTab'); });
 When('I close the last tab in {string}', async function (name) { await this.call('closeTabsInGroupName', name); });
 
+When('I visit {string} with title {string}', async function (name, title) {
+  const url = `${this.fixtureUrl(name)}?title=${encodeURIComponent(title)}`;
+  const id = await this.call('openTab', url);
+  this.historyVisit = { url, title };
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === id && tab.loadedUrl === url && tab.loading === false), { timeout: 15000 });
+});
+
 When('I run the slash command {string}', async function (cmd) {
   const [head, ...rest] = String(cmd).trim().split(/\s+/);
   if (head === '/group') return this.call('groupActiveByName', rest.join(' '));
@@ -292,6 +300,19 @@ Then('{string} appears on the favorites page', async function (name) {
 
 Then('history is empty', async function () {
   assert.strictEqual(await this.call('historyCount'), 0);
+});
+
+Then('history contains one entry for {string} titled {string}', async function (name, title) {
+  assert.ok(this.historyVisit, 'the visit step should retain its fixture URL');
+  assert.equal(this.historyVisit.title, title);
+  assert.ok(this.historyVisit.url.includes(`/site/${encodeURIComponent(name)}`));
+  const entries = await waitForValue(
+    () => this.call('historyEntries'),
+    (items) => items.filter((item) => item.url === this.historyVisit.url && item.title === title).length === 1,
+    `one history entry for ${name} titled ${title}`
+  );
+  assert.equal(entries.filter((item) => item.url === this.historyVisit.url).length, 1,
+    'the committed visit should not be duplicated');
 });
 
 // NOTE: `/` is the alternation operator in Cucumber Expressions, so the literal

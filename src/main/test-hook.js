@@ -282,6 +282,7 @@ function install(refs) {
     seedHistory() { history.addVisit('http://seed.local/', 'Seed'); },
     clearHistory() { history.clearHistory(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
+    historyEntries() { return history.listHistory({ limit: 5000 }); },
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
