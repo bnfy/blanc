@@ -31,6 +31,15 @@ if (window.location.protocol === 'blanc:') {
       open: (id) => ipcRenderer.invoke('pages:downloads:open', id),
       show: (id) => ipcRenderer.invoke('pages:downloads:show', id),
       clearFinished: () => ipcRenderer.invoke('pages:downloads:clear-finished'),
+      // Main sends this only to the visible downloads utility sheet in the
+      // profile whose records changed. Return an unsubscribe function for
+      // completeness; navigating away also tears the isolated world down.
+      onChanged: (callback) => {
+        if (typeof callback !== 'function') return () => {};
+        const listener = () => callback();
+        ipcRenderer.on('pages:downloads:changed', listener);
+        return () => ipcRenderer.removeListener('pages:downloads:changed', listener);
+      },
     },
     start: {
       data: () => ipcRenderer.invoke('pages:start:data'),

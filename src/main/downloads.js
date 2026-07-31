@@ -24,20 +24,24 @@ const active = new Map(); // id -> { record, item, profileId }
 const recentProfileIds = new Set();
 const deletedProfileIds = new Set();
 
-/** @type {(() => void) | null} notify the chrome UI that something changed */
+/** @type {((profileIds: string[]) => void) | null} notify chrome/page UI */
 let onChanged = null;
 
 const THROTTLE_MS = 250;
 let lastBroadcast = 0;
 let broadcastTimer = null;
-function broadcast() {
+const pendingProfileIds = new Set();
+function broadcast(profileId = activeLocalProfileId()) {
+  pendingProfileIds.add(profileId);
   // Progress events fire many times a second; coalesce to ~4 updates/s.
   const now = Date.now();
   const wait = Math.max(0, THROTTLE_MS - (now - lastBroadcast));
   clearTimeout(broadcastTimer);
   broadcastTimer = setTimeout(() => {
     lastBroadcast = Date.now();
-    onChanged?.();
+    const profileIds = [...pendingProfileIds];
+    pendingProfileIds.clear();
+    onChanged?.(profileIds);
   }, wait);
 }
 
@@ -63,7 +67,7 @@ function setupDownloads(session, notifyChanged, { profileId = DEFAULT_PROFILE_ID
       record.savePath = item.getSavePath();
       record.receivedBytes = item.getReceivedBytes();
       record.totalBytes = item.getTotalBytes();
-      broadcast();
+      broadcast(profileId);
     }));
 
     item.once('done', (_e, state) => withLocalProfile(profileId, () => {
@@ -76,7 +80,7 @@ function setupDownloads(session, notifyChanged, { profileId = DEFAULT_PROFILE_ID
       // event must not write a new downloads.json after the profile directory
       // was deliberately removed; downloaded files themselves are untouched.
       if (deletedProfileIds.has(profileId)) {
-        broadcast();
+        broadcast(profileId);
         return;
       }
       ensureStore().update((d) => {
@@ -84,10 +88,10 @@ function setupDownloads(session, notifyChanged, { profileId = DEFAULT_PROFILE_ID
         if (d.items.length > MAX_PERSISTED) d.items.length = MAX_PERSISTED;
       });
       if (state === 'completed') recentProfileIds.add(profileId);
-      broadcast();
+      broadcast(profileId);
     }));
 
-    broadcast();
+    broadcast(profileId);
   }));
 }
 
@@ -122,8 +126,9 @@ function showDownloadInFolder(id) {
 }
 
 function clearFinishedDownloads() {
+  const profileId = activeLocalProfileId();
   ensureStore().update((d) => { d.items = []; });
-  broadcast();
+  broadcast(profileId);
 }
 
 function acknowledgeDownloads() {
@@ -138,7 +143,7 @@ function discardProfileDownloads(profileId) {
     active.delete(id);
     entry.item.cancel();
   }
-  broadcast();
+  broadcast(profileId);
 }
 
 /** Snapshot for the chrome pill: how many are in-flight, whether a finished

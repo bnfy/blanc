@@ -1391,11 +1391,25 @@ function broadcastTabsForRuntime(runtime) {
   if (runtime) withWindowRuntime(runtime, broadcastTabs);
 }
 
-function broadcastDownloadsActivity() {
+function broadcastDownloadsActivity(changedProfileIds = null) {
+  const affectedProfiles = Array.isArray(changedProfileIds) && changedProfileIds.length
+    ? new Set(changedProfileIds)
+    : null;
   for (const runtime of windowRuntimeRegistry.all()) {
+    if (affectedProfiles && !affectedProfiles.has(runtime.profileId)) continue;
     withWindowRuntime(runtime, () => {
       const browserWindow = currentBrowserWindow();
       if (browserWindow) browserWindow.webContents.send('chrome:downloads', downloadsActivity());
+      // The downloads sheet used to poll every 750 ms. Deliver changes only to
+      // the visible sheet belonging to the affected profile/runtime instead;
+      // other windows and profiles must never wake up or receive its records.
+      if (
+        chromeState.utilitySheetUrl?.startsWith('blanc://downloads/') &&
+        chromeState.utilitySheetView &&
+        !chromeState.utilitySheetView.webContents.isDestroyed()
+      ) {
+        chromeState.utilitySheetView.webContents.send('pages:downloads:changed');
+      }
     });
   }
 }

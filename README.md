@@ -275,5 +275,3 @@ and documentation cleanup:
 - `normalizeAddressInput()`'s domain-detection regex is intentionally
   simple; it'll misclassify some edge cases (e.g. paths with dots in query
   strings). Known, accepted.
-- The downloads page polls while visible instead of receiving push
-  updates — simple, but a push channel would be cleaner.
