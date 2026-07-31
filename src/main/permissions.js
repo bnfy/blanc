@@ -23,7 +23,7 @@ let store = null;
 const ensureStore = () => {
   if (!store) {
     const { JsonStore } = require('./store');
-    store = new JsonStore('site-permissions', { decisions: {} });
+    store = new JsonStore('site-permissions', { decisions: {} }, { scope: 'profile' });
   }
   return store;
 };

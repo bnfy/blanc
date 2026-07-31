@@ -62,6 +62,10 @@ const {
   replaceObject,
 } = require('./session-workspace');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const {
+  withLocalProfile,
+  setFocusedLocalProfile,
+} = require('./local-profile-context');
 const { createWindowRuntimeRegistry } = require('./window-runtime-registry');
 const { isUtilityUrl } = require('./utility-pages');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
@@ -465,7 +469,7 @@ const windowRuntimeContext = new AsyncLocalStorage();
 
 function withWindowRuntime(runtime, work) {
   if (!runtime) return work();
-  return windowRuntimeContext.run(runtime, work);
+  return withLocalProfile(runtime.profileId, () => windowRuntimeContext.run(runtime, work));
 }
 
 function bindWindowRuntime(runtime, listener) {
@@ -477,6 +481,7 @@ function setFocusedWindowRuntime(runtime) {
     ? runtime
     : null;
   if (focusedWindowRuntime) activeWorkspaceWindowId = focusedWindowRuntime.id;
+  setFocusedLocalProfile(focusedWindowRuntime?.profileId ?? DEFAULT_PROFILE_ID);
 }
 
 function currentWorkspaceRuntime() {
@@ -2810,8 +2815,15 @@ function addAllTabsToFavorites() {
 
 /** Bookmark state can change from the bookmarks page; re-derive per tab. */
 function refreshBookmarkFlags() {
-  for (const tab of tabs.values()) tab.bookmarked = bookmarks.isBookmarked(tab.url);
-  for (const runtime of windowRuntimeRegistry.all()) broadcastTabsForRuntime(runtime);
+  for (const runtime of windowRuntimeRegistry.all()) {
+    withWindowRuntime(runtime, () => {
+      for (const id of runtime.tabOrder) {
+        const tab = tabs.get(id);
+        if (tab) tab.bookmarked = bookmarks.isBookmarked(tab.url);
+      }
+      broadcastTabs();
+    });
+  }
   scheduleMenuRebuild();
 }
 
@@ -3786,8 +3798,10 @@ app.whenReady().then(async () => {
   });
   setDisplayMediaPrompter(promptForDisplayMedia);
 
-  setupDownloads(ses, broadcastDownloadsActivity);
-  setupDownloads(privateSes, broadcastDownloadsActivity);
+  setupDownloads(ses, broadcastDownloadsActivity, { profileId: DEFAULT_PROFILE_ID });
+  // Private tabs retain Blanc's existing download behavior, but those records
+  // belong to the current default local profile rather than another profile.
+  setupDownloads(privateSes, broadcastDownloadsActivity, { profileId: DEFAULT_PROFILE_ID });
   let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
   let adblockStartupController = null;
   let releaseStartup = async () => {};

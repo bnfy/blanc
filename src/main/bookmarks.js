@@ -4,7 +4,9 @@ const { validFavicon, validFolder } = require('./bookmark-validate');
 const data = require('./bookmark-data');
 
 let store = null;
-const ensureStore = () => (store ??= new JsonStore('bookmarks', { items: [], tombstones: [] }));
+const ensureStore = () => (store ??= new JsonStore(
+  'bookmarks', { items: [], tombstones: [] }, { scope: 'profile' }
+));
 
 // Two independent listener sets, deliberately separate:
 //  - changeListeners: a LOCAL user edit → the sync engine schedules a push.

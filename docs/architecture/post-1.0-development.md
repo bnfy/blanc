@@ -149,3 +149,10 @@ This is identity and migration groundwork only. It deliberately does not expose
 a profile picker yet: a visible named profile must first bind its persistent
 Chromium partition and define which local product records belong to it. Calling
 shared cookies or history a separate profile would be misleading.
+
+The first data seam is now profile-scoped JSON storage for Favorites, history,
+downloads, and remembered site permissions. The default profile continues to
+use the existing root files so upgrading does not copy or move any user data;
+additional profiles use their own bounded files under `profiles/<opaque-id>/`.
+Settings, supporter status, telemetry, and Profile Sync remain device-level for
+now, and Tab Sync remains default-profile-only under its existing consent.

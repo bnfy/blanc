@@ -4,7 +4,9 @@ const { JsonStore } = require('./store');
 const MAX_ENTRIES = 5000;
 
 let store = null;
-const ensureStore = () => (store ??= new JsonStore('history', { entries: [] }));
+const ensureStore = () => (store ??= new JsonStore(
+  'history', { entries: [] }, { scope: 'profile' }
+));
 
 const isRecordable = (url) => /^https?:\/\//.test(url);
 
