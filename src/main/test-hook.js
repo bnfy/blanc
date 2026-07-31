@@ -51,6 +51,7 @@ function install(refs) {
     windowRuntimeSnapshots: getWindowRuntimeSnapshots,
     tabSessionInfo,
     closeWindowRuntime: closeWindowRuntimeById,
+    focusWindowRuntime,
     persistedWorkspaceIds: getPersistedWorkspaceIds,
     getRailActivationSerial,
     normalizeAddressInput,
@@ -219,6 +220,7 @@ function install(refs) {
     openProfileWindow(name) { return openNewProfileWindow(name).id; },
     windowRuntimes() { return getWindowRuntimeSnapshots(); },
     closeWindow(id) { return closeWindowRuntimeById(id); },
+    focusWindow(id) { return focusWindowRuntime(id); },
     persistedWorkspaceIds() { return getPersistedWorkspaceIds(); },
     quitApplication() {
       // Defer until the Electron evaluate response has crossed the process

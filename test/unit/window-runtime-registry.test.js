@@ -71,9 +71,11 @@ test('tab order and group state belong to the runtime, not the registry', () => 
 
   one.tabOrder.push('tab-a');
   one.groups.push({ id: 'work', name: 'work', collapsed: false });
+  one.recentlyClosed.push({ url: 'https://one.example/' });
 
   assert.deepEqual(two.tabOrder, []);
   assert.deepEqual(two.groups, []);
+  assert.deepEqual(two.recentlyClosed, []);
 });
 
 test('detaching native chrome preserves local tabs for a replacement window', () => {
@@ -84,12 +86,14 @@ test('detaching native chrome preserves local tabs for a replacement window', ()
   registry.setActiveTab('primary', 'tab-a');
   registry.setOverlay('primary', { view: {}, mode: 'panel', prefill: 'query' });
   registry.setUtilitySheet('primary', { view: {}, url: 'blanc://history/' });
+  runtime.recentlyClosed.push({ url: 'https://reopen.example/' });
 
   registry.detach('primary', firstWindow);
   assert.equal(runtime.browserWindow, null);
   assert.equal(runtime.overlayView, null);
   assert.equal(runtime.utilitySheetView, null);
   assert.equal(runtime.activeTabId, 'tab-a');
+  assert.deepEqual(runtime.recentlyClosed, [{ url: 'https://reopen.example/' }]);
 
   const replacement = {};
   assert.equal(registry.register({ id: 'primary', browserWindow: replacement }), runtime);

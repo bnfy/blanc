@@ -162,5 +162,20 @@ Settings, supporter status, telemetry, and Profile Sync remain device-level.
 Profile Sync and its remote-tab presentation stay confined to Personal; a
 named profile cannot export its Favorites, tabs, or favicon sidecar through
 that pre-existing consent. Tab Sync remains the Personal primary workspace
-only. The profile picker remains intentionally unexposed until the Island can
-show the active profile and let people choose or name one without ambiguity.
+only. The native Profiles menu can create a new named window or reopen an
+existing profile; the Island and native window title show the active profile
+name. Renaming and deletion remain separate destructive-lifecycle work.
+
+## Tab lifecycle recovery decision
+
+Reopen Closed Tab is a bounded, in-memory recovery stack owned by each window
+runtime. It stores a non-private tab's URL, pin/mute state, group snapshot, and
+tab position; reopening restores that local presentation and focuses the tab.
+The stack is never persisted, so session restore remains the only recovery
+surface for tabs that were still open at quit, and private activity never gains
+a durable trail.
+
+Runtime ownership is also the profile privacy boundary: a tab closed in one
+window/profile cannot be reopened from another. Closing a secondary window
+releases its tabs without adding them to any recovery stack; closing a window
+means closing that workspace, not silently moving its tab history into Personal.

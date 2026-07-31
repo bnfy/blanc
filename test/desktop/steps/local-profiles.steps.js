@@ -11,6 +11,10 @@ When('I open a named local profile window', async function () {
     (runtimes) => runtimes.some((runtime) => runtime.profileId === this.localProfileId),
     'the named local-profile window to attach',
   );
+  const profileWindow = (await this.call('windowRuntimes')).find(
+    (runtime) => runtime.profileId === this.localProfileId
+  );
+  assert.equal(await this.call('focusWindow', profileWindow.id), true);
   this.normalProfileTabId = await this.call('openTab', this.fixtureUrl('local-profile-normal'));
   this.privateProfileTabId = await this.call(
     'openTab', this.fixtureUrl('local-profile-private'), { private: true }

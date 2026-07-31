@@ -83,6 +83,7 @@ const {
   calculateChromeLayout,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
+const { addRecentlyClosed, takeRecentlyClosed } = require('./recently-closed-tabs');
 const {
   captureRequestStillValid,
 } = require('./display-share-request');
@@ -2693,10 +2694,7 @@ function activateTabFromRail(id) {
   return true;
 }
 
-/** URLs of recently closed tabs, oldest first (Cmd/Ctrl+Shift+T pops). */
-const recentlyClosedUrls = [];
-
-function closeTab(id) {
+function closeTab(id, { recordForReopen = true } = {}) {
   const tab = tabs.get(id);
   const runtime = currentWorkspaceRuntime();
   if (!tab || !runtime || windowRuntimeRegistry.ownerForTab(id) !== runtime.id) return;
@@ -2718,17 +2716,20 @@ function closeTab(id) {
     );
   }
 
-  // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
-  if (tab.url && !tab.private && !tab.url.startsWith('blanc://newtab')) {
-    recentlyClosedUrls.push(tab.url);
-    if (recentlyClosedUrls.length > 25) recentlyClosedUrls.shift();
-  }
-
   const wasActive = id === tabState.activeTabId;
   const browserWindow = currentBrowserWindow();
   if (wasActive && browserWindow) browserWindow.contentView.removeChildView(tab.view);
 
   const closedIndex = tabState.tabOrder.indexOf(id);
+  if (recordForReopen) {
+    const group = tab.groupId
+      ? tabState.groups.find((candidate) => candidate.id === tab.groupId) ?? null
+      : null;
+    runtime.recentlyClosed = addRecentlyClosed(runtime.recentlyClosed, tab, {
+      group,
+      index: closedIndex,
+    });
+  }
   tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
   windowRuntimeRegistry.releaseTab(id);
@@ -2755,8 +2756,27 @@ function closeTab(id) {
 }
 
 function reopenClosedTab() {
-  const url = recentlyClosedUrls.pop();
-  if (url) setActiveTab(createTab(url));
+  const runtime = currentWorkspaceRuntime();
+  if (!runtime) return;
+  const { record, entries } = takeRecentlyClosed(runtime.recentlyClosed);
+  if (!record) return;
+  runtime.recentlyClosed = entries;
+  if (record.group && !tabState.groups.some((group) => group.id === record.group.id)) {
+    tabState.groups.push({ ...record.group });
+  }
+  const id = createTab(record.url, {
+    groupId: record.group?.id ?? null,
+    pinned: record.pinned,
+    muted: record.muted,
+  });
+  if (!id) return;
+  const from = tabState.tabOrder.indexOf(id);
+  const to = Math.max(0, Math.min(record.index, tabState.tabOrder.length - 1));
+  if (from >= 0 && from !== to) {
+    tabState.tabOrder.splice(from, 1);
+    tabState.tabOrder.splice(to, 0, id);
+  }
+  setActiveTab(id);
 }
 
 function reorderTab(id, toIndex) {
@@ -3674,7 +3694,9 @@ function createMainWindow({
     // tabs for the macOS dock-reopen behavior; closing a secondary window is
     // an explicit user close, so its tabs and persisted workspace end here.
     if (!isQuitting && closingRuntime.id !== PRIMARY_WINDOW_ID) {
-      for (const tabId of [...closingRuntime.tabOrder]) closeTab(tabId);
+      for (const tabId of [...closingRuntime.tabOrder]) {
+        closeTab(tabId, { recordForReopen: false });
+      }
       removePersistedWorkspace(closingRuntime.id);
       windowRuntimeRegistry.discard(closingRuntime.id, closingWindow);
     } else if (closingRuntime) {
@@ -3774,6 +3796,15 @@ function closeWindowRuntime(id) {
   const runtime = windowRuntimeRegistry.get(id);
   if (!runtime?.browserWindow || runtime.browserWindow.isDestroyed()) return false;
   runtime.browserWindow.close();
+  return true;
+}
+
+function focusWindowRuntime(id) {
+  const runtime = windowRuntimeRegistry.get(id);
+  const browserWindow = runtime?.browserWindow;
+  if (!browserWindow || browserWindow.isDestroyed()) return false;
+  browserWindow.focus();
+  setFocusedWindowRuntime(runtime);
   return true;
 }
 
@@ -4032,7 +4063,7 @@ app.whenReady().then(async () => {
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       openNewWindow, openNewProfileWindow, windowRuntimeSnapshots, tabSessionInfo,
-      closeWindowRuntime, persistedWorkspaceIds,
+      closeWindowRuntime, focusWindowRuntime, persistedWorkspaceIds,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,

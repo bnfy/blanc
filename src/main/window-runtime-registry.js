@@ -25,6 +25,7 @@ function createRuntime(id, browserWindow, profileId) {
     activeTabId: null,
     tabOrder: [],
     groups: [],
+    recentlyClosed: [],
     tabIds: new Set(),
   };
 }
