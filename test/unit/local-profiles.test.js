@@ -65,3 +65,18 @@ test('the profile manager updates a named identity without touching Personal', (
   assert.throws(() => manager.remove('default'), /Personal cannot/);
   assert.equal(store.updates, 3);
 });
+
+test('a profile deletion can require a durable registry write', () => {
+  const store = fakeStore();
+  store.updateAndFlush = function updateAndFlush(fn) {
+    fn(this.data);
+    this.updates += 1;
+    return true;
+  };
+  const manager = createLocalProfileManager({ store, makeId: () => 'work', now: () => 1 });
+  const work = manager.create('Work');
+
+  assert.equal(manager.remove(work.id, { flush: true }).id, work.id);
+  assert.equal(manager.get(work.id), null);
+  assert.equal(store.updates, 2);
+});

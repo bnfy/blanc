@@ -354,7 +354,9 @@
             );
             if (confirmation === null) return;
             const result = await window.bowserPages.profiles.remove(profile.id, confirmation);
-            profileStatus.textContent = result.ok ? 'Deleted.' : (result.message ?? 'Couldn’t delete that profile.');
+            profileStatus.textContent = result.ok
+              ? (result.pending ? 'Deletion is finishing and will retry automatically if needed.' : 'Deleted.')
+              : (result.message ?? 'Couldn’t delete that profile.');
             if (result.ok) refreshProfiles();
           });
           actions.append(open, rename, remove);

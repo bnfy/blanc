@@ -70,6 +70,7 @@ const {
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 const { createProfileSessionRegistry } = require('./profile-sessions');
 const localProfiles = require('./local-profiles');
+const profileDeletions = require('./profile-deletions');
 const {
   withLocalProfile,
   setFocusedLocalProfile,
@@ -1336,15 +1337,19 @@ function removePersistedWorkspace(runtimeId) {
 
 function removePersistedProfileWorkspaces(profileId) {
   if (isQuitting || sessionPersistenceSuspended || sessionPersistenceReadOnly) return false;
-  ensureSessionStore().update((data) => {
-    const parsed = readSessionWorkspace(data);
-    if (!parsed.supported) {
-      sessionPersistenceReadOnly = true;
-      return;
-    }
+  const store = ensureSessionStore();
+  const parsed = readSessionWorkspace(store.data);
+  if (!parsed.supported) {
+    sessionPersistenceReadOnly = true;
+    return false;
+  }
+  // Profile removal must survive a crash before JsonStore's ordinary debounce.
+  // Otherwise a now-unregistered workspace can be restored into Personal on
+  // the next launch. Treat a failed synchronous write as unfinished deletion.
+  const saved = store.updateAndFlush((data) => {
     replaceObject(data, removeProfileWorkspaces(parsed.workspace, profileId));
   });
-  return !sessionPersistenceReadOnly;
+  return saved && !sessionPersistenceReadOnly;
 }
 
 function persistSessionForRuntime(runtime) {
@@ -3517,10 +3522,12 @@ function buildMenu() {
   // has no mnemonics, so leave labels untouched there.
   const mn = escapeMenuLabel; // literal '&' → '&&' on Win/Linux; see helper
   const favItems = favoritesMenuItems(); // computed once; drives the separator below
-  const localProfileItems = localProfiles.listLocalProfiles().map((profile) => ({
-    label: profile.name,
-    click: () => openNewWindow({ profileId: profile.id }),
-  }));
+  const localProfileItems = localProfiles.listLocalProfiles()
+    .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id))
+    .map((profile) => ({
+      label: profile.name,
+      click: () => openNewWindow({ profileId: profile.id }),
+    }));
   const appMenu = isMac
     ? [{
         label: app.name,
@@ -3731,6 +3738,9 @@ function createMainWindow({
   runtimeId = activeWorkspaceWindowId,
   profileId = DEFAULT_PROFILE_ID,
 } = {}) {
+  if (profileId !== DEFAULT_PROFILE_ID && profileDeletions.hasPendingProfileDeletion(profileId)) {
+    throw new Error('This local profile is being deleted');
+  }
   // A workspace is allowed to reference only a profile registered on this
   // device. Unknown/future ids fall back to Personal instead of silently
   // creating an unlabelled persistent Chromium partition from session.json.
@@ -3883,6 +3893,7 @@ function createNamedLocalProfileWindow(name) {
 }
 
 function openExistingProfileWindow(profileId) {
+  if (profileDeletions.hasPendingProfileDeletion(profileId)) return null;
   const profile = localProfiles.getLocalProfile(profileId);
   if (!profile) return null;
   return openNewWindow({ profileId: profile.id });
@@ -3903,6 +3914,9 @@ function refreshProfilePresentation(profile) {
 
 function renameNamedLocalProfile(profileId, name) {
   try {
+    if (profileDeletions.hasPendingProfileDeletion(profileId)) {
+      return { ok: false, message: 'That profile is being deleted.' };
+    }
     const profile = localProfiles.renameLocalProfile(profileId, name);
     if (!profile) return { ok: false, message: 'That profile no longer exists.' };
     refreshProfilePresentation(profile);
@@ -3943,6 +3957,123 @@ async function clearNamedProfileSessions(profileId) {
 }
 
 const deletingProfileIds = new Set();
+let profileDeletionRecoveryTimer = null;
+
+function scheduleProfileDeletionRecovery() {
+  if (profileDeletionRecoveryTimer) return;
+  profileDeletionRecoveryTimer = setTimeout(() => {
+    profileDeletionRecoveryTimer = null;
+    resumePendingProfileDeletions().catch((error) => {
+      console.warn('[profiles] could not resume profile deletion:', error.message);
+    });
+  }, 1000);
+}
+
+// Once a deletion marker is durable, the profile is terminal even if one of
+// Electron's storage-clearing calls or a filesystem operation fails. Complete
+// every independent step, retain the marker on any failure, and retry on this
+// launch and the next one. That keeps an interrupted deletion from reopening
+// its workspace or falling back into Personal after a crash.
+async function completeNamedProfileDeletion(profileId, {
+  closeWindows = false,
+  ensureSurvivingWindow = false,
+} = {}) {
+  const errors = [];
+  const profile = localProfiles.getLocalProfile(profileId);
+
+  if (ensureSurvivingWindow) {
+    const hasSurvivingWindow = windowRuntimeRegistry.all().some((runtime) =>
+      runtime.profileId !== profileId &&
+      runtime.browserWindow &&
+      !runtime.browserWindow.isDestroyed());
+    if (!hasSurvivingWindow) openNewWindow({ profileId: DEFAULT_PROFILE_ID });
+  }
+
+  if (closeWindows) {
+    const runtimes = windowRuntimeRegistry.all()
+      .filter((runtime) => runtime.profileId === profileId);
+    try {
+      await Promise.all(runtimes.map(destroyProfileWindow));
+    } catch (error) {
+      errors.push(error);
+    }
+    const stillOpen = windowRuntimeRegistry.all().some((runtime) =>
+      runtime.profileId === profileId &&
+      runtime.browserWindow &&
+      !runtime.browserWindow.isDestroyed());
+    if (stillOpen) {
+      return {
+        complete: false,
+        message: 'Waiting for the profile windows to close before erasing local data.',
+      };
+    }
+  }
+
+  try {
+    // clearStorageData removes cookies, local/session storage, IndexedDB,
+    // service workers, and other partition state; cache/auth are separate
+    // Electron stores. The profile's downloaded files are intentionally left
+    // in the user's chosen download location.
+    await clearNamedProfileSessions(profileId);
+  } catch (error) {
+    errors.push(error);
+  }
+  try {
+    discardProfileDownloads(profileId);
+    discardProfileStoreEntries(profileId);
+    fs.rmSync(namedProfileDataDirectory(profileId), { recursive: true, force: true });
+  } catch (error) {
+    errors.push(error);
+  }
+
+  // Persist workspace removal before removing the profile registry. If the
+  // second write cannot complete, the durable marker still blocks this id
+  // until recovery finishes; it can never restore as a Personal workspace.
+  if (!removePersistedProfileWorkspaces(profileId)) {
+    errors.push(new Error('Couldn’t remove this profile’s saved workspaces.'));
+  }
+  try {
+    if (profile) localProfiles.removeLocalProfile(profileId, { flush: true });
+  } catch (error) {
+    errors.push(error);
+  }
+  profileSessionRegistry?.remove(profileId);
+
+  if (errors.length) {
+    return {
+      complete: false,
+      message: `Profile deletion is still finishing: ${errors[0].message || 'cleanup will retry automatically.'}`,
+    };
+  }
+  try {
+    profileDeletions.clearProfileDeletion(profileId);
+  } catch (error) {
+    return {
+      complete: false,
+      message: 'Profile data was removed, but final cleanup bookkeeping will retry automatically.',
+    };
+  }
+  return { complete: true };
+}
+
+async function resumePendingProfileDeletions() {
+  const pending = profileDeletions.pendingProfileDeletions();
+  for (const profileId of pending) {
+    // A retry scheduled in the same process may still find the original
+    // window alive (for example if creating the required Personal window
+    // briefly failed). Startup has no such windows, so it only needs cleanup.
+    const hasLiveProfileWindow = windowRuntimeRegistry.all().some((runtime) =>
+      runtime.profileId === profileId &&
+      runtime.browserWindow &&
+      !runtime.browserWindow.isDestroyed());
+    const result = await completeNamedProfileDeletion(profileId, {
+      closeWindows: hasLiveProfileWindow,
+      ensureSurvivingWindow: hasLiveProfileWindow,
+    });
+    if (!result.complete) console.warn(`[profiles] pending deletion for ${profileId}: ${result.message}`);
+  }
+}
+
 async function deleteNamedLocalProfile(profileId, confirmation) {
   const profile = localProfiles.getLocalProfile(profileId);
   if (!profile || profile.id === DEFAULT_PROFILE_ID) {
@@ -3954,41 +4085,41 @@ async function deleteNamedLocalProfile(profileId, confirmation) {
   if (sessionPersistenceReadOnly) {
     return { ok: false, message: 'This Blanc build cannot safely remove a newer saved workspace.' };
   }
+  if (profileDeletions.hasPendingProfileDeletion(profile.id)) {
+    return { ok: true, pending: true, message: 'That profile is already being deleted.' };
+  }
   if (deletingProfileIds.has(profile.id)) {
-    return { ok: false, message: 'That profile is already being deleted.' };
+    return { ok: true, pending: true, message: 'That profile is already being deleted.' };
+  }
+
+  try {
+    // This synchronous marker is the commit point. Do not close a window
+    // until it survives on disk; an interrupted operation is then resumable
+    // and the profile cannot appear in Personal on a subsequent launch.
+    profileDeletions.markProfileDeletion(profile.id);
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t safely start profile deletion.' };
   }
 
   deletingProfileIds.add(profile.id);
   try {
-    // On Windows/Linux, closing the final BrowserWindow quits the app. Always
-    // create a Personal window first when this profile is the last live one.
-    const hasSurvivingWindow = windowRuntimeRegistry.all().some((runtime) =>
-      runtime.profileId !== profile.id &&
-      runtime.browserWindow &&
-      !runtime.browserWindow.isDestroyed());
-    if (!hasSurvivingWindow) openNewWindow({ profileId: DEFAULT_PROFILE_ID });
-
-    const runtimes = windowRuntimeRegistry.all()
-      .filter((runtime) => runtime.profileId === profile.id);
-    await Promise.all(runtimes.map(destroyProfileWindow));
-
-    // clearStorageData removes cookies, local/session storage, IndexedDB,
-    // service workers, and other partition state; cache/auth are separate
-    // Electron stores. The profile's downloaded files are intentionally left
-    // in the user's chosen download location.
-    await clearNamedProfileSessions(profile.id);
-    discardProfileDownloads(profile.id);
-    discardProfileStoreEntries(profile.id);
-    fs.rmSync(namedProfileDataDirectory(profile.id), { recursive: true, force: true });
-    if (!removePersistedProfileWorkspaces(profile.id)) {
-      throw new Error('Couldn’t remove this profile’s saved workspaces.');
-    }
-    profileSessionRegistry?.remove(profile.id);
-    localProfiles.removeLocalProfile(profile.id);
+    const result = await completeNamedProfileDeletion(profile.id, {
+      closeWindows: true,
+      ensureSurvivingWindow: true,
+    });
     scheduleMenuRebuild();
-    return { ok: true, profile };
+    if (result.complete) return { ok: true, profile };
+    scheduleProfileDeletionRecovery();
+    return { ok: true, pending: true, message: result.message };
   } catch (error) {
-    return { ok: false, message: error.message || 'Couldn’t delete that profile.' };
+    // The marker already committed, so report a terminal, resumable deletion
+    // rather than claiming the original profile is still intact.
+    scheduleProfileDeletionRecovery();
+    return {
+      ok: true,
+      pending: true,
+      message: `Profile deletion is still finishing: ${error.message || 'cleanup will retry automatically.'}`,
+    };
   } finally {
     deletingProfileIds.delete(profile.id);
   }
@@ -4253,7 +4384,8 @@ app.whenReady().then(async () => {
     profiles: {
       list: () => ({
         currentId: profileIdForCurrentRuntime(),
-        profiles: localProfiles.listLocalProfiles(),
+        profiles: localProfiles.listLocalProfiles()
+          .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id)),
       }),
       create: createNamedLocalProfileWindow,
       open: openExistingProfileWindow,
@@ -4447,14 +4579,24 @@ app.whenReady().then(async () => {
 
   // Snapshot the previous session before the local startup tab exists. Tab
   // broadcasts are temporarily prevented from overwriting this snapshot.
-  const storedWorkspace = readSessionWorkspace(ensureSessionStore().data);
+  let storedWorkspace = readSessionWorkspace(ensureSessionStore().data);
   sessionPersistenceReadOnly = !storedWorkspace.supported;
   if (sessionPersistenceReadOnly) {
     console.warn('[session] newer workspace version found; leaving session.json untouched');
   } else if (storedWorkspace.migrated) {
     ensureSessionStore().update((data) => replaceObject(data, storedWorkspace.workspace));
   }
-  const savedWindows = storedWorkspace.workspace.windows.map((windowState) => {
+  // The marker was flushed before any profile window was closed. Finish an
+  // interrupted erase before examining saved workspaces, and always suppress
+  // a still-pending profile so its URLs can never be restored as Personal.
+  if (!sessionPersistenceReadOnly) {
+    await resumePendingProfileDeletions();
+    storedWorkspace = readSessionWorkspace(ensureSessionStore().data);
+  }
+  const pendingProfileIds = new Set(profileDeletions.pendingProfileDeletions());
+  const savedWindows = storedWorkspace.workspace.windows
+    .filter((windowState) => !pendingProfileIds.has(windowState.profileId))
+    .map((windowState) => {
     const saved = structuredClone(windowState);
     const cleaned = filterRestoredSession(saved, isUtilityUrl);
     return {
@@ -4467,7 +4609,21 @@ app.whenReady().then(async () => {
         .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
         .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
     };
-  });
+    });
+  // A crash can land after the durable deletion marker but before the
+  // replacement Personal window is created. Keep startup viable while the
+  // marker suppresses the deleted profile's only saved workspace.
+  if (!savedWindows.length) {
+    savedWindows.push({
+      id: PRIMARY_WINDOW_ID,
+      profileId: DEFAULT_PROFILE_ID,
+      urls: [],
+      groupIds: [],
+      pinned: [],
+      activeIndex: 0,
+      groups: [],
+    });
+  }
   const savedWindowById = new Map(savedWindows.map((windowState) => [windowState.id, windowState]));
   activeWorkspaceWindowId = savedWindowById.has(storedWorkspace.workspace.activeWindowId)
     ? storedWorkspace.workspace.activeWindowId

@@ -67,3 +67,13 @@ test('discarding a named profile cancels pending profile-store writes', async ()
   assert.equal(fs.existsSync(profileDir), false);
   assert.equal(discardProfileStoreEntries('default'), false);
 });
+
+test('updateAndFlush commits a critical record before returning success', () => {
+  const store = new JsonStore('critical-delete', { profileIds: [] });
+
+  assert.equal(store.updateAndFlush((data) => { data.profileIds.push('profile_work'); }), true);
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(userData, 'critical-delete.json'), 'utf8')).profileIds,
+    ['profile_work']
+  );
+});

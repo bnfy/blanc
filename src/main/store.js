@@ -81,6 +81,33 @@ class JsonStore {
     this.#scheduleSave(entry);
   }
 
+  /**
+   * Apply a mutation and synchronously verify that it reached disk. This is
+   * reserved for state transitions that must survive a crash before the normal
+   * debounce fires (for example, a confirmed profile deletion).
+   *
+   * If the write fails, restore the in-memory record too. A later unrelated
+   * flush must never accidentally commit an operation that was reported as
+   * rejected to its caller.
+   */
+  updateAndFlush(fn) {
+    const entry = this.#entry();
+    const previous = structuredClone(entry.data);
+    const pendingSince = entry.pendingSince;
+    const hadPendingSave = !!entry.saveTimer;
+    fn(entry.data);
+    if (this.#flush(entry)) return true;
+    entry.data = previous;
+    // Do not lose an earlier ordinary update just because a later critical
+    // write could not reach disk. It is restored without the rejected mutation
+    // and gets its original debounce window back.
+    if (hadPendingSave) {
+      entry.pendingSince = pendingSince;
+      this.#scheduleSave(entry);
+    }
+    return false;
+  }
+
   #scheduleSave(entry) {
     entry.pendingSince ??= Date.now();
     if (Date.now() - entry.pendingSince >= MAX_SAVE_DELAY_MS) return this.#flush(entry);

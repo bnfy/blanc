@@ -184,6 +184,13 @@ other profile are untouched. If that profile is the last live window, Blanc
 opens Personal first so deletion cannot accidentally quit the app on
 Windows/Linux.
 
+The delete is journaled in a device-local `profile-deletions.json` marker and
+the marker is flushed before any window closes. Workspace and profile-registry
+removal are also synchronously flushed. A crash or cleanup error leaves the
+marker in place; startup suppresses that profile's saved workspaces (rather
+than falling them back into Personal) and resumes erasure before restoring any
+window. The profile remains unavailable while cleanup retries.
+
 ## Tab lifecycle recovery decision
 
 Reopen Closed Tab is a bounded, in-memory recovery stack owned by each window
