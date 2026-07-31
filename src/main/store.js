@@ -10,6 +10,12 @@ const SAVE_DELAY_MS = 250;
 // stream) — cap how long a pending save can be deferred.
 const MAX_SAVE_DELAY_MS = 5000;
 
+// Each committed record has a sibling backup. Keeping the backup next to the
+// primary lets the normal platform backup/restore story treat the two files as
+// one small unit, while the temporary files below make an interrupted rewrite
+// leave the previous primary intact.
+const BACKUP_SUFFIX = '.bak';
+
 /** All live stores, so we can flush pending writes on quit. */
 const instances = [];
 
@@ -46,10 +52,55 @@ class JsonStore {
     return path.join(userData, 'profiles', profileId, `${this.name}.json`);
   }
 
+  #readRecord(file) {
+    const record = JSON.parse(fs.readFileSync(file, 'utf8'));
+    // A store is always a JSON object. Treat a truncated file and a syntactically
+    // valid but wrong-shaped value equally: neither should replace defaults.
+    if (!record || typeof record !== 'object' || Array.isArray(record)) {
+      throw new TypeError('JSON store record must be an object');
+    }
+    return record;
+  }
+
+  #writeAtomically(file, contents) {
+    // The temp file stays in the target directory so rename is an atomic
+    // operation on one filesystem. A unique suffix avoids colliding with a
+    // second app process during an update hand-off.
+    const tempFile = `${file}.${process.pid}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`;
+    try {
+      fs.writeFileSync(tempFile, contents);
+      fs.renameSync(tempFile, file);
+    } finally {
+      // If writing or renaming failed, the old primary/backup is still in
+      // place. Do not leave failed temporary writes around indefinitely.
+      try { fs.rmSync(tempFile, { force: true }); } catch { /* best effort */ }
+    }
+  }
+
   #load(file) {
     try {
-      return { ...this.defaults, ...JSON.parse(fs.readFileSync(file, 'utf8')) };
-    } catch {
+      return { ...this.defaults, ...this.#readRecord(file) };
+    } catch (primaryError) {
+      try {
+        const backup = this.#readRecord(`${file}${BACKUP_SUFFIX}`);
+        console.warn(`[store] recovering ${file} from its backup: ${primaryError.message}`);
+        try {
+          fs.mkdirSync(path.dirname(file), { recursive: true });
+          this.#writeAtomically(file, JSON.stringify(backup, null, 2));
+        } catch (repairError) {
+          // The recovered in-memory record remains usable; a later flush will
+          // retry the repair. Avoid turning a recoverable disk issue into a
+          // startup failure.
+          console.warn(`[store] could not repair ${file}:`, repairError.message);
+        }
+        return { ...this.defaults, ...backup };
+      } catch (backupError) {
+        // Missing primary and backup is the ordinary first-run path. Surface
+        // only genuine corruption so it is diagnosable without noisy launches.
+        if (primaryError.code !== 'ENOENT') {
+          console.warn(`[store] could not load ${file}; using defaults:`, primaryError.message);
+        }
+      }
       return structuredClone(this.defaults);
     }
   }
@@ -134,7 +185,19 @@ class JsonStore {
     entry.pendingSince = null;
     try {
       fs.mkdirSync(path.dirname(entry.file), { recursive: true });
-      fs.writeFileSync(entry.file, JSON.stringify(entry.data, null, 2));
+      const contents = JSON.stringify(entry.data, null, 2);
+      if (typeof contents !== 'string') throw new TypeError('JSON store record is not serializable');
+      this.#writeAtomically(entry.file, contents);
+
+      // This is deliberately best-effort: once the primary rename succeeds,
+      // the requested state did reach disk and synchronous callers can report
+      // success. If a backup refresh fails, the prior backup remains intact
+      // because it is also replaced atomically, and the next flush retries it.
+      try {
+        this.#writeAtomically(`${entry.file}${BACKUP_SUFFIX}`, contents);
+      } catch (backupError) {
+        console.warn(`[store] could not back up ${entry.file}:`, backupError.message);
+      }
       return true;
     } catch (err) {
       console.warn(`[store] could not write ${entry.file}:`, err.message);

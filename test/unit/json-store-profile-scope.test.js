@@ -77,3 +77,47 @@ test('updateAndFlush commits a critical record before returning success', () => 
     ['profile_work']
   );
 });
+
+test('stores atomically commit a matching backup without leaving temporary files', () => {
+  const store = new JsonStore('atomic-write', { entries: [] });
+  store.update((data) => data.entries.push('committed'));
+
+  assert.equal(store.flush(), true);
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(userData, 'atomic-write.json'), 'utf8')).entries,
+    ['committed']
+  );
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(userData, 'atomic-write.json.bak'), 'utf8')).entries,
+    ['committed']
+  );
+  assert.equal(
+    fs.readdirSync(userData).some((file) => file.startsWith('atomic-write.json.') && file.endsWith('.tmp')),
+    false
+  );
+});
+
+test('a corrupt primary record is restored from its valid backup', () => {
+  const original = new JsonStore('backup-recovery', { entries: [] });
+  original.update((data) => data.entries.push('keep-me'));
+  assert.equal(original.flush(), true);
+
+  const primaryFile = path.join(userData, 'backup-recovery.json');
+  fs.writeFileSync(primaryFile, '{ not valid json');
+
+  const recovered = new JsonStore('backup-recovery', { entries: [] });
+  assert.deepEqual(recovered.data.entries, ['keep-me']);
+  assert.deepEqual(JSON.parse(fs.readFileSync(primaryFile, 'utf8')).entries, ['keep-me']);
+});
+
+test('a corrupt primary and backup safely fall back to store defaults', () => {
+  const store = new JsonStore('unrecoverable-record', { entries: ['default'] });
+  store.update((data) => data.entries = ['persisted']);
+  assert.equal(store.flush(), true);
+
+  fs.writeFileSync(path.join(userData, 'unrecoverable-record.json'), '{ primary corruption');
+  fs.writeFileSync(path.join(userData, 'unrecoverable-record.json.bak'), '{ backup corruption');
+
+  const reloaded = new JsonStore('unrecoverable-record', { entries: ['default'] });
+  assert.deepEqual(reloaded.data.entries, ['default']);
+});

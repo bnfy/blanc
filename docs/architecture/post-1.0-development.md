@@ -29,6 +29,23 @@ not a dependency of the first three product milestones.
 - Private activity may use process-memory state but cannot create persistent
   decisions or records.
 
+## Persistence resilience decision
+
+Every `JsonStore` record is rewritten through a same-directory temporary file
+and atomic rename. A successful primary write is mirrored to a sibling `.bak`
+record with the same atomic replacement rule, so a partial rewrite never
+truncates either previously valid file. If the primary is absent, malformed,
+or has the wrong JSON shape at startup, Blanc recovers from a valid backup and
+repairs the primary before continuing. When both copies are unusable, the
+store follows its existing safe-default behavior; neither malformed input nor
+an I/O failure can prevent the app from starting.
+
+Backup refresh is deliberately secondary to the primary commit. Once the
+primary rename succeeds, synchronous state transitions may truthfully report
+success; an unsuccessful backup refresh retains the earlier atomically written
+backup and is retried by the next store flush. This avoids reporting a failed
+operation whose primary state was already committed.
+
 ## F29 display-sharing decision
 
 Desktop uses `session.setDisplayMediaRequestHandler` and enumerates sources with
