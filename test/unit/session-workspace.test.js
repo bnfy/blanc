@@ -7,6 +7,7 @@ const {
   readSessionWorkspace,
   activeWorkspaceWindow,
   replaceWorkspaceWindow,
+  removeWorkspaceWindow,
 } = require('../../src/main/session-workspace');
 
 test('legacy flat session migrates losslessly into the primary workspace', () => {
@@ -63,6 +64,41 @@ test('replacement updates one owner without rewriting other window workspaces', 
   assert.equal(next.activeWindowId, 'primary');
   assert.equal(next.windows.find((windowState) => windowState.id === 'primary').urls[0], 'https://three.example/');
   assert.equal(next.windows.find((windowState) => windowState.id === 'second').urls[0], 'https://two.example/');
+});
+
+test('background workspace persistence keeps the focused workspace active', () => {
+  const first = readSessionWorkspace({
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: 'second',
+    windows: [
+      { id: 'primary', urls: ['https://one.example/'] },
+      { id: 'second', urls: ['https://two.example/'] },
+    ],
+  }).workspace;
+
+  const next = replaceWorkspaceWindow(first, {
+    id: 'primary', urls: ['https://three.example/'], activeIndex: 0,
+  }, { activeWindowId: 'second' });
+
+  assert.equal(next.activeWindowId, 'second');
+  assert.equal(next.windows.find((windowState) => windowState.id === 'primary').urls[0], 'https://three.example/');
+});
+
+test('closing a secondary workspace removes it without dropping the primary', () => {
+  const first = readSessionWorkspace({
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: 'second',
+    windows: [
+      { id: 'primary', urls: ['https://one.example/'] },
+      { id: 'second', urls: ['https://two.example/'] },
+    ],
+  }).workspace;
+
+  const next = removeWorkspaceWindow(first, 'second');
+
+  assert.equal(next.activeWindowId, 'primary');
+  assert.deepEqual(next.windows.map((windowState) => windowState.id), ['primary']);
+  assert.equal(removeWorkspaceWindow(first, 'primary').windows.length, 2);
 });
 
 test('newer session records are preserved rather than downgraded', () => {

@@ -106,7 +106,7 @@ function activeWorkspaceWindow(workspace) {
   ) ?? normalized.workspace.windows[0];
 }
 
-function replaceWorkspaceWindow(workspace, windowState) {
+function replaceWorkspaceWindow(workspace, windowState, { activeWindowId = null } = {}) {
   const parsed = readSessionWorkspace(workspace);
   if (!parsed.supported) return parsed.workspace;
   const replacement = normalizeWindowState(windowState, PRIMARY_WINDOW_ID);
@@ -114,9 +114,30 @@ function replaceWorkspaceWindow(workspace, windowState) {
     existing.id === replacement.id ? replacement : existing
   );
   if (!windows.some((existing) => existing.id === replacement.id)) windows.push(replacement);
+  const nextActiveWindowId = validWindowId(activeWindowId) && windows.some(
+    (existing) => existing.id === activeWindowId
+  )
+    ? activeWindowId
+    : parsed.workspace.activeWindowId;
   return {
     version: SESSION_WORKSPACE_VERSION,
-    activeWindowId: replacement.id,
+    activeWindowId: nextActiveWindowId,
+    windows,
+  };
+}
+
+function removeWorkspaceWindow(workspace, id) {
+  const parsed = readSessionWorkspace(workspace);
+  if (!parsed.supported || !validWindowId(id) || id === PRIMARY_WINDOW_ID) {
+    return parsed.workspace;
+  }
+  const windows = parsed.workspace.windows.filter((windowState) => windowState.id !== id);
+  const activeWindowId = windows.some((windowState) => windowState.id === parsed.workspace.activeWindowId)
+    ? parsed.workspace.activeWindowId
+    : windows[0]?.id ?? PRIMARY_WINDOW_ID;
+  return {
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId,
     windows,
   };
 }
@@ -134,5 +155,6 @@ module.exports = {
   readSessionWorkspace,
   activeWorkspaceWindow,
   replaceWorkspaceWindow,
+  removeWorkspaceWindow,
   replaceObject,
 };

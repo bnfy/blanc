@@ -58,6 +58,7 @@ const {
   readSessionWorkspace,
   activeWorkspaceWindow,
   replaceWorkspaceWindow,
+  removeWorkspaceWindow,
   replaceObject,
 } = require('./session-workspace');
 const { createWindowRuntimeRegistry } = require('./window-runtime-registry');
@@ -474,6 +475,7 @@ function setFocusedWindowRuntime(runtime) {
   focusedWindowRuntime = runtime?.browserWindow && !runtime.browserWindow.isDestroyed()
     ? runtime
     : null;
+  if (focusedWindowRuntime) activeWorkspaceWindowId = focusedWindowRuntime.id;
 }
 
 function currentWorkspaceRuntime() {
@@ -1229,7 +1231,21 @@ function persistSession() {
     // the last good index, as before.
     const idx = entries.findIndex((e) => e.id === runtime.activeTabId);
     if (idx >= 0) nextWindow.activeIndex = idx;
-    replaceObject(d, replaceWorkspaceWindow(parsed.workspace, nextWindow));
+    replaceObject(d, replaceWorkspaceWindow(parsed.workspace, nextWindow, {
+      activeWindowId: activeWorkspaceWindowId,
+    }));
+  });
+}
+
+function removePersistedWorkspace(runtimeId) {
+  if (isQuitting || sessionPersistenceSuspended || sessionPersistenceReadOnly) return;
+  ensureSessionStore().update((data) => {
+    const parsed = readSessionWorkspace(data);
+    if (!parsed.supported) {
+      sessionPersistenceReadOnly = true;
+      return;
+    }
+    replaceObject(data, removeWorkspaceWindow(parsed.workspace, runtimeId));
   });
 }
 
