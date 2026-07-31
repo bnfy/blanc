@@ -98,3 +98,19 @@ read-only by an older process: Blanc opens an ephemeral primary workspace and
 does not overwrite the unrecognized file. The next slice can therefore add a
 window registry, per-window chrome/overlay/sheet views, and explicit tab
 ownership without another storage-format break.
+
+## Window-runtime registry decision
+
+The post-migration seam is a pure, in-memory window-runtime registry. A
+runtime is keyed by the persisted workspace id and owns one native
+BrowserWindow reference, its overlay and utility-sheet views/state, its active
+tab id, and the set of tab ids it owns. A tab may have exactly one runtime
+owner; a runtime cannot attach to two live BrowserWindows.
+
+The current primary window is registered now, so its surfaces and tab
+selection are mirrored at that boundary while the remaining single-window
+callers are extracted. Closing the native window detaches only native chrome:
+the runtime retains tab ownership and the selected tab for a macOS dock
+reopen, while the destroyed overlay/sheet references are cleared. The next
+increment will pass an explicit runtime through tab, surface, IPC, and menu
+operations, remove the remaining primary aliases, then expose New Window.

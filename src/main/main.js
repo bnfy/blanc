@@ -59,6 +59,7 @@ const {
   replaceWorkspaceWindow,
   replaceObject,
 } = require('./session-workspace');
+const { createWindowRuntimeRegistry } = require('./window-runtime-registry');
 const { isUtilityUrl } = require('./utility-pages');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
 const { setupWebAuthn } = require('./webauthn');
@@ -444,6 +445,12 @@ if (chromeMajor) {
 
 /** @type {BrowserWindow | null} */
 let win = null;
+// win remains the transition alias while the single-window code is being
+// carved into per-window operations. Window-local chrome state and tab
+// ownership start here so a second BrowserWindow cannot inherit the primary
+// window's overlay/sheet identity by accident.
+const windowRuntimeRegistry = createWindowRuntimeRegistry();
+let primaryWindowRuntime = null;
 /** Non-persistent session shared by all private tabs for this app run. */
 let privateBrowsingSession = null;
 const PRIVATE_PARTITION = 'private-browsing'; // no `persist:` prefix = memory only
@@ -582,6 +589,32 @@ let activeTabId = null;
  * handoff): identity is a lowercase mono name. Empty groups are pruned.
  * @type {{ id: string, name: string, collapsed: boolean }[]} */
 let groups = [];
+
+function currentWorkspaceRuntime() {
+  return primaryWindowRuntime ?? windowRuntimeRegistry.get(activeWorkspaceWindowId);
+}
+
+function syncRuntimeChromeSurfaces() {
+  if (!primaryWindowRuntime) return;
+  windowRuntimeRegistry.setOverlay(primaryWindowRuntime.id, {
+    view: overlayView,
+    mode: overlayMode,
+    prefill: overlayPrefill,
+  });
+  windowRuntimeRegistry.setUtilitySheet(primaryWindowRuntime.id, {
+    view: utilitySheetView,
+    url: utilitySheetUrl,
+  });
+}
+
+function setRuntimeActiveTab(id) {
+  activeTabId = id;
+  const runtime = currentWorkspaceRuntime();
+  if (runtime) {
+    windowRuntimeRegistry.setActiveTab(runtime.id, id);
+  }
+}
+
 const tabsWantingAddressBarFocus = new Set();
 const searchSuggestionService = createSearchSuggestionService();
 // One live provider request per trusted chrome surface. A newer query aborts
@@ -703,6 +736,7 @@ function createOverlay() {
   lockPrivilegedNavigation(overlayView.webContents, CHROME_OVERLAY_URL);
   installVerticalTabsShortcut(overlayView.webContents);
   overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
+  syncRuntimeChromeSurfaces();
 
   // A show requested before the overlay document finished its first load
   // would be lost — leaving an invisible view blocking clicks. Replay it.
@@ -819,6 +853,7 @@ function showOverlay(mode, { prefill } = {}) {
   if (mode === 'panel' || mode === 'palette') sync.refreshSession();
   overlayMode = mode;
   overlayPrefill = prefill ?? null;
+  syncRuntimeChromeSurfaces();
   // (Re-)adding moves the overlay to the top of the child-view stack.
   win.contentView.addChildView(overlayView);
   overlayView.setBounds(overlayBounds());
@@ -845,6 +880,7 @@ function hideOverlay({ refocusContent = true } = {}) {
   }
   overlayMode = null;
   overlayPrefill = null;   // vault rows must not outlive the picker
+  syncRuntimeChromeSurfaces();
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
@@ -867,6 +903,7 @@ function createUtilitySheet() {
   utilitySheetView = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
   utilitySheetView.setBackgroundColor('#00000000');
   const wc = utilitySheetView.webContents;
+  syncRuntimeChromeSurfaces();
   installVerticalTabsShortcut(wc);
   // Esc dismisses no matter what inside the page holds focus (mirrors the
   // island overlay's handler).
@@ -884,6 +921,7 @@ function createUtilitySheet() {
     hideUtilitySheet();
     wc.close();
     utilitySheetView = null;
+    syncRuntimeChromeSurfaces();
   });
   // Default-deny (design §4): utility→utility stays in-sheet; http(s)
   // opens a real tab (createTab's dismissal covers the sheet); approved
@@ -892,6 +930,7 @@ function createUtilitySheet() {
   wc.on('will-navigate', (event, targetUrl) => {
     if (isUtilityUrl(targetUrl)) {
       utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
+      syncRuntimeChromeSurfaces();
       return;
     }
     event.preventDefault();
@@ -922,6 +961,7 @@ function showUtilityPage(url) {
   hideOverlay({ refocusContent: false });
   if (!utilitySheetView) createUtilitySheet();
   utilitySheetUrl = url;
+  syncRuntimeChromeSurfaces();
   // Rapid page swaps abort the in-flight load — loadURL rejects with
   // ERR_ABORTED; that's routine, not an error.
   utilitySheetView.webContents.loadURL(url).catch(() => {});
@@ -936,6 +976,7 @@ function showUtilityPage(url) {
 function hideUtilitySheet({ refocusContent = true } = {}) {
   if (!utilitySheetUrl) return;
   utilitySheetUrl = null;
+  syncRuntimeChromeSurfaces();
   if (hasLiveWindow() && utilitySheetView) {
     win.contentView.removeChildView(utilitySheetView);
     utilitySheetView.setVisible(false);
@@ -1932,6 +1973,10 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   };
   tabs.set(id, tab);
   tabOrder.push(id);
+  const runtime = currentWorkspaceRuntime();
+  if (runtime) {
+    windowRuntimeRegistry.claimTab(runtime.id, id);
+  }
 
   const wc = view.webContents;
   installVerticalTabsShortcut(wc);
@@ -2322,7 +2367,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // The menu bar persists on macOS even with no windows open, so it still
   // needs to reflect the new activeTabId.
   if (!hasLiveWindow()) {
-    activeTabId = id;
+    setRuntimeActiveTab(id);
     scheduleMenuRebuild();
     return;
   }
@@ -2341,7 +2386,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
     prev.view.setVisible(false);
   }
 
-  activeTabId = id;
+  setRuntimeActiveTab(id);
   if (prevId && prevId !== id) tabsWantingAddressBarFocus.delete(prevId);
   const shouldFocusAddress = focusAddress && !focusContent;
   if (shouldFocusAddress) {
@@ -2436,6 +2481,7 @@ function closeTab(id) {
   const closedIndex = tabOrder.indexOf(id);
   tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
+  windowRuntimeRegistry.releaseTab(id);
   tabOrder = tabOrder.filter((tid) => tid !== id);
   pruneEmptyGroups();
   const wc = tab.view.webContents;
@@ -2446,11 +2492,11 @@ function closeTab(id) {
       // Prefer the tab that was to the right of the closed one.
       setActiveTab(tabOrder[Math.min(closedIndex, tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
-      activeTabId = null;
+      setRuntimeActiveTab(null);
       setActiveTab(createTab());
     } else {
       // Quitting or window already gone — don't spawn replacement tabs.
-      activeTabId = null;
+      setRuntimeActiveTab(null);
     }
     if (hasLiveWindow()) return; // setActiveTab already broadcasts and schedules a menu rebuild
   }
@@ -3267,6 +3313,10 @@ function createMainWindow() {
       sandbox: true,
     },
   });
+  primaryWindowRuntime = windowRuntimeRegistry.register({
+    id: activeWorkspaceWindowId,
+    browserWindow: win,
+  });
 
   lockPrivilegedNavigation(win.webContents, CHROME_INDEX_URL);
   installVerticalTabsShortcut(win.webContents);
@@ -3275,6 +3325,8 @@ function createMainWindow() {
   win.on('resize', resizeActiveView);
   win.on('focus', refocusAddressBarIfWanted);
   win.on('closed', () => {
+    const closingWindow = win;
+    const closingRuntime = primaryWindowRuntime;
     // Settle any pending picker BEFORE resetting overlayMode. The overlay's own
     // 'destroyed' listener also settles, but it fires after webContents.close()
     // below — by which point overlayMode is already null, so settle would see no
@@ -3294,6 +3346,11 @@ function createMainWindow() {
     if (utilitySheetView && !utilitySheetView.webContents.isDestroyed()) utilitySheetView.webContents.close();
     utilitySheetView = null;
     utilitySheetUrl = null;
+    syncRuntimeChromeSurfaces();
+    if (closingRuntime) {
+      windowRuntimeRegistry.detach(closingRuntime.id, closingWindow);
+    }
+    primaryWindowRuntime = null;
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
     // on Windows/Linux). Recreated lazily on the next non-PNG capture.
@@ -3307,7 +3364,7 @@ function createMainWindow() {
   win.webContents.once('did-finish-load', () => {
     if (!activeTabId || !tabs.has(activeTabId)) return;
     const id = activeTabId;
-    activeTabId = null; // force setActiveTab to treat it as a fresh attach
+    setRuntimeActiveTab(null); // force setActiveTab to treat it as a fresh attach
     setActiveTab(id);
     // An 'open-url' with no window queues; opening it is why the window
     // was recreated (macOS dock-reopen path).
