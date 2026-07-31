@@ -1,4 +1,17 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell } = require('electron');
+const {
+  app,
+  BrowserWindow,
+  WebContentsView,
+  session,
+  ipcMain,
+  Menu,
+  nativeTheme,
+  nativeImage,
+  dialog,
+  shell,
+  desktopCapturer,
+  webContents,
+} = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -17,7 +30,11 @@ const {
   chromeClientHintPlatformVersion,
 } = require('./chrome-client-hints');
 const { registerPagesScheme, setupPages } = require('./pages');
-const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
+const {
+  setupPermissionPolicy,
+  setPermissionPrompter,
+  setDisplayMediaPrompter,
+} = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
@@ -49,6 +66,9 @@ const {
   calculateChromeLayout,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
+const {
+  captureRequestStillValid,
+} = require('./display-share-request');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -612,7 +632,7 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
 // It is attached to win.contentView only while something is showing.
 /** @type {WebContentsView | null} */
 let overlayView = null;
-/** @type {null | 'panel' | 'palette' | 'find'} */
+/** @type {null | 'panel' | 'palette' | 'find' | 'credential-picker' | 'display-share-picker'} */
 let overlayMode = null;
 /** Companion to overlayMode, replayed alongside it below if the overlay's
  * first load hadn't finished when showOverlay was called. */
@@ -685,6 +705,9 @@ function createOverlay() {
     if (overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       if (overlayMode === 'credential-picker') pickerController.settle(null, 'escape');
+      else if (overlayMode === 'display-share-picker') {
+        displaySharePickerController.settle(null, 'escape');
+      }
       else hideOverlay();
     }
   });
@@ -706,12 +729,21 @@ function createOverlay() {
     // the reclaim will re-assert overlay focus on the next tick.
     if (activeTabId && tabsWantingAddressBarFocus.has(activeTabId)) return;
     if (overlayMode === 'credential-picker') return pickerController.settle(null, 'blur');
+    if (overlayMode === 'display-share-picker') {
+      return displaySharePickerController.settle(null, 'blur');
+    }
     hideOverlay({ refocusContent: false });
   });
 
-  // A dying overlay must settle any pending picker, or the fill awaits forever.
-  overlayView.webContents.on('destroyed', () => pickerController.settle(null, 'window-closed'));
-  overlayView.webContents.on('render-process-gone', () => pickerController.settle(null, 'window-closed'));
+  // A dying overlay must settle any pending picker, or the caller awaits forever.
+  overlayView.webContents.on('destroyed', () => {
+    pickerController.settle(null, 'window-closed');
+    displaySharePickerController.settle(null, 'window-closed');
+  });
+  overlayView.webContents.on('render-process-gone', () => {
+    pickerController.settle(null, 'window-closed');
+    displaySharePickerController.settle(null, 'window-closed');
+  });
 
   attachAddressMenu(overlayView.webContents, {
     isOverlayLive: () =>
@@ -762,6 +794,9 @@ function showOverlay(mode, { prefill } = {}) {
   if (overlayMode === 'credential-picker' && mode !== 'credential-picker') {
     pickerController.settle(null, 'mode-replaced');
   }
+  if (overlayMode === 'display-share-picker' && mode !== 'display-share-picker') {
+    displaySharePickerController.settle(null, 'mode-replaced');
+  }
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
   hideUtilitySheet({ refocusContent: false });
@@ -788,6 +823,10 @@ function hideOverlay({ refocusContent = true } = {}) {
   // through would run the removal/send/focus body a second time.
   if (pickerController.isPending()) {
     pickerController.settle(null, 'hidden');
+    return;
+  }
+  if (displaySharePickerController.isPending()) {
+    displaySharePickerController.settle(null, 'hidden');
     return;
   }
   overlayMode = null;
@@ -1412,6 +1451,7 @@ const FILL_WORLD_ID = 1001;
 
 const { createPickerController } = require('./credential-picker');
 const { chooseAndReveal } = require('./credential-fill-flow');
+const { createDisplaySharePickerController } = require('./display-share-picker');
 
 // Exactly-once owner of picker resolution. Behaviour is covered by
 // test/unit/credential-picker.test.js; this is only the Electron wiring.
@@ -1432,6 +1472,110 @@ const pickerController = createPickerController({
   clearTimer: (t) => clearTimeout(t),
   timeoutMs: 60_000,
 });
+
+const displaySharePickerController = createDisplaySharePickerController({
+  showOverlay,
+  hideOverlay: () => hideOverlay({ refocusContent: false }),
+  getOverlayMode: () => overlayMode,
+  isOverlaySender: (event) => isTrustedSender(event,
+    overlayView && !overlayView.webContents.isDestroyed()
+      ? [{ webContents: overlayView.webContents, url: CHROME_OVERLAY_URL }]
+      : []),
+  randomUUID: () => crypto.randomUUID(),
+  setTimer: (fn, ms) => setTimeout(fn, ms),
+  clearTimer: (timer) => clearTimeout(timer),
+  timeoutMs: 60_000,
+});
+
+function tabForWebContentsId(webContentsId) {
+  for (const tab of tabs.values()) {
+    if (tab.view.webContents.id === webContentsId) return tab;
+  }
+  return null;
+}
+
+function imageDataUrl(image, width) {
+  try {
+    if (!image || image.isEmpty()) return null;
+    const bounded = Number.isInteger(width) && width > 0
+      ? image.resize({ width })
+      : image;
+    return bounded.isEmpty() ? null : bounded.toDataURL();
+  } catch {
+    return null;
+  }
+}
+
+function displaySourceRow(source) {
+  return {
+    name: typeof source.name === 'string' ? source.name.slice(0, 256) : 'Untitled source',
+    type: String(source.id).startsWith('screen:') ? 'screen' : 'window',
+    thumbnail: imageDataUrl(source.thumbnail, 320),
+    appIcon: imageDataUrl(source.appIcon, 32),
+  };
+}
+
+async function promptForDisplayMedia({
+  origin,
+  frame,
+  audioRequested,
+  userGesture,
+  videoRequested,
+}) {
+  if (!userGesture || !videoRequested || !frame) return null;
+
+  let wc;
+  try {
+    wc = webContents.fromFrame(frame);
+  } catch {
+    return null;
+  }
+  const tab = wc ? tabForWebContentsId(wc.id) : null;
+  if (!tab || tab.id !== activeTabId) return null;
+
+  const context = {
+    frame,
+    wc,
+    origin,
+    tabId: tab.id,
+    navEpoch: tab.navEpoch,
+  };
+  const validation = {
+    webContentsFromFrame: (candidate) => webContents.fromFrame(candidate),
+    getTab: (id) => tabs.get(id),
+    getActiveTabId: () => activeTabId,
+    isUtilitySheetVisible: () => !!utilitySheetUrl,
+  };
+  if (!captureRequestStillValid(context, validation)) return null;
+
+  const sources = await desktopCapturer.getSources({
+    types: ['screen', 'window'],
+    thumbnailSize: { width: 320, height: 180 },
+    fetchWindowIcons: true,
+  });
+  if (!captureRequestStillValid(context, validation)) return null;
+
+  const usableSources = sources.filter((source) =>
+    source
+    && typeof source.id === 'string'
+    && typeof source.name === 'string'
+  );
+  const result = await displaySharePickerController.requestPick({
+    sources: usableSources,
+    rows: usableSources.map(displaySourceRow),
+    origin,
+    webContentsId: wc.id,
+    // Electron's display-media loopback stream is currently supported on
+    // Windows. It stays unchecked in the chooser and is never implied.
+    canShareAudio: process.platform === 'win32' && audioRequested,
+  });
+
+  if (!result.source || !captureRequestStillValid(context, validation)) return null;
+  return {
+    video: result.source,
+    ...(result.shareAudio ? { audio: 'loopback' } : {}),
+  };
+}
 
 /** A modal dialog returns focus to the CHROME document, not to the tab. Both
  * the main-side `wc.isFocused()` guard and the injected `document.hasFocus()`
@@ -1840,7 +1984,10 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // executeJavaScript run in the replacement document; bump the epoch so the
   // pre-injection re-check aborts. Removed with the rest of the spike.
   wc.on('did-start-navigation', (_e, _url, _isInPlace, isMainFrame) => {
-    if (isMainFrame) tab.navEpoch++;
+    if (isMainFrame) {
+      tab.navEpoch++;
+      displaySharePickerController.cancelForWebContents(wc.id, 'navigation');
+    }
   });
   wc.once('did-finish-load', () => {
     if (shouldReclaimAddressBarFocus(id)) {
@@ -2071,7 +2218,10 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // must not settle a picker (harmless in production, where no picker exists at
   // window creation — but in tests a picker scenario running right after launch
   // would otherwise be torn down by that deferred re-attach).
-  if (activeTabId !== null) pickerController.settle(null, 'tab-changed');
+  if (activeTabId !== null) {
+    pickerController.settle(null, 'tab-changed');
+    displaySharePickerController.settle(null, 'tab-changed');
+  }
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.
@@ -2174,6 +2324,17 @@ function closeTab(id) {
   // Only the picker's own tab closing cancels it — an unrelated background tab
   // must not.
   if (id === activeTabId) pickerController.settle(null, 'tab-changed');
+  // A Chromium-initiated destruction reaches this function from wc's
+  // `destroyed` event, after WebContentsView may already have cleared its
+  // webContents property. The display request was already invalidated with the
+  // renderer; cancel it when an id remains, but teardown must stay null-safe.
+  const closingWebContents = tab.view.webContents;
+  if (closingWebContents) {
+    displaySharePickerController.cancelForWebContents(
+      closingWebContents.id,
+      'tab-changed'
+    );
+  }
 
   // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
   if (tab.url && !tab.private && !tab.url.startsWith('blanc://newtab')) {
@@ -2433,6 +2594,9 @@ function registerIpcHandlers() {
   // reply that can't prove it belongs to THIS request changes no state).
   ipcMain.on('chrome:credential-pick', (event, payload) => {
     pickerController.handleReply(event, payload);
+  });
+  ipcMain.on('chrome:display-share-pick', (event, payload) => {
+    displaySharePickerController.handleReply(event, payload);
   });
 
   chromeHandle('tabs:create', (_e, url, opts) => {
@@ -3031,6 +3195,7 @@ function createMainWindow() {
     // is what clears them. (hasLiveWindow() is already false, so hideOverlay
     // clears the rows and skips the view ops rather than throwing.)
     pickerController.settle(null, 'window-closed');
+    displaySharePickerController.settle(null, 'window-closed');
     win = null;
     // Unlike tabs, the overlay doesn't outlive its window — recreated fresh.
     overlayMode = null;
@@ -3183,6 +3348,7 @@ app.whenReady().then(async () => {
     pendingPermissionPrompts.get(id)?.(!!allow);
     pendingPermissionPrompts.delete(id);
   });
+  setDisplayMediaPrompter(promptForDisplayMedia);
 
   setupDownloads(ses, broadcastDownloadsActivity);
   setupDownloads(privateSes, broadcastDownloadsActivity);
@@ -3266,6 +3432,7 @@ app.whenReady().then(async () => {
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       pickerController, // SPIKE (1Password fill) — acceptance drives the real controller
+      displaySharePickerController,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
       getUtilitySheetWebContents: () => utilitySheetView?.webContents ?? null,

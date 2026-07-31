@@ -55,6 +55,7 @@ function install(refs) {
     showOverlay,
     hideOverlay,
     pickerController,
+    displaySharePickerController,
     showUtilityPage,
     hideUtilitySheet,
     getUtilitySheetState,
@@ -91,6 +92,7 @@ function install(refs) {
   const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
   let pendingPick = null; // SPIKE (1Password fill) — the requestPick promise in flight
+  let pendingDisplaySharePick = null;
   const remoteFixture = [{
     deviceId: 'acceptance-remote-device',
     name: 'Press Mac',
@@ -438,6 +440,76 @@ function install(refs) {
         };
       })()`);
     },
+
+    // --- display sharing (F29) ---
+    // Deterministic fake source objects run through the production controller.
+    // CI must not depend on the host's current windows or Screen Recording
+    // authorization; main.js's Electron enumeration boundary is kept thin and
+    // the request/renderer/settlement lifecycle is exercised here.
+    startDisplaySharePick(origin = 'https://meet.example') {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) throw new Error('display sharing needs an active tab');
+      const sources = [
+        { id: 'screen:acceptance-1', name: 'Acceptance Screen' },
+        { id: 'window:acceptance-2', name: 'Acceptance Window' },
+      ];
+      const rows = sources.map((source) => ({
+        name: source.name,
+        type: source.id.startsWith('screen:') ? 'screen' : 'window',
+        thumbnail: null,
+        appIcon: null,
+      }));
+      pendingDisplaySharePick = displaySharePickerController.requestPick({
+        sources,
+        rows,
+        origin,
+        webContentsId: tab.view.webContents.id,
+        canShareAudio: false,
+      });
+      return true;
+    },
+    awaitDisplaySharePick() {
+      return pendingDisplaySharePick;
+    },
+    async readDisplayShareDom() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const root = document.querySelector('.display-share');
+        if (!root) return null;
+        return {
+          heading: root.querySelector('.display-share-heading')?.textContent ?? '',
+          names: [...root.querySelectorAll('.display-source-label')].map((el) => el.textContent),
+          selected: [...root.querySelectorAll('.display-source')].findIndex(
+            (el) => el.getAttribute('aria-pressed') === 'true'
+          ),
+          audioOffered: !!root.querySelector('#displayShareAudio'),
+          confirmVisible: document.querySelector('.display-share-confirm')
+            ?.getClientRects().length > 0,
+          panelFitsViewport: document.getElementById('islandPanel')
+            ?.getBoundingClientRect().bottom <= window.innerHeight + 0.5,
+        };
+      })()`);
+    },
+    async chooseDisplayShareSource(index) {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const rows = document.querySelectorAll('.display-source');
+        const row = rows[${JSON.stringify(index)}];
+        const confirm = document.querySelector('.display-share-confirm');
+        if (!row || !confirm) throw new Error('display source chooser is incomplete');
+        row.click();
+        confirm.click();
+        return true;
+      })()`);
+    },
+    navigateActiveTab(url) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return false;
+      tab.view.webContents.loadURL(String(url)).catch(() => {});
+      return true;
+    },
     closeOverlay() { hideOverlay({ refocusContent: false }); },
     overlayMode() { return getOverlayMode(); },
     setSearchSuggestionFixture(suggestions) {
@@ -683,6 +755,7 @@ function install(refs) {
       // No scenario inherits another's open surface. hideOverlay settles any
       // pending picker ('hidden'); drop our handle to its resolved promise too.
       pendingPick = null;
+      pendingDisplaySharePick = null;
       hideOverlay({ refocusContent: false });
       hideUtilitySheet();
       pushRemoteDevices([]);

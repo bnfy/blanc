@@ -48,6 +48,18 @@ npm run test:acceptance:desktop      # execute the runnable scenarios against th
 xvfb-run -a npm run test:acceptance:desktop   # ...on a headless Linux/CI box
 ```
 
+### Real display-sharing smoke
+
+`npm run test:smoke:display-sharing` launches Blanc with an isolated profile,
+serves a local page, makes a user-gesture-backed `getDisplayMedia()` request,
+selects the first real source through Blanc's production chooser, verifies a
+live video track, and stops it. Results and the chooser screenshot are written
+under the ignored `output/playwright/` directory.
+
+This is an OS-integrated smoke rather than a CI acceptance scenario: macOS may
+ask for Screen Recording consent for the development Electron binary, while
+headless Linux runners may not expose a capturable display.
+
 The desktop script is plain `cucumber-js` so it works on a dev machine with a
 display (macOS); prefix `xvfb-run -a` on headless Linux.
 

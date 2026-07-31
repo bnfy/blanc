@@ -24,7 +24,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Downloads | `downloads.feature` | F11 |
 | Ad/tracker blocking | `ad-blocking.feature` | F12 |
 | Settings & theming | `settings-and-theming.feature` | F14, F15 |
-| Permissions & auth | `permissions-and-auth.feature` | F13, F20 |
+| Permissions & auth | `permissions-and-auth.feature` | F13, F20, F29 |
 | Internal pages | `internal-pages.feature` | F16 |
 | Supporter & session | `supporter-and-session.feature` | F17, F18 |
 | Platform services | `platform-services.feature` | F21, F22, F23, F24 |
@@ -112,6 +112,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F28-15 | Constrained direct rail resize and reset | D19 | ✅ | ➖ | ➖ |
 | F28-16 | Non-destructive narrow-window width cap and persistence | D19 | ✅ | ➖ | ➖ |
 | F28-17 | Overflow-only tab-title hover scrolling | D19 | ✅ | ➖ | ➖ |
+| F29-1 | Trusted display chooser grants only the selected source | D21 | ✅ | ⬜ | ⬜ |
+| F29-2 | Navigation invalidates a pending display request | D21 | ✅ | ⬜ | ⬜ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -119,7 +121,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24` and `F27–F28` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24` and `F27–F29` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
 - The suite explicitly tags D1–D10, D12, D16, and D19. D11 is exercised

@@ -484,3 +484,27 @@ From the desktop `DEFAULTS`:
   guest/sheet/panel/palette/find geometry (including 640×480), canonical row
   states and actions, group/private/loading/audio behavior, accepted and
   rejected reorder paths, activation cleanup/focus, and keyboard flow.
+
+## F29 — Display sharing
+
+- A site may request a screen or application window through the platform's
+  display-capture API. Blanc shows a trusted, browser-owned chooser naming the
+  requesting origin and never exposes source enumeration or privileged capture
+  APIs to web content.
+- A request is valid only while its requesting frame still belongs to the
+  visible tab, remains on the same origin, and has not started a new main-frame
+  navigation. Switching or closing the tab, closing the window, dismissing the
+  chooser, or timing out denies the request.
+- Approval is **per request** and is never persisted as a site-permission
+  decision. Private tabs use the same chooser, with no record surviving the
+  request.
+- System audio is a separate, off-by-default choice and is offered only where
+  the platform capture backend supports it. Sharing video never implicitly
+  shares audio.
+- Source enumeration diverges by platform (D21), but every implementation must
+  preserve the trusted-chooser, origin-binding, cancellation, and explicit-audio
+  contract.
+- **Acceptance:** From a visible tab, request display capture, choose a source,
+  and receive that source only. A second request prompts again. Navigating,
+  switching tabs, or cancelling the chooser rejects the request without
+  granting any source.

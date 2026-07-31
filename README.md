@@ -154,9 +154,11 @@ is only ever attached to Blanc's own chrome documents.
 
 **Permissions:** deny-by-default. Camera, microphone, geolocation, and
 notifications surface a per-site Allow/Block prompt in the chrome; the
-decision is remembered per origin and manageable in Settings. Everything
-else (screen capture, MIDI, etc.) is refused outright; fullscreen, pointer
-lock, and sanitized clipboard writes are allowed.
+decision is remembered per origin and manageable in Settings. Display sharing
+uses a separate browser-owned screen/window chooser and is approved one request
+at a time — it is never remembered. Everything else (MIDI, USB, serial, etc.)
+is refused outright; fullscreen, pointer lock, and sanitized clipboard writes
+are allowed.
 
 **Ad blocking:** `adblock.js` attaches a `@ghostery/adblocker-electron`
 engine to `session.defaultSession` once at startup, covering every tab.

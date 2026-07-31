@@ -452,3 +452,21 @@ desktop conveniences, not parity requirements; if a platform later gains them,
 the cleaning rules must match `src/main/clean-link.js` exactly.
 
 **Status:** Accepted 2026-07-25.
+
+## D21 — Display-capture source chooser
+**Features:** F29
+
+**Why:** Screen and window enumeration is an operating-system capability whose
+available sources and audio behavior differ materially across platforms.
+
+- **Desktop:** Electron enumerates screens and windows in the main process;
+  Blanc renders sanitized names and thumbnails in trusted chrome.
+- **iOS:** use the operating system's broadcast/capture picker.
+- **Android:** use the operating system's MediaProjection consent surface.
+
+**Parity contract:** The requesting origin is clear, approval applies to one
+request only, page content never receives source-enumeration privileges,
+navigation/tab/window changes cancel a pending request, and audio requires a
+separate explicit choice.
+
+**Status:** Accepted 2026-07-30.

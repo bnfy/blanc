@@ -40,6 +40,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F24 | Password AutoFill / passkeys | N/A | PLANNED | PLANNED | On mobile, native credential provider + platform passkeys work in-webview. | D12 |
 | F27 | Tab Sync (other-device tab list) | SHIPPED | PLANNED | PLANNED | Per-device opt-in, off by default, publish-only gating; read-only browsing in panel/switcher/start page; http(s)-only bounded snapshots plus a separately-budgeted E2EE icon sidecar; retraction + 30-day prune + 24 h heartbeat. Optional favicons are inert bounded PNG bytes—never remote URLs loaded by a receiving device. | — |
 | F28 | Vertical tabs | SHIPPED | DIVERGENT (D19) | DIVERGENT (D19) | The logical tabs/groups and their identity, lifecycle, private/media state, and organization remain available. Desktop may present them in an optional persistent rail without replacing the Island or reloading content; mobile uses its native tab overview. | D19 |
+| F29 | Display sharing | SHIPPED | PLANNED | PLANNED | Trusted platform-owned chooser, request-origin binding, per-request approval, cancellation on navigation/tab/window changes, and audio never shared implicitly. | D21 |
 
 ## Notes on the "mobile-only wins"
 

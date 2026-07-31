@@ -22,6 +22,7 @@
     "test:oauth:live": "node scripts/oauth-canary.js",
     "test:acceptance:dry": "cucumber-js -c test/desktop/cucumber.mjs -p dry",
     "test:acceptance:desktop": "cucumber-js -c test/desktop/cucumber.mjs -p runnable",
+    "test:smoke:display-sharing": "node scripts/display-share-smoke.mjs",
     "test:dns-smoke": "node test/desktop/dns-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",

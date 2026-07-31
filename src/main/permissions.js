@@ -32,6 +32,22 @@ const ensureStore = () => {
 let prompter = null;
 function setPermissionPrompter(fn) { prompter = fn; }
 
+/**
+ * Display capture is deliberately separate from persisted site permissions.
+ * Each getDisplayMedia call gets a new trusted chooser and a one-shot result.
+ * Electron source objects remain in main and are returned here only after the
+ * chooser's request/tab/origin binding has been revalidated.
+ * @type {((req: {
+ *   origin: string,
+ *   frame: object,
+ *   videoRequested: boolean,
+ *   audioRequested: boolean,
+ *   userGesture: boolean,
+ * }) => Promise<object | null>) | null}
+ */
+let displayMediaPrompter = null;
+function setDisplayMediaPrompter(fn) { displayMediaPrompter = fn; }
+
 function normalizedOrigin(rawUrl) {
   try {
     const origin = new URL(rawUrl).origin;
@@ -70,13 +86,31 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
   };
 
   session.setPermissionRequestHandler(async (_wc, permission, callback, details) => {
+    const requestedMediaTypes = normalizedMediaTypes(details?.mediaTypes);
+    // Electron 43 sends getDisplayMedia through a preliminary `media` request
+    // with an EMPTY mediaTypes array before invoking the dedicated display
+    // handler. Prompting here mislabels the request as microphone and creates a
+    // double prompt. An empty media request grants no camera/mic device by
+    // itself, so admit only concrete HTTP(S) origins into the one-shot display
+    // handler, which performs the actual gesture/frame/tab/origin validation
+    // and trusted source choice. Ordinary getUserMedia requests name audio
+    // and/or video and continue through the persisted prompt policy below.
+    if (permission === 'media' && requestedMediaTypes.length === 0) {
+      return callback(!!normalizedOrigin(details?.requestingUrl));
+    }
+    // This is only Chromium's gate into the one-shot display-media handler
+    // below; it does not grant a stream. The handler independently validates
+    // the frame, gesture, active tab, origin, navigation lifetime, and choice.
+    if (permission === 'display-capture') {
+      return callback(!!normalizedOrigin(details?.requestingUrl));
+    }
     if (AUTO_ALLOWED.has(permission)) return callback(true);
     if (!PROMPTED.has(permission)) return callback(false);
 
     const origin = normalizedOrigin(details.requestingUrl);
     if (!origin) return callback(false);
 
-    const mediaTypes = normalizedMediaTypes(details.mediaTypes);
+    const mediaTypes = requestedMediaTypes;
     const scopes = permission === 'media' && mediaTypes.length ? mediaTypes : [null];
     const saved = scopes.map((mediaType) =>
       storedDecision(readDecisions(), origin, permission, mediaType));
@@ -96,6 +130,9 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
   // Synchronous checks (navigator.permissions.query, Notification.permission)
   // must agree with the request handler or sites see inconsistent state.
   session.setPermissionCheckHandler((_wc, permission, requestingOrigin, details) => {
+    if (permission === 'display-capture') {
+      return !!normalizedOrigin(requestingOrigin || details?.requestingUrl);
+    }
     if (AUTO_ALLOWED.has(permission)) return true;
     if (!PROMPTED.has(permission)) return false;
     const origin = normalizedOrigin(requestingOrigin);
@@ -106,8 +143,48 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     return storedDecision(readDecisions(), origin, permission, mediaType) === 'allow';
   });
 
-  // Screen capture: still deny by never providing a stream (no picker UI yet).
-  session.setDisplayMediaRequestHandler((_request, callback) => callback({}));
+  session.setDisplayMediaRequestHandler(async (request, callback) => {
+    let answered = false;
+    const answer = (streams = {}) => {
+      if (answered) return;
+      answered = true;
+      callback(streams);
+    };
+
+    const origin = normalizedOrigin(request?.securityOrigin);
+    const frame = request?.frame;
+    const frameAlive = frame
+      && (typeof frame.isDestroyed !== 'function' || !frame.isDestroyed());
+    if (
+      !origin
+      || !frameAlive
+      || request.videoRequested !== true
+      || request.userGesture !== true
+      || !displayMediaPrompter
+    ) {
+      return answer({});
+    }
+
+    try {
+      const streams = await displayMediaPrompter({
+        origin,
+        frame,
+        videoRequested: true,
+        audioRequested: request.audioRequested === true,
+        userGesture: true,
+      });
+      if (!streams?.video) return answer({});
+      answer(streams);
+    } catch {
+      answer({});
+    }
+  });
 }
 
-module.exports = { setupPermissionPolicy, setPermissionPrompter, listDecisions, removeDecision };
+module.exports = {
+  setupPermissionPolicy,
+  setPermissionPrompter,
+  setDisplayMediaPrompter,
+  listDecisions,
+  removeDecision,
+};

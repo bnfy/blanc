@@ -964,6 +964,9 @@
 
   let pickerRequestId = null;
   let pickerIndex = 0;
+  let displayShareRequestId = null;
+  let displayShareIndex = 0;
+  let displayShareCanAudio = false;
 
   /** Render the credential picker.
    *
@@ -1045,18 +1048,147 @@
     window.browserAPI.sendCredentialPick(id, index);
   }
 
+  // --- Display-sharing picker ---
+
+  function highlightDisplayShareSource({ focus = false } = {}) {
+    const rows = [...islandList.querySelectorAll('.display-source')];
+    rows.forEach((row, index) => {
+      const selected = index === displayShareIndex;
+      row.classList.toggle('sel', selected);
+      row.setAttribute('aria-pressed', String(selected));
+    });
+    if (focus) rows[displayShareIndex]?.focus();
+  }
+
+  function chooseDisplayShare(index) {
+    if (displayShareRequestId === null) return;
+    const requestId = displayShareRequestId;
+    const audio = displayShareCanAudio
+      && document.getElementById('displayShareAudio')?.checked === true;
+    displayShareRequestId = null;
+    window.browserAPI.sendDisplaySharePick(requestId, index, audio);
+  }
+
+  function renderDisplaySharePicker(prefill) {
+    displayShareRequestId = prefill?.requestId ?? null;
+    displayShareIndex = 0;
+    displayShareCanAudio = prefill?.canShareAudio === true;
+    const rows = Array.isArray(prefill?.rows) ? prefill.rows : [];
+
+    const content = document.createElement('div');
+    content.className = 'display-share';
+
+    const heading = document.createElement('div');
+    heading.className = 'display-share-heading';
+    const title = document.createElement('strong');
+    title.textContent = 'Choose what to share';
+    const origin = document.createElement('span');
+    origin.textContent = `${prefill?.origin || 'This site'} will see the selected source`;
+    heading.append(title, origin);
+
+    const grid = document.createElement('div');
+    grid.className = 'display-source-grid';
+    grid.setAttribute('role', 'list');
+    rows.forEach((source, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'display-source';
+      button.setAttribute('role', 'listitem');
+      button.setAttribute('aria-pressed', String(index === 0));
+
+      const preview = document.createElement('span');
+      preview.className = 'display-source-preview';
+      if (typeof source.thumbnail === 'string' && source.thumbnail.startsWith('data:image/')) {
+        const image = document.createElement('img');
+        image.src = source.thumbnail;
+        image.alt = '';
+        preview.append(image);
+      } else {
+        const empty = document.createElement('span');
+        empty.className = 'display-source-empty';
+        empty.textContent = source.type === 'screen' ? 'screen' : 'window';
+        preview.append(empty);
+      }
+
+      const label = document.createElement('span');
+      label.className = 'display-source-label';
+      if (typeof source.appIcon === 'string' && source.appIcon.startsWith('data:image/')) {
+        const icon = document.createElement('img');
+        icon.className = 'display-source-icon';
+        icon.src = source.appIcon;
+        icon.alt = '';
+        label.append(icon);
+      }
+      const text = document.createElement('span');
+      text.textContent = source.name || 'Untitled source';
+      label.append(text);
+
+      button.append(preview, label);
+      button.addEventListener('click', () => {
+        displayShareIndex = index;
+        highlightDisplayShareSource();
+      });
+      button.addEventListener('dblclick', () => chooseDisplayShare(index));
+      grid.append(button);
+    });
+
+    const footer = document.createElement('div');
+    footer.className = 'display-share-footer';
+    if (displayShareCanAudio) {
+      const audio = document.createElement('label');
+      audio.className = 'display-share-audio';
+      const input = document.createElement('input');
+      input.id = 'displayShareAudio';
+      input.type = 'checkbox';
+      const copy = document.createElement('span');
+      copy.textContent = 'Share system audio';
+      audio.append(input, copy);
+      footer.append(audio);
+    } else {
+      footer.append(document.createElement('span'));
+    }
+
+    const actions = document.createElement('span');
+    actions.className = 'display-share-actions';
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'display-share-cancel';
+    cancel.textContent = 'Cancel';
+    cancel.addEventListener('click', () => chooseDisplayShare(null));
+    const share = document.createElement('button');
+    share.type = 'button';
+    share.className = 'display-share-confirm';
+    share.textContent = 'Share';
+    share.disabled = rows.length === 0;
+    share.addEventListener('click', () => chooseDisplayShare(displayShareIndex));
+    actions.append(cancel, share);
+    footer.append(actions);
+
+    content.append(heading, grid, footer);
+    islandList.replaceChildren(content);
+    highlightDisplayShareSource({ focus: true });
+  }
+
   // --- Mode switching (driven by main via overlay:show / overlay:hide) ---
 
   function applyMode(next, prefill) {
     const reshow = mode === next;
     mode = next;
     document.body.dataset.mode = next ?? '';
-    backdrop.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
-    panelAnchor.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
+    backdrop.hidden = next !== 'panel'
+      && next !== 'palette'
+      && next !== 'credential-picker'
+      && next !== 'display-share-picker';
+    panelAnchor.hidden = next !== 'panel'
+      && next !== 'palette'
+      && next !== 'credential-picker'
+      && next !== 'display-share-picker';
     findBar.hidden = next !== 'find';
 
     if (next === 'credential-picker') {
       renderCredentialPicker(prefill);
+    } else if (next === 'display-share-picker') {
+      renderDisplaySharePicker(prefill);
     } else if (next === 'panel' || next === 'palette') {
       if (!reshow) {
         pickingTabId = null;
@@ -1099,6 +1231,7 @@
     // Capture BEFORE the resets below — testing mode afterwards always reads
     // false, and the vault rows would never be cleared.
     const wasPicker = mode === 'credential-picker';
+    const wasDisplayShare = mode === 'display-share-picker';
     if (mode === 'find') resetFind();
     mode = null;
     document.body.dataset.mode = '';
@@ -1116,13 +1249,17 @@
     // vault-derived strings resident in this privileged renderer.
     pickerRequestId = null;
     pickerIndex = 0;
-    if (wasPicker) islandList.replaceChildren();
+    displayShareRequestId = null;
+    displayShareIndex = 0;
+    displayShareCanAudio = false;
+    if (wasPicker || wasDisplayShare) islandList.replaceChildren();
   });
 
   // Click on the backdrop (anywhere outside the panel) dismisses. In picker mode
   // it is an explicit dismissal (settles 'dismissed'), not a plain hide.
   backdrop.addEventListener('mousedown', () => {
     if (mode === 'credential-picker') return choosePicker(null);
+    if (mode === 'display-share-picker') return chooseDisplayShare(null);
     window.browserAPI.closeOverlay();
   });
   document.addEventListener('keydown', (e) => {
@@ -1137,6 +1274,19 @@
       else if (e.key === 'Enter') { e.preventDefault(); choosePicker(onCancel ? null : pickerIndex); }
       return;   // Escape is handled in main via before-input-event
     }
+    if (mode === 'display-share-picker') {
+      const rows = islandList.querySelectorAll('.display-source');
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        displayShareIndex = Math.min(displayShareIndex + 1, rows.length - 1);
+        highlightDisplayShareSource({ focus: true });
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        displayShareIndex = Math.max(displayShareIndex - 1, 0);
+        highlightDisplayShareSource({ focus: true });
+      }
+      return;   // Enter/Space keep native button semantics; Escape is in main.
+    }
     if (e.key === 'Escape') window.browserAPI.closeOverlay();
   });
 
@@ -1145,8 +1295,10 @@
   // here runs before them and swallows any click that isn't a picker control
   // while a picker is up — in case the isolation CSS ever regresses.
   document.addEventListener('click', (e) => {
-    if (mode !== 'credential-picker') return;
-    if (e.target.closest('.cred-row, .cred-cancel, #backdrop')) return;
+    if (mode !== 'credential-picker' && mode !== 'display-share-picker') return;
+    if (e.target.closest(
+      '.cred-row, .cred-cancel, .display-source, .display-share-footer, #backdrop'
+    )) return;
     e.stopPropagation();
     e.preventDefault();
   }, true);   // capture — beats the per-control listeners
