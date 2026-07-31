@@ -34,6 +34,15 @@
         <input id="privacyPing" type="checkbox" />
         <span><strong>Help improve Blanc</strong><small>Send one launch ping with a random install ID, random session ID, app version, platform, and architecture. No browsing data.</small></span>
       </label>
+      <div id="migrationChoice" class="launch-migration" hidden>
+        <strong>Bring your favorites</strong>
+        <small>Copy favorites from an installed browser profile. Blanc reads the selected profile only after you choose Import; passwords, history, cookies, and open tabs stay untouched.</small>
+        <div class="launch-migration-actions">
+          <select id="migrationSource" aria-label="Browser profile"></select>
+          <button id="migrationImport" type="button" class="quiet">Import favorites</button>
+        </div>
+        <span id="migrationStatus" class="launch-status" role="status"></span>
+      </div>
       <div class="launch-card-actions">
         <button id="privacyContinue" type="button">Save choices and continue</button>
         <span id="privacyError" class="launch-error" role="status"></span>
