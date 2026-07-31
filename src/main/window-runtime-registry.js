@@ -18,7 +18,7 @@ function createRuntime(id, browserWindow) {
     overlayMode: null,
     overlayPrefill: null,
     addressMenuTicket: 0,
-    addressMenuSequence: 0,
+    addressMenuSeq: 0,
     utilitySheetView: null,
     utilitySheetUrl: null,
     activeTabId: null,

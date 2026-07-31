@@ -1203,13 +1203,13 @@ test('T6-wiring: every settlement route is wired in main', () => {
   // the picker rows go silently unclickable (regression: fixed in this file's
   // isOverlaySender wiring; behaviour covered by ipc-trust.test.js).
   const senderLine = src.slice(src.indexOf('isOverlaySender:'), src.indexOf('isOverlaySender:') + 220);
-  assert.ok(/webContents:\s*overlayView\.webContents/.test(senderLine)
+  assert.ok(/webContents:\s*chromeState\.overlayView\.webContents/.test(senderLine)
     && /url:\s*CHROME_OVERLAY_URL/.test(senderLine),
-    'the picker reply sender must be a { webContents, url } target, never a bare overlayView');
-  assert.ok(!/isTrustedSender\(event,\s*\[overlayView\]\)/.test(src),
-    'the bare-overlayView form (no url) must never return — it rejects every reply');
-  assert.ok(/overlayPrefill = null/.test(src),
-    'hideOverlay must clear overlayPrefill — vault rows may not outlive the picker');
+    'the picker reply sender must be a { webContents, url } target, never a bare overlay view');
+  assert.ok(!/isTrustedSender\(event,\s*\[chromeState\.overlayView\]\)/.test(src),
+    'the bare-overlay-view form (no url) must never return — it rejects every reply');
+  assert.ok(/chromeState\.overlayPrefill = null/.test(src),
+    'hideOverlay must clear the runtime overlay prefill — vault rows may not outlive the picker');
 });
 
 test('T6-wiring: ranking precedes inspection, the flow follows consent', () => {
@@ -1248,19 +1248,19 @@ test('T6-wiring: consent copy is candidate-neutral when a picker will follow', (
     'the multi-survivor branch must be candidate-neutral');
 });
 
-test('T6-wiring: the window close settles the picker BEFORE resetting overlayMode', () => {
-  // If overlayMode is reset first, settle sees no picker mode and skips
-  // hideOverlay, so main's overlayPrefill keeps the vault rows referenced
+test('T6-wiring: the window close settles the picker BEFORE resetting runtime overlay mode', () => {
+  // If the runtime overlay mode is reset first, settle sees no picker mode
+  // and skips hideOverlay, so the runtime prefill keeps vault rows referenced
   // across a macOS dock reopen. The settle must precede the reset.
   const fs = require('node:fs');
   const src = fs.readFileSync(require.resolve('../../src/main/main.js'), 'utf8');
   const start = src.indexOf("win.on('closed'");
   assert.ok(start > -1, 'the window closed handler must exist');
-  const slice = src.slice(start, start + 900);
+  const slice = src.slice(start, start + 1_200);
   const settleAt = slice.indexOf("pickerController.settle(null, 'window-closed')");
-  const resetAt = slice.indexOf('overlayMode = null');
+  const resetAt = slice.indexOf('chromeState.overlayMode = null');
   assert.ok(settleAt > -1, 'the closed handler must settle a pending picker');
-  assert.ok(resetAt > -1, 'the closed handler resets overlayMode');
+  assert.ok(resetAt > -1, 'the closed handler resets the runtime overlay mode');
   assert.ok(settleAt < resetAt,
     'settle must run BEFORE overlayMode is reset, or the vault rows leak');
 });
