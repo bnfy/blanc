@@ -840,6 +840,19 @@ function install(refs) {
         enter: !!row.querySelector('.row-enter')
       }))`);
     },
+    async chooseAddressResult({ title, tag }) {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const rows = [...document.querySelectorAll('#islandList .island-row')];
+        const row = rows.find((candidate) =>
+          (candidate.querySelector('.row-title')?.textContent ?? '') === ${JSON.stringify(String(title))} &&
+          (candidate.querySelector('.row-tag')?.textContent ?? '') === ${JSON.stringify(String(tag))});
+        if (!row) return false;
+        row.click();
+        return true;
+      })()`);
+    },
     async overlayGroups() {
       const wc = getOverlayWebContents();
       if (!wc) return null;

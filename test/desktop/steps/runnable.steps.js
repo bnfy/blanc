@@ -76,6 +76,15 @@ Given('a group named {string} with {int} tabs', async function (name, count) {
   ctx.groupTabIds = await createGroup(this, name, count);
 });
 
+Given('a group named {string} with {int} tabs that is not active', async function (name, count) {
+  ctx.groupTabIds = await createGroup(this, name, count);
+  await this.call('openTab', this.fixtureUrl('outside-active-group'));
+  const state = await this.state();
+  const group = state.groups.find((candidate) => candidate.name === name.toLowerCase());
+  assert.ok(group && state.tabs.find((tab) => tab.id === state.activeTabId)?.groupId !== group.id,
+    `${name} must begin as a background group`);
+});
+
 Given('the active tab is in {string} on a page where {int} requests were blocked', async function (name, count) {
   const state = await this.state();
   const group = state.groups.find((candidate) => candidate.name === name.toLowerCase());
@@ -92,6 +101,10 @@ Given('the active tab is in {string} on a page where {int} requests were blocked
 });
 
 Given('history has at least one entry', async function () { await this.call('seedHistory'); });
+
+Given('a favorite for {string}', async function (name) {
+  await this.call('seedFavorite', this.fixtureUrl(name), name);
+});
 
 Given('there is no active supporter license', async function () { await this.call('clearSupporter'); });
 
@@ -167,6 +180,11 @@ When('I type {string}', async function (value) {
   );
   assert.equal(await this.call('editAddressInput', value, 'insertText'), true,
     'the command palette input should accept typed text');
+});
+
+When('I choose the group result {string}', async function (name) {
+  assert.equal(await this.call('chooseAddressResult', { title: name.toLowerCase(), tag: 'group' }), true,
+    `the rendered ${name} group result should be selectable`);
 });
 
 When('a link in the page opens a new tab', async function () {
@@ -575,6 +593,45 @@ Then('the command {string} is not listed', async function (command) {
   const rows = await this.call('addressResultRows');
   assert.ok(!rows.some((item) => item.command === command),
     `${command} should not match the typed slash prefix`);
+});
+
+Then('the results include the tab {string}', async function (name) {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => items.some((item) => item.title === name && item.tag === 'tab'),
+    `the open ${name} tab in Quick Switcher results`
+  );
+  assert.ok(rows.some((item) => item.title === name && item.tag === 'tab'));
+});
+
+Then('the results include the favorite {string}', async function (name) {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => items.some((item) => item.title === name && item.tag === 'favorite'),
+    `the ${name} favorite in Quick Switcher results`
+  );
+  assert.ok(rows.some((item) => item.title === name && item.tag === 'favorite'));
+});
+
+Then('a group result {string} is listed above any tab results', async function (name) {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => {
+      const groupIndex = items.findIndex((item) => item.title === name.toLowerCase() && item.tag === 'group');
+      return groupIndex >= 0 && items.every((item, index) => item.tag !== 'tab' || index > groupIndex);
+    },
+    `${name} group result ahead of tab results`
+  );
+  const groupIndex = rows.findIndex((item) => item.title === name.toLowerCase() && item.tag === 'group');
+  assert.ok(groupIndex >= 0);
+  assert.ok(rows.every((item, index) => item.tag !== 'tab' || index > groupIndex));
+});
+
+Then('the active tab is one of the tabs in {string}', async function (name) {
+  const state = await this.state();
+  const group = state.groups.find((candidate) => candidate.name === name.toLowerCase());
+  const active = state.tabs.find((tab) => tab.id === state.activeTabId);
+  assert.equal(active?.groupId, group?.id, `the ${name} group should receive focus`);
 });
 
 Then("the island shows the active page's domain", async function () {
