@@ -10,4 +10,5 @@ module.exports = {
   lastNewTabId: null,
   addressMenuItems: null,
   addressMenuFieldText: null,
+  downloadPath: null,
 };

@@ -124,6 +124,7 @@ Before(async function () {
   ctx.enteredInput = null;
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;
+  ctx.downloadPath = null;
   await ctx.app.evaluate(() => globalThis.__blanc.reset());
 });
 

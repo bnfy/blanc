@@ -1,11 +1,15 @@
 const crypto = require('crypto');
-const { shell } = require('electron');
+const fs = require('fs');
+const path = require('path');
+const { app, shell } = require('electron');
 const { JsonStore } = require('./store');
 const {
   withLocalProfile,
   activeLocalProfileId,
 } = require('./local-profile-context');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+
+const TEST_MODE = !app.isPackaged && process.env.BLANC_TEST === '1';
 
 // Completed/cancelled downloads persist across launches; in-flight ones
 // live here alongside their DownloadItem so cancel/pause can reach them.
@@ -26,6 +30,7 @@ const deletedProfileIds = new Set();
 
 /** @type {((profileIds: string[]) => void) | null} notify chrome/page UI */
 let onChanged = null;
+let testOpenDownloadHandler = null;
 
 const THROTTLE_MS = 250;
 let lastBroadcast = 0;
@@ -60,6 +65,14 @@ function setupDownloads(session, notifyChanged, { profileId = DEFAULT_PROFILE_ID
       totalBytes: item.getTotalBytes(),
       startedAt: Date.now(),
     };
+    // Acceptance downloads must not write to a developer's real Downloads
+    // directory. Production keeps Electron's ordinary user-selected/default
+    // location; only the unpackaged, exact BLANC_TEST harness is redirected.
+    if (TEST_MODE) {
+      const directory = path.join(app.getPath('userData'), 'acceptance-downloads');
+      fs.mkdirSync(directory, { recursive: true });
+      item.setSavePath(path.join(directory, `${id}-${path.basename(record.filename)}`));
+    }
     active.set(id, { record, item, profileId });
 
     item.on('updated', (_e, state) => withLocalProfile(profileId, () => {
@@ -117,7 +130,8 @@ function cancelDownload(id) {
 
 function openDownload(id) {
   const record = listDownloads().find((r) => r.id === id);
-  if (record?.state === 'completed' && record.savePath) shell.openPath(record.savePath);
+  if (record?.state !== 'completed' || !record.savePath) return undefined;
+  return (testOpenDownloadHandler ?? shell.openPath)(record.savePath);
 }
 
 function showDownloadInFolder(id) {
@@ -144,6 +158,15 @@ function discardProfileDownloads(profileId) {
     entry.item.cancel();
   }
   broadcast(profileId);
+}
+
+// The Playwright Electron harness captures the platform-open seam rather than
+// launching Finder/Explorer during a test. It is deliberately unavailable to
+// packaged builds and is not exposed through any renderer IPC channel.
+function setTestOpenDownloadHandler(handler) {
+  if (!TEST_MODE) return false;
+  testOpenDownloadHandler = typeof handler === 'function' ? handler : null;
+  return true;
 }
 
 /** Snapshot for the chrome pill: how many are in-flight, whether a finished
@@ -176,4 +199,5 @@ module.exports = {
   showDownloadInFolder,
   clearFinishedDownloads,
   discardProfileDownloads,
+  setTestOpenDownloadHandler,
 };

@@ -72,7 +72,7 @@ for the deterministic Electron contract and opt-in live-site canary.
 The **`runnable`** profile is the subset wired to real assertions today — the
 scenarios drivable purely through main-process state or pure app logic:
 
-| Implemented (30 stable IDs) | |
+| Implemented scenario coverage | |
 |---|---|
 | F2-1..F2-4 | tab reopen / duplicate / pin-order / new-tab-ungrouped |
 | F3-1, F3-4, F3-5 | group create+move / prune-on-empty / grouped-pin ordering |
@@ -81,12 +81,13 @@ scenarios drivable purely through main-process state or pure app logic:
 | F7-2 | slash-command effects (/new, /downloads, /find) |
 | F9-1, F9-2 | favorite active page / add-all-tabs |
 | F10-2 | clear history |
+| F11-1, F11-2 | streamed download progress/completion and completed-file opening |
 | F12-3 | ad-block global toggle |
 | F14-1..F14-4 | settings validation + device-local search-suggestion opt-out |
 | F16-2..F16-7 | utility-sheet routing, isolation, actions, and toggle behavior |
 | F17-1 | supporter unlock → app icon applied |
 
-Run `npm run test:acceptance:dry` — **35 scenarios, 169 steps, 0 undefined**
+Run `npm run test:acceptance:dry` — **77 scenarios, 465 steps, 0 undefined**
 (Scenario Outlines expand per example: F5-2 → 4 rows, F7-2 → 3).
 
 The **`default`** profile (`not @mobile`) selects the whole desktop-applicable
@@ -116,6 +117,9 @@ offline-verifiable signal. Both tighten once the DOM-automation backlog lands.
   **routing decision** (`normalizeAddressInput` / the hand-off predicate), not an
   actual external navigation, which can't complete offline. The heuristic is the
   substantive, deterministic part.
+- **Completed downloads (F11-2)** — writes a real temporary download through
+  Electron, then captures the exact `shell.openPath` seam in `BLANC_TEST`
+  instead of launching Finder/Explorer during the acceptance run.
 
 ## Verification status
 

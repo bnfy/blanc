@@ -89,6 +89,10 @@ function install(refs) {
     getPrivateBrowsingSession,
     attemptChromeNavigation,
     getChromeUrl,
+    listDownloads,
+    openDownload,
+    clearFinishedDownloads,
+    setTestOpenDownloadHandler,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -108,6 +112,11 @@ function install(refs) {
   let focusObservation = null;
   let pendingPick = null; // SPIKE (1Password fill) — the requestPick promise in flight
   let pendingDisplaySharePick = null;
+  let openedDownloadPath = null;
+  setTestOpenDownloadHandler((filePath) => {
+    openedDownloadPath = filePath;
+    return Promise.resolve('');
+  });
   const remoteFixture = [{
     deviceId: 'acceptance-remote-device',
     name: 'Press Mac',
@@ -373,6 +382,31 @@ function install(refs) {
       try { return handoffProtocols.has(new URL(url).protocol); } catch { return false; }
     },
     openDownloads() { openInternalPage('blanc://downloads/'); },
+    startDownload(url) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || typeof url !== 'string') return false;
+      tab.view.webContents.downloadURL(url);
+      openInternalPage('blanc://downloads/');
+      return true;
+    },
+    downloads() { return listDownloads(); },
+    async openCompletedDownload() {
+      const record = listDownloads().find((item) => item.state === 'completed' && item.savePath);
+      if (!record) return null;
+      await openDownload(record.id);
+      return record.savePath;
+    },
+    openedDownloadPath() { return openedDownloadPath; },
+    readDownloadsSheetDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        rows: document.querySelectorAll('#list .row').length,
+        progressing: document.querySelectorAll('#list .progress').length,
+        completed: [...document.querySelectorAll('#list .meta')]
+          .filter((node) => node.textContent.startsWith('Completed')).length,
+      }))()`);
+    },
     openSettings() { openInternalPage('blanc://settings/'); },
     readSettingsProfilesDom() {
       const wc = getUtilitySheetWebContents();
@@ -978,6 +1012,7 @@ function install(refs) {
       hideOverlay({ refocusContent: false });
       hideUtilitySheet();
       pushRemoteDevices([]);
+      openedDownloadPath = null;
       setWindowContentSize(1280, 800);
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());
@@ -985,6 +1020,7 @@ function install(refs) {
       for (const id of [...tabs.keys()]) if (id !== keep) closeTab(id);
       getGroups().length = 0;
       history.clearHistory();
+      clearFinishedDownloads();
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',

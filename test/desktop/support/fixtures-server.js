@@ -6,6 +6,25 @@ const http = require('node:http');
 
 function start() {
   const server = http.createServer((req, res) => {
+    if ((req.url || '').startsWith('/download/acceptance.bin')) {
+      const chunks = 12;
+      const chunk = Buffer.alloc(32 * 1024, 0x61);
+      let sent = 0;
+      res.writeHead(200, {
+        'Content-Type': 'application/octet-stream',
+        'Content-Disposition': 'attachment; filename="acceptance.bin"',
+        'Content-Length': String(chunks * chunk.length),
+      });
+      const send = () => {
+        if (res.destroyed) return;
+        if (sent >= chunks) return res.end();
+        sent += 1;
+        res.write(chunk);
+        setTimeout(send, 75);
+      };
+      send();
+      return;
+    }
     const name = decodeURIComponent((req.url || '/').replace(/^\/site\//, '').split('?')[0]) || 'page';
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(

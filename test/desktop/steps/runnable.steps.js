@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('./../support/context');
-const { openOverlaySurface } = require('./../support/poll');
+const { waitForValue, openOverlaySurface } = require('./../support/poll');
 
 // Step definitions for the desktop-runnable scenario set (see the `runnable`
 // profile in cucumber.mjs). Every step is intent-level and drives the app
@@ -181,6 +181,82 @@ Then("the private tab's start page loads in the non-persistent session", async f
     'blanc://newtab/?private=1',
     'the committed WebContents URL must be the private start page, not a blank load'
   );
+});
+
+// ---------- F11: Downloads ----------
+
+async function startAcceptanceDownload(world) {
+  // Downloads are normally initiated from a settled web page. Besides matching
+  // the user flow, this prevents a blank new tab's deliberate address-bar
+  // focus reclaim from dismissing the utility sheet while this scenario is
+  // verifying its visible live-progress state.
+  const source = world.fixtureUrl('download-source');
+  const sourceId = await world.call('openTab', source);
+  await world.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === sourceId && tab.loadedUrl === source && tab.loading === false), { timeout: 15000 });
+  const url = `${ctx.fixturesBase}/download/acceptance.bin`;
+  assert.equal(await world.call('startDownload', url), true,
+    'the active tab should start the fixture download');
+}
+
+async function waitForCompletedDownload(world) {
+  return waitForValue(
+    () => world.call('downloads'),
+    (items) => items.some((item) =>
+      item.state === 'completed' && item.filename === 'acceptance.bin' &&
+      item.savePath && Number.isFinite(item.finishedAt)),
+    'acceptance download to complete',
+    15000
+  );
+}
+
+When('I start a download', async function () {
+  await startAcceptanceDownload(this);
+});
+
+Then('a downloads row shows progress', async function () {
+  await waitForValue(
+    () => this.call('readDownloadsSheetDom'),
+    (dom) => dom?.rows >= 1 && dom.progressing >= 1,
+    'Downloads sheet to receive a progress update',
+    15000
+  );
+});
+
+Then('the row reaches a completed state', async function () {
+  await waitForCompletedDownload(this);
+  await waitForValue(
+    () => this.call('readDownloadsSheetDom'),
+    (dom) => dom?.completed >= 1,
+    'Downloads sheet to receive a completion update',
+    15000
+  );
+});
+
+Given('a completed download', async function () {
+  await startAcceptanceDownload(this);
+  const downloads = await waitForCompletedDownload(this);
+  const completed = downloads.find((item) =>
+    item.state === 'completed' && item.filename === 'acceptance.bin' &&
+    item.savePath && Number.isFinite(item.finishedAt));
+  assert.ok(completed, 'the fixture download should have a completed record');
+  ctx.downloadPath = completed.savePath;
+});
+
+When('I open the completed download', async function () {
+  const opened = await this.call('openCompletedDownload');
+  assert.equal(opened, ctx.downloadPath,
+    'the completed fixture record should be passed to the opener');
+});
+
+Then("the file opens through the platform's normal file mechanism", async function () {
+  const opened = await waitForValue(
+    () => this.call('openedDownloadPath'),
+    (value) => value === ctx.downloadPath,
+    'platform download opener',
+    5000
+  );
+  assert.equal(opened, ctx.downloadPath);
 });
 
 Then('a group named {string} exists', async function (name) {

@@ -44,9 +44,13 @@ const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const {
   setupDownloads,
+  listDownloads,
   downloadsActivity,
   acknowledgeDownloads,
+  openDownload,
+  clearFinishedDownloads,
   discardProfileDownloads,
+  setTestOpenDownloadHandler,
 } = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
 const { attachAddressMenu } = require('./address-menu');
@@ -4492,6 +4496,10 @@ app.whenReady().then(async () => {
         `location.href = ${JSON.stringify(String(url))}`
       ),
       getChromeUrl: () => win?.webContents.getURL() ?? '',
+      listDownloads,
+      openDownload,
+      clearFinishedDownloads,
+      setTestOpenDownloadHandler,
     });
   }
 
