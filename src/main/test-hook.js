@@ -19,6 +19,7 @@ const {
   isAddressMenuAttached,
   ADDRESS_INPUT_ID,
 } = require('./address-menu');
+const { sanitizeCertificate, certificateErrorQuery } = require('./site-security');
 
 /**
  * @param {object} refs - live references from main.js's module scope.
@@ -402,6 +403,105 @@ function install(refs) {
           cancel: probe('.cred-cancel'),
         };
       })()`);
+    },
+    setActiveSiteSecurityFixture(kind) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return false;
+      tab.isLoading = false;
+      tab.certificateError = null;
+      tab.blockedCount = 3;
+      if (kind === 'secure') {
+        tab.siteSecurityFixture = { url: 'https://secure.example/path' };
+      } else if (kind === 'insecure') {
+        tab.siteSecurityFixture = { url: 'http://plain.example/path' };
+      } else if (kind === 'local') {
+        tab.siteSecurityFixture = { url: 'http://localhost:3000/path' };
+      } else {
+        return false;
+      }
+      broadcastTabs();
+      return true;
+    },
+    readPillSecurityDom() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const warning = document.getElementById('pillInsecure');
+        return {
+          hidden: warning?.hidden ?? true,
+          title: warning?.title ?? '',
+        };
+      })()`);
+    },
+    clickSiteInfoButton() {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('panelSiteInfo');
+        if (!button || button.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    readSiteInfoDom() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('panelSiteInfo');
+        const card = document.querySelector('.site-info-card');
+        return {
+          buttonHidden: button?.hidden ?? true,
+          buttonState: [...(button?.classList ?? [])].find((name) =>
+            ['secure', 'insecure', 'local', 'certificate-error'].includes(name)) ?? null,
+          expanded: button?.getAttribute('aria-expanded') === 'true',
+          title: card?.querySelector('.site-info-title')?.textContent ?? '',
+          origin: card?.querySelector('.site-info-origin')?.textContent ?? '',
+          summary: card?.querySelector('.site-info-summary')?.textContent ?? '',
+          details: card?.querySelector('.site-info-details')?.textContent ?? '',
+          protection: card?.querySelector('.site-info-protection')?.textContent ?? '',
+          hint: document.getElementById('islandHint')?.textContent ?? '',
+        };
+      })()`);
+    },
+    async showCertificateErrorFixture() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return false;
+      delete tab.siteSecurityFixture;
+      const record = {
+        url: 'https://expired.example/',
+        error: 'net::ERR_CERT_DATE_INVALID',
+        certificate: sanitizeCertificate({
+          subjectName: 'expired.example',
+          issuerName: 'Acceptance Test Root',
+          validStart: 1_600_000_000,
+          validExpiry: 1_700_000_000,
+          fingerprint: 'AA:BB:CC:DD',
+        }),
+      };
+      tab.certificateError = record;
+      const query = certificateErrorQuery(record, {
+        code: -201,
+        desc: 'Certificate date invalid',
+      });
+      await tab.view.webContents.loadURL(`blanc://error/?${query}`);
+      return true;
+    },
+    readActiveErrorDom() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        title: document.getElementById('errorTitle')?.textContent ?? '',
+        url: document.getElementById('errorUrl')?.textContent ?? '',
+        detail: document.getElementById('errorDetail')?.textContent ?? '',
+        certificate: document.getElementById('certificateDetails')?.textContent ?? '',
+        links: [...document.querySelectorAll('a')].map((a) => ({
+          text: a.textContent,
+          href: a.getAttribute('href'),
+        })),
+        proceedControls: [...document.querySelectorAll('button, a')].filter((el) =>
+          /proceed|continue|accept|visit anyway/i.test(el.textContent)
+        ).length,
+      }))()`);
     },
     clickHiddenControlInPicker(selector) {
       const wc = getOverlayWebContents();

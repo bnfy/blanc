@@ -156,19 +156,6 @@
     }
   }
 
-  /** Warning-only security check: true just for plain HTTP to a non-loopback
-   * host — https, blanc:, file:, and local dev servers show no indicator.
-   * (Keep in sync with overlay.js.) */
-  function connectionInsecure(url) {
-    if (!url?.startsWith('http://')) return false;
-    try {
-      const host = new URL(url).hostname;
-      return !(host === 'localhost' || host.endsWith('.localhost') || /^127\./.test(host) || host === '[::1]');
-    } catch {
-      return false;
-    }
-  }
-
   function setFavicon(el, tab, base = 'favicon') {
     el.className = base + (tab?.isLoading ? ' loading' : '');
     el.style.backgroundImage = '';
@@ -380,7 +367,11 @@
 
     // Hidden while loading too — the domain says "Loading…" and the old
     // page's security state mustn't linger under it.
-    pillInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
+    const securityWarning =
+      tab?.siteInfo?.state === 'insecure' ||
+      tab?.siteInfo?.state === 'certificate-error';
+    pillInsecure.hidden = !tab || tab.isLoading || !securityWarning;
+    pillInsecure.title = tab?.siteInfo?.title ?? 'Connection is not secure';
 
     pillPrivateChip.hidden = !tab?.private;
     // A view-source tab is opened fresh, so Back is dead and the island has

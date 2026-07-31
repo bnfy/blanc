@@ -9,7 +9,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 > Desktop is the shipped reference, so its `@all` cells are ✅ (behaviour verified
 > in the shipping app; automated step-defs are a separate track). iOS/Android are
-> greenfield → ⬜. The grid below tracks stable scenario IDs across 15 `.feature`
+> greenfield → ⬜. The grid below tracks stable scenario IDs across 16 `.feature`
 > files.
 
 ## Files
@@ -31,6 +31,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Tab sync | `sync.feature` | F27 |
 | Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 | Browser migration | `browser-migration.feature` | F30 (D22) |
+| Site security | `site-security.feature` | F31 (D23) |
 
 ## Grid
 
@@ -118,6 +119,9 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F30-1 | Direct profile import preserves supported Favorites and folders | D22 | ✅ | ⬜ | ⬜ |
 | F30-2 | Repeated browser import is idempotent | D22 | ✅ | ⬜ | ⬜ |
 | F30-3 | Fresh first run offers Favorites migration | D22 | ✅ | ⬜ | ⬜ |
+| F31-1 | Plain HTTP is visibly identified | D23 | ✅ | ⬜ | ⬜ |
+| F31-2 | HTTPS site information is available from the command bar | D23 | ✅ | ⬜ | ⬜ |
+| F31-3 | Certificate failure has no bypass | D23 | ✅ | ⬜ | ⬜ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -125,7 +129,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24` and `F27–F30` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24` and `F27–F31` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
 - The suite explicitly tags D1–D10, D12, D16, and D19. D11 is exercised
@@ -133,6 +137,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
   are covered within the F12 contract (F12-1's shield assertion is relaxed on
   iOS per D13 — see
   [`../blocking-backends.md`](../blocking-backends.md)). D15, D17, and D18 do
-  not yet have discrete Gherkin assertions.
+  not yet have discrete Gherkin assertions. D20–D23 are covered by their
+  corresponding F19/F29/F30/F31 scenarios.
 - Mobile-gained / platform-specific outcomes (F22, F24, F28) correctly carry
   platform tags rather than `@all`.

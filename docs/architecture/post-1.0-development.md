@@ -62,3 +62,23 @@ Linux. The existing bookmarks-HTML path remains the explicit fallback for
 Safari, Firefox, and other browsers. History, passwords, cookies, open tabs,
 and settings are outside this slice and require separate data-specific consent
 and migration contracts.
+
+## F31 site-information and certificate-safety decision
+
+The first HTTPS/security slice makes Chromium's transport decision legible
+without replacing it. A session-level certificate verifier observes successful
+verification metadata, keeps only bounded public display fields in memory, and
+always delegates the decision back to Chromium. Both the ordinary and private
+browsing sessions install the observer; neither persists certificate records.
+
+`serializeTabs()` derives a small site-information projection for trusted
+chrome: state, exact origin, summary, sanitized certificate metadata, and the
+existing blocked-request count. The resting Island warns on public HTTP and
+certificate failure. The expanded Island owns the detailed card, so web content
+cannot spoof it.
+
+Main-frame certificate failures are rejected and routed to a dedicated
+`blanc://error` presentation with retry and back-to-safety actions only. There
+is deliberately no bypass path or trust exception. This milestone does not yet
+claim phishing/malware reputation protection; a deceptive-site threat feed and
+its update/failure policy remain the next independent security slice.

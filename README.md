@@ -160,6 +160,13 @@ at a time — it is never remembered. Everything else (MIDI, USB, serial, etc.)
 is refused outright; fullscreen, pointer lock, and sanitized clipboard writes
 are allowed.
 
+**Site information:** the Island identifies public HTTP, local loopback, and
+verified HTTPS from main-process browser state. Its site-information card shows
+the exact origin, bounded certificate details when available, and the page's
+blocked-request count. Certificate failures route to a dedicated safety
+interstitial with retry/back actions and no proceed-anyway bypass; Blanc always
+leaves the trust decision to Chromium's verifier.
+
 **Ad blocking:** `adblock.js` attaches a `@ghostery/adblocker-electron`
 engine to `session.defaultSession` once at startup, covering every tab.
 Request-level blocking isn't bound by MV3's rule caps; cosmetic filtering

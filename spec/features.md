@@ -533,3 +533,30 @@ From the desktop `DEFAULTS`:
   unsupported internal URLs, and existing Favorites. Blanc copies only the
   supported web Favorites, keeps their immediate folders, and a second import
   creates no duplicates.
+
+## F31 — Site information and certificate safety
+
+- The trusted chrome identifies the active page's transport state from browser
+  process data, never from page-controlled DOM or JavaScript. Plain `http:`
+  pages carry a visible warning; loopback HTTP is identified as local rather
+  than public transport; verified `https:` pages are identified as encrypted
+  and authenticated.
+- Opening site information from the command bar shows the exact origin,
+  connection summary, available bounded certificate display fields, and the
+  page's Blanc protection count. A valid certificate describes transport
+  authentication only — it is not a claim that the site or its content is safe.
+- Certificate verification stays owned by the platform browser engine. Blanc
+  must not weaken its trust decision, suppress Certificate Transparency, add a
+  private trust root, or convert an invalid certificate into an accepted
+  connection merely to populate the UI.
+- A main-frame certificate failure opens a dedicated safety interstitial with
+  the original destination, specific failure explanation, and available
+  certificate subject/issuer/expiry. The only recovery actions are retry and
+  back to safety; there is no proceed/visit-anyway bypass.
+- Certificate observation and presentation mechanics diverge by platform
+  (D23), but the transport states, trusted-source rule, and non-bypassable
+  failure contract stay identical.
+- **Acceptance:** A plain HTTP page shows a persistent not-secure warning and
+  an explanation in site information. A verified HTTPS page shows its origin
+  and protection activity. An expired certificate opens the certificate
+  interstitial with no control that can continue to the site.

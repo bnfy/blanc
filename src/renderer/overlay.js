@@ -11,7 +11,7 @@
   const backdrop = document.getElementById('backdrop');
   const panelAnchor = document.getElementById('panelAnchor');
   const addressInput = document.getElementById('addressInput');
-  const panelInsecure = document.getElementById('panelInsecure');
+  const panelSiteInfo = document.getElementById('panelSiteInfo');
   const islandList = document.getElementById('islandList');
   const islandHint = document.getElementById('islandHint');
   const backBtn = document.getElementById('backBtn');
@@ -41,6 +41,7 @@
   /** After a picker action re-renders the list, put focus back on that
    * tab's "group" chip instead of dropping it on <body>. */
   let chipFocusTabId = null;
+  let siteInfoOpen = false;
 
   function focusChip(tabId) {
     islandList.querySelector(`.island-row[data-tab-id="${CSS.escape(tabId)}"] .row-grp`)?.focus();
@@ -84,6 +85,9 @@
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2 6h3l4-3.5v11L5 10H2z"/><path d="M11 5.5l3 5M14 5.5l-3 5"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
+    secure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35"/></svg>',
+    insecure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72"/></svg>',
+    local: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.25"/><circle cx="8" cy="8" r="1.5"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -135,19 +139,6 @@
       }
     }
     return tab.url;
-  }
-
-  /** Warning-only security check: true just for plain HTTP to a non-loopback
-   * host — https, blanc:, file:, and local dev servers show no indicator.
-   * (Keep in sync with renderer.js.) */
-  function connectionInsecure(url) {
-    if (!url?.startsWith('http://')) return false;
-    try {
-      const host = new URL(url).hostname;
-      return !(host === 'localhost' || host.endsWith('.localhost') || /^127\./.test(host) || host === '[::1]');
-    } catch {
-      return false;
-    }
   }
 
   /** The page URL behind a `view-source:` URL, else null. Chromium's
@@ -205,7 +196,25 @@
     heartBtn.disabled = !tab || !isFavoritable(tab.url);
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
     heartBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page (Ctrl/Cmd+D)';
-    panelInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
+    const siteInfo = tab?.siteInfo;
+    // A typed/created https: destination is not a security result. Keep this
+    // unavailable until its main-frame navigation commits and Chromium clears
+    // the loading state.
+    const siteInfoVisible =
+      !!siteInfo &&
+      !tab?.isLoading &&
+      !['internal', 'unknown'].includes(siteInfo.state);
+    panelSiteInfo.hidden = !siteInfoVisible;
+    panelSiteInfo.className = `site-info-button ${siteInfo?.state ?? ''}`;
+    panelSiteInfo.setAttribute('aria-expanded', String(siteInfoOpen && siteInfoVisible));
+    panelSiteInfo.innerHTML = siteInfo?.state === 'insecure' || siteInfo?.state === 'certificate-error'
+      ? ICONS.insecure
+      : siteInfo?.state === 'local'
+        ? ICONS.local
+        : ICONS.secure;
+    panelSiteInfo.title = siteInfo?.title ?? 'Site information';
+    panelSiteInfo.setAttribute('aria-label', siteInfo?.title ?? 'Site information');
+    if (!siteInfoVisible) siteInfoOpen = false;
 
     const verticalTabsActive = state.tabLayout === 'vertical';
     footerTabLayout.title = verticalTabsActive
@@ -803,6 +812,86 @@
 
   // --- List area: tabs at rest, commands on "/", switcher while typing ---
 
+  function renderSiteInfo() {
+    const info = activeTab()?.siteInfo;
+    if (!info || ['internal', 'unknown'].includes(info.state)) {
+      siteInfoOpen = false;
+      return renderList();
+    }
+
+    const card = document.createElement('section');
+    card.className = `site-info-card ${info.state}`;
+    card.setAttribute('aria-label', 'Site information');
+
+    const head = document.createElement('div');
+    head.className = 'site-info-head';
+    const stateDot = document.createElement('span');
+    stateDot.className = 'site-info-state';
+    stateDot.setAttribute('aria-hidden', 'true');
+    const headCopy = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'site-info-title';
+    title.textContent = info.title;
+    const origin = document.createElement('div');
+    origin.className = 'site-info-origin';
+    origin.textContent = info.origin || info.host || 'local page';
+    headCopy.append(title, origin);
+    head.append(stateDot, headCopy);
+
+    const summary = document.createElement('p');
+    summary.className = 'site-info-summary';
+    summary.textContent = info.summary;
+    card.append(head, summary);
+
+    const certificate = info.certificate;
+    if (certificate) {
+      const details = document.createElement('dl');
+      details.className = 'site-info-details';
+      const add = (label, value) => {
+        if (!value) return;
+        const row = document.createElement('div');
+        const term = document.createElement('dt');
+        term.textContent = label;
+        const description = document.createElement('dd');
+        description.textContent = value;
+        row.append(term, description);
+        details.append(row);
+      };
+      add('Certificate for', certificate.subject);
+      add('Issued by', certificate.issuer);
+      add(
+        'Valid until',
+        certificate.validTo ? new Date(certificate.validTo).toLocaleDateString() : null
+      );
+      add('Fingerprint', certificate.fingerprint);
+      if (details.children.length) card.append(details);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'site-info-actions';
+    const protection = document.createElement('span');
+    protection.className = 'site-info-protection';
+    const blocked = Number(info.blockedCount) || 0;
+    protection.textContent = blocked
+      ? `Blanc blocked ${blocked} ${blocked === 1 ? 'request' : 'requests'}`
+      : 'No blocked requests on this page';
+    const settingsButton = document.createElement('button');
+    settingsButton.type = 'button';
+    settingsButton.className = 'site-info-settings';
+    settingsButton.textContent = 'Privacy settings';
+    settingsButton.addEventListener('click', () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.openPage('settings');
+    });
+    actions.append(protection, settingsButton);
+    card.append(actions);
+
+    islandList.replaceChildren(card);
+    islandHint.textContent = info.state === 'certificate-error'
+      ? 'Blanc did not offer a bypass'
+      : 'connection details are supplied by Chromium';
+  }
+
   function renderList() {
     const value = addressInput.value;
     const selectedKey = selectedResultIndex >= 0
@@ -811,7 +900,10 @@
     visibleCommands = [];
     visibleResults = [];
 
-    if (inputTouched && value.startsWith('/')) {
+    if (siteInfoOpen) {
+      renderSiteInfo();
+      return;
+    } else if (inputTouched && value.startsWith('/')) {
       selectedResultIndex = -1;
       const slashWord = value.trim().split(/\s+/)[0];
       visibleCommands = COMMANDS.filter((c) => c.cmd.startsWith(slashWord) || slashWord === '/');
@@ -1192,6 +1284,7 @@
     } else if (next === 'panel' || next === 'palette') {
       if (!reshow) {
         pickingTabId = null;
+        siteInfoOpen = false;
         addressInputComposing = false;
         suppressProviderSuggestions = false;
       }
@@ -1243,6 +1336,7 @@
     suppressProviderSuggestions = false;
     pickingTabId = null;
     chipFocusTabId = null;
+    siteInfoOpen = false;
     selectedResultIndex = -1;
     resetSearchSuggestions();
     // Drop any request and the rendered vault rows — leaving them would keep
@@ -1315,6 +1409,12 @@
       : window.browserAPI.reload(state.activeTabId);
   });
   heartBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
+  panelSiteInfo.addEventListener('click', () => {
+    if (panelSiteInfo.hidden) return;
+    siteInfoOpen = !siteInfoOpen;
+    panelSiteInfo.setAttribute('aria-expanded', String(siteInfoOpen));
+    renderList();
+  });
 
   // --- Footer action bar (static: new tab / private launchers + quick pages) ---
   // These moved out of the scrollable list so they stay put while it shows
@@ -1364,6 +1464,7 @@
     renderList();
   });
   addressInput.addEventListener('input', (e) => {
+    siteInfoOpen = false;
     inputTouched = true;
     selectedResultIndex = -1;
     if (!addressInput.value.trim()) {
@@ -1484,6 +1585,7 @@
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
       if (activeTabChanged) {
+        siteInfoOpen = false;
         selectedResultIndex = -1;
         scheduleSearchSuggestions();
       }

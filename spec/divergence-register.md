@@ -492,3 +492,28 @@ deduplicates without replacing existing data, and never expands into passwords,
 history, cookies, or sessions without a separately specified choice.
 
 **Status:** Accepted 2026-07-30.
+
+## D23 — Certificate verification signals and site-information UI
+**Features:** F31
+
+**Why:** Each embedded browser engine exposes certificate verification results
+and certificate metadata through different APIs, and the native trust store
+remains the final authority on each operating system.
+
+- **Desktop:** Chromium performs verification. Electron's session verifier is
+  used only as an observer and delegates the decision back to Chromium; its
+  main-frame certificate-error event feeds Blanc's trusted interstitial.
+- **iOS:** rely on WebKit's authentication challenge and system trust
+  evaluation, projecting only bounded certificate display fields into native
+  Blanc chrome.
+- **Android:** rely on WebView/Android network-security trust evaluation and
+  its SSL-error callback, projecting the same bounded display fields into
+  native Blanc chrome.
+
+**Parity contract:** Page content cannot forge the connection state. Valid
+HTTPS, public HTTP, local loopback, and certificate failure remain distinct;
+site information names the exact origin and does not equate a valid certificate
+with safe content; a certificate failure has no proceed-anyway action; Blanc
+never weakens the platform verifier to generate or bypass these states.
+
+**Status:** Accepted 2026-07-30.

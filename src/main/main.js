@@ -69,11 +69,18 @@ const { reorderWithinBucket } = require('./tab-order');
 const {
   captureRequestStillValid,
 } = require('./display-share-request');
+const {
+  sanitizeCertificate,
+  createCertificateObserver,
+  buildSiteInfo,
+  certificateErrorQuery,
+} = require('./site-security');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 // The query flag tells the newtab page to show private copy + theme.
 const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
+const certificateObserver = createCertificateObserver();
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
@@ -979,14 +986,38 @@ function serializeTabs() {
   return tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
-    .map(({ view, ...rest }) => {
+    .map(({ view, certificateError, siteSecurityFixture, ...rest }) => {
+      // Desktop acceptance can pin a synthetic origin without navigating away
+      // from its deterministic blanc:// harness page. Production tabs never
+      // carry this property; every normal payload is still derived from the
+      // committed WebContents URL and Chromium's certificate observer.
+      const effectiveUrl = siteSecurityFixture?.url ?? rest.url;
+      let certificateRecord = null;
+      try {
+        certificateRecord = siteSecurityFixture?.certificateRecord
+          ?? certificateObserver.get(view.webContents.session, effectiveUrl);
+      } catch {
+        // A WebContents can disappear during teardown between the filter and
+        // this projection. Site info fails neutral; tab teardown continues.
+      }
+      const serialized = {
+        ...rest,
+        ...(siteSecurityFixture ? { url: effectiveUrl, isLoading: false } : {}),
+        siteInfo: buildSiteInfo(effectiveUrl, {
+          certificateRecord,
+          certificateError,
+          blockedCount: rest.blockedCount,
+        }),
+      };
       // A page-favicon URL belongs to the tab's browsing session. Sending a
       // private tab's remote URL into persistent chrome would make the chrome
       // session fetch it again merely to paint the pill/overlay/rail, escaping
       // the non-persistent private-session boundary. Private rows deliberately
       // use the renderer's neutral fallback instead.
-      if (rest.private && rest.favicon) return { ...rest, favicon: null };
-      return rest;
+      if (serialized.private && serialized.favicon) {
+        return { ...serialized, favicon: null };
+      }
+      return serialized;
     });
 }
 
@@ -1869,6 +1900,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // SPIKE (1Password fill feasibility) — bumped on any main-frame navigation
     // start/commit so the async fill can detect a page swap mid-flow.
     navEpoch: 0,
+    // In-memory only. A failed TLS identity check is projected into trusted
+    // chrome and the local error interstitial, never persisted or bypassed.
+    certificateError: null,
   };
   tabs.set(id, tab);
   tabOrder.push(id);
@@ -1986,6 +2020,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   wc.on('did-start-navigation', (_e, _url, _isInPlace, isMainFrame) => {
     if (isMainFrame) {
       tab.navEpoch++;
+      // Keep the record while main routes the failed navigation to its local
+      // certificate interstitial; any real retry/new destination starts clean.
+      if (!String(_url).startsWith('blanc://error')) tab.certificateError = null;
       displaySharePickerController.cancelForWebContents(wc.id, 'navigation');
     }
   });
@@ -2039,8 +2076,33 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     ) {
       return;
     }
-    const q = new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
+    const q = tab.certificateError
+      ? certificateErrorQuery(tab.certificateError, {
+          url: validatedURL,
+          code: errorCode,
+          desc: errorDescription,
+        })
+      : new URLSearchParams({
+          url: validatedURL,
+          code: String(errorCode),
+          desc: errorDescription,
+        });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+  });
+
+  // Never bypass a failed server identity check. Keep only bounded display
+  // metadata, reject the load, then did-fail-load routes to Blanc's dedicated
+  // certificate interstitial. Subframe failures remain Chromium-denied but do
+  // not replace the top-level page.
+  wc.on('certificate-error', (_event, failedUrl, error, certificate, callback, isMainFrame) => {
+    if (isMainFrame) {
+      tab.certificateError = {
+        url: failedUrl,
+        error,
+        certificate: sanitizeCertificate(certificate),
+      };
+    }
+    callback(false);
   });
 
   // Adopted window.open children are script-closable — window.close() by
@@ -3246,6 +3308,9 @@ app.whenReady().then(async () => {
   const ses = session.defaultSession;
   const privateSes = getPrivateBrowsingSession();
   const browsingSessions = [ses, privateSes];
+  for (const browsingSession of browsingSessions) {
+    certificateObserver.observe(browsingSession);
+  }
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
   // locally so existing suggestion/navigation scenarios exercise their
   // intended feature instead of the onboarding card; telemetry is disabled.
