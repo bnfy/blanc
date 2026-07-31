@@ -1,16 +1,15 @@
 # URL bar context menu — design
 
 **Date:** 2026-07-25
-**Status:** approved, not yet implemented
+**Status:** shipped — implementation commit `3b1008d`
 
 ## Problem
 
-Right-clicking Blanc's address input does nothing. Electron ships no default
-context menu, and `attachContextMenu` (`src/main/context-menu.js`) is wired only
-to tab `webContents` (`main.js:1629`) — never to the overlay view that owns
-`#addressInput`. Every other browser gives that field a menu; Blanc gives it a
-dead click, and the standard Cut/Copy/Paste affordances are reachable only by
-keyboard.
+Before this feature, right-clicking Blanc's address input did nothing. Electron
+ships no default context menu, and `attachContextMenu`
+(`src/main/context-menu.js`) was wired only to tab `webContents` — never to the
+overlay view that owns `#addressInput`. The resulting gap made standard
+Cut/Copy/Paste affordances reachable only by keyboard.
 
 ## Scope
 
