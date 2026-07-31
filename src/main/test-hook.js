@@ -839,6 +839,19 @@ function install(refs) {
         enter: !!row.querySelector('.row-enter')
       }))`);
     },
+    async overlayGroups() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        headers: [...document.querySelectorAll('#islandList .island-ghead:not(.static)')]
+          .map((row) => ({
+            name: row.querySelector('.ghead-name')?.textContent ?? '',
+            collapsed: !row.querySelector('.caret')?.classList.contains('open'),
+          })),
+        foldedLabels: [...document.querySelectorAll('#islandList .folded-row .row-folded-label')]
+          .map((node) => node.textContent ?? ''),
+      }))()`);
+    },
     async overlayRendererMode() {
       const wc = getOverlayWebContents();
       if (!wc) return null;

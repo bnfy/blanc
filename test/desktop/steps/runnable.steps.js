@@ -20,6 +20,19 @@ async function openNamed(world, name) {
   return id;
 }
 
+async function createGroup(world, name, count, { preserveActive = false } = {}) {
+  assert.ok(count > 0, 'a group must have at least one tab');
+  const activeBefore = (await world.state()).activeTabId;
+  const ids = [];
+  for (let index = 1; index <= count; index += 1) {
+    const id = await world.call('openTab', world.fixtureUrl(`${name}-${index}`));
+    await world.call('groupTabByName', id, name);
+    ids.push(id);
+  }
+  if (preserveActive && activeBefore) await world.call('activateTab', activeBefore, false);
+  return ids;
+}
+
 Given('a tab open on {string}', async function (name) { await openNamed(this, name); });
 Given('the active tab is on {string}', async function (name) { await openNamed(this, name); });
 
@@ -52,14 +65,15 @@ Given('a group {string} with 1 tab', async function (name) {
   await this.call('groupActiveByName', name);
 });
 
+Given('a group {string} with {int} tabs', async function (name, count) {
+  // The active group should remain active when a second group is introduced,
+  // so F3-2 can exercise the pill's active-cluster projection explicitly.
+  const preserveActive = (await this.state()).groups.length > 0;
+  ctx.groupTabIds = await createGroup(this, name, count, { preserveActive });
+});
+
 Given('a group named {string} with {int} tabs', async function (name, count) {
-  assert.ok(count > 0, 'a group must have at least one tab');
-  ctx.groupTabIds = [];
-  for (let index = 1; index <= count; index += 1) {
-    const id = await this.call('openTab', this.fixtureUrl(`${name}-${index}`));
-    await this.call('groupTabByName', id, name);
-    ctx.groupTabIds.push(id);
-  }
+  ctx.groupTabIds = await createGroup(this, name, count);
 });
 
 Given('the active tab is in {string} on a page where {int} requests were blocked', async function (name, count) {
@@ -134,6 +148,15 @@ When('I visit {string} in the private tab', async function (name) {
 
 When('I close the private tab', async function () {
   await this.call('closeTab', ctx.privateTabId);
+});
+
+When('I collapse the group {string}', async function (name) {
+  const state = await this.state();
+  const group = state.groups.find((candidate) => candidate.name === name.toLowerCase());
+  assert.ok(group, `group ${name} should exist before collapsing it`);
+  await this.call('toggleGroup', group.id);
+  await this.waitForState((next) => next.groups.some((candidate) =>
+    candidate.id === group.id && candidate.collapsed === true));
 });
 
 When('a link in the page opens a new tab', async function () {
@@ -510,6 +533,23 @@ Then('the island shows the group name {string}', async function (name) {
     `the ${name} group name in the Island`
   );
   assert.equal(island.groupName, `${name.toLowerCase()} ·`);
+});
+
+Then('the island does not show the group name {string}', async function (name) {
+  const island = await this.call('islandChrome');
+  assert.notEqual(island?.groupName, `${name.toLowerCase()} ·`,
+    `the resting Island should project only the active group, not ${name}`);
+});
+
+Then('the panel shows a {string} row for {string}', async function (label, name) {
+  const groups = await waitForValue(
+    () => this.call('overlayGroups'),
+    (state) => state?.headers.some((header) =>
+      header.name === name.toLowerCase() && header.collapsed) &&
+      state.foldedLabels.includes(label),
+    `the collapsed ${name} group row in the panel`
+  );
+  assert.ok(groups.foldedLabels.includes(label));
 });
 
 Then("the island shows the active page's domain", async function () {
