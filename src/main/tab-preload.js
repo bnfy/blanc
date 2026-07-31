@@ -14,6 +14,8 @@ if (window.location.protocol === 'blanc:') {
       remove: (id) => ipcRenderer.invoke('pages:bookmarks:remove', id),
       clearFavicon: (url) => ipcRenderer.invoke('pages:bookmarks:clear-favicon', url),
       import: () => ipcRenderer.invoke('pages:bookmarks:import'),
+      browserSources: () => ipcRenderer.invoke('pages:bookmarks:browser-sources'),
+      importBrowser: (id) => ipcRenderer.invoke('pages:bookmarks:import-browser', id),
       setFolder: (id, folder) => ipcRenderer.invoke('pages:bookmarks:set-folder', id, folder),
       renameFolder: (oldName, newName) => ipcRenderer.invoke('pages:bookmarks:rename-folder', oldName, newName),
       removeFolder: (name) => ipcRenderer.invoke('pages:bookmarks:remove-folder', name),

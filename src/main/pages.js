@@ -4,6 +4,7 @@ const fs = require('fs');
 const { pathToFileURL } = require('url');
 const bookmarks = require('./bookmarks');
 const { parseNetscapeBookmarks } = require('./bookmark-import');
+const { createBrowserDataImportService } = require('./browser-data-import');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
@@ -33,6 +34,19 @@ function registerPagesScheme() {
  * (e.g. so the star button updates when a bookmark is deleted from the
  * bookmarks page). */
 function setupPages(hooks = {}) {
+  // Test runs may point discovery at a throwaway synthetic home, but only in
+  // an unpackaged BLANC_TEST process. Production always uses the real OS home.
+  const testBrowserHome =
+    !app.isPackaged && process.env.BLANC_TEST === '1'
+      ? process.env.BLANC_TEST_BROWSER_HOME
+      : undefined;
+  const browserImport = hooks.browserImport ?? createBrowserDataImportService({
+    homeDir: testBrowserHome,
+    env: testBrowserHome && process.platform === 'win32'
+      ? { ...process.env, LOCALAPPDATA: testBrowserHome }
+      : process.env,
+  });
+
   const serveBlanc = (request) => {
     const { host, pathname } = new URL(request.url);
     if (!KNOWN_PAGES.has(host)) return new Response('Not found', { status: 404 });
@@ -116,6 +130,14 @@ function setupPages(hooks = {}) {
     } catch {
       return { error: 'unreadable' };
     }
+  });
+  handle('pages:bookmarks:browser-sources', () => browserImport.listSources());
+  handle('pages:bookmarks:import-browser', async (id) => {
+    const read = await browserImport.readSource(String(id ?? ''));
+    if (read.error) return { error: read.error };
+    const { added, skipped } = bookmarks.importBookmarks(read.entries);
+    hooks.onDataChanged?.();
+    return { added, skipped, source: read.source };
   });
   handle('pages:bookmarks:set-folder', (id, folder) => {
     bookmarks.setBookmarkFolder(id, folder);

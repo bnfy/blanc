@@ -46,3 +46,19 @@ Windows loopback stream.
 The first implementation deliberately uses Blanc chrome on every desktop
 platform instead of Electron's experimental macOS system-picker option, keeping
 the origin and lifecycle contract consistent and testable.
+
+## F30 browser-Favorites migration decision
+
+The first migration slice imports Favorites directly from discovered
+Chromium-family profiles and offers the same action during first run and from
+the Favorites sheet. Profile discovery, bounded file reads, JSON parsing, and
+opaque-id validation live in the main process. The renderer sees browser/profile
+labels and a stable opaque id, never a path.
+
+Imports reuse the existing add-only Favorites transform, so retries and
+cross-source overlap cannot replace or duplicate a saved URL. Direct profile
+reads cover Chrome, Edge, Brave, Chromium, and Vivaldi on macOS, Windows, and
+Linux. The existing bookmarks-HTML path remains the explicit fallback for
+Safari, Firefox, and other browsers. History, passwords, cookies, open tabs,
+and settings are outside this slice and require separate data-specific consent
+and migration contracts.

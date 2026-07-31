@@ -508,3 +508,28 @@ From the desktop `DEFAULTS`:
   and receive that source only. A second request prompts again. Navigating,
   switching tabs, or cancelling the chooser rejects the request without
   granting any source.
+
+## F30 — Browser Favorites migration
+
+- A fresh profile offers detected browser profiles during first run, and the
+  Favorites sheet keeps the same import available afterward. The existing
+  universal bookmarks-HTML import remains the fallback for browsers or
+  platforms whose live profile format cannot be read directly.
+- Desktop directly supports Google Chrome, Microsoft Edge, Brave, Chromium, and
+  Vivaldi profiles. Discovery and file reads stay in the main process. Internal
+  pages receive only an opaque source id plus browser/profile labels — never a
+  filesystem path or raw profile data.
+- Import is explicit, add-only, and idempotent. Only `http:`/`https:` Favorites
+  are accepted; immediate folder names and valid creation dates are preserved.
+  Existing URLs win, duplicates in the source are skipped, and passwords,
+  history, cookies, sessions, and browser settings are untouched.
+- Input is bounded before and during parsing: a 20 MiB file cap, a 100,000-node
+  traversal cap, and a depth cap. The selected opaque id is rediscovered and
+  matched in main immediately before reading, so a renderer cannot substitute
+  an arbitrary path.
+- Source discovery diverges by platform (D22), but every implementation must
+  keep imports user-initiated, data-scoped, deduplicated, and path-isolated.
+- **Acceptance:** Import a detected profile containing nested folders,
+  unsupported internal URLs, and existing Favorites. Blanc copies only the
+  supported web Favorites, keeps their immediate folders, and a second import
+  creates no duplicates.

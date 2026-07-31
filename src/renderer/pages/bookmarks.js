@@ -2,6 +2,9 @@
   const list = document.getElementById('list');
   const importBtn = document.getElementById('importBtn');
   const importStatus = document.getElementById('importStatus');
+  const browserSourceWrap = document.getElementById('browserSourceWrap');
+  const browserSource = document.getElementById('browserSource');
+  const browserImportBtn = document.getElementById('browserImportBtn');
 
   const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   function importSummary(added, skipped) {
@@ -21,6 +24,52 @@
     if (res.error === 'too-large') { importStatus.textContent = 'That file is too large to import.'; return; }
     importStatus.textContent = importSummary(res.added, res.skipped);
     refresh();
+  });
+
+  async function loadBrowserSources() {
+    const sources = await window.bowserPages.bookmarks.browserSources();
+    browserSource.replaceChildren();
+    for (const source of sources) {
+      const option = document.createElement('option');
+      option.value = source.id;
+      option.textContent = source.label;
+      browserSource.append(option);
+    }
+    const available = sources.length > 0;
+    browserSourceWrap.hidden = !available;
+    browserImportBtn.hidden = !available;
+  }
+
+  browserImportBtn.addEventListener('click', async () => {
+    if (!browserSource.value) return;
+    browserImportBtn.disabled = true;
+    browserSource.disabled = true;
+    importStatus.textContent = 'Importing favorites…';
+    try {
+      const res = await window.bowserPages.bookmarks.importBrowser(browserSource.value);
+      if (res.error === 'source-unavailable') {
+        importStatus.textContent = 'That browser profile is no longer available.';
+        await loadBrowserSources();
+        return;
+      }
+      if (res.error === 'empty') {
+        importStatus.textContent = 'No favorites found in that browser profile.';
+        return;
+      }
+      if (res.error === 'too-large') {
+        importStatus.textContent = 'That browser profile is too large to import safely.';
+        return;
+      }
+      if (res.error) {
+        importStatus.textContent = "Couldn't read that browser profile.";
+        return;
+      }
+      importStatus.textContent = `${res.source.label}: ${importSummary(res.added, res.skipped)}`;
+      refresh();
+    } finally {
+      browserImportBtn.disabled = false;
+      browserSource.disabled = false;
+    }
   });
 
   const folderKey = (name) => (typeof name === 'string' ? name.trim().toLowerCase() : '');
@@ -244,5 +293,6 @@
     nameInput.focus();
   }
 
+  loadBrowserSources();
   refresh();
 })();

@@ -470,3 +470,25 @@ navigation/tab/window changes cancel a pending request, and audio requires a
 separate explicit choice.
 
 **Status:** Accepted 2026-07-30.
+
+## D22 — Browser-profile discovery and Favorites import
+**Features:** F30
+
+**Why:** Desktop browsers expose profile files in conventional user-data
+directories, while mobile operating systems sandbox one browser from another.
+The available source formats also differ.
+
+- **Desktop:** detect known Chromium-family profiles and parse their bounded
+  `Bookmarks` JSON in the main process. A user-selected Netscape bookmarks HTML
+  file remains the cross-browser fallback, including Firefox and Safari.
+- **iOS:** use a user-selected exported bookmarks document; no scanning another
+  browser's application container.
+- **Android:** use a user-selected exported bookmarks document through the
+  system picker; no scanning another browser's private application storage.
+
+**Parity contract:** Import begins only after an explicit user action, accepts
+only supported web Favorites, preserves folders where the source carries them,
+deduplicates without replacing existing data, and never expands into passwords,
+history, cookies, or sessions without a separately specified choice.
+
+**Status:** Accepted 2026-07-30.
