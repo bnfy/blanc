@@ -64,6 +64,14 @@ Given('the active tab is private', async function () {
   ctx.privateTabId = await this.call('openTab', 'blanc://newtab/?private=1', { private: true });
 });
 
+Given('I open a private tab', async function () {
+  ctx.privateTabId = await this.call('openTab', 'blanc://newtab/?private=1', { private: true });
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === ctx.privateTabId &&
+    tab.loadedUrl === 'blanc://newtab/?private=1' &&
+    tab.loading === false));
+});
+
 // "ad/tracker blocking is enabled" is BOTH a Background precondition and a final
 // assertion (F12-3). A step is matched by text regardless of keyword, so it is
 // defined once, as an assertion. reset() leaves blocking enabled, so it holds
@@ -75,6 +83,20 @@ When('I close that tab', async function () {
   const names = Object.keys(ctx.tabByName);
   const id = ctx.tabByName[names[names.length - 1]];
   await this.call('closeTab', id);
+});
+
+When('I visit {string} in the private tab', async function (name) {
+  const url = this.fixtureUrl(name);
+  this.privateVisitUrl = url;
+  await this.call('activateTab', ctx.privateTabId, false);
+  assert.equal(await this.call('navigateActiveTab', url), true,
+    'the private tab should still be available for navigation');
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === ctx.privateTabId && tab.loadedUrl === url && tab.loading === false), { timeout: 15000 });
+});
+
+When('I close the private tab', async function () {
+  await this.call('closeTab', ctx.privateTabId);
 });
 
 When('I reopen the last closed tab', async function () { await this.call('reopenClosed'); });
@@ -330,6 +352,20 @@ Then('history contains one entry for {string} titled {string}', async function (
   );
   assert.equal(entries.filter((item) => item.url === this.historyVisit.url).length, 1,
     'the committed visit should not be duplicated');
+});
+
+Then('{string} is not in history', async function (name) {
+  const url = this.privateVisitUrl || this.fixtureUrl(name);
+  const entries = await this.call('historyEntries');
+  assert.ok(!entries.some((entry) => entry.url === url),
+    `${name} must not be recorded while visited in a private tab`);
+});
+
+Then('no tab open on {string} is restored', async function (name) {
+  const url = this.privateVisitUrl || this.fixtureUrl(name);
+  const state = await this.state();
+  assert.ok(!state.tabs.some((tab) => tab.url === url || tab.loadedUrl === url),
+    `${name} must not be restored from the recently-closed stack`);
 });
 
 // NOTE: `/` is the alternation operator in Cucumber Expressions, so the literal

@@ -76,7 +76,7 @@ scenarios drivable purely through main-process state or pure app logic:
 |---|---|
 | F2-1..F2-4 | tab reopen / duplicate / pin-order / new-tab-ungrouped |
 | F3-1, F3-4, F3-5 | group create+move / prune-on-empty / grouped-pin ordering |
-| F4-4, F4-5 | private-session isolation / private start-page load |
+| F4-1, F4-4, F4-5 | private history/reopen isolation / private-session isolation / private start-page load |
 | F5-1..F5-5 | address routing / 4 engines / OS hand-off / autocomplete routing + privacy |
 | F7-2 | slash-command effects (/new, /downloads, /find) |
 | F9-1, F9-2 | favorite active page / add-all-tabs |

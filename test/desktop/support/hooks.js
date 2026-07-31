@@ -121,6 +121,8 @@ Before(async function () {
   ctx.tabByName = {};
   ctx.activeExpectedUrl = null;
   ctx.lastNewTabId = null;
+  ctx.privateTabId = null;
+  ctx.privateVisitUrl = null;
   ctx.enteredInput = null;
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;
