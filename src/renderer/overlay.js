@@ -1000,6 +1000,14 @@
     renderList();
   }
 
+  window.browserAPI.onThemeAppearance((appearance) => {
+    if (appearance === 'light' || appearance === 'dark') {
+      document.documentElement.dataset.appearance = appearance;
+    } else if (appearance === 'pending') {
+      delete document.documentElement.dataset.appearance;
+    }
+  });
+
   function resetSearchSuggestions() {
     if (suggestionDebounce) clearTimeout(suggestionDebounce);
     suggestionDebounce = null;

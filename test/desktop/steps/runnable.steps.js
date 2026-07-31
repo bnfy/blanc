@@ -44,6 +44,22 @@ Given('history has at least one entry', async function () { await this.call('see
 
 Given('there is no active supporter license', async function () { await this.call('clearSupporter'); });
 
+Given('an internal blanc page is open', async function () {
+  await this.call('openSettings');
+  this.themeSurfacesBefore = {
+    chrome: await waitForValue(
+      () => this.call('chromePalette'),
+      (state) => state?.id,
+      'chrome renderer'
+    ),
+    utility: await waitForValue(
+      () => this.call('utilityPalette'),
+      (state) => state?.id,
+      'Settings utility sheet'
+    ),
+  };
+});
+
 Given('the active tab is private', async function () {
   ctx.privateTabId = await this.call('openTab', 'blanc://newtab/?private=1', { private: true });
 });
@@ -106,6 +122,7 @@ When('I attempt to set the search engine to {string}', async function (x) { awai
 When('I turn search suggestions off', async function () { await this.call('setSearchSuggestions', false); });
 When('settings contain the app icon {string}', async function (x) { await this.call('setAppIcon', x); });
 When('I add {string} to the ad-block exceptions', async function (h) { await this.call('addException', h); });
+When('I set the theme to {string}', async function (theme) { await this.call('setTheme', theme); });
 
 When('browser chrome attempts to navigate to {string}', async function (url) {
   await this.call('attemptChromeNavigation', url);
@@ -357,6 +374,40 @@ Then('selecting one leaves the app icon at {string}', async function (icon) {
   assert.equal(await this.call('clickSettingsIcon', 'ember'), true,
     'the locked Ember colorway should be rendered as a selectable control');
   assert.equal(await this.call('appIcon'), icon);
+});
+
+Then('the chrome uses the dark palette', async function () {
+  const state = await waitForValue(
+    () => this.call('chromePalette'),
+    (palette) => palette?.background === '#0e0e0e',
+    'chrome to adopt the dark palette',
+    15000
+  );
+  assert.equal(state.id, this.themeSurfacesBefore.chrome.id);
+});
+
+Then('the open internal page uses the dark palette', async function () {
+  const state = await waitForValue(
+    () => this.call('utilityPalette'),
+    (palette) => palette?.background === '#0e0e0e',
+    'utility sheet to adopt the dark palette',
+    15000
+  );
+  assert.equal(state.id, this.themeSurfacesBefore.utility.id);
+});
+
+Then('no restart was required', async function () {
+  assert.equal((await this.call('chromePalette'))?.id, this.themeSurfacesBefore.chrome.id);
+  assert.equal((await this.call('utilityPalette'))?.id, this.themeSurfacesBefore.utility.id);
+});
+
+Then('the chrome uses the private palette', async function () {
+  await waitForValue(
+    () => this.call('chromePalette'),
+    (palette) => palette?.theme === 'private' && palette.background === '#0a0a0a',
+    'chrome to adopt the private palette',
+    15000
+  );
 });
 
 Then('the ad-block exceptions contain {string}', async function (h) {

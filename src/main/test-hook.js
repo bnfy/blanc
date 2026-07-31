@@ -324,6 +324,7 @@ function install(refs) {
     },
     setAppIcon(x) { settings.setSettings({ appIcon: x }); },
     appIcon() { return settings.getSettings().appIcon; },
+    setTheme(theme) { settings.setSettings({ theme }); },
     secureDns() { return settings.getSettings().secureDns; },
     secureDnsTemplate() { return settings.getSettings().secureDnsTemplate; },
     webrtcPolicy() { return settings.getSettings().webrtcPolicy; },
@@ -438,6 +439,24 @@ function install(refs) {
         icon.click();
         return true;
       })()`);
+    },
+    chromePalette() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        id: ${wc.id},
+        theme: document.documentElement.dataset.theme ?? null,
+        background: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+      }))()`);
+    },
+    utilityPalette() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        id: ${wc.id},
+        theme: document.documentElement.dataset.theme ?? null,
+        background: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+      }))()`);
     },
     openFind() { openFindBar(); },
     openPanel() { showOverlay('panel'); },

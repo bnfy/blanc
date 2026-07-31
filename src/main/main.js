@@ -662,6 +662,16 @@ let lastNativeThemeAppearance = resolvedThemeAppearance();
 let appliedThemeSource = null;
 let themeTintRefreshGeneration = 0;
 
+function sendThemeAppearance(runtime, appearance) {
+  const send = (wc) => {
+    if (wc && !wc.isDestroyed()) wc.send('chrome:theme-appearance', appearance);
+  };
+  send(runtime.browserWindow?.webContents);
+  send(runtime.overlayView?.webContents);
+  send(runtime.utilitySheetView?.webContents);
+  for (const tabId of runtime.tabOrder) send(tabs.get(tabId)?.view.webContents);
+}
+
 function applyChromeThemeAppearance(appearance) {
   const resolved = appearance === 'dark' || appearance === 'light'
     ? appearance
@@ -670,7 +680,7 @@ function applyChromeThemeAppearance(appearance) {
     const browserWindow = runtime.browserWindow;
     if (!browserWindow || browserWindow.isDestroyed()) continue;
     browserWindow.setBackgroundColor(chromeBackgroundColor(resolved));
-    browserWindow.webContents.send('chrome:theme-appearance', resolved);
+    sendThemeAppearance(runtime, resolved);
   }
 }
 
@@ -684,7 +694,7 @@ function beginChromeThemeAppearance(appearance) {
     if (appearance === 'dark' || appearance === 'light') {
       browserWindow.setBackgroundColor(chromeBackgroundColor(appearance));
     }
-    browserWindow.webContents.send('chrome:theme-appearance', appearance ?? 'pending');
+    sendThemeAppearance(runtime, appearance ?? 'pending');
   }
 }
 
@@ -899,6 +909,7 @@ function createOverlayForRuntime(runtime) {
   // A show requested before the overlay document finished its first load
   // would be lost — leaving an invisible view blocking clicks. Replay it.
   chromeState.overlayView.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    chromeState.overlayView?.webContents.send('chrome:theme-appearance', resolvedThemeAppearance());
     if (chromeState.overlayMode) {
       chromeState.overlayView.webContents.send('overlay:show', { mode: chromeState.overlayMode, prefill: chromeState.overlayPrefill });
       chromeState.overlayView.webContents.focus();
@@ -1135,7 +1146,11 @@ function showUtilityPage(url) {
   chromeState.utilitySheetUrl = url;
   // Rapid page swaps abort the in-flight load — loadURL rejects with
   // ERR_ABORTED; that's routine, not an error.
-  chromeState.utilitySheetView.webContents.loadURL(url).catch(() => {});
+  chromeState.utilitySheetView.webContents.loadURL(url)
+    .then(() => chromeState.utilitySheetView?.webContents.send(
+      'chrome:theme-appearance', resolvedThemeAppearance()
+    ))
+    .catch(() => {});
   // Mirror tabs: a detached view's document still reports visibilityState
   // 'visible' and never background-throttles — toggle real visibility.
   chromeState.utilitySheetView.setVisible(true);
@@ -2281,6 +2296,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   const wc = view.webContents;
   installVerticalTabsShortcut(wc);
+  wc.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    if (wc.getURL().startsWith('blanc://')) {
+      wc.send('chrome:theme-appearance', resolvedThemeAppearance());
+    }
+  }));
 
   // SPIKE (1Password fill feasibility) — ⌥⌘P on the tab's OWN webContents
   // (the overlay before-input-event listener never sees page-focused keys).
@@ -3865,6 +3885,7 @@ function createMainWindow({
   // re-attach the active tab's view or the new window sits over nothing.
   // First launch has no tabState.activeTabId yet — app.whenReady handles that one.
   browserWindow.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    browserWindow.webContents.send('chrome:theme-appearance', resolvedThemeAppearance());
     if (!tabState.activeTabId || !tabs.has(tabState.activeTabId)) return;
     const id = tabState.activeTabId;
     setRuntimeActiveTab(null); // force setActiveTab to treat it as a fresh attach

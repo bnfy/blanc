@@ -7,6 +7,14 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 if (window.location.protocol === 'blanc:') {
+  ipcRenderer.on('chrome:theme-appearance', (_event, appearance) => {
+    if (appearance === 'light' || appearance === 'dark') {
+      document.documentElement.dataset.appearance = appearance;
+    } else if (appearance === 'pending') {
+      delete document.documentElement.dataset.appearance;
+    }
+  });
+
   contextBridge.exposeInMainWorld('bowserPages', {
     appVersion: () => ipcRenderer.invoke('pages:app-version'),
     bookmarks: {

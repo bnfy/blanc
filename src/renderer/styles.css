@@ -64,6 +64,35 @@
   }
 }
 
+/* Electron's native appearance can update before an already-loaded renderer's
+   media query does. Main supplies this resolved appearance to trusted chrome
+   so an explicit Settings choice remains live and deterministic. */
+:root[data-appearance="light"] {
+  --bg: #ffffff;
+  --surface: #f7f7f7;
+  --surface-raised: #ffffff;
+  --border: #dedede;
+  --text: #0e0e0e;
+  --text-dim: #6b6b6b;
+  --accent: #111111;
+  --accent-dim: rgba(17, 17, 17, 0.08);
+  --danger: #ff3b30;
+  --on-danger: #ffffff;
+}
+
+:root[data-appearance="dark"] {
+  --bg: #0e0e0e;
+  --surface: #171717;
+  --surface-raised: #1f1f1f;
+  --border: #2e2e2e;
+  --text: #f5f5f5;
+  --text-dim: #9c9c9c;
+  --accent: #f5f5f5;
+  --accent-dim: rgba(245, 245, 245, 0.12);
+  --danger: #ff453a;
+  --on-danger: #0e0e0e;
+}
+
 /* Private mode — same neutral ink, deeper than dark mode; told apart by
    dashed borders and an explicit "private" chip rather than a color cast.
    Applied while the active tab is private (keep in sync with pages.css). */

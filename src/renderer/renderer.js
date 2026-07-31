@@ -224,10 +224,13 @@
       return;
     }
     if (appearance !== 'light' && appearance !== 'dark') return;
-    // If Chromium won the race, use the tokenized CSS immediately. Otherwise
-    // bridge only the gap until matchMedia's change event below releases it.
-    pendingThemeAppearance = themeAppearanceMatchesMedia(appearance) ? null : appearance;
-    themeHandoffPending = !!pendingThemeAppearance;
+    // Electron 43 can report the new nativeTheme state while leaving this
+    // already-loaded renderer's media query stale. The explicit token scope
+    // keeps trusted chrome correct in either order; private's later scope
+    // continues to override it.
+    document.documentElement.dataset.appearance = appearance;
+    pendingThemeAppearance = null;
+    themeHandoffPending = false;
     applyStripTint(activeTab());
   });
   darkSchemeQuery.addEventListener('change', releaseOptimisticThemeAppearance);
