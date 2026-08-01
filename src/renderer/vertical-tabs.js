@@ -342,7 +342,6 @@
       (active ? ' active' : '') +
       (tab.private ? ' private' : '') +
       (tab.isLoading ? ' loading' : '');
-    row.setAttribute('role', 'listitem');
     row.dataset.tabId = tab.id;
     row.dataset.bucket = bucketKey(tab);
 

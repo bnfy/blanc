@@ -232,6 +232,14 @@ notices, and per-package/font license records. See
 [`docs/dependency-compliance.md`](docs/dependency-compliance.md) and run
 `npm run compliance:check` after dependency or bundled-asset changes.
 
+**Accessibility:** trusted chrome and internal pages carry explicit names,
+landmarks/dialog semantics, keyboard focus entry, 24px-or-larger primary tab
+targets, reduced-motion behavior, and AA text contrast in light, dark, and
+private themes. `npm run test:accessibility` launches the real Electron app and
+audits the rendered states plus 200% reflow. The automated/manual boundary and
+assistive-technology checklist live in
+[`docs/accessibility.md`](docs/accessibility.md).
+
 ## Keyboard shortcuts
 
 | | |

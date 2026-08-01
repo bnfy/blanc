@@ -49,8 +49,8 @@ public enum BlancTokens {
     public static func textDim(_ theme: BlancTheme) -> String {
         switch theme {
         case .light: return "#6b6b6b"
-        case .dark: return "#9c9c9c"
-        case .privateBrowsing: return "#9c9c9c"
+        case .dark: return "#a3a3a3"
+        case .privateBrowsing: return "#a3a3a3"
         }
     }
     public static func accent(_ theme: BlancTheme) -> String {

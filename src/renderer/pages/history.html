@@ -9,15 +9,15 @@
 </head>
 <body class="sheet">
   <div class="page">
-    <nav class="page-nav">
+    <nav class="page-nav" aria-label="Utility pages">
       <a href="blanc://settings/">Settings</a>
       <a href="blanc://bookmarks/">Favorites</a>
-      <a href="blanc://history/" class="current">History</a>
+      <a href="blanc://history/" class="current" aria-current="page">History</a>
       <a href="blanc://downloads/">Downloads</a>
     </nav>
     <h1>History</h1>
     <div class="toolbar-row">
-      <input id="search" type="text" placeholder="Search history" />
+      <input id="search" type="text" aria-label="Search history" placeholder="Search history" />
       <button id="clearAll" class="danger">Clear all</button>
     </div>
     <div id="list" class="row-list"></div>

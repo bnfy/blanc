@@ -676,7 +676,12 @@
     const activeGroups = links.map((link) => document.getElementById(`group-${link.dataset.group}`)).filter(Boolean);
 
     const setCurrent = (group) => {
-      for (const link of links) link.classList.toggle('current', link.dataset.group === group);
+      for (const link of links) {
+        const current = link.dataset.group === group;
+        link.classList.toggle('current', current);
+        if (current) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      }
     };
 
     // Score each group by how much of *itself* is on screen, highest wins.

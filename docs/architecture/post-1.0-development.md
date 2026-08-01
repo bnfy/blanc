@@ -339,3 +339,27 @@ Glance state is intentionally in-memory and is not included in session restore
 or Tab Sync. The native View menu opens or closes it; closing a Glance tab
 returns its sibling to full-page bounds. Because both tab ids are verified
 against the same runtime, it cannot show another window or profile's content.
+
+## Accessibility decision
+
+The trusted desktop UI now has a rendered Electron accessibility gate rather
+than relying on markup inspection. A version-locked axe-core development
+dependency is injected only by the test harness; it is not packaged. The gate
+covers chrome, dynamic overlay modes, onboarding, internal pages,
+light/dark/private contrast, dialog focus, grouped/vertical tab semantics, and
+utility reflow at the 320 CSS-px target. It runs in CI and in
+`release:verify:press`.
+
+The resting Island is a toolbar with a dedicated command-surface button, so it
+no longer nests interactive controls inside a synthetic parent button. Its tab
+dots retain the 6px visual marker but own a real 24px target. Overlay rows use
+native buttons (or a primary button plus sibling actions) instead of
+pointer-only clickable divs; permission prompts and secure pickers expose
+dialog/group/radio semantics and explicit focus. Form labels, landmarks,
+current-page state, live status regions, and light/dark/private contrast are
+part of the same gate.
+
+Cross-`WebContentsView` reading order, native menus/dialogs, VoiceOver/NVDA,
+forced colors, and compositor-level contrast remain manual because axe cannot
+observe them. The required release checklist and the narrow partial-document
+rule exceptions are documented in `docs/accessibility.md`.

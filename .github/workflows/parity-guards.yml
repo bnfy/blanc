@@ -55,6 +55,21 @@ jobs:
       - name: Acceptance step definitions resolve (dry-run)
         run: npm run test:acceptance:dry
 
+  accessibility:
+    # axe runs inside Blanc's real Electron WebContents. The smoke covers
+    # chrome, overlays, onboarding, utility sheets, dark/private themes, and
+    # 200% zoom at the minimum window size; xvfb supplies Linux display state.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Rendered desktop accessibility gate
+        run: xvfb-run -a npm run test:accessibility
+
   oauth-compatibility:
     # A deterministic, two-origin OAuth fixture exercises the real Electron
     # popup/tab policies, trusted user activation, opener callback, Chrome

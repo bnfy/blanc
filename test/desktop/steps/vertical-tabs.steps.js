@@ -565,8 +565,17 @@ When(
 Then(
   'its guest bounds are x {int}, y {int}, width {int}, height {int}',
   async function (x, y, width, height) {
+    const bounds = await waitForValue(
+      () => this.call('activeGuestBounds'),
+      (candidate) =>
+        candidate?.x === x &&
+        candidate?.y === y &&
+        candidate?.width === width &&
+        candidate?.height === height,
+      'active guest bounds'
+    );
     assertBounds(
-      await this.call('activeGuestBounds'),
+      bounds,
       { x, y, width, height },
       'active guest bounds'
     );

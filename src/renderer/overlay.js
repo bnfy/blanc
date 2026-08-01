@@ -10,6 +10,7 @@
 
   const backdrop = document.getElementById('backdrop');
   const panelAnchor = document.getElementById('panelAnchor');
+  const islandPanel = document.getElementById('islandPanel');
   const addressInput = document.getElementById('addressInput');
   const panelSiteInfo = document.getElementById('panelSiteInfo');
   const islandList = document.getElementById('islandList');
@@ -230,6 +231,12 @@
     row.className = 'island-row tab-row' + (tab.id === state.activeTabId ? ' active' : '');
     row.dataset.tabId = tab.id;
 
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'row-main-action';
+    primary.setAttribute('aria-label', `${tab.id === state.activeTabId ? 'Current tab' : 'Switch to'} ${tab.title || 'New Tab'}`);
+    if (tab.id === state.activeTabId) primary.setAttribute('aria-current', 'page');
+
     const faviconWrap = document.createElement('span');
     faviconWrap.className = 'row-favicon-wrap';
     const favicon = document.createElement('span');
@@ -251,14 +258,23 @@
     sub.className = 'row-sub';
     sub.textContent = tabDomain(tab);
 
-    row.append(faviconWrap, title, sub);
+    primary.append(faviconWrap, title, sub);
 
     if (tab.private) {
       const tag = document.createElement('span');
       tag.className = 'row-private';
       tag.textContent = 'private';
-      row.append(tag);
+      primary.append(tag);
     }
+
+    primary.addEventListener('click', () => {
+      window.browserAPI.switchTab(tab.id);
+      window.browserAPI.closeOverlay();
+    });
+    primary.addEventListener('auxclick', (e) => {
+      if (e.button === 1) window.browserAPI.closeTab(tab.id);
+    });
+    row.append(primary);
 
     const pin = document.createElement('button');
     pin.className = 'row-pin' + (tab.pinned ? ' on' : '');
@@ -287,6 +303,7 @@
     const grp = document.createElement('button');
     grp.className = 'row-grp';
     grp.title = 'Move to group';
+    grp.setAttribute('aria-label', `Move ${tab.title || 'New Tab'} to a group`);
     grp.textContent = tab.groupId ? groupById(tab.groupId)?.name ?? 'group' : 'group';
     grp.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -345,6 +362,7 @@
       const create = document.createElement('input');
       create.className = 'group-picker-input';
       create.placeholder = 'new group…';
+      create.setAttribute('aria-label', 'New group name');
       create.spellcheck = false;
       create.autocomplete = 'off';
       create.addEventListener('keydown', (e) => {
@@ -362,17 +380,10 @@
       row.append(picker);
     }
 
-    row.addEventListener('click', () => {
-      window.browserAPI.switchTab(tab.id);
-      window.browserAPI.closeOverlay();
-    });
-    row.addEventListener('auxclick', (e) => {
-      if (e.button === 1) window.browserAPI.closeTab(tab.id); // middle-click closes
-    });
     return row;
   }
 
-  const CARET = '<svg class="caret" viewBox="0 0 10 10"><path d="M3.5 2 L7 5 L3.5 8"/></svg>';
+  const CARET = '<svg class="caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.5 2 L7 5 L3.5 8"/></svg>';
 
   /** "pinned" section header for pins without a named group — same dim-rule
    * visual language as a group header, but static. */
@@ -393,13 +404,16 @@
 
   /** "work — 3 ————— ⌘1": click folds/unfolds the group. */
   function groupHeaderRow(group, count, clusterIndex) {
-    const row = document.createElement('div');
+    const row = document.createElement('button');
+    row.type = 'button';
     row.className = 'island-ghead';
     row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-rule"></span><span class="ghead-n">${modKey}${clusterIndex + 1}</span>`;
     row.querySelector('.caret').classList.toggle('open', !group.collapsed);
     row.querySelector('.ghead-name').textContent = group.name;
     row.querySelectorAll('.ghead-n')[0].textContent = String(count);
     row.title = group.collapsed ? 'Unfold group' : 'Fold group';
+    row.setAttribute('aria-expanded', String(!group.collapsed));
+    row.setAttribute('aria-label', `${group.name}, ${count} ${count === 1 ? 'tab' : 'tabs'}`);
     row.addEventListener('click', () => window.browserAPI.toggleGroupCollapsed(group.id));
     return row;
   }
@@ -414,8 +428,10 @@
 
   /** Collapsed group's stand-in row: mini-dots + "N tabs tucked away". */
   function foldedGroupRow(group, gtabs) {
-    const row = document.createElement('div');
+    const row = document.createElement('button');
+    row.type = 'button';
     row.className = 'island-row folded-row';
+    row.setAttribute('aria-label', `Unfold ${group.name}, ${gtabs.length} ${gtabs.length === 1 ? 'tab' : 'tabs'}`);
     const label = document.createElement('span');
     label.className = 'row-folded-label';
     label.textContent = `${gtabs.length} ${gtabs.length === 1 ? 'tab' : 'tabs'} tucked away`;
@@ -457,7 +473,8 @@
 
   /** "MacBook Air · 5 ——— 2h ago": click folds/unfolds. */
   function remoteHeaderRow(device) {
-    const row = document.createElement('div');
+    const row = document.createElement('button');
+    row.type = 'button';
     row.className = 'island-ghead';
     const open = unfoldedDevices.has(device.deviceId);
     row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-rule"></span><span class="ghead-n"></span>`;
@@ -467,6 +484,8 @@
     ns[0].textContent = String(device.tabs.length);
     ns[1].textContent = timeAgo(device.updatedAt);
     row.title = open ? 'Fold device' : 'Unfold device';
+    row.setAttribute('aria-expanded', String(open));
+    row.setAttribute('aria-label', `${device.name}, ${device.tabs.length} ${device.tabs.length === 1 ? 'tab' : 'tabs'}, updated ${timeAgo(device.updatedAt)}`);
     row.addEventListener('click', () => {
       if (open) unfoldedDevices.delete(device.deviceId);
       else unfoldedDevices.add(device.deviceId);
@@ -478,8 +497,10 @@
   /** A remote tab row: opens the url as a plain new local tab (ungrouped —
    * no group reconstruction in v1, spec §2). */
   function remoteTabRow(tab, device) {
-    const row = document.createElement('div');
+    const row = document.createElement('button');
+    row.type = 'button';
     row.className = 'island-row tab-row';
+    row.setAttribute('aria-label', `Open ${tab.title || tab.url} from ${device.name}`);
     const favicon = document.createElement('span');
     setFavicon(favicon, tab);
     const title = document.createElement('span');
@@ -557,7 +578,8 @@
   }
 
   function commandRow(command, isTop) {
-    const row = document.createElement('div');
+    const row = document.createElement('button');
+    row.type = 'button';
     row.className = 'island-row' + (isTop ? ' active' : '');
 
     const name = document.createElement('span');
@@ -775,7 +797,8 @@
   // isActive follows either explicit arrow selection or the bare-Enter target.
   // isEnterTarget controls the ↵ glyph separately so it always tells the truth.
   function resultRow(result, isActive, isEnterTarget) {
-    const row = document.createElement('div');
+    const row = document.createElement('button');
+    row.type = 'button';
     row.className = 'island-row' + (isActive ? ' active' : '');
 
     // Groups lead with their dot cluster; search completions use a magnifier;
@@ -1083,6 +1106,8 @@
     const multiVault = new Set(rows.map((r) => r.vaultName)).size > 1;
     const list = document.createElement('div');
     list.className = 'cred-list';
+    list.setAttribute('role', 'group');
+    list.setAttribute('aria-label', 'Saved logins');
 
     rows.forEach((r, i) => {
       const row = document.createElement('button');
@@ -1155,7 +1180,7 @@
     rows.forEach((row, index) => {
       const selected = index === displayShareIndex;
       row.classList.toggle('sel', selected);
-      row.setAttribute('aria-pressed', String(selected));
+      row.setAttribute('aria-checked', String(selected));
     });
     if (focus) rows[displayShareIndex]?.focus();
   }
@@ -1188,13 +1213,14 @@
 
     const grid = document.createElement('div');
     grid.className = 'display-source-grid';
-    grid.setAttribute('role', 'list');
+    grid.setAttribute('role', 'radiogroup');
+    grid.setAttribute('aria-label', 'Share source');
     rows.forEach((source, index) => {
       const button = document.createElement('button');
       button.type = 'button';
       button.className = 'display-source';
-      button.setAttribute('role', 'listitem');
-      button.setAttribute('aria-pressed', String(index === 0));
+      button.setAttribute('role', 'radio');
+      button.setAttribute('aria-checked', String(index === 0));
 
       const preview = document.createElement('span');
       preview.className = 'display-source-preview';
@@ -1275,6 +1301,11 @@
     const reshow = mode === next;
     mode = next;
     document.body.dataset.mode = next ?? '';
+    islandPanel.setAttribute('aria-label', next === 'credential-picker'
+      ? 'Choose a saved login'
+      : next === 'display-share-picker'
+        ? 'Choose what to share'
+        : 'Search, tabs, and commands');
     backdrop.hidden = next !== 'panel'
       && next !== 'palette'
       && next !== 'credential-picker'

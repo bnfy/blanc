@@ -25,6 +25,7 @@
     "test:acceptance:release:check": "node scripts/check-release-acceptance.mjs",
     "test:acceptance:release:dry": "npm run test:acceptance:release:check && cucumber-js -c test/desktop/cucumber.mjs -p releaseDry",
     "test:acceptance:release": "npm run test:acceptance:release:check && cucumber-js -c test/desktop/cucumber.mjs -p release",
+    "test:accessibility": "node test/desktop/accessibility-smoke.mjs",
     "test:smoke:display-sharing": "node scripts/display-share-smoke.mjs",
     "test:dns-smoke": "node test/desktop/dns-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
@@ -34,7 +35,7 @@
     "compliance:build": "node scripts/generate-compliance.mjs",
     "compliance:check": "node scripts/generate-compliance.mjs --check",
     "release:security": "npm audit --omit=dev --audit-level=high",
-    "release:verify:press": "npm run substrate:check && npm run compliance:check && npm run test:unit && npm run test:acceptance:release:check && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:oauth:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
+    "release:verify:press": "npm run substrate:check && npm run compliance:check && npm run test:unit && npm run test:accessibility && npm run test:acceptance:release:check && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:oauth:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
     "adblock:build": "node adblock/build.mjs && node adblock/seed.mjs",
     "adblock:check": "node adblock/build.mjs --check && node adblock/seed.mjs --check",
     "tokens:build": "node tokens/build.mjs",
@@ -51,6 +52,7 @@
   "devDependencies": {
     "@cucumber/cucumber": "^13.1.1",
     "@ghostery/adblocker": "^2.18.1",
+    "axe-core": "4.10.3",
     "electron": "^43.2.0",
     "electron-builder": "^26.15.3",
     "playwright": "^1.49.0"

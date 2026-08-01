@@ -9,8 +9,8 @@
 </head>
 <body class="sheet">
   <div class="page">
-    <nav class="page-nav">
-      <a href="blanc://settings/" class="current">Settings</a>
+    <nav class="page-nav" aria-label="Utility pages">
+      <a href="blanc://settings/" class="current" aria-current="page">Settings</a>
       <a href="blanc://bookmarks/">Favorites</a>
       <a href="blanc://history/">History</a>
       <a href="blanc://downloads/">Downloads</a>
@@ -18,7 +18,7 @@
     <h1>Settings</h1>
 
     <div class="settings-shell">
-      <nav class="settings-nav">
+      <nav class="settings-nav" aria-label="Settings sections">
         <a href="#group-general" data-group="general">General</a>
         <a href="#group-profiles" data-group="profiles">Profiles</a>
         <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
@@ -33,10 +33,10 @@
           <div class="settings-card">
             <div class="setting">
               <div class="label">
-                <span>Appearance</span>
+                <span id="themeLabel">Appearance</span>
                 <span class="hint">System follows your macOS/Windows theme</span>
               </div>
-              <select id="theme">
+              <select id="theme" aria-labelledby="themeLabel">
                 <option value="system">System</option>
                 <option value="light">Light</option>
                 <option value="dark">Dark</option>
@@ -77,29 +77,29 @@
 
             <div class="setting">
               <div class="label">
-                <span>Search engine</span>
+                <span id="searchEngineLabel">Search engine</span>
                 <span class="hint">Used when the address bar input isn't a URL</span>
               </div>
-              <select id="searchEngine"></select>
+              <select id="searchEngine" aria-labelledby="searchEngineLabel"></select>
             </div>
 
             <div class="setting">
               <div class="label">
-                <span>Search suggestions</span>
+                <span id="searchSuggestionsLabel">Search suggestions</span>
                 <span class="hint">Send typed search prefixes to your selected engine; always off in private tabs</span>
               </div>
               <label class="toggle">
-                <input id="searchSuggestions" type="checkbox" />
+                <input id="searchSuggestions" type="checkbox" aria-labelledby="searchSuggestionsLabel" />
                 <span class="track"></span>
               </label>
             </div>
 
             <div class="setting">
               <div class="label">
-                <span>New tab page</span>
+                <span id="homePageLabel">New tab page</span>
                 <span class="hint">Leave empty for the built-in new tab page</span>
               </div>
-              <input id="homePage" type="url" placeholder="blanc://newtab/" />
+              <input id="homePage" type="url" aria-labelledby="homePageLabel" placeholder="blanc://newtab/" />
             </div>
           </div>
         </section>
@@ -111,7 +111,7 @@
               Named profiles keep their own cookies, site data, Favorites, history, downloads list, and remembered permissions on this device. They do not join Personal’s sync account.
             </p>
             <div class="toolbar-row">
-              <input id="newProfileName" type="text" placeholder="New profile name" maxlength="40" autocomplete="off" />
+              <input id="newProfileName" type="text" aria-label="New profile name" placeholder="New profile name" maxlength="40" autocomplete="off" />
               <button id="newProfileCreate">Create profile window</button>
             </div>
             <p class="section-hint" id="profilesStatus" role="status"></p>
@@ -124,21 +124,21 @@
           <div class="settings-card">
             <div class="setting">
               <div class="label">
-                <span>Block ads &amp; trackers</span>
+                <span id="adblockEnabledLabel">Block ads &amp; trackers</span>
                 <span class="hint">EasyList + EasyPrivacy at the network layer, plus element hiding</span>
               </div>
               <label class="toggle">
-                <input id="adblockEnabled" type="checkbox" />
+                <input id="adblockEnabled" type="checkbox" aria-labelledby="adblockEnabledLabel" />
                 <span class="track"></span>
               </label>
             </div>
 
             <div class="setting">
               <div class="label">
-                <span>WebRTC</span>
+                <span id="webrtcPolicyLabel">WebRTC</span>
                 <span class="hint">Limits which network addresses WebRTC may reveal. Standard hides non-default-route and multi-homed addresses.</span>
               </div>
-              <select id="webrtcPolicy">
+              <select id="webrtcPolicy" aria-labelledby="webrtcPolicyLabel">
                 <option value="standard">Standard — hide non-default addresses</option>
                 <option value="strict">Disable direct UDP — for proxy users; may break or degrade some video calls</option>
               </select>
@@ -146,10 +146,10 @@
 
             <div class="setting">
               <div class="label">
-                <span>Encrypted DNS</span>
+                <span id="secureDnsLabel">Encrypted DNS</span>
                 <span class="hint">Encrypts DNS lookups between Blanc and the chosen resolver. It does not hide the sites you visit from your network, and it makes the resolver a party you trust. Automatic does not guarantee encryption. Strict providers may block captive-portal login pages — switch to Automatic to get through.</span>
               </div>
-              <select id="secureDns">
+              <select id="secureDns" aria-labelledby="secureDnsLabel">
                 <option value="auto">Automatic — upgrade when available (may fall back to unencrypted)</option>
                 <option value="off">Off — use the system resolver (best with a VPN's own DNS)</option>
                 <option value="cloudflare">Cloudflare — unfiltered</option>
@@ -161,11 +161,11 @@
 
             <div class="setting" id="secureDnsCustomRow" hidden>
               <div class="label">
-                <span>Custom DoH template</span>
+                <span id="secureDnsTemplateLabel">Custom DoH template</span>
                 <span class="hint">An https:// DoH URL (RFC 8484), e.g. https://dns.nextdns.io/&lt;profile&gt;.</span>
                 <span class="hint field-error" id="secureDnsError" hidden>That is not a valid DoH URL — the previous provider is still in use.</span>
               </div>
-              <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" />
+              <input id="secureDnsTemplate" type="url" aria-labelledby="secureDnsTemplateLabel" aria-describedby="secureDnsError" placeholder="https://your-provider.example/dns-query" />
             </div>
 
             <div class="group-subsection">
@@ -174,7 +174,7 @@
                 Sites listed here load with ad-blocking turned off, e.g. for sites that break under it.
               </p>
               <div class="toolbar-row">
-                <input id="exceptionInput" type="text" placeholder="example.com" />
+                <input id="exceptionInput" type="text" aria-label="Site hostname" placeholder="example.com" />
                 <button id="exceptionAdd">Add</button>
               </div>
               <div id="exceptionList" class="row-list"></div>
@@ -190,18 +190,18 @@
 
             <div class="setting">
               <div class="label">
-                <span>Help improve Blanc</span>
+                <span id="usagePingLabel">Help improve Blanc</span>
                 <span class="hint">Counts active users so we can see how Blanc is growing. On launch, sends the app version, your OS, and a random id for this install (used only to avoid counting one device twice, and stored on our side only as a one-way hash). No browsing data, no account, no way to identify you. Turn this off to stop sending it.</span>
               </div>
               <label class="toggle">
-                <input id="usagePing" type="checkbox" />
+                <input id="usagePing" type="checkbox" aria-labelledby="usagePingLabel" />
                 <span class="track"></span>
               </label>
             </div>
 
             <div class="toolbar-row">
               <button id="resetInstallId">Reset install ID</button>
-              <span id="resetInstallIdStatus" class="section-hint"></span>
+              <span id="resetInstallIdStatus" class="section-hint" role="status"></span>
             </div>
 
             <h3 class="section-title">Clear browsing data</h3>
@@ -210,7 +210,7 @@
             </p>
             <div class="toolbar-row">
               <button id="clearBrowsingData" class="danger">Clear cookies, cache &amp; site data</button>
-              <span id="clearBrowsingDataStatus" class="section-hint"></span>
+              <span id="clearBrowsingDataStatus" class="section-hint" role="status"></span>
             </div>
           </div>
         </section>
@@ -226,8 +226,8 @@
             </p>
             <div id="syncSetup">
               <div class="toolbar-row">
-                <input id="syncHandle" type="text" placeholder="Sync name" autocomplete="off" spellcheck="false" maxlength="64" />
-                <input id="syncPassphrase" type="password" placeholder="Passphrase" autocomplete="off" />
+                <input id="syncHandle" type="text" aria-label="Sync name" placeholder="Sync name" autocomplete="off" spellcheck="false" maxlength="64" />
+                <input id="syncPassphrase" type="password" aria-label="Sync passphrase" placeholder="Passphrase" autocomplete="off" />
                 <button id="syncEnable">Turn on sync</button>
               </div>
               <p class="section-hint" id="syncSetupStatus" role="status"></p>
@@ -269,7 +269,7 @@
               One purchase, activated once; Blanc never phones home afterwards.
             </p>
             <div class="toolbar-row" id="supporterActivateRow">
-              <input id="supporterKey" type="text" placeholder="License key" autocomplete="off" spellcheck="false" maxlength="200" />
+              <input id="supporterKey" type="text" aria-label="Supporter license key" placeholder="License key" autocomplete="off" spellcheck="false" maxlength="200" />
               <button id="supporterActivate">Activate</button>
             </div>
             <p class="section-hint" id="supporterStatus" role="status"></p>

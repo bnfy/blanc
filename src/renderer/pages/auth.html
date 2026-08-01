@@ -8,16 +8,22 @@
   <link rel="stylesheet" href="pages.css" />
 </head>
 <body class="auth-body">
-  <h1 class="section-title">Sign in</h1>
-  <p id="authHost" class="section-hint"></p>
-  <form id="authForm">
-    <input id="authUser" type="text" placeholder="Username" autocomplete="username" autofocus />
-    <input id="authPass" type="password" placeholder="Password" autocomplete="current-password" />
-    <div class="toolbar-row">
-      <button type="submit">Sign in</button>
-      <button type="button" id="authCancel">Cancel</button>
+  <main>
+    <div role="dialog" aria-modal="true" aria-labelledby="authTitle" aria-describedby="authHost">
+      <h1 id="authTitle" class="section-title">Sign in</h1>
+      <p id="authHost" class="section-hint"></p>
+      <form id="authForm">
+        <label class="sr-only" for="authUser">Username</label>
+        <input id="authUser" type="text" placeholder="Username" autocomplete="username" autofocus />
+        <label class="sr-only" for="authPass">Password</label>
+        <input id="authPass" type="password" placeholder="Password" autocomplete="current-password" />
+        <div class="toolbar-row">
+          <button type="submit">Sign in</button>
+          <button type="button" id="authCancel">Cancel</button>
+        </div>
+      </form>
     </div>
-  </form>
+  </main>
   <script src="auth.js"></script>
 </body>
 </html>

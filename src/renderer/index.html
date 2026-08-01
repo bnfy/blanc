@@ -7,29 +7,32 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <main aria-label="Browser chrome">
   <div id="chrome">
     <div id="strip">
-      <div id="islandPill" class="no-drag" role="button" tabindex="0" title="Search, tabs & commands (Ctrl/Cmd+L)">
+      <div id="islandPill" class="no-drag" role="toolbar" aria-label="Browser controls">
         <div id="pillNav" class="pill-btns"></div>
         <div id="pillDots"></div>
-        <span id="pillFavicon" class="favicon"></span>
-        <span id="pillInsecure" class="insecure-badge" title="Not secure — this site uses an unencrypted connection (HTTP)" hidden>
-          <svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72"/></svg>
-        </span>
-        <span id="pillProfileName" class="pill-profile-name" hidden></span>
-        <span id="pillGroupName" hidden></span>
-        <span id="pillDomain">new tab</span>
+        <button id="pillOpen" type="button" title="Search, tabs &amp; commands (Ctrl/Cmd+L)" aria-label="Search, tabs, and commands">
+          <span id="pillFavicon" class="favicon" aria-hidden="true"></span>
+          <span id="pillInsecure" class="insecure-badge" title="Not secure — this site uses an unencrypted connection (HTTP)" aria-hidden="true" hidden>
+            <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72"/></svg>
+          </span>
+          <span id="pillProfileName" class="pill-profile-name" aria-hidden="true" hidden></span>
+          <span id="pillGroupName" aria-hidden="true" hidden></span>
+          <span id="pillDomain" aria-hidden="true">new tab</span>
+          <span id="pillShield" class="shield" aria-hidden="true" hidden>0</span>
+        </button>
         <button id="pillPrivateChip" title="Leave private mode — closes this tab" hidden>private
-          <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
         </button>
         <button id="pillSourceChip" title="Close this page source view" hidden>source
-          <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
         </button>
-        <span id="pillShield" class="shield" hidden>0</span>
         <span class="pill-sep"></span>
         <div id="pillActions" class="pill-btns"></div>
       </div>
-      <div id="permissionBar" class="no-drag" hidden>
+      <div id="permissionBar" class="no-drag" role="alertdialog" aria-modal="true" aria-labelledby="permissionText" hidden>
         <span id="permissionText"></span>
         <button id="permAllowBtn">Allow</button>
         <button id="permBlockBtn">Block</button>
@@ -50,7 +53,7 @@
         <span class="vertical-tabs-layout-icon" aria-hidden="true"></span>
       </button>
     </div>
-    <div id="verticalTabsList" class="vertical-tabs-list" role="list" aria-label="Open tabs"></div>
+    <div id="verticalTabsList" class="vertical-tabs-list" role="region" aria-label="Open tabs"></div>
     <div class="vertical-tabs-footer">
       <button
         id="verticalTabsNew"
@@ -78,6 +81,7 @@
     ></div>
     <div id="verticalTabsAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   </aside>
+  </main>
   <script src="vertical-tabs.js"></script>
   <script src="renderer.js"></script>
 </body>

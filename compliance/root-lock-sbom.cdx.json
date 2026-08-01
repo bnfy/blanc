@@ -3575,6 +3575,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/axe-core@4.10.3",
+      "name": "axe-core",
+      "version": "4.10.3",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5e6edba515e70d25f6604d9815f064d859c5d1ea7ab661bbc4f87c88779ef0c21cae0abbeb636471ef39e9d62d2582e4b88a1866f19f4ecfcf6d986275e4dc12"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/axe-core@4.10.3",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/axe-core"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/axe-core/-/axe-core-4.10.3.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/balanced-match@1.0.2",
       "name": "balanced-match",
       "version": "1.0.2",
@@ -16444,6 +16489,7 @@
         "pkg:npm/%40cucumber/cucumber@13.1.1",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.1",
         "pkg:npm/%40ghostery/adblocker@2.18.1",
+        "pkg:npm/axe-core@4.10.3",
         "pkg:npm/electron-builder@26.15.3",
         "pkg:npm/electron-updater@6.8.9",
         "pkg:npm/electron@43.2.0",
@@ -17010,6 +17056,10 @@
     },
     {
       "ref": "pkg:npm/aws4@1.13.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/axe-core@4.10.3",
       "dependsOn": []
     },
     {

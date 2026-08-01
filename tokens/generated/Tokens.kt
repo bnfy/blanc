@@ -34,8 +34,8 @@ object BlancTokens {
     }
     fun textDim(theme: BlancTheme): String = when (theme) {
         BlancTheme.LIGHT -> "#6b6b6b"
-        BlancTheme.DARK -> "#9c9c9c"
-        BlancTheme.PRIVATE -> "#9c9c9c"
+        BlancTheme.DARK -> "#a3a3a3"
+        BlancTheme.PRIVATE -> "#a3a3a3"
     }
     fun accent(theme: BlancTheme): String = when (theme) {
         BlancTheme.LIGHT -> "#111111"

@@ -392,6 +392,8 @@ function install(refs) {
       try { return handoffProtocols.has(new URL(url).protocol); } catch { return false; }
     },
     openDownloads() { openInternalPage('blanc://downloads/'); },
+    openHistory() { openInternalPage('blanc://history/'); },
+    openShortcuts() { openInternalPage('blanc://shortcuts/'); },
     startDownload(url) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || typeof url !== 'string') return false;
@@ -538,6 +540,36 @@ function install(refs) {
           theme: document.documentElement.dataset.theme ?? null,
           privateChipVisible: !!chip && !chip.hidden,
         };
+      })()`);
+    },
+    showPermissionPromptFixture() {
+      const wc = getChromeWebContents();
+      if (!wc) return false;
+      wc.send('permissions:prompt', {
+        id: -1,
+        origin: 'https://camera.example',
+        permission: 'media',
+        mediaTypes: ['video'],
+      });
+      return true;
+    },
+    readPermissionPromptDom() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        hidden: document.getElementById('permissionBar')?.hidden ?? true,
+        text: document.getElementById('permissionText')?.textContent ?? '',
+        focus: document.activeElement?.id ?? '',
+      }))()`);
+    },
+    dismissPermissionPromptFixture() {
+      const wc = getChromeWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('permBlockBtn');
+        if (!button || document.getElementById('permissionBar')?.hidden) return false;
+        button.click();
+        return true;
       })()`);
     },
     clickPrivateChip() {
@@ -856,7 +888,7 @@ function install(refs) {
           heading: root.querySelector('.display-share-heading')?.textContent ?? '',
           names: [...root.querySelectorAll('.display-source-label')].map((el) => el.textContent),
           selected: [...root.querySelectorAll('.display-source')].findIndex(
-            (el) => el.getAttribute('aria-pressed') === 'true'
+            (el) => el.getAttribute('aria-checked') === 'true'
           ),
           audioOffered: !!root.querySelector('#displayShareAudio'),
           confirmVisible: document.querySelector('.display-share-confirm')

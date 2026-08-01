@@ -77,8 +77,10 @@ test('both lock SBOMs include every unique locked name/version and audited missi
   const generated = createComplianceArtifacts();
   const root = JSON.parse(generated.files['compliance/root-lock-sbom.cdx.json']);
   const site = JSON.parse(generated.files['compliance/site-lock-sbom.cdx.json']);
-  assert.equal(root.components.length, 365);
+  assert.equal(root.components.length, 366);
   assert.equal(site.components.length, 405);
+  const axe = root.components.find((component) => component.name === 'axe-core');
+  assert.deepEqual(axe.licenses, [{ license: { id: 'MPL-2.0' } }]);
   const zod = site.components.find((component) => component.name === 'zod-to-ts');
   assert.deepEqual(zod.licenses, [{ license: { id: 'MIT' } }]);
   assert.ok(zod.properties.some((item) =>

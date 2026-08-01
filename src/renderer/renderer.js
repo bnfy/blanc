@@ -11,6 +11,7 @@
   const chromeEl = document.getElementById('chrome');
   const stripEl = document.getElementById('strip');
   const islandPill = document.getElementById('islandPill');
+  const pillOpen = document.getElementById('pillOpen');
   const pillDots = document.getElementById('pillDots');
   const pillNav = document.getElementById('pillNav');
   const pillActions = document.getElementById('pillActions');
@@ -419,16 +420,7 @@
     });
   }
 
-  islandPill.addEventListener('click', () => window.browserAPI.openIsland());
-  islandPill.addEventListener('keydown', (e) => {
-    // Only when the pill itself is focused — a focused child button (tab
-    // dot, folded group capsule) must keep its own Enter/Space activation.
-    if (e.target !== islandPill) return;
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      window.browserAPI.openIsland();
-    }
-  });
+  pillOpen.addEventListener('click', () => window.browserAPI.openIsland());
 
   // Double-click on empty strip area zooms the window (desktop convention).
   stripEl.addEventListener('dblclick', (e) => {
@@ -458,6 +450,12 @@
     if (activePermissionPrompt) {
       const host = new URL(activePermissionPrompt.origin).host;
       permissionText.textContent = `${host} wants to ${describePermission(activePermissionPrompt)}`;
+      // A permission prompt is an alertdialog over website content. Put the
+      // conservative choice in the keyboard focus path immediately so the
+      // dialog is operable without a pointer and announced with its label.
+      permBlockBtn.focus();
+    } else if (document.activeElement === permAllowBtn || document.activeElement === permBlockBtn) {
+      document.activeElement.blur();
     }
   }
 
