@@ -99,5 +99,10 @@ if (window.location.protocol === 'blanc:') {
     },
     clearBrowsingData: () => ipcRenderer.invoke('pages:clear-browsing-data'),
     resetInstallId: () => ipcRenderer.invoke('pages:telemetry:reset-install-id'),
+    diagnostics: {
+      status: () => ipcRenderer.invoke('pages:diagnostics:status'),
+      export: () => ipcRenderer.invoke('pages:diagnostics:export'),
+      clear: () => ipcRenderer.invoke('pages:diagnostics:clear'),
+    },
   });
 }

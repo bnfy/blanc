@@ -20,6 +20,7 @@ const {
   ADDRESS_INPUT_ID,
 } = require('./address-menu');
 const { sanitizeCertificate, certificateErrorQuery } = require('./site-security');
+const diagnostics = require('./diagnostics');
 
 /**
  * @param {object} refs - live references from main.js's module scope.
@@ -440,6 +441,34 @@ function install(refs) {
         const icon = document.querySelector(${JSON.stringify(`#appIconGrid .icon-swatch[data-icon="${String(id)}"]`)});
         if (!icon) return false;
         icon.click();
+        return true;
+      })()`);
+    },
+    seedDiagnosticCrash() {
+      diagnostics.recordRendererCrash('tab', { reason: 'crashed', exitCode: 9 });
+      return diagnostics.status();
+    },
+    readSettingsDiagnosticsDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        nav: document.querySelector('[data-group="diagnostics"]')?.textContent ?? '',
+        copy: document.querySelector('#group-diagnostics .section-hint')?.textContent ?? '',
+        summary: document.getElementById('diagnosticsSummary')?.textContent ?? '',
+        exportLabel: document.getElementById('diagnosticsExport')?.textContent ?? '',
+        clearLabel: document.getElementById('diagnosticsClear')?.textContent ?? '',
+        clearDisabled: document.getElementById('diagnosticsClear')?.disabled ?? null,
+        status: document.getElementById('diagnosticsStatus')?.textContent ?? '',
+      }))()`);
+    },
+    clickClearDiagnostics() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('diagnosticsClear');
+        if (!button) return false;
+        window.confirm = () => true;
+        button.click();
         return true;
       })()`);
     },
@@ -1240,6 +1269,7 @@ function install(refs) {
       settings.setSupporter(null);
       clearTestSearchSuggestionFixture();
       setTestSearchNavigationCapture(false);
+      diagnostics.clear();
       broadcastTabs();
     },
   };

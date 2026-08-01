@@ -14,7 +14,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <main class="legal-doc">
   <p class="eyebrow">privacy</p>
   <h1>Privacy Policy</h1>
-  <p class="legal-updated">Last updated: July 23, 2026</p>
+  <p class="legal-updated">Last updated: August 1, 2026</p>
 
   <div class="legal-tldr">
     <p><strong>The short version.</strong> Blanc keeps your browsing history, downloads, favorites, and settings on your device unless you enable end-to-end-encrypted Profile Sync for eligible data. A fresh install asks before search suggestions or the pseudonymous launch ping can send anything. Like any browser, Blanc still connects to sites you visit and makes clearly described service requests for blocking lists, updates, enabled suggestions, optional sync, and supporter activation. This website uses analytics only if you allow it.</p>
@@ -34,9 +34,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <li>Your settings</li>
     <li>Cookies and site data from the pages you visit</li>
     <li>The permissions you've granted to individual websites</li>
+    <li>A bounded local crash ledger containing only timestamps, process type, and failure reason — never URLs, page titles, browsing records, account data, or identifiers</li>
   </ul>
   <p>Private tabs go a step further: pages you open in a private tab are never written to history. Private tabs share a separate in-memory browsing session with other private tabs opened during the same app run, not with regular tabs, and that session is discarded when Blanc quits.</p>
-  <p>Because this data is local, you're the one in control of it — Blanc's history, downloads, and favorites screens let you remove items. Removing the application itself may leave its local profile behind; clearing the app's data folder removes that remaining local record.</p>
+  <p>Because this data is local, you're the one in control of it — Blanc's history, downloads, and favorites screens let you remove items. Settings → Diagnostics shows the local crash-event count, clears the ledger, or exports a JSON report only when you choose a save location; Blanc never sends that report automatically. Removing the application itself may leave its local profile behind; clearing the app's data folder removes that remaining local record.</p>
 
   <h2>What Blanc sends — and when</h2>
   <p>Blanc makes a small number of app-service requests in addition to the sites and search providers you choose to use. The sections below describe the optional data features first; ordinary blocking, update, favicon, and network requests are listed under “Browsing the web with Blanc.”</p>
@@ -77,7 +78,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <p>Blanc's built-in ad and tracker blocking <em>reduces</em> how much third parties can follow you around the web, but no blocker catches everything, so it's best thought of as a strong default rather than a guarantee.</p>
   <p>Aside from the sites you choose to visit, Blanc itself makes a few ordinary network requests:</p>
   <ul>
-    <li>it downloads ad and tracker block lists (EasyList and EasyPrivacy) when the local blocker cache must be created or rebuilt;</li>
+    <li>it ships with a verified blocking seed built from EasyList and EasyPrivacy, and downloads the live lists only if both that seed and the local cache are unusable;</li>
     <li>it loads site-provided icons while you browse and may retain a favorite's icon URL locally; encrypted remote-tab icons are supplied by the source device instead of being fetched by the receiver;</li>
     <li>in installed builds, it checks GitHub for app updates.</li>
     <li>if you choose a named or custom secure-DNS provider, DNS lookups go to that provider under the policy shown in Settings.</li>
@@ -112,6 +113,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <li>Leave Profile Sync off, or turn it off to stop syncing.</li>
     <li>Reset your install ID with the "Reset install ID" button in Settings, or by clearing the app's data.</li>
     <li>Clear your history, downloads, and favorites from within Blanc.</li>
+    <li>Clear the local crash ledger or export a diagnostics report from Settings; nothing is uploaded automatically.</li>
     <li>Allow or decline analytics on this site, and change your mind by clearing the site's stored choice in your browser.</li>
     <li>Skip the newsletter entirely, or unsubscribe any time — your address is deleted, not just muted.</li>
   </ul>

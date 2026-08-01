@@ -13,6 +13,7 @@ const settings = require('./settings');
 const supporter = require('./supporter');
 const sync = require('./sync');
 const telemetry = require('./telemetry');
+const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
 const { UTILITY_PAGES } = require('./utility-pages');
 
@@ -292,6 +293,17 @@ function setupPages(hooks = {}) {
   // Privacy reset for the usage ping's per-install id (see telemetry.js) —
   // from the next ping on, this install counts as brand new.
   handle('pages:telemetry:reset-install-id', () => telemetry.resetInstallId());
+
+  // Crash metadata is local, bounded, and deliberately contains no browsing
+  // fields. Export happens only after this Settings-only action opens a native
+  // save dialog; the renderer never receives the chosen filesystem path.
+  handle('pages:diagnostics:status', () => diagnostics.status(), { host: 'settings' });
+  handle(
+    'pages:diagnostics:export',
+    () => diagnostics.exportReport(hooks.getMainWindow?.()),
+    { host: 'settings' }
+  );
+  handle('pages:diagnostics:clear', () => diagnostics.clear(), { host: 'settings' });
 
   // The settings page promises "cookies, cache & site data" — clear both.
   handle('pages:clear-browsing-data', () => {

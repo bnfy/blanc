@@ -23,6 +23,7 @@
         <a href="#group-profiles" data-group="profiles">Profiles</a>
         <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
         <a href="#group-sync" data-group="sync">Sync</a>
+        <a href="#group-diagnostics" data-group="diagnostics">Diagnostics</a>
         <a href="#group-supporter" data-group="supporter">Supporter</a>
       </nav>
 
@@ -241,6 +242,21 @@
               <div class="toolbar-row">
                 <label class="inline-check"><input id="syncTabsShare" type="checkbox" /> share this device’s open tabs with your other devices</label>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-group" id="group-diagnostics">
+          <h2 class="group-title">Diagnostics</h2>
+          <div class="settings-card">
+            <p class="section-hint">
+              Blanc keeps a local, 50-event crash ledger with timestamps, process type, and failure reason. It never includes URLs, page titles, history, profile names, account data, or identifiers, and nothing is sent automatically.
+            </p>
+            <p class="section-hint" id="diagnosticsSummary" role="status">Checking local crash history…</p>
+            <div class="toolbar-row">
+              <button id="diagnosticsExport">Export diagnostics…</button>
+              <button id="diagnosticsClear" class="danger">Clear crash history</button>
+              <span id="diagnosticsStatus" class="section-hint" role="status"></span>
             </div>
           </div>
         </section>

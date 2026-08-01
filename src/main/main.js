@@ -38,6 +38,7 @@ const {
 } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
+const diagnostics = require('./diagnostics');
 const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
@@ -184,6 +185,7 @@ settings.setExistingProfileHint(
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
+  diagnostics.start();
   app.on('second-instance', (_e, commandLine) => {
     for (const url of urlsFromArgv(commandLine)) openExternalUrl(url);
     const browserWindow = currentBrowserWindow();
@@ -975,7 +977,8 @@ function createOverlayForRuntime(runtime) {
     pickerController.settleForRuntime(runtime.id, null, 'window-closed');
     displaySharePickerController.cancelForRuntime(runtime.id, 'window-closed');
   }));
-  chromeState.overlayView.webContents.on('render-process-gone', bindWindowRuntime(runtime, () => {
+  chromeState.overlayView.webContents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('overlay', details);
     pickerController.settleForRuntime(runtime.id, null, 'window-closed');
     displaySharePickerController.cancelForRuntime(runtime.id, 'window-closed');
   }));
@@ -1115,7 +1118,8 @@ function createUtilitySheetForRuntime(runtime) {
   // lazily recreates it. Close the dead webContents — dropping the
   // reference alone leaks the crashed guest. Default refocus: nothing else
   // will hand focus back after a crash.
-  wc.on('render-process-gone', bindWindowRuntime(runtime, () => {
+  wc.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('utility-sheet', details);
     hideUtilitySheet();
     wc.close();
     chromeState.utilitySheetView = null;
@@ -2549,6 +2553,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // error page with the original URL for one-click retry.
   wc.on('render-process-gone', bindWindowRuntime(runtime, (_e, details) => {
     if (details.reason === 'clean-exit') return;
+    diagnostics.recordRendererCrash('tab', details);
     const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
   }));
@@ -3855,6 +3860,9 @@ function createMainWindow({
 
   lockPrivilegedNavigation(browserWindow.webContents, CHROME_INDEX_URL);
   installVerticalTabsShortcut(browserWindow.webContents);
+  browserWindow.webContents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('chrome', details);
+  }));
   browserWindow.loadFile(CHROME_INDEX_FILE);
   createOverlay(runtime);
   browserWindow.on('resize', bindWindowRuntime(runtime, resizeActiveView));

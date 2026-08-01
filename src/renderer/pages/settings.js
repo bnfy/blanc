@@ -622,6 +622,49 @@
     document.getElementById('group-sync')?.remove();
   }
 
+  // --- Local crash ledger / explicit diagnostics export ---
+  if (supports('diagnostics')) {
+    const summary = document.getElementById('diagnosticsSummary');
+    const status = document.getElementById('diagnosticsStatus');
+    const exportButton = document.getElementById('diagnosticsExport');
+    const clearButton = document.getElementById('diagnosticsClear');
+
+    function renderDiagnostics(value) {
+      const count = Number.isInteger(value?.count) ? value.count : 0;
+      summary.textContent = count === 0
+        ? 'No crashes have been recorded on this device.'
+        : `${count} crash ${count === 1 ? 'event' : 'events'} recorded on this device.`;
+      clearButton.disabled = count === 0;
+    }
+
+    async function refreshDiagnostics() {
+      renderDiagnostics(await window.bowserPages.diagnostics.status());
+    }
+
+    exportButton.addEventListener('click', async () => {
+      exportButton.disabled = true;
+      status.textContent = 'Preparing report…';
+      const result = await window.bowserPages.diagnostics.export();
+      exportButton.disabled = false;
+      status.textContent = result.ok
+        ? 'Saved.'
+        : (result.cancelled ? 'Export canceled.' : 'Couldn’t save diagnostics.');
+    });
+
+    clearButton.addEventListener('click', async () => {
+      if (!confirm('Clear Blanc’s local crash history?')) return;
+      const result = await window.bowserPages.diagnostics.clear();
+      status.textContent = result.ok ? 'Crash history cleared.' : 'Couldn’t clear crash history.';
+      renderDiagnostics(result);
+    });
+
+    refreshDiagnostics().catch(() => {
+      summary.textContent = 'Couldn’t read local crash history.';
+    });
+  } else {
+    document.getElementById('group-diagnostics')?.remove();
+  }
+
   // --- Settings sidebar: scroll-spy + click-to-scroll ---
   (function initSettingsNav() {
     // Drop nav links whose group was removed above (unsupported on this platform).

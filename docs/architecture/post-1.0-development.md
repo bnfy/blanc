@@ -46,6 +46,22 @@ success; an unsuccessful backup refresh retains the earlier atomically written
 backup and is retried by the next store flush. This avoids reporting a failed
 operation whose primary state was already committed.
 
+## Diagnostics and crash-ledger decision
+
+Blanc keeps a device-local, 50-event crash ledger in `crash-ledger.json`.
+Renderer failures are categorized only by trusted surface (`chrome`, overlay,
+utility sheet, or tab); child-process failures retain only Electron's process
+type, reason, and exit code. A synchronously persisted active-run marker turns
+into an `unclean-exit` event on the next launch if the main process never
+reached `will-quit`. No event carries a URL, title, history/download/Favorite
+record, profile name, filesystem path, install id, sync identity, or license.
+
+Settings shows the local count and can clear it. Export is an explicit native
+save-dialog action producing a readable JSON report with app/runtime versions,
+OS family/release, and the bounded event list. The renderer never receives the
+chosen path, and Blanc has no diagnostics-upload endpoint: the report stays on
+the device unless the user independently chooses to share the saved file.
+
 ## F29 display-sharing decision
 
 Desktop uses `session.setDisplayMediaRequestHandler` and enumerates sources with
