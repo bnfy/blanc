@@ -532,10 +532,20 @@ function setFocusedWindowRuntime(runtime) {
 }
 
 function currentWorkspaceRuntime() {
-  return windowRuntimeContext.getStore()
-    ?? focusedWindowRuntime
-    ?? primaryWindowRuntime
-    ?? windowRuntimeRegistry.get(activeWorkspaceWindowId);
+  // Async work started by a window can outlive that window's final `closed`
+  // callback. AsyncLocalStorage correctly retains the originating object, but
+  // a secondary runtime is deliberately discarded at close, so never route a
+  // late callback (or the acceptance reset it happens to schedule) back into
+  // that orphan. The same registration check makes stale focus pointers safe.
+  const candidates = [
+    windowRuntimeContext.getStore(),
+    focusedWindowRuntime,
+    primaryWindowRuntime,
+    windowRuntimeRegistry.get(activeWorkspaceWindowId),
+  ];
+  return candidates.find((runtime) =>
+    runtime && windowRuntimeRegistry.get(runtime.id) === runtime
+  ) ?? null;
 }
 
 function currentBrowserWindow() {
