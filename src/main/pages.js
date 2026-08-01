@@ -259,6 +259,16 @@ function setupPages(hooks = {}) {
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
     { host: 'newtab' }
   );
+  handle(
+    'pages:start:privacy-save',
+    (choices) => hooks.startPage?.savePrivacy?.(choices ?? {}),
+    { host: 'newtab' }
+  );
+  handle(
+    'pages:start:setup-complete',
+    (choices) => hooks.startPage?.completeSetup?.(choices ?? {}),
+    { host: 'newtab' }
+  );
 
   // Default-browser state lives in LaunchServices/the OS, not settings.json.
   // canSet: a dev run must never register the bare Electron binary as a

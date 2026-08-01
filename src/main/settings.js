@@ -97,7 +97,8 @@ const DEFAULTS = {
   // (opt-out in Settings); no browsing data, only version/OS plus a random
   // per-install id used solely to count distinct active users.
   usagePing: true,
-  // Device-local completion marker for the compact first-run privacy card.
+  // Device-local completion marker for first-run setup. Existing profiles are
+  // never re-onboarded merely because the UI grows additional steps.
   // Existing profiles are promoted to the current version when their
   // pre-existing settings file is first opened; only a truly missing
   // settings file starts at 0.
@@ -252,10 +253,71 @@ function isFirstRunComplete() {
   return ensureStore().data.onboardingVersion >= FIRST_RUN_VERSION;
 }
 
+/** Persist the network-affecting choices without completing first run. The
+ * expanded onboarding flow keeps suggestions and telemetry gated until its
+ * final layout/default-browser step is explicitly finished. */
+function saveFirstRunPrivacyChoices(partial = {}) {
+  if (isFirstRunComplete()) {
+    return { saved: true, settings: getSettings() };
+  }
+  if (
+    typeof partial.searchSuggestions !== 'boolean' ||
+    typeof partial.usagePing !== 'boolean'
+  ) {
+    return { saved: false, error: 'invalid-choices' };
+  }
+
+  const s = ensureStore();
+  const previous = {
+    searchSuggestions: s.data.searchSuggestions,
+    usagePing: s.data.usagePing,
+  };
+  s.update((data) => {
+    data.searchSuggestions = partial.searchSuggestions;
+    data.usagePing = partial.usagePing;
+  });
+  if (!s.flush()) {
+    Object.assign(s.data, previous);
+    return { saved: false, error: 'write-failed' };
+  }
+  const next = getSettings();
+  for (const fn of listeners) fn(next);
+  return { saved: true, settings: next };
+}
+
+/** Finish first run with the selected device-local tab layout. Completion and
+ * layout are one durable write so a reported success always survives restart. */
+function completeFirstRunSetup(partial = {}) {
+  if (isFirstRunComplete()) {
+    return { completed: true, settings: getSettings() };
+  }
+  if (!TAB_LAYOUTS.includes(partial.tabLayout)) {
+    return { completed: false, error: 'invalid-setup' };
+  }
+
+  const s = ensureStore();
+  const previous = {
+    tabLayout: s.data.tabLayout,
+    onboardingVersion: s.data.onboardingVersion,
+  };
+  s.update((data) => {
+    data.tabLayout = partial.tabLayout;
+    data.onboardingVersion = FIRST_RUN_VERSION;
+  });
+  if (!s.flush()) {
+    Object.assign(s.data, previous);
+    return { completed: false, error: 'write-failed' };
+  }
+  const next = getSettings();
+  for (const fn of listeners) fn(next);
+  return { completed: true, settings: next };
+}
+
 /**
  * Persist both network-affecting first-run choices and the completion marker
- * in one synchronous commit. Callers must not start suggestions or telemetry
- * unless `completed` is true.
+ * in one synchronous commit. Retained for packaged/acceptance compatibility;
+ * the interactive onboarding uses saveFirstRunPrivacyChoices followed by
+ * completeFirstRunSetup.
  */
 function completeFirstRunPrivacyChoices(partial = {}) {
   if (isFirstRunComplete()) {
@@ -359,6 +421,8 @@ module.exports = {
   setSettings,
   onSettingsChanged,
   isFirstRunComplete,
+  saveFirstRunPrivacyChoices,
+  completeFirstRunSetup,
   completeFirstRunPrivacyChoices,
   searchUrlFor,
   isSupporterActive,

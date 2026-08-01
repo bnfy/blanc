@@ -55,6 +55,8 @@ if (window.location.protocol === 'blanc:') {
       retryStartup: () => ipcRenderer.invoke('pages:start:startup-retry'),
       continueWithoutBlocking: () => ipcRenderer.invoke('pages:start:startup-continue'),
       completePrivacy: (choices) => ipcRenderer.invoke('pages:start:privacy-complete', choices),
+      savePrivacy: (choices) => ipcRenderer.invoke('pages:start:privacy-save', choices),
+      completeSetup: (choices) => ipcRenderer.invoke('pages:start:setup-complete', choices),
       onStatus: (callback) => {
         ipcRenderer.on('pages:start:status', (_event, status) => callback(status));
       },

@@ -544,6 +544,16 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
   color: var(--text-dim);
   line-height: 1.5;
 }
+.onboarding-kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.onboarding-step > p {
+  margin: 8px 0 0;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
 .launch-card-actions {
   display: flex;
   align-items: center;
@@ -614,6 +624,132 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
 .launch-migration-actions select {
   flex: 1 1 auto;
   min-width: 0;
+}
+.onboarding-actions {
+  justify-content: flex-end;
+}
+.onboarding-actions .quiet:first-child {
+  margin-right: auto;
+}
+.layout-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0 0;
+  padding: 0;
+  border: 0;
+}
+.layout-picker legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+.layout-option {
+  display: grid;
+  grid-template-columns: 16px 64px minmax(0, 1fr);
+  gap: 9px;
+  align-items: center;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+.layout-option:has(input:checked) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
+}
+.layout-option input {
+  margin: 0;
+  accent-color: var(--accent);
+}
+.layout-option strong,
+.layout-option small {
+  display: block;
+}
+.layout-option strong {
+  font-size: 12px;
+}
+.layout-option small {
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+.layout-preview {
+  position: relative;
+  display: block;
+  width: 64px;
+  height: 42px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--surface) 74%, var(--bg));
+}
+.layout-preview i,
+.layout-preview b {
+  position: absolute;
+  display: block;
+  background: var(--text-dim);
+  opacity: 0.55;
+}
+.layout-preview-island i {
+  top: 5px;
+  left: 16px;
+  width: 32px;
+  height: 7px;
+  border-radius: 6px;
+  background: var(--accent);
+}
+.layout-preview-island b {
+  top: 18px;
+  right: 7px;
+  bottom: 6px;
+  left: 7px;
+  border-radius: 3px;
+}
+.layout-preview-vertical i {
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 19px;
+  background: var(--accent);
+  opacity: 0.32;
+}
+.layout-preview-vertical b {
+  top: 7px;
+  right: 6px;
+  bottom: 6px;
+  left: 25px;
+  border-radius: 3px;
+}
+.onboarding-default {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 16px;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.onboarding-default strong,
+.onboarding-default small {
+  display: block;
+}
+.onboarding-default strong {
+  font-size: 12.5px;
+}
+.onboarding-default small {
+  margin-top: 3px;
+  color: var(--text-dim);
+  font-size: 11.5px;
+}
+.onboarding-default > .launch-status {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 
 .ledger-section { margin-top: 50px; }
@@ -712,6 +848,7 @@ a.ledger-label:hover { color: var(--accent); }
 
 @media (max-width: 720px) {
   .ledger-body { padding: 90px 48px 40px; }
+  .layout-picker { grid-template-columns: 1fr; }
 }
 
 /* ---------- centered mark (error page) ---------- */

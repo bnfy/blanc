@@ -102,6 +102,51 @@ test('first-run choices persist atomically before completion is reported', () =>
   fs.rmSync(userData, { recursive: true, force: true });
 });
 
+test('expanded first run saves privacy choices without enabling gated network features', () => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-first-run-progress-'));
+  let settings = loadSettings(userData);
+
+  assert.deepEqual(
+    settings.saveFirstRunPrivacyChoices({
+      searchSuggestions: false,
+      usagePing: false,
+    }).saved,
+    true
+  );
+  assert.equal(settings.isFirstRunComplete(), false);
+
+  settings = loadSettings(userData, true);
+  assert.equal(settings.isFirstRunComplete(), false);
+  assert.equal(settings.getSettings().searchSuggestions, false);
+  assert.equal(settings.getSettings().usagePing, false);
+
+  fs.rmSync(userData, { recursive: true, force: true });
+});
+
+test('expanded first run completes atomically with a validated device layout', () => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-first-run-layout-'));
+  let settings = loadSettings(userData);
+
+  assert.deepEqual(
+    settings.completeFirstRunSetup({ tabLayout: 'sideways' }),
+    { completed: false, error: 'invalid-setup' }
+  );
+  assert.equal(settings.isFirstRunComplete(), false);
+
+  assert.equal(
+    settings.completeFirstRunSetup({ tabLayout: 'vertical' }).completed,
+    true
+  );
+  assert.equal(settings.isFirstRunComplete(), true);
+  assert.equal(settings.getSettings().tabLayout, 'vertical');
+
+  settings = loadSettings(userData);
+  assert.equal(settings.isFirstRunComplete(), true);
+  assert.equal(settings.getSettings().tabLayout, 'vertical');
+
+  fs.rmSync(userData, { recursive: true, force: true });
+});
+
 test('invalid first-run payloads cannot complete onboarding', () => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-first-run-invalid-'));
   const settings = loadSettings(userData);
@@ -111,6 +156,10 @@ test('invalid first-run payloads cannot complete onboarding', () => {
     { completed: false, error: 'invalid-choices' }
   );
   assert.equal(settings.isFirstRunComplete(), false);
+  assert.deepEqual(
+    settings.saveFirstRunPrivacyChoices({ usagePing: false }),
+    { saved: false, error: 'invalid-choices' }
+  );
 
   fs.rmSync(userData, { recursive: true, force: true });
 });

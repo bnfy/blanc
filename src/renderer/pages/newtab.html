@@ -22,30 +22,74 @@
       </div>
     </section>
 
-    <section id="privacyCard" class="launch-card" aria-labelledby="privacyTitle" hidden>
-      <div class="launch-card-kicker">before you browse</div>
-      <h2 id="privacyTitle">Choose what Blanc may send.</h2>
-      <p>Blanc downloads blocking lists and checks for app updates. These two optional features are yours to choose:</p>
-      <label class="launch-choice">
-        <input id="privacySuggestions" type="checkbox" />
-        <span><strong>Search suggestions</strong><small>Send eligible address-bar prefixes to your selected search provider. Never used in private tabs or for pasted, address-like, or sensitive-looking text.</small></span>
-      </label>
-      <label class="launch-choice">
-        <input id="privacyPing" type="checkbox" />
-        <span><strong>Help improve Blanc</strong><small>Send one launch ping with a random install ID, random session ID, app version, platform, and architecture. No browsing data.</small></span>
-      </label>
-      <div id="migrationChoice" class="launch-migration" hidden>
-        <strong>Bring your favorites</strong>
-        <small>Copy favorites from an installed browser profile. Blanc reads the selected profile only after you choose Import; passwords, history, cookies, and open tabs stay untouched.</small>
-        <div class="launch-migration-actions">
-          <select id="migrationSource" aria-label="Browser profile"></select>
-          <button id="migrationImport" type="button" class="quiet">Import favorites</button>
-        </div>
-        <span id="migrationStatus" class="launch-status" role="status"></span>
+    <section id="privacyCard" class="launch-card onboarding-card" aria-label="Set up Blanc" hidden>
+      <div class="launch-card-kicker onboarding-kicker">
+        <span>before you browse</span>
+        <span id="onboardingProgress">1 of 3</span>
       </div>
-      <div class="launch-card-actions">
-        <button id="privacyContinue" type="button">Save choices and continue</button>
-        <span id="privacyError" class="launch-error" role="status"></span>
+
+      <div id="privacyStep" class="onboarding-step">
+        <h2 id="privacyTitle">Choose what Blanc may send.</h2>
+        <p>Blanc downloads blocking lists and checks for app updates. These two optional features are yours to choose:</p>
+        <label class="launch-choice">
+          <input id="privacySuggestions" type="checkbox" />
+          <span><strong>Search suggestions</strong><small>Send eligible address-bar prefixes to your selected search provider. Never used in private tabs or for pasted, address-like, or sensitive-looking text.</small></span>
+        </label>
+        <label class="launch-choice">
+          <input id="privacyPing" type="checkbox" />
+          <span><strong>Help improve Blanc</strong><small>Send one launch ping with a random install ID, random session ID, app version, platform, and architecture. No browsing data.</small></span>
+        </label>
+        <div class="launch-card-actions">
+          <button id="privacyContinue" type="button">Save choices and continue</button>
+          <span id="privacyError" class="launch-error" role="status"></span>
+        </div>
+      </div>
+
+      <div id="migrationStep" class="onboarding-step" hidden>
+        <h2>Bring your favorites.</h2>
+        <p>Copy favorites from an installed browser profile, or skip this step and import later from Favorites.</p>
+        <div id="migrationChoice" class="launch-migration" hidden>
+          <strong>Choose a browser profile</strong>
+          <small>Blanc reads the selected profile only after you choose Import; passwords, history, cookies, and open tabs stay untouched.</small>
+          <div class="launch-migration-actions">
+            <select id="migrationSource" aria-label="Browser profile"></select>
+            <button id="migrationImport" type="button" class="quiet">Import favorites</button>
+          </div>
+          <span id="migrationStatus" class="launch-status" role="status"></span>
+        </div>
+        <p id="migrationEmpty" class="launch-status" hidden>No supported browser profile was detected. You can import a bookmarks HTML file later from Favorites.</p>
+        <div class="launch-card-actions onboarding-actions">
+          <button id="migrationBack" type="button" class="quiet">Back</button>
+          <button id="migrationContinue" type="button">Continue</button>
+        </div>
+      </div>
+
+      <div id="setupStep" class="onboarding-step" hidden>
+        <h2>Make Blanc yours.</h2>
+        <p>Choose how tabs look. You can change this any time from the Island or Settings.</p>
+        <fieldset class="layout-picker">
+          <legend>Tab layout</legend>
+          <label class="layout-option">
+            <input type="radio" name="onboardingLayout" value="island" checked />
+            <span class="layout-preview layout-preview-island" aria-hidden="true"><i></i><b></b></span>
+            <span><strong>Island</strong><small>A quiet floating command pill.</small></span>
+          </label>
+          <label class="layout-option">
+            <input type="radio" name="onboardingLayout" value="vertical" />
+            <span class="layout-preview layout-preview-vertical" aria-hidden="true"><i></i><b></b></span>
+            <span><strong>Vertical tabs</strong><small>Tabs and groups stay visible in a left rail.</small></span>
+          </label>
+        </fieldset>
+        <div id="onboardingDefaultBrowser" class="onboarding-default">
+          <span><strong>Default browser</strong><small id="onboardingDefaultHint">Open web links from other apps in Blanc.</small></span>
+          <button id="onboardingDefaultButton" type="button" class="quiet">Make default</button>
+          <span id="onboardingDefaultState" class="launch-status" hidden>Blanc is your default browser.</span>
+        </div>
+        <div class="launch-card-actions onboarding-actions">
+          <button id="setupBack" type="button" class="quiet">Back</button>
+          <button id="setupFinish" type="button">Finish setup</button>
+          <span id="setupError" class="launch-error" role="status"></span>
+        </div>
       </div>
     </section>
 

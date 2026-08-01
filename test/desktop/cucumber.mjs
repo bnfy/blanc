@@ -50,6 +50,7 @@ const RUNNABLE = [
   '@F34-1',
   '@F35-1',
   '@F36-1',
+  '@F37-1',
   '@spike-1p-picker', // 1Password fill SPIKE — desktop-only picker scenarios
 ].join(' or ');
 

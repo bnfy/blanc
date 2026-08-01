@@ -50,6 +50,10 @@ const readStartPage = (app) => app.evaluate(async ({ webContents }) => {
   if (!page) return null;
   return page.executeJavaScript(`({
     privacyHidden: document.getElementById('privacyCard')?.hidden,
+    privacyStepHidden: document.getElementById('privacyStep')?.hidden,
+    migrationStepHidden: document.getElementById('migrationStep')?.hidden,
+    setupStepHidden: document.getElementById('setupStep')?.hidden,
+    progress: document.getElementById('onboardingProgress')?.textContent,
     startupHidden: document.getElementById('startupCard')?.hidden,
     startupActionsHidden: document.getElementById('startupActions')?.hidden,
     startupTitle: document.getElementById('startupTitle')?.textContent,
@@ -88,8 +92,24 @@ await withPackagedApp({ label: 'packaged-first-run' }, async ({ app, userDataDir
   `);
   await poll(
     () => readStartPage(app),
+    (state) => state?.migrationStepHidden === false && state?.progress === '2 of 3',
+    'saved privacy choices did not advance to Favorites migration'
+  );
+
+  await executeOnStartPage(app, `document.getElementById('migrationContinue').click();`);
+  await poll(
+    () => readStartPage(app),
+    (state) => state?.setupStepHidden === false && state?.progress === '3 of 3',
+    'skipping Favorites migration did not advance to layout setup'
+  );
+  await executeOnStartPage(app, `
+    document.querySelector('input[name="onboardingLayout"][value="vertical"]').click();
+    document.getElementById('setupFinish').click();
+  `);
+  await poll(
+    () => readStartPage(app),
     (state) => state?.privacyHidden === true,
-    'saved privacy choices did not dismiss first-run UI'
+    'finishing layout setup did not dismiss first-run UI'
   );
 
   const settings = JSON.parse(
@@ -98,6 +118,7 @@ await withPackagedApp({ label: 'packaged-first-run' }, async ({ app, userDataDir
   assert.equal(settings.onboardingVersion, 1);
   assert.equal(settings.searchSuggestions, false);
   assert.equal(settings.usagePing, false);
+  assert.equal(settings.tabLayout, 'vertical');
   assert.ok(
     !fs.existsSync(path.join(userDataDir, 'install.json')),
     'declining telemetry must not mint an install id'

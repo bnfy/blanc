@@ -4367,6 +4367,7 @@ app.whenReady().then(async () => {
         required: !settings.isFirstRunComplete(),
         searchSuggestions: current.searchSuggestions,
         usagePing: current.usagePing,
+        tabLayout: current.tabLayout,
       },
     };
   };
@@ -4435,6 +4436,20 @@ app.whenReady().then(async () => {
         adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
       completePrivacy: (choices) => {
         const result = settings.completeFirstRunPrivacyChoices(choices);
+        if (result.completed) {
+          maybeSendLaunchPing();
+          broadcastStartPageStatus();
+        }
+        return { completed: result.completed, error: result.error ?? null };
+      },
+      savePrivacy: (choices) => {
+        const wasRequired = !settings.isFirstRunComplete();
+        const result = settings.saveFirstRunPrivacyChoices(choices);
+        if (result.saved && wasRequired) broadcastStartPageStatus();
+        return { saved: result.saved, error: result.error ?? null };
+      },
+      completeSetup: (choices) => {
+        const result = settings.completeFirstRunSetup(choices);
         if (result.completed) {
           maybeSendLaunchPing();
           broadcastStartPageStatus();

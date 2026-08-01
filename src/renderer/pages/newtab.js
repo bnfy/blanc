@@ -29,26 +29,94 @@ const privacySuggestions = document.getElementById('privacySuggestions');
 const privacyPing = document.getElementById('privacyPing');
 const privacyContinue = document.getElementById('privacyContinue');
 const privacyError = document.getElementById('privacyError');
+const onboardingProgress = document.getElementById('onboardingProgress');
+const privacyStep = document.getElementById('privacyStep');
+const migrationStep = document.getElementById('migrationStep');
+const setupStep = document.getElementById('setupStep');
 const migrationChoice = document.getElementById('migrationChoice');
+const migrationEmpty = document.getElementById('migrationEmpty');
 const migrationSource = document.getElementById('migrationSource');
 const migrationImport = document.getElementById('migrationImport');
 const migrationStatus = document.getElementById('migrationStatus');
+const migrationBack = document.getElementById('migrationBack');
+const migrationContinue = document.getElementById('migrationContinue');
+const setupBack = document.getElementById('setupBack');
+const setupFinish = document.getElementById('setupFinish');
+const setupError = document.getElementById('setupError');
+const layoutChoices = [...document.querySelectorAll('input[name="onboardingLayout"]')];
+const onboardingDefaultBrowser = document.getElementById('onboardingDefaultBrowser');
+const onboardingDefaultButton = document.getElementById('onboardingDefaultButton');
+const onboardingDefaultState = document.getElementById('onboardingDefaultState');
+const onboardingDefaultHint = document.getElementById('onboardingDefaultHint');
 let migrationSourcesLoaded = false;
+let defaultBrowserLoaded = false;
+let onboardingStep = 1;
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 async function loadMigrationSources() {
   if (migrationSourcesLoaded || isPrivate) return;
   migrationSourcesLoaded = true;
-  const sources = await window.bowserPages?.bookmarks.browserSources();
+  let sources = [];
+  try {
+    sources = await window.bowserPages?.bookmarks.browserSources() ?? [];
+  } catch {
+    sources = [];
+  }
   migrationSource.replaceChildren();
-  for (const source of sources ?? []) {
+  for (const source of sources) {
     const option = document.createElement('option');
     option.value = source.id;
     option.textContent = source.label;
     migrationSource.append(option);
   }
-  migrationChoice.hidden = !(sources?.length);
+  migrationChoice.hidden = !sources.length;
+  migrationEmpty.hidden = !!sources.length;
+}
+
+function applyDefaultBrowserStatus({ isDefault = false, canSet = false } = {}) {
+  if (navigator.platform.includes('Linux')) {
+    onboardingDefaultBrowser.hidden = true;
+    return;
+  }
+  onboardingDefaultBrowser.hidden = false;
+  onboardingDefaultButton.hidden = !!isDefault;
+  onboardingDefaultButton.disabled = !canSet;
+  onboardingDefaultState.hidden = !isDefault;
+  if (!isDefault) {
+    onboardingDefaultHint.textContent = canSet
+      ? 'Open web links from other apps in Blanc.'
+      : 'Available in the installed app.';
+  }
+}
+
+async function refreshDefaultBrowserStatus() {
+  try {
+    applyDefaultBrowserStatus(await window.bowserPages?.defaultBrowser.get());
+  } catch {
+    applyDefaultBrowserStatus();
+  }
+}
+
+function showOnboardingStep(step, { focus = true } = {}) {
+  onboardingStep = Math.min(3, Math.max(1, step));
+  privacyStep.hidden = onboardingStep !== 1;
+  migrationStep.hidden = onboardingStep !== 2;
+  setupStep.hidden = onboardingStep !== 3;
+  onboardingProgress.textContent = `${onboardingStep} of 3`;
+
+  if (onboardingStep === 2) loadMigrationSources();
+  if (onboardingStep === 3 && !defaultBrowserLoaded) {
+    defaultBrowserLoaded = true;
+    refreshDefaultBrowserStatus();
+  }
+  if (!focus) return;
+  const target = onboardingStep === 1
+    ? privacyContinue
+    : onboardingStep === 2
+      ? (migrationChoice.hidden ? migrationContinue : migrationSource)
+      : layoutChoices.find((choice) => choice.checked);
+  target?.focus();
 }
 
 function renderLaunchStatus({ startup, privacy } = {}) {
@@ -79,12 +147,13 @@ function renderLaunchStatus({ startup, privacy } = {}) {
   const privacyWasHidden = privacyCard.hidden;
   privacyCard.hidden = !showPrivacy;
   if (showPrivacy) {
-    loadMigrationSources();
     if (privacyWasHidden) {
       privacySuggestions.checked = !!privacy.searchSuggestions;
       privacyPing.checked = !!privacy.usagePing;
+      const selectedLayout = privacy.tabLayout === 'vertical' ? 'vertical' : 'island';
+      for (const choice of layoutChoices) choice.checked = choice.value === selectedLayout;
+      showOnboardingStep(1, { focus: startup?.phase !== 'failed' });
     }
-    if (privacyWasHidden && startup?.phase !== 'failed') privacyContinue.focus();
   }
 }
 
@@ -144,17 +213,57 @@ privacyContinue.addEventListener('click', async () => {
   privacyContinue.disabled = true;
   privacyError.textContent = '';
   try {
-    const result = await window.bowserPages?.start.completePrivacy({
+    const result = await window.bowserPages?.start.savePrivacy({
       searchSuggestions: privacySuggestions.checked,
       usagePing: privacyPing.checked,
     });
-    if (!result?.completed) {
+    if (!result?.saved) {
       privacyError.textContent = result?.error === 'write-failed'
         ? 'Could not save these choices. Check disk access and try again.'
         : 'Choose both options and try again.';
+    } else {
+      showOnboardingStep(2);
     }
   } finally {
     privacyContinue.disabled = false;
+  }
+});
+
+migrationBack.addEventListener('click', () => showOnboardingStep(1));
+migrationContinue.addEventListener('click', () => showOnboardingStep(3));
+setupBack.addEventListener('click', () => showOnboardingStep(2));
+
+onboardingDefaultButton.addEventListener('click', async () => {
+  onboardingDefaultButton.disabled = true;
+  onboardingDefaultHint.textContent = 'Requesting the system default…';
+  try {
+    const status = await window.bowserPages?.defaultBrowser.set();
+    applyDefaultBrowserStatus(status);
+    if (!status?.isDefault && status?.canSet) {
+      onboardingDefaultHint.textContent = 'Finish in System Settings if prompted.';
+    }
+  } finally {
+    if (!onboardingDefaultButton.hidden) onboardingDefaultButton.disabled = false;
+  }
+});
+
+window.addEventListener('focus', () => {
+  if (onboardingStep === 3 && !privacyCard.hidden) refreshDefaultBrowserStatus();
+});
+
+setupFinish.addEventListener('click', async () => {
+  const tabLayout = layoutChoices.find((choice) => choice.checked)?.value;
+  setupFinish.disabled = true;
+  setupError.textContent = '';
+  try {
+    const result = await window.bowserPages?.start.completeSetup({ tabLayout });
+    if (!result?.completed) {
+      setupError.textContent = result?.error === 'write-failed'
+        ? 'Could not finish setup. Check disk access and try again.'
+        : 'Choose a tab layout and try again.';
+    }
+  } finally {
+    setupFinish.disabled = false;
   }
 });
 

@@ -1084,6 +1084,7 @@ function install(refs) {
           required: true,
           searchSuggestions: true,
           usagePing: false,
+          tabLayout: 'island',
         },
       });
       return true;
@@ -1094,10 +1095,28 @@ function install(refs) {
       return tab.view.webContents.executeJavaScript(`(() => ({
         initialReady: (document.getElementById('footerLeft')?.textContent ?? '').length > 0,
         privacyHidden: document.getElementById('privacyCard')?.hidden ?? true,
+        privacyStepHidden: document.getElementById('privacyStep')?.hidden ?? true,
+        migrationStepHidden: document.getElementById('migrationStep')?.hidden ?? true,
+        setupStepHidden: document.getElementById('setupStep')?.hidden ?? true,
+        progress: document.getElementById('onboardingProgress')?.textContent ?? '',
         migrationHidden: document.getElementById('migrationChoice')?.hidden ?? true,
         options: [...document.querySelectorAll('#migrationSource option')].map((o) => o.textContent),
         status: document.getElementById('migrationStatus')?.textContent ?? '',
+        layouts: [...document.querySelectorAll('input[name="onboardingLayout"]')].map((input) => input.value),
+        selectedLayout: document.querySelector('input[name="onboardingLayout"]:checked')?.value ?? null,
+        defaultBrowserHidden: document.getElementById('onboardingDefaultBrowser')?.hidden ?? true,
+        defaultBrowserDisabled: document.getElementById('onboardingDefaultButton')?.disabled ?? true,
       }))()`);
+    },
+    clickFirstRunPrivacyContinue() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('privacyContinue');
+        if (!button || document.getElementById('privacyStep')?.hidden) return false;
+        button.click();
+        return true;
+      })()`);
     },
     clickFirstRunMigration() {
       const tab = tabs.get(getActiveTabId());
@@ -1105,6 +1124,38 @@ function install(refs) {
       return tab.view.webContents.executeJavaScript(`(() => {
         const button = document.getElementById('migrationImport');
         if (!button || document.getElementById('migrationChoice')?.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    clickFirstRunMigrationContinue() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('migrationContinue');
+        if (!button || document.getElementById('migrationStep')?.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    selectFirstRunLayout(layout) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const value = ${JSON.stringify(String(layout))};
+        const input = [...document.querySelectorAll('input[name="onboardingLayout"]')]
+          .find((candidate) => candidate.value === value);
+        if (!input || document.getElementById('setupStep')?.hidden) return false;
+        input.click();
+        return true;
+      })()`);
+    },
+    clickFirstRunFinish() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('setupFinish');
+        if (!button || document.getElementById('setupStep')?.hidden) return false;
         button.click();
         return true;
       })()`);

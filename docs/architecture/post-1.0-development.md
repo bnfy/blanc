@@ -80,6 +80,24 @@ Safari, Firefox, and other browsers. History, passwords, cookies, open tabs,
 and settings are outside this slice and require separate data-specific consent
 and migration contracts.
 
+## Expanded first-run onboarding decision
+
+Fresh installs use a three-step start-page flow: explicit privacy choices,
+optional Favorites migration, then tab-layout and default-browser setup. The
+default-browser action remains optional and goes directly through the operating
+system; finishing setup never silently registers Blanc as the default.
+
+Privacy choices are flushed before the flow advances, but search suggestions
+and the launch ping remain disabled by the existing first-run gate until the
+final step completes. The selected device-local tab layout and the existing
+`onboardingVersion` completion marker are then committed together, so a
+reported completion survives restart with the chosen presentation.
+
+The version remains `1`: profiles that completed the compact 1.0 privacy card
+are already onboarded and must not be interrupted after upgrading merely
+because post-1.0 added import and layout steps. An interrupted fresh install
+retains its saved privacy choices and returns to setup on the next launch.
+
 ## F31 site-information and certificate-safety decision
 
 The first HTTPS/security slice makes Chromium's transport decision legible

@@ -77,18 +77,33 @@ Then('the migration result reports that every Favorite was already saved', async
   assert.match(dom.status, /All 3 favorites were already saved\./);
 });
 
-Given('a fresh first run is awaiting setup', async function () {
-  await this.call('newTab');
-  await this.waitForState((state) => {
+async function showFirstRun(world) {
+  await world.call('newTab');
+  await world.waitForState((state) => {
     const active = state.tabs.find((tab) => tab.id === state.activeTabId);
     return active?.loadedUrl?.startsWith('blanc://newtab');
   });
   await waitForValue(
-    () => this.call('readFirstRunMigrationDom'),
+    () => world.call('readFirstRunMigrationDom'),
     (value) => value?.initialReady === true,
     'new-tab initial start data to settle'
   );
-  assert.equal(await this.call('showTestFirstRunMigration'), true);
+  assert.equal(await world.call('showTestFirstRunMigration'), true);
+  return waitForValue(
+    () => world.call('readFirstRunMigrationDom'),
+    (value) => value?.privacyHidden === false && value.privacyStepHidden === false,
+    'first-run privacy step to render'
+  );
+}
+
+Given('a fresh first run is awaiting setup', async function () {
+  await showFirstRun(this);
+  assert.equal(await this.call('clickFirstRunPrivacyContinue'), true);
+  await waitForValue(
+    () => this.call('readFirstRunMigrationDom'),
+    (value) => value?.migrationStepHidden === false,
+    'first-run migration step to render'
+  );
 });
 
 Then('browser Favorites migration is offered before browsing', async function () {
@@ -114,5 +129,63 @@ When('I import Favorites from first-run setup', async function () {
       value.records.length === 3 &&
       /Imported 3 favorites from Google Chrome/.test(value.dom?.status ?? ''),
     'first-run browser Favorites import to settle'
+  );
+});
+
+Given('fresh first-run onboarding is shown', async function () {
+  await showFirstRun(this);
+});
+
+Then('privacy choices are the first setup step', async function () {
+  const dom = await this.call('readFirstRunMigrationDom');
+  assert.equal(dom.privacyHidden, false);
+  assert.equal(dom.privacyStepHidden, false);
+  assert.equal(dom.migrationStepHidden, true);
+  assert.equal(dom.setupStepHidden, true);
+  assert.equal(dom.progress, '1 of 3');
+});
+
+When('I save the first-run privacy choices', async function () {
+  assert.equal(await this.call('clickFirstRunPrivacyContinue'), true);
+});
+
+Then('Favorites import is the second optional setup step', async function () {
+  const dom = await waitForValue(
+    () => this.call('readFirstRunMigrationDom'),
+    (value) => value?.migrationStepHidden === false && value.options.length === 1,
+    'optional first-run migration step'
+  );
+  assert.equal(dom.progress, '2 of 3');
+  assert.equal(dom.privacyStepHidden, true);
+  assert.equal(dom.setupStepHidden, true);
+});
+
+When('I continue without importing first-run Favorites', async function () {
+  assert.equal(await this.call('clickFirstRunMigrationContinue'), true);
+});
+
+Then('layout and default-browser setup are offered last', async function () {
+  const dom = await waitForValue(
+    () => this.call('readFirstRunMigrationDom'),
+    (value) => value?.setupStepHidden === false,
+    'final first-run setup step'
+  );
+  assert.equal(dom.progress, '3 of 3');
+  assert.deepEqual(dom.layouts, ['island', 'vertical']);
+  assert.equal(dom.selectedLayout, 'island');
+  if (process.platform === 'linux') assert.equal(dom.defaultBrowserHidden, true);
+  else assert.equal(dom.defaultBrowserHidden, false);
+});
+
+When('I choose a tab layout and finish first-run setup', async function () {
+  assert.equal(await this.call('selectFirstRunLayout', 'vertical'), true);
+  assert.equal(await this.call('clickFirstRunFinish'), true);
+});
+
+Then('the first-run setup card closes', async function () {
+  await waitForValue(
+    () => this.call('readFirstRunMigrationDom'),
+    (value) => value?.privacyHidden === true,
+    'completed first-run setup to close'
   );
 });
