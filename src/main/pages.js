@@ -4,6 +4,7 @@ const fs = require('fs');
 const { pathToFileURL } = require('url');
 const bookmarks = require('./bookmarks');
 const { parseNetscapeBookmarks } = require('./bookmark-import');
+const { createBrowserDataImportService } = require('./browser-data-import');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
@@ -33,6 +34,19 @@ function registerPagesScheme() {
  * (e.g. so the star button updates when a bookmark is deleted from the
  * bookmarks page). */
 function setupPages(hooks = {}) {
+  // Test runs may point discovery at a throwaway synthetic home, but only in
+  // an unpackaged BLANC_TEST process. Production always uses the real OS home.
+  const testBrowserHome =
+    !app.isPackaged && process.env.BLANC_TEST === '1'
+      ? process.env.BLANC_TEST_BROWSER_HOME
+      : undefined;
+  const browserImport = hooks.browserImport ?? createBrowserDataImportService({
+    homeDir: testBrowserHome,
+    env: testBrowserHome && process.platform === 'win32'
+      ? { ...process.env, LOCALAPPDATA: testBrowserHome }
+      : process.env,
+  });
+
   const serveBlanc = (request) => {
     const { host, pathname } = new URL(request.url);
     if (!KNOWN_PAGES.has(host)) return new Response('Not found', { status: 404 });
@@ -50,8 +64,14 @@ function setupPages(hooks = {}) {
   // moved to its own isolated `session.fromPartition`. Register the handler
   // on every browsing session passed in. (The privileged-scheme registration
   // in registerPagesScheme is process-global and needs no per-session repeat.)
+  const attachedSessions = new WeakSet();
+  const attachSession = (ses) => {
+    if (!ses || attachedSessions.has(ses)) return;
+    attachedSessions.add(ses);
+    ses.protocol.handle('blanc', serveBlanc);
+  };
   const sessions = hooks.sessions?.length ? hooks.sessions : [session.defaultSession];
-  for (const ses of sessions) ses.protocol.handle('blanc', serveBlanc);
+  for (const ses of sessions) attachSession(ses);
 
   // Every handler below double-checks the sender really is an internal
   // page — the preload only exposes the API on blanc:// documents, but
@@ -68,7 +88,12 @@ function setupPages(hooks = {}) {
       if (!trusted) {
         throw new Error(`${channel}: denied for ${event.senderFrame?.url ?? event.sender.getURL()}`);
       }
-      return fn(...args);
+      // A blanc:// tab belongs to one browser workspace just like ordinary
+      // content. Let main bind its sender to that runtime before hooks read
+      // window-local state (start-page groups, a sheet's dialog parent, etc.).
+      // The fallback keeps this module usable by the isolated/unit wiring.
+      const invoke = () => fn(...args);
+      return hooks.runInPageRuntime ? hooks.runInPageRuntime(event, invoke) : invoke();
     });
   };
 
@@ -84,7 +109,7 @@ function setupPages(hooks = {}) {
     if (!trusted) {
       throw new Error(`pages:surface:close: denied for ${event.senderFrame?.url ?? event.sender.getURL()}`);
     }
-    hooks.utilitySheet.close();
+    hooks.utilitySheet.close(event.sender);
   });
 
   handle('pages:bookmarks:list', () => bookmarks.listBookmarks());
@@ -116,6 +141,14 @@ function setupPages(hooks = {}) {
     } catch {
       return { error: 'unreadable' };
     }
+  });
+  handle('pages:bookmarks:browser-sources', () => browserImport.listSources());
+  handle('pages:bookmarks:import-browser', async (id) => {
+    const read = await browserImport.readSource(String(id ?? ''));
+    if (read.error) return { error: read.error };
+    const { added, skipped } = bookmarks.importBookmarks(read.entries);
+    hooks.onDataChanged?.();
+    return { added, skipped, source: read.source };
   });
   handle('pages:bookmarks:set-folder', (id, folder) => {
     bookmarks.setBookmarkFolder(id, folder);
@@ -168,6 +201,19 @@ function setupPages(hooks = {}) {
     return clientSettings();
   });
   handle('pages:settings:supporter-activate', (key) => supporter.activateSupporter(key));
+
+  // Local profiles are device identities, so manage them only from Settings
+  // (not from a normal web tab) and keep the destructive confirmation check in
+  // main. The caller's runtime is resolved above before these hooks run.
+  handle('pages:profiles:list', () => hooks.profiles?.list() ?? {
+    currentId: 'default', profiles: [{ id: 'default', name: 'Personal', createdAt: 0 }],
+  }, { host: 'settings' });
+  handle('pages:profiles:create', (name) => hooks.profiles?.create(String(name ?? '')) ?? null, { host: 'settings' });
+  handle('pages:profiles:open', (id) => hooks.profiles?.open(String(id ?? '')) ?? null, { host: 'settings' });
+  handle('pages:profiles:rename', (id, name) =>
+    hooks.profiles?.rename(String(id ?? ''), String(name ?? '')) ?? { ok: false }, { host: 'settings' });
+  handle('pages:profiles:remove', (id, confirmation) =>
+    hooks.profiles?.remove(String(id ?? ''), String(confirmation ?? '')) ?? { ok: false }, { host: 'settings' });
 
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
@@ -239,12 +285,18 @@ function setupPages(hooks = {}) {
 
   // The settings page promises "cookies, cache & site data" — clear both.
   handle('pages:clear-browsing-data', () => {
-    const browsingSessions = hooks.sessions ?? [session.defaultSession];
+    const browsingSessions = hooks.getBrowsingSessions?.() ?? hooks.sessions ?? [session.defaultSession];
     return Promise.all(browsingSessions.flatMap((browsingSession) => [
       browsingSession.clearStorageData(),
       browsingSession.clearCache(),
     ]));
   });
+
+  // Named local profiles are created after startup. They need the same
+  // privileged internal-page handler before their first blanc:// new tab
+  // navigates, but IPC handlers above remain process-global and are installed
+  // only once.
+  return { attachSession };
 }
 
 module.exports = { registerPagesScheme, setupPages };

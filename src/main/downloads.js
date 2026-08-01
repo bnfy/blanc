@@ -1,42 +1,59 @@
 const crypto = require('crypto');
-const { shell } = require('electron');
+const fs = require('fs');
+const path = require('path');
+const { app, shell } = require('electron');
 const { JsonStore } = require('./store');
+const {
+  withLocalProfile,
+  activeLocalProfileId,
+} = require('./local-profile-context');
+const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+
+const TEST_MODE = !app.isPackaged && process.env.BLANC_TEST === '1';
 
 // Completed/cancelled downloads persist across launches; in-flight ones
 // live here alongside their DownloadItem so cancel/pause can reach them.
 const MAX_PERSISTED = 200;
 
 let store = null;
-const ensureStore = () => (store ??= new JsonStore('downloads', { items: [] }));
+const ensureStore = () => (store ??= new JsonStore(
+  'downloads', { items: [] }, { scope: 'profile' }
+));
 
 /** @type {Map<string, { record: object, item: Electron.DownloadItem }>} */
-const active = new Map();
+const active = new Map(); // id -> { record, item, profileId }
 
 /** A download finished as `completed` and hasn't been looked at yet — drives
  * the pill's contextual downloads button. Cleared by acknowledgeDownloads(). */
-let hasRecent = false;
+const recentProfileIds = new Set();
+const deletedProfileIds = new Set();
 
-/** @type {(() => void) | null} notify the chrome UI that something changed */
+/** @type {((profileIds: string[]) => void) | null} notify chrome/page UI */
 let onChanged = null;
+let testOpenDownloadHandler = null;
 
 const THROTTLE_MS = 250;
 let lastBroadcast = 0;
 let broadcastTimer = null;
-function broadcast() {
+const pendingProfileIds = new Set();
+function broadcast(profileId = activeLocalProfileId()) {
+  pendingProfileIds.add(profileId);
   // Progress events fire many times a second; coalesce to ~4 updates/s.
   const now = Date.now();
   const wait = Math.max(0, THROTTLE_MS - (now - lastBroadcast));
   clearTimeout(broadcastTimer);
   broadcastTimer = setTimeout(() => {
     lastBroadcast = Date.now();
-    onChanged?.();
+    const profileIds = [...pendingProfileIds];
+    pendingProfileIds.clear();
+    onChanged?.(profileIds);
   }, wait);
 }
 
-function setupDownloads(session, notifyChanged) {
+function setupDownloads(session, notifyChanged, { profileId = DEFAULT_PROFILE_ID } = {}) {
   onChanged = notifyChanged;
 
-  session.on('will-download', (_event, item) => {
+  session.on('will-download', (_event, item) => withLocalProfile(profileId, () => {
     const id = crypto.randomUUID();
     const record = {
       id,
@@ -48,51 +65,73 @@ function setupDownloads(session, notifyChanged) {
       totalBytes: item.getTotalBytes(),
       startedAt: Date.now(),
     };
-    active.set(id, { record, item });
+    // Acceptance downloads must not write to a developer's real Downloads
+    // directory. Production keeps Electron's ordinary user-selected/default
+    // location; only the unpackaged, exact BLANC_TEST harness is redirected.
+    if (TEST_MODE) {
+      const directory = path.join(app.getPath('userData'), 'acceptance-downloads');
+      fs.mkdirSync(directory, { recursive: true });
+      item.setSavePath(path.join(directory, `${id}-${path.basename(record.filename)}`));
+    }
+    active.set(id, { record, item, profileId });
 
-    item.on('updated', (_e, state) => {
+    item.on('updated', (_e, state) => withLocalProfile(profileId, () => {
       record.state = state; // 'progressing' | 'interrupted'
       record.savePath = item.getSavePath();
       record.receivedBytes = item.getReceivedBytes();
       record.totalBytes = item.getTotalBytes();
-      broadcast();
-    });
+      broadcast(profileId);
+    }));
 
-    item.once('done', (_e, state) => {
+    item.once('done', (_e, state) => withLocalProfile(profileId, () => {
       record.state = state; // 'completed' | 'cancelled' | 'interrupted'
       record.savePath = item.getSavePath();
       record.receivedBytes = item.getReceivedBytes();
       record.finishedAt = Date.now();
       active.delete(id);
+      // A profile deletion cancels in-flight downloads. Their delayed `done`
+      // event must not write a new downloads.json after the profile directory
+      // was deliberately removed; downloaded files themselves are untouched.
+      if (deletedProfileIds.has(profileId)) {
+        broadcast(profileId);
+        return;
+      }
       ensureStore().update((d) => {
         d.items.unshift(record);
         if (d.items.length > MAX_PERSISTED) d.items.length = MAX_PERSISTED;
       });
-      if (state === 'completed') hasRecent = true;
-      broadcast();
-    });
+      if (state === 'completed') recentProfileIds.add(profileId);
+      broadcast(profileId);
+    }));
 
-    broadcast();
-  });
+    broadcast(profileId);
+  }));
 }
 
 /** Active downloads first (newest leading), then the persisted backlog. */
 function listDownloads() {
-  const inFlight = Array.from(active.values(), ({ record }) => record).reverse();
+  const profileId = activeLocalProfileId();
+  const inFlight = Array.from(active.values())
+    .filter((entry) => entry.profileId === profileId)
+    .map(({ record }) => record)
+    .reverse();
   return [...inFlight, ...ensureStore().data.items];
 }
 
 function activeCount() {
-  return active.size;
+  const profileId = activeLocalProfileId();
+  return [...active.values()].filter((entry) => entry.profileId === profileId).length;
 }
 
 function cancelDownload(id) {
-  active.get(id)?.item.cancel();
+  const entry = active.get(id);
+  if (entry?.profileId === activeLocalProfileId()) entry.item.cancel();
 }
 
 function openDownload(id) {
   const record = listDownloads().find((r) => r.id === id);
-  if (record?.state === 'completed' && record.savePath) shell.openPath(record.savePath);
+  if (record?.state !== 'completed' || !record.savePath) return undefined;
+  return (testOpenDownloadHandler ?? shell.openPath)(record.savePath);
 }
 
 function showDownloadInFolder(id) {
@@ -101,24 +140,52 @@ function showDownloadInFolder(id) {
 }
 
 function clearFinishedDownloads() {
+  const profileId = activeLocalProfileId();
   ensureStore().update((d) => { d.items = []; });
-  broadcast();
+  broadcast(profileId);
 }
 
 function acknowledgeDownloads() {
-  hasRecent = false;
+  recentProfileIds.delete(activeLocalProfileId());
+}
+
+function discardProfileDownloads(profileId) {
+  deletedProfileIds.add(profileId);
+  recentProfileIds.delete(profileId);
+  for (const [id, entry] of active) {
+    if (entry.profileId !== profileId) continue;
+    active.delete(id);
+    entry.item.cancel();
+  }
+  broadcast(profileId);
+}
+
+// The Playwright Electron harness captures the platform-open seam rather than
+// launching Finder/Explorer during a test. It is deliberately unavailable to
+// packaged builds and is not exposed through any renderer IPC channel.
+function setTestOpenDownloadHandler(handler) {
+  if (!TEST_MODE) return false;
+  testOpenDownloadHandler = typeof handler === 'function' ? handler : null;
+  return true;
 }
 
 /** Snapshot for the chrome pill: how many are in-flight, whether a finished
  * one is still unacknowledged, and aggregate bytes for a progress ring. */
 function downloadsActivity() {
+  const profileId = activeLocalProfileId();
   let receivedBytes = 0;
   let totalBytes = 0;
-  for (const { record } of active.values()) {
+  for (const { record, profileId: ownerProfileId } of active.values()) {
+    if (ownerProfileId !== profileId) continue;
     receivedBytes += record.receivedBytes;
     totalBytes += record.totalBytes;
   }
-  return { active: active.size, hasRecent, receivedBytes, totalBytes };
+  return {
+    active: activeCount(),
+    hasRecent: recentProfileIds.has(profileId),
+    receivedBytes,
+    totalBytes,
+  };
 }
 
 module.exports = {
@@ -131,4 +198,6 @@ module.exports = {
   openDownload,
   showDownloadInFolder,
   clearFinishedDownloads,
+  discardProfileDownloads,
+  setTestOpenDownloadHandler,
 };

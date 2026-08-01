@@ -52,6 +52,8 @@ contextBridge.exposeInMainWorld('browserAPI', {
 
   sendCredentialPick: (requestId, index) =>
     ipcRenderer.send('chrome:credential-pick', { requestId, index }),
+  sendDisplaySharePick: (requestId, index, shareAudio = false) =>
+    ipcRenderer.send('chrome:display-share-pick', { requestId, index, shareAudio }),
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
   closeOverlay: () => ipcRenderer.send('overlay:close'),

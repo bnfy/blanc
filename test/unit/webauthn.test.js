@@ -101,6 +101,18 @@ test('installs the WebAuthn account chooser on normal and private sessions', () 
   ]);
 });
 
+test('configures the app and attaches a late-created profile session once', () => {
+  let configured = 0;
+  const events = [];
+  const app = { configureWebAuthn: () => { configured += 1; } };
+  const session = { on: (event) => events.push(event) };
+
+  assert.equal(setupWebAuthn({ app, session, dialog: {}, platform: 'darwin' }), true);
+  assert.equal(setupWebAuthn({ app, session, dialog: {}, platform: 'darwin' }), true);
+  assert.equal(configured, 1);
+  assert.deepEqual(events, ['select-webauthn-account']);
+});
+
 test('cancels safely when Touch ID setup or account selection fails', async () => {
   const failedApp = { configureWebAuthn: () => { throw new Error('missing entitlement'); } };
   const failedSession = { on: () => assert.fail('listener must not be installed') };

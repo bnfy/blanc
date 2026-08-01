@@ -14,7 +14,7 @@ const PICK_REASONS = Object.freeze([
 ]);
 
 function createPickerController({
-  showOverlay, hideOverlay, getOverlayMode, isOverlaySender,
+  showOverlay, hideOverlay, getOverlayMode, getRuntimeId = () => null, isOverlaySender,
   randomUUID, setTimer, clearTimer, timeoutMs,
 }) {
   let pending = null; // { requestId, rowCount, resolve, timer }
@@ -37,10 +37,10 @@ function createPickerController({
     p.resolve({ index, reason });
   }
 
-  function requestPick(rows, truncated, host) {
+  function requestPick(rows, truncated, host, { runtimeId = null } = {}) {
     return new Promise((resolve) => {
       const requestId = randomUUID();
-      pending = { requestId, rowCount: rows.length, resolve, timer: null };
+      pending = { requestId, rowCount: rows.length, resolve, timer: null, runtimeId };
       // showOverlay can also THROW — and it can throw PARTWAY THROUGH. The real
       // one assigns overlayMode and overlayPrefill before addChildView/send/
       // focus, any of which can fail on a dying window. So a throw does not
@@ -72,6 +72,7 @@ function createPickerController({
   function handleReply(event, payload) {
     if (!isOverlaySender(event)) return;                       // overlay only
     if (!pending) return;
+    if (pending.runtimeId && pending.runtimeId !== getRuntimeId()) return;
     if (getOverlayMode() !== 'credential-picker') return;
     if (!payload || payload.requestId !== pending.requestId) return;
     const index = Object.prototype.hasOwnProperty.call(payload, 'index') ? payload.index : undefined;
@@ -79,7 +80,20 @@ function createPickerController({
     settle(index, index === null ? 'dismissed' : 'selected');
   }
 
-  return { requestPick, settle, handleReply, isPending: () => pending !== null };
+  function settleForRuntime(runtimeId, index, reason) {
+    if (!pending || pending.runtimeId !== runtimeId) return false;
+    settle(index, reason);
+    return true;
+  }
+
+  return {
+    requestPick,
+    settle,
+    settleForRuntime,
+    handleReply,
+    isPending: () => pending !== null,
+    isPendingForRuntime: (runtimeId) => pending?.runtimeId === runtimeId,
+  };
 }
 
 module.exports = { createPickerController, PICK_REASONS };

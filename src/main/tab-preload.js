@@ -7,6 +7,14 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 if (window.location.protocol === 'blanc:') {
+  ipcRenderer.on('chrome:theme-appearance', (_event, appearance) => {
+    if (appearance === 'light' || appearance === 'dark') {
+      document.documentElement.dataset.appearance = appearance;
+    } else if (appearance === 'pending') {
+      delete document.documentElement.dataset.appearance;
+    }
+  });
+
   contextBridge.exposeInMainWorld('bowserPages', {
     appVersion: () => ipcRenderer.invoke('pages:app-version'),
     bookmarks: {
@@ -14,6 +22,8 @@ if (window.location.protocol === 'blanc:') {
       remove: (id) => ipcRenderer.invoke('pages:bookmarks:remove', id),
       clearFavicon: (url) => ipcRenderer.invoke('pages:bookmarks:clear-favicon', url),
       import: () => ipcRenderer.invoke('pages:bookmarks:import'),
+      browserSources: () => ipcRenderer.invoke('pages:bookmarks:browser-sources'),
+      importBrowser: (id) => ipcRenderer.invoke('pages:bookmarks:import-browser', id),
       setFolder: (id, folder) => ipcRenderer.invoke('pages:bookmarks:set-folder', id, folder),
       renameFolder: (oldName, newName) => ipcRenderer.invoke('pages:bookmarks:rename-folder', oldName, newName),
       removeFolder: (name) => ipcRenderer.invoke('pages:bookmarks:remove-folder', name),
@@ -29,6 +39,15 @@ if (window.location.protocol === 'blanc:') {
       open: (id) => ipcRenderer.invoke('pages:downloads:open', id),
       show: (id) => ipcRenderer.invoke('pages:downloads:show', id),
       clearFinished: () => ipcRenderer.invoke('pages:downloads:clear-finished'),
+      // Main sends this only to the visible downloads utility sheet in the
+      // profile whose records changed. Return an unsubscribe function for
+      // completeness; navigating away also tears the isolated world down.
+      onChanged: (callback) => {
+        if (typeof callback !== 'function') return () => {};
+        const listener = () => callback();
+        ipcRenderer.on('pages:downloads:changed', listener);
+        return () => ipcRenderer.removeListener('pages:downloads:changed', listener);
+      },
     },
     start: {
       data: () => ipcRenderer.invoke('pages:start:data'),
@@ -60,6 +79,13 @@ if (window.location.protocol === 'blanc:') {
       syncDisable: (opts) => ipcRenderer.invoke('pages:settings:sync-disable', opts),
       syncNow: () => ipcRenderer.invoke('pages:settings:sync-now'),
       syncTabsSet: (on) => ipcRenderer.invoke('pages:settings:sync-tabs-set', on),
+    },
+    profiles: {
+      list: () => ipcRenderer.invoke('pages:profiles:list'),
+      create: (name) => ipcRenderer.invoke('pages:profiles:create', name),
+      open: (id) => ipcRenderer.invoke('pages:profiles:open', id),
+      rename: (id, name) => ipcRenderer.invoke('pages:profiles:rename', id, name),
+      remove: (id, confirmation) => ipcRenderer.invoke('pages:profiles:remove', id, confirmation),
     },
     permissions: {
       list: () => ipcRenderer.invoke('pages:permissions:list'),

@@ -29,6 +29,27 @@ const privacySuggestions = document.getElementById('privacySuggestions');
 const privacyPing = document.getElementById('privacyPing');
 const privacyContinue = document.getElementById('privacyContinue');
 const privacyError = document.getElementById('privacyError');
+const migrationChoice = document.getElementById('migrationChoice');
+const migrationSource = document.getElementById('migrationSource');
+const migrationImport = document.getElementById('migrationImport');
+const migrationStatus = document.getElementById('migrationStatus');
+let migrationSourcesLoaded = false;
+
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+async function loadMigrationSources() {
+  if (migrationSourcesLoaded || isPrivate) return;
+  migrationSourcesLoaded = true;
+  const sources = await window.bowserPages?.bookmarks.browserSources();
+  migrationSource.replaceChildren();
+  for (const source of sources ?? []) {
+    const option = document.createElement('option');
+    option.value = source.id;
+    option.textContent = source.label;
+    migrationSource.append(option);
+  }
+  migrationChoice.hidden = !(sources?.length);
+}
 
 function renderLaunchStatus({ startup, privacy } = {}) {
   if (isPrivate) {
@@ -58,6 +79,7 @@ function renderLaunchStatus({ startup, privacy } = {}) {
   const privacyWasHidden = privacyCard.hidden;
   privacyCard.hidden = !showPrivacy;
   if (showPrivacy) {
+    loadMigrationSources();
     if (privacyWasHidden) {
       privacySuggestions.checked = !!privacy.searchSuggestions;
       privacyPing.checked = !!privacy.usagePing;
@@ -74,6 +96,36 @@ startupRetry.addEventListener('click', async () => {
   } finally {
     startupRetry.disabled = false;
     startupContinue.disabled = false;
+  }
+});
+
+migrationImport.addEventListener('click', async () => {
+  if (!migrationSource.value) return;
+  migrationImport.disabled = true;
+  migrationSource.disabled = true;
+  migrationStatus.textContent = 'Importing favorites…';
+  try {
+    const result = await window.bowserPages?.bookmarks.importBrowser(migrationSource.value);
+    if (result?.error === 'source-unavailable') {
+      migrationStatus.textContent = 'That browser profile is no longer available.';
+      migrationSourcesLoaded = false;
+      await loadMigrationSources();
+    } else if (result?.error === 'empty') {
+      migrationStatus.textContent = 'No favorites found in that browser profile.';
+    } else if (result?.error === 'too-large') {
+      migrationStatus.textContent = 'That browser profile is too large to import safely.';
+    } else if (result?.error) {
+      migrationStatus.textContent = "Couldn't read that browser profile.";
+    } else {
+      const skipped = result.skipped
+        ? `; skipped ${plural(result.skipped, 'favorite')} already saved`
+        : '';
+      migrationStatus.textContent =
+        `Imported ${plural(result.added, 'favorite')} from ${result.source.label}${skipped}.`;
+    }
+  } finally {
+    migrationImport.disabled = false;
+    migrationSource.disabled = false;
   }
 });
 

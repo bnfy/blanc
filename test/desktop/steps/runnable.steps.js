@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('./../support/context');
-const { openOverlaySurface } = require('./../support/poll');
+const { waitForValue, openOverlaySurface } = require('./../support/poll');
 
 // Step definitions for the desktop-runnable scenario set (see the `runnable`
 // profile in cucumber.mjs). Every step is intent-level and drives the app
@@ -20,12 +20,37 @@ async function openNamed(world, name) {
   return id;
 }
 
+async function createGroup(world, name, count, { preserveActive = false } = {}) {
+  assert.ok(count > 0, 'a group must have at least one tab');
+  const activeBefore = (await world.state()).activeTabId;
+  const ids = [];
+  for (let index = 1; index <= count; index += 1) {
+    const id = await world.call('openTab', world.fixtureUrl(`${name}-${index}`));
+    await world.call('groupTabByName', id, name);
+    ids.push(id);
+  }
+  if (preserveActive && activeBefore) await world.call('activateTab', activeBefore, false);
+  return ids;
+}
+
 Given('a tab open on {string}', async function (name) { await openNamed(this, name); });
 Given('the active tab is on {string}', async function (name) { await openNamed(this, name); });
 
 Given('tabs open on {string} and {string}', async function (a, b) {
   await openNamed(this, a);
   await openNamed(this, b);
+});
+
+Given('{int} tabs are open', async function (count) {
+  assert.equal(count, 2, 'the desktop F1-2 binding currently exercises two tabs');
+  const initialId = (await this.state()).activeTabId;
+  ctx.paletteTabIds = [];
+  for (let index = 1; index <= count; index += 1) {
+    ctx.paletteTabIds.push(await this.call('openTab', this.fixtureUrl(`palette-${index}`)));
+  }
+  await this.call('closeTab', initialId);
+  await this.waitForState((state) =>
+    state.tabs.length === count && ctx.paletteTabIds.every((id) => state.tabs.some((tab) => tab.id === id)));
 });
 
 Given('the active tab has no group', async function () { await openNamed(this, 'plain'); });
@@ -40,12 +65,84 @@ Given('a group {string} with 1 tab', async function (name) {
   await this.call('groupActiveByName', name);
 });
 
+Given('a group {string} with {int} tabs', async function (name, count) {
+  // The active group should remain active when a second group is introduced,
+  // so F3-2 can exercise the pill's active-cluster projection explicitly.
+  const preserveActive = (await this.state()).groups.length > 0;
+  ctx.groupTabIds = await createGroup(this, name, count, { preserveActive });
+});
+
+Given('a group named {string} with {int} tabs', async function (name, count) {
+  ctx.groupTabIds = await createGroup(this, name, count);
+});
+
+Given('a group named {string} with {int} tabs that is not active', async function (name, count) {
+  ctx.groupTabIds = await createGroup(this, name, count);
+  await this.call('openTab', this.fixtureUrl('outside-active-group'));
+  const state = await this.state();
+  const group = state.groups.find((candidate) => candidate.name === name.toLowerCase());
+  assert.ok(group && state.tabs.find((tab) => tab.id === state.activeTabId)?.groupId !== group.id,
+    `${name} must begin as a background group`);
+});
+
+Given('the active tab is in {string} on a page where {int} requests were blocked', async function (name, count) {
+  const state = await this.state();
+  const group = state.groups.find((candidate) => candidate.name === name.toLowerCase());
+  const tab = state.tabs.find((candidate) => candidate.groupId === group?.id);
+  assert.ok(tab, `group ${name} should have a tab to make active`);
+  const url = this.fixtureUrl(`${name}-active`);
+  ctx.activeIslandUrl = url;
+  await this.call('activateTab', tab.id, false);
+  assert.equal(await this.call('navigateActiveTab', url), true,
+    'the active grouped tab should accept the fixture navigation');
+  await this.waitForState((next) => next.tabs.some((candidate) =>
+    candidate.id === tab.id && candidate.loadedUrl === url && candidate.loading === false), { timeout: 15000 });
+  assert.equal(await this.call('setTabPresentation', tab.id, { blockedCount: count }), true);
+});
+
 Given('history has at least one entry', async function () { await this.call('seedHistory'); });
+
+Given('a favorite for {string}', async function (name) {
+  await this.call('seedFavorite', this.fixtureUrl(name), name);
+});
+
+Given('a page containing the word {string} {int} times', async function (word, count) {
+  assert.equal(word, 'widget', 'the local desktop fixture contains the widget probe');
+  assert.equal(count, 3, 'the desktop fixture has exactly three widget occurrences');
+  const url = this.fixtureUrl('find-page');
+  ctx.findTabId = await this.call('openTab', url);
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === ctx.findTabId && tab.loadedUrl === url && tab.loading === false), { timeout: 15000 });
+});
 
 Given('there is no active supporter license', async function () { await this.call('clearSupporter'); });
 
+Given('an internal blanc page is open', async function () {
+  await this.call('openSettings');
+  this.themeSurfacesBefore = {
+    chrome: await waitForValue(
+      () => this.call('chromePalette'),
+      (state) => state?.id,
+      'chrome renderer'
+    ),
+    utility: await waitForValue(
+      () => this.call('utilityPalette'),
+      (state) => state?.id,
+      'Settings utility sheet'
+    ),
+  };
+});
+
 Given('the active tab is private', async function () {
   ctx.privateTabId = await this.call('openTab', 'blanc://newtab/?private=1', { private: true });
+});
+
+Given('I open a private tab', async function () {
+  ctx.privateTabId = await this.call('openTab', 'blanc://newtab/?private=1', { private: true });
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === ctx.privateTabId &&
+    tab.loadedUrl === 'blanc://newtab/?private=1' &&
+    tab.loading === false));
 });
 
 // "ad/tracker blocking is enabled" is BOTH a Background precondition and a final
@@ -61,11 +158,89 @@ When('I close that tab', async function () {
   await this.call('closeTab', id);
 });
 
+When('I visit {string} in the private tab', async function (name) {
+  const url = this.fixtureUrl(name);
+  this.privateVisitUrl = url;
+  await this.call('activateTab', ctx.privateTabId, false);
+  assert.equal(await this.call('navigateActiveTab', url), true,
+    'the private tab should still be available for navigation');
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === ctx.privateTabId && tab.loadedUrl === url && tab.loading === false), { timeout: 15000 });
+});
+
+When('I close the private tab', async function () {
+  await this.call('closeTab', ctx.privateTabId);
+});
+
+When('I collapse the group {string}', async function (name) {
+  const state = await this.state();
+  const group = state.groups.find((candidate) => candidate.name === name.toLowerCase());
+  assert.ok(group, `group ${name} should exist before collapsing it`);
+  await this.call('toggleGroup', group.id);
+  await this.waitForState((next) => next.groups.some((candidate) =>
+    candidate.id === group.id && candidate.collapsed === true));
+});
+
+When('I type {string}', async function (value) {
+  await waitForValue(
+    () => this.call('overlayRendererMode'),
+    (mode) => mode === 'palette',
+    'the command palette renderer before typing'
+  );
+  assert.equal(await this.call('editAddressInput', value, 'insertText'), true,
+    'the command palette input should accept typed text');
+});
+
+When('I search for {string}', async function (query) {
+  await waitForValue(
+    () => this.call('overlayRendererMode'),
+    (mode) => mode === 'find',
+    'the find overlay renderer before searching'
+  );
+  assert.equal(await this.call('setFindQuery', query), true,
+    'the find input should accept the query');
+});
+
+When('I choose the group result {string}', async function (name) {
+  assert.equal(await this.call('chooseAddressResult', { title: name.toLowerCase(), tag: 'group' }), true,
+    `the rendered ${name} group result should be selectable`);
+});
+
+When('a link in the page opens a new tab', async function () {
+  const openerUrl = this.fixtureUrl('private-opener');
+  const childUrl = this.fixtureUrl('private-child');
+  await this.call('activateTab', ctx.privateTabId, false);
+  assert.equal(await this.call('navigateActiveTab', openerUrl), true,
+    'the private opener tab should be available for navigation');
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === ctx.privateTabId && tab.loadedUrl === openerUrl && tab.loading === false), { timeout: 15000 });
+  await this.call('attemptWindowOpenActiveTab', childUrl);
+  const state = await this.waitForState((next) => next.tabs.some((tab) =>
+    tab.id !== ctx.privateTabId && tab.loadedUrl === childUrl && tab.loading === false), { timeout: 15000 });
+  ctx.privateChildTabId = state.tabs.find((tab) =>
+    tab.id !== ctx.privateTabId && tab.loadedUrl === childUrl)?.id ?? null;
+});
+
+When('I activate the {string} chip', async function (name) {
+  assert.equal(name, 'private', 'only the private quick-exit chip is desktop-runnable');
+  assert.equal(await this.call('clickPrivateChip'), true,
+    'the visible private chip should accept the quick-exit action');
+});
+
 When('I reopen the last closed tab', async function () { await this.call('reopenClosed'); });
+When('the island is at rest', async function () { await this.call('closeOverlay'); });
 When('I duplicate the active tab', async function () { await this.call('duplicateActive'); });
 When('I pin {string}', async function (name) { await this.call('pinTab', ctx.tabByName[name]); });
 When('I open a new tab', async function () { ctx.lastNewTabId = await this.call('newTab'); });
 When('I close the last tab in {string}', async function (name) { await this.call('closeTabsInGroupName', name); });
+
+When('I visit {string} with title {string}', async function (name, title) {
+  const url = `${this.fixtureUrl(name)}?title=${encodeURIComponent(title)}`;
+  const id = await this.call('openTab', url);
+  this.historyVisit = { url, title };
+  await this.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === id && tab.loadedUrl === url && tab.loading === false), { timeout: 15000 });
+});
 
 When('I run the slash command {string}', async function (cmd) {
   const [head, ...rest] = String(cmd).trim().split(/\s+/);
@@ -98,6 +273,7 @@ When('I attempt to set the search engine to {string}', async function (x) { awai
 When('I turn search suggestions off', async function () { await this.call('setSearchSuggestions', false); });
 When('settings contain the app icon {string}', async function (x) { await this.call('setAppIcon', x); });
 When('I add {string} to the ad-block exceptions', async function (h) { await this.call('addException', h); });
+When('I set the theme to {string}', async function (theme) { await this.call('setTheme', theme); });
 
 When('browser chrome attempts to navigate to {string}', async function (url) {
   await this.call('attemptChromeNavigation', url);
@@ -154,8 +330,13 @@ Then('the private tab uses a different web session from ordinary tabs', async fu
   const privateTab = s.tabs.find((t) => t.id === ctx.privateTabId);
   assert.equal(privateTab?.sessionKind, 'private');
   assert.ok(
-    s.tabs.some((t) => !t.private && t.sessionKind === 'default'),
-    'an ordinary tab should remain on the persistent default session'
+    s.tabs.some((t) =>
+      !t.private &&
+      t.sessionKind === 'normal' &&
+      t.sessionProfileId === 'default' &&
+      t.matchesProfileSession
+    ),
+    'an ordinary Personal tab should remain on its persistent normal session'
   );
 });
 
@@ -176,6 +357,82 @@ Then("the private tab's start page loads in the non-persistent session", async f
     'blanc://newtab/?private=1',
     'the committed WebContents URL must be the private start page, not a blank load'
   );
+});
+
+// ---------- F11: Downloads ----------
+
+async function startAcceptanceDownload(world) {
+  // Downloads are normally initiated from a settled web page. Besides matching
+  // the user flow, this prevents a blank new tab's deliberate address-bar
+  // focus reclaim from dismissing the utility sheet while this scenario is
+  // verifying its visible live-progress state.
+  const source = world.fixtureUrl('download-source');
+  const sourceId = await world.call('openTab', source);
+  await world.waitForState((state) => state.tabs.some((tab) =>
+    tab.id === sourceId && tab.loadedUrl === source && tab.loading === false), { timeout: 15000 });
+  const url = `${ctx.fixturesBase}/download/acceptance.bin`;
+  assert.equal(await world.call('startDownload', url), true,
+    'the active tab should start the fixture download');
+}
+
+async function waitForCompletedDownload(world) {
+  return waitForValue(
+    () => world.call('downloads'),
+    (items) => items.some((item) =>
+      item.state === 'completed' && item.filename === 'acceptance.bin' &&
+      item.savePath && Number.isFinite(item.finishedAt)),
+    'acceptance download to complete',
+    15000
+  );
+}
+
+When('I start a download', async function () {
+  await startAcceptanceDownload(this);
+});
+
+Then('a downloads row shows progress', async function () {
+  await waitForValue(
+    () => this.call('readDownloadsSheetDom'),
+    (dom) => dom?.rows >= 1 && dom.progressing >= 1,
+    'Downloads sheet to receive a progress update',
+    15000
+  );
+});
+
+Then('the row reaches a completed state', async function () {
+  await waitForCompletedDownload(this);
+  await waitForValue(
+    () => this.call('readDownloadsSheetDom'),
+    (dom) => dom?.completed >= 1,
+    'Downloads sheet to receive a completion update',
+    15000
+  );
+});
+
+Given('a completed download', async function () {
+  await startAcceptanceDownload(this);
+  const downloads = await waitForCompletedDownload(this);
+  const completed = downloads.find((item) =>
+    item.state === 'completed' && item.filename === 'acceptance.bin' &&
+    item.savePath && Number.isFinite(item.finishedAt));
+  assert.ok(completed, 'the fixture download should have a completed record');
+  ctx.downloadPath = completed.savePath;
+});
+
+When('I open the completed download', async function () {
+  const opened = await this.call('openCompletedDownload');
+  assert.equal(opened, ctx.downloadPath,
+    'the completed fixture record should be passed to the opener');
+});
+
+Then("the file opens through the platform's normal file mechanism", async function () {
+  const opened = await waitForValue(
+    () => this.call('openedDownloadPath'),
+    (value) => value === ctx.downloadPath,
+    'platform download opener',
+    5000
+  );
+  assert.equal(opened, ctx.downloadPath);
 });
 
 Then('a group named {string} exists', async function (name) {
@@ -213,6 +470,261 @@ Then('history is empty', async function () {
   assert.strictEqual(await this.call('historyCount'), 0);
 });
 
+Then('history contains one entry for {string} titled {string}', async function (name, title) {
+  assert.ok(this.historyVisit, 'the visit step should retain its fixture URL');
+  assert.equal(this.historyVisit.title, title);
+  assert.ok(this.historyVisit.url.includes(`/site/${encodeURIComponent(name)}`));
+  const entries = await waitForValue(
+    () => this.call('historyEntries'),
+    (items) => items.filter((item) => item.url === this.historyVisit.url && item.title === title).length === 1,
+    `one history entry for ${name} titled ${title}`
+  );
+  assert.equal(entries.filter((item) => item.url === this.historyVisit.url).length, 1,
+    'the committed visit should not be duplicated');
+});
+
+Then('{string} is not in history', async function (name) {
+  const url = this.privateVisitUrl || this.fixtureUrl(name);
+  const entries = await this.call('historyEntries');
+  assert.ok(!entries.some((entry) => entry.url === url),
+    `${name} must not be recorded while visited in a private tab`);
+});
+
+Then('no tab open on {string} is restored', async function (name) {
+  const url = this.privateVisitUrl || this.fixtureUrl(name);
+  const state = await this.state();
+  assert.ok(!state.tabs.some((tab) => tab.url === url || tab.loadedUrl === url),
+    `${name} must not be restored from the recently-closed stack`);
+});
+
+Then('the island uses the private theme', async function () {
+  const chrome = await waitForValue(
+    () => this.call('privateChrome'),
+    (state) => state?.theme === 'private',
+    'the island to enter the private theme'
+  );
+  assert.equal(chrome.theme, 'private');
+});
+
+Then('the island shows a {string} chip', async function (name) {
+  assert.equal(name, 'private', 'only the private quick-exit chip is desktop-runnable');
+  const chrome = await waitForValue(
+    () => this.call('privateChrome'),
+    (state) => state?.privateChipVisible === true,
+    'the private quick-exit chip'
+  );
+  assert.equal(chrome.privateChipVisible, true);
+});
+
+Then('the private tab closes', async function () {
+  await this.waitForState((state) => !state.tabs.some((tab) => tab.id === ctx.privateTabId));
+});
+
+Then('the new tab is private', async function () {
+  const state = await this.state();
+  const child = state.tabs.find((tab) => tab.id === ctx.privateChildTabId);
+  assert.equal(child?.private, true, 'a child opened from a private tab must remain private');
+  assert.equal(child?.sessionKind, 'private', 'the child must use the private session');
+});
+
+Then('the command bar is shown over the page content', async function () {
+  const [bounds, panel, guest] = await Promise.all([
+    this.call('overlayBounds'),
+    waitForValue(
+      () => this.call('overlayElementRect', '#islandPanel'),
+      (rect) => rect && rect.width > 0 && rect.height > 0,
+      'the visible expanded island panel'
+    ),
+    this.call('activeGuestBounds'),
+  ]);
+  assert.ok(bounds && guest, 'the overlay and active guest must both be attached');
+  assert.equal(bounds.y, 0, 'the palette overlay starts at the window top');
+  assert.ok(bounds.height > guest.height && guest.y > bounds.y,
+    'the overlay extends over the guest page instead of reserving layout space above it');
+  assert.ok(panel.y >= 0 && panel.y < bounds.height,
+    'the command bar must render inside the overlay');
+});
+
+Then('the list area shows the tab switcher', async function () {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => Array.isArray(items) && items.length === ctx.paletteTabIds.length &&
+      items.some((item) => item.active),
+    'one rendered switcher row per open tab'
+  );
+  assert.equal(rows.length, ctx.paletteTabIds.length);
+});
+
+Then('the island shows back and forward controls', async function () {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.navTitles.includes('Back') && state.navTitles.includes('Forward'),
+    'the Island navigation controls'
+  );
+  assert.deepEqual(island.navTitles, ['Back', 'Forward']);
+});
+
+Then('the island shows {int} group dots', async function (count) {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.dotCount === count,
+    `${count} Island group dots`
+  );
+  assert.equal(island.dotCount, count);
+});
+
+Then('the island shows the group name {string}', async function (name) {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.groupName === `${name.toLowerCase()} ·`,
+    `the ${name} group name in the Island`
+  );
+  assert.equal(island.groupName, `${name.toLowerCase()} ·`);
+});
+
+Then('the island does not show the group name {string}', async function (name) {
+  const island = await this.call('islandChrome');
+  assert.notEqual(island?.groupName, `${name.toLowerCase()} ·`,
+    `the resting Island should project only the active group, not ${name}`);
+});
+
+Then('the panel shows a {string} row for {string}', async function (label, name) {
+  const groups = await waitForValue(
+    () => this.call('overlayGroups'),
+    (state) => state?.headers.some((header) =>
+      header.name === name.toLowerCase() && header.collapsed) &&
+      state.foldedLabels.includes(label),
+    `the collapsed ${name} group row in the panel`
+  );
+  assert.ok(groups.foldedLabels.includes(label));
+});
+
+Then('the command {string} is listed', async function (command) {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => items.some((item) => item.command === command),
+    `${command} in the slash-command list`
+  );
+  assert.ok(rows.some((item) => item.command === command));
+});
+
+Then('the command {string} is not listed', async function (command) {
+  const rows = await this.call('addressResultRows');
+  assert.ok(!rows.some((item) => item.command === command),
+    `${command} should not match the typed slash prefix`);
+});
+
+Then('the results include the tab {string}', async function (name) {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => items.some((item) => item.title === name && item.tag === 'tab'),
+    `the open ${name} tab in Quick Switcher results`
+  );
+  assert.ok(rows.some((item) => item.title === name && item.tag === 'tab'));
+});
+
+Then('the match count shows {int}', async function (count) {
+  const find = await waitForValue(
+    () => this.call('findUi'),
+    (state) => new RegExp(`^\\d+/${count}$`).test(state?.count ?? ''),
+    `${count} native find matches`,
+    15000
+  );
+  assert.match(find.count, new RegExp(`^\\d+/${count}$`));
+});
+
+Then('I can navigate to the next and previous match', async function () {
+  assert.equal(await this.call('stepFind', 'next'), true, 'the Next match control should be clickable');
+  const next = await waitForValue(
+    () => this.call('findUi'),
+    (state) => state?.count === '2/3',
+    'the second native find match',
+    15000
+  );
+  assert.equal(next.count, '2/3');
+  assert.equal(await this.call('stepFind', 'previous'), true, 'the Previous match control should be clickable');
+  const previous = await waitForValue(
+    () => this.call('findUi'),
+    (state) => state?.count === '1/3',
+    'the first native find match after stepping backward',
+    15000
+  );
+  assert.equal(previous.count, '1/3');
+});
+
+Then('the page content outside the find bar remains clickable', async function () {
+  const [overlay, guest, probe] = await Promise.all([
+    this.call('overlayBounds'),
+    this.call('activeGuestBounds'),
+    this.call('clickActivePageProbe'),
+  ]);
+  assert.ok(overlay && guest && probe, 'the find overlay, guest page, and probe control should exist');
+  const probeY = guest.y + probe.rect.y + probe.rect.height / 2;
+  assert.ok(probeY > overlay.y + overlay.height,
+    'the guest-page control must sit outside the find overlay bounds');
+  assert.equal(probe.clicks, 1, 'the visible guest-page control should receive its click');
+});
+
+Then('the results include the favorite {string}', async function (name) {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => items.some((item) => item.title === name && item.tag === 'favorite'),
+    `the ${name} favorite in Quick Switcher results`
+  );
+  assert.ok(rows.some((item) => item.title === name && item.tag === 'favorite'));
+});
+
+Then('a group result {string} is listed above any tab results', async function (name) {
+  const rows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (items) => {
+      const groupIndex = items.findIndex((item) => item.title === name.toLowerCase() && item.tag === 'group');
+      return groupIndex >= 0 && items.every((item, index) => item.tag !== 'tab' || index > groupIndex);
+    },
+    `${name} group result ahead of tab results`
+  );
+  const groupIndex = rows.findIndex((item) => item.title === name.toLowerCase() && item.tag === 'group');
+  assert.ok(groupIndex >= 0);
+  assert.ok(rows.every((item, index) => item.tag !== 'tab' || index > groupIndex));
+});
+
+Then('the active tab is one of the tabs in {string}', async function (name) {
+  const state = await this.state();
+  const group = state.groups.find((candidate) => candidate.name === name.toLowerCase());
+  const active = state.tabs.find((tab) => tab.id === state.activeTabId);
+  assert.equal(active?.groupId, group?.id, `the ${name} group should receive focus`);
+});
+
+Then("the island shows the active page's domain", async function () {
+  const expectedDomain = new URL(ctx.activeIslandUrl).host;
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.domain === expectedDomain,
+    'the active page domain in the Island'
+  );
+  assert.equal(island.domain, expectedDomain);
+});
+
+Then('the island shows a shield count of {int}', async function (count) {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.shieldCount === String(count),
+    `the Island shield count of ${count}`
+  );
+  assert.equal(island.shieldCount, String(count));
+});
+
+Then('the island shows the trailing action cluster', async function () {
+  const island = await waitForValue(
+    () => this.call('islandChrome'),
+    (state) => state?.actionTitles.includes('Reload') &&
+      state.actionTitles.some((title) => /favorite/i.test(title)),
+    'the Island trailing action cluster'
+  );
+  assert.ok(island.actionTitles.includes('Reload'));
+  assert.ok(island.actionTitles.some((title) => /favorite/i.test(title)));
+});
+
 // NOTE: `/` is the alternation operator in Cucumber Expressions, so the literal
 // slash in "ad/tracker" must be escaped (\\/) for these to match the step text.
 Then('ad\\/tracker blocking is enabled', async function () {
@@ -238,6 +750,57 @@ Then('the search-suggestions preference remains device-local', async function ()
 
 Then('the effective app icon is {string}', async function (x) {
   assert.strictEqual(await this.call('appIcon'), x);
+});
+
+Then('the supporter colorways are shown as locked', async function () {
+  await this.call('openSettings');
+  const icons = await waitForValue(
+    () => this.call('readSettingsIconDom'),
+    (items) => Array.isArray(items) && ['ember', 'plum', 'gold'].every((id) =>
+      items.some((item) => item.id === id && item.locked)),
+    'locked supporter colorways in Settings'
+  );
+  assert.equal(icons.filter((item) => item.locked).length, 3);
+});
+
+Then('selecting one leaves the app icon at {string}', async function (icon) {
+  assert.equal(await this.call('clickSettingsIcon', 'ember'), true,
+    'the locked Ember colorway should be rendered as a selectable control');
+  assert.equal(await this.call('appIcon'), icon);
+});
+
+Then('the chrome uses the dark palette', async function () {
+  const state = await waitForValue(
+    () => this.call('chromePalette'),
+    (palette) => palette?.background === '#0e0e0e',
+    'chrome to adopt the dark palette',
+    15000
+  );
+  assert.equal(state.id, this.themeSurfacesBefore.chrome.id);
+});
+
+Then('the open internal page uses the dark palette', async function () {
+  const state = await waitForValue(
+    () => this.call('utilityPalette'),
+    (palette) => palette?.background === '#0e0e0e',
+    'utility sheet to adopt the dark palette',
+    15000
+  );
+  assert.equal(state.id, this.themeSurfacesBefore.utility.id);
+});
+
+Then('no restart was required', async function () {
+  assert.equal((await this.call('chromePalette'))?.id, this.themeSurfacesBefore.chrome.id);
+  assert.equal((await this.call('utilityPalette'))?.id, this.themeSurfacesBefore.utility.id);
+});
+
+Then('the chrome uses the private palette', async function () {
+  await waitForValue(
+    () => this.call('chromePalette'),
+    (palette) => palette?.theme === 'private' && palette.background === '#0a0a0a',
+    'chrome to adopt the private palette',
+    15000
+  );
 });
 
 Then('the ad-block exceptions contain {string}', async function (h) {

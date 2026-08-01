@@ -16,69 +16,87 @@
     cancelled: 'Cancelled',
   };
 
-  async function refresh() {
-    const items = await window.bowserPages.downloads.list();
-    list.replaceChildren();
+  let refreshing = false;
+  let refreshQueued = false;
 
-    if (items.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'empty';
-      empty.textContent = 'Nothing downloaded yet.';
-      list.append(empty);
+  async function refresh() {
+    // A progress burst can arrive while an IPC list request is in flight.
+    // Coalesce it into one follow-up refresh so a slower earlier response can
+    // never leave the visible sheet behind the latest main-process record.
+    if (refreshing) {
+      refreshQueued = true;
       return;
     }
+    refreshing = true;
+    try {
+      do {
+        refreshQueued = false;
+        const items = await window.bowserPages.downloads.list();
+        list.replaceChildren();
 
-    for (const d of items) {
-      const row = document.createElement('div');
-      row.className = 'row';
+        if (items.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'empty';
+          empty.textContent = 'Nothing downloaded yet.';
+          list.append(empty);
+          continue;
+        }
 
-      const main = document.createElement('div');
-      main.className = 'main';
-      const title = document.createElement('div');
-      title.className = 'title';
-      title.textContent = d.filename;
-      const url = document.createElement('div');
-      url.className = 'url';
-      url.textContent = d.url;
-      main.append(title, url);
+        for (const d of items) {
+          const row = document.createElement('div');
+          row.className = 'row';
 
-      if (d.state === 'progressing' && d.totalBytes > 0) {
-        const progress = document.createElement('div');
-        progress.className = 'progress';
-        const bar = document.createElement('div');
-        bar.className = 'bar';
-        bar.style.width = `${Math.round((d.receivedBytes / d.totalBytes) * 100)}%`;
-        progress.append(bar);
-        main.append(progress);
-      }
+          const main = document.createElement('div');
+          main.className = 'main';
+          const title = document.createElement('div');
+          title.className = 'title';
+          title.textContent = d.filename;
+          const url = document.createElement('div');
+          url.className = 'url';
+          url.textContent = d.url;
+          main.append(title, url);
 
-      const meta = document.createElement('div');
-      meta.className = 'meta';
-      meta.textContent =
-        d.state === 'progressing'
-          ? `${fmtBytes(d.receivedBytes)}${d.totalBytes ? ` / ${fmtBytes(d.totalBytes)}` : ''}`
-          : `${STATE_LABELS[d.state] ?? d.state} · ${fmtBytes(d.receivedBytes)}`;
+          if (d.state === 'progressing' && d.totalBytes > 0) {
+            const progress = document.createElement('div');
+            progress.className = 'progress';
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.width = `${Math.round((d.receivedBytes / d.totalBytes) * 100)}%`;
+            progress.append(bar);
+            main.append(progress);
+          }
 
-      const actions = document.createElement('div');
-      actions.className = 'actions';
-      const mkBtn = (label, fn, cls) => {
-        const b = document.createElement('button');
-        b.textContent = label;
-        if (cls) b.className = cls;
-        b.addEventListener('click', async () => { await fn(); refresh(); });
-        return b;
-      };
-      if (d.state === 'progressing') {
-        actions.append(mkBtn('Cancel', () => window.bowserPages.downloads.cancel(d.id), 'danger'));
-      }
-      if (d.state === 'completed') {
-        actions.append(
-          mkBtn('Open', () => window.bowserPages.downloads.open(d.id)),
-          mkBtn('Show in folder', () => window.bowserPages.downloads.show(d.id))
-        );
-      }
-      row.append(main, meta, actions);
-      list.append(row);
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+          meta.textContent =
+            d.state === 'progressing'
+              ? `${fmtBytes(d.receivedBytes)}${d.totalBytes ? ` / ${fmtBytes(d.totalBytes)}` : ''}`
+              : `${STATE_LABELS[d.state] ?? d.state} · ${fmtBytes(d.receivedBytes)}`;
+
+          const actions = document.createElement('div');
+          actions.className = 'actions';
+          const mkBtn = (label, fn, cls) => {
+            const b = document.createElement('button');
+            b.textContent = label;
+            if (cls) b.className = cls;
+            b.addEventListener('click', async () => { await fn(); refresh(); });
+            return b;
+          };
+          if (d.state === 'progressing') {
+            actions.append(mkBtn('Cancel', () => window.bowserPages.downloads.cancel(d.id), 'danger'));
+          }
+          if (d.state === 'completed') {
+            actions.append(
+              mkBtn('Open', () => window.bowserPages.downloads.open(d.id)),
+              mkBtn('Show in folder', () => window.bowserPages.downloads.show(d.id))
+            );
+          }
+          row.append(main, meta, actions);
+          list.append(row);
+        }
+      } while (refreshQueued);
+    } finally {
+      refreshing = false;
     }
   }
 
@@ -87,9 +105,6 @@
     refresh();
   });
 
-  // Live progress: poll while the page is visible.
-  setInterval(() => {
-    if (!document.hidden) refresh();
-  }, 750);
+  window.bowserPages.downloads.onChanged(refresh);
   refresh();
 })();

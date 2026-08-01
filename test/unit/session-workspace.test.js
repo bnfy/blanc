@@ -1,0 +1,142 @@
+const assert = require('node:assert/strict');
+const test = require('node:test');
+
+const {
+  SESSION_WORKSPACE_VERSION,
+  PRIMARY_WINDOW_ID,
+  readSessionWorkspace,
+  activeWorkspaceWindow,
+  replaceWorkspaceWindow,
+  removeWorkspaceWindow,
+  removeProfileWorkspaces,
+} = require('../../src/main/session-workspace');
+
+test('legacy flat session migrates losslessly into the primary workspace', () => {
+  const result = readSessionWorkspace({
+    urls: ['https://one.example/', 'https://two.example/'],
+    activeIndex: 1,
+    groups: [{ id: 'work', name: 'work', collapsed: true }],
+    groupIds: ['work', 'work'],
+    pinned: [true, false],
+  });
+
+  assert.equal(result.supported, true);
+  assert.equal(result.migrated, true);
+  assert.equal(result.workspace.version, SESSION_WORKSPACE_VERSION);
+  assert.equal(result.workspace.activeWindowId, PRIMARY_WINDOW_ID);
+  assert.deepEqual(result.workspace.windows, [{
+    id: PRIMARY_WINDOW_ID,
+    profileId: 'default',
+    urls: ['https://one.example/', 'https://two.example/'],
+    activeIndex: 1,
+    groups: [{ id: 'work', name: 'work', collapsed: true }],
+    groupIds: ['work', 'work'],
+    pinned: [true, false],
+  }]);
+});
+
+test('v1 workspace migrates each window into the default local profile', () => {
+  const result = readSessionWorkspace({
+    version: 1,
+    activeWindowId: 'second',
+    windows: [
+      { id: 'primary', urls: ['https://one.example/'] },
+      { id: 'second', urls: ['https://two.example/'], activeIndex: 0 },
+    ],
+  });
+
+  assert.equal(result.migrated, true);
+  assert.equal(activeWorkspaceWindow(result.workspace).id, 'second');
+  assert.equal(activeWorkspaceWindow(result.workspace).profileId, 'default');
+  assert.equal(activeWorkspaceWindow(result.workspace).urls[0], 'https://two.example/');
+});
+
+test('current workspace preserves a named local profile identity', () => {
+  const result = readSessionWorkspace({
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: 'work-window',
+    windows: [{
+      id: 'work-window', profileId: 'profile_work', urls: ['https://work.example/'],
+    }],
+  });
+
+  assert.equal(result.migrated, false);
+  assert.equal(result.workspace.windows[0].profileId, 'profile_work');
+});
+
+test('replacement updates one owner without rewriting other window workspaces', () => {
+  const first = readSessionWorkspace({
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: 'primary',
+    windows: [
+      { id: 'primary', urls: ['https://one.example/'] },
+      { id: 'second', urls: ['https://two.example/'] },
+    ],
+  }).workspace;
+  const next = replaceWorkspaceWindow(first, {
+    id: 'primary', urls: ['https://three.example/'], activeIndex: 0,
+  });
+
+  assert.equal(next.activeWindowId, 'primary');
+  assert.equal(next.windows.find((windowState) => windowState.id === 'primary').urls[0], 'https://three.example/');
+  assert.equal(next.windows.find((windowState) => windowState.id === 'second').urls[0], 'https://two.example/');
+});
+
+test('background workspace persistence keeps the focused workspace active', () => {
+  const first = readSessionWorkspace({
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: 'second',
+    windows: [
+      { id: 'primary', urls: ['https://one.example/'] },
+      { id: 'second', urls: ['https://two.example/'] },
+    ],
+  }).workspace;
+
+  const next = replaceWorkspaceWindow(first, {
+    id: 'primary', urls: ['https://three.example/'], activeIndex: 0,
+  }, { activeWindowId: 'second' });
+
+  assert.equal(next.activeWindowId, 'second');
+  assert.equal(next.windows.find((windowState) => windowState.id === 'primary').urls[0], 'https://three.example/');
+});
+
+test('closing a secondary workspace removes it without dropping the primary', () => {
+  const first = readSessionWorkspace({
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: 'second',
+    windows: [
+      { id: 'primary', urls: ['https://one.example/'] },
+      { id: 'second', urls: ['https://two.example/'] },
+    ],
+  }).workspace;
+
+  const next = removeWorkspaceWindow(first, 'second');
+
+  assert.equal(next.activeWindowId, 'primary');
+  assert.deepEqual(next.windows.map((windowState) => windowState.id), ['primary']);
+  assert.equal(removeWorkspaceWindow(first, 'primary').windows.length, 2);
+});
+
+test('deleting a named profile removes every one of its saved workspaces', () => {
+  const first = readSessionWorkspace({
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: 'studio-two',
+    windows: [
+      { id: 'primary', profileId: 'default', urls: ['https://personal.example/'] },
+      { id: 'studio-one', profileId: 'profile_studio', urls: ['https://one.example/'] },
+      { id: 'studio-two', profileId: 'profile_studio', urls: ['https://two.example/'] },
+    ],
+  }).workspace;
+
+  const next = removeProfileWorkspaces(first, 'profile_studio');
+  assert.deepEqual(next.windows.map((windowState) => windowState.id), ['primary']);
+  assert.equal(next.activeWindowId, 'primary');
+  assert.equal(removeProfileWorkspaces(first, 'default').windows.length, 3);
+});
+
+test('newer session records are preserved rather than downgraded', () => {
+  const result = readSessionWorkspace({ version: SESSION_WORKSPACE_VERSION + 1, windows: [] });
+  assert.equal(result.supported, false);
+  assert.equal(result.migrated, false);
+  assert.equal(result.workspace.windows.length, 1);
+});

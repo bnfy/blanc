@@ -295,9 +295,12 @@ From the desktop `DEFAULTS`:
 - On relaunch, restore open tabs **and** groups (parallel `groupIds`). **Private
   tabs are excluded** from the file; groups referenced only by private tabs are not
   persisted.
-- The desktop shape is `session.json` (`urls` + parallel `groupIds` + `groups`);
-  mobile uses its platform store but preserves the same **logical** shape and
-  restore behaviour (D8 for eviction/restore of live web views).
+- The desktop record is a versioned session workspace. Each window owns the
+  familiar URLs + parallel groupIds/pinned + groups shape; the first workspace
+  is named primary. Legacy flat session records migrate losslessly into that
+  primary workspace before any future multi-window state is added. Mobile uses
+  its platform store but preserves the same **logical** shape and restore
+  behaviour (D8 for eviction/restore of live web views).
 - **Acceptance:** With 2 groups and a private tab open, relaunch restores both
   groups and their tabs and does **not** restore the private tab.
 
@@ -484,3 +487,79 @@ From the desktop `DEFAULTS`:
   guest/sheet/panel/palette/find geometry (including 640×480), canonical row
   states and actions, group/private/loading/audio behavior, accepted and
   rejected reorder paths, activation cleanup/focus, and keyboard flow.
+
+## F29 — Display sharing
+
+- A site may request a screen or application window through the platform's
+  display-capture API. Blanc shows a trusted, browser-owned chooser naming the
+  requesting origin and never exposes source enumeration or privileged capture
+  APIs to web content.
+- A request is valid only while its requesting frame still belongs to the
+  visible tab, remains on the same origin, and has not started a new main-frame
+  navigation. Switching or closing the tab, closing the window, dismissing the
+  chooser, or timing out denies the request.
+- Approval is **per request** and is never persisted as a site-permission
+  decision. Private tabs use the same chooser, with no record surviving the
+  request.
+- System audio is a separate, off-by-default choice and is offered only where
+  the platform capture backend supports it. Sharing video never implicitly
+  shares audio.
+- Source enumeration diverges by platform (D21), but every implementation must
+  preserve the trusted-chooser, origin-binding, cancellation, and explicit-audio
+  contract.
+- **Acceptance:** From a visible tab, request display capture, choose a source,
+  and receive that source only. A second request prompts again. Navigating,
+  switching tabs, or cancelling the chooser rejects the request without
+  granting any source.
+
+## F30 — Browser Favorites migration
+
+- A fresh profile offers detected browser profiles during first run, and the
+  Favorites sheet keeps the same import available afterward. The existing
+  universal bookmarks-HTML import remains the fallback for browsers or
+  platforms whose live profile format cannot be read directly.
+- Desktop directly supports Google Chrome, Microsoft Edge, Brave, Chromium, and
+  Vivaldi profiles. Discovery and file reads stay in the main process. Internal
+  pages receive only an opaque source id plus browser/profile labels — never a
+  filesystem path or raw profile data.
+- Import is explicit, add-only, and idempotent. Only `http:`/`https:` Favorites
+  are accepted; immediate folder names and valid creation dates are preserved.
+  Existing URLs win, duplicates in the source are skipped, and passwords,
+  history, cookies, sessions, and browser settings are untouched.
+- Input is bounded before and during parsing: a 20 MiB file cap, a 100,000-node
+  traversal cap, and a depth cap. The selected opaque id is rediscovered and
+  matched in main immediately before reading, so a renderer cannot substitute
+  an arbitrary path.
+- Source discovery diverges by platform (D22), but every implementation must
+  keep imports user-initiated, data-scoped, deduplicated, and path-isolated.
+- **Acceptance:** Import a detected profile containing nested folders,
+  unsupported internal URLs, and existing Favorites. Blanc copies only the
+  supported web Favorites, keeps their immediate folders, and a second import
+  creates no duplicates.
+
+## F31 — Site information and certificate safety
+
+- The trusted chrome identifies the active page's transport state from browser
+  process data, never from page-controlled DOM or JavaScript. Plain `http:`
+  pages carry a visible warning; loopback HTTP is identified as local rather
+  than public transport; verified `https:` pages are identified as encrypted
+  and authenticated.
+- Opening site information from the command bar shows the exact origin,
+  connection summary, available bounded certificate display fields, and the
+  page's Blanc protection count. A valid certificate describes transport
+  authentication only — it is not a claim that the site or its content is safe.
+- Certificate verification stays owned by the platform browser engine. Blanc
+  must not weaken its trust decision, suppress Certificate Transparency, add a
+  private trust root, or convert an invalid certificate into an accepted
+  connection merely to populate the UI.
+- A main-frame certificate failure opens a dedicated safety interstitial with
+  the original destination, specific failure explanation, and available
+  certificate subject/issuer/expiry. The only recovery actions are retry and
+  back to safety; there is no proceed/visit-anyway bypass.
+- Certificate observation and presentation mechanics diverge by platform
+  (D23), but the transport states, trusted-source rule, and non-bypassable
+  failure contract stay identical.
+- **Acceptance:** A plain HTTP page shows a persistent not-secure warning and
+  an explanation in site information. A verified HTTPS page shows its origin
+  and protection activity. An expired certificate opens the certificate
+  interstitial with no control that can continue to the site.

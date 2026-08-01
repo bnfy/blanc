@@ -10,8 +10,8 @@ commands, and a quick switcher across open tabs, favorites, and history.
 Ad/tracker blocking is wired in at the network layer, independent of
 Chrome's extension store and Manifest V3's `declarativeNetRequest` limits.
 Plus favorites, history, downloads, settings, private tabs, per-site
-permission prompts, session restore, and signed + notarized auto-updating
-macOS builds.
+permission prompts, independent windows with local profiles, session restore,
+and signed + notarized auto-updating macOS builds.
 
 ## Install
 
@@ -113,7 +113,7 @@ builds (`npm start`) skip all of this.
 ## How it's put together
 
 ```
-src/main/main.js         Window, per-tab WebContentsViews, island overlay, IPC, menu
+src/main/main.js         Window runtimes, per-tab WebContentsViews, island overlay, IPC, menu
 src/main/adblock.js      Network + cosmetic ad blocking (@ghostery/adblocker-electron)
 src/main/pages.js        blanc:// scheme for internal pages + their guarded IPC API
 src/main/permissions.js  Deny-by-default permission policy + per-site prompt decisions
@@ -122,8 +122,9 @@ src/main/bookmarks.js    Favorites store
 src/main/history.js      Visit recording + search
 src/main/settings.js     Search engine / adblock / theme / home page settings
 src/main/search-suggestions.js  Bounded default-engine autocomplete providers
-src/main/store.js        Tiny debounced JSON-file persistence used by all of the above
+src/main/store.js        Debounced JSON persistence with atomic writes + recovery backups
 src/main/context-menu.js Right-click menu for web content
+src/main/address-menu.js Right-click menu for the Island address input
 src/main/auth-dialog.js  HTTP basic/digest auth prompt
 src/main/updater.js      electron-updater wiring
 src/main/preload.js      contextBridge API for the chrome strip + island overlay
@@ -132,16 +133,16 @@ src/renderer/            The chrome: strip + resting pill (index.html), island o
 src/renderer/pages/      Internal pages: newtab, favorites, history, downloads, settings
 ```
 
-**One `BrowserWindow`, many `WebContentsView`s.** The window's own
-`webContents` renders the chrome strip — the slim band the resting pill
-floats in. Each tab is a separate `WebContentsView` added as a child view
-of `win.contentView`; only the active tab's view is attached, so switching
-tabs is just remove-one/add-another rather than destroying anything. The
-island's expanded states live in one more `WebContentsView` — transparent,
-attached on top only while open — which is how the command bar, palette,
-and find capsule float over the page instead of reserving space. Tab
-state lives in the main process; both chrome documents just reflect
-`tabs:updated` broadcasts.
+**One `BrowserWindow` per workspace, many `WebContentsView`s per window.** A
+window's own `webContents` renders its chrome strip — the slim band the resting
+pill floats in. Each tab is a separate `WebContentsView` added as a child view
+of that window; only the active tab's view is attached, so switching tabs is
+remove-one/add-another rather than destroying anything. The island's expanded
+states live in one more transparent `WebContentsView`, attached on top only
+while open, so the command bar, palette, and find capsule float over the page
+instead of reserving space. The main-process window-runtime registry keeps tab,
+group, overlay, and sheet state isolated per window; named local profiles also
+receive isolated Chromium sessions and product records.
 
 **Security posture:** the chrome strip, the overlay, and every tab run
 with `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`.
@@ -154,23 +155,36 @@ is only ever attached to Blanc's own chrome documents.
 
 **Permissions:** deny-by-default. Camera, microphone, geolocation, and
 notifications surface a per-site Allow/Block prompt in the chrome; the
-decision is remembered per origin and manageable in Settings. Everything
-else (screen capture, MIDI, etc.) is refused outright; fullscreen, pointer
-lock, and sanitized clipboard writes are allowed.
+decision is remembered per origin and manageable in Settings. Display sharing
+uses a separate browser-owned screen/window chooser and is approved one request
+at a time — it is never remembered. Everything else (MIDI, USB, serial, etc.)
+is refused outright; fullscreen, pointer lock, and sanitized clipboard writes
+are allowed.
+
+**Site information:** the Island identifies public HTTP, local loopback, and
+verified HTTPS from main-process browser state. Its site-information card shows
+the exact origin, bounded certificate details when available, and the page's
+blocked-request count. Certificate failures route to a dedicated safety
+interstitial with retry/back actions and no proceed-anyway bypass; Blanc always
+leaves the trust decision to Chromium's verifier.
 
 **Ad blocking:** `adblock.js` attaches a `@ghostery/adblocker-electron`
-engine to `session.defaultSession` once at startup, covering every tab.
-Request-level blocking isn't bound by MV3's rule caps; cosmetic filtering
-rides on the library's session preload. Blocked requests are counted per
-tab and surface as the accent badge in the pill. Toggle the engine in
-Settings (or `/block-ads`); exempt individual sites per-site (`/allow-ads`,
-also editable in Settings).
+engine to every browsing session, including private and named-profile sessions.
+Request-level blocking isn't bound by MV3's rule caps; cosmetic filtering rides
+on the library's session preload. Blocked requests are counted per tab and
+surface as the accent badge in the pill. Toggle the engine in Settings (or
+`/block-ads`); exempt individual sites per-site (`/allow-ads`, also editable in
+Settings).
 
 **Internal pages** (`blanc://newtab`, `bookmarks`, `history`,
 `downloads`, `settings`) are served over a privileged custom scheme by
 `pages.js` — a real origin, so web content can't link into arbitrary local
 files. The user-facing name for bookmarks is **Favorites** (heart icon);
-the identifiers keep the classic name.
+the identifiers keep the classic name. Fresh profiles can bring Favorites
+directly from detected Chrome, Edge, Brave, Chromium, or Vivaldi profiles;
+the Favorites sheet keeps that explicit, deduplicating import available later,
+alongside the universal bookmarks-HTML fallback. Profile paths and raw browser
+data never cross into a renderer.
 
 **No Chrome extensions — by design.** The two things most people install
 extensions for are covered natively: ad blocking is built in at the
@@ -188,9 +202,11 @@ the app small.
 
 **Persistence** is deliberately boring: one JSON file per store
 (`settings.json`, `bookmarks.json`, `history.json`, `downloads.json`,
-`session.json`, `site-permissions.json`) in userData, written through a
-shared debounced `JsonStore`. History is capped at 5000 entries, the
-download log at 200. Open tabs are restored on the next launch — private
+`session.json`, `site-permissions.json`) in userData, written through a shared
+debounced `JsonStore`. Each rewrite is atomic and retains a `.bak` recovery
+copy. Session state is versioned as named window workspaces; existing flat
+sessions migrate into the primary workspace. History is capped at 5000 entries,
+the download log at 200. Open tabs are restored on the next launch — private
 tabs excepted.
 
 **Theming:** one green identity in two lights — bone by day, charcoal by
@@ -226,20 +242,23 @@ entirely.
 | `Cmd/Ctrl+,` | settings |
 | `Cmd/Ctrl` `+` / `−` / `0` | zoom in / out / reset |
 
-## What's still left
+## Current boundaries
 
-- **Multi-window** — Blanc is deliberately single-window for now.
 - **Passkeys** — WebAuthn works with security keys. On supported Macs, Blanc
   can also create and use device-bound Touch ID passkeys stored in its own
   Secure Enclave keychain group. Existing iCloud Passwords and third-party
   credential-manager passkeys still await Apple's grant of the
   `com.apple.developer.web-browser.public-key-credential` entitlement
   (requested).
-## Rebrand cleanup still pending
+- **Threat reputation** — certificate safety is built in, but a deceptive-site
+  reputation feed (for phishing/malware warnings) is deliberately deferred;
+  valid HTTPS is not presented as a site-safety claim.
 
-This app was renamed from "Bowser" to Blanc — the code, package identity,
-and visual assets are done, but a few infra steps are deliberately not yet
-live:
+## Rebrand follow-up
+
+This app was renamed from "Bowser" to Blanc. The code, package identity, and
+visual assets are complete. Remaining follow-up is limited to external naming
+and documentation cleanup:
 
 - The marketing site (`site/`) is live on the Cloudflare Pages project
   `blancbrowser` (direct upload: `npm run site:deploy`, which builds the
@@ -256,7 +275,3 @@ live:
 - `normalizeAddressInput()`'s domain-detection regex is intentionally
   simple; it'll misclassify some edge cases (e.g. paths with dots in query
   strings). Known, accepted.
-- Per-site ad-block exceptions cover network-level blocking; cosmetic
-  element-hiding isn't scoped per-site.
-- The downloads page polls while visible instead of receiving push
-  updates — simple, but a push channel would be cleaner.

@@ -1,0 +1,147 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const test = require('node:test');
+const {
+  MAX_BROWSER_BOOKMARK_BYTES,
+  browserDataRoot,
+  chromiumTimestampMs,
+  parseChromiumBookmarks,
+  createBrowserDataImportService,
+} = require('../../src/main/browser-data-import');
+
+const NOW = Date.UTC(2026, 6, 30);
+const chromiumTime = (unixMs) =>
+  String(BigInt(unixMs + 11_644_473_600_000) * 1000n);
+
+function fixture() {
+  return {
+    roots: {
+      bookmark_bar: {
+        type: 'folder',
+        name: 'Bookmarks bar',
+        children: [
+          {
+            type: 'url',
+            name: 'Top',
+            url: 'https://top.example/',
+            date_added: chromiumTime(NOW - 10_000),
+          },
+          {
+            type: 'folder',
+            name: 'Reading',
+            children: [
+              {
+                type: 'url',
+                name: 'Article',
+                url: 'https://article.example/',
+                date_added: chromiumTime(NOW - 5_000),
+              },
+              { type: 'url', name: 'Internal', url: 'chrome://settings/' },
+            ],
+          },
+        ],
+      },
+      other: {
+        type: 'folder',
+        name: 'Other bookmarks',
+        children: [{ type: 'url', name: '', url: 'https://other.example/' }],
+      },
+    },
+  };
+}
+
+test('parseChromiumBookmarks preserves immediate folders, dates, and http(s)-only URLs', () => {
+  const entries = parseChromiumBookmarks(fixture(), { now: NOW });
+  const byUrl = new Map(entries.map((entry) => [entry.url, entry]));
+  assert.equal(entries.length, 3);
+  assert.equal(byUrl.get('https://top.example/').folder, 'Bookmarks bar');
+  assert.equal(byUrl.get('https://top.example/').addedAt, NOW - 10_000);
+  assert.equal(byUrl.get('https://article.example/').folder, 'Reading');
+  assert.equal(byUrl.get('https://other.example/').title, 'https://other.example/');
+  assert.equal([...byUrl].some(([url]) => url.startsWith('chrome:')), false);
+});
+
+test('Chromium timestamps reject malformed and future values', () => {
+  assert.equal(chromiumTimestampMs('nope', NOW), NOW);
+  assert.equal(chromiumTimestampMs(chromiumTime(NOW + 1), NOW), NOW);
+  assert.equal(chromiumTimestampMs(chromiumTime(NOW - 1), NOW), NOW - 1);
+});
+
+test('browserDataRoot maps supported platforms without guessing missing Windows state', () => {
+  assert.equal(
+    browserDataRoot('chrome', { platform: 'darwin', homeDir: '/Users/test', env: {} }),
+    path.join('/Users/test', 'Library', 'Application Support', 'Google', 'Chrome')
+  );
+  assert.equal(
+    browserDataRoot('brave', {
+      platform: 'win32',
+      homeDir: 'ignored',
+      env: { LOCALAPPDATA: 'C:\\Local' },
+    }),
+    path.join('C:\\Local', 'BraveSoftware', 'Brave-Browser', 'User Data')
+  );
+  assert.equal(
+    browserDataRoot('edge', { platform: 'win32', homeDir: 'ignored', env: {} }),
+    null
+  );
+});
+
+test('service discovers opaque sources and reads only a rediscovered source id', async (t) => {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-browser-import-'));
+  t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));
+  const root = browserDataRoot('chrome', { platform: 'darwin', homeDir, env: {} });
+  fs.mkdirSync(path.join(root, 'Default'), { recursive: true });
+  fs.writeFileSync(
+    path.join(root, 'Local State'),
+    JSON.stringify({ profile: { info_cache: { Default: { name: 'Person 1' } } } })
+  );
+  fs.writeFileSync(path.join(root, 'Default', 'Bookmarks'), JSON.stringify(fixture()));
+
+  const service = createBrowserDataImportService({
+    platform: 'darwin',
+    homeDir,
+    env: {},
+  });
+  const sources = await service.listSources();
+  assert.deepEqual(sources.map(({ browser, profile, label }) => ({ browser, profile, label })), [{
+    browser: 'Google Chrome',
+    profile: 'Person 1',
+    label: 'Google Chrome — Person 1',
+  }]);
+  assert.match(sources[0].id, /^[A-Za-z0-9_-]{24}$/);
+  assert.equal(JSON.stringify(sources).includes(homeDir), false, 'renderer projection must omit paths');
+
+  const read = await service.readSource(sources[0].id);
+  assert.equal(read.source.label, 'Google Chrome — Person 1');
+  assert.equal(read.entries.length, 3);
+  assert.deepEqual(await service.readSource('forged-id'), { error: 'source-unavailable' });
+});
+
+test('service rejects an oversized Bookmarks file before reading it', async (t) => {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-browser-import-large-'));
+  t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));
+  const root = browserDataRoot('chrome', { platform: 'linux', homeDir, env: {} });
+  fs.mkdirSync(path.join(root, 'Default'), { recursive: true });
+  const file = path.join(root, 'Default', 'Bookmarks');
+  fs.writeFileSync(file, '');
+  fs.truncateSync(file, MAX_BROWSER_BOOKMARK_BYTES + 1);
+
+  const service = createBrowserDataImportService({
+    platform: 'linux',
+    homeDir,
+    env: {},
+  });
+  const [source] = await service.listSources();
+  assert.equal((await service.readSource(source.id)).error, 'too-large');
+});
+
+test('parser bounds hostile nesting and node counts', () => {
+  const data = fixture();
+  assert.throws(
+    () => parseChromiumBookmarks(data, { now: NOW, maxNodes: 1 }),
+    /bookmarks-too-complex/
+  );
+  assert.throws(() => parseChromiumBookmarks('{}'), /invalid-bookmarks/);
+});

@@ -452,3 +452,68 @@ desktop conveniences, not parity requirements; if a platform later gains them,
 the cleaning rules must match `src/main/clean-link.js` exactly.
 
 **Status:** Accepted 2026-07-25.
+
+## D21 — Display-capture source chooser
+**Features:** F29
+
+**Why:** Screen and window enumeration is an operating-system capability whose
+available sources and audio behavior differ materially across platforms.
+
+- **Desktop:** Electron enumerates screens and windows in the main process;
+  Blanc renders sanitized names and thumbnails in trusted chrome.
+- **iOS:** use the operating system's broadcast/capture picker.
+- **Android:** use the operating system's MediaProjection consent surface.
+
+**Parity contract:** The requesting origin is clear, approval applies to one
+request only, page content never receives source-enumeration privileges,
+navigation/tab/window changes cancel a pending request, and audio requires a
+separate explicit choice.
+
+**Status:** Accepted 2026-07-30.
+
+## D22 — Browser-profile discovery and Favorites import
+**Features:** F30
+
+**Why:** Desktop browsers expose profile files in conventional user-data
+directories, while mobile operating systems sandbox one browser from another.
+The available source formats also differ.
+
+- **Desktop:** detect known Chromium-family profiles and parse their bounded
+  `Bookmarks` JSON in the main process. A user-selected Netscape bookmarks HTML
+  file remains the cross-browser fallback, including Firefox and Safari.
+- **iOS:** use a user-selected exported bookmarks document; no scanning another
+  browser's application container.
+- **Android:** use a user-selected exported bookmarks document through the
+  system picker; no scanning another browser's private application storage.
+
+**Parity contract:** Import begins only after an explicit user action, accepts
+only supported web Favorites, preserves folders where the source carries them,
+deduplicates without replacing existing data, and never expands into passwords,
+history, cookies, or sessions without a separately specified choice.
+
+**Status:** Accepted 2026-07-30.
+
+## D23 — Certificate verification signals and site-information UI
+**Features:** F31
+
+**Why:** Each embedded browser engine exposes certificate verification results
+and certificate metadata through different APIs, and the native trust store
+remains the final authority on each operating system.
+
+- **Desktop:** Chromium performs verification. Electron's session verifier is
+  used only as an observer and delegates the decision back to Chromium; its
+  main-frame certificate-error event feeds Blanc's trusted interstitial.
+- **iOS:** rely on WebKit's authentication challenge and system trust
+  evaluation, projecting only bounded certificate display fields into native
+  Blanc chrome.
+- **Android:** rely on WebView/Android network-security trust evaluation and
+  its SSL-error callback, projecting the same bounded display fields into
+  native Blanc chrome.
+
+**Parity contract:** Page content cannot forge the connection state. Valid
+HTTPS, public HTTP, local loopback, and certificate failure remain distinct;
+site information names the exact origin and does not equate a valid certificate
+with safe content; a certificate failure has no proceed-anyway action; Blanc
+never weakens the platform verifier to generate or bypass these states.
+
+**Status:** Accepted 2026-07-30.

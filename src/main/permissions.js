@@ -3,6 +3,8 @@ const {
   storedDecision,
   rememberDecision,
 } = require('./permission-decisions');
+const { withLocalProfile } = require('./local-profile-context');
+const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 
 /**
  * Permission policy for web content. Electron's default is ALLOW
@@ -23,14 +25,30 @@ let store = null;
 const ensureStore = () => {
   if (!store) {
     const { JsonStore } = require('./store');
-    store = new JsonStore('site-permissions', { decisions: {} });
+    store = new JsonStore('site-permissions', { decisions: {} }, { scope: 'profile' });
   }
   return store;
 };
 
-/** @type {((req: {origin: string, permission: string, mediaTypes: string[]}) => Promise<boolean | null>) | null} */
+/** @type {((req: {origin: string, permission: string, mediaTypes: string[], webContents: object}) => Promise<boolean | null>) | null} */
 let prompter = null;
 function setPermissionPrompter(fn) { prompter = fn; }
+
+/**
+ * Display capture is deliberately separate from persisted site permissions.
+ * Each getDisplayMedia call gets a new trusted chooser and a one-shot result.
+ * Electron source objects remain in main and are returned here only after the
+ * chooser's request/tab/origin binding has been revalidated.
+ * @type {((req: {
+ *   origin: string,
+ *   frame: object,
+ *   videoRequested: boolean,
+ *   audioRequested: boolean,
+ *   userGesture: boolean,
+ * }) => Promise<object | null>) | null}
+ */
+let displayMediaPrompter = null;
+function setDisplayMediaPrompter(fn) { displayMediaPrompter = fn; }
 
 function normalizedOrigin(rawUrl) {
   try {
@@ -56,7 +74,10 @@ function removeDecision(key) {
   ensureStore().update((d) => { delete d.decisions[key]; });
 }
 
-function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
+function setupPermissionPolicy(
+  session,
+  { persistDecisions = true, profileId = DEFAULT_PROFILE_ID } = {}
+) {
   // Incognito/private sessions use this in-memory map. Normal browsing keeps
   // using site-permissions.json and remains manageable from Settings.
   const ephemeralDecisions = {};
@@ -69,14 +90,33 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     }
   };
 
-  session.setPermissionRequestHandler(async (_wc, permission, callback, details) => {
+  session.setPermissionRequestHandler(async (webContents, permission, callback, details) =>
+    withLocalProfile(profileId, async () => {
+    const requestedMediaTypes = normalizedMediaTypes(details?.mediaTypes);
+    // Electron 43 sends getDisplayMedia through a preliminary `media` request
+    // with an EMPTY mediaTypes array before invoking the dedicated display
+    // handler. Prompting here mislabels the request as microphone and creates a
+    // double prompt. An empty media request grants no camera/mic device by
+    // itself, so admit only concrete HTTP(S) origins into the one-shot display
+    // handler, which performs the actual gesture/frame/tab/origin validation
+    // and trusted source choice. Ordinary getUserMedia requests name audio
+    // and/or video and continue through the persisted prompt policy below.
+    if (permission === 'media' && requestedMediaTypes.length === 0) {
+      return callback(!!normalizedOrigin(details?.requestingUrl));
+    }
+    // This is only Chromium's gate into the one-shot display-media handler
+    // below; it does not grant a stream. The handler independently validates
+    // the frame, gesture, active tab, origin, navigation lifetime, and choice.
+    if (permission === 'display-capture') {
+      return callback(!!normalizedOrigin(details?.requestingUrl));
+    }
     if (AUTO_ALLOWED.has(permission)) return callback(true);
     if (!PROMPTED.has(permission)) return callback(false);
 
     const origin = normalizedOrigin(details.requestingUrl);
     if (!origin) return callback(false);
 
-    const mediaTypes = normalizedMediaTypes(details.mediaTypes);
+    const mediaTypes = requestedMediaTypes;
     const scopes = permission === 'media' && mediaTypes.length ? mediaTypes : [null];
     const saved = scopes.map((mediaType) =>
       storedDecision(readDecisions(), origin, permission, mediaType));
@@ -87,15 +127,24 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     // null = the prompt couldn't be shown (no window). Deny for now but
     // DON'T persist it, or a transient no-window moment would silently
     // block the site forever. Only a real Allow/Block answer is remembered.
-    const allow = await prompter({ origin, permission, mediaTypes });
+    const promptRequest = { origin, permission, mediaTypes };
+    // Electron always supplies the requester. Keep test doubles and legacy
+    // collaborators shape-compatible when they intentionally omit it.
+    if (webContents) promptRequest.webContents = webContents;
+    const allow = await prompter(promptRequest);
     if (allow === null) return callback(false);
     saveDecision(origin, permission, mediaTypes, allow);
-    callback(allow);
-  });
+      callback(allow);
+    })
+  );
 
   // Synchronous checks (navigator.permissions.query, Notification.permission)
   // must agree with the request handler or sites see inconsistent state.
-  session.setPermissionCheckHandler((_wc, permission, requestingOrigin, details) => {
+  session.setPermissionCheckHandler((_wc, permission, requestingOrigin, details) =>
+    withLocalProfile(profileId, () => {
+    if (permission === 'display-capture') {
+      return !!normalizedOrigin(requestingOrigin || details?.requestingUrl);
+    }
     if (AUTO_ALLOWED.has(permission)) return true;
     if (!PROMPTED.has(permission)) return false;
     const origin = normalizedOrigin(requestingOrigin);
@@ -103,11 +152,54 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     const mediaType = permission === 'media' && ['audio', 'video'].includes(details?.mediaType)
       ? details.mediaType
       : null;
-    return storedDecision(readDecisions(), origin, permission, mediaType) === 'allow';
-  });
+      return storedDecision(readDecisions(), origin, permission, mediaType) === 'allow';
+    })
+  );
 
-  // Screen capture: still deny by never providing a stream (no picker UI yet).
-  session.setDisplayMediaRequestHandler((_request, callback) => callback({}));
+  session.setDisplayMediaRequestHandler(async (request, callback) =>
+    withLocalProfile(profileId, async () => {
+    let answered = false;
+    const answer = (streams = {}) => {
+      if (answered) return;
+      answered = true;
+      callback(streams);
+    };
+
+    const origin = normalizedOrigin(request?.securityOrigin);
+    const frame = request?.frame;
+    const frameAlive = frame
+      && (typeof frame.isDestroyed !== 'function' || !frame.isDestroyed());
+    if (
+      !origin
+      || !frameAlive
+      || request.videoRequested !== true
+      || request.userGesture !== true
+      || !displayMediaPrompter
+    ) {
+      return answer({});
+    }
+
+    try {
+      const streams = await displayMediaPrompter({
+        origin,
+        frame,
+        videoRequested: true,
+        audioRequested: request.audioRequested === true,
+        userGesture: true,
+      });
+      if (!streams?.video) return answer({});
+      answer(streams);
+    } catch {
+      answer({});
+    }
+    })
+  );
 }
 
-module.exports = { setupPermissionPolicy, setPermissionPrompter, listDecisions, removeDecision };
+module.exports = {
+  setupPermissionPolicy,
+  setPermissionPrompter,
+  setDisplayMediaPrompter,
+  listDecisions,
+  removeDecision,
+};

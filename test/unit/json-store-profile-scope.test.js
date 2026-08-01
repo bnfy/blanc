@@ -1,0 +1,123 @@
+const assert = require('node:assert/strict');
+const test = require('node:test');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+// JsonStore is deliberately exercised through its Electron-shaped boundary so
+// this stays a real filesystem compatibility test, not an implementation mock.
+const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-profile-store-'));
+const electronId = require.resolve('electron');
+const originalElectron = require.cache[electronId];
+require.cache[electronId] = {
+  id: electronId,
+  filename: electronId,
+  loaded: true,
+  exports: { app: { getPath: () => userData, on: () => {} } },
+};
+
+delete require.cache[require.resolve('../../src/main/store')];
+const { JsonStore, discardProfileStoreEntries } = require('../../src/main/store');
+const { withLocalProfile, setFocusedLocalProfile } = require('../../src/main/local-profile-context');
+
+test.after(() => {
+  delete require.cache[require.resolve('../../src/main/store')];
+  if (originalElectron) require.cache[electronId] = originalElectron;
+  else delete require.cache[electronId];
+  fs.rmSync(userData, { recursive: true, force: true });
+});
+
+test('profile stores retain default files and isolate named-profile records', () => {
+  setFocusedLocalProfile('default');
+  const store = new JsonStore('history', { entries: [] }, { scope: 'profile' });
+
+  store.update((data) => data.entries.push('default-entry'));
+  assert.equal(store.flush(), true);
+  assert.equal(store.file, path.join(userData, 'history.json'));
+
+  withLocalProfile('work', () => {
+    store.update((data) => data.entries.push('work-entry'));
+    assert.equal(store.flush(), true);
+    assert.equal(store.file, path.join(userData, 'profiles', 'work', 'history.json'));
+    assert.deepEqual(store.data.entries, ['work-entry']);
+  });
+
+  assert.deepEqual(store.data.entries, ['default-entry']);
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(userData, 'history.json'), 'utf8')).entries,
+    ['default-entry']
+  );
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(userData, 'profiles', 'work', 'history.json'), 'utf8')).entries,
+    ['work-entry']
+  );
+});
+
+test('discarding a named profile cancels pending profile-store writes', async () => {
+  const store = new JsonStore('downloads', { items: [] }, { scope: 'profile' });
+  const profileDir = path.join(userData, 'profiles', 'cleanup');
+
+  withLocalProfile('cleanup', () => {
+    store.update((data) => data.items.push('never-written'));
+  });
+  assert.equal(discardProfileStoreEntries('cleanup'), true);
+  fs.rmSync(profileDir, { recursive: true, force: true });
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  assert.equal(fs.existsSync(profileDir), false);
+  assert.equal(discardProfileStoreEntries('default'), false);
+});
+
+test('updateAndFlush commits a critical record before returning success', () => {
+  const store = new JsonStore('critical-delete', { profileIds: [] });
+
+  assert.equal(store.updateAndFlush((data) => { data.profileIds.push('profile_work'); }), true);
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(userData, 'critical-delete.json'), 'utf8')).profileIds,
+    ['profile_work']
+  );
+});
+
+test('stores atomically commit a matching backup without leaving temporary files', () => {
+  const store = new JsonStore('atomic-write', { entries: [] });
+  store.update((data) => data.entries.push('committed'));
+
+  assert.equal(store.flush(), true);
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(userData, 'atomic-write.json'), 'utf8')).entries,
+    ['committed']
+  );
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(userData, 'atomic-write.json.bak'), 'utf8')).entries,
+    ['committed']
+  );
+  assert.equal(
+    fs.readdirSync(userData).some((file) => file.startsWith('atomic-write.json.') && file.endsWith('.tmp')),
+    false
+  );
+});
+
+test('a corrupt primary record is restored from its valid backup', () => {
+  const original = new JsonStore('backup-recovery', { entries: [] });
+  original.update((data) => data.entries.push('keep-me'));
+  assert.equal(original.flush(), true);
+
+  const primaryFile = path.join(userData, 'backup-recovery.json');
+  fs.writeFileSync(primaryFile, '{ not valid json');
+
+  const recovered = new JsonStore('backup-recovery', { entries: [] });
+  assert.deepEqual(recovered.data.entries, ['keep-me']);
+  assert.deepEqual(JSON.parse(fs.readFileSync(primaryFile, 'utf8')).entries, ['keep-me']);
+});
+
+test('a corrupt primary and backup safely fall back to store defaults', () => {
+  const store = new JsonStore('unrecoverable-record', { entries: ['default'] });
+  store.update((data) => data.entries = ['persisted']);
+  assert.equal(store.flush(), true);
+
+  fs.writeFileSync(path.join(userData, 'unrecoverable-record.json'), '{ primary corruption');
+  fs.writeFileSync(path.join(userData, 'unrecoverable-record.json.bak'), '{ backup corruption');
+
+  const reloaded = new JsonStore('unrecoverable-record', { entries: ['default'] });
+  assert.deepEqual(reloaded.data.entries, ['default']);
+});

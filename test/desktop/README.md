@@ -48,6 +48,18 @@ npm run test:acceptance:desktop      # execute the runnable scenarios against th
 xvfb-run -a npm run test:acceptance:desktop   # ...on a headless Linux/CI box
 ```
 
+### Real display-sharing smoke
+
+`npm run test:smoke:display-sharing` launches Blanc with an isolated profile,
+serves a local page, makes a user-gesture-backed `getDisplayMedia()` request,
+selects the first real source through Blanc's production chooser, verifies a
+live video track, and stops it. Results and the chooser screenshot are written
+under the ignored `output/playwright/` directory.
+
+This is an OS-integrated smoke rather than a CI acceptance scenario: macOS may
+ask for Screen Recording consent for the development Electron binary, while
+headless Linux runners may not expose a capturable display.
+
 The desktop script is plain `cucumber-js` so it works on a dev machine with a
 display (macOS); prefix `xvfb-run -a` on headless Linux.
 
@@ -60,21 +72,26 @@ for the deterministic Electron contract and opt-in live-site canary.
 The **`runnable`** profile is the subset wired to real assertions today — the
 scenarios drivable purely through main-process state or pure app logic:
 
-| Implemented (30 stable IDs) | |
+| Implemented scenario coverage | |
 |---|---|
+| F1-1, F1-2 | resting Island state (group/dots/domain/shield/actions) and expanded command palette with live tab switcher |
 | F2-1..F2-4 | tab reopen / duplicate / pin-order / new-tab-ungrouped |
-| F3-1, F3-4, F3-5 | group create+move / prune-on-empty / grouped-pin ordering |
-| F4-4, F4-5 | private-session isolation / private start-page load |
+| F3-1..F3-5 | group create+move / active-group Island projection / collapsed panel row / prune-on-empty / grouped-pin ordering |
+| F4-1..F4-5 | private history/reopen isolation / private chrome quick-exit / child inheritance / private-session isolation / private start-page load |
 | F5-1..F5-5 | address routing / 4 engines / OS hand-off / autocomplete routing + privacy |
-| F7-2 | slash-command effects (/new, /downloads, /find) |
+| F6-1, F6-2 | Quick Switcher matches open tabs/Favorites and ranks/focuses group results |
+| F7-1, F7-2 | live slash-prefix filtering and command effects (/new, /downloads, /find) |
+| F8-1 | Chromium find match count/navigation with a clickable guest page outside the capsule |
 | F9-1, F9-2 | favorite active page / add-all-tabs |
-| F10-2 | clear history |
+| F10-1, F10-2 | committed-title history record and clear history |
+| F11-1, F11-2 | streamed download progress/completion and completed-file opening |
 | F12-3 | ad-block global toggle |
 | F14-1..F14-4 | settings validation + device-local search-suggestion opt-out |
+| F15-1, F15-2 | live dark theme propagation and private palette scope |
 | F16-2..F16-7 | utility-sheet routing, isolation, actions, and toggle behavior |
-| F17-1 | supporter unlock → app icon applied |
+| F17-1, F17-2 | supporter unlock and locked-colorway fallback |
 
-Run `npm run test:acceptance:dry` — **35 scenarios, 169 steps, 0 undefined**
+Run `npm run test:acceptance:dry` — **92 scenarios, 555 steps, 0 undefined**
 (Scenario Outlines expand per example: F5-2 → 4 rows, F7-2 → 3).
 
 The **`default`** profile (`not @mobile`) selects the whole desktop-applicable
@@ -104,6 +121,9 @@ offline-verifiable signal. Both tighten once the DOM-automation backlog lands.
   **routing decision** (`normalizeAddressInput` / the hand-off predicate), not an
   actual external navigation, which can't complete offline. The heuristic is the
   substantive, deterministic part.
+- **Completed downloads (F11-2)** — writes a real temporary download through
+  Electron, then captures the exact `shell.openPath` seam in `BLANC_TEST`
+  instead of launching Finder/Explorer during the acceptance run.
 
 ## Verification status
 

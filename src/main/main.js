@@ -1,7 +1,21 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell } = require('electron');
+const {
+  app,
+  BrowserWindow,
+  WebContentsView,
+  session,
+  ipcMain,
+  Menu,
+  nativeTheme,
+  nativeImage,
+  dialog,
+  shell,
+  desktopCapturer,
+  webContents,
+} = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { AsyncLocalStorage } = require('async_hooks');
 const { pathToFileURL } = require('url');
 const {
   setupAdBlocker,
@@ -17,14 +31,27 @@ const {
   chromeClientHintPlatformVersion,
 } = require('./chrome-client-hints');
 const { registerPagesScheme, setupPages } = require('./pages');
-const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
+const {
+  setupPermissionPolicy,
+  setPermissionPrompter,
+  setDisplayMediaPrompter,
+} = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
-const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
+const {
+  setupDownloads,
+  listDownloads,
+  downloadsActivity,
+  acknowledgeDownloads,
+  openDownload,
+  clearFinishedDownloads,
+  discardProfileDownloads,
+  setTestOpenDownloadHandler,
+} = require('./downloads');
 const { attachContextMenu } = require('./context-menu');
 const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
@@ -32,9 +59,27 @@ const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu } = require('./bookmark-data');
 const history = require('./history');
-const { JsonStore } = require('./store');
+const { JsonStore, discardProfileStoreEntries } = require('./store');
 const { persistableEntries } = require('./session-snapshot');
 const { filterRestoredSession } = require('./session-restore');
+const {
+  PRIMARY_WINDOW_ID,
+  readSessionWorkspace,
+  activeWorkspaceWindow,
+  replaceWorkspaceWindow,
+  removeWorkspaceWindow,
+  removeProfileWorkspaces,
+  replaceObject,
+} = require('./session-workspace');
+const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const { createProfileSessionRegistry } = require('./profile-sessions');
+const localProfiles = require('./local-profiles');
+const profileDeletions = require('./profile-deletions');
+const {
+  withLocalProfile,
+  setFocusedLocalProfile,
+} = require('./local-profile-context');
+const { createWindowRuntimeRegistry } = require('./window-runtime-registry');
 const { isUtilityUrl } = require('./utility-pages');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
 const { setupWebAuthn } = require('./webauthn');
@@ -49,11 +94,23 @@ const {
   calculateChromeLayout,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
+const { addRecentlyClosed, takeRecentlyClosed } = require('./recently-closed-tabs');
+const { splitPageBounds } = require('./split-view-layout');
+const {
+  captureRequestStillValid,
+} = require('./display-share-request');
+const {
+  sanitizeCertificate,
+  createCertificateObserver,
+  buildSiteInfo,
+  certificateErrorQuery,
+} = require('./site-security');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 // The query flag tells the newtab page to show private copy + theme.
 const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
+const certificateObserver = createCertificateObserver();
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
@@ -125,9 +182,10 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   app.on('second-instance', (_e, commandLine) => {
     for (const url of urlsFromArgv(commandLine)) openExternalUrl(url);
-    if (win && !win.isDestroyed()) {
-      if (win.isMinimized()) win.restore();
-      win.focus();
+    const browserWindow = currentBrowserWindow();
+    if (browserWindow) {
+      if (browserWindow.isMinimized()) browserWindow.restore();
+      browserWindow.focus();
     }
   });
 
@@ -262,8 +320,9 @@ function openExternalUrl(url) {
     return;
   }
   setActiveTab(createTab(url));
-  if (win.isMinimized()) win.restore();
-  win.focus();
+  const browserWindow = currentBrowserWindow();
+  if (browserWindow?.isMinimized()) browserWindow.restore();
+  browserWindow?.focus();
 }
 
 // Protocols handed off to the OS instead of navigated — a mailto: click
@@ -289,7 +348,7 @@ function handOffToOs(url, { trusted = false } = {}) {
   } else if (!externalProtocolPromptOpen && hasLiveWindow()) {
     externalProtocolPromptOpen = true;
     const label = decision.protocol.slice(0, -1);
-    dialog.showMessageBox(win, {
+    dialog.showMessageBox(currentBrowserWindow() ?? undefined, {
       type: 'question',
       title: 'Open external application?',
       message: `Open this ${label} link in another application?`,
@@ -408,13 +467,172 @@ if (chromeMajor) {
   });
 }
 
+// Session-level fallback for webContents where the CDP user-agent override
+// cannot attach. Kept as a reusable installer because named profiles allocate
+// their sessions after this startup block has run.
+function installChromeClientHintHeaderFallback(browsingSession) {
+  if (!chromeMajor || !browsingSession) return;
+  const chUa = `"Not;A=Brand";v="8", "Chromium";v="${chromeMajor}", "Google Chrome";v="${chromeMajor}"`;
+  const chUaFull = `"Not;A=Brand";v="8.0.0.0", "Chromium";v="${chromeFull}", "Google Chrome";v="${chromeFull}"`;
+  const setHeader = (headers, name, value, { add = false } = {}) => {
+    const existing = Object.keys(headers).find((key) => key.toLowerCase() === name);
+    if (existing || add) headers[existing || name] = value;
+  };
+  browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
+    const h = details.requestHeaders;
+    setHeader(h, 'sec-ch-ua', chUa, { add: true });
+    // High-entropy hints remain opt-in: Chromium only sends them after an
+    // origin negotiates Accept-CH, and Blanc mirrors that behavior.
+    setHeader(h, 'sec-ch-ua-full-version-list', chUaFull);
+    setHeader(h, 'sec-ch-ua-platform', `"${chromeClientHintPlatform()}"`);
+    setHeader(h, 'sec-ch-ua-platform-version', `"${chromeClientHintPlatformVersion()}"`);
+    setHeader(h, 'sec-ch-ua-arch', `"${chromeClientHintArchitecture()}"`);
+    setHeader(h, 'sec-ch-ua-bitness', `"${chromeClientHintBitness()}"`);
+    setHeader(h, 'sec-ch-ua-model', '""');
+    setHeader(h, 'sec-ch-ua-mobile', '?0');
+    setHeader(h, 'sec-ch-ua-wow64', '?0');
+    callback({ requestHeaders: h });
+  });
+}
+
 /** @type {BrowserWindow | null} */
 let win = null;
-/** Non-persistent session shared by all private tabs for this app run. */
-let privateBrowsingSession = null;
-const PRIVATE_PARTITION = 'private-browsing'; // no `persist:` prefix = memory only
-const getPrivateBrowsingSession = () =>
-  (privateBrowsingSession ??= session.fromPartition(PRIVATE_PARTITION));
+// win remains the transition alias while the single-window code is being
+// carved into per-window operations. Window-local chrome state and tab
+// ownership start here so a second BrowserWindow cannot inherit the primary
+// window's overlay/sheet identity by accident.
+const windowRuntimeRegistry = createWindowRuntimeRegistry();
+let primaryWindowRuntime = null;
+let focusedWindowRuntime = null;
+// Native window callbacks and IPC handlers can be interleaved across windows.
+// AsyncLocalStorage keeps a tab event's follow-up work in the runtime that
+// produced it instead of letting whichever window was focused most recently
+// receive a state broadcast or child view operation.
+const windowRuntimeContext = new AsyncLocalStorage();
+
+function withWindowRuntime(runtime, work) {
+  if (!runtime) return work();
+  return withLocalProfile(runtime.profileId, () => windowRuntimeContext.run(runtime, work));
+}
+
+function bindWindowRuntime(runtime, listener) {
+  return (...args) => withWindowRuntime(runtime, () => listener(...args));
+}
+
+function setFocusedWindowRuntime(runtime) {
+  focusedWindowRuntime = runtime?.browserWindow && !runtime.browserWindow.isDestroyed()
+    ? runtime
+    : null;
+  if (focusedWindowRuntime) activeWorkspaceWindowId = focusedWindowRuntime.id;
+  setFocusedLocalProfile(focusedWindowRuntime?.profileId ?? DEFAULT_PROFILE_ID);
+}
+
+function currentWorkspaceRuntime() {
+  return windowRuntimeContext.getStore()
+    ?? focusedWindowRuntime
+    ?? primaryWindowRuntime
+    ?? windowRuntimeRegistry.get(activeWorkspaceWindowId);
+}
+
+function currentBrowserWindow() {
+  const browserWindow = currentWorkspaceRuntime()?.browserWindow ?? null;
+  return browserWindow && !browserWindow.isDestroyed() ? browserWindow : null;
+}
+// Transitional façade for the existing primary-window call sites. Its fields
+// live on the registered runtime, not as separate module globals, so the
+// remaining call sites can be converted one operation at a time without
+// changing surface behavior.
+const chromeState = {
+  get overlayView() { return currentWorkspaceRuntime()?.overlayView ?? null; },
+  set overlayView(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) runtime.overlayView = value ?? null;
+  },
+  get overlayMode() { return currentWorkspaceRuntime()?.overlayMode ?? null; },
+  set overlayMode(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) runtime.overlayMode = value ?? null;
+  },
+  get overlayPrefill() { return currentWorkspaceRuntime()?.overlayPrefill ?? null; },
+  set overlayPrefill(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) runtime.overlayPrefill = value ?? null;
+  },
+  get addressMenuTicket() { return currentWorkspaceRuntime()?.addressMenuTicket ?? 0; },
+  set addressMenuTicket(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) runtime.addressMenuTicket = value;
+  },
+  get addressMenuSeq() { return currentWorkspaceRuntime()?.addressMenuSeq ?? 0; },
+  set addressMenuSeq(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) runtime.addressMenuSeq = value;
+  },
+  get utilitySheetView() { return currentWorkspaceRuntime()?.utilitySheetView ?? null; },
+  set utilitySheetView(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) runtime.utilitySheetView = value ?? null;
+  },
+  get utilitySheetUrl() { return currentWorkspaceRuntime()?.utilitySheetUrl ?? null; },
+  set utilitySheetUrl(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) runtime.utilitySheetUrl = value ?? null;
+  },
+};
+// The WebContents resources remain in the process-wide tabs map so native
+// events can find them by id. Their ordering, grouping, and active selection
+// belong to the current runtime, which is what makes a future second window's
+// tab model independent.
+const tabState = {
+  get tabOrder() { return currentWorkspaceRuntime()?.tabOrder ?? []; },
+  set tabOrder(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) runtime.tabOrder = Array.isArray(value) ? value : [];
+  },
+  get activeTabId() { return currentWorkspaceRuntime()?.activeTabId ?? null; },
+  set activeTabId(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) windowRuntimeRegistry.setActiveTab(runtime.id, value ?? null);
+  },
+  get groups() { return currentWorkspaceRuntime()?.groups ?? []; },
+  set groups(value) {
+    const runtime = currentWorkspaceRuntime();
+    if (runtime) runtime.groups = Array.isArray(value) ? value : [];
+  },
+};
+// The shipped default profile retains Electron's defaultSession and its
+// existing private-browsing partition. Named profiles are allocated lazily
+// after the app is ready, then receive the same policy installation below.
+let profileSessionRegistry = null;
+let fallbackPrivateBrowsingSession = null;
+let installProfileSessionPolicies = () => {};
+
+function profileIdForCurrentRuntime() {
+  return currentWorkspaceRuntime()?.profileId ?? DEFAULT_PROFILE_ID;
+}
+
+function getNormalBrowsingSession(profileId = profileIdForCurrentRuntime()) {
+  return profileSessionRegistry?.normal(profileId) ?? session.defaultSession;
+}
+
+function getPrivateBrowsingSession(profileId = profileIdForCurrentRuntime()) {
+  return profileSessionRegistry?.private(profileId)
+    ?? (fallbackPrivateBrowsingSession ??= session.fromPartition('private-browsing'));
+}
+
+function browsingSessionsForProfile(profileId = profileIdForCurrentRuntime()) {
+  if (profileSessionRegistry) return profileSessionRegistry.forProfile(profileId);
+  return {
+    profileId: DEFAULT_PROFILE_ID,
+    normal: session.defaultSession,
+    private: getPrivateBrowsingSession(DEFAULT_PROFILE_ID),
+  };
+}
+
+function allBrowsingSessions() {
+  return profileSessionRegistry?.all()
+    ?? [session.defaultSession, getPrivateBrowsingSession(DEFAULT_PROFILE_ID)];
+}
 
 const CHROME_INDEX_FILE = path.join(__dirname, '../renderer/index.html');
 const CHROME_OVERLAY_FILE = path.join(__dirname, '../renderer/overlay.html');
@@ -444,56 +662,75 @@ let lastNativeThemeAppearance = resolvedThemeAppearance();
 let appliedThemeSource = null;
 let themeTintRefreshGeneration = 0;
 
+function sendThemeAppearance(runtime, appearance) {
+  const send = (wc) => {
+    if (wc && !wc.isDestroyed()) wc.send('chrome:theme-appearance', appearance);
+  };
+  send(runtime.browserWindow?.webContents);
+  send(runtime.overlayView?.webContents);
+  send(runtime.utilitySheetView?.webContents);
+  for (const tabId of runtime.tabOrder) send(tabs.get(tabId)?.view.webContents);
+}
+
 function applyChromeThemeAppearance(appearance) {
-  if (!hasLiveWindow()) return;
   const resolved = appearance === 'dark' || appearance === 'light'
     ? appearance
     : resolvedThemeAppearance();
-  win.setBackgroundColor(chromeBackgroundColor(resolved));
-  win.webContents.send(
-    'chrome:theme-appearance',
-    resolved
-  );
+  for (const runtime of windowRuntimeRegistry.all()) {
+    const browserWindow = runtime.browserWindow;
+    if (!browserWindow || browserWindow.isDestroyed()) continue;
+    browserWindow.setBackgroundColor(chromeBackgroundColor(resolved));
+    sendThemeAppearance(runtime, resolved);
+  }
 }
 
 function beginChromeThemeAppearance(appearance) {
-  if (!hasLiveWindow()) return;
   // An explicit target can paint immediately. "system" has no trustworthy
   // cross-platform resolved value until Electron removes the prior override,
   // but the renderer can still disable its transition before that happens.
-  if (appearance === 'dark' || appearance === 'light') {
-    win.setBackgroundColor(chromeBackgroundColor(appearance));
+  for (const runtime of windowRuntimeRegistry.all()) {
+    const browserWindow = runtime.browserWindow;
+    if (!browserWindow || browserWindow.isDestroyed()) continue;
+    if (appearance === 'dark' || appearance === 'light') {
+      browserWindow.setBackgroundColor(chromeBackgroundColor(appearance));
+    }
+    sendThemeAppearance(runtime, appearance ?? 'pending');
   }
-  win.webContents.send('chrome:theme-appearance', appearance ?? 'pending');
 }
 
 function refreshActivePageTintForThemeChange() {
   const generation = ++themeTintRefreshGeneration;
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
-  if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
+  // Each browser window owns an independent active tab and chrome strip. A
+  // theme transition must invalidate/re-sample all of them; relying on the
+  // focused runtime would leave a background window painted with its old page
+  // tint until the user happened to visit it again.
+  forEachLiveWindowRuntime((runtime) => {
+    const tab = tabState.activeTabId ? tabs.get(tabState.activeTabId) : null;
+    if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
 
-  // The captured top-edge pixels and meta theme-color both describe the old
-  // color scheme. Drop them before the page repaints so the strip cannot keep
-  // showing a stale site color during the handoff.
-  const hadTint = !!(tab.pageBg || tab.themeColor);
-  tab.pageBg = null;
-  tab.themeColor = null;
-  if (hadTint) broadcastTabs();
+    // The captured top-edge pixels and meta theme-color both describe the old
+    // color scheme. Drop them before the page repaints so the strip cannot keep
+    // showing a stale site color during the handoff.
+    const hadTint = !!(tab.pageBg || tab.themeColor);
+    tab.pageBg = null;
+    tab.themeColor = null;
+    if (hadTint) broadcastTabs();
 
-  // Color-scheme media queries repaint asynchronously in the tab renderer.
-  // Sample across the likely repaint/transition window: the first gets the
-  // common case quickly, while later passes let a site with its own CSS
-  // transition settle. The generation guard prevents an older theme change's
-  // captures from winning after a newer one.
-  for (const delay of [32, 160, 400, 800]) {
-    setTimeout(() => {
-      if (generation !== themeTintRefreshGeneration) return;
-      samplePageTint(tab, {
-        immediate: true,
-        shouldApply: () => generation === themeTintRefreshGeneration,
-      });
-    }, delay);
-  }
+    // Color-scheme media queries repaint asynchronously in the tab renderer.
+    // Sample across the likely repaint/transition window: the first gets the
+    // common case quickly, while later passes let a site with its own CSS
+    // transition settle. Binding the callback preserves the owning runtime if
+    // another native window gains focus before a delayed sample runs.
+    for (const delay of [32, 160, 400, 800]) {
+      setTimeout(bindWindowRuntime(runtime, () => {
+        if (generation !== themeTintRefreshGeneration) return;
+        samplePageTint(tab, {
+          immediate: true,
+          shouldApply: () => generation === themeTintRefreshGeneration,
+        });
+      }), delay);
+    }
+  });
 }
 
 // nativeTheme.themeSource drives prefers-color-scheme in every renderer —
@@ -536,18 +773,15 @@ function applyAppIcon() {
   applyDockAppIcon({ app, nativeImage, appIcon });
 }
 
-const hasLiveWindow = () => !!win && !win.isDestroyed();
+const hasLiveWindow = () => !!currentBrowserWindow();
 
 /** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, audible: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
-/** Display order of tab ids — the single source of truth for the strip. */
-let tabOrder = [];
-let activeTabId = null;
-/** Named tab groups in display order — pill clusters follow this order,
- * ungrouped tabs trail. Groups have no color by design (Island Tab Groups
- * handoff): identity is a lowercase mono name. Empty groups are pruned.
- * @type {{ id: string, name: string, collapsed: boolean }[]} */
-let groups = [];
+
+function setRuntimeActiveTab(id) {
+  tabState.activeTabId = id;
+}
+
 const tabsWantingAddressBarFocus = new Set();
 const searchSuggestionService = createSearchSuggestionService();
 // One live provider request per trusted chrome surface. A newer query aborts
@@ -581,12 +815,15 @@ function setTestSearchNavigationCapture(enabled) {
 }
 
 // Outstanding permission prompts awaiting the user's Allow/Block, keyed by
-// prompt id → the Promise resolver. Flushed if the window dies mid-prompt
-// so the underlying Chromium request never hangs.
+// prompt id → its resolver and owning runtime. A response from another
+// window is ignored, and closing one window flushes only its own requests.
 const pendingPermissionPrompts = new Map();
-function flushPermissionPrompts() {
-  for (const resolve of pendingPermissionPrompts.values()) resolve(null); // null = never answered
-  pendingPermissionPrompts.clear();
+function flushPermissionPrompts(runtimeId = null) {
+  for (const [id, pending] of pendingPermissionPrompts) {
+    if (runtimeId && pending.runtimeId !== runtimeId) continue;
+    pending.resolve(null); // null = never answered
+    pendingPermissionPrompts.delete(id);
+  }
 }
 
 // Height (in CSS px) of the sampled safe-area gutter the resting Island floats
@@ -609,24 +846,18 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
 // The island's expanded states (command bar, ⌘L palette, find capsule)
 // render in a separate always-on-top WebContentsView so they float OVER
 // the web content instead of growing the strip and shifting content down.
-// It is attached to win.contentView only while something is showing.
-/** @type {WebContentsView | null} */
-let overlayView = null;
-/** @type {null | 'panel' | 'palette' | 'find'} */
-let overlayMode = null;
-/** Companion to overlayMode, replayed alongside it below if the overlay's
- * first load hadn't finished when showOverlay was called. */
-let overlayPrefill = null;
-/** Native address-bar context menu up: suppress the overlay's blur
- * dismissal — the popup's close callback owns what happens next.
- * A generation ticket, not a boolean: if a second popup ever supersedes the
- * first (two right-clicks racing the handler's await), the stale popup's
- * close callback must not disarm the guard under the live one. 0 = no menu. */
-let addressMenuTicket = 0;
-let addressMenuSeq = 0;
+// They are attached to each runtime's BrowserWindow only while showing.
 
 function currentChromeLayout() {
-  const { width, height } = win.getContentBounds();
+  const browserWindow = currentBrowserWindow();
+  if (!browserWindow) return calculateChromeLayout({
+    width: 1280,
+    height: 800,
+    chromeHeight,
+    tabLayout,
+    verticalTabsWidth: verticalTabsPreferredWidth,
+  });
+  const { width, height } = browserWindow.getContentBounds();
   return calculateChromeLayout({
     width,
     height,
@@ -648,16 +879,21 @@ function verticalTabsMetrics(layout = currentChromeLayout()) {
 
 function overlayBounds() {
   const layout = currentChromeLayout();
-  if (overlayMode === 'find') return layout.findBounds;
-  if (overlayMode === 'palette') return layout.paletteBounds;
+  if (chromeState.overlayMode === 'find') return layout.findBounds;
+  if (chromeState.overlayMode === 'palette') return layout.paletteBounds;
   return layout.panelBounds;
 }
 
-function createOverlay() {
+function createOverlay(runtime = currentWorkspaceRuntime()) {
+  if (!runtime) return;
+  return withWindowRuntime(runtime, () => createOverlayForRuntime(runtime));
+}
+
+function createOverlayForRuntime(runtime) {
   // A menu open when the previous window died may never have fired its close
   // callback — never let a leaked ticket disarm the new overlay's blur guard.
-  addressMenuTicket = 0;
-  overlayView = new WebContentsView({
+  chromeState.addressMenuTicket = 0;
+  chromeState.overlayView = new WebContentsView({
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -665,69 +901,91 @@ function createOverlay() {
       sandbox: true,
     },
   });
-  overlayView.setBackgroundColor('#00000000'); // page shows through around the panel
-  lockPrivilegedNavigation(overlayView.webContents, CHROME_OVERLAY_URL);
-  installVerticalTabsShortcut(overlayView.webContents);
-  overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
+  chromeState.overlayView.setBackgroundColor('#00000000'); // page shows through around the panel
+  lockPrivilegedNavigation(chromeState.overlayView.webContents, CHROME_OVERLAY_URL);
+  installVerticalTabsShortcut(chromeState.overlayView.webContents);
+  chromeState.overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
 
   // A show requested before the overlay document finished its first load
   // would be lost — leaving an invisible view blocking clicks. Replay it.
-  overlayView.webContents.once('did-finish-load', () => {
-    if (overlayMode) {
-      overlayView.webContents.send('overlay:show', { mode: overlayMode, prefill: overlayPrefill });
-      overlayView.webContents.focus();
+  chromeState.overlayView.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    chromeState.overlayView?.webContents.send('chrome:theme-appearance', resolvedThemeAppearance());
+    if (chromeState.overlayMode) {
+      chromeState.overlayView.webContents.send('overlay:show', { mode: chromeState.overlayMode, prefill: chromeState.overlayPrefill });
+      chromeState.overlayView.webContents.focus();
     }
-  });
+  }));
 
   // Dismiss on Escape at the main-process level so it works no matter
   // which element inside the overlay holds focus.
-  overlayView.webContents.on('before-input-event', (event, input) => {
-    if (overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
+  chromeState.overlayView.webContents.on('before-input-event', bindWindowRuntime(runtime, (event, input) => {
+    if (chromeState.overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      if (overlayMode === 'credential-picker') pickerController.settle(null, 'escape');
+      if (chromeState.overlayMode === 'credential-picker') {
+        pickerController.settleForRuntime(runtime.id, null, 'escape');
+      }
+      else if (chromeState.overlayMode === 'display-share-picker') {
+        displaySharePickerController.cancelForRuntime(runtime.id, 'escape');
+      }
       else hideOverlay();
     }
-  });
+  }));
 
   // Losing focus (page click, cmd-tab, devtools) with the command bar open
   // would leave a stale panel floating over the page. Find mode survives
   // blur deliberately — users click around the page between matches.
-  overlayView.webContents.on('blur', () => {
+  chromeState.overlayView.webContents.on('blur', bindWindowRuntime(runtime, () => {
     // A native address-bar context menu takes OS focus; that blur is not a
     // dismissal — the popup's close callback owns what happens next.
-    if (addressMenuTicket) return;
+    if (chromeState.addressMenuTicket) return;
     // Playwright's Electron main-process evaluate calls steal focus from the
     // guest view while the acceptance harness inspects it. Keep the real blur
     // policy in production; tests dismiss explicitly between edit sessions.
     if (acceptanceTestMode) return;
-    if (!overlayMode || overlayMode === 'find') return;
+    if (!chromeState.overlayMode || chromeState.overlayMode === 'find') return;
     // A freshly attached blank tab's view can momentarily grab focus while
     // its address-focus reclaim is still pending — that's not a dismissal;
     // the reclaim will re-assert overlay focus on the next tick.
-    if (activeTabId && tabsWantingAddressBarFocus.has(activeTabId)) return;
-    if (overlayMode === 'credential-picker') return pickerController.settle(null, 'blur');
+    if (tabState.activeTabId && tabsWantingAddressBarFocus.has(tabState.activeTabId)) return;
+    if (chromeState.overlayMode === 'credential-picker') {
+      return pickerController.settleForRuntime(runtime.id, null, 'blur');
+    }
+    if (chromeState.overlayMode === 'display-share-picker') {
+      return displaySharePickerController.cancelForRuntime(runtime.id, 'blur');
+    }
     hideOverlay({ refocusContent: false });
-  });
+  }));
 
-  // A dying overlay must settle any pending picker, or the fill awaits forever.
-  overlayView.webContents.on('destroyed', () => pickerController.settle(null, 'window-closed'));
-  overlayView.webContents.on('render-process-gone', () => pickerController.settle(null, 'window-closed'));
+  // A dying overlay must settle any pending picker, or the caller awaits forever.
+  chromeState.overlayView.webContents.on('destroyed', bindWindowRuntime(runtime, () => {
+    pickerController.settleForRuntime(runtime.id, null, 'window-closed');
+    displaySharePickerController.cancelForRuntime(runtime.id, 'window-closed');
+  }));
+  chromeState.overlayView.webContents.on('render-process-gone', bindWindowRuntime(runtime, () => {
+    pickerController.settleForRuntime(runtime.id, null, 'window-closed');
+    displaySharePickerController.cancelForRuntime(runtime.id, 'window-closed');
+  }));
 
-  attachAddressMenu(overlayView.webContents, {
-    isOverlayLive: () =>
+  attachAddressMenu(chromeState.overlayView.webContents, {
+    isOverlayLive: bindWindowRuntime(runtime, () =>
       hasLiveWindow()
-      && overlayView && !overlayView.webContents.isDestroyed()
-      && (overlayMode === 'panel' || overlayMode === 'palette'),
-    getWindow: () => win,
-    getOverlayBounds: () => overlayBounds(),
-    acquireMenuGuard: () => { addressMenuTicket = ++addressMenuSeq; return addressMenuTicket; },
-    releaseMenuGuard: (ticket) => {
+      && chromeState.overlayView && !chromeState.overlayView.webContents.isDestroyed()
+      && (chromeState.overlayMode === 'panel' || chromeState.overlayMode === 'palette'),
+    ),
+    getWindow: bindWindowRuntime(runtime, () => currentBrowserWindow()),
+    getOverlayBounds: bindWindowRuntime(runtime, () => overlayBounds()),
+    acquireMenuGuard: bindWindowRuntime(runtime, () => {
+      chromeState.addressMenuTicket = ++chromeState.addressMenuSeq;
+      return chromeState.addressMenuTicket;
+    }),
+    releaseMenuGuard: bindWindowRuntime(runtime, (ticket) => {
       // A stale popup (superseded by a newer one) must not disarm the guard
       // or run close policy under the live menu.
-      if (ticket !== addressMenuTicket) return;
-      addressMenuTicket = 0;
+      if (ticket !== chromeState.addressMenuTicket) return;
+      chromeState.addressMenuTicket = 0;
       if (!hasLiveWindow()) return;
-      if (win.isFocused()) return refocusOverlayAfterMenu();
+      const browserWindow = currentBrowserWindow();
+      if (browserWindow?.isFocused()) return refocusOverlayAfterMenu();
       // Never steal focus back from another app: if the window lost focus
       // while the guard was suppressing blur dismissal, perform the dismissal
       // the guard swallowed — without touching focus. But sample focus AFTER
@@ -736,31 +994,37 @@ function createOverlay() {
       // item selection as an app switch (dismissing the island and swallowing
       // the very edit the item performed).
       setTimeout(() => {
-        if (addressMenuTicket || !hasLiveWindow()) return;
-        if (!win.isFocused()) return hideOverlay({ refocusContent: false });
+        if (chromeState.addressMenuTicket || !hasLiveWindow()) return;
+        if (!currentBrowserWindow()?.isFocused()) return hideOverlay({ refocusContent: false });
         refocusOverlayAfterMenu();
       }, 80);
-    },
+    }),
     actions: {
-      pasteAndGo: (text) => { if (activeTabId) pasteAndGo(activeTabId, text); },
+      pasteAndGo: bindWindowRuntime(runtime, (text) => {
+        if (tabState.activeTabId) pasteAndGo(tabState.activeTabId, text);
+      }),
     },
   });
 }
 
 /** The popup took focus from the overlay; hand it back if a panel/palette is
- * still up (overlayMode gone — e.g. Paste and Go closed it — nothing to do). */
+ * still up (chromeState.overlayMode gone — e.g. Paste and Go closed it — nothing to do). */
 function refocusOverlayAfterMenu() {
-  if (overlayMode === 'panel' || overlayMode === 'palette') {
-    overlayView?.webContents.focus();
+  if (chromeState.overlayMode === 'panel' || chromeState.overlayMode === 'palette') {
+    chromeState.overlayView?.webContents.focus();
   }
 }
 
 function showOverlay(mode, { prefill } = {}) {
   // Returns whether the overlay was actually shown: requestPick treats a
   // non-true result as window-closed rather than waiting out its timeout.
-  if (!hasLiveWindow() || !overlayView) return false;
-  if (overlayMode === 'credential-picker' && mode !== 'credential-picker') {
-    pickerController.settle(null, 'mode-replaced');
+  if (!hasLiveWindow() || !chromeState.overlayView) return false;
+  const runtime = currentWorkspaceRuntime();
+  if (chromeState.overlayMode === 'credential-picker' && mode !== 'credential-picker') {
+    pickerController.settleForRuntime(runtime?.id, null, 'mode-replaced');
+  }
+  if (chromeState.overlayMode === 'display-share-picker' && mode !== 'display-share-picker') {
+    displaySharePickerController.cancelForRuntime(runtime?.id, 'mode-replaced');
   }
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
@@ -768,77 +1032,87 @@ function showOverlay(mode, { prefill } = {}) {
   // Opening the panel is a freshness signal: pull other devices' tabs
   // (throttled to 1/min inside refreshSession — tab-sync spec §6).
   if (mode === 'panel' || mode === 'palette') sync.refreshSession();
-  overlayMode = mode;
-  overlayPrefill = prefill ?? null;
+  chromeState.overlayMode = mode;
+  chromeState.overlayPrefill = prefill ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
-  win.contentView.addChildView(overlayView);
-  overlayView.setBounds(overlayBounds());
-  overlayView.webContents.send('overlay:show', { mode, prefill });
-  overlayView.webContents.focus();
-  win.webContents.send('chrome:island-state', { mode });
+  const browserWindow = currentBrowserWindow();
+  if (!browserWindow) return false;
+  browserWindow.contentView.addChildView(chromeState.overlayView);
+  chromeState.overlayView.setBounds(overlayBounds());
+  chromeState.overlayView.webContents.send('overlay:show', { mode, prefill });
+  chromeState.overlayView.webContents.focus();
+  browserWindow.webContents.send('chrome:island-state', { mode });
   return true;
 }
 
 function hideOverlay({ refocusContent = true } = {}) {
-  if (!overlayMode) return;
+  if (!chromeState.overlayMode) return;
   // 'hidden' is deliberately no-restore: hideOverlay has six callers and the
   // cause can't be attributed, so it fails safe. RETURN after delegating —
   // settle() clears its pending state before calling its injected hide
   // collaborator, which re-enters here and performs the teardown. Falling
   // through would run the removal/send/focus body a second time.
-  if (pickerController.isPending()) {
-    pickerController.settle(null, 'hidden');
+  const runtime = currentWorkspaceRuntime();
+  if (pickerController.isPendingForRuntime(runtime?.id)) {
+    pickerController.settleForRuntime(runtime?.id, null, 'hidden');
     return;
   }
-  overlayMode = null;
-  overlayPrefill = null;   // vault rows must not outlive the picker
+  if (displaySharePickerController.isPendingForRuntime(runtime?.id)) {
+    displaySharePickerController.cancelForRuntime(runtime?.id, 'hidden');
+    return;
+  }
+  chromeState.overlayMode = null;
+  chromeState.overlayPrefill = null;   // vault rows must not outlive the picker
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
-  if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
-  if (hasLiveWindow() && overlayView) {
-    win.contentView.removeChildView(overlayView);
-    overlayView.webContents.send('overlay:hide');
-    win.webContents.send('chrome:island-state', { mode: null });
-    if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
+  if (tabState.activeTabId) tabsWantingAddressBarFocus.delete(tabState.activeTabId);
+  const browserWindow = currentBrowserWindow();
+  if (browserWindow && chromeState.overlayView) {
+    browserWindow.contentView.removeChildView(chromeState.overlayView);
+    chromeState.overlayView.webContents.send('overlay:hide');
+    browserWindow.webContents.send('chrome:island-state', { mode: null });
+    if (refocusContent) tabs.get(tabState.activeTabId)?.view.webContents.focus();
   }
 }
 
 // --- Utility sheet (design: 2026-07-22-utility-sheet-design.md) ---
 // The five utility pages render here, never as tabs. One lazy transparent
-// view; the page draws its own scrim + card (body.sheet in pages.css).
-let utilitySheetView = null;
-/** Currently shown utility URL; null = hidden. The single mode flag. */
-let utilitySheetUrl = null;
+// view per runtime; the page draws its own scrim + card (body.sheet in pages.css).
 
-function createUtilitySheet() {
-  utilitySheetView = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
-  utilitySheetView.setBackgroundColor('#00000000');
-  const wc = utilitySheetView.webContents;
+function createUtilitySheet(runtime = currentWorkspaceRuntime()) {
+  if (!runtime) return;
+  return withWindowRuntime(runtime, () => createUtilitySheetForRuntime(runtime));
+}
+
+function createUtilitySheetForRuntime(runtime) {
+  chromeState.utilitySheetView = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
+  chromeState.utilitySheetView.setBackgroundColor('#00000000');
+  const wc = chromeState.utilitySheetView.webContents;
   installVerticalTabsShortcut(wc);
   // Esc dismisses no matter what inside the page holds focus (mirrors the
   // island overlay's handler).
-  wc.on('before-input-event', (event, input) => {
-    if (utilitySheetUrl && input.type === 'keyDown' && input.key === 'Escape') {
+  wc.on('before-input-event', bindWindowRuntime(runtime, (event, input) => {
+    if (chromeState.utilitySheetUrl && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       hideUtilitySheet();
     }
-  });
+  }));
   // A crashed sheet renderer is dismissed and destroyed; the next open
   // lazily recreates it. Close the dead webContents — dropping the
   // reference alone leaks the crashed guest. Default refocus: nothing else
   // will hand focus back after a crash.
-  wc.on('render-process-gone', () => {
+  wc.on('render-process-gone', bindWindowRuntime(runtime, () => {
     hideUtilitySheet();
     wc.close();
-    utilitySheetView = null;
-  });
+    chromeState.utilitySheetView = null;
+  }));
   // Default-deny (design §4): utility→utility stays in-sheet; http(s)
   // opens a real tab (createTab's dismissal covers the sheet); approved
   // handoff protocols go to the OS; everything else — and every
   // window.open — dies.
-  wc.on('will-navigate', (event, targetUrl) => {
+  wc.on('will-navigate', bindWindowRuntime(runtime, (event, targetUrl) => {
     if (isUtilityUrl(targetUrl)) {
-      utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
+      chromeState.utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
       return;
     }
     event.preventDefault();
@@ -848,7 +1122,7 @@ function createUtilitySheet() {
     } else {
       handOffToOs(targetUrl);
     }
-  });
+  }));
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
 }
 
@@ -860,33 +1134,39 @@ function sameUtilityPage(a, b) {
 }
 
 function showUtilityPage(url) {
-  if (!hasLiveWindow()) return;
+  const browserWindow = currentBrowserWindow();
+  if (!browserWindow) return;
   // Toggle: a direct re-invocation (menu/accelerator) of the shown page
   // closes it. Overlay-hosted entry points can never hit this — summoning
   // the overlay already dismissed the sheet.
-  if (utilitySheetUrl && sameUtilityPage(utilitySheetUrl, url)) return hideUtilitySheet();
+  if (chromeState.utilitySheetUrl && sameUtilityPage(chromeState.utilitySheetUrl, url)) return hideUtilitySheet();
   // One floating layer at a time, in both directions.
   hideOverlay({ refocusContent: false });
-  if (!utilitySheetView) createUtilitySheet();
-  utilitySheetUrl = url;
+  if (!chromeState.utilitySheetView) createUtilitySheet();
+  chromeState.utilitySheetUrl = url;
   // Rapid page swaps abort the in-flight load — loadURL rejects with
   // ERR_ABORTED; that's routine, not an error.
-  utilitySheetView.webContents.loadURL(url).catch(() => {});
+  chromeState.utilitySheetView.webContents.loadURL(url)
+    .then(() => chromeState.utilitySheetView?.webContents.send(
+      'chrome:theme-appearance', resolvedThemeAppearance()
+    ))
+    .catch(() => {});
   // Mirror tabs: a detached view's document still reports visibilityState
   // 'visible' and never background-throttles — toggle real visibility.
-  utilitySheetView.setVisible(true);
-  win.contentView.addChildView(utilitySheetView);
+  chromeState.utilitySheetView.setVisible(true);
+  browserWindow.contentView.addChildView(chromeState.utilitySheetView);
   resizeActiveView();
-  utilitySheetView.webContents.focus();
+  chromeState.utilitySheetView.webContents.focus();
 }
 
 function hideUtilitySheet({ refocusContent = true } = {}) {
-  if (!utilitySheetUrl) return;
-  utilitySheetUrl = null;
-  if (hasLiveWindow() && utilitySheetView) {
-    win.contentView.removeChildView(utilitySheetView);
-    utilitySheetView.setVisible(false);
-    if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
+  if (!chromeState.utilitySheetUrl) return;
+  chromeState.utilitySheetUrl = null;
+  const browserWindow = currentBrowserWindow();
+  if (browserWindow && chromeState.utilitySheetView) {
+    browserWindow.contentView.removeChildView(chromeState.utilitySheetView);
+    chromeState.utilitySheetView.setVisible(false);
+    if (refocusContent) tabs.get(tabState.activeTabId)?.view.webContents.focus();
   }
 }
 
@@ -937,25 +1217,56 @@ function pasteAndGo(id, rawText) {
 }
 
 function serializeTabs() {
-  return tabOrder
+  return tabState.tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
-    .map(({ view, ...rest }) => {
+    .map(({ view, certificateError, siteSecurityFixture, ...rest }) => {
+      // Desktop acceptance can pin a synthetic origin without navigating away
+      // from its deterministic blanc:// harness page. Production tabs never
+      // carry this property; every normal payload is still derived from the
+      // committed WebContents URL and Chromium's certificate observer.
+      const effectiveUrl = siteSecurityFixture?.url ?? rest.url;
+      let certificateRecord = null;
+      try {
+        certificateRecord = siteSecurityFixture?.certificateRecord
+          ?? certificateObserver.get(view.webContents.session, effectiveUrl);
+      } catch {
+        // A WebContents can disappear during teardown between the filter and
+        // this projection. Site info fails neutral; tab teardown continues.
+      }
+      const serialized = {
+        ...rest,
+        ...(siteSecurityFixture ? { url: effectiveUrl, isLoading: false } : {}),
+        siteInfo: buildSiteInfo(effectiveUrl, {
+          certificateRecord,
+          certificateError,
+          // Acceptance fixtures must own every site-information input. The
+          // harness can set a synthetic origin while its reset new-tab load is
+          // still settling; that late navigation resets the live counter but
+          // must not change the fixture's asserted protection state.
+          blockedCount: siteSecurityFixture?.blockedCount ?? rest.blockedCount,
+        }),
+      };
       // A page-favicon URL belongs to the tab's browsing session. Sending a
       // private tab's remote URL into persistent chrome would make the chrome
       // session fetch it again merely to paint the pill/overlay/rail, escaping
       // the non-persistent private-session boundary. Private rows deliberately
       // use the renderer's neutral fallback instead.
-      if (rest.private && rest.favicon) return { ...rest, favicon: null };
-      return rest;
+      if (serialized.private && serialized.favicon) {
+        return { ...serialized, favicon: null };
+      }
+      return serialized;
     });
 }
 
-// Open tabs persist across launches (restored in app.whenReady).
-// `groupIds` is parallel to `urls` (null = ungrouped); `groups` holds the
-// group records those ids point at.
+// Open tabs persist across launches through a versioned workspace record. Each
+// window carries URLs plus parallel group/pin metadata and group records.
+// This initial slice owns the primary window; future windows keep separate
+// records instead of sharing a flat global session.
 let sessionStore = null;
-const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [] }));
+let sessionPersistenceReadOnly = false;
+let activeWorkspaceWindowId = PRIMARY_WINDOW_ID;
+const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', {}));
 
 // Rolling ads-blocked counter for the start page's margin note. Weeks
 // start Monday 00:00 local; the count resets lazily on the first touch
@@ -984,17 +1295,40 @@ app.on('before-quit', () => { isQuitting = true; });
 function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
   // file down to whatever closed last before the process exits.
-  if (isQuitting || sessionPersistenceSuspended || tabs.size === 0) return;
+  const runtime = currentWorkspaceRuntime();
+  if (
+    isQuitting
+    || sessionPersistenceSuspended
+    || sessionPersistenceReadOnly
+    || !runtime
+    || runtime.tabOrder.length === 0
+  ) return;
   ensureSessionStore().update((d) => {
+    const parsed = readSessionWorkspace(d);
+    if (!parsed.supported) {
+      // A newer Blanc understood this file first. Preserve it verbatim rather
+      // than replacing its windows with this older process's one window.
+      sessionPersistenceReadOnly = true;
+      return;
+    }
+    const previous = parsed.workspace.windows.find((windowState) =>
+      windowState.id === runtime.id
+    ) ?? activeWorkspaceWindow(parsed.workspace);
     // Private tabs leave no trail, error pages persist their real
     // destination, url-less tabs drop — all in session-snapshot.js so tab
     // sync shares the exact same filter.
-    const entries = persistableEntries(tabOrder.map((id) => tabs.get(id)));
-    d.urls = entries.map((e) => e.url);
-    d.groupIds = entries.map((e) => e.groupId);
-    d.pinned = entries.map((e) => e.pinned);
+    const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
+    const nextWindow = {
+      ...previous,
+      id: runtime.id,
+      profileId: runtime.profileId,
+      urls: entries.map((e) => e.url),
+      groupIds: entries.map((e) => e.groupId),
+      pinned: entries.map((e) => e.pinned),
+      activeIndex: previous.activeIndex,
+    };
     // Groups referenced only by private tabs stay out of the file too.
-    d.groups = groups.filter((g) => entries.some((e) => e.groupId === g.id));
+    nextWindow.groups = runtime.groups.filter((g) => entries.some((e) => e.groupId === g.id));
     // Only update when the active tab is actually in the persisted list —
     // during startup (no active tab yet) or with a private tab active,
     // indexOf is -1 and writing 0 would corrupt the last good index.
@@ -1004,63 +1338,152 @@ function persistSession() {
     // and an index computed on the unfiltered list would restore focus to
     // the wrong tab. -1 (startup, private or url-less active tab) keeps
     // the last good index, as before.
-    const idx = entries.findIndex((e) => e.id === activeTabId);
-    if (idx >= 0) d.activeIndex = idx;
+    const idx = entries.findIndex((e) => e.id === runtime.activeTabId);
+    if (idx >= 0) nextWindow.activeIndex = idx;
+    replaceObject(d, replaceWorkspaceWindow(parsed.workspace, nextWindow, {
+      activeWindowId: activeWorkspaceWindowId,
+    }));
   });
 }
 
+function removePersistedWorkspace(runtimeId) {
+  if (isQuitting || sessionPersistenceSuspended || sessionPersistenceReadOnly) return;
+  ensureSessionStore().update((data) => {
+    const parsed = readSessionWorkspace(data);
+    if (!parsed.supported) {
+      sessionPersistenceReadOnly = true;
+      return;
+    }
+    replaceObject(data, removeWorkspaceWindow(parsed.workspace, runtimeId));
+  });
+}
+
+function removePersistedProfileWorkspaces(profileId) {
+  if (isQuitting || sessionPersistenceSuspended || sessionPersistenceReadOnly) return false;
+  const store = ensureSessionStore();
+  const parsed = readSessionWorkspace(store.data);
+  if (!parsed.supported) {
+    sessionPersistenceReadOnly = true;
+    return false;
+  }
+  // Profile removal must survive a crash before JsonStore's ordinary debounce.
+  // Otherwise a now-unregistered workspace can be restored into Personal on
+  // the next launch. Treat a failed synchronous write as unfinished deletion.
+  const saved = store.updateAndFlush((data) => {
+    replaceObject(data, removeProfileWorkspaces(parsed.workspace, profileId));
+  });
+  return saved && !sessionPersistenceReadOnly;
+}
+
+function persistSessionForRuntime(runtime) {
+  if (runtime) withWindowRuntime(runtime, persistSession);
+}
+
 function broadcastTabs() {
+  const runtime = currentWorkspaceRuntime();
   persistSession();
-  tabsync.noteTabsChanged();
-  if (!win || win.isDestroyed()) return;
+  // Existing Tab Sync consent covers only Personal's primary workspace. A
+  // named profile's local tab churn must not schedule a snapshot (or expose
+  // its favicon work) through that older consent surface.
+  if (runtime?.id === PRIMARY_WINDOW_ID && runtime.profileId === DEFAULT_PROFILE_ID) {
+    tabsync.noteTabsChanged();
+  }
+  const browserWindow = currentBrowserWindow();
+  if (!runtime || !browserWindow) return;
   const widthMetrics = verticalTabsMetrics();
   const payload = {
     tabs: serializeTabs(),
-    activeTabId,
-    groups,
+    activeTabId: tabState.activeTabId,
+    groups: tabState.groups,
+    profile: (() => {
+      const profile = localProfiles.getLocalProfile(runtime.profileId);
+      return { id: runtime.profileId, name: profile?.name ?? 'Personal' };
+    })(),
     tabLayout,
     ...widthMetrics,
   };
-  win.webContents.send('tabs:updated', payload);
-  overlayView?.webContents.send('tabs:updated', payload);
+  browserWindow.webContents.send('tabs:updated', payload);
+  chromeState.overlayView?.webContents.send('tabs:updated', payload);
 }
 
-function broadcastDownloadsActivity() {
-  if (!win || win.isDestroyed()) return;
-  win.webContents.send('chrome:downloads', downloadsActivity());
+function broadcastTabsForRuntime(runtime) {
+  if (runtime) withWindowRuntime(runtime, broadcastTabs);
+}
+
+function broadcastDownloadsActivity(changedProfileIds = null) {
+  const affectedProfiles = Array.isArray(changedProfileIds) && changedProfileIds.length
+    ? new Set(changedProfileIds)
+    : null;
+  for (const runtime of windowRuntimeRegistry.all()) {
+    if (affectedProfiles && !affectedProfiles.has(runtime.profileId)) continue;
+    withWindowRuntime(runtime, () => {
+      const browserWindow = currentBrowserWindow();
+      if (browserWindow) browserWindow.webContents.send('chrome:downloads', downloadsActivity());
+      // The downloads sheet used to poll every 750 ms. Deliver changes only to
+      // the visible sheet belonging to the affected profile/runtime instead;
+      // other windows and profiles must never wake up or receive its records.
+      if (
+        chromeState.utilitySheetUrl?.startsWith('blanc://downloads/') &&
+        chromeState.utilitySheetView &&
+        !chromeState.utilitySheetView.webContents.isDestroyed()
+      ) {
+        chromeState.utilitySheetView.webContents.send('pages:downloads:changed');
+      }
+    });
+  }
 }
 
 // The blocked-request counter can tick many times a second during a page
 // load; coalesce those into at most ~10 broadcasts/s.
-let tabsBroadcastTimer = null;
+const tabsBroadcastTimers = new Map();
 function scheduleBroadcastTabs() {
-  if (tabsBroadcastTimer) return;
-  tabsBroadcastTimer = setTimeout(() => {
-    tabsBroadcastTimer = null;
-    broadcastTabs();
+  const runtime = currentWorkspaceRuntime();
+  if (!runtime || tabsBroadcastTimers.has(runtime.id)) return;
+  const timer = setTimeout(() => {
+    tabsBroadcastTimers.delete(runtime.id);
+    withWindowRuntime(runtime, broadcastTabs);
   }, 100);
+  tabsBroadcastTimers.set(runtime.id, timer);
 }
 
 function resizeActiveView() {
-  if (!win || win.isDestroyed()) return;
+  const browserWindow = currentBrowserWindow();
+  if (!browserWindow) return;
   const layout = currentChromeLayout();
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
-  if (tab) tab.view.setBounds(layout.pageBounds);
-  if (overlayMode && overlayView) overlayView.setBounds(overlayBounds());
-  if (utilitySheetUrl && utilitySheetView) {
-    utilitySheetView.setBounds(layout.utilityBounds);
+  const activeTab = tabState.activeTabId ? tabs.get(tabState.activeTabId) : null;
+  const glanceTab = currentWorkspaceRuntime()?.glanceTabId
+    ? tabs.get(currentWorkspaceRuntime().glanceTabId)
+    : null;
+  if (activeTab && glanceTab && glanceTab !== activeTab) {
+    const split = splitPageBounds(layout.pageBounds);
+    activeTab.view.setBounds(split.primary);
+    glanceTab.view.setBounds(split.glance);
+  } else if (activeTab) {
+    activeTab.view.setBounds(layout.pageBounds);
+  }
+  if (chromeState.overlayMode && chromeState.overlayView) chromeState.overlayView.setBounds(overlayBounds());
+  if (chromeState.utilitySheetUrl && chromeState.utilitySheetView) {
+    chromeState.utilitySheetView.setBounds(layout.utilityBounds);
   }
   // The BrowserWindow renderer and native child views must move in the same
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
-  win.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
+  browserWindow.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
+}
+
+function forEachLiveWindowRuntime(work) {
+  for (const runtime of windowRuntimeRegistry.all()) {
+    const browserWindow = runtime.browserWindow;
+    if (!browserWindow || browserWindow.isDestroyed()) continue;
+    withWindowRuntime(runtime, () => work(runtime));
+  }
 }
 
 function applyVerticalTabsWidth(nextWidth) {
   const next = normalizeVerticalTabsWidth(nextWidth);
   if (next === verticalTabsPreferredWidth) return false;
   verticalTabsPreferredWidth = next;
-  if (hasLiveWindow()) resizeActiveView();
+  forEachLiveWindowRuntime(resizeActiveView);
   return true;
 }
 
@@ -1087,16 +1510,16 @@ function applyTabLayout(nextLayout) {
   if (next === tabLayout) return false;
   tabLayout = next;
 
-  if (hasLiveWindow()) {
+  forEachLiveWindowRuntime(() => {
     // A floating overlay is tied to the old pane center. Dismiss it in the
     // same main-process turn, then rebound the attached page/sheet without
     // navigating either document. The Settings sheet stays open so its own
     // layout choice does not eject the user mid-interaction.
     hideOverlay({ refocusContent: false });
     resizeActiveView();
-    if (!utilitySheetUrl) tabs.get(activeTabId)?.view.webContents.focus();
-  }
-  broadcastTabs();
+    if (!chromeState.utilitySheetUrl) tabs.get(tabState.activeTabId)?.view.webContents.focus();
+    broadcastTabs();
+  });
   scheduleMenuRebuild();
   return true;
 }
@@ -1240,10 +1663,11 @@ async function samplePageTint(tab, { immediate = false, shouldApply = () => true
 
 /** Give the page a beat to paint after load before sampling its color. */
 function scheduleSampleTint(tab) {
-  setTimeout(() => samplePageTint(tab), 150);
+  const runtime = windowRuntimeRegistry.get(tab.runtimeId);
+  setTimeout(() => withWindowRuntime(runtime, () => samplePageTint(tab)), 150);
 }
 
-// --- Tab groups (Island Tab Groups design) ---
+// --- Tab tabState.groups (Island Tab Groups design) ---
 
 /** Pill/panel cluster order: each non-empty group in group order, then a
  * trailing pseudo-cluster of ungrouped, unpinned tabs. Pinned members stay
@@ -1251,15 +1675,15 @@ function scheduleSampleTint(tab) {
  * use the standalone pinned shelf. Cmd/Ctrl+1–9 jump by this. */
 function clusterList() {
   const list = [];
-  for (const g of groups) {
-    const members = tabOrder.filter((id) => tabs.get(id)?.groupId === g.id);
+  for (const g of tabState.groups) {
+    const members = tabState.tabOrder.filter((id) => tabs.get(id)?.groupId === g.id);
     const tabIds = [
       ...members.filter((id) => tabs.get(id)?.pinned),
       ...members.filter((id) => !tabs.get(id)?.pinned),
     ];
     if (tabIds.length) list.push({ group: g, tabIds });
   }
-  const loose = tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId && !tabs.get(id).pinned);
+  const loose = tabState.tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId && !tabs.get(id).pinned);
   if (loose.length) list.push({ group: null, tabIds: loose });
   return list;
 }
@@ -1273,7 +1697,7 @@ function clusterSlots() {
     group,
     tabIds,
   }));
-  const pinnedIds = tabOrder.filter((id) => tabs.get(id)?.pinned && !tabs.get(id)?.groupId);
+  const pinnedIds = tabState.tabOrder.filter((id) => tabs.get(id)?.pinned && !tabs.get(id)?.groupId);
   if (pinnedIds.length) slots.unshift({ key: 'pinned', group: null, tabIds: pinnedIds });
   return slots;
 }
@@ -1288,12 +1712,12 @@ function clusterKeyForTab(tab) {
 }
 
 /** A group exists only while it holds tabs — closing or moving out the
- * last one dissolves it (same convention as Chrome's tab groups). */
+ * last one dissolves it (same convention as Chrome's tab tabState.groups). */
 function pruneEmptyGroups() {
-  if (!groups.length) return;
+  if (!tabState.groups.length) return;
   const used = new Set();
   for (const tab of tabs.values()) if (tab.groupId) used.add(tab.groupId);
-  groups = groups.filter((g) => used.has(g.id));
+  tabState.groups = tabState.groups.filter((g) => used.has(g.id));
 }
 
 function setTabGroup(tabId, groupId) {
@@ -1301,7 +1725,7 @@ function setTabGroup(tabId, groupId) {
   if (!tab) return;
   // A requested group that no longer exists (a picker click racing the
   // group's dissolution) is a no-op — it must not ungroup the tab instead.
-  if (groupId && !groups.some((g) => g.id === groupId)) return;
+  if (groupId && !tabState.groups.some((g) => g.id === groupId)) return;
   tab.groupId = groupId || null;
   pruneEmptyGroups();
   broadcastTabs();
@@ -1314,10 +1738,10 @@ function groupTabByName(tabId, rawName) {
   const tab = tabs.get(tabId);
   const name = String(rawName ?? '').trim().toLowerCase().slice(0, 40);
   if (!tab || !name) return;
-  let group = groups.find((g) => g.name === name);
+  let group = tabState.groups.find((g) => g.name === name);
   if (!group) {
     group = { id: crypto.randomUUID(), name, collapsed: false };
-    groups.push(group);
+    tabState.groups.push(group);
   }
   tab.groupId = group.id;
   pruneEmptyGroups();
@@ -1326,7 +1750,7 @@ function groupTabByName(tabId, rawName) {
 }
 
 function toggleGroupCollapsed(groupId) {
-  const group = groups.find((g) => g.id === groupId);
+  const group = tabState.groups.find((g) => g.id === groupId);
   if (!group) return;
   group.collapsed = !group.collapsed;
   broadcastTabs();
@@ -1334,18 +1758,18 @@ function toggleGroupCollapsed(groupId) {
 
 /** Jump to a group: activate its first tab and unfold it. */
 function focusGroup(groupId) {
-  const group = groups.find((g) => g.id === groupId);
+  const group = tabState.groups.find((g) => g.id === groupId);
   if (!group) return;
   group.collapsed = false;
   const first = clusterList().find(({ group: g }) => g?.id === groupId)?.tabIds[0];
   // setActiveTab broadcasts, but no-ops when the tab is already active —
   // the unfold still has to reach the renderers.
-  if (first && first !== activeTabId) setActiveTab(first);
+  if (first && first !== tabState.activeTabId) setActiveTab(first);
   else broadcastTabs();
 }
 
 function closeGroup(groupId) {
-  const ids = tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  const ids = tabState.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
   for (const id of ids) closeTab(id);
 }
 
@@ -1371,7 +1795,7 @@ function toggleTabMuted(id) {
 function duplicateTab(id) {
   const source = tabs.get(id);
   if (!source) return;
-  const insertAt = tabOrder.indexOf(id) + 1;
+  const insertAt = tabState.tabOrder.indexOf(id) + 1;
   const history = source.view.webContents.navigationHistory;
   const entries = history.getAllEntries();
   const newId = createTab(source.url, {
@@ -1412,26 +1836,157 @@ const FILL_WORLD_ID = 1001;
 
 const { createPickerController } = require('./credential-picker');
 const { chooseAndReveal } = require('./credential-fill-flow');
+const { createDisplaySharePickerController } = require('./display-share-picker');
 
 // Exactly-once owner of picker resolution. Behaviour is covered by
 // test/unit/credential-picker.test.js; this is only the Electron wiring.
 const pickerController = createPickerController({
   showOverlay,
   hideOverlay: () => hideOverlay({ refocusContent: false }),
-  getOverlayMode: () => overlayMode,
+  getOverlayMode: () => chromeState.overlayMode,
+  getRuntimeId: () => currentWorkspaceRuntime()?.id ?? null,
   // isTrustedSender expects { webContents, url } targets and checks frame.url
   // against target.url — a bare WebContentsView has no `.url`, so it would
   // reject EVERY reply (the picker's rows would be silently unclickable).
   // Mirror isTrustedChromeSender's shape exactly.
-  isOverlaySender: (event) => isTrustedSender(event,
-    overlayView && !overlayView.webContents.isDestroyed()
-      ? [{ webContents: overlayView.webContents, url: CHROME_OVERLAY_URL }]
-      : []),
+  isOverlaySender: (event) => {
+    const runtime = trustedRuntimeForChromeSender(event);
+    return !!runtime && event.sender === runtime.overlayView?.webContents;
+  },
   randomUUID: () => crypto.randomUUID(),
   setTimer: (fn, ms) => setTimeout(fn, ms),
   clearTimer: (t) => clearTimeout(t),
   timeoutMs: 60_000,
 });
+
+const displaySharePickerController = createDisplaySharePickerController({
+  showOverlay,
+  hideOverlay: () => hideOverlay({ refocusContent: false }),
+  getOverlayMode: () => chromeState.overlayMode,
+  getRuntimeId: () => currentWorkspaceRuntime()?.id ?? null,
+  isOverlaySender: (event) => {
+    const runtime = trustedRuntimeForChromeSender(event);
+    return !!runtime && event.sender === runtime.overlayView?.webContents;
+  },
+  randomUUID: () => crypto.randomUUID(),
+  setTimer: (fn, ms) => setTimeout(fn, ms),
+  clearTimer: (timer) => clearTimeout(timer),
+  timeoutMs: 60_000,
+});
+
+function tabForWebContentsId(webContentsId) {
+  for (const tab of tabs.values()) {
+    if (tab.view.webContents.id === webContentsId) return tab;
+  }
+  return null;
+}
+
+function imageDataUrl(image, width) {
+  try {
+    if (!image || image.isEmpty()) return null;
+    const bounded = Number.isInteger(width) && width > 0
+      ? image.resize({ width })
+      : image;
+    return bounded.isEmpty() ? null : bounded.toDataURL();
+  } catch {
+    return null;
+  }
+}
+
+function displaySourceRow(source) {
+  return {
+    name: typeof source.name === 'string' ? source.name.slice(0, 256) : 'Untitled source',
+    type: String(source.id).startsWith('screen:') ? 'screen' : 'window',
+    thumbnail: imageDataUrl(source.thumbnail, 320),
+    appIcon: imageDataUrl(source.appIcon, 32),
+  };
+}
+
+async function promptForDisplayMedia({
+  origin,
+  frame,
+  audioRequested,
+  userGesture,
+  videoRequested,
+}) {
+  if (!userGesture || !videoRequested || !frame) return null;
+
+  let wc;
+  try {
+    wc = webContents.fromFrame(frame);
+  } catch {
+    return null;
+  }
+  const tab = wc ? tabForWebContentsId(wc.id) : null;
+  const runtime = tab ? windowRuntimeRegistry.get(tab.runtimeId) : null;
+  if (!tab || !runtime) return null;
+  return withWindowRuntime(runtime, () => promptForDisplayMediaInRuntime({
+    origin,
+    frame,
+    audioRequested,
+    userGesture,
+    videoRequested,
+    wc,
+    tab,
+  }));
+}
+
+async function promptForDisplayMediaInRuntime({
+  origin,
+  frame,
+  audioRequested,
+  userGesture,
+  videoRequested,
+  wc,
+  tab,
+}) {
+  if (!userGesture || !videoRequested || !frame) return null;
+  if (tab.id !== tabState.activeTabId) return null;
+
+  const context = {
+    frame,
+    wc,
+    origin,
+    tabId: tab.id,
+    navEpoch: tab.navEpoch,
+  };
+  const validation = {
+    webContentsFromFrame: (candidate) => webContents.fromFrame(candidate),
+    getTab: (id) => tabs.get(id),
+    getActiveTabId: () => tabState.activeTabId,
+    isUtilitySheetVisible: () => !!chromeState.utilitySheetUrl,
+  };
+  if (!captureRequestStillValid(context, validation)) return null;
+
+  const sources = await desktopCapturer.getSources({
+    types: ['screen', 'window'],
+    thumbnailSize: { width: 320, height: 180 },
+    fetchWindowIcons: true,
+  });
+  if (!captureRequestStillValid(context, validation)) return null;
+
+  const usableSources = sources.filter((source) =>
+    source
+    && typeof source.id === 'string'
+    && typeof source.name === 'string'
+  );
+  const result = await displaySharePickerController.requestPick({
+    sources: usableSources,
+    rows: usableSources.map(displaySourceRow),
+    origin,
+    webContentsId: wc.id,
+    runtimeId: currentWorkspaceRuntime()?.id ?? null,
+    // Electron's display-media loopback stream is currently supported on
+    // Windows. It stays unchecked in the chooser and is never implied.
+    canShareAudio: process.platform === 'win32' && audioRequested,
+  });
+
+  if (!result.source || !captureRequestStillValid(context, validation)) return null;
+  return {
+    video: result.source,
+    ...(result.shareAudio ? { audio: 'loopback' } : {}),
+  };
+}
 
 /** A modal dialog returns focus to the CHROME document, not to the tab. Both
  * the main-side `wc.isFocused()` guard and the injected `document.hasFocus()`
@@ -1444,7 +1999,8 @@ async function restoreTabFocus(wc) {
   // Only re-assert the WINDOW when Blanc is already frontmost. A picker
   // dismissed by ⌘-Tab must not drag the window back over whatever the user
   // switched to. (Same instinct as the overlay blur guard further up.)
-  if (hasLiveWindow() && win.isFocused()) win.focus();
+  const browserWindow = currentBrowserWindow();
+  if (browserWindow?.isFocused()) browserWindow.focus();
   for (let attempt = 0; attempt < 10; attempt++) {
     if (wc.isDestroyed()) return false;
     wc.focus();
@@ -1464,8 +2020,8 @@ async function fillActiveTabFrom1Password() {
   // ── PHASE 1 (pre-reveal): NO credential is in memory yet, so err.message is
   //    safe to log for diagnosis. ──
   try {
-    if (!hasLiveWindow() || !activeTabId) return log('no-active-tab');
-    capturedTabId = activeTabId;
+    if (!hasLiveWindow() || !tabState.activeTabId) return log('no-active-tab');
+    capturedTabId = tabState.activeTabId;
     tab = tabs.get(capturedTabId);
     if (!tab) return log('no-active-tab');
     wc = tab.view.webContents;
@@ -1521,7 +2077,7 @@ async function fillActiveTabFrom1Password() {
     // Confirm BEFORE decrypting, so declining costs no secret exposure.
     if (inspect.hasPassword && inspect.passwordBasis !== 'authoritative') {
       if (!hasLiveWindow()) return log('abort-window-changed');
-      const { response } = await dialog.showMessageBox(win, {
+      const { response } = await dialog.showMessageBox(currentBrowserWindow() ?? undefined, {
         type: 'question',
         title: 'Fill from 1Password',
         message: kept.length === 1 && kept[0].title
@@ -1543,8 +2099,8 @@ async function fillActiveTabFrom1Password() {
       if (!(await restoreTabFocus(wc))) return log('abort-wc-changed');
       // The dialog was modal and async: re-validate immediately on acceptance,
       // BEFORE decrypting. The post-reveal checks below still run.
-      if (!hasLiveWindow() || !win.isFocused()) return log('abort-window-changed');
-      if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
+      if (!currentBrowserWindow()?.isFocused()) return log('abort-window-changed');
+      if (tabState.activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
       if (wc.isDestroyed()) return log('abort-wc-changed');
       if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
       if (wc.getURL() !== expectedURL) return log('abort-url-changed');
@@ -1560,11 +2116,13 @@ async function fillActiveTabFrom1Password() {
       host: expectedHost,
       deps: {
         revealUsernames: (list) => onepassword.revealUsernames(list),
-        requestPick: (rows, trunc, host) => pickerController.requestPick(rows, trunc, host),
+        requestPick: (rows, trunc, host) => pickerController.requestPick(rows, trunc, host, {
+          runtimeId: currentWorkspaceRuntime()?.id ?? null,
+        }),
         restoreTabFocus: () => restoreTabFocus(wc),
         revalidate: () => {
-          if (!hasLiveWindow() || !win.isFocused()) return 'abort-window-changed';
-          if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return 'abort-tab-changed';
+          if (!currentBrowserWindow()?.isFocused()) return 'abort-window-changed';
+          if (tabState.activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return 'abort-tab-changed';
           if (wc.isDestroyed()) return 'abort-wc-changed';
           if (tab.navEpoch !== capturedEpoch) return 'abort-navigated';
           if (wc.getURL() !== expectedURL) return 'abort-url-changed';
@@ -1579,8 +2137,8 @@ async function fillActiveTabFrom1Password() {
     if (password == null && username == null) return log('empty-item');
 
     // Re-validate after the async reveal.
-    if (!hasLiveWindow() || !win.isFocused()) return log('abort-window-changed');
-    if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
+    if (!currentBrowserWindow()?.isFocused()) return log('abort-window-changed');
+    if (tabState.activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
     if (wc.isDestroyed() || !wc.isFocused()) return log('abort-wc-changed');
     if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
     if (wc.getURL() !== expectedURL) return log('abort-url-changed');
@@ -1666,6 +2224,8 @@ async function initSpikePackaging() {
 // ─── end SPIKE ────────────────────────────────────────────────────────────
 
 function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null } = {}) {
+  const runtime = currentWorkspaceRuntime();
+  if (!runtime) return null;
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
     // open-url handoff, future call sites). Session restore filters
@@ -1690,12 +2250,13 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   const adopted = !!view;
   view ??= new WebContentsView({
     webPreferences: isPrivate
-      ? { ...TAB_WEB_PREFERENCES, session: getPrivateBrowsingSession() }
-      : TAB_WEB_PREFERENCES,
+      ? { ...TAB_WEB_PREFERENCES, session: getPrivateBrowsingSession(runtime.profileId) }
+      : { ...TAB_WEB_PREFERENCES, session: getNormalBrowsingSession(runtime.profileId) },
   });
 
   const tab = {
     id,
+    runtimeId: runtime.id,
     view,
     title: 'New Tab',
     url,
@@ -1709,7 +2270,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     pinned,
     muted,
     audible: false,
-    groupId: groupId && groups.some((g) => g.id === groupId) ? groupId : null,
+    groupId: groupId && tabState.groups.some((g) => g.id === groupId) ? groupId : null,
     // Strip tint ("faux header"): the page's top-edge color, so the chrome
     // strip can paint itself as a continuation of the site's own header.
     pageBg: null, // sampled from rendered pixels — authoritative
@@ -1725,17 +2286,26 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // SPIKE (1Password fill feasibility) — bumped on any main-frame navigation
     // start/commit so the async fill can detect a page swap mid-flow.
     navEpoch: 0,
+    // In-memory only. A failed TLS identity check is projected into trusted
+    // chrome and the local error interstitial, never persisted or bypassed.
+    certificateError: null,
   };
   tabs.set(id, tab);
-  tabOrder.push(id);
+  tabState.tabOrder.push(id);
+  windowRuntimeRegistry.claimTab(runtime.id, id);
 
   const wc = view.webContents;
   installVerticalTabsShortcut(wc);
+  wc.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    if (wc.getURL().startsWith('blanc://')) {
+      wc.send('chrome:theme-appearance', resolvedThemeAppearance());
+    }
+  }));
 
   // SPIKE (1Password fill feasibility) — ⌥⌘P on the tab's OWN webContents
   // (the overlay before-input-event listener never sees page-focused keys).
   if (ONE_PASSWORD_SPIKE_ENABLED) {
-    wc.on('before-input-event', (event, input) => {
+    wc.on('before-input-event', bindWindowRuntime(runtime, (event, input) => {
       if (input.type !== 'keyDown' || input.isAutoRepeat) return;
       if (input.code !== 'KeyP') return; // physical key — ⌥ mutates input.key on macOS
       if (!(input.meta && input.alt && !input.control && !input.shift)) return; // one modifier off ⌘P Print
@@ -1747,7 +2317,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
       fillActiveTabFrom1Password()
         .catch((err) => console.warn('[1p-spike] fill error:', err?.message))
         .finally(() => { onePasswordFillInFlight = false; });
-    });
+    }));
   }
   // WebRTC IP-handling policy applies per-webContents; this is the single choke
   // point every tab (fresh or adopted window.open child) passes through.
@@ -1760,27 +2330,27 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     tab.bookmarked = bookmarks.isBookmarked(tab.url);
   };
 
-  wc.on('audio-state-changed', () => {
+  wc.on('audio-state-changed', bindWindowRuntime(runtime, () => {
     // Coalesced like did-change-theme-color: audio transitions aren't urgent,
     // and a media that flips audible/silent needn't rebuild the session synchronously.
     tab.audible = wc.isCurrentlyAudible();
     scheduleBroadcastTabs();
-  });
+  }));
 
-  wc.on('page-title-updated', (_e, title) => {
+  wc.on('page-title-updated', bindWindowRuntime(runtime, (_e, title) => {
     tab.title = title;
     if (tab.historyEligible) history.updateTitle(tab.url, title);
     broadcastTabs();
-  });
-  wc.on('page-favicon-updated', (_e, favicons) => {
+  }));
+  wc.on('page-favicon-updated', bindWindowRuntime(runtime, (_e, favicons) => {
     tab.favicon = favicons[0] ?? null; // immediate, possibly low-res
     if (tab.bookmarked) bookmarks.updateFavicon(tab.url, tab.favicon);
     broadcastTabs();
     sync.captureTabIcon(tab).catch(() => {});
     upgradeFavicon(tab); // async refinement to the sharpest declared icon
-  });
-  wc.on('did-start-loading', () => { tab.isLoading = true; broadcastTabs(); });
-  wc.on('did-stop-loading', () => {
+  }));
+  wc.on('did-start-loading', bindWindowRuntime(runtime, () => { tab.isLoading = true; broadcastTabs(); }));
+  wc.on('did-stop-loading', bindWindowRuntime(runtime, () => {
     tab.isLoading = false;
     syncNavState();
     broadcastTabs();
@@ -1788,15 +2358,15 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // Same-origin navigations can retain their favicon without firing
     // page-favicon-updated; associate the already-known icon with the new URL.
     sync.captureTabIcon(tab).catch(() => {});
-  });
-  wc.on('did-change-theme-color', (_e, color) => {
+  }));
+  wc.on('did-change-theme-color', bindWindowRuntime(runtime, (_e, color) => {
     // Chromium reports '#rrggbb' or null; validated because it feeds chrome CSS.
     tab.themeColor = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
     scheduleBroadcastTabs();
-  });
-  wc.on('did-navigate', (_e, url, httpResponseCode) => {
+  }));
+  wc.on('did-navigate', bindWindowRuntime(runtime, (_e, url, httpResponseCode) => {
     tab.navEpoch++; // SPIKE (1Password fill feasibility)
-    const shouldReclaimChromeFocus = url === tab.url && tabsWantingAddressBarFocus.has(id) && activeTabId === id;
+    const shouldReclaimChromeFocus = url === tab.url && tabsWantingAddressBarFocus.has(id) && tabState.activeTabId === id;
     if (url !== tab.url) tabsWantingAddressBarFocus.delete(id);
     tab.blockedCount = 0;
     tab.pageBg = null; // a new page's tint mustn't linger from the old one
@@ -1822,8 +2392,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // tab.url/.bookmarked, which this event just changed via syncNavState.
     scheduleMenuRebuild();
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
-  });
-  wc.on('did-navigate-in-page', (_e, url, isMainFrame) => {
+  }));
+  wc.on('did-navigate-in-page', bindWindowRuntime(runtime, (_e, url, isMainFrame) => {
     if (isMainFrame) tab.navEpoch++; // SPIKE (1Password fill feasibility) — main frame only
     syncNavState();
     if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
@@ -1834,31 +2404,44 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // frequent on SPA-heavy sites (exactly the rebuild-storm case Task 1
     // avoids). The menu may lag slightly behind in-page route changes;
     // it catches up on the next real navigation or tab-lifecycle event.
-  });
+  }));
   // SPIKE (1Password fill feasibility) — a main-frame navigation that STARTS
   // after the orchestrator's main-side URL check would still let
   // executeJavaScript run in the replacement document; bump the epoch so the
   // pre-injection re-check aborts. Removed with the rest of the spike.
-  wc.on('did-start-navigation', (_e, _url, _isInPlace, isMainFrame) => {
-    if (isMainFrame) tab.navEpoch++;
-  });
-  wc.once('did-finish-load', () => {
+  wc.on('did-start-navigation', bindWindowRuntime(runtime, (_e, _url, _isInPlace, isMainFrame) => {
+    if (isMainFrame) {
+      tab.navEpoch++;
+      // Keep the record while main routes the failed navigation to its local
+      // certificate interstitial; any real retry/new destination starts clean.
+      if (!String(_url).startsWith('blanc://error')) tab.certificateError = null;
+      displaySharePickerController.cancelForWebContents(wc.id, 'navigation');
+    }
+  }));
+  wc.once('did-finish-load', bindWindowRuntime(runtime, () => {
     if (shouldReclaimAddressBarFocus(id)) {
       reclaimAddressBarFocus(id, { consume: true });
     }
-  });
+  }));
 
-  wc.on('focus', () => {
+  wc.on('focus', bindWindowRuntime(runtime, () => {
+    // A click inside the secondary Glance view promotes it to the active
+    // pane. The promotion swaps the two already-owned tabs; it never creates
+    // a tab or crosses a window/profile boundary.
+    if (runtime.glanceTabId === id && tabState.activeTabId !== id) {
+      setActiveTab(id);
+      return;
+    }
     if (shouldReclaimAddressBarFocus(id)) {
       reclaimAddressBarFocus(id, { consume: true });
     }
-  });
+  }));
 
   // Web content must never navigate a tab into the privileged blanc://
   // scheme (Chrome blocks web → chrome:// identically). Main-initiated
   // loads (address bar, commands, error pages) go through loadURL, which
   // doesn't fire will-navigate, so only page-initiated hops are caught.
-  wc.on('will-navigate', (event, targetUrl) => {
+  wc.on('will-navigate', bindWindowRuntime(runtime, (event, targetUrl) => {
     // Utility pages never load in a tab — the newtab ledger links to
     // blanc://bookmarks/ and blanc:→blanc: hops are otherwise legal. Only
     // an INTERNAL page may summon the sheet: for web content this is a
@@ -1874,12 +2457,12 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
       event.preventDefault();
     }
     if (handOffToOs(targetUrl)) event.preventDefault();
-  });
+  }));
 
   // Show a real error page instead of leaving a blank/stale view.
   // errorCode -3 (ERR_ABORTED) fires for cancelled loads (stop button,
   // rapid re-navigation) and must not be treated as a failure.
-  wc.on('did-fail-load', (_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
+  wc.on('did-fail-load', bindWindowRuntime(runtime, (_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
     if (!isMainFrame || errorCode === -3 || !validatedURL) return;
     // The temporary startup gate deliberately cancels HTTP(S) main-frame
     // loads until blocking is attached (or the user explicitly continues
@@ -1892,31 +2475,56 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     ) {
       return;
     }
-    const q = new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
+    const q = tab.certificateError
+      ? certificateErrorQuery(tab.certificateError, {
+          url: validatedURL,
+          code: errorCode,
+          desc: errorDescription,
+        })
+      : new URLSearchParams({
+          url: validatedURL,
+          code: String(errorCode),
+          desc: errorDescription,
+        });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
-  });
+  }));
+
+  // Never bypass a failed server identity check. Keep only bounded display
+  // metadata, reject the load, then did-fail-load routes to Blanc's dedicated
+  // certificate interstitial. Subframe failures remain Chromium-denied but do
+  // not replace the top-level page.
+  wc.on('certificate-error', bindWindowRuntime(runtime, (_event, failedUrl, error, certificate, callback, isMainFrame) => {
+    if (isMainFrame) {
+      tab.certificateError = {
+        url: failedUrl,
+        error,
+        certificate: sanitizeCertificate(certificate),
+      };
+    }
+    callback(false);
+  }));
 
   // Adopted window.open children are script-closable — window.close() by
   // the page, child.close() by the opener — the only tabs whose
   // webContents can die outside closeTab. Route destruction through
-  // closeTab so the strip, groups, and active-tab selection stay
+  // closeTab so the strip, tabState.groups, and active-tab selection stay
   // consistent (re-entry is safe: closeTab removes the map entry before
   // calling wc.close(), so this fires on an id that's already gone).
-  wc.once('destroyed', () => closeTab(id));
+  wc.once('destroyed', bindWindowRuntime(runtime, () => closeTab(id)));
 
   // A tab whose renderer dies (OOM, GPU fault, kill -9) otherwise sits
   // blank forever; loadURL spawns a fresh renderer, so route it to the
   // error page with the original URL for one-click retry.
-  wc.on('render-process-gone', (_e, details) => {
+  wc.on('render-process-gone', bindWindowRuntime(runtime, (_e, details) => {
     if (details.reason === 'clean-exit') return;
     const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
-  });
+  }));
 
   // A page's beforeunload can block close/navigation; surface Chrome's
   // Leave/Stay choice instead of silently refusing.
-  wc.on('will-prevent-unload', (event) => {
-    const choice = dialog.showMessageBoxSync(hasLiveWindow() ? win : undefined, {
+  wc.on('will-prevent-unload', bindWindowRuntime(runtime, (event) => {
+    const choice = dialog.showMessageBoxSync(currentBrowserWindow() ?? undefined, {
       type: 'question',
       buttons: ['Leave', 'Stay'],
       defaultId: 0,
@@ -1925,13 +2533,13 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
       detail: 'Changes you made may not be saved.',
     });
     if (choice === 0) event.preventDefault(); // preventing the prevention lets the unload proceed
-  });
+  }));
 
-  wc.on('found-in-page', (_e, result) => {
-    if (id === activeTabId) {
-      overlayView?.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
+  wc.on('found-in-page', bindWindowRuntime(runtime, (_e, result) => {
+    if (id === tabState.activeTabId) {
+      chromeState.overlayView?.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
     }
-  });
+  }));
 
   // Open target="_blank"/featureless window.open as managed tabs, but let
   // window.open with explicit features ('new-window': OAuth/SSO popups,
@@ -1960,7 +2568,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // children (a "Terms" link inside an OAuth popup) land back in managed
   // tabs instead of falling through to bare Electron windows.
   const applyWindowOpenPolicy = (targetWc) => {
-    targetWc.setWindowOpenHandler(({ url: targetUrl, disposition }) => {
+    targetWc.setWindowOpenHandler(bindWindowRuntime(runtime, ({ url: targetUrl, disposition }) => {
       // Utility pages never become tabs — and an adopted child must never
       // reach createTab's guard: by createWindow time the guest webContents
       // already exists, and a null return would leave it half-built and
@@ -1994,7 +2602,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
           },
         };
       }
-      // Children stay in their opener's group, like Chrome's tab groups.
+      // Children stay in their opener's group, like Chrome's tab tabState.groups.
       return {
         action: 'allow',
         outlivesOpener: true,
@@ -2013,15 +2621,15 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
           return view.webContents;
         },
       };
-    });
-    targetWc.on('did-create-window', (childWindow) => {
+    }));
+    targetWc.on('did-create-window', bindWindowRuntime(runtime, (childWindow) => {
       // Adopted children run their own createTab wiring; only real popup
       // windows need the policy grafted on.
       const isManagedTab = [...tabs.values()].some(
         (t) => t.view.webContents.id === childWindow.webContents.id
       );
       if (!isManagedTab) applyWindowOpenPolicy(childWindow.webContents);
-    });
+    }));
   };
   applyWindowOpenPolicy(wc);
 
@@ -2029,14 +2637,14 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // "Open Link in New Tab"/"Open Link" on a mailto:/tel: link otherwise
     // creates a dead tab — createTab() has no chance to check, since it
     // never sees the raw link URL as a page navigation.
-    openBackgroundTab: (targetUrl) => {
+    openBackgroundTab: bindWindowRuntime(runtime, (targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       createTab(targetUrl, { private: tab.private, groupId: tab.groupId });
-    },
-    openTab: (targetUrl) => {
+    }),
+    openTab: bindWindowRuntime(runtime, (targetUrl) => {
       if (handOffToOs(targetUrl)) return;
       setActiveTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }));
-    },
+    }),
   });
 
   // Load failures surface via the did-fail-load handler above; the
@@ -2056,22 +2664,26 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
 function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   const next = tabs.get(id);
-  if (!next) return;
+  const runtime = currentWorkspaceRuntime();
+  if (!next || !runtime || windowRuntimeRegistry.ownerForTab(id) !== runtime.id) return;
   // A script-closed adopted tab prunes itself via its 'destroyed' handler,
   // but a deferred activation (the window-open setImmediate) can race the
   // event — never attach or focus a dead webContents.
   if (next.view.webContents.isDestroyed()) return;
 
   // Re-selecting the active tab is a no-op.
-  if (id === activeTabId) return;
+  if (id === tabState.activeTabId) return;
 
   // A genuine switch cancels a live picker — but only a switch FROM a real tab.
-  // The window's did-finish-load re-attach nulls activeTabId to force a fresh
+  // The window's did-finish-load re-attach nulls tabState.activeTabId to force a fresh
   // attach of the same tab; that is an initial attach, not a tab change, and
   // must not settle a picker (harmless in production, where no picker exists at
   // window creation — but in tests a picker scenario running right after launch
   // would otherwise be torn down by that deferred re-attach).
-  if (activeTabId !== null) pickerController.settle(null, 'tab-changed');
+  if (tabState.activeTabId !== null) {
+    pickerController.settleForRuntime(runtime.id, null, 'tab-changed');
+    displaySharePickerController.cancelForRuntime(runtime.id, 'tab-changed');
+  }
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.
@@ -2082,20 +2694,29 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // No window to attach to (quitting, or macOS with all windows closed):
   // just track the selection so window recreation attaches the right tab.
   // The menu bar persists on macOS even with no windows open, so it still
-  // needs to reflect the new activeTabId.
-  if (!hasLiveWindow()) {
-    activeTabId = id;
+  // needs to reflect the new tabState.activeTabId.
+  const browserWindow = currentBrowserWindow();
+  if (!browserWindow) {
+    setRuntimeActiveTab(id);
     scheduleMenuRebuild();
     return;
   }
 
   // Find state is per-tab; a stale capsule over a different page misleads.
-  if (overlayMode === 'find') hideOverlay({ refocusContent: false });
+  if (chromeState.overlayMode === 'find') hideOverlay({ refocusContent: false });
 
-  const prevId = activeTabId;
+  const prevId = tabState.activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
-  if (prev) {
-    win.contentView.removeChildView(prev.view);
+  // Choosing the Glance pane promotes it to the active/browser-controlled
+  // side and leaves the prior active tab visible as Glance. No cross-profile
+  // lookup is possible: both ids are owned by this runtime.
+  if (id === runtime.glanceTabId) {
+    runtime.glanceTabId = prev && windowRuntimeRegistry.ownerForTab(prev.id) === runtime.id
+      ? prev.id
+      : null;
+  }
+  if (prev && prev.id !== runtime.glanceTabId) {
+    browserWindow.contentView.removeChildView(prev.view);
     // A detached view's document still reports visibilityState 'visible',
     // so Chromium never background-throttles its timers (the newtab sprite
     // would keep animating at 6fps forever). Hide it explicitly;
@@ -2103,7 +2724,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
     prev.view.setVisible(false);
   }
 
-  activeTabId = id;
+  setRuntimeActiveTab(id);
   if (prevId && prevId !== id) tabsWantingAddressBarFocus.delete(prevId);
   const shouldFocusAddress = focusAddress && !focusContent;
   if (shouldFocusAddress) {
@@ -2113,12 +2734,12 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
     next.view.setVisible(true);
   }
   if (shouldFocusAddress) next.view.setVisible(false);
-  win.contentView.addChildView(next.view);
+  browserWindow.contentView.addChildView(next.view);
   // The freshly attached tab view must not stack above an open overlay —
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
   // but a race must never paint a tab over either floating layer).
-  if (utilitySheetUrl && utilitySheetView) win.contentView.addChildView(utilitySheetView);
-  if (overlayMode && overlayView) win.contentView.addChildView(overlayView);
+  if (chromeState.utilitySheetUrl && chromeState.utilitySheetView) browserWindow.contentView.addChildView(chromeState.utilitySheetView);
+  if (chromeState.overlayMode && chromeState.overlayView) browserWindow.contentView.addChildView(chromeState.overlayView);
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
   // blank new tab we instead want the chrome's address bar, and OS focus
@@ -2132,7 +2753,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   if (shouldFocusAddress) {
     reclaimAddressBarFocus(id);
     setImmediate(() => {
-      if (activeTabId !== id || !tabs.has(id)) return;
+      if (tabState.activeTabId !== id || !tabs.has(id)) return;
       next.view.setVisible(true);
       reclaimAddressBarFocus(id);
     });
@@ -2151,7 +2772,7 @@ function activateTabFromRail(id) {
   hideOverlay({ refocusContent: false });
   hideUtilitySheet({ refocusContent: false });
 
-  if (id !== activeTabId) {
+  if (id !== tabState.activeTabId) {
     setActiveTab(id, { focusContent: true });
   } else {
     // setActiveTab deliberately no-ops for an already-active tab; the rail
@@ -2164,62 +2785,150 @@ function activateTabFromRail(id) {
   return true;
 }
 
-/** URLs of recently closed tabs, oldest first (Cmd/Ctrl+Shift+T pops). */
-const recentlyClosedUrls = [];
-
-function closeTab(id) {
+function setGlanceTab(id) {
+  const runtime = currentWorkspaceRuntime();
+  const browserWindow = currentBrowserWindow();
   const tab = tabs.get(id);
-  if (!tab) return;
+  if (
+    !runtime || !browserWindow || !tab || id === tabState.activeTabId ||
+    windowRuntimeRegistry.ownerForTab(id) !== runtime.id
+  ) return false;
+
+  const previous = runtime.glanceTabId ? tabs.get(runtime.glanceTabId) : null;
+  if (previous && previous !== tab) {
+    browserWindow.contentView.removeChildView(previous.view);
+    previous.view.setVisible(false);
+  }
+  runtime.glanceTabId = id;
+  tab.view.setVisible(true);
+  browserWindow.contentView.addChildView(tab.view);
+  if (chromeState.overlayMode && chromeState.overlayView) {
+    browserWindow.contentView.addChildView(chromeState.overlayView);
+  }
+  if (chromeState.utilitySheetUrl && chromeState.utilitySheetView) {
+    browserWindow.contentView.addChildView(chromeState.utilitySheetView);
+  }
+  resizeActiveView();
+  broadcastTabs();
+  return true;
+}
+
+function openGlance() {
+  const candidate = tabState.tabOrder.find((id) => id !== tabState.activeTabId);
+  return candidate ? setGlanceTab(candidate) : false;
+}
+
+function closeGlance() {
+  const runtime = currentWorkspaceRuntime();
+  const browserWindow = currentBrowserWindow();
+  const tab = runtime?.glanceTabId ? tabs.get(runtime.glanceTabId) : null;
+  if (!runtime?.glanceTabId) return false;
+  runtime.glanceTabId = null;
+  if (tab && browserWindow) {
+    browserWindow.contentView.removeChildView(tab.view);
+    tab.view.setVisible(false);
+  }
+  resizeActiveView();
+  broadcastTabs();
+  return true;
+}
+
+function closeTab(id, { recordForReopen = true } = {}) {
+  const tab = tabs.get(id);
+  const runtime = currentWorkspaceRuntime();
+  if (!tab || !runtime || windowRuntimeRegistry.ownerForTab(id) !== runtime.id) return;
 
   // Only the picker's own tab closing cancels it — an unrelated background tab
   // must not.
-  if (id === activeTabId) pickerController.settle(null, 'tab-changed');
-
-  // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
-  if (tab.url && !tab.private && !tab.url.startsWith('blanc://newtab')) {
-    recentlyClosedUrls.push(tab.url);
-    if (recentlyClosedUrls.length > 25) recentlyClosedUrls.shift();
+  if (id === tabState.activeTabId) {
+    pickerController.settleForRuntime(runtime.id, null, 'tab-changed');
+  }
+  // A Chromium-initiated destruction reaches this function from wc's
+  // `destroyed` event, after WebContentsView may already have cleared its
+  // webContents property. The display request was already invalidated with the
+  // renderer; cancel it when an id remains, but teardown must stay null-safe.
+  const closingWebContents = tab.view.webContents;
+  if (closingWebContents) {
+    displaySharePickerController.cancelForWebContents(
+      closingWebContents.id,
+      'tab-changed'
+    );
   }
 
-  const wasActive = id === activeTabId;
-  if (wasActive && hasLiveWindow()) win.contentView.removeChildView(tab.view);
+  const wasActive = id === tabState.activeTabId;
+  const browserWindow = currentBrowserWindow();
+  const wasGlance = id === runtime.glanceTabId;
+  if (wasGlance) runtime.glanceTabId = null;
+  if (wasGlance && browserWindow) {
+    browserWindow.contentView.removeChildView(tab.view);
+  }
+  if (wasActive && browserWindow) browserWindow.contentView.removeChildView(tab.view);
 
-  const closedIndex = tabOrder.indexOf(id);
+  const closedIndex = tabState.tabOrder.indexOf(id);
+  if (recordForReopen) {
+    const group = tab.groupId
+      ? tabState.groups.find((candidate) => candidate.id === tab.groupId) ?? null
+      : null;
+    runtime.recentlyClosed = addRecentlyClosed(runtime.recentlyClosed, tab, {
+      group,
+      index: closedIndex,
+    });
+  }
   tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
-  tabOrder = tabOrder.filter((tid) => tid !== id);
+  windowRuntimeRegistry.releaseTab(id);
+  tabState.tabOrder = tabState.tabOrder.filter((tid) => tid !== id);
   pruneEmptyGroups();
   const wc = tab.view.webContents;
   if (wc && !wc.isDestroyed()) wc.close();
 
   if (wasActive) {
-    if (tabOrder.length > 0) {
+    if (tabState.tabOrder.length > 0) {
       // Prefer the tab that was to the right of the closed one.
-      setActiveTab(tabOrder[Math.min(closedIndex, tabOrder.length - 1)]);
-    } else if (hasLiveWindow()) {
-      activeTabId = null;
+      setActiveTab(tabState.tabOrder[Math.min(closedIndex, tabState.tabOrder.length - 1)]);
+    } else if (browserWindow) {
+      setRuntimeActiveTab(null);
       setActiveTab(createTab());
     } else {
       // Quitting or window already gone — don't spawn replacement tabs.
-      activeTabId = null;
+      setRuntimeActiveTab(null);
     }
-    if (hasLiveWindow()) return; // setActiveTab already broadcasts and schedules a menu rebuild
+    if (browserWindow) return; // setActiveTab already broadcasts and schedules a menu rebuild
   }
   broadcastTabs();
   scheduleMenuRebuild();
 }
 
 function reopenClosedTab() {
-  const url = recentlyClosedUrls.pop();
-  if (url) setActiveTab(createTab(url));
+  const runtime = currentWorkspaceRuntime();
+  if (!runtime) return;
+  const { record, entries } = takeRecentlyClosed(runtime.recentlyClosed);
+  if (!record) return;
+  runtime.recentlyClosed = entries;
+  if (record.group && !tabState.groups.some((group) => group.id === record.group.id)) {
+    tabState.groups.push({ ...record.group });
+  }
+  const id = createTab(record.url, {
+    groupId: record.group?.id ?? null,
+    pinned: record.pinned,
+    muted: record.muted,
+  });
+  if (!id) return;
+  const from = tabState.tabOrder.indexOf(id);
+  const to = Math.max(0, Math.min(record.index, tabState.tabOrder.length - 1));
+  if (from >= 0 && from !== to) {
+    tabState.tabOrder.splice(from, 1);
+    tabState.tabOrder.splice(to, 0, id);
+  }
+  setActiveTab(id);
 }
 
 function reorderTab(id, toIndex) {
-  const from = tabOrder.indexOf(id);
+  const from = tabState.tabOrder.indexOf(id);
   if (from === -1) return;
-  const clamped = Math.max(0, Math.min(tabOrder.length - 1, toIndex));
-  tabOrder.splice(from, 1);
-  tabOrder.splice(clamped, 0, id);
+  const clamped = Math.max(0, Math.min(tabState.tabOrder.length - 1, toIndex));
+  tabState.tabOrder.splice(from, 1);
+  tabState.tabOrder.splice(clamped, 0, id);
   broadcastTabs();
   scheduleMenuRebuild();
 }
@@ -2227,60 +2936,60 @@ function reorderTab(id, toIndex) {
 function reorderTabWithinBucket(id, beforeId) {
   // Renderer input is only a proposal. Main re-resolves both ids against its
   // live model and rejects a stale/cross-group/cross-pin target.
-  const next = reorderWithinBucket(tabOrder, tabs, id, beforeId);
+  const next = reorderWithinBucket(tabState.tabOrder, tabs, id, beforeId);
   if (!next) return false;
-  if (next.some((tabId, index) => tabOrder[index] !== tabId)) {
-    tabOrder = next;
+  if (next.some((tabId, index) => tabState.tabOrder[index] !== tabId)) {
+    tabState.tabOrder = next;
     broadcastTabs();
     scheduleMenuRebuild();
   }
   return true;
 }
 
-/** Cmd/Ctrl+1–9. With groups: n jumps to the nth cluster — a group's
- * first tab, unfolding it (Island Tab Groups design). Without groups the
+/** Cmd/Ctrl+1–9. With tabState.groups: n jumps to the nth cluster — a group's
+ * first tab, unfolding it (Island Tab Groups design). Without tabState.groups the
  * browser convention stands: 1–8 jump to that tab, 9 to the last. */
 function selectTabAtIndex(index) {
   // clusterSlots() surfaces ungrouped pins as a leading slot. Grouped pins
   // remain reachable through their group's own slot.
   const slots = clusterSlots();
-  if (groups.length && slots.length) {
+  if (tabState.groups.length && slots.length) {
     const slot = slots[index];
     if (!slot) return;
     if (slot.group) focusGroup(slot.group.id);
     else setActiveTab(slot.tabIds[0]);
     return;
   }
-  const id = index >= 8 ? tabOrder[tabOrder.length - 1] : tabOrder[index];
+  const id = index >= 8 ? tabState.tabOrder[tabState.tabOrder.length - 1] : tabState.tabOrder[index];
   if (id) setActiveTab(id);
 }
 
 function cycleTab(direction) {
-  if (!activeTabId || tabOrder.length < 2) return;
-  const i = tabOrder.indexOf(activeTabId);
-  setActiveTab(tabOrder[(i + direction + tabOrder.length) % tabOrder.length]);
+  if (!tabState.activeTabId || tabState.tabOrder.length < 2) return;
+  const i = tabState.tabOrder.indexOf(tabState.activeTabId);
+  setActiveTab(tabState.tabOrder[(i + direction + tabState.tabOrder.length) % tabState.tabOrder.length]);
 }
 
 /** ⌥⌘←/→: previous/next tab within the active tab's cluster, wrapping.
- * With no groups and no pins everything is one loose cluster, so this
+ * With no tabState.groups and no pins everything is one loose cluster, so this
  * degrades to plain tab cycling (same result as Ctrl+Tab). */
 function cycleTabInCluster(direction) {
-  if (!activeTabId) return;
-  const slot = clusterSlots().find((s) => s.tabIds.includes(activeTabId));
+  if (!tabState.activeTabId) return;
+  const slot = clusterSlots().find((s) => s.tabIds.includes(tabState.activeTabId));
   if (!slot) return cycleTab(direction);
   if (slot.tabIds.length < 2) return;
-  const i = slot.tabIds.indexOf(activeTabId);
+  const i = slot.tabIds.indexOf(tabState.activeTabId);
   setActiveTab(slot.tabIds[(i + direction + slot.tabIds.length) % slot.tabIds.length]);
 }
 
 /** ⌥⌘↑/↓: previous/next cluster in ⌘1–9 order (ungrouped pinned
- * shelf → groups → loose), wrapping. Lands on the cluster's last-active
+ * shelf → tabState.groups → loose), wrapping. Lands on the cluster's last-active
  * tab and unfolds a collapsed group, consistent with focusGroup(). */
 function cycleCluster(direction) {
-  if (!activeTabId) return;
+  if (!tabState.activeTabId) return;
   const slots = clusterSlots();
   if (slots.length < 2) return;
-  const from = slots.findIndex((s) => s.tabIds.includes(activeTabId));
+  const from = slots.findIndex((s) => s.tabIds.includes(tabState.activeTabId));
   if (from === -1) return;
   const target = slots[(from + direction + slots.length) % slots.length];
   if (target.group) target.group.collapsed = false;
@@ -2291,7 +3000,7 @@ function cycleCluster(direction) {
 /** Focus an existing tab already on this internal page, or open one. */
 function openInternalPage(url) {
   if (isUtilityUrl(url)) return showUtilityPage(url);
-  const existing = tabOrder.find((id) => tabs.get(id)?.url.startsWith(url));
+  const existing = tabState.tabOrder.find((id) => tabs.get(id)?.url.startsWith(url));
   if (existing) {
     setActiveTab(existing);
     tabs.get(existing).view.webContents.reload(); // pick up fresh data
@@ -2301,7 +3010,7 @@ function openInternalPage(url) {
 }
 
 function toggleBookmarkForActiveTab() {
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const tab = tabState.activeTabId ? tabs.get(tabState.activeTabId) : null;
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
   tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
   broadcastTabs();
@@ -2312,7 +3021,7 @@ function toggleBookmarkForActiveTab() {
  * optional folder. Same guards as toggleBookmarkForActiveTab; re-derives
  * bookmarked from the store so add / move / rejected-folder all report right. */
 function saveActiveTabAsFavorite(folder) {
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const tab = tabState.activeTabId ? tabs.get(tabState.activeTabId) : null;
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
   bookmarks.saveFavorite(tab.url, tab.title, tab.favicon, folder);
   tab.bookmarked = bookmarks.isBookmarked(tab.url);
@@ -2324,7 +3033,7 @@ function saveActiveTabAsFavorite(folder) {
  * own URL guard. Skips private tabs (favorites never populate from private
  * browsing) and anything already favorited (idempotent). */
 function addAllTabsToFavorites() {
-  for (const id of tabOrder) {
+  for (const id of tabState.tabOrder) {
     const tab = tabs.get(id);
     if (!tab || tab.private) continue;
     if (!/^https?:\/\//.test(tab.url)) continue;
@@ -2337,8 +3046,15 @@ function addAllTabsToFavorites() {
 
 /** Bookmark state can change from the bookmarks page; re-derive per tab. */
 function refreshBookmarkFlags() {
-  for (const tab of tabs.values()) tab.bookmarked = bookmarks.isBookmarked(tab.url);
-  broadcastTabs();
+  for (const runtime of windowRuntimeRegistry.all()) {
+    withWindowRuntime(runtime, () => {
+      for (const id of runtime.tabOrder) {
+        const tab = tabs.get(id);
+        if (tab) tab.bookmarked = bookmarks.isBookmarked(tab.url);
+      }
+      broadcastTabs();
+    });
+  }
   scheduleMenuRebuild();
 }
 
@@ -2348,8 +3064,8 @@ const ZOOM_MAX = 8;
 
 /** Zoom acts on what the user is looking at: the sheet when open, else the active tab. */
 function zoomTargetWebContents() {
-  if (utilitySheetUrl && utilitySheetView) return utilitySheetView.webContents;
-  return tabs.get(activeTabId)?.view.webContents ?? null;
+  if (chromeState.utilitySheetUrl && chromeState.utilitySheetView) return chromeState.utilitySheetView.webContents;
+  return tabs.get(tabState.activeTabId)?.view.webContents ?? null;
 }
 
 function zoomActiveTab(delta) {
@@ -2364,22 +3080,23 @@ function resetZoomForActiveTab() {
 }
 
 function openFindBar() {
-  if (!win || win.isDestroyed()) return;
+  if (!currentBrowserWindow()) return;
   showOverlay('find');
 }
 
 function focusAddressBar() {
-  if (!win || win.isDestroyed()) return;
+  const browserWindow = currentBrowserWindow();
+  if (!browserWindow) return;
   // setActiveTab() may just have handed OS-level keyboard focus to the
   // tab's WebContentsView; showOverlay reclaims it for the overlay's
   // webContents so the address input actually receives keystrokes.
-  win.focus();
+  browserWindow.focus();
   // Reasserts must not downgrade an already-summoned palette to a panel.
-  showOverlay(overlayMode && overlayMode !== 'find' ? overlayMode : 'panel');
+  showOverlay(chromeState.overlayMode && chromeState.overlayMode !== 'find' ? chromeState.overlayMode : 'panel');
 }
 
 function shouldReclaimAddressBarFocus(id) {
-  return activeTabId === id && tabsWantingAddressBarFocus.has(id);
+  return tabState.activeTabId === id && tabsWantingAddressBarFocus.has(id);
 }
 
 function reclaimAddressBarFocus(id, { consume = false } = {}) {
@@ -2395,36 +3112,46 @@ function reclaimAddressBarFocus(id, { consume = false } = {}) {
 }
 
 function refocusAddressBarIfWanted() {
-  if (activeTabId && shouldReclaimAddressBarFocus(activeTabId)) {
-    reclaimAddressBarFocus(activeTabId);
+  if (tabState.activeTabId && shouldReclaimAddressBarFocus(tabState.activeTabId)) {
+    reclaimAddressBarFocus(tabState.activeTabId);
   }
 }
 
-// The predicate itself lives in ipc-trust.js (pure, unit-tested); this
-// wrapper only supplies the live trusted surfaces.
-function isTrustedChromeSender(event) {
-  return isTrustedSender(event, [
-    hasLiveWindow() ? { webContents: win.webContents, url: CHROME_INDEX_URL } : null,
-    overlayView && !overlayView.webContents.isDestroyed()
-      ? { webContents: overlayView.webContents, url: CHROME_OVERLAY_URL }
+// The predicate itself lives in ipc-trust.js (pure, unit-tested). Resolve the
+// runtime from the native sender first; a renderer never gets to nominate a
+// window id in IPC payload. That is the cross-window isolation boundary.
+function trustedRuntimeForChromeSender(event) {
+  const runtime = windowRuntimeRegistry.getByChromeWebContents(event.sender);
+  if (!runtime || !runtime.browserWindow || runtime.browserWindow.isDestroyed()) return null;
+  const trusted = [
+    { webContents: runtime.browserWindow.webContents, url: CHROME_INDEX_URL },
+    runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()
+      ? { webContents: runtime.overlayView.webContents, url: CHROME_OVERLAY_URL }
       : null,
-  ]);
+  ];
+  return isTrustedSender(event, trusted) ? runtime : null;
+}
+
+function isTrustedChromeSender(event) {
+  return !!trustedRuntimeForChromeSender(event);
 }
 
 function chromeHandle(channel, handler) {
   ipcMain.handle(channel, (event, ...args) => {
-    if (!isTrustedChromeSender(event)) throw new Error(`${channel}: denied for untrusted sender`);
-    return handler(event, ...args);
+    const runtime = trustedRuntimeForChromeSender(event);
+    if (!runtime) throw new Error(`${channel}: denied for untrusted sender`);
+    return withWindowRuntime(runtime, () => handler(event, ...args));
   });
 }
 
 function chromeOn(channel, handler) {
   ipcMain.on(channel, (event, ...args) => {
-    if (!isTrustedChromeSender(event)) {
+    const runtime = trustedRuntimeForChromeSender(event);
+    if (!runtime) {
       console.warn(`[ipc] ${channel}: denied for untrusted sender`);
       return;
     }
-    handler(event, ...args);
+    withWindowRuntime(runtime, () => handler(event, ...args));
   });
 }
 
@@ -2432,14 +3159,19 @@ function registerIpcHandlers() {
   // Credential-picker reply. Validation lives in the controller (two stages: a
   // reply that can't prove it belongs to THIS request changes no state).
   ipcMain.on('chrome:credential-pick', (event, payload) => {
-    pickerController.handleReply(event, payload);
+    const runtime = trustedRuntimeForChromeSender(event);
+    if (runtime) withWindowRuntime(runtime, () => pickerController.handleReply(event, payload));
+  });
+  ipcMain.on('chrome:display-share-pick', (event, payload) => {
+    const runtime = trustedRuntimeForChromeSender(event);
+    if (runtime) withWindowRuntime(runtime, () => displaySharePickerController.handleReply(event, payload));
   });
 
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
     // A plain new tab is deliberately ungrouped — createTab defaults groupId
     // to null and we intentionally don't pass one. Only window.open/context-
-    // menu children inherit the opener's group (see CLAUDE.md → Tab groups);
+    // menu children inherit the opener's group (see CLAUDE.md → Tab tabState.groups);
     // don't copy that `groupId: tab.groupId` pattern into new-tab entry points.
     const id = createTab(url || (isPrivate ? PRIVATE_NEW_TAB_URL : newTabUrl()), {
       private: isPrivate,
@@ -2507,8 +3239,8 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:get-all', () => ({
     tabs: serializeTabs(),
-    activeTabId,
-    groups,
+    activeTabId: tabState.activeTabId,
+    groups: tabState.groups,
     tabLayout,
     ...verticalTabsMetrics(),
   }));
@@ -2551,7 +3283,7 @@ function registerIpcHandlers() {
     // The opt-out, private tabs, and local document paths are hard stops at
     // the trusted main-process boundary. Exact-query search still works; only
     // live provider suggestions pause.
-    const tab = activeTabId ? tabs.get(activeTabId) : null;
+    const tab = tabState.activeTabId ? tabs.get(tabState.activeTabId) : null;
     const localDoc = typeof query === 'string' ? localDocumentUrl(query.trim()) : null;
     if (
       !settings.isFirstRunComplete() ||
@@ -2621,7 +3353,7 @@ function registerIpcHandlers() {
   // "/allow-ads" — allow ads on the active tab's site, then reload it so
   // the exception actually takes effect on what's shown.
   chromeHandle('chrome:adblock-exempt-active', () => {
-    const tab = activeTabId ? tabs.get(activeTabId) : null;
+    const tab = tabState.activeTabId ? tabs.get(tabState.activeTabId) : null;
     if (!tab) return null;
     try {
       const hostname = new URL(tab.url).hostname.replace(/^www\./, '');
@@ -2650,9 +3382,13 @@ function registerIpcHandlers() {
     return next;
   });
 
-  chromeOn('window:minimize', () => win?.minimize());
-  chromeOn('window:maximize', () => (win?.isMaximized() ? win.unmaximize() : win?.maximize()));
-  chromeOn('window:close', () => win?.close());
+  chromeOn('window:minimize', () => currentBrowserWindow()?.minimize());
+  chromeOn('window:maximize', () => {
+    const browserWindow = currentBrowserWindow();
+    if (browserWindow?.isMaximized()) browserWindow.unmaximize();
+    else browserWindow?.maximize();
+  });
+  chromeOn('window:close', () => currentBrowserWindow()?.close());
 }
 
 // The native menu's dynamic content (tab list, favorites list, Pin/Mute/
@@ -2684,7 +3420,7 @@ function tabMenuItems() {
     .filter((id) => !tabs.get(id)?.private);
   return orderedIds.map((id) => {
     const tab = tabs.get(id);
-    const group = tab.groupId ? groups.find((g) => g.id === tab.groupId) : null;
+    const group = tab.groupId ? tabState.groups.find((g) => g.id === tab.groupId) : null;
     let domain = tab.url;
     try {
       domain = new URL(tab.url).hostname || tab.url;
@@ -2695,7 +3431,7 @@ function tabMenuItems() {
     return {
       label: escapeMenuLabel(label.length > 120 ? `${label.slice(0, 119)}…` : label),
       type: 'checkbox',
-      checked: id === activeTabId,
+      checked: id === tabState.activeTabId,
       click: () => setActiveTab(id),
     };
   });
@@ -2805,6 +3541,7 @@ const SLASH_COMMANDS = [
 // listShortcuts()) for a quick reference right in the Help menu — not
 // exhaustive by design, "Show All Shortcuts…" links to the rest.
 const COMMON_KEYSTROKES = [
+  ['New Window', 'CmdOrCtrl+N'],
   ['New Tab', 'CmdOrCtrl+T'],
   ['New Private Tab', 'CmdOrCtrl+Shift+N'],
   ['Close Tab', 'CmdOrCtrl+W'],
@@ -2827,6 +3564,12 @@ function buildMenu() {
   // has no mnemonics, so leave labels untouched there.
   const mn = escapeMenuLabel; // literal '&' → '&&' on Win/Linux; see helper
   const favItems = favoritesMenuItems(); // computed once; drives the separator below
+  const localProfileItems = localProfiles.listLocalProfiles()
+    .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id))
+    .map((profile) => ({
+      label: profile.name,
+      click: () => openNewWindow({ profileId: profile.id }),
+    }));
   const appMenu = isMac
     ? [{
         label: app.name,
@@ -2849,24 +3592,41 @@ function buildMenu() {
     {
       label: 'File',
       submenu: [
+        { label: 'New Window', accelerator: 'CmdOrCtrl+N', click: openNewWindow },
+        { label: 'New Profile Window', click: () => openNewProfileWindow() },
         { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: () => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true }) },
         { label: 'New Private Tab', accelerator: 'CmdOrCtrl+Shift+N', click: () => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true }) },
-        { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => activeTabId && closeTab(activeTabId) },
+        { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: () => tabState.activeTabId && closeTab(tabState.activeTabId) },
         { label: 'Reopen Closed Tab', accelerator: 'CmdOrCtrl+Shift+T', click: reopenClosedTab },
-        { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.print() },
+        { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: () => tabState.activeTabId && tabs.get(tabState.activeTabId)?.view.webContents.print() },
         { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: checkForUpdatesManually }, { type: 'separator' }]),
         isMac ? { role: 'close' } : { role: 'quit' },
+      ],
+    },
+    {
+      label: 'Profiles',
+      submenu: [
+        { label: 'New Profile Window', click: () => openNewProfileWindow() },
+        { label: 'Manage Profiles…', click: () => openInternalPage('blanc://settings/') },
+        { type: 'separator' },
+        ...localProfileItems,
       ],
     },
     { role: 'editMenu' }, // required for copy/paste/undo to work in inputs
     {
       label: 'View',
       submenu: [
-        { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: () => { if (hasLiveWindow()) { win.focus(); showOverlay('palette'); } } },
+        { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: () => {
+          const browserWindow = currentBrowserWindow();
+          if (browserWindow) {
+            browserWindow.focus();
+            showOverlay('palette');
+          }
+        } },
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: openFindBar },
-        { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reload() },
-        { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reloadIgnoringCache() },
+        { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: () => tabState.activeTabId && tabs.get(tabState.activeTabId)?.view.webContents.reload() },
+        { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: () => tabState.activeTabId && tabs.get(tabState.activeTabId)?.view.webContents.reloadIgnoringCache() },
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', click: () => zoomActiveTab(ZOOM_STEP) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+=', visible: false, click: () => zoomActiveTab(ZOOM_STEP) },
@@ -2897,6 +3657,17 @@ function buildMenu() {
           ],
         },
         { type: 'separator' },
+        {
+          label: 'Open Glance',
+          enabled: tabState.tabOrder.length > 1 && !currentWorkspaceRuntime()?.glanceTabId,
+          click: openGlance,
+        },
+        {
+          label: 'Close Glance',
+          enabled: !!currentWorkspaceRuntime()?.glanceTabId,
+          click: closeGlance,
+        },
+        { type: 'separator' },
         { label: 'Downloads', accelerator: 'CmdOrCtrl+Shift+J', click: () => openInternalPage('blanc://downloads/') },
         { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: () => openInternalPage('blanc://settings/') },
         { type: 'separator' },
@@ -2913,30 +3684,36 @@ function buildMenu() {
         { label: 'Next Group', accelerator: 'Alt+CmdOrCtrl+Down', click: () => cycleCluster(1) },
         { label: 'Previous Group', accelerator: 'Alt+CmdOrCtrl+Up', click: () => cycleCluster(-1) },
         { type: 'separator' },
-        { label: 'Duplicate Tab', enabled: !!activeTabId, click: () => activeTabId && duplicateTab(activeTabId) },
-        { label: tabs.get(activeTabId)?.pinned ? 'Unpin Tab' : 'Pin Tab', enabled: !!activeTabId, click: () => activeTabId && toggleTabPinned(activeTabId) },
-        { label: tabs.get(activeTabId)?.muted ? 'Unmute Tab' : 'Mute Tab', enabled: !!activeTabId, click: () => activeTabId && toggleTabMuted(activeTabId) },
+        { label: 'Duplicate Tab', enabled: !!tabState.activeTabId, click: () => tabState.activeTabId && duplicateTab(tabState.activeTabId) },
+        { label: tabs.get(tabState.activeTabId)?.pinned ? 'Unpin Tab' : 'Pin Tab', enabled: !!tabState.activeTabId, click: () => tabState.activeTabId && toggleTabPinned(tabState.activeTabId) },
+        { label: tabs.get(tabState.activeTabId)?.muted ? 'Unmute Tab' : 'Mute Tab', enabled: !!tabState.activeTabId, click: () => tabState.activeTabId && toggleTabMuted(tabState.activeTabId) },
         { type: 'separator' },
         {
           label: 'New Group…',
-          enabled: !!activeTabId,
-          click: () => { if (hasLiveWindow()) { win.focus(); showOverlay('palette', { prefill: '/group ' }); } },
+          enabled: !!tabState.activeTabId,
+          click: () => {
+            const browserWindow = currentBrowserWindow();
+            if (browserWindow) {
+              browserWindow.focus();
+              showOverlay('palette', { prefill: '/group ' });
+            }
+          },
         },
         {
           label: 'Ungroup Tab',
-          enabled: !!tabs.get(activeTabId)?.groupId,
-          click: () => activeTabId && setTabGroup(activeTabId, null),
+          enabled: !!tabs.get(tabState.activeTabId)?.groupId,
+          click: () => tabState.activeTabId && setTabGroup(tabState.activeTabId, null),
         },
         {
           label: 'Close Group',
-          enabled: !!tabs.get(activeTabId)?.groupId,
+          enabled: !!tabs.get(tabState.activeTabId)?.groupId,
           click: () => {
-            const groupId = tabs.get(activeTabId)?.groupId;
+            const groupId = tabs.get(tabState.activeTabId)?.groupId;
             if (groupId) closeGroup(groupId);
           },
         },
         { type: 'separator' },
-        // "Tab or Group": with groups these jump to the nth pill cluster.
+        // "Tab or Group": with tabState.groups these jump to the nth pill cluster.
         ...Array.from({ length: 9 }, (_, i) => ({
           label: i === 8 ? 'Last Tab or Group' : `Tab or Group ${i + 1}`,
           accelerator: `CmdOrCtrl+${i + 1}`,
@@ -2950,16 +3727,16 @@ function buildMenu() {
       label: 'Favorites',
       submenu: [
         {
-          label: tabs.get(activeTabId)?.bookmarked ? 'Remove from Favorites' : 'Add to Favorites',
+          label: tabs.get(tabState.activeTabId)?.bookmarked ? 'Remove from Favorites' : 'Add to Favorites',
           accelerator: 'CmdOrCtrl+D',
           // Same guard as toggleBookmarkForActiveTab itself — blanc://
           // pages and blank tabs can't be favorited, so don't offer to.
-          enabled: /^https?:\/\//.test(tabs.get(activeTabId)?.url ?? ''),
+          enabled: /^https?:\/\//.test(tabs.get(tabState.activeTabId)?.url ?? ''),
           click: toggleBookmarkForActiveTab,
         },
         {
           label: 'Add All Open Tabs to Favorites',
-          enabled: tabOrder.some((id) => {
+          enabled: tabState.tabOrder.some((id) => {
             const tab = tabs.get(id);
             return tab && !tab.private && /^https?:\/\//.test(tab.url) && !bookmarks.isBookmarked(tab.url);
           }),
@@ -2999,13 +3776,25 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-function createMainWindow() {
-  win = new BrowserWindow({
+function createMainWindow({
+  runtimeId = activeWorkspaceWindowId,
+  profileId = DEFAULT_PROFILE_ID,
+} = {}) {
+  if (profileId !== DEFAULT_PROFILE_ID && profileDeletions.hasPendingProfileDeletion(profileId)) {
+    throw new Error('This local profile is being deleted');
+  }
+  // A workspace is allowed to reference only a profile registered on this
+  // device. Unknown/future ids fall back to Personal instead of silently
+  // creating an unlabelled persistent Chromium partition from session.json.
+  const profile = localProfiles.getLocalProfile(profileId);
+  profileId = profile?.id ?? DEFAULT_PROFILE_ID;
+  const browserWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 640,
     minHeight: 480,
     backgroundColor: chromeBackgroundColor(),
+    title: profileWindowTitle(profile),
     frame: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     webPreferences: {
@@ -3015,51 +3804,423 @@ function createMainWindow() {
       sandbox: true,
     },
   });
+  const runtime = windowRuntimeRegistry.register({
+    id: runtimeId,
+    browserWindow,
+    profileId,
+  });
+  // A restored named workspace can be the first use of that profile in this
+  // process. Attach its normal/private Session policies before any tab or
+  // blanc:// page is created, so it cannot briefly fall back to default data.
+  installProfileSessionPolicies(runtime.profileId);
+  if (!primaryWindowRuntime || runtime.id === PRIMARY_WINDOW_ID) {
+    primaryWindowRuntime = runtime;
+  }
+  setFocusedWindowRuntime(runtime);
+  // Transition alias for startup-only integrations. Runtime-aware operations
+  // use currentBrowserWindow(), never this mutable pointer.
+  win = browserWindow;
 
-  lockPrivilegedNavigation(win.webContents, CHROME_INDEX_URL);
-  installVerticalTabsShortcut(win.webContents);
-  win.loadFile(CHROME_INDEX_FILE);
-  createOverlay();
-  win.on('resize', resizeActiveView);
-  win.on('focus', refocusAddressBarIfWanted);
-  win.on('closed', () => {
-    // Settle any pending picker BEFORE resetting overlayMode. The overlay's own
+  lockPrivilegedNavigation(browserWindow.webContents, CHROME_INDEX_URL);
+  installVerticalTabsShortcut(browserWindow.webContents);
+  browserWindow.loadFile(CHROME_INDEX_FILE);
+  createOverlay(runtime);
+  browserWindow.on('resize', bindWindowRuntime(runtime, resizeActiveView));
+  browserWindow.on('focus', bindWindowRuntime(runtime, () => {
+    setFocusedWindowRuntime(runtime);
+    refocusAddressBarIfWanted();
+  }));
+  browserWindow.on('closed', bindWindowRuntime(runtime, () => {
+    const closingWindow = browserWindow;
+    const closingRuntime = runtime;
+    // Settle any pending picker BEFORE resetting chromeState.overlayMode. The overlay's own
     // 'destroyed' listener also settles, but it fires after webContents.close()
-    // below — by which point overlayMode is already null, so settle would see no
-    // picker mode and skip hideOverlay, stranding overlayPrefill's vault rows
+    // below — by which point chromeState.overlayMode is already null, so settle would see no
+    // picker mode and skip hideOverlay, stranding chromeState.overlayPrefill's vault rows
     // across a macOS dock reopen. Settling here, while the mode is still live,
     // is what clears them. (hasLiveWindow() is already false, so hideOverlay
     // clears the rows and skips the view ops rather than throwing.)
-    pickerController.settle(null, 'window-closed');
-    win = null;
+    pickerController.settleForRuntime(runtime.id, null, 'window-closed');
+    displaySharePickerController.cancelForRuntime(runtime.id, 'window-closed');
     // Unlike tabs, the overlay doesn't outlive its window — recreated fresh.
-    overlayMode = null;
-    if (overlayView && !overlayView.webContents.isDestroyed()) overlayView.webContents.close();
-    overlayView = null;
+    chromeState.overlayMode = null;
+    if (chromeState.overlayView && !chromeState.overlayView.webContents.isDestroyed()) chromeState.overlayView.webContents.close();
+    chromeState.overlayView = null;
     // The sheet doesn't outlive its window either — dropping the reference
     // without closing would leak the webContents.
-    if (utilitySheetView && !utilitySheetView.webContents.isDestroyed()) utilitySheetView.webContents.close();
-    utilitySheetView = null;
-    utilitySheetUrl = null;
+    if (chromeState.utilitySheetView && !chromeState.utilitySheetView.webContents.isDestroyed()) chromeState.utilitySheetView.webContents.close();
+    chromeState.utilitySheetView = null;
+    chromeState.utilitySheetUrl = null;
+    // Secondary windows own independent tab lifecycles. The primary keeps its
+    // tabs for the macOS dock-reopen behavior; closing a secondary window is
+    // an explicit user close, so its tabs and persisted workspace end here.
+    // A confirmed profile deletion is terminal even for a hand-edited or
+    // restored named primary workspace — it must never retain a dock-reopen
+    // path into data that the deletion is clearing.
+    if (deletingProfileIds.has(closingRuntime.profileId) || (!isQuitting && closingRuntime.id !== PRIMARY_WINDOW_ID)) {
+      for (const tabId of [...closingRuntime.tabOrder]) {
+        closeTab(tabId, { recordForReopen: false });
+      }
+      removePersistedWorkspace(closingRuntime.id);
+      windowRuntimeRegistry.discard(closingRuntime.id, closingWindow);
+      if (deletingProfileIds.has(closingRuntime.profileId) && primaryWindowRuntime === closingRuntime) {
+        primaryWindowRuntime = null;
+      }
+    } else if (closingRuntime) {
+      windowRuntimeRegistry.detach(closingRuntime.id, closingWindow);
+    }
+    const nextFocusedRuntime = windowRuntimeRegistry.all().find((candidate) =>
+      candidate.browserWindow && !candidate.browserWindow.isDestroyed()) ?? null;
+    setFocusedWindowRuntime(nextFocusedRuntime);
+    if (!nextFocusedRuntime) activeWorkspaceWindowId = PRIMARY_WINDOW_ID;
+    win = nextFocusedRuntime?.browserWindow ?? null;
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
     // on Windows/Linux). Recreated lazily on the next non-PNG capture.
-    iconRaster.dispose();
-    flushPermissionPrompts();
-  });
+    if (!nextFocusedRuntime) iconRaster.dispose();
+    flushPermissionPrompts(closingRuntime.id);
+  }));
 
   // Tabs survive window close (macOS dock-reopen recreates the window);
   // re-attach the active tab's view or the new window sits over nothing.
-  // First launch has no activeTabId yet — app.whenReady handles that one.
-  win.webContents.once('did-finish-load', () => {
-    if (!activeTabId || !tabs.has(activeTabId)) return;
-    const id = activeTabId;
-    activeTabId = null; // force setActiveTab to treat it as a fresh attach
+  // First launch has no tabState.activeTabId yet — app.whenReady handles that one.
+  browserWindow.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    browserWindow.webContents.send('chrome:theme-appearance', resolvedThemeAppearance());
+    if (!tabState.activeTabId || !tabs.has(tabState.activeTabId)) return;
+    const id = tabState.activeTabId;
+    setRuntimeActiveTab(null); // force setActiveTab to treat it as a fresh attach
     setActiveTab(id);
     // An 'open-url' with no window queues; opening it is why the window
     // was recreated (macOS dock-reopen path).
     flushExternalUrls();
+  }));
+
+  return runtime;
+}
+
+function createWindowRuntimeId() {
+  return `window_${crypto.randomUUID().replace(/-/g, '')}`;
+}
+
+function openNewWindow(options = {}) {
+  const profileId = options?.profileId ?? currentWorkspaceRuntime()?.profileId ?? DEFAULT_PROFILE_ID;
+  const runtime = createMainWindow({
+    runtimeId: createWindowRuntimeId(),
+    // A normal New Window stays in the current local profile; named profile
+    // creation supplies a different identity explicitly below.
+    profileId,
   });
+  return withWindowRuntime(runtime, () => {
+    const tabId = createTab(newTabUrl());
+    if (tabId) setActiveTab(tabId, { focusContent: false, focusAddress: true });
+    // The initial blank tab is a normal restorable workspace entry. Broadcast
+    // now so the new window has a stable owner before its first navigation.
+    broadcastTabs();
+    return runtime.id;
+  });
+}
+
+function openNewProfileWindow(name) {
+  const profile = localProfiles.createLocalProfile(name);
+  openNewWindow({ profileId: profile.id });
+  scheduleMenuRebuild();
+  return profile;
+}
+
+function createNamedLocalProfileWindow(name) {
+  try {
+    return { ok: true, profile: openNewProfileWindow(name) };
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t create that profile.' };
+  }
+}
+
+function openExistingProfileWindow(profileId) {
+  if (profileDeletions.hasPendingProfileDeletion(profileId)) return null;
+  const profile = localProfiles.getLocalProfile(profileId);
+  if (!profile) return null;
+  return openNewWindow({ profileId: profile.id });
+}
+
+function profileWindowTitle(profile) {
+  return profile?.id === DEFAULT_PROFILE_ID ? 'Blanc' : `Blanc — ${profile?.name ?? 'Profile'}`;
+}
+
+function refreshProfilePresentation(profile) {
+  forEachLiveWindowRuntime((runtime) => {
+    if (runtime.profileId !== profile.id) return;
+    runtime.browserWindow.setTitle(profileWindowTitle(profile));
+    broadcastTabs();
+  });
+  scheduleMenuRebuild();
+}
+
+function renameNamedLocalProfile(profileId, name) {
+  try {
+    if (profileDeletions.hasPendingProfileDeletion(profileId)) {
+      return { ok: false, message: 'That profile is being deleted.' };
+    }
+    const profile = localProfiles.renameLocalProfile(profileId, name);
+    if (!profile) return { ok: false, message: 'That profile no longer exists.' };
+    refreshProfilePresentation(profile);
+    return { ok: true, profile };
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t rename that profile.' };
+  }
+}
+
+function namedProfileDataDirectory(profileId) {
+  if (profileId === DEFAULT_PROFILE_ID) throw new Error('Personal cannot be deleted');
+  const root = path.resolve(app.getPath('userData'), 'profiles');
+  const target = path.resolve(root, profileId);
+  if (path.dirname(target) !== root) throw new Error('Invalid local profile data path');
+  return target;
+}
+
+async function destroyProfileWindow(runtime) {
+  const browserWindow = runtime.browserWindow;
+  if (!browserWindow || browserWindow.isDestroyed()) return;
+  await new Promise((resolve) => {
+    browserWindow.once('closed', resolve);
+    // Profile deletion was explicitly confirmed. A site's beforeunload dialog
+    // must not be able to retain a profile whose cookies and records are being
+    // erased, so use the same terminal lifecycle as a process shutdown.
+    browserWindow.destroy();
+  });
+}
+
+async function clearNamedProfileSessions(profileId) {
+  const { normal, private: privateSession } = browsingSessionsForProfile(profileId);
+  const sessions = [normal, privateSession];
+  await Promise.all(sessions.flatMap((browsingSession) => [
+    browsingSession.clearStorageData(),
+    browsingSession.clearCache(),
+    browsingSession.clearAuthCache(),
+  ]));
+}
+
+const deletingProfileIds = new Set();
+let profileDeletionRecoveryTimer = null;
+
+function scheduleProfileDeletionRecovery() {
+  if (profileDeletionRecoveryTimer) return;
+  profileDeletionRecoveryTimer = setTimeout(() => {
+    profileDeletionRecoveryTimer = null;
+    resumePendingProfileDeletions().catch((error) => {
+      console.warn('[profiles] could not resume profile deletion:', error.message);
+    });
+  }, 1000);
+}
+
+// Once a deletion marker is durable, the profile is terminal even if one of
+// Electron's storage-clearing calls or a filesystem operation fails. Complete
+// every independent step, retain the marker on any failure, and retry on this
+// launch and the next one. That keeps an interrupted deletion from reopening
+// its workspace or falling back into Personal after a crash.
+async function completeNamedProfileDeletion(profileId, {
+  closeWindows = false,
+  ensureSurvivingWindow = false,
+} = {}) {
+  const errors = [];
+  const profile = localProfiles.getLocalProfile(profileId);
+
+  if (ensureSurvivingWindow) {
+    const hasSurvivingWindow = windowRuntimeRegistry.all().some((runtime) =>
+      runtime.profileId !== profileId &&
+      runtime.browserWindow &&
+      !runtime.browserWindow.isDestroyed());
+    if (!hasSurvivingWindow) openNewWindow({ profileId: DEFAULT_PROFILE_ID });
+  }
+
+  if (closeWindows) {
+    const runtimes = windowRuntimeRegistry.all()
+      .filter((runtime) => runtime.profileId === profileId);
+    try {
+      await Promise.all(runtimes.map(destroyProfileWindow));
+    } catch (error) {
+      errors.push(error);
+    }
+    const stillOpen = windowRuntimeRegistry.all().some((runtime) =>
+      runtime.profileId === profileId &&
+      runtime.browserWindow &&
+      !runtime.browserWindow.isDestroyed());
+    if (stillOpen) {
+      return {
+        complete: false,
+        message: 'Waiting for the profile windows to close before erasing local data.',
+      };
+    }
+  }
+
+  try {
+    // clearStorageData removes cookies, local/session storage, IndexedDB,
+    // service workers, and other partition state; cache/auth are separate
+    // Electron stores. The profile's downloaded files are intentionally left
+    // in the user's chosen download location.
+    await clearNamedProfileSessions(profileId);
+  } catch (error) {
+    errors.push(error);
+  }
+  try {
+    discardProfileDownloads(profileId);
+    discardProfileStoreEntries(profileId);
+    fs.rmSync(namedProfileDataDirectory(profileId), { recursive: true, force: true });
+  } catch (error) {
+    errors.push(error);
+  }
+
+  // Persist workspace removal before removing the profile registry. If the
+  // second write cannot complete, the durable marker still blocks this id
+  // until recovery finishes; it can never restore as a Personal workspace.
+  if (!removePersistedProfileWorkspaces(profileId)) {
+    errors.push(new Error('Couldn’t remove this profile’s saved workspaces.'));
+  }
+  try {
+    if (profile) localProfiles.removeLocalProfile(profileId, { flush: true });
+  } catch (error) {
+    errors.push(error);
+  }
+  profileSessionRegistry?.remove(profileId);
+
+  if (errors.length) {
+    return {
+      complete: false,
+      message: `Profile deletion is still finishing: ${errors[0].message || 'cleanup will retry automatically.'}`,
+    };
+  }
+  try {
+    profileDeletions.clearProfileDeletion(profileId);
+  } catch (error) {
+    return {
+      complete: false,
+      message: 'Profile data was removed, but final cleanup bookkeeping will retry automatically.',
+    };
+  }
+  return { complete: true };
+}
+
+async function resumePendingProfileDeletions() {
+  const pending = profileDeletions.pendingProfileDeletions();
+  for (const profileId of pending) {
+    // A retry scheduled in the same process may still find the original
+    // window alive (for example if creating the required Personal window
+    // briefly failed). Startup has no such windows, so it only needs cleanup.
+    const hasLiveProfileWindow = windowRuntimeRegistry.all().some((runtime) =>
+      runtime.profileId === profileId &&
+      runtime.browserWindow &&
+      !runtime.browserWindow.isDestroyed());
+    const result = await completeNamedProfileDeletion(profileId, {
+      closeWindows: hasLiveProfileWindow,
+      ensureSurvivingWindow: hasLiveProfileWindow,
+    });
+    if (!result.complete) console.warn(`[profiles] pending deletion for ${profileId}: ${result.message}`);
+  }
+}
+
+async function deleteNamedLocalProfile(profileId, confirmation) {
+  const profile = localProfiles.getLocalProfile(profileId);
+  if (!profile || profile.id === DEFAULT_PROFILE_ID) {
+    return { ok: false, message: 'Only a named profile can be deleted.' };
+  }
+  if (confirmation !== profile.name) {
+    return { ok: false, message: `Type “${profile.name}” exactly to delete this profile.` };
+  }
+  if (sessionPersistenceReadOnly) {
+    return { ok: false, message: 'This Blanc build cannot safely remove a newer saved workspace.' };
+  }
+  if (profileDeletions.hasPendingProfileDeletion(profile.id)) {
+    return { ok: true, pending: true, message: 'That profile is already being deleted.' };
+  }
+  if (deletingProfileIds.has(profile.id)) {
+    return { ok: true, pending: true, message: 'That profile is already being deleted.' };
+  }
+
+  try {
+    // This synchronous marker is the commit point. Do not close a window
+    // until it survives on disk; an interrupted operation is then resumable
+    // and the profile cannot appear in Personal on a subsequent launch.
+    profileDeletions.markProfileDeletion(profile.id);
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t safely start profile deletion.' };
+  }
+
+  deletingProfileIds.add(profile.id);
+  try {
+    const result = await completeNamedProfileDeletion(profile.id, {
+      closeWindows: true,
+      ensureSurvivingWindow: true,
+    });
+    scheduleMenuRebuild();
+    if (result.complete) return { ok: true, profile };
+    scheduleProfileDeletionRecovery();
+    return { ok: true, pending: true, message: result.message };
+  } catch (error) {
+    // The marker already committed, so report a terminal, resumable deletion
+    // rather than claiming the original profile is still intact.
+    scheduleProfileDeletionRecovery();
+    return {
+      ok: true,
+      pending: true,
+      message: `Profile deletion is still finishing: ${error.message || 'cleanup will retry automatically.'}`,
+    };
+  } finally {
+    deletingProfileIds.delete(profile.id);
+  }
+}
+
+function windowRuntimeSnapshots() {
+  return windowRuntimeRegistry.all().map((runtime) => ({
+    id: runtime.id,
+    profileId: runtime.profileId,
+    tabOrder: [...runtime.tabOrder],
+    activeTabId: runtime.activeTabId,
+    glanceTabId: runtime.glanceTabId,
+    tabs: runtime.tabOrder.map((tabId) => {
+      const tab = tabs.get(tabId);
+      return tab ? { id: tab.id, url: tab.url } : null;
+    }).filter(Boolean),
+    groups: runtime.groups.map(({ id, name, collapsed }) => ({ id, name, collapsed })),
+    attached: !!runtime.browserWindow && !runtime.browserWindow.isDestroyed(),
+  }));
+}
+
+function tabSessionInfo(tab) {
+  const runtime = windowRuntimeRegistry.get(tab?.runtimeId);
+  const profileId = runtime?.profileId ?? DEFAULT_PROFILE_ID;
+  const tabSession = tab?.view?.webContents?.session;
+  const privateSession = getPrivateBrowsingSession(profileId);
+  const normalSession = getNormalBrowsingSession(profileId);
+  const defaultNormalSession = getNormalBrowsingSession(DEFAULT_PROFILE_ID);
+  const defaultPrivateSession = getPrivateBrowsingSession(DEFAULT_PROFILE_ID);
+  return {
+    profileId,
+    kind: tabSession === privateSession ? 'private' : 'normal',
+    matchesProfileSession: tabSession === (tab?.private ? privateSession : normalSession),
+    isolatedFromDefault: profileId === DEFAULT_PROFILE_ID
+      || (tabSession !== defaultNormalSession && tabSession !== defaultPrivateSession),
+  };
+}
+
+function closeWindowRuntime(id) {
+  if (id === PRIMARY_WINDOW_ID) return false;
+  const runtime = windowRuntimeRegistry.get(id);
+  if (!runtime?.browserWindow || runtime.browserWindow.isDestroyed()) return false;
+  runtime.browserWindow.close();
+  return true;
+}
+
+function focusWindowRuntime(id) {
+  const runtime = windowRuntimeRegistry.get(id);
+  const browserWindow = runtime?.browserWindow;
+  if (!browserWindow || browserWindow.isDestroyed()) return false;
+  browserWindow.focus();
+  setFocusedWindowRuntime(runtime);
+  return true;
+}
+
+function persistedWorkspaceIds() {
+  return readSessionWorkspace(ensureSessionStore().data).workspace.windows
+    .map((windowState) => windowState.id);
 }
 
 // Re-apply the current WebRTC policy to every open tab (used when the setting changes).
@@ -3078,9 +4239,15 @@ let lastSecureDnsTemplate = null;
 
 app.whenReady().then(async () => {
   if (await runPackageProbeIfRequested()) return; // SPIKE — headless 3(a); app.exit() already fired
-  const ses = session.defaultSession;
-  const privateSes = getPrivateBrowsingSession();
-  const browsingSessions = [ses, privateSes];
+  profileSessionRegistry = createProfileSessionRegistry({
+    defaultSession: session.defaultSession,
+    fromPartition: session.fromPartition.bind(session),
+  });
+  const { normal: ses, private: privateSes } = browsingSessionsForProfile(DEFAULT_PROFILE_ID);
+  const browsingSessions = allBrowsingSessions();
+  for (const browsingSession of browsingSessions) {
+    certificateObserver.observe(browsingSession);
+  }
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
   // locally so existing suggestion/navigation scenarios exercise their
   // intended feature instead of the onboarding card; telemetry is disabled.
@@ -3107,7 +4274,7 @@ app.whenReady().then(async () => {
     app,
     session: browsingSessions,
     dialog,
-    getParentWindow: () => (hasLiveWindow() ? win : null),
+    getParentWindow: () => currentBrowserWindow(),
   });
 
   // Unlike a webPreferences preload, a session preload also reaches adopted
@@ -3132,31 +4299,8 @@ app.whenReady().then(async () => {
   // constraint adblock.js documents for onBeforeRequest) — if a future
   // feature also needs onBeforeSendHeaders, compose inside this handler
   // rather than registering a second one.
-  if (chromeMajor) {
-    const chUa = `"Not;A=Brand";v="8", "Chromium";v="${chromeMajor}", "Google Chrome";v="${chromeMajor}"`;
-    const chUaFull = `"Not;A=Brand";v="8.0.0.0", "Chromium";v="${chromeFull}", "Google Chrome";v="${chromeFull}"`;
-    const setHeader = (headers, name, value, { add = false } = {}) => {
-      const existing = Object.keys(headers).find((key) => key.toLowerCase() === name);
-      if (existing || add) headers[existing || name] = value;
-    };
-    for (const browsingSession of browsingSessions) {
-      browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
-        const h = details.requestHeaders;
-        setHeader(h, 'sec-ch-ua', chUa, { add: true });
-        // High-entropy hint: only rewrite it when Chromium already decided to
-        // send it (i.e. the server negotiated it via Accept-CH), matching real
-        // Chrome — don't force it onto every request like the low-entropy hints.
-        setHeader(h, 'sec-ch-ua-full-version-list', chUaFull);
-        setHeader(h, 'sec-ch-ua-platform', `"${chromeClientHintPlatform()}"`);
-        setHeader(h, 'sec-ch-ua-platform-version', `"${chromeClientHintPlatformVersion()}"`);
-        setHeader(h, 'sec-ch-ua-arch', `"${chromeClientHintArchitecture()}"`);
-        setHeader(h, 'sec-ch-ua-bitness', `"${chromeClientHintBitness()}"`);
-        setHeader(h, 'sec-ch-ua-model', '""');
-        setHeader(h, 'sec-ch-ua-mobile', '?0');
-        setHeader(h, 'sec-ch-ua-wow64', '?0');
-        callback({ requestHeaders: h });
-      });
-    }
+  for (const browsingSession of browsingSessions) {
+    installChromeClientHintHeaderFallback(browsingSession);
   }
 
   applyTheme();
@@ -3165,27 +4309,35 @@ app.whenReady().then(async () => {
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', handleNativeThemeUpdated);
 
-  setupPermissionPolicy(ses);
-  setupPermissionPolicy(privateSes, { persistDecisions: false });
+  setupPermissionPolicy(ses, { profileId: DEFAULT_PROFILE_ID });
+  setupPermissionPolicy(privateSes, { persistDecisions: false, profileId: DEFAULT_PROFILE_ID });
   let permissionPromptCounter = 0;
   // Resolve null when there's no window to ask through — the policy treats
   // null as "not answered" and denies for now WITHOUT persisting, so a
   // transient no-window moment can't permanently block a site.
-  setPermissionPrompter(({ origin, permission, mediaTypes }) =>
+  setPermissionPrompter(({ origin, permission, mediaTypes, webContents: requestingWebContents }) =>
     new Promise((resolve) => {
-      if (!hasLiveWindow()) return resolve(null);
+      const tab = requestingWebContents ? tabForWebContentsId(requestingWebContents.id) : null;
+      const runtime = tab ? windowRuntimeRegistry.get(tab.runtimeId) : null;
+      const browserWindow = runtime?.browserWindow;
+      if (!runtime || !browserWindow || browserWindow.isDestroyed()) return resolve(null);
       const promptId = ++permissionPromptCounter;
-      pendingPermissionPrompts.set(promptId, resolve);
-      win.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
+      pendingPermissionPrompts.set(promptId, { resolve, runtimeId: runtime.id });
+      browserWindow.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
     })
   );
   chromeOn('permissions:respond', (_e, { id, allow }) => {
-    pendingPermissionPrompts.get(id)?.(!!allow);
+    const pending = pendingPermissionPrompts.get(id);
+    if (pending?.runtimeId !== currentWorkspaceRuntime()?.id) return;
+    pending?.resolve(!!allow);
     pendingPermissionPrompts.delete(id);
   });
+  setDisplayMediaPrompter(promptForDisplayMedia);
 
-  setupDownloads(ses, broadcastDownloadsActivity);
-  setupDownloads(privateSes, broadcastDownloadsActivity);
+  setupDownloads(ses, broadcastDownloadsActivity, { profileId: DEFAULT_PROFILE_ID });
+  // Private tabs retain Blanc's existing download behavior, but those records
+  // belong to the current default local profile rather than another profile.
+  setupDownloads(privateSes, broadcastDownloadsActivity, { profileId: DEFAULT_PROFILE_ID });
   let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
   let adblockStartupController = null;
   let releaseStartup = async () => {};
@@ -3208,16 +4360,40 @@ app.whenReady().then(async () => {
       }
     }
   };
-  setupPages({
+  const pages = setupPages({
     sessions: browsingSessions,
+    // Settings' “clear browsing data” action is profile-local: it clears the
+    // calling profile's normal and private cookies/cache, never another local
+    // profile's Chromium partition.
+    getBrowsingSessions: () => {
+      const pair = browsingSessionsForProfile(profileIdForCurrentRuntime());
+      return [pair.normal, pair.private];
+    },
     onDataChanged: refreshBookmarkFlags,
+    // Internal pages are tab views, while utility sheets are chrome views.
+    // Resolve both from their actual sender before a page hook reads local
+    // workspace state; a background window's new-tab ledger must never render
+    // the focused window's groups or direct a file dialog to the wrong parent.
+    runInPageRuntime: (event, work) => {
+      const tab = tabForWebContentsId(event.sender.id);
+      const runtime = tab
+        ? windowRuntimeRegistry.get(tab.runtimeId)
+        : windowRuntimeRegistry.getByChromeWebContents(event.sender);
+      return runtime ? withWindowRuntime(runtime, work) : work();
+    },
     // Parent for the favorites-import file dialog (evaluated lazily at click).
-    getMainWindow: () => (hasLiveWindow() ? win : undefined),
+    getMainWindow: () => currentBrowserWindow() ?? undefined,
     // Utility sheet: only the sheet view itself may close the sheet — the
     // strict pages:surface:close guard verifies the sender against this.
     utilitySheet: {
-      isSheetSender: (wc) => !!utilitySheetView && wc === utilitySheetView.webContents,
-      close: () => hideUtilitySheet(),
+      isSheetSender: (wc) => {
+        const runtime = windowRuntimeRegistry.getByChromeWebContents(wc);
+        return !!runtime && wc === runtime.utilitySheetView?.webContents;
+      },
+      close: (wc) => {
+        const runtime = windowRuntimeRegistry.getByChromeWebContents(wc);
+        if (runtime) withWindowRuntime(runtime, hideUtilitySheet);
+      },
     },
     // The start page's ledger sections read live tab-group state and the
     // rolling blocked counter, both owned here.
@@ -3248,8 +4424,54 @@ app.whenReady().then(async () => {
         return { completed: result.completed, error: result.error ?? null };
       },
     },
+    profiles: {
+      list: () => ({
+        currentId: profileIdForCurrentRuntime(),
+        profiles: localProfiles.listLocalProfiles()
+          .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id)),
+      }),
+      create: createNamedLocalProfileWindow,
+      open: openExistingProfileWindow,
+      rename: renameNamedLocalProfile,
+      remove: deleteNamedLocalProfile,
+    },
     shortcuts: { list: listShortcuts },
   });
+
+  // Late-created profile sessions must receive every security and browser
+  // policy the default sessions got above. Keep the guard at the Session
+  // boundary, not the window boundary: two windows for one profile share a
+  // Chromium partition and must not register duplicate Electron handlers.
+  const policyInstalledSessions = new WeakSet(browsingSessions);
+  installProfileSessionPolicies = (profileId) => {
+    const pair = browsingSessionsForProfile(profileId);
+    const attach = (browsingSession, { persistDecisions }) => {
+      if (policyInstalledSessions.has(browsingSession)) return;
+      policyInstalledSessions.add(browsingSession);
+      certificateObserver.observe(browsingSession);
+      setupWebAuthn({
+        app,
+        session: browsingSession,
+        dialog,
+        getParentWindow: () => currentBrowserWindow(),
+      });
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'chrome-compat-preload.js'),
+      });
+      installChromeClientHintHeaderFallback(browsingSession);
+      setupPermissionPolicy(browsingSession, { profileId: pair.profileId, persistDecisions });
+      setupDownloads(browsingSession, broadcastDownloadsActivity, { profileId: pair.profileId });
+      pages.attachSession(browsingSession);
+      if (startupNavigationGateActive) installStartupNavigationGate([browsingSession]);
+      attachAdBlockerToSession(browsingSession, {
+        enabled: settings.getSettings().adblockEnabled,
+      });
+    };
+    attach(pair.normal, { persistDecisions: true });
+    attach(pair.private, { persistDecisions: false });
+    return pair;
+  };
 
   // The acceptance harness launches offline: skip the network ad-engine build
   // and install the test-only main-process surface instead. Gate is airtight — only an
@@ -3257,19 +4479,26 @@ app.whenReady().then(async () => {
   // BLANC_TEST=0/false stays off.
   if (acceptanceTestMode) {
     require('./test-hook').install({
-      tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId, clusterSlots,
+      tabs, getTabOrder: () => tabState.tabOrder, getGroups: () => tabState.groups, getActiveTabId: () => tabState.activeTabId, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
+      openGlance, closeGlance, getGlanceTabId: () => currentWorkspaceRuntime()?.glanceTabId ?? null,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
+      openNewWindow, openNewProfileWindow, openExistingProfileWindow,
+      renameNamedLocalProfile, deleteNamedLocalProfile,
+      listLocalProfiles: () => localProfiles.listLocalProfiles(),
+      windowRuntimeSnapshots, tabSessionInfo,
+      closeWindowRuntime, focusWindowRuntime, persistedWorkspaceIds,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
-      getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
+      getOverlayMode: () => chromeState.overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       pickerController, // SPIKE (1Password fill) — acceptance drives the real controller
+      displaySharePickerController,
       showUtilityPage, hideUtilitySheet,
-      getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
-      getUtilitySheetWebContents: () => utilitySheetView?.webContents ?? null,
-      getOverlayWebContents: () => overlayView?.webContents ?? null,
+      getUtilitySheetState: () => ({ visible: !!chromeState.utilitySheetUrl, url: chromeState.utilitySheetUrl }),
+      getUtilitySheetWebContents: () => chromeState.utilitySheetView?.webContents ?? null,
+      getOverlayWebContents: () => chromeState.overlayView?.webContents ?? null,
       getChromeWebContents: () => win?.webContents ?? null,
       setWindowContentSize: (width, height) => {
         if (!hasLiveWindow()) return;
@@ -3277,8 +4506,8 @@ app.whenReady().then(async () => {
         resizeActiveView();
       },
       getWindowContentBounds: () => hasLiveWindow() ? win.getContentBounds() : null,
-      getUtilitySheetBounds: () => utilitySheetView?.getBounds() ?? null,
-      getOverlayBounds: () => overlayView?.getBounds() ?? null,
+      getUtilitySheetBounds: () => chromeState.utilitySheetView?.getBounds() ?? null,
+      getOverlayBounds: () => chromeState.overlayView?.getBounds() ?? null,
       setTestSearchSuggestionFixture,
       clearTestSearchSuggestionFixture,
       getTestSearchSuggestionRequests: () => structuredClone(testSearchSuggestionRequests),
@@ -3288,6 +4517,10 @@ app.whenReady().then(async () => {
         `location.href = ${JSON.stringify(String(url))}`
       ),
       getChromeUrl: () => win?.webContents.getURL() ?? '',
+      listDownloads,
+      openDownload,
+      clearFinishedDownloads,
+      setTestOpenDownloadHandler,
     });
   }
 
@@ -3300,7 +4533,8 @@ app.whenReady().then(async () => {
     for (const tab of tabs.values()) {
       if (tab.view.webContents.id === request.tabId) {
         tab.blockedCount += 1;
-        scheduleBroadcastTabs();
+        const runtime = windowRuntimeRegistry.get(tab.runtimeId);
+        if (runtime) withWindowRuntime(runtime, scheduleBroadcastTabs);
         break;
       }
     }
@@ -3322,28 +4556,39 @@ app.whenReady().then(async () => {
       // Clear cached lookups on both sessions so the new resolver takes effect without
       // a restart. clearHostResolverCache returns a promise; Promise.allSettled collects
       // any rejection so a failed clear can't surface as an unhandled rejection.
-      Promise.allSettled(browsingSessions.map((sess) => sess.clearHostResolverCache()));
+      Promise.allSettled(allBrowsingSessions().map((sess) => sess.clearHostResolverCache()));
     }
   });
 
   // Live tab state for tab sync's snapshot builder. Must be registered
-  // before sync.init() so the launch sync can publish.
+  // before sync.init() so the launch sync can publish. Tab Sync's existing
+  // consent covered the single primary workspace; additional windows stay
+  // local until their inclusion gets an explicit product/privacy decision.
   tabsync.setSnapshotProvider(() => ({
-    tabList: tabOrder.map((id) => tabs.get(id)).filter(Boolean),
-    groups,
+    tabList: (windowRuntimeRegistry.get(PRIMARY_WINDOW_ID)?.tabOrder ?? [])
+      .map((id) => tabs.get(id))
+      .filter(Boolean),
+    groups: windowRuntimeRegistry.get(PRIMARY_WINDOW_ID)?.groups ?? [],
   }));
   tabicons.setSnapshotProvider(() => ({
-    tabList: tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+    tabList: (windowRuntimeRegistry.get(PRIMARY_WINDOW_ID)?.tabOrder ?? [])
+      .map((id) => tabs.get(id))
+      .filter(Boolean),
   }));
   // A pull changed the cached device map: push the fresh list to the open
   // surfaces (overlay panel; any tab currently on the start page).
   const pushRemoteDevices = () => {
-    const devices = sync.listRemoteDevices();
-    overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
-    for (const tab of tabs.values()) {
-      if (tab.url?.startsWith('blanc://newtab')) {
-        tab.view.webContents.send('pages:start:remote-tabs', devices);
-      }
+    for (const runtime of windowRuntimeRegistry.all()) {
+      withWindowRuntime(runtime, () => {
+        const devices = sync.listRemoteDevices();
+        runtime.overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
+        for (const tabId of runtime.tabOrder) {
+          const tab = tabs.get(tabId);
+          if (tab?.url?.startsWith('blanc://newtab')) {
+            tab.view.webContents.send('pages:start:remote-tabs', devices);
+          }
+        }
+      });
     }
   };
   tabsync.onRemoteChanged(pushRemoteDevices);
@@ -3365,7 +4610,12 @@ app.whenReady().then(async () => {
   // (routers, staging servers) simply fail.
   app.on('login', (event, _wc, _details, authInfo, callback) => {
     event.preventDefault();
-    promptForCredentials(hasLiveWindow() ? win : null, authInfo).then((creds) => {
+    const tab = _wc ? tabForWebContentsId(_wc.id) : null;
+    const runtime = tab ? windowRuntimeRegistry.get(tab.runtimeId) : null;
+    const parentWindow = runtime?.browserWindow && !runtime.browserWindow.isDestroyed()
+      ? runtime.browserWindow
+      : currentBrowserWindow();
+    promptForCredentials(parentWindow, authInfo).then((creds) => {
       if (creds) callback(creds.username, creds.password);
       else callback(); // no args = cancel the request
     });
@@ -3376,33 +4626,94 @@ app.whenReady().then(async () => {
 
   // Snapshot the previous session before the local startup tab exists. Tab
   // broadcasts are temporarily prevented from overwriting this snapshot.
-  const saved = structuredClone(ensureSessionStore().data);
-  const cleaned = filterRestoredSession(saved, isUtilityUrl);
-  saved.urls = cleaned.urls;
-  saved.groupIds = cleaned.groupIds;
-  saved.pinned = cleaned.pinned;
-  saved.activeIndex = cleaned.activeIndex;
-  groups = (Array.isArray(saved.groups) ? saved.groups : [])
-    .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
-    .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed }));
+  let storedWorkspace = readSessionWorkspace(ensureSessionStore().data);
+  sessionPersistenceReadOnly = !storedWorkspace.supported;
+  if (sessionPersistenceReadOnly) {
+    console.warn('[session] newer workspace version found; leaving session.json untouched');
+  } else if (storedWorkspace.migrated) {
+    ensureSessionStore().update((data) => replaceObject(data, storedWorkspace.workspace));
+  }
+  // The marker was flushed before any profile window was closed. Finish an
+  // interrupted erase before examining saved workspaces, and always suppress
+  // a still-pending profile so its URLs can never be restored as Personal.
+  if (!sessionPersistenceReadOnly) {
+    await resumePendingProfileDeletions();
+    storedWorkspace = readSessionWorkspace(ensureSessionStore().data);
+  }
+  const pendingProfileIds = new Set(profileDeletions.pendingProfileDeletions());
+  const savedWindows = storedWorkspace.workspace.windows
+    .filter((windowState) => !pendingProfileIds.has(windowState.profileId))
+    .map((windowState) => {
+    const saved = structuredClone(windowState);
+    const cleaned = filterRestoredSession(saved, isUtilityUrl);
+    return {
+      ...saved,
+      urls: cleaned.urls,
+      groupIds: cleaned.groupIds,
+      pinned: cleaned.pinned,
+      activeIndex: cleaned.activeIndex,
+      groups: (Array.isArray(saved.groups) ? saved.groups : [])
+        .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
+        .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
+    };
+    });
+  // A crash can land after the durable deletion marker but before the
+  // replacement Personal window is created. Keep startup viable while the
+  // marker suppresses the deleted profile's only saved workspace.
+  if (!savedWindows.length) {
+    savedWindows.push({
+      id: PRIMARY_WINDOW_ID,
+      profileId: DEFAULT_PROFILE_ID,
+      urls: [],
+      groupIds: [],
+      pinned: [],
+      activeIndex: 0,
+      groups: [],
+    });
+  }
+  const savedWindowById = new Map(savedWindows.map((windowState) => [windowState.id, windowState]));
+  activeWorkspaceWindowId = savedWindowById.has(storedWorkspace.workspace.activeWindowId)
+    ? storedWorkspace.workspace.activeWindowId
+    : savedWindows[0]?.id ?? PRIMARY_WINDOW_ID;
   sessionPersistenceSuspended = true;
 
   const blockingRequested =
     !acceptanceTestMode && settings.getSettings().adblockEnabled;
-  if (blockingRequested) installStartupNavigationGate(browsingSessions);
+  // A hand-edited/future workspace can already reference a named profile on
+  // startup. Materialize and secure those sessions before the temporary
+  // navigation gate is installed, so restored tabs cannot race unfiltered.
+  for (const profileId of new Set(savedWindows.map((saved) => saved.profileId))) {
+    installProfileSessionPolicies(profileId);
+  }
+  if (blockingRequested) installStartupNavigationGate(allBrowsingSessions());
 
-  createMainWindow();
-  const startupTabId = createTab(NEW_TAB_URL);
-  const chromeReady = new Promise((resolve) => {
-    win.webContents.once('did-finish-load', () => {
-      if (tabs.has(startupTabId)) {
-        // Keep focus in the local page so first-run/recovery actions are
-        // immediately visible and keyboard reachable.
+  // Restore each workspace in its own BrowserWindow. Put the previously
+  // focused window last so it is the frontmost native window after launch.
+  const startupWindows = [...savedWindows].sort((a, b) =>
+    Number(a.id === activeWorkspaceWindowId) - Number(b.id === activeWorkspaceWindowId));
+  const startupTabs = new Map();
+  const startupRuntimes = startupWindows.map((saved) => {
+    const runtime = createMainWindow({
+      runtimeId: saved.id,
+      profileId: saved.profileId,
+    });
+    withWindowRuntime(runtime, () => {
+      tabState.groups = saved.groups;
+      startupTabs.set(runtime.id, createTab(NEW_TAB_URL));
+    });
+    return runtime;
+  });
+  const chromeReady = Promise.all(startupRuntimes.map((runtime) => new Promise((resolve) => {
+    runtime.browserWindow.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+      const startupTabId = startupTabs.get(runtime.id);
+      if (startupTabId && tabs.has(startupTabId)) {
+        // Keep first-run/recovery actions keyboard reachable in every restored
+        // window until its saved tabs can be attached after the blocker gate.
         setActiveTab(startupTabId, { focusContent: true });
       }
       resolve();
-    });
-  });
+    }));
+  })));
 
   let startupReleased = false;
   releaseStartup = async ({ blocking, preservePreference = false }) => {
@@ -3416,26 +4727,33 @@ app.whenReady().then(async () => {
       settings.setSettings({ adblockEnabled: false });
     }
     if (blockingRequested) {
-      releaseStartupNavigationGate(browsingSessions, {
+      releaseStartupNavigationGate(allBrowsingSessions(), {
         blockerAttached: blocking,
       });
     }
 
-    const restoredIds = saved.urls.map((url, index) => createTab(url, {
-      groupId: saved.groupIds?.[index] ?? null,
-      pinned: !!saved.pinned?.[index],
-    }));
-    pruneEmptyGroups();
-    if (restoredIds.length) {
-      const target = restoredIds[
-        Math.min(Math.max(0, saved.activeIndex), restoredIds.length - 1)
-      ];
-      if (tabs.has(startupTabId)) closeTab(startupTabId);
-      setActiveTab(target, { focusContent: true });
+    for (const runtime of startupRuntimes) {
+      const saved = savedWindowById.get(runtime.id);
+      if (!saved) continue;
+      withWindowRuntime(runtime, () => {
+        const restoredIds = saved.urls.map((url, index) => createTab(url, {
+          groupId: saved.groupIds?.[index] ?? null,
+          pinned: !!saved.pinned?.[index],
+        }));
+        pruneEmptyGroups();
+        if (restoredIds.length) {
+          const target = restoredIds[
+            Math.min(Math.max(0, saved.activeIndex), restoredIds.length - 1)
+          ];
+          const startupTabId = startupTabs.get(runtime.id);
+          if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
+          setActiveTab(target, { focusContent: true });
+        }
+      });
     }
 
     sessionPersistenceSuspended = false;
-    persistSession();
+    for (const runtime of startupRuntimes) persistSessionForRuntime(runtime);
 
     // Cold-start URL handoff waits until the blocker decision and session
     // restore are both complete.
@@ -3455,9 +4773,11 @@ app.whenReady().then(async () => {
     // Keep the engine warm so enabling the setting later in this run works,
     // but never hold browsing for a feature the user turned off.
     setupAdBlocker(ses, { enabled: false }).then(() => {
-      attachAdBlockerToSession(privateSes, {
-        enabled: settings.getSettings().adblockEnabled,
-      });
+      for (const browsingSession of allBrowsingSessions()) {
+        attachAdBlockerToSession(browsingSession, {
+          enabled: settings.getSettings().adblockEnabled,
+        });
+      }
       setAdBlockEnabled(settings.getSettings().adblockEnabled);
     }).catch((err) => {
       console.warn('[adblock] background initialization failed:', err.message);
@@ -3475,15 +4795,22 @@ app.whenReady().then(async () => {
             ? packagedAdblockTestFetch
             : fetch,
         });
-        attachAdBlockerToSession(privateSes, {
-          enabled: settings.getSettings().adblockEnabled,
-        });
+        for (const browsingSession of allBrowsingSessions()) {
+          attachAdBlockerToSession(browsingSession, {
+            enabled: settings.getSettings().adblockEnabled,
+          });
+        }
       },
       onStateChange: (state) => {
         adblockStartupState = state;
         broadcastStartPageStatus();
-        if (state.phase === 'failed' && tabs.has(startupTabId)) {
-          setActiveTab(startupTabId, { focusContent: true });
+        if (state.phase === 'failed') {
+          for (const runtime of startupRuntimes) {
+            const startupTabId = startupTabs.get(runtime.id);
+            if (startupTabId && tabs.has(startupTabId)) {
+              withWindowRuntime(runtime, () => setActiveTab(startupTabId, { focusContent: true }));
+            }
+          }
         }
       },
       onReleased: ({ blocking }) => releaseStartup({ blocking }),

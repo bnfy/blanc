@@ -11,7 +11,7 @@
 const settings = require('./settings');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
-const { Menu, clipboard } = require('electron');
+const { app, Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const {
   runAddressMenuItem,
@@ -19,6 +19,7 @@ const {
   isAddressMenuAttached,
   ADDRESS_INPUT_ID,
 } = require('./address-menu');
+const { sanitizeCertificate, certificateErrorQuery } = require('./site-security');
 
 /**
  * @param {object} refs - live references from main.js's module scope.
@@ -41,10 +42,24 @@ function install(refs) {
     reorderTabWithinBucket,
     reopenClosedTab,
     newTabUrl,
+    openGlance,
+    closeGlance,
+    getGlanceTabId,
     setTabLayout,
     setVerticalTabsWidth,
     getVerticalTabsMetrics,
     broadcastTabs,
+    openNewWindow,
+    openNewProfileWindow,
+    openExistingProfileWindow,
+    renameNamedLocalProfile,
+    deleteNamedLocalProfile,
+    listLocalProfiles,
+    windowRuntimeSnapshots: getWindowRuntimeSnapshots,
+    tabSessionInfo,
+    closeWindowRuntime: closeWindowRuntimeById,
+    focusWindowRuntime,
+    persistedWorkspaceIds: getPersistedWorkspaceIds,
     getRailActivationSerial,
     normalizeAddressInput,
     pasteAndGo,
@@ -55,6 +70,7 @@ function install(refs) {
     showOverlay,
     hideOverlay,
     pickerController,
+    displaySharePickerController,
     showUtilityPage,
     hideUtilitySheet,
     getUtilitySheetState,
@@ -73,6 +89,10 @@ function install(refs) {
     getPrivateBrowsingSession,
     attemptChromeNavigation,
     getChromeUrl,
+    listDownloads,
+    openDownload,
+    clearFinishedDownloads,
+    setTestOpenDownloadHandler,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -91,6 +111,12 @@ function install(refs) {
   const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
   let pendingPick = null; // SPIKE (1Password fill) — the requestPick promise in flight
+  let pendingDisplaySharePick = null;
+  let openedDownloadPath = null;
+  setTestOpenDownloadHandler((filePath) => {
+    openedDownloadPath = filePath;
+    return Promise.resolve('');
+  });
   const remoteFixture = [{
     deviceId: 'acceptance-remote-device',
     name: 'Press Mac',
@@ -140,7 +166,10 @@ function install(refs) {
           private: !!t.private,
           webContentsId: t.view.webContents.id,
           bounds: t.view.getBounds(),
-          sessionKind: t.view.webContents.session === getPrivateBrowsingSession() ? 'private' : 'default',
+          sessionKind: tabSessionInfo(t).kind,
+          sessionProfileId: tabSessionInfo(t).profileId,
+          matchesProfileSession: tabSessionInfo(t).matchesProfileSession,
+          sessionIsolatedFromDefault: tabSessionInfo(t).isolatedFromDefault,
           sessionPersistent: sessionPersistentOf(t),
         });
       }
@@ -154,6 +183,7 @@ function install(refs) {
         })),
         groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
         activeTabId: getActiveTabId(),
+        glanceTabId: getGlanceTabId(),
       };
     },
 
@@ -173,6 +203,8 @@ function install(refs) {
     muteTab(id) { toggleTabMuted(id); },
     closeTab(id) { closeTab(id); },
     reopenClosed() { reopenClosedTab(); },
+    openGlance() { return openGlance(); },
+    closeGlance() { return closeGlance(); },
     groupActiveByName(name) { groupTabByName(getActiveTabId(), name); },
     groupTabByName(id, name) { groupTabByName(id, name); },
     activateTab(id, focusContent = false) { setActiveTab(id, { focusContent: !!focusContent }); },
@@ -185,6 +217,9 @@ function install(refs) {
       if (typeof patch.title === 'string') tab.title = patch.title;
       if (typeof patch.favicon === 'string' || patch.favicon === null) tab.favicon = patch.favicon;
       if (typeof patch.isLoading === 'boolean') tab.isLoading = patch.isLoading;
+      if (Number.isInteger(patch.blockedCount) && patch.blockedCount >= 0) {
+        tab.blockedCount = patch.blockedCount;
+      }
       if (typeof patch.audible === 'boolean') tab.audible = patch.audible;
       if (typeof patch.muted === 'boolean') {
         tab.muted = patch.muted;
@@ -197,6 +232,29 @@ function install(refs) {
       const g = getGroups().find((x) => x.name === lc(name));
       if (!g) return;
       for (const [id, t] of tabs) if (t.groupId === g.id) closeTab(id);
+    },
+
+    // ---- browser windows ----
+    // These are intentionally limited to the test-only hook: production
+    // window ownership is driven by the native File menu/accelerator, while
+    // acceptance needs a deterministic way to assert the runtime boundary.
+    openWindow() { return openNewWindow(); },
+    openProfileWindow(name) { return openNewProfileWindow(name).id; },
+    openExistingProfileWindow(id) { return openExistingProfileWindow(id); },
+    localProfiles() { return listLocalProfiles(); },
+    renameProfile(id, name) { return renameNamedLocalProfile(id, name); },
+    deleteProfile(id, confirmation) { return deleteNamedLocalProfile(id, confirmation); },
+    windowRuntimes() { return getWindowRuntimeSnapshots(); },
+    closeWindow(id) { return closeWindowRuntimeById(id); },
+    focusWindow(id) { return focusWindowRuntime(id); },
+    persistedWorkspaceIds() { return getPersistedWorkspaceIds(); },
+    quitApplication() {
+      // Defer until the Electron evaluate response has crossed the process
+      // boundary. app.quit() fires before-quit, which preserves every window
+      // workspace; closing BrowserWindows individually is deliberately a
+      // different action for secondary windows.
+      setImmediate(() => app.quit());
+      return true;
     },
 
     // ---- favorites (bookmarks store) ----
@@ -219,11 +277,15 @@ function install(refs) {
     },
     activeFavorited() { const t = tabs.get(getActiveTabId()); return !!t && bookmarks.isBookmarked(urlOf(t)); },
     bookmarkUrls() { return bookmarks.listBookmarks().map((b) => b.url); },
+    bookmarkRecords() {
+      return bookmarks.listBookmarks().map(({ url, title, folder }) => ({ url, title, folder }));
+    },
 
     // ---- history store ----
     seedHistory() { history.addVisit('http://seed.local/', 'Seed'); },
     clearHistory() { history.clearHistory(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
+    historyEntries() { return history.listHistory({ limit: 5000 }); },
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
@@ -265,6 +327,7 @@ function install(refs) {
     },
     setAppIcon(x) { settings.setSettings({ appIcon: x }); },
     appIcon() { return settings.getSettings().appIcon; },
+    setTheme(theme) { settings.setSettings({ theme }); },
     secureDns() { return settings.getSettings().secureDns; },
     secureDnsTemplate() { return settings.getSettings().secureDnsTemplate; },
     webrtcPolicy() { return settings.getSettings().webrtcPolicy; },
@@ -324,8 +387,164 @@ function install(refs) {
       try { return handoffProtocols.has(new URL(url).protocol); } catch { return false; }
     },
     openDownloads() { openInternalPage('blanc://downloads/'); },
+    startDownload(url) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || typeof url !== 'string') return false;
+      tab.view.webContents.downloadURL(url);
+      openInternalPage('blanc://downloads/');
+      return true;
+    },
+    downloads() { return listDownloads(); },
+    async openCompletedDownload() {
+      const record = listDownloads().find((item) => item.state === 'completed' && item.savePath);
+      if (!record) return null;
+      await openDownload(record.id);
+      return record.savePath;
+    },
+    openedDownloadPath() { return openedDownloadPath; },
+    readDownloadsSheetDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        rows: document.querySelectorAll('#list .row').length,
+        progressing: document.querySelectorAll('#list .progress').length,
+        completed: [...document.querySelectorAll('#list .meta')]
+          .filter((node) => node.textContent.startsWith('Completed')).length,
+      }))()`);
+    },
     openSettings() { openInternalPage('blanc://settings/'); },
+    readSettingsProfilesDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        nav: document.querySelector('[data-group="profiles"]')?.textContent ?? '',
+        createLabel: document.getElementById('newProfileCreate')?.textContent ?? '',
+        names: [...document.querySelectorAll('#profilesList .title')].map((node) => node.textContent),
+        actions: [...document.querySelectorAll('#profilesList button')].map((node) => node.textContent),
+      }))()`);
+    },
+    readSettingsIconDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => [...document.querySelectorAll('#appIconGrid .icon-swatch')]
+        .map((node) => ({
+          id: node.dataset.icon,
+          locked: node.classList.contains('locked'),
+          selected: node.classList.contains('active'),
+        })))()`);
+    },
+    clickSettingsIcon(id) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const icon = document.querySelector(${JSON.stringify(`#appIconGrid .icon-swatch[data-icon="${String(id)}"]`)});
+        if (!icon) return false;
+        icon.click();
+        return true;
+      })()`);
+    },
+    chromePalette() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        id: ${wc.id},
+        theme: document.documentElement.dataset.theme ?? null,
+        background: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+      }))()`);
+    },
+    islandChrome() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const group = document.getElementById('pillGroupName');
+        const shield = document.getElementById('pillShield');
+        return {
+          navTitles: [...document.querySelectorAll('#pillNav button')].map((button) => button.title),
+          dotCount: document.querySelectorAll('#pillDots .island-dot').length,
+          groupName: group?.hidden ? '' : (group?.textContent ?? '').trim(),
+          domain: document.getElementById('pillDomain')?.textContent ?? '',
+          shieldCount: shield?.hidden ? null : shield?.textContent ?? null,
+          actionTitles: [...document.querySelectorAll('#pillActions button')]
+            .filter((button) => !button.hidden)
+            .map((button) => button.title),
+        };
+      })()`);
+    },
+    privateChrome() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const chip = document.getElementById('pillPrivateChip');
+        return {
+          theme: document.documentElement.dataset.theme ?? null,
+          privateChipVisible: !!chip && !chip.hidden,
+        };
+      })()`);
+    },
+    clickPrivateChip() {
+      const wc = getChromeWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const chip = document.getElementById('pillPrivateChip');
+        if (!chip || chip.hidden) return false;
+        chip.click();
+        return true;
+      })()`);
+    },
+    utilityPalette() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        id: ${wc.id},
+        theme: document.documentElement.dataset.theme ?? null,
+        background: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+      }))()`);
+    },
     openFind() { openFindBar(); },
+    async setFindQuery(query) {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const input = document.getElementById('findInput');
+        if (!input) return false;
+        input.value = ${JSON.stringify(String(query))};
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        return true;
+      })()`);
+    },
+    async findUi() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        query: document.getElementById('findInput')?.value ?? '',
+        count: document.getElementById('findCount')?.textContent ?? '',
+      }))()`);
+    },
+    async stepFind(direction) {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      const id = direction === 'previous' ? 'findPrevBtn' : 'findNextBtn';
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById(${JSON.stringify(id)});
+        if (!button) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    async clickActivePageProbe() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return null;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('acceptance-page-action');
+        if (!button) return null;
+        button.click();
+        const rect = button.getBoundingClientRect();
+        return {
+          clicks: Number(button.dataset.clicks || 0),
+          rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        };
+      })()`);
+    },
     openPanel() { showOverlay('panel'); },
     openPalette() { showOverlay('palette'); },
 
@@ -398,6 +617,105 @@ function install(refs) {
         };
       })()`);
     },
+    setActiveSiteSecurityFixture(kind) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return false;
+      tab.isLoading = false;
+      tab.certificateError = null;
+      tab.blockedCount = 3;
+      if (kind === 'secure') {
+        tab.siteSecurityFixture = { url: 'https://secure.example/path', blockedCount: 3 };
+      } else if (kind === 'insecure') {
+        tab.siteSecurityFixture = { url: 'http://plain.example/path', blockedCount: 3 };
+      } else if (kind === 'local') {
+        tab.siteSecurityFixture = { url: 'http://localhost:3000/path', blockedCount: 3 };
+      } else {
+        return false;
+      }
+      broadcastTabs();
+      return true;
+    },
+    readPillSecurityDom() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const warning = document.getElementById('pillInsecure');
+        return {
+          hidden: warning?.hidden ?? true,
+          title: warning?.title ?? '',
+        };
+      })()`);
+    },
+    clickSiteInfoButton() {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('panelSiteInfo');
+        if (!button || button.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    readSiteInfoDom() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('panelSiteInfo');
+        const card = document.querySelector('.site-info-card');
+        return {
+          buttonHidden: button?.hidden ?? true,
+          buttonState: [...(button?.classList ?? [])].find((name) =>
+            ['secure', 'insecure', 'local', 'certificate-error'].includes(name)) ?? null,
+          expanded: button?.getAttribute('aria-expanded') === 'true',
+          title: card?.querySelector('.site-info-title')?.textContent ?? '',
+          origin: card?.querySelector('.site-info-origin')?.textContent ?? '',
+          summary: card?.querySelector('.site-info-summary')?.textContent ?? '',
+          details: card?.querySelector('.site-info-details')?.textContent ?? '',
+          protection: card?.querySelector('.site-info-protection')?.textContent ?? '',
+          hint: document.getElementById('islandHint')?.textContent ?? '',
+        };
+      })()`);
+    },
+    async showCertificateErrorFixture() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return false;
+      delete tab.siteSecurityFixture;
+      const record = {
+        url: 'https://expired.example/',
+        error: 'net::ERR_CERT_DATE_INVALID',
+        certificate: sanitizeCertificate({
+          subjectName: 'expired.example',
+          issuerName: 'Acceptance Test Root',
+          validStart: 1_600_000_000,
+          validExpiry: 1_700_000_000,
+          fingerprint: 'AA:BB:CC:DD',
+        }),
+      };
+      tab.certificateError = record;
+      const query = certificateErrorQuery(record, {
+        code: -201,
+        desc: 'Certificate date invalid',
+      });
+      await tab.view.webContents.loadURL(`blanc://error/?${query}`);
+      return true;
+    },
+    readActiveErrorDom() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        title: document.getElementById('errorTitle')?.textContent ?? '',
+        url: document.getElementById('errorUrl')?.textContent ?? '',
+        detail: document.getElementById('errorDetail')?.textContent ?? '',
+        certificate: document.getElementById('certificateDetails')?.textContent ?? '',
+        links: [...document.querySelectorAll('a')].map((a) => ({
+          text: a.textContent,
+          href: a.getAttribute('href'),
+        })),
+        proceedControls: [...document.querySelectorAll('button, a')].filter((el) =>
+          /proceed|continue|accept|visit anyway/i.test(el.textContent)
+        ).length,
+      }))()`);
+    },
     clickHiddenControlInPicker(selector) {
       const wc = getOverlayWebContents();
       if (!wc) return null;
@@ -437,6 +755,76 @@ function install(refs) {
           cancelReachable: within(cancel),
         };
       })()`);
+    },
+
+    // --- display sharing (F29) ---
+    // Deterministic fake source objects run through the production controller.
+    // CI must not depend on the host's current windows or Screen Recording
+    // authorization; main.js's Electron enumeration boundary is kept thin and
+    // the request/renderer/settlement lifecycle is exercised here.
+    startDisplaySharePick(origin = 'https://meet.example') {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) throw new Error('display sharing needs an active tab');
+      const sources = [
+        { id: 'screen:acceptance-1', name: 'Acceptance Screen' },
+        { id: 'window:acceptance-2', name: 'Acceptance Window' },
+      ];
+      const rows = sources.map((source) => ({
+        name: source.name,
+        type: source.id.startsWith('screen:') ? 'screen' : 'window',
+        thumbnail: null,
+        appIcon: null,
+      }));
+      pendingDisplaySharePick = displaySharePickerController.requestPick({
+        sources,
+        rows,
+        origin,
+        webContentsId: tab.view.webContents.id,
+        canShareAudio: false,
+      });
+      return true;
+    },
+    awaitDisplaySharePick() {
+      return pendingDisplaySharePick;
+    },
+    async readDisplayShareDom() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const root = document.querySelector('.display-share');
+        if (!root) return null;
+        return {
+          heading: root.querySelector('.display-share-heading')?.textContent ?? '',
+          names: [...root.querySelectorAll('.display-source-label')].map((el) => el.textContent),
+          selected: [...root.querySelectorAll('.display-source')].findIndex(
+            (el) => el.getAttribute('aria-pressed') === 'true'
+          ),
+          audioOffered: !!root.querySelector('#displayShareAudio'),
+          confirmVisible: document.querySelector('.display-share-confirm')
+            ?.getClientRects().length > 0,
+          panelFitsViewport: document.getElementById('islandPanel')
+            ?.getBoundingClientRect().bottom <= window.innerHeight + 0.5,
+        };
+      })()`);
+    },
+    async chooseDisplayShareSource(index) {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const rows = document.querySelectorAll('.display-source');
+        const row = rows[${JSON.stringify(index)}];
+        const confirm = document.querySelector('.display-share-confirm');
+        if (!row || !confirm) throw new Error('display source chooser is incomplete');
+        row.click();
+        confirm.click();
+        return true;
+      })()`);
+    },
+    navigateActiveTab(url) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return false;
+      tab.view.webContents.loadURL(String(url)).catch(() => {});
+      return true;
     },
     closeOverlay() { hideOverlay({ refocusContent: false }); },
     overlayMode() { return getOverlayMode(); },
@@ -490,10 +878,37 @@ function install(refs) {
       if (!wc) return [];
       return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-row')].map((row) => ({
         title: row.querySelector('.row-title')?.textContent ?? '',
+        command: row.querySelector('.row-cmd')?.textContent ?? '',
         tag: row.querySelector('.row-tag')?.textContent ?? '',
         active: row.classList.contains('active'),
         enter: !!row.querySelector('.row-enter')
       }))`);
+    },
+    async chooseAddressResult({ title, tag }) {
+      const wc = getOverlayWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const rows = [...document.querySelectorAll('#islandList .island-row')];
+        const row = rows.find((candidate) =>
+          (candidate.querySelector('.row-title')?.textContent ?? '') === ${JSON.stringify(String(title))} &&
+          (candidate.querySelector('.row-tag')?.textContent ?? '') === ${JSON.stringify(String(tag))});
+        if (!row) return false;
+        row.click();
+        return true;
+      })()`);
+    },
+    async overlayGroups() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        headers: [...document.querySelectorAll('#islandList .island-ghead:not(.static)')]
+          .map((row) => ({
+            name: row.querySelector('.ghead-name')?.textContent ?? '',
+            collapsed: !row.querySelector('.caret')?.classList.contains('open'),
+          })),
+        foldedLabels: [...document.querySelectorAll('#islandList .folded-row .row-folded-label')]
+          .map((node) => node.textContent ?? ''),
+      }))()`);
     },
     async overlayRendererMode() {
       const wc = getOverlayWebContents();
@@ -638,6 +1053,62 @@ function install(refs) {
       return labels;
     },
     openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
+    readBrowserImportDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        options: [...document.querySelectorAll('#browserSource option')].map((o) => ({
+          value: o.value,
+          label: o.textContent,
+        })),
+        buttonHidden: document.getElementById('browserImportBtn')?.hidden ?? true,
+        status: document.getElementById('importStatus')?.textContent ?? '',
+      }))()`);
+    },
+    clickBrowserImport() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('browserImportBtn');
+        if (!button || button.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    showTestFirstRunMigration() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      tab.view.webContents.send('pages:start:status', {
+        startup: { phase: 'skipped', attempt: 0, error: null },
+        privacy: {
+          required: true,
+          searchSuggestions: true,
+          usagePing: false,
+        },
+      });
+      return true;
+    },
+    readFirstRunMigrationDom() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        initialReady: (document.getElementById('footerLeft')?.textContent ?? '').length > 0,
+        privacyHidden: document.getElementById('privacyCard')?.hidden ?? true,
+        migrationHidden: document.getElementById('migrationChoice')?.hidden ?? true,
+        options: [...document.querySelectorAll('#migrationSource option')].map((o) => o.textContent),
+        status: document.getElementById('migrationStatus')?.textContent ?? '',
+      }))()`);
+    },
+    clickFirstRunMigration() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('migrationImport');
+        if (!button || document.getElementById('migrationChoice')?.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
 
     // ---- utility sheet drive helpers (acceptance) ----
     // Both click helpers ASSERT the anchor exists — an optional-chained
@@ -676,6 +1147,13 @@ function install(refs) {
     },
     attemptChromeNavigation(url) { return attemptChromeNavigation(String(url)); },
     chromeUrl() { return getChromeUrl(); },
+    islandProfileLabel() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(
+        `document.getElementById('pillProfileName')?.textContent ?? ''`
+      );
+    },
 
     // ---- isolation between scenarios ----
     reset() {
@@ -683,9 +1161,11 @@ function install(refs) {
       // No scenario inherits another's open surface. hideOverlay settles any
       // pending picker ('hidden'); drop our handle to its resolved promise too.
       pendingPick = null;
+      pendingDisplaySharePick = null;
       hideOverlay({ refocusContent: false });
       hideUtilitySheet();
       pushRemoteDevices([]);
+      openedDownloadPath = null;
       setWindowContentSize(1280, 800);
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());
@@ -693,6 +1173,7 @@ function install(refs) {
       for (const id of [...tabs.keys()]) if (id !== keep) closeTab(id);
       getGroups().length = 0;
       history.clearHistory();
+      clearFinishedDownloads();
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
       settings.setSettings({
         searchEngine: 'duckduckgo',

@@ -11,7 +11,7 @@
   const backdrop = document.getElementById('backdrop');
   const panelAnchor = document.getElementById('panelAnchor');
   const addressInput = document.getElementById('addressInput');
-  const panelInsecure = document.getElementById('panelInsecure');
+  const panelSiteInfo = document.getElementById('panelSiteInfo');
   const islandList = document.getElementById('islandList');
   const islandHint = document.getElementById('islandHint');
   const backBtn = document.getElementById('backBtn');
@@ -41,6 +41,7 @@
   /** After a picker action re-renders the list, put focus back on that
    * tab's "group" chip instead of dropping it on <body>. */
   let chipFocusTabId = null;
+  let siteInfoOpen = false;
 
   function focusChip(tabId) {
     islandList.querySelector(`.island-row[data-tab-id="${CSS.escape(tabId)}"] .row-grp`)?.focus();
@@ -84,6 +85,9 @@
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2 6h3l4-3.5v11L5 10H2z"/><path d="M11 5.5l3 5M14 5.5l-3 5"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
+    secure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.5 2.5 0 0 1 5 0v2.35"/></svg>',
+    insecure: '<svg viewBox="0 0 16 16"><rect x="3.25" y="7.25" width="9.5" height="6" rx="1.75"/><path d="M5.5 7.25V4.9a2.6 2.6 0 0 1 5.1-.72"/></svg>',
+    local: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.25"/><circle cx="8" cy="8" r="1.5"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -135,19 +139,6 @@
       }
     }
     return tab.url;
-  }
-
-  /** Warning-only security check: true just for plain HTTP to a non-loopback
-   * host — https, blanc:, file:, and local dev servers show no indicator.
-   * (Keep in sync with renderer.js.) */
-  function connectionInsecure(url) {
-    if (!url?.startsWith('http://')) return false;
-    try {
-      const host = new URL(url).hostname;
-      return !(host === 'localhost' || host.endsWith('.localhost') || /^127\./.test(host) || host === '[::1]');
-    } catch {
-      return false;
-    }
   }
 
   /** The page URL behind a `view-source:` URL, else null. Chromium's
@@ -205,7 +196,25 @@
     heartBtn.disabled = !tab || !isFavoritable(tab.url);
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
     heartBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page (Ctrl/Cmd+D)';
-    panelInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
+    const siteInfo = tab?.siteInfo;
+    // A typed/created https: destination is not a security result. Keep this
+    // unavailable until its main-frame navigation commits and Chromium clears
+    // the loading state.
+    const siteInfoVisible =
+      !!siteInfo &&
+      !tab?.isLoading &&
+      !['internal', 'unknown'].includes(siteInfo.state);
+    panelSiteInfo.hidden = !siteInfoVisible;
+    panelSiteInfo.className = `site-info-button ${siteInfo?.state ?? ''}`;
+    panelSiteInfo.setAttribute('aria-expanded', String(siteInfoOpen && siteInfoVisible));
+    panelSiteInfo.innerHTML = siteInfo?.state === 'insecure' || siteInfo?.state === 'certificate-error'
+      ? ICONS.insecure
+      : siteInfo?.state === 'local'
+        ? ICONS.local
+        : ICONS.secure;
+    panelSiteInfo.title = siteInfo?.title ?? 'Site information';
+    panelSiteInfo.setAttribute('aria-label', siteInfo?.title ?? 'Site information');
+    if (!siteInfoVisible) siteInfoOpen = false;
 
     const verticalTabsActive = state.tabLayout === 'vertical';
     footerTabLayout.title = verticalTabsActive
@@ -803,6 +812,86 @@
 
   // --- List area: tabs at rest, commands on "/", switcher while typing ---
 
+  function renderSiteInfo() {
+    const info = activeTab()?.siteInfo;
+    if (!info || ['internal', 'unknown'].includes(info.state)) {
+      siteInfoOpen = false;
+      return renderList();
+    }
+
+    const card = document.createElement('section');
+    card.className = `site-info-card ${info.state}`;
+    card.setAttribute('aria-label', 'Site information');
+
+    const head = document.createElement('div');
+    head.className = 'site-info-head';
+    const stateDot = document.createElement('span');
+    stateDot.className = 'site-info-state';
+    stateDot.setAttribute('aria-hidden', 'true');
+    const headCopy = document.createElement('div');
+    const title = document.createElement('div');
+    title.className = 'site-info-title';
+    title.textContent = info.title;
+    const origin = document.createElement('div');
+    origin.className = 'site-info-origin';
+    origin.textContent = info.origin || info.host || 'local page';
+    headCopy.append(title, origin);
+    head.append(stateDot, headCopy);
+
+    const summary = document.createElement('p');
+    summary.className = 'site-info-summary';
+    summary.textContent = info.summary;
+    card.append(head, summary);
+
+    const certificate = info.certificate;
+    if (certificate) {
+      const details = document.createElement('dl');
+      details.className = 'site-info-details';
+      const add = (label, value) => {
+        if (!value) return;
+        const row = document.createElement('div');
+        const term = document.createElement('dt');
+        term.textContent = label;
+        const description = document.createElement('dd');
+        description.textContent = value;
+        row.append(term, description);
+        details.append(row);
+      };
+      add('Certificate for', certificate.subject);
+      add('Issued by', certificate.issuer);
+      add(
+        'Valid until',
+        certificate.validTo ? new Date(certificate.validTo).toLocaleDateString() : null
+      );
+      add('Fingerprint', certificate.fingerprint);
+      if (details.children.length) card.append(details);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'site-info-actions';
+    const protection = document.createElement('span');
+    protection.className = 'site-info-protection';
+    const blocked = Number(info.blockedCount) || 0;
+    protection.textContent = blocked
+      ? `Blanc blocked ${blocked} ${blocked === 1 ? 'request' : 'requests'}`
+      : 'No blocked requests on this page';
+    const settingsButton = document.createElement('button');
+    settingsButton.type = 'button';
+    settingsButton.className = 'site-info-settings';
+    settingsButton.textContent = 'Privacy settings';
+    settingsButton.addEventListener('click', () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.openPage('settings');
+    });
+    actions.append(protection, settingsButton);
+    card.append(actions);
+
+    islandList.replaceChildren(card);
+    islandHint.textContent = info.state === 'certificate-error'
+      ? 'Blanc did not offer a bypass'
+      : 'connection details are supplied by Chromium';
+  }
+
   function renderList() {
     const value = addressInput.value;
     const selectedKey = selectedResultIndex >= 0
@@ -811,7 +900,10 @@
     visibleCommands = [];
     visibleResults = [];
 
-    if (inputTouched && value.startsWith('/')) {
+    if (siteInfoOpen) {
+      renderSiteInfo();
+      return;
+    } else if (inputTouched && value.startsWith('/')) {
       selectedResultIndex = -1;
       const slashWord = value.trim().split(/\s+/)[0];
       visibleCommands = COMMANDS.filter((c) => c.cmd.startsWith(slashWord) || slashWord === '/');
@@ -908,6 +1000,14 @@
     renderList();
   }
 
+  window.browserAPI.onThemeAppearance((appearance) => {
+    if (appearance === 'light' || appearance === 'dark') {
+      document.documentElement.dataset.appearance = appearance;
+    } else if (appearance === 'pending') {
+      delete document.documentElement.dataset.appearance;
+    }
+  });
+
   function resetSearchSuggestions() {
     if (suggestionDebounce) clearTimeout(suggestionDebounce);
     suggestionDebounce = null;
@@ -964,6 +1064,9 @@
 
   let pickerRequestId = null;
   let pickerIndex = 0;
+  let displayShareRequestId = null;
+  let displayShareIndex = 0;
+  let displayShareCanAudio = false;
 
   /** Render the credential picker.
    *
@@ -1045,21 +1148,151 @@
     window.browserAPI.sendCredentialPick(id, index);
   }
 
+  // --- Display-sharing picker ---
+
+  function highlightDisplayShareSource({ focus = false } = {}) {
+    const rows = [...islandList.querySelectorAll('.display-source')];
+    rows.forEach((row, index) => {
+      const selected = index === displayShareIndex;
+      row.classList.toggle('sel', selected);
+      row.setAttribute('aria-pressed', String(selected));
+    });
+    if (focus) rows[displayShareIndex]?.focus();
+  }
+
+  function chooseDisplayShare(index) {
+    if (displayShareRequestId === null) return;
+    const requestId = displayShareRequestId;
+    const audio = displayShareCanAudio
+      && document.getElementById('displayShareAudio')?.checked === true;
+    displayShareRequestId = null;
+    window.browserAPI.sendDisplaySharePick(requestId, index, audio);
+  }
+
+  function renderDisplaySharePicker(prefill) {
+    displayShareRequestId = prefill?.requestId ?? null;
+    displayShareIndex = 0;
+    displayShareCanAudio = prefill?.canShareAudio === true;
+    const rows = Array.isArray(prefill?.rows) ? prefill.rows : [];
+
+    const content = document.createElement('div');
+    content.className = 'display-share';
+
+    const heading = document.createElement('div');
+    heading.className = 'display-share-heading';
+    const title = document.createElement('strong');
+    title.textContent = 'Choose what to share';
+    const origin = document.createElement('span');
+    origin.textContent = `${prefill?.origin || 'This site'} will see the selected source`;
+    heading.append(title, origin);
+
+    const grid = document.createElement('div');
+    grid.className = 'display-source-grid';
+    grid.setAttribute('role', 'list');
+    rows.forEach((source, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'display-source';
+      button.setAttribute('role', 'listitem');
+      button.setAttribute('aria-pressed', String(index === 0));
+
+      const preview = document.createElement('span');
+      preview.className = 'display-source-preview';
+      if (typeof source.thumbnail === 'string' && source.thumbnail.startsWith('data:image/')) {
+        const image = document.createElement('img');
+        image.src = source.thumbnail;
+        image.alt = '';
+        preview.append(image);
+      } else {
+        const empty = document.createElement('span');
+        empty.className = 'display-source-empty';
+        empty.textContent = source.type === 'screen' ? 'screen' : 'window';
+        preview.append(empty);
+      }
+
+      const label = document.createElement('span');
+      label.className = 'display-source-label';
+      if (typeof source.appIcon === 'string' && source.appIcon.startsWith('data:image/')) {
+        const icon = document.createElement('img');
+        icon.className = 'display-source-icon';
+        icon.src = source.appIcon;
+        icon.alt = '';
+        label.append(icon);
+      }
+      const text = document.createElement('span');
+      text.textContent = source.name || 'Untitled source';
+      label.append(text);
+
+      button.append(preview, label);
+      button.addEventListener('click', () => {
+        displayShareIndex = index;
+        highlightDisplayShareSource();
+      });
+      button.addEventListener('dblclick', () => chooseDisplayShare(index));
+      grid.append(button);
+    });
+
+    const footer = document.createElement('div');
+    footer.className = 'display-share-footer';
+    if (displayShareCanAudio) {
+      const audio = document.createElement('label');
+      audio.className = 'display-share-audio';
+      const input = document.createElement('input');
+      input.id = 'displayShareAudio';
+      input.type = 'checkbox';
+      const copy = document.createElement('span');
+      copy.textContent = 'Share system audio';
+      audio.append(input, copy);
+      footer.append(audio);
+    } else {
+      footer.append(document.createElement('span'));
+    }
+
+    const actions = document.createElement('span');
+    actions.className = 'display-share-actions';
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'display-share-cancel';
+    cancel.textContent = 'Cancel';
+    cancel.addEventListener('click', () => chooseDisplayShare(null));
+    const share = document.createElement('button');
+    share.type = 'button';
+    share.className = 'display-share-confirm';
+    share.textContent = 'Share';
+    share.disabled = rows.length === 0;
+    share.addEventListener('click', () => chooseDisplayShare(displayShareIndex));
+    actions.append(cancel, share);
+    footer.append(actions);
+
+    content.append(heading, grid, footer);
+    islandList.replaceChildren(content);
+    highlightDisplayShareSource({ focus: true });
+  }
+
   // --- Mode switching (driven by main via overlay:show / overlay:hide) ---
 
   function applyMode(next, prefill) {
     const reshow = mode === next;
     mode = next;
     document.body.dataset.mode = next ?? '';
-    backdrop.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
-    panelAnchor.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
+    backdrop.hidden = next !== 'panel'
+      && next !== 'palette'
+      && next !== 'credential-picker'
+      && next !== 'display-share-picker';
+    panelAnchor.hidden = next !== 'panel'
+      && next !== 'palette'
+      && next !== 'credential-picker'
+      && next !== 'display-share-picker';
     findBar.hidden = next !== 'find';
 
     if (next === 'credential-picker') {
       renderCredentialPicker(prefill);
+    } else if (next === 'display-share-picker') {
+      renderDisplaySharePicker(prefill);
     } else if (next === 'panel' || next === 'palette') {
       if (!reshow) {
         pickingTabId = null;
+        siteInfoOpen = false;
         addressInputComposing = false;
         suppressProviderSuggestions = false;
       }
@@ -1099,6 +1332,7 @@
     // Capture BEFORE the resets below — testing mode afterwards always reads
     // false, and the vault rows would never be cleared.
     const wasPicker = mode === 'credential-picker';
+    const wasDisplayShare = mode === 'display-share-picker';
     if (mode === 'find') resetFind();
     mode = null;
     document.body.dataset.mode = '';
@@ -1110,19 +1344,24 @@
     suppressProviderSuggestions = false;
     pickingTabId = null;
     chipFocusTabId = null;
+    siteInfoOpen = false;
     selectedResultIndex = -1;
     resetSearchSuggestions();
     // Drop any request and the rendered vault rows — leaving them would keep
     // vault-derived strings resident in this privileged renderer.
     pickerRequestId = null;
     pickerIndex = 0;
-    if (wasPicker) islandList.replaceChildren();
+    displayShareRequestId = null;
+    displayShareIndex = 0;
+    displayShareCanAudio = false;
+    if (wasPicker || wasDisplayShare) islandList.replaceChildren();
   });
 
   // Click on the backdrop (anywhere outside the panel) dismisses. In picker mode
   // it is an explicit dismissal (settles 'dismissed'), not a plain hide.
   backdrop.addEventListener('mousedown', () => {
     if (mode === 'credential-picker') return choosePicker(null);
+    if (mode === 'display-share-picker') return chooseDisplayShare(null);
     window.browserAPI.closeOverlay();
   });
   document.addEventListener('keydown', (e) => {
@@ -1137,6 +1376,19 @@
       else if (e.key === 'Enter') { e.preventDefault(); choosePicker(onCancel ? null : pickerIndex); }
       return;   // Escape is handled in main via before-input-event
     }
+    if (mode === 'display-share-picker') {
+      const rows = islandList.querySelectorAll('.display-source');
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        displayShareIndex = Math.min(displayShareIndex + 1, rows.length - 1);
+        highlightDisplayShareSource({ focus: true });
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        displayShareIndex = Math.max(displayShareIndex - 1, 0);
+        highlightDisplayShareSource({ focus: true });
+      }
+      return;   // Enter/Space keep native button semantics; Escape is in main.
+    }
     if (e.key === 'Escape') window.browserAPI.closeOverlay();
   });
 
@@ -1145,8 +1397,10 @@
   // here runs before them and swallows any click that isn't a picker control
   // while a picker is up — in case the isolation CSS ever regresses.
   document.addEventListener('click', (e) => {
-    if (mode !== 'credential-picker') return;
-    if (e.target.closest('.cred-row, .cred-cancel, #backdrop')) return;
+    if (mode !== 'credential-picker' && mode !== 'display-share-picker') return;
+    if (e.target.closest(
+      '.cred-row, .cred-cancel, .display-source, .display-share-footer, #backdrop'
+    )) return;
     e.stopPropagation();
     e.preventDefault();
   }, true);   // capture — beats the per-control listeners
@@ -1163,6 +1417,12 @@
       : window.browserAPI.reload(state.activeTabId);
   });
   heartBtn.addEventListener('click', () => window.browserAPI.toggleBookmark());
+  panelSiteInfo.addEventListener('click', () => {
+    if (panelSiteInfo.hidden) return;
+    siteInfoOpen = !siteInfoOpen;
+    panelSiteInfo.setAttribute('aria-expanded', String(siteInfoOpen));
+    renderList();
+  });
 
   // --- Footer action bar (static: new tab / private launchers + quick pages) ---
   // These moved out of the scrollable list so they stay put while it shows
@@ -1212,6 +1472,7 @@
     renderList();
   });
   addressInput.addEventListener('input', (e) => {
+    siteInfoOpen = false;
     inputTouched = true;
     selectedResultIndex = -1;
     if (!addressInput.value.trim()) {
@@ -1291,6 +1552,9 @@
     findLastQuery = query;
   }
 
+  // Electron's findNext means "start a NEW find session", not "move to the
+  // next result". A fresh input value must therefore use true; Enter and the
+  // arrow controls continue that session with false.
   // Search live as the user types; Enter/Shift+Enter step through matches.
   findInput.addEventListener('input', () => {
     if (!findInput.value) {
@@ -1299,15 +1563,15 @@
       if (state.activeTabId) window.browserAPI.stopFindInPage(state.activeTabId);
       return;
     }
-    runFind({ forward: true, findNext: false });
+    runFind({ forward: true, findNext: true });
   });
   findInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      runFind({ forward: !e.shiftKey, findNext: findInput.value === findLastQuery });
+      runFind({ forward: !e.shiftKey, findNext: findInput.value !== findLastQuery });
     }
   });
-  findPrevBtn.addEventListener('click', () => runFind({ forward: false, findNext: true }));
-  findNextBtn.addEventListener('click', () => runFind({ forward: true, findNext: true }));
+  findPrevBtn.addEventListener('click', () => runFind({ forward: false, findNext: false }));
+  findNextBtn.addEventListener('click', () => runFind({ forward: true, findNext: false }));
   findCloseBtn.addEventListener('click', () => window.browserAPI.closeOverlay());
 
   window.browserAPI.onFindResult(({ activeMatchOrdinal, matches }) => {
@@ -1332,6 +1596,7 @@
     if (mode === 'panel' || mode === 'palette') {
       if (!inputTouched) addressInput.value = addressDisplayValue(activeTab());
       if (activeTabChanged) {
+        siteInfoOpen = false;
         selectedResultIndex = -1;
         scheduleSearchSuggestions();
       }

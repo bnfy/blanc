@@ -8,6 +8,11 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const { wipeDecision } = require('./sync-wipe');
+const {
+  withLocalProfile,
+  isDefaultLocalProfile,
+} = require('./local-profile-context');
+const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 
 // Blanc-hosted E2EE profile sync. This module holds the only network calls;
 // the Worker (cloudflare/sync-worker) stores AES-GCM ciphertext keyed by an
@@ -86,6 +91,7 @@ let applyingRemote = false;
 class SyncError extends Error {}
 
 function status() {
+  if (!isDefaultLocalProfile()) return withLocalProfile(DEFAULT_PROFILE_ID, status);
   const d = ensureStore().data;
   return {
     enabled: d.enabled, handle: d.handle, lastSyncedAt: d.lastSyncedAt,
@@ -113,6 +119,9 @@ function describe(err) {
 }
 
 async function enable({ handle, passphrase }) {
+  if (!isDefaultLocalProfile()) {
+    return withLocalProfile(DEFAULT_PROFILE_ID, () => enable({ handle, passphrase }));
+  }
   const h = String(handle ?? '').trim();
   const p = String(passphrase ?? '');
   if (h.length < 2) return { ok: false, message: 'Choose a sync name (at least 2 characters).', status: status() };
@@ -139,6 +148,9 @@ async function enable({ handle, passphrase }) {
 }
 
 async function disable({ wipeRemote = false } = {}) {
+  if (!isDefaultLocalProfile()) {
+    return withLocalProfile(DEFAULT_PROFILE_ID, () => disable({ wipeRemote }));
+  }
   clearTimeout(timer);
   timer = null;
   clearTimeout(sessionTimer);
@@ -234,6 +246,12 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
 }
 
 async function syncNow(names = null) {
+  // Profile Sync's consent and ciphertext contract currently cover Personal
+  // only. Never let an IPC from another local profile export or merge that
+  // profile's Favorites into the default encrypted account.
+  if (!isDefaultLocalProfile()) {
+    return withLocalProfile(DEFAULT_PROFILE_ID, () => syncNow(names));
+  }
   const d = ensureStore().data;
   // `suspended` bars new passes while disable() drains and wipes — a fresh
   // pass dispatching requests mid-drain would defeat the barrier.
@@ -292,7 +310,9 @@ async function syncNow(names = null) {
 
 function schedule(delay = 4000) {
   clearTimeout(timer);
-  timer = setTimeout(() => { syncNow().catch(() => {}); }, delay);
+  timer = setTimeout(() => {
+    withLocalProfile(DEFAULT_PROFILE_ID, () => { syncNow().catch(() => {}); });
+  }, delay);
 }
 
 /** Tab churn gets timers separate from both favorites/settings and cosmetic
@@ -300,12 +320,16 @@ function schedule(delay = 4000) {
  * snapshot (especially the prompt consent-change retraction/publication). */
 function scheduleSession(delay = 15000) {
   clearTimeout(sessionTimer);
-  sessionTimer = setTimeout(() => { syncNow(['session']).catch(() => {}); }, delay);
+  sessionTimer = setTimeout(() => {
+    withLocalProfile(DEFAULT_PROFILE_ID, () => { syncNow(['session']).catch(() => {}); });
+  }, delay);
 }
 
 function scheduleIcons(delay = 15000) {
   clearTimeout(iconTimer);
-  iconTimer = setTimeout(() => { syncNow(['icons']).catch(() => {}); }, delay);
+  iconTimer = setTimeout(() => {
+    withLocalProfile(DEFAULT_PROFILE_ID, () => { syncNow(['icons']).catch(() => {}); });
+  }, delay);
 }
 
 function scheduleTabs(delay = 15000) {
@@ -316,6 +340,9 @@ function scheduleTabs(delay = 15000) {
 /** The per-device "share this device's open tabs" consent (spec §3). Turning
  * it off publishes a retraction on the prompt sync below. */
 function setSyncTabs(on) {
+  if (!isDefaultLocalProfile()) {
+    return withLocalProfile(DEFAULT_PROFILE_ID, () => setSyncTabs(on));
+  }
   syncGen += 1; // consent changed — a stale in-flight export must not publish under the old setting
   tabicons.cancelCaptures();
   ensureStore().update((d) => { d.syncTabs = !!on; });
@@ -330,6 +357,7 @@ let lastSessionRefresh = 0;
  * and inside the worker's per-account GET limit. Errors stay silent — this
  * is a background freshness path, not a user-initiated sync. */
 function refreshSession() {
+  if (!isDefaultLocalProfile()) return;
   const d = ensureStore().data;
   if (!d.enabled) return;
   const now = Date.now();
@@ -359,6 +387,7 @@ function iconCaptureRun() {
 }
 
 function captureTabIcon(tab) {
+  if (!isDefaultLocalProfile()) return Promise.resolve(false);
   const run = iconCaptureRun();
   return run
     ? tabicons.captureTab(tab, run.ctx, { isCurrent: run.isCurrent })
@@ -366,6 +395,7 @@ function captureTabIcon(tab) {
 }
 
 function refreshTabIcons() {
+  if (!isDefaultLocalProfile()) return Promise.resolve(false);
   const run = iconCaptureRun();
   return run
     ? tabicons.refreshCurrent(run.ctx, { isCurrent: run.isCurrent })
@@ -376,6 +406,7 @@ function refreshTabIcons() {
  * joined only for the trusted renderer projection; the session wire format
  * remains unchanged. */
 function listRemoteDevices() {
+  if (!isDefaultLocalProfile()) return [];
   const d = ensureStore().data;
   if (!d.enabled) return [];
   const ctx = tabSyncContext();
@@ -383,35 +414,42 @@ function listRemoteDevices() {
 }
 
 function init() {
+  if (!isDefaultLocalProfile()) {
+    return withLocalProfile(DEFAULT_PROFILE_ID, init);
+  }
   if (ensureStore().data.enabled) schedule(2000); // sync-on-launch
   // React to LOCAL changes only. applyingRemote keeps a merge-applied settings
   // change (which fires settings' listeners so the app re-themes live) from
   // scheduling a redundant follow-up sync. Bookmarks merges never fire
   // onChanged (they use onMerged instead), so they're inherently safe.
-  const onLocalChange = () => { if (ensureStore().data.enabled && !applyingRemote) schedule(); };
-  settings.onSettingsChanged(onLocalChange);
-  bookmarks.onChanged(onLocalChange);
+  const scheduleDefaultLocalChange = () => withLocalProfile(DEFAULT_PROFILE_ID, () => {
+    if (ensureStore().data.enabled && !applyingRemote) schedule();
+  });
+  settings.onSettingsChanged(scheduleDefaultLocalChange);
+  bookmarks.onChanged(() => {
+    if (isDefaultLocalProfile()) scheduleDefaultLocalChange();
+  });
   // Tab-driven publishes: fingerprint-gated upstream (tabsync.noteTabsChanged),
   // debounced 15s here, and only while this device actually shares its tabs.
-  tabsync.onChanged(() => {
+  tabsync.onChanged(() => withLocalProfile(DEFAULT_PROFILE_ID, () => {
     const d = ensureStore().data;
     if (d.enabled && d.syncTabs) scheduleTabs();
-  });
-  tabicons.onChanged(() => {
+  }));
+  tabicons.onChanged(() => withLocalProfile(DEFAULT_PROFILE_ID, () => {
     const d = ensureStore().data;
     if (d.enabled && d.syncTabs) scheduleIcons();
-  });
+  }));
   refreshTabIcons().catch(() => {});
   // Heartbeat (spec §6): hourly check; republishes once our entry is 24h old
   // so a long-running device with stable tabs never ages past the 30-day
   // prune on other devices.
-  setInterval(() => {
+  setInterval(() => withLocalProfile(DEFAULT_PROFILE_ID, () => {
     const d = ensureStore().data;
     if (!d.enabled || !d.syncTabs) return;
     const ctx = tabSyncContext();
     if (tabsync.heartbeatDue(ctx)) scheduleSession(5000);
     if (tabicons.heartbeatDue(ctx)) scheduleIcons(5000);
-  }, 60 * 60 * 1000);
+  }), 60 * 60 * 1000);
 }
 
 module.exports = {
