@@ -29,6 +29,8 @@
     "test:dns-smoke": "node test/desktop/dns-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",
+    "test:packaged:update-staging": "node test/desktop/packaged-update-staging-smoke.mjs",
+    "update:staging:prepare": "node scripts/prepare-staging-update-feed.mjs",
     "release:security": "npm audit --omit=dev --audit-level=high",
     "release:verify:press": "npm run substrate:check && npm run test:unit && npm run test:acceptance:release:check && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:oauth:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
     "adblock:build": "node adblock/build.mjs && node adblock/seed.mjs",

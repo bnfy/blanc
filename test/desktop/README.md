@@ -60,6 +60,15 @@ This is an OS-integrated smoke rather than a CI acceptance scenario: macOS may
 ask for Screen Recording consent for the development Electron binary, while
 headless Linux runners may not expose a capturable display.
 
+### Packaged N-1 updater smoke
+
+`npm run test:packaged:update-staging` drives a signed macOS N-1 app through the
+real updater, replacement, and relaunch cycle using an isolated loopback feed.
+Prepare the candidate directory first with
+`npm run update:staging:prepare`; both commands are non-publishing. Required
+artifacts, environment variables, and the production-isolation rules are in
+[`docs/staging-update-feed.md`](../../docs/staging-update-feed.md).
+
 The desktop script is plain `cucumber-js` so it works on a dev machine with a
 display (macOS); prefix `xvfb-run -a` on headless Linux.
 
@@ -91,7 +100,7 @@ scenarios drivable purely through main-process state or pure app logic:
 | F16-2..F16-7 | utility-sheet routing, isolation, actions, and toggle behavior |
 | F17-1, F17-2 | supporter unlock and locked-colorway fallback |
 
-Run `npm run test:acceptance:dry` — **92 scenarios, 555 steps, 0 undefined**
+Run `npm run test:acceptance:dry` — **97 scenarios, 588 steps, 0 undefined**
 (Scenario Outlines expand per example: F5-2 → 4 rows, F7-2 → 3).
 
 The **`default`** profile (`not @mobile`) selects the whole desktop-applicable
@@ -107,8 +116,9 @@ groups, by what they additionally need:
    recording on visit, downloads, permissions, basic-auth. Extend the fixtures
    server (search stubs, a basic-auth route, a downloadable file) and drive real
    navigations.
-3. **OS-level behaviour** — OS URI hand-off, telemetry ping capture, the desktop
-   updater. Need process/network mocking.
+3. **OS-level behaviour** — OS URI hand-off and telemetry ping capture still
+   need process/network mocking. The desktop updater now has a separate signed
+   packaged N-1 smoke, but F22 is not yet a Cucumber-bound acceptance scenario.
 
 ### Deliberate proxies
 

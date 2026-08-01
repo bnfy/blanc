@@ -41,6 +41,26 @@ scenarios. `release:verify:press` runs this contract guard before the existing
 full runnable dry/live gates, so the selectable release boundary cannot drift
 even though the live superset remains the final desktop gate.
 
+## N-1 staging-update decision
+
+Production packages remain pinned to electron-builder's embedded GitHub Stable
+configuration. A packaged app selects the alternate updater only through the
+exact `BLANC_UPDATE_CHANNEL=staging` opt-in plus a separate HTTPS feed URL;
+invalid or partial staging configuration disables updates for that launch
+instead of falling back to Stable. The generic provider reads channel-specific
+metadata (`staging-mac.yml` on macOS), so candidate files remain undiscoverable
+to ordinary clients even when a host serves both trees.
+
+The feed-preparation command copies only metadata-referenced artifacts into a
+fresh directory, verifies their presence and version, rejects traversal, and
+renames the metadata onto the staging channel. The first packaged N-1 smoke
+uses a loopback-only HTTP exception, drives the real signed Squirrel.Mac
+replacement, checks the updated bundle version, and relaunches that bundle.
+This isolates updater validation from immutable releases: the workflow creates
+no tag, release, remote upload, or production-channel metadata. Windows and
+Linux feed layouts are preparable now; their native installer smokes remain a
+platform follow-up. See `docs/staging-update-feed.md`.
+
 ## Persistence resilience decision
 
 Every `JsonStore` record is rewritten through a same-directory temporary file
