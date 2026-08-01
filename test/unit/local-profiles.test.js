@@ -8,6 +8,7 @@ function fakeStore(data = { version: 0, profiles: [] }) {
     data: structuredClone(data),
     updates: 0,
     update(fn) { fn(this.data); this.updates += 1; },
+    updateAndFlush(fn) { fn(this.data); this.updates += 1; return true; },
   };
 }
 
@@ -68,15 +69,19 @@ test('the profile manager updates a named identity without touching Personal', (
 
 test('a profile deletion can require a durable registry write', () => {
   const store = fakeStore();
-  store.updateAndFlush = function updateAndFlush(fn) {
-    fn(this.data);
-    this.updates += 1;
-    return true;
-  };
   const manager = createLocalProfileManager({ store, makeId: () => 'work', now: () => 1 });
   const work = manager.create('Work');
 
   assert.equal(manager.remove(work.id, { flush: true }).id, work.id);
   assert.equal(manager.get(work.id), null);
   assert.equal(store.updates, 2);
+});
+
+test('a profile window identity is rejected when its durable create write fails', () => {
+  const store = fakeStore();
+  store.updateAndFlush = () => false;
+  const manager = createLocalProfileManager({ store, makeId: () => 'work', now: () => 1 });
+
+  assert.throws(() => manager.create('Work'), /persist the new local profile/);
+  assert.equal(manager.get('profile-work'), null);
 });

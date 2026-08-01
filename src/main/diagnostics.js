@@ -9,6 +9,7 @@ let store = null;
 let ledger = null;
 let started = false;
 let quitting = false;
+let previousRunUnclean = false;
 
 function ensureLedger() {
   if (!store) {
@@ -23,13 +24,29 @@ function ensureLedger() {
 function start() {
   if (started) return;
   started = true;
-  ensureLedger().startSession();
+  const crashLedger = ensureLedger();
+  // Keep the read-time fact in memory too. If the disk is currently unable
+  // to accept the new marker/event, recovery must still be offered for this
+  // launch instead of silently restoring after a known unclean exit.
+  previousRunUnclean = crashLedger.hasActiveSession();
+  crashLedger.startSession();
   app.on('child-process-gone', (_event, details) => {
     if (quitting || details?.reason === 'clean-exit') return;
     ensureLedger().recordChildProcess(details);
   });
   app.on('before-quit', () => { quitting = true; });
   app.on('will-quit', () => { ensureLedger().endSession(); });
+}
+
+function sessionRecoveryPending() {
+  return started && (previousRunUnclean || ensureLedger().hasPendingRecovery());
+}
+
+function resolveSessionRecovery() {
+  if (!started) return false;
+  const resolved = ensureLedger().resolveRecovery();
+  if (resolved) previousRunUnclean = false;
+  return resolved;
 }
 
 function recordRendererCrash(surface, details = {}) {
@@ -90,4 +107,13 @@ async function exportReport(parent) {
   }
 }
 
-module.exports = { clear, exportReport, recordRendererCrash, report, start, status };
+module.exports = {
+  clear,
+  exportReport,
+  recordRendererCrash,
+  report,
+  resolveSessionRecovery,
+  sessionRecoveryPending,
+  start,
+  status,
+};

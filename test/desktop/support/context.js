@@ -4,6 +4,7 @@
 module.exports = {
   app: null,
   relaunch: null,
+  crashRelaunch: null,
   fixturesBase: null,
   tabByName: {},
   activeExpectedUrl: null,

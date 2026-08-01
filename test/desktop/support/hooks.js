@@ -46,6 +46,19 @@ async function resetScenarioApp() {
   for (let attempt = 0; attempt < 3; attempt += 1) {
     try {
       await ctx.app.evaluate(() => globalThis.__blanc.reset());
+      await ctx.app.evaluate(() => new Promise((resolve, reject) => {
+        const deadline = Date.now() + 5000;
+        const timer = setInterval(() => {
+          const runtimes = globalThis.__blanc.windowRuntimes();
+          if (runtimes.length === 1 && runtimes[0].id === 'primary') {
+            clearInterval(timer);
+            resolve();
+          } else if (Date.now() > deadline) {
+            clearInterval(timer);
+            reject(new Error(`scenario reset left runtimes: ${JSON.stringify(runtimes)}`));
+          }
+        }, 25);
+      }));
       return;
     } catch (error) {
       const transient = /Execution context was destroyed/i.test(String(error?.message ?? error));
@@ -127,6 +140,20 @@ BeforeAll({ timeout: 120_000 }, async () => {
     }
     ctx.app = await launchApp();
   };
+  ctx.crashRelaunch = async () => {
+    if (ctx.app) {
+      const appToCrash = ctx.app;
+      const child = appToCrash.process();
+      const exited = new Promise((resolve) => {
+        if (child.exitCode !== null) resolve();
+        else child.once('exit', resolve);
+      });
+      if (!child.kill('SIGKILL')) throw new Error('could not terminate the acceptance app');
+      await exited;
+      ctx.app = null;
+    }
+    ctx.app = await launchApp();
+  };
 
   // The F19 scenarios write the REAL system clipboard — save the developer's
   // clipboard now and restore it in AfterAll so a local run doesn't clobber it.
@@ -162,6 +189,7 @@ AfterAll(async () => {
   if (ctx.app) await ctx.app.close();
   ctx.app = null;
   ctx.relaunch = null;
+  ctx.crashRelaunch = null;
   if (fixturesHandle) await fixturesHandle.close();
   if (userDataDir) fs.rmSync(userDataDir, { recursive: true, force: true });
   if (browserHomeDir) fs.rmSync(browserHomeDir, { recursive: true, force: true });

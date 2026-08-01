@@ -61,6 +61,8 @@ function install(refs) {
     closeWindowRuntime: closeWindowRuntimeById,
     focusWindowRuntime,
     persistedWorkspaceIds: getPersistedWorkspaceIds,
+    persistedWorkspaceSnapshot: getPersistedWorkspaceSnapshot,
+    flushPersistedSession,
     getRailActivationSerial,
     normalizeAddressInput,
     pasteAndGo,
@@ -249,6 +251,8 @@ function install(refs) {
     closeWindow(id) { return closeWindowRuntimeById(id); },
     focusWindow(id) { return focusWindowRuntime(id); },
     persistedWorkspaceIds() { return getPersistedWorkspaceIds(); },
+    persistedWorkspace() { return getPersistedWorkspaceSnapshot(); },
+    flushSession() { return flushPersistedSession(); },
     quitApplication() {
       // Defer until the Electron evaluate response has crossed the process
       // boundary. app.quit() fires before-quit, which preserves every window
@@ -468,6 +472,32 @@ function install(refs) {
         const button = document.getElementById('diagnosticsClear');
         if (!button) return false;
         window.confirm = () => true;
+        button.click();
+        return true;
+      })()`);
+    },
+    readStartRecoveryDom() {
+      const tab = [...tabs.values()].find((candidate) =>
+        candidate.url?.startsWith('blanc://newtab'));
+      if (!tab) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        hidden: document.getElementById('recoveryCard')?.hidden ?? true,
+        title: document.getElementById('recoveryTitle')?.textContent ?? '',
+        message: document.getElementById('recoveryMessage')?.textContent ?? '',
+        restoreLabel: document.getElementById('recoveryRestore')?.textContent ?? '',
+        freshLabel: document.getElementById('recoveryFresh')?.textContent ?? '',
+        error: document.getElementById('recoveryError')?.textContent ?? '',
+      }))()`);
+    },
+    clickSessionRecovery(choice) {
+      if (choice !== 'restore' && choice !== 'fresh') return false;
+      const tab = [...tabs.values()].find((candidate) =>
+        candidate.url?.startsWith('blanc://newtab'));
+      if (!tab) return false;
+      const selector = choice === 'restore' ? '#recoveryRestore' : '#recoveryFresh';
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.querySelector(${JSON.stringify(selector)});
+        if (!button || button.hidden || button.disabled) return false;
         button.click();
         return true;
       })()`);
@@ -1247,6 +1277,13 @@ function install(refs) {
       pushRemoteDevices([]);
       openedDownloadPath = null;
       setWindowContentSize(1280, 800);
+      // Multi-window scenarios must not leak a focused secondary runtime into
+      // the next scenario. Close every secondary first, then bind the rest of
+      // reset to Personal's primary workspace.
+      for (const runtime of getWindowRuntimeSnapshots()) {
+        if (runtime.id !== 'primary') closeWindowRuntimeById(runtime.id);
+      }
+      focusWindowRuntime('primary');
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());
       setActiveTab(keep, { focusContent: false });

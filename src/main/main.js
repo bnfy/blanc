@@ -72,6 +72,13 @@ const {
   removeProfileWorkspaces,
   replaceObject,
 } = require('./session-workspace');
+const {
+  RECOVERY_WINDOW_ID,
+  freshRecoveryWindow,
+  recoveryHostWindow,
+  summarizeRecoveryWindows,
+  validRecoveryChoice,
+} = require('./session-recovery');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 const { createProfileSessionRegistry } = require('./profile-sessions');
 const localProfiles = require('./local-profiles');
@@ -223,9 +230,10 @@ if (!app.requestSingleInstanceLock()) {
 const pendingExternalUrls = [];
 let externalUrlsFlushable = false;
 
-// While enabled blocking is compiling its lists, main-frame HTTP(S)
-// navigations are held here. Local blanc:// chrome remains available, so an
-// offline filter failure always has a usable recovery surface.
+// While enabled blocking is compiling its lists — or a crash-recovery choice
+// is unresolved — main-frame HTTP(S) navigations are held here. Local
+// blanc:// chrome remains available, so every startup failure/choice has a
+// usable surface without allowing web content through early.
 let startupNavigationGateActive = false;
 const startupQueuedNavigations = new Map();
 
@@ -4263,6 +4271,14 @@ function persistedWorkspaceIds() {
     .map((windowState) => windowState.id);
 }
 
+function persistedWorkspaceSnapshot() {
+  return structuredClone(readSessionWorkspace(ensureSessionStore().data).workspace);
+}
+
+function flushPersistedSession() {
+  return ensureSessionStore().flush();
+}
+
 // Re-apply the current WebRTC policy to every open tab (used when the setting changes).
 function applyWebrtcPolicyToAllTabs() {
   const policy = webrtcPolicyFor(settings.getSettings().webrtcPolicy);
@@ -4381,10 +4397,19 @@ app.whenReady().then(async () => {
   let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
   let adblockStartupController = null;
   let releaseStartup = async () => {};
+  let chooseSessionRecovery = async () => ({ ok: false, error: 'not-ready' });
+  let sessionRecoveryState = {
+    required: false,
+    phase: 'none',
+    tabCount: 0,
+    windowCount: 0,
+    error: null,
+  };
   const startPageStatus = () => {
     const current = settings.getSettings();
     return {
       startup: adblockStartupState,
+      recovery: sessionRecoveryState,
       privacy: {
         required: !settings.isFirstRunComplete(),
         searchSuggestions: current.searchSuggestions,
@@ -4456,6 +4481,7 @@ app.whenReady().then(async () => {
       retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
       continueWithoutAdblock: () =>
         adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
+      recoverSession: (choice) => chooseSessionRecovery(choice),
       completePrivacy: (choices) => {
         const result = settings.completeFirstRunPrivacyChoices(choices);
         if (result.completed) {
@@ -4544,6 +4570,7 @@ app.whenReady().then(async () => {
       listLocalProfiles: () => localProfiles.listLocalProfiles(),
       windowRuntimeSnapshots, tabSessionInfo,
       closeWindowRuntime, focusWindowRuntime, persistedWorkspaceIds,
+      persistedWorkspaceSnapshot, flushPersistedSession,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
@@ -4716,72 +4743,166 @@ app.whenReady().then(async () => {
   // replacement Personal window is created. Keep startup viable while the
   // marker suppresses the deleted profile's only saved workspace.
   if (!savedWindows.length) {
-    savedWindows.push({
-      id: PRIMARY_WINDOW_ID,
-      profileId: DEFAULT_PROFILE_ID,
-      urls: [],
-      groupIds: [],
-      pinned: [],
-      activeIndex: 0,
-      groups: [],
-    });
+    savedWindows.push(freshRecoveryWindow());
   }
   const savedWindowById = new Map(savedWindows.map((windowState) => [windowState.id, windowState]));
   activeWorkspaceWindowId = savedWindowById.has(storedWorkspace.workspace.activeWindowId)
     ? storedWorkspace.workspace.activeWindowId
     : savedWindows[0]?.id ?? PRIMARY_WINDOW_ID;
+  const recoverySummary = summarizeRecoveryWindows(savedWindows, { newTabUrl: NEW_TAB_URL });
+  const recoveryRequired = !sessionPersistenceReadOnly &&
+    diagnostics.sessionRecoveryPending() &&
+    recoverySummary.hasRecoverableContent;
+  if (recoveryRequired) {
+    sessionRecoveryState = {
+      required: true,
+      phase: 'pending',
+      tabCount: recoverySummary.tabCount,
+      windowCount: recoverySummary.windowCount,
+      error: null,
+    };
+  } else if (diagnostics.sessionRecoveryPending()) {
+    // A crash with only one disposable blank tab has nothing meaningful to
+    // recover. Resolve the durable marker so a later clean launch is quiet.
+    diagnostics.resolveSessionRecovery();
+  }
   sessionPersistenceSuspended = true;
 
   const blockingRequested =
     !acceptanceTestMode && settings.getSettings().adblockEnabled;
+  const navigationGateRequested = blockingRequested || recoveryRequired;
   // A hand-edited/future workspace can already reference a named profile on
   // startup. Materialize and secure those sessions before the temporary
   // navigation gate is installed, so restored tabs cannot race unfiltered.
   for (const profileId of new Set(savedWindows.map((saved) => saved.profileId))) {
     installProfileSessionPolicies(profileId);
   }
-  if (blockingRequested) installStartupNavigationGate(allBrowsingSessions());
+  if (navigationGateRequested) installStartupNavigationGate(allBrowsingSessions());
 
-  // Restore each workspace in its own BrowserWindow. Put the previously
-  // focused window last so it is the frontmost native window after launch.
-  const startupWindows = [...savedWindows].sort((a, b) =>
+  // Normal launches materialize every saved BrowserWindow now. Recovery
+  // launches create one safe Personal window first; saved profile sessions
+  // and web tabs do not become visible until the user chooses Restore.
+  const orderedSavedWindows = () => [...savedWindows].sort((a, b) =>
     Number(a.id === activeWorkspaceWindowId) - Number(b.id === activeWorkspaceWindowId));
   const startupTabs = new Map();
-  const startupRuntimes = startupWindows.map((saved) => {
+  const startupRuntimes = [];
+  const chromeReadyPromises = [];
+  const createStartupRuntime = (saved) => {
+    const existing = windowRuntimeRegistry.get(saved.id);
+    if (existing) return existing;
     const runtime = createMainWindow({
       runtimeId: saved.id,
       profileId: saved.profileId,
     });
     withWindowRuntime(runtime, () => {
-      tabState.groups = saved.groups;
       startupTabs.set(runtime.id, createTab(NEW_TAB_URL));
     });
-    return runtime;
-  });
-  const chromeReady = Promise.all(startupRuntimes.map((runtime) => new Promise((resolve) => {
-    runtime.browserWindow.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
-      const startupTabId = startupTabs.get(runtime.id);
-      if (startupTabId && tabs.has(startupTabId)) {
-        // Keep first-run/recovery actions keyboard reachable in every restored
-        // window until its saved tabs can be attached after the blocker gate.
-        setActiveTab(startupTabId, { focusContent: true });
-      }
-      resolve();
+    startupRuntimes.push(runtime);
+    chromeReadyPromises.push(new Promise((resolve) => {
+      runtime.browserWindow.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+        const startupTabId = startupTabs.get(runtime.id);
+        if (startupTabId && tabs.has(startupTabId)) {
+          // Keep first-run/recovery actions keyboard reachable until saved
+          // tabs can be attached after every startup gate has released.
+          setActiveTab(startupTabId, { focusContent: true });
+        }
+        resolve();
+      }));
     }));
-  })));
+    return runtime;
+  };
+  if (recoveryRequired) {
+    createStartupRuntime(recoveryHostWindow());
+  } else {
+    for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
+  }
 
   let startupReleased = false;
-  releaseStartup = async ({ blocking, preservePreference = false }) => {
+  let pendingStartupRelease = null;
+  let recoveryChoice = null;
+  chooseSessionRecovery = async (choice) => {
+    if (!sessionRecoveryState.required) {
+      return { ok: false, error: 'not-pending', recovery: sessionRecoveryState };
+    }
+    if (!validRecoveryChoice(choice)) {
+      return { ok: false, error: 'invalid-choice', recovery: sessionRecoveryState };
+    }
+
+    if (choice === 'fresh') {
+      const fresh = freshRecoveryWindow();
+      const saved = ensureSessionStore().updateAndFlush((data) => {
+        replaceObject(data, {
+          version: storedWorkspace.workspace.version,
+          activeWindowId: PRIMARY_WINDOW_ID,
+          windows: [fresh],
+        });
+      });
+      if (!saved) {
+        sessionRecoveryState = {
+          ...sessionRecoveryState,
+          error: 'Couldn’t replace the saved session. Check disk access and try again.',
+        };
+        broadcastStartPageStatus();
+        return { ok: false, error: 'write-failed', recovery: sessionRecoveryState };
+      }
+      savedWindows.splice(0, savedWindows.length, fresh);
+      savedWindowById.clear();
+      savedWindowById.set(PRIMARY_WINDOW_ID, fresh);
+      activeWorkspaceWindowId = PRIMARY_WINDOW_ID;
+    }
+
+    const recoveryMarkerResolved = diagnostics.resolveSessionRecovery();
+    if (!recoveryMarkerResolved && choice === 'restore') {
+      sessionRecoveryState = {
+        ...sessionRecoveryState,
+        error: 'Couldn’t save the recovery choice. Check disk access and try again.',
+      };
+      broadcastStartPageStatus();
+      return { ok: false, error: 'write-failed', recovery: sessionRecoveryState };
+    }
+    if (!recoveryMarkerResolved) {
+      // The destructive half of Start fresh is already durable. Proceed with
+      // the empty workspace; a later launch sees no recoverable content and
+      // retries clearing this harmless marker instead of resurrecting tabs.
+      console.warn('[session] could not clear the recovery marker after starting fresh');
+    }
+
+    recoveryChoice = choice;
+    sessionRecoveryState = {
+      ...sessionRecoveryState,
+      required: false,
+      phase: choice === 'restore' ? 'restoring' : 'fresh',
+      error: null,
+    };
+    broadcastStartPageStatus();
+    if (pendingStartupRelease) {
+      const release = pendingStartupRelease;
+      pendingStartupRelease = null;
+      await releaseStartup(release);
+    }
+    return { ok: true, recovery: sessionRecoveryState };
+  };
+
+  releaseStartup = async ({ blocking, preservePreference = false } = {}) => {
     if (startupReleased) return;
+    if (sessionRecoveryState.required) {
+      pendingStartupRelease = { blocking, preservePreference };
+      broadcastStartPageStatus();
+      return;
+    }
     startupReleased = true;
-    await chromeReady;
+
+    if (recoveryChoice) {
+      for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
+    }
+    await Promise.all(chromeReadyPromises);
 
     if (!blocking && !preservePreference && settings.getSettings().adblockEnabled) {
       // “Continue without blocking” is an explicit effective-state change,
       // not a shield that stays visually enabled while no engine exists.
       settings.setSettings({ adblockEnabled: false });
     }
-    if (blockingRequested) {
+    if (navigationGateRequested) {
       releaseStartupNavigationGate(allBrowsingSessions(), {
         blockerAttached: blocking,
       });
@@ -4791,6 +4912,7 @@ app.whenReady().then(async () => {
       const saved = savedWindowById.get(runtime.id);
       if (!saved) continue;
       withWindowRuntime(runtime, () => {
+        tabState.groups = saved.groups;
         const restoredIds = saved.urls.map((url, index) => createTab(url, {
           groupId: saved.groupIds?.[index] ?? null,
           pinned: !!saved.pinned?.[index],
@@ -4807,8 +4929,32 @@ app.whenReady().then(async () => {
       });
     }
 
+    // The recovery surface is deliberately ephemeral. Once the chosen saved
+    // workspace has its own correctly partitioned runtime(s), destroy the
+    // neutral host while persistence is still suspended so its id can never
+    // enter session.json.
+    const recoveryHost = windowRuntimeRegistry.get(RECOVERY_WINDOW_ID);
+    if (recoveryHost?.browserWindow && !recoveryHost.browserWindow.isDestroyed()) {
+      recoveryHost.browserWindow.destroy();
+    }
+
     sessionPersistenceSuspended = false;
-    for (const runtime of startupRuntimes) persistSessionForRuntime(runtime);
+    for (const runtime of startupRuntimes) {
+      if (windowRuntimeRegistry.get(runtime.id) === runtime) persistSessionForRuntime(runtime);
+    }
+    sessionRecoveryState = {
+      ...sessionRecoveryState,
+      required: false,
+      phase: 'complete',
+      error: null,
+    };
+    broadcastStartPageStatus();
+
+    const activeRuntime = windowRuntimeRegistry.get(activeWorkspaceWindowId);
+    if (activeRuntime?.browserWindow && !activeRuntime.browserWindow.isDestroyed()) {
+      activeRuntime.browserWindow.focus();
+      setFocusedWindowRuntime(activeRuntime);
+    }
 
     // Cold-start URL handoff waits until the blocker decision and session
     // restore are both complete.
@@ -4885,7 +5031,13 @@ app.whenReady().then(async () => {
   setupAutoUpdater();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      if (sessionRecoveryState.required && !startupReleased) {
+        createStartupRuntime(recoveryHostWindow());
+      } else {
+        createMainWindow();
+      }
+    }
     refocusAddressBarIfWanted();
   });
 });

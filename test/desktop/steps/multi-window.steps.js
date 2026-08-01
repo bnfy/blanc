@@ -43,6 +43,7 @@ Then('the closed secondary workspace is not persisted', async function () {
 
 When('I open a tab in the secondary browser window', async function () {
   this.secondaryWindowUrl = this.fixtureUrl('secondary-window-workspace');
+  assert.equal(await this.call('focusWindow', this.secondaryWindowId), true);
   const tabId = await this.call('openTab', this.secondaryWindowUrl);
   await waitForValue(
     () => this.call('windowRuntimes'),

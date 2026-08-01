@@ -54,6 +54,7 @@ if (window.location.protocol === 'blanc:') {
       focusGroup: (id) => ipcRenderer.invoke('pages:start:focus-group', id),
       retryStartup: () => ipcRenderer.invoke('pages:start:startup-retry'),
       continueWithoutBlocking: () => ipcRenderer.invoke('pages:start:startup-continue'),
+      recoverSession: (choice) => ipcRenderer.invoke('pages:start:session-recovery', choice),
       completePrivacy: (choices) => ipcRenderer.invoke('pages:start:privacy-complete', choices),
       savePrivacy: (choices) => ipcRenderer.invoke('pages:start:privacy-save', choices),
       completeSetup: (choices) => ipcRenderer.invoke('pages:start:setup-complete', choices),

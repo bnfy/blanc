@@ -256,6 +256,11 @@ function setupPages(hooks = {}) {
     { host: 'newtab' }
   );
   handle(
+    'pages:start:session-recovery',
+    (choice) => hooks.startPage?.recoverSession?.(choice),
+    { host: 'newtab' }
+  );
+  handle(
     'pages:start:privacy-complete',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
     { host: 'newtab' }

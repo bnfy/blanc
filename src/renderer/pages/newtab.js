@@ -24,6 +24,11 @@ const startupMessage = document.getElementById('startupMessage');
 const startupActions = document.getElementById('startupActions');
 const startupRetry = document.getElementById('startupRetry');
 const startupContinue = document.getElementById('startupContinue');
+const recoveryCard = document.getElementById('recoveryCard');
+const recoveryMessage = document.getElementById('recoveryMessage');
+const recoveryRestore = document.getElementById('recoveryRestore');
+const recoveryFresh = document.getElementById('recoveryFresh');
+const recoveryError = document.getElementById('recoveryError');
 const privacyCard = document.getElementById('privacyCard');
 const privacySuggestions = document.getElementById('privacySuggestions');
 const privacyPing = document.getElementById('privacyPing');
@@ -119,11 +124,26 @@ function showOnboardingStep(step, { focus = true } = {}) {
   target?.focus();
 }
 
-function renderLaunchStatus({ startup, privacy } = {}) {
+function renderLaunchStatus({ startup, recovery, privacy } = {}) {
   if (isPrivate) {
     startupCard.hidden = true;
+    recoveryCard.hidden = true;
     privacyCard.hidden = true;
     return;
+  }
+
+  const showRecovery = recovery?.required === true;
+  const recoveryWasHidden = recoveryCard.hidden;
+  const recoveryWasVisible = !recoveryCard.hidden;
+  recoveryCard.hidden = !showRecovery;
+  if (showRecovery) {
+    const tabs = plural(recovery.tabCount ?? 0, 'tab');
+    const windows = plural(recovery.windowCount ?? 0, 'window');
+    recoveryMessage.textContent = recovery.windowCount > 1
+      ? `${tabs} across ${windows} are ready to reopen. Private tabs were never saved.`
+      : `${tabs} ${recovery.tabCount === 1 ? 'is' : 'are'} ready to reopen. Private tabs were never saved.`;
+    recoveryError.textContent = recovery.error ?? '';
+    if (recoveryWasHidden) recoveryRestore.focus();
   }
 
   const showStartup = startup?.phase === 'initializing' || startup?.phase === 'failed';
@@ -140,7 +160,12 @@ function renderLaunchStatus({ startup, privacy } = {}) {
       ? 'Blanc has not opened queued web pages because its ad and tracker filters are unavailable. Retry, or explicitly continue with blocking turned off.'
       : 'Blanc is preparing its local ad and tracker filters before opening web pages.';
     startupActions.hidden = !failed;
-    if (failed && startupWasHidden) startupRetry.focus();
+    if (failed && !showRecovery && (startupWasHidden || recoveryWasVisible)) {
+      startupRetry.focus();
+    } else if (!failed && recoveryWasVisible && !showRecovery) {
+      startupTitle.tabIndex = -1;
+      startupTitle.focus();
+    }
   }
 
   const showPrivacy = !!privacy?.required;
@@ -152,10 +177,30 @@ function renderLaunchStatus({ startup, privacy } = {}) {
       privacyPing.checked = !!privacy.usagePing;
       const selectedLayout = privacy.tabLayout === 'vertical' ? 'vertical' : 'island';
       for (const choice of layoutChoices) choice.checked = choice.value === selectedLayout;
-      showOnboardingStep(1, { focus: startup?.phase !== 'failed' });
+      showOnboardingStep(1, { focus: startup?.phase !== 'failed' && !showRecovery });
     }
   }
 }
+
+async function chooseRecovery(choice) {
+  recoveryRestore.disabled = true;
+  recoveryFresh.disabled = true;
+  recoveryError.textContent = '';
+  try {
+    const result = await window.bowserPages?.start.recoverSession(choice);
+    if (!result?.ok) {
+      recoveryError.textContent = result?.recovery?.error ?? 'Couldn’t save that choice.';
+    }
+  } catch {
+    recoveryError.textContent = 'Couldn’t save that choice.';
+  } finally {
+    recoveryRestore.disabled = false;
+    recoveryFresh.disabled = false;
+  }
+}
+
+recoveryRestore.addEventListener('click', () => chooseRecovery('restore'));
+recoveryFresh.addEventListener('click', () => chooseRecovery('fresh'));
 
 startupRetry.addEventListener('click', async () => {
   startupRetry.disabled = true;
@@ -360,9 +405,10 @@ window.bowserPages?.start.data().then(({
   blockedThisWeek,
   remoteDevices,
   startup,
+  recovery,
   privacy,
 }) => {
-  renderLaunchStatus({ startup, privacy });
+  renderLaunchStatus({ startup, recovery, privacy });
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =
       `${blockedThisWeek.toLocaleString()} ads blocked this week`;

@@ -62,6 +62,27 @@ OS family/release, and the bounded event list. The renderer never receives the
 chosen path, and Blanc has no diagnostics-upload endpoint: the report stays on
 the device unless the user independently chooses to share the saved file.
 
+## Unclean-exit session-recovery decision
+
+An interrupted active-run marker becomes a durable unresolved-recovery marker,
+not merely a historical crash event. On the next launch Blanc materializes one
+safe Personal new-tab window and holds every saved web navigation and named
+profile window behind the same startup protection boundary used by the blocker.
+The start page offers Restore tabs or Start fresh; it never receives saved URLs.
+Closing Blanc without choosing preserves the unresolved state for the next
+launch instead of silently turning it into an automatic restore.
+
+Restore clears the recovery marker synchronously, waits for startup protection,
+then recreates the versioned workspace and previously focused window. Start
+fresh atomically replaces `session.json` with one empty Personal primary
+workspace before releasing startup. A failed workspace write leaves the choice
+open. A lone blank new tab resolves without prompting, and private tabs,
+utility sheets, and pending profile deletions retain their existing restore
+filters. Forced-process acceptance scenarios cover both choices against the
+real persisted profile. Creating a named profile is also synchronously durable
+before its window opens, so a crash cannot preserve that workspace while losing
+the registry identity and falling back to Personal's session partition.
+
 ## F29 display-sharing decision
 
 Desktop uses `session.setDisplayMediaRequestHandler` and enumerates sources with

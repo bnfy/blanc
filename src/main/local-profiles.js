@@ -47,7 +47,11 @@ function createLocalProfileManager({ store, makeId = crypto.randomUUID, now = Da
       createdAt: now(),
     };
     const next = addLocalProfile(registry, profile);
-    store.update((data) => Object.assign(data, next));
+    if (typeof store.updateAndFlush !== 'function' || !store.updateAndFlush(
+      (data) => Object.assign(data, next)
+    )) {
+      throw new Error('Couldn’t persist the new local profile.');
+    }
     return next.profiles.find((candidate) => candidate.id === profile.id);
   }
 

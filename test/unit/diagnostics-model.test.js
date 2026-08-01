@@ -24,10 +24,15 @@ test('a clean session writes and clears its marker without adding a crash', () =
     now: () => 1000,
   });
 
+  assert.equal(ledger.hasActiveSession(), false);
+  assert.equal(ledger.hasPendingRecovery(), false);
   assert.equal(ledger.startSession(), true);
+  assert.equal(ledger.hasActiveSession(), true);
   assert.deepEqual(store.data.currentRun, { startedAt: 1000 });
   assert.deepEqual(ledger.snapshot(), []);
   assert.equal(ledger.endSession(), true);
+  assert.equal(ledger.hasActiveSession(), false);
+  assert.equal(ledger.hasPendingRecovery(), false);
   assert.equal(store.data.currentRun, null);
 });
 
@@ -41,13 +46,31 @@ test('a leftover marker becomes one local unclean-exit event on next launch', ()
     now: () => 1000,
   });
 
+  assert.equal(ledger.hasActiveSession(), true);
   ledger.startSession();
+  assert.equal(ledger.hasPendingRecovery(), true);
   assert.deepEqual(ledger.snapshot(), [{
     at: 1000,
     kind: 'unclean-exit',
     previousStartedAt: 500,
   }]);
   assert.deepEqual(store.data.currentRun, { startedAt: 1000 });
+});
+
+test('an unresolved recovery choice survives a later clean quit until it is resolved', () => {
+  const store = fakeStore({
+    version: 1,
+    currentRun: { startedAt: 500 },
+    recoveryPending: false,
+    events: [],
+  });
+  const ledger = createCrashLedger(store, { now: () => 1000 });
+
+  ledger.startSession();
+  ledger.endSession();
+  assert.equal(ledger.hasPendingRecovery(), true);
+  assert.equal(ledger.resolveRecovery(), true);
+  assert.equal(ledger.hasPendingRecovery(), false);
 });
 
 test('renderer and child crashes retain only bounded non-browsing metadata', () => {
@@ -89,8 +112,10 @@ test('the crash ledger is capped and clear preserves the active-run marker', () 
   }
   assert.equal(ledger.snapshot().length, MAX_CRASH_EVENTS);
   const marker = structuredClone(store.data.currentRun);
+  store.data.recoveryPending = true;
   assert.equal(ledger.clear(), true);
   assert.deepEqual(store.data.currentRun, marker);
+  assert.equal(ledger.hasPendingRecovery(), true);
   assert.deepEqual(ledger.snapshot(), []);
 });
 

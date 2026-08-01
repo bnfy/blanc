@@ -12,6 +12,17 @@
     <div id="dateLine" class="ledger-date"></div>
     <h1 class="ledger-heading">Where to?</h1>
 
+    <section id="recoveryCard" class="launch-card" aria-labelledby="recoveryTitle" hidden>
+      <div class="launch-card-kicker">Blanc closed unexpectedly</div>
+      <h2 id="recoveryTitle">Pick up where you left off?</h2>
+      <p id="recoveryMessage">Your saved tabs are ready to reopen. Private tabs were never saved.</p>
+      <div class="launch-card-actions">
+        <button id="recoveryRestore" type="button">Restore tabs</button>
+        <button id="recoveryFresh" type="button" class="quiet">Start fresh</button>
+        <span id="recoveryError" class="launch-error" role="status"></span>
+      </div>
+    </section>
+
     <section id="startupCard" class="launch-card" aria-labelledby="startupTitle" hidden>
       <div class="launch-card-kicker">browser protection</div>
       <h2 id="startupTitle">Preparing blocking…</h2>

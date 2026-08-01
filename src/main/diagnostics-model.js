@@ -50,9 +50,9 @@ function normalizeEvents(events) {
 }
 
 function validCurrentRun(value) {
-  return value &&
+  return !!(value &&
     typeof value === 'object' &&
-    safeTime(value.startedAt) !== null;
+    safeTime(value.startedAt) !== null);
 }
 
 function appendEvent(data, event) {
@@ -78,12 +78,22 @@ function createCrashLedger(store, { now = Date.now } = {}) {
           kind: 'unclean-exit',
           previousStartedAt: data.currentRun.startedAt,
         });
+        data.recoveryPending = true;
       } else {
         data.version = 1;
         data.events = normalizeEvents(data.events);
+        data.recoveryPending = data.recoveryPending === true;
       }
       data.currentRun = currentRun;
     });
+  }
+
+  function hasActiveSession() {
+    return validCurrentRun(store.data.currentRun);
+  }
+
+  function hasPendingRecovery() {
+    return store.data.recoveryPending === true;
   }
 
   function endSession() {
@@ -91,6 +101,16 @@ function createCrashLedger(store, { now = Date.now } = {}) {
       data.version = 1;
       data.events = normalizeEvents(data.events);
       data.currentRun = null;
+      data.recoveryPending = data.recoveryPending === true;
+    });
+  }
+
+  function resolveRecovery() {
+    return store.updateAndFlush((data) => {
+      data.version = 1;
+      data.events = normalizeEvents(data.events);
+      if (!validCurrentRun(data.currentRun)) data.currentRun = null;
+      data.recoveryPending = false;
     });
   }
 
@@ -121,6 +141,7 @@ function createCrashLedger(store, { now = Date.now } = {}) {
       data.version = 1;
       data.events = [];
       if (!validCurrentRun(data.currentRun)) data.currentRun = null;
+      data.recoveryPending = data.recoveryPending === true;
     });
   }
 
@@ -128,7 +149,17 @@ function createCrashLedger(store, { now = Date.now } = {}) {
     return normalizeEvents(store.data.events).map((event) => ({ ...event }));
   }
 
-  return { startSession, endSession, recordRenderer, recordChildProcess, clear, snapshot };
+  return {
+    startSession,
+    endSession,
+    hasActiveSession,
+    hasPendingRecovery,
+    recordRenderer,
+    recordChildProcess,
+    resolveRecovery,
+    clear,
+    snapshot,
+  };
 }
 
 function isoTime(value) {
