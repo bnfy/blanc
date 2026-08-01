@@ -5,6 +5,9 @@
 // Profiles:
 //   runnable  - the subset currently implemented against the shipping app
 //               (drivable via main-process state). This is what CI runs green.
+//   release   - shipping product contracts explicitly tagged @release. It
+//               excludes feasibility spikes and cannot drift from runnable.
+//   releaseDry - release under --dry-run, for fast binding verification.
 //   dry       - `runnable` under --dry-run: verifies every selected step
 //               resolves to a definition without launching Electron.
 //   default   - every desktop-applicable scenario (`not @mobile`). Runs the
@@ -61,3 +64,5 @@ const RUNNABLE = [
 export default { ...common, tags: 'not @mobile' };
 export const runnable = { ...common, tags: RUNNABLE };
 export const dry = { ...common, tags: RUNNABLE, dryRun: true };
+export const release = { ...common, tags: '@release' };
+export const releaseDry = { ...common, tags: '@release', dryRun: true };

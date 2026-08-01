@@ -52,6 +52,7 @@ scenario carry a platform tag instead of `@all`.
 | `@F12-2` | Stable **scenario id** (`F<feature>-<n>`). Used in the checklist grid ([`index.md`](./index.md)). Never renumber. |
 | `@all` | Must pass identically on every platform. |
 | `@desktop` `@ios` `@android` `@mobile` | Applies only to the tagged platform(s); `@mobile` = iOS + Android. |
+| `@release` | Shipping desktop contract that must stay in the live runnable profile and pass at every release boundary. Feasibility spikes are excluded. |
 | domain tag (e.g. `@island`) | Feature-file level, for running a whole file. |
 
 ## Running a subset
@@ -63,6 +64,10 @@ cucumber-js --tags @all
 cucumber-js --tags @F12
 # everything touching a divergence you're about to change
 cucumber-js --tags @D1
+# shipping desktop release contracts only
+npm run test:acceptance:release
+# verify release tags/bindings without launching Electron
+npm run test:acceptance:release:dry
 ```
 (Equivalent tag expressions exist for the iOS/Android runners.)
 
@@ -84,3 +89,8 @@ A feature's row in [`../parity-matrix.md`](../parity-matrix.md) should not move 
   `test/desktop/cucumber.mjs`. The complete desktop-only F28/D19 rail contract
   is bound and verified there; other blank checklist cells remain acceptance
   backlog until a platform binding and verification move them to ✅.
+- Every stable scenario in that runnable subset carries `@release`. The
+  `check-release-acceptance.mjs` guard fails if a runnable contract loses the
+  tag, if a release contract is no longer runnable, or if a spike is promoted
+  without a stable scenario id. Scenario Outlines expand those 86 stable
+  contracts to 91 live product scenarios.

@@ -3,7 +3,7 @@ Feature: First-run onboarding
   A fresh desktop install explains optional network features, offers a bounded
   Favorites import, and exposes the two tab layouts before browsing begins.
 
-  @F37-1
+  @F37-1 @release
   Scenario: Complete the three-step first-run flow
     Given fresh first-run onboarding is shown
     Then privacy choices are the first setup step

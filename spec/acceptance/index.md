@@ -141,3 +141,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
   corresponding F19/F29/F30/F31 scenarios.
 - Mobile-gained / platform-specific outcomes (F22, F24, F28) correctly carry
   platform tags rather than `@all`.
+- The desktop runnable set has 86 stable `@release` contracts (91 expanded
+  scenarios). `npm run test:acceptance:release:check` enforces a one-to-one
+  runnable/release mapping and excludes spike-only scenarios from the release
+  boundary.

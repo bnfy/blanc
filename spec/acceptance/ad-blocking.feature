@@ -22,7 +22,7 @@ Feature: Ad and tracker blocking
     When I reload "ads.example"
     Then ads are still allowed on "ads.example"
 
-  @F12-3 @F12 @all
+  @F12-3 @F12 @all @release
   Scenario: The global toggle turns blocking off and on
     When I run the slash command "/block-ads"
     Then ad/tracker blocking is disabled

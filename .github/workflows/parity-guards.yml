@@ -48,6 +48,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Release acceptance boundary is complete
+        run: npm run test:acceptance:release:check
       - name: Acceptance step definitions resolve (dry-run)
         run: npm run test:acceptance:dry
 

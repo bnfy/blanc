@@ -2,7 +2,7 @@ Feature: local crash diagnostics
   Blanc can retain bounded failure metadata for support without turning crash
   reporting into telemetry or attaching browsing data to the report.
 
-  @F38-1
+  @F38-1 @release
   Scenario: inspect and clear the local crash ledger from Settings
     Given Blanc has recorded a local tab crash
     When I open the Diagnostics settings

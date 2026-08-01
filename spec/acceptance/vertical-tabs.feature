@@ -5,7 +5,7 @@ Feature: Desktop vertical tabs
   tabs, or turning remote-device snapshots into local rows. Mobile uses its
   native tab overview under D19.
 
-  @F28-1 @F28 @desktop @D19
+  @F28-1 @F28 @desktop @D19 @release
   Scenario: The layout defaults to Island, persists locally, and never syncs
     Given a fresh desktop settings profile
     Then the tab layout is "island"
@@ -17,7 +17,7 @@ Feature: Desktop vertical tabs
     When Profile Sync receives a different tab-layout preference
     Then the tab layout remains "vertical"
 
-  @F28-13 @F28 @desktop @D19
+  @F28-13 @F28 @desktop @D19 @release
   Scenario: The expanded Island toggles the tab layout in either direction
     Given a fresh desktop settings profile
     When I open the Island panel
@@ -30,7 +30,7 @@ Feature: Desktop vertical tabs
     When I toggle the tab layout from the Island footer
     Then the tab layout is "island"
 
-  @F28-14 @F28 @desktop @D19
+  @F28-14 @F28 @desktop @D19 @release
   Scenario: The vertical-tabs keyboard shortcut toggles the layout in either direction
     Given a fresh desktop settings profile
     When I press the vertical-tabs keyboard shortcut
@@ -39,7 +39,7 @@ Feature: Desktop vertical tabs
     When I press the vertical-tabs keyboard shortcut
     Then the tab layout is "island"
 
-  @F28-15 @F28 @desktop @D19
+  @F28-15 @F28 @desktop @D19 @release
   Scenario: The rail resizes directly within its supported range and resets
     Given a 1000 by 700 desktop window with the vertical tab layout
     Then the rendered vertical tab width is 248 pixels
@@ -54,7 +54,7 @@ Feature: Desktop vertical tabs
     Then the rendered vertical tab width is 248 pixels
     And the preferred vertical tab width is 248 pixels
 
-  @F28-16 @F28 @desktop @D19
+  @F28-16 @F28 @desktop @D19 @release
   Scenario: A narrow window caps the rail without overwriting its preference
     Given a 1000 by 700 desktop window with the vertical tab layout
     When I drag the vertical tab resize handle to 360 pixels
@@ -70,7 +70,7 @@ Feature: Desktop vertical tabs
     Then the tab layout is "vertical"
     And the rendered vertical tab width is 360 pixels
 
-  @F28-17 @F28 @desktop @D19
+  @F28-17 @F28 @desktop @D19 @release
   Scenario: Direct title hover reveals only genuinely truncated tab titles
     Given a 1000 by 700 desktop window with the vertical tab layout
     And the rail contains a truncated title and a fully visible title
@@ -86,7 +86,7 @@ Feature: Desktop vertical tabs
     When reduced motion is preferred and I hover the truncated vertical tab title
     Then the truncated title remains still with its full accessible name
 
-  @F28-2 @F28 @desktop @D19
+  @F28-2 @F28 @desktop @D19 @release
   Scenario: Changing tab layout does not reload guest content
     Given an active web tab with a load counter and unsaved in-page state
     When I change the tab layout from "island" to "vertical"
@@ -95,7 +95,7 @@ Feature: Desktop vertical tabs
     And its load counter has not increased
     And its unsaved in-page state is unchanged
 
-  @F28-3 @F28 @desktop @D19
+  @F28-3 @F28 @desktop @D19 @release
   Scenario: Guest content and the utility sheet use the vertical page pane
     Given a 1000 by 700 desktop window with the vertical tab layout
     When an ordinary tab is active below the 64 pixel sampled safe-area gutter
@@ -106,7 +106,7 @@ Feature: Desktop vertical tabs
     Then its sheet bounds are x 248, y 64, width 752, height 636
     And the rail remains visible and unobscured
 
-  @F28-4 @F28 @desktop @D19
+  @F28-4 @F28 @desktop @D19 @release
   Scenario: Panel and palette stay pane-centered above the sampled safe-area gutter
     Given a 1000 by 700 desktop window with the vertical tab layout
     When I open the Island panel
@@ -116,7 +116,7 @@ Feature: Desktop vertical tabs
     Then the palette overlay bounds are x 248, y 0, width 752, height 700
     And the expanded Island remains centered over the website pane
 
-  @F28-5 @F28 @desktop @D19
+  @F28-5 @F28 @desktop @D19 @release
   Scenario: Find remains inside the page pane at the minimum window size
     Given a 640 by 480 desktop window with the vertical tab layout
     Then the page pane starts at x 248 and is 392 pixels wide
@@ -125,7 +125,7 @@ Feature: Desktop vertical tabs
     And the visible find capsule is no wider than 368 pixels
     And the find capsule does not overlap the vertical tab rail
 
-  @F28-6 @F28 @desktop @D19
+  @F28-6 @F28 @desktop @D19 @release
   Scenario: The rail preserves canonical buckets, groups, and remote-tab scope
     Given the local tab model contains ungrouped pins, named groups, and loose tabs
     And one named group contains both pinned and unpinned tabs
@@ -142,7 +142,7 @@ Feature: Desktop vertical tabs
     Then its group header exposes the collapsed-active state
     And I can unfold that group from its header
 
-  @F28-7 @F28 @desktop @D19
+  @F28-7 @F28 @desktop @D19 @release
   Scenario: Rail rows expose identity, privacy, loading, pin, and audio states
     Given local tabs cover active, loading, private, pinned, audible, and muted states
     When the vertical tab rail is shown
@@ -154,7 +154,7 @@ Feature: Desktop vertical tabs
     And audible and muted rows expose distinct audio states
     And those states have accessible names that do not rely on color alone
 
-  @F28-8 @F28 @desktop @D19
+  @F28-8 @F28 @desktop @D19 @release
   Scenario: Rail pointer actions switch, close, create, and retain menu actions
     Given three local tabs are visible in the vertical tab rail
     When I activate an inactive tab row
@@ -167,7 +167,7 @@ Feature: Desktop vertical tabs
     Then a new ungrouped tab opens on the new-tab page
     And pin, mute, duplicate, and group-membership actions remain available through the Island or native menus
 
-  @F28-9 @F28 @desktop @D19
+  @F28-9 @F28 @desktop @D19 @release
   Scenario: Activating any rail row dismisses transient chrome and focuses content
     Given a local tab row is already active in the vertical tab rail
     When I activate that row with the panel, palette, find capsule, or utility sheet open
@@ -179,7 +179,7 @@ Feature: Desktop vertical tabs
     And that tab becomes active at most once
     And focus moves to that tab's content
 
-  @F28-10 @F28 @desktop @D19
+  @F28-10 @F28 @desktop @D19 @release
   Scenario: Drag reorder succeeds inside one group and pin bucket
     Given three rail rows share the same group and pinned state
     When I drag the third row before the first row
@@ -189,7 +189,7 @@ Feature: Desktop vertical tabs
     Then the reorder request uses no before-row id
     And the canonical tab order places it at that bucket's end
 
-  @F28-11 @F28 @desktop @D19
+  @F28-11 @F28 @desktop @D19 @release
   Scenario: Drag reorder rejects cross-bucket drops
     Given rail rows span different groups and pinned states
     When I drag a row across a group boundary
@@ -199,7 +199,7 @@ Feature: Desktop vertical tabs
     Then the drop is rejected
     And canonical tab order and pinned state are unchanged
 
-  @F28-12 @F28 @desktop @D19
+  @F28-12 @F28 @desktop @D19 @release
   Scenario: Keyboard focus roves through primary rows and accessible actions
     Given primary rail-row focus is on the active tab
     When I press ArrowDown or ArrowUp

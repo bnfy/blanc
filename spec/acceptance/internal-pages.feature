@@ -13,21 +13,21 @@ Feature: Internal blanc:// pages
     And it shows the weekly blocked count
     And it shows no mascot
 
-  @F16-2 @F16 @all
+  @F16-2 @F16 @all @release
   Scenario: Internal navigation stays within the blanc scheme
     Given the new-tab page is open
     When I follow its "Favorites" navigation link
     Then the favorites page opens in the utility sheet under the blanc scheme
     And no new tab is created
 
-  @F16-4 @F16 @all
+  @F16-4 @F16 @all @release
   Scenario: Utility pages never occupy tabs
     Given a tab open on "site.example"
     When I open the downloads page
     Then the downloads page opens in the utility sheet
     And the active tab and tab order are unchanged
 
-  @F16-5 @F16 @all
+  @F16-5 @F16 @all @release
   Scenario: Activating a favorite from the utility sheet opens one real tab
     Given a favorite for "kept.example" exists
     And the favorites page is open in the utility sheet
@@ -35,7 +35,7 @@ Feature: Internal blanc:// pages
     Then exactly one new tab opens on "kept.example"
     And the utility sheet is dismissed
 
-  @F16-6 @F16 @all
+  @F16-6 @F16 @all @release
   Scenario: Untrusted web content cannot summon the utility sheet
     Given a tab open on untrusted web content
     When the page navigates itself to the settings page
@@ -43,13 +43,13 @@ Feature: Internal blanc:// pages
     When the page window-opens the settings page
     Then the utility sheet remains closed
 
-  @F16-7 @F16 @desktop
+  @F16-7 @F16 @desktop @release
   Scenario: Re-invoking the shown utility page toggles it closed regardless of URL spelling
     Given the settings page is open in the utility sheet via a typed address
     When the settings page is invoked again by the menu
     Then the utility sheet is dismissed
 
-  @F16-3 @F16 @desktop
+  @F16-3 @F16 @desktop @release
   Scenario: Privileged browser chrome cannot navigate to web content
     When browser chrome attempts to navigate to "https://example.com"
     Then browser chrome remains on its trusted local document

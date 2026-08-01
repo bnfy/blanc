@@ -9,7 +9,7 @@ Feature: Permissions and authentication prompts
     When I deny the request
     Then the denial persists for that origin
 
-  @F29-1 @F29 @all
+  @F29-1 @F29 @all @release
   Scenario: Display sharing is selected through trusted browser chrome
     Given a visible tab on a site that can request display capture
     When the site requests display capture
@@ -17,7 +17,7 @@ Feature: Permissions and authentication prompts
     When I choose a display source
     Then only that display source is granted
 
-  @F29-2 @F29 @all
+  @F29-2 @F29 @all @release
   Scenario: A pending display-sharing request is invalidated by navigation
     Given a visible tab with the Blanc display-sharing chooser open
     When the requesting tab starts a main-frame navigation

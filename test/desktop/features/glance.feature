@@ -2,7 +2,7 @@ Feature: Glance split view
   Glance shows a second tab from the same browser window alongside the active
   tab, and promotes either pane without crossing window/profile ownership.
 
-  @F35-1
+  @F35-1 @release
   Scenario: a Glance pane shares a window and can be promoted
     Given tabs open on "glance-one.example" and "glance-two.example"
     When I open Glance

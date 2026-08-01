@@ -3,12 +3,12 @@ Feature: Address input, search, and link handling
   The address heuristic, search-engine routing, OS hand-off for non-web URIs,
   and context-menu link actions.
 
-  @F5-1 @F5 @all
+  @F5-1 @F5 @all @release
   Scenario: Typing a domain navigates
     When I enter "example.com" in the command bar
     Then the active tab navigates to "example.com"
 
-  @F5-2 @F5 @all
+  @F5-2 @F5 @all @release
   Scenario Outline: Typing a query searches with the selected engine
     Given the search engine is "<engine>"
     When I enter "how tall is everest" in the command bar
@@ -21,13 +21,13 @@ Feature: Address input, search, and link handling
       | bing       |
       | brave      |
 
-  @F5-3 @F5 @all @D4
+  @F5-3 @F5 @all @D4 @release
   Scenario: A mailto URI is handed to the OS
     When I enter "mailto:a@b.com" in the command bar
     Then the OS mail handler is invoked
     And no tab treats "mailto:a@b.com" as a search query
 
-  @F5-4 @F5 @all
+  @F5-4 @F5 @all @release
   Scenario: Autocomplete follows the current default search engine
     Given the autocomplete provider returns "blanc browser release notes"
     And the search engine is "google"
@@ -38,7 +38,7 @@ Feature: Address input, search, and link handling
     And I submit the command-bar text
     Then the search submission uses "brave" for "blanc browser probe"
 
-  @F5-5 @F5 @all
+  @F5-5 @F5 @all @release
   Scenario: Autocomplete keeps opted-out, private, and pasted text local
     Given the autocomplete provider returns "should never appear"
     When I turn search suggestions off
@@ -54,7 +54,7 @@ Feature: Address input, search, and link handling
     And I undo the command-bar deletion
     Then the autocomplete provider has not received a request
 
-  @F5-6 @F5 @all
+  @F5-6 @F5 @all @release
   Scenario: Submitting an address in the command bar performs a real navigation
     Given a tab open on "plain"
     And the island panel is open
@@ -69,7 +69,7 @@ Feature: Address input, search, and link handling
     Then a new tab opens on that link without switching to it
     And the new tab is in the group "work"
 
-  @F19-2 @F19 @desktop @D20
+  @F19-2 @F19 @desktop @D20 @release
   Scenario: Copy Clean Link strips tracking parameters, keeping the rest
     Given the active tab is on "plain" with query "?id=42&utm_source=news&fbclid=abc"
     And the island panel is open
@@ -78,7 +78,7 @@ Feature: Address input, search, and link handling
     When I choose "Copy Clean Link" from the command-bar context menu
     Then the clipboard holds the page address with query "?id=42"
 
-  @F19-3 @F19 @desktop @D20
+  @F19-3 @F19 @desktop @D20 @release
   Scenario: Paste and Go navigates the active tab and closes the island
     Given a tab open on "plain"
     And the island panel is open
