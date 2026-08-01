@@ -34,15 +34,15 @@ function createDisplaySharePickerController({
   clearTimer,
   timeoutMs,
 }) {
-  let pending = null;
+  const pendingByRuntime = new Map();
 
-  function settle(index, reason, { shareAudio = false } = {}) {
-    const request = pending;
-    if (!request) return;
-    pending = null;
+  function settleForRuntime(runtimeId, index, reason, { shareAudio = false } = {}) {
+    const request = pendingByRuntime.get(runtimeId);
+    if (!request) return false;
+    pendingByRuntime.delete(runtimeId);
     clearTimer(request.timer);
-    if (getOverlayMode() === 'display-share-picker') {
-      try { hideOverlay(); } catch { /* a dying window has nothing left to hide */ }
+    if (getOverlayMode(runtimeId) === 'display-share-picker') {
+      try { hideOverlay(runtimeId); } catch { /* a dying window has nothing left to hide */ }
     }
     request.resolve({
       source: validIndex(index, request.sources.length) ? request.sources[index] : null,
@@ -51,6 +51,11 @@ function createDisplaySharePickerController({
         && shareAudio === true,
       reason,
     });
+    return true;
+  }
+
+  function settle(index, reason, options) {
+    return settleForRuntime(getRuntimeId() ?? null, index, reason, options);
   }
 
   function requestPick({
@@ -61,7 +66,10 @@ function createDisplaySharePickerController({
     canShareAudio = false,
     runtimeId = null,
   }) {
-    if (pending) settle(null, 'mode-replaced');
+    const ownerRuntimeId = runtimeId ?? getRuntimeId() ?? null;
+    if (pendingByRuntime.has(ownerRuntimeId)) {
+      settleForRuntime(ownerRuntimeId, null, 'mode-replaced');
+    }
     if (!Array.isArray(sources) || sources.length === 0) {
       return Promise.resolve({ source: null, shareAudio: false, reason: 'no-sources' });
     }
@@ -71,15 +79,16 @@ function createDisplaySharePickerController({
 
     return new Promise((resolve) => {
       const requestId = randomUUID();
-      pending = {
+      const request = {
         requestId,
         sources,
         webContentsId,
         canShareAudio: !!canShareAudio,
-        runtimeId,
+        runtimeId: ownerRuntimeId,
         resolve,
         timer: null,
       };
+      pendingByRuntime.set(ownerRuntimeId, request);
 
       let shown = false;
       try {
@@ -95,59 +104,66 @@ function createDisplaySharePickerController({
         shown = false;
       }
       if (shown !== true) {
-        pending = null;
-        if (getOverlayMode() === 'display-share-picker') {
-          try { hideOverlay(); } catch { /* already gone */ }
+        pendingByRuntime.delete(ownerRuntimeId);
+        if (getOverlayMode(ownerRuntimeId) === 'display-share-picker') {
+          try { hideOverlay(ownerRuntimeId); } catch { /* already gone */ }
         }
         resolve({ source: null, shareAudio: false, reason: 'window-closed' });
         return;
       }
-      pending.timer = setTimer(() => settle(null, 'timeout'), timeoutMs);
+      request.timer = setTimer(
+        () => settleForRuntime(ownerRuntimeId, null, 'timeout'),
+        timeoutMs
+      );
     });
   }
 
   function handleReply(event, payload) {
-    if (!isOverlaySender(event) || !pending) return;
-    if (pending.runtimeId && pending.runtimeId !== getRuntimeId()) return;
-    if (getOverlayMode() !== 'display-share-picker') return;
+    if (!isOverlaySender(event)) return;
+    const runtimeId = getRuntimeId() ?? null;
+    const pending = pendingByRuntime.get(runtimeId);
+    if (!pending) return;
+    if (getOverlayMode(runtimeId) !== 'display-share-picker') return;
     if (!payload || payload.requestId !== pending.requestId) return;
 
     const index = Object.prototype.hasOwnProperty.call(payload, 'index')
       ? payload.index
       : undefined;
-    if (index === null) return settle(null, 'dismissed');
+    if (index === null) return settleForRuntime(runtimeId, null, 'dismissed');
     if (!validIndex(index, pending.sources.length)) {
-      return settle(null, 'invalid-reply');
+      return settleForRuntime(runtimeId, null, 'invalid-reply');
     }
     if (
       Object.prototype.hasOwnProperty.call(payload, 'shareAudio')
       && typeof payload.shareAudio !== 'boolean'
     ) {
-      return settle(null, 'invalid-reply');
+      return settleForRuntime(runtimeId, null, 'invalid-reply');
     }
-    settle(index, 'selected', { shareAudio: payload.shareAudio === true });
+    settleForRuntime(runtimeId, index, 'selected', { shareAudio: payload.shareAudio === true });
   }
 
   function cancelForWebContents(webContentsId, reason) {
-    if (pending?.webContentsId !== webContentsId) return false;
-    settle(null, reason);
-    return true;
+    for (const [runtimeId, pending] of pendingByRuntime) {
+      if (pending.webContentsId === webContentsId) {
+        return settleForRuntime(runtimeId, null, reason);
+      }
+    }
+    return false;
   }
 
   function cancelForRuntime(runtimeId, reason) {
-    if (pending?.runtimeId !== runtimeId) return false;
-    settle(null, reason);
-    return true;
+    return settleForRuntime(runtimeId, null, reason);
   }
 
   return {
     requestPick,
     settle,
+    settleForRuntime,
     handleReply,
     cancelForWebContents,
     cancelForRuntime,
-    isPending: () => pending !== null,
-    isPendingForRuntime: (runtimeId) => pending?.runtimeId === runtimeId,
+    isPending: () => pendingByRuntime.size > 0,
+    isPendingForRuntime: (runtimeId) => pendingByRuntime.has(runtimeId),
   };
 }
 

@@ -7,23 +7,24 @@ const {
 } = require('../../src/main/display-share-picker');
 
 function harness() {
-  let mode = null;
   let runtimeId = null;
-  let shown = null;
+  const modes = new Map();
+  const shownByRuntime = new Map();
   let reply = null;
+  let requestSequence = 0;
   const timers = new Set();
 
   const controller = createDisplaySharePickerController({
     showOverlay: (next, options) => {
-      mode = next;
-      shown = options.prefill;
+      modes.set(runtimeId, next);
+      shownByRuntime.set(runtimeId, options.prefill);
       return true;
     },
-    hideOverlay: () => { mode = null; },
-    getOverlayMode: () => mode,
+    hideOverlay: (ownerRuntimeId) => { modes.set(ownerRuntimeId, null); },
+    getOverlayMode: (ownerRuntimeId) => modes.get(ownerRuntimeId) ?? null,
     getRuntimeId: () => runtimeId,
     isOverlaySender: (event) => event?.trusted === true,
-    randomUUID: () => 'request-1',
+    randomUUID: () => `request-${++requestSequence}`,
     setTimer: (fn) => {
       const timer = { fn };
       timers.add(timer);
@@ -51,9 +52,11 @@ function harness() {
   return {
     controller,
     begin,
-    get mode() { return mode; },
-    get shown() { return shown; },
+    get mode() { return modes.get(runtimeId) ?? null; },
+    get shown() { return shownByRuntime.get(runtimeId) ?? null; },
     get reply() { return reply; },
+    getMode: (ownerRuntimeId) => modes.get(ownerRuntimeId) ?? null,
+    getShown: (ownerRuntimeId) => shownByRuntime.get(ownerRuntimeId) ?? null,
     timers,
     setRuntimeId: (value) => { runtimeId = value; },
   };
@@ -155,6 +158,40 @@ test('another window cannot answer or cancel a runtime-owned display request', a
   h.setRuntimeId('one');
   h.controller.handleReply({ trusted: true }, { requestId: 'request-1', index: 0 });
   assert.equal((await resultPromise).reason, 'selected');
+});
+
+test('two windows can complete display picks independently', async () => {
+  const h = harness();
+  h.setRuntimeId('one');
+  const first = h.begin({ runtimeId: 'one', webContentsId: 41 });
+  const firstRequestId = h.getShown('one').requestId;
+
+  h.setRuntimeId('two');
+  const second = h.begin({ runtimeId: 'two', webContentsId: 42 });
+  const secondRequestId = h.getShown('two').requestId;
+
+  assert.equal(h.controller.isPendingForRuntime('one'), true);
+  assert.equal(h.controller.isPendingForRuntime('two'), true);
+  assert.equal(h.getMode('one'), 'display-share-picker');
+  assert.equal(h.getMode('two'), 'display-share-picker');
+
+  h.controller.handleReply(
+    { trusted: true },
+    { requestId: secondRequestId, index: 1, shareAudio: false }
+  );
+  assert.equal((await second).reason, 'selected');
+  assert.equal(h.getMode('two'), null);
+  assert.equal(h.getMode('one'), 'display-share-picker');
+  assert.equal(h.controller.isPendingForRuntime('one'), true);
+
+  h.setRuntimeId('one');
+  h.controller.handleReply(
+    { trusted: true },
+    { requestId: firstRequestId, index: 0, shareAudio: false }
+  );
+  assert.equal((await first).reason, 'selected');
+  assert.equal(h.getMode('one'), null);
+  assert.equal(h.controller.isPending(), false);
 });
 
 test('a second request settles the first before becoming pending', async () => {

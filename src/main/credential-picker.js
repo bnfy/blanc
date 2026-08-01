@@ -17,30 +17,46 @@ function createPickerController({
   showOverlay, hideOverlay, getOverlayMode, getRuntimeId = () => null, isOverlaySender,
   randomUUID, setTimer, clearTimer, timeoutMs,
 }) {
-  let pending = null; // { requestId, rowCount, resolve, timer }
+  const pendingByRuntime = new Map();
 
   /** Resolve exactly once. State is cleared BEFORE resolving so anything running
    * synchronously off the resolution cannot observe a half-torn-down request. */
-  function settle(index, reason) {
-    const p = pending;
-    if (!p) return;                       // already settled, or none open
-    pending = null;
+  function settleForRuntime(runtimeId, index, reason) {
+    const p = pendingByRuntime.get(runtimeId);
+    if (!p) return false;                 // already settled, or none open
+    pendingByRuntime.delete(runtimeId);
     clearTimer(p.timer);
     // Teardown is BEST-EFFORT and must never prevent settlement. hideOverlay
     // touches a WebContentsView that may already be destroyed — likeliest on
     // exactly the window-closed / render-process-gone routes — and an escaping
     // throw would leave the fill awaiting a promise nothing resolves, which is
     // the wedge this controller exists to prevent.
-    if (getOverlayMode() === 'credential-picker') {
-      try { hideOverlay(); } catch { /* view already gone — nothing to undo */ }
+    if (getOverlayMode(runtimeId) === 'credential-picker') {
+      try { hideOverlay(runtimeId); } catch { /* view already gone — nothing to undo */ }
     }
     p.resolve({ index, reason });
+    return true;
+  }
+
+  function settle(index, reason) {
+    return settleForRuntime(getRuntimeId() ?? null, index, reason);
   }
 
   function requestPick(rows, truncated, host, { runtimeId = null } = {}) {
+    const ownerRuntimeId = runtimeId ?? getRuntimeId() ?? null;
+    if (pendingByRuntime.has(ownerRuntimeId)) {
+      settleForRuntime(ownerRuntimeId, null, 'mode-replaced');
+    }
     return new Promise((resolve) => {
       const requestId = randomUUID();
-      pending = { requestId, rowCount: rows.length, resolve, timer: null, runtimeId };
+      const request = {
+        requestId,
+        rowCount: rows.length,
+        resolve,
+        timer: null,
+        runtimeId: ownerRuntimeId,
+      };
+      pendingByRuntime.set(ownerRuntimeId, request);
       // showOverlay can also THROW — and it can throw PARTWAY THROUGH. The real
       // one assigns overlayMode and overlayPrefill before addChildView/send/
       // focus, any of which can fail on a dying window. So a throw does not
@@ -54,14 +70,17 @@ function createPickerController({
         shown = false;
       }
       if (shown !== true) {
-        pending = null;
-        if (getOverlayMode() === 'credential-picker') {
-          try { hideOverlay(); } catch { /* already gone — nothing more to undo */ }
+        pendingByRuntime.delete(ownerRuntimeId);
+        if (getOverlayMode(ownerRuntimeId) === 'credential-picker') {
+          try { hideOverlay(ownerRuntimeId); } catch { /* already gone — nothing more to undo */ }
         }
         resolve({ index: null, reason: 'window-closed' });
         return;
       }
-      pending.timer = setTimer(() => settle(null, 'timeout'), timeoutMs);
+      request.timer = setTimer(
+        () => settleForRuntime(ownerRuntimeId, null, 'timeout'),
+        timeoutMs
+      );
     });
   }
 
@@ -71,19 +90,16 @@ function createPickerController({
    * malformed index. */
   function handleReply(event, payload) {
     if (!isOverlaySender(event)) return;                       // overlay only
+    const runtimeId = getRuntimeId() ?? null;
+    const pending = pendingByRuntime.get(runtimeId);
     if (!pending) return;
-    if (pending.runtimeId && pending.runtimeId !== getRuntimeId()) return;
-    if (getOverlayMode() !== 'credential-picker') return;
+    if (getOverlayMode(runtimeId) !== 'credential-picker') return;
     if (!payload || payload.requestId !== pending.requestId) return;
     const index = Object.prototype.hasOwnProperty.call(payload, 'index') ? payload.index : undefined;
-    if (!isValidPickIndex(index, pending.rowCount)) return settle(null, 'invalid-reply');
-    settle(index, index === null ? 'dismissed' : 'selected');
-  }
-
-  function settleForRuntime(runtimeId, index, reason) {
-    if (!pending || pending.runtimeId !== runtimeId) return false;
-    settle(index, reason);
-    return true;
+    if (!isValidPickIndex(index, pending.rowCount)) {
+      return settleForRuntime(runtimeId, null, 'invalid-reply');
+    }
+    settleForRuntime(runtimeId, index, index === null ? 'dismissed' : 'selected');
   }
 
   return {
@@ -91,8 +107,8 @@ function createPickerController({
     settle,
     settleForRuntime,
     handleReply,
-    isPending: () => pending !== null,
-    isPendingForRuntime: (runtimeId) => pending?.runtimeId === runtimeId,
+    isPending: () => pendingByRuntime.size > 0,
+    isPendingForRuntime: (runtimeId) => pendingByRuntime.has(runtimeId),
   };
 }
 

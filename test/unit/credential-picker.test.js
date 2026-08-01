@@ -7,30 +7,35 @@ const { createPickerController } = require('../../src/main/credential-picker');
 function harness({ overlayAvailable = true, overlayThrows = false, runtimeId = null } = {}) {
   let hideThrows = false;
   const calls = { shown: [], hidden: 0, timers: 0, cleared: 0 };
-  let mode = null;
+  const modes = new Map();
+  const shownByRuntime = new Map();
   let currentRuntimeId = runtimeId;
   let timerFn = null;
+  let requestSequence = 0;
   const ctl = createPickerController({
     showOverlay: (m, opts) => {
       // Mirror the REAL failure shape: the live showOverlay sets overlayMode and
       // overlayPrefill before addChildView/send/focus, so a throw can leave that
       // state behind. Setting mode first is what lets the test catch a partial
       // failure rather than a tidy no-op.
-      if (overlayThrows) { mode = m; throw new Error('overlay is gone'); }
+      if (overlayThrows) { modes.set(currentRuntimeId, m); throw new Error('overlay is gone'); }
       if (!overlayAvailable) return false;   // mirrors main's live-window guard
-      mode = m; calls.shown.push(opts); return true;
+      modes.set(currentRuntimeId, m);
+      shownByRuntime.set(currentRuntimeId, opts.prefill);
+      calls.shown.push(opts);
+      return true;
     },
-    hideOverlay: () => {
+    hideOverlay: (ownerRuntimeId) => {
       calls.hidden += 1;
       // The real hideOverlay touches a WebContentsView that may already be
       // destroyed — exactly the state the window-closed routes fire in.
       if (hideThrows) throw new Error('view is destroyed');
-      mode = null;
+      modes.set(ownerRuntimeId, null);
     },
-    getOverlayMode: () => mode,
+    getOverlayMode: (ownerRuntimeId) => modes.get(ownerRuntimeId) ?? null,
     getRuntimeId: () => currentRuntimeId,
     isOverlaySender: (event) => event && event.fromOverlay === true,
-    randomUUID: () => 'req-1',
+    randomUUID: () => `req-${++requestSequence}`,
     setTimer: (fn) => { timerFn = fn; calls.timers += 1; return 'T'; },
     clearTimer: () => { calls.cleared += 1; },
     timeoutMs: 60000,
@@ -38,7 +43,8 @@ function harness({ overlayAvailable = true, overlayThrows = false, runtimeId = n
   return {
     ctl, calls,
     fireTimeout: () => timerFn && timerFn(),
-    getMode: () => mode,
+    getMode: (ownerRuntimeId = currentRuntimeId) => modes.get(ownerRuntimeId) ?? null,
+    getShown: (ownerRuntimeId) => shownByRuntime.get(ownerRuntimeId) ?? null,
     hideWillThrow: () => { hideThrows = true; },
     setRuntimeId: (value) => { currentRuntimeId = value; },
   };
@@ -92,6 +98,39 @@ test('picker: another window cannot answer or settle a runtime-owned request', a
   h.setRuntimeId('one');
   h.ctl.handleReply({ fromOverlay: true }, { requestId: 'req-1', index: 0 });
   assert.deepEqual(await p, { index: 0, reason: 'selected' });
+});
+
+test('picker: two windows can complete credential picks independently', async () => {
+  const h = harness({ runtimeId: 'one' });
+  const first = h.ctl.requestPick(ROWS, 0, 'one.test', { runtimeId: 'one' });
+  const firstRequestId = h.getShown('one').requestId;
+
+  h.setRuntimeId('two');
+  const second = h.ctl.requestPick(ROWS, 0, 'two.test', { runtimeId: 'two' });
+  const secondRequestId = h.getShown('two').requestId;
+
+  assert.equal(h.ctl.isPendingForRuntime('one'), true);
+  assert.equal(h.ctl.isPendingForRuntime('two'), true);
+  assert.equal(h.getMode('one'), 'credential-picker');
+  assert.equal(h.getMode('two'), 'credential-picker');
+
+  h.ctl.handleReply(
+    { fromOverlay: true },
+    { requestId: secondRequestId, index: 1 }
+  );
+  assert.deepEqual(await second, { index: 1, reason: 'selected' });
+  assert.equal(h.getMode('two'), null);
+  assert.equal(h.getMode('one'), 'credential-picker');
+  assert.equal(h.ctl.isPendingForRuntime('one'), true);
+
+  h.setRuntimeId('one');
+  h.ctl.handleReply(
+    { fromOverlay: true },
+    { requestId: firstRequestId, index: 0 }
+  );
+  assert.deepEqual(await first, { index: 0, reason: 'selected' });
+  assert.equal(h.getMode('one'), null);
+  assert.equal(h.ctl.isPending(), false);
 });
 
 test('picker: a STALE requestId leaves the request pending', async () => {

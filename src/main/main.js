@@ -1838,12 +1838,24 @@ const { createPickerController } = require('./credential-picker');
 const { chooseAndReveal } = require('./credential-fill-flow');
 const { createDisplaySharePickerController } = require('./display-share-picker');
 
+function withPickerRuntime(runtimeId, work, fallback = null) {
+  const runtime = windowRuntimeRegistry.get(runtimeId);
+  if (!runtime) return fallback;
+  return withWindowRuntime(runtime, work);
+}
+
 // Exactly-once owner of picker resolution. Behaviour is covered by
 // test/unit/credential-picker.test.js; this is only the Electron wiring.
 const pickerController = createPickerController({
   showOverlay,
-  hideOverlay: () => hideOverlay({ refocusContent: false }),
-  getOverlayMode: () => chromeState.overlayMode,
+  hideOverlay: (runtimeId) => withPickerRuntime(
+    runtimeId,
+    () => hideOverlay({ refocusContent: false })
+  ),
+  getOverlayMode: (runtimeId) => withPickerRuntime(
+    runtimeId,
+    () => chromeState.overlayMode
+  ),
   getRuntimeId: () => currentWorkspaceRuntime()?.id ?? null,
   // isTrustedSender expects { webContents, url } targets and checks frame.url
   // against target.url — a bare WebContentsView has no `.url`, so it would
@@ -1861,8 +1873,14 @@ const pickerController = createPickerController({
 
 const displaySharePickerController = createDisplaySharePickerController({
   showOverlay,
-  hideOverlay: () => hideOverlay({ refocusContent: false }),
-  getOverlayMode: () => chromeState.overlayMode,
+  hideOverlay: (runtimeId) => withPickerRuntime(
+    runtimeId,
+    () => hideOverlay({ refocusContent: false })
+  ),
+  getOverlayMode: (runtimeId) => withPickerRuntime(
+    runtimeId,
+    () => chromeState.overlayMode
+  ),
   getRuntimeId: () => currentWorkspaceRuntime()?.id ?? null,
   isOverlaySender: (event) => {
     const runtime = trustedRuntimeForChromeSender(event);
