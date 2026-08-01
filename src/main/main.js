@@ -114,7 +114,7 @@ const certificateObserver = createCertificateObserver();
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
-// Exact packaged-smoke gate for the corrupt-cache/offline recovery path.
+// Exact packaged-smoke gate for the seeded/offline and recovery paths.
 // It is deliberately inert in ordinary launches and keeps the acceptance
 // harness's unpackaged-only semantics unchanged.
 const requestedPackagedAdblockFailureTestMode =
@@ -123,13 +123,17 @@ const requestedPackagedAdblockFailureTestMode =
     : null;
 const packagedAdblockFailureTestMode =
   requestedPackagedAdblockFailureTestMode === 'once' ||
-  requestedPackagedAdblockFailureTestMode === 'always'
+  requestedPackagedAdblockFailureTestMode === 'always' ||
+  requestedPackagedAdblockFailureTestMode === 'offline'
     ? requestedPackagedAdblockFailureTestMode
     : null;
 let packagedAdblockInitializationFailuresRemaining =
   packagedAdblockFailureTestMode === 'once' ? 1 : 0;
 const packagedAdblockTestFetch = (...args) => {
-  if (packagedAdblockFailureTestMode === 'always') {
+  if (
+    packagedAdblockFailureTestMode === 'always' ||
+    packagedAdblockFailureTestMode === 'offline'
+  ) {
     return Promise.reject(new Error('packaged smoke: simulated offline fetch'));
   }
   return fetch(...args);
@@ -4827,6 +4831,10 @@ app.whenReady().then(async () => {
           fetchImpl: packagedAdblockFailureTestMode
             ? packagedAdblockTestFetch
             : fetch,
+          // The `always` smoke case deliberately removes the packaged source
+          // from the recovery chain. Ordinary launches and the `offline` case
+          // always use the signed, verified seed.
+          usePackagedSeed: packagedAdblockFailureTestMode !== 'always',
         });
         for (const browsingSession of allBrowsingSessions()) {
           attachAdBlockerToSession(browsingSession, {

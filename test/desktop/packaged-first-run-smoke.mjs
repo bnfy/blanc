@@ -9,6 +9,11 @@ const defaultExecutable = process.platform === 'darwin'
   ? path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc')
   : null;
 const executablePath = process.env.BLANC_PACKAGED_EXECUTABLE || defaultExecutable;
+const blockerSeedManifest = JSON.parse(
+  fs.readFileSync(path.resolve('src/main/assets/adblock-engine-seed.json'), 'utf8')
+);
+const seededCacheName = `adblock-engine.${blockerSeedManifest.seedId}.bin`;
+const recoveryCacheName = 'adblock-engine.network-v1.bin';
 if (!executablePath || !fs.existsSync(executablePath)) {
   throw new Error(
     'Packaged Blanc executable not found. Set BLANC_PACKAGED_EXECUTABLE or build dist/mac-arm64 first.'
@@ -132,14 +137,30 @@ await withPackagedApp({ label: 'packaged-first-run' }, async ({ app, userDataDir
 });
 
 await withPackagedApp({
+  label: 'packaged-filter-offline-seed',
+  env: {
+    BLANC_TEST: '1',
+    BLANC_TEST_ADBLOCK_FAILURE: 'offline',
+  },
+}, async ({ app, userDataDir }) => {
+  await poll(
+    () => readStartPage(app),
+    (state) => state?.startupHidden === true,
+    'packaged blocker seed did not release a fresh offline profile',
+    30_000
+  );
+  assert.ok(
+    fs.existsSync(path.join(userDataDir, seededCacheName)),
+    'packaged seed was not copied into the versioned user cache'
+  );
+});
+
+await withPackagedApp({
   label: 'packaged-filter-retry',
   launchArgs: ['https://example.com/queued-for-retry'],
   env: {
     BLANC_TEST: '1',
     BLANC_TEST_ADBLOCK_FAILURE: 'once',
-  },
-  prepare: async (userDataDir) => {
-    fs.writeFileSync(path.join(userDataDir, 'adblock-engine.v2.bin'), 'corrupt cache');
   },
 }, async ({ app, userDataDir }) => {
   await poll(
@@ -179,7 +200,7 @@ await withPackagedApp({
     // A corrupt cache must fall back to a rebuild. The injected fetch failure
     // makes that rebuild deterministically offline without changing the
     // machine's network settings.
-    fs.writeFileSync(path.join(userDataDir, 'adblock-engine.v2.bin'), 'corrupt cache');
+    fs.writeFileSync(path.join(userDataDir, recoveryCacheName), 'corrupt cache');
   },
 }, async ({ app, userDataDir }) => {
   const failed = await poll(

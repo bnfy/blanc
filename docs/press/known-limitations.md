@@ -60,12 +60,14 @@ the release candidate with them in view.
 - Search suggestions are on by default when accepted during first run. Eligible
   typed prefixes may be sent to the selected search provider; the feature can
   be disabled.
-- Blocking filters, update metadata, optional sync, supporter activation, and
-  enabled search suggestions require network requests initiated by the app.
+- Live blocking-list recovery, update metadata, optional sync, supporter
+  activation, and enabled search suggestions require network requests initiated
+  by the app. The packaged blocking seed works offline.
 - Ad and tracker blocking is best effort. It cannot promise to block every ad,
   tracker, cookie prompt, or fingerprinting technique.
-- On a fresh profile, Blanc fetches and compiles its blocking lists. The local
-  chrome remains available during that work; a failure presents Retry and an
+- On a fresh profile, Blanc verifies and loads its packaged blocking seed. If
+  the cache and seed are both unusable it rebuilds from the live lists; the
+  local chrome remains available, and a failed recovery presents Retry and an
   explicit option to continue without blocking.
 
 ## Private tabs

@@ -1,7 +1,5 @@
 const { app, ipcMain, webContents } = require('electron');
 const { ElectronBlocker } = require('@ghostery/adblocker-electron');
-const fs = require('fs');
-const path = require('path');
 const settings = require('./settings');
 const { installScriptletIsolation } = require('./adblock-scriptlets');
 const {
@@ -9,14 +7,14 @@ const {
   installCosmeticExceptionHandlers,
 } = require('./adblock-exceptions');
 const { createAdblockEventBridge } = require('./adblock-events');
+const {
+  NETWORK_LIST_URLS,
+  loadAdblockEngine,
+} = require('./adblock-engine-loader');
 
-// Cache the compiled filter engine on disk so we don't re-fetch and
-// re-parse EasyList/EasyPrivacy on every launch. The engine validates the
-// cache against its own format version and rebuilds automatically when the
-// library updates; delete the file to force a refresh of the block lists.
-const CACHE_VERSION = 2;
-const cachePath = () =>
-  path.join(app.getPath('userData'), `adblock-engine.v${CACHE_VERSION}.bin`);
+// A versioned cache sits in userData, but a verified engine seed ships in the
+// app itself. Fresh installs therefore start protected offline; a live source
+// rebuild is only the recovery path for a missing/incompatible package seed.
 
 /** @type {ElectronBlocker | null} */
 let blocker = null;
@@ -90,15 +88,25 @@ function applyBlockingWithExceptions(session) {
  * kind of cosmetic injection is allowed.
  *
  * @param {Electron.Session} session - typically session.defaultSession
- * @param {{ enabled?: boolean, fetchImpl?: typeof fetch }} [options]
+ * @param {{ enabled?: boolean, fetchImpl?: typeof fetch, usePackagedSeed?: boolean }} [options]
  * @returns {Promise<ElectronBlocker>}
  */
-async function setupAdBlocker(session, { enabled = true, fetchImpl = fetch } = {}) {
-  blocker = await ElectronBlocker.fromPrebuiltAdsAndTracking(fetchImpl, {
-    path: cachePath(),
-    read: fs.promises.readFile,
-    write: fs.promises.writeFile,
+async function setupAdBlocker(
+  session,
+  { enabled = true, fetchImpl = fetch, usePackagedSeed = true } = {}
+) {
+  const loaded = await loadAdblockEngine({
+    userDataDir: app.getPath('userData'),
+    deserialize: (serialized) => ElectronBlocker.deserialize(serialized),
+    buildFromNetwork: () => ElectronBlocker.fromLists(fetchImpl, NETWORK_LIST_URLS),
+    seedPath: usePackagedSeed ? undefined : null,
+    manifestPath: usePackagedSeed ? undefined : null,
   });
+  blocker = loaded.engine;
+  for (const recovery of loaded.recoveries) {
+    console.warn(`[adblock] recovered from ${recovery.stage}: ${recovery.message}`);
+  }
+  console.log(`[adblock] engine loaded from ${loaded.source}`);
 
   // Cosmetic filters can contain multiple uBO scriptlets for one page.
   // Ghostery executes each in the page's global scope; isolating their

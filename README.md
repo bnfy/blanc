@@ -30,11 +30,13 @@ npm start
 ```
 
 On first launch, local chrome and the start page appear immediately while
-the ad blocker fetches and compiles EasyList + EasyPrivacy. Web navigation
-waits for that protection; if the list build fails, the start page offers
-Retry or an explicit Continue without blocking. The compiled engine is
-cached in the app's userData directory so subsequent launches are instant.
-Delete the `adblock-engine.v*.bin` file there to force a rebuild. A truly
+the ad blocker loads a verified engine seed packaged from Blanc's pinned
+EasyList + EasyPrivacy snapshots. It does not need the network to start
+protected. The engine is cached in the app's userData directory; if both the
+cache and packaged seed are unusable, Blanc rebuilds from the live source
+lists. Web navigation waits for that protection, and a failed recovery offers
+Retry or an explicit Continue without blocking. Delete the
+`adblock-engine.*.bin` file there to reload the packaged seed. A truly
 fresh profile also records the search-suggestion and usage-ping choices
 before either feature can send data. Dev runs use their own userData profile,
 so they never touch an installed copy's data.

@@ -33,7 +33,7 @@ versioned together and shipped over the same remote-config channel:
 ```
 EasyList + EasyPrivacy + Blanc curation   (single source, versioned)
         │
-        ├─ desktop : consumed by @ghostery/adblocker-electron (unchanged today)
+        ├─ desktop : serialized @ghostery/adblocker-electron engine seed
         ├─ android : a normalized rule table (domain / type / third-party / action)
         └─ ios     : compiled WKContentRuleList JSON, split into N lists (see below)
 ```

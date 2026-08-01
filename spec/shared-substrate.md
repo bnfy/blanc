@@ -20,12 +20,12 @@ in one repo/pipeline.
   (D1). Possibly two variants: base and "with per-site exceptions applied" (D2).
 - **Android:** a normalized rule table the `shouldInterceptRequest` interceptor
   reads (can carry the *full* rule set — D1).
-- **Desktop:** already handled by the Ghostery engine; can converge onto the same
-  source lists so all three track the same upstream + version.
+- **Desktop:** a serialized Ghostery engine seed generated from the pinned
+  sources and packaged under `src/main/assets/`; startup verifies it before use.
 
-**Shipped via** the same remote-config/CDN channel so every platform updates in
-lockstep (and can refresh lists without an app update). Version the emitted
-artifacts together.
+**Current delivery:** desktop and iOS artifacts ride app updates. The later
+remote-config/CDN channel should update every platform in lockstep (and allow
+list refreshes without an app update). Version the emitted artifacts together.
 
 **Why shared:** blocking is simultaneously the differentiator *and* the most
 divergent implementation (D1/D2). You neutralize the drift by sharing the *input*

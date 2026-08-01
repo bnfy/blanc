@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "seedId": "a42c908c7426a360",
+  "sha256": "a42c908c7426a3601b1106ed5d25fd5c60f3a3903ec8b4f02450ec74b9cf665b",
+  "byteLength": 5403193,
+  "engine": {
+    "package": "@ghostery/adblocker-electron",
+    "packageVersion": "2.18.1",
+    "formatVersion": 878
+  },
+  "filters": {
+    "sourceDate": "2026-07-09",
+    "files": [
+      {
+        "file": "easylist.txt",
+        "sha256": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+      },
+      {
+        "file": "easyprivacy.txt",
+        "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+      }
+    ]
+  },
+  "resources": {
+    "file": "ghostery-resources.json",
+    "upstreamCommit": "67ef23276e93ebc5dd4621cc9df2b09ad9f490d7",
+    "sha256": "3598a5a2019235bf67fa0fe8b226562c302dea69592748b7dc68830bddc996fb"
+  }
+}
