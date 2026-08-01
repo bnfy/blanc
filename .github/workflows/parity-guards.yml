@@ -32,6 +32,8 @@ jobs:
           node copy/build.mjs --check
           node adblock/build.mjs --check
       - run: npm ci
+      - name: Runtime and supply-chain SBOMs are current
+        run: npm run compliance:check
       - name: Unit regression tests
         run: npm run test:unit
 

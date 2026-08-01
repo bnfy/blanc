@@ -7,6 +7,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const APP_ICON_ASSETS = require('../src/main/app-icon-assets');
+const { packageCompliance } = require('./package-compliance');
 
 function iconComposerColor(hex) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex);
@@ -51,6 +52,9 @@ function run(command, args) {
 }
 
 module.exports = async function afterPackAppIcons(context) {
+  // Every platform gets the same audited runtime SBOM and license payload.
+  // macOS continues below to compile its adaptive icon catalog afterward.
+  await packageCompliance(context);
   if (context.electronPlatformName !== 'darwin') return;
 
   const root = path.join(__dirname, '..');

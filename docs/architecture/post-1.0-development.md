@@ -61,6 +61,23 @@ no tag, release, remote upload, or production-channel metadata. Windows and
 Linux feed layouts are preparable now; their native installer smokes remain a
 platform follow-up. See `docs/staging-update-feed.md`.
 
+## Dependency-compliance decision
+
+Blanc separates the distributed runtime from the wider build supply chain.
+The runtime CycloneDX inventory follows the root production dependency closure,
+then explicitly adds Electron (a devDependency whose framework is shipped),
+local fonts, and compiled blocker-data provenance. Complete root and site lock
+SBOMs retain development and optional tools without falsely describing them as
+code inside the desktop package.
+
+Runtime licenses are an exact allowlist; unknown or changed expressions fail
+closed. Missing lock metadata requires committed, version-scoped evidence.
+EasyList/EasyPrivacy select the CC-BY-SA branch of their dual license and carry
+attribution; the compiled seed records that data obligation alongside the
+Ghostery MPL inputs. Every platform's after-pack hook embeds the runtime SBOM,
+aggregate notice, Electron/Chromium notices, and one license record per runtime
+npm component plus the OFL texts. See `docs/dependency-compliance.md`.
+
 ## Persistence resilience decision
 
 Every `JsonStore` record is rewritten through a same-directory temporary file

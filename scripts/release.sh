@@ -147,6 +147,7 @@ RELEASE_SOURCES=(
   tokens
   copy
   adblock
+  compliance
   docs/press
   docs/grants
   README.md

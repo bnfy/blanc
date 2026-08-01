@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "runtimeAllowedLicenseExpressions": [
+    "BlueOak-1.0.0",
+    "CC-BY-SA-3.0-or-later",
+    "ISC",
+    "MIT",
+    "MPL-2.0",
+    "MPL-2.0 AND CC-BY-SA-3.0-or-later",
+    "OFL-1.1",
+    "Python-2.0"
+  ],
+  "metadataOverrides": {
+    "site:zod-to-ts@1.2.0": {
+      "license": "MIT",
+      "evidence": "compliance/evidence/zod-to-ts-1.2.0-LICENSE.txt",
+      "reason": "The npm package ships an MIT LICENSE file but omits the license field from its published package metadata and lock entry."
+    }
+  },
+  "licenseFileFallbacks": {
+    "@1password/sdk@0.4.0": {
+      "license": "MIT",
+      "notice": "MIT License\n\nCopyright (c) 1Password\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+      "reason": "@1password/sdk 0.4.0 declares MIT and 1Password as author but its npm files list omits the repository license file."
+    },
+    "@1password/sdk-core@0.4.0": {
+      "license": "MIT",
+      "notice": "MIT License\n\nCopyright (c) 1Password\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+      "reason": "@1password/sdk-core 0.4.0 declares MIT and 1Password as author but its npm files list omits the repository license file."
+    },
+    "lazy-val@1.0.5": {
+      "license": "MIT",
+      "notice": "MIT License\n\nCopyright (c) Vladimir Krivosheev\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the \"Software\"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n",
+      "reason": "lazy-val 1.0.5 declares MIT and its author in package.json but publishes no license file."
+    }
+  },
+  "assets": [
+    {
+      "id": "inter-font",
+      "name": "Inter Latin webfont",
+      "type": "file",
+      "file": "src/renderer/pages/inter-latin.woff2",
+      "license": "OFL-1.1",
+      "licenseFile": "src/renderer/pages/inter-OFL.txt",
+      "homepage": "https://github.com/rsms/inter"
+    },
+    {
+      "id": "jetbrains-mono-font",
+      "name": "JetBrains Mono Latin webfont",
+      "type": "file",
+      "file": "src/renderer/pages/jetbrains-mono-latin.woff2",
+      "license": "OFL-1.1",
+      "licenseFile": "src/renderer/pages/jetbrains-mono-OFL.txt",
+      "homepage": "https://github.com/JetBrains/JetBrainsMono"
+    },
+    {
+      "id": "easylist-data",
+      "name": "EasyList",
+      "type": "data",
+      "file": "adblock/sources/easylist.txt",
+      "license": "CC-BY-SA-3.0-or-later",
+      "homepage": "https://easylist.to/",
+      "attribution": "The EasyList authors (https://easylist.to/)",
+      "licenseUrl": "https://easylist.to/pages/licence.html"
+    },
+    {
+      "id": "easyprivacy-data",
+      "name": "EasyPrivacy",
+      "type": "data",
+      "file": "adblock/sources/easyprivacy.txt",
+      "license": "CC-BY-SA-3.0-or-later",
+      "homepage": "https://easylist.to/",
+      "attribution": "The EasyList authors (https://easylist.to/)",
+      "licenseUrl": "https://easylist.to/pages/licence.html"
+    },
+    {
+      "id": "ghostery-resources",
+      "name": "Ghostery adblocker resources",
+      "type": "data",
+      "file": "adblock/sources/ghostery-resources.json",
+      "license": "MPL-2.0",
+      "homepage": "https://github.com/ghostery/adblocker"
+    },
+    {
+      "id": "blanc-adblock-seed",
+      "name": "Blanc compiled blocker seed",
+      "type": "data",
+      "file": "src/main/assets/adblock-engine-seed.bin",
+      "manifest": "src/main/assets/adblock-engine-seed.json",
+      "license": "MPL-2.0 AND CC-BY-SA-3.0-or-later",
+      "dependsOn": [
+        "easylist-data",
+        "easyprivacy-data",
+        "ghostery-resources",
+        "npm:@ghostery/adblocker-electron"
+      ]
+    }
+  ]
+}

@@ -225,6 +225,13 @@ tabs, pasted values, and sensitive-looking text stay local. The separate
 Search suggestions toggle is device-local and can disable provider requests
 entirely.
 
+**Dependency transparency:** committed CycloneDX SBOMs distinguish the shipped
+desktop runtime from the larger root and marketing-site build graphs. Packaged
+apps carry their runtime SBOM, aggregate third-party notice, Electron/Chromium
+notices, and per-package/font license records. See
+[`docs/dependency-compliance.md`](docs/dependency-compliance.md) and run
+`npm run compliance:check` after dependency or bundled-asset changes.
+
 ## Keyboard shortcuts
 
 | | |
