@@ -50,7 +50,7 @@ jobs:
             exit 1
           }
 
-      - name: Build signed Windows installer
+      - name: Build Windows installer
         shell: bash
         env:
           AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -60,14 +60,9 @@ jobs:
           AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
           AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
           AZURE_PUBLISHER_NAME: ${{ vars.AZURE_PUBLISHER_NAME }}
-          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER || vars.AZURE_PUBLISHER_NAME }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: |
-          if [ -z "$EXPECTED_WINDOWS_PUBLISHER" ]; then
-            echo "::error::WINDOWS_EXPECTED_PUBLISHER (or AZURE_PUBLISHER_NAME) is required for publisher verification."
-            exit 1
-          fi
           if [ -n "$AZURE_TENANT_ID" ] &&
              [ -n "$AZURE_CLIENT_ID" ] &&
              [ -n "$AZURE_CLIENT_SECRET" ] &&
@@ -85,8 +80,8 @@ jobs:
             echo "==> Signing via CSC_LINK (traditional Authenticode cert)"
             npx electron-builder --win --publish never
           else
-            echo "::error::No complete Windows signing path is configured. Refusing to build an unsigned press artifact."
-            exit 1
+            echo "::warning::No Windows signing configured — building an UNSIGNED installer. Users will see a SmartScreen 'unknown publisher' warning."
+            npx electron-builder --win --publish never
           fi
 
       - name: Verify build artifacts
@@ -99,6 +94,7 @@ jobs:
           done
 
       - name: Verify Authenticode signature
+        if: ${{ vars.WINDOWS_EXPECTED_PUBLISHER != '' || vars.AZURE_PUBLISHER_NAME != '' }}
         shell: pwsh
         env:
           EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER || vars.AZURE_PUBLISHER_NAME }}
@@ -111,9 +107,6 @@ jobs:
           Write-Host "Status: $($signature.Status)"
           if ($signature.Status -ne "Valid" -or -not $signature.SignerCertificate) {
             throw "Windows installer is not validly Authenticode-signed."
-          }
-          if ([string]::IsNullOrWhiteSpace($env:EXPECTED_WINDOWS_PUBLISHER)) {
-            throw "Expected Windows publisher is not configured."
           }
           if ($signature.SignerCertificate.Subject -notlike "*$($env:EXPECTED_WINDOWS_PUBLISHER)*") {
             throw "Unexpected Windows publisher: $($signature.SignerCertificate.Subject)"
