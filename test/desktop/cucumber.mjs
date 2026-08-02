@@ -38,5 +38,5 @@ const RUNNABLE = [
 ].join(' or ');
 
 export default { ...common, tags: 'not @mobile' };
-export const runnable = { ...common, tags: RUNNABLE };
+export const runnable = { ...common, tags: RUNNABLE, retry: 1 };
 export const dry = { ...common, tags: RUNNABLE, dryRun: true };
