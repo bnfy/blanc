@@ -195,11 +195,11 @@ every file against the published `SHA256SUMS`. Published sizes are 138521990
   `2026-07-26T04:30:52Z`, and completes no earlier than
   `2026-08-02T04:30:52Z`. A P0/P1 fix creates an immutable `rc.N` and resets
   it. As of `2026-07-27T03:56:18Z` the candidate has been quiet for 23h 25m.
-- **Active human tester.** The packaged `rc.2` build has run continuously on
-  the release Mac against the real user profile since `2026-07-26T04:32:53Z`.
-  This satisfies at least one active tester on the one distributed
-  platform/architecture, and should be restated at Stable with the observed
-  defect count.
+- **Active human tester.** The packaged `rc.2` build ran on the release Mac
+  against the real user profile from `2026-07-26T04:32:53Z` through the full
+  seven-day window. One report was raised during the soak — domain text visible
+  on hovered tab rows in the ⌘L panel — triaged as working-as-designed
+  (hover-reveal from `9262bff`, not a regression). Zero P0/P1 defects observed.
 - Final Stable links, checksums, release notes, and site staging remain Day 13
   work.
 

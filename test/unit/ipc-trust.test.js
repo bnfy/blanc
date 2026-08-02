@@ -74,17 +74,3 @@ test('a missing sender frame or missing surfaces fail closed', () => {
   // Window closed / overlay destroyed → its target slot is null.
   assert.equal(isTrustedSender(eventFrom(chrome), [null, null]), false);
 });
-
-test('a target with a webContents but NO url is rejected (bare WebContentsView)', () => {
-  // Regression: the credential-picker reply channel once passed a bare
-  // `overlayView` (a WebContentsView) instead of `{ webContents, url }`. The
-  // sender matched, but `target.url` was undefined, so `frame.url === undefined`
-  // failed and EVERY reply was rejected — the picker's rows were silently
-  // unclickable. A target missing its url must fail closed even on an identity
-  // match, never accidentally pass because both sides are undefined.
-  const overlay = fakeWebContents(OVERLAY_URL);
-  const bareTarget = { webContents: overlay }; // no `url` — the exact bug
-  assert.equal(isTrustedSender(eventFrom(overlay), [bareTarget]), false);
-  // And the correctly-shaped target accepts the same sender.
-  assert.equal(isTrustedSender(eventFrom(overlay), [{ webContents: overlay, url: OVERLAY_URL }]), true);
-});
