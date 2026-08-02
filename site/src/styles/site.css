@@ -798,6 +798,29 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
   }
 }
 
+/* ---------- vertical-tabs figure: the optional left rail ----------
+   The rail is window chrome below the strip (like the real app), so it starts
+   at the strip line; the page skeleton yields its left edge to the rail while
+   the resting pill keeps its usual spot. Rows are skeleton bars in the same
+   voice as .demo-page — a favicon square and a title bar, current row raised. */
+.island-figure--rail .demo-page { left: 170px; padding: 56px 44px 0; }
+.demo-rail { position: absolute; top: var(--fig-strip-h); bottom: 0; left: 0; z-index: 2; width: 170px; padding: 14px 10px; background: var(--surface); border-right: 1px solid var(--border); }
+.demo-rail .rail-row { display: flex; align-items: center; gap: 9px; padding: 8px 9px; margin-bottom: 4px; border: 1px solid transparent; border-radius: 7px; }
+.demo-rail .rail-row.cur { background: var(--surface-raised); border-color: var(--border); }
+.demo-rail .fav { flex: none; width: 9px; height: 9px; border-radius: 3px; background: var(--border); }
+.demo-rail .rail-row.cur .fav { background: var(--accent); }
+.demo-rail .ttl { height: 9px; border-radius: 4px; background: var(--border); opacity: 0.7; }
+.demo-rail .ttl.t1 { width: 72%; }
+.demo-rail .ttl.t2 { width: 58%; }
+.demo-rail .ttl.t3 { width: 84%; }
+.demo-rail .ttl.t4 { width: 49%; }
+.demo-rail .ttl.t5 { width: 66%; }
+
+@media (max-width: 640px) {
+  .demo-rail { width: 116px; padding: 10px 7px; }
+  .island-figure--rail .demo-page { left: 116px; padding: 44px 26px 0; }
+}
+
 /* ---------- Embargoed press / reviewer kit ---------- */
 .press-page { max-width: 1180px; margin: 0 auto; padding: 62px 24px 96px; }
 .press-hero { max-width: 880px; margin: 0 auto 72px; text-align: center; }
