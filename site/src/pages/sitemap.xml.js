@@ -16,6 +16,7 @@ const MANIFEST = [
   { path: '/about',                    changefreq: 'yearly',  priority: '0.6' },
   { path: '/privacy',                  changefreq: 'monthly', priority: '0.3' },
   { path: '/terms',                    changefreq: 'monthly', priority: '0.3' },
+  { path: '/press',                    changefreq: 'monthly', priority: '0.5' },
 ];
 
 const SITE = 'https://blancbrowser.com';
@@ -23,7 +24,7 @@ const SITE = 'https://blancbrowser.com';
 export function GET() {
   // Discover the real pages and assert the manifest matches them exactly —
   // adding or removing a page without updating MANIFEST fails the build.
-  const unlisted = new Set(['/press']);
+  const unlisted = new Set();
   const discovered = Object.keys(import.meta.glob('./**/*.astro'))
     .map((file) => file
       .replace(/^\.\//, '/')
