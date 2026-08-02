@@ -47,6 +47,11 @@
         const asset = pickAsset(release.assets, link.dataset.platform);
         if (asset) {
           link.href = asset.browser_download_url;
+          // Cards for artifacts the current release may lack (Mac Intel) ship
+          // hidden in the static markup; reveal one only once its asset is
+          // confirmed, so a failed fetch or disabled JS never shows a promise
+          // the release can't keep.
+          if (link.parentElement === downloadOptions) link.hidden = false;
         } else if (link.parentElement === downloadOptions) {
           // The release pipeline may intentionally omit an architecture or
           // platform that has not passed its native gate. Do not leave a card
