@@ -1,0 +1,13 @@
+---
+import MarkdownInline from './MarkdownInline.astro';
+
+const { blocks = [] } = Astro.props;
+---
+
+<div class="release-content">
+  {blocks.map((block) => {
+    if (block.type === 'heading') return <h3><MarkdownInline value={block.text} /></h3>;
+    if (block.type === 'list') return <ul class="release-changes">{block.items.map((item) => <li>{item.url ? <a href={item.url} target="_blank" rel="noopener noreferrer"><MarkdownInline value={item.text} linkify={false} /></a> : <MarkdownInline value={item.text} />}</li>)}</ul>;
+    return <p><MarkdownInline value={block.text} /></p>;
+  })}
+</div>

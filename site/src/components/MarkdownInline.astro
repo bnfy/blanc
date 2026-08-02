@@ -1,0 +1,43 @@
+---
+const { value = '', linkify = true } = Astro.props;
+
+function safeHref(value) {
+  try {
+    const url = new URL(value);
+    return ['https:', 'http:', 'mailto:'].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function inlineParts(value) {
+  const parts = [];
+  const source = String(value);
+  const pattern = /\*\*([^*]+?)\*\*|`([^`]+?)`|\[([^\]]+)\]\(([^\s)]+)\)/g;
+  let cursor = 0;
+  let match;
+
+  while ((match = pattern.exec(source))) {
+    if (match.index > cursor) parts.push({ type: 'text', value: source.slice(cursor, match.index) });
+    if (match[1] !== undefined) parts.push({ type: 'strong', value: match[1] });
+    else if (match[2] !== undefined) parts.push({ type: 'code', value: match[2] });
+    else {
+      const href = safeHref(match[4]);
+      parts.push(linkify && href
+        ? { type: 'link', value: match[3], href }
+        : { type: 'text', value: match[3] });
+    }
+    cursor = pattern.lastIndex;
+  }
+
+  if (cursor < source.length) parts.push({ type: 'text', value: source.slice(cursor) });
+  return parts;
+}
+---
+
+{inlineParts(value).map((part) => {
+  if (part.type === 'text') return part.value;
+  if (part.type === 'strong') return <strong>{part.value}</strong>;
+  if (part.type === 'code') return <code>{part.value}</code>;
+  return <a href={part.href} target={part.href.startsWith('http') ? '_blank' : undefined} rel={part.href.startsWith('http') ? 'noopener noreferrer' : undefined}>{part.value}</a>;
+})}
