@@ -50,8 +50,6 @@ contextBridge.exposeInMainWorld('browserAPI', {
     return () => ipcRenderer.removeListener('chrome:vertical-tabs-width', listener);
   },
 
-  sendCredentialPick: (requestId, index) =>
-    ipcRenderer.send('chrome:credential-pick', { requestId, index }),
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
   closeOverlay: () => ipcRenderer.send('overlay:close'),

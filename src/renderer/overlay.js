@@ -960,104 +960,17 @@
     }, 200);
   }
 
-  // --- Credential picker (1Password fill SPIKE) ---
-
-  let pickerRequestId = null;
-  let pickerIndex = 0;
-
-  /** Render the credential picker.
-   *
-   * EVERY value here (`username`, `title`, `host`, `vaultName`) is untrusted
-   * text from the user's vault, arriving in a privileged renderer. Build nodes
-   * with createElement and set text with textContent — never innerHTML, not even
-   * for the truncation line. A vault item titled `<img src=x onerror=…>` must
-   * render as those literal characters.
-   */
-  function renderCredentialPicker(prefill) {
-    pickerRequestId = prefill?.requestId ?? null;
-    pickerIndex = 0;
-    const rows = Array.isArray(prefill?.rows) ? prefill.rows : [];
-    const multiVault = new Set(rows.map((r) => r.vaultName)).size > 1;
-    const list = document.createElement('div');
-    list.className = 'cred-list';
-
-    rows.forEach((r, i) => {
-      const row = document.createElement('button');
-      row.type = 'button';
-      row.className = 'cred-row';
-      row.dataset.index = String(i);
-
-      const primary = document.createElement('span');
-      primary.className = 'cred-user';
-      primary.textContent = r.username || '(no username)';
-
-      const secondary = document.createElement('span');
-      secondary.className = 'cred-meta';
-      secondary.textContent = [r.title, r.host].filter(Boolean).join(' · ');
-
-      row.append(primary, secondary);
-
-      if (multiVault && r.vaultName) {
-        const vault = document.createElement('span');
-        vault.className = 'cred-vault';
-        vault.textContent = r.vaultName;
-        row.append(vault);
-      }
-
-      row.addEventListener('click', () => choosePicker(i));
-      list.append(row);
-    });
-
-    if (prefill?.truncated > 0) {
-      const more = document.createElement('div');
-      more.className = 'cred-more';
-      more.textContent = `${prefill.truncated} more not shown — narrow it in 1Password`;
-      list.append(more);
-    }
-
-    // Picker mode is MODAL: styles.css hides the panel's own controls (address
-    // bar, nav, favorite, footer, Settings) so the user can't navigate or open
-    // a tab mid-selection. That hides the panel's dismiss button too, so the
-    // picker renders its OWN cancel affordance.
-    const cancel = document.createElement('button');
-    cancel.type = 'button';
-    cancel.className = 'cred-cancel';
-    cancel.textContent = 'Cancel';
-    cancel.addEventListener('click', () => choosePicker(null));
-    list.append(cancel);
-
-    islandList.replaceChildren(list);
-    highlightPicker();
-  }
-
-  function highlightPicker() {
-    const rows = [...islandList.querySelectorAll('.cred-row')];
-    rows.forEach((el, i) => el.classList.toggle('sel', i === pickerIndex));
-    rows[pickerIndex]?.focus();
-  }
-
-  /** One reply per request. `index` null is an explicit dismissal, which main
-   * settles as `dismissed` (best-effort focus return) rather than `hidden`. */
-  function choosePicker(index) {
-    if (pickerRequestId === null) return;
-    const id = pickerRequestId;
-    pickerRequestId = null;
-    window.browserAPI.sendCredentialPick(id, index);
-  }
-
   // --- Mode switching (driven by main via overlay:show / overlay:hide) ---
 
   function applyMode(next, prefill) {
     const reshow = mode === next;
     mode = next;
     document.body.dataset.mode = next ?? '';
-    backdrop.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
-    panelAnchor.hidden = next !== 'panel' && next !== 'palette' && next !== 'credential-picker';
+    backdrop.hidden = next !== 'panel' && next !== 'palette';
+    panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
 
-    if (next === 'credential-picker') {
-      renderCredentialPicker(prefill);
-    } else if (next === 'panel' || next === 'palette') {
+    if (next === 'panel' || next === 'palette') {
       if (!reshow) {
         pickingTabId = null;
         addressInputComposing = false;
@@ -1096,9 +1009,6 @@
 
   window.browserAPI.onOverlayShow(({ mode: next, prefill }) => applyMode(next, prefill));
   window.browserAPI.onOverlayHide(() => {
-    // Capture BEFORE the resets below — testing mode afterwards always reads
-    // false, and the vault rows would never be cleared.
-    const wasPicker = mode === 'credential-picker';
     if (mode === 'find') resetFind();
     mode = null;
     document.body.dataset.mode = '';
@@ -1112,44 +1022,13 @@
     chipFocusTabId = null;
     selectedResultIndex = -1;
     resetSearchSuggestions();
-    // Drop any request and the rendered vault rows — leaving them would keep
-    // vault-derived strings resident in this privileged renderer.
-    pickerRequestId = null;
-    pickerIndex = 0;
-    if (wasPicker) islandList.replaceChildren();
   });
 
-  // Click on the backdrop (anywhere outside the panel) dismisses. In picker mode
-  // it is an explicit dismissal (settles 'dismissed'), not a plain hide.
-  backdrop.addEventListener('mousedown', () => {
-    if (mode === 'credential-picker') return choosePicker(null);
-    window.browserAPI.closeOverlay();
-  });
+  // Click on the backdrop (anywhere outside the panel) dismisses.
+  backdrop.addEventListener('mousedown', () => window.browserAPI.closeOverlay());
   document.addEventListener('keydown', (e) => {
-    if (mode === 'credential-picker') {
-      const rows = islandList.querySelectorAll('.cred-row');
-      // Enter while Cancel holds focus must DISMISS, not select the still-
-      // highlighted row. This handler intercepts Enter (preventDefault), so the
-      // button's own activation never fires — the choice has to be routed here.
-      const onCancel = document.activeElement?.classList.contains('cred-cancel');
-      if (e.key === 'ArrowDown') { e.preventDefault(); pickerIndex = Math.min(pickerIndex + 1, rows.length - 1); highlightPicker(); }
-      else if (e.key === 'ArrowUp') { e.preventDefault(); pickerIndex = Math.max(pickerIndex - 1, 0); highlightPicker(); }
-      else if (e.key === 'Enter') { e.preventDefault(); choosePicker(onCancel ? null : pickerIndex); }
-      return;   // Escape is handled in main via before-input-event
-    }
     if (e.key === 'Escape') window.browserAPI.closeOverlay();
   });
-
-  // Defense-in-depth for modal isolation: the panel's controls have individual
-  // click listeners (no shared handler to guard), so one capture-phase listener
-  // here runs before them and swallows any click that isn't a picker control
-  // while a picker is up — in case the isolation CSS ever regresses.
-  document.addEventListener('click', (e) => {
-    if (mode !== 'credential-picker') return;
-    if (e.target.closest('.cred-row, .cred-cancel, #backdrop')) return;
-    e.stopPropagation();
-    e.preventDefault();
-  }, true);   // capture — beats the per-control listeners
 
   // --- Panel wiring ---
 

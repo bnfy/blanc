@@ -15,6 +15,3 @@ docs/press-outreach-plan.md
 .astro/
 site/.parity/
 site/.parity-shots/
-
-# Playwright MCP scratch snapshots
-.playwright-mcp/
