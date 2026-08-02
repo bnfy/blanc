@@ -189,19 +189,25 @@ every file against the published `SHA256SUMS`. Published sizes are 138521990
   `test/unit/press-kit.test.js`, the `img` attributes in `press.astro`, and the
   `aspect-ratio` in `site.css`. All three were moved to 1400×875 together.
 
-## Candidate-window gates still open
+## Candidate-window gates — closed
 
 - **Seven consecutive quiet days.** The clock began at publication,
-  `2026-07-26T04:30:52Z`, and completes no earlier than
-  `2026-08-02T04:30:52Z`. A P0/P1 fix creates an immutable `rc.N` and resets
-  it. As of `2026-07-27T03:56:18Z` the candidate has been quiet for 23h 25m.
+  `2026-07-26T04:30:52Z`, and completed at `2026-08-02T04:30:52Z`. No P0/P1
+  fix was required; the candidate shipped as `rc.2` without an `rc.3`.
 - **Active human tester.** The packaged `rc.2` build ran on the release Mac
   against the real user profile from `2026-07-26T04:32:53Z` through the full
   seven-day window. One report was raised during the soak — domain text visible
   on hovered tab rows in the ⌘L panel — triaged as working-as-designed
   (hover-reveal from `9262bff`, not a regression). Zero P0/P1 defects observed.
-- Final Stable links, checksums, release notes, and site staging remain Day 13
-  work.
 
-Every automation and packaged-behavior gate now has a `rc.2` result. The only
-gates left are the elapsed-time one and the Day 13 staging work.
+## Stable release
+
+`v1.0.0` was published on `2026-08-02`. The `release.sh` pipeline re-ran every
+automation gate (substrates, 280 unit tests, 55 acceptance scenarios, OAuth,
+DNS smoke, security audit, site build), then built, signed, notarized, ran the
+first-run and migration smoke suites against the packaged artifact, staged a
+verified draft, and published. Windows (unsigned NSIS) and Linux (AppImage)
+were built and uploaded via CI.
+
+All gates are closed. The source that shipped as `v1.0.0` is byte-identical to
+`v1.0.0-rc.2` (`91e2756`).

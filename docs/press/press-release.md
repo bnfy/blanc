@@ -1,7 +1,4 @@
-# Draft press release — Blanc 1.0
-
-**EMBARGOED DRAFT — publication date follows the accepted RC's seven-day quiet
-period**
+# Press release — Blanc 1.0
 
 ## Blanc 1.0 replaces the horizontal tab strip and toolbar with one small Island
 
