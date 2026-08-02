@@ -1,5 +1,94 @@
 [
   {
+    "tag": "v1.0.0",
+    "version": "1.0.0",
+    "name": "1.0.0",
+    "publishedAt": "2026-08-02T04:34:56.000Z",
+    "humanDate": "August 2, 2026",
+    "machineDate": "2026-08-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.0.0",
+    "anchor": "v1-0-0",
+    "changes": [
+      {
+        "text": "**Optional vertical tabs.** Turn on the resizable left rail from the Island, View menu, Settings, or with **Command-Option-V**. It preserves open pages and keeps the Island as Blanc's only address, search, and command surface.",
+        "url": null
+      },
+      {
+        "text": "**A first-class Island.** Press Command-L to navigate, search, switch among tabs, Favorites, history, named groups, and tabs shared by another device, or type `/` to run a browser command.",
+        "url": null
+      },
+      {
+        "text": "**A menu on the command bar.** Right-click the Island's address field for the usual editing items plus two Blanc actions. **Copy Clean Link** copies the address with known tracking parameters stripped, leaving every other parameter untouched. **Paste and Go** navigates straight from the clipboard through the same path as a typed address, then closes the Island.",
+        "url": null
+      },
+      {
+        "text": "**View Page Source.** Right-click a web page to read its source in Chromium's own highlighted view. It opens in a new tab, so Back never loses your place.",
+        "url": null
+      },
+      {
+        "text": "**Named groups and private tabs.** Groups organize tabs by name rather than color. Private tabs share a separate, non-persistent in-memory browsing session that is discarded when Blanc quits.",
+        "url": null
+      },
+      {
+        "text": "**Built-in blocking.** EasyList and EasyPrivacy filtering runs at the browser session layer rather than through an extension.",
+        "url": null
+      },
+      {
+        "text": "**Profile Sync.** Optional passphrase-based end-to-end encryption covers Favorites and settings. Per-device open-tab sharing is separate, read-only, and off by default.",
+        "url": null
+      },
+      {
+        "text": "Local browser chrome remains usable while blocking filters initialize. Failure offers **Retry** and an explicit **Continue without blocking** path.",
+        "url": null
+      },
+      {
+        "text": "A fresh profile presents Search suggestions and Help improve Blanc before either path may send; both choices can be changed before continuing.",
+        "url": null
+      },
+      {
+        "text": "Chrome and internal-page fonts are bundled locally.",
+        "url": null
+      },
+      {
+        "text": "Release publication verifies the exact signed and notarized package, updater metadata, blockmaps, and SHA-256 checksums before any asset is made public.",
+        "url": null
+      },
+      {
+        "text": "Blanc 1.0.0 is for **macOS on Apple Silicon**.",
+        "url": null
+      },
+      {
+        "text": "Blanc has no extension runtime or password import.",
+        "url": null
+      },
+      {
+        "text": "Ad and tracker blocking is best effort.",
+        "url": null
+      },
+      {
+        "text": "Copy Clean Link removes a curated list of known tracking parameters from http(s) addresses. It is not a general query-string cleaner, and it does not affect tracking that lives outside the query string.",
+        "url": null
+      },
+      {
+        "text": "The address field's menu is pointer-invoked on macOS.",
+        "url": null
+      },
+      {
+        "text": "An optional US$19 one-time Blanc Supporter purchase unlocks three cosmetic app-icon colorways; browser features remain free.",
+        "url": null
+      }
+    ],
+    "compareUrl": null,
+    "extraParagraphs": [
+      "Blanc 1.0.0",
+      "Blanc 1.0 puts the browser in one small Island: navigation, search, tabs, named groups, page actions, and slash commands stay close without a permanent horizontal tab strip or conventional toolbar.",
+      "What is new in 1.0",
+      "Release hardening",
+      "Availability and boundaries",
+      "Download the Apple Silicon DMG and its `SHA256SUMS` manifest from the release assets. Product, press, and private security feedback can be sent to [support@blancbrowser.com](mailto:support@blancbrowser.com); put Security in the subject for vulnerabilities."
+    ]
+  },
+  {
     "tag": "v0.22.0",
     "version": "0.22.0",
     "name": "0.22.0",
