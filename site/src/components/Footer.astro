@@ -6,7 +6,7 @@ const { variant = 'compact' } = Astro.props;
   <footer class="compact-footer">
     <NewsletterForm />
     <span>built independently · no investors · © 2026 · <a href="https://bnfy.me" target="_blank" rel="noopener">Bananify</a></span>
-    <span><a href="/features">Features</a> · <a href="/about">About</a> · <a href="/changelog">Changelog</a> · <a href="/download">Download</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span>
+    <span><a href="/features">Features</a> · <a href="/about">About</a> · <a href="/changelog">Changelog</a> · <a href="/download">Download</a> · <a href="/press">Press</a> · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a></span>
   </footer>
 ) : (
   <footer>
@@ -20,6 +20,8 @@ const { variant = 'compact' } = Astro.props;
       <a href="/changelog">Changelog</a>
       <span class="foot-sep">·</span>
       <a href="/download">Download</a>
+      <span class="foot-sep">·</span>
+      <a href="/press">Press</a>
       <span class="foot-sep">·</span>
       <a href="/privacy">Privacy</a>
       <span class="foot-sep">·</span>
