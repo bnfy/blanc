@@ -16,7 +16,7 @@ overview can switch on an optional vertical tab rail without introducing a
 second address bar or workspace system.
 
 “Browsers have become either a wall of controls or an agent trying to work on
-your behalf,” said Anthony Loria, creator of Blanc. “I wanted the opposite: a
+your behalf,” said Anthony J. Loria, creator of Blanc. “I wanted the opposite: a
 browser with a point of view that stays small, gives you direct control, and
 gets out of the way.”
 

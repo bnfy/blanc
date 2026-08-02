@@ -1,196 +1,270 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import BrandMark from '../components/BrandMark.astro';
+import PressIslandDemo from '../components/PressIslandDemo.astro';
 
 const VERSION = '1.0.0';
 const TAG = `v${VERSION}`;
 const RELEASE_BASE = 'https://github.com/bnfy/blanc/releases';
 const RELEASE_URL = `${RELEASE_BASE}/tag/${TAG}`;
-const DOWNLOAD_URL = `${RELEASE_BASE}/download/${TAG}/Blanc-${VERSION}-arm64.dmg`;
+const MAC_REVIEW_URL = `${RELEASE_BASE}/download/${TAG}/Blanc-${VERSION}-arm64.dmg`;
 const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
+const DOWNLOAD_OPTIONS_URL = '/download#download-options';
+const PRESS_REQUEST_URL = 'mailto:support@blancbrowser.com?subject=Blanc%201.0%20press%20request';
+
+const proofPoints = [
+  {
+    label: 'Built-in network blocking',
+    detail: 'Ads, trackers, and fingerprinting requests are stopped at the browser session layer.',
+  },
+  {
+    label: 'Private sessions',
+    detail: 'Private tabs use a separate in-memory session that is discarded when Blanc quits.',
+  },
+  {
+    label: 'End-to-end encrypted sync',
+    detail: 'Favorites, settings, and optional tab snapshots are encrypted before they leave the device.',
+  },
+  {
+    label: 'No required account',
+    detail: 'The browser works without signing up, handing over an identity, or joining an ecosystem.',
+  },
+  {
+    label: 'No built-in AI agent',
+    detail: 'Nothing acts inside the browsing session on the user’s behalf. Control stays direct.',
+  },
+];
+
+const comparison = [
+  ['Permanent interface', 'Tab strip + toolbar', 'Chat or agent surface', 'One Island, expanded on demand'],
+  ['Who acts', 'You navigate', 'Software may act for you', 'You act'],
+  ['Business relationship', 'Varies by vendor', 'Usually subscription access', 'Free core + optional $19 support'],
+  ['Blocking model', 'Often added by extension', 'Not the product focus', 'Built into the network layer'],
+  ['Control model', 'Distributed across browser chrome', 'Delegated to an agent', 'Direct and intentionally bounded'],
+];
 ---
 <BaseLayout
   title="Blanc 1.0 Press Kit"
-  description="Press materials for Blanc 1.0: the independent Apple Silicon browser with an Island instead of a tab strip — facts, screenshots, limitations, and press contact."
+  description="Press materials for Blanc 1.0 on macOS, Windows, and Linux: the independent browser that replaces permanent browser chrome with one compact Island."
   path="/press"
   page="press"
   header="legal"
   analytics={false}
-  ogTitle="Blanc 1.0 — The browser in one small Island"
-  ogDescription="Press materials for Blanc 1.0, the independent browser with an Island instead of a permanent tab strip."
-  ogImage="/press/blanc-1.0-social.png"
+  ogTitle="Blanc replaces the browser toolbar"
+  ogDescription="Blanc 1.0 for macOS, Windows, and Linux. One Island holds navigation, tabs, groups, and commands."
+  ogImage="/press/blanc-1.0-launch-card-v2.png"
   ogImageAlt="Blanc 1.0 press kit: the browser in one small Island."
 >
 <main class="press-page">
+  <header class="press-masthead">
+    <a class="press-brand" href="/" aria-label="Blanc Browser home">
+      <BrandMark class="press-brand-mark" />
+      <span>Blanc</span>
+    </a>
+    <p><span>press</span><span aria-hidden="true">·</span><time datetime="2026-08-02">Aug 2, 2026</time></p>
+  </header>
+
   <section class="press-hero" aria-labelledby="press-title">
-    <p class="section-kicker">press kit · {TAG}</p>
-    <h1 id="press-title">The browser in one small Island.</h1>
-    <p>Blanc keeps search, tabs, named groups, page controls, and commands close—then leaves the page alone. 1.0 adds an optional vertical tab rail without creating a second browser interface.</p>
-    <div class="press-actions" aria-label="Downloads">
-      <a class="press-primary-action" href={DOWNLOAD_URL}>download for Apple Silicon</a>
-      <a class="press-secondary-action" href={CHECKSUM_URL}>verify SHA-256</a>
-      <a class="press-secondary-action" href={RELEASE_URL}>release notes</a>
+    <div class="press-hero-copy">
+      <p class="section-kicker">Blanc 1.0 · independent browser</p>
+      <h1 id="press-title">Blanc replaces the browser toolbar.</h1>
+      <p>One Island holds navigation, tabs, groups, and commands. The rest of the window belongs to the page.</p>
+      <div class="press-actions" aria-label="Press actions">
+        <a class="press-primary-action" href={DOWNLOAD_OPTIONS_URL}>choose a review build</a>
+        <a class="press-secondary-action" href="#announcement">read announcement <span aria-hidden="true">→</span></a>
+        <a class="press-secondary-action" href="#newsroom">press assets <span aria-hidden="true">→</span></a>
+      </div>
     </div>
-    <p class="press-availability"><strong>Availability:</strong> macOS on Apple Silicon. Signed, notarized, and published only after the exact artifact and its SHA-256 manifest were verified.</p>
-  </section>
-
-  <figure class="press-lead-shot">
-    <img src="/feature-island.png" width="2784" height="1824" alt="Blanc's compact Island floating over a web page instead of a permanent tab strip and toolbar." />
-    <figcaption>The resting Island keeps the active context visible without drawing a horizontal tab strip across the page.</figcaption>
-  </figure>
-
-  <section class="press-facts" aria-labelledby="press-facts-title">
-    <div>
-      <p class="section-kicker">the facts</p>
-      <h2 id="press-facts-title">A focused browser, not another browser platform.</h2>
-    </div>
-    <dl class="press-fact-grid">
-      <div><dt>price</dt><dd>Free</dd></div>
-      <div><dt>optional support</dt><dd>US$19 once, plus tax; cosmetic icons only</dd></div>
-      <div><dt>engine</dt><dd>Chromium through Electron</dd></div>
-      <div><dt>press platform</dt><dd>macOS · Apple Silicon</dd></div>
-      <div><dt>publisher</dt><dd>Bananify</dd></div>
-      <div><dt>built in</dt><dd>Blocking, private tabs, groups, sync</dd></div>
+    <dl class="press-release-meta">
+      <div><dt>release</dt><dd>Blanc {VERSION}</dd></div>
+      <div><dt>date</dt><dd>August 2, 2026</dd></div>
+      <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
+      <div><dt>release formats</dt><dd>DMG · NSIS · AppImage</dd></div>
     </dl>
   </section>
 
-  <section class="press-story" aria-labelledby="press-story-title">
-    <p class="section-kicker">why it exists</p>
-    <h2 id="press-story-title">No conventional horizontal tab strip. No agent operating inside your session.</h2>
-    <div class="press-story-copy">
-      <p>The Island is the product claim: one coherent surface for navigation, search, tab switching, named groups, page actions, and slash commands. A vertical rail is available when a persistent tab overview helps, while the Island remains the only place to address the web.</p>
-      <p>Built-in ad and tracker blocking, private tabs, end-to-end-encrypted Profile Sync, and the absence of a built-in AI assistant support that interaction model. They are not substitutes for it.</p>
-    </div>
-  </section>
-
-  <section class="press-gallery" aria-labelledby="press-gallery-title">
-    <div class="press-section-heading">
+  <section class="press-product" id="product" aria-labelledby="press-product-title">
+    <div class="press-product-heading">
       <div>
-        <p class="section-kicker">screenshots</p>
-        <h2 id="press-gallery-title">Representative views of the shipping build.</h2>
+        <p class="section-kicker">the primary interface</p>
+        <h2 id="press-product-title">Small at rest. The whole browser when called.</h2>
       </div>
-      <p>Open the full-resolution file, then save it for editorial use. Product UI may not be materially altered.</p>
+      <p>This is the Blanc 1.0 Island at an enlarged editorial scale. Click it, type in it, switch a tab, or press Escape—the interaction is the product story.</p>
     </div>
-    <div class="press-gallery-grid">
-      <figure class="press-gallery-shot--vertical">
-        <a href="/press/vertical-tabs.png">
-          <img src="/press/vertical-tabs.png" width="1400" height="875" alt="Blanc with its optional vertical tab rail open beside a web page." />
-        </a>
-        <figcaption>Optional vertical tabs</figcaption>
-      </figure>
-      <figure>
-        <a href="/feature-command-palette.png">
-          <img src="/feature-command-palette.png" width="1200" height="630" alt="Blanc's Island expanded into its command palette over a web page." />
-        </a>
-        <figcaption>Search, switch, and command</figcaption>
-      </figure>
-      <figure>
-        <a href="/feature-tab-groups.png">
-          <img src="/feature-tab-groups.png" width="1200" height="630" alt="Blanc's Island showing named tab groups." />
-        </a>
-        <figcaption>Named groups, not colored workspaces</figcaption>
-      </figure>
-      <figure>
-        <a href="/feature-private-tabs.png">
-          <img src="/feature-private-tabs.png" width="1200" height="630" alt="Blanc private-tab styling with an explicit private chip." />
-        </a>
-        <figcaption>Private state stays explicit</figcaption>
-      </figure>
-    </div>
+
+    <PressIslandDemo />
+
+    <figure class="press-product-shot">
+      <a href="/press/vertical-tabs.png" download>
+        <img src="/press/vertical-tabs.png" width="1400" height="875" alt="The Blanc 1.0 shipping build with optional vertical tabs, named tab groups, and the compact Island above a Wikipedia page." />
+      </a>
+      <figcaption><span><strong>Shipping build</strong> Optional vertical tabs with the compact Island in context.</span><a href="/press/vertical-tabs.png" download>download PNG · 1400 × 875</a></figcaption>
+    </figure>
   </section>
 
-  <section class="press-review" aria-labelledby="press-review-title">
-    <div>
-      <p class="section-kicker">what to look at</p>
-      <h2 id="press-review-title">The shortest path through the product thesis.</h2>
-    </div>
-    <div class="press-review-copy">
-      <p><strong>The Island.</strong> Command-L navigates, searches, switches among tabs, and reaches Favorites, history, and named groups; <code>/</code> runs a browser command. It is the only surface that addresses the web, and it is not a permanent strip drawn across the page.</p>
-      <p><strong>Optional vertical tabs.</strong> View → Tab Layout → Vertical Tabs moves tabs to a resizable left rail without reloading the active page. The Island stays the address and command surface, so the rail adds an overview rather than a second interface.</p>
-      <p><strong>Built-in blocking and private tabs.</strong> EasyList and EasyPrivacy filtering runs at the browser session layer rather than through an extension, and the Island's shield is a per-tab request count rather than a promise that every ad or tracker is gone. Private tabs use a separate in-memory session that is discarded when Blanc quits.</p>
-    </div>
+  <section class="press-proof" aria-label="Blanc product proof">
+    {proofPoints.map((point, index) => (
+      <article>
+        <span>{String(index + 1).padStart(2, '0')}</span>
+        <h2>{point.label}</h2>
+        <p>{point.detail}</p>
+      </article>
+    ))}
   </section>
 
   <section class="press-compare" aria-labelledby="press-compare-title">
-    <div>
-      <p class="section-kicker">how it differs</p>
-      <h2 id="press-compare-title">The same engine, a different product.</h2>
+    <div class="press-compare-heading">
+      <p class="section-kicker">the category difference</p>
+      <h2 id="press-compare-title">What Blanc changes.</h2>
+      <p>Not a longer feature checklist. A different answer to what the browser should be between a person and the web.</p>
     </div>
     <div class="press-compare-table-wrap">
       <table class="press-compare-table">
         <thead>
           <tr>
-            <th></th>
-            <th>Blanc</th>
-            <th>Chrome</th>
-            <th>Arc</th>
-            <th>Brave</th>
-            <th>Vivaldi</th>
+            <th scope="col"><span class="sr-only">Dimension</span></th>
+            <th scope="col">Traditional browser</th>
+            <th scope="col">Agent browser</th>
+            <th scope="col">Blanc 1.0</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>Made by</td>
-            <td>One person</td>
-            <td>Google</td>
-            <td>The Browser Company</td>
-            <td>Brave Software</td>
-            <td>Vivaldi Technologies</td>
-          </tr>
-          <tr>
-            <td>Interface</td>
-            <td>Floating Island</td>
-            <td>Tab strip + toolbar</td>
-            <td>Sidebar + spaces</td>
-            <td>Tab strip + toolbar</td>
-            <td>Tab strip + panels</td>
-          </tr>
-          <tr>
-            <td>AI assistant</td>
-            <td>None, by design</td>
-            <td>Gemini</td>
-            <td>Max</td>
-            <td>Leo</td>
-            <td>None</td>
-          </tr>
-          <tr>
-            <td>Account needed</td>
-            <td>No</td>
-            <td>Pressured</td>
-            <td>Required</td>
-            <td>No</td>
-            <td>No</td>
-          </tr>
-          <tr>
-            <td>Revenue</td>
-            <td>Optional $19 tip</td>
-            <td>Advertising</td>
-            <td>Subscription</td>
-            <td>Ads + crypto</td>
-            <td>Licensing</td>
-          </tr>
+          {comparison.map(([dimension, traditional, agent, blanc]) => (
+            <tr>
+              <th scope="row">{dimension}</th>
+              <td>{traditional}</td>
+              <td>{agent}</td>
+              <td>{blanc}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
+    <p class="press-compare-note">Category descriptions are intentionally broad; individual products vary. The point is Blanc’s product model, not a claim that every competitor behaves identically.</p>
   </section>
 
-  <aside class="press-limits" aria-labelledby="press-limits-title">
-    <p class="section-kicker">the trade-offs</p>
-    <h2 id="press-limits-title">What you give up.</h2>
-    <div class="press-limit-grid">
-      <p><strong>No extensions.</strong> Ad and tracker blocking is built in at the network layer. Everything else — uBlock Origin, Grammarly, password-manager extensions — is unavailable, deliberately.</p>
-      <p><strong>No password manager integration.</strong> Without an extension runtime, 1Password and iCloud Passwords cannot connect. Blanc creates its own Touch ID passkeys instead. Favorites import from any browser’s bookmarks export; history and passwords do not.</p>
-      <p><strong>Unsigned outside macOS.</strong> Windows and Linux installers are published, but the Windows build is not yet code-signed, so SmartScreen warns on install.</p>
-      <p><strong>One developer.</strong> Blanc is built by one person. That keeps the product opinionated, and it is a fair sustainability question to put to it.</p>
+  <section class="press-newsroom" id="newsroom" aria-labelledby="press-newsroom-title">
+    <div class="press-newsroom-heading">
+      <div>
+        <p class="section-kicker">press assets</p>
+        <h2 id="press-newsroom-title">Show the product, not another logo wall.</h2>
+      </div>
+      <p>Publication-ready images from the shipping build, plus a launch card composed from Blanc’s real interface and brand system. Download and reproduce them unaltered.</p>
+    </div>
+
+    <div class="press-asset-showcase">
+      <figure class="press-primary-asset">
+        <a href="/press/blanc-island-product-capture.png" download>
+          <img src="/press/blanc-island-product-capture.png" width="2784" height="1824" alt="A high-resolution Blanc window showing the compact Island above a GitHub page, with no conventional browser toolbar or tab strip." />
+        </a>
+        <figcaption>
+          <span><strong>Primary product capture</strong> The Island in the shipping build.</span>
+          <a href="/press/blanc-island-product-capture.png" download>download PNG · 2784 × 1824</a>
+        </figcaption>
+      </figure>
+
+      <div class="press-secondary-assets">
+        <figure class="press-launch-card">
+          <a href="/press/blanc-1.0-launch-card-v2.png" download>
+            <img src="/press/blanc-1.0-launch-card-v2.png" width="2400" height="1260" alt="Blanc 1.0 launch card with the Blanc mark, the statement 'The browser in one small Island,' and a real high-resolution product capture." />
+          </a>
+          <figcaption>
+            <span><strong>Launch card</strong> Social and editorial lead art.</span>
+            <a href="/press/blanc-1.0-launch-card-v2.png" download>download PNG · 2400 × 1260</a>
+          </figcaption>
+        </figure>
+
+        <div class="press-utility-assets" aria-label="Additional press files">
+          <a href="/press/vertical-tabs.png" download><strong>Interface detail</strong><span>Vertical tabs · PNG · 1400 × 875</span></a>
+          <a href="/logo.png" download><strong>Blanc mark</strong><span>Black on white · PNG · 1024 × 1024</span></a>
+          <a href="#announcement"><strong>Press release</strong><span>Read the launch story</span></a>
+          <a href="#facts"><strong>Fact sheet</strong><span>Platforms, price, and publisher</span></a>
+        </div>
+      </div>
+    </div>
+
+    <aside class="press-build-verification" aria-labelledby="press-verification-title">
+      <div>
+        <p class="section-kicker">review build verification</p>
+        <h3 id="press-verification-title">What the SHA-256 manifest is for.</h3>
+      </div>
+      <p>It lists a cryptographic fingerprint for each published installer. After downloading Blanc, a reviewer can calculate the file’s SHA-256 hash and compare it with the manifest to confirm the installer is complete and exactly matches the release Blanc published.</p>
+      <div>
+        <a href={CHECKSUM_URL}>open SHA-256 manifest</a>
+        <a href={RELEASE_URL}>view every release file</a>
+        <a href={MAC_REVIEW_URL}>direct macOS review DMG</a>
+      </div>
+    </aside>
+
+    <p class="press-assets-contact">Need a different crop, background, or product state? <a href={PRESS_REQUEST_URL}>Ask Anthony J. Loria directly.</a></p>
+  </section>
+
+  <section class="press-announcement" id="announcement" aria-labelledby="press-announcement-title">
+    <div>
+      <p class="section-kicker">the launch story</p>
+      <h2 id="press-announcement-title">A browser should connect you to the web—not compete with it.</h2>
+    </div>
+    <div class="press-announcement-copy">
+      <p>Browser interfaces are moving in two directions at once: more permanent controls around the page, and more software acting inside the session. Blanc takes the opposite position. Its controls gather in one small Island, expand when called, and leave the page alone the rest of the time.</p>
+      <p>The rest of the product follows that choice. Blocking is built into the network layer instead of delegated to an extension. Private tabs use a separate non-persistent session. Profile Sync is optional and end-to-end encrypted. There is no required account, built-in agent, advertising business, or extension marketplace.</p>
+      <blockquote>
+        <p>“Browsers have become either a wall of controls or an agent trying to work on your behalf. I wanted the opposite: a browser with a point of view that stays small, gives you direct control, and gets out of the way.”</p>
+        <footer>Anthony J. Loria, creator of Blanc</footer>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="press-facts" id="facts" aria-labelledby="press-facts-title">
+    <div>
+      <p class="section-kicker">fact sheet</p>
+      <h2 id="press-facts-title">Blanc 1.0, at a glance.</h2>
+      <p>Blanc is built and published independently by Bananify. The browser is complete and free; a one-time supporter purchase unlocks cosmetic Dock icons only.</p>
+    </div>
+    <dl class="press-fact-grid">
+      <div><dt>price</dt><dd>Free</dd></div>
+      <div><dt>optional support</dt><dd>US$19 once, plus tax</dd></div>
+      <div><dt>engine</dt><dd>Chromium through Electron</dd></div>
+      <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
+      <div><dt>publisher</dt><dd>Bananify</dd></div>
+      <div><dt>released</dt><dd>August 2, 2026</dd></div>
+    </dl>
+  </section>
+
+  <section class="press-review" aria-labelledby="press-review-title">
+    <div>
+      <p class="section-kicker">reviewer path</p>
+      <h2 id="press-review-title">Understand the thesis in five minutes.</h2>
+    </div>
+    <ol class="press-review-steps">
+      <li><span>01</span><p><strong>Press Command-L.</strong> Navigate, search, switch tabs, reach named groups, or type <code>/</code> for browser commands. The page stays in place underneath.</p></li>
+      <li><span>02</span><p><strong>Open vertical tabs.</strong> View → Tab Layout → Vertical Tabs adds a resizable overview without creating a second address surface.</p></li>
+      <li><span>03</span><p><strong>Check the boundaries.</strong> Blocking is native, private tabs are non-persistent, sync is optional and encrypted, and no assistant acts inside the session.</p></li>
+    </ol>
+  </section>
+
+  <aside class="press-boundaries" aria-labelledby="press-boundaries-title">
+    <div>
+      <p class="section-kicker">deliberate trade-offs</p>
+      <h2 id="press-boundaries-title">The omissions are part of the product.</h2>
+    </div>
+    <div class="press-boundary-grid">
+      <p><strong>No extension marketplace.</strong> Blocking is built in. Third-party extensions—including password-manager extensions—are unavailable.</p>
+      <p><strong>No built-in agent.</strong> Blanc does not put an assistant between the user and the browsing session.</p>
+      <p><strong>One independent developer.</strong> Blanc stays focused because it is built by one person. Sustainability is a fair question; the business model is deliberately visible.</p>
     </div>
   </aside>
 
   <section class="press-contact" aria-labelledby="press-contact-title">
     <p class="section-kicker">press contact</p>
-    <h2 id="press-contact-title">A direct line, not a press desk.</h2>
-    <p><strong>Bananify</strong><br />Publisher of Blanc Browser<br /><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a></p>
-    <p>Bananify is the independent studio that builds and publishes Blanc — no
-      investors, no agency. Email reaches Bananify directly.</p>
-    <p>Use <strong>Security</strong> in the subject for private vulnerability reports. Include the Blanc version, macOS version, Mac model, steps, expected result, and observed result for product feedback.</p>
+    <h2 id="press-contact-title">Talk to the person who built it.</h2>
+    <p><strong>Anthony J. Loria</strong><br />Creator of Blanc · Bananify<br /><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a></p>
+    <p>Interview requests, alternative product captures, review-build questions, and launch fact-checking reach Anthony J. Loria directly.</p>
+    <div class="press-contact-links">
+      <a href={RELEASE_URL}>release notes</a>
+      <a href={CHECKSUM_URL}>SHA-256 manifest</a>
+      <a href={PRESS_REQUEST_URL}>request press files</a>
+    </div>
   </section>
 </main>
+<script src="../scripts/press-island.js"></script>
 </BaseLayout>

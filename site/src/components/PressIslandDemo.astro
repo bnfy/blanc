@@ -1,0 +1,92 @@
+<div class="press-island-demonstration" id="pressIslandDemo" data-open="true">
+  <aside class="press-island-callouts press-island-callouts--left" aria-label="Island details">
+    <div>
+      <p>One Island</p>
+      <span>Navigation, tabs, groups, and commands collapse into one compact surface.</span>
+    </div>
+    <div>
+      <p>Tabs become dots</p>
+      <span>The active context stays visible without carrying a permanent tab strip.</span>
+    </div>
+  </aside>
+
+  <div class="press-island-stage" tabindex="0" aria-label="Interactive recreation of the Blanc 1.0 Island. Click the Island to expand or collapse it; type in the open field to filter tabs and commands.">
+    <img class="press-island-page" id="pressIslandPage" src="/shots/desktop/theverge.jpg" width="1280" height="720" alt="" aria-hidden="true" />
+    <div class="press-island-strip" aria-hidden="true"></div>
+
+    <div class="demo-island press-island-live open" id="pressIslandLive">
+      <button class="pill press-island-pill" id="pressIslandToggle" type="button" aria-expanded="true" aria-controls="pressIslandPanel">
+        <span class="pnav" aria-hidden="true">
+          <span class="pbtn"><svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5" /></svg></span>
+          <span class="pbtn off"><svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5" /></svg></span>
+        </span>
+        <span class="dots" aria-hidden="true"><span></span><span class="cur"></span><span></span></span>
+        <span class="pill-fav" style="background-image:url('/favicons/theverge.com.ico')" aria-hidden="true"></span>
+        <span class="group-name">tech news ·</span>
+        <span class="domain" id="pressIslandDomain">theverge.com</span>
+        <span class="shield" id="pressIslandShield">12</span>
+        <span class="psep" aria-hidden="true"></span>
+        <span class="pacts" aria-hidden="true">
+          <span class="pbtn"><svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78" /><path d="M13 3v2.78h-2.78" /></svg></span>
+          <span class="pbtn heart"><svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z" /></svg></span>
+        </span>
+      </button>
+
+      <div class="panel" id="pressIslandPanel">
+        <div class="panel-row">
+          <label class="field" for="pressIslandInput">
+            <span class="sr-only">Search tabs or enter a command</span>
+            <input id="pressIslandInput" type="text" autocomplete="off" spellcheck="false" placeholder="Search, enter address, or / for commands" />
+          </label>
+          <div class="pacts-row">
+            <button class="abtn" type="button" disabled aria-label="Back"><svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5" /></svg></button>
+            <button class="abtn" type="button" disabled aria-label="Forward"><svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5" /></svg></button>
+            <button class="abtn" type="button" aria-label="Reload"><svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78" /><path d="M13 3v2.78h-2.78" /></svg></button>
+            <button class="abtn heart" type="button" aria-label="Favorite this page"><svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z" /></svg></button>
+            <button class="abtn" id="pressIslandClose" type="button" aria-label="Collapse the Island"><svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5" /></svg></button>
+          </div>
+        </div>
+
+        <div class="list press-island-list" id="pressIslandList">
+          <div class="sec-head"><span>pinned</span><span class="rule"></span></div>
+          <button class="trow" type="button" data-title="Gmail" data-domain="mail.google.com" data-favicon="gmail.com" data-shield="2" data-group="" data-page="/shots/desktop/gmail.jpg"><span class="fav" style="background-image:url('/favicons/gmail.com.ico')"></span><span class="title">Gmail</span><span class="dom">mail.google.com</span></button>
+          <button class="trow" type="button" data-title="Notion" data-domain="notion.so" data-favicon="notion.so" data-shield="1" data-group="" data-page="/shots/desktop/notion.jpg"><span class="fav" style="background-image:url('/favicons/notion.so.ico')"></span><span class="title">Notion</span><span class="dom">notion.so</span></button>
+          <div class="sec-head"><span>tech news</span><span class="rule"></span><span class="count">3</span></div>
+          <button class="trow hl" type="button" data-title="The Verge" data-domain="theverge.com" data-favicon="theverge.com" data-shield="12" data-group="tech news" data-page="/shots/desktop/theverge.jpg"><span class="fav" style="background-image:url('/favicons/theverge.com.ico')"></span><span class="title">The Verge</span><span class="dom">theverge.com</span><span class="tag">active</span></button>
+          <button class="trow" type="button" data-title="9to5Mac" data-domain="9to5mac.com" data-favicon="9to5mac.com" data-shield="8" data-group="tech news" data-page="/shots/desktop/9to5mac.jpg"><span class="fav" style="background-image:url('/favicons/9to5mac.com.ico')"></span><span class="title">9to5Mac</span><span class="dom">9to5mac.com</span></button>
+          <button class="trow" type="button" data-title="CNET" data-domain="cnet.com" data-favicon="cnet.com" data-shield="15" data-group="tech news" data-page="/shots/desktop/cnet.png"><span class="fav" style="background-image:url('/favicons/cnet.com.ico')"></span><span class="title">CNET</span><span class="dom">cnet.com</span></button>
+          <div class="sec-head"><span>research</span><span class="rule"></span><span class="count">2</span></div>
+          <button class="trow" type="button" data-title="MDN Web Docs" data-domain="developer.mozilla.org" data-favicon="developer.mozilla.org" data-shield="4" data-group="research" data-page="/shots/desktop/mdn.jpg"><span class="fav" style="background-image:url('/favicons/developer.mozilla.org.ico')"></span><span class="title">MDN Web Docs</span><span class="dom">developer.mozilla.org</span></button>
+          <button class="trow" type="button" data-title="Hacker News" data-domain="news.ycombinator.com" data-favicon="news.ycombinator.com" data-shield="3" data-group="research" data-page="/shots/desktop/hacker-news.jpg"><span class="fav" style="background-image:url('/favicons/news.ycombinator.com.ico')"></span><span class="title">Hacker News</span><span class="dom">news.ycombinator.com</span></button>
+        </div>
+
+        <div class="foot-bar">
+          <button class="foot-new" type="button"><svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5" /></svg><span>new tab</span><span class="foot-kbd">⌘T</span></button>
+          <button class="foot-new private" type="button"><svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5" /></svg><span>private</span><span class="foot-kbd">⌘⇧N</span></button>
+          <span class="foot-spacer"></span>
+          <button class="foot-act" type="button" aria-label="Favorites"><svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z" /></svg></button>
+          <button class="foot-act" type="button" aria-label="History"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75" /><path d="M8 4.75V8l2.25 1.5" /></svg></button>
+          <button class="foot-act" type="button" aria-label="Downloads"><svg viewBox="0 0 16 16"><path d="M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9" /></svg></button>
+          <button class="foot-act" type="button" aria-label="Settings"><svg viewBox="0 0 16 16"><path d="M2.5 4.75h6M12 4.75h1.5M2.5 11.25h1.5M7.5 11.25h6" /><circle cx="10.25" cy="4.75" r="1.75" /><circle cx="5.75" cy="11.25" r="1.75" /></svg></button>
+        </div>
+        <div class="foot" id="pressIslandHint">esc to dismiss · type / for commands · choose a row to switch</div>
+      </div>
+    </div>
+
+    <button class="press-island-state" id="pressIslandState" type="button" aria-controls="pressIslandPanel" aria-pressed="true">
+      <span class="press-island-state-dot" aria-hidden="true"></span>
+      <span id="pressIslandStateLabel">expanded</span>
+    </button>
+  </div>
+
+  <aside class="press-island-callouts press-island-callouts--right" aria-label="More Island details">
+    <div>
+      <p>Named groups</p>
+      <span>Related tabs stay together by context and remain reachable from the same surface.</span>
+    </div>
+    <div>
+      <p>Expanded on demand</p>
+      <span>Click the Island to reveal the session, then type to switch tabs or run a command.</span>
+    </div>
+  </aside>
+</div>
