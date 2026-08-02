@@ -178,10 +178,10 @@ const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
     <p class="section-kicker">the trade-offs</p>
     <h2 id="press-limits-title">What you give up.</h2>
     <div class="press-limit-grid">
-      <p><strong>No extensions.</strong> Ad blocking and 1Password credential fill are built in. Everything else — uBlock Origin, Grammarly, other password managers — is unavailable.</p>
-      <p><strong>Apple Silicon only.</strong> Windows and Linux installers are published but not yet code-signed, so the OS shows an “unknown publisher” warning on install.</p>
-      <p><strong>One developer.</strong> Blanc is built by one person. That keeps the product focused, and it means there is no team behind it.</p>
-      <p><strong>No Chrome profile import.</strong> Bookmarks, history, and saved passwords from another browser do not carry over. You start fresh.</p>
+      <p><strong>No extensions.</strong> Ad and tracker blocking is built in at the network layer. Everything else — uBlock Origin, Grammarly, password-manager extensions — is unavailable, deliberately.</p>
+      <p><strong>No password manager integration.</strong> Without an extension runtime, 1Password and iCloud Passwords cannot connect. Blanc creates its own Touch ID passkeys instead. Favorites import from any browser’s bookmarks export; history and passwords do not.</p>
+      <p><strong>Unsigned outside macOS.</strong> Windows and Linux installers are published, but the Windows build is not yet code-signed, so SmartScreen warns on install.</p>
+      <p><strong>One developer.</strong> Blanc is built by one person. That keeps the product opinionated, and it is a fair sustainability question to put to it.</p>
     </div>
   </aside>
 
