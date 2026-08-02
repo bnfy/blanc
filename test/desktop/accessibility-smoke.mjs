@@ -369,19 +369,6 @@ try {
   });
   await app.evaluate(() => globalThis.__blanc.closeOverlay());
 
-  await app.evaluate(() => globalThis.__blanc.startCredentialPick([
-    { username: 'first@example.test', title: 'Example', host: 'example.test', vaultName: 'Personal' },
-    { username: 'second@example.test', title: 'Example', host: 'example.test', vaultName: 'Work' },
-  ]));
-  await waitForHook(app, 'overlayRendererMode', (mode) => mode === 'credential-picker', 'credential picker did not render');
-  await auditFileSurface({
-    name: 'credential picker',
-    suffix: '/src/renderer/overlay.html',
-    disabledDocumentRules: ['landmark-one-main', 'page-has-heading-one'],
-  });
-  await app.evaluate(() => globalThis.__blanc.closeOverlay());
-  await waitForHook(app, 'overlayRendererMode', (mode) => mode == null, 'credential picker did not close');
-
   await app.evaluate(() => globalThis.__blanc.startDisplaySharePick());
   await waitForHook(app, 'overlayRendererMode', (mode) => mode === 'display-share-picker', 'display-share picker did not render');
   await auditFileSurface({

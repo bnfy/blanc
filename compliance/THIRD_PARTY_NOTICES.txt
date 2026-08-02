@@ -5,8 +5,6 @@ Blanc itself is proprietary/UNLICENSED; the notices below cover third-party mate
 
 RUNTIME NPM COMPONENTS
 
-- @1password/sdk-core 0.4.0 — MIT — https://registry.npmjs.org/@1password/sdk-core/-/sdk-core-0.4.0.tgz
-- @1password/sdk 0.4.0 — MIT — https://registry.npmjs.org/@1password/sdk/-/sdk-0.4.0.tgz
 - @ghostery/adblocker-content 2.18.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-content/-/adblocker-content-2.18.1.tgz
 - @ghostery/adblocker-electron-preload 2.18.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-electron-preload/-/adblocker-electron-preload-2.18.1.tgz
 - @ghostery/adblocker-electron 2.18.1 — MPL-2.0 — https://registry.npmjs.org/@ghostery/adblocker-electron/-/adblocker-electron-2.18.1.tgz

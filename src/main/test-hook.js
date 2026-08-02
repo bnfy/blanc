@@ -72,7 +72,6 @@ function install(refs) {
     getOverlayMode,
     showOverlay,
     hideOverlay,
-    pickerController,
     displaySharePickerController,
     showUtilityPage,
     hideUtilitySheet,
@@ -113,7 +112,6 @@ function install(refs) {
   const sessionPersistentOf = (t) => { try { return t.view.webContents.session.isPersistent(); } catch { return null; } };
   const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
-  let pendingPick = null; // SPIKE (1Password fill) — the requestPick promise in flight
   let pendingDisplaySharePick = null;
   let openedDownloadPath = null;
   setTestOpenDownloadHandler((filePath) => {
@@ -638,76 +636,6 @@ function install(refs) {
     },
     openPanel() { showOverlay('panel'); },
     openPalette() { showOverlay('palette'); },
-
-    // --- credential picker (1Password fill SPIKE) ---
-    // Route through the REAL controller, so a row click exercises the real
-    // handleReply -> isOverlaySender -> settle path. A side-channel IPC listener
-    // would pass even if handleReply rejected the sender.
-    startCredentialPick(rows, truncated = 0) {
-      pendingPick = pickerController.requestPick(rows, truncated, 'example.test');
-      return true;
-    },
-    awaitCredentialPick() {
-      return pendingPick; // resolves { index, reason } once a reply/settle lands
-    },
-    clickPickerRow(index) {
-      const wc = getOverlayWebContents();
-      if (!wc) return null;
-      return wc.executeJavaScript(`(() => {
-        const rows = document.querySelectorAll('.cred-row');
-        if (!rows[${JSON.stringify(index)}]) throw new Error('no picker row at index ' + ${JSON.stringify(index)});
-        rows[${JSON.stringify(index)}].click();
-        return true;
-      })()`);
-    },
-    pressEnterOnPickerCancel() {
-      const wc = getOverlayWebContents();
-      if (!wc) return null;
-      // Just press Enter on the focused Cancel — the reply is observed via
-      // awaitCredentialPick (the real promise), not a side channel.
-      return wc.executeJavaScript(`(() => {
-        const cancel = document.querySelector('.cred-cancel');
-        if (!cancel) throw new Error('picker Cancel button is not rendered');
-        cancel.focus();
-        cancel.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-        return true;
-      })()`);
-    },
-    readPickerDom() {
-      const wc = getOverlayWebContents();
-      if (!wc) return null;
-      return wc.executeJavaScript(`(() => {
-        const list = document.querySelector('.cred-list');
-        if (!list) return null;
-        return {
-          rows: list.querySelectorAll('.cred-row').length,
-          text: list.textContent,
-          vaults: [...list.querySelectorAll('.cred-vault')].length,
-          injected: list.querySelectorAll('img, script, b, iframe').length,
-          pwned: typeof window.__pwned,
-          pwnedVault: typeof window.__pwnedVault,
-        };
-      })()`);
-    },
-    readPickerIsolation() {
-      const wc = getOverlayWebContents();
-      if (!wc) return null;
-      return wc.executeJavaScript(`(() => {
-        const probe = (sel) => {
-          const el = document.querySelector(sel);
-          if (!el) return { present: false };
-          const shown = el.getClientRects().length > 0;
-          try { el.focus(); } catch (_) {}
-          return { present: true, shown, focusable: document.activeElement === el };
-        };
-        return {
-          address: probe('#addressInput'),
-          footer: probe('#islandFooter'),
-          settings: probe('#footerSettings'),
-          cancel: probe('.cred-cancel'),
-        };
-      })()`);
-    },
     setActiveSiteSecurityFixture(kind) {
       const tab = tabs.get(getActiveTabId());
       if (!tab) return false;
@@ -807,47 +735,6 @@ function install(refs) {
         ).length,
       }))()`);
     },
-    clickHiddenControlInPicker(selector) {
-      const wc = getOverlayWebContents();
-      if (!wc) return null;
-      // Fully synchronous: a temporary observer records whether the click
-      // reached the control. The capture-phase guard calls stopPropagation, so
-      // with the guard the target is never reached; without it, it fires.
-      return wc.executeJavaScript(`(() => {
-        const el = document.querySelector(${JSON.stringify(selector)});
-        if (!el) throw new Error('control not found: ' + ${JSON.stringify(selector)});
-        let reached = false;
-        const obs = () => { reached = true; };
-        el.addEventListener('click', obs);
-        try { el.click(); } finally { el.removeEventListener('click', obs); }
-        return { reached };
-      })()`);
-    },
-    readPickerReachability() {
-      const wc = getOverlayWebContents();
-      if (!wc) return null;
-      // Scroll the list to the bottom, then report whether the card fits the
-      // viewport and the last row + Cancel are within the scrolled list box.
-      return wc.executeJavaScript(`(() => {
-        const list = document.querySelector('.cred-list');
-        const rows = document.querySelectorAll('.cred-row');
-        const cancel = document.querySelector('.cred-cancel');
-        const panel = document.getElementById('islandPanel');
-        if (!list || !rows.length || !cancel || !panel) return null;
-        list.scrollTop = list.scrollHeight;
-        const lr = list.getBoundingClientRect();
-        const within = (el) => { const r = el.getBoundingClientRect(); return r.top >= lr.top - 0.5 && r.bottom <= lr.bottom + 0.5; };
-        return {
-          rows: rows.length,
-          truncationShown: !!document.querySelector('.cred-more'),
-          cardFitsViewport: panel.getBoundingClientRect().bottom <= window.innerHeight + 0.5,
-          listScrolls: list.scrollHeight > list.clientHeight + 1,
-          lastRowReachable: within(rows[rows.length - 1]),
-          cancelReachable: within(cancel),
-        };
-      })()`);
-    },
-
     // --- display sharing (F29) ---
     // Deterministic fake source objects run through the production controller.
     // CI must not depend on the host's current windows or Screen Recording
@@ -1301,8 +1188,7 @@ function install(refs) {
     reset() {
       clearFocusObservation();
       // No scenario inherits another's open surface. hideOverlay settles any
-      // pending picker ('hidden'); drop our handle to its resolved promise too.
-      pendingPick = null;
+      // pending display picker; drop our handle to its resolved promise too.
       pendingDisplaySharePick = null;
       hideOverlay({ refocusContent: false });
       hideUtilitySheet();

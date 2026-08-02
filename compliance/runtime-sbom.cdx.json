@@ -226,96 +226,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%401password/sdk-core@0.4.0",
-      "name": "@1password/sdk-core",
-      "version": "0.4.0",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "be3788d68e3088e358fadd67680e1db54a7a1e4b5d2c7d43d92fad3752e1e25e354bd5c8507c6b963a2ff41e6ee86f951ebedfd8c528c66cd703dcd3ddaa2441"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/%401password/sdk-core@0.4.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/@1password/sdk-core"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "root"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@1password/sdk-core/-/sdk-core-0.4.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%401password/sdk@0.4.0",
-      "name": "@1password/sdk",
-      "version": "0.4.0",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "448ca9ba373d47f51e51aa1b8f20a54d8a24a9116971a2241eaf843bf5fd5e81c877df1583e49b8f0195fb2ca0442e0cc87c18368d4a3f58846d972a27865377"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/%401password/sdk@0.4.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/@1password/sdk"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "root"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/@1password/sdk/-/sdk-0.4.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/%40ghostery/adblocker-content@2.18.1",
       "name": "@ghostery/adblocker-content",
       "version": "2.18.1",
@@ -1709,11 +1619,9 @@
         "asset:blanc-adblock-seed",
         "asset:inter-font",
         "asset:jetbrains-mono-font",
-        "pkg:npm/%401password/sdk@0.4.0",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.1",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@43.2.0",
-        "pkg:npm/tldts-experimental@7.4.6"
+        "pkg:npm/electron@43.2.0"
       ]
     },
     {
@@ -1744,16 +1652,6 @@
     {
       "ref": "asset:jetbrains-mono-font",
       "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/%401password/sdk-core@0.4.0",
-      "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/%401password/sdk@0.4.0",
-      "dependsOn": [
-        "pkg:npm/%401password/sdk-core@0.4.0"
-      ]
     },
     {
       "ref": "pkg:npm/%40ghostery/adblocker-content@2.18.1",

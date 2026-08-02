@@ -36,9 +36,8 @@ explicit `@release` contract. A repository check parses the Gherkin catalog and
 the runnable profile together, failing on missing/duplicate ids, a release tag
 without a runnable binding, or a runnable contract without the release tag.
 The dedicated release profile therefore selects 86 stable product contracts
-(91 expanded scenarios) while excluding the six 1Password feasibility-spike
-scenarios. `release:verify:press` runs this contract guard before the existing
-full runnable dry/live gates, so the selectable release boundary cannot drift
+(91 expanded scenarios). `release:verify:press` runs this contract guard before
+the existing full runnable dry/live gates, so the selectable release boundary cannot drift
 even though the live superset remains the final desktop gate.
 
 ## N-1 staging-update decision

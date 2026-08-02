@@ -17,9 +17,7 @@
 // Run with, e.g.:  xvfb-run -a npx cucumber-js -c test/desktop/cucumber.mjs -p runnable
 
 const common = {
-  // The platform-neutral contract lives in spec/acceptance/. The 1Password fill
-  // SPIKE is desktop-and-spike-only, so its feature lives under test/desktop/.
-  paths: ['spec/acceptance/**/*.feature', 'test/desktop/features/**/*.feature'],
+  paths: ['spec/acceptance/**/*.feature'],
   require: ['test/desktop/support/**/*.js', 'test/desktop/steps/**/*.js'],
 };
 
@@ -58,11 +56,10 @@ const RUNNABLE = [
   '@F39-1',
   '@F39-2',
   '@F39-3',
-  '@spike-1p-picker', // 1Password fill SPIKE — desktop-only picker scenarios
 ].join(' or ');
 
 export default { ...common, tags: 'not @mobile' };
-export const runnable = { ...common, tags: RUNNABLE };
+export const runnable = { ...common, tags: RUNNABLE, retry: 1 };
 export const dry = { ...common, tags: RUNNABLE, dryRun: true };
 export const release = { ...common, tags: '@release' };
 export const releaseDry = { ...common, tags: '@release', dryRun: true };

@@ -1254,15 +1254,7 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
   text-align: left;
 }
 
-/* --- Credential picker (1Password fill SPIKE) --- */
-/* Modal isolation: in picker mode the panel shows ONLY the rows + Cancel, so a
-   user can't type an address, hit a nav/favorite button, open a tab, or reach
-   Settings while a credential decrypt is pending. display:none also removes
-   these from the tab order and makes them unfocusable. Scoped to picker mode —
-   panel/palette are unaffected. */
-body[data-mode="credential-picker"] .panel-row,
-body[data-mode="credential-picker"] #islandFooter,
-body[data-mode="credential-picker"] #islandHint,
+/* Modal isolation: the display picker shows only its browser-owned chooser. */
 body[data-mode="display-share-picker"] .panel-row,
 body[data-mode="display-share-picker"] #islandFooter,
 body[data-mode="display-share-picker"] #islandHint { display: none; }
@@ -1271,51 +1263,6 @@ body[data-mode="display-share-picker"] #islandPanel {
   width: 760px;
   padding: 14px;
 }
-
-.cred-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  /* Cap to the overlay viewport so a full 10-row picker can't overflow a short
-     window (e.g. 640×480) — body is overflow:hidden, so without this the last
-     rows and Cancel would be clipped and unreachable. The budget covers the
-     12px anchor offset, the panel's padding, and a bottom margin; anything
-     past it scrolls, keeping every row and Cancel reachable. */
-  max-height: calc(100vh - 56px);
-  overflow-y: auto;
-}
-.cred-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas: "user vault" "meta vault";
-  gap: 0 10px;
-  width: 100%;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.cred-row:hover, .cred-row.sel { background: var(--surface); }
-.cred-user { grid-area: user; font-weight: 500; }
-.cred-meta { grid-area: meta; color: var(--text-dim); font-size: 11px; }
-.cred-vault { grid-area: vault; align-self: center; color: var(--text-dim); font-size: 11px; }
-.cred-more { padding: 6px 10px; color: var(--text-dim); font-size: 11px; }
-.cred-cancel {
-  margin-top: 4px;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--text-dim);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-.cred-cancel:hover { background: var(--surface); color: var(--text); }
 
 /* --- Display-sharing picker --- */
 .display-share {

@@ -24,9 +24,8 @@ test('runtime SBOM covers npm closure, Electron, fonts, and blocker provenance',
   const sbom = generated.runtime.sbom;
   const refs = new Set(sbom.components.map((component) => component['bom-ref']));
 
-  assert.equal(generated.runtime.runtimePackages.length, 32);
-  assert.equal(sbom.components.length, 39);
-  assert.ok(refs.has('pkg:npm/%401password/sdk@0.4.0'));
+  assert.equal(generated.runtime.runtimePackages.length, 30);
+  assert.equal(sbom.components.length, 37);
   assert.ok(refs.has('pkg:npm/electron@43.2.0'));
   assert.ok(refs.has('asset:inter-font'));
   assert.ok(refs.has('asset:jetbrains-mono-font'));
@@ -77,7 +76,7 @@ test('both lock SBOMs include every unique locked name/version and audited missi
   const generated = createComplianceArtifacts();
   const root = JSON.parse(generated.files['compliance/root-lock-sbom.cdx.json']);
   const site = JSON.parse(generated.files['compliance/site-lock-sbom.cdx.json']);
-  assert.equal(root.components.length, 366);
+  assert.equal(root.components.length, 364);
   assert.equal(site.components.length, 405);
   const axe = root.components.find((component) => component.name === 'axe-core');
   assert.deepEqual(axe.licenses, [{ license: { id: 'MPL-2.0' } }]);
@@ -141,14 +140,12 @@ test('after-pack compliance payload contains SBOM, framework notices, and every 
 
   const resources = resourcesDirectory(context);
   assert.match(fs.readFileSync(path.join(resources, 'THIRD_PARTY_NOTICES.txt'), 'utf8'), /EasyPrivacy/);
-  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 39);
+  assert.equal(JSON.parse(fs.readFileSync(path.join(resources, 'runtime-sbom.cdx.json'))).components.length, 37);
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSE.electron.txt'), 'utf8'), 'Electron MIT fixture\n');
   assert.equal(fs.readFileSync(path.join(resources, 'LICENSES.chromium.html'), 'utf8'), '<html>Chromium fixture</html>\n');
 
   const licenses = fs.readdirSync(path.join(resources, 'ThirdPartyLicenses'));
-  assert.equal(licenses.length, 34, '32 runtime npm records plus two font licenses');
-  assert.ok(licenses.includes('1password__sdk--0.4.0.txt'));
-  assert.ok(licenses.includes('1password__sdk-core--0.4.0.txt'));
+  assert.equal(licenses.length, 32, '30 runtime npm records plus two font licenses');
   assert.ok(licenses.includes('lazy-val--1.0.5.txt'));
   assert.ok(licenses.includes('inter-OFL.txt'));
   assert.ok(licenses.includes('jetbrains-mono-OFL.txt'));

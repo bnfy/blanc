@@ -945,10 +945,7 @@ function createOverlayForRuntime(runtime) {
   chromeState.overlayView.webContents.on('before-input-event', bindWindowRuntime(runtime, (event, input) => {
     if (chromeState.overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      if (chromeState.overlayMode === 'credential-picker') {
-        pickerController.settleForRuntime(runtime.id, null, 'escape');
-      }
-      else if (chromeState.overlayMode === 'display-share-picker') {
+      if (chromeState.overlayMode === 'display-share-picker') {
         displaySharePickerController.cancelForRuntime(runtime.id, 'escape');
       }
       else hideOverlay();
@@ -971,9 +968,6 @@ function createOverlayForRuntime(runtime) {
     // its address-focus reclaim is still pending — that's not a dismissal;
     // the reclaim will re-assert overlay focus on the next tick.
     if (tabState.activeTabId && tabsWantingAddressBarFocus.has(tabState.activeTabId)) return;
-    if (chromeState.overlayMode === 'credential-picker') {
-      return pickerController.settleForRuntime(runtime.id, null, 'blur');
-    }
     if (chromeState.overlayMode === 'display-share-picker') {
       return displaySharePickerController.cancelForRuntime(runtime.id, 'blur');
     }
@@ -982,12 +976,10 @@ function createOverlayForRuntime(runtime) {
 
   // A dying overlay must settle any pending picker, or the caller awaits forever.
   chromeState.overlayView.webContents.on('destroyed', bindWindowRuntime(runtime, () => {
-    pickerController.settleForRuntime(runtime.id, null, 'window-closed');
     displaySharePickerController.cancelForRuntime(runtime.id, 'window-closed');
   }));
   chromeState.overlayView.webContents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
     diagnostics.recordRendererCrash('overlay', details);
-    pickerController.settleForRuntime(runtime.id, null, 'window-closed');
     displaySharePickerController.cancelForRuntime(runtime.id, 'window-closed');
   }));
 
@@ -1045,9 +1037,6 @@ function showOverlay(mode, { prefill } = {}) {
   // non-true result as window-closed rather than waiting out its timeout.
   if (!hasLiveWindow() || !chromeState.overlayView) return false;
   const runtime = currentWorkspaceRuntime();
-  if (chromeState.overlayMode === 'credential-picker' && mode !== 'credential-picker') {
-    pickerController.settleForRuntime(runtime?.id, null, 'mode-replaced');
-  }
   if (chromeState.overlayMode === 'display-share-picker' && mode !== 'display-share-picker') {
     displaySharePickerController.cancelForRuntime(runtime?.id, 'mode-replaced');
   }
@@ -1072,22 +1061,15 @@ function showOverlay(mode, { prefill } = {}) {
 
 function hideOverlay({ refocusContent = true } = {}) {
   if (!chromeState.overlayMode) return;
-  // 'hidden' is deliberately no-restore: hideOverlay has six callers and the
-  // cause can't be attributed, so it fails safe. RETURN after delegating —
-  // settle() clears its pending state before calling its injected hide
-  // collaborator, which re-enters here and performs the teardown. Falling
-  // through would run the removal/send/focus body a second time.
+  // A hidden picker fails safe. Its controller clears pending state before
+  // re-entering this function to perform the actual overlay teardown.
   const runtime = currentWorkspaceRuntime();
-  if (pickerController.isPendingForRuntime(runtime?.id)) {
-    pickerController.settleForRuntime(runtime?.id, null, 'hidden');
-    return;
-  }
   if (displaySharePickerController.isPendingForRuntime(runtime?.id)) {
     displaySharePickerController.cancelForRuntime(runtime?.id, 'hidden');
     return;
   }
   chromeState.overlayMode = null;
-  chromeState.overlayPrefill = null;   // vault rows must not outlive the picker
+  chromeState.overlayPrefill = null;
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (tabState.activeTabId) tabsWantingAddressBarFocus.delete(tabState.activeTabId);
@@ -1849,19 +1831,6 @@ const TAB_WEB_PREFERENCES = {
   preload: path.join(__dirname, 'tab-preload.js'),
 };
 
-// ─── SPIKE (1Password fill feasibility) — remove before release ───────────
-// Fill the active tab's login form from 1Password behind Touch ID, with no
-// browser extension. Env-gated; credentials live only in main memory + the
-// verified page, and every outcome logs a result line, never a value.
-const ONE_PASSWORD_SPIKE_ENABLED = !app.isPackaged || process.env.BLANC_1P_SPIKE === '1';
-let onePasswordFillInFlight = false;
-// Dedicated isolated world for the credential-bearing injections. 0 is the
-// page's main world and 999 is Electron's context-isolation/preload world —
-// both forbidden; Electron reserves ids >= 1000 for custom worlds.
-const FILL_WORLD_ID = 1001;
-
-const { createPickerController } = require('./credential-picker');
-const { chooseAndReveal } = require('./credential-fill-flow');
 const { createDisplaySharePickerController } = require('./display-share-picker');
 
 function withPickerRuntime(runtimeId, work, fallback = null) {
@@ -1869,33 +1838,6 @@ function withPickerRuntime(runtimeId, work, fallback = null) {
   if (!runtime) return fallback;
   return withWindowRuntime(runtime, work);
 }
-
-// Exactly-once owner of picker resolution. Behaviour is covered by
-// test/unit/credential-picker.test.js; this is only the Electron wiring.
-const pickerController = createPickerController({
-  showOverlay,
-  hideOverlay: (runtimeId) => withPickerRuntime(
-    runtimeId,
-    () => hideOverlay({ refocusContent: false })
-  ),
-  getOverlayMode: (runtimeId) => withPickerRuntime(
-    runtimeId,
-    () => chromeState.overlayMode
-  ),
-  getRuntimeId: () => currentWorkspaceRuntime()?.id ?? null,
-  // isTrustedSender expects { webContents, url } targets and checks frame.url
-  // against target.url — a bare WebContentsView has no `.url`, so it would
-  // reject EVERY reply (the picker's rows would be silently unclickable).
-  // Mirror isTrustedChromeSender's shape exactly.
-  isOverlaySender: (event) => {
-    const runtime = trustedRuntimeForChromeSender(event);
-    return !!runtime && event.sender === runtime.overlayView?.webContents;
-  },
-  randomUUID: () => crypto.randomUUID(),
-  setTimer: (fn, ms) => setTimeout(fn, ms),
-  clearTimer: (t) => clearTimeout(t),
-  timeoutMs: 60_000,
-});
 
 const displaySharePickerController = createDisplaySharePickerController({
   showOverlay,
@@ -2032,240 +1974,6 @@ async function promptForDisplayMediaInRuntime({
   };
 }
 
-/** A modal dialog returns focus to the CHROME document, not to the tab. Both
- * the main-side `wc.isFocused()` guard and the injected `document.hasFocus()`
- * check require the tab to hold focus, so every dialog in this flow must hand
- * it back before the next validation — otherwise the flow aborts with
- * `abort-wc-changed` having shown the user a prompt for nothing. WebContentsView
- * focus settles asynchronously (see reclaimAddressBarFocus), hence the bounded
- * re-assert rather than a single call. */
-async function restoreTabFocus(wc) {
-  // Only re-assert the WINDOW when Blanc is already frontmost. A picker
-  // dismissed by ⌘-Tab must not drag the window back over whatever the user
-  // switched to. (Same instinct as the overlay blur guard further up.)
-  const browserWindow = currentBrowserWindow();
-  if (browserWindow?.isFocused()) browserWindow.focus();
-  for (let attempt = 0; attempt < 10; attempt++) {
-    if (wc.isDestroyed()) return false;
-    wc.focus();
-    if (wc.isFocused()) return true;
-    await new Promise((resolve) => setTimeout(resolve, 20));
-  }
-  return !wc.isDestroyed() && wc.isFocused();
-}
-
-async function fillActiveTabFrom1Password() {
-  const log = (result, extra) => console.log(`[1p-spike] ${result}${extra ? ' ' + extra : ''}`);
-  const onepassword = require('./onepassword'); // ./onepassword only — the SDK stays lazy inside it
-  let capturedTabId, tab, wc, expectedURL, expectedHost, capturedEpoch, capturedTimeOrigin;
-  let kept = [];
-  let truncated = 0;
-
-  // ── PHASE 1 (pre-reveal): NO credential is in memory yet, so err.message is
-  //    safe to log for diagnosis. ──
-  try {
-    if (!hasLiveWindow() || !tabState.activeTabId) return log('no-active-tab');
-    capturedTabId = tabState.activeTabId;
-    tab = tabs.get(capturedTabId);
-    if (!tab) return log('no-active-tab');
-    wc = tab.view.webContents;
-    expectedURL = wc.getURL();
-    if (!/^https?:\/\//i.test(expectedURL)) return log('non-http-noop');
-    expectedHost = new URL(expectedURL).hostname;
-    capturedEpoch = tab.navEpoch;
-    capturedTimeOrigin = await wc.executeJavaScript('performance.timeOrigin');
-
-    const matches = await onepassword.findLogins(expectedHost);
-    if (matches.length === 0) return log('no-match', expectedHost);
-    // Rank on METADATA only — no decryption here. One survivor is the common
-    // case and needs no picker at all: on www.google.com this turns 20
-    // candidates into 1.
-    const ranked = onepassword.rankMatches(matches, expectedHost);
-    if (ranked.kept.length === 0) return log('no-match', expectedHost); // never fall back to the unranked list
-    kept = ranked.kept;
-    truncated = ranked.truncated;
-  } catch (err) {
-    return log('setup-error', err?.message); // pre-reveal only — credential-free
-  }
-
-  // ── PHASE 2 (inspect → confirm → reveal → fill). The inspect pass carries NO
-  //    credential, so a page with no login form decrypts nothing. From the
-  //    reveal onward this is a BINDING-LESS try: every failure logs a FIXED
-  //    classification, so no page- or SDK-controlled message can echo the
-  //    credential. Both injections run in a dedicated ISOLATED WORLD, where the
-  //    page can neither hook the setter nor read the embedded credential. ──
-  try {
-    // One nonce per invocation binds this flow's authorization to the exact
-    // elements the inspect pass chose.
-    const nonce = crypto.randomUUID();
-    const inspect = await wc.executeJavaScriptInIsolatedWorld(FILL_WORLD_ID, [
-      { code: onepassword.buildInspectScript({ expectedURL, expectedTimeOrigin: capturedTimeOrigin, nonce }) },
-    ]);
-
-    // Validate the SHAPE strictly — a malformed or partial result is a plumbing
-    // failure and must fail closed, not fall through to a benign branch.
-    const basisOk = inspect && (inspect.passwordBasis === null
-      || inspect.passwordBasis === 'authoritative' || inspect.passwordBasis === 'heuristic');
-    if (!inspect || typeof inspect !== 'object'
-        || typeof inspect.originMismatch !== 'boolean'
-        || (!inspect.originMismatch
-            && (typeof inspect.hasPassword !== 'boolean'
-                || typeof inspect.hasUsername !== 'boolean' || !basisOk))) {
-      return log('fill-error');
-    }
-    if (inspect.originMismatch) return log('origin-or-focus-mismatch');
-    if (!inspect.hasPassword && !inspect.hasUsername) return log('no-fillable-field');
-
-    // A HEURISTIC target was inferred from structure and English-language
-    // wording, which does not survive localization — never fill one silently.
-    // Confirm BEFORE decrypting, so declining costs no secret exposure.
-    if (inspect.hasPassword && inspect.passwordBasis !== 'authoritative') {
-      if (!hasLiveWindow()) return log('abort-window-changed');
-      const { response } = await dialog.showMessageBox(currentBrowserWindow() ?? undefined, {
-        type: 'question',
-        title: 'Fill from 1Password',
-        message: kept.length === 1 && kept[0].title
-          ? `Use your saved ${kept[0].title} password?`
-          : 'Use your saved password?',
-        detail: "To protect your password, Blanc double-checks before filling on a page that doesn't "
-          + 'clearly label its login field. Continue if this is where you sign in.',
-        buttons: ['Fill', 'Cancel'],
-        defaultId: 0,
-        cancelId: 1,
-        noLink: true,
-      });
-      if (response !== 0) return log('user-declined');
-      // The sheet took focus; hand it back before the checks below (and before
-      // the fill's own document.hasFocus() guard) look at it. If restoration
-      // FAILS we must stop here — continuing would decrypt the credential and
-      // only then abort on the post-reveal focus guard, which is exactly the
-      // prompt-then-do-nothing failure this helper exists to prevent.
-      if (!(await restoreTabFocus(wc))) return log('abort-wc-changed');
-      // The dialog was modal and async: re-validate immediately on acceptance,
-      // BEFORE decrypting. The post-reveal checks below still run.
-      if (!currentBrowserWindow()?.isFocused()) return log('abort-window-changed');
-      if (tabState.activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
-      if (wc.isDestroyed()) return log('abort-wc-changed');
-      if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
-      if (wc.getURL() !== expectedURL) return log('abort-url-changed');
-    }
-
-    // Only now — with a fillable field confirmed and, if heuristic, explicitly
-    // approved — choose a credential (picker if several survive) and read it.
-    // Behaviour lives in credential-fill-flow.js and is covered by
-    // test/unit/credential-fill-flow.test.js.
-    const picked = await chooseAndReveal({
-      kept,
-      truncated,
-      host: expectedHost,
-      deps: {
-        revealUsernames: (list) => onepassword.revealUsernames(list),
-        requestPick: (rows, trunc, host) => pickerController.requestPick(rows, trunc, host, {
-          runtimeId: currentWorkspaceRuntime()?.id ?? null,
-        }),
-        restoreTabFocus: () => restoreTabFocus(wc),
-        revalidate: () => {
-          if (!currentBrowserWindow()?.isFocused()) return 'abort-window-changed';
-          if (tabState.activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return 'abort-tab-changed';
-          if (wc.isDestroyed()) return 'abort-wc-changed';
-          if (tab.navEpoch !== capturedEpoch) return 'abort-navigated';
-          if (wc.getURL() !== expectedURL) return 'abort-url-changed';
-          return null;
-        },
-        revealCredential: (c) => onepassword.revealCredential(c.vaultId, c.itemId),
-      },
-    });
-    if (picked.outcome === 'chooser-cancel') return log('chooser-cancel', picked.detail);
-    if (picked.outcome !== 'ok') return log(picked.outcome);
-    const { username, password } = picked.credential;
-    if (password == null && username == null) return log('empty-item');
-
-    // Re-validate after the async reveal.
-    if (!currentBrowserWindow()?.isFocused()) return log('abort-window-changed');
-    if (tabState.activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
-    if (wc.isDestroyed() || !wc.isFocused()) return log('abort-wc-changed');
-    if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
-    if (wc.getURL() !== expectedURL) return log('abort-url-changed');
-
-    // Send ONLY the credential this step needs: on a username-only screen the
-    // password never reaches the renderer at all.
-    const source = onepassword.buildFillScript({
-      expectedURL,
-      expectedTimeOrigin: capturedTimeOrigin,
-      nonce,
-      username: inspect.hasUsername ? username : null,
-      password: inspect.hasPassword ? password : null,
-    });
-    const status = await wc.executeJavaScriptInIsolatedWorld(FILL_WORLD_ID, [{ code: source }]);
-    if (!status || typeof status !== 'object') return log('fill-error'); // fail closed
-    if (status.originMismatch) return log('origin-or-focus-mismatch');
-    // The page changed what selectFields resolves to between authorization and
-    // fill — nothing was written.
-    if (status.selectionChanged) return log('selection-changed');
-    if (status.filledPass && status.filledUser) return log('filled', 'user+pass');
-    if (status.filledUser) return log('filled', 'user-only (multi-step step 1)');
-    if (status.filledPass) return log('filled', 'pass-only (username field not found)');
-    return log('nothing-filled');
-  } catch {
-    return log('fill-error'); // no binding, no message — a credential is in memory
-  }
-}
-
-// SPIKE (1Password fill feasibility) — headless criterion 3(a). Gated on its
-// OWN env var so it can run without a GUI/account: load the SDK package inside
-// packaged Electron (asar resolution + @1password/sdk-core's eager core_bg.wasm
-// compile), log ONE line, set a real exit code, and terminate. app.exit() is
-// used (not app.quit()) so native handles the SDK may open can't stall exit.
-async function runPackageProbeIfRequested() {
-  if (process.env.BLANC_1P_PACKAGE_PROBE !== '1') return false;
-  try {
-    require('./onepassword').probePackageLoad();
-    console.log('[1p-spike] package probe: PASS (require resolved + WASM compiled)');
-    app.exit(0);
-  } catch (err) {
-    console.warn(`[1p-spike] package probe: FAIL — ${err?.message || err}`);
-    app.exit(1);
-  }
-  return true; // unreachable after app.exit; kept for call-site clarity
-}
-
-// SPIKE (1Password fill feasibility) — GUI startup checks. Gated
-// BLANC_1P_SPIKE === '1'. Two independent lines:
-//   3(a) package probe — does the SDK module LOAD in this build?
-//   3(b) core smoke    — does DesktopAuth dlopen + authenticate under a
-//                        notarized/hardened build?
-async function initSpikePackaging() {
-  if (process.env.BLANC_1P_SPIKE !== '1') return;
-
-  // 3(a): load the package (asar loader active, eager core_bg.wasm compile).
-  try {
-    require('./onepassword').probePackageLoad();
-    console.log('[1p-spike] package probe: PASS (require resolved + WASM compiled)');
-  } catch (err) {
-    console.warn(`[1p-spike] package probe: FAIL — ${err?.message || err}`);
-  }
-
-  // 3(b): the native bridge round-trip. Decisive by default — everything is a
-  // FAIL unless it matches the biometric-cancel signature (/cancell?ed/i), a
-  // best-effort INCONCLUSIVE (bridge state then unknowable). "denied"/"not
-  // allowed"/policy/auth errors are real FAILs (the round-trip did not work). A
-  // genuine cancel misread as FAIL isn't worth chasing for throwaway code — just
-  // re-run the smoke without cancelling.
-  try {
-    const client = await require('./onepassword').getClient();
-    await client.vaults.list();
-    console.log('[1p-spike] core smoke: PASS (DesktopAuth + vaults.list)');
-  } catch (err) {
-    const msg = err?.message || String(err);
-    if (/cancell?ed/i.test(msg)) {
-      console.log(`[1p-spike] core smoke: INCONCLUSIVE (biometric cancelled) — ${msg}`);
-    } else {
-      const bridge = /dlopen|libop_sdk_ipc_client|image not found|code ?sign|library/i.test(msg);
-      console.warn(`[1p-spike] core smoke: FAIL${bridge ? ' (native bridge did not load)' : ''} — ${msg}`);
-    }
-  }
-}
-// ─── end SPIKE ────────────────────────────────────────────────────────────
 
 function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null } = {}) {
   const runtime = currentWorkspaceRuntime();
@@ -2327,8 +2035,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // real navigation shouldn't behave differently from before this flag
     // existed.
     historyEligible: true,
-    // SPIKE (1Password fill feasibility) — bumped on any main-frame navigation
-    // start/commit so the async fill can detect a page swap mid-flow.
+    // Bumped on main-frame navigation start/commit so asynchronous browser
+    // prompts can detect a page swap before settling.
     navEpoch: 0,
     // In-memory only. A failed TLS identity check is projected into trusted
     // chrome and the local error interstitial, never persisted or bypassed.
@@ -2345,24 +2053,6 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
       wc.send('chrome:theme-appearance', resolvedThemeAppearance());
     }
   }));
-
-  // SPIKE (1Password fill feasibility) — ⌥⌘P on the tab's OWN webContents
-  // (the overlay before-input-event listener never sees page-focused keys).
-  if (ONE_PASSWORD_SPIKE_ENABLED) {
-    wc.on('before-input-event', bindWindowRuntime(runtime, (event, input) => {
-      if (input.type !== 'keyDown' || input.isAutoRepeat) return;
-      if (input.code !== 'KeyP') return; // physical key — ⌥ mutates input.key on macOS
-      if (!(input.meta && input.alt && !input.control && !input.shift)) return; // one modifier off ⌘P Print
-      // Consume the chord BEFORE the single-flight check — a recognized second
-      // press must not fall through to the page, it just doesn't start a fill.
-      event.preventDefault();
-      if (onePasswordFillInFlight) return; // single-flight
-      onePasswordFillInFlight = true;
-      fillActiveTabFrom1Password()
-        .catch((err) => console.warn('[1p-spike] fill error:', err?.message))
-        .finally(() => { onePasswordFillInFlight = false; });
-    }));
-  }
   // WebRTC IP-handling policy applies per-webContents; this is the single choke
   // point every tab (fresh or adopted window.open child) passes through.
   wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
@@ -2409,7 +2099,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     scheduleBroadcastTabs();
   }));
   wc.on('did-navigate', bindWindowRuntime(runtime, (_e, url, httpResponseCode) => {
-    tab.navEpoch++; // SPIKE (1Password fill feasibility)
+    tab.navEpoch++;
     const shouldReclaimChromeFocus = url === tab.url && tabsWantingAddressBarFocus.has(id) && tabState.activeTabId === id;
     if (url !== tab.url) tabsWantingAddressBarFocus.delete(id);
     tab.blockedCount = 0;
@@ -2438,7 +2128,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
   }));
   wc.on('did-navigate-in-page', bindWindowRuntime(runtime, (_e, url, isMainFrame) => {
-    if (isMainFrame) tab.navEpoch++; // SPIKE (1Password fill feasibility) — main frame only
+    if (isMainFrame) tab.navEpoch++;
     syncNavState();
     if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
@@ -2449,10 +2139,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // avoids). The menu may lag slightly behind in-page route changes;
     // it catches up on the next real navigation or tab-lifecycle event.
   }));
-  // SPIKE (1Password fill feasibility) — a main-frame navigation that STARTS
-  // after the orchestrator's main-side URL check would still let
-  // executeJavaScript run in the replacement document; bump the epoch so the
-  // pre-injection re-check aborts. Removed with the rest of the spike.
+  // A main-frame navigation invalidates browser-owned asynchronous requests.
   wc.on('did-start-navigation', bindWindowRuntime(runtime, (_e, _url, _isInPlace, isMainFrame) => {
     if (isMainFrame) {
       tab.navEpoch++;
@@ -2719,17 +2406,16 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // Re-selecting the active tab is a no-op.
   if (id === tabState.activeTabId) return;
 
-  // A genuine switch cancels a live picker — but only a switch FROM a real tab.
+  // A genuine switch cancels a live display picker, but only when switching
+  // from a real tab. The deferred initial reattach is not a tab change.
   // The window's did-finish-load re-attach nulls tabState.activeTabId to force a fresh
   // attach of the same tab; that is an initial attach, not a tab change, and
   // must not settle a picker (harmless in production, where no picker exists at
   // window creation — but in tests a picker scenario running right after launch
   // would otherwise be torn down by that deferred re-attach).
   if (tabState.activeTabId !== null) {
-    pickerController.settleForRuntime(runtime.id, null, 'tab-changed');
     displaySharePickerController.cancelForRuntime(runtime.id, 'tab-changed');
   }
-
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.
   hideUtilitySheet({ refocusContent: false });
@@ -2883,11 +2569,6 @@ function closeTab(id, { recordForReopen = true } = {}) {
   const runtime = currentWorkspaceRuntime();
   if (!tab || !runtime || windowRuntimeRegistry.ownerForTab(id) !== runtime.id) return;
 
-  // Only the picker's own tab closing cancels it — an unrelated background tab
-  // must not.
-  if (id === tabState.activeTabId) {
-    pickerController.settleForRuntime(runtime.id, null, 'tab-changed');
-  }
   // A Chromium-initiated destruction reaches this function from wc's
   // `destroyed` event, after WebContentsView may already have cleared its
   // webContents property. The display request was already invalidated with the
@@ -3201,17 +2882,10 @@ function chromeOn(channel, handler) {
 }
 
 function registerIpcHandlers() {
-  // Credential-picker reply. Validation lives in the controller (two stages: a
-  // reply that can't prove it belongs to THIS request changes no state).
-  ipcMain.on('chrome:credential-pick', (event, payload) => {
-    const runtime = trustedRuntimeForChromeSender(event);
-    if (runtime) withWindowRuntime(runtime, () => pickerController.handleReply(event, payload));
-  });
   ipcMain.on('chrome:display-share-pick', (event, payload) => {
     const runtime = trustedRuntimeForChromeSender(event);
     if (runtime) withWindowRuntime(runtime, () => displaySharePickerController.handleReply(event, payload));
   });
-
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
     // A plain new tab is deliberately ungrouped — createTab defaults groupId
@@ -3881,14 +3555,7 @@ function createMainWindow({
   browserWindow.on('closed', bindWindowRuntime(runtime, () => {
     const closingWindow = browserWindow;
     const closingRuntime = runtime;
-    // Settle any pending picker BEFORE resetting chromeState.overlayMode. The overlay's own
-    // 'destroyed' listener also settles, but it fires after webContents.close()
-    // below — by which point chromeState.overlayMode is already null, so settle would see no
-    // picker mode and skip hideOverlay, stranding chromeState.overlayPrefill's vault rows
-    // across a macOS dock reopen. Settling here, while the mode is still live,
-    // is what clears them. (hasLiveWindow() is already false, so hideOverlay
-    // clears the rows and skips the view ops rather than throwing.)
-    pickerController.settleForRuntime(runtime.id, null, 'window-closed');
+    // Settle a pending display request before resetting overlay state.
     displaySharePickerController.cancelForRuntime(runtime.id, 'window-closed');
     // Unlike tabs, the overlay doesn't outlive its window — recreated fresh.
     chromeState.overlayMode = null;
@@ -4294,7 +3961,6 @@ let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
 
 app.whenReady().then(async () => {
-  if (await runPackageProbeIfRequested()) return; // SPIKE — headless 3(a); app.exit() already fired
   profileSessionRegistry = createProfileSessionRegistry({
     defaultSession: session.defaultSession,
     fromPartition: session.fromPartition.bind(session),
@@ -4575,7 +4241,6 @@ app.whenReady().then(async () => {
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       getOverlayMode: () => chromeState.overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
-      pickerController, // SPIKE (1Password fill) — acceptance drives the real controller
       displaySharePickerController,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!chromeState.utilitySheetUrl, url: chromeState.utilitySheetUrl }),
@@ -4605,8 +4270,6 @@ app.whenReady().then(async () => {
       setTestOpenDownloadHandler,
     });
   }
-
-  initSpikePackaging(); // SPIKE (1Password fill feasibility) — fire-and-forget, gated on BLANC_1P_SPIKE
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
   // of the frame the request came from.
