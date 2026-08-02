@@ -24,11 +24,11 @@ test('press-kit raster assets exist at their declared editorial dimensions', () 
     { width: 1200, height: 630 }
   );
   assert.deepEqual(
-    pngSize('site/public/press/blanc-island-product-capture.png'),
+    pngSize('site/public/press/blanc-island-product-capture-v2.png'),
     { width: 2784, height: 1824 }
   );
   assert.deepEqual(
-    pngSize('site/public/press/blanc-1.0-launch-card-v2.png'),
+    pngSize('site/public/press/blanc-1.0-launch-card-v3.png'),
     { width: 2400, height: 1260 }
   );
   assert.deepEqual(
@@ -63,11 +63,19 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(page, /analytics=\{false\}/);
   assert.match(page, /Blanc-\$\{VERSION\}-arm64\.dmg/);
   assert.match(page, /SHA256SUMS/);
-  assert.match(page, /press\/vertical-tabs\.png/);
-  assert.match(page, /press\/blanc-island-product-capture\.png/);
-  assert.match(page, /press\/blanc-1\.0-launch-card-v2\.png/);
+  assert.match(page, /press\/blanc-island-product-capture-v2\.png/);
+  assert.match(page, /Make the Island the lead image/);
+  assert.match(page, /Download high-resolution product imagery, launch artwork, and the Blanc mark/);
+  assert.match(page, /Each visual shows the real interface without turning another website’s brand into the story/);
+  assert.doesNotMatch(page, /The Island, ready for publication/);
+  assert.doesNotMatch(page, /Show the product, not another logo wall/);
+  assert.doesNotMatch(page, /press\/blanc-island-product-capture\.png/);
+  assert.doesNotMatch(page, /GitHub page/);
+  assert.match(page, /press\/blanc-1\.0-launch-card-v3\.png/);
+  assert.doesNotMatch(page, /press\/blanc-1\.0-launch-card-v2\.png/);
   assert.match(page, /<PressIslandDemo \/>/);
   assert.doesNotMatch(page, /press-product-callouts/);
+  assert.doesNotMatch(page, /press\/vertical-tabs\.png/);
   assert.match(islandDemo, /Interactive recreation of the Blanc 1\.0 Island/);
   assert.match(islandDemo, /id="pressIslandInput"/);
   assert.match(islandDemo, /name: 'tech news'/);
@@ -75,6 +83,13 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(islandDemo, /title: '9to5Mac', domain: '9to5mac\.com'/);
   assert.match(islandDemo, /title: 'CNET', domain: 'cnet\.com'/);
   assert.match(islandDemo, /id="pressIslandPage"/);
+  assert.match(islandDemo, /press-island-connector--island/);
+  assert.match(islandDemo, /press-island-connector--session/);
+  assert.match(islandDemo, /press-island-connector--groups/);
+  assert.match(islandDemo, /press-island-connector--expanded/);
+  assert.match(islandDemo, /<aside class="press-island-callouts press-island-callouts--left"[\s\S]*?<p>Named groups<\/p>/);
+  assert.match(islandDemo, /<aside class="press-island-callouts press-island-callouts--right"[\s\S]*?<p>Open context<\/p>/);
+  assert.match(islandDemo, /<p>Open context<\/p>/);
   assert.match(islandDemo, /page: '\/shots\/desktop\/9to5mac\.jpg'/);
   assert.match(islandDemo, /page: '\/shots\/desktop\/cnet\.png'/);
   assert.match(islandDemo, /class:list=\{\['row-pin'/);
@@ -107,12 +122,47 @@ test('the public press page keeps its release links, indexability, and no-analyt
   const islandPageRule = siteStyles.match(/\.press-island-page \{([^}]*)\}/)?.[1] || '';
   assert.doesNotMatch(islandPageRule, /opacity|filter/);
   assert.match(siteStyles, /data-site="cnet\.com"[^}]*object-position: 24% top/);
+  assert.match(siteStyles, /press-island-connector--island/);
+  assert.match(siteStyles, /press-island-connector--groups \{ top: 168px; left: 0/);
+  assert.match(siteStyles, /press-island-connector--session \{ top: 194px; right: 0/);
+  assert.match(siteStyles, /press-island-callouts--left div:first-child \{ top: 20px/);
+  assert.match(siteStyles, /press-island-callouts--left div:last-child \{ top: 160px/);
+  assert.match(siteStyles, /press-island-callouts--right div:first-child \{ top: 186px/);
+  assert.match(siteStyles, /press-island-callouts--right div:last-child \{ top: 430px/);
+  const pressCaptureRenderer = fs.readFileSync(
+    path.join(ROOT, 'site/scripts/render-press-primary-capture.mjs'),
+    'utf8'
+  );
+  assert.match(pressCaptureRenderer, /\['Quiet Spaces', 'spaces\.example'\]/);
+  assert.match(pressCaptureRenderer, /firstElementChild\.textContent = 'inspiration'/);
+  assert.match(pressCaptureRenderer, /\.press-island-strip \{\s*display: none/);
+  assert.match(pressCaptureRenderer, /\.press-island-page \{\s*top: 0/);
+  assert.match(pressCaptureRenderer, /\.frame img \{[^}]*transform: scale\(1\.16\)/);
   assert.match(islandScript, /prefers-reduced-motion/);
   assert.match(page, /macOS · Windows · Linux/);
-  assert.match(page, /<h1 id="press-title">Blanc replaces the browser toolbar\.<\/h1>/);
+  assert.match(page, /macOS: DMG \+ ZIP · Windows: EXE · Linux: AppImage/);
+  assert.match(page, /<h1 id="press-title">Blanc replaces browser clutter with one small Island\.<\/h1>/);
   assert.doesNotMatch(page, /Blanc 1\.0 replaces the browser toolbar/);
   assert.match(page, /Anthony J\. Loria/);
   assert.doesNotMatch(page, /Anthony Loria/);
+  assert.match(page, /Bananify today released Blanc 1\.0, a free independent browser for macOS, Windows, and Linux/);
+  assert.match(page, /The web should feel bigger than the browser around it/);
+  assert.match(page, /Bananify founder Anthony J\. Loria created Blanc after watching the browser itself become increasingly difficult to ignore/);
+  assert.match(page, /The result is a throwback in spirit, not capability/);
+  assert.match(page, /No more crowded tab-row anxiety/);
+  assert.match(page, /no AI bot, no parade of extras, and no requirement to hand over an identity just to browse/);
+  assert.match(page, /Private tabs stay out of history and are not restored later/);
+  assert.match(page, /Excluded from history, recently closed tabs, and the next launch/);
+  assert.match(page, /Slash commands are shortcuts, not a requirement/);
+  assert.match(page, /Everything below is also available through Blanc’s visible buttons, tab controls, and menus/);
+  assert.match(page, /\/group research/);
+  assert.match(page, /\/save reading/);
+  assert.match(page, /\/allow-ads/);
+  assert.match(page, /New York · August 2, 2026/);
+  assert.match(page, /For immediate release/);
+  assert.match(page, /class="press-announcement-details"/);
+  assert.doesNotMatch(page, /Private tabs use a separate non-persistent session/);
+  assert.doesNotMatch(page, /Private tabs use a separate in-memory session/);
   assert.match(page, /PRESS_REQUEST_URL/);
   // The press page only uses native, approved press captures. Feature-page
   // compositions are retained for marketing pages, but are not editorial files.

@@ -32,17 +32,21 @@ const tabSections = [
   <aside class="press-island-callouts press-island-callouts--left" aria-label="Island details">
     <div>
       <p>One Island</p>
-      <span>Navigation, tabs, groups, and commands collapse into one compact surface.</span>
+      <span>Navigate, switch tabs, organize groups, and run commands from one compact surface.</span>
     </div>
     <div>
-      <p>Tabs become dots</p>
-      <span>The active context stays visible without carrying a permanent tab strip.</span>
+      <p>Named groups</p>
+      <span>Give related tabs a name so the task—not the tab strip—stays in focus.</span>
     </div>
   </aside>
 
   <div class="press-island-stage" tabindex="0" aria-label="Interactive recreation of the Blanc 1.0 Island. Click the Island to expand or collapse it; type in the open field to filter tabs and commands.">
     <img class="press-island-page" id="pressIslandPage" src="/shots/desktop/theverge.jpg" width="1280" height="720" alt="" aria-hidden="true" />
     <div class="press-island-strip" aria-hidden="true"></div>
+    <span class="press-island-connector press-island-connector--island" aria-hidden="true"></span>
+    <span class="press-island-connector press-island-connector--session" aria-hidden="true"></span>
+    <span class="press-island-connector press-island-connector--groups" aria-hidden="true"></span>
+    <span class="press-island-connector press-island-connector--expanded" aria-hidden="true"></span>
 
     <div class="demo-island press-island-live open" id="pressIslandLive">
       <button class="pill press-island-pill" id="pressIslandToggle" type="button" aria-expanded="true" aria-controls="pressIslandPanel">
@@ -132,12 +136,12 @@ const tabSections = [
 
   <aside class="press-island-callouts press-island-callouts--right" aria-label="More Island details">
     <div>
-      <p>Named groups</p>
-      <span>Related tabs stay together by context and remain reachable from the same surface.</span>
+      <p>Open context</p>
+      <span>Summon every open tab when you need it. Keep the rest of the window for the page.</span>
     </div>
     <div>
       <p>Expanded on demand</p>
-      <span>Click the Island to reveal the session, then type to switch tabs or run a command.</span>
+      <span>Click the Island, choose a tab, or type a command. Collapse it when you’re done.</span>
     </div>
   </aside>
 </div>

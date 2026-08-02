@@ -19,6 +19,14 @@
 - Expanded-tabs pre-fix state: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-expanded-tabs-before-fix.png`
 - Expanded-tabs refined state: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-expanded-tabs-after-fix.png`
 - Expanded-tabs before/after comparison: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-expanded-tabs-comparison.png`
+- Desktop callout source state: `/Users/anthonyjloria/Desktop/Screenshot 2026-08-02 at 12.38.28 PM.png`
+- Desktop callout implementation: `/Users/anthonyjloria/.codex/visualizations/2026/08/02/019fc113-3c4e-7ee0-afea-7e8233576373/press-callouts-implementation.png`
+- Desktop callout comparison: `/Users/anthonyjloria/.codex/visualizations/2026/08/02/019fc113-3c4e-7ee0-afea-7e8233576373/press-callouts-comparison.png`
+- Expanded-panel callout detail: `/Users/anthonyjloria/.codex/visualizations/2026/08/02/019fc113-3c4e-7ee0-afea-7e8233576373/press-callouts-expanded-focus.png`
+- Reassigned desktop callouts: `/Users/anthonyjloria/.codex/visualizations/2026/08/02/019fc113-3c4e-7ee0-afea-7e8233576373/press-callouts-reassigned.png`
+- Brand-neutral primary product capture: `/Users/anthonyjloria/Projects/Blanc Browser/site/public/press/blanc-island-product-capture-v2.png`
+- Matching brand-neutral launch card: `/Users/anthonyjloria/Projects/Blanc Browser/site/public/press/blanc-1.0-launch-card-v3.png`
+- Original editorial photograph: `/Users/anthonyjloria/Projects/Blanc Browser/site/public/press/blanc-editorial-reading-room-v1.png`
 - Route: `http://127.0.0.1:4321/press`
 - State: light theme, page top followed by the first 2,406 CSS pixels of the page.
 
@@ -31,6 +39,7 @@
 - For the shared comparison input, the source was proportionally resized from 913 to 919 pixels wide and top-aligned on a 919 × 2,406 white canvas. No implementation geometry was stretched.
 - Latest HIG legibility check: source resized to 1,159 pixels wide and cropped to the matching 1,159 × 802 top region; implementation captured at 1,159 × 802 CSS pixels. Both were placed in `design-qa-hig-comparison.jpg` without stretching.
 - Island redesign comparison: both before and after states were captured at the same 1,280 × 720 CSS-pixel viewport and appended without resizing in `press-product-island-comparison-v1.png`.
+- Callout-target comparison: the supplied desktop screenshot is 2,048 × 996 pixels. Its 1,890 × 900 browser-stage region was normalized to the 1,184 × 560 CSS-pixel implementation stage without stretching; the side-by-side comparison intentionally contrasts the reported broken state with the corrected state.
 
 ## Full-view comparison evidence
 
@@ -48,8 +57,8 @@ The combined comparison shows the selected hierarchy preserved in the implementa
 - Fonts and typography: passed after a second iteration and rechecked for the live demo. Inter Variable and JetBrains Mono are the existing site fonts and match both the editorial concept and shipping Island. The headline weight, metadata tracking, and compact uppercase labels preserve the intended hierarchy. A final computed-style audit of the product section finds zero visible text elements below 12 CSS pixels.
 - Spacing and layout rhythm: passed after one iteration. Section rules, asymmetric grids, product annotations, proof columns, comparison density, and newsroom alignment match the reference. The implementation deliberately adds vertical room below the newsroom for substantive press content.
 - Colors and visual tokens: passed. The page uses the existing Blanc white, near-black, quiet-gray, and 1px-rule token system with no gradients or invented color.
-- Image quality and asset fidelity: passed. The lead download is a real 2784 × 1824 native Blanc product capture, and the new 2400 × 1260 launch card combines the actual product UI, Blanc mark, and existing brand typography. The interactive Island uses real website captures for every displayed site, including a 2597 × 1494 crop of the supplied CNET page, plus the live publication favicons for The Verge, 9to5Mac, and CNET. The page also retains the real shipping `vertical-tabs.png` and BrandMark component. Images retain their declared dimensions and aspect ratios; no placeholder product imagery was introduced.
-- Copy and content: passed. The selected category thesis is preserved, while generated/invented details were replaced with repository-grounded facts: Anthony J. Loria, Bananify, macOS/Windows/Linux availability, DMG/NSIS/AppImage formats, built-in network blocking, private in-memory sessions, optional E2EE sync, no required account, no built-in agent, and deliberate absence of an extension marketplace.
+- Image quality and asset fidelity: passed. The lead download is a 2784 × 1824 editorial-scale recreation of the real Blanc Island over an original, brand-neutral photograph, and the matching 2400 × 1260 launch card combines that UI with the Blanc mark and existing brand typography. The interactive Island uses real website captures for every displayed site, including a 2597 × 1494 crop of the supplied CNET page, plus the live publication favicons for The Verge, 9to5Mac, and CNET. The former `vertical-tabs.png` screenshot is no longer linked from the Press page. Images retain their declared dimensions and aspect ratios; no placeholder product imagery was introduced.
+- Copy and content: passed. The selected category thesis is preserved, while generated/invented details were replaced with repository-grounded facts: Anthony J. Loria, Bananify, macOS/Windows/Linux availability, DMG + ZIP/EXE/AppImage release files, built-in network blocking, private tabs excluded from history and saved sessions, optional E2EE sync, no required account, no built-in agent, and deliberate absence of an extension marketplace.
 
 ## Interaction and browser checks
 
@@ -65,6 +74,7 @@ The combined comparison shows the selected hierarchy preserved in the implementa
 - Typing `/` renders six real command rows, typing `not` reveals Notion, and choosing that row updates the resting domain/shield before collapsing.
 - The final 1,280 × 720 Island-section audit found no broken images, no console errors, no horizontal overflow, and a 12px visible-text floor.
 - The named demo group reads “tech news,” contains The Verge, 9to5Mac, and CNET, and opens with The Verge active against the matching page capture.
+- The final desktop callout audit found no console errors or overflow. Within the 768 × 560 demo stage, the leaders terminate at the panel's left edge (74px), active-row right edge (682px at y195), `tech news` label (88px at y169), and panel's lower-right edge (694px at y439).
 
 ## Comparison history
 
@@ -98,7 +108,7 @@ The combined comparison shows the selected hierarchy preserved in the implementa
 - [P2] SHA-256 verification read like a mysterious press asset.
   - Fix: moved the manifest into a dedicated “review build verification” panel and explained it as the cryptographic fingerprint a reviewer compares against a downloaded installer.
 - [P1] Release messaging over-indexed on the direct macOS DMG and could make Blanc appear Mac-only.
-  - Fix: made `macOS · Windows · Linux` and `DMG · NSIS · AppImage` explicit in the hero, facts, launch card, and review path; the primary CTA now routes to the platform selector.
+  - Fix: made `macOS · Windows · Linux` and `DMG + ZIP · EXE · AppImage` explicit in the hero, facts, launch card, and review path; the primary CTA now routes to the platform selector.
 - Post-fix evidence: `press-assets-v2.png`, `press-verification.png`, and `press-platforms-top.png` show the revised hierarchy, plain-language verification copy, and cross-platform launch positioning without horizontal overflow at 1159 × 802.
 
 ### Iteration 4 — the Island as the product hero
@@ -160,6 +170,55 @@ The combined comparison shows the selected hierarchy preserved in the implementa
 - [P2] The first web implementation inherited fill-only SVG rendering, leaving the close action visually blank.
   - Fix: applied Blanc's rounded, current-color stroke language and the shipping 14px pin / 12px close geometry.
 - Local browser verification confirms all three controls reveal together under focus-within, the group action does not switch the active The Verge tab, and the formerly blank close glyph renders correctly.
+
+### Iteration 10 — announcement worth covering
+
+- [P1] The launch announcement was a short product rationale with no unmistakable release news, usable availability details, or memorable editorial moment.
+  - Fix: rebuilt it around a dated launch statement, a strong first-paragraph news hook, a precise explanation of the Island, and a compact reporter-ready availability, price, and publisher block.
+- [P2] The original private-browsing line overstated the implementation as a separate session.
+  - Fix: replaced it with the accurate, user-visible guarantee: private tabs stay out of history and saved sessions.
+- [P2] The founder quote repeated the page's generic contrast with agents instead of delivering a clean, publishable point of view.
+  - Fix: rewrote the quote around the product's central promise—keeping attention on the page—and attributed it to Anthony J. Loria.
+
+### Iteration 11 — founder intent
+
+- [P1] The revised announcement still described what Blanc does more clearly than why Anthony J. Loria made it.
+  - Fix: centered the section on the founding conviction that the website should be the main event, then connected the Island, absence of AI bots and chrome clutter, privacy posture, and independent model back to that idea.
+- [P2] The page risked sounding nostalgically minimalist without explaining the modern purpose of that restraint.
+  - Fix: framed Blanc as a throwback in spirit—recovering a fun, open, direct web—while naming the modern protections it retains: network-level blocking, private tabs excluded from history and saved sessions, and optional end-to-end encrypted sync.
+
+### Iteration 12 — Island-first imagery
+
+- [P2] The secondary Wikipedia shipping-build screenshot reintroduced a generic web page into a story whose primary visual should be Blanc's Island.
+  - Fix: removed the screenshot and its press download entirely; the editorial visual system now relies on the interactive Island, the high-resolution product capture, and the launch card.
+
+### Iteration 13 — callout anchors
+
+- [P1] In the supplied desktop state, the callout leaders ended at the demo frame, leaving the labels disconnected from the Island controls they described.
+  - Fix: extended each desktop leader into the stage and aligned it to a visible, semantically matching target: the expanded panel's left edge for “One Island,” the active The Verge row for “Open context,” the `tech news` label for “Named groups,” and the expanded panel's lower-right edge for “Expanded on demand.” The former “Tabs become dots” label was replaced because dot targets are intentionally not visible while the full session is expanded.
+- [P2] The callout layout could not preserve those exact spatial relationships after the single-column responsive breakpoint.
+  - Fix: kept the richer leaders desktop-only and hide them below 1101px, where the annotations become a clean stacked explanation rather than pretending to point across a reflowed layout.
+- Post-fix evidence: `press-callouts-comparison.png` contrasts the supplied broken desktop state on the left with the corrected desktop state on the right. `press-callouts-reassigned.png` confirms the final arrangement: Named Groups is on the left and terminates at the `tech news` label; Open Context is on the right and terminates at the active The Verge row. Browser geometry confirms those endpoints with no horizontal overflow.
+
+### Iteration 14 — brand-neutral press imagery
+
+- [P1] The primary product capture made GitHub's campaign, logo, and copy more visually dominant than Blanc, creating an avoidable association with one third-party website.
+  - Fix: replaced it with a 2784 × 1824 editorial capture derived from the Press demo: Blanc's expanded Island is the focal point over an original stock-style reading-room photograph with no third-party branding, text, products, or watermark.
+- [P1] The launch card reused the same GitHub-heavy capture and would have reintroduced that association elsewhere in the Press Assets section.
+  - Fix: rebuilt the 2400 × 1260 launch card around the same brand-neutral capture while preserving the Blanc mark, launch headline, date, and cross-platform line.
+- [P2] Real publication names inside the static Island would still have made the asset feel tied to particular media brands, while generic nouns without domains did not look enough like actual website tabs.
+  - Fix: the static capture now uses realistic page titles, reserved `.example` domains, favicon-style monograms, and the named group `inspiration`. The active `Quiet Spaces · spaces.example` tab plausibly owns the photograph without implying a real third-party relationship; the live demo retains real sites because its purpose is interactive product demonstration.
+- [P2] The dark-blue strip above the photograph suggested shipping browser chrome and interrupted the requested edge-to-edge editorial background.
+  - Fix: removed the strip from the static asset and extended the original photograph behind the full expanded Island panel. This is explicitly an editorial composition rather than a literal screenshot of the shipping window.
+- [P2] The launch card initially preserved the primary capture's black presentation margin inside its own image frame, creating visible letterboxing.
+  - Fix: cropped the embedded product capture proportionally inside the launch-card frame so the photograph fills it edge-to-edge without stretching the Island UI.
+- Post-fix evidence: `blanc-island-product-capture-v2.png` and `blanc-1.0-launch-card-v3.png`. Both assets retain the declared high-resolution dimensions and contain no third-party website branding.
+
+### Iteration 15 — Press Assets framing
+
+- [P2] “Show the product, not another logo wall” framed the section defensively and spent its strongest line criticizing a familiar press-kit pattern.
+  - First fix: replaced it with “The Island, ready for publication,” but that remained a brand line rather than useful newsroom guidance.
+  - Final fix: replaced it with “High-resolution Blanc imagery, ready to publish” and rewrote the supporting copy as an inventory and accuracy guarantee: expanded-Island capture, launch artwork, Blanc mark, real interface, and no third-party website branding.
 
 ## Follow-up polish
 
