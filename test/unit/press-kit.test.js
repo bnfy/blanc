@@ -25,7 +25,7 @@ test('press-kit raster assets exist at their declared editorial dimensions', () 
   );
 });
 
-test('the unlisted press page keeps its release links and discovery boundary explicit', () => {
+test('the public press page keeps its release links, indexability, and no-analytics boundary explicit', () => {
   const page = fs.readFileSync(path.join(ROOT, 'site/src/pages/press.astro'), 'utf8');
   const sitemap = fs.readFileSync(path.join(ROOT, 'site/src/pages/sitemap.xml.js'), 'utf8');
   const packageVersion = JSON.parse(
@@ -38,9 +38,12 @@ test('the unlisted press page keeps its release links and discovery boundary exp
     fs.existsSync(path.join(ROOT, `docs/press/release-notes/v${packageVersion}.md`)),
     true
   );
-  assert.match(page, /robots="noindex,nofollow,noarchive"/);
+  // /press went public for the 1.0 launch: indexable, in the sitemap, and
+  // still analytics-free (journalists are not funnel traffic).
+  assert.doesNotMatch(page, /noindex/);
   assert.match(page, /analytics=\{false\}/);
   assert.match(page, /Blanc-\$\{VERSION\}-arm64\.dmg/);
   assert.match(page, /SHA256SUMS/);
-  assert.match(sitemap, /new Set\(\['\/press'\]\)/);
+  assert.match(sitemap, /\{ path: '\/press',/);
+  assert.doesNotMatch(sitemap, /new Set\(\['\/press'\]\)/);
 });

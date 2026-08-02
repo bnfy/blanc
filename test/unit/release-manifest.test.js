@@ -95,7 +95,7 @@ test('detects checksum tampering', () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('release policy stages a draft and refuses unsigned or unexpected Windows publishers', () => {
+test('release policy stages a draft, warns on unsigned Windows builds, and verifies the publisher when one is expected', () => {
   const releaseScript = fs.readFileSync(path.join(root, 'scripts/release.sh'), 'utf8');
   const packageConfig = JSON.parse(
     fs.readFileSync(path.join(root, 'package.json'), 'utf8')
@@ -112,7 +112,14 @@ test('release policy stages a draft and refuses unsigned or unexpected Windows p
   assert.ok(releaseScript.indexOf('--draft') < releaseScript.indexOf('--draft=false'));
   assert.match(releaseScript, /verify-release-manifest\.mjs/);
   assert.match(releaseScript, /SHA256SUMS/);
-  assert.match(releaseWorkflow, /Refusing to build an unsigned press artifact/);
+  // Windows signing is opportunistic until Azure Trusted Signing is live:
+  // an unsigned build proceeds with a loud ::warning:: annotation, and the
+  // Authenticode publisher check runs only when a publisher is configured.
+  assert.match(releaseWorkflow, /::warning::No Windows signing configured/);
+  assert.match(
+    releaseWorkflow,
+    /vars\.WINDOWS_EXPECTED_PUBLISHER != '' \|\| vars\.AZURE_PUBLISHER_NAME != ''/
+  );
   assert.match(releaseWorkflow, /Unexpected Windows publisher/);
   assert.match(releaseWorkflow, /Get-AuthenticodeSignature/);
   assert.deepEqual(packageConfig.build.mac.target, ['dmg', 'zip']);
