@@ -15,7 +15,6 @@ const {
   path,                 // canonical path: '/', '/about', '/features/island', ...
   page = null,          // <body data-page>; legal pages pass nothing
   header = 'solid',     // 'island' | 'solid' | 'legal'
-  footer = 'compact',   // 'full' | 'compact'
   analytics = true,     // consent banner + site.js; false on legal pages
   social = 'standard',  // 'rich' | 'standard' | 'none'
   current = null,       // nav highlight
@@ -74,7 +73,7 @@ const ogImageUrl = SITE + ogImage;
 <body data-page={page ?? undefined}>
 <Header variant={header} current={current} />
 <slot />
-<Footer variant={footer} />
+<Footer />
 {analytics && <Consent />}
 {analytics && <script src="../scripts/site.js"></script>}
 </body>

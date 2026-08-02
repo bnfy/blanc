@@ -386,8 +386,8 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .download-detail-list p { margin: 8px 0 0; color: var(--text-dim); font-size: 14px; line-height: 1.6; }
 .download-footnote { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 48px; padding: 26px 0 0; border-top: 1px solid var(--border); color: var(--text-dim); }
 .download-footnote p { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.65; }
-.download-footnote a, .compact-footer a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
-.download-footnote a:hover, .compact-footer a:hover { color: var(--accent); border-color: var(--accent); }
+.download-footnote a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
+.download-footnote a:hover { color: var(--accent); border-color: var(--accent); }
 /* "See what changed" sits in the download-options gap, so it pulls up into
    the options' 120px bottom margin and restores the section rhythm below. */
 .download-whatsnew { margin: -96px 0 96px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
@@ -397,8 +397,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .download-note + .download-details { margin-top: 128px; }
 .download-note > p:not(.section-kicker) a { color: inherit; border-bottom: 1px solid var(--border); padding-bottom: 1px; text-decoration: none; transition: color 0.15s, border-color 0.15s; }
 .download-note > p:not(.section-kicker) a:hover { color: var(--accent); border-color: var(--accent); }
-.compact-footer { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: space-between; gap: 14px 30px; padding: 22px max(24px, calc((100vw - 1132px) / 2)); border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); opacity: 0.8; }
-.compact-footer b { color: var(--accent); font-weight: 400; }
 
 /* ---------- changelog ---------- */
 .changelog-page { max-width: 880px; margin: 0 auto; padding: 112px 24px 96px; }
@@ -506,20 +504,30 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
   .home-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0 24px; }
 }
 
-/* Two quiet lines: copyright/attribution up top, legal + social below. */
-footer { border-top: 1px solid var(--border); padding: 22px 40px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); opacity: 0.75; }
-footer .foot-copy { white-space: nowrap; }
-footer .foot-copy b { color: var(--accent); font-weight: 400; }
-footer .foot-links { display: inline-flex; align-items: center; gap: 8px; }
-footer .foot-sep { opacity: 0.5; }
-/* Text links (Bananify, Privacy, Terms) keep the hairline-underline → accent. */
-footer .foot-copy a, footer .foot-links a:not(.foot-ic) { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
-footer .foot-copy a:hover, footer .foot-links a:not(.foot-ic):hover { color: var(--accent); border-color: var(--accent); }
+/* Unified footer: a flush-left stack in the content column — identity
+   breadcrumb, nav (current page highlighted), newsletter, legal, social. */
+footer { background: var(--surface); padding: 48px max(24px, calc((100vw - 1132px) / 2)) 56px; display: flex; flex-direction: column; align-items: flex-start; gap: 13px; font-family: var(--font-ui); font-size: 12.5px; color: var(--text-dim); }
+footer .foot-brand { display: inline-flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; transition: color 0.15s; }
+footer .foot-brand:hover { color: var(--accent); }
+footer .foot-brand .foot-mark { width: 14px; height: 19px; display: block; }
+footer .foot-crumb { opacity: 0.5; }
+footer .foot-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+footer .foot-nav a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; transition: color 0.15s; }
+footer .foot-nav a:hover { color: var(--accent); }
+footer .foot-nav a[aria-current="page"] { color: var(--text); font-weight: 600; text-decoration: none; }
+footer .foot-legal { display: flex; flex-direction: column; gap: 3px; line-height: 1.4; }
+footer .foot-legal a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; transition: color 0.15s; }
+footer .foot-legal a:hover { color: var(--accent); }
 /* Social glyphs: monochrome, muted with the footer, brightening to accent. */
-footer .foot-social { display: inline-flex; align-items: center; gap: 13px; margin-left: 4px; }
+footer .foot-social { display: flex; align-items: center; gap: 24px; margin-top: 48px; }
 footer .foot-ic { display: inline-flex; color: inherit; transition: color 0.15s; }
 footer .foot-ic:hover { color: var(--accent); }
-footer .foot-ic svg { width: 14px; height: 14px; display: block; fill: currentColor; }
+footer .foot-ic svg { width: 20px; height: 20px; display: block; fill: currentColor; }
+/* Optical corrections: the stroke-drawn envelope matches Instagram's line
+   style (the global fill would paint it solid); the solid GitHub blob reads
+   heavier than the line glyphs at equal size, so it sits a hair smaller. */
+footer .foot-ic.mail svg { width: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+footer .foot-ic.gh svg { width: 19px; height: 19px; }
 /* Instagram's official glyph is drawn as hairline shapes and reads thinner
    than Threads' solid mark at the same size — add a slight stroke on top
    of the fill (path geometry untouched) so the two brand marks sit closer
@@ -528,22 +536,21 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
 
 /* Footer newsletter signup (both footer variants) — posts to the
    blanc-newsletter Worker; see site/src/components/NewsletterForm.astro. */
-.foot-news { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 10px; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
-.compact-footer .foot-news { flex-basis: 100%; justify-content: flex-start; }
+.foot-news { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 8px 10px; color: var(--text-dim); }
 .foot-news-controls { display: inline-flex; align-items: center; gap: 8px; }
 .foot-news [hidden] { display: none; }
-.foot-news input[type="email"] { width: 200px; padding: 6px 10px; font-family: var(--font-mono); font-size: 12px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color 0.15s, background 0.15s; }
+.foot-news input[type="email"] { width: 190px; padding: 6px 10px; font-family: inherit; font-size: 12.5px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); transition: border-color 0.15s, background 0.15s; }
 .foot-news input[type="email"]::placeholder { color: var(--text-dim); }
 .foot-news input[type="email"]:focus { outline: none; border-color: var(--accent); background: var(--bg); }
-.foot-news button { font-family: var(--font-mono); font-size: 12px; padding: 6px 12px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer; }
+.foot-news button { font-family: inherit; font-size: 12.5px; padding: 6px 12px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--accent); color: var(--bg); cursor: pointer; }
 .foot-news button:disabled { opacity: 0.6; cursor: default; }
 .foot-news-hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }
 .foot-news-status:empty { display: none; }
 
 @media (max-width: 480px) {
   html { scroll-padding-top: 64px; }
-  footer { padding: 20px 16px; }
-  footer .foot-copy { white-space: normal; }
+  footer { padding: 40px 18px 48px; }
+  footer .foot-social { gap: 22px; margin-top: 36px; }
   .consent {
     width: min(340px, calc(100vw - 32px));
     flex-direction: row;
@@ -596,8 +603,6 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
   .platform-label { margin-bottom: 10px; }
   .download-details { grid-template-columns: 1fr; gap: 36px; padding-bottom: 72px; }
   .download-footnote { grid-template-columns: 1fr; gap: 14px; }
-  .compact-footer { flex-direction: column; padding: 20px 18px; text-align: center; }
-  .compact-footer .foot-news { justify-content: center; }
   .feature-page { padding: 0 18px 72px; }
   .breadcrumb { padding-top: 24px; }
   .feature-hero--hub { padding: 78px 0 58px; }
@@ -687,8 +692,7 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
   .home-feature .text-link,
   .feature-row-end .text-link { margin-top: 14px; }
 
-  footer { padding: 24px 18px; line-height: 1.55; }
-  footer .foot-links { flex-wrap: wrap; justify-content: center; row-gap: 6px; }
+  footer { line-height: 1.55; }
 
   .consent {
     bottom: max(12px, env(safe-area-inset-bottom));

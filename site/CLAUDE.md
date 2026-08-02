@@ -5,10 +5,12 @@ dependency tree is untouched). Pages live in `src/pages/` (`index`, `download`,
 `features`, `about`, `privacy`, `terms`, `changelog`, and
 `features/{island,ad-blocking,private-tabs,command-palette,tab-groups,sync,security}`),
 sharing `src/layouts/BaseLayout.astro` with three explicit page profiles —
-island (index: non-solid header, full social footer, rich OG), standard (solid
-header, compact footer), legal (privacy/terms: `legal-top` header, full footer,
-**no** analytics/consent, **no** OG/Twitter meta). Don't flatten these
-differences — they're deliberate. `src/styles/site.css` is the one stylesheet
+island (index: non-solid header, rich OG), standard (solid header), legal
+(privacy/terms: `legal-top` header, **no** analytics/consent, **no**
+OG/Twitter meta). Don't flatten these differences — they're deliberate. The
+footer is one unified component on every page (flush-left stack: brand
+breadcrumb, full nav with the current page highlighted via `Astro.url`,
+newsletter, legal block, social row — email/Threads/Instagram/GitHub). `src/styles/site.css` is the one stylesheet
 (bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
 Variable"`, and this file is NOT under the root `tokens/` substrate guard).
 `src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
