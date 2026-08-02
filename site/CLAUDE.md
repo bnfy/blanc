@@ -39,6 +39,18 @@ JSON-LD `softwareVersion` imports its `version`), or the changelog generator.
 authenticated `gh`) fetches GitHub releases, scrubs the legacy "Bowser" name,
 and writes **`site/src/data/releases.json`** (committed). `src/pages/changelog.astro`
 renders it; `src/pages/changelog.xml.js` emits the RSS via `src/lib/rss.mjs`.
+Each release parses into ordered **`sections`** (`{heading, blocks}`, blocks
+being paragraphs and bullet lists) so a body renders in the order it was
+written — an intro paragraph above the bullets it introduces, each heading
+keeping its own list. Most releases are GitHub's auto-generated "What's
+Changed" notes, whose boilerplate headings are dropped and whose bullets keep
+their PR link; a hand-written body (v1.0.0 was the first) also uses `**bold**`,
+`` `code` ``, and `[text](url)`. That inline markup becomes **typed spans**
+(`text`/`strong`/`code`/`link`) that `components/ReleaseText.astro` maps onto
+real elements — never an HTML string, and never `set:html`: bullet text comes
+from contributor-supplied PR titles, so Astro's auto-escaping is what keeps
+release notes from introducing markup. Inline link hrefs are pinned to
+https/mailto. RSS flattens the same spans back to plain text.
 `npm run site:changelog` regenerates; `npm run site:changelog:check` is the
 freshness guard (release-time/manual — not in CI; needs `gh`). Never hand-edit
 `releases.json`. `release.sh` runs the regenerate step (non-fatal) but no
