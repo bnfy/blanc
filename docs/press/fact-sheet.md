@@ -19,7 +19,7 @@ extension runtime.
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Version | [1.0.0](https://github.com/bnfy/blanc/releases/tag/v1.0.0) |
+| Version | [1.0.1](https://github.com/bnfy/blanc/releases/tag/v1.0.1) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
 | Optional purchase | Blanc Supporter, US$19 one time, plus applicable taxes; unlocks three cosmetic app-icon colorways |

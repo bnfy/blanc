@@ -1,5 +1,6 @@
-const { app, dialog, BrowserWindow } = require('electron');
+const { app, dialog, BrowserWindow, webContents } = require('electron');
 const { autoUpdater } = require('electron-updater');
+const { createUpdateRestarter } = require('./update-restart');
 
 // Attach update dialogs to the browser window so they can't appear behind
 // it; fall back to an unparented dialog if no window exists.
@@ -15,6 +16,12 @@ function showDialog(options) {
 const CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000;
 
 let updateDownloaded = false;
+const restartToInstallUpdate = createUpdateRestarter({
+  app,
+  autoUpdater,
+  BrowserWindow,
+  webContents,
+});
 
 function promptRestart(info) {
   showDialog({
@@ -24,7 +31,7 @@ function promptRestart(info) {
     message: `Update ${info.version} downloaded`,
     detail: 'Restart to apply it. The update includes the latest Chromium engine.',
   }).then(({ response }) => {
-    if (response === 0) autoUpdater.quitAndInstall();
+    if (response === 0) restartToInstallUpdate();
   });
 }
 
