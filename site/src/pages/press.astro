@@ -4,7 +4,7 @@ import BrandMark from '../components/BrandMark.astro';
 import PressIslandDemo from '../components/PressIslandDemo.astro';
 import slashCommandCopy from '../../../copy/slash-commands.json';
 
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const TAG = `v${VERSION}`;
 const RELEASE_BASE = 'https://github.com/bnfy/blanc/releases';
 const RELEASE_URL = `${RELEASE_BASE}/tag/${TAG}`;
@@ -230,7 +230,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       <section class="press-fact-group" aria-labelledby="press-facts-launch">
         <h3 id="press-facts-launch">launch</h3>
         <dl class="press-fact-grid">
-          <div><dt>version</dt><dd>Blanc 1.0.0</dd></div>
+          <div><dt>version</dt><dd>Blanc {VERSION}</dd></div>
           <div><dt>released</dt><dd>August 2, 2026</dd></div>
           <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
           <div><dt>release files</dt><dd>DMG + ZIP · EXE · AppImage</dd></div>
