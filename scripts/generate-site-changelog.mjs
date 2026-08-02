@@ -11,6 +11,9 @@ const ROOT = path.resolve(path.dirname(SCRIPT_PATH), '..');
 // src/pages/changelog.astro and src/pages/changelog.xml.js render it.
 // HTML/XML escaping happens there (Astro auto-escapes; the RSS renderer in
 // site/src/lib/rss.mjs escapes itself) — this script only produces data.
+// Each release carries `sections`, an ordered structure of headings, bullet
+// lists, and paragraphs whose text is a list of typed inline spans; see
+// parseGeneratedNotes below.
 const DEFAULT_OUTPUT_DIR = path.join(ROOT, 'site', 'src', 'data');
 const REPOSITORY_URL = 'https://github.com/bnfy/blanc';
 
@@ -92,21 +95,130 @@ function fetchReleases() {
   return parseJsonDocuments(stdout).flatMap((document) => Array.isArray(document) ? document : [document]);
 }
 
+// Inline markdown a release body may use. Most releases carry GitHub's
+// auto-generated "What's Changed" notes (plain bullets), but a hand-written
+// body — v1.0.0 was the first — uses **bold**, `code`, and [text](url), which
+// must render as elements instead of showing their markup as literal text.
+//
+// Inline markup becomes *typed spans* rather than an HTML string: bullet text
+// comes from contributor-supplied PR titles, so the renderer maps each span
+// onto a real element and lets Astro escape the value. Release-note text can
+// never introduce markup of its own — see the injection test in
+// test/unit/site-changelog.test.js.
+const INLINE_MARKDOWN = /`([^`]+)`|\*\*(.+?)\*\*|\[([^\]]+)\]\(([^)\s]+)\)/g;
+
+// Inline link targets are maintainer-authored, but the scheme is still pinned
+// to https/mailto so a `javascript:`/`data:` href can never reach an anchor.
+// Legacy names are rewritten here too (the generic scrub would capitalize the
+// "bowser" inside a URL path, which is why span text and hrefs scrub apart).
+function inlineLinkUrl(value) {
+  const github = blancGithubUrl(value);
+  if (github) return github;
+  try {
+    const url = new URL(String(value).replace(/(^|\/\/|\.)getbowser\.com\b/gi, '$1blancbrowser.com'));
+    if (url.protocol === 'https:' || url.protocol === 'mailto:') return url.href;
+  } catch { /* not a URL we can vouch for */ }
+  return null;
+}
+
+function pushText(spans, value) {
+  if (!value) return;
+  const previous = spans[spans.length - 1];
+  if (previous && previous.type === 'text') previous.value += value;
+  else spans.push({ type: 'text', value });
+}
+
+function parseInline(raw) {
+  const text = String(raw);
+  const spans = [];
+  let index = 0;
+  INLINE_MARKDOWN.lastIndex = 0;
+  for (let match = INLINE_MARKDOWN.exec(text); match; match = INLINE_MARKDOWN.exec(text)) {
+    pushText(spans, scrubLegacyName(text.slice(index, match.index)));
+    const [, code, strong, linkText, linkHref] = match;
+    if (code !== undefined) spans.push({ type: 'code', value: scrubLegacyName(code) });
+    else if (strong !== undefined) spans.push({ type: 'strong', value: scrubLegacyName(strong) });
+    else {
+      const url = inlineLinkUrl(linkHref);
+      // An unvouched target keeps its label as plain prose rather than dropping
+      // the words the release actually shipped.
+      if (url) spans.push({ type: 'link', value: scrubLegacyName(linkText), url });
+      else pushText(spans, scrubLegacyName(linkText));
+    }
+    index = match.index + match[0].length;
+  }
+  pushText(spans, scrubLegacyName(text.slice(index)));
+  return spans;
+}
+
+function spansToText(spans = []) {
+  return spans.map((span) => span.value).join('');
+}
+
+// A bullet that already links to its PR wraps all of its text in that anchor,
+// so any inline link inside it would nest an <a> in an <a>. Flatten to prose.
+function withoutLinks(spans) {
+  const flattened = [];
+  for (const span of spans) {
+    if (span.type === 'link') pushText(flattened, span.value);
+    else flattened.push(span);
+  }
+  return flattened;
+}
+
+// Release bodies are parsed into ordered sections so the page can render them
+// in the order they were written: an intro paragraph belongs above the bullets
+// it introduces, not below them, and each heading keeps its own list.
 function parseGeneratedNotes(body = '') {
-  const changes = [];
-  const extraParagraphs = [];
+  const sections = [];
   let compareUrl = null;
 
-  if (!body) return { changes, compareUrl, extraParagraphs };
+  if (!body) return { compareUrl, sections };
+
+  let current = null;
+  let list = null;
+  let seenContent = false;
+
+  const openSection = () => {
+    if (!current) sections.push(current = { heading: null, blocks: [] });
+    return current;
+  };
+  const addBlock = (block) => {
+    openSection().blocks.push(block);
+    seenContent = true;
+    return block;
+  };
+  // A blank line does not end a list (markdown's own "loose list"); only a
+  // heading or a paragraph does.
+  const endList = () => { list = null; };
 
   for (const rawLine of String(body).split(/\r?\n/)) {
     const line = rawLine.trim();
-    if (!line || /^#{1,6}\s+(?:What(?:'|’)?s Changed|New Contributors)$/i.test(line)) continue;
+    if (!line) continue;
+
+    const heading = line.match(/^(#{1,6})\s+(.*)$/);
+    if (heading) {
+      endList();
+      const title = spansToText(parseInline(heading[2].trim()));
+      // GitHub's generated headings label the boilerplate below them; the list
+      // itself is the section, so the label carries nothing on this page.
+      if (/^(?:What(?:'|’)?s Changed|New Contributors)$/i.test(title)) continue;
+      // A leading H1 restates the release title, which the entry already
+      // renders as its own heading.
+      if (heading[1].length === 1 && !seenContent) continue;
+      sections.push(current = { heading: title, blocks: [] });
+      seenContent = true;
+      continue;
+    }
 
     const compare = line.match(/^\*\*Full Changelog\*\*:\s*(\S+)$/i);
     if (compare) {
+      endList();
       compareUrl = blancGithubUrl(compare[1], ['compare']);
-      if (!compareUrl) extraParagraphs.push(scrubLegacyName(line.replace(/\*\*/g, '')));
+      // An off-repo compare link is not rendered as the entry's compare action,
+      // but the line it came from is still shown.
+      if (!compareUrl) addBlock({ type: 'paragraph', spans: parseInline(line) });
+      seenContent = true;
       continue;
     }
 
@@ -114,20 +226,27 @@ function parseGeneratedNotes(body = '') {
       const bullet = line.replace(/^[-*]\s+/, '');
       const generated = bullet.match(/^(.*?)\s+by\s+@[^\s]+\s+in\s+(https:\/\/\S+)$/i);
       const contributor = bullet.match(/^(@[^\s]+) made their first contribution in (https:\/\/\S+)$/i);
+      let item;
       if (generated) {
-        changes.push({ text: scrubLegacyName(generated[1].trim()), url: blancGithubUrl(generated[2], ['pull']) });
+        item = { spans: parseInline(generated[1].trim()), url: blancGithubUrl(generated[2], ['pull']) };
       } else if (contributor) {
-        changes.push({ text: scrubLegacyName(`${contributor[1]} made their first contribution`), url: blancGithubUrl(contributor[2], ['pull']) });
+        item = { spans: parseInline(`${contributor[1]} made their first contribution`), url: blancGithubUrl(contributor[2], ['pull']) };
       } else {
-        changes.push({ text: scrubLegacyName(bullet), url: null });
+        item = { spans: parseInline(bullet), url: null };
       }
+      if (item.url) item.spans = withoutLinks(item.spans);
+      if (!list) list = addBlock({ type: 'list', items: [] });
+      list.items.push(item);
       continue;
     }
 
-    extraParagraphs.push(scrubLegacyName(line.replace(/^#{1,6}\s+/, '').replace(/\*\*/g, '')));
+    endList();
+    addBlock({ type: 'paragraph', spans: parseInline(line) });
   }
 
-  return { changes, compareUrl, extraParagraphs };
+  // A heading whose body turned out to be boilerplate would otherwise render as
+  // a label with nothing under it.
+  return { compareUrl, sections: sections.filter((section) => section.blocks.length > 0) };
 }
 
 function normalizeReleases(raw) {
@@ -241,10 +360,12 @@ export {
   fetchReleases,
   normalizeReleases,
   parseGeneratedNotes,
+  parseInline,
   parseJsonDocuments,
   renderReleasesJson,
   run,
   scrubLegacyName,
+  spansToText,
   writeOutputs,
 };
 

@@ -419,10 +419,22 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .release-body h2 a:hover { border-color: var(--accent); }
 .release-changes { margin: 14px 0 0; padding: 0 0 0 18px; }
 .release-changes li { margin: 7px 0; color: var(--text-dim); font-size: 14.5px; line-height: 1.6; overflow-wrap: anywhere; }
-.release-body > p { margin: 12px 0 0; color: var(--text-dim); font-size: 14.5px; line-height: 1.6; overflow-wrap: anywhere; }
+.release-para, .release-body .release-links { margin: 12px 0 0; color: var(--text-dim); font-size: 14.5px; line-height: 1.6; overflow-wrap: anywhere; }
 .release-body .release-links { margin-top: 16px; font-family: var(--font-mono); font-size: 12px; }
-.release-changes a, .release-links a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
-.release-changes a:hover, .release-links a:hover { color: var(--accent); border-color: var(--accent); }
+/* A hand-written release body is a run of sections — an optional label, then
+   the paragraphs and bullets written under it. The section owns the gap so the
+   blocks inside it keep their own rhythm. */
+.release-section { margin-top: 14px; }
+.release-section + .release-section { margin-top: 28px; }
+.release-section-title { margin: 0; font-family: var(--font-mono); font-size: 11px; font-weight: 400; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-dim); }
+.release-section-title + * { margin-top: 10px; }
+.release-section > :first-child { margin-top: 0; }
+/* Lead-in phrases lift out of the dim body copy so a long section stays
+   scannable; inline code matches the chip used on the feature pages. */
+.release-body strong { color: var(--text); font-weight: 500; }
+.release-body code { padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px; background: var(--surface); color: var(--text); font-family: var(--font-mono); font-size: 0.88em; }
+.release-changes a, .release-para a, .release-links a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border); padding-bottom: 1px; transition: color 0.15s, border-color 0.15s; }
+.release-changes a:hover, .release-para a:hover, .release-links a:hover { color: var(--accent); border-color: var(--accent); }
 @media (max-width: 640px) {
   .changelog-page { padding: 78px 18px 68px; }
   .changelog-hero { margin-bottom: 52px; }

@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ReleaseText from '../components/ReleaseText.astro';
 import releases from '../data/releases.json';
 ---
 <BaseLayout
@@ -28,14 +29,22 @@ import releases from '../data/releases.json';
         <div class="release-meta"><time datetime={release.machineDate}>{release.humanDate}</time></div>
         <div class="release-body">
           <h2><a href={'#' + release.anchor}>Blanc {release.version}</a></h2>
-          {release.changes.length > 0 && (
-            <ul class="release-changes">
-              {release.changes.map((change) => (
-                <li>{change.url ? <a href={change.url} target="_blank" rel="noopener">{change.text}</a> : change.text}</li>
+          {release.sections.map((section) => (
+            <div class="release-section">
+              {section.heading && <h3 class="release-section-title">{section.heading}</h3>}
+              {section.blocks.map((block) => (
+                block.type === 'list' ? (
+                  <ul class="release-changes">
+                    {block.items.map((item) => (
+                      <li>{item.url
+                        ? <a href={item.url} target="_blank" rel="noopener"><ReleaseText spans={item.spans} /></a>
+                        : <ReleaseText spans={item.spans} />}</li>
+                    ))}
+                  </ul>
+                ) : <p class="release-para"><ReleaseText spans={block.spans} /></p>
               ))}
-            </ul>
-          )}
-          {release.extraParagraphs.map((paragraph) => <p>{paragraph}</p>)}
+            </div>
+          ))}
           <p class="release-links">{release.compareUrl && <><a href={release.compareUrl} target="_blank" rel="noopener">full changelog</a><span aria-hidden="true"> · </span></>}<a href={release.url} target="_blank" rel="noopener">GitHub release</a></p>
         </div>
       </article>

@@ -14,13 +14,29 @@ export function escapeXml(value) {
     .replaceAll("'", '&apos;');
 }
 
+// Feed readers get plain text, so the release's ordered sections flatten back
+// to one line per heading, bullet, and paragraph — inline spans concatenate to
+// the words they carry, dropping only the markup around them.
+export function summarize(release) {
+  const lines = [];
+  for (const section of release.sections || []) {
+    if (section.heading) lines.push(section.heading);
+    for (const block of section.blocks) {
+      if (block.type === 'list') for (const item of block.items) lines.push(spansToText(item.spans));
+      else lines.push(spansToText(block.spans));
+    }
+  }
+  return lines.join('\n');
+}
+
+function spansToText(spans = []) {
+  return spans.map((span) => span.value).join('');
+}
+
 export function renderRss(releases) {
   const newest = releases[0]?.publishedAt;
   const items = releases.slice(0, 20).map((release) => {
-    const summary = [
-      ...release.changes.map((change) => change.text),
-      ...release.extraParagraphs,
-    ].join('\n');
+    const summary = summarize(release);
     return `    <item>
       <title>${escapeXml(`Blanc ${release.version}`)}</title>
       <link>${escapeXml(release.url)}</link>
