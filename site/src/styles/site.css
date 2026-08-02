@@ -878,24 +878,43 @@ body[data-page="press"] > .legal-top { display: none; }
 .press-island-live .field input::placeholder { color: var(--text-dim); }
 .press-island-live .abtn { width: 28px; height: 28px; }
 .press-island-live .list { margin-top: 6px; }
-.press-island-live .trow { width: 100%; min-height: 32px; padding: 7px 10px; gap: 10px; color: var(--text); background: transparent; text-align: left; border: 0; border-radius: var(--radius); font-size: 13px; font-weight: 400; }
+.press-island-live .trow { width: 100%; min-height: 32px; padding: 7px 10px; gap: 10px; color: var(--text); background: transparent; text-align: left; border: 0; border-radius: var(--radius); font-size: 13px; font-weight: 400; cursor: pointer; transition: background 120ms ease, opacity 120ms ease, transform 120ms ease; }
 .press-island-live .trow:hover,
-.press-island-live .trow:focus-visible { background: var(--surface); outline: none; }
+.press-island-live .trow:focus-within { background: var(--surface); outline: none; }
 .press-island-live .trow.hl { background: var(--accent-dim); }
 .press-island-live .trow[hidden] { display: none; }
+.press-island-live .trow.is-closing { opacity: 0; transform: translateX(6px); pointer-events: none; }
 .press-island-live .trow .fav { width: 14px; height: 14px; border-radius: 2px; }
-.press-island-live .trow[data-domain] .dom,
-.press-island-live .trow[data-domain] .tag { opacity: 0; transition: opacity 120ms ease; }
+.press-island-live .trow .title { -webkit-mask: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.press-island-live .trow[data-domain] .dom { opacity: 0; transition: opacity 120ms ease; }
 .press-island-live .trow[data-domain]:hover .dom,
-.press-island-live .trow[data-domain]:focus-visible .dom,
-.press-island-live .trow[data-domain]:hover .tag,
-.press-island-live .trow[data-domain]:focus-visible .tag,
-.press-island-live .trow[data-domain].hl .dom,
-.press-island-live .trow[data-domain].hl .tag { opacity: 1; }
+.press-island-live .trow[data-domain]:focus-within .dom,
+.press-island-live .trow[data-domain].hl .dom { opacity: 1; }
+.press-island-live .row-pin,
+.press-island-live .row-close { width: 18px; height: 18px; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; color: var(--text-dim); background: transparent; border: 0; border-radius: 50%; opacity: 0; cursor: pointer; transition: opacity 120ms ease, color 120ms ease, background 120ms ease; }
+.press-island-live .row-pin svg,
+.press-island-live .row-close svg { display: block; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+.press-island-live .row-pin svg { width: 14px; height: 14px; stroke-width: 1.25; }
+.press-island-live .row-close svg { width: 12px; height: 12px; stroke-width: 1.75; }
+.press-island-live .row-grp { height: 18px; padding: 0 7px; flex: 0 0 auto; color: var(--text-dim); background: transparent; border: 1px solid var(--border); border-radius: 999px; font-family: var(--font-mono); font-size: 10px; opacity: 0; cursor: pointer; transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease; }
+.press-island-live .trow:hover .row-pin,
+.press-island-live .trow:hover .row-close,
+.press-island-live .trow:hover .row-grp,
+.press-island-live .trow:focus-within .row-pin,
+.press-island-live .trow:focus-within .row-close,
+.press-island-live .trow:focus-within .row-grp,
+.press-island-live .row-pin:focus-visible,
+.press-island-live .row-close:focus-visible,
+.press-island-live .row-grp:focus-visible,
+.press-island-live .row-grp.open { opacity: 1; }
+.press-island-live .row-pin:hover,
+.press-island-live .row-close:hover { color: var(--text); background: var(--border); }
+.press-island-live .row-grp:hover,
+.press-island-live .row-grp.open { color: var(--accent); border-color: var(--accent); }
+.press-island-live .row-pin.on { color: var(--accent); background: var(--accent-dim); }
 .press-island-live .sec-head,
 .press-island-live .group-name,
 .press-island-live .trow .dom,
-.press-island-live .trow .tag,
 .press-island-live .trow .kbd,
 .press-island-live .trow .enter,
 .press-island-live .foot,

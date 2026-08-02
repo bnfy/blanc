@@ -9,11 +9,12 @@
   const list = document.getElementById('pressIslandList');
   const domain = document.getElementById('pressIslandDomain');
   const shield = document.getElementById('pressIslandShield');
+  const hint = document.getElementById('pressIslandHint');
   const favicon = toggle?.querySelector('.pill-fav');
   const groupName = toggle?.querySelector('.group-name');
   const page = document.getElementById('pressIslandPage');
 
-  if (!demo || !island || !toggle || !state || !stateLabel || !input || !list || !domain || !shield || !favicon || !groupName || !page) return;
+  if (!demo || !island || !toggle || !state || !stateLabel || !input || !list || !domain || !shield || !hint || !favicon || !groupName || !page) return;
 
   const originalMarkup = list.innerHTML;
   const commands = [
@@ -47,13 +48,8 @@
     list.querySelectorAll('[data-domain]').forEach((row) => {
       const active = row.dataset.domain === selectedDomain;
       row.classList.toggle('hl', active);
-      row.querySelector('.tag')?.remove();
-      if (active) {
-        const tag = document.createElement('span');
-        tag.className = 'tag';
-        tag.textContent = 'active';
-        row.append(tag);
-      }
+      if (active) row.setAttribute('aria-current', 'page');
+      else row.removeAttribute('aria-current');
     });
   }
 
@@ -106,7 +102,42 @@
   }
 
   function bindRows() {
-    list.querySelectorAll('[data-domain]').forEach((row) => row.addEventListener('click', () => chooseRow(row)));
+    list.querySelectorAll('[data-domain]').forEach((row) => {
+      row.addEventListener('click', () => chooseRow(row));
+      row.addEventListener('keydown', (event) => {
+        if (event.target !== row || !['Enter', ' '].includes(event.key)) return;
+        event.preventDefault();
+        chooseRow(row);
+      });
+
+      const pin = row.querySelector('.row-pin');
+      pin?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const pinned = !pin.classList.contains('on');
+        pin.classList.toggle('on', pinned);
+        pin.setAttribute('aria-pressed', String(pinned));
+        pin.setAttribute('aria-label', pinned ? 'Unpin tab' : 'Pin tab');
+        pin.title = pinned ? 'Unpin tab' : 'Pin tab';
+        hint.textContent = pinned ? `${row.dataset.title} pinned` : `${row.dataset.title} unpinned`;
+      });
+
+      const group = row.querySelector('.row-grp');
+      group?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        group.classList.toggle('open');
+        group.setAttribute('aria-expanded', String(group.classList.contains('open')));
+        hint.textContent = group.classList.contains('open')
+          ? `move ${row.dataset.title} to another group`
+          : 'esc to dismiss · type / for commands · choose a row to switch';
+      });
+
+      row.querySelector('.row-close')?.addEventListener('click', (event) => {
+        event.stopPropagation();
+        row.classList.add('is-closing');
+        hint.textContent = `${row.dataset.title} closed`;
+        window.setTimeout(() => { row.hidden = true; }, 120);
+      });
+    });
   }
 
   function preloadPages() {

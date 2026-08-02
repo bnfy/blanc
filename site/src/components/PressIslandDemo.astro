@@ -1,3 +1,33 @@
+---
+const tabSections = [
+  {
+    name: 'pinned',
+    showCount: false,
+    tabs: [
+      { title: 'Gmail', domain: 'mail.google.com', favicon: 'gmail.com', shield: 2, group: '', page: '/shots/desktop/gmail.jpg', pinned: true },
+      { title: 'Notion', domain: 'notion.so', favicon: 'notion.so', shield: 1, group: '', page: '/shots/desktop/notion.jpg', pinned: true },
+    ],
+  },
+  {
+    name: 'tech news',
+    showCount: true,
+    tabs: [
+      { title: 'The Verge', domain: 'theverge.com', favicon: 'theverge.com', shield: 12, group: 'tech news', page: '/shots/desktop/theverge.jpg', active: true },
+      { title: '9to5Mac', domain: '9to5mac.com', favicon: '9to5mac.com', shield: 8, group: 'tech news', page: '/shots/desktop/9to5mac.jpg' },
+      { title: 'CNET', domain: 'cnet.com', favicon: 'cnet.com', shield: 15, group: 'tech news', page: '/shots/desktop/cnet.png' },
+    ],
+  },
+  {
+    name: 'research',
+    showCount: true,
+    tabs: [
+      { title: 'MDN Web Docs', domain: 'developer.mozilla.org', favicon: 'developer.mozilla.org', shield: 4, group: 'research', page: '/shots/desktop/mdn.jpg' },
+      { title: 'Hacker News', domain: 'news.ycombinator.com', favicon: 'news.ycombinator.com', shield: 3, group: 'research', page: '/shots/desktop/hacker-news.jpg' },
+    ],
+  },
+];
+---
+
 <div class="press-island-demonstration" id="pressIslandDemo" data-open="true">
   <aside class="press-island-callouts press-island-callouts--left" aria-label="Island details">
     <div>
@@ -48,16 +78,37 @@
         </div>
 
         <div class="list press-island-list" id="pressIslandList">
-          <div class="sec-head"><span>pinned</span><span class="rule"></span></div>
-          <button class="trow" type="button" data-title="Gmail" data-domain="mail.google.com" data-favicon="gmail.com" data-shield="2" data-group="" data-page="/shots/desktop/gmail.jpg"><span class="fav" style="background-image:url('/favicons/gmail.com.ico')"></span><span class="title">Gmail</span><span class="dom">mail.google.com</span></button>
-          <button class="trow" type="button" data-title="Notion" data-domain="notion.so" data-favicon="notion.so" data-shield="1" data-group="" data-page="/shots/desktop/notion.jpg"><span class="fav" style="background-image:url('/favicons/notion.so.ico')"></span><span class="title">Notion</span><span class="dom">notion.so</span></button>
-          <div class="sec-head"><span>tech news</span><span class="rule"></span><span class="count">3</span></div>
-          <button class="trow hl" type="button" data-title="The Verge" data-domain="theverge.com" data-favicon="theverge.com" data-shield="12" data-group="tech news" data-page="/shots/desktop/theverge.jpg"><span class="fav" style="background-image:url('/favicons/theverge.com.ico')"></span><span class="title">The Verge</span><span class="dom">theverge.com</span><span class="tag">active</span></button>
-          <button class="trow" type="button" data-title="9to5Mac" data-domain="9to5mac.com" data-favicon="9to5mac.com" data-shield="8" data-group="tech news" data-page="/shots/desktop/9to5mac.jpg"><span class="fav" style="background-image:url('/favicons/9to5mac.com.ico')"></span><span class="title">9to5Mac</span><span class="dom">9to5mac.com</span></button>
-          <button class="trow" type="button" data-title="CNET" data-domain="cnet.com" data-favicon="cnet.com" data-shield="15" data-group="tech news" data-page="/shots/desktop/cnet.png"><span class="fav" style="background-image:url('/favicons/cnet.com.ico')"></span><span class="title">CNET</span><span class="dom">cnet.com</span></button>
-          <div class="sec-head"><span>research</span><span class="rule"></span><span class="count">2</span></div>
-          <button class="trow" type="button" data-title="MDN Web Docs" data-domain="developer.mozilla.org" data-favicon="developer.mozilla.org" data-shield="4" data-group="research" data-page="/shots/desktop/mdn.jpg"><span class="fav" style="background-image:url('/favicons/developer.mozilla.org.ico')"></span><span class="title">MDN Web Docs</span><span class="dom">developer.mozilla.org</span></button>
-          <button class="trow" type="button" data-title="Hacker News" data-domain="news.ycombinator.com" data-favicon="news.ycombinator.com" data-shield="3" data-group="research" data-page="/shots/desktop/hacker-news.jpg"><span class="fav" style="background-image:url('/favicons/news.ycombinator.com.ico')"></span><span class="title">Hacker News</span><span class="dom">news.ycombinator.com</span></button>
+          {tabSections.map((section) => (
+            <>
+              <div class="sec-head"><span>{section.name}</span><span class="rule"></span>{section.showCount && <span class="count">{section.tabs.length}</span>}</div>
+              {section.tabs.map((tab) => (
+                <div
+                  class:list={['trow', { hl: tab.active }]}
+                  role="button"
+                  tabindex="0"
+                  aria-current={tab.active ? 'page' : undefined}
+                  data-title={tab.title}
+                  data-domain={tab.domain}
+                  data-favicon={tab.favicon}
+                  data-shield={tab.shield}
+                  data-group={tab.group}
+                  data-page={tab.page}
+                  data-pinned={String(Boolean(tab.pinned))}
+                >
+                  <span class="fav" style={`background-image:url('/favicons/${tab.favicon}.ico')`}></span>
+                  <span class="title">{tab.title}</span>
+                  <span class="dom">{tab.domain}</span>
+                  <button class:list={['row-pin', { on: tab.pinned }]} type="button" aria-label={tab.pinned ? 'Unpin tab' : 'Pin tab'} aria-pressed={String(Boolean(tab.pinned))} title={tab.pinned ? 'Unpin tab' : 'Pin tab'}>
+                    <svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z" /><path d="M8 11v3" /></svg>
+                  </button>
+                  <button class="row-grp" type="button" aria-label="Move to group" title="Move to group">{tab.group || 'group'}</button>
+                  <button class="row-close" type="button" aria-label="Close tab" title="Close tab">
+                    <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5" /></svg>
+                  </button>
+                </div>
+              ))}
+            </>
+          ))}
         </div>
 
         <div class="foot-bar">

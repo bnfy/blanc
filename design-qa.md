@@ -151,6 +151,16 @@ The combined comparison shows the selected hierarchy preserved in the implementa
   - Fix: added a CNET-specific 24% horizontal page position so the full wordmark and “Best” rail remain visible while the capture continues to fill the tab surface.
 - The final asset is a lossless 2597 × 1494 PNG. Collapsed and expanded browser checks confirm the real CNET page renders at native color, the CNET row remains active after reopening, and there are no broken images or horizontal overflow.
 
+### Iteration 9 — shipping tab-row actions
+
+- [P1] The enlarged Island omitted the shipping row's hover actions, so the tab list communicated switching but not Blanc's direct tab management model.
+  - Fix: every tab row now reserves and reveals the same pin, group, and close controls on hover or keyboard focus; clicks perform their demonstrated action without accidentally switching tabs.
+- [P2] A demo-only “active” badge and persistent secondary metadata made the rows noisier than the shipping overlay.
+  - Fix: removed the badge, retained the active-row tint and domain, and matched the production title fade plus quiet metadata reveal.
+- [P2] The first web implementation inherited fill-only SVG rendering, leaving the close action visually blank.
+  - Fix: applied Blanc's rounded, current-color stroke language and the shipping 14px pin / 12px close geometry.
+- Local browser verification confirms all three controls reveal together under focus-within, the group action does not switch the active The Verge tab, and the formerly blank close glyph renders correctly.
+
 ## Follow-up polish
 
 - [P3] The proof strip uses restrained numeric indices instead of the mockup’s illustrative icons. This is intentional: the existing site has no matching icon family, and numeric editorial markers preserve the hierarchy without introducing fabricated assets.
