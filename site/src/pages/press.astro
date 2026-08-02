@@ -177,11 +177,11 @@ const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
   <aside class="press-limits" aria-labelledby="press-limits-title">
     <p class="section-kicker">the honest part</p>
     <h2 id="press-limits-title">What Blanc 1.0 does not claim.</h2>
-    <div class="press-limit-grid">
-      <p><strong>No extensions or password import.</strong> The extension runtime was deliberately removed after native crashes and could not make allowlisted password-manager bridges work.</p>
-      <p><strong>No zero-telemetry slogan.</strong> First run commits the documented search-suggestion and usage-ping choices before either path may send.</p>
-      <p><strong>No universal launch matrix.</strong> 1.0 is Apple Silicon only. Other targets remain out until their exact native packages pass the same gate.</p>
-      <p><strong>No “blocks everything” promise.</strong> Blocking is integrated and on by default, but filters remain best effort.</p>
+    <div class=”press-limit-grid”>
+      <p><strong>No extensions.</strong> No 1Password, no uBlock Origin, no Grammarly. The extension runtime was removed after stability issues, and there is no plan to bring it back.</p>
+      <p><strong>Mac only.</strong> 1.0 ships for Apple Silicon Macs. Windows and Linux installers exist but are not yet code-signed, so the OS warns on install.</p>
+      <p><strong>One person.</strong> Blanc is built and maintained by one developer. That is the product's identity, but it is also a sustainability question worth asking.</p>
+      <p><strong>No password manager integration.</strong> Without extensions, third-party password managers cannot connect. Blanc supports Touch ID passkeys through macOS, not stored passwords from another app.</p>
     </div>
   </aside>
 
