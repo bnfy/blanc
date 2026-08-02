@@ -139,6 +139,15 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(pressCaptureRenderer, /\.press-island-page \{\s*top: 0/);
   assert.match(pressCaptureRenderer, /\.frame img \{[^}]*transform: scale\(1\.16\)/);
   assert.match(islandScript, /prefers-reduced-motion/);
+  assert.match(islandScript, /IntersectionObserver/);
+  assert.match(islandScript, /press-reveal/);
+  assert.match(siteStyles, /@keyframes press-hero-enter/);
+  assert.match(siteStyles, /\.press-motion-ready \.press-reveal\.is-visible/);
+  assert.match(siteStyles, /\.press-compare-table tbody tr:hover/);
+  assert.match(page, /<td data-label="Traditional browser">/);
+  assert.match(page, /<td data-label="Blanc 1\.0">/);
+  assert.match(siteStyles, /\.press-compare-table tbody td::before/);
+  assert.match(siteStyles, /\.press-primary-asset > a:hover img/);
   assert.match(page, /macOS · Windows · Linux/);
   assert.match(page, /macOS: DMG \+ ZIP · Windows: EXE · Linux: AppImage/);
   assert.match(page, /<h1 id="press-title">Blanc replaces browser clutter with one small Island\.<\/h1>/);
@@ -155,6 +164,10 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(page, /Excluded from history, recently closed tabs, and the next launch/);
   assert.match(page, /Slash commands are shortcuts, not a requirement/);
   assert.match(page, /Everything below is also available through Blanc’s visible buttons, tab controls, and menus/);
+  assert.match(page, /import slashCommandCopy from '\.\.\/\.\.\/\.\.\/copy\/slash-commands\.json'/);
+  assert.match(page, /const slashCommands = slashCommandCopy\.commands\.map/);
+  assert.match(page, /<details class="press-command-directory">/);
+  assert.doesNotMatch(page, /<details class="press-command-directory" open/);
   assert.match(page, /\/group research/);
   assert.match(page, /\/save reading/);
   assert.match(page, /\/allow-ads/);

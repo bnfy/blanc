@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import PressIslandDemo from '../components/PressIslandDemo.astro';
+import slashCommandCopy from '../../../copy/slash-commands.json';
 
 const VERSION = '1.0.0';
 const TAG = `v${VERSION}`;
@@ -42,6 +43,8 @@ const comparison = [
   ['Ad and tracker protection', 'Often added by extension', 'Not usually the focus', 'Built into the network layer'],
   ['Default experience', 'Controls surround the page', 'An agent joins the task', 'The website stays center stage'],
 ];
+
+const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entry);
 ---
 <BaseLayout
   title="Blanc Press Kit — Independent Browser Launch"
@@ -125,9 +128,9 @@ const comparison = [
           {comparison.map(([dimension, traditional, agent, blanc]) => (
             <tr>
               <th scope="row">{dimension}</th>
-              <td>{traditional}</td>
-              <td>{agent}</td>
-              <td>{blanc}</td>
+              <td data-label="Traditional browser">{traditional}</td>
+              <td data-label="Agent browser">{agent}</td>
+              <td data-label="Blanc 1.0">{blanc}</td>
             </tr>
           ))}
         </tbody>
@@ -267,7 +270,26 @@ const comparison = [
       <p>Everything below is also available through Blanc’s visible buttons, tab controls, and menus. Commands simply give keyboard-oriented users a faster route.</p>
     </div>
     <ol class="press-review-steps">
-      <li><span>01</span><p><strong>Start with a slash.</strong> Press Command-L and type <code>/</code> to open Blanc’s command list. Keep typing to filter it, then press Return to run one.</p></li>
+      <li>
+        <span>01</span>
+        <div class="press-review-step-body">
+          <p><strong>Start with a slash.</strong> Press Command-L and type <code>/</code> to open Blanc’s command list. Keep typing to filter it, then press Return to run one.</p>
+          <details class="press-command-directory">
+            <summary>
+              <span>See all {slashCommands.length} slash commands</span>
+              <span class="press-command-directory-icon" aria-hidden="true">+</span>
+            </summary>
+            <dl>
+              {slashCommands.map((entry) => (
+                <div>
+                  <dt><code>{entry.command}</code></dt>
+                  <dd>{entry.hint}</dd>
+                </div>
+              ))}
+            </dl>
+          </details>
+        </div>
+      </li>
       <li><span>02</span><p><strong>Organize a real project.</strong> Open a few related tabs and type <code>/group research</code>. Use <code>/pin</code> for a tab you need nearby, <code>/ungroup</code> to pull one out, or <code>/close-group</code> when the task is finished.</p></li>
       <li><span>03</span><p><strong>Handle everyday browsing.</strong> Try <code>/new</code>, <code>/private</code>, and <code>/find</code>. Type <code>/save reading</code> to add the current page to a Favorites folder named “reading.”</p></li>
       <li><span>04</span><p><strong>Control Blanc without menu hunting.</strong> Use <code>/block-ads</code> to toggle blocking, <code>/allow-ads</code> to exempt the current site, <code>/theme dark</code> to change appearance, and <code>/settings</code> to see every device-level choice.</p></li>

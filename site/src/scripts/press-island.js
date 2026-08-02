@@ -196,3 +196,57 @@
     }, 1400);
   }
 })();
+
+(function setupPressMotion() {
+  const page = document.querySelector('.press-page');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (!page || reduceMotion.matches || !('IntersectionObserver' in window)) return;
+
+  const targets = Array.from(page.querySelectorAll([
+    '.press-product-heading',
+    '.press-proof article',
+    '.press-compare-heading',
+    '.press-compare-table-wrap',
+    '.press-compare-note',
+    '.press-newsroom-heading',
+    '.press-primary-asset',
+    '.press-secondary-assets',
+    '.press-build-verification',
+    '.press-assets-contact',
+    '.press-announcement-intro',
+    '.press-announcement-copy',
+    '.press-facts > *',
+    '.press-review > *',
+    '.press-boundaries > *',
+    '.press-contact',
+  ].join(',')));
+
+  if (!targets.length) return;
+
+  const viewportCutoff = window.innerHeight * 0.92;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    });
+  }, {
+    rootMargin: '0px 0px -10% 0px',
+    threshold: 0.08,
+  });
+
+  targets.forEach((target, index) => {
+    target.classList.add('press-reveal');
+    target.style.setProperty('--press-reveal-delay', `${(index % 2) * 65}ms`);
+
+    if (target.getBoundingClientRect().top <= viewportCutoff) {
+      target.classList.add('is-visible');
+      return;
+    }
+
+    observer.observe(target);
+  });
+
+  document.documentElement.classList.add('press-motion-ready');
+})();
