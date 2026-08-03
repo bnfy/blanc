@@ -7,8 +7,9 @@
 // ID provisioning profile that authorizes it (build/embedded.provisionprofile,
 // wired via build.mac.provisioningProfile). Main app only: helpers can't
 // carry a profile, so the inherit entitlements must never list the group.
+const { APP_ID: BUNDLE_ID } = require('./app-identity');
+
 const APPLE_TEAM_ID = 'XYGUCY4498';
-const BUNDLE_ID = 'me.bnfy.bowser';
 const WEBAUTHN_KEYCHAIN_ACCESS_GROUP = `${APPLE_TEAM_ID}.${BUNDLE_ID}`;
 
 function accountLabel(account, index) {

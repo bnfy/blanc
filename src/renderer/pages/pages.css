@@ -319,8 +319,8 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
   border-radius: 0;
 }
 .icon-swatch:hover { border: none; }
-/* The PNGs bake the native macOS icon shape (rounded tile + transparent
-   margins), so the swatch draws no box of its own — just a selection ring. */
+/* The previews bake the rounded tile + transparent margins, so the swatch
+   draws no box of its own — just a selection ring. */
 .icon-swatch img {
   width: 58px;
   height: 58px;

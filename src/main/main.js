@@ -40,7 +40,11 @@ const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
 const { setupWebAuthn } = require('./webauthn');
 const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
-const { applyDockAppIcon } = require('./app-icon');
+const {
+  applyDockAppIcon,
+  setWindowsAppUserModelId,
+  windowsDevelopmentIconPath,
+} = require('./app-icon');
 const { createSearchSuggestionService } = require('./search-suggestions');
 const { createAdblockStartupController } = require('./adblock-startup');
 const {
@@ -82,6 +86,10 @@ const packagedAdblockTestFetch = (...args) => {
   }
   return fetch(...args);
 };
+
+// A Windows taskbar button must inherit the same stable identity as the
+// installed shortcut before any BrowserWindow exists.
+setWindowsAppUserModelId({ app });
 
 // Dev runs (`npm start`) get their own userData so a dev instance never
 // shares — and corrupts — the installed app's profile: two Chromium
@@ -530,9 +538,8 @@ function handleNativeThemeUpdated() {
   refreshActivePageTintForThemeChange();
 }
 
-// Swap the macOS Dock icon to the chosen colorway. Packaged macOS 26+ builds
-// use a named Icon Composer stack, leaving Default/Dark/Clear/Tinted rendering
-// (and tint color) to macOS. Dev/older systems retain the flat PNG fallback.
+// Swap the chosen macOS Dock icon. Windows deliberately has one fixed icon,
+// embedded into Blanc.exe by electron-builder.
 function applyAppIcon() {
   // getSettings() already falls back an unauthorized/stale supporter icon
   // (hand-edited or copied settings.json) to the default — nothing further
@@ -2689,6 +2696,10 @@ function buildMenu() {
 }
 
 function createMainWindow() {
+  // Packaged Windows builds inherit the multi-resolution icon embedded in
+  // Blanc.exe. Unpackaged development needs the same icon supplied explicitly
+  // because its executable is Electron.exe.
+  const windowIcon = windowsDevelopmentIconPath({ app });
   win = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -2697,6 +2708,7 @@ function createMainWindow() {
     backgroundColor: chromeBackgroundColor(),
     frame: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    ...(windowIcon ? { icon: windowIcon } : {}),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

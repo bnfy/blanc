@@ -50,6 +50,9 @@ jobs:
             exit 1
           }
 
+      - name: Verify Windows app icons
+        run: npm run icons:windows:check
+
       - name: Build Windows installer
         shell: bash
         env:

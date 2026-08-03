@@ -172,7 +172,7 @@
     applyDefaultBrowser(await window.bowserPages.defaultBrowser.get());
   }
 
-  // --- App icon colorways (Dock icon is macOS-only) ---
+  // --- App icon colorways (macOS Dock only) ---
   // These four bindings stay in IIFE scope unconditionally because the Supporter
   // section below reads `supporterActive` and calls `renderAppIconGrid`. The
   // function/const definitions are inert until called; only the executable tail
@@ -246,9 +246,13 @@
     iconNext.disabled = appIconGrid.scrollLeft >= max - 1;
   }
 
-  if (!supports('appIcon') || !navigator.platform.startsWith('Mac')) {
+  const appIconPlatform = navigator.platform;
+  const supportsNativeAppIcon = appIconPlatform.startsWith('Mac');
+  if (!supports('appIcon') || !supportsNativeAppIcon) {
     appIconSetting.remove();
   } else {
+    document.getElementById('appIconHint').textContent =
+      'Follows macOS Icon & Widget Style; Finder keeps Paper';
     iconPrev.addEventListener('click', () =>
       appIconGrid.scrollBy({ left: -CARET_SCROLL_STEP, behavior: 'smooth' }));
     iconNext.addEventListener('click', () =>
@@ -259,7 +263,7 @@
   }
 
   // --- Supporter activation ---
-  if (supports('supporter')) {
+  if (supports('supporter') && supportsNativeAppIcon) {
     const supporterActivateRow = document.getElementById('supporterActivateRow');
     const supporterKey = document.getElementById('supporterKey');
     const supporterActivateBtn = document.getElementById('supporterActivate');
