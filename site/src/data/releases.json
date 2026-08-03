@@ -1,5 +1,224 @@
 [
   {
+    "tag": "v1.0.2",
+    "version": "1.0.2",
+    "name": "1.0.2",
+    "publishedAt": "2026-08-03T15:13:39.000Z",
+    "humanDate": "August 3, 2026",
+    "machineDate": "2026-08-03",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.0.2",
+    "anchor": "v1-0-2",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Blanc 1.0.2 improves the native Windows and Linux chrome and corrects the"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "optical size of Blanc's Windows taskbar icon."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Windows icon",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Windows now uses one fixed Paper icon instead of exposing the macOS icon"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "colorways in Settings."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Windows icon is generated as a native nine-frame ICO from 16 through 256"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "pixels, with the macOS-style transparent margin removed and the Blanc mark"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "enlarged for better visual parity with other Windows taskbar icons."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "macOS keeps its existing selectable icon colorways, including the supporter"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "colorways."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Windows and Linux chrome",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The native application menu has a dedicated upper-left hamburger button that"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "stays legible over light and dark web pages."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Alt+F"
+                  },
+                  {
+                    "type": "text",
+                    "value": " opens the same native menu regardless of which Blanc surface has"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "focus."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "About Blanc"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is now available from the native application menu."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Release integrity",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "The macOS, Windows, and Linux applications are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.0.2"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.0.1",
     "version": "1.0.1",
     "name": "1.0.1",
