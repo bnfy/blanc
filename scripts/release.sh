@@ -227,6 +227,13 @@ BLANC_STABLE_EXECUTABLE="$MIGRATION_DIR/stable/Blanc.app/Contents/MacOS/Blanc" \
 rm -rf "$MIGRATION_DIR"
 trap - EXIT
 
+# A draft release's requested tag is not exposed as a Git ref. Publish the
+# immutable source tag first so native workflow runners can check out the
+# exact commit while every release asset remains private in the draft.
+echo "==> Publishing immutable source tag for native builders"
+git tag "$TAG" "$LOCAL_HEAD"
+git push origin "refs/tags/$TAG"
+
 CREATE_ARGS=(
   release create "$TAG"
   "${MAC_ASSETS[@]}"

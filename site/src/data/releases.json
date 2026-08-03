@@ -1,5 +1,180 @@
 [
   {
+    "tag": "v1.0.1",
+    "version": "1.0.1",
+    "name": "1.0.1",
+    "publishedAt": "2026-08-03T00:12:29.000Z",
+    "humanDate": "August 2, 2026",
+    "machineDate": "2026-08-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.0.1",
+    "anchor": "v1-0-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Blanc 1.0.1 is a maintenance release for macOS, Windows, and Linux. It fixes"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "the Windows restart handoff that could leave an old Blanc process running while"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "the installer tried to replace it."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Windows installer now closes the old Blanc process and retries for a"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "bounded period before asking for manual intervention. This replaces the"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "failure mode where the first install attempt said Blanc could not be closed"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "and clicking "
+              },
+              {
+                "type": "strong",
+                "value": "Retry"
+              },
+              {
+                "type": "text",
+                "value": " later succeeded."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Restart Now"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on Windows now tears down every Blanc browser surface after"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "session data has been preserved, with a forced-exit backstop if Chromium does"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "not finish shutting down promptly. This also prevents an old instance from"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "reclaiming the relaunch and offering the same update again."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "The macOS and Linux application behavior is unchanged. All three platforms are"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.0.1"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.0.0",
     "version": "1.0.0",
     "name": "1.0.0",
