@@ -157,6 +157,12 @@ button svg {
   background: rgba(255, 255, 255, 0.14);
   color: #f5f5f5;
 }
+#strip.tint-dark #mainMenuButton { color: rgba(245, 245, 245, 0.75); }
+#strip.tint-dark #mainMenuButton:hover,
+#strip.tint-dark #mainMenuButton[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.14);
+  color: #f5f5f5;
+}
 
 /* ---------- Vertical tabs: optional trusted-chrome rail ----------
    The rail starts below the strip and reserves space only from page-scoped
@@ -1455,7 +1461,27 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
   padding: 8px 10px 2px;
 }
 
-/* ---------- Window controls (non-mac; macOS gets native traffic lights) ---------- */
+/* ---------- Platform menu + window controls (non-mac) ---------- */
+
+#mainMenuButton {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 34px;
+  height: 30px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+}
+#mainMenuButton[hidden] { display: none; }
+#mainMenuButton svg { width: 16px; height: 16px; }
+#mainMenuButton:hover,
+#mainMenuButton[aria-expanded="true"] {
+  background: var(--accent-dim);
+  color: var(--text);
+}
 
 #windowControls {
   position: absolute;

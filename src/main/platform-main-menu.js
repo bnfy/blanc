@@ -14,6 +14,17 @@ function popupPoint(point, contentBounds) {
   };
 }
 
+function isPlatformMainMenuShortcut(input, platform = process.platform) {
+  return supportsPlatformMainMenu(platform) &&
+    input?.type === 'keyDown' &&
+    !input.isAutoRepeat &&
+    String(input.key).toLowerCase() === 'f' &&
+    input.alt &&
+    !input.control &&
+    !input.meta &&
+    !input.shift;
+}
+
 /**
  * Open the live application Menu as a context menu beside the custom chrome.
  * This deliberately reuses Menu.getApplicationMenu(): File/Edit/View/Tabs/
@@ -42,7 +53,24 @@ function popupPlatformMainMenu({ Menu, window, point, platform = process.platfor
   });
 }
 
+function installPlatformMainMenuShortcut({
+  webContents,
+  Menu,
+  getWindow,
+  point = { x: 8, y: 38 },
+  platform = process.platform,
+}) {
+  if (!supportsPlatformMainMenu(platform)) return;
+  webContents.on('before-input-event', (event, input) => {
+    if (!isPlatformMainMenuShortcut(input, platform)) return;
+    event.preventDefault();
+    popupPlatformMainMenu({ Menu, window: getWindow(), point, platform }).catch(() => {});
+  });
+}
+
 module.exports = {
+  installPlatformMainMenuShortcut,
+  isPlatformMainMenuShortcut,
   popupPlatformMainMenu,
   popupPoint,
   supportsPlatformMainMenu,
