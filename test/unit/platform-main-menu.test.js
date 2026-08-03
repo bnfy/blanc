@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const {
+  installPlatformMainMenuShortcut,
+  isPlatformMainMenuShortcut,
   popupPlatformMainMenu,
   popupPoint,
   supportsPlatformMainMenu,
@@ -15,6 +17,90 @@ test('the custom main-menu affordance is limited to Windows and Linux', () => {
   assert.equal(supportsPlatformMainMenu('win32'), true);
   assert.equal(supportsPlatformMainMenu('linux'), true);
   assert.equal(supportsPlatformMainMenu('darwin'), false);
+});
+
+test('Alt+F is the platform main-menu shortcut on Windows and Linux', () => {
+  const input = {
+    type: 'keyDown',
+    key: 'f',
+    alt: true,
+    control: false,
+    meta: false,
+    shift: false,
+    isAutoRepeat: false,
+  };
+
+  assert.equal(isPlatformMainMenuShortcut(input, 'win32'), true);
+  assert.equal(isPlatformMainMenuShortcut({ ...input, key: 'F' }, 'linux'), true);
+  assert.equal(isPlatformMainMenuShortcut(input, 'darwin'), false);
+  assert.equal(isPlatformMainMenuShortcut({ ...input, type: 'keyUp' }, 'win32'), false);
+  assert.equal(isPlatformMainMenuShortcut({ ...input, isAutoRepeat: true }, 'win32'), false);
+  assert.equal(isPlatformMainMenuShortcut({ ...input, alt: false }, 'win32'), false);
+  assert.equal(isPlatformMainMenuShortcut({ ...input, control: true }, 'win32'), false);
+  assert.equal(isPlatformMainMenuShortcut({ ...input, meta: true }, 'win32'), false);
+  assert.equal(isPlatformMainMenuShortcut({ ...input, shift: true }, 'win32'), false);
+  assert.equal(isPlatformMainMenuShortcut({ ...input, key: 'm' }, 'win32'), false);
+});
+
+test('the shortcut opens the menu below the upper-left button', async () => {
+  let beforeInput = null;
+  let popupOptions = null;
+  let prevented = false;
+  const webContents = {
+    on(eventName, listener) {
+      assert.equal(eventName, 'before-input-event');
+      beforeInput = listener;
+    },
+  };
+  const window = {
+    isDestroyed: () => false,
+    getContentBounds: () => ({ width: 640, height: 480 }),
+  };
+  const Menu = {
+    getApplicationMenu: () => ({
+      items: [{ label: 'File' }],
+      popup(options) {
+        popupOptions = options;
+        options.callback();
+      },
+    }),
+  };
+
+  installPlatformMainMenuShortcut({
+    webContents,
+    Menu,
+    getWindow: () => window,
+    platform: 'win32',
+  });
+  assert.equal(typeof beforeInput, 'function');
+
+  beforeInput(
+    { preventDefault: () => { prevented = true; } },
+    {
+      type: 'keyDown',
+      key: 'f',
+      alt: true,
+      control: false,
+      meta: false,
+      shift: false,
+      isAutoRepeat: false,
+    }
+  );
+  await Promise.resolve();
+
+  assert.equal(prevented, true);
+  assert.equal(popupOptions.window, window);
+  assert.equal(popupOptions.x, 8);
+  assert.equal(popupOptions.y, 38);
+
+  let registeredOnMac = false;
+  installPlatformMainMenuShortcut({
+    webContents: { on: () => { registeredOnMac = true; } },
+    Menu,
+    getWindow: () => window,
+    platform: 'darwin',
+  });
+  assert.equal(registeredOnMac, false);
 });
 
 test('popup coordinates are integer content coordinates clamped to the window', () => {
@@ -89,14 +175,24 @@ test('chrome markup and IPC keep one native menu definition', () => {
   const renderer = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');
   const preload = fs.readFileSync(path.join(ROOT, 'src/main/preload.js'), 'utf8');
   const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+  const styles = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
 
-  assert.match(html, /id="mainMenuButton"[\s\S]*aria-haspopup="menu"[\s\S]*hidden/);
+  assert.match(html, /<div id="strip">\s*<button\s+id="mainMenuButton"[\s\S]*aria-haspopup="menu"[\s\S]*hidden/);
+  assert.match(html, /<path d="M3 4\.5h10M3 8h10M3 11\.5h10"\/?>/);
+  assert.doesNotMatch(html, /<circle cx="8"/);
+  assert.match(html, /<div id="windowControls" class="no-drag"><\/div>/);
+  assert.match(styles, /#mainMenuButton \{[\s\S]*position: absolute;[\s\S]*top: 8px;[\s\S]*left: 8px;[\s\S]*width: 34px;[\s\S]*height: 30px/);
+  assert.match(styles, /#mainMenuButton:hover,[\s\S]*#mainMenuButton:focus-visible,[\s\S]*background: var\(--accent-dim\)/);
+  assert.match(styles, /#mainMenuButton:focus-visible \{ outline: none; \}/);
   assert.match(renderer, /if \(!isMac\) \{[\s\S]*mainMenuButton\.hidden = false/);
   assert.match(renderer, /getBoundingClientRect\(\)/);
   assert.match(renderer, /window\.browserAPI\.openMainMenu/);
   assert.match(preload, /ipcRenderer\.invoke\('chrome:open-main-menu', point\)/);
   assert.match(main, /event\.sender !== win\?\.webContents/);
   assert.match(main, /popupPlatformMainMenu\(\{ Menu, window: win, point \}\)/);
+  assert.match(main, /label: 'Help'[\s\S]*isMac \? \[\] : \[[\s\S]*label: 'About Blanc'[\s\S]*showAboutPanel\(\{ app \}\)/);
+  assert.match(main, /function installChromeShortcuts\(webContents\) \{[\s\S]*installVerticalTabsShortcut\(webContents\);[\s\S]*installPlatformMainMenuShortcut/);
+  assert.equal((main.match(/installChromeShortcuts\([^)]*webContents\)/g) ?? []).length >= 2, true);
   assert.match(
     fs.readFileSync(path.join(ROOT, 'src/main/platform-main-menu.js'), 'utf8'),
     /Menu\.getApplicationMenu\(\)/

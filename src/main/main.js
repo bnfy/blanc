@@ -49,7 +49,11 @@ const {
   calculateChromeLayout,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
-const { popupPlatformMainMenu } = require('./platform-main-menu');
+const {
+  installPlatformMainMenuShortcut,
+  popupPlatformMainMenu,
+} = require('./platform-main-menu');
+const { showAboutPanel } = require('./about-panel');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -668,7 +672,7 @@ function createOverlay() {
   });
   overlayView.setBackgroundColor('#00000000'); // page shows through around the panel
   lockPrivilegedNavigation(overlayView.webContents, CHROME_OVERLAY_URL);
-  installVerticalTabsShortcut(overlayView.webContents);
+  installChromeShortcuts(overlayView.webContents);
   overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
 
   // A show requested before the overlay document finished its first load
@@ -793,7 +797,7 @@ function createUtilitySheet() {
   utilitySheetView = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
   utilitySheetView.setBackgroundColor('#00000000');
   const wc = utilitySheetView.webContents;
-  installVerticalTabsShortcut(wc);
+  installChromeShortcuts(wc);
   // Esc dismisses no matter what inside the page holds focus (mirrors the
   // island overlay's handler).
   wc.on('before-input-event', (event, input) => {
@@ -1110,6 +1114,15 @@ function installVerticalTabsShortcut(webContents) {
     // duplicate native-menu accelerator dispatch for this same key event.
     event.preventDefault();
     toggleTabLayout();
+  });
+}
+
+function installChromeShortcuts(webContents) {
+  installVerticalTabsShortcut(webContents);
+  installPlatformMainMenuShortcut({
+    webContents,
+    Menu,
+    getWindow: () => win,
   });
 }
 
@@ -1440,7 +1453,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   tabOrder.push(id);
 
   const wc = view.webContents;
-  installVerticalTabsShortcut(wc);
+  installChromeShortcuts(wc);
   // WebRTC IP-handling policy applies per-webContents; this is the single choke
   // point every tab (fresh or adopted window.open child) passes through.
   wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
@@ -2665,6 +2678,10 @@ function buildMenu() {
             { label: 'Show All Shortcuts…', accelerator: 'CmdOrCtrl+/', click: () => openInternalPage('blanc://shortcuts/') },
           ],
         },
+        ...(isMac ? [] : [
+          { type: 'separator' },
+          { label: 'About Blanc', click: () => showAboutPanel({ app }) },
+        ]),
       ],
     },
   ];
@@ -2689,7 +2706,7 @@ function createMainWindow() {
   });
 
   lockPrivilegedNavigation(win.webContents, CHROME_INDEX_URL);
-  installVerticalTabsShortcut(win.webContents);
+  installChromeShortcuts(win.webContents);
   win.loadFile(CHROME_INDEX_FILE);
   createOverlay();
   win.on('resize', resizeActiveView);
