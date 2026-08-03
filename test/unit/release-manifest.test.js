@@ -110,6 +110,12 @@ test('release policy stages a draft, warns on unsigned Windows builds, and verif
     .join('\n');
 
   assert.ok(releaseScript.indexOf('--draft') < releaseScript.indexOf('--draft=false'));
+  const sourceTagPush = releaseScript.indexOf('git push origin "refs/tags/$TAG"');
+  const draftCreate = releaseScript.indexOf('gh "${CREATE_ARGS[@]}"');
+  const nativeDispatch = releaseScript.indexOf('gh workflow run release-windows-linux.yml');
+  assert.ok(sourceTagPush >= 0, 'release must publish the immutable source tag');
+  assert.ok(sourceTagPush < draftCreate, 'source tag must exist before the draft is created');
+  assert.ok(sourceTagPush < nativeDispatch, 'native builders must be able to fetch the tag');
   assert.match(releaseScript, /verify-release-manifest\.mjs/);
   assert.match(releaseScript, /SHA256SUMS/);
   // Windows signing is opportunistic until Azure Trusted Signing is live:
