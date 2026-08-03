@@ -30,7 +30,7 @@ const FIRST_RUN_VERSION = 1;
 // that would be license sharing).
 const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions'];
 
-// Dock icon colorways — id maps to src/renderer/pages/icon-<id>.png; order
+// App icon colorways — id maps to src/renderer/pages/icon-<id>.png; order
 // here is also the tile order Settings renders. 'default' is the original
 // green colorway — the id (and file name) is frozen for saved settings,
 // only the label moved on when Paper became the default.

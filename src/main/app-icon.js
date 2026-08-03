@@ -1,5 +1,6 @@
 const path = require('node:path');
 const APP_ICON_ASSETS = require('./app-icon-assets');
+const { APP_ID } = require('./app-identity');
 
 const NATIVE_ICON_MIN_MACOS = 26;
 
@@ -10,6 +11,23 @@ function macOSMajorVersion(version) {
 
 function nativeIconNameFor(appIcon) {
   return (APP_ICON_ASSETS[appIcon] ?? APP_ICON_ASSETS.paper).nativeName;
+}
+
+/** Set the process identity before Windows creates its taskbar button. */
+function setWindowsAppUserModelId({ app, platform = process.platform }) {
+  if (platform !== 'win32' || !app?.isPackaged) return false;
+  app.setAppUserModelId(APP_ID);
+  return true;
+}
+
+/** Use Blanc's fixed Paper ICO for unpackaged Windows development. */
+function windowsDevelopmentIconPath({
+  app,
+  platform = process.platform,
+  projectRoot = path.join(__dirname, '../..'),
+}) {
+  if (platform !== 'win32' || app.isPackaged) return null;
+  return path.join(projectRoot, 'build/windows-icons/icon-paper.ico');
 }
 
 /**
@@ -48,8 +66,11 @@ function applyDockAppIcon({
 
 module.exports = {
   APP_ICON_ASSETS,
+  APP_ID,
   NATIVE_ICON_MIN_MACOS,
   applyDockAppIcon,
   macOSMajorVersion,
   nativeIconNameFor,
+  setWindowsAppUserModelId,
+  windowsDevelopmentIconPath,
 };
