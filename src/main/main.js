@@ -53,6 +53,7 @@ const {
   installPlatformMainMenuShortcut,
   popupPlatformMainMenu,
 } = require('./platform-main-menu');
+const { showAboutPanel } = require('./about-panel');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -2677,6 +2678,10 @@ function buildMenu() {
             { label: 'Show All Shortcuts…', accelerator: 'CmdOrCtrl+/', click: () => openInternalPage('blanc://shortcuts/') },
           ],
         },
+        ...(isMac ? [] : [
+          { type: 'separator' },
+          { label: 'About Blanc', click: () => showAboutPanel({ app }) },
+        ]),
       ],
     },
   ];

@@ -189,6 +189,7 @@ test('chrome markup and IPC keep one native menu definition', () => {
   assert.match(preload, /ipcRenderer\.invoke\('chrome:open-main-menu', point\)/);
   assert.match(main, /event\.sender !== win\?\.webContents/);
   assert.match(main, /popupPlatformMainMenu\(\{ Menu, window: win, point \}\)/);
+  assert.match(main, /label: 'Help'[\s\S]*isMac \? \[\] : \[[\s\S]*label: 'About Blanc'[\s\S]*showAboutPanel\(\{ app \}\)/);
   assert.match(main, /function installChromeShortcuts\(webContents\) \{[\s\S]*installVerticalTabsShortcut\(webContents\);[\s\S]*installPlatformMainMenuShortcut/);
   assert.equal((main.match(/installChromeShortcuts\([^)]*webContents\)/g) ?? []).length >= 2, true);
   assert.match(
