@@ -49,6 +49,7 @@ const {
   calculateChromeLayout,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
+const { popupPlatformMainMenu } = require('./platform-main-menu');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -2188,6 +2189,13 @@ function registerIpcHandlers() {
 
   chromeOn('chrome:open-island', () => showOverlay('panel'));
   chromeOn('chrome:open-find', () => showOverlay('find'));
+  chromeHandle('chrome:open-main-menu', (event, point) => {
+    // The rich preload is shared with the overlay, but the visible platform
+    // menu button exists only in the strip document. Keep this entry point as
+    // narrow as the UI that owns it.
+    if (event.sender !== win?.webContents) return false;
+    return popupPlatformMainMenu({ Menu, window: win, point });
+  });
   chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));
   chromeOn('chrome:preview-vertical-tabs-width', (_e, width) =>
     previewVerticalTabsWidth(width));

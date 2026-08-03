@@ -22,6 +22,7 @@
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const pillSourceChip = document.getElementById('pillSourceChip');
   const windowControls = document.getElementById('windowControls');
+  const mainMenuButton = document.getElementById('mainMenuButton');
   const permissionBar = document.getElementById('permissionBar');
   const permissionText = document.getElementById('permissionText');
   const permAllowBtn = document.getElementById('permAllowBtn');
@@ -110,6 +111,21 @@
 
   // --- Window controls (non-mac only; macOS gets native traffic lights) ---
   if (!isMac) {
+    let mainMenuOpen = false;
+    mainMenuButton.hidden = false;
+    mainMenuButton.addEventListener('click', async () => {
+      if (mainMenuOpen) return;
+      const rect = mainMenuButton.getBoundingClientRect();
+      mainMenuOpen = true;
+      mainMenuButton.setAttribute('aria-expanded', 'true');
+      try {
+        await window.browserAPI.openMainMenu({ x: rect.left, y: rect.bottom });
+      } finally {
+        mainMenuOpen = false;
+        mainMenuButton.setAttribute('aria-expanded', 'false');
+      }
+    });
+
     const mk = (icon, title, onClick, extraClass) => {
       const b = document.createElement('button');
       b.innerHTML = icon;
