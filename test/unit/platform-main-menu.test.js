@@ -182,7 +182,8 @@ test('chrome markup and IPC keep one native menu definition', () => {
   assert.doesNotMatch(html, /<circle cx="8"/);
   assert.match(html, /<div id="windowControls" class="no-drag"><\/div>/);
   assert.match(styles, /#mainMenuButton \{[\s\S]*position: absolute;[\s\S]*top: 8px;[\s\S]*left: 8px;[\s\S]*width: 34px;[\s\S]*height: 30px/);
-  assert.match(styles, /#mainMenuButton:hover,[\s\S]*background: var\(--accent-dim\)/);
+  assert.match(styles, /#mainMenuButton:hover,[\s\S]*#mainMenuButton:focus-visible,[\s\S]*background: var\(--accent-dim\)/);
+  assert.match(styles, /#mainMenuButton:focus-visible \{ outline: none; \}/);
   assert.match(renderer, /if \(!isMac\) \{[\s\S]*mainMenuButton\.hidden = false/);
   assert.match(renderer, /getBoundingClientRect\(\)/);
   assert.match(renderer, /window\.browserAPI\.openMainMenu/);
