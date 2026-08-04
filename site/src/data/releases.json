@@ -1,5 +1,151 @@
 [
   {
+    "tag": "v1.0.3",
+    "version": "1.0.3",
+    "name": "1.0.3",
+    "publishedAt": "2026-08-04T20:01:07.000Z",
+    "humanDate": "August 4, 2026",
+    "machineDate": "2026-08-04",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.0.3",
+    "anchor": "v1-0-3",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Blanc 1.0.3 ships digitally signed Windows builds. There are no application"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "changes in this release."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Signed Windows installer",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Windows installer and application binaries are now code signed by"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Bananify Creative through Azure Trusted Signing."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "New installs no longer trigger the Windows SmartScreen \"unknown publisher\""
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "warning, and Microsoft Defender false positives on the unsigned installer"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "are resolved."
+              }
+            ]
+          },
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Windows auto-update continues to work from earlier versions; updating from"
+                  }
+                ],
+                "url": null
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "an unsigned install to 1.0.3 is seamless."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Release integrity",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "The macOS, Windows, and Linux applications are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.0.3"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.0.2",
     "version": "1.0.2",
     "name": "1.0.2",
