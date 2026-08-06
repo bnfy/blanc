@@ -10,7 +10,7 @@ island (index: non-solid header, rich OG), standard (solid header), legal
 OG/Twitter meta). Don't flatten these differences — they're deliberate. The
 footer is one unified component on every page (flush-left stack: brand
 breadcrumb, full nav with the current page highlighted via `Astro.url`,
-newsletter, legal block, social row — email/Threads/Instagram/GitHub). `src/styles/site.css` is the one stylesheet
+newsletter, legal block, social row — email/Threads/Instagram/TikTok/GitHub). `src/styles/site.css` is the one stylesheet
 (bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
 Variable"`, and this file is NOT under the root `tokens/` substrate guard).
 `src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
