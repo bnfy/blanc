@@ -677,7 +677,12 @@ function createOverlay() {
       sandbox: true,
     },
   });
-  overlayView.setBackgroundColor('#00000000'); // page shows through around the panel
+  // Alpha must be non-zero: a fully transparent WebContentsView base layer
+  // causes macOS to forward mouse events through the view to windows behind
+  // it, so clicks near the top of the panel (e.g. pinned-tab rows) never
+  // reach the overlay. Alpha 1/255 is visually identical to 0 but keeps the
+  // view in macOS's hit-test tree.
+  overlayView.setBackgroundColor('#00000001');
   lockPrivilegedNavigation(overlayView.webContents, CHROME_OVERLAY_URL);
   installChromeShortcuts(overlayView.webContents);
   overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
