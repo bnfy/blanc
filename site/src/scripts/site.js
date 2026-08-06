@@ -70,28 +70,24 @@
     .catch(() => { /* Releases page remains the deliberate fallback. */ });
 })();
 
-// Nothing Google-related loads until the visitor opts in. Tracking hooks are
-// harmless before consent because no gtag function exists until GA is loaded.
+// GA4 Consent Mode: gtag loads with analytics_storage denied by default.
+// Cookieless pings give GA4 modelling signal; full measurement requires opt-in.
 try {
   const GA_ID = 'G-MN8BLY6GE9';
-  let loaded = false;
-  const loadGA = () => {
-    if (loaded) return;
-    loaded = true;
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
-    document.head.appendChild(script);
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = function () { window.dataLayer.push(arguments); };
-    window.gtag('js', new Date());
-    window.gtag('config', GA_ID);
-  };
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  window.gtag('consent', 'default', { analytics_storage: 'denied' });
+  window.gtag('js', new Date());
+  window.gtag('config', GA_ID);
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+  document.head.appendChild(script);
 
   const banner = document.getElementById('consent');
   const consent = localStorage.getItem('ga-consent');
   if (consent === 'granted') {
-    loadGA();
+    window.gtag('consent', 'update', { analytics_storage: 'granted' });
   } else if (consent !== 'denied' && banner) {
     banner.hidden = false;
     document.body.classList.add('has-consent');
@@ -102,7 +98,7 @@ try {
     };
     document.getElementById('consentAllow').addEventListener('click', () => {
       dismiss('granted');
-      loadGA();
+      window.gtag('consent', 'update', { analytics_storage: 'granted' });
     });
     document.getElementById('consentDeny').addEventListener('click', () => dismiss('denied'));
   }

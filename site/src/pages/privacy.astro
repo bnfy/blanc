@@ -16,7 +16,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <p class="legal-updated">Last updated: July 23, 2026</p>
 
   <div class="legal-tldr">
-    <p><strong>The short version.</strong> Blanc keeps your browsing history, downloads, favorites, and settings on your device unless you enable end-to-end-encrypted Profile Sync for eligible data. A fresh install asks before search suggestions or the pseudonymous launch ping can send anything. Like any browser, Blanc still connects to sites you visit and makes clearly described service requests for blocking lists, updates, enabled suggestions, optional sync, and supporter activation. This website uses analytics only if you allow it.</p>
+    <p><strong>The short version.</strong> Blanc keeps your browsing history, downloads, favorites, and settings on your device unless you enable end-to-end-encrypted Profile Sync for eligible data. A fresh install asks before search suggestions or the pseudonymous launch ping can send anything. Like any browser, Blanc still connects to sites you visit and makes clearly described service requests for blocking lists, updates, enabled suggestions, optional sync, and supporter activation. This website runs analytics in a restricted, cookieless mode by default; full measurement activates only if you allow it.</p>
   </div>
 
   <h2>Who this covers</h2>
@@ -85,7 +85,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <h2>This website (blancbrowser.com)</h2>
   <p>The marketing site is intentionally light:</p>
   <ul>
-    <li><strong>Analytics is opt-in.</strong> Nothing analytics-related loads until you click "Allow" on the banner. If you allow it, we use Google Analytics to gauge interest, and your choice is remembered in your browser so we don't ask again. If you decline, no analytics runs.</li>
+    <li><strong>Analytics consent.</strong> Non-legal pages load a Google Analytics script in a restricted mode — no cookies are set and no persistent identifiers are stored. If you click "Allow" on the banner, GA switches to full measurement with a cookie, and your choice is remembered in your browser so we don't ask again. If you decline or ignore the banner, GA stays restricted — cookieless pings let Google estimate overall traffic, but nothing identifies you across visits.</li>
     <li><strong>Fonts</strong> are bundled with the site and served from our own host — no third-party font service is contacted.</li>
     <li><strong>Download buttons</strong> ask GitHub's API for the latest release so they point to the right installer; the installers themselves are hosted and served by GitHub.</li>
     <li><strong>Hosting</strong> is on Cloudflare Pages, which keeps standard server logs (such as IP addresses) to serve and protect the site.</li>
