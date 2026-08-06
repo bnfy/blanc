@@ -1004,13 +1004,17 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 #panelAnchor {
   position: fixed;
   top: 12px; /* same anchor the resting pill occupies */
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
 }
 #panelAnchor[hidden] { display: none; }
 body[data-mode="palette"] #panelAnchor { top: 120px; }
 
 #islandPanel {
+  pointer-events: auto;
   width: 620px;
   max-width: calc(100vw - 24px);
   background: var(--surface-raised);
