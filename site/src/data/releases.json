@@ -1,5 +1,73 @@
 [
   {
+    "tag": "v1.0.4",
+    "version": "1.0.4",
+    "name": "1.0.4",
+    "publishedAt": "2026-08-06T21:30:43.000Z",
+    "humanDate": "August 6, 2026",
+    "machineDate": "2026-08-06",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.0.4",
+    "anchor": "v1-0-4",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": null,
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Blanc 1.0.4 is a maintenance release for macOS, Windows, and Linux."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Clicking a pinned tab in the expanded island panel now works reliably on macOS. A fully transparent overlay base layer caused macOS to forward mouse events past the panel, so clicks on upper rows (pinned tabs, group headers) were silently swallowed."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "The Windows and Linux application behavior is unchanged. All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.0.4"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.0.3",
     "version": "1.0.3",
     "name": "1.0.3",
