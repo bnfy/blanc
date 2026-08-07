@@ -1011,9 +1011,10 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
   pointer-events: none;
 }
 #panelAnchor[hidden] { display: none; }
-body[data-mode="palette"] #panelAnchor { top: 120px; }
-/* Summoned 120px down, so it has that much less room before the bottom edge. */
-body[data-mode="palette"] #islandPanel { max-height: calc(100vh - 132px); }
+/* The palette shares the pill's anchor rather than dropping 120px below it.
+   Summoning with ⌘L used to detach the expanded island from the resting pill,
+   reading as a separate floating window instead of the same control opening;
+   only the scrim now distinguishes it. */
 
 #islandPanel {
   pointer-events: auto;
