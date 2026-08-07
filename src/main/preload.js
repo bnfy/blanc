@@ -99,6 +99,11 @@ contextBridge.exposeInMainWorld('browserAPI', {
     ipcRenderer.on('overlay:hide', listener);
     return () => ipcRenderer.removeListener('overlay:hide', listener);
   },
+  onOverlayToggle: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on('overlay:toggle', listener);
+    return () => ipcRenderer.removeListener('overlay:toggle', listener);
+  },
   onIslandState: (callback) => {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('chrome:island-state', listener);

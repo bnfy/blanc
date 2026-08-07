@@ -1032,6 +1032,18 @@
     findLastQuery = null;
   }
 
+  // ⌘L pressed while the island is already open. Anything the user typed is
+  // theirs: re-select it the way a browser address bar does rather than
+  // discarding it. Only an untouched island — still showing the current page's
+  // address — has nothing to lose and can be dismissed.
+  window.browserAPI.onOverlayToggle(() => {
+    if (inputTouched && addressInput.value.trim()) {
+      addressInput.focus();
+      addressInput.select();
+      return;
+    }
+    window.browserAPI.closeOverlay();
+  });
   window.browserAPI.onOverlayShow(({ mode: next, prefill }) => applyMode(next, prefill));
   window.browserAPI.onOverlayHide(() => {
     if (mode === 'find') resetFind();

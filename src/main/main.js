@@ -2065,12 +2065,18 @@ function openFindBar() {
  * the pill's anchor, so it doesn't matter which one is up — either way the
  * island is open and the shortcut should put it away. The find capsule is a
  * different surface: summoning search over it replaces it rather than
- * dismissing it, which is what pressing ⌘L there means. */
+ * dismissing it, which is what pressing ⌘L there means.
+ *
+ * Dismissal is the overlay's call, not ours: it owns the address input, and a
+ * half-typed query must never be thrown away by the same shortcut that opened
+ * it (every mainstream browser re-selects the field instead). Main can't see
+ * whether anything was typed, so it hands the decision over. */
 function toggleIsland() {
   if (!hasLiveWindow()) return;
   win.focus();
   if (overlayMode === 'panel' || overlayMode === 'palette') {
-    hideOverlay();
+    overlayView?.webContents.focus();
+    overlayView?.webContents.send('overlay:toggle');
     return;
   }
   showOverlay('palette');
