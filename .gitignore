@@ -15,3 +15,9 @@ docs/press-outreach-plan.md
 .astro/
 site/.parity/
 site/.parity-shots/
+
+# Native addon build output. node-gyp treats its `build/` as scratch and wipes
+# it, which is exactly why the addon lives in native/<name>/ with its own build
+# dir rather than the repo's build/ (that one holds the signing entitlements,
+# provisioning profile and app icons electron-builder needs).
+native/*/build/

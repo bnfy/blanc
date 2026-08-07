@@ -10,6 +10,7 @@ const {
   onRequestBlocked,
 } = require('./adblock');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
+const glassNative = require('./glass-native'); // EXPERIMENT — NSGlassEffectView
 const {
   chromeClientHintPlatform,
   chromeClientHintArchitecture,
@@ -442,6 +443,22 @@ function lockPrivilegedNavigation(wc, trustedUrl) {
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
 }
 
+// EXPERIMENT (opt-in via BLANC_GLASS=1) — liquid glass as the material OF the
+// Island, in both its collapsed and expanded states.
+//
+// Mechanism is CSS backdrop-filter, NOT NSVisualEffectView/NSGlassEffectView.
+// Native vibrancy is a window-level material: it cannot be masked to the pill's
+// shape, and it samples what is behind the WINDOW (the desktop) rather than the
+// page. backdrop-filter can do both, and — measured on this branch — it samples
+// across the WebContentsView boundary, so the island refracts real page content.
+//
+// The expanded states need nothing but CSS: the overlay view already floats
+// over the page. The collapsed pill does not — it lives in the strip, and the
+// page starts below it at y = stripHeight, so there is nothing behind it to
+// refract. Giving it real glass therefore requires the page to run full-bleed
+// with the pill floating above it, which is what glassStripView below does.
+const GLASS_EXPERIMENT = process.env.BLANC_GLASS === '1';
+
 // Window background behind everything so resizes and load flashes stay
 // in-theme. The renderer gets the resolved appearance at the same time: a
 // nativeTheme source change reaches prefers-color-scheme asynchronously, and
@@ -463,7 +480,7 @@ function applyChromeThemeAppearance(appearance) {
     ? appearance
     : resolvedThemeAppearance();
   win.setBackgroundColor(chromeBackgroundColor(resolved));
-  win.webContents.send(
+  chromeWC()?.send(
     'chrome:theme-appearance',
     resolved
   );
@@ -477,7 +494,7 @@ function beginChromeThemeAppearance(appearance) {
   if (appearance === 'dark' || appearance === 'light') {
     win.setBackgroundColor(chromeBackgroundColor(appearance));
   }
-  win.webContents.send('chrome:theme-appearance', appearance ?? 'pending');
+  chromeWC()?.send('chrome:theme-appearance', appearance ?? 'pending');
 }
 
 function refreshActivePageTintForThemeChange() {
@@ -639,12 +656,227 @@ let addressMenuSeq = 0;
 
 function currentChromeLayout() {
   const { width, height } = win.getContentBounds();
-  return calculateChromeLayout({
+  const layout = calculateChromeLayout({
     width,
     height,
     chromeHeight,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
+  });
+  if (!GLASS_EXPERIMENT) return layout;
+  // EXPERIMENT: run the page to the top edge so the collapsed island has live
+  // content behind it to refract. chrome-layout.js stays untouched (it is pure
+  // and unit-tested) — this overrides only the consumed bounds.
+  return { ...layout, pageBounds: { ...layout.pageBounds, y: 0, height } };
+}
+
+// DESIGN DECISION 1: the resting island child is bounded TIGHTLY to the pill,
+// not to a full-width 64px band. That preserves the parent's native traffic
+// lights and its drag space by construction — the child simply isn't over them
+// — instead of relying on click-through toggling.
+//
+// The pill's width is content-driven (the domain string), so main cannot
+// compute it. Each chrome renderer reports the box its window must hold plus
+// the sub-rect that should BE the glass; these are the last reports received.
+const GLASS_ISLAND_TOP = 12;
+/** @type {{width:number,height:number,glass:object}|null} */
+let reportedIslandBox = null;
+/** @type {{width:number,height:number,glass:object}|null} */
+let reportedOverlayBox = null;
+// Pre-first-report fallback so the window has a sane size for one frame.
+const GLASS_PILL = { width: 280, height: 41, top: GLASS_ISLAND_TOP };
+
+// Centre a reported box over the website pane, in parent CONTENT coords.
+function centredBox(box, top) {
+  const layout = currentChromeLayout();
+  const w = Math.max(1, Math.round(box.width));
+  const h = Math.max(1, Math.round(box.height));
+  return {
+    x: layout.pageBounds.x + Math.round((layout.pageBounds.width - w) / 2),
+    y: top,
+    width: w,
+    height: h,
+  };
+}
+
+function glassStripBounds() {
+  return centredBox(
+    reportedIslandBox || { width: GLASS_PILL.width, height: GLASS_PILL.height },
+    GLASS_ISLAND_TOP
+  );
+}
+
+// CSS coords (origin top-left); glass-native.js flips to AppKit for us.
+// The glass sub-rect is reported relative to the child document's origin, so
+// it composes with the window's own position.
+function glassPillRect() {
+  const win_ = glassStripBounds();
+  const g = reportedIslandBox?.glass;
+  if (!g) return { ...win_, height: GLASS_PILL.height };
+  return {
+    x: win_.x + g.x,
+    y: win_.y + g.y,
+    width: g.width,
+    height: g.height,
+  };
+}
+
+// EXPERIMENT — CROSS-WINDOW COMPOSITION.
+//
+// Same-window layering is impossible: Chromium composites all of its views into
+// one layer that always sits below a native sibling, so an NSGlassEffectView is
+// always above every web pixel (proven by moving the glass to the bottom of the
+// subview list and getting an identical render). The remaining escape hatch is
+// a SECOND NSWindow: the WindowServer composites windows independently, so a
+// transparent child window's Chromium pixels land on top of the parent's
+// finished output — glass included — while the parent's glass keeps sampling
+// the page inside the parent.
+// PHASE TWO — the real island, split across child windows.
+//
+// Both chrome surfaces move out of the parent window, because Chromium content
+// can only composite above the native glass by living in a separate NSWindow.
+// The split deliberately mirrors today's: islandWindow carries index.html (what
+// the parent's own webContents renders now), overlayWindow carries
+// overlay.html (what overlayView renders now). Same documents, same preload,
+// same IPC — only the host changes, so the existing renderer code is untouched.
+/** @type {BrowserWindow | null} */
+let islandWindow = null;
+/** @type {BrowserWindow | null} */
+let overlayWindow = null;
+
+const CHILD_WINDOW_OPTS = {
+  frame: false,
+  transparent: true,
+  backgroundColor: '#00000000',
+  hasShadow: false,
+  resizable: false,
+  movable: false,
+  minimizable: false,
+  maximizable: false,
+  fullscreenable: false,
+  skipTaskbar: true,
+  acceptFirstMouse: true,
+};
+
+/** The webContents rendering the strip/resting pill. */
+function chromeWC() {
+  if (GLASS_EXPERIMENT) {
+    return islandWindow && !islandWindow.isDestroyed() ? islandWindow.webContents : null;
+  }
+  return win && !win.isDestroyed() ? win.webContents : null;
+}
+
+/** The webContents rendering the expanded island states. */
+function overlayWC() {
+  if (GLASS_EXPERIMENT) {
+    return overlayWindow && !overlayWindow.isDestroyed() ? overlayWindow.webContents : null;
+  }
+  return overlayView?.webContents ?? null;
+}
+
+/** Content-relative rect → absolute screen rect. */
+function toScreenRect(rect) {
+  const c = win.getContentBounds();
+  return {
+    x: Math.round(c.x + rect.x),
+    y: Math.round(c.y + rect.y),
+    width: Math.max(1, Math.round(rect.width)),
+    height: Math.max(1, Math.round(rect.height)),
+  };
+}
+
+function syncGlassChromeBounds() {
+  if (!GLASS_EXPERIMENT || !win || win.isDestroyed()) return;
+  if (islandWindow && !islandWindow.isDestroyed()) {
+    islandWindow.setBounds(toScreenRect(glassStripBounds()));
+  }
+  if (overlayMode && overlayWindow && !overlayWindow.isDestroyed()) {
+    overlayWindow.setBounds(toScreenRect(overlayBounds()));
+  }
+  // The panel's height cap has to come from the PARENT's height: the overlay
+  // child is sized to its own content, so a vh-based cap there would be
+  // circular. Pushed as a custom property rather than a layout constant.
+  const avail = Math.max(200, win.getContentBounds().height - 24);
+  overlayWC()?.executeJavaScript(
+    `document.documentElement.style.setProperty('--glass-avail-h','${avail}px')`
+  ).catch(() => {});
+}
+
+function createGlassChrome() {
+  console.log('[glass] native NSGlassEffectView:', glassNative.why());
+  globalThis.__glass = glassNative; // EXPERIMENT: reachable from the test driver
+  // The glass lives in the PARENT window, directly over the full-bleed page.
+  glassNative.attach(win, glassPillRect(), { cornerRadius: GLASS_PILL.height / 2 });
+
+  islandWindow = new BrowserWindow({
+    ...toScreenRect(glassStripBounds()),
+    // `parent` makes this a real NSWindow child: it rides with the parent, is
+    // always ordered above it, and — unlike alwaysOnTop — sinks behind other
+    // applications when Blanc is deactivated.
+    parent: win,
+    ...CHILD_WINDOW_OPTS,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  lockPrivilegedNavigation(islandWindow.webContents, CHROME_INDEX_URL);
+  installChromeShortcuts(islandWindow.webContents);
+  islandWindow.loadFile(CHROME_INDEX_FILE);
+
+  overlayWindow = new BrowserWindow({
+    ...toScreenRect(currentChromeLayout().panelBounds),
+    parent: win,
+    ...CHILD_WINDOW_OPTS,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  lockPrivilegedNavigation(overlayWindow.webContents, CHROME_OVERLAY_URL);
+  installChromeShortcuts(overlayWindow.webContents);
+  overlayWindow.loadFile(CHROME_OVERLAY_FILE);
+
+  // Escape at the main-process level, matching createOverlay's handler — the
+  // key must dismiss no matter which element inside the overlay holds focus.
+  overlayWindow.webContents.on('before-input-event', (event, input) => {
+    if (overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
+      event.preventDefault();
+      hideOverlay();
+    }
+  });
+  // Window blur is the cross-window analogue of the overlay view's blur
+  // dismissal. Find is exempt (same as today), and the blank-tab focus-reclaim
+  // guard still applies or the reclaim dance reopens/closes in a loop.
+  overlayWindow.on('blur', () => {
+    if (!overlayMode || overlayMode === 'find') return;
+    if (addressMenuTicket) return;
+    if (activeTabId && tabsWantingAddressBarFocus.has(activeTabId)) return;
+    hideOverlay();
+  });
+
+  // The children are positioned in screen space, so every parent geometry
+  // change has to be mirrored. NSWindow parenting moves them on a title-bar
+  // drag, but not on resize or programmatic setBounds.
+  for (const evt of ['move', 'moved', 'resize', 'resized', 'restore',
+                     'enter-full-screen', 'leave-full-screen']) {
+    win.on(evt, syncGlassChromeBounds);
+  }
+  // A minimized parent leaves NSWindow children orphaned on screen unless they
+  // are explicitly hidden with it.
+  win.on('minimize', () => {
+    setGlassChromeVisible(false);
+    overlayWindow?.hide();
+  });
+  win.on('restore', () => {
+    // A sheet open across a minimize must stay the only surface on restore.
+    if (!utilitySheetUrl) setGlassChromeVisible(true);
+    if (overlayMode) overlayWindow?.showInactive();
   });
 }
 
@@ -660,9 +892,28 @@ function verticalTabsMetrics(layout = currentChromeLayout()) {
 
 function overlayBounds() {
   const layout = currentChromeLayout();
-  if (overlayMode === 'find') return layout.findBounds;
-  if (overlayMode === 'palette') return layout.paletteBounds;
-  return layout.panelBounds;
+  if (!GLASS_EXPERIMENT) {
+    if (overlayMode === 'find') return layout.findBounds;
+    if (overlayMode === 'palette') return layout.paletteBounds;
+    return layout.panelBounds;
+  }
+  // DESIGN DECISION 2: panel and find get TIGHT child bounds, so the rest of
+  // the page stays clickable. Only palette takes the full window, because
+  // there the scrim deliberately owns outside clicks — that surface IS the
+  // dismissal target, not incidental coverage.
+  if (overlayMode === 'palette') return layout.panelBounds;
+  if (reportedOverlayBox) {
+    return centredBox(reportedOverlayBox, overlayMode === 'find' ? chromeHeight : GLASS_ISLAND_TOP);
+  }
+  return overlayMode === 'find' ? layout.findBounds : layout.panelBounds;
+}
+
+/** Parent-content rect of the glass while an expanded state is showing. */
+function glassOverlayRect() {
+  const g = reportedOverlayBox?.glass;
+  if (!g) return null;
+  const b = overlayBounds();
+  return { x: b.x + g.x, y: b.y + g.y, width: g.width, height: g.height, radius: g.radius };
 }
 
 function createOverlay() {
@@ -764,7 +1015,9 @@ function refocusOverlayAfterMenu() {
 }
 
 function showOverlay(mode, { prefill } = {}) {
-  if (!hasLiveWindow() || !overlayView) return;
+  if (!hasLiveWindow()) return;
+  if (!GLASS_EXPERIMENT && !overlayView) return;
+  if (GLASS_EXPERIMENT && (!overlayWindow || overlayWindow.isDestroyed())) return;
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
   hideUtilitySheet({ refocusContent: false });
@@ -773,12 +1026,20 @@ function showOverlay(mode, { prefill } = {}) {
   if (mode === 'panel' || mode === 'palette') sync.refreshSession();
   overlayMode = mode;
   overlayPrefill = prefill ?? null;
-  // (Re-)adding moves the overlay to the top of the child-view stack.
-  win.contentView.addChildView(overlayView);
-  overlayView.setBounds(overlayBounds());
-  overlayView.webContents.send('overlay:show', { mode, prefill });
-  overlayView.webContents.focus();
-  win.webContents.send('chrome:island-state', { mode });
+  if (GLASS_EXPERIMENT) {
+    // The window IS the stacking: no re-adding to a child-view list. Bounds
+    // first, then show, so the first painted frame is already in position.
+    overlayWindow.setBounds(toScreenRect(overlayBounds()));
+    overlayWindow.show();
+    overlayWindow.focus();
+  } else {
+    // (Re-)adding moves the overlay to the top of the child-view stack.
+    win.contentView.addChildView(overlayView);
+    overlayView.setBounds(overlayBounds());
+  }
+  overlayWC()?.send('overlay:show', { mode, prefill });
+  overlayWC()?.focus();
+  chromeWC()?.send('chrome:island-state', { mode });
 }
 
 function hideOverlay({ refocusContent = true } = {}) {
@@ -787,12 +1048,23 @@ function hideOverlay({ refocusContent = true } = {}) {
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
-  if (hasLiveWindow() && overlayView) {
+  if (!hasLiveWindow()) return;
+  if (GLASS_EXPERIMENT) {
+    if (!overlayWindow || overlayWindow.isDestroyed()) return;
+    overlayWC()?.send('overlay:hide');
+    overlayWindow.hide();
+    // Hiding a focused child window leaves the app with no key window; hand
+    // focus back to the parent explicitly or the next keystroke goes nowhere.
+    if (!win.isDestroyed()) win.focus();
+    // Back to the resting pill's tight geometry.
+    glassNative.setFrame(win, glassPillRect());
+  } else {
+    if (!overlayView) return;
     win.contentView.removeChildView(overlayView);
     overlayView.webContents.send('overlay:hide');
-    win.webContents.send('chrome:island-state', { mode: null });
-    if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
   }
+  chromeWC()?.send('chrome:island-state', { mode: null });
+  if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
 }
 
 // --- Utility sheet (design: 2026-07-22-utility-sheet-design.md) ---
@@ -868,8 +1140,22 @@ function showUtilityPage(url) {
   // 'visible' and never background-throttles — toggle real visibility.
   utilitySheetView.setVisible(true);
   win.contentView.addChildView(utilitySheetView);
+  // DESIGN DECISION 3: a utility sheet is a deliberate modal surface, so the
+  // glass and the resting island go away entirely rather than leaving a
+  // residual pill refracting on top of the sheet. Nothing moves into another
+  // child window — the sheet stays a plain parent-hosted view.
+  setGlassChromeVisible(false);
   resizeActiveView();
   utilitySheetView.webContents.focus();
+}
+
+/** Show/hide the glass + resting island together (utility sheet, minimize). */
+function setGlassChromeVisible(visible) {
+  if (!GLASS_EXPERIMENT) return;
+  glassNative.setHidden(!visible);
+  if (!islandWindow || islandWindow.isDestroyed()) return;
+  if (visible) islandWindow.showInactive();
+  else islandWindow.hide();
 }
 
 function hideUtilitySheet({ refocusContent = true } = {}) {
@@ -878,6 +1164,7 @@ function hideUtilitySheet({ refocusContent = true } = {}) {
   if (hasLiveWindow() && utilitySheetView) {
     win.contentView.removeChildView(utilitySheetView);
     utilitySheetView.setVisible(false);
+    setGlassChromeVisible(true);
     if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
   }
 }
@@ -1013,13 +1300,13 @@ function broadcastTabs() {
     tabLayout,
     ...widthMetrics,
   };
-  win.webContents.send('tabs:updated', payload);
-  overlayView?.webContents.send('tabs:updated', payload);
+  chromeWC()?.send('tabs:updated', payload);
+  overlayWC()?.send('tabs:updated', payload);
 }
 
 function broadcastDownloadsActivity() {
   if (!win || win.isDestroyed()) return;
-  win.webContents.send('chrome:downloads', downloadsActivity());
+  chromeWC()?.send('chrome:downloads', downloadsActivity());
 }
 
 // The blocked-request counter can tick many times a second during a page
@@ -1038,6 +1325,10 @@ function resizeActiveView() {
   const layout = currentChromeLayout();
   const tab = activeTabId ? tabs.get(activeTabId) : null;
   if (tab) tab.view.setBounds(layout.pageBounds);
+  if (GLASS_EXPERIMENT) {
+    glassNative.setFrame(win, glassPillRect());
+    syncGlassChromeBounds();
+  }
   if (overlayMode && overlayView) overlayView.setBounds(overlayBounds());
   if (utilitySheetUrl && utilitySheetView) {
     utilitySheetView.setBounds(layout.utilityBounds);
@@ -1045,7 +1336,7 @@ function resizeActiveView() {
   // The BrowserWindow renderer and native child views must move in the same
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
-  win.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
+  chromeWC()?.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -1634,7 +1925,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   wc.on('found-in-page', (_e, result) => {
     if (id === activeTabId) {
-      overlayView?.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
+      overlayWC()?.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
     }
   });
 
@@ -1815,6 +2106,10 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
   // but a race must never paint a tab over either floating layer).
   if (utilitySheetUrl && utilitySheetView) win.contentView.addChildView(utilitySheetView);
+  // EXPERIMENT: the native glass is a raw NSView sibling, invisible to
+  // Electron's child-view ordering, so a freshly attached tab view would cover
+  // it. The island's contents live in a separate window and need no re-stacking.
+  if (GLASS_EXPERIMENT) glassNative.raise();
   if (overlayMode && overlayView) win.contentView.addChildView(overlayView);
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
@@ -2076,7 +2371,7 @@ function toggleIsland() {
   win.focus();
   if (overlayMode === 'panel' || overlayMode === 'palette') {
     overlayView?.webContents.focus();
-    overlayView?.webContents.send('overlay:toggle');
+    overlayWC()?.send('overlay:toggle');
     return;
   }
   showOverlay('palette');
@@ -2087,7 +2382,12 @@ function focusAddressBar() {
   // setActiveTab() may just have handed OS-level keyboard focus to the
   // tab's WebContentsView; showOverlay reclaims it for the overlay's
   // webContents so the address input actually receives keystrokes.
-  win.focus();
+  //
+  // PHASE TWO: focusing the PARENT here would blur the overlay child window and
+  // trip its blur-dismissal, so the reclaim would close the very panel it is
+  // trying to focus. showOverlay focuses the child window directly, which takes
+  // OS focus away from the tab view just as effectively.
+  if (!GLASS_EXPERIMENT) win.focus();
   // Reasserts must not downgrade an already-summoned palette to a panel.
   showOverlay(overlayMode && overlayMode !== 'find' ? overlayMode : 'panel');
 }
@@ -2121,6 +2421,15 @@ function isTrustedChromeSender(event) {
     hasLiveWindow() ? { webContents: win.webContents, url: CHROME_INDEX_URL } : null,
     overlayView && !overlayView.webContents.isDestroyed()
       ? { webContents: overlayView.webContents, url: CHROME_OVERLAY_URL }
+      : null,
+    // PHASE TWO: the same two documents, now hosted in child windows. The
+    // allowlist stays identity + URL pinned — splitting the hosts adds
+    // entries, it does not loosen the check.
+    GLASS_EXPERIMENT && islandWindow && !islandWindow.webContents.isDestroyed()
+      ? { webContents: islandWindow.webContents, url: CHROME_INDEX_URL }
+      : null,
+    GLASS_EXPERIMENT && overlayWindow && !overlayWindow.webContents.isDestroyed()
+      ? { webContents: overlayWindow.webContents, url: CHROME_OVERLAY_URL }
       : null,
   ]);
 }
@@ -2230,13 +2539,50 @@ function registerIpcHandlers() {
     }
   });
 
+  // PHASE TWO: the renderer measures the element that should BE the glass
+  // (#islandPill at rest, #islandPanel expanded) and reports it here, so the
+  // native view tracks a shape main.js cannot compute — the panel's height
+  // depends on its content.
+  // Each chrome renderer reports the box its window must hold plus the sub-rect
+  // that should BE the glass. Main cannot compute either: the pill's width is
+  // driven by the domain string and the panel's height by its content.
+  chromeOn('chrome:glass-rect', (event, payload) => {
+    if (!GLASS_EXPERIMENT || !hasLiveWindow()) return;
+    const box = payload && payload.host;
+    const glass = payload && payload.glass;
+    if (!box || !(box.width > 0) || !glass || !(glass.width > 0)) return;
+    const fromOverlay = event.sender === overlayWC();
+    // Ignore reports from the surface that is not currently in charge, or a
+    // stale frame would resize the window/glass to the wrong state.
+    if (fromOverlay && !overlayMode) return;
+    if (!fromOverlay && overlayMode) return;
+
+    if (fromOverlay) {
+      reportedOverlayBox = { ...box, glass };
+      if (overlayWindow && !overlayWindow.isDestroyed()) {
+        overlayWindow.setBounds(toScreenRect(overlayBounds()));
+      }
+      const r = glassOverlayRect();
+      if (r) glassNative.setFrame(win, r, { cornerRadius: r.radius });
+    } else {
+      reportedIslandBox = { ...box, glass };
+      if (islandWindow && !islandWindow.isDestroyed()) {
+        islandWindow.setBounds(toScreenRect(glassStripBounds()));
+      }
+      const r = glassPillRect();
+      glassNative.setFrame(win, r, { cornerRadius: glass.radius ?? r.height / 2 });
+    }
+  });
+
   chromeOn('chrome:open-island', () => showOverlay('panel'));
   chromeOn('chrome:open-find', () => showOverlay('find'));
   chromeHandle('chrome:open-main-menu', (event, point) => {
     // The rich preload is shared with the overlay, but the visible platform
     // menu button exists only in the strip document. Keep this entry point as
     // narrow as the UI that owns it.
-    if (event.sender !== win?.webContents) return false;
+    // PHASE TWO: the strip document may now live in islandWindow, so compare
+    // against whichever webContents actually renders it.
+    if (event.sender !== chromeWC()) return false;
     return popupPlatformMainMenu({ Menu, window: win, point });
   });
   chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));
@@ -2744,6 +3090,18 @@ function createMainWindow() {
   installChromeShortcuts(win.webContents);
   win.loadFile(CHROME_INDEX_FILE);
   createOverlay();
+  if (GLASS_EXPERIMENT) {
+    createGlassChrome();
+    // Scope the glass CSS without adding an IPC channel or a renderer branch.
+    // Both child windows carry chrome documents, so both need the flag.
+    for (const wc of [islandWindow.webContents, overlayWindow.webContents]) {
+      wc.on('did-finish-load', () => {
+        wc.executeJavaScript(
+          "document.documentElement.setAttribute('data-glass','on')"
+        ).then(() => syncGlassChromeBounds()).catch(() => {});
+      });
+    }
+  }
   win.on('resize', resizeActiveView);
   win.on('focus', refocusAddressBarIfWanted);
   win.on('closed', () => {
@@ -2752,6 +3110,12 @@ function createMainWindow() {
     overlayMode = null;
     if (overlayView && !overlayView.webContents.isDestroyed()) overlayView.webContents.close();
     overlayView = null;
+    glassNative.detach();
+    for (const w of [islandWindow, overlayWindow]) {
+      if (w && !w.isDestroyed()) w.destroy();
+    }
+    islandWindow = null;
+    overlayWindow = null;
     // The sheet doesn't outlive its window either — dropping the reference
     // without closing would leak the webContents.
     if (utilitySheetView && !utilitySheetView.webContents.isDestroyed()) utilitySheetView.webContents.close();
@@ -2891,7 +3255,7 @@ app.whenReady().then(async () => {
       if (!hasLiveWindow()) return resolve(null);
       const promptId = ++permissionPromptCounter;
       pendingPermissionPrompts.set(promptId, resolve);
-      win.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
+      chromeWC()?.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
     })
   );
   chromeOn('permissions:respond', (_e, { id, allow }) => {
@@ -2983,7 +3347,7 @@ app.whenReady().then(async () => {
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
       getUtilitySheetWebContents: () => utilitySheetView?.webContents ?? null,
-      getOverlayWebContents: () => overlayView?.webContents ?? null,
+      getOverlayWebContents: () => overlayWC(),
       getChromeWebContents: () => win?.webContents ?? null,
       setWindowContentSize: (width, height) => {
         if (!hasLiveWindow()) return;
@@ -3051,7 +3415,7 @@ app.whenReady().then(async () => {
   // surfaces (overlay panel; any tab currently on the start page).
   const pushRemoteDevices = () => {
     const devices = sync.listRemoteDevices();
-    overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
+    overlayWC()?.send('chrome:remote-tabs-updated', devices);
     for (const tab of tabs.values()) {
       if (tab.url?.startsWith('blanc://newtab')) {
         tab.view.webContents.send('pages:start:remote-tabs', devices);
