@@ -13,7 +13,7 @@ const history = require('./history');
 const bookmarks = require('./bookmarks');
 const { Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
-const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { blockableHostname } = require('./adblock-exceptions');
 const {
   runAddressMenuItem,
   readAddressFieldText,
@@ -30,6 +30,8 @@ function install(refs) {
     getTabOrder,
     getGroups,
     getActiveTabId,
+    runBlockAdsCommand,
+    runAllowAdsCommand,
     clusterSlots,
     createTab,
     setActiveTab,
@@ -226,24 +228,10 @@ function install(refs) {
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
-    // Mirrors main.js's chrome:adblock-toggle through the same resolver, so
-    // the "/block-ads" scenarios cover the real branch (re-block an excepted
-    // site vs. toggle globally) instead of a bare boolean flip.
-    toggleAdblock() {
-      const tab = tabs.get(getActiveTabId());
-      const current = settings.getSettings();
-      const result = resolveBlockAdsCommand({
-        hostname: tab ? blockableHostname(urlOf(tab)) : null,
-        exceptions: current.adblockExceptions,
-        enabled: current.adblockEnabled,
-      });
-      settings.setSettings(
-        result.action === 'unexcept'
-          ? { adblockEnabled: result.enabled, adblockExceptions: result.exceptions }
-          : { adblockEnabled: result.enabled }
-      );
-      return result;
-    },
+    // The REAL handler body from main.js, not a copy of it — a mirror here
+    // would keep the suite green even with the shipping handler reverted to
+    // the bare global toggle this whole change exists to fix.
+    toggleAdblock() { return runBlockAdsCommand(); },
     adblockEnabled() { return settings.getSettings().adblockEnabled; },
     setSearchEngine(x) { settings.setSettings({ searchEngine: x }); },
     searchEngine() { return settings.getSettings().searchEngine; },
@@ -297,15 +285,7 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       return tab ? blockableHostname(urlOf(tab)) : null;
     },
-    // Mirrors main.js's chrome:adblock-exempt-active (minus the reload).
-    allowAdsOnActive() {
-      const tab = tabs.get(getActiveTabId());
-      const hostname = tab ? blockableHostname(urlOf(tab)) : null;
-      if (!hostname) return null;
-      const cur = settings.getSettings().adblockExceptions;
-      settings.setSettings({ adblockExceptions: [...cur, hostname] });
-      return hostname;
-    },
+    allowAdsOnActive() { return runAllowAdsCommand(); },
     setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
 
     // ---- address-bar context menu (F19-2/F19-3) ----

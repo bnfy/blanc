@@ -9,7 +9,7 @@ const {
   setAdBlockEnabled,
   onRequestBlocked,
 } = require('./adblock');
-const { hostnameForWebContents, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -2143,6 +2143,73 @@ function chromeOn(channel, handler) {
   });
 }
 
+// The two ad-block slash commands live here rather than inline in their IPC
+// handlers so the acceptance harness can drive the REAL implementation through
+// test-hook.js. A mirrored copy in the hook would leave the shipping handler
+// untested — reverting it to a bare global toggle (the bug users hit) kept the
+// whole suite green until these were extracted.
+
+/**
+ * The site the user is acting on. The tab model's url is main's own source of
+ * truth — it is what the pill shows as the domain, and it is set synchronously
+ * rather than lagging until the navigation commits the way webContents.getURL()
+ * does. Both agree once a page has settled; using the model means the exception
+ * these commands write is for the site the user was actually looking at, even
+ * if they fire mid-load.
+ */
+function activeSiteHostname(tab) {
+  if (!tab) return null;
+  const fromModel = blockableHostname(tab.url);
+  if (fromModel) return fromModel;
+  try {
+    return blockableHostname(tab.view.webContents.getURL());
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * "/block-ads" — see resolveBlockAdsCommand: on a site "/allow-ads" excepted
+ * this re-blocks that site, everywhere else it toggles blocking globally.
+ * Either way the active tab reloads, since neither change reaches requests
+ * already made or markup already rendered — without it the command looks inert
+ * until the user reloads by hand.
+ */
+function runBlockAdsCommand() {
+  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const current = settings.getSettings();
+  const result = resolveBlockAdsCommand({
+    hostname: activeSiteHostname(tab),
+    exceptions: current.adblockExceptions,
+    enabled: current.adblockEnabled,
+  });
+  settings.setSettings(
+    result.action === 'unexcept'
+      ? { adblockEnabled: result.enabled, adblockExceptions: result.exceptions }
+      : { adblockEnabled: result.enabled }
+  );
+  tab?.view.webContents.reload();
+  return result;
+}
+
+/**
+ * "/allow-ads" — allow ads on the active tab's site, then reload it so the
+ * exception actually takes effect on what's shown. The hostname is normalized
+ * the same way the request path matches it, so the exception this writes is the
+ * one isExcepted will find (and internal pages, which have no ads to allow, are
+ * skipped rather than filed by scheme).
+ */
+function runAllowAdsCommand() {
+  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  if (!tab) return null;
+  const hostname = activeSiteHostname(tab);
+  if (!hostname) return null;
+  const { adblockExceptions } = settings.getSettings();
+  settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
+  tab.view.webContents.reload();
+  return hostname;
+}
+
 function registerIpcHandlers() {
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
@@ -2329,42 +2396,8 @@ function registerIpcHandlers() {
     }
   });
   chromeHandle('chrome:history-clear', () => history.clearHistory());
-  // "/block-ads" — see resolveBlockAdsCommand: on a site "/allow-ads" excepted
-  // this re-blocks that site, everywhere else it toggles blocking globally.
-  // Either way the active tab reloads, since neither change reaches requests
-  // already made or markup already rendered — without it the command looks
-  // inert until the user reloads by hand.
-  chromeHandle('chrome:adblock-toggle', () => {
-    const tab = activeTabId ? tabs.get(activeTabId) : null;
-    const current = settings.getSettings();
-    const result = resolveBlockAdsCommand({
-      hostname: hostnameForWebContents(tab?.view.webContents),
-      exceptions: current.adblockExceptions,
-      enabled: current.adblockEnabled,
-    });
-    settings.setSettings(
-      result.action === 'unexcept'
-        ? { adblockEnabled: result.enabled, adblockExceptions: result.exceptions }
-        : { adblockEnabled: result.enabled }
-    );
-    tab?.view.webContents.reload();
-    return result;
-  });
-  // "/allow-ads" — allow ads on the active tab's site, then reload it so
-  // the exception actually takes effect on what's shown.
-  chromeHandle('chrome:adblock-exempt-active', () => {
-    const tab = activeTabId ? tabs.get(activeTabId) : null;
-    if (!tab) return null;
-    // Same normalization the request path matches against, so the exception
-    // this writes is the one isExcepted will find (and so internal pages,
-    // which have no ads to allow, are skipped rather than filed by scheme).
-    const hostname = hostnameForWebContents(tab.view.webContents);
-    if (!hostname) return null;
-    const { adblockExceptions } = settings.getSettings();
-    settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
-    tab.view.webContents.reload();
-    return hostname;
-  });
+  chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
+  chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
     const current = settings.getSettings().theme;
@@ -2995,6 +3028,7 @@ app.whenReady().then(async () => {
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
