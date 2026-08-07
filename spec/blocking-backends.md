@@ -169,7 +169,12 @@ Because interception is programmatic, **increment a per-tab counter on each bloc
   `adblockExceptions` and the user-visible effect; the *mechanism* differs (D2).
 - **F12-3 (global toggle):** identical everywhere — toggling detaches/attaches the
   rule lists (iOS) / bypasses the interceptor (Android) / disables the session
-  blocker (desktop).
+  blocker (desktop). Applies to a site with no exception; see F12-4.
+- **F12-4 (re-block an allowed site):** `/block-ads` on an excepted site removes
+  that exception rather than touching the global switch, which the exception
+  outranks. The removal path is the D2 mechanism in reverse: drop the hostname
+  from the live predicate (desktop/Android) or recompile and re-attach the rule
+  list without it (iOS), so iOS pays the same recompile cost as F12-2.
 
 ## Decisions (closed 2026-07-07 — see roadmap §5)
 

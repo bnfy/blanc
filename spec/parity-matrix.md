@@ -25,7 +25,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F9 | Favorites | SHIPPED | PLANNED | PLANNED | Heart toggle, "Add all open tabs", favorites page + newtab favorites. Internal id stays `bookmarks`. | — |
 | F10 | History | SHIPPED | PLANNED | PLANNED | Per-visit record + title update, capped 5000, clearable, excluded for private tabs. | — |
 | F11 | Downloads | SHIPPED | PLANNED | PLANNED | Downloads list UI + progress, capped 200. | D3 |
-| F12 | Ad/tracker blocking | SHIPPED | PARTIAL | PLANNED | Ads/trackers blocked by default; per-tab shield count; per-site allow; global toggle. Filter data shared. | D1, D2, D13, D14 |
+| F12 | Ad/tracker blocking | SHIPPED | PARTIAL | PLANNED | Ads/trackers blocked by default; per-tab shield count; per-site allow and re-block from the same command; global toggle. Filter data shared. | D1, D2, D13, D14 |
 | F13 | Permissions | SHIPPED | PLANNED | PLANNED | Explicit per-permission prompts with the same policy/copy. | — |
 | F14 | Settings | SHIPPED | PARTIAL | PLANNED | Same keys, defaults, and validation (search engine, device-local `searchSuggestions`, adblock, home page, theme, app icon, exceptions, usage ping, supporter). | D5, D6 |
 | F15 | Theming | SHIPPED | SHIPPED | PLANNED | system/light/dark + private scope; propagates to chrome, internal pages, web content live, no restart. | — |
