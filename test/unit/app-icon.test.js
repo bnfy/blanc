@@ -272,8 +272,20 @@ test('the Icon Composer mark fills the same share of its tile as the flat colorw
     + 'between the quit-state bundle icon and the running app. Rescale the transform in '
     + 'blanc-mark.svg (the canvas-relative sizes are SUPPOSED to differ by 1024/824).',
   );
-  // Horizontal placement is deliberately NOT asserted: the flat PNG carries a
-  // ~24px optical offset the vector mark does not, which is a separate call.
+
+  // The mark sits ~24px right of the tile's true center — a deliberate optical
+  // adjustment, so the vector source has to carry it too or the mark visibly
+  // shifts when the Dock swaps sources. Measured as a fraction of the tile,
+  // since the two tiles are different sizes.
+  const flatOffset = ((flatMark.minX + flatMark.maxX) / 2 - (tile.minX + tile.maxX) / 2) / tile.width;
+  const composedOffset = ((composed.minX + composed.maxX) / 2 - (CANVAS - 1) / 2) / CANVAS;
+  assert.ok(flatOffset > 0.02, 'the flat colorways still carry their optical offset');
+  assert.ok(
+    Math.abs(composedOffset - flatOffset) < 0.005,
+    `Icon Composer mark sits at ${(composedOffset * 100).toFixed(2)}% of tile width off center `
+    + `but the flat colorways sit at ${(flatOffset * 100).toFixed(2)}% — the mark would jump `
+    + 'sideways when the Dock swaps sources. Adjust the translate in blanc-mark.svg.',
+  );
   assert.ok(composed.height > 600 && composed.height < 700, 'mark stays within the icon safe area');
 });
 
