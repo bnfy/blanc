@@ -9,6 +9,7 @@ const {
   setAdBlockEnabled,
   onRequestBlocked,
 } = require('./adblock');
+const { hostnameForWebContents, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -2328,26 +2329,41 @@ function registerIpcHandlers() {
     }
   });
   chromeHandle('chrome:history-clear', () => history.clearHistory());
+  // "/block-ads" — see resolveBlockAdsCommand: on a site "/allow-ads" excepted
+  // this re-blocks that site, everywhere else it toggles blocking globally.
+  // Either way the active tab reloads, since neither change reaches requests
+  // already made or markup already rendered — without it the command looks
+  // inert until the user reloads by hand.
   chromeHandle('chrome:adblock-toggle', () => {
-    const next = !settings.getSettings().adblockEnabled;
-    settings.setSettings({ adblockEnabled: next });
-    return next;
+    const tab = activeTabId ? tabs.get(activeTabId) : null;
+    const current = settings.getSettings();
+    const result = resolveBlockAdsCommand({
+      hostname: hostnameForWebContents(tab?.view.webContents),
+      exceptions: current.adblockExceptions,
+      enabled: current.adblockEnabled,
+    });
+    settings.setSettings(
+      result.action === 'unexcept'
+        ? { adblockEnabled: result.enabled, adblockExceptions: result.exceptions }
+        : { adblockEnabled: result.enabled }
+    );
+    tab?.view.webContents.reload();
+    return result;
   });
   // "/allow-ads" — allow ads on the active tab's site, then reload it so
   // the exception actually takes effect on what's shown.
   chromeHandle('chrome:adblock-exempt-active', () => {
     const tab = activeTabId ? tabs.get(activeTabId) : null;
     if (!tab) return null;
-    try {
-      const hostname = new URL(tab.url).hostname.replace(/^www\./, '');
-      if (!hostname) return null;
-      const { adblockExceptions } = settings.getSettings();
-      settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
-      tab.view.webContents.reload();
-      return hostname;
-    } catch {
-      return null;
-    }
+    // Same normalization the request path matches against, so the exception
+    // this writes is the one isExcepted will find (and so internal pages,
+    // which have no ads to allow, are skipped rather than filed by scheme).
+    const hostname = hostnameForWebContents(tab.view.webContents);
+    if (!hostname) return null;
+    const { adblockExceptions } = settings.getSettings();
+    settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
+    tab.view.webContents.reload();
+    return hostname;
   });
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
@@ -2511,7 +2527,7 @@ const SLASH_COMMANDS = [
   ['/ungroup', 'Take this tab out of its group'],
   ['/close-group', 'Close every tab in this group'],
   ['/find', 'Find in page'],
-  ['/block-ads', 'Toggle ad & tracker blocking'],
+  ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
 ];

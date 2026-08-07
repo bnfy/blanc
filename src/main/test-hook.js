@@ -13,6 +13,7 @@ const history = require('./history');
 const bookmarks = require('./bookmarks');
 const { Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
+const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const {
   runAddressMenuItem,
   readAddressFieldText,
@@ -225,7 +226,24 @@ function install(refs) {
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
-    toggleAdblock() { settings.setSettings({ adblockEnabled: !settings.getSettings().adblockEnabled }); },
+    // Mirrors main.js's chrome:adblock-toggle through the same resolver, so
+    // the "/block-ads" scenarios cover the real branch (re-block an excepted
+    // site vs. toggle globally) instead of a bare boolean flip.
+    toggleAdblock() {
+      const tab = tabs.get(getActiveTabId());
+      const current = settings.getSettings();
+      const result = resolveBlockAdsCommand({
+        hostname: tab ? blockableHostname(urlOf(tab)) : null,
+        exceptions: current.adblockExceptions,
+        enabled: current.adblockEnabled,
+      });
+      settings.setSettings(
+        result.action === 'unexcept'
+          ? { adblockEnabled: result.enabled, adblockExceptions: result.exceptions }
+          : { adblockEnabled: result.enabled }
+      );
+      return result;
+    },
     adblockEnabled() { return settings.getSettings().adblockEnabled; },
     setSearchEngine(x) { settings.setSettings({ searchEngine: x }); },
     searchEngine() { return settings.getSettings().searchEngine; },
@@ -273,6 +291,21 @@ function install(refs) {
       settings.setSettings({ adblockExceptions: [...cur, h] });
     },
     exceptions() { return settings.getSettings().adblockExceptions; },
+    // The exception-list hostname of the active tab — lets a scenario talk
+    // about "the active site" instead of hardcoding the fixture server's host.
+    activeHostname() {
+      const tab = tabs.get(getActiveTabId());
+      return tab ? blockableHostname(urlOf(tab)) : null;
+    },
+    // Mirrors main.js's chrome:adblock-exempt-active (minus the reload).
+    allowAdsOnActive() {
+      const tab = tabs.get(getActiveTabId());
+      const hostname = tab ? blockableHostname(urlOf(tab)) : null;
+      if (!hostname) return null;
+      const cur = settings.getSettings().adblockExceptions;
+      settings.setSettings({ adblockExceptions: [...cur, hostname] });
+      return hostname;
+    },
     setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
 
     // ---- address-bar context menu (F19-2/F19-3) ----
