@@ -2061,6 +2061,21 @@ function openFindBar() {
   showOverlay('find');
 }
 
+/** ⌘L opens the expanded island and closes it again. Both expanded states share
+ * the pill's anchor, so it doesn't matter which one is up — either way the
+ * island is open and the shortcut should put it away. The find capsule is a
+ * different surface: summoning search over it replaces it rather than
+ * dismissing it, which is what pressing ⌘L there means. */
+function toggleIsland() {
+  if (!hasLiveWindow()) return;
+  win.focus();
+  if (overlayMode === 'panel' || overlayMode === 'palette') {
+    hideOverlay();
+    return;
+  }
+  showOverlay('palette');
+}
+
 function focusAddressBar() {
   if (!win || win.isDestroyed()) return;
   // setActiveTab() may just have handed OS-level keyboard focus to the
@@ -2557,7 +2572,7 @@ function buildMenu() {
     {
       label: 'View',
       submenu: [
-        { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: () => { if (hasLiveWindow()) { win.focus(); showOverlay('palette'); } } },
+        { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: toggleIsland },
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: openFindBar },
         { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reload() },
         { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reloadIgnoringCache() },
