@@ -149,6 +149,8 @@
     return `Blanc blocked ${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
   }
 
+  const EXCEPTED_SHIELD_TITLE = 'Ads allowed on this site — /block-ads to re-block';
+
   /** The page URL behind a `view-source:` URL, else null. Chromium's
    * view-source: is a non-special scheme, so `new URL(...).host` is '' and
    * the pill would fall back to the literal "new tab".
@@ -406,10 +408,16 @@
     // the same thing is noise.
     pillSourceChip.hidden = !viewSourceTarget(tab?.url) || !!tab?.private;
 
+    // An allow-listed site blocks nothing, so the count alone would hide the
+    // shield and leave that state invisible in the chrome. Show it struck
+    // through instead — the one place the pill admits ads are getting through
+    // on purpose, and the affordance that makes /block-ads' effect legible.
     const blocked = tab?.blockedCount ?? 0;
-    pillShield.hidden = blocked === 0;
-    pillShield.textContent = String(blocked);
-    pillShield.title = shieldTooltip(blocked);
+    const excepted = !!tab?.excepted;
+    pillShield.hidden = blocked === 0 && !excepted;
+    pillShield.classList.toggle('shield-off', excepted);
+    pillShield.textContent = excepted ? '0' : String(blocked);
+    pillShield.title = excepted ? EXCEPTED_SHIELD_TITLE : shieldTooltip(blocked);
 
     // The private theme scope follows the active tab.
     if (tab?.private) document.documentElement.dataset.theme = 'private';

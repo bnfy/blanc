@@ -929,18 +929,33 @@ function pasteAndGo(id, rawText) {
   hideOverlay();
 }
 
+/** Is this URL's site on the ad-block exception list? Read live so a change
+ *  from either Settings or a slash command shows up on the next broadcast. */
+function isHostnameExcepted(url) {
+  const hostname = blockableHostname(url);
+  return !!hostname && settings.getSettings().adblockExceptions.includes(hostname);
+}
+
 function serializeTabs() {
   return tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
     .map(({ view, ...rest }) => {
-      // A page-favicon URL belongs to the tab's browsing session. Sending a
-      // private tab's remote URL into persistent chrome would make the chrome
-      // session fetch it again merely to paint the pill/overlay/rail, escaping
-      // the non-persistent private-session boundary. Private rows deliberately
-      // use the renderer's neutral fallback instead.
-      if (rest.private && rest.favicon) return { ...rest, favicon: null };
-      return rest;
+      // Whether ads are allow-listed here. Derived rather than stored: the
+      // exception list is edited from Settings and the slash commands alike,
+      // and without this the chrome shows NOTHING on an excepted site (the
+      // shield hides at a 0 count), so "/allow-ads" left no visible trace and
+      // "/block-ads" appeared to do nothing when it lifted the exception.
+      const excepted = isHostnameExcepted(rest.url);
+      if (rest.private && rest.favicon) {
+        // A page-favicon URL belongs to the tab's browsing session. Sending a
+        // private tab's remote URL into persistent chrome would make the chrome
+        // session fetch it again merely to paint the pill/overlay/rail, escaping
+        // the non-persistent private-session boundary. Private rows deliberately
+        // use the renderer's neutral fallback instead.
+        return { ...rest, favicon: null, excepted };
+      }
+      return { ...rest, excepted };
     });
 }
 

@@ -286,6 +286,22 @@ function install(refs) {
       return tab ? blockableHostname(urlOf(tab)) : null;
     },
     allowAdsOnActive() { return runAllowAdsCommand(); },
+    // The REAL pill element, so the allow-listed indicator is covered end to
+    // end (serializeTabs -> tabs:updated -> renderer) rather than at the model
+    // — the state being invisible in the chrome is the whole point of it.
+    pillShieldState() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const el = document.getElementById('pillShield');
+        if (!el) return null;
+        return {
+          hidden: !!el.hidden,
+          off: el.classList.contains('shield-off'),
+          title: el.title,
+        };
+      })()`);
+    },
     setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
 
     // ---- address-bar context menu (F19-2/F19-3) ----

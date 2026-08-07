@@ -860,6 +860,18 @@ body.mac .vertical-tabs-toolbar {
   flex: 0 0 auto;
 }
 
+/* Ads deliberately allowed here (/allow-ads). The shield stays in place but
+   reads as switched off — muted rather than alarming, since this is a state
+   the user chose, not a warning. Struck through so it is distinguishable from
+   a genuine 0 at a glance and without relying on color alone. */
+.shield.shield-off {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  text-decoration: line-through;
+  padding: 0 6px;
+}
+
 /* Warning-only security indicator: an open padlock shown solely on
    plain-HTTP sites (pill and command-bar input row); secure and internal
    pages show nothing. */
