@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Drag region edge cases</title>
+<style>
+  body { margin: 0; font: 12px system-ui, sans-serif; background: #fafafa; }
+  .lbl { padding: 4px 8px; font-weight: 600; }
+</style>
+</head>
+<body>
+  <!-- C: DECLARATIVE open shadow root (never calls attachShadow) -->
+  <div id="decOpen"><template shadowrootmode="open">
+    <style>.b { position: fixed; top: 220px; left: 0; right: 0; height: 80px;
+                 background: rgba(255,0,255,.18); -webkit-app-region: drag; }
+           .lbl { padding: 4px 8px; font: 600 12px system-ui; }</style>
+    <div class="b"><div class="lbl">C declarative OPEN (page 220-300)</div></div>
+  </template></div>
+
+  <!-- D: DECLARATIVE closed shadow root -->
+  <div id="decClosed"><template shadowrootmode="closed">
+    <style>.b { position: fixed; top: 310px; left: 0; right: 0; height: 80px;
+                 background: rgba(255,165,0,.20); -webkit-app-region: drag; }
+           .lbl { padding: 4px 8px; font: 600 12px system-ui; }</style>
+    <div class="b"><div class="lbl">D declarative CLOSED (page 310-390)</div></div>
+  </template></div>
+
+  <div id="hostA"></div>
+  <div id="hostB"></div>
+  <div id="hostE"></div>
+
+  <script>
+    // A: attachShadow CLOSED
+    const a = document.getElementById('hostA').attachShadow({ mode: 'closed' });
+    a.innerHTML = `<style>.b{position:fixed;top:40px;left:0;right:0;height:80px;
+      background:rgba(255,0,0,.18);-webkit-app-region:drag}
+      .lbl{padding:4px 8px;font:600 12px system-ui}</style>
+      <div class="b"><div class="lbl">A attachShadow CLOSED (page 40-120)</div></div>`;
+
+    // B: attachShadow OPEN
+    const b = document.getElementById('hostB').attachShadow({ mode: 'open' });
+    b.innerHTML = `<style>.b{position:fixed;top:130px;left:0;right:0;height:80px;
+      background:rgba(0,128,0,.18);-webkit-app-region:drag}
+      .lbl{padding:4px 8px;font:600 12px system-ui}</style>
+      <div class="b"><div class="lbl">B attachShadow OPEN (page 130-210)</div></div>`;
+
+    // E: attachShadow CLOSED, page uses !important (cascade tie test)
+    const e = document.getElementById('hostE').attachShadow({ mode: 'closed' });
+    e.innerHTML = `<style>.b{position:fixed;top:400px;left:0;right:0;height:80px;
+      background:rgba(0,0,255,.18);-webkit-app-region:drag !important}
+      .lbl{padding:4px 8px;font:600 12px system-ui}</style>
+      <div class="b"><div class="lbl">E attachShadow CLOSED + !important (page 400-480)</div></div>`;
+
+    window.__probe = () => ({
+      A_attachClosed: getComputedStyle(a.querySelector('.b')).webkitAppRegion,
+      B_attachOpen: getComputedStyle(b.querySelector('.b')).webkitAppRegion,
+      C_declOpen: (() => { const r = document.getElementById('decOpen').shadowRoot;
+        return r ? getComputedStyle(r.querySelector('.b')).webkitAppRegion : 'no-root'; })(),
+      D_declClosed: 'unreachable-by-design',
+      E_importantClosed: getComputedStyle(e.querySelector('.b')).webkitAppRegion,
+    });
+  </script>
+</body>
+</html>

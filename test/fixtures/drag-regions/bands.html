@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Drag region probe</title>
+<style>
+  body { margin: 0; font: 13px/1.4 system-ui, sans-serif; background: #fafafa; }
+  /* CONTROL: a light-DOM drag region. The shipped preload fix must neutralize
+     this one. If this band swallows clicks, the light-DOM fix itself failed. */
+  #lightBand {
+    position: fixed; top: 400px; left: 0; right: 0; height: 90px;
+    background: rgba(0, 0, 255, 0.18);
+    -webkit-app-region: drag;
+  }
+  .label { padding: 6px 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div id="hostClosed"></div>
+  <div id="hostOpen"></div>
+  <div id="lightBand"><div class="label">LIGHT DOM drag (control — fix should neutralize)</div></div>
+  <script>
+    // Closed shadow root — the case under test.
+    const closed = document.getElementById('hostClosed').attachShadow({ mode: 'closed' });
+    closed.innerHTML = `
+      <style>
+        .bar { position: fixed; top: 60px; left: 0; right: 0; height: 170px;
+               background: rgba(255, 0, 0, 0.18); -webkit-app-region: drag; }
+        .label { padding: 6px 10px; font: 600 13px system-ui; }
+      </style>
+      <div class="bar"><div class="label">CLOSED SHADOW drag region (y 60-230)</div></div>`;
+
+    // Open shadow root — same question, weaker encapsulation.
+    const open = document.getElementById('hostOpen').attachShadow({ mode: 'open' });
+    open.innerHTML = `
+      <style>
+        .bar { position: fixed; top: 250px; left: 0; right: 0; height: 120px;
+               background: rgba(0, 128, 0, 0.18); -webkit-app-region: drag; }
+        .label { padding: 6px 10px; font: 600 13px system-ui; }
+      </style>
+      <div class="bar"><div class="label">OPEN SHADOW drag region (y 250-370)</div></div>`;
+
+    // Report the computed value actually in effect, per tree scope.
+    window.__probe = () => ({
+      light: getComputedStyle(document.getElementById('lightBand')).webkitAppRegion,
+      closedShadow: getComputedStyle(closed.querySelector('.bar')).webkitAppRegion,
+      openShadow: getComputedStyle(open.querySelector('.bar')).webkitAppRegion,
+      body: getComputedStyle(document.body).webkitAppRegion,
+    });
+  </script>
+</body>
+</html>

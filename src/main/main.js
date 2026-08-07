@@ -677,12 +677,9 @@ function createOverlay() {
       sandbox: true,
     },
   });
-  // Alpha must be non-zero: a fully transparent WebContentsView base layer
-  // causes macOS to forward mouse events through the view to windows behind
-  // it, so clicks near the top of the panel (e.g. pinned-tab rows) never
-  // reach the overlay. Alpha 1/255 is visually identical to 0 but keeps the
-  // view in macOS's hit-test tree.
-  overlayView.setBackgroundColor('#00000001');
+  // Fully transparent: the panel floats over live web content, so only what
+  // overlay.html actually paints may be opaque.
+  overlayView.setBackgroundColor('#00000000');
   lockPrivilegedNavigation(overlayView.webContents, CHROME_OVERLAY_URL);
   installChromeShortcuts(overlayView.webContents);
   overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
@@ -2064,6 +2061,27 @@ function openFindBar() {
   showOverlay('find');
 }
 
+/** ⌘L opens the expanded island and closes it again. Both expanded states share
+ * the pill's anchor, so it doesn't matter which one is up — either way the
+ * island is open and the shortcut should put it away. The find capsule is a
+ * different surface: summoning search over it replaces it rather than
+ * dismissing it, which is what pressing ⌘L there means.
+ *
+ * Dismissal is the overlay's call, not ours: it owns the address input, and a
+ * half-typed query must never be thrown away by the same shortcut that opened
+ * it (every mainstream browser re-selects the field instead). Main can't see
+ * whether anything was typed, so it hands the decision over. */
+function toggleIsland() {
+  if (!hasLiveWindow()) return;
+  win.focus();
+  if (overlayMode === 'panel' || overlayMode === 'palette') {
+    overlayView?.webContents.focus();
+    overlayView?.webContents.send('overlay:toggle');
+    return;
+  }
+  showOverlay('palette');
+}
+
 function focusAddressBar() {
   if (!win || win.isDestroyed()) return;
   // setActiveTab() may just have handed OS-level keyboard focus to the
@@ -2560,7 +2578,7 @@ function buildMenu() {
     {
       label: 'View',
       submenu: [
-        { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: () => { if (hasLiveWindow()) { win.focus(); showOverlay('palette'); } } },
+        { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: toggleIsland },
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: openFindBar },
         { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reload() },
         { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: () => activeTabId && tabs.get(activeTabId)?.view.webContents.reloadIgnoringCache() },
