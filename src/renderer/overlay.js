@@ -45,6 +45,22 @@
   function focusChip(tabId) {
     islandList.querySelector(`.island-row[data-tab-id="${CSS.escape(tabId)}"] .row-grp`)?.focus();
   }
+  /** A click only reaches a row's handler when mousedown and mouseup land on
+   * the same element. tabs:updated broadcasts arrive in bursts while any page
+   * loads, and a replaceChildren between the two destroys the pressed row —
+   * the browser then retargets the click to <body> and the row's handler never
+   * runs, silently dropping the interaction. Hold list re-renders while a
+   * pointer is down and flush one frame after release, so the click has
+   * already been dispatched against the row the user actually pressed. */
+  let pointerHeld = false;
+  let renderQueued = false;
+
+  function releasePointerHold() {
+    pointerHeld = false;
+    if (!renderQueued) return;
+    renderQueued = false;
+    renderList();
+  }
   // The address input's value is only ours to overwrite while untouched;
   // once the user types, incoming tab updates must not clobber it.
   let inputTouched = false;
@@ -357,6 +373,7 @@
       window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
     });
+
     row.addEventListener('auxclick', (e) => {
       if (e.button === 1) window.browserAPI.closeTab(tab.id); // middle-click closes
     });
@@ -804,6 +821,10 @@
   // --- List area: tabs at rest, commands on "/", switcher while typing ---
 
   function renderList() {
+    if (pointerHeld) {
+      renderQueued = true;
+      return;
+    }
     const value = addressInput.value;
     const selectedKey = selectedResultIndex >= 0
       ? resultKey(visibleResults[selectedResultIndex])
@@ -964,6 +985,10 @@
 
   function applyMode(next, prefill) {
     const reshow = mode === next;
+    // A press the overlay never saw released (dismissed mid-click) must not
+    // leave the list frozen behind a stale hold.
+    pointerHeld = false;
+    renderQueued = false;
     mode = next;
     document.body.dataset.mode = next ?? '';
     backdrop.hidden = next !== 'panel' && next !== 'palette';
@@ -1023,6 +1048,15 @@
     selectedResultIndex = -1;
     resetSearchSuggestions();
   });
+
+  document.addEventListener('pointerdown', () => { pointerHeld = true; }, true);
+  // rAF, not the pointerup itself: mouseup and click are still dispatched from
+  // this same input task, and re-rendering before them would drop the click
+  // exactly as an untimed broadcast would.
+  document.addEventListener('pointerup', () => requestAnimationFrame(releasePointerHold), true);
+  document.addEventListener('pointercancel', releasePointerHold, true);
+  // A press that ends outside the view never delivers pointerup here.
+  window.addEventListener('blur', releasePointerHold);
 
   // Click on the backdrop (anywhere outside the panel) dismisses.
   backdrop.addEventListener('mousedown', () => window.browserAPI.closeOverlay());

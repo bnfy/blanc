@@ -4,6 +4,25 @@
 // overriding their webPreferences.preload severs that relationship.
 const { webFrame } = require('electron');
 
+// `-webkit-app-region` is not ordinary page styling in Electron: `drag`
+// registers an OS-level window region which hit-tests above sibling
+// WebContentsViews. A site built from shared desktop-app UI can therefore
+// accidentally put part of Blanc's overlay inside its native drag map. The
+// page then steals that click before either renderer sees an event. Only the
+// trusted strip document owns window dragging; every browsed document gets a
+// user-origin reset early enough to win over author CSS (including !important
+// utility classes) without changing the page's visual layout.
+const isTrustedStrip =
+  window.location.protocol === 'file:'
+  && /\/src\/renderer\/index\.html$/.test(decodeURIComponent(window.location.pathname));
+
+if (!isTrustedStrip) {
+  webFrame.insertCSS(
+    ':root, :root * { -webkit-app-region: no-drag !important; }',
+    { cssOrigin: 'user' }
+  );
+}
+
 webFrame.executeJavaScript(`
 (() => {
   const define = (target, key, value) => {

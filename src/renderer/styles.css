@@ -1012,11 +1012,21 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 }
 #panelAnchor[hidden] { display: none; }
 body[data-mode="palette"] #panelAnchor { top: 120px; }
+/* Summoned 120px down, so it has that much less room before the bottom edge. */
+body[data-mode="palette"] #islandPanel { max-height: calc(100vh - 132px); }
 
 #islandPanel {
   pointer-events: auto;
   width: 620px;
   max-width: calc(100vw - 24px);
+  /* Never grow past the window edge. With enough open tabs the panel used to
+     run off the bottom (measured 843px tall in an 800px window at 19 tabs),
+     putting rows somewhere no click could reach. Cap it and let the tab list
+     scroll inside instead; the address row, footer, and hint stay put. The
+     anchor sits 12px from the top, so leave the same at the bottom. */
+  max-height: calc(100vh - 24px);
+  display: flex;
+  flex-direction: column;
   background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -1075,6 +1085,12 @@ body[data-mode="palette"] #panelAnchor { top: 120px; }
   display: flex;
   flex-direction: column;
   margin-top: 6px;
+  /* The one part of the panel that gives when the cap above bites. min-height
+     is required for a flex child to shrink below its content and scroll at all;
+     the default flex basis keeps a short list exactly as it was. */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .island-row {
