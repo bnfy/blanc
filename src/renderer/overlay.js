@@ -1035,9 +1035,11 @@
   // ⌘L pressed while the island is already open. Anything the user typed is
   // theirs: re-select it the way a browser address bar does rather than
   // discarding it. Only an untouched island — still showing the current page's
-  // address — has nothing to lose and can be dismissed.
+  // address — has nothing to lose and can be dismissed. Length, not a trimmed
+  // test: whitespace someone typed or pasted is still their input, and only a
+  // genuinely emptied field counts as nothing.
   window.browserAPI.onOverlayToggle(() => {
-    if (inputTouched && addressInput.value.trim()) {
+    if (inputTouched && addressInput.value.length > 0) {
       addressInput.focus();
       addressInput.select();
       return;
