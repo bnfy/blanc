@@ -517,13 +517,17 @@
     state = payload;
     render();
   });
-  window.browserAPI.onIslandState(({ mode, trigger }) => {
+  window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger }) => {
     islandMode = mode;
     // Truthful per-control expanded state: the popover is one surface with
     // two doors, and only the door that opened it reads as expanded.
     const shieldOpen = mode === 'shield';
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
+    // Escape dismissal: main has already focused this webContents, so a DOM
+    // focus() here lands in a focused document and paints the ring.
+    if (restoreTrigger === 'shield') pillShield.focus();
+    else if (restoreTrigger === 'insecure') pillInsecure.focus();
     render();
   });
   window.browserAPI.onDownloadsActivity((payload) => {

@@ -722,7 +722,7 @@ function createOverlay() {
   overlayView.webContents.on('before-input-event', (event, input) => {
     if (overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      hideOverlay();
+      hideOverlay({ reason: 'escape' });
     }
   });
 
@@ -805,8 +805,10 @@ function showOverlay(mode, { prefill } = {}) {
   win.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? shieldTrigger : null });
 }
 
-function hideOverlay({ refocusContent = true } = {}) {
+function hideOverlay({ refocusContent = true, reason = null } = {}) {
   if (!overlayMode) return;
+  const closingMode = overlayMode;
+  const closingTrigger = shieldTrigger;
   overlayMode = null;
   shieldAnchorRight = null;
   shieldPopoverHost = null;
@@ -817,8 +819,15 @@ function hideOverlay({ refocusContent = true } = {}) {
   if (hasLiveWindow() && overlayView) {
     win.contentView.removeChildView(overlayView);
     overlayView.webContents.send('overlay:hide');
-    win.webContents.send('chrome:island-state', { mode: null, trigger: null });
-    if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
+    // Escape from the shield popover hands focus back to the control that
+    // opened it, not to page content — keyboard users should land where they
+    // started. The chrome webContents must take focus BEFORE the strip's DOM
+    // focus() runs: the overlay held it until removeChildView above, and a
+    // focus call inside an unfocused document paints no visible ring.
+    const restoreTrigger = reason === 'escape' && closingMode === 'shield' ? closingTrigger : null;
+    if (restoreTrigger) win.webContents.focus();
+    win.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
+    if (refocusContent && !restoreTrigger) tabs.get(activeTabId)?.view.webContents.focus();
   }
 }
 
