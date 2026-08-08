@@ -737,22 +737,28 @@ body.mac .vertical-tabs-toolbar {
 .pill-btn.on svg { fill: var(--accent); stroke: var(--accent); }
 .pill-sep { width: 1px; height: 15px; background: var(--border); flex: 0 0 auto; margin: 0 2px; }
 
-/* Download button: a thin accent progress ring around the tray icon while
-   a download is in flight (--dl-progress is 0..1, set from renderer.js). */
 /* The pill ✕ is the one destructive action in the cluster — DS .bw-pill-close
    fills it on hover so it can't be hit absentmindedly. */
 .pill-close:hover { background: var(--accent) !important; color: var(--surface-raised) !important; }
 
+/* Downloads cistern: while a download is in flight the button fills like a
+   vessel (--dl-progress is 0..1, set from renderer.js), its surface a pair of
+   drifting waves, and the glyph submerges as the level rises. Replaces the
+   conic progress ring, which read the same variable. */
+.pill-download { position: relative; }
 .pill-download.active { color: var(--accent); }
-.pill-download.active::before {
-  content: '';
-  position: absolute;
-  inset: 2px;
-  border-radius: 50%;
-  background: conic-gradient(var(--accent) calc(var(--dl-progress, 0) * 360deg), var(--border) 0);
-  -webkit-mask: radial-gradient(circle, transparent 6px, #000 7px);
-  mask: radial-gradient(circle, transparent 6px, #000 7px);
-}
+.dl-glass { position: absolute; inset: 4.5px; border-radius: 50%; border: 1px solid var(--border); pointer-events: none; }
+.dl-vessel { position: absolute; inset: 4.5px; border-radius: 50%; overflow: hidden; pointer-events: none; }
+.dl-fluid { position: absolute; left: 0; right: 0; bottom: 0; height: calc(var(--dl-progress, 0) * 100%); background: var(--accent); transition: height 300ms cubic-bezier(0.4, 0, 0.2, 1); }
+/* Scoped under .pill-download, and explicit about stroke, purely to outrank
+   `.pill-btn svg` — which sizes and strokes every icon in the cluster and
+   would otherwise render each wave as a 14px stroked shape. The DS has no
+   equivalent rule to fight. */
+.pill-download .dl-wave { position: absolute; left: -100%; width: 300%; height: 2.4px; bottom: calc(100% - 1.2px); fill: var(--accent); stroke: none; animation: dl-drift 2.4s linear infinite; }
+.pill-download .dl-wave.w2 { left: -88%; opacity: 0.5; animation-duration: 3.9s; animation-direction: reverse; }
+.pill-download.active > svg, .pill-download .dl-under svg { width: 9.5px; height: 9.5px; }
+.dl-under { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--surface-raised); clip-path: inset(calc(100% - var(--dl-progress, 0) * 100% + 1.2px) 0 0 0); transition: clip-path 300ms cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
+@keyframes dl-drift { to { transform: translateX(-16.6667%); } }
 
 .island-dot {
   width: 6px;
@@ -1778,5 +1784,6 @@ body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
   }
   .island-row.tab-row .row-tag,
   .island-row.tab-row .row-remote-pin { transition: none; }
+  .pill-download .dl-wave { animation: none; }
   #strip { transition: none; }
 }
