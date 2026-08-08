@@ -14,7 +14,6 @@
   const pillDots = document.getElementById('pillDots');
   const pillNav = document.getElementById('pillNav');
   const pillActions = document.getElementById('pillActions');
-  const pillGroupName = document.getElementById('pillGroupName');
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
   const pillShield = document.getElementById('pillShield');
@@ -58,6 +57,9 @@
     stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
     heart: '<svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>',
     download: '<svg viewBox="0 0 16 16"><path d="M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9"/></svg>',
+    // Same cut as the panel row's close (overlay.js ICONS.close) — both mean
+    // "close tab". Deliberately tighter than `stop`, which means stop loading.
+    close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
   };
 
   /** A quiet icon button for the pill. stopPropagation keeps a click on the
@@ -89,7 +91,11 @@
     else window.browserAPI.reload(t.id);
   });
   const favoriteBtn = pillButton('heart', 'Favorite this page', () => window.browserAPI.toggleBookmark());
-  pillActions.append(reloadBtn, favoriteBtn);
+  const closeBtn = pillButton('close', 'Close tab', () => {
+    if (state.activeTabId) window.browserAPI.closeTab(state.activeTabId);
+  });
+  closeBtn.classList.add('pill-close');
+  pillActions.append(reloadBtn, favoriteBtn, closeBtn);
 
   let downloadState = { active: 0, hasRecent: false, receivedBytes: 0, totalBytes: 0 };
   const downloadsBtn = pillButton('download', 'Downloads', () => {
@@ -103,6 +109,7 @@
   function renderDownloads() {
     const { active, hasRecent, receivedBytes, totalBytes } = downloadState;
     downloadsBtn.hidden = !(active > 0 || hasRecent);
+    closeBtn.hidden = !state.tabs.length;
     downloadsBtn.classList.toggle('active', active > 0);
     const pct = active > 0 && totalBytes > 0 ? Math.min(1, receivedBytes / totalBytes) : 0;
     downloadsBtn.style.setProperty('--dl-progress', String(pct));
@@ -368,10 +375,6 @@
       lastDotsSig = dotsSig;
       pillDots.replaceChildren(...activeGroupDots());
     }
-
-    const activeGroup = state.groups.find((g) => g.id === tab?.groupId) || null;
-    pillGroupName.hidden = !activeGroup;
-    pillGroupName.textContent = activeGroup ? `${activeGroup.name} ·` : '';
 
     setFavicon(pillFavicon, tab);
     pillDomain.textContent = tab?.isLoading

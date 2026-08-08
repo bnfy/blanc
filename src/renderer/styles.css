@@ -739,6 +739,10 @@ body.mac .vertical-tabs-toolbar {
 
 /* Download button: a thin accent progress ring around the tray icon while
    a download is in flight (--dl-progress is 0..1, set from renderer.js). */
+/* The pill ✕ is the one destructive action in the cluster — DS .bw-pill-close
+   fills it on hover so it can't be hit absentmindedly. */
+.pill-close:hover { background: var(--accent) !important; color: var(--surface-raised) !important; }
+
 .pill-download.active { color: var(--accent); }
 .pill-download.active::before {
   content: '';
@@ -790,7 +794,7 @@ body.mac .vertical-tabs-toolbar {
 }
 
 #pillDomain {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   /* Counter-scaled against the pill's zoom so the URL keeps its pre-scale
      visual size — the bigger pill shouldn't shout its URL. Expressed as a
      division (like #pillFavicon) so it tracks --pill-zoom automatically
@@ -803,25 +807,6 @@ body.mac .vertical-tabs-toolbar {
   text-overflow: ellipsis;
 }
 #pillDomain.dim { color: var(--text-dim); }
-
-/* Active tab's group name, shown before the domain ("work ·"). */
-#pillGroupName {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-dim);
-  /* `auto` basis, not `12ch`: a 12ch basis RESERVES twelve characters even
-     for a short name ("news ·" claimed 57px for 40px of text), and the
-     deficit came out of #pillDomain — the only freely-shrinkable sibling —
-     so the URL truncated with the pill nowhere near its max-width. The
-     max-width still caps long group names at 12ch. */
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 12ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-#pillGroupName[hidden] { display: none; }
 
 [data-theme="private"] #islandPill { border: 1px dashed var(--text-dim); }
 
