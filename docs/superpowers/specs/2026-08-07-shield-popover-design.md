@@ -42,12 +42,14 @@ State derives from `{host, blockedCount, excepted, adblockEnabled}`:
 | hidden | no web host (internal pages, `view-source:`, blank tab) | not rendered | — |
 | quiet | protected, 0 blocked | dim glyph, no number, transparent bg | "Protected — click for site controls" |
 | count | protected, N > 0 | glyph + count, accent chip (today's styling) | "Blanc blocked N ads & trackers on this page — click for site controls" (singular form at 1) |
-| off | site excepted **or** `adblockEnabled === false` | slashed glyph, muted outline, no number | site: "Ads allowed on this site — click for site controls"; global: "Ad blocking is off — click for details" |
+| off | site excepted **or** `adblockEnabled === false` | strongly faded glyph, muted outline, no number | site: "Ads allowed on this site — click for site controls"; global: "Ad blocking is off — click for details" |
 
 Notes:
 
-- The slashed glyph replaces the struck-through 0: same
-  distinguishable-by-shape-not-color property, no fake number.
+- The off state replaces the struck-through 0 with a strongly faded glyph
+  (revised 2026-08-08 from an earlier slashed-glyph design — the slash read
+  as clutter). Its outlined border is the shape-not-color-alone cue that
+  separates off from the quiet protected state; no fake number.
 - The chip is clickable in every visible state and toggles the popover
   open/closed. Its click handler stops propagation so the pill's own
   open-panel click doesn't fire. Keyboard-focusable, `aria-label` set per

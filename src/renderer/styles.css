@@ -874,7 +874,6 @@ body.mac .vertical-tabs-toolbar {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.shield .shield-slash { display: none; }
 #pillShieldCount:empty { display: none; }
 
 /* Protected but nothing blocked yet: a quiet landmark, not a badge. */
@@ -886,15 +885,16 @@ body.mac .vertical-tabs-toolbar {
 
 /* Ads deliberately allowed here (site exception or global off). The shield
    stays in place but reads as switched off — muted rather than alarming,
-   since this is a state the user chose. The slashed glyph (not color alone)
-   distinguishes it from the quiet protected state at a glance. */
+   since this is a state the user chose. Faded well past the quiet state's
+   dim, with the outlined border as the shape cue (not color alone) that
+   separates off from quiet at a glance. */
 .shield.shield-off {
   background: transparent;
   color: var(--text-dim);
   border-color: var(--border);
   padding: 1px 6px;
+  opacity: 0.55;
 }
-.shield.shield-off .shield-slash { display: block; }
 
 /* Warning-only security indicator: an open padlock shown solely on
    plain-HTTP sites (pill and command-bar input row); secure and internal

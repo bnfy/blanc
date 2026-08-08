@@ -217,7 +217,7 @@ copy → substrate):
   source lists.
 - **Shield chip is a clickable control** (desktop SHIPPED; mobile PLANNED): always
   present on pages with a blockable host (quiet glyph at zero, live count while
-  blocking, slashed when off), opening a site-protection popover with a single
+  blocking, faded-with-outline when off), opening a site-protection popover with a single
   site-scoped toggle (allow ads here / re-block here), the blocked count in plain
   language, a reload notice, and a link to blocking settings. Global blocking is
   deliberately not togglable from the pill. The count line follows D13 on iOS:
