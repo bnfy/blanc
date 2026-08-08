@@ -1083,16 +1083,19 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
   flex: 1 1 auto;
   min-width: 0;
   height: 28px;
-  padding: 0 10px;
-  font-family: var(--font-mono);
+  padding: 0 12px;
+  font-family: var(--font-ui);
   font-size: 12.5px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 999px;
   color: var(--text);
 }
 #addressInput::placeholder { color: var(--text-dim); }
-#addressInput:focus { outline: none; border-color: var(--accent); }
+/* No focus border change: the panel only opens with this input already
+   focused and its text selected, so an accent ring restates what the
+   selection already says. */
+#addressInput:focus { outline: none; }
 
 .panel-actions {
   display: flex;
