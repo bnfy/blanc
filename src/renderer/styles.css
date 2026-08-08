@@ -32,6 +32,7 @@
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   /* The island is the one shadowed chrome element. The full popover shadow
      is reserved for the overlay states (panel/palette/find), which render
@@ -642,7 +643,7 @@ body.mac .vertical-tabs-toolbar {
 .vertical-tabs-new kbd {
   margin-left: auto;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-kbd);
   font-size: 9.5px;
   font-weight: 400;
   opacity: 0.65;
@@ -1238,6 +1239,9 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 .island-ghead.static:hover { color: var(--text-dim); }
 .island-ghead .ghead-rule { flex: 1 1 auto; height: 1px; background: var(--border); }
 .island-ghead .ghead-n { opacity: 0.7; flex: 0 0 auto; }
+/* The cluster shortcut sits in the same row as the plain tab count but must
+   render its ⌘ in the system face — JetBrains Mono draws it malformed. */
+.island-ghead .ghead-kbd { font-family: var(--font-kbd); opacity: 0.7; flex: 0 0 auto; }
 .island-ghead .ghead-name.dim { opacity: 0.7; }
 .island-ghead .ghead-spacer { width: 10px; flex: 0 0 auto; }
 .island-ghead svg.caret {
@@ -1501,6 +1505,7 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 }
 
 .footer-kbd {
+  font-family: var(--font-kbd);
   font-size: 10.5px;
   opacity: 0.55;
   margin-left: 2px;
@@ -1527,7 +1532,7 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 .footer-act svg { width: 15px; height: 15px; }
 
 #islandHint {
-  font-family: var(--font-mono);
+  font-family: var(--font-kbd);
   font-size: 10.5px;
   color: var(--text-dim);
   opacity: 0.7;

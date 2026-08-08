@@ -405,7 +405,7 @@
   function groupHeaderRow(group, count, clusterIndex) {
     const row = document.createElement('div');
     row.className = 'island-ghead';
-    row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-rule"></span><span class="ghead-n">${modKey}${clusterIndex + 1}</span>`;
+    row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-rule"></span><span class="ghead-kbd">${modKey}${clusterIndex + 1}</span>`;
     row.querySelector('.caret').classList.toggle('open', !group.collapsed);
     row.querySelector('.ghead-name').textContent = group.name;
     row.querySelectorAll('.ghead-n')[0].textContent = String(count);
