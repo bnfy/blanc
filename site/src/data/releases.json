@@ -1,5 +1,75 @@
 [
   {
+    "tag": "v1.0.10",
+    "version": "1.0.10",
+    "name": "1.0.10",
+    "publishedAt": "2026-08-08T20:05:00.000Z",
+    "humanDate": "August 8, 2026",
+    "machineDate": "2026-08-08",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.0.10",
+    "anchor": "v1-0-10",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Fixed a crash that could quit Blanc when a tab was closed immediately after changing ad and tracker blocking for that site — from the shield popover's toggle, or from "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/allow-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/block-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Changing those settings schedules the page to reload a moment later, and if the tab was gone by then, Blanc tried to reload something that no longer existed and shut down instead."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.0.10"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.0.9",
     "version": "1.0.9",
     "name": "1.0.9",
