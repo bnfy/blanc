@@ -433,6 +433,10 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
 .settings-content { flex: 1 1 auto; min-width: 0; }
 
 .settings-group + .settings-group { margin-top: 40px; }
+/* Anchor targets (e.g. the shield popover's "blocking settings →" deep-link,
+   blanc://settings/#group-privacy) must clear the sheet's 69px sticky band —
+   same 16px breathing room as .settings-nav's sticky offset above. */
+.settings-group { scroll-margin-top: 85px; }
 .group-title {
   margin: 0 0 12px;
   font-size: 11px;

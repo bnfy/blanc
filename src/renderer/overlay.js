@@ -1060,7 +1060,7 @@
   });
   shieldPopSettings.addEventListener('click', () => {
     window.browserAPI.closeOverlay();
-    window.browserAPI.openPage('settings');
+    window.browserAPI.openPage('settings', 'blocking');
   });
 
   function resetFind() {

@@ -78,7 +78,10 @@ Anatomy (top to bottom):
    "1 ad or tracker blocked on this page" /
    "Nothing blocked on this page yet". When off: "Ads allowed on this site".
 3. **Reload note** — dim: "Changing this reloads the page."
-4. **Footer** — "blocking settings →", opens the Settings sheet.
+4. **Footer** — "blocking settings →", opens the Settings sheet deep-linked
+   to the Privacy & Security section (`blanc://settings/#group-privacy`,
+   fragment allowlisted in main; `scroll-margin-top` clears the sheet's
+   sticky band so the section title lands fully visible).
 
 **Toggle semantics** (existing IPC, verbatim):
 

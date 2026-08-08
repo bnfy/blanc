@@ -2542,9 +2542,12 @@ function registerIpcHandlers() {
   chromeHandle('tabs:toggle-pinned', (_e, id) => toggleTabPinned(id));
   chromeHandle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
   chromeHandle('tabs:duplicate', (_e, id) => duplicateTab(id));
-  chromeHandle('tabs:open-page', (_e, name) => {
+  chromeHandle('tabs:open-page', (_e, name, section) => {
     if (['bookmarks', 'history', 'downloads', 'settings'].includes(name)) {
-      openInternalPage(`blanc://${name}/`);
+      // Deep-link into a page section via URL fragment — allowlisted only,
+      // never interpolated from renderer-supplied text (privileged URL).
+      const fragment = name === 'settings' && section === 'blocking' ? '#group-privacy' : '';
+      openInternalPage(`blanc://${name}/${fragment}`);
     }
   });
   chromeHandle('tabs:get-all', () => ({
