@@ -189,7 +189,12 @@ test('chrome markup and IPC keep one native menu definition', () => {
   assert.match(renderer, /getBoundingClientRect\(\)/);
   assert.match(renderer, /window\.browserAPI\.openMainMenu/);
   assert.match(preload, /ipcRenderer\.invoke\('chrome:open-main-menu', point\)/);
-  assert.match(main, /event\.sender !== win\?\.webContents/);
+  // The guard's intent is that only the STRIP document can pop the native menu
+  // — the rich preload is shared with the overlay, so the entry point stays as
+  // narrow as the UI that owns it. The strip's host is no longer always the
+  // parent window (the BLANC_GLASS experiment hosts it in a child window), so
+  // this pins the narrowing itself rather than one spelling of the host.
+  assert.match(main, /event\.sender !== (win\?\.webContents|chromeWC\(\))/);
   assert.match(main, /popupPlatformMainMenu\(\{ Menu, window: win, point \}\)/);
   assert.match(main, /label: 'Help'[\s\S]*isMac \? \[\] : \[[\s\S]*label: 'About Blanc'[\s\S]*showAboutPanel\(\{ app \}\)/);
   assert.match(main, /function installChromeShortcuts\(webContents\) \{[\s\S]*installVerticalTabsShortcut\(webContents\);[\s\S]*installPlatformMainMenuShortcut/);

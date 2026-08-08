@@ -983,6 +983,29 @@
 
   // --- Mode switching (driven by main via overlay:show / overlay:hide) ---
 
+  // EXPERIMENT (BLANC_GLASS): the expanded panel's box drives the native glass
+  // view. Its height depends on content, so only the renderer can measure it.
+  function reportGlass() {
+    if (!window.browserAPI.reportGlassRect) return;
+    if (document.documentElement.getAttribute('data-glass') !== 'on') return;
+    const el = mode === 'find' ? findBar : panelAnchor.querySelector('#islandPanel');
+    if (!el || el.hidden) return;
+    const r = el.getBoundingClientRect();
+    if (!r.width) return;
+    const glass = {
+      x: r.left, y: r.top, width: r.width, height: r.height,
+      radius: mode === 'find' ? r.height / 2 : 10,
+    };
+    // Palette keeps a full-window host so the scrim can own outside clicks;
+    // panel and find are tight to the card.
+    const host = mode === 'palette'
+      ? { width: window.innerWidth, height: window.innerHeight }
+      : { width: r.width, height: r.height };
+    if (mode !== 'palette') { glass.x = 0; glass.y = 0; }
+    window.browserAPI.reportGlassRect({ host, glass });
+  }
+  const glassObserver = new ResizeObserver(() => reportGlass());
+
   function applyMode(next, prefill) {
     const reshow = mode === next;
     // A press the overlay never saw released (dismissed mid-click) must not
@@ -994,6 +1017,17 @@
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
+
+    // Glass must track the card through every mode change AND every content
+    // resize; two frames of settle for layout, then observe.
+    glassObserver.disconnect();
+    if (next) {
+      const target = next === 'find' ? findBar : panelAnchor.querySelector('#islandPanel');
+      if (target) {
+        glassObserver.observe(target);
+        requestAnimationFrame(() => requestAnimationFrame(reportGlass));
+      }
+    }
 
     if (next === 'panel' || next === 'palette') {
       if (!reshow) {

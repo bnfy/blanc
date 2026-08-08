@@ -1644,3 +1644,77 @@ body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
   .island-row.tab-row .row-remote-pin { transition: none; }
   #strip { transition: none; }
 }
+
+/* ==========================================================================
+   EXPERIMENT — native glass island (BLANC_GLASS=1). Scoped under
+   [data-glass="on"], set by main.js on the island/overlay child windows only.
+   No :root token value is touched, so `npm run substrate:check` stays green.
+
+   The material is a real NSGlassEffectView in the PARENT window, tracking the
+   rect these elements report via reportGlassRect(). So the elements themselves
+   surrender their background/border/shadow — anything painted here would sit
+   ON the glass and hide it.
+
+   Every box below is sized from CONTENT, never from the viewport. The child
+   window is sized to the content, so a viewport-relative rule (100vw/100vh,
+   max-width: calc(100vw - 24px)) would feed the window's own size back into
+   the layout and oscillate.
+   ========================================================================== */
+
+:root[data-glass="on"],
+:root[data-glass="on"] body { background: transparent; }
+
+:root[data-glass="on"] #islandPill,
+:root[data-glass="on"] #islandPanel,
+:root[data-glass="on"] #findBar {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* ---- resting island child: the window IS the pill ---- */
+:root[data-glass="on"] html,
+:root[data-glass="on"] body { width: max-content; height: max-content; }
+
+:root[data-glass="on"] #strip {
+  width: max-content;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  display: block;
+  background: transparent;
+}
+:root[data-glass="on"] #islandPill {
+  margin-top: 0;
+  max-width: none; /* viewport-relative cap would fight the window size */
+}
+/* The parent window still owns the native traffic lights and the platform menu
+   button; the tight island child must not carry duplicates of either. */
+:root[data-glass="on"] #windowControls,
+:root[data-glass="on"] #mainMenuButton { display: none; }
+
+/* A permission prompt widens the host box (renderer.js reports the union), so
+   it lays out beside the pill instead of being pinned to a window edge. */
+:root[data-glass="on"] #permissionBar {
+  position: static;
+  right: auto;
+  margin-top: 8px;
+}
+
+/* ---- expanded child: tight for panel/find, full-window for palette ---- */
+:root[data-glass="on"] body[data-mode="panel"] #panelAnchor,
+:root[data-glass="on"] body[data-mode="find"] #panelAnchor {
+  position: static;
+  display: block;
+}
+:root[data-glass="on"] body[data-mode="panel"] #islandPanel {
+  max-width: 620px;
+  /* Pushed from main as (parent content height - 24) so the list scrolls
+     inside the card rather than the card outgrowing the display. */
+  max-height: var(--glass-avail-h, 600px);
+}
+:root[data-glass="on"] body[data-mode="find"] #findBar {
+  position: static;
+  transform: none;
+  max-width: none;
+}

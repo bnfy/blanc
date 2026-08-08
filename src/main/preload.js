@@ -39,6 +39,11 @@ contextBridge.exposeInMainWorld('browserAPI', {
   },
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
+  // EXPERIMENT (BLANC_GLASS): report {host, glass} — the box this child window
+  // must hold, and the sub-rect inside it that should BE the native glass.
+  // Main can compute neither: the pill's width is driven by the domain string
+  // and the panel's height by its content.
+  reportGlassRect: (payload) => ipcRenderer.send('chrome:glass-rect', payload),
   setTabLayout: (layout) => ipcRenderer.invoke('chrome:set-tab-layout', layout),
   previewVerticalTabsWidth: (width) =>
     ipcRenderer.send('chrome:preview-vertical-tabs-width', width),

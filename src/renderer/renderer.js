@@ -524,4 +524,41 @@
   };
   new ResizeObserver(reportLayout).observe(chromeEl);
   requestAnimationFrame(reportLayout);
+
+  // EXPERIMENT (BLANC_GLASS): the resting pill's box drives the native glass
+  // view's frame. Harmless when the experiment is off — main ignores it.
+  // The window is sized to the union of everything the strip is currently
+  // showing — normally just the pill, but a permission prompt makes it taller
+  // and wider, and the child window has to grow with it or the prompt is
+  // clipped by its own host.
+  const reportGlass = () => {
+    if (!window.browserAPI.reportGlassRect) return;
+    if (document.documentElement.getAttribute('data-glass') !== 'on') return;
+    const pill = islandPill.getBoundingClientRect();
+    if (!pill.width) return;
+    let host = { width: pill.width, height: pill.height };
+    const bar = document.getElementById('permissionBar');
+    if (bar && !bar.hidden) {
+      const b = bar.getBoundingClientRect();
+      if (b.width) {
+        host = {
+          width: Math.max(pill.width, b.width),
+          height: Math.max(pill.bottom, b.bottom) - Math.min(pill.top, b.top),
+        };
+      }
+    }
+    window.browserAPI.reportGlassRect({
+      host,
+      glass: {
+        x: pill.left, y: pill.top, width: pill.width, height: pill.height,
+        radius: pill.height / 2,
+      },
+    });
+  };
+  const glassObserver = new ResizeObserver(reportGlass);
+  glassObserver.observe(islandPill);
+  const permBar = document.getElementById('permissionBar');
+  if (permBar) glassObserver.observe(permBar);
+  requestAnimationFrame(reportGlass);
+  window.__reportGlass = reportGlass;
 })();
