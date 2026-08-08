@@ -35,11 +35,13 @@
 | `test/unit/session-workspace.test.js` (new) | Shape, precedence, mirror, guard fixtures. |
 | `CLAUDE.md`, `AGENTS.md` | The "single source of truth" paragraph updated in BOTH; `win.contentView` prose replaced. |
 
-**Task order — bindings BEFORE sweeps, non-negotiable:** pure modules (1–2),
-ALS core with the primary runtime created before any startup work (3), tab
-ownership integrated into createTab/closeTab (4), event bindings + sanctioned
-roots (5), sender-derived IPC routing (6), and only THEN the state sweeps
-(7–10): the first sweep makes `createOverlay()` and the IPC trust path read
+**Task order — bindings BEFORE consumers, non-negotiable:** pure modules
+(1–2), ALS core with the primary runtime created before any startup work (3),
+event bindings + sanctioned roots (4) — BEFORE tab ownership (5), because
+ownership makes `createTab()` read `currentRuntime()` and Playwright's
+`__blanc.openTab()` plus native menu clicks reach `createTab` from otherwise
+unbound contexts — then sender-derived IPC routing (6), and only THEN the
+state sweeps (7–10): the first sweep makes `createOverlay()` and the IPC trust path read
 `rt()`, so every execution context that reaches swept state must already be
 bound or the strict `acceptanceTestMode` gate kills the suite at launch.
 Then permission ownership (11), persistence (12), lifecycle + `win` deletion
@@ -545,7 +547,66 @@ git commit -m "feat(runtime): ALS context, strict acceptanceTestMode gate, surfa
 
 ---
 
-## Task 4: Tab ownership in createTab/closeTab
+
+## Task 4: Event-binding wraps + sanctioned roots
+
+**Files:**
+- Modify: `src/main/main.js`, `src/main/test-hook.js`
+
+**Interfaces:**
+- Consumes: `bindWindowRuntime` from Task 3.
+
+- [ ] **Step 1: Wrap native event registrations**
+
+Every listener registration on a tab's `webContents` (in `createTab`), the overlay's `webContents` (including `before-input-event` Escape), the window (`focus`, `blur`, `resize`, `closed`, `did-finish-load`), and the utility sheet gets its handler wrapped:
+
+```js
+  wc.on('did-navigate', bindWindowRuntime(primaryRuntime, (_e, url, code) => { ... }));
+```
+
+For tab events, bind to the tab's *owner* at registration time: `bindWindowRuntime(windowRuntimes.runtimeForTab(id) ?? primaryRuntime, ...)` — in M1 both are the primary runtime; the shape is what M2 inherits.
+
+- [ ] **Step 2: Bind the sanctioned roots** (spec's enumerated list):
+
+- **Startup/session restore** (`app.whenReady`): wrap the restore body in `windowRuntimeContext.run(primaryRuntime, ...)`.
+- **Native menu clicks**: in `buildMenu()`, every `click:` handler wraps: `click: bindWindowRuntime(primaryRuntime, () => ...)`.
+- **Test-hook invocations**: in `main.js`'s `install({...})` call, wrap the ref functions that touch per-window state — simplest uniform shape: pass `bindRoot: (fn) => bindWindowRuntime(primaryRuntime, fn)` into the hook and have `test-hook.js` wrap each installed method once at install time (a mechanical `wrap(method)` loop over the returned object). Playwright calls `globalThis.__blanc` outside any ALS context; without this the strict gate would fail the whole suite instantly.
+- **Settings fan-out, adblock callbacks, sync/tabsync timers**: wrap each registration site the same way.
+- **App and theme events**: `app.on('activate')` (dock-reopen →
+  `createMainWindow`), `app.on('open-url')` / `open-file` (reach
+  `createTab` via `flushExternalUrls`), any `app.on('login')` handler, and
+  `nativeTheme.on('updated')` (reaches `themeTintRefreshGeneration`).
+- **Callbacks handed to helper modules**: the `startPage` hooks passed to
+  `setupPages` (`pages:start:data` / focus-group reach `broadcastTabs`),
+  downloads listeners (`downloads.js` callbacks that broadcast), bookmarks
+  merge/sync callbacks, and the address/context-menu action callbacks
+  (`buildAddressMenu` / context-menu items call `createTab` and swept state).
+- **Audit step, not a vibe:** enumerate candidates mechanically and check
+  each against the list above —
+  `rg -n "\.on\(|\.once\(|setInterval|setTimeout|setCallback|hooks:|=>\s*create" src/main/main.js`
+  plus every function value passed from main.js into a `require('./...')`
+  module (`rg -n "require\('\./" src/main/main.js` then inspect call sites).
+  A root is done when it is either (a) wrapped, or (b) provably free of
+  runtime-dependent reads. Record the audit's outcome in the task's commit
+  message — "N roots wrapped, M verified read-free". Dormant production
+  roots count; "acceptance passed" alone is not the exit criterion.
+- **Permission prompter**: already bound via Task 11's owner resolution.
+
+- [ ] **Step 3: The strict gate proves itself**
+
+Run: `npm run test:acceptance:desktop`
+Expected: 64/64. Any `currentRuntime() outside any bindWindowRuntime scope` error names a missed root — fix it by binding that root, not by weakening the gate.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/main/main.js src/main/test-hook.js
+git commit -m "feat(runtime): bind native events, menu clicks, hooks, and timers to the owning runtime"
+```
+
+---
+
+## Task 5: Tab ownership in createTab/closeTab
 
 **Files:**
 - Modify: `src/main/main.js` (`createTab` around `:1648`, `closeTab`, the window-open/child-tab path)
@@ -579,14 +640,27 @@ In `closeTab()` (and any other permanent tab-destruction path — grep
   windowRuntimes.detachTab(id);
 ```
 
-- [ ] **Step 3: Verify**
+- [ ] **Step 3: Bind the tab's listeners at attach**
+
+Immediately after `attachTab`, the tab's `webContents` listeners registered
+in `createTab` wrap with the owner resolved right there — `runtimeForTab`
+now returns a real owner, so this supersedes the interim
+`?? primaryRuntime` shape from Task 4:
+
+```js
+  const bound = (fn) => bindWindowRuntime(owner, fn);
+  wc.on('did-navigate', bound((_e, url, code) => { ... }));
+  // ...every listener in createTab takes the same wrapper...
+```
+
+- [ ] **Step 4: Verify**
 
 Run: `node --check src/main/main.js && npm run test:unit && npm run test:acceptance:desktop`
-Expected: 378 unit, 64/64 — ownership is bookkeeping only until Tasks 5–6
-consume it, but it must exist before them: the permission owner resolution
-and tab-event bindings both resolve through `runtimeForTab`.
+Expected: 378 unit, 64/64 — this run is meaningful because Task 4 already
+bound the test-hook and menu roots: `__blanc.openTab()` reaches
+`createTab`'s `currentRuntime()` read through the hook wrapper, inside ALS.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add src/main/main.js
@@ -594,44 +668,6 @@ git commit -m "feat(runtime): tabs carry their owning runtime from creation"
 ```
 
 ---
-
-## Task 5: Event-binding wraps + sanctioned roots
-
-**Files:**
-- Modify: `src/main/main.js`, `src/main/test-hook.js`
-
-**Interfaces:**
-- Consumes: `bindWindowRuntime` from Task 3.
-
-- [ ] **Step 1: Wrap native event registrations**
-
-Every listener registration on a tab's `webContents` (in `createTab`), the overlay's `webContents` (including `before-input-event` Escape), the window (`focus`, `blur`, `resize`, `closed`, `did-finish-load`), and the utility sheet gets its handler wrapped:
-
-```js
-  wc.on('did-navigate', bindWindowRuntime(primaryRuntime, (_e, url, code) => { ... }));
-```
-
-For tab events, bind to the tab's *owner* at registration time: `bindWindowRuntime(windowRuntimes.runtimeForTab(id) ?? primaryRuntime, ...)` — in M1 both are the primary runtime; the shape is what M2 inherits.
-
-- [ ] **Step 2: Bind the sanctioned roots** (spec's enumerated list):
-
-- **Startup/session restore** (`app.whenReady`): wrap the restore body in `windowRuntimeContext.run(primaryRuntime, ...)`.
-- **Native menu clicks**: in `buildMenu()`, every `click:` handler wraps: `click: bindWindowRuntime(primaryRuntime, () => ...)`.
-- **Test-hook invocations**: in `main.js`'s `install({...})` call, wrap the ref functions that touch per-window state — simplest uniform shape: pass `bindRoot: (fn) => bindWindowRuntime(primaryRuntime, fn)` into the hook and have `test-hook.js` wrap each installed method once at install time (a mechanical `wrap(method)` loop over the returned object). Playwright calls `globalThis.__blanc` outside any ALS context; without this the strict gate would fail the whole suite instantly.
-- **Settings fan-out, adblock callbacks, sync/tabsync timers**: wrap each registration site the same way.
-- **Permission prompter**: already bound via Task 8's owner resolution.
-
-- [ ] **Step 3: The strict gate proves itself**
-
-Run: `npm run test:acceptance:desktop`
-Expected: 64/64. Any `currentRuntime() outside any bindWindowRuntime scope` error names a missed root — fix it by binding that root, not by weakening the gate.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add src/main/main.js src/main/test-hook.js
-git commit -m "feat(runtime): bind native events, menu clicks, hooks, and timers to the owning runtime"
-```
 
 ---
 
@@ -642,33 +678,44 @@ git commit -m "feat(runtime): bind native events, menu clicks, hooks, and timers
 
 - [ ] **Step 1: Route by sender**
 
+The registered-surface lookup happens FIRST, context is entered, and only
+then does trust validation run — because after the sweeps,
+`isTrustedChromeSender()` itself reads swept state (`rt().overlayView`) and
+must already be inside ALS. Surface registration is itself a trust statement
+(only main ever registers a surface), so resolving before validating grants
+nothing: an unregistered sender is rejected without ever entering a context.
+
 ```js
 function chromeHandle(channel, handler) {
   ipcMain.handle(channel, (event, ...args) => {
-    if (!isTrustedChromeSender(event)) throw new Error(`${channel}: denied for untrusted sender`);
     const runtime = windowRuntimes.runtimeForChromeWebContentsId(event.sender.id);
     if (!runtime) {
-      // A surface that was unregistered (window closing) — not an attack,
-      // just late. Never fall back to "whichever window is focused".
+      // Unregistered surface: either untrusted, or a window mid-close. Never
+      // fall back to "whichever window is focused".
       if (!app.isPackaged) console.warn(`[ipc] ${channel}: sender has no runtime`);
-      return undefined;
+      throw new Error(`${channel}: denied for unregistered sender`);
     }
-    return windowRuntimeContext.run(runtime, () => handler(event, ...args));
+    return windowRuntimeContext.run(runtime, () => {
+      if (!isTrustedChromeSender(event)) throw new Error(`${channel}: denied for untrusted sender`);
+      return handler(event, ...args);
+    });
   });
 }
 
 function chromeOn(channel, handler) {
   ipcMain.on(channel, (event, ...args) => {
-    if (!isTrustedChromeSender(event)) {
-      console.warn(`[ipc] ${channel}: denied for untrusted sender`);
-      return;
-    }
     const runtime = windowRuntimes.runtimeForChromeWebContentsId(event.sender.id);
     if (!runtime) {
       if (!app.isPackaged) console.warn(`[ipc] ${channel}: sender has no runtime`);
       return;
     }
-    windowRuntimeContext.run(runtime, () => handler(event, ...args));
+    windowRuntimeContext.run(runtime, () => {
+      if (!isTrustedChromeSender(event)) {
+        console.warn(`[ipc] ${channel}: denied for untrusted sender`);
+        return;
+      }
+      handler(event, ...args);
+    });
   });
 }
 ```
@@ -720,11 +767,24 @@ Then hand-fix the mechanical residue — there will be a handful:
 - [ ] **Step 4: Zero-count gate + hand-audit**
 
 ```bash
-# rg -P for the lookbehind (BSD grep has no -P); the ! inverts so ANY hit —
-# or a regex error — fails the task loudly instead of being masked.
-! rg -P '(?<![.\w])(overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b(?!\s*:)' src/main/main.js --line-number | rg -v 'rt\(\)\.' | rg -v '^\d+:\s*//' | rg .
+# rg -P for the lookbehind (BSD grep has no -P). Status semantics matter: in
+# a pipeline, an upstream rg ERROR (status 2) yields no downstream matches
+# and would read as "pass". Capture the first status explicitly — only
+# status 1 (searched, zero matches after filtering) passes.
+sweep_gate() {
+  local out
+  out=$(rg -P "$1" src/main/main.js --line-number 2>&1); local st=$?
+  [ $st -eq 2 ] && { echo "GATE ERROR: $out"; return 2; }
+  out=$(printf '%s' "$out" | rg -v 'rt\(\)\.' | rg -v '^\d+:\s*//')
+  [ -n "$out" ] && { echo "BARE IDENTIFIERS REMAIN:"; echo "$out"; return 1; }
+  return 0
+}
+sweep_gate '(?<![.\w])(overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b(?!\s*:)'
 ```
-Expected: exit 0 with no output — any surviving bare identifier fails the gate.
+Expected: `sweep_gate` returns 0. It fails loudly on surviving identifiers
+(1) AND on a regex/tooling error (2) — neither is maskable. Reuse this
+function verbatim for every sweep gate in the plan, changing only the
+pattern.
 
 - [ ] **Step 5: Verify, then commit**
 
@@ -960,10 +1020,15 @@ crash / `render-process-gone`, explicit teardown), register the cleanup so a
 dead overlay never lingers in the surface index:
 
 ```js
-  overlayView.webContents.once('destroyed', () => {
-    windowRuntimes.unregisterChromeSurface(overlayWcId); // captured at creation
-    if (rt().overlayView === overlayView) rt().overlayView = null;
-  });
+  // In createOverlay(), at creation time — capture the view and its wc id in
+  // locals (bare overlayView no longer exists after the Task 7 sweep), and
+  // bind the handler to the owning runtime:
+  const overlay = rt().overlayView; // just assigned by createOverlay
+  const overlayWcId = overlay.webContents.id;
+  overlay.webContents.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+    windowRuntimes.unregisterChromeSurface(overlayWcId);
+    if (rt().overlayView === overlay) rt().overlayView = null;
+  }));
 ```
 
 `createMainWindow()`'s recreate path calls `attachWindow` + surface
@@ -976,9 +1041,15 @@ Same sweep pattern as Task 4 for `win` → `rt().window` (72 references; the pro
 - [ ] **Step 3: Zero-count gate**
 
 ```bash
-! rg -P '(?<![.\w])win\b(?![\w])' src/main/main.js --line-number | rg -v 'rt\(\)\.window' | rg -v '^\d+:\s*//' | rg -v 'windows' | rg .
+# Same sweep_gate function as Task 7, with the win pattern and one extra
+# filter for the legitimate 'windows' word:
+out=$(rg -P '(?<![.\w])win\b(?![\w])' src/main/main.js --line-number 2>&1); st=$?
+[ $st -eq 2 ] && { echo "GATE ERROR: $out"; false; } || {
+  out=$(printf '%s' "$out" | rg -v 'rt\(\)\.window' | rg -v '^\d+:\s*//' | rg -v 'windows');
+  [ -z "$out" ] || { echo "$out"; false; };
+}
 ```
-Expected: exit 0 with no output.
+Expected: succeeds only when nothing survives; a tooling error fails.
 
 - [ ] **Step 4: Verify** — `node --check`, full unit, full acceptance.
 - [ ] **Step 5: Commit** — `refactor(runtime): window lifecycle via the registry; the bare win binding is gone`
@@ -1017,12 +1088,15 @@ npm run test:acceptance:desktop  # 64/64 — run twice; both clean
 npm run dist:dir              # packaged build for the smokes
 BLANC_PACKAGED_EXECUTABLE="$PWD/dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc" node test/desktop/packaged-first-run-smoke.mjs
 # The migration smoke takes TWO executables: the public 1.0.9 Stable as the
-# profile-originating base, and this build as the upgrade candidate.
-# Download the base once (or point at an existing install):
-#   gh release download v1.0.9 --pattern 'Blanc-1.0.9-arm64.dmg' --dir /tmp/blanc-base && hdiutil attach ... (or use an installed /Applications/Blanc.app at 1.0.9)
-BLANC_STABLE_EXECUTABLE="/path/to/Blanc-1.0.9.app/Contents/MacOS/Blanc" \
+# profile-originating base, and this build as the upgrade candidate. The zip
+# needs no mounting — unzip and use the .app directly:
+BASE_DIR="$(mktemp -d)"
+gh release download v1.0.9 --pattern 'Blanc-1.0.9-arm64-mac.zip' --dir "$BASE_DIR"
+ditto -xk "$BASE_DIR/Blanc-1.0.9-arm64-mac.zip" "$BASE_DIR/app"
+BLANC_STABLE_EXECUTABLE="$BASE_DIR/app/Blanc.app/Contents/MacOS/Blanc" \
 BLANC_CANDIDATE_EXECUTABLE="$PWD/dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc" \
 node test/desktop/packaged-migration-smoke.mjs
+rm -rf "$BASE_DIR"
 ```
 
 The migration smoke matters most here: it upgrades a real public-1.0.x profile, whose session.json is v0 — the live proof of the load path.
@@ -1030,8 +1104,8 @@ The migration smoke matters most here: it upgrades a real public-1.0.x profile, 
 - [ ] **Step 3: Commit and open the PR**
 
 ```bash
-git add CLAUDE.md
-git commit -m "docs: record the window-runtime boundary in the architecture notes"
+git add CLAUDE.md AGENTS.md
+git commit -m "docs: record the window-runtime boundary in both instruction documents"
 ```
 
 PR body must state: behavior-invisible by contract (suite counts unchanged); the strict-ALS soak rationale; the rollback mirror and its precedence rule; that `win` no longer exists as a binding; and that this is 1.1 M1 with M2 (windows) next.
@@ -1040,7 +1114,7 @@ PR body must state: behavior-invisible by contract (suite counts unchanged); the
 
 ## Self-Review
 
-**Spec coverage.** Registry + lifecycle → Task 1. Workspace + precedence + read-only + guards → Tasks 2, 12. ALS + strict gate keyed on `acceptanceTestMode`, runtime created before startup → Task 3. Tab ownership with string UUIDs → Task 4. Sanctioned roots incl. test-hook wrapping → Task 5. Sender-derived routing, no focused-window fallback → Task 6. Inventory sweeps → Tasks 7–10 (all twenty-two globals mapped incl. addressMenuTicket/Seq; `recentlyClosedUrls` deliberately untouched per spec). 1Password referent → Task 10. Permission ownership from requesting tab, deny on unresolvable requester, live-window guard, sender-guarded response, scoped flush → Task 11. Close-views-then-detach + overlay-destroyed cleanup + `win` deletion → Task 13. CLAUDE.md + AGENTS.md + both packaged smokes with the real two-executable migration invocation → Task 14.
+**Spec coverage.** Registry + lifecycle → Task 1. Workspace + precedence + read-only + guards → Tasks 2, 12. ALS + strict gate keyed on `acceptanceTestMode`, runtime created before startup → Task 3. Sanctioned roots incl. test-hook wrapping and the mechanical root audit → Task 4. Tab ownership with string UUIDs and at-attach listener binding → Task 5. Sender-derived routing, no focused-window fallback → Task 6. Inventory sweeps → Tasks 7–10 (all twenty-two globals mapped incl. addressMenuTicket/Seq; `recentlyClosedUrls` deliberately untouched per spec). 1Password referent → Task 10. Permission ownership from requesting tab, deny on unresolvable requester, live-window guard, sender-guarded response, scoped flush → Task 11. Close-views-then-detach + overlay-destroyed cleanup + `win` deletion → Task 13. CLAUDE.md + AGENTS.md + both packaged smokes with the real two-executable migration invocation → Task 14.
 
 **Placeholders.** None; every code step carries real code or an exact command.
 
