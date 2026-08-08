@@ -38,6 +38,7 @@ const { groupFavoritesForMenu } = require('./bookmark-data');
 const history = require('./history');
 const { JsonStore } = require('./store');
 const { persistableEntries } = require('./session-snapshot');
+const { loadWorkspace, buildSaveShape } = require('./session-workspace');
 const { filterRestoredSession } = require('./session-restore');
 const { isUtilityUrl } = require('./utility-pages');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
@@ -1029,7 +1030,11 @@ function serializeTabs() {
 // `groupIds` is parallel to `urls` (null = ungrouped); `groups` holds the
 // group records those ids point at.
 let sessionStore = null;
-const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [] }));
+const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', {}));
+// Set by the restore path when session.json is a newer format than this
+// build understands (loadWorkspace's readOnly) — persistSession must never
+// rewrite a file it can't fully round-trip.
+let sessionReadOnly = false;
 
 // Rolling ads-blocked counter for the start page's margin note. Weeks
 // start Monday 00:00 local; the count resets lazily on the first touch
@@ -1059,27 +1064,33 @@ function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
   // file down to whatever closed last before the process exits.
   if (isQuitting || sessionPersistenceSuspended || tabs.size === 0) return;
+  if (sessionReadOnly) return; // a newer format owns this file — never rewrite it
+  const runtime = rt();
   ensureSessionStore().update((d) => {
     // Private tabs leave no trail, error pages persist their real
     // destination, url-less tabs drop — all in session-snapshot.js so tab
     // sync shares the exact same filter.
-    const entries = persistableEntries(rt().tabOrder.map((id) => tabs.get(id)));
-    d.urls = entries.map((e) => e.url);
-    d.groupIds = entries.map((e) => e.groupId);
-    d.pinned = entries.map((e) => e.pinned);
-    // Groups referenced only by private tabs stay out of the file too.
-    d.groups = rt().groups.filter((g) => entries.some((e) => e.groupId === g.id));
+    const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
+    const entry = {
+      urls: entries.map((e) => e.url),
+      groupIds: entries.map((e) => e.groupId),
+      pinned: entries.map((e) => e.pinned),
+      // Groups referenced only by private tabs stay out of the file too.
+      groups: runtime.groups.filter((g) => entries.some((e) => e.groupId === g.id)),
+      activeIndex: d.activeIndex ?? 0,
+    };
     // Only update when the active tab is actually in the persisted list —
     // during startup (no active tab yet) or with a private tab active,
     // indexOf is -1 and writing 0 would corrupt the last good index.
-    // Indexed into `entries` (what d.urls is built from), not the wider
+    // Indexed into `entries` (what entry.urls is built from), not the wider
     // tab list — a tab with no persistable url (an adopted window.open
-    // child before its first navigation commits) is dropped from d.urls,
+    // child before its first navigation commits) is dropped from entry.urls,
     // and an index computed on the unfiltered list would restore focus to
     // the wrong tab. -1 (startup, private or url-less active tab) keeps
     // the last good index, as before.
-    const idx = entries.findIndex((e) => e.id === rt().activeTabId);
-    if (idx >= 0) d.activeIndex = idx;
+    const idx = entries.findIndex((e) => e.id === runtime.activeTabId);
+    if (idx >= 0) entry.activeIndex = idx;
+    Object.assign(d, buildSaveShape(entry, d));
   });
 }
 
@@ -3551,7 +3562,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
 
   // Snapshot the previous session before the local startup tab exists. Tab
   // broadcasts are temporarily prevented from overwriting this snapshot.
-  const saved = structuredClone(ensureSessionStore().data);
+  const { windows, readOnly } = loadWorkspace(ensureSessionStore().data);
+  sessionReadOnly = readOnly;
+  const saved = windows[0];
   const cleaned = filterRestoredSession(saved, isUtilityUrl);
   saved.urls = cleaned.urls;
   saved.groupIds = cleaned.groupIds;
