@@ -1151,12 +1151,13 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
   flex: 1 1 auto;
   overflow: hidden;
   white-space: nowrap;
-  /* Overflowing titles wash out at the right edge (into the hover-revealed
-     domain) instead of cutting to an ellipsis. The element is flex-grown to
-     fill the row, so the fade zone only ever touches glyphs when the text
-     genuinely overflows — short titles render untouched. */
-  -webkit-mask: linear-gradient(to right, #000 calc(100% - 28px), transparent);
-  mask: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  /* Overflowing titles wash out at the right edge instead of cutting to an
+     ellipsis. The element is flex-grown to fill the row, so the fade zone
+     only ever touches glyphs when the text genuinely overflows — short
+     titles render untouched. 48px per the DS: the fade now has to carry a
+     title all the way to the row's actions, with no domain to dissolve into. */
+  -webkit-mask: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+  mask: linear-gradient(to right, #000 calc(100% - 48px), transparent);
 }
 .island-row .row-sub {
   font-family: var(--font-mono);
@@ -1168,21 +1169,18 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
   white-space: nowrap;
 }
 
-/* Quiet rows: at rest a list row (overlay.js tabRow/remoteTabRow — .tab-row)
-   shows just favicon + title; the domain, remote pin marker, and group tag
-   join the actions on the row's hover/focus reveal. The active row keeps its
-   domain visible — it's the "you are here" context. Quick-Switcher and
-   command rows are exempt (no .tab-row): their subs are load-bearing while
+/* Quiet rows: a list row (overlay.js tabRow/remoteTabRow — .tab-row) shows
+   favicon + title, and nothing else until hover/focus. The domain used to be
+   here too, hover-revealed; per the DS it's gone from the row entirely —
+   favicon and the address field carry identity. The remote pin marker and
+   group tag still join the actions on the reveal. Quick-Switcher and command
+   rows are exempt (no .tab-row): their .row-sub is load-bearing while
    matching typed input. Space stays reserved — reveal never shifts layout. */
-.island-row.tab-row .row-sub,
 .island-row.tab-row .row-tag,
 .island-row.tab-row .row-remote-pin {
   opacity: 0;
   transition: opacity 120ms ease;
 }
-.island-row.tab-row:hover .row-sub,
-.island-row.tab-row:focus-within .row-sub,
-.island-row.tab-row.active .row-sub,
 .island-row.tab-row:hover .row-tag,
 .island-row.tab-row:focus-within .row-tag {
   opacity: 1;
@@ -1206,6 +1204,9 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 .island-row:hover .row-close,
 .island-row:focus-within .row-close,
 .island-row .row-close:focus-visible { opacity: 1; }
+/* The active row's ✕ doesn't wait for hover — closing the tab you're on is
+   the one close you reach for without hunting. */
+.island-row.active .row-close { opacity: 1; }
 .island-row .row-close:hover { background: var(--border); color: var(--text); }
 .island-row .row-close svg { width: 12px; height: 12px; stroke-width: 1.75; }
 
@@ -1266,7 +1267,13 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
   padding: 0 7px;
   border: 1px solid var(--border);
   color: var(--text-dim);
-  flex: 0 0 auto;
+  /* Natural width, but never more than 40% of the row — a long group name
+     shouldn't crowd out the title it's annotating. */
+  flex: 0 1 auto;
+  max-width: 40%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .island-row:hover .row-grp,
 .island-row:focus-within .row-grp,
@@ -1749,7 +1756,6 @@ body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
     transform: none;
     transition: none;
   }
-  .island-row.tab-row .row-sub,
   .island-row.tab-row .row-tag,
   .island-row.tab-row .row-remote-pin { transition: none; }
   #strip { transition: none; }

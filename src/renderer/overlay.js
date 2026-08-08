@@ -256,11 +256,7 @@
     title.textContent = tab.isLoading ? 'Loading…' : tab.title || 'New Tab';
     if (tab.title) title.title = tab.title;
 
-    const sub = document.createElement('span');
-    sub.className = 'row-sub';
-    sub.textContent = tabDomain(tab);
-
-    row.append(faviconWrap, title, sub);
+    row.append(faviconWrap, title);
 
     if (tab.private) {
       const tag = document.createElement('span');
@@ -496,10 +492,7 @@
     title.className = 'row-title';
     title.textContent = tab.title || tab.url;
     if (tab.title) title.title = tab.title;
-    const sub = document.createElement('span');
-    sub.className = 'row-sub';
-    sub.textContent = hostOfUrl(tab.url);
-    row.append(favicon, title, sub);
+    row.append(favicon, title);
     if (tab.pinned) {
       const pin = document.createElement('span');
       pin.className = 'row-remote-pin';
