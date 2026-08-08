@@ -72,3 +72,46 @@ test('buildSaveShape preserves foreign keys it does not own', () => {
   const shape = buildSaveShape(ENTRY, { futureKey: { keep: true } });
   assert.deepEqual(shape.futureKey, { keep: true });
 });
+
+test('v1 with populated windows[0] but NO mirror keys → nested wins', () => {
+  // Data-loss regression: absent mirror should not default to EMPTY and "diverge"
+  const file = { version: 1, windows: [ENTRY] }; // no top-level urls/activeIndex/groups/groupIds/pinned
+  const { windows, readOnly } = loadWorkspace(file);
+  assert.equal(readOnly, false);
+  assert.deepEqual(windows, [ENTRY], 'nested must win when mirror is absent');
+});
+
+test('v1 with populated windows[0] and PARTIAL mirror → nested wins', () => {
+  // Only urls + activeIndex present; missing groups/groupIds/pinned
+  const file = { version: 1, windows: [ENTRY], urls: ENTRY.urls, activeIndex: ENTRY.activeIndex };
+  const { windows, readOnly } = loadWorkspace(file);
+  assert.equal(readOnly, false);
+  assert.deepEqual(windows, [ENTRY], 'nested must win when mirror is incomplete');
+});
+
+test('v1 with populated windows[0] and INVALID mirror → nested wins', () => {
+  // urls is a string instead of array; activeIndex is a string instead of integer
+  const file = { version: 1, windows: [ENTRY], urls: 'invalid', activeIndex: '1', groups: [], groupIds: [], pinned: [] };
+  const { windows, readOnly } = loadWorkspace(file);
+  assert.equal(readOnly, false);
+  assert.deepEqual(windows, [ENTRY], 'nested must win when mirror is invalid');
+});
+
+test('v1 where mirror groups have different key order but identical content → treated as agreeing', () => {
+  // Regression: JSON.stringify is key-order-sensitive for objects within arrays
+  const nestedEntry = {
+    urls: ['https://a.example/'],
+    activeIndex: 0,
+    groups: [{ id: 'g1', name: 'work', collapsed: false }], // key order: id, name, collapsed
+    groupIds: ['g1'],
+    pinned: [false],
+  };
+  const reorderedMirror = {
+    ...nestedEntry,
+    groups: [{ collapsed: false, id: 'g1', name: 'work' }], // key order: collapsed, id, name
+  };
+  const file = { version: 1, windows: [nestedEntry], ...reorderedMirror };
+  const { windows, readOnly } = loadWorkspace(file);
+  assert.equal(readOnly, false);
+  assert.deepEqual(windows, [nestedEntry], 'mirror and nested should agree despite different key order');
+});
