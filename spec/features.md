@@ -222,6 +222,15 @@ copy → substrate):
   language, a reload notice, and a link to blocking settings. Global blocking is
   deliberately not togglable from the pill. The count line follows D13 on iOS:
   binary protected/paused, no number.
+- **The popover also states the connection at scheme level** — `Uses HTTPS`,
+  `Not encrypted` (plain HTTP to a non-loopback host), or `Local` — and says
+  nothing at all while a load is uncommitted, so it never carries a stale claim
+  across a navigation. It does not inspect certificates, so it cannot
+  distinguish a public CA from a locally-trusted proxy, and mixed content is
+  not reflected; the copy therefore claims the scheme, never "encrypted". On
+  desktop the pill's plain-HTTP "Not secure" badge is a second door into the
+  same popover; discovery of that affordance elsewhere is a platform choice
+  (the contract is only that site controls state the connection).
 - **Acceptance:** Loading a page with known trackers increments the shield count;
   `/allow-ads` on that site drops the count to 0 for it and persists; `/block-ads`
   toggles blocking globally on a site with no exception, and on an allowed site
