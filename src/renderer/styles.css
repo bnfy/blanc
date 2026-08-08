@@ -1627,9 +1627,14 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 
 #findBar {
   position: fixed;
-  /* The find overlay view starts below the 56px strip — 4px here lands the
-     capsule 60px from the window top, per the design. */
-  top: 4px;
+  /* The find overlay view starts below the strip, and its bounds are kept
+     tight so the page stays clickable — so the capsule's shadow has to fit
+     INSIDE the view. --shadow-popover still throws ~8px upward despite its
+     +10 downward bias, and at the old 4px the view's top edge sliced it: a
+     4-level luminance step, dead straight across the full 560px width.
+     16px clears it. The view has ~114px of unused space below, so this costs
+     nothing but the capsule sitting 12px lower. */
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   width: 480px;
