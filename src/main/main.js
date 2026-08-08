@@ -71,6 +71,40 @@ const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+
+const { AsyncLocalStorage } = require('node:async_hooks');
+const windowRuntimes = require('./window-runtime-registry');
+
+// The owning window-runtime for the current async execution — set by
+// bindWindowRuntime at every event registration and sanctioned root, carried
+// through timers and late callbacks by AsyncLocalStorage.
+const windowRuntimeContext = new AsyncLocalStorage();
+
+/** M1 has exactly one runtime; created below, before any startup work runs. */
+let primaryRuntime = null;
+
+/** Wrap a callback so it (and everything it schedules) resolves to `runtime`. */
+function bindWindowRuntime(runtime, fn) {
+  return (...args) => windowRuntimeContext.run(runtime, () => fn(...args));
+}
+
+/** The runtime owning the current execution. Outside any binding: the single
+ * runtime in production, a THROW under acceptanceTestMode — so the acceptance
+ * suite detects every runtime-dependent unbound path it executes. */
+function currentRuntime() {
+  const bound = windowRuntimeContext.getStore();
+  if (bound) return bound;
+  if (acceptanceTestMode) {
+    throw new Error('currentRuntime() outside any bindWindowRuntime scope');
+  }
+  return primaryRuntime;
+}
+
+// The runtime must exist before app.whenReady does anything — later sweeps
+// make createOverlay() and the IPC trust path read currentRuntime(), and both
+// run from startup contexts.
+primaryRuntime = windowRuntimes.createRuntime();
+
 // Exact packaged-smoke gate for the corrupt-cache/offline recovery path.
 // It is deliberately inert in ordinary launches and keeps the acceptance
 // harness's unpackaged-only semantics unchanged.
@@ -701,6 +735,7 @@ function createOverlay() {
       sandbox: true,
     },
   });
+  windowRuntimes.registerChromeSurface(primaryRuntime, overlayView.webContents.id);
   // Fully transparent: the panel floats over live web content, so only what
   // overlay.html actually paints may be opaque.
   overlayView.setBackgroundColor('#00000000');
@@ -3087,7 +3122,12 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-function createMainWindow() {
+// Bound to primaryRuntime at its own entry point (not just via the callers'
+// context) — macOS dock-reopen invokes this from an 'activate' handler whose
+// own binding is a later task's concern, and this function must not depend
+// on that ordering to establish the runtime context it and createOverlay()
+// rely on.
+const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWindow() {
   // Packaged Windows builds inherit the multi-resolution icon embedded in
   // Blanc.exe. Unpackaged development needs the same icon supplied explicitly
   // because its executable is Electron.exe.
@@ -3108,6 +3148,8 @@ function createMainWindow() {
       sandbox: true,
     },
   });
+  windowRuntimes.attachWindow(primaryRuntime, { window: win });
+  windowRuntimes.registerChromeSurface(primaryRuntime, win.webContents.id);
 
   lockPrivilegedNavigation(win.webContents, CHROME_INDEX_URL);
   installChromeShortcuts(win.webContents);
@@ -3145,7 +3187,7 @@ function createMainWindow() {
     // was recreated (macOS dock-reopen path).
     flushExternalUrls();
   });
-}
+});
 
 // Re-apply the current WebRTC policy to every open tab (used when the setting changes).
 function applyWebrtcPolicyToAllTabs() {
@@ -3161,7 +3203,7 @@ function applyWebrtcPolicyToAllTabs() {
 let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
 
-app.whenReady().then(async () => {
+app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   if (await runPackageProbeIfRequested()) return; // SPIKE — headless 3(a); app.exit() already fired
   const ses = session.defaultSession;
   const privateSes = getPrivateBrowsingSession();
@@ -3587,7 +3629,7 @@ app.whenReady().then(async () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
     refocusAddressBarIfWanted();
   });
-});
+}));
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
