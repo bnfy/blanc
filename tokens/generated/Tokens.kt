@@ -66,7 +66,7 @@ object BlancTokens {
     const val fontMono: String = "\"JetBrains Mono\", ui-monospace, \"SF Mono\", \"Cascadia Code\", Menlo, Consolas, monospace"
     const val fontKbd: String = "-apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif"
     const val shadowPopover: String = "inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 10px -8px rgba(14,14,14,0.12), inset 0 -1px 0 rgba(14,14,14,0.035), 0 10px 44px -4px rgba(14,14,14,0.12)"
-    const val shadowPill: String = "inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 3px 18px -2px rgba(14,14,14,0.10)"
+    const val shadowPill: String = "inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10)"
     const val stripH: String = "64px"
     const val pillZoom: String = "1.15"
     const val radius: String = "6px"
