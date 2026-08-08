@@ -837,51 +837,65 @@ body.mac .vertical-tabs-toolbar {
 #pillPrivateChip svg,
 #pillSourceChip svg { width: 8px; height: 8px; stroke-width: 2; }
 
+/* Blanc Blocker. The bare master B in a 24px hover-circle — the app's own
+   mark standing in for what it does, rather than a generic shield. The count
+   leaves the flow and becomes a badge on the circle's shoulder. */
 .shield {
   appearance: none;
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 1px 7px;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  background: var(--accent-dim);
-  color: var(--accent);
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--text);
   flex: 0 0 auto;
   cursor: pointer;
 }
+.shield:hover { background: var(--border); }
+/* The monogram is a filled path on a non-square viewBox (aspect 0.749), not
+   a stroked icon. Height is the DS's whole-pixel snap for a nominal width of
+   12 — Math.round(12 × 199.16/149.21) = 16 — with the width derived back off
+   it so the mark can't distort. */
 .shield svg {
-  width: 12px;
-  height: 12px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  display: block;
+  width: 11.99px;
+  height: 16px;
+  fill: currentColor;
+  stroke: none;
+  flex: 0 0 auto;
+}
+#pillShieldCount {
+  position: absolute;
+  top: -1px;
+  right: -4px;
+  min-width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--surface-raised);
+  font-family: var(--font-mono);
+  font-size: 7.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2.5px;
 }
 #pillShieldCount:empty { display: none; }
 
 /* Protected but nothing blocked yet: a quiet landmark, not a badge. */
-.shield.shield-quiet {
-  background: transparent;
-  color: var(--text-dim);
-  padding: 1px 4px;
-}
+.shield.shield-quiet { color: var(--text-dim); }
 
-/* Ads deliberately allowed here (site exception or global off). The shield
+/* Ads deliberately allowed here (site exception or global off). The mark
    stays in place but reads as switched off — muted rather than alarming,
    since this is a state the user chose. Faded well past the quiet state's
-   dim, with the outlined border as the shape cue (not color alone) that
-   separates off from quiet at a glance. */
-.shield.shield-off {
-  background: transparent;
-  color: var(--text-dim);
-  border-color: var(--border);
-  padding: 1px 6px;
-  opacity: 0.55;
-}
+   dim, which is what separates off from quiet at a glance now that neither
+   carries a background or border. */
+.shield.shield-off { color: var(--text-dim); opacity: 0.45; }
 
 /* Warning-only security indicator: an open padlock shown solely on
    plain-HTTP sites (pill and command-bar input row); secure and internal
