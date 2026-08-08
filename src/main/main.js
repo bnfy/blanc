@@ -10,7 +10,7 @@ const {
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
-const { shieldChipState, shieldPopoverModel } = require('./shield-model');
+const { shieldChipState, shieldPopoverModel, connectionFor } = require('./shield-model');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -954,6 +954,21 @@ function isHostnameExcepted(url) {
   return !!hostname && settings.getSettings().adblockExceptions.includes(hostname);
 }
 
+/** The url Chromium has actually committed for this view, or null.
+ * A tab is created holding the REQUESTED url, and a tab's stored url can also
+ * run ahead of a navigation that has not landed — so connection state must be
+ * read from here, never from tab.url. A destroyed or unattached view has no
+ * committed url at all. */
+function committedUrlOf(view) {
+  try {
+    const wc = view?.webContents;
+    if (!wc || wc.isDestroyed()) return null;
+    return wc.getURL() || null;
+  } catch {
+    return null;
+  }
+}
+
 function serializeTabs() {
   const { adblockEnabled } = settings.getSettings();
   return tabOrder
@@ -974,15 +989,21 @@ function serializeTabs() {
         excepted,
         adblockEnabled,
       });
+      // Derived exactly once, here. The popover, the pill badge, and the panel
+      // badge all render this same value, so they cannot disagree.
+      const connection = connectionFor({
+        url: committedUrlOf(view),
+        isLoading: rest.isLoading,
+      });
       if (rest.private && rest.favicon) {
         // A page-favicon URL belongs to the tab's browsing session. Sending a
         // private tab's remote URL into persistent chrome would make the chrome
         // session fetch it again merely to paint the pill/overlay/rail, escaping
         // the non-persistent private-session boundary. Private rows deliberately
         // use the renderer's neutral fallback instead.
-        return { ...rest, favicon: null, excepted, shield };
+        return { ...rest, favicon: null, excepted, shield, connection };
       }
-      return { ...rest, excepted, shield };
+      return { ...rest, excepted, shield, connection };
     });
 }
 
@@ -1053,6 +1074,10 @@ function activeShieldPopover() {
     blockedCount: tab.blockedCount,
     excepted: isHostnameExcepted(tab.url),
     adblockEnabled: settings.getSettings().adblockEnabled,
+    connection: connectionFor({
+      url: committedUrlOf(tab.view),
+      isLoading: tab.isLoading,
+    }),
   });
 }
 
