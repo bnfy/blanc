@@ -26,6 +26,12 @@ const {
  */
 function install(refs) {
   const {
+    // Playwright's electronApp.evaluate() calls globalThis.__blanc.* straight
+    // into the main process, from OUTSIDE any bindWindowRuntime scope — this
+    // is the single most important root to bind. bindRoot is main.js's
+    // `(fn) => bindWindowRuntime(primaryRuntime, fn)`; every method below is
+    // wrapped with it, once, mechanically, at the end of this function.
+    bindRoot,
     tabs,
     getTabOrder,
     getGroups,
@@ -774,6 +780,17 @@ function install(refs) {
       broadcastTabs();
     },
   };
+
+  // Mechanical, generic wrap — every method installed above is rebound to
+  // the owning runtime at call time, not just the ones a hand-picked list
+  // would remember to cover. None of these methods use `this`, so replacing
+  // each with an arrow-function wrapper is behavior-preserving.
+  if (typeof bindRoot === 'function') {
+    for (const key of Object.keys(globalThis.__blanc)) {
+      const fn = globalThis.__blanc[key];
+      if (typeof fn === 'function') globalThis.__blanc[key] = bindRoot(fn);
+    }
+  }
 }
 
 module.exports = { install };
