@@ -282,6 +282,43 @@ Then('the pill no longer shows that ads are allowed here', async function () {
   );
 });
 
+// ---------- F12-6: shield popover ----------
+
+When('I open the shield popover from the pill', async function () {
+  await this.call('clickPillShield');
+  await waitForValue(
+    () => this.call('shieldPopoverState'),
+    (p) => p && p.visible,
+    'the shield popover to open',
+  );
+});
+
+When('I flip the shield popover toggle', async function () {
+  await this.call('clickShieldPopoverToggle');
+});
+
+/** Shared assertion: popover visible, in the given on/off state, describing
+ * the ACTIVE site (host compared against the same exception-list hostname
+ * the toggle writes, not a hardcoded fixture host). */
+async function assertShieldPopover(world, on) {
+  const host = await world.call('activeHostname');
+  const pop = await waitForValue(
+    () => world.call('shieldPopoverState'),
+    (p) => p && p.visible && p.on === on,
+    `the shield popover to show protection ${on ? 'on' : 'off'}`,
+  );
+  assert.equal(pop.host, host, 'the popover should describe the active site');
+  assert.ok(pop.toggleShown, 'the site toggle should be shown');
+}
+
+Then('the shield popover shows protection on for the active site', async function () {
+  await assertShieldPopover(this, true);
+});
+
+Then('the shield popover shows protection off for the active site', async function () {
+  await assertShieldPopover(this, false);
+});
+
 Then('browser chrome remains on its trusted local document', async function () {
   assert.match(await this.call('chromeUrl'), /^file:\/\/.*\/src\/renderer\/index\.html$/);
 });

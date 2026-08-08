@@ -302,6 +302,34 @@ function install(refs) {
         };
       })()`);
     },
+    // ---- shield popover (F12-6) ----
+    // Real DOM clicks through the real chrome:open-shield / adblock IPC —
+    // same end-to-end rationale as pillShieldState above.
+    clickPillShield() {
+      const wc = getChromeWebContents();
+      if (!wc) throw new Error('chrome webContents unavailable');
+      return wc.executeJavaScript(`document.getElementById('pillShield').click()`);
+    },
+    shieldPopoverState() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const pop = document.getElementById('shieldPop');
+        if (!pop) return null;
+        return {
+          visible: !pop.hidden,
+          host: document.getElementById('shieldPopHost').textContent,
+          on: document.getElementById('shieldPopToggle').classList.contains('on'),
+          toggleShown: !document.getElementById('shieldPopToggle').hidden,
+        };
+      })()`);
+    },
+    clickShieldPopoverToggle() {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay webContents unavailable');
+      return wc.executeJavaScript(`document.getElementById('shieldPopToggle').click()`);
+    },
+
     setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
 
     // ---- address-bar context menu (F19-2/F19-3) ----
