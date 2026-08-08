@@ -498,7 +498,6 @@ const resolvedThemeAppearance = () =>
   (nativeTheme.shouldUseDarkColors ? 'dark' : 'light');
 let lastNativeThemeAppearance = resolvedThemeAppearance();
 let appliedThemeSource = null;
-let themeTintRefreshGeneration = 0;
 
 function applyChromeThemeAppearance(appearance) {
   if (!hasLiveWindow()) return;
@@ -524,7 +523,7 @@ function beginChromeThemeAppearance(appearance) {
 }
 
 function refreshActivePageTintForThemeChange() {
-  const generation = ++themeTintRefreshGeneration;
+  const generation = ++rt().themeTintRefreshGeneration;
   const tab = activeTabId ? tabs.get(activeTabId) : null;
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
 
@@ -543,10 +542,10 @@ function refreshActivePageTintForThemeChange() {
   // captures from winning after a newer one.
   for (const delay of [32, 160, 400, 800]) {
     setTimeout(() => {
-      if (generation !== themeTintRefreshGeneration) return;
+      if (generation !== rt().themeTintRefreshGeneration) return;
       samplePageTint(tab, {
         immediate: true,
-        shouldApply: () => generation === themeTintRefreshGeneration,
+        shouldApply: () => generation === rt().themeTintRefreshGeneration,
       });
     }, delay);
   }
@@ -603,7 +602,6 @@ let activeTabId = null;
  * handoff): identity is a lowercase mono name. Empty groups are pruned.
  * @type {{ id: string, name: string, collapsed: boolean }[]} */
 let groups = [];
-const tabsWantingAddressBarFocus = new Set();
 const searchSuggestionService = createSearchSuggestionService();
 // One live provider request per trusted chrome surface. A newer query aborts
 // the older one even before the renderer's generation guard discards it.
@@ -648,7 +646,6 @@ function flushPermissionPrompts() {
 // in. The renderer measures its own layout and reports it here, so this is just
 // a sane default before the first report arrives — keep it in step with the
 // `--strip-h` token (styles.css) so the initial web-view offset doesn't jump.
-let chromeHeight = 64;
 // Device-local presentation preference. Settings owns validation and
 // persistence; this live copy makes every child-view bounds calculation use
 // one coherent value throughout a layout transition.
@@ -673,15 +670,13 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
  * A generation ticket, not a boolean: if a second popup ever supersedes the
  * first (two right-clicks racing the handler's await), the stale popup's
  * close callback must not disarm the guard under the live one. 0 = no menu. */
-let addressMenuTicket = 0;
-let addressMenuSeq = 0;
 
 function currentChromeLayout() {
   const { width, height } = win.getContentBounds();
   return calculateChromeLayout({
     width,
     height,
-    chromeHeight,
+    chromeHeight: rt().chromeHeight,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
   });
@@ -704,7 +699,7 @@ function overlayBounds() {
   if (rt().overlayMode === 'shield') {
     return calculateShieldBounds({
       windowWidth: win.getContentBounds().width,
-      stripHeight: chromeHeight,
+      stripHeight: rt().chromeHeight,
       anchorRight: rt().shieldAnchorRight,
     });
   }
@@ -714,7 +709,7 @@ function overlayBounds() {
 function createOverlay() {
   // A menu open when the previous window died may never have fired its close
   // callback — never let a leaked ticket disarm the new overlay's blur guard.
-  addressMenuTicket = 0;
+  rt().addressMenuTicket = 0;
   rt().overlayView = new WebContentsView({
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -755,7 +750,7 @@ function createOverlay() {
   rt().overlayView.webContents.on('blur', bindWindowRuntime(primaryRuntime, () => {
     // A native address-bar context menu takes OS focus; that blur is not a
     // dismissal — the popup's close callback owns what happens next.
-    if (addressMenuTicket) return;
+    if (rt().addressMenuTicket) return;
     // Playwright's Electron main-process evaluate calls steal focus from the
     // guest view while the acceptance harness inspects it. Keep the real blur
     // policy in production; tests dismiss explicitly between edit sessions.
@@ -764,7 +759,7 @@ function createOverlay() {
     // A freshly attached blank tab's view can momentarily grab focus while
     // its address-focus reclaim is still pending — that's not a dismissal;
     // the reclaim will re-assert overlay focus on the next tick.
-    if (activeTabId && tabsWantingAddressBarFocus.has(activeTabId)) return;
+    if (activeTabId && rt().tabsWantingAddressBarFocus.has(activeTabId)) return;
     hideOverlay({ refocusContent: false });
   }));
 
@@ -775,12 +770,12 @@ function createOverlay() {
       && (rt().overlayMode === 'panel' || rt().overlayMode === 'palette')),
     getWindow: bindWindowRuntime(primaryRuntime, () => win),
     getOverlayBounds: bindWindowRuntime(primaryRuntime, () => overlayBounds()),
-    acquireMenuGuard: bindWindowRuntime(primaryRuntime, () => { addressMenuTicket = ++addressMenuSeq; return addressMenuTicket; }),
+    acquireMenuGuard: bindWindowRuntime(primaryRuntime, () => { rt().addressMenuTicket = ++rt().addressMenuSeq; return rt().addressMenuTicket; }),
     releaseMenuGuard: bindWindowRuntime(primaryRuntime, (ticket) => {
       // A stale popup (superseded by a newer one) must not disarm the guard
       // or run close policy under the live menu.
-      if (ticket !== addressMenuTicket) return;
-      addressMenuTicket = 0;
+      if (ticket !== rt().addressMenuTicket) return;
+      rt().addressMenuTicket = 0;
       if (!hasLiveWindow()) return;
       if (win.isFocused()) return refocusOverlayAfterMenu();
       // Never steal focus back from another app: if the window lost focus
@@ -791,7 +786,7 @@ function createOverlay() {
       // item selection as an app switch (dismissing the island and swallowing
       // the very edit the item performed).
       setTimeout(bindWindowRuntime(primaryRuntime, () => {
-        if (addressMenuTicket || !hasLiveWindow()) return;
+        if (rt().addressMenuTicket || !hasLiveWindow()) return;
         if (!win.isFocused()) return hideOverlay({ refocusContent: false });
         refocusOverlayAfterMenu();
       }), 80);
@@ -839,7 +834,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   rt().shieldTrigger = null;
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
-  if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
+  if (activeTabId) rt().tabsWantingAddressBarFocus.delete(activeTabId);
   if (hasLiveWindow() && rt().overlayView) {
     win.contentView.removeChildView(rt().overlayView);
     rt().overlayView.webContents.send('overlay:hide');
@@ -858,19 +853,18 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
 // --- Utility sheet (design: 2026-07-22-utility-sheet-design.md) ---
 // The five utility pages render here, never as tabs. One lazy transparent
 // view; the page draws its own scrim + card (body.sheet in pages.css).
-let utilitySheetView = null;
-/** Currently shown utility URL; null = hidden. The single mode flag. */
-let utilitySheetUrl = null;
+// utilitySheetView, utilitySheetUrl now live on the runtime record (see
+// window-runtime-registry.js for their per-field doc comments).
 
 function createUtilitySheet() {
-  utilitySheetView = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
-  utilitySheetView.setBackgroundColor('#00000000');
-  const wc = utilitySheetView.webContents;
+  rt().utilitySheetView = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
+  rt().utilitySheetView.setBackgroundColor('#00000000');
+  const wc = rt().utilitySheetView.webContents;
   installChromeShortcuts(wc);
   // Esc dismisses no matter what inside the page holds focus (mirrors the
   // island overlay's handler).
   wc.on('before-input-event', bindWindowRuntime(primaryRuntime, (event, input) => {
-    if (utilitySheetUrl && input.type === 'keyDown' && input.key === 'Escape') {
+    if (rt().utilitySheetUrl && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       hideUtilitySheet();
     }
@@ -882,7 +876,7 @@ function createUtilitySheet() {
   wc.on('render-process-gone', bindWindowRuntime(primaryRuntime, () => {
     hideUtilitySheet();
     wc.close();
-    utilitySheetView = null;
+    rt().utilitySheetView = null;
   }));
   // Default-deny (design §4): utility→utility stays in-sheet; http(s)
   // opens a real tab (createTab's dismissal covers the sheet); approved
@@ -890,7 +884,7 @@ function createUtilitySheet() {
   // window.open — dies.
   wc.on('will-navigate', bindWindowRuntime(primaryRuntime, (event, targetUrl) => {
     if (isUtilityUrl(targetUrl)) {
-      utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
+      rt().utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
       return;
     }
     event.preventDefault();
@@ -916,28 +910,28 @@ function showUtilityPage(url) {
   // Toggle: a direct re-invocation (menu/accelerator) of the shown page
   // closes it. Overlay-hosted entry points can never hit this — summoning
   // the overlay already dismissed the sheet.
-  if (utilitySheetUrl && sameUtilityPage(utilitySheetUrl, url)) return hideUtilitySheet();
+  if (rt().utilitySheetUrl && sameUtilityPage(rt().utilitySheetUrl, url)) return hideUtilitySheet();
   // One floating layer at a time, in both directions.
   hideOverlay({ refocusContent: false });
-  if (!utilitySheetView) createUtilitySheet();
-  utilitySheetUrl = url;
+  if (!rt().utilitySheetView) createUtilitySheet();
+  rt().utilitySheetUrl = url;
   // Rapid page swaps abort the in-flight load — loadURL rejects with
   // ERR_ABORTED; that's routine, not an error.
-  utilitySheetView.webContents.loadURL(url).catch(() => {});
+  rt().utilitySheetView.webContents.loadURL(url).catch(() => {});
   // Mirror tabs: a detached view's document still reports visibilityState
   // 'visible' and never background-throttles — toggle real visibility.
-  utilitySheetView.setVisible(true);
-  win.contentView.addChildView(utilitySheetView);
+  rt().utilitySheetView.setVisible(true);
+  win.contentView.addChildView(rt().utilitySheetView);
   resizeActiveView();
-  utilitySheetView.webContents.focus();
+  rt().utilitySheetView.webContents.focus();
 }
 
 function hideUtilitySheet({ refocusContent = true } = {}) {
-  if (!utilitySheetUrl) return;
-  utilitySheetUrl = null;
-  if (hasLiveWindow() && utilitySheetView) {
-    win.contentView.removeChildView(utilitySheetView);
-    utilitySheetView.setVisible(false);
+  if (!rt().utilitySheetUrl) return;
+  rt().utilitySheetUrl = null;
+  if (hasLiveWindow() && rt().utilitySheetView) {
+    win.contentView.removeChildView(rt().utilitySheetView);
+    rt().utilitySheetView.setVisible(false);
     if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
   }
 }
@@ -974,7 +968,7 @@ function navigateTabToAddress(id, rawText) {
   const target = normalizeAddressInput(rawText);
   // A typed utility address opens the sheet, never navigates the tab.
   if (isUtilityUrl(target)) return openInternalPage(target);
-  tabsWantingAddressBarFocus.delete(id);
+  rt().tabsWantingAddressBarFocus.delete(id);
   // Rapid re-navigation (Enter twice, Paste and Go twice) aborts the in-flight
   // load — loadURL rejects with ERR_ABORTED; that's routine, not an error.
   tab.view.webContents.loadURL(target).catch(() => {});
@@ -1149,8 +1143,8 @@ function resizeActiveView() {
   const tab = activeTabId ? tabs.get(activeTabId) : null;
   if (tab) tab.view.setBounds(layout.pageBounds);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
-  if (utilitySheetUrl && utilitySheetView) {
-    utilitySheetView.setBounds(layout.utilityBounds);
+  if (rt().utilitySheetUrl && rt().utilitySheetView) {
+    rt().utilitySheetView.setBounds(layout.utilityBounds);
   }
   // The BrowserWindow renderer and native child views must move in the same
   // frame. A dedicated geometry event avoids turning every pointermove or
@@ -1196,7 +1190,7 @@ function applyTabLayout(nextLayout) {
     // layout choice does not eject the user mid-interaction.
     hideOverlay({ refocusContent: false });
     resizeActiveView();
-    if (!utilitySheetUrl) tabs.get(activeTabId)?.view.webContents.focus();
+    if (!rt().utilitySheetUrl) tabs.get(activeTabId)?.view.webContents.focus();
   }
   broadcastTabs();
   scheduleMenuRebuild();
@@ -1790,8 +1784,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   }));
   wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
     tab.navEpoch++; // SPIKE (1Password fill feasibility)
-    const shouldReclaimChromeFocus = url === tab.url && tabsWantingAddressBarFocus.has(id) && activeTabId === id;
-    if (url !== tab.url) tabsWantingAddressBarFocus.delete(id);
+    const shouldReclaimChromeFocus = url === tab.url && rt().tabsWantingAddressBarFocus.has(id) && activeTabId === id;
+    if (url !== tab.url) rt().tabsWantingAddressBarFocus.delete(id);
     tab.blockedCount = 0;
     tab.pageBg = null; // a new page's tint mustn't linger from the old one
     tab.themeColor = null;
@@ -2102,12 +2096,12 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
 
   activeTabId = id;
-  if (prevId && prevId !== id) tabsWantingAddressBarFocus.delete(prevId);
+  if (prevId && prevId !== id) rt().tabsWantingAddressBarFocus.delete(prevId);
   const shouldFocusAddress = focusAddress && !focusContent;
   if (shouldFocusAddress) {
-    tabsWantingAddressBarFocus.add(id);
+    rt().tabsWantingAddressBarFocus.add(id);
   } else {
-    tabsWantingAddressBarFocus.delete(id);
+    rt().tabsWantingAddressBarFocus.delete(id);
     next.view.setVisible(true);
   }
   if (shouldFocusAddress) next.view.setVisible(false);
@@ -2115,7 +2109,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // The freshly attached tab view must not stack above an open overlay —
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
   // but a race must never paint a tab over either floating layer).
-  if (utilitySheetUrl && utilitySheetView) win.contentView.addChildView(utilitySheetView);
+  if (rt().utilitySheetUrl && rt().utilitySheetView) win.contentView.addChildView(rt().utilitySheetView);
   if (rt().overlayMode && rt().overlayView) win.contentView.addChildView(rt().overlayView);
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
@@ -2137,12 +2131,10 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
 }
 
-let railActivationSerial = 0;
-
 function activateTabFromRail(id) {
   const tab = tabs.get(id);
   if (!tab || tab.view.webContents.isDestroyed()) return false;
-  railActivationSerial += 1;
+  rt().railActivationSerial += 1;
 
   // One guarded main-process action owns the complete interaction so a
   // renderer cannot leave an old sheet/panel stacked over the selected tab.
@@ -2154,7 +2146,7 @@ function activateTabFromRail(id) {
   } else {
     // setActiveTab deliberately no-ops for an already-active tab; the rail
     // contract still requires that click/keyboard activation focus content.
-    tabsWantingAddressBarFocus.delete(id);
+    rt().tabsWantingAddressBarFocus.delete(id);
     tab.view.setVisible(true);
     resizeActiveView();
     tab.view.webContents.focus();
@@ -2179,7 +2171,7 @@ function closeTab(id) {
   if (wasActive && hasLiveWindow()) win.contentView.removeChildView(tab.view);
 
   const closedIndex = tabOrder.indexOf(id);
-  tabsWantingAddressBarFocus.delete(id);
+  rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
   windowRuntimes.detachTab(id);
   tabOrder = tabOrder.filter((tid) => tid !== id);
@@ -2343,7 +2335,7 @@ const ZOOM_MAX = 8;
 
 /** Zoom acts on what the user is looking at: the sheet when open, else the active tab. */
 function zoomTargetWebContents() {
-  if (utilitySheetUrl && utilitySheetView) return utilitySheetView.webContents;
+  if (rt().utilitySheetUrl && rt().utilitySheetView) return rt().utilitySheetView.webContents;
   return tabs.get(activeTabId)?.view.webContents ?? null;
 }
 
@@ -2396,7 +2388,7 @@ function focusAddressBar() {
 }
 
 function shouldReclaimAddressBarFocus(id) {
-  return activeTabId === id && tabsWantingAddressBarFocus.has(id);
+  return activeTabId === id && rt().tabsWantingAddressBarFocus.has(id);
 }
 
 function reclaimAddressBarFocus(id, { consume = false } = {}) {
@@ -2407,7 +2399,7 @@ function reclaimAddressBarFocus(id, { consume = false } = {}) {
   setImmediate(() => {
     if (!shouldReclaimAddressBarFocus(id)) return;
     focusAddressBar();
-    if (consume) tabsWantingAddressBarFocus.delete(id);
+    if (consume) rt().tabsWantingAddressBarFocus.delete(id);
   });
 }
 
@@ -2593,7 +2585,7 @@ function registerIpcHandlers() {
     const engine = settings.SEARCH_ENGINES[currentEngine]
       ?? settings.SEARCH_ENGINES.duckduckgo;
     const target = engine.url(query.trim());
-    tabsWantingAddressBarFocus.delete(id);
+    rt().tabsWantingAddressBarFocus.delete(id);
     if (testSearchNavigationCapture) {
       testSearchSubmission = {
         engine: settings.SEARCH_ENGINES[currentEngine] ? currentEngine : 'duckduckgo',
@@ -2641,7 +2633,7 @@ function registerIpcHandlers() {
 
   chromeOn('chrome:layout', (_e, { height }) => {
     if (typeof height === 'number' && height > 0) {
-      chromeHeight = height;
+      rt().chromeHeight = height;
       resizeActiveView();
     }
   });
@@ -3185,9 +3177,9 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
     rt().overlayView = null;
     // The sheet doesn't outlive its window either — dropping the reference
     // without closing would leak the webContents.
-    if (utilitySheetView && !utilitySheetView.webContents.isDestroyed()) utilitySheetView.webContents.close();
-    utilitySheetView = null;
-    utilitySheetUrl = null;
+    if (rt().utilitySheetView && !rt().utilitySheetView.webContents.isDestroyed()) rt().utilitySheetView.webContents.close();
+    rt().utilitySheetView = null;
+    rt().utilitySheetUrl = null;
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
     // on Windows/Linux). Recreated lazily on the next non-PNG capture.
@@ -3372,7 +3364,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // Utility sheet: only the sheet view itself may close the sheet — the
     // strict pages:surface:close guard verifies the sender against this.
     utilitySheet: {
-      isSheetSender: bindWindowRuntime(primaryRuntime, (wc) => !!utilitySheetView && wc === utilitySheetView.webContents),
+      isSheetSender: bindWindowRuntime(primaryRuntime, (wc) => !!rt().utilitySheetView && wc === rt().utilitySheetView.webContents),
       close: bindWindowRuntime(primaryRuntime, () => hideUtilitySheet()),
     },
     // The start page's ledger sections read live tab-group state and the
@@ -3424,13 +3416,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
-      getRailActivationSerial: () => railActivationSerial,
+      getRailActivationSerial: () => rt().railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
-      getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
-      getUtilitySheetWebContents: () => utilitySheetView?.webContents ?? null,
+      getUtilitySheetState: () => ({ visible: !!rt().utilitySheetUrl, url: rt().utilitySheetUrl }),
+      getUtilitySheetWebContents: () => rt().utilitySheetView?.webContents ?? null,
       getOverlayWebContents: () => rt().overlayView?.webContents ?? null,
       getChromeWebContents: () => win?.webContents ?? null,
       setWindowContentSize: (width, height) => {
@@ -3439,7 +3431,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         resizeActiveView();
       },
       getWindowContentBounds: () => hasLiveWindow() ? win.getContentBounds() : null,
-      getUtilitySheetBounds: () => utilitySheetView?.getBounds() ?? null,
+      getUtilitySheetBounds: () => rt().utilitySheetView?.getBounds() ?? null,
       getOverlayBounds: () => rt().overlayView?.getBounds() ?? null,
       setTestSearchSuggestionFixture,
       clearTestSearchSuggestionFixture,
