@@ -220,6 +220,9 @@ function install(refs) {
     },
     activeFavorited() { const t = tabs.get(getActiveTabId()); return !!t && bookmarks.isBookmarked(urlOf(t)); },
     bookmarkUrls() { return bookmarks.listBookmarks().map((b) => b.url); },
+    bookmarkRecords() {
+      return bookmarks.listBookmarks().map(({ url, title, folder }) => ({ url, title, folder }));
+    },
 
     // ---- history store ----
     seedHistory() { history.addVisit('http://seed.local/', 'Seed'); },
@@ -583,6 +586,84 @@ function install(refs) {
       return labels;
     },
     openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
+    readBrowserImportDom() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => ({
+        options: [...document.querySelectorAll('#browserSource option')].map((o) => ({
+          value: o.value,
+          label: o.textContent,
+        })),
+        buttonHidden: document.getElementById('browserImportBtn')?.hidden ?? true,
+        findHidden: document.getElementById('browserFindBtn')?.hidden ?? true,
+        status: document.getElementById('importStatus')?.textContent ?? '',
+      }))()`);
+    },
+    clickBrowserFind() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('browserFindBtn');
+        if (!button || button.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    clickBrowserImport() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('browserImportBtn');
+        if (!button || button.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    showTestFirstRunMigration() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      tab.view.webContents.send('pages:start:status', {
+        startup: { phase: 'skipped', attempt: 0, error: null },
+        privacy: {
+          required: true,
+          searchSuggestions: true,
+          usagePing: false,
+        },
+      });
+      return true;
+    },
+    readFirstRunMigrationDom() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        initialReady: (document.getElementById('footerLeft')?.textContent ?? '').length > 0,
+        privacyHidden: document.getElementById('privacyCard')?.hidden ?? true,
+        migrationHidden: document.getElementById('migrationChoice')?.hidden ?? true,
+        findHidden: document.getElementById('migrationFind')?.hidden ?? true,
+        options: [...document.querySelectorAll('#migrationSource option')].map((o) => o.textContent),
+        status: document.getElementById('migrationStatus')?.textContent ?? '',
+      }))()`);
+    },
+    clickFirstRunMigrationFind() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('migrationFind');
+        if (!button || button.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    clickFirstRunMigration() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('migrationImport');
+        if (!button || document.getElementById('migrationChoice')?.hidden) return false;
+        button.click();
+        return true;
+      })()`);
+    },
 
     // ---- utility sheet drive helpers (acceptance) ----
     // Both click helpers ASSERT the anchor exists — an optional-chained

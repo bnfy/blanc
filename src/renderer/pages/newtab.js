@@ -29,6 +29,45 @@ const privacySuggestions = document.getElementById('privacySuggestions');
 const privacyPing = document.getElementById('privacyPing');
 const privacyContinue = document.getElementById('privacyContinue');
 const privacyError = document.getElementById('privacyError');
+const migrationChoice = document.getElementById('migrationChoice');
+const migrationSource = document.getElementById('migrationSource');
+const migrationImport = document.getElementById('migrationImport');
+const migrationFind = document.getElementById('migrationFind');
+const migrationStatus = document.getElementById('migrationStatus');
+
+const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
+
+// The offer is shown unconditionally; discovery reads other browsers' profile
+// directories, so it waits for an explicit ask rather than running on render.
+async function loadMigrationSources() {
+  if (isPrivate) return false;
+  const sources = await window.bowserPages?.bookmarks.browserSources();
+  migrationSource.replaceChildren();
+  for (const source of sources ?? []) {
+    const option = document.createElement('option');
+    option.value = source.id;
+    option.textContent = source.label;
+    migrationSource.append(option);
+  }
+  const available = !!sources?.length;
+  migrationSource.hidden = !available;
+  migrationImport.hidden = !available;
+  migrationFind.hidden = available;
+  return available;
+}
+
+migrationFind.addEventListener('click', async () => {
+  migrationFind.disabled = true;
+  migrationStatus.textContent = 'Looking for other browsers…';
+  try {
+    const found = await loadMigrationSources();
+    migrationStatus.textContent = found ? '' : 'No other browser profiles found.';
+  } catch {
+    migrationStatus.textContent = "Couldn't check for other browsers.";
+  } finally {
+    migrationFind.disabled = false;
+  }
+});
 
 function renderLaunchStatus({ startup, privacy } = {}) {
   if (isPrivate) {
@@ -58,6 +97,8 @@ function renderLaunchStatus({ startup, privacy } = {}) {
   const privacyWasHidden = privacyCard.hidden;
   privacyCard.hidden = !showPrivacy;
   if (showPrivacy) {
+    // Offer migration up front; nothing is read until "Look for other browsers".
+    migrationChoice.hidden = false;
     if (privacyWasHidden) {
       privacySuggestions.checked = !!privacy.searchSuggestions;
       privacyPing.checked = !!privacy.usagePing;
@@ -74,6 +115,36 @@ startupRetry.addEventListener('click', async () => {
   } finally {
     startupRetry.disabled = false;
     startupContinue.disabled = false;
+  }
+});
+
+migrationImport.addEventListener('click', async () => {
+  if (!migrationSource.value) return;
+  migrationImport.disabled = true;
+  migrationSource.disabled = true;
+  migrationStatus.textContent = 'Importing favorites…';
+  try {
+    const result = await window.bowserPages?.bookmarks.importBrowser(migrationSource.value);
+    if (result?.error === 'source-unavailable') {
+      migrationStatus.textContent = 'That browser profile is no longer available.';
+      migrationSourcesLoaded = false;
+      await loadMigrationSources();
+    } else if (result?.error === 'empty') {
+      migrationStatus.textContent = 'No favorites found in that browser profile.';
+    } else if (result?.error === 'too-large') {
+      migrationStatus.textContent = 'That browser profile is too large to import safely.';
+    } else if (result?.error) {
+      migrationStatus.textContent = "Couldn't read that browser profile.";
+    } else {
+      const skipped = result.skipped
+        ? `; skipped ${plural(result.skipped, 'favorite')} already saved`
+        : '';
+      migrationStatus.textContent =
+        `Imported ${plural(result.added, 'favorite')} from ${result.source.label}${skipped}.`;
+    }
+  } finally {
+    migrationImport.disabled = false;
+    migrationSource.disabled = false;
   }
 });
 

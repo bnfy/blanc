@@ -170,7 +170,11 @@ also editable in Settings).
 `downloads`, `settings`) are served over a privileged custom scheme by
 `pages.js` — a real origin, so web content can't link into arbitrary local
 files. The user-facing name for bookmarks is **Favorites** (heart icon);
-the identifiers keep the classic name.
+the identifiers keep the classic name. Fresh profiles can bring Favorites
+directly from detected Chrome, Edge, Brave, Chromium, or Vivaldi profiles;
+the Favorites sheet keeps that explicit, deduplicating import available later,
+alongside the universal bookmarks-HTML fallback. Profile paths and raw browser
+data never cross into a renderer.
 
 **No Chrome extensions — by design.** The two things most people install
 extensions for are covered natively: ad blocking is built in at the
