@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# Ad-hoc local build output (`--dir=dist-local-…`). `dist/` does not cover these,
+# and unpacked electron-builder output runs ~330 MB per directory.
+dist-local*
 out/
 .cache/
 *.log
