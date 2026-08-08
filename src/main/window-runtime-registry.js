@@ -8,6 +8,10 @@ let nextId = 1;
 let runtimes = [];
 const tabOwner = new Map(); // tabId -> runtime
 const surfaceOwner = new Map(); // chrome webContents id -> runtime
+// Auxiliary web content owned by a runtime — real window.open popup children,
+// which are NOT chrome surfaces and must never gain chrome-IPC trust. Kept in
+// its own map so a lookup here can never satisfy runtimeForChromeWebContentsId.
+const auxiliaryOwner = new Map(); // web webContents id -> runtime
 
 /** The full per-window inventory, initialized to main.js's current defaults.
  * The spec's state-inventory table is the contract for this shape. */
@@ -74,6 +78,14 @@ function registerChromeSurface(runtime, wcId) { surfaceOwner.set(wcId, runtime);
 function unregisterChromeSurface(wcId) { surfaceOwner.delete(wcId); }
 const runtimeForChromeWebContentsId = (wcId) => surfaceOwner.get(wcId) ?? null;
 
+/** Ownership for real window.open popup children — permission-prompt
+ * resolution ONLY. Deliberately disjoint from surfaceOwner: a lookup here
+ * can never satisfy runtimeForChromeWebContentsId, so registering a popup
+ * can never confer chrome-IPC trust on untrusted web content. */
+function registerAuxiliaryContent(runtime, wcId) { auxiliaryOwner.set(wcId, runtime); }
+function unregisterAuxiliaryContent(wcId) { auxiliaryOwner.delete(wcId); }
+const runtimeForAuxiliaryContent = (wcId) => auxiliaryOwner.get(wcId) ?? null;
+
 function attachWindow(runtime, { window }) { runtime.window = window; }
 
 /** macOS window close: the window, overlay, and sheet die; the workspace
@@ -83,6 +95,9 @@ function attachWindow(runtime, { window }) { runtime.window = window; }
 function detachWindow(runtime) {
   for (const [wcId, owner] of surfaceOwner) {
     if (owner === runtime) surfaceOwner.delete(wcId);
+  }
+  for (const [wcId, owner] of auxiliaryOwner) {
+    if (owner === runtime) auxiliaryOwner.delete(wcId);
   }
   runtime.window = null;
   runtime.overlayView = null;
@@ -98,6 +113,7 @@ function resetForTests() {
   runtimes = [];
   tabOwner.clear();
   surfaceOwner.clear();
+  auxiliaryOwner.clear();
 }
 
 module.exports = {
@@ -109,6 +125,9 @@ module.exports = {
   registerChromeSurface,
   unregisterChromeSurface,
   runtimeForChromeWebContentsId,
+  registerAuxiliaryContent,
+  unregisterAuxiliaryContent,
+  runtimeForAuxiliaryContent,
   attachWindow,
   detachWindow,
   resetForTests,

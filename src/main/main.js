@@ -2036,7 +2036,18 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
       const isManagedTab = [...tabs.values()].some(
         (t) => t.view.webContents.id === childWindow.webContents.id
       );
-      if (!isManagedTab) applyWindowOpenPolicy(childWindow.webContents);
+      if (!isManagedTab) {
+        applyWindowOpenPolicy(childWindow.webContents);
+        // A real popup child: owned by the opener's runtime for permission
+        // prompting ONLY. Deliberately NOT a chrome surface — it is untrusted
+        // web content and must never resolve for chrome IPC.
+        const childWc = childWindow.webContents;
+        const childWcId = childWc.id;
+        windowRuntimes.registerAuxiliaryContent(rt(), childWcId);
+        childWc.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+          windowRuntimes.unregisterAuxiliaryContent(childWcId);
+        }));
+      }
     }));
   };
   applyWindowOpenPolicy(wc);
@@ -3344,7 +3355,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setPermissionPrompter(({ origin, permission, mediaTypes, requestingWebContents }) =>
     new Promise((resolve) => {
       const tab = tabForWebContents(requestingWebContents);
-      const owner = tab ? windowRuntimes.runtimeForTab(tab.id) : null;
+      // Managed tabs resolve first; a real window.open popup child (never a
+      // managed tab — see did-create-window above) falls through to the
+      // auxiliary-content map registered for permission prompting only.
+      const owner = tab
+        ? windowRuntimes.runtimeForTab(tab.id)
+        : windowRuntimes.runtimeForAuxiliaryContent(requestingWebContents?.id);
       // An unresolvable requester is DENIED (null = not answered, never
       // persisted), never rerouted — under M2 a fallback could reach the
       // wrong window's chrome.
