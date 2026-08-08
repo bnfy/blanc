@@ -319,11 +319,14 @@ function install(refs) {
       return wc.executeJavaScript(`(() => {
         const pop = document.getElementById('shieldPop');
         if (!pop) return null;
+        const row = document.getElementById('shieldPopConnection');
         return {
           visible: !pop.hidden,
           host: document.getElementById('shieldPopHost').textContent,
           on: document.getElementById('shieldPopToggle').classList.contains('on'),
           toggleShown: !document.getElementById('shieldPopToggle').hidden,
+          connection: row && !row.hidden ? row.textContent : null,
+          header: document.querySelector('.shield-pop-state')?.textContent.trim() ?? '',
         };
       })()`);
     },
@@ -331,6 +334,37 @@ function install(refs) {
       const wc = getOverlayWebContents();
       if (!wc) throw new Error('overlay webContents unavailable');
       return wc.executeJavaScript(`document.getElementById('shieldPopToggle').click()`);
+    },
+    // ---- site-info fold (F12-7/8/9): the badge door, trigger truth, focus ----
+    clickInsecureBadge() {
+      const wc = getChromeWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const b = document.getElementById('pillInsecure');
+        if (!b || b.hidden) return false;
+        b.click();
+        return true;
+      })()`);
+    },
+    shieldAriaExpanded() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`({
+        shield: document.getElementById('pillShield')?.getAttribute('aria-expanded') ?? null,
+        insecure: document.getElementById('pillInsecure')?.getAttribute('aria-expanded') ?? null,
+      })`);
+    },
+    chromeFocusedId() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`document.activeElement?.id ?? null`);
+    },
+    pressOverlayEscape() {
+      const wc = getOverlayWebContents();
+      if (!wc) throw new Error('overlay is not open');
+      wc.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+      wc.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });
+      return true;
     },
 
     setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
