@@ -215,6 +215,13 @@ copy → substrate):
   blocked from the same surface that allowed it**; the toggle works; the *set of
   trackers blocked* is as close as each engine's format allows, from the same
   source lists.
+- **Shield chip is a clickable control** (desktop SHIPPED; mobile PLANNED): always
+  present on pages with a blockable host (quiet glyph at zero, live count while
+  blocking, faded-with-outline when off), opening a site-protection popover with a single
+  site-scoped toggle (allow ads here / re-block here), the blocked count in plain
+  language, a reload notice, and a link to blocking settings. Global blocking is
+  deliberately not togglable from the pill. The count line follows D13 on iOS:
+  binary protected/paused, no number.
 - **Acceptance:** Loading a page with known trackers increments the shield count;
   `/allow-ads` on that site drops the count to 0 for it and persists; `/block-ads`
   toggles blocking globally on a site with no exception, and on an allowed site

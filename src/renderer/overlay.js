@@ -20,6 +20,13 @@
   const heartBtn = document.getElementById('heartBtn');
   const dismissBtn = document.getElementById('dismissBtn');
   const findBar = document.getElementById('findBar');
+  const shieldPop = document.getElementById('shieldPop');
+  const shieldPopHost = document.getElementById('shieldPopHost');
+  const shieldPopOnOff = document.getElementById('shieldPopOnOff');
+  const shieldPopToggle = document.getElementById('shieldPopToggle');
+  const shieldPopCount = document.getElementById('shieldPopCount');
+  const shieldPopNote = document.getElementById('shieldPopNote');
+  const shieldPopSettings = document.getElementById('shieldPopSettings');
   const findInput = document.getElementById('findInput');
   const findCount = document.getElementById('findCount');
   const findPrevBtn = document.getElementById('findPrevBtn');
@@ -994,6 +1001,7 @@
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
+    shieldPop.hidden = next !== 'shield';
 
     if (next === 'panel' || next === 'palette') {
       if (!reshow) {
@@ -1022,8 +1030,38 @@
     } else if (next === 'find') {
       findInput.focus();
       findInput.select();
+    } else if (next === 'shield') {
+      renderShieldPop();
+      (shieldPopToggle.hidden ? shieldPopSettings : shieldPopToggle).focus();
     }
   }
+
+  // Renders from the last tabs:updated broadcast — main recomputes
+  // state.shieldPopover on every broadcast, so a toggle flip or a load's
+  // climbing block count re-renders live while the popover is open.
+  function renderShieldPop() {
+    const v = state.shieldPopover;
+    if (!v) { window.browserAPI.closeOverlay(); return; }
+    shieldPopHost.textContent = v.host;
+    shieldPopOnOff.textContent = v.on ? 'on' : 'off';
+    shieldPopToggle.hidden = v.variant !== 'site';
+    shieldPopToggle.classList.toggle('on', v.on);
+    shieldPopToggle.setAttribute('aria-checked', String(v.on));
+    shieldPopCount.textContent = v.countLine;
+    shieldPopNote.hidden = v.variant !== 'site';
+  }
+
+  shieldPopToggle.addEventListener('click', () => {
+    // on → allow ads here; off (excepted) → re-block here. The popover only
+    // shows this switch in the 'site' variant, so toggleAdblock can never
+    // reach its global branch from the pill.
+    if (state.shieldPopover?.on) window.browserAPI.allowAdsOnActiveSite();
+    else window.browserAPI.toggleAdblock();
+  });
+  shieldPopSettings.addEventListener('click', () => {
+    window.browserAPI.closeOverlay();
+    window.browserAPI.openPage('settings', 'blocking');
+  });
 
   function resetFind() {
     findInput.value = '';
@@ -1054,6 +1092,7 @@
     backdrop.hidden = true;
     panelAnchor.hidden = true;
     findBar.hidden = true;
+    shieldPop.hidden = true;
     inputTouched = false;
     addressInputComposing = false;
     suppressProviderSuggestions = false;
@@ -1264,6 +1303,7 @@
       }
       renderPanel();
     }
+    if (mode === 'shield') renderShieldPop();
   });
   // Cached-first: the panel renders the cache instantly, and this repaints
   // when the panel-open refresh's pull lands (tab sync).

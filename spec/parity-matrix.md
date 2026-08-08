@@ -14,7 +14,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 
 | ID | Feature | Desktop | iOS | Android | Parity contract (must be identical) | Divergence |
 |----|---------|---------|-----|---------|-------------------------------------|------------|
-| F1 | Island chrome (pill + command bar) | SHIPPED | PARTIAL | PLANNED | Resting pill shows back/forward (desktop; mobile uses edge-swipe per D7), active group's dots (cap 8 + `+N`; pointer platforms reveal a dot's favicon on hover/focus), favicon, domain, shield count, private chip, action cluster. Expanded states: panel / palette / find. | D7, D11, D15 |
+| F1 | Island chrome (pill + command bar) | SHIPPED | PARTIAL | PLANNED | Resting pill shows back/forward (desktop; mobile uses edge-swipe per D7), active group's dots (cap 8 + `+N`; pointer platforms reveal a dot's favicon on hover/focus), favicon, domain, shield count (clickable → site-protection popover on desktop), private chip, action cluster. Expanded states: panel / palette / find. | D7, D11, D15 |
 | F2 | Tabs (create/close/switch/reopen/duplicate/pin/mute) | SHIPPED | PARTIAL | PLANNED | Same lifecycle + same reopen-closed and pin/mute semantics. Pins remain in their current group and lead it; ungrouped pins use a standalone shelf. Plain new tab is always ungrouped. | D8 |
 | F3 | Tab groups | SHIPPED | PLANNED | PLANNED | Names not colors (lowercase mono). Group exists only while non-empty. Pill renders only the active group, including its pins. Same create/move/ungroup/close-group actions. | — |
 | F4 | Private tabs | SHIPPED | PLANNED | PLANNED | Never in history/session/reopen; inherited by child tabs; isolated non-persistent web session; private theme + quick-exit chip. | — |
@@ -25,7 +25,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F9 | Favorites | SHIPPED | PLANNED | PLANNED | Heart toggle, "Add all open tabs", favorites page + newtab favorites. Internal id stays `bookmarks`. | — |
 | F10 | History | SHIPPED | PLANNED | PLANNED | Per-visit record + title update, capped 5000, clearable, excluded for private tabs. | — |
 | F11 | Downloads | SHIPPED | PLANNED | PLANNED | Downloads list UI + progress, capped 200. | D3 |
-| F12 | Ad/tracker blocking | SHIPPED | PARTIAL | PLANNED | Ads/trackers blocked by default; per-tab shield count; per-site allow and re-block from the same command; global toggle. Filter data shared. | D1, D2, D13, D14 |
+| F12 | Ad/tracker blocking | SHIPPED | PARTIAL | PLANNED | Ads/trackers blocked by default; per-tab shield count; per-site allow and re-block from the same command; shield chip opens a site-protection popover (desktop); global toggle. Filter data shared. | D1, D2, D13, D14 |
 | F13 | Permissions | SHIPPED | PLANNED | PLANNED | Explicit per-permission prompts with the same policy/copy. | — |
 | F14 | Settings | SHIPPED | PARTIAL | PLANNED | Same keys, defaults, and validation (search engine, device-local `searchSuggestions`, adblock, home page, theme, app icon, exceptions, usage ping, supporter). | D5, D6 |
 | F15 | Theming | SHIPPED | SHIPPED | PLANNED | system/light/dark + private scope; propagates to chrome, internal pages, web content live, no restart. | — |

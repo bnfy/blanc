@@ -10,6 +10,7 @@ const {
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { shieldChipState, shieldPopoverModel } = require('./shield-model');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -52,6 +53,7 @@ const {
   normalizeTabLayout,
   normalizeVerticalTabsWidth,
   calculateChromeLayout,
+  calculateShieldBounds,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
 const {
@@ -625,11 +627,18 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
 // It is attached to win.contentView only while something is showing.
 /** @type {WebContentsView | null} */
 let overlayView = null;
-/** @type {null | 'panel' | 'palette' | 'find'} */
+/** @type {null | 'panel' | 'palette' | 'find' | 'shield'} */
 let overlayMode = null;
 /** Companion to overlayMode, replayed alongside it below if the overlay's
  * first load hadn't finished when showOverlay was called. */
 let overlayPrefill = null;
+/** Chip right edge (window coords) captured when the shield popover opens;
+ * reused if bounds recompute (e.g. window resize) while it's up. */
+let shieldAnchorRight = null;
+/** The site the open shield popover describes, captured at open time — the
+ * tab's live url may already read as the NEW site when did-start-navigation
+ * fires, so a live recompute could never detect the site change. */
+let shieldPopoverHost = null;
 /** Native address-bar context menu up: suppress the overlay's blur
  * dismissal — the popup's close callback owns what happens next.
  * A generation ticket, not a boolean: if a second popup ever supersedes the
@@ -663,6 +672,13 @@ function overlayBounds() {
   const layout = currentChromeLayout();
   if (overlayMode === 'find') return layout.findBounds;
   if (overlayMode === 'palette') return layout.paletteBounds;
+  if (overlayMode === 'shield') {
+    return calculateShieldBounds({
+      windowWidth: win.getContentBounds().width,
+      stripHeight: chromeHeight,
+      anchorRight: shieldAnchorRight,
+    });
+  }
   return layout.panelBounds;
 }
 
@@ -785,6 +801,8 @@ function showOverlay(mode, { prefill } = {}) {
 function hideOverlay({ refocusContent = true } = {}) {
   if (!overlayMode) return;
   overlayMode = null;
+  shieldAnchorRight = null;
+  shieldPopoverHost = null;
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
@@ -937,6 +955,7 @@ function isHostnameExcepted(url) {
 }
 
 function serializeTabs() {
+  const { adblockEnabled } = settings.getSettings();
   return tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
@@ -947,15 +966,23 @@ function serializeTabs() {
       // shield hides at a 0 count), so "/allow-ads" left no visible trace and
       // "/block-ads" appeared to do nothing when it lifted the exception.
       const excepted = isHostnameExcepted(rest.url);
+      // Chip state is fully derived here (shield-model.js) so the strip and
+      // overlay only ever render what the broadcast says.
+      const shield = shieldChipState({
+        url: rest.url,
+        blockedCount: rest.blockedCount,
+        excepted,
+        adblockEnabled,
+      });
       if (rest.private && rest.favicon) {
         // A page-favicon URL belongs to the tab's browsing session. Sending a
         // private tab's remote URL into persistent chrome would make the chrome
         // session fetch it again merely to paint the pill/overlay/rail, escaping
         // the non-persistent private-session boundary. Private rows deliberately
         // use the renderer's neutral fallback instead.
-        return { ...rest, favicon: null, excepted };
+        return { ...rest, favicon: null, excepted, shield };
       }
-      return { ...rest, excepted };
+      return { ...rest, excepted, shield };
     });
 }
 
@@ -1017,6 +1044,18 @@ function persistSession() {
   });
 }
 
+/** The active tab's popover model, or null when it has no blockable host. */
+function activeShieldPopover() {
+  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  if (!tab) return null;
+  return shieldPopoverModel({
+    url: tab.url,
+    blockedCount: tab.blockedCount,
+    excepted: isHostnameExcepted(tab.url),
+    adblockEnabled: settings.getSettings().adblockEnabled,
+  });
+}
+
 function broadcastTabs() {
   persistSession();
   tabsync.noteTabsChanged();
@@ -1027,6 +1066,8 @@ function broadcastTabs() {
     activeTabId,
     groups,
     tabLayout,
+    adblockEnabled: settings.getSettings().adblockEnabled,
+    shieldPopover: activeShieldPopover(),
     ...widthMetrics,
   };
   win.webContents.send('tabs:updated', payload);
@@ -1730,8 +1771,19 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // after the orchestrator's main-side URL check would still let
   // executeJavaScript run in the replacement document; bump the epoch so the
   // pre-injection re-check aborts. Removed with the rest of the spike.
-  wc.on('did-start-navigation', (_e, _url, _isInPlace, isMainFrame) => {
+  wc.on('did-start-navigation', (_e, url, _isInPlace, isMainFrame) => {
     if (isMainFrame) tab.navEpoch++;
+    // The shield popover describes one site's protection. Same-site
+    // navigations — including the reload its own toggle triggers — keep it
+    // open, live-updating; leaving the site (or losing the host) closes it.
+    if (
+      isMainFrame
+      && overlayMode === 'shield'
+      && id === activeTabId
+      && blockableHostname(url) !== shieldPopoverHost
+    ) {
+      hideOverlay({ refocusContent: false });
+    }
   });
   wc.once('did-finish-load', () => {
     if (shouldReclaimAddressBarFocus(id)) {
@@ -1973,7 +2025,8 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
 
   // Find state is per-tab; a stale capsule over a different page misleads.
-  if (overlayMode === 'find') hideOverlay({ refocusContent: false });
+  // The shield popover describes one tab's site — same rule.
+  if (overlayMode === 'find' || overlayMode === 'shield') hideOverlay({ refocusContent: false });
 
   const prevId = activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
@@ -2274,8 +2327,9 @@ function focusAddressBar() {
   // tab's WebContentsView; showOverlay reclaims it for the overlay's
   // webContents so the address input actually receives keystrokes.
   win.focus();
-  // Reasserts must not downgrade an already-summoned palette to a panel.
-  showOverlay(overlayMode && overlayMode !== 'find' ? overlayMode : 'panel');
+  // Reasserts must not downgrade an already-summoned palette to a panel —
+  // nor promote a non-island mode (find, shield) into staying up.
+  showOverlay(overlayMode === 'palette' ? 'palette' : 'panel');
 }
 
 function shouldReclaimAddressBarFocus(id) {
@@ -2395,6 +2449,9 @@ function runBlockAdsCommand() {
       : { adblockEnabled: result.enabled }
   );
   reloadTabAfterSettingsFanout(tab);
+  // Shield chip/popover state changed — don't wait for the reload's own
+  // broadcast to reflect it.
+  broadcastTabs();
   return result;
 }
 
@@ -2413,6 +2470,9 @@ function runAllowAdsCommand() {
   const { adblockExceptions } = settings.getSettings();
   settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
   reloadTabAfterSettingsFanout(tab);
+  // Shield chip/popover state changed — don't wait for the reload's own
+  // broadcast to reflect it.
+  broadcastTabs();
   return hostname;
 }
 
@@ -2482,9 +2542,12 @@ function registerIpcHandlers() {
   chromeHandle('tabs:toggle-pinned', (_e, id) => toggleTabPinned(id));
   chromeHandle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
   chromeHandle('tabs:duplicate', (_e, id) => duplicateTab(id));
-  chromeHandle('tabs:open-page', (_e, name) => {
+  chromeHandle('tabs:open-page', (_e, name, section) => {
     if (['bookmarks', 'history', 'downloads', 'settings'].includes(name)) {
-      openInternalPage(`blanc://${name}/`);
+      // Deep-link into a page section via URL fragment — allowlisted only,
+      // never interpolated from renderer-supplied text (privileged URL).
+      const fragment = name === 'settings' && section === 'blocking' ? '#group-privacy' : '';
+      openInternalPage(`blanc://${name}/${fragment}`);
     }
   });
   chromeHandle('tabs:get-all', () => ({
@@ -2506,6 +2569,16 @@ function registerIpcHandlers() {
 
   chromeOn('chrome:open-island', () => showOverlay('panel'));
   chromeOn('chrome:open-find', () => showOverlay('find'));
+  chromeOn('chrome:open-shield', (_e, anchor) => {
+    // Chip re-click closes — the chip is a toggle for the popover itself.
+    if (overlayMode === 'shield') return hideOverlay({ refocusContent: false });
+    const popover = activeShieldPopover();
+    if (!popover) return; // no blockable host — nothing to show
+    shieldPopoverHost = popover.host;
+    shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+    broadcastTabs(); // fresh state.shieldPopover before the overlay renders
+    showOverlay('shield');
+  });
   chromeHandle('chrome:open-main-menu', (event, point) => {
     // The rich preload is shared with the overlay, but the visible platform
     // menu button exists only in the strip document. Keep this entry point as
