@@ -1472,6 +1472,8 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
   border-top: 1px solid var(--border);
 }
 
+/* "new tab" is the panel's one primary action, so it's the one solid accent
+   pill in the chrome. Everything else in the footer is quiet by comparison. */
 .footer-new {
   display: flex;
   align-items: center;
@@ -1479,25 +1481,29 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
   height: 28px;
   padding: 0 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-dim);
-  font-family: var(--font-mono);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--surface-raised);
+  font-family: var(--font-ui);
   font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
   flex: 0 0 auto;
+  cursor: pointer;
 }
-.footer-new:hover { border-color: var(--text-dim); color: var(--text); }
+.footer-new:hover { opacity: 0.85; }
 .footer-new svg { width: 13px; height: 13px; }
 
-/* Private launcher: the same pill, but a dashed border — the dashed marker
-   that denotes private throughout the chrome (so the label no longer needs
-   its own dashed underline). */
+/* Private launcher: the same geometry as a ghost — dashed, the marker that
+   denotes private throughout the chrome (so the label no longer needs its
+   own dashed underline). It must not read as a second primary action. */
 .footer-new.private {
   margin-left: 4px;
-  border-style: dashed;
-  border-color: var(--text-dim);
+  background: none;
+  color: var(--text-dim);
+  border: 1px dashed var(--text-dim);
 }
+.footer-new.private:hover { opacity: 1; color: var(--text); border-color: var(--text); }
 
 .footer-kbd {
   font-family: var(--font-kbd);
