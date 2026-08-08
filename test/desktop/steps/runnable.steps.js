@@ -1,7 +1,7 @@
 const assert = require('node:assert');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('./../support/context');
-const { openOverlaySurface } = require('./../support/poll');
+const { waitForValue, openOverlaySurface } = require('./../support/poll');
 
 // Step definitions for the desktop-runnable scenario set (see the `runnable`
 // profile in cucumber.mjs). Every step is intent-level and drives the app
@@ -72,6 +72,7 @@ When('I run the slash command {string}', async function (cmd) {
   if (head === '/group') return this.call('groupActiveByName', rest.join(' '));
   if (head === '/clear') return this.call('clearHistory');
   if (head === '/block-ads') return this.call('toggleAdblock');
+  if (head === '/allow-ads') return this.call('allowAdsOnActive');
   if (head === '/new') { ctx.lastNewTabId = await this.call('newTab'); return; }
   if (head === '/downloads') return this.call('openDownloads');
   if (head === '/find') return this.call('openFind');
@@ -248,6 +249,37 @@ Then('the ad-block exceptions contain {string}', async function (h) {
 Then('the ad-block exceptions do not contain {string}', async function (h) {
   const ex = await this.call('exceptions');
   assert.ok(!ex.includes(h.toLowerCase()), `exceptions ${JSON.stringify(ex)} should not contain ${h.toLowerCase()}`);
+});
+
+// "the active site" keeps the scenario platform-neutral: the fixture server's
+// host is an implementation detail of this harness, not part of the contract.
+Then('the ad-block exceptions contain the active site', async function () {
+  const [ex, host] = [await this.call('exceptions'), await this.call('activeHostname')];
+  assert.ok(host, 'the active tab should have an exception-list hostname');
+  assert.ok(ex.includes(host), `exceptions ${JSON.stringify(ex)} should contain ${host}`);
+});
+
+Then('the ad-block exceptions do not contain the active site', async function () {
+  const [ex, host] = [await this.call('exceptions'), await this.call('activeHostname')];
+  assert.ok(host, 'the active tab should have an exception-list hostname');
+  assert.ok(!ex.includes(host), `exceptions ${JSON.stringify(ex)} should not contain ${host}`);
+});
+
+Then('the pill shows that ads are allowed here', async function () {
+  const shield = await waitForValue(
+    () => this.call('pillShieldState'),
+    (s) => s && !s.hidden && s.off,
+    'the pill shield to show the allow-listed state',
+  );
+  assert.match(shield.title, /allowed on this site/i);
+});
+
+Then('the pill no longer shows that ads are allowed here', async function () {
+  await waitForValue(
+    () => this.call('pillShieldState'),
+    (s) => s && !s.off,
+    'the pill shield to drop the allow-listed state',
+  );
 });
 
 Then('browser chrome remains on its trusted local document', async function () {

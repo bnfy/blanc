@@ -9,6 +9,7 @@ const {
   setAdBlockEnabled,
   onRequestBlocked,
 } = require('./adblock');
+const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -928,18 +929,33 @@ function pasteAndGo(id, rawText) {
   hideOverlay();
 }
 
+/** Is this URL's site on the ad-block exception list? Read live so a change
+ *  from either Settings or a slash command shows up on the next broadcast. */
+function isHostnameExcepted(url) {
+  const hostname = blockableHostname(url);
+  return !!hostname && settings.getSettings().adblockExceptions.includes(hostname);
+}
+
 function serializeTabs() {
   return tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
     .map(({ view, ...rest }) => {
-      // A page-favicon URL belongs to the tab's browsing session. Sending a
-      // private tab's remote URL into persistent chrome would make the chrome
-      // session fetch it again merely to paint the pill/overlay/rail, escaping
-      // the non-persistent private-session boundary. Private rows deliberately
-      // use the renderer's neutral fallback instead.
-      if (rest.private && rest.favicon) return { ...rest, favicon: null };
-      return rest;
+      // Whether ads are allow-listed here. Derived rather than stored: the
+      // exception list is edited from Settings and the slash commands alike,
+      // and without this the chrome shows NOTHING on an excepted site (the
+      // shield hides at a 0 count), so "/allow-ads" left no visible trace and
+      // "/block-ads" appeared to do nothing when it lifted the exception.
+      const excepted = isHostnameExcepted(rest.url);
+      if (rest.private && rest.favicon) {
+        // A page-favicon URL belongs to the tab's browsing session. Sending a
+        // private tab's remote URL into persistent chrome would make the chrome
+        // session fetch it again merely to paint the pill/overlay/rail, escaping
+        // the non-persistent private-session boundary. Private rows deliberately
+        // use the renderer's neutral fallback instead.
+        return { ...rest, favicon: null, excepted };
+      }
+      return { ...rest, excepted };
     });
 }
 
@@ -2142,6 +2158,94 @@ function chromeOn(channel, handler) {
   });
 }
 
+// The two ad-block slash commands live here rather than inline in their IPC
+// handlers so the acceptance harness can drive the REAL implementation through
+// test-hook.js. A mirrored copy in the hook would leave the shipping handler
+// untested — reverting it to a bare global toggle (the bug users hit) kept the
+// whole suite green until these were extracted.
+
+/**
+ * The site the user is acting on. The tab model's url is main's own source of
+ * truth — it is what the pill shows as the domain, and it is set synchronously
+ * rather than lagging until the navigation commits the way webContents.getURL()
+ * does. Both agree once a page has settled; using the model means the exception
+ * these commands write is for the site the user was actually looking at, even
+ * if they fire mid-load.
+ */
+function activeSiteHostname(tab) {
+  if (!tab) return null;
+  const fromModel = blockableHostname(tab.url);
+  if (fromModel) return fromModel;
+  try {
+    return blockableHostname(tab.view.webContents.getURL());
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Reload a tab AFTER the settings write's fan-out, never inside it.
+ *
+ * settings.setSettings() runs onSettingsChanged synchronously: it re-wires the
+ * session's ad-block handlers, reapplies theme/icon/layout, and walks every
+ * tab's webContents for the WebRTC policy. Calling reload() on a webContents in
+ * that same turn kills the main process outright — EXC_BREAKPOINT on
+ * CrBrowserMain, reproducible on roughly a third of attempts. Neither half does
+ * it alone: settings writes with no reload survive, and reloading the same view
+ * with no settings write survives; only the two in one turn crash. Deferring by
+ * a turn lets the fan-out settle first, and costs nothing the user can see —
+ * both callers already reload asynchronously from the renderer's point of view.
+ */
+function reloadTabAfterSettingsFanout(tab) {
+  const view = tab?.view;
+  if (!view) return;
+  setImmediate(() => {
+    if (!view.webContents.isDestroyed()) view.webContents.reload();
+  });
+}
+
+/**
+ * "/block-ads" — see resolveBlockAdsCommand: on a site "/allow-ads" excepted
+ * this re-blocks that site, everywhere else it toggles blocking globally.
+ * Either way the active tab reloads, since neither change reaches requests
+ * already made or markup already rendered — without it the command looks inert
+ * until the user reloads by hand.
+ */
+function runBlockAdsCommand() {
+  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const current = settings.getSettings();
+  const result = resolveBlockAdsCommand({
+    hostname: activeSiteHostname(tab),
+    exceptions: current.adblockExceptions,
+    enabled: current.adblockEnabled,
+  });
+  settings.setSettings(
+    result.action === 'unexcept'
+      ? { adblockEnabled: result.enabled, adblockExceptions: result.exceptions }
+      : { adblockEnabled: result.enabled }
+  );
+  reloadTabAfterSettingsFanout(tab);
+  return result;
+}
+
+/**
+ * "/allow-ads" — allow ads on the active tab's site, then reload it so the
+ * exception actually takes effect on what's shown. The hostname is normalized
+ * the same way the request path matches it, so the exception this writes is the
+ * one isExcepted will find (and internal pages, which have no ads to allow, are
+ * skipped rather than filed by scheme).
+ */
+function runAllowAdsCommand() {
+  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  if (!tab) return null;
+  const hostname = activeSiteHostname(tab);
+  if (!hostname) return null;
+  const { adblockExceptions } = settings.getSettings();
+  settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
+  reloadTabAfterSettingsFanout(tab);
+  return hostname;
+}
+
 function registerIpcHandlers() {
   chromeHandle('tabs:create', (_e, url, opts) => {
     const isPrivate = !!opts?.private;
@@ -2328,27 +2432,8 @@ function registerIpcHandlers() {
     }
   });
   chromeHandle('chrome:history-clear', () => history.clearHistory());
-  chromeHandle('chrome:adblock-toggle', () => {
-    const next = !settings.getSettings().adblockEnabled;
-    settings.setSettings({ adblockEnabled: next });
-    return next;
-  });
-  // "/allow-ads" — allow ads on the active tab's site, then reload it so
-  // the exception actually takes effect on what's shown.
-  chromeHandle('chrome:adblock-exempt-active', () => {
-    const tab = activeTabId ? tabs.get(activeTabId) : null;
-    if (!tab) return null;
-    try {
-      const hostname = new URL(tab.url).hostname.replace(/^www\./, '');
-      if (!hostname) return null;
-      const { adblockExceptions } = settings.getSettings();
-      settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
-      tab.view.webContents.reload();
-      return hostname;
-    } catch {
-      return null;
-    }
-  });
+  chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
+  chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
     const current = settings.getSettings().theme;
@@ -2511,7 +2596,7 @@ const SLASH_COMMANDS = [
   ['/ungroup', 'Take this tab out of its group'],
   ['/close-group', 'Close every tab in this group'],
   ['/find', 'Find in page'],
-  ['/block-ads', 'Toggle ad & tracker blocking'],
+  ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
 ];
@@ -2979,6 +3064,7 @@ app.whenReady().then(async () => {
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),

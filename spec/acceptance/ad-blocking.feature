@@ -28,3 +28,25 @@ Feature: Ad and tracker blocking
     Then ad/tracker blocking is disabled
     When I run the slash command "/block-ads"
     Then ad/tracker blocking is enabled
+
+  # A per-site exception outranks the global switch, so "/block-ads" has to
+  # lift the exception to mean anything on a site the user allowed — as a bare
+  # global toggle it reads as broken there while unblocking every other site.
+  @F12-4 @F12 @all @D2
+  Scenario: Blocking ads again on an allowed site lifts its exception
+    Given the active tab is on "ads.example"
+    When I run the slash command "/allow-ads"
+    Then the ad-block exceptions contain the active site
+    When I run the slash command "/block-ads"
+    Then the ad-block exceptions do not contain the active site
+    And ad/tracker blocking is enabled
+
+  # Without this the allow-listed state is invisible: the shield hides at a 0
+  # count, so an allowed site looks exactly like a site with nothing to block.
+  @F12-5 @F12 @all
+  Scenario: The chrome shows when ads are allowed on the current site
+    Given the active tab is on "ads.example"
+    When I run the slash command "/allow-ads"
+    Then the pill shows that ads are allowed here
+    When I run the slash command "/block-ads"
+    Then the pill no longer shows that ads are allowed here

@@ -18,7 +18,7 @@ const SLASH_COMMANDS = [
   ['/ungroup', 'Take this tab out of its group'],
   ['/close-group', 'Close every tab in this group'],
   ['/find', 'Find in page'],
-  ['/block-ads', 'Toggle ad & tracker blocking'],
+  ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
 ];

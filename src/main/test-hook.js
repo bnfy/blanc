@@ -13,6 +13,7 @@ const history = require('./history');
 const bookmarks = require('./bookmarks');
 const { Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
+const { blockableHostname } = require('./adblock-exceptions');
 const {
   runAddressMenuItem,
   readAddressFieldText,
@@ -29,6 +30,8 @@ function install(refs) {
     getTabOrder,
     getGroups,
     getActiveTabId,
+    runBlockAdsCommand,
+    runAllowAdsCommand,
     clusterSlots,
     createTab,
     setActiveTab,
@@ -225,7 +228,10 @@ function install(refs) {
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
-    toggleAdblock() { settings.setSettings({ adblockEnabled: !settings.getSettings().adblockEnabled }); },
+    // The REAL handler body from main.js, not a copy of it — a mirror here
+    // would keep the suite green even with the shipping handler reverted to
+    // the bare global toggle this whole change exists to fix.
+    toggleAdblock() { return runBlockAdsCommand(); },
     adblockEnabled() { return settings.getSettings().adblockEnabled; },
     setSearchEngine(x) { settings.setSettings({ searchEngine: x }); },
     searchEngine() { return settings.getSettings().searchEngine; },
@@ -273,6 +279,29 @@ function install(refs) {
       settings.setSettings({ adblockExceptions: [...cur, h] });
     },
     exceptions() { return settings.getSettings().adblockExceptions; },
+    // The exception-list hostname of the active tab — lets a scenario talk
+    // about "the active site" instead of hardcoding the fixture server's host.
+    activeHostname() {
+      const tab = tabs.get(getActiveTabId());
+      return tab ? blockableHostname(urlOf(tab)) : null;
+    },
+    allowAdsOnActive() { return runAllowAdsCommand(); },
+    // The REAL pill element, so the allow-listed indicator is covered end to
+    // end (serializeTabs -> tabs:updated -> renderer) rather than at the model
+    // — the state being invisible in the chrome is the whole point of it.
+    pillShieldState() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const el = document.getElementById('pillShield');
+        if (!el) return null;
+        return {
+          hidden: !!el.hidden,
+          off: el.classList.contains('shield-off'),
+          title: el.title,
+        };
+      })()`);
+    },
     setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
 
     // ---- address-bar context menu (F19-2/F19-3) ----

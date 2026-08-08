@@ -198,7 +198,11 @@ copy → substrate):
 - **On by default.** Blocks ad/tracker **requests** and applies cosmetic hiding of
   leftover ad elements. Per-tab **shield count** of blocked requests (coalesced,
   ~10 updates/s). **Per-site allow** (`/allow-ads`, exceptions list) and a **global
-  toggle** (`/block-ads`, Settings).
+  toggle** (`/block-ads`, Settings). An exception outranks the global switch, so
+  `/block-ads` **on an allowed site lifts that site's exception** (the inverse of
+  `/allow-ads`) rather than flipping the global switch it cannot make visible
+  there; anywhere else it toggles globally. Either way the page reloads, since
+  neither change reaches requests already made or markup already rendered.
 - **Filter data is shared** across platforms (EasyList + EasyPrivacy), compiled
   once → per-platform formats (→ substrate).
 - **Engine diverges** (D1): desktop = `webRequest` interception (Ghostery); Android
@@ -207,12 +211,14 @@ copy → substrate):
   exception mechanism** also diverges (D2): live predicate on desktop/Android vs.
   recompile/attach on iOS.
 - **Contract that must hold everywhere:** blocking is on by default; the shield
-  shows a per-tab blocked count; a site can be allow-listed and the toggle works;
-  the *set of trackers blocked* is as close as each engine's format allows, from
-  the same source lists.
+  shows a per-tab blocked count; a site can be allow-listed **and returned to
+  blocked from the same surface that allowed it**; the toggle works; the *set of
+  trackers blocked* is as close as each engine's format allows, from the same
+  source lists.
 - **Acceptance:** Loading a page with known trackers increments the shield count;
   `/allow-ads` on that site drops the count to 0 for it and persists; `/block-ads`
-  toggles blocking globally.
+  toggles blocking globally on a site with no exception, and on an allowed site
+  lifts that exception instead.
 
 ## F13 — Permissions
 
