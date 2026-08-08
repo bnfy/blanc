@@ -53,7 +53,23 @@ Current module globals in `main.js`:
 | `utilitySheetView`, `utilitySheetUrl` | Utility sheet. |
 | `tabsWantingAddressBarFocus` | Address-bar focus reclaim set. |
 | `chromeHeight` | Strip geometry. |
+| `tabsBroadcastTimer` | The coalesced `tabs:updated` debounce. **Per-runtime**, or under M2 one window's pending broadcast would suppress another's. |
+| `themeTintRefreshGeneration` | Tint refresh generation counter for the strip. |
+| `lastActiveByCluster` | Per-cluster last-active tab memory (⌘1–9 focus behavior). Workspace state, so per-runtime. |
+| Permission-prompt state | Prompt ownership follows the **sender's runtime**: responses route back to the runtime that raised them, and `flushPermissionPrompts()` (today part of the `'closed'` handler) flushes **only the closing runtime's** prompts — closing one window must not flush another's. |
+| `onePasswordFillInFlight` | Per-runtime: the fill flow's focus/dialog referent is the owning window (see 1Password note below). |
+| `railActivationSerial` | Vertical-tabs rail activation counter — per-window UI state. |
 | Suppression/interaction flags tied to the window (address-menu popup state, blur-dismissal suppression) | Enumerated precisely during planning; anything consulted by an overlay/window event handler is per-window by definition. |
+
+**Deliberately global, decided not deferred:** `recentlyClosedUrls` stays
+app-global in M1 — reopen-closed-tab remains one app-wide stack, exactly
+today's behavior. Making it per-workspace is the deferred "closed-tab
+recovery" roadmap item, and pre-scoping it here would change reopen order,
+which M1 must not.
+
+The inventory above is the enumerated contract; the plan may *add* newly
+discovered per-window flags during implementation but may not recategorize
+anything listed here without a spec amendment.
 
 **1Password fill:** its window references — the `win.isFocused()` revalidation
 and `dialog.showMessageBox(win, …)` parenting — become reads of the runtime
@@ -86,9 +102,32 @@ No Electron imports; plain data plus functions:
   the ownership index.
 - `runtimeForChromeWebContentsId(id)` — resolves the runtime owning a chrome
   (strip or overlay) `webContents`, for IPC routing.
+- `detachWindow(runtime)` / `attachWindow(runtime, { window, chromeWcId })` —
+  the window-close lifecycle (below).
 - Registry enumeration for M2 (`all()`), trivially [runtime] in M1.
 
-The reference's registry unit tests port with renames only.
+**Detach / reattach lifecycle.** Today's macOS close path destroys the
+`BrowserWindow`, overlay, and utility sheet but deliberately retains tabs,
+selection, and groups for dock reopen (`main.js` `'closed'` handler +
+`did-finish-load` reattach, `:3136-3147`). The runtime maps onto that
+contract explicitly:
+
+- On window close, **the primary runtime survives** with `runtime.window =
+  null`, its overlay/sheet fields nulled, and — critically — its registered
+  chrome `webContents` ids **unregistered**, so a late IPC message from the
+  dying chrome resolves to no runtime (ignored) rather than to a runtime
+  whose window is gone. The workspace fields (tabOrder, activeTabId, groups)
+  stay untouched, exactly as today's globals do.
+- On dock-reopen, `attachWindow` binds the replacement `BrowserWindow` and
+  registers the new chrome ids; the existing `did-finish-load` reattach then
+  runs inside the runtime's binding.
+- The registry's unit suite includes a **detach → reattach fixture**: after
+  the cycle, workspace state is intact, the old chrome id resolves to
+  nothing, and the new one resolves to the runtime.
+
+The reference's registry unit tests port with renames; the lifecycle fixture
+is new (the reference modeled discard-on-close for secondary windows but
+never fixture-tested the macOS detach → reattach of the primary).
 
 ### ALS binding in `main.js`
 
@@ -101,11 +140,25 @@ The reference's registry unit tests port with renames only.
 - `currentRuntime()` resolves ALS context first.
 
 **Fallback contract:** outside any context, `currentRuntime()` returns the
-single runtime in production — and **throws under `BLANC_TEST`**. Every
-unbound callback therefore fails loudly in the acceptance suite during M1's
-soak instead of surfacing as misrouted state in M2. This is the cheapest
-insurance the refactor can buy, and it is the reason M1's suite-green gate is
-meaningful evidence rather than a formality.
+single runtime in production — and **throws under `acceptanceTestMode`**
+(`!app.isPackaged && BLANC_TEST === '1'`, `main.js:73`), *not* under the raw
+environment variable: the packaged first-run smoke launches a **packaged**
+build with `BLANC_TEST: '1'` for its adblock-failure paths
+(`packaged-first-run-smoke.mjs:117/:154`), where strict mode must never arm.
+
+**Legitimate root bindings.** Not every entry point arrives via a bound event
+listener. The following are sanctioned roots that must establish the binding
+themselves (each wraps its work in `bindWindowRuntime(theRuntime, …)`):
+startup/session restore, native menu `click` handlers, test-hook invocations
+(Playwright calls `globalThis.__blanc` from outside any ALS context), settings
+fan-out callbacks, adblock engine callbacks, sync/tabsync timers, and the
+permission-prompt flow. The plan enumerates each root individually.
+
+With those roots bound, the strict throw's honest claim is: **every runtime-
+dependent unbound path that the suite executes fails loudly** during M1's
+soak, instead of surfacing as misrouted state in M2. It is an executed-path
+detector, not a static proof — paths the suite never drives are not covered,
+which is one more reason M1 ships early and soaks.
 
 ### IPC routing
 
@@ -126,10 +179,29 @@ Versioned workspace persistence for `session.json`:
   and restores the focused window's tabs. The mirror is a transition measure,
   dropped in 1.2 once 1.1 is the update floor; the spec for whichever release
   drops it must say so in its notes.
-- **Loading:** a `version`-less file (v0, what every install has today) loads
-  as one window; v1 loads `windows[0]` in M1. Unknown future versions load as
-  v0-from-mirror if the mirror parses, else empty — never a crash.
+- **Loading, with rollback → re-upgrade precedence:** a `version`-less file
+  (v0, what every install has today) loads as one window. For a v1 file the
+  loader must decide **which writer wrote last** — and the legacy writer wins
+  on divergence. Mechanism, verified against 1.0.9's actual code:
+  `JsonStore.update(fn)` mutates the stored object in place and persists it
+  whole, so a rolled-back 1.0.9 rewrites the flat fields while *preserving*
+  the unknown `version`/`windows` keys. After
+  `1.1 → rollback → tabs changed under 1.0.9 → reinstall 1.1`, the nested
+  `windows` entry is stale and the mirror is current. Therefore: if the
+  mirror and `windows[focused]` diverge, **rebuild v1 from the mirror** and
+  discard the nested entry; if they agree, load `windows[0]`. Divergence is
+  compared over the persisted fields (`urls`, `activeIndex`, `groups`,
+  `groupIds`, `pinned`), order-sensitive.
+- **Unknown future versions are read-only:** a `version` greater than 1 loads
+  best-effort from the mirror (else empty) and **suppresses session
+  persistence for the whole run**, so a 1.1 build never overwrites a newer
+  format it cannot faithfully rewrite. Never a crash.
 - Private tabs stay out of both shapes, exactly as today.
+- **Persistence guards carry over verbatim, as tested behavior:** no save
+  while quitting, while persistence is suspended, or with zero tabs; and
+  `activeIndex` is only updated when the active tab is actually in the
+  persisted list — a private or url-less active tab keeps the last good
+  index (1.0.9's `persistSession` guards, `main.js:1045`/`:1065`).
 
 Pure functions over plain objects; fixture-tested, including a fixture
 asserting the mirror is **shape-identical to what 1.0.9 writes** (locked
@@ -147,17 +219,23 @@ M1 at all.
 
 Two failure classes, both defined above where they arise: unresolvable IPC
 senders (ignore + dev log) and missing ALS context (single-runtime fallback in
-production, throw under `BLANC_TEST`). There are no new user-facing error
+production, throw under `acceptanceTestMode`). There are no new user-facing error
 states — that is the point of the milestone.
 
 ## Testing
 
 - **Unit:** the ported registry suite; the session-workspace suite (v0 load,
   v1 round-trip, mirror correctness, private-tab exclusion, unknown-version
-  handling); the 1.0.9-shape fixture test for the mirror.
+  handling); the 1.0.9-shape fixture test for the mirror; **two transition
+  fixtures** — (a) rollback → re-upgrade: a v1 file whose flat fields were
+  rewritten by the legacy writer loads from the mirror, discarding the stale
+  nested workspace; (b) newer-version file: loads read-only from its mirror
+  and no save is issued for the whole run. Plus a registry detach → reattach
+  fixture (below).
 - **Acceptance:** the existing 64 scenarios, unchanged, green — run live, not
-  just dry. Under `BLANC_TEST` the strict-ALS throw is active for the whole
-  run, so the suite doubles as an unbound-callback detector.
+  just dry. Under `acceptanceTestMode` the strict-ALS throw is active for the
+  whole run, so the suite doubles as a detector for every runtime-dependent
+  unbound path it executes.
 - **Test hook:** any addition is read-only (e.g. a `windowRuntimes()`
   inspector) and consumed by nothing until M2. Deliberately **no** new
   dependency in the shared `Before` hook — the coupling that made the
