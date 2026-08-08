@@ -56,7 +56,7 @@ Current module globals in `main.js`:
 | `tabsBroadcastTimer` | The coalesced `tabs:updated` debounce. **Per-runtime**, or under M2 one window's pending broadcast would suppress another's. |
 | `themeTintRefreshGeneration` | Tint refresh generation counter for the strip. |
 | `lastActiveByCluster` | Per-cluster last-active tab memory (⌘1–9 focus behavior). Workspace state, so per-runtime. |
-| Permission-prompt state | Prompt ownership follows the **sender's runtime**: responses route back to the runtime that raised them, and `flushPermissionPrompts()` (today part of the `'closed'` handler) flushes **only the closing runtime's** prompts — closing one window must not flush another's. |
+| Permission-prompt state | Ownership is assigned from the **requesting tab's `webContents`** at prompt creation; a response is accepted only when `event.sender` resolves to that same runtime. `flushPermissionPrompts()` (today part of the `'closed'` handler) flushes **only the closing runtime's** prompts — closing one window must not flush another's. |
 | `onePasswordFillInFlight` | Per-runtime: the fill flow's focus/dialog referent is the owning window (see 1Password note below). |
 | `railActivationSerial` | Vertical-tabs rail activation counter — per-window UI state. |
 | Suppression/interaction flags tied to the window (address-menu popup state, blur-dismissal suppression) | Enumerated precisely during planning; anything consulted by an overlay/window event handler is per-window by definition. |
@@ -102,8 +102,15 @@ No Electron imports; plain data plus functions:
   the ownership index.
 - `runtimeForChromeWebContentsId(id)` — resolves the runtime owning a chrome
   (strip or overlay) `webContents`, for IPC routing.
-- `detachWindow(runtime)` / `attachWindow(runtime, { window, chromeWcId })` —
-  the window-close lifecycle (below).
+- `registerChromeSurface(runtime, wcId)` / `unregisterChromeSurface(wcId)` —
+  explicit per-surface registration. A runtime has TWO chrome surfaces that
+  route IPC — the strip and the overlay — and their lifecycles differ: the
+  strip lives as long as the window, while the overlay view is created lazily
+  and can be destroyed and recreated. Each creation registers; each
+  destruction unregisters. `attachWindow(runtime, { window })` binds the
+  replacement window only; surfaces register themselves as they come up.
+- `detachWindow(runtime)` — the window-close lifecycle (below); unregisters
+  every surface the runtime still holds.
 - Registry enumeration for M2 (`all()`), trivially [runtime] in M1.
 
 **Detach / reattach lifecycle.** Today's macOS close path destroys the
@@ -114,13 +121,14 @@ contract explicitly:
 
 - On window close, **the primary runtime survives** with `runtime.window =
   null`, its overlay/sheet fields nulled, and — critically — its registered
-  chrome `webContents` ids **unregistered**, so a late IPC message from the
+  chrome surface ids — strip AND overlay — **unregistered**, so a late IPC message from the
   dying chrome resolves to no runtime (ignored) rather than to a runtime
   whose window is gone. The workspace fields (tabOrder, activeTabId, groups)
   stay untouched, exactly as today's globals do.
-- On dock-reopen, `attachWindow` binds the replacement `BrowserWindow` and
-  registers the new chrome ids; the existing `did-finish-load` reattach then
-  runs inside the runtime's binding.
+- On dock-reopen, `attachWindow` binds the replacement `BrowserWindow`; the
+  new strip and (lazily) overlay register their surfaces as they are created,
+  and the existing `did-finish-load` reattach runs inside the runtime's
+  binding.
 - The registry's unit suite includes a **detach → reattach fixture**: after
   the cycle, workspace state is intact, the old chrome id resolves to
   nothing, and the new one resolves to the runtime.
