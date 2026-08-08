@@ -74,20 +74,20 @@ function countPhrase(blocked) {
 function shieldChipState({ url, blockedCount, excepted, adblockEnabled }) {
   if (!blockableHostname(url)) return { mode: 'hidden', count: 0, title: '' };
   if (excepted) {
-    return { mode: 'off', count: 0, title: 'Ads allowed on this site — click for site controls' };
+    return { mode: 'off', count: 0, title: 'Blanc Blocker off for this site — click for site controls' };
   }
   if (!adblockEnabled) {
-    return { mode: 'off', count: 0, title: 'Ad blocking is off — click for details' };
+    return { mode: 'off', count: 0, title: 'Blanc Blocker is off everywhere — click for details' };
   }
   const blocked = blockedCount ?? 0;
   if (blocked > 0) {
     return {
       mode: 'count',
       count: blocked,
-      title: `Blanc blocked ${countPhrase(blocked)} on this page — click for site controls`,
+      title: `Blanc Blocker — ${countPhrase(blocked)} blocked here — click for site controls`,
     };
   }
-  return { mode: 'quiet', count: 0, title: 'Protected — click for site controls' };
+  return { mode: 'quiet', count: 0, title: 'Blanc Blocker — protected, nothing blocked yet — click for site controls' };
 }
 
 // `connection` arrives already derived (main.js does it once per broadcast) and

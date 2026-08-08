@@ -18,9 +18,11 @@ toolbar (Bowser Design System "Island Chrome").
 - **Resting pill** shows, left→right: back/forward (desktop; mobile uses edge-swipe
   gestures per D7), the *active group's* tab dots (capped at 8, with a quiet `+N`
   that opens the panel; on a pointer platform, hovering/focusing a dot reveals
-  that tab's favicon so it can be identified before switching), favicon, the
-  active group's name, domain, shield count (F12), a private chip when private
-  (F4), and a trailing action cluster (reload / favorite / downloads). In
+  that tab's favicon so it can be identified before switching), favicon,
+  domain, shield count (F12), a private chip when private (F4), and a trailing
+  action cluster (reload / favorite / close tab / downloads). The resting pill
+  carries **no group name** — group identity is conveyed by the dots (which
+  render the active group only) and named in full in the panel (F3). In
   desktop vertical mode (F28/D19), the rail becomes the persistent tab
   presentation and the resting pill omits only its redundant tab dots.
 - **Expanded states** (one at a time): `panel` (command bar expanded in place),
@@ -34,9 +36,9 @@ toolbar (Bowser Design System "Island Chrome").
   windowing is D11, the input affordances are D7.
 - **Acceptance:** With 3 tabs in a group named `work` and 2 trackers blocked on the
   active page, the pill shows the platform back/forward affordance (buttons on
-  desktop, edge-swipe gesture on mobile per D7), 3 dots, `work`, the domain, a
-  shield count of 2, and the action cluster. Summoning the palette floats the
-  command bar with the tab switcher listed.
+  desktop, edge-swipe gesture on mobile per D7), 3 dots, the domain, a shield
+  count of 2, and the action cluster — and not the name `work`. Summoning the
+  palette floats the command bar with the tab switcher listed.
 
 ## F2 — Tabs
 

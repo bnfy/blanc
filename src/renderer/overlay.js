@@ -111,7 +111,7 @@
     stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
-    mute: '<svg viewBox="0 0 16 16"><path d="M2 6h3l4-3.5v11L5 10H2z"/><path d="M11 5.5l3 5M14 5.5l-3 5"/></svg>',
+    mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
@@ -256,11 +256,7 @@
     title.textContent = tab.isLoading ? 'Loading…' : tab.title || 'New Tab';
     if (tab.title) title.title = tab.title;
 
-    const sub = document.createElement('span');
-    sub.className = 'row-sub';
-    sub.textContent = tabDomain(tab);
-
-    row.append(faviconWrap, title, sub);
+    row.append(faviconWrap, title);
 
     if (tab.private) {
       const tag = document.createElement('span');
@@ -405,7 +401,7 @@
   function groupHeaderRow(group, count, clusterIndex) {
     const row = document.createElement('div');
     row.className = 'island-ghead';
-    row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-rule"></span><span class="ghead-n">${modKey}${clusterIndex + 1}</span>`;
+    row.innerHTML = `${CARET}<span class="ghead-name"></span><span class="ghead-n"></span><span class="ghead-rule"></span><span class="ghead-kbd">${modKey}${clusterIndex + 1}</span>`;
     row.querySelector('.caret').classList.toggle('open', !group.collapsed);
     row.querySelector('.ghead-name').textContent = group.name;
     row.querySelectorAll('.ghead-n')[0].textContent = String(count);
@@ -496,10 +492,7 @@
     title.className = 'row-title';
     title.textContent = tab.title || tab.url;
     if (tab.title) title.title = tab.title;
-    const sub = document.createElement('span');
-    sub.className = 'row-sub';
-    sub.textContent = hostOfUrl(tab.url);
-    row.append(favicon, title, sub);
+    row.append(favicon, title);
     if (tab.pinned) {
       const pin = document.createElement('span');
       pin.className = 'row-remote-pin';

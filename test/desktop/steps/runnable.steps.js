@@ -271,7 +271,7 @@ Then('the pill shows that ads are allowed here', async function () {
     (s) => s && !s.hidden && s.off,
     'the pill shield to show the allow-listed state',
   );
-  assert.match(shield.title, /allowed on this site/i);
+  assert.match(shield.title, /Blanc Blocker off for this site/i);
 });
 
 Then('the pill no longer shows that ads are allowed here', async function () {

@@ -30,6 +30,7 @@
 
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --radius: 6px;
   /* File, not data: URI — the pages' CSP has no img-src data: allowance,
      and CSS can't recolor a background image, hence one SVG per theme. */
@@ -683,6 +684,10 @@ a.ledger-label:hover { color: var(--accent); }
   user-select: none;
 }
 .ledger-version { opacity: 0.6; font-size: 11px; }
+/* Renders "⌘L to go anywhere" and would otherwise inherit .ledger-footer's
+   mono face, which draws ⌘ malformed. Scoped to the element so the rest of
+   the footer line stays mono. */
+#goAnywhere { font-family: var(--font-kbd); }
 
 @media (max-width: 720px) {
   .ledger-body { padding: 90px 48px 40px; }
@@ -750,7 +755,7 @@ a.ledger-label:hover { color: var(--accent); }
 }
 
 .shortcut-row kbd {
-  font-family: var(--font-mono);
+  font-family: var(--font-kbd);
   font-size: 12px;
   color: var(--text);
   background: var(--surface);

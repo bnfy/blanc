@@ -14,7 +14,6 @@
   const pillDots = document.getElementById('pillDots');
   const pillNav = document.getElementById('pillNav');
   const pillActions = document.getElementById('pillActions');
-  const pillGroupName = document.getElementById('pillGroupName');
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
   const pillShield = document.getElementById('pillShield');
@@ -51,13 +50,20 @@
     maximize: '<svg viewBox="0 0 16 16"><rect x="3.5" y="3.5" width="9" height="9" rx="1"/></svg>',
   };
 
+  // Shared by the downloads button's own glyph and its submerged copy in the
+  // cistern, which must be the same drawing at a different size.
+  const DOWNLOAD_D = 'M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9';
+  const SVG_NS = 'http://www.w3.org/2000/svg';
   const PILL_ICONS = {
     back: '<svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>',
     forward: '<svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>',
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
     stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
     heart: '<svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>',
-    download: '<svg viewBox="0 0 16 16"><path d="M8 2.5v6.5M5.3 6.3 8 9l2.7-2.7M3.5 12.5h9"/></svg>',
+    download: `<svg viewBox="0 0 16 16"><path d="${DOWNLOAD_D}"/></svg>`,
+    // Same cut as the panel row's close (overlay.js ICONS.close) — both mean
+    // "close tab". Deliberately tighter than `stop`, which means stop loading.
+    close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
   };
 
   /** A quiet icon button for the pill. stopPropagation keeps a click on the
@@ -89,7 +95,11 @@
     else window.browserAPI.reload(t.id);
   });
   const favoriteBtn = pillButton('heart', 'Favorite this page', () => window.browserAPI.toggleBookmark());
-  pillActions.append(reloadBtn, favoriteBtn);
+  const closeBtn = pillButton('close', 'Close tab', () => {
+    if (state.activeTabId) window.browserAPI.closeTab(state.activeTabId);
+  });
+  closeBtn.classList.add('pill-close');
+  pillActions.append(reloadBtn, favoriteBtn, closeBtn);
 
   let downloadState = { active: 0, hasRecent: false, receivedBytes: 0, totalBytes: 0 };
   const downloadsBtn = pillButton('download', 'Downloads', () => {
@@ -99,6 +109,45 @@
   downloadsBtn.classList.add('pill-download');
   downloadsBtn.hidden = true;
   pillActions.append(downloadsBtn);
+
+  // The cistern: while a download is in flight the button fills like a vessel,
+  // its surface a pair of drifting waves, and the glyph goes under as the level
+  // rises. Built with DOM methods rather than innerHTML — the markup is static,
+  // so there's no injection today, but this document holds browserAPI and an
+  // HTML sink in it isn't worth three lines of convenience.
+  const svgEl = (tag, attrs) => {
+    const el = document.createElementNS(SVG_NS, tag);
+    for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+    return el;
+  };
+  const span = (cls) => {
+    const el = document.createElement('span');
+    el.className = cls;
+    return el;
+  };
+  // A 6-period sine on a 240×20 box, midline y=10, closed below into a slab so
+  // the crest reads as the fluid's surface rather than a floating line.
+  const WAVE_D = 'M0 10 Q 10 0 20 10 T 40 10 T 60 10 T 80 10 T 100 10 T 120 10 T 140 10 T 160 10 T 180 10 T 200 10 T 220 10 T 240 10 V 21 H 0 Z';
+  const wave = (cls) => {
+    const svg = svgEl('svg', {
+      class: `dl-wave ${cls}`,
+      viewBox: '0 0 240 20',
+      preserveAspectRatio: 'none',
+      'aria-hidden': 'true',
+    });
+    svg.append(svgEl('path', { d: WAVE_D }));
+    return svg;
+  };
+
+  const fluid = span('dl-fluid');
+  fluid.append(wave('w1'), wave('w2'));
+  const vessel = span('dl-vessel');
+  vessel.append(fluid);
+  const under = span('dl-under');
+  const underGlyph = svgEl('svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true' });
+  underGlyph.append(svgEl('path', { d: DOWNLOAD_D }));
+  under.append(underGlyph);
+  downloadsBtn.append(span('dl-glass'), vessel, under);
 
   function renderDownloads() {
     const { active, hasRecent, receivedBytes, totalBytes } = downloadState;
@@ -353,6 +402,11 @@
       reloadBtn.innerHTML = PILL_ICONS[reloadMode];
       reloadBtn.title = reloadMode === 'stop' ? 'Stop' : 'Reload';
     }
+    // Nothing to close with no tabs. This has to ride the tab render pass:
+    // renderDownloads() only runs on download broadcasts, so a session with
+    // no downloads would never re-evaluate it.
+    closeBtn.hidden = !state.tabs.length;
+
     // Favorites only apply to real web pages (blanc:// and private tabs are
     // no-ops in main), so mirror the overlay and disable the heart otherwise.
     const favoritable = /^https?:\/\//.test(tab?.url || '');
@@ -368,10 +422,6 @@
       lastDotsSig = dotsSig;
       pillDots.replaceChildren(...activeGroupDots());
     }
-
-    const activeGroup = state.groups.find((g) => g.id === tab?.groupId) || null;
-    pillGroupName.hidden = !activeGroup;
-    pillGroupName.textContent = activeGroup ? `${activeGroup.name} ·` : '';
 
     setFavicon(pillFavicon, tab);
     pillDomain.textContent = tab?.isLoading
