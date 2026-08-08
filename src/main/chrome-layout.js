@@ -14,6 +14,14 @@ const FIND_OVERLAY_HEIGHT = 160;
 const FIND_CAPSULE_WIDTH = 480;
 const FIND_CAPSULE_HORIZONTAL_GUTTER = 24;
 
+// Shield popover (design: 2026-08-07-shield-popover-design.md). Fixed-size
+// region like the find capsule: slightly taller than the drawn popover, the
+// transparent remainder swallowing clicks is the same accepted trade-off as
+// find's 160px band.
+const SHIELD_POPOVER_WIDTH = 320;
+const SHIELD_POPOVER_HEIGHT = 232;
+const SHIELD_POPOVER_MARGIN = 12;
+
 const TAB_LAYOUTS = new Set(['island', 'vertical']);
 
 function normalizeTabLayout(value) {
@@ -130,6 +138,24 @@ function calculateChromeLayout({
   };
 }
 
+/**
+ * Bounds for the 'shield' overlay mode: below the strip, right edge aligned
+ * to the chip's right edge (window coordinates), clamped inside the window.
+ * @param {{windowWidth: number, stripHeight: number, anchorRight?: number|null}} input
+ */
+function calculateShieldBounds({ windowWidth, stripHeight, anchorRight }) {
+  const winWidth = dimension(windowWidth);
+  const width = Math.min(SHIELD_POPOVER_WIDTH, Math.max(0, winWidth - SHIELD_POPOVER_MARGIN * 2));
+  const right = Number.isFinite(anchorRight)
+    ? Math.round(anchorRight)
+    : Math.round((winWidth + width) / 2);
+  const x = Math.max(
+    SHIELD_POPOVER_MARGIN,
+    Math.min(right - width, winWidth - width - SHIELD_POPOVER_MARGIN)
+  );
+  return { x, y: dimension(stripHeight), width, height: SHIELD_POPOVER_HEIGHT };
+}
+
 module.exports = {
   VERTICAL_TABS_DEFAULT_WIDTH,
   VERTICAL_TABS_MIN_WIDTH,
@@ -139,6 +165,10 @@ module.exports = {
   FIND_OVERLAY_HEIGHT,
   FIND_CAPSULE_WIDTH,
   FIND_CAPSULE_HORIZONTAL_GUTTER,
+  SHIELD_POPOVER_WIDTH,
+  SHIELD_POPOVER_HEIGHT,
+  SHIELD_POPOVER_MARGIN,
+  calculateShieldBounds,
   normalizeTabLayout,
   normalizeVerticalTabsWidth,
   calculateChromeLayout,

@@ -9,6 +9,7 @@ const {
   normalizeTabLayout,
   normalizeVerticalTabsWidth,
   calculateChromeLayout,
+  calculateShieldBounds,
 } = require('../../src/main/chrome-layout');
 
 test('invalid or missing layout values preserve Island as the default', () => {
@@ -129,4 +130,27 @@ test('dimensions clamp safely during transient zero or undersized window bounds'
   assert.deepEqual(layout.pageBounds, { x: 0, y: 40, width: 200, height: 0 });
   assert.deepEqual(layout.findBounds, { x: 0, y: 40, width: 200, height: 0 });
   assert.equal(layout.findCapsuleMaxWidth, 176);
+});
+
+test('shield bounds sit below the strip, right-aligned to the anchor', () => {
+  const b = calculateShieldBounds({ windowWidth: 1280, stripHeight: 64, anchorRight: 900 });
+  assert.deepEqual(b, { x: 580, y: 64, width: 320, height: 232 });
+});
+
+test('shield bounds clamp to the window with a margin on both sides', () => {
+  const left = calculateShieldBounds({ windowWidth: 1280, stripHeight: 64, anchorRight: 100 });
+  assert.equal(left.x, 12);
+  const right = calculateShieldBounds({ windowWidth: 1280, stripHeight: 64, anchorRight: 5000 });
+  assert.equal(right.x, 1280 - 320 - 12);
+});
+
+test('shield bounds shrink on a window narrower than width + margins', () => {
+  const b = calculateShieldBounds({ windowWidth: 300, stripHeight: 64, anchorRight: 200 });
+  assert.equal(b.width, 300 - 24);
+  assert.equal(b.x, 12);
+});
+
+test('shield bounds center under the window without an anchor', () => {
+  const b = calculateShieldBounds({ windowWidth: 1000, stripHeight: 64, anchorRight: null });
+  assert.equal(b.x, Math.round((1000 - 320) / 2));
 });
