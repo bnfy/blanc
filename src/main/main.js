@@ -1127,11 +1127,10 @@ function broadcastDownloadsActivity() {
 
 // The blocked-request counter can tick many times a second during a page
 // load; coalesce those into at most ~10 broadcasts/s.
-let tabsBroadcastTimer = null;
 function scheduleBroadcastTabs() {
-  if (tabsBroadcastTimer) return;
-  tabsBroadcastTimer = setTimeout(() => {
-    tabsBroadcastTimer = null;
+  if (rt().tabsBroadcastTimer) return;
+  rt().tabsBroadcastTimer = setTimeout(() => {
+    rt().tabsBroadcastTimer = null;
     broadcastTabs();
   }, 100);
 }
@@ -1508,7 +1507,6 @@ const TAB_WEB_PREFERENCES = {
 // browser extension. Env-gated; credentials live only in main memory + the
 // verified page, and every outcome logs a result line, never a value.
 const ONE_PASSWORD_SPIKE_ENABLED = !app.isPackaged || process.env.BLANC_1P_SPIKE === '1';
-let onePasswordFillInFlight = false;
 
 async function fillActiveTabFrom1Password() {
   const log = (result, extra) => console.log(`[1p-spike] ${result}${extra ? ' ' + extra : ''}`);
@@ -1535,13 +1533,13 @@ async function fillActiveTabFrom1Password() {
     if (matches.length > 1) {
       // The vault search was async — if the window died meanwhile, don't ask
       // the user to choose a login for a window that no longer exists (the
-      // post-reveal re-validation would abort anyway). Also keeps `win` safe
-      // to pass as the dialog parent (documented overloads only).
+      // post-reveal re-validation would abort anyway). Also keeps `rt().window`
+      // safe to pass as the dialog parent (documented overloads only).
       if (!hasLiveWindow()) return log('abort-window-changed');
       const buttons = matches.map((m) => m.title || '(untitled)');
       const cancelId = buttons.length;
       buttons.push('Cancel');
-      const { response } = await dialog.showMessageBox(win, {
+      const { response } = await dialog.showMessageBox(rt().window, {
         type: 'question',
         title: 'Fill from 1Password',
         message: `Choose a login for ${expectedHost}`,
@@ -1567,7 +1565,7 @@ async function fillActiveTabFrom1Password() {
 
     // Re-validate after the async auth/chooser: same live+focused window, same
     // active tab, live+focused webContents, unchanged epoch, exact same URL.
-    if (!hasLiveWindow() || !win.isFocused()) return log('abort-window-changed');
+    if (!hasLiveWindow() || !rt().window.isFocused()) return log('abort-window-changed');
     if (rt().activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
     if (wc.isDestroyed() || !wc.isFocused()) return log('abort-wc-changed');
     if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
@@ -1729,11 +1727,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
       // Consume the chord BEFORE the single-flight check — a recognized second
       // press must not fall through to the page, it just doesn't start a fill.
       event.preventDefault();
-      if (onePasswordFillInFlight) return; // single-flight
-      onePasswordFillInFlight = true;
+      if (rt().onePasswordFillInFlight) return; // single-flight
+      rt().onePasswordFillInFlight = true;
       fillActiveTabFrom1Password()
         .catch((err) => console.warn('[1p-spike] fill error:', err?.message))
-        .finally(() => { onePasswordFillInFlight = false; });
+        .finally(() => { rt().onePasswordFillInFlight = false; });
     }));
   }
   // WebRTC IP-handling policy applies per-webContents; this is the single choke
