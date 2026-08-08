@@ -98,20 +98,33 @@ test('v1 with populated windows[0] and INVALID mirror → nested wins', () => {
 });
 
 test('v1 where mirror groups have different key order but identical content → treated as agreeing', () => {
-  // Regression: JSON.stringify is key-order-sensitive for objects within arrays
+  // Regression: JSON.stringify is key-order-sensitive for objects within arrays.
+  // This fixture MUST discriminate between deepEqual (which ignores key order) and
+  // JSON.stringify (which does not). Assert Object.keys order of the result to prove
+  // the NESTED entry branch fired (not just that values are equal).
+  const nestedGroups = [{ id: 'g1', name: 'work', collapsed: false }]; // key order: id, name, collapsed
   const nestedEntry = {
     urls: ['https://a.example/'],
     activeIndex: 0,
-    groups: [{ id: 'g1', name: 'work', collapsed: false }], // key order: id, name, collapsed
+    groups: nestedGroups,
     groupIds: ['g1'],
     pinned: [false],
   };
-  const reorderedMirror = {
-    ...nestedEntry,
-    groups: [{ collapsed: false, id: 'g1', name: 'work' }], // key order: collapsed, id, name
+  const reorderedMirrorGroups = [{ collapsed: false, id: 'g1', name: 'work' }]; // key order: collapsed, id, name
+  const file = {
+    version: 1,
+    windows: [nestedEntry],
+    urls: ['https://a.example/'],
+    activeIndex: 0,
+    groups: reorderedMirrorGroups,
+    groupIds: ['g1'],
+    pinned: [false],
   };
-  const file = { version: 1, windows: [nestedEntry], ...reorderedMirror };
   const { windows, readOnly } = loadWorkspace(file);
   assert.equal(readOnly, false);
-  assert.deepEqual(windows, [nestedEntry], 'mirror and nested should agree despite different key order');
+  // This assertion MUST verify that nested entry was returned, not the mirror.
+  // If deepEqual is reverted to JSON.stringify, this test FAILS because the mirror
+  // branch would fire, and Object.keys(mirror groups[0]) would be ['collapsed','id','name'].
+  assert.deepEqual(Object.keys(windows[0].groups[0]), ['id', 'name', 'collapsed'],
+    'nested branch must win — reordered keys are not divergence, so nested key order is preserved');
 });
