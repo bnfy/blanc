@@ -100,6 +100,10 @@ function currentRuntime() {
   return primaryRuntime;
 }
 
+/** Terse accessor for per-window state. Every former module global reads
+ * through here, which is what makes the ownership boundary greppable. */
+const rt = currentRuntime;
+
 // The runtime must exist before app.whenReady does anything — later sweeps
 // make createOverlay() and the IPC trust path read currentRuntime(), and both
 // run from startup contexts.
@@ -661,25 +665,9 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
 // render in a separate always-on-top WebContentsView so they float OVER
 // the web content instead of growing the strip and shifting content down.
 // It is attached to win.contentView only while something is showing.
-/** @type {WebContentsView | null} */
-let overlayView = null;
-/** @type {null | 'panel' | 'palette' | 'find' | 'shield'} */
-let overlayMode = null;
-/** Companion to overlayMode, replayed alongside it below if the overlay's
- * first load hadn't finished when showOverlay was called. */
-let overlayPrefill = null;
-/** Chip right edge (window coords) captured when the shield popover opens;
- * reused if bounds recompute (e.g. window resize) while it's up. */
-let shieldAnchorRight = null;
-/** The site the open shield popover describes, captured at open time — the
- * tab's live url may already read as the NEW site when did-start-navigation
- * fires, so a live recompute could never detect the site change. */
-let shieldPopoverHost = null;
-/** Which control opened the popover: 'shield' | 'insecure' | null. Re-click
- * of the SAME control toggles shut; the other control re-anchors instead.
- * Also rides chrome:island-state so each button's aria-expanded is truthful,
- * and tells the Escape path which control gets focus back. */
-let shieldTrigger = null;
+// overlayView, overlayMode, overlayPrefill, shieldAnchorRight,
+// shieldPopoverHost, and shieldTrigger now live on the runtime record
+// (see window-runtime-registry.js for their per-field doc comments).
 /** Native address-bar context menu up: suppress the overlay's blur
  * dismissal — the popup's close callback owns what happens next.
  * A generation ticket, not a boolean: if a second popup ever supersedes the
@@ -711,13 +699,13 @@ function verticalTabsMetrics(layout = currentChromeLayout()) {
 
 function overlayBounds() {
   const layout = currentChromeLayout();
-  if (overlayMode === 'find') return layout.findBounds;
-  if (overlayMode === 'palette') return layout.paletteBounds;
-  if (overlayMode === 'shield') {
+  if (rt().overlayMode === 'find') return layout.findBounds;
+  if (rt().overlayMode === 'palette') return layout.paletteBounds;
+  if (rt().overlayMode === 'shield') {
     return calculateShieldBounds({
       windowWidth: win.getContentBounds().width,
       stripHeight: chromeHeight,
-      anchorRight: shieldAnchorRight,
+      anchorRight: rt().shieldAnchorRight,
     });
   }
   return layout.panelBounds;
@@ -727,7 +715,7 @@ function createOverlay() {
   // A menu open when the previous window died may never have fired its close
   // callback — never let a leaked ticket disarm the new overlay's blur guard.
   addressMenuTicket = 0;
-  overlayView = new WebContentsView({
+  rt().overlayView = new WebContentsView({
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -735,27 +723,27 @@ function createOverlay() {
       sandbox: true,
     },
   });
-  windowRuntimes.registerChromeSurface(primaryRuntime, overlayView.webContents.id);
+  windowRuntimes.registerChromeSurface(primaryRuntime, rt().overlayView.webContents.id);
   // Fully transparent: the panel floats over live web content, so only what
   // overlay.html actually paints may be opaque.
-  overlayView.setBackgroundColor('#00000000');
-  lockPrivilegedNavigation(overlayView.webContents, CHROME_OVERLAY_URL);
-  installChromeShortcuts(overlayView.webContents);
-  overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
+  rt().overlayView.setBackgroundColor('#00000000');
+  lockPrivilegedNavigation(rt().overlayView.webContents, CHROME_OVERLAY_URL);
+  installChromeShortcuts(rt().overlayView.webContents);
+  rt().overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
 
   // A show requested before the overlay document finished its first load
   // would be lost — leaving an invisible view blocking clicks. Replay it.
-  overlayView.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
-    if (overlayMode) {
-      overlayView.webContents.send('overlay:show', { mode: overlayMode, prefill: overlayPrefill });
-      overlayView.webContents.focus();
+  rt().overlayView.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
+    if (rt().overlayMode) {
+      rt().overlayView.webContents.send('overlay:show', { mode: rt().overlayMode, prefill: rt().overlayPrefill });
+      rt().overlayView.webContents.focus();
     }
   }));
 
   // Dismiss on Escape at the main-process level so it works no matter
   // which element inside the overlay holds focus.
-  overlayView.webContents.on('before-input-event', bindWindowRuntime(primaryRuntime, (event, input) => {
-    if (overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
+  rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(primaryRuntime, (event, input) => {
+    if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       hideOverlay({ reason: 'escape' });
     }
@@ -764,7 +752,7 @@ function createOverlay() {
   // Losing focus (page click, cmd-tab, devtools) with the command bar open
   // would leave a stale panel floating over the page. Find mode survives
   // blur deliberately — users click around the page between matches.
-  overlayView.webContents.on('blur', bindWindowRuntime(primaryRuntime, () => {
+  rt().overlayView.webContents.on('blur', bindWindowRuntime(primaryRuntime, () => {
     // A native address-bar context menu takes OS focus; that blur is not a
     // dismissal — the popup's close callback owns what happens next.
     if (addressMenuTicket) return;
@@ -772,7 +760,7 @@ function createOverlay() {
     // guest view while the acceptance harness inspects it. Keep the real blur
     // policy in production; tests dismiss explicitly between edit sessions.
     if (acceptanceTestMode) return;
-    if (!overlayMode || overlayMode === 'find') return;
+    if (!rt().overlayMode || rt().overlayMode === 'find') return;
     // A freshly attached blank tab's view can momentarily grab focus while
     // its address-focus reclaim is still pending — that's not a dismissal;
     // the reclaim will re-assert overlay focus on the next tick.
@@ -780,11 +768,11 @@ function createOverlay() {
     hideOverlay({ refocusContent: false });
   }));
 
-  attachAddressMenu(overlayView.webContents, {
+  attachAddressMenu(rt().overlayView.webContents, {
     isOverlayLive: bindWindowRuntime(primaryRuntime, () =>
       hasLiveWindow()
-      && overlayView && !overlayView.webContents.isDestroyed()
-      && (overlayMode === 'panel' || overlayMode === 'palette')),
+      && rt().overlayView && !rt().overlayView.webContents.isDestroyed()
+      && (rt().overlayMode === 'panel' || rt().overlayMode === 'palette')),
     getWindow: bindWindowRuntime(primaryRuntime, () => win),
     getOverlayBounds: bindWindowRuntime(primaryRuntime, () => overlayBounds()),
     acquireMenuGuard: bindWindowRuntime(primaryRuntime, () => { addressMenuTicket = ++addressMenuSeq; return addressMenuTicket; }),
@@ -815,45 +803,46 @@ function createOverlay() {
 }
 
 /** The popup took focus from the overlay; hand it back if a panel/palette is
- * still up (overlayMode gone — e.g. Paste and Go closed it — nothing to do). */
+ * still up (the overlay mode already cleared — e.g. Paste and Go closed it —
+ * nothing to do). */
 function refocusOverlayAfterMenu() {
-  if (overlayMode === 'panel' || overlayMode === 'palette') {
-    overlayView?.webContents.focus();
+  if (rt().overlayMode === 'panel' || rt().overlayMode === 'palette') {
+    rt().overlayView?.webContents.focus();
   }
 }
 
 function showOverlay(mode, { prefill } = {}) {
-  if (!hasLiveWindow() || !overlayView) return;
+  if (!hasLiveWindow() || !rt().overlayView) return;
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
   hideUtilitySheet({ refocusContent: false });
   // Opening the panel is a freshness signal: pull other devices' tabs
   // (throttled to 1/min inside refreshSession — tab-sync spec §6).
   if (mode === 'panel' || mode === 'palette') sync.refreshSession();
-  overlayMode = mode;
-  overlayPrefill = prefill ?? null;
+  rt().overlayMode = mode;
+  rt().overlayPrefill = prefill ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
-  win.contentView.addChildView(overlayView);
-  overlayView.setBounds(overlayBounds());
-  overlayView.webContents.send('overlay:show', { mode, prefill });
-  overlayView.webContents.focus();
-  win.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? shieldTrigger : null });
+  win.contentView.addChildView(rt().overlayView);
+  rt().overlayView.setBounds(overlayBounds());
+  rt().overlayView.webContents.send('overlay:show', { mode, prefill });
+  rt().overlayView.webContents.focus();
+  win.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
-  if (!overlayMode) return;
-  const closingMode = overlayMode;
-  const closingTrigger = shieldTrigger;
-  overlayMode = null;
-  shieldAnchorRight = null;
-  shieldPopoverHost = null;
-  shieldTrigger = null;
+  if (!rt().overlayMode) return;
+  const closingMode = rt().overlayMode;
+  const closingTrigger = rt().shieldTrigger;
+  rt().overlayMode = null;
+  rt().shieldAnchorRight = null;
+  rt().shieldPopoverHost = null;
+  rt().shieldTrigger = null;
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
-  if (hasLiveWindow() && overlayView) {
-    win.contentView.removeChildView(overlayView);
-    overlayView.webContents.send('overlay:hide');
+  if (hasLiveWindow() && rt().overlayView) {
+    win.contentView.removeChildView(rt().overlayView);
+    rt().overlayView.webContents.send('overlay:hide');
     // Escape from the shield popover hands focus back to the control that
     // opened it, not to page content — keyboard users should land where they
     // started. The chrome webContents must take focus BEFORE the strip's DOM
@@ -1135,7 +1124,7 @@ function broadcastTabs() {
     ...widthMetrics,
   };
   win.webContents.send('tabs:updated', payload);
-  overlayView?.webContents.send('tabs:updated', payload);
+  rt().overlayView?.webContents.send('tabs:updated', payload);
 }
 
 function broadcastDownloadsActivity() {
@@ -1159,7 +1148,7 @@ function resizeActiveView() {
   const layout = currentChromeLayout();
   const tab = activeTabId ? tabs.get(activeTabId) : null;
   if (tab) tab.view.setBounds(layout.pageBounds);
-  if (overlayMode && overlayView) overlayView.setBounds(overlayBounds());
+  if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   if (utilitySheetUrl && utilitySheetView) {
     utilitySheetView.setBounds(layout.utilityBounds);
   }
@@ -1851,9 +1840,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // open, live-updating; leaving the site (or losing the host) closes it.
     if (
       isMainFrame
-      && overlayMode === 'shield'
+      && rt().overlayMode === 'shield'
       && id === activeTabId
-      && blockableHostname(url) !== shieldPopoverHost
+      && blockableHostname(url) !== rt().shieldPopoverHost
     ) {
       hideOverlay({ refocusContent: false });
     }
@@ -1945,7 +1934,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   wc.on('found-in-page', boundToTab((_e, result) => {
     if (id === activeTabId) {
-      overlayView?.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
+      rt().overlayView?.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
     }
   }));
 
@@ -2099,7 +2088,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // Find state is per-tab; a stale capsule over a different page misleads.
   // The shield popover describes one tab's site — same rule.
-  if (overlayMode === 'find' || overlayMode === 'shield') hideOverlay({ refocusContent: false });
+  if (rt().overlayMode === 'find' || rt().overlayMode === 'shield') hideOverlay({ refocusContent: false });
 
   const prevId = activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
@@ -2127,7 +2116,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
   // but a race must never paint a tab over either floating layer).
   if (utilitySheetUrl && utilitySheetView) win.contentView.addChildView(utilitySheetView);
-  if (overlayMode && overlayView) win.contentView.addChildView(overlayView);
+  if (rt().overlayMode && rt().overlayView) win.contentView.addChildView(rt().overlayView);
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
   // blank new tab we instead want the chrome's address bar, and OS focus
@@ -2387,9 +2376,9 @@ function openFindBar() {
 function toggleIsland() {
   if (!hasLiveWindow()) return;
   win.focus();
-  if (overlayMode === 'panel' || overlayMode === 'palette') {
-    overlayView?.webContents.focus();
-    overlayView?.webContents.send('overlay:toggle');
+  if (rt().overlayMode === 'panel' || rt().overlayMode === 'palette') {
+    rt().overlayView?.webContents.focus();
+    rt().overlayView?.webContents.send('overlay:toggle');
     return;
   }
   showOverlay('palette');
@@ -2403,7 +2392,7 @@ function focusAddressBar() {
   win.focus();
   // Reasserts must not downgrade an already-summoned palette to a panel —
   // nor promote a non-island mode (find, shield) into staying up.
-  showOverlay(overlayMode === 'palette' ? 'palette' : 'panel');
+  showOverlay(rt().overlayMode === 'palette' ? 'palette' : 'panel');
 }
 
 function shouldReclaimAddressBarFocus(id) {
@@ -2433,8 +2422,8 @@ function refocusAddressBarIfWanted() {
 function isTrustedChromeSender(event) {
   return isTrustedSender(event, [
     hasLiveWindow() ? { webContents: win.webContents, url: CHROME_INDEX_URL } : null,
-    overlayView && !overlayView.webContents.isDestroyed()
-      ? { webContents: overlayView.webContents, url: CHROME_OVERLAY_URL }
+    rt().overlayView && !rt().overlayView.webContents.isDestroyed()
+      ? { webContents: rt().overlayView.webContents, url: CHROME_OVERLAY_URL }
       : null,
   ]);
 }
@@ -2661,23 +2650,23 @@ function registerIpcHandlers() {
   chromeOn('chrome:open-find', () => showOverlay('find'));
   chromeOn('chrome:open-shield', (_e, anchor) => {
     const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
-    if (overlayMode === 'shield') {
+    if (rt().overlayMode === 'shield') {
       // Same control re-clicked toggles shut. A DIFFERENT control re-anchors —
       // closing there would read as the second button being broken.
-      if (trigger === shieldTrigger) return hideOverlay({ refocusContent: false });
-      shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
-      shieldTrigger = trigger;
+      if (trigger === rt().shieldTrigger) return hideOverlay({ refocusContent: false });
+      rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+      rt().shieldTrigger = trigger;
       // The bounds must move NOW: updating stored state alone would pass a
       // state assertion while leaving the card visually where it was.
-      overlayView.setBounds(overlayBounds());
+      rt().overlayView.setBounds(overlayBounds());
       win.webContents.send('chrome:island-state', { mode: 'shield', trigger });
       return;
     }
     const popover = activeShieldPopover();
     if (!popover) return; // no blockable host — nothing to show
-    shieldPopoverHost = popover.host;
-    shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
-    shieldTrigger = trigger;
+    rt().shieldPopoverHost = popover.host;
+    rt().shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+    rt().shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
   });
@@ -3191,9 +3180,9 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
   win.on('closed', bindWindowRuntime(primaryRuntime, () => {
     win = null;
     // Unlike tabs, the overlay doesn't outlive its window — recreated fresh.
-    overlayMode = null;
-    if (overlayView && !overlayView.webContents.isDestroyed()) overlayView.webContents.close();
-    overlayView = null;
+    rt().overlayMode = null;
+    if (rt().overlayView && !rt().overlayView.webContents.isDestroyed()) rt().overlayView.webContents.close();
+    rt().overlayView = null;
     // The sheet doesn't outlive its window either — dropping the reference
     // without closing would leak the webContents.
     if (utilitySheetView && !utilitySheetView.webContents.isDestroyed()) utilitySheetView.webContents.close();
@@ -3438,11 +3427,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getRailActivationSerial: () => railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
       runBlockAdsCommand, runAllowAdsCommand,
-      getOverlayMode: () => overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
+      getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
       getUtilitySheetState: () => ({ visible: !!utilitySheetUrl, url: utilitySheetUrl }),
       getUtilitySheetWebContents: () => utilitySheetView?.webContents ?? null,
-      getOverlayWebContents: () => overlayView?.webContents ?? null,
+      getOverlayWebContents: () => rt().overlayView?.webContents ?? null,
       getChromeWebContents: () => win?.webContents ?? null,
       setWindowContentSize: (width, height) => {
         if (!hasLiveWindow()) return;
@@ -3451,7 +3440,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
       getWindowContentBounds: () => hasLiveWindow() ? win.getContentBounds() : null,
       getUtilitySheetBounds: () => utilitySheetView?.getBounds() ?? null,
-      getOverlayBounds: () => overlayView?.getBounds() ?? null,
+      getOverlayBounds: () => rt().overlayView?.getBounds() ?? null,
       setTestSearchSuggestionFixture,
       clearTestSearchSuggestionFixture,
       getTestSearchSuggestionRequests: () => structuredClone(testSearchSuggestionRequests),
@@ -3518,7 +3507,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // surfaces (overlay panel; any tab currently on the start page).
   const pushRemoteDevices = bindWindowRuntime(primaryRuntime, () => {
     const devices = sync.listRemoteDevices();
-    overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
+    rt().overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
     for (const tab of tabs.values()) {
       if (tab.url?.startsWith('blanc://newtab')) {
         tab.view.webContents.send('pages:start:remote-tabs', devices);

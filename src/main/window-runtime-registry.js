@@ -18,11 +18,31 @@ function createRuntime() {
     tabOrder: [],
     activeTabId: null,
     groups: [],
+    // The island's expanded states (command bar, ⌘L palette, find capsule)
+    // render in a separate always-on-top WebContentsView so they float OVER
+    // the web content instead of growing the strip and shifting content
+    // down. It is attached to win.contentView only while something is
+    // showing.
+    /** @type {WebContentsView | null} */
     overlayView: null,
+    /** @type {null | 'panel' | 'palette' | 'find' | 'shield'} */
     overlayMode: null,
+    /** Companion to overlayMode, replayed alongside it below if the
+     * overlay's first load hadn't finished when showOverlay was called. */
     overlayPrefill: null,
+    /** Chip right edge (window coords) captured when the shield popover
+     * opens; reused if bounds recompute (e.g. window resize) while it's up. */
     shieldAnchorRight: null,
+    /** The site the open shield popover describes, captured at open time —
+     * the tab's live url may already read as the NEW site when
+     * did-start-navigation fires, so a live recompute could never detect
+     * the site change. */
     shieldPopoverHost: null,
+    /** Which control opened the popover: 'shield' | 'insecure' | null.
+     * Re-click of the SAME control toggles shut; the other control
+     * re-anchors instead. Also rides chrome:island-state so each button's
+     * aria-expanded is truthful, and tells the Escape path which control
+     * gets focus back. */
     shieldTrigger: null,
     utilitySheetView: null,
     utilitySheetUrl: null,
