@@ -10,7 +10,9 @@ const {
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
-const { shieldChipState, shieldPopoverModel, connectionFor } = require('./shield-model');
+const {
+  shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
+} = require('./shield-model');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -954,21 +956,6 @@ function isHostnameExcepted(url) {
   return !!hostname && settings.getSettings().adblockExceptions.includes(hostname);
 }
 
-/** The url Chromium has actually committed for this view, or null.
- * A tab is created holding the REQUESTED url, and a tab's stored url can also
- * run ahead of a navigation that has not landed — so connection state must be
- * read from here, never from tab.url. A destroyed or unattached view has no
- * committed url at all. */
-function committedUrlOf(view) {
-  try {
-    const wc = view?.webContents;
-    if (!wc || wc.isDestroyed()) return null;
-    return wc.getURL() || null;
-  } catch {
-    return null;
-  }
-}
-
 function serializeTabs() {
   const { adblockEnabled } = settings.getSettings();
   return tabOrder
@@ -1066,7 +1053,7 @@ function persistSession() {
 }
 
 /** The active tab's popover model, or null when it has no blockable host. */
-function activeShieldPopover() {
+function activeShieldPopover(serialized = serializeTabs()) {
   const tab = activeTabId ? tabs.get(activeTabId) : null;
   if (!tab) return null;
   return shieldPopoverModel({
@@ -1074,10 +1061,9 @@ function activeShieldPopover() {
     blockedCount: tab.blockedCount,
     excepted: isHostnameExcepted(tab.url),
     adblockEnabled: settings.getSettings().adblockEnabled,
-    connection: connectionFor({
-      url: committedUrlOf(tab.view),
-      isLoading: tab.isLoading,
-    }),
+    // Read back out of the serialized payload rather than derived again, so
+    // the popover and the active tab row cannot disagree within a broadcast.
+    connection: activeConnection(serialized, activeTabId),
   });
 }
 
@@ -1086,13 +1072,16 @@ function broadcastTabs() {
   tabsync.noteTabsChanged();
   if (!win || win.isDestroyed()) return;
   const widthMetrics = verticalTabsMetrics();
+  // Serialize once and hand the same list to the popover, so connection is
+  // derived a single time per broadcast.
+  const serialized = serializeTabs();
   const payload = {
-    tabs: serializeTabs(),
+    tabs: serialized,
     activeTabId,
     groups,
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
-    shieldPopover: activeShieldPopover(),
+    shieldPopover: activeShieldPopover(serialized),
     ...widthMetrics,
   };
   win.webContents.send('tabs:updated', payload);

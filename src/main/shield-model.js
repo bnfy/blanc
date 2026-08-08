@@ -41,6 +41,32 @@ function connectionFor({ url, isLoading }) {
   return isLoading ? null : connectionState(url);
 }
 
+/** The url Chromium has actually committed for a view, or null.
+ * A tab is created holding the REQUESTED url, and a stored url can run ahead
+ * of a navigation that has not landed — so a scheme claim must be read from
+ * here, never from tab.url. Destroyed, unattached, and throwing views all
+ * yield null, which renders as no claim at all. Duck-typed so it is testable
+ * without Electron. */
+function committedUrlOf(view) {
+  try {
+    const wc = view?.webContents;
+    if (!wc || wc.isDestroyed()) return null;
+    return wc.getURL() || null;
+  } catch {
+    return null;
+  }
+}
+
+/** The active tab's connection, read back out of the ALREADY-SERIALIZED tab
+ * list. This is what makes "derived exactly once" true: the popover consumes
+ * the payload's own value instead of recomputing it, so the two can never
+ * disagree within one broadcast. */
+function activeConnection(serializedTabs, activeTabId) {
+  if (!Array.isArray(serializedTabs)) return null;
+  const entry = serializedTabs.find((t) => t && t.id === activeTabId);
+  return entry ? entry.connection ?? null : null;
+}
+
 function countPhrase(blocked) {
   return `${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'}`;
 }
@@ -83,4 +109,11 @@ function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, conne
   return { variant: 'site', host, on: true, countLine, connection };
 }
 
-module.exports = { shieldChipState, shieldPopoverModel, connectionState, connectionFor };
+module.exports = {
+  shieldChipState,
+  shieldPopoverModel,
+  connectionState,
+  connectionFor,
+  committedUrlOf,
+  activeConnection,
+};

@@ -1,7 +1,10 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { shieldChipState, shieldPopoverModel, connectionState, connectionFor } = require('../../src/main/shield-model');
+const {
+  shieldChipState, shieldPopoverModel, connectionState, connectionFor,
+  committedUrlOf, activeConnection,
+} = require('../../src/main/shield-model');
 
 const HTTP = 'https://www.theverge.com/article';
 
@@ -120,4 +123,66 @@ test('popover model still normalizes the host', () => {
     excepted: false, adblockEnabled: true, connection: 'https',
   });
   assert.equal(model.host, 'example.com');
+});
+
+// A view whose committed url is only readable when it is alive.
+const fakeView = (url, { destroyed = false, throws = false } = {}) => ({
+  webContents: {
+    isDestroyed: () => destroyed,
+    getURL() {
+      if (throws) throw new Error('view is gone');
+      return url;
+    },
+  },
+});
+
+test('committedUrlOf reads a live view and refuses a dead one', () => {
+  assert.equal(committedUrlOf(fakeView('https://example.com/x')), 'https://example.com/x');
+  assert.equal(committedUrlOf(fakeView('https://example.com/x', { destroyed: true })), null);
+  assert.equal(committedUrlOf(fakeView('https://example.com/x', { throws: true })), null);
+  assert.equal(committedUrlOf(fakeView('')), null);
+  assert.equal(committedUrlOf({}), null);
+  assert.equal(committedUrlOf(null), null);
+  assert.equal(committedUrlOf(undefined), null);
+});
+
+test('activeConnection reads the value back out of the serialized list', () => {
+  const tabs = [
+    { id: 1, connection: 'http' },
+    { id: 2, connection: 'https' },
+    { id: 3, connection: null },
+  ];
+  assert.equal(activeConnection(tabs, 2), 'https');
+  assert.equal(activeConnection(tabs, 3), null);
+  assert.equal(activeConnection(tabs, 99), null);
+  assert.equal(activeConnection([], 1), null);
+  assert.equal(activeConnection(null, 1), null);
+});
+
+test('the active tab and the popover report the same connection', () => {
+  // The payload-level invariant: within one broadcast, whatever the active
+  // serialized tab claims is exactly what the popover claims. Both loaded and
+  // loading, and for a view that cannot be read at all.
+  const cases = [
+    { view: fakeView('https://www.example.com/x'), isLoading: false, expect: 'https' },
+    { view: fakeView('https://www.example.com/x'), isLoading: true, expect: null },
+    { view: fakeView('http://neverssl.com/'), isLoading: false, expect: 'http' },
+    { view: fakeView('http://localhost:3000/'), isLoading: false, expect: 'local' },
+    { view: fakeView('https://www.example.com/x', { destroyed: true }), isLoading: false, expect: null },
+    { view: fakeView('https://www.example.com/x', { throws: true }), isLoading: false, expect: null },
+  ];
+  for (const { view, isLoading, expect } of cases) {
+    // What serializeTabs() puts on the payload.
+    const serialized = [{ id: 7, connection: connectionFor({ url: committedUrlOf(view), isLoading }) }];
+    // What activeShieldPopover() must consume — never a fresh derivation.
+    const popover = shieldPopoverModel({
+      url: 'https://www.example.com/x',
+      blockedCount: 0,
+      excepted: false,
+      adblockEnabled: true,
+      connection: activeConnection(serialized, 7),
+    });
+    assert.equal(serialized[0].connection, expect);
+    assert.equal(popover.connection, serialized[0].connection);
+  }
 });
