@@ -1,6 +1,7 @@
 const path = require('node:path');
 const os = require('node:os');
 const fs = require('node:fs');
+const { execFileSync } = require('node:child_process');
 const { _electron } = require('playwright');
 const { BeforeAll, AfterAll, Before, setDefaultTimeout } = require('@cucumber/cucumber');
 const fixtures = require('./fixtures-server');
@@ -13,12 +14,29 @@ setDefaultTimeout(60_000);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 let userDataDir;
 let fixturesHandle;
+let secureFixturesHandle;
+let secureSpkiHash = null;
 let browserHomeDir;
 let savedClipboard = null;
 
 async function launchApp() {
   const electronApp = await _electron.launch({
-    args: [REPO_ROOT, `--user-data-dir=${userDataDir}`],
+    // insecure.test maps to loopback at the resolver so the F12-7 scenario can
+    // load a genuinely non-loopback-HOSTNAMED page offline: the connection
+    // model classifies by hostname, and every fixtures-server URL is
+    // 127.0.0.1 (i.e. 'local', never 'http').
+    args: [
+      REPO_ROOT,
+      `--user-data-dir=${userDataDir}`,
+      // Both names map to loopback at the resolver, so scheme-classified
+      // pages load offline: the connection model reads HOSTNAMES, and every
+      // plain fixtures-server URL is 127.0.0.1 (i.e. 'local', never 'http').
+      '--host-resolver-rules=MAP insecure.test 127.0.0.1, MAP secure.test 127.0.0.1',
+      // Trust EXACTLY the throwaway per-run fixture cert, by SPKI hash —
+      // Chromium's scoped testing flag, not a blanket ignore. Every other
+      // certificate error keeps its normal handling.
+      `--ignore-certificate-errors-spki-list=${secureSpkiHash}`,
+    ],
     env: {
       ...process.env,
       BLANC_TEST: '1',
@@ -40,6 +58,26 @@ async function launchApp() {
 BeforeAll({ timeout: 120_000 }, async () => {
   fixturesHandle = await fixtures.start();
   ctx.fixturesBase = fixturesHandle.base;
+
+  // Mint a throwaway self-signed cert for secure.test and pin its SPKI at
+  // launch, so F12-8 can assert a real https-committed page fully offline.
+  const certDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-fixture-cert-'));
+  const keyPath = path.join(certDir, 'key.pem');
+  const certPath = path.join(certDir, 'cert.pem');
+  execFileSync('openssl', [
+    'req', '-x509', '-newkey', 'rsa:2048', '-keyout', keyPath, '-out', certPath,
+    '-days', '2', '-nodes', '-subj', '/CN=secure.test',
+    '-addext', 'subjectAltName=DNS:secure.test',
+  ], { stdio: 'pipe' });
+  const spkiDer = execFileSync('sh', ['-c',
+    `openssl x509 -in '${certPath}' -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | base64`,
+  ]);
+  secureSpkiHash = spkiDer.toString().trim();
+  secureFixturesHandle = await fixtures.startSecure({
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath),
+  });
+  ctx.secureFixturesBase = `https://secure.test:${secureFixturesHandle.port}`;
 
   // Isolated, throwaway profile so no prior session/history/settings leaks in.
   userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-'));
@@ -127,6 +165,7 @@ AfterAll(async () => {
   ctx.app = null;
   ctx.relaunch = null;
   if (fixturesHandle) await fixturesHandle.close();
+  if (secureFixturesHandle) await secureFixturesHandle.close();
   if (userDataDir) fs.rmSync(userDataDir, { recursive: true, force: true });
   if (browserHomeDir) fs.rmSync(browserHomeDir, { recursive: true, force: true });
 });

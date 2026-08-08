@@ -10,7 +10,9 @@ const {
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
-const { shieldChipState, shieldPopoverModel } = require('./shield-model');
+const {
+  shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
+} = require('./shield-model');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -639,6 +641,11 @@ let shieldAnchorRight = null;
  * tab's live url may already read as the NEW site when did-start-navigation
  * fires, so a live recompute could never detect the site change. */
 let shieldPopoverHost = null;
+/** Which control opened the popover: 'shield' | 'insecure' | null. Re-click
+ * of the SAME control toggles shut; the other control re-anchors instead.
+ * Also rides chrome:island-state so each button's aria-expanded is truthful,
+ * and tells the Escape path which control gets focus back. */
+let shieldTrigger = null;
 /** Native address-bar context menu up: suppress the overlay's blur
  * dismissal — the popup's close callback owns what happens next.
  * A generation ticket, not a boolean: if a second popup ever supersedes the
@@ -715,7 +722,7 @@ function createOverlay() {
   overlayView.webContents.on('before-input-event', (event, input) => {
     if (overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
-      hideOverlay();
+      hideOverlay({ reason: 'escape' });
     }
   });
 
@@ -795,22 +802,32 @@ function showOverlay(mode, { prefill } = {}) {
   overlayView.setBounds(overlayBounds());
   overlayView.webContents.send('overlay:show', { mode, prefill });
   overlayView.webContents.focus();
-  win.webContents.send('chrome:island-state', { mode });
+  win.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? shieldTrigger : null });
 }
 
-function hideOverlay({ refocusContent = true } = {}) {
+function hideOverlay({ refocusContent = true, reason = null } = {}) {
   if (!overlayMode) return;
+  const closingMode = overlayMode;
+  const closingTrigger = shieldTrigger;
   overlayMode = null;
   shieldAnchorRight = null;
   shieldPopoverHost = null;
+  shieldTrigger = null;
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
   if (hasLiveWindow() && overlayView) {
     win.contentView.removeChildView(overlayView);
     overlayView.webContents.send('overlay:hide');
-    win.webContents.send('chrome:island-state', { mode: null });
-    if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
+    // Escape from the shield popover hands focus back to the control that
+    // opened it, not to page content — keyboard users should land where they
+    // started. The chrome webContents must take focus BEFORE the strip's DOM
+    // focus() runs: the overlay held it until removeChildView above, and a
+    // focus call inside an unfocused document paints no visible ring.
+    const restoreTrigger = reason === 'escape' && closingMode === 'shield' ? closingTrigger : null;
+    if (restoreTrigger) win.webContents.focus();
+    win.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
+    if (refocusContent && !restoreTrigger) tabs.get(activeTabId)?.view.webContents.focus();
   }
 }
 
@@ -974,15 +991,21 @@ function serializeTabs() {
         excepted,
         adblockEnabled,
       });
+      // Derived exactly once, here. The popover, the pill badge, and the panel
+      // badge all render this same value, so they cannot disagree.
+      const connection = connectionFor({
+        url: committedUrlOf(view),
+        isLoading: rest.isLoading,
+      });
       if (rest.private && rest.favicon) {
         // A page-favicon URL belongs to the tab's browsing session. Sending a
         // private tab's remote URL into persistent chrome would make the chrome
         // session fetch it again merely to paint the pill/overlay/rail, escaping
         // the non-persistent private-session boundary. Private rows deliberately
         // use the renderer's neutral fallback instead.
-        return { ...rest, favicon: null, excepted, shield };
+        return { ...rest, favicon: null, excepted, shield, connection };
       }
-      return { ...rest, excepted, shield };
+      return { ...rest, excepted, shield, connection };
     });
 }
 
@@ -1045,7 +1068,7 @@ function persistSession() {
 }
 
 /** The active tab's popover model, or null when it has no blockable host. */
-function activeShieldPopover() {
+function activeShieldPopover(serialized = serializeTabs()) {
   const tab = activeTabId ? tabs.get(activeTabId) : null;
   if (!tab) return null;
   return shieldPopoverModel({
@@ -1053,6 +1076,9 @@ function activeShieldPopover() {
     blockedCount: tab.blockedCount,
     excepted: isHostnameExcepted(tab.url),
     adblockEnabled: settings.getSettings().adblockEnabled,
+    // Read back out of the serialized payload rather than derived again, so
+    // the popover and the active tab row cannot disagree within a broadcast.
+    connection: activeConnection(serialized, activeTabId),
   });
 }
 
@@ -1061,13 +1087,16 @@ function broadcastTabs() {
   tabsync.noteTabsChanged();
   if (!win || win.isDestroyed()) return;
   const widthMetrics = verticalTabsMetrics();
+  // Serialize once and hand the same list to the popover, so connection is
+  // derived a single time per broadcast.
+  const serialized = serializeTabs();
   const payload = {
-    tabs: serializeTabs(),
+    tabs: serialized,
     activeTabId,
     groups,
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
-    shieldPopover: activeShieldPopover(),
+    shieldPopover: activeShieldPopover(serialized),
     ...widthMetrics,
   };
   win.webContents.send('tabs:updated', payload);
@@ -2570,12 +2599,24 @@ function registerIpcHandlers() {
   chromeOn('chrome:open-island', () => showOverlay('panel'));
   chromeOn('chrome:open-find', () => showOverlay('find'));
   chromeOn('chrome:open-shield', (_e, anchor) => {
-    // Chip re-click closes — the chip is a toggle for the popover itself.
-    if (overlayMode === 'shield') return hideOverlay({ refocusContent: false });
+    const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
+    if (overlayMode === 'shield') {
+      // Same control re-clicked toggles shut. A DIFFERENT control re-anchors —
+      // closing there would read as the second button being broken.
+      if (trigger === shieldTrigger) return hideOverlay({ refocusContent: false });
+      shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+      shieldTrigger = trigger;
+      // The bounds must move NOW: updating stored state alone would pass a
+      // state assertion while leaving the card visually where it was.
+      overlayView.setBounds(overlayBounds());
+      win.webContents.send('chrome:island-state', { mode: 'shield', trigger });
+      return;
+    }
     const popover = activeShieldPopover();
     if (!popover) return; // no blockable host — nothing to show
     shieldPopoverHost = popover.host;
     shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+    shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
   });

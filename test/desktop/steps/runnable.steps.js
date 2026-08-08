@@ -535,3 +535,113 @@ Then('the clipboard holds the page address with query {string}', async function 
 Then('the island is closed', async function () {
   assert.equal(await this.call('overlayMode'), null);
 });
+
+// ---------- F12-7/8/9: connection in the site-controls popover ----------
+
+Given('I am on an unencrypted page', async function () {
+  // insecure.test maps to the loopback fixtures server at the resolver, so
+  // this is a plain-HTTP page whose HOSTNAME is not loopback — the one case
+  // that renders the warning badge and the 'Not encrypted' row.
+  const id = await this.call('openTab', this.insecureFixtureUrl('plain-http'));
+  ctx.tabByName['plain-http'] = id;
+  // The badge is visible only once the load commits (connection is null —
+  // deliberately claimless — while loading), so wait for visibility, not for
+  // the aria attribute, which exists even while hidden.
+  await waitForValue(
+    () => this.call('pillInsecureHidden'),
+    (hidden) => hidden === false,
+    'the not-secure badge to render',
+  );
+});
+
+Given('I am on an encrypted page', async function () {
+  // TLS on loopback behind the secure.test mapping, trusted only through the
+  // per-run SPKI pin — a genuinely https-committed page, fully offline.
+  const id = await this.call('openTab', this.secureFixtureUrl('plain-https'));
+  ctx.tabByName['plain-https'] = id;
+});
+
+When('I open site controls', async function () {
+  this.shieldBoundsBefore = null;
+  await this.call('clickPillShield');
+  await waitForValue(
+    () => this.call('shieldPopoverState'),
+    (p) => p && p.visible,
+    'site controls to open from the shield',
+  );
+  this.shieldBoundsBefore = await this.call('overlayBounds');
+});
+
+When('I open site controls from the warning badge', async function () {
+  assert.equal(await this.call('clickInsecureBadge'), true, 'badge should be clickable');
+  await waitForValue(
+    () => this.call('shieldPopoverState'),
+    (p) => p && p.visible,
+    'site controls to open from the badge',
+  );
+});
+
+Then('site controls report the connection is not encrypted', async function () {
+  const state = await waitForValue(
+    () => this.call('shieldPopoverState'),
+    (p) => p && p.visible && p.connection,
+    'the connection row to render',
+  );
+  assert.equal(state.connection, 'Connection · Not encrypted');
+  assert.match(state.header, /Ad & tracker blocking/);
+});
+
+Then('site controls report the connection uses HTTPS', async function () {
+  const state = await waitForValue(
+    () => this.call('shieldPopoverState'),
+    (p) => p && p.visible && p.connection,
+    'the connection row to render',
+  );
+  assert.equal(state.connection, 'Connection · Uses HTTPS');
+});
+
+Then('only the shield reports itself expanded', async function () {
+  const v = await waitForValue(
+    () => this.call('shieldAriaExpanded'),
+    (x) => x && x.shield === 'true',
+    'the shield to report expanded',
+  );
+  assert.equal(v.insecure, 'false');
+});
+
+Then('site controls stay open and move to the warning badge', async function () {
+  const before = this.shieldBoundsBefore;
+  assert.ok(before, 'bounds should have been captured when the popover opened');
+  const after = await waitForValue(
+    () => this.call('overlayBounds'),
+    (b) => b && b.x !== before.x,
+    'the popover to re-anchor',
+  );
+  // The badge sits left of the shield in the pill, so the card moves left —
+  // and this is the assertion that catches "stored trigger updated but the
+  // bounds never moved".
+  assert.ok(after.x < before.x, `popover should move toward the badge (was x=${before.x}, now x=${after.x})`);
+  const state = await this.call('shieldPopoverState');
+  assert.equal(state.visible, true, 'popover must stay open across the re-anchor');
+});
+
+Then('only the warning badge reports itself expanded', async function () {
+  const v = await waitForValue(
+    () => this.call('shieldAriaExpanded'),
+    (x) => x && x.insecure === 'true',
+    'the badge to report expanded',
+  );
+  assert.equal(v.shield, 'false');
+});
+
+When('I dismiss site controls with Escape', async function () {
+  await this.call('pressOverlayEscape');
+});
+
+Then('focus returns to the warning badge', async function () {
+  await waitForValue(
+    () => this.call('chromeFocusedId'),
+    (id) => id === 'pillInsecure',
+    'focus to return to the warning badge',
+  );
+});

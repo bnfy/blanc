@@ -169,18 +169,6 @@
     }
   }
 
-  /** Warning-only security check: true just for plain HTTP to a non-loopback
-   * host — https, blanc:, file:, and local dev servers show no indicator.
-   * (Keep in sync with overlay.js.) */
-  function connectionInsecure(url) {
-    if (!url?.startsWith('http://')) return false;
-    try {
-      const host = new URL(url).hostname;
-      return !(host === 'localhost' || host.endsWith('.localhost') || /^127\./.test(host) || host === '[::1]');
-    } catch {
-      return false;
-    }
-  }
 
   function setFavicon(el, tab, base = 'favicon') {
     el.className = base + (tab?.isLoading ? ' loading' : '');
@@ -391,9 +379,9 @@
       : tabDomain(tab) || (tab?.private ? 'private tab' : 'new tab');
     pillDomain.classList.toggle('dim', !!tab?.isLoading);
 
-    // Hidden while loading too — the domain says "Loading…" and the old
-    // page's security state mustn't linger under it.
-    pillInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
+    // tab.connection is main's single derivation (null while loading, so the
+    // old page's security state can't linger under a "Loading…" domain).
+    pillInsecure.hidden = tab?.connection !== 'http';
 
     pillPrivateChip.hidden = !tab?.private;
     // A view-source tab is opened fresh, so Back is dead and the island has
@@ -445,7 +433,15 @@
   pillShield.addEventListener('click', (e) => {
     e.stopPropagation();
     const r = pillShield.getBoundingClientRect();
-    window.browserAPI.openShieldPopover({ right: r.right });
+    window.browserAPI.openShieldPopover({ right: r.right, trigger: 'shield' });
+  });
+
+  // The not-secure badge is the popover's second door — same room, anchored
+  // under whichever control was clicked. Enter/Space come free (real button).
+  pillInsecure.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const r = pillInsecure.getBoundingClientRect();
+    window.browserAPI.openShieldPopover({ right: r.right, trigger: 'insecure' });
   });
 
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
@@ -509,8 +505,17 @@
     state = payload;
     render();
   });
-  window.browserAPI.onIslandState(({ mode }) => {
+  window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger }) => {
     islandMode = mode;
+    // Truthful per-control expanded state: the popover is one surface with
+    // two doors, and only the door that opened it reads as expanded.
+    const shieldOpen = mode === 'shield';
+    pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
+    pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
+    // Escape dismissal: main has already focused this webContents, so a DOM
+    // focus() here lands in a focused document and paints the ring.
+    if (restoreTrigger === 'shield') pillShield.focus();
+    else if (restoreTrigger === 'insecure') pillInsecure.focus();
     render();
   });
   window.browserAPI.onDownloadsActivity((payload) => {

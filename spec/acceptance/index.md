@@ -71,6 +71,12 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F12-1 | Blocking increments shield count | D1 | ✅ | ⬜ | ⬜ |
 | F12-2 | Allow-ads drops count + persists | D2 | ✅ | ⬜ | ⬜ |
 | F12-3 | Global toggle off/on | — | ✅ | ⬜ | ⬜ |
+| F12-4 | /block-ads re-blocks an allowed site | D2 | ✅ | ⬜ | ⬜ |
+| F12-5 | Slash-command + settings toggle agree | — | ✅ | ⬜ | ⬜ |
+| F12-6 | Shield popover toggles site protection | D2, D13 | ✅ | ⬜ | ⬜ |
+| F12-7 | HTTP warning badge opens site controls | — | ✅ | ⬜ | ⬜ |
+| F12-8 | Site controls report an HTTPS connection | — | ✅ | ⬜ | ⬜ |
+| F12-9 | Site controls follow their opening control | — | ✅ | ⬜ | ⬜ |
 | F13-1 | Geolocation prompt + deny persists | — | ✅ | ⬜ | ⬜ |
 | F14-1 | Invalid search engine rejected | — | ✅ | ⬜ | ⬜ |
 | F14-2 | Unlicensed supporter icon → default | D5 | ✅ | ⬜ | ⬜ |
