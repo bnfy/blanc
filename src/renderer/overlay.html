@@ -83,6 +83,18 @@
       <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
     </button>
   </div>
+  <div id="shieldPop" hidden>
+    <div class="shield-pop-head">
+      <div class="shield-pop-id">
+        <div id="shieldPopHost"></div>
+        <div class="shield-pop-state">Protection <strong id="shieldPopOnOff">on</strong></div>
+      </div>
+      <button id="shieldPopToggle" role="switch" aria-checked="true" aria-label="Ad &amp; tracker protection for this site"><span class="knob"></span></button>
+    </div>
+    <div id="shieldPopCount"></div>
+    <div id="shieldPopNote" class="shield-pop-note">Changing this reloads the page.</div>
+    <button id="shieldPopSettings" class="shield-pop-footer">blocking settings →</button>
+  </div>
   <script src="overlay.js"></script>
 </body>
 </html>
