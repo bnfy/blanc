@@ -1,5 +1,122 @@
 [
   {
+    "tag": "v1.0.8",
+    "version": "1.0.8",
+    "name": "1.0.8",
+    "publishedAt": "2026-08-08T13:46:54.000Z",
+    "humanDate": "August 8, 2026",
+    "machineDate": "2026-08-08",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.0.8",
+    "anchor": "v1-0-8",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The shield on the island is now a control, not just a readout. Click it to open a small popover and turn ad and tracker blocking on or off for the site you're on — the same thing "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/allow-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/block-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": " do, without having to remember a command. The chip shows a quiet glyph when there's nothing to report, a count when Blanc has blocked something, and a slashed shield when the site is allow-listed."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "You can bring your favorites over from another browser. Blanc reads bookmarks from an installed Chrome, Edge, Brave, Chromium, or Vivaldi profile, keeps their folders, and skips anything already saved, so importing twice doesn't create duplicates. It's offered during first run and stays available from the Favorites page. Blanc only goes looking when you press \"Look for other browsers\", and it only ever opens that browser's bookmarks file — passwords, history, cookies, and open tabs are never read. Firefox and Safari aren't read directly; use the existing \"Import HTML…\" route for those."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Find in page now shows matches while you type. Before this fix the counter stayed blank and nothing was highlighted until you pressed Enter — Blanc was telling Chromium to continue a search session it had never started."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The optional launch ping now includes a coarse OS version alongside the platform, so it's possible to tell how many installs could run an OS-gated feature. It is deliberately a single major number — \"26\" on macOS, \"11\" or \"10\" on Windows, a kernel major on Linux — never a full version string, which would narrow a device more than counting audiences requires. It's still one ping per launch with no browsing data, and it's still a single switch in Settings under \"Help improve Blanc\"."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.0.8"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.0.7",
     "version": "1.0.7",
     "name": "1.0.7",
