@@ -2441,18 +2441,34 @@ function isTrustedChromeSender(event) {
 
 function chromeHandle(channel, handler) {
   ipcMain.handle(channel, (event, ...args) => {
-    if (!isTrustedChromeSender(event)) throw new Error(`${channel}: denied for untrusted sender`);
-    return handler(event, ...args);
+    const runtime = windowRuntimes.runtimeForChromeWebContentsId(event.sender.id);
+    if (!runtime) {
+      // Unregistered surface: either untrusted, or a window mid-close. Never
+      // fall back to "whichever window is focused".
+      if (!app.isPackaged) console.warn(`[ipc] ${channel}: sender has no runtime`);
+      throw new Error(`${channel}: denied for unregistered sender`);
+    }
+    return windowRuntimeContext.run(runtime, () => {
+      if (!isTrustedChromeSender(event)) throw new Error(`${channel}: denied for untrusted sender`);
+      return handler(event, ...args);
+    });
   });
 }
 
 function chromeOn(channel, handler) {
   ipcMain.on(channel, (event, ...args) => {
-    if (!isTrustedChromeSender(event)) {
-      console.warn(`[ipc] ${channel}: denied for untrusted sender`);
+    const runtime = windowRuntimes.runtimeForChromeWebContentsId(event.sender.id);
+    if (!runtime) {
+      if (!app.isPackaged) console.warn(`[ipc] ${channel}: sender has no runtime`);
       return;
     }
-    handler(event, ...args);
+    windowRuntimeContext.run(runtime, () => {
+      if (!isTrustedChromeSender(event)) {
+        console.warn(`[ipc] ${channel}: denied for untrusted sender`);
+        return;
+      }
+      handler(event, ...args);
+    });
   });
 }
 
