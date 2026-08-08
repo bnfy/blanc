@@ -166,18 +166,6 @@
     return tab.url;
   }
 
-  /** Warning-only security check: true just for plain HTTP to a non-loopback
-   * host — https, blanc:, file:, and local dev servers show no indicator.
-   * (Keep in sync with renderer.js.) */
-  function connectionInsecure(url) {
-    if (!url?.startsWith('http://')) return false;
-    try {
-      const host = new URL(url).hostname;
-      return !(host === 'localhost' || host.endsWith('.localhost') || /^127\./.test(host) || host === '[::1]');
-    } catch {
-      return false;
-    }
-  }
 
   /** The page URL behind a `view-source:` URL, else null. Chromium's
    * view-source: is a non-special scheme, so `new URL(...).host` is '' and
@@ -234,7 +222,8 @@
     heartBtn.disabled = !tab || !isFavoritable(tab.url);
     heartBtn.classList.toggle('favorited', !!tab?.bookmarked);
     heartBtn.title = tab?.bookmarked ? 'Remove favorite' : 'Favorite this page (Ctrl/Cmd+D)';
-    panelInsecure.hidden = !tab || tab.isLoading || !connectionInsecure(tab.url);
+    // Same single source as the pill badge and the popover row.
+    panelInsecure.hidden = tab?.connection !== 'http';
 
     const verticalTabsActive = state.tabLayout === 'vertical';
     footerTabLayout.title = verticalTabsActive
