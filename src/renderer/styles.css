@@ -33,10 +33,10 @@
   --font-ui: "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
 
-  /* The island is the one shadowed chrome element. The full popover shadow
-     is reserved for the overlay states (panel/palette/find), which render
-     over the page and can't clip; the resting pill wears the fitted pill
-     shadow, which fades out entirely inside the 64px strip — a shadow
+  /* The main Island is the primary shadowed chrome element. The full popover
+     shadow is reserved for the overlay states (panel/palette/find), which
+     render over the page and can't clip; the resting pill wears the fitted
+     pill shadow, which fades out entirely inside the 64px strip — a shadow
      crossing the strip/page seam would be sliced off at the boundary. */
   --shadow-popover: 0 14px 30px rgba(14, 14, 14, 0.16);
   --shadow-pill: 0 4px 12px -3px rgba(14, 14, 14, 0.22);
@@ -172,7 +172,20 @@ button svg {
   /* Faux header: --page-bg is the active page's sampled top-edge color
      (set from renderer.js); without one the strip stays theme --bg. */
   background: var(--page-bg, transparent);
-  transition: background-color 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    background-color 160ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 120ms linear;
+}
+
+/* Post-1.0 experiment: main delays expanding the page until this exit motion
+   completes, then reclaims the entire 64px landing zone. On return the page
+   first releases the gutter and this trusted strip slides back into it. */
+:root[data-island-hidden="true"] #strip {
+  -webkit-app-region: no-drag;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(-1 * var(--strip-h)));
 }
 
 /* A user-selected theme preview is an immediate handoff while Chromium's
@@ -1147,6 +1160,22 @@ body.mac .vertical-tabs-toolbar {
 
 html:has(> body.overlay-body),
 body.overlay-body { background: transparent; }
+
+/* macOS keeps its native traffic lights above child WebContentsViews. When
+   the scroll-away Island releases the full 64px landing zone, this separate
+   tiny view gives those system controls a stable Blanc surface instead of
+   letting them masquerade as part of whichever website is underneath. */
+html:has(> body.traffic-light-island-body),
+body.traffic-light-island-body { background: transparent; }
+
+.traffic-light-island {
+  position: fixed;
+  inset: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  -webkit-app-region: drag;
+}
 
 #backdrop {
   position: fixed;

@@ -660,8 +660,10 @@ function allBrowsingSessions() {
 
 const CHROME_INDEX_FILE = path.join(__dirname, '../renderer/index.html');
 const CHROME_OVERLAY_FILE = path.join(__dirname, '../renderer/overlay.html');
+const TRAFFIC_LIGHT_ISLAND_FILE = path.join(__dirname, '../renderer/traffic-light-island.html');
 const CHROME_INDEX_URL = pathToFileURL(CHROME_INDEX_FILE).href;
 const CHROME_OVERLAY_URL = pathToFileURL(CHROME_OVERLAY_FILE).href;
+const TRAFFIC_LIGHT_ISLAND_URL = pathToFileURL(TRAFFIC_LIGHT_ISLAND_FILE).href;
 
 /** Privileged chrome must never become a general-purpose browser surface. */
 function lockPrivilegedNavigation(wc, trustedUrl) {
@@ -855,6 +857,11 @@ function flushPermissionPrompts(runtimeId = null) {
 // a sane default before the first report arrives — keep it in step with the
 // `--strip-h` token (styles.css) so the initial web-view offset doesn't jump.
 let chromeHeight = 64;
+const SCROLL_AWAY_ISLAND_TRANSITION_MS = 180;
+// The native traffic lights remain system-owned, but a compact Blanc surface
+// keeps them from looking like website controls once the full Island leaves.
+// The backplate is deliberately much smaller than the 64px landing zone.
+const TRAFFIC_LIGHT_ISLAND_BOUNDS = Object.freeze({ x: 10, y: 6, width: 116, height: 42 });
 // Device-local presentation preference. Settings owns validation and
 // persistence; this live copy makes every child-view bounds calculation use
 // one coherent value throughout a layout transition.
@@ -874,10 +881,12 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
 
 function currentChromeLayout() {
   const browserWindow = currentBrowserWindow();
+  const islandVisible = !currentWorkspaceRuntime()?.islandPageExpanded;
   if (!browserWindow) return calculateChromeLayout({
     width: 1280,
     height: 800,
     chromeHeight,
+    islandVisible,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
   });
@@ -886,9 +895,108 @@ function currentChromeLayout() {
     width,
     height,
     chromeHeight,
+    islandVisible,
     tabLayout,
     verticalTabsWidth: verticalTabsPreferredWidth,
   });
+}
+
+function clearIslandHideTimer(runtime) {
+  if (!runtime?.islandHideTimer) return;
+  clearTimeout(runtime.islandHideTimer);
+  runtime.islandHideTimer = null;
+}
+
+function sendIslandVisibility(runtime) {
+  const browserWindow = runtime?.browserWindow;
+  if (!browserWindow || browserWindow.isDestroyed()) return;
+  browserWindow.webContents.send('chrome:island-visibility', {
+    hidden: !!runtime.islandHidden,
+  });
+}
+
+function wantsTrafficLightIsland(runtime = currentWorkspaceRuntime()) {
+  return !!(
+    runtime
+    && process.platform === 'darwin'
+    && tabLayout === 'island'
+    && runtime.islandHidden
+    && !runtime.overlayMode
+    && !runtime.utilitySheetUrl
+    && runtime.trafficLightIslandView
+    && !runtime.trafficLightIslandView.webContents.isDestroyed()
+  );
+}
+
+function syncTrafficLightIsland(runtime = currentWorkspaceRuntime()) {
+  if (!runtime) return;
+  const view = runtime.trafficLightIslandView;
+  const browserWindow = runtime.browserWindow;
+  const visible = wantsTrafficLightIsland(runtime);
+  if (!view || !browserWindow || browserWindow.isDestroyed()) {
+    runtime.trafficLightIslandVisible = false;
+    return;
+  }
+
+  if (!visible) {
+    if (runtime.trafficLightIslandVisible) browserWindow.contentView.removeChildView(view);
+    view.setVisible(false);
+    runtime.trafficLightIslandVisible = false;
+    return;
+  }
+
+  view.setBounds(TRAFFIC_LIGHT_ISLAND_BOUNDS);
+  view.setVisible(true);
+  // Re-adding keeps this system surface above a tab that was just switched
+  // in, without taking keyboard focus away from that tab.
+  browserWindow.contentView.addChildView(view);
+  runtime.trafficLightIslandVisible = true;
+}
+
+function restackTrafficLightIsland(runtime = currentWorkspaceRuntime()) {
+  if (!runtime?.trafficLightIslandVisible || !runtime.trafficLightIslandView) return;
+  const browserWindow = runtime.browserWindow;
+  if (!browserWindow || browserWindow.isDestroyed()) return;
+  browserWindow.contentView.addChildView(runtime.trafficLightIslandView);
+}
+
+// The Island is rendered by the BrowserWindow root, behind tab child views.
+// Hide it first, then after its CSS exit motion expand the active tab to y=0.
+// Reversing that order would let the child view cover the animation. Revealing
+// does the inverse so the strip drops into a newly restored landing zone.
+function revealScrollAwayIsland() {
+  const runtime = currentWorkspaceRuntime();
+  if (!runtime) return;
+  clearIslandHideTimer(runtime);
+  const needsPageRestore = runtime.islandPageExpanded;
+  runtime.islandPageExpanded = false;
+  if (needsPageRestore) resizeActiveView();
+  if (!runtime.islandHidden) return;
+  runtime.islandHidden = false;
+  syncTrafficLightIsland(runtime);
+  sendIslandVisibility(runtime);
+}
+
+function hideScrollAwayIsland() {
+  const runtime = currentWorkspaceRuntime();
+  if (!runtime || runtime.islandHidden || chromeState.overlayMode || chromeState.utilitySheetUrl) return;
+  runtime.islandHidden = true;
+  syncTrafficLightIsland(runtime);
+  sendIslandVisibility(runtime);
+  clearIslandHideTimer(runtime);
+  runtime.islandHideTimer = setTimeout(() => {
+    if (
+      windowRuntimeRegistry.get(runtime.id) !== runtime ||
+      !runtime.islandHidden ||
+      runtime.overlayMode ||
+      runtime.utilitySheetUrl
+    ) return;
+    runtime.islandHideTimer = null;
+    withWindowRuntime(runtime, () => {
+      runtime.islandPageExpanded = true;
+      resizeActiveView();
+    });
+  }, SCROLL_AWAY_ISLAND_TRANSITION_MS);
 }
 
 function verticalTabsMetrics(layout = currentChromeLayout()) {
@@ -1024,6 +1132,32 @@ function createOverlayForRuntime(runtime) {
   });
 }
 
+function createTrafficLightIsland(runtime = currentWorkspaceRuntime()) {
+  if (!runtime || process.platform !== 'darwin') return;
+  return withWindowRuntime(runtime, () => createTrafficLightIslandForRuntime(runtime));
+}
+
+function createTrafficLightIslandForRuntime(runtime) {
+  const view = new WebContentsView({
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  view.setBackgroundColor('#00000000');
+  lockPrivilegedNavigation(view.webContents, TRAFFIC_LIGHT_ISLAND_URL);
+  runtime.trafficLightIslandView = view;
+  view.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+    syncTrafficLightIsland(runtime);
+  }));
+  view.webContents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('traffic-light-island', details);
+    runtime.trafficLightIslandVisible = false;
+  }));
+  view.webContents.loadFile(TRAFFIC_LIGHT_ISLAND_FILE);
+}
+
 /** The popup took focus from the overlay; hand it back if a panel/palette is
  * still up (chromeState.overlayMode gone — e.g. Paste and Go closed it — nothing to do). */
 function refocusOverlayAfterMenu() {
@@ -1037,6 +1171,7 @@ function showOverlay(mode, { prefill } = {}) {
   // non-true result as window-closed rather than waiting out its timeout.
   if (!hasLiveWindow() || !chromeState.overlayView) return false;
   const runtime = currentWorkspaceRuntime();
+  revealScrollAwayIsland();
   if (chromeState.overlayMode === 'display-share-picker' && mode !== 'display-share-picker') {
     displaySharePickerController.cancelForRuntime(runtime?.id, 'mode-replaced');
   }
@@ -1051,6 +1186,7 @@ function showOverlay(mode, { prefill } = {}) {
   // (Re-)adding moves the overlay to the top of the child-view stack.
   const browserWindow = currentBrowserWindow();
   if (!browserWindow) return false;
+  syncTrafficLightIsland(runtime);
   browserWindow.contentView.addChildView(chromeState.overlayView);
   chromeState.overlayView.setBounds(overlayBounds());
   chromeState.overlayView.webContents.send('overlay:show', { mode, prefill });
@@ -1080,6 +1216,7 @@ function hideOverlay({ refocusContent = true } = {}) {
     browserWindow.webContents.send('chrome:island-state', { mode: null });
     if (refocusContent) tabs.get(tabState.activeTabId)?.view.webContents.focus();
   }
+  syncTrafficLightIsland(runtime);
 }
 
 // --- Utility sheet (design: 2026-07-22-utility-sheet-design.md) ---
@@ -1144,6 +1281,7 @@ function sameUtilityPage(a, b) {
 function showUtilityPage(url) {
   const browserWindow = currentBrowserWindow();
   if (!browserWindow) return;
+  revealScrollAwayIsland();
   // Toggle: a direct re-invocation (menu/accelerator) of the shown page
   // closes it. Overlay-hosted entry points can never hit this — summoning
   // the overlay already dismissed the sheet.
@@ -1470,6 +1608,7 @@ function resizeActiveView() {
     activeTab.view.setBounds(layout.pageBounds);
   }
   if (chromeState.overlayMode && chromeState.overlayView) chromeState.overlayView.setBounds(overlayBounds());
+  syncTrafficLightIsland();
   if (chromeState.utilitySheetUrl && chromeState.utilitySheetView) {
     chromeState.utilitySheetView.setBounds(layout.utilityBounds);
   }
@@ -2406,6 +2545,10 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // Re-selecting the active tab is a no-op.
   if (id === tabState.activeTabId) return;
 
+  // A tab change is an explicit chrome interaction. Restore the Island so
+  // the new page never inherits an unexplained missing landing zone.
+  revealScrollAwayIsland();
+
   // A genuine switch cancels a live display picker, but only when switching
   // from a real tab. The deferred initial reattach is not a tab change.
   // The window's did-finish-load re-attach nulls tabState.activeTabId to force a fresh
@@ -2471,6 +2614,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // but a race must never paint a tab over either floating layer).
   if (chromeState.utilitySheetUrl && chromeState.utilitySheetView) browserWindow.contentView.addChildView(chromeState.utilitySheetView);
   if (chromeState.overlayMode && chromeState.overlayView) browserWindow.contentView.addChildView(chromeState.overlayView);
+  restackTrafficLightIsland(runtime);
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
   // blank new tab we instead want the chrome's address bar, and OS focus
@@ -2539,6 +2683,7 @@ function setGlanceTab(id) {
   if (chromeState.utilitySheetUrl && chromeState.utilitySheetView) {
     browserWindow.contentView.addChildView(chromeState.utilitySheetView);
   }
+  restackTrafficLightIsland(runtime);
   resizeActiveView();
   broadcastTabs();
   return true;
@@ -2881,7 +3026,32 @@ function chromeOn(channel, handler) {
   });
 }
 
+function trustedRuntimeForTabScroll(event) {
+  const tab = tabForWebContentsId(event.sender?.id);
+  if (!tab || tab.view.webContents !== event.sender) return null;
+  // Session preloads run in every frame. Only the top-level document of the
+  // active tab may influence chrome; embedded frames and inactive/Glance tabs
+  // are intentionally ignored.
+  if (!event.senderFrame || event.senderFrame !== event.sender.mainFrame) return null;
+  const runtime = windowRuntimeRegistry.get(tab.runtimeId);
+  if (
+    !runtime || runtime.activeTabId !== tab.id ||
+    !runtime.browserWindow || runtime.browserWindow.isDestroyed() ||
+    runtime.overlayMode || runtime.utilitySheetUrl
+  ) return null;
+  return runtime;
+}
+
 function registerIpcHandlers() {
+  ipcMain.on('tabs:scroll-direction', (event, direction) => {
+    if (direction !== 'down' && direction !== 'up') return;
+    const runtime = trustedRuntimeForTabScroll(event);
+    if (!runtime) return;
+    withWindowRuntime(runtime, () => {
+      if (direction === 'down') hideScrollAwayIsland();
+      else revealScrollAwayIsland();
+    });
+  });
   ipcMain.on('chrome:display-share-pick', (event, payload) => {
     const runtime = trustedRuntimeForChromeSender(event);
     if (runtime) withWindowRuntime(runtime, () => displaySharePickerController.handleReply(event, payload));
@@ -3547,6 +3717,7 @@ function createMainWindow({
   }));
   browserWindow.loadFile(CHROME_INDEX_FILE);
   createOverlay(runtime);
+  createTrafficLightIsland(runtime);
   browserWindow.on('resize', bindWindowRuntime(runtime, resizeActiveView));
   browserWindow.on('focus', bindWindowRuntime(runtime, () => {
     setFocusedWindowRuntime(runtime);
@@ -3555,12 +3726,18 @@ function createMainWindow({
   browserWindow.on('closed', bindWindowRuntime(runtime, () => {
     const closingWindow = browserWindow;
     const closingRuntime = runtime;
+    clearIslandHideTimer(closingRuntime);
     // Settle a pending display request before resetting overlay state.
     displaySharePickerController.cancelForRuntime(runtime.id, 'window-closed');
     // Unlike tabs, the overlay doesn't outlive its window — recreated fresh.
     chromeState.overlayMode = null;
     if (chromeState.overlayView && !chromeState.overlayView.webContents.isDestroyed()) chromeState.overlayView.webContents.close();
     chromeState.overlayView = null;
+    if (closingRuntime.trafficLightIslandView && !closingRuntime.trafficLightIslandView.webContents.isDestroyed()) {
+      closingRuntime.trafficLightIslandView.webContents.close();
+    }
+    closingRuntime.trafficLightIslandView = null;
+    closingRuntime.trafficLightIslandVisible = false;
     // The sheet doesn't outlive its window either — dropping the reference
     // without closing would leak the webContents.
     if (chromeState.utilitySheetView && !chromeState.utilitySheetView.webContents.isDestroyed()) chromeState.utilitySheetView.webContents.close();
@@ -3601,6 +3778,7 @@ function createMainWindow({
   // First launch has no tabState.activeTabId yet — app.whenReady handles that one.
   browserWindow.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
     browserWindow.webContents.send('chrome:theme-appearance', resolvedThemeAppearance());
+    sendIslandVisibility(runtime);
     if (!tabState.activeTabId || !tabs.has(tabState.activeTabId)) return;
     const id = tabState.activeTabId;
     setRuntimeActiveTab(null); // force setActiveTab to treat it as a fresh attach
@@ -4009,6 +4187,10 @@ app.whenReady().then(async () => {
       type: 'frame',
       filePath: path.join(__dirname, 'chrome-compat-preload.js'),
     });
+    browsingSession.registerPreloadScript({
+      type: 'frame',
+      filePath: path.join(__dirname, 'scroll-away-island-preload.js'),
+    });
   }
 
   // Fallback: patch Sec-CH-UA HTTP headers for webContents where the CDP
@@ -4206,6 +4388,10 @@ app.whenReady().then(async () => {
         type: 'frame',
         filePath: path.join(__dirname, 'chrome-compat-preload.js'),
       });
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'scroll-away-island-preload.js'),
+      });
       installChromeClientHintHeaderFallback(browsingSession);
       setupPermissionPolicy(browsingSession, { profileId: pair.profileId, persistDecisions });
       setupDownloads(browsingSession, broadcastDownloadsActivity, { profileId: pair.profileId });
@@ -4246,6 +4432,14 @@ app.whenReady().then(async () => {
       getUtilitySheetState: () => ({ visible: !!chromeState.utilitySheetUrl, url: chromeState.utilitySheetUrl }),
       getUtilitySheetWebContents: () => chromeState.utilitySheetView?.webContents ?? null,
       getOverlayWebContents: () => chromeState.overlayView?.webContents ?? null,
+      getTrafficLightIslandState: () => {
+        const runtime = currentWorkspaceRuntime();
+        const view = runtime?.trafficLightIslandView;
+        return {
+          visible: !!runtime?.trafficLightIslandVisible,
+          bounds: runtime?.trafficLightIslandVisible && view ? view.getBounds() : null,
+        };
+      },
       getChromeWebContents: () => win?.webContents ?? null,
       setWindowContentSize: (width, height) => {
         if (!hasLiveWindow()) return;

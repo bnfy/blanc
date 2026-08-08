@@ -78,6 +78,7 @@ function install(refs) {
     getUtilitySheetState,
     getUtilitySheetWebContents,
     getOverlayWebContents,
+    getTrafficLightIslandState,
     getChromeWebContents,
     setWindowContentSize,
     getWindowContentBounds,
@@ -897,6 +898,44 @@ function install(refs) {
     windowContentBounds() { return getWindowContentBounds(); },
     setWindowContentSize(width, height) { setWindowContentSize(width, height); },
     activeGuestBounds() { return tabs.get(getActiveTabId())?.view.getBounds() ?? null; },
+    trafficLightIslandState() { return getTrafficLightIslandState(); },
+    async prepareActivePageScrollFixture() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        let fixture = document.getElementById('__blanc_scroll_away_fixture');
+        if (!fixture) {
+          fixture = document.createElement('div');
+          fixture.id = '__blanc_scroll_away_fixture';
+          fixture.setAttribute('aria-hidden', 'true');
+          fixture.style.height = '5000px';
+          document.body.append(fixture);
+        }
+        return document.scrollingElement.scrollHeight > window.innerHeight;
+      })()`);
+    },
+    scrollActivePageWheel(deltaY) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !Number.isFinite(deltaY) || !deltaY) return false;
+      tab.view.webContents.focus();
+      tab.view.webContents.sendInputEvent({
+        type: 'mouseWheel',
+        x: 400,
+        y: 400,
+        deltaX: 0,
+        deltaY,
+      });
+      return true;
+    },
+    async programmaticScrollActivePageTo(top) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab) return null;
+      const target = Math.max(0, Number(top) || 0);
+      return tab.view.webContents.executeJavaScript(`(() => {
+        window.scrollTo(0, ${target});
+        return window.scrollY;
+      })()`);
+    },
     utilityBounds() { return getUtilitySheetBounds(); },
     overlayBounds() { return getOverlayBounds(); },
     async overlayElementRect(selector) {

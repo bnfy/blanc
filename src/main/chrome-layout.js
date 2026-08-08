@@ -37,6 +37,7 @@ function normalizeVerticalTabsWidth(value) {
  *   width: number,
  *   height: number,
  *   chromeHeight: number,
+ *   islandVisible?: boolean,
  *   tabLayout?: string,
  *   verticalTabsWidth?: number,
  * }} input
@@ -45,12 +46,18 @@ function calculateChromeLayout({
   width,
   height,
   chromeHeight,
+  islandVisible = true,
   tabLayout = 'island',
   verticalTabsWidth = VERTICAL_TABS_DEFAULT_WIDTH,
 }) {
   const windowWidth = dimension(width);
   const windowHeight = dimension(height);
-  const stripHeight = Math.min(dimension(chromeHeight), windowHeight);
+  // A scroll-away Island releases its complete safe-area gutter, not only
+  // the pill. The vertical rail remains because it is a persistent tab
+  // presentation rather than part of the Island landing zone.
+  const stripHeight = islandVisible
+    ? Math.min(dimension(chromeHeight), windowHeight)
+    : 0;
   const layout = normalizeTabLayout(tabLayout);
   const preferredRailWidth = normalizeVerticalTabsWidth(verticalTabsWidth);
   // BrowserWindow enforces a 640px minimum width, so production can honor the

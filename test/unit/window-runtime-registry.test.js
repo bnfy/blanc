@@ -26,9 +26,20 @@ test('each runtime owns isolated overlay and utility-sheet state', () => {
   assert.equal(one.overlayView, overlay);
   assert.equal(one.overlayMode, 'panel');
   assert.equal(one.utilitySheetView, null);
+  assert.equal(one.islandHidden, false);
+  assert.equal(one.islandPageExpanded, false);
+  assert.equal(one.trafficLightIslandView, null);
+  assert.equal(one.trafficLightIslandVisible, false);
   assert.equal(two.overlayView, null);
   assert.equal(two.utilitySheetView, sheet);
   assert.equal(two.utilitySheetUrl, 'blanc://settings/');
+  two.islandHidden = true;
+  two.islandPageExpanded = true;
+  two.trafficLightIslandView = {};
+  two.trafficLightIslandVisible = true;
+  assert.equal(one.islandHidden, false);
+  assert.equal(one.islandPageExpanded, false);
+  assert.equal(one.trafficLightIslandVisible, false);
 });
 
 test('a runtime keeps its local profile identity across a native re-attach', () => {
@@ -86,12 +97,16 @@ test('detaching native chrome preserves local tabs for a replacement window', ()
   registry.setActiveTab('primary', 'tab-a');
   registry.setOverlay('primary', { view: {}, mode: 'panel', prefill: 'query' });
   registry.setUtilitySheet('primary', { view: {}, url: 'blanc://history/' });
+  runtime.trafficLightIslandView = {};
+  runtime.trafficLightIslandVisible = true;
   runtime.recentlyClosed.push({ url: 'https://reopen.example/' });
 
   registry.detach('primary', firstWindow);
   assert.equal(runtime.browserWindow, null);
   assert.equal(runtime.overlayView, null);
   assert.equal(runtime.utilitySheetView, null);
+  assert.equal(runtime.trafficLightIslandView, null);
+  assert.equal(runtime.trafficLightIslandVisible, false);
   assert.equal(runtime.activeTabId, 'tab-a');
   assert.deepEqual(runtime.recentlyClosed, [{ url: 'https://reopen.example/' }]);
 

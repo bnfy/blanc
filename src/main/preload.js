@@ -49,6 +49,11 @@ contextBridge.exposeInMainWorld('browserAPI', {
     ipcRenderer.on('chrome:vertical-tabs-width', listener);
     return () => ipcRenderer.removeListener('chrome:vertical-tabs-width', listener);
   },
+  onIslandVisibility: (callback) => {
+    const listener = (_event, { hidden }) => callback(!!hidden);
+    ipcRenderer.on('chrome:island-visibility', listener);
+    return () => ipcRenderer.removeListener('chrome:island-visibility', listener);
+  },
 
   sendDisplaySharePick: (requestId, index, shareAudio = false) =>
     ipcRenderer.send('chrome:display-share-pick', { requestId, index, shareAudio }),

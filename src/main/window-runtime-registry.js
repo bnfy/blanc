@@ -18,6 +18,10 @@ function createRuntime(id, browserWindow, profileId) {
     overlayView: null,
     overlayMode: null,
     overlayPrefill: null,
+    // A tiny macOS-only surface that backs the native traffic lights while
+    // the scroll-away Island has released the rest of its landing zone.
+    trafficLightIslandView: null,
+    trafficLightIslandVisible: false,
     addressMenuTicket: 0,
     addressMenuSeq: 0,
     utilitySheetView: null,
@@ -27,6 +31,12 @@ function createRuntime(id, browserWindow, profileId) {
     groups: [],
     recentlyClosed: [],
     glanceTabId: null,
+    // Scroll-away Island experiment. The visual hide begins immediately, then
+    // the page claims the former Island gutter after its short exit motion.
+    // Both states are window-local; a second window must never inherit them.
+    islandHidden: false,
+    islandPageExpanded: false,
+    islandHideTimer: null,
     tabIds: new Set(),
   };
 }
@@ -78,9 +88,15 @@ function createWindowRuntimeRegistry() {
     runtime.overlayView = null;
     runtime.overlayMode = null;
     runtime.overlayPrefill = null;
+    runtime.trafficLightIslandView = null;
+    runtime.trafficLightIslandVisible = false;
     runtime.addressMenuTicket = 0;
     runtime.utilitySheetView = null;
     runtime.utilitySheetUrl = null;
+    if (runtime.islandHideTimer) clearTimeout(runtime.islandHideTimer);
+    runtime.islandHideTimer = null;
+    runtime.islandHidden = false;
+    runtime.islandPageExpanded = false;
     return runtime;
   }
 

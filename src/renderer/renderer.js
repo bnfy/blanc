@@ -39,6 +39,10 @@
   /** Overlay mode mirrored from main — the pill hides while the command
    * bar is expanded in place ('panel'); the palette keeps it visible. */
   let islandMode = null;
+  // The scroll-away experiment is main-process-owned. This renderer only
+  // animates the trusted chrome after main has decided its active page may
+  // claim (or release) the Island's landing zone.
+  let islandHidden = false;
   /** Resolved app appearance pushed by main before prefers-color-scheme has
    * propagated. Cleared as soon as the media query catches up so --bg remains
    * the canonical steady-state color. */
@@ -481,6 +485,10 @@
   window.browserAPI.onIslandState(({ mode }) => {
     islandMode = mode;
     render();
+  });
+  window.browserAPI.onIslandVisibility((hidden) => {
+    islandHidden = hidden;
+    document.documentElement.dataset.islandHidden = String(islandHidden);
   });
   window.browserAPI.onDownloadsActivity((payload) => {
     downloadState = payload;

@@ -50,6 +50,22 @@ test('Island uses the full page width for tabs, sheets, overlays, and pill cente
   assert.deepEqual(layout.islandBounds, { x: 0, y: 0, width: 1280, height: 64 });
 });
 
+test('a scroll-away Island releases its complete landing zone to the page', () => {
+  const layout = calculateChromeLayout({
+    width: 1280,
+    height: 800,
+    chromeHeight: 64,
+    islandVisible: false,
+    tabLayout: 'vertical',
+  });
+
+  assert.deepEqual(layout.railBounds, { x: 0, y: 0, width: 248, height: 800 });
+  assert.deepEqual(layout.pageBounds, { x: 248, y: 0, width: 1032, height: 800 });
+  assert.deepEqual(layout.utilityBounds, layout.pageBounds);
+  assert.deepEqual(layout.findBounds, { x: 484, y: 0, width: 560, height: 160 });
+  assert.deepEqual(layout.islandBounds, { x: 248, y: 0, width: 1032, height: 0 });
+});
+
 test('vertical layout reserves the rail and centers Island surfaces over the website pane', () => {
   const layout = calculateChromeLayout({
     width: 1280,
