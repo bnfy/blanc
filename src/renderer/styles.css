@@ -905,6 +905,20 @@ body.mac .vertical-tabs-toolbar {
   color: var(--danger);
   flex: 0 0 auto;
 }
+/* The pill's badge is a real trigger for the site-controls popover. Padding
+   grows the 13px glyph to a ≥25px hit target; the negative margin hands the
+   space back so the resting pill layout does not shift. The shared
+   button:focus-visible rule provides the ring. */
+button.insecure-badge {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 6px;
+  margin: -6px;
+  cursor: pointer;
+  border-radius: 6px;
+  font: inherit;
+}
 .insecure-badge[hidden] { display: none; }
 .insecure-badge svg {
   width: 13px;
