@@ -7,6 +7,40 @@
 
 const { blockableHostname } = require('./adblock-exceptions');
 
+const LOOPBACK_V4 = /^127(?:\.\d{1,3}){3}$/;
+
+function isLoopbackHost(host) {
+  const h = String(host ?? '').toLowerCase();
+  return h === 'localhost'
+    || h.endsWith('.localhost')
+    || h === '[::1]'
+    || h === '::1'
+    || LOOPBACK_V4.test(h);
+}
+
+/** Scheme-level connection claim. Pure on the URL: knows nothing about load
+ * state. Named for schemes, not security properties — the address is all this
+ * can prove, which is why the copy says "Uses HTTPS" and not "Encrypted". */
+function connectionState(url) {
+  if (typeof url !== 'string' || !url) return null;
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  if (parsed.protocol === 'https:') return 'https';
+  if (parsed.protocol !== 'http:') return null;
+  return isLoopbackHost(parsed.hostname) ? 'local' : 'http';
+}
+
+/** The loading gate lives here, one layer above the pure mapping, so every
+ * consumer inherits it from a single derivation. An absent claim beats a
+ * stale one. */
+function connectionFor({ url, isLoading }) {
+  return isLoading ? null : connectionState(url);
+}
+
 function countPhrase(blocked) {
   return `${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'}`;
 }
@@ -46,4 +80,4 @@ function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled }) {
   return { variant: 'site', host, on: true, countLine };
 }
 
-module.exports = { shieldChipState, shieldPopoverModel };
+module.exports = { shieldChipState, shieldPopoverModel, connectionState, connectionFor };

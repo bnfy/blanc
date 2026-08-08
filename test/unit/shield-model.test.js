@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { shieldChipState, shieldPopoverModel } = require('../../src/main/shield-model');
+const { shieldChipState, shieldPopoverModel, connectionState, connectionFor } = require('../../src/main/shield-model');
 
 const HTTP = 'https://www.theverge.com/article';
 
@@ -60,4 +60,37 @@ test('popover site variant when excepted — even with global blocking off', () 
 test('popover global-off variant when not excepted and blocking is off', () => {
   const v = shieldPopoverModel({ url: HTTP, blockedCount: 0, excepted: false, adblockEnabled: false });
   assert.deepEqual(v, { variant: 'global-off', host: 'theverge.com', on: false, countLine: 'Ad blocking is off everywhere' });
+});
+
+// ---- Connection derivation (design: 2026-08-08-site-info-in-shield-popover) ----
+
+test('connectionState maps schemes, not security properties', () => {
+  assert.equal(connectionState('https://example.com/a'), 'https');
+  assert.equal(connectionState('https://www.example.com/'), 'https');
+  assert.equal(connectionState('http://neverssl.com/'), 'http');
+});
+
+test('connectionState treats loopback HTTP as local', () => {
+  for (const url of [
+    'http://localhost:3000/',
+    'http://sub.localhost/',
+    'http://127.0.0.1:8080/',
+    'http://127.15.2.9/',
+    'http://[::1]:5173/',
+  ]) {
+    assert.equal(connectionState(url), 'local', url);
+  }
+});
+
+test('connectionState is null where no scheme claim can be made', () => {
+  for (const url of ['blanc://newtab/', 'file:///tmp/a.html', 'not a url', '', null, undefined]) {
+    assert.equal(connectionState(url), null, String(url));
+  }
+});
+
+test('connectionFor withholds any claim while loading', () => {
+  assert.equal(connectionFor({ url: 'https://example.com/', isLoading: true }), null);
+  assert.equal(connectionFor({ url: 'http://neverssl.com/', isLoading: true }), null);
+  assert.equal(connectionFor({ url: 'https://example.com/', isLoading: false }), 'https');
+  assert.equal(connectionFor({ url: null, isLoading: false }), null);
 });
