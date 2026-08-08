@@ -445,7 +445,15 @@
   pillShield.addEventListener('click', (e) => {
     e.stopPropagation();
     const r = pillShield.getBoundingClientRect();
-    window.browserAPI.openShieldPopover({ right: r.right });
+    window.browserAPI.openShieldPopover({ right: r.right, trigger: 'shield' });
+  });
+
+  // The not-secure badge is the popover's second door — same room, anchored
+  // under whichever control was clicked. Enter/Space come free (real button).
+  pillInsecure.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const r = pillInsecure.getBoundingClientRect();
+    window.browserAPI.openShieldPopover({ right: r.right, trigger: 'insecure' });
   });
 
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());

@@ -641,6 +641,11 @@ let shieldAnchorRight = null;
  * tab's live url may already read as the NEW site when did-start-navigation
  * fires, so a live recompute could never detect the site change. */
 let shieldPopoverHost = null;
+/** Which control opened the popover: 'shield' | 'insecure' | null. Re-click
+ * of the SAME control toggles shut; the other control re-anchors instead.
+ * Also rides chrome:island-state so each button's aria-expanded is truthful,
+ * and tells the Escape path which control gets focus back. */
+let shieldTrigger = null;
 /** Native address-bar context menu up: suppress the overlay's blur
  * dismissal — the popup's close callback owns what happens next.
  * A generation ticket, not a boolean: if a second popup ever supersedes the
@@ -805,6 +810,7 @@ function hideOverlay({ refocusContent = true } = {}) {
   overlayMode = null;
   shieldAnchorRight = null;
   shieldPopoverHost = null;
+  shieldTrigger = null;
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
@@ -2584,12 +2590,24 @@ function registerIpcHandlers() {
   chromeOn('chrome:open-island', () => showOverlay('panel'));
   chromeOn('chrome:open-find', () => showOverlay('find'));
   chromeOn('chrome:open-shield', (_e, anchor) => {
-    // Chip re-click closes — the chip is a toggle for the popover itself.
-    if (overlayMode === 'shield') return hideOverlay({ refocusContent: false });
+    const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
+    if (overlayMode === 'shield') {
+      // Same control re-clicked toggles shut. A DIFFERENT control re-anchors —
+      // closing there would read as the second button being broken.
+      if (trigger === shieldTrigger) return hideOverlay({ refocusContent: false });
+      shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+      shieldTrigger = trigger;
+      // The bounds must move NOW: updating stored state alone would pass a
+      // state assertion while leaving the card visually where it was.
+      overlayView.setBounds(overlayBounds());
+      win.webContents.send('chrome:island-state', { mode: 'shield', trigger });
+      return;
+    }
     const popover = activeShieldPopover();
     if (!popover) return; // no blockable host — nothing to show
     shieldPopoverHost = popover.host;
     shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+    shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
   });
