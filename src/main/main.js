@@ -10,6 +10,7 @@ const {
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const { shieldChipState, shieldPopoverModel } = require('./shield-model');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -937,6 +938,7 @@ function isHostnameExcepted(url) {
 }
 
 function serializeTabs() {
+  const { adblockEnabled } = settings.getSettings();
   return tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
@@ -947,15 +949,23 @@ function serializeTabs() {
       // shield hides at a 0 count), so "/allow-ads" left no visible trace and
       // "/block-ads" appeared to do nothing when it lifted the exception.
       const excepted = isHostnameExcepted(rest.url);
+      // Chip state is fully derived here (shield-model.js) so the strip and
+      // overlay only ever render what the broadcast says.
+      const shield = shieldChipState({
+        url: rest.url,
+        blockedCount: rest.blockedCount,
+        excepted,
+        adblockEnabled,
+      });
       if (rest.private && rest.favicon) {
         // A page-favicon URL belongs to the tab's browsing session. Sending a
         // private tab's remote URL into persistent chrome would make the chrome
         // session fetch it again merely to paint the pill/overlay/rail, escaping
         // the non-persistent private-session boundary. Private rows deliberately
         // use the renderer's neutral fallback instead.
-        return { ...rest, favicon: null, excepted };
+        return { ...rest, favicon: null, excepted, shield };
       }
-      return { ...rest, excepted };
+      return { ...rest, excepted, shield };
     });
 }
 
@@ -1017,6 +1027,18 @@ function persistSession() {
   });
 }
 
+/** The active tab's popover model, or null when it has no blockable host. */
+function activeShieldPopover() {
+  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  if (!tab) return null;
+  return shieldPopoverModel({
+    url: tab.url,
+    blockedCount: tab.blockedCount,
+    excepted: isHostnameExcepted(tab.url),
+    adblockEnabled: settings.getSettings().adblockEnabled,
+  });
+}
+
 function broadcastTabs() {
   persistSession();
   tabsync.noteTabsChanged();
@@ -1027,6 +1049,8 @@ function broadcastTabs() {
     activeTabId,
     groups,
     tabLayout,
+    adblockEnabled: settings.getSettings().adblockEnabled,
+    shieldPopover: activeShieldPopover(),
     ...widthMetrics,
   };
   win.webContents.send('tabs:updated', payload);
@@ -2395,6 +2419,9 @@ function runBlockAdsCommand() {
       : { adblockEnabled: result.enabled }
   );
   reloadTabAfterSettingsFanout(tab);
+  // Shield chip/popover state changed — don't wait for the reload's own
+  // broadcast to reflect it.
+  broadcastTabs();
   return result;
 }
 
@@ -2413,6 +2440,9 @@ function runAllowAdsCommand() {
   const { adblockExceptions } = settings.getSettings();
   settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
   reloadTabAfterSettingsFanout(tab);
+  // Shield chip/popover state changed — don't wait for the reload's own
+  // broadcast to reflect it.
+  broadcastTabs();
   return hostname;
 }
 
