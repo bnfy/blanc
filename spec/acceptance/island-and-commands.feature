@@ -8,13 +8,12 @@ Feature: Island chrome, command palette, and slash commands
     Given ad/tracker blocking is enabled
 
   @F1-1 @F1 @all
-  Scenario: The resting pill reflects the active tab, group, and shield
+  Scenario: The resting pill reflects the active tab and its blocking state
     Given a group named "work" with 3 tabs
     And the active tab is in "work" on a page where 2 requests were blocked
     When the island is at rest
     Then the island shows back and forward controls
     And the island shows 3 group dots
-    And the island shows the group name "work"
     And the island shows the active page's domain
     And the island shows a shield count of 2
     And the island shows the trailing action cluster

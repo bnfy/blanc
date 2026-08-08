@@ -36,14 +36,14 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 | ID | Scenario | Diverge | Desktop | iOS | Android |
 |----|----------|---------|:-------:|:---:|:-------:|
-| F1-1 | Resting pill reflects tab, group, shield | — | ✅ | ⬜ | ⬜ |
+| F1-1 | Resting pill reflects tab and blocking state | — | ✅ | ⬜ | ⬜ |
 | F1-2 | Palette floats command bar + tab switcher | — | ✅ | ⬜ | ⬜ |
 | F2-1 | Reopen closed restores URL | — | ✅ | ⬜ | ⬜ |
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |
 | F2-4 | Plain new tab is ungrouped | — | ✅ | ⬜ | ⬜ |
 | F3-1 | `/group` creates + moves | — | ✅ | ⬜ | ⬜ |
-| F3-2 | Pill shows only active group | — | ✅ | ⬜ | ⬜ |
+| F3-2 | Pill's dots render only active group | — | ✅ | ⬜ | ⬜ |
 | F3-3 | Collapse tucks tabs away | — | ✅ | ⬜ | ⬜ |
 | F3-4 | Last tab prunes group | — | ✅ | ⬜ | ⬜ |
 | F3-5 | Grouped pin stays in group | — | ✅ | ⬜ | ⬜ |

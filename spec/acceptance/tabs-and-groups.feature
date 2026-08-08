@@ -38,12 +38,13 @@ Feature: Tabs and tab groups
     And the active tab is in "work"
 
   @F3-2 @F3 @all
-  Scenario: The pill renders only the active group
+  Scenario: The pill's dots render only the active group
     Given a group "work" with 2 tabs
-    And a group "play" with 2 tabs
+    And a group "play" with 3 tabs
     When the active tab is in "work"
-    Then the island shows the group name "work"
-    And the island does not show the group name "play"
+    Then the island shows 2 group dots
+    When the active tab is in "play"
+    Then the island shows 3 group dots
 
   @F3-3 @F3 @all
   Scenario: Collapsing a group tucks its tabs away in the panel
