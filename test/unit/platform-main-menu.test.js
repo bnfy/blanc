@@ -189,11 +189,13 @@ test('chrome markup and IPC keep one native menu definition', () => {
   assert.match(renderer, /getBoundingClientRect\(\)/);
   assert.match(renderer, /window\.browserAPI\.openMainMenu/);
   assert.match(preload, /ipcRenderer\.invoke\('chrome:open-main-menu', point\)/);
-  assert.match(main, /event\.sender !== win\?\.webContents/);
-  assert.match(main, /popupPlatformMainMenu\(\{ Menu, window: win, point \}\)/);
+  assert.match(main, /event\.sender !== rt\(\)\.window\?\.webContents/);
+  assert.match(main, /popupPlatformMainMenu\(\{ Menu, window: rt\(\)\.window, point \}\)/);
   assert.match(main, /label: 'Help'[\s\S]*isMac \? \[\] : \[[\s\S]*label: 'About Blanc'[\s\S]*showAboutPanel\(\{ app \}\)/);
   assert.match(main, /function installChromeShortcuts\(webContents\) \{[\s\S]*installVerticalTabsShortcut\(webContents\);[\s\S]*installPlatformMainMenuShortcut/);
-  assert.equal((main.match(/installChromeShortcuts\([^)]*webContents\)/g) ?? []).length >= 2, true);
+  // [^)]* can't span a nested-paren argument like rt().window.webContents, so
+  // this stops at the next statement boundary (;) instead of the next ')'.
+  assert.equal((main.match(/installChromeShortcuts\([^;]*webContents\)/g) ?? []).length >= 2, true);
   assert.match(
     fs.readFileSync(path.join(ROOT, 'src/main/platform-main-menu.js'), 'utf8'),
     /Menu\.getApplicationMenu\(\)/

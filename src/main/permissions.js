@@ -28,7 +28,7 @@ const ensureStore = () => {
   return store;
 };
 
-/** @type {((req: {origin: string, permission: string, mediaTypes: string[]}) => Promise<boolean | null>) | null} */
+/** @type {((req: {origin: string, permission: string, mediaTypes: string[], requestingWebContents: Electron.WebContents}) => Promise<boolean | null>) | null} */
 let prompter = null;
 function setPermissionPrompter(fn) { prompter = fn; }
 
@@ -69,7 +69,7 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     }
   };
 
-  session.setPermissionRequestHandler(async (_wc, permission, callback, details) => {
+  session.setPermissionRequestHandler(async (wc, permission, callback, details) => {
     if (AUTO_ALLOWED.has(permission)) return callback(true);
     if (!PROMPTED.has(permission)) return callback(false);
 
@@ -87,7 +87,7 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     // null = the prompt couldn't be shown (no window). Deny for now but
     // DON'T persist it, or a transient no-window moment would silently
     // block the site forever. Only a real Allow/Block answer is remembered.
-    const allow = await prompter({ origin, permission, mediaTypes });
+    const allow = await prompter({ origin, permission, mediaTypes, requestingWebContents: wc });
     if (allow === null) return callback(false);
     saveDecision(origin, permission, mediaTypes, allow);
     callback(allow);
