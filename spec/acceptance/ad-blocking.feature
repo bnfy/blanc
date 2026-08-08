@@ -66,3 +66,26 @@ Feature: Ad and tracker blocking
     When I flip the shield popover toggle
     Then the ad-block exceptions do not contain the active site
     And the shield popover shows protection on for the active site
+
+  @F12-7 @F12 @desktop
+  Scenario: The HTTP warning badge opens site controls
+    Given I am on an unencrypted page
+    When I open site controls from the warning badge
+    Then site controls report the connection is not encrypted
+
+  @F12-8 @F12 @all
+  Scenario: Site controls report an HTTPS connection
+    Given I am on an encrypted page
+    When I open site controls
+    Then site controls report the connection uses HTTPS
+
+  @F12-9 @F12 @desktop
+  Scenario: Site controls follow the control that opened them
+    Given I am on an unencrypted page
+    When I open site controls
+    Then only the shield reports itself expanded
+    When I open site controls from the warning badge
+    Then site controls stay open and move to the warning badge
+    And only the warning badge reports itself expanded
+    When I dismiss site controls with Escape
+    Then focus returns to the warning badge

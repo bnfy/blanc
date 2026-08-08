@@ -37,6 +37,20 @@ class BlancWorld {
   fixtureUrl(name) {
     return `${ctx.fixturesBase}/site/${encodeURIComponent(name)}`;
   }
+
+  /** The same fixture, reached through the insecure.test hostname the harness
+   * maps to loopback — a plain-HTTP page whose HOSTNAME is not loopback, so
+   * the connection model reads it as 'http' rather than 'local'. */
+  insecureFixtureUrl(name) {
+    return this.fixtureUrl(name).replace('127.0.0.1', 'insecure.test');
+  }
+
+  /** A real https-committed fixture: TLS on loopback behind the secure.test
+   * mapping, trusted only via the per-run SPKI pin the harness passes at
+   * launch. */
+  secureFixtureUrl(name) {
+    return `${ctx.secureFixturesBase}/site/${encodeURIComponent(name)}`;
+  }
 }
 
 setWorldConstructor(BlancWorld);

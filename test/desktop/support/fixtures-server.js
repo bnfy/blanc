@@ -3,20 +3,25 @@
 // is <name> and whose body contains the word "widget" three times (used by the
 // find-in-page scenario when that step is implemented).
 const http = require('node:http');
+const https = require('node:https');
+
+function pageBody(req) {
+  const name = decodeURIComponent((req.url || '/').replace(/^\/site\//, '').split('?')[0]) || 'page';
+  return (
+    `<!doctype html><html><head><meta charset="utf-8"><title>${name}</title></head>` +
+    `<body><h1>${name}</h1><p>widget widget widget</p>` +
+    `<input id="acceptance-draft" aria-label="Unsaved draft">` +
+    `<script>` +
+    `const key='acceptance-load-count';` +
+    `sessionStorage.setItem(key,String(Number(sessionStorage.getItem(key)||0)+1));` +
+    `</script></body></html>`
+  );
+}
 
 function start() {
   const server = http.createServer((req, res) => {
-    const name = decodeURIComponent((req.url || '/').replace(/^\/site\//, '').split('?')[0]) || 'page';
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(
-      `<!doctype html><html><head><meta charset="utf-8"><title>${name}</title></head>` +
-      `<body><h1>${name}</h1><p>widget widget widget</p>` +
-      `<input id="acceptance-draft" aria-label="Unsaved draft">` +
-      `<script>` +
-      `const key='acceptance-load-count';` +
-      `sessionStorage.setItem(key,String(Number(sessionStorage.getItem(key)||0)+1));` +
-      `</script></body></html>`
-    );
+    res.end(pageBody(req));
   });
   return new Promise((resolve) => {
     server.listen(0, '127.0.0.1', () => {
@@ -26,4 +31,20 @@ function start() {
   });
 }
 
-module.exports = { start };
+/** The same fixture pages over TLS, for the F12-8 'Uses HTTPS' assertion.
+ * The caller supplies a throwaway self-signed cert; the harness pins exactly
+ * that cert's SPKI hash at launch, so nothing else gains trust. */
+function startSecure({ key, cert }) {
+  const server = https.createServer({ key, cert }, (req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(pageBody(req));
+  });
+  return new Promise((resolve) => {
+    server.listen(0, '127.0.0.1', () => {
+      const { port } = server.address();
+      resolve({ port, close: () => new Promise((r) => server.close(r)) });
+    });
+  });
+}
+
+module.exports = { start, startSecure };

@@ -346,6 +346,11 @@ function install(refs) {
         return true;
       })()`);
     },
+    pillInsecureHidden() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`document.getElementById('pillInsecure')?.hidden ?? null`);
+    },
     shieldAriaExpanded() {
       const wc = getChromeWebContents();
       if (!wc) return null;
