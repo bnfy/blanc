@@ -1257,6 +1257,9 @@
     findLastQuery = query;
   }
 
+  // Electron's findNext means "start a NEW find session", not "move to the
+  // next result". A fresh input value must therefore use true; Enter and the
+  // arrow controls continue that session with false.
   // Search live as the user types; Enter/Shift+Enter step through matches.
   findInput.addEventListener('input', () => {
     if (!findInput.value) {
@@ -1265,15 +1268,15 @@
       if (state.activeTabId) window.browserAPI.stopFindInPage(state.activeTabId);
       return;
     }
-    runFind({ forward: true, findNext: false });
+    runFind({ forward: true, findNext: true });
   });
   findInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
-      runFind({ forward: !e.shiftKey, findNext: findInput.value === findLastQuery });
+      runFind({ forward: !e.shiftKey, findNext: findInput.value !== findLastQuery });
     }
   });
-  findPrevBtn.addEventListener('click', () => runFind({ forward: false, findNext: true }));
-  findNextBtn.addEventListener('click', () => runFind({ forward: true, findNext: true }));
+  findPrevBtn.addEventListener('click', () => runFind({ forward: false, findNext: false }));
+  findNextBtn.addEventListener('click', () => runFind({ forward: true, findNext: false }));
   findCloseBtn.addEventListener('click', () => window.browserAPI.closeOverlay());
 
   window.browserAPI.onFindResult(({ activeMatchOrdinal, matches }) => {
