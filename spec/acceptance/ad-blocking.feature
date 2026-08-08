@@ -50,3 +50,19 @@ Feature: Ad and tracker blocking
     Then the pill shows that ads are allowed here
     When I run the slash command "/block-ads"
     Then the pill no longer shows that ads are allowed here
+
+  # The shield is a control, not just a badge: its popover is "the same
+  # surface that allowed it" from the parity contract, one click from the
+  # pill. Only the on/off state and the site toggle are asserted here — the
+  # count line inside the popover follows D13 on iOS (binary, no number).
+  @F12-6 @F12 @all @D2 @D13
+  Scenario: The shield opens a site popover that toggles protection for the site
+    Given the active tab is on "ads.example"
+    When I open the shield popover from the pill
+    Then the shield popover shows protection on for the active site
+    When I flip the shield popover toggle
+    Then the ad-block exceptions contain the active site
+    And the shield popover shows protection off for the active site
+    When I flip the shield popover toggle
+    Then the ad-block exceptions do not contain the active site
+    And the shield popover shows protection on for the active site
