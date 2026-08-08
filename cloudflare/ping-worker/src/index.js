@@ -24,6 +24,11 @@
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// The client already coarsens the OS to a bare major (src/main/telemetry.js
+// coarseOsVersion). Anything else is a client that predates the field, or a
+// forged body — both become 'unknown' rather than opening an unbounded key
+// space in KV.
+const OS_VERSION_RE = /^\d{1,4}$/;
 
 const GA_MEASUREMENT_ID = 'G-MN8BLY6GE9';
 const GA_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
@@ -68,7 +73,7 @@ async function hashInstallId(env, installId) {
 //      point event, not a timed session.
 // User properties (platform, arch, app_version) are set once per client_id
 // and stick to the user in GA's user-scoped reports / explorations.
-function forwardToGA(env, { version, platform, arch, installId, sessionId }) {
+function forwardToGA(env, { version, platform, arch, osVersion, installId, sessionId }) {
   if (!env.GA_API_SECRET || !installId) return Promise.resolve();
   const url = `${GA_ENDPOINT}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${env.GA_API_SECRET}`;
   const sid = sessionId || String((Math.random() * 0x7FFFFFFF) >>> 0);
@@ -80,6 +85,7 @@ function forwardToGA(env, { version, platform, arch, installId, sessionId }) {
         app_version: { value: version },
         platform: { value: platform },
         arch: { value: arch },
+        os_version: { value: osVersion },
       },
       events: [{
         name: 'app_launch',
@@ -89,6 +95,7 @@ function forwardToGA(env, { version, platform, arch, installId, sessionId }) {
           app_version: version,
           platform,
           arch,
+          os_version: osVersion,
         },
       }],
     }),
@@ -160,6 +167,9 @@ async function handlePing(request, env, ctx, now) {
     : 'unknown';
   const platform = ALLOWED_PLATFORMS.has(body.platform) ? body.platform : 'unknown';
   const arch = typeof body.arch === 'string' ? body.arch.slice(0, 16) : 'unknown';
+  const osVersion = typeof body.osVersion === 'string' && OS_VERSION_RE.test(body.osVersion)
+    ? body.osVersion
+    : 'unknown';
   // Opaque random token from the client; cap length defensively. Absent for
   // pre-metrics clients — those still count as launches, just not as uniques.
   const installId =
@@ -177,7 +187,7 @@ async function handlePing(request, env, ctx, now) {
 
   // GA mirror is queued before the KV writes so a KV failure can't cost
   // the launch event too.
-  ctx.waitUntil(forwardToGA(env, { version, platform, arch, installId: hashedId, sessionId }));
+  ctx.waitUntil(forwardToGA(env, { version, platform, arch, osVersion, installId: hashedId, sessionId }));
 
   // KV get/put can throw transiently; the counts are best-effort anyway
   // (see bump()), so log and still 204 rather than turning a blip into a
@@ -187,6 +197,8 @@ async function handlePing(request, env, ctx, now) {
     bump(env.PINGS, todayLaunchKey(now)),
     bump(env.PINGS, `version:${version}`),
     bump(env.PINGS, `platform:${platform}`),
+    // Keyed with the platform: a bare '11' would merge macOS 11 and Windows 11.
+    bump(env.PINGS, `os:${platform}:${osVersion}`),
   ];
   if (hashedId) {
     work.push(
@@ -296,11 +308,12 @@ async function handleStats(request, env, now) {
     return new Response('unauthorized', { status: 401 });
   }
 
-  const [total, byDay, byVersion, byPlatform, daily, weekly, monthly] = await Promise.all([
+  const [total, byDay, byVersion, byPlatform, byOsVersion, daily, weekly, monthly] = await Promise.all([
     env.PINGS.get('total'),
     readMap(env.PINGS, 'day:'),
     readMap(env.PINGS, 'version:'),
     readMap(env.PINGS, 'platform:'),
+    readMap(env.PINGS, 'os:'),
     readMap(env.PINGS, 'active:day:'),
     readMap(env.PINGS, 'active:week:'),
     readMap(env.PINGS, 'active:month:'),
@@ -324,6 +337,7 @@ async function handleStats(request, env, now) {
       byDay,
       byVersion,
       byPlatform,
+      byOsVersion,
     },
     activeUsers: {
       daily: pickRecent(daily, 30),

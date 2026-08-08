@@ -213,3 +213,44 @@ test('purge-legacy-ids is bearer-gated and fails closed without a token', async 
   }
   assert.ok(kv.map.has(`seen:day:2026-07-10:${RAW_ID}`), 'nothing deleted on denial');
 });
+
+test('OS version is bucketed per platform, so macOS 11 and Windows 11 never merge', async () => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret' };
+  await ping(env, { ...PING_BODY, platform: 'darwin', osVersion: '11' });
+  await ping(env, { ...PING_BODY, platform: 'win32', osVersion: '11' });
+  assert.equal(env.PINGS.map.get('os:darwin:11'), '1');
+  assert.equal(env.PINGS.map.get('os:win32:11'), '1');
+});
+
+test('a malformed or absent osVersion degrades to unknown rather than opening the key space', async () => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret' };
+  // Pre-osVersion clients still ping; they must count as launches.
+  await ping(env, PING_BODY);
+  // A forged body must not become a KV key.
+  await ping(env, { ...PING_BODY, osVersion: '../../etc/passwd' });
+  await ping(env, { ...PING_BODY, osVersion: '26.1.4' });
+  await ping(env, { ...PING_BODY, osVersion: 26 });
+  assert.equal(env.PINGS.map.get('os:darwin:unknown'), '4');
+  assert.equal(env.PINGS.map.get('total'), '4');
+  assert.equal([...env.PINGS.map.keys()].filter((k) => k.startsWith('os:')).length, 1);
+});
+
+test('GA receives the OS version as a user property and an event param', async () => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', GA_API_SECRET: 'ga' };
+  const { gaCalls } = await ping(env, { ...PING_BODY, osVersion: '26' });
+  assert.equal(gaCalls.length, 1);
+  assert.equal(gaCalls[0].body.user_properties.os_version.value, '26');
+  assert.equal(gaCalls[0].body.events[0].params.os_version, '26');
+});
+
+test('/stats exposes the OS-version breakdown', async () => {
+  const env = { PINGS: fakeKV(), INSTALL_HASH_SECRET: 'test-secret', STATS_TOKEN: 't' };
+  await ping(env, { ...PING_BODY, osVersion: '26' });
+  await ping(env, { ...PING_BODY, osVersion: '27' });
+  const res = await worker.fetch(
+    new Request('https://ping.test/stats', { headers: { Authorization: 'Bearer t' } }),
+    env, { waitUntil() {} }
+  );
+  const stats = await res.json();
+  assert.deepEqual(stats.launches.byOsVersion, { 'darwin:26': 1, 'darwin:27': 1 });
+});

@@ -2,7 +2,8 @@
 
 Collector for Blanc's anonymous launch ping (Settings → "Help improve
 Blanc", on by default, opt-out). Receives `POST /ping` with
-`{installId, sessionId, version, platform, arch}` and tallies counts in Workers KV.
+`{installId, sessionId, version, platform, arch, osVersion}` and tallies counts in
+Workers KV.
 `GET /stats` (bearer-token gated) returns launch totals **and** active-user
 metrics.
 
@@ -12,7 +13,13 @@ no name, account, IP, or browsing data is stored beside it. The Worker uses
 it only to dedupe repeat launches into distinct active users:
 
 - **Launches** — every ping bumps `total`, `day:<date>`, `version:<v>`,
-  `platform:<p>`. Ten launches by one person count as ten.
+  `platform:<p>`, `os:<platform>:<major>`. Ten launches by one person count as
+  ten. `osVersion` arrives already coarsened to a bare major by the client
+  (`coarseOsVersion` in `src/main/telemetry.js`) — enough to size the audience
+  for an OS-gated feature, without a point release's finer fingerprint. The
+  Worker rejects anything that isn't 1–4 digits as `unknown`, so a forged body
+  can't open an unbounded key space. The OS key includes the platform because
+  a bare `11` would otherwise merge macOS 11 with Windows 11.
 - **Active users** — the first ping from an install in a given
   day/week/month sets a `seen:<scope>:<bucket>:<installId>` flag and bumps
   that period's `active:<scope>:<bucket>` unique counter. Those counters
@@ -100,7 +107,8 @@ Returns JSON like:
     "total": 420,
     "byDay": { "2026-07-05": 30, "2026-07-06": 28 },
     "byVersion": { "0.12.0": 400, "0.11.0": 20 },
-    "byPlatform": { "darwin": 300, "win32": 90, "linux": 30 }
+    "byPlatform": { "darwin": 300, "win32": 90, "linux": 30 },
+    "byOsVersion": { "darwin:26": 180, "darwin:27": 120, "win32:11": 70, "win32:10": 20 }
   },
   "activeUsers": {
     "daily":   { "2026-07-07": 41, "2026-07-08": 44 },
