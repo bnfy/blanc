@@ -99,9 +99,13 @@ site toggle is shown (it could do nothing), and global state cannot be
 flipped from the pill.
 
 **Dismissal:** Esc (existing `before-input-event`), overlay blur, clicking
-the chip again, tab switch or creation, `did-start-navigation` on the active
-tab (the state it describes is gone). Summoning ⌘L swaps the overlay to
-palette mode via the normal `showOverlay` path.
+the chip again, tab switch or creation, and any active-tab navigation that
+**changes the site** (different or missing blockable hostname — the state
+the popover describes is gone). Same-site navigations deliberately keep it
+open: that includes the toggle's own reload (which would otherwise close
+the popover the moment it's used) and ordinary same-site link clicks, with
+the count line updating live. Summoning ⌘L swaps the overlay to palette
+mode via the normal `showOverlay` path.
 
 ## Architecture & data flow
 
@@ -109,12 +113,13 @@ palette mode via the normal `showOverlay` path.
   viewport rect (`getBoundingClientRect` returns post-`zoom` coordinates)
   → main's `showOverlay('shield', payload)` with
   `{host, blocked, excepted, enabled}`. Main stays the only mode mutator.
-- Overlay renders the popover, measures its actual height, and reports it
-  over a new `chrome:`-namespaced size message (same shape as the existing
-  layout-height report); main clamps the rect to the window and sets tight
-  bounds: fixed CSS width (~280px), top edge just below the strip, right
-  edge aligned to the chip's right edge, clamped to the window with a small
-  margin.
+- Bounds follow the find-capsule pattern: fixed constants in
+  `chrome-layout.js` (a pure `calculateShieldBounds` next to `findBounds`),
+  not runtime measurement — a fixed-size region below the strip, right edge
+  aligned to the chip's right edge, clamped to the window with a small
+  margin. The region is slightly taller than the drawn popover; the small
+  transparent remainder swallowing clicks is the same accepted trade-off as
+  find's 160px region.
 - **Live updates:** the overlay already receives `tabs:updated`; shield mode
   re-renders the count line from it. After a toggle changes settings, main
   re-sends the `overlay:show` payload — the same idempotent render path.
