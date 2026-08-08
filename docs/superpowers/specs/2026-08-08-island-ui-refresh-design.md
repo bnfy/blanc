@@ -243,15 +243,33 @@ files, not by a passing suite. The pill ✕ is genuinely uncovered by any scenar
 report *unused* step definitions in any case, only undefined ones. A green dry run says
 nothing here.
 
-Verify by **binding/source audit** instead:
+Verify by **binding/source audit** instead. This amendment has no automated pass
+condition, and the spec says so rather than implying one:
+
 1. `rg` each removed step's exact text across `spec/acceptance/**` to confirm no other
    scenario still uses it.
 2. For any step now unused, `rg` its definition in `test/desktop/steps/**` and delete the
    orphaned definition, or state in the PR why it is kept (a step may be intentionally
    defined ahead of a scenario).
-3. Run the full config's dry run — `npx cucumber-js -c test/desktop/cucumber.mjs
-   --dry-run` (the default `not @mobile` profile, not `-p dry`) — so the amended
-   scenarios are actually parsed and their remaining steps resolve.
+3. Read the amended scenarios and confirm by eye that every remaining step is one the
+   feature still claims.
+
+**`test:acceptance:dry` (the `RUNNABLE` profile) stays the gate** — it must remain at 64
+scenarios / 425 steps / 0 undefined, proving the amendment did not disturb the scenarios
+that do execute.
+
+**The full-config dry run is observational only, never a gate.** Verified: *none* of
+F1-1/F3-2's pill assertions has a desktop binding today — `shows the group name`,
+`group dots`, `active page's domain`, and `back and forward controls` all return zero
+matches in `test/desktop/steps/`. The default `not @mobile` profile also already carries
+other undefined scenarios by design (the tagged backlog). So running it can show the
+amended Gherkin *parses*, but it can never show the remaining steps "resolve", and a
+non-zero undefined count there is the expected baseline rather than a failure. Quote it
+in the PR as a parse check if useful; do not treat it as green/red.
+
+If a future milestone wants these scenarios executable, that is its own piece of work:
+add the pill bindings and move `@F1-1`/`@F3-2` into `RUNNABLE`. Explicitly out of scope
+here — this refresh amends the written contract, it does not build the harness for it.
 
 **A deliberate dark-mode pass** on the two items where a correct number can still render
 wrong: the specular rim (item 1) and the cistern's submerged-glyph clip (item 4).
