@@ -412,10 +412,12 @@ In `styles.css`, the tab-row title rule takes:
 
 The row ✕ is hover-revealed (`opacity: 0`). The active row's stays visible. Add:
 
+The class is **`.row-close`** (`styles.css:1204`, hover-revealed at `:1216-1218`) — not
+`.row-x`. Add beside those rules:
+
 ```css
-.island-row.active .row-x { opacity: 1; }
+.island-row.active .row-close { opacity: 1; }
 ```
-Use the app's actual class for the row close button — find it with `rg -n 'row-x|\.x\b' src/renderer/styles.css` and match the existing name.
 
 - [ ] **Step 4: Verify**
 
@@ -472,11 +474,15 @@ Replace the `.footer-new` rule (`:1475`) body with the DS values, keeping the ap
 .footer-new svg { width: 13px; height: 13px; }
 ```
 
-Confirm the private launcher actually carries the `private` class:
+The private launcher already carries the class — it is authored in the markup, not the
+JS: `overlay.html:41` is `<button id="footerNewPrivate" class="footer-new private">`
+(the plain launcher is `overlay.html:36`). No JS change is needed for this task; confirm
+with:
 
 ```bash
-rg -n 'footer-new' src/renderer/overlay.js
+rg -n 'class="footer-new' src/renderer/overlay.html
 ```
+Expected: two matches — `footer-new` and `footer-new private`.
 
 - [ ] **Step 2: Verify**
 
@@ -505,17 +511,41 @@ git commit -m "feat(island): footer launchers as a solid accent pill and dashed 
 
 **Naming rule:** user-visible strings only. `#pillShield`, `shield-model.js`, and the `@F12` step text stay.
 
+**There are FOUR title branches, not three** (`shield-model.js:77, :80, :87, :90`;
+`:75`'s hidden state returns an empty title and is unchanged). The two "off" cases are
+distinct and must stay distinguishable — one is *this site is excepted*, the other is
+*blocking is off globally* — so they need different copy:
+
+| Branch | Line | Current | New |
+|---|---|---|---|
+| site excepted | `:77` | `Ads allowed on this site — click for site controls` | `Blanc Blocker off for this site — click for site controls` |
+| **global off** | `:80` | `Ad blocking is off — click for details` | `Blanc Blocker is off everywhere — click for details` |
+| count | `:87` | `Blanc blocked ${countPhrase(n)} on this page — click for site controls` | `Blanc Blocker — ${countPhrase(n)} blocked here — click for site controls` |
+| quiet | `:90` | `Protected — click for site controls` | `Blanc Blocker — protected, nothing blocked yet — click for site controls` |
+
 - [ ] **Step 1: Write the failing test**
 
-`test/unit/shield-model.test.js` already asserts the exact `title` strings. Update those assertions to the DS copy first, so the test fails before the model changes:
+The existing tests assert these strings **exactly** — via `assert.deepEqual` on the whole
+object and `assert.equal` on `.title`, with locals named `s`, `many`, and `one`. Keep
+that exactness (a regex match would stop catching copy drift) and keep the existing
+variable names. Update all four:
 
 ```js
-  assert.match(state.title, /^Blanc Blocker — ads & trackers blocked here/);
+// :19  quiet
+  assert.deepEqual(s, { mode: 'quiet', count: 0, title: 'Blanc Blocker — protected, nothing blocked yet — click for site controls' });
+// :26  count, plural
+  assert.equal(many.title, 'Blanc Blocker — 12 ads & trackers blocked here — click for site controls');
+// :28  count, singular
+  assert.equal(one.title, 'Blanc Blocker — 1 ad or tracker blocked here — click for site controls');
+// :34  site excepted
+    assert.deepEqual(s, { mode: 'off', count: 0, title: 'Blanc Blocker off for this site — click for site controls' });
+// :40  global off
+  assert.deepEqual(s, { mode: 'off', count: 0, title: 'Blanc Blocker is off everywhere — click for details' });
 ```
-Find the existing assertions with `rg -n 'title' test/unit/shield-model.test.js` and update each to the new copy:
-- count state → `Blanc Blocker — ads & trackers blocked here`
-- quiet state → `Blanc Blocker — ads & trackers blocked here`
-- off state → `Blanc Blocker off for this site`
+
+Note `:26`/`:28` keep exercising `countPhrase`'s singular/plural split — the new copy
+places `${countPhrase(blocked)}` mid-string rather than after "blocked", so re-read the
+template when editing the model in Step 3.
 
 - [ ] **Step 2: Run to verify failure**
 
@@ -526,7 +556,15 @@ Expected: FAIL in `shield-model.test.js` — the model still returns the old str
 
 - [ ] **Step 3: Update the copy in the model**
 
-In `src/main/shield-model.js`, replace the three `title` values (`:77`, `:87`, `:90`) with the DS strings above. The `mode`/`count` fields and all logic stay exactly as they are.
+In `src/main/shield-model.js`, replace **all four** `title` values (`:77`, `:80`, `:87`,
+`:90`) per the table above. The `:87` template becomes:
+
+```js
+      title: `Blanc Blocker — ${countPhrase(blocked)} blocked here — click for site controls`,
+```
+
+`mode`, `count`, `countPhrase`, and every branch condition stay exactly as they are —
+this task changes copy only.
 
 - [ ] **Step 4: Run to verify pass**
 
@@ -670,19 +708,44 @@ rg -n 'function pillButton|ICONS\.' src/renderer/renderer.js | head -5
 If no reusable helper exists, build the `<svg>`/`<path>` for the download glyph with
 `createElementNS` the same way `wave()` does above.
 
-- [ ] **Step 2: Drive the level**
+- [ ] **Step 2: Nothing to do — the level is already driven**
 
-Where `downloadsBtn.classList.toggle('active', active > 0)` runs (`:106`), also set the custom property from aggregate progress (0..1):
+`renderDownloads()` already computes and sets it (`renderer.js:107-108`):
 
 ```js
-    downloadsBtn.style.setProperty('--dl-progress', String(progress));
+    const pct = active > 0 && totalBytes > 0 ? Math.min(1, receivedBytes / totalBytes) : 0;
+    downloadsBtn.style.setProperty('--dl-progress', String(pct));
 ```
-Derive `progress` from the same `chrome:downloads` payload that yields `active`/`hasRecent`. Inspect its shape first:
+
+Already clamped, already the 0..1 fraction the DS CSS expects. **Write no new
+progress-driving code** — an earlier draft of this plan invented a `progress` variable
+that does not exist and would not have run.
+
+- [ ] **Step 2b: DELETE the existing conic progress ring**
+
+`styles.css:741-750` currently renders the old treatment, and it reads the *same*
+`--dl-progress`, so it will keep painting a ring around/under the cistern unless removed.
+Delete the whole rule:
+
+```css
+.pill-download.active::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) calc(var(--dl-progress, 0) * 360deg), var(--border) 0);
+  -webkit-mask: radial-gradient(circle, transparent 6px, #000 7px);
+  mask: radial-gradient(circle, transparent 6px, #000 7px);
+}
+```
+
+Keep `.pill-download.active { color: var(--accent); }` (`:740`) — the DS has the same
+rule. Verify nothing else references the ring:
 
 ```bash
-rg -n 'downloadsActivity' src/main/downloads.js
+rg -n 'conic-gradient' src/renderer/styles.css
 ```
-If the payload carries per-item received/total bytes, use `receivedBytes / totalBytes` summed across active items; if it already exposes a fraction, use it directly. Clamp to `[0, 1]`.
+Expected after the edit: no matches.
 
 - [ ] **Step 3: Port the DS cistern CSS verbatim**
 
@@ -730,7 +793,8 @@ git commit -m "feat(island): downloads cistern — liquid fill with drifting wav
 ## Task 10: Icons — redrawn `mute`, new `bookmark`
 
 **Files:**
-- Modify: `src/renderer/overlay.js:113-115`
+- Modify: `src/renderer/overlay.js:113-115` (the `mute` glyph in `ICONS`)
+- Modify: `src/renderer/overlay.html:48` (the favorites footer button's inline glyph)
 
 - [ ] **Step 1: Replace the `mute` glyph**
 
@@ -740,22 +804,50 @@ The app's current cut (`:114`) is superseded by the DS's 2026-08-08 redraw. Repl
     mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
 ```
 
-- [ ] **Step 2: Add the `bookmark` glyph**
+- [ ] **Step 2: (Conditional) the `bookmark` entry in `ICONS`**
 
-The DS has it; the app has none. Add beside `mute`:
+The DS defines a bookmark glyph the app lacks. **Its only consumer is the footer button,
+which authors its glyph in markup (Step 3), so by default this entry is NOT added** —
+an unused `ICONS` key is dead code the next reader has to reason about.
+
+Add it only if a JS call site actually needs it:
 
 ```js
     bookmark: '<svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z"/></svg>',
 ```
 
-- [ ] **Step 3: Point the footer's favorites action at it**
-
-Per DS item 9, the heart appears **exactly once** — the header favorite toggle. The footer's favorites quick-action uses the bookmark glyph. Find it:
-
+Check first:
 ```bash
-rg -n "footerFavorites" src/renderer/overlay.js
+rg -n 'ICONS\.bookmark' src/renderer/
 ```
-Swap its inline SVG for `ICONS.bookmark`. Leave `heartBtn` alone.
+Expected: no matches → skip the entry.
+
+- [ ] **Step 3: Point the footer's favorites action at the bookmark glyph**
+
+Per DS item 9, the heart appears **exactly once** — the header favorite toggle.
+
+**The glyph is authored inline in `overlay.html:48`, not in JS.** `overlay.js:43` only
+looks the element up and `:1160` attaches its click handler; neither renders the icon. So
+this is a markup swap, matching how every other `.footer-act` button authors its glyph:
+
+```html
+        <button id="footerFavorites" class="footer-act" title="Favorites">
+          <svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z"/></svg>
+        </button>
+```
+
+Leave `heartBtn` alone — it keeps the heart.
+
+**Consequence for Step 2:** with the footer swapped in markup, nothing in JS consumes
+`ICONS.bookmark`. Do **not** add an unused entry. Either:
+- **(a) Skip the `ICONS.bookmark` addition entirely** — recommended. The glyph lives in
+  `overlay.html` beside its siblings, consistent with the file that already owns every
+  other footer glyph, and the icon set stays free of dead entries.
+- **(b) Add it and use it** — only if you instead render `footerFavorites`'s glyph from
+  JS. That would make this button inconsistent with its four siblings for no gain.
+
+Take (a): in Step 2, add only the `bookmark` entry if some other task consumes it;
+otherwise omit it and note the omission in the report.
 
 - [ ] **Step 4: Verify**
 
@@ -767,7 +859,7 @@ Expected: 64/64. `@F16` drives the footer's page-opening actions.
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/renderer/overlay.js
+git add src/renderer/overlay.js src/renderer/overlay.html
 git commit -m "feat(island): redrawn mute glyph and a distinct bookmark for the footer"
 ```
 
