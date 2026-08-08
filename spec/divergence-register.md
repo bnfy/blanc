@@ -468,9 +468,13 @@ The available source formats also differ.
 - **Android:** use a user-selected exported bookmarks document through the
   system picker; no scanning another browser's private application storage.
 
-**Parity contract:** Import begins only after an explicit user action, accepts
-only supported web Favorites, preserves folders where the source carries them,
-deduplicates without replacing existing data, and never expands into passwords,
-history, cookies, or sessions without a separately specified choice.
+**Parity contract:** Both discovery and import begin only after an explicit
+user action — no platform scans for other browsers merely because a migration
+surface was rendered. Import accepts only supported web Favorites, preserves
+folders where the source carries them, deduplicates without replacing existing
+data, and never expands into passwords, history, cookies, or sessions without a
+separately specified choice.
 
-**Status:** Accepted 2026-07-30.
+**Status:** Accepted 2026-07-30. Amended 2026-08-08 to make discovery — not
+just import — require an explicit action, since profile display names commonly
+carry a person's real name or email address.

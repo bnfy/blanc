@@ -5,6 +5,7 @@
   const browserSourceWrap = document.getElementById('browserSourceWrap');
   const browserSource = document.getElementById('browserSource');
   const browserImportBtn = document.getElementById('browserImportBtn');
+  const browserFindBtn = document.getElementById('browserFindBtn');
 
   const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   function importSummary(added, skipped) {
@@ -26,6 +27,8 @@
     refresh();
   });
 
+  // Discovery reads other browsers' profile directories, so it never runs on
+  // its own — only when the person explicitly asks Blanc to look.
   async function loadBrowserSources() {
     const sources = await window.bowserPages.bookmarks.browserSources();
     browserSource.replaceChildren();
@@ -38,7 +41,24 @@
     const available = sources.length > 0;
     browserSourceWrap.hidden = !available;
     browserImportBtn.hidden = !available;
+    browserFindBtn.hidden = available;
+    return available;
   }
+
+  browserFindBtn.addEventListener('click', async () => {
+    browserFindBtn.disabled = true;
+    importStatus.textContent = 'Looking for other browsers…';
+    try {
+      const found = await loadBrowserSources();
+      importStatus.textContent = found ? '' : 'No other browser profiles found.';
+    } catch {
+      // A failed lookup must say so rather than leaving a button that
+      // silently does nothing.
+      importStatus.textContent = "Couldn't check for other browsers.";
+    } finally {
+      browserFindBtn.disabled = false;
+    }
+  });
 
   browserImportBtn.addEventListener('click', async () => {
     if (!browserSource.value) return;
@@ -293,6 +313,5 @@
     nameInput.focus();
   }
 
-  loadBrowserSources();
   refresh();
 })();

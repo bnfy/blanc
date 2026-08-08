@@ -595,8 +595,19 @@ function install(refs) {
           label: o.textContent,
         })),
         buttonHidden: document.getElementById('browserImportBtn')?.hidden ?? true,
+        findHidden: document.getElementById('browserFindBtn')?.hidden ?? true,
         status: document.getElementById('importStatus')?.textContent ?? '',
       }))()`);
+    },
+    clickBrowserFind() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const button = document.getElementById('browserFindBtn');
+        if (!button || button.hidden) return false;
+        button.click();
+        return true;
+      })()`);
     },
     clickBrowserImport() {
       const wc = getUtilitySheetWebContents();
@@ -628,9 +639,20 @@ function install(refs) {
         initialReady: (document.getElementById('footerLeft')?.textContent ?? '').length > 0,
         privacyHidden: document.getElementById('privacyCard')?.hidden ?? true,
         migrationHidden: document.getElementById('migrationChoice')?.hidden ?? true,
+        findHidden: document.getElementById('migrationFind')?.hidden ?? true,
         options: [...document.querySelectorAll('#migrationSource option')].map((o) => o.textContent),
         status: document.getElementById('migrationStatus')?.textContent ?? '',
       }))()`);
+    },
+    clickFirstRunMigrationFind() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('migrationFind');
+        if (!button || button.hidden) return false;
+        button.click();
+        return true;
+      })()`);
     },
     clickFirstRunMigration() {
       const tab = tabs.get(getActiveTabId());

@@ -32,14 +32,15 @@ const privacyError = document.getElementById('privacyError');
 const migrationChoice = document.getElementById('migrationChoice');
 const migrationSource = document.getElementById('migrationSource');
 const migrationImport = document.getElementById('migrationImport');
+const migrationFind = document.getElementById('migrationFind');
 const migrationStatus = document.getElementById('migrationStatus');
-let migrationSourcesLoaded = false;
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
+// The offer is shown unconditionally; discovery reads other browsers' profile
+// directories, so it waits for an explicit ask rather than running on render.
 async function loadMigrationSources() {
-  if (migrationSourcesLoaded || isPrivate) return;
-  migrationSourcesLoaded = true;
+  if (isPrivate) return false;
   const sources = await window.bowserPages?.bookmarks.browserSources();
   migrationSource.replaceChildren();
   for (const source of sources ?? []) {
@@ -48,8 +49,25 @@ async function loadMigrationSources() {
     option.textContent = source.label;
     migrationSource.append(option);
   }
-  migrationChoice.hidden = !(sources?.length);
+  const available = !!sources?.length;
+  migrationSource.hidden = !available;
+  migrationImport.hidden = !available;
+  migrationFind.hidden = available;
+  return available;
 }
+
+migrationFind.addEventListener('click', async () => {
+  migrationFind.disabled = true;
+  migrationStatus.textContent = 'Looking for other browsers…';
+  try {
+    const found = await loadMigrationSources();
+    migrationStatus.textContent = found ? '' : 'No other browser profiles found.';
+  } catch {
+    migrationStatus.textContent = "Couldn't check for other browsers.";
+  } finally {
+    migrationFind.disabled = false;
+  }
+});
 
 function renderLaunchStatus({ startup, privacy } = {}) {
   if (isPrivate) {
@@ -79,7 +97,8 @@ function renderLaunchStatus({ startup, privacy } = {}) {
   const privacyWasHidden = privacyCard.hidden;
   privacyCard.hidden = !showPrivacy;
   if (showPrivacy) {
-    loadMigrationSources();
+    // Offer migration up front; nothing is read until "Look for other browsers".
+    migrationChoice.hidden = false;
     if (privacyWasHidden) {
       privacySuggestions.checked = !!privacy.searchSuggestions;
       privacyPing.checked = !!privacy.usagePing;

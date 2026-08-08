@@ -36,10 +36,11 @@
       </label>
       <div id="migrationChoice" class="launch-migration" hidden>
         <strong>Bring your favorites</strong>
-        <small>Copy favorites from an installed browser profile. Blanc reads the selected profile only after you choose Import; passwords, history, cookies, and open tabs stay untouched.</small>
+        <small>Copy favorites from an installed browser profile. Blanc looks for other browsers only when you ask, and reads the selected profile only after you choose Import; passwords, history, cookies, and open tabs stay untouched.</small>
         <div class="launch-migration-actions">
-          <select id="migrationSource" aria-label="Browser profile"></select>
-          <button id="migrationImport" type="button" class="quiet">Import favorites</button>
+          <button id="migrationFind" type="button" class="quiet">Look for other browsers</button>
+          <select id="migrationSource" aria-label="Browser profile" hidden></select>
+          <button id="migrationImport" type="button" class="quiet" hidden>Import favorites</button>
         </div>
         <span id="migrationStatus" class="launch-status" role="status"></span>
       </div>

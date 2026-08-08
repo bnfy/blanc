@@ -6,6 +6,13 @@ const { waitForValue } = require('../support/poll');
 
 async function openMigration(world) {
   await world.call('openFavoritesSheet');
+  // Discovery is explicit: nothing is offered until the real button is clicked.
+  await waitForValue(
+    () => world.call('readBrowserImportDom'),
+    (dom) => dom?.findHidden === false && dom.buttonHidden === true,
+    'Favorites sheet to offer a browser lookup'
+  );
+  assert.equal(await world.call('clickBrowserFind'), true);
   return waitForValue(
     () => world.call('readBrowserImportDom'),
     (dom) => dom?.options?.length === 1 && dom.buttonHidden === false,
@@ -92,13 +99,21 @@ Given('a fresh first run is awaiting setup', async function () {
 });
 
 Then('browser Favorites migration is offered before browsing', async function () {
-  const dom = await waitForValue(
+  // The offer renders with no sources listed — discovery has not run yet.
+  await waitForValue(
     () => this.call('readFirstRunMigrationDom'),
     (value) =>
       value?.privacyHidden === false &&
       value.migrationHidden === false &&
-      value.options.length === 1,
-    'first-run browser migration to render'
+      value.findHidden === false &&
+      value.options.length === 0,
+    'first-run browser migration offer to render'
+  );
+  assert.equal(await this.call('clickFirstRunMigrationFind'), true);
+  const dom = await waitForValue(
+    () => this.call('readFirstRunMigrationDom'),
+    (value) => value?.options?.length === 1 && value.findHidden === true,
+    'first-run browser migration sources to render'
   );
   assert.deepEqual(dom.options, ['Google Chrome — Acceptance profile']);
 });

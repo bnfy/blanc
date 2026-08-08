@@ -500,10 +500,13 @@ From the desktop `DEFAULTS`:
 
 ## F30 — Browser Favorites migration
 
-- A fresh profile offers detected browser profiles during first run, and the
-  Favorites sheet keeps the same import available afterward. The existing
-  universal bookmarks-HTML import remains the fallback for browsers or
-  platforms whose live profile format cannot be read directly.
+- A fresh profile offers to bring Favorites across during first run, and the
+  Favorites sheet keeps the same import available afterward. **Discovery is
+  itself user-initiated:** Blanc never reads another browser's profile
+  directory until the person asks it to look, so opening the Favorites sheet or
+  seeing the first-run card touches nothing on its own. The existing universal
+  bookmarks-HTML import remains the fallback for browsers or platforms whose
+  live profile format cannot be read directly.
 - Desktop directly supports Google Chrome, Microsoft Edge, Brave, Chromium, and
   Vivaldi profiles. Discovery and file reads stay in the main process. Internal
   pages receive only an opaque source id plus browser/profile labels — never a
