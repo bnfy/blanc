@@ -1,5 +1,113 @@
 [
   {
+    "tag": "v1.0.7",
+    "version": "1.0.7",
+    "name": "1.0.7",
+    "publishedAt": "2026-08-08T02:12:25.000Z",
+    "humanDate": "August 7, 2026",
+    "machineDate": "2026-08-07",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.0.7",
+    "anchor": "v1-0-7",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "code",
+                    "value": "/block-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": " now works on sites that were previously allow-listed with "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/allow-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Before this fix, running "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/block-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": " on an allowed site toggled the global ad-blocker but left the per-site exception in place, so ads kept loading."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Dock icon mark no longer changes size between the quit-state bundle icon and the running app's dynamic icon. The vector mark in the Icon Composer source is now scaled to match the raster colorway PNGs' visual proportion (~63% of the visible tile)."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Fixed a crash that could occur when "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/block-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": " or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/allow-ads"
+                  },
+                  {
+                    "type": "text",
+                    "value": " reloaded the active tab during the settings fan-out. The reload is now deferred so it runs after the synchronous settings handlers finish."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.0.7"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.0.6",
     "version": "1.0.6",
     "name": "1.0.6",
