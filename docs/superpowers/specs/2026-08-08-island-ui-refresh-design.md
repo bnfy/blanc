@@ -96,17 +96,36 @@ compares the literal string:
 ⌘/⇧/⌥/⎋ malformed, which is the entire reason for the token, so partial adoption leaves
 visibly broken glyphs behind. The complete set, enumerated from the source:
 
-*Chrome (`styles.css`)* — `.footer-kbd` (`:1502`, the footer launcher hints emitting
-`⌘T`/`⌘⇧N`), `.row-kbd` (`:1379`), `.vertical-tabs-new kbd` (`:641`), `#islandHint`
-(`:1528`, the hint line rendering `⌘L summons` and `⌘1–9 jumps`), and
-`.island-ghead .ghead-n` (`:1239`, group-header cluster shortcuts `⌘1`–`⌘9`).
+*Chrome (`styles.css`)*
+- `.footer-kbd` (`:1502`) — footer launcher hints, `⌘T` / `⌘⇧N` (`overlay.js:1139-1140`).
+- `.vertical-tabs-new kbd` (`:641`) — the rail's new-tab shortcut.
+- `#islandHint` (`:1528`) — `⌘L summons` and `⌘1–9 jumps` (`overlay.js:922-923`).
+- `.island-ghead .ghead-n` (`:1239`) — **shared selector, see the caveat below.**
 
-*Internal pages (`pages/pages.css`)* — `.shortcut-row kbd` (`:752`, with the wrapping
-rule at `:994`) on `blanc://shortcuts`.
+*Internal pages (`pages/pages.css`)*
+- `.shortcut-row kbd` (`:752`, wrapping rule at `:994`) on `blanc://shortcuts`.
+- **`#goAnywhere`** (`newtab.html:72`) — renders `⌘L to go anywhere`
+  (`newtab.js:14`) and inherits JetBrains Mono from `.ledger-footer`'s
+  `font-family: var(--font-mono)` (`pages.css:679`). The start page is the first thing
+  a user sees, so a malformed ⌘ there is the most visible instance of the bug the token
+  exists to fix. It needs its own rule; the surrounding footer text must stay mono.
 
-The glyphs themselves are emitted from `overlay.js` (`modKey`/`modShiftKey`, `:8-9`) and
-`vertical-tabs.js`; the plan's task must check each emission site's selector rather than
-assuming the five above are exhaustive after the markup changes in items 6–9.
+**Not a shortcut selector:** `.row-kbd` (`:1379`) despite the name — it renders the
+literal string `'click to unfold'` on collapsed-group rows (`overlay.js:433-434`). It
+contains no glyph and must NOT be switched.
+
+**`.ghead-n` is shared and needs splitting.** `overlay.js` uses it twice in the same
+group-header row: once for a plain tab count (`:398`, `String(count)`) and once for the
+cluster shortcut (`:408`, `${modKey}${clusterIndex + 1}`). Applying `--font-kbd` to the
+class would restyle the numeric count too. The plan introduces a distinct class for the
+shortcut span (e.g. `.ghead-kbd`) carrying `--font-kbd`, leaving `.ghead-n` mono for the
+count.
+
+The glyphs are emitted from `overlay.js` (`modKey`/`modShiftKey`, `:8-9`),
+`vertical-tabs.js`, and `newtab.js`. The plan's task re-derives this inventory from those
+emission sites after the markup changes in items 6–9, rather than trusting the list
+above — an earlier draft of this spec listed `.row-kbd` (which renders no glyph) and
+missed `#goAnywhere` (which does).
 
 ## Ordering
 
@@ -154,12 +173,28 @@ commit as the code:
 
 1. **`@F1-1`** — drop the group-name step; the scenario keeps its dots, domain, and
    shield assertions. Retitle so "group" no longer implies a pill label.
-2. **`@F3-2`** — rewrite against the surface that still carries the meaning. The active
-   group is now expressed by *which tabs the dots show*, so the scenario becomes "the
-   pill's dots render only the active group" with the two group-name steps replaced by
-   dot-count assertions. If that reads as a different contract than intended, delete
-   `@F3-2` outright and record it in the divergence register rather than leaving a
-   scenario that asserts a removed feature.
+2. **`@F3-2`** — rewrite against the surface that still carries the meaning: the dots.
+   **The current fixture cannot express it.** Today the scenario sets up
+   `work: 2 tabs` / `play: 2 tabs`, so a dot count of 2 is consistent with *either*
+   group being active and proves nothing once the name is gone. The rewrite must use
+   **distinct group sizes** — `work: 2`, `play: 3` — and assert the count *changes with
+   the active group*:
+
+   ```gherkin
+   @F3-2 @F3 @all
+   Scenario: The pill's dots render only the active group
+     Given a group "work" with 2 tabs
+     And a group "play" with 3 tabs
+     When the active tab is in "work"
+     Then the island shows 2 group dots
+     When the active tab is in "play"
+     Then the island shows 3 group dots
+   ```
+
+   Asserting both directions is what makes it discriminating; a single count against
+   equal-sized groups would pass even if the pill rendered the wrong group. If this reads
+   as a materially different contract than the original, delete `@F3-2` and record it in
+   the divergence register rather than leaving a scenario asserting a removed feature.
 3. **`spec/features.md`** — F1's pill description currently lists the group name among
    the resting pill's contents; remove it and state that group identity lives in the
    panel and dots.
@@ -203,9 +238,20 @@ exception is the group-name contract amendment above — `@F1-1` and `@F3-2` are
 purpose, and because neither is in `RUNNABLE`, the edit must be verified by reading the
 files, not by a passing suite. The pill ✕ is genuinely uncovered by any scenario.
 
-`npm run test:acceptance:dry` must still report **0 undefined steps** after the
-amendment: removing a step from a non-runnable scenario can orphan a step definition, and
-removing the last user of a step definition leaves dead harness code.
+**The dry run cannot verify this amendment.** `test:acceptance:dry` selects the
+`RUNNABLE` tag list, which excludes `@F1-1` and `@F3-2` entirely — and Cucumber does not
+report *unused* step definitions in any case, only undefined ones. A green dry run says
+nothing here.
+
+Verify by **binding/source audit** instead:
+1. `rg` each removed step's exact text across `spec/acceptance/**` to confirm no other
+   scenario still uses it.
+2. For any step now unused, `rg` its definition in `test/desktop/steps/**` and delete the
+   orphaned definition, or state in the PR why it is kept (a step may be intentionally
+   defined ahead of a scenario).
+3. Run the full config's dry run — `npx cucumber-js -c test/desktop/cucumber.mjs
+   --dry-run` (the default `not @mobile` profile, not `-p dry`) — so the amended
+   scenarios are actually parsed and their remaining steps resolve.
 
 **A deliberate dark-mode pass** on the two items where a correct number can still render
 wrong: the specular rim (item 1) and the cistern's submerged-glyph clip (item 4).
