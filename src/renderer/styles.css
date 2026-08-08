@@ -1637,6 +1637,11 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 }
 .shield-pop-id { min-width: 0; }
 .shield-pop-state { margin-top: 2px; }
+/* A peer of the count line, not a section of its own: same size and rhythm, so
+   connection and blocking read as two facts about the same site. */
+#shieldPopConnection { color: var(--text-dim); font-size: 11.5px; margin-top: 10px; }
+#shieldPopConnection.insecure { color: var(--danger); }
+#shieldPopConnection[hidden] { display: none; }
 #shieldPopCount { color: var(--text-dim); font-size: 11.5px; margin-top: 6px; }
 .shield-pop-note { color: var(--text-dim); font-size: 11.5px; margin-top: 4px; }
 .shield-pop-note[hidden] { display: none; }

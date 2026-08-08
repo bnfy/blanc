@@ -24,9 +24,15 @@
   const shieldPopHost = document.getElementById('shieldPopHost');
   const shieldPopOnOff = document.getElementById('shieldPopOnOff');
   const shieldPopToggle = document.getElementById('shieldPopToggle');
+  const shieldPopConnection = document.getElementById('shieldPopConnection');
   const shieldPopCount = document.getElementById('shieldPopCount');
   const shieldPopNote = document.getElementById('shieldPopNote');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
+  const CONNECTION_LABEL = {
+    https: 'Connection · Uses HTTPS',
+    http: 'Connection · Not encrypted',
+    local: 'Connection · Local',
+  };
   const findInput = document.getElementById('findInput');
   const findCount = document.getElementById('findCount');
   const findPrevBtn = document.getElementById('findPrevBtn');
@@ -1047,6 +1053,14 @@
     shieldPopToggle.hidden = v.variant !== 'site';
     shieldPopToggle.classList.toggle('on', v.on);
     shieldPopToggle.setAttribute('aria-checked', String(v.on));
+    // Scheme-level label. "Uses HTTPS", never "Encrypted connection" — the
+    // scheme proves the address, not a negotiated and verified session. A null
+    // connection (loading, or a url with no claim to make) hides the row
+    // rather than leaving a stale statement on screen.
+    const connectionLabel = CONNECTION_LABEL[v.connection] ?? null;
+    shieldPopConnection.textContent = connectionLabel ?? '';
+    shieldPopConnection.hidden = !connectionLabel;
+    shieldPopConnection.classList.toggle('insecure', v.connection === 'http');
     shieldPopCount.textContent = v.countLine;
     shieldPopNote.hidden = v.variant !== 'site';
   }
