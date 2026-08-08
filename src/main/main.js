@@ -2184,6 +2184,27 @@ function activeSiteHostname(tab) {
 }
 
 /**
+ * Reload a tab AFTER the settings write's fan-out, never inside it.
+ *
+ * settings.setSettings() runs onSettingsChanged synchronously: it re-wires the
+ * session's ad-block handlers, reapplies theme/icon/layout, and walks every
+ * tab's webContents for the WebRTC policy. Calling reload() on a webContents in
+ * that same turn kills the main process outright — EXC_BREAKPOINT on
+ * CrBrowserMain, reproducible on roughly a third of attempts. Neither half does
+ * it alone: settings writes with no reload survive, and reloading the same view
+ * with no settings write survives; only the two in one turn crash. Deferring by
+ * a turn lets the fan-out settle first, and costs nothing the user can see —
+ * both callers already reload asynchronously from the renderer's point of view.
+ */
+function reloadTabAfterSettingsFanout(tab) {
+  const view = tab?.view;
+  if (!view) return;
+  setImmediate(() => {
+    if (!view.webContents.isDestroyed()) view.webContents.reload();
+  });
+}
+
+/**
  * "/block-ads" — see resolveBlockAdsCommand: on a site "/allow-ads" excepted
  * this re-blocks that site, everywhere else it toggles blocking globally.
  * Either way the active tab reloads, since neither change reaches requests
@@ -2203,7 +2224,7 @@ function runBlockAdsCommand() {
       ? { adblockEnabled: result.enabled, adblockExceptions: result.exceptions }
       : { adblockEnabled: result.enabled }
   );
-  tab?.view.webContents.reload();
+  reloadTabAfterSettingsFanout(tab);
   return result;
 }
 
@@ -2221,7 +2242,7 @@ function runAllowAdsCommand() {
   if (!hostname) return null;
   const { adblockExceptions } = settings.getSettings();
   settings.setSettings({ adblockExceptions: [...adblockExceptions, hostname] });
-  tab.view.webContents.reload();
+  reloadTabAfterSettingsFanout(tab);
   return hostname;
 }
 
