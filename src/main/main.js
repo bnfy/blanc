@@ -182,9 +182,9 @@ if (!app.requestSingleInstanceLock()) {
 } else {
   app.on('second-instance', bindWindowRuntime(primaryRuntime, (_e, commandLine) => {
     for (const url of urlsFromArgv(commandLine)) openExternalUrl(url);
-    if (win && !win.isDestroyed()) {
-      if (win.isMinimized()) win.restore();
-      win.focus();
+    if (rt().window && !rt().window.isDestroyed()) {
+      if (rt().window.isMinimized()) rt().window.restore();
+      rt().window.focus();
     }
   }));
 
@@ -319,8 +319,8 @@ function openExternalUrl(url) {
     return;
   }
   setActiveTab(createTab(url));
-  if (win.isMinimized()) win.restore();
-  win.focus();
+  if (rt().window.isMinimized()) rt().window.restore();
+  rt().window.focus();
 }
 
 // Protocols handed off to the OS instead of navigated — a mailto: click
@@ -346,7 +346,7 @@ function handOffToOs(url, { trusted = false } = {}) {
   } else if (!externalProtocolPromptOpen && hasLiveWindow()) {
     externalProtocolPromptOpen = true;
     const label = decision.protocol.slice(0, -1);
-    dialog.showMessageBox(win, {
+    dialog.showMessageBox(rt().window, {
       type: 'question',
       title: 'Open external application?',
       message: `Open this ${label} link in another application?`,
@@ -465,8 +465,6 @@ if (chromeMajor) {
   });
 }
 
-/** @type {BrowserWindow | null} */
-let win = null;
 /** Non-persistent session shared by all private tabs for this app run. */
 let privateBrowsingSession = null;
 const PRIVATE_PARTITION = 'private-browsing'; // no `persist:` prefix = memory only
@@ -505,8 +503,8 @@ function applyChromeThemeAppearance(appearance) {
   const resolved = appearance === 'dark' || appearance === 'light'
     ? appearance
     : resolvedThemeAppearance();
-  win.setBackgroundColor(chromeBackgroundColor(resolved));
-  win.webContents.send(
+  rt().window.setBackgroundColor(chromeBackgroundColor(resolved));
+  rt().window.webContents.send(
     'chrome:theme-appearance',
     resolved
   );
@@ -518,9 +516,9 @@ function beginChromeThemeAppearance(appearance) {
   // cross-platform resolved value until Electron removes the prior override,
   // but the renderer can still disable its transition before that happens.
   if (appearance === 'dark' || appearance === 'light') {
-    win.setBackgroundColor(chromeBackgroundColor(appearance));
+    rt().window.setBackgroundColor(chromeBackgroundColor(appearance));
   }
-  win.webContents.send('chrome:theme-appearance', appearance ?? 'pending');
+  rt().window.webContents.send('chrome:theme-appearance', appearance ?? 'pending');
 }
 
 function refreshActivePageTintForThemeChange() {
@@ -591,7 +589,7 @@ function applyAppIcon() {
   applyDockAppIcon({ app, nativeImage, appIcon });
 }
 
-const hasLiveWindow = () => !!win && !win.isDestroyed();
+const hasLiveWindow = () => !!rt().window && !rt().window.isDestroyed();
 
 /** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, audible: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
@@ -660,7 +658,7 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
 // The island's expanded states (command bar, ⌘L palette, find capsule)
 // render in a separate always-on-top WebContentsView so they float OVER
 // the web content instead of growing the strip and shifting content down.
-// It is attached to win.contentView only while something is showing.
+// It is attached to the window's contentView only while something is showing.
 // overlayView, overlayMode, overlayPrefill, shieldAnchorRight,
 // shieldPopoverHost, and shieldTrigger now live on the runtime record
 // (see window-runtime-registry.js for their per-field doc comments).
@@ -671,7 +669,7 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
  * close callback must not disarm the guard under the live one. 0 = no menu. */
 
 function currentChromeLayout() {
-  const { width, height } = win.getContentBounds();
+  const { width, height } = rt().window.getContentBounds();
   return calculateChromeLayout({
     width,
     height,
@@ -697,7 +695,7 @@ function overlayBounds() {
   if (rt().overlayMode === 'palette') return layout.paletteBounds;
   if (rt().overlayMode === 'shield') {
     return calculateShieldBounds({
-      windowWidth: win.getContentBounds().width,
+      windowWidth: rt().window.getContentBounds().width,
       stripHeight: rt().chromeHeight,
       anchorRight: rt().shieldAnchorRight,
     });
@@ -718,6 +716,17 @@ function createOverlay() {
     },
   });
   windowRuntimes.registerChromeSurface(primaryRuntime, rt().overlayView.webContents.id);
+  // If the overlay's webContents dies on its own (renderer crash,
+  // render-process-gone) rather than through the window's 'closed' handler,
+  // make sure it never lingers in the surface index or as a dangling
+  // reference. Locals capture the view + id at creation time since bare
+  // overlayView no longer exists after the Task 7 sweep.
+  const overlay = rt().overlayView; // just assigned above
+  const overlayWcId = overlay.webContents.id;
+  overlay.webContents.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+    windowRuntimes.unregisterChromeSurface(overlayWcId);
+    if (rt().overlayView === overlay) rt().overlayView = null;
+  }));
   // Fully transparent: the panel floats over live web content, so only what
   // overlay.html actually paints may be opaque.
   rt().overlayView.setBackgroundColor('#00000000');
@@ -767,7 +776,7 @@ function createOverlay() {
       hasLiveWindow()
       && rt().overlayView && !rt().overlayView.webContents.isDestroyed()
       && (rt().overlayMode === 'panel' || rt().overlayMode === 'palette')),
-    getWindow: bindWindowRuntime(primaryRuntime, () => win),
+    getWindow: bindWindowRuntime(primaryRuntime, () => rt().window),
     getOverlayBounds: bindWindowRuntime(primaryRuntime, () => overlayBounds()),
     acquireMenuGuard: bindWindowRuntime(primaryRuntime, () => { rt().addressMenuTicket = ++rt().addressMenuSeq; return rt().addressMenuTicket; }),
     releaseMenuGuard: bindWindowRuntime(primaryRuntime, (ticket) => {
@@ -776,7 +785,7 @@ function createOverlay() {
       if (ticket !== rt().addressMenuTicket) return;
       rt().addressMenuTicket = 0;
       if (!hasLiveWindow()) return;
-      if (win.isFocused()) return refocusOverlayAfterMenu();
+      if (rt().window.isFocused()) return refocusOverlayAfterMenu();
       // Never steal focus back from another app: if the window lost focus
       // while the guard was suppressing blur dismissal, perform the dismissal
       // the guard swallowed — without touching focus. But sample focus AFTER
@@ -786,7 +795,7 @@ function createOverlay() {
       // the very edit the item performed).
       setTimeout(bindWindowRuntime(primaryRuntime, () => {
         if (rt().addressMenuTicket || !hasLiveWindow()) return;
-        if (!win.isFocused()) return hideOverlay({ refocusContent: false });
+        if (!rt().window.isFocused()) return hideOverlay({ refocusContent: false });
         refocusOverlayAfterMenu();
       }), 80);
     }),
@@ -816,11 +825,11 @@ function showOverlay(mode, { prefill } = {}) {
   rt().overlayMode = mode;
   rt().overlayPrefill = prefill ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
-  win.contentView.addChildView(rt().overlayView);
+  rt().window.contentView.addChildView(rt().overlayView);
   rt().overlayView.setBounds(overlayBounds());
   rt().overlayView.webContents.send('overlay:show', { mode, prefill });
   rt().overlayView.webContents.focus();
-  win.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
+  rt().window.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
@@ -835,7 +844,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (rt().activeTabId) rt().tabsWantingAddressBarFocus.delete(rt().activeTabId);
   if (hasLiveWindow() && rt().overlayView) {
-    win.contentView.removeChildView(rt().overlayView);
+    rt().window.contentView.removeChildView(rt().overlayView);
     rt().overlayView.webContents.send('overlay:hide');
     // Escape from the shield popover hands focus back to the control that
     // opened it, not to page content — keyboard users should land where they
@@ -843,8 +852,8 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     // focus() runs: the overlay held it until removeChildView above, and a
     // focus call inside an unfocused document paints no visible ring.
     const restoreTrigger = reason === 'escape' && closingMode === 'shield' ? closingTrigger : null;
-    if (restoreTrigger) win.webContents.focus();
-    win.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
+    if (restoreTrigger) rt().window.webContents.focus();
+    rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
     if (refocusContent && !restoreTrigger) tabs.get(rt().activeTabId)?.view.webContents.focus();
   }
 }
@@ -920,7 +929,7 @@ function showUtilityPage(url) {
   // Mirror tabs: a detached view's document still reports visibilityState
   // 'visible' and never background-throttles — toggle real visibility.
   rt().utilitySheetView.setVisible(true);
-  win.contentView.addChildView(rt().utilitySheetView);
+  rt().window.contentView.addChildView(rt().utilitySheetView);
   resizeActiveView();
   rt().utilitySheetView.webContents.focus();
 }
@@ -929,7 +938,7 @@ function hideUtilitySheet({ refocusContent = true } = {}) {
   if (!rt().utilitySheetUrl) return;
   rt().utilitySheetUrl = null;
   if (hasLiveWindow() && rt().utilitySheetView) {
-    win.contentView.removeChildView(rt().utilitySheetView);
+    rt().window.contentView.removeChildView(rt().utilitySheetView);
     rt().utilitySheetView.setVisible(false);
     if (refocusContent) tabs.get(rt().activeTabId)?.view.webContents.focus();
   }
@@ -1112,7 +1121,7 @@ function activeShieldPopover(serialized = serializeTabs()) {
 function broadcastTabs() {
   persistSession();
   tabsync.noteTabsChanged();
-  if (!win || win.isDestroyed()) return;
+  if (!rt().window || rt().window.isDestroyed()) return;
   const widthMetrics = verticalTabsMetrics();
   // Serialize once and hand the same list to the popover, so connection is
   // derived a single time per broadcast.
@@ -1127,13 +1136,13 @@ function broadcastTabs() {
     shieldPopover: activeShieldPopover(serialized),
     ...widthMetrics,
   };
-  win.webContents.send('tabs:updated', payload);
+  rt().window.webContents.send('tabs:updated', payload);
   runtime.overlayView?.webContents.send('tabs:updated', payload);
 }
 
 function broadcastDownloadsActivity() {
-  if (!win || win.isDestroyed()) return;
-  win.webContents.send('chrome:downloads', downloadsActivity());
+  if (!rt().window || rt().window.isDestroyed()) return;
+  rt().window.webContents.send('chrome:downloads', downloadsActivity());
 }
 
 // The blocked-request counter can tick many times a second during a page
@@ -1147,7 +1156,7 @@ function scheduleBroadcastTabs() {
 }
 
 function resizeActiveView() {
-  if (!win || win.isDestroyed()) return;
+  if (!rt().window || rt().window.isDestroyed()) return;
   const layout = currentChromeLayout();
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (tab) tab.view.setBounds(layout.pageBounds);
@@ -1158,7 +1167,7 @@ function resizeActiveView() {
   // The BrowserWindow renderer and native child views must move in the same
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
-  win.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
+  rt().window.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -1244,7 +1253,7 @@ function installChromeShortcuts(webContents) {
   installPlatformMainMenuShortcut({
     webContents,
     Menu,
-    getWindow: bindWindowRuntime(primaryRuntime, () => win),
+    getWindow: bindWindowRuntime(primaryRuntime, () => rt().window),
   });
 }
 
@@ -1923,7 +1932,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // A page's beforeunload can block close/navigation; surface Chrome's
   // Leave/Stay choice instead of silently refusing.
   wc.on('will-prevent-unload', boundToTab((event) => {
-    const choice = dialog.showMessageBoxSync(hasLiveWindow() ? win : undefined, {
+    const choice = dialog.showMessageBoxSync(hasLiveWindow() ? rt().window : undefined, {
       type: 'question',
       buttons: ['Leave', 'Stay'],
       defaultId: 0,
@@ -2095,7 +2104,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   const prevId = rt().activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
   if (prev) {
-    win.contentView.removeChildView(prev.view);
+    rt().window.contentView.removeChildView(prev.view);
     // A detached view's document still reports visibilityState 'visible',
     // so Chromium never background-throttles its timers (the newtab sprite
     // would keep animating at 6fps forever). Hide it explicitly;
@@ -2113,12 +2122,12 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
     next.view.setVisible(true);
   }
   if (shouldFocusAddress) next.view.setVisible(false);
-  win.contentView.addChildView(next.view);
+  rt().window.contentView.addChildView(next.view);
   // The freshly attached tab view must not stack above an open overlay —
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
   // but a race must never paint a tab over either floating layer).
-  if (rt().utilitySheetUrl && rt().utilitySheetView) win.contentView.addChildView(rt().utilitySheetView);
-  if (rt().overlayMode && rt().overlayView) win.contentView.addChildView(rt().overlayView);
+  if (rt().utilitySheetUrl && rt().utilitySheetView) rt().window.contentView.addChildView(rt().utilitySheetView);
+  if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
   // blank new tab we instead want the chrome's address bar, and OS focus
@@ -2176,7 +2185,7 @@ function closeTab(id) {
   }
 
   const wasActive = id === rt().activeTabId;
-  if (wasActive && hasLiveWindow()) win.contentView.removeChildView(tab.view);
+  if (wasActive && hasLiveWindow()) rt().window.contentView.removeChildView(tab.view);
 
   const closedIndex = rt().tabOrder.indexOf(id);
   rt().tabsWantingAddressBarFocus.delete(id);
@@ -2359,7 +2368,7 @@ function resetZoomForActiveTab() {
 }
 
 function openFindBar() {
-  if (!win || win.isDestroyed()) return;
+  if (!rt().window || rt().window.isDestroyed()) return;
   showOverlay('find');
 }
 
@@ -2375,7 +2384,7 @@ function openFindBar() {
  * whether anything was typed, so it hands the decision over. */
 function toggleIsland() {
   if (!hasLiveWindow()) return;
-  win.focus();
+  rt().window.focus();
   if (rt().overlayMode === 'panel' || rt().overlayMode === 'palette') {
     rt().overlayView?.webContents.focus();
     rt().overlayView?.webContents.send('overlay:toggle');
@@ -2385,11 +2394,11 @@ function toggleIsland() {
 }
 
 function focusAddressBar() {
-  if (!win || win.isDestroyed()) return;
+  if (!rt().window || rt().window.isDestroyed()) return;
   // setActiveTab() may just have handed OS-level keyboard focus to the
   // tab's WebContentsView; showOverlay reclaims it for the overlay's
   // webContents so the address input actually receives keystrokes.
-  win.focus();
+  rt().window.focus();
   // Reasserts must not downgrade an already-summoned palette to a panel —
   // nor promote a non-island mode (find, shield) into staying up.
   showOverlay(rt().overlayMode === 'palette' ? 'palette' : 'panel');
@@ -2421,7 +2430,7 @@ function refocusAddressBarIfWanted() {
 // wrapper only supplies the live trusted surfaces.
 function isTrustedChromeSender(event) {
   return isTrustedSender(event, [
-    hasLiveWindow() ? { webContents: win.webContents, url: CHROME_INDEX_URL } : null,
+    hasLiveWindow() ? { webContents: rt().window.webContents, url: CHROME_INDEX_URL } : null,
     rt().overlayView && !rt().overlayView.webContents.isDestroyed()
       ? { webContents: rt().overlayView.webContents, url: CHROME_OVERLAY_URL }
       : null,
@@ -2659,7 +2668,7 @@ function registerIpcHandlers() {
       // The bounds must move NOW: updating stored state alone would pass a
       // state assertion while leaving the card visually where it was.
       rt().overlayView.setBounds(overlayBounds());
-      win.webContents.send('chrome:island-state', { mode: 'shield', trigger });
+      rt().window.webContents.send('chrome:island-state', { mode: 'shield', trigger });
       return;
     }
     const popover = activeShieldPopover();
@@ -2674,8 +2683,8 @@ function registerIpcHandlers() {
     // The rich preload is shared with the overlay, but the visible platform
     // menu button exists only in the strip document. Keep this entry point as
     // narrow as the UI that owns it.
-    if (event.sender !== win?.webContents) return false;
-    return popupPlatformMainMenu({ Menu, window: win, point });
+    if (event.sender !== rt().window?.webContents) return false;
+    return popupPlatformMainMenu({ Menu, window: rt().window, point });
   });
   chromeHandle('chrome:set-tab-layout', (_e, layout) => setTabLayout(layout));
   chromeOn('chrome:preview-vertical-tabs-width', (_e, width) =>
@@ -2784,9 +2793,9 @@ function registerIpcHandlers() {
     return next;
   });
 
-  chromeOn('window:minimize', () => win?.minimize());
-  chromeOn('window:maximize', () => (win?.isMaximized() ? win.unmaximize() : win?.maximize()));
-  chromeOn('window:close', () => win?.close());
+  chromeOn('window:minimize', () => rt().window?.minimize());
+  chromeOn('window:maximize', () => (rt().window?.isMaximized() ? rt().window.unmaximize() : rt().window?.maximize()));
+  chromeOn('window:close', () => rt().window?.close());
 }
 
 // The native menu's dynamic content (tab list, favorites list, Pin/Mute/
@@ -3059,7 +3068,7 @@ function buildMenu() {
         {
           label: 'New Group…',
           enabled: !!rt().activeTabId,
-          click: bound(() => { if (hasLiveWindow()) { win.focus(); showOverlay('palette', { prefill: '/group ' }); } }),
+          click: bound(() => { if (hasLiveWindow()) { rt().window.focus(); showOverlay('palette', { prefill: '/group ' }); } }),
         },
         {
           label: 'Ungroup Tab',
@@ -3152,7 +3161,7 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
   // Blanc.exe. Unpackaged development needs the same icon supplied explicitly
   // because its executable is Electron.exe.
   const windowIcon = windowsDevelopmentIconPath({ app });
-  win = new BrowserWindow({
+  const newWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 640,
@@ -3168,37 +3177,36 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
       sandbox: true,
     },
   });
-  windowRuntimes.attachWindow(primaryRuntime, { window: win });
-  windowRuntimes.registerChromeSurface(primaryRuntime, win.webContents.id);
+  windowRuntimes.attachWindow(primaryRuntime, { window: newWindow });
+  windowRuntimes.registerChromeSurface(primaryRuntime, newWindow.webContents.id);
 
-  lockPrivilegedNavigation(win.webContents, CHROME_INDEX_URL);
-  installChromeShortcuts(win.webContents);
-  win.loadFile(CHROME_INDEX_FILE);
+  lockPrivilegedNavigation(rt().window.webContents, CHROME_INDEX_URL);
+  installChromeShortcuts(rt().window.webContents);
+  rt().window.loadFile(CHROME_INDEX_FILE);
   createOverlay();
-  win.on('resize', bindWindowRuntime(primaryRuntime, resizeActiveView));
-  win.on('focus', bindWindowRuntime(primaryRuntime, refocusAddressBarIfWanted));
-  win.on('closed', bindWindowRuntime(primaryRuntime, () => {
-    win = null;
-    // Unlike tabs, the overlay doesn't outlive its window — recreated fresh.
-    rt().overlayMode = null;
-    if (rt().overlayView && !rt().overlayView.webContents.isDestroyed()) rt().overlayView.webContents.close();
-    rt().overlayView = null;
-    // The sheet doesn't outlive its window either — dropping the reference
-    // without closing would leak the webContents.
-    if (rt().utilitySheetView && !rt().utilitySheetView.webContents.isDestroyed()) rt().utilitySheetView.webContents.close();
-    rt().utilitySheetView = null;
-    rt().utilitySheetUrl = null;
+  rt().window.on('resize', bindWindowRuntime(primaryRuntime, resizeActiveView));
+  rt().window.on('focus', bindWindowRuntime(primaryRuntime, refocusAddressBarIfWanted));
+  rt().window.on('closed', bindWindowRuntime(primaryRuntime, () => {
+    const runtime = primaryRuntime;
+    // Destroy the views the window owned — detachWindow only forgets them.
+    if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
+      runtime.overlayView.webContents.close();
+    }
+    if (runtime.utilitySheetView && !runtime.utilitySheetView.webContents.isDestroyed()) {
+      runtime.utilitySheetView.webContents.close();
+    }
+    windowRuntimes.detachWindow(runtime);
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
     // on Windows/Linux). Recreated lazily on the next non-PNG capture.
     iconRaster.dispose();
-    flushPermissionPrompts(primaryRuntime);
+    flushPermissionPrompts(runtime);
   }));
 
   // Tabs survive window close (macOS dock-reopen recreates the window);
   // re-attach the active tab's view or the new window sits over nothing.
   // First launch has no activeTabId yet — app.whenReady handles that one.
-  win.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
+  rt().window.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
     if (!rt().activeTabId || !tabs.has(rt().activeTabId)) return;
     const id = rt().activeTabId;
     rt().activeTabId = null; // force setActiveTab to treat it as a fresh attach
@@ -3254,7 +3262,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     app,
     session: browsingSessions,
     dialog,
-    getParentWindow: bindWindowRuntime(primaryRuntime, () => (hasLiveWindow() ? win : null)),
+    getParentWindow: bindWindowRuntime(primaryRuntime, () => (hasLiveWindow() ? rt().window : null)),
   });
 
   // Unlike a webPreferences preload, a session preload also reaches adopted
@@ -3386,7 +3394,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     sessions: browsingSessions,
     onDataChanged: refreshBookmarkFlagsBound,
     // Parent for the favorites-import file dialog (evaluated lazily at click).
-    getMainWindow: bindWindowRuntime(primaryRuntime, () => (hasLiveWindow() ? win : undefined)),
+    getMainWindow: bindWindowRuntime(primaryRuntime, () => (hasLiveWindow() ? rt().window : undefined)),
     // Utility sheet: only the sheet view itself may close the sheet — the
     // strict pages:surface:close guard verifies the sender against this.
     utilitySheet: {
@@ -3450,13 +3458,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getUtilitySheetState: () => ({ visible: !!rt().utilitySheetUrl, url: rt().utilitySheetUrl }),
       getUtilitySheetWebContents: () => rt().utilitySheetView?.webContents ?? null,
       getOverlayWebContents: () => rt().overlayView?.webContents ?? null,
-      getChromeWebContents: () => win?.webContents ?? null,
+      getChromeWebContents: () => rt().window?.webContents ?? null,
       setWindowContentSize: (width, height) => {
         if (!hasLiveWindow()) return;
-        win.setContentSize(width, height);
+        rt().window.setContentSize(width, height);
         resizeActiveView();
       },
-      getWindowContentBounds: () => hasLiveWindow() ? win.getContentBounds() : null,
+      getWindowContentBounds: () => hasLiveWindow() ? rt().window.getContentBounds() : null,
       getUtilitySheetBounds: () => rt().utilitySheetView?.getBounds() ?? null,
       getOverlayBounds: () => rt().overlayView?.getBounds() ?? null,
       setTestSearchSuggestionFixture,
@@ -3464,10 +3472,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getTestSearchSuggestionRequests: () => structuredClone(testSearchSuggestionRequests),
       setTestSearchNavigationCapture,
       getTestSearchSubmission: () => structuredClone(testSearchSubmission),
-      attemptChromeNavigation: (url) => win?.webContents.executeJavaScript(
+      attemptChromeNavigation: (url) => rt().window?.webContents.executeJavaScript(
         `location.href = ${JSON.stringify(String(url))}`
       ),
-      getChromeUrl: () => win?.webContents.getURL() ?? '',
+      getChromeUrl: () => rt().window?.webContents.getURL() ?? '',
     });
   }
 
@@ -3551,7 +3559,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // (routers, staging servers) simply fail.
   app.on('login', bindWindowRuntime(primaryRuntime, (event, _wc, _details, authInfo, callback) => {
     event.preventDefault();
-    promptForCredentials(hasLiveWindow() ? win : null, authInfo).then((creds) => {
+    promptForCredentials(hasLiveWindow() ? rt().window : null, authInfo).then((creds) => {
       if (creds) callback(creds.username, creds.password);
       else callback(); // no args = cancel the request
     });
@@ -3582,7 +3590,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   createMainWindow();
   const startupTabId = createTab(NEW_TAB_URL);
   const chromeReady = new Promise((resolve) => {
-    win.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
+    rt().window.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
       if (tabs.has(startupTabId)) {
         // Keep focus in the local page so first-run/recovery actions are
         // immediately visible and keyboard reachable.
