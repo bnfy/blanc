@@ -524,7 +524,7 @@ function beginChromeThemeAppearance(appearance) {
 
 function refreshActivePageTintForThemeChange() {
   const generation = ++rt().themeTintRefreshGeneration;
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
 
   // The captured top-edge pixels and meta theme-color both describe the old
@@ -594,14 +594,12 @@ const hasLiveWindow = () => !!win && !win.isDestroyed();
 
 /** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, audible: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
-/** Display order of tab ids — the single source of truth for the strip. */
-let tabOrder = [];
-let activeTabId = null;
-/** Named tab groups in display order — pill clusters follow this order,
- * ungrouped tabs trail. Groups have no color by design (Island Tab Groups
- * handoff): identity is a lowercase mono name. Empty groups are pruned.
- * @type {{ id: string, name: string, collapsed: boolean }[]} */
-let groups = [];
+// Display order of tab ids (rt().tabOrder) — the single source of truth
+// for the strip. Selected tab id: rt().activeTabId.
+// Named tab groups in display order (rt().groups) — pill clusters follow
+// this order, ungrouped tabs trail. Groups have no color by design (Island
+// Tab Groups handoff): identity is a lowercase mono name. Empty groups are
+// pruned. Shape: { id: string, name: string, collapsed: boolean }[]
 const searchSuggestionService = createSearchSuggestionService();
 // One live provider request per trusted chrome surface. A newer query aborts
 // the older one even before the renderer's generation guard discards it.
@@ -759,7 +757,7 @@ function createOverlay() {
     // A freshly attached blank tab's view can momentarily grab focus while
     // its address-focus reclaim is still pending — that's not a dismissal;
     // the reclaim will re-assert overlay focus on the next tick.
-    if (activeTabId && rt().tabsWantingAddressBarFocus.has(activeTabId)) return;
+    if (rt().activeTabId && rt().tabsWantingAddressBarFocus.has(rt().activeTabId)) return;
     hideOverlay({ refocusContent: false });
   }));
 
@@ -792,7 +790,7 @@ function createOverlay() {
       }), 80);
     }),
     actions: {
-      pasteAndGo: bindWindowRuntime(primaryRuntime, (text) => { if (activeTabId) pasteAndGo(activeTabId, text); }),
+      pasteAndGo: bindWindowRuntime(primaryRuntime, (text) => { if (rt().activeTabId) pasteAndGo(rt().activeTabId, text); }),
     },
   });
 }
@@ -834,7 +832,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   rt().shieldTrigger = null;
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
-  if (activeTabId) rt().tabsWantingAddressBarFocus.delete(activeTabId);
+  if (rt().activeTabId) rt().tabsWantingAddressBarFocus.delete(rt().activeTabId);
   if (hasLiveWindow() && rt().overlayView) {
     win.contentView.removeChildView(rt().overlayView);
     rt().overlayView.webContents.send('overlay:hide');
@@ -846,7 +844,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     const restoreTrigger = reason === 'escape' && closingMode === 'shield' ? closingTrigger : null;
     if (restoreTrigger) win.webContents.focus();
     win.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
-    if (refocusContent && !restoreTrigger) tabs.get(activeTabId)?.view.webContents.focus();
+    if (refocusContent && !restoreTrigger) tabs.get(rt().activeTabId)?.view.webContents.focus();
   }
 }
 
@@ -932,7 +930,7 @@ function hideUtilitySheet({ refocusContent = true } = {}) {
   if (hasLiveWindow() && rt().utilitySheetView) {
     win.contentView.removeChildView(rt().utilitySheetView);
     rt().utilitySheetView.setVisible(false);
-    if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
+    if (refocusContent) tabs.get(rt().activeTabId)?.view.webContents.focus();
   }
 }
 
@@ -991,7 +989,7 @@ function isHostnameExcepted(url) {
 
 function serializeTabs() {
   const { adblockEnabled } = settings.getSettings();
-  return tabOrder
+  return rt().tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
     .map(({ view, ...rest }) => {
@@ -1065,12 +1063,12 @@ function persistSession() {
     // Private tabs leave no trail, error pages persist their real
     // destination, url-less tabs drop — all in session-snapshot.js so tab
     // sync shares the exact same filter.
-    const entries = persistableEntries(tabOrder.map((id) => tabs.get(id)));
+    const entries = persistableEntries(rt().tabOrder.map((id) => tabs.get(id)));
     d.urls = entries.map((e) => e.url);
     d.groupIds = entries.map((e) => e.groupId);
     d.pinned = entries.map((e) => e.pinned);
     // Groups referenced only by private tabs stay out of the file too.
-    d.groups = groups.filter((g) => entries.some((e) => e.groupId === g.id));
+    d.groups = rt().groups.filter((g) => entries.some((e) => e.groupId === g.id));
     // Only update when the active tab is actually in the persisted list —
     // during startup (no active tab yet) or with a private tab active,
     // indexOf is -1 and writing 0 would corrupt the last good index.
@@ -1080,14 +1078,14 @@ function persistSession() {
     // and an index computed on the unfiltered list would restore focus to
     // the wrong tab. -1 (startup, private or url-less active tab) keeps
     // the last good index, as before.
-    const idx = entries.findIndex((e) => e.id === activeTabId);
+    const idx = entries.findIndex((e) => e.id === rt().activeTabId);
     if (idx >= 0) d.activeIndex = idx;
   });
 }
 
 /** The active tab's popover model, or null when it has no blockable host. */
 function activeShieldPopover(serialized = serializeTabs()) {
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab) return null;
   return shieldPopoverModel({
     url: tab.url,
@@ -1096,7 +1094,7 @@ function activeShieldPopover(serialized = serializeTabs()) {
     adblockEnabled: settings.getSettings().adblockEnabled,
     // Read back out of the serialized payload rather than derived again, so
     // the popover and the active tab row cannot disagree within a broadcast.
-    connection: activeConnection(serialized, activeTabId),
+    connection: activeConnection(serialized, rt().activeTabId),
   });
 }
 
@@ -1108,17 +1106,18 @@ function broadcastTabs() {
   // Serialize once and hand the same list to the popover, so connection is
   // derived a single time per broadcast.
   const serialized = serializeTabs();
+  const runtime = rt();
   const payload = {
     tabs: serialized,
-    activeTabId,
-    groups,
+    activeTabId: runtime.activeTabId,
+    groups: runtime.groups,
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
     ...widthMetrics,
   };
   win.webContents.send('tabs:updated', payload);
-  rt().overlayView?.webContents.send('tabs:updated', payload);
+  runtime.overlayView?.webContents.send('tabs:updated', payload);
 }
 
 function broadcastDownloadsActivity() {
@@ -1140,7 +1139,7 @@ function scheduleBroadcastTabs() {
 function resizeActiveView() {
   if (!win || win.isDestroyed()) return;
   const layout = currentChromeLayout();
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (tab) tab.view.setBounds(layout.pageBounds);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   if (rt().utilitySheetUrl && rt().utilitySheetView) {
@@ -1190,7 +1189,7 @@ function applyTabLayout(nextLayout) {
     // layout choice does not eject the user mid-interaction.
     hideOverlay({ refocusContent: false });
     resizeActiveView();
-    if (!rt().utilitySheetUrl) tabs.get(activeTabId)?.view.webContents.focus();
+    if (!rt().utilitySheetUrl) tabs.get(rt().activeTabId)?.view.webContents.focus();
   }
   broadcastTabs();
   scheduleMenuRebuild();
@@ -1356,15 +1355,15 @@ function scheduleSampleTint(tab) {
  * use the standalone pinned shelf. Cmd/Ctrl+1–9 jump by this. */
 function clusterList() {
   const list = [];
-  for (const g of groups) {
-    const members = tabOrder.filter((id) => tabs.get(id)?.groupId === g.id);
+  for (const g of rt().groups) {
+    const members = rt().tabOrder.filter((id) => tabs.get(id)?.groupId === g.id);
     const tabIds = [
       ...members.filter((id) => tabs.get(id)?.pinned),
       ...members.filter((id) => !tabs.get(id)?.pinned),
     ];
     if (tabIds.length) list.push({ group: g, tabIds });
   }
-  const loose = tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId && !tabs.get(id).pinned);
+  const loose = rt().tabOrder.filter((id) => tabs.get(id) && !tabs.get(id).groupId && !tabs.get(id).pinned);
   if (loose.length) list.push({ group: null, tabIds: loose });
   return list;
 }
@@ -1378,15 +1377,15 @@ function clusterSlots() {
     group,
     tabIds,
   }));
-  const pinnedIds = tabOrder.filter((id) => tabs.get(id)?.pinned && !tabs.get(id)?.groupId);
+  const pinnedIds = rt().tabOrder.filter((id) => tabs.get(id)?.pinned && !tabs.get(id)?.groupId);
   if (pinnedIds.length) slots.unshift({ key: 'pinned', group: null, tabIds: pinnedIds });
   return slots;
 }
 
-/** Cluster key → most recently active tab id there, so ⌥⌘↑/↓ lands back
- * where you were in each group. In-memory only — a remembered tab that
- * closed or moved simply fails the lookup and the first tab wins. */
-const lastActiveByCluster = new Map();
+// Cluster key → most recently active tab id there (rt().lastActiveByCluster),
+// so ⌥⌘↑/↓ lands back where you were in each group. In-memory only — a
+// remembered tab that closed or moved simply fails the lookup and the
+// first tab wins.
 
 function clusterKeyForTab(tab) {
   return tab.groupId ?? (tab.pinned ? 'pinned' : 'loose');
@@ -1395,10 +1394,10 @@ function clusterKeyForTab(tab) {
 /** A group exists only while it holds tabs — closing or moving out the
  * last one dissolves it (same convention as Chrome's tab groups). */
 function pruneEmptyGroups() {
-  if (!groups.length) return;
+  if (!rt().groups.length) return;
   const used = new Set();
   for (const tab of tabs.values()) if (tab.groupId) used.add(tab.groupId);
-  groups = groups.filter((g) => used.has(g.id));
+  rt().groups = rt().groups.filter((g) => used.has(g.id));
 }
 
 function setTabGroup(tabId, groupId) {
@@ -1406,7 +1405,7 @@ function setTabGroup(tabId, groupId) {
   if (!tab) return;
   // A requested group that no longer exists (a picker click racing the
   // group's dissolution) is a no-op — it must not ungroup the tab instead.
-  if (groupId && !groups.some((g) => g.id === groupId)) return;
+  if (groupId && !rt().groups.some((g) => g.id === groupId)) return;
   tab.groupId = groupId || null;
   pruneEmptyGroups();
   broadcastTabs();
@@ -1419,10 +1418,10 @@ function groupTabByName(tabId, rawName) {
   const tab = tabs.get(tabId);
   const name = String(rawName ?? '').trim().toLowerCase().slice(0, 40);
   if (!tab || !name) return;
-  let group = groups.find((g) => g.name === name);
+  let group = rt().groups.find((g) => g.name === name);
   if (!group) {
     group = { id: crypto.randomUUID(), name, collapsed: false };
-    groups.push(group);
+    rt().groups.push(group);
   }
   tab.groupId = group.id;
   pruneEmptyGroups();
@@ -1431,7 +1430,7 @@ function groupTabByName(tabId, rawName) {
 }
 
 function toggleGroupCollapsed(groupId) {
-  const group = groups.find((g) => g.id === groupId);
+  const group = rt().groups.find((g) => g.id === groupId);
   if (!group) return;
   group.collapsed = !group.collapsed;
   broadcastTabs();
@@ -1439,18 +1438,18 @@ function toggleGroupCollapsed(groupId) {
 
 /** Jump to a group: activate its first tab and unfold it. */
 function focusGroup(groupId) {
-  const group = groups.find((g) => g.id === groupId);
+  const group = rt().groups.find((g) => g.id === groupId);
   if (!group) return;
   group.collapsed = false;
   const first = clusterList().find(({ group: g }) => g?.id === groupId)?.tabIds[0];
   // setActiveTab broadcasts, but no-ops when the tab is already active —
   // the unfold still has to reach the renderers.
-  if (first && first !== activeTabId) setActiveTab(first);
+  if (first && first !== rt().activeTabId) setActiveTab(first);
   else broadcastTabs();
 }
 
 function closeGroup(groupId) {
-  const ids = tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  const ids = rt().tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
   for (const id of ids) closeTab(id);
 }
 
@@ -1476,7 +1475,7 @@ function toggleTabMuted(id) {
 function duplicateTab(id) {
   const source = tabs.get(id);
   if (!source) return;
-  const insertAt = tabOrder.indexOf(id) + 1;
+  const insertAt = rt().tabOrder.indexOf(id) + 1;
   const history = source.view.webContents.navigationHistory;
   const entries = history.getAllEntries();
   const newId = createTab(source.url, {
@@ -1519,8 +1518,8 @@ async function fillActiveTabFrom1Password() {
   // ── PHASE 1 (pre-reveal): NO credential is in memory yet, so err.message is
   //    safe to log for diagnosis. ──
   try {
-    if (!hasLiveWindow() || !activeTabId) return log('no-active-tab');
-    capturedTabId = activeTabId;
+    if (!hasLiveWindow() || !rt().activeTabId) return log('no-active-tab');
+    capturedTabId = rt().activeTabId;
     tab = tabs.get(capturedTabId);
     if (!tab) return log('no-active-tab');
     wc = tab.view.webContents;
@@ -1569,7 +1568,7 @@ async function fillActiveTabFrom1Password() {
     // Re-validate after the async auth/chooser: same live+focused window, same
     // active tab, live+focused webContents, unchanged epoch, exact same URL.
     if (!hasLiveWindow() || !win.isFocused()) return log('abort-window-changed');
-    if (activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
+    if (rt().activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
     if (wc.isDestroyed() || !wc.isFocused()) return log('abort-wc-changed');
     if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
     if (wc.getURL() !== expectedURL) return log('abort-url-changed');
@@ -1691,7 +1690,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     pinned,
     muted,
     audible: false,
-    groupId: groupId && groups.some((g) => g.id === groupId) ? groupId : null,
+    groupId: groupId && rt().groups.some((g) => g.id === groupId) ? groupId : null,
     // Strip tint ("faux header"): the page's top-edge color, so the chrome
     // strip can paint itself as a continuation of the site's own header.
     pageBg: null, // sampled from rendered pixels — authoritative
@@ -1709,7 +1708,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     navEpoch: 0,
   };
   tabs.set(id, tab);
-  tabOrder.push(id);
+  rt().tabOrder.push(id);
   windowRuntimes.attachTab(owner, id);
 
   const wc = view.webContents;
@@ -1784,7 +1783,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   }));
   wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
     tab.navEpoch++; // SPIKE (1Password fill feasibility)
-    const shouldReclaimChromeFocus = url === tab.url && rt().tabsWantingAddressBarFocus.has(id) && activeTabId === id;
+    const shouldReclaimChromeFocus = url === tab.url && rt().tabsWantingAddressBarFocus.has(id) && rt().activeTabId === id;
     if (url !== tab.url) rt().tabsWantingAddressBarFocus.delete(id);
     tab.blockedCount = 0;
     tab.pageBg = null; // a new page's tint mustn't linger from the old one
@@ -1835,7 +1834,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     if (
       isMainFrame
       && rt().overlayMode === 'shield'
-      && id === activeTabId
+      && id === rt().activeTabId
       && blockableHostname(url) !== rt().shieldPopoverHost
     ) {
       hideOverlay({ refocusContent: false });
@@ -1927,7 +1926,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   }));
 
   wc.on('found-in-page', boundToTab((_e, result) => {
-    if (id === activeTabId) {
+    if (id === rt().activeTabId) {
       rt().overlayView?.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
     }
   }));
@@ -2062,20 +2061,20 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   if (next.view.webContents.isDestroyed()) return;
 
   // Re-selecting the active tab is a no-op.
-  if (id === activeTabId) return;
+  if (id === rt().activeTabId) return;
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.
   hideUtilitySheet({ refocusContent: false });
 
-  lastActiveByCluster.set(clusterKeyForTab(next), id);
+  rt().lastActiveByCluster.set(clusterKeyForTab(next), id);
 
   // No window to attach to (quitting, or macOS with all windows closed):
   // just track the selection so window recreation attaches the right tab.
   // The menu bar persists on macOS even with no windows open, so it still
   // needs to reflect the new activeTabId.
   if (!hasLiveWindow()) {
-    activeTabId = id;
+    rt().activeTabId = id;
     scheduleMenuRebuild();
     return;
   }
@@ -2084,7 +2083,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // The shield popover describes one tab's site — same rule.
   if (rt().overlayMode === 'find' || rt().overlayMode === 'shield') hideOverlay({ refocusContent: false });
 
-  const prevId = activeTabId;
+  const prevId = rt().activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
   if (prev) {
     win.contentView.removeChildView(prev.view);
@@ -2095,7 +2094,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
     prev.view.setVisible(false);
   }
 
-  activeTabId = id;
+  rt().activeTabId = id;
   if (prevId && prevId !== id) rt().tabsWantingAddressBarFocus.delete(prevId);
   const shouldFocusAddress = focusAddress && !focusContent;
   if (shouldFocusAddress) {
@@ -2124,7 +2123,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   if (shouldFocusAddress) {
     reclaimAddressBarFocus(id);
     setImmediate(() => {
-      if (activeTabId !== id || !tabs.has(id)) return;
+      if (rt().activeTabId !== id || !tabs.has(id)) return;
       next.view.setVisible(true);
       reclaimAddressBarFocus(id);
     });
@@ -2141,7 +2140,7 @@ function activateTabFromRail(id) {
   hideOverlay({ refocusContent: false });
   hideUtilitySheet({ refocusContent: false });
 
-  if (id !== activeTabId) {
+  if (id !== rt().activeTabId) {
     setActiveTab(id, { focusContent: true });
   } else {
     // setActiveTab deliberately no-ops for an already-active tab; the rail
@@ -2167,28 +2166,28 @@ function closeTab(id) {
     if (recentlyClosedUrls.length > 25) recentlyClosedUrls.shift();
   }
 
-  const wasActive = id === activeTabId;
+  const wasActive = id === rt().activeTabId;
   if (wasActive && hasLiveWindow()) win.contentView.removeChildView(tab.view);
 
-  const closedIndex = tabOrder.indexOf(id);
+  const closedIndex = rt().tabOrder.indexOf(id);
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
   windowRuntimes.detachTab(id);
-  tabOrder = tabOrder.filter((tid) => tid !== id);
+  rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
   pruneEmptyGroups();
   const wc = tab.view.webContents;
   if (wc && !wc.isDestroyed()) wc.close();
 
   if (wasActive) {
-    if (tabOrder.length > 0) {
+    if (rt().tabOrder.length > 0) {
       // Prefer the tab that was to the right of the closed one.
-      setActiveTab(tabOrder[Math.min(closedIndex, tabOrder.length - 1)]);
+      setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
-      activeTabId = null;
+      rt().activeTabId = null;
       setActiveTab(createTab());
     } else {
       // Quitting or window already gone — don't spawn replacement tabs.
-      activeTabId = null;
+      rt().activeTabId = null;
     }
     if (hasLiveWindow()) return; // setActiveTab already broadcasts and schedules a menu rebuild
   }
@@ -2202,11 +2201,11 @@ function reopenClosedTab() {
 }
 
 function reorderTab(id, toIndex) {
-  const from = tabOrder.indexOf(id);
+  const from = rt().tabOrder.indexOf(id);
   if (from === -1) return;
-  const clamped = Math.max(0, Math.min(tabOrder.length - 1, toIndex));
-  tabOrder.splice(from, 1);
-  tabOrder.splice(clamped, 0, id);
+  const clamped = Math.max(0, Math.min(rt().tabOrder.length - 1, toIndex));
+  rt().tabOrder.splice(from, 1);
+  rt().tabOrder.splice(clamped, 0, id);
   broadcastTabs();
   scheduleMenuRebuild();
 }
@@ -2214,10 +2213,10 @@ function reorderTab(id, toIndex) {
 function reorderTabWithinBucket(id, beforeId) {
   // Renderer input is only a proposal. Main re-resolves both ids against its
   // live model and rejects a stale/cross-group/cross-pin target.
-  const next = reorderWithinBucket(tabOrder, tabs, id, beforeId);
+  const next = reorderWithinBucket(rt().tabOrder, tabs, id, beforeId);
   if (!next) return false;
-  if (next.some((tabId, index) => tabOrder[index] !== tabId)) {
-    tabOrder = next;
+  if (next.some((tabId, index) => rt().tabOrder[index] !== tabId)) {
+    rt().tabOrder = next;
     broadcastTabs();
     scheduleMenuRebuild();
   }
@@ -2231,32 +2230,32 @@ function selectTabAtIndex(index) {
   // clusterSlots() surfaces ungrouped pins as a leading slot. Grouped pins
   // remain reachable through their group's own slot.
   const slots = clusterSlots();
-  if (groups.length && slots.length) {
+  if (rt().groups.length && slots.length) {
     const slot = slots[index];
     if (!slot) return;
     if (slot.group) focusGroup(slot.group.id);
     else setActiveTab(slot.tabIds[0]);
     return;
   }
-  const id = index >= 8 ? tabOrder[tabOrder.length - 1] : tabOrder[index];
+  const id = index >= 8 ? rt().tabOrder[rt().tabOrder.length - 1] : rt().tabOrder[index];
   if (id) setActiveTab(id);
 }
 
 function cycleTab(direction) {
-  if (!activeTabId || tabOrder.length < 2) return;
-  const i = tabOrder.indexOf(activeTabId);
-  setActiveTab(tabOrder[(i + direction + tabOrder.length) % tabOrder.length]);
+  if (!rt().activeTabId || rt().tabOrder.length < 2) return;
+  const i = rt().tabOrder.indexOf(rt().activeTabId);
+  setActiveTab(rt().tabOrder[(i + direction + rt().tabOrder.length) % rt().tabOrder.length]);
 }
 
 /** ⌥⌘←/→: previous/next tab within the active tab's cluster, wrapping.
  * With no groups and no pins everything is one loose cluster, so this
  * degrades to plain tab cycling (same result as Ctrl+Tab). */
 function cycleTabInCluster(direction) {
-  if (!activeTabId) return;
-  const slot = clusterSlots().find((s) => s.tabIds.includes(activeTabId));
+  if (!rt().activeTabId) return;
+  const slot = clusterSlots().find((s) => s.tabIds.includes(rt().activeTabId));
   if (!slot) return cycleTab(direction);
   if (slot.tabIds.length < 2) return;
-  const i = slot.tabIds.indexOf(activeTabId);
+  const i = slot.tabIds.indexOf(rt().activeTabId);
   setActiveTab(slot.tabIds[(i + direction + slot.tabIds.length) % slot.tabIds.length]);
 }
 
@@ -2264,21 +2263,21 @@ function cycleTabInCluster(direction) {
  * shelf → groups → loose), wrapping. Lands on the cluster's last-active
  * tab and unfolds a collapsed group, consistent with focusGroup(). */
 function cycleCluster(direction) {
-  if (!activeTabId) return;
+  if (!rt().activeTabId) return;
   const slots = clusterSlots();
   if (slots.length < 2) return;
-  const from = slots.findIndex((s) => s.tabIds.includes(activeTabId));
+  const from = slots.findIndex((s) => s.tabIds.includes(rt().activeTabId));
   if (from === -1) return;
   const target = slots[(from + direction + slots.length) % slots.length];
   if (target.group) target.group.collapsed = false;
-  const remembered = lastActiveByCluster.get(target.key);
+  const remembered = rt().lastActiveByCluster.get(target.key);
   setActiveTab(target.tabIds.includes(remembered) ? remembered : target.tabIds[0]);
 }
 
 /** Focus an existing tab already on this internal page, or open one. */
 function openInternalPage(url) {
   if (isUtilityUrl(url)) return showUtilityPage(url);
-  const existing = tabOrder.find((id) => tabs.get(id)?.url.startsWith(url));
+  const existing = rt().tabOrder.find((id) => tabs.get(id)?.url.startsWith(url));
   if (existing) {
     setActiveTab(existing);
     tabs.get(existing).view.webContents.reload(); // pick up fresh data
@@ -2288,7 +2287,7 @@ function openInternalPage(url) {
 }
 
 function toggleBookmarkForActiveTab() {
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
   tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
   broadcastTabs();
@@ -2299,7 +2298,7 @@ function toggleBookmarkForActiveTab() {
  * optional folder. Same guards as toggleBookmarkForActiveTab; re-derives
  * bookmarked from the store so add / move / rejected-folder all report right. */
 function saveActiveTabAsFavorite(folder) {
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
   bookmarks.saveFavorite(tab.url, tab.title, tab.favicon, folder);
   tab.bookmarked = bookmarks.isBookmarked(tab.url);
@@ -2311,7 +2310,7 @@ function saveActiveTabAsFavorite(folder) {
  * own URL guard. Skips private tabs (favorites never populate from private
  * browsing) and anything already favorited (idempotent). */
 function addAllTabsToFavorites() {
-  for (const id of tabOrder) {
+  for (const id of rt().tabOrder) {
     const tab = tabs.get(id);
     if (!tab || tab.private) continue;
     if (!/^https?:\/\//.test(tab.url)) continue;
@@ -2336,7 +2335,7 @@ const ZOOM_MAX = 8;
 /** Zoom acts on what the user is looking at: the sheet when open, else the active tab. */
 function zoomTargetWebContents() {
   if (rt().utilitySheetUrl && rt().utilitySheetView) return rt().utilitySheetView.webContents;
-  return tabs.get(activeTabId)?.view.webContents ?? null;
+  return tabs.get(rt().activeTabId)?.view.webContents ?? null;
 }
 
 function zoomActiveTab(delta) {
@@ -2388,7 +2387,7 @@ function focusAddressBar() {
 }
 
 function shouldReclaimAddressBarFocus(id) {
-  return activeTabId === id && rt().tabsWantingAddressBarFocus.has(id);
+  return rt().activeTabId === id && rt().tabsWantingAddressBarFocus.has(id);
 }
 
 function reclaimAddressBarFocus(id, { consume = false } = {}) {
@@ -2404,8 +2403,8 @@ function reclaimAddressBarFocus(id, { consume = false } = {}) {
 }
 
 function refocusAddressBarIfWanted() {
-  if (activeTabId && shouldReclaimAddressBarFocus(activeTabId)) {
-    reclaimAddressBarFocus(activeTabId);
+  if (rt().activeTabId && shouldReclaimAddressBarFocus(rt().activeTabId)) {
+    reclaimAddressBarFocus(rt().activeTabId);
   }
 }
 
@@ -2507,7 +2506,7 @@ function reloadTabAfterSettingsFanout(tab) {
  * until the user reloads by hand.
  */
 function runBlockAdsCommand() {
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   const current = settings.getSettings();
   const result = resolveBlockAdsCommand({
     hostname: activeSiteHostname(tab),
@@ -2534,7 +2533,7 @@ function runBlockAdsCommand() {
  * skipped rather than filed by scheme).
  */
 function runAllowAdsCommand() {
-  const tab = activeTabId ? tabs.get(activeTabId) : null;
+  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (!tab) return null;
   const hostname = activeSiteHostname(tab);
   if (!hostname) return null;
@@ -2623,8 +2622,8 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:get-all', () => ({
     tabs: serializeTabs(),
-    activeTabId,
-    groups,
+    activeTabId: rt().activeTabId,
+    groups: rt().groups,
     tabLayout,
     ...verticalTabsMetrics(),
   }));
@@ -2696,7 +2695,7 @@ function registerIpcHandlers() {
     // The opt-out, private tabs, and local document paths are hard stops at
     // the trusted main-process boundary. Exact-query search still works; only
     // live provider suggestions pause.
-    const tab = activeTabId ? tabs.get(activeTabId) : null;
+    const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
     const localDoc = typeof query === 'string' ? localDocumentUrl(query.trim()) : null;
     if (
       !settings.isFirstRunComplete() ||
@@ -2810,7 +2809,7 @@ function tabMenuItems() {
     .filter((id) => !tabs.get(id)?.private);
   return orderedIds.map((id) => {
     const tab = tabs.get(id);
-    const group = tab.groupId ? groups.find((g) => g.id === tab.groupId) : null;
+    const group = tab.groupId ? rt().groups.find((g) => g.id === tab.groupId) : null;
     let domain = tab.url;
     try {
       domain = new URL(tab.url).hostname || tab.url;
@@ -2821,7 +2820,7 @@ function tabMenuItems() {
     return {
       label: escapeMenuLabel(label.length > 120 ? `${label.slice(0, 119)}…` : label),
       type: 'checkbox',
-      checked: id === activeTabId,
+      checked: id === rt().activeTabId,
       click: bindWindowRuntime(primaryRuntime, () => setActiveTab(id)),
     };
   });
@@ -2982,9 +2981,9 @@ function buildMenu() {
       submenu: [
         { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: bound(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })) },
         { label: 'New Private Tab', accelerator: 'CmdOrCtrl+Shift+N', click: bound(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })) },
-        { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: bound(() => activeTabId && closeTab(activeTabId)) },
+        { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: bound(() => rt().activeTabId && closeTab(rt().activeTabId)) },
         { label: 'Reopen Closed Tab', accelerator: 'CmdOrCtrl+Shift+T', click: bound(reopenClosedTab) },
-        { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: bound(() => activeTabId && tabs.get(activeTabId)?.view.webContents.print()) },
+        { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
         { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: bound(checkForUpdatesManually) }, { type: 'separator' }]),
         isMac ? { role: 'close' } : { role: 'quit' },
@@ -2996,8 +2995,8 @@ function buildMenu() {
       submenu: [
         { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: bound(toggleIsland) },
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: bound(openFindBar) },
-        { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: bound(() => activeTabId && tabs.get(activeTabId)?.view.webContents.reload()) },
-        { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: bound(() => activeTabId && tabs.get(activeTabId)?.view.webContents.reloadIgnoringCache()) },
+        { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.reload()) },
+        { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.reloadIgnoringCache()) },
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
         // Plus requires Shift on most keyboards; Cmd/Ctrl+= is the common alternate, bound silently to the same action.
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+=', visible: false, click: bound(() => zoomActiveTab(ZOOM_STEP)) },
@@ -3044,25 +3043,25 @@ function buildMenu() {
         { label: 'Next Group', accelerator: 'Alt+CmdOrCtrl+Down', click: bound(() => cycleCluster(1)) },
         { label: 'Previous Group', accelerator: 'Alt+CmdOrCtrl+Up', click: bound(() => cycleCluster(-1)) },
         { type: 'separator' },
-        { label: 'Duplicate Tab', enabled: !!activeTabId, click: bound(() => activeTabId && duplicateTab(activeTabId)) },
-        { label: tabs.get(activeTabId)?.pinned ? 'Unpin Tab' : 'Pin Tab', enabled: !!activeTabId, click: bound(() => activeTabId && toggleTabPinned(activeTabId)) },
-        { label: tabs.get(activeTabId)?.muted ? 'Unmute Tab' : 'Mute Tab', enabled: !!activeTabId, click: bound(() => activeTabId && toggleTabMuted(activeTabId)) },
+        { label: 'Duplicate Tab', enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && duplicateTab(rt().activeTabId)) },
+        { label: tabs.get(rt().activeTabId)?.pinned ? 'Unpin Tab' : 'Pin Tab', enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabPinned(rt().activeTabId)) },
+        { label: tabs.get(rt().activeTabId)?.muted ? 'Unmute Tab' : 'Mute Tab', enabled: !!rt().activeTabId, click: bound(() => rt().activeTabId && toggleTabMuted(rt().activeTabId)) },
         { type: 'separator' },
         {
           label: 'New Group…',
-          enabled: !!activeTabId,
+          enabled: !!rt().activeTabId,
           click: bound(() => { if (hasLiveWindow()) { win.focus(); showOverlay('palette', { prefill: '/group ' }); } }),
         },
         {
           label: 'Ungroup Tab',
-          enabled: !!tabs.get(activeTabId)?.groupId,
-          click: bound(() => activeTabId && setTabGroup(activeTabId, null)),
+          enabled: !!tabs.get(rt().activeTabId)?.groupId,
+          click: bound(() => rt().activeTabId && setTabGroup(rt().activeTabId, null)),
         },
         {
           label: 'Close Group',
-          enabled: !!tabs.get(activeTabId)?.groupId,
+          enabled: !!tabs.get(rt().activeTabId)?.groupId,
           click: bound(() => {
-            const groupId = tabs.get(activeTabId)?.groupId;
+            const groupId = tabs.get(rt().activeTabId)?.groupId;
             if (groupId) closeGroup(groupId);
           }),
         },
@@ -3081,16 +3080,16 @@ function buildMenu() {
       label: 'Favorites',
       submenu: [
         {
-          label: tabs.get(activeTabId)?.bookmarked ? 'Remove from Favorites' : 'Add to Favorites',
+          label: tabs.get(rt().activeTabId)?.bookmarked ? 'Remove from Favorites' : 'Add to Favorites',
           accelerator: 'CmdOrCtrl+D',
           // Same guard as toggleBookmarkForActiveTab itself — blanc://
           // pages and blank tabs can't be favorited, so don't offer to.
-          enabled: /^https?:\/\//.test(tabs.get(activeTabId)?.url ?? ''),
+          enabled: /^https?:\/\//.test(tabs.get(rt().activeTabId)?.url ?? ''),
           click: bound(toggleBookmarkForActiveTab),
         },
         {
           label: 'Add All Open Tabs to Favorites',
-          enabled: tabOrder.some((id) => {
+          enabled: rt().tabOrder.some((id) => {
             const tab = tabs.get(id);
             return tab && !tab.private && /^https?:\/\//.test(tab.url) && !bookmarks.isBookmarked(tab.url);
           }),
@@ -3191,9 +3190,9 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
   // re-attach the active tab's view or the new window sits over nothing.
   // First launch has no activeTabId yet — app.whenReady handles that one.
   win.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
-    if (!activeTabId || !tabs.has(activeTabId)) return;
-    const id = activeTabId;
-    activeTabId = null; // force setActiveTab to treat it as a fresh attach
+    if (!rt().activeTabId || !tabs.has(rt().activeTabId)) return;
+    const id = rt().activeTabId;
+    rt().activeTabId = null; // force setActiveTab to treat it as a fresh attach
     setActiveTab(id);
     // An 'open-url' with no window queues; opening it is why the window
     // was recreated (macOS dock-reopen path).
@@ -3411,7 +3410,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // (electronApp.evaluate() reaches straight into the main process) —
       // test-hook.js wraps every installed method with this at install time.
       bindRoot: (fn) => bindWindowRuntime(primaryRuntime, fn),
-      tabs, getTabOrder: () => tabOrder, getGroups: () => groups, getActiveTabId: () => activeTabId, clusterSlots,
+      tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
@@ -3489,11 +3488,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // pull this provider from their own timers/session flows — bind it here
   // rather than trust every possible caller to already be bound.
   tabsync.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-    tabList: tabOrder.map((id) => tabs.get(id)).filter(Boolean),
-    groups,
+    tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+    groups: rt().groups,
   })));
   tabicons.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-    tabList: tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+    tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
   })));
   // A pull changed the cached device map: push the fresh list to the open
   // surfaces (overlay panel; any tab currently on the start page).
@@ -3542,7 +3541,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   saved.groupIds = cleaned.groupIds;
   saved.pinned = cleaned.pinned;
   saved.activeIndex = cleaned.activeIndex;
-  groups = (Array.isArray(saved.groups) ? saved.groups : [])
+  rt().groups = (Array.isArray(saved.groups) ? saved.groups : [])
     .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
     .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed }));
   sessionPersistenceSuspended = true;
