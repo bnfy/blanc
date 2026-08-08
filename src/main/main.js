@@ -802,7 +802,7 @@ function showOverlay(mode, { prefill } = {}) {
   overlayView.setBounds(overlayBounds());
   overlayView.webContents.send('overlay:show', { mode, prefill });
   overlayView.webContents.focus();
-  win.webContents.send('chrome:island-state', { mode });
+  win.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? shieldTrigger : null });
 }
 
 function hideOverlay({ refocusContent = true } = {}) {
@@ -817,7 +817,7 @@ function hideOverlay({ refocusContent = true } = {}) {
   if (hasLiveWindow() && overlayView) {
     win.contentView.removeChildView(overlayView);
     overlayView.webContents.send('overlay:hide');
-    win.webContents.send('chrome:island-state', { mode: null });
+    win.webContents.send('chrome:island-state', { mode: null, trigger: null });
     if (refocusContent) tabs.get(activeTabId)?.view.webContents.focus();
   }
 }

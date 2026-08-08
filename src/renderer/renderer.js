@@ -517,8 +517,13 @@
     state = payload;
     render();
   });
-  window.browserAPI.onIslandState(({ mode }) => {
+  window.browserAPI.onIslandState(({ mode, trigger }) => {
     islandMode = mode;
+    // Truthful per-control expanded state: the popover is one surface with
+    // two doors, and only the door that opened it reads as expanded.
+    const shieldOpen = mode === 'shield';
+    pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
+    pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
     render();
   });
   window.browserAPI.onDownloadsActivity((payload) => {
