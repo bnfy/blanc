@@ -90,6 +90,6 @@ test('platform specs match the shipped first-run telemetry contract', () => {
   assert.doesNotMatch(telemetryRow, /Opt-in, off by default/i);
   assert.doesNotMatch(services, /usage ping is off by default/i);
   assert.match(matrix, /commit its on\/off choice before any ping/i);
-  assert.match(matrix, /\{installId,sessionId,version,platform,arch\}/);
+  assert.match(matrix, /\{installId,sessionId,version,platform,arch,osVersion\}/);
   assert.match(services, /no telemetry install id exists/i);
 });

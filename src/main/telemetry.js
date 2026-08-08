@@ -44,10 +44,33 @@ function resetInstallId(store = ensureInstallStore()) {
   return store.flush() === true;
 }
 
+// Coarsen the OS version to a single major number before it ever leaves the
+// device. `platform` alone can't answer "how many installs could run a
+// macOS-26-only feature", but a full version string ("27.0.1", "10.0.26100")
+// is a finer fingerprint than counting audiences needs. Major-only is enough
+// to gate capabilities and size a rollout, and nothing more.
+//
+// Pure and exported so the mapping is unit-tested rather than only observed in
+// production, where a wrong bucket is invisible.
+function coarseOsVersion(platform, systemVersion) {
+  const parts = String(systemVersion ?? '').split('.').map((n) => parseInt(n, 10));
+  if (!Number.isFinite(parts[0])) return 'unknown';
+  if (platform === 'win32') {
+    // Windows reports 10.0.<build> for BOTH 10 and 11 — the major is useless
+    // on its own and only the build number tells them apart (11 starts at
+    // 22000). Map to the marketing number users and docs actually mean.
+    if (parts[0] === 10) return (Number.isFinite(parts[2]) ? parts[2] : 0) >= 22000 ? '11' : '10';
+    return String(parts[0]);
+  }
+  // macOS reports the marketing version here (26, 27…), not the Darwin build.
+  // Linux reports a kernel major, which is weak signal but harmless.
+  return String(parts[0]);
+}
+
 // On by default (Settings → usagePing, opt-out). Fire-and-forget: a failed or
 // blocked ping must never affect startup or show the user anything. Carries
-// only version/platform/arch plus the pseudonymous install id above — enough
-// to count active users and bucket by version/platform, nothing that
+// only version/platform/arch/osVersion plus the pseudonymous install id above
+// — enough to count active users and bucket by version and OS, nothing that
 // identifies a person.
 function sendLaunchPing() {
   const { app, net } = require('electron');
@@ -61,6 +84,10 @@ function sendLaunchPing() {
     version: app.getVersion(),
     platform: process.platform,
     arch: process.arch,
+    // getSystemVersion() is the OS's own version (macOS marketing number,
+    // Windows 10.0.<build>) — os.release() would give the Darwin build on mac,
+    // which is not what anyone means by "macOS 26".
+    osVersion: coarseOsVersion(process.platform, process.getSystemVersion()),
   });
 
   net.fetch(PING_ENDPOINT, {
@@ -72,4 +99,4 @@ function sendLaunchPing() {
   });
 }
 
-module.exports = { sendLaunchPing, resetInstallId };
+module.exports = { sendLaunchPing, resetInstallId, coarseOsVersion };
