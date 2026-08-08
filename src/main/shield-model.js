@@ -64,20 +64,23 @@ function shieldChipState({ url, blockedCount, excepted, adblockEnabled }) {
   return { mode: 'quiet', count: 0, title: 'Protected — click for site controls' };
 }
 
-function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled }) {
+// `connection` arrives already derived (main.js does it once per broadcast) and
+// is only carried through. Re-deriving it here would reintroduce the second
+// source of truth this design exists to remove.
+function shieldPopoverModel({ url, blockedCount, excepted, adblockEnabled, connection = null }) {
   const host = blockableHostname(url);
   if (!host) return null;
   if (excepted) {
-    return { variant: 'site', host, on: false, countLine: 'Ads allowed on this site' };
+    return { variant: 'site', host, on: false, countLine: 'Ads allowed on this site', connection };
   }
   if (!adblockEnabled) {
-    return { variant: 'global-off', host, on: false, countLine: 'Ad blocking is off everywhere' };
+    return { variant: 'global-off', host, on: false, countLine: 'Ad blocking is off everywhere', connection };
   }
   const blocked = blockedCount ?? 0;
   const countLine = blocked === 0
     ? 'Nothing blocked on this page yet'
     : `${countPhrase(blocked)} blocked on this page`;
-  return { variant: 'site', host, on: true, countLine };
+  return { variant: 'site', host, on: true, countLine, connection };
 }
 
 module.exports = { shieldChipState, shieldPopoverModel, connectionState, connectionFor };

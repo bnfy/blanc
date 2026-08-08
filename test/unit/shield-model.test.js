@@ -43,7 +43,7 @@ test('popover is null without a blockable host', () => {
 
 test('popover site variant, protection on, count lines', () => {
   const zero = shieldPopoverModel({ url: HTTP, blockedCount: 0, excepted: false, adblockEnabled: true });
-  assert.deepEqual(zero, { variant: 'site', host: 'theverge.com', on: true, countLine: 'Nothing blocked on this page yet' });
+  assert.deepEqual(zero, { variant: 'site', host: 'theverge.com', on: true, countLine: 'Nothing blocked on this page yet', connection: null });
   const one = shieldPopoverModel({ url: HTTP, blockedCount: 1, excepted: false, adblockEnabled: true });
   assert.equal(one.countLine, '1 ad or tracker blocked on this page');
   const many = shieldPopoverModel({ url: HTTP, blockedCount: 12, excepted: false, adblockEnabled: true });
@@ -53,13 +53,13 @@ test('popover site variant, protection on, count lines', () => {
 test('popover site variant when excepted — even with global blocking off', () => {
   for (const adblockEnabled of [true, false]) {
     const v = shieldPopoverModel({ url: HTTP, blockedCount: 0, excepted: true, adblockEnabled });
-    assert.deepEqual(v, { variant: 'site', host: 'theverge.com', on: false, countLine: 'Ads allowed on this site' });
+    assert.deepEqual(v, { variant: 'site', host: 'theverge.com', on: false, countLine: 'Ads allowed on this site', connection: null });
   }
 });
 
 test('popover global-off variant when not excepted and blocking is off', () => {
   const v = shieldPopoverModel({ url: HTTP, blockedCount: 0, excepted: false, adblockEnabled: false });
-  assert.deepEqual(v, { variant: 'global-off', host: 'theverge.com', on: false, countLine: 'Ad blocking is off everywhere' });
+  assert.deepEqual(v, { variant: 'global-off', host: 'theverge.com', on: false, countLine: 'Ad blocking is off everywhere', connection: null });
 });
 
 // ---- Connection derivation (design: 2026-08-08-site-info-in-shield-popover) ----
@@ -93,4 +93,31 @@ test('connectionFor withholds any claim while loading', () => {
   assert.equal(connectionFor({ url: 'http://neverssl.com/', isLoading: true }), null);
   assert.equal(connectionFor({ url: 'https://example.com/', isLoading: false }), 'https');
   assert.equal(connectionFor({ url: null, isLoading: false }), null);
+});
+
+test('popover model carries a supplied connection through unmodified', () => {
+  for (const connection of ['https', 'http', 'local', null]) {
+    const model = shieldPopoverModel({
+      url: 'https://www.example.com/x', blockedCount: 3,
+      excepted: false, adblockEnabled: true, connection,
+    });
+    assert.equal(model.connection, connection, String(connection));
+  }
+});
+
+test('popover model does not re-derive connection from the url', () => {
+  // http url, but main supplied https — the model must not "correct" it.
+  const model = shieldPopoverModel({
+    url: 'http://neverssl.com/', blockedCount: 0,
+    excepted: false, adblockEnabled: true, connection: 'https',
+  });
+  assert.equal(model.connection, 'https');
+});
+
+test('popover model still normalizes the host', () => {
+  const model = shieldPopoverModel({
+    url: 'https://www.example.com/x', blockedCount: 0,
+    excepted: false, adblockEnabled: true, connection: 'https',
+  });
+  assert.equal(model.host, 'example.com');
 });
