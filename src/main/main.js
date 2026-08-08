@@ -53,6 +53,7 @@ const {
   normalizeTabLayout,
   normalizeVerticalTabsWidth,
   calculateChromeLayout,
+  calculateShieldBounds,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
 const {
@@ -626,11 +627,18 @@ let verticalTabsPreferredWidth = normalizeVerticalTabsWidth(
 // It is attached to win.contentView only while something is showing.
 /** @type {WebContentsView | null} */
 let overlayView = null;
-/** @type {null | 'panel' | 'palette' | 'find'} */
+/** @type {null | 'panel' | 'palette' | 'find' | 'shield'} */
 let overlayMode = null;
 /** Companion to overlayMode, replayed alongside it below if the overlay's
  * first load hadn't finished when showOverlay was called. */
 let overlayPrefill = null;
+/** Chip right edge (window coords) captured when the shield popover opens;
+ * reused if bounds recompute (e.g. window resize) while it's up. */
+let shieldAnchorRight = null;
+/** The site the open shield popover describes, captured at open time — the
+ * tab's live url may already read as the NEW site when did-start-navigation
+ * fires, so a live recompute could never detect the site change. */
+let shieldPopoverHost = null;
 /** Native address-bar context menu up: suppress the overlay's blur
  * dismissal — the popup's close callback owns what happens next.
  * A generation ticket, not a boolean: if a second popup ever supersedes the
@@ -664,6 +672,13 @@ function overlayBounds() {
   const layout = currentChromeLayout();
   if (overlayMode === 'find') return layout.findBounds;
   if (overlayMode === 'palette') return layout.paletteBounds;
+  if (overlayMode === 'shield') {
+    return calculateShieldBounds({
+      windowWidth: win.getContentBounds().width,
+      stripHeight: chromeHeight,
+      anchorRight: shieldAnchorRight,
+    });
+  }
   return layout.panelBounds;
 }
 
@@ -786,6 +801,8 @@ function showOverlay(mode, { prefill } = {}) {
 function hideOverlay({ refocusContent = true } = {}) {
   if (!overlayMode) return;
   overlayMode = null;
+  shieldAnchorRight = null;
+  shieldPopoverHost = null;
   // A dismissed command bar means the user is done addressing — stop any
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (activeTabId) tabsWantingAddressBarFocus.delete(activeTabId);
@@ -1754,8 +1771,19 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // after the orchestrator's main-side URL check would still let
   // executeJavaScript run in the replacement document; bump the epoch so the
   // pre-injection re-check aborts. Removed with the rest of the spike.
-  wc.on('did-start-navigation', (_e, _url, _isInPlace, isMainFrame) => {
+  wc.on('did-start-navigation', (_e, url, _isInPlace, isMainFrame) => {
     if (isMainFrame) tab.navEpoch++;
+    // The shield popover describes one site's protection. Same-site
+    // navigations — including the reload its own toggle triggers — keep it
+    // open, live-updating; leaving the site (or losing the host) closes it.
+    if (
+      isMainFrame
+      && overlayMode === 'shield'
+      && id === activeTabId
+      && blockableHostname(url) !== shieldPopoverHost
+    ) {
+      hideOverlay({ refocusContent: false });
+    }
   });
   wc.once('did-finish-load', () => {
     if (shouldReclaimAddressBarFocus(id)) {
@@ -1997,7 +2025,8 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
 
   // Find state is per-tab; a stale capsule over a different page misleads.
-  if (overlayMode === 'find') hideOverlay({ refocusContent: false });
+  // The shield popover describes one tab's site — same rule.
+  if (overlayMode === 'find' || overlayMode === 'shield') hideOverlay({ refocusContent: false });
 
   const prevId = activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
@@ -2298,8 +2327,9 @@ function focusAddressBar() {
   // tab's WebContentsView; showOverlay reclaims it for the overlay's
   // webContents so the address input actually receives keystrokes.
   win.focus();
-  // Reasserts must not downgrade an already-summoned palette to a panel.
-  showOverlay(overlayMode && overlayMode !== 'find' ? overlayMode : 'panel');
+  // Reasserts must not downgrade an already-summoned palette to a panel —
+  // nor promote a non-island mode (find, shield) into staying up.
+  showOverlay(overlayMode === 'palette' ? 'palette' : 'panel');
 }
 
 function shouldReclaimAddressBarFocus(id) {
@@ -2536,6 +2566,16 @@ function registerIpcHandlers() {
 
   chromeOn('chrome:open-island', () => showOverlay('panel'));
   chromeOn('chrome:open-find', () => showOverlay('find'));
+  chromeOn('chrome:open-shield', (_e, anchor) => {
+    // Chip re-click closes — the chip is a toggle for the popover itself.
+    if (overlayMode === 'shield') return hideOverlay({ refocusContent: false });
+    const popover = activeShieldPopover();
+    if (!popover) return; // no blockable host — nothing to show
+    shieldPopoverHost = popover.host;
+    shieldAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+    broadcastTabs(); // fresh state.shieldPopover before the overlay renders
+    showOverlay('shield');
+  });
   chromeHandle('chrome:open-main-menu', (event, point) => {
     // The rich preload is shared with the overlay, but the visible platform
     // menu button exists only in the strip document. Keep this entry point as

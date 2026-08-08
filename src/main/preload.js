@@ -52,6 +52,7 @@ contextBridge.exposeInMainWorld('browserAPI', {
 
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
+  openShieldPopover: (anchor) => ipcRenderer.send('chrome:open-shield', anchor),
   openMainMenu: (point) => ipcRenderer.invoke('chrome:open-main-menu', point),
   closeOverlay: () => ipcRenderer.send('overlay:close'),
 
