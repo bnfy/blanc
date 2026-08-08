@@ -2512,7 +2512,13 @@ function reloadTabAfterSettingsFanout(tab) {
   const view = tab?.view;
   if (!view) return;
   setImmediate(() => {
-    if (!view.webContents.isDestroyed()) view.webContents.reload();
+    // Re-read webContents inside the deferred turn: closing the tab in that
+    // window runs closeTab's wc.close(), after which view.webContents is
+    // undefined — dereferencing it here threw an uncaught TypeError that
+    // killed the main process. closeTab (see its own `if (wc && ...)` guard)
+    // already treats this as nullable; this path did not.
+    const wc = view.webContents;
+    if (wc && !wc.isDestroyed()) wc.reload();
   });
 }
 
