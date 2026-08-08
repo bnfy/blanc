@@ -18,7 +18,7 @@
 - The state inventory in the spec is the contract: new per-window flags may be *added* as discovered, but nothing listed may be recategorized without a spec amendment.
 - `recentlyClosedUrls` stays app-global. The `tabs` Map stays process-wide (tab records gain `runtimeId`).
 - Session persistence guards carry over verbatim: no save while quitting / suspended / zero tabs; `activeIndex` only updates when the active tab is in the persisted list.
-- The bare `win` binding is **deleted** by the end (Task 12) — no alias survives.
+- The bare `win` binding is **deleted** by the end (Task 13) — no alias survives.
 - Every sweep task ends with: `node --check src/main/main.js`, a **zero-count grep gate** for the bare identifiers it moved, `npm run test:unit`, and the full live acceptance suite.
 - Work in a dedicated worktree branched off current `main`; never touch the shared checkout.
 
@@ -33,9 +33,17 @@
 | `src/main/main.js` | Loses ~20 module globals to the runtime record; gains `currentRuntime()`/`bindWindowRuntime()` and sanctioned-root bindings. |
 | `test/unit/window-runtime-registry.test.js` (new) | Registry + lifecycle fixtures. |
 | `test/unit/session-workspace.test.js` (new) | Shape, precedence, mirror, guard fixtures. |
-| `CLAUDE.md` | The "single source of truth" paragraph updated to describe the runtime. |
+| `CLAUDE.md`, `AGENTS.md` | The "single source of truth" paragraph updated in BOTH; `win.contentView` prose replaced. |
 
-Task order: pure modules first (1–2), ALS core (3), state sweeps smallest-risk-first (4–8), routing + roots (9–10), persistence (11), `win` deletion + lifecycle (12), docs + final gates (13).
+**Task order — bindings BEFORE sweeps, non-negotiable:** pure modules (1–2),
+ALS core with the primary runtime created before any startup work (3), tab
+ownership integrated into createTab/closeTab (4), event bindings + sanctioned
+roots (5), sender-derived IPC routing (6), and only THEN the state sweeps
+(7–10): the first sweep makes `createOverlay()` and the IPC trust path read
+`rt()`, so every execution context that reaches swept state must already be
+bound or the strict `acceptanceTestMode` gate kills the suite at launch.
+Then permission ownership (11), persistence (12), lifecycle + `win` deletion
+(13), docs + final gates (14).
 
 ---
 
@@ -488,15 +496,32 @@ function currentRuntime() {
 }
 ```
 
-- [ ] **Step 2: Create the runtime and register surfaces**
+- [ ] **Step 2: Create the runtime BEFORE any startup work**
 
-In `createMainWindow()`, immediately after the `BrowserWindow` is constructed:
+The runtime must exist before `app.whenReady` does anything — later sweeps
+make `createOverlay()` and the IPC trust path read `rt()`, and both run from
+startup contexts. At module scope, right after `currentRuntime`:
 
 ```js
-  primaryRuntime ??= windowRuntimes.createRuntime();
+primaryRuntime = windowRuntimes.createRuntime();
+```
+
+In `createMainWindow()`, immediately after the `BrowserWindow` is constructed
+(this also covers macOS dock-reopen recreation):
+
+```js
   windowRuntimes.attachWindow(primaryRuntime, { window: win });
   windowRuntimes.registerChromeSurface(primaryRuntime, win.webContents.id);
 ```
+
+And wrap `createMainWindow`'s body plus the `app.whenReady` startup body:
+
+```js
+app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => { ... }));
+```
+
+so everything that runs during launch — including `createOverlay()` — is
+already inside the binding before any sweep lands.
 
 In `createOverlay()` (where `overlayView` is constructed), after construction:
 
@@ -520,179 +545,57 @@ git commit -m "feat(runtime): ALS context, strict acceptanceTestMode gate, surfa
 
 ---
 
-## Task 4: Sweep — shield + overlay cluster
+## Task 4: Tab ownership in createTab/closeTab
 
 **Files:**
-- Modify: `src/main/main.js`
+- Modify: `src/main/main.js` (`createTab` around `:1648`, `closeTab`, the window-open/child-tab path)
 
 **Interfaces:**
-- Consumes: `currentRuntime()` (aliased locally as `rt`).
-- Produces: `overlayView/overlayMode/overlayPrefill/shieldAnchorRight/shieldPopoverHost/shieldTrigger` live only on the runtime.
+- Consumes: `attachTab`/`detachTab`/`runtimeForTab` from Task 1.
+- Produces: every live tab has `runtimeId` on its record and an entry in the
+  registry's ownership index. Tab ids are the existing `crypto.randomUUID()`
+  **strings** (`main.js:1648`) — the index is keyed by string, never a number.
 
-The sweep pattern used by this and every later sweep task — mechanical, verifiable, reviewable:
+- [ ] **Step 1: Attach on create**
 
-- [ ] **Step 1: Add the accessor alias once** (top of main.js, next to `currentRuntime`):
+In `createTab()`, where the tab record is assembled (`const id = crypto.randomUUID()`):
 
 ```js
-/** Terse accessor for per-window state. Every former module global reads
- * through here, which is what makes the ownership boundary greppable. */
-const rt = currentRuntime;
+  const owner = currentRuntime();
+  const tab = {
+    id,
+    runtimeId: owner.id,
+    // ...existing fields unchanged...
+  };
+  windowRuntimes.attachTab(owner, id);
 ```
 
-- [ ] **Step 2: Shadow check** — confirm no local declarations shadow the names being swept:
+- [ ] **Step 2: Detach on close**
 
-Run: `grep -nE "(function |\()\s*(overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b|\b(let|const|var) (overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b" src/main/main.js`
-Expected: ONLY the six module-level declarations (`:631-:648`). If a local shadow appears, rename it first, in its own commit.
+In `closeTab()` (and any other permanent tab-destruction path — grep
+`tabs.delete(` for the complete set), after the record is removed:
 
-- [ ] **Step 3: Delete the six declarations, sweep the references**
-
-Delete lines `631–648`'s `let overlayView/overlayMode/overlayPrefill/shieldAnchorRight/shieldPopoverHost/shieldTrigger` declarations (keep their comments, moving them onto the registry fields if valuable). Then:
-
-```bash
-perl -pi -e 's/\b(overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b/rt().$1/g unless m{^\s*//}' src/main/main.js
-perl -pi -e 's/rt\(\)\.rt\(\)\./rt()./g' src/main/main.js
+```js
+  windowRuntimes.detachTab(id);
 ```
 
-Then hand-fix the mechanical residue — there will be a handful:
-- `rt().overlayView = new WebContentsView(...)` in `createOverlay` is correct as-is.
-- Any occurrence inside a template string or renderer-bound string must be reverted by hand (grep step 4 catches them).
-
-- [ ] **Step 4: Zero-count gate + hand-audit**
-
-```bash
-grep -cE "(?<!\.)\b(overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b" src/main/main.js || true
-grep -nE "\b(overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b" src/main/main.js | grep -v "rt()\." | grep -v "^\s*//"
-```
-Expected: the second grep prints nothing.
-
-- [ ] **Step 5: Verify, then commit**
+- [ ] **Step 3: Verify**
 
 Run: `node --check src/main/main.js && npm run test:unit && npm run test:acceptance:desktop`
-Expected: 378 unit, 64/64 acceptance — the shield scenarios (`@F12-3..9`) are the live proof this cluster still routes.
+Expected: 378 unit, 64/64 — ownership is bookkeeping only until Tasks 5–6
+consume it, but it must exist before them: the permission owner resolution
+and tab-event bindings both resolve through `runtimeForTab`.
+
+- [ ] **Step 4: Commit**
 
 ```bash
 git add src/main/main.js
-git commit -m "refactor(runtime): overlay and shield state lives on the runtime"
+git commit -m "feat(runtime): tabs carry their owning runtime from creation"
 ```
 
 ---
 
-## Task 5: Sweep — utility sheet + focus + geometry cluster
-
-**Files:**
-- Modify: `src/main/main.js`
-
-Same five-step pattern as Task 4 for: `utilitySheetView`, `utilitySheetUrl`, `tabsWantingAddressBarFocus`, `chromeHeight`, `themeTintRefreshGeneration`, `railActivationSerial`. Declarations at `:837`, `:839`, `:568`, `:613`, `:463`, `:2107`.
-
-- [ ] Shadow check (same grep shape, these six names)
-- [ ] Delete declarations; perl sweep; fix residue
-- [ ] Zero-count gate: `grep -nE "\b(utilitySheetView|utilitySheetUrl|tabsWantingAddressBarFocus|chromeHeight|themeTintRefreshGeneration|railActivationSerial)\b" src/main/main.js | grep -v "rt()\." | grep -v "^\s*//"` → nothing
-- [ ] `node --check` + full unit + full acceptance (the utility-sheet scenarios F16-* and vertical-tabs F28-* exercise this cluster live)
-- [ ] Commit: `refactor(runtime): sheet, focus-reclaim, and chrome-geometry state on the runtime`
-
----
-
-## Task 6: Sweep — workspace cluster (tabOrder, activeTabId, groups, lastActiveByCluster)
-
-**Files:**
-- Modify: `src/main/main.js`
-
-The highest-reference sweep (30 + 67 + 34 uses). Same pattern, two extra cautions:
-
-- [ ] Shadow check: `groups` appears as a parameter/property in session code (`d.groups`, destructures). Property accesses (`d.groups`, `s.groups`, `payload.groups`) are NOT bare identifiers and must not be swept — the perl word-boundary sweep would rewrite them; use this stricter sweep that skips property access:
-
-```bash
-perl -pi -e 's/(?<![.\w])(tabOrder|activeTabId|groups|lastActiveByCluster)\b/rt().$1/g unless m{^\s*//}' src/main/main.js
-perl -pi -e 's/rt\(\)\.rt\(\)\./rt()./g' src/main/main.js
-```
-
-- [ ] Hand-audit every `groups` hit afterward — the object-literal shorthand `{ tabs: serialized, activeTabId, groups, ... }` in `broadcastTabs()` becomes invalid after sweeping; rewrite those literals explicitly:
-
-```js
-  const runtime = rt();
-  const payload = {
-    tabs: serialized,
-    activeTabId: runtime.activeTabId,
-    groups: runtime.groups,
-    ...
-  };
-```
-
-- [ ] Zero-count gate (same shape as Task 4) → nothing
-- [ ] `node --check` + full unit + **full acceptance** — tab lifecycle, groups, session scenarios all drive this cluster
-- [ ] Commit: `refactor(runtime): the tab workspace lives on the runtime`
-
----
-
-## Task 7: Sweep — broadcast timer + 1Password flag
-
-**Files:**
-- Modify: `src/main/main.js`
-
-Same pattern for `tabsBroadcastTimer` (`:1113`) and `onePasswordFillInFlight` (`:1494`).
-
-- [ ] Sweep both; zero-count gate; hand-audit
-- [ ] **1Password referent swap, same task** (spec: "runtime-scoped reads"): in the fill flow, replace each `win.isFocused()` (`:762`, `:772`, `:1553`) and `dialog.showMessageBox(win, ...)` (`:310`, `:1527`) with the *owning runtime's* window — `rt().window.isFocused()` / `dialog.showMessageBox(rt().window, ...)`. The flow runs inside tab-event bindings (Task 9 wires them), so `rt()` resolves to the tab's owner. With n=1 behavior is identical.
-- [ ] `node --check` + full unit + full acceptance
-- [ ] Commit: `refactor(runtime): broadcast debounce and 1Password fill state runtime-owned`
-
----
-
-## Task 8: Permission prompts — ownership and scoped flush
-
-**Files:**
-- Modify: `src/main/main.js:600-610` (prompt map), `:3255-3270` (prompter + respond), `:3133` (flush in 'closed')
-
-**Interfaces:**
-- Produces: prompts stored on `runtime.permissionPrompts`; `flushPermissionPrompts(runtime)` takes the runtime explicitly.
-
-- [ ] **Step 1: Move the prompt map**
-
-The module-level prompt map (`:600`) moves to `runtime.permissionPrompts` (already in the registry record). The prompter (`:3259`) assigns ownership **from the requesting tab's webContents**:
-
-```js
-  setPermissionPrompter(({ origin, permission, mediaTypes, requestingWebContents }) =>
-    new Promise((resolve) => {
-      const owner = windowRuntimes.runtimeForTab(tabIdForWebContents(requestingWebContents)) ?? rt();
-      const promptId = ++permissionPromptCounter;
-      owner.permissionPrompts.set(promptId, resolve);
-      owner.window.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
-    })
-  );
-```
-
-(If `setupPermissionPolicy` does not currently pass the requesting webContents through, extend `src/main/permissions.js`'s prompter call with it — it holds the permission request's `webContents` already; this is a parameter addition, not a behavior change. If no tab resolves — a permission request from a non-tab surface — fall back to `rt()`, which is the single runtime.)
-
-- [ ] **Step 2: Guard the response by sender runtime**
-
-```js
-  chromeOn('permissions:respond', (event, { id, allow }) => {
-    const sender = windowRuntimes.runtimeForChromeWebContentsId(event.sender.id);
-    const resolve = sender?.permissionPrompts.get(id);
-    if (!resolve) return; // wrong window's chrome, or a stale prompt — ignore
-    sender.permissionPrompts.delete(id);
-    resolve(allow);
-  });
-```
-
-- [ ] **Step 3: Scope the flush**
-
-`flushPermissionPrompts()` (`:604`) becomes `flushPermissionPrompts(runtime)`, iterating `runtime.permissionPrompts` only; the `'closed'` handler call site (`:3133`) passes the closing runtime.
-
-- [ ] **Step 4: Verify**
-
-Run: full unit + full acceptance. The F13 permission scenarios are the live check.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add src/main/main.js src/main/permissions.js
-git commit -m "refactor(runtime): permission prompts owned by the requesting tab's runtime"
-```
-
----
-
-## Task 9: Event-binding wraps + sanctioned roots
+## Task 5: Event-binding wraps + sanctioned roots
 
 **Files:**
 - Modify: `src/main/main.js`, `src/main/test-hook.js`
@@ -732,7 +635,7 @@ git commit -m "feat(runtime): bind native events, menu clicks, hooks, and timers
 
 ---
 
-## Task 10: Sender-derived IPC routing
+## Task 6: Sender-derived IPC routing
 
 **Files:**
 - Modify: `src/main/main.js:2397-2412`
@@ -775,7 +678,204 @@ function chromeOn(channel, handler) {
 
 ---
 
-## Task 11: Persistence through session-workspace
+## Task 7: Sweep — shield + overlay cluster
+
+**Files:**
+- Modify: `src/main/main.js`
+
+**Interfaces:**
+- Consumes: `currentRuntime()` (aliased locally as `rt`).
+- Produces: `overlayView/overlayMode/overlayPrefill/shieldAnchorRight/shieldPopoverHost/shieldTrigger` live only on the runtime.
+
+The sweep pattern used by this and every later sweep task — mechanical, verifiable, reviewable:
+
+- [ ] **Step 1: Add the accessor alias once** (top of main.js, next to `currentRuntime`):
+
+```js
+/** Terse accessor for per-window state. Every former module global reads
+ * through here, which is what makes the ownership boundary greppable. */
+const rt = currentRuntime;
+```
+
+- [ ] **Step 2: Shadow check** — confirm no local declarations shadow the names being swept:
+
+Run: `grep -nE "(function |\()\s*(overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b|\b(let|const|var) (overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b" src/main/main.js`
+Expected: ONLY the six module-level declarations (`:631-:648`). If a local shadow appears, rename it first, in its own commit.
+
+- [ ] **Step 3: Delete the six declarations, sweep the references**
+
+Delete lines `631–648`'s `let overlayView/overlayMode/overlayPrefill/shieldAnchorRight/shieldPopoverHost/shieldTrigger` declarations (keep their comments, moving them onto the registry fields if valuable). Then:
+
+```bash
+# Property-access-safe (skips d.overlayMode etc.) — use THIS form for every
+# cluster in the plan, never the naive word-boundary variant.
+perl -pi -e 's/(?<![.\w])(overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b/rt().$1/g unless m{^\s*//}' src/main/main.js
+perl -pi -e 's/rt\(\)\.rt\(\)\./rt()./g' src/main/main.js
+```
+
+Then hand-fix the mechanical residue — there will be a handful:
+- `rt().overlayView = new WebContentsView(...)` in `createOverlay` is correct as-is.
+- Any occurrence inside a template string or renderer-bound string must be reverted by hand (grep step 4 catches them).
+
+- [ ] **Step 4: Zero-count gate + hand-audit**
+
+```bash
+# rg -P for the lookbehind (BSD grep has no -P); the ! inverts so ANY hit —
+# or a regex error — fails the task loudly instead of being masked.
+! rg -P '(?<![.\w])(overlayView|overlayMode|overlayPrefill|shieldAnchorRight|shieldPopoverHost|shieldTrigger)\b(?!\s*:)' src/main/main.js --line-number | rg -v 'rt\(\)\.' | rg -v '^\d+:\s*//' | rg .
+```
+Expected: exit 0 with no output — any surviving bare identifier fails the gate.
+
+- [ ] **Step 5: Verify, then commit**
+
+Run: `node --check src/main/main.js && npm run test:unit && npm run test:acceptance:desktop`
+Expected: 378 unit, 64/64 acceptance — the shield scenarios (`@F12-3..9`) are the live proof this cluster still routes.
+
+```bash
+git add src/main/main.js
+git commit -m "refactor(runtime): overlay and shield state lives on the runtime"
+```
+
+---
+
+## Task 8: Sweep — utility sheet + focus + geometry cluster
+
+**Files:**
+- Modify: `src/main/main.js`
+
+Same five-step pattern as the shield/overlay sweep for: `utilitySheetView`, `utilitySheetUrl`, `tabsWantingAddressBarFocus`, `chromeHeight`, `themeTintRefreshGeneration`, `railActivationSerial`, **`addressMenuTicket`, `addressMenuSeq`** (the address-menu suppression flags the spec classifies as runtime-owned; declarations at `:654`/`:655`). Other declarations at `:837`, `:839`, `:568`, `:613`, `:463`, `:2107`. Add both `addressMenuTicket: 0` and `addressMenuSeq: 0` to Task 1's `createRuntime()` record and its inventory test in the same commit.
+
+- [ ] Shadow check (same grep shape, these six names)
+- [ ] Delete declarations; perl sweep; fix residue
+- [ ] Zero-count gate (same `! rg -P … | rg .` shape as the overlay sweep, with these six names plus `addressMenuTicket|addressMenuSeq`) → exit 0, no output
+- [ ] `node --check` + full unit + full acceptance (the utility-sheet scenarios F16-* and vertical-tabs F28-* exercise this cluster live)
+- [ ] Commit: `refactor(runtime): sheet, focus-reclaim, and chrome-geometry state on the runtime`
+
+---
+
+## Task 9: Sweep — workspace cluster (tabOrder, activeTabId, groups, lastActiveByCluster)
+
+**Files:**
+- Modify: `src/main/main.js`
+
+The highest-reference sweep (30 + 67 + 34 uses). Same pattern, two extra cautions:
+
+- [ ] Shadow check: `groups` appears as a parameter/property in session code (`d.groups`, destructures). Property accesses (`d.groups`, `s.groups`, `payload.groups`) are NOT bare identifiers and must not be swept — the perl word-boundary sweep would rewrite them; use this stricter sweep that skips property access:
+
+```bash
+perl -pi -e 's/(?<![.\w])(tabOrder|activeTabId|groups|lastActiveByCluster)\b/rt().$1/g unless m{^\s*//}' src/main/main.js
+perl -pi -e 's/rt\(\)\.rt\(\)\./rt()./g' src/main/main.js
+```
+
+- [ ] Hand-audit every `groups` hit afterward — the object-literal shorthand `{ tabs: serialized, activeTabId, groups, ... }` in `broadcastTabs()` becomes invalid after sweeping; rewrite those literals explicitly:
+
+```js
+  const runtime = rt();
+  const payload = {
+    tabs: serialized,
+    activeTabId: runtime.activeTabId,
+    groups: runtime.groups,
+    ...
+  };
+```
+
+- [ ] Zero-count gate (same shape as Task 4) → nothing
+- [ ] `node --check` + full unit + **full acceptance** — tab lifecycle, groups, session scenarios all drive this cluster
+- [ ] Commit: `refactor(runtime): the tab workspace lives on the runtime`
+
+---
+
+## Task 10: Sweep — broadcast timer + 1Password flag
+
+**Files:**
+- Modify: `src/main/main.js`
+
+Same pattern for `tabsBroadcastTimer` (`:1113`) and `onePasswordFillInFlight` (`:1494`).
+
+- [ ] Sweep both; zero-count gate; hand-audit
+- [ ] **1Password referent swap, same task** (spec: "runtime-scoped reads"): in the fill flow, replace each `win.isFocused()` (`:762`, `:772`, `:1553`) and `dialog.showMessageBox(win, ...)` (`:310`, `:1527`) with the *owning runtime's* window — `rt().window.isFocused()` / `dialog.showMessageBox(rt().window, ...)`. The flow runs inside tab-event bindings (Task 9 wires them), so `rt()` resolves to the tab's owner. With n=1 behavior is identical.
+- [ ] `node --check` + full unit + full acceptance
+- [ ] Commit: `refactor(runtime): broadcast debounce and 1Password fill state runtime-owned`
+
+---
+
+
+## Task 11: Permission prompts — ownership and scoped flush
+
+**Files:**
+- Modify: `src/main/main.js:600-610` (prompt map), `:3255-3270` (prompter + respond), `:3133` (flush in 'closed')
+
+**Interfaces:**
+- Produces: prompts stored on `runtime.permissionPrompts`; `flushPermissionPrompts(runtime)` takes the runtime explicitly.
+
+- [ ] **Step 1: Move the prompt map**
+
+The module-level prompt map (`:600`) moves to `runtime.permissionPrompts` (already in the registry record). The prompter (`:3259`) assigns ownership **from the requesting tab's webContents**:
+
+```js
+  setPermissionPrompter(({ origin, permission, mediaTypes, requestingWebContents }) =>
+    new Promise((resolve) => {
+      // Resolve the owning tab by scanning the process-wide tabs Map for the
+      // record whose view hosts this webContents — no helper exists yet, so
+      // define one here (it is four lines, main.js-local):
+      //   function tabForWebContents(wc) {
+      //     if (!wc) return null;
+      //     for (const tab of tabs.values()) {
+      //       if (tab.view?.webContents === wc) return tab;
+      //     }
+      //     return null;
+      //   }
+      const tab = tabForWebContents(requestingWebContents);
+      const owner = tab ? windowRuntimes.runtimeForTab(tab.id) : null;
+      // An unresolvable requester is DENIED, never rerouted: falling back to
+      // some runtime would let a non-tab request reach the wrong window's
+      // chrome under M2. resolve(null) preserves today's deny-by-default.
+      if (!owner) return resolve(null);
+      // Preserve today's no-live-window guard before dereferencing:
+      if (!owner.window || owner.window.isDestroyed()) return resolve(null);
+      const promptId = ++permissionPromptCounter;
+      owner.permissionPrompts.set(promptId, resolve);
+      owner.window.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
+    })
+  );
+```
+
+(`src/main/permissions.js` already holds the permission request's
+`webContents`; extend its prompter call to pass `requestingWebContents`
+through — a parameter addition, not a behavior change.)
+
+- [ ] **Step 2: Guard the response by sender runtime**
+
+```js
+  chromeOn('permissions:respond', (event, { id, allow }) => {
+    const sender = windowRuntimes.runtimeForChromeWebContentsId(event.sender.id);
+    const resolve = sender?.permissionPrompts.get(id);
+    if (!resolve) return; // wrong window's chrome, or a stale prompt — ignore
+    sender.permissionPrompts.delete(id);
+    resolve(allow);
+  });
+```
+
+- [ ] **Step 3: Scope the flush**
+
+`flushPermissionPrompts()` (`:604`) becomes `flushPermissionPrompts(runtime)`, iterating `runtime.permissionPrompts` only; the `'closed'` handler call site (`:3133`) passes the closing runtime.
+
+- [ ] **Step 4: Verify**
+
+Run: full unit + full acceptance. The F13 permission scenarios are the live check.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/main/main.js src/main/permissions.js
+git commit -m "refactor(runtime): permission prompts owned by the requesting tab's runtime"
+```
+
+---
+
+
+
+## Task 12: Persistence through session-workspace
 
 **Files:**
 - Modify: `src/main/main.js` (`persistSession` `:1042`, the restore path in `app.whenReady`)
@@ -830,22 +930,44 @@ Run: full unit + full acceptance, then `npm run dist:dir` is NOT needed — but 
 
 ---
 
-## Task 12: Window lifecycle + delete the bare `win`
+## Task 13: Window lifecycle + delete the bare `win`
 
 **Files:**
 - Modify: `src/main/main.js` (`'closed'` handler `:3120-3134`, `createMainWindow`, declaration `:430`)
 
-- [ ] **Step 1: Lifecycle through the registry**
+- [ ] **Step 1: Lifecycle through the registry — close views FIRST**
 
-The `'closed'` handler's manual nulling of overlay/sheet is replaced by:
+`detachWindow` only nulls references; it must never be the thing that
+destroys views, or the overlay and sheet `webContents` leak. The `'closed'`
+handler closes them exactly as today, THEN detaches:
 
 ```js
-    windowRuntimes.detachWindow(primaryRuntime);
+    const runtime = primaryRuntime;
+    // Destroy the views the window owned — detachWindow only forgets them.
+    if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
+      runtime.overlayView.webContents.close();
+    }
+    if (runtime.utilitySheetView && !runtime.utilitySheetView.webContents.isDestroyed()) {
+      runtime.utilitySheetView.webContents.close();
+    }
+    windowRuntimes.detachWindow(runtime);
     iconRaster.dispose();
-    flushPermissionPrompts(primaryRuntime);
+    flushPermissionPrompts(runtime);
 ```
 
-(`detachWindow` nulls the view fields and unregisters both surfaces — the fixture from Task 1 is the contract.) `createMainWindow()`'s existing recreate path calls `attachWindow` + surface registration (already placed in Task 3).
+Additionally, wherever the overlay can be destroyed on its own (renderer
+crash / `render-process-gone`, explicit teardown), register the cleanup so a
+dead overlay never lingers in the surface index:
+
+```js
+  overlayView.webContents.once('destroyed', () => {
+    windowRuntimes.unregisterChromeSurface(overlayWcId); // captured at creation
+    if (rt().overlayView === overlayView) rt().overlayView = null;
+  });
+```
+
+`createMainWindow()`'s recreate path calls `attachWindow` + surface
+registration (already placed in Task 3).
 
 - [ ] **Step 2: Sweep `win` last, then delete it**
 
@@ -854,21 +976,25 @@ Same sweep pattern as Task 4 for `win` → `rt().window` (72 references; the pro
 - [ ] **Step 3: Zero-count gate**
 
 ```bash
-grep -nE "(?<![.\w])win\b" src/main/main.js | grep -vE "rt\(\)\.window|^\s*//|windows?\b"
+! rg -P '(?<![.\w])win\b(?![\w])' src/main/main.js --line-number | rg -v 'rt\(\)\.window' | rg -v '^\d+:\s*//' | rg -v 'windows' | rg .
 ```
-Expected: nothing.
+Expected: exit 0 with no output.
 
 - [ ] **Step 4: Verify** — `node --check`, full unit, full acceptance.
 - [ ] **Step 5: Commit** — `refactor(runtime): window lifecycle via the registry; the bare win binding is gone`
 
 ---
 
-## Task 13: Docs + final gates
+## Task 14: Docs + final gates
 
 **Files:**
-- Modify: `CLAUDE.md` (the "single source of truth" architecture paragraph)
+- Modify: `CLAUDE.md` and `AGENTS.md` (both carry the same stale architecture paragraph, including references to `win.contentView` — a binding that no longer exists after Task 13)
 
-- [ ] **Step 1: Update CLAUDE.md**
+- [ ] **Step 1: Update BOTH instruction documents**
+
+Apply the same edit to `CLAUDE.md` and `AGENTS.md`, and sweep both files'
+prose for `win.contentView` / bare `win` references, replacing them with
+runtime-window phrasing (`the window's contentView`).
 
 The paragraph stating `main.js` owns `tabs` Map + `tabOrder` as "the single source of truth" gains the runtime sentence:
 
@@ -890,7 +1016,13 @@ npm run test:acceptance:dry   # 64 scenarios / 425 steps, 0 undefined
 npm run test:acceptance:desktop  # 64/64 — run twice; both clean
 npm run dist:dir              # packaged build for the smokes
 BLANC_PACKAGED_EXECUTABLE="$PWD/dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc" node test/desktop/packaged-first-run-smoke.mjs
-BLANC_PACKAGED_EXECUTABLE="$PWD/dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc" node test/desktop/packaged-migration-smoke.mjs
+# The migration smoke takes TWO executables: the public 1.0.9 Stable as the
+# profile-originating base, and this build as the upgrade candidate.
+# Download the base once (or point at an existing install):
+#   gh release download v1.0.9 --pattern 'Blanc-1.0.9-arm64.dmg' --dir /tmp/blanc-base && hdiutil attach ... (or use an installed /Applications/Blanc.app at 1.0.9)
+BLANC_STABLE_EXECUTABLE="/path/to/Blanc-1.0.9.app/Contents/MacOS/Blanc" \
+BLANC_CANDIDATE_EXECUTABLE="$PWD/dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc" \
+node test/desktop/packaged-migration-smoke.mjs
 ```
 
 The migration smoke matters most here: it upgrades a real public-1.0.x profile, whose session.json is v0 — the live proof of the load path.
@@ -908,10 +1040,10 @@ PR body must state: behavior-invisible by contract (suite counts unchanged); the
 
 ## Self-Review
 
-**Spec coverage.** Registry + lifecycle → Task 1. Workspace + precedence + read-only + guards → Tasks 2, 11. ALS + strict gate keyed on `acceptanceTestMode` → Task 3. Inventory sweeps → Tasks 4–7 (all twenty globals mapped; `recentlyClosedUrls` deliberately untouched per spec). Permission ownership from requesting tab + sender-guarded response + scoped flush → Task 8. Sanctioned roots incl. test-hook wrapping → Task 9. Sender-derived routing, no focused-window fallback → Task 10. 1Password referent → Task 7. Detach/reattach + `win` deletion → Task 12. CLAUDE.md + packaged smokes → Task 13.
+**Spec coverage.** Registry + lifecycle → Task 1. Workspace + precedence + read-only + guards → Tasks 2, 12. ALS + strict gate keyed on `acceptanceTestMode`, runtime created before startup → Task 3. Tab ownership with string UUIDs → Task 4. Sanctioned roots incl. test-hook wrapping → Task 5. Sender-derived routing, no focused-window fallback → Task 6. Inventory sweeps → Tasks 7–10 (all twenty-two globals mapped incl. addressMenuTicket/Seq; `recentlyClosedUrls` deliberately untouched per spec). 1Password referent → Task 10. Permission ownership from requesting tab, deny on unresolvable requester, live-window guard, sender-guarded response, scoped flush → Task 11. Close-views-then-detach + overlay-destroyed cleanup + `win` deletion → Task 13. CLAUDE.md + AGENTS.md + both packaged smokes with the real two-executable migration invocation → Task 14.
 
 **Placeholders.** None; every code step carries real code or an exact command.
 
-**Type consistency.** `rt()` returns the runtime record whose fields are defined once in Task 1's `createRuntime()`; `loadWorkspace`/`buildSaveShape`/`entryFrom` signatures match between Tasks 2 and 11; `flushPermissionPrompts(runtime)` consistent between Tasks 8 and 12; `bindWindowRuntime(runtime, fn)` consistent across 3, 9.
+**Type consistency.** `rt()` returns the runtime record whose fields are defined once in Task 1's `createRuntime()` (extended with the address-menu flags in Task 8); `loadWorkspace`/`buildSaveShape`/`entryFrom` signatures match between Tasks 2 and 12; `flushPermissionPrompts(runtime)` consistent between Tasks 11 and 13; `bindWindowRuntime(runtime, fn)` consistent across 3, 5; `tabForWebContents` defined where used (Task 11).
 
 **Honest risk note for the executor.** Tasks 4, 6, and 12 are mechanical sweeps over a 3,594-line file. The zero-count grep gates and full-suite runs after *each* sweep are the safety net — never batch two sweeps into one commit, and never proceed past a sweep whose acceptance run was not fully green.
