@@ -18,6 +18,7 @@
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
   const pillShield = document.getElementById('pillShield');
+  const pillShieldCount = document.getElementById('pillShieldCount');
   const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const pillSourceChip = document.getElementById('pillSourceChip');
@@ -144,12 +145,6 @@
   function activeTab() {
     return state.tabs.find((t) => t.id === state.activeTabId) || null;
   }
-
-  function shieldTooltip(blocked) {
-    return `Blanc blocked ${blocked} ${blocked === 1 ? 'ad or tracker' : 'ads & trackers'} on this page`;
-  }
-
-  const EXCEPTED_SHIELD_TITLE = 'Ads allowed on this site — /block-ads to re-block';
 
   /** The page URL behind a `view-source:` URL, else null. Chromium's
    * view-source: is a non-special scheme, so `new URL(...).host` is '' and
@@ -408,16 +403,16 @@
     // the same thing is noise.
     pillSourceChip.hidden = !viewSourceTarget(tab?.url) || !!tab?.private;
 
-    // An allow-listed site blocks nothing, so the count alone would hide the
-    // shield and leave that state invisible in the chrome. Show it struck
-    // through instead — the one place the pill admits ads are getting through
-    // on purpose, and the affordance that makes /block-ads' effect legible.
-    const blocked = tab?.blockedCount ?? 0;
-    const excepted = !!tab?.excepted;
-    pillShield.hidden = blocked === 0 && !excepted;
-    pillShield.classList.toggle('shield-off', excepted);
-    pillShield.textContent = excepted ? '0' : String(blocked);
-    pillShield.title = excepted ? EXCEPTED_SHIELD_TITLE : shieldTooltip(blocked);
+    // Shield chip: state fully derived in main (shield-model.js) and shipped
+    // on the broadcast — the strip only renders. Always present on a page
+    // with a blockable host, so the popover entry point never vanishes.
+    const shield = tab?.shield ?? { mode: 'hidden', count: 0, title: '' };
+    pillShield.hidden = shield.mode === 'hidden';
+    pillShield.classList.toggle('shield-off', shield.mode === 'off');
+    pillShield.classList.toggle('shield-quiet', shield.mode === 'quiet');
+    pillShieldCount.textContent = shield.mode === 'count' ? String(shield.count) : '';
+    pillShield.title = shield.title;
+    pillShield.setAttribute('aria-label', shield.title);
 
     // The private theme scope follows the active tab.
     if (tab?.private) document.documentElement.dataset.theme = 'private';
@@ -443,6 +438,15 @@
       if (state.activeTabId) window.browserAPI.closeTab(state.activeTabId);
     });
   }
+
+  // The chip toggles the site-protection popover; stopPropagation keeps the
+  // pill's own click (open panel) out of it. Enter/Space come free — it's a
+  // real <button>, and islandPill's keydown guard ignores focused children.
+  pillShield.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const r = pillShield.getBoundingClientRect();
+    window.browserAPI.openShieldPopover({ right: r.right });
+  });
 
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
   islandPill.addEventListener('keydown', (e) => {

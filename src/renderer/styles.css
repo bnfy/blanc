@@ -851,26 +851,50 @@ body.mac .vertical-tabs-toolbar {
 #pillSourceChip svg { width: 8px; height: 8px; stroke-width: 2; }
 
 .shield {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: var(--font-mono);
   font-size: 11px;
   padding: 1px 7px;
+  border: 1px solid transparent;
   border-radius: 999px;
   background: var(--accent-dim);
   color: var(--accent);
   flex: 0 0 auto;
+  cursor: pointer;
+}
+.shield svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.shield .shield-slash { display: none; }
+#pillShieldCount:empty { display: none; }
+
+/* Protected but nothing blocked yet: a quiet landmark, not a badge. */
+.shield.shield-quiet {
+  background: transparent;
+  color: var(--text-dim);
+  padding: 1px 4px;
 }
 
-/* Ads deliberately allowed here (/allow-ads). The shield stays in place but
-   reads as switched off — muted rather than alarming, since this is a state
-   the user chose, not a warning. Struck through so it is distinguishable from
-   a genuine 0 at a glance and without relying on color alone. */
+/* Ads deliberately allowed here (site exception or global off). The shield
+   stays in place but reads as switched off — muted rather than alarming,
+   since this is a state the user chose. The slashed glyph (not color alone)
+   distinguishes it from the quiet protected state at a glance. */
 .shield.shield-off {
   background: transparent;
   color: var(--text-dim);
-  border: 1px solid var(--border);
-  text-decoration: line-through;
-  padding: 0 6px;
+  border-color: var(--border);
+  padding: 1px 6px;
 }
+.shield.shield-off .shield-slash { display: block; }
 
 /* Warning-only security indicator: an open padlock shown solely on
    plain-HTTP sites (pill and command-bar input row); secure and internal
