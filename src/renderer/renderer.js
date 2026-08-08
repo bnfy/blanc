@@ -152,7 +152,6 @@
   function renderDownloads() {
     const { active, hasRecent, receivedBytes, totalBytes } = downloadState;
     downloadsBtn.hidden = !(active > 0 || hasRecent);
-    closeBtn.hidden = !state.tabs.length;
     downloadsBtn.classList.toggle('active', active > 0);
     const pct = active > 0 && totalBytes > 0 ? Math.min(1, receivedBytes / totalBytes) : 0;
     downloadsBtn.style.setProperty('--dl-progress', String(pct));
@@ -403,6 +402,11 @@
       reloadBtn.innerHTML = PILL_ICONS[reloadMode];
       reloadBtn.title = reloadMode === 'stop' ? 'Stop' : 'Reload';
     }
+    // Nothing to close with no tabs. This has to ride the tab render pass:
+    // renderDownloads() only runs on download broadcasts, so a session with
+    // no downloads would never re-evaluate it.
+    closeBtn.hidden = !state.tabs.length;
+
     // Favorites only apply to real web pages (blanc:// and private tabs are
     // no-ops in main), so mirror the overlay and disable the heart otherwise.
     const favoritable = /^https?:\/\//.test(tab?.url || '');
