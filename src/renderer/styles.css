@@ -878,10 +878,26 @@ body.mac .vertical-tabs-toolbar {
   stroke-linejoin: round;
   flex: 0 0 auto;
 }
+/* The badge overlays the shield's top-right shoulder. The glyph is 16px inside
+   a 24px button, so the DS's -1/-4 — drawn against the button — left it
+   floating out in the gap beyond the corner.
+
+   Anchored from the LEFT, deliberately: the badge widens with the digit count,
+   and a right anchor grows it leftward across the glyph (at two digits it
+   swallowed the shield whole). From the left it grows outward instead, so the
+   chosen overlap holds at 1, 2 or 3 digits.
+
+   The depth is set by the diagonal, not by taste. The cut terminates at this
+   exact shoulder, so a badge pushed any further in covers the top end and the
+   cut reads as fading out rather than running edge to edge — which would undo
+   the reason the glyph is a cut shield at all. This is the deepest overlap
+   that leaves it whole. The ring punches the outline out from under the badge
+   so the two don't muddle. */
 #pillShieldCount {
   position: absolute;
-  top: -1px;
-  right: -4px;
+  top: 1.25px;
+  left: 16.5px;
+  box-shadow: 0 0 0 1.5px var(--surface-raised);
   min-width: 10px;
   height: 10px;
   border-radius: 999px;
