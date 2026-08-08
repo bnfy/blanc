@@ -632,12 +632,12 @@ function setTestSearchNavigationCapture(enabled) {
 }
 
 // Outstanding permission prompts awaiting the user's Allow/Block, keyed by
-// prompt id → the Promise resolver. Flushed if the window dies mid-prompt
-// so the underlying Chromium request never hangs.
-const pendingPermissionPrompts = new Map();
-function flushPermissionPrompts() {
-  for (const resolve of pendingPermissionPrompts.values()) resolve(null); // null = never answered
-  pendingPermissionPrompts.clear();
+// prompt id → the Promise resolver, live on runtime.permissionPrompts (Task 1
+// registry record). Flushed if the owning window dies mid-prompt so the
+// underlying Chromium request never hangs.
+function flushPermissionPrompts(runtime) {
+  for (const resolve of runtime.permissionPrompts.values()) resolve(null); // null = never answered
+  runtime.permissionPrompts.clear();
 }
 
 // Height (in CSS px) of the sampled safe-area gutter the resting Island floats
@@ -3181,7 +3181,7 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
     // otherwise linger past the last window (blocking `window-all-closed` quit
     // on Windows/Linux). Recreated lazily on the next non-PNG capture.
     iconRaster.dispose();
-    flushPermissionPrompts();
+    flushPermissionPrompts(primaryRuntime);
   }));
 
   // Tabs survive window close (macOS dock-reopen recreates the window);
@@ -3304,20 +3304,38 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setupPermissionPolicy(ses);
   setupPermissionPolicy(privateSes, { persistDecisions: false });
   let permissionPromptCounter = 0;
+  // Resolve the tab owning a requesting webContents by scanning the
+  // process-wide tabs Map for the record whose view hosts it.
+  function tabForWebContents(wc) {
+    if (!wc) return null;
+    for (const tab of tabs.values()) {
+      if (tab.view?.webContents === wc) return tab;
+    }
+    return null;
+  }
   // Resolve null when there's no window to ask through — the policy treats
   // null as "not answered" and denies for now WITHOUT persisting, so a
   // transient no-window moment can't permanently block a site.
-  setPermissionPrompter(({ origin, permission, mediaTypes }) =>
+  setPermissionPrompter(({ origin, permission, mediaTypes, requestingWebContents }) =>
     new Promise((resolve) => {
-      if (!hasLiveWindow()) return resolve(null);
+      const tab = tabForWebContents(requestingWebContents);
+      const owner = tab ? windowRuntimes.runtimeForTab(tab.id) : null;
+      // An unresolvable requester is DENIED (null = not answered, never
+      // persisted), never rerouted — under M2 a fallback could reach the
+      // wrong window's chrome.
+      if (!owner) return resolve(null);
+      if (!owner.window || owner.window.isDestroyed()) return resolve(null);
       const promptId = ++permissionPromptCounter;
-      pendingPermissionPrompts.set(promptId, resolve);
-      win.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
+      owner.permissionPrompts.set(promptId, resolve);
+      owner.window.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
     })
   );
   chromeOn('permissions:respond', (_e, { id, allow }) => {
-    pendingPermissionPrompts.get(id)?.(!!allow);
-    pendingPermissionPrompts.delete(id);
+    const sender = rt(); // the sender's runtime, established by chromeOn
+    const resolve = sender.permissionPrompts.get(id);
+    if (!resolve) return; // wrong window's chrome, or a stale prompt — ignore
+    sender.permissionPrompts.delete(id);
+    resolve(!!allow);
   });
 
   // downloads.js invokes this from its own session/DownloadItem listeners —
