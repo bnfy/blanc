@@ -1681,6 +1681,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // No-ops during session restore and window creation (sheet hidden).
   hideUtilitySheet();
   const id = crypto.randomUUID();
+  const owner = currentRuntime();
   // An adopted view (window.open child, see the window-open handler) arrives
   // already constructed by Chromium with the opener relationship wired up;
   // everything else gets a fresh one.
@@ -1693,6 +1694,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   const tab = {
     id,
+    runtimeId: owner.id,
     view,
     title: 'New Tab',
     url,
@@ -1725,14 +1727,16 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   };
   tabs.set(id, tab);
   tabOrder.push(id);
+  windowRuntimes.attachTab(owner, id);
 
   const wc = view.webContents;
   installChromeShortcuts(wc);
   // Every listener registered on this tab's webContents below binds to the
-  // tab's owning runtime — resolved right here, at attach time. Task 5 wires
-  // real per-tab ownership into windowRuntimes.attachTab/runtimeForTab; until
-  // then M1 has exactly one runtime, so this always resolves to primaryRuntime.
-  const boundToTab = (fn) => bindWindowRuntime(windowRuntimes.runtimeForTab(id) ?? primaryRuntime, fn);
+  // tab's owning runtime — resolved right here, at attach time, rather than
+  // via a runtimeForTab lookup per-event. In M1 there's exactly one runtime
+  // so owner === primaryRuntime always; the shape is what M2 (multiple
+  // runtimes) inherits without changes to this function.
+  const boundToTab = (fn) => bindWindowRuntime(owner, fn);
   // SPIKE (1Password fill feasibility) — ⌥⌘P on the tab's OWN webContents
   // (the overlay before-input-event listener never sees page-focused keys).
   if (ONE_PASSWORD_SPIKE_ENABLED) {
@@ -2188,6 +2192,7 @@ function closeTab(id) {
   const closedIndex = tabOrder.indexOf(id);
   tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
+  windowRuntimes.detachTab(id);
   tabOrder = tabOrder.filter((tid) => tid !== id);
   pruneEmptyGroups();
   const wc = tab.view.webContents;
