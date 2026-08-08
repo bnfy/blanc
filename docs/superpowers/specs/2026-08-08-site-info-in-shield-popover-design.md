@@ -79,17 +79,22 @@ Two rules govern derivation, and both matter:
 2. **Return `null` while the tab is loading.** The row is then absent. An absent row
    is correct; a stale security claim is not.
 
-These two rules sit at **different layers**, which the implementation must keep
-separate:
+### Derived exactly once
 
-- `connectionState(url)` is pure on the URL alone. It knows nothing about loading.
-- The *loading* rule is applied where the model is assembled — `shieldPopoverModel()`
-  takes `isLoading` and returns `connection: null` when set, and the `tabs:updated`
-  derivation does the same for `tab.connection`.
+The claim "the pill, the panel, and the popover cannot disagree" is only true if there
+is **one** derivation. There is:
 
-Keeping the scheme mapping pure is what makes it exhaustively unit-testable; keeping
-the loading rule at the model boundary is what makes both consumers inherit it
-automatically.
+1. `connectionState(url)` is pure on the URL alone — a scheme enum, nothing else. It
+   knows nothing about loading. This is what makes it exhaustively unit-testable.
+2. **Main computes `connection` once per broadcast** from `{ committedUrl, isLoading }`
+   and serializes it onto the tab.
+3. `shieldPopoverModel()` **receives that already-derived value and carries it
+   through.** It does not re-derive, and it does not own the loading gate.
+
+So `tab.connection` is the single source, and the popover row, `pillInsecure`, and
+`panelInsecure` are three renderings of one value. Anything that computes connection
+state a second time is a bug in the implementation, not an alternative reading of this
+spec.
 
 `local` covers loopback HTTP — `localhost`, `*.localhost`, `127.0.0.0/8`, `[::1]` —
 matching the existing predicate exactly. Without it `http://localhost` would read as
@@ -124,12 +129,30 @@ does.
 |---|---|
 | `src/main/shield-model.js` | Pure `connectionState(url)`; `shieldPopoverModel()` returns `connection`. `shieldChipState()` unchanged. |
 | `src/main/main.js` | Derive from committed `getURL()`; ship `tab.connection` on `tabs:updated`; accept `trigger` on `chrome:open-shield`. |
-| `src/main/chrome-layout.js` | `SHIELD_POPOVER_HEIGHT` 232 → 256 (one row). |
+| `src/main/chrome-layout.js` | **No change.** `SHIELD_POPOVER_HEIGHT` stays 232 — see below. |
 | `src/renderer/index.html` | `#pillInsecure` `<span>` → `<button>`. |
 | `src/renderer/renderer.js` | Badge opens the popover; render badge from `tab.connection`; delete local `connectionInsecure`. |
 | `src/renderer/overlay.html` | `#shieldPopConnection` above `#shieldPopCount`; header copy. |
 | `src/renderer/overlay.js` | Render the row; render `panelInsecure` from `tab.connection`; delete local `connectionInsecure`. |
 | `src/renderer/styles.css` | Row styling; badge hit area and focus ring. |
+
+## Popover height
+
+**`SHIELD_POPOVER_HEIGHT` stays at 232.** The constant sizes the transparent overlay
+`WebContentsView`'s hit-test region, not the card: `#shieldPop` is
+`position: absolute; top: 10px; left: 12px; right: 12px` with **no height**, so the
+card is naturally sized by its content and the region already leaves empty space below
+it. Raising the constant would only enlarge the click-swallowing transparent area over
+the page.
+
+That is a real cost here, not a theoretical one. The find capsule's bounds are
+deliberately kept tight "so the rest of the page stays clickable", and an overlay
+region swallowing clicks shipped as a user-visible bug in 1.0.4/1.0.5.
+
+**Verification condition:** the rendered card must not clip at 232 with the new row
+present, checked visually in a real window at both themes. Increase the constant only
+if the rendered card proves it necessary — and if it does, by the measured overflow,
+not a round number.
 
 ## Interaction
 
@@ -158,11 +181,30 @@ badge would close a popover anchored under the shield rather than move it.
 
 Main stores the active trigger id alongside `shieldAnchorRight`.
 
-### Focus
+### Trigger state must reach the strip
 
-**Escape restores focus to the trigger that opened the popover**, not to the page and
-not to the shield by default. Re-clicking a trigger naturally leaves focus on that
-control.
+Main currently emits only `{ mode }` on `chrome:island-state` (`main.js:798`, `:813`),
+and `hideOverlay()` returns focus to page content (`main.js:815`). Neither the
+`aria-expanded` contract nor Escape-restores-focus is implementable against that, so
+three additions are required:
+
+1. **`chrome:island-state` carries the active trigger id** — `{ mode, trigger }`.
+   Both controls need it: whichever trigger is active sets `aria-expanded="true"` and
+   the other stays `false`. Without it the strip cannot know which of two buttons is
+   the open one.
+2. **An Escape-specific close reason.** `hideOverlay()` gains a reason distinguishing
+   Escape from other dismissals. On Escape from `'shield'`, focus returns to the
+   trigger that opened the popover instead of to page content — the strip does the
+   focusing, on receiving `{ mode: null, trigger, reason: 'escape' }`. Escape is
+   already handled in main at `main.js:716`, so this rides the existing path.
+3. **Trigger state is cleared on every exit.** `main.js:805` already nulls
+   `shieldAnchorRight` and `shieldPopoverHost` inside `hideOverlay()`; the trigger id
+   is cleared in the same place, which covers normal close, overlay blur, tab switch
+   (`main.js:2029`), and site-changing navigation (`main.js:1781`). Only the Escape
+   path reads the trigger before it is cleared.
+
+Re-clicking a trigger naturally leaves focus on that control, so it needs no special
+handling.
 
 ## Error handling
 
@@ -175,15 +217,17 @@ which hides the row.
 
 ### Unit — `test/unit/shield-model.test.js`
 
-On pure `connectionState(url)`: `https` · `http` · `http://localhost` ·
-`http://sub.localhost` · `http://127.0.0.1` · `http://[::1]` · `www.`-stripped host ·
+On pure `connectionState(url)` — a scheme enum only: `https` · `http` ·
+`http://localhost` · `http://sub.localhost` · `http://127.0.0.1` · `http://[::1]` ·
 malformed URL → `null` · non-`http(s)` → `null`.
 
-On `shieldPopoverModel()`, which owns the loading rule: `isLoading: true` →
-`connection: null` regardless of URL, and the existing variant/count assertions still
-hold.
+On `shieldPopoverModel()`: that a supplied `connection` is **carried through
+unmodified** (including `null`), and that host normalization still strips `www.`.
+Host normalization is a `blockableHostname()` concern surfaced by the popover model —
+it is *not* a `connectionState()` assertion, which returns only a scheme.
 
-Plus the `SHIELD_POPOVER_HEIGHT` constant in `test/unit/chrome-layout.test.js`.
+No `chrome-layout` change, so no new constant assertion; the existing 20/20 shield and
+layout baseline must stay green.
 
 ### Acceptance — `spec/acceptance/ad-blocking.feature`
 
@@ -198,6 +242,21 @@ that trigger:
 
 Both tags are added to `RUNNABLE` in `test/desktop/cucumber.mjs` and to
 `spec/acceptance/index.md`.
+
+Beyond the two contract scenarios, the interaction rules above need desktop coverage,
+since none of them is observable from unit tests:
+
+- **Re-anchoring** — with the popover open from one trigger, clicking the other
+  re-anchors rather than closes.
+- **Escape focus return** — Escape returns focus to the trigger that opened it, for
+  each trigger.
+- **`aria-expanded`** on *both* controls, asserting the inactive one stays `false`.
+
+**Required harness work,** named here so it is not discovered during implementation:
+`src/main/test-hook.js` needs readers for the popover's rendered row, the active
+trigger, and the focused element; `test/desktop/steps/runnable.steps.js` needs the
+matching steps. Both additions stay behind the existing
+`!app.isPackaged && BLANC_TEST === '1'` gate.
 
 `@desktop` is an established suite tag (23 uses across 6 feature files) and the
 default profile is `not @mobile`, so `@F12-7` fits existing conventions.
