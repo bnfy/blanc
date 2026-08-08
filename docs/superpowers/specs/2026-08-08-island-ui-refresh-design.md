@@ -27,9 +27,9 @@ re-deriving them. Three things the DS does **not** give, which we author:
 
 1. `--font-kbd` and `--island-panel-radius` — named by the checklist, but their
    `tokens.json` entries are ours to write.
-2. The B monogram path — lives in the DS's `assets/blanc-symbol.svg`
-   (`viewBox 0 0 149.21 199.16`, aspect 0.749, so a 12px-tall glyph is 8.99px wide),
-   not in `Island.jsx`.
+2. Nothing — the blocker glyph is now `Icon.jsx`'s `shield`, given verbatim by the DS.
+   (This item previously read "the B monogram path, which lives in
+   `assets/blanc-symbol.svg`, not in `Island.jsx`." See the revision note below.)
 3. Placement of the new pill ✕ — `.bw-pill-close` CSS exists; its position is stated
    only as prose ("after heart, before downloads").
 
@@ -217,10 +217,38 @@ Favorites↔`bookmarks`, and it avoids a wide mechanical rename across `main.js`
 renderers, the test hook, and four acceptance scenarios — code that changed hours ago in
 the 1.1 M1 window-runtime work.
 
-The visual becomes the B monogram in a 24px button with the count as a badge disc, per
-`PORT-CHECKLIST` item 5 and `Island.jsx`. The README's §1 description (a tinted capsule
-with the count as a right lobe) is **stale** and was annotated as such in the DS on
-2026-08-08.
+The visual becomes a 24px button with the count as a badge disc, per `PORT-CHECKLIST`
+item 5 and `Island.jsx`. The README's §1 description (a tinted capsule with the count as
+a right lobe) is **stale** and was annotated as such in the DS on 2026-08-08.
+
+### Revision, 2026-08-08 (post-port): the glyph is a cut shield, not the B monogram
+
+Item 5 originally specified the bare master B. It shipped, was reviewed against the
+running app, and was rejected on two independent grounds:
+
+- **It doesn't belong to the icon language.** Every other glyph in `Icon.jsx` is
+  `fill: none` with a rounded stroke; the monogram was the only filled mark, so it never
+  sat in the same drawing system as the reload, heart and download glyphs beside it.
+- **It doesn't survive the size, and it collides.** Its legibility rests on a counter
+  sliver that closes to sub-pixel at 16px — it degrades rather than simplifies as it
+  scales down. And `blanc://` pages render the same B in the pill's favicon slot, so the
+  two appeared ~40px apart in one pill meaning two different things.
+
+The replacement is the shield silhouette **cut edge-to-edge by the mark's own
+diagonal**. The angle is measured off `blanc-symbol.svg`, not chosen: its two counter
+edges run 44.058° and 43.918°, so the cut is **43.99°** — the mark is not on 45°, and a
+45° cut reads as wrong beside it. The line meets the silhouette at the slanted shoulder
+and the lower-left curve, giving `M4.4 11.47 12.61 3.55` on the 16 grid.
+
+This answers the DS's original objection to the plain shield — that it is generic, since
+every browser ships one — without giving up the shield's instant legibility. Two
+alternatives were drawn and rejected: an inset cut, whose gap at both ends reads as
+imprecision rather than intent, and a short interior slash, which stops reading as a cut
+of the form and becomes a "no" symbol dropped inside a shield.
+
+The DS was updated first (`Icon.jsx` `shield`, `Island.jsx`'s `Shield`, `Island.jsx.txt`,
+and `PORT-CHECKLIST` item 5), so the app is again catching up to the design rather than
+diverging from it.
 
 ## Verification
 

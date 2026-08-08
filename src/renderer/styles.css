@@ -40,7 +40,7 @@
      shadow, which fades out entirely inside the 64px strip — a shadow
      crossing the strip/page seam would be sliced off at the boundary. */
   --shadow-popover: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 10px -8px rgba(14,14,14,0.12), inset 0 -1px 0 rgba(14,14,14,0.035), 0 10px 44px -4px rgba(14,14,14,0.12);
-  --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 3px 18px -2px rgba(14,14,14,0.10);
+  --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10);
   --island-panel-radius: 18px;
   --strip-h: 64px;
   --radius: 6px;
@@ -843,9 +843,10 @@ body.mac .vertical-tabs-toolbar {
 #pillPrivateChip svg,
 #pillSourceChip svg { width: 8px; height: 8px; stroke-width: 2; }
 
-/* Blanc Blocker. The bare master B in a 24px hover-circle — the app's own
-   mark standing in for what it does, rather than a generic shield. The count
-   leaves the flow and becomes a badge on the circle's shoulder. */
+/* Blanc Blocker. A shield in a 24px hover-circle, cut edge-to-edge by the
+   master mark's own diagonal — 43.99°, measured off blanc-symbol.svg's two
+   counter edges, so it sits parallel to the logo rather than near it. The
+   count leaves the flow and becomes a badge on the circle's shoulder. */
 .shield {
   appearance: none;
   position: relative;
@@ -863,22 +864,40 @@ body.mac .vertical-tabs-toolbar {
   cursor: pointer;
 }
 .shield:hover { background: var(--border); }
-/* The monogram is a filled path on a non-square viewBox (aspect 0.749), not
-   a stroked icon. Height is the DS's whole-pixel snap for a nominal width of
-   12 — Math.round(12 × 199.16/149.21) = 16 — with the width derived back off
-   it so the mark can't distort. */
+/* Back in the icon language: stroked, square, on the 16 grid like every other
+   glyph in the pill. .pill-btn svg doesn't reach here — the blocker is not a
+   .pill-btn — so the stroke treatment is stated outright. */
 .shield svg {
   display: block;
-  width: 11.99px;
+  width: 16px;
   height: 16px;
-  fill: currentColor;
-  stroke: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   flex: 0 0 auto;
 }
+/* The badge overlays the shield's top-right shoulder. The glyph is 16px inside
+   a 24px button, so the DS's -1/-4 — drawn against the button — left it
+   floating out in the gap beyond the corner.
+
+   Anchored from the LEFT, deliberately: the badge widens with the digit count,
+   and a right anchor grows it leftward across the glyph (at two digits it
+   swallowed the shield whole). From the left it grows outward instead, so the
+   chosen overlap holds at 1, 2 or 3 digits.
+
+   The depth is set by the diagonal, not by taste. The cut terminates at this
+   exact shoulder, so a badge pushed any further in covers the top end and the
+   cut reads as fading out rather than running edge to edge — which would undo
+   the reason the glyph is a cut shield at all. This is the deepest overlap
+   that leaves it whole. The ring punches the outline out from under the badge
+   so the two don't muddle. */
 #pillShieldCount {
   position: absolute;
-  top: -1px;
-  right: -4px;
+  top: 1.25px;
+  left: 16.5px;
+  box-shadow: 0 0 0 1.5px var(--surface-raised);
   min-width: 10px;
   height: 10px;
   border-radius: 999px;
@@ -1608,9 +1627,14 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
 
 #findBar {
   position: fixed;
-  /* The find overlay view starts below the 56px strip — 4px here lands the
-     capsule 60px from the window top, per the design. */
-  top: 4px;
+  /* The find overlay view starts below the strip, and its bounds are kept
+     tight so the page stays clickable — so the capsule's shadow has to fit
+     INSIDE the view. --shadow-popover still throws ~8px upward despite its
+     +10 downward bias, and at the old 4px the view's top edge sliced it: a
+     4-level luminance step, dead straight across the full 560px width.
+     16px clears it. The view has ~114px of unused space below, so this costs
+     nothing but the capsule sitting 12px lower. */
+  top: 16px;
   left: 50%;
   transform: translateX(-50%);
   width: 480px;
