@@ -2839,11 +2839,16 @@ function tabMenuItems() {
   // Private tabs leave no trace anywhere else in the app (history, session,
   // favorites) — the native menu must not be the one place that leaks a
   // private tab's real title/domain.
-  const orderedIds = clusterSlots()
+  // Resolve to tabs here, once. The rebuild is debounced by 100ms, so
+  // clusterSlots() can still name a tab that has since closed — and dropping
+  // that id has to happen BEFORE anything reads the tab, or it takes the whole
+  // main process down. It did: `tabs.get(id)?.private` let a missing tab
+  // through (not private, therefore keep) and the next line dereferenced it.
+  const openTabs = clusterSlots()
     .flatMap((slot) => slot.tabIds)
-    .filter((id) => !tabs.get(id)?.private);
-  return orderedIds.map((id) => {
-    const tab = tabs.get(id);
+    .map((id) => [id, tabs.get(id)])
+    .filter(([, tab]) => tab && !tab.private);
+  return openTabs.map(([id, tab]) => {
     const group = tab.groupId ? rt().groups.find((g) => g.id === tab.groupId) : null;
     let domain = tab.url;
     try {
