@@ -232,26 +232,26 @@ const BACKENDS = [
 ];
 
 /**
- * Find the highest-fidelity backend that actually returns a number for a live
- * process on this machine. Probed against our own pid, which every backend is
- * permitted to inspect, plus the caller's optional extra pid so a backend that
- * works on self but not on a hardened, signed browser is rejected here rather
- * than halfway through a 40-minute run.
+ * Find the highest-fidelity backend that returns a number for a live process on
+ * this machine.
  *
- * @param {{ probePid?: number, only?: string }} [options]
+ * This can only probe our own Node process, which every backend is permitted to
+ * inspect — so passing it a browser pid was never the answer to the hardened-
+ * runtime problem, because no browser exists yet when selection runs. That case
+ * belongs to `resolveReadableBackend()`, against the first browser actually
+ * launched. Selection's job is narrower: rule out the backends this machine
+ * does not ship or allow at all.
+ *
+ * @param {{ only?: string }} [options]
  * @returns {Promise<{id: string, metric: string, description: string, sample: Function}>}
  */
 async function selectBackend(options = {}) {
-  const { probePid, only } = options;
+  const { only } = options;
   const candidates = only ? BACKENDS.filter((b) => b.id === only) : BACKENDS;
   if (!candidates.length) throw new Error(`Unknown measurement backend: ${only}`);
 
-  const pids = [process.pid];
-  if (probePid && probePid !== process.pid) pids.push(probePid);
-
   for (const backend of candidates) {
-    const sampled = await backend.sample(pids);
-    if (pids.every((pid) => (sampled.get(pid) || 0) > 0)) return backend;
+    if (await canReadPid(backend, process.pid)) return backend;
   }
   throw new Error(
     'No memory measurement backend worked on this machine. Tried: ' +

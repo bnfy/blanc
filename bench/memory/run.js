@@ -350,6 +350,22 @@ async function reapAll() {
   }
 }
 
+/**
+ * The processes currently attributable to a browser we launched.
+ *
+ * `excludePids` is not optional in practice: attribution unions the descendant
+ * walk with bundle-path matching, so without it the tester's own copy of the
+ * same browser joins the set — and callers pass that set to `quit()`, which
+ * ends in SIGKILL.
+ */
+async function processSetFor(browser, rootPid, excludePids) {
+  return proctree.browserProcessSet(await proctree.snapshot(), {
+    rootPid,
+    bundlePath: browser.bundlePath,
+    excludePids,
+  });
+}
+
 /** One measured cell: launch, sample until settled, verify, quit. */
 async function runCell({ browser, workload, urls, backend, options, log, baselineFor, onFirstLaunch }) {
   // Re-snapshot immediately before launching rather than once per run: over a
@@ -385,12 +401,7 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
     // below cover the same samples the reported median is computed from.
     const meta = [];
     const read = async () => {
-      const rows = await proctree.snapshot();
-      const pids = proctree.browserProcessSet(rows, {
-        rootPid: launched.pid,
-        bundlePath: browser.bundlePath,
-        excludePids: preExistingPids,
-      });
+      const pids = await processSetFor(browser, launched.pid, preExistingPids);
       entry.pids = pids;
       const { totalBytes, missing } = await measure.sampleTotal(activeBackend, pids);
       meta.push({ processCount: pids.length, missing: missing.length });
@@ -476,11 +487,26 @@ async function warmTemplate(browser, options, log) {
     seedBlancProfile(dir, { adblockEnabled: browser.requiresProfileSeed !== 'adblockDisabled' });
   }
   log(`  warming ${browser.label}…`);
+  // Taken before launching for the same reason a cell does it: bundle matching
+  // would otherwise sweep the tester's own copy of this browser into the set
+  // handed to quit().
+  const preExistingPids = new Set((await proctree.snapshot()).map((r) => r.pid));
   const launched = await launcher.launch(browser, { profileDir: dir, urls: [] });
   const entry = { pid: launched.pid, pids: [] };
   liveLaunches.add(entry);
-  await new Promise((resolve) => setTimeout(resolve, options.warmMs || 45_000));
-  await launcher.quit(launched.pid);
+
+  // Recorded twice: once as soon as the helpers exist, so a Ctrl-C during the
+  // long warm wait has a real set to sweep rather than just the root pid, and
+  // again immediately before quitting so the reap covers helpers that have
+  // since been re-parented away from the root.
+  const warmMs = options.warmMs || 45_000;
+  const settleMs = Math.min(2000, warmMs);
+  await new Promise((resolve) => setTimeout(resolve, settleMs));
+  entry.pids = await processSetFor(browser, launched.pid, preExistingPids);
+  await new Promise((resolve) => setTimeout(resolve, warmMs - settleMs));
+
+  entry.pids = await processSetFor(browser, launched.pid, preExistingPids);
+  await launcher.quit(launched.pid, { pids: entry.pids });
   liveLaunches.delete(entry);
   // Let the profile's own writes flush before it is used as a copy source.
   await new Promise((resolve) => setTimeout(resolve, 1500));
