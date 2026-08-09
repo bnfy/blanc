@@ -18,18 +18,25 @@ test('the gate-release function and liveContents are still liftable', () => {
   assert.ok(liveContentsSource, 'liveContents not found in tab-view.js — update this test with it');
 });
 
-/** Run the real function over a controlled tabs map and queue. */
-function load({ tabList, queued }) {
+/** Run the real function over controlled tabs, navigation, and wake queues. */
+function load({ tabList, queued, deferredWakes = [] }) {
+  const woken = [];
   const sandbox = {
     tabs: new Map(tabList.map((tab, index) => [`t${index}`, tab])),
     startupQueuedNavigations: new Map(queued),
     startupNavigationGateActive: true,
+    pendingWakes: new Set(deferredWakes),
+    wakeTab: (id) => {
+      woken.push(id);
+      return Promise.resolve(false);
+    },
   };
   vm.runInNewContext(
     `${liveContentsSource}\n${fnSource}\nthis.__fn = releaseStartupNavigationGate;`,
     sandbox
   );
   sandbox.__fn([], { blockerAttached: true });
+  return { woken, pendingWakes: sandbox.pendingWakes };
 }
 
 const liveTab = (wcId, loaded) => ({
@@ -59,4 +66,10 @@ test('a tab whose view is gone does not strand the other queued navigations', ()
   ];
   load({ tabList, queued: [[13, 'https://dead.example/'], [14, 'https://live.example/']] });
   assert.deepEqual(loaded, [[14, 'https://live.example/']]);
+});
+
+test('deferred wakes drain before ordinary startup navigations replay', () => {
+  const result = load({ tabList: [], queued: [], deferredWakes: ['quiet-a', 'quiet-b'] });
+  assert.deepEqual(result.woken, ['quiet-a', 'quiet-b']);
+  assert.equal(result.pendingWakes.size, 0);
 });

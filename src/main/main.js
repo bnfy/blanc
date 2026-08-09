@@ -270,6 +270,10 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
     }
   }
 
+  const deferredWakes = [...pendingWakes];
+  pendingWakes.clear();
+  for (const tabId of deferredWakes) wakeTab(tabId).catch(() => {});
+
   const queued = [...startupQueuedNavigations.entries()];
   startupQueuedNavigations.clear();
   for (const [webContentsId, url] of queued) {
@@ -817,6 +821,103 @@ async function sleepTab(id) {
   }
   console.debug(`[quiet-tabs] ${id}: teardown ${outcome} — left awake${aborted ? ' (beforeunload)' : ''}`);
   return false;
+}
+
+/** Wakes deferred because the startup gate would otherwise cancel restore() and
+ * replay a plain URL load, losing the retained history snapshot. */
+const pendingWakes = new Set();
+
+function commitWake(tab, generation) {
+  if (tab.wakeGeneration !== generation) return false;
+  tab.asleep = false;
+  tab.waking = false;
+  tab.lastActiveAt = Date.now();
+  sleepSnapshots.delete(tab.id);
+  broadcastTabs();
+  return true;
+}
+
+async function failWake(tab, generation) {
+  if (tab.wakeGeneration !== generation) return false;
+  const wc = liveContents(tab);
+  if (wc) {
+    const q = new URLSearchParams({
+      url: tab.url ?? '',
+      code: 'wake-failed',
+      desc: 'The page could not be reloaded',
+      title: tab.title ?? '',
+    });
+    await wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+  }
+  if (tab.wakeGeneration !== generation) return false;
+  tab.asleep = false;
+  tab.waking = false;
+  tab.lastActiveAt = Date.now();
+  sleepSnapshots.delete(tab.id);
+  broadcastTabs();
+  return false;
+}
+
+/**
+ * Rebuild a quiet tab inside a wake generation. The synchronous prefix makes
+ * a new view visible to same-turn activation callers before this promise is
+ * awaited; restore() or the direct navigation below is then its first load.
+ */
+async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
+  const tab = tabs.get(id);
+  if (!tab) return false;
+  if (!tab.asleep) return true;
+  if (startupNavigationGateActive) {
+    pendingWakes.add(id);
+    return false;
+  }
+
+  const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
+  const snapshot = sleepSnapshots.get(id);
+
+  const view = createTabView(tab);
+  tab.view = view;
+  wireTabView(tab, view, { owner, adopted: false });
+  const wc = view.webContents;
+  tabIdByWebContentsId.set(wc.id, id);
+  wc.setAudioMuted(!!tab.muted);
+  wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
+  tab.waking = true;
+  const generation = ++tab.wakeGeneration;
+
+  let first;
+  if (navigateTo) {
+    // A direct navigation and restore() are mutually exclusive; this consumes
+    // the recovery snapshot without restoring it first.
+    sleepSnapshots.delete(id);
+    first = wc.loadURL(navigateTo);
+  } else if (snapshot?.entries.length) {
+    const index = atIndex === null
+      ? snapshot.index
+      : Math.max(0, Math.min(snapshot.entries.length - 1, atIndex));
+    first = wc.navigationHistory.restore({ entries: snapshot.entries, index });
+  } else {
+    first = wc.loadURL(tab.url);
+  }
+
+  try {
+    await first;
+    return commitWake(tab, generation);
+  } catch {
+    if (tab.wakeGeneration !== generation) return false;
+    // Exactly one fallback, only after restore rejects. A rejected plain load
+    // gets its error page, not an unbounded retry loop.
+    const canFallBack = !navigateTo && !!snapshot?.entries.length;
+    if (!canFallBack) return failWake(tab, generation);
+    const live = liveContents(tab);
+    if (!live) return failWake(tab, generation);
+    try {
+      await live.loadURL(tab.url);
+      return commitWake(tab, generation);
+    } catch {
+      return failWake(tab, generation);
+    }
+  }
 }
 /** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
  *  per-request counter resolves a tab tens of times per second, and a linear
@@ -2074,7 +2175,11 @@ function onMainFrameCommit(tab, { url, httpResponseCode }) {
     tab.httpEntryCount = 0;
   }
 }
-function noteWakeSuppressed(_tab) { return false; }
+/** Suppress history and normal failure handling for every hop while a wake
+ * generation is open. */
+function noteWakeSuppressed(tab) {
+  return !!tab?.waking;
+}
 /** Count an unmanaged popup against its opener until its webContents dies. */
 function notePopupChild(openerTabId, childWindow) {
   if (!openerTabId || !childWindow) return;

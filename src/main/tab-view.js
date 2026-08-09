@@ -158,7 +158,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('page-title-updated', boundToTab((_e, title) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     tab.title = title;
-    if (tab.historyEligible) history.updateTitle(tab.url, title);
+    if (tab.historyEligible && !noteWakeSuppressed(tab)) history.updateTitle(tab.url, title);
     broadcastTabs();
   }));
   wc.on('page-favicon-updated', boundToTab((_e, favicons) => {
@@ -199,7 +199,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     syncNavState();
     tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
     onMainFrameCommit(tab, { url, httpResponseCode });
-    if (tab.historyEligible) history.addVisit(url, wc.getTitle());
+    if (tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
     broadcastTabs();
     scheduleMenuRebuild();
     if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
@@ -208,7 +208,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (isMainFrame) tab.navEpoch++;
     syncNavState();
-    if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
+    if (isMainFrame && tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
     broadcastTabs();
     if (isMainFrame) sync.captureTabIcon(tab).catch(() => {});
   }));
@@ -250,6 +250,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // that controlled cancellation with an error page.
   wc.on('did-fail-load', boundToTab((_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    if (noteWakeSuppressed(tab)) return;
     if (!isMainFrame || errorCode === -3 || !validatedURL) return;
     if (isStartupGateActive() && startupQueuedNavigations.has(wc.id) && /^https?:/i.test(validatedURL)) return;
     const q = new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
