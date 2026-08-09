@@ -43,6 +43,12 @@ const { loadWorkspace, buildSaveShape } = require('./session-workspace');
 const { filterRestoredSession } = require('./session-restore');
 const { isUtilityUrl } = require('./utility-pages');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
+const {
+  createTabView,
+  liveContents,
+  TAB_WEB_PREFERENCES,
+  getPrivateBrowsingSession,
+} = require('./tab-view');
 const { setupWebAuthn } = require('./webauthn');
 const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
@@ -465,12 +471,6 @@ if (chromeMajor) {
     wc.debugger.on('detach', () => {});
   });
 }
-
-/** Non-persistent session shared by all private tabs for this app run. */
-let privateBrowsingSession = null;
-const PRIVATE_PARTITION = 'private-browsing'; // no `persist:` prefix = memory only
-const getPrivateBrowsingSession = () =>
-  (privateBrowsingSession ??= session.fromPartition(PRIVATE_PARTITION));
 
 const CHROME_INDEX_FILE = path.join(__dirname, '../renderer/index.html');
 const CHROME_OVERLAY_FILE = path.join(__dirname, '../renderer/overlay.html');
@@ -1630,19 +1630,6 @@ function duplicateTab(id) {
   return newId;
 }
 
-const TAB_WEB_PREFERENCES = {
-  contextIsolation: true,
-  nodeIntegration: false,
-  sandbox: true,
-  // Chromium's built-in PDF viewer is a plugin; without this flag
-  // PDFs download instead of rendering inline.
-  plugins: true,
-  // Exposes a data API to our own blanc:// pages ONLY — see the guards in
-  // tab-preload.js and pages.js. Ordinary web content gets only the
-  // unprivileged, session-wide Chrome compatibility surface.
-  preload: path.join(__dirname, 'tab-preload.js'),
-};
-
 // ─── SPIKE (1Password fill feasibility) — remove before release ───────────
 // Fill the active tab's login form from 1Password behind Touch ID, with no
 // browser extension. Env-gated; credentials live only in main memory + the
@@ -1807,11 +1794,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // already constructed by Chromium with the opener relationship wired up;
   // everything else gets a fresh one.
   const adopted = !!view;
-  view ??= new WebContentsView({
-    webPreferences: isPrivate
-      ? { ...TAB_WEB_PREFERENCES, session: getPrivateBrowsingSession() }
-      : TAB_WEB_PREFERENCES,
-  });
+  view ??= createTabView({ private: isPrivate });
 
   const tab = {
     id,
