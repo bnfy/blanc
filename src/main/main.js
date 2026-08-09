@@ -874,16 +874,30 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
 
   const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
   const snapshot = sleepSnapshots.get(id);
+  let wc;
+  let generation;
 
-  const view = createTabView(tab);
-  tab.view = view;
-  wireTabView(tab, view, { owner, adopted: false });
-  const wc = view.webContents;
-  tabIdByWebContentsId.set(wc.id, id);
-  wc.setAudioMuted(!!tab.muted);
-  wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
-  tab.waking = true;
-  const generation = ++tab.wakeGeneration;
+  // An activation often immediately follows another wake-triggering action
+  // (notably openInternalPage). Coalesce a plain wake onto its live view;
+  // an explicit navigation/back-forward supersedes the pending first load in
+  // that same view. Starting another WebContentsView here would leak the
+  // first renderer while its stale generation quietly resolves.
+  const wakingContents = tab.waking ? liveContents(tab) : null;
+  if (wakingContents) {
+    if (navigateTo === null && atIndex === null) return true;
+    wc = wakingContents;
+    generation = ++tab.wakeGeneration;
+  } else {
+    const view = createTabView(tab);
+    tab.view = view;
+    wireTabView(tab, view, { owner, adopted: false });
+    wc = view.webContents;
+    tabIdByWebContentsId.set(wc.id, id);
+    wc.setAudioMuted(!!tab.muted);
+    wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
+    tab.waking = true;
+    generation = ++tab.wakeGeneration;
+  }
 
   let first;
   if (navigateTo) {
@@ -1447,6 +1461,12 @@ function navigateTabToAddress(id, rawText) {
   // A typed utility address opens the sheet, never navigates the tab.
   if (isUtilityUrl(target)) return openInternalPage(target);
   rt().tabsWantingAddressBarFocus.delete(id);
+  // A quiet tab navigates in one step: restore() and a navigation are mutually
+  // exclusive, so this spends the snapshot and loads the target directly.
+  if (tab.asleep) {
+    wakeTab(id, { navigateTo: target }).catch(() => {});
+    return;
+  }
   // Rapid re-navigation (Enter twice, Paste and Go twice) aborts the in-flight
   // load — loadURL rejects with ERR_ABORTED; that's routine, not an error.
   liveContents(tab)?.loadURL(target)?.catch(() => {});
@@ -1992,17 +2012,19 @@ function duplicateTab(id) {
   const source = tabs.get(id);
   if (!source) return;
   const insertAt = rt().tabOrder.indexOf(id) + 1;
-  const wc = liveContents(source);
-  if (!wc) return;
-  const history = wc.navigationHistory;
-  const entries = history.getAllEntries();
+  // A quiet source duplicates straight from its retained snapshot; waking it
+  // just to read history defeats the feature and creates a needless reload.
+  const snapshot = source.asleep ? sleepSnapshots.get(id) : null;
+  const history = snapshot ? null : liveContents(source)?.navigationHistory;
+  const entries = snapshot ? snapshot.entries : (history?.getAllEntries() ?? []);
+  const activeIndex = snapshot ? snapshot.index : (history?.getActiveIndex() ?? 0);
   const newId = createTab(source.url, {
     private: source.private,
     groupId: source.groupId,
     pinned: source.pinned,
     muted: source.muted,
     // Only worth restoring if there's more than just the current page.
-    restoreHistory: entries.length > 1 ? { entries, index: history.getActiveIndex() } : null,
+    restoreHistory: entries.length > 1 ? { entries, index: activeIndex } : null,
   });
   reorderTab(newId, insertAt);
   return newId;
@@ -2330,6 +2352,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   const next = tabs.get(id);
   if (!next) return;
+  // The wake's synchronous prefix creates its view before returning. This is
+  // deliberately before every guard below, including the no-window path.
+  if (next.asleep) wakeTab(id).catch(() => {});
   // A script-closed adopted tab prunes itself via its 'destroyed' handler,
   // but a deferred activation (the window-open setImmediate) can race the
   // event — never attach or focus a dead webContents.
@@ -2413,6 +2438,10 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
 function activateTabFromRail(id) {
   const tab = tabs.get(id);
+  if (!tab) return false;
+  // Rail rows target background tabs, so they are the common direct path to a
+  // quiet tab. wakeTab's synchronous prefix makes liveContents safe below.
+  if (tab.asleep) wakeTab(id).catch(() => {});
   const wc = liveContents(tab);
   if (!wc) return false;
   rt().railActivationSerial += 1;
@@ -2573,7 +2602,10 @@ function openInternalPage(url) {
     // Hold the tab from the lookup rather than fetching it again. Re-fetching
     // was safe only because setActiveTab happens not to mutate `tabs` — the
     // same unstated assumption that crashed the menu rebuild.
-    liveContents(tab)?.reload(); // pick up fresh data
+    // The selected internal page is being navigated anyway. Give a quiet tab
+    // the target as its first load rather than restore-then-reload.
+    if (tab.asleep) wakeTab(existing, { navigateTo: url }).catch(() => {});
+    else liveContents(tab)?.reload(); // pick up fresh data
   } else {
     setActiveTab(createTab(url));
   }
@@ -2890,11 +2922,35 @@ function registerIpcHandlers() {
       };
       return target;
     }
+    if (tab.asleep) return wakeTab(id, { navigateTo: target });
     return liveContents(tab)?.loadURL(target);
   });
-  chromeHandle('tabs:back', (_e, id) => liveContents(tabs.get(id))?.navigationHistory.goBack());
-  chromeHandle('tabs:forward', (_e, id) => liveContents(tabs.get(id))?.navigationHistory.goForward());
-  chromeHandle('tabs:reload', (_e, id) => liveContents(tabs.get(id))?.reload());
+  // These commands accept arbitrary ids, so each must account for a quiet
+  // tab rather than assuming a WebContentsView exists.
+  chromeHandle('tabs:back', (_e, id) => {
+    const tab = tabs.get(id);
+    if (!tab) return;
+    if (tab.asleep) {
+      const snapshot = sleepSnapshots.get(id);
+      return wakeTab(id, { atIndex: snapshot ? snapshot.index - 1 : null });
+    }
+    return liveContents(tab)?.navigationHistory.goBack();
+  });
+  chromeHandle('tabs:forward', (_e, id) => {
+    const tab = tabs.get(id);
+    if (!tab) return;
+    if (tab.asleep) {
+      const snapshot = sleepSnapshots.get(id);
+      return wakeTab(id, { atIndex: snapshot ? snapshot.index + 1 : null });
+    }
+    return liveContents(tab)?.navigationHistory.goForward();
+  });
+  chromeHandle('tabs:reload', (_e, id) => {
+    const tab = tabs.get(id);
+    if (!tab) return;
+    if (tab.asleep) return wakeTab(id);
+    return liveContents(tab)?.reload();
+  });
   chromeHandle('tabs:stop', (_e, id) => liveContents(tabs.get(id))?.stop());
   chromeHandle('tabs:reorder', (_e, id, toIndex) => reorderTab(id, toIndex));
   chromeHandle('tabs:reorder-within-bucket', (_e, id, beforeId) =>
@@ -2924,7 +2980,12 @@ function registerIpcHandlers() {
     tabLayout,
     ...verticalTabsMetrics(),
   }));
-  chromeHandle('tabs:find', (_e, id, query, options) => liveContents(tabs.get(id))?.findInPage(query, options));
+  chromeHandle('tabs:find', (_e, id, query, options) => {
+    const tab = tabs.get(id);
+    if (!tab) return;
+    if (tab.asleep) return wakeTab(id); // find on the rebuilt page, never throw
+    return liveContents(tab)?.findInPage(query, options);
+  });
   chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
   chromeOn('chrome:island-rect', (_e, rect) => {
