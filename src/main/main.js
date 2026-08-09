@@ -615,6 +615,85 @@ const sleepSnapshots = new Map(); // Map<string /* tab.id */, SleepSnapshot>
 // macOS window close intentionally does NOT clear this Map: tabs survive dock
 // reopen, and their recovery data must survive with them. Turning tabSleep off
 // likewise changes policy only; it must not discard existing snapshots.
+
+// Evaluated in every frame of a tab. A programmatic password-manager fill fires
+// no interaction events, so compare live controls with their defaults instead.
+const DIRTY_PROBE_SOURCE = `(() => {
+  try {
+    const d = document;
+    for (const el of d.querySelectorAll('input, textarea')) {
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        if (el.checked !== el.defaultChecked) return { dirty: true };
+      } else if (el.type === 'password') {
+        if (el.value) return { dirty: true };
+      } else if (el.value !== el.defaultValue) {
+        return { dirty: true };
+      }
+    }
+    for (const sel of d.querySelectorAll('select')) {
+      for (const opt of sel.options) {
+        if (opt.selected !== opt.defaultSelected) return { dirty: true };
+      }
+    }
+    for (const el of d.querySelectorAll('[contenteditable]')) {
+      if ((el.textContent || '').trim()) return { dirty: true };
+    }
+    if (d.designMode === 'on' && (d.body?.textContent || '').trim()) return { dirty: true };
+    if (window.sessionStorage && window.sessionStorage.length > 0) return { dirty: true };
+    if (d.pictureInPictureElement) return { dirty: true };
+    return {
+      dirty: false,
+      deepScrolled: window.scrollY > 3 * window.innerHeight,
+    };
+  } catch {
+    return { dirty: true };
+  }
+})()`;
+
+/**
+ * Is there work in this document a reload would destroy? Any frame that fails
+ * to answer during the shared 250 ms budget is dirty by default.
+ *
+ * @returns {Promise<boolean>} true means this tab must not be quieted
+ */
+async function probeTabDirty(tab, wc) {
+  // Our error page holds no recoverable work. It would otherwise fail safe on
+  // its privileged frame and defeat the space-saving use case for dead tabs.
+  if (typeof tab.url === 'string' && tab.url.startsWith('blanc://error')) {
+    tab.deepScrolled = false;
+    return false;
+  }
+
+  let frames;
+  try {
+    frames = wc.mainFrame?.framesInSubtree ?? [];
+  } catch {
+    return true;
+  }
+  if (frames.length === 0) return true;
+
+  // One budget for the complete frame tree, never 250 ms per iframe.
+  const budget = new Promise((resolve) => setTimeout(() => resolve('timeout'), 250));
+  const answers = await Promise.race([
+    Promise.all(frames.map((frame) => {
+      // The WebContents API reaches only its top frame; frame-level execution
+      // makes cross-origin payment and SSO frames visible to the fail-safe rule.
+      try { return frame.executeJavaScript(DIRTY_PROBE_SOURCE).catch(() => null); }
+      catch { return Promise.resolve(null); }
+    })),
+    budget,
+  ]);
+  if (answers === 'timeout') return true;
+
+  let deepScrolled = false;
+  for (const answer of answers) {
+    if (!answer || typeof answer !== 'object') return true;
+    if (answer.dirty) return true;
+    if (answer.deepScrolled) deepScrolled = true;
+  }
+  tab.deepScrolled = deepScrolled;
+  return deepScrolled;
+}
 /** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
  *  per-request counter resolves a tab tens of times per second, and a linear
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
