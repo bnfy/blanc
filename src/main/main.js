@@ -1144,7 +1144,28 @@ function serializeTabs() {
   return rt().tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
-    .map(({ view, ...rest }) => {
+    .map((tab) => {
+      // This broadcast reaches both chrome renderers roughly ten times a
+      // second. Keep it a projection: new main-process fields must never
+      // cross this boundary merely because they were added to a tab record.
+      const rest = {
+        id: tab.id,
+        title: tab.title,
+        url: tab.url,
+        isLoading: tab.isLoading,
+        canGoBack: tab.canGoBack,
+        canGoForward: tab.canGoForward,
+        favicon: tab.favicon,
+        bookmarked: tab.bookmarked,
+        blockedCount: tab.blockedCount,
+        private: tab.private,
+        pinned: tab.pinned,
+        muted: tab.muted,
+        audible: tab.audible,
+        groupId: tab.groupId,
+        pageBg: tab.pageBg,
+        themeColor: tab.themeColor,
+      };
       // Whether ads are allow-listed here. Derived rather than stored: the
       // exception list is edited from Settings and the slash commands alike,
       // and without this the chrome shows NOTHING on an excepted site (the
@@ -1162,7 +1183,7 @@ function serializeTabs() {
       // Derived exactly once, here. The popover, the pill badge, and the panel
       // badge all render this same value, so they cannot disagree.
       const connection = connectionFor({
-        url: committedUrlOf(view),
+        url: committedUrlOf(tab.view),
         isLoading: rest.isLoading,
       });
       if (rest.private && rest.favicon) {
