@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { filterRestoredSession } = require('../../src/main/session-restore');
+const { filterRestoredSession, restoreTargetId } = require('../../src/main/session-restore');
 
 const drop = (url) => url.startsWith('blanc://settings');
 
@@ -75,4 +75,24 @@ test('missing metadata arrays and out-of-range activeIndex are tolerated', () =>
     urls: ['https://a/'], groupIds: [null], pinned: [false],
     meta: [{ title: '', favicon: null }], activeIndex: 0,
   });
+});
+
+test('restoreTargetId skips holes at and after the saved index', () => {
+  assert.equal(restoreTargetId(['a', null, 'c'], 1), 'c');
+});
+
+test('restoreTargetId falls back to the last real id before the saved index', () => {
+  assert.equal(restoreTargetId(['a', null, null], 2), 'a');
+});
+
+test('restoreTargetId returns null when nothing was created', () => {
+  assert.equal(restoreTargetId([null, null], 0), null);
+  assert.equal(restoreTargetId([], 0), null);
+  assert.equal(restoreTargetId(undefined, 0), null);
+});
+
+test('restoreTargetId clamps an out-of-range or non-integer index', () => {
+  assert.equal(restoreTargetId(['a', 'b'], 99), 'b');
+  assert.equal(restoreTargetId(['a', 'b'], -3), 'a');
+  assert.equal(restoreTargetId(['a', 'b'], undefined), 'a');
 });

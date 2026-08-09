@@ -38,4 +38,20 @@ function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [
   };
 }
 
-module.exports = { filterRestoredSession };
+/** The tab to activate after a restore. createTab returns null for a url it
+ * refuses (utility pages — filtered above, but the guard is structural), so
+ * the saved index can land on a hole. Walk forward, then back, exactly like
+ * the survivor rule above. Null means nothing usable was created. */
+function restoreTargetId(restoredIds, activeIndex) {
+  const ids = Array.isArray(restoredIds) ? restoredIds : [];
+  if (!ids.length) return null;
+  const start = Math.min(
+    Math.max(0, Number.isInteger(activeIndex) ? activeIndex : 0),
+    ids.length - 1
+  );
+  for (let i = start; i < ids.length; i += 1) if (ids[i]) return ids[i];
+  for (let i = start - 1; i >= 0; i -= 1) if (ids[i]) return ids[i];
+  return null;
+}
+
+module.exports = { filterRestoredSession, restoreTargetId };
