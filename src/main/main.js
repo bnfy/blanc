@@ -1121,7 +1121,7 @@ function navigateTabToAddress(id, rawText) {
   rt().tabsWantingAddressBarFocus.delete(id);
   // Rapid re-navigation (Enter twice, Paste and Go twice) aborts the in-flight
   // load — loadURL rejects with ERR_ABORTED; that's routine, not an error.
-  tab.view.webContents.loadURL(target).catch(() => {});
+  liveContents(tab)?.loadURL(target)?.catch(() => {});
 }
 
 /** Paste and Go = navigate + dismiss the island, exactly like pressing Enter.
@@ -1301,7 +1301,7 @@ function resizeActiveView() {
   if (!rt().window || rt().window.isDestroyed()) return;
   const layout = currentChromeLayout();
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
-  if (tab) tab.view.setBounds(layout.pageBounds);
+  if (tab?.view) tab.view.setBounds(layout.pageBounds);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   if (rt().utilitySheetUrl && rt().utilitySheetView) {
     rt().utilitySheetView.setBounds(layout.utilityBounds);
@@ -1630,7 +1630,7 @@ function toggleTabMuted(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
   tab.muted = !tab.muted;
-  tab.view.webContents.setAudioMuted(tab.muted);
+  liveContents(tab)?.setAudioMuted(tab.muted);
   broadcastTabs();
   scheduleMenuRebuild();
   return tab.muted;
@@ -1640,7 +1640,9 @@ function duplicateTab(id) {
   const source = tabs.get(id);
   if (!source) return;
   const insertAt = rt().tabOrder.indexOf(id) + 1;
-  const history = source.view.webContents.navigationHistory;
+  const wc = liveContents(source);
+  if (!wc) return;
+  const history = wc.navigationHistory;
   const entries = history.getAllEntries();
   const newId = createTab(source.url, {
     private: source.private,
@@ -1924,7 +1926,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // A script-closed adopted tab prunes itself via its 'destroyed' handler,
   // but a deferred activation (the window-open setImmediate) can race the
   // event — never attach or focus a dead webContents.
-  if (next.view.webContents.isDestroyed()) return;
+  if (!liveContents(next)) return;
 
   // Re-selecting the active tab is a no-op.
   if (id === rt().activeTabId) return;
@@ -1951,7 +1953,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   const prevId = rt().activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
-  if (prev) {
+  if (prev?.view) {
     rt().window.contentView.removeChildView(prev.view);
     // A detached view's document still reports visibilityState 'visible',
     // so Chromium never background-throttles its timers (the newtab sprite
@@ -1981,7 +1983,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // blank new tab we instead want the chrome's address bar, and OS focus
   // can be claimed asynchronously by the attached child view, so blank-tab
   // activation keeps reclaiming focus until the user navigates or switches.
-  if (focusContent) next.view.webContents.focus();
+  if (focusContent) liveContents(next)?.focus();
   // Background tabs can't be pixel-sampled; catch up when they surface.
   if (!next.pageBg) scheduleSampleTint(next);
   broadcastTabs();
@@ -1989,7 +1991,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   if (shouldFocusAddress) {
     reclaimAddressBarFocus(id);
     setImmediate(() => {
-      if (rt().activeTabId !== id || !tabs.has(id)) return;
+      if (rt().activeTabId !== id || !tabs.has(id) || !next.view) return;
       next.view.setVisible(true);
       reclaimAddressBarFocus(id);
     });
@@ -1998,7 +2000,8 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
 function activateTabFromRail(id) {
   const tab = tabs.get(id);
-  if (!tab || tab.view.webContents.isDestroyed()) return false;
+  const wc = liveContents(tab);
+  if (!wc) return false;
   rt().railActivationSerial += 1;
 
   // One guarded main-process action owns the complete interaction so a
@@ -2014,7 +2017,7 @@ function activateTabFromRail(id) {
     rt().tabsWantingAddressBarFocus.delete(id);
     tab.view.setVisible(true);
     resizeActiveView();
-    tab.view.webContents.focus();
+    wc.focus();
   }
   return true;
 }
@@ -2034,7 +2037,7 @@ function closeTab(id) {
   }
 
   const wasActive = id === rt().activeTabId;
-  if (wasActive && hasLiveWindow()) rt().window.contentView.removeChildView(tab.view);
+  if (wasActive && hasLiveWindow() && tab.view) rt().window.contentView.removeChildView(tab.view);
 
   const closedIndex = rt().tabOrder.indexOf(id);
   rt().tabsWantingAddressBarFocus.delete(id);
@@ -2042,7 +2045,7 @@ function closeTab(id) {
   windowRuntimes.detachTab(id);
   rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
   pruneEmptyGroups();
-  const wc = tab.view.webContents;
+  const wc = tab.view?.webContents;
   if (wc && !wc.isDestroyed()) wc.close();
 
   if (wasActive) {
@@ -2151,7 +2154,7 @@ function openInternalPage(url) {
     // Hold the tab from the lookup rather than fetching it again. Re-fetching
     // was safe only because setActiveTab happens not to mutate `tabs` — the
     // same unstated assumption that crashed the menu rebuild.
-    tab.view.webContents.reload(); // pick up fresh data
+    liveContents(tab)?.reload(); // pick up fresh data
   } else {
     setActiveTab(createTab(url));
   }
@@ -2362,16 +2365,14 @@ function activeSiteHostname(tab) {
  * both callers already reload asynchronously from the renderer's point of view.
  */
 function reloadTabAfterSettingsFanout(tab) {
-  const view = tab?.view;
-  if (!view) return;
+  if (!tab?.view) return;
   setImmediate(() => {
     // Re-read webContents inside the deferred turn: closing the tab in that
     // window runs closeTab's wc.close(), after which view.webContents is
     // undefined — dereferencing it here threw an uncaught TypeError that
     // killed the main process. closeTab (see its own `if (wc && ...)` guard)
     // already treats this as nullable; this path did not.
-    const wc = view.webContents;
-    if (wc && !wc.isDestroyed()) wc.reload();
+    liveContents(tab)?.reload();
   });
 }
 
@@ -2470,12 +2471,12 @@ function registerIpcHandlers() {
       };
       return target;
     }
-    return tab.view.webContents.loadURL(target);
+    return liveContents(tab)?.loadURL(target);
   });
-  chromeHandle('tabs:back', (_e, id) => tabs.get(id)?.view.webContents.navigationHistory.goBack());
-  chromeHandle('tabs:forward', (_e, id) => tabs.get(id)?.view.webContents.navigationHistory.goForward());
-  chromeHandle('tabs:reload', (_e, id) => tabs.get(id)?.view.webContents.reload());
-  chromeHandle('tabs:stop', (_e, id) => tabs.get(id)?.view.webContents.stop());
+  chromeHandle('tabs:back', (_e, id) => liveContents(tabs.get(id))?.navigationHistory.goBack());
+  chromeHandle('tabs:forward', (_e, id) => liveContents(tabs.get(id))?.navigationHistory.goForward());
+  chromeHandle('tabs:reload', (_e, id) => liveContents(tabs.get(id))?.reload());
+  chromeHandle('tabs:stop', (_e, id) => liveContents(tabs.get(id))?.stop());
   chromeHandle('tabs:reorder', (_e, id, toIndex) => reorderTab(id, toIndex));
   chromeHandle('tabs:reorder-within-bucket', (_e, id, beforeId) =>
     reorderTabWithinBucket(id, beforeId));
@@ -2504,8 +2505,8 @@ function registerIpcHandlers() {
     tabLayout,
     ...verticalTabsMetrics(),
   }));
-  chromeHandle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
-  chromeHandle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
+  chromeHandle('tabs:find', (_e, id, query, options) => liveContents(tabs.get(id))?.findInPage(query, options));
+  chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
   chromeOn('chrome:island-rect', (_e, rect) => {
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
