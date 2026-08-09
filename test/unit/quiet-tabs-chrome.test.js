@@ -165,3 +165,24 @@ test('a quiet rail row is classed, named, and marked — and dims the favicon, n
   // span is aria-hidden — the favicon is the primary scan target.
   assert.doesNotMatch(styles, /\.vertical-tab-row\.quiet \.vertical-tab-title\s*\{/);
 });
+
+// ---------------------------------------------------------------------------
+// Quick Switcher (overlay.js switcherResults / resultRow)
+// ---------------------------------------------------------------------------
+
+test('a quiet tab result says so in its sub, which switcher rows show at rest', () => {
+  assert.match(
+    overlaySource,
+    /\[tabDomain\(t\), t\.asleep && 'quiet'\]\.filter\(Boolean\)\.join\(' · '\)/
+  );
+  // Switcher rows are not .tab-row, so .row-sub is not the hover-gated
+  // .row-tag — that is precisely why quiet lives in the sub here.
+  assert.doesNotMatch(styles, /\.island-row \.row-sub\s*\{[^}]*opacity: 0;/s);
+});
+
+test('the switcher does not add a second wake path from the renderer', () => {
+  // Picking a tab result goes through switchTab -> main's setActiveTab, which
+  // is the single wake choke point. There is no renderer-side wake API.
+  assert.doesNotMatch(overlaySource, /wakeTab/);
+  assert.match(overlaySource, /result\.kind === 'tab'\) window\.browserAPI\.switchTab\(result\.tab\.id\)/);
+});
