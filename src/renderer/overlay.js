@@ -1088,7 +1088,7 @@
    * Scale rather than width/height: animating the box would reflow the list on
    * every frame. The contents are held invisible until the growth is underway,
    * so the squash a uniform scale puts on them is never on screen. */
-  const MORPH_MS = 300;
+  const MORPH_MS = 320;   // long enough for the contents' 190ms delay + fade
   let morphTimer = null;
 
   function morphPanelFromPill(pillRect) {
@@ -1114,6 +1114,20 @@
     islandPanel.style.setProperty('--morph-sy', String(scaleY));
     islandPanel.style.setProperty('--morph-x', `${(pillCentre - panelCentre).toFixed(2)}px`);
     islandPanel.style.setProperty('--morph-y', `${(pillRect.y - panelBox.top).toFixed(2)}px`);
+
+    // Corners, pre-compensated for the scale. Two things go wrong if you just
+    // animate 999px down to the panel's radius. 999px is clamped to a capsule
+    // while the box is short, but the VALUE is still enormous once it has
+    // grown — so mid-movement you get a huge rounded corner that only collapses
+    // at the very end. And scaling the axes by different amounts renders a
+    // round corner as a squashed ellipse.
+    //
+    // So start from the pill's real corner (half its height, which is what
+    // makes it a capsule) divided by each axis' scale, so it RENDERS as that
+    // corner at the start and travels evenly to the panel's own radius.
+    const pillCorner = pillRect.height / 2;
+    islandPanel.style.setProperty('--morph-rx', `${(pillCorner / scaleX).toFixed(2)}px`);
+    islandPanel.style.setProperty('--morph-ry', `${(pillCorner / scaleY).toFixed(2)}px`);
 
     // Two frames: one for the start state to be painted, one to leave it. A
     // single frame lands both in the same style recalculation and the panel

@@ -1100,8 +1100,15 @@ body.overlay-body { background: transparent; }
 }
 #backdrop[hidden] { display: none; }
 /* The summoned palette dims the page behind it; the in-place panel keeps
-   a transparent backdrop that still catches click-outside-to-dismiss. */
-body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
+   a transparent backdrop that still catches click-outside-to-dismiss.
+   The dim FADES with the panel's growth — snapping to full darkness in one
+   frame front-ran the movement and read as a hard cut, which was most of why
+   opening felt abrupt even once the panel's shape was right. */
+body[data-mode="palette"] #backdrop {
+  background: rgba(14, 14, 14, 0.18);
+  animation: backdrop-in 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes backdrop-in { from { background: rgba(14, 14, 14, 0); } }
 
 #panelAnchor {
   position: fixed;
@@ -1147,18 +1154,27 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
   transform:
     translate(var(--morph-x, 0), var(--morph-y, 0))
     scale(var(--morph-sx, 1), var(--morph-sy, 1));
-  border-radius: 999px;
+  /* Elliptical on purpose — see the note in overlay.js. This renders as the
+     pill's own capsule corner once the non-uniform scale is applied. */
+  border-radius: var(--morph-rx, 999px) / var(--morph-ry, 999px);
   transition: none;
 }
 #islandPanel.morph-start > * { opacity: 0; }
 /* Steadier than the DS's snappy curve: that one front-loads so hard the whole
    movement was over inside 60ms, which reads as a flash rather than a morph. */
+#islandPanel.morph-start { opacity: 0; }
 #islandPanel.morph-run {
+  opacity: 1;
   transition:
     transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-radius 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 90ms ease;
 }
-#islandPanel.morph-run > * { transition: opacity 150ms ease 130ms; }
+/* Contents wait for the shape. Independent axes mean the panel starts at 14%
+   height, so anything visible before the vertical scale is nearly home arrives
+   squashed and rubbers out — which is what still felt wrong after the shape
+   itself was fixed. At 190ms the vertical scale is ~93%. */
+#islandPanel.morph-run > * { transition: opacity 130ms ease 190ms; }
 #islandPanel { transform-origin: 50% 0; }
 
 [data-theme="private"] #islandPanel { border: 1px dashed var(--text-dim); }
