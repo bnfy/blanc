@@ -15,6 +15,9 @@ const active = new Map();
 /** A download finished as `completed` and hasn't been looked at yet — drives
  * the pill's contextual downloads button. Cleared by acknowledgeDownloads(). */
 let hasRecent = false;
+// In-memory only, like hasRecent: a fresh launch must not replay the pulse for
+// a download that finished in a previous session.
+let lastCompletedAt = null;
 
 /** @type {(() => void) | null} notify the chrome UI that something changed */
 let onChanged = null;
@@ -68,7 +71,14 @@ function setupDownloads(session, notifyChanged) {
         d.items.unshift(record);
         if (d.items.length > MAX_PERSISTED) d.items.length = MAX_PERSISTED;
       });
-      if (state === 'completed') hasRecent = true;
+      if (state === 'completed') {
+        hasRecent = true;
+        // The pill's completion pulse keys off this changing, not off `active`
+        // reaching 0: cancelling a download after an earlier one finished also
+        // empties `active` while hasRecent is still true, and that must not
+        // read as "your download landed".
+        lastCompletedAt = record.finishedAt;
+      }
       broadcast();
     });
 
@@ -118,7 +128,7 @@ function downloadsActivity() {
     receivedBytes += record.receivedBytes;
     totalBytes += record.totalBytes;
   }
-  return { active: active.size, hasRecent, receivedBytes, totalBytes };
+  return { active: active.size, hasRecent, receivedBytes, totalBytes, lastCompletedAt };
 }
 
 module.exports = {
