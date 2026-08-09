@@ -764,6 +764,7 @@ async function sleepTab(id) {
   wc.removeAllListeners();
 
   let aborted = false;
+  let teardownTimeout;
   const outcome = await new Promise((resolve) => {
     let settled = false;
     const finish = (value) => {
@@ -798,8 +799,9 @@ async function sleepTab(id) {
 
     wc.close({ waitForBeforeUnload: true });
     // A wedged renderer must not remain permanently `sleeping`.
-    setTimeout(() => finish('unresponsive'), 5000);
+    teardownTimeout = setTimeout(() => finish('unresponsive'), 5000);
   });
+  clearTimeout(teardownTimeout);
 
   if (outcome === 'quiet') {
     sleepTeardownInProgress = false;
@@ -2567,8 +2569,12 @@ function closeTab(id) {
   forgetTabWebContentsIds(id);
 
   // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
-  if (tab.url && !tab.private && !tab.url.startsWith('blanc://newtab')) {
-    recentlyClosedUrls.push(tab.url);
+  // A failed provisional navigation can leave a non-string value in the
+  // model during WebContents teardown. Closing that tab must not take down the
+  // main process while deciding whether it is eligible for reopen-closed-tab.
+  const tabUrl = typeof tab.url === 'string' ? tab.url : '';
+  if (tabUrl && !tab.private && !tabUrl.startsWith('blanc://newtab')) {
+    recentlyClosedUrls.push(tabUrl);
     if (recentlyClosedUrls.length > 25) recentlyClosedUrls.shift();
   }
 
@@ -2587,6 +2593,13 @@ function closeTab(id) {
   if (wc && !wc.isDestroyed()) wc.close();
 
   if (wasActive) {
+    // Electron destroys the active view during app shutdown. Do not select a
+    // surviving quiet tab here: setActiveTab would wake it and construct a
+    // fresh WebContentsView while the native window is being torn down.
+    if (isQuitting) {
+      rt().activeTabId = null;
+      return;
+    }
     if (rt().tabOrder.length > 0) {
       // Prefer the tab that was to the right of the closed one.
       setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
