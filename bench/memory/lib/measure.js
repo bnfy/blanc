@@ -283,6 +283,43 @@ async function canReadPid(backend, pid) {
 }
 
 /**
+ * Find a backend that can actually read a hardened browser process, starting
+ * from the one selection chose and walking down in fidelity.
+ *
+ * Selection can only probe our own Node process, which every backend reads
+ * happily — so on a typical machine it picks `footprint` or `vmmap`, and both
+ * may then return nothing at all for a signed browser that denies
+ * `task_for_pid`. Aborting there would be wrong: `top` needs no elevation and
+ * reports a footprint-equivalent column, so the run that "cannot be measured"
+ * usually can be, one rung down. Only when every remaining backend is also
+ * denied is there nothing left to do.
+ *
+ * A pinned backend (`--backend=`) is never downgraded. Silently measuring
+ * something other than what the caller asked for would defeat the point of
+ * pinning, and `rss` vs `phys_footprint` is not a difference to paper over.
+ *
+ * @param {object} backend the backend selection chose
+ * @param {number} pid a live browser pid
+ * @param {{pinned?: boolean, candidates?: object[]}} [options]
+ * @returns {Promise<{backend: object|null, downgradedFrom: string|null, tried: string[]}>}
+ */
+async function resolveReadableBackend(backend, pid, options = {}) {
+  const { pinned = false, candidates = BACKENDS } = options;
+  const tried = [backend.id];
+  if (await canReadPid(backend, pid)) return { backend, downgradedFrom: null, tried };
+  if (pinned) return { backend: null, downgradedFrom: null, tried };
+
+  const start = candidates.findIndex((b) => b.id === backend.id);
+  for (const candidate of candidates.slice(start + 1)) {
+    tried.push(candidate.id);
+    if (await canReadPid(candidate, pid)) {
+      return { backend: candidate, downgradedFrom: backend.id, tried };
+    }
+  }
+  return { backend: null, downgradedFrom: null, tried };
+}
+
+/**
  * Sum a backend's per-process readings over a set of pids.
  *
  * Processes that vanish between discovery and sampling (a renderer exiting) are
@@ -319,5 +356,6 @@ module.exports = {
   parsePsRss,
   selectBackend,
   canReadPid,
+  resolveReadableBackend,
   sampleTotal,
 };

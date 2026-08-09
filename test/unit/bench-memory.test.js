@@ -82,6 +82,55 @@ test('canReadPid reports whether a backend can actually read a process', async (
   assert.equal(await measure.canReadPid({ sample: async () => new Map([[42, 0]]) }, 42), false);
 });
 
+// Selection can only probe our own unhardened Node process, so the backend it
+// picks may read nothing at all for a signed browser. Aborting there would
+// strand a run that `top` — no elevation needed, footprint-equivalent column —
+// could have measured perfectly well.
+const fakeBackends = (readable) =>
+  ['footprint', 'vmmap', 'top', 'ps'].map((id) => ({
+    id,
+    metric: id === 'ps' ? 'rss' : 'phys_footprint',
+    sample: async (pids) =>
+      readable.includes(id) ? new Map(pids.map((p) => [p, 1024])) : new Map(),
+  }));
+
+test('a backend denied by a hardened browser falls back to the next one down', async () => {
+  const candidates = fakeBackends(['top', 'ps']);
+  const resolved = await measure.resolveReadableBackend(candidates[1], 42, { candidates });
+  assert.equal(resolved.backend.id, 'top');
+  assert.equal(resolved.downgradedFrom, 'vmmap');
+  // Fidelity order is preserved: ps is never reached while top works.
+  assert.deepEqual(resolved.tried, ['vmmap', 'top']);
+});
+
+test('a backend that reads the browser is used as-is, with nothing tried below it', async () => {
+  const candidates = fakeBackends(['vmmap', 'top', 'ps']);
+  const resolved = await measure.resolveReadableBackend(candidates[1], 42, { candidates });
+  assert.equal(resolved.backend.id, 'vmmap');
+  assert.equal(resolved.downgradedFrom, null);
+  assert.deepEqual(resolved.tried, ['vmmap']);
+});
+
+test('an explicitly pinned backend is never downgraded', async () => {
+  const candidates = fakeBackends(['ps']);
+  const resolved = await measure.resolveReadableBackend(candidates[1], 42, {
+    candidates,
+    pinned: true,
+  });
+  // Substituting rss for phys_footprint under a --backend= pin would collect a
+  // different metric than the caller asked for.
+  assert.equal(resolved.backend, null);
+  assert.deepEqual(resolved.tried, ['vmmap']);
+});
+
+test('a run where every backend is denied resolves to nothing, listing what it tried', async () => {
+  const candidates = fakeBackends([]);
+  const resolved = await measure.resolveReadableBackend(candidates[0], 42, { candidates });
+  assert.equal(resolved.backend, null);
+  assert.equal(resolved.downgradedFrom, null);
+  assert.deepEqual(resolved.tried, ['footprint', 'vmmap', 'top', 'ps']);
+});
+
 test('top output parses pid/mem rows and ignores its header block', () => {
   const stdout = [
     'Processes: 500 total, 2 running',

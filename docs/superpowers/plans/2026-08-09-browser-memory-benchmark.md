@@ -30,7 +30,7 @@
 | `bench/memory/lib/launch.js` | Per-family launch, Gecko prefs, tree-wide quit |
 | `bench/memory/lib/report.js` | Blocking-class grouping, reference anchoring, markdown |
 | `bench/memory/browsers.json` | Registry; every UNVERIFIED assumption is noted on its entry |
-| `test/unit/bench-memory.test.js` | 41 tests, cross-platform |
+| `test/unit/bench-memory.test.js` | 57 tests, cross-platform |
 
 ---
 
@@ -38,7 +38,7 @@
 
 - [ ] **Task 1.1** Install the browsers to be compared. At minimum: Blanc (packaged), Chrome, Zen, Firefox. Add Brave and Vivaldi for the built-in-blocking peer group.
 - [ ] **Task 1.2** `npm run bench:memory -- --list`. Every intended browser resolves. If Zen does not, find its real bundle name and add it as a **candidate on the `zen` entry** — unless it is Twilight, which gets the separate `zen-twilight` id (see the registry `$comment` on why).
-- [ ] **Task 1.3** `npm run bench:memory -- --probe`. Record which backend it picks. If it reports `ps`, expect Task 2.1 to abort — that is the harness working, not failing.
+- [ ] **Task 1.3** `npm run bench:memory -- --probe`. Record which backend it picks — it probes only our own Node process, so this is a starting point, not the verdict. Task 2.1 re-validates against a real browser and prints a downgrade line if it had to fall back; record whichever backend the report finally names. If that turns out to be `ps`, the run is indicative only and says so.
 
 ## Phase 2 — Prove the harness measures what it claims
 
