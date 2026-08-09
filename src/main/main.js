@@ -267,11 +267,15 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
   const queued = [...startupQueuedNavigations.entries()];
   startupQueuedNavigations.clear();
   for (const [webContentsId, url] of queued) {
+    // A throwing predicate does not skip an entry — it propagates out of find
+    // and leaves every queued tab behind the startup gate. This two-step read
+    // handles missing and already-destroyed views alike.
     const tab = [...tabs.values()].find(
-      (candidate) => candidate.view.webContents.id === webContentsId
+      (candidate) => liveContents(candidate)?.id === webContentsId
     );
-    if (!tab || tab.view.webContents.isDestroyed()) continue;
-    tab.view.webContents.loadURL(url).catch(() => {});
+    const wc = liveContents(tab);
+    if (!wc) continue;
+    wc.loadURL(url).catch(() => {});
   }
 }
 
@@ -1476,7 +1480,10 @@ function dominantColor(image) {
  * visually abuts the chrome strip. Fails harmlessly for hidden views;
  * setActiveTab resamples on activation. */
 async function samplePageTint(tab, { immediate = false, shouldApply = () => true } = {}) {
-  if (!tabs.has(tab.id) || tab.view.webContents.isDestroyed()) return;
+  // Reached from a bare 150 ms timer too, so a tab may close or discard its
+  // view between scheduling and this run.
+  const wc = liveContents(tab);
+  if (!tabs.has(tab.id) || !wc) return;
   if (tab.private || !/^https?:\/\//.test(tab.url)) {
     if (tab.pageBg) {
       tab.pageBg = null;
@@ -1484,10 +1491,10 @@ async function samplePageTint(tab, { immediate = false, shouldApply = () => true
     }
     return;
   }
-  const { width } = tab.view.getBounds();
-  if (!width || tab.view.webContents.isLoading()) return;
+  const { width } = tab.view?.getBounds() ?? {};
+  if (!width || wc.isLoading()) return;
   try {
-    const image = await tab.view.webContents.capturePage({ x: 0, y: 0, width, height: 2 });
+    const image = await wc.capturePage({ x: 0, y: 0, width, height: 2 });
     const color = dominantColor(image);
     if (shouldApply() && color && color !== tab.pageBg) {
       tab.pageBg = color;
