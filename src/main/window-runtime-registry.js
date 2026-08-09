@@ -60,6 +60,18 @@ function createRuntime() {
     permissionPrompts: new Map(),
     addressMenuTicket: 0,
     addressMenuSeq: 0,
+    /** The resting pill's box in window coordinates, reported by the chrome
+     * renderer. Main needs it to measure how far the cursor is from the pill:
+     * the cursor spends most of its life over the page, which is a different
+     * view from the one the pill lives in, so the chrome never sees it. */
+    islandRect: null,
+    /** Last proximity actually sent, so an unchanged value costs no IPC. */
+    islandProximity: { k: 0, lean: 0 },
+    islandProximitySentAt: 0,
+    islandProximityTimer: null,
+    islandProximityPending: null,
+    /** Pending detach of the overlay view while its panel retracts. */
+    overlayExitTimer: null,
   };
   runtimes.push(runtime);
   return runtime;

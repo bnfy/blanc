@@ -583,4 +583,40 @@
   };
   new ResizeObserver(reportLayout).observe(chromeEl);
   requestAnimationFrame(reportLayout);
+
+  // --- Island proximity: the pill reacts to the cursor approaching. ---------
+  // Main does the measuring — the cursor is usually over the page, which this
+  // document never sees — and sends back how close it is. This side only tells
+  // main where the pill is, and paints what comes back.
+  //
+  // The reported box is the RESTING one, with the effect's own transform
+  // divided back out. Reporting the transformed box would let the pill chase
+  // itself: closer reads as bigger reads as closer.
+  const ISLAND_SCALE = 0.045;   // keep in step with #islandPill in styles.css
+  const ISLAND_RISE = 3.5;
+  const ISLAND_LEAN = 6;
+
+  const reportIslandRect = () => {
+    const r = islandPill.getBoundingClientRect();
+    if (!r.width) return;
+    const k = Number(islandPill.style.getPropertyValue('--island-k')) || 0;
+    const lean = Number(islandPill.style.getPropertyValue('--island-lean')) || 0;
+    const scale = 1 + ISLAND_SCALE * k;
+    // transform-origin is the top centre, so the top edge only moves by the rise.
+    const width = r.width / scale;
+    const height = r.height / scale;
+    window.browserAPI.reportIslandRect({
+      x: (r.left + r.width / 2) - ISLAND_LEAN * lean - width / 2,
+      y: r.top + ISLAND_RISE * k,
+      width,
+      height,
+    });
+  };
+  new ResizeObserver(reportIslandRect).observe(islandPill);
+  requestAnimationFrame(reportIslandRect);
+
+  window.browserAPI.onIslandProximity(({ k, lean }) => {
+    islandPill.style.setProperty('--island-k', String(k ?? 0));
+    islandPill.style.setProperty('--island-lean', String(lean ?? 0));
+  });
 })();

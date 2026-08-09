@@ -10,6 +10,7 @@ const {
   onRequestBlocked,
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
+const islandProximity = require('./island-proximity');
 const {
   shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
@@ -679,6 +680,84 @@ function currentChromeLayout() {
   });
 }
 
+/* ---- Island proximity ---------------------------------------------------
+ * The resting pill reacts to the cursor approaching it. The measuring happens
+ * here rather than in the chrome renderer because the cursor is usually over
+ * the page — a different WebContentsView — and the chrome document never sees
+ * those moves. Both views report their input events to main, so main is the
+ * only place that can watch the whole window.
+ *
+ * What crosses the IPC boundary is one number (plus a lean direction), only
+ * when it changes, and at most once a frame. Beyond the range main sends a
+ * single zero and then says nothing at all. */
+
+/** Map a point from a child view's coordinates into the window's. */
+function toWindowPoint(point, offset) {
+  return { x: point.x + (offset?.x ?? 0), y: point.y + (offset?.y ?? 0) };
+}
+
+function sendIslandProximity(runtime, next) {
+  runtime.islandProximity = next;
+  runtime.islandProximitySentAt = Date.now();
+  if (runtime.window && !runtime.window.isDestroyed()) {
+    runtime.window.webContents.send('chrome:island-proximity', next);
+  }
+}
+
+function updateIslandProximity(point) {
+  const runtime = rt();
+  if (!runtime?.window || runtime.window.isDestroyed()) return;
+  const rect = runtime.islandRect;
+  if (!rect) return;
+
+  // Asleep whenever the pill isn't the thing you're looking at: another app has
+  // focus, or the island is already expanded and the pill is hidden behind it.
+  const awake = runtime.window.isFocused() && !runtime.overlayMode;
+  const k = awake ? islandProximity.closeness(point, rect) : 0;
+  const lean = awake ? islandProximity.lean(point, rect, k) : 0;
+
+  // Three decimals is finer than the effect can render, and makes "unchanged"
+  // the common case while you move around away from the pill.
+  const next = { k: Number(k.toFixed(3)), lean: Number(lean.toFixed(3)) };
+  const prev = runtime.islandProximity;
+  if (next.k === prev.k && next.lean === prev.lean) return;
+
+  const since = Date.now() - runtime.islandProximitySentAt;
+  if (since >= 16) {
+    if (runtime.islandProximityTimer) {
+      clearTimeout(runtime.islandProximityTimer);
+      runtime.islandProximityTimer = null;
+    }
+    sendIslandProximity(runtime, next);
+    return;
+  }
+  // Inside the frame budget. Park the value and let a trailing timer deliver
+  // it — but park the NEWEST one: during a fast sweep the moves arrive far
+  // quicker than a frame, and holding the first would animate to a position
+  // the cursor has already left.
+  runtime.islandProximityPending = next;
+  if (runtime.islandProximityTimer) return;
+  runtime.islandProximityTimer = setTimeout(bindWindowRuntime(runtime, () => {
+    runtime.islandProximityTimer = null;
+    const pending = runtime.islandProximityPending;
+    runtime.islandProximityPending = null;
+    if (pending) sendIslandProximity(runtime, pending);
+  }), 16 - since);
+}
+
+/**
+ * Watch one view's mouse moves. `offset` maps its coordinates into the window's
+ * (a function when the offset can move, as it does with vertical tabs). `bind`
+ * puts the whole listener inside its window's runtime — updateIslandProximity
+ * reads rt(), so binding only the offset would throw on the first move.
+ */
+function watchCursorFor(wc, offset, bind) {
+  wc.on('input-event', bind((_event, input) => {
+    if (!input || input.type !== 'mouseMove') return;
+    updateIslandProximity(toWindowPoint(input, typeof offset === 'function' ? offset() : offset));
+  }));
+}
+
 function verticalTabsMetrics(layout = currentChromeLayout()) {
   return {
     verticalTabsWidth: layout.verticalTabsWidth,
@@ -826,11 +905,33 @@ function showOverlay(mode, { prefill } = {}) {
   rt().overlayPrefill = prefill ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
   rt().window.contentView.addChildView(rt().overlayView);
-  rt().overlayView.setBounds(overlayBounds());
-  rt().overlayView.webContents.send('overlay:show', { mode, prefill });
+  if (rt().overlayExitTimer) {
+    clearTimeout(rt().overlayExitTimer);
+    rt().overlayExitTimer = null;
+  }
+  const bounds = overlayBounds();
+  rt().overlayView.setBounds(bounds);
+  rt().overlayView.webContents.send('overlay:show', {
+    mode,
+    prefill,
+    // Where the resting pill is, in the overlay's OWN coordinates, so the
+    // panel can start life at the pill's size and grow out of it. The two live
+    // in different views, so this hand-off is the only way the overlay can
+    // know. Null until the chrome renderer has reported a box — the panel then
+    // just appears, which is what it did before this existed.
+    pillRect: rt().islandRect && {
+      x: rt().islandRect.x - bounds.x,
+      y: rt().islandRect.y - bounds.y,
+      width: rt().islandRect.width,
+      height: rt().islandRect.height,
+    },
+  });
   rt().overlayView.webContents.focus();
   rt().window.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
+
+/** How long the panel takes to retract. Keep in step with styles.css. */
+const OVERLAY_RETRACT_MS = 200;
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
   if (!rt().overlayMode) return;
@@ -844,8 +945,28 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (rt().activeTabId) rt().tabsWantingAddressBarFocus.delete(rt().activeTabId);
   if (hasLiveWindow() && rt().overlayView) {
-    rt().window.contentView.removeChildView(rt().overlayView);
-    rt().overlayView.webContents.send('overlay:hide');
+    // Tell the overlay to close BEFORE detaching it — the panel retracts into
+    // the pill, and a view that has already been removed has nothing left to
+    // draw. Only the pixels linger: focus and island state hand over below at
+    // once, so the user is never waiting on the animation.
+    const retracts = closingMode === 'panel' || closingMode === 'palette';
+    rt().overlayView.webContents.send('overlay:hide', { retract: retracts });
+    if (rt().overlayExitTimer) {
+      clearTimeout(rt().overlayExitTimer);
+      rt().overlayExitTimer = null;
+    }
+    if (retracts) {
+      rt().overlayExitTimer = setTimeout(bindWindowRuntime(rt(), () => {
+        rt().overlayExitTimer = null;
+        // Re-check: a new overlay may have opened while this was retracting,
+        // in which case the view is legitimately on screen again.
+        if (!rt().overlayMode && hasLiveWindow() && rt().overlayView) {
+          rt().window.contentView.removeChildView(rt().overlayView);
+        }
+      }), OVERLAY_RETRACT_MS);
+    } else {
+      rt().window.contentView.removeChildView(rt().overlayView);
+    }
     // Escape from the shield popover hands focus back to the control that
     // opened it, not to page content — keyboard users should land where they
     // started. The chrome webContents must take focus BEFORE the strip's DOM
@@ -1737,6 +1858,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // so owner === primaryRuntime always; the shape is what M2 (multiple
   // runtimes) inherits without changes to this function.
   const boundToTab = (fn) => bindWindowRuntime(owner, fn);
+  // The page covers everything below the strip, so this is where the cursor is
+  // nearly always found. Bounds move with vertical tabs, so read them per event.
+  watchCursorFor(wc, () => currentChromeLayout().pageBounds, boundToTab);
   // SPIKE (1Password fill feasibility) — ⌥⌘P on the tab's OWN webContents
   // (the overlay before-input-event listener never sees page-focused keys).
   if (ONE_PASSWORD_SPIKE_ENABLED) {
@@ -2306,10 +2430,14 @@ function cycleCluster(direction) {
 /** Focus an existing tab already on this internal page, or open one. */
 function openInternalPage(url) {
   if (isUtilityUrl(url)) return showUtilityPage(url);
-  const existing = rt().tabOrder.find((id) => tabs.get(id)?.url.startsWith(url));
-  if (existing) {
+  const existing = rt().tabOrder.find((id) => tabs.get(id)?.url?.startsWith(url));
+  const tab = existing ? tabs.get(existing) : null;
+  if (tab) {
     setActiveTab(existing);
-    tabs.get(existing).view.webContents.reload(); // pick up fresh data
+    // Hold the tab from the lookup rather than fetching it again. Re-fetching
+    // was safe only because setActiveTab happens not to mutate `tabs` — the
+    // same unstated assumption that crashed the menu rebuild.
+    tab.view.webContents.reload(); // pick up fresh data
   } else {
     setActiveTab(createTab(url));
   }
@@ -2664,6 +2792,11 @@ function registerIpcHandlers() {
   }));
   chromeHandle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
   chromeHandle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
+
+  chromeOn('chrome:island-rect', (_e, rect) => {
+    const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
+    rt().islandRect = ok && rect.width > 0 ? rect : null;
+  });
 
   chromeOn('chrome:layout', (_e, { height }) => {
     if (typeof height === 'number' && height > 0) {
@@ -3201,6 +3334,9 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
   });
   windowRuntimes.attachWindow(primaryRuntime, { window: newWindow });
   windowRuntimes.registerChromeSurface(primaryRuntime, newWindow.webContents.id);
+  // The strip's own 64px band. Its document IS the window, so no offset.
+  watchCursorFor(newWindow.webContents, { x: 0, y: 0 },
+    (fn) => bindWindowRuntime(primaryRuntime, fn));
 
   lockPrivilegedNavigation(rt().window.webContents, CHROME_INDEX_URL);
   installChromeShortcuts(rt().window.webContents);
