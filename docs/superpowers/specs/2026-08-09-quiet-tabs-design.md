@@ -62,7 +62,12 @@ null), or transiently **waking**. The record keeps everything the chrome draws �
 `canGoForward` — so a quiet row renders without touching a webContents.
 
 New fields: `asleep`, `sleeping` (teardown in progress), `waking`,
-`lastActiveAt`, `adopted`, `openerTabId`, `playingMedia`.
+`wakeGeneration` (§5.1), `lastActiveAt` (§4.3), `adopted`, `openerTabId`,
+`usedMedia` (§4.2), and `restorableCommit` (§4.2).
+
+Two pieces of state deliberately live *outside* the record: the snapshot Map
+(§3.1) and the `Map<openerTabId, liveChildCount>` tracking popup `BrowserWindow`s
+that are not tabs (§4.2).
 
 ### 3.1 The snapshot lives outside the tab record
 
@@ -173,14 +178,19 @@ Never quiet:
 - the active tab — and honour `activeTabId` even when `hasLiveWindow()` is false
   (`:2229-2233`), or dock-reopen hits `:2214` on a quiet tab
 - `sleeping`, `waking`, `isLoading`, or already `asleep`
-- **audible, muted, or playing media.** `tab.audible` is literally
+- **audible, muted, or media-bearing.** `tab.audible` is literally
   `isCurrentlyAudible()` (`:1892-1897`), so a paused video, a deliberately muted
   tab, and a muted autoplay stream all pass it — and pageState carries no media
-  `currentTime`, so wake lands at 0:00. Track `playingMedia` from
-  `media-started-playing`/`media-paused`; treat `muted` as an explicit user
-  gesture in the same class as pinned; detect
-  `document.pictureInPictureElement !== null` in the probe. Camera/mic capture
-  has no main-process signal in Electron 43 — stated as a known limitation.
+  `currentTime`, so wake lands at 0:00.
+
+  `tab.usedMedia` is set on `media-started-playing` and cleared **only on
+  main-frame navigation** — deliberately *not* on `media-paused`. Clearing it on
+  pause would leave unprotected exactly the paused video this rule exists to
+  protect. The flag means "this document has played media", not "is playing now".
+
+  Treat `muted` as an explicit user gesture in the same class as pinned; detect
+  `document.pictureInPictureElement !== null` in the probe. Camera and microphone
+  capture have no main-process signal in Electron 43 — a stated limitation.
 - pinned
 - **adopted `window.open` children.** They are constructed by Chromium wired to
   their opener (`:2142-2154`); rebuilding from a URL severs `window.opener`
@@ -188,19 +198,37 @@ Never quiet:
   OAuth/payment pattern — has *no restorable URL*. `adopted` is currently a local
   at `:1809` and must move onto the record. Independently require ≥1 http(s)
   navigation entry before a tab is quietable.
-- **tabs with a live opener or live children.** Both window-open paths set
-  `outlivesOpener: true` (`:2126`, `:2140`), and a discarded opener leaves the
-  child's `window.opener` unusable — waking does not repair it, since it is a
-  different object. Record `openerTabId` at adoption and make `sleepCandidates`
-  family-aware.
-- **tabs whose committed navigation was non-GET, or whose `historyEligible` is
-  false.** A POST result — a checkout receipt, a transfer confirmation — either
-  silently re-submits or fails into `blanc://error/`; Blanc has no "Confirm Form
-  Resubmission" interstitial. The hook exists: the per-session
-  `onBeforeSendHeaders` listener (`:3456-3473`) already carries `details.method`,
-  `resourceType === 'mainFrame'`, and `webContentsId`, and its own comment
-  invites composing inside it. `historyEligible === false` (`:1938-1945`) already
-  marks the ≥400 and dead one-shot OAuth pages whose re-fetch is worthless.
+- **tabs with a live opener or live children — including popup windows that are
+  not tabs.** Both window-open paths set `outlivesOpener: true` (`:2126`,
+  `:2140`), and a discarded opener leaves the child's `window.opener` unusable —
+  waking does not repair it, since it is a different object. Record
+  `openerTabId` at adoption and make `sleepCandidates` family-aware.
+
+  The `disposition === 'new-window'` branch (`:2123-2135`) returns `allow`
+  **without a `createWindow`**, so Electron builds a real popup `BrowserWindow`
+  that never enters the `tabs` Map — and per the comment at `:2077` that branch
+  is precisely the OAuth/SSO popup path. A family-aware function over `tabs`
+  alone cannot see them. Maintain a `Map<openerTabId, liveChildCount>` fed by
+  `did-create-window` and decremented on the popup's `closed`; a non-zero count
+  makes the opener ineligible. Quieting an opener mid-OAuth would sever the
+  callback.
+- **tabs whose last main-frame commit is not safely refetchable**, tracked in a
+  dedicated `tab.restorableCommit` boolean. A POST result — a checkout receipt, a
+  transfer confirmation — either silently re-submits or fails into
+  `blanc://error/`; Blanc has no "Confirm Form Resubmission" interstitial.
+  `restorableCommit` is set at each main-frame commit to
+  `method === 'GET' && (httpResponseCode ?? 200) < 400`, composing the
+  per-session `onBeforeSendHeaders` listener (`:3456-3473`, which already carries
+  `details.method`, `resourceType === 'mainFrame'`, and `webContentsId`, and
+  whose own comment invites composing inside it) with `did-navigate`'s response
+  code.
+
+  **It must not reuse `historyEligible`.** That field is
+  `!tab.private && (httpResponseCode ?? 200) < 400` (`:1944`), so it is `false`
+  for **every private tab** — reusing it would make private tabs permanently
+  un-quietable, contradicting the private-snapshot rule in §6 and acceptance
+  scenario F31-8. The two conditions overlap on status but differ on privacy and
+  on method; one field cannot serve both.
 - **tabs with a pending permission prompt.** `runtime.permissionPrompts`
   (`:3496-3515`) is keyed by `promptId` with no tab association, and
   `tabForWebContents` resolves null once the view is gone — so answering a quiet
@@ -210,11 +238,26 @@ Never quiet:
 - **deep-scrolled pages** (`window.scrollY > 3 * innerHeight`) — see §7.
 - tabs with unsaved input (§4.4)
 
-Always quietable without probing: a crashed renderer, and a tab committed to
-`blanc://error/`. The fail-safe-to-dirty rule would otherwise exclude exactly the
-tabs the feature exists to reclaim.
+Quietable without probing: a tab committed to `blanc://error/` — it holds nothing
+to lose, and the fail-safe-to-dirty rule would otherwise exclude exactly the tabs
+the feature exists to reclaim.
+
+A **crashed** renderer is explicitly *not* handled here. Converting one into a
+quiet tab is out of scope per §2; it stays with the existing
+`render-process-gone` handler in v1. (An earlier draft listed crashed renderers
+as always-quietable, contradicting §2 — that is resolved in favour of §2.)
 
 ### 4.3 The sweep
+
+**`lastActiveAt` is stamped when a tab leaves the foreground** — in
+`setActiveTab`'s deactivation branch (`:2242-2247`), where the outgoing tab's view
+is detached — and at creation for a tab that is born in the background, and again
+on a wake generation's commit (§5.1). It measures time since the tab was last
+*visible*, not since it was created or navigated.
+
+Getting this backwards is the difference between a working feature and an absurd
+one: stamping only at creation would quiet a tab the user just spent three hours
+in, seconds after they switched away from it.
 
 One 30-second `setInterval`, wrapped in `bindWindowRuntime(primaryRuntime, ...)`
 at registration — an unbound `setInterval` is an AsyncLocalStorage boundary, and
@@ -246,21 +289,60 @@ like `reloadTabAfterSettingsFanout` (`:2653-2663`).
 iframe is structurally invisible. Run over `wc.mainFrame.framesInSubtree` with a
 250 ms budget for the whole set.
 
-**Dirty** iff any `input`/`textarea` has `value !== defaultValue`, or any
-`input[type=password]` is non-empty, or any `[contenteditable]`/`designMode`
-region has text, or `sessionStorage.length > 0`, or **any frame failed to
-answer**. Never key it on interaction events — a 1Password fill is programmatic.
+**Dirty** iff any of the following holds in any frame:
 
-A hostile page can pin itself awake by making the probe throw. That is an
-accepted non-goal, not a hole to plug.
+- an `input` or `textarea` with `value !== defaultValue`
+- a checkbox or radio with `checked !== defaultChecked`
+- a `<select>` with any option's `selected !== defaultSelected`
+- a non-empty `input[type=password]`
+- a `[contenteditable]` or `designMode` region with text
+- `sessionStorage.length > 0`
+- **any frame failed to answer**
 
-*Optional second signal, strictly better fidelity:* temporarily swap the modal
-`will-prevent-unload` handler (`:2058-2068`) for a silent no-op and call
-`close({ waitForBeforeUnload: true })`. A page that prevents the unload aborts
-the close with no dialog — Chromium's own unsaved-work verdict. Restore the modal
-handler afterwards, and guard the swap with a flag so a concurrent user-initiated
-`closeTab` still gets its dialog. (Bare `close()` does **not** run beforeunload —
-verified by measurement, not just docs.)
+The three control-state cases matter as much as the text case: `value` is
+untouched by checkbox, radio, and select interaction, so a `value`-only predicate
+silently loses a half-filled form on the fallback reload.
+
+Never key the probe on interaction events — a 1Password fill is programmatic.
+
+**Known limitations, stated rather than papered over:** drafts held only in JS
+memory or IndexedDB (an editor's autosave buffer) are invisible to this predicate,
+and a hostile page can pin itself awake by making the probe throw. Neither is a
+hole to plug in v1.
+
+### 4.4.1 `beforeunload` as the teardown path, never as a probe
+
+`close({ waitForBeforeUnload: true })` is **destructive by contract**: "If the
+page is successfully closed (i.e. the unload is not prevented by the page…) the
+WebContents will be destroyed and no longer usable" (`electron.d.ts:17884`). A
+clean page does not survive it, so it cannot be an exploratory probe with the
+handler restored afterwards. Bare `close()` does not run beforeunload at all —
+measured, and consistent with the same typing.
+
+It is still the highest-fidelity unsaved-work signal available, because it is
+Chromium's own verdict and covers the JS-draft case the predicate cannot. So it
+is specified as **the final atomic teardown step**, run only after the snapshot
+is taken (§6), §4.5's revalidation has passed, and the replacement `destroyed`
+observer is installed:
+
+1. snapshot, revalidate, `tab.sleeping = true`
+2. `wc.removeAllListeners()`
+3. attach exactly two temporary listeners: the `destroyed` observer (§4.1 step 4)
+   and a silent `will-prevent-unload` that records an abort and calls
+   `event.preventDefault()` — never the modal handler at `:2058-2068`
+4. `close({ waitForBeforeUnload: true })`
+5. **Destroyed fires** ⇒ the tab is quiet, as normal.
+   **Abort fires** ⇒ the page has unsaved work: clear `sleeping`, re-run
+   `wireTabView(tab, view, …)` to restore the full listener set that step 2
+   removed, and leave the tab awake. It is retried on a later sweep.
+
+The abort branch costs a full re-wire, which is the price of using the real
+signal; `wireTabView` exists for wake and is reused verbatim. If that branch
+proves unstable in implementation, dropping to plain `close()` with the §4.4
+predicate alone is a local change that alters nothing else in this design.
+
+Guard the handler swap with a flag so a concurrent user-initiated `closeTab`
+still gets its modal dialog.
 
 ### 4.5 Re-validate immediately before the discard
 
@@ -299,9 +381,8 @@ Never overwrite a good snapshot with an empty one: refuse to discard when
    just strict ones, while Settings still reads "Standard". Read at wake time,
    never replay a value captured at sleep time.
 4. Navigate — see below
-5. Clear `asleep` **on commit** (`did-finish-load`/`did-navigate`), never
-   optimistically, so the UI cannot claim a blank tab is awake
-6. Stamp `lastActiveAt`, clear `waking`, delete the Map entry **after** commit
+5. Navigate inside a **wake transaction** (§5.1), which owns the commit point,
+   history suppression, failure handling, and snapshot lifetime
 
 **`setActiveTab` is the single wake choke point**, and must wake *before its first
 guard*: `:2208-2214` dereferences `next.view.webContents.isDestroyed()` ahead of
@@ -324,12 +405,6 @@ anyway — `openInternalPage` (`:2440`), `navigateTabToAddress` (`:1103`) — sk
 back/forward on a quiet tab restore at `index ± 1` in a single navigation instead
 of waking and then navigating.
 
-**Suppress history recording on wake.** `restore()` fires `did-navigate` →
-`history.addVisit` (`:1926-1945`), and `addVisit` dedupes only against
-`entries[0]` (`history.js:16-22`), so every wake would unshift a phantom row
-timestamped *now*. A one-shot `tab.wakingFromSleep`, consumed in `did-navigate`,
-covering `updateTitle` too — same shape as the existing `historyEligible` gate.
-
 `wakeTab` is **forbidden while `startupNavigationGateActive`**. The gate cancels
 the request and replays it with a plain `loadURL` keyed by webContents id
 (`:237-240`, `:268`), discarding the restored `{entries, index}` and leaving the
@@ -337,17 +412,43 @@ tab permanently blank with no error page. Queue the wake instead. Restore itself
 runs *inside* `releaseStartup` after the gate release (`:3778-3786`), so no
 restored tab is ever gated.
 
-### 5.1 Wake failure
+### 5.1 The wake transaction
 
 Wake is a **network re-fetch**, and a failed one currently destroys the tab:
 `restore()` rejects into `did-fail-load`, which replaces the page with
 `blanc://error/` (`:2022-2043`) whose only recovery is a plain re-navigation
 (`pages/error.js:17-19`).
 
-- The sweep skips entirely while offline.
-- The snapshot is **retained until the restore commits**, so a retry re-restores.
-- `restore(...).catch(() => wc.loadURL(tab.url).catch(() => {}))`.
-- The wake-failure error page carries the tab's stored title.
+A one-shot flag consumed on the first `did-navigate` is **not sufficient**.
+`did-navigate` fires once per hop of a redirect chain — the repo says so at
+`:1947-1949` — so a one-shot suppression is spent on hop 1 and every later hop
+writes a phantom history row timestamped *now* (`addVisit` dedupes only against
+`entries[0]`, `history.js:16-22`). The same one-shot reasoning would delete the
+snapshot at hop 1, before the final page has succeeded. And the existing
+`did-fail-load` handler would race a bare
+`restore().catch(() => loadURL(...))` fallback, so both could navigate.
+
+Wake therefore runs as one **generation** — a monotonically increasing
+`tab.wakeGeneration`, captured at entry — with these rules:
+
+1. **Suppression window.** While a generation is open, that tab's normal
+   `did-fail-load` handling and all history recording (`addVisit` *and*
+   `updateTitle`) are suppressed — for every hop, not just the first.
+2. **Commit is promise resolution.** The generation commits when the
+   `restore()` or `loadURL()` promise resolves, not on any `did-navigate`.
+   Only then does `asleep` clear, `waking` clear, `lastActiveAt` stamp, and
+   normal handling resume. The UI never claims a blank tab is awake.
+3. **Exactly one fallback.** A rejected `restore()` triggers a single
+   `loadURL(tab.url)` within the same generation. A rejected fallback ends the
+   generation in failure.
+4. **Snapshot lifetime.** Retained until the generation commits successfully, or
+   until the failure branch deliberately commits the error page — so a retry
+   re-restores rather than degrading to a bare URL load.
+5. **Staleness.** Any callback whose captured generation is not the tab's
+   current one returns immediately. A second wake supersedes the first.
+
+The wake-failure error page carries the tab's stored title. The sweep skips
+entirely while `net.isOnline()` is false.
 
 Quieting, by contrast, is always best-effort: a throwing probe or a wedged
 `getAllEntries()` leaves the tab awake for the next sweep. It never surfaces an
@@ -368,10 +469,20 @@ cannot detect. Per-entry pageState is unbounded: a 200 KB textarea produced a
 snapshot = { index, entries: all.map((e, i) => i === index ? e : { url: e.url, title: e.title }) }
 ```
 
-- If the surviving `pageState` exceeds **512 KB**, drop it — wake falls back to
-  `loadURL`.
-- If it exceeds the ceiling entirely, do not quiet the tab at all.
-- Cap total retained snapshots at 50.
+One ceiling, one consequence: if the surviving `pageState` exceeds **512 KB**,
+drop that string and keep the trimmed entry list. The tab is still quieted — wake
+falls back to `loadURL(tab.url)` and the back stack survives. Nothing about an
+oversized page justifies keeping a whole renderer process alive, which is what
+"do not quiet it at all" would mean.
+
+Size is measured as `Buffer.byteLength(pageState, 'utf8')` on the base64 string,
+not `String.length` — the two differ, and the ceiling exists to bound real heap.
+
+**At 50 retained snapshots, stop quieting further tabs.** Do not evict to make
+room: eviction would silently downgrade an already-quiet tab's recovery data from
+full page state to a bare URL, with no signal to the user and no way to notice.
+Refusing to quiet the 51st is visible only as memory not saved, which is the
+strictly safer failure. Log it at debug level so the ceiling is diagnosable.
 
 Verified end-to-end: with back-entry pageState stripped, `restore()` resolves,
 `scrollY` and text-field contents return, and `canGoBack`/`goBack()` still work.
@@ -392,8 +503,17 @@ conclusion stands, for a different payload: POST bodies and text/textarea values
 ### 6.1 Snapshot lifetime is an invariant
 
 Delete the Map entry in `closeTab` (as its first statement — `:2312-2349` has no
-auxiliary-map hook today), on wake after commit, in the window `closed` handler,
-on `before-quit`, and whenever the setting is switched to Off.
+auxiliary-map hook today), on a wake generation's successful commit (§5.1), in
+the window `closed` handler, and on `before-quit`.
+
+**Switching the setting to Off does not delete anything.** Off stops *future*
+auto-quieting; tabs that are already quiet stay quiet and keep their snapshots,
+waking normally on activation. Deleting snapshots on Off would silently destroy
+every quiet tab's back stack and page state — recovery data the user never asked
+to discard, at the moment they asked for *less* aggressive behaviour. The
+alternative, waking every quiet tab immediately, is worse: a thundering herd of
+network re-fetches triggered by a settings click. Off is a policy change, not a
+teardown.
 
 `closeTab`'s `const wc = tab.view.webContents` (`:2331`) becomes
 `tab.view?.webContents` — it is reachable with a background id from the rail ✕
@@ -430,6 +550,15 @@ silent no-op until they are edited: `dotsSignature()` (`renderer.js:344-363`,
 consumed at `:420-424`) and `railSignature()` (`vertical-tabs.js:53-70`,
 early-returning at `:560-562`).
 
+**Every user-visible and assistive-technology string is "quiet", never "asleep".**
+`asleep` is the internal field name only — the same split as
+Favorites/`bookmarks`. A row reads "quiet"; nothing in the UI says "asleep".
+
+**Contract override, recorded deliberately:** the approved design said quiet dots
+render at *reduced opacity*. They do not — see below. This is a decision changed
+after approval on evidence, and the acceptance scenario asserts the size-based
+treatment, not opacity.
+
 **Express quiet by size, not opacity.** Opacity is spoken for — `.island-dot.loading`
 pulses via `island-pulse` (`styles.css:812`), and reduced motion kills the pulse
 entirely (`:1876-1878`) — and there is no contrast headroom: the idle dot is
@@ -440,17 +569,27 @@ entirely (`:1876-1878`) — and there is no contrast headroom: the idle dot is
   same 6 px slot, so the 10 px flex gap never reflows. `::before` is taken by the
   hit halo (`:806-810`). **Private dots get no quiet treatment at all** — they
   stay hollow at full weight.
-- **Panel:** a `row-asleep` span styled off `.row-private` (`overlay.js:262-267`,
-  `styles.css:1558-1566`) — never `.row-tag`, which is hover-only on `.tab-row`
-  (`:1302-1310`). The row is a bare `<div>` with no role or aria, so its visible
-  text *is* its accessible name.
-- **Rail:** add `tab.asleep && 'asleep'` to the `states` array
-  (`vertical-tabs.js:355-365`) plus a `makeMarker(...)`, and dim the **favicon**,
+- **Panel:** a `row-quiet` span reading "quiet", styled off `.row-private`
+  (`overlay.js:262-267`, `styles.css:1558-1566`) — never `.row-tag`, which is
+  hover-only on `.tab-row` (`:1302-1310`).
+
+  The row is `document.createElement('div')` with a class and `dataset.tabId` and
+  **no role, no tabindex, no aria** (`overlay.js:237-241`). A bare `<div>` is not
+  an accessible element, so its visible text does not become an accessible name —
+  an earlier draft claimed otherwise and was wrong. Giving the state a real
+  accessible name therefore means giving the row a real accessible identity:
+  `role="option"` within a `role="listbox"` list, or `role="button"`, plus an
+  `aria-label` composed from title, host, and state. That is a small a11y
+  correction to existing rows, in scope for this feature because the feature is
+  what makes the row's state load-bearing.
+- **Rail:** add `tab.asleep && 'quiet'` to the `states` array
+  (`vertical-tabs.js:355-365`) — the field is `asleep`, the string is "quiet" —
+  plus a `makeMarker(...)`, and dim the **favicon**,
   not the title — `.loading` already dims the title (`styles.css:516-518`), and
   the title span is `aria-hidden` with the favicon as the primary scan target
   (`:369-377`).
 - **Quick Switcher:** its rows are not `.tab-row`, so `.row-tag` is visible at
-  rest and prints the literal kind (`overlay.js:781-811`). Append `· asleep` to
+  rest and prints the literal kind (`overlay.js:781-811`). Append `· quiet` to
   `sub`. Picking the row goes through `wakeTab`.
 
 No new `:root` custom property: expressing quiet with existing `--border` and
@@ -491,7 +630,7 @@ device-local, like `tabLayout`. The settings row needs its own `id` on the
 **Command** — `/sleep`, `keepOverlay: true`:
 
 ```js
-{ cmd: '/sleep', hint: 'Free memory — sleep the tabs you are not using', keepOverlay: true }
+{ cmd: '/sleep', hint: 'Put background tabs to sleep and free their memory', keepOverlay: true }
 ```
 
 Every command runs on `state.activeTabId` (`overlay.js:533-540`), and the active
@@ -499,6 +638,13 @@ tab can never be quiet, so `/sleep` means *quiet every eligible background tab*.
 Blanc has **no toast or banner surface anywhere**, and a command that closes the
 panel (`:554-560`) would have zero receipt — so the panel stays open and the rows
 that just went dim are the receipt (the `/find` precedent, `:545`).
+
+**`/sleep` bypasses the idle threshold and nothing else.** Every safety exclusion
+in §4.2 still applies — audible, media-bearing, muted, pinned, adopted, opener
+families, non-refetchable commits, pending permission prompts, deep scroll, and
+the unsaved-input probe. A manual command is a request to skip *waiting*, not a
+request to lose work. It is also the one path that must run when the setting is
+Off.
 
 `copy/build.mjs:54-66` diffs **positionally** across four files:
 `copy/slash-commands.json`, `overlay.js`'s `COMMANDS`, `pages/shortcuts.js`'s
@@ -595,10 +741,15 @@ assertion the feature has no test that proves it does anything.
 **Unit**
 
 - `test/unit/tab-sleep.test.js` — threshold boundary; active excluded;
-  audible/muted/pinned/playingMedia/adopted/non-GET/permission-pending/opener-family
-  excluded; `thresholdMs: null` ⇒ `[]`; NaN `lastActiveAt` ⇒ not idle;
-  deterministic ordering; `trimSnapshot` strips non-active pageState and honours
-  the byte ceiling; private snapshots carry no pageState.
+  audible/muted/pinned/`usedMedia`/adopted/`restorableCommit === false`/
+  permission-pending/opener-family/live-popup-child excluded; `thresholdMs: null`
+  ⇒ `[]`; NaN `lastActiveAt` ⇒ not idle; deterministic ordering; the 50-snapshot
+  ceiling stops quieting rather than evicting; `trimSnapshot` strips non-active
+  pageState, measures the ceiling in UTF-8 bytes, drops oversized pageState while
+  still returning a quietable snapshot, and emits no pageState for private tabs.
+- **A private tab is a candidate.** The direct regression test for the
+  `historyEligible` conflation: a private tab with an ordinary GET commit must
+  appear in `sleepCandidates`.
 - `test/unit/tab-sleep-snapshot-isolation.test.js` — source-lifted `serializeTabs`
   (precedent: `test/unit/settings-fanout-reload.test.js:8-19`) asserting a record
   carrying `sleepSnapshot`/`pageState` serializes without it; plus a lifted
@@ -628,12 +779,25 @@ settings key.
 **Acceptance** (`spec/acceptance/quiet-tabs.feature`, `@F31-1`…`@F31-10`):
 sleep/wake identity; active never sleeps; the exclusion outline
 (audio/pinned/muted/dirty-input/adopted/POST); `/sleep` with the panel open; the
-quiet affordance and accessible name, asserting dots are not the private
-treatment; the settings outline; lazy restore (via the existing `ctx.relaunch` in
+quiet affordance and accessible name — the string is "quiet", the dot treatment is
+size-based per §8's recorded override, and it is not the private treatment; the
+settings outline; lazy restore (via the existing `ctx.relaunch` in
 `test/desktop/support/hooks.js` — seed and persist *before* relaunch, since
 `Before` calls `reset()`); private sleep→wake asserting `sessionKind === 'private'`;
 no pageState in session.json, the sync snapshot, or `tabs:updated`; and the
 `getAppMetrics` process-count drop.
+
+Three scenarios cover the corrections that are invisible to unit tests:
+
+- **Redirect-chain wake** — wake a quiet tab whose URL 302s at least once, and
+  assert exactly one history entry is recorded and the snapshot survives until
+  the final commit. A one-shot suppression flag fails this.
+- **Setting switched to Off** — with quiet tabs present, set the delay to Off and
+  assert nothing wakes, no snapshot is dropped, and a later activation still
+  restores the back stack.
+- **Unsaved control state** — a form whose only change is a ticked checkbox or a
+  changed `<select>` must not be auto-quieted. A `value`-only predicate passes
+  every other dirty-input scenario and fails this one.
 
 Extending `@F28-7`'s literal expected map
 (`test/desktop/steps/vertical-tabs.steps.js:945-960`) is part of the UI commit.
@@ -684,8 +848,19 @@ needed. Never hand-edit `*/generated/`.
 "switching tabs is remove-one/add-another rather than destroying anything" is now
 false. Add a Quiet Tabs paragraph naming `tab-sleep.js`, `tab-view.js`,
 `liveContents`, the snapshot-Map rule, and the session.json `meta` addition.
-Check `site/` copy against `test/unit/public-truth.test.js` for any "tabs are
-never discarded" claim.
+
+**Product surfaces — deliverables, not just a stale-claim audit:**
+
+- `docs/press/release-notes/<next-version>.md` — a new file, in the voice of the
+  existing entries. Quiet Tabs is a user-visible feature, and the honest framing
+  is the §7 one: tabs reload when you come back to them.
+- `site/` — a feature hub or section covering Quiet Tabs: copy, whatever page or
+  anchor the existing information architecture calls for, the sitemap entry, and
+  a build verification run. The site is a real deliverable of this feature, not a
+  follow-up.
+- `test/unit/public-truth.test.js` — audit `site/` copy for any claim that tabs
+  are never discarded, or that Blanc keeps every tab live. Those claims become
+  false the day this ships.
 
 ---
 
@@ -715,8 +890,14 @@ never discarded" claim.
 ## 15. Non-goals, stated so they are not mistaken for oversights
 
 - A hostile page can pin itself awake by making the probe throw.
+- Drafts held only in JS memory or IndexedDB are invisible to the §4.4
+  predicate. The §4.4.1 teardown path catches them **only** when the page
+  registers a `beforeunload` handler; an editor that autosaves without one is not
+  protected.
+- Switching the setting to Off leaves already-quiet tabs quiet (§6.1). There is
+  no "wake everything now" control, deliberately.
 - Camera and microphone capture have no main-process signal in Electron 43;
-  a capturing tab is protected only by `playingMedia`/`audible`.
+  a capturing tab is protected only by `usedMedia`/`audible`.
 - Quiet state is not marked in the native Window menu or on the start page.
 - Zoom survives a discard for http(s) (per-origin, per-session); origin-less
   pages (`blanc://`, `file:`, `data:`) reset. No zoom field is needed — say so, so
