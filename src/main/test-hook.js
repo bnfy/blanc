@@ -14,6 +14,7 @@ const bookmarks = require('./bookmarks');
 const { app, Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
+const { syncSnapshot } = require('./session-snapshot');
 const {
   runAddressMenuItem,
   readAddressFieldText,
@@ -86,6 +87,8 @@ function install(refs) {
     sleepTab,
     wakeTab,
     runSleepSweep,
+    sleepBackgroundTabsNow,
+    getPermissionPrompts,
     setSleepThresholdOverride,
     getSleepSnapshots,
   } = refs;
@@ -106,6 +109,7 @@ function install(refs) {
   const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
   const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
+  const beforeUnloadProbes = new Map();
   const remoteFixture = [{
     deviceId: 'acceptance-remote-device',
     name: 'Press Mac',
@@ -153,6 +157,8 @@ function install(refs) {
           pinned: !!t.pinned,
           muted: !!t.muted,
           audible: !!t.audible,
+          canGoBack: !!t.canGoBack,
+          canGoForward: !!t.canGoForward,
           private: !!t.private,
           // This object is produced inside electronApp.evaluate(); a viewless
           // tab must be observable rather than making every scenario throw.
@@ -214,6 +220,53 @@ function install(refs) {
       broadcastTabs();
       return true;
     },
+    async navigateTab(id, url) {
+      const tab = tabs.get(id);
+      if (!tab?.view?.webContents) return false;
+      await tab.view.webContents.loadURL(String(url));
+      return true;
+    },
+    executeTab(id, source) {
+      const tab = tabs.get(id);
+      if (!tab?.view?.webContents) return null;
+      return tab.view.webContents.executeJavaScript(String(source));
+    },
+    tabNavigation(id) {
+      const tab = tabs.get(id);
+      const history = tab?.view?.webContents?.navigationHistory;
+      if (!history) return null;
+      return {
+        entries: history.getAllEntries().map((entry) => ({ url: entry.url, title: entry.title })),
+        activeIndex: history.getActiveIndex(),
+      };
+    },
+    tabListenerState(id) {
+      const wc = tabs.get(id)?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return null;
+      return {
+        didNavigate: wc.listenerCount('did-navigate'),
+        title: wc.listenerCount('page-title-updated'),
+        input: wc.listenerCount('before-input-event'),
+      };
+    },
+    armBeforeUnloadObjection(id) {
+      const wc = tabs.get(id)?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return false;
+      const originalClose = wc.close;
+      const probe = { prevented: false, fired: false };
+      beforeUnloadProbes.set(id, probe);
+      wc.close = function acceptanceBeforeUnloadClose() {
+        wc.close = originalClose;
+        queueMicrotask(() => {
+          probe.fired = true;
+          wc.emit('will-prevent-unload', {
+            preventDefault() { probe.prevented = true; },
+          });
+        });
+      };
+      return true;
+    },
+    beforeUnloadProbe(id) { return beforeUnloadProbes.get(id) ?? null; },
     closeTabsInGroupName(name) {
       const g = getGroups().find((x) => x.name === lc(name));
       if (!g) return;
@@ -261,6 +314,8 @@ function install(refs) {
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
+    tabSleep() { return settings.getSettings().tabSleep; },
+    setTabSleep(value) { return settings.setSettings({ tabSleep: value }).tabSleep; },
     tabLayout() { return settings.getSettings().tabLayout; },
     setTabLayout(layout) { return setTabLayout(layout); },
     pressVerticalTabsShortcut() {
@@ -498,6 +553,8 @@ function install(refs) {
       return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-row')].map((row) => ({
         title: row.querySelector('.row-title')?.textContent ?? '',
         tag: row.querySelector('.row-tag')?.textContent ?? '',
+        label: row.querySelector('.row-primary')?.getAttribute('aria-label') ?? '',
+        quiet: !!row.querySelector('.row-quiet'),
         active: row.classList.contains('active'),
         enter: !!row.querySelector('.row-enter')
       }))`);
@@ -537,6 +594,26 @@ function install(refs) {
           title: button.title,
           label: button.getAttribute('aria-label'),
           pressed: button.getAttribute('aria-pressed')
+        };
+      })()`);
+    },
+    async quietChromeState(title, id) {
+      const chrome = getChromeWebContents();
+      if (!chrome) return null;
+      return chrome.executeJavaScript(`(() => {
+        const dot = [...document.querySelectorAll('.island-dot')]
+          .find((candidate) => candidate.title === ${JSON.stringify(String(title))});
+        const row = document.querySelector(
+          '.vertical-tab-row[data-tab-id="' + CSS.escape(${JSON.stringify(String(id))}) + '"]'
+        );
+        return {
+          dotQuiet: !!dot?.classList.contains('asleep'),
+          dotPrivate: !!dot?.classList.contains('private'),
+          dotLabel: dot?.getAttribute('aria-label') ?? '',
+          railQuiet: !!row?.classList.contains('quiet'),
+          railPrivate: !!row?.classList.contains('private'),
+          railLabel: row?.querySelector('.vertical-tab-primary')?.getAttribute('aria-label') ?? '',
+          railMarker: !!row?.querySelector('.vertical-tab-quiet'),
         };
       })()`);
     },
@@ -767,12 +844,39 @@ function install(refs) {
     chromeUrl() { return getChromeUrl(); },
     persistedSessionData() { return persistedSessionData(); },
     serializedTabsPayload() { return serializedTabsPayload(); },
+    sessionSyncSnapshot() {
+      return syncSnapshot(getTabOrder().map((id) => tabs.get(id)), getGroups());
+    },
 
     // ---- Quiet Tabs ----
     // Every method drives the real main-process implementation; a mirror here
     // would keep the acceptance suite green if the shipping code regressed.
     async sleepTab(id) { return sleepTab(id); },
-    async wakeTab(id) { return wakeTab(id); },
+    async wakeTab(id, navigateTo = null) { return wakeTab(id, { navigateTo }); },
+    async sleepBackgroundTabsNow() { return sleepBackgroundTabsNow(); },
+    createQuietTab(url, title = 'Restored quiet tab', isPrivate = false) {
+      return createTab(String(url), {
+        private: !!isPrivate,
+        asleep: true,
+        title: String(title),
+        favicon: null,
+      });
+    },
+    setQuietProtection(id, reason) {
+      const tab = tabs.get(id);
+      if (!tab) return false;
+      if (reason === 'pinned') tab.pinned = true;
+      else if (reason === 'muted') tab.muted = true;
+      else if (reason === 'audible') tab.audible = true;
+      else if (reason === 'used media') tab.usedMedia = true;
+      else if (reason === 'adopted child') tab.adopted = true;
+      else if (reason === 'non-refetchable POST') tab.restorableCommit = false;
+      else if (reason === 'pending permission') {
+        getPermissionPrompts().set(`quiet-${id}`, { tabId: id, resolve: () => {} });
+      } else return false;
+      broadcastTabs();
+      return true;
+    },
     /** With an id: that tab's redacted state. Without: every tab in tab order.
      * NEVER returns entries: snapshots can contain POST bodies and form data. */
     sleepState(id) {
@@ -782,6 +886,7 @@ function install(refs) {
         asleep: !!tab.asleep,
         hasSnapshot: snapshots.has(tabId),
         entryCount: snapshots.get(tabId)?.entries.length ?? 0,
+        droppedPageState: !!snapshots.get(tabId)?.droppedPageState,
       });
       if (typeof id === 'string') {
         const tab = tabs.get(id);
@@ -817,6 +922,8 @@ function install(refs) {
       // the subsequent snapshot clear explicit.
       for (const [id, tab] of tabs) if (tab.asleep) await wakeTab(id);
       getSleepSnapshots().clear();
+      getPermissionPrompts().clear();
+      beforeUnloadProbes.clear();
       setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.
       hideOverlay({ refocusContent: false });

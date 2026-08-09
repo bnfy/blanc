@@ -21,6 +21,9 @@ function pageBody(req) {
     `<!doctype html><html><head><meta charset="utf-8"><title>${name}</title></head>` +
     `<body><h1>${name}</h1><p>widget widget widget</p>` +
     `<input id="acceptance-draft" aria-label="Unsaved draft">` +
+    `<input id="acceptance-check" type="checkbox" aria-label="Unsaved checkbox">` +
+    `<form id="acceptance-post" method="post"><button type="submit">Post</button></form>` +
+    `<div id="acceptance-tall" style="height:5000px"></div>` +
     store +
     `</body></html>`
   );
@@ -28,6 +31,14 @@ function pageBody(req) {
 
 function start() {
   const server = http.createServer((req, res) => {
+    const url = new URL(req.url || '/', 'http://fixture.invalid');
+    if (url.searchParams.has('redirect-start')) {
+      url.searchParams.delete('redirect-start');
+      url.searchParams.set('redirected', '1');
+      res.writeHead(302, { Location: `${url.pathname}?${url.searchParams}` });
+      res.end();
+      return;
+    }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(pageBody(req));
   });

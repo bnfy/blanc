@@ -4009,7 +4009,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getChromeUrl: () => rt().window?.webContents.getURL() ?? '',
       persistedSessionData: () => JSON.parse(JSON.stringify(ensureSessionStore().data)),
       serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
-      sleepTab, wakeTab, runSleepSweep,
+      sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
+      getPermissionPrompts: () => rt().permissionPrompts,
       getSleepSnapshots: () => sleepSnapshots,
       setSleepThresholdOverride: (ms) => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
