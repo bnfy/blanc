@@ -68,13 +68,15 @@ seconds, and stay under 256 KB. Redirects are disabled, and localhost,
 literal targets are rejected before fetch so capture cannot become a new LAN
 probe. A PNG source is decoded natively after a cheap header/dimension guard;
 other formats (ICO — usually BMP-framed — SVG, GIF, …), which `nativeImage`
-cannot decode, are drawn into a 16×16 canvas inside a locked-down, detached
+cannot decode, are drawn into a 32×32 canvas inside a locked-down, detached
 `WebContentsView` (`icon-raster.js`) — an SVG loaded via `<img>` runs no scripts
 and fetches no external resources, so untrusted vectors stay inert, and the
 renderer only ever sees inert `data:` bytes, never a live URL. Either path
-rasterizes to a 16×16 PNG; only a bounded `data:image/png;base64,...` value
-with a valid PNG signature/IHDR and 16×16 dimensions can enter the sidecar or
-renderer projection. Receiving
+rasterizes to a 32×32 PNG so 14–16 CSS-pixel UI slots stay sharp on 2×
+displays. Only a bounded `data:image/png;base64,...` value with a valid PNG
+signature/IHDR and supported square dimensions can enter the sidecar or
+renderer projection; receivers also accept the original 16×16 records during
+mixed-version rollout. Receiving
 chrome never contacts a remote tab's site merely to draw the list. The
 sidecar has its own 256 KB plaintext budget and discards cosmetic icon records
 before its limit; it can never evict a tab or device from the primary session

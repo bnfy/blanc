@@ -4,15 +4,23 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const PNG_DATA = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
+const LEGACY_PNG_DATA = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
+const pngBytes = Buffer.from(LEGACY_PNG_DATA.split(',')[1], 'base64');
+pngBytes.writeUInt32BE(32, 16);
+pngBytes.writeUInt32BE(32, 20);
+const PNG_DATA = `data:image/png;base64,${pngBytes.toString('base64')}`;
 const PNG_BYTES = Buffer.from(PNG_DATA.split(',')[1], 'base64');
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-tabicons-'));
 const requests = [];
 let decodeCount = 0;
+let lastResizeOptions = null;
 
 const image = {
   isEmpty: () => false,
-  resize: () => image,
+  resize: (options) => {
+    lastResizeOptions = options;
+    return image;
+  },
   toPNG: () => PNG_BYTES,
 };
 const electronId = require.resolve('electron');
@@ -69,6 +77,7 @@ test('capture rasterizes on the source device without cookies or a referrer', as
   assert.equal(requests[0].options.credentials, 'omit');
   assert.equal(requests[0].options.referrerPolicy, 'no-referrer');
   assert.equal(requests[0].options.redirect, 'error');
+  assert.deepEqual(lastResizeOptions, { width: 32, height: 32, quality: 'best' });
 
   const payload = tabicons.exportForSync(ctx);
   assert.deepEqual(payload.devices['device-a'].icons, [{
@@ -171,7 +180,7 @@ test('non-PNG favicons rasterize through the renderer seam and store the result'
   }
 });
 
-test('a rasterizer result that is not a bounded 16x16 PNG is discarded', async () => {
+test('a rasterizer result that is not a bounded supported-size PNG is discarded', async () => {
   tabicons.setRasterizer(async () => 'data:image/svg+xml,<svg/>'); // not a PNG data URL
   try {
     const tab = {
