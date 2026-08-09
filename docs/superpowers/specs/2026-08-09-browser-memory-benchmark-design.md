@@ -250,8 +250,11 @@ site. Selection validated `vmmap` against Node, which succeeds unprivileged;
 every browser here denies `task_for_pid` to an unprivileged caller. The run
 would have printed "Measuring with vmmap", returned 0 for every browser pid,
 and burned ~40 minutes producing zeroes. Now the backend is re-validated
-against the first browser actually launched and the matrix aborts with an
-explanation. Separately, `footprint` was invoked as `-p` (not a flag; it is
+against the first browser actually launched — and on failure the run walks
+down the fidelity order (`resolveReadableBackend`) rather than stopping, since
+`top` needs no elevation and still reports a footprint-equivalent column. The
+matrix aborts only when every backend is denied, and a pinned `--backend=` is
+never silently downgraded to a different metric. Separately, `footprint` was invoked as `-p` (not a flag; it is
 `-pid`) and `top` as `-n 0` (which prints *zero* rows, not unlimited), so two of
 the four backends were dead code. Fixing `footprint`'s flag alone would have
 been worse than leaving it dead: its real output ends `(16384 bytes per page)`,
@@ -409,8 +412,11 @@ None of these are fixed, because none can be from here. Each is recorded in
 `browsers.json` notes as well, next to the entry it affects.
 
 - Whether `footprint`/`vmmap` can read hardened browser processes without root
-  on the tester's macOS version. The run now aborts on cell one if not, but
-  which backend survives is unknown.
+  on the tester's macOS version. Which backend survives is unknown — `--probe`
+  on the dev machine selects `footprint`, but that only proves it can read an
+  unhardened Node process. The run now walks down the fidelity order against
+  the first real browser and aborts on cell one only if every backend is
+  denied, so the unknown costs a downgrade rather than the matrix.
 - Whether Zen honours the Gecko driver's `user.js` startup-homepage seeding.
   There is an open upstream report of a configured startup homepage not loading
   on macOS aarch64 (`zen-browser/desktop#12154`) — the harness's only tab-seeding

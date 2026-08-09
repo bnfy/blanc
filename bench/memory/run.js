@@ -68,8 +68,10 @@ Notes
   the totals, but their memory pressure still perturbs the machine.
 
   Do NOT run the whole harness under sudo: it would launch every browser as
-  root, which is not the configuration anyone uses. If the backend cannot read
-  hardened browser processes the run aborts on the first cell and says so.
+  root, which is not the configuration anyone uses. If the selected backend
+  cannot read hardened browser processes, the run falls back to the next one
+  down and says so; it aborts on the first cell only if none of them work.
+  An explicit --backend is never downgraded.
 `;
 
 function parseArgs(argv) {
@@ -348,6 +350,22 @@ async function reapAll() {
   }
 }
 
+/**
+ * The processes currently attributable to a browser we launched.
+ *
+ * `excludePids` is not optional in practice: attribution unions the descendant
+ * walk with bundle-path matching, so without it the tester's own copy of the
+ * same browser joins the set — and callers pass that set to `quit()`, which
+ * ends in SIGKILL.
+ */
+async function processSetFor(browser, rootPid, excludePids) {
+  return proctree.browserProcessSet(await proctree.snapshot(), {
+    rootPid,
+    bundlePath: browser.bundlePath,
+    excludePids,
+  });
+}
+
 /** One measured cell: launch, sample until settled, verify, quit. */
 async function runCell({ browser, workload, urls, backend, options, log, baselineFor, onFirstLaunch }) {
   // Re-snapshot immediately before launching rather than once per run: over a
@@ -358,6 +376,10 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
 
   let launched = null;
   let tabCount = 0;
+  // The backend can be downgraded by the first-launch validation below, and the
+  // cell that triggered it must sample with the replacement rather than with
+  // the one just proven unable to read this browser.
+  let activeBackend = backend;
   const entry = { pid: null, pids: [] };
   try {
     launched = await launcher.launch(browser, { profileDir, urls });
@@ -372,21 +394,16 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
       throw new Error('exited immediately after launch');
     }
 
-    if (onFirstLaunch) await onFirstLaunch(launched.pid);
+    if (onFirstLaunch) activeBackend = (await onFirstLaunch(launched.pid)) || backend;
 
     // Per-sample metadata, index-aligned with `series`. Recording it per sample
     // rather than keeping only the latest is what makes the readability check
     // below cover the same samples the reported median is computed from.
     const meta = [];
     const read = async () => {
-      const rows = await proctree.snapshot();
-      const pids = proctree.browserProcessSet(rows, {
-        rootPid: launched.pid,
-        bundlePath: browser.bundlePath,
-        excludePids: preExistingPids,
-      });
+      const pids = await processSetFor(browser, launched.pid, preExistingPids);
       entry.pids = pids;
-      const { totalBytes, missing } = await measure.sampleTotal(backend, pids);
+      const { totalBytes, missing } = await measure.sampleTotal(activeBackend, pids);
       meta.push({ processCount: pids.length, missing: missing.length });
       return totalBytes;
     };
@@ -407,7 +424,7 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
     if (unreadable) {
       throw new Error(
         `${unreadable} process reading(s) across the reported window were unreadable by ` +
-          `the ${backend.id} backend — the total would be an undercount`
+          `the ${activeBackend.id} backend — the total would be an undercount`
       );
     }
 
@@ -470,11 +487,26 @@ async function warmTemplate(browser, options, log) {
     seedBlancProfile(dir, { adblockEnabled: browser.requiresProfileSeed !== 'adblockDisabled' });
   }
   log(`  warming ${browser.label}…`);
+  // Taken before launching for the same reason a cell does it: bundle matching
+  // would otherwise sweep the tester's own copy of this browser into the set
+  // handed to quit().
+  const preExistingPids = new Set((await proctree.snapshot()).map((r) => r.pid));
   const launched = await launcher.launch(browser, { profileDir: dir, urls: [] });
   const entry = { pid: launched.pid, pids: [] };
   liveLaunches.add(entry);
-  await new Promise((resolve) => setTimeout(resolve, options.warmMs || 45_000));
-  await launcher.quit(launched.pid);
+
+  // Recorded twice: once as soon as the helpers exist, so a Ctrl-C during the
+  // long warm wait has a real set to sweep rather than just the root pid, and
+  // again immediately before quitting so the reap covers helpers that have
+  // since been re-parented away from the root.
+  const warmMs = options.warmMs || 45_000;
+  const settleMs = Math.min(2000, warmMs);
+  await new Promise((resolve) => setTimeout(resolve, settleMs));
+  entry.pids = await processSetFor(browser, launched.pid, preExistingPids);
+  await new Promise((resolve) => setTimeout(resolve, warmMs - settleMs));
+
+  entry.pids = await processSetFor(browser, launched.pid, preExistingPids);
+  await launcher.quit(launched.pid, { pids: entry.pids });
   liveLaunches.delete(entry);
   // Let the profile's own writes flush before it is used as a copy source.
   await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -511,8 +543,8 @@ async function main() {
     log(`backend: ${backend.id}\nmetric:  ${backend.metric}\n${backend.description}`);
     log(
       '\nNote: this probed our own Node process. Whether it can read a hardened,\n' +
-        'signed browser is only established on the first real cell, which aborts\n' +
-        'the run if it cannot.'
+        'signed browser is only established on the first real cell — which falls\n' +
+        'back to the next backend down if it cannot, and aborts only if none can.'
     );
     return;
   }
@@ -547,8 +579,8 @@ async function main() {
     return;
   }
 
-  const backend = await measure.selectBackend({ only: options.backend });
-  log(`Measuring with ${backend.id} (${backend.metric})\n`);
+  let backend = await measure.selectBackend({ only: options.backend });
+  log(`Measuring with ${backend.id} (${backend.metric}), pending the first browser\n`);
 
   for (const signal of ['SIGINT', 'SIGTERM']) {
     process.on(signal, () => {
@@ -574,21 +606,51 @@ async function main() {
   }
 
   // Established once, against the first browser actually launched: selection
-  // could only probe our own unhardened Node process.
+  // could only probe our own unhardened Node process, which every backend can
+  // read. If the winner turns out to be denied by a hardened, signed browser,
+  // walk down the fidelity order rather than abandoning the run — `top` needs
+  // no elevation and still reports a footprint-equivalent column, so the
+  // machine that cannot be measured with `vmmap` usually can be with `top`.
   let backendValidated = false;
   const validateBackend = async (pid) => {
-    if (backendValidated) return;
+    if (backendValidated) return backend;
     backendValidated = true;
-    if (await measure.canReadPid(backend, pid)) return;
-    throw new Error(
-      `The ${backend.id} backend cannot read browser process ${pid}. Browsers ship a ` +
-        'hardened runtime and deny task_for_pid to unprivileged callers, so every ' +
-        'measurement would be zero.\n' +
-        'Fix: re-run with --backend=ps (RSS, indicative only, clearly marked ' +
-        'unpublishable in the report), or grant the measurement tool the access it ' +
-        'needs. Do NOT run the whole harness under sudo — that launches every ' +
-        'browser as root, which is not the configuration anyone uses.'
-    );
+    const resolved = await measure.resolveReadableBackend(backend, pid, {
+      pinned: Boolean(options.backend),
+    });
+
+    if (!resolved.backend) {
+      const error = new Error(
+        `No measurement backend can read browser process ${pid} (tried: ` +
+          `${resolved.tried.join(', ')}). Browsers ship a hardened runtime and deny ` +
+          'task_for_pid to unprivileged callers, so every measurement would be zero.\n' +
+          (options.backend
+            ? `--backend=${options.backend} is pinned, so it was not downgraded. Drop the ` +
+              'flag to let the run fall back to a lower-fidelity backend automatically.\n'
+            : '') +
+          'Fix: grant the measurement tool the access it needs. Do NOT run the whole ' +
+          'harness under sudo — that launches every browser as root, which is not the ' +
+          'configuration anyone uses.'
+      );
+      // Every remaining cell would fail the same way; this ends the matrix
+      // rather than logging forty identical per-cell failures.
+      error.fatal = true;
+      throw error;
+    }
+
+    if (resolved.downgradedFrom) {
+      backend = resolved.backend;
+      log(
+        `  ⚠️  ${resolved.downgradedFrom} cannot read hardened browser processes on this ` +
+          `machine — falling back to ${backend.id} (${backend.metric}).` +
+          (backend.metric === 'rss'
+            ? '\n      That is RSS, not phys_footprint: the report will carry an ' +
+              'unpublishable-run banner.'
+            : '') +
+          '\n'
+      );
+    }
+    return backend;
   };
 
   const cells = new Map();
@@ -618,7 +680,7 @@ async function main() {
     } catch (error) {
       // A backend that cannot read browsers makes every remaining cell
       // pointless; anything else is a per-cell failure worth recording.
-      if (/cannot read browser process/.test(error.message)) throw error;
+      if (error.fatal) throw error;
       log(`      ✗ ${error.message}\n`);
       failures.push({
         browserId: browser.id,
