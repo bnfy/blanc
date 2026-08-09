@@ -12,6 +12,8 @@
   "tabLayouts": ["island", "vertical"],
   "webrtcPolicies": ["standard", "strict"],
   "secureDnsOptions": ["auto", "off", "cloudflare", "quad9", "mullvad", "custom"],
+  "$tabSleepDelays": "Quiet Tabs idle delay (F31). Device-local memory policy: never in Profile Sync. 'off' disables automatic quieting; the manual /sleep command still works.",
+  "tabSleepDelays": ["off", "30m", "1h", "6h"],
   "appIcons": [
     { "id": "paper", "label": "Paper" },
     { "id": "ink", "label": "Ink" },
@@ -39,6 +41,7 @@
     "secureDns": "auto",
     "secureDnsTemplate": "",
     "usagePing": true,
+    "tabSleep": "1h",
     "onboardingVersion": 0,
     "supporter": null
   },
@@ -56,6 +59,7 @@
     { "key": "appIcon", "type": "enum", "enum": "appIcons+supporterIcons", "default": "paper", "note": "supporter ids allowed only when supporter active; sanitize-on-read == validate-on-write" },
     { "key": "adblockExceptions", "type": "string[]", "default": [], "normalize": "trim, lowercase, strip leading www., dedupe" },
     { "key": "usagePing", "type": "boolean", "default": true },
+    { "key": "tabSleep", "type": "enum", "enum": "tabSleepDelays", "default": "1h", "note": "device-local; not synced; 'off' stops future quieting and never wakes an already-quiet tab" },
     { "key": "supporter", "type": "opaque", "default": null, "note": "written only by the Polar activation flow (setSupporter), never generic setSettings" }
   ]
 }

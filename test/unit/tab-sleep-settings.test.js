@@ -35,7 +35,12 @@ test.after(() => {
 
 test('the quiet-tabs delay defaults to 1h, validates its enum, and never syncs', (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-tab-sleep-'));
-  t.after(() => fs.rmSync(userData, { recursive: true, force: true }));
+  t.after(async () => {
+    // JsonStore writes on a 250 ms debounce; let it finish before removing
+    // the isolated directory so a passing test does not emit an ENOENT warning.
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    fs.rmSync(userData, { recursive: true, force: true });
+  });
   const settings = loadSettings(userData);
 
   assert.deepEqual(settings.TAB_SLEEP_DELAYS, ['off', '30m', '1h', '6h']);
@@ -51,4 +56,29 @@ test('the quiet-tabs delay defaults to 1h, validates its enum, and never syncs',
     Object.prototype.hasOwnProperty.call(settings.exportForSync().values, 'tabSleep'),
     false
   );
+});
+
+const settingsSchema = require('../../settings-schema/schema.json');
+
+test('the delay enum reaches the schema and both generated mobile artifacts', () => {
+  assert.deepEqual(settingsSchema.tabSleepDelays, ['off', '30m', '1h', '6h']);
+  assert.equal(settingsSchema.defaults.tabSleep, '1h');
+  assert.equal(settingsSchema.internalDefaults.includes('tabSleep'), false);
+  assert.ok(settingsSchema.settings.some((s) => s.key === 'tabSleep'));
+
+  const generated = (name) =>
+    fs.readFileSync(path.join(__dirname, '../../settings-schema/generated/', name), 'utf8');
+  const swift = generated('BlancSettings.swift');
+  const kotlin = generated('BlancSettings.kt');
+
+  assert.match(
+    swift,
+    /public enum BlancTabSleepDelay: String, CaseIterable \{ case off, m30 = "30m", h1 = "1h", h6 = "6h" \}/
+  );
+  assert.match(swift, /public static let tabSleep: BlancTabSleepDelay = \.h1/);
+  assert.match(
+    kotlin,
+    /enum class BlancTabSleepDelay\(val id: String\) \{ OFF\("off"\), M30\("30m"\), H1\("1h"\), H6\("6h"\) \}/
+  );
+  assert.match(kotlin, /val tabSleep = BlancTabSleepDelay\.H1/);
 });
