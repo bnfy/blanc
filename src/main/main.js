@@ -2359,7 +2359,7 @@ initTabView({
   fillActiveTabFrom1Password,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null } = {}) {
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
     // open-url handoff, future call sites). Session restore filters
@@ -2383,18 +2383,22 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // already constructed by Chromium with the opener relationship wired up;
   // everything else gets a fresh one.
   const adopted = !!view;
-  view ??= createTabView({ private: isPrivate });
+  // Session restore builds every tab quiet: no view, renderer process, or
+  // navigation — only the record the chrome draws. An adopted child is
+  // already live and can never be born quiet.
+  const bornQuiet = asleep && !adopted;
+  if (!bornQuiet) view ??= createTabView({ private: isPrivate });
 
   const tab = {
     id,
     runtimeId: owner.id,
-    view,
-    title: 'New Tab',
+    view: bornQuiet ? null : view,
+    title: typeof title === 'string' && title ? title : 'New Tab',
     url,
     isLoading: false,
     canGoBack: false,
     canGoForward: false,
-    favicon: null,
+    favicon: typeof favicon === 'string' ? favicon : null,
     bookmarked: false,
     blockedCount: 0,
     private: isPrivate,
@@ -2419,7 +2423,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     navEpoch: 0,
     // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
     // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
-    asleep: false,            // renderer discarded; tab.view is null
+    asleep: bornQuiet,        // renderer discarded; tab.view is null
     sleeping: false,          // teardown in progress
     waking: false,            // a wake generation is open
     wakeGeneration: 0,        // monotonic, never reset
@@ -2440,6 +2444,13 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   tab.lastActiveAt = Date.now();
   rt().tabOrder.push(id);
   windowRuntimes.attachTab(owner, id);
+
+  // A quiet-born tab has no webContents until wakeTab builds one. Everything
+  // below this point dereferences the view, so return before wiring/navigation.
+  if (bornQuiet) {
+    scheduleMenuRebuild();
+    return id;
+  }
 
   const wc = view.webContents;
   tabIdByWebContentsId.set(wc.id, id);
