@@ -80,8 +80,13 @@ specific browser:
   browser sitting at its start page does not. Cells that fail are **rejected
   and listed in the report's "Failed cells" section**, never quietly published.
 
-This is also why `baseline` runs first and is worth always including — without
-it, load verification cannot run and rows are marked `❓`.
+Both floors apply to the **idle baseline too**. An understated baseline inflates
+the per-page column and, because it is the denominator of the growth check,
+makes an understated loaded cell easier to pass — so it is not exempt.
+
+`baseline` is not optional: it is added automatically whenever a loaded workload
+is requested, and a loaded cell with no baseline to check against is **rejected**
+rather than published with a caveat. A check that does not fail is not a check.
 
 ## What makes the comparison fair
 
@@ -134,9 +139,9 @@ engine-efficiency result. Compare within a group; across groups, read it as
 | vs ref | Percentage against the **reference** browser (Chrome by default), not against the lowest row. Anchoring a vendor benchmark to its own product's best configuration is the shape reviewers distrust |
 | Range | min–max across repetitions. **Overlapping ranges mean the two browsers are not distinguishable** at that sample size |
 | Per page | `(loaded median − idle median) / workload pages` — marginal cost of a page, fixed startup cost removed. Divides by workload pages, never by a browser's own inflated tab count |
-| Procs | Median process count. Chromium spawns a process per site instance; Firefox with Fission isolates by site but multiplexes across a bounded pool, so its count grows more slowly. Browsers whose UI is itself a web page (Blanc, Vivaldi) carry extra always-live renderers |
+| Procs | Lowest process count across the samples the median came from. Chromium and Firefox both isolate content by site; their process models differ in ways this benchmark does not measure, so **do not read a process-count difference as the explanation for a memory difference**. See [Mozilla's process model docs](https://firefox-source-docs.mozilla.org/dom/ipc/process_model.html). Browsers whose UI is itself a web page (Blanc, Vivaldi) carry extra always-live renderers |
 | Reps | How many repetitions actually produced a measurement. A row backed by 1 of 3 has a Range that looks precise and is not |
-| ⚠️N / ❓ | N repetitions still drifting when sampling gave up / load could not be verified against an idle baseline |
+| ⚠️N | N repetitions were still drifting when sampling gave up |
 
 `Per page` is usually the number worth quoting. Total memory conflates "how
 expensive is a page" with "how many services does this browser start eagerly",

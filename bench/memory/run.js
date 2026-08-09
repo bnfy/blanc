@@ -27,6 +27,16 @@ const WORKLOADS_PATH = path.join(__dirname, 'workloads.json');
 // them sits at roughly idle. See verifyLoaded().
 const MIN_LOAD_GROWTH = 0.15;
 
+// Every browser in the registry is multi-process even sitting at a start page.
+// A tree smaller than this means process attribution failed, not that the
+// browser is frugal — and the difference is an undercount either way.
+const MIN_PROCESSES = 2;
+
+// How many trailing samples the reported figure is taken from. The readability
+// checks below cover exactly this window, because these are the samples the
+// median is computed over.
+const REPORTED_WINDOW = 3;
+
 const USAGE = `
 Browser memory benchmark (macOS)
 
@@ -142,14 +152,38 @@ function buildPlan(browsers, workloadKeys, reps) {
 }
 
 /**
- * Order the requested workloads so 'baseline' runs first.
+ * Order the requested workloads so 'baseline' runs first, and add it if the
+ * caller left it out.
  *
- * Load verification compares a loaded cell against the same browser's idle
- * baseline, so the baseline has to already exist when the loaded cell finishes.
+ * The baseline is not optional. Load verification compares a loaded cell
+ * against the same browser's idle baseline, so without one every loaded row is
+ * unverifiable — and an unverifiable row that gets published anyway is exactly
+ * the hole this closes. Baseline cells are also the cheapest in the matrix.
  */
 function orderWorkloads(keys) {
   const rest = keys.filter((k) => k !== 'baseline');
-  return keys.includes('baseline') ? ['baseline', ...rest] : rest;
+  return rest.length ? ['baseline', ...rest] : keys.slice();
+}
+
+/**
+ * Summarize the trailing samples the reported median is computed from.
+ *
+ * Checking only the final sample would let an undercounted sample sit inside
+ * the reported median while the check passed on a later, fully-readable one.
+ * The process count is the window's minimum for the same reason: a tree that
+ * was briefly incomplete must not be papered over by a later sample.
+ *
+ * @param {Array<{processCount: number, missing: number}>} meta
+ * @param {number} [windowSize]
+ * @returns {{unreadable: number, processCount: number}}
+ */
+function summarizeWindow(meta, windowSize = REPORTED_WINDOW) {
+  const window = (meta || []).slice(-windowSize);
+  if (!window.length) return { unreadable: 0, processCount: 0 };
+  return {
+    unreadable: window.reduce((sum, m) => sum + (m.missing || 0), 0),
+    processCount: Math.min(...window.map((m) => m.processCount || 0)),
+  };
 }
 
 /**
@@ -169,23 +203,60 @@ function orderWorkloads(keys) {
  *
  * @returns {{ok: true} | {ok: false, reason: string}}
  */
-function verifyLoaded({ workload, totalBytes, baselineBytes, tabCount }) {
-  if (workload === 'baseline') return { ok: true };
+function verifyLoaded({ workload, totalBytes, processCount, baseline, tabCount }) {
   if (!Number.isFinite(totalBytes) || totalBytes <= 0) {
     return { ok: false, reason: 'measured 0 bytes — the backend read nothing' };
   }
-  if (!Number.isFinite(baselineBytes) || baselineBytes <= 0) {
-    // No baseline measured for this browser, so the check cannot run. Say so
-    // rather than passing silently.
-    return { ok: true, unverified: 'no idle baseline measured for this browser' };
+  // Every modern browser is multi-process even at idle. A tree of one is not a
+  // quiet browser, it is broken attribution, and it undercounts by definition.
+  if (!Number.isFinite(processCount) || processCount < MIN_PROCESSES) {
+    return {
+      ok: false,
+      reason:
+        `only ${processCount} process(es) attributed to this browser — every browser ` +
+        'here is multi-process even at idle, so the tree was not found and the total ' +
+        'is an undercount',
+    };
   }
-  const growth = totalBytes / baselineBytes - 1;
+
+  // The idle baseline is not exempt from scrutiny: it is the subtrahend of the
+  // per-page column *and* the denominator of the growth check below, so an
+  // understated baseline both overstates per-page cost and makes an understated
+  // loaded cell easier to pass. Its floors are the two above.
+  if (workload === 'baseline') return { ok: true };
+
+  if (!baseline || !Number.isFinite(baseline.bytes) || baseline.bytes <= 0) {
+    // Previously this passed with a soft "unverified" marker. That is precisely
+    // the hole: an unverifiable cell was still published, so any browser whose
+    // baseline cell had failed got its loaded rows through unchecked.
+    return {
+      ok: false,
+      reason:
+        'no idle baseline for this browser, so the load could not be verified — ' +
+        'its baseline cell must have failed, and an unverified row is not publishable',
+    };
+  }
+
+  // A browser that loaded N pages cannot have fewer processes than it had at
+  // idle. Deliberately a monotonicity check rather than a count-per-tab rule:
+  // process models differ between engines, and asserting how they scale is the
+  // kind of unsourced claim this harness exists to avoid.
+  if (Number.isFinite(baseline.processCount) && processCount < baseline.processCount) {
+    return {
+      ok: false,
+      reason:
+        `${processCount} processes with ${tabCount} tabs, fewer than its own idle ` +
+        `baseline had (${baseline.processCount}) — part of the tree was not measured`,
+    };
+  }
+
+  const growth = totalBytes / baseline.bytes - 1;
   if (growth < MIN_LOAD_GROWTH) {
     return {
       ok: false,
       reason:
         `only ${(growth * 100).toFixed(0)}% above its own idle baseline ` +
-        `(${formatBytes(baselineBytes)}) with ${tabCount} tabs — the pages almost ` +
+        `(${formatBytes(baseline.bytes)}) with ${tabCount} tabs — the pages almost ` +
         'certainly never loaded',
     };
   }
@@ -262,7 +333,7 @@ async function reapAll() {
 }
 
 /** One measured cell: launch, sample until settled, verify, quit. */
-async function runCell({ browser, workload, urls, backend, options, log, baselineBytes, onFirstLaunch }) {
+async function runCell({ browser, workload, urls, backend, options, log, baselineFor, onFirstLaunch }) {
   // Re-snapshot immediately before launching rather than once per run: over a
   // 40-minute matrix the tester's own browser spawns and reaps renderers
   // constantly, and a stale snapshot would attribute those to us.
@@ -285,8 +356,10 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
 
     if (onFirstLaunch) await onFirstLaunch(launched.pid);
 
-    let lastProcessCount = 0;
-    let lastMissing = [];
+    // Per-sample metadata, index-aligned with `series`. Recording it per sample
+    // rather than keeping only the latest is what makes the readability check
+    // below cover the same samples the reported median is computed from.
+    const meta = [];
     const read = async () => {
       const rows = await proctree.snapshot();
       const pids = proctree.browserProcessSet(rows, {
@@ -296,8 +369,7 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
       });
       entry.pids = pids;
       const { totalBytes, missing } = await measure.sampleTotal(backend, pids);
-      lastProcessCount = pids.length;
-      lastMissing = missing;
+      meta.push({ processCount: pids.length, missing: missing.length });
       return totalBytes;
     };
 
@@ -305,34 +377,40 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
       intervalMs: options.settleInterval,
       maxMs: options.settleMax,
       onSample: (value, index) =>
-        log(`      sample ${index}: ${formatBytes(value)} (${lastProcessCount} procs)`),
+        log(`      sample ${index}: ${formatBytes(value)} (${meta[index - 1].processCount} procs)`),
     });
 
     if (!launcher.isAlive(launched.pid)) {
       throw new Error('exited before it could be measured');
     }
-    // A tree we could only partially read is not a total. Discarding `missing`
-    // here is how a backend that cannot see hardened helpers would masquerade
-    // as a smaller browser.
-    if (lastMissing.length) {
+
+    // A tree we could only partially read is not a total.
+    const { unreadable, processCount } = summarizeWindow(meta);
+    if (unreadable) {
       throw new Error(
-        `${lastMissing.length} of ${lastProcessCount} processes were unreadable by the ` +
-          `${backend.id} backend — the total would be an undercount`
+        `${unreadable} process reading(s) across the reported window were unreadable by ` +
+          `the ${backend.id} backend — the total would be an undercount`
       );
     }
 
-    const totalBytes = summarize(series.slice(-3)).median;
-    const verdict = verifyLoaded({ workload, totalBytes, baselineBytes, tabCount: launched.tabCount });
+    const totalBytes = summarize(series.slice(-REPORTED_WINDOW)).median;
+
+    const verdict = verifyLoaded({
+      workload,
+      totalBytes,
+      processCount,
+      baseline: baselineFor,
+      tabCount: launched.tabCount,
+    });
     if (!verdict.ok) throw new Error(verdict.reason);
 
     return {
       totalBytes,
-      processCount: lastProcessCount,
+      processCount,
       settled,
       elapsedMs,
       series,
       tabCount: launched.tabCount,
-      loadUnverified: verdict.unverified || null,
     };
   } finally {
     if (launched) {
@@ -413,8 +491,8 @@ async function main() {
   }
   const workloadKeys = orderWorkloads(options.workloads);
   if (!workloadKeys.length) throw new Error('No workloads selected.');
-  if (!options.workloads.includes('baseline')) {
-    log('Note: without the "baseline" workload, load verification and the per-tab column are unavailable.\n');
+  if (!options.workloads.includes('baseline') && workloadKeys.includes('baseline')) {
+    log('Added the "baseline" workload: load verification and the per-page column both require it.\n');
   }
 
   const { selected, skipped } = registry.selectBrowsers(browsers, options.browsers);
@@ -493,7 +571,7 @@ async function main() {
         backend,
         options,
         log,
-        baselineBytes: baselineByBrowser.get(browser.id),
+        baselineFor: baselineByBrowser.get(browser.id),
         onFirstLaunch: validateBackend,
       });
       log(`      → ${formatBytes(outcome.totalBytes)}${outcome.settled ? '' : ' (never settled)'}\n`);
@@ -513,7 +591,10 @@ async function main() {
     }
 
     if (cell.workload === 'baseline' && !baselineByBrowser.has(browser.id)) {
-      baselineByBrowser.set(browser.id, outcome.totalBytes);
+      baselineByBrowser.set(browser.id, {
+        bytes: outcome.totalBytes,
+        processCount: outcome.processCount,
+      });
     }
 
     const key = `${cell.browserId}::${cell.workload}`;
@@ -628,6 +709,9 @@ module.exports = {
   orderWorkloads,
   seedBlancProfile,
   verifyLoaded,
+  summarizeWindow,
   prepareProfile,
   MIN_LOAD_GROWTH,
+  MIN_PROCESSES,
+  REPORTED_WINDOW,
 };

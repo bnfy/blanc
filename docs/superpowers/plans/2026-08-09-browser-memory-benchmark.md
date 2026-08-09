@@ -61,7 +61,7 @@ Each task here is a gate. Do not proceed past a failing one by loosening a thres
 - [ ] **Task 3.1** `npm run bench:memory -- --browsers=blanc,blanc-noblock,chrome,zen,firefox,brave,vivaldi --workloads=baseline,mixed,adheavy --reps=3`. Expect 60–90 minutes. Do not use the machine while it runs.
 - [ ] **Task 3.2** Read the *Failed cells* section first, before any number. Any browser with fewer than 3 reps has a Range that looks precise and is not.
 - [ ] **Task 3.3** Check for overlapping ranges. Two browsers whose min–max overlap are **not distinguishable** at n=3; either raise `--reps` or report them as tied.
-- [ ] **Task 3.4** Run `--workloads=baseline,scale --reps=3` if any claim will touch high tab counts. Do not extrapolate from 10 tabs to 100 — Chromium's per-site-instance processes and Gecko's bounded pool diverge most here, and this is the workload where a Zen comparison is most likely to go against us.
+- [ ] **Task 3.4** Run `--workloads=baseline,scale --reps=3` if any claim will touch high tab counts. Do not extrapolate from 10 tabs to 100 — measure it. This is also the workload where a Zen comparison is most likely to go against us, which is a reason to run it, not to skip it.
 - [ ] **Task 3.5** Commit the specific report being cited into `bench/memory/results/` (gitignored by default, so add it deliberately).
 
 ## Phase 4 — Decide what may be said

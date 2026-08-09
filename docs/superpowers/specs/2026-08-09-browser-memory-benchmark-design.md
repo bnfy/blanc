@@ -310,6 +310,53 @@ it as a clean result. `requiresProfileSeed` was silently ignored for every
 family except `blanc`, so a future `brave-noshields` entry would have run with
 Shields on under a label saying otherwise; it now throws.
 
+### Second review round — four ways it still accepted an understated number
+
+External review (Codex) returned *changes requested* on the theme that the
+harness could still accept understated measurements, plus one factual
+correction. All are fixed.
+
+1. **Unreadable processes were checked on the final sample only.** The reported
+   figure is the median of the last three samples, so a sample with unreadable
+   processes could sit *inside* that median while a later, fully-readable sample
+   cleared the check. The whole reported window is now checked
+   (`summarizeWindow`), and the process count is that window's **minimum**, so a
+   briefly-incomplete tree cannot be papered over by a later sample.
+2. **An unverifiable cell was published with a soft marker.** `verifyLoaded`
+   returned `ok: true` with an `unverified` note when a browser had no idle
+   baseline, so any browser whose baseline cell had failed got every loaded row
+   through unchecked, flagged only with a `❓` in the table. That is the hole in
+   miniature: a check that does not fail is not a check. It is now a rejection,
+   and the `❓` marker is gone because the state it marked can no longer reach
+   the report.
+3. **`baseline` was optional.** `--workloads=mixed` alone disabled load
+   verification entirely for the whole run. The baseline is now added
+   automatically whenever any loaded workload is requested — it is the cheapest
+   part of the matrix and nothing verifies without it.
+4. **The idle baseline itself was never verified.** `verifyLoaded` returned
+   early for `workload === 'baseline'`. An understated baseline is doubly
+   harmful: it inflates the per-page column *and*, because it is the denominator
+   of the growth check, it makes an understated loaded cell easier to pass.
+   Baselines now face the same non-zero and process-count floors, and a loaded
+   cell with **fewer processes than its own idle baseline** is rejected —
+   deliberately a monotonicity check rather than a processes-per-tab rule, since
+   asserting how process counts scale is exactly the error corrected below.
+
+**Factual correction.** The report and README described Firefox under Fission as
+multiplexing sites across a bounded pool, contrasted with Chromium's
+process-per-site-instance. That is the pre-Fission model;
+[Mozilla's process model documentation](https://firefox-source-docs.mozilla.org/dom/ipc/process_model.html)
+describes content processes keyed per site under Fission. The claim was not
+merely reworded — it is **removed**. This harness does not measure process
+allocation policy, so it has no business explaining a memory difference with
+one, and substituting a second unsourced claim for the first would repeat the
+mistake. The `Procs` column now says what it counts and explicitly warns against
+reading a process-count difference as the cause of a memory difference.
+
+Also fixed: a sandboxed environment can make `spawn` fail synchronously
+(`EPERM`), which escaped `--probe` as an unhandled throw instead of the
+intended "no backend worked here" message. Observed by the reviewer; now caught.
+
 ### Open — assumptions only a real run can settle
 
 None of these are fixed, because none can be from here. Each is recorded in

@@ -453,32 +453,82 @@ test('the report ranks by median, marks unsettled rows, and warns loudly on RSS'
 
 test('load verification rejects a cell that never loaded its pages', () => {
   const idle = 200 * MiB;
+  const baseline = { bytes: idle, processCount: 5 };
+  const loadedCell = (over) => ({ workload: 'mixed', processCount: 12, baseline, tabCount: 11, ...over });
+
   // Blanc gating navigation behind its ad-blocker build settles perfectly flat
   // at roughly its idle size while reporting a full tab count.
-  const gated = run.verifyLoaded({ workload: 'mixed', totalBytes: idle * 1.02, baselineBytes: idle, tabCount: 11 });
+  const gated = run.verifyLoaded(loadedCell({ totalBytes: idle * 1.02 }));
   assert.equal(gated.ok, false);
   assert.match(gated.reason, /never loaded/);
 
-  const loaded = run.verifyLoaded({ workload: 'mixed', totalBytes: idle * 3, baselineBytes: idle, tabCount: 11 });
-  assert.equal(loaded.ok, true);
-
-  // The idle workload is supposed to sit at idle.
-  assert.equal(run.verifyLoaded({ workload: 'baseline', totalBytes: idle, baselineBytes: null, tabCount: 1 }).ok, true);
+  assert.equal(run.verifyLoaded(loadedCell({ totalBytes: idle * 3 })).ok, true);
 
   // A backend reading nothing must never pass as a very efficient browser.
-  const zero = run.verifyLoaded({ workload: 'mixed', totalBytes: 0, baselineBytes: idle, tabCount: 11 });
+  const zero = run.verifyLoaded(loadedCell({ totalBytes: 0 }));
   assert.equal(zero.ok, false);
   assert.match(zero.reason, /read nothing/);
-
-  // Without a baseline the check cannot run; it says so rather than passing silently.
-  const noBaseline = run.verifyLoaded({ workload: 'mixed', totalBytes: 500 * MiB, baselineBytes: null, tabCount: 11 });
-  assert.equal(noBaseline.ok, true);
-  assert.match(noBaseline.unverified, /no idle baseline/);
 });
 
-test('baseline is ordered first so loaded cells have something to verify against', () => {
+test('unreadable processes anywhere in the reported window fail the cell', () => {
+  // The reported figure is the median of the last 3 samples, so checking only
+  // the final sample would let an undercounted sample sit inside that median
+  // while a later, fully-readable one cleared the check.
+  const meta = [
+    { processCount: 12, missing: 0 },
+    { processCount: 12, missing: 4 },
+    { processCount: 12, missing: 0 },
+    { processCount: 12, missing: 0 },
+  ];
+  assert.equal(run.summarizeWindow(meta).unreadable, 4);
+  // Older samples outside the window are not the reported figure's problem.
+  assert.equal(run.summarizeWindow([{ processCount: 9, missing: 7 }, ...meta.slice(1)]).unreadable, 4);
+
+  // Process count is the window's minimum, so a briefly-incomplete tree cannot
+  // be papered over by a later sample.
+  assert.equal(run.summarizeWindow([
+    { processCount: 12, missing: 0 },
+    { processCount: 2, missing: 0 },
+    { processCount: 12, missing: 0 },
+  ]).processCount, 2);
+
+  assert.deepEqual(run.summarizeWindow([]), { unreadable: 0, processCount: 0 });
+});
+
+test('an unverifiable cell is rejected, not published with a soft marker', () => {
+  // Previously this passed with an "unverified" note attached, so any browser
+  // whose baseline cell had failed got its loaded rows through unchecked.
+  const verdict = run.verifyLoaded({
+    workload: 'mixed', totalBytes: 500 * MiB, processCount: 12, baseline: null, tabCount: 11,
+  });
+  assert.equal(verdict.ok, false);
+  assert.match(verdict.reason, /not publishable/);
+});
+
+test('a browser tree of one process is broken attribution, not a frugal browser', () => {
+  const baseline = { bytes: 200 * MiB, processCount: 5 };
+  // Applies to the idle baseline too — it is the subtrahend of per-page cost
+  // and the denominator of the growth check, so understating it weakens both.
+  const idleCell = run.verifyLoaded({
+    workload: 'baseline', totalBytes: 50 * MiB, processCount: 1, baseline: null, tabCount: 1,
+  });
+  assert.equal(idleCell.ok, false);
+  assert.match(idleCell.reason, /multi-process even at idle/);
+
+  // A loaded cell cannot have fewer processes than the same browser at idle.
+  const shrunk = run.verifyLoaded({
+    workload: 'mixed', totalBytes: 900 * MiB, processCount: 3, baseline, tabCount: 11,
+  });
+  assert.equal(shrunk.ok, false);
+  assert.match(shrunk.reason, /fewer than its own idle baseline/);
+});
+
+test('the baseline workload is added when omitted, since nothing verifies without it', () => {
   assert.deepEqual(run.orderWorkloads(['mixed', 'baseline', 'adheavy']), ['baseline', 'mixed', 'adheavy']);
-  assert.deepEqual(run.orderWorkloads(['mixed']), ['mixed']);
+  // Asking for a loaded workload alone used to leave every row unverifiable.
+  assert.deepEqual(run.orderWorkloads(['mixed']), ['baseline', 'mixed']);
+  // Asking for only the baseline is still a valid, self-contained run.
+  assert.deepEqual(run.orderWorkloads(['baseline']), ['baseline']);
 });
 
 test('a profile seed a family cannot honour is an error, not a mislabelled run', () => {

@@ -23,12 +23,21 @@ const EXEC_MAX_BUFFER = 32 * 1024 * 1024;
  *  probing is expected to fail for backends this machine does not allow. */
 function run(file, args) {
   return new Promise((resolve) => {
-    execFile(
-      file,
-      args,
-      { timeout: EXEC_TIMEOUT_MS, maxBuffer: EXEC_MAX_BUFFER, encoding: 'utf8' },
-      (error, stdout, stderr) => resolve({ ok: !error, stdout: stdout || '', stderr: stderr || '' })
-    );
+    // The try/catch is not decorative: a sandboxed or permission-restricted
+    // environment can make spawn fail synchronously (EPERM), which would
+    // otherwise escape as an unhandled throw from --probe instead of being
+    // reported as "no backend worked here".
+    try {
+      const child = execFile(
+        file,
+        args,
+        { timeout: EXEC_TIMEOUT_MS, maxBuffer: EXEC_MAX_BUFFER, encoding: 'utf8' },
+        (error, stdout, stderr) => resolve({ ok: !error, stdout: stdout || '', stderr: stderr || '' })
+      );
+      child.on('error', () => resolve({ ok: false, stdout: '', stderr: '' }));
+    } catch (error) {
+      resolve({ ok: false, stdout: '', stderr: String(error && error.message) });
+    }
   });
 }
 

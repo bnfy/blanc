@@ -74,7 +74,6 @@ function buildRow(result, baseline) {
         ? null
         : perTabBytes(stats.median, baselineMedian, pages),
     unsettledRuns: result.repetitions.filter((r) => !r.settled).length,
-    unverifiedRuns: result.repetitions.filter((r) => r.loadUnverified).length,
   };
 }
 
@@ -134,9 +133,7 @@ function tableFor(rows, reference) {
       Number.isFinite(row.minBytes) && Number.isFinite(row.maxBytes)
         ? `${formatBytes(row.minBytes)} – ${formatBytes(row.maxBytes)}`
         : '—';
-    const flags =
-      (row.unsettledRuns ? ` ⚠️${row.unsettledRuns}` : '') +
-      (row.unverifiedRuns ? ' ❓' : '');
+    const flags = row.unsettledRuns ? ` ⚠️${row.unsettledRuns}` : '';
     lines.push(
       `| ${row.label}${flags} | ${row.version || '?'} | ${row.engine || '—'} | ${row.tabCount} | ` +
         `${formatBytes(row.medianBytes)} | ${pct(row.relativeToReference)} | ${range} | ` +
@@ -269,9 +266,10 @@ function buildMarkdown(report) {
   out.push('- **vs ref** compares against the reference browser named above, not against the best row.');
   out.push('- **Range** is min–max across repetitions. A range that overlaps another browser\'s means the two are not distinguishable at this sample size.');
   out.push('- **Per page** is `(loaded median − idle median) / workload pages`: the marginal cost of a page, with fixed startup cost removed.');
-  out.push('- **Procs** is the median process count in the browser\'s tree. Chromium spawns a process per site instance; Firefox with Fission also isolates by site but multiplexes sites across a bounded pool, so its count grows more slowly at high tab counts. Browsers whose own UI is a web page (Blanc, Vivaldi) carry additional always-live renderers for the chrome itself, which are in their totals and baselines.');
+  out.push('- **Procs** is the lowest process count observed across the samples the median was taken from. Chromium and Firefox both isolate content by site, but their process models differ in ways this benchmark does not measure — do not read a process-count difference as an explanation for a memory difference. See Mozilla\'s [process model docs](https://firefox-source-docs.mozilla.org/dom/ipc/process_model.html) for how Fission allocates content processes.');
   out.push('- **Reps** is how many repetitions actually produced a measurement. A row backed by 1 of 3 has a Range that looks precise and is not.');
-  out.push('- **⚠️N** marks rows where N repetitions were still drifting when the sampling window expired. **❓** marks rows whose load could not be verified against an idle baseline.');
+  out.push('- **⚠️N** marks rows where N repetitions were still drifting when the sampling window expired.');
+  out.push('- Browsers whose own UI is a web page (Blanc, Vivaldi) carry additional always-live renderers for the chrome itself, which are inside both their totals and their baselines.');
   out.push('');
   out.push('## Limits of this benchmark');
   out.push('');
