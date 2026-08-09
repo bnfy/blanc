@@ -1627,6 +1627,18 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   flex: 0 0 auto;
 }
 
+/* "quiet" tag on a quiet tab in the switcher list. Same pill as .row-private
+   and, like it, visible at rest — .row-tag is hover-only inside .tab-row. */
+.island-row .row-quiet {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 6px;
+  flex: 0 0 auto;
+}
+
 .row-enter {
   font-family: var(--font-mono);
   font-size: 10.5px;

@@ -268,7 +268,10 @@
     const primary = document.createElement('button');
     primary.type = 'button';
     primary.className = 'row-primary';
-    primary.setAttribute('aria-label', `Switch to ${[label, tabDomain(tab)].filter(Boolean).join(', ')}`);
+    // tabDomain() is '' for a blank new tab; filter rather than emit ", ,".
+    // The word a person hears is quiet; the field name stays internal.
+    const parts = [label, tabDomain(tab), tab.asleep ? 'quiet' : ''].filter(Boolean);
+    primary.setAttribute('aria-label', `Switch to ${parts.join(', ')}`);
     primary.append(faviconWrap, title);
     primary.addEventListener('click', () => {
       window.browserAPI.switchTab(tab.id);
@@ -281,6 +284,16 @@
       tag.className = 'row-private';
       tag.textContent = 'private';
       row.append(tag);
+    }
+
+    // Quiet is a state tag beside "private", not a .row-tag: .row-tag is
+    // opacity:0 until hover inside .tab-row, and a state you can only see by
+    // hovering is not a state you can see.
+    if (tab.asleep) {
+      const quiet = document.createElement('span');
+      quiet.className = 'row-quiet';
+      quiet.textContent = 'quiet';
+      row.append(quiet);
     }
 
     const pin = document.createElement('button');

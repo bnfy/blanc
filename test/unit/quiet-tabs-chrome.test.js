@@ -99,3 +99,41 @@ test('the row primary button carries the row layout', () => {
   assert.match(styles, /\.island-row \.row-primary\s*\{[^}]*flex: 1 1 auto;/s);
   assert.match(styles, /\.island-row \.row-primary\s*\{[^}]*min-width: 0;/s);
 });
+
+test('a quiet panel row is tagged "quiet" and named "quiet"', () => {
+  assert.match(panelRowSource, /quiet\.className = 'row-quiet'/);
+  assert.match(panelRowSource, /quiet\.textContent = 'quiet'/);
+  assert.match(panelRowSource, /row\.append\(quiet\)/);
+  assert.match(panelRowSource, /tab\.asleep \? 'quiet' : ''/);
+
+  // Modelled on .row-private (always visible), never on .row-tag — which is
+  // opacity:0 until hover/focus inside .tab-row.
+  assert.match(styles, /\.island-row \.row-quiet\s*\{[^}]*color: var\(--text-dim\);/s);
+  assert.match(styles, /\.island-row \.row-quiet\s*\{[^}]*border: 1px solid var\(--border\);/s);
+  assert.doesNotMatch(styles, /\.island-row\.tab-row \.row-quiet/);
+});
+
+test('no chrome surface ever says "asleep" to a user or a screen reader', () => {
+  // The field is `asleep`; every string a person receives says "quiet". The
+  // single permitted literal is the pill dot's CSS class fragment.
+  const ALLOWED = new Set([`' asleep'`]);
+  for (const [name, source] of [
+    ['renderer.js', rendererSource],
+    ['overlay.js', overlaySource],
+    ['vertical-tabs.js', railSource],
+  ]) {
+    // A template interpolation is CODE, not string content — `${t.asleep ?
+    // ', quiet' : ''}` reads the field without ever showing it to anyone.
+    // Strip interpolations before scanning, or this guard fires on the pill
+    // dot's own accessible name.
+    const prose = source.replace(/\$\{[^{}]*\}/g, '');
+    const literals = prose.match(
+      /'[^'\n]*asleep[^'\n]*'|`[^`\n]*asleep[^`\n]*`|"[^"\n]*asleep[^"\n]*"/g
+    ) ?? [];
+    assert.deepEqual(
+      literals.filter((literal) => !ALLOWED.has(literal)),
+      [],
+      `${name} must not put "asleep" into a string`
+    );
+  }
+});
