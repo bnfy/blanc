@@ -3,6 +3,10 @@
 :root {
   --font-ui: "Inter Variable", "Inter", -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  /* Shortcut glyphs only. JetBrains Mono draws ⌘, ⇧, ⌥ and ⎋ malformed, so the
+     app moved every keyboard glyph to the system font in 1.1.0; the demo's
+     ⌘T / ⌘⇧N / ⌘L hints have the same problem and take the same escape. */
+  --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --radius: 6px;
 
   --bg: #ffffff;
@@ -106,8 +110,10 @@ body.has-consent .hero { padding-bottom: 154px; }
 #demoStage { --demo-strip-h: 48px; background: var(--demo-strip-bg, var(--surface)); }
 #demoStage .demo-page,
 #demoStage .demo-shot { top: var(--demo-strip-h); height: auto; }
-#demoStage .demo-island { top: 6px; }
-#demoStage .demo-island:not(.open) .pill { transform: scale(0.8); transform-origin: top center; }
+/* The resting pill is drawn at true size against the mocked page. This is a
+   base scale rather than its own transform so the proximity reaction below can
+   multiply into it instead of being overridden by it. */
+#demoStage .demo-island { top: 6px; --pill-scale: 0.8; }
 /* The skeleton bars are only a pre-load fallback. Once a real page shot is up,
    hide them — otherwise the scrolling scene animates a bar up into the top
    strip (which the shot doesn't cover) and it peeks out over the strip color. */
@@ -126,10 +132,54 @@ body.has-consent .hero { padding-bottom: 154px; }
 .demo-scrub-marker:hover .demo-scrub-label, .demo-scrub-marker:focus-visible .demo-scrub-label { opacity: 1; }
 .demo-island.open ~ .demo-scrub { visibility: hidden; pointer-events: none; }
 
-.demo-island { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 5; white-space: nowrap; }
-.demo-island .pill { display: flex; align-items: center; gap: 12px; padding: 9px 16px; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 999px; box-shadow: 0 12px 28px rgba(14,14,14,0.1); transition: opacity 160ms ease, transform 160ms ease, background 220ms ease, border-color 220ms ease; }
+/* Contrast-rim specular shading, ported from the app's --shadow-pill and
+   --shadow-popover. A single flat drop shadow read as a sticker on the page;
+   the inset rim gives the surface a lit top edge and a settled bottom one. The
+   outer drop stays the demo's own — these figures float over a full page render
+   at a larger scale than the real 64px strip, and need more separation than the
+   app's 0 2px 16px does. Kept as variables so the resting, morphing and
+   reduced-motion states all state the same rim. */
+.demo-island {
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 5; white-space: nowrap;
+  --rim-pill:
+    inset 0 1px 0 rgba(255,255,255,0.65),
+    inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28),
+    inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28),
+    inset 0 -5px 7px -6px rgba(14,14,14,0.16),
+    inset 0 -1px 0 rgba(14,14,14,0.045);
+  --rim-panel:
+    inset 0 1px 0 rgba(255,255,255,0.55),
+    inset 0 -6px 10px -8px rgba(14,14,14,0.12),
+    inset 0 -1px 0 rgba(14,14,14,0.035);
+}
+/* The pill senses the cursor (1.1.0). --island-k is how close it is, 0 far
+   through 1 arrived, and --island-lean which side it is on, -1 through 1;
+   demo.js measures the cursor against the pill's box on the same 250px
+   smoothstep the app's main process uses, so there is no edge you can feel at
+   either end of the range. The pill leans toward you, rises, and grows, and
+   its shadow deepens by darkness alone — the offset and blur never change. */
+.demo-island .pill {
+  display: flex; align-items: center; gap: 12px; padding: 9px 16px;
+  background: var(--surface-raised); border: 1px solid var(--border); border-radius: 999px;
+  transform-origin: 50% 0%;
+  transform:
+    translateX(calc(6px * var(--island-lean, 0)))
+    translateY(calc(-3.5px * var(--island-k, 0)))
+    scale(calc(var(--pill-scale, 1) * (1 + 0.045 * var(--island-k, 0))));
+  box-shadow:
+    var(--rim-pill),
+    0 12px 28px rgba(14,14,14,0.1),
+    0 2px 16px -3px rgba(14,14,14, calc(0.07 * var(--island-k, 0)));
+  transition:
+    transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 90ms ease, background 220ms ease, border-color 220ms ease;
+}
 .demo-stage[data-theme="private"] .demo-island .pill { border-style: dashed; }
-.demo-island.open .pill { opacity: 0; transform: translateY(-6px) scale(0.97); pointer-events: none; }
+/* Open: the panel is the pill, grown. The pill goes out instantly underneath
+   rather than sliding away from it, and comes back the moment the panel has
+   finished shrinking into its place. */
+.demo-island.open .pill { opacity: 0; pointer-events: none; }
 
 /* pill clusters: a bordered pinned-shelf capsule, then one dot cluster per
    group, then the loose cluster — mirroring the real Blanc Island pill. */
@@ -155,28 +205,122 @@ body.has-consent .hero { padding-bottom: 154px; }
 .demo-stage[data-theme="private"] .demo-island .dots > span.cur { border-color: var(--accent); background: var(--accent-dim); opacity: 1; }
 
 .demo-island .pill-fav { width: 16px; height: 16px; border-radius: 4px; background-color: var(--border); background-size: cover; background-position: center; flex: 0 0 auto; }
-.demo-island .group-name { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); display: inline-flex; align-items: center; }
-.demo-island .group-name[hidden] { display: none; }
-.demo-island .domain { font-family: var(--font-mono); font-size: 15px; }
-.demo-island .shield { font-family: var(--font-mono); font-size: 12.5px; padding: 2px 9px; border-radius: 999px; background: var(--accent-dim); color: var(--accent); transition: background 220ms ease, color 220ms ease; }
+/* Inter, not mono, since 1.1.0 — the URL is read, not typed at. */
+.demo-island .domain { font-family: var(--font-ui); font-size: 14px; }
+
+/* Blanc Blocker. The app draws a 16px shield inside a 24px circle, cut edge to
+   edge by the diagonal from Blanc's own mark, with the blocked count lifted out
+   of the flow onto the shield's shoulder. Reproduced here at the demo pill's
+   slightly larger scale — the badge keeps the same overlap with the glyph, and
+   is anchored from the left so a two-digit count grows outward instead of back
+   across the shield. */
+.demo-island .shield { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; color: var(--text); flex: 0 0 auto; }
+.demo-island .shield svg { display: block; width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.demo-island .shield-count { position: absolute; top: 2.5px; left: 18.75px; display: flex; align-items: center; justify-content: center; min-width: 11px; height: 11px; padding: 0 2.5px; border-radius: 999px; background: var(--accent); box-shadow: 0 0 0 1.5px var(--surface-raised); color: var(--surface-raised); font-family: var(--font-mono); font-size: 8px; }
+.demo-island .shield-count:empty { display: none; }
+/* Protected but nothing blocked here yet: a quiet landmark, not a badge. */
+.demo-island .shield-quiet { color: var(--text-dim); }
 .demo-island .shield[hidden] { display: none; }
 .demo-island .priv-chip { display: none; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 11.5px; padding: 2px 5px 2px 9px; border-radius: 999px; border: 1px dashed var(--accent); color: var(--accent); }
-.demo-island .priv-chip svg { display: block; }
+/* The chip's ✕ is the app's own 16-grid glyph, drawn small — it used to be a
+   bespoke cross on a 12 grid, the one shape in the demos outside the app's
+   icon language. Sizing and stroke match #pillPrivateChip svg. */
+.demo-island .priv-chip svg { display: block; width: 9px; height: 9px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .demo-island.private .priv-chip { display: flex; }
-.demo-island.private .domain, .demo-island.private .shield, .demo-island.private .pill-fav, .demo-island.private .group-name, .demo-island.private .pnav, .demo-island.private .psep, .demo-island.private .pacts { display: none; }
+.demo-island.private .domain, .demo-island.private .shield, .demo-island.private .pill-fav, .demo-island.private .pnav, .demo-island.private .psep, .demo-island.private .pacts { display: none; }
+
+/* The shield is now a direct, per-site control. This lightweight state in the
+   hero loop shows the same small popover the product uses, instead of treating
+   the blocked-request number as a passive badge. */
+.demo-shield-popover {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  z-index: 2;
+  width: 306px;
+  padding: 14px 16px;
+  transform: translateX(-50%) translateY(-4px) scale(0.98);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-raised);
+  box-shadow: 0 20px 42px rgba(14,14,14,0.17);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+.demo-island.show-shield .demo-shield-popover { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+.demo-shield-popover-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.demo-shield-popover strong { display: block; overflow: hidden; font-family: var(--font-mono); font-size: 12px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.demo-shield-popover-head span:not(.demo-shield-switch) { display: block; margin-top: 3px; }
+.demo-shield-popover b { font-weight: 600; }
+.demo-shield-switch { position: relative; display: block; width: 34px; height: 20px; flex: 0 0 auto; border: 1px solid var(--accent); border-radius: 999px; background: var(--accent); }
+.demo-shield-switch i { position: absolute; top: 2px; left: 16px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); }
+.demo-shield-popover > p { margin: 9px 0 0; color: var(--text-dim); font-size: 11.5px; }
+.demo-shield-popover > p + p { margin-top: 5px; }
+.demo-shield-popover small { display: block; margin-top: 4px; color: var(--text-dim); font-size: 11.5px; }
+.demo-shield-settings { display: block; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 11.5px; }
 
 .demo-island .panel {
-  position: absolute; top: 0; left: 50%; transform: translateX(-50%) translateY(-6px) scale(0.97);
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   width: 640px; max-height: 436px; overflow-y: auto;
-  background: var(--surface-raised); border: 1px solid var(--border); border-radius: 12px;
-  box-shadow: 0 24px 50px rgba(14,14,14,0.14); padding: 13px 16px 8px; text-align: left;
-  opacity: 0; pointer-events: none; transition: opacity 160ms ease, transform 160ms ease, background 220ms ease, border-color 220ms ease;
+  background: var(--surface-raised); border: 1px solid var(--border); border-radius: 18px;
+  box-shadow: var(--rim-panel), 0 24px 50px rgba(14,14,14,0.14); padding: 13px 16px 8px; text-align: left;
+  /* No opacity transition here on purpose. The panel's only fade is the one
+     .morph-run runs on the way in; on the way out it must vanish on the exact
+     frame the pill comes back, or it releases to full size and ghosts over the
+     pill for the length of a fade. */
+  opacity: 0; pointer-events: none; transition: background 220ms ease, border-color 220ms ease;
 }
 .demo-stage[data-theme="private"] .demo-island .panel { border-style: dashed; }
-.demo-island.open .panel { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); pointer-events: auto; }
+.demo-island.open .panel { opacity: 1; pointer-events: auto; }
+
+/* The panel grows out of the pill and retracts back into it (1.1.0). It
+   animates real width and height, not a transform scale: scaling warps the
+   corners, and pre-compensating the radius can only ever approximate it,
+   because the radius interpolates linearly and the scale does not. With real
+   dimensions the corner barely travels — the pill's effective radius is half
+   its height, and the panel's is 18px — and the contents are uncovered as the
+   box grows rather than squashed and rubbering back out. */
+.demo-island .panel.morph-start,
+.demo-island .panel.morph-run,
+.demo-island .panel.retracting { overflow: hidden; }
+/* The corner is driven inline, in px, from the pill's *used* radius — half its
+   height, which is what 999px resolves to on a 38px pill — down to the panel's
+   18px. Interpolating the specified 999px instead would clamp to a full stadium
+   at every intermediate size, which is precisely the warp this technique exists
+   to avoid. */
+.demo-island .panel.morph-start { transition: none; }
+.demo-island .panel.morph-start > * { opacity: 0; }
+.demo-island .panel.morph-run {
+  transition:
+    width 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 90ms ease;
+}
+.demo-island .panel.morph-run > * { transition: opacity 160ms ease 60ms; }
+/* Closing is the same movement in reverse, quicker — an exit that matches its
+   entrance in length feels slow. The contents leave first so nothing is seen
+   being squashed; the box itself stays opaque all the way down, so the swap
+   back to the pill at the end lands on an identical shape. */
+.demo-island .panel.retracting {
+  transition:
+    width 200ms cubic-bezier(0.4, 0, 1, 1),
+    height 200ms cubic-bezier(0.4, 0, 1, 1),
+    border-radius 200ms cubic-bezier(0.4, 0, 1, 1);
+}
+.demo-island .panel.retracting > * { opacity: 0; transition: opacity 90ms ease; }
 
 .demo-island .panel-row { display: flex; align-items: center; gap: 8px; }
-.demo-island .field { flex: 1 1 auto; min-width: 0; height: 34px; border-radius: var(--radius); border: 1px solid var(--accent); background: var(--surface); display: flex; align-items: center; padding: 0 12px; font-family: var(--font-mono); font-size: 14.5px; gap: 1px; transition: background 220ms ease; }
+/* A capsule since 1.1.0, and no accent ring: the panel only ever opens with
+   this input already focused, so a ring would restate what the caret shows. */
+.demo-island .field { flex: 1 1 auto; min-width: 0; height: 34px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; padding: 0 14px; font-family: var(--font-ui); font-size: 14px; gap: 1px; transition: background 220ms ease; }
 .demo-island .typed { color: var(--text); }
 .demo-island .field .caret { width: 7px; height: 18px; background: var(--accent); opacity: 0.65; margin-left: 1px; animation: demo-blink 1s step-end infinite; }
 @keyframes demo-blink { 50% { opacity: 0; } }
@@ -193,10 +337,14 @@ body.has-consent .hero { padding-bottom: 154px; }
    quick-access icons (favorites/history/downloads/settings) on the right —
    mirrors the app's #islandFooter (launchers moved out of the tab list). */
 .demo-island .foot-bar { display: flex; align-items: center; gap: 6px; margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--border); }
-.demo-island .foot-new { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; flex: 0 0 auto; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); font-family: var(--font-mono); font-size: 13px; white-space: nowrap; }
+/* The launchers stopped being two matching ghosts in 1.1.0: "new tab" is the
+   primary action and reads as a solid accent pill, while private is a dashed
+   ghost — dashed being the marker for private everywhere else in the chrome,
+   and a second solid would read as a second primary action. */
+.demo-island .foot-new { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; flex: 0 0 auto; border-radius: 999px; border: 1px solid var(--accent); background: var(--accent); color: var(--surface-raised); font-family: var(--font-ui); font-size: 13px; font-weight: 500; white-space: nowrap; }
 .demo-island .foot-new svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.demo-island .foot-new.private { margin-left: 4px; border-style: dashed; border-color: var(--text-dim); }
-.demo-island .foot-kbd { font-size: 11px; opacity: 0.55; margin-left: 2px; }
+.demo-island .foot-new.private { margin-left: 4px; background: none; color: var(--text-dim); border: 1px dashed var(--text-dim); }
+.demo-island .foot-kbd { font-family: var(--font-kbd); font-size: 11px; opacity: 0.55; margin-left: 2px; }
 .demo-island .foot-spacer { flex: 1 1 auto; }
 .demo-island .foot-act { width: 32px; height: 32px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: none; border-radius: var(--radius); background: transparent; color: var(--text-dim); }
 .demo-island .foot-act svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -218,7 +366,16 @@ body.has-consent .hero { padding-bottom: 154px; }
 .demo-island .trow.just { animation: rowpulse 1000ms ease; }
 @keyframes rowpulse { 0%, 55% { background: var(--accent-dim); } 100% { background: transparent; } }
 .demo-island .trow .fav { width: 17px; height: 17px; border-radius: 4px; flex: 0 0 auto; background-color: var(--border); background-size: cover; background-position: center; box-shadow: inset 0 0 0 1px rgba(14,14,14,0.05); }
-.demo-island .trow .title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-ui); }
+/* Overflowing titles wash out at the right edge instead of cutting to an
+   ellipsis. The element is flex-grown to fill the row, so the fade zone only
+   touches glyphs when the text genuinely overflows — short titles are
+   untouched. 48px per the app: with no domain column left, the fade has to
+   carry a title all the way to the row's actions. */
+.demo-island .trow .title {
+  flex: 1 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; font-family: var(--font-ui);
+  -webkit-mask: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+  mask: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+}
 .demo-island .trow .dom { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .demo-island .trow .tag,
 .demo-island .trow .kbd,
@@ -232,7 +389,7 @@ body.has-consent .hero { padding-bottom: 154px; }
 .demo-island .row-dots.accent span { background: var(--accent); opacity: 0.5; }
 .demo-island .trow .empty { color: var(--text-dim); font-family: var(--font-mono); font-size: 13px; }
 
-.demo-island .foot { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); opacity: 0.7; padding: 8px 12px 2px; white-space: nowrap; }
+.demo-island .foot { font-family: var(--font-kbd); font-size: 11px; color: var(--text-dim); opacity: 0.7; padding: 8px 12px 2px; white-space: nowrap; }
 
 /* synced caption under the demo — tells the viewer what each beat shows */
 .demo-caption {
@@ -283,8 +440,7 @@ body.has-consent .hero { padding-bottom: 154px; }
 @media (max-width: 560px) {
   .demo-island .pnav,
   .demo-island .pacts,
-  .demo-island .psep,
-  .demo-island .group-name { display: none; }
+  .demo-island .psep { display: none; }
   .demo-island .pill { gap: 9px; padding: 8px 14px; }
   .demo-island .domain { font-size: 13.5px; }
   /* The panel footer hint is a single nowrap line that overruns the narrow
@@ -310,6 +466,15 @@ body.has-consent .hero { padding-bottom: 154px; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-message { transition: none; }
+  /* Both island effects are decorative — off entirely, not just shortened,
+     which is what the app does with the same preference. */
+  /* Keeps the base presentation scale — only the proximity reaction goes. */
+  .demo-island .pill { transform: scale(var(--pill-scale, 1)); transition: none; box-shadow: var(--rim-pill), 0 12px 28px rgba(14,14,14,0.1); }
+  .demo-island .panel,
+  .demo-island .panel.morph-run,
+  .demo-island .panel.retracting { transition: none; }
+  .demo-island .panel.morph-run > *,
+  .demo-island .panel.retracting > * { transition: none; }
 }
 
 /* ---------- shared marketing navigation ---------- */
@@ -769,6 +934,39 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
    .demo-stage breakpoints by source order. */
 .island-figure { width: 100%; height: 300px; max-width: none; margin: 0; border: 0; border-radius: 8px; box-shadow: none; }
 .island-figure--panel { height: 456px; }
+
+/* A compact rendering of the current shield popover. The app anchors this
+   beneath the Island; showing it in the capture makes the newer interaction
+   legible without adding another, competing browser surface. */
+.island-figure--site-controls { height: 354px; }
+.site-controls-island .site-controls-popover {
+  position: absolute;
+  top: 54px;
+  left: 50%;
+  width: 320px;
+  padding: 14px 16px;
+  transform: translateX(-50%);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface-raised);
+  box-shadow: 0 18px 36px rgba(14,14,14,0.16);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 12.5px;
+  line-height: 1.35;
+  text-align: left;
+  white-space: normal;
+}
+.site-controls-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.site-controls-head strong { display: block; overflow: hidden; font-family: var(--font-mono); font-size: 12px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.site-controls-head span:not(.site-controls-switch) { display: block; margin-top: 3px; }
+.site-controls-head b { font-weight: 600; }
+.site-controls-switch { position: relative; display: block; width: 34px; height: 20px; flex: 0 0 auto; border: 1px solid var(--accent); border-radius: 999px; background: var(--accent); }
+.site-controls-switch i { position: absolute; top: 2px; left: 16px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); }
+.site-controls-popover > p { margin: 9px 0 0; color: var(--text-dim); font-size: 11.5px; }
+.site-controls-popover > p + p { margin-top: 5px; }
+.site-controls-popover small { display: block; margin-top: 4px; color: var(--text-dim); font-size: 11.5px; }
+.site-controls-link { display: block; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 11.5px; }
 /* Panel figures carry no resting pill, so give the (absolutely positioned)
    island a full-width box for the centered panel to size against — otherwise
    it shrink-to-fits to zero and the panel collapses to a sliver. */
@@ -806,6 +1004,7 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
 @media (max-width: 640px) {
   .island-figure { height: 244px; --fig-strip-h: 30px; }
   .island-figure--panel { height: 360px; }
+  .island-figure--site-controls { height: 290px; }
   .island-figure .demo-island .panel { width: 94%; max-height: 316px; }
   /* The narrow pill has already shed its flanking chrome (≤560px), so it is
      much smaller — scale it less so it doesn't shrink into illegibility. */
@@ -882,10 +1081,16 @@ body[data-page="press"] > .legal-top { display: none; }
 .press-island-connector--expanded { top: 438px; right: 0; width: max(0px, calc(50% - var(--press-panel-half))); border-top: 1px solid; }
 .press-island-live.demo-island { top: 21px; }
 .press-island-live .pill { font: inherit; }
-.press-island-live .panel { width: min(620px, calc(100vw - 96px)); max-height: 482px; padding: 10px 12px 8px; border-radius: 10px; }
+/* 18px to match the app's --island-panel-radius, like every other panel here.
+   This one is click-toggled rather than morph-driven, so it needs its own fade:
+   the shared panel rule deliberately carries no opacity transition, because on
+   the hero the panel must vanish on the exact frame the pill returns. */
+.press-island-live .panel { width: min(620px, calc(100vw - 96px)); max-height: 482px; padding: 10px 12px 8px; border-radius: 18px; transition: opacity 160ms ease, background 220ms ease, border-color 220ms ease; }
 .press-island-live .panel-row { gap: 8px; }
 .press-island-live .field { height: 28px; padding: 0 10px; }
-.press-island-live .field input { width: 100%; min-width: 0; padding: 0; color: var(--text); background: transparent; border: 0; outline: 0; font-family: var(--font-mono); font-size: 12.5px; }
+/* Inter since 1.1.0, like #addressInput — the address field is prose you read,
+   not a code field. Its own rule, so it has to be changed alongside .field. */
+.press-island-live .field input { width: 100%; min-width: 0; padding: 0; color: var(--text); background: transparent; border: 0; outline: 0; font-family: var(--font-ui); font-size: 12.5px; }
 .press-island-live .field input::placeholder { color: var(--text-dim); }
 .press-island-live .abtn { width: 28px; height: 28px; }
 .press-island-live .list { margin-top: 6px; }
@@ -924,8 +1129,6 @@ body[data-page="press"] > .legal-top { display: none; }
 .press-island-live .row-grp.open { color: var(--accent); border-color: var(--accent); }
 .press-island-live .row-pin.on { color: var(--accent); background: var(--accent-dim); }
 .press-island-live .sec-head,
-.press-island-live .group-name,
-.press-island-live .trow .dom,
 .press-island-live .trow .kbd,
 .press-island-live .trow .enter,
 .press-island-live .foot,
