@@ -3976,6 +3976,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         `location.href = ${JSON.stringify(String(url))}`
       ),
       getChromeUrl: () => rt().window?.webContents.getURL() ?? '',
+      persistedSessionData: () => JSON.parse(JSON.stringify(ensureSessionStore().data)),
       serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
       sleepTab, wakeTab, runSleepSweep,
       getSleepSnapshots: () => sleepSnapshots,

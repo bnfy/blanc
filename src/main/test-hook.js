@@ -81,6 +81,7 @@ function install(refs) {
     getPrivateBrowsingSession,
     attemptChromeNavigation,
     getChromeUrl,
+    persistedSessionData,
     serializedTabsPayload,
     sleepTab,
     wakeTab,
@@ -764,6 +765,7 @@ function install(refs) {
     },
     attemptChromeNavigation(url) { return attemptChromeNavigation(String(url)); },
     chromeUrl() { return getChromeUrl(); },
+    persistedSessionData() { return persistedSessionData(); },
     serializedTabsPayload() { return serializedTabsPayload(); },
 
     // ---- Quiet Tabs ----
