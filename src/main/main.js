@@ -608,6 +608,9 @@ const tabIdByWebContentsId = new Map();
  * did-navigate time. Deliberately not on the tab record: that record is an
  * explicit serialization allowlist, while this is main-process bookkeeping. */
 const lastMainFrameMethod = new Map();
+/** openerTabId -> live popup BrowserWindow count. A `new-window` popup never
+ * enters tabs, yet discarding its opener severs the OAuth/SSO callback. */
+const popupChildCounts = new Map();
 
 /** Drop every index entry pointing at `tabId`. Deletion is BY VALUE because a
  *  closing tab's view.webContents already reads back undefined, so the key it
@@ -658,11 +661,10 @@ function setTestSearchNavigationCapture(enabled) {
 }
 
 // Outstanding permission prompts awaiting the user's Allow/Block, keyed by
-// prompt id → the Promise resolver, live on runtime.permissionPrompts (Task 1
-// registry record). Flushed if the owning window dies mid-prompt so the
-// underlying Chromium request never hangs.
+// prompt id → { resolve, tabId }, live on runtime.permissionPrompts. Flushed
+// if the owning window dies mid-prompt so Chromium's request never hangs.
 function flushPermissionPrompts(runtime) {
-  for (const resolve of runtime.permissionPrompts.values()) resolve(null); // null = never answered
+  for (const { resolve } of runtime.permissionPrompts.values()) resolve(null); // null = never answered
   runtime.permissionPrompts.clear();
 }
 
@@ -1850,7 +1852,16 @@ function onMainFrameCommit(tab, { url, httpResponseCode }) {
   }
 }
 function noteWakeSuppressed(_tab) { return false; }
-function notePopupChild(_openerTabId, _childWindow) {}
+/** Count an unmanaged popup against its opener until its webContents dies. */
+function notePopupChild(openerTabId, childWindow) {
+  if (!openerTabId || !childWindow) return;
+  popupChildCounts.set(openerTabId, (popupChildCounts.get(openerTabId) ?? 0) + 1);
+  childWindow.webContents.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+    const next = (popupChildCounts.get(openerTabId) ?? 1) - 1;
+    if (next <= 0) popupChildCounts.delete(openerTabId);
+    else popupChildCounts.set(openerTabId, next);
+  }));
+}
 
 // tab-view.js owns every per-tab WebContentsView listener and setup call.
 // Function declarations below are hoisted; every const this reads is already
@@ -2116,6 +2127,7 @@ function closeTab(id) {
   const closedIndex = rt().tabOrder.indexOf(id);
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
+  popupChildCounts.delete(id);
   windowRuntimes.detachTab(id);
   rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
   pruneEmptyGroups();
@@ -3302,16 +3314,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!owner) return resolve(null);
       if (!owner.window || owner.window.isDestroyed()) return resolve(null);
       const promptId = ++permissionPromptCounter;
-      owner.permissionPrompts.set(promptId, resolve);
+      // A quiet sweep excludes tabs with a prompt open: responding after the
+      // renderer is gone would persist a decision for a page the user cannot see.
+      owner.permissionPrompts.set(promptId, { resolve, tabId: tab?.id ?? null });
       owner.window.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
     })
   );
   chromeOn('permissions:respond', (_e, { id, allow }) => {
     const sender = rt(); // the sender's runtime, established by chromeOn
-    const resolve = sender.permissionPrompts.get(id);
-    if (!resolve) return; // wrong window's chrome, or a stale prompt — ignore
+    const pending = sender.permissionPrompts.get(id);
+    if (!pending) return; // wrong window's chrome, or a stale prompt — ignore
     sender.permissionPrompts.delete(id);
-    resolve(!!allow);
+    pending.resolve(!!allow);
   });
 
   // downloads.js invokes this from its own session/DownloadItem listeners —

@@ -318,7 +318,10 @@ function wireTabView(tab, view, { owner, adopted }) {
         overrideBrowserWindowOptions: { webPreferences: { plugins: true } },
         createWindow: boundToTab((options) => {
           const childView = new WebContentsView({ webContents: options.webContents });
-          const newId = createTab(targetUrl, { private: tab.private, groupId: tab.groupId, view: childView });
+          // A discarded opener leaves this child's window.opener unusable.
+          const newId = createTab(targetUrl, {
+            private: tab.private, groupId: tab.groupId, view: childView, openerTabId: tab.id,
+          });
           if (disposition !== 'background-tab') setImmediate(() => setActiveTab(newId));
           return childView.webContents;
         }),
@@ -329,6 +332,7 @@ function wireTabView(tab, view, { owner, adopted }) {
       const isManagedTab = [...tabs.values()].some((candidate) => liveContents(candidate)?.id === childId);
       if (!isManagedTab) {
         applyWindowOpenPolicy(childWindow.webContents);
+        notePopupChild(tab.id, childWindow);
         const childWc = childWindow.webContents;
         const childWcId = childWc.id;
         windowRuntimes.registerAuxiliaryContent(owner, childWcId);
