@@ -905,6 +905,10 @@ function showOverlay(mode, { prefill } = {}) {
   rt().overlayPrefill = prefill ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
   rt().window.contentView.addChildView(rt().overlayView);
+  if (rt().overlayExitTimer) {
+    clearTimeout(rt().overlayExitTimer);
+    rt().overlayExitTimer = null;
+  }
   const bounds = overlayBounds();
   rt().overlayView.setBounds(bounds);
   rt().overlayView.webContents.send('overlay:show', {
@@ -926,6 +930,9 @@ function showOverlay(mode, { prefill } = {}) {
   rt().window.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
 
+/** How long the panel takes to retract. Keep in step with styles.css. */
+const OVERLAY_RETRACT_MS = 200;
+
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
   if (!rt().overlayMode) return;
   const closingMode = rt().overlayMode;
@@ -938,8 +945,28 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   // pending blank-tab focus reclaim so a page click can't reopen it.
   if (rt().activeTabId) rt().tabsWantingAddressBarFocus.delete(rt().activeTabId);
   if (hasLiveWindow() && rt().overlayView) {
-    rt().window.contentView.removeChildView(rt().overlayView);
-    rt().overlayView.webContents.send('overlay:hide');
+    // Tell the overlay to close BEFORE detaching it — the panel retracts into
+    // the pill, and a view that has already been removed has nothing left to
+    // draw. Only the pixels linger: focus and island state hand over below at
+    // once, so the user is never waiting on the animation.
+    const retracts = closingMode === 'panel' || closingMode === 'palette';
+    rt().overlayView.webContents.send('overlay:hide', { retract: retracts });
+    if (rt().overlayExitTimer) {
+      clearTimeout(rt().overlayExitTimer);
+      rt().overlayExitTimer = null;
+    }
+    if (retracts) {
+      rt().overlayExitTimer = setTimeout(bindWindowRuntime(rt(), () => {
+        rt().overlayExitTimer = null;
+        // Re-check: a new overlay may have opened while this was retracting,
+        // in which case the view is legitimately on screen again.
+        if (!rt().overlayMode && hasLiveWindow() && rt().overlayView) {
+          rt().window.contentView.removeChildView(rt().overlayView);
+        }
+      }), OVERLAY_RETRACT_MS);
+    } else {
+      rt().window.contentView.removeChildView(rt().overlayView);
+    }
     // Escape from the shield popover hands focus back to the control that
     // opened it, not to page content — keyboard users should land where they
     // started. The chrome webContents must take focus BEFORE the strip's DOM

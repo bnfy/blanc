@@ -1177,6 +1177,23 @@ body[data-mode="palette"] #backdrop {
    uncovered as the box grows. */
 #islandPanel.morph-run > * { transition: opacity 160ms ease 60ms; }
 
+/* Closing: the same movement in reverse, quicker — exits that match their
+   entrance in length feel slow. The panel stops taking clicks the moment it
+   starts leaving, so the page underneath is live again immediately even though
+   the overlay view is still on screen for another fifth of a second. */
+#islandPanel.retracting {
+  pointer-events: none;
+  transition:
+    width 200ms cubic-bezier(0.4, 0, 1, 1),
+    height 200ms cubic-bezier(0.4, 0, 1, 1),
+    border-radius 200ms cubic-bezier(0.4, 0, 1, 1),
+    transform 200ms cubic-bezier(0.4, 0, 1, 1),
+    opacity 200ms ease 60ms;
+}
+#islandPanel.retracting { opacity: 0; }
+#islandPanel.retracting > * { opacity: 0; transition: opacity 90ms ease; }
+body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
+
 [data-theme="private"] #islandPanel { border: 1px dashed var(--text-dim); }
 
 .panel-row {

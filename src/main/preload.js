@@ -102,7 +102,7 @@ contextBridge.exposeInMainWorld('browserAPI', {
     return () => ipcRenderer.removeListener('overlay:show', listener);
   },
   onOverlayHide: (callback) => {
-    const listener = () => callback();
+    const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('overlay:hide', listener);
     return () => ipcRenderer.removeListener('overlay:hide', listener);
   },

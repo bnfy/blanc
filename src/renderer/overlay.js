@@ -1089,6 +1089,8 @@
    * every frame. The contents are held invisible until the growth is underway,
    * so the squash a uniform scale puts on them is never on screen. */
   const MORPH_MS = 320;   // long enough for the contents' 190ms delay + fade
+  const RETRACT_MS = 200; // keep in step with OVERLAY_RETRACT_MS in main.js
+  let lastPillRect = null;
   let morphTimer = null;
 
   function morphPanelFromPill(pillRect) {
@@ -1108,6 +1110,7 @@
     //
     // It also means the contents are revealed rather than squashed, so they
     // never rubber out on the way in.
+    lastPillRect = pillRect;
     const naturalWidth = panelBox.width;
     const naturalHeight = panelBox.height;
     const pillCentre = pillRect.x + pillRect.width / 2;
@@ -1150,12 +1153,58 @@
     applyMode(next, prefill);
     if (!wasOpen && (next === 'panel' || next === 'palette')) morphPanelFromPill(pillRect);
   });
-  window.browserAPI.onOverlayHide(() => {
+  /* Closing: the panel shrinks back into the pill. Main holds the overlay view
+   * on screen for RETRACT_MS so there is something left to draw, and hands
+   * focus back immediately — only the pixels linger. */
+  function retractPanelIntoPill() {
+    const pill = lastPillRect;
+    if (!pill || !pill.width || prefersReducedMotion()) return false;
+    const box = islandPanel.getBoundingClientRect();
+    if (!box.width) return false;
+
+    clearTimeout(morphTimer);
+    // Pin the current size first, or transitioning from `auto` does nothing.
+    islandPanel.classList.add('morph-run', 'retracting');
+    islandPanel.style.width = `${box.width.toFixed(1)}px`;
+    islandPanel.style.height = `${box.height.toFixed(1)}px`;
+
+    requestAnimationFrame(() => {
+      const centreShift = (pill.x + pill.width / 2) - (box.left + box.width / 2);
+      islandPanel.style.width = `${pill.width.toFixed(1)}px`;
+      islandPanel.style.height = `${pill.height.toFixed(1)}px`;
+      islandPanel.style.borderRadius = `${(pill.height / 2).toFixed(1)}px`;
+      islandPanel.style.setProperty('--morph-x', `${centreShift.toFixed(2)}px`);
+      islandPanel.style.setProperty('--morph-y', `${(pill.y - box.top).toFixed(2)}px`);
+    });
+    return true;
+  }
+
+  /** Put the panel back to its resting styles once it is off screen. */
+  function clearMorphStyles() {
+    clearTimeout(morphTimer);
+    islandPanel.classList.remove('morph-start', 'morph-run', 'retracting');
+    islandPanel.style.width = '';
+    islandPanel.style.height = '';
+    islandPanel.style.borderRadius = '';
+    islandPanel.style.removeProperty('--morph-x');
+    islandPanel.style.removeProperty('--morph-y');
+  }
+
+  window.browserAPI.onOverlayHide((payload) => {
+    const retracting = payload?.retract && (mode === 'panel' || mode === 'palette')
+      && retractPanelIntoPill();
     if (mode === 'find') resetFind();
     mode = null;
     document.body.dataset.mode = '';
     backdrop.hidden = true;
-    panelAnchor.hidden = true;
+    if (retracting) {
+      // The anchor stays up until the panel has shrunk away. pointer-events
+      // are dropped in CSS so the page underneath is clickable straight away.
+      morphTimer = setTimeout(() => { panelAnchor.hidden = true; clearMorphStyles(); }, RETRACT_MS);
+    } else {
+      panelAnchor.hidden = true;
+      clearMorphStyles();
+    }
     findBar.hidden = true;
     shieldPop.hidden = true;
     inputTouched = false;

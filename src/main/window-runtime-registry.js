@@ -70,6 +70,8 @@ function createRuntime() {
     islandProximitySentAt: 0,
     islandProximityTimer: null,
     islandProximityPending: null,
+    /** Pending detach of the overlay view while its panel retracts. */
+    overlayExitTimer: null,
   };
   runtimes.push(runtime);
   return runtime;
