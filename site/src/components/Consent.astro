@@ -1,5 +1,12 @@
-<div id="consent" class="consent" hidden>
-  <span>Optional analytics help us gauge interest — allow?</span>
-  <button id="consentAllow">Allow</button>
-  <button id="consentDeny" class="ghost">No thanks</button>
+<div id="consent" class="consent" role="region" aria-label="Analytics consent" hidden>
+  <div class="consent-row">
+    <span class="consent-copy">
+      <span>Optional analytics help us gauge interest — allow?</span>
+      <a href="/privacy">privacy</a>
+    </span>
+    <div class="consent-actions">
+      <button id="consentAllow">Allow</button>
+      <button id="consentDeny" class="ghost">No thanks</button>
+    </div>
+  </div>
 </div>

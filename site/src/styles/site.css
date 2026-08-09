@@ -17,30 +17,66 @@
   --text-dim: #6b6b6b;
   --accent: #111111;
   --accent-dim: rgba(17, 17, 17, 0.08);
+
+  /* Consent bar: the row's own height, and the total bite it takes out of the
+     bottom of the viewport (that row, its hairline, and the iOS home-indicator
+     inset). The
+     hero and the footer each reserve exactly --consent-h, so only the row
+     height moves per breakpoint. */
+  --consent-row-h: 52px;
+  --consent-h: calc(var(--consent-row-h) + 1px + env(safe-area-inset-bottom, 0px));
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-ui); font-size: 16px; }
 a { color: inherit; }
 .mono { font-family: var(--font-mono); }
 
-/* Consent banner */
+/* Consent bar — a strip pinned to the bottom of the viewport for the whole
+   visit, dismissed only by answering it. Its chrome (translucent white, blur,
+   hairline) is the mobile sticky header's, and its content sits on the same
+   column as the nav, so the two read as one set of furniture rather than as an
+   alert dropped on the page. */
 .consent {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  z-index: 100; display: flex; align-items: center; gap: 14px;
-  max-width: calc(100vw - 32px); flex-wrap: wrap; justify-content: center;
-  padding: 12px 16px; background: var(--surface-raised);
-  border: 1px solid var(--border); border-radius: var(--radius);
-  font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim);
-  box-shadow: 0 14px 30px rgba(14, 14, 14, 0.12);
+  position: fixed; inset: auto 0 0; z-index: 100;
+  padding: 0 24px env(safe-area-inset-bottom, 0px);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  font-family: var(--font-ui); font-size: 12.5px; color: var(--text-dim);
 }
 .consent[hidden] { display: none; }
-body.has-consent .hero { padding-bottom: 154px; }
+/* Unhiding the bar restarts this animation on its own (display: none → block
+   does), so the entrance costs no JS class and can't strand the bar off-screen
+   if one never lands. Dismissal plays the same keyframes backwards. */
+@keyframes consent-in { from { transform: translateY(100%); } to { transform: none; } }
+.consent:not([hidden]) { animation: consent-in 220ms ease both; }
+.consent.is-leaving { animation: consent-in 200ms ease reverse both; }
+.consent-row {
+  width: min(1120px, 100%); margin: 0 auto; min-height: var(--consent-row-h);
+  display: flex; align-items: center; gap: 14px;
+}
+/* Flex rather than an inline margin, so that when the link drops to its own
+   line on narrow screens it starts flush with the question instead of hanging
+   off a leftover indent. */
+.consent-copy { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 12px; }
+.consent-copy a {
+  color: inherit; text-decoration: none;
+  border-bottom: 1px solid var(--border); padding-bottom: 1px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.consent-copy a:hover { color: var(--accent); border-color: var(--accent); }
+.consent-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 .consent button {
-  font-family: var(--font-mono); font-size: 12px; padding: 6px 12px;
+  font-family: inherit; font-size: 12.5px; padding: 6px 12px;
   border-radius: var(--radius); border: 1px solid var(--accent);
   background: var(--accent); color: var(--bg); cursor: pointer;
 }
 .consent button.ghost { background: transparent; color: var(--text-dim); border-color: var(--border); }
+/* The bar covers the bottom of every page until it's answered, so the hero
+   holds its CTA above it and the footer holds its social row above it. */
+body.has-consent .hero { padding-bottom: calc(84px + var(--consent-h)); }
+body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 
 /* ---------- hero (the live island demo IS the hero) ---------- */
 .hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 70px 24px 84px; }
@@ -457,7 +493,7 @@ body.has-consent .hero { padding-bottom: 154px; }
   /* The stage is narrower here, so the expanded panel shrinks to sit inside it. */
   .demo-island .panel { width: 520px; max-height: 292px; }
   .hero { padding: 52px 24px 66px; }
-  body.has-consent .hero { padding-bottom: 146px; }
+  body.has-consent .hero { padding-bottom: calc(66px + var(--consent-h)); }
   .hero .mark { margin-bottom: 14px; }
   .hero .hero-copy { margin-top: 10px; font-size: 14px; line-height: 1.45; }
   .demo-caption { margin-top: 14px; }
@@ -466,6 +502,10 @@ body.has-consent .hero { padding-bottom: 154px; }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-message { transition: none; }
+  /* The bar's slide is decoration on a message that has to be readable either
+     way — it simply appears and disappears instead. */
+  .consent:not([hidden]),
+  .consent.is-leaving { animation: none; }
   /* Both island effects are decorative — off entirely, not just shortened,
      which is what the app does with the same preference. */
   /* Keeps the base presentation scale — only the proximity reaction goes. */
@@ -728,22 +768,9 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
   html { scroll-padding-top: 64px; }
   footer { padding: 40px 18px 48px; }
   footer .foot-social { gap: 22px; margin-top: 36px; }
-  .consent {
-    width: min(340px, calc(100vw - 32px));
-    flex-direction: row;
-    align-items: center;
-    justify-content: stretch;
-    gap: 8px;
-    padding: 10px 12px;
-  }
-  .consent span { flex: 1 0 100%; text-align: center; }
-  body.has-consent .hero { padding-bottom: 144px; }
-  .consent button {
-    width: auto;
-    flex: 1 1 0;
-    padding: 8px 10px;
-    font-size: 12px;
-  }
+  /* The footer's own bottom padding shrinks here, so its reserve shrinks with
+     it; the two-row bar itself is handled in the 640px block below. */
+  body.has-consent footer { padding-bottom: calc(48px + var(--consent-h)); }
   .site-header { padding: 10px 16px; }
   .site-nav { min-height: 44px; gap: 10px; }
   .site-brand, .site-nav-links a { min-height: 40px; display: inline-flex; align-items: center; }
@@ -871,10 +898,18 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
 
   footer { line-height: 1.55; }
 
-  .consent {
-    bottom: max(12px, env(safe-area-inset-bottom));
-    width: min(360px, calc(100vw - 24px));
-  }
+  /* Too narrow for one row: the question takes a line of its own and the two
+     answers split the width beneath it. The taller row is the only number that
+     changes — --consent-h and both reserves derive from it. */
+  :root { --consent-row-h: 108px; }
+  /* 16px matches the sticky header's gutter at this width, so the question
+     lines up with the wordmark above it. */
+  .consent { padding: 0 16px env(safe-area-inset-bottom, 0px); }
+  .consent-row { flex-wrap: wrap; gap: 10px; padding: 12px 0; }
+  .consent-copy { flex: 1 0 100%; }
+  .consent-actions { width: 100%; margin-left: 0; }
+  .consent-actions button { flex: 1 1 0; min-height: 40px; }
+  body.has-consent .hero { padding-bottom: calc(58px + var(--consent-h)); }
 }
 
 @media (max-width: 360px) {

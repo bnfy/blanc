@@ -91,10 +91,28 @@ try {
   } else if (consent !== 'denied' && banner) {
     banner.hidden = false;
     document.body.classList.add('has-consent');
+    // How tall the bar ends up depends on how the question wraps, which moves
+    // with viewport width and with whichever font actually loaded. The hero and
+    // footer hold back --consent-h, so measure it rather than guess: a reserve
+    // that guesses low puts the hero's CTA under the bar. The CSS value stands
+    // in until this runs.
+    const reserve = () => {
+      document.documentElement.style.setProperty('--consent-h', banner.offsetHeight + 'px');
+    };
+    reserve();
+    const observer = window.ResizeObserver ? new ResizeObserver(reserve) : null;
+    if (observer) observer.observe(banner);
     const dismiss = (choice) => {
       localStorage.setItem('ga-consent', choice);
-      banner.hidden = true;
-      document.body.classList.remove('has-consent');
+      // Let the bar slide out before it leaves the layout, so the hero and the
+      // footer only take back their reserved space once it has gone.
+      banner.classList.add('is-leaving');
+      setTimeout(() => {
+        banner.hidden = true;
+        banner.classList.remove('is-leaving');
+        document.body.classList.remove('has-consent');
+        if (observer) observer.disconnect();
+      }, 200);
     };
     document.getElementById('consentAllow').addEventListener('click', () => {
       dismiss('granted');
