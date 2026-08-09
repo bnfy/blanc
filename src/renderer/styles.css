@@ -1144,17 +1144,21 @@ body[data-mode="palette"] #backdrop { background: rgba(14, 14, 14, 0.18); }
    Contents stay invisible through the first half, so the squash a uniform
    scale puts on them never reaches the screen. */
 #islandPanel.morph-start {
-  transform: translate(var(--morph-x, 0), var(--morph-y, 0)) scale(var(--morph-scale, 1));
+  transform:
+    translate(var(--morph-x, 0), var(--morph-y, 0))
+    scale(var(--morph-sx, 1), var(--morph-sy, 1));
   border-radius: 999px;
   transition: none;
 }
 #islandPanel.morph-start > * { opacity: 0; }
+/* Steadier than the DS's snappy curve: that one front-loads so hard the whole
+   movement was over inside 60ms, which reads as a flash rather than a morph. */
 #islandPanel.morph-run {
   transition:
-    transform 260ms cubic-bezier(0.32, 0.72, 0, 1),
-    border-radius 260ms cubic-bezier(0.32, 0.72, 0, 1);
+    transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-#islandPanel.morph-run > * { transition: opacity 140ms ease 110ms; }
+#islandPanel.morph-run > * { transition: opacity 150ms ease 130ms; }
 #islandPanel { transform-origin: 50% 0; }
 
 [data-theme="private"] #islandPanel { border: 1px dashed var(--text-dim); }

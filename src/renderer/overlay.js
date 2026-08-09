@@ -1088,7 +1088,7 @@
    * Scale rather than width/height: animating the box would reflow the list on
    * every frame. The contents are held invisible until the growth is underway,
    * so the squash a uniform scale puts on them is never on screen. */
-  const MORPH_MS = 260;
+  const MORPH_MS = 300;
   let morphTimer = null;
 
   function morphPanelFromPill(pillRect) {
@@ -1097,14 +1097,21 @@
     const panelWidth = islandPanel.offsetWidth;
     if (!panelWidth) return;
 
-    const scale = Math.min(1, pillRect.width / panelWidth);
     const panelBox = islandPanel.getBoundingClientRect();
+    if (!panelBox.height) return;
+    // Scale the axes INDEPENDENTLY. The pill is a thin capsule and the panel a
+    // chunky box, so no single factor turns one into the other — a uniform
+    // scale got the width about right and left the height five times too tall,
+    // which reads as a blank blob appearing rather than the pill opening.
+    const scaleX = Math.min(1, pillRect.width / panelBox.width);
+    const scaleY = Math.min(1, pillRect.height / panelBox.height);
     const pillCentre = pillRect.x + pillRect.width / 2;
     const panelCentre = panelBox.left + panelBox.width / 2;
 
     clearTimeout(morphTimer);
     islandPanel.classList.add('morph-start');
-    islandPanel.style.setProperty('--morph-scale', String(scale));
+    islandPanel.style.setProperty('--morph-sx', String(scaleX));
+    islandPanel.style.setProperty('--morph-sy', String(scaleY));
     islandPanel.style.setProperty('--morph-x', `${(pillCentre - panelCentre).toFixed(2)}px`);
     islandPanel.style.setProperty('--morph-y', `${(pillRect.y - panelBox.top).toFixed(2)}px`);
 
