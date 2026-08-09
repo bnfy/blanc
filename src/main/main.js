@@ -3086,7 +3086,7 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
 function applyWebrtcPolicyToAllTabs() {
   const policy = webrtcPolicyFor(settings.getSettings().webrtcPolicy);
   for (const tab of tabs.values()) {
-    tab.view.webContents.setWebRTCIPHandlingPolicy(policy);
+    liveContents(tab)?.setWebRTCIPHandlingPolicy(policy);
   }
 }
 
@@ -3247,9 +3247,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const broadcastStartPageStatus = () => {
     const status = startPageStatus();
     for (const tab of tabs.values()) {
-      if (tab.url?.startsWith('blanc://newtab')) {
-        tab.view.webContents.send('pages:start:status', status);
-      }
+      if (!tab.url?.startsWith('blanc://newtab')) continue;
+      liveContents(tab)?.send('pages:start:status', status);
     }
   };
   // pages.js's ipcMain.handle('pages:*', ...) registrations are a wholly
@@ -3399,9 +3398,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const devices = sync.listRemoteDevices();
     rt().overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
     for (const tab of tabs.values()) {
-      if (tab.url?.startsWith('blanc://newtab')) {
-        tab.view.webContents.send('pages:start:remote-tabs', devices);
-      }
+      if (!tab.url?.startsWith('blanc://newtab')) continue;
+      liveContents(tab)?.send('pages:start:remote-tabs', devices);
     }
   });
   tabsync.onRemoteChanged(pushRemoteDevices);

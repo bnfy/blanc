@@ -317,9 +317,8 @@ function wireTabView(tab, view, { owner, adopted }) {
       };
     }));
     targetWc.on('did-create-window', boundToTab((childWindow) => {
-      const isManagedTab = [...tabs.values()].some(
-        (candidate) => liveContents(candidate)?.id === childWindow.webContents.id
-      );
+      const childId = childWindow.webContents.id;
+      const isManagedTab = [...tabs.values()].some((candidate) => liveContents(candidate)?.id === childId);
       if (!isManagedTab) {
         applyWindowOpenPolicy(childWindow.webContents);
         const childWc = childWindow.webContents;
