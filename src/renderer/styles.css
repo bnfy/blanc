@@ -787,7 +787,42 @@ body.mac .vertical-tabs-toolbar {
    equivalent rule to fight. */
 .pill-download .dl-wave { position: absolute; left: -100%; width: 300%; height: 2.4px; bottom: calc(100% - 1.2px); fill: var(--accent); stroke: none; animation: dl-drift 2.4s linear infinite; }
 .pill-download .dl-wave.w2 { left: -88%; opacity: 0.5; animation-duration: 3.9s; animation-direction: reverse; }
-.pill-download.active > svg, .pill-download .dl-under svg { width: 9.5px; height: 9.5px; }
+.pill-download.active > svg,
+.pill-download.dl-done > svg,
+.pill-download .dl-under svg { width: 9.5px; height: 9.5px; }
+/* Download-complete sequence (design handoff PORT-CHECKLIST, added 2026-08-09):
+   the waves still over ~400ms at a full vessel, a check pops out of a solid
+   accent disc for ~3s, and the vessel then stays held full until the downloads
+   page is opened. .dl-done repeats .active's colour and glyph size because the
+   download is no longer active by then — without it the glyph snaps back to
+   full size against a still-full vessel. */
+.pill-download.dl-done { color: var(--accent); }
+.pill-download.dl-done .dl-wave,
+.pill-download.dl-done .dl-wave.w2 {
+  animation-play-state: paused;
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+.dl-done-disc {
+  position: absolute; inset: 4.5px; border-radius: 50%;
+  background: var(--accent);
+  display: none; align-items: center; justify-content: center;
+  color: var(--surface-raised);
+  pointer-events: none;
+  animation: dl-pop 240ms cubic-bezier(0.2, 0.9, 0.3, 1.4);
+}
+.pill-download.dl-check .dl-done-disc { display: flex; }
+/* Scoped and explicit for the same reason the waves are: `.pill-btn svg` sizes
+   and strokes every glyph in the cluster and would otherwise win. */
+.pill-download .dl-done-disc svg {
+  width: 9px; height: 9px;
+  fill: none; stroke: currentColor; stroke-width: 1.8;
+  stroke-linecap: round; stroke-linejoin: round;
+}
+@keyframes dl-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
 .dl-under { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--surface-raised); clip-path: inset(calc(100% - var(--dl-progress, 0) * 100% + 1.2px) 0 0 0); transition: clip-path 300ms cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
 @keyframes dl-drift { to { transform: translateX(-16.6667%); } }
 
@@ -1898,6 +1933,12 @@ body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
   .island-row.tab-row .row-tag,
   .island-row.tab-row .row-remote-pin { transition: none; }
   .pill-download .dl-wave { animation: none; }
+  /* The completion state still reads without its pulse: the vessel is full and
+     the glyph inverted for the same beat, so the information survives while the
+     decoration goes. */
+  /* The completion still reads without the pop: the check, the full vessel and
+     the inverted glyph all remain. */
+  .dl-done-disc { animation: none; }
   /* The proximity reaction is entirely decorative — off, not just instant. */
   #islandPill { transform: none; transition: none; box-shadow: var(--shadow-pill); }
   #strip { transition: none; }

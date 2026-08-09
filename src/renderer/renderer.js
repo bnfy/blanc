@@ -156,13 +156,68 @@
   under.append(underGlyph);
   downloadsBtn.append(span('dl-glass'), vessel, under);
 
+  // The download-complete sequence, per the design handoff's PORT-CHECKLIST:
+  // the waves still at a full vessel, a check pops out of a solid accent disc
+  // for ~3s, and then the vessel stays *held full* until the downloads page is
+  // opened — it does not fall back to the idle glyph. Without this the level,
+  // being derived from in-flight bytes, dropped to zero the instant `active`
+  // emptied, so finishing a download drained the vessel.
+  const DL_CHECK_MS = 3000;
+  let lastCompletionSeen = null;
+  let checkTimer = null;
+
+  // A check knocked out of the disc: the disc paints --accent and sets its own
+  // color to --surface-raised, so the stroke reads as a hole in it.
+  const doneDisc = span('dl-done-disc');
+  const checkGlyph = svgEl('svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true' });
+  checkGlyph.append(svgEl('path', { d: 'M3.5 8.5l3 3 6-6.5' }));
+  doneDisc.append(checkGlyph);
+  downloadsBtn.append(doneDisc);
+
   function renderDownloads() {
-    const { active, hasRecent, receivedBytes, totalBytes } = downloadState;
+    const { active, hasRecent, receivedBytes, totalBytes, lastCompletedAt } = downloadState;
     downloadsBtn.hidden = !(active > 0 || hasRecent);
     downloadsBtn.classList.toggle('active', active > 0);
-    const pct = active > 0 && totalBytes > 0 ? Math.min(1, receivedBytes / totalBytes) : 0;
+
+    // Keyed off the timestamp changing rather than `active` falling to 0, so a
+    // cancelled download never borrows the finished one's celebration. No
+    // first-observation guard is needed or wanted: main holds lastCompletedAt
+    // in memory and starts every launch at null, so any value at all belongs to
+    // this session — suppressing the first would cost every session its first
+    // completion, which is the common case of exactly one.
+    if (lastCompletedAt && lastCompletedAt !== lastCompletionSeen) {
+      lastCompletionSeen = lastCompletedAt;
+      // A download still running behind this one keeps the vessel live; the
+      // check belongs to the moment the last of them lands.
+      if (active === 0) {
+        clearTimeout(checkTimer);
+        downloadsBtn.classList.add('dl-check');
+        checkTimer = setTimeout(() => {
+          checkTimer = null;
+          downloadsBtn.classList.remove('dl-check');
+        }, DL_CHECK_MS);
+      }
+    }
+
+    // Held full is the resting state for an unacknowledged completed download,
+    // so it keys off hasRecent rather than a timer — main clears that when the
+    // downloads page opens, which is exactly step 4 of the sequence.
+    const heldFull = hasRecent && active === 0;
+    downloadsBtn.classList.toggle('dl-done', heldFull);
+    if (!heldFull && checkTimer) {
+      clearTimeout(checkTimer);
+      checkTimer = null;
+      downloadsBtn.classList.remove('dl-check');
+    }
+
+    const pct = heldFull
+      ? 1
+      : active > 0 && totalBytes > 0 ? Math.min(1, receivedBytes / totalBytes) : 0;
     downloadsBtn.style.setProperty('--dl-progress', String(pct));
-    downloadsBtn.title = active > 0 ? `Downloading — ${active} active` : 'Downloads';
+
+    downloadsBtn.title = active > 0
+      ? `Downloading — ${active} active`
+      : heldFull ? 'Download complete — open Downloads' : 'Downloads';
   }
   renderDownloads();
 
