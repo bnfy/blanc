@@ -68,25 +68,50 @@ Every one of those produces the same artifact: a well-formed, settled,
 correctly-attributed row that is simply wrong — and wrong in the *flattering*
 direction, because a browser that rendered nothing uses very little memory.
 
-Two mechanisms guard against it, neither of which encodes a guess about any
+Three mechanisms guard against it, none of which encodes a guess about any
 specific browser:
 
+- **Page observation** — the authoritative check. After the browser quits, the
+  harness reads the visit log the browser itself wrote into the throwaway
+  profile (`history.json` for Blanc, `Default/History` for Chromium,
+  `places.sqlite` for Gecko) and confirms **every requested page was actually
+  navigated to**. Matching is by hostname, so redirects and query strings do not
+  read as failures. A missing log is treated as evidence of failure, not as a
+  reason to skip the check.
 - **Warmed template profiles** (`--warm`, on by default). Each browser is
   launched once with no URLs, left to finish its first-run setup and blocklist
   compilation, then quit; every measured cell starts from a copy of that
   profile. No cell races a one-time setup cost.
-- **Load verification.** A loaded cell must sit at least 15% above that same
-  browser's own idle baseline. Ten real pages cost far more than that; a
-  browser sitting at its start page does not. Cells that fail are **rejected
-  and listed in the report's "Failed cells" section**, never quietly published.
+- **A growth floor** as a net underneath: a cell whose total sits within 15% of
+  that repetition's idle baseline is rejected even if the navigations were
+  recorded, because navigating is not rendering.
 
-Both floors apply to the **idle baseline too**. An understated baseline inflates
-the per-page column and, because it is the denominator of the growth check,
-makes an understated loaded cell easier to pass — so it is not exempt.
+Cells that fail any of these are **rejected and listed in the report's "Failed
+cells" section**, never quietly published.
+
+What page observation proves is that the browser *navigated* to each URL — not
+that the page painted completely. That is far stronger than "memory went up",
+which cannot tell two pages from ten, and honestly weaker than full render
+verification, which would need engine-specific automation.
+
+Reading Chromium and Gecko logs uses `node:sqlite`, still experimental in
+Node 22 (hence the warning on startup). Its availability is checked during
+preflight, before any browser launches.
+
+The non-zero and process-count floors apply to the **idle baseline too**. An
+understated baseline inflates the per-page column and, being the denominator of
+the growth net, makes an understated loaded cell easier to pass — so it is not
+exempt.
 
 `baseline` is not optional: it is added automatically whenever a loaded workload
 is requested, and a loaded cell with no baseline to check against is **rejected**
 rather than published with a caveat. A check that does not fail is not a check.
+
+Baselines are measured **per repetition**, and each loaded cell is compared
+against its own repetition's baseline. Reusing the first repetition's idle
+figure would compare a cell measured half an hour later against the machine as
+it was at the start of the run — and if that first baseline came out low, every
+later repetition's growth ratio is inflated and understated cells pass.
 
 ## What makes the comparison fair
 

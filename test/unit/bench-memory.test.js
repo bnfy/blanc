@@ -1,5 +1,8 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
 
 const measure = require('../../bench/memory/lib/measure');
 const proctree = require('../../bench/memory/lib/proctree');
@@ -7,6 +10,7 @@ const stats = require('../../bench/memory/lib/stats');
 const settle = require('../../bench/memory/lib/settle');
 const launch = require('../../bench/memory/lib/launch');
 const registry = require('../../bench/memory/lib/registry');
+const pageload = require('../../bench/memory/lib/pageload');
 const report = require('../../bench/memory/lib/report');
 const run = require('../../bench/memory/run');
 
@@ -451,23 +455,36 @@ test('the report ranks by median, marks unsettled rows, and warns loudly on RSS'
   assert.match(markdown, /Idle baseline/);
 });
 
-test('load verification rejects a cell that never loaded its pages', () => {
+test('load verification is driven by observed page visits, not by memory growth', () => {
   const idle = 200 * MiB;
   const baseline = { bytes: idle, processCount: 5 };
-  const loadedCell = (over) => ({ workload: 'mixed', processCount: 12, baseline, tabCount: 11, ...over });
+  const allPages = { ok: true, requested: 10, loaded: 10, missing: [] };
+  const cell = (over) => ({
+    workload: 'mixed', processCount: 12, baseline, totalBytes: idle * 3, pages: allPages, ...over,
+  });
 
-  // Blanc gating navigation behind its ad-blocker build settles perfectly flat
-  // at roughly its idle size while reporting a full tab count.
-  const gated = run.verifyLoaded(loadedCell({ totalBytes: idle * 1.02 }));
-  assert.equal(gated.ok, false);
-  assert.match(gated.reason, /never loaded/);
+  assert.equal(run.verifyLoaded(cell()).ok, true);
 
-  assert.equal(run.verifyLoaded(loadedCell({ totalBytes: idle * 3 })).ok, true);
+  // The case memory growth alone could never catch: two of ten pages loaded is
+  // comfortably above a 15% floor, and would have been published as a very
+  // efficient browser.
+  const partial = run.verifyLoaded(cell({
+    pages: { ok: false, requested: 10, loaded: 2, missing: ['cnn.com', 'forbes.com'] },
+  }));
+  assert.equal(partial.ok, false);
+  assert.match(partial.reason, /load not confirmed/);
+  assert.match(partial.reason, /cnn\.com/);
 
   // A backend reading nothing must never pass as a very efficient browser.
-  const zero = run.verifyLoaded(loadedCell({ totalBytes: 0 }));
+  const zero = run.verifyLoaded(cell({ totalBytes: 0 }));
   assert.equal(zero.ok, false);
   assert.match(zero.reason, /read nothing/);
+
+  // Navigations recorded but nothing rendered still fails, as a net under the
+  // page check.
+  const flat = run.verifyLoaded(cell({ totalBytes: idle * 1.02 }));
+  assert.equal(flat.ok, false);
+  assert.match(flat.reason, /nothing rendered/);
 });
 
 test('unreadable processes anywhere in the reported window fail the cell', () => {
@@ -499,28 +516,168 @@ test('an unverifiable cell is rejected, not published with a soft marker', () =>
   // Previously this passed with an "unverified" note attached, so any browser
   // whose baseline cell had failed got its loaded rows through unchecked.
   const verdict = run.verifyLoaded({
-    workload: 'mixed', totalBytes: 500 * MiB, processCount: 12, baseline: null, tabCount: 11,
+    workload: 'mixed', totalBytes: 500 * MiB, processCount: 12, baseline: null,
+    pages: { ok: true, requested: 10, loaded: 10, missing: [] },
   });
   assert.equal(verdict.ok, false);
   assert.match(verdict.reason, /not publishable/);
 });
 
 test('a browser tree of one process is broken attribution, not a frugal browser', () => {
-  const baseline = { bytes: 200 * MiB, processCount: 5 };
   // Applies to the idle baseline too — it is the subtrahend of per-page cost
-  // and the denominator of the growth check, so understating it weakens both.
+  // and the denominator of the growth net, so understating it weakens both.
   const idleCell = run.verifyLoaded({
-    workload: 'baseline', totalBytes: 50 * MiB, processCount: 1, baseline: null, tabCount: 1,
+    workload: 'baseline', totalBytes: 50 * MiB, processCount: 1, baseline: null, pages: null,
   });
   assert.equal(idleCell.ok, false);
   assert.match(idleCell.reason, /multi-process even at idle/);
 
-  // A loaded cell cannot have fewer processes than the same browser at idle.
-  const shrunk = run.verifyLoaded({
-    workload: 'mixed', totalBytes: 900 * MiB, processCount: 3, baseline, tabCount: 11,
+  // A healthy baseline passes without needing pages or a prior baseline.
+  assert.equal(run.verifyLoaded({
+    workload: 'baseline', totalBytes: 200 * MiB, processCount: 5, baseline: null, pages: null,
+  }).ok, true);
+});
+
+test('no comparative process-count rule is asserted, since preallocated counts vary', () => {
+  // A loaded cell having fewer processes than its own idle baseline is NOT
+  // treated as failure: engines preallocate content processes and those counts
+  // vary by engine and version, so a monotonicity rule would be unsound.
+  const verdict = run.verifyLoaded({
+    workload: 'mixed',
+    totalBytes: 900 * MiB,
+    processCount: 4,
+    baseline: { bytes: 200 * MiB, processCount: 9 },
+    pages: { ok: true, requested: 10, loaded: 10, missing: [] },
   });
-  assert.equal(shrunk.ok, false);
-  assert.match(shrunk.reason, /fewer than its own idle baseline/);
+  assert.equal(verdict.ok, true);
+});
+
+test('each repetition verifies against its own baseline, not repetition 1\'s', () => {
+  // Reusing rep 1's baseline compares a cell measured half an hour later
+  // against an idle figure from the start of the run — and if rep 1's baseline
+  // came out low, every later repetition's growth ratio is inflated and
+  // understated cells sail through.
+  assert.notEqual(run.baselineKey('blanc', 0), run.baselineKey('blanc', 1));
+  assert.equal(run.baselineKey('blanc', 2), run.baselineKey('blanc', 2));
+  assert.notEqual(run.baselineKey('blanc', 0), run.baselineKey('chrome', 0));
+});
+
+test('visited pages are matched by host, so redirects and query strings do not read as failures', () => {
+  assert.equal(pageload.hostOf('https://www.theverge.com/some/path?utm=x'), 'theverge.com');
+  assert.equal(pageload.hostOf('https://theverge.com/'), 'theverge.com');
+  assert.equal(pageload.hostOf('not a url'), null);
+
+  const observed = new Set(['theverge.com', 'cnn.com', 'consent.cnn.com']);
+  const compared = pageload.comparePages(observed, [
+    'https://www.theverge.com/',
+    'https://www.cnn.com/',
+    'https://www.forbes.com/',
+  ]);
+  assert.equal(compared.requested, 3);
+  assert.equal(compared.loaded, 2);
+  assert.deepEqual(compared.missing, ['forbes.com']);
+});
+
+test('Blanc visit logs are read from its own history store', () => {
+  const hosts = pageload.hostsFromBlancHistory(JSON.stringify({
+    entries: [
+      { url: 'https://news.ycombinator.com/', title: 'HN' },
+      { url: 'https://en.wikipedia.org/wiki/Web_browser', title: 'W' },
+      { url: 'not-a-url', title: 'junk' },
+    ],
+  }));
+  assert.ok(hosts.has('news.ycombinator.com'));
+  assert.ok(hosts.has('en.wikipedia.org'));
+  assert.equal(hosts.size, 2);
+  // A corrupt or absent log yields nothing rather than throwing — the caller
+  // treats "no evidence" as failure, which is the safe direction.
+  assert.equal(pageload.hostsFromBlancHistory('{broken').size, 0);
+});
+
+test('each browser family has a known visit-log location', () => {
+  assert.match(pageload.historyLocation({ family: 'blanc' }, '/p').file, /\/p\/history\.json$/);
+  assert.match(pageload.historyLocation({ family: 'chromium' }, '/p').file, /\/p\/Default\/History$/);
+  assert.match(pageload.historyLocation({ family: 'gecko' }, '/p').file, /\/p\/places\.sqlite$/);
+  assert.equal(pageload.historyLocation({ family: 'webkit' }, '/p'), null);
+});
+
+test('an absent visit log is evidence of failure, not a reason to skip the check', () => {
+  const result = pageload.observeLoadedPages(
+    { family: 'blanc' }, '/nonexistent-profile', ['https://a.test/']
+  );
+  assert.equal(result.ok, false);
+  assert.match(result.reason, /recorded no navigation at all/);
+
+  // A browser family with no known log location cannot be verified, so it fails
+  // rather than passing unchecked.
+  const unknown = pageload.observeLoadedPages(
+    { family: 'webkit' }, '/nonexistent-profile', ['https://a.test/']
+  );
+  assert.equal(unknown.ok, false);
+  assert.match(unknown.reason, /no visit-log location known/);
+
+  // The idle workload requests nothing, so there is nothing to confirm.
+  assert.equal(pageload.observeLoadedPages({ family: 'blanc' }, '/nope', []).ok, true);
+});
+
+test('Blanc page observation reads a real profile end to end', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bench-pageload-'));
+  try {
+    fs.writeFileSync(path.join(dir, 'history.json'), JSON.stringify({
+      entries: [
+        { url: 'https://news.ycombinator.com/' },
+        { url: 'https://en.wikipedia.org/wiki/Web_browser' },
+      ],
+    }));
+    const urls = ['https://news.ycombinator.com/', 'https://en.wikipedia.org/wiki/Web_browser'];
+    assert.equal(pageload.observeLoadedPages({ family: 'blanc' }, dir, urls).ok, true);
+
+    const short = pageload.observeLoadedPages(
+      { family: 'blanc' }, dir, [...urls, 'https://www.forbes.com/']
+    );
+    assert.equal(short.ok, false);
+    assert.deepEqual(short.missing, ['forbes.com']);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('SQLite visit logs are read for the Chromium and Gecko families', () => {
+  const { DatabaseSync } = require('node:sqlite');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bench-sqlite-'));
+  try {
+    const file = path.join(dir, 'places.sqlite');
+    const db = new DatabaseSync(file);
+    db.exec('CREATE TABLE moz_places (url TEXT)');
+    db.exec("INSERT INTO moz_places (url) VALUES ('https://www.theverge.com/x'), ('https://cnn.com/')");
+    db.close();
+
+    const hosts = pageload.hostsFromSqlite(file, 'moz_places', 'url');
+    assert.ok(hosts.has('theverge.com'));
+    assert.ok(hosts.has('cnn.com'));
+
+    fs.mkdirSync(path.join(dir, 'profile'), { recursive: true });
+    fs.copyFileSync(file, path.join(dir, 'profile', 'places.sqlite'));
+    const result = pageload.observeLoadedPages(
+      { family: 'gecko' }, path.join(dir, 'profile'),
+      ['https://www.theverge.com/', 'https://www.cnn.com/']
+    );
+    assert.equal(result.ok, true);
+    assert.equal(result.loaded, 2);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('visit-log readability is checked before any browser is launched', () => {
+  // node:sqlite is experimental; discovering it is missing per-cell would mean
+  // launching browsers for the whole matrix and failing every one of them.
+  assert.equal(pageload.checkReadable([{ family: 'blanc' }]).ok, true);
+  assert.equal(pageload.checkReadable([{ family: 'blanc' }, { family: 'gecko' }]).ok, true);
+
+  const unknown = pageload.checkReadable([{ family: 'webkit' }]);
+  assert.equal(unknown.ok, false);
+  assert.match(unknown.reason, /no visit-log location known/);
 });
 
 test('the baseline workload is added when omitted, since nothing verifies without it', () => {

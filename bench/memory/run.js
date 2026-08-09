@@ -16,6 +16,7 @@ const measure = require('./lib/measure');
 const proctree = require('./lib/proctree');
 const registry = require('./lib/registry');
 const launcher = require('./lib/launch');
+const pageload = require('./lib/pageload');
 const { sampleUntilSettled } = require('./lib/settle');
 const { buildMarkdown } = require('./lib/report');
 const { formatBytes, summarize } = require('./lib/stats');
@@ -166,6 +167,21 @@ function orderWorkloads(keys) {
 }
 
 /**
+ * Baselines are keyed per browser AND per repetition.
+ *
+ * Reusing repetition 1's baseline for every later repetition compares a cell
+ * measured 30 minutes later against an idle figure from the start of the run,
+ * across whatever the machine drifted through in between. Worse, it makes the
+ * error one-directional and invisible: if repetition 1's baseline came out low,
+ * every later repetition's growth ratio is inflated and understated cells sail
+ * through the check; if it came out high, good cells fail for no reason.
+ *
+ * Baselines run first within each repetition, so a same-repetition baseline is
+ * always available by the time a loaded cell needs it.
+ */
+const baselineKey = (browserId, rep) => `${browserId}::rep${rep}`;
+
+/**
  * Summarize the trailing samples the reported median is computed from.
  *
  * Checking only the final sample would let an undercounted sample sit inside
@@ -203,12 +219,15 @@ function summarizeWindow(meta, windowSize = REPORTED_WINDOW) {
  *
  * @returns {{ok: true} | {ok: false, reason: string}}
  */
-function verifyLoaded({ workload, totalBytes, processCount, baseline, tabCount }) {
+function verifyLoaded({ workload, totalBytes, processCount, baseline, pages }) {
   if (!Number.isFinite(totalBytes) || totalBytes <= 0) {
     return { ok: false, reason: 'measured 0 bytes — the backend read nothing' };
   }
-  // Every modern browser is multi-process even at idle. A tree of one is not a
-  // quiet browser, it is broken attribution, and it undercounts by definition.
+  // Every browser in the registry is multi-process even at idle, so a tree of
+  // one means attribution failed, not that the browser is frugal. This is an
+  // absolute floor, deliberately not a claim about how process counts scale:
+  // preallocated content-process counts vary between engines and versions, so
+  // any comparative process-count rule would be unsound.
   if (!Number.isFinite(processCount) || processCount < MIN_PROCESSES) {
     return {
       ok: false,
@@ -219,45 +238,42 @@ function verifyLoaded({ workload, totalBytes, processCount, baseline, tabCount }
     };
   }
 
-  // The idle baseline is not exempt from scrutiny: it is the subtrahend of the
-  // per-page column *and* the denominator of the growth check below, so an
-  // understated baseline both overstates per-page cost and makes an understated
-  // loaded cell easier to pass. Its floors are the two above.
+  // The idle baseline is not exempt: it is the subtrahend of the per-page
+  // column and the denominator of the growth net below, so understating it
+  // both inflates per-page cost and makes an understated loaded cell pass.
+  // Its floors are the two above; it has no pages to check.
   if (workload === 'baseline') return { ok: true };
 
+  // The authoritative check: what the browser itself recorded visiting.
+  // Everything else here is a net under it.
+  if (!pages || !pages.ok) {
+    const detail = pages && pages.reason
+      ? pages.reason
+      : `${pages ? pages.loaded : 0} of ${pages ? pages.requested : '?'} requested pages ` +
+        `were visited (missing: ${pages && pages.missing ? pages.missing.join(', ') : 'unknown'})`;
+    return { ok: false, reason: `load not confirmed — ${detail}` };
+  }
+
   if (!baseline || !Number.isFinite(baseline.bytes) || baseline.bytes <= 0) {
-    // Previously this passed with a soft "unverified" marker. That is precisely
-    // the hole: an unverifiable cell was still published, so any browser whose
-    // baseline cell had failed got its loaded rows through unchecked.
     return {
       ok: false,
       reason:
-        'no idle baseline for this browser, so the load could not be verified — ' +
+        'no idle baseline for this repetition, so per-page cost cannot be computed — ' +
         'its baseline cell must have failed, and an unverified row is not publishable',
     };
   }
 
-  // A browser that loaded N pages cannot have fewer processes than it had at
-  // idle. Deliberately a monotonicity check rather than a count-per-tab rule:
-  // process models differ between engines, and asserting how they scale is the
-  // kind of unsourced claim this harness exists to avoid.
-  if (Number.isFinite(baseline.processCount) && processCount < baseline.processCount) {
-    return {
-      ok: false,
-      reason:
-        `${processCount} processes with ${tabCount} tabs, fewer than its own idle ` +
-        `baseline had (${baseline.processCount}) — part of the tree was not measured`,
-    };
-  }
-
+  // Secondary net. Page observation proves navigation happened; it does not
+  // prove the pages rendered. A total sitting at idle after ten confirmed
+  // navigations means something else is wrong.
   const growth = totalBytes / baseline.bytes - 1;
   if (growth < MIN_LOAD_GROWTH) {
     return {
       ok: false,
       reason:
-        `only ${(growth * 100).toFixed(0)}% above its own idle baseline ` +
-        `(${formatBytes(baseline.bytes)}) with ${tabCount} tabs — the pages almost ` +
-        'certainly never loaded',
+        `${pages.loaded} pages were visited but the total is only ` +
+        `${(growth * 100).toFixed(0)}% above this repetition's idle baseline ` +
+        `(${formatBytes(baseline.bytes)}) — navigations were recorded but nothing rendered`,
     };
   }
   return { ok: true };
@@ -341,10 +357,12 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
   const profileDir = prepareProfile(browser, options.templates && options.templates.get(browser.id));
 
   let launched = null;
+  let tabCount = 0;
   const entry = { pid: null, pids: [] };
   try {
     launched = await launcher.launch(browser, { profileDir, urls });
     entry.pid = launched.pid;
+    tabCount = launched.tabCount;
     liveLaunches.add(entry);
 
     // Fail fast if the browser died on startup, rather than burning the whole
@@ -395,12 +413,24 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
 
     const totalBytes = summarize(series.slice(-REPORTED_WINDOW)).median;
 
+    // Quit before reading the visit log: pending writes and any WAL only flush
+    // on exit, and the log is the authoritative evidence of what loaded.
+    await launcher.quit(launched.pid, { pids: entry.pids });
+    liveLaunches.delete(entry);
+    launched = null;
+
+    const pages = pageload.observeLoadedPages(browser, profileDir, urls);
+    if (urls.length) {
+      log(`      pages visited: ${pages.loaded}/${pages.requested}` +
+        (pages.missing.length ? ` (missing: ${pages.missing.join(', ')})` : ''));
+    }
+
     const verdict = verifyLoaded({
       workload,
       totalBytes,
       processCount,
       baseline: baselineFor,
-      tabCount: launched.tabCount,
+      pages,
     });
     if (!verdict.ok) throw new Error(verdict.reason);
 
@@ -410,7 +440,9 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
       settled,
       elapsedMs,
       series,
-      tabCount: launched.tabCount,
+      tabCount,
+      pagesLoaded: pages.loaded,
+      pagesRequested: pages.requested,
     };
   } finally {
     if (launched) {
@@ -498,6 +530,14 @@ async function main() {
   const { selected, skipped } = registry.selectBrowsers(browsers, options.browsers);
   if (!selected.length) throw new Error('No runnable browsers found. Try --list.');
 
+  // Preflight rather than per-cell: a run that cannot read visit logs cannot
+  // verify anything, and finding that out after launching browsers for forty
+  // minutes would waste the whole matrix.
+  const readable = pageload.checkReadable(selected);
+  if (!readable.ok && !options.dryRun) {
+    throw new Error(`Load verification is unavailable: ${readable.reason}`);
+  }
+
   const plan = buildPlan(selected, workloadKeys, options.reps);
 
   if (options.dryRun) {
@@ -571,7 +611,7 @@ async function main() {
         backend,
         options,
         log,
-        baselineFor: baselineByBrowser.get(browser.id),
+        baselineFor: baselineByBrowser.get(baselineKey(browser.id, cell.rep)),
         onFirstLaunch: validateBackend,
       });
       log(`      → ${formatBytes(outcome.totalBytes)}${outcome.settled ? '' : ' (never settled)'}\n`);
@@ -590,8 +630,8 @@ async function main() {
       continue;
     }
 
-    if (cell.workload === 'baseline' && !baselineByBrowser.has(browser.id)) {
-      baselineByBrowser.set(browser.id, {
+    if (cell.workload === 'baseline') {
+      baselineByBrowser.set(baselineKey(browser.id, cell.rep), {
         bytes: outcome.totalBytes,
         processCount: outcome.processCount,
       });
@@ -710,6 +750,7 @@ module.exports = {
   seedBlancProfile,
   verifyLoaded,
   summarizeWindow,
+  baselineKey,
   prepareProfile,
   MIN_LOAD_GROWTH,
   MIN_PROCESSES,

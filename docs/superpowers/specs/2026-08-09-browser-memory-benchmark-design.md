@@ -117,18 +117,19 @@ oversight; a documented refusal reads as a boundary.
 
 | File | Responsibility |
 |---|---|
-| `bench/memory/run.js` (627) | CLI, preflight, plan, profile warming, cell execution, load verification, report writing |
-| `bench/memory/lib/measure.js` (314) | Backend probing + `footprint`/`vmmap`/`top`/`ps` parsers, per-pid sampling, `canReadPid` |
+| `bench/memory/run.js` (758) | CLI, preflight, plan, profile warming, cell execution, verification, report writing |
+| `bench/memory/lib/pageload.js` (235) | Reads each browser's own visit log to confirm which pages actually loaded |
+| `bench/memory/lib/measure.js` (323) | Backend probing + `footprint`/`vmmap`/`top`/`ps` parsers, per-pid sampling, `canReadPid` |
 | `bench/memory/lib/proctree.js` (135) | `ps` snapshot parsing, descendant walk, bundle matching, process attribution |
 | `bench/memory/lib/launch.js` (210) | Per-family launch plans, Gecko pref seeding, spawn, tree-wide quit |
 | `bench/memory/lib/settle.js` (76) | Flat-series detection and the sampling loop |
 | `bench/memory/lib/stats.js` (109) | Median/MAD/summary, per-page cost, metric-consistency guard, formatting |
-| `bench/memory/lib/report.js` (298) | Row building, blocking-class grouping, reference anchoring, markdown |
+| `bench/memory/lib/report.js` (296) | Row building, blocking-class grouping, reference anchoring, markdown |
 | `bench/memory/lib/registry.js` (121) | `browsers.json` loading, path resolution, selection, bundle version |
 | `bench/memory/browsers.json` | 14 entries — 12 runnable, 2 documented-unsupported |
 | `bench/memory/workloads.json` | `baseline` (0) · `light` (5) · `mixed` (10) · `adheavy` (6) · `scale` (20) |
 | `bench/memory/README.md` | Methodology, preparation checklist, publishing discipline |
-| `test/unit/bench-memory.test.js` (600) | 41 tests over every pure function |
+| `test/unit/bench-memory.test.js` (807) | 53 tests over every pure function |
 
 Pure logic is deliberately separated from anything that shells out, so the
 parsers, statistics, attribution and report generation are all testable on a
@@ -185,7 +186,7 @@ are assumptions about `src/main/` made from reading it rather than running it.
 
 ## Testing
 
-**41 unit tests**, all passing, covering: size-token parsing (including the
+**53 unit tests**, all passing, covering: size-token parsing (including the
 `(N bytes)`-beats-suffix rule), `vmmap` peak-line rejection, `footprint`
 peak/lifetime skipping, `top` row parsing with growth markers, `ps` KB→bytes,
 `ps` paths containing spaces, transitive descendants with a cycle guard, bundle
@@ -357,6 +358,51 @@ Also fixed: a sandboxed environment can make `spawn` fail synchronously
 (`EPERM`), which escaped `--probe` as an unhandled throw instead of the
 intended "no backend worked here" message. Observed by the reviewer; now caught.
 
+### Third review round — the two P1s the previous round missed
+
+The previous round fixed two of the reviewer's four P1 findings and, on the
+reviewer's own accounting, missed two. Both are now fixed, along with a
+correction to a check the previous round *introduced*.
+
+**P1-2: the growth floor never observed whether the requested pages loaded.**
+This was the deeper of the two and the previous round mistook a proxy for a
+check. A 15% floor above idle cannot distinguish two pages from ten — a browser
+that loaded a fifth of the workload clears it comfortably and is published as
+remarkably efficient. The fix stops inferring and starts **observing**: after
+each cell's browser quits, `lib/pageload.js` reads the visit log the browser
+itself wrote into the throwaway profile — `history.json` for Blanc (its own
+`JsonStore`), `Default/History` for Chromium, `places.sqlite` for Gecko — and
+confirms every requested host was navigated to. Because the profile is
+per-cell, that log contains this cell's navigations and nothing else. Matching
+is by hostname so redirects and query strings do not read as failures; a missing
+log is evidence of failure rather than a reason to skip the check; and
+`node:sqlite`'s availability is verified during preflight, so a Node without it
+fails before launching browsers rather than after forty minutes of them. The
+growth floor is retained as a net underneath — navigation is not rendering.
+
+*What this does and does not prove:* a visit record means the browser navigated
+to the URL, not that the page painted completely. Full render verification would
+need engine-specific automation. This is materially stronger than "memory went
+up" and is stated as such rather than oversold.
+
+**P1-4: repetitions 2 and 3 reused repetition 1's baseline.** Baselines were
+keyed by browser alone, so a loaded cell measured half an hour into the matrix
+was compared against an idle figure from the start of the run. The error is
+one-directional and invisible: a low first baseline inflates every later
+repetition's growth ratio, so understated cells sail through; a high one fails
+good cells. Baselines are now keyed per browser **and per repetition**
+(`baselineKey`), which the existing baseline-first ordering already guarantees
+is available.
+
+**Correction to the previous round.** That round added a rule that a loaded cell
+must have at least as many processes as its own idle baseline. The reviewer
+noted that preallocated content-process counts vary, so the assertion is not
+safely universal — it is the same class of error as the Fission claim, made one
+commit after promising not to repeat it. The monotonicity rule is **removed**.
+What remains is an absolute floor (`MIN_PROCESSES`), which is a statement about
+attribution being broken rather than about how any engine allocates processes: a
+tree of one process means the tree was not found, whatever the engine.
+
 ### Open — assumptions only a real run can settle
 
 None of these are fixed, because none can be from here. Each is recorded in
@@ -383,13 +429,12 @@ None of these are fixed, because none can be from here. Each is recorded in
 
 ### Accepted limitations, disclosed rather than fixed
 
-- **Load verification is a floor, not a count.** The 15% threshold catches
-  catastrophic failure (1 tab instead of 10); it will not catch 8 of 10. A
-  readback of the profile's own history database would verify exactly which URLs
-  loaded. Not built — it needs per-engine SQLite handling, and the floor covers
-  the failure mode that actually produces a publishable wrong number.
-- **`tabCount` is still asserted, not observed.** It comes from the launch plan.
-  The `Tabs` column is what was *requested*.
+- **Page observation proves navigation, not rendering.** A visit record means
+  the browser went to the URL; it does not prove the page painted. Full render
+  verification needs engine-specific automation and is not built.
+- **`tabCount` is still asserted, not observed.** It comes from the launch plan,
+  so the `Tabs` column is what was *requested*. The pages column is what was
+  confirmed.
 - **`baseline` is a different lifecycle state in every engine**, and it is the
   subtrahend of the per-page column.
 - **Classing ETP Standard as `trackers` is a judgement call.** In normal
