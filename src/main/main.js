@@ -603,6 +603,11 @@ const tabs = new Map();
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
  *  a crash once a tab can exist without a view. */
 const tabIdByWebContentsId = new Map();
+/** webContents id -> the HTTP method of its last main-frame request. The only
+ * place a method is observable is onBeforeSendHeaders, and it is needed at
+ * did-navigate time. Deliberately not on the tab record: that record is an
+ * explicit serialization allowlist, while this is main-process bookkeeping. */
+const lastMainFrameMethod = new Map();
 
 /** Drop every index entry pointing at `tabId`. Deletion is BY VALUE because a
  *  closing tab's view.webContents already reads back undefined, so the key it
@@ -1820,7 +1825,30 @@ async function initSpikePackaging() {
 // --- Quiet Tabs hooks (phase 2 fills these in) --------------------------
 // The tab-view dependency contract is fixed now, so later phases can extend
 // these hooks without changing the construction/wiring seam again.
-function onMainFrameCommit(_tab, _details) {}
+/**
+ * Quiet Tabs: refresh every eligibility signal that a main-frame commit
+ * invalidates (spec §4.2). Called from tab-view.js's did-navigate handler.
+ */
+function onMainFrameCommit(tab, { url, httpResponseCode }) {
+  // "This document has played media" is cleared ONLY here — clearing on pause
+  // would unprotect exactly the paused video this rule exists to protect.
+  tab.usedMedia = false;
+  tab.deepScrolled = false;
+  const wc = liveContents(tab);
+  const isHttp = /^https?:/i.test(url ?? '');
+  // Non-http(s) commits never reach onBeforeSendHeaders, so they are GETs by
+  // construction. An HTTP(S) commit without an observed method fails safe.
+  const method = wc ? lastMainFrameMethod.get(wc.id) : undefined;
+  const effectiveMethod = method ?? (isHttp ? null : 'GET');
+  tab.restorableCommit = effectiveMethod === 'GET' && (httpResponseCode ?? 200) < 400;
+  try {
+    tab.httpEntryCount = wc
+      ? wc.navigationHistory.getAllEntries().filter((entry) => /^https?:/i.test(entry?.url ?? '')).length
+      : 0;
+  } catch {
+    tab.httpEntryCount = 0;
+  }
+}
 function noteWakeSuppressed(_tab) { return false; }
 function notePopupChild(_openerTabId, _childWindow) {}
 
@@ -2092,6 +2120,7 @@ function closeTab(id) {
   rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
   pruneEmptyGroups();
   const wc = tab.view?.webContents;
+  if (wc) lastMainFrameMethod.delete(wc.id);
   if (wc && !wc.isDestroyed()) wc.close();
 
   if (wasActive) {
@@ -3215,6 +3244,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     for (const browsingSession of browsingSessions) {
       browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
+        // Compose with the Client Hints handler rather than registering a
+        // second listener: Electron allows one listener per webRequest event.
+        // A POST result is not safely refetchable, so retain the method until
+        // did-navigate can decide whether the commit is restorable.
+        if (details.resourceType === 'mainFrame' && Number.isInteger(details.webContentsId)) {
+          lastMainFrameMethod.set(details.webContentsId, details.method);
+        }
         const h = details.requestHeaders;
         setHeader(h, 'sec-ch-ua', chUa, { add: true });
         // High-entropy hint: only rewrite it when Chromium already decided to

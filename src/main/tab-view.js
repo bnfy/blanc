@@ -148,6 +148,13 @@ function wireTabView(tab, view, { owner, adopted }) {
     tab.audible = wc.isCurrentlyAudible();
     scheduleBroadcastTabs();
   }));
+  // pageState carries no media currentTime, so waking a media tab lands at
+  // 0:00. Once this document plays media it must not be quieted; only a new
+  // main-frame commit clears the signal.
+  wc.on('media-started-playing', boundToTab(() => {
+    if (tab.sleeping || tab.view?.webContents !== wc) return;
+    tab.usedMedia = true;
+  }));
   wc.on('page-title-updated', boundToTab((_e, title) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     tab.title = title;
@@ -191,6 +198,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (shouldClearFaviconOnNavigate(tab.url, url)) tab.favicon = null;
     syncNavState();
     tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
+    onMainFrameCommit(tab, { url, httpResponseCode });
     if (tab.historyEligible) history.addVisit(url, wc.getTitle());
     broadcastTabs();
     scheduleMenuRebuild();
