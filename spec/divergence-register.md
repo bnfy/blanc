@@ -187,11 +187,15 @@ touch affordances should match **each other**.
 ---
 
 ## D8 — Tab / web-view lifecycle & memory
-**Features:** F2, F18
-**Why:** Mobile OSes aggressively evict backgrounded web views; desktop keeps all
-tab views alive.
+**Features:** F2, F18, F31
+**Why:** Mobile OSes aggressively evict backgrounded web views; desktop can make
+the same renderer-discard tradeoff deliberately while keeping tab identity.
 
-- **Desktop:** every tab's view stays alive; switching is attach/detach.
+- **Desktop:** switching a tab is attach/detach and destroys nothing, but an
+  *idle* background tab is a separate matter: its renderer is deliberately
+  discarded and rebuilt on return (F31). That is a **convergence** toward the
+  mobile behaviour below rather than a split from it — the difference left is who
+  schedules it (D23).
 - **Mobile:** inactive web views may be **snapshotted and torn down**, then
   restored (URL + scroll) on reactivation, to survive memory pressure.
 
@@ -200,7 +204,9 @@ scroll position across backgrounding; restore is seamless. The *eviction strateg
 is an implementation detail per platform.
 
 **Status:** Accepted; a shared "tab restore" acceptance scenario should exercise
-this on mobile.
+this on mobile. Amended 2026-08-09: desktop now discards idle background
+renderers by policy (F31), so the platforms differ in *when*, not *whether* — the
+control surface is D23.
 
 ---
 
@@ -478,3 +484,35 @@ separately specified choice.
 **Status:** Accepted 2026-07-30. Amended 2026-08-08 to make discovery — not
 just import — require an explicit action, since profile display names commonly
 carry a person's real name or email address.
+
+## D23 — Who decides when a background tab loses its renderer
+**Features:** F31 (the behaviour itself is D8)
+
+**Why:** Discarding a backgrounded web view is app-schedulable on desktop and
+Android, and OS-governed on iOS — `WKWebView` suspension is not something an app
+can schedule, only react to. The *behaviour* converged (D8); the *control* cannot.
+
+- **Desktop:** app-scheduled and user-configurable — an idle delay
+  (off / 30m / 1h / 6h, default 1h) plus a manual `/sleep` command that skips
+  only the waiting.
+- **Android:** app-scheduled and user-configurable on the same contract; the OS
+  may additionally evict under memory pressure, which the app does not control.
+- **iOS:** OS-governed. Surface no delay control at all; implement the restore
+  path, and honour the same never-discard exclusions wherever the platform gives
+  the app a say.
+
+**Parity contract that still holds:** a backgrounded tab may lose its renderer on
+any platform and returns with identity, title, and scroll intact; only the
+control over *when* is platform-dependent.
+
+**Scope of "scroll intact":** that clause, inherited from D8, is scoped to
+**static documents**. A restored scroll offset is applied against a document
+rebuilt from the initial response, so on an infinite-scroll or virtualized feed it
+clamps to the bottom of the first page rather than returning to the same content.
+Desktop's deep-scroll exclusion (F31) exists precisely so *automatic* quieting
+never puts this contract in a position it cannot honour. A platform that discards
+on the OS's schedule cannot make that promise for feeds and must not claim it.
+
+**Tagging:** behaviour scenarios tag `@D8`; control-surface scenarios tag `@D23`.
+
+**Status:** Accepted 2026-08-09.
