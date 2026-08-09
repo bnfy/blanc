@@ -22,6 +22,34 @@ function persistableUrl(url) {
   return url;
 }
 
+const MAX_META_TITLE = 200;
+const MAX_META_FAVICON = 4096;
+
+/** The favicon worth persisting: the same scheme allow-list favorites use
+ * (bookmark-validate.js), with session.json's own, larger ceiling. A data:
+ * URL past that is the renderer's fallback glyph — no information, and this
+ * file is read synchronously at launch. */
+function persistableFavicon(favicon) {
+  return typeof favicon === 'string'
+    && favicon.length <= MAX_META_FAVICON
+    && /^(https?:|data:image\/)/i.test(favicon)
+    ? favicon
+    : null;
+}
+
+/** session.json's meta entry for one tab (Quiet Tabs spec §10.1): what the
+ * pill and the rail draw for a tab restored quiet, before it has any
+ * webContents. Empty title for a tab sitting on our own error page —
+ * persistableUrl() unwraps that url back to the real destination, and the
+ * title showing there is Blanc's error copy, not the site's. */
+function sessionTabMeta(tab) {
+  const onErrorPage = typeof tab?.url === 'string' && tab.url.startsWith('blanc://error');
+  const title = !onErrorPage && typeof tab?.title === 'string'
+    ? tab.title.slice(0, MAX_META_TITLE)
+    : '';
+  return { title, favicon: persistableFavicon(tab?.favicon) };
+}
+
 /** Exactly persistSession's session.json semantics: private tabs excluded,
  * error urls unwrapped, url-less tabs dropped. Order preserved. */
 function persistableEntries(tabList) {
@@ -60,4 +88,7 @@ function syncSnapshot(tabList, groups) {
   };
 }
 
-module.exports = { persistableEntries, syncSnapshot, MAX_SYNC_TABS, MAX_SYNC_URL, MAX_SYNC_TITLE };
+module.exports = {
+  persistableEntries, syncSnapshot, sessionTabMeta,
+  MAX_SYNC_TABS, MAX_SYNC_URL, MAX_SYNC_TITLE, MAX_META_TITLE, MAX_META_FAVICON,
+};
