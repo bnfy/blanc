@@ -102,3 +102,107 @@ test('the index is clamped into range, and a non-integer index clamps to 0', () 
   // and the clamped index is the entry that keeps its pageState
   assert.equal(trimSnapshot(entries, 9).entries[1].pageState, 'bbb');
 });
+
+const { sleepCandidates, MAX_SLEEP_SNAPSHOTS: CEILING } = require('../../src/main/tab-sleep');
+
+const NOW = 10_000_000;
+const THRESHOLD = 1000;
+
+/** A tab record that passes every exclusion. Each test spoils exactly one thing. */
+const tab = (over = {}) => ({
+  id: 'a',
+  asleep: false, sleeping: false, waking: false, isLoading: false,
+  audible: false, muted: false, usedMedia: false,
+  pinned: false, adopted: false, openerTabId: null,
+  restorableCommit: true, deepScrolled: false, httpEntryCount: 1,
+  lastActiveAt: NOW - THRESHOLD, url: 'https://a/',
+  ...over,
+});
+
+const run = (list, opts = {}) => sleepCandidates(list, {
+  now: NOW, thresholdMs: THRESHOLD, activeTabId: null, ...opts,
+});
+
+test('a plain idle background tab is a candidate', () => {
+  assert.deepEqual(run([tab()]), ['a']);
+});
+
+test('no tabs, or no threshold, means no candidates and no other work', () => {
+  assert.deepEqual(run([]), []);
+  assert.deepEqual(run(null), []);
+  assert.deepEqual(run([tab()], { thresholdMs: null }), []);
+});
+
+test('ignoreThreshold quiets eligible tabs even when the delay is off', () => {
+  assert.deepEqual(run([tab()], { thresholdMs: null, ignoreThreshold: true }), ['a']);
+});
+
+test('the active tab is never a candidate', () => {
+  assert.deepEqual(run([tab()], { activeTabId: 'a' }), []);
+  assert.deepEqual(run([tab()], { activeTabId: 'a', ignoreThreshold: true }), []);
+});
+
+for (const [field, value] of [
+  ['asleep', true], ['sleeping', true], ['waking', true], ['isLoading', true],
+  ['audible', true], ['muted', true], ['usedMedia', true],
+  ['pinned', true], ['adopted', true], ['deepScrolled', true],
+  ['restorableCommit', false], ['httpEntryCount', 0],
+]) {
+  test(`a tab with ${field} = ${value} is excluded`, () => {
+    assert.deepEqual(run([tab({ [field]: value })]), []);
+    assert.deepEqual(run([tab({ [field]: value })], { ignoreThreshold: true }), []);
+  });
+}
+
+test('a private tab with an ordinary GET commit is a candidate', () => {
+  assert.deepEqual(run([tab({ private: true, historyEligible: false })]), ['a']);
+});
+
+test('a tab with a pending permission prompt is excluded', () => {
+  assert.deepEqual(run([tab()], { permissionPendingTabIds: new Set(['a']) }), []);
+});
+
+test('a tab with a live popup child window is excluded', () => {
+  assert.deepEqual(run([tab()], { popupChildCounts: new Map([['a', 1]]) }), []);
+  assert.deepEqual(run([tab()], { popupChildCounts: new Map([['a', 0]]) }), ['a']);
+});
+
+test('a tab with a live opener, or a live child, in the list is excluded', () => {
+  const parent = tab({ id: 'p' });
+  const child = tab({ id: 'c', openerTabId: 'p' });
+  assert.deepEqual(run([parent, child]), []);
+});
+
+test('an openerTabId pointing at a tab that is gone does not exclude', () => {
+  assert.deepEqual(run([tab({ id: 'c', openerTabId: 'closed-long-ago' })]), ['c']);
+});
+
+test('a missing or NaN lastActiveAt counts as not yet idle', () => {
+  for (const value of [undefined, null, NaN, 'soon']) {
+    assert.deepEqual(run([tab({ lastActiveAt: value })]), [], String(value));
+  }
+  assert.deepEqual(run([tab({ lastActiveAt: NaN })], { ignoreThreshold: true }), ['a']);
+});
+
+test('the idle threshold is inclusive at the boundary', () => {
+  assert.deepEqual(run([tab({ lastActiveAt: NOW - THRESHOLD })]), ['a']);
+  assert.deepEqual(run([tab({ lastActiveAt: NOW - THRESHOLD + 1 })]), []);
+});
+
+test('candidates come back longest-idle first, ties in list order', () => {
+  const list = [
+    tab({ id: 'recent', lastActiveAt: NOW - THRESHOLD }),
+    tab({ id: 'oldest', lastActiveAt: NOW - 9 * THRESHOLD }),
+    tab({ id: 'tie-b', lastActiveAt: NOW - 5 * THRESHOLD }),
+    tab({ id: 'tie-a', lastActiveAt: NOW - 5 * THRESHOLD }),
+  ];
+  assert.deepEqual(run(list), ['oldest', 'tie-b', 'tie-a', 'recent']);
+});
+
+test('the snapshot ceiling stops quieting instead of evicting', () => {
+  const list = [tab({ id: 'x' }), tab({ id: 'y' })];
+  assert.deepEqual(run(list, { snapshotCount: CEILING }), []);
+  assert.deepEqual(run(list, { snapshotCount: CEILING + 5 }), []);
+  assert.deepEqual(run(list, { snapshotCount: CEILING - 1 }), ['x']);
+  assert.deepEqual(run(list, { snapshotCount: 0, maxSnapshots: 1 }), ['x']);
+});

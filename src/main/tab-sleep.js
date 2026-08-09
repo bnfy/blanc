@@ -22,6 +22,80 @@ const MAX_SLEEP_SNAPSHOTS = 50;
 /** Ceiling on a retained entry's pageState, in UTF-8 BYTES (spec §6). */
 const MAX_PAGE_STATE_BYTES = 512 * 1024;
 
+const NO_IDS = new Set();
+const NO_COUNTS = new Map();
+
+/**
+ * Return the tabs eligible to have their renderer released, longest-idle
+ * first. This only reads durable tab-record fields; it never touches a
+ * WebContents, which may already be gone.
+ *
+ * @param {Array<object>} tabList
+ * @param {object} [options]
+ * @returns {string[]}
+ */
+function sleepCandidates(tabList, options) {
+  const {
+    now,
+    thresholdMs,
+    activeTabId = null,
+    ignoreThreshold = false,
+    snapshotCount = 0,
+    maxSnapshots = MAX_SLEEP_SNAPSHOTS,
+    permissionPendingTabIds = NO_IDS,
+    popupChildCounts = NO_COUNTS,
+  } = options ?? {};
+
+  if (thresholdMs === null && ignoreThreshold !== true) return [];
+  if (!Array.isArray(tabList) || tabList.length === 0) return [];
+
+  const room = maxSnapshots - snapshotCount;
+  // The cap refuses new snapshots rather than evicting recovery data from an
+  // existing quiet tab.
+  if (room <= 0) return [];
+
+  const liveIds = new Set();
+  const liveOpenerIds = new Set();
+  for (const tab of tabList) {
+    if (!tab?.id) continue;
+    liveIds.add(tab.id);
+    if (tab.openerTabId) liveOpenerIds.add(tab.openerTabId);
+  }
+
+  const survivors = [];
+  tabList.forEach((tab, index) => {
+    if (!tab?.id || tab.id === activeTabId) return;
+    if (tab.asleep || tab.sleeping || tab.waking || tab.isLoading) return;
+    if (tab.audible || tab.muted || tab.usedMedia || tab.pinned) return;
+    if (tab.adopted || tab.restorableCommit !== true || tab.deepScrolled) return;
+    if (permissionPendingTabIds.has(tab.id)) return;
+    if ((popupChildCounts.get(tab.id) ?? 0) !== 0) return;
+    // Keep opener families together while both sides still exist. A stale
+    // opener id is harmless and must not strand this tab permanently.
+    if (tab.openerTabId && liveIds.has(tab.openerTabId)) return;
+    if (liveOpenerIds.has(tab.id)) return;
+    if (!(tab.httpEntryCount >= 1)) return;
+
+    if (ignoreThreshold !== true) {
+      if (!Number.isFinite(tab.lastActiveAt)) return;
+      if (!(now - tab.lastActiveAt >= thresholdMs)) return;
+    }
+
+    survivors.push({
+      id: tab.id,
+      index,
+      lastActiveAt: Number.isFinite(tab.lastActiveAt) ? tab.lastActiveAt : Infinity,
+    });
+  });
+
+  survivors.sort((a, b) => (
+    a.lastActiveAt !== b.lastActiveAt
+      ? a.lastActiveAt - b.lastActiveAt
+      : a.index - b.index
+  ));
+  return survivors.slice(0, room).map(({ id }) => id);
+}
+
 /**
  * Shape a navigationHistory snapshot for retention.
  *
@@ -60,6 +134,7 @@ function trimSnapshot(entries, index, options = {}) {
 }
 
 module.exports = {
+  sleepCandidates,
   trimSnapshot,
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
