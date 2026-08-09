@@ -58,11 +58,18 @@
     back: '<svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>',
     forward: '<svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>',
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
-    stop: '<svg viewBox="0 0 16 16"><path d="M4.25 4.25l7.5 7.5M11.75 4.25l-7.5 7.5"/></svg>',
+    // Deliberately NOT an ✕ (which is what most browsers use for stop): the
+    // pill's trailing cluster already ends in the close-tab ✕, so a loading
+    // tab drew a second, near-identical ✕ two buttons away from it. The ring
+    // is the reload arc's own r=5, so the glyph doesn't change size when the
+    // two swap; the filled square inside reads as an action rather than
+    // progress, which the favicon slot's spinner (.favicon.loading) already
+    // carries a centimetre to the left.
+    stop: '<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5"/><rect class="stop-mark" x="6.05" y="6.05" width="3.9" height="3.9" rx="0.8"/></svg>',
     heart: '<svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg>',
     download: `<svg viewBox="0 0 16 16"><path d="${DOWNLOAD_D}"/></svg>`,
     // Same cut as the panel row's close (overlay.js ICONS.close) — both mean
-    // "close tab". Deliberately tighter than `stop`, which means stop loading.
+    // "close tab". The only ✕ in the pill; see `stop` above.
     close: '<svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>',
   };
 
