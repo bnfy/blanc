@@ -82,3 +82,25 @@ test('the delay enum reaches the schema and both generated mobile artifacts', ()
   );
   assert.match(kotlin, /val tabSleep = BlancTabSleepDelay\.H1/);
 });
+
+test('the Settings row exposes exactly the delay enum and removes itself when unsupported', () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, '../../src/renderer/pages/settings.html'), 'utf8');
+  const page = fs.readFileSync(
+    path.join(__dirname, '../../src/renderer/pages/settings.js'), 'utf8');
+
+  const block = html.match(/<div class="setting" id="tabSleepSetting">[\s\S]*?<\/select>/)?.[0];
+  assert.ok(block, 'no #tabSleepSetting row in settings.html');
+  assert.match(block, /<span>Quiet inactive tabs<\/span>/);
+  assert.match(block, /reloads them when you come back to them\./);
+  assert.doesNotMatch(block, /resume/i);
+  assert.doesNotMatch(block, /asleep/i);
+
+  const values = [...block.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(values, ['off', '30m', '1h', '6h']);
+  const labels = [...block.matchAll(/<option value="[^"]+">([^<]+)<\/option>/g)].map((m) => m[1]);
+  assert.deepEqual(labels, ['Off', 'After 30 minutes', 'After 1 hour', 'After 6 hours']);
+
+  assert.match(page, /if \(supports\('tabSleep'\)\)/);
+  assert.match(page, /getElementById\('tabSleepSetting'\)\?\.remove\(\)/);
+});
