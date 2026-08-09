@@ -598,6 +598,23 @@ const hasLiveWindow = () => !!rt().window && !rt().window.isDestroyed();
 
 /** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, audible: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
+/**
+ * @typedef {object} SleepSnapshot
+ * @property {import('electron').WebContentsView|null} view
+ *   The discarded view, held only between wc.close() and its observed
+ *   'destroyed' event. Nulled by that observer; never assigned to tab.view.
+ * @property {Array<{url:string,title:string,pageState?:string}>} entries
+ * @property {number} index
+ * @property {boolean} droppedPageState
+ */
+
+/** MAIN-PROCESS ONLY. Never serialized or persisted: it can hold form values
+ * and POST bodies, so it must never reach chrome renderers or crash reporting. */
+const sleepSnapshots = new Map(); // Map<string /* tab.id */, SleepSnapshot>
+// Delete on closeTab, a wake generation's final commit, and before quit. A
+// macOS window close intentionally does NOT clear this Map: tabs survive dock
+// reopen, and their recovery data must survive with them. Turning tabSleep off
+// likewise changes policy only; it must not discard existing snapshots.
 /** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
  *  per-request counter resolves a tab tens of times per second, and a linear
  *  walk of `tabs` dereferencing view.webContents there is both the hot path and
@@ -1237,7 +1254,10 @@ function adblockWeekStats() {
 
 let isQuitting = false;
 let sessionPersistenceSuspended = false;
-app.on('before-quit', () => { isQuitting = true; });
+app.on('before-quit', () => {
+  isQuitting = true;
+  sleepSnapshots.clear(); // retained POST bodies / form values
+});
 
 function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
@@ -2111,6 +2131,8 @@ function activateTabFromRail(id) {
 const recentlyClosedUrls = [];
 
 function closeTab(id) {
+  // First statement: any later early return must not strand recovery data.
+  sleepSnapshots.delete(id);
   const tab = tabs.get(id);
   if (!tab) return;
   forgetTabWebContentsIds(id);
