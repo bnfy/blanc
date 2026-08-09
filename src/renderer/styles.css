@@ -1145,37 +1145,37 @@ body[data-mode="palette"] #backdrop {
 }
 /* Opening: the panel grows out of the resting pill rather than appearing.
    The two are separate views, so overlay.js is handed the pill's box and sets
-   --morph-* from it; 'morph-start' is the pill-shaped state and 'morph-run'
-   carries it home. Corners travel 999px → the panel radius, which is what
-   stops the pill's capsule ends peeking out from behind a square panel.
-   Contents stay invisible through the first half, so the squash a uniform
-   scale puts on them never reaches the screen. */
+   the panel's starting width, height and corner from it.
+
+   SIZE, not transform scale. Scaling warps the corners — a round corner under
+   a non-uniform scale renders as an ellipse, and pre-compensating the radius
+   can only ever approximate it, because the radius interpolates linearly and
+   the scale doesn't. The panel's corner (18px) and the pill's (~19px) are
+   nearly the same, so the corner should barely move; with real width and
+   height it doesn't. It also means the contents are revealed as the box grows
+   rather than squashed and rubbering back out. */
+#islandPanel.morph-start,
+#islandPanel.morph-run {
+  overflow: hidden;
+  transform: translate(var(--morph-x, 0), var(--morph-y, 0));
+}
 #islandPanel.morph-start {
-  transform:
-    translate(var(--morph-x, 0), var(--morph-y, 0))
-    scale(var(--morph-sx, 1), var(--morph-sy, 1));
-  /* Elliptical on purpose — see the note in overlay.js. This renders as the
-     pill's own capsule corner once the non-uniform scale is applied. */
-  border-radius: var(--morph-rx, 999px) / var(--morph-ry, 999px);
+  opacity: 0;
   transition: none;
 }
 #islandPanel.morph-start > * { opacity: 0; }
-/* Steadier than the DS's snappy curve: that one front-loads so hard the whole
-   movement was over inside 60ms, which reads as a flash rather than a morph. */
-#islandPanel.morph-start { opacity: 0; }
 #islandPanel.morph-run {
   opacity: 1;
   transition:
-    transform 300ms cubic-bezier(0.4, 0, 0.2, 1),
-    border-radius 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    width 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 320ms cubic-bezier(0.4, 0, 0.2, 1),
+    transform 320ms cubic-bezier(0.4, 0, 0.2, 1),
     opacity 90ms ease;
 }
-/* Contents wait for the shape. Independent axes mean the panel starts at 14%
-   height, so anything visible before the vertical scale is nearly home arrives
-   squashed and rubbers out — which is what still felt wrong after the shape
-   itself was fixed. At 190ms the vertical scale is ~93%. */
-#islandPanel.morph-run > * { transition: opacity 130ms ease 190ms; }
-#islandPanel { transform-origin: 50% 0; }
+/* Contents come in early now — nothing squashes them any more, they are simply
+   uncovered as the box grows. */
+#islandPanel.morph-run > * { transition: opacity 160ms ease 60ms; }
 
 [data-theme="private"] #islandPanel { border: 1px dashed var(--text-dim); }
 

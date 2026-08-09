@@ -1094,40 +1094,32 @@
   function morphPanelFromPill(pillRect) {
     if (!pillRect || !pillRect.width) return;          // no box reported yet
     if (prefersReducedMotion()) return;                 // decorative; skip entirely
-    const panelWidth = islandPanel.offsetWidth;
-    if (!panelWidth) return;
-
     const panelBox = islandPanel.getBoundingClientRect();
-    if (!panelBox.height) return;
-    // Scale the axes INDEPENDENTLY. The pill is a thin capsule and the panel a
-    // chunky box, so no single factor turns one into the other — a uniform
-    // scale got the width about right and left the height five times too tall,
-    // which reads as a blank blob appearing rather than the pill opening.
-    const scaleX = Math.min(1, pillRect.width / panelBox.width);
-    const scaleY = Math.min(1, pillRect.height / panelBox.height);
+    if (!panelBox.width || !panelBox.height) return;
+
+    // Animate the panel's actual SIZE, not a transform scale.
+    //
+    // Scaling warps the corners: a round corner under a non-uniform scale
+    // renders as an ellipse, and no amount of pre-compensating the radius
+    // holds it steady, because the radius interpolates linearly while the
+    // scale does not. The panel's resting corner (18px) and the pill's
+    // (half its height, ~19px) are nearly the same, so the corner should
+    // barely move at all — and with real width and height it doesn't.
+    //
+    // It also means the contents are revealed rather than squashed, so they
+    // never rubber out on the way in.
+    const naturalWidth = panelBox.width;
+    const naturalHeight = panelBox.height;
     const pillCentre = pillRect.x + pillRect.width / 2;
     const panelCentre = panelBox.left + panelBox.width / 2;
 
     clearTimeout(morphTimer);
     islandPanel.classList.add('morph-start');
-    islandPanel.style.setProperty('--morph-sx', String(scaleX));
-    islandPanel.style.setProperty('--morph-sy', String(scaleY));
+    islandPanel.style.width = `${pillRect.width.toFixed(1)}px`;
+    islandPanel.style.height = `${pillRect.height.toFixed(1)}px`;
+    islandPanel.style.borderRadius = `${(pillRect.height / 2).toFixed(1)}px`;
     islandPanel.style.setProperty('--morph-x', `${(pillCentre - panelCentre).toFixed(2)}px`);
     islandPanel.style.setProperty('--morph-y', `${(pillRect.y - panelBox.top).toFixed(2)}px`);
-
-    // Corners, pre-compensated for the scale. Two things go wrong if you just
-    // animate 999px down to the panel's radius. 999px is clamped to a capsule
-    // while the box is short, but the VALUE is still enormous once it has
-    // grown — so mid-movement you get a huge rounded corner that only collapses
-    // at the very end. And scaling the axes by different amounts renders a
-    // round corner as a squashed ellipse.
-    //
-    // So start from the pill's real corner (half its height, which is what
-    // makes it a capsule) divided by each axis' scale, so it RENDERS as that
-    // corner at the start and travels evenly to the panel's own radius.
-    const pillCorner = pillRect.height / 2;
-    islandPanel.style.setProperty('--morph-rx', `${(pillCorner / scaleX).toFixed(2)}px`);
-    islandPanel.style.setProperty('--morph-ry', `${(pillCorner / scaleY).toFixed(2)}px`);
 
     // Two frames: one for the start state to be painted, one to leave it. A
     // single frame lands both in the same style recalculation and the panel
@@ -1135,7 +1127,18 @@
     requestAnimationFrame(() => requestAnimationFrame(() => {
       islandPanel.classList.remove('morph-start');
       islandPanel.classList.add('morph-run');
-      morphTimer = setTimeout(() => islandPanel.classList.remove('morph-run'), MORPH_MS + 60);
+      islandPanel.style.width = `${naturalWidth.toFixed(1)}px`;
+      islandPanel.style.height = `${naturalHeight.toFixed(1)}px`;
+      islandPanel.style.borderRadius = '';
+      islandPanel.style.removeProperty('--morph-x');
+      islandPanel.style.removeProperty('--morph-y');
+      morphTimer = setTimeout(() => {
+        // Hand the box back to layout, so the panel resizes normally again
+        // when tabs open and close underneath it.
+        islandPanel.classList.remove('morph-run');
+        islandPanel.style.width = '';
+        islandPanel.style.height = '';
+      }, MORPH_MS + 60);
     }));
   }
 
