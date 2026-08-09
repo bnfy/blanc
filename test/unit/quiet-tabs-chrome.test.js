@@ -186,3 +186,46 @@ test('the switcher does not add a second wake path from the renderer', () => {
   assert.doesNotMatch(overlaySource, /wakeTab/);
   assert.match(overlaySource, /result\.kind === 'tab'\) window\.browserAPI\.switchTab\(result\.tab\.id\)/);
 });
+
+// ---------------------------------------------------------------------------
+// serializeTabs (main.js) — the connection claim on a quiet row
+// ---------------------------------------------------------------------------
+
+const { connectionFor, committedUrlOf, shieldChipState } = require('../../src/main/shield-model');
+const mainSource = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+const serializeSource = mainSource.match(/function serializeTabs\(\) \{[\s\S]*?\n\}/)?.[0];
+
+test('serializeTabs could be lifted from main.js', () => {
+  assert.ok(serializeSource, 'serializeTabs not found in main.js — update this test with it');
+});
+
+function runSerializeTabs(tabList) {
+  const sandbox = {
+    settings: { getSettings: () => ({ adblockEnabled: true, adblockExceptions: [] }) },
+    rt: () => ({ tabOrder: tabList.map((tab) => tab.id) }),
+    tabs: new Map(tabList.map((tab) => [tab.id, tab])),
+    isHostnameExcepted: () => false, shieldChipState, connectionFor, committedUrlOf,
+  };
+  vm.runInNewContext(`${serializeSource}\nthis.__fn = serializeTabs;`, sandbox);
+  return sandbox.__fn();
+}
+
+const AWAKE_HTTPS = {
+  id: 'connection-tab', url: 'https://example.com/', isLoading: false,
+  blockedCount: 0, asleep: false,
+  view: { webContents: { isDestroyed: () => false, getURL: () => 'https://example.com/' } },
+};
+
+test('an awake row still reads its connection claim from the committed view', () => {
+  const [row] = runSerializeTabs([{ ...AWAKE_HTTPS }]);
+  assert.equal(row.connection, 'https');
+});
+
+test('a quiet row falls back to its stored url, which it has by construction', () => {
+  const [secure] = runSerializeTabs([{ ...AWAKE_HTTPS, asleep: true, view: null }]);
+  assert.equal(secure.connection, 'https');
+  const [insecure] = runSerializeTabs([
+    { ...AWAKE_HTTPS, url: 'http://example.com/', asleep: true, view: null },
+  ]);
+  assert.equal(insecure.connection, 'http');
+});

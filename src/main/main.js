@@ -1616,10 +1616,12 @@ function serializeTabs() {
         excepted,
         adblockEnabled,
       });
-      // Derived exactly once, here. The popover, the pill badge, and the panel
-      // badge all render this same value, so they cannot disagree.
+      // Derived exactly once, here. A quiet tab has no view, but it reached
+      // quiet only after committing, so its stored URL is honest in that one
+      // state. Do not broaden committedUrlOf's null default: it prevents an
+      // ahead-of-navigation URL from making a false security claim.
       const connection = connectionFor({
-        url: committedUrlOf(tab.view),
+        url: rest.asleep ? rest.url : committedUrlOf(tab.view),
         isLoading: rest.isLoading,
       });
       if (rest.private && rest.favicon) {
