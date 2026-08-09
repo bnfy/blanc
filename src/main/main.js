@@ -37,7 +37,7 @@ const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu } = require('./bookmark-data');
 const history = require('./history');
 const { JsonStore } = require('./store');
-const { persistableEntries } = require('./session-snapshot');
+const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
 const { loadWorkspace, buildSaveShape } = require('./session-workspace');
 const { filterRestoredSession } = require('./session-restore');
 const { isUtilityUrl } = require('./utility-pages');
@@ -1690,6 +1690,10 @@ function persistSession() {
       urls: entries.map((e) => e.url),
       groupIds: entries.map((e) => e.groupId),
       pinned: entries.map((e) => e.pinned),
+      // Restored tabs come back quiet, with no webContents to ask for a title
+      // or favicon. Map over `entries`, not the raw list: private/url-less
+      // tabs drop out of urls and must drop out of metadata with them.
+      meta: entries.map((e) => sessionTabMeta(tabs.get(e.id))),
       // Groups referenced only by private tabs stay out of the file too.
       groups: runtime.groups.filter((g) => entries.some((e) => e.groupId === g.id)),
       activeIndex: d.activeIndex ?? 0,
@@ -4062,6 +4066,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   saved.urls = cleaned.urls;
   saved.groupIds = cleaned.groupIds;
   saved.pinned = cleaned.pinned;
+  saved.meta = cleaned.meta;
   saved.activeIndex = cleaned.activeIndex;
   rt().groups = (Array.isArray(saved.groups) ? saved.groups : [])
     .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
