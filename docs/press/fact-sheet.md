@@ -43,6 +43,32 @@ extension runtime.
 - Blanc deliberately favors a small, coherent product over an AI agent,
   extension marketplace, or configurable dashboard.
 
+## Measured memory
+
+Measured 9 August 2026 on one Apple Silicon Mac: six ad-dense news sites open in
+each browser, fresh profile, no extensions, three runs each, median reported.
+The figure is `phys_footprint` summed across every process the browser starts —
+not resident set size, which double-counts the engine framework mapped into each
+renderer and inflates whichever browser isolates more per site.
+
+| Browser | Memory |
+|---|---|
+| Blanc | 1.3 GB |
+| Brave | 1.7 GB |
+| Zen | 3.2 GB |
+| Chrome | 5.6 GB |
+| Vivaldi | 5.9 GB |
+
+Two qualifications belong with any use of these figures. Brave lands nearest
+Blanc because it also blocks by default, which makes it the fair peer rather
+than Chrome. And the gap is not only blocking: with Blanc's own blocker switched
+off the same pages cost 4.2 GB, still below Chrome's 5.6.
+
+Fresh, extension-free profiles make this a comparison of engines and defaults,
+not of anyone's real setup. Raw run:
+`bench/memory/results/memory-2026-08-09T17-33-45-039Z.md`; the harness that
+produced it is `bench/memory/` in the repository.
+
 ## Privacy in precise terms
 
 - On a fresh profile, **Search suggestions** and **Help improve Blanc** are

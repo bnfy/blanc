@@ -1,7 +1,7 @@
 # Cross-browser memory benchmark — design
 
 **Date:** 2026-08-09
-**Status:** Implemented, audited, remediated — **never executed on macOS**. For review.
+**Status:** Implemented, audited, remediated, and **executed on macOS 2026-08-09**. A public claim now rests on it (see *Published claim*). For review.
 **Audit:** Three adversarial reviews (10 lenses, 23 agents); 57 findings survived refutation, of which the blocking ones are fixed. See *Known risks and open questions*.
 **Scope:** Developer tooling only. No shipping code changes; nothing in `src/`.
 **Origin:** An Instagram commenter asked "Zen already provides this functionality. How are you on memory usage?" There was no answer to that question anywhere in this repository.
@@ -12,11 +12,11 @@ Build `bench/memory/` — a macOS-only harness that measures the **`phys_footpri
 of a browser's entire process tree** after loading an identical page set, for
 Blanc against Chrome, Zen, Firefox and seven others.
 
-The harness is written, unit-tested and pushed. It has **not produced a single
-real number yet**, because it can only run on macOS and was authored in a Linux
-container. Everything below is therefore a design under review, not a validated
-result. No claim from this harness may reach the site, the press kit, or a
-comment thread until a real run backs it.
+The harness was authored in a Linux container and first executed on macOS on
+2026-08-09. It now produces real measurements, and running it immediately found
+three defects no amount of static review had caught — see *Settled by the first
+real runs*. A claim now rests on it, so the report backing that claim belongs in the
+repository — see *Published claim* below.
 
 **Why build rather than answer qualitatively.** The repo already has
 `test/unit/public-truth.test.js` guarding against unbacked marketing claims, and
@@ -118,7 +118,7 @@ oversight; a documented refusal reads as a boundary.
 | File | Responsibility |
 |---|---|
 | `bench/memory/run.js` (758) | CLI, preflight, plan, profile warming, cell execution, verification, report writing |
-| `bench/memory/lib/pageload.js` (235) | Reads each browser's own visit log to confirm which pages actually loaded |
+| `bench/memory/lib/pageload.js` (306) | Reads each browser's own visit log to confirm which pages actually loaded |
 | `bench/memory/lib/measure.js` (323) | Backend probing + `footprint`/`vmmap`/`top`/`ps` parsers, per-pid sampling, `canReadPid` |
 | `bench/memory/lib/proctree.js` (135) | `ps` snapshot parsing, descendant walk, bundle matching, process attribution |
 | `bench/memory/lib/launch.js` (210) | Per-family launch plans, Gecko pref seeding, spawn, tree-wide quit |
@@ -129,7 +129,7 @@ oversight; a documented refusal reads as a boundary.
 | `bench/memory/browsers.json` | 14 entries — 12 runnable, 2 documented-unsupported |
 | `bench/memory/workloads.json` | `baseline` (0) · `light` (5) · `mixed` (10) · `adheavy` (6) · `scale` (20) |
 | `bench/memory/README.md` | Methodology, preparation checklist, publishing discipline |
-| `test/unit/bench-memory.test.js` (807) | 53 tests over every pure function |
+| `test/unit/bench-memory.test.js` (1133) | 67 tests over every pure function |
 
 Pure logic is deliberately separated from anything that shells out, so the
 parsers, statistics, attribution and report generation are all testable on a
@@ -186,7 +186,7 @@ are assumptions about `src/main/` made from reading it rather than running it.
 
 ## Testing
 
-**53 unit tests**, all passing, covering: size-token parsing (including the
+**67 unit tests**, all passing, covering: size-token parsing (including the
 `(N bytes)`-beats-suffix rule), `vmmap` peak-line rejection, `footprint`
 peak/lifetime skipping, `top` row parsing with growth markers, `ps` KB→bytes,
 `ps` paths containing spaces, transitive descendants with a cycle guard, bundle
@@ -250,11 +250,8 @@ site. Selection validated `vmmap` against Node, which succeeds unprivileged;
 every browser here denies `task_for_pid` to an unprivileged caller. The run
 would have printed "Measuring with vmmap", returned 0 for every browser pid,
 and burned ~40 minutes producing zeroes. Now the backend is re-validated
-against the first browser actually launched — and on failure the run walks
-down the fidelity order (`resolveReadableBackend`) rather than stopping, since
-`top` needs no elevation and still reports a footprint-equivalent column. The
-matrix aborts only when every backend is denied, and a pinned `--backend=` is
-never silently downgraded to a different metric. Separately, `footprint` was invoked as `-p` (not a flag; it is
+against the first browser actually launched and the matrix aborts with an
+explanation. Separately, `footprint` was invoked as `-p` (not a flag; it is
 `-pid`) and `top` as `-n 0` (which prints *zero* rows, not unlimited), so two of
 the four backends were dead code. Fixing `footprint`'s flag alone would have
 been worse than leaving it dead: its real output ends `(16384 bytes per page)`,
@@ -406,32 +403,133 @@ What remains is an absolute floor (`MIN_PROCESSES`), which is a statement about
 attribution being broken rather than about how any engine allocates processes: a
 tree of one process means the tree was not found, whatever the engine.
 
-### Open — assumptions only a real run can settle
+### Fourth review round — three false-positive paths in page observation
 
-None of these are fixed, because none can be from here. Each is recorded in
-`browsers.json` notes as well, next to the entry it affects.
+The page observation introduced in the previous round was itself unsound in
+three ways, each of which could confirm a load that did not happen.
 
-- Whether `footprint`/`vmmap` can read hardened browser processes without root
-  on the tester's macOS version. Which backend survives is unknown — `--probe`
-  on the dev machine selects `footprint`, but that only proves it can read an
-  unhardened Node process. The run now walks down the fidelity order against
-  the first real browser and aborts on cell one only if every backend is
-  denied, so the unknown costs a downgrade rather than the matrix.
-- Whether Zen honours the Gecko driver's `user.js` startup-homepage seeding.
-  There is an open upstream report of a configured startup homepage not loading
-  on macOS aarch64 (`zen-browser/desktop#12154`) — the harness's only tab-seeding
-  mechanism, on this benchmark's exact platform.
-- Whether Zen, Brave or Vivaldi still open onboarding tabs despite the
-  suppression each now carries.
-- Vivaldi's actual stock blocker setting, which determines its comparison group.
-- Zen's bundle name on the tester's machine. Stable resolves as `Zen.app` per
-  the current Homebrew cask; `Zen Browser.app` is kept as a legacy candidate.
-- Whether a packaged Electron app honours `--user-data-dir`, and whether Blanc's
-  single-instance lock is per-profile (if not, a benchmark launch would hand its
-  URLs to an already-running Blanc and exit).
-- Whether Arc honours `--user-data-dir` at all.
-- Whether warming actually leaves Blanc's compiled engine inside the copied
-  template profile.
+- **Matching collapsed pages into sites.** Keys were hostnames, so the 20-page
+  `scale` workload was only 16 checks: loading one of three Wikipedia articles
+  reported complete success. Keys are now host **plus path**, one per requested
+  page, with query and fragment dropped so arrival-time tracking parameters do
+  not read as failures. A cross-origin redirect will now fail the cell — a loud
+  false negative that gets the workload URL corrected, chosen deliberately over
+  a silent false positive that gets published.
+- **Gecko read catalogued places, not visits.** `moz_places` is the shared
+  history *and bookmarks* store; a row there can be a bookmark or a referenced
+  link with no visit at all. The query now joins `moz_historyvisits`. Chromium's
+  `urls` has the same problem and now joins `visits`.
+- **Every cell inherited the warmed template's history.** Profiles are copied
+  from a warmed template, and the observer read the whole log with no time
+  boundary, so a page visited during warm-up could satisfy a cell in which it
+  never loaded. Two independent guards now: the family's visit log (and its
+  SQLite `-wal`/`-shm` sidecars, which would otherwise replay into a fresh
+  database) is deleted from the copy, and observation filters to visits after a
+  recorded cell-start timestamp — with the epoch conversions each engine needs
+  (PRTime for Gecko, microseconds-since-1601 for Chromium, which exceeds
+  `Number.MAX_SAFE_INTEGER` and is bound as a BigInt).
+
+A schema this code does not understand now fails the cell rather than falling
+back to an unfiltered query.
+
+**The Fission claim was still live in two places** the previous round missed —
+including `workloads.json`'s `scale` description, which the report renders, so
+it was publishable. Both are gone. `MIN_PROCESSES` is retained only as a gross
+attribution check and is not presented as proof that a process tree is complete.
+
+### Settled by the first real runs (2026-08-09, macOS 27, Apple Silicon)
+
+The harness has now executed. These moved from assumption to observation:
+
+- **`footprint` works unprivileged.** It was selected on the first probe and
+  read hardened, signed browsers without `sudo`. The `-pid` flag fix was
+  necessary, and so was fixing the parser first — unfixed, its
+  `(16384 bytes per page)` annotation would have reported every process as 16 KB.
+- **Zen honours `user.js` startup-homepage seeding.** The upstream report of it
+  failing on macOS aarch64 (`zen-browser/desktop#12154`) did not reproduce. But
+  Zen *consumes the first entry* with its own workspace surface, so the first
+  workload URL was silently dropped (9/10 pages, twice, deterministically).
+  `geckoUserJs` now leads with `about:blank` to absorb that.
+- **A packaged Electron app honours `--user-data-dir`**, and Blanc's
+  single-instance lock is per-profile: Blanc ran clean at 10/10 pages.
+- **Warming leaves Blanc's compiled engine in the template**, so the startup
+  navigation gate opens immediately and no cell races a cold blocklist.
+- **Vivaldi does not block ads at stock settings.** Confirmed by its own
+  numbers: 4.0 GiB on `mixed` and 5.9 GiB on `adheavy`, *above* Chrome on both.
+  A browser blocking ads does not land 7% above Chrome on ad-dense pages. The
+  `trackers` class is right.
+- **Zen resolves as `/Applications/Zen.app/Contents/MacOS/zen`** — the candidate
+  pair the registry guessed.
+- **No onboarding tabs from Zen, Brave or Vivaldi** survived the suppression;
+  every one reported its full page count.
+
+Three harness defects were found only by running it, none of which any amount
+of static review had caught: `kill(pid, 0)` reports a zombie as alive (a
+renderer awaiting reaping is unreadable and holds nothing); a flat byte total
+is not sufficient to call a cell settled while the process tree is still
+growing; and macOS *transiently* refuses `footprint` on sandboxed renderers, so
+unreadable pids need a retry before the tree is called incomplete.
+
+### Merged from main: backend downgrade instead of abort
+
+While this branch was measuring, PR #102 landed on `main` against an earlier
+snapshot of the same harness. It replaced the abort-on-unreadable-backend
+behaviour with `resolveReadableBackend()`, which walks down the fidelity order
+against a real browser pid and uses the first backend that reads it.
+
+It is a better answer than the abort this branch shipped. Aborting recommended
+`--backend=ps` — RSS, which the report itself banners as unpublishable — while
+`top` sat untried one rung down, needs no elevation, and reports a
+footprint-equivalent column. An explicitly pinned `--backend` is never
+downgraded, since substituting a different metric under a caller who asked for
+a specific one is worse than failing.
+
+Carried across on merge, along with its tests, and wired so a downgrade applies
+to the cell that triggered it rather than only to later ones. Everything else
+that conflicted was this branch being newer than main's snapshot, so those
+resolved to this side.
+
+### Open — still unsettled
+
+- **Firefox cannot load a harness-supplied profile on this machine.** It shows
+  "Profile Missing — Your Firefox profile cannot be loaded. It may be missing or
+  inaccessible", reaches ~128 MiB across 4 processes, and visits 0 of 10 pages.
+  Removing `-new-instance` (a Linux/Windows-only option) did not fix it, so the
+  cause is elsewhere — the install, or `-profile` handling on macOS 27.
+  **The clue for whoever picks this up: Zen, a Firefox fork driven through the
+  identical code path with identical arguments, works.** That points at the
+  Firefox installation rather than the driver. Failure reasons now carry the
+  browser's own stderr, which should end it in one round.
+  Firefox is the control that separates Zen's own cost from Gecko's; without it
+  a Zen number is still usable but cannot be attributed.
+- Whether Arc honours `--user-data-dir` at all — Arc is not installed on the
+  tester's machine, so this remains untested.
+
+### A limitation of page verification, found by running it
+
+Page verification reads each browser's own visit log, and **those logs do not
+agree about redirects**. Chromium's `urls` and Gecko's `moz_historyvisits`
+record every hop of a redirect chain; Blanc's `history.js` records only the
+committed destination. A URL that redirects across domains is therefore
+confirmed for some browsers and missing for others.
+
+`adheavy` contained `dailymail.co.uk/home/index.html`, which geo-redirects a
+UK-addressed request to `dailymail.com` — a different host, so not even
+host-level matching bridged it. Blanc was the only browser whose ad-heavy cells
+failed, across two full matrix runs, and it looked like a Blanc defect. It was
+not: the page rendered fine when opened by hand, and the URL bar showed
+`dailymail.com`.
+
+The workload URL is corrected and `workloads.json` now warns against
+cross-domain redirects in its own comment block. The asymmetry itself is not
+fixed — it would need Blanc to record redirect origins, which is a change to
+the app for the benefit of a benchmark, and that is the wrong trade.
+
+Worth stating plainly because the failure was *loud and wrong-looking*: the
+check refused to publish a Blanc row three times, which is the behaviour it was
+built for. The cost of that strictness is exactly this — occasionally rejecting
+a good cell and making you prove it. That is the correct direction, but it is
+not free.
 
 ### Accepted limitations, disclosed rather than fixed
 
@@ -450,6 +548,37 @@ None of these are fixed, because none can be from here. Each is recorded in
 - **Warming trades fresh-profile purity** for not measuring one-time setup cost.
   It is applied to every browser, not just Blanc.
 - **Live sites drift.** Results compare only within one session.
+
+## Published claim
+
+On 2026-08-09 a reply to the originating Instagram comment stated that Blanc
+used **about 40% less memory than Zen and 50% less than Chrome**, described as
+early testing.
+
+Backed by the single-session, three-repetition run in
+`bench/memory/results/memory-2026-08-09T16-36-38-171Z.md`:
+
+| | Blanc | Zen | Chrome |
+|---|---:|---:|---:|
+| idle | 200 MiB | 658 MiB | 416 MiB |
+| ten pages (`mixed`) | 1.6 GiB | 3.0 GiB | 3.5 GiB |
+
+Measured differences are 47% against Zen and 54% against Chrome, so the
+published figures are **conservative**, which is the correct direction for a
+number a stranger may reproduce.
+
+Two things the claim deliberately does not say, and the evidence for each if
+challenged:
+
+- **It is not only ad blocking.** With Blanc's blocker off, the same ten pages
+  cost 2.6 GiB against Chrome's 3.5 — 26% less on identical content.
+- **Brave is the honest peer, not Zen.** Brave landed at 1.8 GiB on the same
+  pages, near Blanc, because it also blocks by default. The claim names Zen and
+  Chrome because those are the browsers the comment named.
+
+The claim rests on `mixed`. No ad-heavy figure has been published, because
+Blanc's `adheavy` rows failed in both matrix runs for the redirect reason
+above.
 
 ## Validation plan — what the first macOS run must confirm
 

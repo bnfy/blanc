@@ -34,9 +34,17 @@ const { spawn } = require('node:child_process');
  *  this hook the registry's "adding a browser is a JSON edit" contract is false
  *  for any Gecko fork whose first-run surface is not Mozilla's. */
 function geckoUserJs(urls, extraPrefs = {}) {
+  // A leading about:blank absorbs whatever the browser does to the first
+  // startup tab. Zen replaces it with its own workspace/new-tab surface, so the
+  // first workload URL was silently dropped — observed twice, deterministically,
+  // always the first entry, with a fully settled process tree. Firefox gets the
+  // same treatment rather than a Zen-only special case: it keeps the two Gecko
+  // browsers structurally identical, which is the point of running Firefox as
+  // the control for Zen, and one blank tab costs nothing measurable.
+  const startupUrls = urls.length ? ['about:blank', ...urls] : [];
   const prefs = [
     ['browser.startup.page', 1],
-    ['browser.startup.homepage', urls.join('|')],
+    ['browser.startup.homepage', startupUrls.join('|')],
     // Suppress the what's-new / import / default-browser interruptions, each of
     // which would otherwise open an extra tab and skew the tab count.
     ['browser.startup.firstrunSkipsHomepage', false],
@@ -84,10 +92,19 @@ function buildLaunchPlan(browser, context) {
   }
 
   if (browser.family === 'gecko') {
+    // The leading about:blank in geckoUserJs means a Gecko browser that honours
+    // every entry ends on N+1 tabs; one that consumes the first (Zen) ends on N.
+    // Either way no workload page is lost, and the per-page column divides by
+    // workload pages rather than by this count.
+    // Single-dash forms, which are what Mozilla documents, and no
+    // `-new-instance`: that option is Linux/Windows-only and macOS Firefox
+    // answered this argv with a "Profile Missing — your Firefox profile cannot
+    // be loaded" dialog. It earns nothing here either, since `-no-remote`
+    // already forces a separate instance and every cell has its own profile
+    // directory.
     const args = [
-      '--profile', profileDir,
-      '--no-remote',
-      '--new-instance',
+      '-profile', profileDir,
+      '-no-remote',
       ...(browser.extraArgs || []),
     ];
     const files = [{
@@ -98,6 +115,29 @@ function buildLaunchPlan(browser, context) {
   }
 
   throw new Error(`No launch driver for browser family: ${browser.family}`);
+}
+
+/**
+ * Files that must not survive being copied out of a warmed template profile.
+ *
+ * Gecko writes a lock into the profile while it runs, and the warm-up run is
+ * ended with a signal rather than a clean menu quit — so the template can carry
+ * a lock naming a process that no longer exists. Firefox then rejects the
+ * copied profile with "profile cannot be loaded", which is how a browser ends
+ * up producing no rows at all while every other family works.
+ *
+ * `lock` is a symlink on macOS, so unlink rather than anything cleverer.
+ *
+ * @returns {string[]}
+ */
+function staleProfileArtifacts(browser, profileDir) {
+  if (browser.family !== 'gecko') return [];
+  return [
+    path.join(profileDir, 'lock'),
+    path.join(profileDir, '.parentlock'),
+    path.join(profileDir, 'sessionstore.jsonlz4'),
+    path.join(profileDir, 'sessionstore-backups'),
+  ];
 }
 
 /** Absolute path to the executable inside a macOS .app bundle. */
@@ -131,15 +171,37 @@ async function launch(browser, { profileDir, urls }) {
     throw new Error(`${browser.label}: executable not found at ${bin}`);
   }
 
+  // stderr is captured rather than discarded. When a browser refuses to start,
+  // its own message is the whole diagnosis — Firefox's "Profile Missing" cost
+  // two wrong guesses because the harness was throwing that output away.
+  // stdout stays ignored: browsers are chatty there and it says nothing useful.
   const child = spawn(bin, plan.args, {
-    stdio: 'ignore',
+    stdio: ['ignore', 'ignore', 'pipe'],
     // Keep it in our process group so an aborted run cannot orphan a browser
     // holding a gigabyte of the tester's RAM.
     detached: false,
   });
   child.on('error', () => {}); // surfaced by the caller's liveness check instead
 
-  return { pid: child.pid, child, tabCount: plan.tabCount, argv: [bin, ...plan.args] };
+  // Drained continuously so a chatty browser cannot fill the pipe and block,
+  // but only the tail is retained.
+  let stderr = '';
+  const MAX_STDERR = 4000;
+  if (child.stderr) {
+    child.stderr.setEncoding('utf8');
+    child.stderr.on('data', (chunk) => {
+      stderr = (stderr + chunk).slice(-MAX_STDERR);
+    });
+    child.stderr.on('error', () => {});
+  }
+
+  return {
+    pid: child.pid,
+    child,
+    tabCount: plan.tabCount,
+    argv: [bin, ...plan.args],
+    stderr: () => stderr.trim(),
+  };
 }
 
 /** True while the pid exists and we may signal it. */
@@ -202,6 +264,7 @@ async function quit(pid, { pids = [], graceMs = 8000, pollMs = 250 } = {}) {
 
 module.exports = {
   geckoUserJs,
+  staleProfileArtifacts,
   buildLaunchPlan,
   executablePath,
   launch,

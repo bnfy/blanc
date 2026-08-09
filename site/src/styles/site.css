@@ -1503,3 +1503,60 @@ body[data-page="press"] > .legal-top { display: none; }
   .press-launch-card > a:focus-visible img,
   .press-review-steps li:hover code { transform: none; }
 }
+
+/* ---------- measured memory comparison (press + ad-blocking feature) ---------- */
+/* One measure across five browsers, so the chart is a single-series emphasis
+   rather than five competing colours: Blanc in --accent, everyone else in one
+   muted neutral. The muted bar sits below 3:1 on the surface by design (it is
+   meant to recede), so every bar carries a visible value and the markup is a
+   real table — the value is never colour- or length-only. */
+/* Sections on these pages space themselves — press sections carry their own
+   block padding and a rule, feature sections carry margins, and neither parent
+   sets a gap. Without its own rhythm this section butted straight up under the
+   card above it on the ad-blocking page. */
+.memchart-section { display: grid; gap: 30px; padding-block: clamp(56px, 7vw, 88px); }
+/* Every press section is ruled; match that rather than breaking the sequence. */
+.press-page .memchart-section { border-bottom: 1px solid var(--border); }
+.memchart-heading { max-width: 62ch; display: grid; gap: 12px; }
+.memchart-heading h2 { margin: 0; }
+.memchart-heading p:last-child { margin: 0; color: var(--text-dim); }
+
+.memchart { margin: 0; display: grid; gap: 22px; }
+.memchart-table { width: 100%; border-collapse: collapse; }
+.memchart-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.memchart-table tr + tr th, .memchart-table tr + tr td { padding-top: 14px; }
+.memchart-table th[scope="row"] {
+  width: 8.5rem; text-align: left; font-weight: 500; font-size: 1rem;
+  color: var(--text); vertical-align: middle; padding-right: 18px;
+}
+/* The bar scales inside its own track, never against the whole cell — a 98%
+   bar measured against the cell leaves no room for its own label, which
+   clipped Vivaldi's value off the right edge. The value column is fixed so
+   every label has somewhere to sit whatever the bar does. */
+.memchart-table td {
+  display: grid; grid-template-columns: 1fr 4.5rem; align-items: center; gap: 16px;
+}
+.memchart-track { display: block; width: 100%; }
+.memchart-bar {
+  display: block; width: var(--fill); height: 30px; border-radius: 0 4px 4px 0;
+  background: #c4c4c4; min-width: 3px;
+}
+.memchart-val {
+  font-variant-numeric: tabular-nums; font-size: 1rem; font-weight: 600;
+  color: var(--text); white-space: nowrap; text-align: right;
+}
+.memchart-table .is-blanc th[scope="row"] { font-weight: 700; }
+.memchart-table .is-blanc .memchart-bar { background: var(--accent); }
+.memchart-table .is-blanc .memchart-val { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.01em; }
+
+.memchart-note {
+  font-size: 0.85rem; line-height: 1.65; color: var(--text-dim);
+  border-top: 1px solid var(--border); padding-top: 16px; max-width: 70ch;
+}
+
+@media (max-width: 640px) {
+  .memchart-table td { grid-template-columns: 1fr 4rem; gap: 12px; }
+  .memchart-table th[scope="row"] { width: 5.5rem; padding-right: 12px; font-size: 0.95rem; }
+  .memchart-bar { height: 24px; }
+  .memchart-table .is-blanc .memchart-val { font-size: 1.15rem; }
+}

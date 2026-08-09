@@ -13,6 +13,34 @@
 // taken on trust.
 
 /**
+ * Is a secondary count (process count) flat across the window?
+ *
+ * Bytes alone are not enough to call a browser settled. A tree that is still
+ * spawning content processes can hold a flat total for several samples while
+ * pages are still opening — observed with Zen, which plateaued at 2.4 GiB for
+ * three samples while its process count went 25 → 32 → 34, then quit before
+ * the last page had loaded.
+ *
+ * The tolerance is absolute-or-relative because small trees churn by one or two
+ * utility processes at idle (Chrome's baseline moves between 9 and 13), which
+ * must not read as "still loading", while a tree growing by nine must.
+ *
+ * @param {number[]} counts oldest first
+ * @param {{window?: number}} [options]
+ * @returns {boolean}
+ */
+function isCountStable(counts, options = {}) {
+  const { window = 3 } = options;
+  const finite = (counts || []).filter((v) => Number.isFinite(v));
+  if (finite.length < window) return false;
+  const recent = finite.slice(-window);
+  const min = Math.min(...recent);
+  const max = Math.max(...recent);
+  if (max <= 0) return false;
+  return max - min <= Math.max(2, 0.05 * max);
+}
+
+/**
  * @param {number[]} series bytes, oldest first
  * @param {{window?: number, tolerance?: number}} [options]
  * @returns {boolean}
@@ -52,6 +80,9 @@ async function sampleUntilSettled(read, options = {}) {
     sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     now = () => Date.now(),
     onSample = () => {},
+    // Supplied by the runner: "is the process count flat too". Defaults to true
+    // so a caller with no secondary signal behaves as before.
+    alsoStable = () => true,
   } = options;
 
   const started = now();
@@ -64,7 +95,7 @@ async function sampleUntilSettled(read, options = {}) {
     onSample(value, series.length, now() - started);
 
     const elapsed = now() - started;
-    if (elapsed >= minMs && isSettled(series, { window, tolerance })) {
+    if (elapsed >= minMs && isSettled(series, { window, tolerance }) && alsoStable()) {
       settled = true;
       return { series, settled, elapsedMs: elapsed };
     }
@@ -73,4 +104,4 @@ async function sampleUntilSettled(read, options = {}) {
   }
 }
 
-module.exports = { isSettled, sampleUntilSettled };
+module.exports = { isSettled, isCountStable, sampleUntilSettled };

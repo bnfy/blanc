@@ -93,3 +93,48 @@ test('platform specs match the shipped first-run telemetry contract', () => {
   assert.match(matrix, /\{installId,sessionId,version,platform,arch,osVersion\}/);
   assert.match(services, /no telemetry install id exists/i);
 });
+
+test('published memory figures agree across the site, the fact sheet, and the run behind them', () => {
+  // A performance claim on the site is the easiest kind to let rot: the numbers
+  // live in three places and nothing but this test stops one of them being
+  // edited alone. If a re-run changes the figures, all three change together or
+  // this fails.
+  const MEASURED = [['Blanc', 1.3], ['Brave', 1.7], ['Zen', 3.2], ['Chrome', 5.6], ['Vivaldi', 5.9]];
+  const RESULT = 'bench/memory/results/memory-2026-08-09T17-33-45-039Z.json';
+
+  const chart = read('site/src/components/MemoryChart.astro');
+  const factSheet = read('docs/press/fact-sheet.md');
+
+  for (const [name, gb] of MEASURED) {
+    assert.match(chart, new RegExp(`name: '${name}', gb: ${gb}\\b`), `${name} in MemoryChart`);
+    assert.match(factSheet, new RegExp(`\\| ${name} \\| ${gb} GB \\|`), `${name} in fact sheet`);
+  }
+
+  // The claim must be traceable to a committed run, not to a number someone
+  // remembers. Every figure above has to appear in that run's own totals.
+  assert.ok(fs.existsSync(path.join(root, RESULT)), `${RESULT} must be committed`);
+  const report = JSON.parse(read(RESULT));
+  const adheavy = report.results.filter((r) => r.workload === 'adheavy');
+  const medianGiB = (label) => {
+    const row = adheavy.find((r) => r.label === label);
+    assert.ok(row, `${label} missing from the committed run`);
+    const totals = row.repetitions.map((r) => r.totalBytes).sort((a, b) => a - b);
+    const mid = totals.length >> 1;
+    const median = totals.length % 2 ? totals[mid] : (totals[mid - 1] + totals[mid]) / 2;
+    return median / 1024 ** 3;
+  };
+  for (const [name, gb] of MEASURED) {
+    const actual = medianGiB(name === 'Zen' ? 'Zen Browser' : name === 'Chrome' ? 'Google Chrome' : name);
+    assert.ok(
+      Math.abs(actual - gb) < 0.06, // displayed GiB rounds to 1 dp
+      `${name}: published ${gb} GB but the committed run measured ${actual.toFixed(2)}`
+    );
+  }
+
+  // Both qualifications must travel with the figures wherever they are shown.
+  for (const [file, text] of [['MemoryChart', chart], ['fact sheet', factSheet]]) {
+    assert.match(text, /blocks by default/i, `${file} must name Brave as the fair peer`);
+    assert.match(text, /4\.2 GB/, `${file} must state the blocking-off figure`);
+    assert.match(text, /no extensions/i, `${file} must disclose the profile conditions`);
+  }
+});

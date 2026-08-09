@@ -17,7 +17,7 @@ const proctree = require('./lib/proctree');
 const registry = require('./lib/registry');
 const launcher = require('./lib/launch');
 const pageload = require('./lib/pageload');
-const { sampleUntilSettled } = require('./lib/settle');
+const { sampleUntilSettled, isCountStable } = require('./lib/settle');
 const { buildMarkdown } = require('./lib/report');
 const { formatBytes, summarize } = require('./lib/stats');
 
@@ -197,10 +197,14 @@ const baselineKey = (browserId, rep) => `${browserId}::rep${rep}`;
  */
 function summarizeWindow(meta, windowSize = REPORTED_WINDOW) {
   const window = (meta || []).slice(-windowSize);
-  if (!window.length) return { unreadable: 0, processCount: 0 };
+  if (!window.length) return { unreadable: 0, vanished: 0, processCount: 0, unreadableDetail: [] };
   return {
-    unreadable: window.reduce((sum, m) => sum + (m.missing || 0), 0),
+    // Alive-but-unreadable only. Processes that exited mid-sample are counted
+    // separately because they are normal churn, not a measurement failure.
+    unreadable: window.reduce((sum, m) => sum + (m.unreadable || 0), 0),
+    vanished: window.reduce((sum, m) => sum + (m.vanished || 0), 0),
     processCount: Math.min(...window.map((m) => m.processCount || 0)),
+    unreadableDetail: [...new Set(window.flatMap((m) => m.unreadableDetail || []))],
   };
 }
 
@@ -221,7 +225,7 @@ function summarizeWindow(meta, windowSize = REPORTED_WINDOW) {
  *
  * @returns {{ok: true} | {ok: false, reason: string}}
  */
-function verifyLoaded({ workload, totalBytes, processCount, baseline, pages }) {
+function verifyLoaded({ workload, totalBytes, processCount, baseline, pages, initialized }) {
   if (!Number.isFinite(totalBytes) || totalBytes <= 0) {
     return { ok: false, reason: 'measured 0 bytes — the backend read nothing' };
   }
@@ -243,8 +247,14 @@ function verifyLoaded({ workload, totalBytes, processCount, baseline, pages }) {
   // The idle baseline is not exempt: it is the subtrahend of the per-page
   // column and the denominator of the growth net below, so understating it
   // both inflates per-page cost and makes an understated loaded cell pass.
-  // Its floors are the two above; it has no pages to check.
-  if (workload === 'baseline') return { ok: true };
+  // It has no pages to check, but it must at least prove the browser started
+  // against this profile rather than stalling on an error dialog — which is
+  // alive, multi-process, and otherwise indistinguishable from an idle browser.
+  if (workload === 'baseline') {
+    return initialized && !initialized.ok
+      ? { ok: false, reason: initialized.reason }
+      : { ok: true };
+  }
 
   // The authoritative check: what the browser itself recorded visiting.
   // Everything else here is a net under it.
@@ -314,6 +324,23 @@ function prepareProfile(browser, template) {
   if (template && fs.existsSync(template)) {
     fs.rmSync(profileDir, { recursive: true, force: true });
     fs.cpSync(template, profileDir, { recursive: true });
+    // The template is a warmed profile, so it carries whatever the warm-up run
+    // visited. Left in place, a page already recorded there could satisfy a
+    // cell in which it never loaded. The cell-start time boundary in
+    // observeLoadedPages covers this too; deleting the log as well means a
+    // clock problem cannot quietly re-open the hole. Sidecars go with it — a
+    // surviving -wal would let SQLite replay warm-up visits into the new file.
+    for (const artifact of pageload.historyArtifacts(browser, profileDir)) {
+      fs.rmSync(artifact, { force: true });
+    }
+    // Gecko writes a lock into the profile while it runs, and the warm-up is
+    // ended with a signal rather than a clean quit — so the template can carry
+    // a lock naming a process that no longer exists. Firefox then rejects the
+    // copied profile with a "profile cannot be loaded" dialog and produces no
+    // rows at all, which is exactly what happened to every Firefox cell.
+    for (const artifact of launcher.staleProfileArtifacts(browser, profileDir)) {
+      fs.rmSync(artifact, { recursive: true, force: true });
+    }
   }
   fs.mkdirSync(profileDir, { recursive: true });
 
@@ -351,19 +378,16 @@ async function reapAll() {
 }
 
 /**
- * The processes currently attributable to a browser we launched.
+ * The browser's own last words, appended to a failure reason.
  *
- * `excludePids` is not optional in practice: attribution unions the descendant
- * walk with bundle-path matching, so without it the tester's own copy of the
- * same browser joins the set — and callers pass that set to `quit()`, which
- * ends in SIGKILL.
+ * A browser that refuses to start usually says why on stderr; discarding that
+ * is what turned Firefox's "Profile Missing" into rounds of guessing.
  */
-async function processSetFor(browser, rootPid, excludePids) {
-  return proctree.browserProcessSet(await proctree.snapshot(), {
-    rootPid,
-    bundlePath: browser.bundlePath,
-    excludePids,
-  });
+function stderrTail(launched) {
+  const text = launched && typeof launched.stderr === 'function' ? launched.stderr() : '';
+  if (!text) return '';
+  const tail = text.split('\n').filter(Boolean).slice(-4).join(' | ');
+  return tail ? ` — browser said: ${tail}` : '';
 }
 
 /** One measured cell: launch, sample until settled, verify, quit. */
@@ -375,14 +399,16 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
   const profileDir = prepareProfile(browser, options.templates && options.templates.get(browser.id));
 
   let launched = null;
+  let launchedForStderr = null;
   let tabCount = 0;
-  // The backend can be downgraded by the first-launch validation below, and the
-  // cell that triggered it must sample with the replacement rather than with
-  // the one just proven unable to read this browser.
-  let activeBackend = backend;
   const entry = { pid: null, pids: [] };
+  // Recorded before the browser starts, so visit filtering has a boundary that
+  // cannot include anything the warmed template did. A second of slack absorbs
+  // clock granularity between this process and the browser's own timestamps.
+  const cellStartedMs = Date.now() - 1000;
   try {
     launched = await launcher.launch(browser, { profileDir, urls });
+    launchedForStderr = launched;
     entry.pid = launched.pid;
     tabCount = launched.tabCount;
     liveLaunches.add(entry);
@@ -391,9 +417,13 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
     // settle window sampling a corpse.
     await new Promise((resolve) => setTimeout(resolve, 1500));
     if (!launcher.isAlive(launched.pid)) {
-      throw new Error('exited immediately after launch');
+      throw new Error(`exited immediately after launch${stderrTail(launched)}`);
     }
 
+    // A downgrade decided here applies to THIS cell too — the cell that
+    // triggered it would otherwise be measured with the backend that cannot
+    // read it, and fail for a reason already solved.
+    let activeBackend = backend;
     if (onFirstLaunch) activeBackend = (await onFirstLaunch(launched.pid)) || backend;
 
     // Per-sample metadata, index-aligned with `series`. Recording it per sample
@@ -401,31 +431,81 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
     // below cover the same samples the reported median is computed from.
     const meta = [];
     const read = async () => {
-      const pids = await processSetFor(browser, launched.pid, preExistingPids);
+      const rows = await proctree.snapshot();
+      const pids = proctree.browserProcessSet(rows, {
+        rootPid: launched.pid,
+        bundlePath: browser.bundlePath,
+        excludePids: preExistingPids,
+      });
       entry.pids = pids;
-      const { totalBytes, missing } = await measure.sampleTotal(activeBackend, pids);
-      meta.push({ processCount: pids.length, missing: missing.length });
+      const commandOf = new Map(rows.map((r) => [r.pid, r.command]));
+      let { totalBytes, missing } = await measure.sampleTotal(activeBackend, pids);
+
+      // Sandboxed renderers occasionally refuse a reading and then allow one a
+      // moment later — observed as six live "Chrome Helper (Renderer)"
+      // processes failing in one repetition out of three while the other two
+      // were clean. Retry those pids once before treating the tree as
+      // partially unreadable, since a whole cell is expensive to lose to a
+      // transient refusal.
+      if (missing.length) {
+        await new Promise((resolve) => setTimeout(resolve, 750));
+        const retryable = missing.filter((pid) => launcher.isAlive(pid));
+        if (retryable.length) {
+          const retry = await measure.sampleTotal(activeBackend, retryable);
+          totalBytes += retry.totalBytes;
+          const dead = missing.filter((pid) => !retryable.includes(pid));
+          missing = [...retry.missing, ...dead];
+        }
+      }
+      // A pid the backend could not read matters only if the process is still
+      // there. Sampling is per-process and sequential, so across a 60+ renderer
+      // tree some processes exit between the ps snapshot and their turn — and a
+      // process that has exited holds no memory, so leaving it out is correct
+      // rather than an undercount. What must fail the cell is a process that is
+      // alive and unreadable, which is the hardened-runtime case.
+      const unreadable = missing.filter((pid) => launcher.isAlive(pid));
+      meta.push({
+        processCount: pids.length,
+        unreadable: unreadable.length,
+        vanished: missing.length - unreadable.length,
+        // Named, not just counted. Two rounds of this were spent guessing what
+        // kind of process was unreadable; the next one should be answered from
+        // the output.
+        unreadableDetail: unreadable.map(
+          (pid) => `${pid} ${path.basename(commandOf.get(pid) || 'unknown')}`
+        ),
+      });
       return totalBytes;
     };
 
     const { series, settled, elapsedMs } = await sampleUntilSettled(read, {
       intervalMs: options.settleInterval,
       maxMs: options.settleMax,
+      // A flat byte total is not enough: a tree still spawning content
+      // processes can hold a plateau while pages are still opening, and quitting
+      // there loses the pages that had not loaded yet.
+      alsoStable: () => isCountStable(meta.map((m) => m.processCount)),
       onSample: (value, index) =>
         log(`      sample ${index}: ${formatBytes(value)} (${meta[index - 1].processCount} procs)`),
     });
 
     if (!launcher.isAlive(launched.pid)) {
-      throw new Error('exited before it could be measured');
+      throw new Error(`exited before it could be measured${stderrTail(launched)}`);
     }
 
     // A tree we could only partially read is not a total.
-    const { unreadable, processCount } = summarizeWindow(meta);
+    const { unreadable, vanished, processCount, unreadableDetail } = summarizeWindow(meta);
     if (unreadable) {
       throw new Error(
-        `${unreadable} process reading(s) across the reported window were unreadable by ` +
-          `the ${activeBackend.id} backend — the total would be an undercount`
+        `${unreadable} live process(es) across the reported window were unreadable by ` +
+          `the ${backend.id} backend — the total would be an undercount. ` +
+          `Unreadable: ${unreadableDetail.join('; ')}`
       );
+    }
+    if (vanished) {
+      // Not a failure, but worth seeing: heavy churn means the tree moved while
+      // it was being sampled, which widens the spread between repetitions.
+      log(`      (${vanished} process(es) exited mid-sample and were excluded)`);
     }
 
     const totalBytes = summarize(series.slice(-REPORTED_WINDOW)).median;
@@ -436,7 +516,10 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
     liveLaunches.delete(entry);
     launched = null;
 
-    const pages = pageload.observeLoadedPages(browser, profileDir, urls);
+    const pages = pageload.observeLoadedPages(browser, profileDir, urls, {
+      sinceMs: cellStartedMs,
+    });
+    const initialized = pageload.profileInitialized(browser, profileDir);
     if (urls.length) {
       log(`      pages visited: ${pages.loaded}/${pages.requested}` +
         (pages.missing.length ? ` (missing: ${pages.missing.join(', ')})` : ''));
@@ -448,8 +531,9 @@ async function runCell({ browser, workload, urls, backend, options, log, baselin
       processCount,
       baseline: baselineFor,
       pages,
+      initialized,
     });
-    if (!verdict.ok) throw new Error(verdict.reason);
+    if (!verdict.ok) throw new Error(`${verdict.reason}${stderrTail(launchedForStderr)}`);
 
     return {
       totalBytes,
@@ -487,26 +571,11 @@ async function warmTemplate(browser, options, log) {
     seedBlancProfile(dir, { adblockEnabled: browser.requiresProfileSeed !== 'adblockDisabled' });
   }
   log(`  warming ${browser.label}…`);
-  // Taken before launching for the same reason a cell does it: bundle matching
-  // would otherwise sweep the tester's own copy of this browser into the set
-  // handed to quit().
-  const preExistingPids = new Set((await proctree.snapshot()).map((r) => r.pid));
   const launched = await launcher.launch(browser, { profileDir: dir, urls: [] });
   const entry = { pid: launched.pid, pids: [] };
   liveLaunches.add(entry);
-
-  // Recorded twice: once as soon as the helpers exist, so a Ctrl-C during the
-  // long warm wait has a real set to sweep rather than just the root pid, and
-  // again immediately before quitting so the reap covers helpers that have
-  // since been re-parented away from the root.
-  const warmMs = options.warmMs || 45_000;
-  const settleMs = Math.min(2000, warmMs);
-  await new Promise((resolve) => setTimeout(resolve, settleMs));
-  entry.pids = await processSetFor(browser, launched.pid, preExistingPids);
-  await new Promise((resolve) => setTimeout(resolve, warmMs - settleMs));
-
-  entry.pids = await processSetFor(browser, launched.pid, preExistingPids);
-  await launcher.quit(launched.pid, { pids: entry.pids });
+  await new Promise((resolve) => setTimeout(resolve, options.warmMs || 45_000));
+  await launcher.quit(launched.pid);
   liveLaunches.delete(entry);
   // Let the profile's own writes flush before it is used as a copy source.
   await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -539,12 +608,12 @@ async function main() {
   }
 
   if (options.probe) {
-    const backend = await measure.selectBackend({ only: options.backend });
+    let backend = await measure.selectBackend({ only: options.backend });
     log(`backend: ${backend.id}\nmetric:  ${backend.metric}\n${backend.description}`);
     log(
       '\nNote: this probed our own Node process. Whether it can read a hardened,\n' +
-        'signed browser is only established on the first real cell — which falls\n' +
-        'back to the next backend down if it cannot, and aborts only if none can.'
+        'signed browser is only established on the first real cell, which aborts\n' +
+        'the run if it cannot.'
     );
     return;
   }
@@ -580,7 +649,7 @@ async function main() {
   }
 
   let backend = await measure.selectBackend({ only: options.backend });
-  log(`Measuring with ${backend.id} (${backend.metric}), pending the first browser\n`);
+  log(`Measuring with ${backend.id} (${backend.metric})\n`);
 
   for (const signal of ['SIGINT', 'SIGTERM']) {
     process.on(signal, () => {
@@ -606,11 +675,7 @@ async function main() {
   }
 
   // Established once, against the first browser actually launched: selection
-  // could only probe our own unhardened Node process, which every backend can
-  // read. If the winner turns out to be denied by a hardened, signed browser,
-  // walk down the fidelity order rather than abandoning the run — `top` needs
-  // no elevation and still reports a footprint-equivalent column, so the
-  // machine that cannot be measured with `vmmap` usually can be with `top`.
+  // could only probe our own unhardened Node process.
   let backendValidated = false;
   const validateBackend = async (pid) => {
     if (backendValidated) return backend;
@@ -618,39 +683,26 @@ async function main() {
     const resolved = await measure.resolveReadableBackend(backend, pid, {
       pinned: Boolean(options.backend),
     });
-
     if (!resolved.backend) {
-      const error = new Error(
+      throw new Error(
         `No measurement backend can read browser process ${pid} (tried: ` +
           `${resolved.tried.join(', ')}). Browsers ship a hardened runtime and deny ` +
           'task_for_pid to unprivileged callers, so every measurement would be zero.\n' +
           (options.backend
             ? `--backend=${options.backend} is pinned, so it was not downgraded. Drop the ` +
-              'flag to let the run fall back to a lower-fidelity backend automatically.\n'
-            : '') +
-          'Fix: grant the measurement tool the access it needs. Do NOT run the whole ' +
-          'harness under sudo — that launches every browser as root, which is not the ' +
-          'configuration anyone uses.'
+              'flag to let the run fall back on its own.'
+            : 'Do NOT run the whole harness under sudo — that launches every browser as ' +
+              'root, which is not the configuration anyone uses.')
       );
-      // Every remaining cell would fail the same way; this ends the matrix
-      // rather than logging forty identical per-cell failures.
-      error.fatal = true;
-      throw error;
     }
-
     if (resolved.downgradedFrom) {
       backend = resolved.backend;
       log(
         `  ⚠️  ${resolved.downgradedFrom} cannot read hardened browser processes on this ` +
-          `machine — falling back to ${backend.id} (${backend.metric}).` +
-          (backend.metric === 'rss'
-            ? '\n      That is RSS, not phys_footprint: the report will carry an ' +
-              'unpublishable-run banner.'
-            : '') +
-          '\n'
+          `machine; falling back to ${backend.id} (${backend.metric}).\n`
       );
     }
-    return backend;
+    return resolved.backend;
   };
 
   const cells = new Map();
@@ -680,7 +732,7 @@ async function main() {
     } catch (error) {
       // A backend that cannot read browsers makes every remaining cell
       // pointless; anything else is a per-cell failure worth recording.
-      if (error.fatal) throw error;
+      if (/cannot read browser process/.test(error.message)) throw error;
       log(`      ✗ ${error.message}\n`);
       failures.push({
         browserId: browser.id,
@@ -811,6 +863,7 @@ module.exports = {
   orderWorkloads,
   seedBlancProfile,
   verifyLoaded,
+  stderrTail,
   summarizeWindow,
   baselineKey,
   prepareProfile,

@@ -104,11 +104,13 @@
         "tab count. extraPrefs sets the pref that suppresses it — if a future",
         "build renames it, the welcome screen returns silently and only the load",
         "check against Zen's own idle baseline catches it.",
-        "There is an open upstream report of a configured startup homepage not",
-        "loading on macOS aarch64 (zen-browser/desktop#12154) — that is the",
-        "harness's only tab-seeding mechanism, on this benchmark's exact",
-        "platform. Treat extraBlankTabs: 0 as an unverified assumption until a",
-        "real run confirms it."
+        "CONFIRMED 2026-08-09 on Zen 1.x / macOS 27: user.js startup-homepage",
+        "tab seeding IS honoured — the upstream report of it failing on macOS",
+        "aarch64 (zen-browser/desktop#12154) did not reproduce here. But Zen",
+        "consumes the FIRST startup entry with its own workspace/new-tab",
+        "surface, so the first workload URL was silently dropped (9/10 pages,",
+        "twice, deterministically). geckoUserJs now leads with about:blank to",
+        "absorb that."
       ]
     },
     {

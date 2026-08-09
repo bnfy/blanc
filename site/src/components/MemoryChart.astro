@@ -1,0 +1,79 @@
+---
+/**
+ * Measured browser memory, six ad-heavy news sites open in each.
+ *
+ * Source of truth: bench/memory/results/memory-2026-08-09T17-33-45-039Z.md —
+ * a single-session run, three repetitions per browser, on one Mac. Every figure
+ * here is the median of that run. If these numbers change, re-run the harness
+ * and update BOTH this component and docs/press/fact-sheet.md; the
+ * public-truth unit test pins them together on purpose.
+ *
+ * Rendered as a table rather than divs so the numbers are reachable without
+ * seeing the bars: the bar IS the table cell, so the chart and its accessible
+ * twin are the same markup rather than two things that can drift apart.
+ */
+const SCALE_GB = 6;
+
+const rows = [
+  { name: 'Blanc', gb: 1.3, blanc: true },
+  { name: 'Brave', gb: 1.7 },
+  { name: 'Zen', gb: 3.2 },
+  { name: 'Chrome', gb: 5.6 },
+  { name: 'Vivaldi', gb: 5.9 },
+];
+
+interface Props {
+  headingId?: string;
+  kicker?: string;
+  heading?: string;
+  intro?: string;
+}
+
+const {
+  headingId = 'memory-title',
+  kicker = 'measured, not claimed',
+  heading = 'A quarter of Chrome’s memory.',
+  intro = 'Six ad-heavy news sites open in every browser, on the same Mac, in the same sitting.',
+} = Astro.props;
+---
+
+<section class="memchart-section" aria-labelledby={headingId}>
+  <div class="memchart-heading">
+    <p class="section-kicker">{kicker}</p>
+    <h2 id={headingId}>{heading}</h2>
+    <p>{intro}</p>
+  </div>
+
+  <figure class="memchart">
+    <table class="memchart-table">
+      <caption class="sr-only">
+        Memory used by each browser with six ad-heavy news sites open, in gibibytes
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Browser</th>
+          <th scope="col">Memory used</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row) => (
+          <tr class={row.blanc ? 'is-blanc' : undefined}>
+            <th scope="row">{row.name}</th>
+            <td>
+              <span class="memchart-track" aria-hidden="true">
+                <span class="memchart-bar" style={`--fill:${(row.gb / SCALE_GB) * 100}%`}></span>
+              </span>
+              <span class="memchart-val">{row.gb} GB</span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+    <figcaption class="memchart-note">
+      Measured 9 August 2026 on fresh profiles with no extensions. Brave also
+      blocks by default, which is why it comes closest. With Blanc’s blocker
+      turned off, the same pages used 4.2 GB. Method and raw data are in
+      <a href="https://github.com/bnfy/blanc">our repository</a>.
+    </figcaption>
+  </figure>
+</section>

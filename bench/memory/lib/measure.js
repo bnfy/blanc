@@ -19,6 +19,35 @@ const { execFile } = require('node:child_process');
 const EXEC_TIMEOUT_MS = 20_000;
 const EXEC_MAX_BUFFER = 32 * 1024 * 1024;
 
+/**
+ * Run `worker` over `items` with bounded concurrency.
+ *
+ * The per-process backends shell out once per pid. Done sequentially over a
+ * 70-renderer Chromium tree that is several seconds per sample — and every one
+ * of those seconds is a window in which a renderer can exit, which is exactly
+ * the churn that makes a sample incomplete. Running a few at a time cuts the
+ * sampling window by roughly the concurrency factor without spawning seventy
+ * processes at once, which would perturb the very thing being measured.
+ *
+ * @param {Array} items
+ * @param {number} limit
+ * @param {(item: any) => Promise<void>} worker
+ */
+async function mapLimit(items, limit, worker) {
+  let cursor = 0;
+  const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    for (;;) {
+      const index = cursor;
+      cursor += 1;
+      if (index >= items.length) return;
+      await worker(items[index]);
+    }
+  });
+  await Promise.all(runners);
+}
+
+const SAMPLE_CONCURRENCY = 8;
+
 /** Promise wrapper that resolves with the outcome instead of throwing, since
  *  probing is expected to fail for backends this machine does not allow. */
 function run(file, args) {
@@ -172,14 +201,14 @@ const BACKENDS = [
     description: 'footprint(1) — exact phys_footprint, usually requires root',
     async sample(pids) {
       const out = new Map();
-      for (const pid of pids) {
+      await mapLimit(pids, SAMPLE_CONCURRENCY, async (pid) => {
         // `-pid`, not `-p`: footprint(1) takes `-proc <name> | -pid <pid>`, and
         // `-p` is not even an unambiguous abbreviation between the two.
         const r = await run('/usr/bin/footprint', ['-pid', String(pid)]);
-        if (!r.ok) continue;
+        if (!r.ok) return;
         const bytes = parseFootprint(r.stdout);
         if (bytes !== null) out.set(pid, bytes);
-      }
+      });
       return out;
     },
   },
@@ -189,12 +218,12 @@ const BACKENDS = [
     description: 'vmmap --summary — exact phys_footprint, may require root for hardened apps',
     async sample(pids) {
       const out = new Map();
-      for (const pid of pids) {
+      await mapLimit(pids, SAMPLE_CONCURRENCY, async (pid) => {
         const r = await run('/usr/bin/vmmap', ['--summary', String(pid)]);
-        if (!r.ok) continue;
+        if (!r.ok) return;
         const bytes = parseVmmapSummary(r.stdout);
         if (bytes !== null) out.set(pid, bytes);
-      }
+      });
       return out;
     },
   },
@@ -232,26 +261,26 @@ const BACKENDS = [
 ];
 
 /**
- * Find the highest-fidelity backend that returns a number for a live process on
- * this machine.
+ * Find the highest-fidelity backend that actually returns a number for a live
+ * process on this machine. Probed against our own pid, which every backend is
+ * permitted to inspect, plus the caller's optional extra pid so a backend that
+ * works on self but not on a hardened, signed browser is rejected here rather
+ * than halfway through a 40-minute run.
  *
- * This can only probe our own Node process, which every backend is permitted to
- * inspect — so passing it a browser pid was never the answer to the hardened-
- * runtime problem, because no browser exists yet when selection runs. That case
- * belongs to `resolveReadableBackend()`, against the first browser actually
- * launched. Selection's job is narrower: rule out the backends this machine
- * does not ship or allow at all.
- *
- * @param {{ only?: string }} [options]
+ * @param {{ probePid?: number, only?: string }} [options]
  * @returns {Promise<{id: string, metric: string, description: string, sample: Function}>}
  */
 async function selectBackend(options = {}) {
-  const { only } = options;
+  const { probePid, only } = options;
   const candidates = only ? BACKENDS.filter((b) => b.id === only) : BACKENDS;
   if (!candidates.length) throw new Error(`Unknown measurement backend: ${only}`);
 
+  const pids = [process.pid];
+  if (probePid && probePid !== process.pid) pids.push(probePid);
+
   for (const backend of candidates) {
-    if (await canReadPid(backend, process.pid)) return backend;
+    const sampled = await backend.sample(pids);
+    if (pids.every((pid) => (sampled.get(pid) || 0) > 0)) return backend;
   }
   throw new Error(
     'No memory measurement backend worked on this machine. Tried: ' +
@@ -283,23 +312,23 @@ async function canReadPid(backend, pid) {
 }
 
 /**
- * Find a backend that can actually read a hardened browser process, starting
- * from the one selection chose and walking down in fidelity.
+ * Find a backend that can actually read this process, downgrading if needed.
  *
  * Selection can only probe our own Node process, which every backend reads
- * happily — so on a typical machine it picks `footprint` or `vmmap`, and both
- * may then return nothing at all for a signed browser that denies
- * `task_for_pid`. Aborting there would be wrong: `top` needs no elevation and
- * reports a footprint-equivalent column, so the run that "cannot be measured"
- * usually can be, one rung down. Only when every remaining backend is also
- * denied is there nothing left to do.
+ * happily. Browsers ship a hardened runtime and deny task_for_pid to an
+ * unprivileged caller, so selection's winner may read nothing at all for the
+ * first real browser. Aborting there recommends --backend=ps — RSS, which the
+ * report itself banners as unpublishable — while `top` sits untried one rung
+ * down, needs no elevation, and still reports a footprint-equivalent column.
  *
- * A pinned backend (`--backend=`) is never downgraded. Silently measuring
- * something other than what the caller asked for would defeat the point of
- * pinning, and `rss` vs `phys_footprint` is not a difference to paper over.
+ * An explicitly pinned --backend is never silently downgraded: the caller asked
+ * for a specific metric and swapping it underneath them would be worse than
+ * failing.
  *
- * @param {object} backend the backend selection chose
- * @param {number} pid a live browser pid
+ * (Ported from PR #102 on main, which landed while this branch was measuring.)
+ *
+ * @param {object} backend
+ * @param {number} pid a real browser process, not our own
  * @param {{pinned?: boolean, candidates?: object[]}} [options]
  * @returns {Promise<{backend: object|null, downgradedFrom: string|null, tried: string[]}>}
  */
@@ -354,6 +383,7 @@ module.exports = {
   parseFootprint,
   parseTopMem,
   parsePsRss,
+  mapLimit,
   selectBackend,
   canReadPid,
   resolveReadableBackend,

@@ -35,12 +35,45 @@ function parsePsSnapshot(stdout) {
   const rows = [];
   if (typeof stdout !== 'string') return rows;
   for (const line of stdout.split('\n')) {
+    // Four columns when the caller asked for state (pid ppid stat comm), three
+    // otherwise. The state token is what distinguishes them: macOS reports a
+    // leading state letter from IRSTUZ plus up to a few flag characters, while
+    // a command is either an absolute path or the literal `<defunct>`.
+    //
+    // The command must NOT be required to start with `/`: a zombie's comm is
+    // `<defunct>`, so anchoring on a slash made exactly the rows this parser
+    // exists to identify fall through to the three-column branch, arrive with
+    // state `null`, and escape the zombie filter.
+    const withState = line.match(/^\s*(\d+)\s+(\d+)\s+([IRSTUZ][A-Za-z+<>]{0,4})\s+(\S.*?)\s*$/);
+    if (withState) {
+      rows.push({
+        pid: Number(withState[1]),
+        ppid: Number(withState[2]),
+        state: withState[3],
+        command: withState[4],
+      });
+      continue;
+    }
     const m = line.match(/^\s*(\d+)\s+(\d+)\s+(.*\S)\s*$/);
     if (!m) continue;
-    rows.push({ pid: Number(m[1]), ppid: Number(m[2]), command: m[3] });
+    rows.push({ pid: Number(m[1]), ppid: Number(m[2]), state: null, command: m[3] });
   }
   return rows;
 }
+
+/**
+ * Has this process exited but not yet been reaped?
+ *
+ * A zombie still occupies a slot in the process table, so `ps` lists it and
+ * `kill(pid, 0)` reports it as alive — but it holds no memory and no
+ * measurement tool can read it. Counting one as "alive and unreadable" is how a
+ * perfectly healthy sample gets rejected as an undercount.
+ */
+const isZombie = (row) =>
+  (typeof row.state === 'string' && row.state.startsWith('Z')) ||
+  // Belt and braces: if state parsing ever fails again, `<defunct>` is still an
+  // unambiguous marker and appears in the command either way.
+  (typeof row.command === 'string' && row.command.includes('<defunct>'));
 
 /**
  * Every transitive descendant of `rootPid`, including `rootPid` itself.
@@ -111,15 +144,18 @@ function browserProcessSet(rows, options) {
   // The root is ours by construction even if the tester had the same browser
   // open already, so it is never subtracted.
   for (const pid of excluded) if (pid !== rootPid) set.delete(pid);
+  // Zombies are in the table but hold nothing. Leaving them in makes every
+  // sample of a churning tree look partially unreadable.
+  for (const row of rows) if (isZombie(row) && row.pid !== rootPid) set.delete(row.pid);
   return [...set].sort((a, b) => a - b);
 }
 
-/** Live `ps` snapshot of the whole process table. */
+/** Live `ps` snapshot of the whole process table, including process state. */
 function snapshot() {
   return new Promise((resolve, reject) => {
     execFile(
       '/bin/ps',
-      ['-axo', 'pid=,ppid=,comm='],
+      ['-axo', 'pid=,ppid=,stat=,comm='],
       { maxBuffer: 32 * 1024 * 1024, encoding: 'utf8' },
       (error, stdout) => (error ? reject(error) : resolve(parsePsSnapshot(stdout)))
     );
@@ -128,6 +164,7 @@ function snapshot() {
 
 module.exports = {
   parsePsSnapshot,
+  isZombie,
   descendantsOf,
   matchingBundle,
   browserProcessSet,

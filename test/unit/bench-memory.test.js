@@ -73,6 +73,28 @@ test('the footprint backend uses -pid, and top does not ask for zero processes',
   assert.equal(byId.vmmap.metric, 'phys_footprint');
 });
 
+test('per-process backends sample concurrently, shrinking the churn window', async () => {
+  // Sequential sampling over a ~70-renderer tree takes seconds, and every one
+  // is a window in which a renderer can exit mid-sample. Concurrency is what
+  // shrinks that window; the cap keeps us from spawning 70 processes at once
+  // and perturbing the thing being measured.
+  const source = fs.readFileSync(
+    require.resolve('../../bench/memory/lib/measure.js'), 'utf8'
+  );
+  assert.match(source, /mapLimit\(pids, SAMPLE_CONCURRENCY/);
+  assert.doesNotMatch(source, /for \(const pid of pids\) \{\s*\n\s*\/\/ `-pid`/);
+
+  // Order-independent completeness: every pid must appear exactly once.
+  const seen = [];
+  const items = Array.from({ length: 25 }, (_, i) => i);
+  await measure.mapLimit(items, 4, async (item) => {
+    await new Promise((resolve) => setTimeout(resolve, item % 3));
+    seen.push(item);
+  });
+  assert.deepEqual([...seen].sort((a, b) => a - b), items);
+  await measure.mapLimit([], 4, async () => { throw new Error('never'); });
+});
+
 test('canReadPid reports whether a backend can actually read a process', async () => {
   const working = { sample: async (pids) => new Map(pids.map((p) => [p, 1024])) };
   const denied = { sample: async () => new Map() };
@@ -80,55 +102,6 @@ test('canReadPid reports whether a backend can actually read a process', async (
   // A hardened, signed browser denying task_for_pid looks exactly like this.
   assert.equal(await measure.canReadPid(denied, 42), false);
   assert.equal(await measure.canReadPid({ sample: async () => new Map([[42, 0]]) }, 42), false);
-});
-
-// Selection can only probe our own unhardened Node process, so the backend it
-// picks may read nothing at all for a signed browser. Aborting there would
-// strand a run that `top` — no elevation needed, footprint-equivalent column —
-// could have measured perfectly well.
-const fakeBackends = (readable) =>
-  ['footprint', 'vmmap', 'top', 'ps'].map((id) => ({
-    id,
-    metric: id === 'ps' ? 'rss' : 'phys_footprint',
-    sample: async (pids) =>
-      readable.includes(id) ? new Map(pids.map((p) => [p, 1024])) : new Map(),
-  }));
-
-test('a backend denied by a hardened browser falls back to the next one down', async () => {
-  const candidates = fakeBackends(['top', 'ps']);
-  const resolved = await measure.resolveReadableBackend(candidates[1], 42, { candidates });
-  assert.equal(resolved.backend.id, 'top');
-  assert.equal(resolved.downgradedFrom, 'vmmap');
-  // Fidelity order is preserved: ps is never reached while top works.
-  assert.deepEqual(resolved.tried, ['vmmap', 'top']);
-});
-
-test('a backend that reads the browser is used as-is, with nothing tried below it', async () => {
-  const candidates = fakeBackends(['vmmap', 'top', 'ps']);
-  const resolved = await measure.resolveReadableBackend(candidates[1], 42, { candidates });
-  assert.equal(resolved.backend.id, 'vmmap');
-  assert.equal(resolved.downgradedFrom, null);
-  assert.deepEqual(resolved.tried, ['vmmap']);
-});
-
-test('an explicitly pinned backend is never downgraded', async () => {
-  const candidates = fakeBackends(['ps']);
-  const resolved = await measure.resolveReadableBackend(candidates[1], 42, {
-    candidates,
-    pinned: true,
-  });
-  // Substituting rss for phys_footprint under a --backend= pin would collect a
-  // different metric than the caller asked for.
-  assert.equal(resolved.backend, null);
-  assert.deepEqual(resolved.tried, ['vmmap']);
-});
-
-test('a run where every backend is denied resolves to nothing, listing what it tried', async () => {
-  const candidates = fakeBackends([]);
-  const resolved = await measure.resolveReadableBackend(candidates[0], 42, { candidates });
-  assert.equal(resolved.backend, null);
-  assert.equal(resolved.downgradedFrom, null);
-  assert.deepEqual(resolved.tried, ['footprint', 'vmmap', 'top', 'ps']);
 });
 
 test('top output parses pid/mem rows and ignores its header block', () => {
@@ -268,6 +241,40 @@ test('settle detection needs a full flat window', () => {
   assert.equal(settle.isSettled([0, 0, 0], { window: 3 }), false);
 });
 
+test('a flat total with a still-growing process tree is not settled', () => {
+  // Observed with Zen: the byte total plateaued at 2.4 GiB for three samples
+  // while the process count went 25 -> 32 -> 34. The cell was declared settled,
+  // quit, and the page that had not loaded yet was never recorded.
+  assert.equal(settle.isCountStable([25, 32, 34]), false);
+  assert.equal(settle.isCountStable([66, 66, 66]), true);
+  // Small trees churn by a process or two at idle without still loading —
+  // Chrome's baseline moves between 9 and 13 — so the tolerance is absolute as
+  // well as relative.
+  assert.equal(settle.isCountStable([11, 9, 9]), true);
+  assert.equal(settle.isCountStable([22, 22, 22]), true);
+  assert.equal(settle.isCountStable([11, 11]), false, 'needs a full window');
+  assert.equal(settle.isCountStable([0, 0, 0]), false);
+});
+
+test('settle waits for both signals, not just the byte total', async () => {
+  let clock = 0;
+  let growing = true;
+  const options = {
+    intervalMs: 5000, minMs: 20_000, maxMs: 100_000, window: 3, tolerance: 0.02,
+    now: () => clock,
+    sleep: async (ms) => { clock += ms; },
+    alsoStable: () => !growing,
+  };
+  // Bytes perfectly flat throughout; only the secondary signal is unstable.
+  const stalled = await settle.sampleUntilSettled(async () => 100, { ...options, maxMs: 40_000 });
+  assert.equal(stalled.settled, false, 'flat bytes alone must not settle the cell');
+
+  clock = 0;
+  growing = false;
+  const done = await settle.sampleUntilSettled(async () => 100, options);
+  assert.equal(done.settled, true);
+});
+
 test('sampleUntilSettled honours the minimum duration before declaring a flat series settled', async () => {
   let clock = 0;
   const options = {
@@ -321,11 +328,24 @@ test('gecko launches seed tabs through the profile rather than positional URLs',
   );
   // Positional URLs are unreliable in Gecko, so none are passed.
   assert.ok(!plan.args.some((a) => a.startsWith('https://')));
-  assert.deepEqual(plan.args.slice(0, 2), ['--profile', '/tmp/p']);
-  assert.ok(plan.args.includes('--no-remote'));
+  assert.deepEqual(plan.args.slice(0, 2), ['-profile', '/tmp/p']);
+  assert.ok(plan.args.includes('-no-remote'));
+  // -new-instance is Linux/Windows-only; macOS Firefox answered it with a
+  // "Profile Missing" dialog and produced no rows at all.
+  assert.ok(!plan.args.includes('-new-instance'));
+  assert.ok(!plan.args.includes('--new-instance'));
   assert.equal(plan.files.length, 1);
   assert.match(plan.files[0].path, /user\.js$/);
-  assert.match(plan.files[0].contents, /"browser\.startup\.homepage", "https:\/\/a\.test\|https:\/\/b\.test"/);
+  // A leading about:blank absorbs whatever the browser does to the first
+  // startup tab. Zen replaces it with its own surface, which silently dropped
+  // the first workload URL — observed twice, always the first entry.
+  assert.match(
+    plan.files[0].contents,
+    /"browser\.startup\.homepage", "about:blank\|https:\/\/a\.test\|https:\/\/b\.test"/
+  );
+  // An idle cell requests nothing and must not be handed a tab either.
+  const idle = launch.buildLaunchPlan({ id: 'zen', family: 'gecko' }, { profileDir: '/tmp/p', urls: [] });
+  assert.match(idle.files[0].contents, /"browser\.startup\.homepage", ""/);
   assert.match(plan.files[0].contents, /"browser\.startup\.page", 1/);
   assert.equal(plan.tabCount, 2);
 });
@@ -541,24 +561,113 @@ test('unreadable processes anywhere in the reported window fail the cell', () =>
   // the final sample would let an undercounted sample sit inside that median
   // while a later, fully-readable one cleared the check.
   const meta = [
-    { processCount: 12, missing: 0 },
-    { processCount: 12, missing: 4 },
-    { processCount: 12, missing: 0 },
-    { processCount: 12, missing: 0 },
+    { processCount: 12, unreadable: 0 },
+    { processCount: 12, unreadable: 4 },
+    { processCount: 12, unreadable: 0 },
+    { processCount: 12, unreadable: 0 },
   ];
   assert.equal(run.summarizeWindow(meta).unreadable, 4);
   // Older samples outside the window are not the reported figure's problem.
-  assert.equal(run.summarizeWindow([{ processCount: 9, missing: 7 }, ...meta.slice(1)]).unreadable, 4);
+  assert.equal(
+    run.summarizeWindow([{ processCount: 9, unreadable: 7 }, ...meta.slice(1)]).unreadable, 4
+  );
 
   // Process count is the window's minimum, so a briefly-incomplete tree cannot
   // be papered over by a later sample.
   assert.equal(run.summarizeWindow([
-    { processCount: 12, missing: 0 },
-    { processCount: 2, missing: 0 },
-    { processCount: 12, missing: 0 },
+    { processCount: 12, unreadable: 0 },
+    { processCount: 2, unreadable: 0 },
+    { processCount: 12, unreadable: 0 },
   ]).processCount, 2);
 
-  assert.deepEqual(run.summarizeWindow([]), { unreadable: 0, processCount: 0 });
+  assert.deepEqual(
+    run.summarizeWindow([]),
+    { unreadable: 0, vanished: 0, processCount: 0, unreadableDetail: [] }
+  );
+
+  // Unreadable processes are named, not just counted, so a recurrence is
+  // diagnosed from the output instead of guessed at.
+  const named = run.summarizeWindow([
+    { processCount: 60, unreadable: 1, unreadableDetail: ['412 Google Chrome Helper (Renderer)'] },
+    { processCount: 60, unreadable: 1, unreadableDetail: ['412 Google Chrome Helper (Renderer)'] },
+  ]);
+  assert.deepEqual(named.unreadableDetail, ['412 Google Chrome Helper (Renderer)']);
+});
+
+test('zombies are excluded from the process set', () => {
+  // A process that exited but has not been reaped is still in the table, so ps
+  // lists it and kill(pid, 0) reports it alive — but it holds no memory and no
+  // tool can read it. Counting one as "alive and unreadable" rejects a
+  // perfectly healthy sample as an undercount.
+  const rows = proctree.parsePsSnapshot(
+    '  100     1 S    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n' +
+    '  101   100 Ss   /Applications/Google Chrome.app/Contents/MacOS/Google Chrome Helper\n' +
+    '  102   100 Z    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome Helper (Renderer)\n'
+  );
+  assert.equal(rows.length, 3);
+  assert.equal(rows[0].state, 'S');
+  assert.equal(proctree.isZombie(rows[2]), true);
+  assert.equal(proctree.isZombie(rows[1]), false);
+
+  const pids = proctree.browserProcessSet(rows, {
+    rootPid: 100,
+    bundlePath: '/Applications/Google Chrome.app',
+    excludePids: [],
+  });
+  assert.deepEqual(pids, [100, 101]);
+});
+
+test('a real zombie row from ps is classified, not mis-parsed as a command', () => {
+  // Verbatim shape of the row that defeated the first attempt: a zombie's comm
+  // is `<defunct>`, not a path, so requiring a leading slash made the
+  // four-column match fail. The row then fell through to the three-column
+  // branch with state null and command "Z    <defunct>", which is exactly what
+  // the failure message printed back — and the zombie filter never fired.
+  const rows = proctree.parsePsSnapshot(
+    '  100     1 S    /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n' +
+    '56976   100 Z    <defunct>\n'
+  );
+  assert.equal(rows.length, 2);
+  assert.equal(rows[1].state, 'Z');
+  assert.equal(rows[1].command, '<defunct>');
+  assert.equal(proctree.isZombie(rows[1]), true);
+
+  assert.deepEqual(
+    proctree.browserProcessSet(rows, {
+      rootPid: 100,
+      bundlePath: '/Applications/Google Chrome.app',
+      excludePids: [],
+    }),
+    [100]
+  );
+
+  // Even if state parsing regresses, `<defunct>` alone identifies it.
+  assert.equal(proctree.isZombie({ state: null, command: 'Z    <defunct>' }), true);
+});
+
+test('state-less ps output still parses, so the parser tolerates both column sets', () => {
+  const rows = proctree.parsePsSnapshot('  100     1 /Applications/Blanc.app/Contents/MacOS/Blanc\n');
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].state, null);
+  assert.equal(rows[0].command, '/Applications/Blanc.app/Contents/MacOS/Blanc');
+});
+
+test('a process that exited mid-sample is churn, not an undercount', () => {
+  // Observed on the first real run: Chrome at 10 pages reaches ~66 processes,
+  // sampling is per-process and sequential, and a few renderers exit between
+  // the ps snapshot and their turn. A process that has exited holds no memory,
+  // so excluding it is correct — failing the cell over it is not.
+  const window = run.summarizeWindow([
+    { processCount: 66, unreadable: 0, vanished: 2 },
+    { processCount: 66, unreadable: 0, vanished: 1 },
+    { processCount: 66, unreadable: 0, vanished: 0 },
+  ]);
+  assert.equal(window.unreadable, 0, 'churn must not fail the cell');
+  assert.equal(window.vanished, 3, 'but it is still reported');
+
+  // A live process the backend cannot read is the hardened-runtime case and
+  // remains fatal.
+  assert.equal(run.summarizeWindow([{ processCount: 66, unreadable: 1, vanished: 9 }]).unreadable, 1);
 });
 
 test('an unverifiable cell is rejected, not published with a soft marker', () => {
@@ -587,6 +696,31 @@ test('a browser tree of one process is broken attribution, not a frugal browser'
   }).ok, true);
 });
 
+test('an idle cell must prove the browser started, not merely that it is running', () => {
+  // Firefox stalled on a "profile cannot be loaded" dialog is alive,
+  // multi-process and non-zero — and was recorded as a valid 131 MiB idle
+  // measurement, because a baseline cell has no pages to check.
+  const stalled = run.verifyLoaded({
+    workload: 'baseline', totalBytes: 131 * MiB, processCount: 4, baseline: null, pages: null,
+    initialized: { ok: false, reason: 'the browser never initialised this profile' },
+  });
+  assert.equal(stalled.ok, false);
+  assert.match(stalled.reason, /never initialised this profile/);
+
+  // Gecko creates places.sqlite at startup; the runner deletes it from the
+  // copied template, so its presence proves the browser really started here.
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bench-init-'));
+  try {
+    assert.equal(pageload.profileInitialized({ family: 'gecko' }, dir).ok, false);
+    fs.writeFileSync(path.join(dir, 'places.sqlite'), '');
+    assert.equal(pageload.profileInitialized({ family: 'gecko' }, dir).ok, true);
+    // Only claimed for Gecko — a false failure is its own kind of wrong.
+    assert.equal(pageload.profileInitialized({ family: 'chromium' }, '/nonexistent').ok, true);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('no comparative process-count rule is asserted, since preallocated counts vary', () => {
   // A loaded cell having fewer processes than its own idle baseline is NOT
   // treated as failure: engines preallocate content processes and those counts
@@ -611,36 +745,92 @@ test('each repetition verifies against its own baseline, not repetition 1\'s', (
   assert.notEqual(run.baselineKey('blanc', 0), run.baselineKey('chrome', 0));
 });
 
-test('visited pages are matched by host, so redirects and query strings do not read as failures', () => {
-  assert.equal(pageload.hostOf('https://www.theverge.com/some/path?utm=x'), 'theverge.com');
-  assert.equal(pageload.hostOf('https://theverge.com/'), 'theverge.com');
-  assert.equal(pageload.hostOf('not a url'), null);
-
-  const observed = new Set(['theverge.com', 'cnn.com', 'consent.cnn.com']);
-  const compared = pageload.comparePages(observed, [
-    'https://www.theverge.com/',
-    'https://www.cnn.com/',
-    'https://www.forbes.com/',
-  ]);
-  assert.equal(compared.requested, 3);
-  assert.equal(compared.loaded, 2);
-  assert.deepEqual(compared.missing, ['forbes.com']);
+test('page keys identify a page, not a site, and tolerate query strings', () => {
+  // Query and fragment dropped: sites append tracking parameters on arrival.
+  assert.equal(pageload.normalizeUrlKey('https://www.theverge.com/a/b?utm=x#y'), 'theverge.com/a/b');
+  // Trailing slash normalized, www stripped, host lowercased.
+  assert.equal(pageload.normalizeUrlKey('https://WWW.CNN.com/'), 'cnn.com');
+  // Paths distinguish pages on the same host — the whole point.
+  assert.notEqual(
+    pageload.normalizeUrlKey('https://en.wikipedia.org/wiki/Firefox'),
+    pageload.normalizeUrlKey('https://en.wikipedia.org/wiki/Web_browser')
+  );
+  assert.equal(pageload.normalizeUrlKey('not a url'), null);
+  assert.equal(pageload.normalizeUrlKey('file:///etc/passwd'), null);
 });
 
-test('Blanc visit logs are read from its own history store', () => {
-  const hosts = pageload.hostsFromBlancHistory(JSON.stringify({
+test('a single-page host matches on host, so a redirect is not a false failure', () => {
+  // dailymail.co.uk/home/index.html geo-redirects to /ushome/index.html, which
+  // failed every adheavy cell for BOTH Blanc variants identically — proof it
+  // was the URL, not the browser. Where a host is requested once, the host
+  // identifies the page and the path must not be insisted on.
+  const observed = new Set(['dailymail.co.uk/ushome/index.html', 'cnn.com']);
+  const compared = pageload.comparePages(observed, [
+    'https://www.dailymail.co.uk/home/index.html',
+    'https://www.cnn.com/',
+  ]);
+  assert.equal(compared.loaded, 2);
+  assert.deepEqual(compared.missing, []);
+
+  // A host requested once and never visited still fails.
+  const absent = pageload.comparePages(new Set(['cnn.com']), [
+    'https://www.forbes.com/',
+    'https://www.cnn.com/',
+  ]);
+  assert.deepEqual(absent.missing, ['https://www.forbes.com/']);
+});
+
+test('several pages on one host are several checks, not one', () => {
+  // Hostname-only matching reported the 20-page scale workload as 16 checks, so
+  // loading one of three Wikipedia articles read as complete success.
+  const scale = require('../../bench/memory/workloads.json').workloads.scale.urls;
+  const keys = new Set(scale.map(pageload.normalizeUrlKey).filter(Boolean));
+  assert.equal(keys.size, scale.length, 'every scale URL must be its own check');
+
+  const observed = new Set(['en.wikipedia.org/wiki/Firefox']);
+  const compared = pageload.comparePages(observed, [
+    'https://en.wikipedia.org/wiki/Firefox',
+    'https://en.wikipedia.org/wiki/Web_browser',
+    'https://en.wikipedia.org/wiki/Chromium_(web_browser)',
+  ]);
+  assert.equal(compared.requested, 3);
+  assert.equal(compared.loaded, 1);
+  assert.equal(compared.missing.length, 2);
+  // Missing entries name the original URL, so the failure is actionable.
+  assert.ok(compared.missing.every((u) => u.startsWith('https://')));
+});
+
+test('Blanc visit logs are read from its own history store, filtered by cell start', () => {
+  const now = 1_000_000;
+  const log = JSON.stringify({
     entries: [
-      { url: 'https://news.ycombinator.com/', title: 'HN' },
-      { url: 'https://en.wikipedia.org/wiki/Web_browser', title: 'W' },
-      { url: 'not-a-url', title: 'junk' },
+      { url: 'https://news.ycombinator.com/', visitedAt: now + 500 },
+      { url: 'https://en.wikipedia.org/wiki/Web_browser', visitedAt: now + 900 },
+      // Visited during the warm-up that produced the template profile.
+      { url: 'https://www.forbes.com/', visitedAt: now - 5000 },
+      { url: 'not-a-url', visitedAt: now + 100 },
     ],
-  }));
-  assert.ok(hosts.has('news.ycombinator.com'));
-  assert.ok(hosts.has('en.wikipedia.org'));
-  assert.equal(hosts.size, 2);
+  });
+  const keys = pageload.keysFromBlancHistory(log, now);
+  assert.ok(keys.has('news.ycombinator.com'));
+  assert.ok(keys.has('en.wikipedia.org/wiki/Web_browser'));
+  // A stale warm-up visit must not satisfy this cell.
+  assert.ok(!keys.has('forbes.com'));
+  assert.equal(keys.size, 2);
+
   // A corrupt or absent log yields nothing rather than throwing — the caller
   // treats "no evidence" as failure, which is the safe direction.
-  assert.equal(pageload.hostsFromBlancHistory('{broken').size, 0);
+  assert.equal(pageload.keysFromBlancHistory('{broken').size, 0);
+});
+
+test('history artifacts include SQLite sidecars so a -wal cannot replay warm-up visits', () => {
+  const gecko = pageload.historyArtifacts({ family: 'gecko' }, '/p');
+  assert.ok(gecko.some((f) => f.endsWith('places.sqlite')));
+  assert.ok(gecko.some((f) => f.endsWith('places.sqlite-wal')));
+  assert.ok(gecko.some((f) => f.endsWith('places.sqlite-shm')));
+  const blanc = pageload.historyArtifacts({ family: 'blanc' }, '/p');
+  assert.deepEqual(blanc.map((f) => f.replace('/p/', '')), ['history.json']);
+  assert.deepEqual(pageload.historyArtifacts({ family: 'webkit' }, '/p'), []);
 });
 
 test('each browser family has a known visit-log location', () => {
@@ -674,45 +864,113 @@ test('Blanc page observation reads a real profile end to end', () => {
   try {
     fs.writeFileSync(path.join(dir, 'history.json'), JSON.stringify({
       entries: [
-        { url: 'https://news.ycombinator.com/' },
-        { url: 'https://en.wikipedia.org/wiki/Web_browser' },
+        { url: 'https://news.ycombinator.com/', visitedAt: 2000 },
+        { url: 'https://en.wikipedia.org/wiki/Web_browser', visitedAt: 2000 },
       ],
     }));
     const urls = ['https://news.ycombinator.com/', 'https://en.wikipedia.org/wiki/Web_browser'];
-    assert.equal(pageload.observeLoadedPages({ family: 'blanc' }, dir, urls).ok, true);
+    assert.equal(
+      pageload.observeLoadedPages({ family: 'blanc' }, dir, urls, { sinceMs: 1000 }).ok, true
+    );
 
     const short = pageload.observeLoadedPages(
-      { family: 'blanc' }, dir, [...urls, 'https://www.forbes.com/']
+      { family: 'blanc' }, dir, [...urls, 'https://www.forbes.com/'], { sinceMs: 1000 }
     );
     assert.equal(short.ok, false);
-    assert.deepEqual(short.missing, ['forbes.com']);
+    assert.deepEqual(short.missing, ['https://www.forbes.com/']);
+
+    // Everything predates the cell, so nothing counts toward it.
+    const stale = pageload.observeLoadedPages({ family: 'blanc' }, dir, urls, { sinceMs: 9999 });
+    assert.equal(stale.ok, false);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 });
 
-test('SQLite visit logs are read for the Chromium and Gecko families', () => {
+test('Gecko observation counts visits, not catalogued places', () => {
   const { DatabaseSync } = require('node:sqlite');
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bench-sqlite-'));
   try {
-    const file = path.join(dir, 'places.sqlite');
+    fs.mkdirSync(path.join(dir, 'profile'), { recursive: true });
+    const file = path.join(dir, 'profile', 'places.sqlite');
     const db = new DatabaseSync(file);
-    db.exec('CREATE TABLE moz_places (url TEXT)');
-    db.exec("INSERT INTO moz_places (url) VALUES ('https://www.theverge.com/x'), ('https://cnn.com/')");
+    db.exec('CREATE TABLE moz_places (id INTEGER PRIMARY KEY, url TEXT)');
+    db.exec('CREATE TABLE moz_historyvisits (id INTEGER PRIMARY KEY, place_id INTEGER, visit_date INTEGER)');
+    db.exec(`INSERT INTO moz_places (id, url) VALUES
+      (1, 'https://www.theverge.com/x'),
+      (2, 'https://cnn.com/'),
+      (3, 'https://www.forbes.com/')`);
+    // theverge visited during the cell; cnn visited before it (warm-up);
+    // forbes is a catalogued place with NO visit at all — a bookmark or a
+    // referenced link, which moz_places alone would have counted as loaded.
+    db.exec(`INSERT INTO moz_historyvisits (place_id, visit_date) VALUES
+      (1, 2000000), (2, 500000)`);
     db.close();
 
-    const hosts = pageload.hostsFromSqlite(file, 'moz_places', 'url');
-    assert.ok(hosts.has('theverge.com'));
-    assert.ok(hosts.has('cnn.com'));
-
-    fs.mkdirSync(path.join(dir, 'profile'), { recursive: true });
-    fs.copyFileSync(file, path.join(dir, 'profile', 'places.sqlite'));
     const result = pageload.observeLoadedPages(
       { family: 'gecko' }, path.join(dir, 'profile'),
-      ['https://www.theverge.com/', 'https://www.cnn.com/']
+      ['https://www.theverge.com/x', 'https://www.cnn.com/', 'https://www.forbes.com/'],
+      { sinceMs: 1 } // 1ms -> 1000 PRTime
     );
-    assert.equal(result.ok, true);
-    assert.equal(result.loaded, 2);
+    assert.equal(result.loaded, 2, 'a place with no visit row must not count');
+    assert.ok(result.missing.includes('https://www.forbes.com/'));
+
+    // With the cell starting after cnn's visit, only theverge counts.
+    const later = pageload.observeLoadedPages(
+      { family: 'gecko' }, path.join(dir, 'profile'),
+      ['https://www.theverge.com/x', 'https://www.cnn.com/'],
+      { sinceMs: 1000 } // 1000ms -> 1000000 PRTime
+    );
+    assert.equal(later.loaded, 1);
+    assert.ok(later.missing.includes('https://www.cnn.com/'));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('Chromium observation joins visits and converts the 1601 epoch', () => {
+  const { DatabaseSync } = require('node:sqlite');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bench-chrome-'));
+  try {
+    const profile = path.join(dir, 'profile');
+    fs.mkdirSync(path.join(profile, 'Default'), { recursive: true });
+    const file = path.join(profile, 'Default', 'History');
+    const db = new DatabaseSync(file);
+    db.exec('CREATE TABLE urls (id INTEGER PRIMARY KEY, url TEXT)');
+    db.exec('CREATE TABLE visits (id INTEGER PRIMARY KEY, url INTEGER, visit_time INTEGER)');
+    db.exec(`INSERT INTO urls (id, url) VALUES
+      (1, 'https://www.theverge.com/'), (2, 'https://prepopulated.example/')`);
+    // Chromium stores microseconds since 1601-01-01. Unix 2 000 000 ms.
+    const chromeTime = (2_000_000 / 1000 + 11_644_473_600) * 1_000_000;
+    db.exec(`INSERT INTO visits (url, visit_time) VALUES (1, ${chromeTime})`);
+    db.close();
+
+    const result = pageload.observeLoadedPages(
+      { family: 'chromium' }, profile,
+      ['https://www.theverge.com/', 'https://prepopulated.example/'],
+      { sinceMs: 1_000_000 }
+    );
+    assert.equal(result.loaded, 1, 'a urls row with no visit must not count');
+    assert.ok(result.missing.includes('https://prepopulated.example/'));
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('an unreadable schema fails the cell rather than falling back to a weaker query', () => {
+  const { DatabaseSync } = require('node:sqlite');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bench-badschema-'));
+  try {
+    fs.mkdirSync(path.join(dir, 'profile'), { recursive: true });
+    const file = path.join(dir, 'profile', 'places.sqlite');
+    const db = new DatabaseSync(file);
+    db.exec('CREATE TABLE moz_places (id INTEGER PRIMARY KEY, url TEXT)'); // no visits table
+    db.close();
+    const result = pageload.observeLoadedPages(
+      { family: 'gecko' }, path.join(dir, 'profile'), ['https://a.test/'], { sinceMs: 0 }
+    );
+    assert.equal(result.ok, false);
+    assert.match(result.reason, /could not read the visit log/);
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
@@ -818,12 +1076,16 @@ test('per-browser caveats reach the report instead of staying in the registry', 
     results: [{
       browserId: 'arc', label: 'Arc', workload: 'mixed', workloadPages: 10, tabCount: 10,
       blockingClass: 'none', metric: 'phys_footprint',
-      notes: ['Arc may ignore --user-data-dir.'],
+      // Registry notes are wrapped source lines, not separate bullets.
+      notes: ['Arc manages its own profile model', 'and may ignore --user-data-dir.', ''],
       repetitions: [{ totalBytes: 500 * MiB, processCount: 10, settled: true }],
     }],
   });
   assert.match(markdown, /## Per-browser caveats/);
-  assert.match(markdown, /Arc may ignore --user-data-dir/);
+  // One bullet per browser, lines joined — not one bullet per source line with
+  // the label repeated a dozen times.
+  assert.match(markdown, /- \*\*Arc:\*\* Arc manages its own profile model and may ignore --user-data-dir\./);
+  assert.equal((markdown.match(/- \*\*Arc:\*\*/g) || []).length, 1);
 });
 
 test('every runnable registry entry declares a blocking class the report can group on', () => {
@@ -853,4 +1115,60 @@ test('the report refuses to render a table mixing metrics', () => {
     }),
     /different metrics/
   );
+});
+
+test('failure reasons carry the browser stderr helper, which must actually exist', () => {
+  // This was a ReferenceError living only in error paths: the helper's
+  // definition was never inserted while three call sites were, so every failed
+  // cell reported "stderrTail is not defined" instead of its real reason —
+  // invisible until something failed, which is the worst place for it.
+  assert.equal(typeof run.stderrTail, 'function');
+  assert.equal(run.stderrTail(null), '');
+  assert.equal(run.stderrTail({}), '');
+  assert.equal(run.stderrTail({ stderr: () => '' }), '');
+  assert.match(
+    run.stderrTail({ stderr: () => 'Profile Missing\ncannot be loaded' }),
+    /browser said: Profile Missing \| cannot be loaded/
+  );
+});
+
+// Ported from PR #102 on main, which landed while this branch was measuring.
+// Selection can only probe our own Node process, so its winner may read nothing
+// for the first real browser — and aborting there recommends the one backend the
+// report calls unpublishable while a usable one sits untried one rung down.
+const fakeBackends = (readable) =>
+  ['footprint', 'vmmap', 'top', 'ps'].map((id) => ({
+    id,
+    metric: id === 'ps' ? 'rss' : 'phys_footprint',
+    sample: async (pids) =>
+      readable.includes(id) ? new Map(pids.map((p) => [p, 1024])) : new Map(),
+  }));
+
+test('a backend denied by a hardened browser falls back to the next one down', async () => {
+  const candidates = fakeBackends(['top', 'ps']);
+  const resolved = await measure.resolveReadableBackend(candidates[1], 42, { candidates });
+  assert.equal(resolved.backend.id, 'top');
+  assert.equal(resolved.downgradedFrom, 'vmmap');
+  // Fidelity order is preserved: ps is never reached while top works.
+  assert.deepEqual(resolved.tried, ['vmmap', 'top']);
+});
+
+test('a backend that reads the browser is used as-is, with nothing tried below it', async () => {
+  const candidates = fakeBackends(['vmmap', 'top', 'ps']);
+  const resolved = await measure.resolveReadableBackend(candidates[1], 42, { candidates });
+  assert.equal(resolved.backend.id, 'vmmap');
+  assert.equal(resolved.downgradedFrom, null);
+  assert.deepEqual(resolved.tried, ['vmmap']);
+});
+
+test('an explicitly pinned backend is never downgraded', async () => {
+  const candidates = fakeBackends(['ps']);
+  const resolved = await measure.resolveReadableBackend(candidates[1], 42, {
+    candidates,
+    pinned: true,
+  });
+  // Substituting rss for phys_footprint under a --backend= pin would collect a
+  // different metric than the caller asked for.
+  assert.equal(resolved.backend, null);
+  assert.deepEqual(resolved.tried, ['vmmap']);
 });

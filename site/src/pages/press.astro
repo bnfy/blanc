@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import PressIslandDemo from '../components/PressIslandDemo.astro';
+import MemoryChart from '../components/MemoryChart.astro';
 import slashCommandCopy from '../../../copy/slash-commands.json';
 import releaseData from '../data/releases.json';
 
@@ -155,6 +156,13 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
     </div>
     <p class="press-compare-note">Products vary within each category. This comparison describes the different product models—not every browser or every feature.</p>
   </section>
+
+  <MemoryChart
+    headingId="press-memory-title"
+    kicker="measured, not claimed"
+    heading="A quarter of Chrome’s memory."
+    intro="Reviewers ask what a small browser costs to run. Six ad-heavy news sites, open in every browser, on the same Mac in the same sitting."
+  />
 
   <section class="press-newsroom" id="newsroom" aria-labelledby="press-newsroom-title">
     <div class="press-newsroom-heading">

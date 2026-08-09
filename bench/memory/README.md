@@ -48,22 +48,14 @@ Run `--probe` first. It can only probe the harness's own Node process, though,
 and that proves less than it looks: `vmmap` reads an unhardened process you own
 without root, while every browser here ships a hardened runtime and denies
 `task_for_pid` to an unprivileged caller. So the backend is **re-validated
-against the first real browser launched**. If the winner cannot read it, the run
-**walks down the fidelity order** rather than stopping — `top` needs no
-elevation and still reports a footprint-equivalent column, so a machine that
-cannot be measured with `vmmap` usually can be with `top`. The downgrade is
-announced on stdout and the backend that actually produced the numbers is
-recorded in the report. Only when every backend is denied does the run abort,
-on the first cell rather than after forty minutes of zeroes.
-
-An explicit `--backend=` is never downgraded: pinning is a choice about which
-metric you are collecting, and quietly substituting `rss` for `phys_footprint`
-would defeat it. A pinned backend that cannot read the browser aborts instead.
+against the first real browser launched**, and the run aborts immediately if it
+cannot read it — one wasted cell instead of forty minutes of zeroes.
 
 **Do not run the whole harness under `sudo`.** It would launch every browser as
 root, which is not the configuration anyone uses and not what you want to
-measure. If no backend can read hardened processes, grant the measurement tool
-the access it needs — or accept `ps` and the report's unpublishable banner.
+measure. If the backend cannot read hardened processes, either grant the
+measurement tool the access it needs or fall back to `--backend=ps` and accept
+that the report will mark itself unpublishable.
 
 ## What stops a browser quietly reporting a number it did not earn
 
@@ -186,12 +178,13 @@ harness could not confirm did the work.
 
 ## The workloads
 
-`baseline` (idle) is what makes the per-tab column possible — run it alongside
-whatever else you pick. `mixed` is the default. `adheavy` is the one that
-isolates what network-layer blocking is worth, since blocked frames and scripts
-are never instantiated at all. `scale` (20 tabs) is where Chromium's
-process-per-site model and Gecko's capped pool diverge most, which is the
-interesting comparison against a Firefox-based browser like Zen.
+`baseline` (idle) is what makes the per-page column possible — it is added
+automatically. `mixed` is the default. `adheavy` is the one that isolates what
+network-layer blocking is worth, since blocked frames and scripts are never
+instantiated at all. `scale` (20 pages) is where engines' process models and
+per-tab overheads may diverge in ways ten tabs do not reveal — so any claim
+about many tabs should **rest on that workload**, measured, rather than be
+extrapolated from a smaller one.
 
 Run `firefox` alongside `zen` when you run either. It separates what Zen's own
 changes cost from what Gecko costs, and without it a Zen number is unreadable.

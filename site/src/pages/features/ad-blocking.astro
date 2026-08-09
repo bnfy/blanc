@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import MemoryChart from '../../components/MemoryChart.astro';
 ---
 <BaseLayout
   title={"Ad and Tracker Blocking with Direct Site Controls | Blanc"}
@@ -97,6 +98,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <p>Blanc uses EasyList and EasyPrivacy to reduce ads and known tracking. No blocker can promise to remove every advertisement or tracker, and some sites may need an exception to work as intended.</p>
     <a class="text-link" href="/privacy#browsing-the-web-with-blanc">Read Blanc's network and privacy details <span aria-hidden="true">↗</span></a>
   </aside>
+
+  <MemoryChart
+    headingId="blocking-memory-title"
+    kicker="what blocking is worth"
+    heading="Blocking saves memory, not just noise."
+    intro="Ads and trackers cost real memory to render. With six ad-heavy news sites open, blocking them at the network layer is worth gigabytes."
+  />
 
   <section class="feature-close" aria-labelledby="blocking-close-title">
     <p class="section-kicker">built into every download</p>

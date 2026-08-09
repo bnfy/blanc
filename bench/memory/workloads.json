@@ -12,7 +12,17 @@
     "",
     "Login-walled sites are deliberately excluded. A signed-out X or Notion tab",
     "measures a login form, not the app, which flatters whichever browser you",
-    "happened to be testing."
+    "happened to be testing.",
+    "",
+    "AVOID URLs THAT REDIRECT ACROSS DOMAINS. Page verification reads each",
+    "browser's own visit log, and those logs disagree: Chromium and Gecko record",
+    "every hop of a redirect chain, while Blanc records only the committed",
+    "destination. So a cross-domain redirect is confirmed for some browsers and",
+    "missing for others, and the cell fails for Blanc alone — which looks like a",
+    "Blanc defect and is not. dailymail.co.uk cost three runs this way: it",
+    "geo-redirects UK-addressed requests to dailymail.com, a different host, so",
+    "not even host-level matching could bridge it. Use the URL that a tester in",
+    "your region actually lands on."
   ],
   "workloads": {
     "baseline": {
@@ -54,14 +64,14 @@
         "https://www.forbes.com/",
         "https://www.cnn.com/",
         "https://www.theverge.com/",
-        "https://www.dailymail.co.uk/home/index.html",
+        "https://www.dailymail.com/",
         "https://www.foxnews.com/",
         "https://www.speedtest.net/"
       ]
     },
     "scale": {
       "label": "Scale — 20 pages",
-      "description": "High tab count, where Chromium's process-per-site model and Gecko's capped content-process pool diverge most. The interesting comparison against a Firefox-based browser.",
+      "description": "High tab count. Engines' process models and per-tab overheads may diverge here in ways ten tabs do not reveal, so a claim about many tabs should rest on this workload rather than being extrapolated from a smaller one.",
       "urls": [
         "https://en.wikipedia.org/wiki/Web_browser",
         "https://en.wikipedia.org/wiki/Firefox",

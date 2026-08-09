@@ -232,18 +232,19 @@ function buildMarkdown(report) {
     out.push('');
   }
 
-  const caveats = results.flatMap((r) => (r.notes || []).map((n) => ({ label: r.label, note: n })));
-  const seenCaveat = new Set();
-  const uniqueCaveats = caveats.filter((c) => {
-    const key = `${c.label}::${c.note}`;
-    if (seenCaveat.has(key)) return false;
-    seenCaveat.add(key);
-    return true;
-  });
-  if (uniqueCaveats.length) {
+  // Registry notes are stored as wrapped source lines, so each browser's note
+  // set is joined back into one paragraph. Emitting a bullet per line repeats
+  // the browser name a dozen times and makes the caveats unreadable, which
+  // defeats the point of surfacing them at all.
+  const caveats = new Map();
+  for (const r of results) {
+    const note = (r.notes || []).filter(Boolean).join(' ').trim();
+    if (note && !caveats.has(r.label)) caveats.set(r.label, note);
+  }
+  if (caveats.size) {
     out.push('## Per-browser caveats');
     out.push('');
-    for (const c of uniqueCaveats) out.push(`- **${c.label}:** ${c.note}`);
+    for (const [label, note] of caveats) out.push(`- **${label}:** ${note}`);
     out.push('');
   }
 
