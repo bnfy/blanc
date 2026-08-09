@@ -6,15 +6,23 @@ const http = require('node:http');
 const https = require('node:https');
 
 function pageBody(req) {
-  const name = decodeURIComponent((req.url || '/').replace(/^\/site\//, '').split('?')[0]) || 'page';
+  const raw = req.url || '/';
+  const name = decodeURIComponent(raw.replace(/^\/site\//, '').split('?')[0]) || 'page';
+  // ?nostore=1 makes an otherwise ordinary fixture quietable. The default
+  // remains deliberately dirty because all existing scenarios depend on its
+  // sessionStorage load counter.
+  const store = raw.includes('nostore=1')
+    ? ''
+    : `<script>` +
+      `const key='acceptance-load-count';` +
+      `sessionStorage.setItem(key,String(Number(sessionStorage.getItem(key)||0)+1));` +
+      `</script>`;
   return (
     `<!doctype html><html><head><meta charset="utf-8"><title>${name}</title></head>` +
     `<body><h1>${name}</h1><p>widget widget widget</p>` +
     `<input id="acceptance-draft" aria-label="Unsaved draft">` +
-    `<script>` +
-    `const key='acceptance-load-count';` +
-    `sessionStorage.setItem(key,String(Number(sessionStorage.getItem(key)||0)+1));` +
-    `</script></body></html>`
+    store +
+    `</body></html>`
   );
 }
 
