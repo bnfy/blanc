@@ -57,14 +57,156 @@
   const demo = document.getElementById('demoIsland');
   const dotsEl = document.getElementById('demoDots');
   const favEl = document.getElementById('demoFav');
-  const groupNameEl = document.getElementById('demoGroupName');
   const domainEl = document.getElementById('demoDomain');
   const shieldEl = document.getElementById('demoShield');
+  const shieldCountEl = document.getElementById('demoShieldCount');
+  const shieldHostEl = document.getElementById('demoShieldHost');
+  const shieldBlockedEl = document.getElementById('demoShieldBlocked');
   const typedEl = document.getElementById('demoTyped');
   const listEl = document.getElementById('demoList');
   const footEl = document.getElementById('demoFoot');
   const capEl = document.getElementById('demoCaption');
   const heartEl = document.getElementById('demoHeart');
+
+  /* ---- island motion (1.1.0) ----
+     Two effects, both reproducing the app's own numbers rather than
+     approximating the look of them. */
+  const panelEl = demo.querySelector('.panel');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  // Proximity, mirroring src/main/island-proximity.js: a 250px range on a
+  // smoothstep so neither end has an edge you can feel, a lean scaled by
+  // closeness so the pill can only tilt while it is also awake, and distance
+  // measured to the pill's box rather than its centre — otherwise a wide pill
+  // reads as "far" while the cursor sits right beside it.
+  const PROX_RANGE = 250;
+  let cursor = null;
+  let proxFrame = null;
+  // Declared up here, not beside the morph below, because applyProximity reads
+  // it and the listeners that reach applyProximity are registered before that
+  // point. Today only requestAnimationFrame's deferral keeps that from being a
+  // temporal-dead-zone throw — which is a timing accident, not a guarantee.
+  let panelOpen = false; // intent, which outlives the class during a retraction
+
+  const smoothstep = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
+
+  // The pill's on-screen box. .demo-island's own border box is the pill's
+  // untransformed one — a transform on a child never changes its parent's box,
+  // which is exactly what makes it a stable reference — so the hero's base
+  // presentation scale (--pill-scale, origin 50% 0%) is folded back in by hand.
+  // The proximity scale is deliberately left out: the app measures the
+  // untransformed pill too, and including it here would feed the pill's own
+  // growth back into the next frame's distance.
+  function pillBox() {
+    const r = demo.getBoundingClientRect();
+    const s = parseFloat(getComputedStyle(demo).getPropertyValue('--pill-scale')) || 1;
+    const width = r.width * s;
+    const height = r.height * s;
+    const left = r.left + (r.width - width) / 2;
+    return { left, top: r.top, right: left + width, bottom: r.top + height, width, height };
+  }
+
+  function applyProximity() {
+    proxFrame = null;
+    let k = 0;
+    let lean = 0;
+    // Nothing moves while the panel is open or the page has lost the cursor —
+    // the app holds just as still when it is not the focused application.
+    if (cursor && !reduceMotion.matches && !panelOpen) {
+      const r = pillBox();
+      const dx = Math.max(r.left - cursor.x, 0, cursor.x - r.right);
+      const dy = Math.max(r.top - cursor.y, 0, cursor.y - r.bottom);
+      k = smoothstep(1 - Math.min(Math.hypot(dx, dy), PROX_RANGE) / PROX_RANGE);
+      const offset = (cursor.x - (r.left + r.width / 2)) / (r.width / 2 + PROX_RANGE);
+      lean = Math.max(-1, Math.min(1, offset)) * k;
+    }
+    demo.style.setProperty('--island-k', k.toFixed(4));
+    demo.style.setProperty('--island-lean', lean.toFixed(4));
+  }
+
+  function queueProximity() {
+    if (!proxFrame) proxFrame = requestAnimationFrame(applyProximity);
+  }
+
+  window.addEventListener('mousemove', (e) => {
+    cursor = { x: e.clientX, y: e.clientY };
+    queueProximity();
+  }, { passive: true });
+  // The pill moves under a still cursor when the page scrolls, so the distance
+  // has to be recomputed then too.
+  window.addEventListener('scroll', queueProximity, { passive: true });
+  window.addEventListener('blur', () => { cursor = null; queueProximity(); });
+  document.addEventListener('mouseleave', () => { cursor = null; queueProximity(); });
+
+  // The panel grows out of the pill and retracts back into it, animating real
+  // width and height rather than a transform scale — see the note in site.css.
+  // The explicit size is released once the movement lands so the list can go
+  // on resizing with its own content.
+  const MORPH_MS = 320;
+  const RETRACT_MS = 200;
+  let morphTimer = null;
+
+  function setPanelOpen(open) {
+    if (panelOpen === open) return;
+    panelOpen = open;
+    clearTimeout(morphTimer);
+    panelEl.classList.remove('morph-start', 'morph-run', 'retracting');
+    panelEl.style.width = '';
+    panelEl.style.height = '';
+    panelEl.style.borderRadius = '';
+
+    if (reduceMotion.matches) {
+      demo.classList.toggle('open', open);
+      queueProximity();
+      return;
+    }
+
+    const pill = pillBox();
+    // The pill's *used* corner radius: 999px on a box this short resolves to
+    // half its height. Travelling from that to the panel's own 18px is a
+    // movement of about a pixel — the corner should barely register.
+    const pillRadius = pill.height / 2;
+    const panelRadius = getComputedStyle(panelEl).borderTopLeftRadius;
+
+    if (open) {
+      const targetW = panelEl.offsetWidth;
+      const targetH = panelEl.offsetHeight;
+      panelEl.classList.add('morph-start');
+      panelEl.style.width = pill.width + 'px';
+      panelEl.style.height = pill.height + 'px';
+      panelEl.style.borderRadius = pillRadius + 'px';
+      void panelEl.offsetWidth; // commit the start box before animating off it
+      demo.classList.add('open');
+      panelEl.classList.replace('morph-start', 'morph-run');
+      panelEl.style.width = targetW + 'px';
+      panelEl.style.height = targetH + 'px';
+      panelEl.style.borderRadius = panelRadius;
+      morphTimer = setTimeout(() => {
+        panelEl.classList.remove('morph-run');
+        panelEl.style.width = '';
+        panelEl.style.height = '';
+        panelEl.style.borderRadius = '';
+      }, MORPH_MS);
+    } else {
+      panelEl.style.width = panelEl.offsetWidth + 'px';
+      panelEl.style.height = panelEl.offsetHeight + 'px';
+      panelEl.style.borderRadius = panelRadius;
+      void panelEl.offsetWidth;
+      panelEl.classList.add('retracting');
+      panelEl.style.width = pill.width + 'px';
+      panelEl.style.height = pill.height + 'px';
+      panelEl.style.borderRadius = pillRadius + 'px';
+      morphTimer = setTimeout(() => {
+        // The pill returns onto an identical shape, so the swap is invisible.
+        demo.classList.remove('open');
+        panelEl.classList.remove('retracting');
+        panelEl.style.width = '';
+        panelEl.style.height = '';
+        panelEl.style.borderRadius = '';
+      }, RETRACT_MS);
+    }
+    queueProximity();
+  }
 
   const NORMAL_FOOT = 'esc to dismiss · ⌘L summons · / for commands';
   const GROUP_FOOT = 'esc to dismiss · /group moves this tab · ⌘1–9 jumps groups';
@@ -155,14 +297,14 @@
     { cmd: '/downloads', hint: 'Open downloads' },
     { cmd: '/settings', hint: 'Open settings' },
     { cmd: '/new', hint: 'Open a new tab' },
-    { cmd: '/private', hint: 'Open a private tab' },
+    { cmd: '/private', hint: 'Open a private tab (history stays untouched)' },
     { cmd: '/pin', hint: 'Pin or unpin this tab' },
-    { cmd: '/group', hint: 'Move this tab into a named group' },
+    { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"' },
     { cmd: '/close-group', hint: 'Close every tab in this group' },
     { cmd: '/find', hint: 'Find in page' },
-    { cmd: '/block-ads', hint: 'Toggle ad & tracker blocking' },
+    { cmd: '/block-ads', hint: 'Block ads here, or toggle blocking everywhere' },
     { cmd: '/allow-ads', hint: 'Allow ads on this site' },
-    { cmd: '/theme', hint: 'Cycle appearance' },
+    { cmd: '/theme', hint: 'Cycle appearance, or choose system / light / dark' },
   ];
   const SEARCH_TAGS = {
     notion: 'favorite',
@@ -211,14 +353,18 @@
       '</span>';
   }
 
+  // Tab rows in the open panel carry no domain column — 1.1.0 dropped it so the
+  // title has the room. Quick-Switcher and command rows keep their subs, which
+  // is why the domain is opt-in rather than always drawn.
   function tabRow(id, opts) {
     opts = opts || {};
     const t = TABS[id];
     const cls = 'trow' + (opts.hl ? ' hl' : '') + (opts.just ? ' just' : '');
+    const dom = opts.sub ? `<span class="dom">${t.domain}</span>` : '';
     const tag = opts.tag ? `<span class="tag">${opts.tag}</span>` : '';
     const enter = opts.enter ? '<span class="enter">↵</span>' : '';
     return `<div class="${cls}"><span class="fav" style="${favStyle(t)}"></span>` +
-           `<span class="title">${t.title}</span><span class="dom">${t.domain}</span>${tag}${enter}</div>`;
+           `<span class="title">${t.title}</span>${dom}${tag}${enter}</div>`;
   }
 
   function secHead(label, count, icon, just, collapsed) {
@@ -302,7 +448,7 @@
     if (result.kind === 'group') {
       return `<div class="trow${i === 0 ? ' hl' : ''}">${rowDots(result.count, true)}<span class="title">${result.title}</span><span class="dom">${result.domain}</span><span class="tag">group</span>${i === 0 ? '<span class="enter">↵</span>' : ''}</div>`;
     }
-    return tabRow(result.id, { hl: i === 0, tag: result.kind, enter: i === 0 });
+    return tabRow(result.id, { hl: i === 0, tag: result.kind, enter: i === 0, sub: true });
   }
 
   function switcherRows(layName, input) {
@@ -328,15 +474,14 @@
 
     const t = TABS[current];
     favEl.style.backgroundImage = t.fav ? `url('${ICON_BASE}${t.fav}.ico')` : 'none';
-    if (group) {
-      groupNameEl.textContent = `${group.name} ·`;
-      groupNameEl.hidden = false;
-    } else {
-      groupNameEl.hidden = true;
-    }
     domainEl.textContent = t.domain;
-    shieldEl.hidden = t.shield === 0;
-    shieldEl.textContent = t.shield;
+    // Protected with nothing blocked yet is a state of its own in the app — a
+    // dimmed shield with no badge, not a missing one. The shield is a permanent
+    // landmark in the pill; only the badge comes and goes.
+    shieldEl.classList.toggle('shield-quiet', !t.shield);
+    shieldCountEl.textContent = t.shield || '';
+    shieldHostEl.textContent = t.domain;
+    shieldBlockedEl.textContent = t.shield ? `${t.shield} request${t.shield === 1 ? '' : 's'} blocked` : 'Nothing blocked on this page';
     // Favorite (heart) fills for the sites the demo treats as favorites.
     heartEl.classList.toggle('on', SEARCH_TAGS[current] === 'favorite');
   }
@@ -374,7 +519,10 @@
   const SCENES = [
     { view: 'rest',  layout: 'base',    current: 'github',  hold: 3200, cap: 'No tab strip, no toolbar — just one small island.' },
     { view: 'rest',  layout: 'base',    current: 'github',  scroll: true, hold: 4200, cap: 'Scroll the page and the island stays out of the way.' },
-    { view: 'panel', layout: 'base',    current: 'github',  hold: 3300, cap: 'Open it and the whole session is already sorted.' },
+    // An invitation rather than a claim: the pill only reacts to a real cursor,
+    // so the caption points at something the visitor can go and do.
+    { view: 'rest',  layout: 'base',    current: 'github',  hold: 3400, cap: 'Move your pointer toward it — the island leans your way.' },
+    { view: 'panel', layout: 'base',    current: 'github',  hold: 3300, cap: 'Open it and the panel grows out of the island itself.' },
     { view: 'panel', layout: 'base',    current: 'github',  panel: 'switcher', typed: 'scr', hold: 3400, cap: 'A few letters jumps from GitHub to Scroll.' },
     { view: 'rest',  layout: 'base',    current: 'scroll',  hold: 2800, cap: 'Scroll fills the window while the island stays small.' },
     { view: 'panel', layout: 'pinned',  current: 'scroll',  panel: 'commands', typed: '/pin', justPin: 'scroll', hold: 3800, cap: 'Commands handle the little browser chores.' },
@@ -382,7 +530,8 @@
     { view: 'panel', layout: 'folded',  current: 'netflix', hold: 3300, cap: 'Folded groups stay tucked away until you jump back.' },
     { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', hold: 4200, cap: 'The same input finds tabs, favorites, and history.' },
     { view: 'rest',  layout: 'grouped', current: 'notion', hold: 3200, cap: 'Enter switches to Notion, with the page back in front.' },
-    { view: 'panel', layout: 'grouped', current: 'github',  panel: 'commands', typed: '/allow', hold: 3400, cap: 'Need a site exception? Type /allow-ads.' },
+    { view: 'shield',layout: 'grouped', current: 'netflix', hold: 4200, cap: 'The shield opens direct controls: the connection, Blanc Blocker, and the count.' },
+    { view: 'panel', layout: 'grouped', current: 'github',  panel: 'commands', typed: '/allow', hold: 3400, cap: 'Need a site exception? The shield has a switch, or type /allow-ads.' },
     { view: 'panel', layout: 'grouped', current: 'youtube', panel: 'commands', typed: '/private', hold: 3600, cap: 'A private tab is one command away.' },
     { view: 'rest',  layout: 'grouped', current: 'youtube', priv: true, hold: 3800, cap: 'Private tabs shift the chrome and save nothing to history.' },
   ];
@@ -391,10 +540,10 @@
   // at the start of one and jumps playback there.
   const CHAPTERS = [
     { label: 'the island', scene: 0 },
-    { label: 'command bar', scene: 2 },
-    { label: 'tab groups', scene: 6 },
-    { label: 'ad blocking', scene: 10 },
-    { label: 'private tabs', scene: 11 },
+    { label: 'command bar', scene: 3 },
+    { label: 'tab groups', scene: 7 },
+    { label: 'blanc blocker', scene: 11 },
+    { label: 'private tabs', scene: 13 },
   ];
   // A scene's on-screen duration: typing scenes run for the keystrokes plus a
   // read beat, everything else uses its authored hold. The scrub fill and the
@@ -409,9 +558,10 @@
   function applyScene(s) {
     stopTyping();
     const open = s.view === 'panel';
+    const showShield = s.view === 'shield';
     const lay = LAYOUTS[s.layout];
     const current = s.current || allIds(lay)[0];
-    demo.classList.toggle('open', open);
+    demo.classList.toggle('show-shield', showShield);
     demo.classList.toggle('private', !!s.priv);
     stage.classList.remove('scrolling');
     void stage.offsetWidth; // restart the scroll animation when the scene repeats
@@ -426,6 +576,8 @@
     stage.style.setProperty('--demo-strip-bg', s.priv ? PRIVATE_TOP : (SHOT_TOP[current] || ''));
     setCap(s.cap);
 
+    // Content first, then the movement — the morph measures the panel it is
+    // about to grow into, so the rows have to be in place before it starts.
     if (open) {
       if (s.typed && s.panel === 'commands') {
         typeInput(s.typed, commandRows, () => renderTabsPanel(s.layout, s));
@@ -438,6 +590,7 @@
     } else {
       typedEl.textContent = '';
     }
+    setPanelOpen(open);
   }
 
   // ---- scrub bar: progress fill + clickable chapter markers ----

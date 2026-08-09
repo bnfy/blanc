@@ -71,12 +71,28 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.doesNotMatch(page, /Show the product, not another logo wall/);
   assert.doesNotMatch(page, /press\/blanc-island-product-capture\.png/);
   assert.doesNotMatch(page, /GitHub page/);
+  // Wherever the page prints a version and a date together, the date is that
+  // version's own ship date, derived from the generated changelog data. It was
+  // hardcoded, so once the version pin moved to 1.1.0 the fact sheet read
+  // "Blanc 1.1.0 · released August 2, 2026" — August 2 being 1.0's launch day.
+  // The announcement's own dateline is deliberately still a literal: it dates
+  // the 1.0 announcement, not whatever version ships next.
+  // That fact group tracks the shipping version, so it must not call itself the
+  // launch — the launch build stopped being current at 1.0.1.
+  assert.match(page, /<h3 id="press-facts-release">current release<\/h3>/);
+  assert.doesNotMatch(page, /press-facts-launch/);
+  assert.match(page, /import releaseData from '\.\.\/data\/releases\.json'/);
+  assert.match(page, /<dt>released<\/dt><dd><time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
+  assert.match(page, /<dt>date<\/dt><dd><time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
+  assert.doesNotMatch(page, /<dt>(?:released|date)<\/dt><dd>[A-Z][a-z]+ \d/);
   assert.match(page, /press\/blanc-1\.0-launch-card-v3\.png/);
   assert.doesNotMatch(page, /press\/blanc-1\.0-launch-card-v2\.png/);
   assert.match(page, /<PressIslandDemo \/>/);
   assert.doesNotMatch(page, /press-product-callouts/);
   assert.doesNotMatch(page, /press\/vertical-tabs\.png/);
-  assert.match(islandDemo, /Interactive recreation of the Blanc 1\.0 Island/);
+  // Version-free on purpose: the demo recreates whatever the Island is today.
+  assert.match(islandDemo, /Interactive recreation of the Blanc Island/);
+  assert.doesNotMatch(islandDemo, /Blanc 1\.0 Island/);
   assert.match(islandDemo, /id="pressIslandInput"/);
   assert.match(islandDemo, /name: 'tech news'/);
   assert.match(islandDemo, /title: 'The Verge', domain: 'theverge\.com'/);
@@ -145,7 +161,14 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(siteStyles, /\.press-motion-ready \.press-reveal\.is-visible/);
   assert.match(siteStyles, /\.press-compare-table tbody tr:hover/);
   assert.match(page, /<td data-label="Traditional browser">/);
-  assert.match(page, /<td data-label="Blanc 1\.0">/);
+  // Every version stated beside current-product content tracks VERSION. Only
+  // the announcement below stays pinned to 1.0 — it is a dated document, not a
+  // claim about the shipping build.
+  assert.match(page, /<td data-label=\{`Blanc \$\{VERSION\}`\}>/);
+  assert.match(page, /<th scope="col">Blanc \{VERSION\}<\/th>/);
+  assert.match(page, /<p class="section-kicker">Blanc \{VERSION\} · independent browser<\/p>/);
+  assert.match(page, /ogImageAlt=\{`Blanc \$\{VERSION\} press kit/);
+  assert.doesNotMatch(page, /Blanc 1\.0 · independent browser/);
   assert.match(siteStyles, /\.press-compare-table tbody td::before/);
   assert.match(siteStyles, /\.press-primary-asset > a:hover img/);
   assert.match(page, /macOS · Windows · Linux/);

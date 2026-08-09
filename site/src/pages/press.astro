@@ -3,9 +3,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
 import PressIslandDemo from '../components/PressIslandDemo.astro';
 import slashCommandCopy from '../../../copy/slash-commands.json';
+import releaseData from '../data/releases.json';
 
 const VERSION = '1.1.0';
 const TAG = `v${VERSION}`;
+/* Wherever this page states a version and a date together, the date is that
+   version's own ship date — read from the generated changelog data rather than
+   typed in. Hardcoding it means the pair silently goes wrong the moment the
+   version pin moves: the fact sheet read "Blanc 1.1.0, released August 2, 2026"
+   for exactly that reason, August 2 being 1.0's launch. The dateline on the
+   announcement below is a different thing — it dates the 1.0 announcement
+   itself, and stays put. */
+const CURRENT_RELEASE = (releaseData.releases ?? releaseData).find((entry) => entry.tag === TAG);
+if (!CURRENT_RELEASE) {
+  throw new Error(
+    `press.astro: releases.json has no entry for ${TAG}. Run "npm run site:changelog" ` +
+    'before building — a blank date on the fact sheet is worse than a loud failure here.'
+  );
+}
+const RELEASED_HUMAN = CURRENT_RELEASE.humanDate;
+const RELEASED_MACHINE = CURRENT_RELEASE.machineDate;
 const RELEASE_BASE = 'https://github.com/bnfy/blanc/releases';
 const RELEASE_URL = `${RELEASE_BASE}/tag/${TAG}`;
 const MAC_REVIEW_URL = `${RELEASE_BASE}/download/${TAG}/Blanc-${VERSION}-arm64.dmg`;
@@ -56,7 +73,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
   ogTitle="Blanc replaces browser clutter with one small Island"
   ogDescription="No permanent tab row, no required account, and no built-in AI agent. Blanc is free for macOS, Windows, and Linux."
   ogImage="/press/blanc-1.0-launch-card-v3.png"
-  ogImageAlt="Blanc 1.0 press kit: the browser in one small Island."
+  ogImageAlt={`Blanc ${VERSION} press kit: the browser in one small Island.`}
 >
 <main class="press-page">
   <header class="press-masthead">
@@ -69,7 +86,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
 
   <section class="press-hero" aria-labelledby="press-title">
     <div class="press-hero-copy">
-      <p class="section-kicker">Blanc 1.0 · independent browser</p>
+      <p class="section-kicker">Blanc {VERSION} · independent browser</p>
       <h1 id="press-title">Blanc replaces browser clutter with one small Island.</h1>
       <p>No permanent tab row, no required account, and no AI assistant competing for attention. Open the Island when you need it; give the rest of the window back to the web.</p>
       <div class="press-actions" aria-label="Press actions">
@@ -80,7 +97,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
     </div>
     <dl class="press-release-meta">
       <div><dt>release</dt><dd>Blanc {VERSION}</dd></div>
-      <div><dt>date</dt><dd>August 2, 2026</dd></div>
+      <div><dt>date</dt><dd><time datetime={RELEASED_MACHINE}>{RELEASED_HUMAN}</time></dd></div>
       <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
       <div><dt>release files</dt><dd>macOS: DMG + ZIP · Windows: EXE · Linux: AppImage</dd></div>
     </dl>
@@ -121,7 +138,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
             <th scope="col"><span class="sr-only">Dimension</span></th>
             <th scope="col">Traditional browser</th>
             <th scope="col">Agent browser</th>
-            <th scope="col">Blanc 1.0</th>
+            <th scope="col">Blanc {VERSION}</th>
           </tr>
         </thead>
         <tbody>
@@ -130,7 +147,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
               <th scope="row">{dimension}</th>
               <td data-label="Traditional browser">{traditional}</td>
               <td data-label="Agent browser">{agent}</td>
-              <td data-label="Blanc 1.0">{blanc}</td>
+              <td data-label={`Blanc ${VERSION}`}>{blanc}</td>
             </tr>
           ))}
         </tbody>
@@ -162,7 +179,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       <div class="press-secondary-assets">
         <figure class="press-launch-card">
           <a href="/press/blanc-1.0-launch-card-v3.png" download>
-            <img src="/press/blanc-1.0-launch-card-v3.png" width="2400" height="1260" alt="Blanc 1.0 launch card with the Blanc mark, the statement 'The browser in one small Island,' and the brand-neutral Island product capture." />
+            <img src="/press/blanc-1.0-launch-card-v3.png" width="2400" height="1260" alt={`Blanc ${VERSION} launch card with the Blanc mark, the statement 'The browser in one small Island,' and the brand-neutral Island product capture.`} />
           </a>
           <figcaption>
             <span><strong>Launch card</strong> Ready for social posts, newsletters, and story previews.</span>
@@ -227,11 +244,13 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       <p>Blanc is a free independent browser from Bananify that replaces the permanent tab strip and toolbar with one expandable Island, leaving the page at center stage.</p>
     </div>
     <div class="press-fact-groups">
-      <section class="press-fact-group" aria-labelledby="press-facts-launch">
-        <h3 id="press-facts-launch">launch</h3>
+      <!-- "current release", not "launch": these rows track whatever version is
+           shipping now, which stopped being the launch build at 1.0.1. -->
+      <section class="press-fact-group" aria-labelledby="press-facts-release">
+        <h3 id="press-facts-release">current release</h3>
         <dl class="press-fact-grid">
           <div><dt>version</dt><dd>Blanc {VERSION}</dd></div>
-          <div><dt>released</dt><dd>August 2, 2026</dd></div>
+          <div><dt>released</dt><dd><time datetime={RELEASED_MACHINE}>{RELEASED_HUMAN}</time></dd></div>
           <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
           <div><dt>release files</dt><dd>DMG + ZIP · EXE · AppImage</dd></div>
         </dl>

@@ -2,14 +2,14 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 <BaseLayout
-  title={"Built-in Ad and Tracker Blocking Browser | Blanc"}
-  description={"Blanc includes ad and tracker blocking in the browser, with a live shield count and a per-site option when you want to allow ads."}
+  title={"Ad and Tracker Blocking with Direct Site Controls | Blanc"}
+  description={"Blanc includes ad and tracker blocking in the browser, with direct site controls for the connection, blocked-request count, and per-site setting."}
   path="/features/ad-blocking"
   page="feature-ad-blocking"
   current="features"
-  ogDescription={"Built-in ad and tracker blocking with a quiet shield count and a per-site option when you want to allow ads."}
+  ogDescription={"Built-in ad and tracker blocking with direct site controls for the connection, blocked-request count, and per-site setting."}
   ogImage="/feature-ad-blocking.png"
-  ogImageAlt={"Blanc's floating Island over a web page, with the blocking shield visible."}
+  ogImageAlt={"Blanc's floating Island over a web page, with the site-control shield visible."}
 >
   <script type="application/ld+json" is:inline slot="head">
 {
@@ -27,18 +27,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">ad blocking</span></nav>
   <section class="feature-hero feature-hero--detail" aria-labelledby="blocking-title">
     <p class="section-kicker">built in</p>
-    <h1 id="blocking-title">Fewer ads. Less tracking. No extension required.</h1>
-    <p>Blanc uses built-in blocking lists to stop ads and known trackers at the browser level. The shield on the Island shows what was blocked on the page.</p>
+    <h1 id="blocking-title">A clearer control for a quieter site.</h1>
+    <p>Blanc Blocker uses built-in lists to stop ads and known trackers at the browser level. Its shield on the Island — a shield cut by the diagonal from Blanc&rsquo;s own mark — opens direct controls for the site you are visiting.</p>
   </section>
 
   <figure class="product-capture feature-capture">
-    <div class="demo-stage island-figure" data-page-tone="netflix" role="img" aria-label="Blanc's floating Island over the Netflix website, showing the current domain netflix.com next to a shield count of three blocked items.">
+    <div class="demo-stage island-figure island-figure--site-controls" data-page-tone="netflix" role="img" aria-label="Blanc's site-control popover over the Netflix website. It shows netflix.com, that ad and tracker blocking is on, that the connection uses HTTPS, and three blocked requests.">
       <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
       <picture>
         <source media="(max-width: 560px)" srcset="/shots/mobile/netflix.jpg">
         <img class="demo-shot show" src="/shots/desktop/netflix.jpg" loading="lazy" alt="" aria-hidden="true">
       </picture>
-      <div class="demo-island" aria-hidden="true">
+      <div class="demo-island site-controls-island" aria-hidden="true">
         <div class="pill">
           <div class="pnav">
             <span class="pbtn"><svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg></span>
@@ -47,16 +47,27 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           <div class="dots"><span></span><span class="cur"></span><span></span><span></span></div>
           <span class="pill-fav" style="background-image:url('/favicons/netflix.com.ico')"></span>
           <span class="domain">netflix.com</span>
-          <span class="shield">3</span>
+          <span class="shield"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></svg><span class="shield-count">3</span></span>
           <span class="psep"></span>
           <div class="pacts">
             <span class="pbtn"><svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg></span>
             <span class="pbtn heart"><svg viewBox="0 0 16 16"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"/></svg></span>
+            <span class="pbtn"><svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg></span>
           </div>
+        </div>
+        <div class="site-controls-popover">
+          <div class="site-controls-head">
+            <div><strong>netflix.com</strong><span>Ad &amp; tracker blocking <b>on</b></span></div>
+            <span class="site-controls-switch"><i></i></span>
+          </div>
+          <p>Uses HTTPS</p>
+          <p>3 requests blocked</p>
+          <small>Changing this reloads the page.</small>
+          <span class="site-controls-link">blocking settings →</span>
         </div>
       </div>
     </div>
-    <figcaption>The shield sits alongside the site you are visiting, so the status stays clear without becoming a dashboard.</figcaption>
+    <figcaption>The shield opens a small site-control popover: connection, blocking state, and the page&rsquo;s count in one clear place.</figcaption>
   </figure>
 
   <section class="feature-copy-grid" aria-labelledby="built-in-title">
@@ -67,15 +78,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     <div class="feature-copy-list">
       <article>
         <h3>Built around the web, not a browser store.</h3>
-        <p>Blanc loads ad and tracker block lists directly in the browser. You do not need to find, install, or manage an extension before browsing.</p>
+        <p>Blanc Blocker loads its lists directly in the browser. You do not need to find, install, or manage an extension before browsing.</p>
       </article>
       <article>
-        <h3>A quiet count when it matters.</h3>
-        <p>The shield on the Island displays the number of blocked items for the current page. It is there as a useful signal, not a second dashboard to manage.</p>
+        <h3>Know the site, not just the count.</h3>
+        <p>Open the shield to see whether the page uses HTTPS and how many requests Blanc blocked. It reports only what the address proves, without turning the browser into a security dashboard.</p>
       </article>
       <article>
         <h3>Let a site through when you choose.</h3>
-        <p>Need a site exception? Open the Island and type <code>/allow-ads</code>. Blanc keeps the choice specific to that site instead of making it an all-or-nothing setting.</p>
+        <p>Need a site exception? Use the switch in the shield popover, or type <code>/allow-ads</code>. Blanc keeps the choice specific to that site instead of making it an all-or-nothing setting.</p>
       </article>
     </div>
   </section>

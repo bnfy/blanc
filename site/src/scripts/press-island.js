@@ -9,12 +9,12 @@
   const list = document.getElementById('pressIslandList');
   const domain = document.getElementById('pressIslandDomain');
   const shield = document.getElementById('pressIslandShield');
+  const shieldCount = document.getElementById('pressIslandShieldCount');
   const hint = document.getElementById('pressIslandHint');
   const favicon = toggle?.querySelector('.pill-fav');
-  const groupName = toggle?.querySelector('.group-name');
   const page = document.getElementById('pressIslandPage');
 
-  if (!demo || !island || !toggle || !state || !stateLabel || !input || !list || !domain || !shield || !hint || !favicon || !groupName || !page) return;
+  if (!demo || !island || !toggle || !state || !stateLabel || !input || !list || !domain || !shield || !shieldCount || !hint || !favicon || !page) return;
 
   const originalMarkup = list.innerHTML;
   const commands = [
@@ -85,16 +85,14 @@
     const nextDomain = row.dataset.domain;
     const selectedFavicon = row.dataset.favicon;
     const selectedShield = row.dataset.shield;
-    const selectedGroup = row.dataset.group;
     interact();
     selectedDomain = nextDomain;
     domain.textContent = nextDomain;
     favicon.style.backgroundImage = selectedFavicon ? `url('/favicons/${selectedFavicon}.ico')` : 'none';
     favicon.classList.toggle('press-island-blanc-favicon', !selectedFavicon);
-    shield.textContent = selectedShield;
-    shield.hidden = selectedShield === '0';
-    groupName.textContent = selectedGroup ? `${selectedGroup} ·` : '';
-    groupName.hidden = !selectedGroup;
+    shieldCount.textContent = selectedShield === '0' ? '' : selectedShield;
+    // Nothing blocked here reads as a quiet shield, not an absent one.
+    shield.classList.toggle('shield-quiet', selectedShield === '0');
     switchPage(row);
     input.value = '';
     restoreTabs();
