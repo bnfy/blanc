@@ -3924,6 +3924,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         `location.href = ${JSON.stringify(String(url))}`
       ),
       getChromeUrl: () => rt().window?.webContents.getURL() ?? '',
+      sleepTab, wakeTab, runSleepSweep,
+      getSleepSnapshots: () => sleepSnapshots,
+      setSleepThresholdOverride: (ms) => {
+        sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
+        return sleepThresholdOverrideMs;
+      },
     });
   }
 

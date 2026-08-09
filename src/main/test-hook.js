@@ -11,7 +11,7 @@
 const settings = require('./settings');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
-const { Menu, clipboard } = require('electron');
+const { app, Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
 const {
@@ -81,6 +81,11 @@ function install(refs) {
     getPrivateBrowsingSession,
     attemptChromeNavigation,
     getChromeUrl,
+    sleepTab,
+    wakeTab,
+    runSleepSweep,
+    setSleepThresholdOverride,
+    getSleepSnapshots,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -759,9 +764,56 @@ function install(refs) {
     attemptChromeNavigation(url) { return attemptChromeNavigation(String(url)); },
     chromeUrl() { return getChromeUrl(); },
 
+    // ---- Quiet Tabs ----
+    // Every method drives the real main-process implementation; a mirror here
+    // would keep the acceptance suite green if the shipping code regressed.
+    async sleepTab(id) { return sleepTab(id); },
+    async wakeTab(id) { return wakeTab(id); },
+    /** With an id: that tab's redacted state. Without: every tab in tab order.
+     * NEVER returns entries: snapshots can contain POST bodies and form data. */
+    sleepState(id) {
+      const snapshots = getSleepSnapshots();
+      const one = (tabId, tab) => ({
+        id: tabId,
+        asleep: !!tab.asleep,
+        hasSnapshot: snapshots.has(tabId),
+        entryCount: snapshots.get(tabId)?.entries.length ?? 0,
+      });
+      if (typeof id === 'string') {
+        const tab = tabs.get(id);
+        return tab ? one(id, tab) : null;
+      }
+      return getTabOrder()
+        .map((tabId) => {
+          const tab = tabs.get(tabId);
+          return tab ? one(tabId, tab) : null;
+        })
+        .filter(Boolean);
+    },
+    /** Backdate a tab's idle clock so a sweep sees it as idle. */
+    setTabIdleSince(id, msAgo) {
+      const tab = tabs.get(id);
+      if (!tab) return false;
+      tab.lastActiveAt = Date.now() - Number(msAgo || 0);
+      return true;
+    },
+    async runSleepSweep() { return runSleepSweep(); },
+    setSleepThresholdOverride(ms) { return setSleepThresholdOverride(ms); },
+    /** Falsifiability hook: only an OS process count proves a discarded view
+     * released its renderer rather than merely disappearing from the tab map. */
+    tabProcessCount() {
+      return app.getAppMetrics().filter((process) => process.type === 'Tab').length;
+    },
+
     // ---- isolation between scenarios ----
-    reset() {
+    async reset() {
       clearFocusObservation();
+      // Do not let a scenario inherit quiet state or retained page state. A
+      // quiet record is safe for closeTab, but waking first makes teardown and
+      // the subsequent snapshot clear explicit.
+      for (const [id, tab] of tabs) if (tab.asleep) await wakeTab(id);
+      getSleepSnapshots().clear();
+      setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.
       hideOverlay({ refocusContent: false });
       hideUtilitySheet();
@@ -784,6 +836,7 @@ function install(refs) {
         verticalTabsWidth: 248,
         appIcon: 'paper',
         adblockExceptions: [],
+        tabSleep: '1h',
       });
       settings.setSupporter(null);
       clearTestSearchSuggestionFixture();
