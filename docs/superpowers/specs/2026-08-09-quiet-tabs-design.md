@@ -149,14 +149,21 @@ The originally-proposed fix — detach the `destroyed` listener that calls
 fresh arrow per call and retains no reference, so there is nothing to
 `removeListener`. Verified.
 
-Sequence instead:
+**The canonical teardown sequence — one close call, defined once.** §4.4.1
+explains the `beforeunload` reasoning but does not restate these steps:
 
-1. `tab.sleeping = true`
-2. `wc.removeAllListeners()` — the authoritative teardown set is *all* listeners
-3. `wc.close()`
-4. Clear `tab.view` **from inside the `destroyed` handler**, under the `sleeping`
-   flag — destruction must be observed, since dropping the reference reclaims
-   nothing (§1). The view is held in the sleep record meanwhile, never on the tab.
+1. Take the snapshot (§6) and run §4.5's revalidation. Both need a live
+   webContents, so both precede everything below.
+2. `tab.sleeping = true`
+3. `wc.removeAllListeners()` — the authoritative teardown set is *all* listeners
+4. Attach exactly two temporary listeners, **before the close call**:
+   - the `destroyed` observer, which clears `tab.view` under the `sleeping` flag.
+     Destruction must be *observed* — dropping the reference reclaims nothing
+     (§1). The view is held in the sleep record meanwhile, never on the tab.
+   - a silent `will-prevent-unload` that records an abort and **returns without
+     calling `event.preventDefault()`** (§4.4.1).
+5. `wc.close({ waitForBeforeUnload: true })` — the only close call in the path.
+6. Either `destroyed` fires (the tab is quiet) or the abort was recorded (§4.4.1).
 
 Every handler in `tab-view.js` additionally opens with
 `if (tab.sleeping || tab.view?.webContents !== wc) return;` — belt and braces
@@ -321,20 +328,24 @@ measured, and consistent with the same typing.
 
 It is still the highest-fidelity unsaved-work signal available, because it is
 Chromium's own verdict and covers the JS-draft case the predicate cannot. So it
-is specified as **the final atomic teardown step**, run only after the snapshot
-is taken (§6), §4.5's revalidation has passed, and the replacement `destroyed`
-observer is installed:
+is folded into the §4.1 teardown as the sole close call, rather than run as a
+separate step.
 
-1. snapshot, revalidate, `tab.sleeping = true`
-2. `wc.removeAllListeners()`
-3. attach exactly two temporary listeners: the `destroyed` observer (§4.1 step 4)
-   and a silent `will-prevent-unload` that records an abort and calls
-   `event.preventDefault()` — never the modal handler at `:2058-2068`
-4. `close({ waitForBeforeUnload: true })`
-5. **Destroyed fires** ⇒ the tab is quiet, as normal.
-   **Abort fires** ⇒ the page has unsaved work: clear `sleeping`, re-run
-   `wireTabView(tab, view, …)` to restore the full listener set that step 2
-   removed, and leave the tab awake. It is retried on a later sweep.
+**The polarity of `preventDefault` is inverted from the intuitive reading, and
+getting it wrong destroys exactly the tab you are trying to spare.**
+`will-prevent-unload` fires when the page *objects* to unloading. Calling
+`event.preventDefault()` overrides that objection and lets the unload proceed —
+Blanc's own handler documents it inline at `main.js:2067`:
+`if (choice === 0) event.preventDefault(); // preventing the prevention lets the unload proceed`.
+
+So the temporary handler **records the abort and returns**, without calling
+`preventDefault()`. Electron then honours the page's own prevention, the close
+does not complete, and the WebContents stays alive.
+
+- **`destroyed` fires** ⇒ the page had no objection; the tab is quiet.
+- **Abort recorded** ⇒ the page has unsaved work: clear `sleeping`, re-run
+  `wireTabView(tab, view, …)` to restore the full listener set that step 3
+  removed, and leave the tab awake. It is retried on a later sweep.
 
 The abort branch costs a full re-wire, which is the price of using the real
 signal; `wireTabView` exists for wake and is reused verbatim. If that branch
@@ -342,7 +353,8 @@ proves unstable in implementation, dropping to plain `close()` with the §4.4
 predicate alone is a local change that alters nothing else in this design.
 
 Guard the handler swap with a flag so a concurrent user-initiated `closeTab`
-still gets its modal dialog.
+still gets the modal Leave/Stay dialog at `:2058-2068` rather than this silent
+handler.
 
 ### 4.5 Re-validate immediately before the discard
 
@@ -470,10 +482,17 @@ snapshot = { index, entries: all.map((e, i) => i === index ? e : { url: e.url, t
 ```
 
 One ceiling, one consequence: if the surviving `pageState` exceeds **512 KB**,
-drop that string and keep the trimmed entry list. The tab is still quieted — wake
-falls back to `loadURL(tab.url)` and the back stack survives. Nothing about an
-oversized page justifies keeping a whole renderer process alive, which is what
-"do not quiet it at all" would mean.
+drop that string and keep the trimmed entry list. The tab is still quieted, and
+**wake still goes through `navigationHistory.restore()`** with the pageState-free
+entries — so the back stack is preserved and only scroll position and form values
+are lost. Nothing about an oversized page justifies keeping a whole renderer
+process alive, which is what "do not quiet it at all" would mean.
+
+`loadURL()` is **not** the oversized path. A fresh `loadURL()` starts a new
+single-entry history and would silently destroy the back stack; it is reserved
+for §5.1's fallback after a *rejected* `restore()`. Entries carrying only
+`{url, title}` restore correctly — that is the same shape private tabs use below,
+and it was verified end-to-end: `canGoBack()` and `goBack()` still work.
 
 Size is measured as `Buffer.byteLength(pageState, 'utf8')` on the base64 string,
 not `String.length` — the two differ, and the ceiling exists to bound real heap.
@@ -576,12 +595,21 @@ entirely (`:1876-1878`) — and there is no contrast headroom: the idle dot is
   The row is `document.createElement('div')` with a class and `dataset.tabId` and
   **no role, no tabindex, no aria** (`overlay.js:237-241`). A bare `<div>` is not
   an accessible element, so its visible text does not become an accessible name —
-  an earlier draft claimed otherwise and was wrong. Giving the state a real
-  accessible name therefore means giving the row a real accessible identity:
-  `role="option"` within a `role="listbox"` list, or `role="button"`, plus an
-  `aria-label` composed from title, host, and state. That is a small a11y
-  correction to existing rows, in scope for this feature because the feature is
-  what makes the row's state load-bearing.
+  an earlier draft claimed otherwise and was wrong.
+
+  **The row cannot itself become the control.** It already contains four real
+  `<button>` children — `row-pin` (`:269`), `row-mute` (`:281`), `row-grp`
+  (`:293`), `row-close` (`:310`). `role="option"` and `role="button"` both take
+  presentational children, so either would nest interactive controls illegally
+  and hide the four buttons from assistive technology.
+
+  Structure instead: the row becomes a labelled `role="group"`, containing a
+  dedicated **primary button** that carries the switch action and the accessible
+  name — `"Switch to <title>, <host>, quiet"` — with pin, mute, group, and close
+  as its **siblings** inside the group, not its descendants. Each keeps its own
+  label. That satisfies the quiet accessible-name contract without inventing
+  invalid nesting, and it is the structure the row should have had regardless;
+  this feature is what makes the omission load-bearing.
 - **Rail:** add `tab.asleep && 'quiet'` to the `states` array
   (`vertical-tabs.js:355-365`) — the field is `asleep`, the string is "quiet" —
   plus a `makeMarker(...)`, and dim the **favicon**,
@@ -798,6 +826,14 @@ Three scenarios cover the corrections that are invisible to unit tests:
 - **Unsaved control state** — a form whose only change is a ticked checkbox or a
   changed `<select>` must not be auto-quieted. A `value`-only predicate passes
   every other dirty-input scenario and fails this one.
+- **Oversized pageState** — quiet a tab whose active entry exceeds the ceiling,
+  then wake it and assert Back still works. This is the scenario that fails if
+  the oversized path ever degrades to `loadURL()`.
+- **`beforeunload` polarity** — a page whose `beforeunload` objects must survive
+  the sweep awake, with its listeners intact (verified by a subsequent ordinary
+  navigation still updating title and history). An inverted `preventDefault`
+  passes a naive "did it stay awake" check only by accident, so assert the tab is
+  still *functional*, not merely present.
 
 Extending `@F28-7`'s literal expected map
 (`test/desktop/steps/vertical-tabs.steps.js:945-960`) is part of the UI commit.
