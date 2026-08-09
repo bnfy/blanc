@@ -1,5 +1,78 @@
 [
   {
+    "tag": "v1.1.1",
+    "version": "1.1.1",
+    "name": "1.1.1",
+    "publishedAt": "2026-08-09T19:48:20.000Z",
+    "humanDate": "August 9, 2026",
+    "machineDate": "2026-08-09",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.1.1",
+    "anchor": "v1-1-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The stop button no longer draws a second ✕. While a tab was loading, the reload button became an ✕ sitting two buttons from the close-tab ✕ — two near-identical marks, one cancelling the load and one closing the tab. Stop is now a ring with a filled square, drawn at the same size as the reload arc it replaces, so nothing shifts as a page loads."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Finishing a download no longer empties the downloads button. The button fills like a vessel as bytes arrive, but the level was drawn from the download still in flight — so the moment it completed, the fill drained away and the button looked as though nothing had happened. A completed download now tops the vessel out, marks it with a check, and keeps it full until you open Downloads."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.1.1"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.1.0",
     "version": "1.1.0",
     "name": "1.1.0",
