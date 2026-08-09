@@ -1859,7 +1859,7 @@ initTabView({
   fillActiveTabFrom1Password,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null } = {}) {
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
     // open-url handoff, future call sites). Session restore filters
@@ -1917,8 +1917,27 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // SPIKE (1Password fill feasibility) — bumped on any main-frame navigation
     // start/commit so the async fill can detect a page swap mid-flow.
     navEpoch: 0,
+    // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
+    // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
+    asleep: false,            // renderer discarded; tab.view is null
+    sleeping: false,          // teardown in progress
+    waking: false,            // a wake generation is open
+    wakeGeneration: 0,        // monotonic, never reset
+    lastActiveAt: null,       // ms epoch; null until first stamp
+    adopted,                  // an adopted window.open child is never quietable
+    openerTabId,              // family-awareness for sleepCandidates
+    usedMedia: false,         // 'media-started-playing'; cleared ONLY on main-frame nav
+    // Fail-safe false: a tab with no committed main frame is not quietable.
+    // Deliberately NOT historyEligible, which is false for every private tab.
+    restorableCommit: false,
+    deepScrolled: false,      // probe result: scrollY > 3 * innerHeight
+    httpEntryCount: 0,        // http(s) entries in navigationHistory
   };
   tabs.set(id, tab);
+  // A background-created tab (cmd-click, session restore, window.open child)
+  // never passes through setActiveTab, so it would otherwise never be stamped.
+  // A foreground creation overwrites this the moment it is deactivated.
+  tab.lastActiveAt = Date.now();
   rt().tabOrder.push(id);
   windowRuntimes.attachTab(owner, id);
 
@@ -1974,6 +1993,12 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   const prevId = rt().activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
+  if (prev) {
+    // Quiet Tabs: the tab is leaving the foreground — this is the ONLY moment
+    // that defines "idle since" (spec §4.3). Stamp before a potential detach
+    // error so the tab cannot be left eligible without an idle timestamp.
+    prev.lastActiveAt = Date.now();
+  }
   if (prev?.view) {
     rt().window.contentView.removeChildView(prev.view);
     // A detached view's document still reports visibilityState 'visible',
