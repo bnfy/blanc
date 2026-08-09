@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -30,7 +30,6 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
-const { attachContextMenu } = require('./context-menu');
 const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
@@ -38,11 +37,24 @@ const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu } = require('./bookmark-data');
 const history = require('./history');
 const { JsonStore } = require('./store');
-const { persistableEntries } = require('./session-snapshot');
+const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
 const { loadWorkspace, buildSaveShape } = require('./session-workspace');
-const { filterRestoredSession } = require('./session-restore');
+const { filterRestoredSession, restoreTargetId } = require('./session-restore');
 const { isUtilityUrl } = require('./utility-pages');
-const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
+const {
+  sleepCandidates,
+  trimSnapshot,
+  TAB_SLEEP_DELAY_MS,
+  MAX_SLEEP_SNAPSHOTS,
+} = require('./tab-sleep');
+const {
+  createTabView,
+  wireTabView,
+  initTabView,
+  liveContents,
+  TAB_WEB_PREFERENCES,
+  getPrivateBrowsingSession,
+} = require('./tab-view');
 const { setupWebAuthn } = require('./webauthn');
 const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
@@ -258,14 +270,22 @@ function releaseStartupNavigationGate(sessions, { blockerAttached }) {
     }
   }
 
+  const deferredWakes = [...pendingWakes];
+  pendingWakes.clear();
+  for (const tabId of deferredWakes) wakeTab(tabId).catch(() => {});
+
   const queued = [...startupQueuedNavigations.entries()];
   startupQueuedNavigations.clear();
   for (const [webContentsId, url] of queued) {
+    // A throwing predicate does not skip an entry — it propagates out of find
+    // and leaves every queued tab behind the startup gate. This two-step read
+    // handles missing and already-destroyed views alike.
     const tab = [...tabs.values()].find(
-      (candidate) => candidate.view.webContents.id === webContentsId
+      (candidate) => liveContents(candidate)?.id === webContentsId
     );
-    if (!tab || tab.view.webContents.isDestroyed()) continue;
-    tab.view.webContents.loadURL(url).catch(() => {});
+    const wc = liveContents(tab);
+    if (!wc) continue;
+    wc.loadURL(url).catch(() => {});
   }
 }
 
@@ -466,12 +486,6 @@ if (chromeMajor) {
   });
 }
 
-/** Non-persistent session shared by all private tabs for this app run. */
-let privateBrowsingSession = null;
-const PRIVATE_PARTITION = 'private-browsing'; // no `persist:` prefix = memory only
-const getPrivateBrowsingSession = () =>
-  (privateBrowsingSession ??= session.fromPartition(PRIVATE_PARTITION));
-
 const CHROME_INDEX_FILE = path.join(__dirname, '../renderer/index.html');
 const CHROME_OVERLAY_FILE = path.join(__dirname, '../renderer/overlay.html');
 const CHROME_INDEX_URL = pathToFileURL(CHROME_INDEX_FILE).href;
@@ -594,6 +608,472 @@ const hasLiveWindow = () => !!rt().window && !rt().window.isDestroyed();
 
 /** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, audible: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
+/**
+ * @typedef {object} SleepSnapshot
+ * @property {import('electron').WebContentsView|null} view
+ *   The discarded view, held only between wc.close() and its observed
+ *   'destroyed' event. Nulled by that observer; never assigned to tab.view.
+ * @property {Array<{url:string,title:string,pageState?:string}>} entries
+ * @property {number} index
+ * @property {boolean} droppedPageState
+ */
+
+/** MAIN-PROCESS ONLY. Never serialized or persisted: it can hold form values
+ * and POST bodies, so it must never reach chrome renderers or crash reporting. */
+const sleepSnapshots = new Map(); // Map<string /* tab.id */, SleepSnapshot>
+// Delete on closeTab, a wake generation's final commit, and before quit. A
+// macOS window close intentionally does NOT clear this Map: tabs survive dock
+// reopen, and their recovery data must survive with them. Turning tabSleep off
+// likewise changes policy only; it must not discard existing snapshots.
+
+// Evaluated in every frame of a tab. A programmatic password-manager fill fires
+// no interaction events, so compare live controls with their defaults instead.
+const DIRTY_PROBE_SOURCE = `(() => {
+  try {
+    const d = document;
+    for (const el of d.querySelectorAll('input, textarea')) {
+      if (el.type === 'checkbox' || el.type === 'radio') {
+        if (el.checked !== el.defaultChecked) return { dirty: true };
+      } else if (el.type === 'password') {
+        if (el.value) return { dirty: true };
+      } else if (el.value !== el.defaultValue) {
+        return { dirty: true };
+      }
+    }
+    for (const sel of d.querySelectorAll('select')) {
+      for (const opt of sel.options) {
+        if (opt.selected !== opt.defaultSelected) return { dirty: true };
+      }
+    }
+    for (const el of d.querySelectorAll('[contenteditable]')) {
+      if ((el.textContent || '').trim()) return { dirty: true };
+    }
+    if (d.designMode === 'on' && (d.body?.textContent || '').trim()) return { dirty: true };
+    if (window.sessionStorage && window.sessionStorage.length > 0) return { dirty: true };
+    if (d.pictureInPictureElement) return { dirty: true };
+    return {
+      dirty: false,
+      deepScrolled: window.scrollY > 3 * window.innerHeight,
+    };
+  } catch {
+    return { dirty: true };
+  }
+})()`;
+
+/**
+ * Is there work in this document a reload would destroy? Any frame that fails
+ * to answer during the shared 250 ms budget is dirty by default.
+ *
+ * @returns {Promise<boolean>} true means this tab must not be quieted
+ */
+async function probeTabDirty(tab, wc) {
+  // Our error page holds no recoverable work. It would otherwise fail safe on
+  // its privileged frame and defeat the space-saving use case for dead tabs.
+  if (typeof tab.url === 'string' && tab.url.startsWith('blanc://error')) {
+    tab.deepScrolled = false;
+    return false;
+  }
+
+  let frames;
+  try {
+    frames = wc.mainFrame?.framesInSubtree ?? [];
+  } catch {
+    return true;
+  }
+  if (frames.length === 0) return true;
+
+  // One budget for the complete frame tree, never 250 ms per iframe.
+  const budget = new Promise((resolve) => setTimeout(() => resolve('timeout'), 250));
+  const answers = await Promise.race([
+    Promise.all(frames.map((frame) => {
+      // The WebContents API reaches only its top frame; frame-level execution
+      // makes cross-origin payment and SSO frames visible to the fail-safe rule.
+      try { return frame.executeJavaScript(DIRTY_PROBE_SOURCE).catch(() => null); }
+      catch { return Promise.resolve(null); }
+    })),
+    budget,
+  ]);
+  if (answers === 'timeout') return true;
+
+  let deepScrolled = false;
+  for (const answer of answers) {
+    if (!answer || typeof answer !== 'object') return true;
+    if (answer.dirty) return true;
+    if (answer.deepScrolled) deepScrolled = true;
+  }
+  tab.deepScrolled = deepScrolled;
+  return deepScrolled;
+}
+
+/** True while sleepTab has replaced a tab's listeners with its temporary
+ * teardown pair. A concurrent user close cancels the sleep intent. */
+let sleepTeardownInProgress = false;
+
+/**
+ * Discard one tab's renderer. This is best-effort only: it never throws or
+ * wakes a tab, and any uncertain precondition leaves the tab awake.
+ *
+ * @returns {Promise<boolean>} true exactly when destruction was observed
+ */
+async function sleepTab(id, { broadcast = true } = {}) {
+  const tab = tabs.get(id);
+  const wc = liveContents(tab);
+  if (!tab || !wc || tab.asleep || tab.sleeping || tab.waking) return false;
+
+  const epochAtProbe = tab.navEpoch;
+  let snapshot;
+  try {
+    const nav = wc.navigationHistory;
+    snapshot = trimSnapshot(nav.getAllEntries(), nav.getActiveIndex(), { private: !!tab.private });
+  } catch {
+    return false;
+  }
+  if (!snapshot) return false;
+
+  let dirty = true;
+  try { dirty = await probeTabDirty(tab, wc); } catch { dirty = true; }
+  if (dirty) return false;
+
+  // The probe has an async frame budget; validate synchronously immediately
+  // before teardown so it can never discard a tab the user just activated.
+  if (!tabs.has(id) || id === rt().activeTabId || tab.navEpoch !== epochAtProbe
+      || tab.isLoading || tab.sleeping || !liveContents(tab)) return false;
+
+  if (snapshot.droppedPageState) {
+    console.debug(`[quiet-tabs] ${id}: page state dropped (oversized or private)`);
+  }
+  if (sleepSnapshots.size >= MAX_SLEEP_SNAPSHOTS) {
+    console.debug('[quiet-tabs] snapshot ceiling reached; refusing to quiet further tabs');
+    return false;
+  }
+
+  // Keep the old view only until Chromium confirms destruction. Merely dropping
+  // the JS reference does not reclaim its renderer.
+  sleepSnapshots.set(id, {
+    view: tab.view,
+    entries: snapshot.entries,
+    index: snapshot.index,
+    droppedPageState: snapshot.droppedPageState,
+  });
+  tab.sleeping = true;
+  sleepTeardownInProgress = true;
+  const wcId = wc.id;
+  const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
+  // This must remove every old listener: loading/failure/crash listeners can
+  // otherwise poison tab.url or resurrect exactly the renderer being closed.
+  wc.removeAllListeners();
+
+  let aborted = false;
+  let teardownTimeout;
+  const outcome = await new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+      if (!settled) {
+        settled = true;
+        resolve(value);
+      }
+    };
+
+    wc.once('destroyed', bindWindowRuntime(owner, () => {
+      tab.view = null;
+      tab.asleep = true;
+      tab.sleeping = false;
+      tab.blockedCount = 0;
+      tab.audible = false;
+      tab.isLoading = false;
+      tab.pageBg = null;
+      tab.themeColor = null;
+      const record = sleepSnapshots.get(id);
+      if (record) record.view = null;
+      tabIdByWebContentsId.delete(wcId);
+      lastMainFrameMethod.delete(wcId);
+      finish('quiet');
+    }));
+
+    // Polarity matters: this fires when the page objects to unload. Calling
+    // preventDefault here would override that objection and destroy the tab.
+    wc.on('will-prevent-unload', () => {
+      aborted = true;
+      finish('aborted');
+    });
+
+    wc.close({ waitForBeforeUnload: true });
+    // A wedged renderer must not remain permanently `sleeping`.
+    teardownTimeout = setTimeout(() => finish('unresponsive'), 5000);
+  });
+  clearTimeout(teardownTimeout);
+
+  if (outcome === 'quiet') {
+    sleepTeardownInProgress = false;
+    if (broadcast) broadcastTabs();
+    return true;
+  }
+
+  // Restore the ordinary listener set after the temporary teardown pair. A
+  // user close during this interval sets the global flag false and wins.
+  tab.sleeping = false;
+  sleepSnapshots.delete(id);
+  const stillThere = sleepTeardownInProgress && tabs.has(id) && liveContents(tab);
+  sleepTeardownInProgress = false;
+  if (stillThere) {
+    wireTabView(tab, tab.view, {
+      owner: windowRuntimes.runtimeForTab(id) ?? primaryRuntime,
+      adopted: false,
+    });
+  }
+  console.debug(`[quiet-tabs] ${id}: teardown ${outcome} — left awake${aborted ? ' (beforeunload)' : ''}`);
+  return false;
+}
+
+/** `/sleep`: quiet every eligible background tab now. It bypasses only the
+ * idle threshold; the ordinary safety predicate and teardown revalidation
+ * remain authoritative. */
+async function sleepBackgroundTabsNow() {
+  if (isQuitting || sessionPersistenceSuspended || startupNavigationGateActive || !net.isOnline()) {
+    return [];
+  }
+  const runtime = rt();
+  const list = runtime.tabOrder.map((tid) => tabs.get(tid)).filter(Boolean);
+  const permissionPendingTabIds = new Set(
+    [...runtime.permissionPrompts.values()].map((pending) => pending?.tabId).filter(Boolean)
+  );
+  const ids = sleepCandidates(list, {
+    now: Date.now(),
+    thresholdMs: null,
+    activeTabId: runtime.activeTabId,
+    ignoreThreshold: true,
+    snapshotCount: sleepSnapshots.size,
+    permissionPendingTabIds,
+    popupChildCounts,
+  });
+  const quieted = [];
+  for (const id of ids) {
+    if (await sleepTab(id, { broadcast: false })) quieted.push(id);
+  }
+  if (quieted.length) broadcastTabs();
+  return quieted;
+}
+
+/** Wakes deferred because the startup gate would otherwise cancel restore() and
+ * replay a plain URL load, losing the retained history snapshot. */
+const pendingWakes = new Set();
+
+function commitWake(tab, generation) {
+  if (tab.wakeGeneration !== generation) return false;
+  tab.asleep = false;
+  tab.waking = false;
+  tab.lastActiveAt = Date.now();
+  sleepSnapshots.delete(tab.id);
+  broadcastTabs();
+  return true;
+}
+
+async function failWake(tab, generation) {
+  if (tab.wakeGeneration !== generation) return false;
+  const wc = liveContents(tab);
+  if (wc) {
+    const q = new URLSearchParams({
+      url: tab.url ?? '',
+      code: 'wake-failed',
+      desc: 'The page could not be reloaded',
+      title: tab.title ?? '',
+    });
+    await wc.loadURL(`blanc://error/?${q}`).catch(() => {});
+  }
+  if (tab.wakeGeneration !== generation) return false;
+  tab.asleep = false;
+  tab.waking = false;
+  tab.lastActiveAt = Date.now();
+  sleepSnapshots.delete(tab.id);
+  broadcastTabs();
+  return false;
+}
+
+/**
+ * Rebuild a quiet tab inside a wake generation. The synchronous prefix makes
+ * a new view visible to same-turn activation callers before this promise is
+ * awaited; restore() or the direct navigation below is then its first load.
+ */
+async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
+  const tab = tabs.get(id);
+  if (!tab) return false;
+  if (!tab.asleep) return true;
+  if (startupNavigationGateActive) {
+    pendingWakes.add(id);
+    return false;
+  }
+
+  const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
+  const snapshot = sleepSnapshots.get(id);
+  let wc;
+  let generation;
+
+  // An activation often immediately follows another wake-triggering action
+  // (notably openInternalPage). Coalesce a plain wake onto its live view;
+  // an explicit navigation/back-forward supersedes the pending first load in
+  // that same view. Starting another WebContentsView here would leak the
+  // first renderer while its stale generation quietly resolves.
+  const wakingContents = tab.waking ? liveContents(tab) : null;
+  if (wakingContents) {
+    if (navigateTo === null && atIndex === null) return true;
+    wc = wakingContents;
+    generation = ++tab.wakeGeneration;
+  } else {
+    const view = createTabView(tab);
+    tab.view = view;
+    wireTabView(tab, view, { owner, adopted: false });
+    wc = view.webContents;
+    tabIdByWebContentsId.set(wc.id, id);
+    wc.setAudioMuted(!!tab.muted);
+    wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
+    tab.waking = true;
+    generation = ++tab.wakeGeneration;
+  }
+
+  let first;
+  if (navigateTo) {
+    // A direct navigation and restore() are mutually exclusive; this consumes
+    // the recovery snapshot without restoring it first.
+    sleepSnapshots.delete(id);
+    first = wc.loadURL(navigateTo);
+  } else if (snapshot?.entries.length) {
+    const index = atIndex === null
+      ? snapshot.index
+      : Math.max(0, Math.min(snapshot.entries.length - 1, atIndex));
+    first = wc.navigationHistory.restore({ entries: snapshot.entries, index });
+  } else {
+    first = wc.loadURL(tab.url);
+  }
+
+  try {
+    await first;
+    return commitWake(tab, generation);
+  } catch {
+    if (tab.wakeGeneration !== generation) return false;
+    // Exactly one fallback, only after restore rejects. A rejected plain load
+    // gets its error page, not an unbounded retry loop.
+    const canFallBack = !navigateTo && !!snapshot?.entries.length;
+    if (!canFallBack) return failWake(tab, generation);
+    const live = liveContents(tab);
+    if (!live) return failWake(tab, generation);
+    try {
+      await live.loadURL(tab.url);
+      return commitWake(tab, generation);
+    } catch {
+      return failWake(tab, generation);
+    }
+  }
+}
+
+// ─── Quiet Tabs sweep (spec §4.3) ────────────────────────────────────────
+const SLEEP_SWEEP_INTERVAL_MS = 30_000;
+
+/** Acceptance-only threshold override, in ms (or null to follow settings). */
+let sleepThresholdOverrideMs = null;
+/** Wall-clock time of the previous sweep, for the clock-jump check. */
+let lastSleepSweepAt = 0;
+
+/** The idle threshold now in force, in ms, or null for "never auto-quiet". */
+function currentSleepThresholdMs() {
+  if (sleepThresholdOverrideMs !== null) return sleepThresholdOverrideMs;
+  const key = settings.getSettings().tabSleep;
+  // Deliberately not `?? DEFAULT`: 'off' maps to null, and `??` would turn
+  // the user's explicit Off into the default delay. Presence is the test.
+  return Object.hasOwn(TAB_SLEEP_DELAY_MS, key)
+    ? TAB_SLEEP_DELAY_MS[key]
+    : TAB_SLEEP_DELAY_MS['1h']; // the setting ships in a later phase
+}
+
+/** Ids of tabs with a permission prompt still open in this runtime. */
+function permissionPendingTabIds() {
+  const ids = new Set();
+  for (const pending of rt().permissionPrompts.values()) {
+    if (pending?.tabId) ids.add(pending.tabId);
+  }
+  return ids;
+}
+
+/** Re-stamp every background tab as "active just now" (clock-jump / resume). */
+function restampBackgroundTabs() {
+  const now = Date.now();
+  for (const tab of tabs.values()) {
+    if (tab.id === rt().activeTabId || tab.asleep) continue;
+    tab.lastActiveAt = now;
+  }
+}
+
+/**
+ * One sequential pass of the idle sweep. Its result lets the acceptance
+ * harness drive this real path rather than a reimplementation.
+ *
+ * @param {object} [opts]
+ * @param {boolean} [opts.ignoreThreshold=false] `/sleep`: skip only the wait
+ * @returns {Promise<{quieted: string[], skippedReason: string|null}>}
+ */
+async function runSleepSweep({ ignoreThreshold = false } = {}) {
+  const skip = (reason) => ({ quieted: [], skippedReason: reason });
+  if (isQuitting) return skip('quitting');
+  if (sessionPersistenceSuspended) return skip('persistence-suspended');
+  if (startupNavigationGateActive) return skip('startup-gate');
+  // Wake is a network re-fetch; do not discard work we cannot bring back.
+  if (!net.isOnline()) return skip('offline');
+
+  const now = Date.now();
+  // Wall-clock lastActiveAt would make every tab look idle after a suspended
+  // laptop wakes. Re-stamp instead of probing a burst of just-resumed pages.
+  if (lastSleepSweepAt && now - lastSleepSweepAt > 2 * SLEEP_SWEEP_INTERVAL_MS) {
+    lastSleepSweepAt = now;
+    restampBackgroundTabs();
+    return skip('clock-jump');
+  }
+  lastSleepSweepAt = now;
+
+  const tabList = rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean);
+  const candidates = sleepCandidates(tabList, {
+    now,
+    thresholdMs: currentSleepThresholdMs(),
+    activeTabId: rt().activeTabId,
+    ignoreThreshold,
+    snapshotCount: sleepSnapshots.size,
+    maxSnapshots: MAX_SLEEP_SNAPSHOTS,
+    permissionPendingTabIds: permissionPendingTabIds(),
+    popupChildCounts,
+  });
+
+  const quieted = [];
+  for (const id of candidates) {
+    // Sequential, not Promise.all: sleepTab re-validates the active tab, and
+    // a concurrent burst of dirty probes is precisely what resume avoids.
+    if (await sleepTab(id)) quieted.push(id);
+  }
+  // sleepTab broadcasts every actual transition; an empty sweep stays silent.
+  return { quieted, skippedReason: null };
+}
+/** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
+ *  per-request counter resolves a tab tens of times per second, and a linear
+ *  walk of `tabs` dereferencing view.webContents there is both the hot path and
+ *  a crash once a tab can exist without a view. */
+const tabIdByWebContentsId = new Map();
+/** webContents id -> the HTTP method of its last main-frame request. The only
+ * place a method is observable is onBeforeSendHeaders, and it is needed at
+ * did-navigate time. Deliberately not on the tab record: that record is an
+ * explicit serialization allowlist, while this is main-process bookkeeping. */
+const lastMainFrameMethod = new Map();
+/** openerTabId -> live popup BrowserWindow count. A `new-window` popup never
+ * enters tabs, yet discarding its opener severs the OAuth/SSO callback. */
+const popupChildCounts = new Map();
+
+/** Drop every index entry pointing at `tabId`. Deletion is BY VALUE because a
+ *  closing tab's view.webContents already reads back undefined, so the key it
+ *  was stored under is no longer recoverable from the record. One pass over at
+ *  most one entry per open tab, once per close — not the per-request cost this
+ *  index exists to remove. */
+function forgetTabWebContentsIds(tabId) {
+  for (const [wcId, id] of tabIdByWebContentsId) {
+    if (id === tabId) tabIdByWebContentsId.delete(wcId);
+  }
+}
+
 // Display order of tab ids (rt().tabOrder) — the single source of truth
 // for the strip. Selected tab id: rt().activeTabId.
 // Named tab groups in display order (rt().groups) — pill clusters follow
@@ -632,11 +1112,10 @@ function setTestSearchNavigationCapture(enabled) {
 }
 
 // Outstanding permission prompts awaiting the user's Allow/Block, keyed by
-// prompt id → the Promise resolver, live on runtime.permissionPrompts (Task 1
-// registry record). Flushed if the owning window dies mid-prompt so the
-// underlying Chromium request never hangs.
+// prompt id → { resolve, tabId }, live on runtime.permissionPrompts. Flushed
+// if the owning window dies mid-prompt so Chromium's request never hangs.
 function flushPermissionPrompts(runtime) {
-  for (const resolve of runtime.permissionPrompts.values()) resolve(null); // null = never answered
+  for (const { resolve } of runtime.permissionPrompts.values()) resolve(null); // null = never answered
   runtime.permissionPrompts.clear();
 }
 
@@ -1098,9 +1577,15 @@ function navigateTabToAddress(id, rawText) {
   // A typed utility address opens the sheet, never navigates the tab.
   if (isUtilityUrl(target)) return openInternalPage(target);
   rt().tabsWantingAddressBarFocus.delete(id);
+  // A quiet tab navigates in one step: restore() and a navigation are mutually
+  // exclusive, so this spends the snapshot and loads the target directly.
+  if (tab.asleep) {
+    wakeTab(id, { navigateTo: target }).catch(() => {});
+    return;
+  }
   // Rapid re-navigation (Enter twice, Paste and Go twice) aborts the in-flight
   // load — loadURL rejects with ERR_ABORTED; that's routine, not an error.
-  tab.view.webContents.loadURL(target).catch(() => {});
+  liveContents(tab)?.loadURL(target)?.catch(() => {});
 }
 
 /** Paste and Go = navigate + dismiss the island, exactly like pressing Enter.
@@ -1123,7 +1608,31 @@ function serializeTabs() {
   return rt().tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
-    .map(({ view, ...rest }) => {
+    .map((tab) => {
+      // This broadcast reaches both chrome renderers roughly ten times a
+      // second. Keep it a projection: new main-process fields must never
+      // cross this boundary merely because they were added to a tab record.
+      const rest = {
+        id: tab.id,
+        title: tab.title,
+        url: tab.url,
+        isLoading: tab.isLoading,
+        canGoBack: tab.canGoBack,
+        canGoForward: tab.canGoForward,
+        favicon: tab.favicon,
+        bookmarked: tab.bookmarked,
+        blockedCount: tab.blockedCount,
+        private: tab.private,
+        pinned: tab.pinned,
+        muted: tab.muted,
+        audible: tab.audible,
+        groupId: tab.groupId,
+        pageBg: tab.pageBg,
+        themeColor: tab.themeColor,
+        // The sole Quiet Tabs field chrome may see. Operational sleep state
+        // and snapshots remain main-process-only.
+        asleep: tab.asleep,
+      };
       // Whether ads are allow-listed here. Derived rather than stored: the
       // exception list is edited from Settings and the slash commands alike,
       // and without this the chrome shows NOTHING on an excepted site (the
@@ -1138,10 +1647,12 @@ function serializeTabs() {
         excepted,
         adblockEnabled,
       });
-      // Derived exactly once, here. The popover, the pill badge, and the panel
-      // badge all render this same value, so they cannot disagree.
+      // Derived exactly once, here. A quiet tab has no view, but it reached
+      // quiet only after committing, so its stored URL is honest in that one
+      // state. Do not broaden committedUrlOf's null default: it prevents an
+      // ahead-of-navigation URL from making a false security claim.
       const connection = connectionFor({
-        url: committedUrlOf(view),
+        url: rest.asleep ? rest.url : committedUrlOf(tab.view),
         isLoading: rest.isLoading,
       });
       if (rest.private && rest.favicon) {
@@ -1188,7 +1699,10 @@ function adblockWeekStats() {
 
 let isQuitting = false;
 let sessionPersistenceSuspended = false;
-app.on('before-quit', () => { isQuitting = true; });
+app.on('before-quit', () => {
+  isQuitting = true;
+  sleepSnapshots.clear(); // retained POST bodies / form values
+});
 
 function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
@@ -1205,6 +1719,10 @@ function persistSession() {
       urls: entries.map((e) => e.url),
       groupIds: entries.map((e) => e.groupId),
       pinned: entries.map((e) => e.pinned),
+      // Restored tabs come back quiet, with no webContents to ask for a title
+      // or favicon. Map over `entries`, not the raw list: private/url-less
+      // tabs drop out of urls and must drop out of metadata with them.
+      meta: entries.map((e) => sessionTabMeta(tabs.get(e.id))),
       // Groups referenced only by private tabs stay out of the file too.
       groups: runtime.groups.filter((g) => entries.some((e) => e.groupId === g.id)),
       activeIndex: d.activeIndex ?? 0,
@@ -1221,6 +1739,21 @@ function persistSession() {
     const idx = entries.findIndex((e) => e.id === runtime.activeTabId);
     if (idx >= 0) entry.activeIndex = idx;
     Object.assign(d, buildSaveShape(entry, d));
+  });
+}
+
+/** Clearing history must not leave the same page titles sitting in
+ * session.json's meta column — history.clearHistory() only rewrites
+ * history.json. The next session write re-derives metadata for open tabs. */
+function clearSessionMeta() {
+  if (sessionReadOnly) return;
+  ensureSessionStore().update((d) => {
+    if (Array.isArray(d.windows)) {
+      for (const windowEntry of d.windows) {
+        if (windowEntry && typeof windowEntry === 'object') delete windowEntry.meta;
+      }
+    }
+    delete d.meta;
   });
 }
 
@@ -1280,7 +1813,7 @@ function resizeActiveView() {
   if (!rt().window || rt().window.isDestroyed()) return;
   const layout = currentChromeLayout();
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
-  if (tab) tab.view.setBounds(layout.pageBounds);
+  if (tab?.view) tab.view.setBounds(layout.pageBounds);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   if (rt().utilitySheetUrl && rt().utilitySheetView) {
     rt().utilitySheetView.setBounds(layout.utilityBounds);
@@ -1459,7 +1992,10 @@ function dominantColor(image) {
  * visually abuts the chrome strip. Fails harmlessly for hidden views;
  * setActiveTab resamples on activation. */
 async function samplePageTint(tab, { immediate = false, shouldApply = () => true } = {}) {
-  if (!tabs.has(tab.id) || tab.view.webContents.isDestroyed()) return;
+  // Reached from a bare 150 ms timer too, so a tab may close or discard its
+  // view between scheduling and this run.
+  const wc = liveContents(tab);
+  if (!tabs.has(tab.id) || !wc) return;
   if (tab.private || !/^https?:\/\//.test(tab.url)) {
     if (tab.pageBg) {
       tab.pageBg = null;
@@ -1467,10 +2003,10 @@ async function samplePageTint(tab, { immediate = false, shouldApply = () => true
     }
     return;
   }
-  const { width } = tab.view.getBounds();
-  if (!width || tab.view.webContents.isLoading()) return;
+  const { width } = tab.view?.getBounds() ?? {};
+  if (!width || wc.isLoading()) return;
   try {
-    const image = await tab.view.webContents.capturePage({ x: 0, y: 0, width, height: 2 });
+    const image = await wc.capturePage({ x: 0, y: 0, width, height: 2 });
     const color = dominantColor(image);
     if (shouldApply() && color && color !== tab.pageBg) {
       tab.pageBg = color;
@@ -1606,7 +2142,7 @@ function toggleTabMuted(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
   tab.muted = !tab.muted;
-  tab.view.webContents.setAudioMuted(tab.muted);
+  liveContents(tab)?.setAudioMuted(tab.muted);
   broadcastTabs();
   scheduleMenuRebuild();
   return tab.muted;
@@ -1616,32 +2152,23 @@ function duplicateTab(id) {
   const source = tabs.get(id);
   if (!source) return;
   const insertAt = rt().tabOrder.indexOf(id) + 1;
-  const history = source.view.webContents.navigationHistory;
-  const entries = history.getAllEntries();
+  // A quiet source duplicates straight from its retained snapshot; waking it
+  // just to read history defeats the feature and creates a needless reload.
+  const snapshot = source.asleep ? sleepSnapshots.get(id) : null;
+  const history = snapshot ? null : liveContents(source)?.navigationHistory;
+  const entries = snapshot ? snapshot.entries : (history?.getAllEntries() ?? []);
+  const activeIndex = snapshot ? snapshot.index : (history?.getActiveIndex() ?? 0);
   const newId = createTab(source.url, {
     private: source.private,
     groupId: source.groupId,
     pinned: source.pinned,
     muted: source.muted,
     // Only worth restoring if there's more than just the current page.
-    restoreHistory: entries.length > 1 ? { entries, index: history.getActiveIndex() } : null,
+    restoreHistory: entries.length > 1 ? { entries, index: activeIndex } : null,
   });
   reorderTab(newId, insertAt);
   return newId;
 }
-
-const TAB_WEB_PREFERENCES = {
-  contextIsolation: true,
-  nodeIntegration: false,
-  sandbox: true,
-  // Chromium's built-in PDF viewer is a plugin; without this flag
-  // PDFs download instead of rendering inline.
-  plugins: true,
-  // Exposes a data API to our own blanc:// pages ONLY — see the guards in
-  // tab-preload.js and pages.js. Ordinary web content gets only the
-  // unprivileged, session-wide Chrome compatibility surface.
-  preload: path.join(__dirname, 'tab-preload.js'),
-};
 
 // ─── SPIKE (1Password fill feasibility) — remove before release ───────────
 // Fill the active tab's login form from 1Password behind Touch ID, with no
@@ -1783,7 +2310,85 @@ async function initSpikePackaging() {
 }
 // ─── end SPIKE ────────────────────────────────────────────────────────────
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null } = {}) {
+// --- Quiet Tabs hooks (phase 2 fills these in) --------------------------
+// The tab-view dependency contract is fixed now, so later phases can extend
+// these hooks without changing the construction/wiring seam again.
+/**
+ * Quiet Tabs: refresh every eligibility signal that a main-frame commit
+ * invalidates (spec §4.2). Called from tab-view.js's did-navigate handler.
+ */
+function onMainFrameCommit(tab, { url, httpResponseCode }) {
+  // "This document has played media" is cleared ONLY here — clearing on pause
+  // would unprotect exactly the paused video this rule exists to protect.
+  tab.usedMedia = false;
+  tab.deepScrolled = false;
+  const wc = liveContents(tab);
+  const isHttp = /^https?:/i.test(url ?? '');
+  // Non-http(s) commits never reach onBeforeSendHeaders, so they are GETs by
+  // construction. An HTTP(S) commit without an observed method fails safe.
+  const method = wc ? lastMainFrameMethod.get(wc.id) : undefined;
+  const effectiveMethod = method ?? (isHttp ? null : 'GET');
+  tab.restorableCommit = effectiveMethod === 'GET' && (httpResponseCode ?? 200) < 400;
+  try {
+    tab.httpEntryCount = wc
+      ? wc.navigationHistory.getAllEntries().filter((entry) => /^https?:/i.test(entry?.url ?? '')).length
+      : 0;
+  } catch {
+    tab.httpEntryCount = 0;
+  }
+}
+/** Suppress history and normal failure handling for every hop while a wake
+ * generation is open. */
+function noteWakeSuppressed(tab) {
+  return !!tab?.waking;
+}
+/** Count an unmanaged popup against its opener until its webContents dies. */
+function notePopupChild(openerTabId, childWindow) {
+  if (!openerTabId || !childWindow) return;
+  popupChildCounts.set(openerTabId, (popupChildCounts.get(openerTabId) ?? 0) + 1);
+  childWindow.webContents.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+    const next = (popupChildCounts.get(openerTabId) ?? 1) - 1;
+    if (next <= 0) popupChildCounts.delete(openerTabId);
+    else popupChildCounts.set(openerTabId, next);
+  }));
+}
+
+// tab-view.js owns every per-tab WebContentsView listener and setup call.
+// Function declarations below are hoisted; every const this reads is already
+// initialized before this module-scope call.
+initTabView({
+  tabs,
+  windowRuntimes,
+  bindWindowRuntime,
+  tabIdByWebContentsId,
+  broadcastTabs,
+  scheduleBroadcastTabs,
+  scheduleSampleTint,
+  scheduleMenuRebuild,
+  createTab,
+  setActiveTab,
+  closeTab,
+  openInternalPage,
+  currentChromeLayout,
+  hideOverlay,
+  hasLiveWindow,
+  reclaimAddressBarFocus,
+  shouldReclaimAddressBarFocus,
+  installChromeShortcuts,
+  watchCursorFor,
+  isUtilityUrl,
+  handOffToOs,
+  upgradeFavicon,
+  isStartupGateActive: () => startupNavigationGateActive,
+  startupQueuedNavigations,
+  onMainFrameCommit,
+  noteWakeSuppressed,
+  notePopupChild,
+  onePasswordSpikeEnabled: ONE_PASSWORD_SPIKE_ENABLED,
+  fillActiveTabFrom1Password,
+});
+
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null } = {}) {
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
     // open-url handoff, future call sites). Session restore filters
@@ -1807,22 +2412,22 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // already constructed by Chromium with the opener relationship wired up;
   // everything else gets a fresh one.
   const adopted = !!view;
-  view ??= new WebContentsView({
-    webPreferences: isPrivate
-      ? { ...TAB_WEB_PREFERENCES, session: getPrivateBrowsingSession() }
-      : TAB_WEB_PREFERENCES,
-  });
+  // Session restore builds every tab quiet: no view, renderer process, or
+  // navigation — only the record the chrome draws. An adopted child is
+  // already live and can never be born quiet.
+  const bornQuiet = asleep && !adopted;
+  if (!bornQuiet) view ??= createTabView({ private: isPrivate });
 
   const tab = {
     id,
     runtimeId: owner.id,
-    view,
-    title: 'New Tab',
+    view: bornQuiet ? null : view,
+    title: typeof title === 'string' && title ? title : 'New Tab',
     url,
     isLoading: false,
     canGoBack: false,
     canGoForward: false,
-    favicon: null,
+    favicon: typeof favicon === 'string' ? favicon : null,
     bookmarked: false,
     blockedCount: 0,
     private: isPrivate,
@@ -1845,350 +2450,40 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // SPIKE (1Password fill feasibility) — bumped on any main-frame navigation
     // start/commit so the async fill can detect a page swap mid-flow.
     navEpoch: 0,
+    // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
+    // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
+    asleep: bornQuiet,        // renderer discarded; tab.view is null
+    sleeping: false,          // teardown in progress
+    waking: false,            // a wake generation is open
+    wakeGeneration: 0,        // monotonic, never reset
+    lastActiveAt: null,       // ms epoch; null until first stamp
+    adopted,                  // an adopted window.open child is never quietable
+    openerTabId,              // family-awareness for sleepCandidates
+    usedMedia: false,         // 'media-started-playing'; cleared ONLY on main-frame nav
+    // Fail-safe false: a tab with no committed main frame is not quietable.
+    // Deliberately NOT historyEligible, which is false for every private tab.
+    restorableCommit: false,
+    deepScrolled: false,      // probe result: scrollY > 3 * innerHeight
+    httpEntryCount: 0,        // http(s) entries in navigationHistory
   };
   tabs.set(id, tab);
+  // A background-created tab (cmd-click, session restore, window.open child)
+  // never passes through setActiveTab, so it would otherwise never be stamped.
+  // A foreground creation overwrites this the moment it is deactivated.
+  tab.lastActiveAt = Date.now();
   rt().tabOrder.push(id);
   windowRuntimes.attachTab(owner, id);
 
-  const wc = view.webContents;
-  installChromeShortcuts(wc);
-  // Every listener registered on this tab's webContents below binds to the
-  // tab's owning runtime — resolved right here, at attach time, rather than
-  // via a runtimeForTab lookup per-event. In M1 there's exactly one runtime
-  // so owner === primaryRuntime always; the shape is what M2 (multiple
-  // runtimes) inherits without changes to this function.
-  const boundToTab = (fn) => bindWindowRuntime(owner, fn);
-  // The page covers everything below the strip, so this is where the cursor is
-  // nearly always found. Bounds move with vertical tabs, so read them per event.
-  watchCursorFor(wc, () => currentChromeLayout().pageBounds, boundToTab);
-  // SPIKE (1Password fill feasibility) — ⌥⌘P on the tab's OWN webContents
-  // (the overlay before-input-event listener never sees page-focused keys).
-  if (ONE_PASSWORD_SPIKE_ENABLED) {
-    wc.on('before-input-event', boundToTab((event, input) => {
-      if (input.type !== 'keyDown' || input.isAutoRepeat) return;
-      if (input.code !== 'KeyP') return; // physical key — ⌥ mutates input.key on macOS
-      if (!(input.meta && input.alt && !input.control && !input.shift)) return; // one modifier off ⌘P Print
-      // Consume the chord BEFORE the single-flight check — a recognized second
-      // press must not fall through to the page, it just doesn't start a fill.
-      event.preventDefault();
-      if (rt().onePasswordFillInFlight) return; // single-flight
-      rt().onePasswordFillInFlight = true;
-      fillActiveTabFrom1Password()
-        .catch((err) => console.warn('[1p-spike] fill error:', err?.message))
-        .finally(() => { rt().onePasswordFillInFlight = false; });
-    }));
-  }
-  // WebRTC IP-handling policy applies per-webContents; this is the single choke
-  // point every tab (fresh or adopted window.open child) passes through.
-  wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
-  if (muted) wc.setAudioMuted(true); // keep the actual audio state in sync with tab.muted
-  const syncNavState = () => {
-    tab.canGoBack = wc.navigationHistory.canGoBack();
-    tab.canGoForward = wc.navigationHistory.canGoForward();
-    tab.url = wc.getURL();
-    tab.bookmarked = bookmarks.isBookmarked(tab.url);
-  };
-
-  wc.on('audio-state-changed', boundToTab(() => {
-    // Coalesced like did-change-theme-color: audio transitions aren't urgent,
-    // and a media that flips audible/silent needn't rebuild the session synchronously.
-    tab.audible = wc.isCurrentlyAudible();
-    scheduleBroadcastTabs();
-  }));
-
-  wc.on('page-title-updated', boundToTab((_e, title) => {
-    tab.title = title;
-    if (tab.historyEligible) history.updateTitle(tab.url, title);
-    broadcastTabs();
-  }));
-  wc.on('page-favicon-updated', boundToTab((_e, favicons) => {
-    tab.favicon = favicons[0] ?? null; // immediate, possibly low-res
-    if (tab.bookmarked) bookmarks.updateFavicon(tab.url, tab.favicon);
-    broadcastTabs();
-    sync.captureTabIcon(tab).catch(() => {});
-    upgradeFavicon(tab); // async refinement to the sharpest declared icon
-  }));
-  wc.on('did-start-loading', boundToTab(() => { tab.isLoading = true; broadcastTabs(); }));
-  wc.on('did-stop-loading', boundToTab(() => {
-    tab.isLoading = false;
-    syncNavState();
-    broadcastTabs();
-    scheduleSampleTint(tab);
-    // Same-origin navigations can retain their favicon without firing
-    // page-favicon-updated; associate the already-known icon with the new URL.
-    sync.captureTabIcon(tab).catch(() => {});
-  }));
-  wc.on('did-change-theme-color', boundToTab((_e, color) => {
-    // Chromium reports '#rrggbb' or null; validated because it feeds chrome CSS.
-    tab.themeColor = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
-    scheduleBroadcastTabs();
-  }));
-  wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
-    tab.navEpoch++; // SPIKE (1Password fill feasibility)
-    const shouldReclaimChromeFocus = url === tab.url && rt().tabsWantingAddressBarFocus.has(id) && rt().activeTabId === id;
-    if (url !== tab.url) rt().tabsWantingAddressBarFocus.delete(id);
-    tab.blockedCount = 0;
-    tab.pageBg = null; // a new page's tint mustn't linger from the old one
-    tab.themeColor = null;
-    // Only clear on a genuine CROSS-ORIGIN navigation. Chromium doesn't
-    // re-fire page-favicon-updated for a same-origin navigation whose favicon
-    // is unchanged/already cached (e.g. apple.com/ -> apple.com/mac/), and a
-    // favicon.ico-only site has no <link> for upgradeFavicon to restore from —
-    // so blanking on same-origin (or on an identical-URL soft reload, as
-    // cnn.com fires) would leave a correct favicon permanently cleared. See
-    // favicon-policy.js + test/unit/favicon-policy.test.js.
-    if (shouldClearFaviconOnNavigate(tab.url, url)) tab.favicon = null;
-    syncNavState();
-    // Error responses stay out of history — a dead one-shot OAuth URL
-    // recorded here resurfaces in the Quick Switcher as a destination.
-    tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
-    if (tab.historyEligible) history.addVisit(url, wc.getTitle());
-    broadcastTabs();
-    // did-navigate fires once per real top-level navigation (redirect
-    // chains fire it per hop, but that's a bounded burst the debounce
-    // already coalesces) — not the sustained-frequency case Task 1 exists
-    // to avoid. The menu's Favorites label/dynamic list depend on
-    // tab.url/.bookmarked, which this event just changed via syncNavState.
+  // A quiet-born tab has no webContents until wakeTab builds one. Everything
+  // below this point dereferences the view, so return before wiring/navigation.
+  if (bornQuiet) {
     scheduleMenuRebuild();
-    if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
-  }));
-  wc.on('did-navigate-in-page', boundToTab((_e, url, isMainFrame) => {
-    if (isMainFrame) tab.navEpoch++; // SPIKE (1Password fill feasibility) — main frame only
-    syncNavState();
-    if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
-    broadcastTabs();
-    if (isMainFrame) sync.captureTabIcon(tab).catch(() => {});
-    // Deliberately no scheduleMenuRebuild() here — unlike did-navigate,
-    // this fires on every hash change/pushState and can be sustained and
-    // frequent on SPA-heavy sites (exactly the rebuild-storm case Task 1
-    // avoids). The menu may lag slightly behind in-page route changes;
-    // it catches up on the next real navigation or tab-lifecycle event.
-  }));
-  // SPIKE (1Password fill feasibility) — a main-frame navigation that STARTS
-  // after the orchestrator's main-side URL check would still let
-  // executeJavaScript run in the replacement document; bump the epoch so the
-  // pre-injection re-check aborts. Removed with the rest of the spike.
-  wc.on('did-start-navigation', boundToTab((_e, url, _isInPlace, isMainFrame) => {
-    if (isMainFrame) tab.navEpoch++;
-    // The shield popover describes one site's protection. Same-site
-    // navigations — including the reload its own toggle triggers — keep it
-    // open, live-updating; leaving the site (or losing the host) closes it.
-    if (
-      isMainFrame
-      && rt().overlayMode === 'shield'
-      && id === rt().activeTabId
-      && blockableHostname(url) !== rt().shieldPopoverHost
-    ) {
-      hideOverlay({ refocusContent: false });
-    }
-  }));
-  wc.once('did-finish-load', boundToTab(() => {
-    if (shouldReclaimAddressBarFocus(id)) {
-      reclaimAddressBarFocus(id, { consume: true });
-    }
-  }));
+    return id;
+  }
 
-  wc.on('focus', boundToTab(() => {
-    if (shouldReclaimAddressBarFocus(id)) {
-      reclaimAddressBarFocus(id, { consume: true });
-    }
-  }));
-
-  // Web content must never navigate a tab into the privileged blanc://
-  // scheme (Chrome blocks web → chrome:// identically). Main-initiated
-  // loads (address bar, commands, error pages) go through loadURL, which
-  // doesn't fire will-navigate, so only page-initiated hops are caught.
-  wc.on('will-navigate', boundToTab((event, targetUrl) => {
-    // Utility pages never load in a tab — the newtab ledger links to
-    // blanc://bookmarks/ and blanc:→blanc: hops are otherwise legal. Only
-    // an INTERNAL page may summon the sheet: for web content this is a
-    // plain denial, same as any other web → blanc:// attempt below —
-    // otherwise any page could pop (and focus-steal via) privileged chrome
-    // with location.href = "blanc://settings/".
-    if (isUtilityUrl(targetUrl)) {
-      event.preventDefault();
-      if (wc.getURL().startsWith('blanc://')) openInternalPage(targetUrl);
-      return;
-    }
-    if (/^blanc:/i.test(targetUrl) && !wc.getURL().startsWith('blanc://')) {
-      event.preventDefault();
-    }
-    if (handOffToOs(targetUrl)) event.preventDefault();
-  }));
-
-  // Show a real error page instead of leaving a blank/stale view.
-  // errorCode -3 (ERR_ABORTED) fires for cancelled loads (stop button,
-  // rapid re-navigation) and must not be treated as a failure.
-  wc.on('did-fail-load', boundToTab((_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
-    if (!isMainFrame || errorCode === -3 || !validatedURL) return;
-    // The temporary startup gate deliberately cancels HTTP(S) main-frame
-    // loads until blocking is attached (or the user explicitly continues
-    // without it). Keep the tab blank and replay its queued URL afterward
-    // instead of replacing it with a misleading network error page.
-    if (
-      startupNavigationGateActive &&
-      startupQueuedNavigations.has(wc.id) &&
-      /^https?:/i.test(validatedURL)
-    ) {
-      return;
-    }
-    const q = new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
-  }));
-
-  // Adopted window.open children are script-closable — window.close() by
-  // the page, child.close() by the opener — the only tabs whose
-  // webContents can die outside closeTab. Route destruction through
-  // closeTab so the strip, groups, and active-tab selection stay
-  // consistent (re-entry is safe: closeTab removes the map entry before
-  // calling wc.close(), so this fires on an id that's already gone).
-  wc.once('destroyed', boundToTab(() => closeTab(id)));
-
-  // A tab whose renderer dies (OOM, GPU fault, kill -9) otherwise sits
-  // blank forever; loadURL spawns a fresh renderer, so route it to the
-  // error page with the original URL for one-click retry.
-  wc.on('render-process-gone', boundToTab((_e, details) => {
-    if (details.reason === 'clean-exit') return;
-    const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
-  }));
-
-  // A page's beforeunload can block close/navigation; surface Chrome's
-  // Leave/Stay choice instead of silently refusing.
-  wc.on('will-prevent-unload', boundToTab((event) => {
-    const choice = dialog.showMessageBoxSync(hasLiveWindow() ? rt().window : undefined, {
-      type: 'question',
-      buttons: ['Leave', 'Stay'],
-      defaultId: 0,
-      cancelId: 1,
-      message: 'Leave this page?',
-      detail: 'Changes you made may not be saved.',
-    });
-    if (choice === 0) event.preventDefault(); // preventing the prevention lets the unload proceed
-  }));
-
-  wc.on('found-in-page', boundToTab((_e, result) => {
-    if (id === rt().activeTabId) {
-      rt().overlayView?.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
-    }
-  }));
-
-  // Open target="_blank"/featureless window.open as managed tabs, but let
-  // window.open with explicit features ('new-window': OAuth/SSO popups,
-  // payment flows) become a REAL child window. Both paths MUST preserve
-  // window.opener: sign-in flows deliver their result back to the opening
-  // page via postMessage, and an opener-less child breaks them (observed:
-  // GitHub's "Sign in with Google" looping until accounts.google.com 400'd
-  // on corrupted state; later, Google auth flows opened as target=_blank
-  // dead-ending at accounts.google.com/gis_transform with a 400). So tabs
-  // are ADOPTED via createWindow — Chromium constructs the child wired to
-  // its opener, and createTab takes the view in as a normal managed tab —
-  // never re-created from just the URL. outlivesOpener on both paths:
-  // Electron's default destroys children with their opener, but closing a
-  // tab must not tear down the tabs (or popups) it spawned — Chrome never
-  // does. Electron only inherits the security subset of webPreferences
-  // into window.open children, so plugins (inline PDFs) is re-asserted via
-  // override — but ONLY plugins: overriding preload forces the child out
-  // of its opener's context and severs window.opener, defeating the whole
-  // adoption. Adopted tabs therefore lack tab-preload; that bridge only
-  // matters on blanc:// pages, and the guards below keep web content
-  // from opening or navigating into blanc:// at all.
-  // Cmd/Ctrl+click arrives as 'background-tab' — open it without stealing
-  // focus (browser convention). Children of a private tab stay private —
-  // a popup must not silently start recording history again. Applied
-  // recursively via did-create-window so a popup's own window.open
-  // children (a "Terms" link inside an OAuth popup) land back in managed
-  // tabs instead of falling through to bare Electron windows.
-  const applyWindowOpenPolicy = (targetWc) => {
-    targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition }) => {
-      // Utility pages never become tabs — and an adopted child must never
-      // reach createTab's guard: by createWindow time the guest webContents
-      // already exists, and a null return would leave it half-built and
-      // unmanaged. Deny the child outright, and route to the sheet ONLY
-      // for an internal opener — web content asking for a blanc:// child
-      // gets the same silent denial it always did, never a focused sheet.
-      if (isUtilityUrl(targetUrl)) {
-        if (targetWc.getURL().startsWith('blanc://')) openInternalPage(targetUrl);
-        return { action: 'deny' };
-      }
-      // Web content must not mint privileged internal pages (Chrome blocks
-      // web → chrome:// the same way). Only blanc:// pages themselves may
-      // open blanc:// children.
-      if (/^blanc:/i.test(targetUrl) && !targetWc.getURL().startsWith('blanc://')) {
-        return { action: 'deny' };
-      }
-      // target="_blank" mailto:/tel: links otherwise spawn a dead child
-      // tab — hand them to the OS like the will-navigate path does.
-      if (handOffToOs(targetUrl)) return { action: 'deny' };
-      if (disposition === 'new-window') {
-        return {
-          action: 'allow',
-          outlivesOpener: true,
-          overrideBrowserWindowOptions: {
-            autoHideMenuBar: true,
-            webPreferences: {
-              contextIsolation: true,
-              nodeIntegration: false,
-              sandbox: true,
-            },
-          },
-        };
-      }
-      // Children stay in their opener's group, like Chrome's tab groups.
-      return {
-        action: 'allow',
-        outlivesOpener: true,
-        overrideBrowserWindowOptions: { webPreferences: { plugins: true } },
-        createWindow: boundToTab((options) => {
-          // options.webContents is the guest Chromium already created,
-          // wired to its opener. The view must WRAP it — constructing a
-          // fresh webContents here throws "Invalid webContents. Created
-          // window should be connected to webContents passed with options".
-          const view = new WebContentsView({ webContents: options.webContents });
-          const newId = createTab(targetUrl, { private: tab.private, groupId: tab.groupId, view });
-          // Activation is deferred: createWindow runs mid-window-open,
-          // before Chromium has finished wiring the guest, and attaching
-          // the view to the window at that point silently fails to take.
-          if (disposition !== 'background-tab') setImmediate(() => setActiveTab(newId));
-          return view.webContents;
-        }),
-      };
-    }));
-    targetWc.on('did-create-window', boundToTab((childWindow) => {
-      // Adopted children run their own createTab wiring; only real popup
-      // windows need the policy grafted on.
-      const isManagedTab = [...tabs.values()].some(
-        (t) => t.view.webContents.id === childWindow.webContents.id
-      );
-      if (!isManagedTab) {
-        applyWindowOpenPolicy(childWindow.webContents);
-        // A real popup child: owned by the opener's runtime for permission
-        // prompting ONLY. Deliberately NOT a chrome surface — it is untrusted
-        // web content and must never resolve for chrome IPC.
-        const childWc = childWindow.webContents;
-        const childWcId = childWc.id;
-        windowRuntimes.registerAuxiliaryContent(rt(), childWcId);
-        childWc.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
-          windowRuntimes.unregisterAuxiliaryContent(childWcId);
-        }));
-      }
-    }));
-  };
-  applyWindowOpenPolicy(wc);
-
-  attachContextMenu(wc, {
-    // "Open Link in New Tab"/"Open Link" on a mailto:/tel: link otherwise
-    // creates a dead tab — createTab() has no chance to check, since it
-    // never sees the raw link URL as a page navigation.
-    openBackgroundTab: boundToTab((targetUrl) => {
-      if (handOffToOs(targetUrl)) return;
-      createTab(targetUrl, { private: tab.private, groupId: tab.groupId });
-    }),
-    openTab: boundToTab((targetUrl) => {
-      if (handOffToOs(targetUrl)) return;
-      setActiveTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }));
-    }),
-  });
+  const wc = view.webContents;
+  tabIdByWebContentsId.set(wc.id, id);
+  wireTabView(tab, view, { owner, adopted });
 
   // Load failures surface via the did-fail-load handler above; the
   // rejected promise here is the same event and must not crash main.
@@ -2208,10 +2503,13 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   const next = tabs.get(id);
   if (!next) return;
+  // The wake's synchronous prefix creates its view before returning. This is
+  // deliberately before every guard below, including the no-window path.
+  if (next.asleep) wakeTab(id).catch(() => {});
   // A script-closed adopted tab prunes itself via its 'destroyed' handler,
   // but a deferred activation (the window-open setImmediate) can race the
   // event — never attach or focus a dead webContents.
-  if (next.view.webContents.isDestroyed()) return;
+  if (!liveContents(next)) return;
 
   // Re-selecting the active tab is a no-op.
   if (id === rt().activeTabId) return;
@@ -2239,6 +2537,12 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   const prevId = rt().activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
   if (prev) {
+    // Quiet Tabs: the tab is leaving the foreground — this is the ONLY moment
+    // that defines "idle since" (spec §4.3). Stamp before a potential detach
+    // error so the tab cannot be left eligible without an idle timestamp.
+    prev.lastActiveAt = Date.now();
+  }
+  if (prev?.view) {
     rt().window.contentView.removeChildView(prev.view);
     // A detached view's document still reports visibilityState 'visible',
     // so Chromium never background-throttles its timers (the newtab sprite
@@ -2268,7 +2572,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // blank new tab we instead want the chrome's address bar, and OS focus
   // can be claimed asynchronously by the attached child view, so blank-tab
   // activation keeps reclaiming focus until the user navigates or switches.
-  if (focusContent) next.view.webContents.focus();
+  if (focusContent) liveContents(next)?.focus();
   // Background tabs can't be pixel-sampled; catch up when they surface.
   if (!next.pageBg) scheduleSampleTint(next);
   broadcastTabs();
@@ -2276,7 +2580,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   if (shouldFocusAddress) {
     reclaimAddressBarFocus(id);
     setImmediate(() => {
-      if (rt().activeTabId !== id || !tabs.has(id)) return;
+      if (rt().activeTabId !== id || !tabs.has(id) || !next.view) return;
       next.view.setVisible(true);
       reclaimAddressBarFocus(id);
     });
@@ -2285,7 +2589,12 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
 function activateTabFromRail(id) {
   const tab = tabs.get(id);
-  if (!tab || tab.view.webContents.isDestroyed()) return false;
+  if (!tab) return false;
+  // Rail rows target background tabs, so they are the common direct path to a
+  // quiet tab. wakeTab's synchronous prefix makes liveContents safe below.
+  if (tab.asleep) wakeTab(id).catch(() => {});
+  const wc = liveContents(tab);
+  if (!wc) return false;
   rt().railActivationSerial += 1;
 
   // One guarded main-process action owns the complete interaction so a
@@ -2301,7 +2610,7 @@ function activateTabFromRail(id) {
     rt().tabsWantingAddressBarFocus.delete(id);
     tab.view.setVisible(true);
     resizeActiveView();
-    tab.view.webContents.focus();
+    wc.focus();
   }
   return true;
 }
@@ -2310,28 +2619,46 @@ function activateTabFromRail(id) {
 const recentlyClosedUrls = [];
 
 function closeTab(id) {
+  // First statement: any later early return must not strand recovery data.
+  sleepSnapshots.delete(id);
+  // A user close during a sleep teardown wins: do not rewire a tab going away.
+  sleepTeardownInProgress = false;
   const tab = tabs.get(id);
   if (!tab) return;
+  forgetTabWebContentsIds(id);
 
   // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
-  if (tab.url && !tab.private && !tab.url.startsWith('blanc://newtab')) {
-    recentlyClosedUrls.push(tab.url);
+  // A failed provisional navigation can leave a non-string value in the
+  // model during WebContents teardown. Closing that tab must not take down the
+  // main process while deciding whether it is eligible for reopen-closed-tab.
+  const tabUrl = typeof tab.url === 'string' ? tab.url : '';
+  if (tabUrl && !tab.private && !tabUrl.startsWith('blanc://newtab')) {
+    recentlyClosedUrls.push(tabUrl);
     if (recentlyClosedUrls.length > 25) recentlyClosedUrls.shift();
   }
 
   const wasActive = id === rt().activeTabId;
-  if (wasActive && hasLiveWindow()) rt().window.contentView.removeChildView(tab.view);
+  if (wasActive && hasLiveWindow() && tab.view) rt().window.contentView.removeChildView(tab.view);
 
   const closedIndex = rt().tabOrder.indexOf(id);
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
+  popupChildCounts.delete(id);
   windowRuntimes.detachTab(id);
   rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
   pruneEmptyGroups();
-  const wc = tab.view.webContents;
+  const wc = tab.view?.webContents;
+  if (wc) lastMainFrameMethod.delete(wc.id);
   if (wc && !wc.isDestroyed()) wc.close();
 
   if (wasActive) {
+    // Electron destroys the active view during app shutdown. Do not select a
+    // surviving quiet tab here: setActiveTab would wake it and construct a
+    // fresh WebContentsView while the native window is being torn down.
+    if (isQuitting) {
+      rt().activeTabId = null;
+      return;
+    }
     if (rt().tabOrder.length > 0) {
       // Prefer the tab that was to the right of the closed one.
       setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
@@ -2437,7 +2764,10 @@ function openInternalPage(url) {
     // Hold the tab from the lookup rather than fetching it again. Re-fetching
     // was safe only because setActiveTab happens not to mutate `tabs` — the
     // same unstated assumption that crashed the menu rebuild.
-    tab.view.webContents.reload(); // pick up fresh data
+    // The selected internal page is being navigated anyway. Give a quiet tab
+    // the target as its first load rather than restore-then-reload.
+    if (tab.asleep) wakeTab(existing, { navigateTo: url }).catch(() => {});
+    else liveContents(tab)?.reload(); // pick up fresh data
   } else {
     setActiveTab(createTab(url));
   }
@@ -2648,16 +2978,14 @@ function activeSiteHostname(tab) {
  * both callers already reload asynchronously from the renderer's point of view.
  */
 function reloadTabAfterSettingsFanout(tab) {
-  const view = tab?.view;
-  if (!view) return;
+  if (!tab?.view) return;
   setImmediate(() => {
     // Re-read webContents inside the deferred turn: closing the tab in that
     // window runs closeTab's wc.close(), after which view.webContents is
     // undefined — dereferencing it here threw an uncaught TypeError that
     // killed the main process. closeTab (see its own `if (wc && ...)` guard)
     // already treats this as nullable; this path did not.
-    const wc = view.webContents;
-    if (wc && !wc.isDestroyed()) wc.reload();
+    liveContents(tab)?.reload();
   });
 }
 
@@ -2756,12 +3084,36 @@ function registerIpcHandlers() {
       };
       return target;
     }
-    return tab.view.webContents.loadURL(target);
+    if (tab.asleep) return wakeTab(id, { navigateTo: target });
+    return liveContents(tab)?.loadURL(target);
   });
-  chromeHandle('tabs:back', (_e, id) => tabs.get(id)?.view.webContents.navigationHistory.goBack());
-  chromeHandle('tabs:forward', (_e, id) => tabs.get(id)?.view.webContents.navigationHistory.goForward());
-  chromeHandle('tabs:reload', (_e, id) => tabs.get(id)?.view.webContents.reload());
-  chromeHandle('tabs:stop', (_e, id) => tabs.get(id)?.view.webContents.stop());
+  // These commands accept arbitrary ids, so each must account for a quiet
+  // tab rather than assuming a WebContentsView exists.
+  chromeHandle('tabs:back', (_e, id) => {
+    const tab = tabs.get(id);
+    if (!tab) return;
+    if (tab.asleep) {
+      const snapshot = sleepSnapshots.get(id);
+      return wakeTab(id, { atIndex: snapshot ? snapshot.index - 1 : null });
+    }
+    return liveContents(tab)?.navigationHistory.goBack();
+  });
+  chromeHandle('tabs:forward', (_e, id) => {
+    const tab = tabs.get(id);
+    if (!tab) return;
+    if (tab.asleep) {
+      const snapshot = sleepSnapshots.get(id);
+      return wakeTab(id, { atIndex: snapshot ? snapshot.index + 1 : null });
+    }
+    return liveContents(tab)?.navigationHistory.goForward();
+  });
+  chromeHandle('tabs:reload', (_e, id) => {
+    const tab = tabs.get(id);
+    if (!tab) return;
+    if (tab.asleep) return wakeTab(id);
+    return liveContents(tab)?.reload();
+  });
+  chromeHandle('tabs:stop', (_e, id) => liveContents(tabs.get(id))?.stop());
   chromeHandle('tabs:reorder', (_e, id, toIndex) => reorderTab(id, toIndex));
   chromeHandle('tabs:reorder-within-bucket', (_e, id, beforeId) =>
     reorderTabWithinBucket(id, beforeId));
@@ -2790,8 +3142,13 @@ function registerIpcHandlers() {
     tabLayout,
     ...verticalTabsMetrics(),
   }));
-  chromeHandle('tabs:find', (_e, id, query, options) => tabs.get(id)?.view.webContents.findInPage(query, options));
-  chromeHandle('tabs:find-stop', (_e, id) => tabs.get(id)?.view.webContents.stopFindInPage('clearSelection'));
+  chromeHandle('tabs:find', (_e, id, query, options) => {
+    const tab = tabs.get(id);
+    if (!tab) return;
+    if (tab.asleep) return wakeTab(id); // find on the rebuilt page, never throw
+    return liveContents(tab)?.findInPage(query, options);
+  });
+  chromeHandle('tabs:find-stop', (_e, id) => liveContents(tabs.get(id))?.stopFindInPage('clearSelection'));
 
   chromeOn('chrome:island-rect', (_e, rect) => {
     const ok = rect && ['x', 'y', 'width', 'height'].every((f) => Number.isFinite(rect[f]));
@@ -2924,9 +3281,13 @@ function registerIpcHandlers() {
       }
     }
   });
-  chromeHandle('chrome:history-clear', () => history.clearHistory());
+  chromeHandle('chrome:history-clear', () => {
+    history.clearHistory();
+    clearSessionMeta();
+  });
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
+  chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
     const current = settings.getSettings().theme;
@@ -3090,6 +3451,7 @@ const SLASH_COMMANDS = [
   ['/close', 'Close this tab'],
   ['/pin', 'Pin or unpin this tab'],
   ['/mute', 'Mute or unmute this tab'],
+  ['/sleep', 'Put background tabs to sleep and free their memory'],
   ['/group <name>', 'Move this tab into a group, creating it on first use'],
   ['/ungroup', 'Take this tab out of its group'],
   ['/close-group', 'Close every tab in this group'],
@@ -3379,7 +3741,7 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
 function applyWebrtcPolicyToAllTabs() {
   const policy = webrtcPolicyFor(settings.getSettings().webrtcPolicy);
   for (const tab of tabs.values()) {
-    tab.view.webContents.setWebRTCIPHandlingPolicy(policy);
+    liveContents(tab)?.setWebRTCIPHandlingPolicy(policy);
   }
 }
 
@@ -3454,6 +3816,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
     for (const browsingSession of browsingSessions) {
       browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
+        // Compose with the Client Hints handler rather than registering a
+        // second listener: Electron allows one listener per webRequest event.
+        // A POST result is not safely refetchable, so retain the method until
+        // did-navigate can decide whether the commit is restorable.
+        if (details.resourceType === 'mainFrame' && Number.isInteger(details.webContentsId)) {
+          lastMainFrameMethod.set(details.webContentsId, details.method);
+        }
         const h = details.requestHeaders;
         setHeader(h, 'sec-ch-ua', chUa, { add: true });
         // High-entropy hint: only rewrite it when Chromium already decided to
@@ -3481,14 +3850,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setupPermissionPolicy(ses);
   setupPermissionPolicy(privateSes, { persistDecisions: false });
   let permissionPromptCounter = 0;
-  // Resolve the tab owning a requesting webContents by scanning the
-  // process-wide tabs Map for the record whose view hosts it.
+  // Resolve the tab owning a requesting webContents through the maintained
+  // index — never by walking `tabs` and dereferencing each view.
   function tabForWebContents(wc) {
     if (!wc) return null;
-    for (const tab of tabs.values()) {
-      if (tab.view?.webContents === wc) return tab;
-    }
-    return null;
+    return tabs.get(tabIdByWebContentsId.get(wc.id)) ?? null;
   }
   // Resolve null when there's no window to ask through — the policy treats
   // null as "not answered" and denies for now WITHOUT persisting, so a
@@ -3508,16 +3874,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!owner) return resolve(null);
       if (!owner.window || owner.window.isDestroyed()) return resolve(null);
       const promptId = ++permissionPromptCounter;
-      owner.permissionPrompts.set(promptId, resolve);
+      // A quiet sweep excludes tabs with a prompt open: responding after the
+      // renderer is gone would persist a decision for a page the user cannot see.
+      owner.permissionPrompts.set(promptId, { resolve, tabId: tab?.id ?? null });
       owner.window.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
     })
   );
   chromeOn('permissions:respond', (_e, { id, allow }) => {
     const sender = rt(); // the sender's runtime, established by chromeOn
-    const resolve = sender.permissionPrompts.get(id);
-    if (!resolve) return; // wrong window's chrome, or a stale prompt — ignore
+    const pending = sender.permissionPrompts.get(id);
+    if (!pending) return; // wrong window's chrome, or a stale prompt — ignore
     sender.permissionPrompts.delete(id);
-    resolve(!!allow);
+    pending.resolve(!!allow);
   });
 
   // downloads.js invokes this from its own session/DownloadItem listeners —
@@ -3543,9 +3911,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const broadcastStartPageStatus = () => {
     const status = startPageStatus();
     for (const tab of tabs.values()) {
-      if (tab.url?.startsWith('blanc://newtab')) {
-        tab.view.webContents.send('pages:start:status', status);
-      }
+      if (!tab.url?.startsWith('blanc://newtab')) continue;
+      liveContents(tab)?.send('pages:start:status', status);
     }
   };
   // pages.js's ipcMain.handle('pages:*', ...) registrations are a wholly
@@ -3556,6 +3923,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setupPages({
     sessions: browsingSessions,
     onDataChanged: refreshBookmarkFlagsBound,
+    onHistoryCleared: bindWindowRuntime(primaryRuntime, clearSessionMeta),
     // Parent for the favorites-import file dialog (evaluated lazily at click).
     getMainWindow: bindWindowRuntime(primaryRuntime, () => (hasLiveWindow() ? rt().window : undefined)),
     // Utility sheet: only the sheet view itself may close the sheet — the
@@ -3639,23 +4007,45 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         `location.href = ${JSON.stringify(String(url))}`
       ),
       getChromeUrl: () => rt().window?.webContents.getURL() ?? '',
+      persistedSessionData: () => JSON.parse(JSON.stringify(ensureSessionStore().data)),
+      serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
+      sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
+      getPermissionPrompts: () => rt().permissionPrompts,
+      getSleepSnapshots: () => sleepSnapshots,
+      setSleepThresholdOverride: (ms) => {
+        sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
+        return sleepThresholdOverrideMs;
+      },
     });
   }
 
   initSpikePackaging(); // SPIKE (1Password fill feasibility) — fire-and-forget, gated on BLANC_1P_SPIKE
+
+  // One bound 30-second sweep. Both setInterval and setImmediate cross an
+  // AsyncLocalStorage boundary; bind both so rt() remains the primary runtime.
+  // The immediate also ensures a sweep never runs synchronously in a settings
+  // fan-out turn, where WebContents lifecycle work is unsafe.
+  setInterval(bindWindowRuntime(primaryRuntime, () => {
+    setImmediate(bindWindowRuntime(primaryRuntime, () => {
+      runSleepSweep().catch((err) => console.warn('[quiet-tabs] sweep:', err?.message));
+    }));
+  }), SLEEP_SWEEP_INTERVAL_MS);
+
+  powerMonitor.on('resume', bindWindowRuntime(primaryRuntime, () => {
+    // Machine sleep is not user idle. Avoid a simultaneous wake-time sweep.
+    lastSleepSweepAt = Date.now();
+    restampBackgroundTabs();
+  }));
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
   // of the frame the request came from. adblock.js's eventBridge fires this
   // from the network layer — not from any of our own bound roots.
   onRequestBlocked(bindWindowRuntime(primaryRuntime, (request) => {
     adblockWeekStats().update((d) => { d.blocked += 1; });
-    for (const tab of tabs.values()) {
-      if (tab.view.webContents.id === request.tabId) {
-        tab.blockedCount += 1;
-        scheduleBroadcastTabs();
-        break;
-      }
-    }
+    const tab = tabs.get(tabIdByWebContentsId.get(request.tabId));
+    if (!tab) return;
+    tab.blockedCount += 1;
+    scheduleBroadcastTabs();
   }));
 
   // Settings fan-out: settings.js calls every registered listener synchronously
@@ -3698,9 +4088,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const devices = sync.listRemoteDevices();
     rt().overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
     for (const tab of tabs.values()) {
-      if (tab.url?.startsWith('blanc://newtab')) {
-        tab.view.webContents.send('pages:start:remote-tabs', devices);
-      }
+      if (!tab.url?.startsWith('blanc://newtab')) continue;
+      liveContents(tab)?.send('pages:start:remote-tabs', devices);
     }
   });
   tabsync.onRemoteChanged(pushRemoteDevices);
@@ -3740,6 +4129,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   saved.urls = cleaned.urls;
   saved.groupIds = cleaned.groupIds;
   saved.pinned = cleaned.pinned;
+  saved.meta = cleaned.meta;
   saved.activeIndex = cleaned.activeIndex;
   rt().groups = (Array.isArray(saved.groups) ? saved.groups : [])
     .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
@@ -3780,17 +4170,23 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       });
     }
 
+    // Lazy restore: every saved tab comes back as a labelled record with no
+    // renderer. Only the selected tab is built, through setActiveTab's wake.
     const restoredIds = saved.urls.map((url, index) => createTab(url, {
       groupId: saved.groupIds?.[index] ?? null,
       pinned: !!saved.pinned?.[index],
+      asleep: true,
+      title: saved.meta?.[index]?.title ?? '',
+      favicon: saved.meta?.[index]?.favicon ?? null,
     }));
     pruneEmptyGroups();
-    if (restoredIds.length) {
-      const target = restoredIds[
-        Math.min(Math.max(0, saved.activeIndex), restoredIds.length - 1)
-      ];
-      if (tabs.has(startupTabId)) closeTab(startupTabId);
+    const target = restoreTargetId(restoredIds, saved.activeIndex);
+    if (target) {
+      // Activate first, then close the startup tab. Closing an active startup
+      // tab first would select (and wake) the first restored tab before the
+      // saved target, briefly creating two renderers.
       setActiveTab(target, { focusContent: true });
+      if (tabs.has(startupTabId)) closeTab(startupTabId);
     }
 
     sessionPersistenceSuspended = false;

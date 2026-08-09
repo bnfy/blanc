@@ -21,6 +21,8 @@ const spec = JSON.parse(fs.readFileSync(SPEC, 'utf8'));
 const SWIFT_RESERVED = new Set(['default', 'class', 'enum', 'case', 'func', 'import', 'public', 'private', 'static', 'protocol', 'in', 'is', 'let', 'var']);
 const swiftCase = (id) => (SWIFT_RESERVED.has(id) ? `\`${id}\`` : id);
 const upper = (id) => id.toUpperCase();
+// Leading-digit delay ids are not identifiers: 30m -> m30, 1h -> h1.
+const sleepCase = (id) => (/^\d/.test(id) ? id.slice(-1) + id.slice(0, -1) : id);
 
 // ---- generators ----
 function genSwift() {
@@ -43,6 +45,10 @@ function genSwift() {
   out += 'public enum BlancSecureDns: String, CaseIterable {\n';
   for (const v of spec.secureDnsOptions) out += `    case ${swiftCase(v)}\n`;
   out += '}\n\n';
+  const sleepCases = spec.tabSleepDelays
+    .map((v) => (sleepCase(v) === v ? sleepCase(v) : `${sleepCase(v)} = "${v}"`))
+    .join(', ');
+  out += `public enum BlancTabSleepDelay: String, CaseIterable { case ${sleepCases} }\n\n`;
   out += 'public enum BlancAppIcon: String, CaseIterable {\n';
   for (const i of icons) out += `    case ${swiftCase(i.id)}\n`;
   out += '    public var label: String {\n        switch self {\n';
@@ -62,6 +68,7 @@ function genSwift() {
   out += `    public static let secureDnsTemplate: String = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
   out += `    public static let appIcon: BlancAppIcon = .${swiftCase(spec.defaults.appIcon)}\n`;
   out += `    public static let usagePing: Bool = ${spec.defaults.usagePing}\n`;
+  out += `    public static let tabSleep: BlancTabSleepDelay = .${sleepCase(spec.defaults.tabSleep)}\n`;
   out += '    // adblockExceptions defaults to []; supporter defaults to nil (structural).\n}\n';
   return out;
 }
@@ -79,6 +86,7 @@ function genKotlin() {
   out += spec.webrtcPolicies.map((v) => `    ${upper(v)}("${v}")`).join(',\n') + ';\n}\n\n';
   out += 'enum class BlancSecureDns(val id: String) {\n';
   out += spec.secureDnsOptions.map((v) => `    ${upper(v)}("${v}")`).join(',\n') + ';\n}\n\n';
+  out += `enum class BlancTabSleepDelay(val id: String) { ${spec.tabSleepDelays.map((v) => `${upper(sleepCase(v))}("${v}")`).join(', ')} }\n\n`;
   out += 'enum class BlancAppIcon(val id: String, val label: String, val isSupporterOnly: Boolean) {\n';
   out += icons.map((i) => `    ${upper(i.id)}("${i.id}", ${JSON.stringify(i.label)}, ${i.sup})`).join(',\n') + ';\n}\n\n';
   out += 'object BlancSettingsDefaults {\n';
@@ -92,6 +100,7 @@ function genKotlin() {
   out += `    const val secureDnsTemplate = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
   out += `    val appIcon = BlancAppIcon.${upper(spec.defaults.appIcon)}\n`;
   out += `    const val usagePing = ${spec.defaults.usagePing}\n`;
+  out += `    val tabSleep = BlancTabSleepDelay.${upper(sleepCase(spec.defaults.tabSleep))}\n`;
   out += '    // adblockExceptions defaults to emptyList(); supporter defaults to null (structural).\n}\n';
   return out;
 }
@@ -117,6 +126,8 @@ function parseSettingsJs() {
   const webrtcPolicies = [...webrtcBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
   const secureDnsBlock = (js.match(/const SECURE_DNS_OPTIONS = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
   const secureDnsOptions = [...secureDnsBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  const tabSleepBlock = (js.match(/const TAB_SLEEP_DELAYS = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
+  const tabSleepDelays = [...tabSleepBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
   const appIcons = pairs(js.match(/const APP_ICON_LABELS = \{([\s\S]*?)\}/)?.[1]);
   const supporterIcons = pairs(js.match(/const SUPPORTER_ICON_LABELS = \{([\s\S]*?)\}/)?.[1]);
   const D = js.match(/const DEFAULTS = \{([\s\S]*?)\n\};/)?.[1] ?? '';
@@ -132,13 +143,14 @@ function parseSettingsJs() {
     secureDnsTemplate: s(/^\s*secureDnsTemplate:\s*'([^']*)'/m),
     appIcon: s(/^\s*appIcon:\s*'([^']*)'/m),
     usagePing: s(/^\s*usagePing:\s*(true|false)/m),
+    tabSleep: s(/^\s*tabSleep:\s*'([^']*)'/m),
     adblockExceptionsEmpty: /^\s*adblockExceptions:\s*\[\]/m.test(D),
     supporterNull: /^\s*supporter:\s*null/m.test(D),
   };
   // Every key literally declared in DEFAULTS (line-anchored, so // comments are
   // excluded) — used to catch keys the schema doesn't know about.
   const defaultKeys = [...D.matchAll(/^\s*(\w+):/gm)].map((m) => m[1]);
-  return { engines, themes, webrtcPolicies, secureDnsOptions, appIcons, supporterIcons, defaults, defaultKeys };
+  return { engines, themes, webrtcPolicies, secureDnsOptions, tabSleepDelays, appIcons, supporterIcons, defaults, defaultKeys };
 }
 
 function check() {
@@ -151,6 +163,7 @@ function check() {
   cmp('themes', js.themes, spec.themes);
   cmp('webrtcPolicies', js.webrtcPolicies, spec.webrtcPolicies);
   cmp('secureDnsOptions', js.secureDnsOptions, spec.secureDnsOptions);
+  cmp('tabSleepDelays', js.tabSleepDelays, spec.tabSleepDelays);
   cmp('appIcons', js.appIcons, spec.appIcons);
   cmp('supporterIcons', js.supporterIcons, spec.supporterIcons);
 
@@ -178,6 +191,7 @@ function check() {
   eq('secureDnsTemplate', jd.secureDnsTemplate, d.secureDnsTemplate);
   eq('appIcon', jd.appIcon, d.appIcon);
   eq('usagePing', jd.usagePing, String(d.usagePing));
+  eq('tabSleep', jd.tabSleep, d.tabSleep);
   if (!jd.adblockExceptionsEmpty) problems.push('defaults.adblockExceptions: settings.js is not []');
   if (!jd.supporterNull) problems.push('defaults.supporter: settings.js is not null');
 

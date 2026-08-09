@@ -11,9 +11,10 @@
 const settings = require('./settings');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
-const { Menu, clipboard } = require('electron');
+const { app, Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
+const { syncSnapshot } = require('./session-snapshot');
 const {
   runAddressMenuItem,
   readAddressFieldText,
@@ -81,6 +82,15 @@ function install(refs) {
     getPrivateBrowsingSession,
     attemptChromeNavigation,
     getChromeUrl,
+    persistedSessionData,
+    serializedTabsPayload,
+    sleepTab,
+    wakeTab,
+    runSleepSweep,
+    sleepBackgroundTabsNow,
+    getPermissionPrompts,
+    setSleepThresholdOverride,
+    getSleepSnapshots,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -96,8 +106,10 @@ function install(refs) {
   const committedUrlOf = (t) => { try { return t.view.webContents.getURL(); } catch { return ''; } };
   const isLoadingOf = (t) => { try { return t.view.webContents.isLoadingMainFrame(); } catch { return false; } };
   const sessionPersistentOf = (t) => { try { return t.view.webContents.session.isPersistent(); } catch { return null; } };
+  const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
   const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
+  const beforeUnloadProbes = new Map();
   const remoteFixture = [{
     deviceId: 'acceptance-remote-device',
     name: 'Press Mac',
@@ -122,7 +134,7 @@ function install(refs) {
     getOverlayWebContents()?.send('chrome:remote-tabs-updated', devices);
     for (const tab of tabs.values()) {
       if (urlOf(tab).startsWith('blanc://newtab')) {
-        tab.view.webContents.send('pages:start:remote-tabs', devices);
+        tab.view?.webContents?.send('pages:start:remote-tabs', devices);
       }
     }
   }
@@ -132,6 +144,7 @@ function install(refs) {
     state() {
       const list = [];
       for (const [id, t] of tabs) {
+        const wc = t.view?.webContents;
         list.push({
           id,
           url: urlOf(t),
@@ -144,10 +157,17 @@ function install(refs) {
           pinned: !!t.pinned,
           muted: !!t.muted,
           audible: !!t.audible,
+          canGoBack: !!t.canGoBack,
+          canGoForward: !!t.canGoForward,
           private: !!t.private,
-          webContentsId: t.view.webContents.id,
-          bounds: t.view.getBounds(),
-          sessionKind: t.view.webContents.session === getPrivateBrowsingSession() ? 'private' : 'default',
+          // This object is produced inside electronApp.evaluate(); a viewless
+          // tab must be observable rather than making every scenario throw.
+          asleep: !!t.asleep,
+          webContentsId: wc?.id ?? null,
+          bounds: t.view ? t.view.getBounds() : null,
+          sessionKind: wc
+            ? (wc.session === getPrivateBrowsingSession() ? 'private' : 'default')
+            : null,
           sessionPersistent: sessionPersistentOf(t),
         });
       }
@@ -195,11 +215,58 @@ function install(refs) {
       if (typeof patch.audible === 'boolean') tab.audible = patch.audible;
       if (typeof patch.muted === 'boolean') {
         tab.muted = patch.muted;
-        tab.view.webContents.setAudioMuted(patch.muted);
+        tab.view?.webContents?.setAudioMuted(patch.muted);
       }
       broadcastTabs();
       return true;
     },
+    async navigateTab(id, url) {
+      const tab = tabs.get(id);
+      if (!tab?.view?.webContents) return false;
+      await tab.view.webContents.loadURL(String(url));
+      return true;
+    },
+    executeTab(id, source) {
+      const tab = tabs.get(id);
+      if (!tab?.view?.webContents) return null;
+      return tab.view.webContents.executeJavaScript(String(source));
+    },
+    tabNavigation(id) {
+      const tab = tabs.get(id);
+      const history = tab?.view?.webContents?.navigationHistory;
+      if (!history) return null;
+      return {
+        entries: history.getAllEntries().map((entry) => ({ url: entry.url, title: entry.title })),
+        activeIndex: history.getActiveIndex(),
+      };
+    },
+    tabListenerState(id) {
+      const wc = tabs.get(id)?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return null;
+      return {
+        didNavigate: wc.listenerCount('did-navigate'),
+        title: wc.listenerCount('page-title-updated'),
+        input: wc.listenerCount('before-input-event'),
+      };
+    },
+    armBeforeUnloadObjection(id) {
+      const wc = tabs.get(id)?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return false;
+      const originalClose = wc.close;
+      const probe = { prevented: false, fired: false };
+      beforeUnloadProbes.set(id, probe);
+      wc.close = function acceptanceBeforeUnloadClose() {
+        wc.close = originalClose;
+        queueMicrotask(() => {
+          probe.fired = true;
+          wc.emit('will-prevent-unload', {
+            preventDefault() { probe.prevented = true; },
+          });
+        });
+      };
+      return true;
+    },
+    beforeUnloadProbe(id) { return beforeUnloadProbes.get(id) ?? null; },
     closeTabsInGroupName(name) {
       const g = getGroups().find((x) => x.name === lc(name));
       if (!g) return;
@@ -220,7 +287,7 @@ function install(refs) {
       for (const t of tabs.values()) {
         const url = urlOf(t);
         if (/^https?:/.test(url) && !bookmarks.isBookmarked(url)) {
-          bookmarks.toggleBookmark(url, t.view.webContents.getTitle() || url);
+          bookmarks.toggleBookmark(url, titleOf(t) || url);
         }
       }
     },
@@ -247,6 +314,8 @@ function install(refs) {
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
+    tabSleep() { return settings.getSettings().tabSleep; },
+    setTabSleep(value) { return settings.setSettings({ tabSleep: value }).tabSleep; },
     tabLayout() { return settings.getSettings().tabLayout; },
     setTabLayout(layout) { return setTabLayout(layout); },
     pressVerticalTabsShortcut() {
@@ -484,6 +553,8 @@ function install(refs) {
       return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-row')].map((row) => ({
         title: row.querySelector('.row-title')?.textContent ?? '',
         tag: row.querySelector('.row-tag')?.textContent ?? '',
+        label: row.querySelector('.row-primary')?.getAttribute('aria-label') ?? '',
+        quiet: !!row.querySelector('.row-quiet'),
         active: row.classList.contains('active'),
         enter: !!row.querySelector('.row-enter')
       }))`);
@@ -526,6 +597,26 @@ function install(refs) {
         };
       })()`);
     },
+    async quietChromeState(title, id) {
+      const chrome = getChromeWebContents();
+      if (!chrome) return null;
+      return chrome.executeJavaScript(`(() => {
+        const dot = [...document.querySelectorAll('.island-dot')]
+          .find((candidate) => candidate.title === ${JSON.stringify(String(title))});
+        const row = document.querySelector(
+          '.vertical-tab-row[data-tab-id="' + CSS.escape(${JSON.stringify(String(id))}) + '"]'
+        );
+        return {
+          dotQuiet: !!dot?.classList.contains('asleep'),
+          dotPrivate: !!dot?.classList.contains('private'),
+          dotLabel: dot?.getAttribute('aria-label') ?? '',
+          railQuiet: !!row?.classList.contains('quiet'),
+          railPrivate: !!row?.classList.contains('private'),
+          railLabel: row?.querySelector('.vertical-tab-primary')?.getAttribute('aria-label') ?? '',
+          railMarker: !!row?.querySelector('.vertical-tab-quiet'),
+        };
+      })()`);
+    },
     async clickIslandLayoutToggle() {
       const wc = getOverlayWebContents();
       if (!wc) return false;
@@ -560,22 +651,24 @@ function install(refs) {
     async probeFocusAfterTabBroadcast(id) {
       const tab = tabs.get(id);
       if (!tab) return { tabBlurCount: 0, chromeFocusCount: 0 };
+      const wc = tab.view?.webContents;
+      if (!wc) return { tabBlurCount: 0, chromeFocusCount: 0 };
       // Let the Playwright main-process evaluate handoff settle, then establish
       // page focus immediately before the product broadcast under test.
       await new Promise((resolve) => setTimeout(resolve, 450));
-      tab.view.webContents.focus();
+      wc.focus();
       await new Promise((resolve) => setTimeout(resolve, 25));
       const chrome = getChromeWebContents();
       let tabBlurCount = 0;
       let chromeFocusCount = 0;
       const onTabBlur = () => { tabBlurCount += 1; };
       const onChromeFocus = () => { chromeFocusCount += 1; };
-      tab.view.webContents.on('blur', onTabBlur);
+      wc.on('blur', onTabBlur);
       chrome?.on('focus', onChromeFocus);
       tab.title = `${tab.title || 'Tab'} · focus probe`;
       broadcastTabs();
       await new Promise((resolve) => setTimeout(resolve, 100));
-      tab.view.webContents.removeListener('blur', onTabBlur);
+      wc.removeListener('blur', onTabBlur);
       chrome?.removeListener('focus', onChromeFocus);
       return {
         tabBlurCount,
@@ -586,7 +679,9 @@ function install(refs) {
       clearFocusObservation();
       const tab = tabs.get(id);
       if (!tab) return false;
-      const observation = { wc: tab.view.webContents, count: 0, listener: null };
+      const wc = tab.view?.webContents;
+      if (!wc) return false;
+      const observation = { wc, count: 0, listener: null };
       observation.listener = () => { observation.count += 1; };
       observation.wc.on('focus', observation.listener);
       focusObservation = observation;
@@ -747,10 +842,89 @@ function install(refs) {
     },
     attemptChromeNavigation(url) { return attemptChromeNavigation(String(url)); },
     chromeUrl() { return getChromeUrl(); },
+    persistedSessionData() { return persistedSessionData(); },
+    serializedTabsPayload() { return serializedTabsPayload(); },
+    sessionSyncSnapshot() {
+      return syncSnapshot(getTabOrder().map((id) => tabs.get(id)), getGroups());
+    },
+
+    // ---- Quiet Tabs ----
+    // Every method drives the real main-process implementation; a mirror here
+    // would keep the acceptance suite green if the shipping code regressed.
+    async sleepTab(id) { return sleepTab(id); },
+    async wakeTab(id, navigateTo = null) { return wakeTab(id, { navigateTo }); },
+    async sleepBackgroundTabsNow() { return sleepBackgroundTabsNow(); },
+    createQuietTab(url, title = 'Restored quiet tab', isPrivate = false) {
+      return createTab(String(url), {
+        private: !!isPrivate,
+        asleep: true,
+        title: String(title),
+        favicon: null,
+      });
+    },
+    setQuietProtection(id, reason) {
+      const tab = tabs.get(id);
+      if (!tab) return false;
+      if (reason === 'pinned') tab.pinned = true;
+      else if (reason === 'muted') tab.muted = true;
+      else if (reason === 'audible') tab.audible = true;
+      else if (reason === 'used media') tab.usedMedia = true;
+      else if (reason === 'adopted child') tab.adopted = true;
+      else if (reason === 'non-refetchable POST') tab.restorableCommit = false;
+      else if (reason === 'pending permission') {
+        getPermissionPrompts().set(`quiet-${id}`, { tabId: id, resolve: () => {} });
+      } else return false;
+      broadcastTabs();
+      return true;
+    },
+    /** With an id: that tab's redacted state. Without: every tab in tab order.
+     * NEVER returns entries: snapshots can contain POST bodies and form data. */
+    sleepState(id) {
+      const snapshots = getSleepSnapshots();
+      const one = (tabId, tab) => ({
+        id: tabId,
+        asleep: !!tab.asleep,
+        hasSnapshot: snapshots.has(tabId),
+        entryCount: snapshots.get(tabId)?.entries.length ?? 0,
+        droppedPageState: !!snapshots.get(tabId)?.droppedPageState,
+      });
+      if (typeof id === 'string') {
+        const tab = tabs.get(id);
+        return tab ? one(id, tab) : null;
+      }
+      return getTabOrder()
+        .map((tabId) => {
+          const tab = tabs.get(tabId);
+          return tab ? one(tabId, tab) : null;
+        })
+        .filter(Boolean);
+    },
+    /** Backdate a tab's idle clock so a sweep sees it as idle. */
+    setTabIdleSince(id, msAgo) {
+      const tab = tabs.get(id);
+      if (!tab) return false;
+      tab.lastActiveAt = Date.now() - Number(msAgo || 0);
+      return true;
+    },
+    async runSleepSweep() { return runSleepSweep(); },
+    setSleepThresholdOverride(ms) { return setSleepThresholdOverride(ms); },
+    /** Falsifiability hook: only an OS process count proves a discarded view
+     * released its renderer rather than merely disappearing from the tab map. */
+    tabProcessCount() {
+      return app.getAppMetrics().filter((process) => process.type === 'Tab').length;
+    },
 
     // ---- isolation between scenarios ----
-    reset() {
+    async reset() {
       clearFocusObservation();
+      // Do not let a scenario inherit quiet state or retained page state. A
+      // quiet record is safe for closeTab, but waking first makes teardown and
+      // the subsequent snapshot clear explicit.
+      for (const [id, tab] of tabs) if (tab.asleep) await wakeTab(id);
+      getSleepSnapshots().clear();
+      getPermissionPrompts().clear();
+      beforeUnloadProbes.clear();
+      setSleepThresholdOverride(null);
       // No scenario inherits another's open surface.
       hideOverlay({ refocusContent: false });
       hideUtilitySheet();
@@ -773,6 +947,7 @@ function install(refs) {
         verticalTabsWidth: 248,
         appIcon: 'paper',
         adblockExceptions: [],
+        tabSleep: '1h',
       });
       settings.setSupporter(null);
       clearTestSearchSuggestionFixture();

@@ -242,6 +242,9 @@
     // reveal) to list rows — Quick-Switcher/command rows keep their subs.
     row.className = 'island-row tab-row' + (tab.id === state.activeTabId ? ' active' : '');
     row.dataset.tabId = tab.id;
+    // A row contains multiple real buttons, so it is a labelled group—not an
+    // option/button, whose children would become presentational.
+    row.setAttribute('role', 'group');
 
     const faviconWrap = document.createElement('span');
     faviconWrap.className = 'row-favicon-wrap';
@@ -255,18 +258,42 @@
       faviconWrap.append(muteBadge);
     }
 
+    const label = tab.isLoading ? 'Loading…' : tab.title || 'New Tab';
     const title = document.createElement('span');
     title.className = 'row-title';
-    title.textContent = tab.isLoading ? 'Loading…' : tab.title || 'New Tab';
+    title.textContent = label;
     if (tab.title) title.title = tab.title;
+    row.setAttribute('aria-label', label);
 
-    row.append(faviconWrap, title);
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'row-primary';
+    // tabDomain() is '' for a blank new tab; filter rather than emit ", ,".
+    // The word a person hears is quiet; the field name stays internal.
+    const parts = [label, tabDomain(tab), tab.asleep ? 'quiet' : ''].filter(Boolean);
+    primary.setAttribute('aria-label', `Switch to ${parts.join(', ')}`);
+    primary.append(faviconWrap, title);
+    primary.addEventListener('click', () => {
+      window.browserAPI.switchTab(tab.id);
+      window.browserAPI.closeOverlay();
+    });
+    row.append(primary);
 
     if (tab.private) {
       const tag = document.createElement('span');
       tag.className = 'row-private';
       tag.textContent = 'private';
       row.append(tag);
+    }
+
+    // Quiet is a state tag beside "private", not a .row-tag: .row-tag is
+    // opacity:0 until hover inside .tab-row, and a state you can only see by
+    // hovering is not a state you can see.
+    if (tab.asleep) {
+      const quiet = document.createElement('span');
+      quiet.className = 'row-quiet';
+      quiet.textContent = 'quiet';
+      row.append(quiet);
     }
 
     const pin = document.createElement('button');
@@ -371,7 +398,8 @@
       row.append(picker);
     }
 
-    row.addEventListener('click', () => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
       window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
     });
@@ -536,6 +564,7 @@
     { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
     { cmd: '/pin', hint: 'Pin or unpin this tab', run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
     { cmd: '/mute', hint: 'Mute or unmute this tab', run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
+    { cmd: '/sleep', hint: 'Put background tabs to sleep and free their memory', run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true },
     { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"', run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
       if (name && state.activeTabId) window.browserAPI.groupTabByName(state.activeTabId, name);
@@ -673,7 +702,10 @@
     }
     for (const t of state.tabs) {
       const s = matchScore(query, matchableText(t.title, t.url));
-      if (s) results.push({ kind: 'tab', title: t.title || 'New Tab', sub: tabDomain(t), tab: t, score: s + 0.2 });
+      // Switcher rows are not .tab-row, so .row-sub is visible at rest —
+      // the honest place for the state, unlike the hover-gated .row-tag.
+      const sub = [tabDomain(t), t.asleep && 'quiet'].filter(Boolean).join(' · ');
+      if (s) results.push({ kind: 'tab', title: t.title || 'New Tab', sub, tab: t, score: s + 0.2 });
     }
     for (const f of favorites) {
       const s = matchScore(query, matchableText(f.title, f.url));

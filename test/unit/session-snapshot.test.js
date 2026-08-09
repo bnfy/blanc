@@ -1,7 +1,9 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
-const { persistableEntries, syncSnapshot } = require('../../src/main/session-snapshot');
+const {
+  persistableEntries, syncSnapshot, sessionTabMeta, MAX_META_TITLE, MAX_META_FAVICON,
+} = require('../../src/main/session-snapshot');
 
 const tab = (over = {}) => ({
   id: 't1', url: 'https://a.example/x', title: 'A',
@@ -65,4 +67,28 @@ test('syncSnapshot caps at 500 tabs and keeps only referenced groups, order pres
   ]);
   assert.equal(snap.tabs.length, 500);
   assert.deepEqual(snap.groups, [{ id: 'g2', name: 'work' }]);
+});
+
+test('sessionTabMeta carries a title and an allow-listed favicon, both bounded', () => {
+  assert.deepEqual(
+    sessionTabMeta(tab({ title: 'A', favicon: 'https://a.example/icon.png' })),
+    { title: 'A', favicon: 'https://a.example/icon.png' }
+  );
+  assert.equal(sessionTabMeta(tab({ title: 'x'.repeat(500) })).title.length, MAX_META_TITLE);
+  assert.equal(sessionTabMeta(tab({ favicon: 'javascript:alert(1)' })).favicon, null);
+  assert.equal(
+    sessionTabMeta(tab({ favicon: `data:image/png;base64,${'A'.repeat(MAX_META_FAVICON)}` })).favicon,
+    null,
+    'an oversized data: favicon is the fallback glyph — not worth persisting'
+  );
+  assert.deepEqual(sessionTabMeta(undefined), { title: '', favicon: null });
+});
+
+test('sessionTabMeta persists an EMPTY title for a tab sitting on our error page', () => {
+  const meta = sessionTabMeta(tab({
+    url: 'blanc://error/?url=' + encodeURIComponent('https://fail.example/'),
+    title: 'This page did not load',
+  }));
+  assert.deepEqual(meta, { title: '', favicon: null },
+    'persistableUrl unwraps to the site; the title there is Blanc error page copy');
 });

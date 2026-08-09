@@ -18,6 +18,8 @@ const SEARCH_ENGINES = {
 
 const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
+// Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
+const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
 
 // Network-privacy enums (bare arrays, like THEMES — build.mjs parses them by name).
 const WEBRTC_POLICIES = ['standard', 'strict'];
@@ -86,6 +88,8 @@ const DEFAULTS = {
   // Preferred rail width. The live layout may temporarily cap it to preserve
   // the minimum website pane, but that window-size cap is never persisted.
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
+  // 'off' disables automatic quieting; the manual /sleep command still works.
+  tabSleep: '1h',
   appIcon: 'paper',
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
@@ -166,6 +170,7 @@ function getSettings() {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
+  if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
   // Read coercion for a corrupted stored state (hand-edited settings.json): custom
@@ -195,6 +200,7 @@ function sanitize(partial) {
   if (typeof partial.homePage === 'string') clean.homePage = partial.homePage.trim();
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
+  if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
   if (Number.isFinite(partial.verticalTabsWidth)) {
     clean.verticalTabsWidth = normalizeVerticalTabsWidth(partial.verticalTabsWidth);
   }
@@ -350,6 +356,7 @@ function searchUrlFor(query) {
 module.exports = {
   SEARCH_ENGINES,
   TAB_LAYOUTS,
+  TAB_SLEEP_DELAYS,
   APP_ICONS,
   APP_ICON_LABELS,
   SUPPORTER_ICONS,

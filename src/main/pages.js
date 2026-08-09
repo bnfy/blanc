@@ -154,7 +154,12 @@ function setupPages(hooks = {}) {
 
   handle('pages:history:list', (opts) => history.listHistory(opts ?? {}));
   handle('pages:history:remove', (url, visitedAt) => history.removeVisit(url, visitedAt));
-  handle('pages:history:clear', () => history.clearHistory());
+  handle('pages:history:clear', () => {
+    history.clearHistory();
+    hooks.onHistoryCleared?.();
+    // session.json's meta column holds the same titles; clearHistory() only
+    // owns history.json, so the main-process hook drops the persisted copy.
+  });
 
   handle('pages:downloads:list', () => downloads.listDownloads());
   handle('pages:downloads:cancel', (id) => downloads.cancelDownload(id));

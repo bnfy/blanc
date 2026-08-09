@@ -11,6 +11,7 @@
     <string name="slash_close">Close this tab</string>
     <string name="slash_pin">Pin or unpin this tab</string>
     <string name="slash_mute">Mute or unmute this tab</string>
+    <string name="slash_sleep">Put background tabs to sleep and free their memory</string>
     <string name="slash_group">Type a space, then a group name — e.g. \"work\"</string>
     <string name="slash_ungroup">Take this tab out of its group</string>
     <string name="slash_close_group">Close every tab in this group</string>

@@ -30,6 +30,8 @@ enum class BlancSecureDns(val id: String) {
     CUSTOM("custom");
 }
 
+enum class BlancTabSleepDelay(val id: String) { OFF("off"), M30("30m"), H1("1h"), H6("6h") }
+
 enum class BlancAppIcon(val id: String, val label: String, val isSupporterOnly: Boolean) {
     PAPER("paper", "Paper", false),
     INK("ink", "Ink", false),
@@ -55,5 +57,6 @@ object BlancSettingsDefaults {
     const val secureDnsTemplate = ""
     val appIcon = BlancAppIcon.PAPER
     const val usagePing = true
+    val tabSleep = BlancTabSleepDelay.H1
     // adblockExceptions defaults to emptyList(); supporter defaults to null (structural).
 }

@@ -4,7 +4,7 @@
 // only small PNG data URLs. Receiving chrome never contacts remote sites just
 // to render another device's tab list.
 
-const { nativeImage } = require('electron');
+const { nativeImage, session } = require('electron');
 const { JsonStore } = require('./store');
 const { validFavicon } = require('./bookmark-validate');
 const model = require('./tabicons-model');
@@ -420,7 +420,9 @@ async function captureTab(tab, ctx, { isCurrent = () => true } = {}) {
   const tabKey = tab.id ?? tab;
   const data = await cachedRaster(
     source,
-    tab.view?.webContents?.session,
+    // Quiet/restored tabs have no view. Private tabs are excluded above, so
+    // the default browsing session is the correct fallback for icon capture.
+    tab.view?.webContents?.session ?? session?.defaultSession,
     tabKey,
     captureIsCurrent
   );

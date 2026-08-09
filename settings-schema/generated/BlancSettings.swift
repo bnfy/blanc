@@ -38,6 +38,8 @@ public enum BlancSecureDns: String, CaseIterable {
     case custom
 }
 
+public enum BlancTabSleepDelay: String, CaseIterable { case off, m30 = "30m", h1 = "1h", h6 = "6h" }
+
 public enum BlancAppIcon: String, CaseIterable {
     case paper
     case ink
@@ -84,5 +86,6 @@ public struct BlancSettingsDefaults {
     public static let secureDnsTemplate: String = ""
     public static let appIcon: BlancAppIcon = .paper
     public static let usagePing: Bool = true
+    public static let tabSleep: BlancTabSleepDelay = .h1
     // adblockExceptions defaults to []; supporter defaults to nil (structural).
 }

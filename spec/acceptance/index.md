@@ -9,7 +9,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 > Desktop is the shipped reference, so its `@all` cells are ✅ (behaviour verified
 > in the shipping app; automated step-defs are a separate track). iOS/Android are
-> greenfield → ⬜. The grid below tracks stable scenario IDs across 15 `.feature`
+> greenfield → ⬜. The grid below tracks stable scenario IDs across 16 `.feature`
 > files.
 
 ## Files
@@ -31,6 +31,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Tab sync | `sync.feature` | F27 |
 | Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 | Browser migration | `browser-migration.feature` | F30 (D22) |
+| Quiet Tabs | `quiet-tabs.feature` | F31 (D8, D23) |
 
 ## Grid
 
@@ -122,6 +123,16 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F30-1 | Direct profile import preserves supported Favorites and folders | D22 | ✅ | ⬜ | ⬜ |
 | F30-2 | Repeated browser import is idempotent | D22 | ✅ | ⬜ | ⬜ |
 | F30-3 | Fresh first run offers Favorites migration | D22 | ✅ | ⬜ | ⬜ |
+| F31-1 | Quiet then wake preserves identity, history, oversized-state fallback, and redirect safety | D8 | ✅ | ⬜ | ⬜ |
+| F31-2 | The active tab is never quieted | D8 | ✅ | ⬜ | ⬜ |
+| F31-3 | Protected background tabs stay awake and beforeunload remains functional | D8 | ✅ | ⬜ | ⬜ |
+| F31-4 | The sleep command quiets eligible rows without closing the panel | D23 | ✅ | ➖ | ⬜ |
+| F31-5 | Quiet is visible and included in accessible names | D8 | ✅ | ⬜ | ⬜ |
+| F31-6 | Every delay value persists and Off leaves quiet tabs quiet | D23 | ✅ | ➖ | ⬜ |
+| F31-7 | Lazy-restored tabs are viewless until the selected tab wakes | D8 | ✅ | ⬜ | ⬜ |
+| F31-8 | A private tab wakes inside the private session | D8 | ✅ | ⬜ | ⬜ |
+| F31-9 | Page state never escapes snapshots into persistence, sync, or renderer IPC | D8 | ✅ | ⬜ | ⬜ |
+| F31-10 | Quieting a tab releases a real renderer process, and waking brings one back | D8 | ✅ | ⬜ | ⬜ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -129,10 +140,10 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24`, `F27–F28`, and `F30` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24`, `F27–F28`, `F30`, and `F31` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
-- The suite explicitly tags D1–D10, D12, D16, and D19. D11 is exercised
+- The suite explicitly tags D1–D10, D12, D16, D19, and D23. D11 is exercised
   implicitly wherever Island scenarios run against platform windowing; D13/D14
   are covered within the F12 contract (F12-1's shield assertion is relaxed on
   iOS per D13 — see

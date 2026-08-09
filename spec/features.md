@@ -48,9 +48,11 @@ toolbar (Bowser Design System "Island Chrome").
   group.
 - `window.open` / context-menu children **inherit the opener's group** (F3) and
   privacy (F4).
-- Switching tabs never destroys inactive tabs' state on desktop; on mobile,
-  inactive web views may be evicted and restored (D8) — but from the user's view a
-  tab's identity, title, and scroll position persist.
+- Switching tabs never loses an inactive tab's identity. On every platform an
+  inactive tab may have its renderer discarded to reclaim memory — on desktop
+  deliberately, after an idle delay the person controls (F31); on mobile because
+  the OS evicts it (D8) — and it returns with its identity, title, address, and
+  back-history intact.
 - **Acceptance:** Open a tab, close it, reopen-closed → same URL returns. Duplicate
   a tab → a second tab with the same URL. Pin a tab → it is marked pinned and
   ordered ahead of unpinned tabs in its current group. An ungrouped pin uses the
@@ -322,6 +324,10 @@ From the desktop `DEFAULTS`:
 - The desktop shape is `session.json` (`urls` + parallel `groupIds` + `groups`);
   mobile uses its platform store but preserves the same **logical** shape and
   restore behaviour (D8 for eviction/restore of live web views).
+- The desktop file carries an optional **`meta`** array parallel to `urls`
+  (`{title, favicon}` per tab) so a restored tab is scannable before it is ever
+  loaded. It is written only into `windows[0]`, never into the flat mirror, and
+  it is cleared whenever browsing history is cleared.
 - **Acceptance:** With 2 groups and a private tab open, relaunch restores both
   groups and their tabs and does **not** restore the private tab.
 
@@ -536,3 +542,41 @@ From the desktop `DEFAULTS`:
   unsupported internal URLs, and existing Favorites. Blanc copies only the
   supported web Favorites, keeps their immediate folders, and a second import
   creates no duplicates.
+
+## F31 — Quiet Tabs
+
+- A tab nobody has looked at for a while may have its **renderer discarded** to
+  give its memory back; the tab itself stays in the session, in the pill, in the
+  rail, and in the switcher. Coming back to it rebuilds the page.
+- The delay is a setting — **Quiet inactive tabs**: off / 30m / 1h / 6h,
+  default 1h — plus a manual `/sleep` command that quiets every eligible
+  background tab now. The command skips only the waiting; every safety exclusion
+  below still applies, and it works while the setting is off. Turning the setting
+  off stops *future* quieting: it never wakes an already-quiet tab and never
+  discards its recovery data.
+- **Never quieted:** the active tab; a tab playing, having played, or muted
+  media; a pinned tab; a tab with unsaved input anywhere in its frame tree, or
+  whose page objects to unloading; a tab whose last page came from a form
+  submission or an error; a tab with a pending permission prompt; a tab in an
+  opener/child family, including a popup window that is not a tab; a
+  deep-scrolled page.
+- **What coming back promises:** identity, title, address, and back-history
+  return, and the page is **reloaded** — not resumed. Scroll and typed values
+  return on ordinary static documents and are explicitly not promised on
+  virtualized feeds (D23). A private tab comes back **where** it was, not **how**
+  it was: private tabs retain no page state.
+- **The state is visible, and it is called "quiet"** everywhere a person or a
+  screen reader can meet it — a smaller pill dot (never the private treatment), a
+  `quiet` tag on the panel row and in its accessible name, a rail marker with a
+  dimmed favicon, and `· quiet` in the Quick Switcher. It is deliberately
+  unmarked in the native window menu and on the start page.
+- Restored sessions come back quiet: after a relaunch only the active tab loads
+  (F18).
+- The *behaviour* is D8; *who decides when* is D23.
+- **Acceptance:** the scenarios in
+  [`acceptance/quiet-tabs.feature`](./acceptance/quiet-tabs.feature) verify
+  sleep/wake identity, the active tab never quieting, the exclusion outline,
+  `/sleep` with the panel open, the quiet affordance and its accessible name, the
+  settings outline including off, lazy restore, private sleep→wake isolation, no
+  page state in `session.json` / the sync snapshot / `tabs:updated`, and a real
+  drop in renderer-process count.

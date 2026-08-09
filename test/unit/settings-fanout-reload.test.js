@@ -5,24 +5,29 @@ const path = require('node:path');
 const test = require('node:test');
 const vm = require('node:vm');
 
-// reloadTabAfterSettingsFanout lives in main.js, which cannot be required in a
-// unit test. Same approach as web-app-region.test.js: lift the function's real
-// source and run it in a sandbox with a controllable setImmediate, so these
-// assert the shipped code rather than a copy of it.
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 const fnSource = mainSource.match(
   /function reloadTabAfterSettingsFanout\(tab\) \{[\s\S]*?\n\}/
 )?.[0];
+const viewSource = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
+const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => \{[\s\S]*?\n\};/)?.[0];
 
 test('the deferred-reload helper is still present in main.js', () => {
   assert.ok(fnSource, 'reloadTabAfterSettingsFanout not found — update this test with it');
+});
+
+test('liveContents is still liftable from tab-view.js', () => {
+  assert.ok(liveContentsSource, 'liveContents not found in tab-view.js — update this test with it');
 });
 
 /** Run the real function; returns a `flush()` that fires the deferred turn. */
 function load() {
   let deferred = null;
   const sandbox = { setImmediate: (fn) => { deferred = fn; } };
-  vm.runInNewContext(`${fnSource}\nthis.__fn = reloadTabAfterSettingsFanout;`, sandbox);
+  vm.runInNewContext(
+    `${liveContentsSource}\n${fnSource}\nthis.__fn = reloadTabAfterSettingsFanout;`,
+    sandbox
+  );
   return {
     call: (tab) => sandbox.__fn(tab),
     flush: () => { const fn = deferred; deferred = null; fn?.(); },
@@ -74,4 +79,14 @@ test('a missing tab or view schedules nothing at all', () => {
     h.call(tab);
     assert.equal(h.scheduled(), false, JSON.stringify(tab));
   }
+});
+
+test('a tab with no view at all never schedules a reload', () => {
+  const h = load();
+  h.call({ view: null });
+  assert.equal(h.scheduled(), false, 'a viewless tab must not even schedule the deferred turn');
+  h.call({});
+  assert.equal(h.scheduled(), false);
+  h.call(null);
+  assert.equal(h.scheduled(), false);
 });

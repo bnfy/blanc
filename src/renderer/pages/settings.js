@@ -49,6 +49,16 @@
     document.getElementById('tabLayoutSetting')?.remove();
   }
 
+  // --- Quiet Tabs idle delay (device-local memory policy) ---
+  if (supports('tabSleep')) {
+    const tabSleep = document.getElementById('tabSleep');
+    tabSleep.value = settings.tabSleep ?? '1h';
+    tabSleep.addEventListener('change', () =>
+      window.bowserPages.settings.set({ tabSleep: tabSleep.value }));
+  } else {
+    document.getElementById('tabSleepSetting')?.remove();
+  }
+
   // --- Home page ---
   if (supports('homePage')) {
     const homePage = document.getElementById('homePage');
