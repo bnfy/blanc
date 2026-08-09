@@ -137,3 +137,31 @@ test('no chrome surface ever says "asleep" to a user or a screen reader', () => 
     );
   }
 });
+
+// ---------------------------------------------------------------------------
+// Rail row (vertical-tabs.js tabRow)
+// ---------------------------------------------------------------------------
+
+const railRowSource = railSource.match(
+  /function tabRow\(tab, bucketTabs, activeTabId\) \{[\s\S]*?\n  \}/
+)?.[0];
+
+test('the rail tabRow could be lifted from source', () => {
+  assert.ok(railRowSource, 'tabRow not found in vertical-tabs.js — update this test with it');
+});
+
+test('a quiet rail row is classed, named, and marked — and dims the favicon, not the title', () => {
+  assert.match(railRowSource, /\(tab\.asleep \? ' quiet' : ''\)/);
+  // The field is `asleep`; the string in the accessible name is 'quiet'.
+  assert.match(railRowSource, /tab\.asleep && 'quiet'/);
+  assert.match(
+    railRowSource,
+    /makeMarker\('vertical-tab-state vertical-tab-quiet', ICONS\.quiet, 'Quiet'\)/
+  );
+  assert.match(railSource, /quiet: '<svg viewBox="0 0 16 16" aria-hidden="true">/);
+
+  assert.match(styles, /\.vertical-tab-row\.quiet \.vertical-tab-favicon\s*\{[^}]*opacity: \.45;/s);
+  // Not the title: .vertical-tab-row.loading already dims it, and the title
+  // span is aria-hidden — the favicon is the primary scan target.
+  assert.doesNotMatch(styles, /\.vertical-tab-row\.quiet \.vertical-tab-title\s*\{/);
+});

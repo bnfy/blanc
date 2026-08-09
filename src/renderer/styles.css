@@ -561,6 +561,18 @@ body.mac .vertical-tabs-toolbar {
   opacity: 0.75;
 }
 
+/* A quiet row dims its FAVICON, not its title: .vertical-tab-row.loading
+   already dims the title, and the title span is aria-hidden — the favicon is
+   the primary scan target down the rail. The marker below carries the state
+   for anyone who cannot see the dim. */
+.vertical-tab-row.quiet .vertical-tab-favicon {
+  opacity: .45;
+}
+
+.vertical-tab-quiet {
+  color: var(--text-dim);
+}
+
 .vertical-tab-close {
   width: 26px;
   height: 26px;
