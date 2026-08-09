@@ -2430,10 +2430,14 @@ function cycleCluster(direction) {
 /** Focus an existing tab already on this internal page, or open one. */
 function openInternalPage(url) {
   if (isUtilityUrl(url)) return showUtilityPage(url);
-  const existing = rt().tabOrder.find((id) => tabs.get(id)?.url.startsWith(url));
-  if (existing) {
+  const existing = rt().tabOrder.find((id) => tabs.get(id)?.url?.startsWith(url));
+  const tab = existing ? tabs.get(existing) : null;
+  if (tab) {
     setActiveTab(existing);
-    tabs.get(existing).view.webContents.reload(); // pick up fresh data
+    // Hold the tab from the lookup rather than fetching it again. Re-fetching
+    // was safe only because setActiveTab happens not to mutate `tabs` — the
+    // same unstated assumption that crashed the menu rebuild.
+    tab.view.webContents.reload(); // pick up fresh data
   } else {
     setActiveTab(createTab(url));
   }
