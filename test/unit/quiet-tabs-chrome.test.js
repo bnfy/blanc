@@ -9,6 +9,7 @@ const vm = require('node:vm');
 const ROOT = path.join(__dirname, '../..');
 const rendererSource = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');
 const railSource = fs.readFileSync(path.join(ROOT, 'src/renderer/vertical-tabs.js'), 'utf8');
+const styles = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
 
 // Both renderers skip rebuilding their DOM when this hand-written signature is
 // unchanged. Lifting the shipping functions proves `asleep` actually crosses
@@ -53,4 +54,22 @@ test('the rail gate reacts to a tab going quiet', () => {
   const awake = runRailSignature(payload);
   const quiet = runRailSignature({ ...payload, tabs: [{ ...BACKGROUND_TAB, asleep: true }] });
   assert.notEqual(awake, quiet, 'railSignature must list asleep, or the rail row never redraws');
+});
+
+test('a quiet pill dot shrinks to a core, borrowing neither opacity nor the private treatment', () => {
+  assert.match(styles, /\.island-dot\.asleep:not\(\.private\)\s*\{[^}]*background: transparent;/s);
+  assert.match(styles, /\.island-dot\.asleep:not\(\.private\)::after\s*\{[^}]*inset: 1\.25px;/s);
+  assert.match(styles, /\.island-dot\.asleep:not\(\.private\)::after\s*\{[^}]*background: var\(--border\);/s);
+  // ::before is the invisible hit halo; the quiet core must not take it.
+  assert.doesNotMatch(styles, /\.island-dot\.asleep[^{]*::before/);
+  assert.doesNotMatch(styles, /\.island-dot\.asleep[^{]*\{[^}]*opacity/s);
+  assert.doesNotMatch(styles, /--sleep-dim/);
+});
+
+test('the pill dot marks quiet in its class and in its accessible name', () => {
+  assert.match(rendererSource, /\(t\.asleep \? ' asleep' : ''\)/);
+  assert.match(
+    rendererSource,
+    /aria-label',\s*`Switch to \$\{t\.title \|\| 'New Tab'\}\$\{t\.asleep \? ', quiet' : ''\}`/
+  );
 });

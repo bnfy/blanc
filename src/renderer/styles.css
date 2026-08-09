@@ -850,6 +850,19 @@ body.mac .vertical-tabs-toolbar {
 }
 .island-dot.active { background: var(--accent); }
 .island-dot.loading { animation: island-pulse 0.9s ease-in-out infinite; }
+/* Quiet is size, never opacity: loading already owns the opacity animation,
+   and private dots are already hollow. The core remains inside the same slot,
+   so the dot gap never reflows. ::before is the hit halo, thus ::after. */
+.island-dot.asleep:not(.private) {
+  background: transparent;
+}
+.island-dot.asleep:not(.private)::after {
+  content: '';
+  position: absolute;
+  inset: 1.25px;
+  border-radius: inherit;
+  background: var(--border);
+}
 /* Private tab dots are hollow. */
 .island-dot.private {
   background: transparent;
