@@ -30,7 +30,6 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
-const { attachContextMenu } = require('./context-menu');
 const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
@@ -42,9 +41,10 @@ const { persistableEntries } = require('./session-snapshot');
 const { loadWorkspace, buildSaveShape } = require('./session-workspace');
 const { filterRestoredSession } = require('./session-restore');
 const { isUtilityUrl } = require('./utility-pages');
-const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
 const {
   createTabView,
+  wireTabView,
+  initTabView,
   liveContents,
   TAB_WEB_PREFERENCES,
   getPrivateBrowsingSession,
@@ -1787,6 +1787,48 @@ async function initSpikePackaging() {
 }
 // ─── end SPIKE ────────────────────────────────────────────────────────────
 
+// --- Quiet Tabs hooks (phase 2 fills these in) --------------------------
+// The tab-view dependency contract is fixed now, so later phases can extend
+// these hooks without changing the construction/wiring seam again.
+function onMainFrameCommit(_tab, _details) {}
+function noteWakeSuppressed(_tab) { return false; }
+function notePopupChild(_openerTabId, _childWindow) {}
+
+// tab-view.js owns every per-tab WebContentsView listener and setup call.
+// Function declarations below are hoisted; every const this reads is already
+// initialized before this module-scope call.
+initTabView({
+  tabs,
+  windowRuntimes,
+  bindWindowRuntime,
+  tabIdByWebContentsId,
+  broadcastTabs,
+  scheduleBroadcastTabs,
+  scheduleSampleTint,
+  scheduleMenuRebuild,
+  createTab,
+  setActiveTab,
+  closeTab,
+  openInternalPage,
+  currentChromeLayout,
+  hideOverlay,
+  hasLiveWindow,
+  reclaimAddressBarFocus,
+  shouldReclaimAddressBarFocus,
+  installChromeShortcuts,
+  watchCursorFor,
+  isUtilityUrl,
+  handOffToOs,
+  upgradeFavicon,
+  isStartupGateActive: () => startupNavigationGateActive,
+  startupQueuedNavigations,
+  onMainFrameCommit,
+  noteWakeSuppressed,
+  notePopupChild,
+  onePasswordSpikeEnabled: ONE_PASSWORD_SPIKE_ENABLED,
+  fillActiveTabFrom1Password,
+});
+
 function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null } = {}) {
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
@@ -1852,344 +1894,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   const wc = view.webContents;
   tabIdByWebContentsId.set(wc.id, id);
-  installChromeShortcuts(wc);
-  // Every listener registered on this tab's webContents below binds to the
-  // tab's owning runtime — resolved right here, at attach time, rather than
-  // via a runtimeForTab lookup per-event. In M1 there's exactly one runtime
-  // so owner === primaryRuntime always; the shape is what M2 (multiple
-  // runtimes) inherits without changes to this function.
-  const boundToTab = (fn) => bindWindowRuntime(owner, fn);
-  // The page covers everything below the strip, so this is where the cursor is
-  // nearly always found. Bounds move with vertical tabs, so read them per event.
-  watchCursorFor(wc, () => currentChromeLayout().pageBounds, boundToTab);
-  // SPIKE (1Password fill feasibility) — ⌥⌘P on the tab's OWN webContents
-  // (the overlay before-input-event listener never sees page-focused keys).
-  if (ONE_PASSWORD_SPIKE_ENABLED) {
-    wc.on('before-input-event', boundToTab((event, input) => {
-      if (input.type !== 'keyDown' || input.isAutoRepeat) return;
-      if (input.code !== 'KeyP') return; // physical key — ⌥ mutates input.key on macOS
-      if (!(input.meta && input.alt && !input.control && !input.shift)) return; // one modifier off ⌘P Print
-      // Consume the chord BEFORE the single-flight check — a recognized second
-      // press must not fall through to the page, it just doesn't start a fill.
-      event.preventDefault();
-      if (rt().onePasswordFillInFlight) return; // single-flight
-      rt().onePasswordFillInFlight = true;
-      fillActiveTabFrom1Password()
-        .catch((err) => console.warn('[1p-spike] fill error:', err?.message))
-        .finally(() => { rt().onePasswordFillInFlight = false; });
-    }));
-  }
-  // WebRTC IP-handling policy applies per-webContents; this is the single choke
-  // point every tab (fresh or adopted window.open child) passes through.
-  wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
-  if (muted) wc.setAudioMuted(true); // keep the actual audio state in sync with tab.muted
-  const syncNavState = () => {
-    tab.canGoBack = wc.navigationHistory.canGoBack();
-    tab.canGoForward = wc.navigationHistory.canGoForward();
-    tab.url = wc.getURL();
-    tab.bookmarked = bookmarks.isBookmarked(tab.url);
-  };
-
-  wc.on('audio-state-changed', boundToTab(() => {
-    // Coalesced like did-change-theme-color: audio transitions aren't urgent,
-    // and a media that flips audible/silent needn't rebuild the session synchronously.
-    tab.audible = wc.isCurrentlyAudible();
-    scheduleBroadcastTabs();
-  }));
-
-  wc.on('page-title-updated', boundToTab((_e, title) => {
-    tab.title = title;
-    if (tab.historyEligible) history.updateTitle(tab.url, title);
-    broadcastTabs();
-  }));
-  wc.on('page-favicon-updated', boundToTab((_e, favicons) => {
-    tab.favicon = favicons[0] ?? null; // immediate, possibly low-res
-    if (tab.bookmarked) bookmarks.updateFavicon(tab.url, tab.favicon);
-    broadcastTabs();
-    sync.captureTabIcon(tab).catch(() => {});
-    upgradeFavicon(tab); // async refinement to the sharpest declared icon
-  }));
-  wc.on('did-start-loading', boundToTab(() => { tab.isLoading = true; broadcastTabs(); }));
-  wc.on('did-stop-loading', boundToTab(() => {
-    tab.isLoading = false;
-    syncNavState();
-    broadcastTabs();
-    scheduleSampleTint(tab);
-    // Same-origin navigations can retain their favicon without firing
-    // page-favicon-updated; associate the already-known icon with the new URL.
-    sync.captureTabIcon(tab).catch(() => {});
-  }));
-  wc.on('did-change-theme-color', boundToTab((_e, color) => {
-    // Chromium reports '#rrggbb' or null; validated because it feeds chrome CSS.
-    tab.themeColor = typeof color === 'string' && /^#[0-9a-fA-F]{6}$/.test(color) ? color : null;
-    scheduleBroadcastTabs();
-  }));
-  wc.on('did-navigate', boundToTab((_e, url, httpResponseCode) => {
-    tab.navEpoch++; // SPIKE (1Password fill feasibility)
-    const shouldReclaimChromeFocus = url === tab.url && rt().tabsWantingAddressBarFocus.has(id) && rt().activeTabId === id;
-    if (url !== tab.url) rt().tabsWantingAddressBarFocus.delete(id);
-    tab.blockedCount = 0;
-    tab.pageBg = null; // a new page's tint mustn't linger from the old one
-    tab.themeColor = null;
-    // Only clear on a genuine CROSS-ORIGIN navigation. Chromium doesn't
-    // re-fire page-favicon-updated for a same-origin navigation whose favicon
-    // is unchanged/already cached (e.g. apple.com/ -> apple.com/mac/), and a
-    // favicon.ico-only site has no <link> for upgradeFavicon to restore from —
-    // so blanking on same-origin (or on an identical-URL soft reload, as
-    // cnn.com fires) would leave a correct favicon permanently cleared. See
-    // favicon-policy.js + test/unit/favicon-policy.test.js.
-    if (shouldClearFaviconOnNavigate(tab.url, url)) tab.favicon = null;
-    syncNavState();
-    // Error responses stay out of history — a dead one-shot OAuth URL
-    // recorded here resurfaces in the Quick Switcher as a destination.
-    tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
-    if (tab.historyEligible) history.addVisit(url, wc.getTitle());
-    broadcastTabs();
-    // did-navigate fires once per real top-level navigation (redirect
-    // chains fire it per hop, but that's a bounded burst the debounce
-    // already coalesces) — not the sustained-frequency case Task 1 exists
-    // to avoid. The menu's Favorites label/dynamic list depend on
-    // tab.url/.bookmarked, which this event just changed via syncNavState.
-    scheduleMenuRebuild();
-    if (shouldReclaimChromeFocus) reclaimAddressBarFocus(id);
-  }));
-  wc.on('did-navigate-in-page', boundToTab((_e, url, isMainFrame) => {
-    if (isMainFrame) tab.navEpoch++; // SPIKE (1Password fill feasibility) — main frame only
-    syncNavState();
-    if (isMainFrame && tab.historyEligible) history.addVisit(url, wc.getTitle());
-    broadcastTabs();
-    if (isMainFrame) sync.captureTabIcon(tab).catch(() => {});
-    // Deliberately no scheduleMenuRebuild() here — unlike did-navigate,
-    // this fires on every hash change/pushState and can be sustained and
-    // frequent on SPA-heavy sites (exactly the rebuild-storm case Task 1
-    // avoids). The menu may lag slightly behind in-page route changes;
-    // it catches up on the next real navigation or tab-lifecycle event.
-  }));
-  // SPIKE (1Password fill feasibility) — a main-frame navigation that STARTS
-  // after the orchestrator's main-side URL check would still let
-  // executeJavaScript run in the replacement document; bump the epoch so the
-  // pre-injection re-check aborts. Removed with the rest of the spike.
-  wc.on('did-start-navigation', boundToTab((_e, url, _isInPlace, isMainFrame) => {
-    if (isMainFrame) tab.navEpoch++;
-    // The shield popover describes one site's protection. Same-site
-    // navigations — including the reload its own toggle triggers — keep it
-    // open, live-updating; leaving the site (or losing the host) closes it.
-    if (
-      isMainFrame
-      && rt().overlayMode === 'shield'
-      && id === rt().activeTabId
-      && blockableHostname(url) !== rt().shieldPopoverHost
-    ) {
-      hideOverlay({ refocusContent: false });
-    }
-  }));
-  wc.once('did-finish-load', boundToTab(() => {
-    if (shouldReclaimAddressBarFocus(id)) {
-      reclaimAddressBarFocus(id, { consume: true });
-    }
-  }));
-
-  wc.on('focus', boundToTab(() => {
-    if (shouldReclaimAddressBarFocus(id)) {
-      reclaimAddressBarFocus(id, { consume: true });
-    }
-  }));
-
-  // Web content must never navigate a tab into the privileged blanc://
-  // scheme (Chrome blocks web → chrome:// identically). Main-initiated
-  // loads (address bar, commands, error pages) go through loadURL, which
-  // doesn't fire will-navigate, so only page-initiated hops are caught.
-  wc.on('will-navigate', boundToTab((event, targetUrl) => {
-    // Utility pages never load in a tab — the newtab ledger links to
-    // blanc://bookmarks/ and blanc:→blanc: hops are otherwise legal. Only
-    // an INTERNAL page may summon the sheet: for web content this is a
-    // plain denial, same as any other web → blanc:// attempt below —
-    // otherwise any page could pop (and focus-steal via) privileged chrome
-    // with location.href = "blanc://settings/".
-    if (isUtilityUrl(targetUrl)) {
-      event.preventDefault();
-      if (wc.getURL().startsWith('blanc://')) openInternalPage(targetUrl);
-      return;
-    }
-    if (/^blanc:/i.test(targetUrl) && !wc.getURL().startsWith('blanc://')) {
-      event.preventDefault();
-    }
-    if (handOffToOs(targetUrl)) event.preventDefault();
-  }));
-
-  // Show a real error page instead of leaving a blank/stale view.
-  // errorCode -3 (ERR_ABORTED) fires for cancelled loads (stop button,
-  // rapid re-navigation) and must not be treated as a failure.
-  wc.on('did-fail-load', boundToTab((_e, errorCode, errorDescription, validatedURL, isMainFrame) => {
-    if (!isMainFrame || errorCode === -3 || !validatedURL) return;
-    // The temporary startup gate deliberately cancels HTTP(S) main-frame
-    // loads until blocking is attached (or the user explicitly continues
-    // without it). Keep the tab blank and replay its queued URL afterward
-    // instead of replacing it with a misleading network error page.
-    if (
-      startupNavigationGateActive &&
-      startupQueuedNavigations.has(wc.id) &&
-      /^https?:/i.test(validatedURL)
-    ) {
-      return;
-    }
-    const q = new URLSearchParams({ url: validatedURL, code: String(errorCode), desc: errorDescription });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
-  }));
-
-  // Adopted window.open children are script-closable — window.close() by
-  // the page, child.close() by the opener — the only tabs whose
-  // webContents can die outside closeTab. Route destruction through
-  // closeTab so the strip, groups, and active-tab selection stay
-  // consistent (re-entry is safe: closeTab removes the map entry before
-  // calling wc.close(), so this fires on an id that's already gone).
-  wc.once('destroyed', boundToTab(() => closeTab(id)));
-
-  // A tab whose renderer dies (OOM, GPU fault, kill -9) otherwise sits
-  // blank forever; loadURL spawns a fresh renderer, so route it to the
-  // error page with the original URL for one-click retry.
-  wc.on('render-process-gone', boundToTab((_e, details) => {
-    if (details.reason === 'clean-exit') return;
-    const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
-    wc.loadURL(`blanc://error/?${q}`).catch(() => {});
-  }));
-
-  // A page's beforeunload can block close/navigation; surface Chrome's
-  // Leave/Stay choice instead of silently refusing.
-  wc.on('will-prevent-unload', boundToTab((event) => {
-    const choice = dialog.showMessageBoxSync(hasLiveWindow() ? rt().window : undefined, {
-      type: 'question',
-      buttons: ['Leave', 'Stay'],
-      defaultId: 0,
-      cancelId: 1,
-      message: 'Leave this page?',
-      detail: 'Changes you made may not be saved.',
-    });
-    if (choice === 0) event.preventDefault(); // preventing the prevention lets the unload proceed
-  }));
-
-  wc.on('found-in-page', boundToTab((_e, result) => {
-    if (id === rt().activeTabId) {
-      rt().overlayView?.webContents.send('chrome:find-result', { activeMatchOrdinal: result.activeMatchOrdinal, matches: result.matches });
-    }
-  }));
-
-  // Open target="_blank"/featureless window.open as managed tabs, but let
-  // window.open with explicit features ('new-window': OAuth/SSO popups,
-  // payment flows) become a REAL child window. Both paths MUST preserve
-  // window.opener: sign-in flows deliver their result back to the opening
-  // page via postMessage, and an opener-less child breaks them (observed:
-  // GitHub's "Sign in with Google" looping until accounts.google.com 400'd
-  // on corrupted state; later, Google auth flows opened as target=_blank
-  // dead-ending at accounts.google.com/gis_transform with a 400). So tabs
-  // are ADOPTED via createWindow — Chromium constructs the child wired to
-  // its opener, and createTab takes the view in as a normal managed tab —
-  // never re-created from just the URL. outlivesOpener on both paths:
-  // Electron's default destroys children with their opener, but closing a
-  // tab must not tear down the tabs (or popups) it spawned — Chrome never
-  // does. Electron only inherits the security subset of webPreferences
-  // into window.open children, so plugins (inline PDFs) is re-asserted via
-  // override — but ONLY plugins: overriding preload forces the child out
-  // of its opener's context and severs window.opener, defeating the whole
-  // adoption. Adopted tabs therefore lack tab-preload; that bridge only
-  // matters on blanc:// pages, and the guards below keep web content
-  // from opening or navigating into blanc:// at all.
-  // Cmd/Ctrl+click arrives as 'background-tab' — open it without stealing
-  // focus (browser convention). Children of a private tab stay private —
-  // a popup must not silently start recording history again. Applied
-  // recursively via did-create-window so a popup's own window.open
-  // children (a "Terms" link inside an OAuth popup) land back in managed
-  // tabs instead of falling through to bare Electron windows.
-  const applyWindowOpenPolicy = (targetWc) => {
-    targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition }) => {
-      // Utility pages never become tabs — and an adopted child must never
-      // reach createTab's guard: by createWindow time the guest webContents
-      // already exists, and a null return would leave it half-built and
-      // unmanaged. Deny the child outright, and route to the sheet ONLY
-      // for an internal opener — web content asking for a blanc:// child
-      // gets the same silent denial it always did, never a focused sheet.
-      if (isUtilityUrl(targetUrl)) {
-        if (targetWc.getURL().startsWith('blanc://')) openInternalPage(targetUrl);
-        return { action: 'deny' };
-      }
-      // Web content must not mint privileged internal pages (Chrome blocks
-      // web → chrome:// the same way). Only blanc:// pages themselves may
-      // open blanc:// children.
-      if (/^blanc:/i.test(targetUrl) && !targetWc.getURL().startsWith('blanc://')) {
-        return { action: 'deny' };
-      }
-      // target="_blank" mailto:/tel: links otherwise spawn a dead child
-      // tab — hand them to the OS like the will-navigate path does.
-      if (handOffToOs(targetUrl)) return { action: 'deny' };
-      if (disposition === 'new-window') {
-        return {
-          action: 'allow',
-          outlivesOpener: true,
-          overrideBrowserWindowOptions: {
-            autoHideMenuBar: true,
-            webPreferences: {
-              contextIsolation: true,
-              nodeIntegration: false,
-              sandbox: true,
-            },
-          },
-        };
-      }
-      // Children stay in their opener's group, like Chrome's tab groups.
-      return {
-        action: 'allow',
-        outlivesOpener: true,
-        overrideBrowserWindowOptions: { webPreferences: { plugins: true } },
-        createWindow: boundToTab((options) => {
-          // options.webContents is the guest Chromium already created,
-          // wired to its opener. The view must WRAP it — constructing a
-          // fresh webContents here throws "Invalid webContents. Created
-          // window should be connected to webContents passed with options".
-          const view = new WebContentsView({ webContents: options.webContents });
-          const newId = createTab(targetUrl, { private: tab.private, groupId: tab.groupId, view });
-          // Activation is deferred: createWindow runs mid-window-open,
-          // before Chromium has finished wiring the guest, and attaching
-          // the view to the window at that point silently fails to take.
-          if (disposition !== 'background-tab') setImmediate(() => setActiveTab(newId));
-          return view.webContents;
-        }),
-      };
-    }));
-    targetWc.on('did-create-window', boundToTab((childWindow) => {
-      // Adopted children run their own createTab wiring; only real popup
-      // windows need the policy grafted on.
-      const isManagedTab = [...tabs.values()].some(
-        (t) => t.view.webContents.id === childWindow.webContents.id
-      );
-      if (!isManagedTab) {
-        applyWindowOpenPolicy(childWindow.webContents);
-        // A real popup child: owned by the opener's runtime for permission
-        // prompting ONLY. Deliberately NOT a chrome surface — it is untrusted
-        // web content and must never resolve for chrome IPC.
-        const childWc = childWindow.webContents;
-        const childWcId = childWc.id;
-        windowRuntimes.registerAuxiliaryContent(rt(), childWcId);
-        childWc.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
-          windowRuntimes.unregisterAuxiliaryContent(childWcId);
-        }));
-      }
-    }));
-  };
-  applyWindowOpenPolicy(wc);
-
-  attachContextMenu(wc, {
-    // "Open Link in New Tab"/"Open Link" on a mailto:/tel: link otherwise
-    // creates a dead tab — createTab() has no chance to check, since it
-    // never sees the raw link URL as a page navigation.
-    openBackgroundTab: boundToTab((targetUrl) => {
-      if (handOffToOs(targetUrl)) return;
-      createTab(targetUrl, { private: tab.private, groupId: tab.groupId });
-    }),
-    openTab: boundToTab((targetUrl) => {
-      if (handOffToOs(targetUrl)) return;
-      setActiveTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }));
-    }),
-  });
+  wireTabView(tab, view, { owner, adopted });
 
   // Load failures surface via the did-fail-load handler above; the
   // rejected promise here is the same event and must not crash main.

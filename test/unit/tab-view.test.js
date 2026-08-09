@@ -14,6 +14,7 @@ const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'
 
 const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => \{[\s\S]*?\n\};/)?.[0];
 const createTabViewSource = viewSource.match(/function createTabView\(tab\) \{[\s\S]*?\n\}/)?.[0];
+const wireSource = viewSource.match(/function wireTabView\(tab, view, \{ owner, adopted \}\) \{[\s\S]*?\n\}/)?.[0];
 
 test('tab-view.js still exports the two functions these tests lift', () => {
   assert.ok(liveContentsSource, 'liveContents not found in tab-view.js — update this test with it');
@@ -92,5 +93,49 @@ test('the private-session ternary lives in tab-view.js and nowhere else', () => 
   assert.ok(
     !/webPreferences: isPrivate/.test(mainSource),
     'main.js still constructs a tab view inline — createTab must call createTabView'
+  );
+});
+
+test('wireTabView is still present in tab-view.js', () => {
+  assert.ok(wireSource, 'wireTabView not found in tab-view.js — update this test with it');
+});
+
+for (const required of [
+  'installChromeShortcuts',
+  'watchCursorFor',
+  'setWebRTCIPHandlingPolicy',
+  'setAudioMuted',
+  'applyWindowOpenPolicy',
+  'attachContextMenu',
+]) {
+  test(`wireTabView performs ${required}`, () => {
+    assert.ok(wireSource.includes(required), `${required} must live inside wireTabView`);
+  });
+}
+
+test('every listener wireTabView registers opens with the stale-webContents guard', () => {
+  const guard = 'if (tab.sleeping || tab.view?.webContents !== wc) return;';
+  const guards = wireSource.split(guard).length - 1;
+  assert.ok(guards >= 16, `expected the guard on every listener, found ${guards}`);
+});
+
+test('main.js no longer registers tab listeners inline', () => {
+  const createTab = mainSource.match(/function createTab\(url = newTabUrl\(\)[\s\S]*?\n\}/)?.[0];
+  assert.ok(createTab, 'createTab not found in main.js — update this test with it');
+  assert.ok(
+    /wireTabView\(tab, view, \{ owner, adopted \}\)/.test(createTab),
+    'createTab must delegate all webContents wiring to wireTabView'
+  );
+  assert.ok(
+    !/wc\.on\('did-navigate'/.test(createTab),
+    'createTab still registers listeners inline — they belong in wireTabView'
+  );
+});
+
+test('main.js initialises tab-view exactly once, at module scope', () => {
+  assert.equal(
+    (mainSource.match(/^initTabView\(\{/gm) || []).length,
+    1,
+    'initTabView must be called exactly once, unindented (module scope)'
   );
 });
