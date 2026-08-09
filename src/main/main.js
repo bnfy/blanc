@@ -39,7 +39,7 @@ const history = require('./history');
 const { JsonStore } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
 const { loadWorkspace, buildSaveShape } = require('./session-workspace');
-const { filterRestoredSession } = require('./session-restore');
+const { filterRestoredSession, restoreTargetId } = require('./session-restore');
 const { isUtilityUrl } = require('./utility-pages');
 const {
   sleepCandidates,
@@ -4137,17 +4137,23 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       });
     }
 
+    // Lazy restore: every saved tab comes back as a labelled record with no
+    // renderer. Only the selected tab is built, through setActiveTab's wake.
     const restoredIds = saved.urls.map((url, index) => createTab(url, {
       groupId: saved.groupIds?.[index] ?? null,
       pinned: !!saved.pinned?.[index],
+      asleep: true,
+      title: saved.meta?.[index]?.title ?? '',
+      favicon: saved.meta?.[index]?.favicon ?? null,
     }));
     pruneEmptyGroups();
-    if (restoredIds.length) {
-      const target = restoredIds[
-        Math.min(Math.max(0, saved.activeIndex), restoredIds.length - 1)
-      ];
-      if (tabs.has(startupTabId)) closeTab(startupTabId);
+    const target = restoreTargetId(restoredIds, saved.activeIndex);
+    if (target) {
+      // Activate first, then close the startup tab. Closing an active startup
+      // tab first would select (and wake) the first restored tab before the
+      // saved target, briefly creating two renderers.
       setActiveTab(target, { focusContent: true });
+      if (tabs.has(startupTabId)) closeTab(startupTabId);
     }
 
     sessionPersistenceSuspended = false;
