@@ -8,8 +8,15 @@ const HEARTBEAT_MS = 24 * 60 * 60 * 1000;
 const BUDGET_BYTES = 256 * 1024;
 const MAX_ICONS = 500;
 const MAX_URL = 2048;
-const MAX_ICON_DATA = 4096;
-const ICON_SIZE = 16;
+// Publish enough source pixels for the largest 16 CSS-pixel favicon slot on a
+// 2x display. Keep accepting the original 16x16 records so mixed-version
+// devices and already-synced caches continue to render during rollout.
+const LEGACY_ICON_SIZE = 16;
+const ICON_SIZE = 32;
+const ICON_SIZES = new Set([LEGACY_ICON_SIZE, ICON_SIZE]);
+// A high-entropy 32x32 RGBA PNG can exceed the old 4 KiB data-URL ceiling.
+// The independent 256 KiB account budget below still bounds aggregate data.
+const MAX_ICON_DATA = 8192;
 const MAX_SOURCE_BYTES = 256 * 1024;
 const MAX_SOURCE_DIMENSION = 1024;
 const MAX_SOURCE_PIXELS = 512 * 512;
@@ -41,8 +48,8 @@ function validIconData(data) {
     bytes.length < 24 ||
     !bytes.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE) ||
     bytes.subarray(12, 16).toString('ascii') !== 'IHDR' ||
-    bytes.readUInt32BE(16) !== ICON_SIZE ||
-    bytes.readUInt32BE(20) !== ICON_SIZE
+    bytes.readUInt32BE(16) !== bytes.readUInt32BE(20) ||
+    !ICON_SIZES.has(bytes.readUInt32BE(16))
   ) return null;
   return data;
 }
@@ -95,7 +102,8 @@ function sourcePngFromDataUrl(source) {
 // take the renderer-canvas path (icon-raster.js) instead of the native PNG
 // guard above. The model's job for these is only to confirm an image MIME type
 // and bound the payload; Chromium's own <img> decoder does the parsing, and the
-// canvas output is re-validated as a 16x16 PNG before it can be stored.
+// canvas output is re-validated as a supported square PNG before it can be
+// stored (32x32 for new captures, plus legacy 16x16 records on receive).
 const IMAGE_MEDIA_TYPE = /^image\/[a-z0-9][a-z0-9.+-]*$/;
 // A base64 image data URL can't exceed this many chars for MAX_SOURCE_BYTES of
 // bytes; percent-encoded inline SVG favicons stay well under it too.
@@ -360,6 +368,7 @@ module.exports = {
   MAX_ICONS,
   MAX_URL,
   MAX_ICON_DATA,
+  LEGACY_ICON_SIZE,
   ICON_SIZE,
   MAX_SOURCE_BYTES,
   MAX_SOURCE_DIMENSION,

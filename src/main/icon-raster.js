@@ -1,5 +1,6 @@
-// Rasterize arbitrary favicon bytes into a fixed 16x16 PNG using Chromium's own
-// image decoders. `nativeImage.createFromBuffer` only decodes PNG/JPEG, so ICO
+// Rasterize arbitrary favicon bytes into a fixed Retina-sized PNG using
+// Chromium's own image decoders. `nativeImage.createFromBuffer` only decodes
+// PNG/JPEG, so ICO
 // (BMP-framed), SVG, GIF, WEBP, and friends — the majority of real favicons —
 // cannot be rendered that way and never synced. This draws the bytes into a
 // canvas inside a locked-down, detached WebContentsView instead.
@@ -8,12 +9,12 @@
 // the SSRF/cookie/redirect guards in tabicons.js), never a live URL — so this
 // view makes no network requests of its own. An SVG loaded through `<img>`
 // additionally runs no scripts and fetches no external resources, keeping
-// untrusted vector sources inert. The output is re-validated as a bounded 16x16
-// PNG by the caller (`validIconData`) before it can enter the sidecar.
+// untrusted vector sources inert. The output is re-validated as a bounded
+// square PNG by the caller (`validIconData`) before it can enter the sidecar.
 
 const { WebContentsView } = require('electron');
+const { ICON_SIZE } = require('./tabicons-model');
 
-const ICON_SIZE = 16;
 const RASTER_TIMEOUT_MS = 3000;
 
 let view = null;
@@ -76,7 +77,7 @@ function drawInPage(dataUrl, size, timeoutMs) {
   });
 }
 
-/** Draw a bounded image `data:` URL down to a 16x16 PNG data URL, or null. */
+/** Draw a bounded image `data:` URL to the synced PNG size, or null. */
 async function rasterize(dataUrl, signal) {
   if (typeof dataUrl !== 'string' || signal?.aborted) return null;
   try {

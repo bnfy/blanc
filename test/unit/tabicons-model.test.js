@@ -7,16 +7,26 @@ const NOW = 1_800_000_000_000;
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
 const PNG_A = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
+const pngAtSize = (source, size) => {
+  const bytes = Buffer.from(source.split(',')[1], 'base64');
+  bytes.writeUInt32BE(size, 16);
+  bytes.writeUInt32BE(size, 20);
+  return `${m.PNG_DATA_PREFIX}${bytes.toString('base64')}`;
+};
+const PNG_2X = pngAtSize(PNG_A, m.ICON_SIZE);
 const pngBBytes = Buffer.from(PNG_A.split(',')[1], 'base64');
 pngBBytes[pngBBytes.length - 1] ^= 1;
 const PNG_B = `data:image/png;base64,${pngBBytes.toString('base64')}`;
 const icon = (over = {}) => ({ url: 'https://a.example/', data: PNG_A, ...over });
 const entry = (over = {}) => ({ updatedAt: NOW - HOUR, icons: [icon()], ...over });
 
-test('validIconData accepts only bounded, structurally identified PNG data URLs', () => {
+test('validIconData accepts Retina and legacy PNG records but rejects other dimensions', () => {
   const fakePng = `data:image/png;base64,${Buffer.from('<svg/>').toString('base64')}`;
   const oversized = `${PNG_A}${'A'.repeat(m.MAX_ICON_DATA)}`;
-  assert.equal(m.validIconData(PNG_A), PNG_A);
+  assert.equal(m.validIconData(PNG_2X), PNG_2X, 'new captures retain 2x backing pixels');
+  assert.equal(m.validIconData(PNG_A), PNG_A, 'deployed 16x16 records remain compatible');
+  assert.equal(m.validIconData(pngAtSize(PNG_A, 24)), null);
+  assert.equal(m.validIconData(pngAtSize(PNG_A, 64)), null);
   assert.equal(m.validIconData('https://a.example/icon.png'), null);
   assert.equal(m.validIconData('data:image/svg+xml,<svg/>'), null);
   assert.equal(m.validIconData(fakePng), null, 'MIME label alone cannot smuggle another format');
