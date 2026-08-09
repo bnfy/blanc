@@ -74,6 +74,7 @@ contextBridge.exposeInMainWorld('browserAPI', {
   clearHistory: () => ipcRenderer.invoke('chrome:history-clear'),
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),
   allowAdsOnActiveSite: () => ipcRenderer.invoke('chrome:adblock-exempt-active'),
+  sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
   cycleTheme: (theme) => ipcRenderer.invoke('chrome:cycle-theme', theme),
   onThemeAppearance: (callback) => {
     const listener = (_event, appearance) => callback(appearance);

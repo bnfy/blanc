@@ -715,7 +715,7 @@ let sleepTeardownInProgress = false;
  *
  * @returns {Promise<boolean>} true exactly when destruction was observed
  */
-async function sleepTab(id) {
+async function sleepTab(id, { broadcast = true } = {}) {
   const tab = tabs.get(id);
   const wc = liveContents(tab);
   if (!tab || !wc || tab.asleep || tab.sleeping || tab.waking) return false;
@@ -805,7 +805,7 @@ async function sleepTab(id) {
 
   if (outcome === 'quiet') {
     sleepTeardownInProgress = false;
-    broadcastTabs();
+    if (broadcast) broadcastTabs();
     return true;
   }
 
@@ -823,6 +823,35 @@ async function sleepTab(id) {
   }
   console.debug(`[quiet-tabs] ${id}: teardown ${outcome} — left awake${aborted ? ' (beforeunload)' : ''}`);
   return false;
+}
+
+/** `/sleep`: quiet every eligible background tab now. It bypasses only the
+ * idle threshold; the ordinary safety predicate and teardown revalidation
+ * remain authoritative. */
+async function sleepBackgroundTabsNow() {
+  if (isQuitting || sessionPersistenceSuspended || startupNavigationGateActive || !net.isOnline()) {
+    return [];
+  }
+  const runtime = rt();
+  const list = runtime.tabOrder.map((tid) => tabs.get(tid)).filter(Boolean);
+  const permissionPendingTabIds = new Set(
+    [...runtime.permissionPrompts.values()].map((pending) => pending?.tabId).filter(Boolean)
+  );
+  const ids = sleepCandidates(list, {
+    now: Date.now(),
+    thresholdMs: null,
+    activeTabId: runtime.activeTabId,
+    ignoreThreshold: true,
+    snapshotCount: sleepSnapshots.size,
+    permissionPendingTabIds,
+    popupChildCounts,
+  });
+  const quieted = [];
+  for (const id of ids) {
+    if (await sleepTab(id, { broadcast: false })) quieted.push(id);
+  }
+  if (quieted.length) broadcastTabs();
+  return quieted;
 }
 
 /** Wakes deferred because the startup gate would otherwise cancel restore() and
@@ -3258,6 +3287,7 @@ function registerIpcHandlers() {
   });
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
+  chromeHandle('chrome:sleep-background-tabs', () => sleepBackgroundTabsNow());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
     const order = ['system', 'light', 'dark'];
     const current = settings.getSettings().theme;
