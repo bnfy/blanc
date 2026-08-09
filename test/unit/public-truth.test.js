@@ -138,3 +138,35 @@ test('published memory figures agree across the site, the fact sheet, and the ru
     assert.match(text, /no extensions/i, `${file} must disclose the profile conditions`);
   }
 });
+
+test('quiet-tabs copy promises a reload, and no page claims tabs are never discarded', () => {
+  const page = read('site/src/pages/features/quiet-tabs.astro');
+  const hub = read('site/src/pages/features.astro');
+
+  assert.match(page, /reloads? (?:it|them|the page)/i);
+  // Spec §7: wake is a network re-fetch. "Resume" would be a promise Blanc
+  // cannot keep — except in the truth-note, which says it does NOT resume.
+  assert.match(page, /It does not resume\./);
+  assert.doesNotMatch(page, /\bresumes\b|\bresumed\b|\bresuming\b/i);
+  // "asleep" is the internal field name; public copy says quiet.
+  assert.doesNotMatch(page, /\basleep\b/i);
+  // The honest limits are stated, not omitted.
+  assert.match(page, /Private tabs come back where they were, not how they were/);
+  assert.match(hub, /\/features\/quiet-tabs/);
+
+  const marketing = [
+    ...fs.readdirSync(path.join(root, 'site/src/pages/features'))
+      .filter((name) => name.endsWith('.astro'))
+      .map((name) => `site/src/pages/features/${name}`),
+    'site/src/pages/index.astro',
+    'site/src/pages/features.astro',
+    'site/src/pages/download.astro',
+    'site/src/pages/about.astro',
+  ];
+  for (const file of marketing) {
+    const source = read(file);
+    assert.doesNotMatch(source, /never (?:discards?|unloads?|drops?) (?:a |any |your )?tabs?/i, file);
+    assert.doesNotMatch(source, /every tab stays (?:live|loaded|open in memory)/i, file);
+    assert.doesNotMatch(source, /keeps (?:every|all) tabs? (?:live|loaded|in memory)/i, file);
+  }
+});
