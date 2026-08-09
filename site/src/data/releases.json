@@ -1,5 +1,151 @@
 [
   {
+    "tag": "v1.1.0",
+    "version": "1.1.0",
+    "name": "1.1.0",
+    "publishedAt": "2026-08-09T01:55:23.000Z",
+    "humanDate": "August 8, 2026",
+    "machineDate": "2026-08-08",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.1.0",
+    "anchor": "v1-1-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The island now senses your cursor. Move toward it and it leans your way, rises slightly, and grows — reaching full strength as you arrive and easing back as you leave. It follows how close you are rather than switching on at a threshold, so there's no edge you can feel, and it stays completely still while another app has focus or the panel is already open."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Opening the command bar is now a movement rather than a cut. The panel grows out of the resting island — starting at its exact size and shape, corners rounding out as it expands — and shrinks back into it when you dismiss. The page underneath stays clickable the moment you press Escape; only the picture takes a moment to leave."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "If you have \"reduce motion\" turned on in your system settings, both of these are off entirely rather than shortened."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The island has been rebuilt against the Blanc design system. The resting pill drops the group name it was repeating — group identity already reads from the dots and the ⌘L panel — and gains a close button in its action cluster. The address field is a capsule, tab rows drop their domain column so the title has room, and the panel's dismiss control is now a downward chevron that points the way the panel travels."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Ad and tracker blocking is now called Blanc Blocker throughout, and its icon is a shield cut by the diagonal from Blanc's own mark. The count sits on the shield's shoulder instead of floating beside it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Blanc mark is heavier across every icon — the Dock, the taskbar, and the favicon on Blanc's own pages. The previous drawing was too fine to survive being scaled down, and broke up at small sizes."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Every keyboard shortcut in the interface renders in the system font. JetBrains Mono draws ⌘, ⇧, ⌥ and ⎋ malformed, which was most visible on the start page."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Fixed a crash that could quit Blanc when a tab was closed a moment before the application menu rebuilt itself. The rebuild is deliberately delayed to batch up rapid changes, and it could still be handed a tab that had just gone."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The island's shadow no longer gets sliced off where the chrome meets the page. The refreshed shadow was deeper than the band had room for, leaving a faint straight line under the island. The find bar had the same problem against its own edge."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.1.0"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.0.10",
     "version": "1.0.10",
     "name": "1.0.10",
