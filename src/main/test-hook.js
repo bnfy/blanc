@@ -96,6 +96,7 @@ function install(refs) {
   const committedUrlOf = (t) => { try { return t.view.webContents.getURL(); } catch { return ''; } };
   const isLoadingOf = (t) => { try { return t.view.webContents.isLoadingMainFrame(); } catch { return false; } };
   const sessionPersistentOf = (t) => { try { return t.view.webContents.session.isPersistent(); } catch { return null; } };
+  const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
   const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
   const remoteFixture = [{
@@ -122,7 +123,7 @@ function install(refs) {
     getOverlayWebContents()?.send('chrome:remote-tabs-updated', devices);
     for (const tab of tabs.values()) {
       if (urlOf(tab).startsWith('blanc://newtab')) {
-        tab.view.webContents.send('pages:start:remote-tabs', devices);
+        tab.view?.webContents?.send('pages:start:remote-tabs', devices);
       }
     }
   }
@@ -132,6 +133,7 @@ function install(refs) {
     state() {
       const list = [];
       for (const [id, t] of tabs) {
+        const wc = t.view?.webContents;
         list.push({
           id,
           url: urlOf(t),
@@ -145,9 +147,14 @@ function install(refs) {
           muted: !!t.muted,
           audible: !!t.audible,
           private: !!t.private,
-          webContentsId: t.view.webContents.id,
-          bounds: t.view.getBounds(),
-          sessionKind: t.view.webContents.session === getPrivateBrowsingSession() ? 'private' : 'default',
+          // This object is produced inside electronApp.evaluate(); a viewless
+          // tab must be observable rather than making every scenario throw.
+          asleep: !!t.asleep,
+          webContentsId: wc?.id ?? null,
+          bounds: t.view ? t.view.getBounds() : null,
+          sessionKind: wc
+            ? (wc.session === getPrivateBrowsingSession() ? 'private' : 'default')
+            : null,
           sessionPersistent: sessionPersistentOf(t),
         });
       }
@@ -195,7 +202,7 @@ function install(refs) {
       if (typeof patch.audible === 'boolean') tab.audible = patch.audible;
       if (typeof patch.muted === 'boolean') {
         tab.muted = patch.muted;
-        tab.view.webContents.setAudioMuted(patch.muted);
+        tab.view?.webContents?.setAudioMuted(patch.muted);
       }
       broadcastTabs();
       return true;
@@ -220,7 +227,7 @@ function install(refs) {
       for (const t of tabs.values()) {
         const url = urlOf(t);
         if (/^https?:/.test(url) && !bookmarks.isBookmarked(url)) {
-          bookmarks.toggleBookmark(url, t.view.webContents.getTitle() || url);
+          bookmarks.toggleBookmark(url, titleOf(t) || url);
         }
       }
     },
@@ -560,22 +567,24 @@ function install(refs) {
     async probeFocusAfterTabBroadcast(id) {
       const tab = tabs.get(id);
       if (!tab) return { tabBlurCount: 0, chromeFocusCount: 0 };
+      const wc = tab.view?.webContents;
+      if (!wc) return { tabBlurCount: 0, chromeFocusCount: 0 };
       // Let the Playwright main-process evaluate handoff settle, then establish
       // page focus immediately before the product broadcast under test.
       await new Promise((resolve) => setTimeout(resolve, 450));
-      tab.view.webContents.focus();
+      wc.focus();
       await new Promise((resolve) => setTimeout(resolve, 25));
       const chrome = getChromeWebContents();
       let tabBlurCount = 0;
       let chromeFocusCount = 0;
       const onTabBlur = () => { tabBlurCount += 1; };
       const onChromeFocus = () => { chromeFocusCount += 1; };
-      tab.view.webContents.on('blur', onTabBlur);
+      wc.on('blur', onTabBlur);
       chrome?.on('focus', onChromeFocus);
       tab.title = `${tab.title || 'Tab'} · focus probe`;
       broadcastTabs();
       await new Promise((resolve) => setTimeout(resolve, 100));
-      tab.view.webContents.removeListener('blur', onTabBlur);
+      wc.removeListener('blur', onTabBlur);
       chrome?.removeListener('focus', onChromeFocus);
       return {
         tabBlurCount,
@@ -586,7 +595,9 @@ function install(refs) {
       clearFocusObservation();
       const tab = tabs.get(id);
       if (!tab) return false;
-      const observation = { wc: tab.view.webContents, count: 0, listener: null };
+      const wc = tab.view?.webContents;
+      if (!wc) return false;
+      const observation = { wc, count: 0, listener: null };
       observation.listener = () => { observation.count += 1; };
       observation.wc.on('focus', observation.listener);
       focusObservation = observation;
