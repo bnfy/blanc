@@ -15,13 +15,24 @@ const TAG = `v${VERSION}`;
    for exactly that reason, August 2 being 1.0's launch. The dateline on the
    announcement below is a different thing — it dates the 1.0 announcement
    itself, and stays put. */
-const CURRENT_RELEASE = (releaseData.releases ?? releaseData).find((entry) => entry.tag === TAG);
+const ALL_RELEASES = releaseData.releases ?? releaseData;
+/* Between the version bump and publication there is deliberately no entry for
+   TAG: releases.json is generated from the published GitHub release, which does
+   not exist until the release script has run — and the release script cannot
+   run until this page builds. Throwing here therefore made every release
+   impossible, so the shipping-release facts fall back to the newest PUBLISHED
+   entry instead, and take their version from that same entry. Pairing them is
+   the point: a fallback that kept printing VERSION would state the new version
+   beside the old one's ship date, which is the exact fault the hard failure was
+   added to prevent. */
+const CURRENT_RELEASE = ALL_RELEASES.find((entry) => entry.tag === TAG) ?? ALL_RELEASES[0];
 if (!CURRENT_RELEASE) {
   throw new Error(
-    `press.astro: releases.json has no entry for ${TAG}. Run "npm run site:changelog" ` +
-    'before building — a blank date on the fact sheet is worse than a loud failure here.'
+    'press.astro: releases.json is empty. Run "npm run site:changelog" before building — ' +
+    'a blank date on the fact sheet is worse than a loud failure here.'
   );
 }
+const RELEASE_VERSION = CURRENT_RELEASE.tag.replace(/^v/, '');
 const RELEASED_HUMAN = CURRENT_RELEASE.humanDate;
 const RELEASED_MACHINE = CURRENT_RELEASE.machineDate;
 const RELEASE_BASE = 'https://github.com/bnfy/blanc/releases';
@@ -257,7 +268,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       <section class="press-fact-group" aria-labelledby="press-facts-release">
         <h3 id="press-facts-release">current release</h3>
         <dl class="press-fact-grid">
-          <div><dt>version</dt><dd>Blanc {VERSION}</dd></div>
+          <div><dt>version</dt><dd>Blanc {RELEASE_VERSION}</dd></div>
           <div><dt>released</dt><dd><time datetime={RELEASED_MACHINE}>{RELEASED_HUMAN}</time></dd></div>
           <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
           <div><dt>release files</dt><dd>DMG + ZIP · EXE · AppImage</dd></div>

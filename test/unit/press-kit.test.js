@@ -82,6 +82,18 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(page, /<h3 id="press-facts-release">current release<\/h3>/);
   assert.doesNotMatch(page, /press-facts-launch/);
   assert.match(page, /import releaseData from '\.\.\/data\/releases\.json'/);
+  // The shipping-release facts must survive a version bump whose release has
+  // not been published yet. releases.json is generated FROM the published
+  // GitHub release, so during a release PR there is legitimately no entry for
+  // the new tag — a hard failure here made the site build gate unpassable and
+  // therefore made releasing impossible (caught cutting 1.1.1). The fallback
+  // and the version it prints are asserted together: taking the date from the
+  // newest published entry while still printing VERSION would pair the new
+  // version with the previous one's ship date.
+  assert.match(page, /\?\?\s*ALL_RELEASES\[0\]/);
+  assert.match(page, /const RELEASE_VERSION = CURRENT_RELEASE\.tag\.replace/);
+  assert.match(page, /<dt>version<\/dt><dd>Blanc \{RELEASE_VERSION\}<\/dd>/);
+  assert.doesNotMatch(page, /<dt>version<\/dt><dd>Blanc \{VERSION\}<\/dd>/);
   assert.match(page, /<dt>released<\/dt><dd><time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
   assert.match(page, /<dt>date<\/dt><dd><time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
   assert.doesNotMatch(page, /<dt>(?:released|date)<\/dt><dd>[A-Z][a-z]+ \d/);
