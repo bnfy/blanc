@@ -42,6 +42,12 @@ const { loadWorkspace, buildSaveShape } = require('./session-workspace');
 const { filterRestoredSession } = require('./session-restore');
 const { isUtilityUrl } = require('./utility-pages');
 const {
+  sleepCandidates,
+  trimSnapshot,
+  TAB_SLEEP_DELAY_MS,
+  MAX_SLEEP_SNAPSHOTS,
+} = require('./tab-sleep');
+const {
   createTabView,
   wireTabView,
   initTabView,
@@ -693,6 +699,124 @@ async function probeTabDirty(tab, wc) {
   }
   tab.deepScrolled = deepScrolled;
   return deepScrolled;
+}
+
+/** True while sleepTab has replaced a tab's listeners with its temporary
+ * teardown pair. A concurrent user close cancels the sleep intent. */
+let sleepTeardownInProgress = false;
+
+/**
+ * Discard one tab's renderer. This is best-effort only: it never throws or
+ * wakes a tab, and any uncertain precondition leaves the tab awake.
+ *
+ * @returns {Promise<boolean>} true exactly when destruction was observed
+ */
+async function sleepTab(id) {
+  const tab = tabs.get(id);
+  const wc = liveContents(tab);
+  if (!tab || !wc || tab.asleep || tab.sleeping || tab.waking) return false;
+
+  const epochAtProbe = tab.navEpoch;
+  let snapshot;
+  try {
+    const nav = wc.navigationHistory;
+    snapshot = trimSnapshot(nav.getAllEntries(), nav.getActiveIndex(), { private: !!tab.private });
+  } catch {
+    return false;
+  }
+  if (!snapshot) return false;
+
+  let dirty = true;
+  try { dirty = await probeTabDirty(tab, wc); } catch { dirty = true; }
+  if (dirty) return false;
+
+  // The probe has an async frame budget; validate synchronously immediately
+  // before teardown so it can never discard a tab the user just activated.
+  if (!tabs.has(id) || id === rt().activeTabId || tab.navEpoch !== epochAtProbe
+      || tab.isLoading || tab.sleeping || !liveContents(tab)) return false;
+
+  if (snapshot.droppedPageState) {
+    console.debug(`[quiet-tabs] ${id}: page state dropped (oversized or private)`);
+  }
+  if (sleepSnapshots.size >= MAX_SLEEP_SNAPSHOTS) {
+    console.debug('[quiet-tabs] snapshot ceiling reached; refusing to quiet further tabs');
+    return false;
+  }
+
+  // Keep the old view only until Chromium confirms destruction. Merely dropping
+  // the JS reference does not reclaim its renderer.
+  sleepSnapshots.set(id, {
+    view: tab.view,
+    entries: snapshot.entries,
+    index: snapshot.index,
+    droppedPageState: snapshot.droppedPageState,
+  });
+  tab.sleeping = true;
+  sleepTeardownInProgress = true;
+  const wcId = wc.id;
+  const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
+  // This must remove every old listener: loading/failure/crash listeners can
+  // otherwise poison tab.url or resurrect exactly the renderer being closed.
+  wc.removeAllListeners();
+
+  let aborted = false;
+  const outcome = await new Promise((resolve) => {
+    let settled = false;
+    const finish = (value) => {
+      if (!settled) {
+        settled = true;
+        resolve(value);
+      }
+    };
+
+    wc.once('destroyed', bindWindowRuntime(owner, () => {
+      tab.view = null;
+      tab.asleep = true;
+      tab.sleeping = false;
+      tab.blockedCount = 0;
+      tab.audible = false;
+      tab.isLoading = false;
+      tab.pageBg = null;
+      tab.themeColor = null;
+      const record = sleepSnapshots.get(id);
+      if (record) record.view = null;
+      tabIdByWebContentsId.delete(wcId);
+      lastMainFrameMethod.delete(wcId);
+      finish('quiet');
+    }));
+
+    // Polarity matters: this fires when the page objects to unload. Calling
+    // preventDefault here would override that objection and destroy the tab.
+    wc.on('will-prevent-unload', () => {
+      aborted = true;
+      finish('aborted');
+    });
+
+    wc.close({ waitForBeforeUnload: true });
+    // A wedged renderer must not remain permanently `sleeping`.
+    setTimeout(() => finish('unresponsive'), 5000);
+  });
+
+  if (outcome === 'quiet') {
+    sleepTeardownInProgress = false;
+    broadcastTabs();
+    return true;
+  }
+
+  // Restore the ordinary listener set after the temporary teardown pair. A
+  // user close during this interval sets the global flag false and wins.
+  tab.sleeping = false;
+  sleepSnapshots.delete(id);
+  const stillThere = sleepTeardownInProgress && tabs.has(id) && liveContents(tab);
+  sleepTeardownInProgress = false;
+  if (stillThere) {
+    wireTabView(tab, tab.view, {
+      owner: windowRuntimes.runtimeForTab(id) ?? primaryRuntime,
+      adopted: false,
+    });
+  }
+  console.debug(`[quiet-tabs] ${id}: teardown ${outcome} — left awake${aborted ? ' (beforeunload)' : ''}`);
+  return false;
 }
 /** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
  *  per-request counter resolves a tab tens of times per second, and a linear
@@ -2212,6 +2336,8 @@ const recentlyClosedUrls = [];
 function closeTab(id) {
   // First statement: any later early return must not strand recovery data.
   sleepSnapshots.delete(id);
+  // A user close during a sleep teardown wins: do not rewire a tab going away.
+  sleepTeardownInProgress = false;
   const tab = tabs.get(id);
   if (!tab) return;
   forgetTabWebContentsIds(id);
