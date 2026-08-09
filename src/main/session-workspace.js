@@ -2,18 +2,38 @@
 // docs/superpowers/specs/2026-08-08-window-runtime-foundation-design.md).
 // Pure functions over plain objects; main.js owns the JsonStore.
 
-const EMPTY_ENTRY = () => ({ urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [] });
+const EMPTY_ENTRY = () => ({ urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] });
+
+/** @typedef {{title: string, favicon: string|null}} SessionTabMeta */
 
 function entryFrom(source) {
   if (!source || typeof source !== 'object') return EMPTY_ENTRY();
+  const urls = Array.isArray(source.urls) ? source.urls : [];
   return {
-    urls: Array.isArray(source.urls) ? source.urls : [],
+    urls,
     activeIndex: Number.isInteger(source.activeIndex) ? source.activeIndex : 0,
     groups: Array.isArray(source.groups) ? source.groups : [],
     groupIds: Array.isArray(source.groupIds) ? source.groupIds : [],
     pinned: Array.isArray(source.pinned) ? source.pinned : [],
+    // Quiet Tabs (spec §10.1): titles and favicons for tabs that come back
+    // quiet, zipped onto `urls`. A length mismatch means some other writer
+    // — a rolled-back 1.0.x build rewriting the flat mirror — moved the urls
+    // out from under this array, so drop it rather than mislabel pages.
+    meta: Array.isArray(source.meta) && source.meta.length === urls.length ? source.meta : [],
   };
 }
+
+/** The five keys the v0 mirror carries. `meta` lives only in windows[0], so
+ * mirror/nested divergence must be judged on the mirror's own columns —
+ * comparing whole entries would report divergence on EVERY launch and drop
+ * the nested workspace forever (spec §10.1). */
+const mirrorProjection = (entry) => ({
+  urls: entry.urls,
+  activeIndex: entry.activeIndex,
+  groups: entry.groups,
+  groupIds: entry.groupIds,
+  pinned: entry.pinned,
+});
 
 /** Check if all five mirror keys are present and valid on the raw data object.
  * Presence is checked on the input object itself (not normalized). */
@@ -89,7 +109,7 @@ function loadWorkspace(data) {
 
   if (hasMirrorData && nested) {
     // Both present and valid; use structural equality (key-order-insensitive)
-    if (deepEqual(nested, entryFrom(data))) {
+    if (deepEqual(mirrorProjection(nested), mirrorProjection(entryFrom(data)))) {
       return { windows: [nested], readOnly: false };
     } else {
       return { windows: [entryFrom(data)], readOnly: false }; // legacy writer won

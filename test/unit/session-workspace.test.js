@@ -9,8 +9,11 @@ const ENTRY = {
   groups: [{ id: 'g1', name: 'work', collapsed: false }],
   groupIds: ['g1', null],
   pinned: [false, true],
+  // Quiet Tabs (spec §10.1). An entry always HAS the key; a file that predates
+  // it — or whose array no longer lines up with urls — reads back as [].
+  meta: [],
 };
-const EMPTY = { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [] };
+const EMPTY = { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] };
 
 test('v0 (version-less flat file) loads as one window', () => {
   const { windows, readOnly } = loadWorkspace({ ...ENTRY });
@@ -127,4 +130,40 @@ test('v1 where mirror groups have different key order but identical content → 
   // branch would fire, and Object.keys(mirror groups[0]) would be ['collapsed','id','name'].
   assert.deepEqual(Object.keys(windows[0].groups[0]), ['id', 'name', 'collapsed'],
     'nested branch must win — reordered keys are not divergence, so nested key order is preserved');
+});
+
+// ─── Quiet Tabs: the session.json meta column (spec §10.1) ────────────────
+
+const META = [
+  { title: 'A', favicon: 'https://a.example/favicon.ico' },
+  { title: '', favicon: null },
+];
+
+test('meta is written into windows[0] only, never into the v0 mirror', () => {
+  const shape = buildSaveShape({ ...ENTRY, meta: META }, {});
+  assert.deepEqual(shape.windows[0].meta, META);
+  assert.equal('meta' in shape, false,
+    'a 1.0.x rollback rewrites the five mirror keys and would strand a stale meta array');
+});
+
+test('a v1 file with meta and an agreeing mirror still loads the NESTED workspace', () => {
+  const file = { version: 1, windows: [{ ...ENTRY, meta: META }], ...ENTRY };
+  const { windows } = loadWorkspace(file);
+  assert.deepEqual(windows[0].urls, ENTRY.urls, 'nested must win — the mirror carries no meta by design');
+  assert.deepEqual(windows[0].meta, META);
+});
+
+test('a meta array whose length no longer matches urls self-drops', () => {
+  const { windows } = loadWorkspace({ version: 1, windows: [{ ...ENTRY, meta: [META[0]] }] });
+  assert.deepEqual(windows[0].meta, [], 'a stale array must never zip onto different urls');
+});
+
+test('rollback → re-upgrade drops meta along with the stale nested workspace', () => {
+  const staleNested = {
+    ...ENTRY, urls: ['https://old.example/'], groupIds: [null], pinned: [false], activeIndex: 0,
+    meta: [{ title: 'Old', favicon: null }],
+  };
+  const { windows } = loadWorkspace({ version: 1, windows: [staleNested], ...ENTRY });
+  assert.deepEqual(windows[0].urls, ENTRY.urls, 'the legacy writer wrote last');
+  assert.deepEqual(windows[0].meta, []);
 });
