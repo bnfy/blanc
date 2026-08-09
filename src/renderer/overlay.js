@@ -10,6 +10,7 @@
 
   const backdrop = document.getElementById('backdrop');
   const panelAnchor = document.getElementById('panelAnchor');
+  const islandPanel = document.getElementById('islandPanel');
   const addressInput = document.getElementById('addressInput');
   const panelInsecure = document.getElementById('panelInsecure');
   const islandList = document.getElementById('islandList');
@@ -1080,7 +1081,51 @@
     }
     window.browserAPI.closeOverlay();
   });
-  window.browserAPI.onOverlayShow(({ mode: next, prefill }) => applyMode(next, prefill));
+  /* The panel grows out of the resting pill. They are separate views, so the
+   * pill's box arrives from main; we start the panel matching it — same width,
+   * same top, capsule corners — and let one frame later carry it to full size.
+   *
+   * Scale rather than width/height: animating the box would reflow the list on
+   * every frame. The contents are held invisible until the growth is underway,
+   * so the squash a uniform scale puts on them is never on screen. */
+  const MORPH_MS = 260;
+  let morphTimer = null;
+
+  function morphPanelFromPill(pillRect) {
+    if (!pillRect || !pillRect.width) return;          // no box reported yet
+    if (prefersReducedMotion()) return;                 // decorative; skip entirely
+    const panelWidth = islandPanel.offsetWidth;
+    if (!panelWidth) return;
+
+    const scale = Math.min(1, pillRect.width / panelWidth);
+    const panelBox = islandPanel.getBoundingClientRect();
+    const pillCentre = pillRect.x + pillRect.width / 2;
+    const panelCentre = panelBox.left + panelBox.width / 2;
+
+    clearTimeout(morphTimer);
+    islandPanel.classList.add('morph-start');
+    islandPanel.style.setProperty('--morph-scale', String(scale));
+    islandPanel.style.setProperty('--morph-x', `${(pillCentre - panelCentre).toFixed(2)}px`);
+    islandPanel.style.setProperty('--morph-y', `${(pillRect.y - panelBox.top).toFixed(2)}px`);
+
+    // Two frames: one for the start state to be painted, one to leave it. A
+    // single frame lands both in the same style recalculation and the panel
+    // simply appears at full size.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      islandPanel.classList.remove('morph-start');
+      islandPanel.classList.add('morph-run');
+      morphTimer = setTimeout(() => islandPanel.classList.remove('morph-run'), MORPH_MS + 60);
+    }));
+  }
+
+  const prefersReducedMotion = () =>
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  window.browserAPI.onOverlayShow(({ mode: next, prefill, pillRect }) => {
+    const wasOpen = mode === next;
+    applyMode(next, prefill);
+    if (!wasOpen && (next === 'panel' || next === 'palette')) morphPanelFromPill(pillRect);
+  });
   window.browserAPI.onOverlayHide(() => {
     if (mode === 'find') resetFind();
     mode = null;

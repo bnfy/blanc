@@ -905,8 +905,23 @@ function showOverlay(mode, { prefill } = {}) {
   rt().overlayPrefill = prefill ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
   rt().window.contentView.addChildView(rt().overlayView);
-  rt().overlayView.setBounds(overlayBounds());
-  rt().overlayView.webContents.send('overlay:show', { mode, prefill });
+  const bounds = overlayBounds();
+  rt().overlayView.setBounds(bounds);
+  rt().overlayView.webContents.send('overlay:show', {
+    mode,
+    prefill,
+    // Where the resting pill is, in the overlay's OWN coordinates, so the
+    // panel can start life at the pill's size and grow out of it. The two live
+    // in different views, so this hand-off is the only way the overlay can
+    // know. Null until the chrome renderer has reported a box — the panel then
+    // just appears, which is what it did before this existed.
+    pillRect: rt().islandRect && {
+      x: rt().islandRect.x - bounds.x,
+      y: rt().islandRect.y - bounds.y,
+      width: rt().islandRect.width,
+      height: rt().islandRect.height,
+    },
+  });
   rt().overlayView.webContents.focus();
   rt().window.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
 }
