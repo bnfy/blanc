@@ -25,6 +25,7 @@
     "test:dns-smoke": "node test/desktop/dns-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",
+    "bench:memory": "node bench/memory/run.js",
     "release:security": "npm audit --omit=dev --audit-level=high",
     "release:verify:press": "npm run substrate:check && npm run icons:windows:check && npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:oauth:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
     "icons:windows:build": "node scripts/build-windows-icons.js",

@@ -1,0 +1,166 @@
+{
+  "$comment": [
+    "Browser registry for the memory benchmark. Adding a browser is a JSON edit,",
+    "not a code change, as long as it belongs to one of the launch families in",
+    "lib/launch.js (chromium | gecko | blanc).",
+    "",
+    "bundlePath and executableName accept a string or an array of candidates;",
+    "the first combination that exists on disk wins. Vendors rename their",
+    "bundles between releases (Zen shipped as both 'Zen Browser.app' and",
+    "'Zen.app'), so candidates are cheaper than a support ticket.",
+    "",
+    "extraBlankTabs records tabs a browser opens on its own beyond the workload",
+    "URLs, so the report can disclose the real tab count instead of comparing",
+    "N against N+1."
+  ],
+  "browsers": [
+    {
+      "id": "blanc",
+      "label": "Blanc",
+      "family": "blanc",
+      "engine": "Chromium (Electron)",
+      "bundlePath": ["/Applications/Blanc.app"],
+      "executableName": "Blanc",
+      "extraBlankTabs": 1,
+      "blocking": "built-in (EasyList + EasyPrivacy, network layer)",
+      "notes": [
+        "main.js creates one blanc://newtab at startup in addition to the URLs",
+        "passed on the command line — hence extraBlankTabs: 1.",
+        "Do NOT set BLANC_TEST=1 for a benchmark run: acceptanceTestMode in",
+        "main.js disables ad blocking, which would measure a configuration the",
+        "app never ships."
+      ]
+    },
+    {
+      "id": "blanc-noblock",
+      "label": "Blanc (blocking off)",
+      "family": "blanc",
+      "engine": "Chromium (Electron)",
+      "bundlePath": ["/Applications/Blanc.app"],
+      "executableName": "Blanc",
+      "extraBlankTabs": 1,
+      "blocking": "none",
+      "requiresProfileSeed": "adblockDisabled",
+      "notes": [
+        "Isolates what the built-in blocker contributes. The runner seeds",
+        "settings.json in the throwaway profile with adblockEnabled: false."
+      ]
+    },
+    {
+      "id": "chrome",
+      "label": "Google Chrome",
+      "family": "chromium",
+      "engine": "Chromium (Blink)",
+      "bundlePath": ["/Applications/Google Chrome.app"],
+      "executableName": "Google Chrome",
+      "blocking": "none (stock profile)"
+    },
+    {
+      "id": "zen",
+      "label": "Zen Browser",
+      "family": "gecko",
+      "engine": "Gecko (Firefox)",
+      "bundlePath": ["/Applications/Zen.app", "/Applications/Zen Browser.app"],
+      "executableName": ["zen", "Zen"],
+      "blocking": "Firefox Enhanced Tracking Protection (stock)"
+    },
+    {
+      "id": "firefox",
+      "label": "Firefox",
+      "family": "gecko",
+      "engine": "Gecko",
+      "bundlePath": ["/Applications/Firefox.app"],
+      "executableName": "firefox",
+      "blocking": "Firefox Enhanced Tracking Protection (stock)",
+      "notes": [
+        "Worth running alongside Zen: it separates what Zen's own changes cost",
+        "from what Gecko costs, which is the honest way to read a Zen result."
+      ]
+    },
+    {
+      "id": "brave",
+      "label": "Brave",
+      "family": "chromium",
+      "engine": "Chromium (Blink)",
+      "bundlePath": ["/Applications/Brave Browser.app"],
+      "executableName": "Brave Browser",
+      "blocking": "built-in Brave Shields"
+    },
+    {
+      "id": "edge",
+      "label": "Microsoft Edge",
+      "family": "chromium",
+      "engine": "Chromium (Blink)",
+      "bundlePath": ["/Applications/Microsoft Edge.app"],
+      "executableName": "Microsoft Edge",
+      "blocking": "tracking prevention (stock)"
+    },
+    {
+      "id": "vivaldi",
+      "label": "Vivaldi",
+      "family": "chromium",
+      "engine": "Chromium (Blink)",
+      "bundlePath": ["/Applications/Vivaldi.app"],
+      "executableName": "Vivaldi",
+      "blocking": "built-in blocker (stock settings)"
+    },
+    {
+      "id": "opera",
+      "label": "Opera",
+      "family": "chromium",
+      "engine": "Chromium (Blink)",
+      "bundlePath": ["/Applications/Opera.app"],
+      "executableName": "Opera",
+      "blocking": "built-in blocker (off by default)"
+    },
+    {
+      "id": "arc",
+      "label": "Arc",
+      "family": "chromium",
+      "engine": "Chromium (Blink)",
+      "bundlePath": ["/Applications/Arc.app"],
+      "executableName": "Arc",
+      "blocking": "none (stock profile)",
+      "notes": [
+        "Arc manages its own profile/space model and may ignore --user-data-dir.",
+        "Verify with --keep-profiles that the throwaway profile was actually",
+        "populated before trusting an Arc row."
+      ]
+    },
+    {
+      "id": "librewolf",
+      "label": "LibreWolf",
+      "family": "gecko",
+      "engine": "Gecko (Firefox)",
+      "bundlePath": ["/Applications/LibreWolf.app"],
+      "executableName": "librewolf",
+      "blocking": "uBlock Origin bundled"
+    },
+    {
+      "id": "safari",
+      "label": "Safari",
+      "family": "webkit",
+      "engine": "WebKit",
+      "supported": false,
+      "unsupportedReason": [
+        "Safari has no command-line profile isolation and no command-line tab",
+        "opening, so it cannot be measured on the same terms as the others: a",
+        "run would use the tester's real profile, with their extensions, their",
+        "history and their iCloud tabs. Driving it over AppleScript is possible",
+        "but the profile problem remains, so a Safari row would not be",
+        "comparable and is deliberately omitted rather than footnoted."
+      ]
+    },
+    {
+      "id": "orion",
+      "label": "Orion",
+      "family": "webkit",
+      "engine": "WebKit",
+      "supported": false,
+      "unsupportedReason": [
+        "WebKit-based with no documented command-line profile or tab interface.",
+        "Same comparability problem as Safari."
+      ]
+    }
+  ]
+}
