@@ -594,6 +594,23 @@ const hasLiveWindow = () => !!rt().window && !rt().window.isDestroyed();
 
 /** @type {Map<string, { id: string, view: WebContentsView, title: string, url: string, isLoading: boolean, canGoBack: boolean, canGoForward: boolean, favicon: string | null, bookmarked: boolean, blockedCount: number, private: boolean, pinned: boolean, muted: boolean, audible: boolean, pageBg: string | null, themeColor: string | null }>} */
 const tabs = new Map();
+/** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
+ *  per-request counter resolves a tab tens of times per second, and a linear
+ *  walk of `tabs` dereferencing view.webContents there is both the hot path and
+ *  a crash once a tab can exist without a view. */
+const tabIdByWebContentsId = new Map();
+
+/** Drop every index entry pointing at `tabId`. Deletion is BY VALUE because a
+ *  closing tab's view.webContents already reads back undefined, so the key it
+ *  was stored under is no longer recoverable from the record. One pass over at
+ *  most one entry per open tab, once per close — not the per-request cost this
+ *  index exists to remove. */
+function forgetTabWebContentsIds(tabId) {
+  for (const [wcId, id] of tabIdByWebContentsId) {
+    if (id === tabId) tabIdByWebContentsId.delete(wcId);
+  }
+}
+
 // Display order of tab ids (rt().tabOrder) — the single source of truth
 // for the strip. Selected tab id: rt().activeTabId.
 // Named tab groups in display order (rt().groups) — pill clusters follow
@@ -1834,6 +1851,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   windowRuntimes.attachTab(owner, id);
 
   const wc = view.webContents;
+  tabIdByWebContentsId.set(wc.id, id);
   installChromeShortcuts(wc);
   // Every listener registered on this tab's webContents below binds to the
   // tab's owning runtime — resolved right here, at attach time, rather than
@@ -2295,6 +2313,7 @@ const recentlyClosedUrls = [];
 function closeTab(id) {
   const tab = tabs.get(id);
   if (!tab) return;
+  forgetTabWebContentsIds(id);
 
   // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
   if (tab.url && !tab.private && !tab.url.startsWith('blanc://newtab')) {
@@ -3464,14 +3483,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setupPermissionPolicy(ses);
   setupPermissionPolicy(privateSes, { persistDecisions: false });
   let permissionPromptCounter = 0;
-  // Resolve the tab owning a requesting webContents by scanning the
-  // process-wide tabs Map for the record whose view hosts it.
+  // Resolve the tab owning a requesting webContents through the maintained
+  // index — never by walking `tabs` and dereferencing each view.
   function tabForWebContents(wc) {
     if (!wc) return null;
-    for (const tab of tabs.values()) {
-      if (tab.view?.webContents === wc) return tab;
-    }
-    return null;
+    return tabs.get(tabIdByWebContentsId.get(wc.id)) ?? null;
   }
   // Resolve null when there's no window to ask through — the policy treats
   // null as "not answered" and denies for now WITHOUT persisting, so a
@@ -3632,13 +3648,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // from the network layer — not from any of our own bound roots.
   onRequestBlocked(bindWindowRuntime(primaryRuntime, (request) => {
     adblockWeekStats().update((d) => { d.blocked += 1; });
-    for (const tab of tabs.values()) {
-      if (tab.view.webContents.id === request.tabId) {
-        tab.blockedCount += 1;
-        scheduleBroadcastTabs();
-        break;
-      }
-    }
+    const tab = tabs.get(tabIdByWebContentsId.get(request.tabId));
+    if (!tab) return;
+    tab.blockedCount += 1;
+    scheduleBroadcastTabs();
   }));
 
   // Settings fan-out: settings.js calls every registered listener synchronously
