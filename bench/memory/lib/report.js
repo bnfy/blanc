@@ -5,8 +5,31 @@
 // covers, how far the repetitions spread, and whether the browser had actually
 // stopped moving when it was measured. A table of bare megabyte figures is
 // exactly the artifact this benchmark exists to avoid producing.
+//
+// The subtlest trap is comparative framing rather than measurement. On an
+// ad-dense workload most of the gap between a blocking and a non-blocking
+// browser is a difference in how much content was instantiated, not a
+// difference in engine efficiency — but an ascending single-column ranking
+// reads as an efficiency league table. So rows are grouped by what they block,
+// percentages are computed against a declared reference rather than against
+// whichever row happened to render the least, and a table spanning more than
+// one blocking class carries a mandatory caveat.
 
 const { summarize, perTabBytes, requireConsistentMetric, formatBytes } = require('./stats');
+
+// Ordered loosely by how much content each class prevents from loading.
+const BLOCKING_CLASSES = [
+  { id: 'none', label: 'No blocking' },
+  { id: 'trackers', label: 'Blocks trackers only' },
+  { id: 'ads+trackers', label: 'Blocks ads and trackers' },
+  { id: 'unknown', label: 'Blocking not classified' },
+];
+
+// The anchor for the percentage column. Chrome is the market default, so "+N%
+// vs Chrome" is a claim a reader can situate. Anchoring to the best row instead
+// would mean a vendor benchmark whose reference point is its own product's best
+// configuration — the exact shape reviewers are trained to distrust.
+const PREFERRED_REFERENCE = ['chrome', 'firefox'];
 
 /**
  * Collapse a result's repetitions into a summary row.
@@ -21,11 +44,23 @@ function buildRow(result, baseline) {
   const processCounts = summarize(result.repetitions.map((r) => r.processCount));
   const baselineMedian = baseline ? summarize(baseline.repetitions.map((r) => r.totalBytes)).median : null;
 
+  // Divide by the workload's page count, not the browser's tab count. Blanc
+  // opens one extra blank tab of its own, and charging the workload's cost
+  // across N+1 tabs while every other browser divides by N understates Blanc's
+  // per-page cost by roughly 1/(N+1) — a bias in our own favour, in the column
+  // most likely to be quoted.
+  const pages = Number.isFinite(result.workloadPages) && result.workloadPages > 0
+    ? result.workloadPages
+    : result.tabCount;
+
   return {
     browserId: result.browserId,
     label: result.label,
     engine: result.engine,
+    version: result.version || null,
     blocking: result.blocking,
+    blockingClass: result.blockingClass || 'unknown',
+    notes: result.notes || [],
     tabCount: result.tabCount,
     extraBlankTabs: result.extraBlankTabs || 0,
     medianBytes: stats.median,
@@ -37,8 +72,9 @@ function buildRow(result, baseline) {
     perTabBytes:
       baselineMedian === null || stats.median === null
         ? null
-        : perTabBytes(stats.median, baselineMedian, result.tabCount),
+        : perTabBytes(stats.median, baselineMedian, pages),
     unsettledRuns: result.repetitions.filter((r) => !r.settled).length,
+    unverifiedRuns: result.repetitions.filter((r) => r.loadUnverified).length,
   };
 }
 
@@ -54,36 +90,57 @@ function rankRows(rows) {
   });
 }
 
-/** Percentage difference of each row against the lowest row in the table. */
-function withRelative(rows) {
-  const ranked = rankRows(rows);
-  const best = ranked.find((r) => Number.isFinite(r.medianBytes));
-  return ranked.map((row) => ({
+/** The row every percentage is measured against. */
+function referenceRow(rows) {
+  for (const id of PREFERRED_REFERENCE) {
+    const found = rows.find((r) => r.browserId === id && Number.isFinite(r.medianBytes));
+    if (found) return found;
+  }
+  return rankRows(rows).find((r) => Number.isFinite(r.medianBytes)) || null;
+}
+
+/** Percentage difference of each row against the reference row. */
+function withRelative(rows, reference) {
+  const anchor = reference || referenceRow(rows);
+  return rankRows(rows).map((row) => ({
     ...row,
-    relativeToBest:
-      best && Number.isFinite(row.medianBytes) && best.medianBytes > 0
-        ? row.medianBytes / best.medianBytes - 1
+    relativeToReference:
+      anchor && Number.isFinite(row.medianBytes) && anchor.medianBytes > 0
+        ? row.medianBytes / anchor.medianBytes - 1
         : null,
   }));
 }
 
-const pct = (v) => (v === null ? '—' : v === 0 ? 'baseline' : `+${(v * 100).toFixed(0)}%`);
+/** Group rows by blocking class, in BLOCKING_CLASSES order, dropping empties. */
+function groupByBlockingClass(rows) {
+  return BLOCKING_CLASSES
+    .map((cls) => ({ ...cls, rows: rows.filter((r) => (r.blockingClass || 'unknown') === cls.id) }))
+    .filter((group) => group.rows.length);
+}
 
-function workloadTable(rows) {
+const pct = (v) => {
+  if (v === null) return '—';
+  if (Math.abs(v) < 0.005) return 'reference';
+  return `${v > 0 ? '+' : ''}${(v * 100).toFixed(0)}%`;
+};
+
+function tableFor(rows, reference) {
   const lines = [
-    '| Browser | Engine | Median | Range | Per tab | Procs | Blocking |',
-    '| --- | --- | ---: | ---: | ---: | ---: | --- |',
+    '| Browser | Version | Engine | Tabs | Median | vs ref | Range | Per page | Procs | Reps |',
+    '| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |',
   ];
-  for (const row of withRelative(rows)) {
+  for (const row of withRelative(rows, reference)) {
     const range =
       Number.isFinite(row.minBytes) && Number.isFinite(row.maxBytes)
         ? `${formatBytes(row.minBytes)} – ${formatBytes(row.maxBytes)}`
         : '—';
-    const flag = row.unsettledRuns ? ` ⚠️${row.unsettledRuns}` : '';
+    const flags =
+      (row.unsettledRuns ? ` ⚠️${row.unsettledRuns}` : '') +
+      (row.unverifiedRuns ? ' ❓' : '');
     lines.push(
-      `| ${row.label}${flag} | ${row.engine || '—'} | ${formatBytes(row.medianBytes)} ` +
-        `(${pct(row.relativeToBest)}) | ${range} | ${formatBytes(row.perTabBytes)} | ` +
-        `${row.processCount ?? '—'} | ${row.blocking || '—'} |`
+      `| ${row.label}${flags} | ${row.version || '?'} | ${row.engine || '—'} | ${row.tabCount} | ` +
+        `${formatBytes(row.medianBytes)} | ${pct(row.relativeToReference)} | ${range} | ` +
+        `${formatBytes(row.perTabBytes)} | ${row.processCount ?? '—'} | ${row.repetitions} |`
     );
   }
   return lines.join('\n');
@@ -110,7 +167,8 @@ function buildMarkdown(report) {
   out.push('# Browser memory benchmark');
   out.push('');
   out.push(`Run: ${meta.startedAt} · macOS ${meta.osVersion} · ${meta.arch} · ${meta.totalRamGiB} GiB RAM`);
-  out.push(`Metric: \`${metric}\` via \`${meta.backend}\` · ${meta.repetitions} repetitions per cell`);
+  out.push(`Metric: \`${metric}\` via \`${meta.backend}\` · up to ${meta.repetitions} repetitions per cell` +
+    (meta.warmedProfiles ? ' · profiles warmed before measuring' : ' · cold profiles'));
   out.push('');
 
   if (metric === 'rss') {
@@ -127,20 +185,41 @@ function buildMarkdown(report) {
     const first = workloadResults[0];
     out.push(`## ${first.workloadLabel || workload}`);
     out.push('');
-    out.push(`${first.tabCount} tabs per browser. ${first.workloadDescription || ''}`.trim());
+    out.push(`${first.workloadPages} pages per browser. ${first.workloadDescription || ''}`.trim());
     out.push('');
-    out.push(
-      workloadTable(
-        workloadResults.map((r) => buildRow(r, baselineByBrowser.get(r.browserId) || null))
-      )
-    );
-    out.push('');
-    const withExtra = workloadResults.filter((r) => (r.extraBlankTabs || 0) > 0);
+
+    const rows = workloadResults.map((r) => buildRow(r, baselineByBrowser.get(r.browserId) || null));
+    const reference = referenceRow(rows);
+    const groups = groupByBlockingClass(rows);
+
+    if (groups.length > 1) {
+      out.push('> **Rows are grouped by what each browser blocks, and that grouping is');
+      out.push('> load-bearing.** A browser that blocks ads renders less content, so a');
+      out.push('> lower number across groups is mostly a product difference, not an');
+      out.push('> engine-efficiency result. Compare within a group; across groups, read');
+      out.push('> it as "what this browser costs a user as configured", nothing more.');
+      out.push('');
+    }
+    if (reference) {
+      out.push(`*Percentages are relative to **${reference.label}**, not to the lowest row.*`);
+      out.push('');
+    }
+
+    for (const group of groups) {
+      if (groups.length > 1) {
+        out.push(`### ${group.label}`);
+        out.push('');
+      }
+      out.push(tableFor(group.rows, reference));
+      out.push('');
+    }
+
+    const withExtra = rows.filter((r) => r.extraBlankTabs > 0);
     if (withExtra.length) {
       out.push(
         '*Tab counts include a browser-opened blank tab for: ' +
           withExtra.map((r) => `${r.label} (+${r.extraBlankTabs})`).join(', ') +
-          '.*'
+          '. The per-page column divides by workload pages, not by this count.*'
       );
       out.push('');
     }
@@ -149,24 +228,55 @@ function buildMarkdown(report) {
   if (byWorkload.has('baseline')) {
     out.push('## Idle baseline (no pages loaded)');
     out.push('');
-    out.push('Startup cost alone. Subtracted from the loaded runs to produce the per-tab column above.');
+    out.push('Startup cost alone. Subtracted from the loaded runs to produce the per-page column above, and used to verify that a loaded cell actually loaded something.');
     out.push('');
-    out.push(workloadTable((byWorkload.get('baseline') || []).map((r) => buildRow(r, null))));
+    const rows = (byWorkload.get('baseline') || []).map((r) => buildRow(r, null));
+    out.push(tableFor(rows, referenceRow(rows)));
+    out.push('');
+  }
+
+  const caveats = results.flatMap((r) => (r.notes || []).map((n) => ({ label: r.label, note: n })));
+  const seenCaveat = new Set();
+  const uniqueCaveats = caveats.filter((c) => {
+    const key = `${c.label}::${c.note}`;
+    if (seenCaveat.has(key)) return false;
+    seenCaveat.add(key);
+    return true;
+  });
+  if (uniqueCaveats.length) {
+    out.push('## Per-browser caveats');
+    out.push('');
+    for (const c of uniqueCaveats) out.push(`- **${c.label}:** ${c.note}`);
+    out.push('');
+  }
+
+  if (meta.failures && meta.failures.length) {
+    out.push('## Failed cells');
+    out.push('');
+    out.push('These did not produce a measurement. A browser that failed load verification is **not** a browser that uses little memory — it is a browser the harness could not confirm did the work.');
+    out.push('');
+    out.push('| Browser | Workload | Rep | Reason |');
+    out.push('| --- | --- | ---: | --- |');
+    for (const f of meta.failures) {
+      out.push(`| ${f.label} | ${f.workload} | ${f.rep} | ${f.reason} |`);
+    }
     out.push('');
   }
 
   out.push('## How to read this');
   out.push('');
   out.push('- **Median** of the repetitions, not the mean — one run sampled mid-GC should not set the headline.');
+  out.push('- **vs ref** compares against the reference browser named above, not against the best row.');
   out.push('- **Range** is min–max across repetitions. A range that overlaps another browser\'s means the two are not distinguishable at this sample size.');
-  out.push('- **Per tab** is `(loaded median − idle median) / tabs`: the marginal cost of a page, with fixed startup cost removed.');
-  out.push('- **Procs** is the median number of processes in the browser\'s process tree. Chromium isolates per site; Gecko caps its content-process pool. That single difference explains most of any gap.');
-  out.push('- **⚠️N** marks rows where N repetitions were still drifting when the sampling window expired (video and infinite-scroll pages often never settle).');
+  out.push('- **Per page** is `(loaded median − idle median) / workload pages`: the marginal cost of a page, with fixed startup cost removed.');
+  out.push('- **Procs** is the median process count in the browser\'s tree. Chromium spawns a process per site instance; Firefox with Fission also isolates by site but multiplexes sites across a bounded pool, so its count grows more slowly at high tab counts. Browsers whose own UI is a web page (Blanc, Vivaldi) carry additional always-live renderers for the chrome itself, which are in their totals and baselines.');
+  out.push('- **Reps** is how many repetitions actually produced a measurement. A row backed by 1 of 3 has a Range that looks precise and is not.');
+  out.push('- **⚠️N** marks rows where N repetitions were still drifting when the sampling window expired. **❓** marks rows whose load could not be verified against an idle baseline.');
   out.push('');
   out.push('## Limits of this benchmark');
   out.push('');
   out.push('- Live sites change between runs. Results are only comparable **within a single session**, which is why the runner interleaves browsers rather than finishing one before starting the next.');
-  out.push('- Every browser runs a **fresh profile with no extensions**. That is the fair engine comparison, but it is not what most people run day to day.');
+  out.push('- Every browser runs a **fresh profile**, with no extensions **except any the browser ships itself** — LibreWolf bundles uBlock Origin, and that memory is inside its total. That is the fair engine comparison, but it is not what most people run day to day.');
   out.push('- Memory is one axis. It says nothing about responsiveness, energy, or page-load time.');
   if (meta.skipped && meta.skipped.length) {
     out.push('');
@@ -176,4 +286,13 @@ function buildMarkdown(report) {
   return out.join('\n');
 }
 
-module.exports = { buildRow, rankRows, withRelative, workloadTable, buildMarkdown };
+module.exports = {
+  BLOCKING_CLASSES,
+  buildRow,
+  rankRows,
+  referenceRow,
+  withRelative,
+  groupByBlockingClass,
+  tableFor,
+  buildMarkdown,
+};

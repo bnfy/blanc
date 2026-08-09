@@ -80,22 +80,40 @@ function parseVmmapSummary(stdout) {
 }
 
 /**
- * Parse `footprint -p <pid>` output. Its layout has changed across macOS
- * releases, so this looks for any line naming a footprint and takes the last
- * size-looking token on it, preferring an explicit byte count. Lines reporting
- * a peak or a lifetime maximum are skipped for the same reason as above.
+ * Parse `footprint -pid <pid>` output.
+ *
+ * Real output looks like:
+ *   com.apple.WebKit.WebContent [27416]: 64-bit Footprint: 142 MB (16384 bytes per page)
+ *
+ * The trailing parenthetical is a page-size annotation, NOT the footprint, and
+ * it is the trap in this parser: a naive "prefer an explicit byte count" rule
+ * matches "16384 bytes" and reports a 142 MB process as 16 KB — a number small
+ * enough to look like a win and large enough to pass a `> 0` liveness check.
+ * So the value is taken from immediately after `Footprint:`, and any
+ * parenthetical is only consulted when it is not a per-page annotation.
+ *
+ * Lines reporting a peak or lifetime maximum are skipped for the same reason as
+ * in the vmmap parser.
  *
  * @returns {number|null} bytes
  */
 function parseFootprint(stdout) {
   if (typeof stdout !== 'string') return null;
   for (const line of stdout.split('\n')) {
-    if (!/footprint/i.test(line)) continue;
+    if (!/footprint\s*:/i.test(line)) continue;
     if (/\b(peak|max|maximum|lifetime)\b/i.test(line)) continue;
-    const exact = parseSizeToBytes(line);
-    if (exact !== null) return exact;
-    const tokens = line.match(/[\d,]+(?:\.\d+)?\s*[KMGT]?B\b/gi);
-    if (tokens && tokens.length) return parseSizeToBytes(tokens[tokens.length - 1]);
+
+    const m = line.match(/footprint\s*:\s*([^()]+?)\s*(?:\(([^)]*)\))?\s*$/i);
+    if (!m) continue;
+
+    // An exact byte count in the parenthetical is authoritative only when it is
+    // describing the footprint itself, never when it is "N bytes per page".
+    if (m[2] && /bytes?\b/i.test(m[2]) && !/per\s+page/i.test(m[2])) {
+      const exact = parseSizeToBytes(m[2]);
+      if (exact !== null) return exact;
+    }
+    const value = parseSizeToBytes(m[1]);
+    if (value !== null) return value;
   }
   return null;
 }
@@ -146,7 +164,9 @@ const BACKENDS = [
     async sample(pids) {
       const out = new Map();
       for (const pid of pids) {
-        const r = await run('/usr/bin/footprint', ['-p', String(pid)]);
+        // `-pid`, not `-p`: footprint(1) takes `-proc <name> | -pid <pid>`, and
+        // `-p` is not even an unambiguous abbreviation between the two.
+        const r = await run('/usr/bin/footprint', ['-pid', String(pid)]);
         if (!r.ok) continue;
         const bytes = parseFootprint(r.stdout);
         if (bytes !== null) out.set(pid, bytes);
@@ -176,7 +196,12 @@ const BACKENDS = [
     async sample(pids) {
       // One call for the whole system, then filter: far cheaper than shelling
       // out per process when a browser tree is 30+ processes.
-      const r = await run('/usr/bin/top', ['-l', '1', '-stats', 'pid,mem', '-n', '0']);
+      //
+      // Deliberately no `-n`: top(1) documents it as "only display up to nprocs
+      // processes", so `-n 0` prints the summary header and ZERO rows — the
+      // header-only idiom, not "unlimited". Logging mode already lists every
+      // process, so the flag was both unnecessary and fatal to this backend.
+      const r = await run('/usr/bin/top', ['-l', '1', '-stats', 'pid,mem']);
       if (!r.ok) return new Map();
       const all = parseTopMem(r.stdout);
       const out = new Map();
@@ -226,6 +251,29 @@ async function selectBackend(options = {}) {
 }
 
 /**
+ * Can this backend actually read this process?
+ *
+ * Selection happens before any browser exists, so it can only probe our own
+ * Node process — and that proves almost nothing: `vmmap` reads a non-hardened
+ * process you own without root, but every browser here ships a hardened
+ * runtime and denies `task_for_pid` to an unprivileged caller. A backend that
+ * passes selection can therefore still return nothing for every browser pid,
+ * which `sampleTotal` would faithfully sum to zero.
+ *
+ * The runner calls this against the first browser it launches and aborts the
+ * whole matrix if it fails, so the failure costs one cell rather than forty
+ * minutes of zeroes.
+ *
+ * @param {object} backend
+ * @param {number} pid
+ * @returns {Promise<boolean>}
+ */
+async function canReadPid(backend, pid) {
+  const sampled = await backend.sample([pid]);
+  return (sampled.get(pid) || 0) > 0;
+}
+
+/**
  * Sum a backend's per-process readings over a set of pids.
  *
  * Processes that vanish between discovery and sampling (a renderer exiting) are
@@ -261,5 +309,6 @@ module.exports = {
   parseTopMem,
   parsePsRss,
   selectBackend,
+  canReadPid,
   sampleTotal,
 };

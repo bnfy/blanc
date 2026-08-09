@@ -25,8 +25,15 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 
 /** Prefs shared by every Gecko profile: keep first-run pages, update checks and
- *  telemetry pings from adding tabs or background work mid-measurement. */
-function geckoUserJs(urls) {
+ *  telemetry pings from adding tabs or background work mid-measurement.
+ *
+ *  `extraPrefs` comes from the registry entry and is applied last (last write
+ *  wins in user.js), so a fork shipping its own onboarding — Zen's welcome flow
+ *  is separate from Mozilla's about:welcome and untouched by
+ *  browser.aboutwelcome.enabled — can suppress it with a JSON edit. Without
+ *  this hook the registry's "adding a browser is a JSON edit" contract is false
+ *  for any Gecko fork whose first-run surface is not Mozilla's. */
+function geckoUserJs(urls, extraPrefs = {}) {
   const prefs = [
     ['browser.startup.page', 1],
     ['browser.startup.homepage', urls.join('|')],
@@ -39,7 +46,14 @@ function geckoUserJs(urls) {
     ['browser.sessionstore.resume_from_crash', false],
     ['app.update.auto', false],
     ['browser.tabs.warnOnClose', false],
+    // Gecko's tab unloader discards inactive background tabs under memory
+    // pressure. Chromium does not act at these timescales, so leaving it live
+    // would hand a discount to the Gecko rows alone — and because discarding
+    // *helps* the series flatten, settle detection would record it as a clean
+    // result rather than as tabs quietly disappearing.
+    ['browser.tabs.unloadOnLowMemory', false],
   ];
+  for (const [key, value] of Object.entries(extraPrefs)) prefs.push([key, value]);
   return prefs
     .map(([key, value]) => `user_pref(${JSON.stringify(key)}, ${JSON.stringify(value)});`)
     .join('\n') + '\n';
@@ -76,7 +90,10 @@ function buildLaunchPlan(browser, context) {
       '--new-instance',
       ...(browser.extraArgs || []),
     ];
-    const files = [{ path: path.join(profileDir, 'user.js'), contents: geckoUserJs(urls) }];
+    const files = [{
+      path: path.join(profileDir, 'user.js'),
+      contents: geckoUserJs(urls, browser.extraPrefs || {}),
+    }];
     return { args, files, tabCount: urls.length + extra };
   }
 
@@ -136,30 +153,51 @@ function isAlive(pid) {
 }
 
 /**
- * Ask a browser to exit, then insist. The profile is disposable, so a hard kill
- * after the grace period costs nothing and keeps a wedged browser from stalling
- * a long matrix run.
+ * Ask a browser to exit, then insist — across its whole process tree.
+ *
+ * Signalling only the root is not enough. A helper whose parent has gone is
+ * re-parented to launchd and survives, and because process attribution unions
+ * the descendant walk with bundle-path matching, a survivor from one cell is
+ * charged to the next cell using the same bundle. That is not hypothetical
+ * here: `blanc` and `blanc-noblock` are two registry ids pointing at the same
+ * /Applications/Blanc.app, and rotation places them adjacent.
+ *
+ * `pids` is the process set the caller last measured, so the sweep covers
+ * helpers that have already been re-parented away from the root.
+ *
+ * The profile is disposable, so a hard kill after the grace period costs
+ * nothing and keeps a wedged browser from stalling a long matrix run.
  */
-async function quit(pid, { graceMs = 8000, pollMs = 250 } = {}) {
-  if (!pid || !isAlive(pid)) return { killed: false };
+async function quit(pid, { pids = [], graceMs = 8000, pollMs = 250 } = {}) {
+  const tree = [...new Set([pid, ...pids].filter(Boolean))];
+  const alive = () => tree.filter((p) => isAlive(p));
+  if (!alive().length) return { killed: false, remaining: [] };
+
+  // Ask the root first: a graceful browser shutdown reaps its own helpers, and
+  // signalling helpers directly can make the root treat it as a crash.
   try {
     process.kill(pid, 'SIGTERM');
   } catch {
-    return { killed: false };
+    /* already gone — fall through to the sweep */
   }
 
   const deadline = Date.now() + graceMs;
   while (Date.now() < deadline) {
-    if (!isAlive(pid)) return { killed: false };
+    if (!alive().length) return { killed: false, remaining: [] };
     await new Promise((resolve) => setTimeout(resolve, pollMs));
   }
 
-  try {
-    process.kill(pid, 'SIGKILL');
-  } catch {
-    /* already gone */
+  for (const p of alive()) {
+    try {
+      process.kill(p, 'SIGKILL');
+    } catch {
+      /* already gone */
+    }
   }
-  return { killed: true };
+  // Give the kernel a moment so a caller that immediately re-snapshots does not
+  // see the corpses it just reaped.
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  return { killed: true, remaining: alive() };
 }
 
 module.exports = {

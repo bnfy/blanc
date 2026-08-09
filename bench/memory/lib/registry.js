@@ -6,6 +6,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { execFile } = require('node:child_process');
 
 const REGISTRY_PATH = path.join(__dirname, '..', 'browsers.json');
 
@@ -90,4 +91,31 @@ function selectBrowsers(browsers, requestedIds) {
   return { selected, skipped };
 }
 
-module.exports = { REGISTRY_PATH, resolveBrowserPaths, loadRegistry, selectBrowsers };
+/**
+ * The bundle's marketing version, e.g. "1.21.13".
+ *
+ * A memory number is not citable without it. Zen in particular ships every few
+ * days on a moving Firefox base, so "Zen used X" is meaningless a fortnight
+ * later — and it is the only way to notice that a row labelled as the stable
+ * build was actually a nightly.
+ *
+ * `defaults` is used rather than reading Info.plist directly because bundles
+ * ship it in binary plist format as often as XML. Failure is not fatal: an
+ * unknown version is recorded as null and rendered as "?".
+ *
+ * @param {string} bundlePath
+ * @returns {Promise<string|null>}
+ */
+function bundleVersion(bundlePath) {
+  return new Promise((resolve) => {
+    if (!bundlePath) return resolve(null);
+    execFile(
+      '/usr/bin/defaults',
+      ['read', path.join(bundlePath, 'Contents', 'Info'), 'CFBundleShortVersionString'],
+      { timeout: 10_000, encoding: 'utf8' },
+      (error, stdout) => resolve(error ? null : String(stdout).trim() || null)
+    );
+  });
+}
+
+module.exports = { REGISTRY_PATH, resolveBrowserPaths, loadRegistry, selectBrowsers, bundleVersion };

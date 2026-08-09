@@ -44,8 +44,44 @@ actually works on this machine, and records its name in the output. If only
 as indicative. Results from different backends are never combined into one
 table; `requireConsistentMetric()` throws instead.
 
-Run `--probe` first. If it reports `ps`, try `sudo` — `vmmap` on a
-hardened, signed application usually needs it.
+Run `--probe` first. It can only probe the harness's own Node process, though,
+and that proves less than it looks: `vmmap` reads an unhardened process you own
+without root, while every browser here ships a hardened runtime and denies
+`task_for_pid` to an unprivileged caller. So the backend is **re-validated
+against the first real browser launched**, and the run aborts immediately if it
+cannot read it — one wasted cell instead of forty minutes of zeroes.
+
+**Do not run the whole harness under `sudo`.** It would launch every browser as
+root, which is not the configuration anyone uses and not what you want to
+measure. If the backend cannot read hardened processes, either grant the
+measurement tool the access it needs or fall back to `--backend=ps` and accept
+that the report will mark itself unpublishable.
+
+## What stops a browser quietly reporting a number it did not earn
+
+The failure this harness most needs to survive is not a bad measurement — it is
+a browser that never did the work. Blanc **cancels every http(s) main-frame
+request** until its ad blocker is compiled (`main.js:226`, installed at
+`main.js:3751`); a vendor's welcome tab can swallow the argv URLs; a Gecko fork
+may ignore the startup-homepage tab seeding; Arc may ignore `--user-data-dir`.
+Every one of those produces the same artifact: a well-formed, settled,
+correctly-attributed row that is simply wrong — and wrong in the *flattering*
+direction, because a browser that rendered nothing uses very little memory.
+
+Two mechanisms guard against it, neither of which encodes a guess about any
+specific browser:
+
+- **Warmed template profiles** (`--warm`, on by default). Each browser is
+  launched once with no URLs, left to finish its first-run setup and blocklist
+  compilation, then quit; every measured cell starts from a copy of that
+  profile. No cell races a one-time setup cost.
+- **Load verification.** A loaded cell must sit at least 15% above that same
+  browser's own idle baseline. Ten real pages cost far more than that; a
+  browser sitting at its start page does not. Cells that fail are **rejected
+  and listed in the report's "Failed cells" section**, never quietly published.
+
+This is also why `baseline` runs first and is worth always including — without
+it, load verification cannot run and rows are marked `❓`.
 
 ## What makes the comparison fair
 
@@ -85,17 +121,30 @@ A full matrix takes a while — 3 browsers × 2 workloads × 3 repetitions at up
 
 ## Reading the output
 
+Rows are **grouped by what each browser blocks**, and that grouping is
+load-bearing rather than decorative. A browser that blocks ads renders less
+content, so a lower number across groups is mostly a product difference, not an
+engine-efficiency result. Compare within a group; across groups, read it as
+"what this browser costs a user as configured", nothing more.
+
 | Column | Meaning |
 | --- | --- |
-| Median | Median total across repetitions, and its percentage above the lowest row |
+| Version | The bundle's marketing version. A number is not citable without it — Zen ships every few days |
+| Median | Median total across repetitions |
+| vs ref | Percentage against the **reference** browser (Chrome by default), not against the lowest row. Anchoring a vendor benchmark to its own product's best configuration is the shape reviewers distrust |
 | Range | min–max across repetitions. **Overlapping ranges mean the two browsers are not distinguishable** at that sample size |
-| Per tab | `(loaded median − idle median) / tabs` — marginal cost of a page, fixed startup cost removed |
-| Procs | Median process count. Chromium isolates per site; Gecko caps its content-process pool. That difference explains most of any gap |
-| ⚠️N | N repetitions were still drifting when sampling gave up |
+| Per page | `(loaded median − idle median) / workload pages` — marginal cost of a page, fixed startup cost removed. Divides by workload pages, never by a browser's own inflated tab count |
+| Procs | Median process count. Chromium spawns a process per site instance; Firefox with Fission isolates by site but multiplexes across a bounded pool, so its count grows more slowly. Browsers whose UI is itself a web page (Blanc, Vivaldi) carry extra always-live renderers |
+| Reps | How many repetitions actually produced a measurement. A row backed by 1 of 3 has a Range that looks precise and is not |
+| ⚠️N / ❓ | N repetitions still drifting when sampling gave up / load could not be verified against an idle baseline |
 
-`per tab` is usually the number worth quoting. Total memory conflates "how
+`Per page` is usually the number worth quoting. Total memory conflates "how
 expensive is a page" with "how many services does this browser start eagerly",
 and only the first is about handling real content.
+
+Read the **Failed cells** section before any number. A browser that failed load
+verification is not a browser that uses little memory — it is a browser the
+harness could not confirm did the work.
 
 ## The workloads
 
@@ -139,7 +188,14 @@ set of pages, with fresh profiles and no extensions.
 
 - Quote the **range**, not just the median.
 - Say which **metric** produced them; an RSS-backed run is not publishable.
-- Say the profiles were **empty and extension-free** — most people's aren't.
+- Say the profiles were **empty**, and extension-free **except where a browser
+  bundles its own** — LibreWolf ships uBlock Origin, and that memory is in its
+  total. Most people's profiles aren't empty either way.
+- **Never compare across blocking groups without saying so.** Beating a
+  non-blocking browser on an ad-heavy workload is a product result, not an
+  engine result, and a sentence lifted out of the grouped table loses exactly
+  that distinction.
+- Record the **browser versions** from the report.
 - Don't generalise from `mixed` at 10 tabs to "at 100 tabs". Run `scale` instead.
 - Commit the specific report you cite. Raw results are gitignored by default
   because they are machine-specific and noisy, but a number that appears in

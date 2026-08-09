@@ -44,6 +44,40 @@ test('footprint output skips peak/lifetime lines and prefers exact bytes', () =>
   assert.equal(measure.parseFootprint('lifetime max footprint: 900M'), null);
 });
 
+test('footprint page-size annotation is never mistaken for the footprint', () => {
+  // Real footprint(1) output. A naive "prefer an exact byte count" rule matches
+  // the "16384 bytes" page size and reports a 142 MB process as 16 KB — small
+  // enough to look like a win, non-zero enough to pass a liveness check.
+  const real = 'com.apple.WebKit.WebContent [27416]: 64-bit Footprint: 142 MB (16384 bytes per page)';
+  assert.equal(measure.parseFootprint(real), 142 * MiB);
+});
+
+test('the footprint backend uses -pid, and top does not ask for zero processes', () => {
+  const byId = Object.fromEntries(measure.BACKENDS.map((b) => [b.id, b]));
+  // Captured by stubbing the child process layer would be heavier than needed;
+  // the argv is asserted through the backend's own source, which is the thing
+  // that was wrong: `-p` is not a footprint(1) flag, and `-n 0` makes top print
+  // zero rows rather than all of them.
+  const source = require('node:fs').readFileSync(
+    require.resolve('../../bench/memory/lib/measure.js'), 'utf8'
+  );
+  assert.match(source, /'\/usr\/bin\/footprint', \['-pid', String\(pid\)\]/);
+  assert.doesNotMatch(source, /'-p',\s*String\(pid\)/);
+  assert.match(source, /'\/usr\/bin\/top', \['-l', '1', '-stats', 'pid,mem'\]/);
+  assert.doesNotMatch(source, /'-n', '0'/);
+  assert.equal(byId.ps.metric, 'rss');
+  assert.equal(byId.vmmap.metric, 'phys_footprint');
+});
+
+test('canReadPid reports whether a backend can actually read a process', async () => {
+  const working = { sample: async (pids) => new Map(pids.map((p) => [p, 1024])) };
+  const denied = { sample: async () => new Map() };
+  assert.equal(await measure.canReadPid(working, 42), true);
+  // A hardened, signed browser denying task_for_pid looks exactly like this.
+  assert.equal(await measure.canReadPid(denied, 42), false);
+  assert.equal(await measure.canReadPid({ sample: async () => new Map([[42, 0]]) }, 42), false);
+});
+
 test('top output parses pid/mem rows and ignores its header block', () => {
   const stdout = [
     'Processes: 500 total, 2 running',
@@ -243,6 +277,42 @@ test('gecko launches seed tabs through the profile rather than positional URLs',
   assert.equal(plan.tabCount, 2);
 });
 
+test('gecko profiles disable the tab unloader and accept per-browser extra prefs', () => {
+  const plan = launch.buildLaunchPlan(
+    { id: 'zen', family: 'gecko', extraPrefs: { 'zen.welcome-screen.seen': true } },
+    { profileDir: '/tmp/p', urls: ['https://a.test'] }
+  );
+  const prefs = plan.files[0].contents;
+  // Gecko's tab unloader would discard measured tabs under memory pressure —
+  // and discarding helps the series flatten, so settle detection would record
+  // it as a clean result. Chromium has no equivalent at these timescales, so
+  // leaving it on would discount the Gecko rows alone.
+  assert.match(prefs, /"browser\.tabs\.unloadOnLowMemory", false/);
+  // A fork whose onboarding is not Mozilla's must be suppressible by JSON edit.
+  assert.match(prefs, /"zen\.welcome-screen\.seen", true/);
+  // Extra prefs are written last so they can override the shared defaults.
+  assert.ok(
+    prefs.indexOf('zen.welcome-screen.seen') > prefs.indexOf('browser.startup.homepage'),
+    'extraPrefs must be applied last'
+  );
+});
+
+test('Zen registry entries cover onboarding and keep the nightly channel separate', () => {
+  const { browsers } = registry.loadRegistry({ exists: () => false });
+  const zen = browsers.find((b) => b.id === 'zen');
+  const twilight = browsers.find((b) => b.id === 'zen-twilight');
+
+  assert.equal(zen.extraPrefs['zen.welcome-screen.seen'], true);
+  // Twilight.app must NOT be a candidate on the stable entry: resolution takes
+  // the first existing candidate and labels the row from the entry, so that
+  // would publish a nightly under the label "Zen Browser".
+  assert.ok(!JSON.stringify(zen.bundlePath).includes('Twilight'));
+  assert.ok(twilight, 'the nightly channel needs its own id');
+  assert.deepEqual(twilight.bundlePath, ['/Applications/Twilight.app']);
+  // Zen's blocking string must not imply ad blocking.
+  assert.match(zen.blocking, /does NOT block ads/i);
+});
+
 test('an unknown browser family fails loudly instead of launching something wrong', () => {
   assert.throws(
     () => launch.buildLaunchPlan({ id: 'x', family: 'webkit' }, { profileDir: '/tmp/p', urls: [] }),
@@ -379,6 +449,141 @@ test('the report ranks by median, marks unsettled rows, and warns loudly on RSS'
   // Per-tab column: (300 MiB loaded - 100 MiB idle) / 2 tabs.
   assert.match(markdown, /\| 100 MiB \| 4 \|/);
   assert.match(markdown, /Idle baseline/);
+});
+
+test('load verification rejects a cell that never loaded its pages', () => {
+  const idle = 200 * MiB;
+  // Blanc gating navigation behind its ad-blocker build settles perfectly flat
+  // at roughly its idle size while reporting a full tab count.
+  const gated = run.verifyLoaded({ workload: 'mixed', totalBytes: idle * 1.02, baselineBytes: idle, tabCount: 11 });
+  assert.equal(gated.ok, false);
+  assert.match(gated.reason, /never loaded/);
+
+  const loaded = run.verifyLoaded({ workload: 'mixed', totalBytes: idle * 3, baselineBytes: idle, tabCount: 11 });
+  assert.equal(loaded.ok, true);
+
+  // The idle workload is supposed to sit at idle.
+  assert.equal(run.verifyLoaded({ workload: 'baseline', totalBytes: idle, baselineBytes: null, tabCount: 1 }).ok, true);
+
+  // A backend reading nothing must never pass as a very efficient browser.
+  const zero = run.verifyLoaded({ workload: 'mixed', totalBytes: 0, baselineBytes: idle, tabCount: 11 });
+  assert.equal(zero.ok, false);
+  assert.match(zero.reason, /read nothing/);
+
+  // Without a baseline the check cannot run; it says so rather than passing silently.
+  const noBaseline = run.verifyLoaded({ workload: 'mixed', totalBytes: 500 * MiB, baselineBytes: null, tabCount: 11 });
+  assert.equal(noBaseline.ok, true);
+  assert.match(noBaseline.unverified, /no idle baseline/);
+});
+
+test('baseline is ordered first so loaded cells have something to verify against', () => {
+  assert.deepEqual(run.orderWorkloads(['mixed', 'baseline', 'adheavy']), ['baseline', 'mixed', 'adheavy']);
+  assert.deepEqual(run.orderWorkloads(['mixed']), ['mixed']);
+});
+
+test('a profile seed a family cannot honour is an error, not a mislabelled run', () => {
+  // A "brave-noshields" entry would otherwise run with Shields ON under a
+  // label claiming blocking was disabled.
+  assert.throws(
+    () => run.prepareProfile({ id: 'x', label: 'Brave (no shields)', family: 'chromium', requiresProfileSeed: 'shieldsDisabled' }, null),
+    /has no seeding support/
+  );
+});
+
+test('the report groups by blocking class and anchors percentages to the reference', () => {
+  const cell = (id, label, bytes, workload, blockingClass) => ({
+    browserId: id, label, engine: 'Test', blocking: blockingClass, blockingClass,
+    workload, workloadLabel: workload, workloadPages: 10, tabCount: 10,
+    metric: 'phys_footprint', backend: 'vmmap',
+    repetitions: [{ totalBytes: bytes, processCount: 12, settled: true }],
+  });
+
+  const markdown = report.buildMarkdown({
+    meta: {
+      startedAt: '2026-08-09T10:00:00Z', osVersion: '25.0.0', arch: 'arm64',
+      totalRamGiB: 32, backend: 'vmmap', metric: 'phys_footprint', repetitions: 3,
+      skipped: [], failures: [],
+    },
+    results: [
+      cell('blanc', 'Blanc', 400 * MiB, 'mixed', 'ads+trackers'),
+      cell('chrome', 'Google Chrome', 800 * MiB, 'mixed', 'none'),
+      cell('zen', 'Zen Browser', 600 * MiB, 'mixed', 'trackers'),
+      cell('blanc', 'Blanc', 200 * MiB, 'baseline', 'ads+trackers'),
+    ],
+  });
+
+  // Blocking classes get their own sections, with the mandatory caveat.
+  assert.match(markdown, /### No blocking/);
+  assert.match(markdown, /### Blocks trackers only/);
+  assert.match(markdown, /### Blocks ads and trackers/);
+  assert.match(markdown, /grouped by what each browser blocks/);
+  // Percentages anchor to Chrome, not to the lowest row.
+  assert.match(markdown, /relative to \*\*Google Chrome\*\*/);
+  assert.match(markdown, /\| reference \|/);
+  // Blanc is half of Chrome, so it reads -50% rather than being the "baseline".
+  assert.match(markdown, /-50%/);
+});
+
+test('per-page cost divides by workload pages, never by a browser-inflated tab count', () => {
+  const row = report.buildRow(
+    {
+      browserId: 'blanc', label: 'Blanc', workload: 'mixed',
+      workloadPages: 10, tabCount: 11, extraBlankTabs: 1,
+      repetitions: [{ totalBytes: 1200 * MiB, processCount: 12, settled: true }],
+    },
+    { repetitions: [{ totalBytes: 200 * MiB, processCount: 3, settled: true }] }
+  );
+  // (1200 - 200) / 10 pages = 100 MiB. Dividing by 11 tabs would report ~91 MiB
+  // and understate Blanc's per-page cost against browsers that divide by 10.
+  assert.equal(row.perTabBytes, 100 * MiB);
+});
+
+test('failed cells are reported rather than silently absent', () => {
+  const markdown = report.buildMarkdown({
+    meta: {
+      startedAt: 'x', osVersion: 'x', arch: 'x', totalRamGiB: 1,
+      backend: 'vmmap', metric: 'phys_footprint', repetitions: 3, skipped: [],
+      failures: [{ label: 'Vivaldi', workload: 'mixed', rep: 1, reason: 'only 3% above its own idle baseline' }],
+    },
+    results: [{
+      browserId: 'chrome', label: 'Chrome', workload: 'mixed', workloadPages: 10, tabCount: 10,
+      blockingClass: 'none', metric: 'phys_footprint',
+      repetitions: [{ totalBytes: 500 * MiB, processCount: 10, settled: true }],
+    }],
+  });
+  assert.match(markdown, /## Failed cells/);
+  assert.match(markdown, /Vivaldi/);
+  assert.match(markdown, /is \*\*not\*\* a browser that uses little memory/);
+});
+
+test('per-browser caveats reach the report instead of staying in the registry', () => {
+  const markdown = report.buildMarkdown({
+    meta: { startedAt: 'x', osVersion: 'x', arch: 'x', totalRamGiB: 1, backend: 'vmmap', metric: 'phys_footprint', repetitions: 1, skipped: [], failures: [] },
+    results: [{
+      browserId: 'arc', label: 'Arc', workload: 'mixed', workloadPages: 10, tabCount: 10,
+      blockingClass: 'none', metric: 'phys_footprint',
+      notes: ['Arc may ignore --user-data-dir.'],
+      repetitions: [{ totalBytes: 500 * MiB, processCount: 10, settled: true }],
+    }],
+  });
+  assert.match(markdown, /## Per-browser caveats/);
+  assert.match(markdown, /Arc may ignore --user-data-dir/);
+});
+
+test('every runnable registry entry declares a blocking class the report can group on', () => {
+  const { browsers } = registry.loadRegistry({ exists: () => false });
+  const valid = new Set(report.BLOCKING_CLASSES.map((c) => c.id));
+  for (const b of browsers.filter((x) => x.supported !== false)) {
+    assert.ok(valid.has(b.blockingClass), `${b.id} has blockingClass ${b.blockingClass}`);
+  }
+  // Vivaldi blocks trackers only out of the box; classing it with the ad
+  // blockers would put it in the wrong comparison group.
+  assert.equal(browsers.find((b) => b.id === 'vivaldi').blockingClass, 'trackers');
+  assert.equal(browsers.find((b) => b.id === 'blanc').blockingClass, 'ads+trackers');
+  assert.equal(browsers.find((b) => b.id === 'blanc-noblock').blockingClass, 'none');
+  // Brave's in-bundle Sparkle updater must be suppressed or it can download an
+  // update inside the sampling window.
+  assert.ok(browsers.find((b) => b.id === 'brave').extraArgs.includes('--disable-brave-update'));
 });
 
 test('the report refuses to render a table mixing metrics', () => {
