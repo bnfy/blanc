@@ -81,6 +81,7 @@ function install(refs) {
     getPrivateBrowsingSession,
     attemptChromeNavigation,
     getChromeUrl,
+    serializedTabsPayload,
     sleepTab,
     wakeTab,
     runSleepSweep,
@@ -763,6 +764,7 @@ function install(refs) {
     },
     attemptChromeNavigation(url) { return attemptChromeNavigation(String(url)); },
     chromeUrl() { return getChromeUrl(); },
+    serializedTabsPayload() { return serializedTabsPayload(); },
 
     // ---- Quiet Tabs ----
     // Every method drives the real main-process implementation; a mirror here

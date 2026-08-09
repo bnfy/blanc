@@ -1598,6 +1598,9 @@ function serializeTabs() {
         groupId: tab.groupId,
         pageBg: tab.pageBg,
         themeColor: tab.themeColor,
+        // The sole Quiet Tabs field chrome may see. Operational sleep state
+        // and snapshots remain main-process-only.
+        asleep: tab.asleep,
       };
       // Whether ads are allow-listed here. Derived rather than stored: the
       // exception list is edited from Settings and the slash commands alike,
@@ -3924,6 +3927,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         `location.href = ${JSON.stringify(String(url))}`
       ),
       getChromeUrl: () => rt().window?.webContents.getURL() ?? '',
+      serializedTabsPayload: () => JSON.parse(JSON.stringify(serializeTabs())),
       sleepTab, wakeTab, runSleepSweep,
       getSleepSnapshots: () => sleepSnapshots,
       setSleepThresholdOverride: (ms) => {

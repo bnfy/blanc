@@ -30,7 +30,7 @@ function serialize(tabList) {
 const EXPECTED_KEYS = [
   'id', 'title', 'url', 'isLoading', 'canGoBack', 'canGoForward', 'favicon',
   'bookmarked', 'blockedCount', 'private', 'pinned', 'muted', 'audible',
-  'groupId', 'pageBg', 'themeColor', 'excepted', 'shield', 'connection',
+  'groupId', 'pageBg', 'themeColor', 'asleep', 'excepted', 'shield', 'connection',
 ].sort();
 
 const record = (over = {}) => ({
@@ -38,7 +38,7 @@ const record = (over = {}) => ({
   url: 'https://example.com/', isLoading: false, canGoBack: true, canGoForward: false,
   favicon: 'https://example.com/favicon.ico', bookmarked: false, blockedCount: 3,
   private: false, pinned: false, muted: false, audible: false, groupId: null,
-  pageBg: '#ffffff', themeColor: null, historyEligible: true, navEpoch: 7, ...over,
+  pageBg: '#ffffff', themeColor: null, asleep: false, historyEligible: true, navEpoch: 7, ...over,
 });
 
 test('the broadcast payload is exactly the allowlist', () => {
