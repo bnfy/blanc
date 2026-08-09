@@ -1713,6 +1713,21 @@ function persistSession() {
   });
 }
 
+/** Clearing history must not leave the same page titles sitting in
+ * session.json's meta column — history.clearHistory() only rewrites
+ * history.json. The next session write re-derives metadata for open tabs. */
+function clearSessionMeta() {
+  if (sessionReadOnly) return;
+  ensureSessionStore().update((d) => {
+    if (Array.isArray(d.windows)) {
+      for (const windowEntry of d.windows) {
+        if (windowEntry && typeof windowEntry === 'object') delete windowEntry.meta;
+      }
+    }
+    delete d.meta;
+  });
+}
+
 /** The active tab's popover model, or null when it has no blockable host. */
 function activeShieldPopover(serialized = serializeTabs()) {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
@@ -3226,7 +3241,10 @@ function registerIpcHandlers() {
       }
     }
   });
-  chromeHandle('chrome:history-clear', () => history.clearHistory());
+  chromeHandle('chrome:history-clear', () => {
+    history.clearHistory();
+    clearSessionMeta();
+  });
   chromeHandle('chrome:adblock-toggle', () => runBlockAdsCommand());
   chromeHandle('chrome:adblock-exempt-active', () => runAllowAdsCommand());
   chromeHandle('chrome:cycle-theme', (_event, requestedTheme) => {
@@ -3863,6 +3881,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setupPages({
     sessions: browsingSessions,
     onDataChanged: refreshBookmarkFlagsBound,
+    onHistoryCleared: bindWindowRuntime(primaryRuntime, clearSessionMeta),
     // Parent for the favorites-import file dialog (evaluated lazily at click).
     getMainWindow: bindWindowRuntime(primaryRuntime, () => (hasLiveWindow() ? rt().window : undefined)),
     // Utility sheet: only the sheet view itself may close the sheet — the

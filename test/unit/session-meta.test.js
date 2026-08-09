@@ -58,3 +58,42 @@ test('the restore copy-back threads meta through the utility-url filter', () => 
   assert.match(mainSource, /saved\.meta = cleaned\.meta;/,
     'without this a dropped utility url misaligns every title by one');
 });
+
+const clearSource = mainSource.match(/function clearSessionMeta\(\) \{[\s\S]*?\n\}/)?.[0];
+
+function runClear(data, { readOnly = false } = {}) {
+  const sandbox = {
+    sessionReadOnly: readOnly,
+    ensureSessionStore: () => ({ update: (fn) => fn(data) }),
+  };
+  vm.runInNewContext(`${clearSource}\nthis.__fn = clearSessionMeta;`, sandbox);
+  sandbox.__fn();
+  return data;
+}
+
+test('clearing history strips the meta column from every persisted window', () => {
+  assert.ok(clearSource, 'clearSessionMeta not found — update this test with it');
+  const data = runClear({
+    version: 1,
+    windows: [{ urls: ['https://a/'], meta: [{ title: 'A', favicon: null }] }],
+    urls: ['https://a/'],
+  });
+  assert.equal('meta' in data.windows[0], false);
+  assert.deepEqual(data.windows[0].urls, ['https://a/'], 'only meta is removed — the session survives');
+});
+
+test('clearing history never rewrites a session file a newer build owns', () => {
+  const data = runClear(
+    { version: 9, windows: [{ meta: [{ title: 'A', favicon: null }] }] },
+    { readOnly: true }
+  );
+  assert.equal('meta' in data.windows[0], true);
+});
+
+test('both history-clear entry points clear the persisted titles', () => {
+  assert.match(mainSource, /chromeHandle\('chrome:history-clear'[\s\S]{0,160}clearSessionMeta\(\)/,
+    "the chrome's own history clear must drop the meta column");
+  const pagesSource = fs.readFileSync(path.join(__dirname, '../../src/main/pages.js'), 'utf8');
+  assert.match(pagesSource, /pages:history:clear'[\s\S]{0,160}onHistoryCleared/,
+    'the History page clears through the same hook');
+});
