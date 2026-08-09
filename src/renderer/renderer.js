@@ -410,6 +410,7 @@
         active: t.id === state.activeTabId,
         loading: t.isLoading,
         private: t.private,
+        asleep: t.asleep,
         title: t.title || 'New Tab',
         // While loading, setFavicon deliberately ignores both URL and favicon;
         // omit them here too so an irrelevant favicon event cannot churn the

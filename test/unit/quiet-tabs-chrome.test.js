@@ -1,0 +1,56 @@
+'use strict';
+
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const test = require('node:test');
+const vm = require('node:vm');
+
+const ROOT = path.join(__dirname, '../..');
+const rendererSource = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');
+const railSource = fs.readFileSync(path.join(ROOT, 'src/renderer/vertical-tabs.js'), 'utf8');
+
+// Both renderers skip rebuilding their DOM when this hand-written signature is
+// unchanged. Lifting the shipping functions proves `asleep` actually crosses
+// that gate; copying their logic into this test would prove nothing.
+const dotsSource = rendererSource.match(/function dotsSignature\(\) \{[\s\S]*?\n  \}/)?.[0];
+const railSigSource = railSource.match(/function railSignature\(payload\) \{[\s\S]*?\n  \}/)?.[0];
+
+test('both re-render signature gates could be lifted from source', () => {
+  assert.ok(dotsSource, 'dotsSignature not found in renderer.js — update this test with it');
+  assert.ok(railSigSource, 'railSignature not found in vertical-tabs.js — update this test with it');
+});
+
+function runDotsSignature(shown) {
+  const sandbox = {
+    state: { activeTabId: 'active-tab' },
+    activeGroupMembers: () => ({ shown, hidden: 0 }),
+  };
+  vm.runInNewContext(`${dotsSource}\nthis.__fn = dotsSignature;`, sandbox);
+  return sandbox.__fn();
+}
+
+function runRailSignature(payload) {
+  const sandbox = {};
+  vm.runInNewContext(`${railSigSource}\nthis.__fn = railSignature;`, sandbox);
+  return sandbox.__fn(payload);
+}
+
+const BACKGROUND_TAB = {
+  id: 'background-tab', title: 'Docs', url: 'https://example.com/', favicon: null,
+  isLoading: false, private: false, pinned: false, muted: false, audible: false,
+  groupId: null, asleep: false,
+};
+
+test('the pill dot gate reacts to a tab going quiet', () => {
+  const awake = runDotsSignature([{ ...BACKGROUND_TAB }]);
+  const quiet = runDotsSignature([{ ...BACKGROUND_TAB, asleep: true }]);
+  assert.notEqual(awake, quiet, 'dotsSignature must list asleep, or the dot row never redraws');
+});
+
+test('the rail gate reacts to a tab going quiet', () => {
+  const payload = { activeTabId: 'active-tab', groups: [], tabs: [{ ...BACKGROUND_TAB }] };
+  const awake = runRailSignature(payload);
+  const quiet = runRailSignature({ ...payload, tabs: [{ ...BACKGROUND_TAB, asleep: true }] });
+  assert.notEqual(awake, quiet, 'railSignature must list asleep, or the rail row never redraws');
+});

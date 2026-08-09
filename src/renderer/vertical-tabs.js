@@ -64,6 +64,7 @@
         pinned: tab.pinned,
         muted: tab.muted,
         audible: tab.audible,
+        asleep: tab.asleep,
         groupId: tab.groupId ?? null,
       })),
     });
