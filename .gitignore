@@ -15,6 +15,9 @@ output/
 # Local press-outreach drafts (do not commit)
 docs/press-release-blanc-desktop.md
 docs/press-outreach-plan.md
+# Raw benchmark output is machine- and session-specific. Commit the specific
+# report you intend to cite in public, not every exploratory run.
+bench/memory/results/
 .astro/
 site/.parity/
 site/.parity-shots/

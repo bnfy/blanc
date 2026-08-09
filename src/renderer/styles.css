@@ -124,6 +124,11 @@ button svg {
   stroke-linejoin: round;
 }
 #windowControls svg { width: 12px; height: 12px; }
+/* The one solid shape in that icon language: the square inside the stop-loading
+   glyph (renderer.js PILL_ICONS.stop / overlay.js ICONS.stop). `fill` inherits,
+   so the rule above hands every child `none` — naming the rect directly beats
+   that inherited value whatever the button's own `svg` selector says. */
+.stop-mark { fill: currentColor; }
 
 /* ---------- Sampled safe-area gutter: a slim main-pane margin the resting
    pill floats in without covering website pixels. The vertical rail paints
