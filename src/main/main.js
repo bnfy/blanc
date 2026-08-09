@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -932,6 +932,91 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
       return failWake(tab, generation);
     }
   }
+}
+
+// ─── Quiet Tabs sweep (spec §4.3) ────────────────────────────────────────
+const SLEEP_SWEEP_INTERVAL_MS = 30_000;
+
+/** Acceptance-only threshold override, in ms (or null to follow settings). */
+let sleepThresholdOverrideMs = null;
+/** Wall-clock time of the previous sweep, for the clock-jump check. */
+let lastSleepSweepAt = 0;
+
+/** The idle threshold now in force, in ms, or null for "never auto-quiet". */
+function currentSleepThresholdMs() {
+  if (sleepThresholdOverrideMs !== null) return sleepThresholdOverrideMs;
+  const key = settings.getSettings().tabSleep;
+  // Deliberately not `?? DEFAULT`: 'off' maps to null, and `??` would turn
+  // the user's explicit Off into the default delay. Presence is the test.
+  return Object.hasOwn(TAB_SLEEP_DELAY_MS, key)
+    ? TAB_SLEEP_DELAY_MS[key]
+    : TAB_SLEEP_DELAY_MS['1h']; // the setting ships in a later phase
+}
+
+/** Ids of tabs with a permission prompt still open in this runtime. */
+function permissionPendingTabIds() {
+  const ids = new Set();
+  for (const pending of rt().permissionPrompts.values()) {
+    if (pending?.tabId) ids.add(pending.tabId);
+  }
+  return ids;
+}
+
+/** Re-stamp every background tab as "active just now" (clock-jump / resume). */
+function restampBackgroundTabs() {
+  const now = Date.now();
+  for (const tab of tabs.values()) {
+    if (tab.id === rt().activeTabId || tab.asleep) continue;
+    tab.lastActiveAt = now;
+  }
+}
+
+/**
+ * One sequential pass of the idle sweep. Its result lets the acceptance
+ * harness drive this real path rather than a reimplementation.
+ *
+ * @param {object} [opts]
+ * @param {boolean} [opts.ignoreThreshold=false] `/sleep`: skip only the wait
+ * @returns {Promise<{quieted: string[], skippedReason: string|null}>}
+ */
+async function runSleepSweep({ ignoreThreshold = false } = {}) {
+  const skip = (reason) => ({ quieted: [], skippedReason: reason });
+  if (isQuitting) return skip('quitting');
+  if (sessionPersistenceSuspended) return skip('persistence-suspended');
+  if (startupNavigationGateActive) return skip('startup-gate');
+  // Wake is a network re-fetch; do not discard work we cannot bring back.
+  if (!net.isOnline()) return skip('offline');
+
+  const now = Date.now();
+  // Wall-clock lastActiveAt would make every tab look idle after a suspended
+  // laptop wakes. Re-stamp instead of probing a burst of just-resumed pages.
+  if (lastSleepSweepAt && now - lastSleepSweepAt > 2 * SLEEP_SWEEP_INTERVAL_MS) {
+    lastSleepSweepAt = now;
+    restampBackgroundTabs();
+    return skip('clock-jump');
+  }
+  lastSleepSweepAt = now;
+
+  const tabList = rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean);
+  const candidates = sleepCandidates(tabList, {
+    now,
+    thresholdMs: currentSleepThresholdMs(),
+    activeTabId: rt().activeTabId,
+    ignoreThreshold,
+    snapshotCount: sleepSnapshots.size,
+    maxSnapshots: MAX_SLEEP_SNAPSHOTS,
+    permissionPendingTabIds: permissionPendingTabIds(),
+    popupChildCounts,
+  });
+
+  const quieted = [];
+  for (const id of candidates) {
+    // Sequential, not Promise.all: sleepTab re-validates the active tab, and
+    // a concurrent burst of dirty probes is precisely what resume avoids.
+    if (await sleepTab(id)) quieted.push(id);
+  }
+  // sleepTab broadcasts every actual transition; an empty sweep stays silent.
+  return { quieted, skippedReason: null };
 }
 /** webContents.id -> tab.id. Maintained rather than searched: the ad blocker's
  *  per-request counter resolves a tab tens of times per second, and a linear
@@ -3843,6 +3928,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   }
 
   initSpikePackaging(); // SPIKE (1Password fill feasibility) — fire-and-forget, gated on BLANC_1P_SPIKE
+
+  // One bound 30-second sweep. Both setInterval and setImmediate cross an
+  // AsyncLocalStorage boundary; bind both so rt() remains the primary runtime.
+  // The immediate also ensures a sweep never runs synchronously in a settings
+  // fan-out turn, where WebContents lifecycle work is unsafe.
+  setInterval(bindWindowRuntime(primaryRuntime, () => {
+    setImmediate(bindWindowRuntime(primaryRuntime, () => {
+      runSleepSweep().catch((err) => console.warn('[quiet-tabs] sweep:', err?.message));
+    }));
+  }), SLEEP_SWEEP_INTERVAL_MS);
+
+  powerMonitor.on('resume', bindWindowRuntime(primaryRuntime, () => {
+    // Machine sleep is not user idle. Avoid a simultaneous wake-time sweep.
+    lastSleepSweepAt = Date.now();
+    restampBackgroundTabs();
+  }));
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
   // of the frame the request came from. adblock.js's eventBridge fires this
