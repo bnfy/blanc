@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title={"Quiet Tabs: Blanc Gives Back the Memory of Tabs You Are Not Using | Blanc Browser"}
+  description={"Blanc frees the memory of tabs you have not opened in a while and reloads them when you come back. Choose the delay, or quiet them on demand — pinned, playing, and half-filled tabs are left alone."}
+  path="/features/quiet-tabs"
+  page="feature-quiet-tabs"
+  current="features"
+  ogDescription={"Tabs you are not using give their memory back and reload when you return. You choose the delay."}
+  ogImageAlt={"Blanc Browser"}
+>
+  <script type="application/ld+json" is:inline slot="head">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://blancbrowser.com/"},{"@type":"ListItem","position":2,"name":"Features","item":"https://blancbrowser.com/features"},{"@type":"ListItem","position":3,"name":"Quiet tabs","item":"https://blancbrowser.com/features/quiet-tabs"}]}
+</script>
+
+<main class="feature-page feature-detail-page">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><a href="/features">features</a><span aria-hidden="true">/</span><span aria-current="page">quiet tabs</span></nav>
+  <section class="feature-hero feature-hero--detail feature-hero--text" aria-labelledby="quiet-title"><p class="section-kicker">a lighter session</p><h1 id="quiet-title">Tabs you are not using give their memory back.</h1><p>Leave a tab alone long enough and Blanc hands its page back to your computer. The tab stays exactly where it was in your session, and it reloads the moment you return to it.</p></section>
+  <figure class="product-capture feature-capture">
+    <div class="demo-stage island-figure" role="img" aria-label="Blanc's resting Island above a page: five tab dots, two of them drawn as smaller quiet cores for tabs whose memory has been given back.">
+      <div class="demo-page" aria-hidden="true"><div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w4"></div></div>
+      <div class="demo-island" aria-hidden="true">
+        <div class="pill">
+          <div class="dots"><span class="quiet"></span><span></span><span class="cur"></span><span></span><span class="quiet"></span></div>
+          <span class="pill-fav"></span>
+          <span class="domain">blancbrowser.com</span>
+        </div>
+      </div>
+    </div>
+    <figcaption>Two of these tabs are quiet. They keep their place in the Island until you go back to one.</figcaption>
+  </figure>
+  <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="quiet-behavior-title">
+    <div><p class="section-kicker">how it works</p><h2 id="quiet-behavior-title">You choose the delay. Blanc does the rest.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Set it once.</h3><p>Settings, General, Quiet inactive tabs: off, 30 minutes, 1 hour, or 6 hours. It starts at an hour, and the choice stays on this device rather than following you to another one.</p></article>
+      <article><h3>Or say when.</h3><p>Type <code>/sleep</code> in the Island and every eligible background tab goes quiet immediately. It skips the waiting and nothing else, and it works even with the delay switched off.</p></article>
+      <article><h3>Come back and it is there.</h3><p>Opening a quiet tab reloads the page and brings back its address, its title, and its back button. Nothing disappears from your session while it is quiet.</p></article>
+    </div>
+  </section>
+  <section class="feature-copy-grid" aria-labelledby="quiet-safety-title">
+    <div><p class="section-kicker">left alone</p><h2 id="quiet-safety-title">The tabs that would cost you something stay awake.</h2></div>
+    <div class="feature-copy-list">
+      <article><h3>Anything you are part way through.</h3><p>A half-filled form, a ticked checkbox, a page that asks before you leave, or the result of something you submitted. Blanc checks every frame on the page, not just the top one.</p></article>
+      <article><h3>Anything playing, pinned, or connected.</h3><p>Sound, video you have paused, muted tabs, pinned tabs, a window a page opened for a sign-in, and any tab waiting on a permission prompt.</p></article>
+      <article><h3>Anything you have read deep into.</h3><p>A page you have scrolled a long way down is left as it is, because a reloaded feed cannot honestly put you back where you were.</p></article>
+    </div>
+  </section>
+  <aside class="truth-note" aria-labelledby="quiet-note-title"><p class="section-kicker">good to know</p><h2 id="quiet-note-title">A quiet tab reloads. It does not resume.</h2><p>Coming back fetches the page again, so anything the site was holding only in the browser is gone — and on an endlessly scrolling feed you land near where you were rather than exactly there. Private tabs come back where they were, not how they were: Blanc keeps no copy of a private page. Turning the setting off stops Blanc quieting anything new and leaves tabs that are already quiet exactly as they are.</p><a class="text-link" href="/features/island" data-track="feature_cta_click" data-feature="quiet-tabs" data-cta-position="truth-note">Meet the Island <span aria-hidden="true">↗</span></a></aside>
+  <section class="feature-close" aria-labelledby="quiet-close-title"><p class="section-kicker">ready when you are</p><h2 id="quiet-close-title">Keep the tabs. Lose the weight.</h2><a class="cta" href="/download" data-track="feature_cta_click" data-feature="quiet-tabs" data-cta-position="feature-close">download blanc</a></section>
+</main>
+</BaseLayout>

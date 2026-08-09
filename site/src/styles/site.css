@@ -224,6 +224,10 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 .demo-island .dots { display: flex; align-items: center; gap: 6px; }
 .demo-island .dots > span { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: background 160ms ease; }
 .demo-island .dots > span.cur { background: var(--accent); }
+/* Quiet Tabs: a quieted tab keeps its slot and loses its weight — a smaller
+   core in the same 7px cell, mirroring the app's .island-dot.asleep. */
+.demo-island .dots > span.quiet { background: transparent; position: relative; }
+.demo-island .dots > span.quiet::after { content: ''; position: absolute; inset: 1.75px; border-radius: 50%; background: var(--border); }
 .demo-island .dot-more { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); margin-left: 2px; }
 
 /* Leading nav (back/forward) + trailing actions (reload/favorite) — quiet

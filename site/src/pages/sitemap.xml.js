@@ -11,6 +11,7 @@ const MANIFEST = [
   { path: '/features/command-palette', changefreq: 'monthly', priority: '0.7' },
   { path: '/features/tab-groups',      changefreq: 'monthly', priority: '0.7' },
   { path: '/features/vertical-tabs',   changefreq: 'monthly', priority: '0.7' },
+  { path: '/features/quiet-tabs',      changefreq: 'monthly', priority: '0.7' },
   { path: '/features/sync',            changefreq: 'monthly', priority: '0.7' },
   { path: '/features/security',        changefreq: 'monthly', priority: '0.7' },
   { path: '/changelog',                changefreq: 'weekly',  priority: '0.8' },
