@@ -57,8 +57,12 @@ async function showRail(world) {
   return page;
 }
 
-async function openLoadedTab(world, name, { private: isPrivate = false } = {}) {
-  const url = isPrivate ? 'blanc://newtab/?private=1' : world.fixtureUrl(name);
+// `query` is opt-in because the default fixture page writes a sessionStorage
+// load counter that every other scenario depends on — and a non-empty
+// sessionStorage is one of the dirty-work conditions that keeps a tab awake.
+// Pass '?nostore=1' when the tab needs to be quietable.
+async function openLoadedTab(world, name, { private: isPrivate = false, query = '' } = {}) {
+  const url = isPrivate ? 'blanc://newtab/?private=1' : `${world.fixtureUrl(name)}${query}`;
   const id = await world.call('openTab', url, isPrivate ? { private: true } : {});
   await world.waitForState((state) => {
     const tab = state.tabs.find((candidate) => candidate.id === id);
@@ -872,7 +876,7 @@ async function expectAttribute(locator, name, value) {
 
 // ---------- F28-7: row state and accessible naming ----------
 
-Given('local tabs cover active, loading, private, pinned, audible, and muted states', async function () {
+Given('local tabs cover active, loading, private, pinned, audible, muted, and quiet states', async function () {
   const initial = await this.state();
   const active = initial.activeTabId;
   await this.call('setTabPresentation', active, {
@@ -890,9 +894,17 @@ Given('local tabs cover active, loading, private, pinned, audible, and muted sta
   await this.call('setTabPresentation', audible, { audible: true });
   const muted = await openLoadedTab(this, 'Muted identity');
   await this.call('setTabPresentation', muted, { audible: true, muted: true });
+  const quiet = await openLoadedTab(this, 'Quiet identity', { query: '?nostore=1' });
   await this.call('activateTab', active, true);
 
-  this.stateRows = { active, loading, privateTab, pinned, audible, muted };
+  // The active tab can never be quiet, so this has to follow the reactivation
+  // above. The row keeps rendering from the record — title and favicon are
+  // still there once the renderer is gone.
+  assert.equal(await this.call('sleepTab', quiet), true, 'the quiet fixture tab must go quiet');
+  await this.waitForState((state) =>
+    state.tabs.find((candidate) => candidate.id === quiet)?.asleep === true);
+
+  this.stateRows = { active, loading, privateTab, pinned, audible, muted, quiet };
 });
 
 Then('every rail row exposes its favicon and title', async function () {
@@ -942,6 +954,15 @@ Then('audible and muted rows expose distinct audio states', async function () {
   assert.equal(await muted.count(), 1);
 });
 
+Then('the quiet row exposes quiet state', async function () {
+  const row = this.railPage.locator(`.vertical-tab-row[data-tab-id="${this.stateRows.quiet}"]`);
+  assert.equal(await row.evaluate((element) => element.classList.contains('quiet')), true);
+  assert.equal(await row.locator('.vertical-tab-quiet').count(), 1);
+  assert.equal(await row.locator('.vertical-tab-quiet').getAttribute('title'), 'Quiet');
+  // Quiet is its own treatment, deliberately not the private one.
+  assert.equal(await row.evaluate((element) => element.classList.contains('private')), false);
+});
+
 Then('those states have accessible names that do not rely on color alone', async function () {
   const expected = new Map([
     [this.stateRows.active, /active/],
@@ -950,6 +971,7 @@ Then('those states have accessible names that do not rely on color alone', async
     [this.stateRows.pinned, /pinned/],
     [this.stateRows.audible, /playing audio/],
     [this.stateRows.muted, /muted/],
+    [this.stateRows.quiet, /quiet/],
   ]);
   for (const [id, pattern] of expected) {
     const label = await this.railPage.locator(

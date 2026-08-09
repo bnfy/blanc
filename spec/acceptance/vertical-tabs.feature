@@ -143,8 +143,8 @@ Feature: Desktop vertical tabs
     And I can unfold that group from its header
 
   @F28-7 @F28 @desktop @D19
-  Scenario: Rail rows expose identity, privacy, loading, pin, and audio states
-    Given local tabs cover active, loading, private, pinned, audible, and muted states
+  Scenario: Rail rows expose identity, privacy, loading, pin, audio, and quiet states
+    Given local tabs cover active, loading, private, pinned, audible, muted, and quiet states
     When the vertical tab rail is shown
     Then every rail row exposes its favicon and title
     And the active row is identified
@@ -152,6 +152,7 @@ Feature: Desktop vertical tabs
     And the private row exposes private state
     And the pinned row exposes pinned state
     And audible and muted rows expose distinct audio states
+    And the quiet row exposes quiet state
     And those states have accessible names that do not rely on color alone
 
   @F28-8 @F28 @desktop @D19
