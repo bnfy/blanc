@@ -23,6 +23,7 @@ const image = {
   },
   toPNG: () => PNG_BYTES,
 };
+let defaultSessionFetch = async () => { throw new Error('defaultSession.fetch not stubbed'); };
 const electronId = require.resolve('electron');
 require.cache[electronId] = {
   id: electronId,
@@ -30,6 +31,7 @@ require.cache[electronId] = {
   loaded: true,
   exports: {
     app: { getPath: () => tmp, on: () => {} },
+    session: { defaultSession: { fetch: (...args) => defaultSessionFetch(...args) } },
     nativeImage: {
       createFromBuffer: () => {
         decodeCount += 1;
@@ -539,4 +541,26 @@ test('local icon working set has a hard MAX_ICONS bound', async () => {
   assert.equal(icons.length, 500);
   assert.equal(icons.some(({ url }) => url === tabs[0].url), false, 'oldest working entry is evicted');
   assert.equal(icons.some(({ url }) => url === tabs.at(-1).url), true);
+});
+
+test('a quiet tab has no view, so capture falls back to the default session', async () => {
+  let fetched = null;
+  defaultSessionFetch = async (url, options) => {
+    fetched = { url, options };
+    return response('image/png');
+  };
+  const tab = {
+    id: 'quiet-1',
+    url: 'https://quiet-page.example/',
+    favicon: 'https://quiet-page.example/icon.png',
+    private: false,
+    view: null,
+  };
+  tabicons.setSnapshotProvider(() => ({ tabList: [tab] }));
+
+  assert.equal(await tabicons.captureTab(tab, ctx), true);
+  assert.equal(fetched.url, tab.favicon);
+  assert.equal(fetched.options.credentials, 'omit', 'still a cosmetic, cookie-less fetch');
+  const icons = tabicons.exportForSync(ctx).devices['device-a'].icons;
+  assert.ok(icons.some((i) => i.url === tab.url && i.data === PNG_DATA));
 });
