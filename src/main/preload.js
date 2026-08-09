@@ -39,6 +39,12 @@ contextBridge.exposeInMainWorld('browserAPI', {
   },
 
   reportChromeLayout: (height) => ipcRenderer.send('chrome:layout', { height }),
+  reportIslandRect: (rect) => ipcRenderer.send('chrome:island-rect', rect),
+  onIslandProximity: (callback) => {
+    const listener = (_e, payload) => callback(payload);
+    ipcRenderer.on('chrome:island-proximity', listener);
+    return () => ipcRenderer.removeListener('chrome:island-proximity', listener);
+  },
   setTabLayout: (layout) => ipcRenderer.invoke('chrome:set-tab-layout', layout),
   previewVerticalTabsWidth: (width) =>
     ipcRenderer.send('chrome:preview-vertical-tabs-width', width),
