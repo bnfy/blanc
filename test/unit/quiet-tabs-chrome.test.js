@@ -8,6 +8,7 @@ const vm = require('node:vm');
 
 const ROOT = path.join(__dirname, '../..');
 const rendererSource = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');
+const overlaySource = fs.readFileSync(path.join(ROOT, 'src/renderer/overlay.js'), 'utf8');
 const railSource = fs.readFileSync(path.join(ROOT, 'src/renderer/vertical-tabs.js'), 'utf8');
 const styles = fs.readFileSync(path.join(ROOT, 'src/renderer/styles.css'), 'utf8');
 
@@ -72,4 +73,29 @@ test('the pill dot marks quiet in its class and in its accessible name', () => {
     rendererSource,
     /aria-label',\s*`Switch to \$\{t\.title \|\| 'New Tab'\}\$\{t\.asleep \? ', quiet' : ''\}`/
   );
+});
+
+const panelRowSource = overlaySource.match(/function tabRow\(tab\) \{[\s\S]*?\n  \}/)?.[0];
+
+test('the panel tabRow could be lifted from source', () => {
+  assert.ok(panelRowSource, 'tabRow not found in overlay.js — update this test with it');
+});
+
+test('a panel tab row is a labelled group with a primary button beside its actions', () => {
+  assert.match(panelRowSource, /row\.setAttribute\('role', 'group'\)/);
+  assert.match(panelRowSource, /row\.setAttribute\('aria-label', label\)/);
+  assert.doesNotMatch(panelRowSource, /'role', '(option|button)'/);
+  assert.match(panelRowSource, /primary\.className = 'row-primary'/);
+  assert.match(panelRowSource, /primary\.append\(faviconWrap, title\)/);
+  assert.match(panelRowSource, /row\.append\(primary\)/);
+  assert.match(panelRowSource, /row\.append\(pin\)/);
+  assert.match(panelRowSource, /row\.append\(grp\)/);
+  assert.match(panelRowSource, /row\.append\(close\)/);
+  assert.match(panelRowSource, /if \(e\.target\.closest\('button'\)\) return;/);
+});
+
+test('the row primary button carries the row layout', () => {
+  assert.match(styles, /\.island-row \.row-primary\s*\{[^}]*display: flex;/s);
+  assert.match(styles, /\.island-row \.row-primary\s*\{[^}]*flex: 1 1 auto;/s);
+  assert.match(styles, /\.island-row \.row-primary\s*\{[^}]*min-width: 0;/s);
 });

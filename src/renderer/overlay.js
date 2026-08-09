@@ -242,6 +242,9 @@
     // reveal) to list rows — Quick-Switcher/command rows keep their subs.
     row.className = 'island-row tab-row' + (tab.id === state.activeTabId ? ' active' : '');
     row.dataset.tabId = tab.id;
+    // A row contains multiple real buttons, so it is a labelled group—not an
+    // option/button, whose children would become presentational.
+    row.setAttribute('role', 'group');
 
     const faviconWrap = document.createElement('span');
     faviconWrap.className = 'row-favicon-wrap';
@@ -255,12 +258,23 @@
       faviconWrap.append(muteBadge);
     }
 
+    const label = tab.isLoading ? 'Loading…' : tab.title || 'New Tab';
     const title = document.createElement('span');
     title.className = 'row-title';
-    title.textContent = tab.isLoading ? 'Loading…' : tab.title || 'New Tab';
+    title.textContent = label;
     if (tab.title) title.title = tab.title;
+    row.setAttribute('aria-label', label);
 
-    row.append(faviconWrap, title);
+    const primary = document.createElement('button');
+    primary.type = 'button';
+    primary.className = 'row-primary';
+    primary.setAttribute('aria-label', `Switch to ${[label, tabDomain(tab)].filter(Boolean).join(', ')}`);
+    primary.append(faviconWrap, title);
+    primary.addEventListener('click', () => {
+      window.browserAPI.switchTab(tab.id);
+      window.browserAPI.closeOverlay();
+    });
+    row.append(primary);
 
     if (tab.private) {
       const tag = document.createElement('span');
@@ -371,7 +385,8 @@
       row.append(picker);
     }
 
-    row.addEventListener('click', () => {
+    row.addEventListener('click', (e) => {
+      if (e.target.closest('button')) return;
       window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
     });

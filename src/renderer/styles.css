@@ -1321,6 +1321,17 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
 .island-row:hover { background: var(--surface); }
 .island-row.active { background: var(--accent-dim); }
 
+/* The real primary button keeps the switch action accessible while pin, mute,
+   group, and close remain sibling controls in the labelled row. */
+.island-row .row-primary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
 .island-row .row-title {
   font-size: 13px;
   color: var(--text);
@@ -1510,10 +1521,8 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   justify-content: center;
   color: var(--text-dim);
 }
-/* .row-mute-badge's svg is inside a <span>, not a <button>, so it does
-   NOT inherit the global `button svg { fill: none; stroke: currentColor;
-   ... }` rule — set the same properties explicitly here, or it renders
-   as a filled black shape instead of a stroked icon. */
+/* The badge is now inside .row-primary (a button), but this scoped rule still
+   owns its deliberately smaller stroked treatment. */
 .row-mute-badge svg {
   width: 7px;
   height: 7px;
