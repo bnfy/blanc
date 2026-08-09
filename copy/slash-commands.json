@@ -17,6 +17,7 @@
     { "command": "/close", "hint": "Close this tab" },
     { "command": "/pin", "hint": "Pin or unpin this tab" },
     { "command": "/mute", "hint": "Mute or unmute this tab" },
+    { "command": "/sleep", "hint": "Put background tabs to sleep and free their memory" },
     { "command": "/group", "hint": "Type a space, then a group name — e.g. \"work\"", "doc": { "command": "/group <name>", "hint": "Move this tab into a group, creating it on first use" } },
     { "command": "/ungroup", "hint": "Take this tab out of its group" },
     { "command": "/close-group", "hint": "Close every tab in this group" },

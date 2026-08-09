@@ -3451,6 +3451,7 @@ const SLASH_COMMANDS = [
   ['/close', 'Close this tab'],
   ['/pin', 'Pin or unpin this tab'],
   ['/mute', 'Mute or unmute this tab'],
+  ['/sleep', 'Put background tabs to sleep and free their memory'],
   ['/group <name>', 'Move this tab into a group, creating it on first use'],
   ['/ungroup', 'Take this tab out of its group'],
   ['/close-group', 'Close every tab in this group'],

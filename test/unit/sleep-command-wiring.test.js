@@ -110,3 +110,29 @@ test('the /sleep bridge and its IPC channel are wired end to end', () => {
     /chromeHandle\('chrome:sleep-background-tabs', \(\) => sleepBackgroundTabsNow\(\)\)/
   );
 });
+
+test('/sleep sits at the same index in all four hand-synced copies', () => {
+  const json = JSON.parse(read('copy/slash-commands.json'));
+  const index = json.commands.findIndex((command) => command.command === '/sleep');
+  assert.equal(index, 11, '/sleep must follow /mute and precede /group');
+  const entry = json.commands[index];
+  assert.equal(entry.hint, 'Put background tabs to sleep and free their memory');
+  assert.equal(entry.doc, undefined);
+  assert.doesNotMatch(entry.hint, /'/);
+
+  const overlay = read('src/renderer/overlay.js');
+  const overlayCommands = [...overlay.matchAll(/^\s*\{\s*cmd: '([^']+)'/gm)].map((m) => m[1]);
+  assert.equal(overlayCommands.indexOf('/sleep'), index);
+
+  const tupleIndex = (source) => {
+    const block = source.match(/const SLASH_COMMANDS = \[([\s\S]*?)\];/)[1];
+    return [...block.matchAll(/^\s*\['([^']+)'/gm)].map((m) => m[1]).indexOf('/sleep');
+  };
+  assert.equal(tupleIndex(read('src/renderer/pages/shortcuts.js')), index);
+  assert.equal(tupleIndex(mainSource), index);
+
+  const line = overlay.split('\n').find((candidate) => candidate.includes("cmd: '/sleep'"));
+  assert.match(line, /hint: 'Put background tabs to sleep and free their memory'/);
+  assert.match(line, /window\.browserAPI\.sleepBackgroundTabs\(\)/);
+  assert.match(line, /keepOverlay: true/);
+});

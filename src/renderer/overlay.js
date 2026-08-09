@@ -564,6 +564,7 @@
     { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
     { cmd: '/pin', hint: 'Pin or unpin this tab', run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
     { cmd: '/mute', hint: 'Mute or unmute this tab', run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
+    { cmd: '/sleep', hint: 'Put background tabs to sleep and free their memory', run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true },
     { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"', run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
       if (name && state.activeTabId) window.browserAPI.groupTabByName(state.activeTabId, name);
