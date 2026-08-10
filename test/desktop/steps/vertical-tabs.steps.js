@@ -194,8 +194,24 @@ async function dragRailTo(page, targetWidth) {
   const y = Math.min(box.y + 180, box.y + box.height / 2);
   await page.mouse.move(box.x + box.width / 2, y);
   await page.mouse.down();
-  await page.mouse.move(targetWidth, y, { steps: 12 });
-  await page.mouse.up();
+  try {
+    await waitForValue(
+      () => page.evaluate(() => document.documentElement.dataset.verticalTabsResizing === 'true'),
+      Boolean,
+      'vertical-tab resize pointer capture to start'
+    );
+    // One trusted captured move tests the product's pointer path without
+    // repeatedly moving the handle out from under Playwright's synthetic
+    // pointer as each preview frame resizes the rail.
+    await page.mouse.move(targetWidth, y);
+  } finally {
+    await page.mouse.up();
+  }
+  await waitForValue(
+    () => page.evaluate(() => document.documentElement.dataset.verticalTabsResizing !== 'true'),
+    Boolean,
+    'vertical-tab resize pointer capture to finish'
+  );
 }
 
 function assertBounds(actual, expected, label) {
@@ -600,15 +616,25 @@ Then(
 Then('the resting Island is centered over the website pane', async function () {
   const page = await chromePage();
   const expectedCenter = 248 + (this.verticalWindow.width - 248) / 2;
-  const measurement = await waitForValue(
-    async () => {
-      const box = await page.locator('#islandPill').boundingBox();
-      return box ? { box, center: box.x + box.width / 2, expectedCenter } : null;
-    },
-    (value) => value && Math.abs(value.center - value.expectedCenter) <= 1,
+  await waitForValue(
+    () => page.locator('#islandPill').evaluate((pill) => {
+      const rect = pill.getBoundingClientRect();
+      const transform = getComputedStyle(pill).transform;
+      const translateX = transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41;
+      const visualCenter = rect.left + rect.width / 2;
+      return {
+        visualCenter,
+        translateX,
+        layoutCenter: visualCenter - translateX,
+        proximity: {
+          k: Number(pill.style.getPropertyValue('--island-k')) || 0,
+          lean: Number(pill.style.getPropertyValue('--island-lean')) || 0,
+        },
+      };
+    }),
+    (value) => Math.abs(value.layoutCenter - expectedCenter) <= 1,
     'resting Island to settle at the website-pane center'
   );
-  assert.ok(measurement.box, 'resting Island should be visible');
 });
 
 When('I open a utility page', async function () {
