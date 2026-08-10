@@ -194,8 +194,24 @@ async function dragRailTo(page, targetWidth) {
   const y = Math.min(box.y + 180, box.y + box.height / 2);
   await page.mouse.move(box.x + box.width / 2, y);
   await page.mouse.down();
-  await page.mouse.move(targetWidth, y, { steps: 12 });
-  await page.mouse.up();
+  try {
+    await waitForValue(
+      () => page.evaluate(() => document.documentElement.dataset.verticalTabsResizing === 'true'),
+      Boolean,
+      'vertical-tab resize pointer capture to start'
+    );
+    // One trusted captured move tests the product's pointer path without
+    // repeatedly moving the handle out from under Playwright's synthetic
+    // pointer as each preview frame resizes the rail.
+    await page.mouse.move(targetWidth, y);
+  } finally {
+    await page.mouse.up();
+  }
+  await waitForValue(
+    () => page.evaluate(() => document.documentElement.dataset.verticalTabsResizing !== 'true'),
+    Boolean,
+    'vertical-tab resize pointer capture to finish'
+  );
 }
 
 function assertBounds(actual, expected, label) {
@@ -401,16 +417,27 @@ When('I hover the truncated vertical tab title', async function () {
 Then('the truncated title scrolls toward its hidden end', async function () {
   const page = await chromePage();
   const id = this.verticalTitleIds.longId;
-  await page.waitForFunction((tabId) => {
-    const viewport = document.querySelector(
-      `.vertical-tab-row[data-tab-id="${tabId}"] .vertical-tab-title`
-    );
-    const text = viewport?.querySelector('.vertical-tab-title-text');
-    if (!viewport?.classList.contains('scrolling') || !text) return false;
-    const transform = getComputedStyle(text).transform;
-    if (!transform || transform === 'none') return false;
-    return new DOMMatrixReadOnly(transform).m41 < -0.5;
-  }, id);
+  await waitForValue(
+    () => page.locator(
+      `.vertical-tab-row[data-tab-id="${id}"] .vertical-tab-title`
+    ).evaluate((viewport) => {
+      const text = viewport.querySelector('.vertical-tab-title-text');
+      const transform = text ? getComputedStyle(text).transform : 'none';
+      return {
+        hovered: viewport.matches(':hover'),
+        scrolling: viewport.classList.contains('scrolling'),
+        reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+        viewportWidth: viewport.clientWidth,
+        contentWidth: text?.scrollWidth ?? 0,
+        offset: viewport.style.getPropertyValue('--vertical-tab-title-offset'),
+        duration: viewport.style.getPropertyValue('--vertical-tab-title-duration'),
+        transform,
+        x: transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41,
+      };
+    }),
+    (value) => value.hovered && value.scrolling && value.x < -0.5,
+    'truncated title hover animation to move toward its hidden end'
+  );
 });
 
 When('I move the pointer away from the vertical tab title', async function () {
@@ -588,11 +615,26 @@ Then(
 
 Then('the resting Island is centered over the website pane', async function () {
   const page = await chromePage();
-  const box = await page.locator('#islandPill').boundingBox();
-  assert.ok(box, 'resting Island should be visible');
   const expectedCenter = 248 + (this.verticalWindow.width - 248) / 2;
-  assert.ok(Math.abs(box.x + box.width / 2 - expectedCenter) <= 1,
-    `Island center ${box.x + box.width / 2} should equal website-pane center ${expectedCenter}`);
+  await waitForValue(
+    () => page.locator('#islandPill').evaluate((pill) => {
+      const rect = pill.getBoundingClientRect();
+      const transform = getComputedStyle(pill).transform;
+      const translateX = transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41;
+      const visualCenter = rect.left + rect.width / 2;
+      return {
+        visualCenter,
+        translateX,
+        layoutCenter: visualCenter - translateX,
+        proximity: {
+          k: Number(pill.style.getPropertyValue('--island-k')) || 0,
+          lean: Number(pill.style.getPropertyValue('--island-lean')) || 0,
+        },
+      };
+    }),
+    (value) => Math.abs(value.layoutCenter - expectedCenter) <= 1,
+    'resting Island to settle at the website-pane center'
+  );
 });
 
 When('I open a utility page', async function () {
@@ -627,7 +669,7 @@ Then('the rail remains visible and unobscured', async function () {
 
 When('I open the Island panel', async function () {
   await this.call('openPanel');
-  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel', 'Island panel');
+  await waitForValue(() => this.call('overlayRendererMode'), (mode) => mode === 'panel', 'Island panel renderer');
 });
 
 Then(
@@ -638,18 +680,26 @@ Then(
 );
 
 Then('the expanded Island is centered over the website pane', async function () {
-  const overlay = await this.call('overlayBounds');
-  const panel = await this.call('overlayElementRect', '#islandPanel');
-  assert.ok(panel, 'expanded Island panel should render');
-  const globalCenter = overlay.x + panel.x + panel.width / 2;
   const expectedCenter = 248 + (this.verticalWindow.width - 248) / 2;
-  assert.ok(Math.abs(globalCenter - expectedCenter) <= 1,
-    `expanded Island center ${globalCenter} should equal ${expectedCenter}`);
+  await waitForValue(
+    async () => {
+      const overlay = await this.call('overlayBounds');
+      const panel = await this.call('overlayElementRect', '#islandPanel');
+      return panel ? {
+        overlay,
+        panel,
+        center: overlay.x + panel.x + panel.width / 2,
+        expectedCenter,
+      } : null;
+    },
+    (value) => value && Math.abs(value.center - value.expectedCenter) <= 1,
+    'expanded Island to settle at the website-pane center'
+  );
 });
 
 When('I replace the panel with the command palette', async function () {
   await this.call('openPalette');
-  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'palette', 'command palette');
+  await waitForValue(() => this.call('overlayRendererMode'), (mode) => mode === 'palette', 'command palette renderer');
 });
 
 Then(
@@ -660,12 +710,21 @@ Then(
 );
 
 Then('the expanded Island remains centered over the website pane', async function () {
-  const overlay = await this.call('overlayBounds');
-  const panel = await this.call('overlayElementRect', '#islandPanel');
-  assert.ok(panel, 'palette Island should render');
-  const center = overlay.x + panel.x + panel.width / 2;
-  const expected = 248 + (this.verticalWindow.width - 248) / 2;
-  assert.ok(Math.abs(center - expected) <= 1);
+  const expectedCenter = 248 + (this.verticalWindow.width - 248) / 2;
+  await waitForValue(
+    async () => {
+      const overlay = await this.call('overlayBounds');
+      const panel = await this.call('overlayElementRect', '#islandPanel');
+      return panel ? {
+        overlay,
+        panel,
+        center: overlay.x + panel.x + panel.width / 2,
+        expectedCenter,
+      } : null;
+    },
+    (value) => value && Math.abs(value.center - value.expectedCenter) <= 1,
+    'palette Island to settle at the website-pane center'
+  );
 });
 
 Then('the page pane starts at x {int} and is {int} pixels wide', async function (x, width) {

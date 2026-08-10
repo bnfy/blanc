@@ -145,7 +145,14 @@ Then('a new ungrouped tab opens on the new-tab page', async function () {
 // utility pages present as the sheet, never as tabs (utility-sheet design).
 
 Then('the find bar is shown', async function () {
-  assert.strictEqual(await this.call('overlayMode'), 'find');
+  // Typing "/find" and pressing Enter reaches main over IPC, so the mode change
+  // lands after the step returns. The old binding called the hook directly and
+  // was synchronous by accident; polling is what makes this honest either way.
+  await waitForValue(
+    () => this.call('overlayMode'),
+    (mode) => mode === 'find',
+    'overlay to enter find mode'
+  );
 });
 
 // ---------- F17-1: supporter unlock ----------

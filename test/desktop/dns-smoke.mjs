@@ -8,6 +8,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
+import testHookCall from './support/test-hook-call.js';
+
+const { callTestHook } = testHookCall;
 
 const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-dns-smoke-'));
 const app = await _electron.launch({
@@ -32,16 +35,16 @@ const clearDnsCache = () => app.evaluate(async ({ session }) => {
 try {
   await app.firstWindow(); // startup didn't crash (a ready-handler throw would prevent this)
 
-  assert.equal(await app.evaluate(() => globalThis.__blanc.secureDns()), 'auto', 'default secureDns should be auto');
-  assert.equal(await app.evaluate(() => globalThis.__blanc.webrtcPolicy()), 'standard', 'default webrtcPolicy should be standard');
+  assert.equal(await callTestHook(app, 'secureDns'), 'auto', 'default secureDns should be auto');
+  assert.equal(await callTestHook(app, 'webrtcPolicy'), 'standard', 'default webrtcPolicy should be standard');
 
   // Secure mode WORKS here without enableBuiltInResolver (the Linux question).
-  await app.evaluate(() => globalThis.__blanc.setSecureDns('cloudflare'));
+  await callTestHook(app, 'setSecureDns', ['cloudflare']);
   await clearDnsCache();
   assert.ok(await canResolve('example.com'), 'Cloudflare secure DoH should resolve example.com');
 
   // Strict custom FAILS CLOSED — unreachable resolver, distinct host to dodge any cache.
-  await app.evaluate(() => globalThis.__blanc.setSecureDns('custom', 'https://127.0.0.1:9/dns-query'));
+  await callTestHook(app, 'setSecureDns', ['custom', 'https://127.0.0.1:9/dns-query']);
   await clearDnsCache();
   assert.ok(!(await canResolve('cloudflare.com')), 'unreachable strict custom DoH must fail closed');
 

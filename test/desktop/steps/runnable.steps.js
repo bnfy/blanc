@@ -2,6 +2,7 @@ const assert = require('node:assert');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('./../support/context');
 const { waitForValue, openOverlaySurface } = require('./../support/poll');
+const { runSlashCommand } = require('./../support/overlay');
 
 // Step definitions for the desktop-runnable scenario set (see the `runnable`
 // profile in cucumber.mjs). Every step is intent-level and drives the app
@@ -68,15 +69,15 @@ When('I open a new tab', async function () { ctx.lastNewTabId = await this.call(
 When('I close the last tab in {string}', async function (name) { await this.call('closeTabsInGroupName', name); });
 
 When('I run the slash command {string}', async function (cmd) {
-  const [head, ...rest] = String(cmd).trim().split(/\s+/);
-  if (head === '/group') return this.call('groupActiveByName', rest.join(' '));
-  if (head === '/clear') return this.call('clearHistory');
-  if (head === '/block-ads') return this.call('toggleAdblock');
-  if (head === '/allow-ads') return this.call('allowAdsOnActive');
-  if (head === '/new') { ctx.lastNewTabId = await this.call('newTab'); return; }
-  if (head === '/downloads') return this.call('openDownloads');
-  if (head === '/find') return this.call('openFind');
-  return 'pending'; // other commands not in the runnable set yet
+  const text = String(cmd).trim();
+  const before = await this.call('state');
+  await runSlashCommand(this, text);
+  if (text.split(/\s+/)[0] === '/new') {
+    const known = new Set(before.tabs.map((tab) => tab.id));
+    await this.waitForState((s) => s.tabs.some((tab) => !known.has(tab.id)));
+    const after = await this.call('state');
+    ctx.lastNewTabId = after.tabs.map((tab) => tab.id).find((id) => !known.has(id)) ?? ctx.lastNewTabId;
+  }
 });
 
 When('I add the active page to favorites', async function () {

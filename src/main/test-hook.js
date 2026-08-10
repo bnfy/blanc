@@ -15,6 +15,7 @@ const { app, Menu, clipboard } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
+const { installTestCallBridge } = require('./test-call-bridge');
 const {
   runAddressMenuItem,
   readAddressFieldText,
@@ -982,6 +983,7 @@ function install(refs) {
       if (typeof fn === 'function') globalThis.__blanc[key] = bindRoot(fn);
     }
   }
+  installTestCallBridge(globalThis, globalThis.__blanc);
 }
 
 module.exports = { install };

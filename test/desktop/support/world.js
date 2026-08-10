@@ -1,5 +1,6 @@
 const { setWorldConstructor } = require('@cucumber/cucumber');
 const ctx = require('./context');
+const { callTestHook } = require('./test-hook-call');
 
 // The World is the per-scenario `this` in steps. It wraps the running Electron
 // app with a generic bridge into the test hook (globalThis.__blanc) plus a few
@@ -8,10 +9,7 @@ const ctx = require('./context');
 class BlancWorld {
   /** Invoke a globalThis.__blanc method in the Electron main process. */
   async call(method, ...args) {
-    return ctx.app.evaluate(
-      (_electron, p) => globalThis.__blanc[p.m](...p.a),
-      { m: method, a: args }
-    );
+    return callTestHook(ctx.app, method, args);
   }
 
   /** Snapshot of tab/group/active state from the main process. */

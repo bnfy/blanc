@@ -12,10 +12,13 @@ bindings later; only the step definitions here are desktop-specific.
   (`_electron.launch`) starts the packaged app once per run.
 - **Bridge:** a tiny, env-guarded main-process surface (`src/main/test-hook.js`,
   installed only when `BLANC_TEST=1`) exposes real state readers and actions on
-  `globalThis.__blanc`. Steps call into it via `electronApp.evaluate()`, which
-  runs in the Electron **main process** — so the scenarios drive the actual
+  `globalThis.__blanc`. Steps call it through the idempotent
+  `globalThis.__blancCall` wrapper via `electronApp.evaluate()`, which runs in
+  the Electron **main process** — so the scenarios drive the actual
   `tabs`/`groups` state and the real settings/history/bookmarks stores, not a
-  reimplementation.
+  reimplementation. Each call carries an id: if Chromium's inspector loses a
+  completed reply, the harness can request that same result without replaying
+  a mutating action.
 - **Offline & isolated:** `BLANC_TEST` also skips the network ad-engine build so
   the app launches with no internet, and each run uses a throwaway
   `--user-data-dir` so no prior session/history/settings leaks in. Tab URLs load
@@ -29,6 +32,7 @@ test/desktop/
   cucumber.mjs            profiles (runnable / dry / default)
   support/
     world.js             the `this` in steps: call()/state()/waitForState()/fixtureUrl()
+    test-hook-call.js    call ids + one safe retry for a lost inspector reply
     hooks.js             launch app + fixtures (BeforeAll), reset (Before), teardown
     fixtures-server.js   local pages so tab URLs load offline
     context.js           state shared across hooks/world/steps
