@@ -57,10 +57,9 @@ async function showRail(world) {
   return page;
 }
 
-// `query` is opt-in because the default fixture page writes a sessionStorage
-// load counter that every other scenario depends on — and a non-empty
-// sessionStorage is one of the dirty-work conditions that keeps a tab awake.
-// Pass '?nostore=1' when the tab needs to be quietable.
+// `query` is opt-in for scenarios that need deterministic page state. The
+// default fixture's site-owned sessionStorage load counter does not represent
+// unsaved user input and therefore does not keep a tab awake.
 async function openLoadedTab(world, name, { private: isPrivate = false, query = '' } = {}) {
   const url = isPrivate ? 'blanc://newtab/?private=1' : `${world.fixtureUrl(name)}${query}`;
   const id = await world.call('openTab', url, isPrivate ? { private: true } : {});

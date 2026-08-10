@@ -45,6 +45,12 @@ Feature: Quiet Tabs
     When I run the manual sleep command
     Then the panel stays open and names the row quiet
 
+  @F31-4 @F31 @desktop @D23
+  Scenario: The sleep command explains when no background tab can be quieted
+    Given no background tab can be quieted
+    When I run the manual sleep command
+    Then the panel stays open and explains that no tab can be quieted
+
   @F31-5 @F31 @desktop @D8
   Scenario: Quiet is visible and included in accessible names
     Given a background tab on a quietable page

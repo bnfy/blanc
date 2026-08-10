@@ -8,9 +8,9 @@ const https = require('node:https');
 function pageBody(req) {
   const raw = req.url || '/';
   const name = decodeURIComponent(raw.replace(/^\/site\//, '').split('?')[0]) || 'page';
-  // ?nostore=1 makes an otherwise ordinary fixture quietable. The default
-  // remains deliberately dirty because all existing scenarios depend on its
-  // sessionStorage load counter.
+  // Some history/wake scenarios suppress the load counter so pageState stays
+  // deterministic. Ordinary site-owned sessionStorage is not unsaved user
+  // work and therefore does not prevent this page from becoming quiet.
   const store = raw.includes('nostore=1')
     ? ''
     : `<script>` +

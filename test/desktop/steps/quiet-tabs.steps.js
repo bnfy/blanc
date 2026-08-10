@@ -21,13 +21,18 @@ async function openQuietable(world, name, opts = {}) {
 
 Given('a background tab on a quietable page', async function () {
   const previouslyActive = (await this.state()).activeTabId;
-  // ?nostore=1 omits the fixture's sessionStorage write. Non-empty
-  // sessionStorage is intentionally considered unsaved work by the probe.
-  const url = `${this.fixtureUrl('quietable')}?nostore=1`;
+  // The ordinary fixture writes a load counter to sessionStorage, as real
+  // sites routinely do. That site-owned storage is not evidence of unsaved
+  // user input and must not make Quiet Tabs a fixture-only feature.
+  const url = this.fixtureUrl('quietable');
   this.quietCandidateId = await this.call('openTab', url);
   await this.waitForState((state) =>
     (state.tabs.find((tab) => tab.id === this.quietCandidateId)?.loadedUrl || '')
       .includes('quietable'));
+  assert.ok(
+    await this.call('executeTab', this.quietCandidateId, 'sessionStorage.length') > 0,
+    'the regression fixture must contain ordinary site sessionStorage'
+  );
   // The active tab is never quietable.
   await this.call('activateTab', previouslyActive);
   await this.waitForState((state) => state.activeTabId === previouslyActive);
@@ -89,6 +94,15 @@ Given(/^a background tab protected by (.+)$/, async function (reason) {
 Given('the tab panel is open', async function () {
   await this.call('openPanel');
   await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel', 'panel to open');
+});
+
+Given('no background tab can be quieted', async function () {
+  const state = await this.state();
+  assert.equal(
+    state.tabs.filter((tab) => tab.id !== state.activeTabId).length,
+    0,
+    'the zero-result scenario must begin with no background tabs'
+  );
 });
 
 Given('two tabs are created through the lazy-restore path', async function () {
@@ -176,8 +190,10 @@ When('I run the manual sleep command', async function () {
   // sleepBackgroundTabsNow directly leaves the input empty, which is the one
   // state in which the panel happens to be showing the tab rows.
   await runSlashCommand(this, '/sleep');
-  await this.waitForState((state) =>
-    state.tabs.find((candidate) => candidate.id === this.quietCandidateId)?.asleep === true);
+  if (this.quietCandidateId) {
+    await this.waitForState((state) =>
+      state.tabs.find((candidate) => candidate.id === this.quietCandidateId)?.asleep === true);
+  }
 });
 
 When('I show the vertical tab rail and panel', async function () {
@@ -261,6 +277,16 @@ Then('the panel stays open and names the row quiet', async function () {
   assert.ok(row, 'quiet candidate missing from panel');
   assert.equal(row.quiet, true);
   assert.match(row.label.toLowerCase(), /quiet/);
+});
+
+Then('the panel stays open and explains that no tab can be quieted', async function () {
+  assert.equal(await this.call('overlayMode'), 'panel');
+  const notice = await waitForValue(
+    () => this.call('addressCommandNotice'),
+    (value) => value?.text === 'No background tabs can be quieted right now.',
+    'the zero-result sleep notice'
+  );
+  assert.equal(notice.role, 'status');
 });
 
 Then('the pill, panel, and rail expose a distinct quiet state', async function () {

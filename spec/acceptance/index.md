@@ -126,7 +126,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F31-1 | Quiet then wake preserves identity, history, oversized-state fallback, and redirect safety | D8 | ✅ | ⬜ | ⬜ |
 | F31-2 | The active tab is never quieted | D8 | ✅ | ⬜ | ⬜ |
 | F31-3 | Protected background tabs stay awake and beforeunload remains functional | D8 | ✅ | ⬜ | ⬜ |
-| F31-4 | The sleep command quiets eligible rows without closing the panel | D23 | ✅ | ➖ | ⬜ |
+| F31-4 | The sleep command shows quieted rows or explains that none can be quieted, without closing the panel | D23 | ✅ | ➖ | ⬜ |
 | F31-5 | Quiet is visible and included in accessible names | D8 | ✅ | ⬜ | ⬜ |
 | F31-6 | Every delay value persists and Off leaves quiet tabs quiet | D23 | ✅ | ➖ | ⬜ |
 | F31-7 | Lazy-restored tabs are viewless until the selected tab wakes | D8 | ✅ | ⬜ | ⬜ |

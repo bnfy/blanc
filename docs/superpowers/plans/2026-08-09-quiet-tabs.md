@@ -60,6 +60,16 @@ Every task's requirements implicitly include this section.
 
 ## Corrections to apply before / during execution
 
+**Post-implementation correction (2026-08-10): non-empty `sessionStorage` is
+not unsaved user work.** Task 207 and Task 213 below encode the original blanket
+rule and the `?nostore=1` escape hatch. A real-browser check disproved that
+premise: routine site-owned load counters made ordinary pages permanently
+ineligible, while the acceptance suite passed only because it suppressed them.
+The design spec §4.4 and shipping code supersede those instructions: protect
+changed controls and Chromium's unload objection, but do not infer user work
+from `sessionStorage.length`. The ordinary fixture must remain part of the
+Quiet Tabs acceptance path so this cannot regress invisibly.
+
 Three independent audits ran over the draft of this plan. The blocking defects with
 an exact fix were applied to the tasks below. These five remain, and each is called
 out here because it is **invisible at write time** — the code looks right and fails

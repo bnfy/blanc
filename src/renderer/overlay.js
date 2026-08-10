@@ -89,6 +89,11 @@
   // What Enter acts on — rebuilt on every list render.
   let visibleCommands = [];
   let visibleResults = [];
+  // Result text for a command that deliberately leaves the panel open. A
+  // generation prevents a late IPC result from repainting a newer query or a
+  // panel that has since been closed and reopened.
+  let commandNotice = '';
+  let commandResultGeneration = 0;
   // Search-engine autocomplete is best-effort and asynchronous. The query
   // token plus request generation prevent late responses from repainting a
   // newer query (or a panel that was closed and reopened).
@@ -564,7 +569,7 @@
     { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
     { cmd: '/pin', hint: 'Pin or unpin this tab', run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
     { cmd: '/mute', hint: 'Mute or unmute this tab', run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
-    { cmd: '/sleep', hint: 'Put background tabs to sleep and free their memory', run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true },
+    { cmd: '/sleep', hint: 'Put background tabs to sleep and free their memory', run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true, resultNotice: (quieted) => Array.isArray(quieted) && quieted.length === 0 ? 'No background tabs can be quieted right now.' : '' },
     { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"', run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
       if (name && state.activeTabId) window.browserAPI.groupTabByName(state.activeTabId, name);
@@ -586,10 +591,12 @@
   function runCommand(command) {
     // Commands like "/group work" read their argument from the typed input.
     const input = addressInput.value;
+    const resultGeneration = ++commandResultGeneration;
+    commandNotice = '';
     // Close first: commands that open something (a page, a fresh tab) rely
     // on main re-showing the overlay in a clean state where needed.
     if (!command.keepOverlay) window.browserAPI.closeOverlay();
-    command.run(input);
+    const result = command.run(input);
     // A command that stays open and leaves its own text typed keeps the list
     // on slash commands, so the rows it just changed are never on screen —
     // /sleep quieted tabs and showed nothing. Clearing restores the tab
@@ -599,6 +606,17 @@
     if (command.clearInput) {
       addressInput.value = '';
       renderList();
+    }
+    if (command.resultNotice) {
+      Promise.resolve(result).then((value) => {
+        if (resultGeneration !== commandResultGeneration) return;
+        commandNotice = command.resultNotice(value);
+        renderList();
+      }, () => {
+        if (resultGeneration !== commandResultGeneration) return;
+        commandNotice = 'Could not quiet background tabs.';
+        renderList();
+      });
     }
   }
 
@@ -632,6 +650,13 @@
     empty.className = 'island-empty';
     empty.textContent = text;
     return empty;
+  }
+
+  function commandNoticeRow(text) {
+    const notice = emptyRow(text);
+    notice.classList.add('command-notice');
+    notice.setAttribute('role', 'status');
+    return notice;
   }
 
   // --- Quick Switcher ---
@@ -921,6 +946,7 @@
 
       const pinned = state.tabs.filter((t) => t.pinned && !t.groupId);
       const rows = [];
+      if (commandNotice) rows.push(commandNoticeRow(commandNotice));
       if (pinned.length) {
         rows.push(pinnedHeaderRow(pinned.length));
         rows.push(...pinned.map(tabRow));
@@ -1042,6 +1068,8 @@
         pickingTabId = null;
         addressInputComposing = false;
         suppressProviderSuggestions = false;
+        commandResultGeneration += 1;
+        commandNotice = '';
       }
       if (!reshow) resetSearchSuggestions();
       if (prefill) {
@@ -1253,6 +1281,8 @@
     findBar.hidden = true;
     shieldPop.hidden = true;
     inputTouched = false;
+    commandResultGeneration += 1;
+    commandNotice = '';
     addressInputComposing = false;
     suppressProviderSuggestions = false;
     pickingTabId = null;
@@ -1338,6 +1368,8 @@
   });
   addressInput.addEventListener('input', (e) => {
     inputTouched = true;
+    commandResultGeneration += 1;
+    commandNotice = '';
     selectedResultIndex = -1;
     if (!addressInput.value.trim()) {
       // Do not clear a paste/drop taint here. Delete followed by Undo restores

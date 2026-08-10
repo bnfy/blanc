@@ -303,7 +303,6 @@ iframe is structurally invisible. Run over `wc.mainFrame.framesInSubtree` with a
 - a `<select>` with any option's `selected !== defaultSelected`
 - a non-empty `input[type=password]`
 - a `[contenteditable]` or `designMode` region with text
-- `sessionStorage.length > 0`
 - **any frame failed to answer**
 
 The three control-state cases matter as much as the text case: `value` is
@@ -312,10 +311,17 @@ silently loses a half-filled form on the fallback reload.
 
 Never key the probe on interaction events — a 1Password fill is programmatic.
 
+Non-empty `sessionStorage` is deliberately **not** a dirty signal. It is
+site-owned transient state, not evidence that a person has unsaved work, and
+ordinary sites create it routinely on load. Treating any key as dirty made the
+feature pass only on a special `?nostore=1` acceptance fixture while refusing
+the real web. Wake is already specified as a reload, so loss of site-owned
+session storage belongs to that honest limit rather than the safety predicate.
+
 **Known limitations, stated rather than papered over:** drafts held only in JS
-memory or IndexedDB (an editor's autosave buffer) are invisible to this predicate,
-and a hostile page can pin itself awake by making the probe throw. Neither is a
-hole to plug in v1.
+memory, `sessionStorage`, or IndexedDB (an editor's autosave buffer) are invisible
+to this predicate, and a hostile page can pin itself awake by making the probe
+throw. Neither is a hole to plug in v1.
 
 ### 4.4.1 `beforeunload` as the teardown path, never as a probe
 
@@ -926,7 +932,7 @@ false. Add a Quiet Tabs paragraph naming `tab-sleep.js`, `tab-view.js`,
 ## 15. Non-goals, stated so they are not mistaken for oversights
 
 - A hostile page can pin itself awake by making the probe throw.
-- Drafts held only in JS memory or IndexedDB are invisible to the §4.4
+- Drafts held only in JS memory, `sessionStorage`, or IndexedDB are invisible to the §4.4
   predicate. The §4.4.1 teardown path catches them **only** when the page
   registers a `beforeunload` handler; an editor that autosaves without one is not
   protected.

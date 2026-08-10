@@ -559,6 +559,14 @@ function install(refs) {
         enter: !!row.querySelector('.row-enter')
       }))`);
     },
+    async addressCommandNotice() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const row = document.querySelector('#islandList .command-notice');
+        return row ? { text: row.textContent, role: row.getAttribute('role') } : null;
+      })()`);
+    },
     async overlayRendererMode() {
       const wc = getOverlayWebContents();
       if (!wc) return null;

@@ -261,3 +261,12 @@ test('/find keeps its typed query — clearing is opt-in, not blanket', () => {
   assert.match(findEntry, /keepOverlay: true/);
   assert.doesNotMatch(findEntry, /clearInput/);
 });
+
+test('/sleep explains an empty result instead of looking broken', () => {
+  const sleepEntry = overlaySource.match(/\{ cmd: '\/sleep',[^\n]*\}/)?.[0] ?? '';
+  assert.match(sleepEntry, /resultNotice:/);
+  assert.match(sleepEntry, /No background tabs can be quieted right now\./);
+  assert.match(runCommandSource, /command\.resultNotice/);
+  assert.match(overlaySource, /commandNotice/);
+  assert.match(overlaySource, /setAttribute\('role', 'status'\)/);
+});

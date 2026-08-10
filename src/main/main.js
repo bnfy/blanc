@@ -649,7 +649,6 @@ const DIRTY_PROBE_SOURCE = `(() => {
       if ((el.textContent || '').trim()) return { dirty: true };
     }
     if (d.designMode === 'on' && (d.body?.textContent || '').trim()) return { dirty: true };
-    if (window.sessionStorage && window.sessionStorage.length > 0) return { dirty: true };
     if (d.pictureInPictureElement) return { dirty: true };
     return {
       dirty: false,
