@@ -30,6 +30,8 @@ test('ordinary site sessionStorage is not mistaken for unsaved user work', () =>
   const result = runProbe({ sessionStorageLength: 3 });
   assert.equal(result.dirty, false);
   assert.equal(result.deepScrolled, false);
+  assert.equal(result.hasSessionStorage, true,
+    'storage-bearing tabs need the retained-WebContents discard path');
 });
 
 test('an edited text control still protects the tab', () => {

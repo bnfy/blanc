@@ -86,3 +86,42 @@ test('closeTab tolerates a malformed provisional url during WebContents teardown
   assert.equal(tabs.has('malformed'), false);
   assert.deepEqual(sandbox.recentlyClosedUrls, []);
 });
+
+test('closing a quiet storage-bearing tab also closes its retained WebContents', () => {
+  let closed = 0;
+  const retainedWc = { id: 33, isDestroyed: () => false, close: () => { closed += 1; } };
+  const runtime = {
+    activeTabId: null,
+    tabOrder: ['quiet'],
+    tabsWantingAddressBarFocus: new Set(),
+  };
+  const tabs = new Map([
+    ['quiet', { id: 'quiet', url: 'https://quiet.test/', private: false, asleep: true, view: null }],
+  ]);
+  const snapshots = new Map([
+    ['quiet', { view: { webContents: retainedWc }, entries: [], index: 0 }],
+  ]);
+  const sandbox = {
+    sleepSnapshots: snapshots,
+    sleepTeardownInProgress: false,
+    tabs,
+    forgetTabWebContentsIds: () => {},
+    lastMainFrameMethod: new Map(),
+    recentlyClosedUrls: [],
+    rt: () => runtime,
+    windowRuntimes: { detachTab: () => {} },
+    popupChildCounts: new Map(),
+    pruneEmptyGroups: () => {},
+    hasLiveWindow: () => false,
+    setActiveTab: () => {},
+    broadcastTabs: () => {},
+    scheduleMenuRebuild: () => {},
+    isQuitting: false,
+  };
+  vm.runInNewContext(`${closeTabSource}\nthis.__closeTab = closeTab;`, sandbox);
+
+  sandbox.__closeTab('quiet');
+
+  assert.equal(closed, 1);
+  assert.equal(snapshots.has('quiet'), false);
+});

@@ -61,14 +61,17 @@ Every task's requirements implicitly include this section.
 ## Corrections to apply before / during execution
 
 **Post-implementation correction (2026-08-10): non-empty `sessionStorage` is
-not unsaved user work.** Task 207 and Task 213 below encode the original blanket
-rule and the `?nostore=1` escape hatch. A real-browser check disproved that
-premise: routine site-owned load counters made ordinary pages permanently
-ineligible, while the acceptance suite passed only because it suppressed them.
-The design spec §4.4 and shipping code supersede those instructions: protect
-changed controls and Chromium's unload objection, but do not infer user work
-from `sessionStorage.length`. The ordinary fixture must remain part of the
-Quiet Tabs acceptance path so this cannot regress invisibly.
+not unsaved user work, but destroying it is data loss.** Task 207 and Task 213
+below encode the original blanket rule and the `?nostore=1` escape hatch. A
+real-browser check disproved that premise: routine site-owned load counters made
+ordinary pages permanently ineligible, while the acceptance suite passed only
+because it suppressed them. A second Electron probe then showed that closing
+and recreating the WebContents loses that storage. The implemented correction
+uses a retained-WebContents renderer discard for storage-bearing tabs, guarded
+by an all-frame beforeunload inspection and an exclusive renderer-PID check.
+The same-WebContents reload preserves the browser-process storage namespace
+without copying site data into Blanc. The ordinary fixture remains part of the
+Quiet Tabs acceptance path and asserts its load counter advances across wake.
 
 Three independent audits ran over the draft of this plan. The blocking defects with
 an exact fix were applied to the tasks below. These five remain, and each is called

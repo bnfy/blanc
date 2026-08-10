@@ -861,6 +861,7 @@ function install(refs) {
     // would keep the acceptance suite green if the shipping code regressed.
     async sleepTab(id) { return sleepTab(id); },
     async wakeTab(id, navigateTo = null) { return wakeTab(id, { navigateTo }); },
+    async wakeTabAtIndex(id, atIndex) { return wakeTab(id, { atIndex }); },
     async sleepBackgroundTabsNow() { return sleepBackgroundTabsNow(); },
     createQuietTab(url, title = 'Restored quiet tab', isPrivate = false) {
       return createTab(String(url), {

@@ -5,8 +5,9 @@ const { runSlashCommand } = require('../support/overlay');
 
 
 async function openQuietable(world, name, opts = {}) {
-  const suffix = opts.extraQuery ? `&${opts.extraQuery}` : '';
-  const url = `${world.fixtureUrl(name)}?nostore=1${suffix}`;
+  const query = [opts.withStorage ? '' : 'nostore=1', opts.extraQuery || '']
+    .filter(Boolean).join('&');
+  const url = `${world.fixtureUrl(name)}${query ? `?${query}` : ''}`;
   const id = await world.call('openTab', url, opts.private ? { private: true } : {});
   await world.waitForState((state) => {
     const tab = state.tabs.find((candidate) => candidate.id === id);
@@ -33,6 +34,9 @@ Given('a background tab on a quietable page', async function () {
     await this.call('executeTab', this.quietCandidateId, 'sessionStorage.length') > 0,
     'the regression fixture must contain ordinary site sessionStorage'
   );
+  this.sessionStorageBeforeQuiet = Number(await this.call(
+    'executeTab', this.quietCandidateId, `sessionStorage.getItem('acceptance-load-count')`
+  ));
   // The active tab is never quietable.
   await this.call('activateTab', previouslyActive);
   await this.waitForState((state) => state.activeTabId === previouslyActive);
@@ -55,6 +59,25 @@ Given('a background tab with restorable history and oversized page state', async
   await this.call('activateTab', previous);
 });
 
+Given('a background storage-bearing tab with back history', async function () {
+  const previous = (await this.state()).activeTabId;
+  const firstUrl = this.fixtureUrl('quiet-storage-history-a');
+  const secondUrl = this.fixtureUrl('quiet-storage-history-b');
+  const id = await this.call('openTab', firstUrl);
+  await this.waitForState((state) =>
+    state.tabs.find((tab) => tab.id === id)?.loadedUrl.includes('quiet-storage-history-a'));
+  await this.call('navigateTab', id, secondUrl);
+  await this.waitForState((state) =>
+    state.tabs.find((tab) => tab.id === id)?.loadedUrl.includes('quiet-storage-history-b'));
+  const navigation = await this.call('tabNavigation', id);
+  this.quietCandidateId = id;
+  this.storageHistoryIndex = navigation.activeIndex;
+  this.storageHistoryBeforeQuiet = Number(await this.call(
+    'executeTab', id, `sessionStorage.getItem('acceptance-load-count')`
+  ));
+  await this.call('activateTab', previous);
+});
+
 Given('an active tab on a quietable page', async function () {
   const opened = await openQuietable(this, 'quiet-active');
   this.quietCandidateId = opened.id;
@@ -62,7 +85,19 @@ Given('an active tab on a quietable page', async function () {
 
 Given(/^a background tab protected by (.+)$/, async function (reason) {
   const previous = (await this.state()).activeTabId;
-  const opened = await openQuietable(this, `protected-${reason.replaceAll(' ', '-')}`);
+  const name = `protected-${reason.replaceAll(' ', '-')}`;
+  let opened;
+  if (reason === 'stored beforeunload handler') {
+    const url = this.fixtureUrl(name);
+    const id = await this.call('openTab', url);
+    await this.waitForState((state) => {
+      const tab = state.tabs.find((candidate) => candidate.id === id);
+      return tab && !tab.loading && tab.loadedUrl.includes(`/site/${encodeURIComponent(name)}`);
+    });
+    opened = { id, url };
+  } else {
+    opened = await openQuietable(this, name);
+  }
   this.protectedTabId = opened.id;
   this.protectionReason = reason;
 
@@ -76,6 +111,10 @@ Given(/^a background tab protected by (.+)$/, async function (reason) {
     await this.call('executeTab', opened.id, `scrollTo(0, 4000); scrollY`);
   } else if (reason === 'beforeunload objection') {
     assert.equal(await this.call('armBeforeUnloadObjection', opened.id), true);
+  } else if (reason === 'stored beforeunload handler') {
+    assert.equal(await this.call('executeTab', opened.id,
+      `addEventListener('beforeunload',event=>{event.preventDefault();event.returnValue='';});` +
+      `sessionStorage.setItem('protected','yes'); true`), true);
   } else if (reason === 'non-refetchable POST') {
     await this.call('executeTab', opened.id,
       `document.getElementById('acceptance-post').requestSubmit(); true`);
@@ -115,8 +154,11 @@ Given('two tabs are created through the lazy-restore path', async function () {
 
 Given('a background private tab on a quietable page', async function () {
   const previous = (await this.state()).activeTabId;
-  const opened = await openQuietable(this, 'quiet-private', { private: true });
+  const opened = await openQuietable(this, 'quiet-private', { private: true, withStorage: true });
   this.quietCandidateId = opened.id;
+  this.privateStorageBeforeQuiet = Number(await this.call(
+    'executeTab', opened.id, `sessionStorage.getItem('acceptance-load-count')`
+  ));
   await this.call('activateTab', previous);
 });
 
@@ -154,6 +196,13 @@ When('I quiet that background tab', async function () {
 
 When('I activate that quiet tab', async function () {
   await this.call('activateTab', this.quietCandidateId);
+});
+
+When('I quiet it and wake its previous history entry', async function () {
+  assert.equal(await this.call('sleepTab', this.quietCandidateId), true);
+  assert.equal(await this.call(
+    'wakeTabAtIndex', this.quietCandidateId, this.storageHistoryIndex - 1
+  ), true);
 });
 
 When('I wake it through a redirect and activate it', async function () {
@@ -236,6 +285,18 @@ Then('the same tab is functional with its address and back history intact', asyn
   const tab = state.tabs.find((candidate) => candidate.id === this.quietCandidateId);
   assert.ok(tab.loadedUrl.includes('redirected=1'));
   assert.equal(await this.call('executeTab', this.quietCandidateId, '6 * 7'), 42);
+});
+
+Then('the previous page and session storage are intact', async function () {
+  const state = await this.waitForState((snapshot) => {
+    const tab = snapshot.tabs.find((candidate) => candidate.id === this.quietCandidateId);
+    return tab?.asleep === false && tab.loadedUrl.includes('quiet-storage-history-a');
+  });
+  assert.ok(state.tabs.find((tab) => tab.id === this.quietCandidateId));
+  const after = Number(await this.call(
+    'executeTab', this.quietCandidateId, `sessionStorage.getItem('acceptance-load-count')`
+  ));
+  assert.equal(after, this.storageHistoryBeforeQuiet + 1);
 });
 
 Then('the active tab remains awake', async function () {
@@ -339,6 +400,11 @@ Then('the private tab is awake in the private session', async function () {
   const tab = state.tabs.find((candidate) => candidate.id === this.quietCandidateId);
   assert.equal(tab.sessionKind, 'private');
   assert.equal(tab.sessionPersistent, false);
+  const after = Number(await this.call(
+    'executeTab', this.quietCandidateId, `sessionStorage.getItem('acceptance-load-count')`
+  ));
+  assert.equal(after, this.privateStorageBeforeQuiet + 1,
+    'private sessionStorage must survive without entering a snapshot');
 });
 
 Then('the secret is absent from session persistence, tab sync, and tabs updated', async function () {
@@ -360,6 +426,14 @@ Then('that tab is awake', async function () {
     (state) => state && state.asleep === false && state.hasSnapshot === false,
     'the tab to finish waking and release its snapshot'
   );
+});
+
+Then('its session storage survived the quiet reload', async function () {
+  const after = Number(await this.call(
+    'executeTab', this.quietCandidateId, `sessionStorage.getItem('acceptance-load-count')`
+  ));
+  assert.equal(after, this.sessionStorageBeforeQuiet + 1,
+    'a fresh namespace would restart the load counter at 1');
 });
 
 Then('the renderer process count has dropped by {int}', async function (count) {
