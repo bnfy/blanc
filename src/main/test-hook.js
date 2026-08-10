@@ -734,6 +734,13 @@ function install(refs) {
       return labels;
     },
     openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
+    utilitySheetContentsId() { return getUtilitySheetWebContents()?.id ?? null; },
+    destroyUtilitySheetContents() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc || wc.isDestroyed()) return false;
+      wc.close();
+      return true;
+    },
     readBrowserImportDom() {
       const wc = getUtilitySheetWebContents();
       if (!wc) return null;

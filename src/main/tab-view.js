@@ -42,10 +42,11 @@ const getPrivateBrowsingSession = () =>
 /** After wc.close(), view.webContents reads back UNDEFINED, not destroyed —
  *  see main.js's reloadTabAfterSettingsFanout, where this exact dereference
  *  killed main once. Two steps, always: read, then test. */
-const liveContents = (tab) => {
-  const wc = tab?.view?.webContents;
+const liveViewContents = (view) => {
+  const wc = view?.webContents;
   return wc && !wc.isDestroyed() ? wc : null;
 };
+const liveContents = (tab) => liveViewContents(tab?.view);
 
 /**
  * The ONLY place a tab's WebContentsView is constructed. Never returns null,
@@ -361,6 +362,7 @@ module.exports = {
   wireTabView,
   initTabView,
   liveContents,
+  liveViewContents,
   TAB_WEB_PREFERENCES,
   getPrivateBrowsingSession,
   PRIVATE_PARTITION,

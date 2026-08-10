@@ -11,10 +11,12 @@ const viewSource = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view
 const fnSource = mainSource.match(
   /function releaseStartupNavigationGate\(sessions, \{ blockerAttached \}\) \{[\s\S]*?\n\}/
 )?.[0];
-const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => \{[\s\S]*?\n\};/)?.[0];
+const liveViewContentsSource = viewSource.match(/const liveViewContents = \(view\) => \{[\s\S]*?\n\};/)?.[0];
+const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => liveViewContents\(tab\?\.view\);/)?.[0];
 
 test('the gate-release function and liveContents are still liftable', () => {
   assert.ok(fnSource, 'releaseStartupNavigationGate not found — update this test with it');
+  assert.ok(liveViewContentsSource, 'liveViewContents not found in tab-view.js — update this test with it');
   assert.ok(liveContentsSource, 'liveContents not found in tab-view.js — update this test with it');
 });
 
@@ -32,7 +34,7 @@ function load({ tabList, queued, deferredWakes = [] }) {
     },
   };
   vm.runInNewContext(
-    `${liveContentsSource}\n${fnSource}\nthis.__fn = releaseStartupNavigationGate;`,
+    `${liveViewContentsSource}\n${liveContentsSource}\n${fnSource}\nthis.__fn = releaseStartupNavigationGate;`,
     sandbox
   );
   sandbox.__fn([], { blockerAttached: true });

@@ -349,7 +349,7 @@ Given('a favorite for {string} exists', async function (host) {
 
 Given('the favorites page is open in the utility sheet', async function () {
   await this.call('openFavoritesSheet');
-  await untilSurface(this, (s) => s.visible, 'favorites sheet to open');
+  await untilSurface(this, (s) => s.visible && s.ready, 'favorites sheet to open');
   this.tabStateBefore = await this.call('state');
 });
 
@@ -357,13 +357,13 @@ When('I follow its {string} navigation link', async function (label) {
   assert.strictEqual(label, 'Favorites', 'the ledger has exactly one nav link');
   this.tabStateBefore = await this.call('state');
   await this.call('followNewtabFavoritesLink');
-  await untilSurface(this, (s) => s.visible, 'sheet to open from ledger link');
+  await untilSurface(this, (s) => s.visible && s.ready, 'sheet to open from ledger link');
 });
 
 When('I open the downloads page', async function () {
   this.tabStateBefore = await this.call('state');
   await this.call('openDownloads');
-  await untilSurface(this, (s) => s.visible, 'downloads sheet to open');
+  await untilSurface(this, (s) => s.visible && s.ready, 'downloads sheet to open');
 });
 
 When('I activate that favorite', async function () {
@@ -371,13 +371,20 @@ When('I activate that favorite', async function () {
   await this.waitForState((s) => s.tabs.length === this.tabStateBefore.tabs.length + 1);
 });
 
+When('the utility sheet contents are destroyed', async function () {
+  this.destroyedUtilitySheetContentsId = await this.call('utilitySheetContentsId');
+  assert.ok(this.destroyedUtilitySheetContentsId, 'the open utility sheet should have webContents');
+  assert.strictEqual(await this.call('destroyUtilitySheetContents'), true);
+  await untilSurface(this, (s) => !s.visible, 'destroyed sheet to be dismissed');
+});
+
 Then('the {word} page opens in the utility sheet', async function (name) {
-  const surf = await untilSurface(this, (s) => s.visible, `${name} sheet`);
+  const surf = await untilSurface(this, (s) => s.visible && s.ready, `${name} sheet`);
   assert.strictEqual(surf.url, `blanc://${sheetHostFor(name)}/`);
 });
 
 Then('the {word} page opens in the utility sheet under the blanc scheme', async function (name) {
-  const surf = await untilSurface(this, (s) => s.visible, `${name} sheet`);
+  const surf = await untilSurface(this, (s) => s.visible && s.ready, `${name} sheet`);
   assert.ok(surf.url.startsWith(`blanc://${sheetHostFor(name)}/`),
     `sheet url ${surf.url} should be blanc://${sheetHostFor(name)}/`);
 });
@@ -402,6 +409,12 @@ Then('exactly one new tab opens on {string}', async function (host) {
 
 Then('the utility sheet is dismissed', async function () {
   await untilSurface(this, (s) => !s.visible, 'sheet to dismiss');
+});
+
+Then('the utility sheet uses newly-created contents', async function () {
+  const id = await this.call('utilitySheetContentsId');
+  assert.ok(id, 'the replacement utility sheet should have webContents');
+  assert.notStrictEqual(id, this.destroyedUtilitySheetContentsId);
 });
 
 // F16-6: the P1 regression class this guards — utility routing running
@@ -453,7 +466,7 @@ Then('the utility sheet remains closed', async function () {
 // addresses arrive without the trailing slash the menu items carry.
 Given('the settings page is open in the utility sheet via a typed address', async function () {
   await this.call('openTab', 'blanc://settings'); // typed spelling, no trailing slash
-  await untilSurface(this, (s) => s.visible, 'settings sheet (typed spelling)');
+  await untilSurface(this, (s) => s.visible && s.ready, 'settings sheet (typed spelling)');
 });
 
 When('the settings page is invoked again by the menu', async function () {
