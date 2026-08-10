@@ -116,7 +116,7 @@ test('/sleep sits at the same index in all four hand-synced copies', () => {
   const index = json.commands.findIndex((command) => command.command === '/sleep');
   assert.equal(index, 11, '/sleep must follow /mute and precede /group');
   const entry = json.commands[index];
-  assert.equal(entry.hint, 'Put background tabs to sleep and free their memory');
+  assert.equal(entry.hint, 'Quiet background tabs and free their memory');
   assert.equal(entry.doc, undefined);
   assert.doesNotMatch(entry.hint, /'/);
 
@@ -132,7 +132,7 @@ test('/sleep sits at the same index in all four hand-synced copies', () => {
   assert.equal(tupleIndex(mainSource), index);
 
   const line = overlay.split('\n').find((candidate) => candidate.includes("cmd: '/sleep'"));
-  assert.match(line, /hint: 'Put background tabs to sleep and free their memory'/);
+  assert.match(line, /hint: 'Quiet background tabs and free their memory'/);
   assert.match(line, /window\.browserAPI\.sleepBackgroundTabs\(\)/);
   assert.match(line, /keepOverlay: true/);
 });
