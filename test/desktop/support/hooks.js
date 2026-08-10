@@ -6,6 +6,7 @@ const { _electron } = require('playwright');
 const { BeforeAll, AfterAll, Before, setDefaultTimeout } = require('@cucumber/cucumber');
 const fixtures = require('./fixtures-server');
 const ctx = require('./context');
+const { callTestHook } = require('./test-hook-call');
 const { browserDataRoot } = require('../../../src/main/browser-data-import');
 
 // Launching Electron + first evaluate is slow; give scenarios generous headroom.
@@ -48,7 +49,7 @@ async function launchApp() {
   await electronApp.evaluate(
     () => new Promise((resolve) => {
       const t = setInterval(() => {
-        if (globalThis.__blanc) { clearInterval(t); resolve(); }
+        if (globalThis.__blancCall) { clearInterval(t); resolve(); }
       }, 50);
     })
   );
@@ -140,9 +141,7 @@ BeforeAll({ timeout: 120_000 }, async () => {
 
   // The F19 scenarios write the REAL system clipboard — save the developer's
   // clipboard now and restore it in AfterAll so a local run doesn't clobber it.
-  savedClipboard = await ctx.app
-    .evaluate(() => globalThis.__blanc.readClipboardText())
-    .catch(() => null);
+  savedClipboard = await callTestHook(ctx.app, 'readClipboardText').catch(() => null);
 });
 
 Before(async function () {
@@ -152,13 +151,12 @@ Before(async function () {
   ctx.enteredInput = null;
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;
-  await ctx.app.evaluate(() => globalThis.__blanc.reset());
+  await callTestHook(ctx.app, 'reset');
 });
 
 AfterAll(async () => {
   if (ctx.app && savedClipboard !== null) {
-    await ctx.app
-      .evaluate((_electron, text) => globalThis.__blanc.setClipboardText(text), savedClipboard)
+    await callTestHook(ctx.app, 'setClipboardText', [savedClipboard])
       .catch(() => {});
   }
   if (ctx.app) await ctx.app.close();
