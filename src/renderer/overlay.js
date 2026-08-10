@@ -1165,6 +1165,7 @@
   const RETRACT_MS = 200; // keep in step with OVERLAY_RETRACT_MS in main.js
   let lastPillRect = null;
   let morphTimer = null;
+  let morphGeneration = 0;
 
   function morphPanelFromPill(pillRect) {
     if (!pillRect || !pillRect.width) return;          // no box reported yet
@@ -1190,6 +1191,7 @@
     const panelCentre = panelBox.left + panelBox.width / 2;
 
     clearTimeout(morphTimer);
+    const generation = ++morphGeneration;
     islandPanel.classList.add('morph-start');
     islandPanel.style.width = `${pillRect.width.toFixed(1)}px`;
     islandPanel.style.height = `${pillRect.height.toFixed(1)}px`;
@@ -1201,6 +1203,7 @@
     // single frame lands both in the same style recalculation and the panel
     // simply appears at full size.
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (generation !== morphGeneration) return;
       islandPanel.classList.remove('morph-start');
       islandPanel.classList.add('morph-run');
       islandPanel.style.width = `${naturalWidth.toFixed(1)}px`;
@@ -1209,6 +1212,7 @@
       islandPanel.style.removeProperty('--morph-x');
       islandPanel.style.removeProperty('--morph-y');
       morphTimer = setTimeout(() => {
+        if (generation !== morphGeneration) return;
         // Hand the box back to layout, so the panel resizes normally again
         // when tabs open and close underneath it.
         islandPanel.classList.remove('morph-run');
@@ -1236,12 +1240,14 @@
     if (!box.width) return false;
 
     clearTimeout(morphTimer);
+    const generation = ++morphGeneration;
     // Pin the current size first, or transitioning from `auto` does nothing.
     islandPanel.classList.add('morph-run', 'retracting');
     islandPanel.style.width = `${box.width.toFixed(1)}px`;
     islandPanel.style.height = `${box.height.toFixed(1)}px`;
 
     requestAnimationFrame(() => {
+      if (generation !== morphGeneration) return;
       const centreShift = (pill.x + pill.width / 2) - (box.left + box.width / 2);
       islandPanel.style.width = `${pill.width.toFixed(1)}px`;
       islandPanel.style.height = `${pill.height.toFixed(1)}px`;
@@ -1255,6 +1261,7 @@
   /** Put the panel back to its resting styles once it is off screen. */
   function clearMorphStyles() {
     clearTimeout(morphTimer);
+    morphGeneration += 1;
     islandPanel.classList.remove('morph-start', 'morph-run', 'retracting');
     islandPanel.style.width = '';
     islandPanel.style.height = '';
