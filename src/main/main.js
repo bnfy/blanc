@@ -53,6 +53,7 @@ const {
   wireTabView,
   initTabView,
   liveContents,
+  liveViewContents,
   TAB_WEB_PREFERENCES,
   getPrivateBrowsingSession,
 } = require('./tab-view');
@@ -1575,15 +1576,81 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
 // utilitySheetView, utilitySheetUrl now live on the runtime record (see
 // window-runtime-registry.js for their per-field doc comments).
 
+function liveUtilitySheet(runtime = rt()) {
+  const view = runtime.utilitySheetView;
+  const wc = liveViewContents(view);
+  return wc ? { view, wc } : null;
+}
+
+// Electron can fault natively when loadURL is called again on this cached
+// WebContents while its prior utility-page navigation is still settling. The
+// acceptance runner made that race repeatable by opening/hiding several sheets
+// faster than their documents committed; a user can do the same from menus or
+// shortcuts. Keep one promise chain per native view and let only its newest
+// requested destination run.
+const utilitySheetNavigations = new WeakMap();
+
+function utilitySheetNavigationState(view) {
+  let state = utilitySheetNavigations.get(view);
+  if (!state) {
+    state = { generation: 0, settledGeneration: 0, tail: Promise.resolve() };
+    utilitySheetNavigations.set(view, state);
+  }
+  return state;
+}
+
+function cancelUtilitySheetNavigation(view) {
+  const state = view ? utilitySheetNavigations.get(view) : null;
+  if (!state) return;
+  state.generation += 1;
+  state.settledGeneration = state.generation;
+}
+
+function scheduleUtilitySheetNavigation(runtime, sheet, url) {
+  const state = utilitySheetNavigationState(sheet.view);
+  const generation = ++state.generation;
+  const navigate = async () => {
+    if (
+      state.generation !== generation ||
+      runtime.utilitySheetView !== sheet.view ||
+      runtime.utilitySheetUrl !== url ||
+      liveViewContents(sheet.view) !== sheet.wc
+    ) return;
+    try {
+      await sheet.wc.loadURL(url);
+    } catch {
+      // A superseded/failed internal-page load is reflected by ready:false in
+      // the test surface; it is not an uncaught main-process failure.
+    }
+  };
+  state.tail = state.tail.then(navigate, navigate).finally(() => {
+    if (state.generation === generation) state.settledGeneration = generation;
+  });
+  return state.tail;
+}
+
+function utilitySheetNavigationReady(runtime, sheet) {
+  if (!sheet || !runtime.utilitySheetUrl) return false;
+  const state = utilitySheetNavigations.get(sheet.view);
+  return !!state &&
+    state.settledGeneration === state.generation &&
+    !sheet.wc.isLoadingMainFrame() &&
+    sameUtilityPage(sheet.wc.getURL(), runtime.utilitySheetUrl);
+}
+
 function createUtilitySheet() {
-  rt().utilitySheetView = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
-  rt().utilitySheetView.setBackgroundColor('#00000000');
-  const wc = rt().utilitySheetView.webContents;
+  const runtime = rt();
+  const view = new WebContentsView({ webPreferences: TAB_WEB_PREFERENCES });
+  view.setBackgroundColor('#00000000');
+  const wc = liveViewContents(view);
+  if (!wc) return null;
+  runtime.utilitySheetView = view;
   installChromeShortcuts(wc);
   // Esc dismisses no matter what inside the page holds focus (mirrors the
   // island overlay's handler).
-  wc.on('before-input-event', bindWindowRuntime(primaryRuntime, (event, input) => {
-    if (rt().utilitySheetUrl && input.type === 'keyDown' && input.key === 'Escape') {
+  wc.on('before-input-event', bindWindowRuntime(runtime, (event, input) => {
+    if (runtime.utilitySheetView !== view) return;
+    if (runtime.utilitySheetUrl && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       hideUtilitySheet();
     }
@@ -1592,18 +1659,34 @@ function createUtilitySheet() {
   // lazily recreates it. Close the dead webContents — dropping the
   // reference alone leaks the crashed guest. Default refocus: nothing else
   // will hand focus back after a crash.
-  wc.on('render-process-gone', bindWindowRuntime(primaryRuntime, () => {
+  wc.on('render-process-gone', bindWindowRuntime(runtime, () => {
+    if (runtime.utilitySheetView !== view) return;
     hideUtilitySheet();
-    wc.close();
-    rt().utilitySheetView = null;
+    if (!wc.isDestroyed()) wc.close();
+    if (runtime.utilitySheetView === view) {
+      runtime.utilitySheetView = null;
+      runtime.utilitySheetUrl = null;
+    }
+  }));
+  // A clean close does not emit render-process-gone. Never leave the cached
+  // JS reference pointing at a WebContentsView whose `.webContents` now reads
+  // back undefined; the next utility-page open would otherwise pass a dead
+  // native object into loadURL/addChildView.
+  wc.once('destroyed', bindWindowRuntime(runtime, () => {
+    if (runtime.utilitySheetView !== view) return;
+    cancelUtilitySheetNavigation(view);
+    if (hasLiveWindow()) runtime.window.contentView.removeChildView(view);
+    runtime.utilitySheetView = null;
+    runtime.utilitySheetUrl = null;
   }));
   // Default-deny (design §4): utility→utility stays in-sheet; http(s)
   // opens a real tab (createTab's dismissal covers the sheet); approved
   // handoff protocols go to the OS; everything else — and every
   // window.open — dies.
-  wc.on('will-navigate', bindWindowRuntime(primaryRuntime, (event, targetUrl) => {
+  wc.on('will-navigate', bindWindowRuntime(runtime, (event, targetUrl) => {
+    if (runtime.utilitySheetView !== view) return event.preventDefault();
     if (isUtilityUrl(targetUrl)) {
-      rt().utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
+      runtime.utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
       return;
     }
     event.preventDefault();
@@ -1615,6 +1698,7 @@ function createUtilitySheet() {
     }
   }));
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+  return { view, wc };
 }
 
 /** Page identity, not URL spelling: each utility page is one document per
@@ -1626,33 +1710,44 @@ function sameUtilityPage(a, b) {
 
 function showUtilityPage(url) {
   if (!hasLiveWindow()) return;
+  const runtime = rt();
+  let sheet = liveUtilitySheet(runtime);
   // Toggle: a direct re-invocation (menu/accelerator) of the shown page
   // closes it. Overlay-hosted entry points can never hit this — summoning
   // the overlay already dismissed the sheet.
-  if (rt().utilitySheetUrl && sameUtilityPage(rt().utilitySheetUrl, url)) return hideUtilitySheet();
+  if (runtime.utilitySheetUrl && sheet && sameUtilityPage(runtime.utilitySheetUrl, url)) return hideUtilitySheet();
   // One floating layer at a time, in both directions.
   hideOverlay({ refocusContent: false });
-  if (!rt().utilitySheetView) createUtilitySheet();
-  rt().utilitySheetUrl = url;
-  // Rapid page swaps abort the in-flight load — loadURL rejects with
-  // ERR_ABORTED; that's routine, not an error.
-  rt().utilitySheetView.webContents.loadURL(url).catch(() => {});
+  if (!sheet) {
+    // A WebContentsView keeps its JS wrapper after close(), but its
+    // `.webContents` becomes undefined. Clear both halves of the cached state
+    // before constructing the replacement so stale callbacks cannot win.
+    runtime.utilitySheetView = null;
+    runtime.utilitySheetUrl = null;
+    sheet = createUtilitySheet();
+  }
+  if (!sheet) return;
+  runtime.utilitySheetUrl = url;
+  scheduleUtilitySheetNavigation(runtime, sheet, url);
   // Mirror tabs: a detached view's document still reports visibilityState
   // 'visible' and never background-throttles — toggle real visibility.
-  rt().utilitySheetView.setVisible(true);
-  rt().window.contentView.addChildView(rt().utilitySheetView);
+  sheet.view.setVisible(true);
+  runtime.window.contentView.addChildView(sheet.view);
   resizeActiveView();
-  rt().utilitySheetView.webContents.focus();
+  sheet.wc.focus();
 }
 
 function hideUtilitySheet({ refocusContent = true } = {}) {
-  if (!rt().utilitySheetUrl) return;
-  rt().utilitySheetUrl = null;
-  if (hasLiveWindow() && rt().utilitySheetView) {
-    rt().window.contentView.removeChildView(rt().utilitySheetView);
-    rt().utilitySheetView.setVisible(false);
-    if (refocusContent) tabs.get(rt().activeTabId)?.view.webContents.focus();
+  const runtime = rt();
+  if (!runtime.utilitySheetUrl) return;
+  runtime.utilitySheetUrl = null;
+  cancelUtilitySheetNavigation(runtime.utilitySheetView);
+  const sheet = liveUtilitySheet(runtime);
+  if (hasLiveWindow() && sheet) {
+    runtime.window.contentView.removeChildView(sheet.view);
+    sheet.view.setVisible(false);
   }
+  if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
 }
 
 function normalizeAddressInput(input) {
@@ -1930,9 +2025,8 @@ function resizeActiveView() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (tab?.view) tab.view.setBounds(layout.pageBounds);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
-  if (rt().utilitySheetUrl && rt().utilitySheetView) {
-    rt().utilitySheetView.setBounds(layout.utilityBounds);
-  }
+  const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
+  if (sheet) sheet.view.setBounds(layout.utilityBounds);
   // The BrowserWindow renderer and native child views must move in the same
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
@@ -1977,7 +2071,7 @@ function applyTabLayout(nextLayout) {
     // layout choice does not eject the user mid-interaction.
     hideOverlay({ refocusContent: false });
     resizeActiveView();
-    if (!rt().utilitySheetUrl) tabs.get(rt().activeTabId)?.view.webContents.focus();
+    if (!rt().utilitySheetUrl) liveContents(tabs.get(rt().activeTabId))?.focus();
   }
   broadcastTabs();
   scheduleMenuRebuild();
@@ -2680,7 +2774,8 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // The freshly attached tab view must not stack above an open overlay —
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
   // but a race must never paint a tab over either floating layer).
-  if (rt().utilitySheetUrl && rt().utilitySheetView) rt().window.contentView.addChildView(rt().utilitySheetView);
+  const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
+  if (sheet) rt().window.contentView.addChildView(sheet.view);
   if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
@@ -2937,8 +3032,8 @@ const ZOOM_MAX = 8;
 
 /** Zoom acts on what the user is looking at: the sheet when open, else the active tab. */
 function zoomTargetWebContents() {
-  if (rt().utilitySheetUrl && rt().utilitySheetView) return rt().utilitySheetView.webContents;
-  return tabs.get(rt().activeTabId)?.view.webContents ?? null;
+  if (rt().utilitySheetUrl) return liveUtilitySheet()?.wc ?? null;
+  return liveContents(tabs.get(rt().activeTabId));
 }
 
 function zoomActiveTab(delta) {
@@ -3825,12 +3920,8 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
   rt().window.on('closed', bindWindowRuntime(primaryRuntime, () => {
     const runtime = primaryRuntime;
     // Destroy the views the window owned — detachWindow only forgets them.
-    if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
-      runtime.overlayView.webContents.close();
-    }
-    if (runtime.utilitySheetView && !runtime.utilitySheetView.webContents.isDestroyed()) {
-      runtime.utilitySheetView.webContents.close();
-    }
+    liveViewContents(runtime.overlayView)?.close();
+    liveViewContents(runtime.utilitySheetView)?.close();
     windowRuntimes.detachWindow(runtime);
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
@@ -4045,7 +4136,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // Utility sheet: only the sheet view itself may close the sheet — the
     // strict pages:surface:close guard verifies the sender against this.
     utilitySheet: {
-      isSheetSender: bindWindowRuntime(primaryRuntime, (wc) => !!rt().utilitySheetView && wc === rt().utilitySheetView.webContents),
+      isSheetSender: bindWindowRuntime(primaryRuntime, (wc) => {
+        const sheet = liveUtilitySheet();
+        return !!sheet && wc === sheet.wc;
+      }),
       close: bindWindowRuntime(primaryRuntime, () => hideUtilitySheet()),
     },
     // The start page's ledger sections read live tab-group state and the
@@ -4102,8 +4196,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
-      getUtilitySheetState: () => ({ visible: !!rt().utilitySheetUrl, url: rt().utilitySheetUrl }),
-      getUtilitySheetWebContents: () => rt().utilitySheetView?.webContents ?? null,
+      getUtilitySheetState: () => {
+        const runtime = rt();
+        const sheet = liveUtilitySheet(runtime);
+        return {
+          visible: !!(runtime.utilitySheetUrl && sheet),
+          url: runtime.utilitySheetUrl,
+          loadedUrl: sheet?.wc.getURL() ?? '',
+          ready: utilitySheetNavigationReady(runtime, sheet),
+        };
+      },
+      getUtilitySheetWebContents: () => liveUtilitySheet()?.wc ?? null,
       getOverlayWebContents: () => rt().overlayView?.webContents ?? null,
       getChromeWebContents: () => rt().window?.webContents ?? null,
       setWindowContentSize: (width, height) => {
@@ -4112,7 +4215,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         resizeActiveView();
       },
       getWindowContentBounds: () => hasLiveWindow() ? rt().window.getContentBounds() : null,
-      getUtilitySheetBounds: () => rt().utilitySheetView?.getBounds() ?? null,
+      getUtilitySheetBounds: () => liveUtilitySheet()?.view.getBounds() ?? null,
       getOverlayBounds: () => rt().overlayView?.getBounds() ?? null,
       setTestSearchSuggestionFixture,
       clearTestSearchSuggestionFixture,

@@ -10,13 +10,15 @@ const fnSource = mainSource.match(
   /function reloadTabAfterSettingsFanout\(tab\) \{[\s\S]*?\n\}/
 )?.[0];
 const viewSource = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
-const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => \{[\s\S]*?\n\};/)?.[0];
+const liveViewContentsSource = viewSource.match(/const liveViewContents = \(view\) => \{[\s\S]*?\n\};/)?.[0];
+const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => liveViewContents\(tab\?\.view\);/)?.[0];
 
 test('the deferred-reload helper is still present in main.js', () => {
   assert.ok(fnSource, 'reloadTabAfterSettingsFanout not found — update this test with it');
 });
 
 test('liveContents is still liftable from tab-view.js', () => {
+  assert.ok(liveViewContentsSource, 'liveViewContents not found in tab-view.js — update this test with it');
   assert.ok(liveContentsSource, 'liveContents not found in tab-view.js — update this test with it');
 });
 
@@ -25,7 +27,7 @@ function load() {
   let deferred = null;
   const sandbox = { setImmediate: (fn) => { deferred = fn; } };
   vm.runInNewContext(
-    `${liveContentsSource}\n${fnSource}\nthis.__fn = reloadTabAfterSettingsFanout;`,
+    `${liveViewContentsSource}\n${liveContentsSource}\n${fnSource}\nthis.__fn = reloadTabAfterSettingsFanout;`,
     sandbox
   );
   return {

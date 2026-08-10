@@ -12,23 +12,25 @@ const vm = require('node:vm');
 const viewSource = fs.readFileSync(path.join(__dirname, '../../src/main/tab-view.js'), 'utf8');
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 
-const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => \{[\s\S]*?\n\};/)?.[0];
+const liveViewContentsSource = viewSource.match(/const liveViewContents = \(view\) => \{[\s\S]*?\n\};/)?.[0];
+const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => liveViewContents\(tab\?\.view\);/)?.[0];
 const createTabViewSource = viewSource.match(/function createTabView\(tab\) \{[\s\S]*?\n\}/)?.[0];
 const wireSource = viewSource.match(/function wireTabView\(tab, view, \{ owner, adopted \}\) \{[\s\S]*?\n\}/)?.[0];
 
-test('tab-view.js still exports the two functions these tests lift', () => {
+test('tab-view.js still exports the functions these tests lift', () => {
+  assert.ok(liveViewContentsSource, 'liveViewContents not found in tab-view.js — update this test with it');
   assert.ok(liveContentsSource, 'liveContents not found in tab-view.js — update this test with it');
   assert.ok(createTabViewSource, 'createTabView not found in tab-view.js — update this test with it');
 });
 
 function loadLiveContents() {
   const sandbox = {};
-  vm.runInNewContext(`${liveContentsSource}\nthis.__fn = liveContents;`, sandbox);
-  return sandbox.__fn;
+  vm.runInNewContext(`${liveViewContentsSource}\n${liveContentsSource}\nthis.__tab = liveContents; this.__view = liveViewContents;`, sandbox);
+  return { liveContents: sandbox.__tab, liveViewContents: sandbox.__view };
 }
 
 test('liveContents refuses every not-live shape', () => {
-  const liveContents = loadLiveContents();
+  const { liveContents } = loadLiveContents();
   assert.equal(liveContents(undefined), null);
   assert.equal(liveContents(null), null);
   assert.equal(liveContents({}), null, 'a tab with no view');
@@ -45,9 +47,26 @@ test('liveContents refuses every not-live shape', () => {
 });
 
 test('liveContents returns the webContents itself when it is live', () => {
-  const liveContents = loadLiveContents();
+  const { liveContents } = loadLiveContents();
   const wc = { isDestroyed: () => false, marker: 'live' };
   assert.equal(liveContents({ view: { webContents: wc } }), wc);
+});
+
+test('liveViewContents applies the same two-step check to non-tab views', () => {
+  const { liveViewContents } = loadLiveContents();
+  const wc = { isDestroyed: () => false, marker: 'utility-sheet' };
+  assert.equal(liveViewContents(undefined), null);
+  assert.equal(liveViewContents({}), null, 'post-close: webContents is undefined');
+  assert.equal(liveViewContents({ webContents: { isDestroyed: () => true } }), null);
+  assert.equal(liveViewContents({ webContents: wc }), wc);
+});
+
+test('main.js never dereferences cached utility-sheet webContents directly', () => {
+  assert.doesNotMatch(
+    mainSource,
+    /utilitySheetView(?:\.|\?\.)webContents/,
+    'utility sheets must go through liveUtilitySheet/liveViewContents'
+  );
 });
 
 function loadCreateTabView() {

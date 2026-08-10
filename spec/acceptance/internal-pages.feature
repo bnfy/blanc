@@ -49,6 +49,14 @@ Feature: Internal blanc:// pages
     When the settings page is invoked again by the menu
     Then the utility sheet is dismissed
 
+  @F16-8 @F16 @desktop
+  Scenario: A utility sheet whose native contents were destroyed is recreated on next open
+    Given the favorites page is open in the utility sheet
+    When the utility sheet contents are destroyed
+    And I open the downloads page
+    Then the downloads page opens in the utility sheet
+    And the utility sheet uses newly-created contents
+
   @F16-3 @F16 @desktop
   Scenario: Privileged browser chrome cannot navigate to web content
     When browser chrome attempts to navigate to "https://example.com"
