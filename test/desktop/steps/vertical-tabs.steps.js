@@ -401,16 +401,27 @@ When('I hover the truncated vertical tab title', async function () {
 Then('the truncated title scrolls toward its hidden end', async function () {
   const page = await chromePage();
   const id = this.verticalTitleIds.longId;
-  await page.waitForFunction((tabId) => {
-    const viewport = document.querySelector(
-      `.vertical-tab-row[data-tab-id="${tabId}"] .vertical-tab-title`
-    );
-    const text = viewport?.querySelector('.vertical-tab-title-text');
-    if (!viewport?.classList.contains('scrolling') || !text) return false;
-    const transform = getComputedStyle(text).transform;
-    if (!transform || transform === 'none') return false;
-    return new DOMMatrixReadOnly(transform).m41 < -0.5;
-  }, id);
+  await waitForValue(
+    () => page.locator(
+      `.vertical-tab-row[data-tab-id="${id}"] .vertical-tab-title`
+    ).evaluate((viewport) => {
+      const text = viewport.querySelector('.vertical-tab-title-text');
+      const transform = text ? getComputedStyle(text).transform : 'none';
+      return {
+        hovered: viewport.matches(':hover'),
+        scrolling: viewport.classList.contains('scrolling'),
+        reducedMotion: matchMedia('(prefers-reduced-motion: reduce)').matches,
+        viewportWidth: viewport.clientWidth,
+        contentWidth: text?.scrollWidth ?? 0,
+        offset: viewport.style.getPropertyValue('--vertical-tab-title-offset'),
+        duration: viewport.style.getPropertyValue('--vertical-tab-title-duration'),
+        transform,
+        x: transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41,
+      };
+    }),
+    (value) => value.hovered && value.scrolling && value.x < -0.5,
+    'truncated title hover animation to move toward its hidden end'
+  );
 });
 
 When('I move the pointer away from the vertical tab title', async function () {
