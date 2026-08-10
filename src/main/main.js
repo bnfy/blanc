@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -47,6 +47,7 @@ const {
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
+const { hasExclusiveRenderer, hasBeforeUnloadListener } = require('./renderer-discard');
 const {
   createTabView,
   wireTabView,
@@ -611,8 +612,9 @@ const tabs = new Map();
 /**
  * @typedef {object} SleepSnapshot
  * @property {import('electron').WebContentsView|null} view
- *   The discarded view, held only between wc.close() and its observed
- *   'destroyed' event. Nulled by that observer; never assigned to tab.view.
+ *   For a storage-bearing tab, its renderer-discarded view is retained until
+ *   wake so Chromium's browser-process sessionStorage namespace survives. For
+ *   an ordinary close teardown it is nulled by the 'destroyed' observer.
  * @property {Array<{url:string,title:string,pageState?:string}>} entries
  * @property {number} index
  * @property {boolean} droppedPageState
@@ -649,11 +651,11 @@ const DIRTY_PROBE_SOURCE = `(() => {
       if ((el.textContent || '').trim()) return { dirty: true };
     }
     if (d.designMode === 'on' && (d.body?.textContent || '').trim()) return { dirty: true };
-    if (window.sessionStorage && window.sessionStorage.length > 0) return { dirty: true };
     if (d.pictureInPictureElement) return { dirty: true };
     return {
       dirty: false,
       deepScrolled: window.scrollY > 3 * window.innerHeight,
+      hasSessionStorage: !!window.sessionStorage?.length,
     };
   } catch {
     return { dirty: true };
@@ -664,23 +666,23 @@ const DIRTY_PROBE_SOURCE = `(() => {
  * Is there work in this document a reload would destroy? Any frame that fails
  * to answer during the shared 250 ms budget is dirty by default.
  *
- * @returns {Promise<boolean>} true means this tab must not be quieted
+ * @returns {Promise<{dirty:boolean,hasSessionStorage:boolean}>}
  */
 async function probeTabDirty(tab, wc) {
   // Our error page holds no recoverable work. It would otherwise fail safe on
   // its privileged frame and defeat the space-saving use case for dead tabs.
   if (typeof tab.url === 'string' && tab.url.startsWith('blanc://error')) {
     tab.deepScrolled = false;
-    return false;
+    return { dirty: false, hasSessionStorage: false };
   }
 
   let frames;
   try {
     frames = wc.mainFrame?.framesInSubtree ?? [];
   } catch {
-    return true;
+    return { dirty: true, hasSessionStorage: false };
   }
-  if (frames.length === 0) return true;
+  if (frames.length === 0) return { dirty: true, hasSessionStorage: false };
 
   // One budget for the complete frame tree, never 250 ms per iframe.
   const budget = new Promise((resolve) => setTimeout(() => resolve('timeout'), 250));
@@ -693,21 +695,74 @@ async function probeTabDirty(tab, wc) {
     })),
     budget,
   ]);
-  if (answers === 'timeout') return true;
+  if (answers === 'timeout') return { dirty: true, hasSessionStorage: false };
 
   let deepScrolled = false;
+  let hasSessionStorage = false;
   for (const answer of answers) {
-    if (!answer || typeof answer !== 'object') return true;
-    if (answer.dirty) return true;
+    if (!answer || typeof answer !== 'object') return { dirty: true, hasSessionStorage: false };
+    if (answer.dirty) return { dirty: true, hasSessionStorage: false };
     if (answer.deepScrolled) deepScrolled = true;
+    if (answer.hasSessionStorage) hasSessionStorage = true;
   }
   tab.deepScrolled = deepScrolled;
-  return deepScrolled;
+  return { dirty: deepScrolled, hasSessionStorage };
 }
 
 /** True while sleepTab has replaced a tab's listeners with its temporary
  * teardown pair. A concurrent user close cancels the sleep intent. */
 let sleepTeardownInProgress = false;
+
+/**
+ * Release only the renderer process while retaining its WebContents. Chromium
+ * keeps sessionStorage and navigation state in the browser process, so waking
+ * this same contents is a reload without copying site data into Blanc.
+ */
+async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpoch }) {
+  const rendererIsExclusive = () => {
+    try { return hasExclusiveRenderer(wc, webContents.getAllWebContents()); }
+    catch { return false; }
+  };
+  if (!rendererIsExclusive()) return false;
+  if (await hasBeforeUnloadListener(wc)) return false;
+
+  // The CDP inspection above is asynchronous. Repeat every mutable eligibility
+  // check immediately before the irreversible renderer kill.
+  if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.navEpoch !== navEpoch || tab.isLoading
+      || !tab.sleeping || liveContents(tab) !== wc
+      || !rendererIsExclusive()) return false;
+
+  const wcId = wc.id;
+  const quieted = await new Promise((resolve) => {
+    let settled = false;
+    let timer;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      wc.removeListener('render-process-gone', onGone);
+      resolve(value);
+    };
+    const onGone = bindWindowRuntime(owner, () => finish(true));
+    wc.once('render-process-gone', onGone);
+    timer = setTimeout(() => finish(false), 5000);
+    try { wc.forcefullyCrashRenderer(); } catch { finish(false); }
+  });
+
+  if (!quieted || !tabs.has(tab.id)) return false;
+  tab.view = null;
+  tab.asleep = true;
+  tab.sleeping = false;
+  tab.blockedCount = 0;
+  tab.audible = false;
+  tab.isLoading = false;
+  tab.pageBg = null;
+  tab.themeColor = null;
+  tabIdByWebContentsId.delete(wcId);
+  lastMainFrameMethod.delete(wcId);
+  if (broadcast) broadcastTabs();
+  return true;
+}
 
 /**
  * Discard one tab's renderer. This is best-effort only: it never throws or
@@ -730,9 +785,9 @@ async function sleepTab(id, { broadcast = true } = {}) {
   }
   if (!snapshot) return false;
 
-  let dirty = true;
-  try { dirty = await probeTabDirty(tab, wc); } catch { dirty = true; }
-  if (dirty) return false;
+  let probe = { dirty: true, hasSessionStorage: false };
+  try { probe = await probeTabDirty(tab, wc); } catch {}
+  if (probe.dirty) return false;
 
   // The probe has an async frame budget; validate synchronously immediately
   // before teardown so it can never discard a tab the user just activated.
@@ -756,9 +811,25 @@ async function sleepTab(id, { broadcast = true } = {}) {
     droppedPageState: snapshot.droppedPageState,
   });
   tab.sleeping = true;
+  const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
+
+  // Closing a WebContents destroys its sessionStorage namespace. Real sites
+  // use that storage routinely, so retain the contents and kill only its
+  // exclusive renderer. A beforeunload listener or any uncertainty refuses
+  // this path instead of bypassing a page's unload protection.
+  if (probe.hasSessionStorage) {
+    const quieted = await discardRendererKeepingStorage(tab, wc, owner, {
+      broadcast,
+      navEpoch: epochAtProbe,
+    });
+    if (quieted) return true;
+    tab.sleeping = false;
+    sleepSnapshots.delete(id);
+    return false;
+  }
+
   sleepTeardownInProgress = true;
   const wcId = wc.id;
-  const owner = windowRuntimes.runtimeForTab(id) ?? primaryRuntime;
   // This must remove every old listener: loading/failure/crash listeners can
   // otherwise poison tab.url or resurrect exactly the renderer being closed.
   wc.removeAllListeners();
@@ -889,6 +960,35 @@ async function failWake(tab, generation) {
   return false;
 }
 
+/** Turn a void reload/history action into the same main-frame completion
+ * promise loadURL/restore provide. Listeners are installed before action(). */
+function waitForRetainedNavigation(wc, action) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const cleanup = () => {
+      wc.removeListener('did-finish-load', onFinish);
+      wc.removeListener('did-fail-load', onFail);
+      wc.removeListener('destroyed', onDestroyed);
+    };
+    const finish = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      fn(value);
+    };
+    const onFinish = () => finish(resolve);
+    const onFail = (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+      if (!isMainFrame || errorCode === -3) return;
+      finish(reject, new Error(`${errorDescription || 'Navigation failed'}: ${validatedURL || ''}`));
+    };
+    const onDestroyed = () => finish(reject, new Error('WebContents destroyed during wake'));
+    wc.once('did-finish-load', onFinish);
+    wc.on('did-fail-load', onFail);
+    wc.once('destroyed', onDestroyed);
+    try { action(); } catch (error) { finish(reject, error); }
+  });
+}
+
 /**
  * Rebuild a quiet tab inside a wake generation. The synchronous prefix makes
  * a new view visible to same-turn activation callers before this promise is
@@ -907,6 +1007,7 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
   const snapshot = sleepSnapshots.get(id);
   let wc;
   let generation;
+  let retained = false;
 
   // An activation often immediately follows another wake-triggering action
   // (notably openInternalPage). Coalesce a plain wake onto its live view;
@@ -919,9 +1020,12 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     wc = wakingContents;
     generation = ++tab.wakeGeneration;
   } else {
-    const view = createTabView(tab);
+    const retainedView = snapshot?.view;
+    const retainedContents = retainedView?.webContents;
+    retained = !!retainedContents && !retainedContents.isDestroyed();
+    const view = retained ? retainedView : createTabView(tab);
     tab.view = view;
-    wireTabView(tab, view, { owner, adopted: false });
+    if (!retained) wireTabView(tab, view, { owner, adopted: false });
     wc = view.webContents;
     tabIdByWebContentsId.set(wc.id, id);
     wc.setAudioMuted(!!tab.muted);
@@ -936,6 +1040,13 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     // the recovery snapshot without restoring it first.
     sleepSnapshots.delete(id);
     first = wc.loadURL(navigateTo);
+  } else if (retained) {
+    if (atIndex === null) {
+      first = waitForRetainedNavigation(wc, () => wc.reload());
+    } else {
+      const index = Math.max(0, Math.min(snapshot.entries.length - 1, atIndex));
+      first = waitForRetainedNavigation(wc, () => wc.navigationHistory.goToIndex(index));
+    }
   } else if (snapshot?.entries.length) {
     const index = atIndex === null
       ? snapshot.index
@@ -1701,7 +1812,11 @@ let isQuitting = false;
 let sessionPersistenceSuspended = false;
 app.on('before-quit', () => {
   isQuitting = true;
-  sleepSnapshots.clear(); // retained POST bodies / form values
+  for (const snapshot of [...sleepSnapshots.values()]) {
+    const wc = snapshot.view?.webContents;
+    if (wc && !wc.isDestroyed()) wc.close();
+  }
+  sleepSnapshots.clear(); // retained views, POST bodies, and form values
 });
 
 function persistSession() {
@@ -2620,6 +2735,7 @@ const recentlyClosedUrls = [];
 
 function closeTab(id) {
   // First statement: any later early return must not strand recovery data.
+  const retainedView = sleepSnapshots.get(id)?.view ?? null;
   sleepSnapshots.delete(id);
   // A user close during a sleep teardown wins: do not rewire a tab going away.
   sleepTeardownInProgress = false;
@@ -2647,7 +2763,7 @@ function closeTab(id) {
   windowRuntimes.detachTab(id);
   rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
   pruneEmptyGroups();
-  const wc = tab.view?.webContents;
+  const wc = tab.view?.webContents ?? retainedView?.webContents;
   if (wc) lastMainFrameMethod.delete(wc.id);
   if (wc && !wc.isDestroyed()) wc.close();
 

@@ -89,6 +89,11 @@
   // What Enter acts on — rebuilt on every list render.
   let visibleCommands = [];
   let visibleResults = [];
+  // Result text for a command that deliberately leaves the panel open. A
+  // generation prevents a late IPC result from repainting a newer query or a
+  // panel that has since been closed and reopened.
+  let commandNotice = '';
+  let commandResultGeneration = 0;
   // Search-engine autocomplete is best-effort and asynchronous. The query
   // token plus request generation prevent late responses from repainting a
   // newer query (or a panel that was closed and reopened).
@@ -564,7 +569,7 @@
     { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
     { cmd: '/pin', hint: 'Pin or unpin this tab', run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
     { cmd: '/mute', hint: 'Mute or unmute this tab', run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
-    { cmd: '/sleep', hint: 'Put background tabs to sleep and free their memory', run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true },
+    { cmd: '/sleep', hint: 'Put background tabs to sleep and free their memory', run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true, resultNotice: (quieted) => Array.isArray(quieted) && quieted.length === 0 ? 'No background tabs can be quieted right now.' : '' },
     { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"', run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
       if (name && state.activeTabId) window.browserAPI.groupTabByName(state.activeTabId, name);
@@ -586,10 +591,33 @@
   function runCommand(command) {
     // Commands like "/group work" read their argument from the typed input.
     const input = addressInput.value;
+    const resultGeneration = ++commandResultGeneration;
+    commandNotice = '';
     // Close first: commands that open something (a page, a fresh tab) rely
     // on main re-showing the overlay in a clean state where needed.
     if (!command.keepOverlay) window.browserAPI.closeOverlay();
-    command.run(input);
+    const result = command.run(input);
+    // A command that stays open and leaves its own text typed keeps the list
+    // on slash commands, so the rows it just changed are never on screen —
+    // /sleep quieted tabs and showed nothing. Clearing restores the tab
+    // switcher, which is where the dimming reads. Opt-in: /find deliberately
+    // keeps its query. A programmatic value change fires no input event, so
+    // the re-render has to be explicit.
+    if (command.clearInput) {
+      addressInput.value = '';
+      renderList();
+    }
+    if (command.resultNotice) {
+      Promise.resolve(result).then((value) => {
+        if (resultGeneration !== commandResultGeneration) return;
+        commandNotice = command.resultNotice(value);
+        renderList();
+      }, () => {
+        if (resultGeneration !== commandResultGeneration) return;
+        commandNotice = 'Could not quiet background tabs.';
+        renderList();
+      });
+    }
   }
 
   function commandRow(command, isTop) {
@@ -622,6 +650,13 @@
     empty.className = 'island-empty';
     empty.textContent = text;
     return empty;
+  }
+
+  function commandNoticeRow(text) {
+    const notice = emptyRow(text);
+    notice.classList.add('command-notice');
+    notice.setAttribute('role', 'status');
+    return notice;
   }
 
   // --- Quick Switcher ---
@@ -911,6 +946,7 @@
 
       const pinned = state.tabs.filter((t) => t.pinned && !t.groupId);
       const rows = [];
+      if (commandNotice) rows.push(commandNoticeRow(commandNotice));
       if (pinned.length) {
         rows.push(pinnedHeaderRow(pinned.length));
         rows.push(...pinned.map(tabRow));
@@ -1032,6 +1068,8 @@
         pickingTabId = null;
         addressInputComposing = false;
         suppressProviderSuggestions = false;
+        commandResultGeneration += 1;
+        commandNotice = '';
       }
       if (!reshow) resetSearchSuggestions();
       if (prefill) {
@@ -1127,6 +1165,7 @@
   const RETRACT_MS = 200; // keep in step with OVERLAY_RETRACT_MS in main.js
   let lastPillRect = null;
   let morphTimer = null;
+  let morphGeneration = 0;
 
   function morphPanelFromPill(pillRect) {
     if (!pillRect || !pillRect.width) return;          // no box reported yet
@@ -1152,6 +1191,7 @@
     const panelCentre = panelBox.left + panelBox.width / 2;
 
     clearTimeout(morphTimer);
+    const generation = ++morphGeneration;
     islandPanel.classList.add('morph-start');
     islandPanel.style.width = `${pillRect.width.toFixed(1)}px`;
     islandPanel.style.height = `${pillRect.height.toFixed(1)}px`;
@@ -1163,6 +1203,7 @@
     // single frame lands both in the same style recalculation and the panel
     // simply appears at full size.
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (generation !== morphGeneration) return;
       islandPanel.classList.remove('morph-start');
       islandPanel.classList.add('morph-run');
       islandPanel.style.width = `${naturalWidth.toFixed(1)}px`;
@@ -1171,6 +1212,7 @@
       islandPanel.style.removeProperty('--morph-x');
       islandPanel.style.removeProperty('--morph-y');
       morphTimer = setTimeout(() => {
+        if (generation !== morphGeneration) return;
         // Hand the box back to layout, so the panel resizes normally again
         // when tabs open and close underneath it.
         islandPanel.classList.remove('morph-run');
@@ -1198,12 +1240,14 @@
     if (!box.width) return false;
 
     clearTimeout(morphTimer);
+    const generation = ++morphGeneration;
     // Pin the current size first, or transitioning from `auto` does nothing.
     islandPanel.classList.add('morph-run', 'retracting');
     islandPanel.style.width = `${box.width.toFixed(1)}px`;
     islandPanel.style.height = `${box.height.toFixed(1)}px`;
 
     requestAnimationFrame(() => {
+      if (generation !== morphGeneration) return;
       const centreShift = (pill.x + pill.width / 2) - (box.left + box.width / 2);
       islandPanel.style.width = `${pill.width.toFixed(1)}px`;
       islandPanel.style.height = `${pill.height.toFixed(1)}px`;
@@ -1217,6 +1261,7 @@
   /** Put the panel back to its resting styles once it is off screen. */
   function clearMorphStyles() {
     clearTimeout(morphTimer);
+    morphGeneration += 1;
     islandPanel.classList.remove('morph-start', 'morph-run', 'retracting');
     islandPanel.style.width = '';
     islandPanel.style.height = '';
@@ -1243,6 +1288,8 @@
     findBar.hidden = true;
     shieldPop.hidden = true;
     inputTouched = false;
+    commandResultGeneration += 1;
+    commandNotice = '';
     addressInputComposing = false;
     suppressProviderSuggestions = false;
     pickingTabId = null;
@@ -1328,6 +1375,8 @@
   });
   addressInput.addEventListener('input', (e) => {
     inputTouched = true;
+    commandResultGeneration += 1;
+    commandNotice = '';
     selectedResultIndex = -1;
     if (!addressInput.value.trim()) {
       // Do not clear a paste/drop taint here. Delete followed by Undo restores

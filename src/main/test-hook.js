@@ -559,6 +559,14 @@ function install(refs) {
         enter: !!row.querySelector('.row-enter')
       }))`);
     },
+    async addressCommandNotice() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const row = document.querySelector('#islandList .command-notice');
+        return row ? { text: row.textContent, role: row.getAttribute('role') } : null;
+      })()`);
+    },
     async overlayRendererMode() {
       const wc = getOverlayWebContents();
       if (!wc) return null;
@@ -853,6 +861,7 @@ function install(refs) {
     // would keep the acceptance suite green if the shipping code regressed.
     async sleepTab(id) { return sleepTab(id); },
     async wakeTab(id, navigateTo = null) { return wakeTab(id, { navigateTo }); },
+    async wakeTabAtIndex(id, atIndex) { return wakeTab(id, { atIndex }); },
     async sleepBackgroundTabsNow() { return sleepBackgroundTabsNow(); },
     createQuietTab(url, title = 'Restored quiet tab', isPrivate = false) {
       return createTab(String(url), {

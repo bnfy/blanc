@@ -12,6 +12,12 @@ Feature: Quiet Tabs
     When I wake it through a redirect and activate it
     Then the same tab is functional with its address and back history intact
 
+  @F31-1 @F31 @desktop @D8
+  Scenario: A storage-bearing quiet tab can wake directly into its back history
+    Given a background storage-bearing tab with back history
+    When I quiet it and wake its previous history entry
+    Then the previous page and session storage are intact
+
   @F31-2 @F31 @desktop @D8
   Scenario: The active tab is never quieted
     Given an active tab on a quietable page
@@ -37,6 +43,7 @@ Feature: Quiet Tabs
       | pending permission     |
       | deep scroll            |
       | beforeunload objection |
+      | stored beforeunload handler |
 
   @F31-4 @F31 @desktop @D23
   Scenario: The sleep command quiets eligible rows without closing the panel
@@ -44,6 +51,12 @@ Feature: Quiet Tabs
     And the tab panel is open
     When I run the manual sleep command
     Then the panel stays open and names the row quiet
+
+  @F31-4 @F31 @desktop @D23
+  Scenario: The sleep command explains when no background tab can be quieted
+    Given no background tab can be quieted
+    When I run the manual sleep command
+    Then the panel stays open and explains that no tab can be quieted
 
   @F31-5 @F31 @desktop @D8
   Scenario: Quiet is visible and included in accessible names
@@ -95,4 +108,5 @@ Feature: Quiet Tabs
     And the renderer process count has dropped by 1
     When I activate that quiet tab
     Then that tab is awake
+    And its session storage survived the quiet reload
     And the renderer process count has returned to what it was

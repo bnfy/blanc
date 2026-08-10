@@ -303,7 +303,6 @@ iframe is structurally invisible. Run over `wc.mainFrame.framesInSubtree` with a
 - a `<select>` with any option's `selected !== defaultSelected`
 - a non-empty `input[type=password]`
 - a `[contenteditable]` or `designMode` region with text
-- `sessionStorage.length > 0`
 - **any frame failed to answer**
 
 The three control-state cases matter as much as the text case: `value` is
@@ -312,10 +311,17 @@ silently loses a half-filled form on the fallback reload.
 
 Never key the probe on interaction events — a 1Password fill is programmatic.
 
+Non-empty `sessionStorage` is deliberately **not** a dirty signal. It is
+site-owned transient state, not evidence that a person has unsaved work, and
+ordinary sites create it routinely on load. Treating any key as dirty made the
+feature pass only on a special `?nostore=1` acceptance fixture while refusing
+the real web. It instead selects the retained-WebContents discard path in
+§4.4.2, which keeps Chromium's browser-process storage namespace alive.
+
 **Known limitations, stated rather than papered over:** drafts held only in JS
-memory or IndexedDB (an editor's autosave buffer) are invisible to this predicate,
-and a hostile page can pin itself awake by making the probe throw. Neither is a
-hole to plug in v1.
+memory or IndexedDB (an editor's autosave buffer) are invisible to this
+predicate, and a hostile page can pin itself awake by making the probe throw.
+Neither is a hole to plug in v1.
 
 ### 4.4.1 `beforeunload` as the teardown path, never as a probe
 
@@ -355,6 +361,32 @@ predicate alone is a local change that alters nothing else in this design.
 Guard the handler swap with a flag so a concurrent user-initiated `closeTab`
 still gets the modal Leave/Stay dialog at `:2058-2068` rather than this silent
 handler.
+
+### 4.4.2 Storage-bearing tabs retain the WebContents, not its renderer
+
+Closing a WebContents destroys its `sessionStorage` namespace. This is not the
+same behavior as Chrome's tab discard, and making ordinary storage-bearing
+sites eligible without accounting for it creates active data loss. Measured on
+Electron 43: a close/new-WebContents wake changed `sessionStorage` from
+`"three-items"` to `null`, while a renderer-only discard followed by reloading
+the same WebContents preserved it.
+
+When any frame reports non-empty `sessionStorage`, keep its WebContentsView in
+the main-process snapshot record, call `forcefullyCrashRenderer()`, and reload
+that same WebContents on wake. This still releases the measured renderer
+process. It does not serialize, inspect, or copy site storage into Blanc's heap.
+
+Two fail-closed guards are mandatory because a renderer kill bypasses unload:
+
+- CDP inspects the main-world `window` in every frame. Any `beforeunload`
+  listener, missing execution context, or inspection failure leaves the tab
+  awake.
+- Compare `getOSProcessId()` against every live `webContents`. Electron warns
+  that a renderer may be shared; if the target PID is not provably exclusive,
+  leave the tab awake rather than kill another surface.
+
+The ordinary §4.4 close transaction remains the path for tabs with no session
+storage, retaining Chromium's atomic beforeunload verdict there.
 
 ### 4.5 Re-validate immediately before the discard
 
@@ -459,6 +491,12 @@ Wake therefore runs as one **generation** — a monotonically increasing
 5. **Staleness.** Any callback whose captured generation is not the tab's
    current one returns immediately. A second wake supersedes the first.
 
+A storage-bearing snapshot also retains its renderer-discarded WebContentsView.
+Its wake uses `reload()` (or `goToIndex()` for back/forward) on that same
+WebContents, awaiting main-frame completion inside the same generation. A
+born-quiet/session-restored tab and an ordinary close-discard still construct a
+new view and use `navigationHistory.restore()` as above.
+
 The wake-failure error page carries the tab's stored title. The sweep skips
 entirely while `net.isOnline()` is false.
 
@@ -525,6 +563,10 @@ Delete the Map entry in `closeTab` (as its first statement — `:2312-2349` has 
 auxiliary-map hook today), on a wake generation's successful commit (§5.1), in
 the window `closed` handler, and on `before-quit`.
 
+For a storage-bearing quiet tab the record also owns its retained view. Closing
+that tab or quitting must close this view before deleting the record; otherwise
+the browser-process object and storage namespace leak after the tab disappears.
+
 **Switching the setting to Off does not delete anything.** Off stops *future*
 auto-quieting; tabs that are already quiet stay quiet and keep their snapshots,
 waking normally on activation. Deleting snapshots on Off would silently destroy
@@ -553,8 +595,9 @@ exists without scrubbing it. `sleepState()` returns
 pageState is applied against a document rebuilt from the initial response. On any
 infinite-scroll or virtualized feed a 40,000 px offset clamps to the bottom of
 page one — worse than page top, which is why deep-scrolled pages are excluded
-from auto-quieting (§4.2). It carries **no** sessionStorage, JS heap, or
-contenteditable content.
+from auto-quieting (§4.2). It carries **no** JS heap or contenteditable content.
+`sessionStorage` survives only when the retained-WebContents path in §4.4.2 is
+used; it is never copied into the navigation snapshot.
 
 Every user-visible string says **"reload when you come back to them"**, never
 "resume". The acceptance scenario asserts identity, address, and back-history —
