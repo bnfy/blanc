@@ -588,11 +588,16 @@ Then(
 
 Then('the resting Island is centered over the website pane', async function () {
   const page = await chromePage();
-  const box = await page.locator('#islandPill').boundingBox();
-  assert.ok(box, 'resting Island should be visible');
   const expectedCenter = 248 + (this.verticalWindow.width - 248) / 2;
-  assert.ok(Math.abs(box.x + box.width / 2 - expectedCenter) <= 1,
-    `Island center ${box.x + box.width / 2} should equal website-pane center ${expectedCenter}`);
+  const measurement = await waitForValue(
+    async () => {
+      const box = await page.locator('#islandPill').boundingBox();
+      return box ? { box, center: box.x + box.width / 2, expectedCenter } : null;
+    },
+    (value) => value && Math.abs(value.center - value.expectedCenter) <= 1,
+    'resting Island to settle at the website-pane center'
+  );
+  assert.ok(measurement.box, 'resting Island should be visible');
 });
 
 When('I open a utility page', async function () {
@@ -627,7 +632,7 @@ Then('the rail remains visible and unobscured', async function () {
 
 When('I open the Island panel', async function () {
   await this.call('openPanel');
-  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'panel', 'Island panel');
+  await waitForValue(() => this.call('overlayRendererMode'), (mode) => mode === 'panel', 'Island panel renderer');
 });
 
 Then(
@@ -638,18 +643,26 @@ Then(
 );
 
 Then('the expanded Island is centered over the website pane', async function () {
-  const overlay = await this.call('overlayBounds');
-  const panel = await this.call('overlayElementRect', '#islandPanel');
-  assert.ok(panel, 'expanded Island panel should render');
-  const globalCenter = overlay.x + panel.x + panel.width / 2;
   const expectedCenter = 248 + (this.verticalWindow.width - 248) / 2;
-  assert.ok(Math.abs(globalCenter - expectedCenter) <= 1,
-    `expanded Island center ${globalCenter} should equal ${expectedCenter}`);
+  await waitForValue(
+    async () => {
+      const overlay = await this.call('overlayBounds');
+      const panel = await this.call('overlayElementRect', '#islandPanel');
+      return panel ? {
+        overlay,
+        panel,
+        center: overlay.x + panel.x + panel.width / 2,
+        expectedCenter,
+      } : null;
+    },
+    (value) => value && Math.abs(value.center - value.expectedCenter) <= 1,
+    'expanded Island to settle at the website-pane center'
+  );
 });
 
 When('I replace the panel with the command palette', async function () {
   await this.call('openPalette');
-  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'palette', 'command palette');
+  await waitForValue(() => this.call('overlayRendererMode'), (mode) => mode === 'palette', 'command palette renderer');
 });
 
 Then(
@@ -660,12 +673,21 @@ Then(
 );
 
 Then('the expanded Island remains centered over the website pane', async function () {
-  const overlay = await this.call('overlayBounds');
-  const panel = await this.call('overlayElementRect', '#islandPanel');
-  assert.ok(panel, 'palette Island should render');
-  const center = overlay.x + panel.x + panel.width / 2;
-  const expected = 248 + (this.verticalWindow.width - 248) / 2;
-  assert.ok(Math.abs(center - expected) <= 1);
+  const expectedCenter = 248 + (this.verticalWindow.width - 248) / 2;
+  await waitForValue(
+    async () => {
+      const overlay = await this.call('overlayBounds');
+      const panel = await this.call('overlayElementRect', '#islandPanel');
+      return panel ? {
+        overlay,
+        panel,
+        center: overlay.x + panel.x + panel.width / 2,
+        expectedCenter,
+      } : null;
+    },
+    (value) => value && Math.abs(value.center - value.expectedCenter) <= 1,
+    'palette Island to settle at the website-pane center'
+  );
 });
 
 Then('the page pane starts at x {int} and is {int} pixels wide', async function (x, width) {
