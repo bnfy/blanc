@@ -1,6 +1,24 @@
 const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
+const ctx = require('../support/context');
+
+// The overlay is its own page, so the panel can be driven the way a person
+// drives it. Calling the main-process function instead is what let the
+// /sleep receipt regress unnoticed: the command quieted tabs and left the
+// list showing slash commands, so nothing on screen changed.
+async function overlayPage() {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const page = ctx.app.windows().find((candidate) =>
+      !candidate.isClosed() && candidate.url().endsWith('/src/renderer/overlay.html'));
+    if (page) {
+      await page.waitForLoadState('domcontentloaded');
+      return page;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error('overlay window never appeared');
+}
 
 async function openQuietable(world, name, opts = {}) {
   const suffix = opts.extraQuery ? `&${opts.extraQuery}` : '';
@@ -170,7 +188,14 @@ When('I ask Blanc to quiet the protected tab', async function () {
 });
 
 When('I run the manual sleep command', async function () {
-  this.manualQuieted = await this.call('sleepBackgroundTabsNow');
+  // Type it and press Enter, exactly as a person would. Driving
+  // sleepBackgroundTabsNow directly leaves the input empty, which is the one
+  // state in which the panel happens to be showing the tab rows.
+  const page = await overlayPage();
+  await page.fill('#addressInput', '/sleep');
+  await page.press('#addressInput', 'Enter');
+  await this.waitForState((state) =>
+    state.tabs.find((candidate) => candidate.id === this.quietCandidateId)?.asleep === true);
 });
 
 When('I show the vertical tab rail and panel', async function () {
@@ -246,7 +271,9 @@ Then('the protected tab remains awake and functional', async function () {
 
 Then('the panel stays open and names the row quiet', async function () {
   assert.equal(await this.call('overlayMode'), 'panel');
-  assert.ok(this.manualQuieted.includes(this.quietCandidateId));
+  // The rows must be what the panel is actually showing. If the command left
+  // its own text in the input, this list is slash commands and the candidate
+  // is absent — which is precisely the bug this scenario now catches.
   const rows = await this.call('addressResultRows');
   const row = rows.find((candidate) => candidate.title === this.quietCandidateTitle);
   assert.ok(row, 'quiet candidate missing from panel');

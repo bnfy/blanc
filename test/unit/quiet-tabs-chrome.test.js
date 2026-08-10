@@ -229,3 +229,35 @@ test('a quiet row falls back to its stored url, which it has by construction', (
   ]);
   assert.equal(insecure.connection, 'http');
 });
+
+// ---------------------------------------------------------------------------
+// /sleep must leave the panel showing the rows it just changed
+// ---------------------------------------------------------------------------
+
+const runCommandSource = overlaySource.match(/function runCommand\(command\) \{[\s\S]*?\n  \}/)?.[0];
+
+test('runCommand could be lifted from source', () => {
+  assert.ok(runCommandSource, 'runCommand not found in overlay.js — update this test with it');
+});
+
+test('/sleep clears the input so the list falls back to the tab switcher', () => {
+  // The panel renders slash commands whenever the input starts with "/". A
+  // command that stays open and leaves "/sleep" typed therefore shows the
+  // command list, never the rows it just quieted — the dimming is real but
+  // unreachable. Clearing the input is what makes the receipt visible.
+  const sleepEntry = overlaySource.match(/\{ cmd: '\/sleep',[^\n]*\}/)?.[0] ?? '';
+  assert.match(sleepEntry, /keepOverlay: true/);
+  assert.match(sleepEntry, /clearInput: true/);
+
+  assert.match(runCommandSource, /command\.clearInput/);
+  assert.match(runCommandSource, /addressInput\.value = ''/);
+  // A programmatic value change does not fire the input listener, so the
+  // re-render has to be explicit or the stale command list stays on screen.
+  assert.match(runCommandSource, /renderList\(\)/);
+});
+
+test('/find keeps its typed query — clearing is opt-in, not blanket', () => {
+  const findEntry = overlaySource.match(/\{ cmd: '\/find',[^\n]*\}/)?.[0] ?? '';
+  assert.match(findEntry, /keepOverlay: true/);
+  assert.doesNotMatch(findEntry, /clearInput/);
+});
