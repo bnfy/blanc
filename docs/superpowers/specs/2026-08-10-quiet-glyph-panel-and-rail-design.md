@@ -58,43 +58,80 @@ lower-left, smallest at upper-right. One `<path>`, three subpaths. Round caps
 extend ~0.68 beyond each endpoint at the canonical stroke width, so every
 extreme stays inside the 16×16 box (max reach 15.68, min 0.82).
 
-### Canonical rendering — the part markup alone cannot guarantee
+### Canonical rendering — one rule, both surfaces
 
 Byte-identical markup still renders differently under each surface's CSS, so
-the rendered result is pinned, not just the path:
-
-| Property | Value | Source |
-| --- | --- | --- |
-| Box | 14 × 14 px | matches `.vertical-tab-state` |
-| SVG | 13 × 13 px | matches `.vertical-tab-state svg` |
-| `stroke-width` | 1.35 | matches `.vertical-tab-state svg` |
-| `stroke-linecap` / `linejoin` | round | matches `.vertical-tab-state svg` |
-| `fill` | none | ditto |
-| `stroke` | `currentColor` | ditto |
-| `color` | `var(--text-dim)` | matches both surfaces' state colour |
-
-These are the rail's existing numbers, adopted as canonical **so the rail needs
-no CSS change at all**. The panel row's rule must reproduce them exactly.
-
-Beware specificity: `.vertical-tab-state svg` (0,1,1) already sets size and
-stroke inside the rail and will win over a bare `.quiet-glyph` (0,1,0). Either
-match its values (as above) or qualify the selector. Do not introduce a second
-set of numbers.
+the rendering is locked by putting both surfaces in the **same declaration
+block**. Not two rules holding matching numbers — one rule, two selectors.
 
 `styles.css` is shared by `index.html` and `overlay.html` (both `<link>` it),
-so a single rule genuinely governs both surfaces. This is what makes "one
-glyph" true rather than aspirational.
+which is what makes this possible.
+
+The two existing rail rules at `styles.css:536` and `:546` gain a selector
+each. Their declarations do not change, so **the rail's rendering is untouched
+by construction**:
+
+```css
+.vertical-tab-state,
+.island-row .row-quiet {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  flex: 0 0 auto;
+}
+
+.vertical-tab-state svg,
+.island-row .row-quiet svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+```
+
+The panel favicon dims through a `quiet` class on the row, mirroring the rail's
+own `(tab.asleep ? ' quiet' : '')` at `vertical-tabs.js:347`. The panel's
+favicon element carries no class of its own — it is a bare `<span>` inside
+`.row-favicon-wrap` (`overlay.js:254-258`) — so the wrapper is the target:
+
+```css
+.island-row.quiet .row-favicon-wrap { opacity: .45; }
+```
+
+**Delete, do not extend, the old `.island-row .row-quiet` pill block**
+(`styles.css:1644`, the `font-family` / `font-size` / `border` /
+`border-radius` / `padding` declarations). Leaving it in place would draw a
+bordered pill around the glyph.
+
+Because both surfaces resolve through one block, there is no specificity
+contest to lose and no second set of numbers to drift. Any implementation that
+produces a separate `.quiet-glyph { … }` sizing rule has missed the point of
+this section.
 
 ## Sharing mechanism — decided, not optional
 
 `src/renderer/quiet-glyph.js` is a **classic script** exposing
 `window.QUIET_GLYPH_SVG`, loaded before the renderer scripts in both documents:
 
+`index.html`:
+
 ```html
-<!-- index.html -->            <!-- overlay.html -->
-<script src="quiet-glyph.js">  <script src="quiet-glyph.js">
-<script src="vertical-tabs.js"><script src="overlay.js">
-<script src="renderer.js">
+<script src="quiet-glyph.js"></script>
+<script src="vertical-tabs.js"></script>
+<script src="renderer.js"></script>
+```
+
+`overlay.html`:
+
+```html
+<script src="quiet-glyph.js"></script>
+<script src="overlay.js"></script>
 ```
 
 Both documents already use classic `<script src>` tags with no modules, so this
@@ -190,14 +227,44 @@ In `test/unit/quiet-tabs-chrome.test.js`:
 3. Line 159 pins `makeMarker(... ICONS.quiet, 'Quiet')` — the call survives,
    the icon's source changes to the shared global.
 
-Add:
+Add, each one locking a clause of the contract above:
 
-4. Both documents load `quiet-glyph.js` before their renderer scripts.
-5. `overlay.js` and `vertical-tabs.js` both reference `QUIET_GLYPH_SVG` and
-   neither contains an inline `<svg` for the quiet state.
-6. The panel row dims the favicon when `tab.asleep`.
-7. The Quick Switcher subline still emits the word `quiet` — a regression guard
-   for the surface this spec deliberately leaves alone.
+4. **The canonical path.** `quiet-glyph.js` contains exactly the path data in
+   this spec — asserted as a literal string, not a loose `/M1\.5/` match. The
+   drawing is the contract.
+5. **One definition.** Both documents load `quiet-glyph.js` before their
+   renderer scripts; `overlay.js` and `vertical-tabs.js` each reference
+   `QUIET_GLYPH_SVG`, and neither contains an inline `<svg` for the quiet
+   state.
+6. **One rule, both surfaces — specificity-proof.** Assert that
+   `.island-row .row-quiet` and `.vertical-tab-state` appear in the *same*
+   declaration block, for both the container rule and the `svg` rule, and that
+   `styles.css` contains no other rule setting `width`, `stroke-width`, or
+   `stroke-linecap` on `.row-quiet`, `.vertical-tab-state`, or `.quiet-glyph`.
+   A test that merely checks each surface has the right numbers would pass on
+   two parallel rules, which is the failure being guarded.
+7. **The rendered values.** From that shared block: `svg` 13 × 13,
+   `stroke-width: 1.35`, `stroke-linecap` and `stroke-linejoin` round,
+   `fill: none`, and a 14 × 14 container on both surfaces.
+8. **The old pill is gone.** No `.island-row .row-quiet` rule sets
+   `border`, `border-radius`, `padding`, or `font-family`.
+9. **Panel glyph semantics.** It carries `title="Quiet"` and
+   `aria-hidden="true"`, and the row's accessible name still ends in `quiet`.
+10. **Favicon dimming.** The panel row takes a `quiet` class when `tab.asleep`,
+    and `.island-row.quiet .row-favicon-wrap` sets `opacity: .45`.
+11. **Quick Switcher untouched.** Its subline still emits the word `quiet` — a
+    regression guard for the surface this spec deliberately leaves alone.
+
+### Perceivability check
+
+The unit tests above are static source assertions; this session's own history
+is that such tests pass while the feature is invisible. Add one desktop
+acceptance assertion that reads **computed** style from both live glyphs — the
+vertical layout with the Island panel open shows the rail and the panel row
+together — and asserts their `width`, `stroke-width`, `stroke-linecap` and
+`fill` are equal, and that the panel glyph's box is non-zero. Equality of the
+computed values is the only check that survives a future stylesheet edit no
+static assertion anticipated.
 
 ## Deliverables beyond code
 
@@ -205,6 +272,20 @@ Add:
 treatment and is wrong the moment this lands. It is updated **in this same
 change**, not afterwards — a specimen that disagrees with the product is worse
 than no specimen. Running `/design-sync` to publish it remains the user's call.
+
+Two corrections to make while updating it:
+
+- **Line 255 is wrong today**, independently of this change. It reads: "The tab
+  record's field is `asleep` and the command is `/sleep`, both internal-facing
+  — the same split as Favorites and `bookmarks`." `/sleep` is **not**
+  internal-facing: a person types it into the command palette. It is the one
+  deliberate, documented place where the internal word is shown to users, which
+  is the opposite of the `bookmarks` split (an identifier no user ever sees).
+  Say that instead.
+- **Line 137 says "Three surfaces carry that state."** After this change the
+  count and the treatments both move: panel row and rail share the Zzz, pill
+  dots stay shape-only, and the Quick Switcher subline stays as the word. State
+  all four and which two changed.
 
 ## Not in scope
 
