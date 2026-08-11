@@ -96,13 +96,19 @@ by construction**:
 ```
 
 The panel favicon dims through a `quiet` class on the row, mirroring the rail's
-own `(tab.asleep ? ' quiet' : '')` at `vertical-tabs.js:347`. The panel's
-favicon element carries no class of its own — it is a bare `<span>` inside
-`.row-favicon-wrap` (`overlay.js:254-258`) — so the wrapper is the target:
+own `(tab.asleep ? ' quiet' : '')` at `vertical-tabs.js:347`:
 
 ```css
 .island-row.quiet .row-favicon-wrap { opacity: .45; }
 ```
+
+**The wrapper is a deliberate whole-unit target, not a fallback.** The favicon
+element is not classless — `setFavicon()` assigns it `.favicon` plus one of
+`loading` / `internal` / `has-icon`. The wrapper is chosen because it is the
+whole visual unit: `.row-favicon-wrap` also holds the mute badge
+(`overlay.js:259-263`), and a quiet tab should dim as one object rather than
+have its favicon fade out from under a badge that stays bright. Targeting the
+wrapper also keeps the rule clear of those three state variants.
 
 **Delete, do not extend, the old `.island-row .row-quiet` pill block**
 (`styles.css:1644`, the `font-family` / `font-size` / `border` /
@@ -204,7 +210,9 @@ Renderer JavaScript, HTML, and CSS — not markup and CSS alone:
 - `src/renderer/index.html`, `src/renderer/overlay.html` — one `<script>` each
 - `src/renderer/overlay.js` — row glyph replaces the text tag; favicon dims
 - `src/renderer/vertical-tabs.js` — `ICONS.quiet` becomes the shared glyph
-- `src/renderer/styles.css` — `.quiet-glyph`, panel-row rule, panel favicon dim
+- `src/renderer/styles.css` — one selector added to each of the two existing
+  rail rules, the old `.row-quiet` pill block deleted, and the panel favicon
+  dim added. **No `.quiet-glyph` sizing rule** — the contract above forbids it
 - `design-system/components/quiet-tabs/index.html` — **implementation
   deliverable, lands in this change** (see below)
 
@@ -259,12 +267,32 @@ Add, each one locking a clause of the contract above:
 
 The unit tests above are static source assertions; this session's own history
 is that such tests pass while the feature is invisible. Add one desktop
-acceptance assertion that reads **computed** style from both live glyphs — the
+acceptance assertion reading **computed** style from both live glyphs — the
 vertical layout with the Island panel open shows the rail and the panel row
-together — and asserts their `width`, `stroke-width`, `stroke-linecap` and
-`fill` are equal, and that the panel glyph's box is non-zero. Equality of the
-computed values is the only check that survives a future stylesheet edit no
-static assertion anticipated.
+together.
+
+Comparing sizes alone is not enough. **An element with `opacity: 0` still has a
+non-zero box and a full computed width**, so a geometry-only check would pass
+on a glyph nobody can see — which is precisely the `.row-tag` failure the
+visibility invariant exists to prevent. The assertion must therefore, in order:
+
+1. **Establish the at-rest state.** The panel row is neither hovered nor
+   focused — move the pointer clear and assert nothing in the row matches
+   `:hover` or `:focus-within`. A glyph that only appears on hover must fail
+   here, so the check cannot be run while pointing at the row.
+2. **Prove it is rendered.** For the glyph and every ancestor up to the row:
+   `display` is not `none` and `visibility` is `visible`.
+3. **Prove it is not transparent.** The *cumulative* opacity — the product of
+   every ancestor's computed opacity, not just the glyph's own — is greater
+   than zero. Only the product catches a transparent wrapper.
+4. **Prove both have a box.** The panel glyph *and* the rail glyph each report
+   non-zero width and height.
+5. **Prove they agree.** `width`, `stroke-width`, `stroke-linecap` and `fill`
+   are equal between the two.
+
+Steps 1–3 are what make this a perceivability check rather than another
+existence check. Step 5 is the only assertion that survives a future stylesheet
+edit no static test anticipated.
 
 ## Deliverables beyond code
 
