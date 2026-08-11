@@ -363,12 +363,15 @@ mirroring the rail."
 ### Task 2: Design-system specimen update
 
 **Files:**
-- Modify: `design-system/components/quiet-tabs/index.html:102-104` (panel row specimens)
-- Modify: `design-system/components/quiet-tabs/index.html:112-113` (rail row CSS + specimens)
-- Modify: `design-system/components/quiet-tabs/index.html:137` (surface count)
-- Modify: `design-system/components/quiet-tabs/index.html:230-237` (values table)
-- Modify: `design-system/components/quiet-tabs/index.html:255` (/sleep claim)
-- Modify: `design-system/components/quiet-tabs/index.html:138` (provenance line)
+- Modify: `design-system/components/quiet-tabs/index.html` (~lines 102–104) — split `.row-private` out, add favicon-wrap + dim, add the shared glyph block
+- Modify: `design-system/components/quiet-tabs/index.html` (~lines 112–113) — delete the rail's own `.vertical-tab-quiet` sizing (now shared)
+- Modify: `design-system/components/quiet-tabs/index.html` (~lines 180–208) — panel + rail HTML specimens
+- Modify: `design-system/components/quiet-tabs/index.html` (~lines 137–138) — surface count + provenance
+- Modify: `design-system/components/quiet-tabs/index.html` (~lines 232–238) — values table
+- Modify: `design-system/components/quiet-tabs/index.html` (~line 255) — /sleep claim
+
+**Note on line numbers:** approximate and drift as earlier steps edit the file.
+Match on the shown text.
 
 **Interfaces:**
 - Consumes: the canonical glyph path from Task 1's `quiet-glyph.js`
@@ -385,23 +388,31 @@ In `design-system/components/quiet-tabs/index.html`, replace lines 102–104:
 }
 ```
 
-with:
+with the private pill alone, plus the favicon-wrap and its dim, plus **one shared
+glyph block covering both surfaces** — the specimen mirrors the shipping CSS's
+single-rule principle (`.vertical-tab-state, .island-row .row-quiet`) in its own
+simplified class names, rather than two independently-matching rule sets that
+could drift:
 
 ```css
 .row-private {
   font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
   border: 1px solid var(--border); border-radius: 999px; padding: 0 6px; flex: 0 0 auto;
 }
-.row-quiet {
+.row-favicon-wrap { position: relative; display: flex; flex: 0 0 auto; }
+.island-row.quiet .row-favicon-wrap { opacity: .45; }
+
+/* ---- Quiet glyph: ONE block for panel + rail, mirroring the shipping shared
+   rule (.vertical-tab-state, .island-row .row-quiet). Two matching rule sets
+   would be exactly the drift the shipping CSS avoids. ---- */
+.row-quiet, .vertical-tab-quiet {
   width: 14px; height: 14px; display: inline-flex; align-items: center;
   justify-content: center; color: var(--text-dim); flex: 0 0 auto;
 }
-.row-quiet svg {
+.row-quiet svg, .vertical-tab-quiet svg {
   width: 13px; height: 13px; fill: none; stroke: currentColor;
   stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round;
 }
-.row-favicon-wrap { position: relative; display: flex; flex: 0 0 auto; }
-.island-row.quiet .row-favicon-wrap { opacity: .45; }
 ```
 
 Replace the panel row HTML specimens (lines 180–191). In both the light and dark grounds, replace the quiet row from:
@@ -430,19 +441,19 @@ And the private row:
 
 - [ ] **Step 2: Update the rail row CSS and specimens**
 
-Replace the rail row CSS (lines 112–113):
+The `.vertical-tab-quiet` sizing now lives in the shared glyph block added in
+Step 1, so **delete** the rail's own two sizing rules (lines 112–113):
 
 ```css
 .vertical-tab-quiet { color: var(--text-dim); display: inline-flex; flex: 0 0 auto; }
 .vertical-tab-quiet svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.25; }
 ```
 
-with (matching the shipping CSS exactly):
-
-```css
-.vertical-tab-quiet { width: 14px; height: 14px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-dim); flex: 0 0 auto; }
-.vertical-tab-quiet svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round; }
-```
+Delete both lines entirely — do not replace them. `.vertical-tab-quiet` and
+`.vertical-tab-quiet svg` are now styled by the shared block, and
+`.vertical-tab-row.quiet .vertical-tab-favicon { opacity: .45; }` (line 110)
+stays as-is. Leaving a second `.vertical-tab-quiet { … }` rule here would
+reintroduce exactly the parallel-rule drift the shared block exists to prevent.
 
 Replace the rail row quiet specimens (lines 202–203 and 207–208) — both grounds. Change the SVG inside `.vertical-tab-quiet` from the circle-with-core:
 
@@ -507,7 +518,30 @@ Replace the values table body (lines 232–238) to reflect the new state:
 </tbody>
 ```
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 6: Verify the specimen renders both glyphs identically**
+
+The specimen is standalone HTML that copies its CSS (it does not link
+`styles.css`), so it must be checked on its own before committing.
+
+Structural check — the shared block is present and no parallel rule survives:
+
+```bash
+grep -n '\.row-quiet, \.vertical-tab-quiet' design-system/components/quiet-tabs/index.html
+grep -n '\.row-quiet svg, \.vertical-tab-quiet svg' design-system/components/quiet-tabs/index.html
+# Expect: no standalone `.vertical-tab-quiet {` or `.vertical-tab-quiet svg {` rule.
+grep -nE '^\s*\.vertical-tab-quiet\s+svg\s*\{|^\s*\.vertical-tab-quiet\s*\{' design-system/components/quiet-tabs/index.html
+```
+
+Expected: the first two greps each print one hit (the shared block); the third
+prints nothing.
+
+Visual check — open the file in the in-app browser and confirm both the panel
+row and the rail row show the Zzz at the same size, on both the light and dark
+grounds, with the favicon dimmed. Use `preview_start` with
+`{ url: "file:///<abs-path>/design-system/components/quiet-tabs/index.html" }`,
+then `computer { action: "screenshot" }`. (Resolve `<abs-path>` with `pwd`.)
+
+- [ ] **Step 7: Commit**
 
 ```bash
 git add design-system/components/quiet-tabs/index.html
@@ -547,7 +581,9 @@ In `spec/acceptance/quiet-tabs.feature`, add after the existing `@F31-5` scenari
 
 - [ ] **Step 2: Add the test hook method**
 
-In `src/main/test-hook.js`, add a `quietGlyphComputedStyles` method to the test surface. Place it directly after the existing `quietChromeState` method (~line 628, after its closing `},`). It reads computed styles from the two live chrome documents — the panel from the overlay web contents, the rail from the chrome web contents — matching each row by `data-tab-id`, exactly as `quietChromeState` does for the rail. `getOverlayWebContents` and `getChromeWebContents` are already in scope (destructured at the top of the install function, ~lines 72–73):
+In `src/main/test-hook.js`, add a `quietGlyphComputedStyles` method to the test surface. Place it directly after the existing `quietChromeState` method (~line 628, after its closing `},`). It reads computed styles from the two live chrome documents — the panel from the overlay web contents, the rail from the chrome web contents — matching each row by `data-tab-id`, exactly as `quietChromeState` does for the rail. `getOverlayWebContents` and `getChromeWebContents` are already in scope (destructured at the top of the install function, ~lines 72–73).
+
+The visibility walk (display/visibility chain + cumulative opacity + box + computed values) is defined **once** as `MEASURE` and interpolated into both pages, so the panel and rail cannot be measured by different logic — a transparent rail glyph still has a full box, so the rail must be walked exactly like the panel, not merely sized:
 
 ```js
     async quietGlyphComputedStyles(id) {
@@ -558,7 +594,40 @@ In `src/main/test-hook.js`, add a `quietGlyphComputedStyles` method to the test 
       }
       const idJson = JSON.stringify(String(id));
 
+      // One measurement, both surfaces. Contains no backticks and no ${...},
+      // so it interpolates verbatim into each executeJavaScript template below.
+      const MEASURE = `(glyph, svg, interactive) => {
+        const out = {};
+        if (interactive) {
+          const row = glyph.closest('.island-row');
+          out.hovered = row.matches(':hover');
+          out.focused = row.matches(':focus-within');
+        }
+        // Rendered: display/visibility up the whole ancestor chain.
+        for (let el = glyph; el && el !== document.documentElement; el = el.parentElement) {
+          const s = getComputedStyle(el);
+          if (s.display === 'none') return { error: 'display:none on ' + (el.className || el.tagName) };
+          if (s.visibility === 'hidden') return { error: 'visibility:hidden on ' + (el.className || el.tagName) };
+        }
+        // Not transparent: the PRODUCT of every ancestor's opacity.
+        let opacity = 1;
+        for (let el = glyph; el && el !== document.documentElement; el = el.parentElement) {
+          opacity *= parseFloat(getComputedStyle(el).opacity);
+        }
+        // Box (getBoundingClientRect, not computed width — an unlaid-out SVG can
+        // compute "auto") and the pinned computed values.
+        const rect = svg.getBoundingClientRect();
+        const gs = getComputedStyle(svg);
+        return Object.assign(out, {
+          opacity,
+          rectWidth: rect.width, rectHeight: rect.height,
+          width: gs.width, strokeWidth: gs.strokeWidth,
+          strokeLinecap: gs.strokeLinecap, strokeLinejoin: gs.strokeLinejoin, fill: gs.fill,
+        });
+      }`;
+
       const panel = await overlay.executeJavaScript(`(() => {
+        const measure = ${MEASURE};
         const row = document.querySelector(
           '#islandList .island-row[data-tab-id="' + CSS.escape(${idJson}) + '"]'
         );
@@ -567,41 +636,11 @@ In `src/main/test-hook.js`, add a `quietGlyphComputedStyles` method to the test 
         if (!glyph) return { error: 'no .row-quiet in panel row' };
         const svg = glyph.querySelector('svg');
         if (!svg) return { error: 'no svg in .row-quiet' };
-
-        // Step 1: at-rest state
-        const hovered = row.matches(':hover');
-        const focused = row.matches(':focus-within');
-
-        // Step 2: rendered (display/visibility chain up to the row)
-        let el = glyph;
-        while (el && el !== document.documentElement) {
-          const s = getComputedStyle(el);
-          if (s.display === 'none') return { error: 'display:none on ' + (el.className || el.tagName) };
-          if (s.visibility === 'hidden') return { error: 'visibility:hidden on ' + (el.className || el.tagName) };
-          el = el.parentElement;
-        }
-
-        // Step 3: cumulative opacity
-        let opacity = 1;
-        el = glyph;
-        while (el && el !== document.documentElement) {
-          opacity *= parseFloat(getComputedStyle(el).opacity);
-          el = el.parentElement;
-        }
-
-        // Step 4: the real laid-out box (getBoundingClientRect, not computed
-        // width — an unlaid-out SVG can compute "auto"). Step 5: computed values.
-        const rect = svg.getBoundingClientRect();
-        const gs = getComputedStyle(svg);
-        return {
-          hovered, focused, opacity,
-          rectWidth: rect.width, rectHeight: rect.height,
-          width: gs.width, strokeWidth: gs.strokeWidth,
-          strokeLinecap: gs.strokeLinecap, fill: gs.fill,
-        };
+        return measure(glyph, svg, true);
       })()`);
 
       const rail = await chrome.executeJavaScript(`(() => {
+        const measure = ${MEASURE};
         const row = document.querySelector(
           '.vertical-tab-row[data-tab-id="' + CSS.escape(${idJson}) + '"]'
         );
@@ -610,13 +649,7 @@ In `src/main/test-hook.js`, add a `quietGlyphComputedStyles` method to the test 
         if (!marker) return { error: 'no quiet marker in rail row' };
         const svg = marker.querySelector('svg');
         if (!svg) return { error: 'no svg in rail marker' };
-        const rect = svg.getBoundingClientRect();
-        const gs = getComputedStyle(svg);
-        return {
-          rectWidth: rect.width, rectHeight: rect.height,
-          width: gs.width, strokeWidth: gs.strokeWidth,
-          strokeLinecap: gs.strokeLinecap, fill: gs.fill,
-        };
+        return measure(marker, svg, false);
       })()`);
 
       return { panel, rail };
@@ -625,38 +658,59 @@ In `src/main/test-hook.js`, add a `quietGlyphComputedStyles` method to the test 
 
 - [ ] **Step 3: Add the step definition**
 
-In `test/desktop/steps/quiet-tabs.steps.js`, add after the existing `@F31-5` step definition (`Then('the pill, panel, and rail expose a distinct quiet state', …)`). Pass `this.quietCandidateId` — the hook matches rows by `data-tab-id`, and that id is set by the `Given`/`When` steps earlier in the scenario:
+First, add `overlayPage` to the existing import at the top of the file. Change:
+
+```js
+const { runSlashCommand } = require('../support/overlay');
+```
+
+to:
+
+```js
+const { overlayPage, runSlashCommand } = require('../support/overlay');
+```
+
+Then add the step after the existing `@F31-5` step definition (`Then('the pill, panel, and rail expose a distinct quiet state', …)`). Pass `this.quietCandidateId` — the hook matches rows by `data-tab-id`, and that id is set by the `Given`/`When` steps earlier in the scenario:
 
 ```js
 Then('both quiet glyphs are visible at rest and render identically', async function () {
+  // Park the pointer clear before reading. The suite shares one Electron
+  // instance across scenarios (BeforeAll), and earlier scenarios move the OS
+  // pointer with Playwright hover/mouse actions — so a tab row could still be
+  // under the pointer from a prior scenario, faking or masking :hover. Hovering
+  // #addressInput (in .panel-row, never a tab row) establishes the at-rest
+  // state deterministically. .hover() only moves the mouse; it does not click,
+  // so it neither steals focus from the address input nor dismisses the panel.
+  const page = await overlayPage();
+  await page.hover('#addressInput');
+
   const result = await this.call('quietGlyphComputedStyles', this.quietCandidateId);
 
-  // Steps 2–3 return an { error } object if a display:none, visibility:hidden,
-  // or missing element was found while walking the ancestor chain.
+  // A missing element / display:none / visibility:hidden anywhere up EITHER
+  // chain comes back as an { error }.
   assert.ok(!result.panel.error, `panel glyph: ${result.panel.error}`);
   assert.ok(!result.rail.error, `rail glyph: ${result.rail.error}`);
 
-  // Step 1: at rest. The desktop harness drives through executeJavaScript and
-  // never positions the OS pointer over the overlay, so the panel row is
-  // unhovered by construction; opening the panel focuses the address input in
-  // .panel-row, not a tab row, so :focus-within is false. These assert the
-  // at-rest precondition holds and guard against a regression that reveals the
-  // glyph only on hover/focus.
+  // Step 1: the panel row is at rest — not hover-revealed, not focus-revealed.
   assert.equal(result.panel.hovered, false, 'panel row must not be hovered');
   assert.equal(result.panel.focused, false, 'panel row must not be focused');
 
-  // Step 3: not transparent — cumulative ancestor opacity, not the glyph's own.
+  // Step 3: neither glyph is transparent — cumulative ancestor opacity on BOTH
+  // surfaces. A transparent rail glyph keeps a full box and would pass a
+  // geometry-only check, so the rail is walked exactly like the panel.
   assert.ok(result.panel.opacity > 0, 'panel glyph cumulative opacity must be > 0');
+  assert.ok(result.rail.opacity > 0, 'rail glyph cumulative opacity must be > 0');
 
   // Step 4: both have a real laid-out box.
   assert.ok(result.panel.rectWidth > 0 && result.panel.rectHeight > 0, 'panel glyph must have a non-zero box');
   assert.ok(result.rail.rectWidth > 0 && result.rail.rectHeight > 0, 'rail glyph must have a non-zero box');
 
-  // Step 5: they agree — the only assertion that survives a future stylesheet
-  // edit no static test anticipated.
+  // Step 5: they agree across the full pinned rendering contract — the only
+  // assertions that survive a future stylesheet edit no static test anticipated.
   assert.equal(result.panel.width, result.rail.width, 'widths must match');
   assert.equal(result.panel.strokeWidth, result.rail.strokeWidth, 'stroke-widths must match');
   assert.equal(result.panel.strokeLinecap, result.rail.strokeLinecap, 'stroke-linecaps must match');
+  assert.equal(result.panel.strokeLinejoin, result.rail.strokeLinejoin, 'stroke-linejoins must match');
   assert.equal(result.panel.fill, result.rail.fill, 'fills must match');
 });
 ```
