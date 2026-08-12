@@ -26,14 +26,6 @@ test('chrome protocol exposes only the reviewed resources for each host', () => 
     path.join(renderer, 'overlay.js'),
   );
   assert.equal(
-    chromeResourcePath('blanc-chrome://index/quiet-glyph.js'),
-    path.join(renderer, 'quiet-glyph.js'),
-  );
-  assert.equal(
-    chromeResourcePath('blanc-chrome://overlay/quiet-glyph.js'),
-    path.join(renderer, 'quiet-glyph.js'),
-  );
-  assert.equal(
     chromeResourcePath('blanc-chrome://overlay/pages/inter-latin.woff2'),
     path.join(renderer, 'pages/inter-latin.woff2'),
   );
@@ -47,6 +39,11 @@ test('chrome protocol rejects cross-host scripts and path tricks', () => {
     'blanc-chrome://index/../main/main.js',
     'blanc-chrome://index/%2e%2e/main/main.js',
     'blanc-chrome://index/styles.css?cache=1',
+    // Deleted with the Zzz glyph (quiet is now a row-level dim). The allowlist
+    // fails closed, so its path must stop resolving the moment it leaves
+    // SHARED_ASSETS — a stale entry would keep serving a file that is gone.
+    'blanc-chrome://index/quiet-glyph.js',
+    'blanc-chrome://overlay/quiet-glyph.js',
     'blanc-chrome://user@index/',
     'blanc-chrome://unknown/',
     'file:///etc/passwd',

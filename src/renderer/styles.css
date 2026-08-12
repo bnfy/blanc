@@ -533,8 +533,7 @@ body.mac .vertical-tabs-toolbar {
   flex: 0 1 auto;
 }
 
-.vertical-tab-state,
-.island-row .row-quiet {
+.vertical-tab-state {
   width: 14px;
   height: 14px;
   display: inline-flex;
@@ -544,8 +543,7 @@ body.mac .vertical-tabs-toolbar {
   flex: 0 0 auto;
 }
 
-.vertical-tab-state svg,
-.island-row .row-quiet svg {
+.vertical-tab-state svg {
   width: 13px;
   height: 13px;
   fill: none;
@@ -563,16 +561,18 @@ body.mac .vertical-tabs-toolbar {
   opacity: 0.75;
 }
 
-/* A quiet row dims its FAVICON, not its title: .vertical-tab-row.loading
-   already dims the title, and the title span is aria-hidden — the favicon is
-   the primary scan target down the rail. The marker below carries the state
-   for anyone who cannot see the dim. */
-.vertical-tab-row.quiet .vertical-tab-favicon {
-  opacity: .45;
+/* A quiet tab dims its whole row as one unit — no glyph, no per-part dim; the
+   fade IS the state, matching the convention Edge/Vivaldi established. Hover
+   or keyboard focus restores full strength: the row is about to wake, and its
+   actions should read at full contrast while in use. The accessible name still
+   says "quiet" for anyone who cannot see the dim. */
+.vertical-tab-row.quiet {
+  opacity: .5;
+  transition: opacity 120ms ease;
 }
-
-.vertical-tab-quiet {
-  color: var(--text-dim);
+.vertical-tab-row.quiet:hover,
+.vertical-tab-row.quiet:focus-within {
+  opacity: 1;
 }
 
 .vertical-tab-close {
@@ -864,9 +864,9 @@ body.mac .vertical-tabs-toolbar {
 }
 .island-dot.active { background: var(--accent); }
 .island-dot.loading { animation: island-pulse 0.9s ease-in-out infinite; }
-/* Quiet is NOT marked on the dots — it is carried by the Zzz glyph + dimmed
-   favicon on the panel row and rail. The dot is a switch target, not a status
-   field, and nothing legible fits at 6px. */
+/* Quiet is NOT marked on the dots — it is carried by the row-level dim on the
+   panel row and rail. The dot is a switch target, not a status field, and
+   nothing legible fits at 6px. */
 /* Private tab dots are hollow. */
 .island-dot.private {
   background: transparent;
@@ -1631,11 +1631,18 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   flex: 0 0 auto;
 }
 
-/* A quiet tab dims its favicon as one unit — the wrapper also holds the mute
-   badge, so a quiet tab fades as one object rather than the favicon fading out
-   from under a bright badge. Mirrors the rail's own favicon dim. The Zzz glyph
-   itself is sized by the shared block above (.vertical-tab-state, .row-quiet). */
-.island-row.quiet .row-favicon-wrap { opacity: .45; }
+/* A quiet tab dims its whole row as one unit — no glyph, no per-part dim; the
+   fade IS the state. Hover/focus restores full strength (the row is about to
+   wake; its actions should read at full contrast while in use). Mirrors the
+   rail's row dim; the accessible name still says "quiet". */
+.island-row.quiet {
+  opacity: .5;
+  transition: opacity 120ms ease;
+}
+.island-row.quiet:hover,
+.island-row.quiet:focus-within {
+  opacity: 1;
+}
 
 .row-enter {
   font-family: var(--font-mono);
@@ -1949,6 +1956,9 @@ body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
   .island-dot,
   .island-dot.loading { transition: none; animation: none; }
   .favicon.loading { animation: none; }
+  /* Quiet rows still un-dim on hover/focus, just without the fade. */
+  .island-row.quiet,
+  .vertical-tab-row.quiet { transition: none; }
   /* Peek still appears on hover/focus, just without the fade + pop. */
   .dot-peek { transition: none; }
   .island-ghead svg.caret { transition: none; }

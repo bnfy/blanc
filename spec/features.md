@@ -566,10 +566,12 @@ From the desktop `DEFAULTS`:
   virtualized feeds (D23). A private tab comes back **where** it was, not **how**
   it was: private tabs retain no page state.
 - **The state is visible, and it is called "quiet"** everywhere a person or a
-  screen reader can meet it — a Zzz glyph plus a dimmed favicon on both the
-  panel row and vertical rail, with `, quiet` in each accessible name. It is
-  deliberately unmarked on the pill dots, in the Quick Switcher, in the native
-  window menu, and on the start page.
+  screen reader can meet it — the panel row and the vertical rail row each dim
+  as one unit, restoring full strength on hover/focus (the row is about to
+  wake), with `, quiet` in each accessible name. There is no glyph or badge:
+  the dim is the state, matching the convention Edge and Vivaldi established.
+  It is deliberately unmarked on the pill dots, in the Quick Switcher, in the
+  native window menu, and on the start page.
 - Restored sessions come back quiet: after a relaunch only the active tab loads
   (F18).
 - The *behaviour* is D8; *who decides when* is D23.

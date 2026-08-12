@@ -47,7 +47,7 @@ test('the rail gate reacts to a tab going quiet', () => {
   assert.notEqual(awake, quiet, 'railSignature must list asleep, or the rail row never redraws');
 });
 
-test('the pill dots carry no quiet treatment — quiet lives on the Zzz + dimmed favicon', () => {
+test('the pill dots carry no quiet treatment — quiet lives on the row-level dim', () => {
   // Removed deliberately: the dot is a switch target, not a status field.
   assert.doesNotMatch(styles, /\.island-dot\.asleep/);
   assert.doesNotMatch(rendererSource, /' asleep'/);
@@ -83,15 +83,13 @@ test('the row primary button carries the row layout', () => {
   assert.match(styles, /\.island-row \.row-primary\s*\{[^}]*min-width: 0;/s);
 });
 
-test('a quiet panel row carries the glyph and is named "quiet"', () => {
-  assert.match(panelRowSource, /quiet\.className = 'row-quiet'/);
-  assert.match(panelRowSource, /quiet\.innerHTML = window\.QUIET_GLYPH_SVG/);
-  assert.match(panelRowSource, /row\.append\(quiet\)/);
+test('a quiet panel row is classed and named "quiet" — with no glyph or badge', () => {
+  // The .quiet class carries the whole visual (the row-level dim below); the
+  // accessible name carries the word.
+  assert.match(panelRowSource, /tab\.asleep \? ' quiet' : ''/);
   assert.match(panelRowSource, /tab\.asleep \? 'quiet' : ''/);
-
-  // Modelled on .row-private (always visible), never on .row-tag — which is
-  // opacity:0 until hover/focus inside .tab-row.
-  assert.doesNotMatch(styles, /\.island-row\.tab-row \.row-quiet/);
+  // No marker element of any kind is created for the state.
+  assert.doesNotMatch(panelRowSource, /row-quiet|QUIET_GLYPH/);
 });
 
 test('no chrome surface ever says "asleep" to a user or a screen reader', () => {
@@ -130,20 +128,13 @@ test('the rail tabRow could be lifted from source', () => {
   assert.ok(railRowSource, 'tabRow not found in vertical-tabs.js — update this test with it');
 });
 
-test('a quiet rail row is classed, named, and marked — and dims the favicon, not the title', () => {
+test('a quiet rail row is classed and named "quiet" — with no marker element', () => {
   assert.match(railRowSource, /\(tab\.asleep \? ' quiet' : ''\)/);
   // The field is `asleep`; the string in the accessible name is 'quiet'.
   assert.match(railRowSource, /tab\.asleep && 'quiet'/);
-  assert.match(
-    railRowSource,
-    /makeMarker\('vertical-tab-state vertical-tab-quiet', ICONS\.quiet, 'Quiet'\)/
-  );
-  assert.match(railSource, /quiet:\s*window\.QUIET_GLYPH_SVG/);
-
-  assert.match(styles, /\.vertical-tab-row\.quiet \.vertical-tab-favicon\s*\{[^}]*opacity: \.45;/s);
-  // Not the title: .vertical-tab-row.loading already dims it, and the title
-  // span is aria-hidden — the favicon is the primary scan target.
-  assert.doesNotMatch(styles, /\.vertical-tab-row\.quiet \.vertical-tab-title\s*\{/);
+  // No marker element and no glyph — the dim is the whole visual.
+  assert.doesNotMatch(railRowSource, /vertical-tab-quiet|QUIET_GLYPH/);
+  assert.doesNotMatch(railSource, /QUIET_GLYPH|ICONS\.quiet/);
 });
 
 // ---------------------------------------------------------------------------
@@ -151,8 +142,8 @@ test('a quiet rail row is classed, named, and marked — and dims the favicon, n
 // ---------------------------------------------------------------------------
 
 test('a switcher result sub is just the domain — quiet is not shown here', () => {
-  // Quiet lives only on the Zzz glyph + dimmed favicon (panel row and rail).
-  // The switcher sub carries the tab's domain and nothing quiet-specific.
+  // Quiet lives only on the row-level dim (panel row and rail). The switcher
+  // sub carries the tab's domain and nothing quiet-specific.
   assert.match(overlaySource, /const sub = tabDomain\(t\);/);
   assert.doesNotMatch(overlaySource, /t\.asleep && 'quiet'/);
 });
@@ -249,94 +240,59 @@ test('/sleep explains an empty result instead of looking broken', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Quiet glyph: shared definition, single rule, canonical path
+// The quiet visual: a row-level dim, no glyph (the Zzz was removed 2026-08-12
+// — judged too loud, and a sleep pictogram at odds with the "quiet" language)
 // ---------------------------------------------------------------------------
 
-test('quiet-glyph.js contains the canonical path data', () => {
-  assert.ok(glyphExists, 'src/renderer/quiet-glyph.js must exist');
-  assert.ok(
-    glyphSource.includes(
-      'M1.5 9.75H6.25L1.5 14H6.25M7.75 5.5H11.5L7.75 9H11.5M12.75 1.75H15L12.75 4.25H15'
-    ),
-    'canonical path data must match the spec exactly'
-  );
+test('the quiet glyph is fully deleted — file, serving allowlist, and references', () => {
+  assert.ok(!glyphExists, 'src/renderer/quiet-glyph.js must not exist');
+  assert.doesNotMatch(indexHtml, /quiet-glyph/);
+  assert.doesNotMatch(overlayHtml, /quiet-glyph/);
+  assert.doesNotMatch(overlaySource, /QUIET_GLYPH/);
+  assert.doesNotMatch(railSource, /QUIET_GLYPH/);
+  assert.doesNotMatch(styles, /row-quiet|vertical-tab-quiet|quiet-glyph/);
+  // The chrome scheme's allowlist is exact and fails closed; a stale entry
+  // would keep advertising a file that no longer exists.
+  const chromeProtocol = fs.readFileSync(path.join(ROOT, 'src/main/chrome-protocol.js'), 'utf8');
+  assert.doesNotMatch(chromeProtocol, /quiet-glyph/);
 });
 
-test('one definition: both documents load the glyph before their renderer scripts', () => {
-  assert.match(indexHtml, /quiet-glyph\.js/);
-  assert.match(overlayHtml, /quiet-glyph\.js/);
+// Extracts the declarations of the first rule whose selector list starts with
+// `selector` (comma-joined co-selectors allowed), or fails the calling test.
+function cssBlock(selector) {
+  const escaped = selector.replace(/[.\\[\]()*+?^$|{}]/g, '\\$&');
+  const block = styles.match(new RegExp(`${escaped}[^{}]*\\{([^}]*)\\}`, 's'));
+  assert.ok(block, `rule not found: ${selector}`);
+  return block[1];
+}
 
-  const idxBefore = indexHtml.indexOf('quiet-glyph.js') < indexHtml.indexOf('vertical-tabs.js');
-  const olBefore = overlayHtml.indexOf('quiet-glyph.js') < overlayHtml.indexOf('overlay.js');
-  assert.ok(idxBefore, 'quiet-glyph.js must load before vertical-tabs.js in index.html');
-  assert.ok(olBefore, 'quiet-glyph.js must load before overlay.js in overlay.html');
-
-  assert.match(overlaySource, /QUIET_GLYPH_SVG/);
-  assert.match(railSource, /QUIET_GLYPH_SVG/);
-  assert.doesNotMatch(railSource, /quiet:\s*'<svg/);
+test('both surfaces dim the whole quiet row, at the same strength', () => {
+  const panel = cssBlock('.island-row.quiet');
+  const rail = cssBlock('.vertical-tab-row.quiet');
+  const strength = (block) => block.match(/opacity:\s*([\d.]+)/)?.[1];
+  assert.equal(strength(panel), '.5', 'panel row must dim to .5');
+  assert.equal(strength(rail), strength(panel), 'rail dim must match the panel dim');
+  // The dim belongs to the ROW, never a part of it — no per-part quiet dim
+  // survives on either surface.
+  assert.doesNotMatch(styles, /\.island-row\.quiet \.row-favicon/);
+  assert.doesNotMatch(styles, /\.vertical-tab-row\.quiet \.vertical-tab-favicon/);
 });
 
-test('one rule, both surfaces: container and svg share a declaration block', () => {
-  assert.match(
-    styles,
-    /\.vertical-tab-state,\s*\n\s*\.island-row \.row-quiet\s*\{/,
-    'container block must list both selectors'
-  );
-  assert.match(
-    styles,
-    /\.vertical-tab-state svg,\s*\n\s*\.island-row \.row-quiet svg\s*\{/,
-    'svg block must list both selectors'
-  );
-  assert.doesNotMatch(styles, /\.quiet-glyph\s*\{/, 'no .quiet-glyph sizing rule may exist');
-  // Guard against a SECOND, parallel rule re-declaring the sizing — the failure
-  // the shared block exists to prevent. The rail selector must appear only in
-  // comma-joined form (`.vertical-tab-state,`) or descendant form
-  // (`.vertical-tab-state svg`), never standalone with its own brace — which is
-  // what forces its declarations into the shared block. (A standalone
-  // `.island-row .row-quiet {` cannot be regex-guarded here without matching
-  // the shared block's own second selector line; the cross-surface width
-  // equality assertion in the Task 3 perceivability test closes that gap.)
-  assert.doesNotMatch(styles, /\.vertical-tab-state\s*\{/, 'no standalone .vertical-tab-state rule');
-});
-
-test('the shared blocks lock the glyph rendering at 13x13 in a 14x14 container', () => {
-  const containerBlock = styles.match(
-    /\.vertical-tab-state,\s*\n\s*\.island-row \.row-quiet\s*\{([^}]*)\}/s
-  );
-  assert.ok(containerBlock, 'shared container block not found');
-  assert.match(containerBlock[1], /width: 14px/);
-  assert.match(containerBlock[1], /height: 14px/);
-
-  const svgBlock = styles.match(
-    /\.vertical-tab-state svg,\s*\n\s*\.island-row \.row-quiet svg\s*\{([^}]*)\}/s
-  );
-  assert.ok(svgBlock, 'shared svg block not found');
-  assert.match(svgBlock[1], /width: 13px/);
-  assert.match(svgBlock[1], /height: 13px/);
-  assert.match(svgBlock[1], /stroke-width: 1\.35/);
-  assert.match(svgBlock[1], /stroke-linecap: round/);
-  assert.match(svgBlock[1], /stroke-linejoin: round/);
-  assert.match(svgBlock[1], /fill: none/);
-});
-
-test('the old quiet pill styling is gone', () => {
-  const allRowQuietBlocks = styles.match(/\.island-row \.row-quiet[^{]*\{([^}]*)\}/gs) ?? [];
-  for (const block of allRowQuietBlocks) {
-    assert.doesNotMatch(block, /\bborder\s*:/, 'no .row-quiet rule may set border');
-    assert.doesNotMatch(block, /\bborder-radius\s*:/, 'no .row-quiet rule may set border-radius');
-    assert.doesNotMatch(block, /\bpadding\s*:/, 'no .row-quiet rule may set padding');
-    assert.doesNotMatch(block, /\bfont-family\s*:/, 'no .row-quiet rule may set font-family');
+test('a quiet row restores full strength on hover and focus-within', () => {
+  for (const row of ['.island-row.quiet', '.vertical-tab-row.quiet']) {
+    for (const state of [':hover', ':focus-within']) {
+      const block = cssBlock(`${row}${state}`);
+      assert.match(block, /opacity:\s*1/, `${row}${state} must restore opacity: 1`);
+    }
   }
 });
 
-test('the panel glyph carries title="Quiet" and the row name includes quiet', () => {
-  assert.match(panelRowSource, /quiet\.innerHTML = window\.QUIET_GLYPH_SVG/);
-  assert.match(panelRowSource, /quiet\.title = 'Quiet'/);
-  assert.match(glyphSource, /aria-hidden="true"/);
-  assert.match(panelRowSource, /tab\.asleep \? 'quiet' : ''/);
-});
-
-test('a quiet panel row dims its favicon wrapper via a row-level class', () => {
-  assert.match(panelRowSource, /tab\.asleep \? ' quiet' : ''/);
-  assert.match(styles, /\.island-row\.quiet \.row-favicon-wrap\s*\{[^}]*opacity: \.45;/s);
+test('the un-dim transition is disabled under prefers-reduced-motion', () => {
+  const reduced = styles.match(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(reduced, 'reduced-motion block not found');
+  assert.match(
+    reduced,
+    /\.island-row\.quiet,\s*\n\s*\.vertical-tab-row\.quiet \{ transition: none; \}/,
+    'both quiet rows must drop their transition under reduced motion'
+  );
 });

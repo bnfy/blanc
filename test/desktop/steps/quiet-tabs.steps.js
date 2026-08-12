@@ -356,60 +356,60 @@ Then('the panel and rail expose a distinct quiet state', async function () {
   // bare /quiet/ — the fixture tab is titled "quietable", whose substring would
   // give a false positive/negative on the bare pattern.
   // The pill dot deliberately carries NO quiet state — neither the visual nor
-  // the accessible name. Quiet lives only on the Zzz glyph + dimmed favicon.
+  // the accessible name. Quiet lives only on the row-level dim.
   assert.equal(chrome.dotQuiet, false);
   assert.doesNotMatch(chrome.dotLabel.toLowerCase(), /,\s*quiet/);
-  // Rail: the quiet class, the Zzz marker, and the ", quiet" accessible-name suffix.
+  // Rail: the quiet class (which carries the dim) and the ", quiet" suffix.
   assert.equal(chrome.railQuiet, true);
   assert.equal(chrome.railPrivate, false);
-  assert.equal(chrome.railMarker, true);
   assert.match(chrome.railLabel.toLowerCase(), /,\s*quiet/);
-  // Panel row: the Zzz glyph is present and the accessible name says ", quiet".
+  // Panel row: the quiet class and the accessible name says ", quiet".
   const rows = await this.call('addressResultRows');
   const row = rows.find((candidate) => candidate.title === this.quietCandidateTitle);
   assert.equal(row?.quiet, true);
   assert.match(row?.label.toLowerCase(), /,\s*quiet/);
 });
 
-Then('both quiet glyphs are visible at rest and render identically', async function () {
+Then('both quiet rows are dimmed at rest and render identically', async function () {
   // Park the pointer clear before reading. The suite shares one Electron
   // instance across scenarios (BeforeAll), and earlier scenarios move the OS
   // pointer with Playwright hover/mouse actions — so a tab row could still be
-  // under the pointer from a prior scenario, faking or masking :hover. Hovering
+  // under the pointer from a prior scenario, faking or masking :hover (which
+  // now RESTORES full opacity and would hide the dim under test). Hovering
   // #addressInput (in .panel-row, never a tab row) establishes the at-rest
   // state deterministically. .hover() only moves the mouse; it does not click,
   // so it neither steals focus from the address input nor dismisses the panel.
   const page = await overlayPage();
   await page.hover('#addressInput');
 
-  const result = await this.call('quietGlyphComputedStyles', this.quietCandidateId);
+  const result = await this.call('quietRowDimStyles', this.quietCandidateId);
 
-  // A missing element / display:none / visibility:hidden anywhere up EITHER
-  // chain comes back as an { error }.
-  assert.ok(!result.panel.error, `panel glyph: ${result.panel.error}`);
-  assert.ok(!result.rail.error, `rail glyph: ${result.rail.error}`);
+  // A missing row / missing .quiet class / display:none / visibility:hidden
+  // anywhere up EITHER chain comes back as an { error }.
+  assert.ok(!result.panel.error, `panel row: ${result.panel.error}`);
+  assert.ok(!result.rail.error, `rail row: ${result.rail.error}`);
 
-  // Step 1: the panel row is at rest — not hover-revealed, not focus-revealed.
+  // The panel row is at rest — not hovered, not focused — so the value read is
+  // the resting dim, not the hover-restored full strength.
   assert.equal(result.panel.hovered, false, 'panel row must not be hovered');
   assert.equal(result.panel.focused, false, 'panel row must not be focused');
 
-  // Step 3: neither glyph is transparent — cumulative ancestor opacity on BOTH
-  // surfaces. A transparent rail glyph keeps a full box and would pass a
-  // geometry-only check, so the rail is walked exactly like the panel.
-  assert.ok(result.panel.opacity > 0, 'panel glyph cumulative opacity must be > 0');
-  assert.ok(result.rail.opacity > 0, 'rail glyph cumulative opacity must be > 0');
+  // The dim is real on both surfaces: visibly reduced, never invisible.
+  const panelDim = parseFloat(result.panel.rowOpacity);
+  const railDim = parseFloat(result.rail.rowOpacity);
+  assert.ok(panelDim > 0 && panelDim < 1, `panel row opacity must dim (got ${result.panel.rowOpacity})`);
+  assert.ok(railDim > 0 && railDim < 1, `rail row opacity must dim (got ${result.rail.rowOpacity})`);
 
-  // Step 4: both have a real laid-out box.
-  assert.ok(result.panel.rectWidth > 0 && result.panel.rectHeight > 0, 'panel glyph must have a non-zero box');
-  assert.ok(result.rail.rectWidth > 0 && result.rail.rectHeight > 0, 'rail glyph must have a non-zero box');
+  // No transparent ancestor fakes or hides the dim.
+  assert.ok(result.panel.ancestorOpacity > 0, 'panel row ancestors must not be transparent');
+  assert.ok(result.rail.ancestorOpacity > 0, 'rail row ancestors must not be transparent');
 
-  // Step 5: they agree across the full pinned rendering contract — the only
-  // assertions that survive a future stylesheet edit no static test anticipated.
-  assert.equal(result.panel.width, result.rail.width, 'widths must match');
-  assert.equal(result.panel.strokeWidth, result.rail.strokeWidth, 'stroke-widths must match');
-  assert.equal(result.panel.strokeLinecap, result.rail.strokeLinecap, 'stroke-linecaps must match');
-  assert.equal(result.panel.strokeLinejoin, result.rail.strokeLinejoin, 'stroke-linejoins must match');
-  assert.equal(result.panel.fill, result.rail.fill, 'fills must match');
+  // Both have a real laid-out box.
+  assert.ok(result.panel.rectWidth > 0 && result.panel.rectHeight > 0, 'panel row must have a non-zero box');
+  assert.ok(result.rail.rectWidth > 0 && result.rail.rectHeight > 0, 'rail row must have a non-zero box');
+
+  // They agree: one dim strength across both surfaces.
+  assert.equal(result.panel.rowOpacity, result.rail.rowOpacity, 'dim strengths must match');
 });
 
 Then('the quiet delay reads back as {word}', async function (delay) {

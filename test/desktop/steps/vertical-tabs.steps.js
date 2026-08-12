@@ -1015,8 +1015,9 @@ Then('audible and muted rows expose distinct audio states', async function () {
 Then('the quiet row exposes quiet state', async function () {
   const row = this.railPage.locator(`.vertical-tab-row[data-tab-id="${this.stateRows.quiet}"]`);
   assert.equal(await row.evaluate((element) => element.classList.contains('quiet')), true);
-  assert.equal(await row.locator('.vertical-tab-quiet').count(), 1);
-  assert.equal(await row.locator('.vertical-tab-quiet').getAttribute('title'), 'Quiet');
+  // The whole row dims — no marker element; the class carries the visual.
+  const opacity = await row.evaluate((element) => getComputedStyle(element).opacity);
+  assert.ok(parseFloat(opacity) < 1, `quiet row must dim (got opacity ${opacity})`);
   // Quiet is its own treatment, deliberately not the private one.
   assert.equal(await row.evaluate((element) => element.classList.contains('private')), false);
 });

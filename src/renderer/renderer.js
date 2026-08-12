@@ -430,8 +430,8 @@
       (t.isLoading ? ' loading' : '') +
       (t.private ? ' private' : '');
     dot.title = t.title || 'New Tab';
-    // A dot is a switch target, not a status field: quiet is carried by the Zzz
-    // glyph + dimmed favicon on the panel row and rail, never on the dot.
+    // A dot is a switch target, not a status field: quiet is carried by the
+    // row-level dim on the panel row and rail, never on the dot.
     dot.setAttribute('aria-label', `Switch to ${t.title || 'New Tab'}`);
     // Hover/focus peek: the dot blooms into its tab's favicon so you can tell
     // which site it holds before switching. Reuses the pill favicon rendering

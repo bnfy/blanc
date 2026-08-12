@@ -555,7 +555,7 @@ function install(refs) {
         title: row.querySelector('.row-title')?.textContent ?? '',
         tag: row.querySelector('.row-tag')?.textContent ?? '',
         label: row.querySelector('.row-primary')?.getAttribute('aria-label') ?? '',
-        quiet: !!row.querySelector('.row-quiet'),
+        quiet: row.classList.contains('quiet'),
         active: row.classList.contains('active'),
         enter: !!row.querySelector('.row-enter')
       }))`);
@@ -622,11 +622,10 @@ function install(refs) {
           railQuiet: !!row?.classList.contains('quiet'),
           railPrivate: !!row?.classList.contains('private'),
           railLabel: row?.querySelector('.vertical-tab-primary')?.getAttribute('aria-label') ?? '',
-          railMarker: !!row?.querySelector('.vertical-tab-quiet'),
         };
       })()`);
     },
-    async quietGlyphComputedStyles(id) {
+    async quietRowDimStyles(id) {
       const overlay = getOverlayWebContents();
       const chrome = getChromeWebContents();
       if (!overlay || !chrome) {
@@ -636,33 +635,30 @@ function install(refs) {
 
       // One measurement, both surfaces. Contains no backticks and no ${...},
       // so it interpolates verbatim into each executeJavaScript template below.
-      const MEASURE = `(glyph, svg, interactive) => {
+      const MEASURE = `(row, interactive) => {
         const out = {};
         if (interactive) {
-          const row = glyph.closest('.island-row');
           out.hovered = row.matches(':hover');
           out.focused = row.matches(':focus-within');
         }
         // Rendered: display/visibility up the whole ancestor chain.
-        for (let el = glyph; el && el !== document.documentElement; el = el.parentElement) {
+        for (let el = row; el && el !== document.documentElement; el = el.parentElement) {
           const s = getComputedStyle(el);
           if (s.display === 'none') return { error: 'display:none on ' + (el.className || el.tagName) };
           if (s.visibility === 'hidden') return { error: 'visibility:hidden on ' + (el.className || el.tagName) };
         }
-        // Not transparent: the PRODUCT of every ancestor's opacity.
-        let opacity = 1;
-        for (let el = glyph; el && el !== document.documentElement; el = el.parentElement) {
-          opacity *= parseFloat(getComputedStyle(el).opacity);
+        // The dim IS the state: the row's own computed opacity, plus the
+        // cumulative product ABOVE it (a transparent ancestor would make the
+        // dim unreadable while the row's own value still said 0.5).
+        let cumulative = 1;
+        for (let el = row.parentElement; el && el !== document.documentElement; el = el.parentElement) {
+          cumulative *= parseFloat(getComputedStyle(el).opacity);
         }
-        // Box (getBoundingClientRect, not computed width — an unlaid-out SVG can
-        // compute "auto") and the pinned computed values.
-        const rect = svg.getBoundingClientRect();
-        const gs = getComputedStyle(svg);
+        const rect = row.getBoundingClientRect();
         return Object.assign(out, {
-          opacity,
+          rowOpacity: getComputedStyle(row).opacity,
+          ancestorOpacity: cumulative,
           rectWidth: rect.width, rectHeight: rect.height,
-          width: gs.width, strokeWidth: gs.strokeWidth,
-          strokeLinecap: gs.strokeLinecap, strokeLinejoin: gs.strokeLinejoin, fill: gs.fill,
         });
       }`;
 
@@ -672,11 +668,8 @@ function install(refs) {
           '#islandList .island-row[data-tab-id="' + CSS.escape(${idJson}) + '"]'
         );
         if (!row) return { error: 'quiet panel row not found' };
-        const glyph = row.querySelector('.row-quiet');
-        if (!glyph) return { error: 'no .row-quiet in panel row' };
-        const svg = glyph.querySelector('svg');
-        if (!svg) return { error: 'no svg in .row-quiet' };
-        return measure(glyph, svg, true);
+        if (!row.classList.contains('quiet')) return { error: 'panel row is not .quiet' };
+        return measure(row, true);
       })()`);
 
       const rail = await chrome.executeJavaScript(`(() => {
@@ -685,11 +678,8 @@ function install(refs) {
           '.vertical-tab-row[data-tab-id="' + CSS.escape(${idJson}) + '"]'
         );
         if (!row) return { error: 'quiet rail row not found' };
-        const marker = row.querySelector('.vertical-tab-quiet');
-        if (!marker) return { error: 'no quiet marker in rail row' };
-        const svg = marker.querySelector('svg');
-        if (!svg) return { error: 'no svg in rail marker' };
-        return measure(marker, svg, false);
+        if (!row.classList.contains('quiet')) return { error: 'rail row is not .quiet' };
+        return measure(row, false);
       })()`);
 
       return { panel, rail };

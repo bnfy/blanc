@@ -19,7 +19,6 @@
     pin: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m5.2 2.75 5.6 5.6M9.9 3.65l2.45 2.45-2.1 2.1.35 2.25-1.05 1.05-2.3-2.3-3.5 3.5-.45-.45 3.5-3.5-2.3-2.3 1.05-1.05 2.25.35z"/></svg>',
     audible: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.25h2L8 3.5v9L5 9.75H3zM10.25 6a3 3 0 0 1 0 4M11.75 4.5a5 5 0 0 1 0 7"/></svg>',
     muted: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 6.25h2L8 3.5v9L5 9.75H3zM10.25 6.25l3.5 3.5M13.75 6.25l-3.5 3.5"/></svg>',
-    quiet: window.QUIET_GLYPH_SVG,
     caret: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.75 4 4.25-4 4.25"/></svg>',
   };
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -396,10 +395,6 @@
       primary.appendChild(makeMarker('vertical-tab-state vertical-tab-audio muted', ICONS.muted, 'Muted'));
     } else if (tab.audible) {
       primary.appendChild(makeMarker('vertical-tab-state vertical-tab-audio', ICONS.audible, 'Playing audio'));
-    }
-
-    if (tab.asleep) {
-      primary.appendChild(makeMarker('vertical-tab-state vertical-tab-quiet', ICONS.quiet, 'Quiet'));
     }
 
     const close = document.createElement('button');
