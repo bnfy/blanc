@@ -66,11 +66,11 @@ Feature: Quiet Tabs
     Then the panel and rail expose a distinct quiet state
 
   @F31-5 @F31 @desktop @D8
-  Scenario: The panel and rail glyphs are perceivable at rest and render identically
+  Scenario: The panel and rail dim quiet rows identically at rest
     Given a background tab on a quietable page
     When I quiet that background tab
     And I show the vertical tab rail and panel
-    Then both quiet glyphs are visible at rest and render identically
+    Then both quiet rows are dimmed at rest and render identically
 
   @F31-6 @F31 @desktop @D23
   Scenario Outline: Every delay value persists and Off leaves quiet tabs quiet

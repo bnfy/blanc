@@ -17,7 +17,6 @@ const RENDERER_DIR = path.join(__dirname, '../renderer');
 // directories, and future files all fail closed until explicitly reviewed.
 const SHARED_ASSETS = new Set([
   '/styles.css',
-  '/quiet-glyph.js',
   '/panel-left.svg',
   '/pages/icon.svg',
   '/pages/inter-latin.woff2',

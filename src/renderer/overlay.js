@@ -294,16 +294,15 @@
       row.append(tag);
     }
 
-    // A quiet tab is marked by the Zzz glyph beside "private", visible at rest
-    // (not a hover-gated .row-tag: a state you can only see by hovering is not a
-    // state you can see). The accessible name still says "quiet"; the row's
-    // favicon dims via the .quiet class set on the row above.
+    // Quiet needs an ABSOLUTE marker, not only the row dim: restored tabs are
+    // born quiet, so after a relaunch nearly every row is dim at once and a
+    // uniformly dimmed list reads as ordinary styling rather than as a state.
+    // Same lowercase mono voice as "private", and always visible at rest.
     if (tab.asleep) {
-      const quiet = document.createElement('span');
-      quiet.className = 'row-quiet';
-      quiet.innerHTML = window.QUIET_GLYPH_SVG;
-      quiet.title = 'Quiet';
-      row.append(quiet);
+      const tag = document.createElement('span');
+      tag.className = 'row-quiet';
+      tag.textContent = 'quiet';
+      row.append(tag);
     }
 
     const pin = document.createElement('button');
@@ -742,8 +741,8 @@
     }
     for (const t of state.tabs) {
       const s = matchScore(query, matchableText(t.title, t.url));
-      // Quiet is not shown here: it lives only on the Zzz glyph + dimmed favicon
-      // (panel row and rail). The switcher sub is just the tab's domain.
+      // Quiet is not shown here: it lives only on the row-level dim (panel row
+      // and rail). The switcher sub is just the tab's domain.
       const sub = tabDomain(t);
       if (s) results.push({ kind: 'tab', title: t.title || 'New Tab', sub, tab: t, score: s + 0.2 });
     }
