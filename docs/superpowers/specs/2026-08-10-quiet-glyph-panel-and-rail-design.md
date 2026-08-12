@@ -1,7 +1,9 @@
 # Quiet glyph: one Zzz in the panel row and the vertical rail
 
 **Date:** 2026-08-10
-**Status:** proposed — not approved, not implemented
+**Status:** implementation in progress — Tasks 1–2 shipped (`9e20d00`, `1882009`);
+Task 3 (perceivability acceptance test) pending. Scope reduced 2026-08-12 to the
+two-surface contract below.
 **Amends:** the panel row's `quiet` text tag and the rail's circle-with-core
 icon, both from `2026-08-09-quiet-tabs-design.md`
 

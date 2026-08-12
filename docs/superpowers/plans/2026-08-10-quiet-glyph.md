@@ -25,11 +25,22 @@
 - No `.quiet-glyph` CSS sizing rule may exist — both surfaces resolve through the shared `.vertical-tab-state` / `.island-row .row-quiet` block.
 - No CSP edit is needed — `script-src 'self'` already permits a same-directory script.
 - No substrate impact — `substrate:check` does not participate.
-- The design-system specimen update lands **in this same change**, not afterwards.
+- The design-system specimen (`design-system/components/quiet-tabs/index.html`) is **untracked** and stays that way: it is edited **in place** in the main working tree, in lockstep with the code, but is **not** part of any tracked commit. Publishing it via `/design-sync` remains the user's call. (This corrects an earlier draft that said the specimen "lands in this same change" — it does not.)
 
 ---
 
 ### Task 1: Shared glyph, HTML wiring, CSS, and JS changes
+
+> **✅ COMPLETED — commit `9e20d00`, then amended by `1882009`.**
+> The steps below are historical. They were written for the earlier
+> **four-surface** scope and are retained only as a record. Where they describe
+> a Quick Switcher quiet subline as *kept* — Step 1's
+> "the Quick Switcher subline still emits the word quiet" test in particular —
+> that is **superseded**: `1882009` removed quiet from the Quick Switcher, so
+> the shipped test asserts the *opposite* (`const sub = tabDomain(t)`, no
+> `quiet`). Do **not** re-execute these steps as written; the shipped code is
+> the source of truth, and the current contract is the two-surface scope in the
+> revision note above.
 
 **Files:**
 - Create: `src/renderer/quiet-glyph.js`
@@ -157,11 +168,11 @@ test('a quiet panel row dims its favicon wrapper via a row-level class', () => {
   assert.match(styles, /\.island-row\.quiet \.row-favicon-wrap\s*\{[^}]*opacity: \.45;/s);
 });
 
-test('the Quick Switcher subline still emits the word quiet', () => {
-  assert.match(
-    overlaySource,
-    /\[tabDomain\(t\), t\.asleep && 'quiet'\]\.filter\(Boolean\)\.join\(' · '\)/
-  );
+// SUPERSEDED by 1882009 — quiet was removed from the Quick Switcher. The
+// shipped test asserts the opposite of the original:
+test('a switcher result sub is just the domain — quiet is not shown here', () => {
+  assert.match(overlaySource, /const sub = tabDomain\(t\);/);
+  assert.doesNotMatch(overlaySource, /t\.asleep && 'quiet'/);
 });
 ```
 
@@ -371,6 +382,17 @@ mirroring the rail."
 ---
 
 ### Task 2: Design-system specimen update
+
+> **✅ COMPLETED — specimen edited in place, left untracked (no commit), then
+> amended for the two-surface scope.**
+> The specimen was first updated for the four-surface scope (Task 1's shipped
+> state), then — per the user's simplification — the **Pill dots** and **Quick
+> Switcher result** sections were **removed** entirely, the values table lost
+> its pill-dot rows, and the lede/rules were rewritten to "quiet lives on two
+> surfaces only." The steps below describe the intermediate four-surface state
+> and are **superseded** on those two sections; the current specimen is the
+> source of truth. As Global Constraints note, the specimen is **untracked** and
+> is **not** committed as part of this work.
 
 **Files:**
 - Modify: `design-system/components/quiet-tabs/index.html` (~lines 102–104) — split `.row-private` out, add favicon-wrap + dim, add the shared glyph block
