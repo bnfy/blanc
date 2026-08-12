@@ -245,7 +245,10 @@
     const row = document.createElement('div');
     // .tab-row scopes the at-rest quieting (metadata joins the hover/focus
     // reveal) to list rows — Quick-Switcher/command rows keep their subs.
-    row.className = 'island-row tab-row' + (tab.id === state.activeTabId ? ' active' : '');
+    row.className =
+      'island-row tab-row' +
+      (tab.id === state.activeTabId ? ' active' : '') +
+      (tab.asleep ? ' quiet' : '');
     row.dataset.tabId = tab.id;
     // A row contains multiple real buttons, so it is a labelled group—not an
     // option/button, whose children would become presentational.
@@ -291,13 +294,15 @@
       row.append(tag);
     }
 
-    // Quiet is a state tag beside "private", not a .row-tag: .row-tag is
-    // opacity:0 until hover inside .tab-row, and a state you can only see by
-    // hovering is not a state you can see.
+    // A quiet tab is marked by the Zzz glyph beside "private", visible at rest
+    // (not a hover-gated .row-tag: a state you can only see by hovering is not a
+    // state you can see). The accessible name still says "quiet"; the row's
+    // favicon dims via the .quiet class set on the row above.
     if (tab.asleep) {
       const quiet = document.createElement('span');
       quiet.className = 'row-quiet';
-      quiet.textContent = 'quiet';
+      quiet.innerHTML = window.QUIET_GLYPH_SVG;
+      quiet.title = 'Quiet';
       row.append(quiet);
     }
 
@@ -737,9 +742,9 @@
     }
     for (const t of state.tabs) {
       const s = matchScore(query, matchableText(t.title, t.url));
-      // Switcher rows are not .tab-row, so .row-sub is visible at rest —
-      // the honest place for the state, unlike the hover-gated .row-tag.
-      const sub = [tabDomain(t), t.asleep && 'quiet'].filter(Boolean).join(' · ');
+      // Quiet is not shown here: it lives only on the Zzz glyph + dimmed favicon
+      // (panel row and rail). The switcher sub is just the tab's domain.
+      const sub = tabDomain(t);
       if (s) results.push({ kind: 'tab', title: t.title || 'New Tab', sub, tab: t, score: s + 0.2 });
     }
     for (const f of favorites) {

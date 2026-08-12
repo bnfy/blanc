@@ -410,7 +410,6 @@
         active: t.id === state.activeTabId,
         loading: t.isLoading,
         private: t.private,
-        asleep: t.asleep,
         title: t.title || 'New Tab',
         // While loading, setFavicon deliberately ignores both URL and favicon;
         // omit them here too so an irrelevant favicon event cannot churn the
@@ -432,11 +431,11 @@
       'island-dot' +
       (t.id === state.activeTabId ? ' active' : '') +
       (t.isLoading ? ' loading' : '') +
-      (t.private ? ' private' : '') +
-      (t.asleep ? ' asleep' : '');
+      (t.private ? ' private' : '');
     dot.title = t.title || 'New Tab';
-    // A dot has no text, so its accessible name carries the quiet state.
-    dot.setAttribute('aria-label', `Switch to ${t.title || 'New Tab'}${t.asleep ? ', quiet' : ''}`);
+    // A dot is a switch target, not a status field: quiet is carried by the Zzz
+    // glyph + dimmed favicon on the panel row and rail, never on the dot.
+    dot.setAttribute('aria-label', `Switch to ${t.title || 'New Tab'}`);
     // Hover/focus peek: the dot blooms into its tab's favicon so you can tell
     // which site it holds before switching. Reuses the pill favicon rendering
     // (has-icon / internal / loading / fallback); the native title tooltip

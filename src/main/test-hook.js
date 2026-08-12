@@ -626,6 +626,74 @@ function install(refs) {
         };
       })()`);
     },
+    async quietGlyphComputedStyles(id) {
+      const overlay = getOverlayWebContents();
+      const chrome = getChromeWebContents();
+      if (!overlay || !chrome) {
+        return { panel: { error: 'no web contents' }, rail: { error: 'no web contents' } };
+      }
+      const idJson = JSON.stringify(String(id));
+
+      // One measurement, both surfaces. Contains no backticks and no ${...},
+      // so it interpolates verbatim into each executeJavaScript template below.
+      const MEASURE = `(glyph, svg, interactive) => {
+        const out = {};
+        if (interactive) {
+          const row = glyph.closest('.island-row');
+          out.hovered = row.matches(':hover');
+          out.focused = row.matches(':focus-within');
+        }
+        // Rendered: display/visibility up the whole ancestor chain.
+        for (let el = glyph; el && el !== document.documentElement; el = el.parentElement) {
+          const s = getComputedStyle(el);
+          if (s.display === 'none') return { error: 'display:none on ' + (el.className || el.tagName) };
+          if (s.visibility === 'hidden') return { error: 'visibility:hidden on ' + (el.className || el.tagName) };
+        }
+        // Not transparent: the PRODUCT of every ancestor's opacity.
+        let opacity = 1;
+        for (let el = glyph; el && el !== document.documentElement; el = el.parentElement) {
+          opacity *= parseFloat(getComputedStyle(el).opacity);
+        }
+        // Box (getBoundingClientRect, not computed width — an unlaid-out SVG can
+        // compute "auto") and the pinned computed values.
+        const rect = svg.getBoundingClientRect();
+        const gs = getComputedStyle(svg);
+        return Object.assign(out, {
+          opacity,
+          rectWidth: rect.width, rectHeight: rect.height,
+          width: gs.width, strokeWidth: gs.strokeWidth,
+          strokeLinecap: gs.strokeLinecap, strokeLinejoin: gs.strokeLinejoin, fill: gs.fill,
+        });
+      }`;
+
+      const panel = await overlay.executeJavaScript(`(() => {
+        const measure = ${MEASURE};
+        const row = document.querySelector(
+          '#islandList .island-row[data-tab-id="' + CSS.escape(${idJson}) + '"]'
+        );
+        if (!row) return { error: 'quiet panel row not found' };
+        const glyph = row.querySelector('.row-quiet');
+        if (!glyph) return { error: 'no .row-quiet in panel row' };
+        const svg = glyph.querySelector('svg');
+        if (!svg) return { error: 'no svg in .row-quiet' };
+        return measure(glyph, svg, true);
+      })()`);
+
+      const rail = await chrome.executeJavaScript(`(() => {
+        const measure = ${MEASURE};
+        const row = document.querySelector(
+          '.vertical-tab-row[data-tab-id="' + CSS.escape(${idJson}) + '"]'
+        );
+        if (!row) return { error: 'quiet rail row not found' };
+        const marker = row.querySelector('.vertical-tab-quiet');
+        if (!marker) return { error: 'no quiet marker in rail row' };
+        const svg = marker.querySelector('svg');
+        if (!svg) return { error: 'no svg in rail marker' };
+        return measure(marker, svg, false);
+      })()`);
+
+      return { panel, rail };
+    },
     async clickIslandLayoutToggle() {
       const wc = getOverlayWebContents();
       if (!wc) return false;

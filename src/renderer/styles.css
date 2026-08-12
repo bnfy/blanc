@@ -533,7 +533,8 @@ body.mac .vertical-tabs-toolbar {
   flex: 0 1 auto;
 }
 
-.vertical-tab-state {
+.vertical-tab-state,
+.island-row .row-quiet {
   width: 14px;
   height: 14px;
   display: inline-flex;
@@ -543,7 +544,8 @@ body.mac .vertical-tabs-toolbar {
   flex: 0 0 auto;
 }
 
-.vertical-tab-state svg {
+.vertical-tab-state svg,
+.island-row .row-quiet svg {
   width: 13px;
   height: 13px;
   fill: none;
@@ -862,19 +864,9 @@ body.mac .vertical-tabs-toolbar {
 }
 .island-dot.active { background: var(--accent); }
 .island-dot.loading { animation: island-pulse 0.9s ease-in-out infinite; }
-/* Quiet is size, never opacity: loading already owns the opacity animation,
-   and private dots are already hollow. The core remains inside the same slot,
-   so the dot gap never reflows. ::before is the hit halo, thus ::after. */
-.island-dot.asleep:not(.private) {
-  background: transparent;
-}
-.island-dot.asleep:not(.private)::after {
-  content: '';
-  position: absolute;
-  inset: 1.25px;
-  border-radius: inherit;
-  background: var(--border);
-}
+/* Quiet is NOT marked on the dots — it is carried by the Zzz glyph + dimmed
+   favicon on the panel row and rail. The dot is a switch target, not a status
+   field, and nothing legible fits at 6px. */
 /* Private tab dots are hollow. */
 .island-dot.private {
   background: transparent;
@@ -1639,17 +1631,11 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   flex: 0 0 auto;
 }
 
-/* "quiet" tag on a quiet tab in the switcher list. Same pill as .row-private
-   and, like it, visible at rest — .row-tag is hover-only inside .tab-row. */
-.island-row .row-quiet {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0 6px;
-  flex: 0 0 auto;
-}
+/* A quiet tab dims its favicon as one unit — the wrapper also holds the mute
+   badge, so a quiet tab fades as one object rather than the favicon fading out
+   from under a bright badge. Mirrors the rail's own favicon dim. The Zzz glyph
+   itself is sized by the shared block above (.vertical-tab-state, .row-quiet). */
+.island-row.quiet .row-favicon-wrap { opacity: .45; }
 
 .row-enter {
   font-family: var(--font-mono);
