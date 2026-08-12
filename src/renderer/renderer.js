@@ -358,8 +358,8 @@
   const DOT_CAP = 8;
 
   /** Dots for the pill: the ACTIVE tab's group only (null groupId = the
-   * ungrouped set). Grouped pins stay in that group and lead its dots; the
-   * standalone pinned shelf remains only for ungrouped pins. Capped at
+   * complete ungrouped set). Pins lead their group or ungrouped set; the
+   * standalone pinned shelf remains in the panel as well. Capped at
    * DOT_CAP with a trailing "+k" that opens the panel; the window slides only
    * when needed to keep the active dot visible. The pill deliberately does
    * NOT map other groups — that lives in ⌘L. */
@@ -371,10 +371,7 @@
     if (!tab) return { shown: [], hidden: 0 };
     const g = tab.groupId ?? null;
     const members = state.tabs
-      .filter((t) => (
-        (t.groupId ?? null) === g &&
-        (g !== null || !t.pinned || t.id === state.activeTabId)
-      ))
+      .filter((t) => (t.groupId ?? null) === g)
       .sort((a, b) => Number(b.pinned) - Number(a.pinned));
     if (members.length <= DOT_CAP) return { shown: members, hidden: 0 };
 
