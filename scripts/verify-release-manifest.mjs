@@ -53,6 +53,7 @@ if (macArches.has('x64')) {
 if (platforms.has('windows')) {
   expected.add(`Blanc-Setup-${version}.exe`);
   expected.add(`Blanc-Setup-${version}.exe.blockmap`);
+  expected.add('windows-signature.json');
   expected.add('latest.yml');
 }
 if (platforms.has('linux')) {
@@ -60,10 +61,19 @@ if (platforms.has('linux')) {
   expected.add('latest-linux.yml');
 }
 
+const sumsFile = path.join(directory, 'SHA256SUMS');
+const hasReleaseManifest = fs.existsSync(sumsFile);
+const sbomName = `Blanc-${version}.cdx.json`;
+const signatureName = 'SHA256SUMS.sigstore.json';
+if (hasReleaseManifest) {
+  expected.add(sbomName);
+  expected.add(signatureName);
+}
+
 const actual = fs.readdirSync(directory, { withFileTypes: true })
   .filter((entry) => entry.isFile())
   .map((entry) => entry.name);
-const allowed = new Set([...expected, 'SHA256SUMS']);
+const allowed = new Set([...expected, 'SHA256SUMS', sbomName, signatureName]);
 const missing = [...expected].filter((name) => !actual.includes(name));
 const unexpected = actual.filter((name) => !allowed.has(name));
 if (missing.length || unexpected.length) {
@@ -77,8 +87,33 @@ for (const name of expected) {
   if (size <= 0) throw new Error(`empty artifact: ${name}`);
 }
 
-const sumsFile = path.join(directory, 'SHA256SUMS');
+if (platforms.has('windows')) {
+  const attestation = JSON.parse(
+    fs.readFileSync(path.join(directory, 'windows-signature.json'), 'utf8')
+  );
+  const installerName = `Blanc-Setup-${version}.exe`;
+  const installerDigest = crypto.createHash('sha256')
+    .update(fs.readFileSync(path.join(directory, installerName)))
+    .digest('hex');
+  if (
+    attestation.schemaVersion !== 1
+    || attestation.artifact !== installerName
+    || attestation.signed !== true
+    || attestation.status !== 'Valid'
+    || typeof attestation.publisher !== 'string'
+    || !attestation.publisher
+    || !/^[a-f0-9]{64}$/.test(attestation.sha256 ?? '')
+    || attestation.sha256 !== installerDigest
+    || typeof attestation.timestampAuthority !== 'string'
+    || !attestation.timestampAuthority
+  ) throw new Error('invalid Windows signature attestation');
+}
+
 if (fs.existsSync(sumsFile)) {
+  const sbom = JSON.parse(fs.readFileSync(path.join(directory, sbomName), 'utf8'));
+  if (sbom.bomFormat !== 'CycloneDX' || !Array.isArray(sbom.components)) {
+    throw new Error('invalid CycloneDX SBOM');
+  }
   const sums = new Map(
     fs.readFileSync(sumsFile, 'utf8').trim().split('\n').filter(Boolean).map((line) => {
       const match = line.match(/^([0-9a-f]{64})  (.+)$/);
@@ -86,12 +121,13 @@ if (fs.existsSync(sumsFile)) {
       return [match[2], match[1]];
     })
   );
-  for (const name of expected) {
+  const checksummed = new Set([...expected].filter((name) => name !== signatureName));
+  for (const name of checksummed) {
     const bytes = fs.readFileSync(path.join(directory, name));
     const digest = crypto.createHash('sha256').update(bytes).digest('hex');
     if (sums.get(name) !== digest) throw new Error(`checksum mismatch: ${name}`);
   }
-  const extraSums = [...sums.keys()].filter((name) => !expected.has(name));
+  const extraSums = [...sums.keys()].filter((name) => !checksummed.has(name));
   if (extraSums.length) throw new Error(`checksums include unexpected files: ${extraSums.join(', ')}`);
 }
 

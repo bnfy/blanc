@@ -51,7 +51,7 @@
     { "key": "searchEngine", "type": "enum", "enum": "searchEngines", "default": "duckduckgo" },
     { "key": "searchSuggestions", "type": "boolean", "default": true, "note": "device-local; not synced; private tabs override off" },
     { "key": "adblockEnabled", "type": "boolean", "default": true },
-    { "key": "homePage", "type": "string", "default": "", "note": "trimmed on write; empty = blanc://newtab" },
+    { "key": "homePage", "type": "string", "default": "", "note": "normalized on read/write; only HTTP(S) or blanc://newtab; empty = blanc://newtab" },
     { "key": "theme", "type": "enum", "enum": "themes", "default": "system", "note": "drives nativeTheme.themeSource" },
     { "key": "webrtcPolicy", "type": "enum", "enum": "webrtcPolicies", "default": "standard", "note": "maps to webContents.setWebRTCIPHandlingPolicy; strict = disable_non_proxied_udp" },
     { "key": "secureDns", "type": "enum", "enum": "secureDnsOptions", "default": "auto", "note": "app.configureHostResolver secureDnsMode; strict positions hard-fail" },

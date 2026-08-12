@@ -95,7 +95,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F19-2 | Copy Clean Link strips tracking params | D20 | ✅ | ➖ | ➖ |
 | F19-3 | Paste and Go navigates + closes island | D20 | ✅ | ➖ | ➖ |
 | F20-1 | Basic-auth prompt | — | ✅ | ⬜ | ⬜ |
-| F21-1 | Usage ping off by default / single | — | ✅ | ⬜ | ⬜ |
+| F21-1 | Fresh-profile usage-ping choice / single | — | ✅ | ⬜ | ⬜ |
 | F22-1 | Desktop in-app updater | D9 | ✅ | ➖ | ➖ |
 | F22-2 | Mobile ships no self-updater | D9 | ➖ | ⬜ | ⬜ |
 | F23-1 | Page scales + resets | D10 | ✅ | ⬜ | ⬜ |

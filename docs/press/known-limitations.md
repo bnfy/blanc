@@ -1,6 +1,6 @@
 # Blanc 1.0 press-build limitations
 
-Last updated: July 27, 2026
+Last updated: August 12, 2026
 
 These are product boundaries, not buried footnotes. Reviewers should evaluate
 the release candidate with them in view.
@@ -55,35 +55,36 @@ the release candidate with them in view.
 ## Privacy and network behavior
 
 - Blanc does not claim zero telemetry. The optional usage ping is presented on
-  by default during first run, is committed before sending, can be turned off,
-  and contains only the fields documented in the privacy policy and fact sheet.
-- Search suggestions are on by default when accepted during first run. Eligible
-  typed prefixes may be sent to the selected search provider; the feature can
-  be disabled.
-- Blocking filters, update metadata, optional sync, supporter activation, and
-  enabled search suggestions require network requests initiated by the app.
+  during fresh-profile setup, cannot send before that choice is saved, and can
+  be turned off before continuing or later in Settings. It contains only the
+  fields in the privacy policy and fact sheet.
+- Search suggestions are presented on during fresh-profile setup. If left on,
+  eligible typed prefixes may be sent to the selected search provider.
+- Update metadata, optional sync, supporter activation, favicon capture, and
+  enabled suggestions/telemetry can require app-initiated network requests.
 - Ad and tracker blocking is best effort. It cannot promise to block every ad,
   tracker, cookie prompt, or fingerprinting technique.
-- On a fresh profile, Blanc fetches and compiles its blocking lists. The local
-  chrome remains available during that work; a failure presents Retry and an
-  explicit option to continue without blocking.
+- Blanc compiles a bundled, hash-verified blocking snapshot; it does not fetch
+  changing filter resources at first launch. A compilation failure presents
+  Retry and an explicit option to continue without blocking.
 
 ## Private tabs
 
 - Private tabs share one non-persistent private session with one another during
   the current app run. They are isolated from normal tabs, not from other
   simultaneously open private tabs.
-- Downloads still work from private tabs and can leave user-requested files and
-  download records outside the private session. Existing Favorites may be
+- Downloads still work from private tabs and leave user-requested files on
+  disk. Their Blanc download metadata is memory-only and disappears at quit. Existing Favorites may be
   opened there, but Blanc does not add Favorites from private browsing.
 - A passkey created from a private tab is usable only for that app run; the
   private session's sealing material is intentionally not persisted.
 
 ## Sync
 
-- Profile Sync is optional and server-blind, but the derived encryption key is
-  stored with Blanc's other local profile data. The guarantee is encrypted
-  transport/storage on Blanc's server, not local-at-rest encryption.
+- Profile Sync is optional and server-blind. The retained derived key is wrapped
+  by the operating system credential service; on Linux, setup fails if only an
+  insecure plaintext fallback is available. This is not protection against
+  malware already running with the user's full privileges.
 - History, downloads, cookies/site storage, permissions, supporter status,
   app-icon, search-suggestion, usage-ping, tab-layout, encrypted-DNS, and
   WebRTC choices are not synced.

@@ -36,7 +36,7 @@
         if (response.ok) {
           form.querySelector('.foot-news-controls').hidden = true;
           form.querySelector('.foot-news-label').hidden = true;
-          status.textContent = 'subscribed — see you at the next release';
+          status.textContent = 'check your inbox to confirm — the link expires in 24 hours';
         } else if (response.status === 400) {
           status.textContent = 'that address didn’t look right — try again?';
         } else {

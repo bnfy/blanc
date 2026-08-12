@@ -22,6 +22,7 @@
 // closed) rather than falling back to the raw id; launches still count.
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
+const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?$/;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // The client already coarsens the OS to a bare major (src/main/telemetry.js
@@ -29,6 +30,9 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // forged body — both become 'unknown' rather than opening an unbounded key
 // space in KV.
 const OS_VERSION_RE = /^\d{1,4}$/;
+const PING_RATE_LIMIT = 20; // per edge-observed IP per minute
+const DEFAULT_DAILY_INGEST_LIMIT = 250_000;
+const MAX_PING_BODY_BYTES = 2048;
 
 const GA_MEASUREMENT_ID = 'G-MN8BLY6GE9';
 const GA_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
@@ -125,6 +129,29 @@ async function markActive(kv, scope, bucket, installId, ttl) {
   await kv.put(seenKey, '1', { expirationTtl: ttl });
 }
 
+async function ingestionGate(request, env, now) {
+  const ip = request.headers.get('CF-Connecting-IP');
+  if (!ip) return { status: 400, reason: 'missing-client-address' };
+  const length = Number(request.headers.get('Content-Length'));
+  if (Number.isFinite(length) && length > MAX_PING_BODY_BYTES) {
+    return { status: 413, reason: 'body-too-large' };
+  }
+  const minuteKey = `ingest:ip:${ip}:${Math.floor(now.getTime() / 60000)}`;
+  const count = Number.parseInt((await env.PINGS.get(minuteKey)) ?? '0', 10);
+  if (count >= PING_RATE_LIMIT) return { status: 429, reason: 'rate-limited' };
+  await env.PINGS.put(minuteKey, String(count + 1), { expirationTtl: 120 });
+
+  const dayKey = `ingest:day:${dayBucket(now)}`;
+  const dayCount = Number.parseInt((await env.PINGS.get(dayKey)) ?? '0', 10);
+  const configuredLimit = Number.parseInt(env.PING_DAILY_LIMIT ?? '', 10);
+  const dailyLimit = Number.isSafeInteger(configuredLimit) && configuredLimit > 0
+    ? configuredLimit
+    : DEFAULT_DAILY_INGEST_LIMIT;
+  if (dayCount >= dailyLimit) return { status: 503, reason: 'daily-cap' };
+  await env.PINGS.put(dayKey, String(dayCount + 1), { expirationTtl: 3 * 24 * 3600 });
+  return null;
+}
+
 // ---- UTC period buckets ----
 function dayBucket(d) {
   return d.toISOString().slice(0, 10); // YYYY-MM-DD
@@ -164,9 +191,9 @@ async function handlePing(request, env, ctx, now) {
 
   const version = typeof body.version === 'string' && VERSION_RE.test(body.version.slice(0, 32))
     ? body.version.slice(0, 32)
-    : 'unknown';
-  const platform = ALLOWED_PLATFORMS.has(body.platform) ? body.platform : 'unknown';
-  const arch = typeof body.arch === 'string' ? body.arch.slice(0, 16) : 'unknown';
+    : null;
+  const platform = ALLOWED_PLATFORMS.has(body.platform) ? body.platform : null;
+  const arch = ALLOWED_ARCHES.has(body.arch) ? body.arch : null;
   const osVersion = typeof body.osVersion === 'string' && OS_VERSION_RE.test(body.osVersion)
     ? body.osVersion
     : 'unknown';
@@ -177,13 +204,27 @@ async function handlePing(request, env, ctx, now) {
       ? body.installId.trim()
       : null;
   const sessionId =
-    typeof body.sessionId === 'number' && Number.isFinite(body.sessionId)
+    typeof body.sessionId === 'number' && Number.isSafeInteger(body.sessionId) &&
+      body.sessionId > 0 && body.sessionId <= 0x7fffffff
       ? String(Math.floor(body.sessionId))
       : null;
+  if (!version || !platform || !arch || !installId || !sessionId) {
+    console.warn(JSON.stringify({ event: 'ping-rejected', reason: 'implausible-payload' }));
+    return new Response('bad request', { status: 400 });
+  }
 
   // The raw id stops here: everything downstream — KV seen-keys AND the GA
   // mirror — sees only the keyed hash (or nothing, if the secret is unset).
   const hashedId = installId ? await hashInstallId(env, installId) : null;
+
+  // A public endpoint cannot authenticate a shipped binary, but it can make
+  // retries/replays cheap: an identical install/session event is processed
+  // once. The keyed install hash prevents raw identifiers entering KV.
+  if (hashedId) {
+    const eventKey = `event:${hashedId}:${sessionId}`;
+    if ((await env.PINGS.get(eventKey)) !== null) return new Response(null, { status: 204 });
+    await env.PINGS.put(eventKey, '1', { expirationTtl: 2 * 24 * 3600 });
+  }
 
   // GA mirror is queued before the KV writes so a KV failure can't cost
   // the launch event too.
@@ -362,7 +403,17 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const now = new Date();
-    if (request.method === 'POST' && url.pathname === '/ping') return handlePing(request, env, ctx, now);
+    if (request.method === 'POST' && url.pathname === '/ping') {
+      const denied = await ingestionGate(request, env, now);
+      if (denied) {
+        console.warn(JSON.stringify({ event: 'ping-rejected', reason: denied.reason }));
+        return new Response(denied.reason, {
+          status: denied.status,
+          headers: denied.status === 429 ? { 'Retry-After': '60' } : {},
+        });
+      }
+      return handlePing(request, env, ctx, now);
+    }
     if (request.method === 'GET' && url.pathname === '/stats') return handleStats(request, env, now);
     if (request.method === 'POST' && url.pathname === '/admin/purge-legacy-ids') return handlePurgeLegacy(request, env);
     return new Response('not found', { status: 404 });

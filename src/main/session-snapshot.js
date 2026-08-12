@@ -23,19 +23,12 @@ function persistableUrl(url) {
 }
 
 const MAX_META_TITLE = 200;
-const MAX_META_FAVICON = 4096;
+const MAX_META_FAVICON = 8192;
+const { validFavicon } = require('./bookmark-validate');
 
-/** The favicon worth persisting: the same scheme allow-list favorites use
- * (bookmark-validate.js), with session.json's own, larger ceiling. A data:
- * URL past that is the renderer's fallback glyph — no information, and this
- * file is read synchronously at launch. */
-function persistableFavicon(favicon) {
-  return typeof favicon === 'string'
-    && favicon.length <= MAX_META_FAVICON
-    && /^(https?:|data:image\/)/i.test(favicon)
-    ? favicon
-    : null;
-}
+/** Session metadata carries only the same fixed-size PNG data accepted by
+ * Favorites; live remote sources never survive a restart. */
+function persistableFavicon(favicon) { return validFavicon(favicon); }
 
 /** session.json's meta entry for one tab (Quiet Tabs spec §10.1): what the
  * pill and the rail draw for a tab restored quiet, before it has any

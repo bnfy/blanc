@@ -20,6 +20,12 @@ require.cache[electronId] = {
         return { status: responseStatus, ok: responseStatus >= 200 && responseStatus < 300 };
       },
     },
+    safeStorage: {
+      isEncryptionAvailable: () => true,
+      getSelectedStorageBackend: () => 'test',
+      encryptString: (value) => Buffer.from(value),
+      decryptString: (value) => value.toString(),
+    },
     app: { getPath: () => tmp, on: () => {} },
   },
 };
@@ -43,6 +49,9 @@ test('an older Worker rejecting the optional icons store does not fail profile s
   assert.deepEqual(requests.map(({ method }) => method), ['GET', 'PUT']);
   assert.equal(sync.status().lastSyncedAt, 1234);
   assert.equal(sync.status().lastError, 'A required store failed earlier.');
+  const migrated = JSON.parse(fs.readFileSync(path.join(tmp, 'sync.json'), 'utf8'));
+  assert.equal(migrated.key, '', 'legacy plaintext key is erased after migration');
+  assert.ok(migrated.protectedKey, 'OS-wrapped replacement is persisted');
 });
 
 test('an optional icon-store outage cannot overwrite the primary profile sync status', async () => {

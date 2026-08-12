@@ -17,6 +17,7 @@ const { attachContextMenu } = require('./context-menu');
 const { webrtcPolicyFor } = require('./network-privacy');
 const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
+const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 
 let deps = null;
 
@@ -76,10 +77,9 @@ function initTabView(injected) {
     'currentChromeLayout', 'hideOverlay', 'hasLiveWindow',
     'reclaimAddressBarFocus', 'shouldReclaimAddressBarFocus',
     'installChromeShortcuts', 'watchCursorFor',
-    'isUtilityUrl', 'handOffToOs', 'upgradeFavicon',
+    'isUtilityUrl', 'handOffToOs', 'upgradeFavicon', 'setTabFavicon',
     'isStartupGateActive', 'startupQueuedNavigations',
     'onMainFrameCommit', 'noteWakeSuppressed', 'notePopupChild',
-    'onePasswordSpikeEnabled', 'fillActiveTabFrom1Password',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
@@ -106,9 +106,8 @@ function wireTabView(tab, view, { owner, adopted }) {
     currentChromeLayout, hideOverlay, hasLiveWindow,
     reclaimAddressBarFocus, shouldReclaimAddressBarFocus,
     installChromeShortcuts, watchCursorFor,
-    isUtilityUrl, handOffToOs, upgradeFavicon,
+    isUtilityUrl, handOffToOs, upgradeFavicon, setTabFavicon,
     isStartupGateActive, startupQueuedNavigations,
-    onePasswordSpikeEnabled, fillActiveTabFrom1Password,
     onMainFrameCommit, noteWakeSuppressed, notePopupChild,
   } = deps;
   const id = tab.id;
@@ -118,22 +117,6 @@ function wireTabView(tab, view, { owner, adopted }) {
   // asynchronous callback. A later rewire supplies the tab's actual owner.
   const boundToTab = (fn) => bindWindowRuntime(owner, fn);
   watchCursorFor(wc, () => currentChromeLayout().pageBounds, boundToTab);
-
-  // The tab's own webContents receives page-focused keys; the overlay cannot.
-  if (onePasswordSpikeEnabled) {
-    wc.on('before-input-event', boundToTab((event, input) => {
-      if (tab.sleeping || tab.view?.webContents !== wc) return;
-      if (input.type !== 'keyDown' || input.isAutoRepeat) return;
-      if (input.code !== 'KeyP') return;
-      if (!(input.meta && input.alt && !input.control && !input.shift)) return;
-      event.preventDefault();
-      if (owner.onePasswordFillInFlight) return;
-      owner.onePasswordFillInFlight = true;
-      fillActiveTabFrom1Password()
-        .catch((err) => console.warn('[1p-spike] fill error:', err?.message))
-        .finally(() => { owner.onePasswordFillInFlight = false; });
-    }));
-  }
 
   wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
   if (tab.muted) wc.setAudioMuted(true);
@@ -164,10 +147,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('page-favicon-updated', boundToTab((_e, favicons) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    tab.favicon = favicons[0] ?? null;
-    if (tab.bookmarked) bookmarks.updateFavicon(tab.url, tab.favicon);
-    broadcastTabs();
-    sync.captureTabIcon(tab).catch(() => {});
+    setTabFavicon(tab, favicons[0] ?? null);
     upgradeFavicon(tab);
   }));
   wc.on('did-start-loading', boundToTab(() => {
@@ -196,7 +176,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     tab.blockedCount = 0;
     tab.pageBg = null;
     tab.themeColor = null;
-    if (shouldClearFaviconOnNavigate(tab.url, url)) tab.favicon = null;
+    if (shouldClearFaviconOnNavigate(tab.url, url)) setTabFavicon(tab, null);
     syncNavState();
     tab.historyEligible = !tab.private && (httpResponseCode ?? 200) < 400;
     onMainFrameCommit(tab, { url, httpResponseCode });
@@ -238,6 +218,10 @@ function wireTabView(tab, view, { owner, adopted }) {
   // navigation uses loadURL and therefore bypasses this page-initiated guard.
   wc.on('will-navigate', boundToTab((event, targetUrl) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    if (isForbiddenTopLevelUrl(targetUrl)) {
+      event.preventDefault();
+      return;
+    }
     if (isUtilityUrl(targetUrl)) {
       event.preventDefault();
       if (wc.getURL().startsWith('blanc://')) openInternalPage(targetUrl);
@@ -298,6 +282,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // opener survives. Both paths preserve opener relationships.
   const applyWindowOpenPolicy = (targetWc) => {
     targetWc.setWindowOpenHandler(boundToTab(({ url: targetUrl, disposition }) => {
+      if (isForbiddenTopLevelUrl(targetUrl)) return { action: 'deny' };
       if (isUtilityUrl(targetUrl)) {
         if (targetWc.getURL().startsWith('blanc://')) openInternalPage(targetUrl);
         return { action: 'deny' };
@@ -348,10 +333,12 @@ function wireTabView(tab, view, { owner, adopted }) {
   attachContextMenu(wc, {
     openBackgroundTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
+      if (isForbiddenTopLevelUrl(targetUrl)) return;
       createTab(targetUrl, { private: tab.private, groupId: tab.groupId });
     }),
     openTab: boundToTab((targetUrl) => {
       if (handOffToOs(targetUrl)) return;
+      if (isForbiddenTopLevelUrl(targetUrl)) return;
       setActiveTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }));
     }),
   });

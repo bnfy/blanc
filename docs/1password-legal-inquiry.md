@@ -1,5 +1,11 @@
 # 1Password SDK — terms/compliance inquiry
 
+> **Historical record.** The experiment was fully removed from Blanc on
+> August 12, 2026. No 1Password SDK, credential-fill code, runtime toggle, or
+> library-validation entitlement is present in the shipping tree. Any future
+> proposal starts from a new threat model and legal review; this document does
+> not authorize reintroducing the retired spike.
+
 **Purpose:** Blanc's built-in 1Password fill (branch `feature/1password-fill`) is technically proven feasible (see `docs/superpowers/specs/2026-07-12-1password-autofill-spike-design.md` → Findings). Before building the *shippable* engine, one clause in 1Password's [API and SDK Terms of Service](https://1password.com/legal/api-sdk-terms-of-service) — **§4.1(e)**, the competitive/replication restriction — needs written confirmation from 1Password. This file holds the inquiry and (later) their reply, so the answer lives beside the code that depends on it.
 
 **Status:** ☑ drafted · ☑ sent (2026-07-12) · ☑ reply received (2026-07-17) · ☑ **resolved — but not answered**

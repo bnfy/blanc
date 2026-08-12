@@ -55,7 +55,6 @@ function createRuntime() {
     tabsBroadcastTimer: null,
     themeTintRefreshGeneration: 0,
     lastActiveByCluster: new Map(),
-    onePasswordFillInFlight: false,
     railActivationSerial: 0,
     permissionPrompts: new Map(),
     addressMenuTicket: 0,

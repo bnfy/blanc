@@ -12,7 +12,7 @@ test('chrome: immediate-parent folders, entity decode, icon, non-http dropped', 
   const entries = parseNetscapeBookmarks(fixture('chrome-bookmarks.html'), { now: FIXED_NOW });
   const m = byUrl(entries);
   assert.equal(m.get('https://example.com/').folder, 'Bookmarks bar');
-  assert.equal(m.get('https://example.com/').favicon, 'data:image/png;base64,AAAA');
+  assert.equal(m.get('https://example.com/').favicon, null, 'unverified imported icon bytes are dropped');
   assert.equal(m.get('https://example.com/').addedAt, 1700000000 * 1000);
   // immediate parent is News, not the joined path
   assert.equal(m.get('https://news.example.com/tech?q=a&b=1').folder, 'News');

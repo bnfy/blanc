@@ -100,4 +100,10 @@ test('the signer is deterministic: identity pinned by fingerprint, after-sign ve
   assert.match(pkg.build.mac.identity ?? '', /^[0-9A-F]{40}$/);
   assert.equal(pkg.build.afterSign, 'scripts/after-sign-verify.js');
   assert.ok(fs.existsSync(path.join(root, pkg.build.afterSign)), 'afterSign hook script exists');
+  const verifier = readBuildFile(pkg.build.afterSign);
+  assert.match(
+    verifier,
+    /'codesign', \['--verify', '--deep', '--strict', '--verbose=4', appPath\]/,
+    'afterSign must verify the complete sealed bundle before release packaging'
+  );
 });

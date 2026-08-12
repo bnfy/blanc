@@ -25,17 +25,19 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   windows:
     if: ${{ inputs.platform == 'all' || inputs.platform == 'windows' }}
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.tag }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 22
 
@@ -63,9 +65,14 @@ jobs:
           AZURE_CODE_SIGNING_ACCOUNT: ${{ vars.AZURE_CODE_SIGNING_ACCOUNT_NAME }}
           AZURE_CERT_PROFILE: ${{ vars.AZURE_CERTIFICATE_PROFILE_NAME }}
           AZURE_PUBLISHER_NAME: ${{ vars.AZURE_PUBLISHER_NAME }}
+          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
           CSC_LINK: ${{ secrets.CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
         run: |
+          [ -n "$EXPECTED_WINDOWS_PUBLISHER" ] || {
+            echo "::error::WINDOWS_EXPECTED_PUBLISHER must contain the exact Authenticode certificate subject."
+            exit 1
+          }
           if [ -n "$AZURE_TENANT_ID" ] &&
              [ -n "$AZURE_CLIENT_ID" ] &&
              [ -n "$AZURE_CLIENT_SECRET" ] &&
@@ -83,8 +90,8 @@ jobs:
             echo "==> Signing via CSC_LINK (traditional Authenticode cert)"
             npx electron-builder --win --publish never
           else
-            echo "::warning::No Windows signing configured — building an UNSIGNED installer. Users will see a SmartScreen 'unknown publisher' warning."
-            npx electron-builder --win --publish never
+            echo "::error::No complete Windows signing method is configured. Public releases never fall back to unsigned artifacts."
+            exit 1
           fi
 
       - name: Verify build artifacts
@@ -96,24 +103,51 @@ jobs:
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
 
+      - name: Verify hardened Electron fuses
+        shell: bash
+        run: |
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          node scripts/verify-electron-fuses.mjs "dist/win-unpacked/$PRODUCT_NAME.exe"
+
       - name: Verify Authenticode signature
-        if: ${{ vars.WINDOWS_EXPECTED_PUBLISHER != '' || vars.AZURE_PUBLISHER_NAME != '' }}
         shell: pwsh
         env:
-          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER || vars.AZURE_PUBLISHER_NAME }}
+          EXPECTED_WINDOWS_PUBLISHER: ${{ vars.WINDOWS_EXPECTED_PUBLISHER }}
         run: |
           $version = node -p "require('./package.json').version"
           $product = node -p "require('./package.json').productName"
           $installer = "dist/$product-Setup-$version.exe"
-          $signature = Get-AuthenticodeSignature $installer
-          Write-Host "Publisher: $($signature.SignerCertificate.Subject)"
-          Write-Host "Status: $($signature.Status)"
-          if ($signature.Status -ne "Valid" -or -not $signature.SignerCertificate) {
-            throw "Windows installer is not validly Authenticode-signed."
+          $application = "dist/win-unpacked/$product.exe"
+          foreach ($file in @($installer, $application)) {
+            if (-not (Test-Path $file)) { throw "Signed Windows binary missing: $file" }
+            $signature = Get-AuthenticodeSignature $file
+            Write-Host "$file publisher: $($signature.SignerCertificate.Subject)"
+            Write-Host "$file status: $($signature.Status)"
+            if ($signature.Status -ne "Valid" -or -not $signature.SignerCertificate) {
+              throw "$file is not validly Authenticode-signed."
+            }
+            # Distinguished-name text is not case-sensitive. Keep the full
+            # exact subject comparison, but do not reject the same identity
+            # solely because a certificate/provider changes letter casing.
+            if ($signature.SignerCertificate.Subject -ne $env:EXPECTED_WINDOWS_PUBLISHER) {
+              throw "Unexpected Windows publisher: $($signature.SignerCertificate.Subject)"
+            }
+            if (-not $signature.TimeStamperCertificate) {
+              throw "$file has no trusted Authenticode timestamp."
+            }
           }
-          if ($signature.SignerCertificate.Subject -notlike "*$($env:EXPECTED_WINDOWS_PUBLISHER)*") {
-            throw "Unexpected Windows publisher: $($signature.SignerCertificate.Subject)"
+          $installerSignature = Get-AuthenticodeSignature $installer
+          $attestation = [ordered]@{
+            schemaVersion = 1
+            artifact = [System.IO.Path]::GetFileName($installer)
+            sha256 = (Get-FileHash -Algorithm SHA256 $installer).Hash.ToLowerInvariant()
+            signed = $true
+            status = $installerSignature.Status.ToString()
+            publisher = $installerSignature.SignerCertificate.Subject
+            signerThumbprint = $installerSignature.SignerCertificate.Thumbprint
+            timestampAuthority = $installerSignature.TimeStamperCertificate.Subject
           }
+          $attestation | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
 
       - name: Upload to release
         shell: bash
@@ -125,18 +159,28 @@ jobs:
           gh release upload "${{ inputs.tag }}" \
             "dist/$PRODUCT_NAME-Setup-$VERSION.exe" \
             "dist/$PRODUCT_NAME-Setup-$VERSION.exe.blockmap" \
+            "dist/windows-signature.json" \
             "dist/latest.yml" \
             --repo "${{ github.repository }}"
+
+      - name: Attest Windows release artifacts
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: |
+            dist/Blanc-Setup-*.exe
+            dist/Blanc-Setup-*.exe.blockmap
+            dist/windows-signature.json
+            dist/latest.yml
 
   linux:
     if: ${{ inputs.platform == 'all' || inputs.platform == 'linux' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ inputs.tag }}
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: 22
 
@@ -163,6 +207,11 @@ jobs:
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
 
+      - name: Verify hardened Electron fuses
+        run: |
+          EXECUTABLE=$(node -p "require('./package.json').build.executableName || require('./package.json').name")
+          node scripts/verify-electron-fuses.mjs "dist/linux-unpacked/$EXECUTABLE"
+
       - name: Upload to release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -173,3 +222,10 @@ jobs:
             "dist/$PRODUCT_NAME-$VERSION.AppImage" \
             "dist/latest-linux.yml" \
             --repo "${{ github.repository }}"
+
+      - name: Attest Linux release artifacts
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-path: |
+            dist/Blanc-*.AppImage
+            dist/latest-linux.yml

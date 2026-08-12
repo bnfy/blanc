@@ -1,10 +1,15 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 
 const { isTrustedSender } = require('../../src/main/ipc-trust');
 
-const CHROME_URL = 'file:///app/src/renderer/index.html';
-const OVERLAY_URL = 'file:///app/src/renderer/overlay.html';
+const CHROME_URL = 'blanc-chrome://index/';
+const OVERLAY_URL = 'blanc-chrome://overlay/';
+const ROOT = path.resolve(__dirname, '../..');
+const mainSource = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+const preloadSource = fs.readFileSync(path.join(ROOT, 'src/main/preload.js'), 'utf8');
 
 // Minimal stand-ins for Electron's WebContents/WebFrameMain: identity is what
 // the predicate keys on, so plain objects are faithful.
@@ -73,4 +78,34 @@ test('a missing sender frame or missing surfaces fail closed', () => {
   );
   // Window closed / overlay destroyed → its target slot is null.
   assert.equal(isTrustedSender(eventFrom(chrome), [null, null]), false);
+});
+
+test('privileged chrome is isolated in its own in-memory session', () => {
+  assert.match(mainSource, /session\.fromPartition\(CHROME_PARTITION\)/);
+  assert.equal(
+    (mainSource.match(/partition: CHROME_PARTITION/g) ?? []).length,
+    2,
+    'the chrome window and overlay must both use the isolated partition'
+  );
+});
+
+test('every privileged chrome navigation and redirect is fail-closed', () => {
+  const lock = mainSource.match(
+    /function lockPrivilegedNavigation\(wc, trustedUrl\) \{[\s\S]*?\n\}/
+  )?.[0] ?? '';
+  assert.match(lock, /event\.url !== trustedUrl/);
+  assert.match(lock, /event\.isMainFrame !== true/);
+  assert.match(lock, /wc\.on\('will-navigate', allowOnlyExactMainFrame\)/);
+  assert.match(lock, /wc\.on\('will-frame-navigate', allowOnlyExactMainFrame\)/);
+  assert.match(lock, /wc\.on\('will-redirect', allowOnlyExactMainFrame\)/);
+  assert.match(lock, /setWindowOpenHandler\(\(\) => \(\{ action: 'deny' \}\)\)/);
+});
+
+test('the rich preload exposes browserAPI only on the two exact chrome documents', () => {
+  assert.match(preloadSource, /'blanc-chrome:\/\/index\/'/);
+  assert.match(preloadSource, /'blanc-chrome:\/\/overlay\/'/);
+  assert.match(
+    preloadSource,
+    /if \(TRUSTED_CHROME_DOCUMENTS\.has\(window\.location\.href\)\) \{\s*contextBridge\.exposeInMainWorld/
+  );
 });

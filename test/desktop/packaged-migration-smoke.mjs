@@ -3,8 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { _electron } from 'playwright';
-import { evaluateElectronAppWithRetry } from './support/electron-evaluate.mjs';
+import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 
 const stableExecutable = process.env.BLANC_STABLE_EXECUTABLE;
 const candidateExecutable =
@@ -31,27 +30,43 @@ const writeJson = (name, value) => fs.writeFileSync(
 );
 
 const launch = async (executablePath) => {
-  app = await _electron.launch({
+  app = await launchPackagedOverCdp({
     executablePath,
     args: [`--user-data-dir=${userDataDir}`],
     env: { ...process.env, BLANC_TEST: '0' },
   });
-  await app.firstWindow();
 };
 
 const waitForRestoredUrls = async () => {
   const deadline = Date.now() + 15_000;
   let urls = [];
   while (Date.now() < deadline) {
-    urls = await evaluateElectronAppWithRetry(
-      app,
-      ({ webContents }) =>
-        webContents.getAllWebContents().map((candidate) => candidate.getURL())
-    );
+    urls = app.pages().map((candidate) => candidate.url());
     if (sessionUrls.every((expected) => urls.includes(expected))) return urls;
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
   assert.fail(`session URLs were not restored; saw ${JSON.stringify(urls)}`);
+};
+
+const waitForCandidateRestore = async () => {
+  const deadline = Date.now() + 15_000;
+  let state = null;
+  while (Date.now() < deadline) {
+    const chrome = app.pages().find((page) => page.url() === 'blanc-chrome://index/');
+    if (chrome) {
+      state = await chrome.evaluate(() => window.browserAPI.getAllTabs());
+      if (sessionUrls.every((expected) =>
+        state.tabs.some((tab) => tab.url === expected))) {
+        const quiet = state.tabs.find((tab) => tab.url === sessionUrls[0]);
+        assert.equal(quiet.asleep, true, 'inactive restored tab should begin quiet');
+        await chrome.evaluate((id) => window.browserAPI.switchTab(id), quiet.id);
+        await waitForRestoredUrls();
+        return state;
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  assert.fail(`candidate tab model did not restore session URLs; saw ${JSON.stringify(state)}`);
 };
 
 try {
@@ -101,7 +116,11 @@ try {
   app = null;
 
   await launch(candidateExecutable);
-  await waitForRestoredUrls();
+  // Current Blanc restores inactive tabs as quiet records, so they have no
+  // CDP page until activated. Assert the privileged chrome's authoritative
+  // tab model first, then activate the quiet record and prove it wakes to the
+  // saved URL instead of weakening the migration check to the one live tab.
+  await waitForCandidateRestore();
 
   const settings = JSON.parse(
     fs.readFileSync(path.join(userDataDir, 'settings.json'), 'utf8')
@@ -109,7 +128,11 @@ try {
   assert.equal(settings.searchEngine, 'brave');
   assert.equal(settings.searchSuggestions, false);
   assert.equal(settings.usagePing, false);
-  assert.equal(settings.onboardingVersion, 1, 'legacy profile should skip first-run');
+  assert.equal(
+    settings.onboardingVersion,
+    1,
+    'legacy profile should skip first-run without resetting saved choices'
+  );
 
   const bookmarks = JSON.parse(
     fs.readFileSync(path.join(userDataDir, 'bookmarks.json'), 'utf8')

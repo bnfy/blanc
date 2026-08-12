@@ -46,13 +46,12 @@
   "devDependencies": {
     "@cucumber/cucumber": "^13.1.1",
     "@ghostery/adblocker": "^2.18.1",
-    "electron": "^43.3.0",
+    "electron": "^43.4.0",
     "electron-builder": "^26.15.3",
     "playwright": "^1.49.0",
     "sharp": "^0.35.3"
   },
   "dependencies": {
-    "@1password/sdk": "0.4.0",
     "@ghostery/adblocker-electron": "^2.18.1",
     "electron-updater": "^6.8.9"
   },
@@ -68,6 +67,16 @@
     "directories": {
       "output": "dist"
     },
+    "electronFuses": {
+      "runAsNode": false,
+      "enableCookieEncryption": true,
+      "enableNodeOptionsEnvironmentVariable": false,
+      "enableNodeCliInspectArguments": false,
+      "enableEmbeddedAsarIntegrityValidation": true,
+      "onlyLoadAppFromAsar": true,
+      "loadBrowserProcessSpecificV8Snapshot": false,
+      "grantFileProtocolExtraPrivileges": false
+    },
     "protocols": [
       {
         "name": "Web URL",
@@ -80,6 +89,7 @@
     ],
     "files": [
       "src/**/*",
+      "adblock/sources/**/*",
       "package.json"
     ],
     "afterPack": "scripts/after-pack-app-icons.js",
@@ -94,21 +104,7 @@
       "provisioningProfile": "build/embedded.provisionprofile",
       "extendInfo": {
         "CFBundleDisplayName": "Blanc Browser",
-        "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
-        "CFBundleDocumentTypes": [
-          {
-            "CFBundleTypeRole": "Viewer",
-            "LSItemContentTypes": [
-              "public.html"
-            ]
-          },
-          {
-            "CFBundleTypeRole": "Viewer",
-            "LSItemContentTypes": [
-              "public.xhtml"
-            ]
-          }
-        ]
+        "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone."
       },
       "target": [
         "dmg",

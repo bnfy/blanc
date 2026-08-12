@@ -1,7 +1,16 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('browserAPI', {
-  platform: process.platform,
+// This preload is intentionally attached only to Blanc's two privileged
+// chrome surfaces. Re-check the committed document before exposing anything:
+// a future accidental reuse of this preload must fail closed.
+const TRUSTED_CHROME_DOCUMENTS = new Set([
+  'blanc-chrome://index/',
+  'blanc-chrome://overlay/',
+]);
+
+if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
+  contextBridge.exposeInMainWorld('browserAPI', {
+    platform: process.platform,
 
   createTab: (url, opts) => ipcRenderer.invoke('tabs:create', url, opts),
   closeTab: (id) => ipcRenderer.invoke('tabs:close', id),
@@ -122,4 +131,5 @@ contextBridge.exposeInMainWorld('browserAPI', {
     ipcRenderer.on('chrome:find-result', listener);
     return () => ipcRenderer.removeListener('chrome:find-result', listener);
   },
-});
+  });
+}

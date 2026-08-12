@@ -1,1 +1,17 @@
-{"date": "2026-07-09"}
+{
+  "version": 1,
+  "date": "2026-07-09",
+  "lists": [
+    {
+      "file": "easylist.txt",
+      "url": "https://easylist.to/easylist/easylist.txt",
+      "sha256": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+    },
+    {
+      "file": "easyprivacy.txt",
+      "url": "https://easylist.to/easylist/easyprivacy.txt",
+      "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+    }
+  ],
+  "combinedSha256": "35cfb31efe041f8203e047f9339a59995083b7c33f19ee59e562739739240d7e"
+}

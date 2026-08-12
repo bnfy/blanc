@@ -30,7 +30,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <a class="platform-card" id="dl-win" data-download-link data-platform="win" data-track="download_click" data-cta-position="platform-card" href="https://github.com/bnfy/blanc/releases/latest">
       <span class="platform-label">windows</span>
       <strong>Download for Windows</strong>
-      <span>NSIS installer</span>
+      <span>signed NSIS installer</span>
     </a>
     <a class="platform-card" id="dl-linux" data-download-link data-platform="linux" data-track="download_click" data-cta-position="platform-card" href="https://github.com/bnfy/blanc/releases/latest">
       <span class="platform-label">linux</span>
@@ -57,15 +57,15 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </article>
       <article>
         <h3>One launch ping, with an off switch</h3>
-        <p>At launch, Blanc sends one ping: a random install ID, a random session ID, the app version, platform, and architecture. It carries no browsing history, URLs, searches, or page content. Turn it off in Settings → Privacy &amp; Security under &ldquo;Help improve Blanc,&rdquo; or <a href="/privacy">read the privacy policy</a>.</p>
+        <p>On a fresh profile the launch ping is presented on, but nothing sends until you save the choice and you can turn it off before continuing. When enabled, Blanc sends a random install ID, random session ID, app version, platform, architecture, and coarse OS major—never browsing history, URLs, searches, or page content. <a href="/privacy">Read the privacy policy</a>.</p>
       </article>
     </div>
   </section>
 
   <aside class="truth-note download-note" aria-labelledby="windows-note-title">
     <p class="section-kicker">a note for windows</p>
-    <h2 id="windows-note-title">Why might Windows warn about Blanc?</h2>
-    <p>The current Windows installer is not yet code-signed, so Microsoft Defender SmartScreen may show an &ldquo;unknown publisher&rdquo; or &ldquo;Windows protected your PC&rdquo; notice while Windows signing is completed. Take that warning seriously wherever you see it: download Blanc only from this page or the <a href="https://github.com/bnfy/blanc/releases/latest" target="_blank" rel="noopener">official GitHub release</a>, and skip copies hosted anywhere else.</p>
+    <h2 id="windows-note-title">Check the publisher, not just the filename.</h2>
+    <p>Public Windows releases are Authenticode-signed and the release pipeline refuses an unsigned installer. Windows should report the publisher named on the official release. Stop if the signature is absent, invalid, or names someone else. Download only here or from the <a href="https://github.com/bnfy/blanc/releases/latest" target="_blank" rel="noopener">official GitHub release</a>; checksums, signature evidence, and an SBOM accompany new releases.</p>
   </aside>
 
   <section class="download-details" aria-labelledby="details-title">
@@ -91,7 +91,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <section class="download-footnote" aria-label="Download details">
     <p>Every download button points to the latest Blanc release on GitHub. If your download does not start, <a href="https://github.com/bnfy/blanc/releases/latest" target="_blank" rel="noopener">open the release page</a>.</p>
-    <p><a href="/privacy">Read how Blanc handles your data</a> or email <a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a> if you need a hand.</p>
+    <p><a href="/privacy">Read how Blanc handles your data</a>, <a href="https://github.com/bnfy/blanc/blob/main/docs/release-verification.md" target="_blank" rel="noopener">verify a release</a>, or email <a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a> if you need a hand.</p>
   </section>
 </main>
 </BaseLayout>

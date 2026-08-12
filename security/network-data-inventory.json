@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-08-12",
+  "principles": {
+    "freshProfileNetworkChoices": "must-be-saved-before-first-send",
+    "blockerInputs": "bundled-and-hash-verified",
+    "privateDownloadMetadata": "memory-only",
+    "remoteFaviconPersistence": "fixed-size-png-only"
+  },
+  "flows": [
+    {
+      "id": "visited-web-content",
+      "surface": "desktop",
+      "trigger": "user navigation or page subresource",
+      "default": "user-directed",
+      "recipient": "the selected website and its referenced services",
+      "data": ["ordinary web request data", "cookies and site state allowed by Chromium", "network address"],
+      "retentionByBlanc": "history locally unless private; site storage locally in the selected session",
+      "code": ["src/main/tab-view.js"]
+    },
+    {
+      "id": "search-navigation",
+      "surface": "desktop",
+      "trigger": "user submits search-like address input",
+      "default": "user-directed",
+      "recipient": "selected search provider",
+      "data": ["completed search query", "ordinary network metadata"],
+      "retentionByBlanc": "local history unless private",
+      "code": ["src/main/settings.js", "src/main/main.js"]
+    },
+    {
+      "id": "search-suggestions",
+      "surface": "desktop",
+      "trigger": "eligible typed prefix after the fresh-profile choice is saved on, or while the retained setting is on",
+      "default": "presented on during fresh-profile choice; user may turn off before continuing",
+      "recipient": "selected search provider",
+      "data": ["bounded eligible prefix", "ordinary network metadata"],
+      "retentionByBlanc": "none beyond transient response",
+      "code": ["src/main/search-suggestions.js", "src/main/settings.js"]
+    },
+    {
+      "id": "launch-usage-ping",
+      "surface": "desktop",
+      "trigger": "packaged launch after the fresh-profile choice is saved on, or while the retained setting is on",
+      "default": "presented on during fresh-profile choice; user may turn off before continuing",
+      "recipient": "Blanc Cloudflare Worker; optional Google Analytics mirror",
+      "data": ["random install UUID", "random launch session number", "app version", "platform", "architecture", "coarse OS major", "edge address for short-lived rate limiting"],
+      "retentionByBlanc": "raw UUID immediately HMACed; expiring keyed cohort markers; aggregate counts long-term",
+      "code": ["src/main/telemetry.js", "cloudflare/ping-worker/src/index.js"]
+    },
+    {
+      "id": "profile-sync",
+      "surface": "desktop",
+      "trigger": "explicit sync setup and later enabled sync cycles",
+      "default": "off",
+      "recipient": "Blanc Cloudflare Worker",
+      "data": ["opaque v1 account locator", "store name", "opaque version", "AES-256-GCM ciphertext", "ordinary edge metadata"],
+      "retentionByBlanc": "ciphertext until a configured client requests account wipe",
+      "code": ["src/main/sync.js", "src/main/sync-crypto.js", "cloudflare/sync-worker/src/index.js"]
+    },
+    {
+      "id": "favicon-sanitization",
+      "surface": "desktop",
+      "trigger": "a non-private page supplies a remote icon for browser chrome",
+      "default": "automatic for regular tabs; suppressed for private tabs",
+      "recipient": "page-selected public icon host",
+      "data": ["cookie-free, referrer-free bounded image request", "ordinary network address"],
+      "retentionByBlanc": "only a validated fixed-size PNG; no remote source URL; current pinned fetch bypasses Electron proxy and encrypted-DNS settings",
+      "code": ["src/main/favicon-network.js", "src/main/favicon-sanitizer.js", "src/main/main.js"]
+    },
+    {
+      "id": "update-check",
+      "surface": "desktop",
+      "trigger": "packaged startup, periodic check, or explicit check",
+      "default": "on in packaged builds",
+      "recipient": "GitHub Releases",
+      "data": ["current version", "platform update request", "ordinary network metadata"],
+      "retentionByBlanc": "update metadata and downloaded signed artifact as required by updater",
+      "code": ["src/main/updater.js", "package.json"]
+    },
+    {
+      "id": "secure-dns",
+      "surface": "desktop",
+      "trigger": "DNS resolution under selected resolver mode",
+      "default": "automatic platform/browser behavior",
+      "recipient": "system resolver or user-selected DoH provider",
+      "data": ["DNS queries", "ordinary network metadata"],
+      "retentionByBlanc": "resolver cache only",
+      "code": ["src/main/network-privacy.js", "src/main/settings.js"]
+    },
+    {
+      "id": "supporter-activation",
+      "surface": "desktop",
+      "trigger": "user submits a supporter license",
+      "default": "off",
+      "recipient": "Polar",
+      "data": ["license key", "public organization ID", "Blanc desktop label", "ordinary network metadata"],
+      "retentionByBlanc": "local activation record trusted offline",
+      "code": ["src/main/supporter.js"]
+    },
+    {
+      "id": "website-release-resolution",
+      "surface": "website",
+      "trigger": "visit to a page with download controls",
+      "default": "on for those pages",
+      "recipient": "GitHub public API",
+      "data": ["latest-release request", "ordinary web request metadata"],
+      "retentionByBlanc": "none",
+      "code": ["site/src/scripts/site.js"]
+    },
+    {
+      "id": "website-analytics",
+      "surface": "website",
+      "trigger": "non-legal page load in restricted mode; visitor clicks Allow for full measurement",
+      "default": "restricted cookieless Consent Mode with analytics storage denied",
+      "recipient": "Google Analytics",
+      "data": ["restricted cookieless measurement pings by default", "page and explicitly instrumented CTA events", "Google analytics cookie after Allow", "ordinary request metadata"],
+      "retentionByBlanc": "consent choice in site localStorage; analytics in configured Google property",
+      "code": ["site/src/scripts/site.js"]
+    },
+    {
+      "id": "newsletter",
+      "surface": "website",
+      "trigger": "address submission followed by mailbox confirmation",
+      "default": "off",
+      "recipient": "Blanc Cloudflare Worker and Resend",
+      "data": ["email address", "request/confirmation time", "opaque confirmation and unsubscribe material", "edge address for short-lived rate limiting"],
+      "retentionByBlanc": "pending request up to 24 hours; honeypot quarantine up to 30 days; confirmed record until one-click unsubscribe or deletion",
+      "code": ["site/src/components/NewsletterForm.astro", "cloudflare/newsletter-worker/src/index.js"]
+    }
+  ]
+}

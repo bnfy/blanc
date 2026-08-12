@@ -5,18 +5,17 @@ const path = require('path');
 const settings = require('./settings');
 const { installScriptletIsolation } = require('./adblock-scriptlets');
 const {
+  loadVerifiedAdblockSnapshot,
+  adblockCacheName,
+  writeCacheAtomically,
+} = require('./adblock-snapshot');
+const {
   isWebContentsExcepted,
   installCosmeticExceptionHandlers,
 } = require('./adblock-exceptions');
 const { createAdblockEventBridge } = require('./adblock-events');
 
-// Cache the compiled filter engine on disk so we don't re-fetch and
-// re-parse EasyList/EasyPrivacy on every launch. The engine validates the
-// cache against its own format version and rebuilds automatically when the
-// library updates; delete the file to force a refresh of the block lists.
-const CACHE_VERSION = 2;
-const cachePath = () =>
-  path.join(app.getPath('userData'), `adblock-engine.v${CACHE_VERSION}.bin`);
+const bundledSourcesPath = () => path.join(app.getAppPath(), 'adblock', 'sources');
 
 /** @type {ElectronBlocker | null} */
 let blocker = null;
@@ -90,15 +89,18 @@ function applyBlockingWithExceptions(session) {
  * kind of cosmetic injection is allowed.
  *
  * @param {Electron.Session} session - typically session.defaultSession
- * @param {{ enabled?: boolean, fetchImpl?: typeof fetch }} [options]
+ * @param {{ enabled?: boolean }} [options]
  * @returns {Promise<ElectronBlocker>}
  */
-async function setupAdBlocker(session, { enabled = true, fetchImpl = fetch } = {}) {
-  blocker = await ElectronBlocker.fromPrebuiltAdsAndTracking(fetchImpl, {
-    path: cachePath(),
-    read: fs.promises.readFile,
-    write: fs.promises.writeFile,
-  });
+async function setupAdBlocker(session, { enabled = true } = {}) {
+  const snapshot = loadVerifiedAdblockSnapshot(bundledSourcesPath());
+  const engineCache = path.join(app.getPath('userData'), adblockCacheName(snapshot.digest));
+  try {
+    blocker = ElectronBlocker.deserialize(await fs.promises.readFile(engineCache));
+  } catch {
+    blocker = ElectronBlocker.parse(snapshot.raw);
+    await writeCacheAtomically(engineCache, blocker.serialize());
+  }
 
   // Cosmetic filters can contain multiple uBO scriptlets for one page.
   // Ghostery executes each in the page's global scope; isolating their

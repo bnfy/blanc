@@ -13,7 +13,9 @@ const directory = path.resolve(directoryArg);
 const output = path.resolve(outputArg ?? path.join(directory, 'SHA256SUMS'));
 const outputName = path.basename(output);
 const entries = fs.readdirSync(directory, { withFileTypes: true })
-  .filter((entry) => entry.isFile() && entry.name !== outputName)
+  // The Sigstore bundle signs this manifest and therefore cannot be part of
+  // the manifest it authenticates. Exclude a stale bundle on safe reruns too.
+  .filter((entry) => entry.isFile() && entry.name !== outputName && entry.name !== `${outputName}.sigstore.json`)
   .map((entry) => entry.name)
   .sort((a, b) => a.localeCompare(b));
 

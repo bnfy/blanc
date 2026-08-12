@@ -19,7 +19,7 @@ async function chromePage() {
   for (;;) {
     const page = ctx.app.windows().find((candidate) =>
       !candidate.isClosed() &&
-      candidate.url().endsWith('/src/renderer/index.html')
+      candidate.url() === 'blanc-chrome://index/'
     );
     if (page) {
       await page.waitForLoadState('domcontentloaded');

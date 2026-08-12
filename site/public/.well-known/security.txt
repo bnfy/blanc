@@ -1,0 +1,5 @@
+Contact: mailto:support@blancbrowser.com
+Expires: 2027-08-01T23:59:59Z
+Preferred-Languages: en
+Canonical: https://blancbrowser.com/.well-known/security.txt
+Policy: https://github.com/bnfy/blanc/security/policy

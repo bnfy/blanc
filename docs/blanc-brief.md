@@ -9,7 +9,7 @@ git workflow, and release runbooks — for those, see `CLAUDE.md`.
 ## What it is
 
 Blanc is a minimal **Electron desktop browser** (macOS, Windows, Linux;
-currently v0.16). Its defining idea is **Island chrome**: instead of a tab strip
+current public baseline v1.0.3). Its defining idea is **Island chrome**: instead of a tab strip
 and a toolbar, a single floating pill sits top-center over the page — showing tab
 dots, the current site, and a count of ads/trackers blocked. Click it (or press
 `Cmd/Ctrl+L`) and it expands into a command bar: address input, slash commands,
@@ -73,7 +73,9 @@ Respect them:
   GPL licensing constraint). Its main use — password managers — can't integrate
   with any custom browser shell anyway (vendors verify the browser's code
   signature against an allowlist). Ad blocking replaced it at the network layer.
-  **Don't propose re-adding an extension runtime.**
+  **Don't propose re-adding an extension runtime.** A later 1Password SDK
+  experiment was also removed before release; Blanc ships no credential-fill
+  SDK or library-validation exception.
 - **No mascot on the start page.** An earlier version had a pixel-art dog sprite;
   it was retired with the "Bowser" name in the rebrand. Don't reintroduce one
   unless asked.
@@ -98,15 +100,18 @@ parity.** A divergence is *documented* (add a `D#`), never silently allowed. The
 clearest example: ad blocking is programmatic on desktop/Android but declarative
 (`WKContentRuleList`, with a rule cap) on iOS.
 
-## Current state (v0.16, mid-2026)
+## Current state (August 2026)
 
 - **Shipped:** desktop on all three platforms — macOS (signed + notarized),
   Windows (NSIS), Linux (AppImage), all auto-updating via GitHub Releases.
 - **Monetization:** "Blanc Supporter" — a $19 one-time Polar.sh license unlocking
   three supporter-only Dock colorways. Perks are cosmetic; no DRM, works offline.
-- **Privacy infra:** opt-in end-to-end-encrypted Profile Sync (Favorites +
-  settings only) via a zero-knowledge Cloudflare Worker; opt-out launch telemetry
-  (a single per-launch ping, no browsing data).
+- **Privacy infra:** opt-in, server-blind end-to-end-encrypted Profile Sync v1
+  (Favorites, eligible settings, and optional open-tab snapshots) via a
+  Cloudflare Worker, with the retained key protected by the OS credential
+  service; a fresh-profile per-launch usage-ping choice presented on with no
+  browsing data; and search suggestions presented on but disableable before
+  continuing.
 - **Planned / not built:** the iOS and Android apps, multi-window, inline address
   autocomplete.
 

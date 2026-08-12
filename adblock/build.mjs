@@ -182,8 +182,20 @@ const OUT_META = path.join(OUT, 'blocklist.meta.json');
 function generate() {
   const blockRules = [];
   const exceptionRules = [];
+  const pinned = JSON.parse(fs.readFileSync(path.join(SOURCES, 'pinned.json'), 'utf8'));
+  if (pinned.version !== 1 || !Array.isArray(pinned.lists)) {
+    throw new Error('Invalid adblock source manifest');
+  }
+  const manifestByFile = new Map(pinned.lists.map((entry) => [entry.file, entry]));
+  const rawLists = [];
   for (const file of files) {
     const content = fs.readFileSync(path.join(SOURCES, file), 'utf8');
+    const expected = manifestByFile.get(file)?.sha256;
+    const actual = createHash('sha256').update(content).digest('hex');
+    if (!expected || actual !== expected) {
+      throw new Error(`Pinned hash mismatch for ${file}`);
+    }
+    rawLists.push(content);
     for (const line of content.split('\n')) {
       const parsed = parseFilter(line);
       if (!parsed) continue;
@@ -194,7 +206,10 @@ function generate() {
   const rules = [...blockRules, ...exceptionRules];
   const json = JSON.stringify(rules, null, 2);
   const hash = createHash('sha256').update(json).digest('hex').slice(0, 8);
-  const pinned = JSON.parse(fs.readFileSync(path.join(SOURCES, 'pinned.json'), 'utf8'));
+  const combined = createHash('sha256').update(rawLists.join('\n')).digest('hex');
+  if (combined !== pinned.combinedSha256) {
+    throw new Error('Pinned combined adblock hash mismatch');
+  }
   const metaJson = JSON.stringify(
     { version: hash, ruleCount: rules.length, sourceDate: pinned.date },
     null,

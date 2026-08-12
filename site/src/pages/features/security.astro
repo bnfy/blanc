@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title={"Blanc Browser Security — Private by Architecture"}
-  description={"How Blanc is built for privacy: sandboxed pages, network-level ad and tracker blocking, no extension runtime, encrypted sync, WebRTC leak protection, optional encrypted DNS, and a usage ping you can switch off."}
+  description={"How Blanc is built for privacy: sandboxed pages, pinned network-level blocking, no extension runtime, protected encrypted sync, signed releases, and documented network choices."}
   path="/features/security"
   page="feature-security"
   current="features"
@@ -47,7 +47,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <section class="feature-copy-grid feature-copy-grid--top" aria-labelledby="security-runs-title">
     <div><p class="section-kicker">what runs, and what does not</p><h2 id="security-runs-title">The browser itself is the security layer.</h2></div>
     <div class="feature-copy-list">
-      <article><h3>Blocking lives in the network layer.</h3><p>Ad and tracker blocking runs inside the browser, not as an extension — so it is not subject to an extension store&rsquo;s rules or Manifest V3&rsquo;s limits. The shield on the Island shows what was blocked on each page. <a href="/features/ad-blocking">How blocking works</a>.</p></article>
+      <article><h3>Blocking lives in the network layer.</h3><p>Ad and tracker blocking runs inside the browser, not as an extension. Reviewed EasyList and EasyPrivacy snapshots are hash-pinned into each Blanc release; the browser does not fetch changing filter scriptlets at startup. The shield shows what was blocked on each page. <a href="/features/ad-blocking">How blocking works</a>.</p></article>
       <article><h3>Every page runs sandboxed.</h3><p>Web pages run inside Chromium&rsquo;s sandbox, isolated from the browser and from your files. Blanc&rsquo;s own pages — settings, history, favorites — live on a privileged internal scheme that ordinary web content cannot link into, and the browser re-checks who is calling on every internal request.</p></article>
       <article><h3>No extension runtime — on purpose.</h3><p>Extensions are privileged third-party code running inside your browser. Blanc removed the runtime entirely, which removes that class of risk outright — and a common reason to install one, ad blocking, is already built in at a deeper layer. If you need a specific extension, we are honest about it: Blanc is not your browser today.</p></article>
     </div>
@@ -55,10 +55,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   <section class="feature-copy-grid" aria-labelledby="security-leaves-title">
     <div><p class="section-kicker">the sensitive parts</p><h2 id="security-leaves-title">How Blanc handles sensitive data.</h2></div>
     <div class="feature-copy-list">
-      <article><h3>Sync the server cannot read.</h3><p>Sync is off by default. When you turn it on, favorites, settings, and — if you opt in per device — your <a href="/features/sync">open tabs</a> are encrypted on your device with a key derived from your passphrase; the server stores ciphertext it cannot read, index, or merge. The passphrase is never stored and never sent.</p></article>
+      <article><h3>Sync the server cannot read.</h3><p>Sync is off by default. Favorites, eligible settings, and optional <a href="/features/sync">open-tab snapshots</a> are encrypted on your device. The current v1 server stores ciphertext under an opaque account locator and cannot read or merge it. The passphrase is never stored or sent, and the retained key is wrapped by the operating system credential service.</p></article>
       <article><h3>Passkeys live in the Secure Enclave.</h3><p>On a Mac with Touch ID, Blanc creates device-bound passkeys inside Apple&rsquo;s Secure Enclave. The private key never leaves the chip, and Blanc is signed with an Apple-issued Developer ID and provisioned to hold its own keychain access group. macOS only for now.</p></article>
       <article><h3>Permissions ask first.</h3><p>Camera, microphone, location, notifications — each request raises a Blanc prompt, and each decision is remembered for that site. Decisions made in a private tab are never written to disk.</p></article>
-      <article><h3>A ping per launch, and you can turn it off.</h3><p>When the packaged app launches, it sends a small pseudonymous usage ping; the <a href="/privacy">privacy policy</a> lists every field. None of them include browsing data, and the random install ID identifies the installation, not you. Settings turns it off with one switch.</p></article>
+      <article><h3>The usage ping waits for your choice.</h3><p>A fresh profile presents the usage ping on, but sends nothing until you save the choice and lets you turn it off before continuing. If left enabled, a packaged launch sends the narrow pseudonymous payload listed in the <a href="/privacy">privacy policy</a>—never URLs, searches, or page content. The choice stays device-local and can be switched off at any time.</p></article>
     </div>
   </section>
   <section class="feature-copy-grid" aria-labelledby="security-network-title">

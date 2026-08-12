@@ -7,9 +7,6 @@
   <true/>
   <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
   <true/>
-  <key>com.apple.security.cs.disable-library-validation</key>
-  <true/>
-
   <!-- Touch ID passkeys (Secure Enclave). keychain-access-groups is a
        restricted entitlement: it only launches when the embedded Developer ID
        provisioning profile (build.mac.provisioningProfile) authorizes it, and

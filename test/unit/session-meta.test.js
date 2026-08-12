@@ -9,6 +9,7 @@ const vm = require('node:vm');
 // Lift the real source and run it in a sandbox, so this asserts shipped code.
 const { persistableEntries, sessionTabMeta } = require('../../src/main/session-snapshot');
 const { buildSaveShape } = require('../../src/main/session-workspace');
+const SAFE_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
 
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 const fnSource = mainSource.match(/function persistSession\(\) \{[\s\S]*?\n\}/)?.[0];
@@ -42,13 +43,13 @@ const tab = (over) => ({
 
 test('persistSession writes a meta entry per persisted url, in the same order', () => {
   const data = run([
-    tab({ id: 'a', url: 'https://a/', title: 'Alpha', favicon: 'https://a/i.png' }),
+    tab({ id: 'a', url: 'https://a/', title: 'Alpha', favicon: SAFE_ICON }),
     tab({ id: 'p', url: 'https://secret/', title: 'Secret', private: true }),
     tab({ id: 'b', url: 'https://b/', title: 'Beta' }),
   ], 'b');
   assert.deepEqual(data.windows[0].urls, ['https://a/', 'https://b/']);
   assert.deepEqual(data.windows[0].meta, [
-    { title: 'Alpha', favicon: 'https://a/i.png' },
+    { title: 'Alpha', favicon: SAFE_ICON },
     { title: 'Beta', favicon: null },
   ]);
   assert.equal('meta' in data, false, 'the v0 mirror never carries meta');

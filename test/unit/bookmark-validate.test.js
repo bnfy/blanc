@@ -2,9 +2,11 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const { validFavicon, validFolder, folderKey } = require('../../src/main/bookmark-validate');
 
-test('validFavicon accepts http(s) and data:image, rejects others and over-long', () => {
-  assert.equal(validFavicon('https://x.com/f.ico'), 'https://x.com/f.ico');
-  assert.equal(validFavicon('data:image/png;base64,AAAA'), 'data:image/png;base64,AAAA');
+test('validFavicon accepts only bounded, fixed-size PNG pixels', () => {
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
+  assert.equal(validFavicon(png), png);
+  assert.equal(validFavicon('https://x.com/f.ico'), null);
+  assert.equal(validFavicon('data:image/png;base64,AAAA'), null);
   assert.equal(validFavicon('javascript:alert(1)'), null);
   assert.equal(validFavicon('data:text/html,x'), null);
   assert.equal(validFavicon('data:image/png;base64,' + 'A'.repeat(3000)), null);

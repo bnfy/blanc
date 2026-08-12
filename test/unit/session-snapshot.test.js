@@ -4,6 +4,7 @@ const test = require('node:test');
 const {
   persistableEntries, syncSnapshot, sessionTabMeta, MAX_META_TITLE, MAX_META_FAVICON,
 } = require('../../src/main/session-snapshot');
+const SAFE_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
 
 const tab = (over = {}) => ({
   id: 't1', url: 'https://a.example/x', title: 'A',
@@ -71,11 +72,12 @@ test('syncSnapshot caps at 500 tabs and keeps only referenced groups, order pres
 
 test('sessionTabMeta carries a title and an allow-listed favicon, both bounded', () => {
   assert.deepEqual(
-    sessionTabMeta(tab({ title: 'A', favicon: 'https://a.example/icon.png' })),
-    { title: 'A', favicon: 'https://a.example/icon.png' }
+    sessionTabMeta(tab({ title: 'A', favicon: SAFE_ICON })),
+    { title: 'A', favicon: SAFE_ICON }
   );
   assert.equal(sessionTabMeta(tab({ title: 'x'.repeat(500) })).title.length, MAX_META_TITLE);
   assert.equal(sessionTabMeta(tab({ favicon: 'javascript:alert(1)' })).favicon, null);
+  assert.equal(sessionTabMeta(tab({ favicon: 'https://a.example/icon.png' })).favicon, null);
   assert.equal(
     sessionTabMeta(tab({ favicon: `data:image/png;base64,${'A'.repeat(MAX_META_FAVICON)}` })).favicon,
     null,

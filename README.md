@@ -29,15 +29,15 @@ npm install
 npm start
 ```
 
-On first launch, local chrome and the start page appear immediately while
-the ad blocker fetches and compiles EasyList + EasyPrivacy. Web navigation
-waits for that protection; if the list build fails, the start page offers
-Retry or an explicit Continue without blocking. The compiled engine is
-cached in the app's userData directory so subsequent launches are instant.
-Delete the `adblock-engine.v*.bin` file there to force a rebuild. A truly
-fresh profile also records the search-suggestion and usage-ping choices
-before either feature can send data. Dev runs use their own userData profile,
-so they never touch an installed copy's data.
+On first launch, Blanc verifies and compiles the reviewed EasyList +
+EasyPrivacy snapshots bundled with that release. It does not download filter
+code at startup. Web navigation waits for that protection; if the build fails,
+the start page offers Retry or an explicit Continue without blocking. The
+compiled engine is cached in userData; deleting `adblock-engine.v*.bin` forces
+a rebuild from the same bundled snapshot. Search suggestions and the usage
+ping are both presented on, but cannot send until the first-run choices are
+saved and can be turned off before continuing.
+Dev runs use their own userData profile and never send usage pings.
 
 To build an installable app: `npm run dist` (or `npm run dist:dir` for a
 quick unpacked build in `dist/`). Targets: macOS dmg/zip, Windows NSIS,
@@ -76,7 +76,7 @@ loose local matches (tabs, favorites, history, and groups) with live
 autocomplete from the search engine selected in Settings. Arrow keys move
 through the six-row result list; Enter keeps the existing confident-local
 match behavior, otherwise it searches the exact text you typed. Provider
-suggestions can be disabled in Settings.
+suggestions are presented on and can be disabled before continuing or later in Settings.
 
 **Private tabs** (`/private` or `Cmd/Ctrl+Shift+N`): nothing is saved to
 history, they're excluded from session restore and reopen-closed-tab, and
@@ -145,12 +145,11 @@ state lives in the main process; both chrome documents just reflect
 
 **Security posture:** the chrome strip, the overlay, and every tab run
 with `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`.
-Tabs carry `tab-preload.js`, but it exposes its `bowserPages` bridge only
-when the document is one of our own `blanc://` pages (re-checked on every
-navigation), and the main process re-verifies the sender URL on every
-`pages:*` IPC call — so ordinary web content still gets zero access to
-Node, Electron internals, or browser data. The richer `browserAPI` bridge
-is only ever attached to Blanc's own chrome documents.
+Tabs carry `tab-preload.js`, but each `blanc://` host receives only its own
+bridge methods. The main process independently verifies the exact host,
+owned WebContents/session/surface, and main frame for every `pages:*` call.
+Ordinary web content gets no bridge. The richer `browserAPI` is attached only
+to Blanc's chrome documents and is independently sender-checked.
 
 **Permissions:** deny-by-default. Camera, microphone, geolocation, and
 notifications surface a per-site Allow/Block prompt in the chrome; the
@@ -160,9 +159,9 @@ lock, and sanitized clipboard writes are allowed.
 
 **Ad blocking:** `adblock.js` attaches a `@ghostery/adblocker-electron`
 engine to `session.defaultSession` once at startup, covering every tab.
-Request-level blocking isn't bound by MV3's rule caps; cosmetic filtering
-rides on the library's session preload. Blocked requests are counted per
-tab and surface as the accent badge in the pill. Toggle the engine in
+Request-level blocking isn't bound by MV3's rule caps. The engine is built
+from bundled, hash-verified snapshots; blocker scriptlets update only with the
+signed app snapshot and run with isolated declarations. Blocked requests are counted per tab and surface as the accent badge in the pill. Toggle the engine in
 Settings (or `/block-ads`); exempt individual sites per-site (`/allow-ads`,
 also editable in Settings).
 
@@ -193,7 +192,9 @@ the app small.
 **Persistence** is deliberately boring: one JSON file per store
 (`settings.json`, `bookmarks.json`, `history.json`, `downloads.json`,
 `session.json`, `site-permissions.json`) in userData, written through a
-shared debounced `JsonStore`. History is capped at 5000 entries, the
+shared debounced `JsonStore` using owner-only permissions and atomic
+replacement. The retained Profile Sync key is wrapped by the operating
+system credential service. History is capped at 5000 entries, the
 download log at 200. Open tabs are restored on the next launch — private
 tabs excepted.
 
