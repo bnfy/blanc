@@ -533,7 +533,8 @@ body.mac .vertical-tabs-toolbar {
   flex: 0 1 auto;
 }
 
-.vertical-tab-state {
+.vertical-tab-state,
+.island-row .row-quiet {
   width: 14px;
   height: 14px;
   display: inline-flex;
@@ -543,7 +544,8 @@ body.mac .vertical-tabs-toolbar {
   flex: 0 0 auto;
 }
 
-.vertical-tab-state svg {
+.vertical-tab-state svg,
+.island-row .row-quiet svg {
   width: 13px;
   height: 13px;
   fill: none;
@@ -1639,17 +1641,11 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   flex: 0 0 auto;
 }
 
-/* "quiet" tag on a quiet tab in the switcher list. Same pill as .row-private
-   and, like it, visible at rest — .row-tag is hover-only inside .tab-row. */
-.island-row .row-quiet {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  color: var(--text-dim);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0 6px;
-  flex: 0 0 auto;
-}
+/* A quiet tab dims its favicon as one unit — the wrapper also holds the mute
+   badge, so a quiet tab fades as one object rather than the favicon fading out
+   from under a bright badge. Mirrors the rail's own favicon dim. The Zzz glyph
+   itself is sized by the shared block above (.vertical-tab-state, .row-quiet). */
+.island-row.quiet .row-favicon-wrap { opacity: .45; }
 
 .row-enter {
   font-family: var(--font-mono);
