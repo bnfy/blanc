@@ -350,15 +350,18 @@ Then('the panel stays open and explains that no tab can be quieted', async funct
   assert.equal(notice.role, 'status');
 });
 
-Then('the pill, panel, and rail expose a distinct quiet state', async function () {
+Then('the panel and rail expose a distinct quiet state', async function () {
   const chrome = await this.call('quietChromeState', this.quietCandidateTitle, this.quietCandidateId);
-  assert.equal(chrome.dotQuiet, true);
-  assert.equal(chrome.dotPrivate, false);
-  assert.match(chrome.dotLabel.toLowerCase(), /quiet/);
+  // The pill dot deliberately carries NO quiet state — neither the visual nor
+  // the accessible name. Quiet lives only on the Zzz glyph + dimmed favicon.
+  assert.equal(chrome.dotQuiet, false);
+  assert.doesNotMatch(chrome.dotLabel.toLowerCase(), /quiet/);
+  // Rail: the quiet class, the Zzz marker, and the accessible name.
   assert.equal(chrome.railQuiet, true);
   assert.equal(chrome.railPrivate, false);
   assert.equal(chrome.railMarker, true);
   assert.match(chrome.railLabel.toLowerCase(), /quiet/);
+  // Panel row: the Zzz glyph is present and the accessible name says quiet.
   const rows = await this.call('addressResultRows');
   const row = rows.find((candidate) => candidate.title === this.quietCandidateTitle);
   assert.equal(row?.quiet, true);

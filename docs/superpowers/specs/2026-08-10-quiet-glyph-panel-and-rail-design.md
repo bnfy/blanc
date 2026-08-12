@@ -16,29 +16,40 @@ The vertical rail solved the same problem differently — it dims the favicon
 *and* draws a circle-with-core marker (`ICONS.quiet`, `vertical-tabs.js:22`).
 Two answers for one state. This spec settles the two of them on one mark.
 
-## Scope: two surfaces change, two do not
+## Scope: quiet lives on two surfaces only
+
+Quiet is shown in exactly one way — a Zzz glyph plus a dimmed favicon — on the
+panel row and the vertical rail, and **nowhere else**. The two other surfaces
+that used to carry a quiet mark have it **removed**.
 
 | Surface | Today | After |
 | --- | --- | --- |
 | Island panel row (`overlay.js`) | `quiet` text pill | Zzz glyph + dimmed favicon |
 | Vertical rail (`vertical-tabs.js`) | circle-with-core + dimmed favicon | Zzz glyph + dimmed favicon |
-| **Quick Switcher results** | `quiet` in the subline | **unchanged — still the word** |
-| **Pill dots** | 3.5px hollow core | **unchanged — still shape-only** |
+| **Quick Switcher results** | `quiet` in the subline | **removed — subline is just the domain** |
+| **Pill dots** | 3.5px hollow core + accessible "quiet" | **removed — no quiet, visual or accessible** |
 
-### Quick Switcher stays text, deliberately
+> **Revision 2026-08-12.** An earlier draft kept the pill-dot core and the
+> Quick Switcher word as deliberate, documented decisions. That was reversed on
+> the user's call: the pill dots "add no value" for this, and the treatment
+> should be *simple* — the Zzz icon and the dimmed favicon, that's it. Both
+> other surfaces now carry no quiet state.
 
-`overlay.js:742` builds a switcher result's subline as
-`[tabDomain(t), t.asleep && 'quiet'].filter(Boolean).join(' · ')` — a text
-subline, visible at rest because switcher rows are not `.tab-row`. It stays
-exactly as it is. A switcher result is a *search hit* being described in prose
-("example.com · quiet"), not a live row being scanned; a glyph mid-sentence
-would read worse than the word. This is a decision, not an oversight.
+### Quick Switcher: quiet removed
 
-### Pill dots stay shape-only, deliberately
+`overlay.js` built a switcher result's subline as
+`[tabDomain(t), t.asleep && 'quiet'].filter(Boolean).join(' · ')`. It is now
+just `tabDomain(t)` — the domain, no quiet. A search result is not a place the
+quiet state needs to live; the Zzz glyph on the panel row and rail carries it.
 
-`.island-dot` is 6px; `.island-dot.asleep::after` insets 1.25px, leaving a
-visible core of **3.5px**. Nothing legible can be drawn at that size, and the
-dot is a switch target rather than a status field. Do not "fix" this asymmetry.
+### Pill dots: quiet removed
+
+The pill dot's quiet treatment is gone entirely — both the visual
+(`.island-dot.asleep:not(.private)` transparent background + shrunk `::after`
+core) and the accessible name (`, quiet` in the dot's `aria-label`), plus the
+`asleep` field in `dotsSignature`. The dot is a switch target, not a status
+field; nothing legible fits at 6px, and screen-reader users still hear "quiet"
+on the panel rows and rail.
 
 ## The glyph
 
@@ -208,13 +219,22 @@ Renderer JavaScript, HTML, and CSS — not markup and CSS alone:
 
 - `src/renderer/quiet-glyph.js` — **new**
 - `src/renderer/index.html`, `src/renderer/overlay.html` — one `<script>` each
-- `src/renderer/overlay.js` — row glyph replaces the text tag; favicon dims
+- `src/renderer/overlay.js` — row glyph replaces the text tag; favicon dims;
+  the Quick Switcher subline drops `quiet` (now just `tabDomain(t)`)
 - `src/renderer/vertical-tabs.js` — `ICONS.quiet` becomes the shared glyph
+- `src/renderer/renderer.js` — the pill dot's quiet treatment is **removed**:
+  the `' asleep'` class, the `, quiet` accessible name, and the `asleep` field
+  in `dotsSignature`
 - `src/renderer/styles.css` — one selector added to each of the two existing
-  rail rules, the old `.row-quiet` pill block deleted, and the panel favicon
-  dim added. **No `.quiet-glyph` sizing rule** — the contract above forbids it
+  rail rules, the old `.row-quiet` pill block deleted, the panel favicon dim
+  added, and the `.island-dot.asleep` quiet rules **deleted**. **No
+  `.quiet-glyph` sizing rule** — the contract above forbids it
 - `design-system/components/quiet-tabs/index.html` — **implementation
-  deliverable, lands in this change** (see below)
+  deliverable, lands in this change** (see below). Pill-dot and Quick Switcher
+  specimen sections removed
+- `spec/acceptance/quiet-tabs.feature` + `test/desktop/steps/quiet-tabs.steps.js`
+  — the `@F31-5` scenario becomes "the panel and rail expose a distinct quiet
+  state"; the step now guards that the pill dot carries **no** quiet
 
 No substrate impact: no tokens, settings, or copy change, so `substrate:check`
 does not participate. Contrast the `/sleep` hint wording (PR #112), which does.
@@ -260,8 +280,14 @@ Add, each one locking a clause of the contract above:
    `aria-hidden="true"`, and the row's accessible name still ends in `quiet`.
 10. **Favicon dimming.** The panel row takes a `quiet` class when `tab.asleep`,
     and `.island-row.quiet .row-favicon-wrap` sets `opacity: .45`.
-11. **Quick Switcher untouched.** Its subline still emits the word `quiet` — a
-    regression guard for the surface this spec deliberately leaves alone.
+11. **Quick Switcher carries no quiet.** Its subline is `const sub = tabDomain(t)`
+    with no `t.asleep && 'quiet'` — a regression guard that quiet was removed
+    from search results.
+12. **Pill dots carry no quiet.** No `.island-dot.asleep` CSS, no `' asleep'`
+    class in `renderer.js`, the dot's accessible name is `Switch to ${title}`
+    with no `, quiet`, and `dotsSignature` no longer lists `asleep`.
+13. **No `asleep` string reaches a user.** With the pill dot's `' asleep'` class
+    fragment gone, the guard permits **no** `asleep` string literal at all.
 
 ### Perceivability check
 
@@ -301,22 +327,14 @@ treatment and is wrong the moment this lands. It is updated **in this same
 change**, not afterwards — a specimen that disagrees with the product is worse
 than no specimen. Running `/design-sync` to publish it remains the user's call.
 
-Two corrections to make while updating it:
-
-- **Line 255 is wrong today**, independently of this change. It reads: "The tab
-  record's field is `asleep` and the command is `/sleep`, both internal-facing
-  — the same split as Favorites and `bookmarks`." `/sleep` is **not**
-  internal-facing: a person types it into the command palette. It is the one
-  deliberate, documented place where the internal word is shown to users, which
-  is the opposite of the `bookmarks` split (an identifier no user ever sees).
-  Say that instead.
-- **Line 137 says "Three surfaces carry that state."** After this change the
-  count and the treatments both move: panel row and rail share the Zzz, pill
-  dots stay shape-only, and the Quick Switcher subline stays as the word. State
-  all four and which two changed.
+While updating it: the **Pill dots** and **Quick Switcher result** specimen
+sections are removed (those surfaces no longer carry quiet); the lede states
+that quiet lives on exactly two surfaces (panel row + rail), both as Zzz +
+dimmed favicon; the values table drops the pill-dot rows; and the `/sleep`
+clarification stands — `/sleep` is the one deliberate place the internal word
+is shown to users, the opposite of the `bookmarks` split.
 
 ## Not in scope
 
 - When a tab goes quiet; `tab-sleep.js`; any main-process behaviour.
-- The pill dots and the Quick Switcher subline (see Scope).
 - The `/sleep` hint wording, which is PR #112's separate decision.

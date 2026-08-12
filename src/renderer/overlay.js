@@ -742,9 +742,9 @@
     }
     for (const t of state.tabs) {
       const s = matchScore(query, matchableText(t.title, t.url));
-      // Switcher rows are not .tab-row, so .row-sub is visible at rest —
-      // the honest place for the state, unlike the hover-gated .row-tag.
-      const sub = [tabDomain(t), t.asleep && 'quiet'].filter(Boolean).join(' · ');
+      // Quiet is not shown here: it lives only on the Zzz glyph + dimmed favicon
+      // (panel row and rail). The switcher sub is just the tab's domain.
+      const sub = tabDomain(t);
       if (s) results.push({ kind: 'tab', title: t.title || 'New Tab', sub, tab: t, score: s + 0.2 });
     }
     for (const f of favorites) {

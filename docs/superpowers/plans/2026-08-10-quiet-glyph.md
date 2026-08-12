@@ -8,9 +8,19 @@
 
 **Tech Stack:** Vanilla JS, CSS, HTML — no new dependencies.
 
+> **Revision 2026-08-12 (post-Task-1/2).** Scope reduced on the user's call:
+> quiet now lives on **two surfaces only** (panel row + rail), shown as the Zzz
+> glyph + dimmed favicon. The pill-dot quiet treatment (visual **and**
+> accessible name) and the Quick Switcher `quiet` subline are **removed**, not
+> kept. Tasks 1–2 below were executed against the earlier "keep them" scope and
+> then amended; the affected unit tests, the `@F31-5` acceptance scenario, the
+> specimen, and the spec were updated to match. Task 3 (the perceivability
+> acceptance test on panel + rail) is unaffected. See the spec's
+> "Scope: quiet lives on two surfaces only" for the current contract.
+
 ## Global Constraints
 
-- The Quick Switcher subline and pill dots are **unchanged** — only the panel row and vertical rail change.
+- Quiet lives on **two surfaces only** — the panel row and the vertical rail — as the Zzz glyph + dimmed favicon. The pill dots and the Quick Switcher carry **no** quiet state.
 - Every user-visible and assistive **string** says "quiet", never "asleep" — the Zzz is pixels only.
 - No `.quiet-glyph` CSS sizing rule may exist — both surfaces resolve through the shared `.vertical-tab-state` / `.island-row .row-quiet` block.
 - No CSP edit is needed — `script-src 'self'` already permits a same-directory script.

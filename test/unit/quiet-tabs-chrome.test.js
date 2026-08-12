@@ -28,15 +28,6 @@ test('both re-render signature gates could be lifted from source', () => {
   assert.ok(railSigSource, 'railSignature not found in vertical-tabs.js — update this test with it');
 });
 
-function runDotsSignature(shown) {
-  const sandbox = {
-    state: { activeTabId: 'active-tab' },
-    activeGroupMembers: () => ({ shown, hidden: 0 }),
-  };
-  vm.runInNewContext(`${dotsSource}\nthis.__fn = dotsSignature;`, sandbox);
-  return sandbox.__fn();
-}
-
 function runRailSignature(payload) {
   const sandbox = {};
   vm.runInNewContext(`${railSigSource}\nthis.__fn = railSignature;`, sandbox);
@@ -49,12 +40,6 @@ const BACKGROUND_TAB = {
   groupId: null, asleep: false,
 };
 
-test('the pill dot gate reacts to a tab going quiet', () => {
-  const awake = runDotsSignature([{ ...BACKGROUND_TAB }]);
-  const quiet = runDotsSignature([{ ...BACKGROUND_TAB, asleep: true }]);
-  assert.notEqual(awake, quiet, 'dotsSignature must list asleep, or the dot row never redraws');
-});
-
 test('the rail gate reacts to a tab going quiet', () => {
   const payload = { activeTabId: 'active-tab', groups: [], tabs: [{ ...BACKGROUND_TAB }] };
   const awake = runRailSignature(payload);
@@ -62,22 +47,15 @@ test('the rail gate reacts to a tab going quiet', () => {
   assert.notEqual(awake, quiet, 'railSignature must list asleep, or the rail row never redraws');
 });
 
-test('a quiet pill dot shrinks to a core, borrowing neither opacity nor the private treatment', () => {
-  assert.match(styles, /\.island-dot\.asleep:not\(\.private\)\s*\{[^}]*background: transparent;/s);
-  assert.match(styles, /\.island-dot\.asleep:not\(\.private\)::after\s*\{[^}]*inset: 1\.25px;/s);
-  assert.match(styles, /\.island-dot\.asleep:not\(\.private\)::after\s*\{[^}]*background: var\(--border\);/s);
-  // ::before is the invisible hit halo; the quiet core must not take it.
-  assert.doesNotMatch(styles, /\.island-dot\.asleep[^{]*::before/);
-  assert.doesNotMatch(styles, /\.island-dot\.asleep[^{]*\{[^}]*opacity/s);
-  assert.doesNotMatch(styles, /--sleep-dim/);
-});
-
-test('the pill dot marks quiet in its class and in its accessible name', () => {
-  assert.match(rendererSource, /\(t\.asleep \? ' asleep' : ''\)/);
-  assert.match(
-    rendererSource,
-    /aria-label',\s*`Switch to \$\{t\.title \|\| 'New Tab'\}\$\{t\.asleep \? ', quiet' : ''\}`/
-  );
+test('the pill dots carry no quiet treatment — quiet lives on the Zzz + dimmed favicon', () => {
+  // Removed deliberately: the dot is a switch target, not a status field.
+  assert.doesNotMatch(styles, /\.island-dot\.asleep/);
+  assert.doesNotMatch(rendererSource, /' asleep'/);
+  // The dot's accessible name is just the switch target; no quiet mention.
+  assert.match(rendererSource, /aria-label',\s*`Switch to \$\{t\.title \|\| 'New Tab'\}`/);
+  assert.doesNotMatch(rendererSource, /Switch to[^`]*quiet/);
+  // dotsSignature no longer tracks asleep, so the dot row never redraws for it.
+  assert.doesNotMatch(dotsSource, /asleep/);
 });
 
 const panelRowSource = overlaySource.match(/function tabRow\(tab\) \{[\s\S]*?\n  \}/)?.[0];
@@ -117,18 +95,17 @@ test('a quiet panel row carries the glyph and is named "quiet"', () => {
 });
 
 test('no chrome surface ever says "asleep" to a user or a screen reader', () => {
-  // The field is `asleep`; every string a person receives says "quiet". The
-  // single permitted literal is the pill dot's CSS class fragment.
-  const ALLOWED = new Set([`' asleep'`]);
+  // The field is `asleep`; every string a person receives says "quiet". Now that
+  // the pill dot's `' asleep'` class fragment is gone, NO literal is permitted.
+  const ALLOWED = new Set();
   for (const [name, source] of [
     ['renderer.js', rendererSource],
     ['overlay.js', overlaySource],
     ['vertical-tabs.js', railSource],
   ]) {
-    // A template interpolation is CODE, not string content — `${t.asleep ?
-    // ', quiet' : ''}` reads the field without ever showing it to anyone.
-    // Strip interpolations before scanning, or this guard fires on the pill
-    // dot's own accessible name.
+    // A template interpolation is CODE, not string content — `${tab.asleep ?
+    // ' quiet' : ''}` reads the field without ever showing it to anyone.
+    // Strip interpolations before scanning so the guard sees only string prose.
     const prose = source.replace(/\$\{[^{}]*\}/g, '');
     const literals = prose.match(
       /'[^'\n]*asleep[^'\n]*'|`[^`\n]*asleep[^`\n]*`|"[^"\n]*asleep[^"\n]*"/g
@@ -173,14 +150,11 @@ test('a quiet rail row is classed, named, and marked — and dims the favicon, n
 // Quick Switcher (overlay.js switcherResults / resultRow)
 // ---------------------------------------------------------------------------
 
-test('a quiet tab result says so in its sub, which switcher rows show at rest', () => {
-  assert.match(
-    overlaySource,
-    /\[tabDomain\(t\), t\.asleep && 'quiet'\]\.filter\(Boolean\)\.join\(' · '\)/
-  );
-  // Switcher rows are not .tab-row, so .row-sub is not the hover-gated
-  // .row-tag — that is precisely why quiet lives in the sub here.
-  assert.doesNotMatch(styles, /\.island-row \.row-sub\s*\{[^}]*opacity: 0;/s);
+test('a switcher result sub is just the domain — quiet is not shown here', () => {
+  // Quiet lives only on the Zzz glyph + dimmed favicon (panel row and rail).
+  // The switcher sub carries the tab's domain and nothing quiet-specific.
+  assert.match(overlaySource, /const sub = tabDomain\(t\);/);
+  assert.doesNotMatch(overlaySource, /t\.asleep && 'quiet'/);
 });
 
 test('the switcher does not add a second wake path from the renderer', () => {
@@ -365,11 +339,4 @@ test('the panel glyph carries title="Quiet" and the row name includes quiet', ()
 test('a quiet panel row dims its favicon wrapper via a row-level class', () => {
   assert.match(panelRowSource, /tab\.asleep \? ' quiet' : ''/);
   assert.match(styles, /\.island-row\.quiet \.row-favicon-wrap\s*\{[^}]*opacity: \.45;/s);
-});
-
-test('the Quick Switcher subline still emits the word quiet', () => {
-  assert.match(
-    overlaySource,
-    /\[tabDomain\(t\), t\.asleep && 'quiet'\]\.filter\(Boolean\)\.join\(' · '\)/
-  );
 });

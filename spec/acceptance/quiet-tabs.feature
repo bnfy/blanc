@@ -63,7 +63,7 @@ Feature: Quiet Tabs
     Given a background tab on a quietable page
     When I quiet that background tab
     And I show the vertical tab rail and panel
-    Then the pill, panel, and rail expose a distinct quiet state
+    Then the panel and rail expose a distinct quiet state
 
   @F31-6 @F31 @desktop @D23
   Scenario Outline: Every delay value persists and Off leaves quiet tabs quiet
