@@ -568,10 +568,13 @@ From the desktop `DEFAULTS`:
 - **The state is visible, and it is called "quiet"** everywhere a person or a
   screen reader can meet it — the panel row and the vertical rail row each dim
   as one unit, restoring full strength on hover/focus (the row is about to
-  wake), with `, quiet` in each accessible name. There is no glyph or badge:
-  the dim is the state, matching the convention Edge and Vivaldi established.
-  It is deliberately unmarked on the pill dots, in the Quick Switcher, in the
-  native window menu, and on the start page.
+  wake), **and each carries the word `quiet`** in the same lowercase mono voice
+  as `private`, with `, quiet` in each accessible name. The word is load-bearing,
+  not decoration: restored tabs are born quiet, so after a relaunch nearly every
+  row is dim at once, and a uniformly dimmed list reads as ordinary styling
+  rather than as a state. There is no glyph or pictogram. It is deliberately
+  unmarked on the pill dots, in the Quick Switcher, in the native window menu,
+  and on the start page.
 - Restored sessions come back quiet: after a relaunch only the active tab loads
   (F18).
 - The *behaviour* is D8; *who decides when* is D23.

@@ -522,7 +522,10 @@ body.mac .vertical-tabs-toolbar {
   color: var(--text-dim);
 }
 
-.vertical-tab-private {
+/* The rail's word-markers share one block for the same reason as the panel's
+   chips: "quiet" must not drift from "private". */
+.vertical-tab-private,
+.vertical-tab-quiet {
   max-width: 50px;
   overflow: hidden;
   color: var(--text-dim);
@@ -1621,7 +1624,10 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
 }
 
 /* "private" tag on private tabs in the switcher list */
-.island-row .row-private {
+/* "quiet" rides beside "private" and shares its declaration block, so the two
+   row tags cannot drift apart. */
+.island-row .row-private,
+.island-row .row-quiet {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-dim);

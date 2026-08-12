@@ -83,13 +83,15 @@ test('the row primary button carries the row layout', () => {
   assert.match(styles, /\.island-row \.row-primary\s*\{[^}]*min-width: 0;/s);
 });
 
-test('a quiet panel row is classed and named "quiet" — with no glyph or badge', () => {
-  // The .quiet class carries the whole visual (the row-level dim below); the
-  // accessible name carries the word.
+test('a quiet panel row is classed, named, and tagged "quiet"', () => {
   assert.match(panelRowSource, /tab\.asleep \? ' quiet' : ''/);
   assert.match(panelRowSource, /tab\.asleep \? 'quiet' : ''/);
-  // No marker element of any kind is created for the state.
-  assert.doesNotMatch(panelRowSource, /row-quiet|QUIET_GLYPH/);
+  // A WORD, not a pictogram: the tag reads at any density, unlike the row dim.
+  assert.match(panelRowSource, /tag\.className = 'row-quiet'/);
+  assert.match(panelRowSource, /tag\.textContent = 'quiet'/);
+  assert.doesNotMatch(panelRowSource, /QUIET_GLYPH|<svg/);
+  // Always visible, like .row-private — never a hover-gated .row-tag.
+  assert.doesNotMatch(styles, /\.island-row\.tab-row \.row-quiet/);
 });
 
 test('no chrome surface ever says "asleep" to a user or a screen reader', () => {
@@ -128,12 +130,13 @@ test('the rail tabRow could be lifted from source', () => {
   assert.ok(railRowSource, 'tabRow not found in vertical-tabs.js — update this test with it');
 });
 
-test('a quiet rail row is classed and named "quiet" — with no marker element', () => {
+test('a quiet rail row is classed, named, and marked with the word "quiet"', () => {
   assert.match(railRowSource, /\(tab\.asleep \? ' quiet' : ''\)/);
   // The field is `asleep`; the string in the accessible name is 'quiet'.
   assert.match(railRowSource, /tab\.asleep && 'quiet'/);
-  // No marker element and no glyph — the dim is the whole visual.
-  assert.doesNotMatch(railRowSource, /vertical-tab-quiet|QUIET_GLYPH/);
+  assert.match(railRowSource, /quietMarker\.className = 'vertical-tab-quiet'/);
+  assert.match(railRowSource, /quietMarker\.textContent = 'quiet'/);
+  // A word, never a glyph — no icon entry survives for it.
   assert.doesNotMatch(railSource, /QUIET_GLYPH|ICONS\.quiet/);
 });
 
@@ -250,11 +253,34 @@ test('the quiet glyph is fully deleted — file, serving allowlist, and referenc
   assert.doesNotMatch(overlayHtml, /quiet-glyph/);
   assert.doesNotMatch(overlaySource, /QUIET_GLYPH/);
   assert.doesNotMatch(railSource, /QUIET_GLYPH/);
-  assert.doesNotMatch(styles, /row-quiet|vertical-tab-quiet|quiet-glyph/);
+  assert.doesNotMatch(styles, /quiet-glyph/);
   // The chrome scheme's allowlist is exact and fails closed; a stale entry
   // would keep advertising a file that no longer exists.
   const chromeProtocol = fs.readFileSync(path.join(ROOT, 'src/main/chrome-protocol.js'), 'utf8');
   assert.doesNotMatch(chromeProtocol, /quiet-glyph/);
+});
+
+// The row dim alone is a RELATIVE signal: restored tabs are born quiet, so
+// after a relaunch nearly every row is dim at once and the state stops reading.
+// Each surface therefore also carries the word, sharing its "private" block.
+test('each surface tags a quiet row with the word, beside "private"', () => {
+  assert.match(
+    styles,
+    /\.island-row \.row-private,\s*\n\s*\.island-row \.row-quiet\s*\{/,
+    'panel chips must share one declaration block'
+  );
+  assert.match(
+    styles,
+    /\.vertical-tab-private,\s*\n\s*\.vertical-tab-quiet\s*\{/,
+    'rail word-markers must share one declaration block'
+  );
+  // No SECOND, parallel rule may re-declare either one and let them drift. A
+  // `doesNotMatch` on the selector cannot express this — it would match the
+  // shared block's own second selector line — so count instead: each selector
+  // may appear exactly once in the stylesheet, inside the block above.
+  const occurrences = (needle) => styles.split(needle).length - 1;
+  assert.equal(occurrences('.island-row .row-quiet'), 1, 'one .row-quiet rule only');
+  assert.equal(occurrences('.vertical-tab-quiet'), 1, 'one .vertical-tab-quiet rule only');
 });
 
 // Extracts the declarations of the first rule whose selector list starts with
