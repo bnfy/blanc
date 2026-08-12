@@ -1,9 +1,11 @@
 # Quiet glyph: one Zzz in the panel row and the vertical rail
 
 **Date:** 2026-08-10
-**Status:** implementation in progress — Tasks 1–2 shipped (`9e20d00`, `1882009`);
-Task 3 (perceivability acceptance test) pending. Scope reduced 2026-08-12 to the
-two-surface contract below.
+**Status:** implemented & validated — Tasks 1–3 shipped (`9e20d00`, `1882009`,
+`b31ef3d`; docs reconciled in `044a399`). Scope reduced 2026-08-12 to the
+two-surface contract below. Validated on real Electron: the full runnable
+acceptance suite ran **92/92 green with `--retry 0`** and produced **0 new
+Electron crash reports**; unit suite green for the quiet-glyph tests.
 **Amends:** the panel row's `quiet` text tag and the rail's circle-with-core
 icon, both from `2026-08-09-quiet-tabs-design.md`
 

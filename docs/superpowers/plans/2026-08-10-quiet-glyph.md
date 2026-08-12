@@ -589,6 +589,16 @@ user-facing, not internal-facing) and surface count (four, not three)."
 
 ### Task 3: Perceivability acceptance test
 
+> **✅ COMPLETED — commit `b31ef3d`.**
+> Implemented per the steps below (new `@F31-5` scenario, the
+> `quietGlyphComputedStyles` hook, and the step with the `overlayPage()`
+> hover). Verified on **real Electron** on this branch with `--retry 0`: the
+> full runnable suite ran **92/92 green** and produced **0 new Electron crash
+> reports**. The first full run surfaced a real test bug — the label guards used
+> a bare `/quiet/`, which the fixture tab titled "quietable" matched — fixed to
+> `/,\s*quiet/` (the state is appended to accessible names as ", quiet"), and
+> the rail/panel positive guards were tightened the same way.
+
 **Files:**
 - Modify: `spec/acceptance/quiet-tabs.feature` (add scenario after `@F31-5`)
 - Modify: `test/desktop/steps/quiet-tabs.steps.js` (add step definition)
