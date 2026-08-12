@@ -94,6 +94,7 @@
       "provisioningProfile": "build/embedded.provisionprofile",
       "extendInfo": {
         "CFBundleDisplayName": "Blanc Browser",
+        "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
         "CFBundleDocumentTypes": [
           {
             "CFBundleTypeRole": "Viewer",
