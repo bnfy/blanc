@@ -1,4 +1,9 @@
-# Using 1Password fill in the local dev build
+# Historical: retired 1Password fill spike
+
+> **Retired August 12, 2026.** Blanc no longer contains `src/main/onepassword.js`,
+> `@1password/sdk`, the runtime enablement flag, or the macOS library-validation
+> entitlement. The instructions below apply only to an old experimental branch
+> and must not be used as current product documentation.
 
 How to run Blanc's built-in 1Password fill on this branch (`feature/1password-fill`). This is the spike implementation — dev/personal use only; see [`1password-legal-inquiry.md`](1password-legal-inquiry.md) before anything ships.
 

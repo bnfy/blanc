@@ -52,6 +52,16 @@ module.exports = async function afterSignVerify(context) {
 
   const tmp = mkdtempSync(path.join(os.tmpdir(), 'blanc-sign-verify-'));
   try {
+    // Certificate/entitlement inspection alone does not prove that the
+    // signature still seals the executable and bundle resources. Fail here,
+    // before notarization or artifact creation, if AMFI would reject the app.
+    try {
+      run('codesign', ['--verify', '--deep', '--strict', '--verbose=4', appPath]);
+    } catch (error) {
+      const detail = String(error?.stderr || error?.message || error).trim();
+      fail(`codesign verification failed${detail ? `: ${detail}` : '.'}`);
+    }
+
     // codesign writes the chain as <prefix>0 (leaf), <prefix>1, ... — the
     // leaf is the certificate the app was signed with.
     run('codesign', ['--display', `--extract-certificates=${path.join(tmp, 'cert')}`, appPath]);

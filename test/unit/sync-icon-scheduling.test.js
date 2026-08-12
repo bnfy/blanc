@@ -28,6 +28,12 @@ test('cosmetic icon churn never postpones the primary session timer', (t) => {
     stub('electron', {
       app: { getPath: () => tmp, on: () => {}, isPackaged: false },
       net: { fetch: async () => ({ status: 404, ok: false }) },
+      safeStorage: {
+        isEncryptionAvailable: () => true,
+        getSelectedStorageBackend: () => 'test',
+        encryptString: (value) => Buffer.from(value),
+        decryptString: (value) => value.toString(),
+      },
     }),
     stub('../../src/main/settings', {
       exportForSync: () => ({}),

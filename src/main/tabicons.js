@@ -1,14 +1,24 @@
 // Optional E2EE tab-icon sidecar. The primary `session` sync schema stays
 // unchanged for mixed-version compatibility; this module rasterizes favicon
 // resources on the device that already has the page open and synchronizes
-// only small PNG data URLs. Receiving chrome never contacts remote sites just
-// to render another device's tab list.
+// only small PNG data URLs. The live-tab pipeline now sanitizes sources before
+// this module sees them; its legacy remote-source path remains defense in depth
+// for mixed-version callers and never feeds privileged chrome directly.
 
 const { nativeImage, session } = require('electron');
 const { JsonStore } = require('./store');
-const { validFavicon } = require('./bookmark-validate');
 const model = require('./tabicons-model');
 const iconRaster = require('./icon-raster');
+
+// Mixed-version seam: current tab records contain sanitized PNG data, while
+// older/direct callers may still supply a remote source for this module's own
+// guarded fetch+raster path. Never use the stricter persistent-store validator
+// here or legacy refreshes become impossible during rollout.
+function validFaviconSource(source) {
+  if (model.validIconData(source)) return source;
+  if (model.boundedImageDataUrl(source)) return source;
+  return model.isPublicHttpSource(source) ? source : null;
+}
 
 // Non-PNG favicons rasterize through a live WebContentsView (icon-raster.js).
 // Keeping that behind an injectable seam lets the capture orchestration below
@@ -400,7 +410,7 @@ async function captureTab(tab, ctx, { isCurrent = () => true } = {}) {
   if (!syncablePageUrl(tab)) return false;
 
   const pageUrl = tab.url;
-  const source = validFavicon(tab.favicon);
+  const source = validFaviconSource(tab.favicon);
   if (!source) {
     if (!isCurrent()) return false;
     bindContext(ctx);
@@ -413,7 +423,7 @@ async function captureTab(tab, ctx, { isCurrent = () => true } = {}) {
   const captureIsCurrent = () =>
     isCurrent() &&
     tab.url === pageUrl &&
-    validFavicon(tab.favicon) === source;
+    validFaviconSource(tab.favicon) === source;
   // Production tabs have stable UUIDs. The object fallback keeps direct
   // module callers/tests bounded without conflating distinct tab objects that
   // happen to show the same page URL.
@@ -433,7 +443,7 @@ async function captureTab(tab, ctx, { isCurrent = () => true } = {}) {
     !data ||
     !isCurrent() ||
     tab.url !== pageUrl ||
-    validFavicon(tab.favicon) !== source
+    validFaviconSource(tab.favicon) !== source
   ) return false;
   bindContext(ctx);
   const pruned = pruneLocalIcons();

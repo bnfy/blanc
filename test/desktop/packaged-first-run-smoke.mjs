@@ -3,7 +3,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
-import { _electron } from 'playwright';
+import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
+
+const adblockManifest = JSON.parse(
+  fs.readFileSync(path.resolve('adblock/sources/pinned.json'), 'utf8')
+);
+const adblockCacheFile = `adblock-engine.v3.${adblockManifest.combinedSha256.slice(0, 16)}.bin`;
 
 const defaultExecutable = process.platform === 'darwin'
   ? path.resolve('dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc')
@@ -26,17 +31,45 @@ const poll = async (read, predicate, message, timeoutMs = 15_000) => {
   assert.fail(`${message}; last value: ${JSON.stringify(value)}`);
 };
 
+const readIslandChrome = async (app) => {
+  const page = app.pages().find((candidate) => candidate.url() === 'blanc-chrome://index/');
+  if (!page) return null;
+  return page.evaluate(() => {
+    const pill = document.getElementById('islandPill');
+    if (!pill) return { readyState: document.readyState, pill: null };
+    const rect = pill.getBoundingClientRect();
+    const style = getComputedStyle(pill);
+    return {
+      readyState: document.readyState,
+      pill: {
+        width: rect.width,
+        height: rect.height,
+        display: style.display,
+        visibility: style.visibility,
+      },
+    };
+  });
+};
+
 const withPackagedApp = async ({ label, env = {}, launchArgs = [], prepare }, run) => {
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), `blanc-${label}-`));
   let app;
   try {
     await prepare?.(userDataDir);
-    app = await _electron.launch({
+    app = await launchPackagedOverCdp({
       executablePath,
       args: [`--user-data-dir=${userDataDir}`, ...launchArgs],
       env: { ...process.env, BLANC_TEST: '0', ...env },
     });
-    await app.firstWindow();
+    await poll(
+      () => readIslandChrome(app),
+      (state) => state?.readyState === 'complete'
+        && state.pill?.display !== 'none'
+        && state.pill?.visibility !== 'hidden'
+        && state.pill?.width > 0
+        && state.pill?.height > 0,
+      'packaged chrome document did not render a visible Island'
+    );
     await run({ app, userDataDir });
   } finally {
     if (app) await app.close();
@@ -44,29 +77,24 @@ const withPackagedApp = async ({ label, env = {}, launchArgs = [], prepare }, ru
   }
 };
 
-const readStartPage = (app) => app.evaluate(async ({ webContents }) => {
-  const page = webContents.getAllWebContents()
-    .find((candidate) => candidate.getURL().startsWith('blanc://newtab'));
+const readStartPage = async (app) => {
+  const page = app.pages().find((candidate) => candidate.url().startsWith('blanc://newtab'));
   if (!page) return null;
-  return page.executeJavaScript(`({
+  return page.evaluate(() => ({
     privacyHidden: document.getElementById('privacyCard')?.hidden,
     startupHidden: document.getElementById('startupCard')?.hidden,
     startupActionsHidden: document.getElementById('startupActions')?.hidden,
     startupTitle: document.getElementById('startupTitle')?.textContent,
     suggestions: document.getElementById('privacySuggestions')?.checked,
     usagePing: document.getElementById('privacyPing')?.checked
-  })`);
-});
+  }));
+};
 
-const executeOnStartPage = (app, source) => app.evaluate(
-  async ({ webContents }, javascript) => {
-    const page = webContents.getAllWebContents()
-      .find((candidate) => candidate.getURL().startsWith('blanc://newtab'));
-    if (!page) throw new Error('new-tab WebContentsView disappeared');
-    return page.executeJavaScript(javascript);
-  },
-  source
-);
+const executeOnStartPage = async (app, source) => {
+  const page = app.pages().find((candidate) => candidate.url().startsWith('blanc://newtab'));
+  if (!page) throw new Error('new-tab WebContentsView disappeared');
+  return page.evaluate((javascript) => globalThis.eval(javascript), source);
+};
 
 await withPackagedApp({ label: 'packaged-first-run' }, async ({ app, userDataDir }) => {
   const initial = await poll(
@@ -74,8 +102,8 @@ await withPackagedApp({ label: 'packaged-first-run' }, async ({ app, userDataDir
     (state) => state?.privacyHidden === false,
     'fresh packaged profile did not show the privacy choices'
   );
-  assert.equal(initial.suggestions, true, 'search suggestions should reflect their current default');
-  assert.equal(initial.usagePing, true, 'usage ping should reflect its current default');
+  assert.equal(initial.suggestions, true, 'search suggestions should reflect their approved default');
+  assert.equal(initial.usagePing, true, 'usage ping should reflect its approved default');
   assert.ok(
     !fs.existsSync(path.join(userDataDir, 'install.json')),
     'telemetry install id must not be created before consent'
@@ -118,7 +146,7 @@ await withPackagedApp({
     BLANC_TEST_ADBLOCK_FAILURE: 'once',
   },
   prepare: async (userDataDir) => {
-    fs.writeFileSync(path.join(userDataDir, 'adblock-engine.v2.bin'), 'corrupt cache');
+    fs.writeFileSync(path.join(userDataDir, adblockCacheFile), 'corrupt cache');
   },
 }, async ({ app, userDataDir }) => {
   await poll(
@@ -135,9 +163,7 @@ await withPackagedApp({
     60_000
   );
   await poll(
-    () => app.evaluate(({ webContents }) =>
-      webContents.getAllWebContents().map((candidate) => candidate.getURL())
-    ),
+    () => app.pages().map((candidate) => candidate.url()),
     (urls) => urls.includes('https://example.com/queued-for-retry'),
     'queued navigation was not released after successful Retry'
   );
@@ -155,10 +181,10 @@ await withPackagedApp({
     BLANC_TEST_ADBLOCK_FAILURE: 'always',
   },
   prepare: async (userDataDir) => {
-    // A corrupt cache must fall back to a rebuild. The injected fetch failure
-    // makes that rebuild deterministically offline without changing the
-    // machine's network settings.
-    fs.writeFileSync(path.join(userDataDir, 'adblock-engine.v2.bin'), 'corrupt cache');
+    // A corrupt cache must fall back to the verified bundled snapshot. The
+    // exact packaged-only gate then simulates a deterministic initialization
+    // failure without changing the machine's network settings.
+    fs.writeFileSync(path.join(userDataDir, adblockCacheFile), 'corrupt cache');
   },
 }, async ({ app, userDataDir }) => {
   const failed = await poll(
@@ -180,9 +206,7 @@ await withPackagedApp({
     'Continue without blocking did not release the startup gate'
   );
   await poll(
-    () => app.evaluate(({ webContents }) =>
-      webContents.getAllWebContents().map((candidate) => candidate.getURL())
-    ),
+    () => app.pages().map((candidate) => candidate.url()),
     (urls) => urls.includes('https://example.com/queued-at-startup'),
     'queued command-line navigation was not released after the explicit decision'
   );

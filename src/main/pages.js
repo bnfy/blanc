@@ -15,6 +15,7 @@ const sync = require('./sync');
 const telemetry = require('./telemetry');
 const { listDecisions, removeDecision } = require('./permissions');
 const { UTILITY_PAGES } = require('./utility-pages');
+const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
 // tab page) are served over a dedicated `blanc://` scheme instead of
@@ -27,6 +28,10 @@ const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'set
 function registerPagesScheme() {
   protocol.registerSchemesAsPrivileged([
     { scheme: 'blanc', privileges: { standard: true, secure: true } },
+    // The privileged strip + overlay cannot remain on file:// when the
+    // GrantFileProtocolExtraPrivileges fuse is disabled. Their handler is a
+    // separate, exact allowlist in chrome-protocol.js.
+    { scheme: 'blanc-chrome', privileges: { standard: true, secure: true } },
   ]);
 }
 
@@ -67,18 +72,18 @@ function setupPages(hooks = {}) {
   const sessions = hooks.sessions?.length ? hooks.sessions : [session.defaultSession];
   for (const ses of sessions) ses.protocol.handle('blanc', serveBlanc);
 
-  // Every handler below double-checks the sender really is an internal
-  // page — the preload only exposes the API on blanc:// documents, but
-  // IPC channels are reachable by name, so the main process must not
-  // trust that alone.
-  const handle = (channel, fn, { host = null } = {}) => {
+  const expectedSessions = new Set(sessions);
+  // Every channel declares the exact internal host(s) that need it. The
+  // ownership hook then binds that host to the live utility sheet or new-tab
+  // WebContents; a URL-bearing renderer alone never gains authority.
+  const handle = (channel, hosts, fn) => {
+    const expectedHosts = new Set(Array.isArray(hosts) ? hosts : [hosts]);
     ipcMain.handle(channel, (event, ...args) => {
-      let senderUrl = null;
-      try { senderUrl = new URL(event.senderFrame?.url ?? ''); } catch { /* denied below */ }
-      const trusted = event.senderFrame === event.sender.mainFrame &&
-        senderUrl?.protocol === 'blanc:' &&
-        KNOWN_PAGES.has(senderUrl.host) &&
-        (!host || senderUrl.host === host);
+      const trusted = isTrustedPagesEvent(event, {
+        hosts: expectedHosts,
+        sessions: expectedSessions,
+        ownsSender: hooks.pageSurfaces?.owns ?? (() => false),
+      });
       if (!trusted) {
         throw new Error(`${channel}: denied for ${event.senderFrame?.url ?? event.sender.getURL()}`);
       }
@@ -86,31 +91,18 @@ function setupPages(hooks = {}) {
     });
   };
 
-  // Stricter than handle(): only the sheet view itself, on a utility page,
-  // may close the sheet (utility-sheet design §5) — handle()'s KNOWN_PAGES
-  // trust is too broad here; it would let the newtab page dismiss the sheet.
-  ipcMain.handle('pages:surface:close', (event) => {
-    let senderUrl = null;
-    try { senderUrl = new URL(event.senderFrame?.url ?? ''); } catch { /* denied below */ }
-    const trusted = event.senderFrame === event.sender.mainFrame &&
-      senderUrl?.protocol === 'blanc:' && UTILITY_PAGES.has(senderUrl.host) &&
-      hooks.utilitySheet?.isSheetSender(event.sender);
-    if (!trusted) {
-      throw new Error(`pages:surface:close: denied for ${event.senderFrame?.url ?? event.sender.getURL()}`);
-    }
-    hooks.utilitySheet.close();
-  });
+  handle('pages:surface:close', [...UTILITY_PAGES], () => hooks.utilitySheet.close());
 
-  handle('pages:bookmarks:list', () => bookmarks.listBookmarks());
-  handle('pages:bookmarks:remove', (id) => {
+  handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
+  handle('pages:bookmarks:remove', 'bookmarks', (id) => {
     bookmarks.removeBookmark(id);
     hooks.onDataChanged?.();
   });
   // The start page reports a stored favicon URL that failed to load, so
   // it's cleared and stops being retried on future loads.
-  handle('pages:bookmarks:clear-favicon', (url) => bookmarks.updateFavicon(url, null));
+  handle('pages:bookmarks:clear-favicon', ['bookmarks', 'newtab'], (url) => bookmarks.updateFavicon(url, null));
 
-  handle('pages:bookmarks:import', async () => {
+  handle('pages:bookmarks:import', 'bookmarks', async () => {
     const parent = hooks.getMainWindow?.();
     const picked = await dialog.showOpenDialog(parent ?? undefined, {
       title: 'Import favorites',
@@ -131,41 +123,41 @@ function setupPages(hooks = {}) {
       return { error: 'unreadable' };
     }
   });
-  handle('pages:bookmarks:browser-sources', () => browserImport.listSources());
-  handle('pages:bookmarks:import-browser', async (id) => {
+  handle('pages:bookmarks:browser-sources', ['bookmarks', 'newtab'], () => browserImport.listSources());
+  handle('pages:bookmarks:import-browser', ['bookmarks', 'newtab'], async (id) => {
     const read = await browserImport.readSource(String(id ?? ''));
     if (read.error) return { error: read.error };
     const { added, skipped } = bookmarks.importBookmarks(read.entries);
     hooks.onDataChanged?.();
     return { added, skipped, source: read.source };
   });
-  handle('pages:bookmarks:set-folder', (id, folder) => {
+  handle('pages:bookmarks:set-folder', 'bookmarks', (id, folder) => {
     bookmarks.setBookmarkFolder(id, folder);
     hooks.onDataChanged?.();
   });
-  handle('pages:bookmarks:rename-folder', (oldName, newName) => {
+  handle('pages:bookmarks:rename-folder', 'bookmarks', (oldName, newName) => {
     bookmarks.renameFolder(oldName, newName);
     hooks.onDataChanged?.();
   });
-  handle('pages:bookmarks:remove-folder', (name) => {
+  handle('pages:bookmarks:remove-folder', 'bookmarks', (name) => {
     bookmarks.removeFolder(name);
     hooks.onDataChanged?.();
   });
 
-  handle('pages:history:list', (opts) => history.listHistory(opts ?? {}));
-  handle('pages:history:remove', (url, visitedAt) => history.removeVisit(url, visitedAt));
-  handle('pages:history:clear', () => {
+  handle('pages:history:list', 'history', (opts) => history.listHistory(opts ?? {}));
+  handle('pages:history:remove', 'history', (url, visitedAt) => history.removeVisit(url, visitedAt));
+  handle('pages:history:clear', 'history', () => {
     history.clearHistory();
     hooks.onHistoryCleared?.();
     // session.json's meta column holds the same titles; clearHistory() only
     // owns history.json, so the main-process hook drops the persisted copy.
   });
 
-  handle('pages:downloads:list', () => downloads.listDownloads());
-  handle('pages:downloads:cancel', (id) => downloads.cancelDownload(id));
-  handle('pages:downloads:open', (id) => downloads.openDownload(id));
-  handle('pages:downloads:show', (id) => downloads.showDownloadInFolder(id));
-  handle('pages:downloads:clear-finished', () => downloads.clearFinishedDownloads());
+  handle('pages:downloads:list', 'downloads', () => downloads.listDownloads());
+  handle('pages:downloads:cancel', 'downloads', (id) => downloads.cancelDownload(id));
+  handle('pages:downloads:open', 'downloads', (id) => downloads.openDownload(id));
+  handle('pages:downloads:show', 'downloads', (id) => downloads.showDownloadInFolder(id));
+  handle('pages:downloads:clear-finished', 'downloads', () => downloads.clearFinishedDownloads());
 
   // The renderer never sees the license key or activation id — only the
   // derived booleans. Internal pages are privileged, but least-privilege
@@ -179,7 +171,7 @@ function setupPages(hooks = {}) {
     };
   };
 
-  handle('pages:settings:get', () => ({
+  handle('pages:settings:get', 'settings', () => ({
     settings: clientSettings(),
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
@@ -187,58 +179,58 @@ function setupPages(hooks = {}) {
     appIcons: settings.APP_ICON_LABELS,
     supporterIcons: settings.SUPPORTER_ICON_LABELS,
   }));
-  handle('pages:settings:set', (partial) => {
+  handle('pages:settings:set', 'settings', (partial) => {
     settings.setSettings(partial ?? {});
     // Echo the persisted non-secret projection so the renderer can reflect the
     // actual stored state (e.g. a rejected strict-custom DNS transition). Never
     // raw getSettings() — that includes the supporter key.
     return clientSettings();
   });
-  handle('pages:settings:supporter-activate', (key) => supporter.activateSupporter(key));
+  handle('pages:settings:supporter-activate', 'settings', (key) => supporter.activateSupporter(key));
 
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
-  handle('pages:settings:sync-get', () => sync.status());
-  handle('pages:settings:sync-enable', (payload) => sync.enable(payload ?? {}));
-  handle('pages:settings:sync-disable', (opts) => sync.disable(opts ?? {}));
-  handle('pages:settings:sync-now', () => sync.syncNow().then(() => sync.status()));
+  handle('pages:settings:sync-get', 'settings', () => sync.status());
+  handle('pages:settings:sync-enable', 'settings', (payload) => sync.enable(payload ?? {}));
+  handle('pages:settings:sync-disable', 'settings', (opts) => sync.disable(opts ?? {}));
+  handle('pages:settings:sync-now', 'settings', () => sync.syncNow().then(() => sync.status()));
   // Per-device consent for publishing this device's open tabs (spec §3) —
   // lives in sync.json, never settings.json, so it cannot cross sync.
-  handle('pages:settings:sync-tabs-set', (on) => sync.setSyncTabs(!!on));
+  handle('pages:settings:sync-tabs-set', 'settings', (on) => sync.setSyncTabs(!!on));
 
-  handle('pages:app-version', () => app.getVersion());
+  handle('pages:app-version', 'newtab', () => app.getVersion());
 
   // Help → Keyboard Shortcuts: the list is introspected from the live
   // application menu in main.js, reached through a hook like startPage.
-  handle('pages:shortcuts:list', () => hooks.shortcuts?.list() ?? []);
+  handle('pages:shortcuts:list', 'shortcuts', () => hooks.shortcuts?.list() ?? []);
 
   // Start page (the ledger new tab): tab groups + the weekly blocked
   // counter live in main.js, reached through hooks rather than a module.
-  handle('pages:start:data', () => ({
+  handle('pages:start:data', 'newtab', () => ({
     groups: hooks.startPage?.groups() ?? [],
     blockedThisWeek: hooks.startPage?.blockedThisWeek() ?? 0,
     remoteDevices: hooks.startPage?.remoteDevices() ?? [],
     ...hooks.startPage?.status?.(),
-  }), { host: 'newtab' });
+  }));
   handle(
     'pages:start:focus-group',
+    'newtab',
     (id) => hooks.startPage?.focusGroup(String(id)),
-    { host: 'newtab' }
   );
   handle(
     'pages:start:startup-retry',
+    'newtab',
     () => hooks.startPage?.retryAdblock?.(),
-    { host: 'newtab' }
   );
   handle(
     'pages:start:startup-continue',
+    'newtab',
     () => hooks.startPage?.continueWithoutAdblock?.(),
-    { host: 'newtab' }
   );
   handle(
     'pages:start:privacy-complete',
+    'newtab',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
-    { host: 'newtab' }
   );
 
   // Default-browser state lives in LaunchServices/the OS, not settings.json.
@@ -248,8 +240,8 @@ function setupPages(hooks = {}) {
     isDefault: app.isDefaultProtocolClient('http'),
     canSet: app.isPackaged && process.platform !== 'linux',
   });
-  handle('pages:default-browser:get', () => defaultBrowserStatus());
-  handle('pages:default-browser:set', () => {
+  handle('pages:default-browser:get', 'settings', () => defaultBrowserStatus());
+  handle('pages:default-browser:set', 'settings', () => {
     if (defaultBrowserStatus().canSet) {
       app.setAsDefaultProtocolClient('http');
       app.setAsDefaultProtocolClient('https');
@@ -257,15 +249,15 @@ function setupPages(hooks = {}) {
     return defaultBrowserStatus();
   });
 
-  handle('pages:permissions:list', () => listDecisions());
-  handle('pages:permissions:remove', (key) => removeDecision(String(key)));
+  handle('pages:permissions:list', 'settings', () => listDecisions());
+  handle('pages:permissions:remove', 'settings', (key) => removeDecision(String(key)));
 
   // Privacy reset for the usage ping's per-install id (see telemetry.js) —
   // from the next ping on, this install counts as brand new.
-  handle('pages:telemetry:reset-install-id', () => telemetry.resetInstallId());
+  handle('pages:telemetry:reset-install-id', 'settings', () => telemetry.resetInstallId());
 
   // The settings page promises "cookies, cache & site data" — clear both.
-  handle('pages:clear-browsing-data', () => {
+  handle('pages:clear-browsing-data', 'settings', () => {
     const browsingSessions = hooks.sessions ?? [session.defaultSession];
     return Promise.all(browsingSessions.flatMap((browsingSession) => [
       browsingSession.clearStorageData(),

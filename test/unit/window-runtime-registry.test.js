@@ -24,7 +24,6 @@ test('createRuntime initializes the per-window inventory to main.js defaults', (
   assert.equal(r.tabsBroadcastTimer, null);
   assert.equal(r.themeTintRefreshGeneration, 0);
   assert.ok(r.lastActiveByCluster instanceof Map);
-  assert.equal(r.onePasswordFillInFlight, false);
   assert.equal(r.railActivationSerial, 0);
   assert.ok(r.permissionPrompts instanceof Map);
   assert.equal(r.addressMenuTicket, 0);

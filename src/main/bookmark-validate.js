@@ -3,11 +3,11 @@
 // the JsonStore singleton (which needs Electron's app at construction), which
 // would make these untestable under `node --test`.
 
-/** Same allow-list/length cap as the async-refined favicon path in main.js. */
+const { validIconData } = require('./tabicons-model');
+
+/** Privileged renderers receive inert, dimension-checked PNG pixels only. */
 function validFavicon(favicon) {
-  return typeof favicon === 'string' && favicon.length <= 2048 && /^(https?:|data:image\/)/i.test(favicon)
-    ? favicon
-    : null;
+  return validIconData(favicon);
 }
 
 /** A storable folder name, or null (= ungrouped). null is ONLY ever an

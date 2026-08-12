@@ -120,6 +120,18 @@ command -v op >/dev/null || {
   echo "1Password CLI is required; refusing an unnotarized release build." >&2
   exit 1
 }
+command -v cosign >/dev/null || {
+  echo "cosign is required to sign the release manifest independently of GitHub." >&2
+  exit 1
+}
+[ -n "${BLANC_COSIGN_IDENTITY:-}" ] || {
+  echo "BLANC_COSIGN_IDENTITY must be the exact OIDC identity authorized to sign releases." >&2
+  exit 1
+}
+[ -n "${BLANC_COSIGN_OIDC_ISSUER:-}" ] || {
+  echo "BLANC_COSIGN_OIDC_ISSUER must name the release signer's OIDC issuer." >&2
+  exit 1
+}
 gh auth status >/dev/null 2>&1 || {
   echo "gh CLI is not authenticated. Run: gh auth login" >&2
   exit 1
@@ -187,6 +199,12 @@ if ! op run --env-file=.env.1password --no-masking -- \
   echo "Signed/notarized macOS build failed. Nothing has been published." >&2
   exit 1
 fi
+
+echo "==> Verifying hardened Electron fuses in packaged binaries"
+$HAS_MAC_ARM64 && node scripts/verify-electron-fuses.mjs \
+  "dist/mac-arm64/Blanc.app/Contents/MacOS/Blanc"
+$HAS_MAC_X64 && node scripts/verify-electron-fuses.mjs \
+  "dist/mac/Blanc.app/Contents/MacOS/Blanc"
 
 MAC_ASSETS=("dist/latest-mac.yml")
 if $HAS_MAC_ARM64; then
@@ -301,13 +319,28 @@ node scripts/verify-release-manifest.mjs \
   --version "$VERSION" \
   --platforms "$PLATFORM_CSV" \
   --mac-arches "$MAC_ARCH_CSV"
+npm sbom --package-lock-only --sbom-format cyclonedx --sbom-type application \
+  > "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
 node scripts/create-checksums.mjs "$VERIFY_DIR"
+echo "==> Signing the complete checksum manifest through Sigstore"
+cosign sign-blob --yes \
+  --bundle "$VERIFY_DIR/SHA256SUMS.sigstore.json" \
+  "$VERIFY_DIR/SHA256SUMS"
+cosign verify-blob \
+  --bundle "$VERIFY_DIR/SHA256SUMS.sigstore.json" \
+  --certificate-identity "$BLANC_COSIGN_IDENTITY" \
+  --certificate-oidc-issuer "$BLANC_COSIGN_OIDC_ISSUER" \
+  "$VERIFY_DIR/SHA256SUMS"
 node scripts/verify-release-manifest.mjs \
   --dir "$VERIFY_DIR" \
   --version "$VERSION" \
   --platforms "$PLATFORM_CSV" \
   --mac-arches "$MAC_ARCH_CSV"
-gh release upload "$TAG" "$VERIFY_DIR/SHA256SUMS" --repo "$REPO"
+gh release upload "$TAG" \
+  "$VERIFY_DIR/SHA256SUMS" \
+  "$VERIFY_DIR/SHA256SUMS.sigstore.json" \
+  "$VERIFY_DIR/Blanc-$VERSION.cdx.json" \
+  --repo "$REPO"
 
 echo "==> Publishing the already-verified draft"
 if [ "$MODE" = "candidate" ]; then

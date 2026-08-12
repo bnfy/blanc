@@ -10,7 +10,7 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     Then no usage ping is sent
     When I commit the enabled usage ping choice
     Then exactly one launch ping is sent
-    And it contains only an install id, session id, version, platform, and architecture
+    And it contains only an install id, session id, version, platform, architecture, and coarse operating-system version
     And it contains no browsing data
 
   @F21-2 @F21 @all

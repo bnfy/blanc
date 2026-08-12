@@ -21,11 +21,33 @@ const macFiles = [
   'latest-mac.yml',
 ];
 const linuxFiles = [`Blanc-${version}.AppImage`, 'latest-linux.yml'];
+const windowsInstaller = `Blanc-Setup-${version}.exe`;
+const windowsFiles = [
+  windowsInstaller,
+  `${windowsInstaller}.blockmap`,
+  'latest.yml',
+  'windows-signature.json',
+];
 const armMacFiles = macFiles.filter((name) => name === 'latest-mac.yml' || name.includes('arm64'));
 
 function fixture(files) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-release-manifest-'));
   for (const file of files) fs.writeFileSync(path.join(dir, file), `fixture:${file}`);
+  if (files.includes('windows-signature.json')) {
+    const digest = require('node:crypto').createHash('sha256')
+      .update(fs.readFileSync(path.join(dir, windowsInstaller)))
+      .digest('hex');
+    fs.writeFileSync(path.join(dir, 'windows-signature.json'), JSON.stringify({
+      schemaVersion: 1,
+      artifact: windowsInstaller,
+      sha256: digest,
+      signed: true,
+      status: 'Valid',
+      publisher: 'CN=Blanc Browser',
+      signerThumbprint: '00',
+      timestampAuthority: 'CN=Timestamp Authority',
+    }));
+  }
   return dir;
 }
 
@@ -33,8 +55,16 @@ function run(script, args) {
   return spawnSync(process.execPath, [script, ...args], { encoding: 'utf8' });
 }
 
+function addReleaseMetadata(dir) {
+  fs.writeFileSync(path.join(dir, `Blanc-${version}.cdx.json`), JSON.stringify({
+    bomFormat: 'CycloneDX', specVersion: '1.6', components: [],
+  }));
+  fs.writeFileSync(path.join(dir, 'SHA256SUMS.sigstore.json'), '{"mediaType":"application/vnd.dev.sigstore.bundle+json;version=0.3"}');
+}
+
 test('verifies the exact selected platform set and generated checksums', () => {
   const dir = fixture([...macFiles, ...linuxFiles]);
+  addReleaseMetadata(dir);
   assert.equal(run(checksums, [dir]).status, 0);
   const result = run(verify, [
     '--dir', dir,
@@ -85,6 +115,7 @@ test('an explicit arm64-only release rejects unselected Intel assets', () => {
 
 test('detects checksum tampering', () => {
   const dir = fixture(macFiles);
+  addReleaseMetadata(dir);
   assert.equal(run(checksums, [dir]).status, 0);
   fs.appendFileSync(path.join(dir, macFiles[0]), 'tampered');
   assert.notEqual(run(verify, [
@@ -95,7 +126,7 @@ test('detects checksum tampering', () => {
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('release policy stages a draft, warns on unsigned Windows builds, and verifies the publisher when one is expected', () => {
+test('Windows releases fail closed and carry a verified signature attestation', () => {
   const releaseScript = fs.readFileSync(path.join(root, 'scripts/release.sh'), 'utf8');
   const packageConfig = JSON.parse(
     fs.readFileSync(path.join(root, 'package.json'), 'utf8')
@@ -118,21 +149,56 @@ test('release policy stages a draft, warns on unsigned Windows builds, and verif
   assert.ok(sourceTagPush < nativeDispatch, 'native builders must be able to fetch the tag');
   assert.match(releaseScript, /verify-release-manifest\.mjs/);
   assert.match(releaseScript, /SHA256SUMS/);
-  // Windows signing is opportunistic until Azure Trusted Signing is live:
-  // an unsigned build proceeds with a loud ::warning:: annotation, and the
-  // Authenticode publisher check runs only when a publisher is configured.
-  assert.match(releaseWorkflow, /::warning::No Windows signing configured/);
-  assert.match(
-    releaseWorkflow,
-    /vars\.WINDOWS_EXPECTED_PUBLISHER != '' \|\| vars\.AZURE_PUBLISHER_NAME != ''/
-  );
+  assert.doesNotMatch(releaseWorkflow, /building an UNSIGNED installer/);
+  assert.match(releaseWorkflow, /Public releases never fall back to unsigned artifacts/);
+  assert.match(releaseWorkflow, /WINDOWS_EXPECTED_PUBLISHER must contain the exact/);
   assert.match(releaseWorkflow, /Unexpected Windows publisher/);
+  assert.match(releaseWorkflow, /has no trusted Authenticode timestamp/);
+  assert.match(releaseWorkflow, /windows-signature\.json/);
   assert.match(releaseWorkflow, /Get-AuthenticodeSignature/);
+  assert.match(releaseWorkflow, /verify-electron-fuses\.mjs/);
+  assert.match(releaseScript, /verify-electron-fuses\.mjs/);
+  assert.deepEqual(packageConfig.build.electronFuses, {
+    runAsNode: false,
+    enableCookieEncryption: true,
+    enableNodeOptionsEnvironmentVariable: false,
+    enableNodeCliInspectArguments: false,
+    enableEmbeddedAsarIntegrityValidation: true,
+    onlyLoadAppFromAsar: true,
+    loadBrowserProcessSpecificV8Snapshot: false,
+    grantFileProtocolExtraPrivileges: false,
+  });
   assert.deepEqual(packageConfig.build.mac.target, ['dmg', 'zip']);
   assert.match(releaseScript, /MAC_BUILD_ARGS=\(\)/);
   assert.match(releaseScript, /MAC_BUILD_ARGS\+=\(--arm64\)/);
   assert.match(releaseScript, /MAC_BUILD_ARGS\+=\(--x64\)/);
-  assert.doesNotMatch(allWorkflows, /actions\/(?:checkout|setup-node)@v7/);
-  assert.match(allWorkflows, /actions\/checkout@v6/);
-  assert.match(allWorkflows, /actions\/setup-node@v6/);
+  assert.doesNotMatch(allWorkflows, /uses:\s+[^\n]+@[vV]\d+(?:\s|$)/);
+  assert.match(allWorkflows, /actions\/checkout@[0-9a-f]{40}/);
+  assert.match(allWorkflows, /actions\/setup-node@[0-9a-f]{40}/);
+  assert.match(releaseScript, /npm sbom/);
+  assert.match(releaseScript, /cosign sign-blob/);
+  assert.match(releaseScript, /cosign verify-blob/);
+  assert.match(releaseScript, /SHA256SUMS\.sigstore\.json/);
+});
+
+test('Windows manifest requires a valid signed-artifact attestation', () => {
+  const dir = fixture([...macFiles, ...windowsFiles]);
+  addReleaseMetadata(dir);
+  assert.equal(run(checksums, [dir]).status, 0);
+  assert.equal(run(verify, [
+    '--dir', dir,
+    '--version', version,
+    '--platforms', 'mac,windows',
+  ]).status, 0);
+
+  const attestationPath = path.join(dir, 'windows-signature.json');
+  const attestation = JSON.parse(fs.readFileSync(attestationPath, 'utf8'));
+  attestation.signed = false;
+  fs.writeFileSync(attestationPath, JSON.stringify(attestation));
+  assert.notEqual(run(verify, [
+    '--dir', dir,
+    '--version', version,
+    '--platforms', 'mac,windows',
+  ]).status, 0);
+  fs.rmSync(dir, { recursive: true, force: true });
 });

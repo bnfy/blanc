@@ -35,7 +35,7 @@ test('a quiet-born tab gets no view, and returns before anything is wired', () =
 
 test('a restored title and favicon reach the record', () => {
   assert.match(createTabSource, /title: typeof title === 'string' && title \? title : 'New Tab',/);
-  assert.match(createTabSource, /favicon: typeof favicon === 'string' \? favicon : null,/);
+  assert.match(createTabSource, /favicon: validFavicon\(favicon\),/);
 });
 
 test('session restore builds quiet tabs labelled from the meta column', () => {

@@ -105,9 +105,10 @@ test('the private-session ternary lives in tab-view.js and nowhere else', () => 
   // main.js must import getPrivateBrowsingSession rather than keep its own —
   // test-hook.js compares tab sessions against it by identity, so a second
   // definition would silently report every private tab as "default".
-  assert.ok(
-    !/session\.fromPartition\(/.test(mainSource),
-    'main.js still calls session.fromPartition — the private session must be a tab-view.js singleton'
+  assert.doesNotMatch(
+    mainSource,
+    /session\.fromPartition\((?:['"]private-browsing['"]|PRIVATE_PARTITION)\)/,
+    'main.js still defines the private partition — it must remain a tab-view.js singleton'
   );
   assert.ok(
     !/webPreferences: isPrivate/.test(mainSource),

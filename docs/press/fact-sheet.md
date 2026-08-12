@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: August 2, 2026
+Last updated: August 12, 2026
 
 ## The short version
 
@@ -19,13 +19,13 @@ extension runtime.
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Version | [1.0.1](https://github.com/bnfy/blanc/releases/tag/v1.0.1) |
+| Current public baseline | [1.0.3](https://github.com/bnfy/blanc/releases/tag/v1.0.3) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
 | Optional purchase | Blanc Supporter, US$19 one time, plus applicable taxes; unlocks three cosmetic app-icon colorways |
 | Browser engine | Chromium through Electron |
 | Default search | DuckDuckGo; Google, Bing, and Brave Search are also available |
-| Blocking | EasyList + EasyPrivacy through a browser-level request blocker and cosmetic filtering |
+| Blocking | Reviewed, hash-pinned EasyList + EasyPrivacy snapshots bundled into each release; browser-level request blocking, cosmetic CSS, and isolated blocker scriptlets |
 | Sync | Optional, passphrase-derived end-to-end encryption for Favorites and eligible settings (search engine, blocking state and exceptions, home page, and theme); open-tab sharing is a separate per-device opt-in |
 | Publisher | Bananify |
 | Website | [blancbrowser.com](https://blancbrowser.com) |
@@ -78,7 +78,7 @@ produced it is `bench/memory/` in the repository.
   provider. They are skipped for private tabs, pasted or dropped text,
   URL-like/local input, and sensitive-looking values, and can be disabled.
 - The optional usage ping contains a random install ID, a random per-launch
-  session ID, version, platform, and architecture. It contains no URLs,
+  session ID, version, platform, architecture, and coarse OS major. It contains no URLs,
   searches, history, or page content and can be disabled in Settings.
 - Private tabs use a separate, non-persistent in-memory browser session and stay
   out of Blanc history, session restore, and reopen-closed.
@@ -90,8 +90,8 @@ produced it is `bench/memory/` in the repository.
 
 ## Availability note
 
-Blanc 1.0 is available first for macOS on Apple Silicon. Windows and Linux
-installers are also published but are not yet code-signed. Intel macOS,
-Windows, and Linux remain outside the 1.0 press-build matrix until their
-exact packages pass applicable signing and notarization requirements. See
-[known limitations](./known-limitations.md).
+The public baseline includes signed and notarized macOS builds, a signed
+Windows NSIS installer, and a Linux AppImage. A platform is included in any
+new release only after its exact artifact passes the native release gate;
+release notes and the [platform matrix](./platform-matrix.md) remain the
+authority for the architectures included in that specific version.

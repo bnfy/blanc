@@ -11,6 +11,10 @@ const ensureStore = () => (store ??= new JsonStore('downloads', { items: [] }));
 
 /** @type {Map<string, { record: object, item: Electron.DownloadItem }>} */
 const active = new Map();
+// Private-session metadata lives only for this process lifetime. The file the
+// user explicitly saved remains on disk, but its source URL/path never enters
+// downloads.json and disappears when Blanc quits.
+const privateFinished = [];
 
 /** A download finished as `completed` and hasn't been looked at yet — drives
  * the pill's contextual downloads button. Cleared by acknowledgeDownloads(). */
@@ -36,7 +40,7 @@ function broadcast() {
   }, wait);
 }
 
-function setupDownloads(session, notifyChanged) {
+function setupDownloads(session, notifyChanged, { private: isPrivate = false } = {}) {
   onChanged = notifyChanged;
 
   session.on('will-download', (_event, item) => {
@@ -50,6 +54,7 @@ function setupDownloads(session, notifyChanged) {
       receivedBytes: 0,
       totalBytes: item.getTotalBytes(),
       startedAt: Date.now(),
+      private: !!isPrivate,
     };
     active.set(id, { record, item });
 
@@ -67,10 +72,15 @@ function setupDownloads(session, notifyChanged) {
       record.receivedBytes = item.getReceivedBytes();
       record.finishedAt = Date.now();
       active.delete(id);
-      ensureStore().update((d) => {
-        d.items.unshift(record);
-        if (d.items.length > MAX_PERSISTED) d.items.length = MAX_PERSISTED;
-      });
+      if (isPrivate) {
+        privateFinished.unshift(record);
+        if (privateFinished.length > MAX_PERSISTED) privateFinished.length = MAX_PERSISTED;
+      } else {
+        ensureStore().update((d) => {
+          d.items.unshift(record);
+          if (d.items.length > MAX_PERSISTED) d.items.length = MAX_PERSISTED;
+        });
+      }
       if (state === 'completed') {
         hasRecent = true;
         // The pill's completion pulse keys off this changing, not off `active`
@@ -89,7 +99,7 @@ function setupDownloads(session, notifyChanged) {
 /** Active downloads first (newest leading), then the persisted backlog. */
 function listDownloads() {
   const inFlight = Array.from(active.values(), ({ record }) => record).reverse();
-  return [...inFlight, ...ensureStore().data.items];
+  return [...inFlight, ...privateFinished, ...ensureStore().data.items];
 }
 
 function activeCount() {
@@ -111,6 +121,7 @@ function showDownloadInFolder(id) {
 }
 
 function clearFinishedDownloads() {
+  privateFinished.length = 0;
   ensureStore().update((d) => { d.items = []; });
   broadcast();
 }

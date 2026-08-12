@@ -27,7 +27,7 @@
   }
   theme.value = settings.theme ?? 'system';
   searchEngine.value = settings.searchEngine;
-  searchSuggestions.checked = settings.searchSuggestions ?? true;
+  searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
 
   theme.addEventListener('change', () =>

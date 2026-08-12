@@ -2,7 +2,6 @@ const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const { pathToFileURL } = require('url');
 const {
   setupAdBlocker,
   attachAdBlockerToSession,
@@ -22,6 +21,12 @@ const {
   chromeClientHintPlatformVersion,
 } = require('./chrome-client-hints');
 const { registerPagesScheme, setupPages } = require('./pages');
+const {
+  CHROME_PARTITION,
+  CHROME_INDEX_URL,
+  CHROME_OVERLAY_URL,
+  setupChromeProtocol,
+} = require('./chrome-protocol');
 const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
@@ -29,6 +34,8 @@ const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
+const { sanitizeFavicon } = require('./favicon-sanitizer');
+const { validFavicon } = require('./bookmark-validate');
 const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
@@ -40,7 +47,7 @@ const { JsonStore } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
 const { loadWorkspace, buildSaveShape } = require('./session-workspace');
 const { filterRestoredSession, restoreTargetId } = require('./session-restore');
-const { isUtilityUrl } = require('./utility-pages');
+const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
 const {
   sleepCandidates,
   trimSnapshot,
@@ -79,6 +86,8 @@ const {
   popupPlatformMainMenu,
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
+const { webUrlsFromArgv } = require('./startup-urls');
+const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -139,12 +148,6 @@ const packagedAdblockFailureTestMode =
     : null;
 let packagedAdblockInitializationFailuresRemaining =
   packagedAdblockFailureTestMode === 'once' ? 1 : 0;
-const packagedAdblockTestFetch = (...args) => {
-  if (packagedAdblockFailureTestMode === 'always') {
-    return Promise.reject(new Error('packaged smoke: simulated offline fetch'));
-  }
-  return fetch(...args);
-};
 
 // A Windows taskbar button must inherit the same stable identity as the
 // installed shortcut before any BrowserWindow exists.
@@ -302,39 +305,11 @@ function maybeSendLaunchPing() {
   sendLaunchPing();
 }
 
-/** Best-effort path -> file:// URL. Electron's 'open-file' contract types
- * the path as always a non-empty absolute string, but nothing else calling
- * this guards a raw filesystem string before handing it to Node — fail
- * closed (null) rather than let a malformed path crash the main process. */
-function toFileUrl(filePath) {
-  try {
-    return pathToFileURL(filePath).href;
-  } catch {
-    return null;
-  }
-}
-
-/** Local document paths: bare filenames/paths ending in .htm/.html/.xhtml
- * that exist on disk and aren't already a URI (so "https://x/a.html" isn't
- * mistaken for a bare path). The scheme check requires "://", not just
- * ":", so a Windows drive letter ("C:\...") isn't misread as a URI scheme
- * and silently rejected — matches normalizeAddressInput's own scheme
- * regex below, which this function is also called from. The extension
- * list must stay in sync with package.json's mac.extendInfo.
- * CFBundleDocumentTypes (public.html/public.xhtml) by hand — JSON can't
- * carry a comment pointing back here. */
-function localDocumentUrl(input) {
-  if (!/\.(x?html?)$/i.test(input)) return null;
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(input)) return null;
-  if (!fs.existsSync(input)) return null;
-  return toFileUrl(input);
-}
-
-// http(s) links, plus local document paths (Windows/Linux file
-// associations and `blanc file.html` pass a bare path on the command
-// line; macOS double-clicks arrive via 'open-file' below instead).
-const urlsFromArgv = (argv) =>
-  argv.map((a) => (/^https?:\/\//.test(a) ? a : localDocumentUrl(a))).filter(Boolean);
+// Only web URLs may enter from command-line/default-browser handoff. Local
+// HTML is intentionally not a supported document type: Electron's file:
+// implementation grants a document broader filesystem authority than a web
+// page, even when its renderer is sandboxed.
+const urlsFromArgv = webUrlsFromArgv;
 
 function openExternalUrl(url) {
   if (!externalUrlsFlushable || !hasLiveWindow()) {
@@ -394,16 +369,6 @@ function flushExternalUrls() {
 app.on('open-url', bindWindowRuntime(primaryRuntime, (event, url) => {
   event.preventDefault();
   openExternalUrl(url);
-}));
-
-// Double-clicked local files (Blanc is declared as an HTML viewer via
-// CFBundleDocumentTypes) arrive as 'open-file', not 'open-url'. Same
-// queueing as links: pre-ready events wait for the window + session
-// restore, then land as the active tab.
-app.on('open-file', bindWindowRuntime(primaryRuntime, (event, filePath) => {
-  event.preventDefault();
-  const url = toFileUrl(filePath);
-  if (url) openExternalUrl(url);
 }));
 
 // Must happen before app 'ready'.
@@ -488,16 +453,14 @@ if (chromeMajor) {
   });
 }
 
-const CHROME_INDEX_FILE = path.join(__dirname, '../renderer/index.html');
-const CHROME_OVERLAY_FILE = path.join(__dirname, '../renderer/overlay.html');
-const CHROME_INDEX_URL = pathToFileURL(CHROME_INDEX_FILE).href;
-const CHROME_OVERLAY_URL = pathToFileURL(CHROME_OVERLAY_FILE).href;
-
 /** Privileged chrome must never become a general-purpose browser surface. */
 function lockPrivilegedNavigation(wc, trustedUrl) {
-  wc.on('will-navigate', (event, targetUrl) => {
-    if (targetUrl !== trustedUrl) event.preventDefault();
-  });
+  const allowOnlyExactMainFrame = (event) => {
+    if (event.url !== trustedUrl || event.isMainFrame !== true) event.preventDefault();
+  };
+  wc.on('will-navigate', allowOnlyExactMainFrame);
+  wc.on('will-frame-navigate', allowOnlyExactMainFrame);
+  wc.on('will-redirect', allowOnlyExactMainFrame);
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
 }
 
@@ -1379,6 +1342,7 @@ function createOverlay() {
   rt().addressMenuTicket = 0;
   rt().overlayView = new WebContentsView({
     webPreferences: {
+      partition: CHROME_PARTITION,
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
@@ -1402,7 +1366,7 @@ function createOverlay() {
   rt().overlayView.setBackgroundColor('#00000000');
   lockPrivilegedNavigation(rt().overlayView.webContents, CHROME_OVERLAY_URL);
   installChromeShortcuts(rt().overlayView.webContents);
-  rt().overlayView.webContents.loadFile(CHROME_OVERLAY_FILE);
+  rt().overlayView.webContents.loadURL(CHROME_OVERLAY_URL);
 
   // A show requested before the overlay document finished its first load
   // would be lost — leaving an invisible view blocking clicks. Replay it.
@@ -1755,16 +1719,11 @@ function normalizeAddressInput(input) {
   const scheme = trimmed.match(/^([a-zA-Z][a-zA-Z0-9+.-]*):\/\//)?.[1]?.toLowerCase();
   if (scheme) {
     // Script-executing schemes must never be navigable from the address bar.
-    if (['javascript', 'data', 'vbscript'].includes(scheme)) return settings.searchUrlFor(trimmed);
-    return trimmed;
+    if (scheme === 'http' || scheme === 'https' || scheme === 'blanc') return trimmed;
+    return settings.searchUrlFor(trimmed);
   }
   if (/^localhost(:\d+)?(\/|$)/.test(trimmed)) return `http://${trimmed}`;
   if (/^(\d{1,3}\.){3}\d{1,3}(:\d+)?(\/|$)/.test(trimmed)) return `http://${trimmed}`; // bare IPv4
-  // A local filename ("notes.html") looks exactly like a domain to the
-  // regex below — check disk first so typing one opens it, the same way
-  // double-clicking it (via urlsFromArgv/open-file) already does.
-  const localDoc = localDocumentUrl(trimmed);
-  if (localDoc) return localDoc;
   const looksLikeDomain = /^[^\s]+\.[a-zA-Z]{2,}(\/[^\s]*)?$/.test(trimmed);
   if (looksLikeDomain) return `https://${trimmed}`;
   return settings.searchUrlFor(trimmed);
@@ -1811,6 +1770,14 @@ function isHostnameExcepted(url) {
 
 function serializeTabs() {
   const { adblockEnabled } = settings.getSettings();
+  // Keep this projection self-contained: unit tests lift it without the rest
+  // of Electron. The full byte/dimension validator already ran at every tab,
+  // session, bookmark, and sync ingress; this final guard ensures only PNG
+  // data—not a page-controlled URL—can ever cross into privileged chrome.
+  const rendererFavicon = (value) =>
+    typeof value === 'string' && value.startsWith('data:image/png;base64,')
+      ? value
+      : null;
   return rt().tabOrder
     .map((id) => tabs.get(id))
     .filter(Boolean)
@@ -1825,7 +1792,7 @@ function serializeTabs() {
         isLoading: tab.isLoading,
         canGoBack: tab.canGoBack,
         canGoForward: tab.canGoForward,
-        favicon: tab.favicon,
+        favicon: rendererFavicon(tab.favicon),
         bookmarked: tab.bookmarked,
         blockedCount: tab.blockedCount,
         private: tab.private,
@@ -2163,15 +2130,41 @@ async function upgradeFavicon(tab) {
     if (!Array.isArray(candidates) || candidates.length > 20) return;
     if (!tabs.has(tab.id) || tab.url !== urlAtStart) return; // navigated away meanwhile
     const best = pickBestFavicon(candidates);
-    if (best && best !== tab.favicon) {
-      tab.favicon = best;
-      if (tab.bookmarked) bookmarks.updateFavicon(tab.url, best);
-      scheduleBroadcastTabs();
-      sync.captureTabIcon(tab).catch(() => {});
-    }
+    if (best && best !== tab.faviconSource) setTabFavicon(tab, best);
   } catch {
     /* page gone mid-query — Chromium's default pick stands */
   }
+}
+
+/** Convert a page-controlled favicon source into inert fixed-size PNG pixels
+ * before it can cross into privileged chrome or persistent stores. */
+async function setTabFavicon(tab, source) {
+  const candidate = typeof source === 'string' ? source : null;
+  const epoch = (tab.faviconEpoch ?? 0) + 1;
+  tab.faviconEpoch = epoch;
+  tab.faviconSource = candidate;
+  if (tab.favicon !== null) {
+    tab.favicon = null;
+    scheduleBroadcastTabs();
+  }
+  if (!candidate) {
+    if (tab.bookmarked) bookmarks.updateFavicon(tab.url, null);
+    return;
+  }
+  const urlAtStart = tab.url;
+  const sanitized = await sanitizeFavicon(candidate, undefined, {
+    allowNetwork: !tab.private,
+  });
+  if (
+    !tabs.has(tab.id) ||
+    tab.faviconEpoch !== epoch ||
+    tab.faviconSource !== candidate ||
+    tab.url !== urlAtStart
+  ) return;
+  tab.favicon = sanitized;
+  if (tab.bookmarked) bookmarks.updateFavicon(tab.url, sanitized);
+  scheduleBroadcastTabs();
+  if (sanitized) sync.captureTabIcon(tab).catch(() => {});
 }
 
 /** Most common color in a captured image, as #rrggbb (bitmap is BGRA).
@@ -2379,146 +2372,6 @@ function duplicateTab(id) {
   return newId;
 }
 
-// ─── SPIKE (1Password fill feasibility) — remove before release ───────────
-// Fill the active tab's login form from 1Password behind Touch ID, with no
-// browser extension. Env-gated; credentials live only in main memory + the
-// verified page, and every outcome logs a result line, never a value.
-const ONE_PASSWORD_SPIKE_ENABLED = !app.isPackaged || process.env.BLANC_1P_SPIKE === '1';
-
-async function fillActiveTabFrom1Password() {
-  const log = (result, extra) => console.log(`[1p-spike] ${result}${extra ? ' ' + extra : ''}`);
-  const onepassword = require('./onepassword'); // ./onepassword only — the SDK stays lazy inside it
-  let capturedTabId, tab, wc, expectedURL, expectedHost, capturedEpoch, capturedTimeOrigin, chosen;
-
-  // ── PHASE 1 (pre-reveal): NO credential is in memory yet, so err.message is
-  //    safe to log for diagnosis. ──
-  try {
-    if (!hasLiveWindow() || !rt().activeTabId) return log('no-active-tab');
-    capturedTabId = rt().activeTabId;
-    tab = tabs.get(capturedTabId);
-    if (!tab) return log('no-active-tab');
-    wc = tab.view.webContents;
-    expectedURL = wc.getURL();
-    if (!/^https?:\/\//i.test(expectedURL)) return log('non-http-noop');
-    expectedHost = new URL(expectedURL).hostname;
-    capturedEpoch = tab.navEpoch;
-    capturedTimeOrigin = await wc.executeJavaScript('performance.timeOrigin');
-
-    const matches = await onepassword.findLogins(expectedHost);
-    if (matches.length === 0) return log('no-match', expectedHost);
-    chosen = matches[0];
-    if (matches.length > 1) {
-      // The vault search was async — if the window died meanwhile, don't ask
-      // the user to choose a login for a window that no longer exists (the
-      // post-reveal re-validation would abort anyway). Also keeps `rt().window`
-      // safe to pass as the dialog parent (documented overloads only).
-      if (!hasLiveWindow()) return log('abort-window-changed');
-      const buttons = matches.map((m) => m.title || '(untitled)');
-      const cancelId = buttons.length;
-      buttons.push('Cancel');
-      const { response } = await dialog.showMessageBox(rt().window, {
-        type: 'question',
-        title: 'Fill from 1Password',
-        message: `Choose a login for ${expectedHost}`,
-        buttons,
-        cancelId,
-        noLink: true,
-      });
-      if (response < 0 || response >= matches.length) return log('chooser-cancel');
-      chosen = matches[response];
-    }
-  } catch (err) {
-    return log('setup-error', err?.message); // pre-reveal only — credential-free
-  }
-
-  // ── PHASE 2 (reveal + fill): a credential is in memory from revealCredential
-  //    onward. This whole block is a BINDING-LESS try — every failure (a
-  //    page-controlled executeJavaScript rejection, OR any other throw once the
-  //    credential exists) logs a FIXED classification, so no error string can
-  //    ever echo the credential. ──
-  try {
-    const { username, password } = await onepassword.revealCredential(chosen.vaultId, chosen.itemId);
-    if (password == null && username == null) return log('empty-item');
-
-    // Re-validate after the async auth/chooser: same live+focused window, same
-    // active tab, live+focused webContents, unchanged epoch, exact same URL.
-    if (!hasLiveWindow() || !rt().window.isFocused()) return log('abort-window-changed');
-    if (rt().activeTabId !== capturedTabId || !tabs.has(capturedTabId)) return log('abort-tab-changed');
-    if (wc.isDestroyed() || !wc.isFocused()) return log('abort-wc-changed');
-    if (tab.navEpoch !== capturedEpoch) return log('abort-navigated');
-    if (wc.getURL() !== expectedURL) return log('abort-url-changed');
-
-    // Injection runs in the page's MAIN WORLD (a hostile page could override the
-    // value setter to throw an Error echoing the value) — the binding-less catch
-    // below is what makes that message unloggable.
-    const source = onepassword.buildFillScript({ expectedURL, expectedTimeOrigin: capturedTimeOrigin, username, password });
-    const status = await wc.executeJavaScript(source); // single-arg, no userGesture
-    if (status?.originMismatch) return log('origin-or-focus-mismatch');
-    if (status?.noPasswordField) return log('no-password-field');
-    if (status?.filledPass && status?.filledUser) return log('filled', 'user+pass');
-    if (status?.filledPass) return log('filled', 'pass-only (username field not found)');
-    return log('nothing-filled');
-  } catch {
-    return log('fill-error'); // no binding, no message — a credential is in memory
-  }
-}
-
-// SPIKE (1Password fill feasibility) — headless criterion 3(a). Gated on its
-// OWN env var so it can run without a GUI/account: load the SDK package inside
-// packaged Electron (asar resolution + @1password/sdk-core's eager core_bg.wasm
-// compile), log ONE line, set a real exit code, and terminate. app.exit() is
-// used (not app.quit()) so native handles the SDK may open can't stall exit.
-async function runPackageProbeIfRequested() {
-  if (process.env.BLANC_1P_PACKAGE_PROBE !== '1') return false;
-  try {
-    require('./onepassword').probePackageLoad();
-    console.log('[1p-spike] package probe: PASS (require resolved + WASM compiled)');
-    app.exit(0);
-  } catch (err) {
-    console.warn(`[1p-spike] package probe: FAIL — ${err?.message || err}`);
-    app.exit(1);
-  }
-  return true; // unreachable after app.exit; kept for call-site clarity
-}
-
-// SPIKE (1Password fill feasibility) — GUI startup checks. Gated
-// BLANC_1P_SPIKE === '1'. Two independent lines:
-//   3(a) package probe — does the SDK module LOAD in this build?
-//   3(b) core smoke    — does DesktopAuth dlopen + authenticate under a
-//                        notarized/hardened build?
-async function initSpikePackaging() {
-  if (process.env.BLANC_1P_SPIKE !== '1') return;
-
-  // 3(a): load the package (asar loader active, eager core_bg.wasm compile).
-  try {
-    require('./onepassword').probePackageLoad();
-    console.log('[1p-spike] package probe: PASS (require resolved + WASM compiled)');
-  } catch (err) {
-    console.warn(`[1p-spike] package probe: FAIL — ${err?.message || err}`);
-  }
-
-  // 3(b): the native bridge round-trip. Decisive by default — everything is a
-  // FAIL unless it matches the biometric-cancel signature (/cancell?ed/i), a
-  // best-effort INCONCLUSIVE (bridge state then unknowable). "denied"/"not
-  // allowed"/policy/auth errors are real FAILs (the round-trip did not work). A
-  // genuine cancel misread as FAIL isn't worth chasing for throwaway code — just
-  // re-run the smoke without cancelling.
-  try {
-    const client = await require('./onepassword').getClient();
-    await client.vaults.list();
-    console.log('[1p-spike] core smoke: PASS (DesktopAuth + vaults.list)');
-  } catch (err) {
-    const msg = err?.message || String(err);
-    if (/cancell?ed/i.test(msg)) {
-      console.log(`[1p-spike] core smoke: INCONCLUSIVE (biometric cancelled) — ${msg}`);
-    } else {
-      const bridge = /dlopen|libop_sdk_ipc_client|image not found|code ?sign|library/i.test(msg);
-      console.warn(`[1p-spike] core smoke: FAIL${bridge ? ' (native bridge did not load)' : ''} — ${msg}`);
-    }
-  }
-}
-// ─── end SPIKE ────────────────────────────────────────────────────────────
-
 // --- Quiet Tabs hooks (phase 2 fills these in) --------------------------
 // The tab-view dependency contract is fixed now, so later phases can extend
 // these hooks without changing the construction/wiring seam again.
@@ -2588,16 +2441,16 @@ initTabView({
   isUtilityUrl,
   handOffToOs,
   upgradeFavicon,
+  setTabFavicon,
   isStartupGateActive: () => startupNavigationGateActive,
   startupQueuedNavigations,
   onMainFrameCommit,
   noteWakeSuppressed,
   notePopupChild,
-  onePasswordSpikeEnabled: ONE_PASSWORD_SPIKE_ENABLED,
-  fillActiveTabFrom1Password,
 });
 
 function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null } = {}) {
+  if (isForbiddenTopLevelUrl(url)) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
     // open-url handoff, future call sites). Session restore filters
@@ -2636,7 +2489,9 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     isLoading: false,
     canGoBack: false,
     canGoForward: false,
-    favicon: typeof favicon === 'string' ? favicon : null,
+    favicon: validFavicon(favicon),
+    faviconSource: validFavicon(favicon),
+    faviconEpoch: 0,
     bookmarked: false,
     blockedCount: 0,
     private: isPrivate,
@@ -2656,8 +2511,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // real navigation shouldn't behave differently from before this flag
     // existed.
     historyEligible: true,
-    // SPIKE (1Password fill feasibility) — bumped on any main-frame navigation
-    // start/commit so the async fill can detect a page swap mid-flow.
+    // Monotonic main-frame navigation generation used to reject stale async
+    // quiet-tab probes and snapshot work after a page swap.
     navEpoch: 0,
     // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
     // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
@@ -3428,17 +3283,16 @@ function registerIpcHandlers() {
 
     searchSuggestionRequests.get(event.sender)?.abort();
 
-    // The opt-out, private tabs, and local document paths are hard stops at
-    // the trusted main-process boundary. Exact-query search still works; only
-    // live provider suggestions pause.
+    // The opt-out and private tabs are hard stops at the trusted main-process
+    // boundary. Path/URL/credential-shaped input is independently rejected by
+    // searchSuggestionService before its fetch implementation can run. Exact-
+    // query search still works; only live provider suggestions pause.
     const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
-    const localDoc = typeof query === 'string' ? localDocumentUrl(query.trim()) : null;
     if (
       !settings.isFirstRunComplete() ||
       !currentSettings.searchSuggestions ||
       !tab ||
-      tab.private ||
-      localDoc
+      tab.private
     ) return response;
 
     const controller = new AbortController();
@@ -3899,6 +3753,7 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     ...(windowIcon ? { icon: windowIcon } : {}),
     webPreferences: {
+      partition: CHROME_PARTITION,
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
@@ -3913,7 +3768,7 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
 
   lockPrivilegedNavigation(rt().window.webContents, CHROME_INDEX_URL);
   installChromeShortcuts(rt().window.webContents);
-  rt().window.loadFile(CHROME_INDEX_FILE);
+  rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
   rt().window.on('resize', bindWindowRuntime(primaryRuntime, resizeActiveView));
   rt().window.on('focus', bindWindowRuntime(primaryRuntime, refocusAddressBarIfWanted));
@@ -3959,10 +3814,11 @@ let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
-  if (await runPackageProbeIfRequested()) return; // SPIKE — headless 3(a); app.exit() already fired
   const ses = session.defaultSession;
   const privateSes = getPrivateBrowsingSession();
   const browsingSessions = [ses, privateSes];
+  const chromeSes = session.fromPartition(CHROME_PARTITION);
+  setupChromeProtocol({ session: chromeSes, net });
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
   // locally so existing suggestion/navigation scenarios exercise their
   // intended feature instead of the onboarding card; telemetry is disabled.
@@ -4099,8 +3955,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // a native event boundary main.js doesn't control — so the callback must
   // rebind the runtime itself rather than rely on setupDownloads' call site.
   const boundBroadcastDownloadsActivity = bindWindowRuntime(primaryRuntime, broadcastDownloadsActivity);
-  setupDownloads(ses, boundBroadcastDownloadsActivity);
-  setupDownloads(privateSes, boundBroadcastDownloadsActivity);
+  setupDownloads(ses, boundBroadcastDownloadsActivity, { private: false });
+  setupDownloads(privateSes, boundBroadcastDownloadsActivity, { private: true });
   let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
   let adblockStartupController = null;
   let releaseStartup = async () => {};
@@ -4141,6 +3997,19 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return !!sheet && wc === sheet.wc;
       }),
       close: bindWindowRuntime(primaryRuntime, () => hideUtilitySheet()),
+    },
+    pageSurfaces: {
+      owns: bindWindowRuntime(primaryRuntime, (host, wc) => {
+        if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
+        if (host !== 'newtab') return false;
+        for (const tab of tabs.values()) {
+          if (
+            windowRuntimes.runtimeForTab(tab.id) === primaryRuntime &&
+            liveContents(tab) === wc
+          ) return true;
+        }
+        return false;
+      }),
     },
     // The start page's ledger sections read live tab-group state and the
     // rolling blocked counter, both owned here.
@@ -4237,8 +4106,6 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       },
     });
   }
-
-  initSpikePackaging(); // SPIKE (1Password fill feasibility) — fire-and-forget, gated on BLANC_1P_SPIKE
 
   // One bound 30-second sweep. Both setInterval and setImmediate cross an
   // AsyncLocalStorage boundary; bind both so rt() remains the primary runtime.
@@ -4344,7 +4211,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const { windows, readOnly } = loadWorkspace(ensureSessionStore().data);
   sessionReadOnly = readOnly;
   const saved = windows[0];
-  const cleaned = filterRestoredSession(saved, isUtilityUrl);
+  const cleaned = filterRestoredSession(
+    saved,
+    (url) => isUtilityUrl(url) || isForbiddenTopLevelUrl(url)
+  );
   saved.urls = cleaned.urls;
   saved.groupIds = cleaned.groupIds;
   saved.pinned = cleaned.pinned;
@@ -4439,15 +4309,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   } else {
     adblockStartupController = createAdblockStartupController({
       initialize: async () => {
+        if (packagedAdblockFailureTestMode === 'always') {
+          throw new Error('packaged smoke: simulated blocker initialization failure');
+        }
         if (packagedAdblockInitializationFailuresRemaining > 0) {
           packagedAdblockInitializationFailuresRemaining -= 1;
           throw new Error('packaged smoke: simulated first initialization failure');
         }
         await setupAdBlocker(ses, {
           enabled: settings.getSettings().adblockEnabled,
-          fetchImpl: packagedAdblockFailureTestMode
-            ? packagedAdblockTestFetch
-            : fetch,
         });
         attachAdBlockerToSession(privateSes, {
           enabled: settings.getSettings().adblockEnabled,

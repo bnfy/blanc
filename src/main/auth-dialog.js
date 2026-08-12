@@ -1,5 +1,6 @@
 const { BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const { isTrustedAuthEvent } = require('./auth-dialog-trust');
 
 // Serialized so overlapping 401s (page + subresources) don't stack dialogs.
 let chain = Promise.resolve();
@@ -29,28 +30,36 @@ function promptForCredentials(parent, authInfo) {
         },
       });
       dialogWin.setMenuBarVisibility(false);
+      const dialogContents = dialogWin.webContents;
+      const channel = `auth:submit:${id}`;
 
       let settled = false;
       const done = (creds) => {
         if (settled) return;
         settled = true;
-        ipcMain.removeAllListeners(`auth:submit:${id}`);
+        ipcMain.removeListener(channel, onSubmit);
         if (!dialogWin.isDestroyed()) dialogWin.close();
         resolve(creds);
       };
 
-      ipcMain.once(`auth:submit:${id}`, (event, creds) => {
-        if (!event.sender.getURL().startsWith('blanc://auth')) return;
+      const onSubmit = (event, creds) => {
+        if (!isTrustedAuthEvent(event, dialogContents, id)) return;
         if (creds && typeof creds.username === 'string' && typeof creds.password === 'string') {
           done({ username: creds.username, password: creds.password });
         } else {
           done(null);
         }
-      });
+      };
+      ipcMain.on(channel, onSubmit);
       dialogWin.on('closed', () => done(null));
 
       const q = new URLSearchParams({ id: String(id), host: authInfo.host ?? '', realm: authInfo.realm ?? '' });
-      dialogWin.loadURL(`blanc://auth/?${q}`);
+      const dialogUrl = `blanc://auth/?${q}`;
+      dialogContents.on('will-navigate', (event, target) => {
+        if (target !== dialogUrl) event.preventDefault();
+      });
+      dialogContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+      dialogWin.loadURL(dialogUrl);
     });
 
   chain = chain.then(run, run);

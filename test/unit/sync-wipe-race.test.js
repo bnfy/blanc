@@ -23,6 +23,12 @@ require.cache[electronId] = {
   loaded: true,
   exports: {
     net: { fetch: (...args) => fetchImpl(...args) },
+    safeStorage: {
+      isEncryptionAvailable: () => true,
+      getSelectedStorageBackend: () => 'test',
+      encryptString: (value) => Buffer.from(value),
+      decryptString: (value) => value.toString(),
+    },
     app: { getPath: () => tmp, on: () => {} },
   },
 };

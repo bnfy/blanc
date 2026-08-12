@@ -33,7 +33,12 @@ class JsonStore {
 
   #load() {
     try {
-      return { ...this.defaults, ...JSON.parse(fs.readFileSync(this.file, 'utf8')) };
+      const loaded = { ...this.defaults, ...JSON.parse(fs.readFileSync(this.file, 'utf8')) };
+      // Tighten legacy files on first read, not only after their next update.
+      // Windows ignores POSIX mode bits; on Unix this removes group/world
+      // access inherited from an older umask-based write.
+      try { fs.chmodSync(this.file, 0o600); } catch { /* platform/best effort */ }
+      return loaded;
     } catch {
       return structuredClone(this.defaults);
     }
@@ -59,10 +64,22 @@ class JsonStore {
     clearTimeout(this.saveTimer);
     this.saveTimer = null;
     this.pendingSince = null;
+    const tempFile = `${this.file}.${process.pid}.tmp`;
+    let descriptor = null;
     try {
-      fs.writeFileSync(this.file, JSON.stringify(this.data, null, 2));
+      descriptor = fs.openSync(tempFile, 'w', 0o600);
+      fs.writeFileSync(descriptor, JSON.stringify(this.data, null, 2), 'utf8');
+      fs.fsyncSync(descriptor);
+      fs.closeSync(descriptor);
+      descriptor = null;
+      fs.renameSync(tempFile, this.file);
+      fs.chmodSync(this.file, 0o600);
       return true;
     } catch (err) {
+      if (descriptor !== null) {
+        try { fs.closeSync(descriptor); } catch { /* best effort */ }
+      }
+      try { fs.rmSync(tempFile, { force: true }); } catch { /* best effort */ }
       console.warn(`[store] could not write ${this.file}:`, err.message);
       return false;
     }

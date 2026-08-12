@@ -8,6 +8,7 @@ const {
   normalizeVerticalTabsWidth,
 } = require('./chrome-layout');
 const APP_ICON_ASSETS = require('./app-icon-assets');
+const { normalizeHomepage } = require('./top-level-url-policy');
 
 const SEARCH_ENGINES = {
   duckduckgo: { label: 'DuckDuckGo', url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
@@ -171,6 +172,7 @@ function getSettings() {
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  data.homePage = normalizeHomepage(data.homePage, DEFAULTS.homePage);
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
   // Read coercion for a corrupted stored state (hand-edited settings.json): custom
@@ -197,7 +199,9 @@ function sanitize(partial) {
   }
   if (typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
   if (typeof partial.usagePing === 'boolean') clean.usagePing = partial.usagePing;
-  if (typeof partial.homePage === 'string') clean.homePage = partial.homePage.trim();
+  if (typeof partial.homePage === 'string') {
+    clean.homePage = normalizeHomepage(partial.homePage.trim(), DEFAULTS.homePage);
+  }
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;

@@ -4,7 +4,21 @@ const { validFavicon, validFolder } = require('./bookmark-validate');
 const data = require('./bookmark-data');
 
 let store = null;
-const ensureStore = () => (store ??= new JsonStore('bookmarks', { items: [], tombstones: [] }));
+const ensureStore = () => {
+  if (store) return store;
+  store = new JsonStore('bookmarks', { items: [], tombstones: [] });
+  // Pre-hardening profiles may contain live remote icon URLs. Remove them
+  // once on read so they cannot be re-exported or fetched by a later build.
+  if (store.data.items.some((item) => item.favicon && !validFavicon(item.favicon))) {
+    store.update((data) => {
+      data.items = data.items.map((item) => ({
+        ...item,
+        favicon: validFavicon(item.favicon),
+      }));
+    });
+  }
+  return store;
+};
 
 // Two independent listener sets, deliberately separate:
 //  - changeListeners: a LOCAL user edit → the sync engine schedules a push.
@@ -27,7 +41,7 @@ function isBookmarked(url) {
 }
 
 /** Toggle a bookmark for `url`; returns the new bookmarked state. `favicon`
- * is the tab's favicon URL at the time of favoriting, shown on the start
+ * is the tab's sanitized favicon PNG at the time of favoriting, shown on the start
  * page — a missing/invalid one just falls back to the letter tile there,
  * and `updateFavicon` keeps it fresh afterward as the tab's own favicon
  * resolves or upgrades. */

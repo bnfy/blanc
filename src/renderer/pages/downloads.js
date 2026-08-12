@@ -57,7 +57,7 @@
       meta.textContent =
         d.state === 'progressing'
           ? `${fmtBytes(d.receivedBytes)}${d.totalBytes ? ` / ${fmtBytes(d.totalBytes)}` : ''}`
-          : `${STATE_LABELS[d.state] ?? d.state} · ${fmtBytes(d.receivedBytes)}`;
+          : `${d.private ? 'Private · ' : ''}${STATE_LABELS[d.state] ?? d.state} · ${fmtBytes(d.receivedBytes)}`;
 
       const actions = document.createElement('div');
       actions.className = 'actions';

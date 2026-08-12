@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: https: http:;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:;" />
   <title>New Tab</title>
   <link rel="icon" href="icon.svg" />
   <link rel="stylesheet" href="pages.css" />
@@ -25,7 +25,7 @@
     <section id="privacyCard" class="launch-card" aria-labelledby="privacyTitle" hidden>
       <div class="launch-card-kicker">before you browse</div>
       <h2 id="privacyTitle">Choose what Blanc may send.</h2>
-      <p>Blanc downloads blocking lists and checks for app updates. These two optional features are yours to choose:</p>
+      <p>Blanc ships signed blocking lists with each app release and checks for app updates. These two optional features are yours to choose:</p>
       <label class="launch-choice">
         <input id="privacySuggestions" type="checkbox" />
         <span><strong>Search suggestions</strong><small>Send eligible address-bar prefixes to your selected search provider. Never used in private tabs or for pasted, address-like, or sensitive-looking text.</small></span>

@@ -7,11 +7,15 @@ kv_namespaces = [
   { binding = "SUBSCRIBERS", id = "17fe04a02a7a4418b9097e0dd6ede5b9" }
 ]
 
-# ADMIN_TOKEN is a secret, not a var — it lives in 1Password (vault Dev, item
-# "Blanc Newsletter Admin") and is piped into `wrangler secret put ADMIN_TOKEN`
-# via `op read`; see README.md for the exact commands. It gates GET /subscribers
+# ADMIN_TOKEN, NEWSLETTER_TOKEN_SECRET, and RESEND_API_KEY are secrets; see
+# README.md for the 1Password-backed setup. ADMIN_TOKEN gates GET /subscribers
 # (export) and DELETE /subscriber (removal). Without it those endpoints refuse
-# every request (fail closed); /subscribe still works.
+# every request (fail closed). NEWSLETTER_FROM is a non-secret verified Resend
+# sender such as "Blanc <release-notes@updates.blancbrowser.com>". Production
+# deploys must go through deploy.mjs, which verifies the Resend domain first.
+
+[vars]
+NEWSLETTER_FROM = "Blanc <release-notes@updates.blancbrowser.com>"
 
 # Workers Logs — keeps a searchable history of invocations/exceptions in the
 # dashboard, so a runtime 500 can be diagnosed after the fact instead of

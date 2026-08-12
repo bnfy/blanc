@@ -321,7 +321,7 @@ Then('the shield popover shows protection off for the active site', async functi
 });
 
 Then('browser chrome remains on its trusted local document', async function () {
-  assert.match(await this.call('chromeUrl'), /^file:\/\/.*\/src\/renderer\/index\.html$/);
+  assert.equal(await this.call('chromeUrl'), 'blanc-chrome://index/');
 });
 
 // ---------- Utility sheet (F16-2, F16-4, F16-5) ----------
@@ -429,12 +429,13 @@ Then('the utility sheet uses newly-created contents', async function () {
  * bounded window to land before declaring the sheet stayed closed. */
 const settle = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// A data: URL is an OPAQUE origin — the vector that actually reaches the
-// blanc:// navigation handlers. http content cannot: Chromium blocks
+// A directly loaded about:blank document has an opaque origin and reaches the
+// blanc:// navigation handlers. HTTP content cannot: Chromium blocks
 // http→blanc:// upstream, so will-navigate never fires from it (verified by
-// mutation — an http-origin attack can't summon the sheet even with the
-// trust gate removed, so an http fixture would make this test vacuous).
-const UNTRUSTED_DOC = 'data:text/html,<title>untrusted</title><body>x</body>';
+// mutation — an HTTP-origin fixture would make this test vacuous). data: is
+// deliberately rejected by Blanc's top-level URL policy and therefore cannot
+// be used as the hostile fixture anymore.
+const UNTRUSTED_DOC = 'about:blank';
 
 Given('a tab open on untrusted web content', async function () {
   const id = await this.call('openTab', UNTRUSTED_DOC);
@@ -443,7 +444,7 @@ Given('a tab open on untrusted web content', async function () {
   // committed — gate on the tab's committed URL, not just creation.
   await this.waitForState((s) => {
     const t = s.tabs.find((x) => x.id === id);
-    return t && t.loadedUrl.startsWith('data:') && !t.loading;
+    return t && t.loadedUrl === UNTRUSTED_DOC && !t.loading;
   });
 });
 

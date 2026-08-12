@@ -17,7 +17,7 @@ const { openOverlaySurface } = require('./poll');
 async function overlayPage() {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const page = ctx.app.windows().find((candidate) =>
-      !candidate.isClosed() && candidate.url().endsWith('/src/renderer/overlay.html'));
+      !candidate.isClosed() && candidate.url() === 'blanc-chrome://overlay/');
     if (page) {
       await page.waitForLoadState('domcontentloaded');
       return page;

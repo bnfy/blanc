@@ -1,6 +1,6 @@
 const os = require('os');
 const crypto = require('crypto');
-const { net } = require('electron');
+const { net, safeStorage } = require('electron');
 const { JsonStore } = require('./store');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
@@ -8,6 +8,11 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const { deriveKeys, encrypt, decrypt } = require('./sync-crypto');
 const { wipeDecision } = require('./sync-wipe');
+const {
+  SyncKeyStorageError,
+  protectSyncKey,
+  unprotectSyncKey,
+} = require('./sync-key-storage');
 
 // Blanc-hosted E2EE profile sync. This module holds the only network calls;
 // the Worker (cloudflare/sync-worker) stores AES-GCM ciphertext keyed by an
@@ -15,10 +20,39 @@ const { wipeDecision } = require('./sync-wipe');
 const SYNC_ENDPOINT = 'https://blanc-sync.bnfy-441.workers.dev'; // wrangler dev -> http://127.0.0.1:8787
 
 let store = null;
-const ensureStore = () => (store ??= new JsonStore('sync', {
-  enabled: false, handle: '', accountId: '', key: '', lastSyncedAt: 0, lastError: null,
-  deviceId: '', syncTabs: false,
-}));
+let keyProtectionError = null;
+function ensureStore() {
+  if (store) return store;
+  store = new JsonStore('sync', {
+    enabled: false, handle: '', accountId: '', protectedKey: '', key: '',
+    lastSyncedAt: 0, lastError: null,
+    deviceId: '', syncTabs: false,
+  });
+  // One-time migration from pre-hardening profiles. The old field is erased
+  // only after the wrapped replacement has reached disk; otherwise sync stays
+  // fail-closed and retries the migration on the next launch.
+  if (store.data.key) {
+    const legacyKey = store.data.key;
+    try {
+      const protectedKey = protectSyncKey(
+        safeStorage,
+        Buffer.from(legacyKey, 'base64')
+      );
+      store.data.protectedKey = protectedKey;
+      store.data.key = '';
+      if (!store.flush()) {
+        store.data.protectedKey = '';
+        store.data.key = legacyKey;
+        throw new SyncKeyStorageError('Could not persist protected sync key');
+      }
+    } catch (error) {
+      keyProtectionError = error instanceof SyncKeyStorageError
+        ? error.message
+        : 'Could not protect the local sync key';
+    }
+  }
+  return store;
+}
 
 /** What tabsync needs from this device's identity on every export/merge.
  * deviceId is a random UUID minted here once — deliberately NOT the
@@ -89,7 +123,7 @@ function status() {
   const d = ensureStore().data;
   return {
     enabled: d.enabled, handle: d.handle, lastSyncedAt: d.lastSyncedAt,
-    lastError: d.lastError, syncTabs: !!d.syncTabs,
+    lastError: keyProtectionError || d.lastError, syncTabs: !!d.syncTabs,
   };
 }
 
@@ -120,11 +154,35 @@ async function enable({ handle, passphrase }) {
     return { ok: false, message: 'Use a longer passphrase — 16+ characters, or 10+ with mixed characters.', status: status() };
   }
   const { accountId, key } = deriveKeys(h, p);
+  let protectedKey;
+  try {
+    protectedKey = protectSyncKey(safeStorage, key);
+  } catch (error) {
+    key.fill(0);
+    return {
+      ok: false,
+      message: error instanceof SyncKeyStorageError
+        ? `${error.message}. Configure the OS keychain/credential store and try again.`
+        : 'Could not protect the sync key.',
+      status: status(),
+    };
+  }
   syncGen += 1; // new identity — strand any in-flight run from the old one
   tabicons.cancelCaptures();
-  ensureStore().update((d) => {
-    d.enabled = true; d.handle = h; d.accountId = accountId; d.key = key.toString('base64'); d.lastError = null;
+  const syncStore = ensureStore();
+  syncStore.update((d) => {
+    d.enabled = true; d.handle = h; d.accountId = accountId;
+    d.protectedKey = protectedKey; d.key = ''; d.lastError = null;
   });
+  if (!syncStore.flush()) {
+    syncStore.data.enabled = false;
+    syncStore.data.handle = '';
+    syncStore.data.accountId = '';
+    syncStore.data.protectedKey = '';
+    key.fill(0);
+    return { ok: false, message: 'Could not save protected sync credentials.', status: status() };
+  }
+  keyProtectionError = null;
   refreshTabIcons().catch(() => {});
   // Joining existing data, or starting fresh? A mistyped passphrase derives a
   // *different* accountId → 404 → a silent new account, so the UI warns when
@@ -134,6 +192,7 @@ async function enable({ handle, passphrase }) {
     const probe = await net.fetch(`${SYNC_ENDPOINT}/v1/blob/${accountId}/settings`);
     if (probe.status === 200 || probe.status === 404) created = probe.status === 404;
   } catch { /* offline — leave created null */ }
+  key.fill(0);
   const res = await syncNow();
   return { ok: res.ok, message: res.message, created, status: status() };
 }
@@ -176,7 +235,11 @@ async function disable({ wipeRemote = false } = {}) {
         return { ok: false, message: decision.message, status: status() };
       }
     }
-    ensureStore().update((s) => { s.enabled = false; s.handle = ''; s.accountId = ''; s.key = ''; s.lastError = null; });
+    ensureStore().update((s) => {
+      s.enabled = false; s.handle = ''; s.accountId = '';
+      s.protectedKey = ''; s.key = ''; s.lastError = null;
+    });
+    keyProtectionError = null;
     // The cached device map must not outlive the account it came from — and
     // the UI must stop listing other devices the moment sync is off.
     // (syncTabs and deviceId survive: consent and identity are per-device,
@@ -237,7 +300,9 @@ async function syncNow(names = null) {
   const d = ensureStore().data;
   // `suspended` bars new passes while disable() drains and wipes — a fresh
   // pass dispatching requests mid-drain would defeat the barrier.
-  if (suspended || !d.enabled || !d.accountId || !d.key) return { ok: false, message: 'Sync is off.' };
+  if (suspended || !d.enabled || !d.accountId || !d.protectedKey) {
+    return { ok: false, message: keyProtectionError || 'Sync is off.' };
+  }
   if (syncing) { // coalesce concurrent triggers
     pendingNames = pendingNames === undefined ? names : unionNames(pendingNames, names);
     return { ok: true };
@@ -246,29 +311,36 @@ async function syncNow(names = null) {
   // Everything below — network requests included — settles before this
   // resolves; disable() awaits it as its drain barrier.
   let settle;
+  let key;
   passSettled = new Promise((resolve) => { settle = resolve; });
   try {
     const accountId = d.accountId;          // snapshot so a mid-flight disable can't redirect writes
-    const key = Buffer.from(d.key, 'base64');
+    try {
+      key = unprotectSyncKey(safeStorage, d.protectedKey);
+      keyProtectionError = null;
+    } catch (error) {
+      keyProtectionError = error instanceof SyncKeyStorageError
+        ? error.message
+        : 'Could not unlock the local sync key';
+      return { ok: false, message: keyProtectionError };
+    }
     // The whole pass runs under ONE generation and ONE tab-sync context; a
     // credential/consent change mid-flight strands it at the next checkpoint.
     const gen = syncGen;
     const run = { ctx: tabSyncContext(), stale: () => gen !== syncGen };
     let firstError = null, stranded = false, ranRequiredStore = false;
-    try {
-      for (const desc of STORES) {
-        if (names && !names.includes(desc.name)) continue;
-        if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
-        if (!desc.optional) ranRequiredStore = true;
-        try { await syncOne(accountId, key, desc, run); }
-        catch (err) {
-          if (err instanceof SyncError && err.message === 'stale') { stranded = true; break; }
-          // Cosmetic sidecars degrade to fallback UI; they must never make
-          // Favorites/settings/session sync report a failure.
-          if (!desc.optional) firstError ??= err;
-        }
+    for (const desc of STORES) {
+      if (names && !names.includes(desc.name)) continue;
+      if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
+      if (!desc.optional) ranRequiredStore = true;
+      try { await syncOne(accountId, key, desc, run); }
+      catch (err) {
+        if (err instanceof SyncError && err.message === 'stale') { stranded = true; break; }
+        // Cosmetic sidecars degrade to fallback UI; they must never make
+        // Favorites/settings/session sync report a failure.
+        if (!desc.optional) firstError ??= err;
       }
-    } finally { syncing = false; }
+    }
     // If sync was turned off mid-flight, don't stamp status onto a disabled store.
     if (!ensureStore().data.enabled) return { ok: false, message: 'Sync is off.' };
     // A stranded pass stamps nothing: its results belong to a dead generation.
@@ -283,11 +355,24 @@ async function syncNow(names = null) {
     if (pendingNames !== undefined) {
       const next = pendingNames;
       pendingNames = undefined;
-      return syncNow(next); // re-runs under the CURRENT generation and context
+      // Start the coalesced pass only after this pass's outer finally releases
+      // the guard and drain barrier. Calling syncNow synchronously here would
+      // observe syncing=true and merely coalesce itself again.
+      return new Promise((resolve) => {
+        queueMicrotask(() => resolve(syncNow(next)));
+      });
     }
     if (stranded) return { ok: true };
     return firstError ? { ok: false, message: describe(firstError) } : { ok: true };
-  } finally { settle(); }
+  } finally {
+    // This guard owns the entire pass, including credential unlock. Reset it
+    // here so every exit path can be retried; limiting the
+    // reset to the network/store loop permanently wedged sync after an unlock
+    // or credential-mismatch error.
+    syncing = false;
+    key?.fill(0);
+    settle();
+  }
 }
 
 function schedule(delay = 4000) {
