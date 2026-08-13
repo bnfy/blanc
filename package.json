@@ -44,7 +44,7 @@
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
-    "@cucumber/cucumber": "^13.1.1",
+    "@cucumber/cucumber": "^13.2.1",
     "@ghostery/adblocker": "^2.18.2",
     "electron": "^43.4.0",
     "electron-builder": "^26.15.3",
