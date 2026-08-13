@@ -2015,12 +2015,27 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   align-items: center;
   gap: 8px;
   height: 44px;
+}
+/* The jump target is a real button (a11y: no controls nested in controls);
+   it carries the row's hover affordance. */
+.capture-pop-go {
+  appearance: none;
+  border: none;
+  background: none;
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
   padding: 0 6px;
   border-radius: 8px;
   cursor: pointer;
+  text-align: left;
 }
-.capture-pop-row:hover { background: var(--accent-dim); }
-.capture-pop-row .host {
+.capture-pop-go:hover { background: var(--accent-dim); }
+.capture-pop-go .host {
   flex: 1 1 auto;
   overflow: hidden;
   text-overflow: ellipsis;

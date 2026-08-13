@@ -1138,36 +1138,33 @@
   function renderCapturePop() {
     const rows = state.capturePopover?.rows ?? [];
     capturePopRows.replaceChildren(...rows.map((row) => {
+      // Two REAL sibling buttons in a plain list item — a role=button row
+      // wrapping the Stop button would be an invalid accessibility tree
+      // (no interactive content inside a button), and native buttons get
+      // Enter/Space handling for free.
       const li = document.createElement('li');
       li.className = 'capture-pop-row';
       const scopeLabel = row.audio && row.video ? 'camera & microphone in use'
         : row.video ? 'camera in use' : 'microphone in use';
+      const hostLabel = row.host || 'popup window';
+      const go = document.createElement('button');
+      go.className = 'capture-pop-go';
+      go.setAttribute('aria-label', `${hostLabel} — ${scopeLabel}; go to it`);
       const glyphs = document.createElement('span');
       glyphs.className = 'capture-pop-glyphs';
       if (row.audio) glyphs.append(captureGlyph(MIC_SHAPES));
       if (row.video) glyphs.append(captureGlyph(CAM_SHAPES));
       const host = document.createElement('span');
       host.className = 'host';
-      host.textContent = row.host || 'popup window';
+      host.textContent = hostLabel;
+      go.append(glyphs, host);
+      go.addEventListener('click', () => window.browserAPI.captureFocus(row.surfaceId));
       const stop = document.createElement('button');
       stop.className = 'capture-pop-stop';
       stop.textContent = 'stop';
-      stop.setAttribute('aria-label', `stop — ${row.host || 'popup window'} ${scopeLabel}`);
-      stop.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.browserAPI.captureStop(row.surfaceId);
-      });
-      li.append(glyphs, host, stop);
-      li.setAttribute('role', 'button');
-      li.tabIndex = 0;
-      li.setAttribute('aria-label', `${row.host || 'popup window'} — ${scopeLabel}; go to it`);
-      li.addEventListener('click', () => window.browserAPI.captureFocus(row.surfaceId));
-      li.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          window.browserAPI.captureFocus(row.surfaceId);
-        }
-      });
+      stop.setAttribute('aria-label', `stop — ${hostLabel} ${scopeLabel}`);
+      stop.addEventListener('click', () => window.browserAPI.captureStop(row.surfaceId));
+      li.append(go, stop);
       return li;
     }));
   }

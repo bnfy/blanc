@@ -696,9 +696,10 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   if (await hasBeforeUnloadListener(wc)) return false;
 
   // The CDP inspection above is asynchronous. Repeat every mutable eligibility
-  // check immediately before the irreversible renderer kill.
+  // check immediately before the irreversible renderer kill — including
+  // capture, which a background tab can legitimately begin during the await.
   if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.navEpoch !== navEpoch || tab.isLoading
-      || !tab.sleeping || liveContents(tab) !== wc
+      || !tab.sleeping || tab.capturing || liveContents(tab) !== wc
       || !rendererIsExclusive()) return false;
 
   const wcId = wc.id;
@@ -727,6 +728,10 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   tab.isLoading = false;
   tab.pageBg = null;
   tab.themeColor = null;
+  // The discarded document's capture anchors die with its renderer — a woken
+  // document must not inherit report eligibility without a fresh grant. The
+  // normal render-process-gone clear deliberately skips sleeping tabs.
+  if (tab.captureRecord) clearCaptureState({ kind: 'tab', tab, record: tab.captureRecord });
   tabIdByWebContentsId.delete(wcId);
   lastMainFrameMethod.delete(wcId);
   if (broadcast) broadcastTabs();
@@ -824,6 +829,10 @@ async function sleepTab(id, { broadcast = true } = {}) {
       tab.isLoading = false;
       tab.pageBg = null;
       tab.themeColor = null;
+      // removeAllListeners() above stripped the normal render-process-gone
+      // capture clear; the discarded document's anchors must not survive
+      // into whatever a wake later loads.
+      if (tab.captureRecord) clearCaptureState({ kind: 'tab', tab, record: tab.captureRecord });
       const record = sleepSnapshots.get(id);
       if (record) record.view = null;
       tabIdByWebContentsId.delete(wcId);
