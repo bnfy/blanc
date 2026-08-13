@@ -32,6 +32,21 @@ const ensureStore = () => {
 let prompter = null;
 function setPermissionPrompter(fn) { prompter = fn; }
 
+/** Capture-indicator hook (spec §3.1): notified on EVERY allowed `media`
+ * request — the unspoofable off→on signal. Display refinement only ever
+ * flows the other way (capture-state.js). */
+let captureGrantObserver = null;
+function setCaptureGrantObserver(fn) { captureGrantObserver = fn; }
+const notifyCaptureGrant = (wc, permission, mediaTypes, details) => {
+  if (permission !== 'media' || !captureGrantObserver) return;
+  captureGrantObserver({
+    requestingWebContents: wc,
+    mediaTypes,
+    requestingUrl: details?.requestingUrl ?? null,
+    isMainFrame: details?.isMainFrame !== false,
+  });
+};
+
 function normalizedOrigin(rawUrl) {
   try {
     const origin = new URL(rawUrl).origin;
@@ -81,7 +96,10 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     const saved = scopes.map((mediaType) =>
       storedDecision(readDecisions(), origin, permission, mediaType));
     if (saved.some((decision) => decision === 'deny')) return callback(false);
-    if (saved.every((decision) => decision === 'allow')) return callback(true);
+    if (saved.every((decision) => decision === 'allow')) {
+      notifyCaptureGrant(wc, permission, mediaTypes, details);
+      return callback(true);
+    }
     if (!prompter) return callback(false);
 
     // null = the prompt couldn't be shown (no window). Deny for now but
@@ -90,6 +108,7 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     const allow = await prompter({ origin, permission, mediaTypes, requestingWebContents: wc });
     if (allow === null) return callback(false);
     saveDecision(origin, permission, mediaTypes, allow);
+    if (allow) notifyCaptureGrant(wc, permission, mediaTypes, details);
     callback(allow);
   });
 
@@ -110,4 +129,6 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
   session.setDisplayMediaRequestHandler((_request, callback) => callback({}));
 }
 
-module.exports = { setupPermissionPolicy, setPermissionPrompter, listDecisions, removeDecision };
+module.exports = {
+  setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, listDecisions, removeDecision,
+};
