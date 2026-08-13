@@ -31,6 +31,7 @@ const EXPECTED_KEYS = [
   'id', 'title', 'url', 'isLoading', 'canGoBack', 'canGoForward', 'favicon',
   'bookmarked', 'blockedCount', 'private', 'pinned', 'muted', 'audible',
   'groupId', 'pageBg', 'themeColor', 'asleep', 'excepted', 'shield', 'connection',
+  'capture',
 ].sort();
 
 const record = (over = {}) => ({
@@ -52,10 +53,13 @@ test('main-process-only state on the record never reaches the payload', () => {
     lastActiveAt: 1723200000000,
     sleepSnapshot: { entries: [{ url: 'https://example.com/', pageState: 'BASE64…' }], index: 0 },
     pageState: 'BASE64…', runtimeId: 42, historyEligible: false, navEpoch: 99,
+    capturing: true,
+    captureRecord: { anchors: [{ origin: 'https://example.com' }], frames: new Map(), generation: 3 },
   })]);
   for (const forbidden of [
     'view', 'lastActiveAt', 'sleepSnapshot', 'pageState',
     'runtimeId', 'historyEligible', 'navEpoch',
+    'capturing', 'captureRecord',
   ]) {
     assert.ok(!(forbidden in row), `${forbidden} must not be broadcast`);
   }

@@ -165,6 +165,9 @@ function install(refs) {
           // This object is produced inside electronApp.evaluate(); a viewless
           // tab must be observable rather than making every scenario throw.
           asleep: !!t.asleep,
+          // Projection only — the capture record (anchors, counts) stays
+          // main-process-internal even here.
+          capture: t.capture ?? { audio: false, video: false },
           webContentsId: wc?.id ?? null,
           bounds: t.view ? t.view.getBounds() : null,
           sessionKind: wc
