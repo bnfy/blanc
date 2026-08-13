@@ -1799,6 +1799,9 @@ function showUtilityPage(url) {
   // 'visible' and never background-throttles — toggle real visibility.
   sheet.view.setVisible(true);
   runtime.window.contentView.addChildView(sheet.view);
+  // A pending permission prompt must stay above the sheet — a buried prompt
+  // has no visible Allow/Block until the sheet happens to be dismissed.
+  bindWindowRuntime(runtime, restackPermissionView)();
   resizeActiveView();
   sheet.wc.focus();
 }
