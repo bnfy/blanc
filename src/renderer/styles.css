@@ -2020,7 +2020,9 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
 .capture-pop-rows {
   list-style: none;
   margin: 0;
-  padding: 0;
+  /* Keep the trailing control clear of the scrollport edge. This also leaves
+     room for its keyboard treatment without clipping it. */
+  padding: 0 4px 0 1px;
   max-height: 220px; /* 5 rows * 44px — beyond that the list scrolls */
   overflow-y: auto;
 }
@@ -2049,6 +2051,10 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   text-align: left;
 }
 .capture-pop-go:hover { background: var(--accent-dim); }
+.capture-pop-go:focus-visible {
+  outline: none;
+  background: var(--accent-dim);
+}
 .capture-pop-go .host {
   flex: 1 1 auto;
   overflow: hidden;
@@ -2081,6 +2087,12 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   flex: 0 0 auto;
 }
 .capture-pop-stop:hover { border-color: var(--danger); color: var(--danger); }
+.capture-pop-stop:focus-visible {
+  outline: none;
+  border-color: var(--danger);
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
 #permissionBar[hidden] { display: none; }
 
 #permissionText {
