@@ -1,5 +1,5 @@
 // Renderer for the chrome strip — the slim band the resting island pill
-// floats in, plus window controls and permission prompts. The island's
+// floats in, plus window controls. The island's
 // expanded states live in a separate overlay WebContentsView (overlay.js)
 // so they can float over the web content.
 (() => {
@@ -21,18 +21,11 @@
   const pillCapture = document.getElementById('pillCapture');
   const pillCaptureMic = document.getElementById('pillCaptureMic');
   const pillCaptureCam = document.getElementById('pillCaptureCam');
-  const permissionGlyphs = document.getElementById('permissionGlyphs');
-  const permGlyphMic = document.getElementById('permGlyphMic');
-  const permGlyphCam = document.getElementById('permGlyphCam');
   const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const pillSourceChip = document.getElementById('pillSourceChip');
   const windowControls = document.getElementById('windowControls');
   const mainMenuButton = document.getElementById('mainMenuButton');
-  const permissionBar = document.getElementById('permissionBar');
-  const permissionText = document.getElementById('permissionText');
-  const permAllowBtn = document.getElementById('permAllowBtn');
-  const permBlockBtn = document.getElementById('permBlockBtn');
 
   let state = {
     tabs: [],
@@ -596,50 +589,8 @@
     if (e.target === stripEl) window.browserAPI.maximizeWindow();
   });
 
-  // --- Permission prompts (one visible at a time, FIFO) ---
-  const permissionQueue = [];
-  let activePermissionPrompt = null;
-
-  function describePermission({ permission, mediaTypes }) {
-    if (permission === 'media') {
-      const wantsAudio = mediaTypes.includes('audio');
-      const wantsVideo = mediaTypes.includes('video');
-      if (wantsAudio && wantsVideo) return 'use your camera and microphone';
-      if (wantsVideo) return 'use your camera';
-      return 'use your microphone';
-    }
-    if (permission === 'geolocation') return 'know your location';
-    if (permission === 'notifications') return 'show notifications';
-    return `use “${permission}”`;
-  }
-
-  function showNextPermissionPrompt() {
-    activePermissionPrompt = permissionQueue.shift() ?? null;
-    permissionBar.hidden = !activePermissionPrompt;
-    if (activePermissionPrompt) {
-      const host = new URL(activePermissionPrompt.origin).host;
-      permissionText.textContent = `${host} wants to ${describePermission(activePermissionPrompt)}`;
-      const isMedia = activePermissionPrompt.permission === 'media';
-      permissionGlyphs.hidden = !isMedia;
-      // toggleAttribute — SVGElement has no hidden IDL property.
-      permGlyphMic.toggleAttribute('hidden', !(isMedia && activePermissionPrompt.mediaTypes.includes('audio')));
-      permGlyphCam.toggleAttribute('hidden', !(isMedia && activePermissionPrompt.mediaTypes.includes('video')));
-    }
-  }
-
-  function answerPermissionPrompt(allow) {
-    if (!activePermissionPrompt) return;
-    window.browserAPI.respondPermission(activePermissionPrompt.id, allow);
-    showNextPermissionPrompt();
-  }
-
-  permAllowBtn.addEventListener('click', () => answerPermissionPrompt(true));
-  permBlockBtn.addEventListener('click', () => answerPermissionPrompt(false));
-
-  window.browserAPI.onPermissionPrompt((payload) => {
-    permissionQueue.push(payload);
-    if (!activePermissionPrompt) showNextPermissionPrompt();
-  });
+  // Permission prompts render in their own floating bottom-center view
+  // (permission.html/permission.js) — the strip no longer hosts them.
 
   // --- State sync ---
   window.browserAPI.onTabsUpdated((payload) => {

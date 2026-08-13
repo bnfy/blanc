@@ -84,8 +84,8 @@ test('privileged chrome is isolated in its own in-memory session', () => {
   assert.match(mainSource, /session\.fromPartition\(CHROME_PARTITION\)/);
   assert.equal(
     (mainSource.match(/partition: CHROME_PARTITION/g) ?? []).length,
-    2,
-    'the chrome window and overlay must both use the isolated partition'
+    3,
+    'the chrome window, overlay, and permission surface must all use the isolated partition'
   );
 });
 

@@ -25,6 +25,7 @@ const {
   CHROME_PARTITION,
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
+  CHROME_PERMISSION_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver } = require('./permissions');
@@ -1359,6 +1360,80 @@ function overlayBounds() {
   return layout.panelBounds;
 }
 
+// --- Floating permission prompt (bottom-center, own view) ------------------
+// The strip document only paints the top band — everything below chromeHeight
+// is covered by the active tab's WebContentsView — and a prompt beside the
+// island competes with it. So prompts render in their own small transparent
+// view, attached bottom-center only while owner.permissionPrompts is
+// non-empty, and always stacked above whatever else is on screen.
+
+function permissionViewBounds() {
+  const { width, height } = rt().window.getContentBounds();
+  const w = Math.min(560, Math.max(0, width - 24));
+  const h = 64; // bar + its 12px bottom margin, drawn by permission.html
+  return { x: Math.round((width - w) / 2), y: Math.max(0, height - h), width: w, height: h };
+}
+
+function ensurePermissionView() {
+  if (rt().permissionView && !rt().permissionView.webContents.isDestroyed()) return rt().permissionView;
+  rt().permissionView = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  const view = rt().permissionView;
+  const wcId = view.webContents.id;
+  windowRuntimes.registerChromeSurface(primaryRuntime, wcId);
+  view.webContents.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+    windowRuntimes.unregisterChromeSurface(wcId);
+    if (rt().permissionView === view) {
+      rt().permissionView = null;
+      rt().permissionViewAttached = false;
+    }
+  }));
+  view.setBackgroundColor('#00000000');
+  lockPrivilegedNavigation(view.webContents, CHROME_PERMISSION_URL);
+  installChromeShortcuts(view.webContents);
+  view.webContents.loadURL(CHROME_PERMISSION_URL);
+  // Prompts sent before the document's first load finished would be lost —
+  // replay everything still pending (the renderer dedupes by id).
+  view.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
+    for (const pending of rt().permissionPrompts.values()) {
+      if (pending.payload) view.webContents.send('permissions:prompt', pending.payload);
+    }
+  }));
+  return view;
+}
+
+/** Keep the prompt above the tab view, overlay, and utility sheet — call
+ * after any of them (re)attach. addChildView on an existing child re-stacks
+ * it topmost. */
+function restackPermissionView() {
+  if (rt().permissionViewAttached && rt().permissionView && hasLiveWindow()) {
+    rt().window.contentView.addChildView(rt().permissionView);
+  }
+}
+
+function attachPermissionView() {
+  if (!hasLiveWindow()) return;
+  const view = ensurePermissionView();
+  view.setBounds(permissionViewBounds());
+  rt().window.contentView.addChildView(view);
+  rt().permissionViewAttached = true;
+}
+
+function detachPermissionView() {
+  if (!rt().permissionViewAttached) return;
+  rt().permissionViewAttached = false;
+  if (hasLiveWindow() && rt().permissionView) {
+    rt().window.contentView.removeChildView(rt().permissionView);
+  }
+}
+
 function createOverlay() {
   // A menu open when the previous window died may never have fired its close
   // callback — never let a leaked ticket disarm the new overlay's blur guard.
@@ -1483,6 +1558,7 @@ function showOverlay(mode, { prefill } = {}) {
   rt().overlayPrefill = prefill ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
   rt().window.contentView.addChildView(rt().overlayView);
+  restackPermissionView();
   if (rt().overlayExitTimer) {
     clearTimeout(rt().overlayExitTimer);
     rt().overlayExitTimer = null;
@@ -2171,6 +2247,9 @@ function resizeActiveView() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (tab?.view) tab.view.setBounds(layout.pageBounds);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
+  if (rt().permissionViewAttached && rt().permissionView) {
+    rt().permissionView.setBounds(permissionViewBounds());
+  }
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) sheet.view.setBounds(layout.utilityBounds);
   // The BrowserWindow renderer and native child views must move in the same
@@ -2835,6 +2914,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
   if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
+  restackPermissionView();
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
   // blank new tab we instead want the chrome's address bar, and OS focus
@@ -3171,6 +3251,9 @@ function isTrustedChromeSender(event) {
     hasLiveWindow() ? { webContents: rt().window.webContents, url: CHROME_INDEX_URL } : null,
     rt().overlayView && !rt().overlayView.webContents.isDestroyed()
       ? { webContents: rt().overlayView.webContents, url: CHROME_OVERLAY_URL }
+      : null,
+    rt().permissionView && !rt().permissionView.webContents.isDestroyed()
+      ? { webContents: rt().permissionView.webContents, url: CHROME_PERMISSION_URL }
       : null,
   ]);
 }
@@ -3992,6 +4075,7 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
     // Destroy the views the window owned — detachWindow only forgets them.
     liveViewContents(runtime.overlayView)?.close();
     liveViewContents(runtime.utilitySheetView)?.close();
+    liveViewContents(runtime.permissionView)?.close();
     windowRuntimes.detachWindow(runtime);
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
@@ -4159,10 +4243,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!owner) return resolve(null);
       if (!owner.window || owner.window.isDestroyed()) return resolve(null);
       const promptId = ++permissionPromptCounter;
+      const payload = { id: promptId, origin, permission, mediaTypes };
       // A quiet sweep excludes tabs with a prompt open: responding after the
       // renderer is gone would persist a decision for a page the user cannot see.
-      owner.permissionPrompts.set(promptId, { resolve, tabId: tab?.id ?? null });
-      owner.window.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
+      // The payload is retained so a still-loading prompt view can replay it.
+      owner.permissionPrompts.set(promptId, { resolve, tabId: tab?.id ?? null, payload });
+      bindWindowRuntime(owner, () => {
+        attachPermissionView();
+        rt().permissionView.webContents.send('permissions:prompt', payload);
+      })();
     })
   );
   setCaptureGrantObserver(({ requestingWebContents, mediaTypes, requestingUrl, isMainFrame }) => {
@@ -4212,6 +4301,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (!pending) return; // wrong window's chrome, or a stale prompt — ignore
     sender.permissionPrompts.delete(id);
     pending.resolve(!!allow);
+    // Last answer dismisses the floating prompt surface entirely.
+    if (sender.permissionPrompts.size === 0) detachPermissionView();
   });
 
   // downloads.js invokes this from its own session/DownloadItem listeners —

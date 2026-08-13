@@ -1,11 +1,12 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// This preload is intentionally attached only to Blanc's two privileged
+// This preload is intentionally attached only to Blanc's three privileged
 // chrome surfaces. Re-check the committed document before exposing anything:
 // a future accidental reuse of this preload must fail closed.
 const TRUSTED_CHROME_DOCUMENTS = new Set([
   'blanc-chrome://index/',
   'blanc-chrome://overlay/',
+  'blanc-chrome://permission/',
 ]);
 
 if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {

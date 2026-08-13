@@ -52,6 +52,10 @@ function createRuntime() {
     shieldTrigger: null,
     utilitySheetView: null,
     utilitySheetUrl: null,
+    /** The floating bottom-center permission-prompt view; attached only
+     * while permissionPrompts is non-empty. */
+    permissionView: null,
+    permissionViewAttached: false,
     tabsWantingAddressBarFocus: new Set(),
     chromeHeight: 64,
     tabsBroadcastTimer: null,
@@ -118,6 +122,8 @@ function detachWindow(runtime) {
   runtime.overlayPrefill = null;
   runtime.utilitySheetView = null;
   runtime.utilitySheetUrl = null;
+  runtime.permissionView = null;
+  runtime.permissionViewAttached = false;
 }
 
 /** Test isolation only — main.js never resets. */

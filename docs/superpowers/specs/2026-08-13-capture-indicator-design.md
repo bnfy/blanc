@@ -289,11 +289,21 @@ shield-sized fixed card; `calculateCaptureBounds` caps height at **5 visible
 rows** and the list scrolls beyond it. Dismissal otherwise matches shield: Escape,
 overlay blur, tab switch, site-changing navigation.
 
-### 6.3 Permission bar glyph
+### 6.3 Permission prompt glyph + surface
 
 `#permissionBar` gains a leading media-type glyph (mic / camera / both) next
 to `#permissionText` for `media` prompts; geolocation/notifications prompts
 stay text-only for now. Same inline-SVG idiom as the pill icons.
+
+**Amended during implementation (2026-08-13, user direction):** the prompt
+no longer lives in the strip at all — beside the island it read as a
+competing sibling pill. It renders in its own small transparent
+`WebContentsView` (`permission.html`/`permission.js`, the third
+`blanc-chrome://` document, trusted in `TRUSTED_CHROME_DOCUMENTS` and
+`isTrustedChromeSender`), attached **bottom-center over the page** only
+while `permissionPrompts` is non-empty, stacked above the tab view, overlay,
+and utility sheet, and destroyed with the window. Styling stays subordinate:
+flat surface, hairline border, 9px radius, no shadow.
 
 ## 7. Quiet Tabs integration
 

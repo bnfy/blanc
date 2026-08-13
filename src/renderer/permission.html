@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; img-src 'self' data: blanc:;" />
+  <title>Permission</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="permission-surface">
+  <div id="permissionBar" class="no-drag" hidden>
+    <span id="permissionGlyphs" aria-hidden="true" hidden>
+      <svg id="permGlyphMic" viewBox="0 0 16 16" hidden>
+        <rect x="6" y="2.2" width="4" height="7" rx="2"/>
+        <path d="M3.8 8.2a4.2 4.2 0 0 0 8.4 0M8 12.4v1.8"/>
+      </svg>
+      <svg id="permGlyphCam" viewBox="0 0 16 16" hidden>
+        <rect x="2.2" y="4.6" width="8.2" height="6.8" rx="1.6"/>
+        <path d="M10.4 7.2l3.4-1.8v5.2l-3.4-1.8z"/>
+      </svg>
+    </span>
+    <span id="permissionText"></span>
+    <button id="permAllowBtn">Allow</button>
+    <button id="permBlockBtn">Block</button>
+  </div>
+  <script src="permission.js"></script>
+</body>
+</html>

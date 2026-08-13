@@ -1956,14 +1956,23 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
 
 /* ---------- Permission prompt capsule (in the strip, beside the pill) ---------- */
 
-/* An ephemeral notice, deliberately SUBORDINATE to the island: flat surface,
-   hairline border, small radius, no popover shadow. The island is the only
-   capsule in the strip — this must never read as a sibling pill. */
+/* The permission prompt lives in its OWN small WebContentsView, attached by
+   main bottom-center over the page while prompts are pending — the strip
+   only paints the top band, and anything near the island competes with it.
+   Still deliberately SUBORDINATE styling: flat surface, hairline border,
+   small radius, no popover shadow. The island stays the only capsule. */
+.permission-surface {
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100vh;
+}
 #permissionBar {
-  position: absolute;
-  top: 12px;
-  right: 8px;
-  max-width: 44vw;
+  max-width: calc(100vw - 24px);
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2067,7 +2076,6 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
   flex: 0 0 auto;
 }
 .capture-pop-stop:hover { border-color: var(--danger); color: var(--danger); }
-body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
 #permissionBar[hidden] { display: none; }
 
 #permissionText {
