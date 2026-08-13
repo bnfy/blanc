@@ -73,6 +73,7 @@ function install(refs) {
     getChromeWebContents,
     setWindowContentSize,
     getWindowContentBounds,
+    focusMainWindow,
     getUtilitySheetBounds,
     getOverlayBounds,
     setTestSearchSuggestionFixture,
@@ -576,6 +577,10 @@ function install(refs) {
     utilitySurface() { return getUtilitySheetState(); },
     windowContentBounds() { return getWindowContentBounds(); },
     setWindowContentSize(width, height) { setWindowContentSize(width, height); },
+    // Fronts + focuses the window and reports whether it is now focused, so
+    // pointer-driven steps can insist on an unoccluded, undeprioritized
+    // chrome renderer before dispatching a captured pointer sequence.
+    focusWindow() { return focusMainWindow(); },
     activeGuestBounds() { return tabs.get(getActiveTabId())?.view.getBounds() ?? null; },
     utilityBounds() { return getUtilitySheetBounds(); },
     overlayBounds() { return getOverlayBounds(); },

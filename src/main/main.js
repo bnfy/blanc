@@ -4084,6 +4084,19 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         resizeActiveView();
       },
       getWindowContentBounds: () => hasLiveWindow() ? rt().window.getContentBounds() : null,
+      // Pointer-driven scenarios front the window first: a real drag on the
+      // rail implies an unoccluded, key window, and a busy desktop otherwise
+      // leaves the chrome renderer deprioritized enough to starve the very
+      // events the step is waiting on.
+      focusMainWindow: () => {
+        if (!hasLiveWindow()) return false;
+        const win = rt().window;
+        if (win.isMinimized()) win.restore();
+        win.show();
+        win.moveTop();
+        app.focus({ steal: true });
+        return win.isFocused();
+      },
       getUtilitySheetBounds: () => liveUtilitySheet()?.view.getBounds() ?? null,
       getOverlayBounds: () => rt().overlayView?.getBounds() ?? null,
       setTestSearchSuggestionFixture,
