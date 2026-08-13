@@ -66,7 +66,7 @@ function sleepCandidates(tabList, options) {
   tabList.forEach((tab, index) => {
     if (!tab?.id || tab.id === activeTabId) return;
     if (tab.asleep || tab.sleeping || tab.waking || tab.isLoading) return;
-    if (tab.audible || tab.muted || tab.usedMedia || tab.pinned) return;
+    if (tab.audible || tab.muted || tab.usedMedia || tab.capturing || tab.pinned) return;
     if (tab.adopted || tab.restorableCommit !== true || tab.deepScrolled) return;
     if (permissionPendingTabIds.has(tab.id)) return;
     if ((popupChildCounts.get(tab.id) ?? 0) !== 0) return;
