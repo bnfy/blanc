@@ -122,17 +122,7 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     const mediaType = permission === 'media' && ['audio', 'video'].includes(details?.mediaType)
       ? details.mediaType
       : null;
-    const decision = storedDecision(readDecisions(), origin, permission, mediaType);
-    // This boolean API cannot express 'prompt'. Reading the UNDECIDED state
-    // as denied breaks preflighting sites: permissions.query says 'denied',
-    // the site shows its own "mic is blocked" help and never calls
-    // getUserMedia, so the real prompt never runs. Undecided MEDIA therefore
-    // reads grantable — the request handler stays the actual gate, and a
-    // remembered Block still reads denied. Geolocation/notifications keep
-    // the strict mapping: Notification.permission === 'granted' would let a
-    // site notify without any prompt ever having been shown.
-    if (permission === 'media') return decision !== 'deny';
-    return decision === 'allow';
+    return storedDecision(readDecisions(), origin, permission, mediaType) === 'allow';
   });
 
   // Screen capture: still deny by never providing a stream (no picker UI yet).
