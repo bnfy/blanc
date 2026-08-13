@@ -17,15 +17,18 @@ release contains the installers plus these verification assets:
 these variables are set:
 
 ```sh
-export BLANC_COSIGN_IDENTITY='<exact authorized certificate identity>'
-export BLANC_COSIGN_OIDC_ISSUER='<exact authorized OIDC issuer>'
+export BLANC_COSIGN_IDENTITY='anthony@bnfy.me'
+export BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth'
 ```
 
-The values are policy inputs, not values to discover from a generated bundle.
-Choose them deliberately, publish the same values on an independently served
-Blanc security page, and verify that publication from a clean machine before
-attempting a public release. Until those values are selected and published,
-the release process is intentionally blocked.
+These are the authorized values (chosen 2026-08-12): the release operator
+signs in with the `bnfy` GitHub account, whose primary verified email is
+`anthony@bnfy.me`. The same pair is published on the Blanc security page
+(https://blancbrowser.com/features/security) so verifiers can pin it
+independently of any release. If the pair ever changes, update the security
+page and this document in the same change, and note the rotation in the next
+release's notes. Verify the publication from a clean machine before the next
+public release.
 
 ## 1. Verify the files
 
