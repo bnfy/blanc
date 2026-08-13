@@ -50,8 +50,13 @@ Given('a background tab with restorable history and oversized page state', async
   const opened = await openQuietable(this, 'quiet-history-a');
   this.quietCandidateId = opened.id;
   await this.call('navigateTab', opened.id, `${this.fixtureUrl('quiet-history-b')}?nostore=1`);
-  await this.waitForState((state) =>
-    state.tabs.find((tab) => tab.id === opened.id)?.loadedUrl.includes('quiet-history-b'));
+  // Wait for the load to FINISH (not just commit) before pushState mutates the
+  // entry list — mirroring openQuietable. A loadedUrl-only wait lets the next
+  // action race the in-flight load (surfaced as ERR_ABORTED by Playwright 1.62).
+  await this.waitForState((state) => {
+    const tab = state.tabs.find((candidate) => candidate.id === opened.id);
+    return tab && !tab.loading && tab.loadedUrl.includes('quiet-history-b');
+  });
   await this.call('executeTab', opened.id,
     `history.pushState({payload:'x'.repeat(600000)},'',location.pathname+'?nostore=1&oversized=1'); true`);
   this.expectedHistoryLength = (await this.call('tabNavigation', opened.id)).entries.length;
@@ -64,11 +69,18 @@ Given('a background storage-bearing tab with back history', async function () {
   const firstUrl = this.fixtureUrl('quiet-storage-history-a');
   const secondUrl = this.fixtureUrl('quiet-storage-history-b');
   const id = await this.call('openTab', firstUrl);
-  await this.waitForState((state) =>
-    state.tabs.find((tab) => tab.id === id)?.loadedUrl.includes('quiet-storage-history-a'));
+  // Both waits require !tab.loading: issuing the second navigation while the
+  // first load is in flight aborts it (ERR_ABORTED, deterministic under
+  // Playwright 1.62's timing), and the history read below needs a settled load.
+  await this.waitForState((state) => {
+    const tab = state.tabs.find((candidate) => candidate.id === id);
+    return tab && !tab.loading && tab.loadedUrl.includes('quiet-storage-history-a');
+  });
   await this.call('navigateTab', id, secondUrl);
-  await this.waitForState((state) =>
-    state.tabs.find((tab) => tab.id === id)?.loadedUrl.includes('quiet-storage-history-b'));
+  await this.waitForState((state) => {
+    const tab = state.tabs.find((candidate) => candidate.id === id);
+    return tab && !tab.loading && tab.loadedUrl.includes('quiet-storage-history-b');
+  });
   const navigation = await this.call('tabNavigation', id);
   this.quietCandidateId = id;
   this.storageHistoryIndex = navigation.activeIndex;
