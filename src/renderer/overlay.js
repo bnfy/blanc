@@ -29,6 +29,8 @@
   const shieldPopCount = document.getElementById('shieldPopCount');
   const shieldPopNote = document.getElementById('shieldPopNote');
   const shieldPopSettings = document.getElementById('shieldPopSettings');
+  const capturePop = document.getElementById('capturePop');
+  const capturePopRows = document.getElementById('capturePopRows');
   const CONNECTION_LABEL = {
     https: 'Connection · Uses HTTPS',
     http: 'Connection · Not encrypted',
@@ -1066,6 +1068,7 @@
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
     shieldPop.hidden = next !== 'shield';
+    capturePop.hidden = next !== 'capture';
 
     if (next === 'panel' || next === 'palette') {
       if (!reshow) {
@@ -1099,7 +1102,74 @@
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldPopToggle.hidden ? shieldPopSettings : shieldPopToggle).focus();
+    } else if (next === 'capture') {
+      renderCapturePop();
+      capturePopRows.querySelector('.capture-pop-stop')?.focus();
     }
+  }
+
+  // Static glyph geometry, built via the namespace API — never innerHTML, so
+  // row data (host names are site-controlled text) can't ever ride into
+  // markup by a later edit.
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const MIC_SHAPES = [
+    ['rect', { x: '6', y: '2.2', width: '4', height: '7', rx: '2' }],
+    ['path', { d: 'M3.8 8.2a4.2 4.2 0 0 0 8.4 0M8 12.4v1.8' }],
+  ];
+  const CAM_SHAPES = [
+    ['rect', { x: '2.2', y: '4.6', width: '8.2', height: '6.8', rx: '1.6' }],
+    ['path', { d: 'M10.4 7.2l3.4-1.8v5.2l-3.4-1.8z' }],
+  ];
+  function captureGlyph(shapes) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 16 16');
+    svg.setAttribute('aria-hidden', 'true');
+    for (const [tag, attrs] of shapes) {
+      const el = document.createElementNS(SVG_NS, tag);
+      for (const [name, value] of Object.entries(attrs)) el.setAttribute(name, value);
+      svg.append(el);
+    }
+    return svg;
+  }
+
+  // Renders from the last tabs:updated broadcast, exactly like the shield —
+  // rows appear/disappear live while the popover is open (main closes it
+  // itself when the list empties).
+  function renderCapturePop() {
+    const rows = state.capturePopover?.rows ?? [];
+    capturePopRows.replaceChildren(...rows.map((row) => {
+      const li = document.createElement('li');
+      li.className = 'capture-pop-row';
+      const scopeLabel = row.audio && row.video ? 'camera & microphone in use'
+        : row.video ? 'camera in use' : 'microphone in use';
+      const glyphs = document.createElement('span');
+      glyphs.className = 'capture-pop-glyphs';
+      if (row.audio) glyphs.append(captureGlyph(MIC_SHAPES));
+      if (row.video) glyphs.append(captureGlyph(CAM_SHAPES));
+      const host = document.createElement('span');
+      host.className = 'host';
+      host.textContent = row.host || 'popup window';
+      const stop = document.createElement('button');
+      stop.className = 'capture-pop-stop';
+      stop.textContent = 'stop';
+      stop.setAttribute('aria-label', `stop — ${row.host || 'popup window'} ${scopeLabel}`);
+      stop.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.browserAPI.captureStop(row.surfaceId);
+      });
+      li.append(glyphs, host, stop);
+      li.setAttribute('role', 'button');
+      li.tabIndex = 0;
+      li.setAttribute('aria-label', `${row.host || 'popup window'} — ${scopeLabel}; go to it`);
+      li.addEventListener('click', () => window.browserAPI.captureFocus(row.surfaceId));
+      li.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          window.browserAPI.captureFocus(row.surfaceId);
+        }
+      });
+      return li;
+    }));
   }
 
   // Renders from the last tabs:updated broadcast — main recomputes
@@ -1509,6 +1579,7 @@
       renderPanel();
     }
     if (mode === 'shield') renderShieldPop();
+    if (mode === 'capture') renderCapturePop();
   });
   // Cached-first: the panel renders the cache instantly, and this repaints
   // when the panel-open refresh's pull lands (tab sync).

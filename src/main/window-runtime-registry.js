@@ -29,7 +29,7 @@ function createRuntime() {
     // showing.
     /** @type {WebContentsView | null} */
     overlayView: null,
-    /** @type {null | 'panel' | 'palette' | 'find' | 'shield'} */
+    /** @type {null | 'panel' | 'palette' | 'find' | 'shield' | 'capture'} */
     overlayMode: null,
     /** Companion to overlayMode, replayed alongside it below if the
      * overlay's first load hadn't finished when showOverlay was called. */
@@ -37,6 +37,8 @@ function createRuntime() {
     /** Chip right edge (window coords) captured when the shield popover
      * opens; reused if bounds recompute (e.g. window resize) while it's up. */
     shieldAnchorRight: null,
+    /** Same, for the capture popover's chip (its only trigger control). */
+    captureAnchorRight: null,
     /** The site the open shield popover describes, captured at open time —
      * the tab's live url may already read as the NEW site when
      * did-start-navigation fires, so a live recompute could never detect

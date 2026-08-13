@@ -523,8 +523,10 @@
     // (spec §6.1), unlike every per-active-tab neighbour in the pill.
     const cap = state.captureChip ?? { audio: false, video: false };
     pillCapture.hidden = !cap.audio && !cap.video;
-    pillCaptureMic.hidden = !cap.audio;
-    pillCaptureCam.hidden = !cap.video;
+    // toggleAttribute, not .hidden — SVGElement has no hidden IDL property,
+    // so the property form silently does nothing on these glyphs.
+    pillCaptureMic.toggleAttribute('hidden', !cap.audio);
+    pillCaptureCam.toggleAttribute('hidden', !cap.video);
     const capTitle = cap.audio && cap.video ? 'camera & microphone in use'
       : cap.video ? 'camera in use' : 'microphone in use';
     pillCapture.title = `${capTitle} — open capture controls`;
@@ -619,8 +621,9 @@
       permissionText.textContent = `${host} wants to ${describePermission(activePermissionPrompt)}`;
       const isMedia = activePermissionPrompt.permission === 'media';
       permissionGlyphs.hidden = !isMedia;
-      permGlyphMic.hidden = !(isMedia && activePermissionPrompt.mediaTypes.includes('audio'));
-      permGlyphCam.hidden = !(isMedia && activePermissionPrompt.mediaTypes.includes('video'));
+      // toggleAttribute — SVGElement has no hidden IDL property.
+      permGlyphMic.toggleAttribute('hidden', !(isMedia && activePermissionPrompt.mediaTypes.includes('audio')));
+      permGlyphCam.toggleAttribute('hidden', !(isMedia && activePermissionPrompt.mediaTypes.includes('video')));
     }
   }
 

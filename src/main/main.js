@@ -83,6 +83,7 @@ const {
   normalizeVerticalTabsWidth,
   calculateChromeLayout,
   calculateShieldBounds,
+  calculateCaptureBounds,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
 const {
@@ -1338,6 +1339,14 @@ function overlayBounds() {
       anchorRight: rt().shieldAnchorRight,
     });
   }
+  if (rt().overlayMode === 'capture') {
+    return calculateCaptureBounds({
+      windowWidth: rt().window.getContentBounds().width,
+      stripHeight: rt().chromeHeight,
+      anchorRight: rt().captureAnchorRight,
+      rowCount: captureRowCount(),
+    });
+  }
   return layout.panelBounds;
 }
 
@@ -1499,6 +1508,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().shieldAnchorRight = null;
+  rt().captureAnchorRight = null;
   rt().shieldPopoverHost = null;
   rt().shieldTrigger = null;
   // A dismissed command bar means the user is done addressing — stop any
@@ -1532,7 +1542,9 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     // started. The chrome webContents must take focus BEFORE the strip's DOM
     // focus() runs: the overlay held it until removeChildView above, and a
     // focus call inside an unfocused document paints no visible ring.
-    const restoreTrigger = reason === 'escape' && closingMode === 'shield' ? closingTrigger : null;
+    const restoreTrigger = reason === 'escape'
+      ? (closingMode === 'shield' ? closingTrigger : closingMode === 'capture' ? 'capture' : null)
+      : null;
     if (restoreTrigger) rt().window.webContents.focus();
     rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
     if (refocusContent && !restoreTrigger) tabs.get(rt().activeTabId)?.view.webContents.focus();
@@ -2021,7 +2033,14 @@ function ensureCaptureSurfaceForSender(wc) {
 function scheduleCaptureBroadcast(surface) {
   const owner = (surface?.kind === 'tab' ? windowRuntimes.runtimeForTab(surface.tab.id) : null)
     ?? primaryRuntime;
-  bindWindowRuntime(owner, scheduleBroadcastTabs)();
+  bindWindowRuntime(owner, () => {
+    scheduleBroadcastTabs();
+    if (rt().overlayMode !== 'capture') return;
+    // The open popover tracks live truth: an emptied list closes it, a
+    // changed row count resizes the card in place.
+    if (captureRowCount() === 0) hideOverlay({ refocusContent: false });
+    else if (rt().overlayView) rt().overlayView.setBounds(overlayBounds());
+  })();
 }
 
 function refreshCaptureProjection(surface) {
@@ -2068,6 +2087,20 @@ function captureBroadcastState(serialized) {
     },
     capturePopover: { rows },
   };
+}
+
+/** Row count without a full serialize — sizes the popover card. */
+function captureRowCount() {
+  let count = 0;
+  for (const tab of tabs.values()) {
+    if (tab.capture?.audio || tab.capture?.video) count += 1;
+  }
+  for (const popup of popupCaptures.values()) {
+    if (popup.wc.isDestroyed()) continue;
+    const p = captureProjection(popup.record);
+    if (p.audio || p.video) count += 1;
+  }
+  return count;
 }
 
 /** The active tab's popover model, or null when it has no blockable host. */
@@ -2755,7 +2788,9 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // Find state is per-tab; a stale capsule over a different page misleads.
   // The shield popover describes one tab's site — same rule.
-  if (rt().overlayMode === 'find' || rt().overlayMode === 'shield') hideOverlay({ refocusContent: false });
+  if (rt().overlayMode === 'find' || rt().overlayMode === 'shield' || rt().overlayMode === 'capture') {
+    hideOverlay({ refocusContent: false });
+  }
 
   const prevId = rt().activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
@@ -3410,6 +3445,18 @@ function registerIpcHandlers() {
     rt().shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
+  });
+  chromeOn('chrome:open-capture', (_e, anchor) => {
+    if (rt().overlayMode === 'capture') return hideOverlay({ refocusContent: false }); // re-click toggles
+    if (captureRowCount() === 0) return; // chip should be hidden; nothing to show
+    rt().captureAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+    broadcastTabs(); // fresh state.capturePopover before the overlay renders
+    showOverlay('capture');
+  });
+  chromeOn('chrome:capture-stop', (_e, surfaceId) => stopCaptureSurface(surfaceId));
+  chromeOn('chrome:capture-focus', (_e, surfaceId) => {
+    hideOverlay({ refocusContent: false });
+    focusCaptureSurface(surfaceId);
   });
   chromeHandle('chrome:open-main-menu', (event, point) => {
     // The rich preload is shared with the overlay, but the visible platform
