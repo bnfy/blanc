@@ -952,6 +952,10 @@ function install(refs) {
       else if (reason === 'muted') tab.muted = true;
       else if (reason === 'audible') tab.audible = true;
       else if (reason === 'used media') tab.usedMedia = true;
+      else if (reason === 'capturing') {
+        tab.capturing = true;
+        tab.capture = { audio: true, video: false };
+      }
       else if (reason === 'adopted child') tab.adopted = true;
       else if (reason === 'non-refetchable POST') tab.restorableCommit = false;
       else if (reason === 'pending permission') {
