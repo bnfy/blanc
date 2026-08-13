@@ -156,6 +156,33 @@ function calculateShieldBounds({ windowWidth, stripHeight, anchorRight }) {
   return { x, y: dimension(stripHeight), width, height: SHIELD_POPOVER_HEIGHT };
 }
 
+const CAPTURE_POPOVER_WIDTH = SHIELD_POPOVER_WIDTH;
+const CAPTURE_ROW_HEIGHT = 44;
+const CAPTURE_POPOVER_CHROME = 56; // header + card padding
+const CAPTURE_POPOVER_MAX_ROWS = 5;
+
+/**
+ * Bounds for the 'capture' overlay mode: same anchoring rules as the shield
+ * popover, but height tracks the row count, capped at 5 visible rows (the
+ * list scrolls beyond that — spec §6.2).
+ */
+function calculateCaptureBounds({ windowWidth, stripHeight, anchorRight, rowCount }) {
+  const winWidth = dimension(windowWidth);
+  const width = Math.min(CAPTURE_POPOVER_WIDTH, Math.max(0, winWidth - SHIELD_POPOVER_MARGIN * 2));
+  const rows = Math.max(1, Math.min(CAPTURE_POPOVER_MAX_ROWS, rowCount | 0));
+  const right = Number.isFinite(anchorRight)
+    ? Math.round(anchorRight)
+    : Math.round((winWidth + width) / 2);
+  const x = Math.max(
+    SHIELD_POPOVER_MARGIN,
+    Math.min(right - width, winWidth - width - SHIELD_POPOVER_MARGIN)
+  );
+  return {
+    x, y: dimension(stripHeight), width,
+    height: CAPTURE_POPOVER_CHROME + rows * CAPTURE_ROW_HEIGHT,
+  };
+}
+
 module.exports = {
   VERTICAL_TABS_DEFAULT_WIDTH,
   VERTICAL_TABS_MIN_WIDTH,
@@ -168,7 +195,12 @@ module.exports = {
   SHIELD_POPOVER_WIDTH,
   SHIELD_POPOVER_HEIGHT,
   SHIELD_POPOVER_MARGIN,
+  CAPTURE_POPOVER_WIDTH,
+  CAPTURE_ROW_HEIGHT,
+  CAPTURE_POPOVER_CHROME,
+  CAPTURE_POPOVER_MAX_ROWS,
   calculateShieldBounds,
+  calculateCaptureBounds,
   normalizeTabLayout,
   normalizeVerticalTabsWidth,
   calculateChromeLayout,
