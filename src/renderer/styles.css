@@ -1027,6 +1027,11 @@ body.mac .vertical-tabs-toolbar {
   cursor: pointer;
 }
 .capture-chip:hover { background: var(--border); }
+/* Author display rules beat the UA [hidden] mapping — state both, per the
+   pill convention (.pill-btn, #pillPrivateChip, .insecure-badge all do).
+   Without this the stopped chip lingers as an empty hover-highlightable
+   ghost with a stale tooltip. */
+.capture-chip[hidden] { display: none; }
 /* No UA [hidden] rule exists for SVG — state it. */
 .capture-chip svg[hidden] { display: none; }
 .capture-chip svg {
