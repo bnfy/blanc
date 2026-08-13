@@ -48,11 +48,10 @@ test('private-session permission grants live only in memory', async (t) => {
   // whole process lifetime.)
   const nextLaunch = fakeSession();
   setupPermissionPolicy(nextLaunch, { persistDecisions: false });
-  assert.equal(
-    nextLaunch.check(null, 'media', 'https://example.com', { mediaType: 'audio' }),
-    false,
-    'a private grant must not survive into a new private session'
-  );
+  // The boolean check reads undecided media as grantable (preflight
+  // compatibility — see the check handler), so it can no longer distinguish
+  // "forgotten" from "granted". The proof the grant did not survive is that
+  // the request handler re-prompts from scratch:
   assert.equal(await request(nextLaunch, 'media', {
     requestingUrl: 'https://example.com/page',
     mediaTypes: ['audio'],
@@ -61,7 +60,11 @@ test('private-session permission grants live only in memory', async (t) => {
 });
 
 test('private media grants stay scoped per device type', async (t) => {
-  setPermissionPrompter(async ({ mediaTypes }) => mediaTypes.includes('audio'));
+  let prompts = 0;
+  setPermissionPrompter(async ({ mediaTypes }) => {
+    prompts += 1;
+    return mediaTypes.includes('audio');
+  });
   t.after(() => setPermissionPrompter(null));
 
   const privateSession = fakeSession();
@@ -71,10 +74,19 @@ test('private media grants stay scoped per device type', async (t) => {
     requestingUrl: 'https://example.com/',
     mediaTypes: ['audio'],
   }), true);
+  // The check handler reads undecided media as grantable (preflight
+  // compatibility), so device-type scoping is enforced where access actually
+  // happens: a camera request must go back through the prompt, not ride the
+  // microphone grant.
+  assert.equal(await request(privateSession, 'media', {
+    requestingUrl: 'https://example.com/',
+    mediaTypes: ['video'],
+  }), false, 'a private microphone grant must not authorize camera');
+  assert.equal(prompts, 2, 'the camera request must have re-prompted');
   assert.equal(
     privateSession.check(null, 'media', 'https://example.com', { mediaType: 'video' }),
     false,
-    'a private microphone grant must not authorize camera'
+    'the remembered camera Block reads denied'
   );
 });
 
