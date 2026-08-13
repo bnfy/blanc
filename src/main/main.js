@@ -25,9 +25,10 @@ const {
   CHROME_PARTITION,
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
+  CHROME_PERMISSION_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
-const { setupPermissionPolicy, setPermissionPrompter } = require('./permissions');
+const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
@@ -54,6 +55,10 @@ const {
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
+const {
+  createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
+  projection: captureProjection, clearRecord: clearCaptureRecord,
+} = require('./capture-state');
 const { hasExclusiveRenderer, hasBeforeUnloadListener } = require('./renderer-discard');
 const {
   createTabView,
@@ -79,6 +84,7 @@ const {
   normalizeVerticalTabsWidth,
   calculateChromeLayout,
   calculateShieldBounds,
+  calculateCaptureBounds,
 } = require('./chrome-layout');
 const { reorderWithinBucket } = require('./tab-order');
 const {
@@ -691,9 +697,10 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   if (await hasBeforeUnloadListener(wc)) return false;
 
   // The CDP inspection above is asynchronous. Repeat every mutable eligibility
-  // check immediately before the irreversible renderer kill.
+  // check immediately before the irreversible renderer kill — including
+  // capture, which a background tab can legitimately begin during the await.
   if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.navEpoch !== navEpoch || tab.isLoading
-      || !tab.sleeping || liveContents(tab) !== wc
+      || !tab.sleeping || tab.capturing || liveContents(tab) !== wc
       || !rendererIsExclusive()) return false;
 
   const wcId = wc.id;
@@ -722,6 +729,10 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   tab.isLoading = false;
   tab.pageBg = null;
   tab.themeColor = null;
+  // The discarded document's capture anchors die with its renderer — a woken
+  // document must not inherit report eligibility without a fresh grant. The
+  // normal render-process-gone clear deliberately skips sleeping tabs.
+  if (tab.captureRecord) clearCaptureState({ kind: 'tab', tab, record: tab.captureRecord });
   tabIdByWebContentsId.delete(wcId);
   lastMainFrameMethod.delete(wcId);
   if (broadcast) broadcastTabs();
@@ -754,9 +765,10 @@ async function sleepTab(id, { broadcast = true } = {}) {
   if (probe.dirty) return false;
 
   // The probe has an async frame budget; validate synchronously immediately
-  // before teardown so it can never discard a tab the user just activated.
+  // before teardown so it can never discard a tab the user just activated —
+  // or one that began CAPTURING after candidate selection.
   if (!tabs.has(id) || id === rt().activeTabId || tab.navEpoch !== epochAtProbe
-      || tab.isLoading || tab.sleeping || !liveContents(tab)) return false;
+      || tab.isLoading || tab.sleeping || tab.capturing || !liveContents(tab)) return false;
 
   if (snapshot.droppedPageState) {
     console.debug(`[quiet-tabs] ${id}: page state dropped (oversized or private)`);
@@ -818,6 +830,10 @@ async function sleepTab(id, { broadcast = true } = {}) {
       tab.isLoading = false;
       tab.pageBg = null;
       tab.themeColor = null;
+      // removeAllListeners() above stripped the normal render-process-gone
+      // capture clear; the discarded document's anchors must not survive
+      // into whatever a wake later loads.
+      if (tab.captureRecord) clearCaptureState({ kind: 'tab', tab, record: tab.captureRecord });
       const record = sleepSnapshots.get(id);
       if (record) record.view = null;
       tabIdByWebContentsId.delete(wcId);
@@ -1333,7 +1349,89 @@ function overlayBounds() {
       anchorRight: rt().shieldAnchorRight,
     });
   }
+  if (rt().overlayMode === 'capture') {
+    return calculateCaptureBounds({
+      windowWidth: rt().window.getContentBounds().width,
+      stripHeight: rt().chromeHeight,
+      anchorRight: rt().captureAnchorRight,
+      rowCount: captureRowCount(),
+    });
+  }
   return layout.panelBounds;
+}
+
+// --- Floating permission prompt (bottom-center, own view) ------------------
+// The strip document only paints the top band — everything below chromeHeight
+// is covered by the active tab's WebContentsView — and a prompt beside the
+// island competes with it. So prompts render in their own small transparent
+// view, attached bottom-center only while owner.permissionPrompts is
+// non-empty, and always stacked above whatever else is on screen.
+
+function permissionViewBounds() {
+  const { width, height } = rt().window.getContentBounds();
+  const w = Math.min(560, Math.max(0, width - 24));
+  const h = 64; // bar + its 12px bottom margin, drawn by permission.html
+  return { x: Math.round((width - w) / 2), y: Math.max(0, height - h), width: w, height: h };
+}
+
+function ensurePermissionView() {
+  if (rt().permissionView && !rt().permissionView.webContents.isDestroyed()) return rt().permissionView;
+  rt().permissionView = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  const view = rt().permissionView;
+  const wcId = view.webContents.id;
+  windowRuntimes.registerChromeSurface(primaryRuntime, wcId);
+  view.webContents.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+    windowRuntimes.unregisterChromeSurface(wcId);
+    if (rt().permissionView === view) {
+      rt().permissionView = null;
+      rt().permissionViewAttached = false;
+    }
+  }));
+  view.setBackgroundColor('#00000000');
+  lockPrivilegedNavigation(view.webContents, CHROME_PERMISSION_URL);
+  installChromeShortcuts(view.webContents);
+  view.webContents.loadURL(CHROME_PERMISSION_URL);
+  // Prompts sent before the document's first load finished would be lost —
+  // replay everything still pending (the renderer dedupes by id).
+  view.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
+    for (const pending of rt().permissionPrompts.values()) {
+      if (pending.payload) view.webContents.send('permissions:prompt', pending.payload);
+    }
+  }));
+  return view;
+}
+
+/** Keep the prompt above the tab view, overlay, and utility sheet — call
+ * after any of them (re)attach. addChildView on an existing child re-stacks
+ * it topmost. */
+function restackPermissionView() {
+  if (rt().permissionViewAttached && rt().permissionView && hasLiveWindow()) {
+    rt().window.contentView.addChildView(rt().permissionView);
+  }
+}
+
+function attachPermissionView() {
+  if (!hasLiveWindow()) return;
+  const view = ensurePermissionView();
+  view.setBounds(permissionViewBounds());
+  rt().window.contentView.addChildView(view);
+  rt().permissionViewAttached = true;
+}
+
+function detachPermissionView() {
+  if (!rt().permissionViewAttached) return;
+  rt().permissionViewAttached = false;
+  if (hasLiveWindow() && rt().permissionView) {
+    rt().window.contentView.removeChildView(rt().permissionView);
+  }
 }
 
 function createOverlay() {
@@ -1460,6 +1558,7 @@ function showOverlay(mode, { prefill } = {}) {
   rt().overlayPrefill = prefill ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
   rt().window.contentView.addChildView(rt().overlayView);
+  restackPermissionView();
   if (rt().overlayExitTimer) {
     clearTimeout(rt().overlayExitTimer);
     rt().overlayExitTimer = null;
@@ -1494,6 +1593,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().shieldAnchorRight = null;
+  rt().captureAnchorRight = null;
   rt().shieldPopoverHost = null;
   rt().shieldTrigger = null;
   // A dismissed command bar means the user is done addressing — stop any
@@ -1527,7 +1627,9 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     // started. The chrome webContents must take focus BEFORE the strip's DOM
     // focus() runs: the overlay held it until removeChildView above, and a
     // focus call inside an unfocused document paints no visible ring.
-    const restoreTrigger = reason === 'escape' && closingMode === 'shield' ? closingTrigger : null;
+    const restoreTrigger = reason === 'escape'
+      ? (closingMode === 'shield' ? closingTrigger : closingMode === 'capture' ? 'capture' : null)
+      : null;
     if (restoreTrigger) rt().window.webContents.focus();
     rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
     if (refocusContent && !restoreTrigger) tabs.get(rt().activeTabId)?.view.webContents.focus();
@@ -1697,6 +1799,9 @@ function showUtilityPage(url) {
   // 'visible' and never background-throttles — toggle real visibility.
   sheet.view.setVisible(true);
   runtime.window.contentView.addChildView(sheet.view);
+  // A pending permission prompt must stay above the sheet — a buried prompt
+  // has no visible Allow/Block until the sheet happens to be dismissed.
+  bindWindowRuntime(runtime, restackPermissionView)();
   resizeActiveView();
   sheet.wc.focus();
 }
@@ -1805,6 +1910,9 @@ function serializeTabs() {
         // The sole Quiet Tabs field chrome may see. Operational sleep state
         // and snapshots remain main-process-only.
         asleep: tab.asleep,
+        // Capture projection only — the record (anchors, frame counts) is
+        // main-process-only, like every capture-state internal (spec §8).
+        capture: tab.capture ?? { audio: false, video: false },
       };
       // Whether ads are allow-listed here. Derived rather than stored: the
       // exception list is edited from Settings and the slash commands alike,
@@ -1934,6 +2042,155 @@ function clearSessionMeta() {
   });
 }
 
+// --- Capture indicator (spec §3) ------------------------------------------
+const CAPTURE_STOP_TIMEOUT_MS = 1500;
+
+function resolveCaptureSurface(surfaceId) {
+  if (typeof surfaceId === 'string' && surfaceId.startsWith('popup:')) {
+    const popup = popupCaptures.get(Number(surfaceId.slice(6)));
+    return popup && !popup.wc.isDestroyed()
+      ? { kind: 'popup', record: popup.record, wc: popup.wc } : null;
+  }
+  const tab = tabs.get(surfaceId);
+  const wc = liveContents(tab);
+  // Read-only here too: a surface without a record has nothing to stop.
+  return tab && wc && tab.captureRecord
+    ? { kind: 'tab', tab, record: tab.captureRecord, wc } : null;
+}
+
+function stopCaptureSurface(surfaceId) {
+  const surface = resolveCaptureSurface(surfaceId);
+  if (!surface) return;
+  // Token the timeout on the record's generation: if this capture clears
+  // and a NEW call starts inside the window (grant bumps generation), the
+  // stale timer must not reload the new call out from under the user.
+  const generation = surface.record.generation;
+  for (const frame of surface.wc.mainFrame.framesInSubtree) {
+    try { frame.send('capture:stop'); } catch {}
+  }
+  // The chip stays lit until truth clears it: a confirmed stop arrives as
+  // ordinary zero snapshots; an uninstrumented surface gets reloaded and
+  // clears on the reload's main-frame commit (spec §5).
+  setTimeout(() => {
+    if (surface.record.generation !== generation) return;
+    const p = captureProjection(surface.record);
+    if ((p.audio || p.video) && !surface.wc.isDestroyed()) surface.wc.reload();
+  }, CAPTURE_STOP_TIMEOUT_MS);
+}
+
+function focusCaptureSurface(surfaceId) {
+  const surface = resolveCaptureSurface(surfaceId);
+  if (!surface) return;
+  if (surface.kind === 'tab') setActiveTab(surface.tab.id);
+  else BrowserWindow.fromWebContents(surface.wc)?.focus();
+}
+// Auxiliary popups are capture surfaces too (spec §3.3). PROCESS-WIDE and
+// deliberately not runtime-owned: detachWindow wipes auxiliaryOwner on macOS
+// window close, but an outlivesOpener popup keeps capturing across it.
+const popupCaptures = new Map(); // wcId -> { record, wc }
+
+// READ-ONLY resolution: never creates a record. Only the grant observer
+// (ensureCaptureSurfaceForSender) may create one — grant-only off→on means
+// an unsolicited report must find nothing to write into.
+function captureSurfaceForSender(wc) {
+  const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+  if (tab) {
+    return tab.captureRecord
+      ? { kind: 'tab', tab, record: tab.captureRecord, wc: liveContents(tab) }
+      : null;
+  }
+  const popup = popupCaptures.get(wc.id);
+  return popup ? { kind: 'popup', record: popup.record, wc: popup.wc } : null;
+}
+
+function ensureCaptureSurfaceForSender(wc) {
+  const tab = tabs.get(tabIdByWebContentsId.get(wc.id));
+  if (tab) {
+    if (!tab.captureRecord) tab.captureRecord = createCaptureRecord();
+    return { kind: 'tab', tab, record: tab.captureRecord, wc: liveContents(tab) };
+  }
+  const popup = popupCaptures.get(wc.id);
+  return popup ? { kind: 'popup', record: popup.record, wc: popup.wc } : null;
+}
+
+// Capture events arrive over native boundaries main.js doesn't bind — a bare
+// ipcMain.on (never chromeOn: web content must not gain chrome-IPC trust),
+// the permission request handler, and popup WebContents events — so every
+// broadcast here must rebind the runtime itself (same rule downloads.js
+// documents for its session callbacks).
+function scheduleCaptureBroadcast(surface) {
+  const owner = (surface?.kind === 'tab' ? windowRuntimes.runtimeForTab(surface.tab.id) : null)
+    ?? primaryRuntime;
+  bindWindowRuntime(owner, () => {
+    scheduleBroadcastTabs();
+    if (rt().overlayMode !== 'capture') return;
+    // The open popover tracks live truth: an emptied list closes it, a
+    // changed row count resizes the card in place.
+    if (captureRowCount() === 0) hideOverlay({ refocusContent: false });
+    else if (rt().overlayView) rt().overlayView.setBounds(overlayBounds());
+  })();
+}
+
+function refreshCaptureProjection(surface) {
+  const p = captureProjection(surface.record);
+  if (surface.kind === 'tab') {
+    surface.tab.capture = p;
+    surface.tab.capturing = p.audio || p.video;
+  }
+  scheduleCaptureBroadcast(surface);
+}
+
+function clearCaptureState(surface) {
+  clearCaptureRecord(surface.record);
+  refreshCaptureProjection(surface);
+}
+
+const captureHostOf = (url) => { try { return new URL(url).host; } catch { return ''; } };
+
+/** Rows for every capturing surface + the window-wide chip union. Derived
+ * fresh each broadcast so a closed tab or dead popup drops out by itself. */
+function captureBroadcastState(serialized) {
+  const rows = [];
+  for (const row of serialized) {
+    if (row.capture?.audio || row.capture?.video) {
+      rows.push({
+        surfaceId: row.id, host: captureHostOf(row.url), kind: 'tab',
+        audio: !!row.capture.audio, video: !!row.capture.video,
+      });
+    }
+  }
+  for (const [wcId, popup] of popupCaptures) {
+    if (popup.wc.isDestroyed()) continue;
+    const p = captureProjection(popup.record);
+    if (!p.audio && !p.video) continue;
+    rows.push({
+      surfaceId: `popup:${wcId}`, host: captureHostOf(popup.wc.getURL()), kind: 'popup',
+      audio: p.audio, video: p.video,
+    });
+  }
+  return {
+    captureChip: {
+      audio: rows.some((row) => row.audio),
+      video: rows.some((row) => row.video),
+    },
+    capturePopover: { rows },
+  };
+}
+
+/** Row count without a full serialize — sizes the popover card. */
+function captureRowCount() {
+  let count = 0;
+  for (const tab of tabs.values()) {
+    if (tab.capture?.audio || tab.capture?.video) count += 1;
+  }
+  for (const popup of popupCaptures.values()) {
+    if (popup.wc.isDestroyed()) continue;
+    const p = captureProjection(popup.record);
+    if (p.audio || p.video) count += 1;
+  }
+  return count;
+}
+
 /** The active tab's popover model, or null when it has no blockable host. */
 function activeShieldPopover(serialized = serializeTabs()) {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
@@ -1965,6 +2222,7 @@ function broadcastTabs() {
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
+    ...captureBroadcastState(serialized),
     ...widthMetrics,
   };
   rt().window.webContents.send('tabs:updated', payload);
@@ -1992,6 +2250,9 @@ function resizeActiveView() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
   if (tab?.view) tab.view.setBounds(layout.pageBounds);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
+  if (rt().permissionViewAttached && rt().permissionView) {
+    rt().permissionView.setBounds(permissionViewBounds());
+  }
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) sheet.view.setBounds(layout.utilityBounds);
   // The BrowserWindow renderer and native child views must move in the same
@@ -2384,6 +2645,9 @@ function onMainFrameCommit(tab, { url, httpResponseCode }) {
   // would unprotect exactly the paused video this rule exists to protect.
   tab.usedMedia = false;
   tab.deepScrolled = false;
+  // A real navigation destroys the document and its tracks; capture truth
+  // starts over (spec §3.2). Same-document navs don't come through here.
+  if (tab.captureRecord) clearCaptureState({ kind: 'tab', tab, record: tab.captureRecord });
   const wc = liveContents(tab);
   const isHttp = /^https?:/i.test(url ?? '');
   // Non-http(s) commits never reach onBeforeSendHeaders, so they are GETs by
@@ -2442,6 +2706,20 @@ initTabView({
   handOffToOs,
   upgradeFavicon,
   setTabFavicon,
+  registerPopupCaptureSurface(wc) {
+    popupCaptures.set(wc.id, { record: createCaptureRecord(), wc });
+    const drop = () => { popupCaptures.delete(wc.id); scheduleCaptureBroadcast(null); };
+    const wipe = () => {
+      const popup = popupCaptures.get(wc.id);
+      if (popup) { clearCaptureRecord(popup.record); scheduleCaptureBroadcast(null); }
+    };
+    wc.once('destroyed', drop);
+    wc.on('render-process-gone', wipe);
+    wc.on('did-navigate', wipe);
+  },
+  clearTabCaptureState(tab) {
+    if (tab.captureRecord) clearCaptureState({ kind: 'tab', tab, record: tab.captureRecord });
+  },
   isStartupGateActive: () => startupNavigationGateActive,
   startupQueuedNavigations,
   onMainFrameCommit,
@@ -2524,6 +2802,11 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     adopted,                  // an adopted window.open child is never quietable
     openerTabId,              // family-awareness for sleepCandidates
     usedMedia: false,         // 'media-started-playing'; cleared ONLY on main-frame nav
+    // --- Capture indicator (spec §3). Projection + record; never serialized
+    // beyond the explicit `capture` allowlist entry, never persisted. ---
+    capture: { audio: false, video: false },
+    capturing: false,         // projection mirror for the pure sleep policy
+    captureRecord: null,      // created by the grant observer only
     // Fail-safe false: a tab with no committed main frame is not quietable.
     // Deliberately NOT historyEligible, which is false for every private tab.
     restorableCommit: false,
@@ -2596,7 +2879,9 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // Find state is per-tab; a stale capsule over a different page misleads.
   // The shield popover describes one tab's site — same rule.
-  if (rt().overlayMode === 'find' || rt().overlayMode === 'shield') hideOverlay({ refocusContent: false });
+  if (rt().overlayMode === 'find' || rt().overlayMode === 'shield' || rt().overlayMode === 'capture') {
+    hideOverlay({ refocusContent: false });
+  }
 
   const prevId = rt().activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
@@ -2632,6 +2917,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
   if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
+  restackPermissionView();
   resizeActiveView();
   // Focusing the tab's WebContentsView gives it OS keyboard focus. For a
   // blank new tab we instead want the chrome's address bar, and OS focus
@@ -2969,6 +3255,9 @@ function isTrustedChromeSender(event) {
     rt().overlayView && !rt().overlayView.webContents.isDestroyed()
       ? { webContents: rt().overlayView.webContents, url: CHROME_OVERLAY_URL }
       : null,
+    rt().permissionView && !rt().permissionView.webContents.isDestroyed()
+      ? { webContents: rt().permissionView.webContents, url: CHROME_PERMISSION_URL }
+      : null,
   ]);
 }
 
@@ -3251,6 +3540,18 @@ function registerIpcHandlers() {
     rt().shieldTrigger = trigger;
     broadcastTabs(); // fresh state.shieldPopover before the overlay renders
     showOverlay('shield');
+  });
+  chromeOn('chrome:open-capture', (_e, anchor) => {
+    if (rt().overlayMode === 'capture') return hideOverlay({ refocusContent: false }); // re-click toggles
+    if (captureRowCount() === 0) return; // chip should be hidden; nothing to show
+    rt().captureAnchorRight = Number.isFinite(anchor?.right) ? anchor.right : null;
+    broadcastTabs(); // fresh state.capturePopover before the overlay renders
+    showOverlay('capture');
+  });
+  chromeOn('chrome:capture-stop', (_e, surfaceId) => stopCaptureSurface(surfaceId));
+  chromeOn('chrome:capture-focus', (_e, surfaceId) => {
+    hideOverlay({ refocusContent: false });
+    focusCaptureSurface(surfaceId);
   });
   chromeHandle('chrome:open-main-menu', (event, point) => {
     // The rich preload is shared with the overlay, but the visible platform
@@ -3777,6 +4078,7 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
     // Destroy the views the window owned — detachWindow only forgets them.
     liveViewContents(runtime.overlayView)?.close();
     liveViewContents(runtime.utilitySheetView)?.close();
+    liveViewContents(runtime.permissionView)?.close();
     windowRuntimes.detachWindow(runtime);
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
@@ -3858,6 +4160,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       type: 'frame',
       filePath: path.join(__dirname, 'chrome-compat-preload.js'),
     });
+    // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
+    // preloads only reach MAIN frames on our configuration — subframe grants
+    // stay unconfirmable and fail toward stuck-on, never silently-off.
+    browsingSession.registerPreloadScript({
+      type: 'frame',
+      filePath: path.join(__dirname, 'capture-preload.js'),
+    });
   }
 
   // Fallback: patch Sec-CH-UA HTTP headers for webContents where the CDP
@@ -3937,18 +4246,66 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       if (!owner) return resolve(null);
       if (!owner.window || owner.window.isDestroyed()) return resolve(null);
       const promptId = ++permissionPromptCounter;
+      const payload = { id: promptId, origin, permission, mediaTypes };
       // A quiet sweep excludes tabs with a prompt open: responding after the
       // renderer is gone would persist a decision for a page the user cannot see.
-      owner.permissionPrompts.set(promptId, { resolve, tabId: tab?.id ?? null });
-      owner.window.webContents.send('permissions:prompt', { id: promptId, origin, permission, mediaTypes });
+      // The payload is retained so a still-loading prompt view can replay it.
+      owner.permissionPrompts.set(promptId, { resolve, tabId: tab?.id ?? null, payload });
+      bindWindowRuntime(owner, () => {
+        attachPermissionView();
+        rt().permissionView.webContents.send('permissions:prompt', payload);
+      })();
     })
   );
+  setCaptureGrantObserver(({ requestingWebContents, mediaTypes, requestingUrl, isMainFrame }) => {
+    if (!requestingWebContents) return;
+    const surface = ensureCaptureSurfaceForSender(requestingWebContents);
+    if (!surface) return;
+    let origin = null;
+    try { origin = new URL(requestingUrl).origin; } catch { return; }
+    applyGrant(surface.record, { scopes: mediaTypes, origin, isMainFrame });
+    refreshCaptureProjection(surface);
+  });
+
+  // Reports/settlements REFINE DISPLAY STATE toward off (spec §9) — they are
+  // not security truth; the macOS system indicator is the malicious-page
+  // backstop. Sender identity comes from the event, never the payload.
+  ipcMain.on('capture:report', (event, raw) => {
+    const surface = captureSurfaceForSender(event.sender); // read-only: never creates
+    // Grant-only off→on: a surface with no anchor — never granted, or cleared
+    // by navigation — accepts no reports at all, so fabricated counts can't
+    // light the chip.
+    if (!surface || surface.record.anchors.length === 0) return;
+    let payload;
+    try { payload = JSON.parse(raw); } catch { return; }
+    const frame = event.senderFrame;
+    if (!frame) return;
+    let origin = null;
+    try { origin = new URL(frame.url).origin; } catch { return; }
+    const isMainFrame = frame === event.sender.mainFrame;
+    if (payload.type === 'settlement'
+        && (payload.outcome === 'resolved' || payload.outcome === 'rejected')
+        && Array.isArray(payload.scopes)) {
+      applySettlement(surface.record, {
+        origin, isMainFrame, outcome: payload.outcome, scopes: payload.scopes,
+      });
+    } else if (payload.type === 'snapshot') {
+      applyFrameReport(surface.record, frame.frameToken ?? `${event.sender.id}:main`, {
+        origin, isMainFrame,
+        audioLive: payload.audioLive, videoLive: payload.videoLive,
+      });
+    } else return;
+    refreshCaptureProjection(surface);
+  });
+
   chromeOn('permissions:respond', (_e, { id, allow }) => {
     const sender = rt(); // the sender's runtime, established by chromeOn
     const pending = sender.permissionPrompts.get(id);
     if (!pending) return; // wrong window's chrome, or a stale prompt — ignore
     sender.permissionPrompts.delete(id);
     pending.resolve(!!allow);
+    // Last answer dismisses the floating prompt surface entirely.
+    if (sender.permissionPrompts.size === 0) detachPermissionView();
   });
 
   // downloads.js invokes this from its own session/DownloadItem listeners —

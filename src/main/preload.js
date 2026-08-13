@@ -1,11 +1,12 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// This preload is intentionally attached only to Blanc's two privileged
+// This preload is intentionally attached only to Blanc's three privileged
 // chrome surfaces. Re-check the committed document before exposing anything:
 // a future accidental reuse of this preload must fail closed.
 const TRUSTED_CHROME_DOCUMENTS = new Set([
   'blanc-chrome://index/',
   'blanc-chrome://overlay/',
+  'blanc-chrome://permission/',
 ]);
 
 if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
@@ -68,6 +69,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
   openShieldPopover: (anchor) => ipcRenderer.send('chrome:open-shield', anchor),
+  openCapturePopover: (anchor) => ipcRenderer.send('chrome:open-capture', anchor),
+  captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
+  captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
   openMainMenu: (point) => ipcRenderer.invoke('chrome:open-main-menu', point),
   closeOverlay: () => ipcRenderer.send('overlay:close'),
 

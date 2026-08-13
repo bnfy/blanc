@@ -9,6 +9,7 @@ const CHROME_SCHEME = 'blanc-chrome';
 const CHROME_PARTITION = 'blanc-chrome';
 const CHROME_INDEX_URL = `${CHROME_SCHEME}://index/`;
 const CHROME_OVERLAY_URL = `${CHROME_SCHEME}://overlay/`;
+const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
 
 // Chrome is intentionally much smaller than the internal-pages surface. Each
@@ -31,6 +32,10 @@ const HOST_ASSETS = new Map([
   ['overlay', new Map([
     ['/', 'overlay.html'],
     ['/overlay.js', 'overlay.js'],
+  ])],
+  ['permission', new Map([
+    ['/', 'permission.html'],
+    ['/permission.js', 'permission.js'],
   ])],
 ]);
 
@@ -75,6 +80,7 @@ module.exports = {
   CHROME_PARTITION,
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
+  CHROME_PERMISSION_URL,
   chromeResourcePath,
   createChromeProtocolHandler,
   setupChromeProtocol,

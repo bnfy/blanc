@@ -165,6 +165,9 @@ function install(refs) {
           // This object is produced inside electronApp.evaluate(); a viewless
           // tab must be observable rather than making every scenario throw.
           asleep: !!t.asleep,
+          // Projection only — the capture record (anchors, counts) stays
+          // main-process-internal even here.
+          capture: t.capture ?? { audio: false, video: false },
           webContentsId: wc?.id ?? null,
           bounds: t.view ? t.view.getBounds() : null,
           sessionKind: wc
@@ -949,6 +952,10 @@ function install(refs) {
       else if (reason === 'muted') tab.muted = true;
       else if (reason === 'audible') tab.audible = true;
       else if (reason === 'used media') tab.usedMedia = true;
+      else if (reason === 'capturing') {
+        tab.capturing = true;
+        tab.capture = { audio: true, video: false };
+      }
       else if (reason === 'adopted child') tab.adopted = true;
       else if (reason === 'non-refetchable POST') tab.restorableCommit = false;
       else if (reason === 'pending permission') {

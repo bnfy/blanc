@@ -6,10 +6,13 @@ const {
   VERTICAL_TABS_MIN_WIDTH,
   VERTICAL_TABS_MAX_WIDTH,
   VERTICAL_TABS_MIN_PAGE_WIDTH,
+  CAPTURE_POPOVER_CHROME,
+  CAPTURE_ROW_HEIGHT,
   normalizeTabLayout,
   normalizeVerticalTabsWidth,
   calculateChromeLayout,
   calculateShieldBounds,
+  calculateCaptureBounds,
 } = require('../../src/main/chrome-layout');
 
 test('invalid or missing layout values preserve Island as the default', () => {
@@ -153,4 +156,22 @@ test('shield bounds shrink on a window narrower than width + margins', () => {
 test('shield bounds center under the window without an anchor', () => {
   const b = calculateShieldBounds({ windowWidth: 1000, stripHeight: 64, anchorRight: null });
   assert.equal(b.x, Math.round((1000 - 320) / 2));
+});
+
+test('calculateCaptureBounds grows per row and caps at 5 rows', () => {
+  const base = { windowWidth: 1200, stripHeight: 64, anchorRight: 900 };
+  const one = calculateCaptureBounds({ ...base, rowCount: 1 });
+  const three = calculateCaptureBounds({ ...base, rowCount: 3 });
+  const nine = calculateCaptureBounds({ ...base, rowCount: 9 });
+  assert.equal(one.height, CAPTURE_POPOVER_CHROME + CAPTURE_ROW_HEIGHT);
+  assert.equal(three.height, CAPTURE_POPOVER_CHROME + 3 * CAPTURE_ROW_HEIGHT);
+  assert.equal(nine.height, CAPTURE_POPOVER_CHROME + 5 * CAPTURE_ROW_HEIGHT,
+    'more than 5 rows scroll inside a capped card');
+  assert.equal(one.y, 64);
+  assert.equal(one.x + one.width, 900, 'right edge aligns to the chip anchor');
+});
+
+test('calculateCaptureBounds clamps inside the window like the shield popover', () => {
+  const b = calculateCaptureBounds({ windowWidth: 300, stripHeight: 64, anchorRight: 900, rowCount: 1 });
+  assert.ok(b.x >= 0 && b.x + b.width <= 300);
 });

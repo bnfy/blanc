@@ -1,5 +1,5 @@
 // Renderer for the chrome strip — the slim band the resting island pill
-// floats in, plus window controls and permission prompts. The island's
+// floats in, plus window controls. The island's
 // expanded states live in a separate overlay WebContentsView (overlay.js)
 // so they can float over the web content.
 (() => {
@@ -18,15 +18,14 @@
   const pillDomain = document.getElementById('pillDomain');
   const pillShield = document.getElementById('pillShield');
   const pillShieldCount = document.getElementById('pillShieldCount');
+  const pillCapture = document.getElementById('pillCapture');
+  const pillCaptureMic = document.getElementById('pillCaptureMic');
+  const pillCaptureCam = document.getElementById('pillCaptureCam');
   const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const pillSourceChip = document.getElementById('pillSourceChip');
   const windowControls = document.getElementById('windowControls');
   const mainMenuButton = document.getElementById('mainMenuButton');
-  const permissionBar = document.getElementById('permissionBar');
-  const permissionText = document.getElementById('permissionText');
-  const permAllowBtn = document.getElementById('permAllowBtn');
-  const permBlockBtn = document.getElementById('permBlockBtn');
 
   let state = {
     tabs: [],
@@ -513,6 +512,19 @@
     pillShield.title = shield.title;
     pillShield.setAttribute('aria-label', shield.title);
 
+    // Capture chip: WINDOW-WIDE — lit while any tab or popup captures
+    // (spec §6.1), unlike every per-active-tab neighbour in the pill.
+    const cap = state.captureChip ?? { audio: false, video: false };
+    pillCapture.hidden = !cap.audio && !cap.video;
+    // toggleAttribute, not .hidden — SVGElement has no hidden IDL property,
+    // so the property form silently does nothing on these glyphs.
+    pillCaptureMic.toggleAttribute('hidden', !cap.audio);
+    pillCaptureCam.toggleAttribute('hidden', !cap.video);
+    const capTitle = cap.audio && cap.video ? 'camera & microphone in use'
+      : cap.video ? 'camera in use' : 'microphone in use';
+    pillCapture.title = `${capTitle} — open capture controls`;
+    pillCapture.setAttribute('aria-label', `${capTitle} — open capture controls`);
+
     // The private theme scope follows the active tab.
     if (tab?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
@@ -555,6 +567,12 @@
     window.browserAPI.openShieldPopover({ right: r.right, trigger: 'insecure' });
   });
 
+  pillCapture.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const r = pillCapture.getBoundingClientRect();
+    window.browserAPI.openCapturePopover({ right: r.right });
+  });
+
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
   islandPill.addEventListener('keydown', (e) => {
     // Only when the pill itself is focused — a focused child button (tab
@@ -571,45 +589,8 @@
     if (e.target === stripEl) window.browserAPI.maximizeWindow();
   });
 
-  // --- Permission prompts (one visible at a time, FIFO) ---
-  const permissionQueue = [];
-  let activePermissionPrompt = null;
-
-  function describePermission({ permission, mediaTypes }) {
-    if (permission === 'media') {
-      const wantsAudio = mediaTypes.includes('audio');
-      const wantsVideo = mediaTypes.includes('video');
-      if (wantsAudio && wantsVideo) return 'use your camera and microphone';
-      if (wantsVideo) return 'use your camera';
-      return 'use your microphone';
-    }
-    if (permission === 'geolocation') return 'know your location';
-    if (permission === 'notifications') return 'show notifications';
-    return `use “${permission}”`;
-  }
-
-  function showNextPermissionPrompt() {
-    activePermissionPrompt = permissionQueue.shift() ?? null;
-    permissionBar.hidden = !activePermissionPrompt;
-    if (activePermissionPrompt) {
-      const host = new URL(activePermissionPrompt.origin).host;
-      permissionText.textContent = `${host} wants to ${describePermission(activePermissionPrompt)}`;
-    }
-  }
-
-  function answerPermissionPrompt(allow) {
-    if (!activePermissionPrompt) return;
-    window.browserAPI.respondPermission(activePermissionPrompt.id, allow);
-    showNextPermissionPrompt();
-  }
-
-  permAllowBtn.addEventListener('click', () => answerPermissionPrompt(true));
-  permBlockBtn.addEventListener('click', () => answerPermissionPrompt(false));
-
-  window.browserAPI.onPermissionPrompt((payload) => {
-    permissionQueue.push(payload);
-    if (!activePermissionPrompt) showNextPermissionPrompt();
-  });
+  // Permission prompts render in their own floating bottom-center view
+  // (permission.html/permission.js) — the strip no longer hosts them.
 
   // --- State sync ---
   window.browserAPI.onTabsUpdated((payload) => {
@@ -623,6 +604,8 @@
     const shieldOpen = mode === 'shield';
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
+    pillCapture.setAttribute('aria-expanded', String(mode === 'capture'));
+    if (restoreTrigger === 'capture') pillCapture.focus();
     // Escape dismissal: main has already focused this webContents, so a DOM
     // focus() here lands in a focused document and paints the ring.
     if (restoreTrigger === 'shield') pillShield.focus();

@@ -516,3 +516,28 @@ on the OS's schedule cannot make that promise for feeds and must not claim it.
 **Tagging:** behaviour scenarios tag `@D8`; control-surface scenarios tag `@D23`.
 
 **Status:** Accepted 2026-08-09.
+
+## D24 — Capture-indicator surface (desktop chip vs. OS indicators)
+**Features:** F13
+
+**Why:** Electron exposes no browser-process capture-state API, so desktop
+Blanc assembles live mic/camera state itself: the permission grant is the
+only off→on signal, and page-world instrumentation refines toward off
+(fail-safe: a defeated patch reads stuck-on, never silently-off; the macOS
+system indicator remains the malicious-page backstop). Mobile OSes already
+draw an authoritative capture indicator at system level.
+
+- **Desktop:** Blanc draws its own window-wide capture chip in the island
+  pill plus a popover listing each capturing tab/popup with focus and stop
+  controls.
+- **iOS/Android:** defer to the OS/WebView capture indicator; no in-chrome
+  chip. Stop = leaving/closing the capturing page, as the platform idiom
+  dictates.
+
+**Parity contract that still holds:** media permission prompts show the
+mic/camera glyphs with shared copy, permission policy and persistence are
+identical, and capture state is never persisted or synced anywhere.
+
+**Tagging:** desktop-chip scenarios tag `@D24`.
+
+**Status:** Accepted 2026-08-13.

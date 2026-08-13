@@ -80,6 +80,7 @@ function initTabView(injected) {
     'isUtilityUrl', 'handOffToOs', 'upgradeFavicon', 'setTabFavicon',
     'isStartupGateActive', 'startupQueuedNavigations',
     'onMainFrameCommit', 'noteWakeSuppressed', 'notePopupChild',
+    'registerPopupCaptureSurface', 'clearTabCaptureState',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
@@ -109,6 +110,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     isUtilityUrl, handOffToOs, upgradeFavicon, setTabFavicon,
     isStartupGateActive, startupQueuedNavigations,
     onMainFrameCommit, noteWakeSuppressed, notePopupChild,
+    registerPopupCaptureSurface, clearTabCaptureState,
   } = deps;
   const id = tab.id;
   const wc = view.webContents;
@@ -249,6 +251,9 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('render-process-gone', boundToTab((_e, details) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // A dead renderer holds no tracks. Explicit rather than relying on the
+    // error page's commit — that loadURL can itself fail (spec §3.2).
+    clearTabCaptureState(tab);
     if (details.reason === 'clean-exit') return;
     const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
@@ -323,6 +328,9 @@ function wireTabView(tab, view, { owner, adopted }) {
         const childWc = childWindow.webContents;
         const childWcId = childWc.id;
         windowRuntimes.registerAuxiliaryContent(owner, childWcId);
+        // Alongside — not via — auxiliaryOwner: popup capture state must
+        // survive detachWindow on macOS close/reopen (spec §3.3).
+        registerPopupCaptureSurface(childWc);
         childWc.once('destroyed', bindWindowRuntime(owner, () => {
           windowRuntimes.unregisterAuxiliaryContent(childWcId);
         }));

@@ -112,7 +112,7 @@ const THRESHOLD = 1000;
 const tab = (over = {}) => ({
   id: 'a',
   asleep: false, sleeping: false, waking: false, isLoading: false,
-  audible: false, muted: false, usedMedia: false,
+  audible: false, muted: false, usedMedia: false, capturing: false,
   pinned: false, adopted: false, openerTabId: null,
   restorableCommit: true, deepScrolled: false, httpEntryCount: 1,
   lastActiveAt: NOW - THRESHOLD, url: 'https://a/',
@@ -144,7 +144,7 @@ test('the active tab is never a candidate', () => {
 
 for (const [field, value] of [
   ['asleep', true], ['sleeping', true], ['waking', true], ['isLoading', true],
-  ['audible', true], ['muted', true], ['usedMedia', true],
+  ['audible', true], ['muted', true], ['usedMedia', true], ['capturing', true],
   ['pinned', true], ['adopted', true], ['deepScrolled', true],
   ['restorableCommit', false], ['httpEntryCount', 0],
 ]) {
