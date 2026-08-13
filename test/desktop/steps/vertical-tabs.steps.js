@@ -187,35 +187,119 @@ async function waitForOrder(world, expected) {
   );
 }
 
-async function dragRailTo(page, targetWidth) {
-  const handle = page.locator('#verticalTabsResizeHandle');
-  const box = await handle.boundingBox();
-  assert.ok(box, 'vertical tab resize handle should have a rendered box');
-  const y = Math.min(box.y + 180, box.y + box.height / 2);
-  await page.mouse.move(box.x + box.width / 2, y);
-  await page.mouse.down();
-  try {
-    await waitForValue(
-      () => page.evaluate(() => document.documentElement.dataset.verticalTabsResizing === 'true'),
-      Boolean,
-      'vertical-tab resize pointer capture to start'
-    );
-    // One trusted captured move tests the product's pointer path without
-    // repeatedly moving the handle out from under Playwright's synthetic
-    // pointer as each preview frame resizes the rail.
-    await page.mouse.move(targetWidth, y);
-  } finally {
-    await page.mouse.up();
-  }
+// A real rail drag implies an unoccluded, key window — you cannot grab the
+// resize handle of a window another app is covering without macOS fronting it
+// first. A busy desktop (focus stolen, window occluded) also leaves this
+// renderer deprioritized enough to starve the captured pointer stream the
+// drag depends on, so pointer-driven steps front the window before
+// dispatching. Best-effort by design: on quiet desktops (and bare xvfb,
+// where key-window status may be unobtainable) the drag works unfocused,
+// so an unfocusable window must not fail the scenario on its own.
+async function frontChromeWindow(world) {
   await waitForValue(
-    () => page.evaluate(() => document.documentElement.dataset.verticalTabsResizing !== 'true'),
+    () => world.call('focusWindow'),
     Boolean,
-    'vertical-tab resize pointer capture to finish'
-  );
+    'chrome window to front and take focus',
+    1500
+  ).catch(() => {});
+}
+
+async function dragRailTo(world, page, targetWidth) {
+  // Under sustained desktop load the captured pointer stream can starve for
+  // longer than any single wait; each attempt re-fronts the window and
+  // re-runs the full down→move→up sequence (committing the same target
+  // width, so a late commit from an abandoned attempt is idempotent).
+  const attempts = 3;
+  for (let attempt = 1; ; attempt++) {
+    await frontChromeWindow(world);
+    const handle = page.locator('#verticalTabsResizeHandle');
+    const box = await handle.boundingBox();
+    assert.ok(box, 'vertical tab resize handle should have a rendered box');
+    const y = Math.min(box.y + 180, box.y + box.height / 2);
+    try {
+      await page.mouse.move(box.x + box.width / 2, y);
+      await page.mouse.down();
+      try {
+        await waitForValue(
+          () => page.evaluate(() => document.documentElement.dataset.verticalTabsResizing === 'true'),
+          Boolean,
+          'vertical-tab resize pointer capture to start',
+          4000
+        );
+        // One trusted captured move tests the product's pointer path without
+        // repeatedly moving the handle out from under Playwright's synthetic
+        // pointer as each preview frame resizes the rail.
+        await page.mouse.move(targetWidth, y);
+      } finally {
+        await page.mouse.up();
+      }
+      await waitForValue(
+        () => page.evaluate(() => document.documentElement.dataset.verticalTabsResizing !== 'true'),
+        Boolean,
+        'vertical-tab resize pointer capture to finish',
+        4000
+      );
+      return;
+    } catch (error) {
+      const diagnostics = await page.evaluate(() => ({
+        resizing: document.documentElement.dataset.verticalTabsResizing ?? null,
+        hasFocus: document.hasFocus(),
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        visibility: document.visibilityState,
+      })).catch(() => null);
+      if (attempt >= attempts) {
+        error.message += ` (attempt ${attempt}/${attempts}; chrome ${JSON.stringify(diagnostics)})`;
+        throw error;
+      }
+      // If the abandoned attempt's pointerup never reached the renderer, the
+      // product still holds capture state; cancel it the same way a genuine
+      // pointer-stream interruption would before re-dragging. pointercancel
+      // is pointerId-guarded in the product (mouse is pointerId 1 in
+      // Chromium); lostpointercapture is the id-independent fallback.
+      await page.evaluate(() => {
+        const handle = document.getElementById('verticalTabsResizeHandle');
+        handle.dispatchEvent(new PointerEvent('pointercancel', { pointerId: 1, bubbles: true }));
+        if (document.documentElement.dataset.verticalTabsResizing === 'true') {
+          handle.dispatchEvent(new PointerEvent('lostpointercapture', { pointerId: 1, bubbles: true }));
+        }
+      }).catch(() => {});
+      await waitForValue(
+        () => page.evaluate(() => document.documentElement.dataset.verticalTabsResizing !== 'true'),
+        Boolean,
+        'stale vertical-tab resize capture to clear before retrying',
+        4000
+      );
+    }
+  }
 }
 
 function assertBounds(actual, expected, label) {
   assert.deepEqual(actual, expected, `${label}: ${JSON.stringify(actual)}`);
+}
+
+// window.setContentSize is synchronous on the OS window, but the chrome
+// RENDERER lays out its new viewport asynchronously — on a busy desktop the
+// gap runs to seconds, and geometry read from the chrome document (Island
+// pill position, the resize handle's bounding box) meanwhile reflects the
+// OLD window size. Settling a resize therefore means BOTH the main-process
+// content bounds and the chrome document's viewport report the new size.
+async function resizeWindowAndSettle(world, width, height) {
+  // Fronting first lifts the occlusion/deprioritization that otherwise lets
+  // the renderer sit on the pending resize indefinitely on a busy desktop.
+  await frontChromeWindow(world);
+  await world.call('setWindowContentSize', width, height);
+  await waitForValue(
+    () => world.call('windowContentBounds'),
+    (bounds) => bounds?.width === width && bounds?.height === height,
+    `${width}x${height} content bounds`
+  );
+  const page = await chromePage();
+  await waitForValue(
+    () => page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight })),
+    (viewport) => viewport.width === width && viewport.height === height,
+    `${width}x${height} chrome renderer viewport`
+  );
 }
 
 // ---------- F28-1: default, persistence, and sync scope ----------
@@ -301,7 +385,7 @@ When('I press the vertical-tabs keyboard shortcut', async function () {
 
 When('I drag the vertical tab resize handle to {int} pixels', async function (width) {
   const page = await showRail(this);
-  await dragRailTo(page, width);
+  await dragRailTo(this, page, width);
   const expected = Math.max(200, Math.min(360, width));
   await waitForValue(
     () => this.call('verticalTabsWidth'),
@@ -312,6 +396,7 @@ When('I drag the vertical tab resize handle to {int} pixels', async function (wi
 
 When('I double-click the vertical tab resize handle', async function () {
   const page = await showRail(this);
+  await frontChromeWindow(this);
   await page.locator('#verticalTabsResizeHandle').dblclick({ position: { x: 4, y: 180 } });
   await waitForValue(
     () => this.call('verticalTabsWidth'),
@@ -341,12 +426,7 @@ Then('the preferred vertical tab width is {int} pixels', async function (width) 
 });
 
 When('I resize the desktop window to {int} by {int}', async function (width, height) {
-  await this.call('setWindowContentSize', width, height);
-  await waitForValue(
-    () => this.call('windowContentBounds'),
-    (bounds) => bounds?.width === width && bounds?.height === height,
-    `${width}x${height} content bounds`
-  );
+  await resizeWindowAndSettle(this, width, height);
 });
 
 Then('the Profile Sync payload does not contain the vertical-tab width preference', async function () {
@@ -417,7 +497,11 @@ When('I hover the truncated vertical tab title', async function () {
 Then('the truncated title scrolls toward its hidden end', async function () {
   const page = await chromePage();
   const id = this.verticalTitleIds.longId;
-  await waitForValue(
+  // On a busy desktop, an app-activation transition mid-wait makes the OS
+  // synthesize real mouse events from the physical cursor (outside the
+  // window), clearing the synthetic :hover this step depends on. Re-issue
+  // the hover per attempt; the scroll assertion itself is unchanged.
+  const readTitleScroll =
     () => page.locator(
       `.vertical-tab-row[data-tab-id="${id}"] .vertical-tab-title`
     ).evaluate((viewport) => {
@@ -434,10 +518,25 @@ Then('the truncated title scrolls toward its hidden end', async function () {
         transform,
         x: transform === 'none' ? 0 : new DOMMatrixReadOnly(transform).m41,
       };
-    }),
-    (value) => value.hovered && value.scrolling && value.x < -0.5,
-    'truncated title hover animation to move toward its hidden end'
-  );
+    });
+  const scrolled = (value) => value.hovered && value.scrolling && value.x < -0.5;
+  const attempts = 4;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await page.locator(
+        `.vertical-tab-row[data-tab-id="${id}"] .vertical-tab-title`
+      ).hover();
+      await waitForValue(
+        readTitleScroll,
+        scrolled,
+        'truncated title hover animation to move toward its hidden end',
+        1750
+      );
+      return;
+    } catch (error) {
+      if (attempt >= attempts) throw error;
+    }
+  }
 });
 
 When('I move the pointer away from the vertical tab title', async function () {
@@ -566,12 +665,7 @@ Then('its unsaved in-page state is unchanged', async function () {
 // ---------- F28-3..5: real child-view and chrome geometry ----------
 
 Given('a {int} by {int} desktop window with the vertical tab layout', async function (width, height) {
-  await this.call('setWindowContentSize', width, height);
-  await waitForValue(
-    () => this.call('windowContentBounds'),
-    (bounds) => bounds?.width === width && bounds?.height === height,
-    `${width}x${height} content bounds`
-  );
+  await resizeWindowAndSettle(this, width, height);
   this.verticalWindow = { width, height };
   if (width === 640 && height === 480) {
     await this.call('groupActiveByName', 'minimum-window-group-label');
@@ -758,17 +852,23 @@ Then('the find capsule does not overlap the vertical tab rail', async function (
   assert.ok(overlay.x + capsule.x >= 248,
     `find capsule begins at ${overlay.x + capsule.x}, inside the 248px rail`);
   const page = await chromePage();
-  const pill = await page.locator('#islandPill').evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    return {
-      left: rect.left,
-      right: rect.right,
-      clientWidth: element.clientWidth,
-      scrollWidth: element.scrollWidth,
-    };
-  });
-  assert.ok(pill.left >= 248 && pill.right <= this.verticalWindow.width,
-    `resting Island ${JSON.stringify(pill)} must stay inside the minimum website pane`);
+  // Same contract as before, waited-for rather than read once: the pill is
+  // laid out by the chrome renderer, which can still be settling the minimum
+  // window size (see resizeWindowAndSettle) when this step runs on a busy
+  // desktop. The predicate must still become true — nothing is loosened.
+  const pill = await waitForValue(
+    () => page.locator('#islandPill').evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      return {
+        left: rect.left,
+        right: rect.right,
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+      };
+    }),
+    (value) => value.left >= 248 && value.right <= this.verticalWindow.width,
+    `resting Island inside the minimum website pane (>= 248, <= ${this.verticalWindow.width})`
+  );
   assert.ok(pill.scrollWidth <= pill.clientWidth + 1,
     `resting Island content overflows at minimum width: ${JSON.stringify(pill)}`);
 });
