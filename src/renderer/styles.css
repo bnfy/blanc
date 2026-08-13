@@ -949,6 +949,11 @@ body.mac .vertical-tabs-toolbar {
   flex: 0 0 auto;
   cursor: pointer;
 }
+/* Author display rules beat the UA [hidden] mapping — state both, per the
+   pill convention (.pill-btn, #pillPrivateChip, .capture-chip all do).
+   Without this the hidden shield lingers on internal pages as an empty
+   hover-highlightable ghost. */
+.shield[hidden] { display: none; }
 .shield:hover { background: var(--border); }
 /* Back in the icon language: stroked, square, on the 16 grid like every other
    glyph in the pill. .pill-btn svg doesn't reach here — the blocker is not a
