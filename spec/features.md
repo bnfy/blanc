@@ -245,8 +245,13 @@ copy → substrate):
 - Explicit per-permission policy with in-chrome prompts (camera, mic, geolocation,
   notifications, etc.); same decision copy and default posture across platforms
   (mapped onto each OS's permission system).
+- Media prompts carry a mic/camera glyph, and live capture is indicated: while
+  any surface holds the microphone or camera, the chrome shows a capture
+  indicator with per-surface stop controls (desktop draws its own chip; mobile
+  defers to the OS indicator — D24).
 - **Acceptance:** A site requesting geolocation raises the Blanc permission prompt
-  with the shared copy; deny persists for that origin.
+  with the shared copy; deny persists for that origin. A site capturing the mic
+  lights the capture indicator; stopping it from the indicator ends capture.
 
 ## F14 — Settings
 
