@@ -1008,6 +1008,37 @@ body.mac .vertical-tabs-toolbar {
    carries a background or border. */
 .shield.shield-off { color: var(--text-dim); opacity: 0.45; }
 
+/* Live-capture chip: same anatomy as the shield, but the one pill state
+   that earns an alarm color (--danger) — steady, no pulse, no count. */
+.capture-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 2px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--danger);
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+.capture-chip:hover { background: var(--border); }
+.capture-chip svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: 0 0 auto;
+}
+
 /* Warning-only security indicator: an open padlock shown solely on
    plain-HTTP sites (pill and command-bar input row); secure and internal
    pages show nothing. */
@@ -1923,20 +1954,29 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
 
 /* ---------- Permission prompt capsule (in the strip, beside the pill) ---------- */
 
+/* An ephemeral notice, deliberately SUBORDINATE to the island: flat surface,
+   hairline border, small radius, no popover shadow. The island is the only
+   capsule in the strip — this must never read as a sibling pill. */
 #permissionBar {
   position: absolute;
-  top: 9px;
+  top: 12px;
   right: 8px;
   max-width: 44vw;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 6px 5px 14px;
-  background: var(--surface-raised);
+  padding: 4px 5px 4px 10px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 999px;
-  box-shadow: var(--shadow-popover);
+  border-radius: 9px;
 }
+#permissionGlyphs { display: inline-flex; gap: 4px; align-items: center; color: var(--text-dim); }
+#permissionGlyphs[hidden] { display: none; }
+#permissionGlyphs svg {
+  width: 16px; height: 16px; fill: none; stroke: currentColor;
+  stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+}
+#permissionGlyphs svg[hidden] { display: none; }
 body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
 #permissionBar[hidden] { display: none; }
 
@@ -1951,7 +1991,7 @@ body:not(.mac) #permissionBar { right: 118px; } /* clear the window controls */
 #permissionBar button {
   height: 26px;
   padding: 0 14px;
-  border-radius: 999px;
+  border-radius: 7px;
   font-size: 12px;
 }
 #permAllowBtn { background: var(--accent); color: var(--bg); }

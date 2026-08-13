@@ -68,6 +68,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
   openShieldPopover: (anchor) => ipcRenderer.send('chrome:open-shield', anchor),
+  openCapturePopover: (anchor) => ipcRenderer.send('chrome:open-capture', anchor),
+  captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
+  captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
   openMainMenu: (point) => ipcRenderer.invoke('chrome:open-main-menu', point),
   closeOverlay: () => ipcRenderer.send('overlay:close'),
 

@@ -18,6 +18,12 @@
   const pillDomain = document.getElementById('pillDomain');
   const pillShield = document.getElementById('pillShield');
   const pillShieldCount = document.getElementById('pillShieldCount');
+  const pillCapture = document.getElementById('pillCapture');
+  const pillCaptureMic = document.getElementById('pillCaptureMic');
+  const pillCaptureCam = document.getElementById('pillCaptureCam');
+  const permissionGlyphs = document.getElementById('permissionGlyphs');
+  const permGlyphMic = document.getElementById('permGlyphMic');
+  const permGlyphCam = document.getElementById('permGlyphCam');
   const pillInsecure = document.getElementById('pillInsecure');
   const pillPrivateChip = document.getElementById('pillPrivateChip');
   const pillSourceChip = document.getElementById('pillSourceChip');
@@ -513,6 +519,17 @@
     pillShield.title = shield.title;
     pillShield.setAttribute('aria-label', shield.title);
 
+    // Capture chip: WINDOW-WIDE — lit while any tab or popup captures
+    // (spec §6.1), unlike every per-active-tab neighbour in the pill.
+    const cap = state.captureChip ?? { audio: false, video: false };
+    pillCapture.hidden = !cap.audio && !cap.video;
+    pillCaptureMic.hidden = !cap.audio;
+    pillCaptureCam.hidden = !cap.video;
+    const capTitle = cap.audio && cap.video ? 'camera & microphone in use'
+      : cap.video ? 'camera in use' : 'microphone in use';
+    pillCapture.title = `${capTitle} — open capture controls`;
+    pillCapture.setAttribute('aria-label', `${capTitle} — open capture controls`);
+
     // The private theme scope follows the active tab.
     if (tab?.private) document.documentElement.dataset.theme = 'private';
     else delete document.documentElement.dataset.theme;
@@ -555,6 +572,12 @@
     window.browserAPI.openShieldPopover({ right: r.right, trigger: 'insecure' });
   });
 
+  pillCapture.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const r = pillCapture.getBoundingClientRect();
+    window.browserAPI.openCapturePopover({ right: r.right });
+  });
+
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
   islandPill.addEventListener('keydown', (e) => {
     // Only when the pill itself is focused — a focused child button (tab
@@ -594,6 +617,10 @@
     if (activePermissionPrompt) {
       const host = new URL(activePermissionPrompt.origin).host;
       permissionText.textContent = `${host} wants to ${describePermission(activePermissionPrompt)}`;
+      const isMedia = activePermissionPrompt.permission === 'media';
+      permissionGlyphs.hidden = !isMedia;
+      permGlyphMic.hidden = !(isMedia && activePermissionPrompt.mediaTypes.includes('audio'));
+      permGlyphCam.hidden = !(isMedia && activePermissionPrompt.mediaTypes.includes('video'));
     }
   }
 
@@ -623,6 +650,8 @@
     const shieldOpen = mode === 'shield';
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
+    pillCapture.setAttribute('aria-expanded', String(mode === 'capture'));
+    if (restoreTrigger === 'capture') pillCapture.focus();
     // Escape dismissal: main has already focused this webContents, so a DOM
     // focus() here lands in a focused document and paints the ring.
     if (restoreTrigger === 'shield') pillShield.focus();
