@@ -1,5 +1,176 @@
 [
   {
+    "tag": "v1.2.1",
+    "version": "1.2.1",
+    "name": "1.2.1",
+    "publishedAt": "2026-08-13T23:51:35.000Z",
+    "humanDate": "August 13, 2026",
+    "machineDate": "2026-08-13",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.2.1",
+    "anchor": "v1-2-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now gives back the memory of tabs you have not opened in a while. A tab left alone past the delay you choose hands its page back to the system; it keeps its place in the Island, the rail, and the switcher, and reloads when you come back to it. Choose the delay — off, 30 minutes, 1 hour, or 6 hours — under Settings → General → Quiet inactive tabs. It is set to an hour to begin with, and the choice stays on this device."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A quiet tab says so where you pick tabs: its row dims in the ⌘L panel and the vertical rail, and carries the word "
+                  },
+                  {
+                    "type": "code",
+                    "value": "quiet"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Screen readers hear the same word. The dim alone would not do — after a relaunch every restored tab is quiet, and a uniformly dim list reads as styling rather than as a state."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc leaves a tab alone when quieting it would cost you something: anything playing or that has played sound, anything muted or pinned, a page with something typed into it or a checkbox you ticked, a page that asks before you leave, a result of a form you submitted, a tab waiting on a permission prompt, a window it opened or was opened by, and a page you have scrolled deep into. The new "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/sleep"
+                  },
+                  {
+                    "type": "text",
+                    "value": " command quiets every eligible background tab straight away — it skips the waiting and nothing else, and it works even with the delay set to off."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Reopening Blanc is quicker. Restored tabs come back quiet with their titles and site icons already in place, and only the tab you were last using loads."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "You can now see when a site is using your microphone or camera. While any tab or pop-out window is recording, a red microphone or camera mark appears in the Island; clicking it lists every site currently listening or watching, and each one has a stop button. Blanc knows a site started recording because it granted the permission itself, so the mark cannot be suppressed by the page — and if a site's own recording ends in a way Blanc cannot observe, the mark stays up rather than going quietly dark. A tab that is recording is never quieted."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Turning the quiet delay off stops Blanc quieting anything new. Tabs that are already quiet stay as they are and come back normally when you open them — switching the setting off never throws away what a quiet tab needs to return."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Permission requests now appear along the bottom of the page instead of beside the Island, where they crowded it, and a request for your microphone or camera shows which one it is asking for."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Pinned tabs that belong to no group stay visible in the ⌘L panel."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Opening Settings, History, or Downloads while a page is still loading no longer risks a crash."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Site icons synced from your other devices are drawn sharply on high-resolution displays."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.2.1"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.1.1",
     "version": "1.1.1",
     "name": "1.1.1",
