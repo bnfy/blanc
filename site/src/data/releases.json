@@ -1,5 +1,91 @@
 [
   {
+    "tag": "v1.2.3",
+    "version": "1.2.3",
+    "name": "1.2.3",
+    "publishedAt": "2026-08-14T03:42:25.000Z",
+    "humanDate": "August 13, 2026",
+    "machineDate": "2026-08-13",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.2.3",
+    "anchor": "v1-2-3",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Website icons now load reliably across a much broader range of sites, including pages whose icon redirects, CDN behavior, request requirements, or mislabeled image types previously left a gray placeholder. Blanc keeps a working icon when a later candidate fails and still checks every resolved address before connecting."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Synced tab icons continue to use the sanitized pixels captured by the source device. Receiving devices do not contact the website again, and this release does not change the synced-icon format."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Tabs opened in the background as part of a multi-link handoff can no longer start playing sound unexpectedly. Media that first starts while a tab is hidden stays silent until you reveal that tab; media you started in the foreground continues normally when you switch away."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Release verification",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "Blanc now checks two non-overlapping 25-site favicon matrices against the signed packaged candidate before creating an immutable release tag."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.2.3"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.2.2",
     "version": "1.2.2",
     "name": "1.2.2",
