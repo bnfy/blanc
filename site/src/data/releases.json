@@ -1,5 +1,124 @@
 [
   {
+    "tag": "v1.3.0",
+    "version": "1.3.0",
+    "name": "1.3.0",
+    "publishedAt": "2026-08-14T17:24:19.000Z",
+    "humanDate": "August 14, 2026",
+    "machineDate": "2026-08-14",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.3.0",
+    "anchor": "v1-3-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now supports multiple independent browser windows. Each window owns its own tabs, groups, Island overlay, utility sheets, and restored workspace, while the application menu follows whichever window is focused."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Local profiles provide persistent, on-device browsing identities without requiring an account. Each named profile isolates cookies, site data, Favorites, history, downloads, remembered permissions, normal browsing, and private browsing from every other profile."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Profiles can be created, opened, renamed, and permanently deleted from Settings. The permanent Personal profile keeps all existing Blanc data in place, while named profile windows restore into the same isolated identity after relaunch."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Privacy and compatibility",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Device-wide appearance, privacy choices, telemetry preference, and Supporter status remain shared. Profile Sync remains available only to Personal, so adding a local profile never silently expands cloud synchronization."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Session persistence now stores multiple independent window workspaces while retaining a rollback mirror for older Blanc builds."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Release verification",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The release gate exercises the full unit and desktop acceptance suites, first-run and packaged regression smokes, live favicon compatibility, and same-profile migration from public Stable v1.2.5."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "macOS Apple Silicon, signed Windows, and Linux are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.3.0"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one signed SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.2.5",
     "version": "1.2.5",
     "name": "1.2.5",
