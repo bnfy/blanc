@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { isPublicAddress, resolvePinnedTarget } = require('../../src/main/favicon-network');
+const { isPublicAddress, resolvePinnedTarget, pinnedLookup } = require('../../src/main/favicon-network');
 
 test('favicon network policy rejects local, special-use, and documentation addresses', () => {
   for (const address of [
@@ -31,6 +31,33 @@ test('favicon target resolution pins a public answer and rejects mixed rebinding
   assert.equal(await resolvePinnedTarget('https://icons.example/favicon.png', rebound), null);
   assert.equal(await resolvePinnedTarget('https://localhost/favicon.png', publicOnly), null);
   assert.equal(await resolvePinnedTarget('file:///tmp/favicon.png', publicOnly), null);
+});
+
+test('pinned lookup answers both Node callback shapes without ever re-resolving', () => {
+  // Node's autoSelectFamily (default-on since 20) invokes the socket's lookup
+  // with `{all: true}` and requires an ARRAY callback; answering in the legacy
+  // three-argument shape aborts every connection with "Invalid IP address:
+  // undefined" before a single byte is sent. That exact mismatch shipped in
+  // 1.2.1 and blanked every remote favicon.
+  const target = { address: '8.8.8.8', family: 4 };
+  const lookup = pinnedLookup(target);
+
+  let allResult = null;
+  lookup('icons.example', { all: true, family: 0 }, (err, addresses) => {
+    assert.equal(err, null);
+    allResult = addresses;
+  });
+  assert.deepEqual(allResult, [{ address: '8.8.8.8', family: 4 }]);
+
+  let legacyAddress = null;
+  let legacyFamily = null;
+  lookup('icons.example', { family: 0 }, (err, address, family) => {
+    assert.equal(err, null);
+    legacyAddress = address;
+    legacyFamily = family;
+  });
+  assert.equal(legacyAddress, '8.8.8.8');
+  assert.equal(legacyFamily, 4);
 });
 
 test('chrome and internal-page CSP never permit remote favicon loads', () => {

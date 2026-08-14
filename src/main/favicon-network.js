@@ -66,6 +66,22 @@ async function resolvePinnedTarget(source, lookup = dns.promises.lookup) {
   return { url, ...normalized[0] };
 }
 
+// The socket-level lookup that pins the connection to the address resolved
+// (and policy-checked) by resolvePinnedTarget, defeating DNS rebinding between
+// resolution and connect. Node's autoSelectFamily path (default-on since 20)
+// calls this with `{all: true}` and requires an array answer; the legacy path
+// expects `(err, address, family)`. Answer whichever shape is asked for —
+// getting it wrong aborts the connection before any bytes move.
+function pinnedLookup(target) {
+  return (_hostname, options, callback) => {
+    if (options?.all) {
+      callback(null, [{ address: target.address, family: target.family }]);
+    } else {
+      callback(null, target.address, target.family);
+    }
+  };
+}
+
 function readIconBytes(source, { signal, lookup } = {}) {
   return new Promise(async (resolve) => {
     const target = await resolvePinnedTarget(source, lookup);
@@ -83,9 +99,7 @@ function readIconBytes(source, { signal, lookup } = {}) {
         Accept: 'image/png,image/*;q=0.8',
         'Cache-Control': 'no-store',
       },
-      lookup: (_hostname, _options, callback) => {
-        callback(null, target.address, target.family);
-      },
+      lookup: pinnedLookup(target),
       ...(target.url.protocol === 'https:' ? { servername: target.url.hostname } : {}),
     };
 
@@ -134,4 +148,4 @@ function readIconBytes(source, { signal, lookup } = {}) {
   });
 }
 
-module.exports = { MAX_BYTES, isPublicAddress, resolvePinnedTarget, readIconBytes };
+module.exports = { MAX_BYTES, isPublicAddress, resolvePinnedTarget, pinnedLookup, readIconBytes };
