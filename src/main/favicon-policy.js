@@ -129,18 +129,25 @@ function declaredFaviconSize(sizes) {
  * own site exposed exactly that mistake — so only an SVG URL/MIME earns the
  * vector score. */
 function pickBestDeclaredFavicon(rawCandidates) {
+  const candidates = (Array.isArray(rawCandidates) ? rawCandidates.slice(0, 20) : [])
+    .map(declaredFaviconCandidate)
+    .filter(Boolean);
+  // Apple touch icons are home-screen artwork and frequently have a different
+  // crop or background from the site's desktop mark. They remain a useful
+  // availability fallback, but must never displace an ordinary rel=icon.
+  const ordinary = candidates.filter(({ rel }) => !rel || /(?:^|\s)icon(?:\s|$)/i.test(rel));
+  const eligible = ordinary.length
+    ? ordinary
+    : candidates.filter(({ rel }) => /(?:^|\s)apple-touch-icon(?:\s|$)/i.test(rel));
   let best = null;
   let bestScore = -1;
-  for (const raw of Array.isArray(rawCandidates) ? rawCandidates.slice(0, 20) : []) {
-    const candidate = declaredFaviconCandidate(raw);
-    if (!candidate) continue;
+  for (const candidate of eligible) {
     const vector = candidate.type === 'image/svg+xml' ||
       /(?:\.svg(?:[?#]|$)|^data:image\/svg\+xml[;,])/i.test(candidate.href);
     const size = declaredFaviconSize(candidate.sizes);
-    const appleTouch = /(?:^|\s)apple-touch-icon(?:\s|$)/i.test(candidate.rel);
     let score;
     if (vector) score = 1_000_000;
-    else if (size >= 32) score = 100_000 + (10_000 - Math.abs(size - 64)) - (appleTouch ? 500 : 0);
+    else if (size >= 32) score = 100_000 + (10_000 - Math.abs(size - 64));
     else if (size > 0) score = size;
     else if (candidate.type === 'image/png' || /\.png(?:[?#]|$)/i.test(candidate.href)) score = 1_000;
     else if (/\.ico(?:[?#]|$)/i.test(candidate.href)) score = 100;

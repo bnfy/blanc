@@ -138,6 +138,16 @@ test('prefers a declared Retina-sized icon over a 16px icon', () => {
   ]), 'https://example.com/64.png');
 });
 
+test('uses an Apple touch icon only when the page declares no ordinary favicon', () => {
+  assert.equal(pickBestDeclaredFavicon([
+    { href: 'https://example.com/favicon-16.png', rel: 'icon', sizes: '16x16', type: 'image/png' },
+    { href: 'https://example.com/apple-touch-icon.png', rel: 'apple-touch-icon', sizes: '180x180', type: 'image/png' },
+  ]), 'https://example.com/favicon-16.png');
+  assert.equal(pickBestDeclaredFavicon([
+    { href: 'https://example.com/apple-touch-icon.png', rel: 'apple-touch-icon', sizes: '180x180', type: 'image/png' },
+  ]), 'https://example.com/apple-touch-icon.png');
+});
+
 test('document-ready refines a working low-resolution favicon without blanking first', async () => {
   const working = 'data:image/png;base64,working';
   const tab = {
