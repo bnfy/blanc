@@ -22,6 +22,7 @@ test('favicon target resolution pins a public answer and rejects mixed rebinding
       url: new URL('https://icons.example/favicon.png'),
       address: '8.8.8.8',
       family: 4,
+      addresses: [{ address: '8.8.8.8', family: 4 }],
     }
   );
   const rebound = async () => [
@@ -39,16 +40,28 @@ test('pinned lookup answers both Node callback shapes without ever re-resolving'
   // three-argument shape aborts every connection with "Invalid IP address:
   // undefined" before a single byte is sent. That exact mismatch shipped in
   // 1.2.1 and blanked every remote favicon.
-  const target = { address: '8.8.8.8', family: 4 };
+  const target = {
+    address: '2606:4700::1', family: 6,
+    addresses: [
+      { address: '2606:4700::1', family: 6 },
+      { address: '8.8.8.8', family: 4 },
+    ],
+  };
   const lookup = pinnedLookup(target);
 
+  // Happy-eyeballs form: the COMPLETE policy-checked list, so Node can fall
+  // back to the other approved family when the preferred one is unreachable.
   let allResult = null;
   lookup('icons.example', { all: true, family: 0 }, (err, addresses) => {
     assert.equal(err, null);
     allResult = addresses;
   });
-  assert.deepEqual(allResult, [{ address: '8.8.8.8', family: 4 }]);
+  assert.deepEqual(allResult, [
+    { address: '2606:4700::1', family: 6 },
+    { address: '8.8.8.8', family: 4 },
+  ]);
 
+  // Legacy form can only carry one answer: the first pinned address.
   let legacyAddress = null;
   let legacyFamily = null;
   lookup('icons.example', { family: 0 }, (err, address, family) => {
@@ -56,8 +69,8 @@ test('pinned lookup answers both Node callback shapes without ever re-resolving'
     legacyAddress = address;
     legacyFamily = family;
   });
-  assert.equal(legacyAddress, '8.8.8.8');
-  assert.equal(legacyFamily, 4);
+  assert.equal(legacyAddress, '2606:4700::1');
+  assert.equal(legacyFamily, 6);
 });
 
 test('chrome and internal-page CSP never permit remote favicon loads', () => {
