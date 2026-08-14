@@ -191,6 +191,30 @@ async function declaredPageFavicons(webContents) {
     .map(({ href }) => href);
 }
 
+/** Once Chromium has finished processing a favicon event, upgrade a low-detail
+ * static choice only when the source it actually left behind belongs to this
+ * document's declared icon set. Unlike event-time bookkeeping, this remains
+ * correct when DOM readiness and the favicon network request race. A later
+ * page-owned URL or data icon is not declared static and therefore wins. */
+async function refineDeclaredStaticFavicon(tab, webContents, deps) {
+  if (!tab?.favicon || !tab.faviconSource) return false;
+  const urlAtStart = tab.url;
+  const sourceAtStart = tab.faviconSource;
+  const candidates = await declaredPageFaviconCandidates(webContents);
+  if (
+    tab.url !== urlAtStart ||
+    !tab.favicon ||
+    tab.faviconSource !== sourceAtStart
+  ) return false;
+  const staticSources = new Set(
+    pageFaviconSources(tab.url, candidates.map(({ href }) => href))
+  );
+  if (!staticSources.has(sourceAtStart)) return false;
+  const best = pickBestDeclaredFavicon(candidates);
+  if (!best || best === sourceAtStart) return false;
+  return deps.setTabFavicon(tab, best);
+}
+
 /** At DOM readiness, fill pages whose Chromium event never arrived and refine
  * an already-working low-resolution choice. Availability remains fail-safe:
  * the best declared candidate is tried first, then original document order,
@@ -233,6 +257,7 @@ module.exports = {
   declaredPageFavicons,
   pageFaviconSources,
   pickBestDeclaredFavicon,
+  refineDeclaredStaticFavicon,
   resolvedFavicon,
   shouldClearFaviconOnNavigate,
   updateFaviconAfterDomReady,

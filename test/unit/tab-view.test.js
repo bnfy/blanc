@@ -128,15 +128,14 @@ test('a late Chromium favicon event is followed by the declared quality pass', (
   const start = wireSource.indexOf("wc.on('page-favicon-updated'");
   const end = wireSource.indexOf("wc.on('dom-ready'", start);
   const listener = wireSource.slice(start, end);
-  assert.match(listener, /pending\.finally\([\s\S]*?updateFaviconAfterDomReady/);
+  assert.match(listener, /pending\.finally\([\s\S]*?refineDeclaredStaticFavicon/);
 });
 
-test('a favicon event after initial load keeps its dynamic favicon', () => {
+test('the settled static-source check owns late favicon event refinement', () => {
   const start = wireSource.indexOf("wc.on('page-favicon-updated'");
   const end = wireSource.indexOf("wc.on('dom-ready'", start);
   const listener = wireSource.slice(start, end);
-  assert.match(listener, /const refineInitialFavicon = tab\.isLoading;/);
-  assert.match(listener, /if \(!refineInitialFavicon\) return;/);
+  assert.match(listener, /refineDeclaredStaticFavicon\(tab, wc, \{ setTabFavicon \}\)/);
 });
 
 for (const required of [

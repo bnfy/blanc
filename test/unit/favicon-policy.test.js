@@ -5,6 +5,7 @@ const {
   pageFaviconSources,
   pickBestDeclaredFavicon,
   declaredPageFavicons,
+  refineDeclaredStaticFavicon,
   resolvedFavicon,
   shouldClearFaviconOnNavigate,
   updateFaviconAfterDomReady,
@@ -174,6 +175,51 @@ test('document-ready refines a working low-resolution favicon without blanking f
     source: 'https://blancbrowser.com/favicon.svg',
     faviconAtCall: working,
   }]);
+});
+
+test('settled static favicon replay is refined without depending on DOM-ready ordering', async () => {
+  const tab = {
+    url: 'https://blancbrowser.com/changelog',
+    favicon: 'data:image/png;base64,working',
+    faviconSource: 'https://blancbrowser.com/favicon.ico',
+  };
+  const calls = [];
+  const webContents = {
+    executeJavaScript: async () => [
+      { href: 'https://blancbrowser.com/favicon.ico', rel: 'icon', sizes: 'any', type: '' },
+      { href: 'https://blancbrowser.com/favicon.svg', rel: 'icon', sizes: '', type: 'image/svg+xml' },
+    ],
+  };
+  await refineDeclaredStaticFavicon(tab, webContents, {
+    setTabFavicon: async (record, source) => {
+      calls.push(source);
+      record.faviconSource = source;
+      record.favicon = 'data:image/png;base64,sharp';
+      return true;
+    },
+  });
+  assert.deepEqual(calls, ['https://blancbrowser.com/favicon.svg']);
+});
+
+test('settled dynamic favicon remains visible over the declared static choice', async () => {
+  const tab = {
+    url: 'https://blancbrowser.com/changelog',
+    favicon: 'data:image/png;base64,badge',
+    faviconSource: 'data:image/png;base64,dW5yZWFkLWJhZGdl',
+  };
+  const calls = [];
+  await refineDeclaredStaticFavicon(tab, {
+    executeJavaScript: async () => [
+      { href: 'https://blancbrowser.com/favicon.ico', rel: 'icon', sizes: 'any', type: '' },
+      { href: 'https://blancbrowser.com/favicon.svg', rel: 'icon', sizes: '', type: 'image/svg+xml' },
+    ],
+  }, {
+    setTabFavicon: async (_record, source) => {
+      calls.push(source);
+      return true;
+    },
+  });
+  assert.deepEqual(calls, []);
 });
 
 test('document-ready tries Blanc’s best declared icon before lower-resolution fallbacks', async () => {

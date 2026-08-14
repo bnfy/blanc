@@ -119,6 +119,7 @@ const displayUrl = (url) => {
 };
 
 const BATCH_SIZE = 5;
+const BATCH_ATTEMPTS = 2;
 const batches = [];
 for (let index = 0; index < sites.length; index += BATCH_SIZE) {
   batches.push(sites.slice(index, index + BATCH_SIZE));
@@ -275,7 +276,24 @@ const runBrandQualityCanary = async () => {
 
 const proof = [];
 for (const [batchIndex, batch] of batches.entries()) {
-  proof.push(...await runBatch(batch, batchIndex));
+  let result = null;
+  let failure = null;
+  for (let attempt = 1; attempt <= BATCH_ATTEMPTS; attempt += 1) {
+    try {
+      result = await runBatch(batch, batchIndex);
+      failure = null;
+      break;
+    } catch (error) {
+      failure = error;
+      if (attempt < BATCH_ATTEMPTS) {
+        console.warn(
+          `Retrying live favicon batch ${batchIndex + 1}/${batches.length} after a cold-site failure (${attempt}/${BATCH_ATTEMPTS})`
+        );
+      }
+    }
+  }
+  if (failure) throw failure;
+  proof.push(...result);
 }
 const ranBrandCanary = brandOnly ||
   ((!matrixName || matrixName === 'primary') && requestedNames.size === 0);

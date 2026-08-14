@@ -18,6 +18,7 @@ const { webrtcPolicyFor } = require('./network-privacy');
 const { effectiveTabMuted, noteMediaStarted } = require('./tab-audio');
 const {
   shouldClearFaviconOnNavigate,
+  refineDeclaredStaticFavicon,
   updateFaviconAfterDomReady,
   updateFaviconFromPage,
 } = require('./favicon-policy');
@@ -154,11 +155,6 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('page-favicon-updated', boundToTab((_e, favicons) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    // During the initial load, Chromium can report its default ICO after the
-    // document-ready SVG refinement. Once loading has stopped, however, a
-    // favicon event is page-owned live state (for example an unread badge) and
-    // must win rather than being reset to the document's original declaration.
-    const refineInitialFavicon = tab.isLoading;
     const pending = updateFaviconFromPage(tab, favicons, { setTabFavicon })
       .catch(() => false);
     tab.faviconPending = pending;
@@ -166,11 +162,11 @@ function wireTabView(tab, view, { owner, adopted }) {
       if (tab.faviconPending !== pending) return;
       tab.faviconPending = null;
       if (tab.sleeping || tab.view?.webContents !== wc) return;
-      if (!refineInitialFavicon) return;
-      // DOM readiness can precede Chromium's initial favicon event. If that
-      // event superseded an SVG/Retina refinement with a smaller default
-      // choice, run the declared quality pass once more after it settles.
-      updateFaviconAfterDomReady(tab, wc, { setTabFavicon })
+      // Chromium can replay a document's original ICO after the DOM pass chose
+      // its SVG. Re-read the settled document and refine only when the source
+      // left behind is one of its declared static icons; dynamic page state
+      // such as an unread badge keeps winning.
+      refineDeclaredStaticFavicon(tab, wc, { setTabFavicon })
         .catch(() => {});
     });
   }));
