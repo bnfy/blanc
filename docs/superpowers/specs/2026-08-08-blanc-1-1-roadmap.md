@@ -1,17 +1,18 @@
 # Blanc 1.1 roadmap — multi-window and local profiles
 
 **Date:** 2026-08-08
-**Status:** M1 shipped in 1.0.10. M2 and M3 were deferred from 1.1.0, then
-implemented together in post-1.2 development on 2026-08-14. See "What 1.1.0
-actually is" for the historical release-scope decision.
+**Status:** Complete. M1 shipped in 1.0.10; M2 and M3 were deferred from
+1.1.0, then implemented together in post-1.2 development on 2026-08-14. All
+three milestones in this roadmap are complete. See "What 1.1.0 actually is"
+for the historical release-scope decision.
 
-Blanc 1.1 re-implements the multi-window and local-profile architecture against
-current `main`, using `codex/post-1.0-development` strictly as a **reference
-implementation** — never as a merge or cherry-pick source. The 2026-08-08 audit
-established why: the branch's true base is the deleted 1Password credential-picker
-spike, only 2 of 19 probed commits applied cleanly onto main (both docs-only), and
-main has since landed features *inside* the functions the branch rewrote. See
-PR #54's closing comment for the full record.
+This roadmap re-implemented the multi-window and local-profile architecture
+against `main`, using `codex/post-1.0-development` strictly as a **reference
+implementation** — never as a merge or cherry-pick source. The 2026-08-08
+audit established why: the branch's true base is the deleted 1Password
+credential-picker spike, only 2 of 19 probed commits applied cleanly onto main
+(both docs-only), and main had since landed features *inside* the functions
+the branch rewrote. See PR #54's closing comment for the full record.
 
 ## What 1.1.0 actually is
 
@@ -25,28 +26,31 @@ Not this roadmap. 1.1.0 ships **M1 plus the island work**, and nothing else:
 - **Island motion** — the resting pill reacting to the cursor approaching, and
   the panel growing out of the pill rather than appearing.
 
-**M2 (independent windows) and M3 (local profiles) move to a later release.**
-Their specs below stand and nothing about them is retracted; they are simply
-not in 1.1.0. Both are architecture work of a size that would hold the island
-work hostage, and neither has started.
+**M2 (independent windows) and M3 (local profiles) moved to a later release.**
+Their specs below stood and nothing about them was retracted; they were simply
+not in 1.1.0. Both were architecture work of a size that would have held the
+island work hostage, and neither had started when that release-scope decision
+was made. Both were subsequently implemented on 2026-08-14.
 
 Consequence worth stating: M1 was scoped as a foundation "for M2 to build on".
-It now ships in a release that contains no M2. That is fine — it is inert by
-design — but it means 1.1.0 carries a runtime boundary with exactly one
-runtime in it, and the second runtime arrives later than the original plan
+It shipped in a release that contained no M2. That was fine — it was inert by
+design — but it meant 1.1.0 carried a runtime boundary with exactly one
+runtime in it, and the second runtime arrived later than the original plan
 assumed.
 
 ## Milestones
 
-Each milestone is its own spec → plan → PR cycle, with acceptance coverage
-riding **inside** the milestone. (The reference branch grew its test slice
-separately, coupled every scenario to the architecture via a shared `Before`
-hook, and wired its features outside cucumber's `paths` so 11 scenarios never
-ran. Each milestone here lands runnable, counted coverage or none.)
+All three milestones are complete. The roadmap originally called for each
+milestone to have its own spec → plan → PR cycle, with acceptance coverage
+riding **inside** the milestone. M2 and M3 ultimately landed together, with
+both runnable, counted acceptance slices included. (The reference branch grew
+its test slice separately, coupled every scenario to the architecture via a
+shared `Before` hook, and wired its features outside cucumber's `paths` so 11
+scenarios never ran.)
 
 - **M1 — Window-runtime foundation.** Behavior-invisible: per-window state moves
   behind a runtime boundary with exactly one runtime; versioned workspace
-  persistence with a v0 rollback mirror. Ships in a normal patch release for
+  persistence with a v0 rollback mirror. Shipped in a normal patch release for
   real-world soak before M2 builds on it.
   Spec: `2026-08-08-window-runtime-foundation-design.md`.
 - **M2 — Independent windows.** *(implemented 2026-08-14)* ⌘N / File → New Window, per-window overlay and
@@ -59,7 +63,7 @@ ran. Each milestone here lands runnable, counted coverage or none.)
   audit verified the reference's store scoping keeps the default profile on
   every shipped root file, so existing users' data never moves.
 
-## Explicitly deferred (design decisions required first)
+## Deferred follow-up work (outside the completed milestones)
 
 - **Glance / split view** — a menu-only prototype in the reference: no
   accelerator, no way to choose the glanced tab, no chrome representation,

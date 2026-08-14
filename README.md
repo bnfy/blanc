@@ -240,7 +240,6 @@ entirely.
 
 ## What's still left
 
-- **Multi-window** — Blanc is deliberately single-window for now.
 - **Passkeys** — WebAuthn works with security keys. On supported Macs, Blanc
   can also create and use device-bound Touch ID passkeys stored in its own
   Secure Enclave keychain group. Existing iCloud Passwords and third-party
