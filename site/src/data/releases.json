@@ -1,5 +1,85 @@
 [
   {
+    "tag": "v1.2.2",
+    "version": "1.2.2",
+    "name": "1.2.2",
+    "publishedAt": "2026-08-14T01:54:11.000Z",
+    "humanDate": "August 13, 2026",
+    "machineDate": "2026-08-13",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.2.2",
+    "anchor": "v1-2-2",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Website icons load again. Blanc still checks every resolved address before connecting, while allowing the connection to fall back across the approved IPv4 and IPv6 addresses when the first one is unavailable."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Sites that check microphone or camera permission before asking can now show their recording flow normally. An undecided permission truthfully reports "
+                  },
+                  {
+                    "type": "code",
+                    "value": "prompt"
+                  },
+                  {
+                    "type": "text",
+                    "value": "; choosing Allow or Block updates retained permission status objects and fires their standard change event. Blanc continues to refuse access until you explicitly allow it."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Tabs restored from Blanc 1.1.1 or earlier no longer appear as identical “New Tab” rows when the older session file has no saved titles. Blanc derives a useful title from each website’s address until the page is opened and supplies its real title."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.2.2"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.2.1",
     "version": "1.2.1",
     "name": "1.2.1",
