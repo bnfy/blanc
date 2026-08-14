@@ -33,6 +33,7 @@ const server = http.createServer((request, response) => {
     response.end(`<!doctype html>
       <title>Favicon probe</title>
       <link rel="icon" type="image/png" href="https://blancbrowser.com/favicon-32x32.png">
+      <link rel="apple-touch-icon" sizes="192x192" href="https://blancbrowser.com/this-icon-does-not-exist-v1.2.3.png">
       <main>favicon probe</main>`);
     return;
   }
@@ -127,7 +128,7 @@ try {
       () => readTabState(app).then((state) =>
         state?.tabs?.find((tab) => tab.url === `${origin}/favicon`) ?? null),
       (tab) => tab?.favicon?.startsWith('data:image/png;base64,'),
-      'packaged candidate did not sanitize the live remote favicon into PNG bytes',
+      'packaged candidate discarded the working favicon after its sharper candidate failed',
       45_000
     );
     const faviconBytes = Buffer.from(faviconTab.favicon.split(',')[1], 'base64');

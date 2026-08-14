@@ -6,7 +6,16 @@ const https = require('node:https');
 const net = require('node:net');
 
 const MAX_BYTES = 256 * 1024;
+const MAX_REDIRECTS = 5;
 const TIMEOUT_MS = 3000;
+const FAVICON_REQUEST_HEADERS = Object.freeze({
+  Accept: 'image/png,image/*;q=0.8',
+  'Cache-Control': 'no-store',
+  // Several public CDNs reject HTTP/1.1 requests unless the identity has the
+  // ordinary browser shape. Keep it static and generic: no Blanc/Electron
+  // version fingerprint, cookies, referrer, or page/session state.
+  'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',
+});
 
 // Keep families separate: adding the IPv4-mapped IPv6 range to a shared
 // BlockList makes Node treat every IPv4 address as matching that IPv6 rule.
@@ -92,10 +101,21 @@ function isPinnedRemote(target, remote) {
   return target.addresses.some(({ address }) => address === remote);
 }
 
-function readIconBytes(source, { signal, lookup } = {}) {
-  return new Promise(async (resolve) => {
-    const target = await resolvePinnedTarget(source, lookup);
-    if (!target || signal?.aborted) return resolve(null);
+function redirectSource(source, statusCode, location) {
+  if (![301, 302, 303, 307, 308].includes(statusCode) || typeof location !== 'string') return null;
+  try {
+    const next = new URL(location, source);
+    if (!['http:', 'https:'].includes(next.protocol) || next.username || next.password) return null;
+    return next.href;
+  } catch {
+    return null;
+  }
+}
+
+async function readIconBytesOnce(source, { signal, lookup } = {}) {
+  const target = await resolvePinnedTarget(source, lookup);
+  if (!target || signal?.aborted) return null;
+  return new Promise((resolve) => {
     const client = target.url.protocol === 'https:' ? https : http;
     const options = {
       protocol: target.url.protocol,
@@ -105,10 +125,7 @@ function readIconBytes(source, { signal, lookup } = {}) {
       method: 'GET',
       agent: false,
       signal,
-      headers: {
-        Accept: 'image/png,image/*;q=0.8',
-        'Cache-Control': 'no-store',
-      },
+      headers: FAVICON_REQUEST_HEADERS,
       lookup: pinnedLookup(target),
       ...(target.url.protocol === 'https:' ? { servername: target.url.hostname } : {}),
     };
@@ -119,43 +136,79 @@ function readIconBytes(source, { signal, lookup } = {}) {
       settled = true;
       resolve(value);
     };
-    const request = client.request(options, (response) => {
-      const remote = cleanAddress(response.socket?.remoteAddress);
-      const remoteFamily = net.isIP(remote);
-      if (
-        response.statusCode !== 200 ||
-        !remote ||
-        !isPublicAddress(remote, remoteFamily) ||
-        !isPinnedRemote(target, remote)
-      ) {
-        response.resume();
-        return done(null);
-      }
-      const contentType = String(response.headers['content-type'] ?? '')
-        .split(';', 1)[0].trim().toLowerCase();
-      if (!/^image\/[a-z0-9][a-z0-9.+-]*$/.test(contentType)) {
-        response.resume();
-        return done(null);
-      }
-      const declared = Number(response.headers['content-length']);
-      if (Number.isFinite(declared) && declared > MAX_BYTES) {
-        response.resume();
-        return done(null);
-      }
-      const chunks = [];
-      let total = 0;
-      response.on('data', (chunk) => {
-        total += chunk.length;
-        if (total > MAX_BYTES) response.destroy(new Error('favicon too large'));
-        else chunks.push(chunk);
+    let request;
+    try {
+      request = client.request(options, (response) => {
+        const remote = cleanAddress(response.socket?.remoteAddress);
+        const remoteFamily = net.isIP(remote);
+        if (
+          !remote ||
+          !isPublicAddress(remote, remoteFamily) ||
+          !isPinnedRemote(target, remote)
+        ) {
+          response.resume();
+          return done(null);
+        }
+        const redirect = redirectSource(target.url.href, response.statusCode, response.headers.location);
+        if (redirect) {
+          response.resume();
+          return done({ redirect });
+        }
+        if (response.statusCode !== 200) {
+          response.resume();
+          return done(null);
+        }
+        const contentType = String(response.headers['content-type'] ?? '')
+          .split(';', 1)[0].trim().toLowerCase();
+        if (!/^image\/[a-z0-9][a-z0-9.+-]*$/.test(contentType)) {
+          response.resume();
+          return done(null);
+        }
+        const declared = Number(response.headers['content-length']);
+        if (Number.isFinite(declared) && declared > MAX_BYTES) {
+          response.resume();
+          return done(null);
+        }
+        const chunks = [];
+        let total = 0;
+        response.on('data', (chunk) => {
+          total += chunk.length;
+          if (total > MAX_BYTES) response.destroy(new Error('favicon too large'));
+          else chunks.push(chunk);
+        });
+        response.on('end', () => done({ contentType, bytes: Buffer.concat(chunks, total) }));
+        response.on('error', () => done(null));
       });
-      response.on('end', () => done({ contentType, bytes: Buffer.concat(chunks, total) }));
-      response.on('error', () => done(null));
-    });
+    } catch {
+      return done(null);
+    }
     request.setTimeout(TIMEOUT_MS, () => request.destroy(new Error('favicon timeout')));
     request.on('error', () => done(null));
     request.end();
   });
 }
 
-module.exports = { MAX_BYTES, isPublicAddress, resolvePinnedTarget, pinnedLookup, readIconBytes };
+async function readIconBytes(source, options = {}) {
+  let current = source;
+  const seen = new Set();
+  for (let redirects = 0; redirects <= MAX_REDIRECTS; redirects++) {
+    if (seen.has(current)) return null;
+    seen.add(current);
+    const result = await readIconBytesOnce(current, options);
+    if (!result) return null;
+    if (!result.redirect) return result;
+    if (redirects === MAX_REDIRECTS) return null;
+    current = result.redirect;
+  }
+  return null;
+}
+
+module.exports = {
+  FAVICON_REQUEST_HEADERS,
+  MAX_BYTES,
+  isPublicAddress,
+  redirectSource,
+  resolvePinnedTarget,
+  pinnedLookup,
+  readIconBytes,
+};

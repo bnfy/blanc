@@ -2,7 +2,27 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { isPublicAddress, resolvePinnedTarget, pinnedLookup } = require('../../src/main/favicon-network');
+const {
+  FAVICON_REQUEST_HEADERS,
+  isPublicAddress,
+  redirectSource,
+  resolvePinnedTarget,
+  pinnedLookup,
+} = require('../../src/main/favicon-network');
+
+test('favicon redirects resolve relative locations and reject non-web targets', () => {
+  assert.equal(
+    redirectSource(
+      'https://stackoverflow.com/favicon.ico',
+      301,
+      '/Content/Sites/stackoverflow/Img/favicon.ico?v=562fb39d93c8',
+    ),
+    'https://stackoverflow.com/Content/Sites/stackoverflow/Img/favicon.ico?v=562fb39d93c8',
+  );
+  assert.equal(redirectSource('https://example.com/favicon.ico', 200, '/next.ico'), null);
+  assert.equal(redirectSource('https://example.com/favicon.ico', 302, 'file:///tmp/icon.png'), null);
+  assert.equal(redirectSource('https://example.com/favicon.ico', 302, 'http://user:pass@example.com/icon.png'), null);
+});
 
 test('favicon network policy rejects local, special-use, and documentation addresses', () => {
   for (const address of [
@@ -87,4 +107,13 @@ test('chrome and internal-page CSP never permit remote favicon loads', () => {
     const img = html.match(/img-src ([^;]+)/)?.[1] ?? '';
     assert.doesNotMatch(img, /https?:/, file);
   }
+});
+
+test('the isolated reader sends a generic browser identity without cookies or referrer', () => {
+  assert.match(
+    FAVICON_REQUEST_HEADERS['User-Agent'],
+    /^Mozilla\/5\.0 \(X11; Linux x86_64\) AppleWebKit\/537\.36 \(KHTML, like Gecko\) Chrome\/\d+\.0\.0\.0 Safari\/537\.36$/,
+  );
+  assert.equal('Cookie' in FAVICON_REQUEST_HEADERS, false);
+  assert.equal('Referer' in FAVICON_REQUEST_HEADERS, false);
 });

@@ -231,6 +231,20 @@ echo "==> Smoke-testing the signed packaged first-run experience"
 BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
   npm run test:packaged:first-run
 
+echo "==> Smoke-testing packaged release regressions"
+BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+  npm run test:packaged:regressions
+
+echo "==> Checking live favicon compatibility — primary 25-site matrix"
+BLANC_FAVICON_MATRIX=primary \
+  BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+  npm run test:packaged:favicons-live
+
+echo "==> Checking live favicon compatibility — additional 25-site matrix"
+BLANC_FAVICON_MATRIX=additional \
+  BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
+  npm run test:packaged:favicons-live
+
 echo "==> Verifying migration from public Stable v$MIGRATION_BASE_VERSION"
 MIGRATION_DIR="$(mktemp -d)"
 cleanup_migration() { rm -rf "$MIGRATION_DIR"; }
