@@ -29,6 +29,21 @@ const writeJson = (name, value) => fs.writeFileSync(
   JSON.stringify(value, null, 2)
 );
 
+// Blanc 1.0.3 predates the privileged blanc-chrome:// scheme and renders its
+// packaged chrome from file://…/src/renderer/index.html. The migration gate
+// starts with that public build, then hands the same profile to the candidate,
+// so it must recognize both trusted chrome locations.
+const isChromePage = (page) => {
+  const url = page.url();
+  if (url === 'blanc-chrome://index/') return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'file:' && parsed.pathname.endsWith('/src/renderer/index.html');
+  } catch {
+    return false;
+  }
+};
+
 const launch = async (executablePath) => {
   app = await launchPackagedOverCdp({
     executablePath,
@@ -48,17 +63,19 @@ const waitForRestoredUrls = async () => {
   assert.fail(`session URLs were not restored; saw ${JSON.stringify(urls)}`);
 };
 
-const waitForQuietRestore = async ({ label, wakeQuiet }) => {
+const waitForQuietRestore = async ({ label, expectQuiet, wakeQuiet }) => {
   const deadline = Date.now() + 15_000;
   let state = null;
   while (Date.now() < deadline) {
-    const chrome = app.pages().find((page) => page.url() === 'blanc-chrome://index/');
+    const chrome = app.pages().find(isChromePage);
     if (chrome) {
       state = await chrome.evaluate(() => window.browserAPI.getAllTabs());
       if (sessionUrls.every((expected) =>
         state.tabs.some((tab) => tab.url === expected))) {
         const quiet = state.tabs.find((tab) => tab.url === sessionUrls[0]);
-        assert.equal(quiet.asleep, true, `${label} inactive restored tab should begin quiet`);
+        if (expectQuiet) {
+          assert.equal(quiet.asleep, true, `${label} inactive restored tab should begin quiet`);
+        }
         if (wakeQuiet) {
           await chrome.evaluate((id) => window.browserAPI.switchTab(id), quiet.id);
           await waitForRestoredUrls();
@@ -112,13 +129,11 @@ try {
 
   // Launch the real public Stable first so the fixture is proven acceptable
   // to that build, then hand the exact same profile to the candidate. Current
-  // Stable already restores inactive tabs as quiet records, so inspect its
-  // authoritative chrome model instead of requiring every tab to have a live
-  // CDP page. Do not wake it here: that would change activeIndex before the
-  // candidate receives the profile and invalidate the intended inactive-tab
-  // migration check below.
+  // Stable is pre-Quiet-Tabs, so inspect its authoritative chrome model rather
+  // than requiring every tab to have a live CDP page. Do not change selection
+  // here: the candidate must receive the exact profile written by Stable.
   await launch(stableExecutable);
-  await waitForQuietRestore({ label: 'stable', wakeQuiet: false });
+  await waitForQuietRestore({ label: 'stable', expectQuiet: false, wakeQuiet: false });
   await app.close();
   app = null;
 
@@ -127,7 +142,7 @@ try {
   // CDP page until activated. Assert the privileged chrome's authoritative
   // tab model first, then activate the quiet record and prove it wakes to the
   // saved URL instead of weakening the migration check to the one live tab.
-  await waitForQuietRestore({ label: 'candidate', wakeQuiet: true });
+  await waitForQuietRestore({ label: 'candidate', expectQuiet: true, wakeQuiet: true });
 
   const settings = JSON.parse(
     fs.readFileSync(path.join(userDataDir, 'settings.json'), 'utf8')
