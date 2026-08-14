@@ -228,8 +228,12 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
   font-family: var(--font-mono);
 }
 .row .actions { flex: 0 0 auto; display: flex; gap: 6px; opacity: 0; }
-.row:hover .actions { opacity: 1; }
+.row:hover .actions, .row:focus-within .actions, .row.editing .actions { opacity: 1; }
 .row .actions button { padding: 3px 9px; font-size: 11px; }
+
+.profile-row.editing { background: var(--surface); align-items: flex-start; }
+.profile-row .main input { width: 100%; box-sizing: border-box; }
+.profile-row .confirmation { color: var(--danger); white-space: normal; }
 
 .empty {
   color: var(--text-dim);

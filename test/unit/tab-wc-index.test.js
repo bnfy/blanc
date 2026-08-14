@@ -43,7 +43,7 @@ test('forgetting from an empty index is a no-op', () => {
 test('the blocked-request counter no longer walks the tabs Map', () => {
   // onRequestBlocked fires tens of times per second while pages load. A linear
   // scan there dereferences tab.view.webContents on every open tab per request.
-  const handler = mainSource.match(/onRequestBlocked\(bindWindowRuntime\([\s\S]*?\n  \}\)\);/)?.[0];
+  const handler = mainSource.match(/onRequestBlocked\(\(request\) => \{[\s\S]*?\n  \}\);/)?.[0];
   assert.ok(handler, 'onRequestBlocked registration not found — update this test with it');
   assert.ok(
     !/for \(const tab of tabs\.values\(\)\)/.test(handler),

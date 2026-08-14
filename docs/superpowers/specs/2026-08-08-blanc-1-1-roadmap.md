@@ -1,8 +1,9 @@
 # Blanc 1.1 roadmap — multi-window and local profiles
 
 **Date:** 2026-08-08
-**Status:** Funded. M1 shipped. **M2 and M3 deferred to a release after 1.1.0**
-(maintainer's call, 2026-08-08) — see "What 1.1.0 actually is" below.
+**Status:** M1 shipped in 1.0.10. M2 and M3 were deferred from 1.1.0, then
+implemented together in post-1.2 development on 2026-08-14. See "What 1.1.0
+actually is" for the historical release-scope decision.
 
 Blanc 1.1 re-implements the multi-window and local-profile architecture against
 current `main`, using `codex/post-1.0-development` strictly as a **reference
@@ -48,11 +49,11 @@ ran. Each milestone here lands runnable, counted coverage or none.)
   persistence with a v0 rollback mirror. Ships in a normal patch release for
   real-world soak before M2 builds on it.
   Spec: `2026-08-08-window-runtime-foundation-design.md`.
-- **M2 — Independent windows.** *(deferred past 1.1.0)* ⌘N / File → New Window, per-window overlay and
+- **M2 — Independent windows.** *(implemented 2026-08-14)* ⌘N / File → New Window, per-window overlay and
   utility sheets, multi-window session restore, and application-menu-follows-
   focus correctness (the reference's version described the wrong window after a
   focus change — reproduced during the audit).
-- **M3 — Local profiles.** *(deferred past 1.1.0)* Identity model, per-profile stores and sessions, a
+- **M3 — Local profiles.** *(implemented 2026-08-14)* Identity model, per-profile stores and sessions, a
   working rename/delete UI (the reference's is dead — `window.prompt()` throws
   in Electron), with the sync/supporter/telemetry invariants preserved. The
   audit verified the reference's store scoping keeps the default profile on

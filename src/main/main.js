@@ -39,16 +39,33 @@ const { sanitizeFavicon } = require('./favicon-sanitizer');
 const { resolvedFavicon } = require('./favicon-policy');
 const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
 const { validFavicon } = require('./bookmark-validate');
-const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
+const {
+  setupDownloads,
+  downloadsActivity,
+  acknowledgeDownloads,
+  discardProfileDownloads,
+} = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu } = require('./bookmark-data');
 const history = require('./history');
-const { JsonStore } = require('./store');
+const { JsonStore, discardProfileStoreEntries } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
-const { loadWorkspace, buildSaveShape } = require('./session-workspace');
+const {
+  PRIMARY_WINDOW_ID,
+  loadWorkspace,
+  buildSaveShape,
+  removeProfileWorkspaces,
+} = require('./session-workspace');
+const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
+const localProfiles = require('./local-profiles');
+const profileDeletions = require('./profile-deletions');
+const {
+  withLocalProfile,
+  setFocusedLocalProfile,
+} = require('./local-profile-context');
 const { filterRestoredSession, restoreTargetId } = require('./session-restore');
 const { UTILITY_PAGES, isUtilityUrl } = require('./utility-pages');
 const {
@@ -69,8 +86,10 @@ const {
   liveContents,
   liveViewContents,
   TAB_WEB_PREFERENCES,
+  configureProfileSessions,
   getPrivateBrowsingSession,
 } = require('./tab-view');
+const { createProfileSessionRegistry } = require('./profile-sessions');
 const { setupWebAuthn } = require('./webauthn');
 const { HANDOFF_PROTOCOLS, classifyExternalNavigation } = require('./external-protocols');
 const { isTrustedSender } = require('./ipc-trust');
@@ -113,24 +132,31 @@ const windowRuntimes = require('./window-runtime-registry');
 // through timers and late callbacks by AsyncLocalStorage.
 const windowRuntimeContext = new AsyncLocalStorage();
 
-/** M1 has exactly one runtime; created below, before any startup work runs. */
+/** The primary runtime survives a macOS dock close. Secondary runtimes are
+ * discarded when their native window closes. */
 let primaryRuntime = null;
+let focusedRuntime = null;
+let profileSessionRegistry = null;
+let installProfileSessionPolicies = () => {};
 
 /** Wrap a callback so it (and everything it schedules) resolves to `runtime`. */
 function bindWindowRuntime(runtime, fn) {
-  return (...args) => windowRuntimeContext.run(runtime, () => fn(...args));
+  return (...args) => withLocalProfile(
+    runtime?.profileId ?? DEFAULT_PROFILE_ID,
+    () => windowRuntimeContext.run(runtime, () => fn(...args))
+  );
 }
 
-/** The runtime owning the current execution. Outside any binding: the single
- * runtime in production, a THROW under acceptanceTestMode — so the acceptance
- * suite detects every runtime-dependent unbound path it executes. */
+/** The runtime owning the current execution. Native and IPC entry points bind
+ * their owner explicitly; the focused fallback is only for legacy production
+ * roots that cannot identify a sender. Acceptance stays strict. */
 function currentRuntime() {
   const bound = windowRuntimeContext.getStore();
   if (bound) return bound;
   if (acceptanceTestMode) {
     throw new Error('currentRuntime() outside any bindWindowRuntime scope');
   }
-  return primaryRuntime;
+  return focusedRuntime ?? primaryRuntime;
 }
 
 /** Terse accessor for per-window state. Every former module global reads
@@ -140,7 +166,36 @@ const rt = currentRuntime;
 // The runtime must exist before app.whenReady does anything — later sweeps
 // make createOverlay() and the IPC trust path read currentRuntime(), and both
 // run from startup contexts.
-primaryRuntime = windowRuntimes.createRuntime();
+primaryRuntime = windowRuntimes.createRuntime({ id: PRIMARY_WINDOW_ID });
+focusedRuntime = primaryRuntime;
+
+function withWindowRuntime(runtime, work) {
+  if (!runtime) return undefined;
+  return withLocalProfile(
+    runtime.profileId,
+    () => windowRuntimeContext.run(runtime, work)
+  );
+}
+
+function forEachWindowRuntime(work, { liveOnly = false } = {}) {
+  for (const runtime of windowRuntimes.all()) {
+    if (liveOnly && (!runtime.window || runtime.window.isDestroyed())) continue;
+    withWindowRuntime(runtime, () => work(runtime));
+  }
+}
+
+function runtimeForPageWebContents(wc) {
+  if (!wc) return null;
+  const tabId = tabIdByWebContentsId.get(wc.id);
+  if (tabId) return windowRuntimes.runtimeForTab(tabId);
+  // Utility sheets are trusted internal-page surfaces, but deliberately NOT
+  // registered as chrome surfaces: doing so would confer the rich tabs/window
+  // IPC namespace on their narrow tab-preload bridge.
+  for (const runtime of windowRuntimes.all()) {
+    if (liveViewContents(runtime.utilitySheetView) === wc) return runtime;
+  }
+  return windowRuntimes.runtimeForChromeWebContentsId(wc.id);
+}
 
 // Exact packaged-smoke gate for the corrupt-cache/offline recovery path.
 // It is deliberately inert in ordinary launches and keeps the acceptance
@@ -206,13 +261,16 @@ settings.setExistingProfileHint(
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on('second-instance', bindWindowRuntime(primaryRuntime, (_e, commandLine) => {
-    openExternalUrls(urlsFromArgv(commandLine));
-    if (rt().window && !rt().window.isDestroyed()) {
-      if (rt().window.isMinimized()) rt().window.restore();
-      rt().window.focus();
-    }
-  }));
+  app.on('second-instance', (_e, commandLine) => {
+    const runtime = focusedRuntime ?? primaryRuntime;
+    withWindowRuntime(runtime, () => {
+      openExternalUrls(urlsFromArgv(commandLine));
+      if (rt().window && !rt().window.isDestroyed()) {
+        if (rt().window.isMinimized()) rt().window.restore();
+        rt().window.focus();
+      }
+    });
+  });
 
   // Chrome-extension support used to live here (electron-chrome-extensions
   // + web store, plus crash-loop recovery for extension profile state). It
@@ -383,10 +441,10 @@ function flushExternalUrls() {
   openExternalUrls(pendingExternalUrls.splice(0));
 }
 
-app.on('open-url', bindWindowRuntime(primaryRuntime, (event, url) => {
+app.on('open-url', (event, url) => {
   event.preventDefault();
-  openExternalUrl(url);
-}));
+  withWindowRuntime(focusedRuntime ?? primaryRuntime, () => openExternalUrl(url));
+});
 
 // Must happen before app 'ready'.
 registerPagesScheme();
@@ -559,21 +617,25 @@ function applyTheme() {
   // push them first so the strip can paint in the same interaction frame.
   // "system" must be resolved after removing the prior override.
   const explicitAppearance = source === 'dark' || source === 'light' ? source : null;
-  beginChromeThemeAppearance(explicitAppearance);
-  refreshActivePageTintForThemeChange();
+  forEachWindowRuntime(() => {
+    beginChromeThemeAppearance(explicitAppearance);
+    refreshActivePageTintForThemeChange();
+  }, { liveOnly: true });
   nativeTheme.themeSource = source;
-  if (!explicitAppearance) applyChromeThemeAppearance();
+  if (!explicitAppearance) {
+    forEachWindowRuntime(() => applyChromeThemeAppearance(), { liveOnly: true });
+  }
 }
 
 function handleNativeThemeUpdated() {
   const appearance = resolvedThemeAppearance();
-  applyChromeThemeAppearance(appearance);
+  forEachWindowRuntime(() => applyChromeThemeAppearance(appearance), { liveOnly: true });
   if (appearance === lastNativeThemeAppearance) return;
   lastNativeThemeAppearance = appearance;
   // Covers live OS appearance changes while the setting is "system". Explicit
   // app theme changes already invalidated before assigning themeSource; doing
   // it again here is harmless and keeps this path self-contained.
-  refreshActivePageTintForThemeChange();
+  forEachWindowRuntime(refreshActivePageTintForThemeChange, { liveOnly: true });
 }
 
 // Swap the chosen macOS Dock icon. Windows deliberately has one fixed icon,
@@ -1387,6 +1449,7 @@ function permissionViewBounds() {
 
 function ensurePermissionView() {
   if (rt().permissionView && !rt().permissionView.webContents.isDestroyed()) return rt().permissionView;
+  const owner = rt();
   rt().permissionView = new WebContentsView({
     webPreferences: {
       partition: CHROME_PARTITION,
@@ -1398,8 +1461,8 @@ function ensurePermissionView() {
   });
   const view = rt().permissionView;
   const wcId = view.webContents.id;
-  windowRuntimes.registerChromeSurface(primaryRuntime, wcId);
-  view.webContents.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+  windowRuntimes.registerChromeSurface(owner, wcId);
+  view.webContents.once('destroyed', bindWindowRuntime(owner, () => {
     windowRuntimes.unregisterChromeSurface(wcId);
     if (rt().permissionView === view) {
       rt().permissionView = null;
@@ -1412,7 +1475,7 @@ function ensurePermissionView() {
   view.webContents.loadURL(CHROME_PERMISSION_URL);
   // Prompts sent before the document's first load finished would be lost —
   // replay everything still pending (the renderer dedupes by id).
-  view.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
+  view.webContents.once('did-finish-load', bindWindowRuntime(owner, () => {
     for (const pending of rt().permissionPrompts.values()) {
       if (pending.payload) view.webContents.send('permissions:prompt', pending.payload);
     }
@@ -1446,6 +1509,7 @@ function detachPermissionView() {
 }
 
 function createOverlay() {
+  const owner = rt();
   // A menu open when the previous window died may never have fired its close
   // callback — never let a leaked ticket disarm the new overlay's blur guard.
   rt().addressMenuTicket = 0;
@@ -1458,7 +1522,7 @@ function createOverlay() {
       sandbox: true,
     },
   });
-  windowRuntimes.registerChromeSurface(primaryRuntime, rt().overlayView.webContents.id);
+  windowRuntimes.registerChromeSurface(owner, rt().overlayView.webContents.id);
   // If the overlay's webContents dies on its own (renderer crash,
   // render-process-gone) rather than through the window's 'closed' handler,
   // make sure it never lingers in the surface index or as a dangling
@@ -1466,7 +1530,7 @@ function createOverlay() {
   // overlayView no longer exists after the Task 7 sweep.
   const overlay = rt().overlayView; // just assigned above
   const overlayWcId = overlay.webContents.id;
-  overlay.webContents.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+  overlay.webContents.once('destroyed', bindWindowRuntime(owner, () => {
     windowRuntimes.unregisterChromeSurface(overlayWcId);
     if (rt().overlayView === overlay) rt().overlayView = null;
   }));
@@ -1479,7 +1543,7 @@ function createOverlay() {
 
   // A show requested before the overlay document finished its first load
   // would be lost — leaving an invisible view blocking clicks. Replay it.
-  rt().overlayView.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
+  rt().overlayView.webContents.once('did-finish-load', bindWindowRuntime(owner, () => {
     if (rt().overlayMode) {
       rt().overlayView.webContents.send('overlay:show', { mode: rt().overlayMode, prefill: rt().overlayPrefill });
       rt().overlayView.webContents.focus();
@@ -1488,7 +1552,7 @@ function createOverlay() {
 
   // Dismiss on Escape at the main-process level so it works no matter
   // which element inside the overlay holds focus.
-  rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(primaryRuntime, (event, input) => {
+  rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
       hideOverlay({ reason: 'escape' });
@@ -1498,7 +1562,7 @@ function createOverlay() {
   // Losing focus (page click, cmd-tab, devtools) with the command bar open
   // would leave a stale panel floating over the page. Find mode survives
   // blur deliberately — users click around the page between matches.
-  rt().overlayView.webContents.on('blur', bindWindowRuntime(primaryRuntime, () => {
+  rt().overlayView.webContents.on('blur', bindWindowRuntime(owner, () => {
     // A native address-bar context menu takes OS focus; that blur is not a
     // dismissal — the popup's close callback owns what happens next.
     if (rt().addressMenuTicket) return;
@@ -1515,14 +1579,14 @@ function createOverlay() {
   }));
 
   attachAddressMenu(rt().overlayView.webContents, {
-    isOverlayLive: bindWindowRuntime(primaryRuntime, () =>
+    isOverlayLive: bindWindowRuntime(owner, () =>
       hasLiveWindow()
       && rt().overlayView && !rt().overlayView.webContents.isDestroyed()
       && (rt().overlayMode === 'panel' || rt().overlayMode === 'palette')),
-    getWindow: bindWindowRuntime(primaryRuntime, () => rt().window),
-    getOverlayBounds: bindWindowRuntime(primaryRuntime, () => overlayBounds()),
-    acquireMenuGuard: bindWindowRuntime(primaryRuntime, () => { rt().addressMenuTicket = ++rt().addressMenuSeq; return rt().addressMenuTicket; }),
-    releaseMenuGuard: bindWindowRuntime(primaryRuntime, (ticket) => {
+    getWindow: bindWindowRuntime(owner, () => rt().window),
+    getOverlayBounds: bindWindowRuntime(owner, () => overlayBounds()),
+    acquireMenuGuard: bindWindowRuntime(owner, () => { rt().addressMenuTicket = ++rt().addressMenuSeq; return rt().addressMenuTicket; }),
+    releaseMenuGuard: bindWindowRuntime(owner, (ticket) => {
       // A stale popup (superseded by a newer one) must not disarm the guard
       // or run close policy under the live menu.
       if (ticket !== rt().addressMenuTicket) return;
@@ -1536,14 +1600,14 @@ function createOverlay() {
       // popup closes, and reading it synchronously would misread an ordinary
       // item selection as an app switch (dismissing the island and swallowing
       // the very edit the item performed).
-      setTimeout(bindWindowRuntime(primaryRuntime, () => {
+      setTimeout(bindWindowRuntime(owner, () => {
         if (rt().addressMenuTicket || !hasLiveWindow()) return;
         if (!rt().window.isFocused()) return hideOverlay({ refocusContent: false });
         refocusOverlayAfterMenu();
       }), 80);
     }),
     actions: {
-      pasteAndGo: bindWindowRuntime(primaryRuntime, (text) => { if (rt().activeTabId) pasteAndGo(rt().activeTabId, text); }),
+      pasteAndGo: bindWindowRuntime(owner, (text) => { if (rt().activeTabId) pasteAndGo(rt().activeTabId, text); }),
     },
   });
 }
@@ -2008,36 +2072,48 @@ function persistSession() {
   // file down to whatever closed last before the process exits.
   if (isQuitting || sessionPersistenceSuspended || tabs.size === 0) return;
   if (sessionReadOnly) return; // a newer format owns this file — never rewrite it
-  const runtime = rt();
   ensureSessionStore().update((d) => {
-    // Private tabs leave no trail, error pages persist their real
-    // destination, url-less tabs drop — all in session-snapshot.js so tab
-    // sync shares the exact same filter.
-    const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
-    const entry = {
-      urls: entries.map((e) => e.url),
-      groupIds: entries.map((e) => e.groupId),
-      pinned: entries.map((e) => e.pinned),
-      // Restored tabs come back quiet, with no webContents to ask for a title
-      // or favicon. Map over `entries`, not the raw list: private/url-less
-      // tabs drop out of urls and must drop out of metadata with them.
-      meta: entries.map((e) => sessionTabMeta(tabs.get(e.id))),
-      // Groups referenced only by private tabs stay out of the file too.
-      groups: runtime.groups.filter((g) => entries.some((e) => e.groupId === g.id)),
-      activeIndex: d.activeIndex ?? 0,
-    };
-    // Only update when the active tab is actually in the persisted list —
-    // during startup (no active tab yet) or with a private tab active,
-    // indexOf is -1 and writing 0 would corrupt the last good index.
-    // Indexed into `entries` (what entry.urls is built from), not the wider
-    // tab list — a tab with no persistable url (an adopted window.open
-    // child before its first navigation commits) is dropped from entry.urls,
-    // and an index computed on the unfiltered list would restore focus to
-    // the wrong tab. -1 (startup, private or url-less active tab) keeps
-    // the last good index, as before.
-    const idx = entries.findIndex((e) => e.id === runtime.activeTabId);
-    if (idx >= 0) entry.activeIndex = idx;
-    Object.assign(d, buildSaveShape(entry, d));
+    const previous = loadWorkspace(d);
+    const previousById = new Map(previous.windows.map((entry) => [entry.id, entry]));
+    const windows = windowRuntimes.all().map((runtime) => {
+      // Private tabs leave no trail, error pages persist their real destination,
+      // and url-less adopted children drop out in lockstep with their metadata.
+      const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
+      const entry = {
+        id: runtime.id,
+        profileId: runtime.profileId,
+        urls: entries.map((item) => item.url),
+        groupIds: entries.map((item) => item.groupId),
+        pinned: entries.map((item) => item.pinned),
+        meta: entries.map((item) => sessionTabMeta(tabs.get(item.id))),
+        groups: runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id)),
+        activeIndex: previousById.get(runtime.id)?.activeIndex ?? 0,
+      };
+      // A private or provisional active tab preserves this window's last good
+      // persisted selection rather than shifting focus on the next launch.
+      const activeIndex = entries.findIndex((item) => item.id === runtime.activeTabId);
+      if (activeIndex >= 0) entry.activeIndex = activeIndex;
+      return entry;
+    });
+    const activeWindowId = windowRuntimes.all().includes(focusedRuntime)
+      ? focusedRuntime.id
+      : windows[0]?.id ?? PRIMARY_WINDOW_ID;
+    Object.assign(d, buildSaveShape(windows, d, { activeWindowId }));
+  });
+}
+
+function removePersistedProfileWorkspaces(profileId) {
+  if (isQuitting || sessionPersistenceSuspended || sessionReadOnly) return false;
+  const store = ensureSessionStore();
+  const removed = removeProfileWorkspaces(store.data, profileId);
+  if (removed.readOnly) {
+    sessionReadOnly = true;
+    return false;
+  }
+  return store.updateAndFlush((data) => {
+    Object.assign(data, buildSaveShape(removed.windows, data, {
+      activeWindowId: removed.activeWindowId,
+    }));
   });
 }
 
@@ -2061,11 +2137,14 @@ const CAPTURE_STOP_TIMEOUT_MS = 1500;
 
 function resolveCaptureSurface(surfaceId) {
   if (typeof surfaceId === 'string' && surfaceId.startsWith('popup:')) {
-    const popup = popupCaptures.get(Number(surfaceId.slice(6)));
+    const wcId = Number(surfaceId.slice(6));
+    if (windowRuntimes.runtimeForAuxiliaryContent(wcId) !== rt()) return null;
+    const popup = popupCaptures.get(wcId);
     return popup && !popup.wc.isDestroyed()
       ? { kind: 'popup', record: popup.record, wc: popup.wc } : null;
   }
   const tab = tabs.get(surfaceId);
+  if (tab && windowRuntimes.runtimeForTab(tab.id) !== rt()) return null;
   const wc = liveContents(tab);
   // Read-only here too: a surface without a record has nothing to stop.
   return tab && wc && tab.captureRecord
@@ -2133,8 +2212,10 @@ function ensureCaptureSurfaceForSender(wc) {
 // broadcast here must rebind the runtime itself (same rule downloads.js
 // documents for its session callbacks).
 function scheduleCaptureBroadcast(surface) {
-  const owner = (surface?.kind === 'tab' ? windowRuntimes.runtimeForTab(surface.tab.id) : null)
-    ?? primaryRuntime;
+  const owner = surface?.kind === 'tab'
+    ? windowRuntimes.runtimeForTab(surface.tab.id)
+    : windowRuntimes.runtimeForAuxiliaryContent(surface?.wc?.id);
+  if (!owner) return;
   bindWindowRuntime(owner, () => {
     scheduleBroadcastTabs();
     if (rt().overlayMode !== 'capture') return;
@@ -2174,6 +2255,7 @@ function captureBroadcastState(serialized) {
     }
   }
   for (const [wcId, popup] of popupCaptures) {
+    if (windowRuntimes.runtimeForAuxiliaryContent(wcId) !== rt()) continue;
     if (popup.wc.isDestroyed()) continue;
     const p = captureProjection(popup.record);
     if (!p.audio && !p.video) continue;
@@ -2194,10 +2276,12 @@ function captureBroadcastState(serialized) {
 /** Row count without a full serialize — sizes the popover card. */
 function captureRowCount() {
   let count = 0;
-  for (const tab of tabs.values()) {
+  for (const tabId of rt().tabOrder) {
+    const tab = tabs.get(tabId);
     if (tab.capture?.audio || tab.capture?.video) count += 1;
   }
-  for (const popup of popupCaptures.values()) {
+  for (const [wcId, popup] of popupCaptures) {
+    if (windowRuntimes.runtimeForAuxiliaryContent(wcId) !== rt()) continue;
     if (popup.wc.isDestroyed()) continue;
     const p = captureProjection(popup.record);
     if (p.audio || p.video) count += 1;
@@ -2222,7 +2306,10 @@ function activeShieldPopover(serialized = serializeTabs()) {
 
 function broadcastTabs() {
   persistSession();
-  tabsync.noteTabsChanged();
+  // Existing Tab Sync consent covers Personal's primary workspace only.
+  if (rt().id === PRIMARY_WINDOW_ID && rt().profileId === DEFAULT_PROFILE_ID) {
+    tabsync.noteTabsChanged();
+  }
   if (!rt().window || rt().window.isDestroyed()) return;
   const widthMetrics = verticalTabsMetrics();
   // Serialize once and hand the same list to the popover, so connection is
@@ -2244,8 +2331,9 @@ function broadcastTabs() {
 }
 
 function broadcastDownloadsActivity() {
-  if (!rt().window || rt().window.isDestroyed()) return;
-  rt().window.webContents.send('chrome:downloads', downloadsActivity());
+  forEachWindowRuntime(() => {
+    rt().window.webContents.send('chrome:downloads', downloadsActivity());
+  }, { liveOnly: true });
 }
 
 // The blocked-request counter can tick many times a second during a page
@@ -2279,7 +2367,7 @@ function applyVerticalTabsWidth(nextWidth) {
   const next = normalizeVerticalTabsWidth(nextWidth);
   if (next === verticalTabsPreferredWidth) return false;
   verticalTabsPreferredWidth = next;
-  if (hasLiveWindow()) resizeActiveView();
+  forEachWindowRuntime(() => resizeActiveView(), { liveOnly: true });
   return true;
 }
 
@@ -2306,7 +2394,7 @@ function applyTabLayout(nextLayout) {
   if (next === tabLayout) return false;
   tabLayout = next;
 
-  if (hasLiveWindow()) {
+  forEachWindowRuntime(() => {
     // A floating overlay is tied to the old pane center. Dismiss it in the
     // same main-process turn, then rebound the attached page/sheet without
     // navigating either document. The Settings sheet stays open so its own
@@ -2314,8 +2402,8 @@ function applyTabLayout(nextLayout) {
     hideOverlay({ refocusContent: false });
     resizeActiveView();
     if (!rt().utilitySheetUrl) liveContents(tabs.get(rt().activeTabId))?.focus();
-  }
-  broadcastTabs();
+    broadcastTabs();
+  }, { liveOnly: true });
   scheduleMenuRebuild();
   return true;
 }
@@ -2332,8 +2420,8 @@ function toggleTabLayout() {
   return setTabLayout(tabLayout === 'vertical' ? 'island' : 'vertical');
 }
 
-function installVerticalTabsShortcut(webContents) {
-  webContents.on('before-input-event', bindWindowRuntime(primaryRuntime, (event, input) => {
+function installVerticalTabsShortcut(webContents, owner = rt()) {
+  webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
     const primaryModifier = process.platform === 'darwin'
       ? input.meta && !input.control
       : input.control && !input.meta;
@@ -2353,12 +2441,12 @@ function installVerticalTabsShortcut(webContents) {
   }));
 }
 
-function installChromeShortcuts(webContents) {
-  installVerticalTabsShortcut(webContents);
+function installChromeShortcuts(webContents, owner = rt()) {
+  installVerticalTabsShortcut(webContents, owner);
   installPlatformMainMenuShortcut({
     webContents,
     Menu,
-    getWindow: bindWindowRuntime(primaryRuntime, () => rt().window),
+    getWindow: bindWindowRuntime(owner, () => rt().window),
   });
 }
 
@@ -2454,7 +2542,9 @@ async function samplePageTint(tab, { immediate = false, shouldApply = () => true
 
 /** Give the page a beat to paint after load before sampling its color. */
 function scheduleSampleTint(tab) {
-  setTimeout(() => samplePageTint(tab), 150);
+  const owner = windowRuntimes.runtimeForTab(tab.id);
+  if (!owner) return;
+  setTimeout(bindWindowRuntime(owner, () => samplePageTint(tab)), 150);
 }
 
 // --- Tab groups (Island Tab Groups design) ---
@@ -2645,8 +2735,9 @@ function noteWakeSuppressed(tab) {
 /** Count an unmanaged popup against its opener until its webContents dies. */
 function notePopupChild(openerTabId, childWindow) {
   if (!openerTabId || !childWindow) return;
+  const owner = windowRuntimes.runtimeForTab(openerTabId) ?? rt();
   popupChildCounts.set(openerTabId, (popupChildCounts.get(openerTabId) ?? 0) + 1);
-  childWindow.webContents.once('destroyed', bindWindowRuntime(primaryRuntime, () => {
+  childWindow.webContents.once('destroyed', bindWindowRuntime(owner, () => {
     const next = (popupChildCounts.get(openerTabId) ?? 1) - 1;
     if (next <= 0) popupChildCounts.delete(openerTabId);
     else popupChildCounts.set(openerTabId, next);
@@ -2729,11 +2820,15 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // navigation — only the record the chrome draws. An adopted child is
   // already live and can never be born quiet.
   const bornQuiet = asleep && !adopted;
-  if (!bornQuiet) view ??= createTabView({ private: isPrivate });
+  if (!bornQuiet) view ??= createTabView({
+    private: isPrivate,
+    profileId: owner.profileId,
+  });
 
   const tab = {
     id,
     runtimeId: owner.id,
+    profileId: owner.profileId,
     view: bornQuiet ? null : view,
     title: typeof title === 'string' && title ? title : 'New Tab',
     url,
@@ -2823,7 +2918,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
 function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   const next = tabs.get(id);
-  if (!next) return;
+  if (!next || windowRuntimes.runtimeForTab(id) !== rt()) return;
   // The wake's synchronous prefix creates its view before returning. This is
   // deliberately before every guard below, including the no-window path.
   if (next.asleep) wakeTab(id).catch(() => {});
@@ -2954,7 +3049,7 @@ function closeTab(id) {
   // A user close during a sleep teardown wins: do not rewire a tab going away.
   sleepTeardownInProgress = false;
   const tab = tabs.get(id);
-  if (!tab) return;
+  if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   forgetTabWebContentsIds(id);
 
   // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
@@ -2985,7 +3080,7 @@ function closeTab(id) {
     // Electron destroys the active view during app shutdown. Do not select a
     // surviving quiet tab here: setActiveTab would wake it and construct a
     // fresh WebContentsView while the native window is being torn down.
-    if (isQuitting) {
+    if (isQuitting || rt().closing) {
       rt().activeTabId = null;
       return;
     }
@@ -3011,6 +3106,7 @@ function reopenClosedTab() {
 }
 
 function reorderTab(id, toIndex) {
+  if (windowRuntimes.runtimeForTab(id) !== rt()) return;
   const from = rt().tabOrder.indexOf(id);
   if (from === -1) return;
   const clamped = Math.max(0, Math.min(rt().tabOrder.length - 1, toIndex));
@@ -3021,6 +3117,8 @@ function reorderTab(id, toIndex) {
 }
 
 function reorderTabWithinBucket(id, beforeId) {
+  if (windowRuntimes.runtimeForTab(id) !== rt()) return false;
+  if (beforeId != null && windowRuntimes.runtimeForTab(beforeId) !== rt()) return false;
   // Renderer input is only a proposal. Main re-resolves both ids against its
   // live model and rejects a stale/cross-group/cross-pin target.
   const next = reorderWithinBucket(rt().tabOrder, tabs, id, beforeId);
@@ -3140,8 +3238,13 @@ function addAllTabsToFavorites() {
 
 /** Bookmark state can change from the bookmarks page; re-derive per tab. */
 function refreshBookmarkFlags() {
-  for (const tab of tabs.values()) tab.bookmarked = bookmarks.isBookmarked(tab.url);
-  broadcastTabs();
+  forEachWindowRuntime((runtime) => {
+    for (const id of runtime.tabOrder) {
+      const tab = tabs.get(id);
+      if (tab) tab.bookmarked = bookmarks.isBookmarked(tab.url);
+    }
+    broadcastTabs();
+  });
   scheduleMenuRebuild();
 }
 
@@ -3248,7 +3351,7 @@ function chromeHandle(channel, handler) {
       if (!app.isPackaged) console.warn(`[ipc] ${channel}: sender has no runtime`);
       throw new Error(`${channel}: denied for unregistered sender`);
     }
-    return windowRuntimeContext.run(runtime, () => {
+    return withWindowRuntime(runtime, () => {
       if (!isTrustedChromeSender(event)) throw new Error(`${channel}: denied for untrusted sender`);
       return handler(event, ...args);
     });
@@ -3262,7 +3365,7 @@ function chromeOn(channel, handler) {
       if (!app.isPackaged) console.warn(`[ipc] ${channel}: sender has no runtime`);
       return;
     }
-    windowRuntimeContext.run(runtime, () => {
+    withWindowRuntime(runtime, () => {
       if (!isTrustedChromeSender(event)) {
         console.warn(`[ipc] ${channel}: denied for untrusted sender`);
         return;
@@ -3665,7 +3768,7 @@ function scheduleMenuRebuild() {
   if (menuRebuildTimer) return;
   menuRebuildTimer = setTimeout(() => {
     menuRebuildTimer = null;
-    buildMenu();
+    buildMenu(focusedRuntime ?? primaryRuntime);
   }, 100);
 }
 
@@ -3673,7 +3776,7 @@ function scheduleMenuRebuild() {
  * and panel switcher), with pins first within their own cluster. Clicking jumps to it.
  * Titles/domains reflect state as of the last menu rebuild, not the
  * current instant — see the Global Constraints note on this. */
-function tabMenuItems() {
+function tabMenuItems(owner = rt()) {
   // Private tabs leave no trace anywhere else in the app (history, session,
   // favorites) — the native menu must not be the one place that leaks a
   // private tab's real title/domain.
@@ -3699,7 +3802,7 @@ function tabMenuItems() {
       label: escapeMenuLabel(label.length > 120 ? `${label.slice(0, 119)}…` : label),
       type: 'checkbox',
       checked: id === rt().activeTabId,
-      click: bindWindowRuntime(primaryRuntime, () => setActiveTab(id)),
+      click: bindWindowRuntime(owner, () => setActiveTab(id)),
     };
   });
 }
@@ -3711,12 +3814,12 @@ const escapeMenuLabel = (label) => (process.platform === 'darwin' ? label : labe
 
 /** Native Favorites-menu items: folder submenus first (alphabetical), then
  * ungrouped favorites inline — mirroring the Favorites page. */
-function favoritesMenuItems() {
+function favoritesMenuItems(owner = rt()) {
   const label = (b) => {
     const t = b.title || b.url;
     return t.length > 120 ? `${t.slice(0, 119)}…` : t;
   };
-  const open = (b) => ({ label: escapeMenuLabel(label(b)), click: bindWindowRuntime(primaryRuntime, () => setActiveTab(createTab(b.url))) });
+  const open = (b) => ({ label: escapeMenuLabel(label(b)), click: bindWindowRuntime(owner, () => setActiveTab(createTab(b.url))) });
   // Folders as submenus first (alphabetical), then ungrouped favorites inline —
   // mirroring the Favorites page. Everything is shown; folders keep the menu
   // navigable regardless of favorite count (no flat cap on ungrouped either).
@@ -3809,6 +3912,7 @@ const SLASH_COMMANDS = [
 // listShortcuts()) for a quick reference right in the Help menu — not
 // exhaustive by design, "Show All Shortcuts…" links to the rest.
 const COMMON_KEYSTROKES = [
+  ['New Window', 'CmdOrCtrl+N'],
   ['New Tab', 'CmdOrCtrl+T'],
   ['New Private Tab', 'CmdOrCtrl+Shift+N'],
   ['Close Tab', 'CmdOrCtrl+W'],
@@ -3824,18 +3928,30 @@ const COMMON_KEYSTROKES = [
   ['Previous Group', 'Alt+CmdOrCtrl+Up'],
 ];
 
-function buildMenu() {
+function buildMenu(runtime = focusedRuntime ?? primaryRuntime) {
+  return withWindowRuntime(runtime, () => buildMenuForRuntime(runtime));
+}
+
+function buildMenuForRuntime(runtime) {
   const isMac = process.platform === 'darwin';
   // On Windows/Linux native menus a lone "&" marks the next char as an Alt
   // mnemonic and is swallowed; a literal ampersand must be doubled. macOS
   // has no mnemonics, so leave labels untouched there.
   const mn = escapeMenuLabel; // literal '&' → '&&' on Win/Linux; see helper
-  const favItems = favoritesMenuItems(); // computed once; drives the separator below
+  const favItems = favoritesMenuItems(runtime); // computed once; drives the separator below
+  const profileItems = localProfiles.listLocalProfiles()
+    .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id))
+    .map((profile) => ({
+    label: profile.name,
+    type: 'checkbox',
+    checked: profile.id === runtime.profileId,
+    click: () => openExistingProfileWindow(profile.id),
+  }));
   // Every native click: handler is wrapped here — Electron invokes menu
   // clicks from outside any JS causality chain our own bound roots created,
   // so each one must re-establish the runtime context at invocation time
   // (same reasoning as the tab-webContents listeners above).
-  const bound = (fn) => bindWindowRuntime(primaryRuntime, fn);
+  const bound = (fn) => bindWindowRuntime(runtime, fn);
   const appMenu = isMac
     ? [{
         label: app.name,
@@ -3858,6 +3974,8 @@ function buildMenu() {
     {
       label: 'File',
       submenu: [
+        { label: 'New Window', accelerator: 'CmdOrCtrl+N', click: bound(() => openNewWindow({ profileId: runtime.profileId })) },
+        { label: 'New Profile Window', click: bound(() => openNewProfileWindow()) },
         { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: bound(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })) },
         { label: 'New Private Tab', accelerator: 'CmdOrCtrl+Shift+N', click: bound(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })) },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: bound(() => rt().activeTabId && closeTab(rt().activeTabId)) },
@@ -3866,6 +3984,15 @@ function buildMenu() {
         { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: bound(checkForUpdatesManually) }, { type: 'separator' }]),
         isMac ? { role: 'close' } : { role: 'quit' },
+      ],
+    },
+    {
+      label: 'Profiles',
+      submenu: [
+        { label: 'New Profile Window', click: bound(() => openNewProfileWindow()) },
+        { label: 'Manage Profiles…', click: bound(() => openInternalPage('blanc://settings/')) },
+        { type: 'separator' },
+        ...profileItems,
       ],
     },
     { role: 'editMenu' }, // required for copy/paste/undo to work in inputs
@@ -3952,7 +4079,7 @@ function buildMenu() {
           click: bound(() => selectTabAtIndex(i)),
         })),
         { type: 'separator' },
-        ...tabMenuItems(),
+        ...tabMenuItems(runtime),
       ],
     },
     {
@@ -4012,12 +4139,21 @@ function buildMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
-// Bound to primaryRuntime at its own entry point (not just via the callers'
-// context) — macOS dock-reopen invokes this from an 'activate' handler whose
-// own binding is a later task's concern, and this function must not depend
-// on that ordering to establish the runtime context it and createOverlay()
-// rely on.
-const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWindow() {
+function createMainWindow(runtime = primaryRuntime) {
+  return withWindowRuntime(runtime, () => createMainWindowForRuntime(runtime));
+}
+
+function profileWindowTitle(profile) {
+  return profile?.id === DEFAULT_PROFILE_ID
+    ? 'Blanc'
+    : `${profile?.name ?? 'Profile'} — Blanc`;
+}
+
+function createMainWindowForRuntime(runtime) {
+  if (runtime.window && !runtime.window.isDestroyed()) return runtime;
+  runtime.closing = false;
+  installProfileSessionPolicies(runtime.profileId);
+  const localProfile = localProfiles.getLocalProfile(runtime.profileId);
   // Packaged Windows builds inherit the multi-resolution icon embedded in
   // Blanc.exe. Unpackaged development needs the same icon supplied explicitly
   // because its executable is Electron.exe.
@@ -4027,6 +4163,7 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
     height: 800,
     minWidth: 640,
     minHeight: 480,
+    title: profileWindowTitle(localProfile),
     backgroundColor: chromeBackgroundColor(),
     frame: false,
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
@@ -4039,36 +4176,64 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
       sandbox: true,
     },
   });
-  windowRuntimes.attachWindow(primaryRuntime, { window: newWindow });
-  windowRuntimes.registerChromeSurface(primaryRuntime, newWindow.webContents.id);
+  windowRuntimes.attachWindow(runtime, { window: newWindow });
+  windowRuntimes.registerChromeSurface(runtime, newWindow.webContents.id);
+  // The chrome document's static <title> is just its document label. Keep the
+  // native window title bound to profile identity across loads and reloads.
+  newWindow.on('page-title-updated', bindWindowRuntime(runtime, (event) => {
+    event.preventDefault();
+    newWindow.setTitle(profileWindowTitle(localProfiles.getLocalProfile(runtime.profileId)));
+  }));
   // The strip's own 64px band. Its document IS the window, so no offset.
   watchCursorFor(newWindow.webContents, { x: 0, y: 0 },
-    (fn) => bindWindowRuntime(primaryRuntime, fn));
+    (fn) => bindWindowRuntime(runtime, fn));
 
   lockPrivilegedNavigation(rt().window.webContents, CHROME_INDEX_URL);
   installChromeShortcuts(rt().window.webContents);
   rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
-  rt().window.on('resize', bindWindowRuntime(primaryRuntime, resizeActiveView));
-  rt().window.on('focus', bindWindowRuntime(primaryRuntime, refocusAddressBarIfWanted));
-  rt().window.on('closed', bindWindowRuntime(primaryRuntime, () => {
-    const runtime = primaryRuntime;
+  rt().window.on('resize', bindWindowRuntime(runtime, resizeActiveView));
+  rt().window.on('focus', bindWindowRuntime(runtime, () => {
+    focusedRuntime = runtime;
+    setFocusedLocalProfile(runtime.profileId);
+    buildMenu(runtime);
+    refocusAddressBarIfWanted();
+  }));
+  rt().window.on('close', bindWindowRuntime(runtime, () => {
+    runtime.closing = true;
+  }));
+  rt().window.on('closed', bindWindowRuntime(runtime, () => {
     // Destroy the views the window owned — detachWindow only forgets them.
     liveViewContents(runtime.overlayView)?.close();
     liveViewContents(runtime.utilitySheetView)?.close();
     liveViewContents(runtime.permissionView)?.close();
-    windowRuntimes.detachWindow(runtime);
+    flushPermissionPrompts(runtime);
+    if (!isQuitting && runtime !== primaryRuntime) {
+      for (const tabId of [...runtime.tabOrder]) closeTab(tabId);
+      windowRuntimes.discardRuntime(runtime);
+      if (!sessionReadOnly) persistSession();
+    } else {
+      windowRuntimes.detachWindow(runtime);
+    }
+    const next = windowRuntimes.all().find((candidate) =>
+      candidate.window && !candidate.window.isDestroyed() && !candidate.closing) ?? primaryRuntime;
+    focusedRuntime = next;
+    setFocusedLocalProfile(next.profileId);
+    if (windowRuntimes.all().some((candidate) =>
+      candidate.window && !candidate.window.isDestroyed())) {
+      buildMenu(next);
+    }
     // The detached favicon rasterizer view isn't a BrowserWindow, so it would
     // otherwise linger past the last window (blocking `window-all-closed` quit
     // on Windows/Linux). Recreated lazily on the next non-PNG capture.
-    iconRaster.dispose();
-    flushPermissionPrompts(runtime);
+    if (!windowRuntimes.all().some((candidate) =>
+      candidate.window && !candidate.window.isDestroyed())) iconRaster.dispose();
   }));
 
   // Tabs survive window close (macOS dock-reopen recreates the window);
   // re-attach the active tab's view or the new window sits over nothing.
   // First launch has no activeTabId yet — app.whenReady handles that one.
-  rt().window.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
+  rt().window.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
     if (!rt().activeTabId || !tabs.has(rt().activeTabId)) return;
     const id = rt().activeTabId;
     rt().activeTabId = null; // force setActiveTab to treat it as a fresh attach
@@ -4077,7 +4242,327 @@ const createMainWindow = bindWindowRuntime(primaryRuntime, function createMainWi
     // was recreated (macOS dock-reopen path).
     flushExternalUrls();
   }));
-});
+  return runtime;
+}
+
+function createWindowRuntimeId() {
+  return `window_${crypto.randomUUID().replace(/-/g, '')}`;
+}
+
+function openNewWindow(options = {}) {
+  const requestedProfileId = options?.profileId
+    ?? focusedRuntime?.profileId
+    ?? DEFAULT_PROFILE_ID;
+  const profileId = localProfiles.getLocalProfile(requestedProfileId)?.id
+    ?? DEFAULT_PROFILE_ID;
+  if (profileDeletions.hasPendingProfileDeletion(profileId)) {
+    throw new Error('This local profile is being deleted');
+  }
+  const runtime = windowRuntimes.createRuntime({
+    id: createWindowRuntimeId(),
+    profileId,
+  });
+  createMainWindow(runtime);
+  return withWindowRuntime(runtime, () => {
+    const tabId = createTab(newTabUrl());
+    if (tabId) setActiveTab(tabId, { focusContent: false, focusAddress: true });
+    focusedRuntime = runtime;
+    setFocusedLocalProfile(runtime.profileId);
+    runtime.window.show();
+    runtime.window.focus();
+    broadcastTabs();
+    buildMenu(runtime);
+    return runtime.id;
+  });
+}
+
+function openNewProfileWindow(name) {
+  const profile = localProfiles.createLocalProfile(name);
+  const runtimeId = openNewWindow({ profileId: profile.id });
+  scheduleMenuRebuild();
+  return { profile, runtimeId };
+}
+
+function createNamedLocalProfileWindow(name) {
+  try {
+    return { ok: true, ...openNewProfileWindow(name) };
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t create that profile.' };
+  }
+}
+
+function openExistingProfileWindow(profileId) {
+  if (profileDeletions.hasPendingProfileDeletion(profileId)) {
+    return { ok: false, message: 'That profile is being deleted.' };
+  }
+  const profile = localProfiles.getLocalProfile(profileId);
+  if (!profile) return { ok: false, message: 'That profile no longer exists.' };
+  return { ok: true, runtimeId: openNewWindow({ profileId: profile.id }) };
+}
+
+function refreshProfilePresentation(profile) {
+  forEachWindowRuntime((runtime) => {
+    if (runtime.profileId !== profile.id || !runtime.window || runtime.window.isDestroyed()) return;
+    runtime.window.setTitle(profileWindowTitle(profile));
+  });
+  scheduleMenuRebuild();
+}
+
+function renameNamedLocalProfile(profileId, name) {
+  try {
+    if (profileDeletions.hasPendingProfileDeletion(profileId)) {
+      return { ok: false, message: 'That profile is being deleted.' };
+    }
+    const profile = localProfiles.renameLocalProfile(profileId, name);
+    if (!profile) return { ok: false, message: 'That profile no longer exists.' };
+    refreshProfilePresentation(profile);
+    return { ok: true, profile };
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t rename that profile.' };
+  }
+}
+
+function namedProfileDataDirectory(profileId) {
+  if (profileId === DEFAULT_PROFILE_ID) throw new Error('Personal cannot be deleted');
+  const root = path.resolve(app.getPath('userData'), 'profiles');
+  const target = path.resolve(root, profileId);
+  if (path.dirname(target) !== root) throw new Error('Invalid local profile data path');
+  return target;
+}
+
+async function destroyProfileWindow(runtime) {
+  const window = runtime.window;
+  if (!window || window.isDestroyed()) return;
+  await new Promise((resolve) => {
+    window.once('closed', resolve);
+    // Confirmation is the terminal commit point. beforeunload cannot retain a
+    // window whose local cookie jar and product records are being erased.
+    window.destroy();
+  });
+}
+
+async function clearNamedProfileSessions(profileId) {
+  const owned = profileSessionRegistry.forProfile(profileId);
+  await Promise.all([owned.normal, owned.private].flatMap((browsingSession) => [
+    browsingSession.clearStorageData(),
+    browsingSession.clearCache(),
+    browsingSession.clearAuthCache(),
+  ]));
+}
+
+const deletingProfileIds = new Set();
+let profileDeletionRecoveryTimer = null;
+
+function scheduleProfileDeletionRecovery() {
+  if (profileDeletionRecoveryTimer) return;
+  profileDeletionRecoveryTimer = setTimeout(() => {
+    profileDeletionRecoveryTimer = null;
+    resumePendingProfileDeletions().catch((error) => {
+      console.warn('[profiles] could not resume profile deletion:', error.message);
+    });
+  }, 1000);
+}
+
+async function completeNamedProfileDeletion(profileId, {
+  closeWindows = false,
+  ensureSurvivingWindow = false,
+} = {}) {
+  const errors = [];
+  const profile = localProfiles.getLocalProfile(profileId);
+
+  if (ensureSurvivingWindow) {
+    const hasSurvivor = windowRuntimes.all().some((runtime) =>
+      runtime.profileId !== profileId && runtime.window && !runtime.window.isDestroyed());
+    if (!hasSurvivor) openNewWindow({ profileId: DEFAULT_PROFILE_ID });
+  }
+
+  if (closeWindows) {
+    const ownedRuntimes = windowRuntimes.all()
+      .filter((runtime) => runtime.profileId === profileId);
+    try {
+      await Promise.all(ownedRuntimes.map(destroyProfileWindow));
+    } catch (error) {
+      errors.push(error);
+    }
+    if (windowRuntimes.all().some((runtime) =>
+      runtime.profileId === profileId && runtime.window && !runtime.window.isDestroyed())) {
+      return {
+        complete: false,
+        message: 'Waiting for the profile windows to close before erasing local data.',
+      };
+    }
+  }
+
+  try {
+    await clearNamedProfileSessions(profileId);
+  } catch (error) {
+    errors.push(error);
+  }
+  try {
+    discardProfileDownloads(profileId);
+    discardProfileStoreEntries(profileId);
+    fs.rmSync(namedProfileDataDirectory(profileId), { recursive: true, force: true });
+  } catch (error) {
+    errors.push(error);
+  }
+
+  if (!removePersistedProfileWorkspaces(profileId)) {
+    errors.push(new Error('Couldn’t remove this profile’s saved workspaces.'));
+  }
+  try {
+    if (profile) localProfiles.removeLocalProfile(profileId, { flush: true });
+  } catch (error) {
+    errors.push(error);
+  }
+  profileSessionRegistry.remove(profileId);
+
+  if (errors.length) {
+    return {
+      complete: false,
+      message: `Profile deletion is still finishing: ${errors[0].message || 'cleanup will retry automatically.'}`,
+    };
+  }
+  try {
+    profileDeletions.clearProfileDeletion(profileId);
+  } catch {
+    return {
+      complete: false,
+      message: 'Profile data was removed, but final cleanup bookkeeping will retry automatically.',
+    };
+  }
+  return { complete: true };
+}
+
+async function resumePendingProfileDeletions() {
+  for (const profileId of profileDeletions.pendingProfileDeletions()) {
+    const hasLiveWindow = windowRuntimes.all().some((runtime) =>
+      runtime.profileId === profileId && runtime.window && !runtime.window.isDestroyed());
+    const result = await completeNamedProfileDeletion(profileId, {
+      closeWindows: hasLiveWindow,
+      ensureSurvivingWindow: hasLiveWindow,
+    });
+    if (!result.complete) {
+      console.warn(`[profiles] pending deletion for ${profileId}: ${result.message}`);
+    }
+  }
+}
+
+async function deleteNamedLocalProfile(profileId, confirmation) {
+  const profile = localProfiles.getLocalProfile(profileId);
+  if (!profile || profile.id === DEFAULT_PROFILE_ID) {
+    return { ok: false, message: 'Only a named profile can be deleted.' };
+  }
+  if (confirmation !== profile.name) {
+    return { ok: false, message: `Type “${profile.name}” exactly to delete this profile.` };
+  }
+  if (sessionReadOnly) {
+    return { ok: false, message: 'This Blanc build cannot safely remove a newer saved workspace.' };
+  }
+  if (profileDeletions.hasPendingProfileDeletion(profile.id) || deletingProfileIds.has(profile.id)) {
+    return { ok: true, pending: true, message: 'That profile is already being deleted.' };
+  }
+
+  try {
+    profileDeletions.markProfileDeletion(profile.id);
+  } catch (error) {
+    return { ok: false, message: error.message || 'Couldn’t safely start profile deletion.' };
+  }
+
+  deletingProfileIds.add(profile.id);
+  try {
+    const result = await completeNamedProfileDeletion(profile.id, {
+      closeWindows: true,
+      ensureSurvivingWindow: true,
+    });
+    scheduleMenuRebuild();
+    if (result.complete) return { ok: true, profile };
+    scheduleProfileDeletionRecovery();
+    return { ok: true, pending: true, message: result.message };
+  } catch (error) {
+    scheduleProfileDeletionRecovery();
+    return {
+      ok: true,
+      pending: true,
+      message: `Profile deletion is still finishing: ${error.message || 'cleanup will retry automatically.'}`,
+    };
+  } finally {
+    deletingProfileIds.delete(profile.id);
+  }
+}
+
+function windowRuntimeSnapshots() {
+  return windowRuntimes.all().map((runtime) => ({
+    id: runtime.id,
+    profileId: runtime.profileId,
+    profileName: localProfiles.getLocalProfile(runtime.profileId)?.name ?? 'Personal',
+    title: runtime.window && !runtime.window.isDestroyed() ? runtime.window.getTitle() : null,
+    tabOrder: [...runtime.tabOrder],
+    activeTabId: runtime.activeTabId,
+    tabs: runtime.tabOrder.map((id) => {
+      const tab = tabs.get(id);
+      return tab ? { id, url: tab.url, private: !!tab.private } : null;
+    }).filter(Boolean),
+    groups: runtime.groups.map(({ id, name, collapsed }) => ({ id, name, collapsed })),
+    attached: !!runtime.window && !runtime.window.isDestroyed(),
+  }));
+}
+
+function closeWindowRuntime(id) {
+  const runtime = windowRuntimes.all().find((candidate) => candidate.id === id);
+  if (!runtime || runtime === primaryRuntime || !runtime.window || runtime.window.isDestroyed()) return false;
+  runtime.window.close();
+  return true;
+}
+
+function runInWindowRuntime(id, work) {
+  const runtime = windowRuntimes.all().find((candidate) => candidate.id === id);
+  if (!runtime) return null;
+  return withWindowRuntime(runtime, work);
+}
+
+function openTabInWindow(id, url, options = {}) {
+  return runInWindowRuntime(id, () => {
+    const tabId = createTab(url, options);
+    if (tabId) setActiveTab(tabId);
+    return tabId;
+  });
+}
+
+function profileTabSessionSnapshot(tabId) {
+  const tab = tabs.get(tabId);
+  const runtime = tab ? windowRuntimes.runtimeForTab(tab.id) : null;
+  const wc = liveContents(tab);
+  if (!tab || !runtime || !wc) return null;
+  const owned = profileSessionRegistry.forProfile(runtime.profileId);
+  const expected = tab.private ? owned.private : owned.normal;
+  const personal = profileSessionRegistry.forProfile(DEFAULT_PROFILE_ID);
+  return {
+    profileId: runtime.profileId,
+    private: !!tab.private,
+    matchesProfileSession: wc.session === expected,
+    persistent: wc.session.isPersistent(),
+    isolatedFromPersonal: runtime.profileId === DEFAULT_PROFILE_ID
+      ? true
+      : wc.session !== (tab.private ? personal.private : personal.normal),
+  };
+}
+
+function localProfileSnapshots() {
+  return localProfiles.listLocalProfiles()
+    .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id));
+}
+
+function profileBookmarkUrls(runtimeId) {
+  return runInWindowRuntime(runtimeId, () =>
+    bookmarks.listBookmarks().map((bookmark) => bookmark.url));
+}
+
+function saveProfileFavorite(runtimeId, url, title = url) {
+  return runInWindowRuntime(runtimeId, () => {
+    bookmarks.saveFavorite(String(url), String(title));
+    return bookmarks.isBookmarked(String(url));
+  });
+}
 
 // Re-apply the current WebRTC policy to every open tab (used when the setting changes).
 function applyWebrtcPolicyToAllTabs() {
@@ -4094,9 +4579,15 @@ let lastSecureDns = null;
 let lastSecureDnsTemplate = null;
 
 app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
-  const ses = session.defaultSession;
-  const privateSes = getPrivateBrowsingSession();
-  const browsingSessions = [ses, privateSes];
+  profileSessionRegistry = createProfileSessionRegistry({
+    defaultSession: session.defaultSession,
+    fromPartition: (partition) => session.fromPartition(partition),
+  });
+  configureProfileSessions(profileSessionRegistry);
+  const personalSessions = profileSessionRegistry.forProfile(DEFAULT_PROFILE_ID);
+  const ses = personalSessions.normal;
+  const privateSes = personalSessions.private;
+  const browsingSessions = profileSessionRegistry.all();
   const chromeSes = session.fromPartition(CHROME_PARTITION);
   setupChromeProtocol({ session: chromeSes, net });
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
@@ -4125,7 +4616,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     app,
     session: browsingSessions,
     dialog,
-    getParentWindow: bindWindowRuntime(primaryRuntime, () => (hasLiveWindow() ? rt().window : null)),
+    getParentWindow: () => {
+      const runtime = focusedRuntime ?? primaryRuntime;
+      return runtime.window && !runtime.window.isDestroyed() ? runtime.window : null;
+    },
   });
 
   // Unlike a webPreferences preload, a session preload also reaches adopted
@@ -4133,19 +4627,22 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // context. Google Identity Services can use either a popup or tab-style
   // child depending on the relying site, so the Chrome compatibility surface
   // must cover both paths.
-  for (const browsingSession of browsingSessions) {
-    browsingSession.registerPreloadScript({
-      type: 'frame',
-      filePath: path.join(__dirname, 'chrome-compat-preload.js'),
-    });
-    // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
-    // preloads only reach MAIN frames on our configuration — subframe grants
-    // stay unconfirmable and fail toward stuck-on, never silently-off.
-    browsingSession.registerPreloadScript({
-      type: 'frame',
-      filePath: path.join(__dirname, 'capture-preload.js'),
-    });
-  }
+  const installSessionPreloads = (targetSessions) => {
+    for (const browsingSession of targetSessions) {
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'chrome-compat-preload.js'),
+      });
+      // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
+      // preloads only reach MAIN frames on our configuration — subframe grants
+      // stay unconfirmable and fail toward stuck-on, never silently-off.
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'capture-preload.js'),
+      });
+    }
+  };
+  installSessionPreloads(browsingSessions);
 
   // Fallback: patch Sec-CH-UA HTTP headers for webContents where the CDP
   // debugger couldn't attach (e.g. already in use). The CDP override above
@@ -4157,6 +4654,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // constraint adblock.js documents for onBeforeRequest) — if a future
   // feature also needs onBeforeSendHeaders, compose inside this handler
   // rather than registering a second one.
+  let installClientHintFallback = () => {};
   if (chromeMajor) {
     const chUa = `"Not;A=Brand";v="8", "Chromium";v="${chromeMajor}", "Google Chrome";v="${chromeMajor}"`;
     const chUaFull = `"Not;A=Brand";v="8.0.0.0", "Chromium";v="${chromeFull}", "Google Chrome";v="${chromeFull}"`;
@@ -4164,8 +4662,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       const existing = Object.keys(headers).find((key) => key.toLowerCase() === name);
       if (existing || add) headers[existing || name] = value;
     };
-    for (const browsingSession of browsingSessions) {
-      browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
+    installClientHintFallback = (targetSessions) => {
+      for (const browsingSession of targetSessions) {
+        browsingSession.webRequest.onBeforeSendHeaders({ urls: ['<all_urls>'] }, (details, callback) => {
         // Compose with the Client Hints handler rather than registering a
         // second listener: Electron allows one listener per webRequest event.
         // A POST result is not safely refetchable, so retain the method until
@@ -4187,8 +4686,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         setHeader(h, 'sec-ch-ua-mobile', '?0');
         setHeader(h, 'sec-ch-ua-wow64', '?0');
         callback({ requestHeaders: h });
-      });
-    }
+        });
+      }
+    };
+    installClientHintFallback(browsingSessions);
   }
 
   applyTheme();
@@ -4197,8 +4698,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', bindWindowRuntime(primaryRuntime, handleNativeThemeUpdated));
 
-  setupPermissionPolicy(ses);
-  setupPermissionPolicy(privateSes, { persistDecisions: false });
+  setupPermissionPolicy(ses, { profileId: DEFAULT_PROFILE_ID });
+  setupPermissionPolicy(privateSes, {
+    persistDecisions: false,
+    profileId: DEFAULT_PROFILE_ID,
+  });
   let permissionPromptCounter = 0;
   // Resolve the tab owning a requesting webContents through the maintained
   // index — never by walking `tabs` and dereferencing each view.
@@ -4327,11 +4831,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // downloads.js invokes this from its own session/DownloadItem listeners —
   // a native event boundary main.js doesn't control — so the callback must
   // rebind the runtime itself rather than rely on setupDownloads' call site.
-  const boundBroadcastDownloadsActivity = bindWindowRuntime(primaryRuntime, broadcastDownloadsActivity);
-  setupDownloads(ses, boundBroadcastDownloadsActivity, { private: false });
-  setupDownloads(privateSes, boundBroadcastDownloadsActivity, { private: true });
+  setupDownloads(ses, broadcastDownloadsActivity, {
+    private: false,
+    profileId: DEFAULT_PROFILE_ID,
+  });
+  setupDownloads(privateSes, broadcastDownloadsActivity, {
+    private: true,
+    profileId: DEFAULT_PROFILE_ID,
+  });
   let adblockStartupState = { phase: 'idle', attempt: 0, error: null };
   let adblockStartupController = null;
+  let adblockEngineReady = false;
   let releaseStartup = async () => {};
   const startPageStatus = () => {
     const current = settings.getSettings();
@@ -4351,72 +4861,132 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       liveContents(tab)?.send('pages:start:status', status);
     }
   };
-  // pages.js's ipcMain.handle('pages:*', ...) registrations are a wholly
-  // separate, unbound native IPC surface from chromeOn/chromeHandle above —
-  // every hook function handed in here is invoked from there, so each one
-  // must rebind the runtime itself.
-  const refreshBookmarkFlagsBound = bindWindowRuntime(primaryRuntime, refreshBookmarkFlags);
-  setupPages({
+  // pages.js's IPC surface derives runtime ownership from the sender before
+  // any window-local hook runs. A background window's ledger/sheet can never
+  // read or mutate the focused window's groups or overlay.
+  const pagesRegistration = setupPages({
     sessions: browsingSessions,
-    onDataChanged: refreshBookmarkFlagsBound,
-    onHistoryCleared: bindWindowRuntime(primaryRuntime, clearSessionMeta),
+    sessionsForCurrentRuntime: () => {
+      const owned = profileSessionRegistry.forProfile(rt().profileId);
+      return [owned.normal, owned.private];
+    },
+    runInPageRuntime: (event, work) => {
+      const runtime = runtimeForPageWebContents(event.sender);
+      if (!runtime) throw new Error('pages IPC sender has no window runtime');
+      return withWindowRuntime(runtime, work);
+    },
+    onDataChanged: refreshBookmarkFlags,
+    onHistoryCleared: clearSessionMeta,
     // Parent for the favorites-import file dialog (evaluated lazily at click).
-    getMainWindow: bindWindowRuntime(primaryRuntime, () => (hasLiveWindow() ? rt().window : undefined)),
+    getMainWindow: () => (hasLiveWindow() ? rt().window : undefined),
     // Utility sheet: only the sheet view itself may close the sheet — the
     // strict pages:surface:close guard verifies the sender against this.
     utilitySheet: {
-      isSheetSender: bindWindowRuntime(primaryRuntime, (wc) => {
+      isSheetSender: (wc) => {
         const sheet = liveUtilitySheet();
         return !!sheet && wc === sheet.wc;
-      }),
-      close: bindWindowRuntime(primaryRuntime, () => hideUtilitySheet()),
+      },
+      close: () => hideUtilitySheet(),
     },
     pageSurfaces: {
-      owns: bindWindowRuntime(primaryRuntime, (host, wc) => {
-        if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
-        if (host !== 'newtab') return false;
-        for (const tab of tabs.values()) {
-          if (
-            windowRuntimes.runtimeForTab(tab.id) === primaryRuntime &&
-            liveContents(tab) === wc
-          ) return true;
-        }
-        return false;
-      }),
+      owns: (host, wc) => {
+        const runtime = runtimeForPageWebContents(wc);
+        if (!runtime) return false;
+        return withWindowRuntime(runtime, () => {
+          if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
+          if (host !== 'newtab') return false;
+          const tabId = tabIdByWebContentsId.get(wc.id);
+          return !!tabId && windowRuntimes.runtimeForTab(tabId) === runtime;
+        });
+      },
     },
     // The start page's ledger sections read live tab-group state and the
     // rolling blocked counter, both owned here.
     startPage: {
       // Mirror persistSession's rule: private tabs — and groups only they
       // hold — never surface on a start page.
-      groups: bindWindowRuntime(primaryRuntime, () => clusterList()
+      groups: () => clusterList()
         .filter((c) => c.group)
         .map(({ group, tabIds }) => ({
           id: group.id,
           name: group.name,
           count: tabIds.filter((id) => !tabs.get(id)?.private).length,
         }))
-        .filter((g) => g.count > 0)),
-      focusGroup: bindWindowRuntime(primaryRuntime, focusGroup),
-      blockedThisWeek: bindWindowRuntime(primaryRuntime, () => adblockWeekStats().data.blocked),
-      remoteDevices: bindWindowRuntime(primaryRuntime, () => sync.listRemoteDevices()),
-      status: bindWindowRuntime(primaryRuntime, startPageStatus),
-      retryAdblock: bindWindowRuntime(primaryRuntime, () => adblockStartupController?.retry() ?? startPageStatus().startup),
-      continueWithoutAdblock: bindWindowRuntime(primaryRuntime, () =>
-        adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup),
-      completePrivacy: bindWindowRuntime(primaryRuntime, (choices) => {
+        .filter((g) => g.count > 0),
+      focusGroup,
+      blockedThisWeek: () => adblockWeekStats().data.blocked,
+      remoteDevices: () => sync.listRemoteDevices(),
+      status: startPageStatus,
+      retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
+      continueWithoutAdblock: () =>
+        adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
+      completePrivacy: (choices) => {
         const result = settings.completeFirstRunPrivacyChoices(choices);
         if (result.completed) {
           maybeSendLaunchPing();
           broadcastStartPageStatus();
         }
         return { completed: result.completed, error: result.error ?? null };
+      },
+    },
+    profiles: {
+      list: () => ({
+        currentId: rt().profileId,
+        profiles: localProfiles.listLocalProfiles()
+          .filter((profile) => !profileDeletions.hasPendingProfileDeletion(profile.id)),
       }),
+      create: createNamedLocalProfileWindow,
+      open: openExistingProfileWindow,
+      rename: renameNamedLocalProfile,
+      remove: deleteNamedLocalProfile,
     },
     // listShortcuts() reads only the live Electron application menu — no
     // runtime-owned state — so this one hook is left unwrapped.
     shortcuts: { list: listShortcuts },
   });
+
+  const configuredProfileSessions = new Set([DEFAULT_PROFILE_ID]);
+  installProfileSessionPolicies = (profileId = DEFAULT_PROFILE_ID) => {
+    const owned = profileSessionRegistry.forProfile(profileId);
+    if (configuredProfileSessions.has(owned.profileId)) return owned;
+    const targetSessions = [owned.normal, owned.private];
+    pagesRegistration.addSessions(targetSessions);
+    installSessionPreloads(targetSessions);
+    installClientHintFallback(targetSessions);
+    setupPermissionPolicy(owned.normal, { profileId: owned.profileId });
+    setupPermissionPolicy(owned.private, {
+      persistDecisions: false,
+      profileId: owned.profileId,
+    });
+    setupDownloads(owned.normal, broadcastDownloadsActivity, {
+      private: false,
+      profileId: owned.profileId,
+    });
+    setupDownloads(owned.private, broadcastDownloadsActivity, {
+      private: true,
+      profileId: owned.profileId,
+    });
+    setupWebAuthn({
+      app,
+      session: targetSessions,
+      dialog,
+      getParentWindow: () => {
+        const runtime = windowRuntimes.all().find((candidate) =>
+          candidate.profileId === owned.profileId &&
+          candidate.window && !candidate.window.isDestroyed() && candidate.window.isFocused());
+        return runtime?.window ?? null;
+      },
+    });
+    if (adblockEngineReady) {
+      for (const targetSession of targetSessions) {
+        attachAdBlockerToSession(targetSession, {
+          enabled: settings.getSettings().adblockEnabled,
+        });
+      }
+    }
+    configuredProfileSessions.add(owned.profileId);
+    return owned;
+  };
 
   // The acceptance harness launches offline: skip the network ad-engine build
   // and install the test-only main-process surface instead. Gate is airtight — only an
@@ -4432,6 +5002,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
+      openNewWindow, windowRuntimeSnapshots, closeWindowRuntime, openTabInWindow,
+      createNamedLocalProfileWindow, renameNamedLocalProfile, deleteNamedLocalProfile,
+      localProfileSnapshots, profileBookmarkUrls, saveProfileFavorite,
+      profileTabSessionSnapshot,
+      isSessionPersistenceReady: () => !sessionPersistenceSuspended,
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
@@ -4493,37 +5068,40 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     });
   }
 
-  // One bound 30-second sweep. Both setInterval and setImmediate cross an
-  // AsyncLocalStorage boundary; bind both so rt() remains the primary runtime.
-  // The immediate also ensures a sweep never runs synchronously in a settings
-  // fan-out turn, where WebContents lifecycle work is unsafe.
-  setInterval(bindWindowRuntime(primaryRuntime, () => {
-    setImmediate(bindWindowRuntime(primaryRuntime, () => {
-      runSleepSweep().catch((err) => console.warn('[quiet-tabs] sweep:', err?.message));
+  // One 30-second sweep fans out across independent workspaces. The immediate
+  // keeps WebContents lifecycle work outside settings fan-out turns.
+  setInterval(() => {
+    setImmediate(() => forEachWindowRuntime((runtime) => {
+      runSleepSweep().catch((err) =>
+        console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message));
     }));
-  }), SLEEP_SWEEP_INTERVAL_MS);
+  }, SLEEP_SWEEP_INTERVAL_MS);
 
-  powerMonitor.on('resume', bindWindowRuntime(primaryRuntime, () => {
+  powerMonitor.on('resume', () => {
     // Machine sleep is not user idle. Avoid a simultaneous wake-time sweep.
     lastSleepSweepAt = Date.now();
-    restampBackgroundTabs();
-  }));
+    forEachWindowRuntime(restampBackgroundTabs);
+  });
 
   // Per-tab blocked-request counter. `request.tabId` is the webContents id
   // of the frame the request came from. adblock.js's eventBridge fires this
   // from the network layer — not from any of our own bound roots.
-  onRequestBlocked(bindWindowRuntime(primaryRuntime, (request) => {
+  onRequestBlocked((request) => {
     adblockWeekStats().update((d) => { d.blocked += 1; });
     const tab = tabs.get(tabIdByWebContentsId.get(request.tabId));
     if (!tab) return;
-    tab.blockedCount += 1;
-    scheduleBroadcastTabs();
-  }));
+    const runtime = windowRuntimes.runtimeForTab(tab.id);
+    if (!runtime) return;
+    withWindowRuntime(runtime, () => {
+      tab.blockedCount += 1;
+      scheduleBroadcastTabs();
+    });
+  });
 
   // Settings fan-out: settings.js calls every registered listener synchronously
   // from setSettings()/etc, which can be reached from pages.js's OWN unbound
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
-  settings.onSettingsChanged(bindWindowRuntime(primaryRuntime, (s) => {
+  settings.onSettingsChanged((s) => {
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();
     applyAppIcon();
@@ -4539,9 +5117,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // Clear cached lookups on both sessions so the new resolver takes effect without
       // a restart. clearHostResolverCache returns a promise; Promise.allSettled collects
       // any rejection so a failed clear can't surface as an unhandled rejection.
-      Promise.allSettled(browsingSessions.map((sess) => sess.clearHostResolverCache()));
+      Promise.allSettled(
+        profileSessionRegistry.all().map((sess) => sess.clearHostResolverCache())
+      );
     }
-  }));
+  });
 
   // Live tab state for tab sync's snapshot builder. Must be registered
   // before sync.init() so the launch sync can publish. sync.js/tabicons.js
@@ -4556,14 +5136,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   })));
   // A pull changed the cached device map: push the fresh list to the open
   // surfaces (overlay panel; any tab currently on the start page).
-  const pushRemoteDevices = bindWindowRuntime(primaryRuntime, () => {
-    const devices = sync.listRemoteDevices();
-    rt().overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
-    for (const tab of tabs.values()) {
-      if (!tab.url?.startsWith('blanc://newtab')) continue;
-      liveContents(tab)?.send('pages:start:remote-tabs', devices);
-    }
-  });
+  const pushRemoteDevices = () => {
+    forEachWindowRuntime((runtime) => {
+      const devices = sync.listRemoteDevices();
+      runtime.overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
+      for (const id of runtime.tabOrder) {
+        const tab = tabs.get(id);
+        if (!tab?.url?.startsWith('blanc://newtab')) continue;
+        liveContents(tab)?.send('pages:start:remote-tabs', devices);
+      }
+    });
+  };
   tabsync.onRemoteChanged(pushRemoteDevices);
   tabicons.onRemoteChanged(pushRemoteDevices);
   // Profile sync: sync-on-launch if configured, then follow local changes.
@@ -4571,62 +5154,124 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // are swallowed and surfaced only in Settings (never block startup).
   sync.init();
   // Freshness pull when Blanc regains focus (tab-sync spec §6; throttled inside).
-  app.on('browser-window-focus', bindWindowRuntime(primaryRuntime, () => sync.refreshSession()));
+  app.on('browser-window-focus', () => sync.refreshSession());
   // Best-effort final push — fire-and-forget, never blocks quit (spec §6).
   app.on('before-quit', bindWindowRuntime(primaryRuntime, () => { sync.syncNow().catch(() => {}); }));
   // A sync pull that merged in favorites from another device refreshes the
   // pill's favorite state; open internal pages still pull on their next load,
   // as with any cross-surface bookmark change.
-  bookmarks.onMerged(refreshBookmarkFlagsBound);
+  bookmarks.onMerged(refreshBookmarkFlags);
 
   // HTTP basic/digest auth: without this handler, 401-protected sites
   // (routers, staging servers) simply fail.
-  app.on('login', bindWindowRuntime(primaryRuntime, (event, _wc, _details, authInfo, callback) => {
+  app.on('login', (event, requestingWc, _details, authInfo, callback) => {
     event.preventDefault();
-    promptForCredentials(hasLiveWindow() ? rt().window : null, authInfo).then((creds) => {
-      if (creds) callback(creds.username, creds.password);
-      else callback(); // no args = cancel the request
+    const tabId = requestingWc ? tabIdByWebContentsId.get(requestingWc.id) : null;
+    const runtime = (tabId ? windowRuntimes.runtimeForTab(tabId) : null)
+      ?? windowRuntimes.runtimeForAuxiliaryContent(requestingWc?.id)
+      ?? focusedRuntime
+      ?? primaryRuntime;
+    withWindowRuntime(runtime, () => {
+      promptForCredentials(hasLiveWindow() ? rt().window : null, authInfo).then((creds) => {
+        if (creds) callback(creds.username, creds.password);
+        else callback(); // no args = cancel the request
+      });
     });
-  }));
+  });
 
   registerIpcHandlers();
   buildMenu();
 
   // Snapshot the previous session before the local startup tab exists. Tab
   // broadcasts are temporarily prevented from overwriting this snapshot.
-  const { windows, readOnly } = loadWorkspace(ensureSessionStore().data);
+  await resumePendingProfileDeletions();
+  const { windows, activeWindowId, readOnly } = loadWorkspace(ensureSessionStore().data);
   sessionReadOnly = readOnly;
-  const saved = windows[0];
-  const cleaned = filterRestoredSession(
-    saved,
-    (url) => isUtilityUrl(url) || isForbiddenTopLevelUrl(url)
-  );
-  saved.urls = cleaned.urls;
-  saved.groupIds = cleaned.groupIds;
-  saved.pinned = cleaned.pinned;
-  saved.meta = cleaned.meta;
-  saved.activeIndex = cleaned.activeIndex;
-  rt().groups = (Array.isArray(saved.groups) ? saved.groups : [])
-    .filter((g) => g && typeof g.id === 'string' && typeof g.name === 'string')
-    .map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed }));
+  const pendingProfileIds = new Set(profileDeletions.pendingProfileDeletions());
+  const savedWindows = windows
+    .filter((saved) => !pendingProfileIds.has(saved.profileId))
+    .map((saved) => {
+    const cleaned = filterRestoredSession(
+      saved,
+      (url) => isUtilityUrl(url) || isForbiddenTopLevelUrl(url)
+    );
+    return {
+      ...saved,
+      profileId: localProfiles.getLocalProfile(saved.profileId)?.id ?? DEFAULT_PROFILE_ID,
+      urls: cleaned.urls,
+      groupIds: cleaned.groupIds,
+      pinned: cleaned.pinned,
+      meta: cleaned.meta,
+      activeIndex: cleaned.activeIndex,
+      groups: (Array.isArray(saved.groups) ? saved.groups : [])
+        .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
+        .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+    };
+  });
+  if (!savedWindows.length) {
+    savedWindows.push({
+      id: PRIMARY_WINDOW_ID,
+      profileId: DEFAULT_PROFILE_ID,
+      urls: [],
+      groupIds: [],
+      pinned: [],
+      meta: [],
+      activeIndex: 0,
+      groups: [],
+    });
+  }
+  const restoredActiveWindowId = savedWindows.some((saved) => saved.id === activeWindowId)
+    ? activeWindowId
+    : savedWindows[0].id;
   sessionPersistenceSuspended = true;
 
   const blockingRequested =
     !acceptanceTestMode && settings.getSettings().adblockEnabled;
-  if (blockingRequested) installStartupNavigationGate(browsingSessions);
+  // Materialize every restored profile's session pair before the temporary
+  // navigation gate is installed; a named workspace must never race startup
+  // through an unconfigured partition.
+  for (const profileId of new Set(savedWindows.map((saved) => saved.profileId))) {
+    installProfileSessionPolicies(profileId);
+  }
+  if (blockingRequested) installStartupNavigationGate(profileSessionRegistry.all());
 
-  createMainWindow();
-  const startupTabId = createTab(NEW_TAB_URL);
-  const chromeReady = new Promise((resolve) => {
-    rt().window.webContents.once('did-finish-load', bindWindowRuntime(primaryRuntime, () => {
-      if (tabs.has(startupTabId)) {
-        // Keep focus in the local page so first-run/recovery actions are
-        // immediately visible and keyboard reachable.
+  // Create the previously focused workspace last so the OS fronts the same
+  // independent window after relaunch. Each gets a local startup page while
+  // the blocker gate settles; saved pages remain viewless until release.
+  const orderedSavedWindows = [...savedWindows].sort((a, b) =>
+    Number(a.id === restoredActiveWindowId) - Number(b.id === restoredActiveWindowId));
+  const startupTabIds = new Map();
+  const startupRuntimes = orderedSavedWindows.map((saved) => {
+    const runtime = saved.id === PRIMARY_WINDOW_ID
+      ? primaryRuntime
+      : windowRuntimes.createRuntime({ id: saved.id, profileId: saved.profileId });
+    // The primary runtime exists before session.json is read so early app
+    // callbacks always have an owner. At this point it owns no tabs or native
+    // window yet, so adopting its persisted profile is the one safe identity
+    // initialization point.
+    if (runtime === primaryRuntime) runtime.profileId = saved.profileId;
+    createMainWindow(runtime);
+    withWindowRuntime(runtime, () => {
+      runtime.groups = saved.groups;
+      startupTabIds.set(runtime.id, createTab(NEW_TAB_URL));
+    });
+    return runtime;
+  });
+  const savedById = new Map(savedWindows.map((saved) => [saved.id, saved]));
+  focusedRuntime = startupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
+    ?? startupRuntimes.at(-1)
+    ?? primaryRuntime;
+  setFocusedLocalProfile(focusedRuntime.profileId);
+  focusedRuntime.window?.focus();
+  const chromeReady = Promise.all(startupRuntimes.map((runtime) => new Promise((resolve) => {
+    runtime.window.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+      const startupTabId = startupTabIds.get(runtime.id);
+      if (startupTabId && tabs.has(startupTabId)) {
         setActiveTab(startupTabId, { focusContent: true });
       }
       resolve();
     }));
-  });
+  })));
 
   let startupReleased = false;
   releaseStartup = async ({ blocking, preservePreference = false }) => {
@@ -4640,28 +5285,33 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       settings.setSettings({ adblockEnabled: false });
     }
     if (blockingRequested) {
-      releaseStartupNavigationGate(browsingSessions, {
+      releaseStartupNavigationGate(profileSessionRegistry.all(), {
         blockerAttached: blocking,
       });
     }
 
-    // Lazy restore: every saved tab comes back as a labelled record with no
-    // renderer. Only the selected tab is built, through setActiveTab's wake.
-    const restoredIds = saved.urls.map((url, index) => createTab(url, {
-      groupId: saved.groupIds?.[index] ?? null,
-      pinned: !!saved.pinned?.[index],
-      asleep: true,
-      title: saved.meta?.[index]?.title ?? '',
-      favicon: saved.meta?.[index]?.favicon ?? null,
-    }));
-    pruneEmptyGroups();
-    const target = restoreTargetId(restoredIds, saved.activeIndex);
-    if (target) {
-      // Activate first, then close the startup tab. Closing an active startup
-      // tab first would select (and wake) the first restored tab before the
-      // saved target, briefly creating two renderers.
-      setActiveTab(target, { focusContent: true });
-      if (tabs.has(startupTabId)) closeTab(startupTabId);
+    for (const runtime of startupRuntimes) {
+      const saved = savedById.get(runtime.id);
+      if (!saved) continue;
+      withWindowRuntime(runtime, () => {
+        // Lazy restore: every saved tab is a labelled record with no renderer.
+        // Only this window's selected tab wakes.
+        const restoredIds = saved.urls.map((url, index) => createTab(url, {
+          groupId: saved.groupIds?.[index] ?? null,
+          pinned: !!saved.pinned?.[index],
+          asleep: true,
+          title: saved.meta?.[index]?.title ?? '',
+          favicon: saved.meta?.[index]?.favicon ?? null,
+        }));
+        pruneEmptyGroups();
+        const target = restoreTargetId(restoredIds, saved.activeIndex);
+        if (!target) return;
+        // Activate first, then close the startup tab. The inverse briefly wakes
+        // the wrong quiet tab and doubles renderer memory during restore.
+        setActiveTab(target, { focusContent: true });
+        const startupTabId = startupTabIds.get(runtime.id);
+        if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
+      });
     }
 
     sessionPersistenceSuspended = false;
@@ -4670,8 +5320,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // Cold-start URL handoff waits until the blocker decision and session
     // restore are both complete.
     pendingExternalUrls.push(...urlsFromArgv(process.argv.slice(1)));
-    flushExternalUrls();
+    withWindowRuntime(focusedRuntime, flushExternalUrls);
     maybeSendLaunchPing();
+  };
+
+  const attachAdblockToAllProfileSessions = () => {
+    adblockEngineReady = true;
+    for (const browsingSession of profileSessionRegistry.all()) {
+      attachAdBlockerToSession(browsingSession, {
+        enabled: settings.getSettings().adblockEnabled,
+      });
+    }
   };
 
   if (acceptanceTestMode) {
@@ -4685,9 +5344,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // Keep the engine warm so enabling the setting later in this run works,
     // but never hold browsing for a feature the user turned off.
     setupAdBlocker(ses, { enabled: false }).then(() => {
-      attachAdBlockerToSession(privateSes, {
-        enabled: settings.getSettings().adblockEnabled,
-      });
+      attachAdblockToAllProfileSessions();
       setAdBlockEnabled(settings.getSettings().adblockEnabled);
     }).catch((err) => {
       console.warn('[adblock] background initialization failed:', err.message);
@@ -4705,15 +5362,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         await setupAdBlocker(ses, {
           enabled: settings.getSettings().adblockEnabled,
         });
-        attachAdBlockerToSession(privateSes, {
-          enabled: settings.getSettings().adblockEnabled,
-        });
+        attachAdblockToAllProfileSessions();
       },
       onStateChange: (state) => {
         adblockStartupState = state;
         broadcastStartPageStatus();
-        if (state.phase === 'failed' && tabs.has(startupTabId)) {
-          setActiveTab(startupTabId, { focusContent: true });
+        if (state.phase === 'failed') {
+          for (const runtime of startupRuntimes) {
+            const startupTabId = startupTabIds.get(runtime.id);
+            if (startupTabId && tabs.has(startupTabId)) {
+              withWindowRuntime(runtime, () => setActiveTab(startupTabId, { focusContent: true }));
+            }
+          }
         }
       },
       onReleased: ({ blocking }) => releaseStartup({ blocking }),
@@ -4728,10 +5388,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
 
   setupAutoUpdater();
 
-  app.on('activate', bindWindowRuntime(primaryRuntime, () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
-    refocusAddressBarIfWanted();
-  }));
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createMainWindow(primaryRuntime);
+    focusedRuntime = primaryRuntime;
+    setFocusedLocalProfile(primaryRuntime.profileId);
+    withWindowRuntime(primaryRuntime, refocusAddressBarIfWanted);
+  });
 }));
 
 app.on('window-all-closed', () => {

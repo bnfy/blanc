@@ -4,6 +4,8 @@
 // windows and views are opaque references here, which is what keeps the
 // lifecycle unit-testable.
 
+const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
+
 let nextId = 1;
 let runtimes = [];
 const tabOwner = new Map(); // tabId -> runtime
@@ -15,9 +17,16 @@ const auxiliaryOwner = new Map(); // web webContents id -> runtime
 
 /** The full per-window inventory, initialized to main.js's current defaults.
  * The spec's state-inventory table is the contract for this shape. */
-function createRuntime() {
+function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
+  const resolvedId = id ?? nextId++;
+  if (!validProfileId(profileId)) throw new Error(`Invalid local profile id: ${profileId}`);
+  if (runtimes.some((runtime) => runtime.id === resolvedId)) {
+    throw new Error(`Window runtime already exists: ${resolvedId}`);
+  }
   const runtime = {
-    id: nextId++,
+    id: resolvedId,
+    profileId,
+    closing: false,
     window: null,
     tabOrder: [],
     activeTabId: null,
@@ -126,6 +135,18 @@ function detachWindow(runtime) {
   runtime.permissionViewAttached = false;
 }
 
+/** A user-closed secondary window has no dock-reopen contract. Remove every
+ * ownership edge after main.js has released its tabs and native surfaces. */
+function discardRuntime(runtime) {
+  if (!runtime || !runtimes.includes(runtime)) return null;
+  detachWindow(runtime);
+  for (const [tabId, owner] of tabOwner) {
+    if (owner === runtime) tabOwner.delete(tabId);
+  }
+  runtimes = runtimes.filter((candidate) => candidate !== runtime);
+  return runtime;
+}
+
 /** Test isolation only — main.js never resets. */
 function resetForTests() {
   nextId = 1;
@@ -149,5 +170,6 @@ module.exports = {
   runtimeForAuxiliaryContent,
   attachWindow,
   detachWindow,
+  discardRuntime,
   resetForTests,
 };

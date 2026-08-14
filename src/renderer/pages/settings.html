@@ -20,6 +20,7 @@
     <div class="settings-shell">
       <nav class="settings-nav">
         <a href="#group-general" data-group="general">General</a>
+        <a href="#group-profiles" data-group="profiles">Profiles</a>
         <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
         <a href="#group-sync" data-group="sync">Sync</a>
         <a href="#group-supporter" data-group="supporter">Supporter</a>
@@ -112,6 +113,21 @@
               </div>
               <input id="homePage" type="url" placeholder="blanc://newtab/" />
             </div>
+          </div>
+        </section>
+
+        <section class="settings-group" id="group-profiles">
+          <h2 class="group-title">Profiles</h2>
+          <div class="settings-card">
+            <p class="section-hint">
+              Named profiles keep separate cookies, site data, Favorites, history, downloads, and remembered permissions. Device settings and Supporter status stay shared; Profile Sync belongs to Personal only.
+            </p>
+            <div class="toolbar-row">
+              <input id="newProfileName" type="text" placeholder="New profile name" maxlength="40" autocomplete="off" />
+              <button id="newProfileCreate">Create profile window</button>
+            </div>
+            <p class="section-hint" id="profilesStatus" role="status" aria-live="polite"></p>
+            <div id="profilesList" class="row-list"></div>
           </div>
         </section>
 

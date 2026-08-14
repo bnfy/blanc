@@ -237,17 +237,19 @@ is platform-native.
 ---
 
 ## D11 — Window model & chrome placement
-**Features:** F1
-**Why:** Desktop is a resizable window with window controls and a strip + overlay;
+**Features:** F1, F32
+**Why:** Desktop uses resizable native windows with window controls and a strip + overlay;
 mobile is a single full-screen surface with system insets.
 
-- **Desktop:** one `BrowserWindow`, a 64px strip, an always-on-top overlay view,
-  traffic-lights / window controls.
+- **Desktop:** one independent workspace per `BrowserWindow`, each with a 64px
+  strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
 
 **Parity contract:** the island's *contents and states* (F1) are identical; its
-*placement/windowing* adapts to the platform.
+*placement/windowing* adapts to the platform. Independent native windows (F32)
+are a desktop-only capability unless a future tablet/foldable contract adopts
+them explicitly.
 
 **Status:** Accepted.
 
@@ -541,3 +543,26 @@ identical, and capture state is never persisted or synced anywhere.
 **Tagging:** desktop-chip scenarios tag `@D24`.
 
 **Status:** Accepted 2026-08-13.
+
+## D25 — Desktop local profiles vs. mobile app containers
+**Features:** F33, F18, F9, F10, F11, F13
+
+**Why:** Blanc’s desktop profile model is a multi-window browser capability:
+each identity owns persistent and private Electron session partitions plus its
+own browser windows. Phone operating systems already place the app in one
+strongly isolated container and do not expose the same simultaneous
+multi-window profile idiom.
+
+- **Desktop:** Personal plus bounded named local profiles. Named identities
+  isolate cookies/site data, Favorites, history, download metadata, remembered
+  permissions, normal tabs, and private tabs. Profile Sync remains Personal-only.
+- **iOS/Android:** N/A for the first native ports. They expose the platform app
+  container and private-browsing mode, without an in-app named-profile catalog.
+
+**Parity contract that still holds:** private browsing remains non-persistent;
+ordinary browser records never cross into private history/session recovery; and
+no platform silently expands Profile Sync’s approved data scope.
+
+**Tagging:** desktop local-profile scenarios tag `@D25`.
+
+**Status:** Accepted 2026-08-14.

@@ -39,7 +39,7 @@ test('a restored title and favicon reach the record', () => {
 });
 
 test('session restore builds quiet tabs labelled from the meta column', () => {
-  const loop = mainSource.match(/const restoredIds = saved\.urls\.map\([\s\S]*?\n    \}\)\);/)?.[0];
+  const loop = mainSource.match(/const restoredIds = saved\.urls\.map\([\s\S]*?\n        \}\)\);/)?.[0];
   assert.ok(loop, 'the restore loop moved — update this test with it');
   assert.match(loop, /asleep: true,/, 'restored tabs are born quiet (spec §10)');
   assert.match(loop, /saved\.meta\?\.\[index\]\?\.title/);
@@ -54,7 +54,7 @@ test('the restored active tab is picked without indexing into a hole', () => {
     'createTab returns null for a url it refuses; raw indexing activates undefined'
   );
   const activate = mainSource.indexOf('setActiveTab(target, { focusContent: true });');
-  const closeStartup = mainSource.indexOf('if (tabs.has(startupTabId)) closeTab(startupTabId);');
+  const closeStartup = mainSource.indexOf('if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);');
   assert.ok(activate > 0 && closeStartup > activate,
     'activate before closing startup, or closeTab wakes an extra restored tab as its replacement');
 });

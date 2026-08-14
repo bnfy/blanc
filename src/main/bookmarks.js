@@ -5,10 +5,12 @@ const data = require('./bookmark-data');
 
 let store = null;
 const ensureStore = () => {
-  if (store) return store;
-  store = new JsonStore('bookmarks', { items: [], tombstones: [] });
+  store ??= new JsonStore(
+    'bookmarks', { items: [], tombstones: [] }, { scope: 'profile' }
+  );
   // Pre-hardening profiles may contain live remote icon URLs. Remove them
-  // once on read so they cannot be re-exported or fetched by a later build.
+  // on first access to each local profile so they cannot be re-exported or
+  // fetched by a later build.
   if (store.data.items.some((item) => item.favicon && !validFavicon(item.favicon))) {
     store.update((data) => {
       data.items = data.items.map((item) => ({

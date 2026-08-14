@@ -316,6 +316,143 @@
     document.getElementById('group-supporter')?.remove();
   }
 
+  // --- Local profiles ---
+  if (supports('localProfiles')) {
+    const profileList = document.getElementById('profilesList');
+    const profileName = document.getElementById('newProfileName');
+    const profileCreate = document.getElementById('newProfileCreate');
+    const profileStatus = document.getElementById('profilesStatus');
+
+    const button = (label, action, className = '') => {
+      const element = document.createElement('button');
+      element.type = 'button';
+      element.textContent = label;
+      element.className = className;
+      element.addEventListener('click', action);
+      return element;
+    };
+
+    async function refreshProfiles() {
+      const { currentId, profiles } = await window.bowserPages.profiles.list();
+      profileList.replaceChildren();
+      for (const profile of profiles) {
+        const row = document.createElement('div');
+        row.className = 'row profile-row';
+        row.dataset.profileId = profile.id;
+        const main = document.createElement('div');
+        main.className = 'main';
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+
+        const renderReadOnly = () => {
+          row.classList.remove('editing');
+          main.replaceChildren();
+          actions.replaceChildren();
+          const title = document.createElement('div');
+          title.className = 'title';
+          title.textContent = profile.name;
+          const meta = document.createElement('div');
+          meta.className = 'meta';
+          meta.textContent = profile.id === 'default'
+            ? 'Your original Blanc data · permanent'
+            : (profile.id === currentId ? 'Current window' : 'Separate local browser data');
+          main.append(title, meta);
+
+          if (profile.id !== currentId) {
+            actions.append(button('Open', async () => {
+              const result = await window.bowserPages.profiles.open(profile.id);
+              if (!result?.ok) profileStatus.textContent = result?.message ?? 'Couldn’t open that profile.';
+            }));
+          }
+          if (profile.id === 'default') return;
+
+          actions.append(button('Rename', () => {
+            row.classList.add('editing');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.maxLength = 40;
+            input.value = profile.name;
+            input.setAttribute('aria-label', `New name for ${profile.name}`);
+            const save = async () => {
+              const result = await window.bowserPages.profiles.rename(profile.id, input.value);
+              profileStatus.textContent = result.ok
+                ? 'Profile renamed.'
+                : (result.message ?? 'Couldn’t rename that profile.');
+              if (result.ok) await refreshProfiles();
+            };
+            input.addEventListener('keydown', (event) => {
+              if (event.key === 'Enter') save();
+              if (event.key === 'Escape') renderReadOnly();
+            });
+            main.replaceChildren(input);
+            actions.replaceChildren(
+              button('Save', save),
+              button('Cancel', renderReadOnly),
+            );
+            input.focus();
+            input.select();
+          }));
+
+          actions.append(button('Delete', () => {
+            row.classList.add('editing');
+            const warning = document.createElement('div');
+            warning.className = 'meta confirmation';
+            warning.textContent = `Permanently deletes this profile’s local browser data. Downloaded files stay where you saved them. Type “${profile.name}” to continue.`;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.autocomplete = 'off';
+            input.setAttribute('aria-label', `Type ${profile.name} to confirm deletion`);
+            const remove = async () => {
+              const result = await window.bowserPages.profiles.remove(profile.id, input.value);
+              profileStatus.textContent = result.ok
+                ? (result.pending ? result.message : 'Profile deleted.')
+                : (result.message ?? 'Couldn’t delete that profile.');
+              if (result.ok) await refreshProfiles();
+            };
+            input.addEventListener('keydown', (event) => {
+              if (event.key === 'Enter') remove();
+              if (event.key === 'Escape') renderReadOnly();
+            });
+            main.replaceChildren(warning, input);
+            actions.replaceChildren(
+              button('Delete permanently', remove, 'danger'),
+              button('Cancel', renderReadOnly),
+            );
+            input.focus();
+          }, 'danger'));
+        };
+
+        renderReadOnly();
+        row.append(main, actions);
+        profileList.append(row);
+      }
+    }
+
+    async function createProfile() {
+      if (profileCreate.disabled) return;
+      profileCreate.disabled = true;
+      const result = await window.bowserPages.profiles.create(profileName.value);
+      profileCreate.disabled = false;
+      if (!result?.ok || !result.profile) {
+        profileStatus.textContent = result?.message ?? 'Couldn’t create that profile.';
+        return;
+      }
+      profileName.value = '';
+      profileStatus.textContent = `Created ${result.profile.name}.`;
+      await refreshProfiles();
+    }
+
+    profileCreate.addEventListener('click', createProfile);
+    profileName.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') createProfile();
+    });
+    refreshProfiles().catch(() => {
+      profileStatus.textContent = 'Couldn’t load profiles.';
+    });
+  } else {
+    document.getElementById('group-profiles')?.remove();
+  }
+
   // --- Site permissions ---
   if (supports('permissions')) {
     const permissionList = document.getElementById('permissionList');

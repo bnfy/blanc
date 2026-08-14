@@ -85,6 +85,13 @@ if (window.location.protocol === 'blanc:') {
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),
       },
+      profiles: {
+        list: () => invoke('pages:profiles:list'),
+        create: (name) => invoke('pages:profiles:create', name),
+        open: (id) => invoke('pages:profiles:open', id),
+        rename: (id, name) => invoke('pages:profiles:rename', id, name),
+        remove: (id, confirmation) => invoke('pages:profiles:remove', id, confirmation),
+      },
       permissions: {
         list: () => invoke('pages:permissions:list'),
         remove: (key) => invoke('pages:permissions:remove', key),

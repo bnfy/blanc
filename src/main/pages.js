@@ -70,9 +70,15 @@ function setupPages(hooks = {}) {
   // on every browsing session passed in. (The privileged-scheme registration
   // in registerPagesScheme is process-global and needs no per-session repeat.)
   const sessions = hooks.sessions?.length ? hooks.sessions : [session.defaultSession];
-  for (const ses of sessions) ses.protocol.handle('blanc', serveBlanc);
-
-  const expectedSessions = new Set(sessions);
+  const expectedSessions = new Set();
+  const addSessions = (additional) => {
+    for (const ses of additional ?? []) {
+      if (!ses || expectedSessions.has(ses)) continue;
+      ses.protocol.handle('blanc', serveBlanc);
+      expectedSessions.add(ses);
+    }
+  };
+  addSessions(sessions);
   // Every channel declares the exact internal host(s) that need it. The
   // ownership hook then binds that host to the live utility sheet or new-tab
   // WebContents; a URL-bearing renderer alone never gains authority.
@@ -87,7 +93,8 @@ function setupPages(hooks = {}) {
       if (!trusted) {
         throw new Error(`${channel}: denied for ${event.senderFrame?.url ?? event.sender.getURL()}`);
       }
-      return fn(...args);
+      const run = hooks.runInPageRuntime ?? ((_event, work) => work());
+      return run(event, () => fn(...args));
     });
   };
 
@@ -188,6 +195,21 @@ function setupPages(hooks = {}) {
   });
   handle('pages:settings:supporter-activate', 'settings', (key) => supporter.activateSupporter(key));
 
+  // Local-profile identity and destructive confirmation stay in main. The
+  // renderer receives only opaque ids, display names, and result messages.
+  handle('pages:profiles:list', 'settings', () => hooks.profiles?.list() ?? {
+    currentId: 'default',
+    profiles: [{ id: 'default', name: 'Personal', createdAt: 0 }],
+  });
+  handle('pages:profiles:create', 'settings', (name) =>
+    hooks.profiles?.create(String(name ?? '')) ?? null);
+  handle('pages:profiles:open', 'settings', (id) =>
+    hooks.profiles?.open(String(id ?? '')) ?? { ok: false });
+  handle('pages:profiles:rename', 'settings', (id, name) =>
+    hooks.profiles?.rename(String(id ?? ''), String(name ?? '')) ?? { ok: false });
+  handle('pages:profiles:remove', 'settings', (id, confirmation) =>
+    hooks.profiles?.remove(String(id ?? ''), String(confirmation ?? '')) ?? { ok: false });
+
   // Sync: the passphrase arrives once on enable and never leaves main; every
   // response is status-only (enabled/handle/lastSyncedAt/lastError) — no keys.
   handle('pages:settings:sync-get', 'settings', () => sync.status());
@@ -258,12 +280,16 @@ function setupPages(hooks = {}) {
 
   // The settings page promises "cookies, cache & site data" — clear both.
   handle('pages:clear-browsing-data', 'settings', () => {
-    const browsingSessions = hooks.sessions ?? [session.defaultSession];
+    const browsingSessions = hooks.sessionsForCurrentRuntime?.()
+      ?? hooks.sessions
+      ?? [session.defaultSession];
     return Promise.all(browsingSessions.flatMap((browsingSession) => [
       browsingSession.clearStorageData(),
       browsingSession.clearCache(),
     ]));
   });
+
+  return { addSessions };
 }
 
 module.exports = { registerPagesScheme, setupPages };

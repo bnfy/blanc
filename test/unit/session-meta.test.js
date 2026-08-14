@@ -8,7 +8,7 @@ const vm = require('node:vm');
 // persistSession lives in main.js, which cannot be required under node --test.
 // Lift the real source and run it in a sandbox, so this asserts shipped code.
 const { persistableEntries, sessionTabMeta } = require('../../src/main/session-snapshot');
-const { buildSaveShape } = require('../../src/main/session-workspace');
+const { PRIMARY_WINDOW_ID, loadWorkspace, buildSaveShape } = require('../../src/main/session-workspace');
 const SAFE_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
 
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
@@ -20,15 +20,25 @@ test('persistSession is still liftable out of main.js', () => {
 
 function run(tabList, activeTabId) {
   const data = {};
+  const runtime = {
+    id: PRIMARY_WINDOW_ID,
+    tabOrder: tabList.map((t) => t.id),
+    groups: [],
+    activeTabId,
+  };
   const sandbox = {
     isQuitting: false,
     sessionPersistenceSuspended: false,
     sessionReadOnly: false,
     tabs: new Map(tabList.map((t) => [t.id, t])),
-    rt: () => ({ tabOrder: tabList.map((t) => t.id), groups: [], activeTabId }),
+    rt: () => runtime,
+    windowRuntimes: { all: () => [runtime] },
+    focusedRuntime: runtime,
+    PRIMARY_WINDOW_ID,
     ensureSessionStore: () => ({ update: (fn) => fn(data) }),
     persistableEntries,
     sessionTabMeta,
+    loadWorkspace,
     buildSaveShape,
   };
   vm.runInNewContext(`${fnSource}\nthis.__fn = persistSession;`, sandbox);
@@ -56,7 +66,7 @@ test('persistSession writes a meta entry per persisted url, in the same order', 
 });
 
 test('the restore copy-back threads meta through the utility-url filter', () => {
-  assert.match(mainSource, /saved\.meta = cleaned\.meta;/,
+  assert.match(mainSource, /meta: cleaned\.meta,/,
     'without this a dropped utility url misaligns every title by one');
 });
 

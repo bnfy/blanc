@@ -56,6 +56,18 @@ function install(refs) {
     setVerticalTabsWidth,
     getVerticalTabsMetrics,
     broadcastTabs,
+    openNewWindow: openNewWindowAction,
+    windowRuntimeSnapshots,
+    closeWindowRuntime: closeWindowRuntimeAction,
+    openTabInWindow: openTabInWindowAction,
+    createNamedLocalProfileWindow,
+    renameNamedLocalProfile,
+    deleteNamedLocalProfile,
+    localProfileSnapshots,
+    profileBookmarkUrls,
+    saveProfileFavorite,
+    profileTabSessionSnapshot,
+    isSessionPersistenceReady,
     getRailActivationSerial,
     normalizeAddressInput,
     pasteAndGo,
@@ -143,6 +155,26 @@ function install(refs) {
 
   globalThis.__blanc = {
     // ---- state ----
+    windowRuntimes() { return windowRuntimeSnapshots(); },
+    openNewWindow() { return openNewWindowAction(); },
+    closeWindowRuntime(id) { return closeWindowRuntimeAction(String(id)); },
+    openTabInWindow(id, url, options) {
+      return openTabInWindowAction(String(id), String(url), options ?? {});
+    },
+    createProfileWindow(name) { return createNamedLocalProfileWindow(String(name ?? '')); },
+    profiles() { return localProfileSnapshots(); },
+    renameProfile(id, name) {
+      return renameNamedLocalProfile(String(id), String(name ?? ''));
+    },
+    deleteProfile(id, confirmation) {
+      return deleteNamedLocalProfile(String(id), String(confirmation ?? ''));
+    },
+    profileBookmarkUrls(id) { return profileBookmarkUrls(String(id)); },
+    saveProfileFavorite(id, url, title) {
+      return saveProfileFavorite(String(id), String(url), String(title ?? url));
+    },
+    profileTabSession(id) { return profileTabSessionSnapshot(String(id)); },
+    startupReady() { return isSessionPersistenceReady(); },
     state() {
       const list = [];
       for (const [id, t] of tabs) {
@@ -502,6 +534,63 @@ function install(refs) {
     },
     openDownloads() { openInternalPage('blanc://downloads/'); },
     openSettings() { openInternalPage('blanc://settings/'); },
+    async settingsProfileRows() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return [];
+      return wc.executeJavaScript(`[...document.querySelectorAll('.profile-row')].map((row) => ({
+        id: row.dataset.profileId,
+        title: row.querySelector('.title')?.textContent ?? '',
+        meta: row.querySelector('.meta')?.textContent ?? '',
+        actions: [...row.querySelectorAll('.actions button')].map((button) => button.textContent)
+      }))`);
+    },
+    async settingsCreateProfile(name) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const input = document.getElementById('newProfileName');
+        const create = document.getElementById('newProfileCreate');
+        if (!input || !create) return false;
+        input.value = ${JSON.stringify(String(name ?? ''))};
+        create.click();
+        return true;
+      })()`);
+    },
+    async settingsRenameProfile(profileId, name) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = document.querySelector('.profile-row[data-profile-id=' + JSON.stringify(${JSON.stringify(String(profileId))}) + ']');
+        const rename = [...(row?.querySelectorAll('.actions button') ?? [])].find((button) => button.textContent === 'Rename');
+        if (!rename) return false;
+        rename.click();
+        const input = row.querySelector('.main input');
+        const save = [...row.querySelectorAll('.actions button')].find((button) => button.textContent === 'Save');
+        if (!input || !save) return false;
+        input.value = ${JSON.stringify(String(name ?? ''))};
+        save.click();
+        return true;
+      })()`);
+    },
+    async settingsDeleteProfile(profileId, confirmation) {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) return false;
+      return wc.executeJavaScript(`(() => {
+        const row = document.querySelector('.profile-row[data-profile-id=' + JSON.stringify(${JSON.stringify(String(profileId))}) + ']');
+        let confirm = [...(row?.querySelectorAll('.actions button') ?? [])].find((button) => button.textContent === 'Delete permanently');
+        if (!confirm) {
+          const remove = [...(row?.querySelectorAll('.actions button') ?? [])].find((button) => button.textContent === 'Delete');
+          if (!remove) return false;
+          remove.click();
+          confirm = [...row.querySelectorAll('.actions button')].find((button) => button.textContent === 'Delete permanently');
+        }
+        const input = row.querySelector('.main input');
+        if (!input || !confirm) return false;
+        input.value = ${JSON.stringify(String(confirmation ?? ''))};
+        confirm.click();
+        return true;
+      })()`);
+    },
     openFind() { openFindBar(); },
     openPanel() { showOverlay('panel'); },
     openPalette() { showOverlay('palette'); },
@@ -1004,6 +1093,14 @@ function install(refs) {
     // ---- isolation between scenarios ----
     async reset() {
       clearFocusObservation();
+      for (const profile of localProfileSnapshots()) {
+        if (profile.id === 'default') continue;
+        await deleteNamedLocalProfile(profile.id, profile.name);
+      }
+      for (const runtime of windowRuntimeSnapshots()) {
+        if (runtime.id !== 'primary') closeWindowRuntimeAction(runtime.id);
+      }
+      await new Promise((resolve) => setImmediate(resolve));
       // Do not let a scenario inherit quiet state or retained page state. A
       // quiet record is safe for closeTab, but waking first makes teardown and
       // the subsequent snapshot clear explicit.

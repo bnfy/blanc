@@ -132,16 +132,23 @@ src/renderer/            The chrome: strip + resting pill (index.html), island o
 src/renderer/pages/      Internal pages: newtab, favorites, history, downloads, settings
 ```
 
-**One `BrowserWindow`, many `WebContentsView`s.** The window's own
-`webContents` renders the chrome strip — the slim band the resting pill
-floats in. Each tab is a separate `WebContentsView` added as a child view
-of `win.contentView`; only the active tab's view is attached, so switching
+**Many `BrowserWindow`s, each with many `WebContentsView`s.** Each native
+window owns an independent runtime for its tabs, groups, chrome surfaces, and
+local-profile identity. The window's own `webContents` renders the chrome strip
+— the slim band the resting pill floats in. Each tab is a separate
+`WebContentsView` added to its owning window's `contentView`; only the active
+tab's view is attached, so switching
 tabs is just remove-one/add-another rather than destroying anything. The
 island's expanded states live in one more `WebContentsView` — transparent,
 attached on top only while open — which is how the command bar, palette,
 and find capsule float over the page instead of reserving space. Tab
 state lives in the main process; both chrome documents just reflect
 `tabs:updated` broadcasts.
+
+Personal keeps the existing root data files and Electron default session.
+Named local profiles isolate site storage, Favorites, history, download
+metadata, remembered permissions, and normal/private browsing sessions; the
+existing Profile Sync consent remains Personal-only.
 
 **Security posture:** the chrome strip, the overlay, and every tab run
 with `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`.

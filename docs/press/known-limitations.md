@@ -24,8 +24,10 @@ the release candidate with them in view.
 - Blanc does not import passwords and cannot read passkeys stored by iCloud or
   third-party password managers. Signed macOS builds can create and use Blanc's
   own device-bound Touch ID passkeys.
-- Blanc is single-window. It supports many tabs and named groups inside that
-  window, but not separate browsing windows or profiles.
+- The historical v1.0 press build is single-window and has no named local
+  profiles. The current development tree adds independent windows and local
+  profiles; those capabilities are not retroactive claims about the press
+  candidate documented here.
 - There is no mobile app in this release.
 - The typed-address classifier is intentionally lightweight and can
   misclassify unusual dotted search text as a domain.

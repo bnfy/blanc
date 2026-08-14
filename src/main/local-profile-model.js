@@ -1,0 +1,138 @@
+'use strict';
+
+// Pure model for named, on-device browser profiles. Keeping registry
+// migration free of Electron/filesystem dependencies makes forward-compat
+// behavior fixture-testable before any window or Chromium partition exists.
+
+const LOCAL_PROFILE_VERSION = 1;
+const DEFAULT_PROFILE_ID = 'default';
+const DEFAULT_PROFILE_NAME = 'Personal';
+
+function validProfileId(value) {
+  return typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
+}
+
+function normalizeProfileName(value, fallback = DEFAULT_PROFILE_NAME) {
+  if (typeof value !== 'string') return fallback;
+  const name = value.trim().replace(/\s+/g, ' ').slice(0, 40);
+  return name || fallback;
+}
+
+function normalizeProfile(input = {}, fallbackId = DEFAULT_PROFILE_ID) {
+  const id = validProfileId(input.id) ? input.id : fallbackId;
+  return {
+    id,
+    name: normalizeProfileName(
+      input.name,
+      id === DEFAULT_PROFILE_ID ? DEFAULT_PROFILE_NAME : 'Profile'
+    ),
+    createdAt: Number.isFinite(input.createdAt) && input.createdAt >= 0
+      ? input.createdAt
+      : 0,
+  };
+}
+
+function emptyLocalProfiles() {
+  return {
+    version: LOCAL_PROFILE_VERSION,
+    profiles: [normalizeProfile({
+      id: DEFAULT_PROFILE_ID,
+      name: DEFAULT_PROFILE_NAME,
+    })],
+  };
+}
+
+function readLocalProfiles(raw) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  if (Number.isInteger(source.version) && source.version > LOCAL_PROFILE_VERSION) {
+    return { supported: false, migrated: false, registry: emptyLocalProfiles() };
+  }
+  if (source.version === LOCAL_PROFILE_VERSION && Array.isArray(source.profiles)) {
+    const seen = new Set();
+    const profiles = source.profiles
+      .map((profile, index) => normalizeProfile(
+        profile,
+        index === 0 ? DEFAULT_PROFILE_ID : `profile_${index + 1}`
+      ))
+      .filter((profile) => {
+        if (seen.has(profile.id)) return false;
+        seen.add(profile.id);
+        return true;
+      });
+    if (!profiles.some((profile) => profile.id === DEFAULT_PROFILE_ID)) {
+      profiles.unshift(normalizeProfile({
+        id: DEFAULT_PROFILE_ID,
+        name: DEFAULT_PROFILE_NAME,
+      }));
+    }
+    return {
+      supported: true,
+      migrated: false,
+      registry: { version: LOCAL_PROFILE_VERSION, profiles },
+    };
+  }
+  return { supported: true, migrated: true, registry: emptyLocalProfiles() };
+}
+
+function addLocalProfile(registry, profile) {
+  const parsed = readLocalProfiles(registry);
+  if (!parsed.supported) return parsed.registry;
+  const next = normalizeProfile(profile, '');
+  if (!validProfileId(next.id) || next.id === DEFAULT_PROFILE_ID) {
+    throw new Error('A non-default profile id is required');
+  }
+  if (parsed.registry.profiles.some((existing) => existing.id === next.id)) {
+    throw new Error('Profile id already exists');
+  }
+  return {
+    version: LOCAL_PROFILE_VERSION,
+    profiles: [...parsed.registry.profiles, next],
+  };
+}
+
+function renameLocalProfile(registry, id, name) {
+  const parsed = readLocalProfiles(registry);
+  if (!parsed.supported) return parsed.registry;
+  if (!validProfileId(id) || id === DEFAULT_PROFILE_ID) {
+    throw new Error('Only a named local profile can be renamed');
+  }
+  const nextName = normalizeProfileName(name, '');
+  if (!nextName) throw new Error('A profile name is required');
+  let found = false;
+  const profiles = parsed.registry.profiles.map((profile) => {
+    if (profile.id !== id) return profile;
+    found = true;
+    return { ...profile, name: nextName };
+  });
+  if (!found) throw new Error('Unknown local profile');
+  return { version: LOCAL_PROFILE_VERSION, profiles };
+}
+
+function removeLocalProfile(registry, id) {
+  const parsed = readLocalProfiles(registry);
+  if (!parsed.supported) return parsed.registry;
+  if (!validProfileId(id) || id === DEFAULT_PROFILE_ID) {
+    throw new Error('Personal cannot be deleted');
+  }
+  if (!parsed.registry.profiles.some((profile) => profile.id === id)) {
+    throw new Error('Unknown local profile');
+  }
+  return {
+    version: LOCAL_PROFILE_VERSION,
+    profiles: parsed.registry.profiles.filter((profile) => profile.id !== id),
+  };
+}
+
+module.exports = {
+  LOCAL_PROFILE_VERSION,
+  DEFAULT_PROFILE_ID,
+  DEFAULT_PROFILE_NAME,
+  validProfileId,
+  normalizeProfileName,
+  normalizeProfile,
+  emptyLocalProfiles,
+  readLocalProfiles,
+  addLocalProfile,
+  renameLocalProfile,
+  removeLocalProfile,
+};

@@ -331,8 +331,9 @@ From the desktop `DEFAULTS`:
   restore behaviour (D8 for eviction/restore of live web views).
 - The desktop file carries an optional **`meta`** array parallel to `urls`
   (`{title, favicon}` per tab) so a restored tab is scannable before it is ever
-  loaded. It is written only into `windows[0]`, never into the flat mirror, and
-  it is cleared whenever browsing history is cleared.
+  loaded. Each nested window workspace owns its own `meta` column; metadata is
+  never copied into the flat rollback mirror, and it is cleared whenever
+  browsing history is cleared.
 - **Acceptance:** With 2 groups and a private tab open, relaunch restores both
   groups and their tabs and does **not** restore the private tab.
 
@@ -590,3 +591,57 @@ From the desktop `DEFAULTS`:
   settings outline including off, lazy restore, private sleep→wake isolation, no
   page state in `session.json` / the sync snapshot / `tabs:updated`, and a real
   drop in renderer-process count.
+
+## F32 — Independent desktop windows
+
+- Desktop may own multiple native browser windows. Each window has one stable
+  workspace id and independently owns its tabs, groups, active selection,
+  Island overlay, utility sheet, permission surface, focus state, and layout
+  geometry. A command or IPC message originating in one window cannot mutate
+  another window's workspace.
+- **New Window** (`Cmd/Ctrl+N`) creates an ungrouped newtab in a fresh native
+  window. Closing a secondary window destroys that workspace and its live web
+  contents; it does not close or select tabs in another window. The primary
+  macOS workspace retains the existing dock-reopen behavior.
+- `session.json` persists all non-private window workspaces in its v2 `windows`
+  array plus `activeWindowId`. The exact five-key flat mirror remains the
+  rollback view of the focused window, so a 1.0.x writer can still take
+  precedence without resurrecting stale secondary windows. Relaunch restores
+  each workspace separately and fronts the previously focused one.
+- Native multi-window support is a desktop window-model feature (D11); phone
+  platforms are N/A, while a future tablet/foldable implementation may define
+  its own windowing contract.
+- **Acceptance:** the scenarios in
+  [`acceptance/multi-window.feature`](./acceptance/multi-window.feature) verify
+  independent ownership and removal on close, plus a real process relaunch that
+  restores two workspaces without mixing their tabs.
+
+## F33 — Local desktop profiles
+
+- Desktop has one permanent **Personal** identity plus up to 15 named local
+  profiles. Existing installs become Personal without moving or copying any
+  shipped root file. Names are presentation; opaque ids own storage and session
+  partitions.
+- Named profiles isolate cookies/site storage, Favorites, history, download
+  metadata, remembered permissions, normal tabs, and private tabs. Their normal
+  Chromium partitions persist independently; each private partition is
+  non-persistent and isolated from both Personal and other profiles.
+- Settings, Supporter status, telemetry consent/install identity, app icon, and
+  network/presentation preferences remain device-level. The existing Profile
+  Sync account and remote-tab surface belong only to Personal; named-profile
+  records and tabs never enter that consent boundary.
+- Profiles are created/opened from Settings or the native Profiles menu. A
+  named profile can be renamed inline. Permanent deletion requires typing its
+  current name exactly, closes its windows, preserves downloaded files, removes
+  its product records and Chromium storage, and removes its saved workspaces.
+- Deletion is crash-resumable: a device-level marker is synchronously persisted
+  before any window closes. While marked, the profile cannot open or restore;
+  incomplete cleanup retries during the run and at the next launch.
+- Local profiles rely on the desktop multi-window/session model and are N/A on
+  the phone ports (D25).
+- **Acceptance:** the scenarios in
+  [`acceptance/local-profiles.feature`](./acceptance/local-profiles.feature)
+  exercise Settings creation, per-profile Favorites, normal/private partition
+  isolation, inline rename, exact confirmation, and deletion of windows,
+  registry identity, and saved workspaces, plus a real relaunch that restores a
+  named workspace into the same isolated profile session.

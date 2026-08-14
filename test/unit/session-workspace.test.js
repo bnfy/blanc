@@ -1,9 +1,17 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { loadWorkspace, buildSaveShape } = require('../../src/main/session-workspace');
+const {
+  SESSION_WORKSPACE_VERSION,
+  PRIMARY_WINDOW_ID,
+  loadWorkspace,
+  buildSaveShape,
+  removeProfileWorkspaces,
+} = require('../../src/main/session-workspace');
 
 const ENTRY = {
+  id: PRIMARY_WINDOW_ID,
+  profileId: 'default',
   urls: ['https://a.example/', 'https://b.example/'],
   activeIndex: 1,
   groups: [{ id: 'g1', name: 'work', collapsed: false }],
@@ -13,7 +21,7 @@ const ENTRY = {
   // it — or whose array no longer lines up with urls — reads back as [].
   meta: [],
 };
-const EMPTY = { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] };
+const EMPTY = { id: PRIMARY_WINDOW_ID, profileId: 'default', urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] };
 
 test('v0 (version-less flat file) loads as one window', () => {
   const { windows, readOnly } = loadWorkspace({ ...ENTRY });
@@ -28,11 +36,33 @@ test('empty or missing data loads as one empty window', () => {
   }
 });
 
-test('v1 with an agreeing mirror loads windows[0]', () => {
+test('v1 with an agreeing mirror migrates windows into Personal', () => {
   const file = { version: 1, windows: [ENTRY], ...ENTRY };
   const { windows, readOnly } = loadWorkspace(file);
   assert.equal(readOnly, false);
   assert.deepEqual(windows, [ENTRY]);
+});
+
+test('v2 preserves the explicit profile identity of every window', () => {
+  const named = {
+    ...ENTRY,
+    id: 'window_work',
+    profileId: 'profile_work',
+    urls: ['https://work.example/'],
+    groupIds: [null],
+    pinned: [false],
+    activeIndex: 0,
+  };
+  const file = {
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: named.id,
+    windows: [ENTRY, named],
+    ...named,
+  };
+  const loaded = loadWorkspace(file);
+  assert.equal(loaded.readOnly, false);
+  assert.equal(loaded.activeWindowId, named.id);
+  assert.deepEqual(loaded.windows, [ENTRY, named]);
 });
 
 test('rollback → re-upgrade: a diverged mirror wins over the stale nested workspace', () => {
@@ -47,21 +77,22 @@ test('rollback → re-upgrade: a diverged mirror wins over the stale nested work
 });
 
 test('unknown future version loads from the mirror, read-only', () => {
-  const file = { version: 2, windows: [ENTRY], somethingNew: true, ...ENTRY };
+  const file = { version: SESSION_WORKSPACE_VERSION + 1, windows: [ENTRY], somethingNew: true, ...ENTRY };
   const { windows, readOnly } = loadWorkspace(file);
   assert.equal(readOnly, true, 'a 1.1 build must never rewrite a newer format');
   assert.deepEqual(windows, [ENTRY]);
 });
 
 test('unknown future version with an unparseable mirror loads empty, read-only', () => {
-  const { windows, readOnly } = loadWorkspace({ version: 2, windows: 'opaque' });
+  const { windows, readOnly } = loadWorkspace({ version: SESSION_WORKSPACE_VERSION + 1, windows: 'opaque' });
   assert.equal(readOnly, true);
   assert.deepEqual(windows, [EMPTY]);
 });
 
-test('buildSaveShape writes v1 plus a mirror shape-identical to the 1.0.9 writer', () => {
+test('buildSaveShape writes v2 plus a mirror shape-identical to the 1.0.9 writer', () => {
   const shape = buildSaveShape(ENTRY, {});
-  assert.equal(shape.version, 1);
+  assert.equal(shape.version, SESSION_WORKSPACE_VERSION);
+  assert.equal(shape.activeWindowId, PRIMARY_WINDOW_ID);
   assert.deepEqual(shape.windows, [ENTRY]);
   // The mirror IS the 1.0.9 persistSession shape: exactly these five keys.
   assert.deepEqual(shape.urls, ENTRY.urls);
@@ -166,4 +197,92 @@ test('rollback → re-upgrade drops meta along with the stale nested workspace',
   const { windows } = loadWorkspace({ version: 1, windows: [staleNested], ...ENTRY });
   assert.deepEqual(windows[0].urls, ENTRY.urls, 'the legacy writer wrote last');
   assert.deepEqual(windows[0].meta, []);
+});
+
+test('v1 restores multiple independently identified windows and the focused owner', () => {
+  const secondary = {
+    ...ENTRY,
+    id: 'window_2',
+    urls: ['https://secondary.example/'],
+    groupIds: [null],
+    pinned: [false],
+    meta: [{ title: 'Secondary', favicon: null }],
+    activeIndex: 0,
+  };
+  const file = {
+    ...ENTRY,
+    version: 1,
+    activeWindowId: secondary.id,
+    windows: [ENTRY, secondary],
+    // The rollback mirror follows the focused window.
+    ...secondary,
+  };
+  const loaded = loadWorkspace(file);
+  assert.equal(loaded.readOnly, false);
+  assert.equal(loaded.activeWindowId, secondary.id);
+  assert.deepEqual(loaded.windows, [ENTRY, secondary]);
+});
+
+test('buildSaveShape retains every window and mirrors only the focused one', () => {
+  const secondary = {
+    ...ENTRY,
+    id: 'window_2',
+    urls: ['https://secondary.example/'],
+    groupIds: [null],
+    pinned: [true],
+    meta: [{ title: 'Secondary', favicon: null }],
+    activeIndex: 0,
+  };
+  const shape = buildSaveShape([ENTRY, secondary], {}, { activeWindowId: secondary.id });
+  assert.deepEqual(shape.windows, [ENTRY, secondary]);
+  assert.equal(shape.activeWindowId, secondary.id);
+  assert.deepEqual(shape.urls, secondary.urls);
+  assert.deepEqual(shape.groups, secondary.groups);
+  assert.deepEqual(shape.groupIds, secondary.groupIds);
+  assert.deepEqual(shape.pinned, secondary.pinned);
+  assert.equal('meta' in shape, false);
+});
+
+test('legacy mirror divergence collapses stale multi-window state to one primary workspace', () => {
+  const staleSecondary = {
+    ...ENTRY,
+    id: 'window_2',
+    urls: ['https://stale-secondary.example/'],
+    groupIds: [null],
+    pinned: [false],
+  };
+  const currentMirror = {
+    ...ENTRY,
+    urls: ['https://changed-under-rollback.example/'],
+    groupIds: [null],
+    pinned: [false],
+    activeIndex: 0,
+  };
+  const loaded = loadWorkspace({
+    version: 1,
+    activeWindowId: staleSecondary.id,
+    windows: [ENTRY, staleSecondary],
+    ...currentMirror,
+  });
+  assert.equal(loaded.activeWindowId, PRIMARY_WINDOW_ID);
+  assert.deepEqual(loaded.windows, [{ ...currentMirror, id: PRIMARY_WINDOW_ID, meta: [] }]);
+});
+
+test('profile removal drops every owned workspace and repairs the focused id', () => {
+  const personal = { ...ENTRY };
+  const workA = { ...ENTRY, id: 'window_work_a', profileId: 'profile_work' };
+  const workB = { ...ENTRY, id: 'window_work_b', profileId: 'profile_work' };
+  const saved = buildSaveShape([personal, workA, workB], {}, {
+    activeWindowId: workB.id,
+  });
+  const removed = removeProfileWorkspaces(saved, 'profile_work');
+  assert.equal(removed.readOnly, false);
+  assert.deepEqual(removed.windows, [personal]);
+  assert.equal(removed.activeWindowId, personal.id);
+});
+
+test('profile removal refuses Personal and future workspace formats', () => {
+  const saved = buildSaveShape([ENTRY], {});
+  assert.deepEqual(removeProfileWorkspaces(saved, 'default').windows, [ENTRY]);
+  assert.equal(removeProfileWorkspaces({ version: 99 }, 'profile_work').readOnly, true);
 });

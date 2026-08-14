@@ -42,9 +42,17 @@ const TAB_WEB_PREFERENCES = {
 
 /** Non-persistent session shared by all private tabs for this app run. */
 let privateBrowsingSession = null;
+let profileSessionRegistry = null;
 const PRIVATE_PARTITION = 'private-browsing'; // no `persist:` prefix = memory only
-const getPrivateBrowsingSession = () =>
-  (privateBrowsingSession ??= session.fromPartition(PRIVATE_PARTITION));
+const getNormalBrowsingSession = (profileId = 'default') =>
+  profileSessionRegistry?.normal(profileId) ?? session.defaultSession;
+const getPrivateBrowsingSession = (profileId = 'default') =>
+  profileSessionRegistry?.private(profileId)
+  ?? (privateBrowsingSession ??= session.fromPartition(PRIVATE_PARTITION));
+
+function configureProfileSessions(registry) {
+  profileSessionRegistry = registry;
+}
 
 /** After wc.close(), view.webContents reads back UNDEFINED, not destroyed —
  *  see main.js's reloadTabAfterSettingsFanout, where this exact dereference
@@ -63,10 +71,12 @@ const liveContents = (tab) => liveViewContents(tab?.view);
  * @returns {import('electron').WebContentsView}
  */
 function createTabView(tab) {
+  const profileId = tab?.profileId ?? 'default';
+  const browsingSession = tab?.private
+    ? getPrivateBrowsingSession(profileId)
+    : getNormalBrowsingSession(profileId);
   return new WebContentsView({
-    webPreferences: tab?.private
-      ? { ...TAB_WEB_PREFERENCES, session: getPrivateBrowsingSession() }
-      : TAB_WEB_PREFERENCES,
+    webPreferences: { ...TAB_WEB_PREFERENCES, session: browsingSession },
   });
 }
 
@@ -382,6 +392,8 @@ module.exports = {
   liveContents,
   liveViewContents,
   TAB_WEB_PREFERENCES,
+  configureProfileSessions,
+  getNormalBrowsingSession,
   getPrivateBrowsingSession,
   PRIVATE_PARTITION,
 };

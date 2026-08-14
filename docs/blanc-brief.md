@@ -28,9 +28,12 @@ opinionated, not a Chrome reskin.
 
 If you understand one thing about the architecture, make it this:
 
-**One `BrowserWindow`, many `WebContentsView`s.**
+**One runtime per `BrowserWindow`, many `WebContentsView`s.**
 
-- The window's own `webContents` renders the **chrome strip** — the slim (56px)
+- Each native window owns an independent runtime: tabs, groups, overlays,
+  utility sheets, permission prompts, focus, and profile identity never route
+  through another window's state.
+- The window's own `webContents` renders the **chrome strip** — the slim (64px)
   band the resting pill floats in.
 - **Each tab is a separate `WebContentsView`**, added as a child of the window's
   content view. Only the active tab's view is attached, so switching tabs is
@@ -112,8 +115,12 @@ clearest example: ad blocking is programmatic on desktop/Android but declarative
   service; a fresh-profile per-launch usage-ping choice presented on with no
   browsing data; and search suggestions presented on but disableable before
   continuing.
-- **Planned / not built:** the iOS and Android apps, multi-window, inline address
-  autocomplete.
+- **Implemented in the current development tree:** independent native windows
+  with multi-window restore, plus local named profiles whose site data,
+  Favorites, history, downloads metadata, permissions, and normal/private
+  sessions stay isolated. Personal alone participates in the existing Profile
+  Sync consent.
+- **Planned / not built:** the iOS and Android apps.
 
 ## Where the canonical docs live
 

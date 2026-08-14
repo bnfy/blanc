@@ -45,11 +45,17 @@ async function launchApp() {
     },
   });
 
-  // Wait for whenReady to have installed the test hook.
+  // Wait for whenReady to have installed the test hook and completed the
+  // blocker-gated workspace restore. Returning while persistence is still
+  // suspended lets the first scenario mutate an in-memory workspace that
+  // cannot yet reach session.json.
   await electronApp.evaluate(
     () => new Promise((resolve) => {
       const t = setInterval(() => {
-        if (globalThis.__blancCall) { clearInterval(t); resolve(); }
+        if (globalThis.__blancCall && globalThis.__blanc?.startupReady?.()) {
+          clearInterval(t);
+          resolve();
+        }
       }, 50);
     })
   );

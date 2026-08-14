@@ -74,31 +74,34 @@ function loadCreateTabView() {
   const sandbox = {
     WebContentsView: class { constructor(opts) { calls.push(opts); this.opts = opts; } },
     TAB_WEB_PREFERENCES: { preload: '/tab-preload.js', sandbox: true },
-    getPrivateBrowsingSession: () => ({ partition: 'private-browsing' }),
+    getNormalBrowsingSession: (profileId) => ({ partition: `normal:${profileId}` }),
+    getPrivateBrowsingSession: (profileId) => ({ partition: `private:${profileId}` }),
   };
   vm.runInNewContext(`${createTabViewSource}\nthis.__fn = createTabView;`, sandbox);
   return { createTabView: sandbox.__fn, calls, prefs: sandbox.TAB_WEB_PREFERENCES };
 }
 
-test('createTabView gives an ordinary tab the shared preferences object', () => {
+test('createTabView puts an ordinary tab on its profile session', () => {
   const { createTabView, calls, prefs } = loadCreateTabView();
-  const view = createTabView({ private: false });
+  const view = createTabView({ private: false, profileId: 'profile_work' });
   assert.ok(view, 'must return a view');
   assert.equal(calls.length, 1);
-  assert.equal(calls[0].webPreferences, prefs, 'no clone: the shared object itself');
+  assert.equal(calls[0].webPreferences.preload, prefs.preload);
+  assert.deepEqual(calls[0].webPreferences.session, { partition: 'normal:profile_work' });
 });
 
 test('createTabView puts a private tab on the private session', () => {
   const { createTabView, calls } = loadCreateTabView();
   createTabView({ private: true });
   assert.equal(calls[0].webPreferences.preload, '/tab-preload.js', 'base prefs still spread in');
-  assert.deepEqual(calls[0].webPreferences.session, { partition: 'private-browsing' });
+  assert.deepEqual(calls[0].webPreferences.session, { partition: 'private:default' });
 });
 
 test('createTabView tolerates being called before the tab record exists', () => {
   const { createTabView, calls, prefs } = loadCreateTabView();
   createTabView(undefined);
-  assert.equal(calls[0].webPreferences, prefs);
+  assert.equal(calls[0].webPreferences.preload, prefs.preload);
+  assert.deepEqual(calls[0].webPreferences.session, { partition: 'normal:default' });
 });
 
 test('the private-session ternary lives in tab-view.js and nowhere else', () => {

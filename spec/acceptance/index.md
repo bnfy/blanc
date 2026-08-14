@@ -9,7 +9,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 > Desktop is the shipped reference, so its `@all` cells are ✅ (behaviour verified
 > in the shipping app; automated step-defs are a separate track). iOS/Android are
-> greenfield → ⬜. The grid below tracks stable scenario IDs across 16 `.feature`
+> greenfield → ⬜. The grid below tracks stable scenario IDs across 17 `.feature`
 > files.
 
 ## Files
@@ -32,6 +32,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 | Browser migration | `browser-migration.feature` | F30 (D22) |
 | Quiet Tabs | `quiet-tabs.feature` | F31 (D8, D23) |
+| Independent windows | `multi-window.feature` | F32 (D11) |
 
 ## Grid
 
@@ -133,6 +134,11 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F31-8 | A private tab wakes inside the private session | D8 | ✅ | ⬜ | ⬜ |
 | F31-9 | Page state never escapes snapshots into persistence, sync, or renderer IPC | D8 | ✅ | ⬜ | ⬜ |
 | F31-10 | Quieting a tab releases a real renderer process, and waking brings one back | D8 | ✅ | ⬜ | ⬜ |
+| F32-1 | A secondary window owns and discards its own workspace | D11 | ✅ | ➖ | ➖ |
+| F32-2 | Independent window workspaces restore separately | D11 | ✅ | ➖ | ➖ |
+| F33-1 | Settings creates a profile with isolated records and sessions | D25 | ✅ | ➖ | ➖ |
+| F33-2 | Settings renames and permanently deletes a named profile | D25 | ✅ | ➖ | ➖ |
+| F33-3 | Named profile workspace restores into its isolated session | D25 | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -140,11 +146,11 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24`, `F27–F28`, `F30`, and `F31` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24`, `F27–F28`, and `F30–F33` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
-- The suite explicitly tags D1–D10, D12, D16, D19, and D23. D11 is exercised
-  implicitly wherever Island scenarios run against platform windowing; D13/D14
+- The suite explicitly tags D1–D12, D16, D19, D23, and D25. D11 is exercised
+  directly by F32 and implicitly wherever Island scenarios run against platform windowing; D13/D14
   are covered within the F12 contract (F12-1's shield assertion is relaxed on
   iOS per D13 — see
   [`../blocking-backends.md`](../blocking-backends.md)). D15, D17, and D18 do

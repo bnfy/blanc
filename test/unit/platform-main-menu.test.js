@@ -192,7 +192,7 @@ test('chrome markup and IPC keep one native menu definition', () => {
   assert.match(main, /event\.sender !== rt\(\)\.window\?\.webContents/);
   assert.match(main, /popupPlatformMainMenu\(\{ Menu, window: rt\(\)\.window, point \}\)/);
   assert.match(main, /label: 'Help'[\s\S]*isMac \? \[\] : \[[\s\S]*label: 'About Blanc'[\s\S]*showAboutPanel\(\{ app \}\)/);
-  assert.match(main, /function installChromeShortcuts\(webContents\) \{[\s\S]*installVerticalTabsShortcut\(webContents\);[\s\S]*installPlatformMainMenuShortcut/);
+  assert.match(main, /function installChromeShortcuts\(webContents, owner = rt\(\)\) \{[\s\S]*installVerticalTabsShortcut\(webContents, owner\);[\s\S]*installPlatformMainMenuShortcut/);
   // [^)]* can't span a nested-paren argument like rt().window.webContents, so
   // this stops at the next statement boundary (;) instead of the next ')'.
   assert.equal((main.match(/installChromeShortcuts\([^;]*webContents\)/g) ?? []).length >= 2, true);

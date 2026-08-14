@@ -3,6 +3,8 @@ const {
   storedDecision,
   rememberDecision,
 } = require('./permission-decisions');
+const { withLocalProfile } = require('./local-profile-context');
+const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 
 /**
  * Permission policy for web content. Electron's default is ALLOW
@@ -23,7 +25,9 @@ let store = null;
 const ensureStore = () => {
   if (!store) {
     const { JsonStore } = require('./store');
-    store = new JsonStore('site-permissions', { decisions: {} });
+    store = new JsonStore(
+      'site-permissions', { decisions: {} }, { scope: 'profile' }
+    );
   }
   return store;
 };
@@ -124,13 +128,19 @@ function mediaQueryState(session, rawUrl, mediaType) {
   return 'prompt';
 }
 
-function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
+function setupPermissionPolicy(
+  session,
+  { persistDecisions = true, profileId = DEFAULT_PROFILE_ID } = {}
+) {
   // Incognito/private sessions use this in-memory map. Normal browsing keeps
   // using site-permissions.json and remains manageable from Settings.
   const ephemeralDecisions = {};
-  const readDecisions = () => persistDecisions ? ensureStore().data.decisions : ephemeralDecisions;
+  const readDecisions = () => withLocalProfile(
+    profileId,
+    () => persistDecisions ? ensureStore().data.decisions : ephemeralDecisions
+  );
   queryReaders.set(session, readDecisions);
-  const saveDecision = (origin, permission, mediaTypes, allow) => {
+  const saveDecision = (origin, permission, mediaTypes, allow) => withLocalProfile(profileId, () => {
     if (persistDecisions) {
       ensureStore().update((d) => rememberDecision(d.decisions, origin, permission, mediaTypes, allow));
     } else {
@@ -139,9 +149,10 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     if (permission === 'media') {
       notifyDecisionChange(session, origin, normalizedMediaTypes(mediaTypes));
     }
-  };
+  });
 
-  session.setPermissionRequestHandler(async (wc, permission, callback, details) => {
+  session.setPermissionRequestHandler((wc, permission, callback, details) =>
+    withLocalProfile(profileId, async () => {
     if (AUTO_ALLOWED.has(permission)) return callback(true);
     if (!PROMPTED.has(permission)) return callback(false);
 
@@ -167,11 +178,13 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
     saveDecision(origin, permission, mediaTypes, allow);
     if (allow) notifyCaptureGrant(wc, permission, mediaTypes, details);
     callback(allow);
-  });
+    })
+  );
 
   // Synchronous checks (navigator.permissions.query, Notification.permission)
   // must agree with the request handler or sites see inconsistent state.
-  session.setPermissionCheckHandler((_wc, permission, requestingOrigin, details) => {
+  session.setPermissionCheckHandler((_wc, permission, requestingOrigin, details) =>
+    withLocalProfile(profileId, () => {
     if (AUTO_ALLOWED.has(permission)) return true;
     if (!PROMPTED.has(permission)) return false;
     const origin = normalizedOrigin(requestingOrigin);
@@ -180,7 +193,8 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
       ? details.mediaType
       : null;
     return storedDecision(readDecisions(), origin, permission, mediaType) === 'allow';
-  });
+    })
+  );
 
   // Screen capture: still deny by never providing a stream (no picker UI yet).
   session.setDisplayMediaRequestHandler((_request, callback) => callback({}));

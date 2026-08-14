@@ -1,6 +1,8 @@
 const { app } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const { activeLocalProfileId } = require('./local-profile-context');
+const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
 
 const SAVE_DELAY_MS = 250;
 // A pure trailing debounce never fires while updates keep arriving faster
@@ -12,75 +14,135 @@ const MAX_SAVE_DELAY_MS = 5000;
 const instances = [];
 
 /**
- * Minimal JSON-file persistence: one file per store in userData, loaded
- * synchronously once at construction, saved with a short debounce so
- * bursts of updates (e.g. history during a redirect chain) coalesce into
- * one write. No schema, no migrations — the right weight for a starter.
+ * Minimal JSON-file persistence. Device stores keep their one root file;
+ * profile stores retain Personal's shipped root file and place each named
+ * profile beneath `profiles/<opaque-id>/`. AsyncLocalStorage selects entries,
+ * so overlapping window callbacks cannot race a shared module singleton.
  */
 class JsonStore {
   /**
    * @param {string} name - file becomes `<userData>/<name>.json`
    * @param {object} defaults - shape used when the file is missing/corrupt
+   * @param {{scope?: 'device'|'profile'}} options
    */
-  constructor(name, defaults) {
-    this.file = path.join(app.getPath('userData'), `${name}.json`);
+  constructor(name, defaults, { scope = 'device' } = {}) {
+    this.name = name;
     this.defaults = defaults;
-    this.data = this.#load();
-    this.saveTimer = null;
-    this.pendingSince = null;
+    this.scope = scope === 'profile' ? 'profile' : 'device';
+    this.entries = new Map();
     instances.push(this);
   }
 
-  #load() {
+  #profileId() {
+    return this.scope === 'profile' ? activeLocalProfileId() : DEFAULT_PROFILE_ID;
+  }
+
+  #fileFor(profileId) {
+    const root = app.getPath('userData');
+    if (this.scope !== 'profile' || profileId === DEFAULT_PROFILE_ID) {
+      return path.join(root, `${this.name}.json`);
+    }
+    return path.join(root, 'profiles', profileId, `${this.name}.json`);
+  }
+
+  #load(file) {
     try {
-      const loaded = { ...this.defaults, ...JSON.parse(fs.readFileSync(this.file, 'utf8')) };
+      const loaded = { ...this.defaults, ...JSON.parse(fs.readFileSync(file, 'utf8')) };
       // Tighten legacy files on first read, not only after their next update.
       // Windows ignores POSIX mode bits; on Unix this removes group/world
       // access inherited from an older umask-based write.
-      try { fs.chmodSync(this.file, 0o600); } catch { /* platform/best effort */ }
+      try { fs.chmodSync(file, 0o600); } catch { /* platform/best effort */ }
       return loaded;
     } catch {
       return structuredClone(this.defaults);
     }
   }
 
-  /** Mutate `this.data` inside `fn`, then schedule a save. */
-  update(fn) {
-    fn(this.data);
-    this.#scheduleSave();
+  #entry() {
+    const profileId = this.#profileId();
+    let entry = this.entries.get(profileId);
+    if (!entry) {
+      const file = this.#fileFor(profileId);
+      entry = {
+        file,
+        data: this.#load(file),
+        saveTimer: null,
+        pendingSince: null,
+      };
+      this.entries.set(profileId, entry);
+    }
+    return entry;
   }
 
-  #scheduleSave() {
-    this.pendingSince ??= Date.now();
-    if (Date.now() - this.pendingSince >= MAX_SAVE_DELAY_MS) return this.flush();
-    clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => this.flush(), SAVE_DELAY_MS);
+  get file() { return this.#entry().file; }
+  get data() { return this.#entry().data; }
+  get saveTimer() { return this.#entry().saveTimer; }
+
+  /** Mutate the active device/profile entry, then schedule a save. */
+  update(fn) {
+    const entry = this.#entry();
+    fn(entry.data);
+    this.#scheduleSave(entry);
+  }
+
+  /** Critical transition: rollback memory too if the synchronous write fails. */
+  updateAndFlush(fn) {
+    const entry = this.#entry();
+    const previous = structuredClone(entry.data);
+    const pendingSince = entry.pendingSince;
+    const hadPendingSave = !!entry.saveTimer;
+    fn(entry.data);
+    if (this.#flush(entry)) return true;
+    entry.data = previous;
+    if (hadPendingSave) {
+      entry.pendingSince = pendingSince;
+      this.#scheduleSave(entry);
+    }
+    return false;
+  }
+
+  #scheduleSave(entry) {
+    entry.pendingSince ??= Date.now();
+    if (Date.now() - entry.pendingSince >= MAX_SAVE_DELAY_MS) return this.#flush(entry);
+    clearTimeout(entry.saveTimer);
+    entry.saveTimer = setTimeout(() => this.#flush(entry), SAVE_DELAY_MS);
   }
 
   /** @returns {boolean} whether the write actually reached disk — callers
    * that promise the user something persisted (e.g. the install-id reset)
    * must not report success off a swallowed write error. */
   flush() {
-    clearTimeout(this.saveTimer);
-    this.saveTimer = null;
-    this.pendingSince = null;
-    const tempFile = `${this.file}.${process.pid}.tmp`;
+    return this.#flush(this.#entry());
+  }
+
+  flushPending() {
+    for (const entry of this.entries.values()) {
+      if (entry.saveTimer) this.#flush(entry);
+    }
+  }
+
+  #flush(entry) {
+    clearTimeout(entry.saveTimer);
+    entry.saveTimer = null;
+    entry.pendingSince = null;
+    const tempFile = `${entry.file}.${process.pid}.tmp`;
     let descriptor = null;
     try {
+      fs.mkdirSync(path.dirname(entry.file), { recursive: true });
       descriptor = fs.openSync(tempFile, 'w', 0o600);
-      fs.writeFileSync(descriptor, JSON.stringify(this.data, null, 2), 'utf8');
+      fs.writeFileSync(descriptor, JSON.stringify(entry.data, null, 2), 'utf8');
       fs.fsyncSync(descriptor);
       fs.closeSync(descriptor);
       descriptor = null;
-      fs.renameSync(tempFile, this.file);
-      fs.chmodSync(this.file, 0o600);
+      fs.renameSync(tempFile, entry.file);
+      fs.chmodSync(entry.file, 0o600);
       return true;
     } catch (err) {
       if (descriptor !== null) {
         try { fs.closeSync(descriptor); } catch { /* best effort */ }
       }
       try { fs.rmSync(tempFile, { force: true }); } catch { /* best effort */ }
-      console.warn(`[store] could not write ${this.file}:`, err.message);
+      console.warn(`[store] could not write ${entry.file}:`, err.message);
       return false;
     }
   }
@@ -88,8 +150,19 @@ class JsonStore {
 
 app.on('before-quit', () => {
   for (const store of instances) {
-    if (store.saveTimer) store.flush();
+    store.flushPending();
   }
 });
 
-module.exports = { JsonStore };
+function discardProfileStoreEntries(profileId) {
+  if (!validProfileId(profileId) || profileId === DEFAULT_PROFILE_ID) return false;
+  for (const store of instances) {
+    if (store.scope !== 'profile') continue;
+    const entry = store.entries.get(profileId);
+    if (entry?.saveTimer) clearTimeout(entry.saveTimer);
+    store.entries.delete(profileId);
+  }
+  return true;
+}
+
+module.exports = { JsonStore, discardProfileStoreEntries };

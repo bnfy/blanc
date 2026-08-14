@@ -1,32 +1,50 @@
-// Versioned workspace persistence for session.json (design:
-// docs/superpowers/specs/2026-08-08-window-runtime-foundation-design.md).
-// Pure functions over plain objects; main.js owns the JsonStore.
+// Versioned workspace persistence for session.json. v1 introduced independent
+// window records; v2 gives every window an explicit local-profile identity.
+//
+// Keep this module Electron-free: migrations and rollback precedence must be
+// fixture-testable without loading main.js.
 
-const EMPTY_ENTRY = () => ({ urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] });
+const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
+
+const SESSION_WORKSPACE_VERSION = 2;
+const PRIMARY_WINDOW_ID = 'primary';
+
+const EMPTY_ENTRY = (id = PRIMARY_WINDOW_ID) => ({
+  id,
+  profileId: DEFAULT_PROFILE_ID,
+  urls: [],
+  activeIndex: 0,
+  groups: [],
+  groupIds: [],
+  pinned: [],
+  meta: [],
+});
 
 /** @typedef {{title: string, favicon: string|null}} SessionTabMeta */
 
-function entryFrom(source) {
-  if (!source || typeof source !== 'object') return EMPTY_ENTRY();
+function validWindowId(value) {
+  return typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
+}
+
+function entryFrom(source, fallbackId = PRIMARY_WINDOW_ID) {
+  if (!source || typeof source !== 'object') return EMPTY_ENTRY(fallbackId);
   const urls = Array.isArray(source.urls) ? source.urls : [];
   return {
+    id: validWindowId(source.id) ? source.id : fallbackId,
+    profileId: validProfileId(source.profileId) ? source.profileId : DEFAULT_PROFILE_ID,
     urls,
     activeIndex: Number.isInteger(source.activeIndex) ? source.activeIndex : 0,
     groups: Array.isArray(source.groups) ? source.groups : [],
     groupIds: Array.isArray(source.groupIds) ? source.groupIds : [],
     pinned: Array.isArray(source.pinned) ? source.pinned : [],
-    // Quiet Tabs (spec §10.1): titles and favicons for tabs that come back
-    // quiet, zipped onto `urls`. A length mismatch means some other writer
-    // — a rolled-back 1.0.x build rewriting the flat mirror — moved the urls
-    // out from under this array, so drop it rather than mislabel pages.
+    // Quiet Tabs: titles and favicons for tabs that come back quiet, zipped
+    // onto `urls`. A mismatch means a rollback writer moved the URL column.
     meta: Array.isArray(source.meta) && source.meta.length === urls.length ? source.meta : [],
   };
 }
 
-/** The five keys the v0 mirror carries. `meta` lives only in windows[0], so
- * mirror/nested divergence must be judged on the mirror's own columns —
- * comparing whole entries would report divergence on EVERY launch and drop
- * the nested workspace forever (spec §10.1). */
+/** The five keys understood by the pre-v1 flat writer. Window ids, metadata,
+ * and activeWindowId intentionally never enter this rollback mirror. */
 const mirrorProjection = (entry) => ({
   urls: entry.urls,
   activeIndex: entry.activeIndex,
@@ -35,8 +53,6 @@ const mirrorProjection = (entry) => ({
   pinned: entry.pinned,
 });
 
-/** Check if all five mirror keys are present and valid on the raw data object.
- * Presence is checked on the input object itself (not normalized). */
 function hasMirror(data) {
   if (!data || typeof data !== 'object') return false;
   return (
@@ -48,94 +64,121 @@ function hasMirror(data) {
   );
 }
 
-/** Structural equality that ignores object key order (but preserves array order).
- * This prevents false divergence when identical group objects have different key orders. */
+/** Structural equality ignores object key order but preserves array order. */
 function deepEqual(a, b) {
   if (a === b) return true;
   if (typeof a !== typeof b) return false;
   if (typeof a !== 'object' || a === null || b === null) return a === b;
-
   if (Array.isArray(a) && Array.isArray(b)) {
-    if (a.length !== b.length) return false;
-    return a.every((val, idx) => deepEqual(val, b[idx]));
+    return a.length === b.length && a.every((value, index) => deepEqual(value, b[index]));
   }
-
   if (Array.isArray(a) || Array.isArray(b)) return false;
-
-  // For objects, compare by sorted keys to ignore key order
   const aKeys = Object.keys(a).sort();
   const bKeys = Object.keys(b).sort();
-  if (aKeys.length !== bKeys.length) return false;
-  if (!aKeys.every((k, i) => k === bKeys[i])) return false;
-  return aKeys.every(k => deepEqual(a[k], b[k]));
+  return aKeys.length === bKeys.length &&
+    aKeys.every((key, index) => key === bKeys[index]) &&
+    aKeys.every((key) => deepEqual(a[key], b[key]));
 }
 
-/** Load with rollback → re-upgrade precedence. 1.0.9's JsonStore.update()
- * mutates the stored object in place and persists it whole, so a rolled-back
- * legacy build rewrites the flat mirror while PRESERVING the unknown
- * version/windows keys. The mirror only participates in precedence when all
- * five keys are present and valid. Divergence between mirror and nested
- * workspace means the legacy writer wrote last — the mirror wins and v1 is
- * rebuilt from it. Unknown future versions are read-only: best-effort load,
- * never rewritten by this build. */
-function loadWorkspace(data) {
-  if (!data || typeof data !== 'object') return { windows: [EMPTY_ENTRY()], readOnly: false };
+function normalizedWindows(rawWindows) {
+  const used = new Set();
+  const windows = [];
+  for (const [index, raw] of (Array.isArray(rawWindows) ? rawWindows : []).entries()) {
+    if (!raw || typeof raw !== 'object') continue;
+    const entry = entryFrom(raw, index === 0 ? PRIMARY_WINDOW_ID : `window_${index + 1}`);
+    if (used.has(entry.id)) continue;
+    used.add(entry.id);
+    windows.push(entry);
+  }
+  return windows;
+}
 
-  const hasMirrorData = hasMirror(data);
+/**
+ * Load with rollback -> re-upgrade precedence. A legacy build rewrites the
+ * flat mirror while preserving unknown v1 fields. If that mirror diverges
+ * from the formerly focused nested window, the legacy writer won: collapse
+ * to its one current workspace rather than resurrecting stale extra windows.
+ */
+function loadWorkspace(data) {
+  if (!data || typeof data !== 'object') {
+    return { windows: [EMPTY_ENTRY()], activeWindowId: PRIMARY_WINDOW_ID, readOnly: false };
+  }
+
+  const mirrorPresent = hasMirror(data);
+  const mirror = entryFrom(data, PRIMARY_WINDOW_ID);
 
   if (!Number.isInteger(data.version)) {
-    return { windows: [entryFrom(data)], readOnly: false }; // v0: today's flat file
+    return { windows: [mirror], activeWindowId: PRIMARY_WINDOW_ID, readOnly: false };
   }
-  if (data.version > 1) {
-    return { windows: [entryFrom(data)], readOnly: true };
-  }
-
-  const nested = Array.isArray(data.windows) && data.windows.length
-    ? entryFrom(data.windows[0])
-    : null;
-
-  // v1 precedence rules:
-  // 1. Mirror only participates if all five keys are present and valid.
-  // 2. Absent/partial/invalid mirror + valid nested → nested wins.
-  // 3. Valid mirror + absent/invalid nested → mirror wins.
-  // 4. Both valid → compare structurally; differ → legacy writer wins.
-  if (!hasMirrorData && nested) {
-    return { windows: [nested], readOnly: false };
+  if (data.version > SESSION_WORKSPACE_VERSION) {
+    return {
+      windows: [mirrorPresent ? mirror : EMPTY_ENTRY()],
+      activeWindowId: PRIMARY_WINDOW_ID,
+      readOnly: true,
+    };
   }
 
-  if (hasMirrorData && !nested) {
-    return { windows: [entryFrom(data)], readOnly: false };
+  if (data.version !== 1 && data.version !== SESSION_WORKSPACE_VERSION) {
+    return { windows: [mirror], activeWindowId: PRIMARY_WINDOW_ID, readOnly: false };
   }
 
-  if (hasMirrorData && nested) {
-    // Both present and valid; use structural equality (key-order-insensitive)
-    if (deepEqual(mirrorProjection(nested), mirrorProjection(entryFrom(data)))) {
-      return { windows: [nested], readOnly: false };
-    } else {
-      return { windows: [entryFrom(data)], readOnly: false }; // legacy writer won
+  const windows = normalizedWindows(data.windows);
+  const requestedActiveId = validWindowId(data.activeWindowId) ? data.activeWindowId : null;
+  const activeWindowId = windows.some((entry) => entry.id === requestedActiveId)
+    ? requestedActiveId
+    : windows[0]?.id ?? PRIMARY_WINDOW_ID;
+  const focused = windows.find((entry) => entry.id === activeWindowId) ?? windows[0] ?? null;
+
+  if (!mirrorPresent && focused) return { windows, activeWindowId, readOnly: false };
+  if (mirrorPresent && !focused) {
+    return { windows: [mirror], activeWindowId: PRIMARY_WINDOW_ID, readOnly: false };
+  }
+  if (mirrorPresent && focused) {
+    if (deepEqual(mirrorProjection(focused), mirrorProjection(mirror))) {
+      return { windows, activeWindowId, readOnly: false };
     }
+    return { windows: [mirror], activeWindowId: PRIMARY_WINDOW_ID, readOnly: false };
   }
-
-  // No mirror, no nested → empty
-  return { windows: [EMPTY_ENTRY()], readOnly: false };
+  return { windows: [EMPTY_ENTRY()], activeWindowId: PRIMARY_WINDOW_ID, readOnly: false };
 }
 
-/** v1 + the v0 mirror of the focused window. The mirror is exactly the five
- * keys 1.0.9's persistSession writes, so a rollback restores tabs. Foreign
- * keys already in the store are preserved, mirroring JsonStore.update()'s
- * in-place semantics. */
-function buildSaveShape(focusedEntry, existing) {
-  const entry = entryFrom(focusedEntry);
+/** v1 plus the exact five-key v0 mirror of the focused window. Accepts one
+ * entry for M1 call-site compatibility or the full M2 window array. */
+function buildSaveShape(windowEntries, existing, { activeWindowId = null } = {}) {
+  const input = Array.isArray(windowEntries) ? windowEntries : [windowEntries];
+  const windows = normalizedWindows(input);
+  if (!windows.length) windows.push(EMPTY_ENTRY());
+  const focusedId = validWindowId(activeWindowId) && windows.some((entry) => entry.id === activeWindowId)
+    ? activeWindowId
+    : windows[0].id;
+  const focused = windows.find((entry) => entry.id === focusedId) ?? windows[0];
   return {
     ...(existing && typeof existing === 'object' ? existing : {}),
-    version: 1,
-    windows: [entry],
-    urls: entry.urls,
-    activeIndex: entry.activeIndex,
-    groups: entry.groups,
-    groupIds: entry.groupIds,
-    pinned: entry.pinned,
+    version: SESSION_WORKSPACE_VERSION,
+    activeWindowId: focusedId,
+    windows,
+    ...mirrorProjection(focused),
   };
 }
 
-module.exports = { loadWorkspace, buildSaveShape, entryFrom };
+function removeProfileWorkspaces(data, profileId) {
+  const loaded = loadWorkspace(data);
+  if (loaded.readOnly || !validProfileId(profileId) || profileId === DEFAULT_PROFILE_ID) {
+    return loaded;
+  }
+  const windows = loaded.windows.filter((entry) => entry.profileId !== profileId);
+  const activeWindowId = windows.some((entry) => entry.id === loaded.activeWindowId)
+    ? loaded.activeWindowId
+    : windows[0]?.id ?? PRIMARY_WINDOW_ID;
+  return { windows, activeWindowId, readOnly: false };
+}
+
+module.exports = {
+  SESSION_WORKSPACE_VERSION,
+  PRIMARY_WINDOW_ID,
+  validWindowId,
+  loadWorkspace,
+  buildSaveShape,
+  entryFrom,
+  removeProfileWorkspaces,
+};

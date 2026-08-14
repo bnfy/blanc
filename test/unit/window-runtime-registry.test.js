@@ -29,6 +29,7 @@ test('createRuntime initializes the per-window inventory to main.js defaults', (
   assert.equal(r.addressMenuTicket, 0);
   assert.equal(r.addressMenuSeq, 0);
   assert.ok(Number.isInteger(r.id));
+  assert.equal(r.profileId, 'default');
   assert.equal(reg.all().length, 1);
 });
 
@@ -162,4 +163,38 @@ test('detach then reattach: replacement window binds, new surfaces resolve', () 
   assert.equal(r.window, replacement);
   assert.equal(reg.runtimeForChromeWebContentsId(33), r);
   assert.equal(reg.runtimeForChromeWebContentsId(11), null, 'stale id must stay dead');
+});
+
+test('explicit runtime ids are stable and duplicate ids are rejected', () => {
+  const primary = reg.createRuntime({ id: 'primary' });
+  assert.equal(primary.id, 'primary');
+  assert.throws(() => reg.createRuntime({ id: 'primary' }), /already exists/);
+});
+
+test('runtime profile identity is explicit, stable, and validated', () => {
+  const named = reg.createRuntime({ id: 'window_work', profileId: 'profile_work' });
+  assert.equal(named.profileId, 'profile_work');
+  reg.detachWindow(named);
+  reg.attachWindow(named, { window: {} });
+  assert.equal(named.profileId, 'profile_work');
+  assert.throws(
+    () => reg.createRuntime({ id: 'bad', profileId: '../escape' }),
+    /Invalid local profile id/
+  );
+});
+
+test('discardRuntime removes a secondary runtime and all ownership edges', () => {
+  const primary = reg.createRuntime({ id: 'primary' });
+  const secondary = reg.createRuntime({ id: 'window_2' });
+  reg.attachWindow(secondary, { window: {} });
+  reg.registerChromeSurface(secondary, 201);
+  reg.registerAuxiliaryContent(secondary, 202);
+  reg.attachTab(secondary, 'tab-2');
+
+  assert.equal(reg.discardRuntime(secondary), secondary);
+  assert.deepEqual(reg.all(), [primary]);
+  assert.equal(reg.runtimeForTab('tab-2'), null);
+  assert.equal(reg.runtimeForChromeWebContentsId(201), null);
+  assert.equal(reg.runtimeForAuxiliaryContent(202), null);
+  assert.equal(reg.discardRuntime(secondary), null);
 });

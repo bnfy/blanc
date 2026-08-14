@@ -9,7 +9,7 @@ const vm = require('node:vm');
 // approach as settings-fanout-reload.test.js: lift the function's real source
 // and run it in a sandbox, so this asserts the shipped code, not a copy.
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
-const fnSource = mainSource.match(/function tabMenuItems\(\) \{[\s\S]*?\n\}/)?.[0];
+const fnSource = mainSource.match(/function tabMenuItems\(owner = rt\(\)\) \{[\s\S]*?\n\}/)?.[0];
 
 test('the tab-menu builder is still present in main.js', () => {
   assert.ok(fnSource, 'tabMenuItems not found — update this test with it');
@@ -26,7 +26,6 @@ function run({ slotIds, tabsById, groups = [], activeTabId = null }) {
     clusterSlots: () => [{ tabIds: slotIds }],
     tabs,
     rt: () => ({ groups, activeTabId }),
-    primaryRuntime: {},
     bindWindowRuntime: (_r, fn) => fn,
     setActiveTab: () => {},
     escapeMenuLabel: (l) => l,
