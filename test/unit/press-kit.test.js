@@ -51,7 +51,7 @@ test('the public press page keeps its release links, indexability, and no-analyt
     fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')
   ).version;
 
-  assert.equal(packageVersion, '1.2.3');
+  assert.equal(packageVersion, '1.2.4');
   assert.match(page, new RegExp(`const VERSION = '${packageVersion.replaceAll('.', '\\.')}'`));
   assert.equal(
     fs.existsSync(path.join(ROOT, `docs/press/release-notes/v${packageVersion}.md`)),
