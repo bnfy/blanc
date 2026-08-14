@@ -154,11 +154,24 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('page-favicon-updated', boundToTab((_e, favicons) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    // During the initial load, Chromium can report its default ICO after the
+    // document-ready SVG refinement. Once loading has stopped, however, a
+    // favicon event is page-owned live state (for example an unread badge) and
+    // must win rather than being reset to the document's original declaration.
+    const refineInitialFavicon = tab.isLoading;
     const pending = updateFaviconFromPage(tab, favicons, { setTabFavicon })
       .catch(() => false);
     tab.faviconPending = pending;
     pending.finally(() => {
-      if (tab.faviconPending === pending) tab.faviconPending = null;
+      if (tab.faviconPending !== pending) return;
+      tab.faviconPending = null;
+      if (tab.sleeping || tab.view?.webContents !== wc) return;
+      if (!refineInitialFavicon) return;
+      // DOM readiness can precede Chromium's initial favicon event. If that
+      // event superseded an SVG/Retina refinement with a smaller default
+      // choice, run the declared quality pass once more after it settles.
+      updateFaviconAfterDomReady(tab, wc, { setTabFavicon })
+        .catch(() => {});
     });
   }));
   wc.on('dom-ready', boundToTab(() => {

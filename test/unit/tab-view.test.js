@@ -124,6 +124,21 @@ test('document-ready has a favicon fallback when Chromium emits no favicon event
   assert.match(wireSource, /wc\.on\('dom-ready',[\s\S]*?updateFaviconAfterDomReady/);
 });
 
+test('a late Chromium favicon event is followed by the declared quality pass', () => {
+  const start = wireSource.indexOf("wc.on('page-favicon-updated'");
+  const end = wireSource.indexOf("wc.on('dom-ready'", start);
+  const listener = wireSource.slice(start, end);
+  assert.match(listener, /pending\.finally\([\s\S]*?updateFaviconAfterDomReady/);
+});
+
+test('a favicon event after initial load keeps its dynamic favicon', () => {
+  const start = wireSource.indexOf("wc.on('page-favicon-updated'");
+  const end = wireSource.indexOf("wc.on('dom-ready'", start);
+  const listener = wireSource.slice(start, end);
+  assert.match(listener, /const refineInitialFavicon = tab\.isLoading;/);
+  assert.match(listener, /if \(!refineInitialFavicon\) return;/);
+});
+
 for (const required of [
   'installChromeShortcuts',
   'watchCursorFor',

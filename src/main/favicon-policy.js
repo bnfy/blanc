@@ -101,43 +101,138 @@ async function updateFaviconFromPage(
   return true;
 }
 
-/** Read only the page's declared icon URLs, in document order. This is a
- * compatibility fallback for pages where Chromium never emits its event; it
- * deliberately does no size ranking or touch-icon guessing. */
-async function declaredPageFavicons(webContents) {
+function declaredFaviconCandidate(raw) {
+  const candidate = typeof raw === 'string' ? { href: raw, rel: 'icon' } : raw;
+  if (!candidate || typeof candidate.href !== 'string' || candidate.href.length > 2048) return null;
+  if (!/^(https?:|data:image\/)/i.test(candidate.href)) return null;
+  return {
+    href: candidate.href,
+    rel: typeof candidate.rel === 'string' ? candidate.rel.slice(0, 100) : '',
+    sizes: typeof candidate.sizes === 'string' ? candidate.sizes.slice(0, 100) : '',
+    type: typeof candidate.type === 'string' ? candidate.type.slice(0, 100).toLowerCase() : '',
+  };
+}
+
+function declaredFaviconSize(sizes) {
+  let largest = 0;
+  for (const match of String(sizes).matchAll(/(\d+)[x×](\d+)/gi)) {
+    const width = Number(match[1]);
+    const height = Number(match[2]);
+    if (width === height && width > largest) largest = width;
+  }
+  return largest;
+}
+
+/** Prefer an explicit vector, then a regular icon with enough source pixels
+ * for the 32px Retina raster. Document order breaks equal-quality ties. The
+ * generic `sizes="any"` hint is not proof that an ICO is scalable — Blanc's
+ * own site exposed exactly that mistake — so only an SVG URL/MIME earns the
+ * vector score. */
+function pickBestDeclaredFavicon(rawCandidates) {
+  const candidates = (Array.isArray(rawCandidates) ? rawCandidates.slice(0, 20) : [])
+    .map(declaredFaviconCandidate)
+    .filter(Boolean);
+  // Apple touch icons are home-screen artwork and frequently have a different
+  // crop or background from the site's desktop mark. They remain a useful
+  // availability fallback, but must never displace an ordinary rel=icon.
+  const ordinary = candidates.filter(({ rel }) => !rel || /(?:^|\s)icon(?:\s|$)/i.test(rel));
+  const eligible = ordinary.length
+    ? ordinary
+    : candidates.filter(({ rel }) => /(?:^|\s)apple-touch-icon(?:\s|$)/i.test(rel));
+  let best = null;
+  let bestScore = -1;
+  for (const candidate of eligible) {
+    const vector = candidate.type === 'image/svg+xml' ||
+      /(?:\.svg(?:[?#]|$)|^data:image\/svg\+xml[;,])/i.test(candidate.href);
+    const size = declaredFaviconSize(candidate.sizes);
+    let score;
+    if (vector) score = 1_000_000;
+    else if (size >= 32) score = 100_000 + (10_000 - Math.abs(size - 64));
+    else if (size > 0) score = size;
+    else if (candidate.type === 'image/png' || /\.png(?:[?#]|$)/i.test(candidate.href)) score = 1_000;
+    else if (/\.ico(?:[?#]|$)/i.test(candidate.href)) score = 100;
+    else score = 500;
+    if (score > bestScore) {
+      best = candidate.href;
+      bestScore = score;
+    }
+  }
+  return best;
+}
+
+/** Read the page's bounded declared icon metadata. This powers both the
+ * no-event availability fallback and a later quality refinement. */
+async function declaredPageFaviconCandidates(webContents) {
   try {
-    const sources = await webContents.executeJavaScript(`
-      Array.from(document.querySelectorAll('link[rel~="icon"]'))
+    const candidates = await webContents.executeJavaScript(`
+      Array.from(document.querySelectorAll('link[rel~="icon"], link[rel~="apple-touch-icon"]'))
         .slice(0, 20)
-        .map((link) => link.href)
+        .map((link) => ({
+          href: link.href,
+          rel: link.rel,
+          sizes: link.getAttribute('sizes') || '',
+          type: link.getAttribute('type') || ''
+        }))
     `, true);
-    return Array.isArray(sources) ? sources.slice(0, 20) : [];
+    return Array.isArray(candidates)
+      ? candidates.slice(0, 20).map(declaredFaviconCandidate).filter(Boolean)
+      : [];
   } catch {
     return [];
   }
 }
 
-/** Some long-running pages never make Chromium emit page-favicon-updated.
- * At DOM readiness, use their declared icons when no event has already
- * supplied pixels or started an attempt. */
+/** Read only ordinary `rel=icon` URLs, in document order, for callers that
+ * need the availability list rather than touch-icon quality metadata. */
+async function declaredPageFavicons(webContents) {
+  const candidates = await declaredPageFaviconCandidates(webContents);
+  return candidates
+    .filter(({ rel }) => /(?:^|\s)icon(?:\s|$)/i.test(rel))
+    .map(({ href }) => href);
+}
+
+/** At DOM readiness, fill pages whose Chromium event never arrived and refine
+ * an already-working low-resolution choice. Availability remains fail-safe:
+ * the best declared candidate is tried first, then original document order,
+ * while setTabFavicon preserves existing pixels when an upgrade fails. */
 async function updateFaviconAfterDomReady(tab, webContents, deps) {
-  if (!tab || tab.favicon) return false;
+  if (!tab) return false;
   // Chromium can emit page-favicon-updated just before dom-ready. Let that
   // bounded attempt finish; if transient load pressure made it fail, the
   // declared-link path below becomes one clean retry instead of standing down
   // forever because faviconSource happened to be non-null at this instant.
   const pending = tab.faviconPending;
   if (pending) await pending.catch(() => false);
-  if (tab.favicon || tab.faviconSource) return false;
+  // A source with no pixels and no tracked promise is still an in-flight or
+  // externally-owned attempt. Do not compete with it.
+  if (!tab.favicon && tab.faviconSource) return false;
   const urlAtStart = tab.url;
-  const favicons = await declaredPageFavicons(webContents);
-  if (tab.url !== urlAtStart || tab.favicon || tab.faviconSource) return false;
+  const faviconAtStart = tab.favicon;
+  const sourceAtStart = tab.faviconSource ?? null;
+  const candidates = await declaredPageFaviconCandidates(webContents);
+  if (
+    tab.url !== urlAtStart ||
+    tab.favicon !== faviconAtStart ||
+    (tab.faviconSource ?? null) !== sourceAtStart
+  ) return false;
+  if (tab.favicon) {
+    const best = pickBestDeclaredFavicon(candidates);
+    if (!best || best === tab.faviconSource) return false;
+    return deps.setTabFavicon(tab, best);
+  }
+  const preferred = pickBestDeclaredFavicon(candidates);
+  const favicons = candidates
+    .filter(({ rel }) => /(?:^|\s)icon(?:\s|$)/i.test(rel))
+    .map(({ href }) => href);
+  if (preferred) favicons.unshift(preferred);
   return updateFaviconFromPage(tab, favicons, deps);
 }
 
 module.exports = {
+  declaredPageFaviconCandidates,
   declaredPageFavicons,
   pageFaviconSources,
+  pickBestDeclaredFavicon,
   resolvedFavicon,
   shouldClearFaviconOnNavigate,
   updateFaviconAfterDomReady,
