@@ -46,20 +46,21 @@ Display truth only, one direction, fail-closed:
   invalid state, bridge timeout (1.5 s), missing `navigator.permissions` —
   falls back to the **real strict query**, i.e. exactly today's behavior.
   The returned status object is **live**, per the Permissions contract: a
-  bounded main-world registry (cap 64, oldest evicted) keeps every handed-out
-  status current, and a decision change fires `change` (both
+  canonical main-world `EventTarget` per media type keeps every handed-out
+  reference current without an eviction threshold, and a decision change
+  dispatches a real `Event('change')` (covering both
   `addEventListener('change')` subscribers and `onchange`) with the updated
-  `state`. The push originates in `permissions.js`
+  read-only `state`. The push originates in `permissions.js`
   (`setPermissionDecisionObserver`, notified from the prompt-answer path and
   from `removeDecision`/Settings-forget via the pure
   `mediaScopesForDecisionKey` parser) and is fanned out by `main.js` to every
   tab and popup surface currently showing the changed origin — each surface
   receives the truthful state for **its own** session via `mediaQueryState`,
   so no session filtering is needed and unaffected sessions dedupe to a
-  no-op. The status is a plain object with a working listener registry
-  rather than a native `PermissionStatus`/`EventTarget` instance
-  (`instanceof` checks fail — accepted; working events beat a spec-shaped
-  object whose events never fire).
+  no-op. The synthetic status is a real `EventTarget`; it cannot be constructed
+  as Chromium's native `PermissionStatus`, so `instanceof PermissionStatus`
+  remains a narrow accepted divergence while EventTarget identity and behavior
+  are preserved.
 
 ## Verification
 

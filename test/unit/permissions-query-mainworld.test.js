@@ -17,6 +17,8 @@ function makeWorld({ answer } = {}) {
     CustomEvent: class { constructor(name, opts) { this.type = name; this.detail = opts?.detail; } },
     MediaStreamTrack: class { addEventListener() {} },
     MediaStream: class { getTracks() { return []; } },
+    Event,
+    EventTarget,
     setTimeout,
     clearTimeout,
     navigator: {
@@ -55,8 +57,9 @@ test('microphone and camera queries bridge to Blanc truth with the right media t
   assert.equal(cam.state, 'granted');
   assert.equal(cam.name, 'camera');
   assert.deepEqual(queries.map((q) => q.mediaType), ['audio', 'video']);
-  assert.equal(typeof mic.addEventListener, 'function',
-    'the status object must be listener-compatible for sites that subscribe to change');
+  assert.equal(mic instanceof world.EventTarget, true,
+    'the status must preserve the EventTarget contract, not only mimic two listener methods');
+  assert.equal(typeof mic.dispatchEvent, 'function');
 });
 
 test('non-media descriptors pass through to the real query untouched', async () => {
@@ -91,9 +94,11 @@ test('a retained status object goes live: state updates and change fires on deci
 
   const seen = [];
   mic.addEventListener('change', function listener(ev) {
-    seen.push(['listener', this.state, ev.type]);
+    seen.push(['listener', this.state, ev.type, ev.target === mic, ev instanceof world.Event]);
   });
-  mic.onchange = function onchange(ev) { seen.push(['onchange', this.state, ev.type]); };
+  mic.onchange = function onchange(ev) {
+    seen.push(['onchange', this.state, ev.type, ev.target === mic, ev instanceof world.Event]);
+  };
 
   // Main pushes a decision change for audio only.
   listeners.get('blanc:permission-changed')({
@@ -101,8 +106,8 @@ test('a retained status object goes live: state updates and change fires on deci
   });
   assert.equal(mic.state, 'granted', 'the retained object must reflect the new state');
   assert.deepEqual(seen, [
-    ['listener', 'granted', 'change'],
-    ['onchange', 'granted', 'change'],
+    ['listener', 'granted', 'change', true, true],
+    ['onchange', 'granted', 'change', true, true],
   ]);
   assert.equal(cam.state, 'prompt', 'a video status must not move on an audio change');
 
@@ -117,6 +122,26 @@ test('a retained status object goes live: state updates and change fires on deci
     detail: JSON.stringify({ mediaType: 'audio', state: 'weird' }),
   });
   assert.equal(mic.state, 'granted');
+});
+
+test('every handed-out status stays live after more than the former 64-object cap', async () => {
+  const { world, listeners } = makeWorld({ answer: () => 'prompt' });
+  const held = [];
+  for (let i = 0; i < 65; i += 1) {
+    held.push(await world.navigator.permissions.query({ name: 'microphone' }));
+  }
+
+  let firstChanges = 0;
+  held[0].addEventListener('change', () => { firstChanges += 1; });
+  listeners.get('blanc:permission-changed')({
+    detail: JSON.stringify({ mediaType: 'audio', state: 'granted' }),
+  });
+
+  assert.equal(held[0].state, 'granted', 'the oldest retained status must not become a stale snapshot');
+  assert.equal(firstChanges, 1);
+  assert.equal(held[64].state, 'granted');
+  assert.equal(held[0], held[64],
+    'one canonical status per media type keeps the registry bounded without evicting live objects');
 });
 
 test('concurrent queries resolve by id even when answers arrive out of order', async () => {

@@ -135,38 +135,46 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
       }
     });
     // Live statuses (Permissions contract): every object handed out reflects
-    // the CURRENT state and fires 'change' when main pushes a new decision.
-    // Self-contained listener registry rather than EventTarget — working
-    // events beat a spec-shaped object whose events never fire. Bounded so a
-    // page hammering query() only stops updating its oldest snapshots.
-    const liveStatuses = [];
-    const STATUS_CAP = 64;
+    // the CURRENT state and fires a real EventTarget 'change' event when main
+    // pushes a new decision. One canonical object per media type keeps this
+    // bounded without evicting an object that page code may still retain.
+    const liveStatuses = new Map();
     const makeStatus = (name, mediaType, state) => {
-      const changeListeners = new Set();
-      const status = {
-        name,
-        state,
-        onchange: null,
-        addEventListener(type, fn) {
-          if (type === 'change' && typeof fn === 'function') changeListeners.add(fn);
-        },
-        removeEventListener(type, fn) {
-          if (type === 'change') changeListeners.delete(fn);
-        },
+      const existing = liveStatuses.get(mediaType);
+      if (existing) {
+        existing.fire(state);
+        return existing.status;
+      }
+
+      const status = new EventTarget();
+      let currentState = state;
+      let onchange = null;
+      const onchangeListener = (event) => {
+        if (typeof onchange === 'function') onchange.call(status, event);
       };
+      Object.defineProperties(status, {
+        name: { value: name, enumerable: true },
+        state: { get: () => currentState, enumerable: true },
+        onchange: {
+          get: () => onchange,
+          set: (value) => {
+            const next = typeof value === 'function' ? value : null;
+            if (next === onchange) return;
+            const hadHandler = typeof onchange === 'function';
+            const hasHandler = typeof next === 'function';
+            onchange = next;
+            if (!hadHandler && hasHandler) status.addEventListener('change', onchangeListener);
+            else if (hadHandler && !hasHandler) status.removeEventListener('change', onchangeListener);
+          },
+          enumerable: true,
+        },
+      });
       const fire = (next) => {
-        if (next === status.state) return;
-        status.state = next;
-        const event = { type: 'change', target: status };
-        for (const fn of [...changeListeners]) {
-          try { fn.call(status, event); } catch {}
-        }
-        if (typeof status.onchange === 'function') {
-          try { status.onchange.call(status, event); } catch {}
-        }
+        if (next === currentState) return;
+        currentState = next;
+        status.dispatchEvent(new Event('change'));
       };
-      liveStatuses.push({ mediaType, fire });
-      if (liveStatuses.length > STATUS_CAP) liveStatuses.shift();
+      liveStatuses.set(mediaType, { status, fire });
       return status;
     };
     window.addEventListener('blanc:permission-changed', (event) => {
@@ -177,9 +185,7 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
       const state = payload && payload.state;
       if (mediaType !== 'audio' && mediaType !== 'video') return;
       if (state !== 'granted' && state !== 'denied' && state !== 'prompt') return;
-      for (const entry of liveStatuses) {
-        if (entry.mediaType === mediaType) entry.fire(state);
-      }
+      liveStatuses.get(mediaType)?.fire(state);
     });
     permissions.query = function query(descriptor, ...rest) {
       const name = descriptor && descriptor.name;
