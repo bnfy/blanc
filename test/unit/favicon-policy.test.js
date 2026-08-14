@@ -3,6 +3,7 @@ const test = require('node:test');
 
 const {
   pageFaviconSources,
+  pickBestDeclaredFavicon,
   declaredPageFavicons,
   resolvedFavicon,
   shouldClearFaviconOnNavigate,
@@ -105,6 +106,89 @@ test('a superseded page event stops before trying another candidate', async () =
     { setTabFavicon: async (_tab, source) => { calls.push(source); return false; } }
   );
   assert.deepEqual(calls, ['https://x.com/favicon.ico']);
+});
+
+test('prefers Blanc’s declared SVG over an earlier ICO mislabeled as sizes=any', () => {
+  assert.equal(pickBestDeclaredFavicon([
+    {
+      href: 'https://blancbrowser.com/favicon.ico',
+      rel: 'icon',
+      sizes: 'any',
+      type: '',
+    },
+    {
+      href: 'https://blancbrowser.com/favicon.svg',
+      rel: 'icon',
+      sizes: '',
+      type: 'image/svg+xml',
+    },
+    {
+      href: 'https://blancbrowser.com/favicon-32x32.png',
+      rel: 'icon',
+      sizes: '32x32',
+      type: 'image/png',
+    },
+  ]), 'https://blancbrowser.com/favicon.svg');
+});
+
+test('prefers a declared Retina-sized icon over a 16px icon', () => {
+  assert.equal(pickBestDeclaredFavicon([
+    { href: 'https://example.com/16.png', rel: 'icon', sizes: '16x16', type: 'image/png' },
+    { href: 'https://example.com/64.png', rel: 'icon', sizes: '64x64', type: 'image/png' },
+  ]), 'https://example.com/64.png');
+});
+
+test('document-ready refines a working low-resolution favicon without blanking first', async () => {
+  const working = 'data:image/png;base64,working';
+  const tab = {
+    id: 'blanc',
+    url: 'https://blancbrowser.com/changelog',
+    favicon: working,
+    faviconSource: 'https://blancbrowser.com/favicon.ico',
+  };
+  const calls = [];
+  await updateFaviconAfterDomReady(tab, {
+    executeJavaScript: async () => [
+      { href: 'https://blancbrowser.com/favicon.ico', rel: 'icon', sizes: 'any', type: '' },
+      { href: 'https://blancbrowser.com/favicon.svg', rel: 'icon', sizes: '', type: 'image/svg+xml' },
+    ],
+  }, {
+    setTabFavicon: async (record, source) => {
+      calls.push({ source, faviconAtCall: record.favicon });
+      record.faviconSource = source;
+      record.favicon = 'data:image/png;base64,sharp';
+      return true;
+    },
+  });
+  assert.deepEqual(calls, [{
+    source: 'https://blancbrowser.com/favicon.svg',
+    faviconAtCall: working,
+  }]);
+});
+
+test('document-ready tries Blanc’s best declared icon before lower-resolution fallbacks', async () => {
+  const tab = {
+    id: 'blanc',
+    url: 'https://blancbrowser.com/changelog',
+    favicon: null,
+    faviconSource: null,
+  };
+  const calls = [];
+  await updateFaviconAfterDomReady(tab, {
+    executeJavaScript: async () => [
+      { href: 'https://blancbrowser.com/favicon.ico', rel: 'icon', sizes: 'any', type: '' },
+      { href: 'https://blancbrowser.com/favicon.svg', rel: 'icon', sizes: '', type: 'image/svg+xml' },
+      { href: 'https://blancbrowser.com/favicon-32x32.png', rel: 'icon', sizes: '32x32', type: 'image/png' },
+    ],
+  }, {
+    setTabFavicon: async (record, source) => {
+      calls.push(source);
+      record.faviconSource = source;
+      record.favicon = 'data:image/png;base64,working';
+      return true;
+    },
+  });
+  assert.deepEqual(calls, ['https://blancbrowser.com/favicon.svg']);
 });
 
 test('document-ready supplies the declared favicon when Chromium emitted no icon event', async () => {

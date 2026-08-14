@@ -90,10 +90,11 @@ const requestedNames = new Set(
   String(process.env.BLANC_FAVICON_SITES ?? '')
     .split(',').map((name) => name.trim().toLowerCase()).filter(Boolean)
 );
-const sites = requestedNames.size
+const brandOnly = process.env.BLANC_FAVICON_BRAND_ONLY === '1';
+const sites = brandOnly ? [] : requestedNames.size
   ? matrixSites.filter(({ name }) => requestedNames.has(name.toLowerCase()))
   : matrixSites;
-if (sites.length === 0) {
+if (sites.length === 0 && !brandOnly) {
   throw new Error(`BLANC_FAVICON_SITES matched no sites: ${[...requestedNames].join(', ')}`);
 }
 
@@ -213,11 +214,74 @@ const runBatch = async (batch, batchIndex) => {
   }
 };
 
+// Availability alone is not enough for Blanc's own mark: the site declares a
+// small multi-frame ICO before its SVG, which is the exact ordering that made
+// 1.2.3 stop at soft, upscaled pixels. Compare the chrome payload with a fresh
+// Chromium raster of the declared vector so this first-party quality contract
+// stays deterministic even if the PNG encoder changes in a future Electron.
+const runBrandQualityCanary = async () => {
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-brand-favicon-'));
+  fs.writeFileSync(path.join(userDataDir, 'settings.json'), JSON.stringify({
+    adblockEnabled: false,
+    onboardingVersion: 1,
+    searchSuggestions: false,
+    usagePing: false,
+  }, null, 2));
+
+  let app;
+  try {
+    app = await launchPackagedOverCdp({
+      executablePath,
+      args: [`--user-data-dir=${userDataDir}`, 'https://blancbrowser.com/changelog'],
+      env: { ...process.env, BLANC_TEST: '0' },
+    });
+    const deadline = Date.now() + 30_000;
+    let expected = null;
+    let actual = null;
+    let matched = false;
+    while (Date.now() < deadline && !matched) {
+      const page = app.pages().find((candidate) => matchesHost(candidate.url(), 'blancbrowser.com'));
+      const chrome = app.pages().find((candidate) => candidate.url() === 'blanc-chrome://index/');
+      if (page && !expected) {
+        expected = await page.evaluate(() => new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 32;
+            canvas.height = 32;
+            canvas.getContext('2d').drawImage(img, 0, 0, 32, 32);
+            resolve(canvas.toDataURL('image/png'));
+          };
+          img.onerror = () => resolve(null);
+          img.src = '/favicon.svg';
+        }));
+      }
+      const state = chrome ? await chrome.evaluate(() => window.browserAPI.getAllTabs()) : null;
+      actual = state?.tabs?.find((tab) => matchesHost(tab.url, 'blancbrowser.com'))?.favicon ?? null;
+      matched = !!expected && actual === expected;
+      if (!matched) await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    assert.ok(expected?.startsWith('data:image/png;base64,'), 'Blanc SVG should rasterize in Chromium');
+    assert.equal(actual, expected, 'Blanc chrome favicon must use the declared SVG pixels');
+    const bytes = Buffer.from(actual.split(',')[1], 'base64');
+    assert.equal(bytes.readUInt32BE(16), 32, 'Blanc favicon width');
+    assert.equal(bytes.readUInt32BE(20), 32, 'Blanc favicon height');
+    return { name: 'Blanc first-party quality canary', pngBytes: bytes.length };
+  } finally {
+    if (app) await app.close();
+    fs.rmSync(userDataDir, { recursive: true, force: true });
+  }
+};
+
 const proof = [];
 for (const [batchIndex, batch] of batches.entries()) {
   proof.push(...await runBatch(batch, batchIndex));
 }
+const ranBrandCanary = brandOnly ||
+  ((!matrixName || matrixName === 'primary') && requestedNames.size === 0);
+if (ranBrandCanary) proof.push(await runBrandQualityCanary());
 console.log(JSON.stringify(proof, null, 2));
 console.log(
-  `packaged-live-favicons-smoke OK: ${matrixName || 'all'} matrix, ${sites.length} sites in ${batches.length} cold batches`
+  `packaged-live-favicons-smoke OK: ${matrixName || 'all'} matrix, ${sites.length} sites in ${batches.length} cold batches` +
+  (ranBrandCanary ? ' + Blanc vector-quality canary' : '')
 );

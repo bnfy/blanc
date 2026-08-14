@@ -158,7 +158,14 @@ function wireTabView(tab, view, { owner, adopted }) {
       .catch(() => false);
     tab.faviconPending = pending;
     pending.finally(() => {
-      if (tab.faviconPending === pending) tab.faviconPending = null;
+      if (tab.faviconPending !== pending) return;
+      tab.faviconPending = null;
+      if (tab.sleeping || tab.view?.webContents !== wc) return;
+      // DOM readiness can precede Chromium's favicon event. If that late event
+      // superseded an SVG/Retina refinement with its smaller default choice,
+      // run the declared quality pass once more after the event settles.
+      updateFaviconAfterDomReady(tab, wc, { setTabFavicon })
+        .catch(() => {});
     });
   }));
   wc.on('dom-ready', boundToTab(() => {
