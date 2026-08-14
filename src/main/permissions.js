@@ -37,6 +37,28 @@ function setPermissionPrompter(fn) { prompter = fn; }
  * flows the other way (capture-state.js). */
 let captureGrantObserver = null;
 function setCaptureGrantObserver(fn) { captureGrantObserver = fn; }
+
+/** Live-status hook for the truthful permissions.query shim: notified when a
+ * media decision changes so retained PermissionStatus objects update and fire
+ * `change` (the Permissions contract). `session` is null for changes to the
+ * persisted store made outside any session (Settings "forget"). */
+let decisionObserver = null;
+function setPermissionDecisionObserver(fn) { decisionObserver = fn; }
+const notifyDecisionChange = (session, origin, mediaTypes) => {
+  if (!decisionObserver || !mediaTypes.length) return;
+  try { decisionObserver({ session, origin, mediaTypes }); } catch {}
+};
+
+/** Parse a stored decision key into the shim-relevant scopes, or null for
+ * non-media keys. A broad legacy `origin|media` key affects both devices. */
+function mediaScopesForDecisionKey(key) {
+  if (typeof key !== 'string') return null;
+  const [origin, permission, mediaType] = key.split('|');
+  if (!origin || permission !== 'media') return null;
+  if (mediaType === 'audio' || mediaType === 'video') return { origin, mediaTypes: [mediaType] };
+  if (mediaType === undefined) return { origin, mediaTypes: ['audio', 'video'] };
+  return null;
+}
 const notifyCaptureGrant = (wc, permission, mediaTypes, details) => {
   if (permission !== 'media' || !captureGrantObserver) return;
   captureGrantObserver({
@@ -69,6 +91,8 @@ function listDecisions() {
 
 function removeDecision(key) {
   ensureStore().update((d) => { delete d.decisions[key]; });
+  const scopes = mediaScopesForDecisionKey(key);
+  if (scopes) notifyDecisionChange(null, scopes.origin, scopes.mediaTypes);
 }
 
 // Session → its readDecisions, so mediaQueryState can answer for whichever
@@ -111,6 +135,9 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
       ensureStore().update((d) => rememberDecision(d.decisions, origin, permission, mediaTypes, allow));
     } else {
       rememberDecision(ephemeralDecisions, origin, permission, mediaTypes, allow);
+    }
+    if (permission === 'media') {
+      notifyDecisionChange(session, origin, normalizedMediaTypes(mediaTypes));
     }
   };
 
@@ -161,5 +188,5 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
 
 module.exports = {
   setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, listDecisions, removeDecision,
-  mediaQueryState,
+  mediaQueryState, setPermissionDecisionObserver, mediaScopesForDecisionKey,
 };

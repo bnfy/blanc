@@ -79,6 +79,46 @@ test('an invalid or missing bridge answer falls back to the real (strict) query'
   assert.equal(viaTimeout.name, 'real:camera');
 });
 
+test('a retained status object goes live: state updates and change fires on decision', async () => {
+  // The Permissions contract: PermissionStatus reflects the CURRENT state and
+  // fires `change`. A frozen snapshot leaves preflighting sites that retain
+  // the object stuck on 'prompt' after the user clicks Allow — the very class
+  // of breakage the shim exists to fix.
+  const { world, listeners } = makeWorld({ answer: () => 'prompt' });
+  const mic = await world.navigator.permissions.query({ name: 'microphone' });
+  const cam = await world.navigator.permissions.query({ name: 'camera' });
+  assert.equal(mic.state, 'prompt');
+
+  const seen = [];
+  mic.addEventListener('change', function listener(ev) {
+    seen.push(['listener', this.state, ev.type]);
+  });
+  mic.onchange = function onchange(ev) { seen.push(['onchange', this.state, ev.type]); };
+
+  // Main pushes a decision change for audio only.
+  listeners.get('blanc:permission-changed')({
+    detail: JSON.stringify({ mediaType: 'audio', state: 'granted' }),
+  });
+  assert.equal(mic.state, 'granted', 'the retained object must reflect the new state');
+  assert.deepEqual(seen, [
+    ['listener', 'granted', 'change'],
+    ['onchange', 'granted', 'change'],
+  ]);
+  assert.equal(cam.state, 'prompt', 'a video status must not move on an audio change');
+
+  // Same state again → no spurious change event.
+  listeners.get('blanc:permission-changed')({
+    detail: JSON.stringify({ mediaType: 'audio', state: 'granted' }),
+  });
+  assert.equal(seen.length, 2);
+
+  // Garbage states are ignored outright.
+  listeners.get('blanc:permission-changed')({
+    detail: JSON.stringify({ mediaType: 'audio', state: 'weird' }),
+  });
+  assert.equal(mic.state, 'granted');
+});
+
 test('concurrent queries resolve by id even when answers arrive out of order', async () => {
   const pendingAnswers = [];
   const { world, listeners } = makeWorld({

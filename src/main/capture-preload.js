@@ -134,18 +134,53 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
         if (pending.delete(id)) resolve(null);
       }
     });
-    const makeStatus = (name, state) => {
-      const status = typeof EventTarget === 'function' ? new EventTarget() : {};
-      if (typeof status.addEventListener !== 'function') {
-        status.addEventListener = () => {};
-        status.removeEventListener = () => {};
-        status.dispatchEvent = () => false;
-      }
-      status.name = name;
-      status.state = state;
-      status.onchange = null;
+    // Live statuses (Permissions contract): every object handed out reflects
+    // the CURRENT state and fires 'change' when main pushes a new decision.
+    // Self-contained listener registry rather than EventTarget — working
+    // events beat a spec-shaped object whose events never fire. Bounded so a
+    // page hammering query() only stops updating its oldest snapshots.
+    const liveStatuses = [];
+    const STATUS_CAP = 64;
+    const makeStatus = (name, mediaType, state) => {
+      const changeListeners = new Set();
+      const status = {
+        name,
+        state,
+        onchange: null,
+        addEventListener(type, fn) {
+          if (type === 'change' && typeof fn === 'function') changeListeners.add(fn);
+        },
+        removeEventListener(type, fn) {
+          if (type === 'change') changeListeners.delete(fn);
+        },
+      };
+      const fire = (next) => {
+        if (next === status.state) return;
+        status.state = next;
+        const event = { type: 'change', target: status };
+        for (const fn of [...changeListeners]) {
+          try { fn.call(status, event); } catch {}
+        }
+        if (typeof status.onchange === 'function') {
+          try { status.onchange.call(status, event); } catch {}
+        }
+      };
+      liveStatuses.push({ mediaType, fire });
+      if (liveStatuses.length > STATUS_CAP) liveStatuses.shift();
       return status;
     };
+    window.addEventListener('blanc:permission-changed', (event) => {
+      if (typeof event.detail !== 'string' || event.detail.length > 128) return;
+      let payload;
+      try { payload = JSON.parse(event.detail); } catch { return; }
+      const mediaType = payload && payload.mediaType;
+      const state = payload && payload.state;
+      if (mediaType !== 'audio' && mediaType !== 'video') return;
+      if (state !== 'granted' && state !== 'denied' && state !== 'prompt') return;
+      for (const entry of liveStatuses) {
+        if (entry.mediaType === mediaType) entry.fire(state);
+      }
+    });
     permissions.query = function query(descriptor, ...rest) {
       const name = descriptor && descriptor.name;
       const mediaType = name === 'microphone' ? 'audio' : name === 'camera' ? 'video' : null;
@@ -154,7 +189,7 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
         if (state !== 'granted' && state !== 'denied' && state !== 'prompt') {
           return realQuery(descriptor, ...rest);
         }
-        return makeStatus(name, state);
+        return makeStatus(name, mediaType, state);
       });
     };
   }
@@ -168,6 +203,15 @@ if (process.isMainFrame) {
   });
   ipcRenderer.on('capture:stop', () => {
     window.dispatchEvent(new CustomEvent('blanc:capture-stop-request'));
+  });
+  ipcRenderer.on('capture:permission-changed', (_event, payload) => {
+    const mediaType = payload?.mediaType;
+    const state = payload?.state;
+    if (mediaType !== 'audio' && mediaType !== 'video') return;
+    if (state !== 'granted' && state !== 'denied' && state !== 'prompt') return;
+    window.dispatchEvent(new CustomEvent('blanc:permission-changed', {
+      detail: JSON.stringify({ mediaType, state }),
+    }));
   });
   window.addEventListener('blanc:permission-query', async (event) => {
     if (typeof event.detail !== 'string' || event.detail.length > 128) return;

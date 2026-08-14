@@ -9,7 +9,9 @@ const test = require('node:test');
 const {
   setupPermissionPolicy,
   setPermissionPrompter,
+  setPermissionDecisionObserver,
   mediaQueryState,
+  mediaScopesForDecisionKey,
 } = require('../../src/main/permissions');
 
 function fakeSession() {
@@ -69,6 +71,44 @@ test('mediaQueryState refuses everything outside its narrow contract', () => {
   assert.equal(mediaQueryState(session, 'https://example.com/', 'screen'), null);
   assert.equal(mediaQueryState({}, 'https://example.com/', 'audio'), null);
   assert.equal(mediaQueryState(null, 'https://example.com/', 'audio'), null);
+});
+
+test('a prompt answer notifies the decision observer so retained statuses can go live', async (t) => {
+  setPermissionPrompter(async () => true);
+  t.after(() => { setPermissionPrompter(null); setPermissionDecisionObserver(null); });
+
+  const session = fakeSession();
+  setupPermissionPolicy(session, { persistDecisions: false });
+
+  const notified = [];
+  setPermissionDecisionObserver((change) => notified.push(change));
+
+  await request(session, 'media', {
+    requestingUrl: 'https://example.com/app',
+    mediaTypes: ['audio'],
+  });
+  assert.equal(notified.length, 1);
+  assert.equal(notified[0].session, session);
+  assert.equal(notified[0].origin, 'https://example.com');
+  assert.deepEqual(notified[0].mediaTypes, ['audio']);
+
+  // Non-media prompts are none of the shim's business.
+  await request(session, 'geolocation', { requestingUrl: 'https://example.com/app' });
+  assert.equal(notified.length, 1);
+});
+
+test('mediaScopesForDecisionKey parses stored keys, broad legacy included', () => {
+  assert.deepEqual(
+    mediaScopesForDecisionKey('https://example.com|media|audio'),
+    { origin: 'https://example.com', mediaTypes: ['audio'] }
+  );
+  assert.deepEqual(
+    mediaScopesForDecisionKey('https://example.com|media'),
+    { origin: 'https://example.com', mediaTypes: ['audio', 'video'] },
+    'a broad legacy media key affects both devices'
+  );
+  assert.equal(mediaScopesForDecisionKey('https://example.com|geolocation'), null);
+  assert.equal(mediaScopesForDecisionKey('nonsense'), null);
 });
 
 test('mediaQueryState is per session: private decisions never leak across', async (t) => {

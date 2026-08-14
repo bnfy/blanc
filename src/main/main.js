@@ -28,7 +28,7 @@ const {
   CHROME_PERMISSION_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
-const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, mediaQueryState } = require('./permissions');
+const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
@@ -4265,6 +4265,29 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     try { origin = new URL(requestingUrl).origin; } catch { return; }
     applyGrant(surface.record, { scopes: mediaTypes, origin, isMainFrame });
     refreshCaptureProjection(surface);
+  });
+
+  // Live PermissionStatus (Permissions contract): when a media decision
+  // changes, push each affected surface its OWN truthful state so retained
+  // status objects update and fire `change`. No session filtering needed —
+  // mediaQueryState reads the store belonging to each surface's session, so
+  // an unaffected session just receives its unchanged state and the
+  // main-world patch drops the no-op. Origin matching keeps the push to
+  // surfaces already showing that origin; everything else re-queries fresh.
+  setPermissionDecisionObserver(({ origin, mediaTypes }) => {
+    const push = (wc) => {
+      if (!wc || wc.isDestroyed()) return;
+      const url = wc.getURL();
+      let frameOrigin = null;
+      try { frameOrigin = new URL(url).origin; } catch { return; }
+      if (frameOrigin !== origin) return;
+      for (const mediaType of mediaTypes) {
+        const state = mediaQueryState(wc.session, url, mediaType);
+        if (state) wc.send('capture:permission-changed', { mediaType, state });
+      }
+    };
+    for (const tab of tabs.values()) push(liveContents(tab));
+    for (const { wc } of popupCaptures.values()) push(wc);
   });
 
   // Reports/settlements REFINE DISPLAY STATE toward off (spec §9) — they are
