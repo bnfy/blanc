@@ -15,7 +15,12 @@ const history = require('./history');
 const sync = require('./sync');
 const { attachContextMenu } = require('./context-menu');
 const { webrtcPolicyFor } = require('./network-privacy');
-const { shouldClearFaviconOnNavigate } = require('./favicon-policy');
+const { effectiveTabMuted, noteMediaStarted } = require('./tab-audio');
+const {
+  shouldClearFaviconOnNavigate,
+  updateFaviconAfterDomReady,
+  updateFaviconFromPage,
+} = require('./favicon-policy');
 const { blockableHostname } = require('./adblock-exceptions');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 
@@ -77,7 +82,7 @@ function initTabView(injected) {
     'currentChromeLayout', 'hideOverlay', 'hasLiveWindow',
     'reclaimAddressBarFocus', 'shouldReclaimAddressBarFocus',
     'installChromeShortcuts', 'watchCursorFor',
-    'isUtilityUrl', 'handOffToOs', 'upgradeFavicon', 'setTabFavicon',
+    'isUtilityUrl', 'handOffToOs', 'setTabFavicon',
     'isStartupGateActive', 'startupQueuedNavigations',
     'onMainFrameCommit', 'noteWakeSuppressed', 'notePopupChild',
     'registerPopupCaptureSurface', 'clearTabCaptureState',
@@ -107,7 +112,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     currentChromeLayout, hideOverlay, hasLiveWindow,
     reclaimAddressBarFocus, shouldReclaimAddressBarFocus,
     installChromeShortcuts, watchCursorFor,
-    isUtilityUrl, handOffToOs, upgradeFavicon, setTabFavicon,
+    isUtilityUrl, handOffToOs, setTabFavicon,
     isStartupGateActive, startupQueuedNavigations,
     onMainFrameCommit, noteWakeSuppressed, notePopupChild,
     registerPopupCaptureSurface, clearTabCaptureState,
@@ -121,7 +126,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   watchCursorFor(wc, () => currentChromeLayout().pageBounds, boundToTab);
 
   wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
-  if (tab.muted) wc.setAudioMuted(true);
+  if (effectiveTabMuted(tab)) wc.setAudioMuted(true);
   const syncNavState = () => {
     tab.canGoBack = wc.navigationHistory.canGoBack();
     tab.canGoForward = wc.navigationHistory.canGoForward();
@@ -139,7 +144,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // main-frame commit clears the signal.
   wc.on('media-started-playing', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    tab.usedMedia = true;
+    if (noteMediaStarted(tab, id === owner.activeTabId)) wc.setAudioMuted(true);
   }));
   wc.on('page-title-updated', boundToTab((_e, title) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
@@ -149,8 +154,17 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('page-favicon-updated', boundToTab((_e, favicons) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    setTabFavicon(tab, favicons[0] ?? null);
-    upgradeFavicon(tab);
+    const pending = updateFaviconFromPage(tab, favicons, { setTabFavicon })
+      .catch(() => false);
+    tab.faviconPending = pending;
+    pending.finally(() => {
+      if (tab.faviconPending === pending) tab.faviconPending = null;
+    });
+  }));
+  wc.on('dom-ready', boundToTab(() => {
+    if (tab.sleeping || tab.view?.webContents !== wc) return;
+    updateFaviconAfterDomReady(tab, wc, { setTabFavicon })
+      .catch(() => {});
   }));
   wc.on('did-start-loading', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;

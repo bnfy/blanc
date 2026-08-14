@@ -36,6 +36,8 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { sanitizeFavicon } = require('./favicon-sanitizer');
+const { resolvedFavicon } = require('./favicon-policy');
+const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
 const { validFavicon } = require('./bookmark-validate');
 const { setupDownloads, downloadsActivity, acknowledgeDownloads } = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
@@ -92,7 +94,7 @@ const {
   popupPlatformMainMenu,
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
-const { webUrlsFromArgv } = require('./startup-urls');
+const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 
 const NEW_TAB_URL = 'blanc://newtab/';
@@ -205,7 +207,7 @@ if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
   app.on('second-instance', bindWindowRuntime(primaryRuntime, (_e, commandLine) => {
-    for (const url of urlsFromArgv(commandLine)) openExternalUrl(url);
+    openExternalUrls(urlsFromArgv(commandLine));
     if (rt().window && !rt().window.isDestroyed()) {
       if (rt().window.isMinimized()) rt().window.restore();
       rt().window.focus();
@@ -317,14 +319,23 @@ function maybeSendLaunchPing() {
 // page, even when its renderer is sandboxed.
 const urlsFromArgv = webUrlsFromArgv;
 
-function openExternalUrl(url) {
+function openExternalUrl(url, { activate = true } = {}) {
   if (!externalUrlsFlushable || !hasLiveWindow()) {
     pendingExternalUrls.push(url);
     return;
   }
-  setActiveTab(createTab(url));
-  if (rt().window.isMinimized()) rt().window.restore();
-  rt().window.focus();
+  const id = createTab(url);
+  if (activate) {
+    setActiveTab(id);
+    if (rt().window.isMinimized()) rt().window.restore();
+    rt().window.focus();
+  }
+}
+
+function openExternalUrls(urls) {
+  for (const entry of externalUrlActivationPlan(urls)) {
+    openExternalUrl(entry.url, { activate: entry.activate });
+  }
 }
 
 // Protocols handed off to the OS instead of navigated — a mailto: click
@@ -369,7 +380,7 @@ function handOffToOs(url, { trusted = false } = {}) {
 
 function flushExternalUrls() {
   externalUrlsFlushable = true;
-  for (const url of pendingExternalUrls.splice(0)) openExternalUrl(url);
+  openExternalUrls(pendingExternalUrls.splice(0));
 }
 
 app.on('open-url', bindWindowRuntime(primaryRuntime, (event, url) => {
@@ -1008,7 +1019,7 @@ async function wakeTab(id, { navigateTo = null, atIndex = null } = {}) {
     if (!retained) wireTabView(tab, view, { owner, adopted: false });
     wc = view.webContents;
     tabIdByWebContentsId.set(wc.id, id);
-    wc.setAudioMuted(!!tab.muted);
+    wc.setAudioMuted(effectiveTabMuted(tab));
     wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
     tab.waking = true;
     generation = ++tab.wakeGeneration;
@@ -1903,7 +1914,10 @@ function serializeTabs() {
         private: tab.private,
         pinned: tab.pinned,
         muted: tab.muted,
-        audible: tab.audible,
+        // isCurrentlyAudible() describes a playing stream even when Electron
+        // has muted its output. Chrome should report sound only when it can
+        // actually reach the speakers.
+        audible: tab.audible && !(tab.muted || tab.backgroundAutoplayMuted),
         groupId: tab.groupId,
         pageBg: tab.pageBg,
         themeColor: tab.themeColor,
@@ -2348,84 +2362,41 @@ function installChromeShortcuts(webContents) {
   });
 }
 
-/** Pick the sharpest favicon from a page's declared icon links. The pill
- * renders icons at 14px CSS (28+ device px on retina), so a 16px .ico —
- * which is what `page-favicon-updated`'s first entry usually is — scales
- * up blurry. Preference: SVG, then declared sizes ≥32 (nearest 64 wins),
- * then apple-touch-icon (~180px, slightly demoted: often has a solid
- * background), then undeclared PNGs over undeclared ICOs. */
-function pickBestFavicon(candidates) {
-  let best = null;
-  let bestScore = -1;
-  for (const c of candidates) {
-    if (!c || typeof c.href !== 'string' || c.href.length > 2048) continue;
-    if (!/^(https?:|data:image\/)/i.test(c.href)) continue;
-    const sizes = typeof c.sizes === 'string' ? c.sizes.slice(0, 100) : '';
-    const appleTouch = typeof c.rel === 'string' && /apple-touch-icon/i.test(c.rel);
-    const declared = Math.max(0, ...[...sizes.matchAll(/(\d+)[x×]\d+/gi)].map((m) => Number(m[1])));
-    const size = declared || (appleTouch ? 180 : 0);
-    let score;
-    if (/\.svg(\?|#|$)/i.test(c.href) || /\bany\b/i.test(sizes)) score = 1e6;
-    else if (size >= 32) score = 100000 + (10000 - Math.abs(size - 64)) - (appleTouch ? 500 : 0);
-    else if (size === 0) score = /\.ico(\?|$)/i.test(c.href) ? 100 : 1000;
-    else score = size;
-    if (score > bestScore) {
-      bestScore = score;
-      best = c.href;
-    }
-  }
-  return best;
-}
-
-/** Asynchronously refine a tab's favicon beyond Chromium's first-listed
- * URL. Runs in the page context, so everything returned is validated in
- * pickBestFavicon before it touches chrome CSS. */
-async function upgradeFavicon(tab) {
-  const urlAtStart = tab.url;
-  try {
-    const candidates = await tab.view.webContents.executeJavaScript(
-      `[...document.querySelectorAll('link[rel~="icon"], link[rel~="apple-touch-icon"]')]
-        .slice(0, 20)
-        .map((l) => ({ href: l.href, sizes: l.getAttribute('sizes') || '', rel: l.rel }))`
-    );
-    if (!Array.isArray(candidates) || candidates.length > 20) return;
-    if (!tabs.has(tab.id) || tab.url !== urlAtStart) return; // navigated away meanwhile
-    const best = pickBestFavicon(candidates);
-    if (best && best !== tab.faviconSource) setTabFavicon(tab, best);
-  } catch {
-    /* page gone mid-query — Chromium's default pick stands */
-  }
-}
-
 /** Convert a page-controlled favicon source into inert fixed-size PNG pixels
  * before it can cross into privileged chrome or persistent stores. */
 async function setTabFavicon(tab, source) {
   const candidate = typeof source === 'string' ? source : null;
+  const previousSource = tab.faviconSource ?? null;
   const epoch = (tab.faviconEpoch ?? 0) + 1;
   tab.faviconEpoch = epoch;
   tab.faviconSource = candidate;
-  if (tab.favicon !== null) {
-    tab.favicon = null;
-    scheduleBroadcastTabs();
-  }
   if (!candidate) {
+    const changed = tab.favicon !== null;
+    tab.favicon = null;
+    if (changed) scheduleBroadcastTabs();
     if (tab.bookmarked) bookmarks.updateFavicon(tab.url, null);
-    return;
+    return true;
   }
   const urlAtStart = tab.url;
   const sanitized = await sanitizeFavicon(candidate, undefined, {
     allowNetwork: !tab.private,
+    browsingSession: liveContents(tab)?.session,
+    pageUrl: tab.url,
   });
   if (
     !tabs.has(tab.id) ||
     tab.faviconEpoch !== epoch ||
     tab.faviconSource !== candidate ||
     tab.url !== urlAtStart
-  ) return;
-  tab.favicon = sanitized;
-  if (tab.bookmarked) bookmarks.updateFavicon(tab.url, sanitized);
-  scheduleBroadcastTabs();
+  ) return false;
+  const next = resolvedFavicon(tab.favicon, candidate, sanitized);
+  if (!sanitized) tab.faviconSource = previousSource;
+  const changed = tab.favicon !== next;
+  tab.favicon = next;
+  if (sanitized && tab.bookmarked) bookmarks.updateFavicon(tab.url, sanitized);
+  if (changed) scheduleBroadcastTabs();
   if (sanitized) sync.captureTabIcon(tab).catch(() => {});
+  return true;
 }
 
 /** Most common color in a captured image, as #rrggbb (bitmap is BGRA).
@@ -2605,7 +2576,10 @@ function toggleTabMuted(id) {
   const tab = tabs.get(id);
   if (!tab) return false;
   tab.muted = !tab.muted;
-  liveContents(tab)?.setAudioMuted(tab.muted);
+  // An explicit user choice supersedes the temporary background-autoplay
+  // guard. This keeps the visible mute control truthful in both directions.
+  tab.backgroundAutoplayMuted = false;
+  liveContents(tab)?.setAudioMuted(effectiveTabMuted(tab));
   broadcastTabs();
   scheduleMenuRebuild();
   return tab.muted;
@@ -2704,7 +2678,6 @@ initTabView({
   watchCursorFor,
   isUtilityUrl,
   handOffToOs,
-  upgradeFavicon,
   setTabFavicon,
   registerPopupCaptureSurface(wc) {
     popupCaptures.set(wc.id, { record: createCaptureRecord(), wc });
@@ -2775,6 +2748,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     private: isPrivate,
     pinned,
     muted,
+    backgroundAutoplayMuted: false,
     audible: false,
     groupId: groupId && rt().groups.some((g) => g.id === groupId) ? groupId : null,
     // Strip tint ("faux header"): the page's top-edge color, so the chrome
@@ -2857,6 +2831,10 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // but a deferred activation (the window-open setImmediate) can race the
   // event — never attach or focus a dead webContents.
   if (!liveContents(next)) return;
+
+  // A tab whose media first started while hidden stays silent until the user
+  // actually reveals it. This guard is separate from the persistent user mute.
+  if (revealTabAudio(next)) liveContents(next)?.setAudioMuted(effectiveTabMuted(next));
 
   // Re-selecting the active tab is a no-op.
   if (id === rt().activeTabId) return;

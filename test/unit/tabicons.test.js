@@ -88,6 +88,28 @@ test('capture rasterizes on the source device without cookies or a referrer', as
   }]);
 });
 
+test('a sanitized live fallback enters the synced sidecar without another network fetch', async () => {
+  let fetched = false;
+  const tab = {
+    url: 'https://fallback-page.example/',
+    favicon: PNG_DATA,
+    private: false,
+    view: {
+      webContents: {
+        session: { fetch: async () => { fetched = true; throw new Error('unexpected fetch'); } },
+      },
+    },
+  };
+  tabicons.setSnapshotProvider(() => ({ tabList: [tab] }));
+
+  assert.equal(await tabicons.captureTab(tab, ctx), true);
+  assert.equal(fetched, false, 'main already supplied inert PNG pixels');
+  assert.deepEqual(
+    tabicons.exportForSync(ctx).devices['device-a'].icons.find(({ url }) => url === tab.url),
+    { url: tab.url, data: PNG_DATA }
+  );
+});
+
 test('capture rejects non-image responses before decoding or serializing them', async () => {
   const before = decodeCount;
   const tab = {

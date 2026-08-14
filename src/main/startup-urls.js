@@ -12,4 +12,14 @@ function webUrlsFromArgv(argv) {
   );
 }
 
-module.exports = { webUrlsFromArgv };
+/** Open a multi-URL handoff without pretending every intermediate tab was
+ * selected by the user. All URLs load, but only the final one becomes active. */
+function externalUrlActivationPlan(urls) {
+  if (!Array.isArray(urls)) return [];
+  return urls.map((url, index) => ({
+    url,
+    activate: index === urls.length - 1,
+  }));
+}
+
+module.exports = { externalUrlActivationPlan, webUrlsFromArgv };

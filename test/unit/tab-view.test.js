@@ -120,6 +120,10 @@ test('wireTabView is still present in tab-view.js', () => {
   assert.ok(wireSource, 'wireTabView not found in tab-view.js — update this test with it');
 });
 
+test('document-ready has a favicon fallback when Chromium emits no favicon event', () => {
+  assert.match(wireSource, /wc\.on\('dom-ready',[\s\S]*?updateFaviconAfterDomReady/);
+});
+
 for (const required of [
   'installChromeShortcuts',
   'watchCursorFor',
