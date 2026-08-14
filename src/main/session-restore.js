@@ -8,18 +8,34 @@
  *          meta?: {title: string, favicon: string|null}[], activeIndex?: number}} saved
  * @param {(url: string) => boolean} shouldDrop
  */
+// Files written before the meta column (≤1.1.1), and rollbacks that dropped
+// it, carry no saved title — and restored tabs are born quiet, so nothing
+// repaints the label until first wake. A real site's host ("blancbrowser.com",
+// www-stripped like the panel's own url labels) keeps rows distinguishable;
+// non-web urls (blanc://newtab) stay blank and render as "New Tab". Favicons
+// are never fabricated here.
+function hostTitle(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return '';
+    return u.host.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
 function filterRestoredSession({ urls = [], groupIds = [], pinned = [], meta = [], activeIndex = 0 } = {}, shouldDrop) {
   const survivors = [];
   for (const [i, url] of urls.entries()) {
     if (shouldDrop(url)) continue;
+    // Quiet Tabs (spec §10.1). A missing or blank saved title falls back to
+    // the host, never to a label belonging to a different tab.
+    const saved = meta[i] ?? { title: '', favicon: null };
     survivors.push({
       url,
       groupId: groupIds[i] ?? null,
       pinned: !!pinned[i],
-      // Quiet Tabs (spec §10.1). Files written before the meta column, and
-      // rollbacks that dropped it, restore with a blank label rather than
-      // one belonging to a different tab.
-      meta: meta[i] ?? { title: '', favicon: null },
+      meta: saved.title ? saved : { ...saved, title: hostTitle(url) },
       originalIndex: i,
     });
   }
