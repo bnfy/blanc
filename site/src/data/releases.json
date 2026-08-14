@@ -1,5 +1,96 @@
 [
   {
+    "tag": "v1.2.5",
+    "version": "1.2.5",
+    "name": "1.2.5",
+    "publishedAt": "2026-08-14T06:14:52.000Z",
+    "humanDate": "August 14, 2026",
+    "machineDate": "2026-08-14",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.2.5",
+    "anchor": "v1-2-5",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc now keeps the sharp declared SVG or Retina website icon when a site also supplies an earlier low-resolution ICO. This restores the crisp Blanc mark in the Island without reducing compatibility for ordinary site icons."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Website-owned favicon changes that happen after a page finishes loading, such as an unread-count badge, now remain visible instead of being replaced by the page's original icon declaration."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Apple touch icons are used only as an availability fallback when a page has no ordinary desktop favicon, preventing mobile home-screen artwork from displacing a site's intended browser icon."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Release verification",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The signed packaged candidate checks Blanc's own icon pixels against Chromium's raster of its declared SVG, in addition to the two non-overlapping 25-site favicon matrices."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "All three platforms are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.2.5"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.2.3",
     "version": "1.2.3",
     "name": "1.2.3",
