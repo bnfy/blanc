@@ -58,7 +58,7 @@ test('active survives a shift left', () => {
   }, drop);
   assert.deepEqual(out, {
     urls: ['https://a/'], groupIds: ['g1'], pinned: [true],
-    meta: [{ title: '', favicon: null }], activeIndex: 0,
+    meta: [{ title: 'a', favicon: null }], activeIndex: 0,
   });
 });
 
@@ -73,8 +73,53 @@ test('missing metadata arrays and out-of-range activeIndex are tolerated', () =>
   const out = filterRestoredSession({ urls: ['https://a/'], activeIndex: 99 }, drop);
   assert.deepEqual(out, {
     urls: ['https://a/'], groupIds: [null], pinned: [false],
-    meta: [{ title: '', favicon: null }], activeIndex: 0,
+    meta: [{ title: 'a', favicon: null }], activeIndex: 0,
   });
+});
+
+// A v1.1.1 session.json has urls but no meta column. Restored tabs are born
+// quiet, so without a derived label every row reads "New Tab" until first
+// wake — reported after the 1.2.1 update as "my tabs are gone".
+test('missing meta on a real site derives the row title from the host', () => {
+  const out = filterRestoredSession({
+    urls: ['https://www.blancbrowser.com/changelog/'],
+    activeIndex: 0,
+  }, drop);
+  assert.deepEqual(out.meta, [{ title: 'blancbrowser.com', favicon: null }]);
+});
+
+test('empty meta title on a real site also derives from the host', () => {
+  const out = filterRestoredSession({
+    urls: ['https://news.ycombinator.com/item?id=1'],
+    meta: [{ title: '', favicon: null }],
+    activeIndex: 0,
+  }, drop);
+  assert.deepEqual(out.meta, [{ title: 'news.ycombinator.com', favicon: null }]);
+});
+
+test('a saved real title is never overwritten by the host', () => {
+  const out = filterRestoredSession({
+    urls: ['https://example.com/'],
+    meta: [{ title: 'Example Domain', favicon: 'https://example.com/i.png' }],
+    activeIndex: 0,
+  }, drop);
+  assert.deepEqual(out.meta, [{ title: 'Example Domain', favicon: 'https://example.com/i.png' }]);
+});
+
+test('a genuinely blank tab keeps its empty title (renders as New Tab)', () => {
+  const out = filterRestoredSession({
+    urls: ['blanc://newtab/'],
+    activeIndex: 0,
+  }, drop);
+  assert.deepEqual(out.meta, [{ title: '', favicon: null }]);
+});
+
+test('an unparsable url without meta stays untitled rather than throwing', () => {
+  const out = filterRestoredSession({
+    urls: ['not a url'],
+    activeIndex: 0,
+  }, drop);
+  assert.deepEqual(out.meta, [{ title: '', favicon: null }]);
 });
 
 test('restoreTargetId skips holes at and after the saved index', () => {
