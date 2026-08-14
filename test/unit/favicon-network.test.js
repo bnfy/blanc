@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { isPublicAddress, resolvePinnedTarget } = require('../../src/main/favicon-network');
+const { isPublicAddress, resolvePinnedTarget, pinnedLookup } = require('../../src/main/favicon-network');
 
 test('favicon network policy rejects local, special-use, and documentation addresses', () => {
   for (const address of [
@@ -22,6 +22,7 @@ test('favicon target resolution pins a public answer and rejects mixed rebinding
       url: new URL('https://icons.example/favicon.png'),
       address: '8.8.8.8',
       family: 4,
+      addresses: [{ address: '8.8.8.8', family: 4 }],
     }
   );
   const rebound = async () => [
@@ -31,6 +32,45 @@ test('favicon target resolution pins a public answer and rejects mixed rebinding
   assert.equal(await resolvePinnedTarget('https://icons.example/favicon.png', rebound), null);
   assert.equal(await resolvePinnedTarget('https://localhost/favicon.png', publicOnly), null);
   assert.equal(await resolvePinnedTarget('file:///tmp/favicon.png', publicOnly), null);
+});
+
+test('pinned lookup answers both Node callback shapes without ever re-resolving', () => {
+  // Node's autoSelectFamily (default-on since 20) invokes the socket's lookup
+  // with `{all: true}` and requires an ARRAY callback; answering in the legacy
+  // three-argument shape aborts every connection with "Invalid IP address:
+  // undefined" before a single byte is sent. That exact mismatch shipped in
+  // 1.2.1 and blanked every remote favicon.
+  const target = {
+    address: '2606:4700::1', family: 6,
+    addresses: [
+      { address: '2606:4700::1', family: 6 },
+      { address: '8.8.8.8', family: 4 },
+    ],
+  };
+  const lookup = pinnedLookup(target);
+
+  // Happy-eyeballs form: the COMPLETE policy-checked list, so Node can fall
+  // back to the other approved family when the preferred one is unreachable.
+  let allResult = null;
+  lookup('icons.example', { all: true, family: 0 }, (err, addresses) => {
+    assert.equal(err, null);
+    allResult = addresses;
+  });
+  assert.deepEqual(allResult, [
+    { address: '2606:4700::1', family: 6 },
+    { address: '8.8.8.8', family: 4 },
+  ]);
+
+  // Legacy form can only carry one answer: the first pinned address.
+  let legacyAddress = null;
+  let legacyFamily = null;
+  lookup('icons.example', { family: 0 }, (err, address, family) => {
+    assert.equal(err, null);
+    legacyAddress = address;
+    legacyFamily = family;
+  });
+  assert.equal(legacyAddress, '2606:4700::1');
+  assert.equal(legacyFamily, 6);
 });
 
 test('chrome and internal-page CSP never permit remote favicon loads', () => {

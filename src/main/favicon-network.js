@@ -63,7 +63,33 @@ async function resolvePinnedTarget(source, lookup = dns.promises.lookup) {
   // public answer would let an attacker race which address another resolver
   // or later request observes.
   if (normalized.some(({ address, family }) => !isPublicAddress(address, family))) return null;
-  return { url, ...normalized[0] };
+  return { url, ...normalized[0], addresses: normalized };
+}
+
+// The socket-level lookup that pins the connection to the addresses resolved
+// (and policy-checked) by resolvePinnedTarget, defeating DNS rebinding between
+// resolution and connect. Node's autoSelectFamily path (default-on since 20)
+// calls this with `{all: true}` and requires an array answer; the legacy path
+// expects `(err, address, family)`. Answer whichever shape is asked for —
+// getting it wrong aborts the connection before any bytes move. The array
+// form carries the COMPLETE pinned set (every address passed the same policy
+// check in one resolution), so Node's happy-eyeballs can fall back to the
+// other approved family when the preferred one is unreachable — pinning only
+// the first address silently re-broke dual-stack networks with one dead
+// family, exactly the failure mode this module exists to avoid.
+function pinnedLookup(target) {
+  return (_hostname, options, callback) => {
+    if (options?.all) {
+      callback(null, target.addresses.map(({ address, family }) => ({ address, family })));
+    } else {
+      callback(null, target.address, target.family);
+    }
+  };
+}
+
+/** True when the connected peer is one of the pinned, policy-checked addresses. */
+function isPinnedRemote(target, remote) {
+  return target.addresses.some(({ address }) => address === remote);
 }
 
 function readIconBytes(source, { signal, lookup } = {}) {
@@ -83,9 +109,7 @@ function readIconBytes(source, { signal, lookup } = {}) {
         Accept: 'image/png,image/*;q=0.8',
         'Cache-Control': 'no-store',
       },
-      lookup: (_hostname, _options, callback) => {
-        callback(null, target.address, target.family);
-      },
+      lookup: pinnedLookup(target),
       ...(target.url.protocol === 'https:' ? { servername: target.url.hostname } : {}),
     };
 
@@ -102,7 +126,7 @@ function readIconBytes(source, { signal, lookup } = {}) {
         response.statusCode !== 200 ||
         !remote ||
         !isPublicAddress(remote, remoteFamily) ||
-        remote !== target.address
+        !isPinnedRemote(target, remote)
       ) {
         response.resume();
         return done(null);
@@ -134,4 +158,4 @@ function readIconBytes(source, { signal, lookup } = {}) {
   });
 }
 
-module.exports = { MAX_BYTES, isPublicAddress, resolvePinnedTarget, readIconBytes };
+module.exports = { MAX_BYTES, isPublicAddress, resolvePinnedTarget, pinnedLookup, readIconBytes };
