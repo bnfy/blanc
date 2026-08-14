@@ -96,6 +96,68 @@ const CAPTURE_MAINWORLD_SOURCE = `(() => {
   window.addEventListener('pagehide', () => {
     emit({ type: 'snapshot', audioLive: 0, videoLive: 0 });
   });
+
+  // Truthful permissions.query for mic/camera (preflight compatibility).
+  // Blanc's strict check handler deliberately reports undecided as denied,
+  // so sites that query before asking declare the device blocked and never
+  // reach the prompt. This patch answers those two names from Blanc's own
+  // stored decisions over the preload bridge — 'prompt' when undecided —
+  // and DOES NOT touch authorization: getUserMedia still runs the same
+  // request handler, and any bridge failure falls back to the real
+  // (strict) query. Display truth only, same doctrine as the capture patch.
+  const permissions = navigator.permissions;
+  if (permissions && typeof permissions.query === 'function') {
+    const realQuery = permissions.query.bind(permissions);
+    const pending = new Map();
+    let nextQueryId = 1;
+    window.addEventListener('blanc:permission-state', (event) => {
+      if (typeof event.detail !== 'string' || event.detail.length > 128) return;
+      let payload;
+      try { payload = JSON.parse(event.detail); } catch { return; }
+      const resolve = payload && pending.get(payload.id);
+      if (!resolve) return;
+      pending.delete(payload.id);
+      resolve(payload.state);
+    });
+    const bridgedState = (mediaType) => new Promise((resolve) => {
+      const id = nextQueryId;
+      nextQueryId += 1;
+      pending.set(id, resolve);
+      setTimeout(() => {
+        if (pending.delete(id)) resolve(null);
+      }, 1500);
+      try {
+        window.dispatchEvent(new CustomEvent('blanc:permission-query', {
+          detail: JSON.stringify({ id, mediaType }),
+        }));
+      } catch {
+        if (pending.delete(id)) resolve(null);
+      }
+    });
+    const makeStatus = (name, state) => {
+      const status = typeof EventTarget === 'function' ? new EventTarget() : {};
+      if (typeof status.addEventListener !== 'function') {
+        status.addEventListener = () => {};
+        status.removeEventListener = () => {};
+        status.dispatchEvent = () => false;
+      }
+      status.name = name;
+      status.state = state;
+      status.onchange = null;
+      return status;
+    };
+    permissions.query = function query(descriptor, ...rest) {
+      const name = descriptor && descriptor.name;
+      const mediaType = name === 'microphone' ? 'audio' : name === 'camera' ? 'video' : null;
+      if (!mediaType) return realQuery(descriptor, ...rest);
+      return bridgedState(mediaType).then((state) => {
+        if (state !== 'granted' && state !== 'denied' && state !== 'prompt') {
+          return realQuery(descriptor, ...rest);
+        }
+        return makeStatus(name, state);
+      });
+    };
+  }
 })();`;
 // <<< mainworld
 
@@ -106,6 +168,20 @@ if (process.isMainFrame) {
   });
   ipcRenderer.on('capture:stop', () => {
     window.dispatchEvent(new CustomEvent('blanc:capture-stop-request'));
+  });
+  window.addEventListener('blanc:permission-query', async (event) => {
+    if (typeof event.detail !== 'string' || event.detail.length > 128) return;
+    let payload;
+    try { payload = JSON.parse(event.detail); } catch { return; }
+    const id = payload?.id;
+    const mediaType = payload?.mediaType;
+    if (!Number.isInteger(id)) return;
+    if (mediaType !== 'audio' && mediaType !== 'video') return;
+    let state = null;
+    try { state = await ipcRenderer.invoke('capture:permission-query', mediaType); } catch {}
+    window.dispatchEvent(new CustomEvent('blanc:permission-state', {
+      detail: JSON.stringify({ id, state }),
+    }));
   });
   webFrame.executeJavaScript(CAPTURE_MAINWORLD_SOURCE).catch(() => {});
 }

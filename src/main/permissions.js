@@ -71,11 +71,41 @@ function removeDecision(key) {
   ensureStore().update((d) => { delete d.decisions[key]; });
 }
 
+// Session → its readDecisions, so mediaQueryState can answer for whichever
+// browsing session a query arrives from (regular persists, private is
+// ephemeral) without ever widening what setupPermissionPolicy closes over.
+const queryReaders = new WeakMap();
+
+/**
+ * Truthful three-state for the main-world navigator.permissions.query shim
+ * (mic/camera preflight compatibility). Display truth only: it never grants,
+ * never prompts, and never changes what the strict check handler below
+ * reports to Electron. Undecided reads 'prompt' — the state the strict
+ * check deliberately flattens to denied — so preflighting sites ask
+ * normally instead of declaring the device blocked. Returns null for
+ * anything outside the narrow contract (unknown session or media type);
+ * the caller must fall back to the real query rather than invent a state.
+ */
+function mediaQueryState(session, rawUrl, mediaType) {
+  if (mediaType !== 'audio' && mediaType !== 'video') return null;
+  const read = session ? queryReaders.get(session) : null;
+  if (!read) return null;
+  const origin = normalizedOrigin(rawUrl);
+  // Origins that can never be prompted (file://, internal schemes) are
+  // truthfully denied — the request handler would deny them promptlessly.
+  if (!origin) return 'denied';
+  const decision = storedDecision(read(), origin, 'media', mediaType);
+  if (decision === 'allow') return 'granted';
+  if (decision === 'deny') return 'denied';
+  return 'prompt';
+}
+
 function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
   // Incognito/private sessions use this in-memory map. Normal browsing keeps
   // using site-permissions.json and remains manageable from Settings.
   const ephemeralDecisions = {};
   const readDecisions = () => persistDecisions ? ensureStore().data.decisions : ephemeralDecisions;
+  queryReaders.set(session, readDecisions);
   const saveDecision = (origin, permission, mediaTypes, allow) => {
     if (persistDecisions) {
       ensureStore().update((d) => rememberDecision(d.decisions, origin, permission, mediaTypes, allow));
@@ -131,4 +161,5 @@ function setupPermissionPolicy(session, { persistDecisions = true } = {}) {
 
 module.exports = {
   setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, listDecisions, removeDecision,
+  mediaQueryState,
 };

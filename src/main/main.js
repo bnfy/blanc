@@ -28,7 +28,7 @@ const {
   CHROME_PERMISSION_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
-const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver } = require('./permissions');
+const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, mediaQueryState } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
@@ -4296,6 +4296,21 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       });
     } else return;
     refreshCaptureProjection(surface);
+  });
+
+  // Truthful mic/camera state for the main-world permissions.query shim in
+  // capture-preload.js. Read-only display truth: it consults the same stored
+  // decisions the request handler uses and can never grant, prompt, or
+  // change what Electron's strict check reports. The origin comes from the
+  // SENDER frame — a page can only ever learn its own origin's state — and
+  // only main frames are answered, matching where the shim runs (§4.1: the
+  // session preload never reaches subframes). Null means "no answer"; the
+  // shim then falls back to the real strict query.
+  ipcMain.handle('capture:permission-query', (event, mediaType) => {
+    if (mediaType !== 'audio' && mediaType !== 'video') return null;
+    const frame = event.senderFrame;
+    if (!frame || frame !== event.sender.mainFrame) return null;
+    return mediaQueryState(event.sender.session, frame.url, mediaType);
   });
 
   chromeOn('permissions:respond', (_e, { id, allow }) => {
