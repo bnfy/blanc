@@ -48,7 +48,7 @@ const waitForRestoredUrls = async () => {
   assert.fail(`session URLs were not restored; saw ${JSON.stringify(urls)}`);
 };
 
-const waitForCandidateRestore = async () => {
+const waitForQuietRestore = async ({ label, wakeQuiet }) => {
   const deadline = Date.now() + 15_000;
   let state = null;
   while (Date.now() < deadline) {
@@ -58,15 +58,17 @@ const waitForCandidateRestore = async () => {
       if (sessionUrls.every((expected) =>
         state.tabs.some((tab) => tab.url === expected))) {
         const quiet = state.tabs.find((tab) => tab.url === sessionUrls[0]);
-        assert.equal(quiet.asleep, true, 'inactive restored tab should begin quiet');
-        await chrome.evaluate((id) => window.browserAPI.switchTab(id), quiet.id);
-        await waitForRestoredUrls();
+        assert.equal(quiet.asleep, true, `${label} inactive restored tab should begin quiet`);
+        if (wakeQuiet) {
+          await chrome.evaluate((id) => window.browserAPI.switchTab(id), quiet.id);
+          await waitForRestoredUrls();
+        }
         return state;
       }
     }
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
-  assert.fail(`candidate tab model did not restore session URLs; saw ${JSON.stringify(state)}`);
+  assert.fail(`${label} tab model did not restore session URLs; saw ${JSON.stringify(state)}`);
 };
 
 try {
@@ -109,9 +111,14 @@ try {
   });
 
   // Launch the real public Stable first so the fixture is proven acceptable
-  // to that build, then hand the exact same profile to the candidate.
+  // to that build, then hand the exact same profile to the candidate. Current
+  // Stable already restores inactive tabs as quiet records, so inspect its
+  // authoritative chrome model instead of requiring every tab to have a live
+  // CDP page. Do not wake it here: that would change activeIndex before the
+  // candidate receives the profile and invalidate the intended inactive-tab
+  // migration check below.
   await launch(stableExecutable);
-  await waitForRestoredUrls();
+  await waitForQuietRestore({ label: 'stable', wakeQuiet: false });
   await app.close();
   app = null;
 
@@ -120,7 +127,7 @@ try {
   // CDP page until activated. Assert the privileged chrome's authoritative
   // tab model first, then activate the quiet record and prove it wakes to the
   // saved URL instead of weakening the migration check to the one live tab.
-  await waitForCandidateRestore();
+  await waitForQuietRestore({ label: 'candidate', wakeQuiet: true });
 
   const settings = JSON.parse(
     fs.readFileSync(path.join(userDataDir, 'settings.json'), 'utf8')
