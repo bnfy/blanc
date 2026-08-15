@@ -237,7 +237,7 @@ is platform-native.
 ---
 
 ## D11 — Window model & chrome placement
-**Features:** F1, F32
+**Features:** F1, F2, F32, F34
 **Why:** Desktop uses resizable native windows with window controls and a strip + overlay;
 mobile is a single full-screen surface with system insets.
 
@@ -245,11 +245,14 @@ mobile is a single full-screen surface with system insets.
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
+- **Desktop workspace-local state:** reopen-closed history belongs to the native
+  window that closed the tab (F2), and Glance can expose a second tab inside
+  that same window (F34). Neither operation may cross a workspace/profile edge.
 
 **Parity contract:** the island's *contents and states* (F1) are identical; its
 *placement/windowing* adapts to the platform. Independent native windows (F32)
 are a desktop-only capability unless a future tablet/foldable contract adopts
-them explicitly.
+them explicitly; the same applies to the Glance multi-pane surface (F34).
 
 **Status:** Accepted.
 

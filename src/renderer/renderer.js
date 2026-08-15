@@ -26,13 +26,30 @@
   const pillSourceChip = document.getElementById('pillSourceChip');
   const windowControls = document.getElementById('windowControls');
   const mainMenuButton = document.getElementById('mainMenuButton');
+  const glanceHeader = document.getElementById('glanceHeader');
+  const glanceFavicon = document.getElementById('glanceFavicon');
+  const glanceTitle = document.getElementById('glanceTitle');
+  const glancePromote = document.getElementById('glancePromote');
+  const glanceChange = document.getElementById('glanceChange');
+  const glanceClose = document.getElementById('glanceClose');
+  const glanceDivider = document.getElementById('glanceDivider');
+  const glanceStatus = document.getElementById('glanceStatus');
 
   let state = {
     tabs: [],
     activeTabId: null,
+    glanceTabId: null,
     groups: [],
     tabLayout: 'island',
   };
+  let glanceLayout = null;
+  let glanceResizeState = null;
+  let glanceResizeFrame = 0;
+  let queuedGlancePoint = null;
+  /** Optimistic ratio for keyboard resizing: key repeat outruns the
+   * main-process layout echo, so consecutive keydowns step from here rather
+   * than recomputing every step from the same stale layout. */
+  let glanceKeyRatio = null;
   /** Overlay mode mirrored from main — the pill hides while the command
    * bar is expanded in place ('panel'); the palette keeps it visible. */
   let islandMode = null;
@@ -256,6 +273,10 @@
     return state.tabs.find((t) => t.id === state.activeTabId) || null;
   }
 
+  function glanceTab() {
+    return state.tabs.find((t) => t.id === state.glanceTabId) || null;
+  }
+
   /** The page URL behind a `view-source:` URL, else null. Chromium's
    * view-source: is a non-special scheme, so `new URL(...).host` is '' and
    * the pill would fall back to the literal "new tab".
@@ -292,6 +313,68 @@
       el.classList.add('has-icon');
       el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
     }
+  }
+
+  function renderGlance() {
+    const tab = glanceTab();
+    const visible = !!tab && !!glanceLayout;
+    glanceHeader.hidden = !visible;
+    glanceDivider.hidden = !visible;
+    stripEl.classList.toggle('glance-open', visible);
+    if (!visible) {
+      stripEl.style.removeProperty('--glance-primary-right');
+      stripEl.style.removeProperty('--glance-primary-width');
+      return;
+    }
+
+    const { primary, glanceHeader: header, divider, page, direction, ratio } = glanceLayout;
+    const chromePrimaryRight = direction === 'horizontal'
+      ? primary.x + primary.width
+      : page.x + Math.round(page.width * 0.68);
+    stripEl.style.setProperty('--glance-primary-right', `${chromePrimaryRight}px`);
+    stripEl.style.setProperty('--glance-primary-width', `${chromePrimaryRight - page.x}px`);
+    glanceDivider.dataset.direction = direction;
+    glanceDivider.style.left = `${divider.x}px`;
+    glanceDivider.style.top = `${divider.y}px`;
+    glanceDivider.style.width = `${divider.width}px`;
+    glanceDivider.style.height = `${divider.height}px`;
+    glanceDivider.setAttribute('aria-orientation', direction === 'horizontal' ? 'vertical' : 'horizontal');
+    glanceDivider.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
+    glanceDivider.setAttribute('aria-valuetext', `Main page ${Math.round(ratio * 100)} percent`);
+
+    glanceHeader.style.left = `${header.x}px`;
+    glanceHeader.style.top = `${header.y}px`;
+    glanceHeader.style.width = `${header.width}px`;
+    glanceHeader.style.height = `${header.height}px`;
+    glanceHeader.style.paddingRight = `${direction === 'horizontal' && !isMac ? 126 : 12}px`;
+    glanceHeader.dataset.direction = direction;
+    glanceHeader.classList.toggle('private', !!tab.private);
+    setFavicon(glanceFavicon, tab);
+    // Keep an already-known title visible while the reference navigates —
+    // same rule as the picker rows: replacing useful identity with a generic
+    // loading label makes the header useless on slow or long-lived loads.
+    glanceTitle.textContent = tab.title || tabDomain(tab)
+      || (tab.isLoading ? 'Loading…' : tab.private ? 'Private tab' : 'New tab');
+    glanceHeader.title = tab.title || glanceTitle.textContent;
+  }
+
+  function queueGlanceResize(point) {
+    queuedGlancePoint = point;
+    if (glanceResizeFrame) return;
+    glanceResizeFrame = requestAnimationFrame(() => {
+      glanceResizeFrame = 0;
+      const queued = queuedGlancePoint;
+      queuedGlancePoint = null;
+      if (queued) window.browserAPI.resizeGlance(queued);
+    });
+  }
+
+  function pointForGlanceRatio(ratio) {
+    if (!glanceLayout) return null;
+    const { page, direction, divider, glanceHeader: header } = glanceLayout;
+    return direction === 'horizontal'
+      ? { x: page.x + (page.width - divider.width) * ratio, y: page.y }
+      : { x: page.x, y: page.y + (page.height - divider.height - header.height) * ratio };
   }
 
   /** Faux header: paint the strip with the active page's own top-edge
@@ -530,6 +613,7 @@
     else delete document.documentElement.dataset.theme;
 
     applyStripTint(tab);
+    renderGlance();
 
     islandPill.style.visibility = islandMode === 'panel' ? 'hidden' : '';
 
@@ -573,6 +657,75 @@
     window.browserAPI.openCapturePopover({ right: r.right });
   });
 
+  glancePromote.addEventListener('click', (event) => {
+    event.stopPropagation();
+    window.browserAPI.promoteGlance();
+  });
+  glanceChange.addEventListener('click', (event) => {
+    event.stopPropagation();
+    window.browserAPI.openGlancePicker();
+  });
+  glanceClose.addEventListener('click', (event) => {
+    event.stopPropagation();
+    window.browserAPI.closeGlance();
+  });
+
+  glanceDivider.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0 || !glanceLayout) return;
+    event.preventDefault();
+    glanceResizeState = { pointerId: event.pointerId };
+    glanceDivider.setPointerCapture(event.pointerId);
+    document.documentElement.dataset.glanceResizing = glanceLayout.direction;
+  });
+  glanceDivider.addEventListener('pointermove', (event) => {
+    if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
+    queueGlanceResize({ x: event.clientX, y: event.clientY });
+  });
+  const finishGlanceResize = (event) => {
+    if (!glanceResizeState || glanceResizeState.pointerId !== event.pointerId) return;
+    queueGlanceResize({ x: event.clientX, y: event.clientY });
+    glanceResizeState = null;
+    delete document.documentElement.dataset.glanceResizing;
+    if (glanceDivider.hasPointerCapture(event.pointerId)) {
+      glanceDivider.releasePointerCapture(event.pointerId);
+    }
+  };
+  glanceDivider.addEventListener('pointerup', finishGlanceResize);
+  glanceDivider.addEventListener('pointercancel', finishGlanceResize);
+  glanceDivider.addEventListener('lostpointercapture', () => {
+    glanceResizeState = null;
+    delete document.documentElement.dataset.glanceResizing;
+  });
+  glanceDivider.addEventListener('dblclick', (event) => {
+    event.preventDefault();
+    window.browserAPI.resetGlance();
+  });
+  glanceDivider.addEventListener('keydown', (event) => {
+    if (!glanceLayout) return;
+    let next = glanceKeyRatio ?? glanceLayout.ratio;
+    const step = event.shiftKey ? 0.05 : 0.02;
+    if (event.key === 'Home') next = 0.5;
+    else if (event.key === 'End') next = 0.78;
+    else if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      glanceKeyRatio = null;
+      window.browserAPI.resetGlance();
+      return;
+    } else if (
+      (glanceLayout.direction === 'horizontal' && event.key === 'ArrowLeft') ||
+      (glanceLayout.direction === 'vertical' && event.key === 'ArrowUp')
+    ) next -= step;
+    else if (
+      (glanceLayout.direction === 'horizontal' && event.key === 'ArrowRight') ||
+      (glanceLayout.direction === 'vertical' && event.key === 'ArrowDown')
+    ) next += step;
+    else return;
+    event.preventDefault();
+    glanceKeyRatio = Math.max(0.5, Math.min(0.78, next));
+    const point = pointForGlanceRatio(glanceKeyRatio);
+    if (point) window.browserAPI.resizeGlance(point);
+  });
+
   islandPill.addEventListener('click', () => window.browserAPI.openIsland());
   islandPill.addEventListener('keydown', (e) => {
     // Only when the pill itself is focused — a focused child button (tab
@@ -597,6 +750,16 @@
     state = payload;
     render();
   });
+  window.browserAPI.onGlanceLayout((layout) => {
+    glanceLayout = layout;
+    // Main has echoed the applied ratio; later keydowns step from the layout
+    // again until the next same-task burst.
+    glanceKeyRatio = null;
+    renderGlance();
+  });
+  window.browserAPI.onGlanceStatus((message) => {
+    glanceStatus.textContent = message;
+  });
   window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger }) => {
     islandMode = mode;
     // Truthful per-control expanded state: the popover is one surface with
@@ -605,7 +768,9 @@
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
     pillCapture.setAttribute('aria-expanded', String(mode === 'capture'));
+    glanceChange.setAttribute('aria-expanded', String(mode === 'glance'));
     if (restoreTrigger === 'capture') pillCapture.focus();
+    if (restoreTrigger === 'glance-change') glanceChange.focus();
     // Escape dismissal: main has already focused this webContents, so a DOM
     // focus() here lands in a focused document and paints the ring.
     if (restoreTrigger === 'shield') pillShield.focus();

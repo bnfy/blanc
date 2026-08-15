@@ -47,6 +47,13 @@ function install(refs) {
     duplicateTab,
     toggleTabPinned,
     toggleTabMuted,
+    setGlanceTab,
+    closeGlance: closeGlanceAction,
+    promoteGlance: promoteGlanceAction,
+    resizeGlanceAt,
+    resetGlanceRatio: resetGlanceRatioAction,
+    getGlanceTabId,
+    getGlanceGeometry,
     groupTabByName,
     toggleGroupCollapsed,
     reorderTabWithinBucket,
@@ -60,6 +67,10 @@ function install(refs) {
     windowRuntimeSnapshots,
     closeWindowRuntime: closeWindowRuntimeAction,
     openTabInWindow: openTabInWindowAction,
+    setGlanceTabInWindow,
+    closeGlanceInWindow,
+    closeTabInWindow: closeTabInWindowAction,
+    reopenClosedTabInWindow,
     createNamedLocalProfileWindow,
     renameNamedLocalProfile,
     deleteNamedLocalProfile,
@@ -218,6 +229,8 @@ function install(refs) {
         })),
         groups: getGroups().map((g) => ({ id: g.id, name: g.name, collapsed: !!g.collapsed })),
         activeTabId: getActiveTabId(),
+        glanceTabId: getGlanceTabId(),
+        glanceGeometry: getGlanceGeometry(),
       };
     },
 
@@ -237,9 +250,29 @@ function install(refs) {
     muteTab(id) { toggleTabMuted(id); },
     closeTab(id) { closeTab(id); },
     reopenClosed() { reopenClosedTab(); },
+    setGlance(id) { return setGlanceTab(id); },
+    closeGlance() { return closeGlanceAction({ focusContent: false }); },
+    promoteGlance() { return promoteGlanceAction(); },
+    resizeGlance(point) { return resizeGlanceAt(point); },
+    resetGlanceRatio() { return resetGlanceRatioAction(); },
+    setWindowGlance(runtimeId, tabId) {
+      return setGlanceTabInWindow(String(runtimeId), String(tabId));
+    },
+    closeWindowGlance(runtimeId) { return closeGlanceInWindow(String(runtimeId)); },
+    closeTabInWindow(runtimeId, tabId) {
+      return closeTabInWindowAction(String(runtimeId), String(tabId));
+    },
+    reopenClosedInWindow(runtimeId) { return reopenClosedTabInWindow(String(runtimeId)); },
     groupActiveByName(name) { groupTabByName(getActiveTabId(), name); },
     groupTabByName(id, name) { groupTabByName(id, name); },
     activateTab(id, focusContent = false) { setActiveTab(id, { focusContent: !!focusContent }); },
+    focusTabContents(id) {
+      const tab = tabs.get(id);
+      const wc = tab?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return false;
+      wc.focus();
+      return true;
+    },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
     reorderWithinBucket(id, beforeId) { return reorderTabWithinBucket(id, beforeId); },
@@ -355,6 +388,28 @@ function install(refs) {
     setTabSleep(value) { return settings.setSettings({ tabSleep: value }).tabSleep; },
     tabLayout() { return settings.getSettings().tabLayout; },
     setTabLayout(layout) { return setTabLayout(layout); },
+    glanceShortcutEnabled() {
+      return Menu.getApplicationMenu()
+        ?.getMenuItemById('toggle-glance')
+        ?.enabled === true;
+    },
+    pressGlanceShortcut() {
+      const accelerator = Menu.getApplicationMenu()
+        ?.getMenuItemById('toggle-glance')
+        ?.accelerator;
+      if (!['CmdOrCtrl+Shift+G', 'CommandOrControl+Shift+G'].includes(accelerator)) {
+        throw new Error(`unexpected Glance accelerator: ${accelerator}`);
+      }
+      const wc = getChromeWebContents();
+      if (!wc) throw new Error('chrome webContents unavailable');
+      const modifiers = process.platform === 'darwin'
+        ? ['meta', 'shift']
+        : ['control', 'shift'];
+      wc.focus();
+      wc.sendInputEvent({ type: 'keyDown', keyCode: 'G', modifiers });
+      wc.sendInputEvent({ type: 'keyUp', keyCode: 'G', modifiers });
+      return true;
+    },
     pressVerticalTabsShortcut() {
       const accelerator = Menu.getApplicationMenu()
         ?.getMenuItemById('toggle-vertical-tabs')

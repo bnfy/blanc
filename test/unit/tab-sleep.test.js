@@ -142,6 +142,14 @@ test('the active tab is never a candidate', () => {
   assert.deepEqual(run([tab()], { activeTabId: 'a', ignoreThreshold: true }), []);
 });
 
+test('a visible Glance tab is never a candidate', () => {
+  assert.deepEqual(run([tab()], { visibleTabIds: new Set(['a']) }), []);
+  assert.deepEqual(run([tab()], {
+    visibleTabIds: new Set(['a']),
+    ignoreThreshold: true,
+  }), []);
+});
+
 for (const [field, value] of [
   ['asleep', true], ['sleeping', true], ['waking', true], ['isLoading', true],
   ['audible', true], ['muted', true], ['usedMedia', true], ['capturing', true],

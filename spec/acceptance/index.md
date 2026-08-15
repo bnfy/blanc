@@ -9,7 +9,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 > Desktop is the shipped reference, so its `@all` cells are ✅ (behaviour verified
 > in the shipping app; automated step-defs are a separate track). iOS/Android are
-> greenfield → ⬜. The grid below tracks stable scenario IDs across 17 `.feature`
+> greenfield → ⬜. The grid below tracks stable scenario IDs across 18 `.feature`
 > files.
 
 ## Files
@@ -33,6 +33,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Browser migration | `browser-migration.feature` | F30 (D22) |
 | Quiet Tabs | `quiet-tabs.feature` | F31 (D8, D23) |
 | Independent windows | `multi-window.feature` | F32 (D11) |
+| Local profiles | `local-profiles.feature` | F33 (D25) |
+| Glance | `glance.feature` | F34 (D11) |
 
 ## Grid
 
@@ -44,6 +46,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F2-2 | Duplicate tab | — | ✅ | ⬜ | ⬜ |
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |
 | F2-4 | Plain new tab is ungrouped | — | ✅ | ⬜ | ⬜ |
+| F2-5 | Reopen-closed history is workspace-local | D11 | ✅ | ➖ | ➖ |
 | F3-1 | `/group` creates + moves | — | ✅ | ⬜ | ⬜ |
 | F3-2 | Pill's dots render only active group | — | ✅ | ⬜ | ⬜ |
 | F3-3 | Collapse tucks tabs away | — | ✅ | ⬜ | ⬜ |
@@ -139,6 +142,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F33-1 | Settings creates a profile with isolated records and sessions | D25 | ✅ | ➖ | ➖ |
 | F33-2 | Settings renames and permanently deletes a named profile | D25 | ✅ | ➖ | ➖ |
 | F33-3 | Named profile workspace restores into its isolated session | D25 | ✅ | ➖ | ➖ |
+| F34-1 | Explicit Glance selection, swap, resize, and close | D11 | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -146,7 +150,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24`, `F27–F28`, and `F30–F33` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24`, `F27–F28`, and `F30–F34` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
 - The suite explicitly tags D1–D12, D16, D19, D23, and D25. D11 is exercised

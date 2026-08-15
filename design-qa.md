@@ -1,227 +1,134 @@
-# Press page design QA
+# Glance design QA
+
+**Final result:** passed
 
 ## Comparison target
 
-- Source visual truth: `/Users/anthonyjloria/.codex/generated_images/019fc113-3c4e-7ee0-afea-7e8233576373/exec-a6cabc12-2b28-4a9c-9bd2-c1867624d457.png`
-- Browser-rendered implementation: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/hig-type-final-top.png`
-- Latest combined comparison evidence: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/design-qa-hig-comparison.jpg`
-- Full editorial-layout comparison evidence: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/design-qa-comparison-v3.jpg`
-- Focused top-of-page evidence: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/hig-type-final-top.png`
-- Focused product/proof evidence: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/hig-type-final-middle.png`
-- Focused comparison-table evidence: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/implementation-v3-scroll-1260.png`
-- Revised Press Assets evidence: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-assets-v2.png`
-- Press Assets before/after comparison: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/design-qa-press-assets-comparison.jpg`
-- Cross-platform launch evidence: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-platforms-top.png`
-- Island-demo source state: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-product-before-island-demo.png`
-- Interactive Island implementation: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-product-island-demo-final.png`
-- Island before/after comparison: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-product-island-comparison-v1.png`
-- Clean shipping-build capture: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-wikipedia-clean-v1.png`
-- Expanded-tabs pre-fix state: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-expanded-tabs-before-fix.png`
-- Expanded-tabs refined state: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-expanded-tabs-after-fix.png`
-- Expanded-tabs before/after comparison: `/Users/anthonyjloria/Projects/Blanc Browser/output/press-redesign/press-expanded-tabs-comparison.png`
-- Desktop callout source state: `/Users/anthonyjloria/Desktop/Screenshot 2026-08-02 at 12.38.28 PM.png`
-- Desktop callout implementation: `/Users/anthonyjloria/.codex/visualizations/2026/08/02/019fc113-3c4e-7ee0-afea-7e8233576373/press-callouts-implementation.png`
-- Desktop callout comparison: `/Users/anthonyjloria/.codex/visualizations/2026/08/02/019fc113-3c4e-7ee0-afea-7e8233576373/press-callouts-comparison.png`
-- Expanded-panel callout detail: `/Users/anthonyjloria/.codex/visualizations/2026/08/02/019fc113-3c4e-7ee0-afea-7e8233576373/press-callouts-expanded-focus.png`
-- Reassigned desktop callouts: `/Users/anthonyjloria/.codex/visualizations/2026/08/02/019fc113-3c4e-7ee0-afea-7e8233576373/press-callouts-reassigned.png`
-- Brand-neutral primary product capture: `/Users/anthonyjloria/Projects/Blanc Browser/site/public/press/blanc-island-product-capture-v2.png`
-- Matching brand-neutral launch card: `/Users/anthonyjloria/Projects/Blanc Browser/site/public/press/blanc-1.0-launch-card-v3.png`
-- Original editorial photograph: `/Users/anthonyjloria/Projects/Blanc Browser/site/public/press/blanc-editorial-reading-room-v1.png`
-- Route: `http://127.0.0.1:4321/press`
-- State: light theme, page top followed by the first 2,406 CSS pixels of the page.
+- Source visual truth: `docs/superpowers/specs/assets/glance-focused-island.png`
+- Rendered implementation: `docs/superpowers/specs/assets/glance-picker-final-pass.png`
+- Final full-view comparison: `docs/superpowers/specs/assets/glance-design-qa-final.jpg`
+- Focused header comparison: `docs/superpowers/specs/assets/glance-design-qa-header-final.png`
+- Focused picker comparison: `docs/superpowers/specs/assets/glance-design-qa-picker-final.png`
+- Responsive/theme evidence:
+  - `docs/superpowers/specs/assets/glance-stacked-final.png`
+  - `docs/superpowers/specs/assets/glance-dark-picker-final.png`
+  - `docs/superpowers/specs/assets/glance-private-reference-final-isolated.png`
 
-## Viewport and normalization
+## Normalization
 
-- Source raster: 913 × 1,723 pixels. It represents the selected 1440-wide editorial concept, scaled by ImageGen into a 913-pixel raster.
-- Implementation viewport: 919 × 802 CSS pixels in the Codex in-app browser.
-- Browser-reported device pixel ratio: 2. The browser screenshot API normalized captures to 919 × 802 output pixels, so no additional density downsampling was required.
-- Implementation comparison composite: three contiguous 919 × 802 browser captures at scroll positions 0, 802, and 1,604, appended to 919 × 2,406 pixels.
-- For the shared comparison input, the source was proportionally resized from 913 to 919 pixels wide and top-aligned on a 919 × 2,406 white canvas. No implementation geometry was stretched.
-- Latest HIG legibility check: source resized to 1,159 pixels wide and cropped to the matching 1,159 × 802 top region; implementation captured at 1,159 × 802 CSS pixels. Both were placed in `design-qa-hig-comparison.jpg` without stretching.
-- Island redesign comparison: both before and after states were captured at the same 1,280 × 720 CSS-pixel viewport and appended without resizing in `press-product-island-comparison-v1.png`.
-- Callout-target comparison: the supplied desktop screenshot is 2,048 × 996 pixels. Its 1,890 × 900 browser-stage region was normalized to the 1,184 × 560 CSS-pixel implementation stage without stretching; the side-by-side comparison intentionally contrasts the reported broken state with the corrected state.
+- Source pixels: 1586×992.
+- Implementation pixels and CSS viewport: 1229×768, captured from the live
+  macOS Electron window with no browser or page zoom. The Computer Use capture
+  is normalized to one output pixel per reported app-content point.
+- Density normalization: the source was downsampled to 1229×768; the
+  implementation was left unchanged. The source and implementation are shown
+  together in the 2458×768 final comparison. Their original aspect ratios
+  differ by less than 0.1 percent.
+- Focused header evidence normalizes both header regions to 474×61. Focused
+  picker evidence compares 402×430 source and implementation regions at the
+  same output size.
+- State: macOS, light appearance, Postel as the main tab, Nintendo as the
+  Glance reference, and the Change picker open. Dynamic Nintendo carousel
+  content and the eligible local-tab list differ from the generated mock by
+  design; pane ownership and picker state match.
 
-## Full-view comparison evidence
+## Findings
 
-The combined comparison shows the selected hierarchy preserved in the implementation: compact masthead, oversized launch claim, release metadata column, an interactive enlarged Blanc Island with four annotations, a clean secondary shipping-build capture, five-column proof strip, black-accented category comparison, and newsroom band. The implementation continues with the requested announcement, factual release details, reviewer path, trade-offs, and direct press contact.
+There are no remaining actionable P0, P1, or P2 findings.
 
-## Focused-region comparison evidence
-
-- Hero: `implementation-v3-top-refined.png` confirms the headline now wraps to two lines, the release metadata remains legible, one primary action dominates, and the real product appears immediately below the fold.
-- Product evidence: `press-product-island-demo-final.png` confirms the enlarged Island now owns the visual hierarchy, while `press-wikipedia-clean-v1.png` confirms the real 1400 × 875 shipping capture remains undistorted and free of surrounding callouts.
-- Category comparison: `implementation-v3-scroll-1260.png` confirms that the five-column proof strip and selected black Blanc comparison column retain the editorial rules.
-- Newsroom: `press-assets-v2.png` confirms that the real product is now the dominant press asset, the launch card is distinctly branded, and release verification is separated from editorial downloads.
-
-## Required fidelity surfaces
-
-- Fonts and typography: passed after a second iteration and rechecked for the live demo. Inter Variable and JetBrains Mono are the existing site fonts and match both the editorial concept and shipping Island. The headline weight, metadata tracking, and compact uppercase labels preserve the intended hierarchy. A final computed-style audit of the product section finds zero visible text elements below 12 CSS pixels.
-- Spacing and layout rhythm: passed after one iteration. Section rules, asymmetric grids, product annotations, proof columns, comparison density, and newsroom alignment match the reference. The implementation deliberately adds vertical room below the newsroom for substantive press content.
-- Colors and visual tokens: passed. The page uses the existing Blanc white, near-black, quiet-gray, and 1px-rule token system with no gradients or invented color.
-- Image quality and asset fidelity: passed. The lead download is a 2784 × 1824 editorial-scale recreation of the real Blanc Island over an original, brand-neutral photograph, and the matching 2400 × 1260 launch card combines that UI with the Blanc mark and existing brand typography. The interactive Island uses real website captures for every displayed site, including a 2597 × 1494 crop of the supplied CNET page, plus the live publication favicons for The Verge, 9to5Mac, and CNET. The former `vertical-tabs.png` screenshot is no longer linked from the Press page. Images retain their declared dimensions and aspect ratios; no placeholder product imagery was introduced.
-- Copy and content: passed. The selected category thesis is preserved, while generated/invented details were replaced with repository-grounded facts: Anthony J. Loria, Bananify, macOS/Windows/Linux availability, DMG + ZIP/EXE/AppImage release files, built-in network blocking, private tabs excluded from history and saved sessions, optional E2EE sync, no required account, no built-in agent, and deliberate absence of an extension marketplace.
-
-## Interaction and browser checks
-
-- Primary review-build link resolves to the platform selector, while the verification panel retains a direct Apple Silicon DMG link for reviewers who need that artifact.
-- “Read announcement” scrolls to `#announcement`; verified section top at 24px after navigation.
-- “Press assets” scrolls to `#newsroom`; verified section top at 24px after navigation.
-- Product capture and launch-card links retain download behavior.
-- The new product capture and launch card loaded at 2784 × 1824 and 2400 × 1260 respectively; no broken images were found.
-- One H1 and a semantic comparison table are present.
-- Browser reload produced no `pageerror` event and no console event during the error-check window.
-- No horizontal overflow was present at the 919px desktop viewport.
-- The Island opens and collapses from both the pill and state control; Escape collapses it and returns focus to the pill.
-- Typing `/` renders six real command rows, typing `not` reveals Notion, and choosing that row updates the resting domain/shield before collapsing.
-- The final 1,280 × 720 Island-section audit found no broken images, no console errors, no horizontal overflow, and a 12px visible-text floor.
-- The named demo group reads “tech news,” contains The Verge, 9to5Mac, and CNET, and opens with The Verge active against the matching page capture.
-- The final desktop callout audit found no console errors or overflow. Within the 768 × 560 demo stage, the leaders terminate at the panel's left edge (74px), active-row right edge (682px at y195), `tech news` label (88px at y169), and panel's lower-right edge (694px at y439).
+- Fonts and typography: the final header uses the approved single-row
+  `GLANCE | favicon + title` hierarchy. Picker heading, filter, rows, metadata,
+  and keyboard hint now match the source's comfortable density while retaining
+  Blanc's bundled UI and mono families. Long live titles truncate without
+  moving the actions.
+- Spacing and layout rhythm: the Island remains centered over the dominant
+  pane; the reference has one flat header; the picker is a compact 420px-max
+  popover anchored 24px from the reference edge; list rows end cleanly before
+  the footer; the 12px divider and 4px grip remain visually quiet. The written
+  approved rule intentionally governs the live 62/38 split even though the
+  generated source image is slightly closer to 58/42.
+- Colors and tokens: the implementation uses the existing surface, border,
+  text, accent-dim, private, shadow, and focus tokens. Light, dark, and private
+  captures preserve hierarchy and contrast without introducing a Glance-only
+  color system.
+- Image quality and asset fidelity: no source imagery was recreated in CSS or
+  replaced with placeholders. Live page content stays live, and the header and
+  picker reuse each tab's real cached favicon. No new raster UI asset ships.
+- Copy and content: `GLANCE`, `Make main`, `Change`, `Choose a tab for Glance`,
+  `Filter open tabs`, empty/error strings, and keyboard hints are coherent and
+  match the approved interaction contract. Extra dynamic metadata (`quiet`,
+  host) is real tab state rather than design-prompt leakage.
+- Icons and affordances: existing Blanc close, direction, favicon, and private
+  marks retain the product's stroke and sizing language. The small visible
+  picker close control is an intentional accessibility/usability refinement;
+  Escape and outside-click cancellation remain available.
+- Responsiveness: the live 700×800 capture stacks the panes, reserves the 44px
+  reference header, and keeps Make main, Change, and close inside the viewport.
+  Desktop side-by-side and stacked acceptance assertions also prove the action
+  cluster never escapes its header.
+- Accessibility: the header is a labelled group; the picker is a focused
+  combobox/listbox using `aria-activedescendant`; result changes and outcomes
+  use polite live regions; all controls have visible focus; the divider exposes
+  orientation, min/max/current value, and keyboard resizing. Escape returns
+  focus to Change, and focusing the interactive reference never promotes it.
 
 ## Comparison history
 
-### Iteration 1
+### Iteration 1 — blocked
 
-- [P2] Desktop composition collapsed too early at 919px.
-  - Evidence: the initial implementation used the 940px breakpoint, turning the five proof columns into two columns, moving product annotations under the image, and reducing the newsroom to two columns. The selected source keeps all three regions in their desktop composition at a comparable raster width.
-  - Fix: lowered the desktop-collapse breakpoint to 800px.
-- [P2] Hero headline wrapped to three lines and weakened the selected launch claim.
-  - Evidence: `implementation-v3-top.png` showed “Blanc 1.0 / replaces the / browser toolbar.” while the source uses two lines.
-  - Fix: widened the hero copy track, reduced the metadata track and grid gap, adjusted the display scale, and increased the headline measure.
+Evidence: `docs/superpowers/specs/assets/glance-design-qa-picker-pass-1.jpg`
 
-### Post-fix evidence
+- [P1] The Change picker occupied almost the entire reference pane instead of
+  reading as the compact, attached popover in the selected direction.
+- [P1] The reference identity stacked `GLANCE` above the favicon/title instead
+  of using the source's single horizontal identity row.
 
-- `implementation-v3-top-refined.png` shows the intended two-line headline and balanced metadata column.
-- `design-qa-comparison-v3.jpg` shows the desktop product annotations, five-column proof strip, comparison table, and three-part newsroom restored.
-- No actionable P0, P1, or P2 differences remain.
+Fixes: restored a 420px maximum, right-anchored the Change picker, added the
+active Change anchor, and rebuilt the header flow as a single row with a quiet
+separator and progressive truncation.
 
-### Iteration 2 — HIG legibility
+### Iteration 2 — blocked
 
-- [P2] Supporting mono text was too small at normal viewing distance.
-  - Evidence: the browser computed-style audit found 94 visible text leaves below 13px, including 9.5px release labels, callout copy, comparison headers, newsroom metadata, captions, and fact labels.
-  - Fix: established a 12px visible-text floor across the Press page, raised supporting prose to 13px where appropriate, enlarged comparison cells and resource labels, and widened product annotation columns from 125px to 150px so the larger copy wraps cleanly.
-- Post-fix evidence: `design-qa-hig-comparison.jpg`, `hig-type-final-top.png`, and `hig-type-final-middle.png` show the larger type without headline drift, broken grids, image distortion, or horizontal overflow. The final computed-style audit reports zero visible text elements below 12px at the 1,159px viewport.
+Evidence: `docs/superpowers/specs/assets/glance-design-qa-picker-pass-2.jpg`
 
-### Iteration 3 — press assets and platform clarity
+- [P2] Picker typography and icon scale remained materially denser than the
+  selected mock.
+- [P2] The scroll viewport exposed a clipped partial row above the keyboard
+  footer, making the surface look unfinished.
+- [P2] The black input focus outline was visually heavier than the source.
 
-- [P2] The original Press Assets band gave the screenshot, logo, launch card, and checksum nearly equal weight, so it did not tell an editor which image best demonstrated the product.
-  - Evidence: `design-qa-press-assets-comparison.jpg` shows the old uniform resource grid beside the revised newsroom at the same final 1159 × 802 comparison size.
-  - Fix: promoted a native 2784 × 1824 product capture to the lead asset, paired it with a 2400 × 1260 on-brand launch card, and moved supporting downloads into a quieter utility row.
-- [P2] SHA-256 verification read like a mysterious press asset.
-  - Fix: moved the manifest into a dedicated “review build verification” panel and explained it as the cryptographic fingerprint a reviewer compares against a downloaded installer.
-- [P1] Release messaging over-indexed on the direct macOS DMG and could make Blanc appear Mac-only.
-  - Fix: made `macOS · Windows · Linux` and `DMG + ZIP · EXE · AppImage` explicit in the hero, facts, launch card, and review path; the primary CTA now routes to the platform selector.
-- Post-fix evidence: `press-assets-v2.png`, `press-verification.png`, and `press-platforms-top.png` show the revised hierarchy, plain-language verification copy, and cross-platform launch positioning without horizontal overflow at 1159 × 802.
+Fixes: increased picker heading/input/row/metadata sizing, increased favicon
+size, aligned the list viewport to complete rows, and changed the focus outline
+to a visible but quieter token-based ring.
 
-### Iteration 4 — the Island as the product hero
+### Iteration 3 — passed
 
-- [P1] The annotated Wikipedia screenshot made the webpage and vertical-tabs rail the dominant visual, while Blanc’s primary differentiator—the Island—was a small detail.
-  - Evidence: the left side of `press-product-island-comparison-v1.png` shows the Island occupying only a small fraction of the 836px-wide screenshot, with four callouts competing around it.
-  - Fix: added an enlarged, source-faithful v1.0 Island recreation on a subdued real web-page capture. The resting pill expands into authentic tab groups, filters tabs and slash commands, switches domains, responds to Escape, and includes reduced-motion behavior.
-- [P2] The callouts explained details too small to inspect at the scale where they appeared.
-  - Fix: moved and rewrote the four annotations around the 640px expanded Island, where dots, groups, input, page actions, and footer controls are directly visible.
-- [P2] The Wikipedia frame was carrying both product proof and explanatory annotation.
-  - Fix: removed every surrounding callout and promoted it to a clean, downloadable secondary “Shipping build” capture below the interactive feature.
-- Post-fix evidence: `press-product-island-demo-final.png`, `press-product-island-comparison-v1.png`, and `press-wikipedia-clean-v1.png`. No actionable P0, P1, or P2 differences remain.
+Post-fix evidence:
 
-### Iteration 5 — expanded-tab fidelity
+- `docs/superpowers/specs/assets/glance-design-qa-final.jpg`
+- `docs/superpowers/specs/assets/glance-design-qa-header-final.png`
+- `docs/superpowers/specs/assets/glance-design-qa-picker-final.png`
 
-- [P1] Every expanded tab row inherited the browser’s native button background, making all six rows look selected and flattening the active-tab hierarchy.
-  - Evidence: the left side of `press-expanded-tabs-comparison.png` shows opaque gray rows throughout; the computed non-active background was `rgb(239, 239, 239)`.
-  - Fix: explicitly reset tab buttons to transparent, reserve the accent tint for the active row, and use the surface color only on hover/focus.
-- [P2] The demo’s initial expanded geometry was looser than the shipping panel.
-  - Fix: matched the source panel’s 620px width, 10px/12px padding, 10px radius, 28px input/actions, 32px tab rows, 14px favicons, and tighter footer rhythm.
-- [P2] Domains and tags competed with every tab title at rest.
-  - Fix: matched Blanc’s quiet-row convention—secondary metadata remains reserved but fades in only for the active, hovered, or keyboard-focused row.
-- Post-fix evidence: `press-expanded-tabs-after-fix.png` and `press-expanded-tabs-comparison.png`. Interaction regression checks still pass for command filtering, tab filtering, selection/collapse, and Escape; final audit reports zero console errors, broken images, horizontal overflow, or text below 12px.
+The final full view and focused regions show no actionable P0/P1/P2 drift.
+Remaining differences are expected live-data differences, the approved 62/38
+responsive rule, and the intentional visible picker-cancel affordance.
 
-### Iteration 6 — editorially relevant tab group
+## Functional evidence
 
-- [P2] The generic “launch” group mixed GitHub and Blanc, which did not reinforce the press-page context or demonstrate how named groups organize a coherent browsing task.
-  - Fix: replaced it with a three-tab “tech news” group featuring The Verge, 9to5Mac, and CNET, using each publication’s real favicon.
-- [P2] GitHub remained visible behind the Island after The Verge became the active tab.
-  - Fix: replaced the backdrop with a real 1280 × 720 The Verge capture so the active domain, favicon, group contents, and page content tell the same story.
-- Post-fix evidence: `press-tech-news-group.png`. The local browser audit confirms all three tabs, The Verge as the resting domain, no broken images, no horizontal overflow, and no console errors.
-
-### Iteration 7 — complete tab-switching state
-
-- [P1] Choosing a row changed the resting domain but left The Verge visible behind the Island, so the interaction looked cosmetic rather than like a browser switching tabs.
-  - Fix: wired every visible row to a bundled capture of its actual website, including the supplied CNET page.
-- [P1] Restoring the expanded list reset the active highlight to The Verge even after another site had been chosen.
-  - Fix: promoted the selected domain to persistent demo state and now rebuilds the active row, badge, group label, favicon, shield count, domain, and page surface from that state.
-- [P2] The first click could expose the stage background while an uncached capture loaded.
-  - Fix: preload every bundled page capture when the demo initializes and swap the selected surface immediately.
-- [P1] The page surface was dimmed with reduced opacity, saturation, and brightness even though Blanc does not tint ordinary tab content.
-  - Fix: removed the persistent darkening treatment and the transitional opacity animation; every selected website now renders at its captured native color and luminance.
-- Browser verification switched through all seven rows, confirmed matching page sources and group labels, reopened with the selected row still active, and found no broken images, horizontal overflow, or console errors.
-
-### Iteration 8 — real CNET capture
-
-- [P1] The initial CNET state was a locally composed approximation rather than the real publication page shown by the other tabs.
-  - Fix: replaced the approximation with the user-supplied CNET screenshot, cropped precisely to remove the outer desktop, window frame, and duplicate Blanc Island while retaining the complete CNET header and editorial grid.
-- [P2] The demo's generic centered cover crop clipped the left edge of the CNET wordmark.
-  - Fix: added a CNET-specific 24% horizontal page position so the full wordmark and “Best” rail remain visible while the capture continues to fill the tab surface.
-- The final asset is a lossless 2597 × 1494 PNG. Collapsed and expanded browser checks confirm the real CNET page renders at native color, the CNET row remains active after reopening, and there are no broken images or horizontal overflow.
-
-### Iteration 9 — shipping tab-row actions
-
-- [P1] The enlarged Island omitted the shipping row's hover actions, so the tab list communicated switching but not Blanc's direct tab management model.
-  - Fix: every tab row now reserves and reveals the same pin, group, and close controls on hover or keyboard focus; clicks perform their demonstrated action without accidentally switching tabs.
-- [P2] A demo-only “active” badge and persistent secondary metadata made the rows noisier than the shipping overlay.
-  - Fix: removed the badge, retained the active-row tint and domain, and matched the production title fade plus quiet metadata reveal.
-- [P2] The first web implementation inherited fill-only SVG rendering, leaving the close action visually blank.
-  - Fix: applied Blanc's rounded, current-color stroke language and the shipping 14px pin / 12px close geometry.
-- Local browser verification confirms all three controls reveal together under focus-within, the group action does not switch the active The Verge tab, and the formerly blank close glyph renders correctly.
-
-### Iteration 10 — announcement worth covering
-
-- [P1] The launch announcement was a short product rationale with no unmistakable release news, usable availability details, or memorable editorial moment.
-  - Fix: rebuilt it around a dated launch statement, a strong first-paragraph news hook, a precise explanation of the Island, and a compact reporter-ready availability, price, and publisher block.
-- [P2] The original private-browsing line overstated the implementation as a separate session.
-  - Fix: replaced it with the accurate, user-visible guarantee: private tabs stay out of history and saved sessions.
-- [P2] The founder quote repeated the page's generic contrast with agents instead of delivering a clean, publishable point of view.
-  - Fix: rewrote the quote around the product's central promise—keeping attention on the page—and attributed it to Anthony J. Loria.
-
-### Iteration 11 — founder intent
-
-- [P1] The revised announcement still described what Blanc does more clearly than why Anthony J. Loria made it.
-  - Fix: centered the section on the founding conviction that the website should be the main event, then connected the Island, absence of AI bots and chrome clutter, privacy posture, and independent model back to that idea.
-- [P2] The page risked sounding nostalgically minimalist without explaining the modern purpose of that restraint.
-  - Fix: framed Blanc as a throwback in spirit—recovering a fun, open, direct web—while naming the modern protections it retains: network-level blocking, private tabs excluded from history and saved sessions, and optional end-to-end encrypted sync.
-
-### Iteration 12 — Island-first imagery
-
-- [P2] The secondary Wikipedia shipping-build screenshot reintroduced a generic web page into a story whose primary visual should be Blanc's Island.
-  - Fix: removed the screenshot and its press download entirely; the editorial visual system now relies on the interactive Island, the high-resolution product capture, and the launch card.
-
-### Iteration 13 — callout anchors
-
-- [P1] In the supplied desktop state, the callout leaders ended at the demo frame, leaving the labels disconnected from the Island controls they described.
-  - Fix: extended each desktop leader into the stage and aligned it to a visible, semantically matching target: the expanded panel's left edge for “One Island,” the active The Verge row for “Open context,” the `tech news` label for “Named groups,” and the expanded panel's lower-right edge for “Expanded on demand.” The former “Tabs become dots” label was replaced because dot targets are intentionally not visible while the full session is expanded.
-- [P2] The callout layout could not preserve those exact spatial relationships after the single-column responsive breakpoint.
-  - Fix: kept the richer leaders desktop-only and hide them below 1101px, where the annotations become a clean stacked explanation rather than pretending to point across a reflowed layout.
-- Post-fix evidence: `press-callouts-comparison.png` contrasts the supplied broken desktop state on the left with the corrected desktop state on the right. `press-callouts-reassigned.png` confirms the final arrangement: Named Groups is on the left and terminates at the `tech news` label; Open Context is on the right and terminates at the active The Verge row. Browser geometry confirms those endpoints with no horizontal overflow.
-
-### Iteration 14 — brand-neutral press imagery
-
-- [P1] The primary product capture made GitHub's campaign, logo, and copy more visually dominant than Blanc, creating an avoidable association with one third-party website.
-  - Fix: replaced it with a 2784 × 1824 editorial capture derived from the Press demo: Blanc's expanded Island is the focal point over an original stock-style reading-room photograph with no third-party branding, text, products, or watermark.
-- [P1] The launch card reused the same GitHub-heavy capture and would have reintroduced that association elsewhere in the Press Assets section.
-  - Fix: rebuilt the 2400 × 1260 launch card around the same brand-neutral capture while preserving the Blanc mark, launch headline, date, and cross-platform line.
-- [P2] Real publication names inside the static Island would still have made the asset feel tied to particular media brands, while generic nouns without domains did not look enough like actual website tabs.
-  - Fix: the static capture now uses realistic page titles, reserved `.example` domains, favicon-style monograms, and the named group `inspiration`. The active `Quiet Spaces · spaces.example` tab plausibly owns the photograph without implying a real third-party relationship; the live demo retains real sites because its purpose is interactive product demonstration.
-- [P2] The dark-blue strip above the photograph suggested shipping browser chrome and interrupted the requested edge-to-edge editorial background.
-  - Fix: removed the strip from the static asset and extended the original photograph behind the full expanded Island panel. This is explicitly an editorial composition rather than a literal screenshot of the shipping window.
-- [P2] The launch card initially preserved the primary capture's black presentation margin inside its own image frame, creating visible letterboxing.
-  - Fix: cropped the embedded product capture proportionally inside the launch-card frame so the photograph fills it edge-to-edge without stretching the Island UI.
-- Post-fix evidence: `blanc-island-product-capture-v2.png` and `blanc-1.0-launch-card-v3.png`. Both assets retain the declared high-resolution dimensions and contain no third-party website branding.
-
-### Iteration 15 — Press Assets framing
-
-- [P2] “Show the product, not another logo wall” framed the section defensively and spent its strongest line criticizing a familiar press-kit pattern.
-  - First fix: replaced it with “The Island, ready for publication,” but that remained a brand line rather than useful newsroom guidance.
-  - Final fix: replaced it with “High-resolution Blanc imagery, ready to publish” and rewrote the supporting copy as an inventory and accuracy guarantee: expanded-Island capture, launch artwork, Blanc mark, real interface, and no third-party website branding.
+- Primary interactions tested: native shortcut entry, filter + Enter
+  selection, Change replacement, Escape focus return, explicit Make main,
+  interactive reference focus without promotion, divider keyboard resize,
+  header close, underlying reference-tab close, quiet-tab wake, dark/private
+  appearance, and the 700px stacked breakpoint.
+- Focused Electron acceptance: 4 scenarios and 32 steps passed.
+- Complete Electron acceptance: 102 scenarios and 629 steps passed. The full
+  run exposed and verified a slow-loading-tab identity fix that the focused
+  slice alone could not reproduce.
+- The live development terminal showed no renderer or main-process errors
+  during the final visual pass.
 
 ## Follow-up polish
 
-- [P3] The proof strip uses restrained numeric indices instead of the mockup’s illustrative icons. This is intentional: the existing site has no matching icon family, and numeric editorial markers preserve the hierarchy without introducing fabricated assets.
+No P3 visual follow-up is required for this release candidate.
 
 final result: passed

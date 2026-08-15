@@ -107,6 +107,11 @@ const {
   calculateShieldBounds,
   calculateCaptureBounds,
 } = require('./chrome-layout');
+const {
+  DEFAULT_GLANCE_RATIO,
+  calculateGlanceLayout,
+  ratioForGlanceDivider,
+} = require('./glance-layout');
 const { reorderWithinBucket } = require('./tab-order');
 const {
   installPlatformMainMenuShortcut,
@@ -771,8 +776,10 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
 
   // The CDP inspection above is asynchronous. Repeat every mutable eligibility
   // check immediately before the irreversible renderer kill — including
-  // capture, which a background tab can legitimately begin during the await.
-  if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.navEpoch !== navEpoch || tab.isLoading
+  // capture, which a background tab can legitimately begin during the await,
+  // and Glance, which can make the tab visible during it.
+  if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.id === rt().glanceTabId
+      || tab.navEpoch !== navEpoch || tab.isLoading
       || !tab.sleeping || tab.capturing || liveContents(tab) !== wc
       || !rendererIsExclusive()) return false;
 
@@ -839,8 +846,10 @@ async function sleepTab(id, { broadcast = true } = {}) {
 
   // The probe has an async frame budget; validate synchronously immediately
   // before teardown so it can never discard a tab the user just activated —
-  // or one that began CAPTURING after candidate selection.
-  if (!tabs.has(id) || id === rt().activeTabId || tab.navEpoch !== epochAtProbe
+  // one that began CAPTURING after candidate selection, or one that became
+  // the visible Glance reference while an earlier candidate's probe awaited.
+  if (!tabs.has(id) || id === rt().activeTabId || id === rt().glanceTabId
+      || tab.navEpoch !== epochAtProbe
       || tab.isLoading || tab.sleeping || tab.capturing || !liveContents(tab)) return false;
 
   if (snapshot.droppedPageState) {
@@ -969,6 +978,7 @@ async function sleepBackgroundTabsNow() {
     snapshotCount: sleepSnapshots.size,
     permissionPendingTabIds,
     popupChildCounts,
+    visibleTabIds: new Set([runtime.glanceTabId].filter(Boolean)),
   });
   const quieted = [];
   for (const id of ids) {
@@ -1202,6 +1212,7 @@ async function runSleepSweep({ ignoreThreshold = false } = {}) {
     maxSnapshots: MAX_SLEEP_SNAPSHOTS,
     permissionPendingTabIds: permissionPendingTabIds(),
     popupChildCounts,
+    visibleTabIds: new Set([rt().glanceTabId].filter(Boolean)),
   });
 
   const quieted = [];
@@ -1411,10 +1422,66 @@ function verticalTabsMetrics(layout = currentChromeLayout()) {
   };
 }
 
+function activeGlanceTab() {
+  const id = rt().glanceTabId;
+  if (!id || id === rt().activeTabId) return null;
+  const tab = tabs.get(id);
+  return tab && windowRuntimes.runtimeForTab(id) === rt() ? tab : null;
+}
+
+function glanceGeometry(layout = currentChromeLayout()) {
+  if (!activeGlanceTab()) return null;
+  return calculateGlanceLayout(layout.pageBounds, rt().glanceRatio);
+}
+
+function currentTabBounds(tab) {
+  const layout = currentChromeLayout();
+  const glance = glanceGeometry(layout);
+  if (!glance) return layout.pageBounds;
+  if (tab?.id === rt().glanceTabId) return glance.glance;
+  if (tab?.id === rt().activeTabId) return glance.primary;
+  return layout.pageBounds;
+}
+
 function overlayBounds() {
   const layout = currentChromeLayout();
-  if (rt().overlayMode === 'find') return layout.findBounds;
-  if (rt().overlayMode === 'palette') return layout.paletteBounds;
+  const glance = glanceGeometry(layout);
+  if (rt().overlayMode === 'find') {
+    if (!glance) return layout.findBounds;
+    const width = Math.min(560, glance.primary.width);
+    return {
+      x: glance.primary.x + Math.round((glance.primary.width - width) / 2),
+      y: rt().chromeHeight,
+      width,
+      height: Math.min(160, glance.primary.height),
+    };
+  }
+  if (rt().overlayMode === 'palette' || rt().overlayMode === 'panel') {
+    if (!glance) return rt().overlayMode === 'palette' ? layout.paletteBounds : layout.panelBounds;
+    return {
+      x: glance.primary.x,
+      y: 0,
+      width: glance.primary.width,
+      height: rt().window.getContentBounds().height,
+    };
+  }
+  if (rt().overlayMode === 'glance') {
+    const windowHeight = rt().window.getContentBounds().height;
+    if (glance && rt().overlayPurpose === 'change') {
+      return {
+        x: glance.glanceHeader.x,
+        y: glance.glanceHeader.y,
+        width: glance.glanceHeader.width,
+        height: Math.min(Math.max(0, windowHeight - glance.glanceHeader.y), 520),
+      };
+    }
+    return {
+      x: layout.pageBounds.x,
+      y: 0,
+      width: layout.pageBounds.width,
+      height: Math.min(windowHeight, 520),
+    };
+  }
   if (rt().overlayMode === 'shield') {
     return calculateShieldBounds({
       windowWidth: rt().window.getContentBounds().width,
@@ -1545,7 +1612,11 @@ function createOverlay() {
   // would be lost — leaving an invisible view blocking clicks. Replay it.
   rt().overlayView.webContents.once('did-finish-load', bindWindowRuntime(owner, () => {
     if (rt().overlayMode) {
-      rt().overlayView.webContents.send('overlay:show', { mode: rt().overlayMode, prefill: rt().overlayPrefill });
+      rt().overlayView.webContents.send('overlay:show', {
+        mode: rt().overlayMode,
+        prefill: rt().overlayPrefill,
+        purpose: rt().overlayPurpose,
+      });
       rt().overlayView.webContents.focus();
     }
   }));
@@ -1621,7 +1692,7 @@ function refocusOverlayAfterMenu() {
   }
 }
 
-function showOverlay(mode, { prefill } = {}) {
+function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
@@ -1631,6 +1702,7 @@ function showOverlay(mode, { prefill } = {}) {
   if (mode === 'panel' || mode === 'palette') sync.refreshSession();
   rt().overlayMode = mode;
   rt().overlayPrefill = prefill ?? null;
+  rt().overlayPurpose = purpose ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
   rt().window.contentView.addChildView(rt().overlayView);
   restackPermissionView();
@@ -1640,9 +1712,18 @@ function showOverlay(mode, { prefill } = {}) {
   }
   const bounds = overlayBounds();
   rt().overlayView.setBounds(bounds);
+  // A detached overlay renderer can trail the chrome by one broadcast under
+  // sustained tab churn. Glance eligibility must be correct in the first
+  // painted frame, not eventually after the picker is already interactive.
+  // Refresh only that mode here; this is a projection send, not a persistence
+  // or Tab Sync change notification.
+  if (mode === 'glance') {
+    rt().overlayView.webContents.send('tabs:updated', currentTabsPayload());
+  }
   rt().overlayView.webContents.send('overlay:show', {
     mode,
     prefill,
+    purpose,
     // Where the resting pill is, in the overlay's OWN coordinates, so the
     // panel can start life at the pill's size and grow out of it. The two live
     // in different views, so this hand-off is the only way the overlay can
@@ -1665,8 +1746,10 @@ const OVERLAY_RETRACT_MS = 200;
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
   if (!rt().overlayMode) return;
   const closingMode = rt().overlayMode;
+  const closingPurpose = rt().overlayPurpose;
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
+  rt().overlayPurpose = null;
   rt().shieldAnchorRight = null;
   rt().captureAnchorRight = null;
   rt().shieldPopoverHost = null;
@@ -1702,8 +1785,17 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     // started. The chrome webContents must take focus BEFORE the strip's DOM
     // focus() runs: the overlay held it until removeChildView above, and a
     // focus call inside an unfocused document paints no visible ring.
-    const restoreTrigger = reason === 'escape'
-      ? (closingMode === 'shield' ? closingTrigger : closingMode === 'capture' ? 'capture' : null)
+    const cancelled = reason === 'escape' || reason === 'cancel';
+    const restoreTrigger = cancelled
+      ? (
+          closingMode === 'shield' ? closingTrigger
+            : closingMode === 'capture' ? 'capture'
+              // The Change control only exists while Glance is still open —
+              // if the reference tab closed under the picker, fall through to
+              // the ordinary content refocus instead of a hidden button.
+              : closingMode === 'glance' && closingPurpose === 'change' && activeGlanceTab() ? 'glance-change'
+                : null
+        )
       : null;
     if (restoreTrigger) rt().window.webContents.focus();
     rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
@@ -2304,21 +2396,16 @@ function activeShieldPopover(serialized = serializeTabs()) {
   });
 }
 
-function broadcastTabs() {
-  persistSession();
-  // Existing Tab Sync consent covers Personal's primary workspace only.
-  if (rt().id === PRIMARY_WINDOW_ID && rt().profileId === DEFAULT_PROFILE_ID) {
-    tabsync.noteTabsChanged();
-  }
-  if (!rt().window || rt().window.isDestroyed()) return;
+function currentTabsPayload() {
   const widthMetrics = verticalTabsMetrics();
   // Serialize once and hand the same list to the popover, so connection is
   // derived a single time per broadcast.
   const serialized = serializeTabs();
   const runtime = rt();
-  const payload = {
+  return {
     tabs: serialized,
     activeTabId: runtime.activeTabId,
+    glanceTabId: activeGlanceTab()?.id ?? null,
     groups: runtime.groups,
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
@@ -2326,6 +2413,17 @@ function broadcastTabs() {
     ...captureBroadcastState(serialized),
     ...widthMetrics,
   };
+}
+
+function broadcastTabs() {
+  persistSession();
+  // Existing Tab Sync consent covers Personal's primary workspace only.
+  if (rt().id === PRIMARY_WINDOW_ID && rt().profileId === DEFAULT_PROFILE_ID) {
+    tabsync.noteTabsChanged();
+  }
+  if (!rt().window || rt().window.isDestroyed()) return;
+  const runtime = rt();
+  const payload = currentTabsPayload();
   rt().window.webContents.send('tabs:updated', payload);
   runtime.overlayView?.webContents.send('tabs:updated', payload);
 }
@@ -2350,7 +2448,10 @@ function resizeActiveView() {
   if (!rt().window || rt().window.isDestroyed()) return;
   const layout = currentChromeLayout();
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
-  if (tab?.view) tab.view.setBounds(layout.pageBounds);
+  const glanceTab = activeGlanceTab();
+  const glance = glanceTab ? glanceGeometry(layout) : null;
+  if (tab?.view) tab.view.setBounds(glance?.primary ?? layout.pageBounds);
+  if (glanceTab?.view && glance) glanceTab.view.setBounds(glance.glance);
   if (rt().overlayMode && rt().overlayView) rt().overlayView.setBounds(overlayBounds());
   if (rt().permissionViewAttached && rt().permissionView) {
     rt().permissionView.setBounds(permissionViewBounds());
@@ -2361,6 +2462,7 @@ function resizeActiveView() {
   // frame. A dedicated geometry event avoids turning every pointermove or
   // window resize into a tab/session-sync broadcast.
   rt().window.webContents.send('chrome:vertical-tabs-width', verticalTabsMetrics(layout));
+  rt().window.webContents.send('chrome:glance-layout', glance);
 }
 
 function applyVerticalTabsWidth(nextWidth) {
@@ -2441,8 +2543,29 @@ function installVerticalTabsShortcut(webContents, owner = rt()) {
   }));
 }
 
+function installGlanceShortcut(webContents, owner = rt()) {
+  webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+    const primaryModifier = process.platform === 'darwin'
+      ? input.meta && !input.control
+      : input.control && !input.meta;
+    if (
+      input.type !== 'keyDown' ||
+      input.isAutoRepeat ||
+      String(input.key).toLowerCase() !== 'g' ||
+      !input.shift ||
+      input.alt ||
+      !primaryModifier
+    ) return;
+    // Browser-level shortcut: handle it whichever page or trusted surface has
+    // focus, then suppress the duplicate native-menu accelerator dispatch.
+    event.preventDefault();
+    toggleGlance();
+  }));
+}
+
 function installChromeShortcuts(webContents, owner = rt()) {
   installVerticalTabsShortcut(webContents, owner);
+  installGlanceShortcut(webContents, owner);
   installPlatformMainMenuShortcut({
     webContents,
     Menu,
@@ -2761,6 +2884,7 @@ initTabView({
   closeTab,
   openInternalPage,
   currentChromeLayout,
+  currentTabBounds,
   hideOverlay,
   hasLiveWindow,
   reclaimAddressBarFocus,
@@ -2933,6 +3057,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // Re-selecting the active tab is a no-op.
   if (id === rt().activeTabId) return;
+  const promotingGlance = id === rt().glanceTabId;
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.
@@ -2958,13 +3083,24 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   const prevId = rt().activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
+  // EXPLICIT activation of the reference tab (Make main, an island row,
+  // Cmd/Ctrl+digit) swaps the two visible roles. Interacting inside the
+  // reference pane never reaches here — its focus handler deliberately does
+  // not activate (the reference must be usable without changing roles). Keep
+  // the previous active tab visible as the new Glance pane: the action is a
+  // swap between two already-owned tabs, never a cross-window move.
+  if (promotingGlance) {
+    rt().glanceTabId = prev && windowRuntimes.runtimeForTab(prev.id) === rt()
+      ? prev.id
+      : null;
+  }
   if (prev) {
     // Quiet Tabs: the tab is leaving the foreground — this is the ONLY moment
     // that defines "idle since" (spec §4.3). Stamp before a potential detach
     // error so the tab cannot be left eligible without an idle timestamp.
     prev.lastActiveAt = Date.now();
   }
-  if (prev?.view) {
+  if (prev?.view && prev.id !== rt().glanceTabId) {
     rt().window.contentView.removeChildView(prev.view);
     // A detached view's document still reports visibilityState 'visible',
     // so Chromium never background-throttles its timers (the newtab sprite
@@ -2984,6 +3120,11 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
   if (shouldFocusAddress) next.view.setVisible(false);
   rt().window.contentView.addChildView(next.view);
+  const glanceTab = activeGlanceTab();
+  if (glanceTab?.view) {
+    glanceTab.view.setVisible(true);
+    rt().window.contentView.addChildView(glanceTab.view);
+  }
   // The freshly attached tab view must not stack above an open overlay —
   // nor above the sheet (defensive: §5 means they shouldn't coexist here,
   // but a race must never paint a tab over either floating layer).
@@ -3009,6 +3150,105 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
       reclaimAddressBarFocus(id);
     });
   }
+}
+
+async function setGlanceTab(id) {
+  let tab = tabs.get(id);
+  // A tab mid-sleep-teardown (`sleeping`) still reads back live contents, but
+  // its renderer is already being discarded — attaching it would paint a dead
+  // pane. Refuse; the picker reports the failure and a retry finds it asleep
+  // and takes the wake path.
+  if (
+    !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
+    windowRuntimes.runtimeForTab(id) !== rt()
+  ) return false;
+
+  if (tab.asleep && !(await wakeTab(id))) return false;
+  // Wake is asynchronous. Re-resolve every ownership/liveness condition so a
+  // tab closed, moved, or superseded while loading can never be attached.
+  tab = tabs.get(id);
+  if (
+    !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
+    windowRuntimes.runtimeForTab(id) !== rt()
+  ) return false;
+  if (!liveContents(tab) || !tab.view) return false;
+
+  hideUtilitySheet({ refocusContent: false });
+  const previous = activeGlanceTab();
+  if (previous?.view && previous.id !== id) {
+    rt().window.contentView.removeChildView(previous.view);
+    previous.view.setVisible(false);
+    previous.lastActiveAt = Date.now();
+  }
+
+  rt().glanceTabId = id;
+  tab.view.setVisible(true);
+  rt().window.contentView.addChildView(tab.view);
+  // Floating trusted surfaces must stay above both page panes.
+  const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
+  if (sheet) rt().window.contentView.addChildView(sheet.view);
+  if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
+  restackPermissionView();
+  resizeActiveView();
+  broadcastTabs();
+  scheduleMenuRebuild();
+  rt().window.webContents.send('chrome:glance-status', `${tab.title || 'Tab'} opened in Glance`);
+  return true;
+}
+
+function closeGlance({ focusContent = true } = {}) {
+  const tab = activeGlanceTab();
+  if (!rt().glanceTabId) return false;
+  rt().glanceTabId = null;
+  if (tab?.view && hasLiveWindow()) {
+    rt().window.contentView.removeChildView(tab.view);
+    tab.view.setVisible(false);
+    tab.lastActiveAt = Date.now();
+  }
+  resizeActiveView();
+  broadcastTabs();
+  scheduleMenuRebuild();
+  if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', 'Glance closed');
+  if (focusContent) liveContents(tabs.get(rt().activeTabId))?.focus();
+  return true;
+}
+
+function promoteGlance() {
+  const id = activeGlanceTab()?.id;
+  if (!id) return false;
+  setActiveTab(id, { focusContent: true });
+  const promoted = rt().activeTabId === id;
+  if (promoted && hasLiveWindow()) {
+    rt().window.webContents.send('chrome:glance-status', 'Glance made main');
+  }
+  return promoted;
+}
+
+function openGlancePicker() {
+  if (!hasLiveWindow() || rt().tabOrder.length < 2) return false;
+  rt().window.focus();
+  showOverlay('glance', { purpose: activeGlanceTab() ? 'change' : 'open' });
+  return true;
+}
+
+function toggleGlance() {
+  return activeGlanceTab() ? closeGlance() : openGlancePicker();
+}
+
+function resizeGlanceAt(point) {
+  const layout = currentChromeLayout();
+  const glance = glanceGeometry(layout);
+  if (!glance) return null;
+  rt().glanceRatio = ratioForGlanceDivider(layout.pageBounds, point, glance.direction);
+  resizeActiveView();
+  return rt().glanceRatio;
+}
+
+function resetGlanceRatio() {
+  if (!activeGlanceTab()) return null;
+  rt().glanceRatio = DEFAULT_GLANCE_RATIO;
+  resizeActiveView();
+  return rt().glanceRatio;
 }
 
 function activateTabFromRail(id) {
@@ -3039,9 +3279,6 @@ function activateTabFromRail(id) {
   return true;
 }
 
-/** URLs of recently closed tabs, oldest first (Cmd/Ctrl+Shift+T pops). */
-const recentlyClosedUrls = [];
-
 function closeTab(id) {
   // First statement: any later early return must not strand recovery data.
   const retainedView = sleepSnapshots.get(id)?.view ?? null;
@@ -3058,11 +3295,17 @@ function closeTab(id) {
   // main process while deciding whether it is eligible for reopen-closed-tab.
   const tabUrl = typeof tab.url === 'string' ? tab.url : '';
   if (tabUrl && !tab.private && !tabUrl.startsWith('blanc://newtab')) {
-    recentlyClosedUrls.push(tabUrl);
-    if (recentlyClosedUrls.length > 25) recentlyClosedUrls.shift();
+    const recentlyClosed = rt().recentlyClosedUrls ??= [];
+    recentlyClosed.push(tabUrl);
+    if (recentlyClosed.length > 25) recentlyClosed.shift();
   }
 
   const wasActive = id === rt().activeTabId;
+  const wasGlance = id === rt().glanceTabId;
+  if (wasGlance) rt().glanceTabId = null;
+  if (wasGlance && hasLiveWindow() && tab.view) {
+    rt().window.contentView.removeChildView(tab.view);
+  }
   if (wasActive && hasLiveWindow() && tab.view) rt().window.contentView.removeChildView(tab.view);
 
   const closedIndex = rt().tabOrder.indexOf(id);
@@ -3084,6 +3327,18 @@ function closeTab(id) {
       rt().activeTabId = null;
       return;
     }
+    const survivingGlanceId = rt().glanceTabId && tabs.has(rt().glanceTabId)
+      ? rt().glanceTabId
+      : null;
+    if (survivingGlanceId) {
+      // Closing the main page leaves the visible reference as the sole page.
+      // Promote it and collapse Glance rather than silently choosing a third
+      // background tab for the newly-empty primary pane.
+      rt().glanceTabId = null;
+      rt().activeTabId = null;
+      setActiveTab(survivingGlanceId);
+      return;
+    }
     if (rt().tabOrder.length > 0) {
       // Prefer the tab that was to the right of the closed one.
       setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
@@ -3096,12 +3351,19 @@ function closeTab(id) {
     }
     if (hasLiveWindow()) return; // setActiveTab already broadcasts and schedules a menu rebuild
   }
+  // Closing the underlying reference is also a layout transition. The normal
+  // broadcast updates the header state, but only an explicit resize gives the
+  // surviving main WebContentsView its full page bounds in the same turn.
+  if (wasGlance && hasLiveWindow()) resizeActiveView();
+  if (wasGlance && hasLiveWindow()) {
+    rt().window.webContents.send('chrome:glance-status', 'Glance closed because its tab was closed');
+  }
   broadcastTabs();
   scheduleMenuRebuild();
 }
 
 function reopenClosedTab() {
-  const url = recentlyClosedUrls.pop();
+  const url = rt().recentlyClosedUrls?.pop();
   if (url) setActiveTab(createTab(url));
 }
 
@@ -3497,6 +3759,10 @@ function registerIpcHandlers() {
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
+  chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
+  chromeHandle('tabs:open-glance-picker', () => openGlancePicker());
+  chromeHandle('tabs:close-glance', () => closeGlance());
+  chromeHandle('tabs:promote-glance', () => promoteGlance());
   chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
   // Search completions are query text, not navigation targets: a suggestion
   // such as "example.com" must search for that text instead of being
@@ -3574,6 +3840,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:get-all', () => ({
     tabs: serializeTabs(),
     activeTabId: rt().activeTabId,
+    glanceTabId: activeGlanceTab()?.id ?? null,
     groups: rt().groups,
     tabLayout,
     ...verticalTabsMetrics(),
@@ -3646,7 +3913,9 @@ function registerIpcHandlers() {
     previewVerticalTabsWidth(width));
   chromeHandle('chrome:set-vertical-tabs-width', (_e, width) =>
     setVerticalTabsWidth(width));
-  chromeOn('overlay:close', () => hideOverlay());
+  chromeOn('chrome:resize-glance', (_e, point) => resizeGlanceAt(point));
+  chromeHandle('chrome:reset-glance', () => resetGlanceRatio());
+  chromeOn('overlay:close', (_e, reason) => hideOverlay({ reason }));
   chromeOn('chrome:downloads-ack', () => {
     acknowledgeDownloads();
     broadcastDownloadsActivity();
@@ -3920,6 +4189,7 @@ const COMMON_KEYSTROKES = [
   ['Search & Commands', 'CmdOrCtrl+L'],
   ['Find in Page', 'CmdOrCtrl+F'],
   ['Toggle Vertical Tabs', 'CmdOrCtrl+Alt+V'],
+  ['Open or Close Glance', 'CmdOrCtrl+Shift+G'],
   ['Next Tab', 'Ctrl+Tab'],
   ['Previous Tab', 'Ctrl+Shift+Tab'],
   ['Next Tab in Group', 'Alt+CmdOrCtrl+Right'],
@@ -3979,7 +4249,12 @@ function buildMenuForRuntime(runtime) {
         { label: 'New Tab', accelerator: 'CmdOrCtrl+T', click: bound(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })) },
         { label: 'New Private Tab', accelerator: 'CmdOrCtrl+Shift+N', click: bound(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })) },
         { label: 'Close Tab', accelerator: 'CmdOrCtrl+W', click: bound(() => rt().activeTabId && closeTab(rt().activeTabId)) },
-        { label: 'Reopen Closed Tab', accelerator: 'CmdOrCtrl+Shift+T', click: bound(reopenClosedTab) },
+        {
+          label: 'Reopen Closed Tab',
+          accelerator: 'CmdOrCtrl+Shift+T',
+          enabled: (runtime.recentlyClosedUrls?.length ?? 0) > 0,
+          click: bound(reopenClosedTab),
+        },
         { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
         { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: bound(checkForUpdatesManually) }, { type: 'separator' }]),
@@ -4031,6 +4306,13 @@ function buildMenuForRuntime(runtime) {
               click: bound(() => setTabLayout('vertical')),
             },
           ],
+        },
+        {
+          id: 'toggle-glance',
+          label: activeGlanceTab() ? 'Close Glance' : 'Open Glance…',
+          accelerator: 'CmdOrCtrl+Shift+G',
+          enabled: !!activeGlanceTab() || rt().tabOrder.length > 1,
+          click: bound(toggleGlance),
         },
         { type: 'separator' },
         { label: 'Downloads', accelerator: 'CmdOrCtrl+Shift+J', click: bound(() => openInternalPage('blanc://downloads/')) },
@@ -4498,6 +4780,8 @@ function windowRuntimeSnapshots() {
     title: runtime.window && !runtime.window.isDestroyed() ? runtime.window.getTitle() : null,
     tabOrder: [...runtime.tabOrder],
     activeTabId: runtime.activeTabId,
+    glanceTabId: runtime.glanceTabId,
+    recentlyClosedUrls: [...runtime.recentlyClosedUrls],
     tabs: runtime.tabOrder.map((id) => {
       const tab = tabs.get(id);
       return tab ? { id, url: tab.url, private: !!tab.private } : null;
@@ -4525,6 +4809,30 @@ function openTabInWindow(id, url, options = {}) {
     const tabId = createTab(url, options);
     if (tabId) setActiveTab(tabId);
     return tabId;
+  });
+}
+
+function setGlanceTabInWindow(runtimeId, tabId) {
+  return runInWindowRuntime(runtimeId, () => setGlanceTab(tabId));
+}
+
+function closeTabInWindow(runtimeId, tabId) {
+  return runInWindowRuntime(runtimeId, () => {
+    if (windowRuntimes.runtimeForTab(tabId) !== rt()) return false;
+    closeTab(tabId);
+    return true;
+  });
+}
+
+function closeGlanceInWindow(runtimeId) {
+  return runInWindowRuntime(runtimeId, () => closeGlance({ focusContent: false }));
+}
+
+function reopenClosedTabInWindow(runtimeId) {
+  return runInWindowRuntime(runtimeId, () => {
+    const before = rt().activeTabId;
+    reopenClosedTab();
+    return rt().activeTabId !== before ? rt().activeTabId : null;
   });
 }
 
@@ -5000,9 +5308,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       bindRoot: (fn) => bindWindowRuntime(primaryRuntime, fn),
       tabs, getTabOrder: () => rt().tabOrder, getGroups: () => rt().groups, getActiveTabId: () => rt().activeTabId, clusterSlots,
       createTab, setActiveTab, closeTab, duplicateTab, toggleTabPinned, toggleTabMuted,
+      setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
+      getGlanceTabId: () => rt().glanceTabId,
+      getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
       groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       openNewWindow, windowRuntimeSnapshots, closeWindowRuntime, openTabInWindow,
+      setGlanceTabInWindow, closeGlanceInWindow, closeTabInWindow, reopenClosedTabInWindow,
       createNamedLocalProfileWindow, renameNamedLocalProfile, deleteNamedLocalProfile,
       localProfileSnapshots, profileBookmarkUrls, saveProfileFavorite,
       profileTabSessionSnapshot,
@@ -5313,6 +5625,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
       });
     }
+
+    // The first menu is built before session restore, while every workspace
+    // is still empty. Rebuild after the real tab set exists so dynamic
+    // commands such as Glance have truthful enabled states on first launch.
+    buildMenu(focusedRuntime ?? primaryRuntime);
 
     sessionPersistenceSuspended = false;
     persistSession();

@@ -21,6 +21,7 @@ const common = {
 // The scenarios implemented in steps/ (by their stable @F#-n ids).
 const RUNNABLE = [
   '@F2-1', '@F2-2', '@F2-3', '@F2-4',
+  '@F2-5',
   '@F3-1', '@F3-4', '@F3-5',
   '@F4-4', '@F4-5',
   '@F5-1', '@F5-2', '@F5-3', '@F5-4', '@F5-5', '@F5-6',
@@ -40,6 +41,7 @@ const RUNNABLE = [
   '@F31-6', '@F31-7', '@F31-8', '@F31-9', '@F31-10',
   '@F32-1', '@F32-2',
   '@F33-1', '@F33-2', '@F33-3',
+  '@F34-1',
 ].join(' or ');
 
 export default { ...common, tags: 'not @mobile' };

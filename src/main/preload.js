@@ -26,6 +26,10 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   reorderTabWithinBucket: (id, beforeId) =>
     ipcRenderer.invoke('tabs:reorder-within-bucket', id, beforeId),
   activateTabFromRail: (id) => ipcRenderer.invoke('tabs:activate-from-rail', id),
+  setGlanceTab: (id) => ipcRenderer.invoke('tabs:set-glance', id),
+  openGlancePicker: () => ipcRenderer.invoke('tabs:open-glance-picker'),
+  closeGlance: () => ipcRenderer.invoke('tabs:close-glance'),
+  promoteGlance: () => ipcRenderer.invoke('tabs:promote-glance'),
   setTabGroup: (id, groupId) => ipcRenderer.invoke('tabs:set-group', id, groupId),
   groupTabByName: (id, name) => ipcRenderer.invoke('tabs:group-by-name', id, name),
   toggleGroupCollapsed: (groupId) => ipcRenderer.invoke('tabs:toggle-group-collapsed', groupId),
@@ -65,6 +69,18 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('chrome:vertical-tabs-width', listener);
     return () => ipcRenderer.removeListener('chrome:vertical-tabs-width', listener);
   },
+  resizeGlance: (point) => ipcRenderer.send('chrome:resize-glance', point),
+  resetGlance: () => ipcRenderer.invoke('chrome:reset-glance'),
+  onGlanceLayout: (callback) => {
+    const listener = (_event, layout) => callback(layout);
+    ipcRenderer.on('chrome:glance-layout', listener);
+    return () => ipcRenderer.removeListener('chrome:glance-layout', listener);
+  },
+  onGlanceStatus: (callback) => {
+    const listener = (_event, message) => callback(message);
+    ipcRenderer.on('chrome:glance-status', listener);
+    return () => ipcRenderer.removeListener('chrome:glance-status', listener);
+  },
 
   openIsland: () => ipcRenderer.send('chrome:open-island'),
   openFindBar: () => ipcRenderer.send('chrome:open-find'),
@@ -73,7 +89,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   captureStop: (surfaceId) => ipcRenderer.send('chrome:capture-stop', surfaceId),
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
   openMainMenu: (point) => ipcRenderer.invoke('chrome:open-main-menu', point),
-  closeOverlay: () => ipcRenderer.send('overlay:close'),
+  closeOverlay: (reason) => ipcRenderer.send('overlay:close', reason),
 
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
