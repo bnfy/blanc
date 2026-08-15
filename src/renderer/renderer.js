@@ -26,12 +26,14 @@
   const pillSourceChip = document.getElementById('pillSourceChip');
   const windowControls = document.getElementById('windowControls');
   const mainMenuButton = document.getElementById('mainMenuButton');
-  const glanceContext = document.getElementById('glanceContext');
+  const glanceHeader = document.getElementById('glanceHeader');
   const glanceFavicon = document.getElementById('glanceFavicon');
-  const glanceDomain = document.getElementById('glanceDomain');
+  const glanceTitle = document.getElementById('glanceTitle');
   const glancePromote = document.getElementById('glancePromote');
+  const glanceChange = document.getElementById('glanceChange');
   const glanceClose = document.getElementById('glanceClose');
   const glanceDivider = document.getElementById('glanceDivider');
+  const glanceStatus = document.getElementById('glanceStatus');
 
   let state = {
     tabs: [],
@@ -312,7 +314,7 @@
   function renderGlance() {
     const tab = glanceTab();
     const visible = !!tab && !!glanceLayout;
-    glanceContext.hidden = !visible;
+    glanceHeader.hidden = !visible;
     glanceDivider.hidden = !visible;
     stripEl.classList.toggle('glance-open', visible);
     if (!visible) {
@@ -321,7 +323,7 @@
       return;
     }
 
-    const { primary, glance, divider, page, direction, ratio } = glanceLayout;
+    const { primary, glanceHeader: header, divider, page, direction, ratio } = glanceLayout;
     const chromePrimaryRight = direction === 'horizontal'
       ? primary.x + primary.width
       : page.x + Math.round(page.width * 0.68);
@@ -336,21 +338,18 @@
     glanceDivider.setAttribute('aria-valuenow', String(Math.round(ratio * 100)));
     glanceDivider.setAttribute('aria-valuetext', `Main page ${Math.round(ratio * 100)} percent`);
 
-    const controlsClearance = isMac ? 12 : 126;
-    const desiredWidth = direction === 'horizontal' ? 230 : 152;
-    const desiredX = direction === 'horizontal'
-      ? glance.x + 12
-      : chromePrimaryRight + 12;
-    const x = Math.max(page.x + 8, desiredX);
-    const available = Math.max(112, window.innerWidth - x - controlsClearance);
-    glanceContext.style.left = `${x}px`;
-    glanceContext.style.width = `${Math.min(desiredWidth, available)}px`;
-    glanceContext.classList.toggle('private', !!tab.private);
+    glanceHeader.style.left = `${header.x}px`;
+    glanceHeader.style.top = `${header.y}px`;
+    glanceHeader.style.width = `${header.width}px`;
+    glanceHeader.style.height = `${header.height}px`;
+    glanceHeader.style.paddingRight = `${direction === 'horizontal' && !isMac ? 126 : 12}px`;
+    glanceHeader.dataset.direction = direction;
+    glanceHeader.classList.toggle('private', !!tab.private);
     setFavicon(glanceFavicon, tab);
-    glanceDomain.textContent = tab.isLoading
+    glanceTitle.textContent = tab.isLoading
       ? 'Loading…'
-      : tabDomain(tab) || (tab.private ? 'private tab' : 'new tab');
-    glanceContext.title = tab.title || glanceDomain.textContent;
+      : tab.title || tabDomain(tab) || (tab.private ? 'Private tab' : 'New tab');
+    glanceHeader.title = tab.title || glanceTitle.textContent;
   }
 
   function queueGlanceResize(point) {
@@ -366,10 +365,10 @@
 
   function pointForGlanceRatio(ratio) {
     if (!glanceLayout) return null;
-    const { page, direction } = glanceLayout;
+    const { page, direction, divider, glanceHeader: header } = glanceLayout;
     return direction === 'horizontal'
-      ? { x: page.x + (page.width - 8) * ratio, y: page.y }
-      : { x: page.x, y: page.y + (page.height - 8) * ratio };
+      ? { x: page.x + (page.width - divider.width) * ratio, y: page.y }
+      : { x: page.x, y: page.y + (page.height - divider.height - header.height) * ratio };
   }
 
   /** Faux header: paint the strip with the active page's own top-edge
@@ -656,6 +655,10 @@
     event.stopPropagation();
     window.browserAPI.promoteGlance();
   });
+  glanceChange.addEventListener('click', (event) => {
+    event.stopPropagation();
+    window.browserAPI.openGlancePicker();
+  });
   glanceClose.addEventListener('click', (event) => {
     event.stopPropagation();
     window.browserAPI.closeGlance();
@@ -743,6 +746,9 @@
     glanceLayout = layout;
     renderGlance();
   });
+  window.browserAPI.onGlanceStatus((message) => {
+    glanceStatus.textContent = message;
+  });
   window.browserAPI.onIslandState(({ mode, trigger, restoreTrigger }) => {
     islandMode = mode;
     // Truthful per-control expanded state: the popover is one surface with
@@ -751,7 +757,9 @@
     pillShield.setAttribute('aria-expanded', String(shieldOpen && trigger === 'shield'));
     pillInsecure.setAttribute('aria-expanded', String(shieldOpen && trigger === 'insecure'));
     pillCapture.setAttribute('aria-expanded', String(mode === 'capture'));
+    glanceChange.setAttribute('aria-expanded', String(mode === 'glance'));
     if (restoreTrigger === 'capture') pillCapture.focus();
+    if (restoreTrigger === 'glance-change') glanceChange.focus();
     // Escape dismissal: main has already focused this webContents, so a DOM
     // focus() here lands in a focused document and paints the ring.
     if (restoreTrigger === 'shield') pillShield.focus();

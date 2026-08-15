@@ -1466,6 +1466,23 @@ function overlayBounds() {
       height: rt().window.getContentBounds().height,
     };
   }
+  if (rt().overlayMode === 'glance') {
+    const windowHeight = rt().window.getContentBounds().height;
+    if (glance && rt().overlayPurpose === 'change') {
+      return {
+        x: glance.glanceHeader.x,
+        y: glance.glanceHeader.y,
+        width: glance.glanceHeader.width,
+        height: Math.min(Math.max(0, windowHeight - glance.glanceHeader.y), 520),
+      };
+    }
+    return {
+      x: layout.pageBounds.x,
+      y: 0,
+      width: layout.pageBounds.width,
+      height: Math.min(windowHeight, 520),
+    };
+  }
   if (rt().overlayMode === 'shield') {
     return calculateShieldBounds({
       windowWidth: rt().window.getContentBounds().width,
@@ -1696,6 +1713,14 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   }
   const bounds = overlayBounds();
   rt().overlayView.setBounds(bounds);
+  // A detached overlay renderer can trail the chrome by one broadcast under
+  // sustained tab churn. Glance eligibility must be correct in the first
+  // painted frame, not eventually after the picker is already interactive.
+  // Refresh only that mode here; this is a projection send, not a persistence
+  // or Tab Sync change notification.
+  if (mode === 'glance') {
+    rt().overlayView.webContents.send('tabs:updated', currentTabsPayload());
+  }
   rt().overlayView.webContents.send('overlay:show', {
     mode,
     prefill,
@@ -1722,6 +1747,7 @@ const OVERLAY_RETRACT_MS = 200;
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
   if (!rt().overlayMode) return;
   const closingMode = rt().overlayMode;
+  const closingPurpose = rt().overlayPurpose;
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().overlayPurpose = null;
@@ -1760,8 +1786,14 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
     // started. The chrome webContents must take focus BEFORE the strip's DOM
     // focus() runs: the overlay held it until removeChildView above, and a
     // focus call inside an unfocused document paints no visible ring.
-    const restoreTrigger = reason === 'escape'
-      ? (closingMode === 'shield' ? closingTrigger : closingMode === 'capture' ? 'capture' : null)
+    const cancelled = reason === 'escape' || reason === 'cancel';
+    const restoreTrigger = cancelled
+      ? (
+          closingMode === 'shield' ? closingTrigger
+            : closingMode === 'capture' ? 'capture'
+              : closingMode === 'glance' && closingPurpose === 'change' ? 'glance-change'
+                : null
+        )
       : null;
     if (restoreTrigger) rt().window.webContents.focus();
     rt().window.webContents.send('chrome:island-state', { mode: null, trigger: null, restoreTrigger });
@@ -2362,19 +2394,13 @@ function activeShieldPopover(serialized = serializeTabs()) {
   });
 }
 
-function broadcastTabs() {
-  persistSession();
-  // Existing Tab Sync consent covers Personal's primary workspace only.
-  if (rt().id === PRIMARY_WINDOW_ID && rt().profileId === DEFAULT_PROFILE_ID) {
-    tabsync.noteTabsChanged();
-  }
-  if (!rt().window || rt().window.isDestroyed()) return;
+function currentTabsPayload() {
   const widthMetrics = verticalTabsMetrics();
   // Serialize once and hand the same list to the popover, so connection is
   // derived a single time per broadcast.
   const serialized = serializeTabs();
   const runtime = rt();
-  const payload = {
+  return {
     tabs: serialized,
     activeTabId: runtime.activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
@@ -2385,6 +2411,17 @@ function broadcastTabs() {
     ...captureBroadcastState(serialized),
     ...widthMetrics,
   };
+}
+
+function broadcastTabs() {
+  persistSession();
+  // Existing Tab Sync consent covers Personal's primary workspace only.
+  if (rt().id === PRIMARY_WINDOW_ID && rt().profileId === DEFAULT_PROFILE_ID) {
+    tabsync.noteTabsChanged();
+  }
+  if (!rt().window || rt().window.isDestroyed()) return;
+  const runtime = rt();
+  const payload = currentTabsPayload();
   rt().window.webContents.send('tabs:updated', payload);
   runtime.overlayView?.webContents.send('tabs:updated', payload);
 }
@@ -2850,7 +2887,6 @@ initTabView({
   hasLiveWindow,
   reclaimAddressBarFocus,
   shouldReclaimAddressBarFocus,
-  onTabFocus: handleTabFocus,
   installChromeShortcuts,
   watchCursorFor,
   isUtilityUrl,
@@ -3111,14 +3147,21 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
 }
 
-function setGlanceTab(id) {
-  const tab = tabs.get(id);
+async function setGlanceTab(id) {
+  let tab = tabs.get(id);
   if (
     !hasLiveWindow() || !tab || id === rt().activeTabId ||
     windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
 
-  if (tab.asleep) wakeTab(id).catch(() => {});
+  if (tab.asleep && !(await wakeTab(id))) return false;
+  // Wake is asynchronous. Re-resolve every ownership/liveness condition so a
+  // tab closed, moved, or superseded while loading can never be attached.
+  tab = tabs.get(id);
+  if (
+    !hasLiveWindow() || !tab || id === rt().activeTabId ||
+    windowRuntimes.runtimeForTab(id) !== rt()
+  ) return false;
   if (!liveContents(tab) || !tab.view) return false;
 
   hideUtilitySheet({ refocusContent: false });
@@ -3140,6 +3183,7 @@ function setGlanceTab(id) {
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
+  rt().window.webContents.send('chrome:glance-status', `${tab.title || 'Tab'} opened in Glance`);
   return true;
 }
 
@@ -3155,6 +3199,7 @@ function closeGlance({ focusContent = true } = {}) {
   resizeActiveView();
   broadcastTabs();
   scheduleMenuRebuild();
+  if (hasLiveWindow()) rt().window.webContents.send('chrome:glance-status', 'Glance closed');
   if (focusContent) liveContents(tabs.get(rt().activeTabId))?.focus();
   return true;
 }
@@ -3163,13 +3208,17 @@ function promoteGlance() {
   const id = activeGlanceTab()?.id;
   if (!id) return false;
   setActiveTab(id, { focusContent: true });
-  return rt().activeTabId === id;
+  const promoted = rt().activeTabId === id;
+  if (promoted && hasLiveWindow()) {
+    rt().window.webContents.send('chrome:glance-status', 'Glance made main');
+  }
+  return promoted;
 }
 
 function openGlancePicker() {
   if (!hasLiveWindow() || rt().tabOrder.length < 2) return false;
   rt().window.focus();
-  showOverlay('panel', { purpose: 'glance' });
+  showOverlay('glance', { purpose: activeGlanceTab() ? 'change' : 'open' });
   return true;
 }
 
@@ -3191,12 +3240,6 @@ function resetGlanceRatio() {
   rt().glanceRatio = DEFAULT_GLANCE_RATIO;
   resizeActiveView();
   return rt().glanceRatio;
-}
-
-function handleTabFocus(tab) {
-  if (!tab || tab.id !== rt().glanceTabId || tab.id === rt().activeTabId) return false;
-  setActiveTab(tab.id, { focusContent: true });
-  return true;
 }
 
 function activateTabFromRail(id) {
@@ -3298,6 +3341,13 @@ function closeTab(id) {
       rt().activeTabId = null;
     }
     if (hasLiveWindow()) return; // setActiveTab already broadcasts and schedules a menu rebuild
+  }
+  // Closing the underlying reference is also a layout transition. The normal
+  // broadcast updates the header state, but only an explicit resize gives the
+  // surviving main WebContentsView its full page bounds in the same turn.
+  if (wasGlance && hasLiveWindow()) resizeActiveView();
+  if (wasGlance && hasLiveWindow()) {
+    rt().window.webContents.send('chrome:glance-status', 'Glance closed because its tab was closed');
   }
   broadcastTabs();
   scheduleMenuRebuild();
@@ -3701,6 +3751,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
+  chromeHandle('tabs:open-glance-picker', () => openGlancePicker());
   chromeHandle('tabs:close-glance', () => closeGlance());
   chromeHandle('tabs:promote-glance', () => promoteGlance());
   chromeHandle('tabs:navigate', (_e, id, url) => navigateTabToAddress(id, url));
@@ -3855,7 +3906,7 @@ function registerIpcHandlers() {
     setVerticalTabsWidth(width));
   chromeOn('chrome:resize-glance', (_e, point) => resizeGlanceAt(point));
   chromeHandle('chrome:reset-glance', () => resetGlanceRatio());
-  chromeOn('overlay:close', () => hideOverlay());
+  chromeOn('overlay:close', (_e, reason) => hideOverlay({ reason }));
   chromeOn('chrome:downloads-ack', () => {
     acknowledgeDownloads();
     broadcastDownloadsActivity();

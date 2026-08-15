@@ -92,7 +92,6 @@ function initTabView(injected) {
     'createTab', 'setActiveTab', 'closeTab', 'openInternalPage',
     'currentChromeLayout', 'currentTabBounds', 'hideOverlay', 'hasLiveWindow',
     'reclaimAddressBarFocus', 'shouldReclaimAddressBarFocus',
-    'onTabFocus',
     'installChromeShortcuts', 'watchCursorFor',
     'isUtilityUrl', 'handOffToOs', 'setTabFavicon',
     'isStartupGateActive', 'startupQueuedNavigations',
@@ -123,7 +122,6 @@ function wireTabView(tab, view, { owner, adopted }) {
     createTab, setActiveTab, closeTab, openInternalPage,
     currentChromeLayout, currentTabBounds, hideOverlay, hasLiveWindow,
     reclaimAddressBarFocus, shouldReclaimAddressBarFocus,
-    onTabFocus,
     installChromeShortcuts, watchCursorFor,
     isUtilityUrl, handOffToOs, setTabFavicon,
     isStartupGateActive, startupQueuedNavigations,
@@ -248,7 +246,6 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('focus', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
-    if (onTabFocus(tab)) return;
     if (shouldReclaimAddressBarFocus(id)) reclaimAddressBarFocus(id, { consume: true });
   }));
 

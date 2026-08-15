@@ -266,6 +266,13 @@ function install(refs) {
     groupActiveByName(name) { groupTabByName(getActiveTabId(), name); },
     groupTabByName(id, name) { groupTabByName(id, name); },
     activateTab(id, focusContent = false) { setActiveTab(id, { focusContent: !!focusContent }); },
+    focusTabContents(id) {
+      const tab = tabs.get(id);
+      const wc = tab?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return false;
+      wc.focus();
+      return true;
+    },
     railActivationSerial() { return getRailActivationSerial(); },
     toggleGroup(id) { toggleGroupCollapsed(id); },
     reorderWithinBucket(id, beforeId) { return reorderTabWithinBucket(id, beforeId); },

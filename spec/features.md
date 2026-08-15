@@ -653,22 +653,25 @@ From the desktop `DEFAULTS`:
 
 - Desktop can keep one additional tab from the same native workspace visible as
   a temporary reference pane. The active page remains the dominant main pane;
-  Glance opens to its right at a 68/32 default split and stacks below it when
-  the available page region is too narrow.
-- A person chooses the exact reference tab from the Island tab list. The native
+  Glance opens to its right at a 62/38 default split and stacks below it when
+  the available page region is too narrow, with an explicit header introducing
+  the lower reference.
+- A person chooses the exact reference tab from a dedicated local-tab picker
+  that excludes search, history, Favorites, commands, and remote tabs. The native
   View menu exposes **Open Glance… / Close Glance** with
   `Cmd/Ctrl+Shift+G`, so the feature is reachable on macOS, Windows, and Linux.
-- The strip keeps the Island centered over the main pane and shows a compact
-  favicon/domain capsule for the reference. Its controls promote the reference
-  to main (swapping the two visible tabs) or dismiss Glance without closing the
-  tab. Clicking inside the reference page performs the same promotion.
+- The strip keeps the Island centered over the main pane and gives the
+  reference a flat header with favicon/title plus **Make main**, **Change**, and
+  close controls. Reference pages remain fully interactive without changing
+  roles; promotion is explicit and swaps the two visible tabs.
 - The divider is pointer-resizable and keyboard accessible, with a reset to the
-  68/32 default. Glance never crosses window/profile ownership, never survives
+  62/38 default. Glance never crosses window/profile ownership, never survives
   native-window teardown or session restore, and a visible Glance tab is never
   made quiet (F31).
 - Glance is a desktop window-model capability (D11). Phone ports are N/A unless
   a future tablet/foldable contract defines a comparable multi-pane surface.
 - **Acceptance:**
   [`acceptance/glance.feature`](./acceptance/glance.feature) selects a specific
-  tab, verifies dominant/reference geometry, swaps the visible roles, resizes
-  the divider, and dismisses back to one full page.
+  tab through the dedicated picker, verifies dominant/reference geometry,
+  proves reference focus does not promote, changes and explicitly swaps the
+  visible roles, resizes the divider, and dismisses back to one full page.

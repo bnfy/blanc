@@ -48,11 +48,20 @@
   const footerDownloads = document.getElementById('footerDownloads');
   const footerTabLayout = document.getElementById('footerTabLayout');
   const footerSettings = document.getElementById('footerSettings');
+  const glancePickerEl = document.getElementById('glancePicker');
+  const glancePickerInput = document.getElementById('glancePickerInput');
+  const glancePickerList = document.getElementById('glancePickerList');
+  const glancePickerState = document.getElementById('glancePickerState');
+  const glancePickerClose = document.getElementById('glancePickerClose');
+  const glancePickerLive = document.getElementById('glancePickerLive');
 
   let state = { tabs: [], activeTabId: null, glanceTabId: null, groups: [] };
-  /** @type {null | 'panel' | 'palette' | 'find'} */
+  /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture'} */
   let mode = null;
-  let glancePicker = false;
+  let glancePickerPurpose = null;
+  let glancePickerSelectedId = null;
+  let glancePickerError = '';
+  let glancePickerBusy = false;
   /** Tab id whose inline group picker ("→ work · → none") is open. */
   let pickingTabId = null;
   /** After a picker action re-renders the list, put focus back on that
@@ -219,6 +228,164 @@
     }
   }
 
+  // --- Dedicated Glance tab picker ---------------------------------------
+
+  function eligibleGlanceTabs() {
+    return state.tabs.filter((tab) =>
+      tab.id !== state.activeTabId && tab.id !== state.glanceTabId
+    );
+  }
+
+  function filteredGlanceTabs() {
+    const query = glancePickerInput.value.trim().toLowerCase();
+    const eligible = eligibleGlanceTabs();
+    if (!query) return eligible;
+    return eligible.filter((tab) => {
+      const groupName = groupById(tab.groupId)?.name ?? '';
+      return [tab.title, tabDomain(tab), groupName]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(query));
+    });
+  }
+
+  function glanceOptionId(tabId) {
+    return `glance-picker-option-${tabId}`;
+  }
+
+  function selectGlanceResult(tabId, { announce = false } = {}) {
+    const results = filteredGlanceTabs();
+    if (!results.some((tab) => tab.id === tabId)) tabId = results[0]?.id ?? null;
+    glancePickerSelectedId = tabId;
+    renderGlancePicker({ announce });
+  }
+
+  async function chooseGlanceTab(tabId) {
+    if (glancePickerBusy || mode !== 'glance') return;
+    const tab = filteredGlanceTabs().find((candidate) => candidate.id === tabId);
+    if (!tab) return;
+    glancePickerBusy = true;
+    glancePickerError = '';
+    renderGlancePicker();
+    let selected = false;
+    try {
+      selected = await window.browserAPI.setGlanceTab(tab.id);
+    } catch {
+      selected = false;
+    }
+    if (mode !== 'glance') return;
+    glancePickerBusy = false;
+    if (selected) {
+      glancePickerLive.textContent = `${tab.title || 'Tab'} opened in Glance`;
+      window.browserAPI.closeOverlay('selected');
+      return;
+    }
+    glancePickerError = 'Couldn’t open that tab in Glance';
+    renderGlancePicker({ announce: true });
+    glancePickerInput.focus();
+  }
+
+  function renderGlancePicker({ announce = false } = {}) {
+    if (mode !== 'glance') return;
+    const eligible = eligibleGlanceTabs();
+    const results = filteredGlanceTabs();
+    if (!results.some((tab) => tab.id === glancePickerSelectedId)) {
+      glancePickerSelectedId = results[0]?.id ?? null;
+    }
+
+    const rows = results.map((tab) => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.id = glanceOptionId(tab.id);
+      row.className = 'glance-picker-option';
+      row.setAttribute('role', 'option');
+      row.setAttribute('aria-selected', String(tab.id === glancePickerSelectedId));
+      row.tabIndex = -1;
+      row.disabled = glancePickerBusy;
+
+      const favicon = document.createElement('span');
+      setFavicon(favicon, tab);
+      favicon.setAttribute('aria-hidden', 'true');
+
+      const copy = document.createElement('span');
+      copy.className = 'glance-picker-option-copy';
+      const title = document.createElement('span');
+      title.className = 'glance-picker-option-title';
+      // Keep an already-known title visible while a tab continues loading.
+      // Replacing useful identity with a generic spinner label makes the
+      // picker impossible to use on a slow or long-lived navigation.
+      title.textContent = tab.title || (tab.isLoading ? 'Loading…' : 'New tab');
+      const metadata = [
+        tabDomain(tab),
+        groupById(tab.groupId)?.name,
+        tab.private ? 'private' : '',
+        tab.asleep ? 'quiet' : '',
+      ].filter(Boolean);
+      const sub = document.createElement('span');
+      sub.className = 'glance-picker-option-sub';
+      sub.textContent = metadata.join(' · ') || 'open tab';
+      copy.append(title, sub);
+      row.append(favicon, copy);
+      row.setAttribute('aria-label', `${title.textContent}, ${sub.textContent}`);
+      row.addEventListener('pointerdown', (event) => event.preventDefault());
+      row.addEventListener('mousemove', () => {
+        if (glancePickerSelectedId !== tab.id) selectGlanceResult(tab.id);
+      });
+      row.addEventListener('click', () => chooseGlanceTab(tab.id));
+      return row;
+    });
+    glancePickerList.replaceChildren(...rows);
+
+    if (glancePickerSelectedId !== null) {
+      glancePickerInput.setAttribute('aria-activedescendant', glanceOptionId(glancePickerSelectedId));
+    } else {
+      glancePickerInput.removeAttribute('aria-activedescendant');
+    }
+    glancePickerInput.setAttribute('aria-busy', String(glancePickerBusy));
+
+    const emptyMessage = eligible.length
+      ? 'No matching open tabs'
+      : 'Open another tab to use Glance';
+    const message = glancePickerError || (!results.length ? emptyMessage : '');
+    glancePickerState.hidden = !message;
+    glancePickerState.textContent = message;
+    glancePickerState.classList.toggle('error', !!glancePickerError);
+
+    if (announce) {
+      glancePickerLive.textContent = glancePickerError || (
+        results.length
+          ? `${results.length} ${results.length === 1 ? 'tab' : 'tabs'} available`
+          : emptyMessage
+      );
+    }
+  }
+
+  glancePickerInput.addEventListener('input', () => {
+    glancePickerError = '';
+    glancePickerSelectedId = null;
+    renderGlancePicker({ announce: true });
+  });
+  glancePickerInput.addEventListener('keydown', (event) => {
+    const results = filteredGlanceTabs();
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (glancePickerSelectedId !== null) chooseGlanceTab(glancePickerSelectedId);
+      return;
+    }
+    if (!results.length) return;
+    const current = Math.max(0, results.findIndex((tab) => tab.id === glancePickerSelectedId));
+    let next = current;
+    if (event.key === 'ArrowDown') next = (current + 1) % results.length;
+    else if (event.key === 'ArrowUp') next = (current - 1 + results.length) % results.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = results.length - 1;
+    else return;
+    event.preventDefault();
+    selectGlanceResult(results[next].id, { announce: true });
+    glancePickerList.querySelector(`#${CSS.escape(glanceOptionId(results[next].id))}`)
+      ?.scrollIntoView({ block: 'nearest' });
+  });
+  glancePickerClose.addEventListener('click', () => window.browserAPI.closeOverlay('cancel'));
+
   // --- Panel rendering ---
 
   function renderPanelChrome() {
@@ -285,8 +452,7 @@
     primary.setAttribute('aria-label', `Switch to ${parts.join(', ')}`);
     primary.append(faviconWrap, title);
     primary.addEventListener('click', () => {
-      if (glancePicker && tab.id !== state.activeTabId) window.browserAPI.setGlanceTab(tab.id);
-      else window.browserAPI.switchTab(tab.id);
+      window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
     });
     row.append(primary);
@@ -341,11 +507,12 @@
       glance.title = isGlance ? 'Close Glance' : 'Open this tab in Glance';
       glance.setAttribute('aria-label', `${glance.title}: ${label}`);
       glance.setAttribute('aria-pressed', String(isGlance));
-      glance.addEventListener('click', (e) => {
+      glance.addEventListener('click', async (e) => {
         e.stopPropagation();
-        if (isGlance) window.browserAPI.closeGlance();
-        else window.browserAPI.setGlanceTab(tab.id);
-        window.browserAPI.closeOverlay();
+        const changed = isGlance
+          ? await window.browserAPI.closeGlance()
+          : await window.browserAPI.setGlanceTab(tab.id);
+        if (changed) window.browserAPI.closeOverlay();
       });
       row.append(glance);
     }
@@ -430,8 +597,7 @@
 
     row.addEventListener('click', (e) => {
       if (e.target.closest('button')) return;
-      if (glancePicker && tab.id !== state.activeTabId) window.browserAPI.setGlanceTab(tab.id);
-      else window.browserAPI.switchTab(tab.id);
+      window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
     });
 
@@ -972,8 +1138,7 @@
 
       const pinned = state.tabs.filter((t) => t.pinned && !t.groupId);
       const rows = [];
-      if (glancePicker) rows.push(commandNoticeRow('choose a tab to open in glance'));
-      else if (commandNotice) rows.push(commandNoticeRow(commandNotice));
+      if (commandNotice) rows.push(commandNoticeRow(commandNotice));
       if (pinned.length) {
         rows.push(pinnedHeaderRow(pinned.length));
         rows.push(...pinned.map(tabRow));
@@ -1084,13 +1249,15 @@
     pointerHeld = false;
     renderQueued = false;
     mode = next;
-    glancePicker = purpose === 'glance';
+    glancePickerPurpose = next === 'glance' ? purpose : null;
     document.body.dataset.mode = next ?? '';
+    document.body.dataset.glancePurpose = glancePickerPurpose ?? '';
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
     findBar.hidden = next !== 'find';
     shieldPop.hidden = next !== 'shield';
     capturePop.hidden = next !== 'capture';
+    glancePickerEl.hidden = next !== 'glance';
 
     if (next === 'panel' || next === 'palette') {
       if (!reshow) {
@@ -1121,6 +1288,15 @@
     } else if (next === 'find') {
       findInput.focus();
       findInput.select();
+    } else if (next === 'glance') {
+      if (!reshow) {
+        glancePickerInput.value = '';
+        glancePickerSelectedId = null;
+        glancePickerError = '';
+        glancePickerBusy = false;
+      }
+      renderGlancePicker({ announce: !reshow });
+      glancePickerInput.focus();
     } else if (next === 'shield') {
       renderShieldPop();
       (shieldPopToggle.hidden ? shieldPopSettings : shieldPopToggle).focus();
@@ -1368,8 +1544,12 @@
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
     mode = null;
-    glancePicker = false;
+    glancePickerPurpose = null;
+    glancePickerSelectedId = null;
+    glancePickerError = '';
+    glancePickerBusy = false;
     document.body.dataset.mode = '';
+    document.body.dataset.glancePurpose = '';
     backdrop.hidden = true;
     if (retracting) {
       // The anchor stays up until the panel has shrunk away. pointer-events
@@ -1381,6 +1561,7 @@
     }
     findBar.hidden = true;
     shieldPop.hidden = true;
+    glancePickerEl.hidden = true;
     inputTouched = false;
     commandResultGeneration += 1;
     commandNotice = '';
@@ -1403,6 +1584,11 @@
 
   // Click on the backdrop (anywhere outside the panel) dismisses.
   backdrop.addEventListener('mousedown', () => window.browserAPI.closeOverlay());
+  document.addEventListener('mousedown', (event) => {
+    if (mode === 'glance' && !event.target.closest('#glancePicker')) {
+      window.browserAPI.closeOverlay('cancel');
+    }
+  });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') window.browserAPI.closeOverlay();
   });
@@ -1598,6 +1784,7 @@
       }
       renderPanel();
     }
+    if (mode === 'glance') renderGlancePicker();
     if (mode === 'shield') renderShieldPop();
     if (mode === 'capture') renderCapturePop();
   });
@@ -1609,6 +1796,7 @@
   });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
+    if (mode === 'glance') renderGlancePicker();
   });
 
   // Only the address input gets a context menu (see src/main/address-menu.js).

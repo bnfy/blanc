@@ -70,6 +70,33 @@
       <div id="islandHint"></div>
     </div>
   </div>
+  <section id="glancePicker" class="glance-picker" aria-labelledby="glancePickerTitle" hidden>
+    <header class="glance-picker-head">
+      <h2 id="glancePickerTitle">Choose a tab for Glance</h2>
+      <button id="glancePickerClose" class="glance-picker-close" type="button" title="Cancel" aria-label="Cancel choosing a Glance tab">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+      </button>
+    </header>
+    <label class="sr-only" for="glancePickerInput">Filter open tabs</label>
+    <input
+      id="glancePickerInput"
+      class="glance-picker-input"
+      type="text"
+      spellcheck="false"
+      autocomplete="off"
+      placeholder="Filter open tabs"
+      role="combobox"
+      aria-autocomplete="list"
+      aria-controls="glancePickerList"
+      aria-expanded="true"
+    />
+    <div id="glancePickerList" class="glance-picker-list" role="listbox" aria-label="Open tabs"></div>
+    <div id="glancePickerState" class="glance-picker-state" hidden></div>
+    <footer class="glance-picker-hint" aria-hidden="true">
+      <span>↑↓ navigate</span><span>↵ open</span><span>esc cancel</span>
+    </footer>
+    <div id="glancePickerLive" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  </section>
   <div id="findBar" hidden>
     <input id="findInput" spellcheck="false" autocomplete="off" placeholder="Find in page" />
     <div id="findCount"></div>

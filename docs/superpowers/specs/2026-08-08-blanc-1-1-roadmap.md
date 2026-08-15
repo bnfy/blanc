@@ -3,8 +3,8 @@
 **Date:** 2026-08-08
 **Status:** Complete, including follow-ups. M1 shipped in 1.0.10; M2 and M3
 were deferred from 1.1.0, then implemented together in post-1.2 development
-on 2026-08-14. Glance and per-workspace closed-tab recovery followed on
-2026-08-15. No planned product work remains in this roadmap. See "What 1.1.0
+on 2026-08-14. Production-refined Glance and per-workspace closed-tab recovery
+were completed on 2026-08-15. No planned product work remains in this roadmap. See "What 1.1.0
 actually is" for the historical release-scope decision.
 
 This roadmap re-implemented the multi-window and local-profile architecture
@@ -66,13 +66,17 @@ scenarios never ran.)
 
 ## Completed follow-up work (outside the original milestones)
 
-- **Glance / reference pane.** *(implemented 2026-08-15)* The selected design
-  keeps the active page dominant and opens one explicitly chosen tab in a
-  narrow reference pane. It has an Island tab-picker action, a native View
-  menu command and Cmd/Ctrl+Shift+G accelerator on every desktop platform, a
-  chrome context chip, a bounded resizable divider, promote/swap and close
-  actions, a narrow-window stacked fallback, Quiet Tabs integration, and a
-  runnable F34 acceptance slice. Design: `2026-08-15-glance-design.md`.
+- **Glance / focused reference pane.** *(production-refined and verified
+  2026-08-15)* The approved Focused Island design keeps the active page
+  dominant at 62/38, gives the reference one flat identity/action header, and
+  chooses or changes it through a dedicated local-tab picker rather than the
+  address/search panel. It includes the native View command and
+  Cmd/Ctrl+Shift+G accelerator, explicit Make main/Change/close actions, a
+  bounded accessible divider, a 700px stacked fallback, Quiet Tabs wake
+  integration, dark/private treatment, and a runnable F34 slice (4 scenarios,
+  32 steps). Blocking Product Design QA passed after three visual comparison
+  iterations. Design: `2026-08-15-glance-design.md`; execution:
+  `../plans/2026-08-15-glance-production.md`; QA: `../../../design-qa.md`.
 - **Per-workspace closed-tab recovery.** *(implemented 2026-08-15)* Each
   native window now owns its own bounded recently-closed stack. Reopen Closed
   Tab restores only the focused workspace's ordinary tabs; private tabs and
