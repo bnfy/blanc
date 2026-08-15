@@ -16,6 +16,7 @@ const liveViewContentsSource = viewSource.match(/const liveViewContents = \(view
 const liveContentsSource = viewSource.match(/const liveContents = \(tab\) => liveViewContents\(tab\?\.view\);/)?.[0];
 const createTabViewSource = viewSource.match(/function createTabView\(tab\) \{[\s\S]*?\n\}/)?.[0];
 const wireSource = viewSource.match(/function wireTabView\(tab, view, \{ owner, adopted \}\) \{[\s\S]*?\n\}/)?.[0];
+const watchCursorForSource = mainSource.match(/function watchCursorFor\(wc, offset, bind\) \{[\s\S]*?\n\}/)?.[0];
 
 test('tab-view.js still exports the functions these tests lift', () => {
   assert.ok(liveViewContentsSource, 'liveViewContents not found in tab-view.js — update this test with it');
@@ -121,6 +122,28 @@ test('the private-session ternary lives in tab-view.js and nowhere else', () => 
 
 test('wireTabView is still present in tab-view.js', () => {
   assert.ok(wireSource, 'wireTabView not found in tab-view.js — update this test with it');
+});
+
+test('a queued mouse move does not calculate bounds after its window closes', () => {
+  assert.ok(watchCursorForSource, 'watchCursorFor not found in main.js — update this test with it');
+  let inputListener;
+  let offsetCalls = 0;
+  let proximityCalls = 0;
+  const sandbox = {
+    hasLiveWindow: () => false,
+    toWindowPoint: () => { throw new Error('closed-window geometry must not run'); },
+    updateIslandProximity: () => { proximityCalls += 1; },
+  };
+  vm.runInNewContext(`${watchCursorForSource}\nthis.__watch = watchCursorFor;`, sandbox);
+  sandbox.__watch(
+    { on: (_event, listener) => { inputListener = listener; } },
+    () => { offsetCalls += 1; throw new Error('closed-window bounds must not run'); },
+    (listener) => listener
+  );
+
+  assert.doesNotThrow(() => inputListener(null, { type: 'mouseMove', x: 4, y: 8 }));
+  assert.equal(offsetCalls, 0);
+  assert.equal(proximityCalls, 0);
 });
 
 test('document-ready has a favicon fallback when Chromium emits no favicon event', () => {

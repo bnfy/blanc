@@ -1408,6 +1408,7 @@ function updateIslandProximity(point) {
 function watchCursorFor(wc, offset, bind) {
   wc.on('input-event', bind((_event, input) => {
     if (!input || input.type !== 'mouseMove') return;
+    if (!hasLiveWindow()) return;
     updateIslandProximity(toWindowPoint(input, typeof offset === 'function' ? offset() : offset));
   }));
 }
@@ -4615,6 +4616,18 @@ function namedProfileDataDirectory(profileId) {
 async function destroyProfileWindow(runtime) {
   const window = runtime.window;
   if (!window || window.isDestroyed()) return;
+  // Electron's BrowserWindow visibility listener reads native state on every
+  // hide event. Destroying a still-visible window can queue that event after
+  // the native object is gone, where the listener throws "Object has been
+  // destroyed". Settle visibility first, then perform the intentional forced
+  // close that prevents a tab's beforeunload handler retaining deleted data.
+  if (window.isVisible()) {
+    await new Promise((resolve) => {
+      window.once('hide', resolve);
+      window.hide();
+    });
+  }
+  if (window.isDestroyed()) return;
   await new Promise((resolve) => {
     window.once('closed', resolve);
     // Confirmation is the terminal commit point. beforeunload cannot retain a
