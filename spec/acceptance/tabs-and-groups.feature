@@ -30,6 +30,14 @@ Feature: Tabs and tab groups
     Then the new tab has no group
     And the new tab is on the new-tab page
 
+  @F2-5 @F2 @desktop @D11
+  Scenario: Reopen-closed history stays inside its native workspace
+    Given a different closed page in each of two Blanc windows
+    When I reopen the last closed tab in the secondary window
+    Then the secondary window restores only its own closed page
+    When I reopen the last closed tab in the primary window
+    Then the primary window restores its own closed page
+
   @F3-1 @F3 @all
   Scenario: Creating a group moves the active tab into it
     Given the active tab has no group

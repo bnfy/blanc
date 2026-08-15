@@ -1,10 +1,11 @@
 # Blanc 1.1 roadmap — multi-window and local profiles
 
 **Date:** 2026-08-08
-**Status:** Complete. M1 shipped in 1.0.10; M2 and M3 were deferred from
-1.1.0, then implemented together in post-1.2 development on 2026-08-14. All
-three milestones in this roadmap are complete. See "What 1.1.0 actually is"
-for the historical release-scope decision.
+**Status:** Complete, including follow-ups. M1 shipped in 1.0.10; M2 and M3
+were deferred from 1.1.0, then implemented together in post-1.2 development
+on 2026-08-14. Glance and per-workspace closed-tab recovery followed on
+2026-08-15. No planned product work remains in this roadmap. See "What 1.1.0
+actually is" for the historical release-scope decision.
 
 This roadmap re-implemented the multi-window and local-profile architecture
 against `main`, using `codex/post-1.0-development` strictly as a **reference
@@ -63,13 +64,20 @@ scenarios never ran.)
   audit verified the reference's store scoping keeps the default profile on
   every shipped root file, so existing users' data never moves.
 
-## Deferred follow-up work (outside the completed milestones)
+## Completed follow-up work (outside the original milestones)
 
-- **Glance / split view** — a menu-only prototype in the reference: no
-  accelerator, no way to choose the glanced tab, no chrome representation,
-  unreachable on Windows/Linux. Needs a design exploration before any build.
-- **Per-workspace closed-tab recovery** — depends on M2's workspace model;
-  scope after M2 lands.
+- **Glance / reference pane.** *(implemented 2026-08-15)* The selected design
+  keeps the active page dominant and opens one explicitly chosen tab in a
+  narrow reference pane. It has an Island tab-picker action, a native View
+  menu command and Cmd/Ctrl+Shift+G accelerator on every desktop platform, a
+  chrome context chip, a bounded resizable divider, promote/swap and close
+  actions, a narrow-window stacked fallback, Quiet Tabs integration, and a
+  runnable F34 acceptance slice. Design: `2026-08-15-glance-design.md`.
+- **Per-workspace closed-tab recovery.** *(implemented 2026-08-15)* Each
+  native window now owns its own bounded recently-closed stack. Reopen Closed
+  Tab restores only the focused workspace's ordinary tabs; private tabs and
+  blank new tabs leave no recovery trace. The F2-5 acceptance scenario proves
+  that closing in one workspace cannot leak into another.
 
 ## Standing constraints (all milestones)
 

@@ -53,6 +53,9 @@ toolbar (Bowser Design System "Island Chrome").
   deliberately, after an idle delay the person controls (F31); on mobile because
   the OS evicts it (D8) — and it returns with its identity, title, address, and
   back-history intact.
+- On desktop, reopen-closed history is scoped to the native window workspace
+  that closed the tab (D11). Reopening in one window can never consume another
+  window's recovery entry.
 - **Acceptance:** Open a tab, close it, reopen-closed → same URL returns. Duplicate
   a tab → a second tab with the same URL. Pin a tab → it is marked pinned and
   ordered ahead of unpinned tabs in its current group. An ungrouped pin uses the
@@ -645,3 +648,27 @@ From the desktop `DEFAULTS`:
   isolation, inline rename, exact confirmation, and deletion of windows,
   registry identity, and saved workspaces, plus a real relaunch that restores a
   named workspace into the same isolated profile session.
+
+## F34 — Glance reference pane
+
+- Desktop can keep one additional tab from the same native workspace visible as
+  a temporary reference pane. The active page remains the dominant main pane;
+  Glance opens to its right at a 68/32 default split and stacks below it when
+  the available page region is too narrow.
+- A person chooses the exact reference tab from the Island tab list. The native
+  View menu exposes **Open Glance… / Close Glance** with
+  `Cmd/Ctrl+Shift+G`, so the feature is reachable on macOS, Windows, and Linux.
+- The strip keeps the Island centered over the main pane and shows a compact
+  favicon/domain capsule for the reference. Its controls promote the reference
+  to main (swapping the two visible tabs) or dismiss Glance without closing the
+  tab. Clicking inside the reference page performs the same promotion.
+- The divider is pointer-resizable and keyboard accessible, with a reset to the
+  68/32 default. Glance never crosses window/profile ownership, never survives
+  native-window teardown or session restore, and a visible Glance tab is never
+  made quiet (F31).
+- Glance is a desktop window-model capability (D11). Phone ports are N/A unless
+  a future tablet/foldable contract defines a comparable multi-pane surface.
+- **Acceptance:**
+  [`acceptance/glance.feature`](./acceptance/glance.feature) selects a specific
+  tab, verifies dominant/reference geometry, swaps the visible roles, resizes
+  the divider, and dismisses back to one full page.

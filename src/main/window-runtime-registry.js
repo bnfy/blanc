@@ -5,6 +5,7 @@
 // lifecycle unit-testable.
 
 const { DEFAULT_PROFILE_ID, validProfileId } = require('./local-profile-model');
+const { DEFAULT_GLANCE_RATIO } = require('./glance-layout');
 
 let nextId = 1;
 let runtimes = [];
@@ -31,6 +32,13 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     tabOrder: [],
     activeTabId: null,
     groups: [],
+    /** Temporary second visible tab. Glance is deliberately workspace-local
+     * and ephemeral: it never crosses windows/profiles or session restore. */
+    glanceTabId: null,
+    glanceRatio: DEFAULT_GLANCE_RATIO,
+    /** Reopen-closed history belongs to this native workspace, not the app
+     * process. Entries remain memory-only, matching the pre-M2 behavior. */
+    recentlyClosedUrls: [],
     // The island's expanded states (command bar, ⌘L palette, find capsule)
     // render in a separate always-on-top WebContentsView so they float OVER
     // the web content instead of growing the strip and shifting content
@@ -43,6 +51,8 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     /** Companion to overlayMode, replayed alongside it below if the
      * overlay's first load hadn't finished when showOverlay was called. */
     overlayPrefill: null,
+    /** Optional panel intent such as the explicit Glance tab picker. */
+    overlayPurpose: null,
     /** Chip right edge (window coords) captured when the shield popover
      * opens; reused if bounds recompute (e.g. window resize) while it's up. */
     shieldAnchorRight: null,
@@ -129,6 +139,8 @@ function detachWindow(runtime) {
   runtime.overlayView = null;
   runtime.overlayMode = null;
   runtime.overlayPrefill = null;
+  runtime.overlayPurpose = null;
+  runtime.glanceTabId = null;
   runtime.utilitySheetView = null;
   runtime.utilitySheetUrl = null;
   runtime.permissionView = null;

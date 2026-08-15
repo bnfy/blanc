@@ -44,6 +44,7 @@ function sleepCandidates(tabList, options) {
     maxSnapshots = MAX_SLEEP_SNAPSHOTS,
     permissionPendingTabIds = NO_IDS,
     popupChildCounts = NO_COUNTS,
+    visibleTabIds = NO_IDS,
   } = options ?? {};
 
   if (thresholdMs === null && ignoreThreshold !== true) return [];
@@ -65,6 +66,7 @@ function sleepCandidates(tabList, options) {
   const survivors = [];
   tabList.forEach((tab, index) => {
     if (!tab?.id || tab.id === activeTabId) return;
+    if (visibleTabIds.has(tab.id)) return;
     if (tab.asleep || tab.sleeping || tab.waking || tab.isLoading) return;
     if (tab.audible || tab.muted || tab.usedMedia || tab.capturing || tab.pinned) return;
     if (tab.adopted || tab.restorableCommit !== true || tab.deepScrolled) return;

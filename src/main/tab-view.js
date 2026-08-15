@@ -90,8 +90,9 @@ function initTabView(injected) {
     'tabs', 'windowRuntimes', 'bindWindowRuntime', 'tabIdByWebContentsId',
     'broadcastTabs', 'scheduleBroadcastTabs', 'scheduleSampleTint', 'scheduleMenuRebuild',
     'createTab', 'setActiveTab', 'closeTab', 'openInternalPage',
-    'currentChromeLayout', 'hideOverlay', 'hasLiveWindow',
+    'currentChromeLayout', 'currentTabBounds', 'hideOverlay', 'hasLiveWindow',
     'reclaimAddressBarFocus', 'shouldReclaimAddressBarFocus',
+    'onTabFocus',
     'installChromeShortcuts', 'watchCursorFor',
     'isUtilityUrl', 'handOffToOs', 'setTabFavicon',
     'isStartupGateActive', 'startupQueuedNavigations',
@@ -120,8 +121,9 @@ function wireTabView(tab, view, { owner, adopted }) {
     tabs, windowRuntimes, bindWindowRuntime, tabIdByWebContentsId,
     broadcastTabs, scheduleBroadcastTabs, scheduleSampleTint, scheduleMenuRebuild,
     createTab, setActiveTab, closeTab, openInternalPage,
-    currentChromeLayout, hideOverlay, hasLiveWindow,
+    currentChromeLayout, currentTabBounds, hideOverlay, hasLiveWindow,
     reclaimAddressBarFocus, shouldReclaimAddressBarFocus,
+    onTabFocus,
     installChromeShortcuts, watchCursorFor,
     isUtilityUrl, handOffToOs, setTabFavicon,
     isStartupGateActive, startupQueuedNavigations,
@@ -134,7 +136,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   // Resolve the owner once at attach time rather than looking it up in every
   // asynchronous callback. A later rewire supplies the tab's actual owner.
   const boundToTab = (fn) => bindWindowRuntime(owner, fn);
-  watchCursorFor(wc, () => currentChromeLayout().pageBounds, boundToTab);
+  watchCursorFor(wc, () => currentTabBounds(tab), boundToTab);
 
   wc.setWebRTCIPHandlingPolicy(webrtcPolicyFor(settings.getSettings().webrtcPolicy));
   if (effectiveTabMuted(tab)) wc.setAudioMuted(true);
@@ -246,6 +248,7 @@ function wireTabView(tab, view, { owner, adopted }) {
   }));
   wc.on('focus', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
+    if (onTabFocus(tab)) return;
     if (shouldReclaimAddressBarFocus(id)) reclaimAddressBarFocus(id, { consume: true });
   }));
 

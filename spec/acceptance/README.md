@@ -76,7 +76,7 @@ A feature's row in [`../parity-matrix.md`](../parity-matrix.md) should not move 
 
 ## Scope of this first cut
 
-- Fifteen feature files cover `F1–F24`, `F27–F28`, and `F30`; the differentiators and
+- Eighteen feature files cover `F1–F24`, `F27–F28`, and `F30–F34`; the differentiators and
   the most divergence-heavy features have several scenarios. F25 (DoH) and F26
   (WebRTC policy) still have manual acceptance contracts in `features.md` but no
   Gherkin transcription.

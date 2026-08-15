@@ -49,9 +49,10 @@
   const footerTabLayout = document.getElementById('footerTabLayout');
   const footerSettings = document.getElementById('footerSettings');
 
-  let state = { tabs: [], activeTabId: null, groups: [] };
+  let state = { tabs: [], activeTabId: null, glanceTabId: null, groups: [] };
   /** @type {null | 'panel' | 'palette' | 'find'} */
   let mode = null;
+  let glancePicker = false;
   /** Tab id whose inline group picker ("→ work · → none") is open. */
   let pickingTabId = null;
   /** After a picker action re-renders the list, put focus back on that
@@ -284,7 +285,8 @@
     primary.setAttribute('aria-label', `Switch to ${parts.join(', ')}`);
     primary.append(faviconWrap, title);
     primary.addEventListener('click', () => {
-      window.browserAPI.switchTab(tab.id);
+      if (glancePicker && tab.id !== state.activeTabId) window.browserAPI.setGlanceTab(tab.id);
+      else window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
     });
     row.append(primary);
@@ -329,6 +331,23 @@
         window.browserAPI.toggleTabMuted(tab.id);
       });
       row.append(mute);
+    }
+
+    if (tab.id !== state.activeTabId) {
+      const glance = document.createElement('button');
+      const isGlance = tab.id === state.glanceTabId;
+      glance.className = 'row-glance' + (isGlance ? ' on' : '');
+      glance.textContent = 'glance';
+      glance.title = isGlance ? 'Close Glance' : 'Open this tab in Glance';
+      glance.setAttribute('aria-label', `${glance.title}: ${label}`);
+      glance.setAttribute('aria-pressed', String(isGlance));
+      glance.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (isGlance) window.browserAPI.closeGlance();
+        else window.browserAPI.setGlanceTab(tab.id);
+        window.browserAPI.closeOverlay();
+      });
+      row.append(glance);
     }
 
     const grp = document.createElement('button');
@@ -411,7 +430,8 @@
 
     row.addEventListener('click', (e) => {
       if (e.target.closest('button')) return;
-      window.browserAPI.switchTab(tab.id);
+      if (glancePicker && tab.id !== state.activeTabId) window.browserAPI.setGlanceTab(tab.id);
+      else window.browserAPI.switchTab(tab.id);
       window.browserAPI.closeOverlay();
     });
 
@@ -952,7 +972,8 @@
 
       const pinned = state.tabs.filter((t) => t.pinned && !t.groupId);
       const rows = [];
-      if (commandNotice) rows.push(commandNoticeRow(commandNotice));
+      if (glancePicker) rows.push(commandNoticeRow('choose a tab to open in glance'));
+      else if (commandNotice) rows.push(commandNoticeRow(commandNotice));
       if (pinned.length) {
         rows.push(pinnedHeaderRow(pinned.length));
         rows.push(...pinned.map(tabRow));
@@ -1056,13 +1077,14 @@
 
   // --- Mode switching (driven by main via overlay:show / overlay:hide) ---
 
-  function applyMode(next, prefill) {
+  function applyMode(next, prefill, purpose) {
     const reshow = mode === next;
     // A press the overlay never saw released (dismissed mid-click) must not
     // leave the list frozen behind a stale hold.
     pointerHeld = false;
     renderQueued = false;
     mode = next;
+    glancePicker = purpose === 'glance';
     document.body.dataset.mode = next ?? '';
     backdrop.hidden = next !== 'panel' && next !== 'palette';
     panelAnchor.hidden = next !== 'panel' && next !== 'palette';
@@ -1296,9 +1318,9 @@
   const prefersReducedMotion = () =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  window.browserAPI.onOverlayShow(({ mode: next, prefill, pillRect }) => {
+  window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
-    applyMode(next, prefill);
+    applyMode(next, prefill, purpose);
     if (!wasOpen && (next === 'panel' || next === 'palette')) morphPanelFromPill(pillRect);
   });
   /* Closing: the panel shrinks back into the pill. Main holds the overlay view
@@ -1346,6 +1368,7 @@
       && retractPanelIntoPill();
     if (mode === 'find') resetFind();
     mode = null;
+    glancePicker = false;
     document.body.dataset.mode = '';
     backdrop.hidden = true;
     if (retracting) {

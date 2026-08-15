@@ -11,9 +11,13 @@ test('createRuntime initializes the per-window inventory to main.js defaults', (
   assert.deepEqual(r.tabOrder, []);
   assert.equal(r.activeTabId, null);
   assert.deepEqual(r.groups, []);
+  assert.equal(r.glanceTabId, null);
+  assert.equal(r.glanceRatio, 0.68);
+  assert.deepEqual(r.recentlyClosedUrls, []);
   assert.equal(r.overlayView, null);
   assert.equal(r.overlayMode, null);
   assert.equal(r.overlayPrefill, null);
+  assert.equal(r.overlayPurpose, null);
   assert.equal(r.shieldAnchorRight, null);
   assert.equal(r.shieldPopoverHost, null);
   assert.equal(r.shieldTrigger, null);
@@ -63,6 +67,7 @@ test('detachWindow: workspace survives, window and surfaces do not', () => {
   r.tabOrder.push(7);
   r.activeTabId = 7;
   r.groups.push({ id: 'g1', name: 'work', collapsed: false });
+  r.glanceTabId = 8;
 
   reg.detachWindow(r);
 
@@ -76,6 +81,8 @@ test('detachWindow: workspace survives, window and surfaces do not', () => {
   assert.deepEqual(r.tabOrder, [7]);
   assert.equal(r.activeTabId, 7);
   assert.equal(r.groups.length, 1);
+  // Glance is view/window state, not a restored workspace surface.
+  assert.equal(r.glanceTabId, null);
   assert.equal(reg.runtimeForTab(7), r);
 });
 

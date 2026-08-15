@@ -153,6 +153,109 @@ button svg {
   transition: background-color 160ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Glance keeps the existing Island centered over the dominant page pane.
+   Main ships exact native-view geometry; padding narrows the strip's flex
+   centerline without teaching CSS about vertical-rail arithmetic. */
+#strip.glance-open {
+  padding-right: calc(100vw - var(--glance-primary-right));
+}
+#strip.glance-open #islandPill {
+  max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
+}
+
+.glance-context {
+  position: absolute;
+  z-index: 4;
+  top: 10px;
+  height: 44px;
+  min-width: 0;
+  max-width: 240px;
+  padding: 0 8px 0 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-pill);
+  color: var(--text-dim);
+}
+
+.glance-context[hidden] { display: none; }
+.glance-context.private { border-style: dashed; }
+.glance-context .favicon { flex: 0 0 auto; }
+#glanceDomain {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+}
+.glance-context button {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--text-dim);
+}
+.glance-context button:hover,
+.glance-context button:focus-visible {
+  background: var(--accent-dim);
+  color: var(--text);
+}
+.glance-context-sep {
+  width: 1px;
+  height: 18px;
+  flex: 0 0 auto;
+  background: var(--border);
+}
+
+/* The child page views deliberately leave this narrow gap uncovered, so the
+   trusted BrowserWindow renderer below them owns pointer + keyboard resizing
+   without another privileged WebContentsView. */
+.glance-divider {
+  position: fixed;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  box-shadow: inset 1px 0 var(--border), inset -1px 0 var(--border);
+  touch-action: none;
+}
+.glance-divider[hidden] { display: none; }
+.glance-divider[data-direction="horizontal"] { cursor: col-resize; }
+.glance-divider[data-direction="vertical"] {
+  cursor: row-resize;
+  box-shadow: inset 0 1px var(--border), inset 0 -1px var(--border);
+}
+.glance-divider > span {
+  width: 4px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.glance-divider[data-direction="vertical"] > span {
+  width: 38px;
+  height: 4px;
+}
+.glance-divider:hover > span,
+.glance-divider:focus-visible > span { background: var(--text-dim); }
+.glance-divider:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+:root[data-glance-resizing="true"],
+:root[data-glance-resizing="true"] * {
+  cursor: col-resize !important;
+}
+:root[data-glance-resizing="vertical"],
+:root[data-glance-resizing="vertical"] * {
+  cursor: row-resize !important;
+}
+
 /* A user-selected theme preview is an immediate handoff while Chromium's
    prefers-color-scheme catches up. Keep the normal transition for page-derived
    faux-header colors, but never add latency to this explicit interaction. */
@@ -190,6 +293,10 @@ button svg {
    clearance is needed at the 640px minimum. */
 :root[data-tab-layout="vertical"][data-platform="darwin"] #islandPill {
   max-width: calc((100vw - var(--vertical-tabs-w) - 24px) / var(--pill-zoom));
+}
+
+:root[data-tab-layout="vertical"] #strip.glance-open #islandPill {
+  max-width: calc((var(--glance-primary-width) - 24px) / var(--pill-zoom));
 }
 
 /* In vertical mode the rail is the persistent tab presentation. The Island
@@ -1517,6 +1624,28 @@ body[data-mode=""] #backdrop, #backdrop[hidden] { animation: none; }
 .row-grp.open,
 .row-grp:focus-visible { opacity: 1; }
 .row-grp:hover { color: var(--accent); border-color: var(--accent); }
+
+/* Explicit Glance selection lives with the tab row actions. The active
+   reference stays labelled at rest; other rows reveal the action on
+   hover/focus so the ordinary switcher remains quiet. */
+.row-glance {
+  opacity: 0;
+  height: 18px;
+  flex: 0 0 auto;
+  padding: 0 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.island-row:hover .row-glance,
+.island-row:focus-within .row-glance,
+.row-glance:focus-visible,
+.row-glance.on { opacity: 1; }
+.row-glance:hover,
+.row-glance.on { color: var(--accent); border-color: var(--accent); }
+.row-glance.on { background: var(--accent-dim); }
 
 /* Pin row button — reserved-space/hover-reveal convention shared with
    .row-close: always occupies layout width, opacity-faded until the row is
