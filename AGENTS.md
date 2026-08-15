@@ -8,7 +8,7 @@ Blanc — a minimal Electron browser shell: custom-drawn "Island" chrome (a sing
 
 The app was renamed from "Bowser" to Blanc in July 2026 — its former name was inseparable from Nintendo's Mario villain, which didn't fit a serious indie browser's ambitions. `build.appId` in `package.json` deliberately stayed `me.bnfy.bowser` through the rename (only `name`/`productName` changed) to preserve macOS Gatekeeper/notarization identity and the auto-update chain for existing installs — don't "clean up" that mismatch, it's intentional. The design system's project name ("Bowser Design System", referenced throughout this file) is a separate Codex Design project the user maintains and wasn't renamed alongside the app; leave those references as-is.
 
-**Current public baseline (Aug 14, 2026): v1.3.0.** It supersedes v1.2.5 and includes signed Windows builds. The next release validation must exercise the public upgrade path from v1.3.0 on macOS and Windows, plus Linux install/launch verification.
+**Current public baseline (Aug 15, 2026): v1.4.0.** It supersedes v1.3.0 and includes signed Windows builds. The next release validation must exercise the public upgrade path from v1.4.0 on macOS and Windows, plus Linux install/launch verification.
 
 ## Commands
 

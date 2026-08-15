@@ -1,5 +1,189 @@
 [
   {
+    "tag": "v1.4.0",
+    "version": "1.4.0",
+    "name": "1.4.0",
+    "publishedAt": "2026-08-15T21:11:13.000Z",
+    "humanDate": "August 15, 2026",
+    "machineDate": "2026-08-15",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.4.0",
+    "anchor": "v1-4-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Glance keeps one tab visible as a temporary reference while you work in another. Open it with View → Open Glance or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "Cmd/Ctrl+Shift+G"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", choose from the current window's tabs, then change the reference, make it the main page, resize the split, or close Glance without closing either tab."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The main page stays dominant in a 62/38 side-by-side layout, while narrow windows stack the reference below it. Glance includes a dedicated local-tab picker, keyboard-resizable divider, accessible labels and focus handling, and distinct dark and private-tab treatment."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Reopen Closed Tab is now scoped to the focused window. Closing a tab in one workspace can no longer consume or restore another window's recently closed tab, and private or blank tabs still leave no recovery trace."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Privacy and compatibility",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Glance is temporary and device-local. Its tab relationship and divider position are not written to session restore, Profile Sync, telemetry, or crash reports, and its picker never searches history, Favorites, remote tabs, search suggestions, or another window or profile."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Quiet Tabs understands both visible Glance pages. A quiet reference wakes only after explicit selection, and a visible reference cannot be discarded by background housekeeping."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Windows and Linux window controls remain above the Glance header and clickable while the side-by-side layout is open."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Glance now preserves focus when its reference closes under an open picker, keeps a known title visible during navigation, and applies every repeated keyboard resize step reliably."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Release verification",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The source gate includes 752 unit tests and 104 runnable desktop acceptance scenarios with 639 steps, including six Glance scenarios, per-window recovery coverage, and window-teardown cursor and visibility regressions. Packaged verification exercises first run, release regressions, live favicon compatibility, and migration from public Stable v1.3.0."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "code",
+                    "value": "SHA256SUMS"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is authenticated with a Sigstore bundle whose expected certificate identity is "
+                  },
+                  {
+                    "type": "code",
+                    "value": "anthony@bnfy.me"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and whose expected OIDC issuer is "
+                  },
+                  {
+                    "type": "code",
+                    "value": "https://github.com/login/oauth"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "macOS Apple Silicon, signed Windows, and Linux are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.4.0"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one signed SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.3.0",
     "version": "1.3.0",
     "name": "1.3.0",
