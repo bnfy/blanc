@@ -78,6 +78,12 @@ through the six-row result list; Enter keeps the existing confident-local
 match behavior, otherwise it searches the exact text you typed. Provider
 suggestions are presented on and can be disabled before continuing or later in Settings.
 
+**Glance** (`Cmd/Ctrl+Shift+G`): choose another tab from the current window
+and keep it visible as a temporary reference beside the main page. The main
+page stays dominant; the reference can be changed, made main explicitly, or
+closed without closing its tab. Narrow windows stack the reference below the
+main page, and Glance never persists or syncs the relationship.
+
 **Private tabs** (`/private` or `Cmd/Ctrl+Shift+N`): nothing is saved to
 history, they're excluded from session restore and reopen-closed-tab, and
 popups they open stay private. Cookies, storage, cache, service workers, HTTP
@@ -235,6 +241,7 @@ entirely.
 | `Cmd+Alt+B` / `Ctrl+Shift+O` | favorites |
 | `Cmd/Ctrl+Y` | history |
 | `Cmd/Ctrl+Shift+J` | downloads |
+| `Cmd/Ctrl+Shift+G` | open / close Glance |
 | `Cmd/Ctrl+,` | settings |
 | `Cmd/Ctrl` `+` / `−` / `0` | zoom in / out / reset |
 

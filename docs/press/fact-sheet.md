@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: August 14, 2026
+Last updated: August 15, 2026
 
 ## The short version
 
@@ -11,15 +11,16 @@ when they are not.
 Blanc is an independent Chromium-based desktop browser from Bananify. It ships
 with built-in ad and tracker blocking, private tabs, Favorites, history,
 downloads, a command palette, named tab groups, independent windows, isolated
-local profiles, optional vertical tabs, and end-to-end-encrypted Profile Sync.
-It does not ship an AI assistant or an extension runtime.
+local profiles, a focused two-page Glance view, optional vertical tabs, and
+end-to-end-encrypted Profile Sync. It does not ship an AI assistant or an
+extension runtime.
 
 ## Product facts
 
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Current public baseline | [1.3.0](https://github.com/bnfy/blanc/releases/tag/v1.3.0) |
+| Current public baseline | [1.4.0](https://github.com/bnfy/blanc/releases/tag/v1.4.0) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
 | Optional purchase | Blanc Supporter, US$19 one time, plus applicable taxes; unlocks three cosmetic app-icon colorways |
@@ -42,6 +43,9 @@ It does not ship an AI assistant or an extension runtime.
   separately across launches.
 - Named local profiles isolate cookies, site data, Favorites, history,
   downloads, and remembered permissions without requiring an online account.
+- **Glance** keeps one current-window tab visible as a temporary reference
+  beside the main page without turning Blanc into a general split-view
+  workspace manager.
 - Ad and tracker blocking is integrated at the browser session's network layer;
   it is not dependent on the Chrome Web Store or a user-installed extension.
 - Blanc deliberately favors a small, coherent product over an AI agent,
