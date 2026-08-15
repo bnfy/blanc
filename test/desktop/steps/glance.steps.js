@@ -168,6 +168,20 @@ Then('the active page and Glance occupy separate dominant and reference panes', 
   assert.ok(Math.abs(headerFlow.eyebrowCenter - headerFlow.identityCenter) <= 1);
   assert.ok(headerFlow.copyRight <= headerFlow.actionsLeft);
   assert.ok(headerFlow.actionsRight <= headerFlow.headerRight);
+
+  // The horizontal header spans to the window's right edge, where Windows and
+  // Linux draw the custom minimize/maximize/close cluster. Those controls
+  // populate only off-macOS, so assert the stacking invariant itself: the
+  // controls layer must beat the header layer or the header's opaque surface
+  // swallows their clicks.
+  const stacking = await chrome.evaluate(() => ({
+    header: Number(getComputedStyle(document.getElementById('glanceHeader')).zIndex) || 0,
+    controls: Number(getComputedStyle(document.getElementById('windowControls')).zIndex) || 0,
+  }));
+  assert.ok(
+    stacking.controls > stacking.header,
+    `window controls must stack above the Glance header (controls z ${stacking.controls}, header z ${stacking.header})`
+  );
 });
 
 When('I focus the interactive Glance page', async function () {
@@ -197,13 +211,34 @@ Then('the two visible tabs swap main and reference roles', async function () {
 });
 
 When('I resize the Glance divider', async function () {
+  // The ratio lives on the window runtime and survives scenario retries —
+  // pin the starting point so the stepped expectations below are stable.
+  await this.call('resetGlanceRatio');
+  await this.waitForState((candidate) =>
+    Math.round(candidate.glanceGeometry.ratio * 100) === 62);
   const state = await this.state();
   this.glanceWidthBeforeKeyboardResize = state.glanceGeometry.primary.width;
   const chrome = await mainChromePage();
   await chrome.locator('#glanceDivider').focus();
   await chrome.locator('#glanceDivider').press('Shift+ArrowLeft');
   await this.waitForState((candidate) =>
-    candidate.glanceGeometry.primary.width < this.glanceWidthBeforeKeyboardResize);
+    candidate.glanceGeometry.primary.width < this.glanceWidthBeforeKeyboardResize
+    && Math.round(candidate.glanceGeometry.ratio * 100) === 57);
+  // Key repeat delivers keydowns faster than the main-process layout echo
+  // returns. Two same-task keydowns must still step twice (57 → 53), not
+  // recompute both steps from the same stale ratio.
+  await chrome.evaluate(() => {
+    const divider = document.getElementById('glanceDivider');
+    for (let i = 0; i < 2; i += 1) {
+      divider.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'ArrowLeft',
+        bubbles: true,
+        cancelable: true,
+      }));
+    }
+  });
+  await this.waitForState((candidate) =>
+    Math.round(candidate.glanceGeometry.ratio * 100) === 53);
 });
 
 Then('the main pane remains larger than the reference pane', async function () {
@@ -315,6 +350,73 @@ Then('Glance has a labelled stacked header above its reference content', async f
   assert.ok(stackedHeader.actionsLeft >= stackedHeader.headerLeft);
   assert.ok(stackedHeader.actionsRight <= stackedHeader.headerRight);
   await this.call('setWindowContentSize', 1200, 800);
+});
+
+When('quiet-tab housekeeping targets the visible reference', async function () {
+  // Sweep-level exclusion: an idle-looking visible reference is not a
+  // candidate.
+  await this.call('setTabIdleSince', this.glanceReferenceId, 2 * 60 * 60 * 1000);
+  await this.call('runSleepSweep');
+  // Final-guard exclusion: even a direct discard request (the interleaved
+  // sweep case — the tab became the reference after candidate selection)
+  // must refuse.
+  this.glanceDirectSleepResult = await this.call('sleepTab', this.glanceReferenceId);
+});
+
+Then('the Glance reference stays awake beside the main page', async function () {
+  assert.equal(this.glanceDirectSleepResult, false, 'sleepTab discarded the visible Glance reference');
+  const state = await this.state();
+  const reference = state.tabs.find((tab) => tab.id === this.glanceReferenceId);
+  assert.equal(reference.asleep, false);
+  assert.equal(state.glanceTabId, this.glanceReferenceId);
+  assert.equal(state.activeTabId, this.glanceMainId);
+});
+
+When('I open the Change picker and close the reference tab behind it', async function () {
+  const chrome = await mainChromePage();
+  await chrome.locator('#glanceChange').click();
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === 'glance', 'change picker');
+  await this.call('closeTab', this.glanceReferenceId);
+  await this.waitForState((state) => state.glanceTabId === null);
+});
+
+When('I dismiss the orphaned Change picker with Escape', async function () {
+  // OS-level focus is unreliable under the harness (evaluate calls steal app
+  // focus), so observe main's focus-restore DECISION through the real
+  // chrome:island-state contract the strip acts on.
+  const chrome = await mainChromePage();
+  await chrome.evaluate(() => {
+    window.__glanceRestoreTriggerProbe = 'unset';
+    window.browserAPI.onIslandState(({ restoreTrigger }) => {
+      window.__glanceRestoreTriggerProbe = restoreTrigger;
+    });
+  });
+  // Deliver Escape through sendInputEvent so it exercises the REAL cancel
+  // path (main's before-input-event on the overlay). CDP-injected keys from
+  // page.press bypass before-input-event and land in the overlay's reason-less
+  // DOM fallback instead.
+  await ctx.app.evaluate(({ webContents }) => {
+    const overlay = webContents.getAllWebContents()
+      .find((candidate) => candidate.getURL() === 'blanc-chrome://overlay/');
+    if (!overlay) throw new Error('overlay webContents not found');
+    overlay.sendInputEvent({ type: 'keyDown', keyCode: 'Escape' });
+    overlay.sendInputEvent({ type: 'keyUp', keyCode: 'Escape' });
+  });
+  await waitForValue(() => this.call('overlayMode'), (mode) => mode === null, 'dismissed orphaned picker');
+});
+
+Then('keyboard focus is not stranded on the chrome strip', async function () {
+  // The Change control the cancel path would restore focus to no longer
+  // exists (Glance collapsed with its tab). A 'glance-change' restore trigger
+  // would focus the chrome document and then a hidden button — stranding
+  // keyboard users. Dismissal must fall through to page-content refocus.
+  const chrome = await mainChromePage();
+  const restoreTrigger = await waitForValue(
+    () => chrome.evaluate(() => window.__glanceRestoreTriggerProbe),
+    (value) => value !== 'unset',
+    'the dismissal island-state broadcast'
+  );
+  assert.equal(restoreTrigger, null, 'cancel restored focus toward a control that no longer exists');
 });
 
 Then('the quiet reference wakes into Glance', async function () {

@@ -776,8 +776,10 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
 
   // The CDP inspection above is asynchronous. Repeat every mutable eligibility
   // check immediately before the irreversible renderer kill — including
-  // capture, which a background tab can legitimately begin during the await.
-  if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.navEpoch !== navEpoch || tab.isLoading
+  // capture, which a background tab can legitimately begin during the await,
+  // and Glance, which can make the tab visible during it.
+  if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.id === rt().glanceTabId
+      || tab.navEpoch !== navEpoch || tab.isLoading
       || !tab.sleeping || tab.capturing || liveContents(tab) !== wc
       || !rendererIsExclusive()) return false;
 
@@ -844,8 +846,10 @@ async function sleepTab(id, { broadcast = true } = {}) {
 
   // The probe has an async frame budget; validate synchronously immediately
   // before teardown so it can never discard a tab the user just activated —
-  // or one that began CAPTURING after candidate selection.
-  if (!tabs.has(id) || id === rt().activeTabId || tab.navEpoch !== epochAtProbe
+  // one that began CAPTURING after candidate selection, or one that became
+  // the visible Glance reference while an earlier candidate's probe awaited.
+  if (!tabs.has(id) || id === rt().activeTabId || id === rt().glanceTabId
+      || tab.navEpoch !== epochAtProbe
       || tab.isLoading || tab.sleeping || tab.capturing || !liveContents(tab)) return false;
 
   if (snapshot.droppedPageState) {
@@ -1439,11 +1443,6 @@ function currentTabBounds(tab) {
   return layout.pageBounds;
 }
 
-function sendGlanceGeometry(layout = currentChromeLayout()) {
-  if (!hasLiveWindow()) return;
-  rt().window.webContents.send('chrome:glance-layout', glanceGeometry(layout));
-}
-
 function overlayBounds() {
   const layout = currentChromeLayout();
   const glance = glanceGeometry(layout);
@@ -1791,7 +1790,10 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
       ? (
           closingMode === 'shield' ? closingTrigger
             : closingMode === 'capture' ? 'capture'
-              : closingMode === 'glance' && closingPurpose === 'change' ? 'glance-change'
+              // The Change control only exists while Glance is still open —
+              // if the reference tab closed under the picker, fall through to
+              // the ordinary content refocus instead of a hidden button.
+              : closingMode === 'glance' && closingPurpose === 'change' && activeGlanceTab() ? 'glance-change'
                 : null
         )
       : null;
@@ -3081,9 +3083,12 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   const prevId = rt().activeTabId;
   const prev = prevId ? tabs.get(prevId) : null;
-  // Clicking inside the reference pane promotes it to the active/main side.
-  // Keep the previous active tab visible as the new Glance pane: the action is
-  // a swap between two already-owned tabs, never a cross-window move.
+  // EXPLICIT activation of the reference tab (Make main, an island row,
+  // Cmd/Ctrl+digit) swaps the two visible roles. Interacting inside the
+  // reference pane never reaches here — its focus handler deliberately does
+  // not activate (the reference must be usable without changing roles). Keep
+  // the previous active tab visible as the new Glance pane: the action is a
+  // swap between two already-owned tabs, never a cross-window move.
   if (promotingGlance) {
     rt().glanceTabId = prev && windowRuntimes.runtimeForTab(prev.id) === rt()
       ? prev.id
@@ -3149,8 +3154,12 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
 async function setGlanceTab(id) {
   let tab = tabs.get(id);
+  // A tab mid-sleep-teardown (`sleeping`) still reads back live contents, but
+  // its renderer is already being discarded — attaching it would paint a dead
+  // pane. Refuse; the picker reports the failure and a retry finds it asleep
+  // and takes the wake path.
   if (
-    !hasLiveWindow() || !tab || id === rt().activeTabId ||
+    !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
     windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
 
@@ -3159,7 +3168,7 @@ async function setGlanceTab(id) {
   // tab closed, moved, or superseded while loading can never be attached.
   tab = tabs.get(id);
   if (
-    !hasLiveWindow() || !tab || id === rt().activeTabId ||
+    !hasLiveWindow() || !tab || id === rt().activeTabId || tab.sleeping ||
     windowRuntimes.runtimeForTab(id) !== rt()
   ) return false;
   if (!liveContents(tab) || !tab.view) return false;

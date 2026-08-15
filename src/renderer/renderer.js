@@ -46,6 +46,10 @@
   let glanceResizeState = null;
   let glanceResizeFrame = 0;
   let queuedGlancePoint = null;
+  /** Optimistic ratio for keyboard resizing: key repeat outruns the
+   * main-process layout echo, so consecutive keydowns step from here rather
+   * than recomputing every step from the same stale layout. */
+  let glanceKeyRatio = null;
   /** Overlay mode mirrored from main — the pill hides while the command
    * bar is expanded in place ('panel'); the palette keeps it visible. */
   let islandMode = null;
@@ -346,9 +350,11 @@
     glanceHeader.dataset.direction = direction;
     glanceHeader.classList.toggle('private', !!tab.private);
     setFavicon(glanceFavicon, tab);
-    glanceTitle.textContent = tab.isLoading
-      ? 'Loading…'
-      : tab.title || tabDomain(tab) || (tab.private ? 'Private tab' : 'New tab');
+    // Keep an already-known title visible while the reference navigates —
+    // same rule as the picker rows: replacing useful identity with a generic
+    // loading label makes the header useless on slow or long-lived loads.
+    glanceTitle.textContent = tab.title || tabDomain(tab)
+      || (tab.isLoading ? 'Loading…' : tab.private ? 'Private tab' : 'New tab');
     glanceHeader.title = tab.title || glanceTitle.textContent;
   }
 
@@ -696,12 +702,13 @@
   });
   glanceDivider.addEventListener('keydown', (event) => {
     if (!glanceLayout) return;
-    let next = glanceLayout.ratio;
+    let next = glanceKeyRatio ?? glanceLayout.ratio;
     const step = event.shiftKey ? 0.05 : 0.02;
     if (event.key === 'Home') next = 0.5;
     else if (event.key === 'End') next = 0.78;
     else if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
+      glanceKeyRatio = null;
       window.browserAPI.resetGlance();
       return;
     } else if (
@@ -714,7 +721,8 @@
     ) next += step;
     else return;
     event.preventDefault();
-    const point = pointForGlanceRatio(Math.max(0.5, Math.min(0.78, next)));
+    glanceKeyRatio = Math.max(0.5, Math.min(0.78, next));
+    const point = pointForGlanceRatio(glanceKeyRatio);
     if (point) window.browserAPI.resizeGlance(point);
   });
 
@@ -744,6 +752,9 @@
   });
   window.browserAPI.onGlanceLayout((layout) => {
     glanceLayout = layout;
+    // Main has echoed the applied ratio; later keydowns step from the layout
+    // again until the next same-task burst.
+    glanceKeyRatio = null;
     renderGlance();
   });
   window.browserAPI.onGlanceStatus((message) => {

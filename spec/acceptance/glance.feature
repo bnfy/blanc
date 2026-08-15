@@ -42,3 +42,17 @@ Feature: Glance reference pane
     When I summon Glance from its native keyboard shortcut
     And I filter the Glance picker and choose the reference tab
     Then the quiet reference wakes into Glance
+
+  @F34-1 @F34 @F31 @D11
+  Scenario: A visible Glance reference is never quieted
+    Given two ordinary tabs in one workspace for Glance
+    When I open the reference tab in Glance
+    And quiet-tab housekeeping targets the visible reference
+    Then the Glance reference stays awake beside the main page
+
+  @F34-1 @F34 @D11
+  Scenario: Cancelling a Change picker after its reference closed leaves focus on the page
+    Given three ordinary tabs with one open in Glance
+    When I open the Change picker and close the reference tab behind it
+    And I dismiss the orphaned Change picker with Escape
+    Then keyboard focus is not stranded on the chrome strip

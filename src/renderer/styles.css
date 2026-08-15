@@ -2148,6 +2148,11 @@ body[data-glance-purpose="change"] .glance-picker {
 
 #windowControls {
   position: absolute;
+  /* Above the Glance header (z 4): in horizontal Glance the header's opaque
+     surface spans to the window's right edge, where Windows/Linux draw these
+     custom controls — they must win hit-testing or the window becomes
+     unmanageable by mouse while Glance is open. */
+  z-index: 5;
   top: 8px;
   right: 8px;
   display: flex;
