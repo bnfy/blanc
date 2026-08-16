@@ -1005,3 +1005,278 @@ body.sheet .page h1:focus { outline: none; }
 @media (prefers-color-scheme: dark) {
   body.sheet { background: rgba(0, 0, 0, 0.35); }
 }
+
+/* ---------- start-page layouts ----------
+   Three alternatives to the shipped ledger, transcribed value-for-value from
+   the design system's "New tab v2" handoff prototype. The ledger is unchanged.
+
+   Visibility is CSS-only: no [hidden] attributes, because this file's
+   [hidden] rule is !important and would outrank these selectors. Each active
+   root is re-shown with its OWN display value — billboard centers with flex,
+   so display:block would break it. */
+#layoutBillboard,
+#layoutShelf,
+#layoutTally { display: none; }
+body[data-layout="billboard"] #layoutLedger,
+body[data-layout="shelf"] #layoutLedger,
+body[data-layout="tally"] #layoutLedger { display: none; }
+body[data-layout="billboard"] #layoutBillboard { display: flex; }
+body[data-layout="shelf"] #layoutShelf { display: block; }
+body[data-layout="tally"] #layoutTally { display: block; }
+
+/* The ledger keeps its shipped in-flow footer (it may scroll away when the
+   ledger overflows — deliberate). The other three do not overflow, so they
+   take the prototype's absolute footer. */
+body:not([data-layout="ledger"]) .ledger-footer {
+  position: absolute;
+  bottom: 24px;
+  left: 48px;
+  right: 48px;
+  margin: 0;
+  padding: 0;
+}
+.footer-left { display: inline-flex; align-items: baseline; gap: 8px; }
+.layout-switcher { display: inline-flex; align-items: baseline; gap: 4px; }
+.layout-switcher button {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.layout-switcher button:hover { color: var(--text); }
+.layout-switcher button.active { color: var(--text); }
+
+/* Shared group chip (billboard, shelf, tally) */
+.group-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.group-chip:hover { border-color: var(--text-dim); }
+.group-chip .chip-dots { display: inline-flex; gap: 3px; }
+.group-chip .chip-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  font-style: normal;
+}
+.group-chip .chip-name { font-family: var(--font-mono); font-size: 12px; }
+.group-chip .chip-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+
+/* ---------- billboard ---------- */
+.billboard {
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.bb-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.18em;
+}
+.bb-clock-row { display: flex; align-items: baseline; gap: 14px; margin-top: 18px; }
+.bb-clock {
+  font-family: var(--font-mono);
+  font-size: 148px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.bb-meridiem { font-family: var(--font-mono); font-size: 24px; color: var(--text-dim); }
+.bb-blocked {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin-top: 20px;
+}
+.bb-favs { display: flex; gap: 36px; margin-top: 64px; align-items: flex-start; }
+.bb-fav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+}
+.bb-fav .tile {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--accent);
+}
+.bb-fav .tile.has-icon { background-size: 20px; background-position: center; background-repeat: no-repeat; }
+.bb-fav .label { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+.bb-groups { display: flex; gap: 14px; margin-top: 38px; }
+/* The billboard's chips are the one place the prototype sizes them up. */
+.bb-groups .group-chip { padding: 7px 16px; }
+.bb-groups .group-chip .chip-name { font-size: 12.5px; }
+
+/* ---------- shelf ---------- */
+.shelf {
+  position: absolute;
+  left: 110px;
+  right: 110px;
+  top: 120px;
+  user-select: none;
+}
+.shelf-head { display: flex; justify-content: space-between; align-items: baseline; }
+.shelf-heading { font-size: 28px; font-weight: 600; letter-spacing: -0.015em; }
+.shelf-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 30px;
+}
+.shelf-tile {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 16px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-decoration: none;
+  color: var(--text);
+}
+.shelf-tile:hover { border-color: var(--text-dim); }
+.shelf-tile .tile {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+}
+.shelf-tile .tile.has-icon { background-size: 18px; background-position: center; background-repeat: no-repeat; }
+.shelf-tile .name {
+  display: block;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shelf-tile .host {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shelf-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+.shelf-card { border: 1px solid var(--border); border-radius: 6px; padding: 18px 16px; }
+.shelf-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+}
+.shelf-chiprow { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+.shelf-stat { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
+.shelf-count {
+  font-family: var(--font-mono);
+  font-size: 34px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.shelf-unit { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+
+/* ---------- tally ---------- */
+.tally-left {
+  position: absolute;
+  left: 110px;
+  top: 120px;
+  width: 460px;
+  user-select: none;
+}
+/* The left column IS the ledger column, so it reuses .ledger-* / .fav rows
+   verbatim — including the shipped 22px lettered tile, which is what the
+   ledger actually renders today. */
+.tally-label { margin-top: 44px; }
+.tally-label-groups { margin-top: 40px; }
+.tally-chiprow { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+.tally-right {
+  position: absolute;
+  right: 110px;
+  top: 120px;
+  width: 280px;
+  user-select: none;
+}
+.tally-count {
+  font-family: var(--font-mono);
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-top: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.tally-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 110px;
+  margin-top: 26px;
+  border-bottom: 1px solid var(--border);
+}
+/* Height is set inline from the normalized day counts — never in CSS, or the
+   data would be overridden. .today changes the colour only. */
+.tally-bar {
+  flex: 1;
+  background: var(--accent-dim);
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+.tally-bar.today { background: var(--accent); border-color: var(--accent); }
+.tally-days {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.tally-days span { flex: 1; text-align: center; }
+.tally-caption {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  margin-top: 20px;
+  line-height: 1.6;
+}

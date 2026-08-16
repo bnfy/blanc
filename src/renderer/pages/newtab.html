@@ -7,8 +7,8 @@
   <link rel="icon" href="icon.svg" />
   <link rel="stylesheet" href="pages.css" />
 </head>
-<body class="ledger-body">
-  <main class="ledger">
+<body class="ledger-body" data-layout="ledger">
+  <main class="ledger" id="layoutLedger">
     <div id="dateLine" class="ledger-date"></div>
     <h1 class="ledger-heading">Where to?</h1>
 
@@ -66,9 +66,70 @@
     </section>
   </main>
 
+  <!-- The three alternative layouts (design system, "New tab v2" handoff).
+       No `hidden` attributes: pages.css's [hidden] rule is !important and
+       would outrank the data-layout selectors that show the active one. -->
+  <main class="billboard" id="layoutBillboard">
+    <div id="bbDate" class="bb-date"></div>
+    <div class="bb-clock-row">
+      <span id="bbClock" class="bb-clock"></span>
+      <span id="bbMeridiem" class="bb-meridiem"></span>
+    </div>
+    <div id="bbBlocked" class="bb-blocked"></div>
+    <div id="bbFavorites" class="bb-favs"></div>
+    <div id="bbGroups" class="bb-groups"></div>
+  </main>
+
+  <main class="shelf" id="layoutShelf">
+    <div class="shelf-head">
+      <span class="shelf-heading">Where to?</span>
+      <span id="shDate" class="shelf-date"></span>
+    </div>
+    <div id="shFavorites" class="shelf-grid"></div>
+    <div class="shelf-cards">
+      <div class="shelf-card">
+        <div class="shelf-label">pick up where you left off</div>
+        <div id="shGroups" class="shelf-chiprow"></div>
+      </div>
+      <div class="shelf-card">
+        <div class="shelf-label">blocked</div>
+        <div class="shelf-stat">
+          <span id="shBlocked" class="shelf-count"></span>
+          <span class="shelf-unit">ads this week</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <main class="tally" id="layoutTally">
+    <div class="tally-left">
+      <div id="tlDate" class="ledger-date"></div>
+      <h1 class="ledger-heading">Where to?</h1>
+      <div class="ledger-label tally-label">favorites</div>
+      <div id="tlFavorites" class="ledger-list"></div>
+      <div class="ledger-label tally-label tally-label-groups">pick up where you left off</div>
+      <div id="tlGroups" class="tally-chiprow"></div>
+    </div>
+    <div class="tally-right">
+      <div class="ledger-label">blocked this week</div>
+      <div id="tlCount" class="tally-count"></div>
+      <div id="tlChart" class="tally-chart"></div>
+      <div id="tlDays" class="tally-days"></div>
+      <div id="tlCaption" class="tally-caption"></div>
+    </div>
+  </main>
+
   <footer class="ledger-footer">
-    <span id="footerLeft"></span>
-    <span id="version" class="ledger-version"></span>
+    <span class="footer-left">
+      <span id="footerLeft"></span>
+      <span id="version" class="ledger-version"></span>
+    </span>
+    <span id="layoutSwitcher" class="layout-switcher">layout:
+      <button type="button" data-layout-pick="ledger">ledger</button> ·
+      <button type="button" data-layout-pick="billboard">billboard</button> ·
+      <button type="button" data-layout-pick="shelf">shelf</button> ·
+      <button type="button" data-layout-pick="tally">tally</button>
+    </span>
     <span id="goAnywhere"></span>
   </footer>
 
