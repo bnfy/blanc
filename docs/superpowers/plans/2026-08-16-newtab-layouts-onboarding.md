@@ -29,8 +29,9 @@
 - Test: `test/unit/adblock-stats.test.js`
 
 **Interfaces:**
-- Produces: `currentWeekStart(now?: Date): number`, `dayIndex(now?: Date): number` (0=Monday … 6=Sunday), `normalizeWeekStats(data): {weekStart, blocked, days}` (repairs legacy `{weekStart, blocked}` shapes by seeding `days: [0×7]`), `rollWeekStats(data, now?): void` (mutates: resets `blocked` and `days` when the week changed), `recordBlocked(data, now?): void` (mutates: `blocked += 1`, `days[dayIndex(now)] += 1`).
-- Consumed by: Task 3's `blockedByDay()` hook and main.js's existing `adblockWeekStats()` / increment site.
+- Produces: `currentWeekStart(now?: Date): number`, `dayIndex(now?: Date): number` (0=Monday … 6=Sunday), `normalizeWeekStats(data): {weekStart, blocked, days}` (repairs legacy `{weekStart, blocked}` shapes by seeding `days: [0×7]`), `rollWeekStats(data, now?): void` (mutates: resets `blocked` and `days` when the week changed), `recordBlocked(data, now?): void` (mutates: `blocked += 1`, `days[dayIndex(now)] += 1`), `barHeights(days: number[]): number[]` (percent heights, all zero when every day is zero — the tally chart's rule, unit-tested here rather than inline in the renderer).
+- Consumed by: Task 3's `blockedByDay()` hook, main.js's existing `adblockWeekStats()` / increment site, and Task 5's `renderTally()`.
+- Note: renderer pages are flat-served and cannot `require()` main-process modules, so the rule is **not** duplicated in `newtab.js`. Main computes it here and ships the result: `pages:start:data` returns `blockedBarHeights` (percent numbers) alongside raw `blockedByDay` (still needed for the busiest-day caption). One implementation, one test.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -86,7 +87,19 @@ test('recordBlocked bumps the weekly total and today\'s bucket together', () => 
   assert.strictEqual(data.blocked, 2);
   assert.deepStrictEqual(data.days, [0, 0, 2, 0, 0, 0, 0]);
 });
+
+test('barHeights normalizes to the busiest day', () => {
+  assert.deepStrictEqual(barHeights([0, 5, 10, 0, 0, 0, 0]), [0, 50, 100, 0, 0, 0, 0]);
+});
+
+test('barHeights is all zero for a week with nothing blocked', () => {
+  // Spec's zero-week rule: the chart tells the truth rather than drawing a
+  // full bar for today. (The DS prototype's 100% today-bar is stub data.)
+  assert.deepStrictEqual(barHeights([0, 0, 0, 0, 0, 0, 0]), [0, 0, 0, 0, 0, 0, 0]);
+});
 ```
+
+Add `barHeights` to the test's `require(...)` destructuring at the top of the file.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -141,7 +154,20 @@ function recordBlocked(data, now = new Date()) {
   data.days[dayIndex(now)] += 1;
 }
 
-module.exports = { currentWeekStart, dayIndex, normalizeWeekStats, rollWeekStats, recordBlocked };
+/**
+ * Tally chart bar heights, in percent, normalized to the busiest day. A week
+ * with nothing blocked draws no bars at all — including today's. The chart
+ * reports what happened; a full bar for a zero day would not.
+ */
+function barHeights(days) {
+  const max = Math.max(...days, 0);
+  if (!max) return days.map(() => 0);
+  return days.map((n) => Math.round((n / max) * 100));
+}
+
+module.exports = {
+  currentWeekStart, dayIndex, normalizeWeekStats, rollWeekStats, recordBlocked, barHeights,
+};
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -221,7 +247,9 @@ Run: `node --test test/unit/settings-newtab-layout.test.js` — Expected: FAIL (
 
 Next to `THEMES` (line ~20): `const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];` with a one-line comment naming the DS handoff. In `DEFAULTS`: `newtabLayout: 'ledger',` (put it beside `theme`). Sanitize-on-read (the block around line 170): `if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;`. Validate-on-write (beside the `THEMES` check at line ~205): `if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;`. Extend `SYNCED_KEYS` to `['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout']` and update its comment. Export `NEWTAB_LAYOUTS` (and `SYNCED_KEYS` if not already).
 
-- [ ] **Step 4: Update the schema substrate**
+- [ ] **Step 4: Update the schema substrate — JSON *and* `build.mjs`**
+
+JSON alone is inert: `build.mjs` hardcodes every enum it generates and compares, so adding a key to `schema.json` without touching the script means `settings:check` passes while guarding nothing. Edit both.
 
 `settings-schema/schema.json`: add `"newtabLayouts": ["ledger", "billboard", "shelf", "tally"]` after `"themes"`; add `"newtabLayout": "ledger"` to `"defaults"`; add to `"settings"`:
 
@@ -229,14 +257,23 @@ Next to `THEMES` (line ~20): `const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'sh
 { "key": "newtabLayout", "type": "enum", "enum": "newtabLayouts", "default": "ledger", "note": "start-page layout (DS: New tab v2 handoff); synced" }
 ```
 
-Run: `npm run settings:build` then `npm run settings:check` — Expected: build regenerates `settings-schema/generated/*`, check exits 0.
+`settings-schema/build.mjs` — follow the `tabSleepDelays` precedent line-for-line (it is the closest analogue: a plain string enum plus a default):
 
-- [ ] **Step 5: Run tests and commit**
+- `genSwift()` (near the `BlancTabSleepDelay` emit, line ~48): `out += 'public enum BlancNewtabLayout: String, CaseIterable {\n'; for (const l of spec.newtabLayouts) out += \`    case ${swiftCase(l)}\n\`; out += '}\n\n';` and in the defaults struct (near line 71): `out += \`    public static let newtabLayout: BlancNewtabLayout = .${swiftCase(spec.defaults.newtabLayout)}\n\`;`
+- `genKotlin()` (line ~89): `out += \`enum class BlancNewtabLayout(val id: String) { ${spec.newtabLayouts.map((v) => \`${upper(v)}("${v}")\`).join(', ')} }\n\n\`;` and in defaults (line ~103): `out += \`    val newtabLayout = BlancNewtabLayout.${upper(spec.defaults.newtabLayout)}\n\`;`
+- `parseSettingsJs()` (line ~129): `const newtabLayoutBlock = (js.match(/const NEWTAB_LAYOUTS = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, ''); const newtabLayouts = [...newtabLayoutBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);` — add `newtabLayout: s(/^\s*newtabLayout:\s*'([^']*)'/m),` to the parsed defaults (line ~146) and `newtabLayouts` to the returned object (line ~153).
+- checker: `cmp('newtabLayouts', js.newtabLayouts, spec.newtabLayouts);` (line ~166) and `eq('newtabLayout', jd.newtabLayout, d.newtabLayout);` (line ~194).
+
+- [ ] **Step 5: Prove the guard actually guards (positive control)**
+
+Run: `npm run settings:build` then `npm run settings:check` — Expected: generated files include `BlancNewtabLayout` in both Swift and Kotlin; check exits 0. Then temporarily change `NEWTAB_LAYOUTS` in settings.js (e.g. drop `'tally'`) and re-run `npm run settings:check` — **Expected: FAIL naming newtabLayouts.** Revert the edit and confirm green again. A checker that passes both ways is not wired up.
+
+- [ ] **Step 6: Run tests and commit**
 
 Run: `node --test test/unit/settings-newtab-layout.test.js && npm run test:unit && npm run substrate:check` — Expected: all PASS.
 
 ```bash
-git add src/main/settings.js settings-schema/schema.json settings-schema/generated test/unit/settings-newtab-layout.test.js
+git add src/main/settings.js settings-schema/schema.json settings-schema/build.mjs settings-schema/generated test/unit/settings-newtab-layout.test.js
 git commit -m "Add the synced newtabLayout setting"
 ```
 
@@ -249,7 +286,7 @@ git commit -m "Add the synced newtabLayout setting"
 
 **Interfaces:**
 - Consumes: Task 1's `blockedByDay` data (`adblockWeekStats().data.days`), Task 2's `newtabLayout` setting.
-- Produces (renderer-visible): `bowserPages.start.data()` now also returns `{ layout: string, blockedByDay: number[7] }`; `bowserPages.start.setLayout(name)` → `pages:start:set-layout`; the `pages:start:status` broadcast payload gains `layout` (renderers re-render layout on status pushes).
+- Produces (renderer-visible): `bowserPages.start.data()` now also returns `{ layout: string, blockedByDay: number[7], blockedBarHeights: number[7], onboarding: {adblockEnabled, theme}|null }`; `bowserPages.start.setLayout(name)` → `pages:start:set-layout`; the `pages:start:status` broadcast payload gains `layout` (renderers re-render layout on status pushes).
 
 - [ ] **Step 1: Extend the hooks and status in main.js**
 
@@ -257,7 +294,15 @@ In the `startPage` hooks object (line ~5225) add:
 
 ```js
 blockedByDay: () => [...adblockWeekStats().data.days],
+blockedBarHeights: () => adblockStatsPolicy.barHeights(adblockWeekStats().data.days),
 setLayout: (name) => settings.setSettings({ newtabLayout: String(name) }),
+// Least-privilege projection for the onboarding dialog (spec: the dialog must
+// initialize from REAL current values, never invented ones — a tour replay
+// shows what is actually saved).
+onboardingState: () => {
+  const s = settings.getSettings();
+  return { adblockEnabled: s.adblockEnabled, theme: s.theme };
+},
 ```
 
 In `startPageStatus()` (line ~5167) add `layout: current.newtabLayout,` beside `startup`/`privacy`. After the `broadcastStartPageStatus` definition, wire settings changes to it (so a Settings-page select or a synced change re-inks every open newtab):
@@ -268,7 +313,7 @@ settings.onSettingsChanged(() => broadcastStartPageStatus());
 
 - [ ] **Step 2: Extend pages.js**
 
-In the `pages:start:*` block: add `layout` and `blockedByDay` to the `pages:start:data` reply object (`layout: hooks.startPage?.status?.().layout`, `blockedByDay: hooks.startPage?.blockedByDay() ?? [0,0,0,0,0,0,0]`), and register:
+In the `pages:start:*` block: add `layout`, `blockedByDay`, `blockedBarHeights`, and `onboarding` to the `pages:start:data` reply object (`layout: hooks.startPage?.status?.().layout`, `blockedByDay: hooks.startPage?.blockedByDay() ?? [0,0,0,0,0,0,0]`, `blockedBarHeights: hooks.startPage?.blockedBarHeights() ?? [0,0,0,0,0,0,0]`, `onboarding: hooks.startPage?.onboardingState?.() ?? null`), and register:
 
 ```js
 handle('pages:start:set-layout', 'newtab', (name) => {
@@ -309,14 +354,17 @@ Keep the entire current `<main class="ledger">…</main>` (startup card included
 ```html
 <body class="ledger-body" data-layout="ledger">
   <main class="ledger" id="layoutLedger"> … existing content … </main>
-  <main class="billboard" id="layoutBillboard" hidden>
+  <!-- No `hidden` attributes on layout roots: pages.css's `[hidden]` rule is
+       !important and would defeat the data-layout selectors. Visibility is
+       CSS-only, driven by body[data-layout]. -->
+  <main class="billboard" id="layoutBillboard">
     <div id="bbDate" class="bb-date"></div>
     <div class="bb-clock-row"><span id="bbClock" class="bb-clock"></span><span id="bbMeridiem" class="bb-meridiem"></span></div>
     <div id="bbBlocked" class="bb-blocked"></div>
     <div id="bbFavorites" class="bb-favs"></div>
     <div id="bbGroups" class="bb-groups"></div>
   </main>
-  <main class="shelf" id="layoutShelf" hidden>
+  <main class="shelf" id="layoutShelf">
     <div class="shelf-head"><span class="shelf-heading">Where to?</span><span id="shDate" class="shelf-date"></span></div>
     <div id="shFavorites" class="shelf-grid"></div>
     <div class="shelf-cards">
@@ -324,7 +372,7 @@ Keep the entire current `<main class="ledger">…</main>` (startup card included
       <div class="shelf-card"><div class="shelf-label">blocked</div><div class="shelf-stat"><span id="shBlocked" class="shelf-count"></span><span class="shelf-unit">ads this week</span></div></div>
     </div>
   </main>
-  <main class="tally" id="layoutTally" hidden>
+  <main class="tally" id="layoutTally">
     <div class="tally-left">
       <div id="tlDate" class="ledger-date"></div>
       <h1 class="ledger-heading">Where to?</h1>
@@ -360,9 +408,15 @@ The version moves into the left cluster (the prototype's footer has no version s
 Add a `/* ===== New tab layouts (DS: New tab v2 handoff — values verbatim) ===== */` section. Visibility plumbing:
 
 ```css
-body[data-layout="billboard"] #layoutLedger, body[data-layout="shelf"] #layoutLedger,
+/* Default: only the ledger renders. The active non-ledger root is re-shown
+   with its OWN display value (billboard is a flex column — display:block
+   would break its centering). No [hidden] attributes are involved. */
+#layoutBillboard, #layoutShelf, #layoutTally { display: none; }
+body[data-layout="billboard"] #layoutLedger,
+body[data-layout="shelf"] #layoutLedger,
 body[data-layout="tally"] #layoutLedger { display: none; }
-body[data-layout="billboard"] #layoutBillboard, body[data-layout="shelf"] #layoutShelf,
+body[data-layout="billboard"] #layoutBillboard { display: flex; }
+body[data-layout="shelf"] #layoutShelf { display: block; }
 body[data-layout="tally"] #layoutTally { display: block; }
 /* Non-ledger layouts: the prototype's absolute footer (the ledger keeps its
    shipped in-flow footer — 2026-07-22 decision). */
@@ -414,7 +468,7 @@ git commit -m "Add start-page layout shells and the footer switcher"
 - Reference: prototype layout blocks (markup + logic class `renderVals()`)
 
 **Interfaces:**
-- Consumes: Task 3's `start.data()` fields (`layout`, `blockedByDay`, plus existing `groups`, `blockedThisWeek`), `start.setLayout(name)`, status broadcasts carrying `layout`; Task 4's DOM ids/classes.
+- Consumes: Task 3's `start.data()` fields (`layout`, `blockedByDay`, `blockedBarHeights`, `onboarding`, plus existing `groups`, `blockedThisWeek`), `start.setLayout(name)`, status broadcasts carrying `layout`; Task 4's DOM ids/classes.
 - Produces: `applyLayout(name)` — the single place that flips `data-layout`, marks the active switcher button, starts/stops the billboard clock, and lazily renders the newly active layout.
 
 - [ ] **Step 1: Restructure the data flow**
@@ -422,11 +476,34 @@ git commit -m "Add start-page layout shells and the footer switcher"
 Refactor the tail of newtab.js: keep every existing behavior (favorites render into `#favoritesList`, groups, remote, launch status) and hold the fetched data in module state so layouts can render from it:
 
 ```js
-const state = { layout: 'ledger', groups: [], blockedThisWeek: 0, blockedByDay: [0,0,0,0,0,0,0], favorites: [] };
-const rendered = new Set(); // layouts drawn since last data change
+const state = { layout: 'ledger', groups: [], blockedThisWeek: 0, blockedByDay: [0,0,0,0,0,0,0],
+                blockedBarHeights: [0,0,0,0,0,0,0], favorites: [], onboarding: null };
+const rendered = new Set(); // layouts drawn from the CURRENT data
+const invalidate = () => rendered.clear(); // any feed change re-draws on next apply
 ```
 
-`bookmarks.list()` stores into `state.favorites` before the existing ledger render; `start.data()` stores `layout/groups/blockedThisWeek/blockedByDay` then calls `applyLayout(state.layout)`. `onStatus` handler: alongside `renderLaunchStatus`, if `status.layout && status.layout !== state.layout` call `applyLayout(status.layout)`.
+**Both feeds must land before the first non-ledger render** — `bookmarks.list()` and `start.data()` resolve independently, and a layout cached from the earlier one would sit permanently empty (nothing re-renders it). So:
+
+```js
+const favoritesReady = window.bowserPages.bookmarks.list().then((items) => {
+  state.favorites = items;
+  renderLedgerFavorites(items);   // the existing ledger render, extracted
+  invalidate();
+});
+const dataReady = window.bowserPages.start.data().then((data) => {
+  Object.assign(state, {
+    layout: data.layout ?? 'ledger', groups: data.groups, blockedThisWeek: data.blockedThisWeek,
+    blockedByDay: data.blockedByDay ?? state.blockedByDay,
+    blockedBarHeights: data.blockedBarHeights ?? state.blockedBarHeights,
+    onboarding: data.onboarding ?? null,
+  });
+  renderLedgerRest(data);         // groups/footer/remote/launch-status, as today
+  invalidate();
+});
+Promise.all([favoritesReady, dataReady]).then(() => applyLayout(state.layout));
+```
+
+The ledger keeps rendering incrementally exactly as it does today (no regression in its first paint); only the three new layouts wait, and they are not visible until `applyLayout` runs. `onStatus`: alongside `renderLaunchStatus`, if `status.layout && status.layout !== state.layout` call `applyLayout(status.layout)`. Any later feed update (`onRemoteTabs`, a future refresh) calls `invalidate()` before re-applying.
 
 - [ ] **Step 2: Implement applyLayout + per-layout renderers**
 
@@ -446,12 +523,12 @@ function renderShelf() { /* favorites.slice(0, 8) as .shelf-tile anchors (title 
   groups as chips with trailing count span, `#shBlocked` = toLocaleString() */ }
 
 function renderTally() { /* left column reuses the ledger row/chip builders into #tlFavorites/#tlGroups;
-  right column: #tlCount = toLocaleString(); chart: max = Math.max(...state.blockedByDay, 1);
+  right column: #tlCount = state.blockedThisWeek.toLocaleString();
   labels rotated so today is last: order i = (todayIdx + 1 + k) % 7 for k in 0..6 with day
-  initials ['mo','tu','we','th','fr','sa','su'][i]; past-day bar height =
-  Math.round(state.blockedByDay[i] / max * 100) + '%'; the LAST bar (today) always gets
-  .today — solid accent at height 100% regardless of its count, the handoff's stated rule
-  and the prototype's literal markup (past days are normalized history; today is the live bar);
+  initials ['mo','tu','we','th','fr','sa','su'][i]; bar height = state.blockedBarHeights[i] + '%'
+  for EVERY bar including today — computed in main by the unit-tested barHeights() (zero week =
+  all bars 0%, per the spec; the prototype's 100% today-bar is stub data). The last bar still
+  gets .today for its solid --accent fill: colour marks today, height is data;
   caption line 1 `busiest day ${dayName}.` using the max bucket's full lowercase weekday,
   line 2 `nothing followed you home.` */ }
 
@@ -508,11 +585,14 @@ git commit -m "Render the billboard, shelf, and tally start-page layouts"
 ### Task 6: Settings UI — layout select + welcome tour row
 
 **Files:**
-- Modify: `src/renderer/pages/settings.html` (General section, beside the Appearance select at line ~34), `src/renderer/pages/settings.js` (mirror the `theme` select wiring exactly)
+- Modify: `src/renderer/pages/settings.html` (General section, beside the Appearance select at line ~34), `src/renderer/pages/settings.js` (mirror the `theme` select wiring exactly), `src/main/pages.js` + `src/main/main.js` + `src/main/tab-preload.js` (the welcome-tour IPC below)
 
 **Interfaces:**
 - Consumes: Task 2's setting through the settings page's existing get/set IPC (same channel the `theme` select uses — copy its pattern verbatim).
-- Produces: `<select id="newtabLayout">` with options ledger/billboard/shelf/tally (labels lowercase, matching the switcher's voice); a "Show welcome tour" action row whose button opens `blanc://newtab/?tour=1` via `location.href` (outbound navigations from the utility sheet already open real tabs).
+- Produces: `<select id="newtabLayout">` with options ledger/billboard/shelf/tally (labels lowercase, matching the switcher's voice); a "Show welcome tour" action row backed by a new settings-sender IPC. **The sheet's `will-navigate` is default-deny for non-utility, non-http(s) URLs (main.js:1917-1934 hands them to `handOffToOs`), so `location.href = 'blanc://newtab/?tour=1'` would be a no-op** — instead:
+  - pages.js: `handle('pages:settings:welcome-tour', 'settings', () => hooks.startPage?.openWelcomeTour?.());`
+  - main.js startPage hooks: `openWelcomeTour: () => { const id = createTab('blanc://newtab/?tour=1'); if (id) setActiveTab(id); },` — this runs inside `runInPageRuntime`, so the tab lands in the sheet's own window, and `createTab`'s existing dismissal closes the sheet.
+  - tab-preload.js settings surface: `welcomeTour: () => invoke('pages:settings:welcome-tour'),`
 
 - [ ] **Step 1: Add the select + row to settings.html**
 
@@ -536,7 +616,7 @@ git commit -m "Render the billboard, shelf, and tally start-page layouts"
 
 - [ ] **Step 2: Wire in settings.js (renderer)**
 
-Clone the `theme` select's load/save wiring for `newtabLayout` (same read on init, same change-handler write). For the tour button: `document.getElementById('showWelcomeTour').addEventListener('click', () => { location.href = 'blanc://newtab/?tour=1'; });`.
+Clone the `theme` select's load/save wiring for `newtabLayout` (same read on init, same change-handler write). For the tour button: `document.getElementById('showWelcomeTour').addEventListener('click', () => window.bowserPages?.settings.welcomeTour());` (adjust to the settings surface's real namespace in tab-preload.js). This task also carries the main-side handler/hook/preload additions from the Interfaces block above.
 
 - [ ] **Step 3: Verify + commit**
 
@@ -552,26 +632,21 @@ git commit -m "Add the new-tab layout select and welcome tour row to Settings"
 ### Task 7: Onboarding IPC + dialog shell (replaces the privacy card)
 
 **Files:**
-- Modify: `src/main/pages.js` (new `pages:start:*` handlers; widen `pages:bookmarks:import` allowlist to `['bookmarks', 'newtab']`), `src/main/main.js` (startPage hooks), `src/main/tab-preload.js` (newtab surface), `src/renderer/pages/newtab.html` (remove the privacy card, add dialog markup), `src/renderer/pages/pages.css` (dialog styles)
+- Modify: `src/main/pages.js` (widen allowlists, one new handler), `src/main/settings.js` (privacy re-save path), `src/main/main.js` (startPage hooks), `src/main/tab-preload.js` (newtab surface), `src/main/test-hook.js` (privacy-card driving surface → dialog equivalents), `src/renderer/pages/newtab.html` (remove the privacy card, add dialog markup), `src/renderer/pages/pages.css` (dialog styles), `test/desktop/packaged-first-run-smoke.mjs` (asserts the card today — rewrite its selectors/flow against the dialog in this same commit)
 - Create: `src/renderer/pages/onboarding.js` (+ `<script src="onboarding.js">` before newtab.js)
+- Test: extend the settings unit test with the re-save behavior below
 - Reference: prototype dialog block (`sc-if value="{{ showDialog }}"`), steps s0–s4
 
 **Interfaces:**
 - Consumes: `startPageStatus()` fields (`privacy.required`, `privacy.searchSuggestions`, `privacy.usagePing`, `startup.phase`), existing `bookmarks.browserSources()/importBrowser()/import()`, `start.completePrivacy(choices)`.
-- Produces main-side: `pages:start:default-status` → `{ isDefault: boolean }`; `pages:start:set-default` → fires `app.setAsDefaultProtocolClient('http'|'https')` (reuse the exact statements at pages.js:262-269 — factor them into a shared helper if they currently live under a settings-only handler, so both senders call one implementation); `pages:start:onboarding-set` → accepts `{ theme? , adblockEnabled? }` ONLY (hand-validated against `THEMES`/boolean before calling `settings.setSettings`). Preload: `start.defaultStatus()`, `start.setDefault()`, `start.onboardingSet(partial)`.
+- Produces main-side: the existing `pages:default-browser:get`/`pages:default-browser:set` handlers (pages.js:258-272) get their allowlists widened to `['settings', 'newtab']` — **no new default-browser channel, and the `canSet` guard stays** (a dev run must never register the bare Electron binary; Linux has no API — both replies carry `{ isDefault, canSet }` and `set` mutates only when `canSet`); `pages:start:onboarding-set` → accepts `{ theme?, adblockEnabled? }` ONLY (hand-validated before `settings.setSettings`). settings.js: `completeFirstRunPrivacyChoices` gains a re-save path (below). Preload: `start.defaultBrowser()` → `pages:default-browser:get`, `start.setDefaultBrowser()` → `pages:default-browser:set`, `start.onboardingSet(partial)`, and `bookmarks.import: () => invoke('pages:bookmarks:import')` (widening the main allowlist alone does not expose it — the newtab preload surface at tab-preload.js:15-19 must list it).
 - Produces renderer-side: `window.blancOnboarding.maybeShow(status)` — called by newtab.js's `renderLaunchStatus` path with each status; shows the dialog when `(status.privacy?.required || TOUR) && status.startup?.phase !== 'initializing' && status.startup?.phase !== 'failed'` where `TOUR = new URLSearchParams(location.search).has('tour')`; never on private tabs.
 
-- [ ] **Step 1: Main-process handlers**
+- [ ] **Step 1: Main-process handlers + the privacy re-save path**
 
-In pages.js beside the other `pages:start:*` handlers:
+pages.js: widen `pages:default-browser:get` and `pages:default-browser:set` from `'settings'` to `['settings', 'newtab']` — reuse the existing `defaultBrowserStatus()` helper and its `canSet` guard untouched. Widen `pages:bookmarks:import` from `'bookmarks'` to `['bookmarks', 'newtab']`. Add one new handler:
 
 ```js
-handle('pages:start:default-status', 'newtab', () => ({ isDefault: app.isDefaultProtocolClient('http') }));
-handle('pages:start:set-default', 'newtab', () => {
-  app.setAsDefaultProtocolClient('http');
-  app.setAsDefaultProtocolClient('https');
-  return { isDefault: app.isDefaultProtocolClient('http') };
-});
 handle('pages:start:onboarding-set', 'newtab', (partial) => {
   const clean = {};
   if (partial && typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
@@ -580,7 +655,9 @@ handle('pages:start:onboarding-set', 'newtab', (partial) => {
 });
 ```
 
-main.js startPage hooks gain `applySettings: (clean) => settings.setSettings(clean),`. Widen the `pages:bookmarks:import` allowlist from `'bookmarks'` to `['bookmarks', 'newtab']`. Preload additions mirror the three channels 1:1.
+main.js startPage hooks gain `applySettings: (clean) => settings.setSettings(clean),`. Preload: the four newtab-surface additions from the Interfaces block.
+
+settings.js — `completeFirstRunPrivacyChoices` currently returns `{completed: true}` immediately once first run is complete (line ~270), which silently discards a tour replay's edits. Restructure: validate the two booleans FIRST (invalid → `{completed:false, error:'invalid-choices'}`); then one shared commit block writes `searchSuggestions`, `usagePing`, and `onboardingVersion = FIRST_RUN_VERSION` with the existing flush/rollback + listener notification, whether or not first run was already complete (re-saving the same marker is idempotent). Extend `test/unit/settings-newtab-layout.test.js` (or the nearest settings unit test) with: completed profile + `completeFirstRunPrivacyChoices({searchSuggestions:false, usagePing:false})` → `completed: true` AND both values actually changed.
 
 - [ ] **Step 2: Dialog markup (newtab.html) + CSS (pages.css)**
 
@@ -589,7 +666,7 @@ Delete the whole `#privacyCard` section (lines 25–51) — superseded. Add the 
 - Scrim `#onboardScrim` (`position:absolute; inset:0; background:rgba(0,0,0,0.4)`), dialog `#onboardDialog` (centered 460px, `--surface-raised`, 1px `--border`, radius 10px, `--shadow-popover`), both `hidden` by default.
 - Header: `#obStepLabel` (mono 11px dim tracking .12em) + `#obSkip` ("skip setup", hover `--text`).
 - Content `#obContent` (padding 2px 24px 0; min-height 264px) with SIX step `<section data-step="N">` blocks:
-  - Steps 1–4 transcribed verbatim from prototype s0–s3 (vignette SVGs copied path-for-path — the browser-tile glyphs, the stroked blanc mark `viewBox="0 0 153.09 203.01"` with `stroke-width="4"`, the shield with the brand diagonal, the dotted flows), with deviation edits: step 2 h1 = "Bring your bookmarks", key tile removed (heart tile → arrow → blanc tile), and its source list is an empty `<div id="obSources" class="ob-srclist">` populated at runtime.
+  - Steps 1–4 transcribed verbatim from prototype s0–s3 (vignette SVGs copied path-for-path — the browser-tile glyphs, the stroked blanc mark `viewBox="0 0 153.09 203.01"` with `stroke-width="4"`, the shield with the brand diagonal, the dotted flows), with deviation edits: step 2 h1 = "Bring your bookmarks", key tile removed (heart tile → arrow → blanc tile), and its source list is `<div id="obSources" class="ob-srclist">` (populated at runtime — the file row is present from the start, browser rows only after discovery) preceded by a `<button id="obLook" class="ob-btn-secondary">Look for installed browsers</button>` and an `<span id="obImportStatus" class="ob-status">` line. **F30/D22 requires that Blanc read no other browser's profile directory until the person asks** — the button is that ask, mirroring the shipped card's "Look for other browsers".
   - Step 5 (privacy — new): h1 "Choose what Blanc may send", body copy carried over from the removed card's intro sentence, then two bordered control rows in the step-4 row style (`1px --border, radius 6px, padding 12px 14px`), each label + the prototype's 36×20 toggle: "Search suggestions" (`#obSuggestions`) and "Help improve Blanc" (`#obPing`), with the card's `<small>` explanations as 11.5px dim sublines.
   - Step 6 transcribed verbatim from prototype s4 (theme cards, literal colors intact).
 - Footer: Back (`#obBack`, visibility-hidden on step 1), SIX dots, primary `#obNext` ("Continue" / "Start browsing" on step 6).
@@ -609,44 +686,70 @@ Delete the whole `#privacyCard` section (lines 25–51) — superseded. Add the 
     importSource: null, sources: [], adblock: true, suggestions: true, ping: true, theme: null };
   // …element lookups…
   function sync() { /* prototype's sync(), extended to 6 dots + import rows built
-    from state.sources; sets every CSS custom property listed in Step 2 */ }
-  async function show(status) {
-    state.shown = true; state.adblock = /* current settings via status or default true */ true;
-    state.suggestions = !!status.privacy?.searchSuggestions; state.ping = !!status.privacy?.usagePing;
-    const [def, sources] = await Promise.all([
-      window.bowserPages.start.defaultStatus(),
-      window.bowserPages.bookmarks.browserSources(),
-    ]);
+    from state.sources; sets every CSS custom property listed in Step 2. The
+    default-browser CTA renders disabled (secondary style, same label) while
+    state.canSetDefault is false — dev runs and Linux can't register. */ }
+  async function show(status, onboarding) {
+    state.shown = true;
+    // REAL current values only (spec + F30): the projection carries what is
+    // actually saved; a tour replay must show it faithfully.
+    state.adblock = onboarding ? !!onboarding.adblockEnabled : true;
+    state.theme = onboarding?.theme ?? null; // 'system' | 'light' | 'dark'; card marked only for light/dark
+    state.suggestions = !!status.privacy?.searchSuggestions;
+    state.ping = !!status.privacy?.usagePing;
+    const def = await window.bowserPages.start.defaultBrowser();
     state.defaultSet = !!def?.isDefault;
-    state.sources = [...(sources ?? []), { id: '__file__', label: 'From a bookmarks file (HTML)…' }];
+    state.canSetDefault = !!def?.canSet;
+    // F30/D22: NO browser-profile discovery here. The import step renders a
+    // "Look for installed browsers" secondary button (card's voice) plus the
+    // always-present "From a bookmarks file (HTML)…" row; browserSources()
+    // runs only when the user clicks Look. Nothing is read until they ask.
+    state.sources = [{ id: '__file__', label: 'From a bookmarks file (HTML)…' }];
+    state.looked = false;
     scrim.hidden = dialog.hidden = false; sync();
   }
-  function maybeShow(status) {
+  async function lookForBrowsers() {
+    const sources = await window.bowserPages.bookmarks.browserSources();
+    state.looked = true;
+    state.sources = [...(sources ?? []), { id: '__file__', label: 'From a bookmarks file (HTML)…' }];
+    sync(); // empty result renders the card's "No other browser profiles found." line
+  }
+  function maybeShow(status, onboarding) {
     if (isPrivate || state.shown || state.done) return;
     const startupBusy = status?.startup?.phase === 'initializing' || status?.startup?.phase === 'failed';
     if (startupBusy) return;
-    if (TOUR || status?.privacy?.required) show(status);
+    if (TOUR || status?.privacy?.required) show(status, onboarding);
   }
   async function persistPrivacy() {
-    await window.bowserPages.start.completePrivacy({
+    const result = await window.bowserPages.start.completePrivacy({
       searchSuggestions: state.suggestions, usagePing: state.ping });
+    return !!result?.completed;
   }
-  async function finish() { await persistPrivacy(); state.done = true; scrim.hidden = dialog.hidden = true; }
+  async function finish() {
+    // Close ONLY on confirmed persistence — a write failure keeps the dialog
+    // up and surfaces the card's error copy in the privacy step's #obError
+    // line ("Could not save these choices. Check disk access and try again.").
+    if (!(await persistPrivacy())) { showPrivacyError(); state.step = 4; sync(); return; }
+    state.done = true; scrim.hidden = dialog.hidden = true;
+  }
   // next(): on the import step, if state.importSource is a browser id run
   // importBrowser(id) (render the result line in the step body, prototype
   // voice: `imported N favorites…`), '__file__' runs bookmarks.import();
   // then advance. Step 4 toggle → onboardingSet({adblockEnabled}); step 6
-  // card → onboardingSet({theme:'light'|'dark'}) live. Last step's primary
+  // card → onboardingSet({theme:'light'|'dark'}) live (a 'system' initial
+  // value marks neither card until the user picks). Last step's primary
   // (`Start browsing`) and #obSkip both call finish(). Back never wraps.
   window.blancOnboarding = { maybeShow };
 })();
 ```
 
-Write the full implementation (the comment-condensed parts above must be real code in the file). newtab.js: `renderLaunchStatus` drops all privacy-card logic (delete the card's element lookups and the `privacyContinue`/migration listeners wholesale) and instead ends with `window.blancOnboarding?.maybeShow({ startup, privacy });` — the same call goes in the `start.data()` initial render and the `onStatus` handler (it's idempotent via `state.shown`).
+Write the full implementation (the comment-condensed parts above must be real code in the file). newtab.js: `renderLaunchStatus` drops all privacy-card logic (delete the card's element lookups and the `privacyContinue`/migration listeners wholesale) and instead ends with `window.blancOnboarding?.maybeShow({ startup, privacy }, state.onboarding);` — the same call goes in the `start.data()` initial render (which stores `onboarding` into `state`) and the `onStatus` handler (idempotent via `state.shown`; status pushes pass the cached `state.onboarding`).
+
+Also update `src/main/test-hook.js`: its first-run surface currently drives `#privacyCard`/`#privacyContinue`. Re-point those selectors at the dialog (`#onboardDialog`, `#obSkip`, `#obNext`) keeping the hook's existing function names so F30-3's step definitions keep resolving; if a name no longer fits the dialog's shape, update the step definition in the same commit. Same for `test/desktop/packaged-first-run-smoke.mjs` — rewrite its card assertions against the dialog (it gates releases; a stale selector fails the release runbook, not CI).
 
 - [ ] **Step 4: Hand-verify the full flow on a scratch fresh profile**
 
-Point the dev app at a scratch userData (dev profile relocation notes in repo memory; simplest: temporarily move `~/Library/Application Support/blanc-Dev` aside). Verify: dialog appears over the ledger on first launch; all six steps navigate; set-default fires the macOS prompt and flips the button; import lists real installed browsers + the file row and reports counts; adblock + theme apply live; skip on step 1 saves privacy defaults (check `settings.json`: `onboardingVersion: 1`, both booleans present); relaunch shows no dialog; `blanc://newtab/?tour=1` replays it with saved values; no ping fires before completion (dev builds never ping — assert via the saved flags instead). Restore your real dev profile after.
+Point the dev app at a scratch userData (dev profile relocation notes in repo memory; simplest: temporarily move `~/Library/Application Support/blanc-Dev` aside). Verify: dialog appears over the ledger on first launch; all six steps navigate; **the default-browser CTA renders in its disabled state (dev is unpackaged → `canSet:false`) — this is correct, not a bug; the live OS-prompt path can only be checked in a packaged build (`npm run dist:dir`), so do that check there or defer it to release validation**; the import step reads nothing until "Look for installed browsers" is clicked, then lists real browsers (or the not-found line) alongside the file row, and reports counts; adblock + theme apply live; skip on step 1 saves privacy defaults (check `settings.json`: `onboardingVersion: 1`, both booleans present); relaunch shows no dialog; Settings → Show welcome tour replays it with the real saved values, and changing a choice there re-saves it (verify in `settings.json`). Restore your real dev profile after.
 
 - [ ] **Step 5: Unit + dry acceptance + commit**
 
@@ -662,56 +765,93 @@ git commit -m "Replace the first-run privacy card with the six-step onboarding d
 ### Task 8: Governance — spec/ features, parity matrix, acceptance scenarios
 
 **Files:**
-- Modify: `spec/parity-matrix.md`, the feature register (follow `spec/README.md`'s instructions for adding features — F-numbers continue from the highest existing)
+- Modify: `spec/features.md` (the register — highest existing is **F34**, so these are **F35** and **F36**; verify at write time), `spec/parity-matrix.md`, `spec/acceptance/index.md` (the traceability grid — every scenario ID gets a row; the file list table gets the new files)
 - Create: `spec/acceptance/newtab-layouts.feature`, `spec/acceptance/onboarding.feature`
-- Modify: `test/desktop/` step definitions only if the dry run demands stubs (tag new scenarios `@backlog` if not yet executable, matching the existing backlog convention)
+- Modify: `test/desktop/cucumber.mjs` (`RUNNABLE` list), `test/desktop/steps/` (definitions for whatever is registered)
 
-- [ ] **Step 1: Read `spec/README.md` and the feature register; add two entries**
+**Tag conventions (from `spec/acceptance/browser-migration.feature`, follow exactly):** feature-level `@domain-name @F# [@D#]`; each scenario `@F#-n` (stable id) plus a platform tag (`@all`, or `@desktop`/`@mobile` where the behavior is platform-specific). **There is no `@backlog` tag in this repo.** The `dry`/`runnable` profiles select by the explicit `RUNNABLE` id list in `test/desktop/cucumber.mjs:21` — a scenario not listed there is simply not selected, so `test:acceptance:dry` stays green whether or not it has steps. That means the dry run alone proves nothing about new coverage: **any scenario this task registers in `RUNNABLE` must have real step definitions, and the desktop run must be observed executing it.**
 
-Next free F-numbers (verify at write time): **new-tab layouts** (four layouts, synced `newtabLayout` setting, footer switcher + Settings select, per-day blocked stats for tally) and **first-run onboarding** (6 steps, gating on the first-run marker, replaces privacy card, re-runnable tour). Note mobile divergence candidates inline (set-default and browser-import are desktop-only surfaces — if the register's conventions require it, add the D-entry rather than glossing).
+- [ ] **Step 1: Read `spec/README.md` and `spec/features.md`; add F35 and F36**
+
+**F35 — Start page layouts:** four layouts (ledger/billboard/shelf/tally), the synced `newtabLayout` setting, footer switcher + Settings select, per-day blocked stats feeding the tally chart. **F36 — First-run onboarding:** the six-step dialog, gating on the first-run marker, replacing the standalone privacy card, replayable from Settings. Write them in the register's established voice (behavior contract, not implementation). F36 supersedes part of **F30**'s "first-run card" wording — update F30's text so the two don't contradict, and keep F30/D22's explicit-discovery rule intact (the dialog honors it via the Look button). Note the desktop-only surfaces (OS default-browser registration, live browser-profile import) as divergence candidates per the register's conventions.
 
 - [ ] **Step 2: Gherkin scenarios**
 
-`newtab-layouts.feature` (mirror the voice of existing `.feature` files):
+`spec/acceptance/newtab-layouts.feature`:
 
 ```gherkin
-Feature: New tab layouts
-  Scenario: Layout choice persists across restart
-    Given a profile with the newtabLayout setting "shelf"
-    When the app launches to a new tab
-    Then the new tab page renders the "shelf" layout
-  Scenario: Switching layout from the footer persists the setting
-    Given the new tab page is open
-    When the user picks "tally" in the footer layout switcher
-    Then the newtabLayout setting is "tally"
+@newtab-layouts @F35
+Feature: Start page layouts
+  The start page offers four layouts of the same material; the choice is the
+  person's, persists across restarts, and travels with their profile.
+
+  @F35-1 @all
+  Scenario: The saved layout is the one that renders
+    Given a profile whose start page layout is "shelf"
+    When I open a new tab
+    Then the start page renders the "shelf" layout
+
+  @F35-2 @all
+  Scenario: Choosing a layout persists it
+    Given a new tab is open
+    When I choose the "tally" start page layout
+    Then the saved start page layout is "tally"
+    And the start page renders the "tally" layout
 ```
 
-`onboarding.feature`:
+`spec/acceptance/onboarding.feature`:
 
 ```gherkin
+@onboarding @F36 @F30
 Feature: First-run onboarding
-  Scenario: Fresh profile sees the dialog once
+  A fresh profile is walked through the choices that shape the browser, once,
+  and never reads another browser's data without being asked.
+
+  @F36-1 @all
+  Scenario: A fresh profile is offered the walkthrough
     Given a fresh profile
-    When the app launches to a new tab
-    Then the onboarding dialog is shown
-    When the user chooses "skip setup"
-    Then the first-run privacy choices are saved
-    And relaunching shows no onboarding dialog
-  Scenario: Existing profile never sees the dialog
+    When I open a new tab
+    Then the onboarding walkthrough is shown
+
+  @F36-2 @all
+  Scenario: Skipping still records the privacy choices
+    Given the onboarding walkthrough is shown
+    When I skip the walkthrough
+    Then my first-run privacy choices are saved
+    And opening a new tab does not show the walkthrough again
+
+  @F36-3 @all
+  Scenario: A profile that finished first run is not asked again
     Given a profile that completed first run
-    When the app launches to a new tab
-    Then no onboarding dialog is shown
+    When I open a new tab
+    Then the onboarding walkthrough is not shown
+
+  @F36-4 @desktop
+  Scenario: The walkthrough reads no other browser profile until asked
+    Given the onboarding walkthrough is shown
+    When I reach the import step
+    Then no other browser profile has been read
 ```
 
-- [ ] **Step 3: Dry-run + wire or tag**
+- [ ] **Step 3: Update `spec/acceptance/index.md`**
 
-Run: `npm run test:acceptance:dry`. Either implement the step definitions against the test hook (`globalThis.__blanc` exposes state in `BLANC_TEST=1` runs — extend `src/main/test-hook.js` if a needed surface is missing, env-gated only) or tag scenarios `@backlog` per the existing convention so the dry run stays green. Prefer implementing the two settings-centric layout steps (cheap via the hook) and backlogging the dialog-interaction ones.
+Add the two files to the Files table and a traceability row per scenario id (F35-1, F35-2, F36-1…F36-4) with the existing status vocabulary (desktop ✅ once its steps pass, iOS/Android ⬜; `@desktop`-tagged F36-4 gets ➖ on mobile columns).
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 4: Implement step definitions and register them in RUNNABLE**
+
+Implement all six scenarios against the test hook (`globalThis.__blanc` under `BLANC_TEST=1`; extend `src/main/test-hook.js` — env-gated only — with: read/set the layout setting, read the rendered `document.body.dataset.layout`, dialog visible/dismissed, first-run marker + privacy values, and a "browser sources were read" counter for F36-4). Add `'@F35-1', '@F35-2', '@F36-1', '@F36-2', '@F36-3', '@F36-4'` to `RUNNABLE` in `test/desktop/cucumber.mjs:21`.
+
+If a scenario genuinely cannot be driven, leave it OUT of `RUNNABLE` and say so explicitly in the commit message — an unlisted scenario is invisible to CI, so it must be a stated decision, never a silent omission.
+
+- [ ] **Step 5: Prove they execute (positive control)**
+
+Run: `npm run test:acceptance:dry` — Expected: PASS, and the output lists the new ids. Then `npm run test:acceptance:desktop` — **Expected: the new scenarios appear as executed and passing** (count them in the summary; a green run that never mentions them means the tags didn't select). Then break one deliberately (e.g. flip the expected layout string) and confirm it FAILS before reverting.
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add spec/ test/desktop/
-git commit -m "Spec the new-tab layouts and onboarding as platform features"
+git add spec/ test/desktop/ src/main/test-hook.js
+git commit -m "Spec the start-page layouts and onboarding as platform features"
 ```
 
 ---

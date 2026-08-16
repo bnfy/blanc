@@ -67,11 +67,13 @@ after shipping, via the established design-sync flow — the DS follows code.
   (existing `pages:start:data`), plus two new fields (below). Billboard's short
   favorite labels derive from the favorite's domain first label (e.g. `github`),
   lowercased — the prototype stubs (`hn`, `linear`) are stub data, not a rule.
-- Tally chart: 7 bars from real per-day blocked counts, normalized to the max
-  day; labels rotate so today is last; today's bar solid `--accent` at 100%.
-  The caption's first line names the real busiest day (`busiest day friday.`),
-  second line is the fixed `nothing followed you home.`. Zero-count weeks render
-  all bars at 0 height with the bottom border intact.
+- Tally chart: 7 bars from real per-day blocked counts, **every bar (today
+  included) normalized to the busiest day** — colour marks today (solid
+  `--accent`), height is data. The prototype draws today at 100% because today
+  was the max in its stub data; that is not the rule. Labels rotate so today is
+  last. Zero-count weeks render all bars at 0 height with the bottom border
+  intact. The caption's first line names the real busiest day
+  (`busiest day friday.`), second is the fixed `nothing followed you home.`.
 - Empty states: layouts render without favorites/groups by omitting those
   sections (the ledger already behaves this way); no new empty-state copy.
 
@@ -116,18 +118,33 @@ Monday.
   existing `onboardingVersion` marker, persisted by the same
   `completeFirstRunPrivacyChoices` commit (device-local; never synced) —
   `skip setup` and `Start browsing` both route through it.
-- **Re-runnable:** Settings gains a quiet "Show welcome tour" action row; it
-  re-opens the dialog on the next newtab without resetting any saved choices
-  (privacy step then shows the saved values; completing re-saves).
+- **Re-runnable:** Settings gains a quiet "Show welcome tour" action row. It
+  opens the tour through a sender-validated IPC that creates and activates the
+  tab in main (the utility sheet's navigation policy is default-deny for
+  non-utility `blanc://` URLs, so a renderer-side `location.href` would be
+  inert). The dialog initializes from a least-privilege `onboarding`
+  projection on `pages:start:data` (`{adblockEnabled, theme}`) so a replay
+  shows what is actually saved, never invented defaults; changing a choice
+  re-saves it — which requires `completeFirstRunPrivacyChoices` to validate
+  and write on every call rather than short-circuiting once first run is
+  complete. The dialog closes only on a confirmed successful write; a
+  write failure keeps it open and shows the error copy.
 - Step actions wire to existing machinery only:
-  1. *default browser* — existing `isDefaultProtocolClient`/`setAsDefaultProtocolClient`
-     path (as used by Settings); button state from the real check, flip on click.
+  1. *default browser* — the existing `pages:default-browser:get`/`:set`
+     handlers, allowlist widened to the newtab sender. Their `canSet` guard is
+     load-bearing and stays: an unpackaged dev run must never register the bare
+     Electron binary, and Linux has no Electron API for it — the CTA renders
+     disabled in both cases.
   2. *import* — existing `pages:bookmarks:browser-sources` /
-     `pages:bookmarks:import-browser` / file-picker import (all already
-     newtab-allowlisted). Import runs when the user advances from the step with
-     a source selected ("no thanks" = advancing with nothing selected — the list
-     supports deselect by re-click); result feedback is the imported count in
-     the step body, prototype-styled.
+     `pages:bookmarks:import-browser` / file-picker import (the latter two need
+     their allowlist widened to newtab **and** exposure in the newtab preload
+     surface). **F30/D22's explicit-discovery rule binds here:** no browser
+     profile directory is read until the person asks, so the step renders a
+     "Look for installed browsers" button (the shipped card's affordance) and
+     the always-available bookmarks-file row; `browserSources()` runs only on
+     that click. Import runs when the user advances with a source selected
+     ("no thanks" = advancing with nothing selected); result feedback is the
+     imported count in the step body, prototype-styled.
   3. *the island* — static vignette, verbatim.
   4. *ad blocking* — toggle writes `adblockEnabled` through the normal settings
      path, live (matches the existing Settings toggle semantics).
@@ -162,14 +179,28 @@ Monday.
 
 ## Testing
 
-- Unit: day-bucket increment/rollover (fake clock), `newtabLayout` validation
-  + sync-key membership, schema substrate check, onboarding gating (fresh vs
-  existing profile, done flag, skip-records-privacy-defaults invariant).
-- Acceptance: `spec/acceptance/` scenarios — layout switching persists across
-  restart; onboarding appears once on a fresh profile, never on an existing
-  one; skip saves privacy defaults before any ping.
-- Governance: new feature entries in `spec/` (F-numbers) + parity-matrix rows;
-  `npm run substrate:check` and `test:unit` green in CI.
+- Unit: day-bucket increment/rollover (fake clock), bar-height normalization
+  including the zero week, `newtabLayout` validation + sync-key membership,
+  the privacy re-save path, onboarding gating (fresh vs existing profile, done
+  flag, skip-records-privacy-defaults invariant).
+- Substrate: `settings-schema/build.mjs` must be extended alongside
+  `schema.json` — it hardcodes each enum it generates and compares, so a
+  JSON-only change leaves `settings:check` green while guarding nothing. Prove
+  the new guard fails on deliberate drift before trusting it.
+- Acceptance: `spec/acceptance/` scenarios under new stable ids (F35-*, F36-*),
+  **registered in `test/desktop/cucumber.mjs`'s `RUNNABLE` list with real step
+  definitions** — the profiles select by explicit id, so an unregistered
+  scenario is silently never run. Covers: saved layout renders, choosing a
+  layout persists it, fresh profile sees the walkthrough once, skip records
+  privacy choices, completed profile is not re-asked, and no browser profile
+  is read before the explicit ask.
+- Existing tests that drive `#privacyCard` (`src/main/test-hook.js`, F30-3's
+  steps, `test/desktop/packaged-first-run-smoke.mjs`) must be re-pointed at the
+  dialog in the same commit that removes the card.
+- Governance: new feature entries in `spec/features.md` (F35, F36 — with F30's
+  first-run wording reconciled), parity-matrix rows, and
+  `spec/acceptance/index.md` traceability rows; `npm run substrate:check` and
+  `test:unit` green in CI.
 - Hand verification: relaunched dev app (`npm start`), all four layouts in
   light/dark/private, onboarding on a scratch fresh profile, 1440px pill-fit
   unaffected. Playwright gotchas per repo memory (focus, colorScheme pinning).
