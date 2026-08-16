@@ -5171,6 +5171,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const current = settings.getSettings();
     return {
       startup: adblockStartupState,
+      // Carried on every status push so a start page opened in one window
+      // re-inks when the layout is changed from Settings or another window.
+      layout: current.newtabLayout,
       privacy: {
         required: !settings.isFirstRunComplete(),
         searchSuggestions: current.searchSuggestions,
@@ -5185,6 +5188,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       liveContents(tab)?.send('pages:start:status', status);
     }
   };
+  // A layout picked in Settings (or arriving from Profile Sync) must reach
+  // every open start page, not just the one that made the change.
+  settings.onSettingsChanged(() => broadcastStartPageStatus());
   // pages.js's IPC surface derives runtime ownership from the sender before
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
@@ -5239,8 +5245,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         .filter((g) => g.count > 0),
       focusGroup,
       blockedThisWeek: () => adblockWeekStats().data.blocked,
+      blockedByDay: () => [...adblockWeekStats().data.days],
+      blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
       remoteDevices: () => sync.listRemoteDevices(),
       status: startPageStatus,
+      setLayout: (name) => settings.setSettings({ newtabLayout: name }),
+      // Only what the onboarding dialog can itself change — never the whole
+      // settings object.
+      onboardingState: () => {
+        const current = settings.getSettings();
+        return { adblockEnabled: current.adblockEnabled, theme: current.theme };
+      },
       retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
       continueWithoutAdblock: () =>
         adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,

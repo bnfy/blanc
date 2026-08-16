@@ -231,9 +231,23 @@ function setupPages(hooks = {}) {
   handle('pages:start:data', 'newtab', () => ({
     groups: hooks.startPage?.groups() ?? [],
     blockedThisWeek: hooks.startPage?.blockedThisWeek() ?? 0,
+    // Raw per-day counts drive the tally caption ("busiest day friday");
+    // the bar heights are normalized in main so the rule stays unit-tested.
+    blockedByDay: hooks.startPage?.blockedByDay?.() ?? [0, 0, 0, 0, 0, 0, 0],
+    blockedBarHeights: hooks.startPage?.blockedBarHeights?.() ?? [0, 0, 0, 0, 0, 0, 0],
     remoteDevices: hooks.startPage?.remoteDevices() ?? [],
+    // Least-privilege projection for the onboarding dialog: only the two
+    // settings it can change, so a replay shows what is actually saved.
+    onboarding: hooks.startPage?.onboardingState?.() ?? null,
     ...hooks.startPage?.status?.(),
   }));
+  // The footer layout switcher. The value is enum-validated by setSettings,
+  // so an unknown name is a no-op rather than an error.
+  handle(
+    'pages:start:set-layout',
+    'newtab',
+    (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
+  );
   handle(
     'pages:start:focus-group',
     'newtab',
