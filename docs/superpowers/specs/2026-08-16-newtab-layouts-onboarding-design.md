@@ -106,12 +106,16 @@ Monday.
   page (scrim `rgba(0,0,0,0.4)` covers the page, not the island strip — same
   containment as the prototype).
 - **Gating:** shows exactly where the privacy card shows today — the existing
-  fresh-profile detection (`privacy.required` via `pages:start:data` status).
-  When onboarding owns first run, the standalone privacy card never renders.
-  Existing profiles (including ones that somehow still owe a privacy answer)
-  keep the current card and never see the dialog. `skip setup` and
-  `Start browsing` both persist the done flag (device-local, alongside the
-  existing privacy-choice storage; never synced).
+  fresh-profile detection (`privacy.required`, i.e. `onboardingVersion <
+  FIRST_RUN_VERSION`; legacy profiles were auto-marked complete when that
+  mechanism shipped, so `required` is only ever true on a genuinely fresh
+  profile). The dialog **replaces** the standalone privacy card and its inline
+  migration offer outright — both are superseded (privacy → step 5, migration →
+  step 2). The startup (blocking-preparation/failure) card is untouched and
+  takes precedence: while it shows, the dialog waits. The done flag is the
+  existing `onboardingVersion` marker, persisted by the same
+  `completeFirstRunPrivacyChoices` commit (device-local; never synced) —
+  `skip setup` and `Start browsing` both route through it.
 - **Re-runnable:** Settings gains a quiet "Show welcome tour" action row; it
   re-opens the dialog on the next newtab without resetting any saved choices
   (privacy step then shows the saved values; completing re-saves).
