@@ -446,7 +446,7 @@ Then transcribe each prototype block's inline styles into the classes declared i
 .bb-groups { display: flex; gap: 14px; margin-top: 38px; }
 ```
 
-Do the same, exhaustively, for: the group chip (`.group-chip`: inline-flex, gap 10px, 1px `--border`, radius 999px, padding 7px 16px billboard / 6px 14px shelf+tally, dot cluster 6px `--text-dim` gap 3px, mono 12.5px billboard / 12px shelf+tally names, mono 11px dim count on shelf); the shelf block (`.shelf` absolute left/right 110px top 120px; `.shelf-head` flex space-between baseline; `.shelf-heading` 28px/600 -0.015em; `.shelf-grid` 4-col grid gap 14px margin-top 30px; `.shelf-tile` 1px `--border` radius 6px padding 18px 16px 14px column-flex gap 14px, hover border-color `--text-dim`; tile favicon 28px radius 6px; title 13.5px; domain mono 11px dim margin-top 3px; `.shelf-cards` 2-col grid gap 14px margin-top 14px; `.shelf-card` 1px border radius 6px padding 18px 16px; `.shelf-stat` flex baseline gap 10px margin-top 10px; `.shelf-count` mono 34px `--accent` tabular-nums; `.shelf-unit` mono 11px dim); and the tally block (`.tally-left` absolute left 110px top 120px width 460px; `.tally-right` absolute right 110px top 120px width 280px; `.tally-count` mono 64px/700 -0.03em line-height 1 margin-top 14px tabular-nums; `.tally-chart` flex align-end gap 8px height 110px margin-top 26px border-bottom 1px `--border`; `.tally-bar` flex 1, `--accent-dim` bg, 1px `--border` border with border-bottom none; `.tally-bar.today` background `--accent`, border-color `--accent`, height 100%; `.tally-days` flex gap 8px margin-top 8px mono 10px dim with per-cell flex 1 centered; `.tally-caption` mono 11.5px dim margin-top 20px line-height 1.6; `.tally-label` margin-top 44px for favorites / 40px for groups per the prototype; `.tally-chiprow` flex gap 14px margin-top 14px). Every value must trace to an inline style in the reference file — diff-read the block while transcribing.
+Do the same, exhaustively, for: the group chip (`.group-chip`: inline-flex, gap 10px, 1px `--border`, radius 999px, padding 7px 16px billboard / 6px 14px shelf+tally, dot cluster 6px `--text-dim` gap 3px, mono 12.5px billboard / 12px shelf+tally names, mono 11px dim count on shelf); the shelf block (`.shelf` absolute left/right 110px top 120px; `.shelf-head` flex space-between baseline; `.shelf-heading` 28px/600 -0.015em; `.shelf-grid` 4-col grid gap 14px margin-top 30px; `.shelf-tile` 1px `--border` radius 6px padding 18px 16px 14px column-flex gap 14px, hover border-color `--text-dim`; tile favicon 28px radius 6px; title 13.5px; domain mono 11px dim margin-top 3px; `.shelf-cards` 2-col grid gap 14px margin-top 14px; `.shelf-card` 1px border radius 6px padding 18px 16px; `.shelf-stat` flex baseline gap 10px margin-top 10px; `.shelf-count` mono 34px `--accent` tabular-nums; `.shelf-unit` mono 11px dim); and the tally block (`.tally-left` absolute left 110px top 120px width 460px; `.tally-right` absolute right 110px top 120px width 280px; `.tally-count` mono 64px/700 -0.03em line-height 1 margin-top 14px tabular-nums; `.tally-chart` flex align-end gap 8px height 110px margin-top 26px border-bottom 1px `--border`; `.tally-bar` flex 1, `--accent-dim` bg, 1px `--border` border with border-bottom none; `.tally-bar.today` background `--accent`, border-color `--accent` — **colour only, no height rule**: every bar's height is set inline from `blockedBarHeights`, so a `height: 100%` here would override the data; `.tally-days` flex gap 8px margin-top 8px mono 10px dim with per-cell flex 1 centered; `.tally-caption` mono 11.5px dim margin-top 20px line-height 1.6; `.tally-label` margin-top 44px for favorites / 40px for groups per the prototype; `.tally-chiprow` flex gap 14px margin-top 14px). Every value must trace to an inline style in the reference file — diff-read the block while transcribing.
 
 - [ ] **Step 3: Visual smoke of the static shells**
 
@@ -623,7 +623,8 @@ Clone the `theme` select's load/save wiring for `newtabLayout` (same read on ini
 Relaunched dev app: change layout in Settings → every open newtab re-inks to it (Task 3's broadcast); switcher and select stay in agreement; tour button opens a newtab (dialog arrives in Task 7 — for now the param is inert).
 
 ```bash
-git add src/renderer/pages/settings.html src/renderer/pages/settings.js
+git add src/renderer/pages/settings.html src/renderer/pages/settings.js \
+        src/main/pages.js src/main/main.js src/main/tab-preload.js
 git commit -m "Add the new-tab layout select and welcome tour row to Settings"
 ```
 
@@ -640,7 +641,7 @@ git commit -m "Add the new-tab layout select and welcome tour row to Settings"
 **Interfaces:**
 - Consumes: `startPageStatus()` fields (`privacy.required`, `privacy.searchSuggestions`, `privacy.usagePing`, `startup.phase`), existing `bookmarks.browserSources()/importBrowser()/import()`, `start.completePrivacy(choices)`.
 - Produces main-side: the existing `pages:default-browser:get`/`pages:default-browser:set` handlers (pages.js:258-272) get their allowlists widened to `['settings', 'newtab']` — **no new default-browser channel, and the `canSet` guard stays** (a dev run must never register the bare Electron binary; Linux has no API — both replies carry `{ isDefault, canSet }` and `set` mutates only when `canSet`); `pages:start:onboarding-set` → accepts `{ theme?, adblockEnabled? }` ONLY (hand-validated before `settings.setSettings`). settings.js: `completeFirstRunPrivacyChoices` gains a re-save path (below). Preload: `start.defaultBrowser()` → `pages:default-browser:get`, `start.setDefaultBrowser()` → `pages:default-browser:set`, `start.onboardingSet(partial)`, and `bookmarks.import: () => invoke('pages:bookmarks:import')` (widening the main allowlist alone does not expose it — the newtab preload surface at tab-preload.js:15-19 must list it).
-- Produces renderer-side: `window.blancOnboarding.maybeShow(status)` — called by newtab.js's `renderLaunchStatus` path with each status; shows the dialog when `(status.privacy?.required || TOUR) && status.startup?.phase !== 'initializing' && status.startup?.phase !== 'failed'` where `TOUR = new URLSearchParams(location.search).has('tour')`; never on private tabs.
+- Produces renderer-side: `window.blancOnboarding.maybeShow(status, onboarding)` — called by newtab.js's `renderLaunchStatus` path with each status **and the `onboarding` projection**; shows the dialog when `onboarding` is present and `(status.privacy?.required || TOUR) && status.startup?.phase !== 'initializing' && status.startup?.phase !== 'failed'` where `TOUR = new URLSearchParams(location.search).has('tour')`; never on private tabs. The projection guard matters: `pages:start:status` broadcasts can land before `start.data()` resolves.
 
 - [ ] **Step 1: Main-process handlers + the privacy re-save path**
 
@@ -693,8 +694,8 @@ Delete the whole `#privacyCard` section (lines 25–51) — superseded. Add the 
     state.shown = true;
     // REAL current values only (spec + F30): the projection carries what is
     // actually saved; a tour replay must show it faithfully.
-    state.adblock = onboarding ? !!onboarding.adblockEnabled : true;
-    state.theme = onboarding?.theme ?? null; // 'system' | 'light' | 'dark'; card marked only for light/dark
+    state.adblock = !!onboarding.adblockEnabled;  // maybeShow guarantees onboarding is present
+    state.theme = onboarding.theme; // 'system' | 'light' | 'dark'; card marked only for light/dark
     state.suggestions = !!status.privacy?.searchSuggestions;
     state.ping = !!status.privacy?.usagePing;
     const def = await window.bowserPages.start.defaultBrowser();
@@ -718,6 +719,12 @@ Delete the whole `#privacyCard` section (lines 25–51) — superseded. Add the 
     if (isPrivate || state.shown || state.done) return;
     const startupBusy = status?.startup?.phase === 'initializing' || status?.startup?.phase === 'failed';
     if (startupBusy) return;
+    // The projection is REQUIRED, not optional: an early pages:start:status
+    // broadcast arrives before start.data() resolves, and opening on it would
+    // restore invented defaults instead of the saved ones. Wait for the real
+    // values — the next call (data resolve, or a later status push carrying
+    // the cached projection) opens the dialog.
+    if (!onboarding) return;
     if (TOUR || status?.privacy?.required) show(status, onboarding);
   }
   async function persistPrivacy() {
@@ -756,7 +763,11 @@ Point the dev app at a scratch userData (dev profile relocation notes in repo me
 Run: `npm run test:unit && npm run test:acceptance:dry` — Expected: PASS.
 
 ```bash
-git add src/main/pages.js src/main/main.js src/main/tab-preload.js src/renderer/pages/newtab.html src/renderer/pages/newtab.js src/renderer/pages/onboarding.js src/renderer/pages/pages.css
+git add src/main/pages.js src/main/main.js src/main/tab-preload.js src/main/settings.js \
+        src/main/test-hook.js test/unit/settings-newtab-layout.test.js \
+        test/desktop/packaged-first-run-smoke.mjs \
+        src/renderer/pages/newtab.html src/renderer/pages/newtab.js \
+        src/renderer/pages/onboarding.js src/renderer/pages/pages.css
 git commit -m "Replace the first-run privacy card with the six-step onboarding dialog"
 ```
 
@@ -871,6 +882,15 @@ npm run substrate:check
 npm run test:acceptance:dry
 npm run test:acceptance:desktop
 ```
+
+Then the packaged first-run smoke, which Task 7 rewrote and which no dev-mode run exercises (it also covers the one path dev cannot: `canSet:true` default-browser registration):
+
+```bash
+npm run dist:dir
+npm run test:packaged:first-run
+```
+
+If the packaged build cannot be produced in this environment (signing preflight failure — see CLAUDE.md's macOS signing section), **record that explicitly in the final report and in `.design-sync/NOTES.md` as deferred to release validation**. Never report the sweep as green with this step silently skipped.
 
 - [ ] **Step 2: Hand-check the checklist**
 
