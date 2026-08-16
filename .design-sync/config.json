@@ -1,0 +1,5 @@
+{
+  "projectId": "bee811df-e403-446a-9c63-078528dedf2c",
+  "mode": "push-drift",
+  "note": "Blanc Browser Design System project. This repo is the shipping Electron app, not a component library — /design-sync here means diffing the app's tokens/icons/chrome against the design project and pushing app-side changes back (app wins on divergence, user directive 2026-07-10). Canonical mirrored pairs: tokens/colors.css <-> app tokens/tokens.json + styles.css/pages.css :root; components/icons/Icon.jsx PATHS <-> renderer.js/overlay.js icon SVGs; components/chrome/Island.jsx <-> island chrome structure."
+}
