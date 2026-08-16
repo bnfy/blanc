@@ -19,6 +19,9 @@ const SEARCH_ENGINES = {
 
 const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
+// Start-page layouts (Bowser Design System, "New tab v2" handoff). Same class
+// of preference as the theme — it describes the browser you want, so it syncs.
+const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
 // Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
 
@@ -31,7 +34,7 @@ const FIRST_RUN_VERSION = 1;
 // excludes tabLayout, verticalTabsWidth, appIcon, and searchSuggestions
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
-const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions'];
+const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout'];
 
 // App icon colorways — id maps to src/renderer/pages/icon-<id>.png; order
 // here is also the tile order Settings renders. 'default' is the original
@@ -84,6 +87,9 @@ const DEFAULTS = {
   // Empty string = the built-in blanc://newtab page.
   homePage: '',
   theme: 'system',
+  // How blanc://newtab arranges itself — the shipped ledger plus three
+  // alternatives from the design system's "New tab v2" handoff.
+  newtabLayout: 'ledger',
   // Device-local presentation preference; deliberately not Profile Synced.
   tabLayout: 'island',
   // Preferred rail width. The live layout may temporarily cap it to preserve
@@ -171,6 +177,7 @@ function getSettings() {
     data.onboardingVersion = DEFAULTS.onboardingVersion;
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
+  if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
   data.homePage = normalizeHomepage(data.homePage, DEFAULTS.homePage);
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
@@ -203,6 +210,7 @@ function sanitize(partial) {
     clean.homePage = normalizeHomepage(partial.homePage.trim(), DEFAULTS.homePage);
   }
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
+  if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
   if (Number.isFinite(partial.verticalTabsWidth)) {
@@ -360,6 +368,7 @@ function searchUrlFor(query) {
 module.exports = {
   SEARCH_ENGINES,
   TAB_LAYOUTS,
+  NEWTAB_LAYOUTS,
   TAB_SLEEP_DELAYS,
   APP_ICONS,
   APP_ICON_LABELS,

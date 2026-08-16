@@ -16,6 +16,8 @@ enum class BlancThemePreference(val id: String) {
     DARK("dark");
 }
 
+enum class BlancNewtabLayout(val id: String) { LEDGER("ledger"), BILLBOARD("billboard"), SHELF("shelf"), TALLY("tally") }
+
 enum class BlancWebrtcPolicy(val id: String) {
     STANDARD("standard"),
     STRICT("strict");
@@ -52,6 +54,7 @@ object BlancSettingsDefaults {
     const val adblockEnabled = true
     const val homePage = ""
     val theme = BlancThemePreference.SYSTEM
+    val newtabLayout = BlancNewtabLayout.LEDGER
     val webrtcPolicy = BlancWebrtcPolicy.STANDARD
     val secureDns = BlancSecureDns.AUTO
     const val secureDnsTemplate = ""

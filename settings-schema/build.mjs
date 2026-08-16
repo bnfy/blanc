@@ -39,6 +39,7 @@ function genSwift() {
   out += 'public enum BlancThemePreference: String, CaseIterable {\n';
   for (const t of spec.themes) out += `    case ${swiftCase(t)}\n`;
   out += '}\n\n';
+  out += `public enum BlancNewtabLayout: String, CaseIterable { case ${spec.newtabLayouts.map(swiftCase).join(', ')} }\n\n`;
   out += 'public enum BlancWebrtcPolicy: String, CaseIterable {\n';
   for (const v of spec.webrtcPolicies) out += `    case ${swiftCase(v)}\n`;
   out += '}\n\n';
@@ -63,6 +64,7 @@ function genSwift() {
   out += `    public static let adblockEnabled: Bool = ${spec.defaults.adblockEnabled}\n`;
   out += `    public static let homePage: String = ${JSON.stringify(spec.defaults.homePage)}\n`;
   out += `    public static let theme: BlancThemePreference = .${swiftCase(spec.defaults.theme)}\n`;
+  out += `    public static let newtabLayout: BlancNewtabLayout = .${swiftCase(spec.defaults.newtabLayout)}\n`;
   out += `    public static let webrtcPolicy: BlancWebrtcPolicy = .${swiftCase(spec.defaults.webrtcPolicy)}\n`;
   out += `    public static let secureDns: BlancSecureDns = .${swiftCase(spec.defaults.secureDns)}\n`;
   out += `    public static let secureDnsTemplate: String = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
@@ -82,6 +84,7 @@ function genKotlin() {
   out += spec.searchEngines.map((e) => `    ${upper(e.id)}("${e.id}", ${JSON.stringify(e.label)})`).join(',\n') + ';\n}\n\n';
   out += 'enum class BlancThemePreference(val id: String) {\n';
   out += spec.themes.map((t) => `    ${upper(t)}("${t}")`).join(',\n') + ';\n}\n\n';
+  out += `enum class BlancNewtabLayout(val id: String) { ${spec.newtabLayouts.map((v) => `${upper(v)}("${v}")`).join(', ')} }\n\n`;
   out += 'enum class BlancWebrtcPolicy(val id: String) {\n';
   out += spec.webrtcPolicies.map((v) => `    ${upper(v)}("${v}")`).join(',\n') + ';\n}\n\n';
   out += 'enum class BlancSecureDns(val id: String) {\n';
@@ -95,6 +98,7 @@ function genKotlin() {
   out += `    const val adblockEnabled = ${spec.defaults.adblockEnabled}\n`;
   out += `    const val homePage = ${JSON.stringify(spec.defaults.homePage)}\n`;
   out += `    val theme = BlancThemePreference.${upper(spec.defaults.theme)}\n`;
+  out += `    val newtabLayout = BlancNewtabLayout.${upper(spec.defaults.newtabLayout)}\n`;
   out += `    val webrtcPolicy = BlancWebrtcPolicy.${upper(spec.defaults.webrtcPolicy)}\n`;
   out += `    val secureDns = BlancSecureDns.${upper(spec.defaults.secureDns)}\n`;
   out += `    const val secureDnsTemplate = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
@@ -122,6 +126,8 @@ function parseSettingsJs() {
   // contain //) so a commented-out entry like `// 'dark'` isn't read as live.
   const themesBlock = (js.match(/const THEMES = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
   const themes = [...themesBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  const newtabLayoutBlock = (js.match(/const NEWTAB_LAYOUTS = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
+  const newtabLayouts = [...newtabLayoutBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
   const webrtcBlock = (js.match(/const WEBRTC_POLICIES = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
   const webrtcPolicies = [...webrtcBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
   const secureDnsBlock = (js.match(/const SECURE_DNS_OPTIONS = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
@@ -138,6 +144,7 @@ function parseSettingsJs() {
     adblockEnabled: s(/^\s*adblockEnabled:\s*(true|false)/m),
     homePage: s(/^\s*homePage:\s*'([^']*)'/m),
     theme: s(/^\s*theme:\s*'([^']*)'/m),
+    newtabLayout: s(/^\s*newtabLayout:\s*'([^']*)'/m),
     webrtcPolicy: s(/^\s*webrtcPolicy:\s*'([^']*)'/m),
     secureDns: s(/^\s*secureDns:\s*'([^']*)'/m),
     secureDnsTemplate: s(/^\s*secureDnsTemplate:\s*'([^']*)'/m),
@@ -150,7 +157,7 @@ function parseSettingsJs() {
   // Every key literally declared in DEFAULTS (line-anchored, so // comments are
   // excluded) — used to catch keys the schema doesn't know about.
   const defaultKeys = [...D.matchAll(/^\s*(\w+):/gm)].map((m) => m[1]);
-  return { engines, themes, webrtcPolicies, secureDnsOptions, tabSleepDelays, appIcons, supporterIcons, defaults, defaultKeys };
+  return { engines, themes, newtabLayouts, webrtcPolicies, secureDnsOptions, tabSleepDelays, appIcons, supporterIcons, defaults, defaultKeys };
 }
 
 function check() {
@@ -161,6 +168,7 @@ function check() {
 
   cmp('searchEngines', js.engines, spec.searchEngines);
   cmp('themes', js.themes, spec.themes);
+  cmp('newtabLayouts', js.newtabLayouts, spec.newtabLayouts);
   cmp('webrtcPolicies', js.webrtcPolicies, spec.webrtcPolicies);
   cmp('secureDnsOptions', js.secureDnsOptions, spec.secureDnsOptions);
   cmp('tabSleepDelays', js.tabSleepDelays, spec.tabSleepDelays);
@@ -186,6 +194,7 @@ function check() {
   eq('adblockEnabled', jd.adblockEnabled, String(d.adblockEnabled));
   eq('homePage', jd.homePage, d.homePage);
   eq('theme', jd.theme, d.theme);
+  eq('newtabLayout', jd.newtabLayout, d.newtabLayout);
   eq('webrtcPolicy', jd.webrtcPolicy, d.webrtcPolicy);
   eq('secureDns', jd.secureDns, d.secureDns);
   eq('secureDnsTemplate', jd.secureDnsTemplate, d.secureDnsTemplate);
