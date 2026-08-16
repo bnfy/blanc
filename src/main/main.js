@@ -74,6 +74,7 @@ const {
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
+const adblockStats = require('./adblock-stats');
 const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
   projection: captureProjection, clearRecord: clearCaptureRecord,
@@ -2129,23 +2130,25 @@ const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', {}))
 // rewrite a file it can't fully round-trip.
 let sessionReadOnly = false;
 
-// Rolling ads-blocked counter for the start page's margin note. Weeks
-// start Monday 00:00 local; the count resets lazily on the first touch
-// (read or increment) after a week boundary.
+// Rolling ads-blocked counter for the start page's margin note, plus the
+// per-day buckets its tally layout charts. Weeks start Monday 00:00 local;
+// the count resets lazily on the first touch (read or increment) after a
+// week boundary. The arithmetic lives in adblock-stats.js, unit-tested.
 let adblockStatsStore = null;
-const ensureAdblockStats = () => (adblockStatsStore ??= new JsonStore('adblock-stats', { weekStart: 0, blocked: 0 }));
-
-function currentWeekStart() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return d.getTime();
-}
+const ensureAdblockStats = () => {
+  if (!adblockStatsStore) {
+    adblockStatsStore = new JsonStore('adblock-stats', { weekStart: 0, blocked: 0, days: [0, 0, 0, 0, 0, 0, 0] });
+    // A profile written by a build without buckets loads as {weekStart, blocked}.
+    adblockStats.normalizeWeekStats(adblockStatsStore.data);
+  }
+  return adblockStatsStore;
+};
 
 function adblockWeekStats() {
   const s = ensureAdblockStats();
-  const week = currentWeekStart();
-  if (s.data.weekStart !== week) s.update((d) => { d.weekStart = week; d.blocked = 0; });
+  if (s.data.weekStart !== adblockStats.currentWeekStart()) {
+    s.update((d) => adblockStats.rollWeekStats(d));
+  }
   return s;
 }
 
@@ -5412,7 +5415,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // of the frame the request came from. adblock.js's eventBridge fires this
   // from the network layer — not from any of our own bound roots.
   onRequestBlocked((request) => {
-    adblockWeekStats().update((d) => { d.blocked += 1; });
+    adblockWeekStats().update((d) => adblockStats.recordBlocked(d));
     const tab = tabs.get(tabIdByWebContentsId.get(request.tabId));
     if (!tab) return;
     const runtime = windowRuntimes.runtimeForTab(tab.id);
