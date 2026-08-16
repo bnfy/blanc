@@ -181,6 +181,24 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.match(releaseScript, /SHA256SUMS\.sigstore\.json/);
 });
 
+test('release operator authentication uses the proven native Terminal and Safari path', () => {
+  const releasePath = path.join(root, 'scripts/release.sh');
+  const releaseScript = fs.readFileSync(releasePath, 'utf8');
+  const safariOpenerPath = path.join(root, 'scripts/release-bin/open');
+  const safariOpener = fs.readFileSync(safariOpenerPath, 'utf8');
+
+  assert.equal(spawnSync('bash', ['-n', releasePath]).status, 0);
+  assert.match(releaseScript, /TERM_PROGRAM:-.*Apple_Terminal/);
+  assert.match(releaseScript, /Agent\/Codex PTYs cannot complete 1Password/);
+  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.4.0}'));
+  assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
+  assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));
+  assert.match(releaseScript, /Sigstore callback port \$COSIGN_REDIRECT_PORT is already in use/);
+  assert.match(releaseScript, /scripts\/release-bin:\$PATH.*cosign sign-blob/);
+  assert.match(safariOpener, /exec \/usr\/bin\/open -a Safari "\$@"/);
+  assert.notEqual(fs.statSync(safariOpenerPath).mode & 0o111, 0);
+});
+
 test('Windows manifest requires a valid signed-artifact attestation', () => {
   const dir = fixture([...macFiles, ...windowsFiles]);
   addReleaseMetadata(dir);

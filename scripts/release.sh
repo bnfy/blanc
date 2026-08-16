@@ -16,8 +16,37 @@ TAG="v$VERSION"
 MODE="${BLANC_RELEASE_MODE:-}"
 PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
-MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.3.0}"
+MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.4.0}"
+COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
+
+if [ "$(uname -s)" = "Darwin" ] &&
+   { [ "${TERM_PROGRAM:-}" != "Apple_Terminal" ] || [ ! -t 0 ] || [ ! -t 1 ]; }; then
+  echo "Run npm run release directly in an interactive Terminal.app window." >&2
+  echo "Agent/Codex PTYs cannot complete 1Password desktop authorization reliably." >&2
+  exit 1
+fi
+
+case "$COSIGN_REDIRECT_PORT" in
+  ''|*[!0-9]*)
+    echo "BLANC_COSIGN_REDIRECT_PORT must be a numeric loopback port." >&2
+    exit 1
+    ;;
+esac
+if [ "$COSIGN_REDIRECT_PORT" -lt 1024 ] || [ "$COSIGN_REDIRECT_PORT" -gt 65535 ]; then
+  echo "BLANC_COSIGN_REDIRECT_PORT must be between 1024 and 65535." >&2
+  exit 1
+fi
+if ! node -e '
+  const net = require("node:net");
+  const server = net.createServer();
+  server.once("error", () => process.exit(1));
+  server.listen(Number(process.argv[1]), "127.0.0.1", () => server.close());
+' "$COSIGN_REDIRECT_PORT"; then
+  echo "Sigstore callback port $COSIGN_REDIRECT_PORT is already in use." >&2
+  echo "Set BLANC_COSIGN_REDIRECT_PORT to another free port before starting." >&2
+  exit 1
+fi
 
 case "$MODE" in
   candidate)
@@ -190,6 +219,7 @@ echo "==> Preflighting the macOS identity and provisioning profile"
 node scripts/preflight-mac-signing.mjs
 
 echo "==> Cleaning and building notarized macOS artifacts"
+echo "    1Password must authorize Terminal.app. Abort if the prompt names ChatGPT or Codex."
 rm -rf dist
 MAC_BUILD_ARGS=()
 $HAS_MAC_ARM64 && MAC_BUILD_ARGS+=(--arm64)
@@ -337,7 +367,9 @@ npm sbom --package-lock-only --sbom-format cyclonedx --sbom-type application \
   > "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
 node scripts/create-checksums.mjs "$VERIFY_DIR"
 echo "==> Signing the complete checksum manifest through Sigstore"
-cosign sign-blob --yes \
+echo "    Safari will open for the GitHub approval; complete the fresh page immediately."
+PATH="$PWD/scripts/release-bin:$PATH" cosign sign-blob --yes \
+  --oidc-redirect-url "http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback" \
   --bundle "$VERIFY_DIR/SHA256SUMS.sigstore.json" \
   "$VERIFY_DIR/SHA256SUMS"
 cosign verify-blob \

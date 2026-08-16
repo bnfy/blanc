@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Cosign's macOS browser helper executes `open <url>` through PATH. Route only
+# that release-scoped call to Safari: Blanc was the system default during the
+# v1.4.0 release and did not deliver Sigstore's localhost OAuth callback.
+exec /usr/bin/open -a Safari "$@"
