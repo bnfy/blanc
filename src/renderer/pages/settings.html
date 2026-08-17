@@ -42,6 +42,19 @@
               </select>
             </div>
 
+            <div class="setting">
+              <div class="label">
+                <span>New tab layout</span>
+                <span class="hint">How the new tab page arranges itself; switchable from its footer too</span>
+              </div>
+              <select id="newtabLayout" aria-label="New tab layout">
+                <option value="ledger">ledger</option>
+                <option value="billboard">billboard</option>
+                <option value="shelf">shelf</option>
+                <option value="tally">tally</option>
+              </select>
+            </div>
+
             <div class="setting" id="tabLayoutSetting">
               <div class="label">
                 <span>Tab layout</span>
@@ -85,6 +98,14 @@
               </div>
               <button id="defaultBrowserBtn">Make default…</button>
               <span id="defaultBrowserState" hidden>Blanc is your default browser</span>
+            </div>
+
+            <div class="setting">
+              <div class="label">
+                <span>Welcome tour</span>
+                <span class="hint">Replay the first-run walkthrough; saved choices stay put</span>
+              </div>
+              <button id="showWelcomeTour" type="button">Show welcome tour</button>
             </div>
 
             <div class="setting">

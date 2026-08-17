@@ -285,6 +285,11 @@ function setupPages(hooks = {}) {
     return defaultBrowserStatus();
   });
 
+  // Replays the first-run walkthrough. Main creates and activates the tour
+  // tab — the sheet's own navigation is default-deny for blanc:// URLs, so a
+  // renderer-side location.href could never open it.
+  handle('pages:settings:welcome-tour', 'settings', () => hooks.startPage?.openWelcomeTour?.());
+
   handle('pages:permissions:list', 'settings', () => listDecisions());
   handle('pages:permissions:remove', 'settings', (key) => removeDecision(String(key)));
 

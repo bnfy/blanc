@@ -5250,6 +5250,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       remoteDevices: () => sync.listRemoteDevices(),
       status: startPageStatus,
       setLayout: (name) => settings.setSettings({ newtabLayout: name }),
+      // Runs inside runInPageRuntime, so the tab lands in the sheet's own
+      // window and createTab's dismissal closes the sheet under it.
+      openWelcomeTour: () => {
+        const id = createTab('blanc://newtab/?tour=1');
+        if (id) setActiveTab(id);
+      },
       // Only what the onboarding dialog can itself change — never the whole
       // settings object.
       onboardingState: () => {

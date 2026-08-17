@@ -85,6 +85,7 @@ if (window.location.protocol === 'blanc:') {
         syncDisable: (opts) => invoke('pages:settings:sync-disable', opts),
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),
+        welcomeTour: () => invoke('pages:settings:welcome-tour'),
       },
       profiles: {
         list: () => invoke('pages:profiles:list'),
