@@ -175,6 +175,11 @@ function setupPermissionPolicy(
     // block the site forever. Only a real Allow/Block answer is remembered.
     const allow = await prompter({ origin, permission, mediaTypes, requestingWebContents: wc });
     if (allow === null) return callback(false);
+    // The requester can close while the prompt hangs. A late Allow must not
+    // grant to — or persist a decision for — a tab the user already discarded.
+    // Optional-chained: existing unit harnesses pass wc = null
+    // (private-permissions.test.js, permissions-query-state.test.js).
+    if (wc?.isDestroyed?.()) return callback(false);
     saveDecision(origin, permission, mediaTypes, allow);
     if (allow) notifyCaptureGrant(wc, permission, mediaTypes, details);
     callback(allow);
