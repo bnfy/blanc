@@ -13,6 +13,9 @@ const FILES = [
   'adblock/sources/easyprivacy.txt',
 ];
 const sha256 = (value) => crypto.createHash('sha256').update(value).digest('hex');
+const archiveMemberPath = (relativePath, separator = path.sep) => (
+  relativePath.split('/').join(separator)
+);
 
 function verifyPackagedAdblock(asarPath, { root = ROOT } = {}) {
   if (!asarPath) throw new Error('app.asar path is required');
@@ -20,7 +23,8 @@ function verifyPackagedAdblock(asarPath, { root = ROOT } = {}) {
 
   for (const relativePath of FILES) {
     const sourceBytes = fs.readFileSync(path.join(root, relativePath));
-    const packagedBytes = extractFile(asarPath, relativePath);
+    // @electron/asar traverses member names with the host path separator.
+    const packagedBytes = extractFile(asarPath, archiveMemberPath(relativePath));
     assert.ok(
       packagedBytes.equals(sourceBytes),
       `${relativePath} in app.asar is not byte-identical to the verified release input`
@@ -65,4 +69,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { FILES, verifyPackagedAdblock };
+module.exports = { FILES, archiveMemberPath, verifyPackagedAdblock };

@@ -6,7 +6,10 @@ const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 const { createPackage } = require('@electron/asar');
-const { verifyPackagedAdblock } = require('../../scripts/verify-packaged-adblock');
+const {
+  archiveMemberPath,
+  verifyPackagedAdblock,
+} = require('../../scripts/verify-packaged-adblock');
 
 const ROOT = path.resolve(__dirname, '../..');
 const SOURCE_DIR = path.join(ROOT, 'adblock/sources');
@@ -44,4 +47,11 @@ test('the post-pack gate rejects Windows CRLF conversion', async () => {
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
+});
+
+test('the post-pack gate uses Windows separators for ASAR member lookup', () => {
+  assert.equal(
+    archiveMemberPath('adblock/sources/pinned.json', '\\'),
+    'adblock\\sources\\pinned.json'
+  );
 });
