@@ -1280,3 +1280,41 @@ body:not([data-layout="ledger"]) .ledger-footer {
   margin-top: 20px;
   line-height: 1.6;
 }
+
+/* ---------- layout overflow floors ----------
+   The prototype is a fixed-viewport design; the product rule is that NO
+   layout may ever scroll horizontally. Grid/flex children get min-width: 0
+   so ellipsis can engage (a 1fr track's min-content floor is otherwise the
+   full nowrap text), and the fixed insets/columns gain narrow-window floors. */
+.shelf-tile, .shelf-card { min-width: 0; }
+.shelf-head { gap: 16px; }
+.shelf-heading { flex: 0 0 auto; }
+.shelf-date { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bb-favs, .bb-groups { flex-wrap: wrap; justify-content: center; }
+.bb-fav .label { max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The clock is exactly 148px at any normal window; the clamp only bites in
+   windows too narrow to hold "12:58 pm" at full size. */
+.bb-clock { font-size: clamp(64px, 14vw, 148px); }
+/* All four footers may wrap: the switcher is the widest thing the footer
+   has ever held, and a nowrap row would force the ledger wide at ~420px. */
+.ledger-footer { flex-wrap: wrap; row-gap: 4px; }
+
+@media (max-width: 960px) {
+  .shelf { left: 48px; right: 48px; }
+  .shelf-grid { grid-template-columns: repeat(2, 1fr); }
+  .shelf-cards { grid-template-columns: 1fr; }
+  /* Tally's fixed columns cannot share a narrow window — stack them. */
+  .tally-left, .tally-right {
+    position: static;
+    width: auto;
+    margin: 0 48px;
+  }
+  .tally-left { padding-top: 120px; }
+  .tally-right { margin-top: 56px; max-width: 280px; padding-bottom: 96px; }
+}
+
+/* Every billboard favorite occupies the same slot width, so the ICONS land
+   on an even rhythm regardless of how long each label is — with real sites
+   ("benjaminmoore" beside "nest") a bare gap spaces the columns evenly but
+   the icons unevenly. The label ellipsis above caps at the same 96px. */
+.bb-fav { width: 96px; }

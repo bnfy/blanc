@@ -76,6 +76,17 @@ after shipping, via the established design-sync flow — the DS follows code.
   (`busiest day friday.`), second is the fixed `nothing followed you home.`.
 - Empty states: layouts render without favorites/groups by omitting those
   sections (the ledger already behaves this way); no new empty-state copy.
+- **No horizontal scrolling, ever** (user directive, 2026-08-16): the
+  prototype is a fixed-viewport design, so the product adds floors it doesn't
+  have — grid/flex children get `min-width: 0` so ellipsis engages, footers
+  and billboard rows wrap, the clock clamps only below the width that fits it,
+  and under 960px the shelf insets shrink (grid → 2 columns) while tally's
+  fixed columns stack. At any normal window every transcribed value is intact.
+- **Billboard icons sit on an even rhythm** (user directive, 2026-08-16):
+  each favorite occupies a fixed 96px slot, so icon centers are equidistant
+  regardless of label length — with real sites ("benjaminmoore" beside
+  "nest"), the prototype's bare 36px gap spaces the columns evenly but the
+  icons unevenly; its stub labels were all short enough to hide that.
 
 ### Setting
 
