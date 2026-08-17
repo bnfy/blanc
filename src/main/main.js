@@ -1295,6 +1295,22 @@ function flushPermissionPrompts(runtime) {
   runtime.permissionPrompts.clear();
 }
 
+// A tab's pending prompts die with it. Resolving null denies WITHOUT
+// persisting (the same sentinel flushPermissionPrompts uses at window
+// close), so an Allow clicked after the close can no longer grant or save
+// a decision for the vanished requester.
+function cancelPermissionPromptsForTab(tabId) {
+  const runtime = rt();
+  let cancelled = false;
+  for (const [promptId, pending] of runtime.permissionPrompts) {
+    if (pending?.tabId !== tabId) continue;
+    runtime.permissionPrompts.delete(promptId);
+    pending.resolve(null);
+    cancelled = true;
+  }
+  if (cancelled && runtime.permissionPrompts.size === 0) detachPermissionView();
+}
+
 // Height (in CSS px) of the sampled safe-area gutter the resting Island floats
 // in. The renderer measures its own layout and reports it here, so this is just
 // a sane default before the first report arrives — keep it in step with the
@@ -3292,6 +3308,7 @@ function closeTab(id) {
   const tab = tabs.get(id);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   forgetTabWebContentsIds(id);
+  cancelPermissionPromptsForTab(id);
 
   // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
   // A failed provisional navigation can leave a non-string value in the
