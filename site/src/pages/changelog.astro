@@ -1,7 +1,19 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ReleaseText from '../components/ReleaseText.astro';
+import featureNamesByVersion from '../data/release-feature-names.json';
 import releases from '../data/releases.json';
+import { featureNamesForRelease, hasNewFeatures } from '../lib/release-features.mjs';
+
+const displayReleases = releases.map((release) => {
+  const featureNames = featureNamesForRelease(release, featureNamesByVersion);
+  return {
+    ...release,
+    featureNames,
+    hasNewFeatures: featureNames.length > 0 || hasNewFeatures(release),
+  };
+});
+const featureReleaseCount = displayReleases.filter((release) => release.hasNewFeatures).length;
 ---
 <BaseLayout
   title="Blanc Browser Changelog — What’s new"
@@ -17,18 +29,37 @@ import releases from '../data/releases.json';
     <h1>Every Blanc release, in one place.</h1>
     <p>This page mirrors Blanc’s published GitHub releases, newest first. <a href="/changelog.xml">Subscribe via RSS</a>.</p>
   </header>
-  {releases.length > 0 && (
-    <div class="changelog-search">
-      <input type="search" id="changelog-search" class="changelog-search-input" placeholder={`Search ${releases.length} releases…`} aria-label="Search releases" autocomplete="off" spellcheck="false">
+  {displayReleases.length > 0 && (
+    <div class="changelog-tools">
+      <div class="changelog-filters" role="group" aria-label="Filter releases">
+        <button class="changelog-filter" type="button" data-release-filter="all" aria-pressed="true" aria-controls="release-list">
+          All releases <span>{displayReleases.length}</span>
+        </button>
+        <button class="changelog-filter" type="button" data-release-filter="features" aria-pressed="false" aria-controls="release-list">
+          New features <span>{featureReleaseCount}</span>
+        </button>
+      </div>
+      <input type="search" id="changelog-search" class="changelog-search-input" placeholder="Search releases…" aria-label="Search releases" autocomplete="off" spellcheck="false">
+      <p class="changelog-results" id="changelog-results" role="status" aria-live="polite">Showing all {displayReleases.length} releases</p>
     </div>
   )}
-  <section class="release-list" aria-label="Blanc releases">
-    {releases.length === 0 && <p>No published releases yet.</p>}
-    {releases.map((release) => (
-      <article class="release" id={release.anchor}>
-        <div class="release-meta"><time datetime={release.machineDate}>{release.humanDate}</time></div>
+  <section class="release-list" id="release-list" aria-label="Blanc releases">
+    {displayReleases.length === 0 && <p>No published releases yet.</p>}
+    {displayReleases.map((release) => (
+      <article class="release" id={release.anchor} data-has-features={String(release.hasNewFeatures)}>
+        <div class="release-meta">
+          <time datetime={release.machineDate}>{release.humanDate}</time>
+          {release.hasNewFeatures && <span class="release-feature-badge"><span aria-hidden="true"></span>new features</span>}
+        </div>
         <div class="release-body">
           <h2><a href={'#' + release.anchor}>Blanc {release.version}</a></h2>
+          {release.featureNames.length > 0 && (
+            <ul class="release-feature-names" aria-label={`New features in Blanc ${release.version}`}>
+              {release.featureNames.map((name, index) => (
+                <li>{index > 0 && <span class="release-feature-separator" aria-hidden="true">·</span>}{name}</li>
+              ))}
+            </ul>
+          )}
           {release.sections.map((section) => (
             <div class="release-section">
               {section.heading && <h3 class="release-section-title">{section.heading}</h3>}
@@ -58,18 +89,40 @@ import releases from '../data/releases.json';
   if (!input) return;
   var releases = Array.prototype.slice.call(document.querySelectorAll('.release-list .release'));
   var empty = document.querySelector('.release-empty');
+  var results = document.getElementById('changelog-results');
+  var filters = Array.prototype.slice.call(document.querySelectorAll('[data-release-filter]'));
   var haystack = releases.map(function (el) { return el.textContent.toLowerCase(); });
+  var activeFilter = 'all';
   function apply() {
     var query = input.value.trim().toLowerCase();
     var visible = 0;
     for (var i = 0; i < releases.length; i++) {
-      var match = !query || haystack[i].indexOf(query) !== -1;
+      var matchesSearch = !query || haystack[i].indexOf(query) !== -1;
+      var matchesFilter = activeFilter === 'all' || releases[i].dataset.hasFeatures === 'true';
+      var match = matchesSearch && matchesFilter;
       releases[i].hidden = !match;
       if (match) visible++;
     }
-    if (empty) empty.hidden = visible !== 0;
+    if (empty) {
+      empty.hidden = visible !== 0;
+      empty.textContent = query ? 'No releases match your search.' : 'No feature releases found.';
+    }
+    if (results) {
+      var noun = visible === 1 ? 'release' : 'releases';
+      var scope = activeFilter === 'features' ? ' with new features' : '';
+      results.textContent = 'Showing ' + visible + ' ' + noun + scope;
+    }
   }
   input.addEventListener('input', apply);
+  filters.forEach(function (button) {
+    button.addEventListener('click', function () {
+      activeFilter = button.dataset.releaseFilter;
+      filters.forEach(function (candidate) {
+        candidate.setAttribute('aria-pressed', String(candidate === button));
+      });
+      apply();
+    });
+  });
 })();
 </script>
 </BaseLayout>
