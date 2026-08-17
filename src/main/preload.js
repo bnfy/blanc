@@ -17,6 +17,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   closeTab: (id) => ipcRenderer.invoke('tabs:close', id),
   reopenClosedTab: () => ipcRenderer.invoke('tabs:reopen-closed'),
   reopenClosedEntry: (entryId) => ipcRenderer.invoke('tabs:reopen-entry', entryId),
+  forgetClosedEntry: (entryId) => ipcRenderer.invoke('tabs:forget-closed-entry', entryId),
+  clearClosedEntries: () => ipcRenderer.invoke('tabs:clear-closed'),
   switchTab: (id) => ipcRenderer.invoke('tabs:switch', id),
   navigate: (id, url) => ipcRenderer.invoke('tabs:navigate', id, url),
   search: (id, query, engine) => ipcRenderer.invoke('tabs:search', id, query, engine),

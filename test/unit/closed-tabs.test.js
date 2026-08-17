@@ -4,7 +4,8 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry,
-  expireHolds, projectEntries, CLOSED_GRACE_MS, MAX_CLOSED_ENTRIES,
+  expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS,
+  CLOSED_ENTRY_TTL_MS, MAX_CLOSED_ENTRIES,
 } = require('../../src/main/closed-tabs');
 
 const SNAP = { entries: [{ url: 'https://a.test/', title: 'A' }], index: 0, droppedPageState: false };
@@ -114,7 +115,20 @@ test('expireHolds names only entries whose hold has aged out', () => {
     ['b']);
 });
 
-test('projectEntries emits exactly five fields and only PNG data favicons', () => {
+test('expireEntries removes old undo records regardless of recovery tier', () => {
+  const young = { id: 'a', closedAt: 1, view: {} };
+  const old = { id: 'b', closedAt: 0, view: null };
+  const malformed = { id: 'c', closedAt: null };
+  assert.deepEqual(
+    expireEntries([young, old, malformed], {
+      now: CLOSED_ENTRY_TTL_MS,
+      ttlMs: CLOSED_ENTRY_TTL_MS,
+    }),
+    ['b']
+  );
+});
+
+test('projectEntries hides recovery tiers and emits only display-safe fields', () => {
   const entries = [
     { kind: 'tab', id: 'e1', title: 'A', favicon: 'data:image/png;base64,AAAA', view: {}, snapshot: SNAP, tabs: null },
     { kind: 'tab', id: 'e2', title: 'B', favicon: 'https://evil.test/f.ico', view: null, snapshot: SNAP },
@@ -123,8 +137,7 @@ test('projectEntries emits exactly five fields and only PNG data favicons', () =
   ];
   const projected = projectEntries(entries);
   assert.deepEqual(projected.map((p) => Object.keys(p).sort()),
-    projected.map(() => ['favicon', 'id', 'tabCount', 'tier', 'title']));
-  assert.deepEqual(projected.map((p) => p.tier), [0, 1, 2, 1]);
+    projected.map(() => ['favicon', 'id', 'tabCount', 'title']));
   assert.equal(projected[1].favicon, null); // non-PNG-data favicon never crosses
   assert.deepEqual(projected.map((p) => p.tabCount), [1, 1, 1, 2]);
   assert.equal(projected[3].title, 'work');

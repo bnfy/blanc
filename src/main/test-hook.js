@@ -118,7 +118,7 @@ function install(refs) {
     setSleepThresholdOverride,
     getSleepSnapshots,
     getClosedEntries,
-    downgradeHeldEntry,
+    clearClosedEntries,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -1326,10 +1326,8 @@ function install(refs) {
       // reopen list and the quiet-tabs renderer-count baseline.
       for (const id of [...tabs.keys()]) if (id !== keep) closeTab(id, { record: false });
       // Entries a scenario recorded through its own closes are cleared here,
-      // held view first: a parked renderer outlives the tab record.
-      const closed = getClosedEntries();
-      for (const entry of closed) if (entry.view) downgradeHeldEntry(entry);
-      closed.length = 0;
+      // including parked renderers and their independent expiry timers.
+      clearClosedEntries();
       getGroups().length = 0;
       history.clearHistory();
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);
