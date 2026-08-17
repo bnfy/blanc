@@ -36,6 +36,13 @@ const ensureStore = () => {
 let prompter = null;
 function setPermissionPrompter(fn) { prompter = fn; }
 
+/** Held-view firewall hook (§5.1c): while a closed tab's view is parked for
+ *  reopen, EVERY permission is denied — checked before the stored-decision
+ *  lookup so a remembered grant cannot reach a held page, and re-checked
+ *  after the prompt await. Never persisted. */
+let heldRequester = () => false;
+function setHeldRequesterCheck(fn) { heldRequester = typeof fn === 'function' ? fn : () => false; }
+
 /** Capture-indicator hook (spec §3.1): notified on EVERY allowed `media`
  * request — the unspoofable off→on signal. Display refinement only ever
  * flows the other way (capture-state.js). */
@@ -153,6 +160,7 @@ function setupPermissionPolicy(
 
   session.setPermissionRequestHandler((wc, permission, callback, details) =>
     withLocalProfile(profileId, async () => {
+    if (heldRequester(wc)) return callback(false);
     if (AUTO_ALLOWED.has(permission)) return callback(true);
     if (!PROMPTED.has(permission)) return callback(false);
 
@@ -179,7 +187,7 @@ function setupPermissionPolicy(
     // grant to — or persist a decision for — a tab the user already discarded.
     // Optional-chained: existing unit harnesses pass wc = null
     // (private-permissions.test.js, permissions-query-state.test.js).
-    if (wc?.isDestroyed?.()) return callback(false);
+    if (wc?.isDestroyed?.() || heldRequester(wc)) return callback(false);
     saveDecision(origin, permission, mediaTypes, allow);
     if (allow) notifyCaptureGrant(wc, permission, mediaTypes, details);
     callback(allow);
@@ -188,8 +196,9 @@ function setupPermissionPolicy(
 
   // Synchronous checks (navigator.permissions.query, Notification.permission)
   // must agree with the request handler or sites see inconsistent state.
-  session.setPermissionCheckHandler((_wc, permission, requestingOrigin, details) =>
+  session.setPermissionCheckHandler((wc, permission, requestingOrigin, details) =>
     withLocalProfile(profileId, () => {
+    if (heldRequester(wc)) return false;
     if (AUTO_ALLOWED.has(permission)) return true;
     if (!PROMPTED.has(permission)) return false;
     const origin = normalizedOrigin(requestingOrigin);
@@ -207,5 +216,5 @@ function setupPermissionPolicy(
 
 module.exports = {
   setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, listDecisions, removeDecision,
-  mediaQueryState, setPermissionDecisionObserver, mediaScopesForDecisionKey,
+  mediaQueryState, setPermissionDecisionObserver, mediaScopesForDecisionKey, setHeldRequesterCheck,
 };

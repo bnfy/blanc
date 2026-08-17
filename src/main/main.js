@@ -28,7 +28,7 @@ const {
   CHROME_PERMISSION_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
-const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState } = require('./permissions');
+const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
@@ -121,6 +121,7 @@ const {
 const { showAboutPanel } = require('./about-panel');
 const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
+const { holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, expireHolds, projectEntries, CLOSED_GRACE_MS, MAX_CLOSED_ENTRIES } = require('./closed-tabs');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -678,6 +679,11 @@ const sleepSnapshots = new Map(); // Map<string /* tab.id */, SleepSnapshot>
 // reopen, and their recovery data must survive with them. Turning tabSleep off
 // likewise changes policy only; it must not discard existing snapshots.
 
+// wc.id of every parked (held) closed-tab view, process-wide. Consulted by
+// the permission handlers via setHeldRequesterCheck — the tab record is gone
+// by park time, so tabIdByWebContentsId cannot answer for a held page.
+const heldWebContents = new Set();
+
 // Evaluated in every frame of a tab. A programmatic password-manager fill fires
 // no interaction events, so compare live controls with their defaults instead.
 const DIRTY_PROBE_SOURCE = `(() => {
@@ -958,6 +964,85 @@ async function sleepTab(id, { broadcast = true } = {}) {
   }
   console.debug(`[quiet-tabs] ${id}: teardown ${outcome} — left awake${aborted ? ' (beforeunload)' : ''}`);
   return false;
+}
+
+/** Downgrade a held entry to its snapshot: destroy the view (unless the
+ *  renderer already died), clear the registry, cancel the hold timer. Safe
+ *  to call twice and from the firewall's own destroyed handler. */
+function downgradeHeldEntry(entry) {
+  clearTimeout(entry.holdTimer);
+  entry.holdTimer = null;
+  if (entry.wcId != null) heldWebContents.delete(entry.wcId);
+  entry.wcId = null;
+  const view = entry.view;
+  entry.view = null;
+  entry.heldAt = null;
+  const wc = view?.webContents;
+  if (wc && !wc.isDestroyed()) {
+    wc.removeAllListeners();
+    wc.close();
+  }
+}
+
+/** Held-state firewall (spec §3.4): a parked page keeps executing for the
+ *  grace window with no tab record, so it must never be left bare. Every
+ *  Electron callback is bound to the owning window runtime — a crash or
+ *  expiry in a background window must never resolve through the focused
+ *  fallback and mutate the wrong window (the downloads.js/capture rule). */
+function installHeldFirewall(entry, wc, owner) {
+  // Method-installed, NOT an EventEmitter listener — removeAllListeners()
+  // did not clear the one wireTabView set. Without this a held page could
+  // window.open into a boundToTab closure over a deleted record.
+  wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+  // Frozen at close: main-frame navigation is refused outright. Subframes
+  // are left alone so the page survives restore intact (§3.4).
+  wc.on('will-navigate', (event) => { if (event.isMainFrame) event.preventDefault(); });
+  wc.on('will-redirect', (event) => { if (event.isMainFrame) event.preventDefault(); });
+  // A video can BEGIN during the hold; the restored tab must not be
+  // quietable mid-playback. Writes to the entry, never a tab record.
+  wc.on('media-started-playing', () => { entry.seed.usedMedia = true; });
+  // A crashed renderer does not destroy its WebContents; without these the
+  // restore path would re-attach a sad-tab instead of using the snapshot.
+  const downgrade = bindWindowRuntime(owner, () => downgradeHeldEntry(entry));
+  wc.on('render-process-gone', downgrade);
+  wc.once('destroyed', downgrade);
+}
+
+/** Park a closing tab's live view into its closed entry (Tier 0). Returns
+ *  false on any uncertainty; the caller then destroys normally (Tier 1).
+ *  Called only from closeTab, where rt() is the verified owner. */
+function parkTabView(tab, entry) {
+  const wc = liveContents(tab);
+  if (!wc) return false;
+  // Final synchronous guard, same shape as sleepTab's: capture state can
+  // change between eligibility selection and this call (§5.1a).
+  if (tab.capturing || (tab.captureRecord?.anchors?.length ?? 0) > 0) return false;
+  const owner = rt();
+  const view = tab.view;
+  // Registry FIRST, then strip, then firewall: no instant exists in which a
+  // request resolves against neither the tab record nor the firewall (§3.4).
+  heldWebContents.add(wc.id);
+  wc.removeAllListeners();
+  installHeldFirewall(entry, wc, owner);
+  view.setVisible(false);
+  wc.setAudioMuted(true);
+  entry.view = view;
+  entry.wcId = wc.id;
+  entry.heldAt = Date.now();
+  // The timer fires, but the pure policy decides: runtime expiry goes
+  // through expireHolds so the tested function is the production truth —
+  // and an entry already downgraded early (newer hold, crash) is simply
+  // not due when the sweep runs.
+  entry.holdTimer = setTimeout(bindWindowRuntime(owner, () => {
+    entry.holdTimer = null;
+    const due = new Set(expireHolds(owner.closedEntries ?? [], { now: Date.now() }));
+    for (const candidate of owner.closedEntries ?? []) {
+      if (due.has(candidate.id)) downgradeHeldEntry(candidate);
+    }
+  }), CLOSED_GRACE_MS);
+  tabIdByWebContentsId.delete(wc.id);
+  lastMainFrameMethod.delete(wc.id);
+  return true;
 }
 
 /** `/sleep`: quiet every eligible background tab now. It bypasses only the
@@ -2188,6 +2273,11 @@ app.on('before-quit', () => {
     if (wc && !wc.isDestroyed()) wc.close();
   }
   sleepSnapshots.clear(); // retained views, POST bodies, and form values
+  for (const runtime of windowRuntimes.all()) {
+    for (const entry of runtime.closedEntries ?? []) {
+      if (entry.view) downgradeHeldEntry(entry);
+    }
+  }
 });
 
 function persistSession() {
@@ -5097,6 +5187,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       })();
     })
   );
+  setHeldRequesterCheck((wc) => !!wc && heldWebContents.has(wc.id));
   setCaptureGrantObserver(({ requestingWebContents, mediaTypes, requestingUrl, isMainFrame }) => {
     if (!requestingWebContents) return;
     const surface = ensureCaptureSurfaceForSender(requestingWebContents);

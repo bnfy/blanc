@@ -79,3 +79,39 @@ test('cancellation resolves only the owning tab prompts with null, and detaches 
   assert.equal(prompts.size, 0);
   assert.equal(detached, 1, 'the last cancellation detaches the prompt view');
 });
+
+const { setHeldRequesterCheck } = require('../../src/main/permissions');
+
+test('a held requester is denied everywhere and nothing persists', async () => {
+  const session = fakeSession();
+  setupPermissionPolicy(session, { persistDecisions: false });
+  const held = new Set([7]);
+  setHeldRequesterCheck((wc) => !!wc && held.has(wc.id));
+  try {
+    const wc = { id: 7, isDestroyed: () => false };
+
+    // Request path: denied before the stored-decision lookup.
+    let answer = 'unset';
+    await session.request(wc, 'geolocation', (allow) => { answer = allow; },
+      { requestingUrl: 'https://held.test/' });
+    assert.equal(answer, false);
+
+    // Check path agrees.
+    assert.equal(session.check(wc, 'geolocation', 'https://held.test/', {}), false);
+
+    // Race: park lands during the prompt await — recheck must deny.
+    held.delete(7);
+    let resolvePrompt;
+    setPermissionPrompter(() => new Promise((resolve) => { resolvePrompt = resolve; }));
+    let raced = 'unset';
+    const inFlight = session.request(wc, 'geolocation', (allow) => { raced = allow; },
+      { requestingUrl: 'https://held.test/' });
+    await Promise.resolve();
+    held.add(7);          // parked while the prompt hung
+    resolvePrompt(true);  // late Allow
+    await inFlight;
+    assert.equal(raced, false);
+  } finally {
+    setHeldRequesterCheck(null);
+  }
+});
