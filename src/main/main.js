@@ -1017,6 +1017,20 @@ function installHeldFirewall(entry, wc, owner) {
   wc.once('destroyed', downgrade);
 }
 
+/** Remove every app-level listener from a KEEP-ALIVE WebContents while
+ *  preserving Electron's internal '-'-prefixed listeners. A blanket
+ *  removeAllListeners() severs the native window-open pipeline, and the
+ *  browser process SIGSEGVs the next time the page calls window.open —
+ *  bisected live during hand verification: park + window.open crashed,
+ *  either alone survived. sleepTab/downgradeHeldEntry keep the blanket
+ *  form safely because they destroy the contents in the same turn. */
+function stripPublicListeners(wc) {
+  for (const name of wc.eventNames()) {
+    if (typeof name === 'string' && name.startsWith('-')) continue;
+    wc.removeAllListeners(name);
+  }
+}
+
 /** Park a closing tab's live view into its closed entry (Tier 0). Returns
  *  false on any uncertainty; the caller then destroys normally (Tier 1).
  *  Called only from closeTab, where rt() is the verified owner. */
@@ -1031,7 +1045,7 @@ function parkTabView(tab, entry) {
   // Registry FIRST, then strip, then firewall: no instant exists in which a
   // request resolves against neither the tab record nor the firewall (§3.4).
   heldWebContents.add(wc.id);
-  wc.removeAllListeners();
+  stripPublicListeners(wc);
   installHeldFirewall(entry, wc, owner);
   view.setVisible(false);
   wc.setAudioMuted(true);
@@ -3210,7 +3224,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   const wc = view.webContents;
   tabIdByWebContentsId.set(wc.id, id);
-  if (adopting) wc.removeAllListeners(); // strip the held firewall; wireTabView reinstalls
+  if (adopting) stripPublicListeners(wc); // strip the held firewall; wireTabView reinstalls
   wireTabView(tab, view, { owner, adopted });
 
   if (adopting) {
