@@ -307,7 +307,9 @@ await withPackagedApp({
   );
   await poll(
     () => app.pages().map((candidate) => candidate.url()),
-    (urls) => urls.includes('https://example.com/queued-behind-cache-recovery'),
+    (urls) => urls.some(
+      (url) => url === 'https://example.com/queued-behind-cache-recovery'
+    ),
     'cache-write recovery did not release queued navigation'
   );
   const settings = JSON.parse(
