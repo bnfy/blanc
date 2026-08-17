@@ -55,6 +55,7 @@ function install(refs) {
     getGlanceTabId,
     getGlanceGeometry,
     groupTabByName,
+    closeGroup,
     toggleGroupCollapsed,
     reorderTabWithinBucket,
     reopenClosedTab,
@@ -343,6 +344,12 @@ function install(refs) {
       const g = getGroups().find((x) => x.name === lc(name));
       if (!g) return;
       for (const [id, t] of tabs) if (t.groupId === g.id) closeTab(id);
+    },
+    // The atomic single-entry group close (F2-6) — distinct from
+    // closeTabsInGroupName above, which models per-tab user closes.
+    closeGroupByName(name) {
+      const g = getGroups().find((x) => x.name === lc(name));
+      if (g) closeGroup(g.id);
     },
 
     // ---- favorites (bookmarks store) ----
