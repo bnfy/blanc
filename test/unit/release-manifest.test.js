@@ -158,6 +158,13 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.match(releaseWorkflow, /Get-AuthenticodeSignature/);
   assert.match(releaseWorkflow, /verify-electron-fuses\.mjs/);
   assert.match(releaseWorkflow, /Verify packaged blocker inputs\s+run: npm run adblock:check/);
+  assert.equal(
+    (releaseWorkflow.match(/Verify packaged blocker payload/g) ?? []).length,
+    2,
+    'Windows and Linux must both inspect the packaged app.asar blocker payload'
+  );
+  assert.match(releaseScript, /Verifying byte-identical blocker payloads in packaged apps/);
+  assert.match(releaseScript, /verify-packaged-adblock\.js/);
   assert.match(releaseScript, /-f mode=release/);
   assert.match(releaseWorkflow, /default: release/);
   assert.match(releaseWorkflow, /inputs\.mode == 'release' && inputs\.tag \|\| github\.ref/);

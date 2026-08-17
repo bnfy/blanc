@@ -117,6 +117,9 @@ jobs:
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
 
+      - name: Verify packaged blocker payload
+        run: node scripts/verify-packaged-adblock.js dist/win-unpacked/resources/app.asar
+
       - name: Verify hardened Electron fuses
         shell: bash
         run: |
@@ -237,6 +240,9 @@ jobs:
           for f in "dist/$PRODUCT_NAME-$VERSION.AppImage" "dist/latest-linux.yml"; do
             [ -f "$f" ] || { echo "Expected build artifact missing: $f" >&2; exit 1; }
           done
+
+      - name: Verify packaged blocker payload
+        run: node scripts/verify-packaged-adblock.js dist/linux-unpacked/resources/app.asar
 
       - name: Verify hardened Electron fuses
         run: |

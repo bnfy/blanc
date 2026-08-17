@@ -7,6 +7,7 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const APP_ICON_ASSETS = require('../src/main/app-icon-assets');
+const { verifyPackagedAdblock } = require('./verify-packaged-adblock');
 
 function iconComposerColor(hex) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex);
@@ -51,6 +52,15 @@ function run(command, args) {
 }
 
 module.exports = async function afterPackAppIcons(context) {
+  const resourcesDir = context.electronPlatformName === 'darwin'
+    ? path.join(
+      context.appOutDir,
+      `${context.packager.appInfo.productFilename}.app`,
+      'Contents/Resources',
+    )
+    : path.join(context.appOutDir, 'resources');
+  verifyPackagedAdblock(path.join(resourcesDir, 'app.asar'));
+
   if (context.electronPlatformName !== 'darwin') return;
 
   const root = path.join(__dirname, '..');
@@ -93,11 +103,6 @@ module.exports = async function afterPackAppIcons(context) {
       '--platform', 'macosx',
     ]);
 
-    const resourcesDir = path.join(
-      context.appOutDir,
-      `${context.packager.appInfo.productFilename}.app`,
-      'Contents/Resources',
-    );
     await fs.copyFile(path.join(outputDir, 'Assets.car'), path.join(resourcesDir, 'Assets.car'));
     console.log(`after-pack-app-icons: compiled ${iconPaths.length} adaptive macOS colorways.`);
   } finally {
