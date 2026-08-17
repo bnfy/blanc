@@ -53,7 +53,12 @@ release notes from introducing markup. Inline link hrefs are pinned to
 https/mailto. RSS flattens the same spans back to plain text.
 `npm run site:changelog` regenerates; `npm run site:changelog:check` is the
 freshness guard (release-time/manual — not in CI; needs `gh`). Never hand-edit
-`releases.json`. `release.sh` runs the regenerate step (non-fatal) but no
+`releases.json`. `release-feature-names.json` is the hand-maintained editorial
+overlay that gives feature-bearing builds their short, scannable names on the
+page; every detected feature release must have at least one, enforced by the
+unit suite. A new hand-written release can avoid an overlay entry by starting
+each feature bullet with a bold name (`- **Glance.** ...`), which the page
+extracts automatically. `release.sh` runs the regenerate step (non-fatal) but no
 longer seds any site file — the JSON-LD version and sitemap `lastmod` both
 resolve at build time, so the routine post-release redeploy picks them up.
 

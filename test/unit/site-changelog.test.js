@@ -9,12 +9,20 @@ const { pathToFileURL } = require('node:url');
 const ROOT = path.join(__dirname, '../..');
 const SCRIPT_PATH = path.join(ROOT, 'scripts/generate-site-changelog.mjs');
 const FIXTURE_PATH = path.join(ROOT, 'test/fixtures/site-releases.json');
+const RELEASES_PATH = path.join(ROOT, 'site/src/data/releases.json');
+const FEATURE_NAMES_PATH = path.join(ROOT, 'site/src/data/release-feature-names.json');
 let changelog;
+let releaseFeatures;
 let fixture;
+let featureNamesByVersion;
+let siteReleases;
 
 test.before(async () => {
   changelog = await import(pathToFileURL(SCRIPT_PATH));
+  releaseFeatures = await import(pathToFileURL(path.join(ROOT, 'site/src/lib/release-features.mjs')));
   fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, 'utf8'));
+  featureNamesByVersion = JSON.parse(fs.readFileSync(FEATURE_NAMES_PATH, 'utf8'));
+  siteReleases = JSON.parse(fs.readFileSync(RELEASES_PATH, 'utf8'));
 });
 
 // Release notes parse into ordered sections of blocks; most assertions here
@@ -250,6 +258,35 @@ test('normalized releases carry pre-rendered New-York dates', () => {
   }]);
   assert.equal(releases[0].humanDate, 'July 11, 2026');
   assert.equal(releases[0].machineDate, '2026-07-11');
+});
+
+test('feature-bearing releases are identified without a version allowlist', () => {
+  const release = (version, body) => ({ version, ...changelog.parseGeneratedNotes(body) });
+
+  assert.equal(releaseFeatures.hasNewFeatures(release('1.2.1', '## Added\n- Quiet inactive tabs')), true);
+  assert.equal(releaseFeatures.hasNewFeatures(release('1.0.0', '## What is new in 1.0\n- Vertical tabs')), true);
+  assert.equal(releaseFeatures.hasNewFeatures(release('0.9.7', '- Add Windows and Linux builds')), true);
+  assert.equal(releaseFeatures.hasNewFeatures(release('0.20.0', 'Tab Sync opens tabs from your other devices.')), true);
+  assert.equal(releaseFeatures.hasNewFeatures(release('1.2.5', '## Fixed\n- Restore sharp website icons')), false);
+  assert.equal(releaseFeatures.hasNewFeatures(release('0.11.0', '- Fix code-review findings')), false);
+  assert.equal(releaseFeatures.hasNewFeatures(release('0.19.0', '')), false);
+});
+
+test('feature-bearing releases always carry concise, searchable feature names', () => {
+  for (const release of siteReleases) {
+    if (!releaseFeatures.hasNewFeatures(release)) continue;
+    const names = releaseFeatures.featureNamesForRelease(release, featureNamesByVersion);
+    assert.ok(names.length > 0, `${release.version} needs at least one feature name`);
+    assert.ok(names.every((name) => name.length <= 40), `${release.version} feature names should stay concise`);
+  }
+});
+
+test('a bold Added lead supplies names for future releases without curated metadata', () => {
+  const release = {
+    version: '2.0.0',
+    ...changelog.parseGeneratedNotes('## Added\n- **Workspace sharing.** Send a workspace to another device.'),
+  };
+  assert.deepEqual(releaseFeatures.featureNamesForRelease(release), ['Workspace sharing']);
 });
 
 test('paginated adjacent JSON arrays are parsed without corrupting strings', () => {
