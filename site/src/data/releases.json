@@ -1,5 +1,218 @@
 [
   {
+    "tag": "v1.5.1",
+    "version": "1.5.1",
+    "name": "1.5.1",
+    "publishedAt": "2026-08-17T23:55:45.000Z",
+    "humanDate": "August 17, 2026",
+    "machineDate": "2026-08-17",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.5.1",
+    "anchor": "v1-5-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Restarting to install an update on Windows no longer tears down Blanc's BrowserWindows and WebContents on a one-second forced-exit timer. Blanc now hands shutdown, installation, and relaunch directly to the signed NSIS updater, removing the native race that could leave 1.4.0 hung behind a Windows “Blanc is not responding” dialog."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The incoming Windows installer now gives an older Blanc build two seconds to complete its normal quit, then terminates a stuck old process and continues through the existing bounded process-close fallback. This installer-side compatibility path protects upgrades that begin inside 1.4.0, before the new app-side restart code is installed."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Check for Updates"
+                  },
+                  {
+                    "type": "text",
+                    "value": " now responds as soon as it finds a newer version, confirming that the download has started instead of appearing to do nothing until the installer is ready."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A compiled blocker-cache file still held or refused by Windows after an interrupted upgrade no longer keeps browser protection offline. Blanc rebuilds from the bundled, hash-verified EasyList and EasyPrivacy snapshot and uses that in-memory engine immediately; cache persistence remains a startup optimization, while bundled-list verification still fails closed."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Windows packages now preserve the pinned EasyList and EasyPrivacy inputs with their required LF byte representation. The byte-verification gate introduced in 1.2.0 exposed an existing Windows checkout conversion: confirmed published 1.3.0, 1.4.0, and 1.5.0 installers carry CRLF list bytes, so their security hashes correctly fail closed and produce "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Blocking could not start"
+                  },
+                  {
+                    "type": "text",
+                    "value": "; builds before that gate could still parse the converted lists. The native Windows workflow now verifies the blocker inputs before packaging, and startup failures expose their local diagnostic directly on the recovery card."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Recently closed tabs now behave like a bounded undo buffer instead of a hidden session archive. The internal recovery-tier label is no longer shown, each row can be explicitly forgotten, the section can be cleared at once, and untouched entries automatically expire after one hour. Forgetting an entry during its brief live-restore window immediately destroys the parked page."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Faster Windows updates",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Packaged builds check on launch, every thirty minutes instead of every four hours, and when Blanc regains focus after the previous check is at least fifteen minutes old. Concurrent checks are coalesced so the faster schedule does not duplicate network work."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Differential Windows downloads are explicitly enabled and continue to use the signed release's installer block map when a patch can be applied; electron-updater safely falls back to the full installer when it cannot."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Downloaded updates remain eligible for automatic installation on a normal app quit, and an explicit "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Restart Now"
+                  },
+                  {
+                    "type": "text",
+                    "value": " uses the silent installer path and relaunches Blanc after the update completes."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Release verification",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Unit and packaged coverage lock the Windows NSIS handoff, installer-side graceful-quit window, bounded process-close fallback, blocker cache recovery, cross-platform filter-byte integrity, visible blocker diagnostics, duplicate-restart guard, closed-tab disposal and expiry, coalesced update checks, focus throttling, differential-download configuration, and manual-check feedback."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Before publication, the signed Windows build must complete real public upgrades from both Blanc 1.4.0 and Blanc 1.5.0 without a crash dialog, and the installed executable and installer must retain the expected Bananify Creative Authenticode identity."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "code",
+                    "value": "SHA256SUMS"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is authenticated with a Sigstore bundle whose expected certificate identity is "
+                  },
+                  {
+                    "type": "code",
+                    "value": "anthony@bnfy.me"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and whose expected OIDC issuer is "
+                  },
+                  {
+                    "type": "code",
+                    "value": "https://github.com/login/oauth"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "macOS Apple Silicon, signed Windows, and Linux are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.5.1"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one signed SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.5.0",
     "version": "1.5.0",
     "name": "1.5.0",
