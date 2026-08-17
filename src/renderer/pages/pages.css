@@ -1420,12 +1420,21 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .ob-btn-primary { border: 1px solid var(--accent); background: var(--accent); color: var(--surface-raised); }
 .ob-btn-secondary { border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); }
-.ob-btn-secondary:hover { border-color: var(--text-dim); }
+/* pages.css's generic `button:hover` (element+pseudo) outranks these single
+   classes on hover and paints --text over the accent fill — unreadable. Pin
+   every hover: primaries keep their inverse text (the prototype gives them
+   no hover change); secondaries brighten the border only. */
+.ob-btn-primary:hover { color: var(--surface-raised); border-color: var(--accent); }
+.ob-btn-secondary:hover { color: var(--text); border-color: var(--text-dim); }
 /* The set-default CTA flips primary -> confirmed-secondary via variables. */
 .ob-btn-default {
   border: 1px solid var(--ob-default-border, var(--accent));
   background: var(--ob-default-bg, var(--accent));
   color: var(--ob-default-text, var(--surface-raised));
+}
+.ob-btn-default:hover {
+  color: var(--ob-default-text, var(--surface-raised));
+  border-color: var(--ob-default-border, var(--accent));
 }
 .ob-btn-default:disabled { cursor: default; }
 .ob-srclist {
@@ -1547,7 +1556,10 @@ body:not([data-layout="ledger"]) .ledger-footer {
   background: none;
   text-align: left;
 }
-.ob-theme-card.selected { border-color: var(--accent); }
+/* Selection drives the card border, not hover — pin it against the generic
+   button:hover border change. */
+.ob-theme-card:hover { border-color: var(--border); color: inherit; }
+.ob-theme-card.selected, .ob-theme-card.selected:hover { border-color: var(--accent); }
 .ob-theme-preview { display: block; height: 64px; position: relative; }
 .ob-theme-preview span {
   position: absolute;
