@@ -136,8 +136,12 @@ terminal capture, agent tool result, or log, revoke it and replace the
 
 After publication, regenerate and commit `site/src/data/releases.json`, advance
 the public and migration baselines, run `npm run site:build`, push, then run
-`npm run site:deploy`. Verify the canonical changelog and homepage version, not
-only the Cloudflare preview URL. The v1.4.0 incident and recovery are recorded
+`npm run site:deploy` from the clean checkout at `origin/main`. That script must
+keep its explicit `--branch=main`: a detached release worktree otherwise deploys
+to a `HEAD` preview without updating `blancbrowser.com`. Confirm `wrangler pages
+deployment list --project-name=blancbrowser` reports the expected source SHA as
+`Environment: Production` and `Branch: main`, then verify the canonical
+changelog and homepage version, not only a Cloudflare preview URL. The v1.4.0 incident and recovery are recorded
 in `docs/release-incidents/2026-08-15-v1.4.0.md`.
 
 ## 1. Verify the files

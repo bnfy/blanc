@@ -20,6 +20,14 @@ npm run dist:dir                # quick unpacked build in dist/, no installer
 npm run release                 # scripts/release.sh: clean, build, sign, publish to GitHub Releases
 ```
 
+After a release, `npm run site:deploy` is the production Cloudflare Pages
+command. It deliberately includes `--branch=main` because the required clean
+release checkout is detached at `origin/main`; without that flag Wrangler
+creates a `HEAD` preview and leaves `blancbrowser.com` unchanged. A successful
+post-release deployment is not complete until `wrangler pages deployment list
+--project-name=blancbrowser` shows the expected source SHA as `Production` on
+branch `main` and the canonical changelog shows the new version.
+
 There is no linter configured. Unit coverage runs with `npm run test:unit`; desktop acceptance, packaged migration/first-run, OAuth, DNS, and substrate checks have their own scripts in `package.json`. There is no generic `npm test` script.
 
 `npm run release` bumps nothing itself — bump `version` in `package.json` (and consider the `electron` devDependency, since Chromium can't be swapped out of a running app) *before* running it. It shells out to `scripts/release.sh`, which authenticates via the `gh` CLI's own cached session (no `GH_TOKEN` needed locally), builds unpublished, then uses `gh release create` directly instead of electron-builder's own GitHub publisher — that publisher races its per-artifact upload tasks against each other on first publish for a tag and can leave a release missing `latest-mac.yml` or a blockmap; creating the release once with the complete macOS asset set avoids that. **Released versions are immutable:** the script checks local/remote tags and GitHub releases before building and fails if the version already exists; always bump to a new version, never overwrite assets. It also refuses dirty desktop release sources and wipes `dist/` before building so artifacts correspond to committed code and stale files never linger.

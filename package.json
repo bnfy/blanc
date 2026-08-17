@@ -16,7 +16,7 @@
     "site:changelog:check": "node scripts/generate-site-changelog.mjs --check",
     "site:dev": "npm --prefix site run dev",
     "site:build": "npm --prefix site run build",
-    "site:deploy": "npm --prefix site run build && npx wrangler pages deploy site/dist --project-name=blancbrowser",
+    "site:deploy": "npm --prefix site run build && npx wrangler pages deploy site/dist --project-name=blancbrowser --branch=main",
     "test:unit": "node --test test/unit/*.test.js",
     "test:oauth:desktop": "node --test test/oauth/desktop.test.js",
     "test:oauth:live": "node scripts/oauth-canary.js",
