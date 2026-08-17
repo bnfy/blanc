@@ -1,6 +1,33 @@
 # Blank-tab pill affordance — design
 
-**Date:** 2026-08-16 · **Status:** approved pending user review
+**Date:** 2026-08-16 · **Status:** shipped (PR #141), revised 2026-08-17
+
+> **Revision, 2026-08-17 — the caret was replaced by a looping wash.**
+> Shipped as `fbc8270`, straight to `main`.
+>
+> The caret is gone entirely: no element, no keyframes, no rebuild guard. The
+> placeholder text carries its own motion instead — a brighter band travels
+> through the letters left to right, 2.6s per pass, **looping indefinitely**.
+> §2 below has been rewritten to describe what shipped; the rest of the
+> document still holds.
+>
+> **This reverses the bounded-motion decision this document originally made,
+> and the reversal is deliberate.** The original reasoning — that the pill sits
+> above every page, so motion which never resolves is a long-term irritant —
+> is still true, and is the price now being paid. What outweighed it: a new
+> tab's first seconds are usually spent looking *down* at the favorites, so a
+> cue that finishes before the eye comes back up teaches nobody. A bounded
+> animation optimizes for the person already looking at the island, which is
+> precisely not the person this feature exists for. The accepted cost is that a
+> blank tab left parked animates in peripheral vision for as long as it is
+> parked.
+>
+> One consequence worth recording, because it inverts an emphatic warning
+> below: **the rebuild guard was removed.** It was load-bearing only because
+> the caret was a child *element*, recreated on every `tabs:updated` broadcast.
+> The wash animates `#pillDomain` itself, which is never recreated, so writing
+> `textContent` cannot restart it. Verified rather than assumed — 40 forced
+> broadcasts left the animation's `currentTime` advancing monotonically.
 
 ## The problem
 
@@ -32,10 +59,11 @@ toolbar, and it is not in this design.
 ### 1. The blank-tab placeholder
 
 When `tabDomain(tab)` is empty and the tab is not loading, `#pillDomain`
-renders a caret element plus dim placeholder text — `Search or type a URL` —
-in place of the literal `new tab` / `private tab` fallback at
-`renderer.js:570-572`. A new sibling `<button id="pillSlash">/</button>`
-appears beside it.
+renders dim placeholder text — `Search or type a URL` — in place of the literal
+`new tab` / `private tab` fallback at `renderer.js:570-572`, and a new sibling
+`<button id="pillSlash">/</button>` appears beside it. (As originally written
+this also placed a caret element before the text; §2 replaced it with a wash on
+the text itself.)
 
 Both are hidden in every other pill state, so loaded pages are untouched.
 
@@ -47,27 +75,49 @@ The dim treatment uses a **new `.placeholder` class, not the existing `.dim`**.
 `.dim` is toggled by `isLoading` at `renderer.js:573`; the two states must stay
 independently controllable.
 
-### 2. The caret
+### 2. The wash
 
-A 1px bar before the placeholder text, blinking for **4 iterations at 1.1s**
-(≈4.4s) and then resting visible. Deliberately not a permanent blink: the pill
-sits above every page the user opens, and motion that never resolves in
-always-on-screen chrome is a long-term irritant.
+*(Revised 2026-08-17. This section originally specified a 1px caret blinking
+four times and then resting; see the revision note at the top for why that was
+replaced.)*
 
-No `animation-fill-mode: forwards` — when the animation ends the element
-reverts to its default (visible) opacity, which is the wanted resting state.
-Adding `forwards` would freeze it on the keyframe's final `opacity: 0` and
-leave no caret at all.
+The placeholder text carries the motion itself. `#pillDomain.placeholder` gets
+a `linear-gradient(90deg, …)` running `--text-dim → --text → --text-dim`, sized
+`300% 100%`, clipped to the glyphs with `background-clip: text` and
+`-webkit-text-fill-color: transparent`. `background-position` animates from
+`130%` to `-30%` over **2.6s, linear, infinite**.
 
-`prefers-reduced-motion` drops the animation and renders the static bar.
+**Direction is left to right**, the way the line is read. Decreasing
+`background-position` slides the oversized gradient rightward, which carries
+the bright band left→right across the text; an increasing range would run it
+backwards. This is easy to get wrong by reasoning alone, so it was verified by
+freezing the cycle and measuring: the band's screen x increases through the
+sweep, crossing the glyphs between 25% and 75%.
 
-**Implementation hazard — the caret must not rebuild on every broadcast.**
-`tabs:updated` arrives roughly 10/s while any tab is loading. If the
-placeholder DOM is recreated on each render pass the animation restarts every
-time and the caret blinks forever, silently defeating the decision above.
-The placeholder must be constructed only on the *transition into* placeholder
-mode, following the `dotsSignature` guard already in the same function
-(`renderer.js:563`), which exists for exactly this reason.
+`color: var(--text-dim)` is kept on the rule so the string still has a defined
+ink for any path that ignores the fill colour.
+
+**It loops indefinitely rather than a bounded number of times.** The trade is
+recorded in the revision note above: a bounded cue can finish while the eye is
+still down on the favorites, and the cost accepted in exchange is indefinite
+motion on a parked blank tab.
+
+**`prefers-reduced-motion` needs more than dropping the animation.** With no
+caret left, falling back to plain `--text-dim` would restore exactly the flat
+label this feature exists to get away from. The rule therefore also clears the
+gradient, restores an opaque fill, and rests the prompt at
+`color-mix(in srgb, var(--text) 65%, var(--text-dim))` — measured in the
+running app at ≈`#2e2e2e`, strictly darker than `--text-dim` and lighter than
+the full ink a real domain gets. `color-mix` is used rather than a new `:root`
+token so `substrate:check` is unaffected.
+
+**No rebuild guard is needed, and the earlier one was removed.** The animation
+lives on `#pillDomain`, an element that is never recreated; setting
+`textContent` replaces a text node inside it without touching the animation,
+and `classList.toggle` with an unchanged force value does not churn the class.
+The guard that this document originally demanded existed solely because the
+caret was a child element. Keeping it would have preserved a mechanism whose
+reason had gone.
 
 ### 3. The `/` chip
 
@@ -101,8 +151,13 @@ by seeing the result.
 
 ### 4. Type-to-open
 
-The caret asserts that keystrokes land somewhere. Today they do not — a blank
+The prompt asserts that keystrokes land somewhere. Today they do not — a blank
 tab has content focus. This makes the assertion true.
+
+*(Originally the caret made this assertion, and making it honest was the
+argument for type-to-open. The wash that replaced the caret is a weaker claim
+about typing — it says "look here" more than "text goes here" — so type-to-open
+now carries more of the burden of that promise, not less.)*
 
 **Owner: `newtab.js`, not main.** Only the renderer knows what is focused. A
 main-side `before-input-event` on the tab's `webContents` (the pattern at
@@ -238,9 +293,9 @@ character does what the chip does.
 
 | File | Change |
 |---|---|
-| `src/renderer/index.html` | caret span inside `#pillDomain`; `#pillSlash` button as its sibling |
-| `src/renderer/renderer.js` | placeholder branch at `:570`, built behind a transition guard; `#pillSlash` wiring; **extend** the existing `#islandPill` keydown at `:730` |
-| `src/renderer/styles.css` | `.placeholder`, `.pill-caret` + `@keyframes`, `.pill-slash`, `prefers-reduced-motion` |
+| `src/renderer/index.html` | `#pillSlash` button as a sibling of `#pillDomain` |
+| `src/renderer/renderer.js` | placeholder branch at `:570` (plain `textContent`, no transition guard); `#pillSlash` wiring; **extend** the existing `#islandPill` keydown at `:730` |
+| `src/renderer/styles.css` | `.placeholder` + its wash gradient and `@keyframes pill-placeholder-wash`, `.pill-slash`, `prefers-reduced-motion` |
 | `src/renderer/pages/newtab.js` | document `keydown` → `start.openIsland(char)` |
 | `src/main/preload.js` | `openIslandCommands()` and `openIslandTyping(char)` on `browserAPI`, beside `openIsland` at `:85`. **Both new chrome channels need a bridge method here** — the chrome renderer is sandboxed with `contextIsolation`, so it cannot reach `ipcRenderer` any other way |
 | `src/main/tab-preload.js` | `start.openIsland` on the existing `start` namespace |
@@ -252,16 +307,20 @@ or `settings-schema/` (verified by grep), and the `/` chip is not a slash
 command entry, so `substrate:check` is unaffected. No existing unit or
 acceptance test asserts the literal `new tab` / `private tab` pill strings.
 
-**Theming:** `.placeholder` uses `--text-dim` and `.pill-caret` uses `--text`,
-both already defined in all three scopes (`:root`, the dark override, and
-`:root[data-theme="private"]`) in `styles.css`. Nothing new to duplicate into
-`pages.css` — this is chrome, not an internal page.
+**Theming:** the wash gradient interpolates between `--text-dim` and `--text`,
+and the reduced-motion resting ink is a `color-mix` of the same two. Both are
+already defined in all three scopes (`:root`, the dark override, and
+`:root[data-theme="private"]`) in `styles.css`, so the wash re-inks with the
+theme for free. No new `:root` token is introduced, so `substrate:check` is
+untouched. Nothing to duplicate into `pages.css` — this is chrome, not an
+internal page.
 
 ## Known seams
 
 - **Utility sheet over a blank tab.** The sheet takes focus; the pill still
-  shows a caret, so typing goes to the sheet rather than the panel. Gating the
-  caret on sheet visibility costs more than the rare case is worth. Accepted.
+  shows the washing prompt, so typing goes to the sheet rather than the panel.
+  Gating the wash on sheet visibility costs more than the rare case is worth.
+  Accepted.
 - **Two registers across two surfaces.** The panel input reads "Search, enter
   address, or / for commands" (`overlay.html:17`); the pill will read "Search
   or type a URL" plus the chip. Left deliberately different — the chip does in
@@ -273,12 +332,18 @@ both already defined in all three scopes (`:root`, the dark override, and
 
 ## Testing
 
-- **Unit:** the transition guard (repeated `tabs:updated` broadcasts in
-  placeholder mode must not rebuild the caret — prove it fails without the
-  guard before trusting it); main-side character validation rejecting
-  multi-character, empty, and whitespace payloads and accepting one astral
-  code point; placeholder shown for both blank and blank-private tabs and
-  never for a loaded or loading tab.
+- **Unit:** the wash loops (`infinite`), clips to the text, and runs
+  left→right — assert the keyframe range *decreases*, since an increasing one
+  would sweep backwards; reduced motion stops it and rests at a stronger ink
+  than `--text-dim`; nothing named `pill-caret` survives in the CSS, the
+  renderer, or the markup; `renderPillLabel` carries no leftover transition
+  guard. Plus main-side character validation rejecting multi-character, empty,
+  and whitespace payloads and accepting one astral code point; placeholder
+  shown for both blank and blank-private tabs and never for a loaded or
+  loading tab.
+  *(As originally written this section required a test for the caret's
+  transition guard. That guard was removed with the caret — see the revision
+  note; the guard test was replaced by one asserting it is gone.)*
 - **Unit — the modifier gate**, as a table over the rejection conditions:
   composing, whitespace, multi-character key, non-body target, `metaKey`,
   bare `ctrlKey`. Plus the three that exist because of review, each of which
@@ -310,12 +375,17 @@ both already defined in all three scopes (`:root`, the dark override, and
   first — that precondition is what makes the rest of the scenario meaningful.
 - **Governance:** feature entry in `spec/features.md` and a `parity-matrix.md`
   row (the affordance is a product contract the mobile ports inherit, even
-  though the caret and chip are desktop presentations of it);
+  though the wash and chip are desktop presentations of it);
   `npm run substrate:check` and `npm run test:unit` green.
 - **Hand verification:** relaunch the dev app (`npm start`) — chrome documents
   load once at window creation, so ⌘R will not show these changes. Check the
-  caret stops blinking after ~4s and does not restart while a background tab
-  loads; check light, dark, and private themes; check reduced-motion.
+  band travels left→right and keeps looping while a background tab loads;
+  check light, dark, and private themes; check reduced-motion rests at the
+  stronger ink rather than going flat.
+  **Launch with a scratch `--user-data-dir`**: `requestSingleInstanceLock` is
+  keyed on the `Blanc-Dev` profile every unpackaged checkout shares, so with a
+  dev instance already running a second `npm start` hands off to it and
+  "verifies" code you did not change.
 
 ## Non-goals
 
