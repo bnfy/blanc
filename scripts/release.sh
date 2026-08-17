@@ -270,6 +270,12 @@ $HAS_MAC_ARM64 && node scripts/verify-electron-fuses.mjs \
 $HAS_MAC_X64 && node scripts/verify-electron-fuses.mjs \
   "dist/mac/Blanc.app/Contents/MacOS/Blanc"
 
+echo "==> Verifying byte-identical blocker payloads in packaged apps"
+$HAS_MAC_ARM64 && node scripts/verify-packaged-adblock.js \
+  "dist/mac-arm64/Blanc.app/Contents/Resources/app.asar"
+$HAS_MAC_X64 && node scripts/verify-packaged-adblock.js \
+  "dist/mac/Blanc.app/Contents/Resources/app.asar"
+
 MAC_ASSETS=("dist/latest-mac.yml")
 if $HAS_MAC_ARM64; then
   MAC_ASSETS+=(
@@ -363,6 +369,7 @@ if [ -n "$WORKFLOW_PLATFORM" ]; then
   EXPECTED_RUN_TITLE="Release $TAG ($WORKFLOW_PLATFORM)"
   gh workflow run release-windows-linux.yml \
     --repo "$REPO" \
+    -f mode=release \
     -f tag="$TAG" \
     -f platform="$WORKFLOW_PLATFORM"
 

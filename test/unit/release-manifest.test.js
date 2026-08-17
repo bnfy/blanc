@@ -157,6 +157,23 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.match(releaseWorkflow, /windows-signature\.json/);
   assert.match(releaseWorkflow, /Get-AuthenticodeSignature/);
   assert.match(releaseWorkflow, /verify-electron-fuses\.mjs/);
+  assert.match(releaseWorkflow, /Verify packaged blocker inputs\s+run: npm run adblock:check/);
+  assert.equal(
+    (releaseWorkflow.match(/Verify packaged blocker payload/g) ?? []).length,
+    2,
+    'Windows and Linux must both inspect the packaged app.asar blocker payload'
+  );
+  assert.match(releaseScript, /Verifying byte-identical blocker payloads in packaged apps/);
+  assert.match(releaseScript, /verify-packaged-adblock\.js/);
+  assert.match(releaseScript, /-f mode=release/);
+  assert.match(releaseWorkflow, /default: release/);
+  assert.match(releaseWorkflow, /inputs\.mode == 'release' && inputs\.tag \|\| github\.ref/);
+  assert.match(releaseWorkflow, /Upload private signed Windows validation artifact/);
+  assert.match(releaseWorkflow, /actions\/upload-artifact@[0-9a-f]{40}/);
+  assert.match(releaseWorkflow, /retention-days: 3/);
+  assert.match(releaseWorkflow, /if: \$\{\{ inputs\.mode == 'release' \}\}\s+shell: bash\s+env:\s+GH_TOKEN:/);
+  assert.match(releaseWorkflow, /if: \$\{\{ inputs\.mode == 'validation' \}\}\s+uses: actions\/upload-artifact/);
+  assert.match(releaseWorkflow, /inputs\.mode == 'release' && \(inputs\.platform == 'all' \|\| inputs\.platform == 'linux'\)/);
   assert.match(releaseScript, /verify-electron-fuses\.mjs/);
   assert.deepEqual(packageConfig.build.electronFuses, {
     runAsNode: false,

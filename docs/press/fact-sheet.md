@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: August 15, 2026
+Last updated: August 17, 2026
 
 ## The short version
 
@@ -20,7 +20,7 @@ extension runtime.
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Current public baseline | [1.4.0](https://github.com/bnfy/blanc/releases/tag/v1.4.0) |
+| Current public baseline | [1.5.0](https://github.com/bnfy/blanc/releases/tag/v1.5.0) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
 | Optional purchase | Blanc Supporter, US$19 one time, plus applicable taxes; unlocks three cosmetic app-icon colorways |

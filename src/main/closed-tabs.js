@@ -6,6 +6,8 @@
 
 /** Held views live this long before degrading to their snapshot (§2.1). */
 const CLOSED_GRACE_MS = 30_000;
+/** Recently closed is an undo buffer, not an archive. */
+const CLOSED_ENTRY_TTL_MS = 60 * 60 * 1000;
 /** Per-window entry cap, matching the old recentlyClosedUrls bound. */
 const MAX_CLOSED_ENTRIES = 25;
 /** At most one live held view per window; a newer close takes the hold. */
@@ -90,6 +92,7 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
     view: null,
     heldAt: null,
     wcId: null,
+    expiryTimer: null,
   };
 }
 
@@ -120,6 +123,7 @@ function buildGroupEntry(group, members, now = 0) {
     view: null,
     heldAt: null,
     wcId: null,
+    expiryTimer: null,
   };
 }
 
@@ -129,6 +133,13 @@ function expireHolds(entries, { now, graceMs = CLOSED_GRACE_MS } = {}) {
   return (entries ?? [])
     .filter((e) => e?.view && Number.isFinite(e.heldAt) && now - e.heldAt >= graceMs)
     .map((e) => e.id);
+}
+
+/** Closed-entry ids old enough to leave the undo buffer altogether. */
+function expireEntries(entries, { now, ttlMs = CLOSED_ENTRY_TTL_MS } = {}) {
+  return (entries ?? [])
+    .filter((entry) => Number.isFinite(entry?.closedAt) && now - entry.closedAt >= ttlMs)
+    .map((entry) => entry.id);
 }
 
 /** The ONLY shape a renderer may see (§4.1). Entries, page state, seeds,
@@ -142,7 +153,6 @@ function projectEntries(entries) {
     id: e.id,
     title: e.kind === 'group' ? e.group.name : e.title,
     favicon: e.kind === 'group' ? null : pngFavicon(e.favicon),
-    tier: e.view ? 0 : (e.kind === 'group' || e.snapshot) ? 1 : 2,
     tabCount: e.kind === 'group' ? e.tabs.length : 1,
   }));
 }
@@ -153,8 +163,10 @@ module.exports = {
   buildTabEntry,
   buildGroupEntry,
   expireHolds,
+  expireEntries,
   projectEntries,
   CLOSED_GRACE_MS,
+  CLOSED_ENTRY_TTL_MS,
   MAX_CLOSED_ENTRIES,
   MAX_HELD_VIEWS,
 };

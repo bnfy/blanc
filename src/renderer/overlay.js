@@ -853,17 +853,26 @@
     const row = document.createElement('div');
     row.className = 'island-ghead static';
     row.innerHTML = '<span class="ghead-name dim">closed</span><span class="ghead-rule"></span>';
+    const clear = document.createElement('button');
+    clear.type = 'button';
+    clear.className = 'closed-clear';
+    clear.textContent = 'clear';
+    clear.title = 'Forget all closed tabs';
+    clear.setAttribute('aria-label', clear.title);
+    clear.addEventListener('click', () => window.browserAPI.clearClosedEntries());
+    row.append(clear);
     return row;
   }
 
   /** One recently-closed entry: ↶ glyph, title (· N tabs for a group), and a
-   *  quiet "held" marker while its live view survives. Click reopens THIS
-   *  entry — main re-resolves the id, a stale one is a no-op. */
+   *  real Forget action. The live/snapshot recovery tier is deliberately
+   *  private implementation detail. Click reopens THIS entry; main re-resolves
+   *  either proposed id, so a stale renderer action is a no-op. */
   function closedRow(entry) {
     const row = document.createElement('div');
     row.className = 'island-row closed-row';
     row.setAttribute('role', 'button');
-    row.title = 'Reopen';
+    row.title = 'Reopen closed tab';
     const glyph = document.createElement('span');
     glyph.className = 'closed-glyph';
     glyph.innerHTML = ICONS.reopen;
@@ -872,13 +881,17 @@
     title.textContent = entry.tabCount > 1
       ? `${entry.title} · ${entry.tabCount} tabs`
       : entry.title;
-    row.append(glyph, title);
-    if (entry.tier === 0) {
-      const held = document.createElement('span');
-      held.className = 'closed-held';
-      held.textContent = 'held';
-      row.appendChild(held);
-    }
+    const forget = document.createElement('button');
+    forget.type = 'button';
+    forget.className = 'row-close closed-forget';
+    forget.title = 'Forget closed tab';
+    forget.setAttribute('aria-label', `${forget.title}: ${title.textContent}`);
+    forget.innerHTML = ICONS.close;
+    forget.addEventListener('click', (event) => {
+      event.stopPropagation();
+      window.browserAPI.forgetClosedEntry(entry.id);
+    });
+    row.append(glyph, title, forget);
     row.addEventListener('click', () => {
       window.browserAPI.closeOverlay();
       window.browserAPI.reopenClosedEntry(entry.id);
@@ -1543,6 +1556,11 @@
 
   window.browserAPI.onOverlayShow(({ mode: next, prefill, purpose, pillRect }) => {
     const wasOpen = mode === next;
+    // A quick close/reopen can arrive while the old retract timer is still
+    // holding `pointer-events: none` on the panel. Cancel that stale exit
+    // before constructing the new opening state, or the fresh panel renders
+    // but cannot be clicked and is hidden when the old timer fires.
+    if (!wasOpen && (next === 'panel' || next === 'palette')) clearMorphStyles();
     applyMode(next, prefill, purpose);
     if (!wasOpen && (next === 'panel' || next === 'palette')) morphPanelFromPill(pillRect);
   });

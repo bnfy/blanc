@@ -2,7 +2,7 @@ const assert = require('node:assert');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('./../support/context');
 const { waitForValue, openOverlaySurface } = require('./../support/poll');
-const { runSlashCommand } = require('./../support/overlay');
+const { overlayPage, runSlashCommand } = require('./../support/overlay');
 
 // Step definitions for the desktop-runnable scenario set (see the `runnable`
 // profile in cucumber.mjs). Every step is intent-level and drives the app
@@ -102,6 +102,71 @@ Then('a group named {string} holds {int} tabs', async function (name, count) {
 Then("the group's tabs are in their original order", async function () {
   const urls = await groupUrls(this, 'research');
   assert.deepStrictEqual(urls, ctx.expectedGroupUrls);
+});
+
+// ---- F2-7: recently closed is undo, not permanent history ----
+
+Given('recently closed contains {string} and {string}', async function (older, newer) {
+  for (const name of [older, newer]) {
+    const id = await openNamed(this, name);
+    await this.call('closeTab', id);
+  }
+  await waitForValue(
+    () => this.call('closedEntriesSummary'),
+    (entries) => entries.length === 2,
+    'two recently closed entries',
+  );
+});
+
+Then('recently closed exposes no recovery-tier jargon', async function () {
+  await openOverlaySurface(this, 'openPalette', 'palette');
+  const page = await overlayPage();
+  const rows = page.locator('.closed-row');
+  await rows.first().waitFor({ state: 'visible' });
+  assert.strictEqual(await rows.count(), 2);
+  assert.strictEqual(await page.locator('.closed-held').count(), 0);
+  assert.doesNotMatch(await rows.allTextContents().then((parts) => parts.join(' ')), /\bheld\b/i);
+  assert.strictEqual(await page.locator('.closed-forget').count(), 2);
+  assert.strictEqual(await page.locator('.closed-clear').count(), 1);
+});
+
+When('I forget the newest recently closed tab', async function () {
+  const page = await overlayPage();
+  const forget = page.locator('.closed-row').first().locator('.closed-forget');
+  // Wait until the opening morph has actually uncovered the row. Renderer
+  // mode changes before the decorative size transition completes.
+  await page.waitForFunction(() => {
+    const button = document.querySelector('.closed-row .closed-forget');
+    if (!button) return false;
+    const rect = button.getBoundingClientRect();
+    return document.elementsFromPoint(
+      rect.left + rect.width / 2,
+      rect.top + rect.height / 2,
+    ).includes(button);
+  });
+  await forget.click();
+});
+
+Then('recently closed contains only {string}', async function (name) {
+  const expected = this.fixtureUrl(name);
+  await waitForValue(
+    () => this.call('closedEntriesSummary'),
+    (entries) => entries.length === 1 && entries[0].url === expected,
+    `recently closed to contain only ${name}`,
+  );
+});
+
+When('I clear recently closed from the panel', async function () {
+  const page = await overlayPage();
+  await page.locator('.closed-clear').click();
+});
+
+Then('recently closed is empty', async function () {
+  await waitForValue(
+    () => this.call('closedEntriesSummary'),
+    (entries) => entries.length === 0,
+    'recently closed to be empty',
+  );
 });
 When('I duplicate the active tab', async function () { await this.call('duplicateActive'); });
 When('I pin {string}', async function (name) { await this.call('pinTab', ctx.tabByName[name]); });
