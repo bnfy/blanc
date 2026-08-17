@@ -982,9 +982,10 @@ function downgradeHeldEntry(entry) {
     wc.removeAllListeners();
     wc.close();
   }
-  // The panel's "held" marker must clear when the hold ends. This runs under
-  // bindWindowRuntime from the firewall/timer, so rt() is the owning window.
-  if (view && hasLiveWindow()) scheduleBroadcastTabs();
+  // NO rt()/broadcast here: the before-quit sweep calls this while iterating
+  // every runtime OUTSIDE any bindWindowRuntime scope (acceptance mode makes
+  // that throw; production would resolve the wrong window). Callers that
+  // clear a held marker the panel is showing broadcast themselves, bound.
 }
 
 /** Held-state firewall (spec §3.4): a parked page keeps executing for the
@@ -1006,7 +1007,12 @@ function installHeldFirewall(entry, wc, owner) {
   wc.on('media-started-playing', () => { entry.seed.usedMedia = true; });
   // A crashed renderer does not destroy its WebContents; without these the
   // restore path would re-attach a sad-tab instead of using the snapshot.
-  const downgrade = bindWindowRuntime(owner, () => downgradeHeldEntry(entry));
+  const downgrade = bindWindowRuntime(owner, () => {
+    downgradeHeldEntry(entry);
+    // The panel's "held" marker just cleared; downgradeHeldEntry itself must
+    // stay callable from unbound teardown, so the bound caller broadcasts.
+    if (hasLiveWindow()) scheduleBroadcastTabs();
+  });
   wc.on('render-process-gone', downgrade);
   wc.once('destroyed', downgrade);
 }
@@ -1039,9 +1045,15 @@ function parkTabView(tab, entry) {
   entry.holdTimer = setTimeout(bindWindowRuntime(owner, () => {
     entry.holdTimer = null;
     const due = new Set(expireHolds(owner.closedEntries ?? [], { now: Date.now() }));
+    let downgraded = false;
     for (const candidate of owner.closedEntries ?? []) {
-      if (due.has(candidate.id)) downgradeHeldEntry(candidate);
+      if (due.has(candidate.id)) {
+        downgradeHeldEntry(candidate);
+        downgraded = true;
+      }
     }
+    // Bound caller broadcasts (see downgradeHeldEntry's no-rt() contract).
+    if (downgraded && hasLiveWindow()) scheduleBroadcastTabs();
   }), CLOSED_GRACE_MS);
   tabIdByWebContentsId.delete(wc.id);
   lastMainFrameMethod.delete(wc.id);
