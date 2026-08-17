@@ -15,6 +15,8 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
 
   createTab: (url, opts) => ipcRenderer.invoke('tabs:create', url, opts),
   closeTab: (id) => ipcRenderer.invoke('tabs:close', id),
+  reopenClosedTab: () => ipcRenderer.invoke('tabs:reopen-closed'),
+  reopenClosedEntry: (entryId) => ipcRenderer.invoke('tabs:reopen-entry', entryId),
   switchTab: (id) => ipcRenderer.invoke('tabs:switch', id),
   navigate: (id, url) => ipcRenderer.invoke('tabs:navigate', id, url),
   search: (id, query, engine) => ipcRenderer.invoke('tabs:search', id, query, engine),

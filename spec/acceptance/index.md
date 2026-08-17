@@ -50,6 +50,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F2-3 | Pin orders ahead of unpinned | — | ✅ | ⬜ | ⬜ |
 | F2-4 | Plain new tab is ungrouped | — | ✅ | ⬜ | ⬜ |
 | F2-5 | Reopen-closed history is workspace-local | D11 | ✅ | ➖ | ➖ |
+| F2-6 | Closing a group is one undo step | — | ✅ | ⬜ | ⬜ |
 | F3-1 | `/group` creates + moves | — | ✅ | ⬜ | ⬜ |
 | F3-2 | Pill's dots render only active group | — | ✅ | ⬜ | ⬜ |
 | F3-3 | Collapse tucks tabs away | — | ✅ | ⬜ | ⬜ |

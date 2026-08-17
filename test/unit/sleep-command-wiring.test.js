@@ -114,7 +114,7 @@ test('the /sleep bridge and its IPC channel are wired end to end', () => {
 test('/sleep sits at the same index in all four hand-synced copies', () => {
   const json = JSON.parse(read('copy/slash-commands.json'));
   const index = json.commands.findIndex((command) => command.command === '/sleep');
-  assert.equal(index, 11, '/sleep must follow /mute and precede /group');
+  assert.equal(index, 12, '/sleep must follow /mute and precede /group (index moved by one when /reopen landed after /close)');
   const entry = json.commands[index];
   assert.equal(entry.hint, 'Quiet background tabs and free their memory');
   assert.equal(entry.doc, undefined);

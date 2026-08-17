@@ -12,6 +12,7 @@ const SLASH_COMMANDS = [
   ['/new', 'Open a new tab'],
   ['/private', 'Open a private tab (history stays untouched)'],
   ['/close', 'Close this tab'],
+  ['/reopen', 'Reopen the tab you just closed'],
   ['/pin', 'Pin or unpin this tab'],
   ['/mute', 'Mute or unmute this tab'],
   ['/sleep', 'Quiet background tabs and free their memory'],

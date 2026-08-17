@@ -28,7 +28,7 @@ const {
   CHROME_PERMISSION_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
-const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState } = require('./permissions');
+const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
 const sync = require('./sync');
@@ -83,6 +83,7 @@ const { hasExclusiveRenderer, hasBeforeUnloadListener } = require('./renderer-di
 const {
   createTabView,
   wireTabView,
+  unwireTabView,
   initTabView,
   liveContents,
   liveViewContents,
@@ -121,6 +122,7 @@ const {
 const { showAboutPanel } = require('./about-panel');
 const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
+const { holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, expireHolds, projectEntries, CLOSED_GRACE_MS, MAX_CLOSED_ENTRIES } = require('./closed-tabs');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -678,6 +680,11 @@ const sleepSnapshots = new Map(); // Map<string /* tab.id */, SleepSnapshot>
 // reopen, and their recovery data must survive with them. Turning tabSleep off
 // likewise changes policy only; it must not discard existing snapshots.
 
+// wc.id of every parked (held) closed-tab view, process-wide. Consulted by
+// the permission handlers via setHeldRequesterCheck — the tab record is gone
+// by park time, so tabIdByWebContentsId cannot answer for a held page.
+const heldWebContents = new Set();
+
 // Evaluated in every frame of a tab. A programmatic password-manager fill fires
 // no interaction events, so compare live controls with their defaults instead.
 const DIRTY_PROBE_SOURCE = `(() => {
@@ -958,6 +965,120 @@ async function sleepTab(id, { broadcast = true } = {}) {
   }
   console.debug(`[quiet-tabs] ${id}: teardown ${outcome} — left awake${aborted ? ' (beforeunload)' : ''}`);
   return false;
+}
+
+/** Downgrade a held entry to its snapshot: destroy the view (unless the
+ *  renderer already died), clear the registry, cancel the hold timer. Safe
+ *  to call twice and from the firewall's own destroyed handler. */
+function downgradeHeldEntry(entry) {
+  clearTimeout(entry.holdTimer);
+  entry.holdTimer = null;
+  if (entry.wcId != null) heldWebContents.delete(entry.wcId);
+  entry.wcId = null;
+  const view = entry.view;
+  entry.view = null;
+  entry.heldAt = null;
+  const wc = view?.webContents;
+  if (wc && !wc.isDestroyed()) {
+    wc.removeAllListeners();
+    wc.close();
+  }
+  // NO rt()/broadcast here: the before-quit sweep calls this while iterating
+  // every runtime OUTSIDE any bindWindowRuntime scope (acceptance mode makes
+  // that throw; production would resolve the wrong window). Callers that
+  // clear a held marker the panel is showing broadcast themselves, bound.
+}
+
+/** Held-state firewall (spec §3.4): a parked page keeps executing for the
+ *  grace window with no tab record, so it must never be left bare. Every
+ *  Electron callback is bound to the owning window runtime — a crash or
+ *  expiry in a background window must never resolve through the focused
+ *  fallback and mutate the wrong window (the downloads.js/capture rule). */
+function installHeldFirewall(entry, wc, owner) {
+  // Method-installed, NOT an EventEmitter listener — listener removal never
+  // clears the one wireTabView set. Without this a held page could
+  // window.open into a boundToTab closure over a deleted record.
+  wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+  // Every firewall listener is recorded on the entry so the adoption unpark
+  // can remove EXACTLY this set (removeHeldFirewall) — never a name-based
+  // strip, which took out Electron's own listeners in both directions
+  // (window-open pipeline SIGSEGV; visibilityChanged destroyed-object throw).
+  entry.firewallListeners = [];
+  const guard = (event, handler, { once = false } = {}) => {
+    if (once) wc.once(event, handler);
+    else wc.on(event, handler);
+    entry.firewallListeners.push([event, handler]);
+  };
+  // Frozen at close: main-frame navigation is refused outright. Subframes
+  // are left alone so the page survives restore intact (§3.4).
+  guard('will-navigate', (event) => { if (event.isMainFrame) event.preventDefault(); });
+  guard('will-redirect', (event) => { if (event.isMainFrame) event.preventDefault(); });
+  // A video can BEGIN during the hold; the restored tab must not be
+  // quietable mid-playback. Writes to the entry, never a tab record.
+  guard('media-started-playing', () => { entry.seed.usedMedia = true; });
+  // A crashed renderer does not destroy its WebContents; without these the
+  // restore path would re-attach a sad-tab instead of using the snapshot.
+  const downgrade = bindWindowRuntime(owner, () => {
+    downgradeHeldEntry(entry);
+    // The panel's "held" marker just cleared; downgradeHeldEntry itself must
+    // stay callable from unbound teardown, so the bound caller broadcasts.
+    if (hasLiveWindow()) scheduleBroadcastTabs();
+  });
+  guard('render-process-gone', downgrade);
+  guard('destroyed', downgrade, { once: true });
+}
+
+/** Adoption unpark: remove exactly the firewall's recorded listeners. The
+ *  deny setWindowOpenHandler needs no removal — wireTabView re-installs the
+ *  tab handler over it. */
+function removeHeldFirewall(entry, wc) {
+  for (const [event, handler] of entry.firewallListeners ?? []) {
+    wc.removeListener(event, handler);
+  }
+  entry.firewallListeners = null;
+}
+
+/** Park a closing tab's live view into its closed entry (Tier 0). Returns
+ *  false on any uncertainty; the caller then destroys normally (Tier 1).
+ *  Called only from closeTab, where rt() is the verified owner. */
+function parkTabView(tab, entry) {
+  const wc = liveContents(tab);
+  if (!wc) return false;
+  // Final synchronous guard, same shape as sleepTab's: capture state can
+  // change between eligibility selection and this call (§5.1a).
+  if (tab.capturing || (tab.captureRecord?.anchors?.length ?? 0) > 0) return false;
+  const owner = rt();
+  const view = tab.view;
+  // Registry FIRST, then strip, then firewall: no instant exists in which a
+  // request resolves against neither the tab record nor the firewall (§3.4).
+  heldWebContents.add(wc.id);
+  unwireTabView(wc); // exact removal of wireTabView's set; Electron's stay
+  installHeldFirewall(entry, wc, owner);
+  view.setVisible(false);
+  wc.setAudioMuted(true);
+  entry.view = view;
+  entry.wcId = wc.id;
+  entry.heldAt = Date.now();
+  // The timer fires, but the pure policy decides: runtime expiry goes
+  // through expireHolds so the tested function is the production truth —
+  // and an entry already downgraded early (newer hold, crash) is simply
+  // not due when the sweep runs.
+  entry.holdTimer = setTimeout(bindWindowRuntime(owner, () => {
+    entry.holdTimer = null;
+    const due = new Set(expireHolds(owner.closedEntries ?? [], { now: Date.now() }));
+    let downgraded = false;
+    for (const candidate of owner.closedEntries ?? []) {
+      if (due.has(candidate.id)) {
+        downgradeHeldEntry(candidate);
+        downgraded = true;
+      }
+    }
+    // Bound caller broadcasts (see downgradeHeldEntry's no-rt() contract).
+    if (downgraded && hasLiveWindow()) scheduleBroadcastTabs();
+  }), CLOSED_GRACE_MS);
+  tabIdByWebContentsId.delete(wc.id);
+  lastMainFrameMethod.delete(wc.id);
+  return true;
 }
 
 /** `/sleep`: quiet every eligible background tab now. It bypasses only the
@@ -2188,6 +2309,11 @@ app.on('before-quit', () => {
     if (wc && !wc.isDestroyed()) wc.close();
   }
   sleepSnapshots.clear(); // retained views, POST bodies, and form values
+  for (const runtime of windowRuntimes.all()) {
+    for (const entry of runtime.closedEntries ?? []) {
+      if (entry.view) downgradeHeldEntry(entry);
+    }
+  }
 });
 
 function persistSession() {
@@ -2438,6 +2564,9 @@ function currentTabsPayload() {
     activeTabId: runtime.activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: runtime.groups,
+    // Closed entries cross only as the five-field projection (spec §4.1);
+    // snapshots, seeds, slot metadata, and view references stay in main.
+    closed: projectEntries(runtime.closedEntries ?? []),
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
@@ -2802,9 +2931,52 @@ function focusGroup(groupId) {
   else broadcastTabs();
 }
 
+/** Member record for a group entry: identity + field-copied snapshot. The
+ *  sleep record's retained view is NOT taken — closeTab destroys it. */
+function closedMemberRecord(id) {
+  const tab = tabs.get(id);
+  const sleepRecord = sleepSnapshots.get(id);
+  let snapshot = null;
+  if (sleepRecord) {
+    snapshot = { entries: sleepRecord.entries, index: sleepRecord.index, droppedPageState: sleepRecord.droppedPageState };
+  } else {
+    try {
+      const nav = liveContents(tab)?.navigationHistory;
+      if (nav) snapshot = trimSnapshot(nav.getAllEntries(), nav.getActiveIndex(), { private: !!tab.private });
+    } catch {}
+  }
+  snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
+  return {
+    url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
+    pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
+  };
+}
+
 function closeGroup(groupId) {
-  const ids = rt().tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
-  for (const id of ids) closeTab(id);
+  const runtime = rt();
+  const group = runtime.groups.find((g) => g.id === groupId);
+  const ids = runtime.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  if (!group || ids.length === 0) return;
+  // Capture EVERYTHING first: pruneEmptyGroups destroys the record mid-loop
+  // otherwise, and quiet members must be snapshotted, never woken (§2.2).
+  const entry = buildGroupEntry({
+    id: group.id, name: group.name, collapsed: group.collapsed,
+    index: runtime.groups.indexOf(group),
+    activeMemberIndex: Math.max(0, ids.indexOf(runtime.activeTabId)),
+  }, ids.map(closedMemberRecord), Date.now());
+  const anchorIndex = runtime.tabOrder.indexOf(ids[0]);
+  for (const id of ids) closeTab(id, { record: false, selectReplacement: false });
+  if (entry.tabs.length > 0) pushClosedEntry(entry); // an all-private group records nothing
+  // One replacement selection at the end, not one per member.
+  if (!runtime.activeTabId) {
+    if (runtime.tabOrder.length > 0) {
+      setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
+    } else if (hasLiveWindow()) {
+      setActiveTab(createTab());
+    }
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 function toggleTabPinned(id) {
@@ -2946,7 +3118,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null } = {}) {
   if (isForbiddenTopLevelUrl(url)) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
@@ -2971,10 +3143,15 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // already constructed by Chromium with the opener relationship wired up;
   // everything else gets a fresh one.
   const adopted = !!view;
+  // A Tier 0 reopen hands back the view parked at close: a live document that
+  // predates this record. It is `adopting`, never `adopted` — there is no
+  // opener relationship, so none of the window.open family rules apply.
+  const adopting = !adopted && !!adoptView;
+  if (adopting) view = adoptView;
   // Session restore builds every tab quiet: no view, renderer process, or
   // navigation — only the record the chrome draws. An adopted child is
   // already live and can never be born quiet.
-  const bornQuiet = asleep && !adopted;
+  const bornQuiet = asleep && !adopted && !adopting;
   if (!bornQuiet) view ??= createTabView({
     private: isPrivate,
     profileId: owner.profileId,
@@ -3054,13 +3231,33 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   const wc = view.webContents;
   tabIdByWebContentsId.set(wc.id, id);
+  // Adoption: the caller (reopenEntry) already removed the held firewall's
+  // recorded listeners; wireTabView below re-installs the tab set.
   wireTabView(tab, view, { owner, adopted });
 
+  if (adopting) {
+    // The document predates this record (§3.3): re-attach chrome's listener
+    // set, wake the audio path (wireTabView only ever mutes), and resync
+    // what the island paints. Favicon stays the park-time value — Electron
+    // has favicon events but no getter.
+    wc.setAudioMuted(effectiveTabMuted(tab));
+    view.setVisible(true);
+    tab.url = wc.getURL() || tab.url;
+    tab.title = wc.getTitle() || tab.title;
+    // Every other re-derivation of this flag hangs off a navigation event, and
+    // an adoption performs none — leaving the heart drawn empty on a favorited
+    // page, where a click would delete the favorite instead of adding it.
+    tab.bookmarked = bookmarks.isBookmarked(tab.url);
+    tab.canGoBack = wc.navigationHistory.canGoBack();
+    tab.canGoForward = wc.navigationHistory.canGoForward();
+  }
   // Load failures surface via the did-fail-load handler above; the
   // rejected promise here is the same event and must not crash main.
   // Adopted window.open children are loaded by Chromium itself as part of
-  // the window-open dance — a competing loadURL here would cancel it.
-  if (!adopted) {
+  // the window-open dance — a competing loadURL here would cancel it. An
+  // adopting Tier 0 reopen already has its document; navigating would throw
+  // away exactly the live state the hold existed to keep.
+  if (!adopted && !adopting) {
     // navigationHistory.restore() performs its own navigation and must be
     // the tab's first — used by duplicateTab below instead of a plain
     // loadURL when the source tab has real back/forward history to clone.
@@ -3310,26 +3507,110 @@ function activateTabFromRail(id) {
   return true;
 }
 
+// One list per window runtime, newest last. At most one entry holds a live
+// view; a newer hold downgrades the incumbent rather than being refused
+// (§2.1), and eviction destroys any view it pushes out (§5.4).
+function pushClosedEntry(entry) {
+  const list = rt().closedEntries ??= [];
+  if (entry.view) {
+    for (const existing of list) if (existing.view) downgradeHeldEntry(existing);
+  }
+  list.push(entry);
+  while (list.length > MAX_CLOSED_ENTRIES) {
+    const evicted = list.shift();
+    if (evicted.view) downgradeHeldEntry(evicted);
+  }
+  scheduleMenuRebuild();
+}
+
+/** Restore a group whole: record at its recorded cluster index, members
+ *  born quiet with their snapshots parked in sleepSnapshots (the session-
+ *  restore pattern), only the active member woken (§2.4). It sits ABOVE the
+ *  close/reopen pair on purpose: close-tab-shutdown.test.js lifts closeTab by
+ *  slicing to the next `function reopenClosedTab()`, so nothing may be
+ *  inserted between those two. */
+function reopenGroupEntry(entry) {
+  const runtime = rt();
+  let group = runtime.groups.find((g) => g.name === entry.group.name);
+  if (!group) {
+    group = { id: entry.group.id, name: entry.group.name, collapsed: !!entry.group.collapsed };
+    runtime.groups.splice(Math.min(entry.group.index, runtime.groups.length), 0, group);
+  }
+  const ids = entry.tabs.map((member) => {
+    const id = createTab(member.url, {
+      groupId: group.id, pinned: member.pinned, muted: member.muted,
+      asleep: true, title: member.title, favicon: member.favicon,
+    });
+    if (id && member.snapshot) {
+      sleepSnapshots.set(id, {
+        view: null,
+        entries: member.snapshot.entries,
+        index: member.snapshot.index,
+        droppedPageState: member.snapshot.droppedPageState,
+      });
+    }
+    return id;
+  }).filter(Boolean);
+  if (ids.length === 0) return;
+  setActiveTab(ids[Math.min(entry.activeMemberIndex, ids.length - 1)]);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
 function closeTab(id) {
+  const { record = true, selectReplacement = true } = arguments[1] ?? {};
   // First statement: any later early return must not strand recovery data.
-  const retainedView = sleepSnapshots.get(id)?.view ?? null;
+  const sleepRecord = sleepSnapshots.get(id) ?? null;
+  const retainedView = sleepRecord?.view ?? null;
   sleepSnapshots.delete(id);
   // A user close during a sleep teardown wins: do not rewire a tab going away.
   sleepTeardownInProgress = false;
   const tab = tabs.get(id);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   forgetTabWebContentsIds(id);
+
+  // Capture the prompt condition BEFORE cancelling — cancellation erases the
+  // evidence the tier check reads (§5.1b).
+  const promptPending = permissionPendingTabIds().has(id);
   cancelPermissionPromptsForTab(id);
 
-  // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
-  // A failed provisional navigation can leave a non-string value in the
-  // model during WebContents teardown. Closing that tab must not take down the
-  // main process while deciding whether it is eligible for reopen-closed-tab.
-  const tabUrl = typeof tab.url === 'string' ? tab.url : '';
-  if (tabUrl && !tab.private && !tabUrl.startsWith('blanc://newtab')) {
-    const recentlyClosed = rt().recentlyClosedUrls ??= [];
-    recentlyClosed.push(tabUrl);
-    if (recentlyClosed.length > 25) recentlyClosed.shift();
+  const closedIndex = rt().tabOrder.indexOf(id);
+  let parked = false;
+  if (record && !isQuitting && !rt().closing) {
+    // Snapshot: field-copy from the sleep record (its view is NOT ours to
+    // take — the storage-bearing quiet path leaves a live view there, §2.1),
+    // else shape one from the live navigation history.
+    let snapshot = null;
+    if (sleepRecord) {
+      snapshot = { entries: sleepRecord.entries, index: sleepRecord.index, droppedPageState: sleepRecord.droppedPageState };
+    } else {
+      try {
+        const nav = liveContents(tab)?.navigationHistory;
+        if (nav) snapshot = trimSnapshot(nav.getAllEntries(), nav.getActiveIndex(), { private: !!tab.private });
+      } catch {}
+    }
+    snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
+
+    const openerAlive = !!(tab.openerTabId && tabs.has(tab.openerTabId));
+    let hasManagedChild = false;
+    for (const other of tabs.values()) {
+      if (other.openerTabId === id) { hasManagedChild = true; break; }
+    }
+    // Private tabs, blank newtabs, and unusable URLs refuse here — the single
+    // recording gate, deliberately not duplicated at any call site.
+    const tier = holdEligibility(tab, {
+      hasSnapshot: !!snapshot,
+      promptPending,
+      openerAlive,
+      hasManagedChild,
+      popupChildCount: popupChildCounts.get(id) ?? 0,
+    });
+    if (tier !== 'refuse') {
+      const groupName = rt().groups.find((g) => g.id === tab.groupId)?.name ?? null;
+      const entry = buildTabEntry(tab, snapshot, { index: closedIndex, groupName }, Date.now());
+      if (tier === 'hold') parked = parkTabView(tab, entry);
+      pushClosedEntry(entry);
+    }
   }
 
   const wasActive = id === rt().activeTabId;
@@ -3340,7 +3621,6 @@ function closeTab(id) {
   }
   if (wasActive && hasLiveWindow() && tab.view) rt().window.contentView.removeChildView(tab.view);
 
-  const closedIndex = rt().tabOrder.indexOf(id);
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
   popupChildCounts.delete(id);
@@ -3349,7 +3629,9 @@ function closeTab(id) {
   pruneEmptyGroups();
   const wc = tab.view?.webContents ?? retainedView?.webContents;
   if (wc) lastMainFrameMethod.delete(wc.id);
-  if (wc && !wc.isDestroyed()) wc.close();
+  // A parked view is detached from the model but deliberately still alive:
+  // parking replaces destruction, never the removeChildView above.
+  if (wc && !wc.isDestroyed() && !parked) wc.close();
 
   if (wasActive) {
     // Electron destroys the active view during app shutdown. Do not select a
@@ -3359,6 +3641,9 @@ function closeTab(id) {
       rt().activeTabId = null;
       return;
     }
+    // A caller sequencing several closes (group close) owns the selection
+    // itself; picking a neighbour per close would flash through the members.
+    if (!selectReplacement) { rt().activeTabId = null; return; }
     const survivingGlanceId = rt().glanceTabId && tabs.has(rt().glanceTabId)
       ? rt().glanceTabId
       : null;
@@ -3395,8 +3680,59 @@ function closeTab(id) {
 }
 
 function reopenClosedTab() {
-  const url = rt().recentlyClosedUrls?.pop();
-  if (url) setActiveTab(createTab(url));
+  const entry = rt().closedEntries?.pop();
+  if (entry) reopenEntry(entry);
+}
+
+/** Restore one consumed entry. Tier 0 adopts the parked view; a dead or
+ *  unattachable view falls through to the snapshot (§3.2). */
+function reopenEntry(entry) {
+  if (entry.kind === 'group') return reopenGroupEntry(entry);
+  clearTimeout(entry.holdTimer);
+  const resolvedGroupId = entry.groupId && rt().groups.some((g) => g.id === entry.groupId)
+    ? entry.groupId
+    : null;
+  const common = { pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId };
+
+  if (entry.view && entry.view.webContents && !entry.view.webContents.isDestroyed()) {
+    const wcId = entry.wcId;
+    // Unpark BEFORE adoption: remove exactly the firewall's recorded
+    // listeners; wireTabView then re-installs the tab set (and its own
+    // setWindowOpenHandler over the deny).
+    removeHeldFirewall(entry, entry.view.webContents);
+    const id = createTab(entry.url, {
+      ...common, adoptView: entry.view, title: entry.title, favicon: entry.favicon,
+    });
+    if (id) {
+      heldWebContents.delete(wcId);
+      const tab = tabs.get(id);
+      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled
+      finishReopen(id, entry);
+      return;
+    }
+  }
+  downgradeHeldEntry(entry);
+  const id = createTab(entry.url, {
+    ...common,
+    restoreHistory: entry.snapshot
+      ? { entries: entry.snapshot.entries, index: entry.snapshot.index }
+      : null,
+  });
+  if (id) finishReopen(id, entry);
+}
+
+/** Slot splice + group-by-name fallback + activation, shared by all tiers. */
+function finishReopen(id, entry) {
+  const order = rt().tabOrder;
+  const from = order.indexOf(id);
+  if (from !== -1) {
+    order.splice(from, 1);
+    order.splice(Math.min(entry.index, order.length), 0, id);
+  }
+  if (!tabs.get(id)?.groupId && entry.groupName) groupTabByName(id, entry.groupName);
+  setActiveTab(id);
+  broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 function reorderTab(id, toIndex) {
@@ -3789,6 +4125,16 @@ function registerIpcHandlers() {
     return id;
   });
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
+  chromeHandle('tabs:reopen-closed', () => reopenClosedTab());
+  chromeHandle('tabs:reopen-entry', (_e, entryId) => {
+    // Renderer input is a proposal: main re-resolves the id against its own
+    // list; a stale or forged id is a no-op (the reorderTabWithinBucket rule).
+    const list = rt().closedEntries ?? [];
+    const at = list.findIndex((entry) => entry.id === String(entryId));
+    if (at === -1) return;
+    const [entry] = list.splice(at, 1);
+    reopenEntry(entry);
+  });
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
@@ -3874,6 +4220,7 @@ function registerIpcHandlers() {
     activeTabId: rt().activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: rt().groups,
+    closed: projectEntries(rt().closedEntries ?? []),
     tabLayout,
     ...verticalTabsMetrics(),
   }));
@@ -4203,6 +4550,7 @@ const SLASH_COMMANDS = [
   ['/new', 'Open a new tab'],
   ['/private', 'Open a private tab (history stays untouched)'],
   ['/close', 'Close this tab'],
+  ['/reopen', 'Reopen the tab you just closed'],
   ['/pin', 'Pin or unpin this tab'],
   ['/mute', 'Mute or unmute this tab'],
   ['/sleep', 'Quiet background tabs and free their memory'],
@@ -4290,7 +4638,7 @@ function buildMenuForRuntime(runtime) {
         {
           label: 'Reopen Closed Tab',
           accelerator: 'CmdOrCtrl+Shift+T',
-          enabled: (runtime.recentlyClosedUrls?.length ?? 0) > 0,
+          enabled: (runtime.closedEntries?.length ?? 0) > 0,
           click: bound(reopenClosedTab),
         },
         { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
@@ -4529,10 +4877,17 @@ function createMainWindowForRuntime(runtime) {
     liveViewContents(runtime.permissionView)?.close();
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
-      for (const tabId of [...runtime.tabOrder]) closeTab(tabId);
+      for (const tabId of [...runtime.tabOrder]) closeTab(tabId, { record: false });
+      for (const entry of runtime.closedEntries ?? []) {
+        if (entry.view) downgradeHeldEntry(entry);
+      }
+      runtime.closedEntries = [];
       windowRuntimes.discardRuntime(runtime);
       if (!sessionReadOnly) persistSession();
     } else {
+      for (const entry of runtime.closedEntries ?? []) {
+        if (entry.view) downgradeHeldEntry(entry);
+      }
       windowRuntimes.detachWindow(runtime);
     }
     const next = windowRuntimes.all().find((candidate) =>
@@ -4831,7 +5186,9 @@ function windowRuntimeSnapshots() {
     tabOrder: [...runtime.tabOrder],
     activeTabId: runtime.activeTabId,
     glanceTabId: runtime.glanceTabId,
-    recentlyClosedUrls: [...runtime.recentlyClosedUrls],
+    // Count only: a closed entry can hold a live view and page state, neither
+    // of which may be copied into a snapshot structure.
+    closedEntryCount: (runtime.closedEntries ?? []).length,
     tabs: runtime.tabOrder.map((id) => {
       const tab = tabs.get(id);
       return tab ? { id, url: tab.url, private: !!tab.private } : null;
@@ -5097,6 +5454,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       })();
     })
   );
+  setHeldRequesterCheck((wc) => !!wc && heldWebContents.has(wc.id));
   setCaptureGrantObserver(({ requestingWebContents, mediaTypes, requestingUrl, isMainFrame }) => {
     if (!requestingWebContents) return;
     const surface = ensureCaptureSurfaceForSender(requestingWebContents);
@@ -5384,7 +5742,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       setGlanceTab, closeGlance, promoteGlance, resizeGlanceAt, resetGlanceRatio,
       getGlanceTabId: () => rt().glanceTabId,
       getGlanceGeometry: () => hasLiveWindow() ? glanceGeometry() : null,
-      groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, newTabUrl,
+      groupTabByName, toggleGroupCollapsed, reorderTabWithinBucket, reopenClosedTab, closeGroup, newTabUrl,
       setTabLayout, setVerticalTabsWidth, broadcastTabs,
       openNewWindow, windowRuntimeSnapshots, closeWindowRuntime, openTabInWindow,
       setGlanceTabInWindow, closeGlanceInWindow, closeTabInWindow, reopenClosedTabInWindow,
@@ -5446,6 +5804,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
       getPermissionPrompts: () => rt().permissionPrompts,
       getSleepSnapshots: () => sleepSnapshots,
+      // The live array, mirroring getSleepSnapshots: reset() empties it in
+      // place. Entries never leave the main process — the hook only clears.
+      getClosedEntries: () => rt().closedEntries ??= [],
+      downgradeHeldEntry,
       setSleepThresholdOverride: (ms) => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
         return sleepThresholdOverrideMs;

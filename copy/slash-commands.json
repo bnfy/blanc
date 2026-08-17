@@ -15,6 +15,7 @@
     { "command": "/new", "hint": "Open a new tab" },
     { "command": "/private", "hint": "Open a private tab (history stays untouched)" },
     { "command": "/close", "hint": "Close this tab" },
+    { "command": "/reopen", "hint": "Reopen the tab you just closed" },
     { "command": "/pin", "hint": "Pin or unpin this tab" },
     { "command": "/mute", "hint": "Mute or unmute this tab" },
     { "command": "/sleep", "hint": "Quiet background tabs and free their memory" },

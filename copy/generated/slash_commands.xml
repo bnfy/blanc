@@ -9,6 +9,7 @@
     <string name="slash_new">Open a new tab</string>
     <string name="slash_private">Open a private tab (history stays untouched)</string>
     <string name="slash_close">Close this tab</string>
+    <string name="slash_reopen">Reopen the tab you just closed</string>
     <string name="slash_pin">Pin or unpin this tab</string>
     <string name="slash_mute">Mute or unmute this tab</string>
     <string name="slash_sleep">Quiet background tabs and free their memory</string>

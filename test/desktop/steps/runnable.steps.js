@@ -63,6 +63,46 @@ When('I close that tab', async function () {
 });
 
 When('I reopen the last closed tab', async function () { await this.call('reopenClosed'); });
+
+// ---- F2-6: group close is one undo step ----
+
+/** Ordered member URLs for a named group, read from the same state()
+ *  projection the panel renders from. Restored tabs get NEW ids, so order
+ *  comparisons go by URL, never by id. */
+async function groupUrls(world, name) {
+  const state = await world.call('state');
+  const group = state.groups.find((g) => g.name === String(name).toLowerCase());
+  if (!group) return [];
+  return state.tabs.filter((t) => t.groupId === group.id).map((t) => t.url);
+}
+
+Given('a group {string} holding {int} tabs', async function (name, count) {
+  for (let i = 1; i <= count; i += 1) {
+    const memberName = `${name}-member-${i}.example`;
+    const id = await this.call('openTab', this.fixtureUrl(memberName));
+    await this.call('groupTabByName', id, name);
+  }
+  // Retain the pre-close order: the reopened members carry fresh ids.
+  ctx.expectedGroupUrls = await groupUrls(this, name);
+  assert.strictEqual(ctx.expectedGroupUrls.length, count);
+});
+
+When('I close the group {string}', async function (name) {
+  await this.call('closeGroupByName', name);
+});
+
+Then('a group named {string} holds {int} tabs', async function (name, count) {
+  await waitForValue(
+    async () => (await groupUrls(this, name)).length,
+    (n) => n === count,
+    `group "${name}" holds ${count} tabs`,
+  );
+});
+
+Then("the group's tabs are in their original order", async function () {
+  const urls = await groupUrls(this, 'research');
+  assert.deepStrictEqual(urls, ctx.expectedGroupUrls);
+});
 When('I duplicate the active tab', async function () { await this.call('duplicateActive'); });
 When('I pin {string}', async function (name) { await this.call('pinTab', ctx.tabByName[name]); });
 When('I open a new tab', async function () { ctx.lastNewTabId = await this.call('newTab'); });

@@ -38,6 +38,14 @@ Feature: Tabs and tab groups
     When I reopen the last closed tab in the primary window
     Then the primary window restores its own closed page
 
+  @F2-6 @F2 @all
+  Scenario: Closing a group is one undo step
+    Given a group "research" holding 3 tabs
+    When I close the group "research"
+    And I reopen the last closed tab
+    Then a group named "research" holds 3 tabs
+    And the group's tabs are in their original order
+
   @F3-1 @F3 @all
   Scenario: Creating a group moves the active tab into it
     Given the active tab has no group
