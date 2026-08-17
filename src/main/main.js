@@ -982,6 +982,9 @@ function downgradeHeldEntry(entry) {
     wc.removeAllListeners();
     wc.close();
   }
+  // The panel's "held" marker must clear when the hold ends. This runs under
+  // bindWindowRuntime from the firewall/timer, so rt() is the owning window.
+  if (view && hasLiveWindow()) scheduleBroadcastTabs();
 }
 
 /** Held-state firewall (spec §3.4): a parked page keeps executing for the
@@ -2528,6 +2531,9 @@ function currentTabsPayload() {
     activeTabId: runtime.activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: runtime.groups,
+    // Closed entries cross only as the five-field projection (spec §4.1);
+    // snapshots, seeds, slot metadata, and view references stay in main.
+    closed: projectEntries(runtime.closedEntries ?? []),
     tabLayout,
     adblockEnabled: settings.getSettings().adblockEnabled,
     shieldPopover: activeShieldPopover(serialized),
@@ -4082,6 +4088,15 @@ function registerIpcHandlers() {
   });
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
   chromeHandle('tabs:reopen-closed', () => reopenClosedTab());
+  chromeHandle('tabs:reopen-entry', (_e, entryId) => {
+    // Renderer input is a proposal: main re-resolves the id against its own
+    // list; a stale or forged id is a no-op (the reorderTabWithinBucket rule).
+    const list = rt().closedEntries ?? [];
+    const at = list.findIndex((entry) => entry.id === String(entryId));
+    if (at === -1) return;
+    const [entry] = list.splice(at, 1);
+    reopenEntry(entry);
+  });
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
@@ -4167,6 +4182,7 @@ function registerIpcHandlers() {
     activeTabId: rt().activeTabId,
     glanceTabId: activeGlanceTab()?.id ?? null,
     groups: rt().groups,
+    closed: projectEntries(rt().closedEntries ?? []),
     tabLayout,
     ...verticalTabsMetrics(),
   }));

@@ -2004,6 +2004,35 @@ body[data-glance-purpose="change"] .glance-picker {
 .group-picker-input:focus { outline: none; border-color: var(--accent); }
 
 /* Group results in the Quick Switcher use the mono voice. */
+/* Recently-closed section: quiet rows that brighten on hover; the "held"
+   marker rides while a closed tab's live view survives its grace window. */
+.closed-row { opacity: 0.7; }
+.closed-row:hover { opacity: 1; }
+.closed-glyph {
+  width: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
+  flex: 0 0 auto;
+}
+.closed-glyph svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  fill: none;
+}
+.closed-held {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  opacity: 0.6;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
 /* Group results size to their text (flex 0 0 auto), so the overflow fade
    above would wash out every name's tail — exempt them. */
 .island-row .row-title.mono {

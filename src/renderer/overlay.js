@@ -55,7 +55,7 @@
   const glancePickerClose = document.getElementById('glancePickerClose');
   const glancePickerLive = document.getElementById('glancePickerLive');
 
-  let state = { tabs: [], activeTabId: null, glanceTabId: null, groups: [] };
+  let state = { tabs: [], activeTabId: null, glanceTabId: null, groups: [], closed: [] };
   /** @type {null | 'panel' | 'palette' | 'glance' | 'find' | 'shield' | 'capture'} */
   let mode = null;
   let glancePickerPurpose = null;
@@ -134,6 +134,9 @@
     pin: '<svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>',
     mute: '<svg viewBox="0 0 16 16"><path d="M2.75 6.25h2.5L9 3.25v9.5l-3.75-3H2.75z" stroke-linejoin="round"/><path d="M11.25 6.5l3 3M14.25 6.5l-3 3"/></svg>',
     search: '<svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.25"/><path d="m10.25 10.25 3 3"/></svg>',
+    // Reopen: a leftward return arrow — drawn, not the Unicode ↶, which sits
+    // baseline-low and renders unevenly across platforms.
+    reopen: '<svg viewBox="0 0 16 16"><path d="M3.5 6.75h6a3 3 0 0 1 0 6h-3"/><path d="M6.25 4 3.5 6.75l2.75 2.75"/></svg>',
   };
   reloadBtn.innerHTML = ICONS.reload;
 
@@ -845,6 +848,44 @@
     return empty;
   }
 
+  /** Dim "closed" header — same static visual language as the pinned header. */
+  function closedHeaderRow() {
+    const row = document.createElement('div');
+    row.className = 'island-ghead static';
+    row.innerHTML = '<span class="ghead-name dim">closed</span><span class="ghead-rule"></span>';
+    return row;
+  }
+
+  /** One recently-closed entry: ↶ glyph, title (· N tabs for a group), and a
+   *  quiet "held" marker while its live view survives. Click reopens THIS
+   *  entry — main re-resolves the id, a stale one is a no-op. */
+  function closedRow(entry) {
+    const row = document.createElement('div');
+    row.className = 'island-row closed-row';
+    row.setAttribute('role', 'button');
+    row.title = 'Reopen';
+    const glyph = document.createElement('span');
+    glyph.className = 'closed-glyph';
+    glyph.innerHTML = ICONS.reopen;
+    const title = document.createElement('span');
+    title.className = 'row-title';
+    title.textContent = entry.tabCount > 1
+      ? `${entry.title} · ${entry.tabCount} tabs`
+      : entry.title;
+    row.append(glyph, title);
+    if (entry.tier === 0) {
+      const held = document.createElement('span');
+      held.className = 'closed-held';
+      held.textContent = 'held';
+      row.appendChild(held);
+    }
+    row.addEventListener('click', () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.reopenClosedEntry(entry.id);
+    });
+    return row;
+  }
+
   function commandNoticeRow(text) {
     const notice = emptyRow(text);
     notice.classList.add('command-notice');
@@ -1158,6 +1199,11 @@
         if (unfoldedDevices.has(device.deviceId)) {
           rows.push(...clusterRemoteTabs(device).map((t) => remoteTabRow(t, device)));
         }
+      }
+      const closed = (state.closed ?? []).slice(-4).reverse(); // newest first
+      if (closed.length) {
+        rows.push(closedHeaderRow());
+        rows.push(...closed.map(closedRow));
       }
       islandList.replaceChildren(...rows);
 
