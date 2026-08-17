@@ -17,6 +17,7 @@ if (window.location.protocol === 'blanc:') {
         clearFavicon: (url) => invoke('pages:bookmarks:clear-favicon', url),
         browserSources: () => invoke('pages:bookmarks:browser-sources'),
         importBrowser: (id) => invoke('pages:bookmarks:import-browser', id),
+        import: () => invoke('pages:bookmarks:import'),
       },
       start: {
         data: () => invoke('pages:start:data'),
@@ -25,6 +26,9 @@ if (window.location.protocol === 'blanc:') {
         retryStartup: () => invoke('pages:start:startup-retry'),
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
+        defaultBrowser: () => invoke('pages:default-browser:get'),
+        setDefaultBrowser: () => invoke('pages:default-browser:set'),
+        onboardingSet: (partial) => invoke('pages:start:onboarding-set', partial),
         onStatus: (callback) => {
           ipcRenderer.on('pages:start:status', (_event, status) => callback(status));
         },

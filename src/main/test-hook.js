@@ -998,23 +998,39 @@ function install(refs) {
       });
       return true;
     },
+    // First-run onboarding dialog (replaced the privacy card, 2026-08-16).
+    // The names keep their card-era spelling so F30-3's steps stay bound;
+    // "migration" now means the dialog's import step.
     readFirstRunMigrationDom() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
       return tab.view.webContents.executeJavaScript(`(() => ({
         initialReady: (document.getElementById('footerLeft')?.textContent ?? '').length > 0,
-        privacyHidden: document.getElementById('privacyCard')?.hidden ?? true,
-        migrationHidden: document.getElementById('migrationChoice')?.hidden ?? true,
-        findHidden: document.getElementById('migrationFind')?.hidden ?? true,
-        options: [...document.querySelectorAll('#migrationSource option')].map((o) => o.textContent),
-        status: document.getElementById('migrationStatus')?.textContent ?? '',
+        privacyHidden: document.getElementById('onboardDialog')?.hidden ?? true,
+        migrationHidden: document.querySelector('#obContent [data-step="1"]')?.hidden ?? true,
+        findHidden: document.getElementById('obLook')?.hidden ?? true,
+        options: [...document.querySelectorAll('#obSources .ob-src-row')].map((row) => row.textContent),
+        status: document.getElementById('obImportStatus')?.textContent ?? '',
+        step: document.getElementById('onboardDialog')?.dataset.step ?? null,
       }))()`);
+    },
+    // Advances the dialog to its import step (step 1) so the migration
+    // hooks below have their surface on screen.
+    openFirstRunImportStep() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const dialog = document.getElementById('onboardDialog');
+        if (!dialog || dialog.hidden) return false;
+        if (dialog.dataset.step === '0') document.getElementById('obNext').click();
+        return dialog.dataset.step === '1';
+      })()`);
     },
     clickFirstRunMigrationFind() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
       return tab.view.webContents.executeJavaScript(`(() => {
-        const button = document.getElementById('migrationFind');
+        const button = document.getElementById('obLook');
         if (!button || button.hidden) return false;
         button.click();
         return true;
@@ -1024,9 +1040,13 @@ function install(refs) {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
       return tab.view.webContents.executeJavaScript(`(() => {
-        const button = document.getElementById('migrationImport');
-        if (!button || document.getElementById('migrationChoice')?.hidden) return false;
-        button.click();
+        const dialog = document.getElementById('onboardDialog');
+        if (!dialog || dialog.hidden || dialog.dataset.step !== '1') return false;
+        const rows = [...document.querySelectorAll('#obSources .ob-src-row')]
+          .filter((row) => !row.textContent.includes('bookmarks file'));
+        if (!rows.length) return false;
+        if (!rows[0].classList.contains('selected')) rows[0].click();
+        document.getElementById('obNext').click();
         return true;
       })()`);
     },

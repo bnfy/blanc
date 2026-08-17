@@ -109,7 +109,8 @@ function setupPages(hooks = {}) {
   // it's cleared and stops being retried on future loads.
   handle('pages:bookmarks:clear-favicon', ['bookmarks', 'newtab'], (url) => bookmarks.updateFavicon(url, null));
 
-  handle('pages:bookmarks:import', 'bookmarks', async () => {
+  // newtab: the onboarding import step's "From a bookmarks file (HTML)…" row.
+  handle('pages:bookmarks:import', ['bookmarks', 'newtab'], async () => {
     const parent = hooks.getMainWindow?.();
     const picked = await dialog.showOpenDialog(parent ?? undefined, {
       title: 'Import favorites',
@@ -276,13 +277,24 @@ function setupPages(hooks = {}) {
     isDefault: app.isDefaultProtocolClient('http'),
     canSet: app.isPackaged && process.platform !== 'linux',
   });
-  handle('pages:default-browser:get', 'settings', () => defaultBrowserStatus());
-  handle('pages:default-browser:set', 'settings', () => {
+  // newtab joined the allowlist for the onboarding dialog's first step; the
+  // canSet guard is identical for both senders.
+  handle('pages:default-browser:get', ['settings', 'newtab'], () => defaultBrowserStatus());
+  handle('pages:default-browser:set', ['settings', 'newtab'], () => {
     if (defaultBrowserStatus().canSet) {
       app.setAsDefaultProtocolClient('http');
       app.setAsDefaultProtocolClient('https');
     }
     return defaultBrowserStatus();
+  });
+
+  // Onboarding may change exactly these two settings, live — never the whole
+  // settings surface. Values still pass setSettings' own validation.
+  handle('pages:start:onboarding-set', 'newtab', (partial) => {
+    const clean = {};
+    if (partial && typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
+    if (partial && typeof partial.theme === 'string') clean.theme = partial.theme;
+    if (Object.keys(clean).length) hooks.startPage?.applySettings?.(clean);
   });
 
   // Replays the first-run walkthrough. Main creates and activates the tour

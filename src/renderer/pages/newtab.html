@@ -22,34 +22,6 @@
       </div>
     </section>
 
-    <section id="privacyCard" class="launch-card" aria-labelledby="privacyTitle" hidden>
-      <div class="launch-card-kicker">before you browse</div>
-      <h2 id="privacyTitle">Choose what Blanc may send.</h2>
-      <p>Blanc ships signed blocking lists with each app release and checks for app updates. These two optional features are yours to choose:</p>
-      <label class="launch-choice">
-        <input id="privacySuggestions" type="checkbox" />
-        <span><strong>Search suggestions</strong><small>Send eligible address-bar prefixes to your selected search provider. Never used in private tabs or for pasted, address-like, or sensitive-looking text.</small></span>
-      </label>
-      <label class="launch-choice">
-        <input id="privacyPing" type="checkbox" />
-        <span><strong>Help improve Blanc</strong><small>Send one launch ping with a random install ID, random session ID, app version, platform, and architecture. No browsing data.</small></span>
-      </label>
-      <div id="migrationChoice" class="launch-migration" hidden>
-        <strong>Bring your favorites</strong>
-        <small>Copy favorites from an installed browser profile. Blanc looks for other browsers only when you ask, and reads the selected profile only after you choose Import; passwords, history, cookies, and open tabs stay untouched.</small>
-        <div class="launch-migration-actions">
-          <button id="migrationFind" type="button" class="quiet">Look for other browsers</button>
-          <select id="migrationSource" aria-label="Browser profile" hidden></select>
-          <button id="migrationImport" type="button" class="quiet" hidden>Import favorites</button>
-        </div>
-        <span id="migrationStatus" class="launch-status" role="status"></span>
-      </div>
-      <div class="launch-card-actions">
-        <button id="privacyContinue" type="button">Save choices and continue</button>
-        <span id="privacyError" class="launch-error" role="status"></span>
-      </div>
-    </section>
-
     <section class="ledger-section">
       <a class="ledger-label" href="blanc://bookmarks/">favorites</a>
       <div id="favoritesList" class="ledger-list"></div>
@@ -133,6 +105,101 @@
     <span id="goAnywhere"></span>
   </footer>
 
+  <!-- First-run onboarding (design system, "New tab v2 + onboarding" handoff;
+       six-step variant per the 2026-08-16 spec — privacy consent is step 5).
+       Markup and values transcribed from the prototype; the scrim covers the
+       page and is deliberately not a dismiss target. -->
+  <div id="onboardScrim" class="ob-scrim" hidden></div>
+  <div id="onboardDialog" class="ob-dialog" role="dialog" aria-modal="true" aria-labelledby="obStepLabel" hidden>
+    <div class="ob-head">
+      <span id="obStepLabel" class="ob-step-label"></span>
+      <button id="obSkip" class="ob-skip" type="button">skip setup</button>
+    </div>
+    <div id="obContent" class="ob-content">
+      <section data-step="0">
+        <div class="ob-vignette ob-vignette-apps">
+          <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><circle cx="8" cy="8" r="5.75"></circle><path d="M2.5 8h11M8 2.25c-1.8 1.6-2.7 3.5-2.7 5.75S6.2 12.15 8 13.75c1.8-1.6 2.7-3.5 2.7-5.75S9.8 3.85 8 2.25z"></path></svg></span>
+          <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><path d="M2.75 12.5c0-4.5 2.5-8.25 5.25-8.25s5.25 3.75 5.25 8.25"></path><path d="M8 4.25V2.5M5 12.5h6"></path></svg></span>
+          <span class="ob-tile ob-tile-blanc"><svg viewBox="0 0 153.09 203.01" width="18" height="24"><path fill="currentColor" stroke="currentColor" stroke-width="4" stroke-miterlimit="10" d="M134.38,101.86c24.33,25.19,21.67,65.83-5.32,87.94-8.59,6.51-18.12,11.21-29.4,11.21H2s.05-199,.05-199c0,0,97.65.33,97.65.33,45.48,1.28,58.21,65.28,23.42,90.51,3.88,3.01,7.95,5.58,11.26,9ZM125.36,78.39c20.05-22.83,7.01-66.02-25.23-67.38,0,0-89.13-.21-89.13-.21l.04,134.11c17.74-38.18,51.53-61.94,94.24-58.73,7.99.6,14.76-1.14,20.08-7.79ZM11.31,188.07l95.77-92.67c-52.79-10-98.17,42.23-95.77,92.67ZM118.69,186.27c32.49-18.49,31.57-71.32-2.46-87.28L19.63,192.01c14.1-1.71,88.27,4.83,99.06-5.74Z"></path></svg></span>
+          <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><rect x="2.75" y="3.25" width="10.5" height="9.5" rx="1.5"></rect><path d="M2.75 6h10.5M5 4.6h.01M6.8 4.6h.01"></path></svg></span>
+          <span class="ob-tile"><svg viewBox="0 0 16 16" width="20" height="20"><path d="M3.5 11.5c-.6-1-1-2.2-1-3.5a5.5 5.5 0 1 1 11 0c0 1.3-.4 2.5-1 3.5"></path><circle cx="8" cy="8" r="1.75"></circle><path d="M8 9.75V13"></path></svg></span>
+        </div>
+        <h1>Make Blanc your default</h1>
+        <p>Links from other apps open here. You can change this anytime in Settings.</p>
+        <div class="ob-cta-row"><button id="obSetDefault" class="ob-btn-default" type="button">Set as default</button></div>
+      </section>
+      <section data-step="1" hidden>
+        <div class="ob-vignette ob-vignette-import">
+          <span class="ob-tile ob-tile-sm"><svg viewBox="0 0 16 16" width="18" height="18"><path d="M8 13.25C4.6 11 2.75 8.9 2.75 6.6a2.85 2.85 0 0 1 5.25-1.54A2.85 2.85 0 0 1 13.25 6.6c0 2.3-1.85 4.4-5.25 6.65z"></path></svg></span>
+          <svg class="ob-arrow" viewBox="0 0 16 16" width="20" height="20"><path d="M2.5 8h11M10.25 4.75 13.5 8l-3.25 3.25"></path></svg>
+          <span class="ob-tile ob-tile-blanc ob-tile-blanc-sm"><svg viewBox="0 0 153.09 203.01" width="16" height="21"><path fill="currentColor" stroke="currentColor" stroke-width="4" stroke-miterlimit="10" d="M134.38,101.86c24.33,25.19,21.67,65.83-5.32,87.94-8.59,6.51-18.12,11.21-29.4,11.21H2s.05-199,.05-199c0,0,97.65.33,97.65.33,45.48,1.28,58.21,65.28,23.42,90.51,3.88,3.01,7.95,5.58,11.26,9ZM125.36,78.39c20.05-22.83,7.01-66.02-25.23-67.38,0,0-89.13-.21-89.13-.21l.04,134.11c17.74-38.18,51.53-61.94,94.24-58.73,7.99.6,14.76-1.14,20.08-7.79ZM11.31,188.07l95.77-92.67c-52.79-10-98.17,42.23-95.77,92.67ZM118.69,186.27c32.49-18.49,31.57-71.32-2.46-87.28L19.63,192.01c14.1-1.71,88.27,4.83,99.06-5.74Z"></path></svg></span>
+        </div>
+        <h1>Bring your bookmarks</h1>
+        <p>Imports happen on this device — nothing is uploaded.</p>
+        <div class="ob-cta-row"><button id="obLook" class="ob-btn-secondary" type="button">Look for installed browsers</button></div>
+        <div id="obSources" class="ob-srclist"></div>
+        <span id="obImportStatus" class="ob-status" role="status"></span>
+      </section>
+      <section data-step="2" hidden>
+        <h1>Meet the island</h1>
+        <p>Everything lives in one floating pill — address, tabs, commands. Press <span class="ob-kbd">⌘L</span> to summon it anywhere, type / for commands.</p>
+        <div class="ob-minipill-row">
+          <span class="ob-minipill">
+            <span class="ob-minipill-dots"><span class="on"></span><span></span><span></span></span>
+            <span class="ob-minipill-domain">blancbrowser.com</span>
+          </span>
+        </div>
+        <div class="ob-commands">/history · /clear · /group · /theme</div>
+      </section>
+      <section data-step="3" hidden>
+        <div class="ob-vignette ob-vignette-shield">
+          <span class="ob-dots-in"><span></span><span></span><span></span></span>
+          <span class="ob-shield"><svg viewBox="0 0 16 16" width="44" height="44"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"></path><path d="M4.4 11.47 12.61 3.55"></path></svg></span>
+          <span class="ob-dots-out"><span></span><span></span><span></span></span>
+        </div>
+        <h1>Block ads &amp; trackers</h1>
+        <p>Pages load faster and nothing follows you around. Turn it off per-site with /off-leash.</p>
+        <div class="ob-control-row">
+          <span>Block ads &amp; trackers</span>
+          <button id="obAdblock" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Block ads and trackers"><span class="ob-knob"></span></button>
+        </div>
+      </section>
+      <section data-step="4" hidden>
+        <h1>Choose what Blanc may send</h1>
+        <p>Blanc ships signed blocking lists with each app release and checks for app updates. These two optional features are yours to choose:</p>
+        <div class="ob-control-row ob-control-row-tall">
+          <span>Search suggestions<small>Eligible address-bar prefixes go to your search provider. Never in private tabs or for sensitive-looking text.</small></span>
+          <button id="obSuggestions" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Search suggestions"><span class="ob-knob"></span></button>
+        </div>
+        <div class="ob-control-row ob-control-row-tall">
+          <span>Help improve Blanc<small>One launch ping: random install ID, app version, platform. No browsing data.</small></span>
+          <button id="obPing" class="ob-toggle" type="button" role="switch" aria-checked="true" aria-label="Help improve Blanc"><span class="ob-knob"></span></button>
+        </div>
+        <span id="obPrivacyError" class="ob-error" role="status"></span>
+      </section>
+      <section data-step="5" hidden>
+        <h1>Pick your ink</h1>
+        <p>Paper by day, ink by night. Change anytime with /theme.</p>
+        <div class="ob-theme-row">
+          <button id="obThemeLight" class="ob-theme-card" type="button">
+            <span class="ob-theme-preview ob-theme-preview-light"><span></span></span>
+            <span class="ob-theme-caption"><span>light</span><span class="ob-theme-mark"></span></span>
+          </button>
+          <button id="obThemeDark" class="ob-theme-card" type="button">
+            <span class="ob-theme-preview ob-theme-preview-dark"><span></span></span>
+            <span class="ob-theme-caption"><span>dark</span><span class="ob-theme-mark"></span></span>
+          </button>
+        </div>
+      </section>
+    </div>
+    <div class="ob-foot">
+      <button id="obBack" class="ob-btn-secondary" type="button">Back</button>
+      <span class="ob-dots" id="obDots"><span></span><span></span><span></span><span></span><span></span><span></span></span>
+      <button id="obNext" class="ob-btn-primary" type="button">Continue</button>
+    </div>
+  </div>
+
+  <script src="onboarding.js"></script>
   <script src="newtab.js"></script>
 </body>
 </html>

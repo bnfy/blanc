@@ -274,11 +274,13 @@ function isFirstRunComplete() {
  * Persist both network-affecting first-run choices and the completion marker
  * in one synchronous commit. Callers must not start suggestions or telemetry
  * unless `completed` is true.
+ *
+ * Runs on REPLAY too: the welcome tour re-opens the onboarding dialog after
+ * first run, and its privacy step edits these same choices — an early return
+ * on isFirstRunComplete() would silently discard them. Re-writing the
+ * completion marker is idempotent; validation always comes first.
  */
 function completeFirstRunPrivacyChoices(partial = {}) {
-  if (isFirstRunComplete()) {
-    return { completed: true, settings: getSettings() };
-  }
   if (
     typeof partial.searchSuggestions !== 'boolean' ||
     typeof partial.usagePing !== 'boolean'

@@ -81,12 +81,14 @@ const readStartPage = async (app) => {
   const page = app.pages().find((candidate) => candidate.url().startsWith('blanc://newtab'));
   if (!page) return null;
   return page.evaluate(() => ({
-    privacyHidden: document.getElementById('privacyCard')?.hidden,
+    // The six-step onboarding dialog replaced the privacy card (2026-08-16);
+    // privacy consent is its step 5.
+    privacyHidden: document.getElementById('onboardDialog')?.hidden,
     startupHidden: document.getElementById('startupCard')?.hidden,
     startupActionsHidden: document.getElementById('startupActions')?.hidden,
     startupTitle: document.getElementById('startupTitle')?.textContent,
-    suggestions: document.getElementById('privacySuggestions')?.checked,
-    usagePing: document.getElementById('privacyPing')?.checked
+    suggestions: document.getElementById('obSuggestions')?.getAttribute('aria-checked') === 'true',
+    usagePing: document.getElementById('obPing')?.getAttribute('aria-checked') === 'true'
   }));
 };
 
@@ -109,11 +111,26 @@ await withPackagedApp({ label: 'packaged-first-run' }, async ({ app, userDataDir
     'telemetry install id must not be created before consent'
   );
 
-  await executeOnStartPage(app, `
-    document.getElementById('privacySuggestions').checked = false;
-    document.getElementById('privacyPing').checked = false;
-    document.getElementById('privacyContinue').click();
-  `);
+  await executeOnStartPage(app, `(async () => {
+    // Walk to the privacy step, decline both choices, and skip out — skip
+    // must persist the choices exactly as shown, same as Start browsing.
+    // Continue's handler is async (the import step awaits), so yield a
+    // microtask turn between clicks rather than spinning synchronously.
+    const dialog = document.getElementById('onboardDialog');
+    const next = document.getElementById('obNext');
+    for (let i = 0; i < 8 && dialog.dataset.step !== '4'; i++) {
+      next.click();
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    if (dialog.dataset.step !== '4') throw new Error('never reached the privacy step');
+    if (document.getElementById('obSuggestions').getAttribute('aria-checked') === 'true') {
+      document.getElementById('obSuggestions').click();
+    }
+    if (document.getElementById('obPing').getAttribute('aria-checked') === 'true') {
+      document.getElementById('obPing').click();
+    }
+    document.getElementById('obSkip').click();
+  })()`);
   await poll(
     () => readStartPage(app),
     (state) => state?.privacyHidden === true,

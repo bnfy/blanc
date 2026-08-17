@@ -85,3 +85,39 @@ test('the layout enum reaches the schema and both generated mobile artifacts', (
   );
   assert.match(kotlin, /val newtabLayout = BlancNewtabLayout\.LEDGER/);
 });
+
+test('privacy choices re-save after first run completes (tour replay)', (t) => {
+  const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-privacy-resave-'));
+  t.after(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    fs.rmSync(userData, { recursive: true, force: true });
+  });
+  const settings = loadSettings(userData);
+
+  // First run: invalid choices are rejected before anything persists.
+  assert.equal(
+    settings.completeFirstRunPrivacyChoices({ searchSuggestions: 'yes' }).completed,
+    false
+  );
+  const first = settings.completeFirstRunPrivacyChoices({
+    searchSuggestions: true,
+    usagePing: true,
+  });
+  assert.equal(first.completed, true);
+  assert.equal(settings.isFirstRunComplete(), true);
+
+  // A welcome-tour replay edits the SAME choices; the write must land even
+  // though first run is already complete — and still validate its inputs.
+  assert.equal(
+    settings.completeFirstRunPrivacyChoices({ searchSuggestions: false }).completed,
+    false
+  );
+  const replay = settings.completeFirstRunPrivacyChoices({
+    searchSuggestions: false,
+    usagePing: false,
+  });
+  assert.equal(replay.completed, true);
+  assert.equal(settings.getSettings().searchSuggestions, false);
+  assert.equal(settings.getSettings().usagePing, false);
+  assert.equal(settings.isFirstRunComplete(), true);
+});

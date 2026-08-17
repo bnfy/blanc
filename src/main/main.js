@@ -5262,6 +5262,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const current = settings.getSettings();
         return { adblockEnabled: current.adblockEnabled, theme: current.theme };
       },
+      applySettings: (clean) => settings.setSettings(clean),
       retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
       continueWithoutAdblock: () =>
         adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
