@@ -37,6 +37,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Glance | `glance.feature` | F34 (D11) |
 | Start page layouts | `newtab-layouts.feature` | F35 |
 | First-run onboarding | `onboarding.feature` | F36 (F30, D22) |
+| Blank-tab affordance | `blank-tab-affordance.feature` | F37 |
 
 ## Grid
 
@@ -151,6 +152,9 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
 | F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |
 | F36-4 | No browser profile is read before the explicit ask | D22 | ✅ | ➖ | ➖ |
+| F37-1 | The blank-tab island invites typing | — | ✅ | ⬜ | ⬜ |
+| F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
+| F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -158,7 +162,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24`, `F27–F28`, and `F30–F34` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24`, `F27–F28`, and `F30–F37` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
 - The suite explicitly tags D1–D12, D16, D19, D23, and D25. D11 is exercised

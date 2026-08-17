@@ -23,6 +23,7 @@ if (window.location.protocol === 'blanc:') {
         data: () => invoke('pages:start:data'),
         focusGroup: (id) => invoke('pages:start:focus-group', id),
         setLayout: (name) => invoke('pages:start:set-layout', name),
+        openIsland: (char) => invoke('pages:start:open-island', char),
         retryStartup: () => invoke('pages:start:startup-retry'),
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),

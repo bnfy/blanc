@@ -314,11 +314,15 @@ test('a quiet row restores full strength on hover and focus-within', () => {
 });
 
 test('the un-dim transition is disabled under prefers-reduced-motion', () => {
-  const reduced = styles.match(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n\}/)?.[0];
-  assert.ok(reduced, 'reduced-motion block not found');
-  assert.match(
-    reduced,
-    /\.island-row\.quiet,\s*\n\s*\.vertical-tab-row\.quiet \{ transition: none; \}/,
+  // Scan every reduced-motion block, not just the first. styles.css has more
+  // than one (the pill caret has its own), and a non-global match silently
+  // asserts against whichever happens to appear earliest in the file.
+  const reduced = styles.match(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n\}/g) ?? [];
+  assert.ok(reduced.length, 'no reduced-motion block found');
+  assert.ok(
+    reduced.some((block) => (
+      /\.island-row\.quiet,\s*\n\s*\.vertical-tab-row\.quiet \{ transition: none; \}/.test(block)
+    )),
     'both quiet rows must drop their transition under reduced motion'
   );
 });

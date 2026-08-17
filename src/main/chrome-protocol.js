@@ -22,6 +22,9 @@ const SHARED_ASSETS = new Set([
   '/pages/icon.svg',
   '/pages/inter-latin.woff2',
   '/pages/jetbrains-mono-latin.woff2',
+  // Pure keyboard-gate logic, no IPC and no application data — the chrome
+  // strip and the start page share one copy so they cannot disagree.
+  '/pages/type-to-open.js',
 ]);
 const HOST_ASSETS = new Map([
   ['index', new Map([

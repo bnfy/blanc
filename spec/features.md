@@ -729,3 +729,28 @@ From the desktop `DEFAULTS`:
   walkthrough to a fresh profile once, proves skip records the privacy
   choices, never re-asks a completed profile, and verifies the import step
   reads nothing before the explicit ask.
+
+## F37 — The blank tab shows where to type
+
+- A tab with nothing loaded presents its island as a place to enter text, not
+  as a label naming the tab. The resting island carries a prompt in
+  placeholder ink — visually distinct from the ink a loaded page's address is
+  drawn in — so "this is where you type" and "this is where you are" are told
+  apart without hovering, clicking, or prior instruction.
+- Typing a printable character while a blank tab has focus begins entry: the
+  island opens with that character already in it, so nothing typed is lost and
+  the person never has to find the island first. Ordinary shortcuts,
+  navigation keys, and text-entry modifier layers keep their meaning — an
+  AltGr or Option character is text, not a command — and an open modal keeps
+  its own keys.
+- The island also advertises that it accepts commands, and the affordance that
+  says so is itself the demonstration: invoking it opens the island on the
+  command list rather than merely naming the character that would.
+- Only the empty state changes. A tab showing a page keeps an island that
+  states where it is, unchanged.
+- **Acceptance:**
+  [`acceptance/blank-tab-affordance.feature`](./acceptance/blank-tab-affordance.feature)
+  shows the prompt and the commands affordance on a blank tab, proves that
+  typing on a blank tab whose *page content* holds focus opens the island
+  carrying that character, and that the commands affordance opens the command
+  list.

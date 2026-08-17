@@ -47,6 +47,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F34 | Glance reference pane | SHIPPED | N/A | N/A | A desktop window can show one explicitly chosen local tab as a temporary, resizable reference pane; promotion swaps main/reference roles, dismissal leaves the tab open, and ownership never crosses a window or profile. | D11 |
 | F35 | Start page layouts | SHIPPED | PLANNED | PLANNED | Four arrangements of the same start-page material (ledger/billboard/shelf/tally), chosen by a synced setting with an in-page switcher; per-day blocked counts feed the tally chart; no horizontal overflow at any width. | — |
 | F36 | First-run onboarding | SHIPPED | PLANNED | PLANNED | A six-step walkthrough shown once to fresh profiles (default browser, import, island, blocking, privacy, theme); privacy consent gates its network features, import keeps F30's explicit discovery, replayable from Settings. Default-browser registration and live profile import are desktop surfaces (D22). | D22 |
+| F37 | Blank tab shows where to type | SHIPPED | PLANNED | PLANNED | A blank tab's island reads as a text field (prompt in placeholder ink, plus a commands affordance that opens the command list) and typing on the blank tab begins entry in the island. The *contract* is product-level and portable; its desktop expression — a caret, a `/` chip, and a hardware-keyboard type-to-open path — is not. Mobile satisfies it with a tap target and the platform keyboard; there is no physical-keyboard gate to port. | — |
 
 ## Notes on the "mobile-only wins"
 

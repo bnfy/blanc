@@ -254,6 +254,19 @@ function setupPages(hooks = {}) {
     'newtab',
     (id) => hooks.startPage?.focusGroup(String(id)),
   );
+  // Type-to-open from the start page. Main re-validates the character in
+  // openIslandTyping — the renderer's own gate is not trusted alone.
+  //
+  // Deliberately NOT String(char ?? '') like the neighbouring handlers: those
+  // coerce because their validators take strings by contract, but coercing
+  // here would turn a numeric 7 into a valid '7' and make the validator's own
+  // typeof check dead code. The payload is passed through untouched so the
+  // one validator sees what the renderer actually sent.
+  handle(
+    'pages:start:open-island',
+    'newtab',
+    (char) => hooks.startPage?.openIsland?.(char),
+  );
   handle(
     'pages:start:startup-retry',
     'newtab',
