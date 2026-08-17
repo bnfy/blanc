@@ -41,9 +41,13 @@ function holdEligibility(tab, {
 }
 
 /**
- * Strip the active entry's pageState unless the commit was a successful GET.
+ * Strip pageState from every entry unless the commit was a successful GET.
  * pageState can carry the verbatim POST body of the submission that produced
- * the page; restoring it would resubmit (§2.1.1). Runs on EVERY snapshot,
+ * the page; restoring it would resubmit (§2.1.1). The stripping is deliberately
+ * applied to EVERY entry, not just the active one — trimSnapshot (tab-sleep.js)
+ * guarantees non-active entries carry no pageState, making the two forms
+ * behaviorally identical on real inputs. Strip-all is pure defense-in-depth
+ * against a future caller that violates that invariant. Runs on EVERY snapshot,
  * held entries included, so a later downgrade needs no extra step.
  */
 function sanitizeSnapshot(snapshot, { restorableCommit = false } = {}) {

@@ -53,6 +53,29 @@ test('sanitizeSnapshot strips active pageState for a non-restorable commit', () 
   assert.equal(sanitizeSnapshot(null, { restorableCommit: true }), null);
 });
 
+test('sanitizeSnapshot strips every entry when restorableCommit is false (defense-in-depth)', () => {
+  const snap = {
+    entries: [
+      { url: 'u1', title: 't1', pageState: 'STATE1' },
+      { url: 'u2', title: 't2', pageState: 'STATE2' },
+    ],
+    index: 1,
+    droppedPageState: false,
+  };
+  const clean = sanitizeSnapshot(snap, { restorableCommit: false });
+  // No entry retains pageState when commit is non-restorable
+  assert.equal(clean.entries[0].pageState, undefined);
+  assert.equal(clean.entries[1].pageState, undefined);
+  // URLs and titles are preserved
+  assert.equal(clean.entries[0].url, 'u1');
+  assert.equal(clean.entries[1].url, 'u2');
+
+  // With restorable commit, both pageStates are intact
+  const kept = sanitizeSnapshot(snap, { restorableCommit: true });
+  assert.equal(kept.entries[0].pageState, 'STATE1');
+  assert.equal(kept.entries[1].pageState, 'STATE2');
+});
+
 test('buildTabEntry captures identity, slot, and the adoption seed', () => {
   const entry = buildTabEntry(
     baseTab({ pinned: true, muted: true, usedMedia: true, groupId: 'g1', navEpoch: 7 }),

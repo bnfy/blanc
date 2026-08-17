@@ -96,10 +96,15 @@ from this only because `sleepCandidates` refuses any tab with
 `restorableCommit !== true`, and `restorableCommit` is
 `effectiveMethod === 'GET' && (httpResponseCode ?? 200) < 400` (`main.js`).
 
-Closed-tab snapshots have no such gate — every close is recorded. So the active
-entry's `pageState` is **stripped whenever `tab.restorableCommit !== true`**,
-before the entry is stored. Tier 1 then restores such a page by re-navigating to
-its URL as a GET: possibly different content, never a resubmission.
+Closed-tab snapshots have no such gate — every close is recorded. So
+**every entry's `pageState` is conservatively stripped whenever
+`tab.restorableCommit !== true`**, before the entry is stored. The
+`trimSnapshot()` function guarantees non-active entries carry no `pageState`,
+making this conservative approach behaviorally identical to active-entry-only
+stripping on real inputs; strip-all is pure defense-in-depth against a future
+caller that violates that invariant. Tier 1 then restores such a page by
+re-navigating to its URL as a GET: possibly different content, never a
+resubmission.
 
 Consequence worth stating plainly: for a POST-derived page, Tier 0 is the *only*
 faithful restore, and it is inherently transient. After 30 s that page degrades
@@ -226,9 +231,12 @@ tab qualifies for. It does not take a held count — a newer close always takes 
 hold (§2.1), so the caller downgrades the incumbent rather than the policy
 refusing the newcomer.
 
-`sanitizeSnapshot` strips the active entry's `pageState` unless the commit was
-restorable (§2.1.1). It runs on every snapshot, Tier 0's included, so a downgrade
-needs no extra step and cannot forget one.
+`sanitizeSnapshot` conservatively strips every entry's `pageState` unless the
+commit was restorable (§2.1.1), noting that `trimSnapshot()` guarantees
+non-active entries carry no `pageState`, making this conservative approach
+behaviorally identical to active-entry-only stripping on real inputs. It runs on
+every snapshot, Tier 0's included, so a downgrade needs no extra step and cannot
+forget one.
 
 `expireHolds` returns ids to downgrade rather than mutating. There is no destroy
 list: every held entry has a snapshot behind it, so expiry is always a downgrade.
