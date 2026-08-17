@@ -200,6 +200,24 @@ a.patron-checkout {
 }
 a.patron-checkout:hover { filter: brightness(1.05); }
 
+/* An <a> that reads as a NEUTRAL button (matches Activate / Turn on sync, not
+   the accent patron CTA above). Stays an anchor for the same reason: the
+   utility sheet's will-navigate handler turns an http(s) target into a real
+   tab, and window.open is denied there. */
+.link-button {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.link-button:hover { color: var(--text); border-color: var(--text-dim); }
+
 .hint.field-error { color: var(--danger); }
 
 .spacer { flex: 1 1 auto; }
