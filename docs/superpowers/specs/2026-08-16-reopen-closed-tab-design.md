@@ -61,8 +61,8 @@ and `expireHolds` never needs to destroy an entry outright.
 
 **Tier 1 — snapshot.** On hold expiry, and for every close that cannot be held.
 Stores `trimSnapshot()` entries + active index + slot metadata. ⌘⇧T rebuilds the
-tab through `createTab({ restoreHistory, pinned, groupId })`, which already
-exists and is already used by `duplicateTab`. Scroll position, back/forward
+tab through `createTab({ restoreHistory, pinned, muted, groupId })` —
+`restoreHistory` already exists and is already used by `duplicateTab`. Scroll position, back/forward
 stack, group, pin, mute, and slot all return; the page re-fetches.
 
 A close falls to Tier 1 when any of these hold:
@@ -428,10 +428,10 @@ held-registry check alone would pass. **This race exists in today's shipped code
 for every ordinary ⌘W** — nothing currently resolves a closed tab's prompts;
 they linger in `runtime.permissionPrompts` until answered or window close.
 
-Cancellation therefore lives in the **common `closeTab` path**, ahead of any
-tier decision, and equally covers the group teardown and window-close loops
-(which run through `closeTab`): resolve the tab's pending prompts with `null`,
-the established "never answered, do not persist" sentinel already used by
+Cancellation therefore lives in the **common `closeTab` path**, covering every
+tier and equally the group teardown and window-close loops (which run through
+`closeTab`): resolve the tab's pending prompts with `null`, the established
+"never answered, do not persist" sentinel already used by
 `flushPermissionPrompts(runtime)`. This needs a per-tab variant;
 `owner.permissionPrompts` entries already carry `tabId`. Detach the prompt view
 when the map empties, as the answer path does.
@@ -439,6 +439,16 @@ when the map empties, as the answer path does.
 Tier 0 additionally **refuses** a tab with a prompt pending, reusing the existing
 `permissionPendingTabIds()` helper that `sleepCandidates` already consumes. Such
 a close falls to Tier 1.
+
+**Ordering: capture the condition, then cancel, then select the tier.**
+Cancellation erases the very evidence the tier check reads, so running it first
+would let a prompt-bearing tab qualify for Tier 0:
+
+```js
+const promptPending = permissionPendingTabIds().has(tab.id);
+cancelPermissionPromptsForTab(tab.id);
+const tier = holdEligibility(tab, { promptPending, ... });
+```
 
 **(c) Deny while held, and recheck after the await.**
 `setPermissionRequestHandler` and `setPermissionCheckHandler` both consult
@@ -583,8 +593,9 @@ the group whole, with membership, order, and pins intact, in one step.
 - a held page with a **remembered** mic grant calling `getUserMedia` is denied and
   lights no indicator
 - a permission prompt left open when the tab is closed, then answered Allow:
-  nothing is granted and **nothing is persisted** for that origin — verified for
-  a Tier 0 close *and* an ordinary Tier 1 close (the destroyed-requester path)
+  nothing is granted and **nothing is persisted** for that origin. (A
+  prompt-bearing tab is by rule ineligible for Tier 0, so this exercises the
+  destroyed-requester path; the prompt view also detaches.)
 - a video started **during** the hold: the restored tab is not quietable
   afterwards (`usedMedia` via the firewall listener)
 - a held page calling `window.open` opens nothing
