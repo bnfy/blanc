@@ -19,6 +19,32 @@ let secureFixturesHandle;
 let secureSpkiHash = null;
 let browserHomeDir;
 let savedClipboard = null;
+let uncaughtLogPath;
+
+function mainProcessExceptionsSinceLaunch(electronApp) {
+  if (!uncaughtLogPath || !fs.existsSync(uncaughtLogPath)) return '';
+  const contents = fs.readFileSync(uncaughtLogPath, 'utf8');
+  return contents.slice(electronApp.__blancUncaughtOffset ?? 0).trim();
+}
+
+function assertNoMainProcessExceptions(electronApp) {
+  const failures = mainProcessExceptionsSinceLaunch(electronApp);
+  if (failures) throw new Error(`Electron main-process exception:\n${failures}`);
+}
+
+async function closeApp(electronApp) {
+  if (!electronApp) return;
+  try {
+    await electronApp.close();
+  } catch (error) {
+    // A fatal main-process exception may close Playwright's target before the
+    // explicit close completes. Prefer the captured application stack when it
+    // exists; otherwise preserve the original close failure.
+    assertNoMainProcessExceptions(electronApp);
+    throw error;
+  }
+  assertNoMainProcessExceptions(electronApp);
+}
 
 async function launchApp() {
   const electronApp = await _electron.launch({
@@ -42,8 +68,12 @@ async function launchApp() {
       ...process.env,
       BLANC_TEST: '1',
       BLANC_TEST_BROWSER_HOME: browserHomeDir,
+      BLANC_TEST_UNCAUGHT_LOG: uncaughtLogPath,
     },
   });
+  electronApp.__blancUncaughtOffset = fs.existsSync(uncaughtLogPath)
+    ? fs.statSync(uncaughtLogPath).size
+    : 0;
 
   // Wait for whenReady to have installed the test hook and completed the
   // blocker-gated workspace restore. Returning while persistence is still
@@ -88,6 +118,7 @@ BeforeAll({ timeout: 120_000 }, async () => {
 
   // Isolated, throwaway profile so no prior session/history/settings leaks in.
   userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-acceptance-'));
+  uncaughtLogPath = path.join(userDataDir, 'main-process-uncaught.log');
   browserHomeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-browser-home-'));
   const chromeRoot = browserDataRoot('chrome', {
     platform: process.platform,
@@ -141,7 +172,7 @@ BeforeAll({ timeout: 120_000 }, async () => {
   // F28-1 exercises a genuine process relaunch against this same profile,
   // rather than a renderer reload or an in-memory persistence proxy.
   ctx.relaunch = async () => {
-    if (ctx.app) await ctx.app.close();
+    if (ctx.app) await closeApp(ctx.app);
     ctx.app = await launchApp();
   };
 
@@ -151,6 +182,7 @@ BeforeAll({ timeout: 120_000 }, async () => {
 });
 
 Before(async function () {
+  if (ctx.app) assertNoMainProcessExceptions(ctx.app);
   ctx.tabByName = {};
   ctx.activeExpectedUrl = null;
   ctx.lastNewTabId = null;
@@ -161,15 +193,23 @@ Before(async function () {
 });
 
 AfterAll(async () => {
+  let closeFailure = null;
   if (ctx.app && savedClipboard !== null) {
     await callTestHook(ctx.app, 'setClipboardText', [savedClipboard])
       .catch(() => {});
   }
-  if (ctx.app) await ctx.app.close();
+  if (ctx.app) {
+    try {
+      await closeApp(ctx.app);
+    } catch (error) {
+      closeFailure = error;
+    }
+  }
   ctx.app = null;
   ctx.relaunch = null;
   if (fixturesHandle) await fixturesHandle.close();
   if (secureFixturesHandle) await secureFixturesHandle.close();
   if (userDataDir) fs.rmSync(userDataDir, { recursive: true, force: true });
   if (browserHomeDir) fs.rmSync(browserHomeDir, { recursive: true, force: true });
+  if (closeFailure) throw closeFailure;
 });
