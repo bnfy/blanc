@@ -283,7 +283,11 @@ function setupPages(hooks = {}) {
   handle('pages:default-browser:set', ['settings', 'newtab'], () => {
     if (defaultBrowserStatus().canSet) {
       app.setAsDefaultProtocolClient('http');
-      app.setAsDefaultProtocolClient('https');
+      // macOS raises its "change your default web browser?" prompt PER CALL,
+      // and answering it assigns the browser role — http and https together —
+      // so a second call only stacks a second identical dialog. Windows
+      // registers each scheme silently, so it keeps the explicit https call.
+      if (process.platform !== 'darwin') app.setAsDefaultProtocolClient('https');
     }
     return defaultBrowserStatus();
   });
