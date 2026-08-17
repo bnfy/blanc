@@ -67,8 +67,23 @@ Then('the island shows the typing prompt', async function () {
   const pill = await this.call('pillPlaceholderState');
   assert.ok(pill, 'the pill label was not found in the chrome document');
   assert.ok(pill.placeholder, 'the pill label is not in placeholder mode');
-  assert.ok(pill.caret, 'the pill shows no caret');
   assert.strictEqual(pill.text, 'Search or type a URL');
+  // What makes the prompt read as a field rather than a label is its motion:
+  // a bright band washing through the glyphs, painted by a gradient clipped
+  // to the text. Under reduced motion that is deliberately traded for a
+  // stronger resting ink instead (styles.css). Assert whichever branch this
+  // environment is actually in, so neither can be quietly deleted.
+  if (pill.reducedMotion) {
+    assert.strictEqual(pill.animation, 'none',
+      'reduced motion must not animate the prompt');
+    assert.strictEqual(pill.gradientPainted, false,
+      'the reduced-motion prompt must paint real ink, not a clipped gradient');
+  } else {
+    assert.strictEqual(pill.animation, 'pill-placeholder-wash',
+      'the prompt is not running the wash that signals a typing field');
+    assert.strictEqual(pill.gradientPainted, true,
+      'the wash must paint through the glyphs (text fill is transparent)');
+  }
 });
 
 Then('the island shows the commands chip', async function () {
