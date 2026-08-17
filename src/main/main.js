@@ -2892,9 +2892,52 @@ function focusGroup(groupId) {
   else broadcastTabs();
 }
 
+/** Member record for a group entry: identity + field-copied snapshot. The
+ *  sleep record's retained view is NOT taken — closeTab destroys it. */
+function closedMemberRecord(id) {
+  const tab = tabs.get(id);
+  const sleepRecord = sleepSnapshots.get(id);
+  let snapshot = null;
+  if (sleepRecord) {
+    snapshot = { entries: sleepRecord.entries, index: sleepRecord.index, droppedPageState: sleepRecord.droppedPageState };
+  } else {
+    try {
+      const nav = liveContents(tab)?.navigationHistory;
+      if (nav) snapshot = trimSnapshot(nav.getAllEntries(), nav.getActiveIndex(), { private: !!tab.private });
+    } catch {}
+  }
+  snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
+  return {
+    url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
+    pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
+  };
+}
+
 function closeGroup(groupId) {
-  const ids = rt().tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
-  for (const id of ids) closeTab(id);
+  const runtime = rt();
+  const group = runtime.groups.find((g) => g.id === groupId);
+  const ids = runtime.tabOrder.filter((id) => tabs.get(id)?.groupId === groupId);
+  if (!group || ids.length === 0) return;
+  // Capture EVERYTHING first: pruneEmptyGroups destroys the record mid-loop
+  // otherwise, and quiet members must be snapshotted, never woken (§2.2).
+  const entry = buildGroupEntry({
+    id: group.id, name: group.name, collapsed: group.collapsed,
+    index: runtime.groups.indexOf(group),
+    activeMemberIndex: Math.max(0, ids.indexOf(runtime.activeTabId)),
+  }, ids.map(closedMemberRecord), Date.now());
+  const anchorIndex = runtime.tabOrder.indexOf(ids[0]);
+  for (const id of ids) closeTab(id, { record: false, selectReplacement: false });
+  if (entry.tabs.length > 0) pushClosedEntry(entry); // an all-private group records nothing
+  // One replacement selection at the end, not one per member.
+  if (!runtime.activeTabId) {
+    if (runtime.tabOrder.length > 0) {
+      setActiveTab(runtime.tabOrder[Math.min(Math.max(anchorIndex, 0), runtime.tabOrder.length - 1)]);
+    } else if (hasLiveWindow()) {
+      setActiveTab(createTab());
+    }
+  }
+  broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 function toggleTabPinned(id) {
@@ -3440,12 +3483,39 @@ function pushClosedEntry(entry) {
   scheduleMenuRebuild();
 }
 
-/** Group restore arrives with the atomic group close (spec §2.2); until then
- *  no entry of kind 'group' is ever recorded, so this is unreachable. It sits
- *  ABOVE the close/reopen pair on purpose: close-tab-shutdown.test.js lifts
- *  closeTab by slicing to the next `function reopenClosedTab()`, so nothing
- *  may be inserted between those two. */
-function reopenGroupEntry() {}
+/** Restore a group whole: record at its recorded cluster index, members
+ *  born quiet with their snapshots parked in sleepSnapshots (the session-
+ *  restore pattern), only the active member woken (§2.4). It sits ABOVE the
+ *  close/reopen pair on purpose: close-tab-shutdown.test.js lifts closeTab by
+ *  slicing to the next `function reopenClosedTab()`, so nothing may be
+ *  inserted between those two. */
+function reopenGroupEntry(entry) {
+  const runtime = rt();
+  let group = runtime.groups.find((g) => g.name === entry.group.name);
+  if (!group) {
+    group = { id: entry.group.id, name: entry.group.name, collapsed: !!entry.group.collapsed };
+    runtime.groups.splice(Math.min(entry.group.index, runtime.groups.length), 0, group);
+  }
+  const ids = entry.tabs.map((member) => {
+    const id = createTab(member.url, {
+      groupId: group.id, pinned: member.pinned, muted: member.muted,
+      asleep: true, title: member.title, favicon: member.favicon,
+    });
+    if (id && member.snapshot) {
+      sleepSnapshots.set(id, {
+        view: null,
+        entries: member.snapshot.entries,
+        index: member.snapshot.index,
+        droppedPageState: member.snapshot.droppedPageState,
+      });
+    }
+    return id;
+  }).filter(Boolean);
+  if (ids.length === 0) return;
+  setActiveTab(ids[Math.min(entry.activeMemberIndex, ids.length - 1)]);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
 
 function closeTab(id) {
   const { record = true, selectReplacement = true } = arguments[1] ?? {};
@@ -4751,10 +4821,17 @@ function createMainWindowForRuntime(runtime) {
     liveViewContents(runtime.permissionView)?.close();
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
-      for (const tabId of [...runtime.tabOrder]) closeTab(tabId);
+      for (const tabId of [...runtime.tabOrder]) closeTab(tabId, { record: false });
+      for (const entry of runtime.closedEntries ?? []) {
+        if (entry.view) downgradeHeldEntry(entry);
+      }
+      runtime.closedEntries = [];
       windowRuntimes.discardRuntime(runtime);
       if (!sessionReadOnly) persistSession();
     } else {
+      for (const entry of runtime.closedEntries ?? []) {
+        if (entry.view) downgradeHeldEntry(entry);
+      }
       windowRuntimes.detachWindow(runtime);
     }
     const next = windowRuntimes.all().find((candidate) =>
