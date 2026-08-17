@@ -77,12 +77,18 @@ other pill button (`pillButton`, `renderer.js:96`): `mousedown` preventDefault
 so a click never leaves a stray focus ring in the resting pill, `click`
 stopPropagation so it does not also bubble to the pill and open the plain panel.
 
-It fires a new **no-argument** `chrome:open-command-palette`. Main hardcodes
+It fires a new **no-argument** `chrome:open-island-commands`. Main hardcodes
 the prefill:
 
 ```js
-chromeOn('chrome:open-command-palette', () => showOverlay('panel', { prefill: '/' }));
+chromeOn('chrome:open-island-commands', () => openIslandTyping('/'));
 ```
+
+The channel is **not** named `…-palette`: `'palette'` is already a distinct
+overlay mode — "the summoned palette, centered over a scrim" (`overlay.js:3`,
+and `styles.css:1381` scopes the backdrop to `body[data-mode="palette"]`) —
+whereas this opens `'panel'`. Naming it for the palette would point at the
+wrong mode.
 
 `showOverlay(mode, { prefill })` already exists (`main.js:1697`) and
 `applyMode(next, prefill, purpose)` already consumes it (`overlay.js:1245`);
@@ -108,31 +114,104 @@ A `keydown` listener on the document, ignored unless **all** of:
 
 - `event.target === document.body` — the onboarding dialog, the footer layout
   switcher, and any future control keep their own keys;
-- no `ctrlKey` / `metaKey` / `altKey` — ⌘T, ⌘R, ⌘1…9 are unaffected;
 - not `event.isComposing` — IME composition is left alone (those users reach
   the panel by click or ⌘L; accepted);
-- `event.key.length === 1` — printable characters only, so Tab/Escape/arrows
-  behave normally;
-- the character is not whitespace — a leading space is not a search.
+- `[...event.key].length === 1` — printable characters only, so Tab/Escape/
+  arrows behave normally. Code points, not UTF-16 units, matching the
+  main-side validator below; plain `.length` would reject a single astral
+  character as length 2 and the two checks would disagree;
+- the character is not whitespace — a leading space is not a search;
+- **no command-intent modifier** (see below).
 
-On a match it calls `preventDefault()` and `window.bowserPages.start.openIsland(char)`.
+### The modifier gate
+
+A blanket `ctrlKey || altKey` rejection is wrong. On Windows and Linux,
+**AltGr reports `ctrlKey` and `altKey` both true**, so a blanket rejection
+silently drops the entire AltGr layer — `@` on a German layout (AltGr+Q),
+`ą` on Polish (AltGr+A), `€` on many others. Those are ordinary characters a
+user types to start a search, and losing them would make type-to-open feel
+broken specifically for international keyboards.
+
+The gate is therefore:
+
+```js
+const altGraph = event.getModifierState('AltGraph');
+const commandIntent = event.metaKey || ((event.ctrlKey || event.altKey) && !altGraph);
+```
+
+`metaKey` always rejects (⌘T, ⌘R, ⌘L). `ctrlKey`/`altKey` reject *unless*
+AltGraph is active, which is the AltGr text-entry case rather than a shortcut.
+
+**Accepted limitation:** on macOS, Option-produced characters (`ø`, `∑`) do
+not set AltGraph, so they are rejected. On macOS Option is far more often a
+shortcut modifier than a text-entry one, and the app's own accelerators use it
+(`main.js:2530`). Those users click the pill or press ⌘L.
+
+On a match the handler calls `preventDefault()` and
+`window.bowserPages.start.openIsland(char)`.
 
 Main adds `handle('pages:start:open-island', 'newtab', …)` — the same
 sender-validated shape as every other `pages:start:*` channel
-(`pages.js:247-257`) — routed through `hooks.startPage?.openIsland?.()`. Main
-re-validates that the argument is a single non-whitespace printable character
-before calling `showOverlay('panel', { prefill: char })`, on the standing rule
-that the client-side check is never trusted alone.
+(`pages.js:247-257`) — routed through `hooks.startPage?.openIsland?.()`.
 
-A matching `keydown` on `#islandPill` in the chrome renderer covers the case
-where the pill itself holds keyboard focus (it is `tabindex="0"`). It applies
-the same five gates and routes through its own chrome channel,
-`chrome:open-island-typing`, which **does** take the character as an argument —
-unlike `chrome:open-command-palette` above, whose prefill is fixed and
-therefore needs none. Main applies the identical single-printable-character
-validation before using it, exactly as it does for the pages channel; the
-chrome renderer is privileged (it holds `browserAPI`) but its arguments are
-still validated at the boundary, the same rule `tabs:navigate` follows.
+### The shared validator
+
+All three entry points funnel into one helper in `main.js`:
+
+```js
+function openIslandTyping(char) {
+  if (typeof char !== 'string' || [...char].length !== 1 || !char.trim()) return;
+  showOverlay('panel', { prefill: char });
+}
+```
+
+The two payload-bearing channels (`pages:start:open-island`,
+`chrome:open-island-typing`) pass a renderer-supplied character, so validation
+there is load-bearing — the client-side check is never trusted alone.
+`chrome:open-island-commands` carries no payload and calls the same helper with
+the **literal `'/'`**, which passes validation trivially. It goes through the
+helper anyway so there is exactly one place that opens the panel with a
+prefill, rather than one validated path and one that bypasses it.
+
+`[...char].length !== 1` counts code points rather than UTF-16 units, so a
+single astral character (an emoji from a picker, say) is accepted as one
+character instead of being rejected as a length-2 string.
+
+### The pill's own keyboard path
+
+The pill is `tabindex="0"`, so it can hold keyboard focus itself. This case
+**extends the existing listener at `renderer.js:730`** — it does not add a
+second one. Two listeners on the same element would both fire, and Space is
+the collision: `key === ' '` already activates the pill there, and it is also
+a single-character key. A separate handler would activate the panel *and*
+prefill it with a space.
+
+The existing handler's structure is kept intact and the new branch goes after
+it:
+
+```js
+islandPill.addEventListener('keydown', (e) => {
+  if (e.target !== islandPill) return;        // unchanged — focused children keep their own keys
+  if (e.key === 'Enter' || e.key === ' ') {   // unchanged — existing activation wins
+    e.preventDefault();
+    window.browserAPI.openIsland();
+    return;
+  }
+  // new: same gates as newtab.js, then
+  // window.browserAPI.openIslandTyping(e.key)
+});
+```
+
+Enter and Space therefore keep their current behaviour by construction: they
+return before the type-to-open gates are ever consulted. The whitespace
+rejection in those gates is a second line of defence, not the primary one.
+
+This routes through its own chrome channel, `chrome:open-island-typing`, which
+**does** take the character as an argument — unlike `chrome:open-island-commands`
+above, whose prefill is fixed and therefore needs none. Main applies the
+identical single-printable-character validation before using it; the chrome
+renderer is privileged (it holds `browserAPI`) but its arguments are still
+validated at the boundary, the same rule `tabs:navigate` follows.
 
 Typing `/` therefore works on its own: the chip teaches the character, and the
 character does what the chip does.
@@ -142,12 +221,13 @@ character does what the chip does.
 | File | Change |
 |---|---|
 | `src/renderer/index.html` | caret span inside `#pillDomain`; `#pillSlash` button as its sibling |
-| `src/renderer/renderer.js` | placeholder branch at `:570`, built behind a transition guard; `#pillSlash` wiring; `#islandPill` keydown |
+| `src/renderer/renderer.js` | placeholder branch at `:570`, built behind a transition guard; `#pillSlash` wiring; **extend** the existing `#islandPill` keydown at `:730` |
 | `src/renderer/styles.css` | `.placeholder`, `.pill-caret` + `@keyframes`, `.pill-slash`, `prefers-reduced-motion` |
 | `src/renderer/pages/newtab.js` | document `keydown` → `start.openIsland(char)` |
+| `src/main/preload.js` | `openIslandCommands()` and `openIslandTyping(char)` on `browserAPI`, beside `openIsland` at `:85`. **Both new chrome channels need a bridge method here** — the chrome renderer is sandboxed with `contextIsolation`, so it cannot reach `ipcRenderer` any other way |
 | `src/main/tab-preload.js` | `start.openIsland` on the existing `start` namespace |
 | `src/main/pages.js` | `handle('pages:start:open-island', 'newtab', …)` |
-| `src/main/main.js` | `chromeOn` for `chrome:open-command-palette` and `chrome:open-island-typing`; `startPage.openIsland` hook; one shared character validator behind all three entry points |
+| `src/main/main.js` | `chromeOn` for `chrome:open-island-commands` and `chrome:open-island-typing`; `startPage.openIsland` hook; the shared `openIslandTyping(char)` helper |
 
 **No substrate impact.** The placeholder string is not in `copy/`, `tokens/`,
 or `settings-schema/` (verified by grep), and the `/` chip is not a slash
@@ -177,16 +257,35 @@ both already defined in all three scopes (`:root`, the dark override, and
 
 - **Unit:** the transition guard (repeated `tabs:updated` broadcasts in
   placeholder mode must not rebuild the caret — prove it fails without the
-  guard before trusting it); type-to-open gating for each rejection condition
-  (modifier held, composing, whitespace, multi-character key, non-body target);
-  main-side character validation rejecting multi-character and whitespace
-  payloads; placeholder shown for both blank and blank-private tabs and never
-  for a loaded or loading tab.
+  guard before trusting it); main-side character validation rejecting
+  multi-character, empty, and whitespace payloads and accepting one astral
+  code point; placeholder shown for both blank and blank-private tabs and
+  never for a loaded or loading tab.
+- **Unit — the modifier gate**, as a table over the rejection conditions:
+  composing, whitespace, multi-character key, non-body target, `metaKey`,
+  bare `ctrlKey`, bare `altKey`. Plus the two that exist because of review:
+  **`ctrlKey && altKey` with `getModifierState('AltGraph')` true must be
+  ACCEPTED** (the AltGr layer), and **Enter and Space on a focused
+  `#islandPill` must still activate the pill exactly once and must not
+  prefill anything** (the two-listener collision). Both need a test that
+  fails against the naive implementation, or they are guarding nothing.
 - **Acceptance:** new `spec/acceptance/` scenarios under stable ids,
   **registered in `test/desktop/cucumber.mjs`'s `RUNNABLE` list** — profiles
   select by explicit id, so an unregistered scenario is silently never run.
-  Covers: a fresh blank tab shows the placeholder; typing a character opens the
-  panel with that character; clicking the chip opens the panel showing commands.
+  Covers: a fresh blank tab shows the placeholder; clicking the chip opens the
+  panel showing commands; and the cold-launch scenario below.
+- **Acceptance — reproduce the original failure, not a convenient substitute.**
+  The scenario must assert the state the user was actually in: the *startup*
+  blank tab active, **page content focused**, and **`overlayMode()` null**,
+  before the first character is typed. A test that reaches a blank tab via
+  ⌘T proves nothing here — that path already calls
+  `setActiveTab(…, { focusAddress: true })` (`main.js:4253`), so the panel is
+  open and focused before the test types anything, and the assertion passes
+  whether or not type-to-open exists at all.
+  The harness can express this: `activateTab(id, false)` and
+  `focusTabContents(id)` (`test-hook.js:268-269`) establish the state, and
+  `overlayMode()` (`:703`) reads the result. Assert `overlayMode()` is null
+  first — that precondition is what makes the rest of the scenario meaningful.
 - **Governance:** feature entry in `spec/features.md` and a `parity-matrix.md`
   row (the affordance is a product contract the mobile ports inherit, even
   though the caret and chip are desktop presentations of it);
