@@ -299,11 +299,36 @@ test('anything else is rejected', () => {
   assert.equal(isValidPrefillChar('ab'), false);
   assert.equal(isValidPrefillChar(' '), false);
   assert.equal(isValidPrefillChar('\n'), false);
-  assert.equal(isValidPrefillChar(' '), false);
+  assert.equal(isValidPrefillChar('\u00A0'), false); // nbsp
   assert.equal(isValidPrefillChar(null), false);
   assert.equal(isValidPrefillChar(undefined), false);
   assert.equal(isValidPrefillChar(7), false);
   assert.equal(isValidPrefillChar({}), false);
+});
+
+// NUL is not whitespace, so trim() alone lets it through and the "printable"
+// contract would be a lie. These prove it holds.
+test('control and format code points are rejected', () => {
+  assert.equal(isValidPrefillChar('\u0000'), false); // NUL
+  assert.equal(isValidPrefillChar('\u001b'), false); // ESC
+  assert.equal(isValidPrefillChar('\u007f'), false); // DEL
+  assert.equal(isValidPrefillChar('\u200b'), false); // zero-width space
+  assert.equal(isValidPrefillChar('\ufeff'), false); // BOM
+});
+
+// The page handler passes its payload through unchanged, so a non-string
+// actually reaches the validator instead of arriving pre-coerced. Coercing
+// with String(char ?? '') upstream would turn a numeric 7 into a valid '7'
+// and make the typeof check above unreachable on that path.
+test('the page handler does not coerce its payload before validating', () => {
+  const pagesSource = fs.readFileSync(path.join(ROOT, 'src/main/pages.js'), 'utf8');
+  const handler = pagesSource.match(/'pages:start:open-island',[\s\S]*?\n  \);/)?.[0];
+  assert.ok(handler, 'pages:start:open-island handler not found');
+  assert.doesNotMatch(
+    handler,
+    /String\(/,
+    'pass char through unchanged — coercion defeats the validator type check',
+  );
 });
 
 // The gate is only worth anything if every path actually goes through it.
@@ -355,17 +380,28 @@ Create `src/main/island-typing.js`:
 // keystroke that isn't text; this one is the trust boundary. A renderer is
 // never trusted to have run its own check.
 
+// \p{C} is Unicode's "other" category — control (Cc), format (Cf), surrogate
+// (Cs), private-use (Co), unassigned (Cn). None of them are a character
+// someone means to search for, and NUL is not whitespace, so trim() alone
+// would let it through and the "printable" contract would be a lie.
+const NON_PRINTABLE = /\p{C}/u;
+
 /**
- * A prefill character must be exactly one non-whitespace code point.
- * Code points rather than UTF-16 units, so a single astral character
+ * A prefill character must be exactly one printable, non-whitespace code
+ * point. Code points rather than UTF-16 units, so a single astral character
  * (an emoji from a picker) is one character and not a length-2 string.
+ *
+ * Stricter than the renderer's gate on purpose. The renderer only ever sees
+ * a real `event.key`, which is never a raw control character; this is the
+ * trust boundary, where the payload is whatever a renderer chose to send.
  * @param {unknown} char
  * @returns {boolean}
  */
 function isValidPrefillChar(char) {
   return typeof char === 'string'
     && [...char].length === 1
-    && char.trim() !== '';
+    && char.trim() !== ''
+    && !NON_PRINTABLE.test(char);
 }
 
 module.exports = { isValidPrefillChar };
@@ -418,10 +454,16 @@ In `src/main/pages.js`, beside the other `pages:start:*` handlers (`:247-257`):
 ```js
   // Type-to-open from the start page. Main re-validates the character in
   // openIslandTyping — the renderer's own gate is not trusted alone.
+  //
+  // Deliberately NOT String(char ?? '') like the neighbouring handlers: those
+  // coerce because their validators take strings by contract, but coercing
+  // here would turn a numeric 7 into a valid '7' and make the validator's own
+  // typeof check dead code. The payload is passed through untouched so the
+  // one validator sees what the renderer actually sent.
   handle(
     'pages:start:open-island',
     'newtab',
-    (char) => hooks.startPage?.openIsland?.(String(char ?? '')),
+    (char) => hooks.startPage?.openIsland?.(char),
   );
 ```
 
@@ -588,8 +630,13 @@ with the span plus the chip immediately after it:
 
 ```html
         <span id="pillDomain">new tab</span>
-        <button id="pillSlash" class="pill-slash" type="button" title="Commands (/)" aria-label="Commands" hidden>/</button>
+        <button id="pillSlash" class="pill-slash" type="button" title="Commands (/)" aria-label="Commands (/)" hidden>/</button>
 ```
+
+The accessible name must contain the visible label. The button's visible text
+is `/`, and an `aria-label` overrides it — `"Commands"` alone would drop the
+`/` from the accessible name, so speech control ("click slash") could not
+reach the button. `"Commands (/)"` keeps it, and matches the `title`.
 
 Load the shared gate before `renderer.js` at `:133`:
 
@@ -1054,20 +1101,27 @@ Create `test/desktop/steps/blank-tab-affordance.steps.js`, following the existin
 
 ```js
 Given('a blank new tab is active with page content focused', async function () {
-  const id = await this.hook('activeTabId');
+  // The World exposes `call`, not `hook`, and there is no `activeTabId`
+  // method — it is a field on the `state()` projection (test-hook.js:189,
+  // with activeTabId at :231).
+  const { activeTabId } = await this.call('state');
   // Reproduce cold launch: main.js:5620 activates the startup tab with
   // focusContent: true. The Cmd/Ctrl+T path does the opposite
   // (main.js:4253 passes focusAddress: true), so a test that opened a tab
   // that way would pass whether or not type-to-open exists.
-  await this.hook('activateTab', id, true);
-  await this.hook('focusTabContents', id);
+  await this.call('activateTab', activeTabId, true);
+  await this.call('focusTabContents', activeTabId);
 });
 
 Given('the island overlay is closed', async function () {
-  const mode = await this.hook('overlayMode');
+  const mode = await this.call('overlayMode');
   assert.equal(mode, null, 'the overlay must be closed before typing');
 });
 ```
+
+`activateTab(id, focusContent)` is at `test-hook.js:268`, `focusTabContents(id)`
+at `:269`, and `overlayMode()` at `:703` — all top-level hook methods, unlike
+`activeTabId`.
 
 `Then the island opens with "g" already entered` asserts `overlayMode()` is `'panel'` and reads the address input's value through the existing overlay accessor those step files already use.
 
