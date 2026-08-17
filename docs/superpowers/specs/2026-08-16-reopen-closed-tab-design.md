@@ -1,7 +1,7 @@
 # Reopen Closed Tab — design
 
 Date: 2026-08-16
-Status: approved after review round 2, not implemented
+Status: approved after review round 3, not implemented
 
 ## 1. Problem
 
@@ -72,6 +72,9 @@ A close falls to Tier 1 when any of these hold:
 - a permission prompt is pending for the tab (§5.1)
 - the tab is loading (`tab.isLoading`) — see §3.4 on in-flight navigation
 - the tab was quiet (`tab.asleep`) — no live renderer exists to hold
+- the tab is in an opener family or has popups: `adopted`, a live
+  `openerTabId`, a live managed child pointing at it, or a nonzero
+  `popupChildCounts` entry (§5.6)
 
 **Tier 2 — navigation floor.** When `trimSnapshot()` returns null, i.e. the tab
 has no committed navigation history to shape. The entry keeps only the URL for
@@ -239,8 +242,9 @@ Owns: parking and re-attaching views, the held registry, the expiry timer, the
 
 - Tier 0 → adopt the parked view into a new tab record; if the view is dead or
   re-attach throws, fall through to the entry's snapshot
-- Tier 1 → `createTab(url, { restoreHistory, pinned, groupId })`
-- Tier 2 → `createTab(url, { pinned, groupId })` plus the slot splice (§2.1)
+- Tier 1 → `createTab(url, { restoreHistory, pinned, muted, groupId })`
+- Tier 2 → `createTab(url, { pinned, muted, groupId })` plus the slot splice
+  (§2.1)
 - group entry → restore the group record, then loop Tier 1 over its tabs
 
 Reopening consumes the entry and cancels its expiry timer.
@@ -266,17 +270,23 @@ defaults are wrong for a document that has been running since before the close:
 | Field | Default | Why the default is wrong |
 | --- | --- | --- |
 | `usedMedia` | `false` | A restored video tab becomes quietable and gets discarded mid-playback |
-| `adopted` | `false` | An adopted `window.open` child must never be quietable |
-| `openerTabId` | `null` | Loses opener-family protection in `sleepCandidates` |
 | `historyEligible` | `true` | Would let a stale title overwrite a valid recorded visit |
 | `restorableCommit` | `false` | Fail-safe direction, but must reflect the real commit |
 | `httpEntryCount`, `deepScrolled`, `navEpoch` | zeroes | Drive quiet-tab eligibility against a document they don't describe |
 
-The entry therefore records these at park time and the adoption path seeds them
-back. At minimum the opener and media protections must be preserved verbatim.
-`url`, `title`, `favicon`, `canGoBack`, and `canGoForward` are resynchronized
-from the live `webContents` before the first broadcast, so the island never
-paints a stale address.
+The entry records these at park time and the adoption path seeds them back.
+`usedMedia` is seeded as the park-time value **OR-ed with the firewall's
+media observation** (§3.4) — a video that starts during the hold counts.
+
+Opener-family fields (`adopted`, `openerTabId`) are absent from this table
+deliberately: family tabs are **refused Tier 0 outright** (§5.6), so an adopted
+view can never carry them.
+
+`url`, `title`, `canGoBack`, and `canGoForward` are resynchronized from the live
+`webContents` before the first broadcast, so the island never paints a stale
+address. `favicon` **cannot** be resynchronized — Electron exposes favicon
+update events but no getter — so the park-time favicon is preserved on the
+entry and seeded back verbatim.
 
 ### 3.4 The held-state firewall
 
@@ -290,11 +300,13 @@ Park sequence, in this order, so no window exists in which a request resolves
 against neither the tab record nor the firewall:
 
 1. Add `wc.id` to the process-wide `heldWebContents` registry.
-2. Cancel the tab's pending permission prompts (§5.1).
-3. `wc.removeAllListeners()`.
-4. Install the firewall listeners below.
-5. Delete `tabIdByWebContentsId` / `lastMainFrameMethod` entries and remove the
+2. `wc.removeAllListeners()`.
+3. Install the firewall listeners below.
+4. Delete `tabIdByWebContentsId` / `lastMainFrameMethod` entries and remove the
    tab from `tabs`, `tabOrder`, `windowRuntimes`.
+
+(Pending-prompt cancellation is **not** a park step: it lives in the common
+`closeTab` path and runs for every tier — §5.1(b).)
 
 Firewall contents:
 
@@ -316,6 +328,11 @@ Firewall contents:
   `isMainFrame` alongside the legacy positional arguments; read it from the
   event object.
 - **Permission denial** via the registry — see §5.1.
+- **`media-started-playing` → set the entry's `usedMedia = true`.** The page
+  keeps executing during the hold, so a video can *begin* after park; a
+  park-time-only `usedMedia` seed would miss it and leave the restored tab
+  quietable mid-playback. This listener writes to the closed entry, never to a
+  tab record.
 - **`render-process-gone` and `once('destroyed')` → atomic downgrade** — see §5.3.
 
 **In-flight navigation.** A tab parked mid-navigation would have that navigation
@@ -389,9 +406,9 @@ Tier 0 therefore refuses on the main-process grant record as well:
 excludes any document that has ever received a media grant, including after an
 honest stop — the right direction for a 30-second convenience feature.
 
-**(b) Cancel pending prompts at park.** A permission request can enter
-`setPermissionRequestHandler`, await the prompt, and *then* have its tab parked.
-The existing resumption path is:
+**(b) Cancel pending prompts in the common close path — every tier.** A
+permission request can enter `setPermissionRequestHandler`, await the prompt, and
+*then* have its tab closed. The existing resumption path is:
 
 ```js
 const allow = await prompter({ origin, permission, mediaTypes, requestingWebContents: wc });
@@ -401,14 +418,23 @@ if (allow) notifyCaptureGrant(wc, permission, mediaTypes, details);
 callback(allow);
 ```
 
-A later Allow therefore resumes a handler that never rechecks held state, grants
-the permission to a held view, **and persists the decision** — poisoning every
-future visit to that origin, not just this one.
+A later Allow therefore resumes a handler that never rechecks the requester's
+state and **persists the decision** — poisoning every future visit to that
+origin, not just this one.
 
-Parking resolves the tab's pending prompts with `null`, the established
-"never answered, do not persist" sentinel already used by
-`flushPermissionPrompts(runtime)` at window close. This needs a per-tab variant;
-`owner.permissionPrompts` entries already carry `tabId`.
+Crucially, this is not a Tier 0 problem. A prompt-bearing tab is *refused* Tier 0
+and its contents destroyed, so its `wc` is never in `heldWebContents`, and a
+held-registry check alone would pass. **This race exists in today's shipped code
+for every ordinary ⌘W** — nothing currently resolves a closed tab's prompts;
+they linger in `runtime.permissionPrompts` until answered or window close.
+
+Cancellation therefore lives in the **common `closeTab` path**, ahead of any
+tier decision, and equally covers the group teardown and window-close loops
+(which run through `closeTab`): resolve the tab's pending prompts with `null`,
+the established "never answered, do not persist" sentinel already used by
+`flushPermissionPrompts(runtime)`. This needs a per-tab variant;
+`owner.permissionPrompts` entries already carry `tabId`. Detach the prompt view
+when the map empties, as the answer path does.
 
 Tier 0 additionally **refuses** a tab with a prompt pending, reusing the existing
 `permissionPendingTabIds()` helper that `sleepCandidates` already consumes. Such
@@ -420,11 +446,13 @@ a close falls to Tier 1.
 ahead of the stored-decision lookup. This closes the remembered-grant path, which
 returns `callback(true)` without ever reaching the prompter.
 
-The request handler **rechecks `heldWebContents` immediately after
-`await prompter(...)`, before `saveDecision`**, and on a hit returns
-`callback(false)` without persisting. Cancellation in (b) handles the ordinary
-case; this recheck closes the interleaving where the prompt resolves in the same
-turn as the park.
+The request handler **rechecks immediately after `await prompter(...)`, before
+`saveDecision`**, and returns `callback(false)` without persisting when
+**either** `heldWebContents.has(wc.id)` **or** `wc.isDestroyed()`. The
+destroyed check is what covers the Tier 1/Tier 2 requester, whose contents is
+gone rather than held. Cancellation in (b) handles the ordinary case; this
+recheck closes the interleaving where the prompt resolves in the same turn as
+the close.
 
 Denial is deliberately **blanket, not media-only**: a page the user has closed has
 no business acquiring geolocation or firing a notification either, and one rule
@@ -466,8 +494,8 @@ casing at the call site.
 - **`before-quit`** destroys held views alongside `sleepSnapshots`, in the same
   loop location.
 - **Capacity eviction** must destroy an evicted entry's held view. Reachable: the
-  held entry is the newest, but 24 further closes within the same 30 s push it to
-  the tail where the 25-entry cap evicts it.
+  held entry is the newest, but 25 further closes within the same 30 s push it
+  past the tail of the 25-entry list, where the cap evicts it.
 - **Non-primary window close** loops `closeTab(tabId)` and then discards the
   runtime three lines later (`main.js`). Recording must be **suppressed** for
   that loop — the same suppression the group teardown needs — or it parks a live
@@ -495,6 +523,25 @@ each (~150 MB apiece) for 30 seconds, reachable only by pressing ⌘W in several
 windows within the same 30 s. Held views are not counted against
 `MAX_SLEEP_SNAPSHOTS`, which bounds a different and much cheaper resource.
 
+### 5.6 Opener families and popups are refused Tier 0
+
+Seeding `adopted` and `openerTabId` back across adoption is not enough to keep
+family state coherent, because closing the tab tears down relationships that
+seeding cannot rebuild:
+
+- `closeTab` deletes the tab's `popupChildCounts` entry, so an auxiliary popup's
+  cleanup closures reference a tab id that no longer counts it
+- managed children keep an `openerTabId` pointing at the old id, which the
+  restored tab does not carry
+- `sleepCandidates`' family protections key on **live** ids on both sides, so
+  during the hold either side of the family can become incorrectly quietable
+
+Rather than re-plumbing family identity across the hold, Tier 0 simply
+**refuses** any tab that is `adopted`, has a live `openerTabId`, is the live
+opener of a managed child, or has a nonzero `popupChildCounts` entry — the same
+family set Quiet Tabs protects. Such closes fall to Tier 1, where no live state
+survives to disagree.
+
 ## 6. Obligations elsewhere
 
 Each of these fails CI or a guard test if missed, and must land in the **same
@@ -518,12 +565,13 @@ required.** F4-1 stands unmodified and its title stays true.
 ## 7. Testing
 
 **`test/unit/closed-tabs.test.js`** over the pure module: tier selection for each
-eligibility case (capture anchors, pending prompt, loading, quiet, group),
-`'refuse'` for newtab, url-less, and private tabs, `sanitizeSnapshot` stripping
-`pageState` for a non-restorable commit and preserving it for a restorable one,
-one-entry-per-action grain, the 25-entry cap, expiry downgrade, a newer close
-taking the hold and downgrading the incumbent, and `projectEntries` emitting only
-the five allowed fields.
+eligibility case (capture anchors, pending prompt, loading, quiet, group, and
+each family condition — adopted, live opener, live managed child, nonzero popup
+count), `'refuse'` for newtab, url-less, and private tabs, `sanitizeSnapshot`
+stripping `pageState` for a non-restorable commit and preserving it for a
+restorable one, one-entry-per-action grain, the 25-entry cap, expiry downgrade, a
+newer close taking the hold and downgrading the incumbent, and `projectEntries`
+emitting only the five allowed fields.
 
 **Acceptance:** a new F2 scenario — closing a group of N and reopening restores
 the group whole, with membership, order, and pins intact, in one step.
@@ -535,7 +583,10 @@ the group whole, with membership, order, and pins intact, in one step.
 - a held page with a **remembered** mic grant calling `getUserMedia` is denied and
   lights no indicator
 - a permission prompt left open when the tab is closed, then answered Allow:
-  nothing is granted and **nothing is persisted** for that origin
+  nothing is granted and **nothing is persisted** for that origin — verified for
+  a Tier 0 close *and* an ordinary Tier 1 close (the destroyed-requester path)
+- a video started **during** the hold: the restored tab is not quietable
+  afterwards (`usedMedia` via the firewall listener)
 - a held page calling `window.open` opens nothing
 - a held page whose subframe navigates or redirects still restores intact
 - a POST-derived page: Tier 0 restores it faithfully; after 30 s the Tier 1
