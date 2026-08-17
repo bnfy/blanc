@@ -2,6 +2,30 @@ const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { installMacOSQuitVisibilityGate } = require('./macos-quit');
+
+// Electron's default uncaught-exception path raises a native modal dialog,
+// which can leave the acceptance runner reporting green while app.close()
+// waits behind an invisible main-process failure. Test runs record the exact
+// stack in their throwaway profile instead; the parent harness turns any entry
+// into a failed scenario. Production keeps Electron's ordinary crash handling.
+if (process.env.BLANC_TEST === '1' && process.env.BLANC_TEST_UNCAUGHT_LOG) {
+  process.on('uncaughtException', (error, origin) => {
+    try {
+      fs.appendFileSync(
+        process.env.BLANC_TEST_UNCAUGHT_LOG,
+        `${origin || 'uncaughtException'}\n${error?.stack || error}\n\n`,
+        { encoding: 'utf8', mode: 0o600 }
+      );
+    } catch {}
+    // Continuing after an uncaught main-process exception is unsafe. The
+    // synchronous record above is the only cleanup this test process needs;
+    // exit without Electron's modal error dialog so the harness can report it.
+    process.exit(1);
+  });
+}
+
+installMacOSQuitVisibilityGate({ app, BrowserWindow });
 const {
   setupAdBlocker,
   attachAdBlockerToSession,
