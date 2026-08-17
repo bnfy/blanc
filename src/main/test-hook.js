@@ -351,6 +351,17 @@ function install(refs) {
       const g = getGroups().find((x) => x.name === lc(name));
       if (g) closeGroup(g.id);
     },
+    // Redacted closed-entry projection for the harness: tier facts only,
+    // never snapshots, seeds, or view references (spec §4.1 discipline).
+    closedEntriesSummary() {
+      return getClosedEntries().map((entry) => ({
+        id: entry.id,
+        kind: entry.kind,
+        url: entry.kind === 'group' ? null : entry.url,
+        held: !!entry.view,
+        tabCount: entry.kind === 'group' ? entry.tabs.length : 1,
+      }));
+    },
 
     // ---- favorites (bookmarks store) ----
     favoriteActive() {
