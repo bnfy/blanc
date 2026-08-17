@@ -45,7 +45,10 @@
     // users need no discovery to use it. Look prepends detected browsers.
     sources: [{ id: FILE_SOURCE, label: 'From a bookmarks file (HTML)…' }],
     importSource: null,    // selected source id, or null = "no thanks"
-    importing: false,
+    // Shared transition lock: one navigation/import/persist at a time. While
+    // held, Continue/Back/Skip and the import controls are disabled — a
+    // second Continue during a pending import must never advance the step.
+    busy: false,
     adblock: true,
     suggestions: true,
     ping: true,
@@ -60,6 +63,9 @@
 
   function sync() {
     dialog.dataset.step = String(state.step);
+    nextBtn.disabled = state.busy;
+    backBtn.disabled = state.busy;
+    skipBtn.disabled = state.busy;
     stepLabel.textContent = `${state.step + 1} / 6 — ${LABELS[state.step]}`;
     nextBtn.textContent = state.step === LAST_STEP ? 'Start browsing' : 'Continue';
     dots.forEach((dot, i) => dot.classList.toggle('on', i === state.step));
@@ -77,6 +83,7 @@
     dialog.style.setProperty('--ob-default-border', confirmed || !state.canSetDefault ? 'var(--border)' : 'var(--accent)');
 
     lookBtn.hidden = state.looked;
+    lookBtn.disabled = state.busy;
     renderSources();
 
     setToggle(adblockToggle, state.adblock);
@@ -101,11 +108,26 @@
       row.append(radio, label);
       // Re-clicking the selected row deselects — advancing with nothing
       // selected is the "no thanks" path.
+      row.disabled = state.busy;
       row.addEventListener('click', () => {
+        if (state.busy) return;
         state.importSource = state.importSource === source.id ? null : source.id;
         sync();
       });
       sourceList.appendChild(row);
+    }
+  }
+
+  /** Runs fn under the transition lock; re-entry is a silent no-op. */
+  async function withBusy(fn) {
+    if (state.busy) return;
+    state.busy = true;
+    sync();
+    try {
+      await fn();
+    } finally {
+      state.busy = false;
+      sync();
     }
   }
 
@@ -133,8 +155,7 @@
    * import ran and its result deserves reading) rather than advance. */
   async function runImportIfSelected() {
     const source = state.importSource;
-    if (!source || state.importing) return false;
-    state.importing = true;
+    if (!source) return false;
     importStatus.textContent = 'Importing favorites…';
     try {
       const result = source === FILE_SOURCE
@@ -158,7 +179,6 @@
     } catch {
       importStatus.textContent = "Couldn't import from there.";
     } finally {
-      state.importing = false;
       state.importSource = null; // the next Continue advances
       sync();
     }
@@ -189,12 +209,13 @@
     state.done = true;
     scrim.hidden = true;
     dialog.hidden = true;
+    setBackgroundInert(false);
   }
 
   async function next() {
     if (state.step === IMPORT_STEP && (await runImportIfSelected())) return;
     if (state.step === LAST_STEP) {
-      finish();
+      await finish();
       return;
     }
     state.step += 1;
@@ -225,8 +246,17 @@
     }
     scrim.hidden = false;
     dialog.hidden = false;
+    setBackgroundInert(true);
     sync();
     nextBtn.focus();
+  }
+
+  /** Everything behind the modal goes inert while it is open — the scrim
+   * already blocks the pointer, but Tab could still walk into the page. */
+  function setBackgroundInert(on) {
+    for (const el of document.body.children) {
+      if (el !== scrim && el !== dialog) el.inert = on;
+    }
   }
 
   function maybeShow(status, onboarding) {
@@ -242,9 +272,9 @@
     if (TOUR || status?.privacy?.required) show(status, onboarding);
   }
 
-  skipBtn.addEventListener('click', finish);
-  nextBtn.addEventListener('click', next);
-  backBtn.addEventListener('click', back);
+  skipBtn.addEventListener('click', () => withBusy(finish));
+  nextBtn.addEventListener('click', () => withBusy(next));
+  backBtn.addEventListener('click', () => withBusy(back));
   setDefaultBtn.addEventListener('click', async () => {
     try {
       const def = await window.bowserPages.start.setDefaultBrowser();
@@ -253,7 +283,7 @@
     } catch { /* status unchanged */ }
     sync();
   });
-  lookBtn.addEventListener('click', lookForBrowsers);
+  lookBtn.addEventListener('click', () => withBusy(lookForBrowsers));
   adblockToggle.addEventListener('click', () => {
     state.adblock = !state.adblock;
     window.bowserPages.start.onboardingSet({ adblockEnabled: state.adblock });

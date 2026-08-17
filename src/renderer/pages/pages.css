@@ -1586,3 +1586,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ob-dots { display: inline-flex; gap: 7px; }
 .ob-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
 .ob-dots span.on { background: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The toggle's 140ms slide is the dialog's only motion. */
+  .ob-toggle, .ob-knob { transition: none; }
+}
