@@ -190,6 +190,10 @@ test('release operator authentication uses the proven native Terminal and Safari
   assert.equal(spawnSync('bash', ['-n', releasePath]).status, 0);
   assert.match(releaseScript, /TERM_PROGRAM:-.*Apple_Terminal/);
   assert.match(releaseScript, /Agent\/Codex PTYs cannot complete 1Password/);
+  assert.match(
+    releaseScript,
+    /OP_BIOMETRIC_UNLOCK_ENABLED=true\s+\\\s*\n\s*op run --env-file=\.env\.1password/
+  );
   assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.4.0}'));
   assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
   assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));

@@ -219,12 +219,14 @@ echo "==> Preflighting the macOS identity and provisioning profile"
 node scripts/preflight-mac-signing.mjs
 
 echo "==> Cleaning and building notarized macOS artifacts"
-echo "    1Password must authorize Terminal.app. Abort if the prompt names ChatGPT or Codex."
+echo "    1Password desktop-app integration is forced for this command."
+echo "    Approve only a Terminal.app authorization; cancel any manual-account prompt."
 rm -rf dist
 MAC_BUILD_ARGS=()
 $HAS_MAC_ARM64 && MAC_BUILD_ARGS+=(--arm64)
 $HAS_MAC_X64 && MAC_BUILD_ARGS+=(--x64)
-if ! op run --env-file=.env.1password --no-masking -- \
+if ! OP_BIOMETRIC_UNLOCK_ENABLED=true \
+  op run --env-file=.env.1password --no-masking -- \
   npx electron-builder --mac "${MAC_BUILD_ARGS[@]}" --publish never; then
   echo "Signed/notarized macOS build failed. Nothing has been published." >&2
   exit 1
