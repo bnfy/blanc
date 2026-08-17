@@ -39,7 +39,10 @@ could not authorize the agent PTY during the v1.4.0 release.
 
 Before starting, unlock the 1Password desktop app and confirm `gh auth status`
 succeeds in that same Terminal window. Do not fetch or paste either secret and
-do not run `op signin`; `release.sh` owns the `op run` boundary.
+do not run `op signin`; `release.sh` owns the `op run` boundary and forces its
+desktop-app path with `OP_BIOMETRIC_UNLOCK_ENABLED=true`. If `op` offers to add
+an account manually, cancel it: that is a failed app-integration connection,
+not a release authentication step.
 
 For the normal Apple-Silicon stable release:
 
@@ -57,8 +60,9 @@ The two approval gates happen late enough that the Terminal window must remain
 available:
 
 1. **1Password / Apple notarization.** `op run` must ask to authorize
-   Terminal.app. Approve it there. If the dialog names ChatGPT or Codex, stop:
-   the release was launched from the wrong process and will time out.
+   Terminal.app. Approve it there. If the dialog names ChatGPT or Codex, or the
+   CLI asks to add an account manually, stop; neither is a valid release
+   authorization.
 2. **Sigstore / GitHub identity.** The release-scoped browser shim opens the
    fresh OIDC page in Safari and the callback targets
    `127.0.0.1:${BLANC_COSIGN_REDIRECT_PORT:-49197}`. Complete it immediately;
