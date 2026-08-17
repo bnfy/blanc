@@ -289,6 +289,39 @@ await withPackagedApp({
 });
 
 await withPackagedApp({
+  label: 'packaged-filter-cache-write-recovery',
+  launchArgs: ['https://example.com/queued-behind-cache-recovery'],
+  env: {
+    BLANC_TEST: '1',
+    BLANC_TEST_ADBLOCK_CACHE_WRITE_FAILURE: '1',
+  },
+  prepare: async (userDataDir) => {
+    fs.writeFileSync(path.join(userDataDir, adblockCacheFile), 'corrupt cache');
+  },
+}, async ({ app, userDataDir }) => {
+  await poll(
+    () => readStartPage(app),
+    (state) => state?.startupHidden === true,
+    'a locked derived cache kept the verified in-memory blocker offline',
+    60_000
+  );
+  await poll(
+    () => app.pages().map((candidate) => candidate.url()),
+    (urls) => urls.includes('https://example.com/queued-behind-cache-recovery'),
+    'cache-write recovery did not release queued navigation'
+  );
+  const settings = JSON.parse(
+    fs.readFileSync(path.join(userDataDir, 'settings.json'), 'utf8')
+  );
+  assert.equal(settings.adblockEnabled, true, 'cache persistence failure must not turn blocking off');
+  assert.equal(
+    fs.readFileSync(path.join(userDataDir, adblockCacheFile), 'utf8'),
+    'corrupt cache',
+    'the smoke hook must prove startup succeeded without replacing the locked cache'
+  );
+});
+
+await withPackagedApp({
   label: 'packaged-filter-failure',
   launchArgs: ['https://example.com/queued-at-startup'],
   env: {

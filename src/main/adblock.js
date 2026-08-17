@@ -1,19 +1,18 @@
 const { app, ipcMain, webContents } = require('electron');
 const { ElectronBlocker } = require('@ghostery/adblocker-electron');
-const fs = require('fs');
 const path = require('path');
 const settings = require('./settings');
 const { installScriptletIsolation } = require('./adblock-scriptlets');
 const {
   loadVerifiedAdblockSnapshot,
   adblockCacheName,
-  writeCacheAtomically,
 } = require('./adblock-snapshot');
 const {
   isWebContentsExcepted,
   installCosmeticExceptionHandlers,
 } = require('./adblock-exceptions');
 const { createAdblockEventBridge } = require('./adblock-events');
+const { loadOrBuildAdblockEngine } = require('./adblock-cache');
 
 const bundledSourcesPath = () => path.join(app.getAppPath(), 'adblock', 'sources');
 
@@ -95,12 +94,21 @@ function applyBlockingWithExceptions(session) {
 async function setupAdBlocker(session, { enabled = true } = {}) {
   const snapshot = loadVerifiedAdblockSnapshot(bundledSourcesPath());
   const engineCache = path.join(app.getPath('userData'), adblockCacheName(snapshot.digest));
-  try {
-    blocker = ElectronBlocker.deserialize(await fs.promises.readFile(engineCache));
-  } catch {
-    blocker = ElectronBlocker.parse(snapshot.raw);
-    await writeCacheAtomically(engineCache, blocker.serialize());
-  }
+  const simulateLockedCache = process.env.BLANC_TEST === '1'
+    && process.env.BLANC_TEST_ADBLOCK_CACHE_WRITE_FAILURE === '1';
+  blocker = await loadOrBuildAdblockEngine({
+    cachePath: engineCache,
+    raw: snapshot.raw,
+    deserialize: (bytes) => ElectronBlocker.deserialize(bytes),
+    parse: (raw) => ElectronBlocker.parse(raw),
+    ...(simulateLockedCache ? {
+      writeCache: async () => {
+        const error = new Error('packaged smoke: simulated locked blocker cache');
+        error.code = 'EPERM';
+        throw error;
+      },
+    } : {}),
+  });
 
   // Cosmetic filters can contain multiple uBO scriptlets for one page.
   // Ghostery executes each in the page's global scope; isolating their
