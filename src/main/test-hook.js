@@ -1253,10 +1253,15 @@ function install(refs) {
         homePage: '',
         theme: 'system',
         tabLayout: 'island',
+        newtabLayout: 'ledger',
         verticalTabsWidth: 248,
         appIcon: 'paper',
         adblockExceptions: [],
         tabSleep: '1h',
+        // The launch-time auto-complete records false; F36-2 seeds true and
+        // relies on Skip to overwrite it — a failure before Skip must not
+        // leak that seed into later scenarios.
+        usagePing: false,
       });
       settings.setSupporter(null);
       clearTestSearchSuggestionFixture();
