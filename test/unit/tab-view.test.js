@@ -124,6 +124,19 @@ test('wireTabView is still present in tab-view.js', () => {
   assert.ok(wireSource, 'wireTabView not found in tab-view.js — update this test with it');
 });
 
+test('managed WebContents teardown never strips Electron-owned listeners', () => {
+  assert.doesNotMatch(
+    `${mainSource}\n${viewSource}`,
+    /\.removeAllListeners\s*\(/,
+    'use exact wire/firewall bookkeeping; blanket removal breaks Electron visibility teardown'
+  );
+  assert.match(
+    mainSource,
+    /sleepTeardownInProgress = true;[\s\S]*?unwireTabView\(wc\);[\s\S]*?wc\.close\(/,
+    'quiet-tab teardown must unwire only Blanc listeners before close'
+  );
+});
+
 test('a queued mouse move does not calculate bounds after its window closes', () => {
   assert.ok(watchCursorForSource, 'watchCursorFor not found in main.js — update this test with it');
   let inputListener;
