@@ -74,6 +74,7 @@ const {
   TAB_SLEEP_DELAY_MS,
   MAX_SLEEP_SNAPSHOTS,
 } = require('./tab-sleep');
+const adblockStats = require('./adblock-stats');
 const {
   createCaptureRecord, applyGrant, applySettlement, applyFrameReport,
   projection: captureProjection, clearRecord: clearCaptureRecord,
@@ -2129,23 +2130,25 @@ const ensureSessionStore = () => (sessionStore ??= new JsonStore('session', {}))
 // rewrite a file it can't fully round-trip.
 let sessionReadOnly = false;
 
-// Rolling ads-blocked counter for the start page's margin note. Weeks
-// start Monday 00:00 local; the count resets lazily on the first touch
-// (read or increment) after a week boundary.
+// Rolling ads-blocked counter for the start page's margin note, plus the
+// per-day buckets its tally layout charts. Weeks start Monday 00:00 local;
+// the count resets lazily on the first touch (read or increment) after a
+// week boundary. The arithmetic lives in adblock-stats.js, unit-tested.
 let adblockStatsStore = null;
-const ensureAdblockStats = () => (adblockStatsStore ??= new JsonStore('adblock-stats', { weekStart: 0, blocked: 0 }));
-
-function currentWeekStart() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  return d.getTime();
-}
+const ensureAdblockStats = () => {
+  if (!adblockStatsStore) {
+    adblockStatsStore = new JsonStore('adblock-stats', { weekStart: 0, blocked: 0, days: [0, 0, 0, 0, 0, 0, 0] });
+    // A profile written by a build without buckets loads as {weekStart, blocked}.
+    adblockStats.normalizeWeekStats(adblockStatsStore.data);
+  }
+  return adblockStatsStore;
+};
 
 function adblockWeekStats() {
   const s = ensureAdblockStats();
-  const week = currentWeekStart();
-  if (s.data.weekStart !== week) s.update((d) => { d.weekStart = week; d.blocked = 0; });
+  if (s.data.weekStart !== adblockStats.currentWeekStart()) {
+    s.update((d) => adblockStats.rollWeekStats(d));
+  }
   return s;
 }
 
@@ -5168,6 +5171,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const current = settings.getSettings();
     return {
       startup: adblockStartupState,
+      // Carried on every status push so a start page opened in one window
+      // re-inks when the layout is changed from Settings or another window.
+      layout: current.newtabLayout,
       privacy: {
         required: !settings.isFirstRunComplete(),
         searchSuggestions: current.searchSuggestions,
@@ -5182,6 +5188,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       liveContents(tab)?.send('pages:start:status', status);
     }
   };
+  // A layout picked in Settings (or arriving from Profile Sync) must reach
+  // every open start page, not just the one that made the change.
+  settings.onSettingsChanged(() => broadcastStartPageStatus());
   // pages.js's IPC surface derives runtime ownership from the sender before
   // any window-local hook runs. A background window's ledger/sheet can never
   // read or mutate the focused window's groups or overlay.
@@ -5236,8 +5245,24 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         .filter((g) => g.count > 0),
       focusGroup,
       blockedThisWeek: () => adblockWeekStats().data.blocked,
+      blockedByDay: () => [...adblockWeekStats().data.days],
+      blockedBarHeights: () => adblockStats.barHeights(adblockWeekStats().data.days),
       remoteDevices: () => sync.listRemoteDevices(),
       status: startPageStatus,
+      setLayout: (name) => settings.setSettings({ newtabLayout: name }),
+      // Runs inside runInPageRuntime, so the tab lands in the sheet's own
+      // window and createTab's dismissal closes the sheet under it.
+      openWelcomeTour: () => {
+        const id = createTab('blanc://newtab/?tour=1');
+        if (id) setActiveTab(id);
+      },
+      // Only what the onboarding dialog can itself change — never the whole
+      // settings object.
+      onboardingState: () => {
+        const current = settings.getSettings();
+        return { adblockEnabled: current.adblockEnabled, theme: current.theme };
+      },
+      applySettings: (clean) => settings.setSettings(clean),
       retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
       continueWithoutAdblock: () =>
         adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
@@ -5412,7 +5437,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // of the frame the request came from. adblock.js's eventBridge fires this
   // from the network layer — not from any of our own bound roots.
   onRequestBlocked((request) => {
-    adblockWeekStats().update((d) => { d.blocked += 1; });
+    adblockWeekStats().update((d) => adblockStats.recordBlocked(d));
     const tab = tabs.get(tabIdByWebContentsId.get(request.tabId));
     if (!tab) return;
     const runtime = windowRuntimes.runtimeForTab(tab.id);

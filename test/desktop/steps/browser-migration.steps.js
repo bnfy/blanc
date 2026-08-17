@@ -99,23 +99,33 @@ Given('a fresh first run is awaiting setup', async function () {
 });
 
 Then('browser Favorites migration is offered before browsing', async function () {
-  // The offer renders with no sources listed — discovery has not run yet.
+  // The onboarding dialog is up; its import step carries the offer. Nothing
+  // is listed besides the always-available bookmarks-file row — discovery
+  // has not run yet (F30/D22: it never runs until asked).
+  await waitForValue(
+    () => this.call('readFirstRunMigrationDom'),
+    (value) => value?.privacyHidden === false,
+    'first-run onboarding dialog to render'
+  );
+  assert.equal(await this.call('openFirstRunImportStep'), true);
   await waitForValue(
     () => this.call('readFirstRunMigrationDom'),
     (value) =>
-      value?.privacyHidden === false &&
-      value.migrationHidden === false &&
+      value?.migrationHidden === false &&
       value.findHidden === false &&
-      value.options.length === 0,
-    'first-run browser migration offer to render'
+      value.options.length === 1, // only the always-available file row
+    'first-run import step to render undiscovered'
   );
   assert.equal(await this.call('clickFirstRunMigrationFind'), true);
   const dom = await waitForValue(
     () => this.call('readFirstRunMigrationDom'),
-    (value) => value?.options?.length === 1 && value.findHidden === true,
+    (value) => value?.options?.length === 2 && value.findHidden === true,
     'first-run browser migration sources to render'
   );
-  assert.deepEqual(dom.options, ['Google Chrome — Acceptance profile']);
+  assert.deepEqual(dom.options, [
+    'Google Chrome — Acceptance profile',
+    'From a bookmarks file (HTML)…',
+  ]);
 });
 
 When('I import Favorites from first-run setup', async function () {

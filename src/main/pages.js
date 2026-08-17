@@ -109,7 +109,8 @@ function setupPages(hooks = {}) {
   // it's cleared and stops being retried on future loads.
   handle('pages:bookmarks:clear-favicon', ['bookmarks', 'newtab'], (url) => bookmarks.updateFavicon(url, null));
 
-  handle('pages:bookmarks:import', 'bookmarks', async () => {
+  // newtab: the onboarding import step's "From a bookmarks file (HTML)…" row.
+  handle('pages:bookmarks:import', ['bookmarks', 'newtab'], async () => {
     const parent = hooks.getMainWindow?.();
     const picked = await dialog.showOpenDialog(parent ?? undefined, {
       title: 'Import favorites',
@@ -231,9 +232,23 @@ function setupPages(hooks = {}) {
   handle('pages:start:data', 'newtab', () => ({
     groups: hooks.startPage?.groups() ?? [],
     blockedThisWeek: hooks.startPage?.blockedThisWeek() ?? 0,
+    // Raw per-day counts drive the tally caption ("busiest day friday");
+    // the bar heights are normalized in main so the rule stays unit-tested.
+    blockedByDay: hooks.startPage?.blockedByDay?.() ?? [0, 0, 0, 0, 0, 0, 0],
+    blockedBarHeights: hooks.startPage?.blockedBarHeights?.() ?? [0, 0, 0, 0, 0, 0, 0],
     remoteDevices: hooks.startPage?.remoteDevices() ?? [],
+    // Least-privilege projection for the onboarding dialog: only the two
+    // settings it can change, so a replay shows what is actually saved.
+    onboarding: hooks.startPage?.onboardingState?.() ?? null,
     ...hooks.startPage?.status?.(),
   }));
+  // The footer layout switcher. The value is enum-validated by setSettings,
+  // so an unknown name is a no-op rather than an error.
+  handle(
+    'pages:start:set-layout',
+    'newtab',
+    (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
+  );
   handle(
     'pages:start:focus-group',
     'newtab',
@@ -262,14 +277,30 @@ function setupPages(hooks = {}) {
     isDefault: app.isDefaultProtocolClient('http'),
     canSet: app.isPackaged && process.platform !== 'linux',
   });
-  handle('pages:default-browser:get', 'settings', () => defaultBrowserStatus());
-  handle('pages:default-browser:set', 'settings', () => {
+  // newtab joined the allowlist for the onboarding dialog's first step; the
+  // canSet guard is identical for both senders.
+  handle('pages:default-browser:get', ['settings', 'newtab'], () => defaultBrowserStatus());
+  handle('pages:default-browser:set', ['settings', 'newtab'], () => {
     if (defaultBrowserStatus().canSet) {
       app.setAsDefaultProtocolClient('http');
       app.setAsDefaultProtocolClient('https');
     }
     return defaultBrowserStatus();
   });
+
+  // Onboarding may change exactly these two settings, live — never the whole
+  // settings surface. Values still pass setSettings' own validation.
+  handle('pages:start:onboarding-set', 'newtab', (partial) => {
+    const clean = {};
+    if (partial && typeof partial.adblockEnabled === 'boolean') clean.adblockEnabled = partial.adblockEnabled;
+    if (partial && typeof partial.theme === 'string') clean.theme = partial.theme;
+    if (Object.keys(clean).length) hooks.startPage?.applySettings?.(clean);
+  });
+
+  // Replays the first-run walkthrough. Main creates and activates the tour
+  // tab — the sheet's own navigation is default-deny for blanc:// URLs, so a
+  // renderer-side location.href could never open it.
+  handle('pages:settings:welcome-tour', 'settings', () => hooks.startPage?.openWelcomeTour?.());
 
   handle('pages:permissions:list', 'settings', () => listDecisions());
   handle('pages:permissions:remove', 'settings', (key) => removeDecision(String(key)));

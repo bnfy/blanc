@@ -15,6 +15,8 @@
 
   // --- Core: theme / search engine / adblock (always supported) ---
   const theme = document.getElementById('theme');
+  const newtabLayout = document.getElementById('newtabLayout');
+  const showWelcomeTour = document.getElementById('showWelcomeTour');
   const searchEngine = document.getElementById('searchEngine');
   const searchSuggestions = document.getElementById('searchSuggestions');
   const adblockEnabled = document.getElementById('adblockEnabled');
@@ -26,12 +28,19 @@
     searchEngine.append(opt);
   }
   theme.value = settings.theme ?? 'system';
+  newtabLayout.value = settings.newtabLayout ?? 'ledger';
   searchEngine.value = settings.searchEngine;
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
 
   theme.addEventListener('change', () =>
     window.bowserPages.settings.set({ theme: theme.value }));
+  newtabLayout.addEventListener('change', () =>
+    window.bowserPages.settings.set({ newtabLayout: newtabLayout.value }));
+  // The tour opens as a real tab in the sheet's window — main creates and
+  // activates it (the sheet's own navigation is default-deny for blanc://).
+  showWelcomeTour.addEventListener('click', () =>
+    window.bowserPages.settings.welcomeTour());
   searchEngine.addEventListener('change', () =>
     window.bowserPages.settings.set({ searchEngine: searchEngine.value }));
   searchSuggestions.addEventListener('change', () =>

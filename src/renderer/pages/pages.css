@@ -1005,3 +1005,589 @@ body.sheet .page h1:focus { outline: none; }
 @media (prefers-color-scheme: dark) {
   body.sheet { background: rgba(0, 0, 0, 0.35); }
 }
+
+/* ---------- start-page layouts ----------
+   Three alternatives to the shipped ledger, transcribed value-for-value from
+   the design system's "New tab v2" handoff prototype. The ledger is unchanged.
+
+   Visibility is CSS-only: no [hidden] attributes, because this file's
+   [hidden] rule is !important and would outrank these selectors. Each active
+   root is re-shown with its OWN display value — billboard centers with flex,
+   so display:block would break it. */
+#layoutBillboard,
+#layoutShelf,
+#layoutTally { display: none; }
+body[data-layout="billboard"] #layoutLedger,
+body[data-layout="shelf"] #layoutLedger,
+body[data-layout="tally"] #layoutLedger { display: none; }
+body[data-layout="billboard"] #layoutBillboard { display: flex; }
+body[data-layout="shelf"] #layoutShelf { display: block; }
+body[data-layout="tally"] #layoutTally { display: block; }
+
+/* The ledger keeps its shipped in-flow footer (it may scroll away when the
+   ledger overflows — deliberate). The other three do not overflow, so they
+   take the prototype's absolute footer. */
+body:not([data-layout="ledger"]) .ledger-footer {
+  position: absolute;
+  bottom: 24px;
+  left: 48px;
+  right: 48px;
+  margin: 0;
+  padding: 0;
+}
+.footer-left { display: inline-flex; align-items: baseline; gap: 8px; }
+.layout-switcher { display: inline-flex; align-items: baseline; gap: 4px; }
+.layout-switcher button {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.layout-switcher button:hover { color: var(--text); }
+.layout-switcher button.active { color: var(--text); }
+
+/* Shared group chip (billboard, shelf, tally) */
+.group-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.group-chip:hover { border-color: var(--text-dim); }
+.group-chip .chip-dots { display: inline-flex; gap: 3px; }
+.group-chip .chip-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-dim);
+  font-style: normal;
+}
+.group-chip .chip-name { font-family: var(--font-mono); font-size: 12px; }
+.group-chip .chip-count { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+
+/* ---------- billboard ---------- */
+.billboard {
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+.bb-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.18em;
+}
+.bb-clock-row { display: flex; align-items: baseline; gap: 14px; margin-top: 18px; }
+.bb-clock {
+  font-family: var(--font-mono);
+  font-size: 148px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.bb-meridiem { font-family: var(--font-mono); font-size: 24px; color: var(--text-dim); }
+.bb-blocked {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-dim);
+  margin-top: 20px;
+}
+.bb-favs { display: flex; gap: 36px; margin-top: 64px; align-items: flex-start; }
+.bb-fav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+}
+.bb-fav .tile {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--accent);
+}
+.bb-fav .tile.has-icon { background-size: 20px; background-position: center; background-repeat: no-repeat; }
+.bb-fav .label { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+.bb-groups { display: flex; gap: 14px; margin-top: 38px; }
+/* The billboard's chips are the one place the prototype sizes them up. */
+.bb-groups .group-chip { padding: 7px 16px; }
+.bb-groups .group-chip .chip-name { font-size: 12.5px; }
+
+/* ---------- shelf ---------- */
+.shelf {
+  position: absolute;
+  left: 110px;
+  right: 110px;
+  top: 120px;
+  user-select: none;
+}
+.shelf-head { display: flex; justify-content: space-between; align-items: baseline; }
+.shelf-heading { font-size: 28px; font-weight: 600; letter-spacing: -0.015em; }
+.shelf-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+}
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 30px;
+}
+.shelf-tile {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px 16px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-decoration: none;
+  color: var(--text);
+}
+.shelf-tile:hover { border-color: var(--text-dim); }
+.shelf-tile .tile {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--accent);
+}
+.shelf-tile .tile.has-icon { background-size: 18px; background-position: center; background-repeat: no-repeat; }
+.shelf-tile .name {
+  display: block;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shelf-tile .host {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.shelf-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+.shelf-card { border: 1px solid var(--border); border-radius: 6px; padding: 18px 16px; }
+.shelf-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+}
+.shelf-chiprow { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+.shelf-stat { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; }
+.shelf-count {
+  font-family: var(--font-mono);
+  font-size: 34px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.shelf-unit { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+
+/* ---------- tally ---------- */
+.tally-left {
+  position: absolute;
+  left: 110px;
+  top: 120px;
+  width: 460px;
+  user-select: none;
+}
+/* The left column IS the ledger column, so it reuses .ledger-* / .fav rows
+   verbatim — including the shipped 22px lettered tile, which is what the
+   ledger actually renders today. */
+.tally-label { margin-top: 44px; }
+.tally-label-groups { margin-top: 40px; }
+.tally-chiprow { display: flex; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+.tally-right {
+  position: absolute;
+  right: 110px;
+  top: 120px;
+  width: 280px;
+  user-select: none;
+}
+.tally-count {
+  font-family: var(--font-mono);
+  font-size: 64px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-top: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.tally-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 110px;
+  margin-top: 26px;
+  border-bottom: 1px solid var(--border);
+}
+/* Height is set inline from the normalized day counts — never in CSS, or the
+   data would be overridden. .today changes the colour only. */
+.tally-bar {
+  flex: 1;
+  background: var(--accent-dim);
+  border: 1px solid var(--border);
+  border-bottom: none;
+}
+.tally-bar.today { background: var(--accent); border-color: var(--accent); }
+.tally-days {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.tally-days span { flex: 1; text-align: center; }
+.tally-caption {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  margin-top: 20px;
+  line-height: 1.6;
+}
+
+/* ---------- layout overflow floors ----------
+   The prototype is a fixed-viewport design; the product rule is that NO
+   layout may ever scroll horizontally. Grid/flex children get min-width: 0
+   so ellipsis can engage (a 1fr track's min-content floor is otherwise the
+   full nowrap text), and the fixed insets/columns gain narrow-window floors. */
+.shelf-tile, .shelf-card { min-width: 0; }
+.shelf-head { gap: 16px; }
+.shelf-heading { flex: 0 0 auto; }
+.shelf-date { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bb-favs, .bb-groups { flex-wrap: wrap; justify-content: center; }
+.bb-fav .label { max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The clock is exactly 148px at any normal window; the clamp only bites in
+   windows too narrow to hold "12:58 pm" at full size. */
+.bb-clock { font-size: clamp(64px, 14vw, 148px); }
+/* The switcher must sit at the TRUE horizontal center: with space-between
+   flex it only looks centered when the side items happen to match widths
+   ("...this week v1.4.0" vs "⌘L to go anywhere" do not). A 1fr auto 1fr grid
+   centers the middle column geometrically, whatever the sides weigh. */
+.ledger-footer { display: grid; grid-template-columns: 1fr auto 1fr; }
+.ledger-footer .footer-left,
+.ledger-footer > #footerLeft { justify-self: start; }
+.ledger-footer .layout-switcher { justify-self: center; }
+.ledger-footer > #goAnywhere { justify-self: end; }
+/* Too narrow for one row: wrap as centered lines instead (no overflow). */
+@media (max-width: 760px) {
+  .ledger-footer { display: flex; flex-wrap: wrap; justify-content: center; row-gap: 4px; }
+}
+
+@media (max-width: 960px) {
+  .shelf { left: 48px; right: 48px; }
+  .shelf-grid { grid-template-columns: repeat(2, 1fr); }
+  .shelf-cards { grid-template-columns: 1fr; }
+  /* Tally's fixed columns cannot share a narrow window — stack them. */
+  .tally-left, .tally-right {
+    position: static;
+    width: auto;
+    margin: 0 48px;
+  }
+  .tally-left { padding-top: 120px; }
+  .tally-right { margin-top: 56px; max-width: 280px; padding-bottom: 96px; }
+}
+
+/* Every billboard favorite occupies the same slot width, so the ICONS land
+   on an even rhythm regardless of how long each label is — with real sites
+   ("benjaminmoore" beside "nest") a bare gap spaces the columns evenly but
+   the icons unevenly. The label ellipsis above caps at the same 96px. */
+.bb-fav { width: 96px; }
+
+/* ---------- first-run onboarding dialog ----------
+   Transcribed from the "New tab v2 + onboarding" prototype; six-step variant
+   (privacy consent is step 5, per the 2026-08-16 spec). State that varies at
+   runtime rides on CSS custom properties set by onboarding.js, exactly like
+   the prototype's sync(). */
+.ob-scrim { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 40; }
+.ob-dialog {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 460px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-popover);
+  z-index: 41;
+  box-sizing: border-box;
+}
+.ob-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px 0; }
+.ob-step-label { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.12em; }
+.ob-skip {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.ob-skip:hover { color: var(--text); }
+.ob-content { padding: 2px 24px 0; min-height: 264px; box-sizing: border-box; }
+.ob-content h1 { font-size: 20px; font-weight: 600; margin: 8px 0 0; }
+.ob-content p { font-size: 13px; color: var(--text-dim); margin: 10px 0 0; line-height: 1.55; }
+.ob-kbd { font-family: var(--font-kbd); }
+
+/* Step vignettes */
+.ob-vignette { display: flex; justify-content: center; align-items: center; }
+.ob-vignette svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.ob-vignette-apps { gap: 14px; padding: 18px 0 6px; }
+.ob-tile {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+}
+.ob-tile-sm { width: 40px; height: 40px; }
+.ob-tile-blanc {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  border: none;
+  background: var(--accent);
+  color: var(--surface-raised);
+  box-shadow: var(--shadow-pill);
+}
+/* The blanc mark is filled+stroked in currentColor (stroked-mark rule). */
+.ob-tile-blanc svg { fill: currentColor; stroke: currentColor; stroke-width: 4; }
+.ob-tile-blanc-sm { width: 48px; height: 48px; border-radius: 11px; box-shadow: none; }
+.ob-vignette-import { gap: 16px; padding: 14px 0 2px; color: var(--text-dim); }
+.ob-arrow { flex: 0 0 auto; }
+.ob-vignette-shield { gap: 18px; padding: 14px 0 2px; }
+.ob-shield { color: var(--accent); }
+.ob-shield svg { stroke-width: 1.4; }
+.ob-dots-in, .ob-dots-out { display: inline-flex; gap: 7px; align-items: center; }
+.ob-dots-in span { width: 7px; height: 7px; border-radius: 50%; border: 1px dashed var(--text-dim); }
+.ob-dots-in span:nth-child(1) { opacity: 0.35; }
+.ob-dots-in span:nth-child(2) { opacity: 0.55; }
+.ob-dots-in span:nth-child(3) { opacity: 0.8; }
+.ob-dots-out span { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.ob-dots-out span:nth-child(2) { opacity: 0.65; }
+.ob-dots-out span:nth-child(3) { opacity: 0.35; }
+
+/* Step CTAs and controls */
+.ob-cta-row { margin-top: 24px; display: flex; gap: 8px; }
+.ob-btn-primary, .ob-btn-secondary, .ob-btn-default {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ob-btn-primary { border: 1px solid var(--accent); background: var(--accent); color: var(--surface-raised); }
+.ob-btn-secondary { border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); }
+.ob-btn-secondary:hover { border-color: var(--text-dim); }
+/* The set-default CTA flips primary -> confirmed-secondary via variables. */
+.ob-btn-default {
+  border: 1px solid var(--ob-default-border, var(--accent));
+  background: var(--ob-default-bg, var(--accent));
+  color: var(--ob-default-text, var(--surface-raised));
+}
+.ob-btn-default:disabled { cursor: default; }
+.ob-srclist {
+  display: flex;
+  flex-direction: column;
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.ob-srclist:empty { display: none; }
+.ob-src-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  background: none;
+  border: none;
+  color: var(--text);
+  text-align: left;
+  font-family: var(--font-ui);
+}
+.ob-src-row + .ob-src-row { border-top: 1px solid var(--border); }
+.ob-src-row:hover, .ob-src-row.selected { background: var(--accent-dim); }
+.ob-radio {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--text-dim);
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+.ob-radio span { width: 6px; height: 6px; border-radius: 50%; background: transparent; }
+.ob-src-row.selected .ob-radio span { background: var(--accent); }
+.ob-status { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-top: 10px; min-height: 14px; }
+.ob-error { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--danger); margin-top: 10px; }
+.ob-error:empty { display: none; }
+
+/* Step 3: mini resting pill */
+.ob-minipill-row { margin-top: 22px; display: flex; justify-content: center; }
+.ob-minipill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-pill);
+}
+.ob-minipill-dots { display: inline-flex; gap: 6px; }
+.ob-minipill-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
+.ob-minipill-dots span.on { background: var(--accent); }
+.ob-minipill-domain { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+.ob-commands { margin-top: 14px; text-align: center; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+
+/* Bordered control rows (steps 4 and 5) with the standard 36x20 toggle */
+.ob-control-row {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  font-size: 13px;
+}
+.ob-control-row-tall { margin-top: 12px; align-items: flex-start; }
+.ob-control-row-tall:first-of-type { margin-top: 16px; }
+.ob-control-row span small {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+.ob-toggle {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  background: var(--border);
+  position: relative;
+  cursor: pointer;
+  transition: background 140ms ease;
+  flex: 0 0 auto;
+}
+.ob-toggle[aria-checked="true"] { background: var(--accent); }
+.ob-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  box-sizing: border-box;
+  transition: left 140ms ease;
+}
+.ob-toggle[aria-checked="true"] .ob-knob { left: 18px; }
+
+/* Step 6: theme cards — literal colors on purpose, each depicts one theme */
+.ob-theme-row { margin-top: 20px; display: flex; gap: 10px; }
+.ob-theme-card {
+  flex: 1;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  padding: 0;
+  background: none;
+  text-align: left;
+}
+.ob-theme-card.selected { border-color: var(--accent); }
+.ob-theme-preview { display: block; height: 64px; position: relative; }
+.ob-theme-preview span {
+  position: absolute;
+  left: 50%;
+  top: 10px;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 10px;
+  border-radius: 999px;
+}
+.ob-theme-preview-light { background: #ffffff; border-bottom: 1px solid #dedede; }
+.ob-theme-preview-light span { background: #ffffff; border: 1px solid #dedede; }
+.ob-theme-preview-dark { background: #0e0e0e; border-bottom: 1px solid #2e2e2e; }
+.ob-theme-preview-dark span { background: #1f1f1f; border: 1px solid #2e2e2e; }
+.ob-theme-caption {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.ob-theme-card.selected .ob-theme-mark::after { content: "●"; }
+
+/* Footer: Back · six dots · Continue */
+.ob-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--border);
+  margin-top: 18px;
+}
+.ob-foot #obBack { visibility: hidden; }
+.ob-dialog[data-step]:not([data-step="0"]) .ob-foot #obBack { visibility: visible; }
+.ob-dots { display: inline-flex; gap: 7px; }
+.ob-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
+.ob-dots span.on { background: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The toggle's 140ms slide is the dialog's only motion. */
+  .ob-toggle, .ob-knob { transition: none; }
+}

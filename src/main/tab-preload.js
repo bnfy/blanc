@@ -17,13 +17,18 @@ if (window.location.protocol === 'blanc:') {
         clearFavicon: (url) => invoke('pages:bookmarks:clear-favicon', url),
         browserSources: () => invoke('pages:bookmarks:browser-sources'),
         importBrowser: (id) => invoke('pages:bookmarks:import-browser', id),
+        import: () => invoke('pages:bookmarks:import'),
       },
       start: {
         data: () => invoke('pages:start:data'),
         focusGroup: (id) => invoke('pages:start:focus-group', id),
+        setLayout: (name) => invoke('pages:start:set-layout', name),
         retryStartup: () => invoke('pages:start:startup-retry'),
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
+        defaultBrowser: () => invoke('pages:default-browser:get'),
+        setDefaultBrowser: () => invoke('pages:default-browser:set'),
+        onboardingSet: (partial) => invoke('pages:start:onboarding-set', partial),
         onStatus: (callback) => {
           ipcRenderer.on('pages:start:status', (_event, status) => callback(status));
         },
@@ -84,6 +89,7 @@ if (window.location.protocol === 'blanc:') {
         syncDisable: (opts) => invoke('pages:settings:sync-disable', opts),
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),
+        welcomeTour: () => invoke('pages:settings:welcome-tour'),
       },
       profiles: {
         list: () => invoke('pages:profiles:list'),

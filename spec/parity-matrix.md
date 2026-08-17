@@ -45,6 +45,8 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F32 | Independent desktop windows | SHIPPED | N/A | N/A | Each desktop native window owns an isolated tab/group/surface workspace; close removes only that secondary workspace, and relaunch restores all persisted windows without mixing tabs. | D11 |
 | F33 | Local desktop profiles | SHIPPED | N/A | N/A | Personal retains every existing root record; each named desktop profile isolates site storage, Favorites/history/download metadata/permissions, normal browsing, and private browsing. Device settings stay shared and Profile Sync remains Personal-only. | D25 |
 | F34 | Glance reference pane | SHIPPED | N/A | N/A | A desktop window can show one explicitly chosen local tab as a temporary, resizable reference pane; promotion swaps main/reference roles, dismissal leaves the tab open, and ownership never crosses a window or profile. | D11 |
+| F35 | Start page layouts | SHIPPED | PLANNED | PLANNED | Four arrangements of the same start-page material (ledger/billboard/shelf/tally), chosen by a synced setting with an in-page switcher; per-day blocked counts feed the tally chart; no horizontal overflow at any width. | — |
+| F36 | First-run onboarding | SHIPPED | PLANNED | PLANNED | A six-step walkthrough shown once to fresh profiles (default browser, import, island, blocking, privacy, theme); privacy consent gates its network features, import keeps F30's explicit discovery, replayable from Settings. Default-browser registration and live profile import are desktop surfaces (D22). | D22 |
 
 ## Notes on the "mobile-only wins"
 
