@@ -33,6 +33,31 @@ on divergence, user directive 2026-07-10).
   the demo now passes `capture={{audio,video}}` and a quiet MDN tab — the component supported both states
   but the card exercised neither, so they were invisible.
 
+## DS push-back queue (from the 2026-08-16/17 newtab build — PR pending)
+
+The "New tab v2 + onboarding" handoff shipped with approved deviations that the
+DS (handoff README + `NewtabOnboarding.dc.html` + the `newtabLayout` prop docs)
+should be updated to match, in a design-sync run after the feature merges:
+
+- The dialog is SIX steps: privacy consent (the old first-run card's two
+  choices) is step 5, between ad blocking and theme; header reads `{i} / 6`.
+- Import step is bookmarks-only ("Bring your bookmarks", key tile dropped),
+  lists DETECTED Chromium-family browsers behind an explicit "Look for
+  installed browsers" button (F30 discovery rule), plus an always-present
+  "From a bookmarks file (HTML)…" row; import feedback holds the step.
+- The footer switcher ships alongside a Settings select; the version tag sits
+  in the footer's left cluster; the footer is a 1fr/auto/1fr grid so the
+  switcher is geometrically centered (user directive).
+- Billboard favorites occupy fixed 96px slots — even icon rhythm with real
+  labels (user directive); labels derive from the domain (github, mozilla),
+  ellipsized at 96px.
+- Tally: every bar including today is normalized to the busiest day; colour
+  alone marks today; a zero week draws no bars (the prototype's 100% today-bar
+  is stub data).
+- No layout may scroll horizontally at any width: min-width floors, wrapping
+  rows/footers, clock clamp, sub-960px shelf/tally compaction (user directive).
+- Set-default CTA renders disabled where the OS registration is unavailable.
+
 ## Gotchas
 - Preview cards render from compiled `_ds_bundle.js`. To rebuild it after pushing source changes: write
   a `_ds_needs_recompile` sentinel file (finalize_plan + write_files, any content) and open the project —
