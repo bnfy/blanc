@@ -553,10 +553,19 @@ function install(refs) {
         const label = document.getElementById('pillDomain');
         const chip = document.getElementById('pillSlash');
         if (!label) return null;
+        // The caret is gone (fbc8270): the prompt now carries its own motion,
+        // a bright band washing through the glyphs. Report the mechanism that
+        // actually ships in each branch — the animation plus whether the
+        // gradient is painting the text — so the guard can't be satisfied by
+        // deleting the affordance.
+        const cs = getComputedStyle(label);
+        const fill = cs.webkitTextFillColor || cs.color;
         return {
           text: label.textContent,
           placeholder: label.classList.contains('placeholder'),
-          caret: !!label.querySelector('.pill-caret'),
+          animation: cs.animationName,
+          gradientPainted: /rgba\\(0, 0, 0, 0\\)|transparent/.test(fill),
+          reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
           chipHidden: chip ? !!chip.hidden : null,
           chipLabel: chip ? chip.textContent : null,
         };
