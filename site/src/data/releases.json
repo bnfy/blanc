@@ -1,5 +1,306 @@
 [
   {
+    "tag": "v1.5.0",
+    "version": "1.5.0",
+    "name": "1.5.0",
+    "publishedAt": "2026-08-17T20:52:46.000Z",
+    "humanDate": "August 17, 2026",
+    "machineDate": "2026-08-17",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.5.0",
+    "anchor": "v1-5-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Reopen Closed Tab now gives the tab back rather than reopening its address. For thirty seconds after you close a tab, "
+                  },
+                  {
+                    "type": "code",
+                    "value": "Cmd/Ctrl+Shift+T"
+                  },
+                  {
+                    "type": "text",
+                    "value": " returns the page itself — the same view, with no reload, keeping scroll position, half-typed form text, video position, and pages that only exist because you submitted a form. After that window it restores from a snapshot instead: the address, the back and forward history, scroll position, group, pin, mute, and the tab's original place in the order."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Closing a group is one step to undo. "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/close-group"
+                  },
+                  {
+                    "type": "text",
+                    "value": " used to cost one keypress per tab to reverse; the whole group now comes back together, with its name, its members in their original order, its pins, and its position among your other groups."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The command panel lists what you recently closed. Open it with "
+                  },
+                  {
+                    "type": "code",
+                    "value": "Cmd/Ctrl+L"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and the last few closed tabs sit below your open ones, each reopening on click, so you can pick the one you meant instead of pressing "
+                  },
+                  {
+                    "type": "code",
+                    "value": "Cmd/Ctrl+Shift+T"
+                  },
+                  {
+                    "type": "text",
+                    "value": " repeatedly. A group entry shows how many tabs it holds."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "code",
+                    "value": "/reopen"
+                  },
+                  {
+                    "type": "text",
+                    "value": " joins the slash commands as another way to reach the same thing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A new tab now shows where to type. The resting island reads \"Search or type a URL\" with a band of light washing through the words, and typing anywhere on a blank tab opens the island with what you typed already entered. A "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/"
+                  },
+                  {
+                    "type": "text",
+                    "value": " chip beside the prompt opens the command list."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The start page offers three layouts, and first run walks through setup: theme, default browser, importing Favorites from another browser, and your privacy choices."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Privacy and compatibility",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Private tabs are excluded from all of this, exactly as before. They are never recorded as closed tabs, never held, and never reopenable."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A tab held for reopening is silenced and frozen the moment you close it. It cannot open windows, cannot navigate, and is refused every permission it asks for — including ones you previously granted that site — so a closed tab can never quietly acquire your microphone or camera. Tabs using the microphone or camera are never held at all; closing one ends its access immediately."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Pages reached by submitting a form are restored exactly for the thirty-second window and then re-fetched as an ordinary page load. Blanc never silently resubmits a form, so a payment or a submission cannot be replayed by reopening a tab."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Nothing about closed tabs is written to disk, session restore, Profile Sync, telemetry, or crash reports. The list lives in memory and ends with the app."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Reduced motion is honored on the new-tab prompt: the wash is replaced by a stronger resting ink rather than simply being removed."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Answering a permission prompt after closing its tab no longer grants or remembers that permission. Previously a prompt left open outlived the tab, and a late \"Allow\" saved a decision for a page that no longer existed — affecting every future visit to that site."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Quitting or relaunching on macOS no longer intermittently opens an Electron “Object has been destroyed” error dialog."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "macOS raises one \"change your default browser?\" dialog instead of two."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Onboarding buttons stay readable on hover."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Release verification",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The source gate includes 811 unit tests and 114 runnable desktop acceptance scenarios with 688 steps, covering closed-tab tier selection, the held-tab permission firewall, group-close undo, the new-tab prompt, and macOS shutdown visibility. Packaged verification exercises first run, release regressions, live favicon compatibility, and migration from public Stable v1.4.0."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Audio stopping when a held tab is closed, and the macOS microphone indicator clearing on close, were confirmed by hand on real hardware; the microphone result was independently corroborated against the operating system's own audio-device state."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "code",
+                    "value": "SHA256SUMS"
+                  },
+                  {
+                    "type": "text",
+                    "value": " is authenticated with a Sigstore bundle whose expected certificate identity is "
+                  },
+                  {
+                    "type": "code",
+                    "value": "anthony@bnfy.me"
+                  },
+                  {
+                    "type": "text",
+                    "value": " and whose expected OIDC issuer is "
+                  },
+                  {
+                    "type": "code",
+                    "value": "https://github.com/login/oauth"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Other platforms",
+        "blocks": [
+          {
+            "type": "paragraph",
+            "spans": [
+              {
+                "type": "text",
+                "value": "macOS Apple Silicon, signed Windows, and Linux are built from the same "
+              },
+              {
+                "type": "code",
+                "value": "v1.5.0"
+              },
+              {
+                "type": "text",
+                "value": " source tag and published with one signed SHA-256 manifest."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.4.0",
     "version": "1.4.0",
     "name": "1.4.0",
