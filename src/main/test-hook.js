@@ -116,6 +116,8 @@ function install(refs) {
     getPermissionPrompts,
     setSleepThresholdOverride,
     getSleepSnapshots,
+    getClosedEntries,
+    downgradeHeldEntry,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -1291,7 +1293,16 @@ function install(refs) {
       // A fresh tab first so closing the rest never empties the window.
       const keep = createTab(newTabUrl());
       setActiveTab(keep, { focusContent: false });
-      for (const id of [...tabs.keys()]) if (id !== keep) closeTab(id);
+      // A reset is not a user closing tabs: recording here would leak entries
+      // into the next scenario, and the last eligible close would park a live
+      // WebContentsView for the whole grace window — corrupting both the
+      // reopen list and the quiet-tabs renderer-count baseline.
+      for (const id of [...tabs.keys()]) if (id !== keep) closeTab(id, { record: false });
+      // Entries a scenario recorded through its own closes are cleared here,
+      // held view first: a parked renderer outlives the tab record.
+      const closed = getClosedEntries();
+      for (const entry of closed) if (entry.view) downgradeHeldEntry(entry);
+      closed.length = 0;
       getGroups().length = 0;
       history.clearHistory();
       for (const b of bookmarks.listBookmarks()) bookmarks.removeBookmark(b.id);

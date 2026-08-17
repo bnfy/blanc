@@ -3161,6 +3161,10 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     view.setVisible(true);
     tab.url = wc.getURL() || tab.url;
     tab.title = wc.getTitle() || tab.title;
+    // Every other re-derivation of this flag hangs off a navigation event, and
+    // an adoption performs none — leaving the heart drawn empty on a favorited
+    // page, where a click would delete the favorite instead of adding it.
+    tab.bookmarked = bookmarks.isBookmarked(tab.url);
     tab.canGoBack = wc.navigationHistory.canGoBack();
     tab.canGoForward = wc.navigationHistory.canGoForward();
   }
@@ -5667,6 +5671,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       sleepTab, wakeTab, runSleepSweep, sleepBackgroundTabsNow,
       getPermissionPrompts: () => rt().permissionPrompts,
       getSleepSnapshots: () => sleepSnapshots,
+      // The live array, mirroring getSleepSnapshots: reset() empties it in
+      // place. Entries never leave the main process — the hook only clears.
+      getClosedEntries: () => rt().closedEntries ??= [],
+      downgradeHeldEntry,
       setSleepThresholdOverride: (ms) => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
         return sleepThresholdOverrideMs;

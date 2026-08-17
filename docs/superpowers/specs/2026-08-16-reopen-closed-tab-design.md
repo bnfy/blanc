@@ -296,6 +296,12 @@ address. `favicon` **cannot** be resynchronized — Electron exposes favicon
 update events but no getter — so the park-time favicon is preserved on the
 entry and seeded back verbatim.
 
+**Errata (Task 4 review):** `bookmarked` joins that resynchronized list. It is
+re-derived from the restored `url` via the Favorites store, because every other
+re-derivation of it hangs off a navigation event and an adoption performs none —
+leaving the pill's heart drawn empty on a favorited page, where a click would
+delete the favorite rather than add it.
+
 ### 3.4 The held-state firewall
 
 A held page is still executing but has no tab record, so it must not be left
