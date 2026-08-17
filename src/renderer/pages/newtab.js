@@ -446,3 +446,30 @@ window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
 });
+
+// The pill's caret says keystrokes land somewhere. They do: a printable
+// character typed on a blank start page opens the island with that character
+// already in it.
+//
+// This lives in the renderer rather than a main-side before-input-event
+// because only the renderer knows what is focused — a main-side hook fires
+// before page dispatch and would steal keys from the onboarding dialog's own
+// controls. `target === document.body` is that check: a keystroke aimed at
+// any control has that control as its target.
+document.addEventListener('keydown', (e) => {
+  if (e.target !== document.body) return;
+  // ...and not while a modal is up. The onboarding dialog focuses its own
+  // Continue button when it opens, so target is that button and the check
+  // above is usually enough — but clicking any non-focusable part of the
+  // dialog (its body copy) puts activeElement back on <body>, and typing
+  // would then open the island BEHIND the modal. Matched by role rather
+  // than by id so a future modal is covered without touching this file.
+  if (document.querySelector('[role="dialog"][aria-modal="true"]:not([hidden])')) return;
+  if (!globalThis.blancTypeToOpen.isTypeToOpenKey(e, isMac)) return;
+  e.preventDefault();
+  // `?.` on the bridge matches the rest of this file — tab-preload only
+  // exposes bowserPages on the blanc: protocol. The gate is called directly:
+  // if type-to-open.js failed to load that is a build error worth surfacing,
+  // not something to swallow on every keystroke.
+  window.bowserPages?.start.openIsland(e.key);
+});
