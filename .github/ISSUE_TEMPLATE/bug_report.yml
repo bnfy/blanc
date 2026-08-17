@@ -1,0 +1,96 @@
+name: Bug report
+description: Something in Blanc is broken or behaves wrongly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this.
+
+        **Please don't report security vulnerabilities here** — this tracker is
+        public. Email support@blancbrowser.com instead.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you expected, and what Blanc did instead.
+      placeholder: I clicked the shield chip and the popover opened behind the page.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: |
+        The smallest sequence that shows the problem. If it only happens on a
+        particular site, name the site — most rendering and blocking bugs are
+        specific to one page.
+      placeholder: |
+        1. Open https://example.com
+        2. Press Cmd+L and type…
+        3. The Island…
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Blanc version
+      description: "Find it under **Blanc → About Blanc** (macOS) or **Help → About Blanc** (Windows and Linux)."
+      placeholder: "1.4.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: "macOS 26.1, Windows 11 23H2, Ubuntu 24.04…"
+    validations:
+      required: false
+
+  - type: input
+    id: site
+    attributes:
+      label: Site involved
+      description: If the problem happens on a specific page, its URL. Leave blank if it isn't site-specific.
+      placeholder: "https://www.example.com/article"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: blocking
+    attributes:
+      label: Does it still happen with ad blocking off?
+      description: |
+        Turn it off in Settings → Privacy & Security, or run `/allow-ads` to
+        allow ads on just this site. This one answer separates a blocking bug
+        from a browser bug, and usually saves a round trip.
+      options:
+        - "Haven't tried"
+        - "Yes — still happens with blocking off"
+        - "No — goes away with blocking off"
+        - "Not applicable"
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots, a screen recording, or console output all help. You can paste images straight in.
+    validations:
+      required: false

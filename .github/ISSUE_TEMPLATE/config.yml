@@ -1,0 +1,10 @@
+# Blank issues stay enabled: a report with no template is worth far more than
+# a report someone abandoned because no category fit.
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: mailto:support@blancbrowser.com
+    about: Report privately by email. This tracker is public — please don't file security issues here.
+  - name: Support question
+    url: mailto:support@blancbrowser.com
+    about: Trouble with an install, a licence key, or your account.
