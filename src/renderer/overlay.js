@@ -759,6 +759,7 @@
     { cmd: '/new', hint: 'Open a new tab', run: () => window.browserAPI.createTab(null, { focusAddress: false }) },
     { cmd: '/private', hint: 'Open a private tab (history stays untouched)', run: () => window.browserAPI.createTab(null, { private: true, focusAddress: false }) },
     { cmd: '/close', hint: 'Close this tab', run: () => state.activeTabId && window.browserAPI.closeTab(state.activeTabId) },
+    { cmd: '/reopen', hint: 'Reopen the tab you just closed', run: () => window.browserAPI.reopenClosedTab() },
     { cmd: '/pin', hint: 'Pin or unpin this tab', run: () => state.activeTabId && window.browserAPI.toggleTabPinned(state.activeTabId) },
     { cmd: '/mute', hint: 'Mute or unmute this tab', run: () => state.activeTabId && window.browserAPI.toggleTabMuted(state.activeTabId) },
     { cmd: '/sleep', hint: 'Quiet background tabs and free their memory', run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true, resultNotice: (quieted) => Array.isArray(quieted) && quieted.length === 0 ? 'No background tabs can be quieted right now.' : '' },

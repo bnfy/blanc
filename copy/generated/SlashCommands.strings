@@ -8,6 +8,7 @@
 "slash_new" = "Open a new tab";
 "slash_private" = "Open a private tab (history stays untouched)";
 "slash_close" = "Close this tab";
+"slash_reopen" = "Reopen the tab you just closed";
 "slash_pin" = "Pin or unpin this tab";
 "slash_mute" = "Mute or unmute this tab";
 "slash_sleep" = "Quiet background tabs and free their memory";

@@ -4081,6 +4081,7 @@ function registerIpcHandlers() {
     return id;
   });
   chromeHandle('tabs:close', (_e, id) => closeTab(id));
+  chromeHandle('tabs:reopen-closed', () => reopenClosedTab());
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
@@ -4495,6 +4496,7 @@ const SLASH_COMMANDS = [
   ['/new', 'Open a new tab'],
   ['/private', 'Open a private tab (history stays untouched)'],
   ['/close', 'Close this tab'],
+  ['/reopen', 'Reopen the tab you just closed'],
   ['/pin', 'Pin or unpin this tab'],
   ['/mute', 'Mute or unmute this tab'],
   ['/sleep', 'Quiet background tabs and free their memory'],
