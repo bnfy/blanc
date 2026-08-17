@@ -522,6 +522,55 @@ function install(refs) {
         };
       })()`);
     },
+    // ---- blank-tab affordance (F37) ----
+    // Read through the real chrome DOM rather than the tab model: the point
+    // of F37 is what the pill SHOWS, and a model-level proxy would pass even
+    // if the placeholder never rendered.
+    pillPlaceholderState() {
+      const wc = getChromeWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(`(() => {
+        const label = document.getElementById('pillDomain');
+        const chip = document.getElementById('pillSlash');
+        if (!label) return null;
+        return {
+          text: label.textContent,
+          placeholder: label.classList.contains('placeholder'),
+          caret: !!label.querySelector('.pill-caret'),
+          chipHidden: chip ? !!chip.hidden : null,
+          chipLabel: chip ? chip.textContent : null,
+        };
+      })()`);
+    },
+    clickPillSlash() {
+      const wc = getChromeWebContents();
+      if (!wc) throw new Error('chrome webContents unavailable');
+      return wc.executeJavaScript(`document.getElementById('pillSlash').click()`);
+    },
+    /** What the island's address input currently holds, per the renderer. */
+    overlayAddressValue() {
+      const wc = getOverlayWebContents();
+      if (!wc) return null;
+      return wc.executeJavaScript(
+        `document.getElementById('addressInput')?.value ?? null`,
+      );
+    },
+    /**
+     * Dispatch a real keydown on the active tab's page, as a person typing
+     * with the page focused would. Goes through the page's own listener and
+     * the pages:start:open-island channel — not a shortcut into main.
+     */
+    typeIntoActivePage(key) {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab?.view?.webContents;
+      if (!wc || wc.isDestroyed()) throw new Error('no live active tab');
+      wc.focus();
+      wc.sendInputEvent({ type: 'keyDown', keyCode: key });
+      wc.sendInputEvent({ type: 'char', keyCode: key });
+      wc.sendInputEvent({ type: 'keyUp', keyCode: key });
+      return true;
+    },
+
     // ---- shield popover (F12-6) ----
     // Real DOM clicks through the real chrome:open-shield / adblock IPC —
     // same end-to-end rationale as pillShieldState above.
