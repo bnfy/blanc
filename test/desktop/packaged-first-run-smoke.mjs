@@ -98,6 +98,37 @@ const executeOnStartPage = async (app, source) => {
   return page.evaluate((javascript) => globalThis.eval(javascript), source);
 };
 
+/**
+ * The three documents F37's cold-launch contract spans, read together so one
+ * poll observes a single coherent moment: the chrome strip, the island
+ * overlay, and the start page in the active tab.
+ */
+const readColdLaunchIsland = async (app) => {
+  const chrome = app.pages().find((candidate) => candidate.url() === 'blanc-chrome://index/');
+  const overlay = app.pages().find((candidate) => candidate.url() === 'blanc-chrome://overlay/');
+  const start = app.pages().find((candidate) => candidate.url().startsWith('blanc://newtab'));
+  if (!chrome || !overlay || !start) {
+    // A startup tab that is not the blank page leaves no start page to read.
+    // Report every document instead, or the timeout says only "null" and
+    // reads as "the app never launched".
+    return { startUrl: null, documents: app.pages().map((candidate) => candidate.url()) };
+  }
+  return {
+    startUrl: start.url(),
+    // Placeholder mode is the chrome's own statement that the ACTIVE tab is
+    // blank. A start page that merely exists — behind another tab, or in
+    // another window — does not put the pill here.
+    pillPlaceholder: await chrome.evaluate(
+      () => document.getElementById('pillDomain')?.classList.contains('placeholder') ?? null,
+    ),
+    // '' before the overlay has ever been shown, and again after every hide.
+    islandMode: await overlay.evaluate(() => document.body.dataset.mode || null),
+    islandValue: await overlay.evaluate(
+      () => document.getElementById('addressInput')?.value ?? null,
+    ),
+  };
+};
+
 await withPackagedApp({ label: 'packaged-first-run' }, async ({ app, userDataDir }) => {
   const initial = await poll(
     () => readStartPage(app),
@@ -152,6 +183,73 @@ await withPackagedApp({ label: 'packaged-first-run' }, async ({ app, userDataDir
     (state) => state?.startupHidden === true,
     'cold-online blocker initialization did not release browsing',
     60_000
+  );
+});
+
+// F37 — the blank tab's typing affordance, on the tab the process opened for
+// itself rather than one the test made. The acceptance scenario reconstructs
+// its starting state through the test hook, so it would keep passing if the
+// startup tab stopped being blank or something started opening the island on
+// the way in; this observes the real thing, and in the form users get it —
+// packaged, where type-to-open.js is served from inside the asar and the
+// test hook does not exist (main.js gates it on !app.isPackaged), so the
+// three chrome documents are read directly.
+//
+// The other half of that startup contract — that page content, not the
+// island, holds focus — is not observable from here. See the note at the
+// keystroke below, and cold-launch-smoke.mjs.
+await withPackagedApp({
+  label: 'packaged-blank-tab-affordance',
+  prepare: async (userDataDir) => {
+    // A returning user's cold launch, which is the only one this contract can
+    // hold for: the first-run dialog is modal, and type-to-open deliberately
+    // refuses to fire behind a modal (newtab.js checks for an open
+    // [role=dialog][aria-modal=true]).
+    //
+    // usagePing is declined because this is a PACKAGED launch and a complete
+    // onboarding marker releases the launch ping — an unattended test run
+    // must not report itself to the production telemetry endpoint as an
+    // active user. Everything else stays at its default, blocking included,
+    // so the startup navigation gate is installed exactly as it is in a real
+    // launch.
+    fs.writeFileSync(
+      path.join(userDataDir, 'settings.json'),
+      JSON.stringify({ onboardingVersion: 1, usagePing: false }),
+    );
+  },
+}, async ({ app }) => {
+  const cold = await poll(
+    () => readColdLaunchIsland(app),
+    (state) => state?.pillPlaceholder === true,
+    'the cold-launch startup tab did not present a blank island',
+  );
+  // 1. The tab the process opened for itself is blank.
+  assert.equal(cold.startUrl, 'blanc://newtab/', 'the startup tab must be the blank start page');
+  // 2. Nothing has opened the island on the way in. This is the precondition
+  //    that makes the typing assertion below mean anything: Cmd/Ctrl+T passes
+  //    focusAddress: true and would open the island itself.
+  assert.equal(cold.islandMode, null, 'a cold launch must leave the island closed');
+
+  // 3. Typing lands somewhere, which is what the caret promises: a real key
+  //    event through the page's own listener, the blanc: preload bridge,
+  //    main's validator and the overlay — every hop in its packaged form,
+  //    including type-to-open.js being served out of the asar.
+  //
+  //    Which VIEW holds focus is deliberately not asserted here, and this
+  //    keystroke does not prove it: a CDP key event goes straight to its
+  //    target's widget rather than being routed by focus, and in a renderer
+  //    document.hasFocus() reports window activation, so all three documents
+  //    read as focused. Both were measured against a build with focusContent
+  //    flipped to false and were identical to the correct build's, so an
+  //    assertion on either would be decoration. Focus is truthful only in the
+  //    browser process, which a packaged build does not expose — it is
+  //    asserted on an unpackaged cold launch in cold-launch-smoke.mjs.
+  const start = app.pages().find((candidate) => candidate.url().startsWith('blanc://newtab'));
+  await start.keyboard.press('g');
+  await poll(
+    () => readColdLaunchIsland(app),
+    (state) => state?.islandMode === 'panel' && state.islandValue === 'g',
+    'typing on the cold-launched blank tab did not open the island with that character',
   );
 });
 
