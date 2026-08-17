@@ -308,30 +308,19 @@
     return tabDomain(tab) ? 'domain' : 'placeholder';
   }
 
-  // The placeholder is DOM (a caret element), not a string, so it must be
-  // built only on the transition INTO placeholder mode. tabs:updated arrives
-  // ~10/s while any tab loads; rebuilding the caret on each broadcast
-  // restarts its animation and the four-blink cue becomes a permanent blink.
-  // Same reason dotsSignature guards the dot row.
-  //
-  // Consequence, accepted: switching between two blank tabs does not re-blink,
-  // because the pill never leaves placeholder mode. The caret marks the pill
-  // becoming a typing target, not every tab switch.
-  let labelMode = null;
+  // No transition guard here, deliberately. The placeholder's motion is a CSS
+  // animation on #pillDomain itself — an element that is never recreated — so
+  // the ~10/s tabs:updated broadcasts cannot restart it. (The caret this
+  // replaced WAS a child element, and rebuilding it each broadcast did restart
+  // its animation, which is what the removed guard existed for.) Writing
+  // textContent replaces a text node inside the animated element; it does not
+  // touch the animation. classList.toggle with an unchanged force value is a
+  // no-op, so the class does not churn either.
   function renderPillLabel(tab) {
     const next = pillLabelMode(tab);
-    if (next !== labelMode) {
-      labelMode = next;
-      pillDomain.replaceChildren();
-      if (next === 'placeholder') {
-        const caret = document.createElement('span');
-        caret.className = 'pill-caret';
-        pillDomain.append(caret, 'Search or type a URL');
-      }
-    }
-    // The domain changes without the mode changing, so this is unconditional.
-    if (next === 'loading') pillDomain.textContent = 'Loading…';
-    else if (next === 'domain') pillDomain.textContent = tabDomain(tab);
+    pillDomain.textContent = next === 'loading' ? 'Loading…'
+      : next === 'domain' ? tabDomain(tab)
+        : 'Search or type a URL';
     pillDomain.classList.toggle('dim', next === 'loading');
     pillDomain.classList.toggle('placeholder', next === 'placeholder');
     pillSlash.hidden = next !== 'placeholder';

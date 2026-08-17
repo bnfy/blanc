@@ -47,41 +47,60 @@ test('only a blank tab gets the placeholder', () => {
   assert.equal(runMode(LOADING), 'loading');
 });
 
-test('the placeholder DOM is rebuilt only on a mode change', () => {
-  // tabs:updated arrives ~10/s while anything loads. Rebuilding the caret on
-  // every broadcast restarts its animation, turning the 4-blink cue into a
-  // permanent blink — the exact thing the design rejected.
+// The caret this replaced was a child ELEMENT, so rebuilding it on every
+// tabs:updated restarted its animation and a guard was needed. The wash is a
+// CSS animation on #pillDomain itself, which is never recreated — writing
+// textContent does not touch it. Keeping the guard would have preserved a
+// mechanism whose reason had gone.
+test('the label render carries no stale rebuild guard', () => {
   const fn = rendererSource.match(/function renderPillLabel\(tab\) \{[\s\S]*?\n  \}/)?.[0];
   assert.ok(fn, 'renderPillLabel not found in renderer.js — update this test with it');
-  assert.match(fn, /next !== labelMode/,
-    'renderPillLabel must guard its rebuild on a mode transition');
-  assert.match(fn, /replaceChildren/);
+  assert.doesNotMatch(fn, /labelMode/, 'the caret-era transition guard should be gone');
+  assert.doesNotMatch(fn, /createElement/, 'the placeholder is text, not a child element');
+  assert.match(fn, /classList\.toggle\('placeholder'/);
 });
 
-test('the caret blinks a bounded number of times and then rests visible', () => {
-  const caret = styles.match(/\.pill-caret \{[\s\S]*?\}/)?.[0];
-  assert.ok(caret, '.pill-caret rule not found in styles.css');
-  // Four iterations, not infinite: the pill sits above every page.
-  assert.match(caret, /animation:\s*pill-caret-blink[^;]*\s4;/);
-  assert.doesNotMatch(caret, /infinite/);
-  // animation-fill-mode: forwards would freeze it on the keyframe's final
-  // opacity: 0 and leave no caret at all. Reverting to the default is the
-  // wanted resting state.
-  assert.doesNotMatch(caret, /forwards/);
-  assert.match(styles, /@keyframes pill-caret-blink/);
+test('nothing of the caret survives', () => {
+  assert.doesNotMatch(styles, /pill-caret/, '.pill-caret rules must be removed');
+  assert.doesNotMatch(rendererSource, /pill-caret/, 'renderer must not build a caret');
+  assert.doesNotMatch(indexHtml, /pill-caret/);
 });
 
-test('reduced motion drops the animation', () => {
+test('the placeholder washes left to right, forever', () => {
+  const rule = styles.match(/#pillDomain\.placeholder \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(rule, '#pillDomain.placeholder rule not found in styles.css');
+  // Loops rather than running a bounded count: a new tab's first seconds are
+  // spent looking down at the favorites, and a sweep that ends before the eye
+  // comes back up teaches nothing.
+  assert.match(rule, /animation:\s*pill-placeholder-wash[^;]*infinite;/);
+  // The band is painted into the glyphs, not behind them.
+  assert.match(rule, /background-clip:\s*text/);
+  assert.match(rule, /-webkit-text-fill-color:\s*transparent/);
+
+  // Direction. background-position DECREASES across the keyframes, which
+  // slides the oversized gradient rightward and carries the bright band
+  // left→right over the text. An increasing range would run right→left.
+  const frames = styles.match(/@keyframes pill-placeholder-wash \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(frames, '@keyframes pill-placeholder-wash not found');
+  const from = Number(frames.match(/from \{ background-position: (-?[\d.]+)%/)[1]);
+  const to = Number(frames.match(/to \{ background-position: (-?[\d.]+)%/)[1]);
+  assert.ok(from > to, `wash must run left→right (from ${from}% down to ${to}%)`);
+});
+
+test('reduced motion stops the wash and leaves a stronger resting ink', () => {
   const reduced = styles.match(/@media \(prefers-reduced-motion: reduce\) \{[\s\S]*?\n\}/g) ?? [];
-  assert.ok(
-    reduced.some((block) => /\.pill-caret\s*\{[^}]*animation:\s*none/.test(block)),
-    'no prefers-reduced-motion rule disabling .pill-caret',
-  );
+  const block = reduced.find((b) => /#pillDomain\.placeholder/.test(b));
+  assert.ok(block, 'no prefers-reduced-motion rule for the placeholder');
+  assert.match(block, /animation:\s*none/);
+  // With the caret gone, falling back to plain --text-dim would restore the
+  // flat label this whole change exists to get away from.
+  assert.match(block, /color:\s*color-mix\(/, 'must rest at a stronger ink than --text-dim');
+  assert.doesNotMatch(block, /color:\s*var\(--text-dim\)\s*;/);
 });
 
 test('pill children counter-scale against the pill zoom', () => {
   // #islandPill sets zoom: var(--pill-zoom); a raw px value renders 1.15x.
-  for (const rule of ['.pill-caret', '.pill-slash']) {
+  for (const rule of ['.pill-slash']) {
     const block = styles.match(new RegExp(`\\${rule} \\{[\\s\\S]*?\\}`))?.[0];
     assert.ok(block, `${rule} rule not found in styles.css`);
     assert.match(block, /var\(--pill-zoom\)/, `${rule} must counter-scale its px values`);
