@@ -16,6 +16,7 @@
   const pillActions = document.getElementById('pillActions');
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
+  const pillSlash = document.getElementById('pillSlash');
   const pillShield = document.getElementById('pillShield');
   const pillShieldCount = document.getElementById('pillShieldCount');
   const pillCapture = document.getElementById('pillCapture');
@@ -301,6 +302,41 @@
   }
 
 
+  /** Which of the three things the pill's label is showing right now. */
+  function pillLabelMode(tab) {
+    if (tab?.isLoading) return 'loading';
+    return tabDomain(tab) ? 'domain' : 'placeholder';
+  }
+
+  // The placeholder is DOM (a caret element), not a string, so it must be
+  // built only on the transition INTO placeholder mode. tabs:updated arrives
+  // ~10/s while any tab loads; rebuilding the caret on each broadcast
+  // restarts its animation and the four-blink cue becomes a permanent blink.
+  // Same reason dotsSignature guards the dot row.
+  //
+  // Consequence, accepted: switching between two blank tabs does not re-blink,
+  // because the pill never leaves placeholder mode. The caret marks the pill
+  // becoming a typing target, not every tab switch.
+  let labelMode = null;
+  function renderPillLabel(tab) {
+    const next = pillLabelMode(tab);
+    if (next !== labelMode) {
+      labelMode = next;
+      pillDomain.replaceChildren();
+      if (next === 'placeholder') {
+        const caret = document.createElement('span');
+        caret.className = 'pill-caret';
+        pillDomain.append(caret, 'Search or type a URL');
+      }
+    }
+    // The domain changes without the mode changing, so this is unconditional.
+    if (next === 'loading') pillDomain.textContent = 'Loading…';
+    else if (next === 'domain') pillDomain.textContent = tabDomain(tab);
+    pillDomain.classList.toggle('dim', next === 'loading');
+    pillDomain.classList.toggle('placeholder', next === 'placeholder');
+    pillSlash.hidden = next !== 'placeholder';
+  }
+
   function setFavicon(el, tab, base = 'favicon') {
     el.className = base + (tab?.isLoading ? ' loading' : '');
     el.style.backgroundImage = '';
@@ -567,10 +603,7 @@
     }
 
     setFavicon(pillFavicon, tab);
-    pillDomain.textContent = tab?.isLoading
-      ? 'Loading…'
-      : tabDomain(tab) || (tab?.private ? 'private tab' : 'new tab');
-    pillDomain.classList.toggle('dim', !!tab?.isLoading);
+    renderPillLabel(tab);
 
     // tab.connection is main's single derivation (null while loading, so the
     // old page's security state can't linger under a "Loading…" domain).

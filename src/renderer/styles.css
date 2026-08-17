@@ -1071,6 +1071,53 @@ body.mac .vertical-tabs-toolbar {
 }
 #pillDomain.dim { color: var(--text-dim); }
 
+/* A blank tab's pill is a typing affordance, not a label. Dim ink is what
+   separates a placeholder from real content — a prompt and a domain in the
+   same ink read as the same kind of thing, which is how "new tab" came to
+   look like the name of the tab rather than an invitation. */
+#pillDomain.placeholder { color: var(--text-dim); }
+
+/* Blinks four times, then rests visible. Deliberately not forever: the pill
+   sits above every page, and motion that never resolves in always-on chrome
+   is a long-term irritant. No animation-fill-mode — when the animation ends
+   the element reverts to its default (visible) opacity, which is exactly the
+   resting state wanted; `forwards` would freeze it on the keyframe's 0 and
+   leave no caret at all. */
+.pill-caret {
+  display: inline-block;
+  width: 1px;
+  height: calc(13px / var(--pill-zoom));
+  margin-right: calc(4px / var(--pill-zoom));
+  background: var(--text);
+  vertical-align: text-bottom;
+  animation: pill-caret-blink 1.1s steps(1, end) 4;
+}
+@keyframes pill-caret-blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill-caret { animation: none; }
+}
+
+/* The "/" chip — a real button that opens the panel showing the command
+   list. Mono because the slash palette it opens is mono. A bare "/" cannot
+   say what it does, so clicking it shows you instead. */
+.pill-slash {
+  font-family: var(--font-mono);
+  font-size: calc(10px / var(--pill-zoom));
+  line-height: calc(15px / var(--pill-zoom));
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: calc(5px / var(--pill-zoom));
+  padding: 0 calc(5px / var(--pill-zoom));
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+.pill-slash:hover { color: var(--accent); border-color: var(--accent); }
+.pill-slash[hidden] { display: none; }
+
 [data-theme="private"] #islandPill { border: 1px dashed var(--text-dim); }
 
 /* Quick exit chips — clicking one closes the tab. Shared geometry; the
