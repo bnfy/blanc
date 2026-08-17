@@ -33,11 +33,13 @@ on divergence, user directive 2026-07-10).
   the demo now passes `capture={{audio,video}}` and a quiet MDN tab — the component supported both states
   but the card exercised neither, so they were invisible.
 
-## DS push-back queue (from the 2026-08-16/17 newtab build — PR pending)
+## DS push-back queue — ✅ DONE 2026-08-17 (after PR #140 squash-merged as 0fea28e)
 
-The "New tab v2 + onboarding" handoff shipped with approved deviations that the
-DS (handoff README + `NewtabOnboarding.dc.html` + the `newtabLayout` prop docs)
-should be updated to match, in a design-sync run after the feature merges:
+Pushed to the DS: `design_handoff_newtab_onboarding/README.md` rewritten to the
+shipped contract with a PORTED banner and the ten deviations enumerated (island
+PORT-CHECKLIST precedent); `NewtabOnboarding.dc.html` marked as the pre-port
+historical prototype (its `newtabLayout` prop options already matched, no
+change needed); sentinel re-armed. The deviations that were queued:
 
 - The dialog is SIX steps: privacy consent (the old first-run card's two
   choices) is step 5, between ad blocking and theme; header reads `{i} / 6`.
