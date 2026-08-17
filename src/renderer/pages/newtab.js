@@ -359,8 +359,11 @@ function renderBillboard() {
     ? 'nothing here is saved · nothing followed you home'
     : `${state.blockedThisWeek.toLocaleString()} ads blocked this week · nothing followed you home`;
 
+  // Empty sections disappear entirely — an empty flex row would still hold
+  // its margin, leaving a silent gap where a section pretends to be.
   const favs = document.getElementById('bbFavorites');
   favs.replaceChildren();
+  favs.hidden = !state.favorites.length;
   for (const b of state.favorites.slice(0, 6)) {
     const item = document.createElement('a');
     item.className = 'bb-fav';
@@ -377,6 +380,7 @@ function renderBillboard() {
 
   const groups = document.getElementById('bbGroups');
   groups.replaceChildren();
+  groups.hidden = !state.groups.length;
   for (const g of state.groups) groups.appendChild(groupChip(g));
 }
 
@@ -386,6 +390,7 @@ function renderShelf() {
 
   const grid = document.getElementById('shFavorites');
   grid.replaceChildren();
+  grid.hidden = !state.favorites.length;
   for (const b of state.favorites.slice(0, 8)) {
     const tileLink = document.createElement('a');
     tileLink.className = 'shelf-tile';
@@ -407,6 +412,9 @@ function renderShelf() {
 
   const groups = document.getElementById('shGroups');
   groups.replaceChildren();
+  // The whole "pick up where you left off" card goes, not just its chips —
+  // a labeled empty card is an empty state with copy, which the spec forbids.
+  groups.closest('.shelf-card').hidden = !state.groups.length;
   for (const g of state.groups) groups.appendChild(groupChip(g, { withCount: true }));
 }
 
@@ -416,13 +424,17 @@ function renderTally() {
 
   const favs = document.getElementById('tlFavorites');
   favs.replaceChildren();
+  favs.hidden = !state.favorites.length;
+  // A label above an empty list would name nothing (and unlike the ledger,
+  // this column adds no "♥ a page…" hint — no copy on the new layouts).
+  document.querySelector('.tally-label').hidden = !state.favorites.length;
   for (const b of state.favorites.slice(0, 5)) favs.appendChild(favRow(b));
 
   const groups = document.getElementById('tlGroups');
   groups.replaceChildren();
-  for (const g of state.groups) groups.appendChild(groupChip(g));
-  // The label above an empty chip row would name nothing.
+  groups.hidden = !state.groups.length;
   document.querySelector('.tally-label-groups').hidden = !state.groups.length;
+  for (const g of state.groups) groups.appendChild(groupChip(g));
 
   // Bars run oldest to newest so today lands last, under its own initial.
   const chart = document.getElementById('tlChart');

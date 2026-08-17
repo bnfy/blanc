@@ -1295,9 +1295,19 @@ body:not([data-layout="ledger"]) .ledger-footer {
 /* The clock is exactly 148px at any normal window; the clamp only bites in
    windows too narrow to hold "12:58 pm" at full size. */
 .bb-clock { font-size: clamp(64px, 14vw, 148px); }
-/* All four footers may wrap: the switcher is the widest thing the footer
-   has ever held, and a nowrap row would force the ledger wide at ~420px. */
-.ledger-footer { flex-wrap: wrap; row-gap: 4px; }
+/* The switcher must sit at the TRUE horizontal center: with space-between
+   flex it only looks centered when the side items happen to match widths
+   ("...this week v1.4.0" vs "⌘L to go anywhere" do not). A 1fr auto 1fr grid
+   centers the middle column geometrically, whatever the sides weigh. */
+.ledger-footer { display: grid; grid-template-columns: 1fr auto 1fr; }
+.ledger-footer .footer-left,
+.ledger-footer > #footerLeft { justify-self: start; }
+.ledger-footer .layout-switcher { justify-self: center; }
+.ledger-footer > #goAnywhere { justify-self: end; }
+/* Too narrow for one row: wrap as centered lines instead (no overflow). */
+@media (max-width: 760px) {
+  .ledger-footer { display: flex; flex-wrap: wrap; justify-content: center; row-gap: 4px; }
+}
 
 @media (max-width: 960px) {
   .shelf { left: 48px; right: 48px; }

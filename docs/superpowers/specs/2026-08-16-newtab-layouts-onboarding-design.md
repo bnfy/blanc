@@ -82,6 +82,11 @@ after shipping, via the established design-sync flow — the DS follows code.
   and billboard rows wrap, the clock clamps only below the width that fits it,
   and under 960px the shelf insets shrink (grid → 2 columns) while tally's
   fixed columns stack. At any normal window every transcribed value is intact.
+- **The footer switcher is geometrically centered** (user directive,
+  2026-08-16): the footer is a `1fr auto 1fr` grid, not space-between flex —
+  flex only fakes centering when the side items happen to weigh the same,
+  and "…this week v1.4.0" vs "⌘L to go anywhere" do not. Below 760px the
+  footer wraps as centered lines instead.
 - **Billboard icons sit on an even rhythm** (user directive, 2026-08-16):
   each favorite occupies a fixed 96px slot, so icon centers are equidistant
   regardless of label length — with real sites ("benjaminmoore" beside
