@@ -363,6 +363,7 @@ if [ -n "$WORKFLOW_PLATFORM" ]; then
   EXPECTED_RUN_TITLE="Release $TAG ($WORKFLOW_PLATFORM)"
   gh workflow run release-windows-linux.yml \
     --repo "$REPO" \
+    -f mode=release \
     -f tag="$TAG" \
     -f platform="$WORKFLOW_PLATFORM"
 

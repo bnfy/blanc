@@ -41,6 +41,28 @@ This is a human-gated workflow with two supported interactive operator modes:
 Background/non-interactive releases are forbidden. Agent mode is explicit so
 no agent should spoof `TERM_PROGRAM` to bypass the operator check.
 
+### Private Windows validation before a hotfix release
+
+When a Windows fix needs affected-machine confirmation, build a signed
+candidate without creating a tag, draft, or public updater entry:
+
+```sh
+gh workflow run release-windows-linux.yml \
+  --repo bnfy/blanc \
+  --ref <candidate-branch> \
+  -f mode=validation \
+  -f platform=windows
+```
+
+The Windows runner applies the normal fail-closed signing, timestamp, fuse, and
+artifact checks, then stores the installer, blockmap, signature record, and
+`latest.yml` together as a private GitHub Actions artifact for three days.
+Validation mode cannot upload to a GitHub Release and never runs the Linux job.
+Install that candidate on the affected Windows machine and get the user's
+explicit confirmation before merging, tagging, or starting the public release.
+The public release path is separate: `scripts/release.sh` explicitly dispatches
+the workflow with `mode=release`.
+
 Before starting, unlock the 1Password desktop app and ensure `gh auth status`
 succeeds in the selected operator environment. Do not fetch or paste either
 secret and do not run a separate sign-in flow: `release.sh` owns both 1Password

@@ -1,5 +1,5 @@
 name: Release Windows & Linux
-run-name: Release ${{ inputs.tag }} (${{ inputs.platform }})
+run-name: ${{ inputs.mode == 'validation' && 'Validate' || 'Release' }} ${{ inputs.mode == 'validation' && github.ref_name || inputs.tag }} (${{ inputs.platform }})
 
 # electron-builder's Windows (NSIS) and Linux (AppImage) targets are built
 # here rather than locally, since `scripts/release.sh` runs on a macOS dev
@@ -10,9 +10,17 @@ run-name: Release ${{ inputs.tag }} (${{ inputs.platform }})
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Release tag to build and upload to (e.g. v0.9.1)"
+      mode:
+        description: "Release to GitHub, or build a private signed validation artifact"
         required: true
+        default: release
+        type: choice
+        options:
+          - release
+          - validation
+      tag:
+        description: "Release tag to build and upload to (required in release mode)"
+        required: false
       platform:
         description: "Platform jobs to run"
         required: true
@@ -35,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ inputs.tag }}
+          ref: ${{ inputs.mode == 'release' && inputs.tag || github.ref }}
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
@@ -44,11 +52,14 @@ jobs:
       - run: npm ci
 
       - name: Verify tag matches package version
+        if: ${{ inputs.mode == 'release' }}
         shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          [ "v$VERSION" = "${{ inputs.tag }}" ] || {
-            echo "Tag/version mismatch: ${{ inputs.tag }} vs package $VERSION" >&2
+          [ "v$VERSION" = "$RELEASE_TAG" ] || {
+            echo "Tag/version mismatch: $RELEASE_TAG vs package $VERSION" >&2
             exit 1
           }
 
@@ -150,6 +161,7 @@ jobs:
           $attestation | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
 
       - name: Upload to release
+        if: ${{ inputs.mode == 'release' }}
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -164,6 +176,7 @@ jobs:
             --repo "${{ github.repository }}"
 
       - name: Attest Windows release artifacts
+        if: ${{ inputs.mode == 'release' }}
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: |
@@ -172,8 +185,21 @@ jobs:
             dist/windows-signature.json
             dist/latest.yml
 
+      - name: Upload private signed Windows validation artifact
+        if: ${{ inputs.mode == 'validation' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: Blanc-Windows-${{ github.run_id }}-validation
+          if-no-files-found: error
+          retention-days: 3
+          path: |
+            dist/Blanc-Setup-*.exe
+            dist/Blanc-Setup-*.exe.blockmap
+            dist/windows-signature.json
+            dist/latest.yml
+
   linux:
-    if: ${{ inputs.platform == 'all' || inputs.platform == 'linux' }}
+    if: ${{ inputs.mode == 'release' && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -187,10 +213,12 @@ jobs:
       - run: npm ci
 
       - name: Verify tag matches package version
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          [ "v$VERSION" = "${{ inputs.tag }}" ] || {
-            echo "Tag/version mismatch: ${{ inputs.tag }} vs package $VERSION" >&2
+          [ "v$VERSION" = "$RELEASE_TAG" ] || {
+            echo "Tag/version mismatch: $RELEASE_TAG vs package $VERSION" >&2
             exit 1
           }
 
