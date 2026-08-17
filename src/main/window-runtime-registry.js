@@ -37,8 +37,9 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     glanceTabId: null,
     glanceRatio: DEFAULT_GLANCE_RATIO,
     /** Reopen-closed history belongs to this native workspace, not the app
-     * process. Entries remain memory-only, matching the pre-M2 behavior. */
-    recentlyClosedUrls: [],
+     * process. Entries remain memory-only, matching the pre-M2 behavior, and
+     * the newest may hold the closed tab's still-live view (spec §2.1). */
+    closedEntries: [],
     // The island's expanded states (command bar, ⌘L palette, find capsule)
     // render in a separate always-on-top WebContentsView so they float OVER
     // the web content instead of growing the strip and shifting content

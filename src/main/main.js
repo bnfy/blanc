@@ -3036,7 +3036,7 @@ initTabView({
   notePopupChild,
 });
 
-function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null } = {}) {
+function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = null, view = null, pinned = false, muted = false, restoreHistory = null, openerTabId = null, asleep = false, title = null, favicon = null, adoptView = null } = {}) {
   if (isForbiddenTopLevelUrl(url)) url = NEW_TAB_URL;
   if (isUtilityUrl(url)) {
     // Utility pages never become tabs regardless of caller (external
@@ -3061,10 +3061,15 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // already constructed by Chromium with the opener relationship wired up;
   // everything else gets a fresh one.
   const adopted = !!view;
+  // A Tier 0 reopen hands back the view parked at close: a live document that
+  // predates this record. It is `adopting`, never `adopted` — there is no
+  // opener relationship, so none of the window.open family rules apply.
+  const adopting = !adopted && !!adoptView;
+  if (adopting) view = adoptView;
   // Session restore builds every tab quiet: no view, renderer process, or
   // navigation — only the record the chrome draws. An adopted child is
   // already live and can never be born quiet.
-  const bornQuiet = asleep && !adopted;
+  const bornQuiet = asleep && !adopted && !adopting;
   if (!bornQuiet) view ??= createTabView({
     private: isPrivate,
     profileId: owner.profileId,
@@ -3144,13 +3149,28 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   const wc = view.webContents;
   tabIdByWebContentsId.set(wc.id, id);
+  if (adopting) wc.removeAllListeners(); // strip the held firewall; wireTabView reinstalls
   wireTabView(tab, view, { owner, adopted });
 
+  if (adopting) {
+    // The document predates this record (§3.3): re-attach chrome's listener
+    // set, wake the audio path (wireTabView only ever mutes), and resync
+    // what the island paints. Favicon stays the park-time value — Electron
+    // has favicon events but no getter.
+    wc.setAudioMuted(effectiveTabMuted(tab));
+    view.setVisible(true);
+    tab.url = wc.getURL() || tab.url;
+    tab.title = wc.getTitle() || tab.title;
+    tab.canGoBack = wc.navigationHistory.canGoBack();
+    tab.canGoForward = wc.navigationHistory.canGoForward();
+  }
   // Load failures surface via the did-fail-load handler above; the
   // rejected promise here is the same event and must not crash main.
   // Adopted window.open children are loaded by Chromium itself as part of
-  // the window-open dance — a competing loadURL here would cancel it.
-  if (!adopted) {
+  // the window-open dance — a competing loadURL here would cancel it. An
+  // adopting Tier 0 reopen already has its document; navigating would throw
+  // away exactly the live state the hold existed to keep.
+  if (!adopted && !adopting) {
     // navigationHistory.restore() performs its own navigation and must be
     // the tab's first — used by duplicateTab below instead of a plain
     // loadURL when the source tab has real back/forward history to clone.
@@ -3400,26 +3420,83 @@ function activateTabFromRail(id) {
   return true;
 }
 
+// One list per window runtime, newest last. At most one entry holds a live
+// view; a newer hold downgrades the incumbent rather than being refused
+// (§2.1), and eviction destroys any view it pushes out (§5.4).
+function pushClosedEntry(entry) {
+  const list = rt().closedEntries ??= [];
+  if (entry.view) {
+    for (const existing of list) if (existing.view) downgradeHeldEntry(existing);
+  }
+  list.push(entry);
+  while (list.length > MAX_CLOSED_ENTRIES) {
+    const evicted = list.shift();
+    if (evicted.view) downgradeHeldEntry(evicted);
+  }
+  scheduleMenuRebuild();
+}
+
+/** Group restore arrives with the atomic group close (spec §2.2); until then
+ *  no entry of kind 'group' is ever recorded, so this is unreachable. It sits
+ *  ABOVE the close/reopen pair on purpose: close-tab-shutdown.test.js lifts
+ *  closeTab by slicing to the next `function reopenClosedTab()`, so nothing
+ *  may be inserted between those two. */
+function reopenGroupEntry() {}
+
 function closeTab(id) {
+  const { record = true, selectReplacement = true } = arguments[1] ?? {};
   // First statement: any later early return must not strand recovery data.
-  const retainedView = sleepSnapshots.get(id)?.view ?? null;
+  const sleepRecord = sleepSnapshots.get(id) ?? null;
+  const retainedView = sleepRecord?.view ?? null;
   sleepSnapshots.delete(id);
   // A user close during a sleep teardown wins: do not rewire a tab going away.
   sleepTeardownInProgress = false;
   const tab = tabs.get(id);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   forgetTabWebContentsIds(id);
+
+  // Capture the prompt condition BEFORE cancelling — cancellation erases the
+  // evidence the tier check reads (§5.1b).
+  const promptPending = permissionPendingTabIds().has(id);
   cancelPermissionPromptsForTab(id);
 
-  // Closed private tabs are gone — reopen-closed-tab must not resurrect them.
-  // A failed provisional navigation can leave a non-string value in the
-  // model during WebContents teardown. Closing that tab must not take down the
-  // main process while deciding whether it is eligible for reopen-closed-tab.
-  const tabUrl = typeof tab.url === 'string' ? tab.url : '';
-  if (tabUrl && !tab.private && !tabUrl.startsWith('blanc://newtab')) {
-    const recentlyClosed = rt().recentlyClosedUrls ??= [];
-    recentlyClosed.push(tabUrl);
-    if (recentlyClosed.length > 25) recentlyClosed.shift();
+  const closedIndex = rt().tabOrder.indexOf(id);
+  let parked = false;
+  if (record && !isQuitting && !rt().closing) {
+    // Snapshot: field-copy from the sleep record (its view is NOT ours to
+    // take — the storage-bearing quiet path leaves a live view there, §2.1),
+    // else shape one from the live navigation history.
+    let snapshot = null;
+    if (sleepRecord) {
+      snapshot = { entries: sleepRecord.entries, index: sleepRecord.index, droppedPageState: sleepRecord.droppedPageState };
+    } else {
+      try {
+        const nav = liveContents(tab)?.navigationHistory;
+        if (nav) snapshot = trimSnapshot(nav.getAllEntries(), nav.getActiveIndex(), { private: !!tab.private });
+      } catch {}
+    }
+    snapshot = sanitizeSnapshot(snapshot, { restorableCommit: tab.restorableCommit === true });
+
+    const openerAlive = !!(tab.openerTabId && tabs.has(tab.openerTabId));
+    let hasManagedChild = false;
+    for (const other of tabs.values()) {
+      if (other.openerTabId === id) { hasManagedChild = true; break; }
+    }
+    // Private tabs, blank newtabs, and unusable URLs refuse here — the single
+    // recording gate, deliberately not duplicated at any call site.
+    const tier = holdEligibility(tab, {
+      hasSnapshot: !!snapshot,
+      promptPending,
+      openerAlive,
+      hasManagedChild,
+      popupChildCount: popupChildCounts.get(id) ?? 0,
+    });
+    if (tier !== 'refuse') {
+      const groupName = rt().groups.find((g) => g.id === tab.groupId)?.name ?? null;
+      const entry = buildTabEntry(tab, snapshot, { index: closedIndex, groupName }, Date.now());
+      if (tier === 'hold') parked = parkTabView(tab, entry);
+      pushClosedEntry(entry);
+    }
   }
 
   const wasActive = id === rt().activeTabId;
@@ -3430,7 +3507,6 @@ function closeTab(id) {
   }
   if (wasActive && hasLiveWindow() && tab.view) rt().window.contentView.removeChildView(tab.view);
 
-  const closedIndex = rt().tabOrder.indexOf(id);
   rt().tabsWantingAddressBarFocus.delete(id);
   tabs.delete(id);
   popupChildCounts.delete(id);
@@ -3439,7 +3515,9 @@ function closeTab(id) {
   pruneEmptyGroups();
   const wc = tab.view?.webContents ?? retainedView?.webContents;
   if (wc) lastMainFrameMethod.delete(wc.id);
-  if (wc && !wc.isDestroyed()) wc.close();
+  // A parked view is detached from the model but deliberately still alive:
+  // parking replaces destruction, never the removeChildView above.
+  if (wc && !wc.isDestroyed() && !parked) wc.close();
 
   if (wasActive) {
     // Electron destroys the active view during app shutdown. Do not select a
@@ -3449,6 +3527,9 @@ function closeTab(id) {
       rt().activeTabId = null;
       return;
     }
+    // A caller sequencing several closes (group close) owns the selection
+    // itself; picking a neighbour per close would flash through the members.
+    if (!selectReplacement) { rt().activeTabId = null; return; }
     const survivingGlanceId = rt().glanceTabId && tabs.has(rt().glanceTabId)
       ? rt().glanceTabId
       : null;
@@ -3485,8 +3566,55 @@ function closeTab(id) {
 }
 
 function reopenClosedTab() {
-  const url = rt().recentlyClosedUrls?.pop();
-  if (url) setActiveTab(createTab(url));
+  const entry = rt().closedEntries?.pop();
+  if (entry) reopenEntry(entry);
+}
+
+/** Restore one consumed entry. Tier 0 adopts the parked view; a dead or
+ *  unattachable view falls through to the snapshot (§3.2). */
+function reopenEntry(entry) {
+  if (entry.kind === 'group') return reopenGroupEntry(entry);
+  clearTimeout(entry.holdTimer);
+  const resolvedGroupId = entry.groupId && rt().groups.some((g) => g.id === entry.groupId)
+    ? entry.groupId
+    : null;
+  const common = { pinned: entry.pinned, muted: entry.muted, groupId: resolvedGroupId };
+
+  if (entry.view && entry.view.webContents && !entry.view.webContents.isDestroyed()) {
+    const wcId = entry.wcId;
+    const id = createTab(entry.url, {
+      ...common, adoptView: entry.view, title: entry.title, favicon: entry.favicon,
+    });
+    if (id) {
+      heldWebContents.delete(wcId);
+      const tab = tabs.get(id);
+      Object.assign(tab, entry.seed); // usedMedia, historyEligible, restorableCommit, httpEntryCount, deepScrolled
+      finishReopen(id, entry);
+      return;
+    }
+  }
+  downgradeHeldEntry(entry);
+  const id = createTab(entry.url, {
+    ...common,
+    restoreHistory: entry.snapshot
+      ? { entries: entry.snapshot.entries, index: entry.snapshot.index }
+      : null,
+  });
+  if (id) finishReopen(id, entry);
+}
+
+/** Slot splice + group-by-name fallback + activation, shared by all tiers. */
+function finishReopen(id, entry) {
+  const order = rt().tabOrder;
+  const from = order.indexOf(id);
+  if (from !== -1) {
+    order.splice(from, 1);
+    order.splice(Math.min(entry.index, order.length), 0, id);
+  }
+  if (!tabs.get(id)?.groupId && entry.groupName) groupTabByName(id, entry.groupName);
+  setActiveTab(id);
+  broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 function reorderTab(id, toIndex) {
@@ -4380,7 +4508,7 @@ function buildMenuForRuntime(runtime) {
         {
           label: 'Reopen Closed Tab',
           accelerator: 'CmdOrCtrl+Shift+T',
-          enabled: (runtime.recentlyClosedUrls?.length ?? 0) > 0,
+          enabled: (runtime.closedEntries?.length ?? 0) > 0,
           click: bound(reopenClosedTab),
         },
         { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
@@ -4921,7 +5049,9 @@ function windowRuntimeSnapshots() {
     tabOrder: [...runtime.tabOrder],
     activeTabId: runtime.activeTabId,
     glanceTabId: runtime.glanceTabId,
-    recentlyClosedUrls: [...runtime.recentlyClosedUrls],
+    // Count only: a closed entry can hold a live view and page state, neither
+    // of which may be copied into a snapshot structure.
+    closedEntryCount: (runtime.closedEntries ?? []).length,
     tabs: runtime.tabOrder.map((id) => {
       const tab = tabs.get(id);
       return tab ? { id, url: tab.url, private: !!tab.private } : null;

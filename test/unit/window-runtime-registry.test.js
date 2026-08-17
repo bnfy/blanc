@@ -13,7 +13,7 @@ test('createRuntime initializes the per-window inventory to main.js defaults', (
   assert.deepEqual(r.groups, []);
   assert.equal(r.glanceTabId, null);
   assert.equal(r.glanceRatio, 0.62);
-  assert.deepEqual(r.recentlyClosedUrls, []);
+  assert.deepEqual(r.closedEntries, []);
   assert.equal(r.overlayView, null);
   assert.equal(r.overlayMode, null);
   assert.equal(r.overlayPrefill, null);
