@@ -132,20 +132,35 @@ silently drops the entire AltGr layer — `@` on a German layout (AltGr+Q),
 user types to start a search, and losing them would make type-to-open feel
 broken specifically for international keyboards.
 
+**`altKey` is command intent only off macOS.** On macOS, bare Option is a text
+entry modifier — it is what produces `ø`, `∑`, `€`. Blanc reserves nothing
+under bare Option: every `Alt` accelerator it registers is `CmdOrCtrl+Alt+…`
+(`main.js:4294`, `:4333-4336`), all of which `metaKey` already rejects. The
+non-text Option combinations reject themselves on the code-point gate —
+Option+Arrow is `'ArrowLeft'`, Option+Delete is `'Backspace'`.
+
 The gate is therefore:
 
 ```js
 const altGraph = event.getModifierState('AltGraph');
-const commandIntent = event.metaKey || ((event.ctrlKey || event.altKey) && !altGraph);
+const commandIntent = event.metaKey
+  || (!altGraph && (event.ctrlKey || (event.altKey && !isMac)));
 ```
 
-`metaKey` always rejects (⌘T, ⌘R, ⌘L). `ctrlKey`/`altKey` reject *unless*
-AltGraph is active, which is the AltGr text-entry case rather than a shortcut.
+`metaKey` always rejects (⌘T, ⌘R, ⌘L). AltGraph always allows — that is AltGr
+text entry, not a shortcut. Otherwise `ctrlKey` rejects everywhere and
+`altKey` rejects only off macOS.
 
-**Accepted limitation:** on macOS, Option-produced characters (`ø`, `∑`) do
-not set AltGraph, so they are rejected. On macOS Option is far more often a
-shortcut modifier than a text-entry one, and the app's own accelerators use it
-(`main.js:2530`). Those users click the pill or press ⌘L.
+`isMac` needs no new plumbing: `renderer.js:7` already derives it from
+`window.browserAPI.platform`, and `newtab.js:2` already has
+`navigator.platform.startsWith('Mac')`.
+
+**Accepted limitation — dead-key composition.** On macOS, Option+e emits
+`key: 'Dead'`, which fails the code-point gate; the accent is applied to the
+following keystroke, and the composed character (`é`) is what reaches the
+handler. The first keypress opens nothing. This degrades quietly rather than
+wrongly, and IME users are already outside the feature by the `isComposing`
+gate above.
 
 On a match the handler calls `preventDefault()` and
 `window.bowserPages.start.openIsland(char)`.
@@ -181,10 +196,13 @@ character instead of being rejected as a length-2 string.
 
 The pill is `tabindex="0"`, so it can hold keyboard focus itself. This case
 **extends the existing listener at `renderer.js:730`** — it does not add a
-second one. Two listeners on the same element would both fire, and Space is
-the collision: `key === ' '` already activates the pill there, and it is also
-a single-character key. A separate handler would activate the panel *and*
-prefill it with a space.
+second one.
+
+A second listener would not actually misbehave: Space would reach it but the
+whitespace gate rejects it before any prefill, and Enter fails the code-point
+gate. The reason to extend rather than add is that the pill's Enter/Space
+activation semantics should live in one place, and the five gates should not
+be written twice on the same element where the two copies can drift apart.
 
 The existing handler's structure is kept intact and the new branch goes after
 it:
@@ -263,12 +281,16 @@ both already defined in all three scopes (`:root`, the dark override, and
   never for a loaded or loading tab.
 - **Unit — the modifier gate**, as a table over the rejection conditions:
   composing, whitespace, multi-character key, non-body target, `metaKey`,
-  bare `ctrlKey`, bare `altKey`. Plus the two that exist because of review:
-  **`ctrlKey && altKey` with `getModifierState('AltGraph')` true must be
-  ACCEPTED** (the AltGr layer), and **Enter and Space on a focused
-  `#islandPill` must still activate the pill exactly once and must not
-  prefill anything** (the two-listener collision). Both need a test that
-  fails against the naive implementation, or they are guarding nothing.
+  bare `ctrlKey`. Plus the three that exist because of review, each of which
+  needs a test that **fails against the naive implementation** or it is
+  guarding nothing:
+  - `ctrlKey && altKey` with `getModifierState('AltGraph')` true must be
+    **accepted** — the AltGr layer.
+  - bare `altKey` must be **accepted on macOS** (`ø`, `∑`) and **rejected off
+    it**. The gate is platform-dependent, so the test must run both branches
+    rather than whichever one the host happens to be.
+  - Enter and Space on a focused `#islandPill` must activate the pill exactly
+    once and prefill nothing.
 - **Acceptance:** new `spec/acceptance/` scenarios under stable ids,
   **registered in `test/desktop/cucumber.mjs`'s `RUNNABLE` list** — profiles
   select by explicit id, so an unregistered scenario is silently never run.
