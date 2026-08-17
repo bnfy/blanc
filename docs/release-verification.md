@@ -32,22 +32,37 @@ public release.
 
 ## Release-operator runbook
 
-This is a human-gated workflow. Run it directly in a new interactive macOS
-Terminal.app window — not a Codex/ChatGPT terminal, subprocess, or background
-wrapper. The script enforces Terminal.app because 1Password desktop integration
-could not authorize the agent PTY during the v1.4.0 release.
+This is a human-gated workflow with two supported interactive operator modes:
 
-Before starting, unlock the 1Password desktop app and confirm `gh auth status`
-succeeds in that same Terminal window. Do not fetch or paste either secret and
-do not run `op signin`; `release.sh` owns the `op run` boundary and forces its
-desktop-app path with `OP_BIOMETRIC_UNLOCK_ENABLED=true`. If `op` offers to add
-an account manually, cancel it: that is a failed app-integration connection,
-not a release authentication step.
+- `terminal` (default): run directly in a native macOS Terminal.app window.
+- `agent`: Codex or Claude must use an interactive PTY and run the complete
+  command outside its sandbox with the user's execution approval.
 
-For the normal Apple-Silicon stable release:
+Background/non-interactive releases are forbidden. Agent mode is explicit so
+no agent should spoof `TERM_PROGRAM` to bypass the operator check.
+
+Before starting, unlock the 1Password desktop app and ensure `gh auth status`
+succeeds in the selected operator environment. Do not fetch or paste either
+secret and do not run a separate sign-in flow: `release.sh` owns both 1Password
+boundaries. It first runs the exact proven preflight
+`OP_BIOMETRIC_UNLOCK_ENABLED=true op signin`, then uses the same forced
+desktop-app path for `op run`. In agent mode, a sandboxed CLI cannot reach
+1Password's local IPC channel; launch the whole release outside the sandbox
+instead of retrying setup. If `op` offers to add an account manually, cancel it:
+that is never a valid release authentication step.
+
+**GitHub authentication rule:** a sandboxed agent can falsely report the cached
+`gh` token as invalid because it cannot access the macOS keyring. Retry
+`gh auth status` outside the sandbox first. If CLI access is still unavailable,
+use the connected GitHub app for repository/PR operations and verify whether
+the existing Git credential can push. Do not ask the user to run `gh auth login`
+unless the unsandboxed CLI check, GitHub app, and Git credential have all failed.
+
+For the normal Apple-Silicon stable release from Terminal.app:
 
 ```sh
 cd "/Users/anthonyjloria/Projects/Blanc Browser"
+BLANC_RELEASE_OPERATOR=terminal \
 BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
@@ -56,13 +71,30 @@ BLANC_MAC_ARCHES=arm64 \
 npm run release
 ```
 
-The two approval gates happen late enough that the Terminal window must remain
-available:
+For the same release directly from Codex or Claude, use the identical checkout
+and release inputs but select agent mode:
 
-1. **1Password / Apple notarization.** `op run` must ask to authorize
-   Terminal.app. Approve it there. If the dialog names ChatGPT or Codex, or the
-   CLI asks to add an account manually, stop; neither is a valid release
-   authorization.
+```sh
+cd "/Users/anthonyjloria/Projects/Blanc Browser"
+BLANC_RELEASE_OPERATOR=agent \
+BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
+BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
+BLANC_RELEASE_MODE=stable \
+BLANC_RELEASE_PLATFORMS=mac,windows,linux \
+BLANC_MAC_ARCHES=arm64 \
+npm run release
+```
+
+The agent must execute that whole command in a PTY outside its sandbox; in
+Codex terms, request escalated/unsandboxed execution for `npm run release`.
+Do not run only `op signin` outside the sandbox and then put the release back
+inside it.
+
+Keep the operator session available for these approvals:
+
+1. **1Password / Apple notarization.** The prompt must name the actual selected
+   operator: Terminal in terminal mode, or Codex/Claude in agent mode. If it
+   names a different process or asks to add an account manually, stop.
 2. **Sigstore / GitHub identity.** The release-scoped browser shim opens the
    fresh OIDC page in Safari and the callback targets
    `127.0.0.1:${BLANC_COSIGN_REDIRECT_PORT:-49197}`. Complete it immediately;

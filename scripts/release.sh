@@ -18,13 +18,29 @@ PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
 MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.4.0}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
+RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
 
-if [ "$(uname -s)" = "Darwin" ] &&
-   { [ "${TERM_PROGRAM:-}" != "Apple_Terminal" ] || [ ! -t 0 ] || [ ! -t 1 ]; }; then
-  echo "Run npm run release directly in an interactive Terminal.app window." >&2
-  echo "Agent/Codex PTYs cannot complete 1Password desktop authorization reliably." >&2
-  exit 1
+if [ "$(uname -s)" = "Darwin" ]; then
+  case "$RELEASE_OPERATOR" in
+    terminal)
+      if [ "${TERM_PROGRAM:-}" != "Apple_Terminal" ] || [ ! -t 0 ] || [ ! -t 1 ]; then
+        echo "Terminal mode requires an interactive Terminal.app window." >&2
+        echo "For an approved Codex/Claude run, use BLANC_RELEASE_OPERATOR=agent in an interactive unsandboxed PTY." >&2
+        exit 1
+      fi
+      ;;
+    agent)
+      if [ ! -t 0 ] || [ ! -t 1 ]; then
+        echo "Agent mode requires an interactive PTY; background and non-interactive releases are forbidden." >&2
+        exit 1
+      fi
+      ;;
+    *)
+      echo "BLANC_RELEASE_OPERATOR must be terminal or agent." >&2
+      exit 1
+      ;;
+  esac
 fi
 
 case "$COSIGN_REDIRECT_PORT" in
@@ -162,9 +178,25 @@ command -v cosign >/dev/null || {
   exit 1
 }
 gh auth status >/dev/null 2>&1 || {
-  echo "gh CLI is not authenticated. Run: gh auth login" >&2
+  echo "gh CLI authentication is unavailable in this operator environment." >&2
+  if [ "$RELEASE_OPERATOR" = "agent" ]; then
+    echo "Confirm the complete release is running outside the agent sandbox before changing GitHub credentials." >&2
+  else
+    echo "Confirm the cached Terminal session with: gh auth status" >&2
+  fi
   exit 1
 }
+
+echo "==> Authenticating 1Password CLI through the desktop app"
+if [ "$RELEASE_OPERATOR" = "agent" ]; then
+  echo "    This command must run outside the agent sandbox. Approve only the expected Codex/Claude identity."
+else
+  echo "    Approve only a Terminal.app authorization."
+fi
+if ! OP_BIOMETRIC_UNLOCK_ENABLED=true op signin; then
+  echo "1Password desktop authentication failed. Cancel any manual-account prompt; do not add an account." >&2
+  exit 1
+fi
 
 echo "==> Preparing Blanc $VERSION ($TAG), mode=$MODE, platforms=$PLATFORM_CSV, mac=$MAC_ARCH_CSV"
 
@@ -220,7 +252,7 @@ node scripts/preflight-mac-signing.mjs
 
 echo "==> Cleaning and building notarized macOS artifacts"
 echo "    1Password desktop-app integration is forced for this command."
-echo "    Approve only a Terminal.app authorization; cancel any manual-account prompt."
+echo "    Cancel any manual-account prompt; the desktop authorization is the only valid path."
 rm -rf dist
 MAC_BUILD_ARGS=()
 $HAS_MAC_ARM64 && MAC_BUILD_ARGS+=(--arm64)
