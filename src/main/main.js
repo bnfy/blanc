@@ -132,6 +132,7 @@ const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
 
 const { AsyncLocalStorage } = require('node:async_hooks');
 const windowRuntimes = require('./window-runtime-registry');
+const { isValidPrefillChar } = require('./island-typing');
 
 // The owning window-runtime for the current async execution — set by
 // bindWindowRuntime at every event registration and sanctioned root, carried
@@ -1740,6 +1741,16 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   });
   rt().overlayView.webContents.focus();
   rt().window.webContents.send('chrome:island-state', { mode, trigger: mode === 'shield' ? rt().shieldTrigger : null });
+}
+
+// The one place a typed character opens the island. The start page, the
+// pill's own keydown, and the "/" chip all funnel here so there is never a
+// validated path beside an unvalidated one. showOverlay's prefill is already
+// consumed by applyMode in overlay.js; the "New Group…" menu item is the
+// existing precedent, passing '/group '.
+function openIslandTyping(char) {
+  if (!isValidPrefillChar(char)) return;
+  showOverlay('panel', { prefill: char });
 }
 
 /** How long the panel takes to retract. Keep in step with styles.css. */
@@ -3870,6 +3881,12 @@ function registerIpcHandlers() {
   });
 
   chromeOn('chrome:open-island', () => showOverlay('panel'));
+  // The "/" chip. No payload — the prefill is fixed, so nothing crosses IPC
+  // that needs validating; it goes through the helper anyway so there is one
+  // path that opens the panel with a prefill.
+  chromeOn('chrome:open-island-commands', () => openIslandTyping('/'));
+  // The pill's own keydown, when the pill holds keyboard focus.
+  chromeOn('chrome:open-island-typing', (_e, char) => openIslandTyping(char));
   chromeOn('chrome:open-find', () => showOverlay('find'));
   chromeOn('chrome:open-shield', (_e, anchor) => {
     const trigger = anchor?.trigger === 'insecure' ? 'insecure' : 'shield';
@@ -5250,6 +5267,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       remoteDevices: () => sync.listRemoteDevices(),
       status: startPageStatus,
       setLayout: (name) => settings.setSettings({ newtabLayout: name }),
+      openIsland: (char) => openIslandTyping(char),
       // Runs inside runInPageRuntime, so the tab lands in the sheet's own
       // window and createTab's dismissal closes the sheet under it.
       openWelcomeTour: () => {
