@@ -83,6 +83,7 @@ const { hasExclusiveRenderer, hasBeforeUnloadListener } = require('./renderer-di
 const {
   createTabView,
   wireTabView,
+  unwireTabView,
   initTabView,
   liveContents,
   liveViewContents,
@@ -994,17 +995,27 @@ function downgradeHeldEntry(entry) {
  *  expiry in a background window must never resolve through the focused
  *  fallback and mutate the wrong window (the downloads.js/capture rule). */
 function installHeldFirewall(entry, wc, owner) {
-  // Method-installed, NOT an EventEmitter listener — removeAllListeners()
-  // did not clear the one wireTabView set. Without this a held page could
+  // Method-installed, NOT an EventEmitter listener — listener removal never
+  // clears the one wireTabView set. Without this a held page could
   // window.open into a boundToTab closure over a deleted record.
   wc.setWindowOpenHandler(() => ({ action: 'deny' }));
+  // Every firewall listener is recorded on the entry so the adoption unpark
+  // can remove EXACTLY this set (removeHeldFirewall) — never a name-based
+  // strip, which took out Electron's own listeners in both directions
+  // (window-open pipeline SIGSEGV; visibilityChanged destroyed-object throw).
+  entry.firewallListeners = [];
+  const guard = (event, handler, { once = false } = {}) => {
+    if (once) wc.once(event, handler);
+    else wc.on(event, handler);
+    entry.firewallListeners.push([event, handler]);
+  };
   // Frozen at close: main-frame navigation is refused outright. Subframes
   // are left alone so the page survives restore intact (§3.4).
-  wc.on('will-navigate', (event) => { if (event.isMainFrame) event.preventDefault(); });
-  wc.on('will-redirect', (event) => { if (event.isMainFrame) event.preventDefault(); });
+  guard('will-navigate', (event) => { if (event.isMainFrame) event.preventDefault(); });
+  guard('will-redirect', (event) => { if (event.isMainFrame) event.preventDefault(); });
   // A video can BEGIN during the hold; the restored tab must not be
   // quietable mid-playback. Writes to the entry, never a tab record.
-  wc.on('media-started-playing', () => { entry.seed.usedMedia = true; });
+  guard('media-started-playing', () => { entry.seed.usedMedia = true; });
   // A crashed renderer does not destroy its WebContents; without these the
   // restore path would re-attach a sad-tab instead of using the snapshot.
   const downgrade = bindWindowRuntime(owner, () => {
@@ -1013,22 +1024,18 @@ function installHeldFirewall(entry, wc, owner) {
     // stay callable from unbound teardown, so the bound caller broadcasts.
     if (hasLiveWindow()) scheduleBroadcastTabs();
   });
-  wc.on('render-process-gone', downgrade);
-  wc.once('destroyed', downgrade);
+  guard('render-process-gone', downgrade);
+  guard('destroyed', downgrade, { once: true });
 }
 
-/** Remove every app-level listener from a KEEP-ALIVE WebContents while
- *  preserving Electron's internal '-'-prefixed listeners. A blanket
- *  removeAllListeners() severs the native window-open pipeline, and the
- *  browser process SIGSEGVs the next time the page calls window.open —
- *  bisected live during hand verification: park + window.open crashed,
- *  either alone survived. sleepTab/downgradeHeldEntry keep the blanket
- *  form safely because they destroy the contents in the same turn. */
-function stripPublicListeners(wc) {
-  for (const name of wc.eventNames()) {
-    if (typeof name === 'string' && name.startsWith('-')) continue;
-    wc.removeAllListeners(name);
+/** Adoption unpark: remove exactly the firewall's recorded listeners. The
+ *  deny setWindowOpenHandler needs no removal — wireTabView re-installs the
+ *  tab handler over it. */
+function removeHeldFirewall(entry, wc) {
+  for (const [event, handler] of entry.firewallListeners ?? []) {
+    wc.removeListener(event, handler);
   }
+  entry.firewallListeners = null;
 }
 
 /** Park a closing tab's live view into its closed entry (Tier 0). Returns
@@ -1045,7 +1052,7 @@ function parkTabView(tab, entry) {
   // Registry FIRST, then strip, then firewall: no instant exists in which a
   // request resolves against neither the tab record nor the firewall (§3.4).
   heldWebContents.add(wc.id);
-  stripPublicListeners(wc);
+  unwireTabView(wc); // exact removal of wireTabView's set; Electron's stay
   installHeldFirewall(entry, wc, owner);
   view.setVisible(false);
   wc.setAudioMuted(true);
@@ -3224,7 +3231,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
 
   const wc = view.webContents;
   tabIdByWebContentsId.set(wc.id, id);
-  if (adopting) stripPublicListeners(wc); // strip the held firewall; wireTabView reinstalls
+  // Adoption: the caller (reopenEntry) already removed the held firewall's
+  // recorded listeners; wireTabView below re-installs the tab set.
   wireTabView(tab, view, { owner, adopted });
 
   if (adopting) {
@@ -3688,6 +3696,10 @@ function reopenEntry(entry) {
 
   if (entry.view && entry.view.webContents && !entry.view.webContents.isDestroyed()) {
     const wcId = entry.wcId;
+    // Unpark BEFORE adoption: remove exactly the firewall's recorded
+    // listeners; wireTabView then re-installs the tab set (and its own
+    // setWindowOpenHandler over the deny).
+    removeHeldFirewall(entry, entry.view.webContents);
     const id = createTab(entry.url, {
       ...common, adoptView: entry.view, title: entry.title, favicon: entry.favicon,
     });

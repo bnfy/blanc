@@ -114,6 +114,27 @@ function initTabView(injected) {
  * @param {{owner: object, adopted: boolean}} options the owning runtime; an
  *   adopted view is Chromium's already-created window.open child
  */
+/** Every (event, handler) pair the last wireTabView call added to a given
+ *  WebContents. Recorded by before/after diff so no call site changes; lets
+ *  unwireTabView remove EXACTLY our listener set. Name-based stripping is
+ *  wrong in both directions (proven live): blanket removeAllListeners()
+ *  severs Electron's internal '-'-prefixed window-open pipeline (SIGSEGV on
+ *  a held page's window.open), and stripping all PUBLIC names removes
+ *  Electron's own visibility/teardown bookkeeping ("Object has been
+ *  destroyed" in BrowserWindow.visibilityChanged). */
+const wiredListeners = new WeakMap();
+
+/** Remove exactly the listeners the last wireTabView call installed on this
+ *  WebContents, leaving every Electron-owned listener (any name) intact.
+ *  For KEEP-ALIVE strips only — teardown paths that destroy the contents in
+ *  the same turn may keep using removeAllListeners(). */
+function unwireTabView(wc) {
+  for (const [event, handler] of wiredListeners.get(wc) ?? []) {
+    wc.removeListener(event, handler);
+  }
+  wiredListeners.delete(wc);
+}
+
 function wireTabView(tab, view, { owner, adopted }) {
   if (!deps) throw new Error('wireTabView called before initTabView');
   const {
@@ -130,6 +151,9 @@ function wireTabView(tab, view, { owner, adopted }) {
   } = deps;
   const id = tab.id;
   const wc = view.webContents;
+  // Snapshot pre-existing listeners so the closing diff records exactly what
+  // THIS call adds — Electron's own listeners are never in the recorded set.
+  const preWired = new Map(wc.eventNames().map((n) => [n, new Set(wc.listeners(n))]));
   installChromeShortcuts(wc);
   // Resolve the owner once at attach time rather than looking it up in every
   // asynchronous callback. A later rewire supplies the tab's actual owner.
@@ -383,11 +407,20 @@ function wireTabView(tab, view, { owner, adopted }) {
       setActiveTab(createTab(targetUrl, { private: tab.private, groupId: tab.groupId }));
     }),
   });
+
+  const wired = [];
+  for (const name of wc.eventNames()) {
+    for (const handler of wc.listeners(name)) {
+      if (!preWired.get(name)?.has(handler)) wired.push([name, handler]);
+    }
+  }
+  wiredListeners.set(wc, wired);
 }
 
 module.exports = {
   createTabView,
   wireTabView,
+  unwireTabView,
   initTabView,
   liveContents,
   liveViewContents,
