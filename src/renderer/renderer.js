@@ -767,7 +767,24 @@
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       window.browserAPI.openIsland();
+      return;
     }
+    // Typing while the pill has keyboard focus goes where the caret says it
+    // does. Extended here rather than in a second listener so the pill's
+    // activation semantics stay in one place.
+    if (!globalThis.blancTypeToOpen.isTypeToOpenKey(e, isMac)) return;
+    e.preventDefault();
+    window.browserAPI.openIslandTyping(e.key);
+  });
+
+  // The "/" chip. stopPropagation keeps the click off the pill, which would
+  // otherwise also open the panel — with no prefill, landing on the tab
+  // switcher instead of the command list. mousedown preventDefault keeps the
+  // focus ring for keyboard users only, same as pillButton.
+  pillSlash.addEventListener('mousedown', (e) => e.preventDefault());
+  pillSlash.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.browserAPI.openIslandCommands();
   });
 
   // Double-click on empty strip area zooms the window (desktop convention).

@@ -88,6 +88,49 @@ test('pill children counter-scale against the pill zoom', () => {
   }
 });
 
+// The pill already had a keydown listener with Enter/Space activation. A
+// second listener on the same element would not misbehave — Space is caught
+// by the whitespace gate and Enter by the code-point gate — but the pill's
+// activation semantics belong in one place, and writing the gates twice on
+// one element invites the two copies to drift.
+test('the pill has exactly one keydown listener, extended in place', () => {
+  const listeners = rendererSource.match(/islandPill\.addEventListener\('keydown'/g) ?? [];
+  assert.equal(listeners.length, 1, 'extend the existing pill keydown, do not add a second');
+
+  const handler = rendererSource.match(
+    /islandPill\.addEventListener\('keydown',[\s\S]*?\n  \}\);/,
+  )?.[0];
+  assert.ok(handler, 'pill keydown handler not found in renderer.js');
+
+  // Unchanged: a focused child (tab dot, group capsule) keeps its own keys.
+  assert.match(handler, /e\.target !== islandPill/);
+  // Unchanged, and it must return before the type-to-open branch is reached.
+  const enterBranch = handler.indexOf("e.key === 'Enter'");
+  const typingBranch = handler.indexOf('isTypeToOpenKey');
+  assert.ok(enterBranch !== -1, 'Enter/Space activation must survive');
+  assert.ok(typingBranch !== -1, 'pill keydown must consult the shared gate');
+  assert.ok(enterBranch < typingBranch, 'Enter/Space must be handled before type-to-open');
+  assert.match(
+    handler.slice(enterBranch, typingBranch),
+    /return;/,
+    'the Enter/Space branch must return, so those keys never reach the gate',
+  );
+});
+
+test('the chip opens the command list and does not also open the plain panel', () => {
+  const wiring = rendererSource.match(
+    /pillSlash\.addEventListener\('click',[\s\S]*?\n  \}\);/,
+  )?.[0];
+  assert.ok(wiring, 'pillSlash click wiring not found in renderer.js');
+  // Without stopPropagation the click also bubbles to the pill, which opens
+  // the panel with no prefill — the chip would appear to do nothing.
+  assert.match(wiring, /stopPropagation/);
+  assert.match(wiring, /openIslandCommands/);
+  // preventDefault on mousedown keeps a stray focus ring out of the resting
+  // pill, matching pillButton.
+  assert.match(rendererSource, /pillSlash\.addEventListener\('mousedown'/);
+});
+
 test('the markup carries the chip and loads the shared gate', () => {
   assert.match(indexHtml, /id="pillSlash"/);
   assert.match(indexHtml, /<script src="pages\/type-to-open\.js"><\/script>/);
