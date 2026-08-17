@@ -388,6 +388,55 @@ function install(refs) {
     setTabSleep(value) { return settings.setSettings({ tabSleep: value }).tabSleep; },
     tabLayout() { return settings.getSettings().tabLayout; },
     setTabLayout(layout) { return setTabLayout(layout); },
+    newtabLayout() { return settings.getSettings().newtabLayout; },
+    setNewtabLayout(layout) { return settings.setSettings({ newtabLayout: layout }).newtabLayout; },
+    readNewtabLayoutDom() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        layout: document.body.dataset.layout ?? null,
+        active: document.querySelector('[data-layout-pick].active')?.dataset.layoutPick ?? null,
+        // The active layout root is the one whose computed display isn't none.
+        visible: ['Ledger', 'Billboard', 'Shelf', 'Tally']
+          .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
+      }))()`);
+    },
+    clickNewtabLayoutSwitcher(name) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.querySelector('[data-layout-pick="${String(name).replace(/[^a-z]/g, '')}"]');
+        if (!button) return false;
+        button.click();
+        return true;
+      })()`);
+    },
+    readOnboardingDom() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        shown: !(document.getElementById('onboardDialog')?.hidden ?? true),
+        step: document.getElementById('onboardDialog')?.dataset.step ?? null,
+      }))()`);
+    },
+    skipOnboarding() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const skip = document.getElementById('obSkip');
+        if (!skip || document.getElementById('onboardDialog').hidden) return false;
+        skip.click();
+        return true;
+      })()`);
+    },
+    firstRunState() {
+      const current = settings.getSettings();
+      return {
+        complete: settings.isFirstRunComplete(),
+        searchSuggestions: current.searchSuggestions,
+        usagePing: current.usagePing,
+      };
+    },
     glanceShortcutEnabled() {
       return Menu.getApplicationMenu()
         ?.getMenuItemById('toggle-glance')

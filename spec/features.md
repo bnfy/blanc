@@ -530,7 +530,8 @@ From the desktop `DEFAULTS`:
   Favorites sheet keeps the same import available afterward. **Discovery is
   itself user-initiated:** Blanc never reads another browser's profile
   directory until the person asks it to look, so opening the Favorites sheet or
-  seeing the first-run card touches nothing on its own. The existing universal
+  reaching the first-run walkthrough's import step (F36) touches nothing on its
+  own. The existing universal
   bookmarks-HTML import remains the fallback for browsers or platforms whose
   live profile format cannot be read directly.
 - Desktop directly supports Google Chrome, Microsoft Edge, Brave, Chromium, and
@@ -675,3 +676,56 @@ From the desktop `DEFAULTS`:
   tab through the dedicated picker, verifies dominant/reference geometry,
   proves reference focus does not promote, changes and explicitly swaps the
   visible roles, resizes the divider, and dismisses back to one full page.
+
+## F35 — Start page layouts
+
+- The start page offers four arrangements of the same material: **ledger** (the
+  original column), **billboard** (a live clock over favorite tiles), **shelf**
+  (a favorites grid with group and blocked-count cards), and **tally** (the
+  ledger column beside a week-of-blocking bar chart). Every layout draws the
+  same feeds — favorites, tab groups, and the blocker's counters — and re-inks
+  under the light, dark, and private themes with no layout-specific colors.
+- The choice is a synced setting (`newtabLayout`, default `ledger`), changeable
+  instantly from the start page's own footer switcher and from Settings; a
+  change made anywhere reaches every open start page. It travels with the
+  profile the way the theme does.
+- The tally chart tells the truth: every bar — today's included — is
+  normalized to the busiest day, colour alone marks today, and a week that
+  blocked nothing draws no bars. Its data is the blocker's per-day counts,
+  tracked locally alongside the existing weekly total.
+- No layout may ever scroll horizontally, at any window width; narrow windows
+  compact insets, wrap rows, and stack the tally columns rather than overflow.
+  Empty feeds remove their section — row, label, and card — with no
+  placeholder copy on the three newer layouts.
+- **Acceptance:**
+  [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
+  renders the saved layout on a new tab and persists a footer switch.
+
+## F36 — First-run onboarding
+
+- A genuinely fresh profile is offered a six-step walkthrough over the start
+  page: default browser, import, the island, ad blocking, privacy, and theme.
+  It appears exactly once — the completion marker is the same first-run record
+  the privacy choices commit to, so skipping and finishing both seal it — and
+  profiles that completed first run (including every pre-existing install) are
+  never asked.
+- The privacy step carries the mandatory consent choices (search suggestions,
+  usage ping); **no network feature they govern starts before the choices are
+  saved**, skipping records exactly the values on screen, and the walkthrough
+  closes only on a confirmed write. The import step embeds F30's migration
+  with its explicit-discovery rule intact: no other browser's profile is read
+  until the person asks to look, and the universal bookmarks-file import is
+  offered from the start.
+- Ad-blocking and theme choices apply live during the flow through the same
+  validated settings paths as Settings itself; the default-browser step uses
+  the OS registration only where the platform genuinely supports it and
+  renders inert where it cannot (unpackaged runs, Linux).
+- The walkthrough is modal but honest: the page behind it is inert while it is
+  open, motion respects `prefers-reduced-motion`, and the blocking-preparation
+  surface keeps precedence when startup is unsettled. It can be replayed from
+  Settings at any time; a replay shows the saved values, and edits re-save.
+- **Acceptance:**
+  [`acceptance/onboarding.feature`](./acceptance/onboarding.feature) shows the
+  walkthrough to a fresh profile once, proves skip records the privacy
+  choices, never re-asks a completed profile, and verifies the import step
+  reads nothing before the explicit ask.

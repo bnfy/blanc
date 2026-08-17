@@ -9,7 +9,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 > Desktop is the shipped reference, so its `@all` cells are ✅ (behaviour verified
 > in the shipping app; automated step-defs are a separate track). iOS/Android are
-> greenfield → ⬜. The grid below tracks stable scenario IDs across 18 `.feature`
+> greenfield → ⬜. The grid below tracks stable scenario IDs across 20 `.feature`
 > files.
 
 ## Files
@@ -35,6 +35,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Independent windows | `multi-window.feature` | F32 (D11) |
 | Local profiles | `local-profiles.feature` | F33 (D25) |
 | Glance | `glance.feature` | F34 (D11) |
+| Start page layouts | `newtab-layouts.feature` | F35 |
+| First-run onboarding | `onboarding.feature` | F36 (F30, D22) |
 
 ## Grid
 
@@ -143,6 +145,12 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F33-2 | Settings renames and permanently deletes a named profile | D25 | ✅ | ➖ | ➖ |
 | F33-3 | Named profile workspace restores into its isolated session | D25 | ✅ | ➖ | ➖ |
 | F34-1 | Explicit Glance selection, swap, resize, and close | D11 | ✅ | ➖ | ➖ |
+| F35-1 | The saved start page layout is the one that renders | — | ✅ | ⬜ | ⬜ |
+| F35-2 | Choosing a layout from the footer persists it | — | ✅ | ⬜ | ⬜ |
+| F36-1 | A fresh profile is offered the walkthrough | — | ✅ | ⬜ | ⬜ |
+| F36-2 | Skipping still records the privacy choices | — | ✅ | ⬜ | ⬜ |
+| F36-3 | A completed profile is not asked again | — | ✅ | ⬜ | ⬜ |
+| F36-4 | No browser profile is read before the explicit ask | D22 | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
