@@ -126,8 +126,9 @@ const wiredListeners = new WeakMap();
 
 /** Remove exactly the listeners the last wireTabView call installed on this
  *  WebContents, leaving every Electron-owned listener (any name) intact.
- *  For KEEP-ALIVE strips only — teardown paths that destroy the contents in
- *  the same turn may keep using removeAllListeners(). */
+ *  This rule also applies immediately before close(): Electron can deliver
+ *  queued visibility/teardown work after close has destroyed the native
+ *  object, so removeAllListeners() is never safe on a managed WebContents. */
 function unwireTabView(wc) {
   for (const [event, handler] of wiredListeners.get(wc) ?? []) {
     wc.removeListener(event, handler);

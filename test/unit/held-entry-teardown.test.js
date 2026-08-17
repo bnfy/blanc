@@ -21,22 +21,30 @@ const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'
 const fnStart = mainSource.indexOf('function downgradeHeldEntry(');
 const fnEnd = mainSource.indexOf('\n}', fnStart) + 2;
 const downgradeSource = fnStart >= 0 ? mainSource.slice(fnStart, fnEnd) : null;
+const removeStart = mainSource.indexOf('function removeHeldFirewall(');
+const removeEnd = mainSource.indexOf('\n}', removeStart) + 2;
+const removeSource = removeStart >= 0 ? mainSource.slice(removeStart, removeEnd) : null;
 
 test('downgradeHeldEntry is still liftable from main.js', () => {
   assert.ok(downgradeSource, 'downgradeHeldEntry not found — update this test');
+  assert.ok(removeSource, 'removeHeldFirewall not found — update this test');
 });
 
-test('a quit-path downgrade outside any runtime binding destroys the view and throws nothing', () => {
+test('a quit-path downgrade preserves Electron listeners while destroying the view', () => {
   let closed = 0;
   let cleared = null;
+  const removed = [];
+  const firewallHandler = () => {};
   const entry = {
     holdTimer: 'timer-token',
     wcId: 41,
     heldAt: 12345,
+    firewallListeners: [['destroyed', firewallHandler]],
     view: {
       webContents: {
         isDestroyed: () => false,
-        removeAllListeners() {},
+        removeListener(event, handler) { removed.push([event, handler]); },
+        removeAllListeners() { throw new Error('must preserve Electron-owned listeners'); },
         close() { closed += 1; },
       },
     },
@@ -46,7 +54,7 @@ test('a quit-path downgrade outside any runtime binding destroys the view and th
     heldWebContents: new Set([41]),
   };
   vm.createContext(sandbox);
-  vm.runInContext(downgradeSource, sandbox);
+  vm.runInContext(`${removeSource}\n${downgradeSource}`, sandbox);
   // No rt(), hasLiveWindow, or scheduleBroadcastTabs in scope — exactly the
   // before-quit environment. A ReferenceError here is the regression.
   vm.runInContext('downgradeHeldEntry(entry);', Object.assign(sandbox, { entry }));
@@ -57,6 +65,9 @@ test('a quit-path downgrade outside any runtime binding destroys the view and th
   assert.equal(entry.heldAt, null);
   assert.equal(entry.wcId, null);
   assert.equal(sandbox.heldWebContents.size, 0, 'the registry entry must be removed');
+  assert.deepEqual(removed, [['destroyed', firewallHandler]],
+    'only the recorded Blanc firewall listener may be removed');
+  assert.equal(entry.firewallListeners, null);
 
   // Idempotent: the destroyed-handler path may call it again.
   vm.runInContext('downgradeHeldEntry(entry);', sandbox);

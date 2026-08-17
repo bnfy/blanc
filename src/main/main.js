@@ -897,12 +897,16 @@ async function sleepTab(id, { broadcast = true } = {}) {
 
   sleepTeardownInProgress = true;
   const wcId = wc.id;
-  // This must remove every old listener: loading/failure/crash listeners can
-  // otherwise poison tab.url or resurrect exactly the renderer being closed.
-  wc.removeAllListeners();
+  // Remove Blanc's stale-document listeners, but preserve Electron's own.
+  // Electron can deliver queued visibility work after close() destroys the
+  // native object; blanket listener removal turns that into the uncaught
+  // BrowserWindow.visibilityChanged "Object has been destroyed" exception.
+  unwireTabView(wc);
 
   let aborted = false;
   let teardownTimeout;
+  let destroyedHandler;
+  let preventUnloadHandler;
   const outcome = await new Promise((resolve) => {
     let settled = false;
     const finish = (value) => {
@@ -912,7 +916,7 @@ async function sleepTab(id, { broadcast = true } = {}) {
       }
     };
 
-    wc.once('destroyed', bindWindowRuntime(owner, () => {
+    destroyedHandler = bindWindowRuntime(owner, () => {
       tab.view = null;
       tab.asleep = true;
       tab.sleeping = false;
@@ -921,23 +925,25 @@ async function sleepTab(id, { broadcast = true } = {}) {
       tab.isLoading = false;
       tab.pageBg = null;
       tab.themeColor = null;
-      // removeAllListeners() above stripped the normal render-process-gone
-      // capture clear; the discarded document's anchors must not survive
-      // into whatever a wake later loads.
+      // unwireTabView() above removed the normal render-process-gone capture
+      // clear; the discarded document's anchors must not survive into
+      // whatever a wake later loads.
       if (tab.captureRecord) clearCaptureState({ kind: 'tab', tab, record: tab.captureRecord });
       const record = sleepSnapshots.get(id);
       if (record) record.view = null;
       tabIdByWebContentsId.delete(wcId);
       lastMainFrameMethod.delete(wcId);
       finish('quiet');
-    }));
+    });
+    wc.once('destroyed', destroyedHandler);
 
     // Polarity matters: this fires when the page objects to unload. Calling
     // preventDefault here would override that objection and destroy the tab.
-    wc.on('will-prevent-unload', () => {
+    preventUnloadHandler = () => {
       aborted = true;
       finish('aborted');
-    });
+    };
+    wc.once('will-prevent-unload', preventUnloadHandler);
 
     wc.close({ waitForBeforeUnload: true });
     // A wedged renderer must not remain permanently `sleeping`.
@@ -949,6 +955,13 @@ async function sleepTab(id, { broadcast = true } = {}) {
     sleepTeardownInProgress = false;
     if (broadcast) broadcastTabs();
     return true;
+  }
+
+  // An unload objection or timeout leaves the WebContents alive. Remove the
+  // temporary teardown observers before reinstalling the ordinary tab set.
+  if (!wc.isDestroyed()) {
+    wc.removeListener('destroyed', destroyedHandler);
+    wc.removeListener('will-prevent-unload', preventUnloadHandler);
   }
 
   // Restore the ordinary listener set after the temporary teardown pair. A
@@ -980,8 +993,13 @@ function downgradeHeldEntry(entry) {
   entry.heldAt = null;
   const wc = view?.webContents;
   if (wc && !wc.isDestroyed()) {
-    wc.removeAllListeners();
+    // The held firewall is Blanc-owned and recorded exactly. Preserve every
+    // Electron-owned listener through close() so queued visibility teardown
+    // cannot call BrowserWindow.visibilityChanged on a destroyed object.
+    removeHeldFirewall(entry, wc);
     wc.close();
+  } else {
+    entry.firewallListeners = null;
   }
   // NO rt()/broadcast here: the before-quit sweep calls this while iterating
   // every runtime OUTSIDE any bindWindowRuntime scope (acceptance mode makes
