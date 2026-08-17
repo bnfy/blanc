@@ -49,7 +49,7 @@ needed locally). In order: it refuses existing tags/releases for the version
 `scripts`, `site`, spec/substrate dirs, workflows, `package.json`/lock, the notes
 file), refuses a HEAD that isn't `origin/main`, then runs `npm ci` and the
 **press verification gate** (`release:verify:press`: substrate checks, unit tests,
-acceptance dry-run + desktop run, OAuth desktop test, DNS smoke,
+acceptance dry-run + desktop run, cold-launch smoke, OAuth desktop test, DNS smoke,
 `npm audit --omit=dev --audit-level=high`, site build). Only then does it build:
 notarized mac artifacts, a packaged first-run smoke test, and a migration test that
 downloads the public Stable base version and upgrades its profile. The immutable
