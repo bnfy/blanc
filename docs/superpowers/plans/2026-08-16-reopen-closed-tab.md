@@ -12,7 +12,7 @@
 
 - Read the spec first: `docs/superpowers/specs/2026-08-16-reopen-closed-tab-design.md`. Section references (§) below point into it.
 - `src/main/closed-tabs.js` must never `require('electron')` — it must load under plain `node --test` (precedent: `src/main/tab-sleep.js`).
-- Private tabs are **never** recorded, held, or reopenable (§2.3). No spec/, site/, or parity file may be edited.
+- Private tabs are **never** recorded, held, or reopenable (§2.3). `spec/features.md`, `spec/parity-matrix.md`, `spec/divergence-register.md`, and all `site/` copy must remain unedited — their private-tab exclusion statements stay true under this design. Adding a new acceptance scenario to `spec/acceptance/` (Task 8) is expected and fine.
 - `function closeTab(id` and `function reopenClosedTab()` must remain adjacent in `main.js` with those names — `test/unit/close-tab-shutdown.test.js` slices the source between them.
 - `/reopen` must land in all four copy locations in the same commit or `npm run substrate:check` fails (§6).
 - Closed entries' `snapshot`, `seed`, slot metadata, and view references never cross IPC; renderers get only the five-field `projectEntries()` projection (§4.1).
@@ -59,7 +59,8 @@ function fakeSession() {
   return session;
 }
 
-test('an Allow answered after the requesting tab closed grants nothing and persists nothing', async () => {
+test('an Allow answered after the requesting tab closed grants nothing and persists nothing', async (t) => {
+  t.after(() => setPermissionPrompter(null));
   const session = fakeSession();
   // persistDecisions:false doubles as the no-electron canary (see permissions.js).
   setupPermissionPolicy(session, { persistDecisions: false });
@@ -103,7 +104,9 @@ In `src/main/permissions.js`, immediately after `const allow = await prompter(..
     if (allow === null) return callback(false);
     // The requester can close while the prompt hangs. A late Allow must not
     // grant to — or persist a decision for — a tab the user already discarded.
-    if (wc.isDestroyed()) return callback(false);
+    // Optional-chained: existing unit harnesses pass wc = null
+    // (private-permissions.test.js, permissions-query-state.test.js).
+    if (wc?.isDestroyed?.()) return callback(false);
     saveDecision(origin, permission, mediaTypes, allow);
 ```
 
@@ -142,7 +145,57 @@ In `closeTab`, directly after `forgetTabWebContentsIds(id);` (~line 3294), add:
 
 This covers every close path — single tab, group loop, and the non-primary window-close loop all run through `closeTab`.
 
-- [ ] **Step 6: Fix the sandbox in close-tab-shutdown.test.js**
+- [ ] **Step 6: Regression-test the cancellation helper itself**
+
+The post-await guard is proven; the common-path behavior — only the owning
+tab's prompts cancelled, the last cancellation detaching the prompt view —
+needs its own test. `cancelPermissionPromptsForTab` lives in `main.js`, so lift
+it by source slice into a vm, the exact pattern of
+`test/unit/close-tab-shutdown.test.js`. Append to
+`test/unit/permission-prompt-close.test.js`:
+
+```js
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+
+const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+const fnStart = mainSource.indexOf('function cancelPermissionPromptsForTab(');
+const fnEnd = mainSource.indexOf('\n}', fnStart) + 2;
+const cancelSource = fnStart >= 0 ? mainSource.slice(fnStart, fnEnd) : null;
+
+test('cancelPermissionPromptsForTab is liftable from main.js', () => {
+  assert.ok(cancelSource, 'cancelPermissionPromptsForTab not found — update this test');
+});
+
+test('cancellation resolves only the owning tab prompts with null, and detaches the last view', () => {
+  const resolved = [];
+  const prompts = new Map([
+    [1, { tabId: 'closing', resolve: (v) => resolved.push(['closing-1', v]) }],
+    [2, { tabId: 'other', resolve: (v) => resolved.push(['other-2', v]) }],
+    [3, { tabId: 'closing', resolve: (v) => resolved.push(['closing-3', v]) }],
+  ]);
+  let detached = 0;
+  const sandbox = {
+    rt: () => ({ permissionPrompts: prompts }),
+    detachPermissionView: () => { detached += 1; },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(`${cancelSource}; cancelPermissionPromptsForTab('closing');`, sandbox);
+  assert.deepEqual(resolved.sort(), [['closing-1', null], ['closing-3', null]]);
+  assert.deepEqual([...prompts.keys()], [2], 'the other tab prompt must survive');
+  assert.equal(detached, 0, 'a surviving prompt keeps the view attached');
+
+  vm.runInContext(`cancelPermissionPromptsForTab('other');`, sandbox);
+  assert.equal(prompts.size, 0);
+  assert.equal(detached, 1, 'the last cancellation detaches the prompt view');
+});
+```
+
+Run: `node --test test/unit/permission-prompt-close.test.js`
+Expected: PASS (the helper from Step 5 already satisfies this; the test guards it).
+
+- [ ] **Step 7: Fix the sandbox in close-tab-shutdown.test.js**
 
 Run: `node --test test/unit/close-tab-shutdown.test.js`
 Expected: FAIL with `cancelPermissionPromptsForTab is not defined` (the test executes `closeTab`'s source in a vm). Add a no-op stub to the vm context object alongside the existing fakes:
@@ -153,7 +206,7 @@ Expected: FAIL with `cancelPermissionPromptsForTab is not defined` (the test exe
 
 Re-run; expected: PASS.
 
-- [ ] **Step 7: Full unit suite, then commit**
+- [ ] **Step 8: Full unit suite, then commit**
 
 Run: `npm run test:unit`
 Expected: PASS.
@@ -255,8 +308,9 @@ test('sanitizeSnapshot strips active pageState for a non-restorable commit', () 
 
 test('buildTabEntry captures identity, slot, and the adoption seed', () => {
   const entry = buildTabEntry(
-    baseTab({ pinned: true, muted: true, usedMedia: true, groupId: 'g1' }),
+    baseTab({ pinned: true, muted: true, usedMedia: true, groupId: 'g1', navEpoch: 7 }),
     SNAP, { index: 3, groupName: 'work' }, 1000);
+  assert.equal(entry.seed.navEpoch, 7);
   assert.equal(entry.kind, 'tab');
   assert.equal(entry.closedAt, 1000);
   assert.equal(entry.index, 3);
@@ -398,6 +452,9 @@ function buildTabEntry(tab, snapshot, slot = {}, now = 0) {
       restorableCommit: tab.restorableCommit === true,
       httpEntryCount: tab.httpEntryCount ?? 0,
       deepScrolled: !!tab.deepScrolled,
+      // The document is older than its new record; stale async probes and
+      // snapshot work must be judged against the document's real generation.
+      navEpoch: tab.navEpoch ?? 0,
     },
     view: null,
     heldAt: null,
@@ -621,8 +678,11 @@ function downgradeHeldEntry(entry) {
 }
 
 /** Held-state firewall (spec §3.4): a parked page keeps executing for the
- *  grace window with no tab record, so it must never be left bare. */
-function installHeldFirewall(entry, wc) {
+ *  grace window with no tab record, so it must never be left bare. Every
+ *  Electron callback is bound to the owning window runtime — a crash or
+ *  expiry in a background window must never resolve through the focused
+ *  fallback and mutate the wrong window (the downloads.js/capture rule). */
+function installHeldFirewall(entry, wc, owner) {
   // Method-installed, NOT an EventEmitter listener — removeAllListeners()
   // did not clear the one wireTabView set. Without this a held page could
   // window.open into a boundToTab closure over a deleted record.
@@ -636,38 +696,50 @@ function installHeldFirewall(entry, wc) {
   wc.on('media-started-playing', () => { entry.seed.usedMedia = true; });
   // A crashed renderer does not destroy its WebContents; without these the
   // restore path would re-attach a sad-tab instead of using the snapshot.
-  const downgrade = () => downgradeHeldEntry(entry);
+  const downgrade = bindWindowRuntime(owner, () => downgradeHeldEntry(entry));
   wc.on('render-process-gone', downgrade);
   wc.once('destroyed', downgrade);
 }
 
 /** Park a closing tab's live view into its closed entry (Tier 0). Returns
- *  false on any uncertainty; the caller then destroys normally (Tier 1). */
+ *  false on any uncertainty; the caller then destroys normally (Tier 1).
+ *  Called only from closeTab, where rt() is the verified owner. */
 function parkTabView(tab, entry) {
   const wc = liveContents(tab);
   if (!wc) return false;
   // Final synchronous guard, same shape as sleepTab's: capture state can
   // change between eligibility selection and this call (§5.1a).
   if (tab.capturing || (tab.captureRecord?.anchors?.length ?? 0) > 0) return false;
+  const owner = rt();
   const view = tab.view;
   // Registry FIRST, then strip, then firewall: no instant exists in which a
   // request resolves against neither the tab record nor the firewall (§3.4).
   heldWebContents.add(wc.id);
   wc.removeAllListeners();
-  installHeldFirewall(entry, wc);
+  installHeldFirewall(entry, wc, owner);
   view.setVisible(false);
   wc.setAudioMuted(true);
   entry.view = view;
   entry.wcId = wc.id;
   entry.heldAt = Date.now();
-  entry.holdTimer = setTimeout(() => downgradeHeldEntry(entry), CLOSED_GRACE_MS);
+  // The timer fires, but the pure policy decides: runtime expiry goes
+  // through expireHolds so the tested function is the production truth —
+  // and an entry already downgraded early (newer hold, crash) is simply
+  // not due when the sweep runs.
+  entry.holdTimer = setTimeout(bindWindowRuntime(owner, () => {
+    entry.holdTimer = null;
+    const due = new Set(expireHolds(owner.closedEntries ?? [], { now: Date.now() }));
+    for (const candidate of owner.closedEntries ?? []) {
+      if (due.has(candidate.id)) downgradeHeldEntry(candidate);
+    }
+  }), CLOSED_GRACE_MS);
   tabIdByWebContentsId.delete(wc.id);
   lastMainFrameMethod.delete(wc.id);
   return true;
 }
 ```
 
-Add to the top-of-file requires: `const { holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, projectEntries, CLOSED_GRACE_MS, MAX_CLOSED_ENTRIES } = require('./closed-tabs');`
+Add to the top-of-file requires: `const { holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, expireHolds, projectEntries, CLOSED_GRACE_MS, MAX_CLOSED_ENTRIES } = require('./closed-tabs');`
 
 - [ ] **Step 4: Quit-time teardown**
 
@@ -694,8 +766,9 @@ git commit -m "Add held-view registry, park firewall, and blanket permission den
 ### Task 4: Record on close, reopen with restore, adoption seam
 
 **Files:**
-- Modify: `src/main/main.js` (`closeTab`, `reopenClosedTab`, `createTab`, menu predicate)
-- Modify: `test/unit/close-tab-shutdown.test.js` (sandbox stubs)
+- Modify: `src/main/main.js` (`closeTab`, `reopenClosedTab`, `createTab`, menu predicate, `windowRuntimeSnapshots()` ~line 4800)
+- Modify: `src/main/window-runtime-registry.js` (runtime default ~line 41)
+- Modify: `test/unit/close-tab-shutdown.test.js` (sandbox stubs), `test/unit/window-runtime-registry.test.js` (default assertion ~line 16)
 
 **Interfaces:**
 - Consumes: Task 2 policy functions; Task 3 `parkTabView`/`downgradeHeldEntry`/`heldWebContents`.
@@ -705,8 +778,13 @@ git commit -m "Add held-view registry, park firewall, and blanket permission den
 
 Replace the current opening block of `closeTab` (~lines 3286–3305) so the sleep record is captured whole (field-copied later, §2.1) and the recentlyClosedUrls block is replaced by entry recording. The new shape:
 
+The declaration line must stay **byte-identical** — `close-tab-shutdown.test.js`
+searches for the exact string `function closeTab(id) {` — so the options come
+off `arguments` instead of a destructured parameter:
+
 ```js
-function closeTab(id, { record = true, selectReplacement = true } = {}) {
+function closeTab(id) {
+  const { record = true, selectReplacement = true } = arguments[1] ?? {};
   // First statement: any later early return must not strand recovery data.
   const sleepRecord = sleepSnapshots.get(id) ?? null;
   const retainedView = sleepRecord?.view ?? null;
@@ -888,11 +966,24 @@ function finishReopen(id, entry) {
 }
 ```
 
-(`reopenGroupEntry` arrives in Task 5; until then add a stub `function reopenGroupEntry() {}` directly above `reopenClosedTab` so the file parses — Task 5 replaces it.)
+(`reopenGroupEntry` arrives in Task 5; until then add a stub
+`function reopenGroupEntry() {}` **above `function closeTab`** — never between
+`closeTab` and `reopenClosedTab`, whose adjacency the slice test requires.
+Task 5 replaces the stub in place. `reopenEntry` and `finishReopen` go **below**
+the end of `reopenClosedTab` for the same reason.)
 
 - [ ] **Step 5: Menu predicate**
 
-In the File menu template (~line 4258): `enabled: (runtime.closedEntries?.length ?? 0) > 0`. Grep for every remaining `recentlyClosedUrls` reference and delete it: `grep -n "recentlyClosedUrls" src/ test/` — expected referents are `closeTab`, `reopenClosedTab`, the menu, and possibly `window-runtime-registry.js` defaults; replace the registry default with `closedEntries: []` if one exists.
+In the File menu template (~line 4258): `enabled: (runtime.closedEntries?.length ?? 0) > 0`. Then sweep every remaining `recentlyClosedUrls` reference (`grep -rn "recentlyClosedUrls" src/ test/`) — the full known set:
+
+- `src/main/window-runtime-registry.js:41` — the runtime default; replace with `closedEntries: [],`
+- `src/main/main.js:3302` (`closeTab`) and `:3370` (`reopenClosedTab`) — gone via Steps 1 and 4
+- `src/main/main.js:4259` — the menu predicate, replaced above
+- `src/main/main.js:4800` — `windowRuntimeSnapshots()`; replace the field with a count-only projection, `closedEntryCount: (runtime.closedEntries ?? []).length` (entries hold views and page state and must not be copied into a snapshot structure)
+- `test/unit/window-runtime-registry.test.js:16` — assert the new default: `assert.deepEqual(r.closedEntries, []);`
+- `test/unit/close-tab-shutdown.test.js` — sandbox fakes; replace `recentlyClosedUrls: []` with `closedEntries: []` in each context and update the line-87 assertion to match
+
+Run `node --test test/unit/window-runtime-registry.test.js test/unit/close-tab-shutdown.test.js` after the sweep; a leftover reference fails loudly.
 
 - [ ] **Step 6: Repair close-tab-shutdown.test.js**
 
@@ -920,7 +1011,7 @@ Run: `npm run test:unit` — expected PASS.
 Smoke (relaunch required): `npm start`, open two tabs, ⌘W, ⌘⇧T within 30 s — the page returns instantly with scroll and form state (Tier 0); wait 30 s after another close — ⌘⇧T re-navigates with back-stack intact (Tier 1). Leave the dev instance open.
 
 ```bash
-git add src/main/main.js test/unit/close-tab-shutdown.test.js
+git add src/main/main.js src/main/window-runtime-registry.js test/unit/close-tab-shutdown.test.js test/unit/window-runtime-registry.test.js
 git commit -m "Record closed tabs as tiered entries; reopen restores held view or snapshot"
 ```
 
@@ -1225,17 +1316,20 @@ git commit -m "Show recent closed entries in the command panel with click-to-reo
 ### Task 8: Acceptance scenario and docs
 
 **Files:**
-- Modify: `spec/acceptance/tabs-and-groups.feature`, `test/desktop/steps/` (matching step file), `src/main/test-hook.js`, `CLAUDE.md`, `AGENTS.md`
+- Modify: `spec/acceptance/tabs-and-groups.feature`, `spec/acceptance/index.md`, `test/desktop/steps/` (matching step file), `src/main/test-hook.js`, `CLAUDE.md`, `AGENTS.md`
 
 **Interfaces:**
 - Consumes: `reopenClosedTab` (already exposed on the test hook), `closeGroup`.
 
-- [ ] **Step 1: Add the F2 group-undo scenario**
+- [ ] **Step 1: Add the F2-6 group-undo scenario**
 
-In `spec/acceptance/tabs-and-groups.feature` (tags match the file's existing F2 scenarios):
+First check `spec/acceptance/index.md` and the existing `@F2-N` tags in
+`spec/acceptance/tabs-and-groups.feature` for the next free number — the plan
+assumes `@F2-6`; if that's taken, use the next one consistently in the feature,
+the index row, and the step comments. In `spec/acceptance/tabs-and-groups.feature`:
 
 ```gherkin
-  @F2 @all
+  @F2-6 @F2 @all
   Scenario: Closing a group is one undo step
     Given a group "research" holding 3 tabs
     When I close the group "research"
@@ -1244,40 +1338,87 @@ In `spec/acceptance/tabs-and-groups.feature` (tags match the file's existing F2 
     And the group's tabs are in their original order
 ```
 
-- [ ] **Step 2: Bind the steps**
+Add the matching row to `spec/acceptance/index.md` following its table format
+(desktop ✅, iOS/Android ⬜).
 
-In the step file that already defines "I reopen the last closed tab" (`test/desktop/steps/workspace-recovery.steps.js` or the tabs steps file — grep for the existing phrase), add the three new bindings using the same `this.call(...)` test-hook pattern as their neighbors. Expose what they need on `src/main/test-hook.js` next to `reopenClosed()`:
+- [ ] **Step 2: Expose the fixture and probes on the test hook**
+
+In `src/main/test-hook.js`, next to `reopenClosed()`, add three methods (and
+capture `closeGroup` and `groupTabByName` in the hook's function set the same
+way `reopenClosedTab` is captured):
 
 ```js
+    // Creates `count` born-quiet tabs with distinct stable URLs and groups
+    // them under `name`. Born-quiet: the fixture must not hit the network.
+    setupGroup(name, count) {
+      const urls = Array.from({ length: count }, (_, i) => `https://member-${i}.test/`);
+      for (const url of urls) {
+        const id = createTab(url, { asleep: true, title: url });
+        if (id) groupTabByName(id, name);
+      }
+      return urls;
+    },
     closeGroupByName(name) {
       const group = rt().groups.find((g) => g.name === name);
       if (group) closeGroup(group.id);
     },
-    groupTabCount(name) {
+    // Ordered member URLs — restored tabs get NEW ids, so order must be
+    // compared by URL, never by id.
+    groupTabUrls(name) {
       const group = rt().groups.find((g) => g.name === name);
-      if (!group) return 0;
-      return rt().tabOrder.filter((id) => tabs.get(id)?.groupId === group.id).length;
+      if (!group) return [];
+      return rt().tabOrder
+        .filter((id) => tabs.get(id)?.groupId === group.id)
+        .map((id) => tabs.get(id).url);
     },
 ```
 
-(`closeGroup` is already in scope in `main.js` where the hook object is built; add it to the hook's captured functions the same way `reopenClosedTab` is.)
+- [ ] **Step 3: Bind the four new step phrases**
 
-- [ ] **Step 3: Dry-run the scenario resolution**
+In the step file that already defines "I reopen the last closed tab" (grep
+`test/desktop/steps/` for that phrase and add alongside, using the same
+`this.call(...)` pattern as its neighbors):
+
+```js
+Given('a group {string} holding {int} tabs', async function (name, count) {
+  // Retain the pre-close order in the world: restored tabs have new ids.
+  this.expectedGroupUrls = await this.call('setupGroup', name, count);
+});
+
+When('I close the group {string}', async function (name) {
+  await this.call('closeGroupByName', name);
+});
+
+Then('a group named {string} holds {int} tabs', async function (name, count) {
+  const urls = await this.call('groupTabUrls', name);
+  assert.equal(urls.length, count);
+});
+
+Then("the group's tabs are in their original order", async function () {
+  const urls = await this.call('groupTabUrls', 'research');
+  assert.deepEqual(urls, this.expectedGroupUrls);
+});
+```
+
+(Match the file's actual assertion import and `this.call` signature on contact —
+some step files use `expect`; follow whichever the neighboring steps use.)
+
+- [ ] **Step 4: Dry-run the scenario resolution**
 
 Run: `npm run test:acceptance:dry`
 Expected: PASS — every step resolves to a definition (the dry run doesn't launch the app). Then, if the environment allows, `npm run test:acceptance:desktop` for the real run.
 
-- [ ] **Step 4: Documentation paragraphs**
+- [ ] **Step 5: Documentation paragraphs**
 
 Add a short "Reopen Closed Tab" paragraph to `CLAUDE.md` (after the Quiet Tabs paragraph) and the equivalent in `AGENTS.md`, covering: the three tiers and the 30 s hold, the held-state firewall + `heldWebContents` blanket permission denial, one-entry-per-action grain, `closed-tabs.js` as the pure module, the §4.1 projection rule, and that private tabs remain fully excluded. Keep it to one paragraph in CLAUDE.md's established voice; do **not** touch the private-tabs sentences elsewhere.
 
-- [ ] **Step 5: Full gates, commit**
+- [ ] **Step 6: Full gates, commit**
 
 Run: `npm run test:unit && npm run substrate:check && npm run test:acceptance:dry`
 Expected: all PASS.
 
 ```bash
-git add spec/acceptance/tabs-and-groups.feature test/desktop/ src/main/test-hook.js CLAUDE.md AGENTS.md
+git add spec/acceptance/tabs-and-groups.feature spec/acceptance/index.md test/desktop/ src/main/test-hook.js CLAUDE.md AGENTS.md
 git commit -m "Acceptance: group close is one undo step; document reopen-closed-tab"
 ```
 
