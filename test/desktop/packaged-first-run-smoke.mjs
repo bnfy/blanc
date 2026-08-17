@@ -87,6 +87,7 @@ const readStartPage = async (app) => {
     startupHidden: document.getElementById('startupCard')?.hidden,
     startupActionsHidden: document.getElementById('startupActions')?.hidden,
     startupTitle: document.getElementById('startupTitle')?.textContent,
+    startupMessage: document.getElementById('startupMessage')?.textContent,
     suggestions: document.getElementById('obSuggestions')?.getAttribute('aria-checked') === 'true',
     usagePing: document.getElementById('obPing')?.getAttribute('aria-checked') === 'true'
   }));
@@ -345,6 +346,10 @@ await withPackagedApp({
   );
   assert.equal(failed.startupHidden, false);
   assert.equal(failed.startupTitle, 'Blocking could not start.');
+  assert.match(
+    failed.startupMessage,
+    /Diagnostic: packaged smoke: simulated blocker initialization failure/
+  );
 
   await executeOnStartPage(
     app,

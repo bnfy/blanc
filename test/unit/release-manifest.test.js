@@ -157,6 +157,7 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.match(releaseWorkflow, /windows-signature\.json/);
   assert.match(releaseWorkflow, /Get-AuthenticodeSignature/);
   assert.match(releaseWorkflow, /verify-electron-fuses\.mjs/);
+  assert.match(releaseWorkflow, /Verify packaged blocker inputs\s+run: npm run adblock:check/);
   assert.match(releaseScript, /-f mode=release/);
   assert.match(releaseWorkflow, /default: release/);
   assert.match(releaseWorkflow, /inputs\.mode == 'release' && inputs\.tag \|\| github\.ref/);

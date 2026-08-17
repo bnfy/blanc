@@ -66,6 +66,9 @@ jobs:
       - name: Verify Windows app icons
         run: npm run icons:windows:check
 
+      - name: Verify packaged blocker inputs
+        run: npm run adblock:check
+
       - name: Build Windows installer
         shell: bash
         env:

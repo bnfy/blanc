@@ -44,6 +44,8 @@ The Azure branch requires every tenant/client/account/endpoint/profile/publisher
 
 The desktop ad blocker compiles only the bundled, hash-verified EasyList + EasyPrivacy snapshots in `adblock/sources/`; it makes no live filter-list request at startup and strips remote scriptlet resources. The compiled engine is cached in userData as `adblock-engine.v<N>.bin`; delete it to force a rebuild from the same bundled snapshot. Updating the lists is a reviewed release input: update `pinned.json`, run `npm run adblock:build`, and commit the generated snapshot/hash changes together.
 
+The pinned blocker files are byte-verified, so `.gitattributes` must keep `adblock/sources/*.txt`, `adblock/sources/pinned.json`, and `adblock/generated/*.json` at `eol=lf`. Without that, a Windows checkout converts them to CRLF and every packaged launch correctly fails closed with **Blocking could not start**. The native Windows workflow must run `npm run adblock:check` before electron-builder; never remove or bypass that gate.
+
 Auto-update (`electron-updater` against GitHub Releases) only runs in packaged builds — `npm start` skips it entirely. Releasing means bumping the `electron` devDependency (it tracks Chromium stable) and `version` in `package.json`, since Chromium itself can't be swapped out of a running app.
 
 ## Architecture
