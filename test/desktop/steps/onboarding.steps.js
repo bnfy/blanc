@@ -25,18 +25,32 @@ Given('a profile that completed first run', async function () {
   assert.equal(state.complete, true);
 });
 
+// The synthetic first-run status shows suggestions ON and the ping OFF (see
+// showTestFirstRunMigration); the walkthrough's toggles were initialized from
+// it when the dialog opened. Seeding the STORE with the opposite values
+// afterwards makes the save observable: if Skip didn't write, the stored
+// values stay inverted and the Then genuinely fails.
+Given('my stored privacy choices differ from the ones on screen', async function () {
+  await this.call('setSearchSuggestions', false);
+  await this.call('setUsagePing', true);
+  const seeded = await this.call('firstRunState');
+  assert.equal(seeded.searchSuggestions, false);
+  assert.equal(seeded.usagePing, true);
+});
+
 When('I skip the walkthrough', async function () {
   assert.equal(await this.call('skipOnboarding'), true);
 });
 
-Then('my first-run privacy choices are saved', async function () {
+Then('the privacy choices shown on screen are saved', async function () {
+  // The exact values the dialog displayed — not whatever was stored before.
   await waitForValue(
     () => this.call('firstRunState'),
     (state) =>
       state?.complete === true &&
-      typeof state.searchSuggestions === 'boolean' &&
-      typeof state.usagePing === 'boolean',
-    'first-run privacy choices to persist'
+      state.searchSuggestions === true &&
+      state.usagePing === false,
+    'the on-screen privacy choices to overwrite the seeded ones'
   );
 });
 

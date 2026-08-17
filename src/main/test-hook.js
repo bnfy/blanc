@@ -382,6 +382,7 @@ function install(refs) {
     setSearchEngine(x) { settings.setSettings({ searchEngine: x }); },
     searchEngine() { return settings.getSettings().searchEngine; },
     setSearchSuggestions(on) { settings.setSettings({ searchSuggestions: !!on }); },
+    setUsagePing(on) { settings.setSettings({ usagePing: !!on }); },
     searchSuggestions() { return settings.getSettings().searchSuggestions; },
     settingsSyncValues() { return settings.exportForSync().values; },
     tabSleep() { return settings.getSettings().tabSleep; },

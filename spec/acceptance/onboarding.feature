@@ -13,8 +13,9 @@ Feature: First-run onboarding
   Scenario: Skipping still records the privacy choices
     Given a fresh first run is awaiting setup
     And the onboarding walkthrough is shown
+    And my stored privacy choices differ from the ones on screen
     When I skip the walkthrough
-    Then my first-run privacy choices are saved
+    Then the privacy choices shown on screen are saved
     And the onboarding walkthrough is dismissed
 
   @F36-3 @all

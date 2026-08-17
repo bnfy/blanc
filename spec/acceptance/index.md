@@ -9,7 +9,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 > Desktop is the shipped reference, so its `@all` cells are ✅ (behaviour verified
 > in the shipping app; automated step-defs are a separate track). iOS/Android are
-> greenfield → ⬜. The grid below tracks stable scenario IDs across 20 `.feature`
+> greenfield → ⬜. The grid below tracks stable scenario IDs across 21 `.feature`
 > files.
 
 ## Files
