@@ -51,6 +51,13 @@ desktop-app path for `op run`. In agent mode, a sandboxed CLI cannot reach
 instead of retrying setup. If `op` offers to add an account manually, cancel it:
 that is never a valid release authentication step.
 
+**GitHub authentication rule:** a sandboxed agent can falsely report the cached
+`gh` token as invalid because it cannot access the macOS keyring. Retry
+`gh auth status` outside the sandbox first. If CLI access is still unavailable,
+use the connected GitHub app for repository/PR operations and verify whether
+the existing Git credential can push. Do not ask the user to run `gh auth login`
+unless the unsandboxed CLI check, GitHub app, and Git credential have all failed.
+
 For the normal Apple-Silicon stable release from Terminal.app:
 
 ```sh

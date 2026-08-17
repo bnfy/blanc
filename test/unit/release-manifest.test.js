@@ -186,6 +186,9 @@ test('release authentication uses an explicit interactive operator, 1Password de
   const releaseScript = fs.readFileSync(releasePath, 'utf8');
   const safariOpenerPath = path.join(root, 'scripts/release-bin/open');
   const safariOpener = fs.readFileSync(safariOpenerPath, 'utf8');
+  const agentInstructions = fs.readFileSync(path.join(root, 'AGENTS.md'), 'utf8');
+  const claudeInstructions = fs.readFileSync(path.join(root, 'CLAUDE.md'), 'utf8');
+  const releaseRunbook = fs.readFileSync(path.join(root, 'docs/release-verification.md'), 'utf8');
 
   assert.equal(spawnSync('bash', ['-n', releasePath]).status, 0);
   assert.match(releaseScript, /TERM_PROGRAM:-.*Apple_Terminal/);
@@ -197,10 +200,19 @@ test('release authentication uses an explicit interactive operator, 1Password de
   const opRun = releaseScript.indexOf('op run --env-file=.env.1password');
   assert.ok(opSignin >= 0, 'release must authenticate through the 1Password desktop app');
   assert.ok(opSignin < opRun, '1Password desktop authentication must precede secret injection');
+  assert.doesNotMatch(releaseScript, /Run: gh auth login/);
+  assert.match(releaseScript, /complete release is running outside the agent sandbox/);
   assert.match(
     releaseScript,
     /OP_BIOMETRIC_UNLOCK_ENABLED=true\s+\\\s*\n\s*op run --env-file=\.env\.1password/
   );
+  for (const instructions of [agentInstructions, claudeInstructions, releaseRunbook]) {
+    assert.match(instructions, /OP_BIOMETRIC_UNLOCK_ENABLED=true op signin/);
+    assert.match(instructions, /BLANC_RELEASE_OPERATOR=agent/);
+    assert.match(instructions, /outside (?:the|its) (?:agent )?sandbox/);
+    assert.match(instructions, /gh auth status/);
+    assert.match(instructions, /before asking the user to reauthenticate|Do not ask the user to run `gh auth login`/);
+  }
   assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.4.0}'));
   assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
   assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));

@@ -178,7 +178,12 @@ command -v cosign >/dev/null || {
   exit 1
 }
 gh auth status >/dev/null 2>&1 || {
-  echo "gh CLI is not authenticated. Run: gh auth login" >&2
+  echo "gh CLI authentication is unavailable in this operator environment." >&2
+  if [ "$RELEASE_OPERATOR" = "agent" ]; then
+    echo "Confirm the complete release is running outside the agent sandbox before changing GitHub credentials." >&2
+  else
+    echo "Confirm the cached Terminal session with: gh auth status" >&2
+  fi
   exit 1
 }
 
