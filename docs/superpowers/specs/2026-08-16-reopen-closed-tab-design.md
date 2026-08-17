@@ -1,7 +1,7 @@
 # Reopen Closed Tab — design
 
 Date: 2026-08-16
-Status: approved after review round 1, not implemented
+Status: approved after review round 2, not implemented
 
 ## 1. Problem
 
@@ -68,26 +68,40 @@ stack, group, pin, mute, and slot all return; the page re-fetches.
 A close falls to Tier 1 when any of these hold:
 
 - it is a group close (see §2.2)
-- the tab is capturing mic or camera (§5.1)
+- the tab is capturing, **or its document retains a capture grant anchor** (§5.1)
+- a permission prompt is pending for the tab (§5.1)
+- the tab is loading (`tab.isLoading`) — see §3.4 on in-flight navigation
 - the tab was quiet (`tab.asleep`) — no live renderer exists to hold
 
-**Tier 2 — URL only.** Fallback when `trimSnapshot()` returns null, i.e. the tab
-has no committed navigation history to shape. This is today's behaviour, retained
-as the floor so no case regresses.
+**Tier 2 — navigation floor.** When `trimSnapshot()` returns null, i.e. the tab
+has no committed navigation history to shape. The entry keeps only the URL for
+*navigation* purposes — but still carries the same structural metadata every
+other tier does: group, pin, mute, and slot. "URL only" describes what is known
+about where the page was, not a downgrade of tab identity; restore goes through
+`createTab(url, { pinned, groupId })` and the same slot splice as §2.4, never a
+bare `createTab(url)`.
 
 **Not recorded at all.** Matching today's predicate in `closeTab`: a tab with no
 usable `url` string, any `blanc://newtab` tab, and **every private tab** (§2.3).
 Utility pages never open as tabs, so they need no separate rule.
 
-**Quiet-tab snapshots are copied by field, never by reference.** A quiet tab
-being closed already has a `sleepSnapshots` entry, but that record's `view` can
-be a **live** `WebContentsView`: the storage-bearing path
-(`discardRendererKeepingStorage`) sets `tab.view = null` and never nulls
-`record.view`, unlike the ordinary path which nulls it on `'destroyed'`. Tier 1
-therefore copies only `entries`, `index`, and `droppedPageState`. The retained
-view stays the property of `closeTab`'s existing teardown, which already destroys
-it. Copying the record wholesale would bypass the held-view ceiling and leak a
-`WebContents`.
+### 2.1.1 POST state must never survive into a snapshot
+
+`trimSnapshot()` retains the active entry's `pageState`, which can contain the
+verbatim POST body of the submission that produced the page. Quiet Tabs is safe
+from this only because `sleepCandidates` refuses any tab with
+`restorableCommit !== true`, and `restorableCommit` is
+`effectiveMethod === 'GET' && (httpResponseCode ?? 200) < 400` (`main.js`).
+
+Closed-tab snapshots have no such gate — every close is recorded. So the active
+entry's `pageState` is **stripped whenever `tab.restorableCommit !== true`**,
+before the entry is stored. Tier 1 then restores such a page by re-navigating to
+its URL as a GET: possibly different content, never a resubmission.
+
+Consequence worth stating plainly: for a POST-derived page, Tier 0 is the *only*
+faithful restore, and it is inherently transient. After 30 s that page degrades
+to a GET of the same URL. That is the correct trade — the alternative is silently
+replaying a payment or a form submission.
 
 ### 2.2 Grain: one entry per user action
 
@@ -139,24 +153,33 @@ That is dropped for three reasons:
   the acceptance index would have become false.
 
 Consequence: this design requires **no** amendment to `spec/features.md`,
-`spec/parity-matrix.md`, `spec/divergence-register.md`, CLAUDE.md's private-tabs
-paragraph, or any site copy.
+`spec/parity-matrix.md`, `spec/divergence-register.md`, the private-tabs
+paragraphs in CLAUDE.md / AGENTS.md, or any site copy.
 
 ### 2.4 Restore semantics
+
+Common to every tier:
 
 - Splice the tab back at its recorded index in `tabOrder`, clamped to the current
   length.
 - Rejoin its group by id if that group still exists; otherwise find-or-create by
   name, matching `/group`'s semantics.
 - Restore `pinned` and `muted` from the entry.
-- **Explicitly call `wc.setAudioMuted(effectiveTabMuted(tab))` on re-attach.**
-  `wireTabView` only ever mutes (`if (effectiveTabMuted(tab)) wc.setAudioMuted(true)`)
-  and never unmutes, so a Tier 0 restore would otherwise stay permanently silent
-  from the park-time mute.
 - Activate the restored tab, matching today's behaviour.
 - For a group entry: restore the group record at its recorded cluster index
   first, then its tabs in their recorded order, then activate whichever was
   active at close time (or the first, if that tab was not in the group).
+
+Additionally for Tier 0, because the adopted view carries a **document that
+predates the new tab record** (§3.3):
+
+- **Explicitly call `wc.setAudioMuted(effectiveTabMuted(tab))` on re-attach.**
+  `wireTabView` only ever mutes (`if (effectiveTabMuted(tab)) wc.setAudioMuted(true)`)
+  and never unmutes, so a Tier 0 restore would otherwise stay permanently silent
+  from the park-time mute.
+- **Seed the document-scoped fields from the entry rather than accepting
+  `createTab`'s defaults**, then resynchronize the presentation fields from the
+  live `webContents` before the first broadcast.
 
 ### 2.5 Held tabs keep executing — accepted and disclosed
 
@@ -186,10 +209,12 @@ CLOSED_GRACE_MS = 30_000
 MAX_CLOSED_ENTRIES = 25
 MAX_HELD_VIEWS = 1
 
-holdEligibility(tab, { hasSnapshot })        -> 'hold' | 'snapshot' | 'url' | 'refuse'
-buildTabEntry(tab, snapshot, slot, now)      -> entry
-buildGroupEntry(group, tabs, snapshots, now) -> entry
-expireHolds(entries, { now, graceMs })       -> string[]   // entry ids to downgrade
+holdEligibility(tab, { hasSnapshot, promptPending })  -> 'hold' | 'snapshot' | 'url' | 'refuse'
+sanitizeSnapshot(snapshot, { restorableCommit })      -> snapshot   // §2.1.1
+buildTabEntry(tab, snapshot, slot, now)               -> entry
+buildGroupEntry(group, tabs, snapshots, now)          -> entry
+expireHolds(entries, { now, graceMs })                -> string[]   // entry ids to downgrade
+projectEntries(entries)                               -> renderer projection (§4)
 ```
 
 `holdEligibility` returns `'refuse'` for a tab that must not be recorded at all
@@ -197,6 +222,10 @@ expireHolds(entries, { now, graceMs })       -> string[]   // entry ids to downg
 tab qualifies for. It does not take a held count — a newer close always takes the
 hold (§2.1), so the caller downgrades the incumbent rather than the policy
 refusing the newcomer.
+
+`sanitizeSnapshot` strips the active entry's `pageState` unless the commit was
+restorable (§2.1.1). It runs on every snapshot, Tier 0's included, so a downgrade
+needs no extra step and cannot forget one.
 
 `expireHolds` returns ids to downgrade rather than mutating. There is no destroy
 list: every held entry has a snapshot behind it, so expiry is always a downgrade.
@@ -211,26 +240,43 @@ Owns: parking and re-attaching views, the held registry, the expiry timer, the
 - Tier 0 → adopt the parked view into a new tab record; if the view is dead or
   re-attach throws, fall through to the entry's snapshot
 - Tier 1 → `createTab(url, { restoreHistory, pinned, groupId })`
-- Tier 2 → `createTab(url)` as today
+- Tier 2 → `createTab(url, { pinned, groupId })` plus the slot splice (§2.1)
 - group entry → restore the group record, then loop Tier 1 over its tabs
 
 Reopening consumes the entry and cancels its expiry timer.
 `reopenClosedTabInWindow(runtimeId)` keeps its current signature and role as the
 window-addressed variant used by the test hook.
 
-### 3.3 The one new construction seam
+### 3.3 The adoption seam and its seeding contract
 
 Restoring a Tier 0 entry must reuse the parked view, not build a new one.
 `createTab` already has the `bornQuiet` seam that skips view construction,
 wiring, and the initial navigation. Add a narrow `adoptView` option alongside it:
 when supplied, use that view instead of constructing one, run `wireTabView` as
-normal, apply the explicit unmute from §2.4, and skip the initial
-`loadURL`/`restore`.
+normal, and skip the initial `loadURL`/`restore`.
 
 The alternative — a separate `restoreHeldTab()` that builds the tab record
 directly — would duplicate a ~40-field record shape whose fields carry
-non-obvious invariants (`restorableCommit`, `navEpoch`, `historyEligible`,
-`wakeGeneration`). That duplication is the larger risk.
+non-obvious invariants. That duplication is the larger risk.
+
+**But a fresh record over an old document is itself a hazard.** `createTab`
+initializes every document-scoped field to its new-tab default, and those
+defaults are wrong for a document that has been running since before the close:
+
+| Field | Default | Why the default is wrong |
+| --- | --- | --- |
+| `usedMedia` | `false` | A restored video tab becomes quietable and gets discarded mid-playback |
+| `adopted` | `false` | An adopted `window.open` child must never be quietable |
+| `openerTabId` | `null` | Loses opener-family protection in `sleepCandidates` |
+| `historyEligible` | `true` | Would let a stale title overwrite a valid recorded visit |
+| `restorableCommit` | `false` | Fail-safe direction, but must reflect the real commit |
+| `httpEntryCount`, `deepScrolled`, `navEpoch` | zeroes | Drive quiet-tab eligibility against a document they don't describe |
+
+The entry therefore records these at park time and the adoption path seeds them
+back. At minimum the opener and media protections must be preserved verbatim.
+`url`, `title`, `favicon`, `canGoBack`, and `canGoForward` are resynchronized
+from the live `webContents` before the first broadcast, so the island never
+paints a stale address.
 
 ### 3.4 The held-state firewall
 
@@ -244,9 +290,10 @@ Park sequence, in this order, so no window exists in which a request resolves
 against neither the tab record nor the firewall:
 
 1. Add `wc.id` to the process-wide `heldWebContents` registry.
-2. `wc.removeAllListeners()`.
-3. Install the firewall listeners below.
-4. Delete `tabIdByWebContentsId` / `lastMainFrameMethod` entries and remove the
+2. Cancel the tab's pending permission prompts (§5.1).
+3. `wc.removeAllListeners()`.
+4. Install the firewall listeners below.
+5. Delete `tabIdByWebContentsId` / `lastMainFrameMethod` entries and remove the
    tab from `tabs`, `tabOrder`, `windowRuntimes`.
 
 Firewall contents:
@@ -258,14 +305,24 @@ Firewall contents:
   `window.open` and run a `boundToTab` closure against a deleted tab record.
   Precedent for the deny form: `main.js` uses it for the auth dialog and other
   non-tab contents.
-- **`will-navigate` and `will-redirect` → `preventDefault()` unconditionally.**
-  A held page is frozen at the state the user closed; blanket refusal is both
-  stronger and simpler than re-implementing the privileged-URL guard from
-  `tab-view.js`, and without it a held page could navigate into `blanc://` and
-  then be re-attached. Subframe navigation is left alone so the page survives
-  restore intact.
+- **`will-navigate` and `will-redirect` → `preventDefault()` for main-frame
+  navigations only.** A held page is frozen at the state the user closed; blanket
+  main-frame refusal is stronger and simpler than re-implementing the
+  privileged-URL guard from `tab-view.js`, and without it a held page could
+  navigate into `blanc://` and then be re-attached. **Subframe navigations and
+  subframe redirects are left alone** so the page survives restore intact — which
+  requires testing `isMainFrame` explicitly rather than preventing
+  unconditionally. On Electron 43 both events deliver an event object carrying
+  `isMainFrame` alongside the legacy positional arguments; read it from the
+  event object.
 - **Permission denial** via the registry — see §5.1.
 - **`render-process-gone` and `once('destroyed')` → atomic downgrade** — see §5.3.
+
+**In-flight navigation.** A tab parked mid-navigation would have that navigation
+blocked by the firewall, leaving the held document inconsistent with the entry's
+recorded URL. Tier 0 therefore refuses a tab with `tab.isLoading` (§2.1),
+mirroring `sleepCandidates`' existing refusal; such a close falls to Tier 1,
+where the snapshot describes the last committed state.
 
 Unparking removes the firewall and the registry entry, then `wireTabView`
 reinstalls the ordinary set.
@@ -278,46 +335,104 @@ predicate moves from `recentlyClosedUrls?.length` to the new entry list.
 **`/reopen` slash command.** New. Hint: `Reopen the tab you just closed`.
 
 **⌘L panel "closed" section.** A quiet section below the tab list showing the
-most recent entries — favicon and title, a `held` marker on the Tier 0 entry, and
-`N tabs` on a group entry. Clicking reopens *that* entry rather than the top of
-the stack. This is new panel chrome and therefore needs render proof in the real
-chrome plus explicit approval before any Design System push.
+most recent entries. This is new panel chrome and therefore needs render proof in
+the real chrome plus explicit approval before any Design System push.
 
 Because private tabs are never recorded (§2.3), this section can never render
 private page metadata.
+
+### 4.1 IPC boundary
+
+Closed entries hold navigation history, page state, and live view references.
+CLAUDE.md's rule for `sleepSnapshots` — never onto the tab record, never across
+IPC, disk, sync, or crash reporting — applies here for the same reason and with
+the same force.
+
+The renderer receives an **explicit projection only**, built by
+`projectEntries()`:
+
+```
+{ id, title, favicon, tier, tabCount }
+```
+
+- `id` — opaque entry id, meaningless outside the owning runtime
+- `title` — display string
+- `favicon` — bounded PNG data URL through the existing favicon policy, never a
+  remote URL the renderer would fetch
+- `tier` — for the `held` marker only
+- `tabCount` — for the `N tabs` group label
+
+`entries`, `index`, `pageState`, `url`, slot metadata, and every view reference
+stay main-process-only. Reopening is `reopenClosedEntry(id)` over the trusted
+`chrome:*` IPC path, with main re-resolving the id against its own list — the
+renderer's id is a proposal, exactly as `reorderTabWithinBucket` treats renderer
+tab ids today. An unknown or stale id is a no-op.
 
 **Not in scope:** Quick Switcher matching over closed tabs. That is the retrieval
 direction, deliberately excluded (§1).
 
 ## 5. Invariants
 
-### 5.1 Capture: refuse at park, deny while held
+### 5.1 Capture: refuse at park, cancel pending prompts, deny while held
 
-Two independent mechanisms, both required.
+Three independent mechanisms. All are required; none subsumes another.
 
-**Refuse at park.** A tab with `tab.capturing` is never held; it closes
-immediately and releases mic/camera, re-checked **synchronously at park time**,
-matching the shape of `sleepTab`'s final guard.
+**(a) Refuse at park — on grant truth, not the projection.** `tab.capturing` is
+**not** security truth. The capture design deliberately lets page-world
+instrumentation refine state *toward off*, so a malicious page can report a zero
+snapshot while continuing to capture; the design accepts this because the OS
+indicator is the backstop. A held view has no OS-visible tab, so that backstop no
+longer reads as "this tab".
 
-**Deny while held.** The synchronous check is not sufficient on its own: a parked
-page can request mic or camera afterward, and a **remembered** grant is answered
-by the stored-decision path without ever reaching the prompter. The tab record is
-gone by then, so `tabForWebContents` — `tabs.get(tabIdByWebContentsId.get(wc.id))`
-— returns null, the capture grant observer cannot anchor the grant to any tab, and
-capture would begin with the OS indicator lit but no Blanc chip. (Keeping
-`tabIdByWebContentsId` populated would *not* fix this: the tab is absent from
-`tabs` regardless. A separate registry is the only workable lookup.)
+Tier 0 therefore refuses on the main-process grant record as well:
+`tab.captureRecord?.anchors.length > 0` (`capture-state.js`). This conservatively
+excludes any document that has ever received a media grant, including after an
+honest stop — the right direction for a 30-second convenience feature.
 
-Therefore `setPermissionRequestHandler` and `setPermissionCheckHandler` both
-consult `heldWebContents` first and **deny every permission** for a held
-`WebContents`, ahead of the stored-decision lookup. Broader than media alone,
-deliberately: a page the user has closed has no business acquiring geolocation or
-firing a notification either, and one rule is easier to keep correct than a media
-carve-out. Denials here are never persisted.
+**(b) Cancel pending prompts at park.** A permission request can enter
+`setPermissionRequestHandler`, await the prompt, and *then* have its tab parked.
+The existing resumption path is:
 
-The prompter path is already safe — an unresolvable requester resolves `null`,
-which denies without persisting — but the registry check runs first regardless so
-the two handlers agree.
+```js
+const allow = await prompter({ origin, permission, mediaTypes, requestingWebContents: wc });
+if (allow === null) return callback(false);
+saveDecision(origin, permission, mediaTypes, allow);
+if (allow) notifyCaptureGrant(wc, permission, mediaTypes, details);
+callback(allow);
+```
+
+A later Allow therefore resumes a handler that never rechecks held state, grants
+the permission to a held view, **and persists the decision** — poisoning every
+future visit to that origin, not just this one.
+
+Parking resolves the tab's pending prompts with `null`, the established
+"never answered, do not persist" sentinel already used by
+`flushPermissionPrompts(runtime)` at window close. This needs a per-tab variant;
+`owner.permissionPrompts` entries already carry `tabId`.
+
+Tier 0 additionally **refuses** a tab with a prompt pending, reusing the existing
+`permissionPendingTabIds()` helper that `sleepCandidates` already consumes. Such
+a close falls to Tier 1.
+
+**(c) Deny while held, and recheck after the await.**
+`setPermissionRequestHandler` and `setPermissionCheckHandler` both consult
+`heldWebContents` first and **deny every permission** for a held `WebContents`,
+ahead of the stored-decision lookup. This closes the remembered-grant path, which
+returns `callback(true)` without ever reaching the prompter.
+
+The request handler **rechecks `heldWebContents` immediately after
+`await prompter(...)`, before `saveDecision`**, and on a hit returns
+`callback(false)` without persisting. Cancellation in (b) handles the ordinary
+case; this recheck closes the interleaving where the prompt resolves in the same
+turn as the park.
+
+Denial is deliberately **blanket, not media-only**: a page the user has closed has
+no business acquiring geolocation or firing a notification either, and one rule
+is easier to keep correct than a carve-out. Denials here are never persisted.
+
+The prompter path is already safe on its own — an unresolvable requester resolves
+`null`, which denies without persisting — but the registry check runs first
+regardless so the two handlers agree.
 
 ### 5.2 Listener replacement, not listener removal
 
@@ -328,7 +443,10 @@ longer exists; the firewall replaces them.
 
 `tabIdByWebContentsId` and `lastMainFrameMethod` are cleared at park, since every
 consumer resolving through them expects a live tab record. The held registry is
-the purpose-built lookup for the held state.
+the purpose-built lookup for the held state — note that *keeping*
+`tabIdByWebContentsId` would not have helped, because `tabForWebContents` is
+`tabs.get(tabIdByWebContentsId.get(wc.id))` and the tab is absent from `tabs`
+either way.
 
 ### 5.3 Crash downgrade must be atomic
 
@@ -358,9 +476,12 @@ casing at the call site.
 - **Primary window close on macOS** takes the `detachWindow` path instead: the
   runtime and its tabs survive for dock-reopen, and `recentlyClosedUrls` survives
   with them today. That contract is preserved — entries are **not** dropped. The
-  held view is still destroyed and its entry downgraded to Tier 1, because a live
-  view cannot outlive its window's `contentView` and the 30 s bound cannot span
-  an indefinite dock-closed period.
+  held view is still destroyed and its entry downgraded to Tier 1, on
+  privacy and bounded-execution grounds: a held page keeps executing (§2.5), and
+  that must not continue for an unbounded period while the app has no visible
+  window and the user believes everything is closed. This is *not* a technical
+  limitation — `sleepSnapshots` already retains detached views indefinitely for
+  quiet tabs — it is a policy bound.
 - **`persistSession()`** never sees held tabs, since they are already out of
   `tabs`, `tabOrder`, and `windowRuntimes`. No change needed there.
 - **`sleepTeardownInProgress`** and the Quiet Tabs teardown path must not race
@@ -387,8 +508,9 @@ commit** as the behaviour change.
 `function closeTab(id) {` to `\nfunction reopenClosedTab()`. That function name
 and its adjacency to `closeTab` are load-bearing; keep both or update the test.
 
-**CLAUDE.md** needs a short paragraph for this feature. Its private-tabs sentence
-needs **no** change, since private tabs remain fully excluded (§2.3).
+**CLAUDE.md and AGENTS.md** both need a short paragraph for this feature. Their
+private-tabs sentences need **no** change, since private tabs remain fully
+excluded (§2.3).
 
 **No spec, parity-matrix, divergence-register, or site-copy changes are
 required.** F4-1 stands unmodified and its title stays true.
@@ -396,9 +518,12 @@ required.** F4-1 stands unmodified and its title stays true.
 ## 7. Testing
 
 **`test/unit/closed-tabs.test.js`** over the pure module: tier selection for each
-eligibility case, `'refuse'` for newtab, url-less, and private tabs,
-one-entry-per-action grain, the 25-entry cap, expiry downgrade, and a newer close
-taking the hold and downgrading the incumbent.
+eligibility case (capture anchors, pending prompt, loading, quiet, group),
+`'refuse'` for newtab, url-less, and private tabs, `sanitizeSnapshot` stripping
+`pageState` for a non-restorable commit and preserving it for a restorable one,
+one-entry-per-action grain, the 25-entry cap, expiry downgrade, a newer close
+taking the hold and downgrading the incumbent, and `projectEntries` emitting only
+the five allowed fields.
 
 **Acceptance:** a new F2 scenario — closing a group of N and reopening restores
 the group whole, with membership, order, and pins intact, in one step.
@@ -409,12 +534,19 @@ the group whole, with membership, order, and pins intact, in one step.
 - mic/camera release on ⌘W of a capturing tab, OS indicator included
 - a held page with a **remembered** mic grant calling `getUserMedia` is denied and
   lights no indicator
+- a permission prompt left open when the tab is closed, then answered Allow:
+  nothing is granted and **nothing is persisted** for that origin
 - a held page calling `window.open` opens nothing
+- a held page whose subframe navigates or redirects still restores intact
+- a POST-derived page: Tier 0 restores it faithfully; after 30 s the Tier 1
+  restore re-navigates as a GET and never prompts to resubmit
+- a restored video tab is not quietable afterwards (`usedMedia` seeding)
 - scroll position and typed form content survive a Tier 0 restore
 - a Tier 1 restore lands at the right scroll offset with a working back button
 - crashing a held renderer downgrades cleanly and ⌘⇧T still restores via snapshot
 - quitting with a held view leaks no renderer
-- macOS: close the primary window, dock-reopen, ⌘⇧T still finds prior entries
+- macOS: close the primary window, dock-reopen, ⌘⇧T still finds prior entries and
+  the previously held entry restores from its snapshot
 
 Chrome-level changes (the ⌘L panel section) require relaunching `npm start`;
 ⌘R reloads only the active tab's view.
