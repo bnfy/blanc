@@ -2,55 +2,59 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the Patron entitlement foundation — a device-local `patron` record with three kinds (`founding` / `lifetime` / `subscription`), Polar activation + subscription validation with a 30-day offline grace and graceful degradation, migration of existing `$19` Supporters to founding Patrons, and the re-gating of the three cosmetic colorways under Patron — with nothing else gating until this exists.
+**Goal:** Ship the Patron entitlement foundation — a device-local `patron` record with three kinds (`founding` / `lifetime` / `subscription`), Polar activation + subscription validation with a 30-day offline grace and graceful degradation, migration of existing `$19` Supporters to founding Patrons, and re-gating the three cosmetic colorways under Patron — with nothing else gating until this exists.
 
-**Architecture:** All entitlement *decisions* live in a new pure, Electron-free `src/main/patron-model.js` (mirrors `tabsync-model.js` / `session-workspace.js`), covered by `node:test` unit tests. `src/main/patron.js` wraps Polar's `net.fetch` calls and calls the pure model for every decision. `src/main/settings.js` gains the `patron` record, `isPatronActive()`, `setPatron()`, the extended `isAppIconAllowed()` predicate, the renderer projection that strips `patron`, and a one-time upgrade migration. `src/main/main.js` schedules the daily background validation and wires the activation IPC.
+**Architecture:** All entitlement *decisions* live in a new pure, Electron-free `src/main/patron-model.js` (mirrors `tabsync-model.js` / `session-workspace.js`), covered by `node:test` unit tests. **Subscription activity is derived from the persisted record** (`isRecordActive`), never a volatile in-memory flag, so a restart cannot lock out a valid subscriber. `src/main/patron.js` wraps Polar's `net.fetch` calls and delegates every decision to the pure model. `src/main/settings.js` gains the `patron` record, `isPatronActive()`, `setPatron()`, the extended `isAppIconAllowed()`, a one-time migration run **inside `ensureStore()`** (against `store.data`, flushed synchronously), and fires the existing `listeners` set on change. The renderer projection and activation IPC are edited in **`src/main/pages.js`** (where they actually live). `src/main/main.js` only schedules the daily background validation.
 
-**Tech Stack:** Electron (main process), `net.fetch` for Polar's public customer-portal API, `node --test` (`npm run test:unit`) over `test/unit/`, the repo's `JsonStore` persistence.
+**Tech Stack:** Electron (main process), `net.fetch` for Polar's public customer-portal API, `node --test` over `test/unit/`, the repo's `JsonStore` persistence.
 
 ## Global Constraints
 
-Copied verbatim from `docs/superpowers/specs/2026-08-18-blanc-patron-design.md`; every task's requirements implicitly include these:
+Copied verbatim from `docs/superpowers/specs/2026-08-18-blanc-patron-design.md`; every task implicitly includes these:
 
 - **Patron only ever ADDS.** Nothing shipped today (the whole browser + all of today's Personal-only Profile Sync) ever moves behind Patron.
 - **`patron` is the single canonical record.** No Patron-era entitlement check may read `supporter`; `supporter` becomes a downgrade mirror only.
 - **A `subscription` is NEVER written to `supporter`** (an old build reads any non-null `supporter` as a *permanent* grant).
-- **Device-local, never synced.** Neither `patron` nor `supporter` is in `SYNCED_KEYS`; the generic `setSettings()` whitelist must ignore both.
-- **Renderer sees only `patronActive`** (a boolean) — never the key, activation id, benefit id, or Polar status. `getSettings()` must strip **both** `supporter` and `patron`.
-- **Fail open except one path.** Network failure / ambiguous / unknown status → stay active within the 30-day offline grace (clock from `lastValidatedAt`, bootstrapped at activation). Only a **confirmed terminal status** revokes. The single fail-*closed* path: an unrecognized `benefit_id` at activation grants nothing.
-- **Expiration is a field, not a status.** Response carries `status` plus separate `expires_at`; never treat `expired` as a status value.
+- **Subscription activity derives from the persisted record**, not an in-memory boolean (a module cache resets to false on restart and would skip up to 24h of validation, locking out a valid subscriber).
+- **Device-local, never synced.** Neither `patron` nor `supporter` is in `SYNCED_KEYS`; the generic `setSettings()` whitelist ignores both.
+- **Renderer sees only `patronActive`** — never the key, activation id, benefit id, or Polar status. The `pages.js` `clientSettings()` projection strips **both** `supporter` and `patron`.
+- **Fail open except one path.** Network failure / ambiguous / unknown status → stay active within the 30-day offline grace (clock from `lastValidatedAt`, bootstrapped at activation). Only a **confirmed terminal outcome** revokes. The single fail-*closed* path: an unrecognized `benefit_id` at activation grants nothing.
+- **Expiration is a field, not a status.** Response carries `status` plus a separate `expires_at`; never treat `expired` as a status value.
+- **Validation re-checks the benefit.** Each successful validation must resolve the returned `benefit_id` to the expected `subscription` benefit before it may extend entitlement.
 - **Distinct `benefit_id` per product** is a setup invariant, verified in sandbox before production cutover.
-- **No DRM, no lockout, no user-data loss** on lapse — degrade gracefully.
-- **Polar base switches on `app.isPackaged`** (`sandbox-api.polar.sh` in dev, `api.polar.sh` packaged) — already in `supporter.js`. The `benefit_id` allowlist has separate sandbox/production tables on the same switch.
-- **Colorway fallback is `paper`** (`DEFAULTS.appIcon`), applied on the read path; invalid writes are ignored (not reset).
+- **No DRM, no lockout, no user-data loss** on lapse — degrade gracefully. Preserve the existing **200-character key guard** and reject malformed successful JSON.
+- **Polar base switches on `app.isPackaged`** (`sandbox-api.polar.sh` dev, `api.polar.sh` packaged); the `benefit_id` allowlist has separate sandbox/production tables on the same switch. Org id `6f675077-6cb1-4965-8db8-15838e5fdb38` (public, from `supporter.js`).
+- **Colorway fallback is `paper`** (`DEFAULTS.appIcon`), applied on the read path; invalid writes are ignored.
+
+**Testing note:** run a single model file with `node --test test/unit/patron-model.test.js` (targeted TDD). `npm run test:unit` always expands to the whole suite — use it only for the final full-suite check.
 
 ## Roadmap (the other three plans, written after this one lands)
 
-- **Phase 2 — Named Workspaces** (the anchor): profile-scoped `workspaces.json`, ⌘L management UI, single-window binding, continuous autosave, Patron-gated creation.
+- **Phase 2 — Named Workspaces** (anchor): profile-scoped `workspaces.json`, ⌘L management UI, single-window binding, continuous autosave, Patron-gated creation.
 - **Phase 3 — Supporting bundle**: custom slash commands / keybindings; Patron badge in Settings.
-- **Phase 4 — Site + copy**: restrained Patron section with the plain validation disclosure.
+- **Phase 4 — Site + copy**: restrained Patron section with the plain validation disclosure; rename the legacy `supporter-activate` IPC / `supporterActive` alias.
 
 ## File Structure
 
-- **Create `src/main/patron-model.js`** — pure, no `require('electron')`. Exports `resolveKind`, `evaluateValidation`, `migrateSupporter`, `downgradeMirror`, `GRACE_MS`, `readBenefitId`. One responsibility: entitlement decisions as pure functions.
-- **Create `test/unit/patron-model.test.js`** — `node:test` coverage for every branch of the above.
-- **Modify `src/main/settings.js`** — `patron` default; `isPatronActive()`; `setPatron()`; extend `isAppIconAllowed()`; strip `patron` in the renderer projection; run `migrateSupporter` once on load; keep the `supporter` downgrade mirror for founding/lifetime.
-- **Create `src/main/patron.js`** — Polar `activate` + `validate` network calls (Electron `net.fetch`), each delegating decisions to `patron-model`; the `validateIfDue` entry point. Supersedes `supporter.js`'s `activateSupporter` (which is folded in and re-exported for the existing IPC name).
-- **Modify `src/main/main.js`** — daily idle-scheduled `validateIfDue`; wire the settings-page activation IPC to `patron.activate`.
-- **Modify `src/renderer/pages/settings.*`** — Patron section (key input + status) and the three colorways re-gated on `patronActive`. (Manual verification — chrome/UI is not unit-tested per repo norm.)
+- **Create `src/main/patron-model.js`** — pure, no `require('electron')`. Exports `readBenefitId`, `resolveKind`, `GRACE_MS`, `isRecordActive`, `evaluateValidation`, `migrateSupporter`, `downgradeMirror`.
+- **Create `test/unit/patron-model.test.js`** — `node:test` coverage for every branch.
+- **Modify `src/main/settings.js`** — `patron` default; migration inside `ensureStore()`; `isPatronActive()`; `setPatron()` (fires `listeners`); `isAppIconAllowed()`; `getPatronRecord()` (main-only).
+- **Create `src/main/patron.js`** — Polar `activate` + `validateIfDue`, each delegating to `patron-model`.
+- **Modify `src/main/pages.js`** — `clientSettings()` strips `patron` + adds `patronActive`; route `pages:settings:supporter-activate` to `patron.activate`.
+- **Modify `src/main/main.js`** — idle-scheduled daily `validateIfDue`.
+- **Modify `src/renderer/pages/settings.*`** — Patron section + colorways re-gated on `patronActive` (manual verification).
 
 ---
 
-### Task 1: Pure benefit_id → kind resolution (`resolveKind`, `readBenefitId`)
+### Task 1: Pure benefit_id resolution — fail-closed (`readBenefitId`, `resolveKind`)
 
 **Files:**
 - Create: `src/main/patron-model.js`
 - Test: `test/unit/patron-model.test.js`
 
-**Interfaces:**
-- Produces:
-  - `readBenefitId(payload) -> string | null` — defensively reads `benefit_id` from a Polar activate or validate payload: checks `payload.benefit_id`, then `payload.license_key?.benefit_id`, then `payload.activation?.license_key?.benefit_id`.
-  - `resolveKind(benefitId, allowlist) -> 'founding' | 'lifetime' | 'subscription' | null` — maps a benefit id through the given allowlist object (`{ [benefitId]: kind }`); returns `null` for a missing/unknown id (fail closed).
+**Interfaces — Produces:**
+- `readBenefitId(payload) -> string | null` — defensively reads `benefit_id` from a Polar activate or validate payload: `payload.benefit_id`, then `payload.license_key?.benefit_id`, then `payload.activation?.license_key?.benefit_id`.
+- `resolveKind(benefitId, allowlist) -> 'founding'|'lifetime'|'subscription'|null` — **fail-closed**: requires `benefitId` be a non-empty string, uses an own-property check (rejects inherited `toString`/`constructor`/`__proto__`), and returns `null` unless the mapped value is a known kind.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -70,18 +74,29 @@ test('readBenefitId reads root, nested license_key, and nested activation', () =
   assert.equal(readBenefitId(null), null);
 });
 
-test('resolveKind maps known benefits and fails closed on unknown', () => {
+test('resolveKind maps known benefits', () => {
   assert.equal(resolveKind('ben_supporter', ALLOW), 'founding');
   assert.equal(resolveKind('ben_annual', ALLOW), 'subscription');
   assert.equal(resolveKind('ben_lifetime', ALLOW), 'lifetime');
+});
+
+test('resolveKind fails closed on unknown, empty, non-string, and inherited props', () => {
   assert.equal(resolveKind('ben_unknown', ALLOW), null);
+  assert.equal(resolveKind('', ALLOW), null);
   assert.equal(resolveKind(null, ALLOW), null);
+  assert.equal(resolveKind(42, ALLOW), null);
+  // prototype-property inputs must NOT resolve to a truthy inherited value
+  assert.equal(resolveKind('toString', ALLOW), null);
+  assert.equal(resolveKind('constructor', ALLOW), null);
+  assert.equal(resolveKind('__proto__', ALLOW), null);
+  // a benefit mapped to a NON-kind value must not leak through
+  assert.equal(resolveKind('x', { x: 'not_a_kind' }), null);
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm run test:unit -- test/unit/patron-model.test.js`
+Run: `node --test test/unit/patron-model.test.js`
 Expected: FAIL — cannot find module `patron-model`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -90,6 +105,8 @@ Expected: FAIL — cannot find module `patron-model`.
 // src/main/patron-model.js
 // Pure entitlement decisions — NO require('electron'). Mirrors the Electron-free
 // pattern of tabsync-model.js / session-workspace.js so every branch is unit-testable.
+
+const KINDS = new Set(['founding', 'lifetime', 'subscription']);
 
 function readBenefitId(payload) {
   if (!payload || typeof payload !== 'object') return null;
@@ -100,8 +117,11 @@ function readBenefitId(payload) {
 }
 
 function resolveKind(benefitId, allowlist) {
-  if (!benefitId) return null;
-  return allowlist[benefitId] ?? null;
+  if (typeof benefitId !== 'string' || benefitId === '') return null;
+  if (!allowlist || typeof allowlist !== 'object') return null;
+  if (!Object.prototype.hasOwnProperty.call(allowlist, benefitId)) return null; // own-property only
+  const kind = allowlist[benefitId];
+  return KINDS.has(kind) ? kind : null;
 }
 
 module.exports = { readBenefitId, resolveKind };
@@ -109,83 +129,85 @@ module.exports = { readBenefitId, resolveKind };
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npm run test:unit -- test/unit/patron-model.test.js`
-Expected: PASS (2 tests).
+Run: `node --test test/unit/patron-model.test.js`
+Expected: PASS (3 tests).
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add src/main/patron-model.js test/unit/patron-model.test.js
-git commit -m "feat(patron): pure benefit_id resolution with defensive read + fail-closed mapping"
+git commit -m "feat(patron): fail-closed benefit_id resolution (own-property, validated kind, defensive read)"
 ```
 
 ---
 
-### Task 2: Pure validation state machine (`evaluateValidation`, `GRACE_MS`)
+### Task 2: Derived activity + validation state machine (`isRecordActive`, `evaluateValidation`, `GRACE_MS`)
 
 **Files:**
 - Modify: `src/main/patron-model.js`
 - Test: `test/unit/patron-model.test.js`
 
-**Interfaces:**
-- Consumes: nothing from Task 1 at runtime (same module).
-- Produces:
-  - `GRACE_MS` — `30 * 24 * 60 * 60 * 1000`.
-  - `evaluateValidation({ outcome, record, now }) -> { active: boolean, record }` — the pure state machine. `outcome` is one of:
-    - `{ kind: 'ok', status: string, expiresAt: number|null }` — a parsed Polar response.
-    - `{ kind: 'unreachable' }` — network failure/ambiguous.
-    It returns the next `record` (with updated `lastValidatedAt` / `lastAttemptedAt` / `lastStatus`) and whether the subscription is currently `active`. Founding/lifetime never call this. Rules: `status === 'granted'` and (`expiresAt` null or `> now`) → active, set `lastValidatedAt = now`. Known terminal (`revoked`, `disabled`) or granted-but-`expiresAt <= now` → not active (confirmed lapse). Unknown status or `unreachable` → active **iff** `now - lastValidatedAt <= GRACE_MS`, and does **not** advance `lastValidatedAt`. `lastAttemptedAt` is set to `now` in every case.
+**Interfaces — Produces:**
+- `GRACE_MS = 30 * 24 * 60 * 60 * 1000`.
+- `isRecordActive(record, now) -> boolean` — the **single source of truth for current entitlement, derived purely from the persisted record** (so it is correct immediately on restart, before any network call). `founding`/`lifetime` → true. `subscription` → `record.lastStatus === 'granted' && (now - record.lastValidatedAt) <= GRACE_MS`. Anything else → false.
+- `evaluateValidation({ outcome, record, now }) -> { active, record }` — folds a validation `outcome` into the record, then returns `active: isRecordActive(next, now)`. `outcome` is `{ kind: 'ok', status, expiresAt, benefitOk }` or `{ kind: 'unreachable' }`. Only a **granted + unexpired + benefitOk** result advances `lastValidatedAt`/sets `lastStatus='granted'`. Confirmed terminal (`revoked`/`disabled`), granted-but-expired (`lastStatus='expired'`), and granted-but-benefit-mismatch (`lastStatus='benefit_mismatch'`) each set a non-`granted` `lastStatus` → derived-inactive. **Unknown status or `unreachable` leaves the record unchanged** (rides the grace off the last good `lastValidatedAt`). `lastAttemptedAt` is set to `now` on every `ok`/`unreachable` attempt.
 
 - [ ] **Step 1: Write the failing test**
 
 ```js
 // append to test/unit/patron-model.test.js
-const { evaluateValidation, GRACE_MS } = require('../../src/main/patron-model');
+const { evaluateValidation, isRecordActive, GRACE_MS } = require('../../src/main/patron-model');
 
-const base = (over = {}) => ({
+const sub = (over = {}) => ({
   kind: 'subscription', key: 'k', activationId: 'a', benefitId: 'ben_annual',
   activatedAt: 0, lastValidatedAt: 1000, lastAttemptedAt: 1000, lastStatus: 'granted', ...over,
 });
 
-test('granted, unexpired → active and advances lastValidatedAt', () => {
+test('isRecordActive: founding/lifetime always active; subscription needs granted + within grace', () => {
+  assert.equal(isRecordActive({ kind: 'founding' }, 9e15), true);
+  assert.equal(isRecordActive({ kind: 'lifetime' }, 9e15), true);
+  assert.equal(isRecordActive(null, 0), false);
+  // restart with a granted record still within grace → active WITHOUT any network call
+  assert.equal(isRecordActive(sub({ lastValidatedAt: 1000 }), 1000 + GRACE_MS), true);
+  // past grace → inactive
+  assert.equal(isRecordActive(sub({ lastValidatedAt: 1000 }), 1000 + GRACE_MS + 1), false);
+  // last confirmed status not granted → inactive regardless of grace
+  assert.equal(isRecordActive(sub({ lastStatus: 'revoked', lastValidatedAt: 9e15 }), 9e15), false);
+});
+
+test('granted + unexpired + benefitOk → active, advances lastValidatedAt', () => {
   const now = 5000;
-  const r = evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: now + 1 }, record: base(), now });
+  const r = evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: now + 1, benefitOk: true }, record: sub(), now });
   assert.equal(r.active, true);
   assert.equal(r.record.lastValidatedAt, now);
-  assert.equal(r.record.lastAttemptedAt, now);
+  assert.equal(r.record.lastStatus, 'granted');
 });
 
-test('revoked → confirmed lapse, not active', () => {
-  const r = evaluateValidation({ outcome: { kind: 'ok', status: 'revoked', expiresAt: null }, record: base(), now: 5000 });
-  assert.equal(r.active, false);
-  assert.equal(r.record.lastAttemptedAt, 5000);
-});
-
-test('granted but expired → confirmed lapse, not active', () => {
+test('revoked, expired, and benefit mismatch each degrade', () => {
   const now = 5000;
-  const r = evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: now - 1 }, record: base(), now });
-  assert.equal(r.active, false);
+  assert.equal(evaluateValidation({ outcome: { kind: 'ok', status: 'revoked', expiresAt: null, benefitOk: true }, record: sub(), now }).active, false);
+  assert.equal(evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: now - 1, benefitOk: true }, record: sub(), now }).active, false);
+  const mismatch = evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: now + 1, benefitOk: false }, record: sub(), now });
+  assert.equal(mismatch.active, false);
+  assert.equal(mismatch.record.lastStatus, 'benefit_mismatch');
 });
 
-test('unknown status → rides grace, does NOT advance lastValidatedAt', () => {
-  const now = 1000 + GRACE_MS - 1;
-  const r = evaluateValidation({ outcome: { kind: 'ok', status: 'weird_new_status', expiresAt: null }, record: base(), now });
-  assert.equal(r.active, true);
-  assert.equal(r.record.lastValidatedAt, 1000); // unchanged
-});
-
-test('unreachable within grace → active; past grace → degrade', () => {
+test('unknown status and unreachable ride the grace, do not advance lastValidatedAt', () => {
   const withinNow = 1000 + GRACE_MS;
-  assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: base(), now: withinNow }).active, true);
-  const pastNow = 1000 + GRACE_MS + 1;
-  assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: base(), now: pastNow }).active, false);
+  const unknown = evaluateValidation({ outcome: { kind: 'ok', status: 'weird_new', expiresAt: null, benefitOk: true }, record: sub(), now: withinNow });
+  assert.equal(unknown.active, true);
+  assert.equal(unknown.record.lastValidatedAt, 1000); // unchanged
+  assert.equal(unknown.record.lastStatus, 'granted'); // unchanged
+  assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: sub(), now: withinNow }).active, true);
+  assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: sub(), now: 1000 + GRACE_MS + 1 }).active, false);
+  assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: sub(), now: withinNow }).record.lastAttemptedAt, withinNow);
 });
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm run test:unit -- test/unit/patron-model.test.js`
-Expected: FAIL — `evaluateValidation is not a function`.
+Run: `node --test test/unit/patron-model.test.js`
+Expected: FAIL — `isRecordActive is not a function`.
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -194,44 +216,49 @@ Expected: FAIL — `evaluateValidation is not a function`.
 const GRACE_MS = 30 * 24 * 60 * 60 * 1000;
 const TERMINAL = new Set(['revoked', 'disabled']);
 
-function evaluateValidation({ outcome, record, now }) {
-  const next = { ...record, lastAttemptedAt: now };
-
-  if (outcome.kind === 'ok' && outcome.status === 'granted'
-      && (outcome.expiresAt == null || outcome.expiresAt > now)) {
-    next.lastStatus = 'granted';
-    next.lastValidatedAt = now;
-    return { active: true, record: next };
-  }
-
-  const confirmedTerminal =
-    (outcome.kind === 'ok' && TERMINAL.has(outcome.status)) ||
-    (outcome.kind === 'ok' && outcome.status === 'granted'
-      && outcome.expiresAt != null && outcome.expiresAt <= now);
-  if (confirmedTerminal) {
-    next.lastStatus = outcome.status;
-    return { active: false, record: next };
-  }
-
-  // unknown status OR unreachable → ambiguous: ride the offline grace, do not advance lastValidatedAt.
-  if (outcome.kind === 'ok') next.lastStatus = outcome.status;
-  const active = (now - record.lastValidatedAt) <= GRACE_MS;
-  return { active, record: next };
+function isRecordActive(record, now) {
+  if (!record) return false;
+  if (record.kind === 'founding' || record.kind === 'lifetime') return true;
+  if (record.kind !== 'subscription') return false;
+  return record.lastStatus === 'granted' && (now - (record.lastValidatedAt ?? 0)) <= GRACE_MS;
 }
 
-module.exports = { readBenefitId, resolveKind, evaluateValidation, GRACE_MS };
+function evaluateValidation({ outcome, record, now }) {
+  const next = { ...record };
+  if (outcome.kind === 'ok') {
+    next.lastAttemptedAt = now;
+    const granted = outcome.status === 'granted';
+    const unexpired = outcome.expiresAt == null || outcome.expiresAt > now;
+    if (granted && unexpired && outcome.benefitOk) {
+      next.lastStatus = 'granted';
+      next.lastValidatedAt = now;
+    } else if (TERMINAL.has(outcome.status)) {
+      next.lastStatus = outcome.status;               // confirmed terminal
+    } else if (granted && !unexpired) {
+      next.lastStatus = 'expired';                    // derived terminal
+    } else if (granted && !outcome.benefitOk) {
+      next.lastStatus = 'benefit_mismatch';           // derived terminal
+    }
+    // else: unknown, non-terminal status → leave lastStatus/lastValidatedAt untouched (ride grace)
+  } else {
+    next.lastAttemptedAt = now;                       // unreachable → ride grace, unchanged otherwise
+  }
+  return { active: isRecordActive(next, now), record: next };
+}
+
+module.exports = { readBenefitId, resolveKind, GRACE_MS, isRecordActive, evaluateValidation };
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npm run test:unit -- test/unit/patron-model.test.js`
-Expected: PASS (all Task 1 + Task 2 tests).
+Run: `node --test test/unit/patron-model.test.js`
+Expected: PASS (Task 1 + Task 2 tests).
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add src/main/patron-model.js test/unit/patron-model.test.js
-git commit -m "feat(patron): validation state machine with 30-day offline grace, fail-open except confirmed terminal"
+git commit -m "feat(patron): persisted-record-derived activity + validation state machine with benefit re-check"
 ```
 
 ---
@@ -242,10 +269,9 @@ git commit -m "feat(patron): validation state machine with 30-day offline grace,
 - Modify: `src/main/patron-model.js`
 - Test: `test/unit/patron-model.test.js`
 
-**Interfaces:**
-- Produces:
-  - `migrateSupporter({ supporter, patron, now }) -> { patron } | null` — if `supporter` is non-null and `patron` is null, returns `{ patron: { kind:'founding', key, activationId, benefitId:null, activatedAt } }` (using the supporter's fields, `activatedAt` falling back to `now`). Otherwise returns `null` (no change — idempotent).
-  - `downgradeMirror(patron) -> supporterRecord | null` — returns the legacy `{ key, activationId, activatedAt }` mirror to persist under `supporter` **only** for `founding`/`lifetime`; returns `null` for `subscription` or null patron (so a subscription is never mirrored).
+**Interfaces — Produces:**
+- `migrateSupporter({ supporter, patron, now }) -> { patron } | null` — if `supporter` non-null and `patron` null, returns `{ patron: { kind:'founding', key, activationId, benefitId:null, activatedAt } }` (activatedAt falling back to `now`). Otherwise `null` (idempotent — nothing to do).
+- `downgradeMirror(patron) -> { key, activationId, activatedAt } | null` — the legacy mirror to persist under `supporter`, **only** for `founding`/`lifetime`; `null` for `subscription` or null patron (a subscription is never mirrored).
 
 - [ ] **Step 1: Write the failing test**
 
@@ -253,23 +279,17 @@ git commit -m "feat(patron): validation state machine with 30-day offline grace,
 // append to test/unit/patron-model.test.js
 const { migrateSupporter, downgradeMirror } = require('../../src/main/patron-model');
 
-test('migrateSupporter creates a founding patron from a legacy supporter, once', () => {
+test('migrateSupporter creates a founding patron once, idempotently', () => {
   const supporter = { key: 'k', activationId: 'a', activatedAt: 42 };
   const out = migrateSupporter({ supporter, patron: null, now: 99 });
   assert.deepEqual(out.patron, { kind: 'founding', key: 'k', activationId: 'a', benefitId: null, activatedAt: 42 });
-  // idempotent: already has a patron → null
-  assert.equal(migrateSupporter({ supporter, patron: out.patron, now: 99 }), null);
-  // nothing to migrate
-  assert.equal(migrateSupporter({ supporter: null, patron: null, now: 99 }), null);
+  assert.equal(migrateSupporter({ supporter, patron: out.patron, now: 99 }), null); // already migrated
+  assert.equal(migrateSupporter({ supporter: null, patron: null, now: 99 }), null); // nothing to migrate
 });
 
-test('downgradeMirror mirrors founding/lifetime but NEVER a subscription', () => {
-  assert.deepEqual(
-    downgradeMirror({ kind: 'founding', key: 'k', activationId: 'a', activatedAt: 42 }),
-    { key: 'k', activationId: 'a', activatedAt: 42 });
-  assert.deepEqual(
-    downgradeMirror({ kind: 'lifetime', key: 'k', activationId: 'a', activatedAt: 7 }),
-    { key: 'k', activationId: 'a', activatedAt: 7 });
+test('downgradeMirror mirrors founding/lifetime, NEVER a subscription', () => {
+  assert.deepEqual(downgradeMirror({ kind: 'founding', key: 'k', activationId: 'a', activatedAt: 42 }), { key: 'k', activationId: 'a', activatedAt: 42 });
+  assert.deepEqual(downgradeMirror({ kind: 'lifetime', key: 'k', activationId: 'a', activatedAt: 7 }), { key: 'k', activationId: 'a', activatedAt: 7 });
   assert.equal(downgradeMirror({ kind: 'subscription', key: 'k', activationId: 'a', activatedAt: 1 }), null);
   assert.equal(downgradeMirror(null), null);
 });
@@ -277,7 +297,7 @@ test('downgradeMirror mirrors founding/lifetime but NEVER a subscription', () =>
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `npm run test:unit -- test/unit/patron-model.test.js`
+Run: `node --test test/unit/patron-model.test.js`
 Expected: FAIL — `migrateSupporter is not a function`.
 
 - [ ] **Step 3: Write minimal implementation**
@@ -286,15 +306,10 @@ Expected: FAIL — `migrateSupporter is not a function`.
 // add to src/main/patron-model.js
 function migrateSupporter({ supporter, patron, now }) {
   if (!supporter || patron) return null;
-  return {
-    patron: {
-      kind: 'founding',
-      key: supporter.key,
-      activationId: supporter.activationId ?? null,
-      benefitId: null,
-      activatedAt: supporter.activatedAt ?? now,
-    },
-  };
+  return { patron: {
+    kind: 'founding', key: supporter.key, activationId: supporter.activationId ?? null,
+    benefitId: null, activatedAt: supporter.activatedAt ?? now,
+  } };
 }
 
 function downgradeMirror(patron) {
@@ -302,19 +317,19 @@ function downgradeMirror(patron) {
   return { key: patron.key, activationId: patron.activationId ?? null, activatedAt: patron.activatedAt };
 }
 
-module.exports = { readBenefitId, resolveKind, evaluateValidation, GRACE_MS, migrateSupporter, downgradeMirror };
+module.exports = { readBenefitId, resolveKind, GRACE_MS, isRecordActive, evaluateValidation, migrateSupporter, downgradeMirror };
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `npm run test:unit -- test/unit/patron-model.test.js`
-Expected: PASS (all tests).
+Run: `node --test test/unit/patron-model.test.js`
+Expected: PASS (all model tests).
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add src/main/patron-model.js test/unit/patron-model.test.js
-git commit -m "feat(patron): pure migration + downgrade-mirror (subscription never mirrored to supporter)"
+git commit -m "feat(patron): pure migration + downgrade mirror (subscription never mirrored)"
 ```
 
 ---
@@ -322,90 +337,72 @@ git commit -m "feat(patron): pure migration + downgrade-mirror (subscription nev
 ### Task 4: Wire the model into `settings.js`
 
 **Files:**
-- Modify: `src/main/settings.js` (the `DEFAULTS`, the sanitize/projection paths, `isAppIconAllowed`, exports)
-- Test: `test/unit/settings-patron.test.js` (new — `settings.js` is `require`-able without Electron for these pure predicates; if it pulls Electron at import in this repo, fall back to the manual steps noted)
+- Modify: `src/main/settings.js` — `DEFAULTS`, `ensureStore()` (migration + synchronous flush), `isAppIconAllowed`, new `isPatronActive`/`setPatron`/`getPatronRecord`, exports.
 
 **Interfaces:**
-- Consumes: `migrateSupporter`, `downgradeMirror` from `patron-model`.
-- Produces (on `settings.js` exports):
-  - `isPatronActive() -> boolean` — true for `founding`/`lifetime`; for `subscription`, true when `_patronSubscriptionActive` (a cached boolean the main-process validator sets via `setPatron`); false when `patron` is null.
-  - `setPatron(record)` — the only writer of `patron`; also writes the `downgradeMirror(record)` into `supporter` (or clears it) so founding/lifetime survive a downgrade and a subscription never does.
-  - `isAppIconAllowed(id)` — now `APP_ICONS.includes(id) || (SUPPORTER_ICONS.includes(id) && isPatronActive())`.
+- Consumes: `migrateSupporter`, `downgradeMirror`, `isRecordActive` from `patron-model`.
+- Produces (settings exports): `isPatronActive()`, `setPatron(record)`, `getPatronRecord()` (main-only), extended `isAppIconAllowed(id)`.
 
-- [ ] **Step 1: Add the `patron` default and migration on load**
+- [ ] **Step 1: Add the `patron` default and the require**
 
-In `DEFAULTS`, beside `supporter: null`, add `patron: null`. In the store's post-load sanitize (where `getSettings()`/read coercion runs), call `migrateSupporter` and, if it returns a change, persist the new `patron` (leaving `supporter` intact as the mirror).
+Add `patron: null` in `DEFAULTS` beside `supporter: null`. At top: `const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');`
+
+- [ ] **Step 2: Run the migration inside `ensureStore()` against `store.data`, then flush synchronously**
+
+Blocker: the migration must mutate the persisted store, not the shallow copy `getSettings()` returns. Add it inside `ensureStore()`, right after `store = new JsonStore('settings', DEFAULTS);` (line ~147) and before the return, following the existing synchronous-`store.flush()` pattern there:
 
 ```js
-// near the top: const { migrateSupporter, downgradeMirror } = require('./patron-model');
-// in the load/sanitize path, after the store data is available:
-const migrated = migrateSupporter({ supporter: data.supporter, patron: data.patron, now: Date.now() });
-if (migrated) data.patron = migrated.patron;
+    const migrated = migrateSupporter({ supporter: store.data.supporter, patron: store.data.patron, now: Date.now() });
+    if (migrated) {
+      store.data.patron = migrated.patron;      // supporter left intact — it is the downgrade mirror for founding
+      store.flush();                            // synchronous, like the onboarding-marker flushes above
+    }
 ```
 
-- [ ] **Step 2: Add `isPatronActive`, `setPatron`, extend `isAppIconAllowed`**
+- [ ] **Step 3: Add `isPatronActive`, `setPatron` (firing listeners), `getPatronRecord`; extend `isAppIconAllowed`**
+
+`setPatron` must fire the existing `listeners` set exactly as `setSupporter` does (line ~321) — otherwise activation won't reapply the Dock icon or update live UI:
 
 ```js
-let _patronSubscriptionActive = false; // set by the main-process validator via setPatron/refresh
-
 function isPatronActive() {
-  const p = ensureStore().data.patron;
-  if (!p) return false;
-  if (p.kind === 'founding' || p.kind === 'lifetime') return true;
-  return _patronSubscriptionActive; // subscription: gated by the last validation result
+  return isRecordActive(ensureStore().data.patron, Date.now());
 }
 
-function setPatron(record, { subscriptionActive } = {}) {
+// The activation flow's private write path — setSettings()'s whitelist has no `patron`.
+function setPatron(record) {
   ensureStore().update((data) => {
     data.patron = record;
     data.supporter = downgradeMirror(record); // founding/lifetime mirror; subscription/null → null
   });
-  if (typeof subscriptionActive === 'boolean') _patronSubscriptionActive = subscriptionActive;
+  for (const fn of listeners) fn(getSettings()); // reapplies applyAppIcon + live UI, like setSupporter
 }
+
+// Main-process only; NEVER exposed to a renderer.
+function getPatronRecord() { return ensureStore().data.patron; }
 
 function isAppIconAllowed(id) {
   return APP_ICONS.includes(id) || (SUPPORTER_ICONS.includes(id) && isPatronActive());
 }
 ```
 
-Replace the existing `isSupporterActive`-based `isAppIconAllowed` body accordingly. Keep `isSupporterActive` exported for now (used only by the legacy read path) but ensure **no entitlement check** calls it — `isAppIconAllowed` now calls `isPatronActive`.
+Replace the existing `isAppIconAllowed` body (which calls `isSupporterActive`). Leave `isSupporterActive` exported but ensure **no entitlement path calls it** (only the downgrade mirror concerns `supporter` now). Add `isPatronActive`, `setPatron`, `getPatronRecord` to `module.exports`.
 
-- [ ] **Step 3: Strip `patron` in the renderer projection**
+- [ ] **Step 4: Keep `patron` out of the generic write + sync**
 
-Find where `getSettings()` builds the renderer-facing object (today it strips `supporter` and exposes `supporterActive`). Add: delete `patron`, and expose `patronActive: isPatronActive()` (keep `supporterActive` as an alias equal to `patronActive` for any existing renderer reference until Phase 4 updates copy).
+Confirm `setSettings()`'s whitelist copies neither `supporter` nor `patron` (it already omits `supporter`; add a one-line comment that `patron` is likewise activation-flow-only). Confirm `SYNCED_KEYS` contains neither (it does not — do not add them).
 
-```js
-// in the projection:
-delete clean.supporter;
-delete clean.patron;
-clean.patronActive = isPatronActive();
-clean.supporterActive = clean.patronActive; // temporary alias
-```
+- [ ] **Step 5: Verify (manual — settings.js imports Electron at load, so no unit file)**
 
-- [ ] **Step 4: Keep `patron`/`supporter` out of the generic write + sync**
+`npm start`; in the main-process console call `settings.setPatron({kind:'founding',key:'x',activationId:null,activatedAt:Date.now()})` and confirm `isPatronActive()` is `true`, `isAppIconAllowed('ember')` is `true`, and the Dock icon reapplies (listener fired). Restart and confirm `isPatronActive()` is still `true` from the persisted record with no network call. Also confirm a legacy `settings.json` carrying only `supporter` gains a `patron:{kind:'founding'}` on next launch (migration + flush).
 
-Confirm the `setSettings()` whitelist copies **neither** `patron` nor `supporter` (it already omits `supporter`; add an explicit guard/comment so `patron` is never accepted from a renderer partial). Confirm `SYNCED_KEYS` contains neither (it does not — do not add them).
-
-- [ ] **Step 5: Unit-test the projection + predicate (or verify manually)**
-
-```js
-// test/unit/settings-patron.test.js  (only if settings.js imports without Electron in this repo)
-const { test } = require('node:test');
-const assert = require('node:assert');
-// Drive via the exported helpers against a temp userData; if settings.js requires electron
-// at import time, SKIP this file and use the manual check below instead.
-```
-
-Manual fallback (always valid): `npm start`, then in the main-process console set a founding patron and confirm a renderer `getSettings()` payload contains `patronActive: true` and **no** `patron`/`supporter` field.
-
-- [ ] **Step 6: Run tests + commit**
+- [ ] **Step 6: Run the full suite + commit**
 
 Run: `npm run test:unit`
-Expected: PASS (existing suite + patron-model; settings-patron if applicable).
+Expected: PASS (existing suite + patron-model).
 
 ```bash
-git add src/main/settings.js test/unit/settings-patron.test.js
-git commit -m "feat(patron): settings record, isPatronActive, projection strip, colorway re-gate, migration on load"
+git add src/main/settings.js
+git commit -m "feat(patron): settings record, ensureStore migration+flush, isPatronActive via persisted record, listener-firing setPatron"
 ```
 
 ---
@@ -414,63 +411,61 @@ git commit -m "feat(patron): settings record, isPatronActive, projection strip, 
 
 **Files:**
 - Create: `src/main/patron.js`
-- Modify: `src/main/supporter.js` (re-export the activation entry so the existing IPC name keeps working) — or delete once `main.js` points at `patron.js`.
 
 **Interfaces:**
-- Consumes: `readBenefitId`, `resolveKind`, `evaluateValidation` from `patron-model`; `setPatron`, and the stored `patron` record from `settings`.
-- Produces:
-  - `activate(key) -> { ok: boolean, message?, kind? }` — POSTs to `.../license-keys/activate` with `{ key, organization_id, label }`, reads `benefit_id` via `readBenefitId`, resolves the kind via the per-environment allowlist, and on a known kind calls `setPatron` with a record whose `lastValidatedAt`/`lastAttemptedAt` are bootstrapped to now (activation is an online success) and `subscriptionActive: true` for the subscription kind. **Unknown benefit_id → `{ ok:false }`, grants nothing (fail closed).**
-  - `validateIfDue() -> Promise<void>` — for a `subscription` patron only, and at most once per `lastAttemptedAt + 1 day`, POSTs to `.../license-keys/validate` with `{ organization_id, key, activation_id }`, parses `{ status, expires_at }` into an `outcome`, runs `evaluateValidation`, and persists the returned record via `setPatron({...}, { subscriptionActive: active })`. Network failure → `outcome: { kind:'unreachable' }`.
+- Consumes: `readBenefitId`, `resolveKind`, `evaluateValidation` from `patron-model`; `setPatron`, `getPatronRecord` from `settings`.
+- Produces: `activate(key) -> Promise<{ ok, message?, kind? }>`, `validateIfDue() -> Promise<void>`.
 
-- [ ] **Step 1: Scaffold the per-environment allowlist + API base**
+- [ ] **Step 1: Scaffold API base + allowlist + `activate` (with 200-char guard, fail-closed benefit, malformed-JSON catch)**
 
 ```js
 const { app, net } = require('electron');
 const settings = require('./settings');
 const model = require('./patron-model');
 
-const ORG_ID = '6f675077-6cb1-4965-8db8-15838e5fdb38'; // production org "bnfy" (public, from supporter.js)
+const ORG_ID = '6f675077-6cb1-4965-8db8-15838e5fdb38'; // public org "bnfy" (from supporter.js)
 const API_BASE = app.isPackaged ? 'https://api.polar.sh' : 'https://sandbox-api.polar.sh';
+const MAX_KEY_LENGTH = 200; // preserved from supporter.js — client-side stray-paste backstop
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-// SETUP INVARIANT: each product uses a DISTINCT license-key benefit. Fill these from the
-// Polar dashboard; verify the sandbox ids in sandbox before production cutover.
+// SETUP INVARIANT: each product uses a DISTINCT license-key benefit. Fill from the Polar
+// dashboard; verify the SANDBOX ids in sandbox before the production cutover.
 const BENEFIT_ALLOWLIST = app.isPackaged
-  ? { /* prod: */ }   // { '<supporter>': 'founding', '<annual>': 'subscription', '<monthly>': 'subscription', '<lifetime?>': 'lifetime' }
-  : { /* sandbox: */ };
-```
+  ? { /* prod:    '<supporter>':'founding', '<annual>':'subscription', '<monthly>':'subscription' */ }
+  : { /* sandbox: '<supporter>':'founding', '<annual>':'subscription', '<monthly>':'subscription' */ };
 
-- [ ] **Step 2: Implement `activate`**
+async function readJson(res) { try { return await res.json(); } catch { return null; } }
 
-```js
 async function activate(key) {
   const trimmed = String(key ?? '').trim();
   if (!trimmed) return { ok: false, message: 'Enter a license key.' };
+  if (trimmed.length > MAX_KEY_LENGTH) return { ok: false, message: 'That doesn’t look like a license key.' };
   let res;
   try {
     res = await net.fetch(`${API_BASE}/v1/customer-portal/license-keys/activate`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ key: trimmed, organization_id: ORG_ID, label: 'Blanc' }),
     });
-  } catch { return { ok: false, message: "Couldn't reach Polar — check your connection and try again." }; }
+  } catch { return { ok: false, message: "Couldn’t reach Polar — check your connection and try again." }; }
   if (!res.ok) return { ok: false, message: 'That license key could not be activated.' };
-  const payload = await res.json();
-  const kind = model.resolveKind(model.readBenefitId(payload), BENEFIT_ALLOWLIST);
-  if (!kind) return { ok: false, message: 'That license key is not recognized.' }; // fail closed
+  const payload = await readJson(res);
+  const benefitId = model.readBenefitId(payload);
+  const kind = model.resolveKind(benefitId, BENEFIT_ALLOWLIST);
+  if (!payload || !kind) return { ok: false, message: 'That license key is not recognized.' }; // fail closed / malformed
   const now = Date.now();
   const activationId = payload.activation?.id ?? payload.id ?? null;
-  const record = { kind, key: trimmed, activationId, benefitId: model.readBenefitId(payload), activatedAt: now,
+  const record = { kind, key: trimmed, activationId, benefitId, activatedAt: now,
     ...(kind === 'subscription' ? { lastValidatedAt: now, lastAttemptedAt: now, lastStatus: 'granted' } : {}) };
-  settings.setPatron(record, { subscriptionActive: kind === 'subscription' });
+  settings.setPatron(record); // isPatronActive derives activity; no separate flag
   return { ok: true, kind };
 }
 ```
 
-- [ ] **Step 3: Implement `validateIfDue`**
+- [ ] **Step 2: Implement `validateIfDue` (subscription only; re-checks the benefit; malformed → unreachable)**
 
 ```js
-const DAY_MS = 24 * 60 * 60 * 1000;
 async function validateIfDue() {
-  const p = settings.getPatronRecord(); // add a tiny getter to settings that returns the raw record (main-process only)
+  const p = settings.getPatronRecord();
   if (!p || p.kind !== 'subscription') return;
   if (Date.now() - (p.lastAttemptedAt ?? 0) < DAY_MS) return;
   let outcome;
@@ -479,67 +474,105 @@ async function validateIfDue() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ organization_id: ORG_ID, key: p.key, activation_id: p.activationId }),
     });
-    if (!res.ok) outcome = { kind: 'unreachable' };
-    else { const b = await res.json(); outcome = { kind: 'ok', status: b.status, expiresAt: b.expires_at ? Date.parse(b.expires_at) : null }; }
+    const body = res.ok ? await readJson(res) : null;
+    if (!body || typeof body.status !== 'string') {
+      outcome = { kind: 'unreachable' };                 // non-ok OR malformed successful JSON → ambiguous
+    } else {
+      const benefitOk = model.resolveKind(model.readBenefitId(body), BENEFIT_ALLOWLIST) === 'subscription';
+      outcome = { kind: 'ok', status: body.status, expiresAt: body.expires_at ? Date.parse(body.expires_at) : null, benefitOk };
+    }
   } catch { outcome = { kind: 'unreachable' }; }
-  const { active, record } = model.evaluateValidation({ outcome, record: p, now: Date.now() });
-  settings.setPatron(record, { subscriptionActive: active });
+  const { record } = model.evaluateValidation({ outcome, record: p, now: Date.now() });
+  settings.setPatron(record);
 }
 
 module.exports = { activate, validateIfDue };
 ```
 
-- [ ] **Step 4: Add the `getPatronRecord` main-process getter to `settings.js`**
+- [ ] **Step 3: Verify manually (network path — not unit-tested)**
 
-```js
-// settings.js — main-process only; NEVER exposed to renderers
-function getPatronRecord() { return ensureStore().data.patron; }
-// add getPatronRecord to module.exports
-```
+`npm start`; activate a Polar **sandbox** subscription key (via the Settings flow, Task 8): confirm a `subscription` record with bootstrapped `lastValidatedAt`/`lastStatus:'granted'`. Confirm an unknown-benefit key returns "not recognized" and writes nothing. Simulate a cancelled subscription in the Polar sandbox and confirm the next `validateIfDue` degrades (`lastStatus` becomes `revoked`, `isPatronActive()` false, Dock reverts to `paper`).
 
-- [ ] **Step 5: Verify manually (network path — not unit-tested)**
-
-`npm start`, activate a Polar **sandbox** subscription key via the Settings flow (Task 6/7), confirm `settings.json` gains a `subscription` `patron` record with bootstrapped `lastValidatedAt`, and that an unknown-benefit key returns "not recognized" and writes nothing.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git add src/main/patron.js src/main/settings.js
-git commit -m "feat(patron): Polar activate + daily validate wired through the pure model"
+git add src/main/patron.js
+git commit -m "feat(patron): Polar activate + daily validate with benefit re-check, key guard, malformed-JSON handling"
 ```
 
 ---
 
-### Task 6: Schedule validation + wire activation IPC in `main.js`
+### Task 6: Renderer projection + activation IPC in `pages.js`
+
+**Files:**
+- Modify: `src/main/pages.js` — `clientSettings()` (line ~173) and the `pages:settings:supporter-activate` handler (line ~197).
+
+**Interfaces:**
+- Consumes: `settings.isPatronActive()`; `patron.activate`.
+
+- [ ] **Step 1: Strip `patron` in the projection, add `patronActive`**
+
+`clientSettings()` currently destructures `{ supporter: record, _syncMeta, ...rest }`. Add `patron` to the destructure so it is stripped, and expose `patronActive`:
+
+```js
+  const clientSettings = () => {
+    const { supporter: record, patron, _syncMeta, ...rest } = settings.getSettings();
+    return {
+      ...rest,
+      patronActive: settings.isPatronActive(),
+      supporterActive: settings.isPatronActive(), // temporary alias until Phase 4 renames renderer refs
+      supporterActivatedAt: record?.activatedAt ?? null,
+    };
+  };
+```
+
+- [ ] **Step 2: Route the activation IPC to `patron.activate`**
+
+Require patron at the top of `pages.js` (`const patron = require('./patron');`, alongside the existing `supporter` require) and route the handler (keep the channel name; Phase 4 renames it):
+
+```js
+  handle('pages:settings:supporter-activate', 'settings', (key) => patron.activate(key));
+```
+
+- [ ] **Step 3: Verify manually**
+
+`npm start`; confirm `pages:settings:get` returns `patronActive` and **no** `patron`/`supporter` field, and that activating from Settings persists a record and flips `patronActive`.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add src/main/pages.js
+git commit -m "feat(patron): pages.js projection strips patron + adds patronActive; activation IPC routes to patron.activate"
+```
+
+---
+
+### Task 7: Schedule daily validation in `main.js`
 
 **Files:**
 - Modify: `src/main/main.js`
 
 **Interfaces:**
-- Consumes: `patron.activate`, `patron.validateIfDue`.
+- Consumes: `patron.validateIfDue`.
 
 - [ ] **Step 1: Schedule `validateIfDue` off the critical path**
 
-After the window is up and the app is idle (reuse the existing post-launch idle hook the app already uses for deferred work; do **not** run it during `installStartupNavigationGate`), call `patron.validateIfDue()` once, then on a daily interval. Never block startup or navigation on it.
+After the window is up and the app is idle (reuse the existing post-launch deferred-work hook; do **not** run during `installStartupNavigationGate`), call `patron.validateIfDue()` once, then on a daily interval. It must never block startup or navigation; its own once-per-day guard lives in the model wiring.
 
-- [ ] **Step 2: Point the existing activation IPC at `patron.activate`**
+- [ ] **Step 2: Verify manually**
 
-The Settings page already has a supporter-activate IPC (`pages:settings:supporter-activate` per the Phase 1 spec). Route it to `patron.activate` (keep the channel name to avoid a renderer change here; rename in Phase 4). Return `{ ok, message }` to the renderer.
+`npm start`; with a logging breakpoint, confirm no validate call fires before the blocker/navigation gate resolves, and that a subscription record older than a day triggers exactly one validate.
 
-- [ ] **Step 3: Verify manually**
-
-`npm start`; confirm no validation call fires before the blocker/navigation gate resolves (check with a logging breakpoint), and that activation from Settings persists a record.
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add src/main/main.js
-git commit -m "feat(patron): idle-scheduled daily validation + activation IPC wiring"
+git commit -m "feat(patron): idle-scheduled daily subscription validation"
 ```
 
 ---
 
-### Task 7: Settings UI — Patron section + re-gated colorways
+### Task 8: Settings UI — Patron section + re-gated colorways
 
 **Files:**
 - Modify: `src/renderer/pages/settings.html` / `settings.js` (renderer) / `pages.css`
@@ -547,17 +580,11 @@ git commit -m "feat(patron): idle-scheduled daily validation + activation IPC wi
 **Interfaces:**
 - Consumes: the renderer `patronActive` boolean; the activation IPC.
 
-- [ ] **Step 1: Render the Patron section**
+- [ ] **Step 1: Render the Patron section** — a "Blanc Patron" block: license-key input + Activate button + a quiet status line driven by `patronActive`. Reuse the existing supporter-section markup.
 
-A "Blanc Patron" section: license-key input + Activate button, and a quiet status line ("Patron active" / inactive) driven by `patronActive`. Reuse the existing supporter-section markup where it exists.
+- [ ] **Step 2: Re-gate the three colorways on `patronActive`** — `ember`/`plum`/`gold` tiles show locked (dimmed + "Patron" tag) unless `patronActive`; a locked tile points to the Patron section. Existing supporter-tile behavior with the gate switched to `patronActive`.
 
-- [ ] **Step 2: Re-gate the three colorways on `patronActive`**
-
-The `ember`/`plum`/`gold` tiles show locked (dimmed + "Patron" tag) unless `patronActive`; clicking a locked tile points to the Patron section. This is the existing supporter-tile behavior with the gate switched from `supporterActive` to `patronActive`.
-
-- [ ] **Step 3: Verify manually (chrome requires a relaunch)**
-
-Relaunch `npm start` (chrome HTML loads once at window creation). Confirm: locked tiles when inactive; after activating a sandbox key, tiles unlock and the Dock colorway applies; on a simulated lapse the colorway reverts to `paper`.
+- [ ] **Step 3: Verify manually (chrome requires relaunch)** — relaunch `npm start`. Locked tiles when inactive; after activating a sandbox key, tiles unlock and the Dock colorway applies; on a simulated lapse the colorway reverts to `paper`.
 
 - [ ] **Step 4: Commit**
 
@@ -570,22 +597,12 @@ git commit -m "feat(patron): Settings Patron section and Patron-gated colorways"
 
 ## Self-Review
 
-**Spec coverage (Phase 1 scope):**
-- Entitlement record + three kinds → Tasks 2–4. ✓
-- benefit_id allowlist + fail-closed unknown → Tasks 1, 5. ✓
-- Retire $19 checkout → user-side (noted in spec §Polar; not a code task). Flagged in handoff.
-- Migration of legacy supporter → founding → Tasks 3, 4. ✓
-- Validation model (endpoint, statuses, expires_at-not-a-status, defensive benefit_id, cadence, bootstrap, grace) → Tasks 2, 5. ✓
-- Renderer projection strips both → Task 4. ✓
-- Downgrade mirror + subscription-never-mirrored → Tasks 3, 4. ✓
-- Graceful degradation (colorway→paper) → Tasks 4, 7. ✓
-- Never synced / never in generic write → Task 4. ✓
-- Distinct-benefit sandbox verification → Task 5 setup invariant + handoff note. ✓
+**Spec coverage (Phase 1):** entitlement record + kinds (T2–T4); benefit_id allowlist + fail-closed (T1, T5); **persisted-derived activity, restart-safe** (T2, T4); migration persisted via ensureStore+flush (T3, T4); validation with statuses/`expires_at`/defensive benefit_id/**per-validation benefit re-check**/cadence/bootstrap/grace (T2, T5); projection strips both in the *correct* file (T6); downgrade mirror + subscription-never-mirrored (T3, T4); **setPatron fires listeners → Dock reapply** (T4); graceful degradation to `paper` (T4, T8); 200-char guard + malformed-JSON handling (T5); never synced / never generic-write (T4). ✓
 
-**Placeholder scan:** The only intentional blanks are the real Polar `benefit_id` values in Task 5's `BENEFIT_ALLOWLIST` — these are user-side product ids that do not exist until the Polar products are created (spec: account/product setup is user-side). Flagged explicitly, not a hidden TODO.
+**Placeholder scan:** the only blanks are the real Polar `benefit_id` values in `BENEFIT_ALLOWLIST` (T5) — user-side product ids that do not exist until the Polar products are created; flagged as a setup invariant, not a hidden TODO.
 
-**Type consistency:** `resolveKind`, `readBenefitId`, `evaluateValidation`, `migrateSupporter`, `downgradeMirror`, `GRACE_MS`, `isPatronActive`, `setPatron`, `getPatronRecord`, `activate`, `validateIfDue` are used with consistent signatures across tasks.
+**Type consistency:** `readBenefitId`, `resolveKind`, `GRACE_MS`, `isRecordActive`, `evaluateValidation`, `migrateSupporter`, `downgradeMirror`, `isPatronActive`, `setPatron`, `getPatronRecord`, `activate`, `validateIfDue` are used with consistent signatures across tasks. `evaluateValidation` consumers use only its `.record` (activity is re-derived by `isPatronActive`/`isRecordActive`), so no stale-flag path exists.
 
 ## Out of this plan (later phases)
 
-Named Workspaces, custom commands/keybindings, the Patron badge, and the site copy are Phases 2–4. Retiring the $19 checkout and creating the Polar subscription products (with distinct benefits) are **user-side** setup, prerequisite to Task 5 producing real ids.
+Named Workspaces, custom commands/keybindings, the Patron badge, and site copy are Phases 2–4. Retiring the $19 checkout and creating the Polar subscription products (with **distinct** benefits) are **user-side** setup, prerequisite to Task 5's allowlist holding real ids.
