@@ -5007,7 +5007,10 @@ function menuContextActions(owner) {
     toggleFavorite: b((id) => toggleBookmarkForTab(id)),
     setGroup: b((id, gid) => setTabGroup(id, gid)),
     beginNewGroup: b((id) => beginNewGroup(id)),
-    glance: b((id) => setGlanceTab(id)),
+    // Mirrors the row's glance chip: once the pane actually opens, dismiss the
+    // panel so it isn't left floating over the fresh Glance split (a quiet tab
+    // wakes first inside setGlanceTab, so success can take a beat).
+    glance: b(async (id) => { if (await setGlanceTab(id)) hideOverlay(); }),
     quiet: b((id) => quietTabNow(id)),
     newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
     newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
