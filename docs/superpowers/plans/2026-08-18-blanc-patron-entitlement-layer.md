@@ -268,8 +268,8 @@ function evaluateValidation({ outcome, record, now }) {
       next.lastValidatedAt = now;
     } else if (TERMINAL.has(outcome.status)) {
       next.lastStatus = outcome.status;               // confirmed terminal
-    } else if (granted && !unexpired) {
-      next.lastStatus = 'expired';                    // derived terminal
+    } else if (granted && outcome.expiresAt !== null && outcome.expiresAt <= now) {
+      next.lastStatus = 'expired';                    // derived terminal (expiresAt is a number here; false handled above)
     } else if (granted && !outcome.benefitOk) {
       next.lastStatus = 'benefit_mismatch';           // derived terminal
     }
