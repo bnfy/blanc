@@ -3819,12 +3819,32 @@ function reopenClosedTab() {
 
 /** Restore one consumed entry. Tier 0 adopts the parked view; a dead or
  *  unattachable view falls through to the snapshot (§3.2). */
-/** "Quiet This Tab Now" — quiet a specific background tab immediately. Never the
- * active tab (its renderer must stay live) and never a capturing tab; sleepTab's
- * own guards are the backstop. */
-function quietTabNow(id) {
+/** Explicit-quiet eligibility for one tab: the sweep's full sleepCandidates
+ * policy (pinned, audible, opener families, permission-pending, glance, …)
+ * minus only the idle threshold, evaluated in the tab's own window runtime.
+ * The menu's enabled bit and sleepTabNow share this single predicate so the
+ * item can never render enabled for a tab the action would refuse. */
+function explicitSleepEligible(tab, owner) {
+  if (!tab || !owner) return false;
+  return withWindowRuntime(owner, () => {
+    const tabList = rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean);
+    return sleepCandidates(tabList, {
+      activeTabId: rt().activeTabId,
+      ignoreThreshold: true,
+      snapshotCount: sleepSnapshots.size,
+      maxSnapshots: MAX_SLEEP_SNAPSHOTS,
+      permissionPendingTabIds: permissionPendingTabIds(),
+      popupChildCounts,
+      visibleTabIds: new Set([rt().glanceTabId].filter(Boolean)),
+    }).includes(tab.id);
+  });
+}
+
+/** "Quiet This Tab Now" (internal sleep vocabulary per the Quiet Tabs naming
+ * rule). sleepTab's own async revalidation remains the backstop. */
+function sleepTabNow(id) {
   const tab = tabs.get(id);
-  if (!tab || id === rt().activeTabId || tab.capturing || tab.asleep) return;
+  if (!tab || !explicitSleepEligible(tab, windowRuntimes.runtimeForTab(id))) return;
   sleepTab(id);
 }
 
@@ -4994,6 +5014,7 @@ function tabContextData(tab, owner) {
     activeTabId: owner.activeTabId,
     canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
     canMoveToNewWindow: owner.tabOrder.length > 1,
+    canQuiet: explicitSleepEligible(tab, owner),
   };
 }
 
@@ -5002,7 +5023,14 @@ function menuContextActions(owner) {
   const b = (fn) => bindWindowRuntime(owner, fn);
   return {
     copy: (text) => clipboard.writeText(text),
-    reload: b((id) => liveContents(tabs.get(id))?.reload()),
+    // A quiet tab has no live renderer to reload — waking IS its reload
+    // (same branch openInternalPage takes).
+    reload: b((id) => {
+      const tab = tabs.get(id);
+      if (!tab) return;
+      if (tab.asleep) { wakeTab(id).catch(() => {}); return; }
+      liveContents(tab)?.reload();
+    }),
     duplicate: b((id) => duplicateTab(id)),
     togglePin: b((id) => toggleTabPinned(id)),
     toggleMute: b((id) => toggleTabMuted(id)),
@@ -5013,7 +5041,7 @@ function menuContextActions(owner) {
     // panel so it isn't left floating over the fresh Glance split (a quiet tab
     // wakes first inside setGlanceTab, so success can take a beat).
     glance: b(async (id) => { if (await setGlanceTab(id)) hideOverlay(); }),
-    quiet: b((id) => quietTabNow(id)),
+    quiet: b((id) => sleepTabNow(id)),
     newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
     newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
     closeOthers: b((id) => closeOtherTabsInWindow(id)),

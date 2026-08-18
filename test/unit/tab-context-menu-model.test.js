@@ -15,6 +15,7 @@ const build = (over = {}) => buildTabContextMenu({
   surface: over.surface ?? 'row',
   canCloseOthers: over.canCloseOthers ?? true,
   canMoveToNewWindow: over.canMoveToNewWindow ?? true,
+  canQuiet: over.canQuiet ?? true,
 });
 const ids = (items) => items.filter((i) => i.id).map((i) => i.id);
 const byId = (items, id) => items.find((i) => i.id === id);
@@ -63,10 +64,12 @@ test('copy-clean-link appears only when cleaning would change the url', () => {
   assert.equal(byId(build({ tab: { url: 'https://example.com/plain' } }), 'copy-clean-link'), undefined);
 });
 
-test('quiet disabled for capturing or already-quiet tabs', () => {
-  assert.equal(byId(build({ activeTabId: 2, tab: { asleep: true } }), 'quiet').enabled, false);
-  assert.equal(byId(build({ activeTabId: 2, tab: { capturing: true } }), 'quiet').enabled, false);
-  assert.equal(byId(build({ activeTabId: 2 }), 'quiet').enabled, true);
+test('quiet enabled state comes from the injected canQuiet predicate', () => {
+  // main computes canQuiet with the sweep's full sleepCandidates policy
+  // (pinned, audible, opener families, glance, permission-pending, …) minus
+  // the idle threshold — the model just renders the verdict.
+  assert.equal(byId(build({ activeTabId: 2, canQuiet: false }), 'quiet').enabled, false);
+  assert.equal(byId(build({ activeTabId: 2, canQuiet: true }), 'quiet').enabled, true);
 });
 
 test('close-others / move-new-window respect caps', () => {

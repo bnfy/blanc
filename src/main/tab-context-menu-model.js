@@ -40,7 +40,7 @@ function buildGroupSubmenu(tab, groups) {
   return collapseSeparators(sub);
 }
 
-function buildTabContextMenu({ tab, groups = [], activeTabId, surface, canCloseOthers, canMoveToNewWindow }) {
+function buildTabContextMenu({ tab, groups = [], activeTabId, surface, canCloseOthers, canMoveToNewWindow, canQuiet }) {
   const isActive = tab.id === activeTabId;
   const items = [];
 
@@ -70,7 +70,10 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, surface, canCloseO
 
   if (surface === 'row' && !isActive) {
     items.push({ id: 'glance', label: 'Open in Glance', enabled: true });
-    items.push({ id: 'quiet', label: 'Quiet This Tab Now', enabled: !tab.capturing && !tab.asleep });
+    // canQuiet is main's explicit-quiet predicate (the sweep's full policy
+    // minus the idle threshold) — the same check the action runs, so this
+    // item can never render enabled for a tab the action would refuse.
+    items.push({ id: 'quiet', label: 'Quiet This Tab Now', enabled: !!canQuiet });
     items.push({ type: 'separator' });
   }
 
