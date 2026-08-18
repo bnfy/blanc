@@ -99,3 +99,20 @@ test('unknown status and unreachable ride the grace, do not advance lastValidate
   assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: sub(), now: 1000 + GRACE_MS + 1 }).active, false);
   assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: sub(), now: withinNow }).record.lastAttemptedAt, withinNow);
 });
+
+const { migrateSupporter, downgradeMirror } = require('../../src/main/patron-model');
+
+test('migrateSupporter creates a founding patron once, idempotently', () => {
+  const supporter = { key: 'k', activationId: 'a', activatedAt: 42 };
+  const out = migrateSupporter({ supporter, patron: null, now: 99 });
+  assert.deepEqual(out.patron, { kind: 'founding', key: 'k', activationId: 'a', benefitId: null, activatedAt: 42 });
+  assert.equal(migrateSupporter({ supporter, patron: out.patron, now: 99 }), null); // already migrated
+  assert.equal(migrateSupporter({ supporter: null, patron: null, now: 99 }), null); // nothing to migrate
+});
+
+test('downgradeMirror mirrors founding/lifetime, NEVER a subscription', () => {
+  assert.deepEqual(downgradeMirror({ kind: 'founding', key: 'k', activationId: 'a', activatedAt: 42 }), { key: 'k', activationId: 'a', activatedAt: 42 });
+  assert.deepEqual(downgradeMirror({ kind: 'lifetime', key: 'k', activationId: 'a', activatedAt: 7 }), { key: 'k', activationId: 'a', activatedAt: 7 });
+  assert.equal(downgradeMirror({ kind: 'subscription', key: 'k', activationId: 'a', activatedAt: 1 }), null);
+  assert.equal(downgradeMirror(null), null);
+});

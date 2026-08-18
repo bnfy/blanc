@@ -60,4 +60,17 @@ function evaluateValidation({ outcome, record, now }) {
   return { active: isRecordActive(next, now), record: next };
 }
 
-module.exports = { readBenefitId, resolveKind, parseExpiresAt, GRACE_MS, isRecordActive, evaluateValidation };
+function migrateSupporter({ supporter, patron, now }) {
+  if (!supporter || patron) return null;
+  return { patron: {
+    kind: 'founding', key: supporter.key, activationId: supporter.activationId ?? null,
+    benefitId: null, activatedAt: supporter.activatedAt ?? now,
+  } };
+}
+
+function downgradeMirror(patron) {
+  if (!patron || (patron.kind !== 'founding' && patron.kind !== 'lifetime')) return null;
+  return { key: patron.key, activationId: patron.activationId ?? null, activatedAt: patron.activatedAt };
+}
+
+module.exports = { readBenefitId, resolveKind, parseExpiresAt, GRACE_MS, isRecordActive, evaluateValidation, migrateSupporter, downgradeMirror };
