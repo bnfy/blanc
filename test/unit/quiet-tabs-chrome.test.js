@@ -83,15 +83,10 @@ test('the row primary button carries the row layout', () => {
   assert.match(styles, /\.island-row \.row-primary\s*\{[^}]*min-width: 0;/s);
 });
 
-test('a quiet panel row is classed, named, and tagged "quiet"', () => {
+test('a quiet panel row is classed and named "quiet" — dim-only, no visual tag', () => {
   assert.match(panelRowSource, /tab\.asleep \? ' quiet' : ''/);
   assert.match(panelRowSource, /tab\.asleep \? 'quiet' : ''/);
-  // A WORD, not a pictogram: the tag reads at any density, unlike the row dim.
-  assert.match(panelRowSource, /tag\.className = 'row-quiet'/);
-  assert.match(panelRowSource, /tag\.textContent = 'quiet'/);
   assert.doesNotMatch(panelRowSource, /QUIET_GLYPH|<svg/);
-  // Always visible, like .row-private — never a hover-gated .row-tag.
-  assert.doesNotMatch(styles, /\.island-row\.tab-row \.row-quiet/);
 });
 
 test('no chrome surface ever says "asleep" to a user or a screen reader', () => {
@@ -130,13 +125,11 @@ test('the rail tabRow could be lifted from source', () => {
   assert.ok(railRowSource, 'tabRow not found in vertical-tabs.js — update this test with it');
 });
 
-test('a quiet rail row is classed, named, and marked with the word "quiet"', () => {
+test('a quiet rail row is classed and named "quiet" — dim-only, like the panel', () => {
   assert.match(railRowSource, /\(tab\.asleep \? ' quiet' : ''\)/);
   // The field is `asleep`; the string in the accessible name is 'quiet'.
   assert.match(railRowSource, /tab\.asleep && 'quiet'/);
-  assert.match(railRowSource, /quietMarker\.className = 'vertical-tab-quiet'/);
-  assert.match(railRowSource, /quietMarker\.textContent = 'quiet'/);
-  // A word, never a glyph — no icon entry survives for it.
+  // A word in the accessible name, never a glyph — no icon entry survives.
   assert.doesNotMatch(railSource, /QUIET_GLYPH|ICONS\.quiet/);
 });
 
@@ -260,27 +253,15 @@ test('the quiet glyph is fully deleted — file, serving allowlist, and referenc
   assert.doesNotMatch(chromeProtocol, /quiet-glyph/);
 });
 
-// The row dim alone is a RELATIVE signal: restored tabs are born quiet, so
-// after a relaunch nearly every row is dim at once and the state stops reading.
-// Each surface therefore also carries the word, sharing its "private" block.
-test('each surface tags a quiet row with the word, beside "private"', () => {
-  assert.match(
-    styles,
-    /\.island-row \.row-private,\s*\n\s*\.island-row \.row-quiet\s*\{/,
-    'panel chips must share one declaration block'
-  );
-  assert.match(
-    styles,
-    /\.vertical-tab-private,\s*\n\s*\.vertical-tab-quiet\s*\{/,
-    'rail word-markers must share one declaration block'
-  );
-  // No SECOND, parallel rule may re-declare either one and let them drift. A
-  // `doesNotMatch` on the selector cannot express this — it would match the
-  // shared block's own second selector line — so count instead: each selector
-  // may appear exactly once in the stylesheet, inside the block above.
-  const occurrences = (needle) => styles.split(needle).length - 1;
-  assert.equal(occurrences('.island-row .row-quiet'), 1, 'one .row-quiet rule only');
-  assert.equal(occurrences('.vertical-tab-quiet'), 1, 'one .vertical-tab-quiet rule only');
+// Quiet is dim-only: the per-row word markers were removed 2026-08-18 (user
+// decision — see docs/superpowers/specs/2026-08-18-quiet-marker-dim-only-
+// design.md). Do not reintroduce a marker without a new decision. Whole-file
+// scope on purpose: a marker reintroduced from ANY overlay/rail function, or
+// its CSS, fails here — not just one rebuilt inside tabRow.
+test('no quiet marker survives anywhere — chrome JS or CSS', () => {
+  assert.doesNotMatch(overlaySource, /row-quiet/);
+  assert.doesNotMatch(railSource, /vertical-tab-quiet/);
+  assert.doesNotMatch(styles, /row-quiet|vertical-tab-quiet/);
 });
 
 // Extracts the declarations of the first rule whose selector list starts with

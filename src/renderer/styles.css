@@ -693,10 +693,8 @@ body.mac .vertical-tabs-toolbar {
   color: var(--text-dim);
 }
 
-/* The rail's word-markers share one block for the same reason as the panel's
-   chips: "quiet" must not drift from "private". */
-.vertical-tab-private,
-.vertical-tab-quiet {
+/* The rail's private word-marker. (Quiet is dim-only — 2026-08-18 spec.) */
+.vertical-tab-private {
   max-width: 50px;
   overflow: hidden;
   color: var(--text-dim);
@@ -2104,11 +2102,9 @@ body[data-glance-purpose="change"] .glance-picker {
   stroke-linejoin: round;
 }
 
-/* "private" tag on private tabs in the switcher list */
-/* "quiet" rides beside "private" and shares its declaration block, so the two
-   row tags cannot drift apart. */
-.island-row .row-private,
-.island-row .row-quiet {
+/* "private" tag on private tabs in the switcher list. (Quiet is dim-only —
+   2026-08-18 spec.) */
+.island-row .row-private {
   font-family: var(--font-mono);
   font-size: 10px;
   color: var(--text-dim);

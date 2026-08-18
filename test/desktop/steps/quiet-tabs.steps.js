@@ -349,7 +349,10 @@ Then('the panel stays open and names the row quiet', async function () {
   const row = rows.find((candidate) => candidate.title === this.quietCandidateTitle);
   assert.ok(row, 'quiet candidate missing from panel');
   assert.equal(row.quiet, true);
-  assert.match(row.label.toLowerCase(), /quiet/);
+  // Comma-anchored: the fixture is titled "quietable", so a bare /quiet/ would
+  // match the title substring and could never fail. The aria suffix is the
+  // only place the panel names the state now that the row is dim-only.
+  assert.match(row.label.toLowerCase(), /,\s*quiet/);
 });
 
 Then('the panel stays open and explains that no tab can be quieted', async function () {
