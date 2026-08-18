@@ -4318,7 +4318,7 @@ function registerIpcHandlers() {
       // Deep-link into a page section via URL fragment — allowlisted only,
       // never interpolated from renderer-supplied text (privileged URL).
       const sectionMap = { blocking: '#group-privacy', patron: '#group-patron' };
-      const fragment = name === 'settings' && sectionMap[section] ? sectionMap[section] : '';
+      const fragment = name === 'settings' && Object.prototype.hasOwnProperty.call(sectionMap, section) ? sectionMap[section] : '';
       openInternalPage(`blanc://${name}/${fragment}`);
     }
   });
