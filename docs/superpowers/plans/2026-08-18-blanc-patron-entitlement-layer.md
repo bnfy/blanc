@@ -458,15 +458,23 @@ const settings = require('./settings');
 const model = require('./patron-model');
 
 const PRODUCTION_ORG_ID = '6f675077-6cb1-4965-8db8-15838e5fdb38';
-const SANDBOX_ORG_ID = '/* fill from Polar sandbox dashboard */';
+const SANDBOX_ORG_ID = 'a6ffc65a-8ba3-4973-8a2a-e057aa811f9f';
 const API_BASE = app.isPackaged ? 'https://api.polar.sh' : 'https://sandbox-api.polar.sh';
 const ORG_ID = app.isPackaged ? PRODUCTION_ORG_ID : SANDBOX_ORG_ID;
 const MAX_KEY_LENGTH = 200;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const BENEFIT_ALLOWLIST = app.isPackaged
-  ? { /* prod:    '<supporter>':'founding', '<annual>':'subscription', '<monthly>':'subscription' */ }
-  : { /* sandbox: '<supporter>':'founding', '<annual>':'subscription', '<monthly>':'subscription' */ };
+  ? {
+      '2ffaf466-652d-4e45-b92f-560fc25d3c53': 'founding',      // Blanc Supporter License
+      'df98506e-a88a-4364-b4c9-cc424dda01f0': 'subscription',  // Blanc Patron Monthly License
+      'ed1cce8c-d87e-4d27-b9d7-d30bda2de402': 'subscription',  // Blanc Patron Annual License
+    }
+  : {
+      'de6e9525-3cc4-4232-b96f-f459d56afb19': 'founding',      // sandbox Blanc Supporter License
+      '2f5e210c-7d63-4ba6-8818-45f3b7fc9b93': 'subscription',  // sandbox Blanc Patron Monthly License
+      '27ecc7d8-f31e-4951-8235-22dda51327c4': 'subscription',  // sandbox Blanc Patron Annual License
+    };
 
 async function readJson(res) { try { return await res.json(); } catch { return null; } }
 
@@ -731,7 +739,7 @@ git commit -m "feat(patron): start page callout (live-updating) and /patron slas
 
 **Spec coverage (Phase 1):** entitlement record + kinds (T2–T4); benefit_id allowlist + fail-closed (T1, T5); **persisted-derived activity, restart-safe** (T2, T4); migration persisted via ensureStore+flush (T3, T4); validation with statuses/`expires_at`/defensive benefit_id/**per-validation benefit re-check**/cadence/bootstrap/grace (T2, T5); **activation inspects nested license-key status+expiry before bootstrapping grace** (T5); **three-state `parseExpiresAt` (null/number/false)** — activation rejects malformed, validation treats as ambiguous (T1, T2 unit test); **per-environment org ID** (`PRODUCTION_ORG_ID`/`SANDBOX_ORG_ID`, T5); projection strips both in the *correct* file (T6); downgrade mirror + subscription-never-mirrored (T3, T4); **setPatron fires listeners → Dock reapply** (T4); graceful degradation to `paper` (T4, T8); 200-char guard + malformed-JSON handling (T5); never synced / never generic-write (T4); **upgrade surfaces beyond Settings** — start page callout (live-updated via `pages:start:status` on activation, not just initial load) + `/patron` slash command with `patron` section deep-link (T9). ✓
 
-**Placeholder scan:** the only blanks are the real Polar `benefit_id` values in `BENEFIT_ALLOWLIST` and `SANDBOX_ORG_ID` (T5) — user-side product/org ids that do not exist until the Polar products are created; flagged as a setup invariant, not a hidden TODO.
+**Placeholder scan:** none remain. The real Polar `benefit_id` values in `BENEFIT_ALLOWLIST` and `SANDBOX_ORG_ID` (T5) are filled in from the 2026-08-18 Polar setup (both products Private in production, Public in sandbox). They are public identifiers, not secrets, and ship in the packaged app exactly as the production org id already does in `supporter.js`.
 
 **Type consistency:** `readBenefitId`, `resolveKind`, `GRACE_MS`, `isRecordActive`, `evaluateValidation`, `migrateSupporter`, `downgradeMirror`, `isPatronActive`, `setPatron`, `getPatronRecord`, `activate`, `validateIfDue` are used with consistent signatures across tasks. `evaluateValidation` consumers use only its `.record` (activity is re-derived by `isPatronActive`/`isRecordActive`), so no stale-flag path exists.
 
