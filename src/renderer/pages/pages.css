@@ -671,6 +671,13 @@ a.ledger-label:hover { color: var(--accent); }
 
 .ledger-empty { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
 
+/* Quiet, one-line Patron callout below the favorites grid — matches the
+   understated .ledger-empty hint rather than the bolder .launch-card, since
+   this is an optional upsell, not something the page needs from the user. */
+.ledger-patron { margin-top: 50px; font-family: var(--font-mono); font-size: 11.5px; }
+.ledger-patron a { color: var(--text-dim); text-decoration: none; }
+.ledger-patron a:hover { color: var(--accent); }
+
 .ledger-footer {
   /* Pinned to the viewport bottom by the auto margin while the ledger is
      short; once it overflows, the padding keeps the footer one section's

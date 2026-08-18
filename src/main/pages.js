@@ -242,6 +242,9 @@ function setupPages(hooks = {}) {
     // Least-privilege projection for the onboarding dialog: only the two
     // settings it can change, so a replay shows what is actually saved.
     onboarding: hooks.startPage?.onboardingState?.() ?? null,
+    // Whether to show the start-page Patron callout on initial load — mirrored
+    // by startPageStatus() below so a later pages:start:status push agrees.
+    patronActive: settings.isPatronActive(),
     ...hooks.startPage?.status?.(),
   }));
   // The footer layout switcher. The value is enum-validated by setSettings,

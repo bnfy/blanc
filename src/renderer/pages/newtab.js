@@ -56,6 +56,15 @@ function renderLaunchStatus({ startup, privacy } = {}) {
   window.blancOnboarding?.maybeShow({ startup, privacy }, state.onboarding);
 }
 
+// Quiet, understated Patron callout below the favorites grid — hidden
+// outright once the user is a Patron. Driven from both the initial
+// pages:start:data load and every later pages:start:status push, so
+// activating mid-session hides it on an already-open start page.
+function renderPatronCallout(patronActive) {
+  const el = document.getElementById('patron-callout');
+  if (el) el.hidden = !!patronActive;
+}
+
 startupRetry.addEventListener('click', async () => {
   startupRetry.disabled = true;
   startupContinue.disabled = true;
@@ -430,6 +439,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
     onboarding: data.onboarding ?? null,
   });
   renderLaunchStatus({ startup: data.startup, privacy: data.privacy });
+  renderPatronCallout(data.patronActive);
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =
       `${state.blockedThisWeek.toLocaleString()} ads blocked this week`;
@@ -445,6 +455,7 @@ window.bowserPages?.start.onRemoteTabs(renderRemote);
 window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
+  if ('patronActive' in status) renderPatronCallout(status.patronActive);
 });
 
 // The pill's caret says keystrokes land somewhere. They do: a printable

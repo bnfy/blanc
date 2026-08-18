@@ -4317,7 +4317,8 @@ function registerIpcHandlers() {
     if (['bookmarks', 'history', 'downloads', 'settings'].includes(name)) {
       // Deep-link into a page section via URL fragment — allowlisted only,
       // never interpolated from renderer-supplied text (privileged URL).
-      const fragment = name === 'settings' && section === 'blocking' ? '#group-privacy' : '';
+      const sectionMap = { blocking: '#group-privacy', patron: '#group-patron' };
+      const fragment = name === 'settings' && sectionMap[section] ? sectionMap[section] : '';
       openInternalPage(`blanc://${name}/${fragment}`);
     }
   });
@@ -4667,6 +4668,7 @@ const SLASH_COMMANDS = [
   ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
+  ['/patron', 'Support Blanc with a Patron subscription'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via
@@ -5675,6 +5677,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         searchSuggestions: current.searchSuggestions,
         usagePing: current.usagePing,
       },
+      // Drives the start page's Patron callout. Broadcast on every
+      // settings change (below), and setPatron() fires those listeners, so
+      // an activation mid-session hides the callout without a reload.
+      patronActive: settings.isPatronActive(),
     };
   };
   const broadcastStartPageStatus = () => {

@@ -20,4 +20,5 @@
     <string name="slash_block_ads">Block ads here, or toggle blocking everywhere</string>
     <string name="slash_allow_ads">Allow ads on this site</string>
     <string name="slash_theme">Cycle appearance, or choose system / light / dark</string>
+    <string name="slash_patron">Support Blanc with a Patron subscription</string>
 </resources>

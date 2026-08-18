@@ -23,6 +23,7 @@ const SLASH_COMMANDS = [
   ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
+  ['/patron', 'Support Blanc with a Patron subscription'],
 ];
 
 /** One titled section of label/keys rows. */
