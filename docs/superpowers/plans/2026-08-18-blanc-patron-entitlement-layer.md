@@ -19,7 +19,7 @@ Copied verbatim from `docs/superpowers/specs/2026-08-18-blanc-patron-design.md`;
 - **Device-local, never synced.** Neither `patron` nor `supporter` is in `SYNCED_KEYS`; the generic `setSettings()` whitelist ignores both.
 - **Renderer sees only `patronActive`** — never the key, activation id, benefit id, or Polar status. The `pages.js` `clientSettings()` projection strips **both** `supporter` and `patron`.
 - **Fail open except one path.** Network failure / ambiguous / unknown status → stay active within the 30-day offline grace (clock from `lastValidatedAt`, bootstrapped at activation). Only a **confirmed terminal outcome** revokes. The single fail-*closed* path: an unrecognized `benefit_id` at activation grants nothing.
-- **Expiration is a field, not a status.** Response carries `status` plus a separate `expires_at`; never treat `expired` as a status value. **`Date.parse()` can return `NaN`** — treat an unparseable `expires_at` as ambiguous (leave the record unchanged), never as an expired terminal state.
+- **Expiration is a field, not a status.** Response carries `status` plus a separate `expires_at`; never treat `expired` as a status value. **`parseExpiresAt` returns three states:** `null` (absent — no expiry), a number (valid epoch-ms), or `false` (present but malformed). Activation rejects `false`; validation treats `false` as ambiguous (rides grace). This prevents both a malformed string silently extending entitlement and a `NaN` comparison classifying as expired terminal.
 - **Activation inspects the response.** A 2xx alone is not enough: the nested license key's `status` must be `granted` and `expires_at` (if present and parseable) must be in the future before a `subscription` record is created. A malformed or inactive activation response must not bootstrap 30 days of entitlement.
 - **Validation re-checks the benefit.** Each successful validation must resolve the returned `benefit_id` to the expected `subscription` benefit before it may extend entitlement.
 - **Distinct `benefit_id` per product** is a setup invariant, verified in sandbox before production cutover.
@@ -56,7 +56,7 @@ Copied verbatim from `docs/superpowers/specs/2026-08-18-blanc-patron-design.md`;
 **Interfaces — Produces:**
 - `readBenefitId(payload) -> string | null` — defensively reads `benefit_id` from a Polar activate or validate payload: `payload.benefit_id`, then `payload.license_key?.benefit_id`, then `payload.activation?.license_key?.benefit_id`.
 - `resolveKind(benefitId, allowlist) -> 'founding'|'lifetime'|'subscription'|null` — **fail-closed**: requires `benefitId` be a non-empty string, uses an own-property check (rejects inherited `toString`/`constructor`/`__proto__`), and returns `null` unless the mapped value is a known kind.
-- `parseExpiresAt(raw) -> number | null` — returns a valid epoch-ms number, or `null` if the input is falsy, non-string, or `Date.parse` returns `NaN`. Centralizes the `NaN` guard so callers never compare a `NaN` expiry against `now` (which classifies as expired terminal — contrary to the spec's "ambiguous responses don't revoke" rule).
+- `parseExpiresAt(raw) -> number | null | false` — three states: absent/falsy → `null` (no expiry set); valid ISO string → epoch-ms number; present-but-malformed → `false`. Callers distinguish "no expiry" (allow) from "invalid expiry" (activation rejects; validation treats as ambiguous). This prevents both a malformed string silently extending entitlement and a `NaN` comparison classifying as expired terminal.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -95,13 +95,17 @@ test('resolveKind fails closed on unknown, empty, non-string, and inherited prop
   assert.equal(resolveKind('x', { x: 'not_a_kind' }), null);
 });
 
-test('parseExpiresAt returns epoch-ms for valid ISO strings, null for garbage/NaN/falsy', () => {
-  assert.equal(parseExpiresAt('2026-12-31T00:00:00Z'), Date.parse('2026-12-31T00:00:00Z'));
-  assert.equal(parseExpiresAt(null), null);
-  assert.equal(parseExpiresAt(undefined), null);
-  assert.equal(parseExpiresAt(''), null);
-  assert.equal(parseExpiresAt('not-a-date'), null); // Date.parse returns NaN → null
-  assert.equal(parseExpiresAt(12345), null);         // non-string → null
+test('parseExpiresAt: three states — null (absent), number (valid), false (malformed)', () => {
+  // absent / falsy → null (no expiry set)
+  assert.strictEqual(parseExpiresAt(null), null);
+  assert.strictEqual(parseExpiresAt(undefined), null);
+  assert.strictEqual(parseExpiresAt(''), null);
+  // valid ISO string → epoch-ms
+  assert.strictEqual(parseExpiresAt('2026-12-31T00:00:00Z'), Date.parse('2026-12-31T00:00:00Z'));
+  // present but malformed → false
+  assert.strictEqual(parseExpiresAt('not-a-date'), false);  // Date.parse returns NaN
+  assert.strictEqual(parseExpiresAt(12345), false);          // wrong type
+  assert.strictEqual(parseExpiresAt(true), false);           // wrong type
 });
 ```
 
@@ -128,9 +132,10 @@ function readBenefitId(payload) {
 }
 
 function parseExpiresAt(raw) {
-  if (!raw || typeof raw !== 'string') return null;
+  if (raw == null || raw === '') return null;        // absent — no expiry set
+  if (typeof raw !== 'string') return false;         // present but wrong type — malformed
   const ms = Date.parse(raw);
-  return Number.isNaN(ms) ? null : ms;
+  return Number.isNaN(ms) ? false : ms;              // unparseable string — malformed
 }
 
 function resolveKind(benefitId, allowlist) {
@@ -209,12 +214,12 @@ test('revoked, expired, and benefit mismatch each degrade', () => {
   assert.equal(mismatch.record.lastStatus, 'benefit_mismatch');
 });
 
-test('NaN expires_at is ambiguous, not a terminal expired state', () => {
+test('malformed expiry (false) is ambiguous, not a terminal expired state', () => {
   const now = 5000;
-  const nanExpiry = evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: NaN, benefitOk: true }, record: sub(), now });
-  assert.equal(nanExpiry.active, true);
-  assert.equal(nanExpiry.record.lastValidatedAt, 1000); // unchanged — treated as ambiguous
-  assert.equal(nanExpiry.record.lastStatus, 'granted'); // unchanged — rides grace
+  const malformed = evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: false, benefitOk: true }, record: sub(), now });
+  assert.equal(malformed.active, true);
+  assert.equal(malformed.record.lastValidatedAt, 1000); // unchanged — treated as ambiguous
+  assert.equal(malformed.record.lastStatus, 'granted'); // unchanged — rides grace
 });
 
 test('unknown status and unreachable ride the grace, do not advance lastValidatedAt', () => {
@@ -253,12 +258,9 @@ function evaluateValidation({ outcome, record, now }) {
   if (outcome.kind === 'ok') {
     next.lastAttemptedAt = now;
     const granted = outcome.status === 'granted';
-    const expiryKnown = outcome.expiresAt != null && !Number.isNaN(outcome.expiresAt);
-    const unexpired = !expiryKnown || outcome.expiresAt > now;
-    const expiryAmbiguous = outcome.expiresAt != null && Number.isNaN(outcome.expiresAt);
-    if (expiryAmbiguous && granted) {
-      // NaN from Date.parse — ambiguous, not terminal; leave record unchanged (ride grace)
-    } else if (granted && unexpired && outcome.benefitOk) {
+    if (outcome.expiresAt === false && granted) {
+      // malformed expiry — ambiguous, not terminal; leave record unchanged (ride grace)
+    } else if (granted && (outcome.expiresAt === null || outcome.expiresAt > now) && outcome.benefitOk) {
       next.lastStatus = 'granted';
       next.lastValidatedAt = now;
     } else if (TERMINAL.has(outcome.status)) {
@@ -448,55 +450,52 @@ git commit -m "feat(patron): settings record, ensureStore migration+flush, isPat
 - [ ] **Step 1: Scaffold API base + per-environment org ID + allowlist + `activate` (with 200-char guard, activation response validation, fail-closed benefit, malformed-JSON catch)**
 
 ```js
-const { app, net } = require(‘electron’);
-const settings = require(‘./settings’);
-const model = require(‘./patron-model’);
+const { app, net } = require('electron');
+const settings = require('./settings');
+const model = require('./patron-model');
 
-const PRODUCTION_ORG_ID = ‘6f675077-6cb1-4965-8db8-15838e5fdb38’; // public org "bnfy" (from supporter.js)
-const SANDBOX_ORG_ID = ‘/* fill from Polar sandbox dashboard */’;
-const API_BASE = app.isPackaged ? ‘https://api.polar.sh’ : ‘https://sandbox-api.polar.sh’;
+const PRODUCTION_ORG_ID = '6f675077-6cb1-4965-8db8-15838e5fdb38';
+const SANDBOX_ORG_ID = '/* fill from Polar sandbox dashboard */';
+const API_BASE = app.isPackaged ? 'https://api.polar.sh' : 'https://sandbox-api.polar.sh';
 const ORG_ID = app.isPackaged ? PRODUCTION_ORG_ID : SANDBOX_ORG_ID;
-const MAX_KEY_LENGTH = 200; // preserved from supporter.js — client-side stray-paste backstop
+const MAX_KEY_LENGTH = 200;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-// SETUP INVARIANT: each product uses a DISTINCT license-key benefit. Fill from the Polar
-// dashboard; verify the SANDBOX ids in sandbox before the production cutover.
 const BENEFIT_ALLOWLIST = app.isPackaged
-  ? { /* prod:    ‘<supporter>’:’founding’, ‘<annual>’:’subscription’, ‘<monthly>’:’subscription’ */ }
-  : { /* sandbox: ‘<supporter>’:’founding’, ‘<annual>’:’subscription’, ‘<monthly>’:’subscription’ */ };
+  ? { /* prod:    '<supporter>':'founding', '<annual>':'subscription', '<monthly>':'subscription' */ }
+  : { /* sandbox: '<supporter>':'founding', '<annual>':'subscription', '<monthly>':'subscription' */ };
 
 async function readJson(res) { try { return await res.json(); } catch { return null; } }
 
 async function activate(key) {
-  const trimmed = String(key ?? ‘’).trim();
-  if (!trimmed) return { ok: false, message: ‘Enter a license key.’ };
-  if (trimmed.length > MAX_KEY_LENGTH) return { ok: false, message: ‘That doesn’t look like a license key.’ };
+  const trimmed = String(key ?? '').trim();
+  if (!trimmed) return { ok: false, message: 'Enter a license key.' };
+  if (trimmed.length > MAX_KEY_LENGTH) return { ok: false, message: 'That key is too long.' };
   let res;
   try {
-    res = await net.fetch(`${API_BASE}/v1/customer-portal/license-keys/activate`, {
-      method: ‘POST’, headers: { ‘Content-Type’: ‘application/json’ },
-      body: JSON.stringify({ key: trimmed, organization_id: ORG_ID, label: ‘Blanc’ }),
+    res = await net.fetch(API_BASE + '/v1/customer-portal/license-keys/activate', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: trimmed, organization_id: ORG_ID, label: 'Blanc' }),
     });
-  } catch { return { ok: false, message: "Couldn’t reach Polar — check your connection and try again." }; }
-  if (!res.ok) return { ok: false, message: ‘That license key could not be activated.’ };
+  } catch { return { ok: false, message: 'Could not reach Polar. Check your connection and try again.' }; }
+  if (!res.ok) return { ok: false, message: 'That license key could not be activated.' };
   const payload = await readJson(res);
   const benefitId = model.readBenefitId(payload);
   const kind = model.resolveKind(benefitId, BENEFIT_ALLOWLIST);
-  if (!payload || !kind) return { ok: false, message: ‘That license key is not recognized.’ }; // fail closed / malformed
-  // For subscriptions, inspect the nested license key BEFORE bootstrapping 30 days of grace.
-  // A 2xx alone is not enough — the key must be granted and unexpired.
-  if (kind === ‘subscription’) {
+  if (!payload || !kind) return { ok: false, message: 'That license key is not recognized.' };
+  if (kind === 'subscription') {
     const lk = payload.license_key ?? payload.activation?.license_key ?? {};
     const lkStatus = lk.status;
     const lkExpiry = model.parseExpiresAt(lk.expires_at);
-    if (lkStatus !== ‘granted’) return { ok: false, message: ‘That subscription is not currently active.’ };
-    if (lkExpiry !== null && lkExpiry <= Date.now()) return { ok: false, message: ‘That subscription has expired.’ };
+    if (lkStatus !== 'granted') return { ok: false, message: 'That subscription is not currently active.' };
+    if (lkExpiry === false) return { ok: false, message: 'That subscription has an invalid expiry.' };
+    if (typeof lkExpiry === 'number' && lkExpiry <= Date.now()) return { ok: false, message: 'That subscription has expired.' };
   }
   const now = Date.now();
   const activationId = payload.activation?.id ?? payload.id ?? null;
   const record = { kind, key: trimmed, activationId, benefitId, activatedAt: now,
-    ...(kind === ‘subscription’ ? { lastValidatedAt: now, lastAttemptedAt: now, lastStatus: ‘granted’ } : {}) };
-  settings.setPatron(record); // isPatronActive derives activity; no separate flag
+    ...(kind === 'subscription' ? { lastValidatedAt: now, lastAttemptedAt: now, lastStatus: 'granted' } : {}) };
+  settings.setPatron(record);
   return { ok: true, kind };
 }
 ```
@@ -597,7 +596,7 @@ git commit -m "feat(patron): pages.js projection strips patron + adds patronActi
 
 - [ ] **Step 1: Schedule `validateIfDue` off the critical path**
 
-Place a `setImmediate` call after `releaseStartup()` has released the navigation gate and restored tabs — alongside `setupAutoUpdater()` (line ~6244 of `main.js`). Fire `patron.validateIfDue()` once, then on a daily `setInterval`. It must never run during `installStartupNavigationGate` or block the ready chain; its own once-per-day guard (the `lastAttemptedAt` check in the model) prevents redundant network calls within a single run.
+Add a `setImmediate` at the tail of `releaseStartup()` itself (after `maybeSendLaunchPing()`, line ~6179 of `main.js`), so it fires only after the navigation gate is released, tabs are restored, and session persistence is resumed. `setupAutoUpdater()` (line ~6244) is NOT post-release in the blocking path — it runs immediately after starting the async blocker controller, before `releaseStartup` is ever called. Inside the `setImmediate`, fire `patron.validateIfDue()` once and start a daily `setInterval`. The model's own `lastAttemptedAt` guard prevents redundant network calls within a single run.
 
 - [ ] **Step 2: Verify manually**
 
@@ -637,7 +636,7 @@ git commit -m "feat(patron): Settings Patron section and Patron-gated colorways"
 
 ## Self-Review
 
-**Spec coverage (Phase 1):** entitlement record + kinds (T2–T4); benefit_id allowlist + fail-closed (T1, T5); **persisted-derived activity, restart-safe** (T2, T4); migration persisted via ensureStore+flush (T3, T4); validation with statuses/`expires_at`/defensive benefit_id/**per-validation benefit re-check**/cadence/bootstrap/grace (T2, T5); **activation inspects nested license-key status+expiry before bootstrapping grace** (T5); **NaN `Date.parse` treated as ambiguous, not terminal** (T1 `parseExpiresAt`, T2 unit test); **per-environment org ID** (`PRODUCTION_ORG_ID`/`SANDBOX_ORG_ID`, T5); projection strips both in the *correct* file (T6); downgrade mirror + subscription-never-mirrored (T3, T4); **setPatron fires listeners → Dock reapply** (T4); graceful degradation to `paper` (T4, T8); 200-char guard + malformed-JSON handling (T5); never synced / never generic-write (T4). ✓
+**Spec coverage (Phase 1):** entitlement record + kinds (T2–T4); benefit_id allowlist + fail-closed (T1, T5); **persisted-derived activity, restart-safe** (T2, T4); migration persisted via ensureStore+flush (T3, T4); validation with statuses/`expires_at`/defensive benefit_id/**per-validation benefit re-check**/cadence/bootstrap/grace (T2, T5); **activation inspects nested license-key status+expiry before bootstrapping grace** (T5); **three-state `parseExpiresAt` (null/number/false)** — activation rejects malformed, validation treats as ambiguous (T1, T2 unit test); **per-environment org ID** (`PRODUCTION_ORG_ID`/`SANDBOX_ORG_ID`, T5); projection strips both in the *correct* file (T6); downgrade mirror + subscription-never-mirrored (T3, T4); **setPatron fires listeners → Dock reapply** (T4); graceful degradation to `paper` (T4, T8); 200-char guard + malformed-JSON handling (T5); never synced / never generic-write (T4). ✓
 
 **Placeholder scan:** the only blanks are the real Polar `benefit_id` values in `BENEFIT_ALLOWLIST` and `SANDBOX_ORG_ID` (T5) — user-side product/org ids that do not exist until the Polar products are created; flagged as a setup invariant, not a hidden TODO.
 
