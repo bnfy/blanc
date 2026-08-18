@@ -73,6 +73,7 @@ const {
 const { attachAddressMenu } = require('./address-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
+const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu } = require('./bookmark-data');
 const history = require('./history');
@@ -6177,6 +6178,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     pendingExternalUrls.push(...urlsFromArgv(process.argv.slice(1)));
     withWindowRuntime(focusedRuntime, flushExternalUrls);
     maybeSendLaunchPing();
+
+    // Patron subscription revalidation — off the critical path, after the
+    // navigation gate is released and session restore is done. The model's
+    // own once-per-day cadence guard makes a too-frequent call a no-op.
+    setImmediate(() => {
+      patron.validateIfDue().catch(() => {});
+      setInterval(() => patron.validateIfDue().catch(() => {}), 24 * 60 * 60 * 1000);
+    });
   };
 
   const attachAdblockToAllProfileSessions = () => {
