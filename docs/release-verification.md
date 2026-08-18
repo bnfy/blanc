@@ -41,6 +41,16 @@ This is a human-gated workflow with two supported interactive operator modes:
 Background/non-interactive releases are forbidden. Agent mode is explicit so
 no agent should spoof `TERM_PROGRAM` to bypass the operator check.
 
+The surrounding orchestration environment may impose a stricter native-
+Terminal-only rule even though `release.sh` supports agent mode. That happened
+during v1.5.1: two agent-PTY launches were rejected, including one after the
+user's explicit approval. Do not keep retrying. After the first policy
+rejection, explain the constraint once, obtain approval to use native Terminal,
+and launch the complete terminal-mode command there automatically. The user
+must not be asked to copy, paste, or reconstruct the command. The release must
+remain visible and interactive; this is not permission for a background
+wrapper.
+
 ### Private Windows validation before a hotfix release
 
 When a Windows fix needs affected-machine confirmation, build a signed
@@ -62,6 +72,17 @@ Install that candidate on the affected Windows machine and get the user's
 explicit confirmation before merging, tagging, or starting the public release.
 The public release path is separate: `scripts/release.sh` explicitly dispatches
 the workflow with `mode=release`.
+
+There are two distinct Windows checks. Installing the candidate EXE validates
+the signature, installation, launch, persisted profile, and packaged feature
+behavior. It does **not** validate the updater handoff. Do not count a direct
+`installer.exe /S` launch over a running Blanc process as an updater test. A
+handoff check must begin inside the old packaged Blanc, discover the exact
+staged `latest.yml`, download the matching installer/blockmap, show the
+downloaded-update prompt, and invoke **Restart Now**. If that harness is not
+available, report the evidence gap rather than improvising or checking the box.
+An owner can waive the gate only after being told the missing evidence and
+risk; preserve the explicit approval in the release incident.
 
 Before starting, unlock the 1Password desktop app and ensure `gh auth status`
 succeeds in the selected operator environment. Do not fetch or paste either
@@ -164,7 +185,9 @@ to a `HEAD` preview without updating `blancbrowser.com`. Confirm `wrangler pages
 deployment list --project-name=blancbrowser` reports the expected source SHA as
 `Environment: Production` and `Branch: main`, then verify the canonical
 changelog and homepage version, not only a Cloudflare preview URL. The v1.4.0 incident and recovery are recorded
-in `docs/release-incidents/2026-08-15-v1.4.0.md`.
+in `docs/release-incidents/2026-08-15-v1.4.0.md`; the v1.5.1 blocker/updater,
+operator-mode, waiver, and production-deploy lessons are recorded in
+`docs/release-incidents/2026-08-17-v1.5.1.md`.
 
 ## 1. Verify the files
 
