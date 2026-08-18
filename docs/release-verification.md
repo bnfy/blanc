@@ -32,19 +32,80 @@ public release.
 
 ## Release-operator runbook
 
-This is a human-gated workflow. Run it directly in a new interactive macOS
-Terminal.app window — not a Codex/ChatGPT terminal, subprocess, or background
-wrapper. The script enforces Terminal.app because 1Password desktop integration
-could not authorize the agent PTY during the v1.4.0 release.
+This is a human-gated workflow with two supported interactive operator modes:
 
-Before starting, unlock the 1Password desktop app and confirm `gh auth status`
-succeeds in that same Terminal window. Do not fetch or paste either secret and
-do not run `op signin`; `release.sh` owns the `op run` boundary.
+- `terminal` (default): run directly in a native macOS Terminal.app window.
+- `agent`: Codex or Claude must use an interactive PTY and run the complete
+  command outside its sandbox with the user's execution approval.
 
-For the normal Apple-Silicon stable release:
+Background/non-interactive releases are forbidden. Agent mode is explicit so
+no agent should spoof `TERM_PROGRAM` to bypass the operator check.
+
+The surrounding orchestration environment may impose a stricter native-
+Terminal-only rule even though `release.sh` supports agent mode. That happened
+during v1.5.1: two agent-PTY launches were rejected, including one after the
+user's explicit approval. Do not keep retrying. After the first policy
+rejection, explain the constraint once, obtain approval to use native Terminal,
+and launch the complete terminal-mode command there automatically. The user
+must not be asked to copy, paste, or reconstruct the command. The release must
+remain visible and interactive; this is not permission for a background
+wrapper.
+
+### Private Windows validation before a hotfix release
+
+When a Windows fix needs affected-machine confirmation, build a signed
+candidate without creating a tag, draft, or public updater entry:
+
+```sh
+gh workflow run release-windows-linux.yml \
+  --repo bnfy/blanc \
+  --ref <candidate-branch> \
+  -f mode=validation \
+  -f platform=windows
+```
+
+The Windows runner applies the normal fail-closed signing, timestamp, fuse, and
+artifact checks, then stores the installer, blockmap, signature record, and
+`latest.yml` together as a private GitHub Actions artifact for three days.
+Validation mode cannot upload to a GitHub Release and never runs the Linux job.
+Install that candidate on the affected Windows machine and get the user's
+explicit confirmation before merging, tagging, or starting the public release.
+The public release path is separate: `scripts/release.sh` explicitly dispatches
+the workflow with `mode=release`.
+
+There are two distinct Windows checks. Installing the candidate EXE validates
+the signature, installation, launch, persisted profile, and packaged feature
+behavior. It does **not** validate the updater handoff. Do not count a direct
+`installer.exe /S` launch over a running Blanc process as an updater test. A
+handoff check must begin inside the old packaged Blanc, discover the exact
+staged `latest.yml`, download the matching installer/blockmap, show the
+downloaded-update prompt, and invoke **Restart Now**. If that harness is not
+available, report the evidence gap rather than improvising or checking the box.
+An owner can waive the gate only after being told the missing evidence and
+risk; preserve the explicit approval in the release incident.
+
+Before starting, unlock the 1Password desktop app and ensure `gh auth status`
+succeeds in the selected operator environment. Do not fetch or paste either
+secret and do not run a separate sign-in flow: `release.sh` owns both 1Password
+boundaries. It first runs the exact proven preflight
+`OP_BIOMETRIC_UNLOCK_ENABLED=true op signin`, then uses the same forced
+desktop-app path for `op run`. In agent mode, a sandboxed CLI cannot reach
+1Password's local IPC channel; launch the whole release outside the sandbox
+instead of retrying setup. If `op` offers to add an account manually, cancel it:
+that is never a valid release authentication step.
+
+**GitHub authentication rule:** a sandboxed agent can falsely report the cached
+`gh` token as invalid because it cannot access the macOS keyring. Retry
+`gh auth status` outside the sandbox first. If CLI access is still unavailable,
+use the connected GitHub app for repository/PR operations and verify whether
+the existing Git credential can push. Do not ask the user to run `gh auth login`
+unless the unsandboxed CLI check, GitHub app, and Git credential have all failed.
+
+For the normal Apple-Silicon stable release from Terminal.app:
 
 ```sh
 cd "/Users/anthonyjloria/Projects/Blanc Browser"
+BLANC_RELEASE_OPERATOR=terminal \
 BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
 BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
 BLANC_RELEASE_MODE=stable \
@@ -53,12 +114,30 @@ BLANC_MAC_ARCHES=arm64 \
 npm run release
 ```
 
-The two approval gates happen late enough that the Terminal window must remain
-available:
+For the same release directly from Codex or Claude, use the identical checkout
+and release inputs but select agent mode:
 
-1. **1Password / Apple notarization.** `op run` must ask to authorize
-   Terminal.app. Approve it there. If the dialog names ChatGPT or Codex, stop:
-   the release was launched from the wrong process and will time out.
+```sh
+cd "/Users/anthonyjloria/Projects/Blanc Browser"
+BLANC_RELEASE_OPERATOR=agent \
+BLANC_COSIGN_IDENTITY='anthony@bnfy.me' \
+BLANC_COSIGN_OIDC_ISSUER='https://github.com/login/oauth' \
+BLANC_RELEASE_MODE=stable \
+BLANC_RELEASE_PLATFORMS=mac,windows,linux \
+BLANC_MAC_ARCHES=arm64 \
+npm run release
+```
+
+The agent must execute that whole command in a PTY outside its sandbox; in
+Codex terms, request escalated/unsandboxed execution for `npm run release`.
+Do not run only `op signin` outside the sandbox and then put the release back
+inside it.
+
+Keep the operator session available for these approvals:
+
+1. **1Password / Apple notarization.** The prompt must name the actual selected
+   operator: Terminal in terminal mode, or Codex/Claude in agent mode. If it
+   names a different process or asks to add an account manually, stop.
 2. **Sigstore / GitHub identity.** The release-scoped browser shim opens the
    fresh OIDC page in Safari and the callback targets
    `127.0.0.1:${BLANC_COSIGN_REDIRECT_PORT:-49197}`. Complete it immediately;
@@ -100,9 +179,15 @@ terminal capture, agent tool result, or log, revoke it and replace the
 
 After publication, regenerate and commit `site/src/data/releases.json`, advance
 the public and migration baselines, run `npm run site:build`, push, then run
-`npm run site:deploy`. Verify the canonical changelog and homepage version, not
-only the Cloudflare preview URL. The v1.4.0 incident and recovery are recorded
-in `docs/release-incidents/2026-08-15-v1.4.0.md`.
+`npm run site:deploy` from the clean checkout at `origin/main`. That script must
+keep its explicit `--branch=main`: a detached release worktree otherwise deploys
+to a `HEAD` preview without updating `blancbrowser.com`. Confirm `wrangler pages
+deployment list --project-name=blancbrowser` reports the expected source SHA as
+`Environment: Production` and `Branch: main`, then verify the canonical
+changelog and homepage version, not only a Cloudflare preview URL. The v1.4.0 incident and recovery are recorded
+in `docs/release-incidents/2026-08-15-v1.4.0.md`; the v1.5.1 blocker/updater,
+operator-mode, waiver, and production-deploy lessons are recorded in
+`docs/release-incidents/2026-08-17-v1.5.1.md`.
 
 ## 1. Verify the files
 

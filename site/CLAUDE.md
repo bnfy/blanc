@@ -29,11 +29,15 @@ external hashed files. Internal links are root-relative extensionless
 
 Commands (root proxies): `npm run site:dev`, `npm run site:build`, and
 `npm run site:deploy` (build + `npx wrangler pages deploy site/dist
---project-name=blancbrowser` to the Cloudflare Pages project `blancbrowser`,
+--project-name=blancbrowser --branch=main` to the Cloudflare Pages project `blancbrowser`,
 BNFY account, canonical domain `blancbrowser.com`; `getbowser.com` 301s there).
 **Deploy `site/dist`, never `site/`.** CI (`.github/workflows/site.yml`) builds
 the site on any change to `site/**`, root `package.json` (a build input — the
 JSON-LD `softwareVersion` imports its `version`), or the changelog generator.
+The explicit `--branch=main` is mandatory: release worktrees are detached at
+`origin/main`, and without it Wrangler labels the upload as a `HEAD` preview
+that never reaches the canonical domain. After deployment, confirm Wrangler
+reports `Environment: Production`, `Branch: main`, and the expected source SHA.
 
 **Changelog pipeline:** `scripts/generate-site-changelog.mjs` (root, needs an
 authenticated `gh`) fetches GitHub releases, scrubs the legacy "Bowser" name,

@@ -147,7 +147,11 @@ const {
 const { showAboutPanel } = require('./about-panel');
 const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
-const { holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, expireHolds, projectEntries, CLOSED_GRACE_MS, MAX_CLOSED_ENTRIES } = require('./closed-tabs');
+const {
+  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry,
+  expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
+  MAX_CLOSED_ENTRIES,
+} = require('./closed-tabs');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -1063,8 +1067,8 @@ function installHeldFirewall(entry, wc, owner) {
   // restore path would re-attach a sad-tab instead of using the snapshot.
   const downgrade = bindWindowRuntime(owner, () => {
     downgradeHeldEntry(entry);
-    // The panel's "held" marker just cleared; downgradeHeldEntry itself must
-    // stay callable from unbound teardown, so the bound caller broadcasts.
+    // The renderer's reopen state just changed; downgradeHeldEntry itself
+    // must stay callable from unbound teardown, so the bound caller broadcasts.
     if (hasLiveWindow()) scheduleBroadcastTabs();
   });
   guard('render-process-gone', downgrade);
@@ -2354,6 +2358,8 @@ app.on('before-quit', () => {
   for (const runtime of windowRuntimes.all()) {
     for (const entry of runtime.closedEntries ?? []) {
       if (entry.view) downgradeHeldEntry(entry);
+      clearTimeout(entry.expiryTimer);
+      entry.expiryTimer = null;
     }
   }
 });
@@ -3554,16 +3560,59 @@ function activateTabFromRail(id) {
 // view; a newer hold downgrades the incumbent rather than being refused
 // (§2.1), and eviction destroys any view it pushes out (§5.4).
 function pushClosedEntry(entry) {
+  const owner = rt();
   const list = rt().closedEntries ??= [];
   if (entry.view) {
     for (const existing of list) if (existing.view) downgradeHeldEntry(existing);
   }
   list.push(entry);
+  entry.expiryTimer = setTimeout(bindWindowRuntime(owner, () => {
+    const due = new Set(expireEntries(owner.closedEntries ?? [], { now: Date.now() }));
+    if (due.has(entry.id)) forgetClosedEntry(entry.id);
+  }), CLOSED_ENTRY_TTL_MS);
   while (list.length > MAX_CLOSED_ENTRIES) {
     const evicted = list.shift();
-    if (evicted.view) downgradeHeldEntry(evicted);
+    disposeClosedEntry(evicted);
   }
   scheduleMenuRebuild();
+}
+
+/** Drop every resource owned by one undo entry. Forgetting during the live
+ * grace window destroys the parked page rather than leaving it hidden. */
+function disposeClosedEntry(entry) {
+  if (!entry) return;
+  clearTimeout(entry.expiryTimer);
+  entry.expiryTimer = null;
+  clearTimeout(entry.holdTimer);
+  if (entry.view) downgradeHeldEntry(entry);
+  else entry.holdTimer = null;
+}
+
+/** Remove one entry without reopening it. Renderer ids are proposals; main
+ * re-resolves them against the focused window's own list. */
+function forgetClosedEntry(entryId, { broadcast = true } = {}) {
+  const list = rt().closedEntries ?? [];
+  const at = list.findIndex((entry) => entry.id === String(entryId));
+  if (at === -1) return false;
+  const [entry] = list.splice(at, 1);
+  disposeClosedEntry(entry);
+  if (hasLiveWindow()) {
+    scheduleMenuRebuild();
+    if (broadcast) broadcastTabs();
+  }
+  return true;
+}
+
+function clearClosedEntries() {
+  const list = rt().closedEntries ?? [];
+  if (!list.length) return false;
+  for (const entry of list) disposeClosedEntry(entry);
+  list.length = 0;
+  if (hasLiveWindow()) {
+    scheduleMenuRebuild();
+    broadcastTabs();
+  }
+  return true;
 }
 
 /** Restore a group whole: record at its recorded cluster index, members
@@ -3739,8 +3788,10 @@ function reopenClosedTab() {
 /** Restore one consumed entry. Tier 0 adopts the parked view; a dead or
  *  unattachable view falls through to the snapshot (§3.2). */
 function reopenEntry(entry) {
-  if (entry.kind === 'group') return reopenGroupEntry(entry);
+  clearTimeout(entry.expiryTimer);
+  entry.expiryTimer = null;
   clearTimeout(entry.holdTimer);
+  if (entry.kind === 'group') return reopenGroupEntry(entry);
   const resolvedGroupId = entry.groupId && rt().groups.some((g) => g.id === entry.groupId)
     ? entry.groupId
     : null;
@@ -4187,6 +4238,8 @@ function registerIpcHandlers() {
     const [entry] = list.splice(at, 1);
     reopenEntry(entry);
   });
+  chromeHandle('tabs:forget-closed-entry', (_e, entryId) => forgetClosedEntry(entryId));
+  chromeHandle('tabs:clear-closed', () => clearClosedEntries());
   chromeHandle('tabs:switch', (_e, id) => setActiveTab(id));
   chromeHandle('tabs:activate-from-rail', (_e, id) => activateTabFromRail(id));
   chromeHandle('tabs:set-glance', (_e, id) => setGlanceTab(id));
@@ -4930,9 +4983,7 @@ function createMainWindowForRuntime(runtime) {
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
       for (const tabId of [...runtime.tabOrder]) closeTab(tabId, { record: false });
-      for (const entry of runtime.closedEntries ?? []) {
-        if (entry.view) downgradeHeldEntry(entry);
-      }
+      for (const entry of runtime.closedEntries ?? []) disposeClosedEntry(entry);
       runtime.closedEntries = [];
       windowRuntimes.discardRuntime(runtime);
       if (!sessionReadOnly) persistSession();
@@ -5859,7 +5910,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // The live array, mirroring getSleepSnapshots: reset() empties it in
       // place. Entries never leave the main process — the hook only clears.
       getClosedEntries: () => rt().closedEntries ??= [],
-      downgradeHeldEntry,
+      clearClosedEntries,
       setSleepThresholdOverride: (ms) => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
         return sleepThresholdOverrideMs;

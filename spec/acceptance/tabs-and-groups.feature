@@ -46,6 +46,16 @@ Feature: Tabs and tab groups
     Then a group named "research" holds 3 tabs
     And the group's tabs are in their original order
 
+  @F2-7 @F2 @desktop
+  Scenario: Recently closed is a bounded undo list the user can clear
+    Given recently closed contains "older.example" and "newer.example"
+    When I open the command palette
+    Then recently closed exposes no recovery-tier jargon
+    When I forget the newest recently closed tab
+    Then recently closed contains only "older.example"
+    When I clear recently closed from the panel
+    Then recently closed is empty
+
   @F3-1 @F3 @all
   Scenario: Creating a group moves the active tab into it
     Given the active tab has no group

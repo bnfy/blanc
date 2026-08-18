@@ -131,7 +131,13 @@ When('I undo the command-bar deletion', async function () {
 
 // The harness drives command effects through the main process, so opening the
 // palette is the real showOverlay('palette') action, not palette-DOM automation.
-When('I open the command palette', async function () { await this.call('openPalette'); });
+When('I open the command palette', async function () {
+  // Pointer-driven panel scenarios need the native window frontmost before
+  // the opening request; otherwise Chromium can throttle the two animation
+  // frames that hand the morph from pill geometry to the full panel.
+  await this.call('focusWindow');
+  await this.call('openPalette');
+});
 
 Then('a new ungrouped tab opens on the new-tab page', async function () {
   await this.waitForState((s) => {

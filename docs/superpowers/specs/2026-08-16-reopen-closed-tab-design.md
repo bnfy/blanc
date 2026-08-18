@@ -1,7 +1,7 @@
 # Reopen Closed Tab — design
 
 Date: 2026-08-16
-Status: approved after review round 3, not implemented
+Status: implemented; amended 2026-08-17 with explicit disposal and expiry
 
 ## 1. Problem
 
@@ -26,8 +26,9 @@ mis-aimed ⌘W and losing what you typed.
 **Scope: rescue, not retrieval.** This design targets "I just closed the wrong
 tab — give it back exactly." A browsable, searchable, quit-surviving archive of
 closed tabs is a different feature and is deliberately out of scope. Nothing here
-is persisted to disk; the closed list is session-lifetime and per-window, as
-today.
+is persisted to disk. The per-window list is an undo buffer capped at 25 entries;
+each entry can be forgotten, the list can be cleared, and untouched entries
+expire after one hour.
 
 ## 2. Behaviour contract
 
@@ -383,21 +384,22 @@ The renderer receives an **explicit projection only**, built by
 `projectEntries()`:
 
 ```
-{ id, title, favicon, tier, tabCount }
+{ id, title, favicon, tabCount }
 ```
 
 - `id` — opaque entry id, meaningless outside the owning runtime
 - `title` — display string
 - `favicon` — bounded PNG data URL through the existing favicon policy, never a
   remote URL the renderer would fetch
-- `tier` — for the `held` marker only
 - `tabCount` — for the `N tabs` group label
 
 `entries`, `index`, `pageState`, `url`, slot metadata, and every view reference
 stay main-process-only. Reopening is `reopenClosedEntry(id)` over the trusted
 `chrome:*` IPC path, with main re-resolving the id against its own list — the
 renderer's id is a proposal, exactly as `reorderTabWithinBucket` treats renderer
-tab ids today. An unknown or stale id is a no-op.
+tab ids today. Forgetting follows the same re-resolution rule and immediately
+destroys a parked view. An unknown or stale id is a no-op. Recovery tiers are
+implementation detail and never appear in user-visible copy.
 
 **Not in scope:** Quick Switcher matching over closed tabs. That is the retrieval
 direction, deliberately excluded (§1).

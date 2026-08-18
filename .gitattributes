@@ -1,0 +1,3 @@
+/adblock/sources/*.txt text eol=lf
+/adblock/sources/pinned.json text eol=lf
+/adblock/generated/*.json text eol=lf

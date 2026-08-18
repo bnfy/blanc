@@ -44,7 +44,7 @@ function renderLaunchStatus({ startup, privacy } = {}) {
         ? 'Retrying blocking…'
         : 'Preparing blocking…';
     startupMessage.textContent = failed
-      ? 'Blanc has not opened queued web pages because its ad and tracker filters are unavailable. Retry, or explicitly continue with blocking turned off.'
+      ? `Blanc has not opened queued web pages because its ad and tracker filters are unavailable. Retry, or explicitly continue with blocking turned off. Diagnostic: ${startup.error || 'unknown blocker initialization error'}`
       : 'Blanc is preparing its local ad and tracker filters before opening web pages.';
     startupActions.hidden = !failed;
     if (failed && startupWasHidden) startupRetry.focus();

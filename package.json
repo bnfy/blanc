@@ -1,7 +1,7 @@
 {
   "name": "blanc",
   "productName": "Blanc",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
   "type": "commonjs",
@@ -16,7 +16,7 @@
     "site:changelog:check": "node scripts/generate-site-changelog.mjs --check",
     "site:dev": "npm --prefix site run dev",
     "site:build": "npm --prefix site run build",
-    "site:deploy": "npm --prefix site run build && npx wrangler pages deploy site/dist --project-name=blancbrowser",
+    "site:deploy": "npm --prefix site run build && npx wrangler pages deploy site/dist --project-name=blancbrowser --branch=main",
     "test:unit": "node --test test/unit/*.test.js",
     "test:oauth:desktop": "node --test test/oauth/desktop.test.js",
     "test:oauth:live": "node scripts/oauth-canary.js",
@@ -48,6 +48,7 @@
   "private": true,
   "devDependencies": {
     "@cucumber/cucumber": "^13.2.1",
+    "@electron/asar": "3.4.1",
     "@ghostery/adblocker": "^2.18.2",
     "electron": "^43.4.0",
     "electron-builder": "^26.15.3",

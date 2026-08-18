@@ -11,6 +11,18 @@ const {
 } = require('../../src/main/adblock-snapshot');
 
 const SOURCES = path.resolve(__dirname, '../../adblock/sources');
+const ROOT = path.resolve(__dirname, '../..');
+
+test('Git preserves byte-verified blocker inputs as LF on Windows', () => {
+  const attributes = fs.readFileSync(path.join(ROOT, '.gitattributes'), 'utf8');
+  for (const rule of [
+    '/adblock/sources/*.txt text eol=lf',
+    '/adblock/sources/pinned.json text eol=lf',
+    '/adblock/generated/*.json text eol=lf',
+  ]) {
+    assert.ok(attributes.split(/\r?\n/).includes(rule), `missing Git attribute: ${rule}`);
+  }
+});
 
 test('release-pinned desktop lists match their manifest', () => {
   const snapshot = loadVerifiedAdblockSnapshot(SOURCES);
