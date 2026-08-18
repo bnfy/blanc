@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship the Patron entitlement foundation — a device-local `patron` record with three kinds (`founding` / `lifetime` / `subscription`), Polar activation + subscription validation with a 30-day offline grace and graceful degradation, migration of existing `$19` Supporters to founding Patrons, and re-gating the three cosmetic colorways under Patron — with nothing else gating until this exists.
+**Goal:** Ship the Patron entitlement foundation — a device-local `patron` record with three kinds (`founding` / `lifetime` / `subscription`), Polar activation + subscription validation with a 30-day offline grace and graceful degradation, migration of existing `$19` Supporters to founding Patrons, re-gating the three cosmetic colorways under Patron, and upgrade surfaces (start page callout + `/patron` slash command) — with nothing else gating until this exists.
 
 **Architecture:** All entitlement *decisions* live in a new pure, Electron-free `src/main/patron-model.js` (mirrors `tabsync-model.js` / `session-workspace.js`), covered by `node:test` unit tests. **Subscription activity is derived from the persisted record** (`isRecordActive`), never a volatile in-memory flag, so a restart cannot lock out a valid subscriber. `src/main/patron.js` wraps Polar's `net.fetch` calls and delegates every decision to the pure model. `src/main/settings.js` gains the `patron` record, `isPatronActive()`, `setPatron()`, the extended `isAppIconAllowed()`, a one-time migration run **inside `ensureStore()`** (against `store.data`, flushed synchronously), and fires the existing `listeners` set on change. The renderer projection and activation IPC are edited in **`src/main/pages.js`** (where they actually live). `src/main/main.js` only schedules the daily background validation.
 
@@ -44,6 +44,9 @@ Copied verbatim from `docs/superpowers/specs/2026-08-18-blanc-patron-design.md`;
 - **Modify `src/main/pages.js`** — `clientSettings()` strips `patron` + adds `patronActive`; route `pages:settings:supporter-activate` to `patron.activate`.
 - **Modify `src/main/main.js`** — idle-scheduled daily `validateIfDue`.
 - **Modify `src/renderer/pages/settings.*`** — Patron section + colorways re-gated on `patronActive` (manual verification).
+- **Modify `src/renderer/pages/newtab.*`** — quiet Patron callout when not active; hidden when active.
+- **Modify `src/renderer/overlay.js`** — `/patron` slash command opens Settings.
+- **Modify `src/renderer/pages/shortcuts.js`** + **`src/main/main.js`** + **`copy/slash-commands.json`** — mirror the new command (substrate S3 guard).
 
 ---
 
@@ -634,9 +637,53 @@ git commit -m "feat(patron): Settings Patron section and Patron-gated colorways"
 
 ---
 
+### Task 9: Start page callout + `/patron` slash command
+
+**Files:**
+- Modify: `src/renderer/pages/newtab.html` / `newtab.js` / `pages.css` — start page callout.
+- Modify: `src/renderer/overlay.js` — `/patron` slash command.
+- Modify: `src/renderer/pages/shortcuts.js` — mirror the new command in the reference list.
+- Modify: `src/main/main.js` — add `/patron` to the `SLASH_COMMANDS` menu-doc array.
+- Modify: `copy/slash-commands.json` — add the command entry (substrate S3).
+- Modify: `src/main/pages.js` — include `patronActive` in the `pages:start:data` response so the start page knows whether to show the callout.
+
+**Interfaces:**
+- Consumes: `patronActive` from the `pages:start:data` payload and from the overlay's `state`.
+
+- [ ] **Step 1: Add `patronActive` to `pages:start:data`**
+
+In `pages.js`, the `pages:start:data` handler (line ~232) returns groups, blocked counts, remote devices, and onboarding state. Add `patronActive: settings.isPatronActive()` to the returned object so the start page can gate the callout.
+
+- [ ] **Step 2: Start page callout**
+
+In `newtab.js`, when `patronActive` is false, render a quiet, non-intrusive callout in the ledger layout — below the favorites grid and above the footer. Keep it understated (one line, e.g. "Support Blanc" with a link that opens `blanc://settings/` scrolled to the Patron section). When `patronActive` is true, hide it. The callout must not dominate the start page or feel like an ad — this is an indie browser asking for support, not a nag screen.
+
+- [ ] **Step 3: `/patron` slash command**
+
+Add to the `COMMANDS` array in `overlay.js`:
+
+```js
+{ cmd: '/patron', hint: 'Support Blanc with a Patron subscription', run: () => window.browserAPI.openPage('settings') },
+```
+
+The command opens Settings; the Patron section (Task 8) is the activation surface. Mirror the entry in `pages/shortcuts.js`, `main.js`'s `SLASH_COMMANDS`, and `copy/slash-commands.json`. Run `npm run copy:check` to verify the substrate guard passes.
+
+- [ ] **Step 4: Verify manually (relaunch required)**
+
+Relaunch `npm start`. Confirm: the start page shows the callout when not a Patron and hides it after activation; `/patron` appears in the slash-command list and opens Settings; the shortcuts page lists it; `npm run copy:check` passes.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add src/renderer/pages/newtab.html src/renderer/pages/newtab.js src/renderer/pages/pages.css src/renderer/overlay.js src/renderer/pages/shortcuts.js src/main/main.js src/main/pages.js copy/slash-commands.json
+git commit -m "feat(patron): start page callout and /patron slash command"
+```
+
+---
+
 ## Self-Review
 
-**Spec coverage (Phase 1):** entitlement record + kinds (T2–T4); benefit_id allowlist + fail-closed (T1, T5); **persisted-derived activity, restart-safe** (T2, T4); migration persisted via ensureStore+flush (T3, T4); validation with statuses/`expires_at`/defensive benefit_id/**per-validation benefit re-check**/cadence/bootstrap/grace (T2, T5); **activation inspects nested license-key status+expiry before bootstrapping grace** (T5); **three-state `parseExpiresAt` (null/number/false)** — activation rejects malformed, validation treats as ambiguous (T1, T2 unit test); **per-environment org ID** (`PRODUCTION_ORG_ID`/`SANDBOX_ORG_ID`, T5); projection strips both in the *correct* file (T6); downgrade mirror + subscription-never-mirrored (T3, T4); **setPatron fires listeners → Dock reapply** (T4); graceful degradation to `paper` (T4, T8); 200-char guard + malformed-JSON handling (T5); never synced / never generic-write (T4). ✓
+**Spec coverage (Phase 1):** entitlement record + kinds (T2–T4); benefit_id allowlist + fail-closed (T1, T5); **persisted-derived activity, restart-safe** (T2, T4); migration persisted via ensureStore+flush (T3, T4); validation with statuses/`expires_at`/defensive benefit_id/**per-validation benefit re-check**/cadence/bootstrap/grace (T2, T5); **activation inspects nested license-key status+expiry before bootstrapping grace** (T5); **three-state `parseExpiresAt` (null/number/false)** — activation rejects malformed, validation treats as ambiguous (T1, T2 unit test); **per-environment org ID** (`PRODUCTION_ORG_ID`/`SANDBOX_ORG_ID`, T5); projection strips both in the *correct* file (T6); downgrade mirror + subscription-never-mirrored (T3, T4); **setPatron fires listeners → Dock reapply** (T4); graceful degradation to `paper` (T4, T8); 200-char guard + malformed-JSON handling (T5); never synced / never generic-write (T4); **upgrade surfaces beyond Settings** — start page callout + `/patron` slash command (T9). ✓
 
 **Placeholder scan:** the only blanks are the real Polar `benefit_id` values in `BENEFIT_ALLOWLIST` and `SANDBOX_ORG_ID` (T5) — user-side product/org ids that do not exist until the Polar products are created; flagged as a setup invariant, not a hidden TODO.
 
