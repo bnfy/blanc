@@ -693,8 +693,7 @@ body.mac .vertical-tabs-toolbar {
   color: var(--text-dim);
 }
 
-/* The rail's private word-marker. (The matching "quiet" marker was removed
-   2026-08-18 — quiet is dim-only now, via the row-level dim further down.) */
+/* The rail's private word-marker. (Quiet is dim-only — 2026-08-18 spec.) */
 .vertical-tab-private {
   max-width: 50px;
   overflow: hidden;
@@ -2103,9 +2102,8 @@ body[data-glance-purpose="change"] .glance-picker {
   stroke-linejoin: round;
 }
 
-/* "private" tag on private tabs in the switcher list. (The "quiet" chip that
-   rode beside it was removed 2026-08-18 — quiet is dim-only now, via the
-   row-level dim further down.) */
+/* "private" tag on private tabs in the switcher list. (Quiet is dim-only —
+   2026-08-18 spec.) */
 .island-row .row-private {
   font-family: var(--font-mono);
   font-size: 10px;

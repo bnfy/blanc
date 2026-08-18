@@ -86,14 +86,7 @@ test('the row primary button carries the row layout', () => {
 test('a quiet panel row is classed and named "quiet" — dim-only, no visual tag', () => {
   assert.match(panelRowSource, /tab\.asleep \? ' quiet' : ''/);
   assert.match(panelRowSource, /tab\.asleep \? 'quiet' : ''/);
-  // The per-row "quiet" text marker was removed 2026-08-18 (user decision):
-  // after a restore most rows are quiet and the repeated labels read as junk.
-  // The row dim is the only visual; the accessible name keeps the word. A
-  // uniformly-dim restored list reading as nothing is a known, accepted
-  // trade-off — do not reintroduce a tag (or a glyph) without a new decision.
-  assert.doesNotMatch(panelRowSource, /row-quiet/);
   assert.doesNotMatch(panelRowSource, /QUIET_GLYPH|<svg/);
-  assert.doesNotMatch(styles, /\.row-quiet/);
 });
 
 test('no chrome surface ever says "asleep" to a user or a screen reader', () => {
@@ -136,9 +129,6 @@ test('a quiet rail row is classed and named "quiet" — dim-only, like the panel
   assert.match(railRowSource, /\(tab\.asleep \? ' quiet' : ''\)/);
   // The field is `asleep`; the string in the accessible name is 'quiet'.
   assert.match(railRowSource, /tab\.asleep && 'quiet'/);
-  // The bare-text marker was removed 2026-08-18 alongside the panel's chip.
-  assert.doesNotMatch(railRowSource, /vertical-tab-quiet/);
-  assert.doesNotMatch(styles, /\.vertical-tab-quiet/);
   // A word in the accessible name, never a glyph — no icon entry survives.
   assert.doesNotMatch(railSource, /QUIET_GLYPH|ICONS\.quiet/);
 });
@@ -263,13 +253,15 @@ test('the quiet glyph is fully deleted — file, serving allowlist, and referenc
   assert.doesNotMatch(chromeProtocol, /quiet-glyph/);
 });
 
-// The word markers that used to ride beside "private" on each surface were
-// removed 2026-08-18 (user decision): after a restore most rows are quiet and
-// the repeated labels read as junk. Quiet is dim-only now — the absence
-// guards live in the per-surface row tests above; "private" keeps its marker.
-test('the "private" markers survive quiet\'s removal on both surfaces', () => {
-  assert.match(styles, /\.island-row \.row-private\s*\{/, 'panel private chip');
-  assert.match(styles, /\.vertical-tab-private\s*\{/, 'rail private word-marker');
+// Quiet is dim-only: the per-row word markers were removed 2026-08-18 (user
+// decision — see docs/superpowers/specs/2026-08-18-quiet-marker-dim-only-
+// design.md). Do not reintroduce a marker without a new decision. Whole-file
+// scope on purpose: a marker reintroduced from ANY overlay/rail function, or
+// its CSS, fails here — not just one rebuilt inside tabRow.
+test('no quiet marker survives anywhere — chrome JS or CSS', () => {
+  assert.doesNotMatch(overlaySource, /row-quiet/);
+  assert.doesNotMatch(railSource, /vertical-tab-quiet/);
+  assert.doesNotMatch(styles, /row-quiet|vertical-tab-quiet/);
 });
 
 // Extracts the declarations of the first rule whose selector list starts with

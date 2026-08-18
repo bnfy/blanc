@@ -467,11 +467,9 @@
       row.append(tag);
     }
 
-    // Quiet is dim-only: the row's `quiet` class fades it, and the accessible
-    // name above carries the word. The per-row "quiet" text marker was removed
-    // 2026-08-18 — after a restore most rows are quiet and the repeated labels
-    // read as junk. That a fully-restored list dims uniformly (and so reads as
-    // nothing) is a known, accepted trade-off: waking is transparent.
+    // Quiet is dim-only (the row's `quiet` class + the aria word above); no
+    // per-row marker — see docs/superpowers/specs/2026-08-18-quiet-marker-
+    // dim-only-design.md before reintroducing one.
 
     const pin = document.createElement('button');
     pin.className = 'row-pin' + (tab.pinned ? ' on' : '');

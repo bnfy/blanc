@@ -29,7 +29,10 @@ quiet tab just wakes it with a brief reload; nothing is lost or hidden.
 - The Glance picker's sub-metadata line (`domain · group · quiet`) — that is
   descriptive text in a picker, not a per-row badge, and the picker rows do
   not dim.
-- The `/sleep` command name and all "quiet" terminology (spec F-series).
+- The `/sleep` command name and all "quiet" terminology. (F31's visible-state
+  clause in `spec/features.md` is **updated** in this change — it mandated the
+  word marker and now records the dim-only decision; the rest of the F-series
+  is untouched.)
 - "private" keeps its chip (panel) and bare-text marker (rail): it is rare
   and identity-class, not row metadata. The "quiet must not drift from
   private" style comments are deleted along with the shared selectors.
@@ -43,4 +46,12 @@ quiet tab just wakes it with a brief reload; nothing is lost or hidden.
 - `src/renderer/styles.css` — drop `.row-quiet` / `.vertical-tab-quiet` from
   their shared chip/marker blocks; comments updated.
 - `test/unit/quiet-tabs-chrome.test.js` — the marker-presence guards flip to
-  absence guards in the same commit (deliberate policy change).
+  a whole-source absence guard in the same commit (deliberate policy change).
+- `spec/features.md` — F31's visible-state clause rewritten to the dim-only
+  contract, so the platform-neutral spec and the reference implementation
+  agree (same-commit rule, applied to the contract layer too).
+- `test/desktop/steps/quiet-tabs.steps.js` — the panel naming assertion is
+  comma-anchored (`/,\s*quiet/`); the bare `/quiet/` form matched the
+  fixture's own "quietable" title and could never fail.
+- `.design-sync/NOTES.md` — records that the Design System mirror
+  (`Island.jsx`'s `.bw-row-quiet`) is stale until the next approved push.

@@ -575,16 +575,17 @@ From the desktop `DEFAULTS`:
   return on ordinary static documents and are explicitly not promised on
   virtualized feeds (D23). A private tab comes back **where** it was, not **how**
   it was: private tabs retain no page state.
-- **The state is visible, and it is called "quiet"** everywhere a person or a
+- **The state is dim-only on screen, and it is called "quiet"** everywhere a
   screen reader can meet it — the panel row and the vertical rail row each dim
   as one unit, restoring full strength on hover/focus (the row is about to
-  wake), **and each carries the word `quiet`** in the same lowercase mono voice
-  as `private`, with `, quiet` in each accessible name. The word is load-bearing,
-  not decoration: restored tabs are born quiet, so after a relaunch nearly every
-  row is dim at once, and a uniformly dimmed list reads as ordinary styling
-  rather than as a state. There is no glyph or pictogram. It is deliberately
-  unmarked on the pill dots, in the Quick Switcher, in the native window menu,
-  and on the start page.
+  wake), with `, quiet` in each accessible name. There is no per-row text
+  marker, glyph, or pictogram: the word markers that used to ride beside
+  `private` were removed 2026-08-18 (the repeated labels read as junk once a
+  restore quiets most rows at once). The known cost — a fully-restored list
+  dims uniformly and reads as ordinary styling until some tabs wake — is
+  accepted: waking is transparent, so nothing is lost by not noticing. It is
+  deliberately unmarked on the pill dots, in the Quick Switcher, in the native
+  window menu, and on the start page.
 - Restored sessions come back quiet: after a relaunch only the active tab loads
   (F18).
 - The *behaviour* is D8; *who decides when* is D23.

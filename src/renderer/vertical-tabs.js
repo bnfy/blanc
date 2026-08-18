@@ -388,9 +388,8 @@
       privateMarker.setAttribute('aria-hidden', 'true');
       primary.appendChild(privateMarker);
     }
-    // Quiet is dim-only here too (see overlay.js's twin): the row dim plus the
-    // aria states entry above. The bare-text "quiet" marker was removed
-    // 2026-08-18 alongside the panel's.
+    // Quiet is dim-only here too (row dim + the aria states entry above); see
+    // the 2026-08-18 quiet-marker-dim-only spec before reintroducing a marker.
     if (tab.pinned) {
       primary.appendChild(makeMarker('vertical-tab-state vertical-tab-pin', ICONS.pin, 'Pinned'));
     }
