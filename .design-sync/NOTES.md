@@ -75,9 +75,11 @@ change needed); sentinel re-armed. The deviations that were queued:
 - DesignSync write ordering: read → finalize_plan (deletes REQUIRED even if `[]`) → write_files.
 - 2026-08-16: Design API had a ~20-minute full 503 outage (reads and writes) mid-push; the same
   planId worked once the service recovered — outages here are worth waiting out, not replanning.
-- 2026-08-18: the APP diverged from the pushed Island.jsx — the per-row quiet word markers
-  (`.bw-row-quiet` in the DS mirror; `.row-quiet`/`.vertical-tab-quiet` in the app) were REMOVED
-  from the app (user decision, docs/superpowers/specs/2026-08-18-quiet-marker-dim-only-design.md;
-  quiet is dim-only now, aria keeps the word). Island.jsx, Island.prompt.md, and the chrome.card.html
-  quiet demo are stale until the next approved DesignSync push — do NOT re-mirror the chip back into
-  the app, and don't use DS renders of quiet rows as approval proof meanwhile.
+- 2026-08-18: quiet went dim-only in the app (user decision, docs/superpowers/specs/
+  2026-08-18-quiet-marker-dim-only-design.md, shipped in v1.6.0) and the mirror was re-synced the
+  same day (user-approved push): Island.jsx dropped `.bw-row-quiet` + its render block (the
+  `.bw-island-row.quiet` dim + hover/focus restore stay), Island.prompt.md and Island.d.ts now
+  document dim-only, and the `_ds_needs_recompile` sentinel was written — the served preview bundle
+  stays on the old chip until the design project is next opened and recompiles. chrome.card.html's
+  quiet MDN demo tab needs no change (it now just renders the dim). guidelines/vertical-tabs.html
+  never had quiet rows. Never re-mirror the chip back into the app.
