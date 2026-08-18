@@ -192,12 +192,14 @@
   }
 
   // --- App icon colorways (macOS Dock only) ---
-  // These four bindings stay in IIFE scope unconditionally because the Supporter
-  // section below reads `supporterActive` and calls `renderAppIconGrid`. The
+  // These four bindings stay in IIFE scope unconditionally because the Patron
+  // section below reads `patronActive` and calls `renderAppIconGrid`. The
   // function/const definitions are inert until called; only the executable tail
   // (render vs. remove) is gated.
   const appIconSetting = document.getElementById('appIconSetting');
-  let supporterActive = settings.supporterActive ?? false;
+  // `patronActive` is the durable projection field; `supporterActive` is only a
+  // temporary alias to the same boolean (see pages.js's clientSettings()).
+  let patronActive = settings.patronActive ?? false;
   const appIconGrid = document.getElementById('appIconGrid');
   // Tracked directly rather than re-derived from the DOM on every render —
   // ids/labels come from main (settings.js APP_ICON_LABELS/SUPPORTER_ICON_LABELS)
@@ -216,7 +218,7 @@
     appIconGrid.replaceChildren();
     const entries = [
       ...Object.entries(appIcons).map(([id, label]) => [id, label, false]),
-      ...Object.entries(supporterIcons).map(([id, label]) => [id, label, !supporterActive]),
+      ...Object.entries(supporterIcons).map(([id, label]) => [id, label, !patronActive]),
     ];
     for (const [id, label, locked] of entries) {
       const btn = document.createElement('button');
@@ -233,13 +235,13 @@
       if (locked) {
         const tag = document.createElement('span');
         tag.className = 'tag';
-        tag.textContent = 'supporter';
+        tag.textContent = 'patron';
         btn.append(tag);
-        // A locked tile points at the Supporter section instead of
+        // A locked tile points at the Patron section instead of
         // silently failing (main would reject the id anyway).
         btn.addEventListener('click', () => {
-          document.getElementById('supporterTitle').scrollIntoView({ behavior: 'smooth' });
-          document.getElementById('supporterKey').focus({ preventScroll: true });
+          document.getElementById('patronTitle').scrollIntoView({ behavior: 'smooth' });
+          document.getElementById('patronKey').focus({ preventScroll: true });
         });
       } else {
         btn.addEventListener('click', async () => {
@@ -281,48 +283,55 @@
     renderAppIconGrid();
   }
 
-  // --- Supporter activation ---
+  // --- Patron activation ---
+  // Capability key stays 'supporter' — guarded by
+  // test/unit/app-icon.test.js's literal-string match; Phase 4 renames it.
   if (supports('supporter') && supportsNativeAppIcon) {
-    const supporterActivateRow = document.getElementById('supporterActivateRow');
-    const supporterKey = document.getElementById('supporterKey');
-    const supporterActivateBtn = document.getElementById('supporterActivate');
-    const supporterStatus = document.getElementById('supporterStatus');
+    const patronActivateRow = document.getElementById('patronActivateRow');
+    const patronKey = document.getElementById('patronKey');
+    const patronActivateBtn = document.getElementById('patronActivate');
+    const patronStatus = document.getElementById('patronStatus');
 
-    function renderSupporterState() {
-      if (!supporterActive) return;
-      supporterActivateRow.hidden = true;
+    function renderPatronState() {
+      if (!patronActive) return;
+      patronActivateRow.hidden = true;
+      // Never gate on this date's presence — it's null for active subscribers
+      // (only founding/lifetime carry a mirror date). Show it when present,
+      // but the row above is already driven by the `patronActive` boolean.
       const when = settings.supporterActivatedAt
         ? new Date(settings.supporterActivatedAt).toLocaleDateString()
         : null;
-      supporterStatus.textContent = when
-        ? `You’re a supporter — thank you. Activated ${when}.`
-        : 'You’re a supporter — thank you.';
+      patronStatus.textContent = when
+        ? `You’re a Patron — thank you. Activated ${when}.`
+        : 'You’re a Patron — thank you.';
     }
-    renderSupporterState();
+    renderPatronState();
 
-    async function activateSupporter() {
+    async function activatePatron() {
       // Also guards the Enter-keydown listener below — without this, OS
       // key-repeat while holding Enter fires concurrent activation requests.
-      if (supporterActivateBtn.disabled) return;
-      supporterActivateBtn.disabled = true;
-      supporterStatus.textContent = 'Activating…';
-      const result = await window.bowserPages.settings.activateSupporter(supporterKey.value);
-      supporterActivateBtn.disabled = false;
+      if (patronActivateBtn.disabled) return;
+      patronActivateBtn.disabled = true;
+      patronStatus.textContent = 'Activating…';
+      const result = await window.bowserPages.settings.activateSupporter(patronKey.value);
+      patronActivateBtn.disabled = false;
       if (result.ok) {
-        supporterActive = true;
-        settings.supporterActivatedAt = result.activatedAt;
-        renderSupporterState();
+        // The response is only `{ ok, kind }` — no activatedAt to mirror
+        // here; `settings.supporterActivatedAt` (if any) stays whatever it
+        // was at page load, and renderPatronState() shows it only when set.
+        patronActive = true;
+        renderPatronState();
         if (navigator.platform.startsWith('Mac')) renderAppIconGrid();
       } else {
-        supporterStatus.textContent = result.message;
+        patronStatus.textContent = result.message;
       }
     }
-    supporterActivateBtn.addEventListener('click', activateSupporter);
-    supporterKey.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') activateSupporter();
+    patronActivateBtn.addEventListener('click', activatePatron);
+    patronKey.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') activatePatron();
     });
   } else {
-    document.getElementById('group-supporter')?.remove();
+    document.getElementById('group-patron')?.remove();
   }
 
   // --- Local profiles ---
@@ -710,7 +719,7 @@
 
     // Score each group by how much of *itself* is on screen, highest wins.
     // (A fixed trigger line — the usual scroll-spy trick — fails here:
-    // Privacy & Security's card is taller than Sync + Supporter combined, so
+    // Privacy & Security's card is taller than Sync + Patron combined, so
     // near the page bottom there's no scroll room left for their headers to
     // ever cross the line, and they'd be skipped.) On a positive tie (two
     // short trailing sections both fully visible) the later one wins, so
@@ -730,8 +739,8 @@
 
     // A sidebar click pins its target through the smooth-scroll animation.
     // Otherwise clicking a short trailing section (Sync) — whose scrollIntoView
-    // clamps at the page bottom, leaving it tied with Supporter — would let the
-    // scorer settle the highlight on Supporter instead.
+    // clamps at the page bottom, leaving it tied with Patron — would let the
+    // scorer settle the highlight on Patron instead.
     let pinnedUntil = 0;
     let ticking = false;
     window.addEventListener('scroll', () => {

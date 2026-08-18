@@ -337,8 +337,8 @@ button.danger:hover { color: var(--on-danger); background: var(--danger); border
 .icon-swatch.active { color: var(--text); }
 .icon-swatch.active img { outline: 2px solid var(--accent); }
 
-/* Supporter-only colorways render locked until a license is activated —
-   dimmed tile plus a quiet tag; clicking scrolls to the Supporter section. */
+/* Patron-only colorways render locked until a license is activated —
+   dimmed tile plus a quiet tag; clicking scrolls to the Patron section. */
 .icon-swatch.locked img { opacity: 0.4; filter: none; }
 .icon-swatch.locked span { color: var(--text-dim); }
 .icon-swatch .tag {
