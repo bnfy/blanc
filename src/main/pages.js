@@ -11,6 +11,7 @@ const history = require('./history');
 const downloads = require('./downloads');
 const settings = require('./settings');
 const supporter = require('./supporter');
+const patron = require('./patron');
 const sync = require('./sync');
 const telemetry = require('./telemetry');
 const { listDecisions, removeDecision } = require('./permissions');
@@ -171,10 +172,11 @@ function setupPages(hooks = {}) {
   // derived booleans. Internal pages are privileged, but least-privilege
   // anyway (same reasoning as the preload's protocol re-check).
   const clientSettings = () => {
-    const { supporter: record, _syncMeta, ...rest } = settings.getSettings();
+    const { supporter: record, patron, _syncMeta, ...rest } = settings.getSettings();
     return {
       ...rest,
-      supporterActive: !!record,
+      patronActive: settings.isPatronActive(),
+      supporterActive: settings.isPatronActive(), // temporary alias until Phase 4 renames renderer refs
       supporterActivatedAt: record?.activatedAt ?? null,
     };
   };
@@ -194,7 +196,7 @@ function setupPages(hooks = {}) {
     // raw getSettings() — that includes the supporter key.
     return clientSettings();
   });
-  handle('pages:settings:supporter-activate', 'settings', (key) => supporter.activateSupporter(key));
+  handle('pages:settings:supporter-activate', 'settings', (key) => patron.activate(key));
 
   // Local-profile identity and destructive confirmation stay in main. The
   // renderer receives only opaque ids, display names, and result messages.
