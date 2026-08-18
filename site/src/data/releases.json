@@ -1,5 +1,63 @@
 [
   {
+    "tag": "v1.6.0",
+    "version": "1.6.0",
+    "name": "1.6.0",
+    "publishedAt": "2026-08-18T12:33:39.000Z",
+    "humanDate": "August 18, 2026",
+    "machineDate": "2026-08-18",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.6.0",
+    "anchor": "v1-6-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Closing a tab now returns you to the tab you were actually on before it, not whichever tab happened to sit to its right. Blanc keeps a per-window history of which tabs you activated, and each close walks one step back through it — open something from mid-list, close it, and you're back where you started. When the history runs out (right after a relaunch, say), the old nearest-neighbor rule still applies."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The island is a steadier target. Its approach animation no longer pulls sideways toward your cursor, the remaining rise and growth are about half their old size, and the motion now finishes while your cursor is still on its way in — so by the time you click, nothing under the pointer is moving. The old motion could shift the pill's edge buttons by up to fifteen pixels mid-aim, which is exactly the kind of mis-click bait a browser's chrome shouldn't be."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Quiet tabs now show themselves by their fade alone. The "
+                  },
+                  {
+                    "type": "code",
+                    "value": "quiet"
+                  },
+                  {
+                    "type": "text",
+                    "value": " labels that repeated down the command panel and tab rail — one per dimmed row, which after a session restore meant most rows — are gone. A quiet row still dims to half strength, brightens when you reach for it, and still announces itself as quiet to screen readers."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.5.1",
     "version": "1.5.1",
     "name": "1.5.1",
