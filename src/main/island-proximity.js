@@ -18,13 +18,8 @@ const RANGE = 250;
 
 /** Inside this distance the effect is fully settled (k = 1): the pill reaches
  *  its final size and position while the cursor is still on approach, so the
- *  click target has stopped moving before the user aims at it. (The lean can
- *  still drift sub-pixel amounts inside the settle zone — it tracks cursor x —
- *  but at MAX_LEAN 3px over a ~400px denominator that is well under 1px.) */
+ *  click target has stopped moving before the user aims at it. */
 const SETTLE = 80;
-
-/** Furthest the pill leans toward the cursor, in CSS px. */
-const MAX_LEAN = 3;
 
 /** Geometry of the effect at full closeness. Mirrors styles.css — see fitsInsideStrip. */
 const SCALE_AT_1 = 0.02;    // grows 2%
@@ -65,17 +60,6 @@ function closeness(point, rect, range = RANGE, settle = SETTLE) {
 }
 
 /**
- * Which way, and how hard, the pill leans: -1 (cursor far to the left) through
- * +1. Scaled by closeness so it can only lean while it is also awake.
- */
-function lean(point, rect, k) {
-  if (!point || !rect || !(rect.width > 0) || !(k > 0)) return 0;
-  const centreX = rect.x + rect.width / 2;
-  const offset = (point.x - centreX) / (rect.width / 2 + RANGE);
-  return Math.max(-1, Math.min(1, offset)) * k;
-}
-
-/**
  * THE INVARIANT. The pill's shadow currently fades to nothing exactly at the
  * bottom of the chrome strip — there is no headroom at all (see the
  * `--shadow-pill` note in tokens/layout.css). Scaling the pill therefore
@@ -107,13 +91,11 @@ function fitsInsideStrip(geometry) {
 module.exports = {
   RANGE,
   SETTLE,
-  MAX_LEAN,
   SCALE_AT_1,
   RISE_AT_1,
   smoothstep,
   distanceToRect,
   closeness,
-  lean,
   shadowClearanceAtFullCloseness,
   fitsInsideStrip,
 };

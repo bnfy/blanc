@@ -9,7 +9,6 @@ const {
   smoothstep,
   distanceToRect,
   closeness,
-  lean,
   shadowClearanceAtFullCloseness,
   fitsInsideStrip,
   SCALE_AT_1,
@@ -68,19 +67,6 @@ test('smoothstep is clamped and symmetric about its midpoint', () => {
   assert.equal(smoothstep(2), 1);
   assert.equal(smoothstep(0.5), 0.5);
   assert.ok(Math.abs((smoothstep(0.25) + smoothstep(0.75)) - 1) < 1e-9);
-});
-
-test('lean points toward the cursor and is gated by closeness', () => {
-  const k = 1;
-  const left = lean({ x: PILL.x - 100, y: PILL.y }, PILL, k);
-  const right = lean({ x: PILL.x + PILL.width + 100, y: PILL.y }, PILL, k);
-  assert.ok(left < 0, 'cursor to the left should lean left');
-  assert.ok(right > 0, 'cursor to the right should lean right');
-  assert.ok(Math.abs(left) <= 1 && Math.abs(right) <= 1, 'lean stays in -1..1');
-  // Dead centre, no lean.
-  assert.ok(Math.abs(lean({ x: PILL.x + PILL.width / 2, y: PILL.y }, PILL, k)) < 1e-9);
-  // Far away, no lean even though the cursor is off to one side.
-  assert.equal(lean({ x: PILL.x - 100, y: PILL.y }, PILL, 0), 0);
 });
 
 // ---------------------------------------------------------------------------

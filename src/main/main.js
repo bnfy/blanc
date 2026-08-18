@@ -1523,9 +1523,9 @@ function currentChromeLayout() {
  * those moves. Both views report their input events to main, so main is the
  * only place that can watch the whole window.
  *
- * What crosses the IPC boundary is one number (plus a lean direction), only
- * when it changes, and at most once a frame. Beyond the range main sends a
- * single zero and then says nothing at all. */
+ * What crosses the IPC boundary is one number, only when it changes, and at
+ * most once a frame. Beyond the range main sends a single zero and then says
+ * nothing at all. */
 
 /** Map a point from a child view's coordinates into the window's. */
 function toWindowPoint(point, offset) {
@@ -1550,13 +1550,12 @@ function updateIslandProximity(point) {
   // focus, or the island is already expanded and the pill is hidden behind it.
   const awake = runtime.window.isFocused() && !runtime.overlayMode;
   const k = awake ? islandProximity.closeness(point, rect) : 0;
-  const lean = awake ? islandProximity.lean(point, rect, k) : 0;
 
   // Three decimals is finer than the effect can render, and makes "unchanged"
   // the common case while you move around away from the pill.
-  const next = { k: Number(k.toFixed(3)), lean: Number(lean.toFixed(3)) };
+  const next = { k: Number(k.toFixed(3)) };
   const prev = runtime.islandProximity;
-  if (next.k === prev.k && next.lean === prev.lean) return;
+  if (next.k === prev.k) return;
 
   const since = Date.now() - runtime.islandProximitySentAt;
   if (since >= 16) {

@@ -54,7 +54,10 @@ cursor touches it. On a wide pill, edge buttons displace ~15px horizontally
 
 ### Behavior
 
-- **Smaller:** lean 6px → 3px, scale 4.5% → 2%, rise 3.5px → 2px.
+- **No lean:** the horizontal pull toward the cursor is removed entirely
+  (user follow-up during implementation) — the remaining motion is
+  vertical-only rise plus a small scale.
+- **Smaller:** scale 4.5% → 2%, rise 3.5px → 2px.
 - **Settle early:** closeness reaches 1 while the cursor is still 80px away
   (distance remapped over [80, 250] instead of [0, 250], same smoothstep).
   Within 80px the pill is completely stationary — a stable click target.
@@ -65,11 +68,13 @@ cursor touches it. On a wide pill, edge buttons displace ~15px horizontally
 
 Constants live in three hand-synced places, all updated together:
 
-- `src/main/island-proximity.js` — `MAX_LEAN`, `SCALE_AT_1`, `RISE_AT_1`, new
-  `SETTLE`, and the remapped `closeness()`.
-- `src/renderer/styles.css` — the `#islandPill` transform numbers.
-- `src/renderer/renderer.js` — `ISLAND_SCALE`/`ISLAND_RISE`/`ISLAND_LEAN`
-  (used to divide the transform back out of the reported rect).
+- `src/main/island-proximity.js` — `SCALE_AT_1`, `RISE_AT_1`, new `SETTLE`,
+  the remapped `closeness()`; `lean()`/`MAX_LEAN` deleted (main no longer
+  computes or sends a lean, the IPC payload is `{k}` alone).
+- `src/renderer/styles.css` — the `#islandPill` transform numbers
+  (`translateX` term removed).
+- `src/renderer/renderer.js` — `ISLAND_SCALE`/`ISLAND_RISE` (used to divide
+  the transform back out of the reported rect).
 
 `test/unit/island-proximity.test.js` updates in the same commit: the
 monotonic-growth samples move outside the plateau, plus new assertions that
