@@ -1793,6 +1793,13 @@
   // data-tab-id (remote/synced, folded-group stand-ins, group headers), which
   // stay inert by design.
   document.addEventListener('contextmenu', (e) => {
+    // A context-menu press never completes as a click, and a native menu
+    // swallows its pointerup — macOS menus even keep key-window status, so
+    // the blur fallback never fires either. Without this release, the
+    // pointerdown that opened the menu leaves pointerHeld stuck and every
+    // tabs:updated re-render (e.g. the menu's own Remove-from-Group) queues
+    // invisibly until the panel is reopened.
+    releasePointerHold();
     if (!e.target.closest('#addressInput') && !e.target.closest('.island-row[data-tab-id]')) {
       e.preventDefault();
     }
