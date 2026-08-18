@@ -9,6 +9,7 @@ const {
 } = require('./chrome-layout');
 const APP_ICON_ASSETS = require('./app-icon-assets');
 const { normalizeHomepage } = require('./top-level-url-policy');
+const { migrateSupporter, downgradeMirror, isRecordActive } = require('./patron-model');
 
 const SEARCH_ENGINES = {
   duckduckgo: { label: 'DuckDuckGo', url: (q) => `https://duckduckgo.com/?q=${encodeURIComponent(q)}` },
@@ -116,7 +117,14 @@ const DEFAULTS = {
   // Blanc Supporter license — null, or { key, activationId, activatedAt }.
   // Written only by setSupporter() (the Polar activation flow), never by
   // the generic setSettings() path. Once set, trusted forever — offline OK.
+  // Superseded by `patron` below; kept as its founding/lifetime downgrade
+  // mirror so pre-Patron builds reading this file still see a valid grant.
   supporter: null,
+  // Blanc Patron entitlement record — null, or { kind, key, activationId,
+  // benefitId, activatedAt, lastStatus?, lastValidatedAt?, lastAttemptedAt? }.
+  // Written only by setPatron() (the activation/validation flow), never by
+  // the generic setSettings() path. See patron-model.js for the state machine.
+  patron: null,
   // Per-key last-write timestamps for sync's LWW merge; only SYNCED_KEYS are
   // ever stamped or transmitted. See exportForSync/mergeFromSync.
   _syncMeta: {},
@@ -161,6 +169,15 @@ function ensureStore() {
       // launch from mistaking that interrupted first run for a legacy profile.
       store.flush();
     }
+    // A legacy settings.json carrying only `supporter` gains the equivalent
+    // `patron` record on next launch. Mutates the persisted store directly
+    // (not a getSettings() copy) so the migration survives every future
+    // ensureStore() short-circuit, not just the current process.
+    const migrated = migrateSupporter({ supporter: store.data.supporter, patron: store.data.patron, now: Date.now() });
+    if (migrated) {
+      store.data.patron = migrated.patron;      // supporter left intact — it is the downgrade mirror for founding
+      store.flush();                            // synchronous, like the onboarding-marker flushes above
+    }
   }
   return store;
 }
@@ -190,12 +207,14 @@ function getSettings() {
 }
 
 function isAppIconAllowed(id) {
-  return APP_ICONS.includes(id) || (SUPPORTER_ICONS.includes(id) && isSupporterActive());
+  return APP_ICONS.includes(id) || (SUPPORTER_ICONS.includes(id) && isPatronActive());
 }
 
 /** Validate a partial settings patch against the whitelist, returning only
  * the accepted keys. Shared by setSettings (user writes) and mergeFromSync
- * (remote writes) so a tampered sync blob can't inject unvalidated values. */
+ * (remote writes) so a tampered sync blob can't inject unvalidated values.
+ * `supporter` and `patron` are deliberately absent — both are activation-flow-only,
+ * written solely by setSupporter()/setPatron(), never through this whitelist. */
 function sanitize(partial) {
   const clean = {};
   if (typeof partial.searchEngine === 'string' && SEARCH_ENGINES[partial.searchEngine]) {
@@ -321,6 +340,25 @@ function setSupporter(record) {
   for (const fn of listeners) fn(getSettings());
 }
 
+function isPatronActive() {
+  return isRecordActive(ensureStore().data.patron, Date.now());
+}
+
+// The activation flow's private write path — setSettings()'s whitelist has no `patron`.
+function setPatron(record) {
+  ensureStore().update((data) => {
+    data.patron = record;
+    data.supporter = downgradeMirror(record); // founding/lifetime mirror; subscription/null → null
+  });
+  for (const fn of listeners) fn(getSettings()); // reapplies applyAppIcon + live UI, like setSupporter
+}
+
+// Main-process only; NEVER exposed to a renderer (the settings-page IPC
+// projection sends only derived booleans — see pages.js's clientSettings()).
+function getPatronRecord() {
+  return ensureStore().data.patron;
+}
+
 // Snapshot the synced keys plus their per-key timestamps for the sync engine
 // to encrypt. Only SYNCED_KEYS cross the wire — supporter, tabLayout, appIcon,
 // searchSuggestions, usagePing, and _syncMeta's non-synced entries never leave.
@@ -386,6 +424,9 @@ module.exports = {
   isSupporterActive,
   isAppIconAllowed,
   setSupporter,
+  isPatronActive,
+  setPatron,
+  getPatronRecord,
   exportForSync,
   mergeFromSync,
 };
