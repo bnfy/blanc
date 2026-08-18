@@ -640,50 +640,88 @@ git commit -m "feat(patron): Settings Patron section and Patron-gated colorways"
 ### Task 9: Start page callout + `/patron` slash command
 
 **Files:**
-- Modify: `src/renderer/pages/newtab.html` / `newtab.js` / `pages.css` — start page callout.
+- Modify: `src/main/main.js` — add `patronActive` to `startPageStatus()` (line ~5665); add `patron` section mapping in `tabs:open-page` handler (line ~4319); add `/patron` to the `SLASH_COMMANDS` menu-doc array.
+- Modify: `src/main/pages.js` — include `patronActive` in the `pages:start:data` response.
+- Modify: `src/renderer/pages/newtab.html` / `newtab.js` / `pages.css` — start page callout, driven by both initial data and live status pushes.
 - Modify: `src/renderer/overlay.js` — `/patron` slash command.
 - Modify: `src/renderer/pages/shortcuts.js` — mirror the new command in the reference list.
-- Modify: `src/main/main.js` — add `/patron` to the `SLASH_COMMANDS` menu-doc array.
 - Modify: `copy/slash-commands.json` — add the command entry (substrate S3).
-- Modify: `src/main/pages.js` — include `patronActive` in the `pages:start:data` response so the start page knows whether to show the callout.
 
 **Interfaces:**
-- Consumes: `patronActive` from the `pages:start:data` payload and from the overlay's `state`.
+- Consumes: `patronActive` from both the `pages:start:data` initial payload and the `pages:start:status` live push.
 
-- [ ] **Step 1: Add `patronActive` to `pages:start:data`**
+- [ ] **Step 1: Add `patronActive` to both data and status channels**
 
-In `pages.js`, the `pages:start:data` handler (line ~232) returns groups, blocked counts, remote devices, and onboarding state. Add `patronActive: settings.isPatronActive()` to the returned object so the start page can gate the callout.
+In `pages.js`, add `patronActive: settings.isPatronActive()` to the `pages:start:data` handler's returned object (line ~232) so the start page gets the initial state on load.
 
-- [ ] **Step 2: Start page callout**
+In `main.js`, add `patronActive: settings.isPatronActive()` to `startPageStatus()` (line ~5665). This function is broadcast via `broadcastStartPageStatus()`, which fires on every `settings.onSettingsChanged` (line ~5688) — and `setPatron` fires those listeners, so an activation mid-session pushes the new state to every open start page without a reload.
 
-In `newtab.js`, when `patronActive` is false, render a quiet, non-intrusive callout in the ledger layout — below the favorites grid and above the footer. Keep it understated (one line, e.g. "Support Blanc" with a link that opens `blanc://settings/` scrolled to the Patron section). When `patronActive` is true, hide it. The callout must not dominate the start page or feel like an ad — this is an indie browser asking for support, not a nag screen.
+- [ ] **Step 2: Start page callout with live updates**
 
-- [ ] **Step 3: `/patron` slash command**
+In `newtab.js`, render a quiet, non-intrusive callout in the ledger layout — below the favorites grid and above the footer. Keep it understated (one line, e.g. "Support Blanc" with a link). When `patronActive` is true, hide it. The callout must not dominate the start page or feel like an ad.
+
+The callout state must update from **both** paths:
+
+```js
+// On initial load (from pages:start:data)
+function renderPatronCallout(patronActive) {
+  const el = document.getElementById('patron-callout');
+  if (el) el.hidden = !!patronActive;
+}
+
+// Called from the existing dataReady handler
+renderPatronCallout(data.patronActive);
+
+// On live status push (from pages:start:status) — add to the existing onStatus handler
+window.bowserPages?.start.onStatus((status) => {
+  renderLaunchStatus(status);
+  if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
+  if ('patronActive' in status) renderPatronCallout(status.patronActive);
+});
+```
+
+The callout link uses `window.bowserPages.openPage('settings', 'patron')` to deep-link to the Patron section (Step 3 wires the anchor).
+
+- [ ] **Step 3: `/patron` slash command + section deep-link**
+
+Add the `patron` section mapping in the `tabs:open-page` handler in `main.js` (line ~4319). Task 8 creates the Patron settings group with `id="group-patron"` (replacing the existing `#group-supporter`):
+
+```js
+const sectionMap = {
+  blocking: '#group-privacy',
+  patron: '#group-patron',
+};
+const fragment = name === 'settings' && sectionMap[section] ? sectionMap[section] : '';
+```
 
 Add to the `COMMANDS` array in `overlay.js`:
 
 ```js
-{ cmd: '/patron', hint: 'Support Blanc with a Patron subscription', run: () => window.browserAPI.openPage('settings') },
+{ cmd: '/patron', hint: 'Support Blanc with a Patron subscription', run: () => window.browserAPI.openPage('settings', 'patron') },
 ```
 
-The command opens Settings; the Patron section (Task 8) is the activation surface. Mirror the entry in `pages/shortcuts.js`, `main.js`'s `SLASH_COMMANDS`, and `copy/slash-commands.json`. Run `npm run copy:check` to verify the substrate guard passes.
+Mirror the entry in `pages/shortcuts.js`, `main.js`'s `SLASH_COMMANDS`, and `copy/slash-commands.json`. Run `npm run copy:check` to verify the substrate guard passes.
 
 - [ ] **Step 4: Verify manually (relaunch required)**
 
-Relaunch `npm start`. Confirm: the start page shows the callout when not a Patron and hides it after activation; `/patron` appears in the slash-command list and opens Settings; the shortcuts page lists it; `npm run copy:check` passes.
+Relaunch `npm start`. Confirm:
+- Start page shows callout when not a Patron.
+- Activating a sandbox key mid-session hides the callout on an already-open start page (the `pages:start:status` push, not a reload).
+- The callout link and `/patron` both open Settings scrolled to the Patron section.
+- `/patron` appears in the slash-command list; the shortcuts page lists it; `npm run copy:check` passes.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/renderer/pages/newtab.html src/renderer/pages/newtab.js src/renderer/pages/pages.css src/renderer/overlay.js src/renderer/pages/shortcuts.js src/main/main.js src/main/pages.js copy/slash-commands.json
-git commit -m "feat(patron): start page callout and /patron slash command"
+git add src/main/main.js src/main/pages.js src/renderer/pages/newtab.html src/renderer/pages/newtab.js src/renderer/pages/pages.css src/renderer/overlay.js src/renderer/pages/shortcuts.js copy/slash-commands.json
+git commit -m "feat(patron): start page callout (live-updating) and /patron slash command with section deep-link"
 ```
 
 ---
 
 ## Self-Review
 
-**Spec coverage (Phase 1):** entitlement record + kinds (T2–T4); benefit_id allowlist + fail-closed (T1, T5); **persisted-derived activity, restart-safe** (T2, T4); migration persisted via ensureStore+flush (T3, T4); validation with statuses/`expires_at`/defensive benefit_id/**per-validation benefit re-check**/cadence/bootstrap/grace (T2, T5); **activation inspects nested license-key status+expiry before bootstrapping grace** (T5); **three-state `parseExpiresAt` (null/number/false)** — activation rejects malformed, validation treats as ambiguous (T1, T2 unit test); **per-environment org ID** (`PRODUCTION_ORG_ID`/`SANDBOX_ORG_ID`, T5); projection strips both in the *correct* file (T6); downgrade mirror + subscription-never-mirrored (T3, T4); **setPatron fires listeners → Dock reapply** (T4); graceful degradation to `paper` (T4, T8); 200-char guard + malformed-JSON handling (T5); never synced / never generic-write (T4); **upgrade surfaces beyond Settings** — start page callout + `/patron` slash command (T9). ✓
+**Spec coverage (Phase 1):** entitlement record + kinds (T2–T4); benefit_id allowlist + fail-closed (T1, T5); **persisted-derived activity, restart-safe** (T2, T4); migration persisted via ensureStore+flush (T3, T4); validation with statuses/`expires_at`/defensive benefit_id/**per-validation benefit re-check**/cadence/bootstrap/grace (T2, T5); **activation inspects nested license-key status+expiry before bootstrapping grace** (T5); **three-state `parseExpiresAt` (null/number/false)** — activation rejects malformed, validation treats as ambiguous (T1, T2 unit test); **per-environment org ID** (`PRODUCTION_ORG_ID`/`SANDBOX_ORG_ID`, T5); projection strips both in the *correct* file (T6); downgrade mirror + subscription-never-mirrored (T3, T4); **setPatron fires listeners → Dock reapply** (T4); graceful degradation to `paper` (T4, T8); 200-char guard + malformed-JSON handling (T5); never synced / never generic-write (T4); **upgrade surfaces beyond Settings** — start page callout (live-updated via `pages:start:status` on activation, not just initial load) + `/patron` slash command with `patron` section deep-link (T9). ✓
 
 **Placeholder scan:** the only blanks are the real Polar `benefit_id` values in `BENEFIT_ALLOWLIST` and `SANDBOX_ORG_ID` (T5) — user-side product/org ids that do not exist until the Polar products are created; flagged as a setup invariant, not a hidden TODO.
 
