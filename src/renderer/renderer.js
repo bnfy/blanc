@@ -8,10 +8,17 @@
   document.documentElement.dataset.platform = platform;
   if (isMac) document.body.classList.add('mac');
 
-  // Right-click only opens the pill's native menu (built in main). Everywhere
-  // else on the strip — window controls, empty drag band — shows nothing.
+  // Right-click opens the pill's unified menu, or a vertical-rail row's tab
+  // menu (both native, built in main). Everywhere else on the strip — window
+  // controls, empty drag band — shows nothing. Rail rows record their tab id
+  // at event time (same mechanism as the overlay's rows): main reads the id
+  // instead of hit-testing coordinates the strip may have re-rendered under.
   document.addEventListener('contextmenu', (e) => {
-    if (!e.target.closest('#islandPill')) e.preventDefault();
+    window.__blancCtxRowTabId =
+      e.target.closest('.vertical-tab-row[data-tab-id]')?.dataset.tabId ?? null;
+    if (!e.target.closest('#islandPill') && window.__blancCtxRowTabId == null) {
+      e.preventDefault();
+    }
   });
 
   const chromeEl = document.getElementById('chrome');

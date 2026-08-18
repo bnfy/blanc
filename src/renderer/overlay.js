@@ -1793,6 +1793,17 @@
   // data-tab-id (remote/synced, folded-group stand-ins, group headers), which
   // stay inert by design.
   document.addEventListener('contextmenu', (e) => {
+    // Record the row the user actually clicked BEFORE the hold release below
+    // can flush a deferred re-render. Main reads (and clears) this id instead
+    // of hit-testing the click coordinates — a flushed tabs:updated can shift
+    // rows under the stale point and elementFromPoint would target a
+    // neighbouring tab. e.target is snapshotted at dispatch, so it names the
+    // visually clicked row regardless of any re-render, and it also works for
+    // keyboard-invoked menus (menu key, VoiceOver), which have no useful
+    // coordinates at all. The overlay is trusted chrome — browserAPI can
+    // already act on any tab id, so a renderer-recorded id adds no privilege.
+    window.__blancCtxRowTabId =
+      e.target.closest('.island-row[data-tab-id]')?.dataset.tabId ?? null;
     // A context-menu press never completes as a click, and a native menu
     // swallows its pointerup — macOS menus even keep key-window status, so
     // the blur fallback never fires either. Without this release, the
@@ -1800,7 +1811,7 @@
     // tabs:updated re-render (e.g. the menu's own Remove-from-Group) queues
     // invisibly until the panel is reopened.
     releasePointerHold();
-    if (!e.target.closest('#addressInput') && !e.target.closest('.island-row[data-tab-id]')) {
+    if (!e.target.closest('#addressInput') && window.__blancCtxRowTabId == null) {
       e.preventDefault();
     }
   });

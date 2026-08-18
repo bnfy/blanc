@@ -8,7 +8,6 @@ const { Menu } = require('electron');
 const { buildTabContextMenu } = require('./tab-context-menu-model');
 const { cleanLink } = require('./clean-link');
 
-const TAB_ROW_SELECTOR = '.island-row[data-tab-id]';
 const PILL_SELECTOR = '#islandPill';
 
 function runTabContextMenuItem(id, { tab, groupId, actions }) {
@@ -50,14 +49,20 @@ function toElectronTemplate(modelItems, { tab, actions }) {
   });
 }
 
-// Read the right-clicked tab id from the overlay DOM at the click point, with a
-// hit-test re-verification (a renderer suppression can regress; main is the
-// authority — same discipline as address-menu.js).
-async function readRowTabId(wc, params) {
+// Read (and clear) the tab id the renderer recorded at contextmenu-dispatch
+// time. Deliberately NOT an elementFromPoint hit-test: the renderer's hold
+// release can flush a deferred re-render between the click and this read, so
+// stale coordinates could resolve to a neighbouring row — while the recorded
+// e.target names the row the user visually clicked, and also serves
+// keyboard-invoked menus, which carry no useful coordinates. The chrome
+// documents are trusted (their browserAPI already acts on arbitrary tab ids),
+// so a renderer-recorded id grants nothing new; main still re-validates it
+// against live tab state via resolveTab.
+async function readRowTabId(wc) {
   return wc.executeJavaScript(`(() => {
-    const hit = document.elementFromPoint(${Math.round(params.x)}, ${Math.round(params.y)});
-    const row = hit && hit.closest && hit.closest(${JSON.stringify(TAB_ROW_SELECTOR)});
-    return row ? row.dataset.tabId : null;
+    const id = window.__blancCtxRowTabId ?? null;
+    window.__blancCtxRowTabId = null;
+    return id;
   })()`);
 }
 
@@ -66,11 +71,26 @@ async function isInPill(wc, params) {
     ?.closest(${JSON.stringify(PILL_SELECTOR)}))`);
 }
 
-// The resting pill lives on the chrome window's own webContents; its coords are
+// The chrome strip lives on the window's own webContents; its coords are
 // already window-relative and the overlay is closed, so no blur-guard here.
-// deps: { resolveActiveTab(): ctx|null, getWindow(), actions }
-function attachPillMenu(wc, deps) {
+// Two menu surfaces share the document: vertical-rail tab rows (recorded id →
+// the shared row menu) and the resting pill (hit-test → the active-tab menu).
+// deps: { resolveActiveTab(): ctx|null, resolveTab(rawId): ctx|null,
+//         getWindow(), actions }
+function attachChromeMenu(wc, deps) {
   wc.on('context-menu', async (_event, params) => {
+    let rowId;
+    try { rowId = await readRowTabId(wc); } catch { return; }
+    if (rowId != null) {
+      const ctx = deps.resolveTab(rowId);
+      if (!ctx) return;
+      const template = buildTabContextMenu({ ...ctx, surface: 'row' });
+      const menu = Menu.buildFromTemplate(toElectronTemplate(template, { tab: ctx.tab, actions: deps.actions }));
+      try {
+        menu.popup({ window: deps.getWindow(), x: Math.round(params.x), y: Math.round(params.y), sourceType: params.menuSourceType });
+      } catch { /* window died mid-popup */ }
+      return;
+    }
     let inPill = false;
     try { inPill = await isInPill(wc, params); } catch { return; }
     if (!inPill) return;
@@ -84,15 +104,16 @@ function attachPillMenu(wc, deps) {
   });
 }
 
-// Tab rows live on the overlay webContents (shared with the address menu). Coords
-// are overlay-relative → offset by overlay bounds; reuse the overlay blur-guard.
+// Tab rows live on the overlay webContents (shared with the address menu).
+// Coords are overlay-relative → offset by overlay bounds for popup placement;
+// reuse the overlay blur-guard.
 // deps: { isOverlayLive(), resolveTab(rawId): ctx|null, getWindow(),
 //         getOverlayBounds(), acquireMenuGuard(), releaseMenuGuard(ticket), actions }
 function attachRowMenu(wc, deps) {
   wc.on('context-menu', async (_event, params) => {
     if (params.isEditable) return; // the address menu owns editable targets
     let rawId;
-    try { rawId = await readRowTabId(wc, params); } catch { return; }
+    try { rawId = await readRowTabId(wc); } catch { return; }
     if (rawId == null) return;
     if (!deps.isOverlayLive()) return;
     const ctx = deps.resolveTab(rawId);
@@ -113,7 +134,4 @@ function attachRowMenu(wc, deps) {
   });
 }
 
-module.exports = {
-  runTabContextMenuItem, toElectronTemplate, attachPillMenu, attachRowMenu,
-  TAB_ROW_SELECTOR, PILL_SELECTOR,
-};
+module.exports = { runTabContextMenuItem, attachChromeMenu, attachRowMenu };

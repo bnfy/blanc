@@ -73,7 +73,7 @@ const {
 const { attachAddressMenu } = require('./address-menu');
 const { installDockMenu } = require('./dock-menu');
 const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
-const { attachPillMenu, attachRowMenu } = require('./tab-context-menu');
+const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
@@ -5072,10 +5072,15 @@ function createMainWindowForRuntime(runtime) {
 
   lockPrivilegedNavigation(rt().window.webContents, CHROME_INDEX_URL);
   installChromeShortcuts(rt().window.webContents);
-  attachPillMenu(rt().window.webContents, {
+  attachChromeMenu(rt().window.webContents, {
     getWindow: bindWindowRuntime(runtime, () => rt().window),
     resolveActiveTab: bindWindowRuntime(runtime, () =>
       tabContextData(tabs.get(rt().activeTabId), runtime)),
+    // Vertical-rail rows: same string→number id coercion as the overlay rows.
+    resolveTab: bindWindowRuntime(runtime, (rawId) => {
+      const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
+      return id == null ? null : tabContextData(tabs.get(id), runtime);
+    }),
     actions: menuContextActions(runtime),
   });
   rt().window.loadURL(CHROME_INDEX_URL);
