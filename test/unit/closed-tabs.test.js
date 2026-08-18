@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const {
-  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry,
+  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS,
   CLOSED_ENTRY_TTL_MS, MAX_CLOSED_ENTRIES,
 } = require('../../src/main/closed-tabs');
@@ -104,6 +104,30 @@ test('buildGroupEntry is one entry with per-member snapshots and no private memb
   assert.equal(entry.group.index, 2);
   assert.equal(entry.tabs.length, 1); // the private member is not recorded
   assert.equal(entry.view, null);
+});
+
+test('buildBatchEntry is one entry carrying per-member groupIds, no private members', () => {
+  const members = [
+    { url: 'https://a.test/', title: 'A', favicon: null, pinned: false, muted: true, private: false, snapshot: SNAP, groupId: 'g1' },
+    { url: 'https://b.test/', title: '', favicon: null, pinned: true, muted: false, private: false, snapshot: null, groupId: null },
+    { url: 'https://p.test/', title: 'P', favicon: null, pinned: false, muted: false, private: true, snapshot: SNAP, groupId: 'g1' },
+  ];
+  const entry = buildBatchEntry(members, 1000);
+  assert.equal(entry.kind, 'batch');
+  assert.equal(entry.closedAt, 1000);
+  assert.equal(entry.tabs.length, 2); // the private member is not recorded
+  assert.deepEqual(entry.tabs.map((t) => t.groupId), ['g1', null]);
+  assert.equal(entry.tabs[1].title, 'https://b.test/'); // empty title falls back to url
+  assert.equal(entry.view, null);
+});
+
+test('projectEntries presents a batch as "N tabs" with its count and no favicon', () => {
+  const batch = buildBatchEntry([
+    { url: 'https://a.test/', title: 'A', private: false },
+    { url: 'https://b.test/', title: 'B', private: false },
+  ], 0);
+  const [projected] = projectEntries([batch]);
+  assert.deepEqual(projected, { id: batch.id, title: '2 tabs', favicon: null, tabCount: 2 });
 });
 
 test('expireHolds names only entries whose hold has aged out', () => {

@@ -151,7 +151,7 @@ const { showAboutPanel } = require('./about-panel');
 const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const {
-  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry,
+  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
   MAX_CLOSED_ENTRIES,
 } = require('./closed-tabs');
@@ -3029,6 +3029,10 @@ function closedMemberRecord(id) {
   return {
     url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
+    // Batch entries (Close Other Tabs) span groups; each member re-resolves
+    // this against the surviving groups at restore time. Group entries carry
+    // their group at the entry level and ignore this field.
+    groupId: tab.groupId ?? null,
   };
 }
 
@@ -3681,6 +3685,35 @@ function reopenGroupEntry(entry) {
   scheduleMenuRebuild();
 }
 
+/** Restore a Close-Other-Tabs batch: members born quiet with their snapshots
+ *  parked (the reopenGroupEntry pattern), each rejoining its recorded group
+ *  only if that group still exists — no group is created. Placed ABOVE the
+ *  close/reopen pair for the same source-slicing reason as reopenGroupEntry. */
+function reopenBatchEntry(entry) {
+  const ids = entry.tabs.map((member) => {
+    const groupId = member.groupId && rt().groups.some((g) => g.id === member.groupId)
+      ? member.groupId
+      : null;
+    const id = createTab(member.url, {
+      groupId, pinned: member.pinned, muted: member.muted,
+      asleep: true, title: member.title, favicon: member.favicon,
+    });
+    if (id && member.snapshot) {
+      sleepSnapshots.set(id, {
+        view: null,
+        entries: member.snapshot.entries,
+        index: member.snapshot.index,
+        droppedPageState: member.snapshot.droppedPageState,
+      });
+    }
+    return id;
+  }).filter(Boolean);
+  if (ids.length === 0) return;
+  setActiveTab(ids[0]);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
 function closeTab(id) {
   const { record = true, selectReplacement = true } = arguments[1] ?? {};
   // First statement: any later early return must not strand recovery data.
@@ -3848,11 +3881,22 @@ function sleepTabNow(id) {
   sleepTab(id);
 }
 
-/** "Close Other Tabs" — close every other unpinned tab in this window. */
+/** "Close Other Tabs" — closeGroup's batch discipline: capture everything
+ * first, select the kept tab ONCE up front (so no close ever needs a
+ * per-member replacement, which would cascade activation — and wake — through
+ * doomed tabs; closeTab's own comment forbids that caller pattern), close
+ * with record/selectReplacement off, then record ONE batch entry so a single
+ * ⌘⇧T undoes the whole action instead of flooding the 25-entry history. */
 function closeOtherTabsInWindow(keepId) {
-  for (const id of closableTabIds({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId })) {
-    closeTab(id);
-  }
+  if (!tabs.has(keepId) || windowRuntimes.runtimeForTab(keepId) !== rt()) return;
+  const doomed = closableTabIds({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId });
+  if (!doomed.length) return;
+  const entry = buildBatchEntry(doomed.map(closedMemberRecord), Date.now());
+  if (rt().activeTabId !== keepId) setActiveTab(keepId, { focusContent: false });
+  for (const id of doomed) closeTab(id, { record: false, selectReplacement: false });
+  if (entry.tabs.length > 0) pushClosedEntry(entry); // an all-private rest records nothing
+  broadcastTabs();
+  scheduleMenuRebuild();
 }
 
 /** "New Group…" handoff: open the command panel prefilled with /group, bound
@@ -3869,6 +3913,7 @@ function reopenEntry(entry) {
   entry.expiryTimer = null;
   clearTimeout(entry.holdTimer);
   if (entry.kind === 'group') return reopenGroupEntry(entry);
+  if (entry.kind === 'batch') return reopenBatchEntry(entry);
   const resolvedGroupId = entry.groupId && rt().groups.some((g) => g.id === entry.groupId)
     ? entry.groupId
     : null;
