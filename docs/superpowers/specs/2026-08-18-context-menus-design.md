@@ -232,9 +232,9 @@ New Private Window    → openNewWindow(...) + createTab(PRIVATE_NEW_TAB_URL, { 
 
 macOS supplies the window list (with the frontmost marker), Options ▸, Show All
 Windows, Hide, and Quit. Clicks may fire with no window open (app resident in the
-Dock); `openNewWindow` handles that. Companion change: add **New Window** to the
-File menu (absent today) and bind the File-menu item and the Dock item to the same
-action.
+Dock); `openNewWindow` handles that. (Correction, found during planning: File →
+New Window ⌘N already exists — `main.js:4738` — so the Dock items are the only
+additions; no File-menu change.)
 
 ## 8. Edge cases the model encodes
 

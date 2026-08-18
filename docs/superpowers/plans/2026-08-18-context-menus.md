@@ -27,7 +27,7 @@
 **Files:**
 - Create: `src/main/dock-menu.js`
 - Create: `test/unit/dock-menu.test.js`
-- Modify: `src/main/main.js` — `openNewWindow` (add `private` seed option), install the dock menu at startup, add "New Window" to the File menu.
+- Modify: `src/main/main.js` — `openNewWindow` (add `private` seed option), install the dock menu at startup. (File → New Window already exists at `main.js:4738` — no File-menu change.)
 
 **Interfaces:**
 - Produces: `buildDockMenu()` → `Array<{id:'new-window'|'new-private-window',label:string}>`; `installDockMenu({ app, Menu, actions, platform })` where `actions = { newWindow(), newPrivateWindow() }`.
@@ -127,7 +127,7 @@ with:
       : createTab(newTabUrl());
 ```
 
-- [ ] **Step 6: Install the dock menu + File-menu New Window**
+- [ ] **Step 6: Install the dock menu**
 
 Add the require near the other menu requires (`src/main/main.js` ~line 73, beside `attachAddressMenu`):
 
@@ -147,17 +147,11 @@ Install it once at startup — inside the `app.whenReady().then(...)` block (lin
   });
 ```
 
-In the application-menu File submenu (search the `New Tab` item, `label: 'New Tab', accelerator: 'CmdOrCtrl+T'`, ~line 4740), add a `New Window` item directly above it, bound to the same action:
-
-```js
-        { label: 'New Window', accelerator: 'CmdOrCtrl+Shift+N' /* leave as-is if taken; see note */, click: bound(() => openNewWindow()) },
-```
-
-Note: `⌘⇧N` is already New Private Tab. Use `{ label: 'New Window', click: bound(() => openNewWindow()) }` with **no accelerator** to avoid a clash (Blanc has no free single-window shortcut today); the Dock item needs none either.
+**No File-menu change needed** — correcting the spec here: File → New Window (⌘N) already exists (`main.js:4738`, bound to `openNewWindow({ profileId: runtime.profileId })`). The Dock items are the only additions. Note the deliberate difference: the File-menu item inherits the focused window's profile; the Dock actions call plain `openNewWindow()` / `openNewWindow({ private: true })`, which fall back to `focusedRuntime?.profileId ?? DEFAULT_PROFILE_ID` — correct for a Dock click, which may arrive with no window open.
 
 - [ ] **Step 7: Verify + commit**
 
-Run: `node --test test/unit/dock-menu.test.js` (PASS). Launch `npm start`, right-click the Dock icon → **New Window** / **New Private Window** appear and work; File menu shows **New Window**.
+Run: `node --test test/unit/dock-menu.test.js` (PASS). Launch `npm start`, right-click the Dock icon → **New Window** / **New Private Window** appear and work (the private one opens a window whose first tab is private, with the private theme). File → New Window (⌘N) still works unchanged.
 
 ```bash
 git add src/main/dock-menu.js test/unit/dock-menu.test.js src/main/main.js
@@ -244,9 +238,12 @@ test('save-to-favorites disabled for private and non-http tabs', () => {
   assert.equal(byId(build({ tab: { url: 'blanc://newtab/' } }), 'toggle-favorite').enabled, false);
 });
 
-test('copy-clean-link disabled when nothing to clean / not a url', () => {
-  assert.equal(byId(build(), 'copy-clean-link').enabled, true); // has utm_source
-  assert.equal(byId(build({ tab: { url: 'blanc://newtab/' } }), 'copy-clean-link').enabled, false);
+test('copy-clean-link appears only when cleaning would change the url', () => {
+  assert.ok(byId(build(), 'copy-clean-link')); // has utm_source → differs
+  // cleanLink returns non-http(s) input as null and tracker-free URLs
+  // unchanged — the item is OMITTED (spec §4: hidden), not disabled, in both.
+  assert.equal(byId(build({ tab: { url: 'blanc://newtab/' } }), 'copy-clean-link'), undefined);
+  assert.equal(byId(build({ tab: { url: 'https://example.com/plain' } }), 'copy-clean-link'), undefined);
 });
 
 test('quiet disabled for capturing or already-quiet tabs', () => {
@@ -355,7 +352,13 @@ function buildTabContextMenu({ tab, groups = [], activeTabId, surface, canCloseO
   const items = [];
 
   items.push({ id: 'copy-link', label: 'Copy Link', enabled: isCopyable(tab) });
-  items.push({ id: 'copy-clean-link', label: 'Copy Clean Link', enabled: cleanLink(tab.url) !== null });
+  // Hidden (not disabled) when cleaning changes nothing: cleanLink returns
+  // tracker-free http(s) URLs unchanged and non-http(s) input as null, and a
+  // "Copy Clean Link" identical to "Copy Link" is noise (design §4).
+  const cleaned = cleanLink(tab.url);
+  if (cleaned !== null && cleaned !== tab.url) {
+    items.push({ id: 'copy-clean-link', label: 'Copy Clean Link', enabled: true });
+  }
   items.push({ type: 'separator' });
 
   items.push({ id: 'reload', label: 'Reload', accelerator: ACCEL.reload, enabled: true });
@@ -872,11 +875,12 @@ Replace the `let pickingTabId = null;` declaration (~line 66) and its focus help
 Register the message handler near the other `window.browserAPI.on*` subscriptions (e.g. beside `onOverlayShow`, ~line 1550):
 
 ```js
+  // Only records the target. The '/group ' text, focus, and caret all arrive
+  // through the overlay:show prefill that beginNewGroup (main) sends first —
+  // showOverlay re-sends overlay:show even when the panel is already open, and
+  // applyMode handles prefill value/focus/caret (verified ~lines 1324–1340).
   window.browserAPI.onBeginGroup?.(({ tabId }) => {
     pendingGroupTabId = tabId;
-    addressInput.value = '/group ';
-    addressInput.focus();
-    addressInput.setSelectionRange(addressInput.value.length, addressInput.value.length);
   });
 ```
 
@@ -906,6 +910,12 @@ Update the `/group` command's `run` (~line 762) to honor the pending target and 
 ```
 
 In `applyMode(...)` where it resets picker state (~line 1317, `pickingTabId = null;`) replace with `pendingGroupTabId = null;`. In the hide path (~line 1628, another `pickingTabId = null;`) replace with `pendingGroupTabId = null;`. Grep the file for any remaining `pickingTabId` and remove those references.
+
+The spec (§5.3) also requires clearing the pending target when the user edits the command *away* from `/group` — otherwise a stale target hijacks a later hand-typed `/group work` and groups the wrong tab. In the `addressInput` input handler (~line 1134, where `const value = addressInput.value;` feeds `renderList`), add:
+
+```js
+    if (pendingGroupTabId != null && !value.startsWith('/group')) pendingGroupTabId = null;
+```
 
 - [ ] **Step 6: Update CLAUDE.md** — in the **Tab groups** section, replace the sentences describing the per-row "group" chip picker (the `→ name` / `→ none` picker, the inline "new group…" field, and "The picker's name field survives `tabs:updated` re-renders…") with a description of grouping via the right-click **Move to Group ▸** submenu and the `/group`-command New-Group handoff. Keep the rest (pill dots, ⌘L headers, `session.json` persistence) unchanged.
 
@@ -1072,8 +1082,10 @@ function moveTabToNewWindow(id) {
   withWindowRuntime(source, () => {
     if (source.activeTabId === id && survivor != null) setActiveTab(survivor, { focusContent: false });
     source.tabOrder = source.tabOrder.filter((tid) => tid !== id);
+    // A quiet tab's renderer may be discarded and its view gone — guard both.
+    // liveContents(tab) is the ONLY correct liveness check (CLAUDE.md).
     liveContents(tab)?.setVisible?.(false);
-    source.window?.contentView.removeChildView(tab.view);
+    if (tab.view) source.window?.contentView.removeChildView(tab.view);
     pruneEmptyGroups();
     broadcastTabs();
   });
@@ -1105,6 +1117,7 @@ Verify the exact helper names against `src/main/main.js` before finalizing (grep
 Relaunch `npm start`:
 - Right-click a background tab in a 2+‑tab window → **Move Tab to New Window** → a new window opens showing that tab; the source window keeps the rest and selects a sensible neighbour. A grouped tab lands ungrouped; the source group closes if it was its last member.
 - In a single-tab window the item is disabled.
+- Move a **quiet** (dimmed) tab → the new window wakes it via the normal `setActiveTab` wake path; no crash when its renderer was discarded.
 - `⌘⇧T` in the source window still reopens recently closed tabs; the moved tab isn't treated as closed.
 
 Run: `node --test test/unit/move-tab-to-new-window.test.js` (PASS).
