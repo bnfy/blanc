@@ -71,6 +71,7 @@ const {
   discardProfileDownloads,
 } = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
+const { installDockMenu } = require('./dock-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
@@ -5042,7 +5043,9 @@ function openNewWindow(options = {}) {
   });
   createMainWindow(runtime);
   return withWindowRuntime(runtime, () => {
-    const tabId = createTab(newTabUrl());
+    const tabId = options.private
+      ? createTab(PRIVATE_NEW_TAB_URL, { private: true })
+      : createTab(newTabUrl());
     if (tabId) setActiveTab(tabId, { focusContent: false, focusAddress: true });
     focusedRuntime = runtime;
     setFocusedLocalProfile(runtime.profileId);
@@ -5513,6 +5516,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   applyTheme();
   lastNativeThemeAppearance = resolvedThemeAppearance();
   applyAppIcon();
+  installDockMenu({
+    app, Menu,
+    actions: {
+      newWindow: () => openNewWindow(),
+      newPrivateWindow: () => openNewWindow({ private: true }),
+    },
+  });
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', bindWindowRuntime(primaryRuntime, handleNativeThemeUpdated));
 
