@@ -388,15 +388,9 @@
       privateMarker.setAttribute('aria-hidden', 'true');
       primary.appendChild(privateMarker);
     }
-    // See overlay.js's twin: the row dim is a relative signal, so quiet also
-    // carries a word — the rail's markers are bare text, like its "private".
-    if (tab.asleep) {
-      const quietMarker = document.createElement('span');
-      quietMarker.className = 'vertical-tab-quiet';
-      quietMarker.textContent = 'quiet';
-      quietMarker.setAttribute('aria-hidden', 'true');
-      primary.appendChild(quietMarker);
-    }
+    // Quiet is dim-only here too (see overlay.js's twin): the row dim plus the
+    // aria states entry above. The bare-text "quiet" marker was removed
+    // 2026-08-18 alongside the panel's.
     if (tab.pinned) {
       primary.appendChild(makeMarker('vertical-tab-state vertical-tab-pin', ICONS.pin, 'Pinned'));
     }

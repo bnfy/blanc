@@ -467,16 +467,11 @@
       row.append(tag);
     }
 
-    // Quiet needs an ABSOLUTE marker, not only the row dim: restored tabs are
-    // born quiet, so after a relaunch nearly every row is dim at once and a
-    // uniformly dimmed list reads as ordinary styling rather than as a state.
-    // Same lowercase mono voice as "private", and always visible at rest.
-    if (tab.asleep) {
-      const tag = document.createElement('span');
-      tag.className = 'row-quiet';
-      tag.textContent = 'quiet';
-      row.append(tag);
-    }
+    // Quiet is dim-only: the row's `quiet` class fades it, and the accessible
+    // name above carries the word. The per-row "quiet" text marker was removed
+    // 2026-08-18 — after a restore most rows are quiet and the repeated labels
+    // read as junk. That a fully-restored list dims uniformly (and so reads as
+    // nothing) is a known, accepted trade-off: waking is transparent.
 
     const pin = document.createElement('button');
     pin.className = 'row-pin' + (tab.pinned ? ' on' : '');
