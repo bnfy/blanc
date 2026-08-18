@@ -21,6 +21,53 @@ function setDownloadProgress(fraction) {
   }
 }
 
+// Replace electron-updater's default Windows signature check.
+//
+// After a successful download electron-updater verifies the installer's
+// Authenticode signature by shelling out to `Get-AuthenticodeSignature` with a
+// hard-coded 20-second timeout. On real machines that certificate chain/
+// revocation validation can exceed 20s (observed ~27s in a VM); electron-updater
+// then rejects and ABORTS the update — after the whole installer already
+// downloaded — so `update-downloaded` never fires and no restart prompt appears.
+// That silent post-download failure is a second, distinct cause of "stuck"
+// Windows updates. `win-verify-signature` (the module electron-updater's own docs
+// recommend) uses WinVerifyTrust natively: local, fast, no PowerShell and no
+// network-revocation timeout. sha512 (checked during download against the signed
+// latest.yml) already guarantees integrity; this restores publisher-authenticity
+// verification without the fragile timeout.
+//
+// Windows-only. The module is an optionalDependency (no macOS/Linux binary), so
+// require it lazily and fall back to electron-updater's default verifier if it
+// isn't present rather than shipping no verification.
+function installWindowsSignatureVerifier({
+  platform = process.platform,
+  loadVerifier = () => require('win-verify-signature'),
+  logger,
+} = {}) {
+  if (platform !== 'win32') return false;
+  let verifier;
+  try {
+    verifier = loadVerifier();
+  } catch (err) {
+    (logger ?? console).warn?.(
+      '[updater] win-verify-signature unavailable; using default verifier:',
+      err?.message ?? err,
+    );
+    return false;
+  }
+  // Return null when trusted; a message string otherwise — electron-updater
+  // treats any non-null result as an invalid signature and aborts the update.
+  autoUpdater.verifyUpdateCodeSignature = async (publisherNames, filePath) => {
+    try {
+      const result = await verifier.verifySignatureByPublishNameAsync(filePath, publisherNames);
+      return result?.signed ? null : result?.message || 'Update signature is not trusted.';
+    } catch (err) {
+      return `Update signature verification failed: ${err?.message ?? err}`;
+    }
+  };
+  return true;
+}
+
 // Auto-update = replacing the whole app (Chromium included) — same model
 // Chrome itself uses. electron-updater reads the `build.publish` config
 // (GitHub Releases) from the app-update.yml that electron-builder embeds
@@ -64,6 +111,10 @@ function setupAutoUpdater() {
   } catch (_) {
     /* leave the default console logger in place */
   }
+
+  // Swap electron-updater's timeout-prone PowerShell signature check for the
+  // native WinVerifyTrust one on Windows (no-op elsewhere). See the function.
+  installWindowsSignatureVerifier({ logger: autoUpdater.logger });
 
   // Pin the behavior this release depends on instead of silently inheriting
   // electron-updater defaults that can change between dependency upgrades.
@@ -149,4 +200,4 @@ async function checkForUpdatesManually() {
   }
 }
 
-module.exports = { setupAutoUpdater, checkForUpdatesManually };
+module.exports = { setupAutoUpdater, checkForUpdatesManually, installWindowsSignatureVerifier };

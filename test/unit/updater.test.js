@@ -180,3 +180,68 @@ test('a downloaded update clears the indicator and prompts exactly once', async 
   assert.match(dialogs.at(-1).detail, /reopen when installation completes/);
   assert.equal(progress.at(-1), -1, 'indicator cleared before the once-only early return');
 });
+
+test('the native signature verifier is installed on Windows only', () => {
+  autoUpdater.verifyUpdateCodeSignature = undefined;
+  const installed = updater.installWindowsSignatureVerifier({
+    platform: 'darwin',
+    loadVerifier: () => {
+      throw new Error('should not be called off Windows');
+    },
+  });
+  assert.equal(installed, false);
+  assert.equal(autoUpdater.verifyUpdateCodeSignature, undefined, 'no verifier wired off Windows');
+});
+
+test('a missing native module falls back to the default verifier, not no verification', () => {
+  autoUpdater.verifyUpdateCodeSignature = undefined;
+  const warnings = [];
+  const installed = updater.installWindowsSignatureVerifier({
+    platform: 'win32',
+    loadVerifier: () => {
+      throw new Error('Cannot find module win-verify-signature');
+    },
+    logger: { warn: (...a) => warnings.push(a.join(' ')) },
+  });
+  assert.equal(installed, false);
+  assert.equal(autoUpdater.verifyUpdateCodeSignature, undefined, 'electron-updater default left in place');
+  assert.match(warnings.join('\n'), /win-verify-signature unavailable/);
+});
+
+test('the native verifier trusts a matching publisher and rejects others', async () => {
+  const calls = [];
+  const mod = {
+    verifySignatureByPublishNameAsync: async (filePath, names) => {
+      calls.push({ filePath, names });
+      return filePath.includes('good')
+        ? { signed: true, message: 'ok', subject: 'CN=Bananify Creative' }
+        : { signed: false, message: 'not trusted', subject: 'CN=Someone Else' };
+    },
+  };
+  const installed = updater.installWindowsSignatureVerifier({ platform: 'win32', loadVerifier: () => mod });
+  assert.equal(installed, true);
+  assert.equal(typeof autoUpdater.verifyUpdateCodeSignature, 'function');
+
+  assert.equal(
+    await autoUpdater.verifyUpdateCodeSignature(['CN=Bananify Creative'], 'C:/good.exe'),
+    null,
+    'trusted signature returns null (update proceeds)',
+  );
+  assert.equal(
+    await autoUpdater.verifyUpdateCodeSignature(['CN=Bananify Creative'], 'C:/bad.exe'),
+    'not trusted',
+    'untrusted signature returns the message (update aborts)',
+  );
+  assert.deepEqual(calls[0], { filePath: 'C:/good.exe', names: ['CN=Bananify Creative'] });
+});
+
+test('the native verifier fails closed when the check itself throws', async () => {
+  const mod = {
+    verifySignatureByPublishNameAsync: async () => {
+      throw new Error('boom');
+    },
+  };
+  updater.installWindowsSignatureVerifier({ platform: 'win32', loadVerifier: () => mod });
+  const result = await autoUpdater.verifyUpdateCodeSignature(['CN=X'], 'C:/x.exe');
+  assert.match(result, /verification failed: boom/, 'a thrown verifier aborts the update, never silently trusts');
+});
