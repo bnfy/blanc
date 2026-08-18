@@ -62,15 +62,10 @@
   let glancePickerSelectedId = null;
   let glancePickerError = '';
   let glancePickerBusy = false;
-  /** Tab id whose inline group picker ("→ work · → none") is open. */
-  let pickingTabId = null;
-  /** After a picker action re-renders the list, put focus back on that
-   * tab's "group" chip instead of dropping it on <body>. */
-  let chipFocusTabId = null;
-
-  function focusChip(tabId) {
-    islandList.querySelector(`.island-row[data-tab-id="${CSS.escape(tabId)}"] .row-grp`)?.focus();
-  }
+  /** The tab a context-menu "New Group…" is naming via the /group command
+   * (arrives over overlay:begin-group; cleared once used, dismissed, or the
+   * command is edited away from /group). */
+  let pendingGroupTabId = null;
   /** A click only reaches a row's handler when mousedown and mouseup land on
    * the same element. tabs:updated broadcasts arrive in bursts while any page
    * loads, and a replaceChildren between the two destroys the pressed row —
@@ -513,23 +508,6 @@
       row.append(glance);
     }
 
-    const grp = document.createElement('button');
-    grp.className = 'row-grp';
-    grp.title = 'Move to group';
-    grp.textContent = tab.groupId ? groupById(tab.groupId)?.name ?? 'group' : 'group';
-    grp.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const opening = pickingTabId !== tab.id;
-      pickingTabId = opening ? tab.id : null;
-      renderList();
-      // Opening hands focus to the name field so a fresh group is one
-      // type-and-Enter away; closing puts it back on the re-rendered chip
-      // (the click had focused the old one, now replaced).
-      if (opening) islandList.querySelector('.group-picker-input')?.focus();
-      else focusChip(tab.id);
-    });
-    row.append(grp);
-
     const close = document.createElement('button');
     close.className = 'row-close';
     close.title = 'Close tab';
@@ -541,55 +519,8 @@
     });
     row.append(close);
 
-    // Inline picker: move to another existing group, or out of the current
-    // one. New groups come from the /group command.
-    if (pickingTabId === tab.id) {
-      const picker = document.createElement('span');
-      picker.className = 'group-picker';
-      picker.addEventListener('click', (e) => e.stopPropagation());
-      for (const g of state.groups.filter((g) => g.id !== tab.groupId)) {
-        const btn = document.createElement('button');
-        btn.className = 'row-grp open';
-        btn.textContent = `→ ${g.name}`;
-        btn.addEventListener('click', () => {
-          pickingTabId = null;
-          chipFocusTabId = tab.id;
-          window.browserAPI.setTabGroup(tab.id, g.id);
-        });
-        picker.append(btn);
-      }
-      if (tab.groupId) {
-        const none = document.createElement('button');
-        none.className = 'row-grp open';
-        none.textContent = '→ none';
-        none.addEventListener('click', () => {
-          pickingTabId = null;
-          chipFocusTabId = tab.id;
-          window.browserAPI.setTabGroup(tab.id, null);
-        });
-        picker.append(none);
-      }
-      // First-group creation lives here too, not just behind /group: name
-      // a new group inline and Enter moves the tab into it.
-      const create = document.createElement('input');
-      create.className = 'group-picker-input';
-      create.placeholder = 'new group…';
-      create.spellcheck = false;
-      create.autocomplete = 'off';
-      create.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          const name = create.value.trim();
-          if (!name) return;
-          pickingTabId = null;
-          chipFocusTabId = tab.id;
-          window.browserAPI.groupTabByName(tab.id, name);
-        }
-        // Typed keys must not reach the row/overlay handlers.
-        e.stopPropagation();
-      });
-      picker.append(create);
-      row.append(picker);
-    }
+    // Grouping moved off the row into the right-click context menu (Move to
+    // Group ▸) — the old inline chip + picker crowded rows into truncation.
 
     row.addEventListener('click', (e) => {
       if (e.target.closest('button')) return;
@@ -761,7 +692,11 @@
     { cmd: '/sleep', hint: 'Quiet background tabs and free their memory', run: () => window.browserAPI.sleepBackgroundTabs(), keepOverlay: true, clearInput: true, resultNotice: (quieted) => Array.isArray(quieted) && quieted.length === 0 ? 'No background tabs can be quieted right now.' : '' },
     { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"', run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
-      if (name && state.activeTabId) window.browserAPI.groupTabByName(state.activeTabId, name);
+      // A context-menu "New Group…" targets the right-clicked tab, not the
+      // active one (overlay:begin-group sets the pending target).
+      const target = pendingGroupTabId ?? state.activeTabId;
+      if (name && target) window.browserAPI.groupTabByName(target, name);
+      pendingGroupTabId = null;
     } },
     { cmd: '/ungroup', hint: 'Take this tab out of its group', run: () => state.activeTabId && window.browserAPI.setTabGroup(state.activeTabId, null) },
     { cmd: '/close-group', hint: 'Close every tab in this group', run: () => {
@@ -1178,12 +1113,6 @@
       );
     } else {
       selectedResultIndex = -1;
-      // The list re-renders on every tabs:updated broadcast (frequent while
-      // any tab is loading) — a half-typed group name must survive that.
-      const prevPickerInput = islandList.querySelector('.group-picker-input');
-      const pickerValue = prevPickerInput?.value ?? '';
-      const pickerHadFocus = prevPickerInput && document.activeElement === prevPickerInput;
-
       const pinned = state.tabs.filter((t) => t.pinned && !t.groupId);
       const rows = [];
       if (commandNotice) rows.push(commandNoticeRow(commandNotice));
@@ -1212,18 +1141,6 @@
         rows.push(...closed.map(closedRow));
       }
       islandList.replaceChildren(...rows);
-
-      const pickerInput = islandList.querySelector('.group-picker-input');
-      if (pickerInput && pickerValue) pickerInput.value = pickerValue;
-      if (pickerInput && pickerHadFocus) pickerInput.focus();
-
-      // A picker action just re-rendered its row away — land focus on the
-      // tab's chip rather than <body>. (Only ever set with the picker
-      // closed, so it can't fight the input restore above.)
-      if (chipFocusTabId) {
-        focusChip(chipFocusTabId);
-        chipFocusTabId = null;
-      }
     }
 
     islandHint.textContent = activeTab()?.private
@@ -1314,7 +1231,7 @@
 
     if (next === 'panel' || next === 'palette') {
       if (!reshow) {
-        pickingTabId = null;
+        pendingGroupTabId = null;
         addressInputComposing = false;
         suppressProviderSuggestions = false;
         commandResultGeneration += 1;
@@ -1625,8 +1542,7 @@
     commandNotice = '';
     addressInputComposing = false;
     suppressProviderSuggestions = false;
-    pickingTabId = null;
-    chipFocusTabId = null;
+    pendingGroupTabId = null;
     selectedResultIndex = -1;
     resetSearchSuggestions();
   });
@@ -1716,6 +1632,12 @@
     commandResultGeneration += 1;
     commandNotice = '';
     selectedResultIndex = -1;
+    // Editing the command away from /group abandons a menu-initiated
+    // "New Group…" — a stale target must never hijack a later hand-typed
+    // /group meant for the active tab.
+    if (pendingGroupTabId != null && !addressInput.value.startsWith('/group')) {
+      pendingGroupTabId = null;
+    }
     if (!addressInput.value.trim()) {
       // Do not clear a paste/drop taint here. Delete followed by Undo restores
       // the original private text with historyUndo, so provider autocomplete
@@ -1846,6 +1768,13 @@
     if (mode === 'shield') renderShieldPop();
     if (mode === 'capture') renderCapturePop();
   });
+  // Only records the target. The '/group ' text, focus, and caret all arrive
+  // through the overlay:show prefill that beginNewGroup (main) sends first —
+  // showOverlay re-sends overlay:show even when the panel is already open, and
+  // applyMode handles prefill value/focus/caret.
+  window.browserAPI.onBeginGroup?.(({ tabId }) => {
+    pendingGroupTabId = tabId;
+  });
   // Cached-first: the panel renders the cache instantly, and this repaints
   // when the panel-open refresh's pull lands (tab sync).
   window.browserAPI.onRemoteTabsUpdated((devices) => {
@@ -1857,11 +1786,15 @@
     if (mode === 'glance') renderGlancePicker();
   });
 
-  // Only the address input gets a context menu (see src/main/address-menu.js).
-  // Cancelling the DOM event here stops Chromium from ever dispatching the
-  // browser-side context-menu event for the find bar, the group-name picker,
-  // and the panel chrome — they stay inert, exactly as before.
+  // Only the address input (src/main/address-menu.js) and real tab rows
+  // (src/main/tab-context-menu.js) get context menus. Cancelling the DOM event
+  // here stops Chromium from ever dispatching the browser-side context-menu
+  // event for everything else — find bar, panel chrome, and rows without a
+  // data-tab-id (remote/synced, folded-group stand-ins, group headers), which
+  // stay inert by design.
   document.addEventListener('contextmenu', (e) => {
-    if (!e.target.closest('#addressInput')) e.preventDefault();
+    if (!e.target.closest('#addressInput') && !e.target.closest('.island-row[data-tab-id]')) {
+      e.preventDefault();
+    }
   });
 })();

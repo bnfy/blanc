@@ -147,6 +147,11 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
     ipcRenderer.on('overlay:toggle', listener);
     return () => ipcRenderer.removeListener('overlay:toggle', listener);
   },
+  onBeginGroup: (callback) => {
+    const listener = (_e, payload) => callback(payload);
+    ipcRenderer.on('overlay:begin-group', listener);
+    return () => ipcRenderer.removeListener('overlay:begin-group', listener);
+  },
   onIslandState: (callback) => {
     const listener = (_e, payload) => callback(payload);
     ipcRenderer.on('chrome:island-state', listener);

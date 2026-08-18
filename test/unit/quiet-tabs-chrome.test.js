@@ -72,7 +72,9 @@ test('a panel tab row is a labelled group with a primary button beside its actio
   assert.match(panelRowSource, /primary\.append\(faviconWrap, title\)/);
   assert.match(panelRowSource, /row\.append\(primary\)/);
   assert.match(panelRowSource, /row\.append\(pin\)/);
-  assert.match(panelRowSource, /row\.append\(grp\)/);
+  // The group chip moved into the row's right-click context menu (Move to
+  // Group ▸) — rows deliberately no longer carry it.
+  assert.doesNotMatch(panelRowSource, /row\.append\(grp\)/);
   assert.match(panelRowSource, /row\.append\(close\)/);
   assert.match(panelRowSource, /if \(e\.target\.closest\('button'\)\) return;/);
 });

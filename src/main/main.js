@@ -1870,6 +1870,35 @@ function createOverlay() {
       pasteAndGo: bindWindowRuntime(owner, (text) => { if (rt().activeTabId) pasteAndGo(rt().activeTabId, text); }),
     },
   });
+
+  // Tab-row context menu, same webContents. Mutually exclusive with the address
+  // menu by target (editable vs. row), and it shares the same blur-guard ticket
+  // so a popped row menu never blur-dismisses the panel under itself.
+  attachRowMenu(rt().overlayView.webContents, {
+    isOverlayLive: bindWindowRuntime(owner, () =>
+      hasLiveWindow()
+      && rt().overlayView && !rt().overlayView.webContents.isDestroyed()
+      && (rt().overlayMode === 'panel' || rt().overlayMode === 'palette')),
+    getWindow: bindWindowRuntime(owner, () => rt().window),
+    getOverlayBounds: bindWindowRuntime(owner, () => overlayBounds()),
+    acquireMenuGuard: bindWindowRuntime(owner, () => { rt().addressMenuTicket = ++rt().addressMenuSeq; return rt().addressMenuTicket; }),
+    releaseMenuGuard: bindWindowRuntime(owner, (ticket) => {
+      if (ticket !== rt().addressMenuTicket) return;
+      rt().addressMenuTicket = 0;
+      if (!hasLiveWindow()) return;
+      if (rt().window.isFocused()) return refocusOverlayAfterMenu();
+      setTimeout(bindWindowRuntime(owner, () => {
+        if (rt().addressMenuTicket || !hasLiveWindow()) return;
+        if (!rt().window.isFocused()) return hideOverlay({ refocusContent: false });
+        refocusOverlayAfterMenu();
+      }), 80);
+    }),
+    resolveTab: bindWindowRuntime(owner, (rawId) => {
+      const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
+      return id == null ? null : tabContextData(tabs.get(id), owner);
+    }),
+    actions: menuContextActions(owner),
+  });
 }
 
 /** The popup took focus from the overlay; hand it back if a panel/palette is
