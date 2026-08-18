@@ -16,12 +16,19 @@
 /** How far out the pill starts reacting, in CSS px. */
 const RANGE = 250;
 
+/** Inside this distance the effect is fully settled (k = 1): the pill reaches
+ *  its final size and position while the cursor is still on approach, so the
+ *  click target has stopped moving before the user aims at it. (The lean can
+ *  still drift sub-pixel amounts inside the settle zone — it tracks cursor x —
+ *  but at MAX_LEAN 3px over a ~400px denominator that is well under 1px.) */
+const SETTLE = 80;
+
 /** Furthest the pill leans toward the cursor, in CSS px. */
-const MAX_LEAN = 6;
+const MAX_LEAN = 3;
 
 /** Geometry of the effect at full closeness. Mirrors styles.css — see fitsInsideStrip. */
-const SCALE_AT_1 = 0.045;   // grows 4.5%
-const RISE_AT_1 = 3.5;      // lifts 3.5px
+const SCALE_AT_1 = 0.02;    // grows 2%
+const RISE_AT_1 = 2;        // lifts 2px
 
 /** Smoothstep: no edge you can feel at either end of the range. */
 function smoothstep(t) {
@@ -41,11 +48,14 @@ function distanceToRect(point, rect) {
   return Math.hypot(dx, dy);
 }
 
-/** 0 when further than RANGE, 1 when touching the pill. */
-function closeness(point, rect, range = RANGE) {
-  if (!point || !rect || !(rect.width > 0) || !(range > 0)) return 0;
+/** 0 when further than RANGE, 1 at or inside SETTLE. The active band is
+ *  [settle, range]: the motion finishes early so the pill is stationary well
+ *  before the cursor arrives. */
+function closeness(point, rect, range = RANGE, settle = SETTLE) {
+  if (!point || !rect || !(rect.width > 0) || !(range > settle)) return 0;
   const d = distanceToRect(point, rect);
-  const k = smoothstep(1 - Math.min(d, range) / range);
+  if (d <= settle) return 1;
+  const k = smoothstep(1 - Math.min(d - settle, range - settle) / (range - settle));
   // Snap the ends. Dividing by the range leaves float dust at the boundary
   // (1 - 250/250 comes out at 1e-16, not 0), and an exact 0 is what lets the
   // sender stop talking to the renderer once you walk away.
@@ -96,6 +106,7 @@ function fitsInsideStrip(geometry) {
 
 module.exports = {
   RANGE,
+  SETTLE,
   MAX_LEAN,
   SCALE_AT_1,
   RISE_AT_1,

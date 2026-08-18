@@ -5,6 +5,7 @@ const assert = require('node:assert');
 
 const {
   RANGE,
+  SETTLE,
   smoothstep,
   distanceToRect,
   closeness,
@@ -30,14 +31,26 @@ test('closeness is 0 beyond the range and 1 on the pill', () => {
 
 test('closeness rises as the cursor approaches, with no step at the edge', () => {
   const at = (d) => closeness({ x: 640, y: PILL.y + PILL.height + d }, PILL);
-  const samples = [250, 200, 150, 100, 50, 10, 0].map(at);
+  // Strictly growing over the active band only — [SETTLE, RANGE].
+  const samples = [250, 210, 170, 130, 90].map(at);
   for (let i = 1; i < samples.length; i++) {
     assert.ok(samples[i] > samples[i - 1], `closeness should grow: ${samples}`);
   }
   // smoothstep flattens at both ends, so the first step off the edge is tiny —
   // that is what stops the effect switching on visibly.
   assert.ok(at(249) < 0.001, `just inside the range should be imperceptible, got ${at(249)}`);
-  assert.ok(at(1) > 0.999, `all but touching should be ~1, got ${at(1)}`);
+  assert.ok(at(SETTLE + 1) > 0.999, `just outside the settle distance should be ~1, got ${at(SETTLE + 1)}`);
+});
+
+// The mis-click fix: the pill finishes moving while the cursor is still on
+// approach. Inside SETTLE the effect is exactly settled — the click target is
+// stationary at aim time.
+test('closeness is exactly 1 at and inside the settle distance', () => {
+  const at = (d) => closeness({ x: 640, y: PILL.y + PILL.height + d }, PILL);
+  assert.equal(at(SETTLE), 1);
+  assert.equal(at(40), 1);
+  assert.equal(at(0), 1);
+  assert.ok(SETTLE >= 60, `the settle band must leave real aiming room, got ${SETTLE}px`);
 });
 
 test('distance is measured to the pill box, not its centre', () => {

@@ -840,9 +840,9 @@
   // The reported box is the RESTING one, with the effect's own transform
   // divided back out. Reporting the transformed box would let the pill chase
   // itself: closer reads as bigger reads as closer.
-  const ISLAND_SCALE = 0.045;   // keep in step with #islandPill in styles.css
-  const ISLAND_RISE = 3.5;
-  const ISLAND_LEAN = 6;
+  const ISLAND_SCALE = 0.02;    // keep in step with #islandPill in styles.css
+  const ISLAND_RISE = 2;
+  const ISLAND_LEAN = 3;
 
   const reportIslandRect = () => {
     const r = islandPill.getBoundingClientRect();

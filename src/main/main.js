@@ -34,6 +34,7 @@ const {
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const islandProximity = require('./island-proximity');
+const { recordActivation, previousSurvivor } = require('./tab-activation');
 const {
   shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
@@ -3334,6 +3335,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   hideUtilitySheet({ refocusContent: false });
 
   rt().lastActiveByCluster.set(clusterKeyForTab(next), id);
+  rt().activationHistory = recordActivation(rt().activationHistory, id);
 
   // No window to attach to (quitting, or macOS with all windows closed):
   // just track the selection so window recreation attaches the right tab.
@@ -3668,6 +3670,7 @@ function closeTab(id) {
   popupChildCounts.delete(id);
   windowRuntimes.detachTab(id);
   rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
+  rt().activationHistory = (rt().activationHistory ?? []).filter((tid) => tid !== id);
   pruneEmptyGroups();
   const wc = tab.view?.webContents ?? retainedView?.webContents;
   if (wc) lastMainFrameMethod.delete(wc.id);
@@ -3698,7 +3701,15 @@ function closeTab(id) {
       setActiveTab(survivingGlanceId);
       return;
     }
-    if (rt().tabOrder.length > 0) {
+    // Return to the previously active tab (activation history, most recent
+    // surviving first); the right-neighbor rule is the fallback once history
+    // is exhausted — e.g. right after session restore, where only the
+    // selected tab was ever activated.
+    const mruId = previousSurvivor(rt().activationHistory,
+      (tid) => tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === rt());
+    if (mruId) {
+      setActiveTab(mruId);
+    } else if (rt().tabOrder.length > 0) {
       // Prefer the tab that was to the right of the closed one.
       setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {

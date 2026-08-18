@@ -883,7 +883,11 @@ body.mac .vertical-tabs-toolbar {
 
   /* Proximity. --island-k is how close the cursor is (0 far, 1 arrived) and
      --island-lean is which side it's on (-1 to 1); main measures both and sets
-     them from renderer.js. The pill leans toward you, rises, and grows.
+     them from renderer.js. The pill leans toward you, rises, and grows —
+     gently, and it settles to its final geometry while the cursor is still
+     ~80px out (island-proximity.js SETTLE), so the click target has stopped
+     moving before anyone aims at it. Larger magnitudes displaced edge
+     buttons by up to ~15px during approach and caused mis-clicks.
 
      THE RISE IS LOAD-BEARING, not decoration. The shadow below fades to
      nothing exactly at the strip's bottom edge — there is no headroom at all
@@ -898,9 +902,9 @@ body.mac .vertical-tabs-toolbar {
      "closer to the surface" anyway. */
   transform-origin: 50% 0%;
   transform:
-    translateX(calc(6px * var(--island-lean, 0)))
-    translateY(calc(-3.5px * var(--island-k, 0)))
-    scale(calc(1 + 0.045 * var(--island-k, 0)));
+    translateX(calc(3px * var(--island-lean, 0)))
+    translateY(calc(-2px * var(--island-k, 0)))
+    scale(calc(1 + 0.02 * var(--island-k, 0)));
   box-shadow:
     var(--shadow-pill),
     0 2px 16px -3px rgba(14, 14, 14, calc(0.07 * var(--island-k, 0)));
