@@ -63,8 +63,8 @@
   let glancePickerError = '';
   let glancePickerBusy = false;
   /** The tab a context-menu "New Group…" is naming via the /group command
-   * (arrives over overlay:begin-group; cleared once used, dismissed, or the
-   * command is edited away from /group). */
+   * (arrives in overlay:show's purpose payload; cleared once used, dismissed,
+   * or the command is edited away from /group). */
   let pendingGroupTabId = null;
   /** A click only reaches a row's handler when mousedown and mouseup land on
    * the same element. tabs:updated broadcasts arrive in bursts while any page
@@ -693,7 +693,7 @@
     { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"', run: (input) => {
       const name = (input ?? '').replace(/^\/group\s*/, '').trim();
       // A context-menu "New Group…" targets the right-clicked tab, not the
-      // active one (overlay:begin-group sets the pending target).
+      // active one (overlay:show's purpose payload sets the pending target).
       const target = pendingGroupTabId ?? state.activeTabId;
       if (name && target) window.browserAPI.groupTabByName(target, name);
       pendingGroupTabId = null;
@@ -1238,6 +1238,14 @@
         commandNotice = '';
       }
       if (!reshow) resetSearchSuggestions();
+      // A menu-triggered "New Group…" carries its target tab inside the
+      // atomic overlay:show payload (and so survives the did-finish-load
+      // replay after a slow first load or renderer crash — a separate
+      // message would be lost and Enter would silently group the ACTIVE
+      // tab). Glance's string purposes fall through harmlessly.
+      if (purpose && typeof purpose === 'object' && purpose.beginGroupTabId != null) {
+        pendingGroupTabId = purpose.beginGroupTabId;
+      }
       if (prefill) {
         // A menu-triggered command (e.g. "New Group…") arrives pre-typed —
         // land the cursor at the end, ready to type the rest, rather than
@@ -1767,13 +1775,6 @@
     if (mode === 'glance') renderGlancePicker();
     if (mode === 'shield') renderShieldPop();
     if (mode === 'capture') renderCapturePop();
-  });
-  // Only records the target. The '/group ' text, focus, and caret all arrive
-  // through the overlay:show prefill that beginNewGroup (main) sends first —
-  // showOverlay re-sends overlay:show even when the panel is already open, and
-  // applyMode handles prefill value/focus/caret.
-  window.browserAPI.onBeginGroup?.(({ tabId }) => {
-    pendingGroupTabId = tabId;
   });
   // Cached-first: the panel renders the cache instantly, and this repaints
   // when the panel-open refresh's pull lands (tab sync).

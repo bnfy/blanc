@@ -3835,11 +3835,13 @@ function closeOtherTabsInWindow(keepId) {
   }
 }
 
-/** "New Group…" handoff: open the command panel and hand the right-clicked tab
- * to the /group command input (context-menus design §5.3). */
+/** "New Group…" handoff: open the command panel prefilled with /group, bound
+ * to the right-clicked tab. The target rides the overlay:show purpose payload
+ * so it is delivered atomically with the prefill AND replayed by the
+ * did-finish-load path — a separate message would be lost on a slow first
+ * load or crashed-overlay recreate, silently grouping the active tab. */
 function beginNewGroup(tabId) {
-  showOverlay('panel', { prefill: '/group ' });
-  rt().overlayView?.webContents.send('overlay:begin-group', { tabId });
+  showOverlay('panel', { prefill: '/group ', purpose: { beginGroupTabId: tabId } });
 }
 
 function reopenEntry(entry) {
