@@ -92,4 +92,13 @@ function closableTabIds({ tabOrder, tabsById, keepId }) {
   return tabOrder.filter((id) => id !== keepId && tabsById.get(id) && !tabsById.get(id).pinned);
 }
 
-module.exports = { buildTabContextMenu, buildGroupSubmenu, closableTabIds };
+/** When a tab leaves a window, which of the remaining tabs should the source
+ * window select? The neighbour after it, else the one before. null if it was
+ * the only tab (the caller disables Move-to-New-Window in that case). */
+function pickSurvivorTabId(tabOrder, movedId) {
+  const i = tabOrder.indexOf(movedId);
+  if (i === -1 || tabOrder.length <= 1) return null;
+  return tabOrder[i + 1] ?? tabOrder[i - 1] ?? null;
+}
+
+module.exports = { buildTabContextMenu, buildGroupSubmenu, closableTabIds, pickSurvivorTabId };

@@ -72,7 +72,7 @@ const {
 } = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
 const { installDockMenu } = require('./dock-menu');
-const { closableTabIds } = require('./tab-context-menu-model');
+const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachPillMenu, attachRowMenu } = require('./tab-context-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
@@ -5168,9 +5168,57 @@ function openNewWindow(options = {}) {
   });
 }
 
-/** "Move Tab to New Window" — implemented in the context-menus plan's final
- * task; the menu item stays disabled-safe (no-op) until then. */
-function moveTabToNewWindow(id) { void id; }
+/** "Move Tab to New Window": detach the tab from its window into a fresh one.
+ * Ungrouped on move — a group spanning two windows isn't a modeled concept
+ * (context-menus design §6). Pin and mute state travel with the tab. */
+function moveTabToNewWindow(id) {
+  const tab = tabs.get(id);
+  if (!tab) return;
+  const source = windowRuntimes.runtimeForTab(id);
+  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
+
+  // 1. Detach from the source window. If it's the Glance pane, close that
+  //    first; if it's active, hand focus to a neighbour (setActiveTab removes
+  //    the outgoing view from contentView). A background tab's view is already
+  //    detached — and a discarded quiet tab may have no view at all.
+  withWindowRuntime(source, () => {
+    if (rt().glanceTabId === id) closeGlance({ focusContent: false });
+    const survivor = pickSurvivorTabId(source.tabOrder, id);
+    if (rt().activeTabId === id && survivor != null) {
+      setActiveTab(survivor, { focusContent: false });
+    }
+    source.tabOrder = source.tabOrder.filter((tid) => tid !== id);
+    rt().tabsWantingAddressBarFocus.delete(id);
+    // liveContents(tab) is the ONLY correct liveness check (a closed
+    // webContents can read back undefined through the view).
+    liveContents(tab)?.setVisible?.(false);
+    if (tab.view && hasLiveWindow()) rt().window.contentView.removeChildView(tab.view);
+    pruneEmptyGroups(); // its group may now be empty in the source window
+    broadcastTabs();
+  });
+
+  // 2. Create the destination window and adopt the tab into it.
+  const destRuntime = windowRuntimes.createRuntime({
+    id: createWindowRuntimeId(),
+    profileId: source.profileId,
+  });
+  createMainWindow(destRuntime);
+  withWindowRuntime(destRuntime, () => {
+    tab.runtimeId = destRuntime.id;
+    tab.groupId = null; // ungroup on move
+    windowRuntimes.attachTab(destRuntime, id);
+    destRuntime.tabOrder = [id];
+    focusedRuntime = destRuntime;
+    setFocusedLocalProfile(destRuntime.profileId);
+    setActiveTab(id); // attaches (and wakes, if quiet) into the new window
+    destRuntime.window.show();
+    destRuntime.window.focus();
+    broadcastTabs();
+    buildMenu(destRuntime);
+  });
+
+  persistSession();
+}
 
 function openNewProfileWindow(name) {
   const profile = localProfiles.createLocalProfile(name);
