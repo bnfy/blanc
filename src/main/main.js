@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -72,6 +72,8 @@ const {
 } = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
 const { installDockMenu } = require('./dock-menu');
+const { closableTabIds } = require('./tab-context-menu-model');
+const { attachPillMenu, attachRowMenu } = require('./tab-context-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
@@ -3788,6 +3790,29 @@ function reopenClosedTab() {
 
 /** Restore one consumed entry. Tier 0 adopts the parked view; a dead or
  *  unattachable view falls through to the snapshot (§3.2). */
+/** "Quiet This Tab Now" — quiet a specific background tab immediately. Never the
+ * active tab (its renderer must stay live) and never a capturing tab; sleepTab's
+ * own guards are the backstop. */
+function quietTabNow(id) {
+  const tab = tabs.get(id);
+  if (!tab || id === rt().activeTabId || tab.capturing || tab.asleep) return;
+  sleepTab(id);
+}
+
+/** "Close Other Tabs" — close every other unpinned tab in this window. */
+function closeOtherTabsInWindow(keepId) {
+  for (const id of closableTabIds({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId })) {
+    closeTab(id);
+  }
+}
+
+/** "New Group…" handoff: open the command panel and hand the right-clicked tab
+ * to the /group command input (context-menus design §5.3). */
+function beginNewGroup(tabId) {
+  showOverlay('panel', { prefill: '/group ' });
+  rt().overlayView?.webContents.send('overlay:begin-group', { tabId });
+}
+
 function reopenEntry(entry) {
   clearTimeout(entry.expiryTimer);
   entry.expiryTimer = null;
@@ -3937,6 +3962,16 @@ function openInternalPage(url) {
 
 function toggleBookmarkForActiveTab() {
   const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
+  if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
+  tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** Per-tab favorite toggle for the context menu; same guards as the active-tab
+ * version (private tabs never populate synced Favorites). */
+function toggleBookmarkForTab(id) {
+  const tab = tabs.get(id);
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
   tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
   broadcastTabs();
@@ -4913,6 +4948,47 @@ function buildMenuForRuntime(runtime) {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
+/** The tab fields + window facts the shared context-menu model reads. `owner`
+ * is the window runtime the menu belongs to. Null if the tab isn't in it. */
+function tabContextData(tab, owner) {
+  if (!tab || tab.runtimeId !== owner.id) return null;
+  return {
+    tab: {
+      id: tab.id, url: tab.url, title: tab.title,
+      pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private,
+      asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
+      groupId: tab.groupId ?? null, capturing: !!tab.capturing,
+    },
+    groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
+    activeTabId: owner.activeTabId,
+    canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
+    canMoveToNewWindow: owner.tabOrder.length > 1,
+  };
+}
+
+/** The action closures the context-menu runner calls, bound to `owner`. */
+function menuContextActions(owner) {
+  const b = (fn) => bindWindowRuntime(owner, fn);
+  return {
+    copy: (text) => clipboard.writeText(text),
+    reload: b((id) => liveContents(tabs.get(id))?.reload()),
+    duplicate: b((id) => duplicateTab(id)),
+    togglePin: b((id) => toggleTabPinned(id)),
+    toggleMute: b((id) => toggleTabMuted(id)),
+    toggleFavorite: b((id) => toggleBookmarkForTab(id)),
+    setGroup: b((id, gid) => setTabGroup(id, gid)),
+    beginNewGroup: b((id) => beginNewGroup(id)),
+    glance: b((id) => setGlanceTab(id)),
+    quiet: b((id) => quietTabNow(id)),
+    newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
+    newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
+    closeOthers: b((id) => closeOtherTabsInWindow(id)),
+    moveToNewWindow: b((id) => moveTabToNewWindow(id)),
+    reopenClosed: b(() => reopenClosedTab()),
+    close: b((id) => closeTab(id)),
+  };
+}
+
 function createMainWindow(runtime = primaryRuntime) {
   return withWindowRuntime(runtime, () => createMainWindowForRuntime(runtime));
 }
@@ -4964,6 +5040,12 @@ function createMainWindowForRuntime(runtime) {
 
   lockPrivilegedNavigation(rt().window.webContents, CHROME_INDEX_URL);
   installChromeShortcuts(rt().window.webContents);
+  attachPillMenu(rt().window.webContents, {
+    getWindow: bindWindowRuntime(runtime, () => rt().window),
+    resolveActiveTab: bindWindowRuntime(runtime, () =>
+      tabContextData(tabs.get(rt().activeTabId), runtime)),
+    actions: menuContextActions(runtime),
+  });
   rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
   rt().window.on('resize', bindWindowRuntime(runtime, resizeActiveView));
@@ -5056,6 +5138,10 @@ function openNewWindow(options = {}) {
     return runtime.id;
   });
 }
+
+/** "Move Tab to New Window" — implemented in the context-menus plan's final
+ * task; the menu item stays disabled-safe (no-op) until then. */
+function moveTabToNewWindow(id) { void id; }
 
 function openNewProfileWindow(name) {
   const profile = localProfiles.createLocalProfile(name);

@@ -8,6 +8,12 @@
   document.documentElement.dataset.platform = platform;
   if (isMac) document.body.classList.add('mac');
 
+  // Right-click only opens the pill's native menu (built in main). Everywhere
+  // else on the strip — window controls, empty drag band — shows nothing.
+  document.addEventListener('contextmenu', (e) => {
+    if (!e.target.closest('#islandPill')) e.preventDefault();
+  });
+
   const chromeEl = document.getElementById('chrome');
   const stripEl = document.getElementById('strip');
   const islandPill = document.getElementById('islandPill');
