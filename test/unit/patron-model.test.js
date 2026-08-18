@@ -44,3 +44,58 @@ test('parseExpiresAt: three states — null (absent), number (valid), false (mal
   assert.strictEqual(parseExpiresAt(12345), false);          // wrong type
   assert.strictEqual(parseExpiresAt(true), false);           // wrong type
 });
+
+const { evaluateValidation, isRecordActive, GRACE_MS } = require('../../src/main/patron-model');
+
+const sub = (over = {}) => ({
+  kind: 'subscription', key: 'k', activationId: 'a', benefitId: 'ben_annual',
+  activatedAt: 0, lastValidatedAt: 1000, lastAttemptedAt: 1000, lastStatus: 'granted', ...over,
+});
+
+test('isRecordActive: founding/lifetime always active; subscription needs granted + within grace', () => {
+  assert.equal(isRecordActive({ kind: 'founding' }, 9e15), true);
+  assert.equal(isRecordActive({ kind: 'lifetime' }, 9e15), true);
+  assert.equal(isRecordActive(null, 0), false);
+  // restart with a granted record still within grace → active WITHOUT any network call
+  assert.equal(isRecordActive(sub({ lastValidatedAt: 1000 }), 1000 + GRACE_MS), true);
+  // past grace → inactive
+  assert.equal(isRecordActive(sub({ lastValidatedAt: 1000 }), 1000 + GRACE_MS + 1), false);
+  // last confirmed status not granted → inactive regardless of grace
+  assert.equal(isRecordActive(sub({ lastStatus: 'revoked', lastValidatedAt: 9e15 }), 9e15), false);
+});
+
+test('granted + unexpired + benefitOk → active, advances lastValidatedAt', () => {
+  const now = 5000;
+  const r = evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: now + 1, benefitOk: true }, record: sub(), now });
+  assert.equal(r.active, true);
+  assert.equal(r.record.lastValidatedAt, now);
+  assert.equal(r.record.lastStatus, 'granted');
+});
+
+test('revoked, expired, and benefit mismatch each degrade', () => {
+  const now = 5000;
+  assert.equal(evaluateValidation({ outcome: { kind: 'ok', status: 'revoked', expiresAt: null, benefitOk: true }, record: sub(), now }).active, false);
+  assert.equal(evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: now - 1, benefitOk: true }, record: sub(), now }).active, false);
+  const mismatch = evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: now + 1, benefitOk: false }, record: sub(), now });
+  assert.equal(mismatch.active, false);
+  assert.equal(mismatch.record.lastStatus, 'benefit_mismatch');
+});
+
+test('malformed expiry (false) is ambiguous, not a terminal expired state', () => {
+  const now = 5000;
+  const malformed = evaluateValidation({ outcome: { kind: 'ok', status: 'granted', expiresAt: false, benefitOk: true }, record: sub(), now });
+  assert.equal(malformed.active, true);
+  assert.equal(malformed.record.lastValidatedAt, 1000); // unchanged — treated as ambiguous
+  assert.equal(malformed.record.lastStatus, 'granted'); // unchanged — rides grace
+});
+
+test('unknown status and unreachable ride the grace, do not advance lastValidatedAt', () => {
+  const withinNow = 1000 + GRACE_MS;
+  const unknown = evaluateValidation({ outcome: { kind: 'ok', status: 'weird_new', expiresAt: null, benefitOk: true }, record: sub(), now: withinNow });
+  assert.equal(unknown.active, true);
+  assert.equal(unknown.record.lastValidatedAt, 1000); // unchanged
+  assert.equal(unknown.record.lastStatus, 'granted'); // unchanged
+  assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: sub(), now: withinNow }).active, true);
+  assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: sub(), now: 1000 + GRACE_MS + 1 }).active, false);
+  assert.equal(evaluateValidation({ outcome: { kind: 'unreachable' }, record: sub(), now: withinNow }).record.lastAttemptedAt, withinNow);
+});
