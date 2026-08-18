@@ -34,6 +34,7 @@ const {
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const islandProximity = require('./island-proximity');
+const { recordActivation, previousSurvivor } = require('./tab-activation');
 const {
   shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
@@ -1526,9 +1527,9 @@ function currentChromeLayout() {
  * those moves. Both views report their input events to main, so main is the
  * only place that can watch the whole window.
  *
- * What crosses the IPC boundary is one number (plus a lean direction), only
- * when it changes, and at most once a frame. Beyond the range main sends a
- * single zero and then says nothing at all. */
+ * What crosses the IPC boundary is one number, only when it changes, and at
+ * most once a frame. Beyond the range main sends a single zero and then says
+ * nothing at all. */
 
 /** Map a point from a child view's coordinates into the window's. */
 function toWindowPoint(point, offset) {
@@ -1553,13 +1554,12 @@ function updateIslandProximity(point) {
   // focus, or the island is already expanded and the pill is hidden behind it.
   const awake = runtime.window.isFocused() && !runtime.overlayMode;
   const k = awake ? islandProximity.closeness(point, rect) : 0;
-  const lean = awake ? islandProximity.lean(point, rect, k) : 0;
 
   // Three decimals is finer than the effect can render, and makes "unchanged"
   // the common case while you move around away from the pill.
-  const next = { k: Number(k.toFixed(3)), lean: Number(lean.toFixed(3)) };
+  const next = { k: Number(k.toFixed(3)) };
   const prev = runtime.islandProximity;
-  if (next.k === prev.k && next.lean === prev.lean) return;
+  if (next.k === prev.k) return;
 
   const since = Date.now() - runtime.islandProximitySentAt;
   if (since >= 16) {
@@ -3340,6 +3340,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   hideUtilitySheet({ refocusContent: false });
 
   rt().lastActiveByCluster.set(clusterKeyForTab(next), id);
+  rt().activationHistory = recordActivation(rt().activationHistory, id);
 
   // No window to attach to (quitting, or macOS with all windows closed):
   // just track the selection so window recreation attaches the right tab.
@@ -3717,6 +3718,7 @@ function closeTab(id) {
   popupChildCounts.delete(id);
   windowRuntimes.detachTab(id);
   rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
+  rt().activationHistory = (rt().activationHistory ?? []).filter((tid) => tid !== id);
   pruneEmptyGroups();
   const wc = tab.view?.webContents ?? retainedView?.webContents;
   if (wc) lastMainFrameMethod.delete(wc.id);
@@ -3747,7 +3749,15 @@ function closeTab(id) {
       setActiveTab(survivingGlanceId);
       return;
     }
-    if (rt().tabOrder.length > 0) {
+    // Return to the previously active tab (activation history, most recent
+    // surviving first); the right-neighbor rule is the fallback once history
+    // is exhausted — e.g. right after session restore, where only the
+    // selected tab was ever activated.
+    const mruId = previousSurvivor(rt().activationHistory,
+      (tid) => tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === rt());
+    if (mruId) {
+      setActiveTab(mruId);
+    } else if (rt().tabOrder.length > 0) {
       // Prefer the tab that was to the right of the closed one.
       setActiveTab(rt().tabOrder[Math.min(closedIndex, rt().tabOrder.length - 1)]);
     } else if (hasLiveWindow()) {
