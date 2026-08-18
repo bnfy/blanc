@@ -658,29 +658,37 @@ In `main.js`, add `patronActive: settings.isPatronActive()` to `startPageStatus(
 
 - [ ] **Step 2: Start page callout with live updates**
 
-In `newtab.js`, render a quiet, non-intrusive callout in the ledger layout — below the favorites grid and above the footer. Keep it understated (one line, e.g. "Support Blanc" with a link). When `patronActive` is true, hide it. The callout must not dominate the start page or feel like an ad.
+In `newtab.html`, render a quiet, non-intrusive callout in the ledger layout — below the favorites grid and above the footer. Keep it understated (one line, e.g. "Support Blanc"). The callout must not dominate the start page or feel like an ad.
 
-The callout state must update from **both** paths:
+**The link is a plain internal-page anchor, NOT a bridge call.** New-tab pages get `window.bowserPages`, which has no `openPage` — only the chrome/overlay preload exposes `browserAPI.openPage`. So the callout reuses the exact pattern the Favorites label already uses on this page (`<a href="blanc://bookmarks/">favorites</a>`, `newtab.html:26`):
+
+```html
+<p id="patron-callout" class="ledger-patron" hidden>
+  <a href="blanc://settings/#group-patron">Support Blanc</a>
+</p>
+```
+
+The utility-page router intercepts that navigation: `isUtilityUrl('blanc://settings/#group-patron')` is true (host `settings`), and `showUtilityPage` passes the full URL — fragment included — into the sheet navigation, so Settings opens at the Patron section. This is the same fragment-deep-link path the `blocking`→`#group-privacy` link already uses. No new privileged IPC bridge is added.
+
+The callout's *visibility* is state-driven and must update from **both** paths:
 
 ```js
-// On initial load (from pages:start:data)
+// hide when the user is already a Patron
 function renderPatronCallout(patronActive) {
   const el = document.getElementById('patron-callout');
   if (el) el.hidden = !!patronActive;
 }
 
-// Called from the existing dataReady handler
+// initial load (from pages:start:data, in the existing dataReady handler)
 renderPatronCallout(data.patronActive);
 
-// On live status push (from pages:start:status) — add to the existing onStatus handler
+// live status push (from pages:start:status) — add to the existing onStatus handler
 window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
   if ('patronActive' in status) renderPatronCallout(status.patronActive);
 });
 ```
-
-The callout link uses `window.bowserPages.openPage('settings', 'patron')` to deep-link to the Patron section (Step 3 wires the anchor).
 
 - [ ] **Step 3: `/patron` slash command + section deep-link**
 
