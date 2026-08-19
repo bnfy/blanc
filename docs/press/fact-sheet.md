@@ -23,7 +23,7 @@ extension runtime.
 | Current public baseline | [1.5.0](https://github.com/bnfy/blanc/releases/tag/v1.5.0) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
-| Optional purchase | Blanc Supporter, US$19 one time, plus applicable taxes; unlocks three cosmetic app-icon colorways |
+| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks three cosmetic app-icon colorways today, with more Patron-only extras over time. Founding supporters from the earlier one-time purchase keep their benefits permanently |
 | Browser engine | Chromium through Electron |
 | Default search | DuckDuckGo; Google, Bing, and Brave Search are also available |
 | Blocking | Reviewed, hash-pinned EasyList + EasyPrivacy snapshots bundled into each release; browser-level request blocking, cosmetic CSS, and isolated blocker scriptlets |
