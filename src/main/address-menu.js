@@ -74,8 +74,8 @@ function attachAddressMenu(wc, deps) {
     // this event, with no ordering guarantee between them.) The same
     // round-trip verifies the click actually landed on the address input:
     // the renderer's suppression listener should make any other editable
-    // (the group-picker field) unreachable, but if it ever fails to register
-    // this menu must not pop for the wrong field with the address bar's text.
+    // unreachable, but if it ever fails to register this menu must not pop
+    // for the wrong field with the address bar's text.
     let fieldText;
     try {
       fieldText = await wc.executeJavaScript(`(() => {

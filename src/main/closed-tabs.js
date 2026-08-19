@@ -127,6 +127,33 @@ function buildGroupEntry(group, members, now = 0) {
   };
 }
 
+/** One entry for a bulk close ("Close Other Tabs"): all members restored by
+ *  one ⌘⇧T, no group created — each member rejoins its recorded group only if
+ *  it still exists at restore time (resolved by the caller). Private members
+ *  are dropped from the record, same as buildGroupEntry. */
+function buildBatchEntry(members, now = 0) {
+  return {
+    kind: 'batch',
+    id: nextEntryId(),
+    closedAt: now,
+    tabs: members
+      .filter((m) => !m.private)
+      .map((m) => ({
+        url: m.url,
+        title: typeof m.title === 'string' && m.title ? m.title : m.url,
+        favicon: typeof m.favicon === 'string' ? m.favicon : null,
+        pinned: !!m.pinned,
+        muted: !!m.muted,
+        snapshot: m.snapshot ?? null,
+        groupId: m.groupId ?? null,
+      })),
+    view: null,
+    heldAt: null,
+    wcId: null,
+    expiryTimer: null,
+  };
+}
+
 /** Ids of entries whose hold has aged out. Always a downgrade, never a
  *  destroy: every held entry carries its snapshot (§2.1). */
 function expireHolds(entries, { now, graceMs = CLOSED_GRACE_MS } = {}) {
@@ -151,9 +178,11 @@ function projectEntries(entries) {
       : null;
   return (entries ?? []).map((e) => ({
     id: e.id,
-    title: e.kind === 'group' ? e.group.name : e.title,
-    favicon: e.kind === 'group' ? null : pngFavicon(e.favicon),
-    tabCount: e.kind === 'group' ? e.tabs.length : 1,
+    title: e.kind === 'group' ? e.group.name
+      : e.kind === 'batch' ? `${e.tabs.length} tabs`
+      : e.title,
+    favicon: e.kind === 'group' || e.kind === 'batch' ? null : pngFavicon(e.favicon),
+    tabCount: e.kind === 'group' || e.kind === 'batch' ? e.tabs.length : 1,
   }));
 }
 
@@ -162,6 +191,7 @@ module.exports = {
   sanitizeSnapshot,
   buildTabEntry,
   buildGroupEntry,
+  buildBatchEntry,
   expireHolds,
   expireEntries,
   projectEntries,

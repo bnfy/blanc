@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -71,6 +71,11 @@ const {
   discardProfileDownloads,
 } = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
+const { installDockMenu } = require('./dock-menu');
+/** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
+let dockMenuHandle = null;
+const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
+const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const bookmarks = require('./bookmarks');
@@ -148,7 +153,7 @@ const { showAboutPanel } = require('./about-panel');
 const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const {
-  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry,
+  holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
   MAX_CLOSED_ENTRIES,
 } = require('./closed-tabs');
@@ -819,6 +824,10 @@ async function discardRendererKeepingStorage(tab, wc, owner, { broadcast, navEpo
   if (!tabs.has(tab.id) || tab.id === rt().activeTabId || tab.id === rt().glanceTabId
       || tab.navEpoch !== navEpoch || tab.isLoading
       || !tab.sleeping || tab.capturing || liveContents(tab) !== wc
+      // A mid-probe Move-Tab-to-New-Window re-homes the tab; the active/glance
+      // checks above read the runtime that STARTED this sleep, so they would
+      // miss a tab that is now the destination window's visible page.
+      || windowRuntimes.runtimeForTab(tab.id) !== rt()
       || !rendererIsExclusive()) return false;
 
   const wcId = wc.id;
@@ -888,7 +897,10 @@ async function sleepTab(id, { broadcast = true } = {}) {
   // the visible Glance reference while an earlier candidate's probe awaited.
   if (!tabs.has(id) || id === rt().activeTabId || id === rt().glanceTabId
       || tab.navEpoch !== epochAtProbe
-      || tab.isLoading || tab.sleeping || tab.capturing || !liveContents(tab)) return false;
+      || tab.isLoading || tab.sleeping || tab.capturing || !liveContents(tab)
+      // Same moved-tab blind spot as the sessionStorage path: the runtime
+      // that started this sleep no longer owns a tab moved mid-probe.
+      || windowRuntimes.runtimeForTab(id) !== rt()) return false;
 
   if (snapshot.droppedPageState) {
     console.debug(`[quiet-tabs] ${id}: page state dropped (oversized or private)`);
@@ -1835,7 +1847,12 @@ function createOverlay() {
     hideOverlay({ refocusContent: false });
   }));
 
-  attachAddressMenu(rt().overlayView.webContents, {
+  // The address menu and the tab-row menu share the overlay webContents and the
+  // SAME blur-guard ticket (they are mutually exclusive by target — editable
+  // input vs. row). One deps object so the subtle release policy (stale-ticket
+  // check, GTK async-focus 80ms sample, dismiss-without-stealing-focus) has a
+  // single definition; drift between two copies would corrupt the shared guard.
+  const overlayMenuGuardDeps = {
     isOverlayLive: bindWindowRuntime(owner, () =>
       hasLiveWindow()
       && rt().overlayView && !rt().overlayView.webContents.isDestroyed()
@@ -1863,9 +1880,23 @@ function createOverlay() {
         refocusOverlayAfterMenu();
       }), 80);
     }),
+  };
+
+  attachAddressMenu(rt().overlayView.webContents, {
+    ...overlayMenuGuardDeps,
     actions: {
       pasteAndGo: bindWindowRuntime(owner, (text) => { if (rt().activeTabId) pasteAndGo(rt().activeTabId, text); }),
     },
+  });
+
+  // Tab-row context menu, same webContents; shares the guard above.
+  attachRowMenu(rt().overlayView.webContents, {
+    ...overlayMenuGuardDeps,
+    resolveTab: bindWindowRuntime(owner, (rawId) => {
+      const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
+      return id == null ? null : tabContextData(tabs.get(id), owner);
+    }),
+    actions: menuContextActions(owner),
   });
 }
 
@@ -2625,6 +2656,9 @@ function currentTabsPayload() {
 
 function broadcastTabs() {
   persistSession();
+  // The Dock menu's active-tab line reflects the frontmost window, which may
+  // not be rt() — refresh unconditionally, before the rt()-liveness return.
+  refreshDockMenu();
   // Existing Tab Sync consent covers Personal's primary workspace only.
   if (rt().id === PRIMARY_WINDOW_ID && rt().profileId === DEFAULT_PROFILE_ID) {
     tabsync.noteTabsChanged();
@@ -2997,6 +3031,10 @@ function closedMemberRecord(id) {
   return {
     url: tab.url, title: tab.title, favicon: tab.favicon ?? null,
     pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private, snapshot,
+    // Batch entries (Close Other Tabs) span groups; each member re-resolves
+    // this against the surviving groups at restore time. Group entries carry
+    // their group at the entry level and ignore this field.
+    groupId: tab.groupId ?? null,
   };
 }
 
@@ -3649,6 +3687,35 @@ function reopenGroupEntry(entry) {
   scheduleMenuRebuild();
 }
 
+/** Restore a Close-Other-Tabs batch: members born quiet with their snapshots
+ *  parked (the reopenGroupEntry pattern), each rejoining its recorded group
+ *  only if that group still exists — no group is created. Placed ABOVE the
+ *  close/reopen pair for the same source-slicing reason as reopenGroupEntry. */
+function reopenBatchEntry(entry) {
+  const ids = entry.tabs.map((member) => {
+    const groupId = member.groupId && rt().groups.some((g) => g.id === member.groupId)
+      ? member.groupId
+      : null;
+    const id = createTab(member.url, {
+      groupId, pinned: member.pinned, muted: member.muted,
+      asleep: true, title: member.title, favicon: member.favicon,
+    });
+    if (id && member.snapshot) {
+      sleepSnapshots.set(id, {
+        view: null,
+        entries: member.snapshot.entries,
+        index: member.snapshot.index,
+        droppedPageState: member.snapshot.droppedPageState,
+      });
+    }
+    return id;
+  }).filter(Boolean);
+  if (ids.length === 0) return;
+  setActiveTab(ids[0]);
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
 function closeTab(id) {
   const { record = true, selectReplacement = true } = arguments[1] ?? {};
   // First statement: any later early return must not strand recovery data.
@@ -3787,11 +3854,68 @@ function reopenClosedTab() {
 
 /** Restore one consumed entry. Tier 0 adopts the parked view; a dead or
  *  unattachable view falls through to the snapshot (§3.2). */
+/** Explicit-quiet eligibility for one tab: the sweep's full sleepCandidates
+ * policy (pinned, audible, opener families, permission-pending, glance, …)
+ * minus only the idle threshold, evaluated in the tab's own window runtime.
+ * The menu's enabled bit and sleepTabNow share this single predicate so the
+ * item can never render enabled for a tab the action would refuse. */
+function explicitSleepEligible(tab, owner) {
+  if (!tab || !owner) return false;
+  return withWindowRuntime(owner, () => {
+    const tabList = rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean);
+    return sleepCandidates(tabList, {
+      activeTabId: rt().activeTabId,
+      ignoreThreshold: true,
+      snapshotCount: sleepSnapshots.size,
+      maxSnapshots: MAX_SLEEP_SNAPSHOTS,
+      permissionPendingTabIds: permissionPendingTabIds(),
+      popupChildCounts,
+      visibleTabIds: new Set([rt().glanceTabId].filter(Boolean)),
+    }).includes(tab.id);
+  });
+}
+
+/** "Quiet This Tab Now" (internal sleep vocabulary per the Quiet Tabs naming
+ * rule). sleepTab's own async revalidation remains the backstop. */
+function sleepTabNow(id) {
+  const tab = tabs.get(id);
+  if (!tab || !explicitSleepEligible(tab, windowRuntimes.runtimeForTab(id))) return;
+  sleepTab(id);
+}
+
+/** "Close Other Tabs" — closeGroup's batch discipline: capture everything
+ * first, select the kept tab ONCE up front (so no close ever needs a
+ * per-member replacement, which would cascade activation — and wake — through
+ * doomed tabs; closeTab's own comment forbids that caller pattern), close
+ * with record/selectReplacement off, then record ONE batch entry so a single
+ * ⌘⇧T undoes the whole action instead of flooding the 25-entry history. */
+function closeOtherTabsInWindow(keepId) {
+  if (!tabs.has(keepId) || windowRuntimes.runtimeForTab(keepId) !== rt()) return;
+  const doomed = closableTabIds({ tabOrder: [...rt().tabOrder], tabsById: tabs, keepId });
+  if (!doomed.length) return;
+  const entry = buildBatchEntry(doomed.map(closedMemberRecord), Date.now());
+  if (rt().activeTabId !== keepId) setActiveTab(keepId, { focusContent: false });
+  for (const id of doomed) closeTab(id, { record: false, selectReplacement: false });
+  if (entry.tabs.length > 0) pushClosedEntry(entry); // an all-private rest records nothing
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+/** "New Group…" handoff: open the command panel prefilled with /group, bound
+ * to the right-clicked tab. The target rides the overlay:show purpose payload
+ * so it is delivered atomically with the prefill AND replayed by the
+ * did-finish-load path — a separate message would be lost on a slow first
+ * load or crashed-overlay recreate, silently grouping the active tab. */
+function beginNewGroup(tabId) {
+  showOverlay('panel', { prefill: '/group ', purpose: { beginGroupTabId: tabId } });
+}
+
 function reopenEntry(entry) {
   clearTimeout(entry.expiryTimer);
   entry.expiryTimer = null;
   clearTimeout(entry.holdTimer);
   if (entry.kind === 'group') return reopenGroupEntry(entry);
+  if (entry.kind === 'batch') return reopenBatchEntry(entry);
   const resolvedGroupId = entry.groupId && rt().groups.some((g) => g.id === entry.groupId)
     ? entry.groupId
     : null;
@@ -3935,7 +4059,13 @@ function openInternalPage(url) {
 }
 
 function toggleBookmarkForActiveTab() {
-  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
+  if (rt().activeTabId) toggleBookmarkForTab(rt().activeTabId);
+}
+
+/** Per-tab favorite toggle for the context menu; same guards as the active-tab
+ * version (private tabs never populate synced Favorites). */
+function toggleBookmarkForTab(id) {
+  const tab = tabs.get(id);
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
   tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
   broadcastTabs();
@@ -4912,6 +5042,58 @@ function buildMenuForRuntime(runtime) {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
+/** The tab fields + window facts the shared context-menu model reads. `owner`
+ * is the window runtime the menu belongs to. Null if the tab isn't in it. */
+function tabContextData(tab, owner) {
+  if (!tab || tab.runtimeId !== owner.id) return null;
+  return {
+    tab: {
+      id: tab.id, url: tab.url, title: tab.title,
+      pinned: !!tab.pinned, muted: !!tab.muted, private: !!tab.private,
+      asleep: !!tab.asleep, bookmarked: !!tab.bookmarked,
+      groupId: tab.groupId ?? null, capturing: !!tab.capturing,
+    },
+    groups: owner.groups.map((g) => ({ id: g.id, name: g.name })),
+    activeTabId: owner.activeTabId,
+    canCloseOthers: closableTabIds({ tabOrder: owner.tabOrder, tabsById: tabs, keepId: tab.id }).length > 0,
+    canMoveToNewWindow: owner.tabOrder.length > 1,
+    canQuiet: explicitSleepEligible(tab, owner),
+  };
+}
+
+/** The action closures the context-menu runner calls, bound to `owner`. */
+function menuContextActions(owner) {
+  const b = (fn) => bindWindowRuntime(owner, fn);
+  return {
+    copy: (text) => clipboard.writeText(text),
+    // A quiet tab has no live renderer to reload — waking IS its reload
+    // (same branch openInternalPage takes).
+    reload: b((id) => {
+      const tab = tabs.get(id);
+      if (!tab) return;
+      if (tab.asleep) { wakeTab(id).catch(() => {}); return; }
+      liveContents(tab)?.reload();
+    }),
+    duplicate: b((id) => duplicateTab(id)),
+    togglePin: b((id) => toggleTabPinned(id)),
+    toggleMute: b((id) => toggleTabMuted(id)),
+    toggleFavorite: b((id) => toggleBookmarkForTab(id)),
+    setGroup: b((id, gid) => setTabGroup(id, gid)),
+    beginNewGroup: b((id) => beginNewGroup(id)),
+    // Mirrors the row's glance chip: once the pane actually opens, dismiss the
+    // panel so it isn't left floating over the fresh Glance split (a quiet tab
+    // wakes first inside setGlanceTab, so success can take a beat).
+    glance: b(async (id) => { if (await setGlanceTab(id)) hideOverlay(); }),
+    quiet: b((id) => sleepTabNow(id)),
+    newTab: b(() => setActiveTab(createTab(newTabUrl()), { focusContent: false, focusAddress: true })),
+    newPrivateTab: b(() => setActiveTab(createTab(PRIVATE_NEW_TAB_URL, { private: true }), { focusContent: false, focusAddress: true })),
+    closeOthers: b((id) => closeOtherTabsInWindow(id)),
+    moveToNewWindow: b((id) => moveTabToNewWindow(id)),
+    reopenClosed: b(() => reopenClosedTab()),
+    close: b((id) => closeTab(id)),
+  };
+}
+
 function createMainWindow(runtime = primaryRuntime) {
   return withWindowRuntime(runtime, () => createMainWindowForRuntime(runtime));
 }
@@ -4963,6 +5145,17 @@ function createMainWindowForRuntime(runtime) {
 
   lockPrivilegedNavigation(rt().window.webContents, CHROME_INDEX_URL);
   installChromeShortcuts(rt().window.webContents);
+  attachChromeMenu(rt().window.webContents, {
+    getWindow: bindWindowRuntime(runtime, () => rt().window),
+    resolveActiveTab: bindWindowRuntime(runtime, () =>
+      tabContextData(tabs.get(rt().activeTabId), runtime)),
+    // Vertical-rail rows: same string→number id coercion as the overlay rows.
+    resolveTab: bindWindowRuntime(runtime, (rawId) => {
+      const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
+      return id == null ? null : tabContextData(tabs.get(id), runtime);
+    }),
+    actions: menuContextActions(runtime),
+  });
   rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
   rt().window.on('resize', bindWindowRuntime(runtime, resizeActiveView));
@@ -4970,6 +5163,7 @@ function createMainWindowForRuntime(runtime) {
     focusedRuntime = runtime;
     setFocusedLocalProfile(runtime.profileId);
     buildMenu(runtime);
+    refreshDockMenu(); // frontmost window changed → new active-tab line
     refocusAddressBarIfWanted();
   }));
   rt().window.on('close', bindWindowRuntime(runtime, () => {
@@ -4997,6 +5191,7 @@ function createMainWindowForRuntime(runtime) {
       candidate.window && !candidate.window.isDestroyed() && !candidate.closing) ?? primaryRuntime;
     focusedRuntime = next;
     setFocusedLocalProfile(next.profileId);
+    refreshDockMenu(); // frontmost window changed (or all closed)
     if (windowRuntimes.all().some((candidate) =>
       candidate.window && !candidate.window.isDestroyed())) {
       buildMenu(next);
@@ -5027,6 +5222,48 @@ function createWindowRuntimeId() {
   return `window_${crypto.randomUUID().replace(/-/g, '')}`;
 }
 
+/** The frontmost window's active tab, as the Dock menu's top line. Mirrors the
+ * app menu's private-leak rule (tabMenuItems): a private active tab shows a
+ * generic label and no favicon, never its real title/URL. macOS-only. */
+function dockActiveTabDescriptor() {
+  if (process.platform !== 'darwin') return null;
+  // No line while every window is closed (macOS dock-close): a Dock-icon
+  // click already reopens the last workspace, and a tab line over an empty
+  // app reads as a phantom window.
+  if (!focusedRuntime?.window || focusedRuntime.window.isDestroyed()) return null;
+  const id = focusedRuntime.activeTabId;
+  const tab = id != null ? tabs.get(id) : null;
+  if (!tab) return null;
+  if (tab.private) return { label: 'Private tab', iconDataUrl: null };
+  const raw = tab.title || (tab.isLoading ? 'Loading…' : 'New Tab');
+  const label = raw.length > 75 ? `${raw.slice(0, 74)}…` : raw;
+  const favicon = typeof tab.favicon === 'string' && tab.favicon.startsWith('data:image/')
+    ? tab.favicon : null;
+  return { label, iconDataUrl: favicon };
+}
+
+/** Push the current frontmost active tab onto the Dock menu. Cheap: the handle
+ * rebuilds only when the visible line changes, so this is safe to call on every
+ * tab broadcast and focus change. No-op until app-ready and off macOS. */
+function refreshDockMenu() {
+  dockMenuHandle?.update(dockActiveTabDescriptor());
+}
+
+/** Dock "active tab" line click: raise the frontmost window, recreating one on
+ * macOS if every window is closed (as a Dock-icon click would). */
+function focusDockActiveWindow() {
+  const win = focusedRuntime?.window;
+  if (win && !win.isDestroyed()) {
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+    return;
+  }
+  if (BrowserWindow.getAllWindows().length === 0) createMainWindow(primaryRuntime);
+  focusedRuntime = primaryRuntime;
+  setFocusedLocalProfile(primaryRuntime.profileId);
+}
+
 function openNewWindow(options = {}) {
   const requestedProfileId = options?.profileId
     ?? focusedRuntime?.profileId
@@ -5042,8 +5279,34 @@ function openNewWindow(options = {}) {
   });
   createMainWindow(runtime);
   return withWindowRuntime(runtime, () => {
-    const tabId = createTab(newTabUrl());
-    if (tabId) setActiveTab(tabId, { focusContent: false, focusAddress: true });
+    let tabId = null;
+    if (options.adoptTabId != null && tabs.has(options.adoptTabId)) {
+      // Adopt an existing tab (Move Tab to New Window) instead of seeding a
+      // fresh one — the caller has already detached it from its old window.
+      tabId = options.adoptTabId;
+      const tab = tabs.get(tabId);
+      tab.runtimeId = runtime.id;
+      windowRuntimes.attachTab(runtime, tabId);
+      runtime.tabOrder = [tabId];
+      // Re-home the per-tab listener set: wireTabView binds its owner runtime
+      // once at attach time, so without this every media/find/beforeunload/
+      // window.open handler would keep acting on the OLD window. A retained-
+      // storage quiet tab keeps a live, still-wired WebContents in its sleep
+      // snapshot (wakeTab's retained branch deliberately skips rewiring), so
+      // that view needs the same treatment as an awake one.
+      const wiredView = liveContents(tab) ? tab.view : (sleepSnapshots.get(tabId)?.view ?? null);
+      const wiredWc = wiredView?.webContents;
+      if (wiredWc && !wiredWc.isDestroyed()) {
+        unwireTabView(wiredWc);
+        wireTabView(tab, wiredView, { owner: runtime, adopted: !!tab.adopted });
+      }
+      setActiveTab(tabId); // attaches (and wakes a discarded quiet tab) here
+    } else {
+      tabId = options.private
+        ? createTab(PRIVATE_NEW_TAB_URL, { private: true })
+        : createTab(newTabUrl());
+      if (tabId) setActiveTab(tabId, { focusContent: false, focusAddress: true });
+    }
     focusedRuntime = runtime;
     setFocusedLocalProfile(runtime.profileId);
     runtime.window.show();
@@ -5052,6 +5315,54 @@ function openNewWindow(options = {}) {
     buildMenu(runtime);
     return runtime.id;
   });
+}
+
+/** "Move Tab to New Window": detach the tab from its window and adopt it into
+ * a fresh one via openNewWindow's adoptTabId mode (shared scaffold = shared
+ * guards and bring-up sequencing). Ungrouped on move — a group spanning two
+ * windows isn't a modeled concept (context-menus design §6). Pin and mute
+ * state travel with the tab. */
+function moveTabToNewWindow(id) {
+  const tab = tabs.get(id);
+  if (!tab) return;
+  // Never mid-sleep-transition: teardown/wake own the view lifecycle, and
+  // sleepTab's revalidation now also refuses a tab that changed runtimes.
+  if (tab.sleeping || tab.waking) return;
+  const source = windowRuntimes.runtimeForTab(id);
+  if (!source || source.tabOrder.length <= 1) return; // sole tab — no-op
+  // Checked BEFORE the source surgery: openNewWindow throws on a pending
+  // profile deletion, which would otherwise strand a detached tab.
+  if (profileDeletions.hasPendingProfileDeletion(source.profileId)) return;
+
+  // 1. Detach from the source window. A pending permission prompt belongs to
+  //    this window's runtime and would float over unrelated content (and its
+  //    per-tab cancel path could never find it again post-move) — cancel it,
+  //    same as closeTab; the page re-requests in the new window. If the tab
+  //    is the Glance pane, close that; if active, hand focus to the MRU
+  //    survivor (closeTab's rule) with the right-neighbour as fallback. The
+  //    view is already detached at that point (active → survivor selection,
+  //    Glance → closeGlance, background → never attached).
+  withWindowRuntime(source, () => {
+    cancelPermissionPromptsForTab(id);
+    if (rt().glanceTabId === id) closeGlance({ focusContent: false });
+    if (rt().activeTabId === id) {
+      const mruId = previousSurvivor(rt().activationHistory,
+        (tid) => tid !== id && tabs.has(tid) && windowRuntimes.runtimeForTab(tid) === rt());
+      const survivor = mruId ?? pickSurvivorTabId(source.tabOrder, id);
+      if (survivor != null) setActiveTab(survivor, { focusContent: false });
+    }
+    source.tabOrder = source.tabOrder.filter((tid) => tid !== id);
+    source.activationHistory = (source.activationHistory ?? []).filter((tid) => tid !== id);
+    rt().tabsWantingAddressBarFocus.delete(id);
+    tab.groupId = null; // ungroup BEFORE pruning, or the empty group survives
+    pruneEmptyGroups();
+    broadcastTabs(); // persists the session as part of the broadcast
+  });
+
+  // 2. Shared window bring-up + adoption (runtimeId, attachTab, listener
+  //    rewire, activation, focus, menu) all live in openNewWindow's adopt
+  //    branch, keeping guards and sequencing in one place.
+  openNewWindow({ profileId: source.profileId, adoptTabId: id });
 }
 
 function openNewProfileWindow(name) {
@@ -5513,6 +5824,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   applyTheme();
   lastNativeThemeAppearance = resolvedThemeAppearance();
   applyAppIcon();
+  dockMenuHandle = installDockMenu({
+    app, Menu, nativeImage,
+    actions: {
+      newWindow: () => openNewWindow(),
+      newPrivateWindow: () => openNewWindow({ private: true }),
+      focusActiveWindow: () => focusDockActiveWindow(),
+    },
+  });
+  refreshDockMenu();
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', bindWindowRuntime(primaryRuntime, handleNativeThemeUpdated));
 
@@ -6247,6 +6567,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow(primaryRuntime);
     focusedRuntime = primaryRuntime;
     setFocusedLocalProfile(primaryRuntime.profileId);
+    refreshDockMenu();
     withWindowRuntime(primaryRuntime, refocusAddressBarIfWanted);
   });
 }));

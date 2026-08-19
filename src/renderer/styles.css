@@ -1875,30 +1875,8 @@ body[data-glance-purpose="change"] .glance-picker {
 .dot-mini { width: 4px; height: 4px; border-radius: 50%; background: var(--border); flex: 0 0 auto; }
 .dot-mini.accent { background: var(--accent); }
 
-/* Per-tab group chip ("group" / current group name) — revealed on row
-   hover like the close button; also used by the inline picker. */
-.row-grp {
-  opacity: 0;
-  height: 18px;
-  border-radius: 999px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 0 7px;
-  border: 1px solid var(--border);
-  color: var(--text-dim);
-  /* Natural width, but never more than 40% of the row — a long group name
-     shouldn't crowd out the title it's annotating. */
-  flex: 0 1 auto;
-  max-width: 40%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.island-row:hover .row-grp,
-.island-row:focus-within .row-grp,
-.row-grp.open,
-.row-grp:focus-visible { opacity: 1; }
-.row-grp:hover { color: var(--accent); border-color: var(--accent); }
+/* The per-tab group chip and its inline picker were retired when grouping
+   moved into the tab rows' right-click context menu (Move to Group ▸). */
 
 /* Explicit Glance selection lives with the tab row actions. The active
    reference stays labelled at rest; other rows reveal the action on
@@ -1986,23 +1964,6 @@ body[data-glance-purpose="change"] .glance-picker {
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-
-.group-picker { display: flex; gap: 4px; flex: 0 0 auto; }
-
-/* Inline "new group…" field in the picker — chip-shaped, mono voice. */
-.group-picker-input {
-  height: 18px;
-  width: 78px;
-  padding: 0 7px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--text);
-  font-family: var(--font-mono);
-  font-size: 10px;
-}
-.group-picker-input::placeholder { color: var(--text-dim); }
-.group-picker-input:focus { outline: none; border-color: var(--accent); }
 
 /* Group results in the Quick Switcher use the mono voice. */
 /* Recently-closed section: quiet rows that brighten on hover. Recovery tiers
