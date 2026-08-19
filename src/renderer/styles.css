@@ -2103,6 +2103,64 @@ body[data-glance-purpose="change"] .glance-picker {
   padding: 10px;
 }
 
+/* ---------- Island: workspaces section (Blanc Patron) ----------
+   Deliberately no new row/header shape: a workspace row is an .island-row
+   with the group-result treatment (.row-title.mono + .row-sub, the same pair
+   switcherResults() uses for group matches), the bound one marked the same
+   way every other "current" row is (.island-row.active), and the section
+   header is the existing static .island-ghead (.ghead-name.dim + .ghead-rule)
+   that "pinned"/"closed" already use. Only two genuinely new pieces follow:
+   a small text-button generalized off .closed-clear, and an inline text
+   input sized to sit inside a row. */
+
+/* A small text button living inside a static ghead row — .closed-clear's
+   exact treatment, renamed generically because it's no longer only "clear":
+   the workspaces header's "save as" action and the inline delete-confirm's
+   cancel/delete both use it. */
+.ghead-action {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  opacity: 0.7;
+  padding: 2px 4px;
+  flex: 0 0 auto;
+}
+.ghead-action:hover,
+.ghead-action:focus-visible { color: var(--text); opacity: 1; }
+/* Delete-confirm's destructive action reads at rest, not just on hover —
+   the same reasoning .capture-pop-stop's hover/focus danger state applies,
+   made permanent here because this button IS the delete action, not a
+   secondary control next to one. */
+.ghead-action.danger { color: var(--danger); opacity: 0.85; }
+.ghead-action.danger:hover,
+.ghead-action.danger:focus-visible { opacity: 1; }
+
+/* Inline rename editor: the row's title swaps for a real input, same family
+   as #findInput scaled to row height. */
+.row-edit-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.row-edit-input::placeholder { color: var(--text-dim); }
+.row-edit-input:focus { outline: none; border-color: var(--accent); }
+
+/* A row mid-rename or mid-delete-confirm isn't a switch target any more —
+   drop the hover cue that says otherwise. */
+.island-row.editing,
+.island-row.confirming { cursor: default; }
+.island-row.editing:hover,
+.island-row.confirming:hover { background: none; }
+
 /* ---------- Island: expanded-panel footer action bar ----------
    New tab / private launchers on the left, quick-access page shortcuts and
    the tab-layout toggle on the right. A static row

@@ -76,6 +76,7 @@ const { installDockMenu } = require('./dock-menu');
 let dockMenuHandle = null;
 const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
+const { attachWorkspaceRowMenu } = require('./workspace-context-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const patron = require('./patron');
@@ -1905,6 +1906,17 @@ function createOverlay() {
       return id == null ? null : tabContextData(tabs.get(id), owner);
     }),
     actions: menuContextActions(owner),
+  });
+
+  // Workspace-row context menu (Rename/Delete) — a separate module from the
+  // tab-row menu above (see workspace-context-menu-model.js's header), same
+  // webContents and shared guard, mutually exclusive by which id the
+  // renderer recorded on the last right-click.
+  attachWorkspaceRowMenu(rt().overlayView.webContents, {
+    ...overlayMenuGuardDeps,
+    resolveWorkspace: bindWindowRuntime(owner, (rawId) =>
+      (typeof rawId === 'string' && rawId ? namedWorkspaces.get(rawId) : null)),
+    actions: workspaceMenuContextActions(owner),
   });
 }
 
@@ -4648,6 +4660,31 @@ function broadcastWorkspacesUpdated() {
   }, { liveOnly: true });
 }
 
+// Workspace row context-menu targets (Rename/Delete, Task 8). Both funnel
+// into showOverlay with a purpose payload — the SAME channel beginNewGroup
+// (below) already uses to open an editing UI for a specific target inside an
+// already-open panel. No new IPC: the renderer's overlay:show handler reads
+// purpose.renameWorkspaceId/deleteWorkspaceId and renders that one row
+// in-place as an inline editor or an inline delete-confirm. Placed here
+// (next to workspacesProjection/broadcastWorkspacesUpdated, not the
+// capture/apply/switch section above) for the same reason Task 7 placed its
+// own additions here: nothing added for Task 8 can land inside the exact
+// function-boundary text slices workspaces-apply.test.js lifts out of this
+// file's source.
+function beginRenameWorkspace(workspaceId) {
+  showOverlay('panel', { purpose: { renameWorkspaceId: workspaceId } });
+}
+function beginDeleteWorkspace(workspaceId) {
+  showOverlay('panel', { purpose: { deleteWorkspaceId: workspaceId } });
+}
+function workspaceMenuContextActions(owner) {
+  const b = (fn) => bindWindowRuntime(owner, fn);
+  return {
+    rename: b((id) => beginRenameWorkspace(id)),
+    remove: b((id) => beginDeleteWorkspace(id)),
+  };
+}
+
 // The two ad-block slash commands live here rather than inline in their IPC
 // handlers so the acceptance harness can drive the REAL implementation through
 // test-hook.js. A mirrored copy in the hook would leave the shipping handler
@@ -5251,6 +5288,7 @@ const SLASH_COMMANDS = [
   ['/allow-ads', 'Allow ads on this site'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
   ['/patron', 'Support Blanc with a Patron subscription'],
+  ['/workspace', 'Switch to a named workspace, or type a new name to save this window'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via

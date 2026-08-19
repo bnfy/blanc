@@ -24,6 +24,7 @@ const SLASH_COMMANDS = [
   ['/allow-ads', 'Allow ads on this site'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
   ['/patron', 'Support Blanc with a Patron subscription'],
+  ['/workspace', 'Switch to a named workspace, or type a new name to save this window'],
 ];
 
 /** One titled section of label/keys rows. */
