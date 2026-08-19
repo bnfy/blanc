@@ -72,6 +72,8 @@ const {
 } = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
 const { installDockMenu } = require('./dock-menu');
+/** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
+let dockMenuHandle = null;
 const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { promptForCredentials } = require('./auth-dialog');
@@ -2654,6 +2656,9 @@ function currentTabsPayload() {
 
 function broadcastTabs() {
   persistSession();
+  // The Dock menu's active-tab line reflects the frontmost window, which may
+  // not be rt() — refresh unconditionally, before the rt()-liveness return.
+  refreshDockMenu();
   // Existing Tab Sync consent covers Personal's primary workspace only.
   if (rt().id === PRIMARY_WINDOW_ID && rt().profileId === DEFAULT_PROFILE_ID) {
     tabsync.noteTabsChanged();
@@ -5158,6 +5163,7 @@ function createMainWindowForRuntime(runtime) {
     focusedRuntime = runtime;
     setFocusedLocalProfile(runtime.profileId);
     buildMenu(runtime);
+    refreshDockMenu(); // frontmost window changed → new active-tab line
     refocusAddressBarIfWanted();
   }));
   rt().window.on('close', bindWindowRuntime(runtime, () => {
@@ -5185,6 +5191,7 @@ function createMainWindowForRuntime(runtime) {
       candidate.window && !candidate.window.isDestroyed() && !candidate.closing) ?? primaryRuntime;
     focusedRuntime = next;
     setFocusedLocalProfile(next.profileId);
+    refreshDockMenu(); // frontmost window changed (or all closed)
     if (windowRuntimes.all().some((candidate) =>
       candidate.window && !candidate.window.isDestroyed())) {
       buildMenu(next);
@@ -5213,6 +5220,44 @@ function createMainWindowForRuntime(runtime) {
 
 function createWindowRuntimeId() {
   return `window_${crypto.randomUUID().replace(/-/g, '')}`;
+}
+
+/** The frontmost window's active tab, as the Dock menu's top line. Mirrors the
+ * app menu's private-leak rule (tabMenuItems): a private active tab shows a
+ * generic label and no favicon, never its real title/URL. macOS-only. */
+function dockActiveTabDescriptor() {
+  if (process.platform !== 'darwin') return null;
+  const id = focusedRuntime?.activeTabId;
+  const tab = id != null ? tabs.get(id) : null;
+  if (!tab) return null;
+  if (tab.private) return { label: 'Private tab', iconDataUrl: null };
+  const raw = tab.title || (tab.isLoading ? 'Loading…' : 'New Tab');
+  const label = raw.length > 75 ? `${raw.slice(0, 74)}…` : raw;
+  const favicon = typeof tab.favicon === 'string' && tab.favicon.startsWith('data:image/')
+    ? tab.favicon : null;
+  return { label, iconDataUrl: favicon };
+}
+
+/** Push the current frontmost active tab onto the Dock menu. Cheap: the handle
+ * rebuilds only when the visible line changes, so this is safe to call on every
+ * tab broadcast and focus change. No-op until app-ready and off macOS. */
+function refreshDockMenu() {
+  dockMenuHandle?.update(dockActiveTabDescriptor());
+}
+
+/** Dock "active tab" line click: raise the frontmost window, recreating one on
+ * macOS if every window is closed (as a Dock-icon click would). */
+function focusDockActiveWindow() {
+  const win = focusedRuntime?.window;
+  if (win && !win.isDestroyed()) {
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+    return;
+  }
+  if (BrowserWindow.getAllWindows().length === 0) createMainWindow(primaryRuntime);
+  focusedRuntime = primaryRuntime;
+  setFocusedLocalProfile(primaryRuntime.profileId);
 }
 
 function openNewWindow(options = {}) {
@@ -5775,13 +5820,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   applyTheme();
   lastNativeThemeAppearance = resolvedThemeAppearance();
   applyAppIcon();
-  installDockMenu({
-    app, Menu,
+  dockMenuHandle = installDockMenu({
+    app, Menu, nativeImage,
     actions: {
       newWindow: () => openNewWindow(),
       newPrivateWindow: () => openNewWindow({ private: true }),
+      focusActiveWindow: () => focusDockActiveWindow(),
     },
   });
+  refreshDockMenu();
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', bindWindowRuntime(primaryRuntime, handleNativeThemeUpdated));
 
@@ -6516,6 +6563,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (BrowserWindow.getAllWindows().length === 0) createMainWindow(primaryRuntime);
     focusedRuntime = primaryRuntime;
     setFocusedLocalProfile(primaryRuntime.profileId);
+    refreshDockMenu();
     withWindowRuntime(primaryRuntime, refocusAddressBarIfWanted);
   });
 }));
