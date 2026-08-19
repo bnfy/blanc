@@ -147,6 +147,11 @@
   // while "save first" is in flight — see the /workspace command's create
   // branch, which is the one place that consumes it.
   let pendingScratchGuard = null; // { kind: 'open'|'create', workspaceId?, name, tabCount, awaitingSave? }
+  // A row-inline editor (rename / create) is built into a detached element and
+  // only reaches the document when renderList() runs its replaceChildren, and
+  // focus() on a detached node is silently a no-op. So the editors record the
+  // focus they want here and renderList applies it once the row is live.
+  let pendingEditorFocus = null; // { input, caret, select }
 
   const ICONS = {
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
@@ -846,9 +851,7 @@
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelWorkspaceEdit(); }
     });
     row.append(input);
-    input.focus();
-    if (caret != null) input.setSelectionRange(caret, caret);
-    else input.select();
+    pendingEditorFocus = { input, caret, select: true };
   }
 
   function renderWorkspaceDeleteConfirm(row, workspace) {
@@ -905,8 +908,7 @@
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelCreateWorkspace(); }
     });
     row.append(input);
-    input.focus();
-    if (caret != null) input.setSelectionRange(caret, caret);
+    pendingEditorFocus = { input, caret, select: false };
     return row;
   }
 
@@ -1571,6 +1573,17 @@
     (row?.querySelector(`.${anchor.control}`) ?? row?.querySelector('.row-primary'))?.focus();
   }
 
+  // Applied at the tail of renderList, after the rows are in the document. It
+  // deliberately runs last so an inline editor outranks restoreRowFocus.
+  function focusPendingEditor() {
+    const pending = pendingEditorFocus;
+    pendingEditorFocus = null;
+    if (!pending || !islandList.contains(pending.input)) return;
+    pending.input.focus();
+    if (pending.caret != null) pending.input.setSelectionRange(pending.caret, pending.caret);
+    else if (pending.select) pending.input.select();
+  }
+
   function renderList() {
     if (pointerHeld) {
       renderQueued = true;
@@ -1662,6 +1675,8 @@
       // switcher branches drive focus from the input, not the rows.
       restoreRowFocus(rowAnchor);
     }
+
+    focusPendingEditor();
 
     islandHint.textContent = activeTab()?.private
       ? 'private · nothing here is saved to history'
