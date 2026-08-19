@@ -261,6 +261,48 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 /* Protected but nothing blocked here yet: a quiet landmark, not a badge. */
 .demo-island .shield-quiet { color: var(--text-dim); }
 .demo-island .shield[hidden] { display: none; }
+
+/* The blank-tab resting state (app 1.6.0: #pillDomain.placeholder + the "/"
+   chip, shown only when the pill has no domain — never beside a real site).
+   The wash animation and reduced-motion fallback reproduce the app's own
+   numbers from styles.css rather than approximating the look of them. */
+.demo-island .pill-slash { flex: 0 0 auto; padding: 0 5px; color: var(--text-dim); background: transparent; border: 1px solid var(--border); border-radius: 5px; font-family: var(--font-mono); font-size: 10px; line-height: 15px; cursor: pointer; transition: color 120ms ease, border-color 120ms ease; }
+.demo-island .pill-slash:hover { color: var(--accent); border-color: var(--accent); }
+.demo-island .pill-slash[hidden] { display: none; }
+.demo-island .pill-fav.internal { background: #fff url('/logo.png') center / cover no-repeat; box-shadow: inset 0 0 0 1px var(--border); }
+.demo-island .domain.placeholder {
+  color: var(--text-dim);
+  background-image: linear-gradient(90deg, var(--text-dim) 0%, var(--text-dim) 35%, var(--text) 50%, var(--text-dim) 65%, var(--text-dim) 100%);
+  background-size: 300% 100%;
+  background-repeat: repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: pill-placeholder-wash 2.6s linear infinite;
+}
+@keyframes pill-placeholder-wash {
+  from { background-position: 130% 0; }
+  to { background-position: -30% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-island .domain.placeholder { animation: none; background-image: none; -webkit-text-fill-color: currentColor; color: color-mix(in srgb, var(--text) 65%, var(--text-dim)); }
+}
+/* A miniature of the "billboard" start page (design system "New tab v2"): a
+   date line, a large clock, the week's blocked count, and favorite tiles,
+   centered — shown behind the quiet pill while the demo is on a blank tab.
+   Sits above the page render and below the island (z-index 5). The clock and
+   tile sizes are scaled down from pages.css to fit the demo stage. */
+.demo-newtab { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); user-select: none; }
+.demo-newtab[hidden] { display: none; }
+.demo-bb-date { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); letter-spacing: 0.18em; }
+.demo-bb-clock-row { display: flex; align-items: baseline; gap: 9px; margin-top: 10px; }
+.demo-bb-clock { font-family: var(--font-mono); font-size: clamp(52px, 9vw, 76px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; color: var(--text); }
+.demo-bb-meridiem { font-family: var(--font-mono); font-size: 15px; color: var(--text-dim); }
+.demo-bb-blocked { max-width: 92%; margin-top: 13px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); text-align: center; }
+.demo-bb-favs { display: flex; gap: clamp(18px, 3vw, 30px); margin-top: 30px; }
+.demo-bb-fav { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.demo-bb-fav .tile { width: 30px; height: 30px; border-radius: 6px; background: var(--surface) center / 19px no-repeat; border: 1px solid var(--border); }
+.demo-bb-fav .label { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-dim); }
 .demo-island .priv-chip { display: none; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 11.5px; padding: 2px 5px 2px 9px; border-radius: 999px; border: 1px dashed var(--accent); color: var(--accent); }
 /* The chip's ✕ is the app's own 16-grid glyph, drawn small — it used to be a
    bespoke cross on a 12 grid, the one shape in the demos outside the app's
@@ -1169,21 +1211,14 @@ body[data-page="press"] > .legal-top { display: none; }
 .press-island-live .row-close svg { display: block; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
 .press-island-live .row-pin svg { width: 14px; height: 14px; stroke-width: 1.25; }
 .press-island-live .row-close svg { width: 12px; height: 12px; stroke-width: 1.75; }
-.press-island-live .row-grp { height: 18px; padding: 0 7px; flex: 0 0 auto; color: var(--text-dim); background: transparent; border: 1px solid var(--border); border-radius: 999px; font-family: var(--font-mono); font-size: 10px; opacity: 0; cursor: pointer; transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease; }
 .press-island-live .trow:hover .row-pin,
 .press-island-live .trow:hover .row-close,
-.press-island-live .trow:hover .row-grp,
 .press-island-live .trow:focus-within .row-pin,
 .press-island-live .trow:focus-within .row-close,
-.press-island-live .trow:focus-within .row-grp,
 .press-island-live .row-pin:focus-visible,
-.press-island-live .row-close:focus-visible,
-.press-island-live .row-grp:focus-visible,
-.press-island-live .row-grp.open { opacity: 1; }
+.press-island-live .row-close:focus-visible { opacity: 1; }
 .press-island-live .row-pin:hover,
 .press-island-live .row-close:hover { color: var(--text); background: var(--border); }
-.press-island-live .row-grp:hover,
-.press-island-live .row-grp.open { color: var(--accent); border-color: var(--accent); }
 .press-island-live .row-pin.on { color: var(--accent); background: var(--accent-dim); }
 .press-island-live .sec-head,
 .press-island-live .trow .kbd,

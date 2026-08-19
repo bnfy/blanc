@@ -4,25 +4,25 @@ const tabSections = [
     name: 'pinned',
     showCount: false,
     tabs: [
-      { title: 'Gmail', domain: 'mail.google.com', favicon: 'gmail.com', shield: 2, group: '', page: '/shots/desktop/gmail.jpg', pinned: true },
-      { title: 'Notion', domain: 'notion.so', favicon: 'notion.so', shield: 1, group: '', page: '/shots/desktop/notion.jpg', pinned: true },
+      { title: 'Gmail', domain: 'mail.google.com', favicon: 'gmail.com', shield: 2, page: '/shots/desktop/gmail.jpg', pinned: true },
+      { title: 'Notion', domain: 'notion.so', favicon: 'notion.so', shield: 1, page: '/shots/desktop/notion.jpg', pinned: true },
     ],
   },
   {
     name: 'tech news',
     showCount: true,
     tabs: [
-      { title: 'The Verge', domain: 'theverge.com', favicon: 'theverge.com', shield: 12, group: 'tech news', page: '/shots/desktop/theverge.jpg', active: true },
-      { title: '9to5Mac', domain: '9to5mac.com', favicon: '9to5mac.com', shield: 8, group: 'tech news', page: '/shots/desktop/9to5mac.jpg' },
-      { title: 'CNET', domain: 'cnet.com', favicon: 'cnet.com', shield: 15, group: 'tech news', page: '/shots/desktop/cnet.png' },
+      { title: 'The Verge', domain: 'theverge.com', favicon: 'theverge.com', shield: 12, page: '/shots/desktop/theverge.jpg', active: true },
+      { title: '9to5Mac', domain: '9to5mac.com', favicon: '9to5mac.com', shield: 8, page: '/shots/desktop/9to5mac.jpg' },
+      { title: 'CNET', domain: 'cnet.com', favicon: 'cnet.com', shield: 15, page: '/shots/desktop/cnet.png' },
     ],
   },
   {
     name: 'research',
     showCount: true,
     tabs: [
-      { title: 'MDN Web Docs', domain: 'developer.mozilla.org', favicon: 'developer.mozilla.org', shield: 4, group: 'research', page: '/shots/desktop/mdn.jpg' },
-      { title: 'Hacker News', domain: 'news.ycombinator.com', favicon: 'news.ycombinator.com', shield: 3, group: 'research', page: '/shots/desktop/hacker-news.jpg' },
+      { title: 'MDN Web Docs', domain: 'developer.mozilla.org', favicon: 'developer.mozilla.org', shield: 4, page: '/shots/desktop/mdn.jpg' },
+      { title: 'Hacker News', domain: 'news.ycombinator.com', favicon: 'news.ycombinator.com', shield: 3, page: '/shots/desktop/hacker-news.jpg' },
     ],
   },
 ];
@@ -43,6 +43,20 @@ const tabSections = [
   <div class="press-island-stage" tabindex="0" aria-label="Interactive recreation of the Blanc Island. Click the Island to expand or collapse it; type in the open field to filter tabs and commands.">
     <img class="press-island-page" id="pressIslandPage" src="/shots/desktop/theverge.jpg" width="1280" height="720" alt="" aria-hidden="true" />
     <div class="press-island-strip" aria-hidden="true"></div>
+    <div class="demo-newtab" id="pressIslandStart" hidden aria-hidden="true">
+      <span class="demo-bb-date" id="pressIslandStartDate"></span>
+      <div class="demo-bb-clock-row">
+        <span class="demo-bb-clock" id="pressIslandStartClock"></span>
+        <span class="demo-bb-meridiem" id="pressIslandStartMeridiem"></span>
+      </div>
+      <span class="demo-bb-blocked" id="pressIslandStartBlocked"></span>
+      <div class="demo-bb-favs">
+        <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/gmail.com.ico')"></span><span class="label">gmail</span></span>
+        <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/notion.so.ico')"></span><span class="label">notion</span></span>
+        <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/theverge.com.ico')"></span><span class="label">the verge</span></span>
+        <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/github.com.ico')"></span><span class="label">github</span></span>
+      </div>
+    </div>
     <span class="press-island-connector press-island-connector--island" aria-hidden="true"></span>
     <span class="press-island-connector press-island-connector--session" aria-hidden="true"></span>
     <span class="press-island-connector press-island-connector--groups" aria-hidden="true"></span>
@@ -57,6 +71,7 @@ const tabSections = [
         <span class="dots" aria-hidden="true"><span></span><span class="cur"></span><span></span></span>
         <span class="pill-fav" style="background-image:url('/favicons/theverge.com.ico')" aria-hidden="true"></span>
         <span class="domain" id="pressIslandDomain">theverge.com</span>
+        <span class="pill-slash" id="pressIslandSlash" title="Commands (/)" aria-hidden="true" hidden>/</span>
         <span class="shield" id="pressIslandShield">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z" /><path d="M4.4 11.47 12.61 3.55" /></svg>
           <span class="shield-count" id="pressIslandShieldCount">12</span>
@@ -98,7 +113,6 @@ const tabSections = [
                   data-domain={tab.domain}
                   data-favicon={tab.favicon}
                   data-shield={tab.shield}
-                  data-group={tab.group}
                   data-page={tab.page}
                   data-pinned={String(Boolean(tab.pinned))}
                 >
@@ -107,7 +121,6 @@ const tabSections = [
                   <button class:list={['row-pin', { on: tab.pinned }]} type="button" aria-label={tab.pinned ? 'Unpin tab' : 'Pin tab'} aria-pressed={String(Boolean(tab.pinned))} title={tab.pinned ? 'Unpin tab' : 'Pin tab'}>
                     <svg viewBox="0 0 16 16"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z" /><path d="M8 11v3" /></svg>
                   </button>
-                  <button class="row-grp" type="button" aria-label="Move to group" title="Move to group">{tab.group || 'group'}</button>
                   <button class="row-close" type="button" aria-label="Close tab" title="Close tab">
                     <svg viewBox="0 0 16 16"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5" /></svg>
                   </button>
@@ -118,7 +131,7 @@ const tabSections = [
         </div>
 
         <div class="foot-bar">
-          <button class="foot-new" type="button"><svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5" /></svg><span>new tab</span><span class="foot-kbd">⌘T</span></button>
+          <button class="foot-new" id="pressIslandNewTab" type="button"><svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5" /></svg><span>new tab</span><span class="foot-kbd">⌘T</span></button>
           <button class="foot-new private" type="button"><svg viewBox="0 0 16 16"><path d="M8 3.25v9.5M3.25 8h9.5" /></svg><span>private</span><span class="foot-kbd">⌘⇧N</span></button>
           <span class="foot-spacer"></span>
           <button class="foot-act" type="button" aria-label="Favorites"><svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z" /></svg></button>

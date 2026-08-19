@@ -58,6 +58,8 @@
   const dotsEl = document.getElementById('demoDots');
   const favEl = document.getElementById('demoFav');
   const domainEl = document.getElementById('demoDomain');
+  const slashEl = document.getElementById('demoSlash');
+  const newtabEl = document.getElementById('demoNewtab');
   const shieldEl = document.getElementById('demoShield');
   const shieldCountEl = document.getElementById('demoShieldCount');
   const shieldHostEl = document.getElementById('demoShieldHost');
@@ -67,6 +69,24 @@
   const footEl = document.getElementById('demoFoot');
   const capEl = document.getElementById('demoCaption');
   const heartEl = document.getElementById('demoHeart');
+
+  // The blank-tab beat renders a miniature of the "billboard" start page. The
+  // date, clock, and meridiem use the app's own formats; the blocked line is
+  // illustrative, like the demo's per-site shield counts.
+  function fillBillboard(ids, blockedText) {
+    const now = new Date();
+    document.getElementById(ids.date).textContent = now
+      .toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+      .toLowerCase();
+    const time = now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    document.getElementById(ids.clock).textContent = time.replace(/\s?[AP]M$/i, '');
+    document.getElementById(ids.meridiem).textContent = (time.match(/[AP]M$/i) || [''])[0].toLowerCase();
+    document.getElementById(ids.blocked).textContent = blockedText;
+  }
+  fillBillboard(
+    { date: 'demoBbDate', clock: 'demoBbClock', meridiem: 'demoBbMeridiem', blocked: 'demoBbBlocked' },
+    '2,412 ads blocked this week · nothing followed you home'
+  );
 
   /* ---- island motion (1.1.0) ----
      Two effects, both reproducing the app's own numbers rather than
@@ -225,6 +245,10 @@
     msnow:    { title: 'MS NOW',    domain: 'msnow.com',       fav: 'msnbc.com',    shield: 14 },
     netflix:  { title: 'Netflix',   domain: 'netflix.com',     fav: 'netflix.com',  shield: 3 },
     github:   { title: 'GitHub',    domain: 'github.com',      fav: 'github.com',   shield: 0 },
+    // A blank tab. No domain puts the pill in placeholder mode: the prompt
+    // label, the Blanc-mark favicon, the "/" chip, and no shield (the app
+    // hides it entirely on internal pages) — matching the real app's state.
+    newtab:   { title: 'New Tab',   domain: '',                fav: null,           shield: 0, internal: true },
   };
 
   const ICON_BASE = '/favicons/';
@@ -320,6 +344,13 @@
       pinned: ['gmail', 'notion'],
       groups: [{ name: 'social', ids: ['youtube', 'threads'] }],
       loose: ['scroll', 'nintendo', 'msnow', 'netflix', 'github'],
+    },
+    // base plus a just-opened blank tab. A plain new tab always launches
+    // ungrouped, so it joins the loose set — the dots the pill shows for it.
+    fresh: {
+      pinned: ['gmail', 'notion'],
+      groups: [{ name: 'social', ids: ['youtube', 'threads'] }],
+      loose: ['scroll', 'nintendo', 'msnow', 'netflix', 'github', 'newtab'],
     },
     pinned: {
       pinned: ['gmail', 'notion', 'scroll'],
@@ -473,8 +504,17 @@
     dotsEl.innerHTML = dots;
 
     const t = TABS[current];
-    favEl.style.backgroundImage = t.fav ? `url('${ICON_BASE}${t.fav}.ico')` : 'none';
-    domainEl.textContent = t.domain;
+    // No domain = the app's placeholder mode (1.6.0): the prompt label with
+    // its wash, the "/" chip, the Blanc-mark favicon, and no shield at all —
+    // internal pages hide the shield entirely, unlike a protected site with
+    // zero blocked (which keeps a quiet shield).
+    const blank = !t.domain;
+    favEl.classList.toggle('internal', blank);
+    favEl.style.backgroundImage = blank ? '' : (t.fav ? `url('${ICON_BASE}${t.fav}.ico')` : 'none');
+    domainEl.textContent = blank ? 'Search or type a URL' : t.domain;
+    domainEl.classList.toggle('placeholder', blank);
+    slashEl.hidden = !blank;
+    shieldEl.hidden = blank;
     // Protected with nothing blocked yet is a state of its own in the app — a
     // dimmed shield with no badge, not a missing one. The shield is a permanent
     // landmark in the pill; only the badge comes and goes.
@@ -522,6 +562,9 @@
     // An invitation rather than a claim: the pill only reacts to a real cursor,
     // so the caption points at something the visitor can go and do.
     { view: 'rest',  layout: 'base',    current: 'github',  hold: 3400, cap: 'Move your pointer toward it — the island leans your way.' },
+    // The blank-tab beat: the pill drops to its placeholder ("Search or type
+    // a URL" + the "/" chip), the state the app shows only on a new tab.
+    { view: 'rest',  layout: 'fresh',   current: 'newtab',  hold: 3600, cap: 'A blank tab shows where to type — and / lists every command.' },
     { view: 'panel', layout: 'base',    current: 'github',  hold: 3300, cap: 'Open it and the panel grows out of the island itself.' },
     { view: 'panel', layout: 'base',    current: 'github',  panel: 'switcher', typed: 'scr', hold: 3400, cap: 'A few letters jumps from GitHub to Scroll.' },
     { view: 'rest',  layout: 'base',    current: 'scroll',  hold: 2800, cap: 'Scroll fills the window while the island stays small.' },
@@ -540,10 +583,10 @@
   // at the start of one and jumps playback there.
   const CHAPTERS = [
     { label: 'the island', scene: 0 },
-    { label: 'command bar', scene: 3 },
-    { label: 'tab groups', scene: 7 },
-    { label: 'blanc blocker', scene: 11 },
-    { label: 'private tabs', scene: 13 },
+    { label: 'command bar', scene: 4 },
+    { label: 'tab groups', scene: 8 },
+    { label: 'blanc blocker', scene: 12 },
+    { label: 'private tabs', scene: 14 },
   ];
   // A scene's on-screen duration: typing scenes run for the keystrokes plus a
   // read beat, everything else uses its authored hold. The scrub fill and the
@@ -571,6 +614,9 @@
 
     renderPill(s.layout, current, s);
     showShot(s.priv ? PRIVATE_SHOT : current); // private scene shows a page browsed privately
+    // The blank tab shows a miniature of the ledger start page instead of a
+    // site render — the surface the quiet pill actually rests over in the app.
+    newtabEl.hidden = !TABS[current].internal || !!s.priv;
     // Color-match the top strip to the page now behind it, so the Island reads
     // as floating in the page's top margin rather than on a browser bar.
     stage.style.setProperty('--demo-strip-bg', s.priv ? PRIVATE_TOP : (SHOT_TOP[current] || ''));
