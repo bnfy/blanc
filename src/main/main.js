@@ -4599,6 +4599,52 @@ function chromeOn(channel, handler) {
   });
 }
 
+// Named Workspaces IPC projection + freshness broadcast. Deliberately kept
+// here next to chromeHandle/chromeOn rather than in the capture/apply/switch
+// section up near removeNamedWorkspace, so nothing added for Task 7 can ever
+// land inside the exact function-boundary text slices workspaces-apply.test.js
+// lifts out of this file's source (applyWorkspaceToWindow/deriveWorkspaceBindings/
+// applyWorkspaceBindings) — inserting here cannot shift those markers.
+//
+// PROJECTION ONLY: {id, name, active, tabCount} per item — never urls, meta,
+// groups, profileId, createdAt, or the raw workspace record. Must be called
+// from inside a window-runtime scope (chromeHandle/chromeOn already provide
+// one) so rt() and the ambient local-profile context that namedWorkspaces
+// resolves its file through both refer to the requesting window.
+function workspacesProjection() {
+  return {
+    patronActive: settings.isPatronActive(),
+    items: namedWorkspaces.list().map((workspace) => ({
+      id: workspace.id,
+      name: workspace.name,
+      active: workspace.id === rt().workspaceId,
+      tabCount: workspace.urls.length,
+    })),
+  };
+}
+
+/** Freshness: push the current projection to every OPEN window's chrome
+ * surfaces after a mutation, so a pull-once ⌘L list can never keep showing a
+ * stale "active" row after a switch happened from elsewhere. Recomputed
+ * separately INSIDE each runtime's own scope (forEachWindowRuntime rebinds
+ * both the window runtime and the local-profile context per iteration) —
+ * a workspace list, and which row is active, is per-profile and per-window,
+ * so one shared payload would leak one profile's workspace names into
+ * another's window or mislabel which row is bound. Sent to both the chrome
+ * window and the overlay — the two surfaces this preload is exposed to that
+ * can plausibly render the list — mirroring how chrome:island-proximity
+ * targets the window's webContents and chrome:remote-tabs-updated targets
+ * the overlay's. */
+function broadcastWorkspacesUpdated() {
+  forEachWindowRuntime((runtime) => {
+    const payload = workspacesProjection();
+    runtime.window.webContents.send('chrome:workspaces-updated', payload);
+    if (runtime.overlayView && !runtime.overlayView.webContents.isDestroyed()) {
+      runtime.overlayView.webContents.send('chrome:workspaces-updated', payload);
+    }
+  }, { liveOnly: true });
+}
+
 // The two ad-block slash commands live here rather than inline in their IPC
 // handlers so the acceptance harness can drive the REAL implementation through
 // test-hook.js. A mirrored copy in the hook would leave the shipping handler
@@ -4907,6 +4953,49 @@ function registerIpcHandlers() {
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => sync.listRemoteDevices());
+
+  // Named Workspaces. Per the locked spec, Patron only ever ADDS: list/open/
+  // rename/remove stay fully usable on a lapsed Patron (it's the user's own
+  // data), so save-as/create is the ONLY handler that re-checks entitlement.
+  // Every handler here is a chromeHandle registration, which is what makes
+  // rt() and namedWorkspaces' ambient local-profile context resolve to the
+  // REQUESTING window/profile rather than whichever window last ran — a raw
+  // ipcMain.handle would silently read/write the wrong profile's
+  // workspaces.json.
+  chromeHandle('chrome:workspaces-list', () => workspacesProjection());
+  chromeHandle('chrome:workspaces-save-as', (_e, name) => {
+    if (!settings.isPatronActive()) return { ok: false, error: 'not-patron' };
+    const result = saveCurrentWindowAsWorkspace(rt(), name);
+    // {ok:false, error: 'invalid-name'|'duplicate-name'|'limit'|'invalid-record'}
+    // — namedWorkspaces.create's failure shape never carries a workspace
+    // record, so it is safe to return verbatim.
+    if (!result.ok) return result;
+    broadcastWorkspacesUpdated();
+    // Only the new id crosses the wire, never result.workspace itself.
+    return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
+  });
+  chromeHandle('chrome:workspaces-open', (_e, id) => {
+    const result = switchWindowToWorkspace(rt(), id);
+    // {ok:false, error:'not-found'}, or the honest {ok:false, action:'focus',
+    // windowId} report when the bound window couldn't be recreated — neither
+    // carries a workspace record.
+    if (!result.ok) return result;
+    broadcastWorkspacesUpdated();
+    return { ...result, ...workspacesProjection() };
+  });
+  chromeHandle('chrome:workspaces-rename', (_e, id, name) => {
+    const result = namedWorkspaces.rename(id, name);
+    if (!result.ok) return result; // {ok:false, error:'not-found'|'invalid-name'|'duplicate-name'}
+    broadcastWorkspacesUpdated();
+    return { ok: true, ...workspacesProjection() };
+  });
+  chromeHandle('chrome:workspaces-remove', (_e, id) => {
+    const result = removeNamedWorkspace(id);
+    if (!result.ok) return result; // {ok:false, error:'not-found'}
+    broadcastWorkspacesUpdated();
+    return { ok: true, ...workspacesProjection() };
+  });
+
   chromeHandle('chrome:search-suggestions', async (event, query) => {
     const currentSettings = settings.getSettings();
     const configuredEngine = currentSettings.searchEngine;
