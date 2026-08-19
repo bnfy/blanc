@@ -1845,7 +1845,12 @@ function createOverlay() {
     hideOverlay({ refocusContent: false });
   }));
 
-  attachAddressMenu(rt().overlayView.webContents, {
+  // The address menu and the tab-row menu share the overlay webContents and the
+  // SAME blur-guard ticket (they are mutually exclusive by target — editable
+  // input vs. row). One deps object so the subtle release policy (stale-ticket
+  // check, GTK async-focus 80ms sample, dismiss-without-stealing-focus) has a
+  // single definition; drift between two copies would corrupt the shared guard.
+  const overlayMenuGuardDeps = {
     isOverlayLive: bindWindowRuntime(owner, () =>
       hasLiveWindow()
       && rt().overlayView && !rt().overlayView.webContents.isDestroyed()
@@ -1873,33 +1878,18 @@ function createOverlay() {
         refocusOverlayAfterMenu();
       }), 80);
     }),
+  };
+
+  attachAddressMenu(rt().overlayView.webContents, {
+    ...overlayMenuGuardDeps,
     actions: {
       pasteAndGo: bindWindowRuntime(owner, (text) => { if (rt().activeTabId) pasteAndGo(rt().activeTabId, text); }),
     },
   });
 
-  // Tab-row context menu, same webContents. Mutually exclusive with the address
-  // menu by target (editable vs. row), and it shares the same blur-guard ticket
-  // so a popped row menu never blur-dismisses the panel under itself.
+  // Tab-row context menu, same webContents; shares the guard above.
   attachRowMenu(rt().overlayView.webContents, {
-    isOverlayLive: bindWindowRuntime(owner, () =>
-      hasLiveWindow()
-      && rt().overlayView && !rt().overlayView.webContents.isDestroyed()
-      && (rt().overlayMode === 'panel' || rt().overlayMode === 'palette')),
-    getWindow: bindWindowRuntime(owner, () => rt().window),
-    getOverlayBounds: bindWindowRuntime(owner, () => overlayBounds()),
-    acquireMenuGuard: bindWindowRuntime(owner, () => { rt().addressMenuTicket = ++rt().addressMenuSeq; return rt().addressMenuTicket; }),
-    releaseMenuGuard: bindWindowRuntime(owner, (ticket) => {
-      if (ticket !== rt().addressMenuTicket) return;
-      rt().addressMenuTicket = 0;
-      if (!hasLiveWindow()) return;
-      if (rt().window.isFocused()) return refocusOverlayAfterMenu();
-      setTimeout(bindWindowRuntime(owner, () => {
-        if (rt().addressMenuTicket || !hasLiveWindow()) return;
-        if (!rt().window.isFocused()) return hideOverlay({ refocusContent: false });
-        refocusOverlayAfterMenu();
-      }), 80);
-    }),
+    ...overlayMenuGuardDeps,
     resolveTab: bindWindowRuntime(owner, (rawId) => {
       const id = tabs.has(rawId) ? rawId : (tabs.has(Number(rawId)) ? Number(rawId) : null);
       return id == null ? null : tabContextData(tabs.get(id), owner);
@@ -4064,11 +4054,7 @@ function openInternalPage(url) {
 }
 
 function toggleBookmarkForActiveTab() {
-  const tab = rt().activeTabId ? tabs.get(rt().activeTabId) : null;
-  if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
-  tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
-  broadcastTabs();
-  scheduleMenuRebuild();
+  if (rt().activeTabId) toggleBookmarkForTab(rt().activeTabId);
 }
 
 /** Per-tab favorite toggle for the context menu; same guards as the active-tab

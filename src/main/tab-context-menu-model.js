@@ -104,4 +104,4 @@ function pickSurvivorTabId(tabOrder, movedId) {
   return tabOrder[i + 1] ?? tabOrder[i - 1] ?? null;
 }
 
-module.exports = { buildTabContextMenu, buildGroupSubmenu, closableTabIds, pickSurvivorTabId };
+module.exports = { buildTabContextMenu, closableTabIds, pickSurvivorTabId };
