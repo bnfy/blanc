@@ -1061,11 +1061,33 @@
 
   // --- List area: tabs at rest, commands on "/", switcher while typing ---
 
+  // A tab-row action (pin, mute, close, or a context-menu item) triggers a
+  // tabs:updated → replaceChildren that destroys the focused button, dropping
+  // keyboard focus to <body>. Remember the focused row + which control, and
+  // restore it on the rebuilt row so Tab order and AT focus survive the
+  // action — this is the keyboard path grouping now relies on (Shift+F10 /
+  // menu key / VoiceOver open the row menu from the focused row).
+  function focusedRowAnchor() {
+    const el = document.activeElement;
+    const row = el && el.closest && el.closest('.island-row[data-tab-id]');
+    if (!row || !islandList.contains(row)) return null;
+    const control = ['row-primary', 'row-pin', 'row-mute', 'row-glance', 'row-close']
+      .find((c) => el.classList?.contains(c)) ?? 'row-primary';
+    return { tabId: row.dataset.tabId, control };
+  }
+  function restoreRowFocus(anchor) {
+    if (!anchor) return;
+    const row = islandList.querySelector(
+      `.island-row[data-tab-id="${CSS.escape(anchor.tabId)}"]`);
+    (row?.querySelector(`.${anchor.control}`) ?? row?.querySelector('.row-primary'))?.focus();
+  }
+
   function renderList() {
     if (pointerHeld) {
       renderQueued = true;
       return;
     }
+    const rowAnchor = focusedRowAnchor();
     const value = addressInput.value;
     const selectedKey = selectedResultIndex >= 0
       ? resultKey(visibleResults[selectedResultIndex])
@@ -1141,6 +1163,9 @@
         rows.push(...closed.map(closedRow));
       }
       islandList.replaceChildren(...rows);
+      // Only the resting tab list preserves row focus; the "/" command and
+      // switcher branches drive focus from the input, not the rows.
+      restoreRowFocus(rowAnchor);
     }
 
     islandHint.textContent = activeTab()?.private
