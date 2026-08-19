@@ -3257,7 +3257,10 @@ function switchWindowToWorkspace(runtime, workspaceId) {
       // second-instance/openExternalUrl's window activation. This window's
       // own tabs are untouched either way.
       const target = windowRuntimes.all().find((candidate) => String(candidate.id) === decision.windowId);
-      if (!target) return { ok: false, action: 'focus', windowId: decision.windowId }; // report honestly
+      // Report honestly, and WITH an error code: every other failure path
+      // carries one, and a bare { ok:false } would make the UI fail silently
+      // (no notice, no state change) instead of telling the user anything.
+      if (!target) return { ok: false, action: 'focus', error: 'focus-failed', windowId: decision.windowId };
       if (!target.window || target.window.isDestroyed()) createMainWindow(target);
       if (target.window.isMinimized()) target.window.restore();
       target.window.focus();
