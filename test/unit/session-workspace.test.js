@@ -7,11 +7,15 @@ const {
   loadWorkspace,
   buildSaveShape,
   removeProfileWorkspaces,
+  entryFrom,
 } = require('../../src/main/session-workspace');
 
 const ENTRY = {
   id: PRIMARY_WINDOW_ID,
   profileId: 'default',
+  // Named Workspaces single-window binding (Task 6). null = scratch window,
+  // same as every entry that predates this field.
+  workspaceId: null,
   urls: ['https://a.example/', 'https://b.example/'],
   activeIndex: 1,
   groups: [{ id: 'g1', name: 'work', collapsed: false }],
@@ -21,7 +25,7 @@ const ENTRY = {
   // it — or whose array no longer lines up with urls — reads back as [].
   meta: [],
 };
-const EMPTY = { id: PRIMARY_WINDOW_ID, profileId: 'default', urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] };
+const EMPTY = { id: PRIMARY_WINDOW_ID, profileId: 'default', workspaceId: null, urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] };
 
 test('v0 (version-less flat file) loads as one window', () => {
   const { windows, readOnly } = loadWorkspace({ ...ENTRY });
@@ -285,4 +289,82 @@ test('profile removal refuses Personal and future workspace formats', () => {
   const saved = buildSaveShape([ENTRY], {});
   assert.deepEqual(removeProfileWorkspaces(saved, 'default').windows, [ENTRY]);
   assert.equal(removeProfileWorkspaces({ version: 99 }, 'profile_work').readOnly, true);
+});
+
+// ─── Named Workspaces: the session.json binding pointer (Task 6) ──────────
+//
+// The pointer is validated, never trusted verbatim: entryFrom is the ONLY
+// place session.json's workspaceId is read, so its rules (shape, __proto__
+// deny-list) are exercised directly here rather than only indirectly through
+// loadWorkspace/buildSaveShape round trips elsewhere in this file.
+
+test('entryFrom: a valid workspaceId round-trips', () => {
+  const entry = entryFrom({ ...ENTRY, workspaceId: 'workspace_1' });
+  assert.equal(entry.workspaceId, 'workspace_1');
+});
+
+test('entryFrom: a 64-character workspaceId (the upper bound) round-trips', () => {
+  const id = 'w'.repeat(64);
+  assert.equal(entryFrom({ ...ENTRY, workspaceId: id }).workspaceId, id);
+});
+
+test('entryFrom: an invalid workspaceId normalizes to null', () => {
+  const invalidValues = [
+    'hello world',   // whitespace fails the id-shape regex
+    '__proto__',      // shape-valid but denied — would silently corrupt a plain object key
+    'w'.repeat(65),    // one past the 64-char bound
+    123,               // non-string
+    true,              // non-string
+    {},                // non-string
+    [],                // non-string
+    null,              // explicit null is already the correct default, but must not throw
+  ];
+  for (const workspaceId of invalidValues) {
+    const entry = entryFrom({ ...ENTRY, workspaceId });
+    assert.equal(entry.workspaceId, null, `expected null for ${JSON.stringify(workspaceId)}`);
+  }
+});
+
+test('entryFrom: an absent workspaceId key normalizes to null', () => {
+  const { workspaceId: _drop, ...sourceWithoutKey } = ENTRY;
+  assert.equal(entryFrom(sourceWithoutKey).workspaceId, null);
+});
+
+test('mirrorProjection still emits exactly the five legacy keys — no workspaceId', () => {
+  // buildSaveShape spreads mirrorProjection(focused) directly onto the saved
+  // shape, so its exact key set is observable here without exporting the
+  // helper itself. A binding pointer is metadata (like id/profileId), which
+  // the pre-v1 flat rollback mirror must never carry — an older build reads
+  // this file and understands only these five keys.
+  const shape = buildSaveShape({ ...ENTRY, workspaceId: 'workspace_1' }, {});
+  const controlKeys = new Set(['version', 'activeWindowId', 'windows']);
+  const mirrorKeys = Object.keys(shape).filter((key) => !controlKeys.has(key)).sort();
+  assert.deepEqual(mirrorKeys, ['activeIndex', 'groupIds', 'groups', 'pinned', 'urls']);
+  assert.equal('workspaceId' in shape, false, 'a binding pointer must never enter the flat mirror');
+});
+
+test('hasMirror is unaffected: a healthy file with no top-level workspaceId round-trips ' +
+  'the nested binding and is still recognized as having a mirror', () => {
+  // A healthy v2 save never writes workspaceId to the top level (previous
+  // test), so this is the shape loadWorkspace actually sees on every normal
+  // relaunch. If hasMirror ever came to require workspaceId at the top
+  // level, every real file would silently stop being recognized as having a
+  // mirror at all.
+  const saved = buildSaveShape({ ...ENTRY, workspaceId: 'workspace_1' }, {});
+  assert.equal('workspaceId' in saved, false, 'sanity: matches the previous test');
+  const { windows, readOnly } = loadWorkspace(saved);
+  assert.equal(readOnly, false);
+  assert.deepEqual(windows, [{ ...ENTRY, workspaceId: 'workspace_1' }],
+    'the nested workspaceId must survive the round trip, and the mirror must still be detected ' +
+    '(a false "no mirror" would take the wrong branch in loadWorkspace)');
+});
+
+test('each restored window carries its own independent workspaceId (or none)', () => {
+  const bound = { ...ENTRY, id: 'window_work', workspaceId: 'workspace_work', groupIds: [null, null] };
+  const scratch = { ...ENTRY, id: 'window_scratch', workspaceId: null, groupIds: [null, null] };
+  const shape = buildSaveShape([bound, scratch], {}, { activeWindowId: bound.id });
+  const { windows } = loadWorkspace(shape);
+  const byId = new Map(windows.map((entry) => [entry.id, entry]));
+  assert.equal(byId.get('window_work').workspaceId, 'workspace_work');
+  assert.equal(byId.get('window_scratch').workspaceId, null);
 });

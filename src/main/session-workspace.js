@@ -12,6 +12,11 @@ const PRIMARY_WINDOW_ID = 'primary';
 const EMPTY_ENTRY = (id = PRIMARY_WINDOW_ID) => ({
   id,
   profileId: DEFAULT_PROFILE_ID,
+  // Named Workspaces single-window binding: which workspace (if any) this
+  // window points at. A pointer, never the tab set — the workspace's own
+  // tabs live in workspaces.json, keyed by this id. See validWorkspaceId
+  // below for why this file owns validation instead of importing it.
+  workspaceId: null,
   urls: [],
   activeIndex: 0,
   groups: [],
@@ -48,6 +53,7 @@ function entryFrom(source, fallbackId = PRIMARY_WINDOW_ID) {
   return {
     id: validWindowId(source.id) ? source.id : fallbackId,
     profileId: validProfileId(source.profileId) ? source.profileId : DEFAULT_PROFILE_ID,
+    workspaceId: validWorkspaceId(source.workspaceId) ? source.workspaceId : null,
     urls,
     activeIndex: Number.isInteger(source.activeIndex) ? source.activeIndex : 0,
     groups: Array.isArray(source.groups) ? source.groups : [],

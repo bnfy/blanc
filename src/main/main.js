@@ -2415,6 +2415,14 @@ function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
   const entry = {
     id: runtime.id,
     profileId: runtime.profileId,
+    // Named Workspaces single-window binding (Task 6): a POINTER, never the
+    // tab set — the workspace's own tabs already live in workspaces.json,
+    // autosaved separately (see autosaveWorkspaceBindings). null for a
+    // scratch window. This is what lets releaseStartup re-bind the window to
+    // the same workspace on the next launch instead of silently reverting to
+    // scratch and leaving workspaces.json's copy stale the moment anything
+    // is edited post-relaunch.
+    workspaceId: runtime.workspaceId ?? null,
     urls: entries.map((item) => item.url),
     groupIds: entries.map((item) => item.groupId),
     pinned: entries.map((item) => item.pinned),
@@ -6830,6 +6838,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       });
     }
 
+    // Named Workspaces (Task 6): candidates are collected here, not applied
+    // immediately, because a hand-edited or interrupted-write session.json
+    // could point two restored windows at the SAME workspaceId — the de-dup
+    // pass below (after every window's tabs exist) resolves that before
+    // anything is actually bound.
+    const workspaceCandidates = new Map(); // runtime -> workspaceId
     for (const runtime of startupRuntimes) {
       const saved = savedById.get(runtime.id);
       if (!saved) continue;
@@ -6844,6 +6858,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           favicon: saved.meta?.[index]?.favicon ?? null,
         }));
         pruneEmptyGroups();
+        // This window's tabs now exist, so it's safe to check whether the
+        // saved binding still points at a real workspace. namedWorkspaces.get
+        // resolves through the ambient activeLocalProfileId(), which
+        // withWindowRuntime has already pointed at this runtime's own
+        // profile (same pattern as every other per-runtime call in this
+        // loop) — a workspace deleted, or owned by a profile that no longer
+        // exists, while the app was closed must leave this window scratch,
+        // never a dangling binding. Placed before the early return below so
+        // a window whose restored tab set is empty is still considered.
+        if (saved.workspaceId && namedWorkspaces.get(saved.workspaceId)) {
+          workspaceCandidates.set(runtime, saved.workspaceId);
+        }
         const target = restoreTargetId(restoredIds, saved.activeIndex);
         if (!target) return;
         // Activate first, then close the startup tab. The inverse briefly wakes
@@ -6852,6 +6878,25 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const startupTabId = startupTabIds.get(runtime.id);
         if (startupTabId && tabs.has(startupTabId)) closeTab(startupTabId);
       });
+    }
+    // De-duplicate: only one window may bind a given workspace id — a second
+    // bound window would give autosave two writers for the same
+    // workspaces.json record, exactly the conflict the single-window binding
+    // exists to prevent. Prefer the previously-focused window (the one the
+    // OS fronts on relaunch) and leave every other candidate for that same
+    // id scratch. Array.prototype.sort is stable, so on the (already-corrupt-
+    // file) case where neither tied candidate is the focused window, the one
+    // earlier in startupRuntimes order wins deterministically rather than at
+    // random.
+    const claimedWorkspaceIds = new Set();
+    const candidatesByPreference = [...workspaceCandidates.keys()].sort(
+      (a, b) => Number(b === focusedRuntime) - Number(a === focusedRuntime)
+    );
+    for (const runtime of candidatesByPreference) {
+      const workspaceId = workspaceCandidates.get(runtime);
+      if (claimedWorkspaceIds.has(workspaceId)) continue;
+      claimedWorkspaceIds.add(workspaceId);
+      runtime.workspaceId = workspaceId;
     }
 
     // The first menu is built before session restore, while every workspace
