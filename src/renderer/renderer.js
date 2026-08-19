@@ -872,6 +872,11 @@
     });
   };
   new ResizeObserver(reportIslandRect).observe(islandPill);
+  // The observer only sees the pill's SIZE change. A window resize re-centers
+  // the pill without resizing it, which left this rect stale — and the ⌘L
+  // morph (and proximity glow) anchored to where the centre USED to be,
+  // visibly growing out of the left or right instead of the pill.
+  window.addEventListener('resize', reportIslandRect);
   requestAnimationFrame(reportIslandRect);
 
   window.browserAPI.onIslandProximity(({ k }) => {
