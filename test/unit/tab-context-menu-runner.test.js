@@ -15,13 +15,18 @@ function spyActions() {
 }
 const tab = { id: 7, url: 'https://a.test/p?utm_source=x' };
 
-test('copy-link copies the tab url; copy-clean-link copies the cleaned url', () => {
+test('copy-link copies the tab url; copy-clean-link copies the descriptor value', () => {
   const { actions, calls } = spyActions();
   runTabContextMenuItem('copy-link', { tab, actions });
-  runTabContextMenuItem('copy-clean-link', { tab, actions });
+  // The model stashes the cleaned URL on the descriptor when it decides to
+  // show the item; the runner copies exactly that — no recompute.
+  runTabContextMenuItem('copy-clean-link', { tab, cleanedUrl: 'https://a.test/p', actions });
   assert.deepEqual(calls[0], ['copy', 'https://a.test/p?utm_source=x']);
-  assert.equal(calls[1][0], 'copy');
-  assert.equal(calls[1][1], 'https://a.test/p'); // utm stripped by cleanLink
+  assert.deepEqual(calls[1], ['copy', 'https://a.test/p']);
+  // Defensive: no descriptor value → nothing copied (never a wrong value).
+  const s = spyActions();
+  runTabContextMenuItem('copy-clean-link', { tab, actions: s.actions });
+  assert.deepEqual(s.calls, []);
 });
 
 test('simple items dispatch to their action with the tab id', () => {

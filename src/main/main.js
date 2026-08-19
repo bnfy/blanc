@@ -5227,7 +5227,11 @@ function createWindowRuntimeId() {
  * generic label and no favicon, never its real title/URL. macOS-only. */
 function dockActiveTabDescriptor() {
   if (process.platform !== 'darwin') return null;
-  const id = focusedRuntime?.activeTabId;
+  // No line while every window is closed (macOS dock-close): a Dock-icon
+  // click already reopens the last workspace, and a tab line over an empty
+  // app reads as a phantom window.
+  if (!focusedRuntime?.window || focusedRuntime.window.isDestroyed()) return null;
+  const id = focusedRuntime.activeTabId;
   const tab = id != null ? tabs.get(id) : null;
   if (!tab) return null;
   if (tab.private) return { label: 'Private tab', iconDataUrl: null };

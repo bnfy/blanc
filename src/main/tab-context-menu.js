@@ -6,14 +6,15 @@
 
 const { Menu } = require('electron');
 const { buildTabContextMenu } = require('./tab-context-menu-model');
-const { cleanLink } = require('./clean-link');
 
 const PILL_SELECTOR = '#islandPill';
 
-function runTabContextMenuItem(id, { tab, groupId, actions }) {
+function runTabContextMenuItem(id, { tab, groupId, cleanedUrl, actions }) {
   switch (id) {
     case 'copy-link': return actions.copy(tab.url || '');
-    case 'copy-clean-link': { const c = cleanLink(tab.url); if (c) actions.copy(c); return; }
+    // The model computed cleanedUrl when it decided to SHOW the item — copy
+    // exactly that, never a recomputed value that could diverge from it.
+    case 'copy-clean-link': { if (cleanedUrl) actions.copy(cleanedUrl); return; }
     case 'reload': return actions.reload(tab.id);
     case 'duplicate': return actions.duplicate(tab.id);
     case 'toggle-pin': return actions.togglePin(tab.id);
@@ -43,7 +44,8 @@ function toElectronTemplate(modelItems, { tab, actions }) {
     if (item.submenu) {
       el.submenu = toElectronTemplate(item.submenu, { tab, actions });
     } else {
-      el.click = () => runTabContextMenuItem(item.id, { tab, groupId: item.groupId, actions });
+      el.click = () => runTabContextMenuItem(item.id,
+        { tab, groupId: item.groupId, cleanedUrl: item.cleanedUrl, actions });
     }
     return el;
   });
