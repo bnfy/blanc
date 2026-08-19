@@ -41,10 +41,10 @@ function extractCommonName(dn) {
 // invocation (PSModulePath reset + chcp for non-ASCII cert subjects) but with a
 // long timeout. The file path is single-quote-escaped to prevent command
 // injection (Get-AuthenticodeSignature 'a';calc;'b' would otherwise run calc).
-function runAuthenticodeSignature(filePath) {
+function runAuthenticodeSignature(filePath, { execFileImpl = execFile, timeoutMs = SIGNATURE_TIMEOUT_MS } = {}) {
   return new Promise((resolve) => {
     const escaped = String(filePath).replace(/'/g, "''");
-    execFile(
+    execFileImpl(
       'set "PSModulePath=" & chcp 65001 >NUL & powershell.exe',
       [
         '-NoProfile',
@@ -54,7 +54,7 @@ function runAuthenticodeSignature(filePath) {
         '-Command',
         `"Get-AuthenticodeSignature -LiteralPath '${escaped}' | ConvertTo-Json -Compress"`,
       ],
-      { shell: true, timeout: SIGNATURE_TIMEOUT_MS, windowsHide: true },
+      { shell: true, timeout: timeoutMs, windowsHide: true },
       (error, stdout) => resolve({ error, stdout }),
     );
   });

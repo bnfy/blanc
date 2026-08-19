@@ -65,3 +65,16 @@ test('unparseable verifier output fails OPEN', async () => {
   const verify = verifierWith({ stdout: 'not json at all' }, { warn: () => {} });
   assert.equal(await verify(['Bananify Creative'], 'C:/x.exe'), null);
 });
+
+test('runAuthenticodeSignature passes the generous timeout to execFile', async () => {
+  const { runAuthenticodeSignature, SIGNATURE_TIMEOUT_MS } = require('../../src/main/updater-signature');
+  let capturedTimeout;
+  await runAuthenticodeSignature('C:/installer.exe', {
+    execFileImpl: (_cmd, _args, options, cb) => {
+      capturedTimeout = options.timeout;
+      cb(null, '{"Status":0}');
+    },
+  });
+  assert.equal(capturedTimeout, SIGNATURE_TIMEOUT_MS);
+  assert.ok(SIGNATURE_TIMEOUT_MS > 20 * 1000, 'well above electron-updater\'s 20s cliff');
+});

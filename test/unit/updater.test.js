@@ -121,6 +121,29 @@ test('download progress drives the OS indicator', () => {
   assert.ok(progress.includes(0.42), 'progress fraction reaches the window');
 });
 
+test('download progress is logged to updater.log (throttled)', async () => {
+  let cancelled = false;
+  checkResult = {
+    isUpdateAvailable: true,
+    updateInfo: { version: '1.5.1' },
+    cancellationToken: { cancel: () => { cancelled = true; } },
+  };
+  await updater.checkForUpdatesManually();
+
+  const logPath = path.join(logsDir, 'updater.log');
+  autoUpdater.emit('download-progress', {
+    percent: 12.5,
+    transferred: 12.5 * 1024 * 1024,
+    total: 100 * 1024 * 1024,
+    bytesPerSecond: 800 * 1024,
+  });
+
+  const contents = fs.readFileSync(logPath, 'utf8');
+  assert.match(contents, /download progress: 12\.5%/);
+  assert.match(contents, /12\.5 MB \/ 100\.0 MB/);
+  assert.match(contents, /800\.0 KB\/s/);
+});
+
 test('manual checks confirm when the installed build is current', async () => {
   checkResult = { updateInfo: { version: '1.5.0' } };
   await updater.checkForUpdatesManually();

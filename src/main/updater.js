@@ -4,6 +4,11 @@ const { createUpdateCheckCoordinator } = require('./update-checks');
 const { createUpdateRestarter } = require('./update-restart');
 const { createUpdaterLog } = require('./updater-log');
 const { createWindowsSignatureVerifier } = require('./updater-signature');
+const {
+  createDownloadProgressLogger,
+  createDownloadStallWatchdog,
+  DOWNLOAD_STALL_MS,
+} = require('./updater-download');
 
 // Attach update dialogs to the browser window so they can't appear behind
 // it; fall back to an unparented dialog if no window exists.
@@ -51,9 +56,57 @@ let downloadedUpdateInfo = null;
 // quit) stay silent and only ever reach the log — the old behavior — while a
 // user who asked still gets told if their download fails.
 let manualDownloadPending = false;
+// Held while electron-updater is fetching an update so a stall watchdog can
+// cancel the in-flight transfer (CancellationError is swallowed upstream).
+let activeDownloadCancellation = null;
+let downloadProgressLogger = null;
+let downloadStallWatchdog = null;
+
+function updaterLogger() {
+  return autoUpdater.logger || console;
+}
+
+function clearDownloadTracking() {
+  activeDownloadCancellation = null;
+  downloadStallWatchdog?.disarm();
+  downloadProgressLogger?.reset();
+}
+
+function handleDownloadStall() {
+  const logger = updaterLogger();
+  logger.error(
+    `[updater] download stalled: no progress for ${Math.round(DOWNLOAD_STALL_MS / 1000)}s; cancelling so the next check can retry`,
+  );
+  try {
+    activeDownloadCancellation?.cancel();
+  } catch (_) {
+    /* best effort */
+  }
+  clearDownloadTracking();
+  setDownloadProgress(-1);
+
+  const detail = `The update download stopped making progress. You can retry with “Check for Updates…”, or reinstall from blancbrowser.com.`;
+  if (manualDownloadPending) {
+    manualDownloadPending = false;
+    showDialog({
+      type: 'warning',
+      message: 'Update download stalled',
+      detail,
+    });
+  }
+}
+
 const restartToInstallUpdate = createUpdateRestarter({ autoUpdater });
 const updateChecks = createUpdateCheckCoordinator({
-  checkForUpdates: () => autoUpdater.checkForUpdates(),
+  checkForUpdates: async () => {
+    const result = await autoUpdater.checkForUpdates();
+    if (result?.isUpdateAvailable && result.cancellationToken && !activeDownloadCancellation) {
+      activeDownloadCancellation = result.cancellationToken;
+      downloadProgressLogger?.reset();
+      downloadStallWatchdog?.arm();
+    }
+    return result;
+  },
   isUpdateDownloaded: () => updateDownloaded,
 });
 
@@ -100,12 +153,20 @@ function setupAutoUpdater() {
   autoUpdater.disableDifferentialDownload = true;
   autoUpdater.disableWebInstaller = true;
 
+  downloadProgressLogger = createDownloadProgressLogger({
+    log: (message) => updaterLogger().info(message),
+  });
+  downloadStallWatchdog = createDownloadStallWatchdog({ onStall: handleDownloadStall });
+
   autoUpdater.on('download-progress', (progress) => {
+    downloadProgressLogger.note(progress);
+    downloadStallWatchdog.touch();
     const percent = Number(progress?.percent);
     if (Number.isFinite(percent)) setDownloadProgress(percent / 100);
   });
   autoUpdater.on('update-downloaded', (info) => {
     manualDownloadPending = false;
+    clearDownloadTracking();
     setDownloadProgress(-1);
     if (updateDownloaded) return;
     updateDownloaded = true;
@@ -113,10 +174,11 @@ function setupAutoUpdater() {
     promptRestart(info);
   });
   autoUpdater.on('error', (err) => {
+    clearDownloadTracking();
     setDownloadProgress(-1);
     // logger is our file logger (which itself falls back to console when it
     // can't write) or, if getPath threw, electron-updater's default console.
-    (autoUpdater.logger || console).error('[updater]', err?.stack ?? err?.message ?? err);
+    updaterLogger().error('[updater]', err?.stack ?? err?.message ?? err);
     // Only interrupt the user when a download THEY started from the menu fails.
     // The `error` event also fires for background metadata checks (which run
     // concurrently with a download on the 30-min/on-focus timer) and for
@@ -171,4 +233,9 @@ async function checkForUpdatesManually() {
   }
 }
 
-module.exports = { setupAutoUpdater, checkForUpdatesManually, installWindowsSignatureVerifier };
+module.exports = {
+  setupAutoUpdater,
+  checkForUpdatesManually,
+  installWindowsSignatureVerifier,
+  DOWNLOAD_STALL_MS,
+};
