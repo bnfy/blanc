@@ -13,9 +13,14 @@ const SAFE_ICON = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAA
 
 const mainSource = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
 const fnSource = mainSource.match(/function persistSession\(\) \{[\s\S]*?\n\}/)?.[0];
+// persistSession calls out to this module-level sibling (the Task 5A
+// extraction, reused by Named Workspaces' capture path) — lift it too, so
+// the sandbox mirrors real module scope instead of one function's text.
+const captureSource = mainSource.match(/function captureWindowEntry\([\s\S]*?\n\}/)?.[0];
 
 test('persistSession is still liftable out of main.js', () => {
   assert.ok(fnSource, 'persistSession not found — update this test with it');
+  assert.ok(captureSource, 'captureWindowEntry not found — update this test with it');
 });
 
 function run(tabList, activeTabId) {
@@ -41,7 +46,7 @@ function run(tabList, activeTabId) {
     loadWorkspace,
     buildSaveShape,
   };
-  vm.runInNewContext(`${fnSource}\nthis.__fn = persistSession;`, sandbox);
+  vm.runInNewContext(`${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
   sandbox.__fn();
   return data;
 }

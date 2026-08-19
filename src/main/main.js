@@ -2396,6 +2396,32 @@ app.on('before-quit', () => {
   }
 });
 
+/** Builds one window's persistable session entry — the exact shape
+ * persistSession() writes into session.json's windows[] array. Pulled out
+ * of persistSession so Task 5B can capture a window into a Named Workspace
+ * using this same proven shape (private-tab exclusion, active-index rule,
+ * id/profileId) instead of re-deriving it and risking drift. */
+function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
+  // Private tabs leave no trail, error pages persist their real destination,
+  // and url-less adopted children drop out in lockstep with their metadata.
+  const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
+  const entry = {
+    id: runtime.id,
+    profileId: runtime.profileId,
+    urls: entries.map((item) => item.url),
+    groupIds: entries.map((item) => item.groupId),
+    pinned: entries.map((item) => item.pinned),
+    meta: entries.map((item) => sessionTabMeta(tabs.get(item.id))),
+    groups: runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id)),
+    activeIndex: previousActiveIndex,
+  };
+  // A private or provisional active tab preserves this window's last good
+  // persisted selection rather than shifting focus on the next launch.
+  const activeIndex = entries.findIndex((item) => item.id === runtime.activeTabId);
+  if (activeIndex >= 0) entry.activeIndex = activeIndex;
+  return entry;
+}
+
 function persistSession() {
   // Teardown closes tabs one by one; saving then would erode the session
   // file down to whatever closed last before the process exits.
@@ -2404,26 +2430,9 @@ function persistSession() {
   ensureSessionStore().update((d) => {
     const previous = loadWorkspace(d);
     const previousById = new Map(previous.windows.map((entry) => [entry.id, entry]));
-    const windows = windowRuntimes.all().map((runtime) => {
-      // Private tabs leave no trail, error pages persist their real destination,
-      // and url-less adopted children drop out in lockstep with their metadata.
-      const entries = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id)));
-      const entry = {
-        id: runtime.id,
-        profileId: runtime.profileId,
-        urls: entries.map((item) => item.url),
-        groupIds: entries.map((item) => item.groupId),
-        pinned: entries.map((item) => item.pinned),
-        meta: entries.map((item) => sessionTabMeta(tabs.get(item.id))),
-        groups: runtime.groups.filter((group) => entries.some((item) => item.groupId === group.id)),
-        activeIndex: previousById.get(runtime.id)?.activeIndex ?? 0,
-      };
-      // A private or provisional active tab preserves this window's last good
-      // persisted selection rather than shifting focus on the next launch.
-      const activeIndex = entries.findIndex((item) => item.id === runtime.activeTabId);
-      if (activeIndex >= 0) entry.activeIndex = activeIndex;
-      return entry;
-    });
+    const windows = windowRuntimes.all().map((runtime) => captureWindowEntry(runtime, {
+      previousActiveIndex: previousById.get(runtime.id)?.activeIndex ?? 0,
+    }));
     const activeWindowId = windowRuntimes.all().includes(focusedRuntime)
       ? focusedRuntime.id
       : windows[0]?.id ?? PRIMARY_WINDOW_ID;
