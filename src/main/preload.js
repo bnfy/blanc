@@ -100,11 +100,21 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
+  listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
+  saveWorkspaceAs: (name) => ipcRenderer.invoke('chrome:workspaces-save-as', name),
+  openWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-open', id),
+  renameWorkspace: (id, name) => ipcRenderer.invoke('chrome:workspaces-rename', id, name),
+  removeWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-remove', id),
   searchSuggestions: (query) => ipcRenderer.invoke('chrome:search-suggestions', query),
   onRemoteTabsUpdated: (callback) => {
     const listener = (_event, devices) => callback(devices);
     ipcRenderer.on('chrome:remote-tabs-updated', listener);
     return () => ipcRenderer.removeListener('chrome:remote-tabs-updated', listener);
+  },
+  onWorkspacesUpdated: (callback) => {
+    const listener = (_event, payload) => callback(payload);
+    ipcRenderer.on('chrome:workspaces-updated', listener);
+    return () => ipcRenderer.removeListener('chrome:workspaces-updated', listener);
   },
   clearHistory: () => ipcRenderer.invoke('chrome:history-clear'),
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),

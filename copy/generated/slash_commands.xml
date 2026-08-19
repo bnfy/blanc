@@ -21,4 +21,5 @@
     <string name="slash_allow_ads">Allow ads on this site</string>
     <string name="slash_theme">Cycle appearance, or choose system / light / dark</string>
     <string name="slash_patron">Support Blanc with a Patron subscription</string>
+    <string name="slash_workspace">Switch to a named workspace, or type a new name to save this window</string>
 </resources>

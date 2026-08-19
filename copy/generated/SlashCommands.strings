@@ -20,3 +20,4 @@
 "slash_allow_ads" = "Allow ads on this site";
 "slash_theme" = "Cycle appearance, or choose system / light / dark";
 "slash_patron" = "Support Blanc with a Patron subscription";
+"slash_workspace" = "Switch to a named workspace, or type a new name to save this window";

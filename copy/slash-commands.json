@@ -26,6 +26,7 @@
     { "command": "/block-ads", "hint": "Block ads here, or toggle blocking everywhere" },
     { "command": "/allow-ads", "hint": "Allow ads on this site" },
     { "command": "/theme", "hint": "Cycle appearance, or choose system / light / dark", "doc": { "command": "/theme [system|light|dark]", "hint": "Cycle appearance, or switch directly to system, light, or dark" } },
-    { "command": "/patron", "hint": "Support Blanc with a Patron subscription" }
+    { "command": "/patron", "hint": "Support Blanc with a Patron subscription" },
+    { "command": "/workspace", "hint": "Switch to a named workspace, or type a new name to save this window" }
   ]
 }

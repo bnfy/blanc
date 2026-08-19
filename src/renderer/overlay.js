@@ -118,6 +118,22 @@
   // -1 means no explicit ArrowUp/ArrowDown choice; renderList still highlights
   // the result that bare Enter would choose.
   let selectedResultIndex = -1;
+  // Named Workspaces (Blanc Patron). Populated from listWorkspaces() when the
+  // panel opens (refreshSwitcherData) and kept fresh via onWorkspacesUpdated —
+  // a pull-once list would keep showing a stale "active" row after a switch
+  // that happened elsewhere (another window, or this window's own command).
+  let wsPatronActive = false;
+  let wsWorkspaces = [];
+  // A workspace row's context-menu Rename/Delete lands here. main has no
+  // other channel back into an already-open panel, so both reuse the SAME
+  // overlay:show purpose payload beginNewGroup already relies on — see
+  // applyMode's purpose handling below. Only one edit/confirm is ever open;
+  // a stray id (the workspace was deleted from elsewhere while open) simply
+  // has no row left to render into, so it goes inert rather than needing to
+  // be reconciled explicitly.
+  let pendingRenameWorkspaceId = null;
+  let workspaceEditValue = '';
+  let pendingDeleteWorkspaceId = null;
 
   const ICONS = {
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
@@ -589,6 +605,240 @@
     return row;
   }
 
+  // --- Named Workspaces (Blanc Patron) ---
+  //
+  // Section lives below the tab switcher (renderList's at-rest branch), one
+  // row per workspace. Deliberately reuses existing row/header vocabulary —
+  // see the CSS comment above .ghead-action in styles.css for the mapping.
+
+  function applyWorkspacesPayload(payload) {
+    wsPatronActive = !!payload?.patronActive;
+    wsWorkspaces = Array.isArray(payload?.items) ? payload.items : [];
+  }
+
+  /** A quiet failure code -> the notice text a user actually needs. Every
+   * mutating call funnels its failure through here so none of them can ever
+   * become a silent no-op — the whole point of the shared commandNotice
+   * channel (see runCommand's resultNotice usage for /sleep). */
+  function workspaceErrorNotice(error, { name } = {}) {
+    switch (error) {
+      case 'not-patron': return 'Creating workspaces needs Blanc Patron.';
+      case 'invalid-name': return 'Type a name for this workspace.';
+      case 'duplicate-name': return name
+        ? `A workspace named "${name}" already exists.`
+        : 'A workspace with that name already exists.';
+      case 'limit': return 'You’ve reached the 25-workspace limit.';
+      case 'invalid-record': return 'Couldn’t save that workspace.';
+      case 'not-found': return 'That workspace no longer exists.';
+      case 'focus-failed': return 'Couldn’t switch to that workspace’s window.';
+      default: return 'Couldn’t complete that action.';
+    }
+  }
+
+  /** Run a workspace mutation ({ok, error?, patronActive?, items?}). Applies
+   * the fresh projection when the response carries one (every handler
+   * returns it inline — see Task 7's report — so this never has to wait on
+   * the separate onWorkspacesUpdated broadcast), always re-renders, and
+   * surfaces a failure as a quiet notice. Generation-guarded like every other
+   * async panel result: a response for a panel the user has since closed/
+   * reopened, or a newer workspace action, must not paint a stale notice. */
+  function runWorkspaceMutation(promise, { context, onSuccess } = {}) {
+    const resultGeneration = ++commandResultGeneration;
+    Promise.resolve(promise).then((result) => {
+      if (resultGeneration !== commandResultGeneration) return;
+      if (result && typeof result === 'object' && 'patronActive' in result) {
+        applyWorkspacesPayload(result);
+      }
+      if (!result?.ok) commandNotice = workspaceErrorNotice(result?.error, context);
+      renderList();
+      if (result?.ok) onSuccess?.(result);
+    }, () => {
+      if (resultGeneration !== commandResultGeneration) return;
+      commandNotice = 'Something went wrong with that workspace.';
+      renderList();
+    });
+  }
+
+  function switchToWorkspace(workspace) {
+    runWorkspaceMutation(window.browserAPI.openWorkspace(workspace.id), {
+      context: { name: workspace.name },
+      onSuccess: () => window.browserAPI.closeOverlay(),
+    });
+  }
+
+  /** "Save this window as…" — the explicit control for creating a new
+   * workspace from the section itself (never an implicit consequence of
+   * typing a name elsewhere). Prefills /workspace exactly like a tab
+   * context-menu's New Group… prefills /group — the user types the name and
+   * presses Enter, reusing the command's own create path. */
+  function beginSaveWorkspace() {
+    inputTouched = true;
+    addressInput.value = '/workspace ';
+    renderList();
+    addressInput.focus();
+    addressInput.setSelectionRange(addressInput.value.length, addressInput.value.length);
+  }
+
+  function cancelWorkspaceEdit() {
+    pendingRenameWorkspaceId = null;
+    workspaceEditValue = '';
+    renderList();
+  }
+
+  function commitWorkspaceRename(id) {
+    const name = workspaceEditValue;
+    pendingRenameWorkspaceId = null;
+    workspaceEditValue = '';
+    renderList();
+    runWorkspaceMutation(window.browserAPI.renameWorkspace(id, name), { context: { name } });
+  }
+
+  function cancelWorkspaceDelete() {
+    pendingDeleteWorkspaceId = null;
+    renderList();
+  }
+
+  function commitWorkspaceDelete(id) {
+    pendingDeleteWorkspaceId = null;
+    renderList();
+    runWorkspaceMutation(window.browserAPI.removeWorkspace(id));
+  }
+
+  /** The in-progress rename box's caret, if the currently-focused element IS
+   * that box for THIS workspace — so a re-render forced by an unrelated
+   * tabs:updated broadcast (which can arrive mid-edit) restores the cursor
+   * instead of yanking focus back to a freshly select()-ed input. */
+  function currentEditCaret(workspaceId) {
+    const active = document.activeElement;
+    if (
+      active?.classList?.contains('row-edit-input')
+      && active.closest('[data-workspace-id]')?.dataset.workspaceId === workspaceId
+    ) return active.selectionStart;
+    return null;
+  }
+
+  function renderWorkspaceRenameEditor(row, workspace) {
+    row.classList.add('editing');
+    const caret = currentEditCaret(workspace.id);
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'row-edit-input';
+    input.maxLength = 60; // MAX_NAME_LENGTH (workspaces-model.js)
+    input.value = workspaceEditValue;
+    input.setAttribute('aria-label', `New name for ${workspace.name}`);
+    input.addEventListener('input', () => { workspaceEditValue = input.value; });
+    input.addEventListener('keydown', (e) => {
+      // Escape must not ALSO reach the document-level handler that dismisses
+      // the whole panel — only cancel this edit.
+      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commitWorkspaceRename(workspace.id); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelWorkspaceEdit(); }
+    });
+    row.append(input);
+    input.focus();
+    if (caret != null) input.setSelectionRange(caret, caret);
+    else input.select();
+  }
+
+  function renderWorkspaceDeleteConfirm(row, workspace) {
+    row.classList.add('confirming');
+    const warning = document.createElement('span');
+    warning.className = 'row-title';
+    warning.textContent = `Delete "${workspace.name}"?`;
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'ghead-action';
+    cancel.textContent = 'cancel';
+    cancel.addEventListener('click', () => cancelWorkspaceDelete());
+    const confirm = document.createElement('button');
+    confirm.type = 'button';
+    confirm.className = 'ghead-action danger';
+    confirm.textContent = 'delete';
+    confirm.setAttribute('aria-label', `Permanently delete ${workspace.name}`);
+    confirm.addEventListener('click', () => commitWorkspaceDelete(workspace.id));
+    row.append(warning, cancel, confirm);
+  }
+
+  function workspaceRow(workspace) {
+    const row = document.createElement('div');
+    row.className = 'island-row workspace-row' + (workspace.active ? ' active' : '');
+    row.dataset.workspaceId = workspace.id;
+
+    if (pendingRenameWorkspaceId === workspace.id) { renderWorkspaceRenameEditor(row, workspace); return row; }
+    if (pendingDeleteWorkspaceId === workspace.id) { renderWorkspaceDeleteConfirm(row, workspace); return row; }
+
+    row.setAttribute('role', 'button');
+    const label = workspace.active ? `${workspace.name}, current workspace` : `Switch to ${workspace.name}`;
+    row.title = label;
+    row.setAttribute('aria-label', label);
+    row.append(miniDotCluster(Math.min(workspace.tabCount, 4), workspace.active));
+    const title = document.createElement('span');
+    title.className = 'row-title mono';
+    title.textContent = workspace.name;
+    const sub = document.createElement('span');
+    sub.className = 'row-sub';
+    sub.textContent = `${workspace.tabCount} ${workspace.tabCount === 1 ? 'tab' : 'tabs'}`;
+    row.append(title, sub);
+    row.addEventListener('click', () => switchToWorkspace(workspace));
+    return row;
+  }
+
+  /** "workspaces ————— save as…": same static-ghead shape pinned/closed use. */
+  function workspacesHeaderRow() {
+    const row = document.createElement('div');
+    // workspaces-section-anchor: lets /workspace (bare) find the section
+    // even when an active Patron hasn't saved a first workspace yet — the
+    // header is then the only row this section renders.
+    row.className = 'island-ghead static workspaces-section-anchor';
+    row.innerHTML = '<span class="ghead-name dim">workspaces</span><span class="ghead-rule"></span>';
+    const save = document.createElement('button');
+    save.type = 'button';
+    save.className = 'ghead-action';
+    save.textContent = 'save as…';
+    save.title = 'Save this window as a new workspace';
+    save.setAttribute('aria-label', save.title);
+    save.addEventListener('click', () => beginSaveWorkspace());
+    row.append(save);
+    return row;
+  }
+
+  /** Non-Patron (or a lapsed Patron who owns none yet): visible but locked —
+   * same idea as the locked Supporter/Patron colorway tiles in Settings, a
+   * quiet row carrying a "patron" tag that opens Settings at that section.
+   * Never hidden: this IS the section in that state, not a placeholder for
+   * one. */
+  function lockedWorkspaceRow() {
+    const row = document.createElement('div');
+    row.className = 'island-row workspace-row locked';
+    row.setAttribute('role', 'button');
+    row.title = 'Named Workspaces — support Blanc with a Patron subscription';
+    row.setAttribute('aria-label', row.title);
+    row.append(miniDotCluster(3, false));
+    const title = document.createElement('span');
+    title.className = 'row-title mono';
+    title.textContent = 'workspaces';
+    const sub = document.createElement('span');
+    sub.className = 'row-sub';
+    sub.textContent = 'save named sets of tabs';
+    const tag = document.createElement('span');
+    tag.className = 'row-tag';
+    tag.textContent = 'patron';
+    row.append(title, sub, tag);
+    row.addEventListener('click', () => {
+      window.browserAPI.closeOverlay();
+      window.browserAPI.openPage('settings', 'patron');
+    });
+    return row;
+  }
+
+  /** Rows for renderList's at-rest branch, below the tab switcher. A lapsed
+   * Patron who still owns workspaces gets the full list (switch/rename/
+   * delete all stay usable — only creating is refused, and that refusal
+   * surfaces from the save-as action itself, not by hiding anything here). */
+  function workspacesSectionRows() {
+    if (!wsPatronActive && wsWorkspaces.length === 0) return [lockedWorkspaceRow()];
+    return [workspacesHeaderRow(), ...wsWorkspaces.map(workspaceRow)];
+  }
+
   // --- Remote devices (tab sync) ---
 
   const hostOfUrl = (url) => {
@@ -711,6 +961,25 @@
       window.browserAPI.cycleTheme(requested || null);
     } },
     { cmd: '/patron', hint: 'Support Blanc with a Patron subscription', run: () => window.browserAPI.openPage('settings', 'patron') },
+    { cmd: '/workspace', hint: 'Switch to a named workspace, or type a new name to save this window', keepOverlay: true, clearInput: true, run: (input) => {
+      const name = (input ?? '').replace(/^\/workspace\s*/, '').trim();
+      if (!name) {
+        // Focus/reveal: the section is already visible below the tab
+        // switcher once the command list clears — just scroll to it. The
+        // anchor class covers the header-only case too (an active Patron
+        // with no workspaces saved yet renders no .workspace-row at all).
+        requestAnimationFrame(() => {
+          islandList.querySelector('.workspace-row, .workspaces-section-anchor')
+            ?.scrollIntoView({ block: 'nearest' });
+        });
+        return;
+      }
+      // Case-insensitive switch-if-exists; create (Patron-gated) if not —
+      // never create-only, and never /group-style find-or-create-a-group.
+      const existing = wsWorkspaces.find((w) => w.name.toLowerCase() === name.toLowerCase());
+      if (existing) switchToWorkspace(existing);
+      else runWorkspaceMutation(window.browserAPI.saveWorkspaceAs(name), { context: { name } });
+    } },
   ];
 
   function runCommand(command) {
@@ -1152,6 +1421,7 @@
         if (group?.collapsed) rows.push(foldedGroupRow(group, gtabs));
         else rows.push(...gtabs.map(tabRow));
       }
+      rows.push(...workspacesSectionRows());
       for (const device of remoteDevices) {
         rows.push(remoteHeaderRow(device));
         if (unfoldedDevices.has(device.deviceId)) {
@@ -1258,6 +1528,9 @@
     if (next === 'panel' || next === 'palette') {
       if (!reshow) {
         pendingGroupTabId = null;
+        pendingRenameWorkspaceId = null;
+        workspaceEditValue = '';
+        pendingDeleteWorkspaceId = null;
         addressInputComposing = false;
         suppressProviderSuggestions = false;
         commandResultGeneration += 1;
@@ -1271,6 +1544,21 @@
       // tab). Glance's string purposes fall through harmlessly.
       if (purpose && typeof purpose === 'object' && purpose.beginGroupTabId != null) {
         pendingGroupTabId = purpose.beginGroupTabId;
+      }
+      // A workspace row's context menu (main process) has no other channel
+      // back into an already-open panel — same atomic-payload reasoning as
+      // New Group… above. Unconditional (not just !reshow): the panel is
+      // always already open when a row's menu fires, so this only ever runs
+      // as a reshow, and each purpose always targets the CURRENT edit/
+      // confirm state, replacing whatever the last one was.
+      if (purpose && typeof purpose === 'object' && purpose.renameWorkspaceId != null) {
+        pendingRenameWorkspaceId = purpose.renameWorkspaceId;
+        pendingDeleteWorkspaceId = null;
+        workspaceEditValue = wsWorkspaces.find((w) => w.id === pendingRenameWorkspaceId)?.name ?? '';
+      }
+      if (purpose && typeof purpose === 'object' && purpose.deleteWorkspaceId != null) {
+        pendingDeleteWorkspaceId = purpose.deleteWorkspaceId;
+        pendingRenameWorkspaceId = null;
       }
       if (prefill) {
         // A menu-triggered command (e.g. "New Group…") arrives pre-typed —
@@ -1286,9 +1574,14 @@
       }
       refreshSwitcherData();
       renderPanel();
-      addressInput.focus();
-      if (prefill) addressInput.setSelectionRange(prefill.length, prefill.length);
-      else addressInput.select();
+      // A pending workspace edit/confirm already claimed focus on its own
+      // inline control (inside renderPanel, just above) — the address input
+      // must not steal it back.
+      if (pendingRenameWorkspaceId == null && pendingDeleteWorkspaceId == null) {
+        addressInput.focus();
+        if (prefill) addressInput.setSelectionRange(prefill.length, prefill.length);
+        else addressInput.select();
+      }
     } else if (next === 'find') {
       findInput.focus();
       findInput.select();
@@ -1577,6 +1870,9 @@
     addressInputComposing = false;
     suppressProviderSuggestions = false;
     pendingGroupTabId = null;
+    pendingRenameWorkspaceId = null;
+    workspaceEditValue = '';
+    pendingDeleteWorkspaceId = null;
     selectedResultIndex = -1;
     resetSearchSuggestions();
   });
@@ -1778,11 +2074,16 @@
   // --- State sync ---
 
   async function refreshSwitcherData() {
-    [favorites, historyEntries, remoteDevices] = await Promise.all([
+    const [favoritesList, historyList, remoteList, workspacesPayload] = await Promise.all([
       window.browserAPI.listFavorites(),
       window.browserAPI.listHistory({ limit: 300 }),
       window.browserAPI.listRemoteTabs(),
+      window.browserAPI.listWorkspaces(),
     ]);
+    favorites = favoritesList;
+    historyEntries = historyList;
+    remoteDevices = remoteList;
+    applyWorkspacesPayload(workspacesPayload);
     // Data lands after the panel already rendered — refresh it.
     if (mode === 'panel' || mode === 'palette') renderList();
   }
@@ -1808,6 +2109,13 @@
     remoteDevices = devices;
     if (mode === 'panel' || mode === 'palette') renderList();
   });
+  // Freshness for the workspaces section: a switch/rename/delete anywhere
+  // (another window, or this one) must not leave a pull-once list showing a
+  // stale "active" row or a name that no longer matches.
+  window.browserAPI.onWorkspacesUpdated((payload) => {
+    applyWorkspacesPayload(payload);
+    if (mode === 'panel' || mode === 'palette') renderList();
+  });
   window.browserAPI.getAllTabs().then((payload) => {
     state = payload;
     if (mode === 'glance') renderGlancePicker();
@@ -1829,8 +2137,15 @@
     // keyboard-invoked menus (menu key, VoiceOver), which have no useful
     // coordinates at all. The overlay is trusted chrome — browserAPI can
     // already act on any tab id, so a renderer-recorded id adds no privilege.
-    window.__blancCtxRowTabId =
-      e.target.closest('.island-row[data-tab-id]')?.dataset.tabId ?? null;
+    const tabRowEl = e.target.closest('.island-row[data-tab-id]');
+    // Workspace rows get their own separate menu (main's
+    // workspace-context-menu.js — deliberately not tab-context-menu.js, see
+    // that file's header) but share this same recording scheme: at most one
+    // of the two ids is ever set per right-click, since a row is either a
+    // tab row or a workspace row, never both.
+    const workspaceRowEl = tabRowEl ? null : e.target.closest('.workspace-row[data-workspace-id]');
+    window.__blancCtxRowTabId = tabRowEl?.dataset.tabId ?? null;
+    window.__blancCtxWorkspaceId = workspaceRowEl?.dataset.workspaceId ?? null;
     // A context-menu press never completes as a click, and a native menu
     // swallows its pointerup — macOS menus even keep key-window status, so
     // the blur fallback never fires either. Without this release, the
@@ -1838,7 +2153,11 @@
     // tabs:updated re-render (e.g. the menu's own Remove-from-Group) queues
     // invisibly until the panel is reopened.
     releasePointerHold();
-    if (!e.target.closest('#addressInput') && window.__blancCtxRowTabId == null) {
+    if (
+      !e.target.closest('#addressInput')
+      && window.__blancCtxRowTabId == null
+      && window.__blancCtxWorkspaceId == null
+    ) {
       e.preventDefault();
     }
   });
