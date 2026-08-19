@@ -3,6 +3,7 @@ const { autoUpdater } = require('electron-updater');
 const { createUpdateCheckCoordinator } = require('./update-checks');
 const { createUpdateRestarter } = require('./update-restart');
 const { createUpdaterLog } = require('./updater-log');
+const { createWindowsSignatureVerifier } = require('./updater-signature');
 
 // Attach update dialogs to the browser window so they can't appear behind
 // it; fall back to an unparented dialog if no window exists.
@@ -21,50 +22,20 @@ function setDownloadProgress(fraction) {
   }
 }
 
-// Replace electron-updater's default Windows signature check.
-//
-// After a successful download electron-updater verifies the installer's
-// Authenticode signature by shelling out to `Get-AuthenticodeSignature` with a
-// hard-coded 20-second timeout. On real machines that certificate chain/
-// revocation validation can exceed 20s (observed ~27s in a VM); electron-updater
-// then rejects and ABORTS the update — after the whole installer already
-// downloaded — so `update-downloaded` never fires and no restart prompt appears.
-// That silent post-download failure is a second, distinct cause of "stuck"
-// Windows updates. `win-verify-signature` (the module electron-updater's own docs
-// recommend) uses WinVerifyTrust natively: local, fast, no PowerShell and no
-// network-revocation timeout. sha512 (checked during download against the signed
-// latest.yml) already guarantees integrity; this restores publisher-authenticity
-// verification without the fragile timeout.
-//
-// Windows-only. The module is an optionalDependency (no macOS/Linux binary), so
-// require it lazily and fall back to electron-updater's default verifier if it
-// isn't present rather than shipping no verification.
+// Replace electron-updater's default Windows signature check with one that uses
+// a generous timeout instead of the built-in 20-second cliff. That cliff was
+// silently aborting updates after a fully successful download: on a slow/loaded
+// machine `Get-AuthenticodeSignature` (or even spawning cmd.exe) exceeds 20s,
+// electron-updater rejects, `update-downloaded` never fires, and no restart
+// prompt appears. See updater-signature.js for the verifier and its fail-open-on-
+// infrastructure-failure / fail-closed-on-bad-result policy. Windows-only.
 function installWindowsSignatureVerifier({
   platform = process.platform,
-  loadVerifier = () => require('win-verify-signature'),
   logger,
+  createVerifier = createWindowsSignatureVerifier,
 } = {}) {
   if (platform !== 'win32') return false;
-  let verifier;
-  try {
-    verifier = loadVerifier();
-  } catch (err) {
-    (logger ?? console).warn?.(
-      '[updater] win-verify-signature unavailable; using default verifier:',
-      err?.message ?? err,
-    );
-    return false;
-  }
-  // Return null when trusted; a message string otherwise — electron-updater
-  // treats any non-null result as an invalid signature and aborts the update.
-  autoUpdater.verifyUpdateCodeSignature = async (publisherNames, filePath) => {
-    try {
-      const result = await verifier.verifySignatureByPublishNameAsync(filePath, publisherNames);
-      return result?.signed ? null : result?.message || 'Update signature is not trusted.';
-    } catch (err) {
-      return `Update signature verification failed: ${err?.message ?? err}`;
-    }
-  };
+  autoUpdater.verifyUpdateCodeSignature = createVerifier({ logger });
   return true;
 }
 
