@@ -136,8 +136,8 @@ function setupAutoUpdater() {
     /* leave the default console logger in place */
   }
 
-  // Swap electron-updater's timeout-prone PowerShell signature check for the
-  // native WinVerifyTrust one on Windows (no-op elsewhere). See the function.
+  // Replace electron-updater's 20s-timeout PowerShell signature check with a
+  // generous-timeout one on Windows (no-op elsewhere). See the function.
   installWindowsSignatureVerifier({ logger: autoUpdater.logger });
 
   // Pin the behavior this release depends on instead of silently inheriting
