@@ -204,7 +204,7 @@ test('a downloaded update clears the indicator and prompts exactly once', async 
   assert.equal(progress.at(-1), -1, 'indicator cleared before the once-only early return');
 });
 
-test('the signature verifier is wired on Windows only', () => {
+test('the signature verifier is wired on Windows only', async () => {
   autoUpdater.verifyUpdateCodeSignature = undefined;
   const off = updater.installWindowsSignatureVerifier({
     platform: 'darwin',
@@ -215,11 +215,36 @@ test('the signature verifier is wired on Windows only', () => {
   assert.equal(off, false);
   assert.equal(autoUpdater.verifyUpdateCodeSignature, undefined, 'no verifier wired off Windows');
 
-  const stub = async () => null;
   const on = updater.installWindowsSignatureVerifier({
     platform: 'win32',
-    createVerifier: () => stub,
+    createVerifier: () => async () => 'delegated',
   });
   assert.equal(on, true);
-  assert.equal(autoUpdater.verifyUpdateCodeSignature, stub, 'the module verifier is wired on Windows');
+  assert.equal(typeof autoUpdater.verifyUpdateCodeSignature, 'function');
+  assert.equal(
+    await autoUpdater.verifyUpdateCodeSignature(['CN=X'], 'C:/x.exe'),
+    'delegated',
+    'the wired verifier delegates to the module verifier',
+  );
+});
+
+test('verification start disarms the download stall watchdog (slow verify is not a stall)', async () => {
+  let verifyStarted = false;
+  let delegated = false;
+  const installed = updater.installWindowsSignatureVerifier({
+    platform: 'win32',
+    createVerifier: () => async () => {
+      delegated = true;
+      return null;
+    },
+    onVerifyStart: () => {
+      verifyStarted = true;
+    },
+  });
+  assert.equal(installed, true);
+
+  const result = await autoUpdater.verifyUpdateCodeSignature(['CN=Bananify Creative'], 'C:/x.exe');
+  assert.equal(verifyStarted, true, 'the disarm hook fires when verification begins');
+  assert.equal(delegated, true, 'and it still delegates to the real verifier');
+  assert.equal(result, null);
 });

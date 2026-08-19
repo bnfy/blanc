@@ -39,9 +39,17 @@ function installWindowsSignatureVerifier({
   platform = process.platform,
   logger,
   createVerifier = createWindowsSignatureVerifier,
+  onVerifyStart,
 } = {}) {
   if (platform !== 'win32') return false;
-  autoUpdater.verifyUpdateCodeSignature = createVerifier({ logger });
+  const verify = createVerifier({ logger });
+  autoUpdater.verifyUpdateCodeSignature = (publisherNames, filePath) => {
+    // Reaching verification means the download's bytes are finished; it's a
+    // separate phase with its own timeout. Let the caller stop the download stall
+    // watchdog so a slow (up to 120s) verification isn't mistaken for a stall.
+    onVerifyStart?.();
+    return verify(publisherNames, filePath);
+  };
   return true;
 }
 
@@ -141,8 +149,16 @@ function setupAutoUpdater() {
   }
 
   // Replace electron-updater's 20s-timeout PowerShell signature check with a
-  // generous-timeout one on Windows (no-op elsewhere). See the function.
-  installWindowsSignatureVerifier({ logger: autoUpdater.logger });
+  // generous-timeout one on Windows (no-op elsewhere). See the function. When
+  // verification begins the download is complete, so stop the stall watchdog —
+  // otherwise a slow verify (its own 120s timeout) counts as a stalled download.
+  installWindowsSignatureVerifier({
+    logger: autoUpdater.logger,
+    onVerifyStart: () => {
+      downloadStallWatchdog?.disarm();
+      activeDownloadCancellation = null;
+    },
+  });
 
   // Pin the behavior this release depends on instead of silently inheriting
   // electron-updater defaults that can change between dependency upgrades.
