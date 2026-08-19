@@ -173,9 +173,14 @@ function listForProfile(file, profileId) {
 // ---------------------------------------------------------------------------
 // Single-window binding.
 //
-// `bindings` maps workspaceId -> windowId. The caller derives it from LIVE
-// window runtimes, so every entry is a live window by construction and this
-// model never needs a liveness probe.
+// `bindings` maps workspaceId -> windowId. The caller (main.js's
+// deriveWorkspaceBindings) derives it from EVERY window-runtime record, live
+// or not — a window-runtime whose native window is currently gone (macOS
+// dock-close of the primary window) still legitimately holds its workspace,
+// so it stays in the map. "Live" here means "exists in the runtime registry",
+// not "has an open window" — a caller resolving `focus` against an entry
+// must be prepared to recreate that window before focusing it. This model
+// has no concept of window liveness at all; it just moves ids around.
 //
 // Every map produced here is null-prototype: even if a hostile id slipped past
 // validWorkspaceId (a hand-edited file, a future caller), assigning it can

@@ -295,9 +295,12 @@ test('every mutation leaves its input file untouched', () => {
 
 // ---------------------------------------------------------------------------
 // Task 3 — single-window binding resolution.
-// `bindings` maps workspaceId -> windowId and is DERIVED FROM LIVE RUNTIMES by
-// the caller, so every entry is a live window by construction; the model never
-// needs a liveness probe.
+// `bindings` maps workspaceId -> windowId. Review round 2: the caller derives
+// it from EVERY window-runtime record (live or windowless — a dock-closed
+// primary window still legitimately holds its workspace), not just live
+// ones — the model itself has no concept of window liveness; it just moves
+// ids around. A caller resolving `focus` against a windowless entry must
+// recreate that window before focusing it.
 // ---------------------------------------------------------------------------
 
 test('validWorkspaceId is exported so Task 6 does not re-derive the rule', () => {
