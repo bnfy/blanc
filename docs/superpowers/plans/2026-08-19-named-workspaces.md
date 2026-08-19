@@ -121,6 +121,7 @@ From the locked spec; every task implicitly includes these:
 - Consumes the model; produces `list()`, `create({name, capture})`, `rename(id, name)`, `remove(id)`, `saveCapture(id, capture)`, `get(id)`.
 - Store: `new JsonStore('workspaces', EMPTY_FILE(), { scope: 'profile' })` created lazily in an `ensureStore()` (the `bookmarks.js` pattern), normalizing through `normalizeFile` on first access so a hand-edited or older file is repaired in place.
 - `profileId` for new records is stamped from `activeLocalProfileId()`, matching how the store already scopes files.
+- **The store mints the id.** `createWorkspace` does not generate one — a missing or unusable id returns `invalid-record`. Pass `crypto.randomUUID()` (verified to satisfy `validWorkspaceId`: 36 chars, hex + hyphens, well inside the 64-char rule). Keeping generation out of the model is what keeps the model deterministic and unit-testable.
 - **A profile-scoped file never legitimately mixes profiles.** `ensureStore()` therefore also **drops any record whose `profileId` does not match the file's own profile** (a hand-edited or mis-copied file). The model's cross-profile allowances (Task 2) are model-level generality; this store enforces the single-profile invariant at the boundary.
 
 - [ ] **Step 1: Implement** the thin wrapper — every decision delegated to the model; this file only reads/writes the store and stamps `Date.now()`.
