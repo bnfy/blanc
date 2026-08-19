@@ -116,19 +116,23 @@ test('each local profile gets its own file and cannot see the others', () => {
 
 test('writes land at the profile-correct paths on disk', async () => {
   // JsonStore debounces (250ms, flushed for real on before-quit), so the file
-  // appears shortly after the write rather than synchronously. Waiting proves
-  // the write actually reaches disk at the right path — Personal keeps the
-  // shipped root file, named profiles nest under profiles/<id>/ exactly where
-  // Favorites and history already live.
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  assert.ok(fs.existsSync(path.join(userData, 'workspaces.json')), 'Personal at the userData root');
-  assert.ok(
-    fs.existsSync(path.join(userData, 'profiles', 'profile_work', 'workspaces.json')),
-    'named profile nested under profiles/<id>/',
-  );
+  // appears shortly after the write rather than synchronously. Poll rather
+  // than sleep a fixed span: a fixed delay is load-sensitive, while polling
+  // waits exactly as long as needed and fails only if the write never lands.
+  const personalFile = path.join(userData, 'workspaces.json');
+  const namedFile = path.join(userData, 'profiles', 'profile_work', 'workspaces.json');
+  const waitForFile = async (file) => {
+    for (let i = 0; i < 200; i++) {
+      if (fs.existsSync(file)) return true;
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    return false;
+  };
+  assert.ok(await waitForFile(personalFile), 'Personal at the userData root');
+  assert.ok(await waitForFile(namedFile), 'named profile nested under profiles/<id>/');
 
-  const personal = JSON.parse(fs.readFileSync(path.join(userData, 'workspaces.json'), 'utf8'));
-  const named = JSON.parse(fs.readFileSync(path.join(userData, 'profiles', 'profile_work', 'workspaces.json'), 'utf8'));
+  const personal = JSON.parse(fs.readFileSync(personalFile, 'utf8'));
+  const named = JSON.parse(fs.readFileSync(namedFile, 'utf8'));
   assert.ok(personal.workspaces.every((w) => w.profileId === 'default'));
   assert.ok(named.workspaces.every((w) => w.profileId === 'profile_work'));
 });
