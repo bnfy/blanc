@@ -38,6 +38,7 @@ function install(refs) {
     getTabOrder,
     getGroups,
     getActiveTabId,
+    getIslandRect,
     runBlockAdsCommand,
     runAllowAdsCommand,
     clusterSlots,
@@ -189,6 +190,10 @@ function install(refs) {
     },
     profileTabSession(id) { return profileTabSessionSnapshot(String(id)); },
     startupReady() { return isSessionPersistenceReady(); },
+    /** The strip-reported island rect (window coords) — geometry only. Lets
+     * tests assert the morph/proximity anchor tracks the real pill (it went
+     * stale across window resizes when only a pill ResizeObserver fed it). */
+    islandRect() { const r = getIslandRect(); return r ? { ...r } : null; },
     state() {
       const list = [];
       for (const [id, t] of tabs) {
