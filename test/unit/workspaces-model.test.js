@@ -16,6 +16,7 @@ const {
   listForProfile,
   validWorkspaceId,
   resolveOpen,
+  scratchSwitchNeedsGuard,
   bindingsAfterSwap,
   bindingsAfterUnbind,
   bindingsAfterDelete,
@@ -373,4 +374,56 @@ test('binding transitions never mutate their input', () => {
   bindingsAfterUnbind(bindings, { windowId: 'win_1' });
   bindingsAfterDelete(bindings, 'ws_a');
   assert.deepEqual({ ...bindings }, snapshot);
+});
+
+// ---------------------------------------------------------------------------
+// Scratch guard (follow-up to Task 9, found by hands-on testing): switching
+// a window with no workspace binding used to close its tabs with no recovery
+// at all — the outbound autosave is skipped (nothing bound to save INTO),
+// and applyWorkspaceToWindow closes every tab with record:false, so they
+// don't even land in Recently Closed. scratchSwitchNeedsGuard is the pure
+// decision of whether that switch needs confirming first.
+// ---------------------------------------------------------------------------
+
+test('scratchSwitchNeedsGuard: a BOUND window is never guarded, regardless of its tabs', () => {
+  const blank = 'blanc://newtab/';
+  assert.equal(
+    scratchSwitchNeedsGuard({ bound: true, tabUrls: ['https://a.test/', 'https://b.test/'], blankNewTabUrl: blank }),
+    false,
+    'a bound window is always covered by autosaveWorkspaceBindings — nothing to lose'
+  );
+});
+
+test('scratchSwitchNeedsGuard: an UNBOUND window is guarded only when a tab is more than the blank newtab', () => {
+  const blank = 'blanc://newtab/';
+  assert.equal(
+    scratchSwitchNeedsGuard({ bound: false, tabUrls: [], blankNewTabUrl: blank }),
+    false,
+    'nothing open — nothing to confirm'
+  );
+  assert.equal(
+    scratchSwitchNeedsGuard({ bound: false, tabUrls: [blank], blankNewTabUrl: blank }),
+    false,
+    'a single blank new tab is the checklist floor, not user work'
+  );
+  assert.equal(
+    scratchSwitchNeedsGuard({ bound: false, tabUrls: [blank, blank, blank], blankNewTabUrl: blank }),
+    false,
+    'several blank new tabs are still nothing worth confirming over'
+  );
+  assert.equal(
+    scratchSwitchNeedsGuard({ bound: false, tabUrls: ['https://a.test/'], blankNewTabUrl: blank }),
+    true,
+    'one real tab is enough to guard'
+  );
+  assert.equal(
+    scratchSwitchNeedsGuard({ bound: false, tabUrls: [blank, 'https://a.test/'], blankNewTabUrl: blank }),
+    true,
+    'a real tab mixed in with blank ones still guards — "at least one" tab qualifies'
+  );
+});
+
+test('scratchSwitchNeedsGuard treats a missing/malformed tab list as empty, not a crash', () => {
+  assert.equal(scratchSwitchNeedsGuard({ bound: false, tabUrls: null, blankNewTabUrl: 'blanc://newtab/' }), false);
+  assert.equal(scratchSwitchNeedsGuard({ bound: false, blankNewTabUrl: 'blanc://newtab/' }), false);
 });

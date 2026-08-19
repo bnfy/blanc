@@ -215,6 +215,30 @@ function resolveOpen(bindings, workspaceId, requestingWindowId) {
   return { action: 'focus', windowId };                 // live elsewhere — never double-bind
 }
 
+// ---------------------------------------------------------------------------
+// Scratch guard (follow-up to Task 9): a BOUND window's tabs are always
+// covered by autosaveWorkspaceBindings, so switching it (or creating a fresh
+// blank workspace and switching into it) never loses anything. An UNBOUND
+// ("scratch") window has no save target at all — main.js's applyWorkspaceTo-
+// Window closes every outgoing tab with `record: false`, so they would not
+// even land in Recently Closed. The guard exists for THAT case only, and
+// only when there is something a user would recognize as work: a scratch
+// window holding nothing but the blank internal newtab (once, or several
+// times over) has nothing worth confirming.
+// ---------------------------------------------------------------------------
+
+/** Whether a switch away from THIS window's current tabs — opening an
+ * existing workspace, or creating a fresh blank one and switching into it —
+ * must be confirmed before anything closes. `tabUrls` is the already-
+ * persistable list (private tabs excluded, url-less entries dropped) —
+ * exactly what session-snapshot's persistableEntries produces. `blankNewTabUrl`
+ * is passed in rather than hardcoded here so this file never needs its own
+ * copy of main.js's NEW_TAB_URL constant to drift against. */
+function scratchSwitchNeedsGuard({ bound, tabUrls, blankNewTabUrl }) {
+  if (bound) return false;
+  return (Array.isArray(tabUrls) ? tabUrls : []).some((url) => url !== blankNewTabUrl);
+}
+
 /** Bind one workspace to one window, releasing BOTH prior claims: the window's
  * previous workspace and the workspace's previous window. Either leftover
  * would give a single slot two autosave writers. */
@@ -263,6 +287,7 @@ module.exports = {
   // (validWindowId + the __proto__ reject) instead of re-deriving it.
   validWorkspaceId,
   resolveOpen,
+  scratchSwitchNeedsGuard,
   bindingsAfterSwap,
   bindingsAfterUnbind,
   bindingsAfterDelete,

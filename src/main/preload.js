@@ -102,7 +102,10 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
   saveWorkspaceAs: (name) => ipcRenderer.invoke('chrome:workspaces-save-as', name),
-  openWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-open', id),
+  // opts: { force?: true } — skips the scratch guard (a confirmed "discard
+  // and switch"). Omitted for a plain open/create attempt.
+  openWorkspace: (id, opts) => ipcRenderer.invoke('chrome:workspaces-open', id, opts),
+  createBlankWorkspace: (name, opts) => ipcRenderer.invoke('chrome:workspaces-create-blank', name, opts),
   renameWorkspace: (id, name) => ipcRenderer.invoke('chrome:workspaces-rename', id, name),
   removeWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-remove', id),
   searchSuggestions: (query) => ipcRenderer.invoke('chrome:search-suggestions', query),

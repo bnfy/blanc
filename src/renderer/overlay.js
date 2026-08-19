@@ -134,6 +134,19 @@
   let pendingRenameWorkspaceId = null;
   let workspaceEditValue = '';
   let pendingDeleteWorkspaceId = null;
+  // "new…" (Task 9 follow-up): an inline create editor, same shape as the
+  // rename editor above but with no existing row to attach to — its own row
+  // is inserted at the top of the section instead (see workspacesSectionRows).
+  let pendingCreateWorkspace = false;
+  let createWorkspaceValue = '';
+  // Scratch guard (Task 9 follow-up): set when an open/create attempt comes
+  // back {error:'unsaved-scratch'} — this window is unbound and holds real
+  // tabs, so main refused to switch it without confirming first. Carries
+  // enough to retry the SAME action: 'open' replays openWorkspace(workspaceId),
+  // 'create' replays createBlankWorkspace(name). awaitingSave is set only
+  // while "save first" is in flight — see the /workspace command's create
+  // branch, which is the one place that consumes it.
+  let pendingScratchGuard = null; // { kind: 'open'|'create', workspaceId?, name, tabCount, awaitingSave? }
 
   const ICONS = {
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
@@ -619,7 +632,12 @@
   /** A quiet failure code -> the notice text a user actually needs. Every
    * mutating call funnels its failure through here so none of them can ever
    * become a silent no-op — the whole point of the shared commandNotice
-   * channel (see runCommand's resultNotice usage for /sleep). */
+   * channel (see runCommand's resultNotice usage for /sleep). 'unsaved-scratch'
+   * is deliberately absent from the switch below: every call site that can
+   * receive it passes runWorkspaceMutation an onUnsavedScratch handler, which
+   * intercepts it before this function ever runs (see runWorkspaceMutation) —
+   * the default case here is only a safety net for a hypothetical future call
+   * site that forgets to. */
   function workspaceErrorNotice(error, { name } = {}) {
     switch (error) {
       case 'not-patron': return 'Creating workspaces needs Blanc Patron.';
@@ -631,6 +649,7 @@
       case 'invalid-record': return 'Couldn’t save that workspace.';
       case 'not-found': return 'That workspace no longer exists.';
       case 'focus-failed': return 'Couldn’t switch to that workspace’s window.';
+      case 'unsaved-scratch': return 'This window has unsaved tabs.';
       default: return 'Couldn’t complete that action.';
     }
   }
@@ -641,15 +660,25 @@
    * the separate onWorkspacesUpdated broadcast), always re-renders, and
    * surfaces a failure as a quiet notice. Generation-guarded like every other
    * async panel result: a response for a panel the user has since closed/
-   * reopened, or a newer workspace action, must not paint a stale notice. */
-  function runWorkspaceMutation(promise, { context, onSuccess } = {}) {
+   * reopened, or a newer workspace action, must not paint a stale notice.
+   *
+   * onUnsavedScratch (Task 9 follow-up): an open/create-blank attempt can
+   * come back {error:'unsaved-scratch', tabCount} instead of a plain
+   * failure — this window is unbound and holds real tabs, and main refused
+   * to switch it without confirming first. A call site that can trigger the
+   * guard passes this to turn that response into the in-panel confirm
+   * (pendingScratchGuard/scratchGuardRow) instead of a dead-end notice. */
+  function runWorkspaceMutation(promise, { context, onSuccess, onUnsavedScratch } = {}) {
     const resultGeneration = ++commandResultGeneration;
     Promise.resolve(promise).then((result) => {
       if (resultGeneration !== commandResultGeneration) return;
       if (result && typeof result === 'object' && 'patronActive' in result) {
         applyWorkspacesPayload(result);
       }
-      if (!result?.ok) commandNotice = workspaceErrorNotice(result?.error, context);
+      if (!result?.ok) {
+        if (result?.error === 'unsaved-scratch' && onUnsavedScratch) onUnsavedScratch(result);
+        else commandNotice = workspaceErrorNotice(result?.error, context);
+      }
       renderList();
       if (result?.ok) onSuccess?.(result);
     }, () => {
@@ -663,6 +692,9 @@
     runWorkspaceMutation(window.browserAPI.openWorkspace(workspace.id), {
       context: { name: workspace.name },
       onSuccess: () => window.browserAPI.closeOverlay(),
+      onUnsavedScratch: (result) => {
+        pendingScratchGuard = { kind: 'open', workspaceId: workspace.id, name: workspace.name, tabCount: result.tabCount };
+      },
     });
   }
 
@@ -670,13 +702,93 @@
    * workspace from the section itself (never an implicit consequence of
    * typing a name elsewhere). Prefills /workspace exactly like a tab
    * context-menu's New Group… prefills /group — the user types the name and
-   * presses Enter, reusing the command's own create path. */
+   * presses Enter, reusing the command's own create path. Also the scratch
+   * guard's "save first" step (beginScratchGuardSaveFirst below) — the SAME
+   * flow, just entered from a different control. */
   function beginSaveWorkspace() {
     inputTouched = true;
     addressInput.value = '/workspace ';
     renderList();
     addressInput.focus();
     addressInput.setSelectionRange(addressInput.value.length, addressInput.value.length);
+  }
+
+  /** "new…" — Task 9's missing create operation. Opens an inline name editor
+   * in the workspaces section itself (see renderCreateWorkspaceEditor),
+   * rather than reusing beginSaveWorkspace's address-bar prefill: unlike
+   * save-as, there is no existing /workspace command overload for "create
+   * empty" to hook into, and inventing one (e.g. a second meaning for a
+   * typed name) would make /workspace ambiguous between switch-or-save-as
+   * and create-blank for the exact same input shape. */
+  function beginCreateWorkspace() {
+    pendingCreateWorkspace = true;
+    createWorkspaceValue = '';
+    renderList();
+  }
+
+  function cancelCreateWorkspace() {
+    pendingCreateWorkspace = false;
+    createWorkspaceValue = '';
+    renderList();
+  }
+
+  function commitCreateWorkspace() {
+    const name = createWorkspaceValue;
+    pendingCreateWorkspace = false;
+    createWorkspaceValue = '';
+    renderList();
+    runWorkspaceMutation(window.browserAPI.createBlankWorkspace(name), {
+      context: { name },
+      onSuccess: () => window.browserAPI.closeOverlay(),
+      onUnsavedScratch: (result) => {
+        pendingScratchGuard = { kind: 'create', name, tabCount: result.tabCount };
+      },
+    });
+  }
+
+  /** Re-run the action pendingScratchGuard remembers, with an explicit
+   * decision about the guard: force:true is "discard and switch" (the user's
+   * own override); force:false is what "save first" retries with, because a
+   * successful save just bound this window — the guard already reads false
+   * from scratchGuardResult's own bound-window check, so this is a real
+   * re-decision, not a rubber stamp. Clears pendingScratchGuard and repaints
+   * BEFORE the mutation resolves, so the confirm row never lingers through
+   * the round-trip. */
+  function retryScratchGuard(force) {
+    const guard = pendingScratchGuard;
+    if (!guard) return;
+    pendingScratchGuard = null;
+    renderList();
+    const context = { name: guard.name };
+    const onSuccess = () => window.browserAPI.closeOverlay();
+    if (guard.kind === 'open') {
+      runWorkspaceMutation(window.browserAPI.openWorkspace(guard.workspaceId, { force }), { context, onSuccess });
+    } else {
+      runWorkspaceMutation(window.browserAPI.createBlankWorkspace(guard.name, { force }), { context, onSuccess });
+    }
+  }
+
+  /** "save these tabs as a workspace first" — hands off to the SAME save-as
+   * flow the header's "save as…" button uses (beginSaveWorkspace), marking
+   * the pending guard as awaiting that save. The /workspace command's
+   * create branch below is the one place that notices awaitingSave and
+   * retries the original action once the save actually succeeds — this
+   * function only starts that hand-off, it does not wait for it. */
+  function beginScratchGuardSaveFirst() {
+    if (!pendingScratchGuard) return;
+    pendingScratchGuard = { ...pendingScratchGuard, awaitingSave: true };
+    beginSaveWorkspace();
+  }
+
+  /** "discard them and switch" — the explicit override; retryScratchGuard(true)
+   * skips the guard on the retried attempt. */
+  function discardScratchGuard() {
+    retryScratchGuard(true);
+  }
+
+  function cancelScratchGuard() {
+    pendingScratchGuard = null;
+    renderList();
   }
 
   function cancelWorkspaceEdit() {
@@ -758,6 +870,82 @@
     row.append(warning, cancel, confirm);
   }
 
+  /** "new…"'s caret, mirroring currentEditCaret above — there is no
+   * workspace id to key off yet (the record doesn't exist until commit), so
+   * this keys off the create row's own marker class instead. */
+  function currentCreateCaret() {
+    const active = document.activeElement;
+    if (active?.classList?.contains('row-edit-input') && active.closest('.workspace-create-row')) {
+      return active.selectionStart;
+    }
+    return null;
+  }
+
+  /** The "new…" inline editor row: same input treatment as the rename editor,
+   * but it has no existing workspace row to attach to, so it renders as its
+   * own row (workspacesSectionRows inserts it right after the header). Enter
+   * commits (createBlankWorkspace, Patron- and scratch-guarded on the main
+   * side); Escape cancels. */
+  function renderCreateWorkspaceEditor() {
+    const row = document.createElement('div');
+    row.className = 'island-row workspace-row editing workspace-create-row';
+    const caret = currentCreateCaret();
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'row-edit-input';
+    input.maxLength = 60; // MAX_NAME_LENGTH (workspaces-model.js)
+    input.placeholder = 'name this workspace';
+    input.value = createWorkspaceValue;
+    input.setAttribute('aria-label', 'Name for the new workspace');
+    input.addEventListener('input', () => { createWorkspaceValue = input.value; });
+    input.addEventListener('keydown', (e) => {
+      // Same rationale as the rename editor's own handler: Escape must
+      // cancel only this editor, not bubble to the panel-wide dismiss.
+      if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commitCreateWorkspace(); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelCreateWorkspace(); }
+    });
+    row.append(input);
+    input.focus();
+    if (caret != null) input.setSelectionRange(caret, caret);
+    return row;
+  }
+
+  /** Scratch guard confirmation (Task 9 follow-up) — same warning + button
+   * shape as renderWorkspaceDeleteConfirm, just one more (non-destructive)
+   * choice. Rendered at the top of the at-rest list, the same slot
+   * commandNoticeRow uses (see renderList) — the two never show together. */
+  function scratchGuardRow() {
+    const row = document.createElement('div');
+    row.className = 'island-row confirming';
+    const count = pendingScratchGuard.tabCount;
+    const tabWord = count === 1 ? 'tab' : 'tabs';
+    const warning = document.createElement('span');
+    warning.className = 'row-title';
+    warning.textContent = `${count} unsaved ${tabWord} will close.`;
+    const saveFirst = document.createElement('button');
+    saveFirst.type = 'button';
+    saveFirst.className = 'ghead-action';
+    saveFirst.textContent = 'save first';
+    saveFirst.title = 'Save these tabs as a workspace, then continue';
+    saveFirst.setAttribute('aria-label', saveFirst.title);
+    saveFirst.addEventListener('click', () => beginScratchGuardSaveFirst());
+    const discard = document.createElement('button');
+    discard.type = 'button';
+    discard.className = 'ghead-action danger';
+    discard.textContent = 'discard';
+    discard.title = `Close ${count} unsaved ${tabWord} without saving`;
+    discard.setAttribute('aria-label', discard.title);
+    discard.addEventListener('click', () => discardScratchGuard());
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'ghead-action';
+    cancel.textContent = 'cancel';
+    cancel.title = 'Stay on this window';
+    cancel.addEventListener('click', () => cancelScratchGuard());
+    row.append(warning, saveFirst, discard, cancel);
+    return row;
+  }
+
   function workspaceRow(workspace) {
     const row = document.createElement('div');
     row.className = 'island-row workspace-row' + (workspace.active ? ' active' : '');
@@ -782,7 +970,11 @@
     return row;
   }
 
-  /** "workspaces ————— save as…": same static-ghead shape pinned/closed use. */
+  /** "workspaces ————— new… save as…": same static-ghead shape pinned/closed
+   * use. Both actions are shown regardless of Patron status (same as save-as
+   * always was) — a lapsed Patron who still owns workspaces sees "new…" too,
+   * and the refusal surfaces from the action itself (not-patron), not by
+   * hiding the button. */
   function workspacesHeaderRow() {
     const row = document.createElement('div');
     // workspaces-section-anchor: lets /workspace (bare) find the section
@@ -790,6 +982,13 @@
     // header is then the only row this section renders.
     row.className = 'island-ghead static workspaces-section-anchor';
     row.innerHTML = '<span class="ghead-name dim">workspaces</span><span class="ghead-rule"></span>';
+    const create = document.createElement('button');
+    create.type = 'button';
+    create.className = 'ghead-action';
+    create.textContent = 'new…';
+    create.title = 'Create a new, empty workspace';
+    create.setAttribute('aria-label', create.title);
+    create.addEventListener('click', () => beginCreateWorkspace());
     const save = document.createElement('button');
     save.type = 'button';
     save.className = 'ghead-action';
@@ -797,7 +996,7 @@
     save.title = 'Save this window as a new workspace';
     save.setAttribute('aria-label', save.title);
     save.addEventListener('click', () => beginSaveWorkspace());
-    row.append(save);
+    row.append(create, save);
     return row;
   }
 
@@ -833,10 +1032,22 @@
   /** Rows for renderList's at-rest branch, below the tab switcher. A lapsed
    * Patron who still owns workspaces gets the full list (switch/rename/
    * delete all stay usable — only creating is refused, and that refusal
-   * surfaces from the save-as action itself, not by hiding anything here). */
+   * surfaces from the new…/save-as action itself, not by hiding anything
+   * here). An active Patron with zero workspaces gets a quiet one-line hint
+   * instead of a bare header — the feature otherwise explained nothing to
+   * the one person who can actually use it (found by hands-on testing).
+   * That hint is suppressed while the "new…" editor is open: showing both
+   * at once is a redundant double explanation of the same empty state. */
   function workspacesSectionRows() {
     if (!wsPatronActive && wsWorkspaces.length === 0) return [lockedWorkspaceRow()];
-    return [workspacesHeaderRow(), ...wsWorkspaces.map(workspaceRow)];
+    const rows = [workspacesHeaderRow()];
+    if (pendingCreateWorkspace) {
+      rows.push(renderCreateWorkspaceEditor());
+    } else if (wsPatronActive && wsWorkspaces.length === 0) {
+      rows.push(emptyRow("save this window's tabs as a named set you can switch back to"));
+    }
+    rows.push(...wsWorkspaces.map(workspaceRow));
+    return rows;
   }
 
   // --- Remote devices (tab sync) ---
@@ -977,8 +1188,16 @@
       // Case-insensitive switch-if-exists; create (Patron-gated) if not —
       // never create-only, and never /group-style find-or-create-a-group.
       const existing = wsWorkspaces.find((w) => w.name.toLowerCase() === name.toLowerCase());
-      if (existing) switchToWorkspace(existing);
-      else runWorkspaceMutation(window.browserAPI.saveWorkspaceAs(name), { context: { name } });
+      if (existing) { switchToWorkspace(existing); return; }
+      runWorkspaceMutation(window.browserAPI.saveWorkspaceAs(name), {
+        context: { name },
+        // Scratch guard's "save first" (beginScratchGuardSaveFirst) lands
+        // here: a save that succeeds while a guard is awaiting one means
+        // THIS window is now bound, so the original blocked action can
+        // safely retry — force:false, because the guard genuinely no longer
+        // applies (bound window), not because anything is being overridden.
+        onSuccess: () => { if (pendingScratchGuard?.awaitingSave) retryScratchGuard(false); },
+      });
     } },
   ];
 
@@ -1407,7 +1626,12 @@
       selectedResultIndex = -1;
       const pinned = state.tabs.filter((t) => t.pinned && !t.groupId);
       const rows = [];
-      if (commandNotice) rows.push(commandNoticeRow(commandNotice));
+      // Scratch guard takes the same top-of-list slot commandNotice uses —
+      // the two never coexist (see runWorkspaceMutation's onUnsavedScratch,
+      // which intercepts 'unsaved-scratch' before it ever becomes a plain
+      // commandNotice string).
+      if (pendingScratchGuard) rows.push(scratchGuardRow());
+      else if (commandNotice) rows.push(commandNoticeRow(commandNotice));
       if (pinned.length) {
         rows.push(pinnedHeaderRow(pinned.length));
         rows.push(...pinned.map(tabRow));
@@ -1531,6 +1755,9 @@
         pendingRenameWorkspaceId = null;
         workspaceEditValue = '';
         pendingDeleteWorkspaceId = null;
+        pendingCreateWorkspace = false;
+        createWorkspaceValue = '';
+        pendingScratchGuard = null;
         addressInputComposing = false;
         suppressProviderSuggestions = false;
         commandResultGeneration += 1;
@@ -1873,6 +2100,9 @@
     pendingRenameWorkspaceId = null;
     workspaceEditValue = '';
     pendingDeleteWorkspaceId = null;
+    pendingCreateWorkspace = false;
+    createWorkspaceValue = '';
+    pendingScratchGuard = null;
     selectedResultIndex = -1;
     resetSearchSuggestions();
   });
@@ -1967,6 +2197,13 @@
     // /group meant for the active tab.
     if (pendingGroupTabId != null && !addressInput.value.startsWith('/group')) {
       pendingGroupTabId = null;
+    }
+    // Same idea for a scratch guard's "save first": editing away from
+    // /workspace abandons the hand-off, so a LATER unrelated /workspace save
+    // (the user changed their mind) can never trigger a stale retry of
+    // whatever action originally triggered the guard.
+    if (pendingScratchGuard?.awaitingSave && !addressInput.value.startsWith('/workspace')) {
+      pendingScratchGuard = null;
     }
     if (!addressInput.value.trim()) {
       // Do not clear a paste/drop taint here. Delete followed by Undo restores

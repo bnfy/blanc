@@ -164,7 +164,7 @@ const {
 // below (near closeGroup) for the capture/apply/switch seams that use them.
 const namedWorkspaces = require('./workspaces');
 const {
-  resolveOpen, bindingsAfterSwap, bindingsAfterUnbind, bindingsAfterDelete,
+  resolveOpen, scratchSwitchNeedsGuard, bindingsAfterSwap, bindingsAfterUnbind, bindingsAfterDelete,
 } = require('./workspaces-model');
 
 const NEW_TAB_URL = 'blanc://newtab/';
@@ -3112,17 +3112,24 @@ function closeGroup(groupId) {
 
 // ---------------------------------------------------------------------------
 // Named Workspaces: capture, apply, switch, single-window binding, autosave.
-// Three distinct operations, only ever reached from their own named entry
+// Four distinct operations, only ever reached from their own named entry
 // point below — conflating them is a data-loss bug (a save-as that tore down
 // and recreated its own tabs would destroy any private tab in the window):
-//   1. saveCurrentWindowAsWorkspace — create/save-as. Captures the LIVE set.
-//      No tab teardown, never calls applyWorkspaceToWindow.
+//   1. saveCurrentWindowAsWorkspace — save-as an EXISTING window's LIVE tab
+//      set into a brand new workspace. No tab teardown, never calls
+//      applyWorkspaceToWindow.
 //   2. switchWindowToWorkspace — open/switch to an EXISTING workspace. Saves
 //      this window's outgoing state, resolves the binding, then either
 //      focuses the window that already has it open or calls
-//      applyWorkspaceToWindow (the only caller allowed to).
+//      applyWorkspaceToWindow (the only OTHER caller allowed to — see 4).
+//      Refuses up front (the scratch guard) when this window is unbound and
+//      holds real tabs, unless the caller passes force:true.
 //   3. Plain focus (inside switchWindowToWorkspace) — already open elsewhere;
 //      focus that window and touch nothing else.
+//   4. createBlankWorkspaceAndSwitch — create a brand new EMPTY workspace
+//      (Patron-gated, and scratch-guarded the same way as #2, checked BEFORE
+//      the record is created) and switch into it via #2 itself, never a
+//      second copy of the apply protocol.
 // ---------------------------------------------------------------------------
 
 /** captureWindowEntry's `groups` field is main.js's own runtime.groups array
@@ -3211,6 +3218,26 @@ function autosaveWorkspaceBindings() {
   }, { liveOnly: true });
 }
 
+/** Scratch guard (follow-up to Task 9, found by hands-on testing): the live
+ * inputs workspaces-model's scratchSwitchNeedsGuard needs, gathered from
+ * THIS window's actual tabs — kept out of the pure model so it never has to
+ * know about the tabs Map or the runtime shape. Returns the exact
+ * {ok:false, error:'unsaved-scratch', tabCount} response every guarded call
+ * site returns verbatim, or null when the switch is safe to proceed
+ * (bound window — autosave already covers it — or a scratch window holding
+ * nothing worth confirming over). Must be called from inside the requesting
+ * window's own withWindowRuntime scope, exactly like every other function in
+ * this section. */
+function scratchGuardResult(runtime) {
+  const urls = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id))).map((item) => item.url);
+  const needsGuard = scratchSwitchNeedsGuard({
+    bound: !!runtime.workspaceId,
+    tabUrls: urls,
+    blankNewTabUrl: NEW_TAB_URL,
+  });
+  return needsGuard ? { ok: false, error: 'unsaved-scratch', tabCount: urls.length } : null;
+}
+
 /** Create/save-as: capture this window's LIVE tab set into a brand new Named
  * Workspace and bind the window to it. No tab teardown, and this must NEVER
  * call applyWorkspaceToWindow — the window's tabs already ARE the set being
@@ -3239,11 +3266,24 @@ function saveCurrentWindowAsWorkspace(runtime, name) {
 }
 
 /** Open an EXISTING Named Workspace in this window. The ONLY caller allowed
- * to invoke applyWorkspaceToWindow (checklist step 2d in the plan). */
-function switchWindowToWorkspace(runtime, workspaceId) {
+ * to invoke applyWorkspaceToWindow (checklist step 2d in the plan).
+ *
+ * Scratch guard (follow-up to Task 9): `force` is the overlay's explicit
+ * "discard and switch" — omitted (or false), a scratch (unbound) window
+ * holding real tabs is refused up front, before ANYTHING below runs: no
+ * outbound save, no binding resolution, no apply. Checked first, ahead of
+ * even the outbound-save step, because a bound window can never trigger it
+ * (scratchGuardResult returns null for a bound runtime) — there is nothing
+ * to reorder around. */
+function switchWindowToWorkspace(runtime, workspaceId, { force = false } = {}) {
   return withWindowRuntime(runtime, () => {
     const workspace = namedWorkspaces.get(workspaceId);
     if (!workspace) return { ok: false, error: 'not-found' };
+
+    if (!force) {
+      const guard = scratchGuardResult(runtime);
+      if (guard) return guard;
+    }
 
     // (a) Outbound save: capture THIS window's current state under its OLD
     // binding (if any) before anything moves, so nothing the user did in it
@@ -3339,6 +3379,45 @@ function switchWindowToWorkspace(runtime, workspaceId) {
     // comment): reflect the new live set, now correctly attributed, once.
     persistSession();
     return { ok: true, action: 'swap' };
+  });
+}
+
+/** Create a brand-new, EMPTY Named Workspace and switch this window into it
+ * — the locked spec's "create" operation (Task 9 shipped only save-as, so
+ * every workspace was necessarily a copy of the current window; this is the
+ * follow-up). Patron-gated: creating is the only Named Workspaces operation
+ * that re-checks entitlement (list/open/rename/remove stay usable on a
+ * lapsed Patron — it's the user's own data). The scratch guard is checked
+ * BEFORE the record is created, not after, so a cancelled confirmation never
+ * leaves an orphan empty workspace behind — creating first and relying on
+ * switchWindowToWorkspace's own guard would check one step too late. Once
+ * the record exists, binding and applying it is EXACTLY the same operation
+ * as opening any other freshly-created workspace — delegated to
+ * switchWindowToWorkspace itself (with force:true, since a real guard
+ * decision — or an explicit caller override — already happened here) rather
+ * than a second copy of the apply protocol. */
+function createBlankWorkspaceAndSwitch(runtime, name, { force = false } = {}) {
+  return withWindowRuntime(runtime, () => {
+    if (!settings.isPatronActive()) return { ok: false, error: 'not-patron' };
+
+    if (!force) {
+      const guard = scratchGuardResult(runtime);
+      if (guard) return guard;
+    }
+
+    const created = namedWorkspaces.create({
+      name,
+      capture: { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] },
+    });
+    // {ok:false, error:'invalid-name'|'duplicate-name'|'limit'|'invalid-record'}
+    // — never carries a workspace record, safe to return verbatim.
+    if (!created.ok) return created;
+
+    const switched = switchWindowToWorkspace(runtime, created.workspace.id, { force: true });
+    // Only fails if the just-created record vanished before this ran (e.g. a
+    // concurrent delete) — surfaced verbatim rather than assumed impossible.
+    if (!switched.ok) return switched;
+    return { ...switched, workspaceId: created.workspace.id };
   });
 }
 
@@ -5006,10 +5085,15 @@ function registerIpcHandlers() {
 
   // Named Workspaces. Per the locked spec, Patron only ever ADDS: list/open/
   // rename/remove stay fully usable on a lapsed Patron (it's the user's own
-  // data), so save-as/create is the ONLY handler that re-checks entitlement.
-  // Every handler here is a chromeHandle registration, which is what makes
-  // rt() and namedWorkspaces' ambient local-profile context resolve to the
-  // REQUESTING window/profile rather than whichever window last ran — a raw
+  // data), so save-as and create-blank are the ONLY handlers that re-check
+  // entitlement. open and create-blank additionally carry the scratch guard
+  // (Task 9 follow-up): both can switch this window's tabs out from under
+  // it, so both accept an optional {force:true} that skips the guard —
+  // threaded straight through to switchWindowToWorkspace/
+  // createBlankWorkspaceAndSwitch, never re-decided here. Every handler here
+  // is a chromeHandle registration, which is what makes rt() and
+  // namedWorkspaces' ambient local-profile context resolve to the REQUESTING
+  // window/profile rather than whichever window last ran — a raw
   // ipcMain.handle would silently read/write the wrong profile's
   // workspaces.json.
   chromeHandle('chrome:workspaces-list', () => workspacesProjection());
@@ -5024,11 +5108,21 @@ function registerIpcHandlers() {
     // Only the new id crosses the wire, never result.workspace itself.
     return { ok: true, workspaceId: result.workspace.id, ...workspacesProjection() };
   });
-  chromeHandle('chrome:workspaces-open', (_e, id) => {
-    const result = switchWindowToWorkspace(rt(), id);
-    // {ok:false, error:'not-found'}, or the honest {ok:false, action:'focus',
-    // windowId} report when the bound window couldn't be recreated — neither
-    // carries a workspace record.
+  chromeHandle('chrome:workspaces-open', (_e, id, opts) => {
+    const result = switchWindowToWorkspace(rt(), id, { force: !!opts?.force });
+    // {ok:false, error:'not-found'}, the scratch guard's
+    // {ok:false, error:'unsaved-scratch', tabCount}, or the honest
+    // {ok:false, action:'focus', windowId} report when the bound window
+    // couldn't be recreated — none of these carry a workspace record.
+    if (!result.ok) return result;
+    broadcastWorkspacesUpdated();
+    return { ...result, ...workspacesProjection() };
+  });
+  chromeHandle('chrome:workspaces-create-blank', (_e, name, opts) => {
+    const result = createBlankWorkspaceAndSwitch(rt(), name, { force: !!opts?.force });
+    // {ok:false, error:'not-patron'|'unsaved-scratch'|'invalid-name'|
+    // 'duplicate-name'|'limit'|'invalid-record'|'not-found'|'focus-failed'} —
+    // never a workspace record either.
     if (!result.ok) return result;
     broadcastWorkspacesUpdated();
     return { ...result, ...workspacesProjection() };
