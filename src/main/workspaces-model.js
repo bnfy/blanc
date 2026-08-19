@@ -6,19 +6,11 @@
 
 const { validProfileId } = require('./local-profile-model');
 // A workspace id must survive a round-trip through session.json's
-// `workspaceId` binding pointer, which is validated by this same rule. Sharing
-// the helper is deliberate: two independent regexes would drift, and an id
-// that fails validWindowId would silently lose its binding on restore.
-const { validWindowId } = require('./session-workspace');
-
-// `__proto__` satisfies validWindowId's character rule, but it cannot be used
-// as a plain-object key: `bindings['__proto__'] = windowId` sets the prototype
-// instead of storing a binding, so such a workspace would silently fail to
-// bind (Task 3's bindings map is keyed by workspace id). `constructor` and
-// friends are safe — assigning them creates an ordinary own property — so the
-// list is exactly this one key rather than a cargo-culted set.
-const UNSAFE_ID_KEYS = new Set(['__proto__']);
-const validWorkspaceId = (value) => validWindowId(value) && !UNSAFE_ID_KEYS.has(value);
+// `workspaceId` binding pointer, so the rule is DEFINED in session-workspace
+// and imported here — one direction only. Defining it here and importing it
+// there would be a cycle: Node would hand session-workspace a partial exports
+// object, leaving validWindowId undefined mid-load and failing every id.
+const { validWorkspaceId } = require('./session-workspace');
 
 const WORKSPACES_VERSION = 1;
 // Bounded like the closed-tab entry cap: keeps the file small and the ⌘L

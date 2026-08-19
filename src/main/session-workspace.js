@@ -26,6 +26,22 @@ function validWindowId(value) {
   return typeof value === 'string' && /^[a-zA-Z0-9_-]{1,64}$/.test(value);
 }
 
+// A Named Workspace id lives HERE, not in workspaces-model, so the dependency
+// runs one way only: the model imports from this file and this file must never
+// import the model back. A cycle would hand one side partial exports, leaving
+// validWindowId undefined mid-load and quietly failing every id. The entry
+// shape carries a `workspaceId` binding pointer, so validating it is this
+// module's job anyway.
+//
+// `__proto__` passes the character rule above but cannot be used as a plain
+// object key — assigning it sets the prototype instead of storing a binding —
+// so a workspace with that id would silently fail to bind. `constructor` and
+// friends assign normally, so the deny-list is exactly this one key.
+const UNSAFE_ID_KEYS = new Set(['__proto__']);
+function validWorkspaceId(value) {
+  return validWindowId(value) && !UNSAFE_ID_KEYS.has(value);
+}
+
 function entryFrom(source, fallbackId = PRIMARY_WINDOW_ID) {
   if (!source || typeof source !== 'object') return EMPTY_ENTRY(fallbackId);
   const urls = Array.isArray(source.urls) ? source.urls : [];
@@ -177,6 +193,7 @@ module.exports = {
   SESSION_WORKSPACE_VERSION,
   PRIMARY_WINDOW_ID,
   validWindowId,
+  validWorkspaceId,
   loadWorkspace,
   buildSaveShape,
   entryFrom,
