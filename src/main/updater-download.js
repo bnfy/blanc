@@ -126,6 +126,22 @@ function createDownloadStallWatchdog({
   return { arm, touch, disarm };
 }
 
+function shouldArmDownloadStallWatchdog(result, {
+  alreadyDownloading = false,
+  alreadyDownloaded = false,
+} = {}) {
+  // alreadyDownloaded covers a cached installer from a previous session:
+  // electron-updater emits update-downloaded during checkForUpdates() *before*
+  // that promise resolves, so arming here would watch a transfer that is already
+  // done and false-trigger a stall after DOWNLOAD_STALL_MS of silence.
+  return Boolean(
+    result?.isUpdateAvailable
+    && result.cancellationToken
+    && !alreadyDownloading
+    && !alreadyDownloaded,
+  );
+}
+
 module.exports = {
   PROGRESS_LOG_INTERVAL_MS,
   PROGRESS_LOG_PERCENT_STEP,
@@ -134,4 +150,5 @@ module.exports = {
   formatSpeed,
   createDownloadProgressLogger,
   createDownloadStallWatchdog,
+  shouldArmDownloadStallWatchdog,
 };

@@ -7,6 +7,7 @@ const { createWindowsSignatureVerifier } = require('./updater-signature');
 const {
   createDownloadProgressLogger,
   createDownloadStallWatchdog,
+  shouldArmDownloadStallWatchdog,
   DOWNLOAD_STALL_MS,
 } = require('./updater-download');
 
@@ -100,7 +101,10 @@ const restartToInstallUpdate = createUpdateRestarter({ autoUpdater });
 const updateChecks = createUpdateCheckCoordinator({
   checkForUpdates: async () => {
     const result = await autoUpdater.checkForUpdates();
-    if (result?.isUpdateAvailable && result.cancellationToken && !activeDownloadCancellation) {
+    if (shouldArmDownloadStallWatchdog(result, {
+      alreadyDownloading: Boolean(activeDownloadCancellation),
+      alreadyDownloaded: updateDownloaded,
+    })) {
       activeDownloadCancellation = result.cancellationToken;
       downloadProgressLogger?.reset();
       downloadStallWatchdog?.arm();

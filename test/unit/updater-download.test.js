@@ -6,6 +6,7 @@ const {
   formatSpeed,
   createDownloadProgressLogger,
   createDownloadStallWatchdog,
+  shouldArmDownloadStallWatchdog,
   PROGRESS_LOG_INTERVAL_MS,
   DOWNLOAD_STALL_MS,
 } = require('../../src/main/updater-download');
@@ -143,4 +144,34 @@ test('stall watchdog resets when progress resumes', () => {
 test('exported stall and log intervals are sensible defaults', () => {
   assert.ok(PROGRESS_LOG_INTERVAL_MS >= 10_000);
   assert.ok(DOWNLOAD_STALL_MS >= 60_000);
+});
+
+test('stall watchdog arms only for a fresh in-flight download', () => {
+  const token = { cancel() {} };
+  const available = { isUpdateAvailable: true, cancellationToken: token };
+
+  assert.equal(shouldArmDownloadStallWatchdog(available, {
+    alreadyDownloading: false,
+    alreadyDownloaded: false,
+  }), true);
+
+  assert.equal(shouldArmDownloadStallWatchdog(available, {
+    alreadyDownloading: true,
+    alreadyDownloaded: false,
+  }), false, 'repeated checks must not clobber the in-flight token');
+
+  assert.equal(shouldArmDownloadStallWatchdog(available, {
+    alreadyDownloading: false,
+    alreadyDownloaded: true,
+  }), false, 'a cached previous-session download already raised update-downloaded');
+
+  assert.equal(shouldArmDownloadStallWatchdog(
+    { isUpdateAvailable: false, cancellationToken: token },
+    { alreadyDownloading: false, alreadyDownloaded: false },
+  ), false);
+
+  assert.equal(shouldArmDownloadStallWatchdog(
+    { isUpdateAvailable: true },
+    { alreadyDownloading: false, alreadyDownloaded: false },
+  ), false);
 });
