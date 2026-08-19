@@ -200,6 +200,7 @@ Without this, autosave silently breaks across a relaunch and a later switch dest
 
 **Interfaces:**
 - **Registered with `chromeHandle` / `chromeOn`** (`main.js` ~4209/4225), never raw `ipcMain` — those wrappers carry the same trusted-sender check every other `chrome:*` channel uses.
+- **The wrappers are also what bind the local profile.** `workspaces.js` resolves its file through `activeLocalProfileId()`, i.e. **ambient context** — `namedWorkspaces.get()`, `saveCapture()`, and `removeNamedWorkspace()` all rely on it. `chromeHandle`/`chromeOn` run the handler inside the sender's window runtime, so the ambient profile is correct; a raw `ipcMain.handle` would read or write **the wrong profile's `workspaces.json`**. This is a correctness requirement, not just a trust one.
 - `chrome:workspaces-list` → `{ patronActive, items: [{id, name, active, tabCount}] }` — **projection only**, never urls/meta/profileId.
 - `chrome:workspaces-open` (id), `chrome:workspaces-save-as` (name), `chrome:workspaces-rename` (id, name), `chrome:workspaces-remove` (id).
 - **Gating (matches the spec exactly): only `save-as`/create re-checks `settings.isPatronActive()` in main.** `list`, `open`, `rename`, and `remove` are **ungated** — an existing workspace is the user's data and stays fully usable on lapse. The renderer's `patronActive` boolean is for *display*; main is the authority for the one gated write (same rule as the permission/pages IPC).
