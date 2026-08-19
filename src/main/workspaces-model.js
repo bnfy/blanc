@@ -178,6 +178,77 @@ function listForProfile(file, profileId) {
     .sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
+// ---------------------------------------------------------------------------
+// Single-window binding.
+//
+// `bindings` maps workspaceId -> windowId. The caller derives it from LIVE
+// window runtimes, so every entry is a live window by construction and this
+// model never needs a liveness probe.
+//
+// Every map produced here is null-prototype: even if a hostile id slipped past
+// validWorkspaceId (a hand-edited file, a future caller), assigning it can
+// neither poison a prototype nor collide with an inherited name. The id reject
+// is defense in depth, not the only line.
+// ---------------------------------------------------------------------------
+
+const boundWindow = (bindings, workspaceId) => {
+  if (!bindings || typeof bindings !== 'object') return null;
+  if (typeof workspaceId !== 'string' || workspaceId === '') return null;
+  if (!Object.prototype.hasOwnProperty.call(bindings, workspaceId)) return null;
+  const windowId = bindings[workspaceId];
+  return typeof windowId === 'string' && windowId !== '' ? windowId : null;
+};
+
+/** Copy into a null-prototype map, keeping own string entries only. */
+function cloneBindings(bindings) {
+  const next = Object.create(null);
+  if (!bindings || typeof bindings !== 'object') return next;
+  for (const key of Object.keys(bindings)) {
+    const windowId = bindings[key];
+    if (typeof windowId === 'string' && windowId !== '') next[key] = windowId;
+  }
+  return next;
+}
+
+/** What opening `workspaceId` from `requestingWindowId` should do. */
+function resolveOpen(bindings, workspaceId, requestingWindowId) {
+  const windowId = boundWindow(bindings, workspaceId);
+  if (!windowId) return { action: 'swap' };            // unbound — this window takes it
+  if (windowId === requestingWindowId) return { action: 'noop' };  // already here
+  return { action: 'focus', windowId };                 // live elsewhere — never double-bind
+}
+
+/** Bind one workspace to one window, releasing BOTH prior claims: the window's
+ * previous workspace and the workspace's previous window. Either leftover
+ * would give a single slot two autosave writers. */
+function bindingsAfterSwap(bindings, { workspaceId, windowId } = {}) {
+  const next = cloneBindings(bindings);
+  if (!validWorkspaceId(workspaceId) || typeof windowId !== 'string' || windowId === '') return next;
+  for (const key of Object.keys(next)) {
+    if (next[key] === windowId) delete next[key];       // this window's previous workspace
+  }
+  next[workspaceId] = windowId;                          // also replaces the workspace's previous window
+  return next;
+}
+
+/** A window closed (or became scratch): it binds nothing. */
+function bindingsAfterUnbind(bindings, { windowId } = {}) {
+  const next = cloneBindings(bindings);
+  for (const key of Object.keys(next)) {
+    if (next[key] === windowId) delete next[key];
+  }
+  return next;
+}
+
+/** A workspace was deleted: whatever window showed it becomes scratch. */
+function bindingsAfterDelete(bindings, workspaceId) {
+  const next = cloneBindings(bindings);
+  if (typeof workspaceId === 'string' && Object.prototype.hasOwnProperty.call(next, workspaceId)) {
+    delete next[workspaceId];
+  }
+  return next;
+}
+
 module.exports = {
   WORKSPACES_VERSION,
   MAX_WORKSPACES,
@@ -191,4 +262,11 @@ module.exports = {
   deleteWorkspace,
   updateCapture,
   listForProfile,
+  // Exported so Task 6's session-pointer validation reuses this exact rule
+  // (validWindowId + the __proto__ reject) instead of re-deriving it.
+  validWorkspaceId,
+  resolveOpen,
+  bindingsAfterSwap,
+  bindingsAfterUnbind,
+  bindingsAfterDelete,
 };

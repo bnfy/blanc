@@ -14,6 +14,11 @@ const {
   deleteWorkspace,
   updateCapture,
   listForProfile,
+  validWorkspaceId,
+  resolveOpen,
+  bindingsAfterSwap,
+  bindingsAfterUnbind,
+  bindingsAfterDelete,
 } = require('../../src/main/workspaces-model');
 
 const VALID = () => ({
@@ -286,4 +291,83 @@ test('every mutation leaves its input file untouched', () => {
   listForProfile(start, 'default');
 
   assert.deepEqual(start, snapshot);
+});
+
+// ---------------------------------------------------------------------------
+// Task 3 — single-window binding resolution.
+// `bindings` maps workspaceId -> windowId and is DERIVED FROM LIVE RUNTIMES by
+// the caller, so every entry is a live window by construction; the model never
+// needs a liveness probe.
+// ---------------------------------------------------------------------------
+
+test('validWorkspaceId is exported so Task 6 does not re-derive the rule', () => {
+  assert.equal(validWorkspaceId('ok_id-123'), true);
+  assert.equal(validWorkspaceId('__proto__'), false);
+  assert.equal(validWorkspaceId('hello world'), false);
+  assert.equal(validWorkspaceId(''), false);
+  // crypto.randomUUID() output must be storable — Task 4 mints ids that way.
+  assert.equal(validWorkspaceId(require('crypto').randomUUID()), true);
+});
+
+test('resolveOpen: focus when bound elsewhere, noop when bound here, swap when free', () => {
+  const bindings = bindingsAfterSwap(null, { workspaceId: 'ws_a', windowId: 'win_1' });
+  assert.deepEqual(resolveOpen(bindings, 'ws_a', 'win_2'), { action: 'focus', windowId: 'win_1' });
+  assert.deepEqual(resolveOpen(bindings, 'ws_a', 'win_1'), { action: 'noop' });
+  assert.deepEqual(resolveOpen(bindings, 'ws_free', 'win_1'), { action: 'swap' });
+  assert.deepEqual(resolveOpen(null, 'ws_a', 'win_1'), { action: 'swap' });
+});
+
+test('resolveOpen never resolves an inherited property to a binding', () => {
+  const bindings = bindingsAfterSwap(null, { workspaceId: 'ws_a', windowId: 'win_1' });
+  for (const key of ['__proto__', 'toString', 'constructor', 'hasOwnProperty']) {
+    assert.deepEqual(resolveOpen(bindings, key, 'win_1'), { action: 'swap' }, `${key} must not bind`);
+  }
+  // Even a plain-object map passed in from a caller is read safely.
+  assert.deepEqual(resolveOpen({}, 'toString', 'win_1'), { action: 'swap' });
+});
+
+test('binding maps are null-prototype, so a hostile key cannot poison them', () => {
+  const bindings = bindingsAfterSwap(null, { workspaceId: 'ws_a', windowId: 'win_1' });
+  assert.equal(Object.getPrototypeOf(bindings), null);
+  assert.equal(Object.getPrototypeOf(bindingsAfterUnbind(bindings, { windowId: 'win_1' })), null);
+  assert.equal(Object.getPrototypeOf(bindingsAfterDelete(bindings, 'ws_a')), null);
+});
+
+test('bindingsAfterSwap keeps one workspace per window AND one window per workspace', () => {
+  let bindings = bindingsAfterSwap(null, { workspaceId: 'ws_a', windowId: 'win_1' });
+  bindings = bindingsAfterSwap(bindings, { workspaceId: 'ws_b', windowId: 'win_2' });
+
+  // win_1 switches to ws_b: its old binding (ws_a) is released, and ws_b's old
+  // window (win_2) is released — otherwise autosave would have two writers.
+  const after = bindingsAfterSwap(bindings, { workspaceId: 'ws_b', windowId: 'win_1' });
+  assert.equal(after.ws_b, 'win_1');
+  assert.equal('ws_a' in after, false, "the window's previous workspace is unbound");
+  assert.equal(Object.values(after).filter((w) => w === 'win_2').length, 0, 'the workspace\'s previous window is unbound');
+  assert.equal(Object.keys(after).length, 1);
+});
+
+test('bindingsAfterUnbind / bindingsAfterDelete remove only their target', () => {
+  let bindings = bindingsAfterSwap(null, { workspaceId: 'ws_a', windowId: 'win_1' });
+  bindings = bindingsAfterSwap(bindings, { workspaceId: 'ws_b', windowId: 'win_2' });
+
+  const unbound = bindingsAfterUnbind(bindings, { windowId: 'win_1' });
+  assert.equal('ws_a' in unbound, false);
+  assert.equal(unbound.ws_b, 'win_2');
+
+  const deleted = bindingsAfterDelete(bindings, 'ws_b');
+  assert.equal('ws_b' in deleted, false);
+  assert.equal(deleted.ws_a, 'win_1');
+
+  // Unknown targets are no-ops, not errors.
+  assert.deepEqual({ ...bindingsAfterUnbind(bindings, { windowId: 'nope' }) }, { ...bindings });
+  assert.deepEqual({ ...bindingsAfterDelete(bindings, 'nope') }, { ...bindings });
+});
+
+test('binding transitions never mutate their input', () => {
+  const bindings = bindingsAfterSwap(null, { workspaceId: 'ws_a', windowId: 'win_1' });
+  const snapshot = { ...bindings };
+  bindingsAfterSwap(bindings, { workspaceId: 'ws_b', windowId: 'win_1' });
+  bindingsAfterUnbind(bindings, { windowId: 'win_1' });
+  bindingsAfterDelete(bindings, 'ws_a');
+  assert.deepEqual({ ...bindings }, snapshot);
 });
