@@ -2398,9 +2398,9 @@ app.on('before-quit', () => {
 
 /** Builds one window's persistable session entry — the exact shape
  * persistSession() writes into session.json's windows[] array. Pulled out
- * of persistSession so Task 5B can capture a window into a Named Workspace
- * using this same proven shape (private-tab exclusion, active-index rule,
- * id/profileId) instead of re-deriving it and risking drift. */
+ * of persistSession so the Named Workspace capture path can reuse this same
+ * proven shape (private-tab exclusion, active-index rule, id/profileId)
+ * instead of re-deriving it and risking drift between the two callers. */
 function captureWindowEntry(runtime, { previousActiveIndex = 0 } = {}) {
   // Private tabs leave no trail, error pages persist their real destination,
   // and url-less adopted children drop out in lockstep with their metadata.
