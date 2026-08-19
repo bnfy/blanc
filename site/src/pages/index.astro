@@ -92,6 +92,20 @@ const graph = {
       <div class="bar w4"></div>
     </div>
     <img class="demo-shot" id="demoShot" alt="" aria-hidden="true">
+    <div class="demo-newtab" id="demoNewtab" hidden aria-hidden="true">
+      <span class="demo-bb-date" id="demoBbDate"></span>
+      <div class="demo-bb-clock-row">
+        <span class="demo-bb-clock" id="demoBbClock"></span>
+        <span class="demo-bb-meridiem" id="demoBbMeridiem"></span>
+      </div>
+      <span class="demo-bb-blocked" id="demoBbBlocked"></span>
+      <div class="demo-bb-favs">
+        <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/gmail.com.ico')"></span><span class="label">gmail</span></span>
+        <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/notion.so.ico')"></span><span class="label">notion</span></span>
+        <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/github.com.ico')"></span><span class="label">github</span></span>
+        <span class="demo-bb-fav"><span class="tile" style="background-image:url('/favicons/netflix.com.ico')"></span><span class="label">netflix</span></span>
+      </div>
+    </div>
     <div class="demo-island" id="demoIsland">
       <div class="pill">
         <div class="pnav">
@@ -101,6 +115,7 @@ const graph = {
         <div class="dots" id="demoDots"></div>
         <span class="pill-fav" id="demoFav"></span>
         <span class="domain" id="demoDomain"></span>
+        <span class="pill-slash" id="demoSlash" hidden>/</span>
         <span class="shield" id="demoShield"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></svg><span class="shield-count" id="demoShieldCount"></span></span>
         <span class="priv-chip">private <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg></span>
         <span class="psep"></span>

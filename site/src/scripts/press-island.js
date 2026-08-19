@@ -13,8 +13,25 @@
   const hint = document.getElementById('pressIslandHint');
   const favicon = toggle?.querySelector('.pill-fav');
   const page = document.getElementById('pressIslandPage');
+  const slash = document.getElementById('pressIslandSlash');
+  const start = document.getElementById('pressIslandStart');
+  const newTab = document.getElementById('pressIslandNewTab');
 
-  if (!demo || !island || !toggle || !state || !stateLabel || !input || !list || !domain || !shield || !shieldCount || !hint || !favicon || !page) return;
+  if (!demo || !island || !toggle || !state || !stateLabel || !input || !list || !domain || !shield || !shieldCount || !hint || !favicon || !page || !slash || !start || !newTab) return;
+
+  // The blank tab renders a miniature of the "billboard" start page. Date,
+  // clock, and meridiem use the app's own formats; the blocked line is
+  // illustrative, matching the demo's per-site shield counts.
+  (function fillBillboard() {
+    const now = new Date();
+    document.getElementById('pressIslandStartDate').textContent = now
+      .toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+      .toLowerCase();
+    const time = now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    document.getElementById('pressIslandStartClock').textContent = time.replace(/\s?[AP]M$/i, '');
+    document.getElementById('pressIslandStartMeridiem').textContent = (time.match(/[AP]M$/i) || [''])[0].toLowerCase();
+    document.getElementById('pressIslandStartBlocked').textContent = '2,412 ads blocked this week · nothing followed you home';
+  })();
 
   const originalMarkup = list.innerHTML;
   const commands = [
@@ -81,11 +98,41 @@
     }
   }
 
+  // The blank-tab state (the "new tab" footer button): the island collapses to
+  // the quiet placeholder pill — prompt label, Blanc-mark favicon, the "/"
+  // chip, no shield (the app hides it entirely on internal pages) — resting
+  // over a miniature of the ledger start page.
+  function enterBlankTab() {
+    interact();
+    selectedDomain = '';
+    domain.textContent = 'Search or type a URL';
+    domain.classList.add('placeholder');
+    favicon.style.backgroundImage = '';
+    favicon.classList.remove('press-island-blanc-favicon');
+    favicon.classList.add('internal');
+    shield.hidden = true;
+    slash.hidden = false;
+    start.hidden = false;
+    delete demo.dataset.site;
+    input.value = '';
+    restoreTabs();
+    setOpen(false);
+  }
+
+  function leaveBlankTab() {
+    domain.classList.remove('placeholder');
+    favicon.classList.remove('internal');
+    shield.hidden = false;
+    slash.hidden = true;
+    start.hidden = true;
+  }
+
   function chooseRow(row) {
     const nextDomain = row.dataset.domain;
     const selectedFavicon = row.dataset.favicon;
     const selectedShield = row.dataset.shield;
     interact();
+    leaveBlankTab();
     selectedDomain = nextDomain;
     domain.textContent = nextDomain;
     favicon.style.backgroundImage = selectedFavicon ? `url('/favicons/${selectedFavicon}.ico')` : 'none';
@@ -119,16 +166,6 @@
         hint.textContent = pinned ? `${row.dataset.title} pinned` : `${row.dataset.title} unpinned`;
       });
 
-      const group = row.querySelector('.row-grp');
-      group?.addEventListener('click', (event) => {
-        event.stopPropagation();
-        group.classList.toggle('open');
-        group.setAttribute('aria-expanded', String(group.classList.contains('open')));
-        hint.textContent = group.classList.contains('open')
-          ? `move ${row.dataset.title} to another group`
-          : 'esc to dismiss · type / for commands · choose a row to switch';
-      });
-
       row.querySelector('.row-close')?.addEventListener('click', (event) => {
         event.stopPropagation();
         row.classList.add('is-closing');
@@ -150,10 +187,23 @@
     clearTimeout(introTimer);
   }
 
-  toggle.addEventListener('click', () => {
+  toggle.addEventListener('click', (event) => {
     interact();
-    setOpen(!island.classList.contains('open'), !island.classList.contains('open'));
+    const open = island.classList.contains('open');
+    // The "/" chip opens the panel already showing the command list, exactly
+    // like the app's own chip — a bare "/" cannot say what it does, so
+    // clicking it shows you. (The chip is a decorative span inside the pill
+    // button, so its clicks arrive here by delegation.)
+    if (!open && event.target === slash) {
+      input.value = '/';
+      renderCommands('/');
+      setOpen(true);
+      requestAnimationFrame(() => input.focus());
+      return;
+    }
+    setOpen(!open, !open);
   });
+  newTab.addEventListener('click', enterBlankTab);
   state.addEventListener('click', () => {
     interact();
     setOpen(!island.classList.contains('open'), !island.classList.contains('open'));

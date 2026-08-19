@@ -121,8 +121,26 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(islandDemo, /page: '\/shots\/desktop\/9to5mac\.jpg'/);
   assert.match(islandDemo, /page: '\/shots\/desktop\/cnet\.png'/);
   assert.match(islandDemo, /class:list=\{\['row-pin'/);
-  assert.match(islandDemo, /class="row-grp"/);
   assert.match(islandDemo, /class="row-close"/);
+  // Grouping moved into the right-click context menu (app commit a9f1dba), so
+  // the retired per-row group chip must not reappear in the demo rows.
+  assert.doesNotMatch(islandDemo, /class="row-grp"/);
+  assert.doesNotMatch(islandDemo, /data-group=/);
+  // The blank-tab state (app 1.6.0's "/" chip, #141): the chip lives in the
+  // pill but only shows in placeholder mode — never beside a real domain —
+  // and the quiet pill rests over a miniature "billboard" start page (date +
+  // clock + blocked line + favorites).
+  assert.match(islandDemo, /id="pressIslandSlash"[^>]*hidden/);
+  assert.match(islandDemo, /id="pressIslandNewTab"/);
+  assert.match(islandDemo, /id="pressIslandStart"[^>]*hidden/);
+  assert.match(islandDemo, /class="demo-bb-clock"/);
+  assert.match(islandDemo, /class="demo-bb-favs"/);
+  assert.match(islandScript, /Search or type a URL/);
+  assert.match(islandScript, /enterBlankTab/);
+  assert.match(islandScript, /ads blocked this week/);
+  assert.match(siteStyles, /pill-placeholder-wash/);
+  assert.match(siteStyles, /\.demo-island \.pill-slash\[hidden\]/);
+  assert.match(siteStyles, /\.demo-bb-clock \{/);
   assert.doesNotMatch(islandDemo, /class="tag">active/);
   assert.doesNotMatch(islandDemo, /pressIslandPageFallback|press-island-cnet-card/);
   assert.doesNotMatch(islandDemo, /<span>launch<\/span>/);
@@ -145,8 +163,8 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(islandScript, /syncActiveRow/);
   assert.match(islandScript, /preloadPages/);
   assert.match(islandScript, /querySelector\('\.row-pin'\)/);
-  assert.match(islandScript, /querySelector\('\.row-grp'\)/);
   assert.match(islandScript, /querySelector\('\.row-close'\)/);
+  assert.doesNotMatch(islandScript, /querySelector\('\.row-grp'\)/);
   const islandPageRule = siteStyles.match(/\.press-island-page \{([^}]*)\}/)?.[1] || '';
   assert.doesNotMatch(islandPageRule, /opacity|filter/);
   assert.match(siteStyles, /data-site="cnet\.com"[^}]*object-position: 24% top/);
