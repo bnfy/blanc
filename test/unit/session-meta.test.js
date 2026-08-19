@@ -45,6 +45,12 @@ function run(tabList, activeTabId) {
     sessionTabMeta,
     loadWorkspace,
     buildSaveShape,
+    // Named Workspaces autosave (Task 5B): persistSession's body calls this
+    // once, unconditionally, as its last line. Its own behavior belongs to
+    // the profile-scoped workspaces store, well outside what this file's
+    // session.json assertions cover — stubbed inert so the lifted source
+    // runs without needing to know that store exists.
+    autosaveWorkspaceBindings: () => {},
   };
   vm.runInNewContext(`${captureSource}\n${fnSource}\nthis.__fn = persistSession;`, sandbox);
   sandbox.__fn();

@@ -158,6 +158,11 @@ const {
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
   MAX_CLOSED_ENTRIES,
 } = require('./closed-tabs');
+// The profile-scoped Named Workspaces store and its pure decision model
+// (single-window binding, resolveOpen). See the "Named Workspaces" section
+// below (near closeGroup) for the capture/apply/switch seams that use them.
+const namedWorkspaces = require('./workspaces');
+const { resolveOpen } = require('./workspaces-model');
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -2438,6 +2443,14 @@ function persistSession() {
       : windows[0]?.id ?? PRIMARY_WINDOW_ID;
     Object.assign(d, buildSaveShape(windows, d, { activeWindowId }));
   });
+  // Named Workspaces autosave rides this exact call site: same guards above
+  // (never during teardown/suspension/quit), same 250ms JsonStore debounce,
+  // no new timer. Kept out of this function's own body — not folded in as a
+  // loop here — so test/unit/session-meta.test.js's vm-sandboxed lift of
+  // persistSession's literal source (it cannot require() this Electron-only
+  // file) never needs to know the profile-scoped workspaces store exists;
+  // that test stubs this one call as a no-op.
+  autosaveWorkspaceBindings();
 }
 
 function removePersistedProfileWorkspaces(profileId) {
@@ -3073,6 +3086,242 @@ function closeGroup(groupId) {
   }
   broadcastTabs();
   scheduleMenuRebuild();
+}
+
+// ---------------------------------------------------------------------------
+// Named Workspaces: capture, apply, switch, single-window binding, autosave.
+// Three distinct operations, only ever reached from their own named entry
+// point below — conflating them is a data-loss bug (a save-as that tore down
+// and recreated its own tabs would destroy any private tab in the window):
+//   1. saveCurrentWindowAsWorkspace — create/save-as. Captures the LIVE set.
+//      No tab teardown, never calls applyWorkspaceToWindow.
+//   2. switchWindowToWorkspace — open/switch to an EXISTING workspace. Saves
+//      this window's outgoing state, resolves the binding, then either
+//      focuses the window that already has it open or calls
+//      applyWorkspaceToWindow (the only caller allowed to).
+//   3. Plain focus (inside switchWindowToWorkspace) — already open elsewhere;
+//      focus that window and touch nothing else.
+// ---------------------------------------------------------------------------
+
+/** captureWindowEntry's `groups` field is main.js's own runtime.groups array
+ * (filtered), so its elements are the SAME live objects toggleGroupCollapsed
+ * (etc.) mutates in place. workspaces.js/workspaces-model.js only shallow-
+ * copy the ARRAY on their way into the store (captureColumns' `asArray`), not
+ * each group object — so handing a raw captureWindowEntry() result to
+ * namedWorkspaces.create/saveCapture would let a later in-place group edit on
+ * this SAME runtime silently corrupt the store's retained in-memory copy
+ * behind its update()/debounced-save tracking. Named Workspaces persists a
+ * point-in-time snapshot, so every capture reaching the store gets its own
+ * independent group copies — captureWindowEntry itself must not change
+ * (Task 5A behavior lock), so the fix lives here at the one seam that feeds
+ * the workspaces store instead. */
+function workspaceCapture(runtime, { previousActiveIndex = 0 } = {}) {
+  const entry = captureWindowEntry(runtime, { previousActiveIndex });
+  return {
+    ...entry,
+    groups: entry.groups.map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed })),
+  };
+}
+
+/** The live process-wide {workspaceId: windowId} binding map, derived fresh
+ * from window-runtime records every call — runtime.workspaceId is the only
+ * storage, so there is nothing else to keep in sync. Only genuinely live
+ * (non-destroyed) windows count: workspaces-model's resolveOpen assumes every
+ * entry here is immediately focusable, and a windowless runtime (macOS
+ * dock-close of the primary window, which deliberately keeps its
+ * workspaceId set — see window-runtime-registry.js) naturally drops out
+ * while windowless and reappears on its own once the window comes back,
+ * exactly like its tabs/groups already do. */
+function deriveWorkspaceBindings() {
+  const bindings = Object.create(null);
+  forEachWindowRuntime((runtime) => {
+    if (runtime.workspaceId) bindings[runtime.workspaceId] = String(runtime.id);
+  }, { liveOnly: true });
+  return bindings;
+}
+
+/** Named Workspaces autosave: any bound (non-scratch) window's tab set is
+ * re-captured on every persistSession() call, so it rides that function's
+ * exact guards and its 250ms JsonStore debounce — no new timer. A scratch
+ * window (workspaceId null) writes nothing to workspaces.json. */
+function autosaveWorkspaceBindings() {
+  forEachWindowRuntime((runtime) => {
+    if (!runtime.workspaceId) return; // scratch window — nothing to save
+    const workspace = namedWorkspaces.get(runtime.workspaceId);
+    if (!workspace) return; // deleted underneath us; unbound via its own path
+    namedWorkspaces.saveCapture(runtime.workspaceId, workspaceCapture(runtime, {
+      previousActiveIndex: workspace.activeIndex,
+    }));
+  }, { liveOnly: true });
+}
+
+/** Create/save-as: capture this window's LIVE tab set into a brand new Named
+ * Workspace and bind the window to it. No tab teardown, and this must NEVER
+ * call applyWorkspaceToWindow — the window's tabs already ARE the set being
+ * saved, so re-applying them would close and recreate every tab (destroying
+ * any private tab in the window) just to arrive back where it started. */
+function saveCurrentWindowAsWorkspace(runtime, name) {
+  return withWindowRuntime(runtime, () => {
+    // No prior NAMED selection exists yet for this window, so a private or
+    // provisional active tab falls back to the first persistable tab — the
+    // captureWindowEntry default (previousActiveIndex 0), exactly like
+    // persistSession treats a window never yet written to session.json.
+    const result = namedWorkspaces.create({ name, capture: workspaceCapture(runtime) });
+    if (result.ok) runtime.workspaceId = result.workspace.id;
+    return result;
+  });
+}
+
+/** Open an EXISTING Named Workspace in this window. The ONLY caller allowed
+ * to invoke applyWorkspaceToWindow (checklist step 2d in the plan). */
+function switchWindowToWorkspace(runtime, workspaceId) {
+  return withWindowRuntime(runtime, () => {
+    const workspace = namedWorkspaces.get(workspaceId);
+    if (!workspace) return { ok: false, error: 'not-found' };
+
+    // (a) Outbound save: capture THIS window's current state under its OLD
+    // binding (if any) before anything moves, so nothing the user did in it
+    // is lost. previousActiveIndex is the workspace's own last selection —
+    // the named-workspace analogue of persistSession's previousById lookup —
+    // so sitting on a private tab keeps that selection instead of jumping
+    // to 0.
+    if (runtime.workspaceId) {
+      const outgoing = namedWorkspaces.get(runtime.workspaceId);
+      if (outgoing) {
+        namedWorkspaces.saveCapture(runtime.workspaceId, workspaceCapture(runtime, {
+          previousActiveIndex: outgoing.activeIndex,
+        }));
+      }
+    }
+
+    // (b) Resolve against every OTHER live window's binding.
+    const decision = resolveOpen(deriveWorkspaceBindings(), workspaceId, String(runtime.id));
+
+    if (decision.action === 'noop') return { ok: true, action: 'noop' }; // already here
+
+    if (decision.action === 'focus') {
+      // (c) Live elsewhere — never double-bind. Focus that window and stop;
+      // this window's own tabs are untouched. Same restore-then-focus idiom
+      // as second-instance/openExternalUrl's window activation.
+      const target = windowRuntimes.all().find((candidate) => String(candidate.id) === decision.windowId);
+      if (target?.window && !target.window.isDestroyed()) {
+        if (target.window.isMinimized()) target.window.restore();
+        target.window.focus();
+      }
+      return { ok: true, action: 'focus', windowId: decision.windowId };
+    }
+
+    // (d) Unbound — this window takes it. Bind BEFORE applying: resolveOpen
+    // just proved no other live window holds this workspace, so this single
+    // field write is the complete transition (workspaces-model's
+    // bindingsAfterSwap releasing the workspace's previous window is
+    // necessarily a no-op here, and releasing this window's OWN previous
+    // workspace is exactly what overwriting the one field below does).
+    // Binding first also means applyWorkspaceToWindow's own persistSession()
+    // call (checklist point 9) autosaves the freshly-applied tab set under
+    // the workspace it now actually belongs to, not the window's stale prior
+    // binding.
+    runtime.workspaceId = workspace.id;
+    applyWorkspaceToWindow(runtime, workspace);
+    return { ok: true, action: 'swap' };
+  });
+}
+
+/** Replace this window's current tabs with one Named Workspace's captured
+ * set. Copies the full restore/close protocol releaseStartup and closeGroup
+ * already use — a partial copy pollutes undo, wakes quiet tabs, drops
+ * groups, or rewrites session.json to a half-empty window. Reachable ONLY
+ * from switchWindowToWorkspace's swap branch (2d) above. */
+function applyWorkspaceToWindow(runtime, workspace) {
+  withWindowRuntime(runtime, () => {
+    // 1. Dismiss floating chrome before touching tabs — the same guard other
+    // main-process navigations use.
+    hideOverlay({ refocusContent: false });
+    hideUtilitySheet({ refocusContent: false });
+    // 2. Glance is window-local and never persisted; it must not survive
+    // into the incoming set.
+    closeGlance({ focusContent: false });
+
+    // 3. persistSession already refuses to write while tabs close one by one
+    // during teardown (its own comment: saving then "would erode the
+    // session file down to whatever closed last before the process exits").
+    // The identical erosion happens mid-switch; suspend for the whole swap,
+    // restored no matter how it exits.
+    sessionPersistenceSuspended = true;
+    try {
+      // 4. Batch-close every current tab exactly like closeGroup does:
+      // record:false keeps Recently Closed from filling with the outgoing
+      // set, selectReplacement:false stops each individual close from
+      // picking (and immediately discarding) a replacement tab mid-swap.
+      // Snapshot tabOrder first — closeTab mutates it as it goes.
+      for (const id of [...runtime.tabOrder]) {
+        closeTab(id, { record: false, selectReplacement: false });
+      }
+
+      // 5. Groups must exist on the runtime BEFORE any createTab call below
+      // — createTab silently drops groupId otherwise (its own body:
+      // `groupId && rt().groups.some((g) => g.id === groupId) ? groupId :
+      // null`). Reconstructed as fresh, validated objects — the same
+      // discipline session restore and reopenGroupEntry already apply when
+      // reading a group record back from storage — so the runtime never
+      // aliases the workspace record's own group objects; without this, a
+      // later toggleGroupCollapsed on this window would silently corrupt
+      // workspaces.json's in-memory copy behind saveCapture's back (the
+      // mirror image of workspaceCapture's fix above, on the read side).
+      runtime.groups = (Array.isArray(workspace.groups) ? workspace.groups : [])
+        .filter((group) => group && typeof group.id === 'string' && typeof group.name === 'string')
+        .map((group) => ({ id: group.id, name: group.name, collapsed: !!group.collapsed }));
+
+      // 6. Drop utility/forbidden URLs and keep the parallel columns zipped —
+      // exactly what releaseStartup does before creating anything.
+      const cleaned = filterRestoredSession({
+        urls: workspace.urls,
+        groupIds: workspace.groupIds,
+        pinned: workspace.pinned,
+        meta: workspace.meta,
+        activeIndex: workspace.activeIndex,
+      }, (url) => isUtilityUrl(url) || isForbiddenTopLevelUrl(url));
+
+      // 7. Tabs are born quiet; only the selected one wakes (setActiveTab's
+      // synchronous wakeTab prefix), so a switch is cheap regardless of how
+      // many tabs the workspace holds.
+      const restoredIds = cleaned.urls.map((url, index) => createTab(url, {
+        groupId: cleaned.groupIds?.[index] ?? null,
+        pinned: !!cleaned.pinned?.[index],
+        asleep: true,
+        title: cleaned.meta?.[index]?.title ?? '',
+        favicon: cleaned.meta?.[index]?.favicon ?? null,
+      }));
+      pruneEmptyGroups();
+      const target = restoreTargetId(restoredIds, cleaned.activeIndex);
+      // 8. A workspace with nothing left after filtering (or saved empty)
+      // must never leave the window tabless. NEW_TAB_URL, not newTabUrl() —
+      // the checklist's floor is the blank internal newtab, not the user's
+      // configured home page.
+      setActiveTab(target ?? createTab(NEW_TAB_URL), { focusContent: true });
+    } finally {
+      sessionPersistenceSuspended = false;
+    }
+  });
+  // 9. Reflect the new live set in session.json once — also the point where
+  // autosaveWorkspaceBindings (wired into persistSession) re-captures this
+  // same window's just-applied tabs back into the workspace it now belongs
+  // to (see the binding-order comment in switchWindowToWorkspace above).
+  persistSession();
+}
+
+/** Delete a Named Workspace and release whichever window (live or not) was
+ * showing it — workspaces-model's bindingsAfterDelete contract ("whatever
+ * window showed it becomes scratch"), applied directly: bindings are 1:1 by
+ * construction (switchWindowToWorkspace always releases a window's previous
+ * workspace before claiming a new one), so at most one runtime can match. */
+function removeNamedWorkspace(id) {
+  const result = namedWorkspaces.remove(id);
+  if (result.ok) {
+    const bound = windowRuntimes.all().find((candidate) => candidate.workspaceId === id);
+    if (bound) bound.workspaceId = null;
+  }
+  return result;
 }
 
 function toggleTabPinned(id) {
@@ -5188,12 +5437,21 @@ function createMainWindowForRuntime(runtime) {
     liveViewContents(runtime.permissionView)?.close();
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
+      // Named Workspaces: a real window close is a real unbind. Not strictly
+      // load-bearing on its own — deriveWorkspaceBindings only ever counts
+      // live windows, and this runtime is about to be discarded below either
+      // way — but explicit per the binding contract, and defensive against
+      // any future reader of this field on a discarded runtime.
+      runtime.workspaceId = null;
       for (const tabId of [...runtime.tabOrder]) closeTab(tabId, { record: false });
       for (const entry of runtime.closedEntries ?? []) disposeClosedEntry(entry);
       runtime.closedEntries = [];
       windowRuntimes.discardRuntime(runtime);
       if (!sessionReadOnly) persistSession();
     } else {
+      // The primary window's workspaceId deliberately survives detachWindow,
+      // same as its tabs/groups below: dock-reopen recreates the window over
+      // the SAME workspace, not a scratch one. See window-runtime-registry.js.
       for (const entry of runtime.closedEntries ?? []) {
         if (entry.view) downgradeHeldEntry(entry);
       }

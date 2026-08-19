@@ -32,6 +32,15 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     tabOrder: [],
     activeTabId: null,
     groups: [],
+    /** Named Workspaces single-window binding: the id of the workspace this
+     * window currently shows, or null for a scratch window. The process-wide
+     * {workspaceId: windowId} map is derived from live runtimes on demand —
+     * this field is the only storage, never duplicated elsewhere. Survives
+     * detachWindow (macOS dock-close of the primary window) on purpose, the
+     * same as tabs/groups below: the workspace it shows hasn't changed just
+     * because the native window did. Cleared explicitly by main.js when a
+     * window is truly discarded, or when the bound workspace is deleted. */
+    workspaceId: null,
     /** Temporary second visible tab. Glance is deliberately workspace-local
      * and ephemeral: it never crosses windows/profiles or session restore. */
     glanceTabId: null,
