@@ -6190,7 +6190,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // own once-per-day cadence guard makes a too-frequent call a no-op.
     setImmediate(() => {
       patron.validateIfDue().catch(() => {});
-      setInterval(() => patron.validateIfDue().catch(() => {}), 24 * 60 * 60 * 1000);
+      setInterval(() => patron.validateIfDue().catch(() => {}), patron.DAY_MS);
     });
   };
 

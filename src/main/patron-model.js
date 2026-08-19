@@ -21,6 +21,29 @@ function parseExpiresAt(raw) {
   return Number.isNaN(ms) ? false : ms;              // unparseable string — malformed
 }
 
+// Polar's activate response nests the license key (payload.license_key or
+// payload.activation.license_key); its validate response returns the key at the
+// top level. These readers accept either shape so a wire-format difference can
+// never silently drop the status/expiry a validation depends on — the same
+// defensive three-path lookup readBenefitId uses.
+function readLicenseStatus(payload) {
+  if (!payload || typeof payload !== 'object') return null;
+  const status = payload.status
+    ?? payload.license_key?.status
+    ?? payload.activation?.license_key?.status;
+  return typeof status === 'string' ? status : null;
+}
+
+function readExpiresAt(payload) {
+  if (!payload || typeof payload !== 'object') return null;
+  return parseExpiresAt(
+    payload.expires_at
+    ?? payload.license_key?.expires_at
+    ?? payload.activation?.license_key?.expires_at
+    ?? null,
+  );
+}
+
 function resolveKind(benefitId, allowlist) {
   if (typeof benefitId !== 'string' || benefitId === '') return null;
   if (!allowlist || typeof allowlist !== 'object') return null;
@@ -73,4 +96,4 @@ function downgradeMirror(patron) {
   return { key: patron.key, activationId: patron.activationId ?? null, activatedAt: patron.activatedAt };
 }
 
-module.exports = { readBenefitId, resolveKind, parseExpiresAt, GRACE_MS, isRecordActive, evaluateValidation, migrateSupporter, downgradeMirror };
+module.exports = { readBenefitId, resolveKind, parseExpiresAt, readLicenseStatus, readExpiresAt, GRACE_MS, isRecordActive, evaluateValidation, migrateSupporter, downgradeMirror };

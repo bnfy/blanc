@@ -671,12 +671,17 @@ a.ledger-label:hover { color: var(--accent); }
 
 .ledger-empty { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
 
-/* Quiet, one-line Patron callout below the favorites grid — matches the
-   understated .ledger-empty hint rather than the bolder .launch-card, since
-   this is an optional upsell, not something the page needs from the user. */
-.ledger-patron { margin-top: 50px; font-family: var(--font-mono); font-size: 11.5px; }
-.ledger-patron a { color: var(--text-dim); text-decoration: none; }
-.ledger-patron a:hover { color: var(--accent); }
+/* Quiet, one-line Patron callout — one per start-page layout, hidden once the
+   user is a Patron. Matches the understated .ledger-empty hint rather than the
+   bolder .launch-card, since this is an optional upsell. The shared link look
+   lives on .js-patron-callout; each layout only sets its own spacing. */
+.js-patron-callout { font-family: var(--font-mono); font-size: 11.5px; }
+.js-patron-callout a { color: var(--text-dim); text-decoration: none; }
+.js-patron-callout a:hover { color: var(--accent); }
+.ledger-patron { margin-top: 50px; }
+.bb-patron { margin-top: 28px; text-align: center; }
+.shelf-patron { margin-top: 20px; }
+.tally-patron { margin-top: 28px; }
 
 .ledger-footer {
   /* Pinned to the viewport bottom by the auto margin while the ledger is

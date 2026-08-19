@@ -172,7 +172,10 @@ function setupPages(hooks = {}) {
   // derived booleans. Internal pages are privileged, but least-privilege
   // anyway (same reasoning as the preload's protocol re-check).
   const clientSettings = () => {
-    const { supporter: record, patron, _syncMeta, ...rest } = settings.getSettings();
+    // Strip both entitlement records out of `rest` (the renderer sees only
+    // derived booleans). `patron:` is aliased to `_patron` so it does not
+    // shadow the module-level `patron` (the network module) inside this scope.
+    const { supporter: record, patron: _patron, _syncMeta, ...rest } = settings.getSettings();
     return {
       ...rest,
       patronActive: settings.isPatronActive(),
@@ -242,9 +245,9 @@ function setupPages(hooks = {}) {
     // Least-privilege projection for the onboarding dialog: only the two
     // settings it can change, so a replay shows what is actually saved.
     onboarding: hooks.startPage?.onboardingState?.() ?? null,
-    // Whether to show the start-page Patron callout on initial load — mirrored
-    // by startPageStatus() below so a later pages:start:status push agrees.
-    patronActive: settings.isPatronActive(),
+    // patronActive (for the start-page Patron callout) comes from the spread
+    // below: startPageStatus() supplies it, and the same function feeds the
+    // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
   }));
   // The footer layout switcher. The value is enum-validated by setSettings,

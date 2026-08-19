@@ -40,9 +40,10 @@ async function activate(key) {
   const kind = model.resolveKind(benefitId, BENEFIT_ALLOWLIST);
   if (!payload || !kind) return { ok: false, message: 'That license key is not recognized.' };
   if (kind === 'subscription') {
-    const lk = payload.license_key ?? payload.activation?.license_key ?? {};
-    const lkStatus = lk.status;
-    const lkExpiry = model.parseExpiresAt(lk.expires_at);
+    // Defensive readers accept the license key at the top level or nested,
+    // so the check holds whichever shape Polar's activate response uses.
+    const lkStatus = model.readLicenseStatus(payload);
+    const lkExpiry = model.readExpiresAt(payload);
     if (lkStatus !== 'granted') return { ok: false, message: 'That subscription is not currently active.' };
     if (lkExpiry === false) return { ok: false, message: 'That subscription has an invalid expiry.' };
     if (typeof lkExpiry === 'number' && lkExpiry <= Date.now()) return { ok: false, message: 'That subscription has expired.' };
@@ -66,15 +67,22 @@ async function validateIfDue() {
       body: JSON.stringify({ organization_id: ORG_ID, key: p.key, activation_id: p.activationId }),
     });
     const body = res.ok ? await readJson(res) : null;
-    if (!body || typeof body.status !== 'string') {
-      outcome = { kind: 'unreachable' };                 // non-ok OR malformed successful JSON → ambiguous
+    // Read status defensively (top-level or nested) so a validate response that
+    // wraps the license key can't be misread as an unparseable body.
+    const status = model.readLicenseStatus(body);
+    if (!body || status === null) {
+      outcome = { kind: 'unreachable' };                 // non-ok, malformed, or no readable status → ambiguous
     } else {
       const benefitOk = model.resolveKind(model.readBenefitId(body), BENEFIT_ALLOWLIST) === 'subscription';
-      outcome = { kind: 'ok', status: body.status, expiresAt: model.parseExpiresAt(body.expires_at), benefitOk };
+      outcome = { kind: 'ok', status, expiresAt: model.readExpiresAt(body), benefitOk };
     }
   } catch { outcome = { kind: 'unreachable' }; }
   const { record } = model.evaluateValidation({ outcome, record: p, now: Date.now() });
+  // Guard the lost-update race: if a concurrent activate() replaced data.patron
+  // during the await above, its fresh authoritative record wins — don't clobber
+  // it with this result derived from the stale pre-fetch snapshot.
+  if (settings.getPatronRecord() !== p) return;
   settings.setPatron(record);
 }
 
-module.exports = { activate, validateIfDue };
+module.exports = { activate, validateIfDue, DAY_MS };

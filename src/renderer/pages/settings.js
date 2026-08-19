@@ -313,7 +313,16 @@
       if (patronActivateBtn.disabled) return;
       patronActivateBtn.disabled = true;
       patronStatus.textContent = 'Activating…';
-      const result = await window.bowserPages.settings.activateSupporter(patronKey.value);
+      let result;
+      try {
+        result = await window.bowserPages.settings.activateSupporter(patronKey.value);
+      } catch {
+        // A rejected IPC (an unexpected main-process throw) must still
+        // re-enable the button — never leave it stuck on "Activating…".
+        patronActivateBtn.disabled = false;
+        patronStatus.textContent = 'Something went wrong. Please try again.';
+        return;
+      }
       patronActivateBtn.disabled = false;
       if (result.ok) {
         // The response is only `{ ok, kind }` — no activatedAt to mirror

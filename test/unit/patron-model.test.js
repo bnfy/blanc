@@ -116,3 +116,33 @@ test('downgradeMirror mirrors founding/lifetime, NEVER a subscription', () => {
   assert.equal(downgradeMirror({ kind: 'subscription', key: 'k', activationId: 'a', activatedAt: 1 }), null);
   assert.equal(downgradeMirror(null), null);
 });
+
+const { readLicenseStatus, readExpiresAt } = require('../../src/main/patron-model');
+
+test('readLicenseStatus reads top-level (validate) and nested (activate) shapes', () => {
+  // validate response: license key at the top level
+  assert.equal(readLicenseStatus({ status: 'granted' }), 'granted');
+  // activate response: license key nested (either depth)
+  assert.equal(readLicenseStatus({ license_key: { status: 'revoked' } }), 'revoked');
+  assert.equal(readLicenseStatus({ activation: { license_key: { status: 'disabled' } } }), 'disabled');
+  // top-level wins when present (validate shape), never the nested one
+  assert.equal(readLicenseStatus({ status: 'granted', license_key: { status: 'revoked' } }), 'granted');
+  // no readable status → null (caller treats as ambiguous/unreachable)
+  assert.equal(readLicenseStatus({}), null);
+  assert.equal(readLicenseStatus({ status: 42 }), null);
+  assert.equal(readLicenseStatus(null), null);
+  assert.equal(readLicenseStatus('nope'), null);
+});
+
+test('readExpiresAt reads both shapes and keeps parseExpiresAt three-state', () => {
+  const iso = '2026-12-31T00:00:00Z';
+  assert.strictEqual(readExpiresAt({ expires_at: iso }), Date.parse(iso));                       // validate: top-level
+  assert.strictEqual(readExpiresAt({ license_key: { expires_at: iso } }), Date.parse(iso));      // activate: nested
+  assert.strictEqual(readExpiresAt({ activation: { license_key: { expires_at: iso } } }), Date.parse(iso));
+  // top-level wins when both present (validate shape), never the nested one
+  assert.strictEqual(readExpiresAt({ expires_at: iso, license_key: { expires_at: '2000-01-01T00:00:00Z' } }), Date.parse(iso));
+  assert.strictEqual(readExpiresAt({}), null);            // absent → null (no expiry)
+  assert.strictEqual(readExpiresAt({ expires_at: null }), null);
+  assert.strictEqual(readExpiresAt({ expires_at: 'not-a-date' }), false);  // present but malformed → false
+  assert.strictEqual(readExpiresAt(null), null);
+});
