@@ -3223,7 +3223,17 @@ function saveCurrentWindowAsWorkspace(runtime, name) {
     // captureWindowEntry default (previousActiveIndex 0), exactly like
     // persistSession treats a window never yet written to session.json.
     const result = namedWorkspaces.create({ name, capture: workspaceCapture(runtime) });
-    if (result.ok) runtime.workspaceId = result.workspace.id;
+    if (result.ok) {
+      runtime.workspaceId = result.workspace.id;
+      // Write the binding pointer to session.json NOW. Binding alone only
+      // changes memory: persistSession runs off tab activity, so saving a
+      // workspace and quitting without touching a tab left session.json
+      // holding workspaceId: null. The window then came back scratch, edits
+      // went only to session.json, and reopening the workspace applied its
+      // stale snapshot over the newer work — the exact loss Task 6 exists to
+      // prevent. The swap path already persists for the same reason.
+      persistSession();
+    }
     return result;
   });
 }

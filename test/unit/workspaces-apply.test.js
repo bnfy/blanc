@@ -198,3 +198,68 @@ test('applyWorkspaceBindings reconciles a bindingsAfterSwap result onto every ru
   assert.equal(switching.workspaceId, 'ws_new',
     "the switching window is bound to its new workspace, its old one released");
 });
+
+// ---------------------------------------------------------------------------
+// Regression: saveCurrentWindowAsWorkspace must PERSIST the binding pointer.
+//
+// Found by live quit->relaunch verification, not by any unit test: binding a
+// window only mutates memory, and persistSession runs off tab activity — so
+// saving a workspace and quitting without touching a tab left session.json
+// holding workspaceId: null. The window came back scratch, later edits went
+// only to session.json, and reopening the workspace applied its stale
+// snapshot over the newer work. That is precisely the data loss the binding
+// pointer exists to prevent, so it is locked here.
+// ---------------------------------------------------------------------------
+
+const saveAsSource = slice(
+  'function saveCurrentWindowAsWorkspace(runtime, name) {',
+  '\nfunction switchWindowToWorkspace'
+);
+
+test('saveCurrentWindowAsWorkspace is still liftable from main.js', () => {
+  assert.ok(saveAsSource, 'saveCurrentWindowAsWorkspace not found — update this test with it');
+});
+
+function runSaveAs({ createResult }) {
+  const calls = [];
+  const runtime = { id: 'win_1', workspaceId: null };
+  const sandbox = {
+    withWindowRuntime: (_runtime, fn) => fn(),
+    workspaceCapture: () => ({ urls: ['https://a.test/'] }),
+    namedWorkspaces: {
+      create: (args) => { calls.push(['create', args.name]); return createResult; },
+    },
+    persistSession: () => { calls.push(['persistSession']); },
+  };
+  vm.runInNewContext(`${saveAsSource}\nthis.__fn = saveCurrentWindowAsWorkspace;`, sandbox);
+  const result = sandbox.__fn(runtime, 'Work');
+  return { calls, runtime, result };
+}
+
+test('a successful save-as binds the window AND persists the pointer', () => {
+  const { calls, runtime } = runSaveAs({
+    createResult: { ok: true, workspace: { id: 'ws_work' } },
+  });
+  assert.equal(runtime.workspaceId, 'ws_work', 'window is bound in memory');
+  assert.ok(
+    calls.some(([name]) => name === 'persistSession'),
+    'persistSession must run so session.json carries the pointer — without it the binding is lost on quit',
+  );
+  // Order matters: the pointer has to be set before the session is written,
+  // or persistSession captures the pre-bind (null) value.
+  const bindIndex = calls.findIndex(([name]) => name === 'create');
+  const persistIndex = calls.findIndex(([name]) => name === 'persistSession');
+  assert.ok(persistIndex > bindIndex, 'persist happens after the create/bind');
+});
+
+test('a rejected save-as neither binds nor persists', () => {
+  const { calls, runtime, result } = runSaveAs({
+    createResult: { ok: false, error: 'duplicate-name' },
+  });
+  assert.equal(runtime.workspaceId, null, 'no binding on failure');
+  assert.equal(result.error, 'duplicate-name', 'the error is returned verbatim');
+  assert.ok(
+    !calls.some(([name]) => name === 'persistSession'),
+    'a failed save-as must not write a session entry',
+  );
+});
