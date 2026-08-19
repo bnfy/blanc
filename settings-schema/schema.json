@@ -46,7 +46,8 @@
     "usagePing": true,
     "tabSleep": "1h",
     "onboardingVersion": 0,
-    "supporter": null
+    "supporter": null,
+    "patron": null
   },
   "$internalDefaults": "Keys present in settings.js DEFAULTS that are intentionally desktop-only (not mobile-parity settings); settings:check allowlists these instead of requiring them in the schema.",
   "internalDefaults": ["tabLayout", "verticalTabsWidth", "onboardingVersion", "_syncMeta"],
@@ -64,6 +65,7 @@
     { "key": "adblockExceptions", "type": "string[]", "default": [], "normalize": "trim, lowercase, strip leading www., dedupe" },
     { "key": "usagePing", "type": "boolean", "default": true },
     { "key": "tabSleep", "type": "enum", "enum": "tabSleepDelays", "default": "1h", "note": "device-local; not synced; 'off' stops future quieting and never wakes an already-quiet tab" },
-    { "key": "supporter", "type": "opaque", "default": null, "note": "written only by the Polar activation flow (setSupporter), never generic setSettings" }
+    { "key": "supporter", "type": "opaque", "default": null, "note": "written only by the Polar activation flow (setSupporter), never generic setSettings" },
+    { "key": "patron", "type": "opaque", "default": null, "note": "canonical entitlement record; written only by the Polar activation flow (setPatron), never generic setSettings; supersedes supporter for entitlement" }
   ]
 }

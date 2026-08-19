@@ -23,7 +23,7 @@
         <a href="#group-profiles" data-group="profiles">Profiles</a>
         <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
         <a href="#group-sync" data-group="sync">Sync</a>
-        <a href="#group-supporter" data-group="supporter">Supporter</a>
+        <a href="#group-patron" data-group="patron">Patron</a>
       </nav>
 
       <div class="settings-content">
@@ -141,7 +141,7 @@
           <h2 class="group-title">Profiles</h2>
           <div class="settings-card">
             <p class="section-hint">
-              Named profiles keep separate cookies, site data, Favorites, history, downloads, and remembered permissions. Device settings and Supporter status stay shared; Profile Sync belongs to Personal only.
+              Named profiles keep separate cookies, site data, Favorites, history, downloads, and remembered permissions. Device settings and Patron status stay shared; Profile Sync belongs to Personal only.
             </p>
             <div class="toolbar-row">
               <input id="newProfileName" type="text" placeholder="New profile name" maxlength="40" autocomplete="off" />
@@ -279,18 +279,21 @@
           </div>
         </section>
 
-        <section class="settings-group" id="group-supporter">
-          <h2 class="group-title" id="supporterTitle">Supporter</h2>
+        <section class="settings-group" id="group-patron">
+          <h2 class="group-title" id="patronTitle">Blanc Patron</h2>
           <div class="settings-card">
             <p class="section-hint">
-              Supporting Blanc unlocks three extra icon colorways — ember, plum, and gold.
-              One purchase, activated once; Blanc never phones home afterwards.
+              Blanc Patron unlocks three extra icon colorways — ember, plum, and gold. A
+              one-time founding license activates once, with no further contact. A monthly
+              or annual subscription checks in with Polar about once a day — your license
+              key and activation id only, never browsing data — to confirm it’s still
+              active; on a lapse, colorways quietly revert to Paper.
             </p>
-            <div class="toolbar-row" id="supporterActivateRow">
-              <input id="supporterKey" type="text" placeholder="License key" autocomplete="off" spellcheck="false" maxlength="200" />
-              <button id="supporterActivate">Activate</button>
+            <div class="toolbar-row" id="patronActivateRow">
+              <input id="patronKey" type="text" placeholder="License key" autocomplete="off" spellcheck="false" maxlength="200" />
+              <button id="patronActivate">Activate</button>
             </div>
-            <p class="section-hint" id="supporterStatus" role="status"></p>
+            <p class="section-hint" id="patronStatus" role="status"></p>
           </div>
         </section>
       </div>

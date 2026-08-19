@@ -710,6 +710,7 @@
       const requested = (input ?? '').replace(/^\/theme\s*/, '').trim();
       window.browserAPI.cycleTheme(requested || null);
     } },
+    { cmd: '/patron', hint: 'Support Blanc with a Patron subscription', run: () => window.browserAPI.openPage('settings', 'patron') },
   ];
 
   function runCommand(command) {

@@ -518,7 +518,7 @@ function install(refs) {
     secureDnsTemplate() { return settings.getSettings().secureDnsTemplate; },
     webrtcPolicy() { return settings.getSettings().webrtcPolicy; },
     setSecureDns(dns, template = '') { settings.setSettings({ secureDns: dns, secureDnsTemplate: template }); },
-    clearSupporter() { settings.setSupporter(null); },
+    clearSupporter() { settings.setPatron(null); },
     addException(h) {
       const cur = settings.getSettings().adblockExceptions;
       settings.setSettings({ adblockExceptions: [...cur, h] });
@@ -672,7 +672,7 @@ function install(refs) {
       return true;
     },
 
-    setSupporterActive() { settings.setSupporter({ key: 'test', activationId: 'test', activatedAt: 0 }); },
+    setSupporterActive() { settings.setPatron({ kind: 'founding', key: 'test', activationId: 'test', benefitId: null, activatedAt: 0 }); },
 
     // ---- address-bar context menu (F19-2/F19-3) ----
     // A native Menu.popup() can't be driven by Playwright, so these bind the
@@ -1353,7 +1353,7 @@ function install(refs) {
         // leak that seed into later scenarios.
         usagePing: false,
       });
-      settings.setSupporter(null);
+      settings.setPatron(null);
       clearTestSearchSuggestionFixture();
       setTestSearchNavigationCapture(false);
       broadcastTabs();

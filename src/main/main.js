@@ -78,6 +78,7 @@ const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model'
 const { attachChromeMenu, attachRowMenu } = require('./tab-context-menu');
 const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
+const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu } = require('./bookmark-data');
 const history = require('./history');
@@ -4446,7 +4447,8 @@ function registerIpcHandlers() {
     if (['bookmarks', 'history', 'downloads', 'settings'].includes(name)) {
       // Deep-link into a page section via URL fragment — allowlisted only,
       // never interpolated from renderer-supplied text (privileged URL).
-      const fragment = name === 'settings' && section === 'blocking' ? '#group-privacy' : '';
+      const sectionMap = { blocking: '#group-privacy', patron: '#group-patron' };
+      const fragment = name === 'settings' && Object.prototype.hasOwnProperty.call(sectionMap, section) ? sectionMap[section] : '';
       openInternalPage(`blanc://${name}/${fragment}`);
     }
   });
@@ -4796,6 +4798,7 @@ const SLASH_COMMANDS = [
   ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
+  ['/patron', 'Support Blanc with a Patron subscription'],
 ];
 
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via
@@ -5994,6 +5997,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         searchSuggestions: current.searchSuggestions,
         usagePing: current.usagePing,
       },
+      // Drives the start page's Patron callout. Broadcast on every
+      // settings change (below), and setPatron() fires those listeners, so
+      // an activation mid-session hides the callout without a reload.
+      patronActive: settings.isPatronActive(),
     };
   };
   const broadcastStartPageStatus = () => {
@@ -6497,6 +6504,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     pendingExternalUrls.push(...urlsFromArgv(process.argv.slice(1)));
     withWindowRuntime(focusedRuntime, flushExternalUrls);
     maybeSendLaunchPing();
+
+    // Patron subscription revalidation — off the critical path, after the
+    // navigation gate is released and session restore is done. The model's
+    // own once-per-day cadence guard makes a too-frequent call a no-op.
+    setImmediate(() => {
+      patron.validateIfDue().catch(() => {});
+      setInterval(() => patron.validateIfDue().catch(() => {}), patron.DAY_MS);
+    });
   };
 
   const attachAdblockToAllProfileSessions = () => {
