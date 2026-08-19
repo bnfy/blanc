@@ -229,7 +229,12 @@ function runSaveAs({ createResult }) {
     namedWorkspaces: {
       create: (args) => { calls.push(['create', args.name]); return createResult; },
     },
-    persistSession: () => { calls.push(['persistSession']); },
+    // Record the binding AS PERSIST SEES IT. Asserting only that persist
+    // runs after create would still pass if someone reordered the two lines
+    // so persistSession() ran before the field was set — and that reordering
+    // reintroduces the exact bug, because persistSession would capture the
+    // pre-bind null.
+    persistSession: () => { calls.push(['persistSession', runtime.workspaceId]); },
   };
   vm.runInNewContext(`${saveAsSource}\nthis.__fn = saveCurrentWindowAsWorkspace;`, sandbox);
   const result = sandbox.__fn(runtime, 'Work');
@@ -245,11 +250,14 @@ test('a successful save-as binds the window AND persists the pointer', () => {
     calls.some(([name]) => name === 'persistSession'),
     'persistSession must run so session.json carries the pointer — without it the binding is lost on quit',
   );
-  // Order matters: the pointer has to be set before the session is written,
-  // or persistSession captures the pre-bind (null) value.
-  const bindIndex = calls.findIndex(([name]) => name === 'create');
-  const persistIndex = calls.findIndex(([name]) => name === 'persistSession');
-  assert.ok(persistIndex > bindIndex, 'persist happens after the create/bind');
+  // Order matters: the pointer has to be SET before the session is written,
+  // or persistSession captures the pre-bind (null) value and the binding is
+  // still lost on quit.
+  const persistCall = calls.find(([name]) => name === 'persistSession');
+  assert.equal(
+    persistCall[1], 'ws_work',
+    'runtime.workspaceId must already be set when persistSession runs — otherwise it writes null',
+  );
 });
 
 test('a rejected save-as neither binds nor persists', () => {
