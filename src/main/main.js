@@ -2901,8 +2901,10 @@ async function setTabFavicon(tab, source) {
   // Not gated on tab.bookmarked: the favorite that needs healing is often a
   // DIFFERENT url on the same origin (you favorited the short one, this is the
   // redirect target), so the tab's own bookmarked flag is false exactly when the
-  // heal is needed. updateFavicon no-ops when nothing matches.
-  if (sanitized) bookmarks.updateFavicon(tab.url, sanitized);
+  // heal is needed. Still refuse private tabs — Favorites is a sync-exported
+  // store and private browsing must not write it. updateFavicon no-ops when
+  // nothing matches.
+  if (sanitized && !tab.private) bookmarks.updateFavicon(tab.url, sanitized);
   if (changed) scheduleBroadcastTabs();
   if (sanitized) sync.captureTabIcon(tab).catch(() => {});
   return true;
