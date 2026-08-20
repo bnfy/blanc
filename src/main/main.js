@@ -61,7 +61,7 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { sanitizeFavicon } = require('./favicon-sanitizer');
-const { resolvedFavicon } = require('./favicon-policy');
+const { resolvedFavicon, updateFaviconAfterDomReady } = require('./favicon-policy');
 const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
 const { validFavicon } = require('./bookmark-validate');
 const {
@@ -2898,7 +2898,11 @@ async function setTabFavicon(tab, source) {
   if (!sanitized) tab.faviconSource = previousSource;
   const changed = tab.favicon !== next;
   tab.favicon = next;
-  if (sanitized && tab.bookmarked) bookmarks.updateFavicon(tab.url, sanitized);
+  // Not gated on tab.bookmarked: the favorite that needs healing is often a
+  // DIFFERENT url on the same origin (you favorited the short one, this is the
+  // redirect target), so the tab's own bookmarked flag is false exactly when the
+  // heal is needed. updateFavicon no-ops when nothing matches.
+  if (sanitized) bookmarks.updateFavicon(tab.url, sanitized);
   if (changed) scheduleBroadcastTabs();
   if (sanitized) sync.captureTabIcon(tab).catch(() => {});
   return true;
@@ -4536,12 +4540,33 @@ function toggleBookmarkForActiveTab() {
 
 /** Per-tab favorite toggle for the context menu; same guards as the active-tab
  * version (private tabs never populate synced Favorites). */
+/** Favoriting samples tab.favicon at click time. When it hasn't resolved yet —
+ * or an earlier attempt failed on a page that has since settled — the favorite
+ * keeps a null icon indefinitely, because the only other writer is a LATER
+ * favicon event, and a settled page never emits one. So: wait out any in-flight
+ * attempt, then make exactly one fresh attempt from the page's declared links.
+ * setTabFavicon's own heal writes the result through; nothing here touches the
+ * store directly. Fire-and-forget — a favorite is saved either way. */
+function healFaviconForTab(tab) {
+  const wc = liveContents(tab);
+  if (!wc) return;
+  Promise.resolve(tab.faviconPending).catch(() => {}).then(() => {
+    if (!tabs.has(tab.id) || tab.private) return null;
+    if (tab.favicon) {
+      bookmarks.updateFavicon(tab.url, tab.favicon);
+      return null;
+    }
+    return updateFaviconAfterDomReady(tab, wc, { setTabFavicon });
+  }).catch(() => {});
+}
+
 function toggleBookmarkForTab(id) {
   const tab = tabs.get(id);
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
   tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
   broadcastTabs();
   scheduleMenuRebuild();
+  if (tab.bookmarked && !tab.favicon) healFaviconForTab(tab);
 }
 
 /** The `/save [folder]` command: add-only favorite of the active tab, into an
