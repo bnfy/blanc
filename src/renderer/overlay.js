@@ -615,16 +615,6 @@
     return row;
   }
 
-  /** Dim header above the trailing ungrouped tabs — retired. */
-  function looseHeaderRow() {
-    return null;
-  }
-
-  /** Collapsed stand-in — retired; the group header alone carries the count. */
-  function foldedGroupRow() {
-    return null;
-  }
-
   // --- Named Workspaces (Blanc Patron) ---
   //
   // Identity, switching, and every name/confirm editor live in the island
