@@ -1829,10 +1829,16 @@ function createOverlay() {
   }));
 
   // Dismiss on Escape at the main-process level so it works no matter
-  // which element inside the overlay holds focus.
+  // which element inside the overlay holds focus. When the footer workspace
+  // popover (or one of its editors) is open, forward Esc to the overlay so
+  // it can cancel/close the popover first — the island stays up.
   rt().overlayView.webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
     if (rt().overlayMode && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
+      if (rt().workspaceSwitcherOpen && rt().overlayView && !rt().overlayView.webContents.isDestroyed()) {
+        rt().overlayView.webContents.send('overlay:escape');
+        return;
+      }
       hideOverlay({ reason: 'escape' });
     }
   }));
@@ -1997,6 +2003,7 @@ function hideOverlay({ refocusContent = true, reason = null } = {}) {
   const closingTrigger = rt().shieldTrigger;
   rt().overlayMode = null;
   rt().overlayPurpose = null;
+  rt().workspaceSwitcherOpen = false;
   rt().shieldAnchorRight = null;
   rt().captureAnchorRight = null;
   rt().shieldPopoverHost = null;
@@ -5017,6 +5024,9 @@ function registerIpcHandlers() {
   });
 
   chromeOn('chrome:open-island', () => showOverlay('panel'));
+  chromeOn('chrome:workspace-switcher', (_e, open) => {
+    rt().workspaceSwitcherOpen = !!open;
+  });
   // The "/" chip. No payload — the prefill is fixed, so nothing crosses IPC
   // that needs validating; it goes through the helper anyway so there is one
   // path that opens the panel with a prefill.

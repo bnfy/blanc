@@ -58,6 +58,9 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     overlayView: null,
     /** @type {null | 'panel' | 'palette' | 'find' | 'shield' | 'capture'} */
     overlayMode: null,
+    /** Footer workspace popover is open in the overlay — Escape must cancel
+     * editors / close the menu before dismissing the island. */
+    workspaceSwitcherOpen: false,
     /** Companion to overlayMode, replayed alongside it below if the
      * overlay's first load hadn't finished when showOverlay was called. */
     overlayPrefill: null,
@@ -153,6 +156,7 @@ function detachWindow(runtime) {
   runtime.window = null;
   runtime.overlayView = null;
   runtime.overlayMode = null;
+  runtime.workspaceSwitcherOpen = false;
   runtime.overlayPrefill = null;
   runtime.overlayPurpose = null;
   runtime.glanceTabId = null;
