@@ -285,7 +285,7 @@ If any step fails, **stop the whole plan here** and fix the checkout. Launching 
 
 **Owner:** `agent` — this is ordinary site work.
 
-**MUST LAND BEFORE TASK 5 PUBLISHES v1.8.0.** Four existing pages currently
+**MUST LAND BEFORE TASK 7 PUBLISHES v1.8.0.** Four existing pages currently
 state that no feature is locked behind payment. The moment v1.8.0 ships
 Patron-gated workspace creation those statements become false — and one of them
 is the Terms of Service. Shipping the release first opens a window where the
@@ -333,7 +333,7 @@ const QUESTIONS = [
     q: 'Is Blanc open source?',
     a: [
       'No — but the source is public, and those are two different things worth separating.',
-      'The repository at github.com/bnfy/blanc is public and contains the application source. You can read every line, check what the blocker does, check what the launch ping sends, and build and run it yourself with npm install && npm start.',
+      'The repository at github.com/bnfy/blanc is public and contains the application source. You can read every line, check what the blocker does, and check what the launch ping sends. Building and running it locally to verify that the published binary matches is explicitly welcome \u2014 that is what the README\u2019s setup steps are for.',
       'What it is not is openly licensed. package.json says UNLICENSED, so the code carries no open-source grant. You can read it, and GitHub\u2019s own terms let you fork any public repository there. What is not granted is a licence to modify it, redistribute it, or publish your own builds. The accurate term is source-available, not open source.',
       'Alongside that, every macOS build is signed and notarized, every Windows build carries a timestamped Authenticode signature whose subject is checked at release time, the release checksum manifest is signed with Sigstore under a verified OIDC identity, and native artifacts carry GitHub provenance attestations.',
     ],
@@ -453,13 +453,6 @@ npm run site:dev
 
 Open `/faq` and read every answer against the source of truth. Specifically confirm the telemetry payload really is those six fields (`src/main/telemetry.js`) and that the Patron prices match the live Polar products. **A factually wrong FAQ linked into a Show HN thread is worse than no FAQ.**
 
-- [ ] **Step 8: Run the guard tests**
-
-```bash
-npm run test:unit && npm run substrate:check
-```
-Expected: PASS. `site.css` is not under the `tokens/` substrate guard, and the new page uses the default OG image, so `og-cards.test.js` is unaffected — but run them to confirm rather than assume.
-
 - [ ] **Step 8a: Correct the homepage claim**
 
 `site/src/pages/index.astro:258` currently reads *"every browser feature is
@@ -509,6 +502,17 @@ grep -rn "nothing is locked behind payment\|none of them are locked behind payme
 Expected: **no matches** (`exit=1`). A single survivor is a public contradiction
 of the product on launch day.
 
+- [ ] **Step 8f: Run the guard tests — AFTER every file is edited**
+
+```bash
+npm run test:unit && npm run substrate:check
+```
+Expected: PASS. These run **last** deliberately: Steps 8a–8e modify four more
+site files, so running the guards before them tests a state that never ships.
+`site.css` is not under the `tokens/` substrate guard, and the new page uses the
+default OG image, so `og-cards.test.js` is unaffected — but run them to confirm
+rather than assume.
+
 - [ ] **Step 9: Commit**
 
 ```bash
@@ -525,13 +529,35 @@ alongside a new /faq covering source availability, Electron memory,
 telemetry, pricing and extensions."
 ```
 
-- [ ] **Step 10: Deploy**
+- [ ] **Step 10: Push, open a PR, and merge — before deploying**
+
+Task 7 depends on this work being *merged*, not merely committed locally.
+
+**`site:deploy` forcibly passes `--branch=main`**, so deploying from a feature
+branch produces a deployment labelled `Branch: main` that looks correct while
+serving unmerged code. The label cannot be used as evidence of merge.
+
+```bash
+git push -u origin site-patron-claims
+gh pr create --title "site: add /faq, and make the Patron claims true" --body "..."
+```
+
+Merge it, then enter a checkout that is exactly `origin/main`:
+
+```bash
+git checkout main && git pull && git fetch origin
+[ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] && echo "OK: HEAD == origin/main" || echo "STOP: not at origin/main"
+git status --porcelain    # must be EMPTY
+```
+
+- [ ] **Step 11: Deploy from the merged checkout**
 
 ```bash
 npm run site:deploy
 ```
-Confirm `Environment: Production`, `Branch: main`, expected SHA, then load
-https://blancbrowser.com/faq and confirm it is live.
+Confirm `Environment: Production`, `Branch: main`, and that the reported source
+SHA equals `git rev-parse HEAD`. Then load https://blancbrowser.com/faq and
+confirm it is live.
 
 ---
 
@@ -551,7 +577,10 @@ thousands of sceptical readers see. Build instructions alone will not do.
 
 Confirm or add, in this order:
 
-- **One-line description** and a screenshot or the demo GIF from Task 7.
+- **One-line description** and an image. Use a screenshot that is **already
+  committed** (`site/public/og-image.png`, or one of the `feature-*.png` cards) —
+  the demo GIF comes from Task 8, which runs *after* this task, and the README
+  must be release-ready now. Task 8 Step 6 swaps the GIF in later.
 - **Licence status, stated plainly:** source-available, `UNLICENSED`, forkable on
   GitHub, no grant to modify/redistribute/publish builds. Do not let a reader
   infer "open source" from the repo being public.
@@ -586,11 +615,22 @@ Task 5 is a hard prerequisite, not a suggestion. Until its copy corrections are
 live on `blancbrowser.com`, publishing v1.8.0 puts the shipped product in direct
 contradiction with the site's own Terms of Service. Verify before starting:
 
+A bare `curl -s | grep -c` prints `0` when the request *fails* — an empty body
+contains no matches, so an outage or a typo'd URL reads as a pass. This gate must
+fail closed: require HTTP success, assert the obsolete sentence is **gone**, and
+assert the replacement text is **present**.
+
 ```bash
-curl -s https://blancbrowser.com/terms | grep -c "none of them are locked behind payment"
+set -o pipefail
+TERMS=$(curl -fsS https://blancbrowser.com/terms) || { echo "STOP: /terms did not return 200"; exit 1; }
+echo "$TERMS" | grep -q "none of them are locked behind payment" \
+  && { echo "STOP: obsolete no-paywall claim is still live"; exit 1; }
+echo "$TERMS" | grep -q "creating a named workspace requires an active subscription" \
+  || { echo "STOP: corrected Patron wording is NOT live — Task 5 has not deployed"; exit 1; }
+echo "OK: Terms page reflects the Patron gate"
 ```
 
-Expected: **0**. Any other result means Task 5 has not reached production — stop.
+Expected: `OK`. Any `STOP` means Task 5 has not reached production — do not release.
 
 **Why:** v1.8.0 is the **build** the launch runs on, not the **story** the launch
 tells. Those were conflated in the first draft of this plan and it produced a
@@ -638,10 +678,21 @@ from the published release body: put **each paragraph on ONE line** (a wrapped
 paragraph fragments into separate blocks), use no markdown headings, and let
 dates render in America/New_York.
 
-- [ ] **Step 4: Pin the press page to the new version**
+- [ ] **Step 4: Pin the press page AND its guard test to the new version**
 
 `site/src/pages/press.astro` carries `const VERSION = '1.7.0';`. Advance it to
 `1.8.0`, or the press kit states the old version beside the new release.
+
+`test/unit/press-kit.test.js:54` asserts `packageVersion === '1.7.0'`. **Step 5's
+gate runs `test:unit` and will fail** until this is advanced too — the repository
+deliberately encodes the pin as a guard test, so it must move in the same commit
+as the policy it guards:
+
+```bash
+grep -n "1\.7\.0" test/unit/press-kit.test.js   # confirm the pin before editing
+```
+
+Advance it to `1.8.0` and stage it in Step 6's release commit.
 
 - [ ] **Step 5: Run the real release gate**
 
@@ -676,7 +727,7 @@ Steps 2–4 just modified. Releasing directly from that working tree exits 1.
 ```bash
 git checkout -b release-1-8-0
 git add package.json package-lock.json docs/press/release-notes/v1.8.0.md \
-        site/src/pages/press.astro README.md
+        site/src/pages/press.astro test/unit/press-kit.test.js README.md
 git status --short          # confirm nothing unexpected is staged
 git commit -m "Release Blanc 1.8.0"
 git push -u origin release-1-8-0
@@ -716,7 +767,12 @@ Then **advance the public and migration baselines in both `CLAUDE.md` and
 which is exactly how they drifted apart and why this plan's first review demanded
 retired evidence — do not repeat that by updating one.
 
+**Create the branch first** — the previous draft committed on local `main` and
+then pushed a branch that had never been created:
+
 ```bash
+git checkout -b record-blanc-1-8-0
+npm run site:changelog     # regenerate releases.json ON the branch
 npm run site:build
 ```
 
@@ -727,12 +783,6 @@ anything untracked:
 git add site/src/data/releases.json CLAUDE.md AGENTS.md
 git status --short          # confirm NOTHING unexpected is staged
 git commit -m "Record Blanc 1.8.0 in the public changelog"
-```
-
-Follow the repository's normal separate-PR workflow for this post-release
-commit rather than pushing to `main` directly:
-
-```bash
 git push -u origin record-blanc-1-8-0
 gh pr create --title "Record Blanc 1.8.0 in the public changelog" --body "..."
 ```
@@ -826,7 +876,24 @@ mkdir -p docs/superpowers/plans/assets
 ls -la docs/superpowers/plans/assets/
 ```
 
-Do **not** commit large binaries to the repo if they exceed a few MB — store them where the launch posts can reach them and record the location in `launch-accounts.jsonl`.
+Do **not** commit large binaries to the repo if they exceed a few MB — store
+them where the launch posts can reach them and record the location in
+`"$LAUNCH_LOG"` (never a file inside the repository).
+
+- [ ] **Step 6: Swap the GIF into the README, before Show HN**
+
+Task 6 shipped the README with an already-committed screenshot because the demo
+did not exist yet. Now that it does, replace it — the README is the Show HN
+landing page and a moving demo outperforms a still.
+
+```bash
+git add README.md
+git status --short
+git commit -m "README: use the Island demo"
+```
+
+This lands after v1.8.0, which is fine: `README.md` is a release source for the
+*next* release, not this one. It must be merged before Task 12 posts.
 
 ---
 
@@ -866,21 +933,36 @@ click through, and confirm the subscription completes.
 
 - [ ] **Step 4: Check the quarantine state, not just the success path**
 
-The honeypot **quarantines** rather than rejecting. Confirm the new subscriber
-is not sitting in `quarantined` — a quarantined address looks subscribed from
-the form's side and never receives anything.
+The honeypot **quarantines** rather than rejecting. A quarantined address looks
+subscribed from the form's side and never receives anything, so this must be
+read from the worker, not inferred from the UI. The documented admin export
+separates confirmed recipients from the manual-review quarantine:
+
+```bash
+curl -H "Authorization: Bearer $(op read 'op://Dev/Blanc Newsletter Admin/password')" \
+  https://blanc-newsletter.bnfy-441.workers.dev/subscribers
+```
+
+Confirm the test alias appears under the confirmed list and **not** under
+`quarantined`.
 
 - [ ] **Step 5: If testing via curl, send an allowlisted Origin**
 
 `/subscribe` requires an allowlisted `Origin` header; a bare curl is rejected in
 a way that looks like a server fault:
 
+The production endpoint is the one the site form posts to
+(`site/src/components/NewsletterForm.astro`):
+
 ```bash
-curl -s -X POST https://<newsletter-worker>/subscribe \
+curl -sS -X POST https://blanc-newsletter.bnfy-441.workers.dev/subscribe \
   -H 'Origin: https://blancbrowser.com' \
   -H 'Content-Type: application/json' \
   -d '{"email":"test+launchcheck@example.com"}'
 ```
+
+Without the allowlisted `Origin` header the request is rejected in a way that
+resembles a server fault.
 
 - [ ] **Step 6: Record the result**
 
@@ -949,10 +1031,16 @@ under Chrome, and still did with its blocker switched off. Brave is the fair
 comparison there, since it also blocks by default. Method and raw runs are in
 the repo.
 
-What isn't done: it's proprietary rather than open source, there's no mobile
-version yet, and there's no extension support and won't be. There's a $30/year
-optional Patron subscription that funds it; everything described above is in
-the free version.
+What isn't done: it's source-available rather than open source — the code is all
+in this repo and you can read it or fork it here, but there's no licence to
+redistribute it or publish your own builds. There's no mobile version yet, and
+no extension support, and there won't be.
+
+On money: there's a $30/year optional Patron subscription that funds it.
+Everything described above is free. Being specific rather than vague about it,
+since this release adds named workspaces: saving a window as a named workspace
+requires Patron. Renaming and deleting workspaces you already have keeps working
+if a subscription lapses — that's your data, not mine.
 
 Happy to answer anything, including the hostile version of the questions above.
 
@@ -1078,10 +1166,12 @@ There's no extension runtime at all, which is the most divisive decision in it.
 I had one and pulled it: native crashes, it forced the browser chrome to run
 unsandboxed, and it brought a licensing constraint with it.
 
-Being upfront about the rest: it's Electron; the source is public but it's not
-open-source licensed (no right to fork or redistribute); there's no mobile
-version; and there's a $30/year optional Patron subscription — every core
-browsing feature is free, Patron adds icon colorways and named workspaces.
+Being upfront about the rest: it's Electron; the source is public and you can
+read it or fork it on GitHub, but it isn't open-source licensed, so there's no
+grant to redistribute it or ship your own builds; there's no mobile version; and
+there's a $30/year optional Patron subscription. Every core browsing feature is
+free — Patron adds icon colorways and named workspaces, and creating a named
+workspace is the one action that needs an active subscription.
 
 https://blancbrowser.com/?ref=reddit
 
