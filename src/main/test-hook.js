@@ -150,6 +150,14 @@ function install(refs) {
       title: 'Remote press needle',
       groupId: null,
       pinned: false,
+      // A REAL synced-icon payload: 32x32 (tabicons-model ICON_SIZE),
+      // produced by the production rasterizer (nativeImage.resize + toPNG,
+      // tabicons.js:143) and accepted by validIconData(). A smaller PNG is
+      // rejected there, so a hand-rolled 1x1 would exercise a payload sync
+      // could never deliver. Without any favicon, setFavicon takes its
+      // no-icon branch and a broken synced favicon looks identical to a
+      // working one.
+      favicon: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABr0lEQVR4nLTWsUrDQBgH8O/7cmpr1aFj8Rmq+BSiaAdBqnZQfAlx8EnsIO1UcKhDfQkdbJd20EFBUKgFO0TTXM7vEhDR1ia55JZLLnC/u/93kBPKb57nSSkPj4+a9UZn5iQ3IhcUAYJxEzw7+k0IUT2vZmwcXvaXREG6nwrQXEBeu+5QPxASePC6feG0OpZYVK4EYwN5B9wpTyFpA7WJ/VLNbrUTMWivsm+POA1dBiJiTZHKNyvZjaJ0hygsHlAQv1kPnd5j935zp8TrRAVs6AkRsuWie/vi9J5IZEDHGHMfVnf2dLXjzd0McuUVfWq45okatOBYy1bho9V+K9VB11uHpQ39Ecyz4vPuOdLhetrpGIQ6F+TTkpKhp/CTTcugoEvPoO+nlAz6+ZKGQb/eEzfo71CyBo0dTdCgCeOJGROBpIz/gESMKYC5MR0wNEIBJkZYILYRAYhnRANiGJGBsMZVJbvOxnscIJSBmG8ezJfW8BnOIG7zz4niHDgNzoSTCWrKRnCTg6hFnr4Pxf94DGYPrtVGwBhjqwaOhOAuisY7GGNc3w12GzCS4C+fjS8AAAD///R8eLkAAAAGSURBVAMAqMIc5gOIAroAAAAASUVORK5CYII=',
     }],
   }];
 
@@ -829,17 +837,45 @@ function install(refs) {
         return true;
       })()`);
     },
+    // faviconDecoded is deliberately the decoded pixel size, not a boolean: a
+    // synced icon whose bytes are corrupt still yields a `has-icon` class and a
+    // non-empty background-image, so only an actual decode separates a rendered
+    // favicon from a broken one.
     async addressResultRows() {
       const wc = getOverlayWebContents();
       if (!wc) return [];
-      return wc.executeJavaScript(`[...document.querySelectorAll('#islandList .island-row')].map((row) => ({
-        title: row.querySelector('.row-title')?.textContent ?? '',
-        tag: row.querySelector('.row-tag')?.textContent ?? '',
-        label: row.querySelector('.row-primary')?.getAttribute('aria-label') ?? '',
-        quiet: row.classList.contains('quiet'),
-        active: row.classList.contains('active'),
-        enter: !!row.querySelector('.row-enter')
-      }))`);
+      return wc.executeJavaScript(`(async () => {
+        const rows = [...document.querySelectorAll('#islandList .island-row')];
+        return Promise.all(rows.map(async (row) => {
+          const fav = row.querySelector('.favicon');
+          const raw = fav ? getComputedStyle(fav).backgroundImage : '';
+          let url = '';
+          if (raw && raw.indexOf('url(') === 0) {
+            url = raw.slice(4, raw.length - 1);
+            if (url[0] === '"' || url[0] === "'") url = url.slice(1, -1);
+          }
+          let faviconDecoded = null;
+          if (url) {
+            faviconDecoded = await new Promise((resolve) => {
+              const img = new Image();
+              img.onload = () => resolve(img.naturalWidth + 'x' + img.naturalHeight);
+              img.onerror = () => resolve(false);
+              img.src = url;
+            });
+          }
+          return {
+            title: row.querySelector('.row-title')?.textContent ?? '',
+            tag: row.querySelector('.row-tag')?.textContent ?? '',
+            label: row.querySelector('.row-primary')?.getAttribute('aria-label') ?? '',
+            quiet: row.classList.contains('quiet'),
+            active: row.classList.contains('active'),
+            enter: !!row.querySelector('.row-enter'),
+            faviconClass: fav ? fav.className : '',
+            faviconHasIcon: !!(fav && fav.classList.contains('has-icon')),
+            faviconDecoded
+          };
+        }));
+      })()`);
     },
     async addressCommandNotice() {
       const wc = getOverlayWebContents();
@@ -1050,16 +1086,43 @@ function install(refs) {
       return structuredClone(remoteFixture);
     },
     clearRemoteDevices() { pushRemoteDevices([]); },
+    // Mirrors addressResultRows' favicon reporting so the start page and the
+    // Quick Switcher are guarded to the same standard: the tile letter is
+    // replaced by the icon only once the bytes actually decode.
     async remoteStartPageRows() {
       const rows = [];
       for (const tab of tabs.values()) {
         if (!urlOf(tab).startsWith('blanc://newtab')) continue;
         try {
           const rendered = await tab.view.webContents.executeJavaScript(
-            `[...document.querySelectorAll('#remoteList a')].map((row) => ({
-              title: row.querySelector('.name')?.textContent ?? '',
-              href: row.href
-            }))`
+            `(async () => {
+              const items = [...document.querySelectorAll('#remoteList a')];
+              return Promise.all(items.map(async (row) => {
+                const tile = row.querySelector('.tile');
+                const raw = tile ? getComputedStyle(tile).backgroundImage : '';
+                let url = '';
+                if (raw && raw.indexOf('url(') === 0) {
+                  url = raw.slice(4, raw.length - 1);
+                  if (url[0] === '"' || url[0] === "'") url = url.slice(1, -1);
+                }
+                let faviconDecoded = null;
+                if (url) {
+                  faviconDecoded = await new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img.naturalWidth + 'x' + img.naturalHeight);
+                    img.onerror = () => resolve(false);
+                    img.src = url;
+                  });
+                }
+                return {
+                  title: row.querySelector('.name')?.textContent ?? '',
+                  href: row.href,
+                  tileLetter: tile ? tile.textContent : '',
+                  faviconHasIcon: !!(tile && tile.classList.contains('has-icon')),
+                  faviconDecoded
+                };
+              }));
+            })()`
           );
           rows.push(...rendered);
         } catch { /* page may still be committing; caller polls */ }
