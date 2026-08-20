@@ -4538,8 +4538,6 @@ function toggleBookmarkForActiveTab() {
   if (rt().activeTabId) toggleBookmarkForTab(rt().activeTabId);
 }
 
-/** Per-tab favorite toggle for the context menu; same guards as the active-tab
- * version (private tabs never populate synced Favorites). */
 /** Favoriting samples tab.favicon at click time. When it hasn't resolved yet —
  * or an earlier attempt failed on a page that has since settled — the favorite
  * keeps a null icon indefinitely, because the only other writer is a LATER
@@ -4560,6 +4558,8 @@ function healFaviconForTab(tab) {
   }).catch(() => {});
 }
 
+/** Per-tab favorite toggle for the context menu; same guards as the active-tab
+ * version (private tabs never populate synced Favorites). */
 function toggleBookmarkForTab(id) {
   const tab = tabs.get(id);
   if (!tab || tab.private || !/^https?:\/\//.test(tab.url)) return;
@@ -4579,6 +4579,7 @@ function saveActiveTabAsFavorite(folder) {
   tab.bookmarked = bookmarks.isBookmarked(tab.url);
   broadcastTabs();
   scheduleMenuRebuild();
+  if (tab.bookmarked && !tab.favicon) healFaviconForTab(tab);
 }
 
 /** "Add All Open Tabs to Favorites" — mirrors toggleBookmarkForActiveTab's
@@ -4591,6 +4592,7 @@ function addAllTabsToFavorites() {
     if (!/^https?:\/\//.test(tab.url)) continue;
     if (bookmarks.isBookmarked(tab.url)) continue;
     tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
+    if (tab.bookmarked && !tab.favicon) healFaviconForTab(tab);
   }
   broadcastTabs();
   scheduleMenuRebuild();
