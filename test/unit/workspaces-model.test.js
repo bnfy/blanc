@@ -16,6 +16,8 @@ const {
   listForProfile,
   validWorkspaceId,
   resolveOpen,
+  scratchSwitchNeedsGuard,
+  scratchSwitchGuardResult,
   bindingsAfterSwap,
   bindingsAfterUnbind,
   bindingsAfterDelete,
@@ -373,4 +375,147 @@ test('binding transitions never mutate their input', () => {
   bindingsAfterUnbind(bindings, { windowId: 'win_1' });
   bindingsAfterDelete(bindings, 'ws_a');
   assert.deepEqual({ ...bindings }, snapshot);
+});
+
+// ---------------------------------------------------------------------------
+// Scratch guard (follow-up to Task 9, found by hands-on testing): switching
+// a window with no workspace binding used to close its tabs with no recovery
+// at all — the outbound autosave is skipped (nothing bound to save INTO),
+// and applyWorkspaceToWindow closes every tab with record:false, so they
+// don't even land in Recently Closed. Private tabs are the same class of
+// loss on a BOUND window too: autosave/workspace capture/Recently Closed
+// all skip them, so "bound ⇒ safe" is false whenever a private page is open.
+// ---------------------------------------------------------------------------
+
+const blank = 'blanc://newtab/';
+const privateBlank = 'blanc://newtab/?private=1';
+
+test('scratchSwitchNeedsGuard: a BOUND window is unguarded only when every tab is persistable', () => {
+  assert.equal(
+    scratchSwitchNeedsGuard({
+      bound: true,
+      tabs: [{ url: 'https://a.test/', private: false }, { url: 'https://b.test/', private: false }],
+      blankNewTabUrl: blank,
+    }),
+    false,
+    'persistable tabs on a bound window are covered by autosaveWorkspaceBindings'
+  );
+});
+
+test('scratchSwitchNeedsGuard: private pages are guarded even on a bound window', () => {
+  assert.equal(
+    scratchSwitchNeedsGuard({
+      bound: true,
+      tabs: [{ url: 'https://secret.test/', private: true }],
+      blankNewTabUrl: blank,
+    }),
+    true,
+    'private tabs are never captured, never in Recently Closed, and apply still closes them'
+  );
+});
+
+test('scratchSwitchNeedsGuard: an UNBOUND window is guarded only when a tab is more than the blank newtab', () => {
+  assert.equal(
+    scratchSwitchNeedsGuard({ bound: false, tabs: [], blankNewTabUrl: blank }),
+    false,
+    'nothing open — nothing to confirm'
+  );
+  assert.equal(
+    scratchSwitchNeedsGuard({ bound: false, tabs: [{ url: blank, private: false }], blankNewTabUrl: blank }),
+    false,
+    'a single blank new tab is the checklist floor, not user work'
+  );
+  assert.equal(
+    scratchSwitchNeedsGuard({
+      bound: false,
+      tabs: [{ url: blank, private: false }, { url: blank, private: false }, { url: blank, private: false }],
+      blankNewTabUrl: blank,
+    }),
+    false,
+    'several blank new tabs are still nothing worth confirming over'
+  );
+  assert.equal(
+    scratchSwitchNeedsGuard({ bound: false, tabs: [{ url: 'https://a.test/', private: false }], blankNewTabUrl: blank }),
+    true,
+    'one real tab is enough to guard'
+  );
+  assert.equal(
+    scratchSwitchNeedsGuard({
+      bound: false,
+      tabs: [{ url: blank, private: false }, { url: 'https://a.test/', private: false }],
+      blankNewTabUrl: blank,
+    }),
+    true,
+    'a real tab mixed in with blank ones still guards — "at least one" tab qualifies'
+  );
+});
+
+test('scratchSwitchNeedsGuard: a scratch window of only private real pages is guarded', () => {
+  assert.equal(
+    scratchSwitchNeedsGuard({
+      bound: false,
+      tabs: [
+        { url: 'https://secret.test/', private: true },
+        { url: 'https://secret.test/', private: true },
+      ],
+      blankNewTabUrl: blank,
+    }),
+    true,
+    'persistableEntries would drop these, but apply closes them with no recovery'
+  );
+});
+
+test('scratchSwitchNeedsGuard treats a missing/malformed tab list as empty, not a crash', () => {
+  assert.equal(scratchSwitchNeedsGuard({ bound: false, tabs: null, blankNewTabUrl: blank }), false);
+  assert.equal(scratchSwitchNeedsGuard({ bound: false, blankNewTabUrl: blank }), false);
+});
+
+test('scratchSwitchGuardResult counts the tabs that will actually close without recovery', () => {
+  const persistableOnly = scratchSwitchGuardResult({
+    bound: false,
+    tabs: [{ url: blank, private: false }, { url: 'https://a.test/', private: false }],
+    blankNewTabUrl: blank,
+  });
+  assert.equal(persistableOnly.tabCount, 1, 'the blank newtab is the floor, not an unsaved tab');
+  assert.equal(persistableOnly.privateCount, 0, 'save-as can clear a persistable-only set');
+
+  const privateScratch = scratchSwitchGuardResult({
+    bound: false,
+    tabs: [
+      { url: blank, private: false },
+      { url: 'https://secret.test/', private: true },
+      { url: 'https://secret.test/', private: true },
+    ],
+    blankNewTabUrl: blank,
+  });
+  assert.equal(privateScratch.tabCount, 2, 'private pages count; the accompanying blank newtab does not');
+  assert.equal(privateScratch.privateCount, 2, 'save-as cannot clear an all-private at-risk set');
+
+  const boundMixed = scratchSwitchGuardResult({
+    bound: true,
+    tabs: [
+      { url: 'https://a.test/', private: false },
+      { url: 'https://secret.test/', private: true },
+    ],
+    blankNewTabUrl: blank,
+  });
+  assert.equal(boundMixed.tabCount, 1, 'a bound window only puts private pages at risk');
+  assert.equal(boundMixed.privateCount, 1);
+
+  const mixedScratch = scratchSwitchGuardResult({
+    bound: false,
+    tabs: [
+      { url: 'https://a.test/', private: false },
+      { url: 'https://secret.test/', private: true },
+    ],
+    blankNewTabUrl: blank,
+  });
+  assert.equal(mixedScratch.tabCount, 2);
+  assert.equal(mixedScratch.privateCount, 1, 'save-as can still keep the persistable tab');
+
+  assert.equal(scratchSwitchGuardResult({
+    bound: false,
+    tabs: [{ url: privateBlank, private: true }],
+    blankNewTabUrl: blank,
+  }), null, 'a private blank newtab is still the floor, not user work');
 });

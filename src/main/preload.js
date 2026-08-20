@@ -96,13 +96,24 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   captureFocus: (surfaceId) => ipcRenderer.send('chrome:capture-focus', surfaceId),
   openMainMenu: (point) => ipcRenderer.invoke('chrome:open-main-menu', point),
   closeOverlay: (reason) => ipcRenderer.send('overlay:close', reason),
+  /** Keep main's Escape handler in sync with the footer workspace popover so
+   * Esc can cancel an editor / close the menu without dismissing the island. */
+  setWorkspaceSwitcherOpen: (open) => ipcRenderer.send('chrome:workspace-switcher', !!open),
+  onOverlayEscape: (callback) => {
+    const listener = () => callback();
+    ipcRenderer.on('overlay:escape', listener);
+    return () => ipcRenderer.removeListener('overlay:escape', listener);
+  },
 
   listHistory: (opts) => ipcRenderer.invoke('chrome:history-list', opts),
   listFavorites: () => ipcRenderer.invoke('chrome:favorites-list'),
   listRemoteTabs: () => ipcRenderer.invoke('chrome:remote-tabs-list'),
   listWorkspaces: () => ipcRenderer.invoke('chrome:workspaces-list'),
   saveWorkspaceAs: (name) => ipcRenderer.invoke('chrome:workspaces-save-as', name),
-  openWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-open', id),
+  // opts: { force?: true } — skips the scratch guard (a confirmed "discard
+  // and switch"). Omitted for a plain open/create attempt.
+  openWorkspace: (id, opts) => ipcRenderer.invoke('chrome:workspaces-open', id, opts),
+  createBlankWorkspace: (name, opts) => ipcRenderer.invoke('chrome:workspaces-create-blank', name, opts),
   renameWorkspace: (id, name) => ipcRenderer.invoke('chrome:workspaces-rename', id, name),
   removeWorkspace: (id) => ipcRenderer.invoke('chrome:workspaces-remove', id),
   searchSuggestions: (query) => ipcRenderer.invoke('chrome:search-suggestions', query),

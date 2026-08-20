@@ -215,6 +215,69 @@ function resolveOpen(bindings, workspaceId, requestingWindowId) {
   return { action: 'focus', windowId };                 // live elsewhere — never double-bind
 }
 
+// ---------------------------------------------------------------------------
+// Scratch guard (follow-up to Task 9): applyWorkspaceToWindow closes EVERY
+// outgoing tab with `record: false`, so nothing lands in Recently Closed.
+// Persistable tabs on a BOUND window are covered by autosaveWorkspaceBindings
+// (and by the workspace capture). Private tabs are not: they are excluded
+// from capture, session, sync, and Recently Closed, so a bound window that
+// holds a private page still loses it on every switch. A scratch window has
+// no save target at all, so its persistable non-blank tabs are at risk too.
+// Blank internal newtabs (including the private start page) are the floor —
+// nothing a user would recognize as work.
+// ---------------------------------------------------------------------------
+
+/** The blank ledger page, with or without `?private=1`. Compared via URL
+ * parts rather than string equality so this file never has to know the
+ * private query flag. `blankNewTabUrl` is passed in so we never duplicate
+ * main.js's NEW_TAB_URL constant. */
+function isBlankNewTabUrl(url, blankNewTabUrl) {
+  if (typeof url !== 'string' || typeof blankNewTabUrl !== 'string' || url === '') return false;
+  if (url === blankNewTabUrl) return true;
+  try {
+    const blank = new URL(blankNewTabUrl);
+    const candidate = new URL(url);
+    return candidate.protocol === blank.protocol
+      && candidate.host === blank.host
+      && candidate.pathname === blank.pathname;
+  } catch {
+    return false;
+  }
+}
+
+/** How many of THIS window's live tabs apply will close with no recovery.
+ * `tabs` is `{ url, private }[]` — the live list, NOT persistableEntries
+ * (that filter is what made private-only windows skip the guard).
+ * `privateCount` is split out so the overlay can hide "save first" when
+ * every at-risk tab is private — save-as never captures those, so offering
+ * it would re-trip the guard and drop the original action. */
+function unsavedTabsAtRisk({ bound, tabs, blankNewTabUrl }) {
+  const list = Array.isArray(tabs) ? tabs : [];
+  let persistable = 0;
+  let privateCount = 0;
+  for (const tab of list) {
+    if (!tab) continue;
+    const url = typeof tab.url === 'string' ? tab.url : '';
+    if (isBlankNewTabUrl(url, blankNewTabUrl)) continue;
+    if (tab.private) {
+      privateCount += 1;
+      continue;
+    }
+    if (!bound && url) persistable += 1;
+  }
+  return { persistable, privateCount };
+}
+
+function scratchSwitchGuardResult(opts) {
+  const { persistable, privateCount } = unsavedTabsAtRisk(opts);
+  const tabCount = persistable + privateCount;
+  return tabCount > 0 ? { ok: false, error: 'unsaved-scratch', tabCount, privateCount } : null;
+}
+
+function scratchSwitchNeedsGuard(opts) {
+  return scratchSwitchGuardResult(opts) != null;
+}
+
 /** Bind one workspace to one window, releasing BOTH prior claims: the window's
  * previous workspace and the workspace's previous window. Either leftover
  * would give a single slot two autosave writers. */
@@ -263,6 +326,8 @@ module.exports = {
   // (validWindowId + the __proto__ reject) instead of re-deriving it.
   validWorkspaceId,
   resolveOpen,
+  scratchSwitchNeedsGuard,
+  scratchSwitchGuardResult,
   bindingsAfterSwap,
   bindingsAfterUnbind,
   bindingsAfterDelete,

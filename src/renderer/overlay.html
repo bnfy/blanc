@@ -44,6 +44,23 @@
           <span id="footerNewPrivateKbd" class="footer-kbd"></span>
         </button>
         <span class="footer-spacer"></span>
+        <button
+          id="footerWorkspace"
+          class="footer-act"
+          type="button"
+          title="Workspaces"
+          aria-label="Workspaces"
+          aria-expanded="false"
+          aria-haspopup="true"
+        >
+          <!-- Stacked-windows mark from the approved footer iteration (Claude mockup).
+               Not in ICONS yet; same 16px / 1.5 stroke language as the rest of the footer. -->
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <rect x="2.5" y="4.75" width="8.75" height="8.5" rx="1.5"/>
+            <path d="M5.25 4.75V3.25a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-1.5"/>
+          </svg>
+          <span id="footerWorkspaceLabel" class="footer-ws-label" hidden></span>
+        </button>
         <button id="footerFavorites" class="footer-act" title="Favorites">
           <svg viewBox="0 0 16 16"><path d="M4.25 2.75h7.5v10.5L8 10.5l-3.75 2.75z"/></svg>
         </button>
@@ -68,6 +85,13 @@
         </button>
       </div>
       <div id="islandHint"></div>
+    </div>
+    <!-- Outside #islandPanel so fixed placement isn't clipped by the panel box. -->
+    <div id="workspaceSwitcher" class="ws-switcher" hidden role="menu" aria-label="Workspaces">
+      <div id="workspaceSwitcherList"></div>
+      <div id="wsSwitcherSep" class="ws-switcher-sep" role="separator"></div>
+      <button type="button" class="ws-switcher-cmd" id="wsSwitcherNew" role="menuitem">new…</button>
+      <button type="button" class="ws-switcher-cmd" id="wsSwitcherSaveAs" role="menuitem">save as…</button>
     </div>
   </div>
   <section id="glancePicker" class="glance-picker" aria-labelledby="glancePickerTitle" hidden>

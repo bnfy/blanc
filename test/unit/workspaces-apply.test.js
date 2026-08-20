@@ -37,11 +37,41 @@ const applyBindingsSource = slice(
   'function applyWorkspaceBindings(bindings) {',
   '\nfunction autosaveWorkspaceBindings'
 );
+// Task 9 follow-up (scratch guard + blank create). switchSource is sliced up
+// to createBlankWorkspaceAndSwitch's own declaration (inserted immediately
+// after it in main.js) rather than up to applyWorkspaceToWindow, so this
+// slice can never accidentally swallow the new function's body too.
+const switchSource = slice(
+  'function switchWindowToWorkspace(runtime, workspaceId, { force = false } = {}) {',
+  '\nfunction createBlankWorkspaceAndSwitch'
+);
+const createBlankSource = slice(
+  'function createBlankWorkspaceAndSwitch(runtime, name, { force = false } = {}) {',
+  '\nfunction applyWorkspaceToWindow'
+);
 
 test('applyWorkspaceToWindow, deriveWorkspaceBindings, and applyWorkspaceBindings are still liftable from main.js', () => {
   assert.ok(applySource, 'applyWorkspaceToWindow not found — update this test with it');
   assert.ok(deriveSource, 'deriveWorkspaceBindings not found — update this test with it');
   assert.ok(applyBindingsSource, 'applyWorkspaceBindings not found — update this test with it');
+});
+
+test('switchWindowToWorkspace and createBlankWorkspaceAndSwitch are still liftable from main.js', () => {
+  assert.ok(switchSource, 'switchWindowToWorkspace not found — update this test with it');
+  assert.ok(createBlankSource, 'createBlankWorkspaceAndSwitch not found — update this test with it');
+});
+
+const scratchGuardSource = slice(
+  'function scratchGuardResult(runtime) {',
+  '\nfunction saveCurrentWindowAsWorkspace'
+);
+
+test('scratchGuardResult feeds live tabs to the model, not persistableEntries', () => {
+  assert.ok(scratchGuardSource, 'scratchGuardResult not found — update this test with it');
+  assert.match(scratchGuardSource, /scratchSwitchGuardResult\(/);
+  assert.doesNotMatch(scratchGuardSource, /persistableEntries/,
+    'persistableEntries drops private tabs, which apply still closes with no recovery');
+  assert.match(scratchGuardSource, /runtime\.tabOrder\.map/);
 });
 
 // ---------------------------------------------------------------------------
@@ -270,4 +300,163 @@ test('a rejected save-as neither binds nor persists', () => {
     !calls.some(([name]) => name === 'persistSession'),
     'a failed save-as must not write a session entry',
   );
+});
+
+// ---------------------------------------------------------------------------
+// Scratch guard integration (Task 9 follow-up, found by hands-on testing):
+// switchWindowToWorkspace must consult scratchGuardResult BEFORE resolving
+// bindings or applying anything, and force:true must skip that call
+// entirely. The DECISION itself (scratchSwitchNeedsGuard) is pure and
+// covered in workspaces-model.test.js; what matters here is the WIRING —
+// that main.js's switchWindowToWorkspace actually stops at the guard, in
+// the right order, and that force really means "skip", not "ignore the
+// result".
+// ---------------------------------------------------------------------------
+
+function switchHarness({ getWorkspace, guardResult }) {
+  const calls = [];
+  const sandbox = {
+    withWindowRuntime: (_runtime, fn) => fn(),
+    namedWorkspaces: {
+      get: (id) => { calls.push(['get', id]); return getWorkspace(id); },
+      saveCapture: (id) => calls.push(['saveCapture', id]),
+    },
+    workspaceCapture: () => ({ urls: [] }),
+    scratchGuardResult: () => { calls.push(['scratchGuardResult']); return guardResult; },
+    deriveWorkspaceBindings: () => { calls.push(['deriveWorkspaceBindings']); return {}; },
+    resolveOpen, // real pure function
+    windowRuntimes: { all: () => [] },
+    createMainWindow: () => calls.push(['createMainWindow']),
+    applyWorkspaceToWindow: (_rt, ws) => calls.push(['applyWorkspaceToWindow', ws.id]),
+    applyWorkspaceBindings: (bindings) => calls.push(['applyWorkspaceBindings', bindings]),
+    bindingsAfterSwap, // real pure function
+    persistSession: () => calls.push(['persistSession']),
+    sessionPersistenceSuspended: false,
+  };
+  vm.runInNewContext(`${switchSource}\nthis.__switch = switchWindowToWorkspace;`, sandbox);
+  return { calls, run: (runtime, id, opts) => sandbox.__switch(runtime, id, opts) };
+}
+
+test('switchWindowToWorkspace returns the scratch guard result untouched, before resolving bindings', () => {
+  const h = switchHarness({
+    getWorkspace: (id) => (id === 'ws_1' ? { id: 'ws_1', activeIndex: 0 } : null),
+    guardResult: { ok: false, error: 'unsaved-scratch', tabCount: 2 },
+  });
+  const runtime = { id: 'win_1', workspaceId: null, tabOrder: [] };
+  const result = h.run(runtime, 'ws_1');
+  assert.deepEqual(result, { ok: false, error: 'unsaved-scratch', tabCount: 2 });
+  assert.deepEqual(
+    h.calls.map((c) => c[0]), ['get', 'scratchGuardResult'],
+    'must stop at the guard — no outbound save, no binding resolution, no apply'
+  );
+});
+
+test('switchWindowToWorkspace with force:true skips the guard call entirely and completes the swap', () => {
+  const h = switchHarness({
+    getWorkspace: (id) => (id === 'ws_1' ? { id: 'ws_1', activeIndex: 0 } : null),
+    guardResult: { ok: false, error: 'unsaved-scratch', tabCount: 2 }, // would fire if checked
+  });
+  const runtime = { id: 'win_1', workspaceId: null, tabOrder: [] };
+  const result = h.run(runtime, 'ws_1', { force: true });
+  assert.equal(result.ok, true);
+  assert.equal(result.action, 'swap');
+  assert.ok(!h.calls.some(([name]) => name === 'scratchGuardResult'), 'force:true must never call the guard');
+  assert.ok(h.calls.some(([name]) => name === 'applyWorkspaceToWindow'), 'the swap must actually apply');
+});
+
+test('switchWindowToWorkspace with no guard hit (bound window, or nothing worth confirming) proceeds normally', () => {
+  const h = switchHarness({
+    getWorkspace: (id) => (id === 'ws_1' ? { id: 'ws_1', activeIndex: 0 } : null),
+    guardResult: null, // scratchGuardResult's own "safe to proceed" answer
+  });
+  const runtime = { id: 'win_1', workspaceId: null, tabOrder: [] };
+  const result = h.run(runtime, 'ws_1');
+  assert.equal(result.ok, true);
+  assert.deepEqual(h.calls[0], ['get', 'ws_1']);
+  assert.deepEqual(h.calls[1], ['scratchGuardResult']);
+  assert.ok(h.calls.some(([name]) => name === 'applyWorkspaceToWindow'));
+});
+
+// ---------------------------------------------------------------------------
+// createBlankWorkspaceAndSwitch (Task 9 follow-up): the missing "create"
+// operation. Patron-gated, scratch-guarded BEFORE the record is created (a
+// cancelled confirmation must never leave an orphan empty workspace behind),
+// and delegates the actual bind+apply to switchWindowToWorkspace itself —
+// these tests stub that delegate rather than re-verifying its internals
+// (already covered above and in the applyWorkspaceToWindow tests).
+// ---------------------------------------------------------------------------
+
+function createBlankHarness({ patronActive, guardResult, createResult, switchResult }) {
+  const calls = [];
+  const sandbox = {
+    withWindowRuntime: (_runtime, fn) => fn(),
+    settings: { isPatronActive: () => { calls.push(['isPatronActive']); return patronActive; } },
+    scratchGuardResult: () => { calls.push(['scratchGuardResult']); return guardResult; },
+    namedWorkspaces: { create: (args) => { calls.push(['create', args]); return createResult; } },
+    switchWindowToWorkspace: (_rt, id, opts) => { calls.push(['switchWindowToWorkspace', id, opts]); return switchResult; },
+  };
+  vm.runInNewContext(`${createBlankSource}\nthis.__fn = createBlankWorkspaceAndSwitch;`, sandbox);
+  return { calls, run: (runtime, name, opts) => sandbox.__fn(runtime, name, opts) };
+}
+
+test('createBlankWorkspaceAndSwitch refuses a non-Patron before touching the guard or the store', () => {
+  const h = createBlankHarness({ patronActive: false });
+  const result = h.run({ id: 'win_1', workspaceId: null }, 'Work');
+  // JSON round-trip, not a bare deepEqual: this literal is constructed
+  // INSIDE the vm-lifted source, so it carries the vm realm's
+  // Object.prototype — deepStrictEqual's reference check on that alone
+  // fails even though every enumerable value matches (see the file header's
+  // "opts" comment on the very first test above for the same reasoning).
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { ok: false, error: 'not-patron' });
+  assert.deepEqual(
+    h.calls.map((c) => c[0]), ['isPatronActive'],
+    'a lapsed Patron must be refused before the scratch guard runs or a record is created'
+  );
+});
+
+test('createBlankWorkspaceAndSwitch returns the scratch guard result and never creates a record', () => {
+  const h = createBlankHarness({
+    patronActive: true,
+    guardResult: { ok: false, error: 'unsaved-scratch', tabCount: 3 },
+  });
+  const result = h.run({ id: 'win_1', workspaceId: null }, 'Work');
+  assert.deepEqual(result, { ok: false, error: 'unsaved-scratch', tabCount: 3 });
+  assert.ok(
+    !h.calls.some(([name]) => name === 'create'),
+    'a cancelled confirmation must never leave an orphan empty workspace'
+  );
+});
+
+test('createBlankWorkspaceAndSwitch with force:true skips the guard, creates an EMPTY capture, and switches with force:true', () => {
+  const h = createBlankHarness({
+    patronActive: true,
+    guardResult: { ok: false, error: 'unsaved-scratch', tabCount: 3 }, // would fire if checked
+    createResult: { ok: true, workspace: { id: 'ws_new' } },
+    switchResult: { ok: true, action: 'swap' },
+  });
+  const result = h.run({ id: 'win_1', workspaceId: null }, 'Work', { force: true });
+  // JSON round-trips below: both the final result (built via `{ ...switched,
+  // workspaceId }` inside the lifted source) and the create() call's args
+  // (a nested object literal, also written inside that source) carry the vm
+  // realm's Object.prototype — see the "refuses a non-Patron" test above.
+  assert.deepEqual(JSON.parse(JSON.stringify(result)), { ok: true, action: 'swap', workspaceId: 'ws_new' });
+  assert.ok(!h.calls.some(([name]) => name === 'scratchGuardResult'), 'force:true must skip the guard');
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(h.calls.find((c) => c[0] === 'create')[1])),
+    { name: 'Work', capture: { urls: [], activeIndex: 0, groups: [], groupIds: [], pinned: [], meta: [] } },
+  );
+  const switchCall = h.calls.find((c) => c[0] === 'switchWindowToWorkspace');
+  assert.equal(switchCall[1], 'ws_new');
+  assert.equal(switchCall[2].force, true, 'binds+applies through the SAME path a normal switch uses');
+});
+
+test('createBlankWorkspaceAndSwitch surfaces a create failure without ever switching', () => {
+  const h = createBlankHarness({
+    patronActive: true,
+    guardResult: null,
+    createResult: { ok: false, error: 'duplicate-name' },
+  });
+  const result = h.run({ id: 'win_1', workspaceId: null }, 'Work');
+  assert.deepEqual(result, { ok: false, error: 'duplicate-name' });
+  assert.ok(!h.calls.some(([name]) => name === 'switchWindowToWorkspace'));
 });
