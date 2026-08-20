@@ -39,28 +39,55 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 ## Phase 0 — Prep (hard clocks first)
 
-### Task 1: Create the AlternativeTo account
+### Task 1: Submit the AlternativeTo listing (with priority review)
 
-**Owner:** `owner` — account creation.
+**Owner:** `owner` — account creation and a $5 payment.
 
-**Why first:** AlternativeTo's submission FAQ requires **seven days of account age** before the account may suggest an app. Every other Phase 0 item is schedulable; this one has an irreversible lead time. Missing it removes a launch-week channel entirely.
+**Why in Phase 0, not launch week:** The plan originally claimed a seven-day
+account-age requirement. **That is false** — it came from a stale line in
+`docs/press-outreach-plan.md`. AlternativeTo's actual FAQ requires only **email
+verification** before submitting. The real constraint is the opposite kind: a
+normal submission *"usually sits in our backlog for at least a few months
+before anyone looks at it."* A $5 one-time priority review returns a verdict in
+**1–2 business days**. So this must be submitted and reviewed **before** launch
+week, or the channel simply will not exist during it.
 
-- [ ] **Step 1: Create the account**
+- [ ] **Step 1: Create the account and verify the email**
 
-Go to https://alternativeto.net/ and register. Use a Blanc/Bananify identity, not a personal one — this account will publicly submit the listing.
+Register at https://alternativeto.net/ under a Blanc/Bananify identity, not a
+personal one. Verify the email — that is the only gate on submitting.
 
-- [ ] **Step 2: Record the creation date**
+- [ ] **Step 2: Submit Blanc with the CLEAN canonical URL**
+
+Use `https://blancbrowser.com` — **no `?ref=` tag.** AlternativeTo's FAQ is
+explicit that tagged official URLs are discouraged: *"many of our users are
+against tracking and want to see a clean official URL only."* A tagged URL
+risks the listing itself.
+
+Attribution for this channel comes from HTTP referrer data instead, which is
+what their FAQ recommends and what GA4 already records.
+
+File Blanc as an alternative to: Chrome, Arc, Brave, Vivaldi, Opera, Zen. State
+plainly that it is proprietary (source-available, not open-source licensed) —
+that community reacts badly to discovering it later.
+
+- [ ] **Step 3: Buy the $5 priority review**
+
+Without it the listing will not be looked at for months. With it, expect a
+verdict in 1–2 business days.
+
+- [ ] **Step 4: Record the submission**
 
 ```bash
-echo '{"created":"YYYY-MM-DD","eligibleToSuggest":"YYYY-MM-DD (created + 7 days)","account":"<handle>"}' \
+mkdir -p docs/superpowers/plans/assets
+echo '{"date":"YYYY-MM-DD","channel":"alternativeto","submitted":true,"priorityReviewPaid":true,"status":"pending","url":"https://blancbrowser.com"}' \
   >> docs/superpowers/plans/assets/launch-accounts.jsonl
 ```
 
-Create the directory first if it does not exist: `mkdir -p docs/superpowers/plans/assets`
+- [ ] **Step 5: Confirm it is live before launch week**
 
-- [ ] **Step 3: Verify eligibility date lands before launch Monday**
-
-The `eligibleToSuggest` date must be **on or before the launch-week Monday**. If it is not, the launch week moves — do not drop the channel.
+If it is still pending on launch Monday, the channel does not fire — it is not
+a reason to move the launch week. Record the outcome either way.
 
 ---
 
@@ -80,20 +107,43 @@ Connect the extension, then open the GA4 reporting hub for property 544287080:
 
 If a sign-in wall appears, the owner signs in personally — an agent must not.
 
-- [ ] **Step 2: Verify GA4 is actually recording, not just loading**
+- [ ] **Step 2: Verify GA4 is recording NOW, with a live Realtime event**
 
-Confirm a non-zero active-user count for the last 7 days. A report that renders with zeros is not proof the tag fires.
+A non-zero count for the last 7 days proves the tag worked *at some point*, not
+that it works today. Open the **Realtime** report, then load
+`https://blancbrowser.com/?ref=selftest` in a normal browser and accept the
+consent banner. Confirm the visit appears in Realtime within ~30 seconds.
+
+If it does not appear, the tag is broken and every `?ref=` value in this plan
+measures nothing. Fix it before continuing.
+
+Note the consent gate: `site/src/scripts/site.js` loads gtag with
+`analytics_storage: 'denied'` by default, so a visitor who declines the banner
+contributes only cookieless modelling signal. Channel landings are therefore a
+**floor**, never a full count.
 
 - [ ] **Step 3: Write down the canonical tagged URLs**
 
 One value per channel, used verbatim everywhere. No variants — a typo splits the data.
 
 ```
-Show HN        https://blancbrowser.com/?ref=hn
+Show HN        https://github.com/bnfy/blanc          (see Task 11 — NOT the marketing root)
 Reddit         https://blancbrowser.com/?ref=reddit
 Product Hunt   https://blancbrowser.com/?ref=ph
-AlternativeTo  https://blancbrowser.com/?ref=alternativeto
+AlternativeTo  https://blancbrowser.com                (clean — tags risk the listing)
 BetaList       https://blancbrowser.com/?ref=betalist
+```
+
+Two of these deliberately carry no tag:
+
+- **AlternativeTo** forbids it in practice — their FAQ says users want a clean
+  official URL. Attribution comes from HTTP referrer instead.
+- **Show HN** points at the repository, not the marketing site, because HN's
+  Show HN rules say *"Don't post landing pages or fundraisers."* GitHub's own
+  referrer data covers attribution here:
+
+```bash
+gh api repos/bnfy/blanc/traffic/popular/referrers
 ```
 
 ```bash
@@ -101,13 +151,13 @@ mkdir -p docs/superpowers/plans/assets
 cat > docs/superpowers/plans/assets/launch-urls.md <<'URLS'
 # Canonical tagged launch URLs — use verbatim, no variants
 
-| Channel | URL |
-|---|---|
-| Show HN | https://blancbrowser.com/?ref=hn |
-| Reddit | https://blancbrowser.com/?ref=reddit |
-| Product Hunt | https://blancbrowser.com/?ref=ph |
-| AlternativeTo | https://blancbrowser.com/?ref=alternativeto |
-| BetaList | https://blancbrowser.com/?ref=betalist |
+| Channel | URL | Attribution |
+|---|---|---|
+| Show HN | https://github.com/bnfy/blanc | GitHub referrer traffic |
+| Reddit | https://blancbrowser.com/?ref=reddit | GA4 landing page |
+| Product Hunt | https://blancbrowser.com/?ref=ph | GA4 landing page |
+| AlternativeTo | https://blancbrowser.com | HTTP referrer (tags discouraged) |
+| BetaList | https://blancbrowser.com/?ref=betalist | GA4 landing page |
 
 A variant (`?ref=HN`, `?ref=hackernews`) splits the data and cannot be merged
 retroactively in GA4's landing-page report. Copy these exactly.
@@ -127,6 +177,30 @@ tail -3 /Users/anthonyjloria/.claude/scheduled-tasks/blanc-daily-analytics/downl
 
 Confirm the daily digest is still appending rows. Only `valid:true` rows are usable
 as a baseline. **This is the measurement of record if GA4 fails again.**
+
+- [ ] **Step 5: Write down what this measurement CANNOT do**
+
+Be explicit now, so Task 14 does not promise a number that cannot exist.
+
+Nothing in `site/src/scripts/site.js` reads or stores `?ref` — grep confirms no
+`URLSearchParams`, no `location.search` anywhere in `site/src`. The download CTA
+has its `href` replaced with the GitHub asset URL, so the tag does not travel to
+the download either. **GA4 is the only thing that ever observes the tag**, and
+the GitHub fallback is a single global total with no channel dimension.
+
+Therefore:
+
+| Question | Answerable? |
+|---|---|
+| How many people landed from each channel | **Yes** — GA4 landing page (floor; consent-gated) |
+| Total download lift across the week | **Yes** — `downloads-history.jsonl` |
+| How many downloads came from Show HN specifically | **No** |
+
+Closing that last gap would mean persisting `?ref` and attaching it to the
+download click — a new cross-page identifier on a privacy-marketed site. That
+is a privacy-reviewed product decision, not a launch chore, and it is
+deliberately **out of scope**. Task 14 reports per-channel *landings* plus
+*aggregate* download lift, and says so.
 
 ---
 
@@ -200,7 +274,19 @@ If any step fails, **stop the whole plan here** and fix the checkout. Launching 
 
 **Depends on:** Task 4 passing.
 
-**Why:** Named Workspaces becomes the launch headline. The soak exists so the launch rides a build that has survived a weekend, not one that is hours old.
+**Why:** v1.8.0 is the **build** the launch runs on, not the **story** the launch
+tells. Those were conflated in the first draft of this plan and it produced a
+contradiction: Named Workspaces was called the headline, yet the Show HN post
+never mentioned it — correctly, because workspace *creation* is Patron-gated and
+a paywalled headline is a weak opening on Hacker News.
+
+The resolved position: **the story is the browser** — the Island, network-level
+blocking, and the deliberate absence of an extension runtime. Named Workspaces
+ships in the build, appears in the release notes, and features in the Product
+Hunt listing where a paid tier reads as normal. It is not the Show HN pitch.
+
+The soak exists so the launch rides a build that has survived a weekend, not one
+that is hours old.
 
 - [ ] **Step 1: Read the release runbook before touching anything**
 
@@ -210,36 +296,114 @@ cat docs/release-verification.md
 
 Also invoke the `releasing-blanc` skill — it carries the required `BLANC_RELEASE_*` env vars that the checked-in runbook omits.
 
-- [ ] **Step 2: Bump the version**
+- [ ] **Step 2: Bump the version and the lockfile together**
 
-Set `version` to `1.8.0` in `package.json`. Consider whether the `electron` devDependency should move with it (Chromium cannot be swapped out of a running app).
-
-- [ ] **Step 3: Run the full test suite before releasing**
+Set `version` to `1.8.0` in `package.json`, then regenerate the lockfile so the
+two agree — a release built from a lockfile still pinned to the old version is a
+dirty release source:
 
 ```bash
-npm run test:unit && npm run substrate:check
+npm install --package-lock-only
+git diff --stat package.json package-lock.json
 ```
-Expected: all pass. Do not release on a red suite.
 
-- [ ] **Step 4: Release**
+Consider whether the `electron` devDependency should move with it (Chromium
+cannot be swapped out of a running app).
 
-Run `npm run release` in a **native Terminal**, foreground and interactive. Never backgrounded — cosign falls back to a 300s device code and has burned a release before. Never rerun an immutable release after its tag or draft exists.
+- [ ] **Step 3: Write the release notes file**
 
-- [ ] **Step 5: Update the public changelog and deploy the site**
+`release.sh` ships `docs/press/release-notes/v1.8.0.md` **verbatim** via
+`--notes-file`. Write it before releasing.
+
+Formatting rules that are not optional, because the site changelog is generated
+from the published release body: put **each paragraph on ONE line** (a wrapped
+paragraph fragments into separate blocks), use no markdown headings, and let
+dates render in America/New_York.
+
+- [ ] **Step 4: Pin the press page to the new version**
+
+`site/src/pages/press.astro` carries `const VERSION = '1.7.0';`. Advance it to
+`1.8.0`, or the press kit states the old version beside the new release.
+
+- [ ] **Step 5: Run the real release gate**
+
+Not `test:unit` alone — the repository defines a far broader gate:
 
 ```bash
-npm run site:changelog
+npm run release:verify:press
+```
+
+That runs `substrate:check`, `icons:windows:check`, `test:unit`,
+`test:acceptance:dry`, `test:acceptance:desktop`, `test:cold-launch`,
+`test:oauth:desktop`, `test:dns-smoke`, `release:security` (npm audit) and
+`site:build`. Expected: all pass. Do not release on a red gate.
+
+Note the known first-attempt killers: the press-kit version pin (Step 4),
+`npm audit` findings, and site dependency issues.
+
+- [ ] **Step 6: Release**
+
+Run `npm run release` in a **native Terminal**, foreground and interactive.
+Never backgrounded — cosign falls back to a 300s device code and has burned a
+release before. Never rerun an immutable release after its tag or draft exists;
+an abort after the tag push forces a version bump.
+
+- [ ] **Step 7: Complete the post-publication workflow**
+
+`docs/release-verification.md` specifies this exactly; all of it, in order:
+
+```bash
+npm run site:changelog     # regenerate site/src/data/releases.json — never hand-edit
+```
+
+Then **advance the public and migration baselines**. Note that `AGENTS.md` is
+currently stale — it still reads `Current public baseline (Aug 17, 2026): v1.5.1`
+while `CLAUDE.md` reads v1.7.0. Advance **both** to v1.8.0 so the next reader is
+not misled the way this plan's own review was.
+
+```bash
 npm run site:build
-npm run site:deploy
+git add -A && git commit -m "Record Blanc 1.8.0 in the public changelog"
+git push
+npm run site:deploy        # from the clean checkout at origin/main
 ```
-Confirm Wrangler reports `Environment: Production`, `Branch: main`, and the expected SHA.
 
-- [ ] **Step 6: Start the soak clock**
+- [ ] **Step 8: Verify the deploy reached production, not a preview**
+
+```bash
+npx wrangler pages deployment list --project-name=blancbrowser
+```
+
+Confirm the expected source SHA shows `Environment: Production` and
+`Branch: main`. Then load the **canonical domain** and confirm both the
+changelog and the homepage show 1.8.0 — not a Cloudflare preview URL.
+
+- [ ] **Step 9: Start the soak clock**
 
 ```bash
 echo '{"date":"YYYY-MM-DD","version":"1.8.0","publishedAt":"<ISO>","soakEndsAt":"<ISO + 48h>"}' \
   >> docs/superpowers/plans/assets/launch-accounts.jsonl
 ```
+
+- [ ] **Step 10: Soak exit criteria — real upgrade evidence, not elapsed time**
+
+48 hours passing is necessary but not sufficient. Per `CLAUDE.md`, the current
+public baseline is **v1.7.0**, and the next release must validate:
+
+- [ ] the normal **v1.7.0 → v1.8.0 upgrade path on macOS**
+- [ ] the normal **v1.7.0 → v1.8.0 upgrade path on Windows**
+- [ ] **Linux install/launch**
+
+A Windows updater check must *begin inside the old packaged Blanc*: it discovers
+the staged `latest.yml`, downloads the matching installer, and the user invokes
+**Restart Now**. A directly launched NSIS installer is **not** an updater-handoff
+test and does not satisfy this.
+
+(The reviewer of this plan cited `AGENTS.md`'s demand for v1.4.0/v1.5.0 Windows
+journeys. That gap was **closed during v1.7.0** — see `CLAUDE.md`. The
+requirement above is the current one; `AGENTS.md` is stale and Step 7 fixes it.)
+
+If any upgrade check fails, the launch week moves.
 
 **Launch Monday must fall after `soakEndsAt`.** If a regression surfaces during the soak, the launch week moves — it does not proceed on a known-bad build.
 
@@ -247,14 +411,24 @@ echo '{"date":"YYYY-MM-DD","version":"1.8.0","publishedAt":"<ISO>","soakEndsAt":
 
 ## Phase 1 — Assets (built during the freeze)
 
-### Task 6: Ship the objections page
+### Task 6: Make the site's Patron claims true, and ship the objections page
 
 **Owner:** `agent` — this is ordinary site work.
+
+**MUST LAND BEFORE TASK 5 PUBLISHES v1.8.0.** Four existing pages currently
+state that no feature is locked behind payment. The moment v1.8.0 ships
+Patron-gated workspace creation those statements become false — and one of them
+is the Terms of Service. Shipping the release first opens a window where the
+site's legal page contradicts the product.
 
 **Files:**
 - Create: `site/src/pages/faq.astro`
 - Modify: `site/src/pages/sitemap.xml.js` (add `/faq` to `MANIFEST` — **the build fails without this**)
 - Modify: `site/src/components/Footer.astro` (add `/faq` to `LINKS`)
+- Modify: `site/src/pages/index.astro:258` (FAQ answer claims nothing is paywalled)
+- Modify: `site/src/pages/about.astro:41` (claims every browser feature is free)
+- Modify: `site/src/pages/terms.astro:28` (**legal text** claiming no feature is locked behind payment)
+- Modify: `site/src/pages/press.astro:297` (price line + "cosmetic Dock icons today")
 
 **Interfaces:**
 - Produces: `https://blancbrowser.com/faq` — linked verbatim from Tasks 11–13 when an objection lands.
@@ -288,8 +462,10 @@ const QUESTIONS = [
   {
     q: 'Is Blanc open source?',
     a: [
-      'No. Blanc is proprietary freeware — free to download and use on macOS, Windows and Linux, but the source is not published.',
-      'That is a real trade-off and worth being plain about: you are trusting a binary. What offsets it is that every macOS build is signed and notarized, every Windows build carries a timestamped Authenticode signature whose subject is checked at release time, the release checksum manifest is signed with Sigstore under a verified OIDC identity, and native artifacts carry GitHub provenance attestations.',
+      'No — but the source is public, and those are two different things worth separating.',
+      'The repository at github.com/bnfy/blanc is public and contains the application source. You can read every line, check what the blocker does, check what the launch ping sends, and build and run it yourself with npm install && npm start.',
+      'What it is not is openly licensed. package.json says UNLICENSED, which grants no right to use, modify or redistribute the code. The accurate term is source-available, not open source, and the difference is real: you can audit what you run, but you cannot fork it or ship your own build.',
+      'Alongside that, every macOS build is signed and notarized, every Windows build carries a timestamped Authenticode signature whose subject is checked at release time, the release checksum manifest is signed with Sigstore under a verified OIDC identity, and native artifacts carry GitHub provenance attestations.',
     ],
   },
   {
@@ -414,16 +590,69 @@ npm run test:unit && npm run substrate:check
 ```
 Expected: PASS. `site.css` is not under the `tokens/` substrate guard, and the new page uses the default OG image, so `og-cards.test.js` is unaffected — but run them to confirm rather than assume.
 
+- [ ] **Step 8a: Correct the homepage claim**
+
+`site/src/pages/index.astro:258` currently reads *"every browser feature is
+free, and nothing is locked behind payment."* Replace that answer with:
+
+```html
+        <p>Yes — Blanc is free, and everything that makes it a browser stays free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, passkeys. Blanc Patron is an optional subscription that adds extra app-icon colorways and saving a window as a named workspace. Nothing that is free today ever moves behind payment.</p>
+```
+
+- [ ] **Step 8b: Correct the About page claim**
+
+`site/src/pages/about.astro:41` opens *"Every browser feature is free."* Keep
+the promise that follows it — *nothing free moves behind payment* — because
+that one is still true; named workspaces were never free. Replace the opening
+clause:
+
+```html
+        <p>Blanc is free, and everything that makes it a browser stays free — blocking, encrypted sync, private tabs, tab groups, quiet tabs, passkeys — and nothing that&rsquo;s free today ever moves behind payment. Blanc Patron is an optional subscription — $30 a year or $4 a month — that funds the work and adds three extra app-icon colorways plus saving a window as a named workspace. Supporters who bought the earlier one-time purchase keep everything, free, forever.</p>
+```
+
+- [ ] **Step 8c: Correct the Terms of Service**
+
+**This one is legal text, not marketing.** `site/src/pages/terms.astro:28`
+states *"Blanc's features are free, and none of them are locked behind
+payment."* That becomes false on the day v1.8.0 ships. Replace it:
+
+```html
+  <p>Blanc is free to download and use. Everything that makes it a browser — ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, passkeys — is free and stays free. Blanc Patron is an optional subscription, billed monthly or yearly, that adds extra app-icon colorways and lets you save a window as a named workspace; creating a named workspace requires an active subscription, while renaming and removing workspaces you already have continues to work if it lapses. Nothing that is free today is moved behind Patron.</p>
+```
+
+- [ ] **Step 8d: Correct the press fact sheet**
+
+`site/src/pages/press.astro:297` reads `Free; all browser features included`
+and describes Patron as `cosmetic Dock icons today`. Both are now wrong.
+
+```html
+          <div><dt>price</dt><dd>Free; all core browsing features included</dd></div>
+          <div><dt>optional support</dt><dd>Blanc Patron subscription, US$30/year or $4/month, plus tax; extra Dock icon colorways and named workspaces, more Patron extras over time</dd></div>
+```
+
+- [ ] **Step 8e: Prove no "nothing is locked behind payment" claim survives**
+
+```bash
+grep -rn "nothing is locked behind payment\|none of them are locked behind payment\|every browser feature is free\|all browser features included" site/src/ ; echo "exit=$?"
+```
+
+Expected: **no matches** (`exit=1`). A single survivor is a public contradiction
+of the product on launch day.
+
 - [ ] **Step 9: Commit**
 
 ```bash
 git add site/src/pages/faq.astro site/src/pages/sitemap.xml.js \
-        site/src/components/Footer.astro site/src/styles/site.css
-git commit -m "site: add /faq — straight answers to the hard questions
+        site/src/components/Footer.astro site/src/styles/site.css \
+        site/src/pages/index.astro site/src/pages/about.astro \
+        site/src/pages/terms.astro site/src/pages/press.astro
+git commit -m "site: add /faq, and make the Patron claims true
 
-Linkable answers for open source, Electron memory, telemetry, Patron
-pricing and extensions, so a launch thread gets a URL instead of a
-retyped comment."
+Named Workspaces creation is Patron-gated (chrome:workspaces-save-as
+returns not-patron), so four pages saying no feature is locked behind
+payment — including the Terms — become false when 1.8.0 ships. Corrected
+alongside a new /faq covering source availability, Electron memory,
+telemetry, pricing and extensions."
 ```
 
 - [ ] **Step 10: Deploy**
@@ -604,7 +833,24 @@ the free version.
 
 Happy to answer anything, including the hostile version of the questions above.
 
-https://blancbrowser.com/?ref=hn
+The source, and the builds, are here: https://github.com/bnfy/blanc
+Site and downloads: https://blancbrowser.com
+```
+
+**Submit the GitHub repository as the Show HN URL, not the marketing homepage.**
+HN's Show HN rules state *"Don't post landing pages or fundraisers"* and ask you
+to *"make it easy for users to try your thing out."* `blancbrowser.com` is a
+marketing landing page and risks the post being penalised or reclassified.
+
+The repository is the better target on every axis: it is public, it contains the
+application source, its README documents `npm install && npm start`, and the
+releases are linked from it. It also defuses the closed-source objection before
+it is raised — the source is right there in the thing you submitted.
+
+Attribution comes from GitHub's own referrer data:
+
+```bash
+gh api repos/bnfy/blanc/traffic/popular/referrers
 ```
 
 Do not post a title with "revolutionary", "beautiful", or an em-dash-heavy
@@ -630,13 +876,17 @@ repo if you want to pull it apart: https://blancbrowser.com/faq
 **On closed source:**
 
 ```
-It's proprietary, and I'd rather say that plainly than bury it. You're trusting
-a binary, which is a real cost. What I can offer against it: macOS builds are
-signed and notarized, Windows builds carry a timestamped Authenticode signature
-that's verified against an expected publisher at release time, the checksum
-manifest is signed with Sigstore under a verified OIDC identity, and the
-artifacts carry GitHub provenance attestations. That's not the same as source
-access and I'm not going to pretend it is.
+Not open source, but the source is public — worth separating those. The repo
+you're looking at has the whole application in it; you can read what the blocker
+does and what the launch ping sends, and build it yourself with npm install &&
+npm start. What's missing is the licence: package.json says UNLICENSED, so
+there's no grant to fork it or ship your own build. Source-available, not open
+source, and I'd rather use the accurate word.
+
+On top of that, macOS builds are signed and notarized, Windows builds carry a
+timestamped Authenticode signature verified against an expected publisher at
+release time, the checksum manifest is Sigstore-signed under a verified OIDC
+identity, and artifacts carry GitHub provenance attestations.
 ```
 
 **On telemetry:**
@@ -676,24 +926,113 @@ also why Manifest V3's rule caps don't apply to it. If you need a specific
 extension, Blanc is genuinely not for you and I'd rather say so up front.
 ```
 
-- [ ] **Step 2a: Draft the remaining four channels**
+- [ ] **Step 2a: Write the Reddit post — drafted here, verbatim**
 
-Same file, below the Show HN section:
+One post, retargeted per community. **Never cross-post identical text.**
 
-**Reddit** — one founder-authored post per community, rewritten per community's
-rules, with screenshots and a candid limitations section. Reuse the "what isn't
-done" paragraph from the Show HN body verbatim; it is the part that earns
-trust. **Never cross-post identical text** — it reads as spam and gets removed.
+**Title** (r/browsers, r/macapps, r/windows, r/linux variants):
 
-**Product Hunt** — tagline `A minimal desktop browser with built-in ad blocking`
-(describe the product, not the mission). Demo video first. Reuse the two
-decisions from the Show HN body as the description's spine.
+```
+I built Blanc, a desktop browser that replaces the tab strip with one floating pill
+```
 
-**AlternativeTo** — listing text plus the alternatives to file under: Chrome,
-Arc, Brave, Vivaldi, Opera, Zen. State plainly that it is proprietary freeware;
-that community reacts badly to discovering it later.
+**Body:**
 
-**BetaList** — short submission, landing page and immediate-access link.
+```
+I've been building Blanc for about a year. It's a desktop browser for macOS,
+Windows and Linux where the tab strip and toolbar are replaced by a single
+floating pill — back/forward, the current group's tabs as dots, the domain, and
+the blocked-request count, all in one surface that expands into a command
+palette when you hit Cmd/Ctrl+L.
+
+Ad and tracker blocking runs at the network layer inside the browser rather than
+as an extension, so it isn't subject to Manifest V3's rule caps and it's active
+on the first paint of the first page.
+
+There's no extension runtime at all, which is the most divisive decision in it.
+I had one and pulled it: native crashes, it forced the browser chrome to run
+unsandboxed, and it brought a licensing constraint with it.
+
+Being upfront about the rest: it's Electron; the source is public but it's not
+open-source licensed (no right to fork or redistribute); there's no mobile
+version; and there's a $30/year optional Patron subscription — every core
+browsing feature is free, Patron adds icon colorways and named workspaces.
+
+https://blancbrowser.com/?ref=reddit
+
+Happy to answer anything, including the sceptical version.
+```
+
+Check each community's self-promotion rules before posting. Some require a flair,
+some ban links in the body, some require you to be an established participant.
+
+- [ ] **Step 2b: Write the Product Hunt listing — drafted here, verbatim**
+
+**Tagline** (60 char limit):
+
+```
+A minimal desktop browser with built-in ad blocking
+```
+
+**Description:**
+
+```
+Blanc replaces the tab strip and toolbar with a single floating pill — the
+Island. Back/forward, your tabs, the domain, and a live blocked-request count
+live in one surface that expands into a command palette on Cmd/Ctrl+L.
+
+Ad and tracker blocking runs at the network layer inside the browser, not as an
+extension, so Manifest V3's rule caps don't apply to it.
+
+New in this release: named workspaces — save a window's whole set of tabs and
+groups and bring it back later.
+
+Free on macOS, Windows and Linux. Blanc Patron ($30/yr or $4/mo) is optional and
+adds extra app-icon colorways and named workspaces; every core browsing feature
+is free.
+```
+
+**First comment (maker):** reuse the two decisions from the Show HN body — why
+network-level blocking, why no extension runtime — and state the Patron gate on
+workspace creation plainly.
+
+Lead the listing with the demo video from Task 7.
+
+- [ ] **Step 2c: Write the AlternativeTo listing — drafted here, verbatim**
+
+Submitted in Task 1. **Clean URL, no tag.**
+
+```
+Blanc is a minimal desktop browser for macOS, Windows and Linux. It replaces
+the traditional tab strip and toolbar with a single floating control surface
+called the Island, which expands into a command palette and quick switcher.
+
+Ad and tracker blocking is built into the browser at the network layer rather
+than provided by an extension, so it is not limited by Manifest V3's rule caps.
+There is no extension runtime. Other features include tab groups, named
+workspaces, quiet background tabs that release memory, private tabs, end-to-end
+encrypted sync, and Touch ID passkeys on macOS.
+
+Blanc is free. The source is publicly available on GitHub but is not released
+under an open-source licence. An optional Patron subscription ($30/year or
+$4/month) adds extra app-icon colorways and named workspaces.
+```
+
+**Alternative to:** Chrome, Arc, Brave, Vivaldi, Opera, Zen.
+
+- [ ] **Step 2d: Write the BetaList submission — drafted here, verbatim**
+
+```
+Name: Blanc
+Tagline: A minimal desktop browser with built-in ad blocking
+URL: https://blancbrowser.com/?ref=betalist
+
+Description:
+Blanc is a desktop browser that replaces the tab strip and toolbar with one
+floating pill. Ad and tracker blocking runs at the network layer inside the
+browser instead of as an extension, so it isn't limited by Manifest V3. Free on
+macOS, Windows and Linux, with no account required to use it.
+```
 
 - [ ] **Step 3: Fact-check every claim in the pack**
 
@@ -710,38 +1049,86 @@ git commit -m "docs: launch copy pack for the growth counter-offensive"
 
 ## Phase 2 — Launch week (feature freeze in effect)
 
-### Task 10: Monday — evergreen listings
+### Task 10: Monday — baseline, then evergreen listings
 
 **Owner:** `owner` — posting under an account.
 
-**Depends on:** Tasks 1, 6, 7, 8, 9. Task 1's 7-day clock must have elapsed.
+**Depends on: Tasks 1–9, all of them.** Not a subset. An executor working
+task-by-task must not be able to legally start launch week with measurement
+dark, the Ads account unverified, the checkout unproven, or the release
+unshipped.
 
-**Why first:** Zero-risk and permanent. These land regardless of how the rest of the week goes, and they are long-tail SEO that keeps working for months.
+- [ ] **Step 0: Verify every Phase 0 and Phase 1 gate has actually passed**
 
-- [ ] **Step 1: Submit the AlternativeTo listing**
+Do not proceed until each of these is true. Check, do not assume:
 
-Use the Task 9 copy and the `?ref=alternativeto` URL. File Blanc as an alternative to Chrome, Arc, Brave, Vivaldi, Opera and Zen.
+```bash
+cat docs/superpowers/plans/assets/launch-accounts.jsonl
+```
 
-- [ ] **Step 2: Submit to BetaList**
+- [ ] Task 1 — AlternativeTo submitted, priority review paid, status recorded
+- [ ] Task 2 — GA4 confirmed live via a **Realtime** self-test
+- [ ] Task 3 — Google Ads verification complete, campaign Enabled
+- [ ] Task 4 — production Patron purchase **PASS**
+- [ ] Task 5 — v1.8.0 published, post-publication workflow complete
+- [ ] Task 5 — macOS upgrade, Windows updater handoff, Linux install/launch all verified
+- [ ] Task 6 — `/faq` live **and** the four contradicting pages corrected and deployed
+- [ ] Task 7 — demo video exported
+- [ ] Task 8 — newsletter capture verified with a fresh alias
+- [ ] Task 9 — copy pack committed
 
-Use the `?ref=betalist` URL. Standard review can take ~2 months; submitting Monday costs nothing and may land later.
+- [ ] **Step 0a: Verify the soak has actually elapsed**
 
-- [ ] **Step 3: Confirm both submissions are live or queued**
+```bash
+python3 -c "
+import datetime, json, pathlib
+rows = [json.loads(l) for l in pathlib.Path('docs/superpowers/plans/assets/launch-accounts.jsonl').read_text().splitlines() if l.strip()]
+soak = [r for r in rows if r.get('soakEndsAt')][-1]
+ends = datetime.datetime.fromisoformat(soak['soakEndsAt'].replace('Z','+00:00'))
+now  = datetime.datetime.now(datetime.timezone.utc)
+print('soakEndsAt:', ends, '| now:', now)
+print('CLEARED' if now >= ends else 'NOT CLEARED — DO NOT LAUNCH')
+"
+```
 
-Record status. A silent rejection is a channel you think you fired and did not.
+Expected: `CLEARED`. If not, the launch week moves. Elapsed time alone is not
+enough — Task 5 Step 10's upgrade evidence must also be recorded.
 
-- [ ] **Step 4: Take the pre-launch measurement snapshot**
+- [ ] **Step 1: Take the pre-launch baseline BEFORE anything is posted**
+
+This must be the first action of launch week. A snapshot taken after the
+listings go out is not a pre-launch baseline, and it silently absorbs the first
+hours of lift into the "before" number.
 
 ```bash
 gh api --paginate repos/bnfy/blanc/releases --jq '.[].assets[] | select(.name | (endswith(".dmg") or endswith(".exe") or endswith(".AppImage") or endswith(".zip")) and (endswith(".blockmap") | not)) | .download_count' | paste -sd+ - | bc
 ```
 
-Record this number. **It is the baseline the entire launch is measured against.**
-
 ```bash
-echo '{"date":"YYYY-MM-DD","event":"launch-week-baseline","totalDownloads":N,"version":"1.8.0"}' \
+echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline","totalDownloads":N,"version":"1.8.0","postedAnythingYet":false}' \
   >> docs/superpowers/plans/assets/launch-accounts.jsonl
 ```
+
+**Every number in Task 14 is measured against this row.**
+
+- [ ] **Step 2: Confirm the AlternativeTo listing went live**
+
+Submitted in Task 1 with priority review. If it is still pending, record that
+and continue — it is not a reason to delay.
+
+- [ ] **Step 3: Submit to BetaList**
+
+Use `https://blancbrowser.com/?ref=betalist` and the Task 9 copy. Standard
+review can take ~2 months; submitting Monday costs nothing and may land later.
+
+- [ ] **Step 4: Record both statuses**
+
+```bash
+echo '{"date":"YYYY-MM-DD","alternativeTo":"live|pending","betaList":"submitted"}' \
+  >> docs/superpowers/plans/assets/launch-accounts.jsonl
+```
+
+A silent rejection is a channel you believe you fired and did not.
 
 ---
 
@@ -755,7 +1142,9 @@ echo '{"date":"YYYY-MM-DD","event":"launch-week-baseline","totalDownloads":N,"ve
 
 - [ ] **Step 1: Post early morning US Eastern, Tuesday**
 
-Use the Task 9 title and body verbatim. Link `https://blancbrowser.com/?ref=hn`.
+Use the Task 9 title and body verbatim. **Submit
+`https://github.com/bnfy/blanc` as the URL** — not the marketing homepage, per
+HN's landing-page rule. The site is linked from the post body instead.
 
 > **Say the Patron gate out loud, unprompted.** Named Workspaces is the
 > headline of v1.8.0 **and creating one requires an active Patron**
@@ -786,7 +1175,14 @@ echo '{"date":"YYYY-MM-DD","channel":"show-hn","objections":["..."],"peakRank":N
 
 - [ ] **Step 5: Read the traffic**
 
-Check GA4 for `?ref=hn` landings and check the download counter against Monday's baseline.
+```bash
+gh api repos/bnfy/blanc/traffic/popular/referrers   # HN should appear here
+gh api repos/bnfy/blanc/traffic/views --jq '.count, .uniques'
+```
+
+Also check the download counter against Monday's Step 1 baseline. Per Task 2
+Step 5, this gives **aggregate** lift — it cannot attribute downloads to HN
+specifically, and the retrospective must not claim otherwise.
 
 ---
 
@@ -854,14 +1250,48 @@ echo '{"date":"YYYY-MM-DD","channel":"product-hunt","rank":N,"upvotes":N,"commen
 
 It already appends `downloads-history.jsonl` and `retention-history.jsonl` daily. Do not hand-edit either series.
 
-- [ ] **Step 2: Two weeks after launch week, compute the sustained clean-day rate**
+- [ ] **Step 2: Two weeks after launch week, compute the sustained clean-day mean**
+
+The previous version of this step printed rows and left the arithmetic to the
+reader, which is how a "sustained rate" becomes whatever the reader wants it to
+be. Compute it, over an explicit window, from `valid:true` rows only:
 
 ```bash
-grep '"valid":true' /Users/anthonyjloria/.claude/scheduled-tasks/blanc-daily-analytics/downloads-history.jsonl \
-  | tail -10
+python3 - <<'CALC'
+import json, pathlib, statistics
+HIST = pathlib.Path.home() / '.claude/scheduled-tasks/blanc-daily-analytics/downloads-history.jsonl'
+WINDOW_START = '2026-09-07'   # first day AFTER launch week ends; set explicitly
+WINDOW_END   = '2026-09-20'   # 14 days later
+
+rows = []
+for line in HIST.read_text().splitlines():
+    line = line.strip()
+    if not line or not line.startswith('{'):
+        continue
+    r = json.loads(line)
+    if r.get('valid') is True and r.get('delta') is not None \
+       and WINDOW_START <= r.get('date','') <= WINDOW_END:
+        rows.append(r)
+
+if not rows:
+    print('NO valid:true rows in window — cannot conclude. Do not estimate.')
+else:
+    deltas = [r['delta'] for r in rows]
+    mean = statistics.mean(deltas)
+    print(f'window      : {WINDOW_START}..{WINDOW_END}')
+    print(f'valid days  : {len(deltas)}  {deltas}')
+    print(f'post mean   : {mean:.2f}/day')
+    print(f'baseline    : 11.25/day  (pre-launch: +16, +6, +18, +5)')
+    print(f'change      : {mean - 11.25:+.2f}/day  ({(mean/11.25 - 1) * 100:+.1f}%)')
+    print('VERDICT     :', 'SUSTAINED' if mean > 11.25 else 'NOT SUSTAINED')
+    if len(deltas) < 5:
+        print('WARNING: fewer than 5 valid days — too few to call a trend.')
+CALC
 ```
 
-Compare against the pre-launch baseline of **11.25/day** — the mean of the four `valid:true` rows measured before launch (+16, +6, +18, +5). Only `valid:true` rows count; release-day deltas are contaminated by auto-update pulls.
+Only `valid:true` rows count; release-day deltas are contaminated by
+auto-update pulls. If the window contains fewer than five valid days, say so
+rather than reporting a mean that rests on two numbers.
 
 - [ ] **Step 3: On Oct 1, read the September cohort**
 
@@ -872,7 +1302,28 @@ Success criteria from the spec:
 
 - [ ] **Step 4: Write the retrospective**
 
-Create `docs/superpowers/plans/assets/launch-retrospective.md` recording, per channel: traffic delivered, downloads attributable, objections raised, and whether the channel is worth firing again. Channels are one-shot for the *first* launch only — a second Show HN for a genuinely new version is legitimate, and this document is what tells you whether it is worth it.
+Create `docs/superpowers/plans/assets/launch-retrospective.md`.
+
+Record **only what the instrumentation can actually support** (Task 2, Step 5):
+
+**Per channel — measurable:**
+- Landings (GA4 landing-page report, or GitHub referrers for HN). A consent-gated **floor**, not a full count.
+- Engagement native to the channel: HN rank/comments, PH rank/upvotes, Reddit score, whether a post was removed.
+- Objections raised, verbatim.
+
+**Aggregate only — NOT per channel:**
+- Total download lift vs the Monday Step 1 baseline.
+- Newsletter signups during the week.
+
+**Do not write a per-channel download number.** Nothing in the site persists
+`?ref` through to the download click, so any such figure would be invented. If
+that attribution is genuinely wanted for a future launch, it is a
+privacy-reviewed product change, not a spreadsheet exercise.
+
+Then judge each channel on landings + engagement, and note whether it is worth
+firing again. Channels are one-shot for the *first* launch only — a second Show
+HN for a genuinely new version is legitimate, and this document is what tells
+you whether it is worth it.
 
 - [ ] **Step 5: Decide whether retention is now a real question**
 
@@ -883,11 +1334,12 @@ If the September cohort cleared 81, retention becomes measurable and earns its o
 ## Dependency summary
 
 ```
-Task 1 (AlternativeTo acct, 7-day clock) ─────────────────┐
+Task 1 (AlternativeTo + $5 priority review, ~2 biz days) ─┐
 Task 2 (measurement) ─────────────────────────────────────┤
 Task 3 (Ads verification, Sep 2 deadline) ────────────────┤
 Task 4 (production purchase) → Task 5 (v1.8.0 + soak) ────┤
-Task 6 (/faq) ────────────────────────────────────────────┤
+Task 6 (/faq + fix 4 contradicting pages) ── MUST precede Task 5's publish
+                                                          │
 Task 7 (demo video) ──────────────────────────────────────┤
 Task 8 (newsletter capture verified) ─────────────────────┤
 Task 9 (copy pack) ───────────────────────────────────────┤
@@ -904,6 +1356,7 @@ Task 9 (copy pack) ────────────────────�
 ```
 
 **Hard stops:**
-- Task 4 fails → the whole plan stops until the checkout works.
-- Task 1's 7-day clock not elapsed → the launch week moves; the channel is not dropped.
-- A regression during Task 5's soak → the launch week moves; it does not proceed on a known-bad build.
+- **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means the headline feature is unreachable *and* the best traffic day converts nothing.
+- **Task 6 not deployed before Task 5 publishes** → the site's Terms of Service contradicts the shipped product. Fix the copy first.
+- **Task 5's soak not cleared** — either <48h elapsed *or* the macOS/Windows/Linux upgrade evidence missing → the launch week moves. Task 10 Step 0a enforces this mechanically.
+- **Task 1 still pending review on Monday** → that channel does not fire. This is *not* a reason to move the launch week (the corrected rules mean there is no account-age clock to miss).
