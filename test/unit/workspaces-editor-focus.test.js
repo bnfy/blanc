@@ -1,13 +1,13 @@
 'use strict';
 
-// Regression: the workspaces row editors (rename / "new…") are built into a
-// DETACHED element and only reach the document when renderList runs its
-// replaceChildren. `focus()` on a disconnected node is silently a no-op, so
-// focusing at build time left the caret in the address input: the user's
-// keystrokes went to the address bar, which flipped the panel into search mode
-// (destroying the editor row) and made Enter navigate instead of commit. The
-// editors must therefore record their intent and let renderList apply it once
-// the row is live.
+// Regression: workspace name editors (create / save-as / rename) live in the
+// footer popover. They are built into a DETACHED tree and only reach the
+// document when renderWorkspaceSwitcherList runs replaceChildren — and the
+// open path briefly measures with visibility:hidden, which also makes
+// focus() a silent no-op. Focusing at the wrong moment left the caret in the
+// address input: keystrokes never reached the name field and Enter did not
+// commit. Editors must record intent and apply it only once the input is
+// connected AND the switcher is visible.
 
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -25,16 +25,18 @@ const lift = (name, source = overlaySource) => {
   return found;
 };
 
-/** The minimum DOM needed by the editors, with the one load-bearing browser
- * semantic this regression turns on: focus() only lands on a connected node. */
+/** Minimum DOM: focus() only lands on a connected node that is not under a
+ * visibility:hidden ancestor (the openWorkspaceSwitcher measure window). */
 function makeDom() {
-  const doc = { activeElement: null, root: null };
+  const state = { active: null, root: null };
   class El {
     constructor(tag) {
       this.tagName = tag.toUpperCase();
       this.childNodes = [];
       this.parentNode = null;
       this.className = '';
+      this.hidden = false;
+      this.style = { visibility: '' };
       this.classList = {
         set: new Set(),
         add(c) { this.set.add(c); },
@@ -48,69 +50,93 @@ function makeDom() {
       this.append(...kids);
     }
     contains(el) { for (let n = el; n; n = n.parentNode) if (n === this) return true; return false; }
-    get isConnected() { let n = this; while (n.parentNode) n = n.parentNode; return n === doc.root; }
+    get isConnected() { let n = this; while (n.parentNode) n = n.parentNode; return n === state.root; }
+    isFocusable() {
+      if (!this.isConnected) return false;
+      for (let n = this; n; n = n.parentNode) {
+        if (n.hidden || n.style?.visibility === 'hidden') return false;
+      }
+      return true;
+    }
     setAttribute() {}
     addEventListener() {}
-    focus() { if (this.isConnected) doc.activeElement = this; }
+    focus() { if (this.isFocusable()) state.active = this; }
     setSelectionRange(a, b) { this.selectionRange = [a, b]; }
     select() { this.selected = true; }
   }
-  doc.createElement = (tag) => new El(tag);
+  const doc = {
+    createElement: (tag) => new El(tag),
+    get activeElement() { return state.active; },
+    set activeElement(v) { state.active = v; },
+  };
   const islandList = new El('div');
-  doc.root = islandList; // the list IS the document root for this stub
-  return { doc, islandList, El };
+  const workspaceSwitcher = new El('div');
+  const workspaceSwitcherList = new El('div');
+  workspaceSwitcher.append(workspaceSwitcherList);
+  const root = new El('div');
+  root.append(islandList, workspaceSwitcher);
+  state.root = root;
+  return { doc, islandList, workspaceSwitcher, workspaceSwitcherList, El, state };
 }
 
-function sandboxFor({ doc, islandList }, extra = {}) {
+function sandboxFor(dom, extra = {}) {
   const sandbox = {
-    document: doc,
-    islandList,
+    document: dom.doc,
+    islandList: dom.islandList,
+    workspaceSwitcher: dom.workspaceSwitcher,
     pendingEditorFocus: null,
     claimEditorFocus: true,
     createWorkspaceValue: '',
+    saveAsWorkspaceValue: '',
     workspaceEditValue: '',
-    currentCreateCaret: () => null,
-    currentEditCaret: () => null,
-    commitCreateWorkspace() {},
-    cancelCreateWorkspace() {},
-    commitWorkspaceRename() {},
-    cancelWorkspaceEdit() {},
+    currentSwitcherCaret: () => null,
     ...extra,
   };
   vm.runInNewContext(
-    `${lift('renderCreateWorkspaceEditor')}
-     ${lift('renderWorkspaceRenameEditor')}
+    `${lift('renderSwitcherNameInput')}
      ${lift('focusPendingEditor')}
-     this.__create = renderCreateWorkspaceEditor;
-     this.__rename = renderWorkspaceRenameEditor;
+     this.__nameInput = renderSwitcherNameInput;
      this.__applyFocus = focusPendingEditor;`,
     sandbox,
   );
   return sandbox;
 }
 
+function mountCreateEditor(sandbox, dom) {
+  const input = sandbox.__nameInput({
+    value: sandbox.createWorkspaceValue,
+    placeholder: 'name this workspace',
+    ariaLabel: 'Name for the new workspace',
+    onInput: (v) => { sandbox.createWorkspaceValue = v; },
+    onCommit() {},
+    onCancel() {},
+    selectAll: false,
+    caret: sandbox.currentSwitcherCaret(),
+  });
+  const wrap = dom.doc.createElement('div');
+  wrap.className = 'ws-switcher-editor';
+  wrap.append(input);
+  return { wrap, input };
+}
+
 test('an incidental re-render does not yank focus into an already-open editor', () => {
   const dom = makeDom();
   const sandbox = sandboxFor(dom, { claimEditorFocus: true });
 
-  const first = sandbox.__create();
-  dom.islandList.replaceChildren(first);
+  const first = mountCreateEditor(sandbox, dom);
+  dom.workspaceSwitcherList.replaceChildren(first.wrap);
   sandbox.__applyFocus();
-  assert.equal(dom.doc.activeElement?.className, 'row-edit-input');
+  assert.equal(dom.doc.activeElement?.className, 'ws-switcher-input');
 
-  // The user clicked the address input (a sibling of islandList, so it
-  // survives replaceChildren). Mimic that by parking activeElement elsewhere
-  // and answering currentCreateCaret with null — the editor is open, but it
-  // does not currently hold focus.
   const address = new dom.El('input');
   address.className = 'address-input';
-  address.focus = function focus() { dom.doc.activeElement = this; };
+  address.focus = function focus() { dom.state.active = this; };
   address.focus();
-  sandbox.currentCreateCaret = () => null;
+  sandbox.currentSwitcherCaret = () => null;
   sandbox.claimEditorFocus = false;
 
-  const second = sandbox.__create();
-  dom.islandList.replaceChildren(second);
+  const second = mountCreateEditor(sandbox, dom);
+  dom.workspaceSwitcherList.replaceChildren(second.wrap);
   sandbox.__applyFocus();
   assert.equal(dom.doc.activeElement?.className, 'address-input',
     'tabs:updated must not steal the caret out of the address input');
@@ -121,30 +147,33 @@ test('a re-render restores the caret only when the editor already held focus', (
   const dom = makeDom();
   const sandbox = sandboxFor(dom, {
     claimEditorFocus: false,
-    currentCreateCaret: () => 3,
+    currentSwitcherCaret: () => 3,
   });
 
-  const row = sandbox.__create();
+  const { wrap, input } = mountCreateEditor(sandbox, dom);
   assert.ok(sandbox.pendingEditorFocus, 'an editor that already held focus must re-claim it');
-  dom.islandList.replaceChildren(row);
+  // Pretend the caret helper saw focus in this input.
+  sandbox.currentSwitcherCaret = () => 3;
+  dom.workspaceSwitcherList.replaceChildren(wrap);
   sandbox.__applyFocus();
-  assert.equal(dom.doc.activeElement?.className, 'row-edit-input');
+  assert.equal(dom.doc.activeElement?.className, 'ws-switcher-input');
   assert.deepEqual(dom.doc.activeElement.selectionRange, [3, 3]);
+  void input;
 });
 
 test('the create editor does not try to focus a row that is still detached', () => {
   const dom = makeDom();
   const sandbox = sandboxFor(dom);
 
-  const row = sandbox.__create();
+  const { wrap } = mountCreateEditor(sandbox, dom);
   assert.equal(dom.doc.activeElement, null,
-    'building the editor must not attempt focus — the row is not in the document yet');
-  assert.ok(sandbox.pendingEditorFocus, 'the wanted focus must be recorded for renderList');
+    'building the editor must not attempt focus — the input is not in the document yet');
+  assert.ok(sandbox.pendingEditorFocus, 'the wanted focus must be recorded');
 
-  dom.islandList.replaceChildren(row);
+  dom.workspaceSwitcherList.replaceChildren(wrap);
   sandbox.__applyFocus();
-  assert.equal(dom.doc.activeElement?.className, 'row-edit-input',
-    'once the row is live, renderList must put the caret in the editor');
+  assert.equal(dom.doc.activeElement?.className, 'ws-switcher-input',
+    'once the input is live and visible, focus must land in the editor');
   assert.equal(sandbox.pendingEditorFocus, null, 'the intent is consumed exactly once');
 });
 
@@ -152,13 +181,23 @@ test('the rename editor defers its focus and selection the same way', () => {
   const dom = makeDom();
   const sandbox = sandboxFor(dom);
 
-  const row = dom.doc.createElement('div');
-  sandbox.__rename(row, { id: 'ws-1', name: 'Work' });
+  const input = sandbox.__nameInput({
+    value: 'Work',
+    placeholder: '',
+    ariaLabel: 'New name for Work',
+    onInput() {},
+    onCommit() {},
+    onCancel() {},
+    selectAll: true,
+    caret: null,
+  });
   assert.equal(dom.doc.activeElement, null);
 
-  dom.islandList.replaceChildren(row);
+  const row = dom.doc.createElement('div');
+  row.append(input);
+  dom.workspaceSwitcherList.replaceChildren(row);
   sandbox.__applyFocus();
-  assert.equal(dom.doc.activeElement?.className, 'row-edit-input');
+  assert.equal(dom.doc.activeElement?.className, 'ws-switcher-input');
   assert.ok(dom.doc.activeElement.selected,
     'a rename starts with the old name selected so typing replaces it');
 });
@@ -167,23 +206,41 @@ test('a recorded focus for a row that never rendered is dropped, not applied', (
   const dom = makeDom();
   const sandbox = sandboxFor(dom);
 
-  sandbox.__create(); // built, then the render took a different branch
+  mountCreateEditor(sandbox, dom); // built, then never mounted
   sandbox.__applyFocus();
   assert.equal(dom.doc.activeElement, null, 'a detached editor must never steal focus');
   assert.equal(sandbox.pendingEditorFocus, null, 'and the stale intent must not linger');
 });
 
-test('renderList applies the pending editor focus after it inserts the rows', () => {
-  const renderList = lift('renderList');
-  assert.match(renderList, /focusPendingEditor\(\)/,
-    'renderList must apply the deferred editor focus');
-  const lastInsert = renderList.lastIndexOf('replaceChildren');
-  assert.ok(renderList.indexOf('focusPendingEditor()') > lastInsert,
-    'the focus must be applied after the rows are in the document, not before');
-  // An inline focus() in either editor is the bug this test exists for.
-  assert.doesNotMatch(lift('renderCreateWorkspaceEditor'), /input\.focus\(\)/);
-  assert.doesNotMatch(lift('renderWorkspaceRenameEditor'), /input\.focus\(\)/);
-  assert.match(lift('renderCreateWorkspaceEditor'), /caret != null \|\| claimEditorFocus/);
-  assert.match(lift('renderWorkspaceRenameEditor'), /caret != null \|\| claimEditorFocus/);
+test('focus is deferred while the switcher is visibility:hidden (measure window)', () => {
+  const dom = makeDom();
+  const sandbox = sandboxFor(dom);
+
+  const { wrap } = mountCreateEditor(sandbox, dom);
+  dom.workspaceSwitcherList.replaceChildren(wrap);
+  dom.workspaceSwitcher.style.visibility = 'hidden';
+
+  sandbox.__applyFocus();
+  assert.equal(dom.doc.activeElement, null,
+    'focus() must not run (or must no-op) while the popover is measuring');
+  assert.ok(sandbox.pendingEditorFocus, 'intent must remain until the popover is visible');
+
+  dom.workspaceSwitcher.style.visibility = '';
+  sandbox.__applyFocus();
+  assert.equal(dom.doc.activeElement?.className, 'ws-switcher-input');
+  assert.equal(sandbox.pendingEditorFocus, null);
+});
+
+test('openWorkspaceSwitcher focuses only after visibility is restored', () => {
+  const open = lift('openWorkspaceSwitcher');
+  const visClear = open.indexOf("workspaceSwitcher.style.visibility = ''");
+  const focusCall = open.indexOf('focusPendingEditor()');
+  assert.ok(visClear >= 0, 'openWorkspaceSwitcher must clear visibility:hidden');
+  assert.ok(focusCall > visClear,
+    'focusPendingEditor must run after the popover is visible, not during measure');
+  assert.match(lift('paintWorkspaceSwitcher'), /deferFocus/);
+  assert.match(lift('renderSwitcherNameInput'), /caret != null \|\| claimEditorFocus/);
+  assert.doesNotMatch(lift('renderSwitcherNameInput'), /input\.focus\(\)/);
   assert.match(lift('beginCreateWorkspace'), /claimEditorFocus = true/);
+  assert.match(lift('beginSaveWorkspace'), /claimEditorFocus = true/);
 });

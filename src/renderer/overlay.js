@@ -727,18 +727,22 @@
     menu.style.right = `${Math.round(right)}px`;
   }
 
-  function paintWorkspaceSwitcher() {
+  function paintWorkspaceSwitcher({ deferFocus = false } = {}) {
     renderWorkspaceSwitcherList();
     layoutWorkspaceSwitcher();
-    focusPendingEditor();
+    // Opening measures with visibility:hidden — focus() is a silent no-op then
+    // (same class of bug as focusing a detached node). Callers that hide for
+    // measure must restore visibility before applying deferred editor focus.
+    if (!deferFocus) focusPendingEditor();
   }
 
   function openWorkspaceSwitcher() {
     workspaceSwitcherOpen = true;
     workspaceSwitcher.hidden = false;
     workspaceSwitcher.style.visibility = 'hidden';
-    paintWorkspaceSwitcher();
+    paintWorkspaceSwitcher({ deferFocus: true });
     workspaceSwitcher.style.visibility = '';
+    focusPendingEditor();
     footerWorkspace.setAttribute('aria-expanded', 'true');
     window.browserAPI.setWorkspaceSwitcherOpen(true);
   }
@@ -1725,13 +1729,26 @@
   }
 
   // Applied at the tail of renderList / paintWorkspaceSwitcher, after the
-  // target input is in the document. It deliberately runs last so an inline
-  // editor outranks restoreRowFocus.
+  // target input is in the document AND focusable. It deliberately runs last
+  // so an inline editor outranks restoreRowFocus. focus() on a detached or
+  // visibility:hidden node is a silent no-op — leave the intent pending in
+  // the hidden case so a later call (after visibility is restored) can land.
   function focusPendingEditor() {
     const pending = pendingEditorFocus;
-    pendingEditorFocus = null;
     if (!pending) return;
-    if (!islandList.contains(pending.input) && !workspaceSwitcher.contains(pending.input)) return;
+    const inList = islandList.contains(pending.input);
+    const inSwitcher = workspaceSwitcher.contains(pending.input);
+    if (!inList && !inSwitcher) {
+      pendingEditorFocus = null;
+      return;
+    }
+    if (
+      inSwitcher
+      && (workspaceSwitcher.hidden || workspaceSwitcher.style.visibility === 'hidden')
+    ) {
+      return;
+    }
+    pendingEditorFocus = null;
     pending.input.focus();
     if (pending.caret != null) pending.input.setSelectionRange(pending.caret, pending.caret);
     else if (pending.select) pending.input.select();
