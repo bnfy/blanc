@@ -1551,7 +1551,17 @@
     }
     for (const f of favorites) {
       const s = matchScore(query, matchableText(f.title, f.url));
-      if (s) results.push({ kind: 'favorite', title: f.title, sub: stripUrl(f.url), url: f.url, score: s + 0.1 });
+      // Carry a tab-shaped record so resultRow's shared setFavicon path can
+      // paint the stored PNG — the Favorite store is the source of truth, not
+      // an open tab (which may not even be loaded).
+      if (s) results.push({
+        kind: 'favorite',
+        title: f.title,
+        sub: stripUrl(f.url),
+        url: f.url,
+        tab: { url: f.url, favicon: f.favicon },
+        score: s + 0.1,
+      });
     }
     // Remote tabs rank below local tabs (+0.2) and favorites (+0.1), above
     // history (+0) — spec §2. The url-keyed dedup below keeps the

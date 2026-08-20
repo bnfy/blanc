@@ -1257,8 +1257,15 @@ function install(refs) {
         `(() => { const a = document.querySelector('a[href="blanc://bookmarks/"]'); if (a) a.click(); return !!a; })()`);
       if (!clicked) throw new Error('newtab ledger has no favorites link');
     },
-    seedFavorite(url, title) {
-      if (!bookmarks.isBookmarked(url)) bookmarks.toggleBookmark(url, title || url);
+    seedFavorite(url, title, favicon) {
+      // Prefer a production-accepted PNG so Quick Switcher Favorite rows can
+      // assert a real decode. Callers may pass null explicitly to seed an
+      // iconless favorite (the heal path).
+      const icon = favicon === undefined
+        ? 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABr0lEQVR4nLTWsUrDQBgH8O/7cmpr1aFj8Rmq+BSiaAdBqnZQfAlx8EnsIO1UcKhDfQkdbJd20EFBUKgFO0TTXM7vEhDR1ia55JZLLnC/u/93kBPKb57nSSkPj4+a9UZn5iQ3IhcUAYJxEzw7+k0IUT2vZmwcXvaXREG6nwrQXEBeu+5QPxASePC6feG0OpZYVK4EYwN5B9wpTyFpA7WJ/VLNbrUTMWivsm+POA1dBiJiTZHKNyvZjaJ0hygsHlAQv1kPnd5j935zp8TrRAVs6AkRsuWie/vi9J5IZEDHGHMfVnf2dLXjzd0McuUVfWq45okatOBYy1bho9V+K9VB11uHpQ39Ecyz4vPuOdLhetrpGIQ6F+TTkpKhp/CTTcugoEvPoO+nlAz6+ZKGQb/eEzfo71CyBo0dTdCgCeOJGROBpIz/gESMKYC5MR0wNEIBJkZYILYRAYhnRANiGJGBsMZVJbvOxnscIJSBmG8ezJfW8BnOIG7zz4niHDgNzoSTCWrKRnCTg6hFnr4Pxf94DGYPrtVGwBhjqwaOhOAuisY7GGNc3w12GzCS4C+fjS8AAAD///R8eLkAAAAGSURBVAMAqMIc5gOIAroAAAAASUVORK5CYII='
+        : favicon;
+      if (!bookmarks.isBookmarked(url)) bookmarks.toggleBookmark(url, title || url, icon);
+      else if (icon) bookmarks.updateFavicon(url, icon);
     },
     // F16-6 attack drivers: run the hostile expression in the ACTIVE tab's
     // real page context and resolve only after it executed — a scenario
