@@ -1097,8 +1097,18 @@ async function expectAttribute(locator, name, value) {
 // ---------- F28-7: row state and accessible naming ----------
 
 Given('local tabs cover active, loading, private, pinned, audible, muted, and quiet states', async function () {
+  // The startup tab is blanc://newtab. Production setFavicon paints that with
+  // the themed `.internal` mark and ignores any stored PNG — so the decode
+  // assertion below would fail if we left it on a Blanc URL. Navigate to an
+  // external fixture page first, then seed the production-accepted PNG.
   const initial = await this.state();
   const active = initial.activeTabId;
+  const activeUrl = this.fixtureUrl('Active identity');
+  assert.equal(await this.call('navigateTab', active, activeUrl), true);
+  await this.waitForState((state) => {
+    const tab = state.tabs.find((candidate) => candidate.id === active);
+    return tab && !tab.loading && tab.loadedUrl === activeUrl;
+  });
   await this.call('setTabPresentation', active, {
     title: 'Active identity',
     favicon: TEST_FAVICON,
