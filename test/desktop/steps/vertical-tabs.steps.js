@@ -8,6 +8,10 @@ const TEST_FAVICON =
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// The sync icon size the assertion below checks against — read from the model
+// so a change to ICON_SIZE surfaces here instead of silently passing.
+const { ICON_SIZE: SYNC_ICON_SIZE } = require('../../../src/main/tabicons-model');
+
 const poll = require('./../support/poll');
 // Rail scenarios drive real window resizes/animations, so they keep a longer
 // default deadline than the shared helper's 5s — semantics live in support/poll.
@@ -971,10 +975,20 @@ Then('remote-device tabs do not appear in the rail', async function () {
 
 Then('remote-device tabs remain available in the Quick Switcher and start page', async function () {
   await this.call('injectRemoteDevices');
+  // The start page draws the same synced icon the Quick Switcher does, and is
+  // held to the same standard: the letter tile must give way to an icon whose
+  // bytes decode. The icon is part of what we WAIT for, not something asserted
+  // afterwards — decorateTile applies has-icon inside probe.onload, so a poll
+  // that stopped at the title could return while the letter was still showing
+  // and fail intermittently. (The Quick Switcher needs no such wait: setFavicon
+  // applies its class synchronously during the render.)
   await waitForValue(
     () => this.call('remoteStartPageRows'),
-    (rows) => rows.some((row) => row.title === 'Remote press needle'),
-    'remote tab on start page'
+    (rows) => rows.some((row) =>
+      row.title === 'Remote press needle'
+      && row.faviconHasIcon
+      && row.faviconDecoded === `${SYNC_ICON_SIZE}x${SYNC_ICON_SIZE}`),
+    'decoded synced favicon on start page'
   );
 
   await this.call('openPalette');
@@ -988,10 +1002,21 @@ Then('remote-device tabs remain available in the Quick Switcher and start page',
   await sleep(100);
   await this.call('injectRemoteDevices');
   assert.equal(await this.call('editAddressInput', 'Remote press needle'), true);
-  await waitForValue(
+  const switcherRows = await waitForValue(
     () => this.call('addressResultRows'),
     (rows) => rows.some((row) => row.title === 'Remote press needle'),
     'remote tab in Quick Switcher'
+  );
+  // The synced favicon rides in the sync payload as a rasterized PNG; the
+  // receiver never refetches it from the remote site. Asserting the DECODE, not
+  // just the class, is what makes a corrupt icon fail here instead of rendering
+  // as a silently empty box.
+  const remoteRow = switcherRows.find((row) => row.title === 'Remote press needle');
+  assert.equal(remoteRow.faviconHasIcon, true, 'synced tab should render its favicon');
+  assert.equal(
+    remoteRow.faviconDecoded,
+    `${SYNC_ICON_SIZE}x${SYNC_ICON_SIZE}`,
+    'synced tab favicon bytes should decode at the sync icon size'
   );
   await this.call('closeOverlay');
   await this.call('activateTab', this.canonicalRail.workRegular, true);

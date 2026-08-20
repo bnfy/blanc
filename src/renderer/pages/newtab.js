@@ -112,14 +112,28 @@ const shortLabel = (url, title) => {
   return (parts[parts.length - 1] || (title || '').trim().split(/\s+/)[0] || '·').toLowerCase();
 };
 
+// Synced icons are the ONE thing this page draws from another device. The sync
+// design guarantees them as inert `data:image/png` payloads resolved by the
+// PUBLISHING device (2026-07-21-tab-sync-design.md), so rendering them adds no
+// data flow — but only if we refuse anything that isn't that exact shape.
+const SYNCED_ICON_PREFIX = 'data:image/png;base64,';
+
 /** Letter first, favicon when it loads — never a blank tile while a (maybe
  * slow) icon request is in flight. Private tabs skip the favicon entirely:
  * fetching a bookmarked site's icon on every new private tab would be a live
- * network trace, which private mode otherwise avoids. */
-function decorateTile(tile, item) {
+ * network trace, which private mode otherwise avoids.
+ *
+ * mode 'synced' is for tabs open on ANOTHER device, and differs twice:
+ * it accepts only the inert PNG data URL above (a remote http(s) value would
+ * turn this page into the network client the sync design exists to avoid), and
+ * it never clears a favicon on failure — a synced tab is not a bookmark, so
+ * clearFavicon would reach into whichever bookmark merely shares its URL. */
+function decorateTile(tile, item, { mode = 'local' } = {}) {
   const host = hostOf(item.url);
   tile.textContent = (host || item.title || '').trim().charAt(0).toLowerCase() || '·';
   if (isPrivate || !item.favicon) return;
+  const synced = mode === 'synced';
+  if (synced && !item.favicon.toLowerCase().startsWith(SYNCED_ICON_PREFIX)) return;
   const probe = new Image();
   probe.onload = () => {
     tile.textContent = '';
@@ -127,8 +141,11 @@ function decorateTile(tile, item) {
     tile.style.backgroundImage = `url("${item.favicon.replace(/["\\]/g, '\\$&')}")`;
   };
   // A stored favicon URL can go stale (site changed/removed it) — clear it so
-  // future loads stop retrying a dead request.
-  probe.onerror = () => window.bowserPages?.bookmarks.clearFavicon(item.url);
+  // future loads stop retrying a dead request. The letter set above survives
+  // either way, so a failed decode degrades instead of blanking the tile.
+  probe.onerror = synced
+    ? () => {}
+    : () => window.bowserPages?.bookmarks.clearFavicon(item.url);
   probe.src = item.favicon;
 }
 
@@ -204,7 +221,9 @@ function renderRemote(remoteDevices) {
       const host = hostOf(t.url);
       const tile = document.createElement('span');
       tile.className = 'tile';
-      tile.textContent = (host || t.title || '').trim().charAt(0).toLowerCase() || '·';
+      // The same letter-then-icon treatment favorites get; 'synced' restricts it
+      // to the inert PNG payload and skips the bookmark-clearing error path.
+      decorateTile(tile, t, { mode: 'synced' });
       const name = document.createElement('span');
       name.className = 'name';
       name.textContent = t.title || t.url;
