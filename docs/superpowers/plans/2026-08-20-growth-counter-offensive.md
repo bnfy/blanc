@@ -46,7 +46,7 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 ---
 
-## Phase 0 — Prep (hard clocks first)
+## Phase 0 — Prep (ordered: lead times, then de-risking, then the release)
 
 ### Task 1: Submit the AlternativeTo listing (with priority review)
 
@@ -107,7 +107,7 @@ a reason to move the launch week. Record the outcome either way.
 **Why:** GA4 has been unreadable for days — `list_connected_browsers` returns empty, so the daily digest has skipped site traffic repeatedly. Launching the largest traffic event in Blanc's history without measurement wastes it twice: no read on which channel worked, and no baseline for the next attempt.
 
 **Interfaces:**
-- Produces: the canonical tagged URL set used verbatim by Tasks 10–13.
+- Produces: the canonical tagged URL set used verbatim by Tasks 11–14.
 
 - [ ] **Step 1: Reconnect Claude in Chrome, then confirm GA4 loads**
 
@@ -136,7 +136,7 @@ contributes only cookieless modelling signal. Channel landings are therefore a
 One value per channel, used verbatim everywhere. No variants — a typo splits the data.
 
 ```
-Show HN        https://github.com/bnfy/blanc          (see Task 11 — NOT the marketing root)
+Show HN        https://github.com/bnfy/blanc          (see Task 12 — NOT the marketing root)
 Reddit         https://blancbrowser.com/?ref=reddit
 Product Hunt   https://blancbrowser.com/?ref=ph
 AlternativeTo  https://blancbrowser.com                (clean — tags risk the listing)
@@ -189,7 +189,7 @@ as a baseline. **This is the measurement of record if GA4 fails again.**
 
 - [ ] **Step 5: Write down what this measurement CANNOT do**
 
-Be explicit now, so Task 14 does not promise a number that cannot exist.
+Be explicit now, so Task 15 does not promise a number that cannot exist.
 
 Nothing in `site/src/scripts/site.js` reads or stores `?ref` — grep confirms no
 `URLSearchParams`, no `location.search` anywhere in `site/src`. The download CTA
@@ -208,7 +208,7 @@ Therefore:
 Closing that last gap would mean persisting `?ref` and attaching it to the
 download click — a new cross-page identifier on a privacy-marketed site. That
 is a privacy-reviewed product decision, not a launch chore, and it is
-deliberately **out of scope**. Task 14 reports per-channel *landings* plus
+deliberately **out of scope**. Task 15 reports per-channel *landings* plus
 *aggregate* download lift, and says so.
 
 ---
@@ -244,7 +244,7 @@ echo '{"date":"YYYY-MM-DD","googleAdsVerification":"complete","campaignStatus":"
 **Why:** Sandbox purchase→activate→create was proven 2026-08-20; **production has never been run.** Named Workspaces (merged in `8a3dcf5`, PR #177) carries this as an explicit release gate. A successful launch week points the largest traffic spike in Blanc's history at a payment path that has never processed a real transaction.
 
 **Interfaces:**
-- Produces: a cleared release gate that Task 5 depends on. **Task 5 must not start until this passes.**
+- Produces: a cleared release gate that Task 7 depends on. **Task 7 must not start until this passes.**
 
 - [ ] **Step 1: Build a packaged app**
 
@@ -277,217 +277,7 @@ If any step fails, **stop the whole plan here** and fix the checkout. Launching 
 
 ---
 
-### Task 5: Release v1.8.0 and soak
-
-**Owner:** `owner` — the release script requires interactive 1Password/Terminal auth.
-
-**Depends on: Task 4 passing, AND Task 6 merged and deployed to production.**
-
-Task 6 is a hard prerequisite, not a suggestion. Until its copy corrections are
-live on `blancbrowser.com`, publishing v1.8.0 puts the shipped product in direct
-contradiction with the site's own Terms of Service. Verify before starting:
-
-```bash
-curl -s https://blancbrowser.com/terms | grep -c "none of them are locked behind payment"
-```
-
-Expected: **0**. Any other result means Task 6 has not reached production — stop.
-
-**Why:** v1.8.0 is the **build** the launch runs on, not the **story** the launch
-tells. Those were conflated in the first draft of this plan and it produced a
-contradiction: Named Workspaces was called the headline, yet the Show HN post
-never mentioned it — correctly, because workspace *creation* is Patron-gated and
-a paywalled headline is a weak opening on Hacker News.
-
-The resolved position: **the story is the browser** — the Island, network-level
-blocking, and the deliberate absence of an extension runtime. Named Workspaces
-ships in the build, appears in the release notes, and features in the Product
-Hunt listing where a paid tier reads as normal. It is not the Show HN pitch.
-
-The soak exists so the launch rides a build that has survived a weekend, not one
-that is hours old.
-
-- [ ] **Step 1: Read the release runbook before touching anything**
-
-```bash
-cat docs/release-verification.md
-```
-
-Also invoke the `releasing-blanc` skill — it carries the required `BLANC_RELEASE_*` env vars that the checked-in runbook omits.
-
-- [ ] **Step 2: Bump the version and the lockfile together**
-
-Set `version` to `1.8.0` in `package.json`, then regenerate the lockfile so the
-two agree — a release built from a lockfile still pinned to the old version is a
-dirty release source:
-
-```bash
-npm install --package-lock-only
-git diff --stat package.json package-lock.json
-```
-
-Consider whether the `electron` devDependency should move with it (Chromium
-cannot be swapped out of a running app).
-
-- [ ] **Step 3: Write the release notes file**
-
-`release.sh` ships `docs/press/release-notes/v1.8.0.md` **verbatim** via
-`--notes-file`. Write it before releasing.
-
-Formatting rules that are not optional, because the site changelog is generated
-from the published release body: put **each paragraph on ONE line** (a wrapped
-paragraph fragments into separate blocks), use no markdown headings, and let
-dates render in America/New_York.
-
-- [ ] **Step 4: Pin the press page to the new version**
-
-`site/src/pages/press.astro` carries `const VERSION = '1.7.0';`. Advance it to
-`1.8.0`, or the press kit states the old version beside the new release.
-
-- [ ] **Step 5: Run the real release gate**
-
-Not `test:unit` alone — the repository defines a far broader gate:
-
-```bash
-npm run release:verify:press
-```
-
-That runs `substrate:check`, `icons:windows:check`, `test:unit`,
-`test:acceptance:dry`, `test:acceptance:desktop`, `test:cold-launch`,
-`test:oauth:desktop`, `test:dns-smoke`, `release:security` (npm audit) and
-`site:build`. Expected: all pass. Do not release on a red gate.
-
-Note the known first-attempt killers: the press-kit version pin (Step 4),
-`npm audit` findings, and site dependency issues.
-
-- [ ] **Step 6: Commit the release inputs, merge them, and enter a clean checkout**
-
-**`release.sh` will refuse to run otherwise.** It checks that every release
-source is clean and that `HEAD == origin/main`:
-
-```
-Release sources are dirty. Commit every release input before staging.
-HEAD is not origin/main. Push the exact release commit first.
-```
-
-`RELEASE_SOURCES` covers `README.md`, `SECURITY.md`, `package.json`,
-`package-lock.json`, `.github/workflows`, and the notes file — all of which
-Steps 2–4 just modified. Releasing directly from that working tree exits 1.
-
-```bash
-git checkout -b release-1-8-0
-git add package.json package-lock.json docs/press/release-notes/v1.8.0.md \
-        site/src/pages/press.astro README.md
-git status --short          # confirm nothing unexpected is staged
-git commit -m "Release Blanc 1.8.0"
-git push -u origin release-1-8-0
-gh pr create --title "Release Blanc 1.8.0" --body "Version bump, lockfile, release notes, press pin."
-```
-
-Merge the PR, then enter a checkout that is exactly `origin/main`:
-
-```bash
-git checkout main && git pull
-git fetch origin
-[ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] && echo "OK: HEAD == origin/main" || echo "STOP: not at origin/main"
-git status --porcelain      # must be EMPTY
-```
-
-Both checks must pass before the next step. This is also why Step 5's gate runs
-*before* the PR: a red gate should never become a merged commit.
-
-- [ ] **Step 7: Release**
-
-Run `npm run release` in a **native Terminal**, foreground and interactive.
-Never backgrounded — cosign falls back to a 300s device code and has burned a
-release before. Never rerun an immutable release after its tag or draft exists;
-an abort after the tag push forces a version bump.
-
-- [ ] **Step 8: Complete the post-publication workflow**
-
-`docs/release-verification.md` specifies this exactly; all of it, in order:
-
-```bash
-npm run site:changelog     # regenerate site/src/data/releases.json — never hand-edit
-```
-
-Then **advance the public and migration baselines**. Note that `AGENTS.md` is
-currently stale — it still reads `Current public baseline (Aug 17, 2026): v1.5.1`
-while `CLAUDE.md` reads v1.7.0. Advance **both** to v1.8.0 so the next reader is
-not misled the way this plan's own review was.
-
-```bash
-npm run site:build
-```
-
-Then commit **explicit paths only** — never `git add -A`, which would sweep in
-anything untracked:
-
-```bash
-git add site/src/data/releases.json CLAUDE.md AGENTS.md
-git status --short          # confirm NOTHING unexpected is staged
-git commit -m "Record Blanc 1.8.0 in the public changelog"
-```
-
-Follow the repository's normal separate-PR workflow for this post-release
-commit rather than pushing to `main` directly:
-
-```bash
-git push -u origin record-blanc-1-8-0
-gh pr create --title "Record Blanc 1.8.0 in the public changelog" --body "..."
-```
-
-Merge it, then deploy from a clean checkout at `origin/main`:
-
-```bash
-git checkout main && git pull
-npm run site:deploy
-```
-
-- [ ] **Step 9: Verify the deploy reached production, not a preview**
-
-```bash
-npx wrangler pages deployment list --project-name=blancbrowser
-```
-
-Confirm the expected source SHA shows `Environment: Production` and
-`Branch: main`. Then load the **canonical domain** and confirm both the
-changelog and the homepage show 1.8.0 — not a Cloudflare preview URL.
-
-- [ ] **Step 10: Start the soak clock**
-
-```bash
-echo '{"date":"YYYY-MM-DD","version":"1.8.0","publishedAt":"<ISO>","soakEndsAt":"<ISO + 48h>"}' \
-  >> "$LAUNCH_LOG"
-```
-
-- [ ] **Step 11: Soak exit criteria — real upgrade evidence, not elapsed time**
-
-48 hours passing is necessary but not sufficient. Per `CLAUDE.md`, the current
-public baseline is **v1.7.0**, and the next release must validate:
-
-- [ ] the normal **v1.7.0 → v1.8.0 upgrade path on macOS**
-- [ ] the normal **v1.7.0 → v1.8.0 upgrade path on Windows**
-- [ ] **Linux install/launch**
-
-A Windows updater check must *begin inside the old packaged Blanc*: it discovers
-the staged `latest.yml`, downloads the matching installer, and the user invokes
-**Restart Now**. A directly launched NSIS installer is **not** an updater-handoff
-test and does not satisfy this.
-
-(The reviewer of this plan cited `AGENTS.md`'s demand for v1.4.0/v1.5.0 Windows
-journeys. That gap was **closed during v1.7.0** — see `CLAUDE.md`. The
-requirement above is the current one; `AGENTS.md` is stale and Step 7 fixes it.)
-
-If any upgrade check fails, the launch week moves.
-
-**Launch Monday must fall after `soakEndsAt`.** If a regression surfaces during the soak, the launch week moves — it does not proceed on a known-bad build.
-
----
-
-## Phase 1 — Assets (built during the freeze)
-
-### Task 6: Make the site's Patron claims true, and ship the objections page
+### Task 5: Make the site's Patron claims true, and ship the objections page
 
 **Owner:** `agent` — this is ordinary site work.
 
@@ -507,7 +297,7 @@ site's legal page contradicts the product.
 - Modify: `site/src/pages/press.astro:297` (price line + "cosmetic Dock icons today")
 
 **Interfaces:**
-- Produces: `https://blancbrowser.com/faq` — linked verbatim from Tasks 11–13 when an objection lands.
+- Produces: `https://blancbrowser.com/faq` — linked verbatim from Tasks 12–14 when an objection lands.
 
 **Why:** So the answers are *linkable* in a hostile thread rather than retyped under pressure at hour three of a Show HN.
 
@@ -741,7 +531,260 @@ https://blancbrowser.com/faq and confirm it is live.
 
 ---
 
-### Task 7: Cut the 20-second Island demo
+### Task 6: Refresh the README — it becomes the Show HN landing page
+
+**Owner:** `agent`.
+
+**Why this sits in Phase 0, before the release:** `README.md` is one of
+`release.sh`'s `RELEASE_SOURCES`. If it is edited after v1.8.0 ships, the change
+is not in the released commit and `release.sh` would have refused the release
+anyway for a dirty source. It must be correct and committed *before* Task 7 runs.
+
+It is also, once Task 12 submits the repository to Show HN, the first thing
+thousands of sceptical readers see. Build instructions alone will not do.
+
+- [ ] **Step 1: Rewrite the README to carry the story**
+
+Confirm or add, in this order:
+
+- **One-line description** and a screenshot or the demo GIF from Task 7.
+- **Licence status, stated plainly:** source-available, `UNLICENSED`, forkable on
+  GitHub, no grant to modify/redistribute/publish builds. Do not let a reader
+  infer "open source" from the repo being public.
+- **The Patron boundary:** every core browsing feature is free; Patron adds icon
+  colorways and named workspaces; creating a workspace needs an active
+  subscription, renaming/removing does not.
+- **A link to the memory benchmark** (`bench/memory/`) — the strongest technical
+  artifact and the direct answer to the Electron objection.
+- **A link to https://blancbrowser.com/faq**.
+- **Download links** for macOS, Windows, Linux.
+
+- [ ] **Step 2: Commit it (explicit path)**
+
+```bash
+git add README.md
+git status --short
+git commit -m "README: licence status, Patron boundary, benchmark and FAQ links"
+```
+
+Leave it committed on the branch that Task 7 Step 6 merges, or merge it
+separately — either way it must be in `origin/main` before the release runs.
+
+---
+
+### Task 7: Release v1.8.0 and soak
+
+**Owner:** `owner` — the release script requires interactive 1Password/Terminal auth.
+
+**Depends on: Task 4 passing, Task 5 merged AND deployed to production, and Task 6's README committed.**
+
+Task 5 is a hard prerequisite, not a suggestion. Until its copy corrections are
+live on `blancbrowser.com`, publishing v1.8.0 puts the shipped product in direct
+contradiction with the site's own Terms of Service. Verify before starting:
+
+```bash
+curl -s https://blancbrowser.com/terms | grep -c "none of them are locked behind payment"
+```
+
+Expected: **0**. Any other result means Task 5 has not reached production — stop.
+
+**Why:** v1.8.0 is the **build** the launch runs on, not the **story** the launch
+tells. Those were conflated in the first draft of this plan and it produced a
+contradiction: Named Workspaces was called the headline, yet the Show HN post
+never mentioned it — correctly, because workspace *creation* is Patron-gated and
+a paywalled headline is a weak opening on Hacker News.
+
+The resolved position: **the story is the browser** — the Island, network-level
+blocking, and the deliberate absence of an extension runtime. Named Workspaces
+ships in the build, appears in the release notes, and features in the Product
+Hunt listing where a paid tier reads as normal. It is not the Show HN pitch.
+
+The soak exists so the launch rides a build that has survived a weekend, not one
+that is hours old.
+
+- [ ] **Step 1: Read the release runbook before touching anything**
+
+```bash
+cat docs/release-verification.md
+```
+
+Also invoke the `releasing-blanc` skill — it carries the required `BLANC_RELEASE_*` env vars that the checked-in runbook omits.
+
+- [ ] **Step 2: Bump the version and the lockfile together**
+
+Set `version` to `1.8.0` in `package.json`, then regenerate the lockfile so the
+two agree — a release built from a lockfile still pinned to the old version is a
+dirty release source:
+
+```bash
+npm install --package-lock-only
+git diff --stat package.json package-lock.json
+```
+
+Consider whether the `electron` devDependency should move with it (Chromium
+cannot be swapped out of a running app).
+
+- [ ] **Step 3: Write the release notes file**
+
+`release.sh` ships `docs/press/release-notes/v1.8.0.md` **verbatim** via
+`--notes-file`. Write it before releasing.
+
+Formatting rules that are not optional, because the site changelog is generated
+from the published release body: put **each paragraph on ONE line** (a wrapped
+paragraph fragments into separate blocks), use no markdown headings, and let
+dates render in America/New_York.
+
+- [ ] **Step 4: Pin the press page to the new version**
+
+`site/src/pages/press.astro` carries `const VERSION = '1.7.0';`. Advance it to
+`1.8.0`, or the press kit states the old version beside the new release.
+
+- [ ] **Step 5: Run the real release gate**
+
+Not `test:unit` alone — the repository defines a far broader gate:
+
+```bash
+npm run release:verify:press
+```
+
+That runs `substrate:check`, `icons:windows:check`, `test:unit`,
+`test:acceptance:dry`, `test:acceptance:desktop`, `test:cold-launch`,
+`test:oauth:desktop`, `test:dns-smoke`, `release:security` (npm audit) and
+`site:build`. Expected: all pass. Do not release on a red gate.
+
+Note the known first-attempt killers: the press-kit version pin (Step 4),
+`npm audit` findings, and site dependency issues.
+
+- [ ] **Step 6: Commit the release inputs, merge them, and enter a clean checkout**
+
+**`release.sh` will refuse to run otherwise.** It checks that every release
+source is clean and that `HEAD == origin/main`:
+
+```
+Release sources are dirty. Commit every release input before staging.
+HEAD is not origin/main. Push the exact release commit first.
+```
+
+`RELEASE_SOURCES` covers `README.md`, `SECURITY.md`, `package.json`,
+`package-lock.json`, `.github/workflows`, and the notes file — all of which
+Steps 2–4 just modified. Releasing directly from that working tree exits 1.
+
+```bash
+git checkout -b release-1-8-0
+git add package.json package-lock.json docs/press/release-notes/v1.8.0.md \
+        site/src/pages/press.astro README.md
+git status --short          # confirm nothing unexpected is staged
+git commit -m "Release Blanc 1.8.0"
+git push -u origin release-1-8-0
+gh pr create --title "Release Blanc 1.8.0" --body "Version bump, lockfile, release notes, press pin."
+```
+
+Merge the PR, then enter a checkout that is exactly `origin/main`:
+
+```bash
+git checkout main && git pull
+git fetch origin
+[ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)" ] && echo "OK: HEAD == origin/main" || echo "STOP: not at origin/main"
+git status --porcelain      # must be EMPTY
+```
+
+Both checks must pass before the next step. This is also why Step 5's gate runs
+*before* the PR: a red gate should never become a merged commit.
+
+- [ ] **Step 7: Release**
+
+Run `npm run release` in a **native Terminal**, foreground and interactive.
+Never backgrounded — cosign falls back to a 300s device code and has burned a
+release before. Never rerun an immutable release after its tag or draft exists;
+an abort after the tag push forces a version bump.
+
+- [ ] **Step 8: Complete the post-publication workflow**
+
+`docs/release-verification.md` specifies this exactly; all of it, in order:
+
+```bash
+npm run site:changelog     # regenerate site/src/data/releases.json — never hand-edit
+```
+
+Then **advance the public and migration baselines in both `CLAUDE.md` and
+`AGENTS.md`** to v1.8.0. The two files were resynchronised to v1.7.0 in
+`e39fb6b`; keep them in lockstep. Commit `572cd7f` advanced only `CLAUDE.md`,
+which is exactly how they drifted apart and why this plan's first review demanded
+retired evidence — do not repeat that by updating one.
+
+```bash
+npm run site:build
+```
+
+Then commit **explicit paths only** — never `git add -A`, which would sweep in
+anything untracked:
+
+```bash
+git add site/src/data/releases.json CLAUDE.md AGENTS.md
+git status --short          # confirm NOTHING unexpected is staged
+git commit -m "Record Blanc 1.8.0 in the public changelog"
+```
+
+Follow the repository's normal separate-PR workflow for this post-release
+commit rather than pushing to `main` directly:
+
+```bash
+git push -u origin record-blanc-1-8-0
+gh pr create --title "Record Blanc 1.8.0 in the public changelog" --body "..."
+```
+
+Merge it, then deploy from a clean checkout at `origin/main`:
+
+```bash
+git checkout main && git pull
+npm run site:deploy
+```
+
+- [ ] **Step 9: Verify the deploy reached production, not a preview**
+
+```bash
+npx wrangler pages deployment list --project-name=blancbrowser
+```
+
+Confirm the expected source SHA shows `Environment: Production` and
+`Branch: main`. Then load the **canonical domain** and confirm both the
+changelog and the homepage show 1.8.0 — not a Cloudflare preview URL.
+
+- [ ] **Step 10: Start the soak clock**
+
+```bash
+echo '{"date":"YYYY-MM-DD","version":"1.8.0","publishedAt":"<ISO>","soakEndsAt":"<ISO + 48h>"}' \
+  >> "$LAUNCH_LOG"
+```
+
+- [ ] **Step 11: Soak exit criteria — real upgrade evidence, not elapsed time**
+
+48 hours passing is necessary but not sufficient. Per `CLAUDE.md`, the current
+public baseline is **v1.7.0**, and the next release must validate:
+
+- [ ] the normal **v1.7.0 → v1.8.0 upgrade path on macOS**
+- [ ] the normal **v1.7.0 → v1.8.0 upgrade path on Windows**
+- [ ] **Linux install/launch**
+
+A Windows updater check must *begin inside the old packaged Blanc*: it discovers
+the staged `latest.yml`, downloads the matching installer, and the user invokes
+**Restart Now**. A directly launched NSIS installer is **not** an updater-handoff
+test and does not satisfy this.
+
+(An earlier review of this plan cited `AGENTS.md`'s demand for v1.4.0/v1.5.0
+Windows journeys. That gap was **closed during v1.7.0**, and `AGENTS.md` was
+resynchronised to the v1.7.0 baseline in `e39fb6b` — both files now agree. The
+requirement above is the current one.)
+
+If any upgrade check fails, the launch week moves.
+
+**Launch Monday must fall after `soakEndsAt`.** If a regression surfaces during the soak, the launch week moves — it does not proceed on a known-bad build.
+
+---
+
+## Phase 1 — Assets (built during the freeze)
+
+### Task 8: Cut the 20-second Island demo
 
 **Owner:** `owner` — screen capture on the real machine.
 
@@ -783,7 +826,7 @@ Do **not** commit large binaries to the repo if they exceed a few MB — store t
 
 ---
 
-### Task 8: Verify the newsletter capture path
+### Task 9: Verify the newsletter capture path
 
 **Owner:** `agent` for the test; `owner` if the Resend key needs rotating.
 
@@ -847,7 +890,7 @@ impossible to fix retroactively.
 
 ---
 
-### Task 9: Write the channel copy pack
+### Task 10: Write the channel copy pack
 
 **Owner:** `agent-drafts / owner-publishes`.
 
@@ -855,8 +898,8 @@ impossible to fix retroactively.
 - Create: `docs/superpowers/plans/assets/launch-copy.md`
 
 **Interfaces:**
-- Consumes: the tagged URLs from Task 2, `/faq` from Task 6, the demo from Task 7.
-- Produces: the exact text posted in Tasks 10–13.
+- Consumes: the tagged URLs from Task 2, `/faq` from Task 5, the demo from Task 8.
+- Produces: the exact text posted in Tasks 11–14.
 
 **Why:** Copy written under time pressure on launch morning is worse copy. Everything gets drafted while the freeze is on.
 
@@ -1074,7 +1117,7 @@ is free.
 network-level blocking, why no extension runtime — and state the Patron gate on
 workspace creation plainly.
 
-Lead the listing with the demo video from Task 7.
+Lead the listing with the demo video from Task 8.
 
 - [ ] **Step 2c: Write the AlternativeTo listing — drafted here, verbatim**
 
@@ -1112,28 +1155,6 @@ browser instead of as an extension, so it isn't limited by Manifest V3. Free on
 macOS, Windows and Linux, with no account required to use it.
 ```
 
-- [ ] **Step 2e: Refresh the README — it is now the landing page**
-
-Submitting the repository to Show HN makes `README.md` the first thing thousands
-of sceptical readers see. It must carry the story, not just build instructions.
-
-Confirm or add, in this order:
-
-- **One-line description** and a screenshot or the demo GIF from Task 7.
-- **Licence status, stated plainly:** source-available, `UNLICENSED`, forkable on
-  GitHub, no grant to modify/redistribute/publish builds. Do not let a reader
-  infer "open source" from the repo being public.
-- **The Patron boundary:** every core browsing feature is free; Patron adds icon
-  colorways and named workspaces; creating a workspace needs an active
-  subscription, renaming/removing does not.
-- **A link to the memory benchmark** (`bench/memory/`) — the strongest technical
-  artifact and the direct answer to the Electron objection.
-- **A link to https://blancbrowser.com/faq**.
-- **Download links** for macOS, Windows, Linux.
-
-`README.md` is in `release.sh`'s `RELEASE_SOURCES`, so this edit must be
-committed before the release runs — fold it into Task 5 Step 6's release commit.
-
 - [ ] **Step 3: Fact-check every claim in the pack**
 
 Cross-check version numbers, prices, platform support and the memory figures against the repo. The memory numbers must match `MemoryChart.astro` and `docs/press/fact-sheet.md` exactly — they are pinned together by `test/unit/public-truth.test.js`.
@@ -1149,11 +1170,11 @@ git commit -m "docs: launch copy pack for the growth counter-offensive"
 
 ## Phase 2 — Launch week (feature freeze in effect)
 
-### Task 10: Monday — baseline, then evergreen listings
+### Task 11: Monday — baseline, then evergreen listings
 
 **Owner:** `owner` — posting under an account.
 
-**Depends on: Tasks 1–9, all of them.** Not a subset. An executor working
+**Depends on: Tasks 1–10, all of them.** Not a subset. An executor working
 task-by-task must not be able to legally start launch week with measurement
 dark, the Ads account unverified, the checkout unproven, or the release
 unshipped.
@@ -1170,19 +1191,20 @@ cat "$LAUNCH_LOG"
 - [ ] Task 2 — GA4 confirmed live via a **Realtime** self-test
 - [ ] Task 3 — Google Ads verification complete, campaign Enabled
 - [ ] Task 4 — production Patron purchase **PASS**
-- [ ] Task 5 — v1.8.0 published, post-publication workflow complete
-- [ ] Task 5 — macOS upgrade, Windows updater handoff, Linux install/launch all verified
-- [ ] Task 6 — `/faq` live **and** the four contradicting pages corrected and deployed
-- [ ] Task 7 — demo video exported
-- [ ] Task 8 — newsletter capture verified with a fresh alias
-- [ ] Task 9 — copy pack committed
+- [ ] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
+- [ ] Task 6 — README refreshed and merged (it is the Show HN landing page)
+- [ ] Task 7 — v1.8.0 published, post-publication workflow complete
+- [ ] Task 7 — macOS upgrade, Windows updater handoff, Linux install/launch all verified
+- [ ] Task 8 — demo video exported
+- [ ] Task 9 — newsletter capture verified with a fresh alias
+- [ ] Task 10 — copy pack committed
 
 - [ ] **Step 0a: Verify the soak has actually elapsed**
 
 ```bash
 python3 -c "
-import datetime, json, pathlib
-rows = [json.loads(l) for l in pathlib.Path('"$LAUNCH_LOG"').read_text().splitlines() if l.strip()]
+import datetime, json, os, pathlib
+rows = [json.loads(l) for l in pathlib.Path(os.environ['LAUNCH_LOG']).read_text().splitlines() if l.strip()]
 soak = [r for r in rows if r.get('soakEndsAt')][-1]
 ends = datetime.datetime.fromisoformat(soak['soakEndsAt'].replace('Z','+00:00'))
 now  = datetime.datetime.now(datetime.timezone.utc)
@@ -1192,7 +1214,7 @@ print('CLEARED' if now >= ends else 'NOT CLEARED — DO NOT LAUNCH')
 ```
 
 Expected: `CLEARED`. If not, the launch week moves. Elapsed time alone is not
-enough — Task 5 Step 10's upgrade evidence must also be recorded.
+enough — Task 7 Step 11's upgrade evidence must also be recorded.
 
 - [ ] **Step 1: Take the pre-launch baseline BEFORE anything is posted**
 
@@ -1209,7 +1231,7 @@ echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline
   >> "$LAUNCH_LOG"
 ```
 
-**Every number in Task 14 is measured against this row.**
+**Every number in Task 15 is measured against this row.**
 
 - [ ] **Step 2: Confirm the AlternativeTo listing went live**
 
@@ -1218,7 +1240,7 @@ and continue — it is not a reason to delay.
 
 - [ ] **Step 3: Submit to BetaList**
 
-Use `https://blancbrowser.com/?ref=betalist` and the Task 9 copy. Standard
+Use `https://blancbrowser.com/?ref=betalist` and the Task 10 copy. Standard
 review can take ~2 months; submitting Monday costs nothing and may land later.
 
 - [ ] **Step 4: Record both statuses**
@@ -1232,11 +1254,11 @@ A silent rejection is a channel you believe you fired and did not.
 
 ---
 
-### Task 11: Tuesday — Show HN
+### Task 12: Tuesday — Show HN
 
 **Owner:** `owner` — must post and engage personally. **An agent must not post to Hacker News.**
 
-**Depends on:** Task 10.
+**Depends on:** Task 11.
 
 **Why here:** Highest ceiling and highest hostility. Fired first because its criticism is free market research that improves Thursday's Product Hunt copy.
 
@@ -1250,18 +1272,18 @@ prescribed pattern is *"just submit the link, then add a regular comment."*
 
 So:
 
-1. **Title:** the Task 9 title, verbatim.
+1. **Title:** the Task 10 title, verbatim.
 2. **URL:** `https://github.com/bnfy/blanc` — the repository, not the marketing
    homepage (HN's landing-page rule).
 3. **Leave the text field empty.** Submit.
-4. **Immediately** post the Task 9 body as the **first comment** on your own
+4. **Immediately** post the Task 10 body as the **first comment** on your own
    submission. Do not wait — the opening minutes shape the thread.
 
 > **Say the Patron gate out loud, unprompted.** Named Workspaces is not the
-> Show HN pitch — the browser is (see Task 5) — but it ships in this build, it
+> Show HN pitch — the browser is (see Task 7) — but it ships in this build, it
 > is in the release notes, and **creating one requires an active Patron**
 > (`chrome:workspaces-save-as` returns `not-patron`). Launching a paywalled
-> headline feature without naming it is the fastest way to lose a thread — HN
+> gated feature without naming it is the fastest way to lose a thread — HN
 > will find it in minutes and the framing becomes "he buried the paywall."
 > Stating it plainly in your own first comment costs nothing and removes the
 > gotcha entirely. Renaming and deleting existing workspaces still work on a
@@ -1274,7 +1296,7 @@ This is the actual work. Answer every technical criticism, including hostile one
 
 - [ ] **Step 3: Use the prepared answers, link `/faq`**
 
-Paste the rehearsed responses drafted in Task 9. Link `/faq` rather than retyping.
+Paste the rehearsed responses drafted in Task 10. Link `/faq` rather than retyping.
 
 - [ ] **Step 4: Capture every objection actually raised**
 
@@ -1283,7 +1305,7 @@ echo '{"date":"YYYY-MM-DD","channel":"show-hn","objections":["..."],"peakRank":N
   >> "$LAUNCH_LOG"
 ```
 
-**This list is an input to Tasks 12 and 13.** The whole point of the ordering is that Wednesday and Thursday get to answer what real readers actually said.
+**This list is an input to Tasks 13 and 14.** The whole point of the ordering is that Wednesday and Thursday get to answer what real readers actually said.
 
 - [ ] **Step 5: Read the traffic**
 
@@ -1298,13 +1320,13 @@ specifically, and the retrospective must not claim otherwise.
 
 ---
 
-### Task 12: Wednesday — Reddit
+### Task 13: Wednesday — Reddit
 
 **Owner:** `owner` — posting under a personal identity.
 
-**Depends on:** Task 11, including its objection list.
+**Depends on:** Task 12, including its objection list.
 
-- [ ] **Step 1: Revise the Reddit copy (Task 9) using Tuesday's objections**
+- [ ] **Step 1: Revise the Reddit copy (Task 10) using Tuesday's objections**
 
 Pre-empt in the post body whatever HN hit hardest. If telemetry dominated Tuesday, address it in the post rather than waiting to be asked.
 
@@ -1323,11 +1345,11 @@ echo '{"date":"YYYY-MM-DD","channel":"reddit","subreddits":["..."],"removed":[],
 
 ---
 
-### Task 13: Thursday — Product Hunt
+### Task 14: Thursday — Product Hunt
 
 **Owner:** `owner` — posting and engaging.
 
-**Depends on:** Tasks 11 and 12.
+**Depends on:** Tasks 12 and 13.
 
 **Why last:** The copy has now been tested against two days of live argument. A PH badge is permanent — spend it on a message proven to work.
 
@@ -1350,11 +1372,11 @@ echo '{"date":"YYYY-MM-DD","channel":"product-hunt","rank":N,"upvotes":N,"commen
 
 ---
 
-### Task 14: Measure, and set the real checkpoint
+### Task 15: Measure, and set the real checkpoint
 
 **Owner:** `agent` for the analysis; `owner` for the judgement call at the end.
 
-**Depends on:** Tasks 10–13.
+**Depends on:** Tasks 11–14.
 
 **Why:** The spec's success criteria are falsifiable only if someone actually checks them.
 
@@ -1448,30 +1470,57 @@ If the September cohort cleared 81, retention becomes measurable and earns its o
 
 ## Dependency summary
 
+Tasks are ordered so every dependency runs **forward**. An executor working
+strictly top-to-bottom never reaches a task whose prerequisite is still ahead of
+it — the first draft of this plan failed that test twice.
+
 ```
-Task 1 (AlternativeTo + $5 priority review, ~2 biz days) ─┐
-Task 2 (measurement) ─────────────────────────────────────┤
-Task 3 (Ads verification, Sep 2 deadline) ────────────────┤
-Task 4 (production purchase) → Task 5 (v1.8.0 + soak) ────┤
-Task 6 (/faq + fix 4 contradicting pages) ── MUST precede Task 5's publish
-                                                          │
-Task 7 (demo video) ──────────────────────────────────────┤
-Task 8 (newsletter capture verified) ─────────────────────┤
-Task 9 (copy pack) ───────────────────────────────────────┤
-                                                          ▼
-                                    Task 10 (Mon: listings)
-                                              ▼
-                                    Task 11 (Tue: Show HN)
-                                              ▼
-                                    Task 12 (Wed: Reddit)
-                                              ▼
-                                    Task 13 (Thu: Product Hunt)
-                                              ▼
-                                    Task 14 (measure + Oct 1)
+PHASE 0 — prep, in this order
+  Task 1  AlternativeTo + $5 priority review      (~1–2 business days to clear)
+  Task 2  Measurement restored (GA4 Realtime)
+  Task 3  Google Ads verification                 (deadline 2026-09-02)
+  Task 4  Production Patron purchase              ── HARD STOP if it fails
+            ▼
+  Task 5  Site: /faq + fix 4 false Patron claims, DEPLOYED to production
+  Task 6  README refreshed and merged             (a release source; also the HN landing page)
+            ▼
+  Task 7  Release v1.8.0 → 48h soak + upgrade evidence
+            (requires 4 passed, 5 live, 6 merged)
+
+PHASE 1 — assets, during the freeze
+  Task 8  Demo video
+  Task 9  Newsletter capture verified
+  Task 10 Copy pack committed
+
+PHASE 2 — launch week
+  Task 11 Mon  baseline FIRST, then listings   (requires Tasks 1–10)
+     ▼
+  Task 12 Tue  Show HN        (URL only; body as first comment)
+     ▼
+  Task 13 Wed  Reddit         (revised with Tuesday's objections)
+     ▼
+  Task 14 Thu  Product Hunt   (revised with both days')
+     ▼
+  Task 15      Measure + Oct 1 checkpoint
 ```
 
+**Why Tasks 5 and 6 precede the release.** Both edit things the release depends
+on. Task 5's corrections must be live because publishing Patron-gated workspace
+creation while `blancbrowser.com/terms` still denies any paywall puts the
+shipped product in conflict with its own legal page. Task 6 edits `README.md`,
+which is in `release.sh`'s `RELEASE_SOURCES` — an uncommitted change there makes
+`release.sh` exit 1 on a dirty source, and a change made *after* the release is
+simply absent from the released commit.
+
 **Hard stops:**
-- **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means the headline feature is unreachable *and* the best traffic day converts nothing.
-- **Task 6 not deployed before Task 5 publishes** → the site's Terms of Service contradicts the shipped product. Fix the copy first.
-- **Task 5's soak not cleared** — either <48h elapsed *or* the macOS/Windows/Linux upgrade evidence missing → the launch week moves. Task 10 Step 0a enforces this mechanically.
-- **Task 1 still pending review on Monday** → that channel does not fire. This is *not* a reason to move the launch week (the corrected rules mean there is no account-age clock to miss).
+
+- **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means that feature is unreachable *and* the best traffic day converts nothing.
+- **Task 5 not deployed to production** → do not release. Verified by curl against the live Terms page, not by looking at the diff.
+- **Task 6 not merged** → `release.sh` refuses the dirty `README.md`, or the release ships without it.
+- **Task 7's soak not cleared** — either <48h elapsed *or* the macOS/Windows/Linux upgrade evidence missing → the launch week moves. Task 11 Step 0a enforces the time half mechanically; the evidence half is a human check.
+- **Task 1 still pending review on Monday** → that channel does not fire. This is *not* a reason to move the launch week; the corrected rules mean there is no account-age clock to miss.
+
+**Open decision carried into execution:** the licence question (see Global
+Constraints). Tasks 5 and 6 both publish wording about it, so settle it before
+either is finalised, or accept the precise "source-available / no redistribution
+grant" phrasing they currently use.
