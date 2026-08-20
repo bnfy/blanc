@@ -66,6 +66,7 @@ function sandboxFor({ doc, islandList }, extra = {}) {
     document: doc,
     islandList,
     pendingEditorFocus: null,
+    claimEditorFocus: true,
     createWorkspaceValue: '',
     workspaceEditValue: '',
     currentCreateCaret: () => null,
@@ -87,6 +88,49 @@ function sandboxFor({ doc, islandList }, extra = {}) {
   );
   return sandbox;
 }
+
+test('an incidental re-render does not yank focus into an already-open editor', () => {
+  const dom = makeDom();
+  const sandbox = sandboxFor(dom, { claimEditorFocus: true });
+
+  const first = sandbox.__create();
+  dom.islandList.replaceChildren(first);
+  sandbox.__applyFocus();
+  assert.equal(dom.doc.activeElement?.className, 'row-edit-input');
+
+  // The user clicked the address input (a sibling of islandList, so it
+  // survives replaceChildren). Mimic that by parking activeElement elsewhere
+  // and answering currentCreateCaret with null — the editor is open, but it
+  // does not currently hold focus.
+  const address = new dom.El('input');
+  address.className = 'address-input';
+  address.focus = function focus() { dom.doc.activeElement = this; };
+  address.focus();
+  sandbox.currentCreateCaret = () => null;
+  sandbox.claimEditorFocus = false;
+
+  const second = sandbox.__create();
+  dom.islandList.replaceChildren(second);
+  sandbox.__applyFocus();
+  assert.equal(dom.doc.activeElement?.className, 'address-input',
+    'tabs:updated must not steal the caret out of the address input');
+  assert.equal(sandbox.pendingEditorFocus, null);
+});
+
+test('a re-render restores the caret only when the editor already held focus', () => {
+  const dom = makeDom();
+  const sandbox = sandboxFor(dom, {
+    claimEditorFocus: false,
+    currentCreateCaret: () => 3,
+  });
+
+  const row = sandbox.__create();
+  assert.ok(sandbox.pendingEditorFocus, 'an editor that already held focus must re-claim it');
+  dom.islandList.replaceChildren(row);
+  sandbox.__applyFocus();
+  assert.equal(dom.doc.activeElement?.className, 'row-edit-input');
+  assert.deepEqual(dom.doc.activeElement.selectionRange, [3, 3]);
+});
 
 test('the create editor does not try to focus a row that is still detached', () => {
   const dom = makeDom();
@@ -139,4 +183,7 @@ test('renderList applies the pending editor focus after it inserts the rows', ()
   // An inline focus() in either editor is the bug this test exists for.
   assert.doesNotMatch(lift('renderCreateWorkspaceEditor'), /input\.focus\(\)/);
   assert.doesNotMatch(lift('renderWorkspaceRenameEditor'), /input\.focus\(\)/);
+  assert.match(lift('renderCreateWorkspaceEditor'), /caret != null \|\| claimEditorFocus/);
+  assert.match(lift('renderWorkspaceRenameEditor'), /caret != null \|\| claimEditorFocus/);
+  assert.match(lift('beginCreateWorkspace'), /claimEditorFocus = true/);
 });

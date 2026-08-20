@@ -61,6 +61,19 @@ test('switchWindowToWorkspace and createBlankWorkspaceAndSwitch are still liftab
   assert.ok(createBlankSource, 'createBlankWorkspaceAndSwitch not found — update this test with it');
 });
 
+const scratchGuardSource = slice(
+  'function scratchGuardResult(runtime) {',
+  '\nfunction saveCurrentWindowAsWorkspace'
+);
+
+test('scratchGuardResult feeds live tabs to the model, not persistableEntries', () => {
+  assert.ok(scratchGuardSource, 'scratchGuardResult not found — update this test with it');
+  assert.match(scratchGuardSource, /scratchSwitchGuardResult\(/);
+  assert.doesNotMatch(scratchGuardSource, /persistableEntries/,
+    'persistableEntries drops private tabs, which apply still closes with no recovery');
+  assert.match(scratchGuardSource, /runtime\.tabOrder\.map/);
+});
+
 // ---------------------------------------------------------------------------
 // applyWorkspaceToWindow: the 9-point apply checklist's tab-churn half
 // (points 1, 2, 4-8 — points 3 and 9 belong to switchWindowToWorkspace as of

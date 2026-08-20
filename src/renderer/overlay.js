@@ -146,12 +146,17 @@
   // 'create' replays createBlankWorkspace(name). awaitingSave is set only
   // while "save first" is in flight — see the /workspace command's create
   // branch, which is the one place that consumes it.
-  let pendingScratchGuard = null; // { kind: 'open'|'create', workspaceId?, name, tabCount, awaitingSave? }
+  let pendingScratchGuard = null; // { kind: 'open'|'create', workspaceId?, name, tabCount, privateCount, awaitingSave? }
   // A row-inline editor (rename / create) is built into a detached element and
   // only reaches the document when renderList() runs its replaceChildren, and
   // focus() on a detached node is silently a no-op. So the editors record the
   // focus they want here and renderList applies it once the row is live.
   let pendingEditorFocus = null; // { input, caret, select }
+  // True only for the render that opened an editor (user clicked new… /
+  // Rename). Incidental tabs:updated re-renders must not re-claim focus —
+  // that stole the caret out of the address input. An editor that already
+  // holds focus still re-claims via caret != null.
+  let claimEditorFocus = false;
 
   const ICONS = {
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
@@ -638,11 +643,11 @@
    * mutating call funnels its failure through here so none of them can ever
    * become a silent no-op — the whole point of the shared commandNotice
    * channel (see runCommand's resultNotice usage for /sleep). 'unsaved-scratch'
-   * is deliberately absent from the switch below: every call site that can
+   * is deliberately a safety net in the switch below: every call site that can
    * receive it passes runWorkspaceMutation an onUnsavedScratch handler, which
-   * intercepts it before this function ever runs (see runWorkspaceMutation) —
-   * the default case here is only a safety net for a hypothetical future call
-   * site that forgets to. */
+   * intercepts it before this function ever runs (see runWorkspaceMutation).
+   * The case exists so a future call site that forgets that handler still
+   * surfaces something instead of falling through to the generic default. */
   function workspaceErrorNotice(error, { name } = {}) {
     switch (error) {
       case 'not-patron': return 'Creating workspaces needs Blanc Patron.';
@@ -697,9 +702,9 @@
     runWorkspaceMutation(window.browserAPI.openWorkspace(workspace.id), {
       context: { name: workspace.name },
       onSuccess: () => window.browserAPI.closeOverlay(),
-      onUnsavedScratch: (result) => {
-        pendingScratchGuard = { kind: 'open', workspaceId: workspace.id, name: workspace.name, tabCount: result.tabCount };
-      },
+      onUnsavedScratch: (result) => rememberScratchGuard(result, {
+        kind: 'open', workspaceId: workspace.id, name: workspace.name,
+      }),
     });
   }
 
@@ -728,6 +733,7 @@
   function beginCreateWorkspace() {
     pendingCreateWorkspace = true;
     createWorkspaceValue = '';
+    claimEditorFocus = true;
     renderList();
   }
 
@@ -745,20 +751,29 @@
     runWorkspaceMutation(window.browserAPI.createBlankWorkspace(name), {
       context: { name },
       onSuccess: () => window.browserAPI.closeOverlay(),
-      onUnsavedScratch: (result) => {
-        pendingScratchGuard = { kind: 'create', name, tabCount: result.tabCount };
-      },
+      onUnsavedScratch: (result) => rememberScratchGuard(result, { kind: 'create', name }),
     });
+  }
+
+  /** Capture a {error:'unsaved-scratch'} response as the in-panel confirm.
+   * privateCount rides along so scratchGuardRow can hide "save first" when
+   * every at-risk tab is private (save-as cannot clear those). */
+  function rememberScratchGuard(result, extra = {}) {
+    pendingScratchGuard = {
+      ...extra,
+      tabCount: result.tabCount,
+      privateCount: result.privateCount ?? 0,
+    };
   }
 
   /** Re-run the action pendingScratchGuard remembers, with an explicit
    * decision about the guard: force:true is "discard and switch" (the user's
-   * own override); force:false is what "save first" retries with, because a
-   * successful save just bound this window — the guard already reads false
-   * from scratchGuardResult's own bound-window check, so this is a real
-   * re-decision, not a rubber stamp. Clears pendingScratchGuard and repaints
-   * BEFORE the mutation resolves, so the confirm row never lingers through
-   * the round-trip. */
+   * own override); force:false is what "save first" retries with. A successful
+   * save binds this window, which covers persistable tabs — but private pages
+   * still trip the guard, so this MUST pass onUnsavedScratch. Without it a
+   * re-trip falls through to the dead-end notice and drops the original
+   * action. Clears pendingScratchGuard and repaints BEFORE the mutation
+   * resolves, so the confirm row never lingers through the round-trip. */
   function retryScratchGuard(force) {
     const guard = pendingScratchGuard;
     if (!guard) return;
@@ -766,10 +781,17 @@
     renderList();
     const context = { name: guard.name };
     const onSuccess = () => window.browserAPI.closeOverlay();
+    const onUnsavedScratch = (result) => rememberScratchGuard(result, {
+      kind: guard.kind, workspaceId: guard.workspaceId, name: guard.name,
+    });
     if (guard.kind === 'open') {
-      runWorkspaceMutation(window.browserAPI.openWorkspace(guard.workspaceId, { force }), { context, onSuccess });
+      runWorkspaceMutation(window.browserAPI.openWorkspace(guard.workspaceId, { force }), {
+        context, onSuccess, onUnsavedScratch,
+      });
     } else {
-      runWorkspaceMutation(window.browserAPI.createBlankWorkspace(guard.name, { force }), { context, onSuccess });
+      runWorkspaceMutation(window.browserAPI.createBlankWorkspace(guard.name, { force }), {
+        context, onSuccess, onUnsavedScratch,
+      });
     }
   }
 
@@ -851,7 +873,10 @@
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelWorkspaceEdit(); }
     });
     row.append(input);
-    pendingEditorFocus = { input, caret, select: true };
+    if (caret != null || claimEditorFocus) {
+      pendingEditorFocus = { input, caret, select: true };
+      claimEditorFocus = false;
+    }
   }
 
   function renderWorkspaceDeleteConfirm(row, workspace) {
@@ -908,7 +933,10 @@
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelCreateWorkspace(); }
     });
     row.append(input);
-    pendingEditorFocus = { input, caret, select: false };
+    if (caret != null || claimEditorFocus) {
+      pendingEditorFocus = { input, caret, select: false };
+      claimEditorFocus = false;
+    }
     return row;
   }
 
@@ -920,22 +948,19 @@
     const row = document.createElement('div');
     row.className = 'island-row confirming';
     const count = pendingScratchGuard.tabCount;
+    const privateCount = pendingScratchGuard.privateCount ?? 0;
+    const allPrivate = count > 0 && privateCount >= count;
     const tabWord = count === 1 ? 'tab' : 'tabs';
     const warning = document.createElement('span');
     warning.className = 'row-title';
-    warning.textContent = `${count} unsaved ${tabWord} will close.`;
-    const saveFirst = document.createElement('button');
-    saveFirst.type = 'button';
-    saveFirst.className = 'ghead-action';
-    saveFirst.textContent = 'save first';
-    saveFirst.title = 'Save these tabs as a workspace, then continue';
-    saveFirst.setAttribute('aria-label', saveFirst.title);
-    saveFirst.addEventListener('click', () => beginScratchGuardSaveFirst());
+    warning.textContent = allPrivate
+      ? `${count} private ${tabWord} will close.`
+      : `${count} unsaved ${tabWord} will close.`;
     const discard = document.createElement('button');
     discard.type = 'button';
     discard.className = 'ghead-action danger';
     discard.textContent = 'discard';
-    discard.title = `Close ${count} unsaved ${tabWord} without saving`;
+    discard.title = `Close ${count} ${allPrivate ? 'private' : 'unsaved'} ${tabWord} without saving`;
     discard.setAttribute('aria-label', discard.title);
     discard.addEventListener('click', () => discardScratchGuard());
     const cancel = document.createElement('button');
@@ -944,7 +969,21 @@
     cancel.textContent = 'cancel';
     cancel.title = 'Stay on this window';
     cancel.addEventListener('click', () => cancelScratchGuard());
-    row.append(warning, saveFirst, discard, cancel);
+    // Save-as never captures private tabs. Offering "save first" when every
+    // at-risk tab is private re-trips the guard after a no-op save and used
+    // to drop the original action into a dead-end notice.
+    if (!allPrivate) {
+      const saveFirst = document.createElement('button');
+      saveFirst.type = 'button';
+      saveFirst.className = 'ghead-action';
+      saveFirst.textContent = 'save first';
+      saveFirst.title = 'Save these tabs as a workspace, then continue';
+      saveFirst.setAttribute('aria-label', saveFirst.title);
+      saveFirst.addEventListener('click', () => beginScratchGuardSaveFirst());
+      row.append(warning, saveFirst, discard, cancel);
+    } else {
+      row.append(warning, discard, cancel);
+    }
     return row;
   }
 
@@ -1046,7 +1085,7 @@
     if (pendingCreateWorkspace) {
       rows.push(renderCreateWorkspaceEditor());
     } else if (wsPatronActive && wsWorkspaces.length === 0) {
-      rows.push(emptyRow("save this window's tabs as a named set you can switch back to"));
+      rows.push(emptyRow("new… starts empty; or save this window's tabs as a named set"));
     }
     rows.push(...wsWorkspaces.map(workspaceRow));
     return rows;
@@ -1195,9 +1234,9 @@
         context: { name },
         // Scratch guard's "save first" (beginScratchGuardSaveFirst) lands
         // here: a save that succeeds while a guard is awaiting one means
-        // THIS window is now bound, so the original blocked action can
-        // safely retry — force:false, because the guard genuinely no longer
-        // applies (bound window), not because anything is being overridden.
+        // THIS window is now bound, so persistable tabs are covered. Retry
+        // still uses force:false — private pages remaining will re-trip,
+        // and retryScratchGuard's onUnsavedScratch re-shows the confirm.
         onSuccess: () => { if (pendingScratchGuard?.awaitingSave) retryScratchGuard(false); },
       });
     } },
@@ -1797,6 +1836,7 @@
         pendingRenameWorkspaceId = purpose.renameWorkspaceId;
         pendingDeleteWorkspaceId = null;
         workspaceEditValue = wsWorkspaces.find((w) => w.id === pendingRenameWorkspaceId)?.name ?? '';
+        claimEditorFocus = true;
       }
       if (purpose && typeof purpose === 'object' && purpose.deleteWorkspaceId != null) {
         pendingDeleteWorkspaceId = purpose.deleteWorkspaceId;
@@ -1819,7 +1859,7 @@
       // A pending workspace edit/confirm already claimed focus on its own
       // inline control (inside renderPanel, just above) — the address input
       // must not steal it back.
-      if (pendingRenameWorkspaceId == null && pendingDeleteWorkspaceId == null) {
+      if (pendingRenameWorkspaceId == null && pendingDeleteWorkspaceId == null && !pendingCreateWorkspace) {
         addressInput.focus();
         if (prefill) addressInput.setSelectionRange(prefill.length, prefill.length);
         else addressInput.select();

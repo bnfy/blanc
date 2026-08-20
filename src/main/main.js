@@ -164,7 +164,7 @@ const {
 // below (near closeGroup) for the capture/apply/switch seams that use them.
 const namedWorkspaces = require('./workspaces');
 const {
-  resolveOpen, scratchSwitchNeedsGuard, bindingsAfterSwap, bindingsAfterUnbind, bindingsAfterDelete,
+  resolveOpen, scratchSwitchGuardResult, bindingsAfterSwap, bindingsAfterUnbind, bindingsAfterDelete,
 } = require('./workspaces-model');
 
 const NEW_TAB_URL = 'blanc://newtab/';
@@ -3219,23 +3219,24 @@ function autosaveWorkspaceBindings() {
 }
 
 /** Scratch guard (follow-up to Task 9, found by hands-on testing): the live
- * inputs workspaces-model's scratchSwitchNeedsGuard needs, gathered from
- * THIS window's actual tabs — kept out of the pure model so it never has to
- * know about the tabs Map or the runtime shape. Returns the exact
- * {ok:false, error:'unsaved-scratch', tabCount} response every guarded call
+ * tabs workspaces-model's scratchSwitchGuardResult needs, gathered from
+ * THIS window — kept out of the pure model so it never has to know about the
+ * tabs Map or the runtime shape. Returns the exact
+ * {ok:false, error:'unsaved-scratch', tabCount, privateCount} response every guarded call
  * site returns verbatim, or null when the switch is safe to proceed
- * (bound window — autosave already covers it — or a scratch window holding
- * nothing worth confirming over). Must be called from inside the requesting
- * window's own withWindowRuntime scope, exactly like every other function in
- * this section. */
+ * (bound window whose persistable tabs autosave covers AND no private pages,
+ * or a scratch window holding nothing but blank newtabs). Must be called
+ * from inside the requesting window's own withWindowRuntime scope, exactly
+ * like every other function in this section.
+ *
+ * Passes the LIVE tab list, not persistableEntries: that filter drops
+ * private tabs, which applyWorkspaceToWindow still closes with no recovery. */
 function scratchGuardResult(runtime) {
-  const urls = persistableEntries(runtime.tabOrder.map((id) => tabs.get(id))).map((item) => item.url);
-  const needsGuard = scratchSwitchNeedsGuard({
+  return scratchSwitchGuardResult({
     bound: !!runtime.workspaceId,
-    tabUrls: urls,
+    tabs: runtime.tabOrder.map((id) => tabs.get(id)),
     blankNewTabUrl: NEW_TAB_URL,
   });
-  return needsGuard ? { ok: false, error: 'unsaved-scratch', tabCount: urls.length } : null;
 }
 
 /** Create/save-as: capture this window's LIVE tab set into a brand new Named
@@ -3272,9 +3273,8 @@ function saveCurrentWindowAsWorkspace(runtime, name) {
  * "discard and switch" — omitted (or false), a scratch (unbound) window
  * holding real tabs is refused up front, before ANYTHING below runs: no
  * outbound save, no binding resolution, no apply. Checked first, ahead of
- * even the outbound-save step, because a bound window can never trigger it
- * (scratchGuardResult returns null for a bound runtime) — there is nothing
- * to reorder around. */
+ * even the outbound-save step. A bound window still triggers it when it
+ * holds private pages (autosave does not cover those). */
 function switchWindowToWorkspace(runtime, workspaceId, { force = false } = {}) {
   return withWindowRuntime(runtime, () => {
     const workspace = namedWorkspaces.get(workspaceId);
