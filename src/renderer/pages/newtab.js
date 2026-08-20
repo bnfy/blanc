@@ -140,12 +140,11 @@ function decorateTile(tile, item, { mode = 'local' } = {}) {
     tile.classList.add('has-icon');
     tile.style.backgroundImage = `url("${item.favicon.replace(/["\\]/g, '\\$&')}")`;
   };
-  // A stored favicon URL can go stale (site changed/removed it) — clear it so
-  // future loads stop retrying a dead request. The letter set above survives
-  // either way, so a failed decode degrades instead of blanking the tile.
-  probe.onerror = synced
-    ? () => {}
-    : () => window.bowserPages?.bookmarks.clearFavicon(item.url);
+  // A failed decode does NOT clear the stored icon. Stored favicons are already
+  // validated PNG data URLs, so a failure here means corrupt bytes, not a dead
+  // remote request — and there is no re-fetch path, so clearing was a one-way
+  // ratchet toward a permanent letter tile. The letter set above is enough.
+  probe.onerror = () => {};
   probe.src = item.favicon;
 }
 

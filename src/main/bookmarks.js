@@ -91,10 +91,11 @@ function saveFavorite(url, title, favicon, folder) {
 function updateFavicon(url, favicon) {
   const validated = validFavicon(favicon);
   const s = ensureStore();
-  if (!s.data.items.some((b) => b.url === url && b.favicon !== validated)) return;
+  // Match policy (exact-URL authoritative, same-origin fill-only) lives in
+  // bookmark-data so it is unit-testable without a store.
+  if (!data.applyFaviconUpdate(s.data.items, { url, favicon: validated }).changed) return;
   s.update((d) => {
-    const item = d.items.find((b) => b.url === url);
-    if (item) item.favicon = validated;
+    d.items = data.applyFaviconUpdate(d.items, { url, favicon: validated }).items;
   });
 }
 

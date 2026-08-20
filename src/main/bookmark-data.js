@@ -179,7 +179,49 @@ function groupFavoritesForMenu(items) {
   return { folders, ungrouped };
 }
 
+function originOf(url) {
+  try { return new URL(url).origin; } catch { return null; }
+}
+
+/** Which favorites a resolved favicon may write to, and why the two rules are
+ * asymmetric.
+ *
+ * Exact URL is authoritative: it sets OR clears, because that record is
+ * unambiguously about this page.
+ *
+ * Same origin is FILL-ONLY, and only onto a favorite that currently has no
+ * icon. Dashboards redirect — you favorite the short URL, the icon resolves on
+ * the redirect target, and an exact-match-only rule never fires, so the
+ * favorite keeps its letter with nothing left to heal it. Fill-only means a
+ * page in the origin that declares no favicon can never erase an icon another
+ * page already earned, and a good icon is never silently replaced.
+ *
+ * Returns the next items array plus `changed`, in the shape the other
+ * apply* helpers use. */
+function applyFaviconUpdate(items, { url, favicon }) {
+  const origin = favicon == null ? null : originOf(url);
+  const matches = (b) => b.url === url
+    || (origin !== null && b.favicon == null && originOf(b.url) === origin);
+  if (!items.some((b) => matches(b) && b.favicon !== favicon)) {
+    return { items, changed: false };
+  }
+  return {
+    items: items.map((b) => (matches(b) ? { ...b, favicon } : b)),
+    changed: true,
+  };
+}
+
+/** Whether a tab's newly sanitized favicon may write into Favorites.
+ * Bookmarked is deliberately NOT required — the redirect heal fills a
+ * different URL on the same origin, where the tab's own flag is false.
+ * Private is required: Favorites sync-exports, and private browsing must
+ * never drive that store. */
+function mayWriteFavoriteFavicon(tab, sanitized) {
+  return !!sanitized && !tab?.private;
+}
+
 module.exports = {
-  addImported, applySaveFavorite, applySetFolder, applyRenameFolder, applyRemoveFolder, canonicalizeFolders,
+  addImported, applySaveFavorite, applyFaviconUpdate, mayWriteFavoriteFavicon,
+  applySetFolder, applyRenameFolder, applyRemoveFolder, canonicalizeFolders,
   groupFavoritesForMenu,
 };

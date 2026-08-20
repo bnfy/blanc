@@ -61,7 +61,7 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { sanitizeFavicon } = require('./favicon-sanitizer');
-const { resolvedFavicon } = require('./favicon-policy');
+const { resolvedFavicon, updateFaviconAfterDomReady } = require('./favicon-policy');
 const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
 const { validFavicon } = require('./bookmark-validate');
 const {
@@ -81,7 +81,7 @@ const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const patron = require('./patron');
 const bookmarks = require('./bookmarks');
-const { groupFavoritesForMenu } = require('./bookmark-data');
+const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
 const { JsonStore, discardProfileStoreEntries } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
@@ -2898,7 +2898,10 @@ async function setTabFavicon(tab, source) {
   if (!sanitized) tab.faviconSource = previousSource;
   const changed = tab.favicon !== next;
   tab.favicon = next;
-  if (sanitized && tab.bookmarked) bookmarks.updateFavicon(tab.url, sanitized);
+  // Write decision lives in mayWriteFavoriteFavicon: not gated on
+  // tab.bookmarked (redirect heal), but private tabs never write Favorites.
+  // updateFavicon no-ops when nothing matches.
+  if (mayWriteFavoriteFavicon(tab, sanitized)) bookmarks.updateFavicon(tab.url, sanitized);
   if (changed) scheduleBroadcastTabs();
   if (sanitized) sync.captureTabIcon(tab).catch(() => {});
   return true;
@@ -4534,6 +4537,26 @@ function toggleBookmarkForActiveTab() {
   if (rt().activeTabId) toggleBookmarkForTab(rt().activeTabId);
 }
 
+/** Favoriting samples tab.favicon at click time. When it hasn't resolved yet —
+ * or an earlier attempt failed on a page that has since settled — the favorite
+ * keeps a null icon indefinitely, because the only other writer is a LATER
+ * favicon event, and a settled page never emits one. So: wait out any in-flight
+ * attempt, then make exactly one fresh attempt from the page's declared links.
+ * setTabFavicon's own heal writes the result through; nothing here touches the
+ * store directly. Fire-and-forget — a favorite is saved either way. */
+function healFaviconForTab(tab) {
+  const wc = liveContents(tab);
+  if (!wc) return;
+  Promise.resolve(tab.faviconPending).catch(() => {}).then(() => {
+    if (!tabs.has(tab.id) || tab.private) return null;
+    if (tab.favicon) {
+      bookmarks.updateFavicon(tab.url, tab.favicon);
+      return null;
+    }
+    return updateFaviconAfterDomReady(tab, wc, { setTabFavicon });
+  }).catch(() => {});
+}
+
 /** Per-tab favorite toggle for the context menu; same guards as the active-tab
  * version (private tabs never populate synced Favorites). */
 function toggleBookmarkForTab(id) {
@@ -4542,6 +4565,7 @@ function toggleBookmarkForTab(id) {
   tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
   broadcastTabs();
   scheduleMenuRebuild();
+  if (tab.bookmarked && !tab.favicon) healFaviconForTab(tab);
 }
 
 /** The `/save [folder]` command: add-only favorite of the active tab, into an
@@ -4554,6 +4578,7 @@ function saveActiveTabAsFavorite(folder) {
   tab.bookmarked = bookmarks.isBookmarked(tab.url);
   broadcastTabs();
   scheduleMenuRebuild();
+  if (tab.bookmarked && !tab.favicon) healFaviconForTab(tab);
 }
 
 /** "Add All Open Tabs to Favorites" — mirrors toggleBookmarkForActiveTab's
@@ -4566,6 +4591,7 @@ function addAllTabsToFavorites() {
     if (!/^https?:\/\//.test(tab.url)) continue;
     if (bookmarks.isBookmarked(tab.url)) continue;
     tab.bookmarked = bookmarks.toggleBookmark(tab.url, tab.title, tab.favicon);
+    if (tab.bookmarked && !tab.favicon) healFaviconForTab(tab);
   }
   broadcastTabs();
   scheduleMenuRebuild();
