@@ -2,15 +2,24 @@ const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const ctx = require('../support/context');
 
+// Production chrome accepts only dimension-checked PNG data URLs
+// (tabicons-model validIconData). The remote fixture in test-hook.js uses this
+// exact 32×32 raster; reuse it so local rail / presentation seeds exercise the
+// same payload and can assert a real decode — an SVG data URL would paint in
+// the test hook's bypass path but never survive a real sanitize.
 const TEST_FAVICON =
-  'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32"%3E' +
-  '%3Crect width="32" height="32" rx="8" fill="%23006954"/%3E%3C/svg%3E';
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABr0lEQVR4nLTWsUrDQBgH8O/7cmpr1aFj8Rmq+BSiaAdBqnZQfAlx8EnsIO1UcKhDfQkdbJd20EFBUKgFO0TTXM7vEhDR1ia55JZLLnC/u/93kBPKb57nSSkPj4+a9UZn5iQ3IhcUAYJxEzw7+k0IUT2vZmwcXvaXREG6nwrQXEBeu+5QPxASePC6feG0OpZYVK4EYwN5B9wpTyFpA7WJ/VLNbrUTMWivsm+POA1dBiJiTZHKNyvZjaJ0hygsHlAQv1kPnd5j935zp8TrRAVs6AkRsuWie/vi9J5IZEDHGHMfVnf2dLXjzd0McuUVfWq45okatOBYy1bho9V+K9VB11uHpQ39Ecyz4vPuOdLhetrpGIQ6F+TTkpKhp/CTTcugoEvPoO+nlAz6+ZKGQb/eEzfo71CyBo0dTdCgCeOJGROBpIz/gESMKYC5MR0wNEIBJkZYILYRAYhnRANiGJGBsMZVJbvOxnscIJSBmG8ezJfW8BnOIG7zz4niHDgNzoSTCWrKRnCTg6hFnr4Pxf94DGYPrtVGwBhjqwaOhOAuisY7GGNc3w12GzCS4C+fjS8AAAD///R8eLkAAAAGSURBVAMAqMIc5gOIAroAAAAASUVORK5CYII=';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // The sync icon size the assertion below checks against — read from the model
 // so a change to ICON_SIZE surfaces here instead of silently passing.
-const { ICON_SIZE: SYNC_ICON_SIZE } = require('../../../src/main/tabicons-model');
+const { ICON_SIZE: SYNC_ICON_SIZE, validIconData } = require('../../../src/main/tabicons-model');
+assert.equal(
+  !!validIconData(TEST_FAVICON),
+  true,
+  'TEST_FAVICON must be a production-accepted PNG data URL',
+);
 
 const poll = require('./../support/poll');
 // Rail scenarios drive real window resizes/animations, so they keep a longer
@@ -1018,6 +1027,34 @@ Then('remote-device tabs remain available in the Quick Switcher and start page',
     `${SYNC_ICON_SIZE}x${SYNC_ICON_SIZE}`,
     'synced tab favicon bytes should decode at the sync icon size'
   );
+
+  // Favorite results must paint their stored PNG too — they used to omit
+  // result.tab, so setFavicon got null while start-page tiles rendered fine.
+  // Seed before re-opening so refreshSwitcherData picks the record up.
+  await this.call('closeOverlay');
+  await this.call('seedFavorite', 'https://docs.example/', 'docs.example');
+  await this.call('openPalette');
+  await waitForValue(
+    () => this.call('overlayRendererMode'),
+    (mode) => mode === 'palette',
+    'palette renderer for favorite'
+  );
+  assert.equal(await this.call('editAddressInput', 'docs.example'), true);
+  const favoriteRows = await waitForValue(
+    () => this.call('addressResultRows'),
+    (rows) => rows.some((row) => row.tag === 'favorite' && row.title === 'docs.example'
+      && row.faviconHasIcon
+      && row.faviconDecoded === `${SYNC_ICON_SIZE}x${SYNC_ICON_SIZE}`),
+    'decoded favorite favicon in Quick Switcher'
+  );
+  const favoriteRow = favoriteRows.find((row) => row.tag === 'favorite' && row.title === 'docs.example');
+  assert.equal(favoriteRow.faviconHasIcon, true, 'favorite should render its favicon');
+  assert.equal(
+    favoriteRow.faviconDecoded,
+    `${SYNC_ICON_SIZE}x${SYNC_ICON_SIZE}`,
+    'favorite favicon bytes should decode at the production icon size'
+  );
+
   await this.call('closeOverlay');
   await this.call('activateTab', this.canonicalRail.workRegular, true);
 });
@@ -1072,12 +1109,16 @@ Given('local tabs cover active, loading, private, pinned, audible, muted, and qu
 
   const privateTab = await openLoadedTab(this, 'Private identity', { private: true });
   const pinned = await openLoadedTab(this, 'Pinned identity');
+  await this.call('setTabPresentation', pinned, { favicon: TEST_FAVICON });
   await this.call('pinTab', pinned);
   const audible = await openLoadedTab(this, 'Audible identity');
-  await this.call('setTabPresentation', audible, { audible: true });
+  await this.call('setTabPresentation', audible, { favicon: TEST_FAVICON, audible: true });
   const muted = await openLoadedTab(this, 'Muted identity');
-  await this.call('setTabPresentation', muted, { audible: true, muted: true });
+  await this.call('setTabPresentation', muted, {
+    favicon: TEST_FAVICON, audible: true, muted: true,
+  });
   const quiet = await openLoadedTab(this, 'Quiet identity', { query: '?nostore=1' });
+  await this.call('setTabPresentation', quiet, { favicon: TEST_FAVICON });
   await this.call('activateTab', active, true);
 
   // The active tab can never be quiet, so this has to follow the reactivation
@@ -1091,10 +1132,38 @@ Given('local tabs cover active, loading, private, pinned, audible, muted, and qu
 });
 
 Then('every rail row exposes its favicon and title', async function () {
-  for (const id of Object.values(this.stateRows)) {
+  const skipDecode = new Set(['loading', 'privateTab']);
+  for (const [name, id] of Object.entries(this.stateRows)) {
     const row = this.railPage.locator(`.vertical-tab-row[data-tab-id="${id}"]`);
     assert.equal(await row.locator('.vertical-tab-favicon').count(), 1, `${id} favicon`);
     assert.ok((await row.locator('.vertical-tab-title').textContent()).trim(), `${id} title`);
+    if (skipDecode.has(name)) continue;
+    // Decode the painted pixels — a has-icon class with corrupt bytes would
+    // still pass a class-only check. Private stays empty on purpose; loading
+    // shows the spinner instead of an icon.
+    const decoded = await row.locator('.vertical-tab-favicon').evaluate(async (el) => {
+      if (!el.classList.contains('has-icon')) return { hasIcon: false, size: null };
+      const raw = getComputedStyle(el).backgroundImage;
+      let url = '';
+      if (raw && raw.indexOf('url(') === 0) {
+        url = raw.slice(4, raw.length - 1);
+        if (url[0] === '"' || url[0] === "'") url = url.slice(1, -1);
+      }
+      if (!url) return { hasIcon: true, size: null };
+      const size = await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(`${img.naturalWidth}x${img.naturalHeight}`);
+        img.onerror = () => resolve(false);
+        img.src = url;
+      });
+      return { hasIcon: true, size };
+    });
+    assert.equal(decoded.hasIcon, true, `${name} rail favicon should paint has-icon`);
+    assert.equal(
+      decoded.size,
+      `${SYNC_ICON_SIZE}x${SYNC_ICON_SIZE}`,
+      `${name} rail favicon should decode at the production icon size`,
+    );
   }
 });
 
