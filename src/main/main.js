@@ -81,7 +81,7 @@ const { promptForCredentials } = require('./auth-dialog');
 const settings = require('./settings');
 const patron = require('./patron');
 const bookmarks = require('./bookmarks');
-const { groupFavoritesForMenu } = require('./bookmark-data');
+const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
 const { JsonStore, discardProfileStoreEntries } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
@@ -2898,13 +2898,10 @@ async function setTabFavicon(tab, source) {
   if (!sanitized) tab.faviconSource = previousSource;
   const changed = tab.favicon !== next;
   tab.favicon = next;
-  // Not gated on tab.bookmarked: the favorite that needs healing is often a
-  // DIFFERENT url on the same origin (you favorited the short one, this is the
-  // redirect target), so the tab's own bookmarked flag is false exactly when the
-  // heal is needed. Still refuse private tabs — Favorites is a sync-exported
-  // store and private browsing must not write it. updateFavicon no-ops when
-  // nothing matches.
-  if (sanitized && !tab.private) bookmarks.updateFavicon(tab.url, sanitized);
+  // Write decision lives in mayWriteFavoriteFavicon: not gated on
+  // tab.bookmarked (redirect heal), but private tabs never write Favorites.
+  // updateFavicon no-ops when nothing matches.
+  if (mayWriteFavoriteFavicon(tab, sanitized)) bookmarks.updateFavicon(tab.url, sanitized);
   if (changed) scheduleBroadcastTabs();
   if (sanitized) sync.captureTabIcon(tab).catch(() => {});
   return true;

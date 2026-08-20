@@ -211,7 +211,17 @@ function applyFaviconUpdate(items, { url, favicon }) {
   };
 }
 
+/** Whether a tab's newly sanitized favicon may write into Favorites.
+ * Bookmarked is deliberately NOT required — the redirect heal fills a
+ * different URL on the same origin, where the tab's own flag is false.
+ * Private is required: Favorites sync-exports, and private browsing must
+ * never drive that store. */
+function mayWriteFavoriteFavicon(tab, sanitized) {
+  return !!sanitized && !tab?.private;
+}
+
 module.exports = {
-  addImported, applySaveFavorite, applyFaviconUpdate, applySetFolder, applyRenameFolder, applyRemoveFolder, canonicalizeFolders,
+  addImported, applySaveFavorite, applyFaviconUpdate, mayWriteFavoriteFavicon,
+  applySetFolder, applyRenameFolder, applyRemoveFolder, canonicalizeFolders,
   groupFavoritesForMenu,
 };

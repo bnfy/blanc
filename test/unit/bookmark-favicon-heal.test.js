@@ -8,7 +8,12 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
-const { applyFaviconUpdate } = require('../../src/main/bookmark-data');
+const fs = require('node:fs');
+const path = require('node:path');
+const {
+  applyFaviconUpdate,
+  mayWriteFavoriteFavicon,
+} = require('../../src/main/bookmark-data');
 
 const PNG = 'data:image/png;base64,AAAA';
 const OTHER = 'data:image/png;base64,BBBB';
@@ -91,4 +96,41 @@ test('re-applying the same icon reports unchanged', () => {
     url: 'https://a.example/x', favicon: PNG,
   });
   assert.equal(out.changed, false, 'idempotent — no needless store write or fsync');
+});
+
+// The write decision that used to hide behind `tab.bookmarked`. Private tabs
+// can never be bookmarked, so that gate was also the private firewall. Once
+// bookmarked was dropped for the redirect heal, this predicate is what keeps
+// private-session icons out of the sync-exported Favorites store. Live browser
+// tests cannot currently reach it (private tabs never resolve a favicon in
+// practice), so the decision is unit-tested here — and positive-controlled:
+// flipping `private` to false on the private case must allow the write.
+
+test('a normal tab with a sanitized icon may write Favorites', () => {
+  assert.equal(mayWriteFavoriteFavicon({ private: false }, PNG), true);
+});
+
+test('a private tab with a sanitized icon must NOT write Favorites', () => {
+  assert.equal(mayWriteFavoriteFavicon({ private: true }, PNG), false);
+});
+
+test('no sanitized icon means no write, private or not', () => {
+  assert.equal(mayWriteFavoriteFavicon({ private: false }, null), false);
+  assert.equal(mayWriteFavoriteFavicon({ private: true }, null), false);
+  assert.equal(mayWriteFavoriteFavicon({ private: false }, undefined), false);
+});
+
+test('bookmarked is deliberately ignored — the redirect heal needs that', () => {
+  // A non-bookmarked tab on the redirect target is exactly when the fill fires.
+  assert.equal(mayWriteFavoriteFavicon({ private: false, bookmarked: false }, PNG), true);
+  assert.equal(mayWriteFavoriteFavicon({ private: true, bookmarked: true }, PNG), false);
+});
+
+test('setTabFavicon uses mayWriteFavoriteFavicon for the store write', () => {
+  // Wiring guard: the predicate is load-bearing only if the hot path calls it.
+  const main = fs.readFileSync(path.join(__dirname, '../../src/main/main.js'), 'utf8');
+  const setter = main.match(/async function setTabFavicon\(tab, source\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(setter, 'setTabFavicon not found');
+  assert.match(setter, /mayWriteFavoriteFavicon\(tab,\s*sanitized\)/);
+  assert.doesNotMatch(setter, /if \(sanitized && !tab\.private\)/);
 });
