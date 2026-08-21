@@ -84,7 +84,15 @@ async function readVersionMarker(webSocketDebuggerUrl) {
         id: 1,
         method: 'Runtime.evaluate',
         params: {
-          expression: "document.getElementById('version')?.textContent || ''",
+          expression: `new Promise((resolve) => {
+            const read = () => {
+              const value = document.getElementById('version')?.textContent || '';
+              if (value) resolve(value);
+              else setTimeout(read, 100);
+            };
+            read();
+          })`,
+          awaitPromise: true,
           returnByValue: true,
         },
       }));
