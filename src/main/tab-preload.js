@@ -6,7 +6,16 @@ const { contextBridge, ipcRenderer } = require('electron');
 if (window.location.protocol === 'blanc:') {
   const host = window.location.host;
   const invoke = (channel, ...args) => ipcRenderer.invoke(channel, ...args);
-  const surface = { close: () => invoke('pages:surface:close') };
+  const surface = {
+    close: () => invoke('pages:surface:close'),
+    /** Tell main Escape should close an in-page consumer first (Settings pickers). */
+    armEscape: (armed) => invoke('pages:surface:escape-arm', !!armed),
+    onEscape: (callback) => {
+      const listener = () => callback();
+      ipcRenderer.on('pages:surface:escape', listener);
+      return () => ipcRenderer.removeListener('pages:surface:escape', listener);
+    },
+  };
   let api = null;
 
   if (host === 'newtab') {

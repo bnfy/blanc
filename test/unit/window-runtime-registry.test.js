@@ -23,6 +23,7 @@ test('createRuntime initializes the per-window inventory to main.js defaults', (
   assert.equal(r.shieldTrigger, null);
   assert.equal(r.utilitySheetView, null);
   assert.equal(r.utilitySheetUrl, null);
+  assert.equal(r.utilitySheetEscapeArmed, false);
   assert.ok(r.tabsWantingAddressBarFocus instanceof Set);
   assert.equal(r.chromeHeight, 64);
   assert.equal(r.tabsBroadcastTimer, null);

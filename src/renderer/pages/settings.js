@@ -777,4 +777,257 @@
       });
     }
   })();
+
+  // Replace native <select> popups (Liquid Glass / ghosted closed face on
+  // macOS) with opaque in-page menus. Keep the real <select> as the value
+  // source so existing change listeners and programmatic .value writes work.
+  enhanceSettingsSelects(document.querySelectorAll('.settings-content select'));
 })();
+
+/** Opaque Settings picker over each remaining .settings-content <select>. */
+function enhanceSettingsSelects(selects) {
+  let openPicker = null;
+  const surface = window.bowserPages?.surface;
+
+  const setEscapeArmed = (armed) => {
+    try { surface?.armEscape?.(armed); } catch { /* bridge absent in static preview */ }
+  };
+
+  const closeOpen = () => {
+    if (openPicker) openPicker.close();
+  };
+
+  document.addEventListener('pointerdown', (e) => {
+    if (openPicker && !openPicker.root.contains(e.target) && !openPicker.menu.contains(e.target)) {
+      closeOpen();
+    }
+  });
+  // Page keydown is a fallback; main's sheet before-input-event normally owns
+  // Escape and forwards pages:surface:escape when escape is armed.
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && openPicker) {
+      e.preventDefault();
+      const trigger = openPicker.trigger;
+      closeOpen();
+      trigger.focus();
+    }
+  });
+  surface?.onEscape?.(() => {
+    if (!openPicker) return;
+    const trigger = openPicker.trigger;
+    closeOpen();
+    trigger.focus();
+  });
+  document.querySelector('body.sheet .page')?.addEventListener('scroll', closeOpen, { passive: true });
+  window.addEventListener('resize', closeOpen);
+
+  for (const select of selects) {
+    if (!(select instanceof HTMLSelectElement)) continue;
+    if (select.dataset.settingsSelectEnhanced === '1') continue;
+    select.dataset.settingsSelectEnhanced = '1';
+    enhanceSettingsSelect(select);
+  }
+
+  function enhanceSettingsSelect(select) {
+    const wrap = document.createElement('div');
+    wrap.className = 'settings-select';
+    select.parentNode.insertBefore(wrap, select);
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'settings-select-trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+    if (select.id) trigger.id = `${select.id}Trigger`;
+
+    const titleEl = select.closest('.setting')?.querySelector('.label > span:first-child');
+    if (titleEl) {
+      if (!titleEl.id) titleEl.id = select.id ? `${select.id}Label` : `${trigger.id || 'settingsSelect'}Label`;
+      trigger.setAttribute('aria-labelledby', titleEl.id);
+    } else if (select.getAttribute('aria-label')) {
+      trigger.setAttribute('aria-label', select.getAttribute('aria-label'));
+    }
+
+    const face = document.createElement('span');
+    face.className = 'settings-select-label';
+    trigger.append(face);
+
+    const menu = document.createElement('ul');
+    menu.className = 'settings-select-menu';
+    menu.setAttribute('role', 'listbox');
+    menu.id = select.id ? `${select.id}Listbox` : `${trigger.id || 'settingsSelect'}Listbox`;
+    menu.hidden = true;
+    trigger.setAttribute('aria-controls', menu.id);
+    if (titleEl?.id) menu.setAttribute('aria-labelledby', titleEl.id);
+
+    select.classList.add('settings-select-native');
+    select.setAttribute('tabindex', '-1');
+    select.setAttribute('aria-hidden', 'true');
+
+    wrap.append(trigger, select);
+    // Menu is portaled to <body> so sheet overflow can't clip it, and so it
+    // isn't a descendant of the trigger for hit-testing while open.
+    document.body.append(menu);
+
+    const syncFace = () => {
+      const opt = select.selectedOptions[0];
+      face.textContent = opt ? opt.textContent : '';
+    };
+
+    const rebuildMenu = () => {
+      menu.replaceChildren();
+      for (const opt of select.options) {
+        const li = document.createElement('li');
+        li.className = 'settings-select-option';
+        li.setAttribute('role', 'option');
+        li.dataset.value = opt.value;
+        li.textContent = opt.textContent;
+        li.tabIndex = -1;
+        if (opt.selected) {
+          li.classList.add('is-selected');
+          li.setAttribute('aria-selected', 'true');
+        } else {
+          li.setAttribute('aria-selected', 'false');
+        }
+        menu.append(li);
+      }
+    };
+
+    const positionMenu = () => {
+      const r = trigger.getBoundingClientRect();
+      const pad = 8;
+      menu.style.minWidth = `${Math.ceil(r.width)}px`;
+      // Force layout so offsetHeight is current before flipping.
+      const mh = menu.offsetHeight || 0;
+      const mw = menu.offsetWidth || r.width;
+      const spaceBelow = window.innerHeight - r.bottom - pad;
+      const openUp = mh > spaceBelow && r.top - pad > spaceBelow;
+      let left = r.left;
+      if (left + mw > window.innerWidth - pad) left = Math.max(pad, window.innerWidth - mw - pad);
+      if (left < pad) left = pad;
+      menu.style.left = `${Math.round(left)}px`;
+      menu.style.top = openUp
+        ? `${Math.round(Math.max(pad, r.top - mh - 4))}px`
+        : `${Math.round(r.bottom + 4)}px`;
+    };
+
+    const api = {
+      root: wrap,
+      menu,
+      trigger,
+      close() {
+        menu.hidden = true;
+        trigger.setAttribute('aria-expanded', 'false');
+        wrap.classList.remove('is-open');
+        for (const li of menu.querySelectorAll('.settings-select-option.is-active')) {
+          li.classList.remove('is-active');
+        }
+        if (openPicker === api) openPicker = null;
+        setEscapeArmed(false);
+      },
+      open() {
+        closeOpen();
+        rebuildMenu();
+        menu.hidden = false;
+        trigger.setAttribute('aria-expanded', 'true');
+        wrap.classList.add('is-open');
+        positionMenu();
+        openPicker = api;
+        setEscapeArmed(true);
+        const selected = menu.querySelector('[aria-selected="true"]') || menu.querySelector('.settings-select-option');
+        if (selected) {
+          selected.tabIndex = 0;
+          selected.classList.add('is-active');
+          selected.focus();
+        }
+      },
+    };
+
+    const choose = (li) => {
+      if (!li) return;
+      const value = li.dataset.value;
+      if (select.value !== value) {
+        select.value = value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      syncFace();
+      api.close();
+      trigger.focus();
+    };
+
+    trigger.addEventListener('click', () => {
+      if (menu.hidden) api.open();
+      else api.close();
+    });
+
+    trigger.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        if (menu.hidden) api.open();
+      }
+    });
+
+    menu.addEventListener('click', (e) => {
+      choose(e.target.closest('.settings-select-option'));
+    });
+
+    menu.addEventListener('pointerdown', (e) => {
+      // Keep the document pointerdown closer from treating menu clicks as outside.
+      e.stopPropagation();
+    });
+
+    menu.addEventListener('keydown', (e) => {
+      const opts = [...menu.querySelectorAll('.settings-select-option')];
+      const i = opts.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        const next = opts[Math.min(opts.length - 1, Math.max(0, i) + 1)] || opts[0];
+        opts.forEach((o) => { o.tabIndex = -1; o.classList.remove('is-active'); });
+        next.tabIndex = 0;
+        next.classList.add('is-active');
+        next.focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        const next = opts[Math.max(0, (i < 0 ? 0 : i) - 1)] || opts[0];
+        opts.forEach((o) => { o.tabIndex = -1; o.classList.remove('is-active'); });
+        next.tabIndex = 0;
+        next.classList.add('is-active');
+        next.focus();
+      } else if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        choose(document.activeElement?.closest?.('.settings-select-option') || opts[i]);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        api.close();
+        trigger.focus();
+      } else if (e.key === 'Tab') {
+        api.close();
+      }
+    });
+
+    // Programmatic select.value = … (e.g. secureDns showAccepted) must refresh
+    // the closed face without a change event.
+    const desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+    if (desc?.get && desc?.set) {
+      Object.defineProperty(select, 'value', {
+        configurable: true,
+        enumerable: true,
+        get() { return desc.get.call(this); },
+        set(v) {
+          desc.set.call(this, v);
+          syncFace();
+        },
+      });
+    }
+
+    select.addEventListener('change', syncFace);
+    new MutationObserver(syncFace).observe(select, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['selected', 'value'],
+    });
+
+    syncFace();
+  }
+}
