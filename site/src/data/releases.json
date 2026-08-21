@@ -1,5 +1,110 @@
 [
   {
+    "tag": "v1.8.0",
+    "version": "1.8.0",
+    "name": "1.8.0",
+    "publishedAt": "2026-08-21T02:48:43.000Z",
+    "humanDate": "August 20, 2026",
+    "machineDate": "2026-08-20",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.8.0",
+    "anchor": "v1-8-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Named Workspaces let Blanc Patrons save a window's tabs and groups, switch between those sets in place, and rename or delete them from the command panel. Workspaces autosave as you browse and return after a relaunch; the "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/workspace"
+                  },
+                  {
+                    "type": "text",
+                    "value": " command provides the same controls from the keyboard."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Patron Settings now includes a direct checkout path for becoming a Patron, with monthly and annual options. Existing Patrons can still enter their Polar license key when activating another device or reinstalling Blanc."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "When another app asks Blanc to open a website, Blanc now brings the destination window to the front instead of loading the page behind whatever you were using."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Website icons are substantially more reliable across the interface. Blanc now recovers icons through redirects and generic ICO responses such as App Store Connect's, heals previously iconless Favorites, paints Favorite results in the Quick Switcher, and carries decoded PNG icons through Profile Sync to the start page and Quick Switcher on another device."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Named Workspaces now protect private tabs and unsaved windows during a switch, keep editor focus stable while tab state updates, and avoid the save-first dead end when only private tabs are at risk."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The Recently Closed section's Clear action now uses Blanc's interface typeface consistently."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.7.0",
     "version": "1.7.0",
     "name": "1.7.0",
