@@ -10,6 +10,25 @@ pngBytes.writeUInt32BE(32, 16);
 pngBytes.writeUInt32BE(32, 20);
 const PNG_DATA = `data:image/png;base64,${pngBytes.toString('base64')}`;
 const PNG_BYTES = Buffer.from(PNG_DATA.split(',')[1], 'base64');
+const ICO_BYTES = (() => {
+  const dib = Buffer.alloc(40);
+  dib.writeUInt32LE(40, 0);
+  dib.writeInt32LE(16, 4);
+  dib.writeInt32LE(32, 8);
+  dib.writeUInt16LE(1, 12);
+  dib.writeUInt16LE(32, 14);
+  const bytes = Buffer.alloc(22 + dib.length);
+  bytes.writeUInt16LE(1, 2);
+  bytes.writeUInt16LE(1, 4);
+  bytes[6] = 16;
+  bytes[7] = 16;
+  bytes.writeUInt16LE(1, 10);
+  bytes.writeUInt16LE(32, 12);
+  bytes.writeUInt32LE(dib.length, 14);
+  bytes.writeUInt32LE(22, 18);
+  dib.copy(bytes, 22);
+  return bytes;
+})();
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-tabicons-'));
 const requests = [];
 let decodeCount = 0;
@@ -199,6 +218,39 @@ test('non-PNG favicons rasterize through the renderer seam and store the result'
     const icons = tabicons.exportForSync(ctx).devices['device-a'].icons;
     assert.ok(icons.some((i) => i.url === httpSvg.url && i.data === PNG_DATA));
     assert.ok(icons.some((i) => i.url === inlineSvg.url && i.data === PNG_DATA));
+  } finally {
+    tabicons.setRasterizer(null);
+  }
+});
+
+test('a generic-MIME ICO fallback rasterizes into the synced tab sidecar', async () => {
+  const seen = [];
+  tabicons.setRasterizer(async (dataUrl) => {
+    seen.push(dataUrl);
+    return PNG_DATA;
+  });
+  try {
+    const tab = {
+      url: 'https://appstoreconnect.apple.com/',
+      favicon: 'https://appstoreconnect.apple.com/favicon.ico',
+      private: false,
+      view: {
+        webContents: {
+          session: {
+            fetch: async () => response('application/octet-stream', ICO_BYTES),
+          },
+        },
+      },
+    };
+    tabicons.setSnapshotProvider(() => ({ tabList: [tab] }));
+
+    assert.equal(await tabicons.captureTab(tab, ctx), true);
+    assert.equal(seen.length, 1);
+    assert.ok(seen[0].startsWith('data:image/x-icon;base64,'));
+    assert.deepEqual(
+      tabicons.exportForSync(ctx).devices['device-a'].icons.find(({ url }) => url === tab.url),
+      { url: tab.url, data: PNG_DATA },
+    );
   } finally {
     tabicons.setRasterizer(null);
   }

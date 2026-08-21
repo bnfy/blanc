@@ -10,6 +10,25 @@ const pngBytes = Buffer.from(LEGACY_PNG_DATA.split(',')[1], 'base64');
 pngBytes.writeUInt32BE(32, 16);
 pngBytes.writeUInt32BE(32, 20);
 const PNG_DATA = `data:image/png;base64,${pngBytes.toString('base64')}`;
+const ICO_BYTES = (() => {
+  const dib = Buffer.alloc(40);
+  dib.writeUInt32LE(40, 0);
+  dib.writeInt32LE(16, 4);
+  dib.writeInt32LE(32, 8);
+  dib.writeUInt16LE(1, 12);
+  dib.writeUInt16LE(32, 14);
+  const bytes = Buffer.alloc(22 + dib.length);
+  bytes.writeUInt16LE(1, 2);
+  bytes.writeUInt16LE(1, 4);
+  bytes[6] = 16;
+  bytes[7] = 16;
+  bytes.writeUInt16LE(1, 10);
+  bytes.writeUInt16LE(32, 12);
+  bytes.writeUInt32LE(dib.length, 14);
+  bytes.writeUInt32LE(22, 18);
+  dib.copy(bytes, 22);
+  return bytes;
+})();
 
 const image = {
   isEmpty: () => false,
@@ -24,6 +43,20 @@ require.cache[electronId] = {
   exports: { nativeImage: { createFromBuffer: () => image } },
 };
 
+const rasterized = [];
+const rasterId = require.resolve('../../src/main/icon-raster');
+require.cache[rasterId] = {
+  id: rasterId,
+  filename: rasterId,
+  loaded: true,
+  exports: {
+    rasterize: async (dataUrl) => {
+      rasterized.push(dataUrl);
+      return PNG_DATA;
+    },
+  },
+};
+
 let attempts = 0;
 const networkId = require.resolve('../../src/main/favicon-network');
 require.cache[networkId] = {
@@ -35,7 +68,11 @@ require.cache[networkId] = {
       if (source.includes('mislabeled')) {
         return { contentType: 'image/x-icon', bytes: pngBytes };
       }
-      if (source.includes('browser-fallback') || source.includes('cross-origin')) return null;
+      if (
+        source.includes('browser-fallback') ||
+        source.includes('generic-ico') ||
+        source.includes('cross-origin')
+      ) return null;
       attempts += 1;
       return attempts === 1 ? null : { contentType: 'image/png', bytes: pngBytes };
     },
@@ -111,6 +148,24 @@ test('same-origin browser fallback fetches the exact candidate without cookies o
     assert.equal(options.referrerPolicy, 'no-referrer');
     assert.equal(options.redirect, 'error');
   }
+});
+
+test('same-origin generic-MIME ICO fallback rasterizes into local PNG pixels', async () => {
+  const source = 'https://generic-ico.example/favicon.ico';
+  const browsingSession = {
+    fetch: async (url) => response({
+      status: 200,
+      url,
+      contentType: 'application/octet-stream',
+      bytes: ICO_BYTES,
+    }),
+  };
+  assert.equal(await sanitizeFavicon(
+    source,
+    undefined,
+    { browsingSession, pageUrl: 'https://generic-ico.example/dashboard' },
+  ), PNG_DATA);
+  assert.ok(rasterized.at(-1).startsWith('data:image/x-icon;base64,'));
 });
 
 test('browser fallback refuses a cross-origin candidate before requesting it', async () => {

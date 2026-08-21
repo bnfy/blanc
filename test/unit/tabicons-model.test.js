@@ -17,6 +17,25 @@ const PNG_2X = pngAtSize(PNG_A, m.ICON_SIZE);
 const pngBBytes = Buffer.from(PNG_A.split(',')[1], 'base64');
 pngBBytes[pngBBytes.length - 1] ^= 1;
 const PNG_B = `data:image/png;base64,${pngBBytes.toString('base64')}`;
+const ICO_BYTES = (() => {
+  const dib = Buffer.alloc(40);
+  dib.writeUInt32LE(40, 0); // BITMAPINFOHEADER
+  dib.writeInt32LE(16, 4);
+  dib.writeInt32LE(32, 8); // XOR + mask height
+  dib.writeUInt16LE(1, 12);
+  dib.writeUInt16LE(32, 14);
+  const bytes = Buffer.alloc(22 + dib.length);
+  bytes.writeUInt16LE(1, 2); // icon resource
+  bytes.writeUInt16LE(1, 4); // one image
+  bytes[6] = 16;
+  bytes[7] = 16;
+  bytes.writeUInt16LE(1, 10);
+  bytes.writeUInt16LE(32, 12);
+  bytes.writeUInt32LE(dib.length, 14);
+  bytes.writeUInt32LE(22, 18);
+  dib.copy(bytes, 22);
+  return bytes;
+})();
 const icon = (over = {}) => ({ url: 'https://a.example/', data: PNG_A, ...over });
 const entry = (over = {}) => ({ updatedAt: NOW - HOUR, icons: [icon()], ...over });
 
@@ -52,6 +71,26 @@ test('source PNG guard rejects alternate formats and dimension bombs before deco
     m.sourcePngFromDataUrl(`data:image/png;base64,${hugeWidth.toString('base64')}`),
     null
   );
+});
+
+test('a bounded generic .ico response is sniffed only after its container validates', () => {
+  const source = 'https://appstoreconnect.apple.com/favicon.ico';
+  assert.equal(m.validSourceIcoBytes(ICO_BYTES), ICO_BYTES);
+  assert.equal(m.canReadFaviconResponse('application/octet-stream', source), true);
+  assert.equal(
+    m.faviconResponseMediaType('application/octet-stream', source, ICO_BYTES),
+    'image/x-icon',
+  );
+
+  const corrupt = Buffer.from(ICO_BYTES);
+  corrupt.writeUInt32LE(corrupt.length + 1, 18);
+  assert.equal(m.validSourceIcoBytes(corrupt), null);
+  assert.equal(m.faviconResponseMediaType('application/octet-stream', source, corrupt), null);
+  assert.equal(
+    m.canReadFaviconResponse('application/octet-stream', 'https://example.com/icon.png'),
+    false,
+  );
+  assert.equal(m.canReadFaviconResponse('text/html', source), false);
 });
 
 test('image media type detection accepts real favicon MIME types and rejects others', () => {

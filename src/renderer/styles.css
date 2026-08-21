@@ -2050,7 +2050,7 @@ body[data-glance-purpose="change"] .glance-picker {
 }
 .closed-clear {
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   letter-spacing: 0.04em;
   text-transform: lowercase;

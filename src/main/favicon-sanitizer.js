@@ -81,11 +81,16 @@ async function readSameOriginSessionIcon(source, pageUrl, browsingSession, signa
     });
     if (!response.ok || requestSignal.aborted) return null;
     if (response.url && new URL(response.url).origin !== page.origin) return null;
-    const contentType = response.headers?.get?.('content-type')
-      ?.split(';', 1)[0]?.trim()?.toLowerCase();
-    if (!model.isImageMediaType(contentType)) return null;
+    const declaredContentType = response.headers?.get?.('content-type');
+    if (!model.canReadFaviconResponse(declaredContentType, current.href)) return null;
     const bytes = await readBoundedResponse(response);
-    return requestSignal.aborted || !bytes ? null : { contentType, bytes };
+    if (requestSignal.aborted || !bytes) return null;
+    const contentType = model.faviconResponseMediaType(
+      declaredContentType,
+      current.href,
+      bytes,
+    );
+    return contentType ? { contentType, bytes } : null;
   } catch {
     return null;
   } finally {

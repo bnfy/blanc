@@ -32,6 +32,20 @@ test('keeps favicon across same-origin query/hash changes', () => {
   assert.equal(shouldClearFaviconOnNavigate('https://x.com/a', 'https://x.com/a#section'), false);
 });
 
+test('the async sanitizer guard uses the same-origin policy instead of exact URL identity', () => {
+  const main = require('node:fs').readFileSync(
+    require('node:path').join(__dirname, '../../src/main/main.js'),
+    'utf8',
+  );
+  const setTabFavicon = main.match(/async function setTabFavicon\(tab, source\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(setTabFavicon, 'setTabFavicon must remain liftable for this regression guard');
+  assert.match(
+    setTabFavicon,
+    /tab\.url !== urlAtStart && shouldClearFaviconOnNavigate\(urlAtStart, tab\.url\)/,
+    'a valid icon fetched across a same-origin redirect must still apply',
+  );
+});
+
 test('clears favicon on a cross-origin navigation', () => {
   assert.equal(shouldClearFaviconOnNavigate('https://github.com/', 'https://www.apple.com/'), true);
 });

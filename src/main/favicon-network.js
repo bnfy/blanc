@@ -4,8 +4,9 @@ const dns = require('node:dns');
 const http = require('node:http');
 const https = require('node:https');
 const net = require('node:net');
+const model = require('./tabicons-model');
 
-const MAX_BYTES = 256 * 1024;
+const MAX_BYTES = model.MAX_SOURCE_BYTES;
 const MAX_REDIRECTS = 5;
 const TIMEOUT_MS = 3000;
 const FAVICON_REQUEST_HEADERS = Object.freeze({
@@ -158,9 +159,8 @@ async function readIconBytesOnce(source, { signal, lookup } = {}) {
           response.resume();
           return done(null);
         }
-        const contentType = String(response.headers['content-type'] ?? '')
-          .split(';', 1)[0].trim().toLowerCase();
-        if (!/^image\/[a-z0-9][a-z0-9.+-]*$/.test(contentType)) {
+        const declaredContentType = String(response.headers['content-type'] ?? '');
+        if (!model.canReadFaviconResponse(declaredContentType, target.url.href)) {
           response.resume();
           return done(null);
         }
@@ -176,7 +176,15 @@ async function readIconBytesOnce(source, { signal, lookup } = {}) {
           if (total > MAX_BYTES) response.destroy(new Error('favicon too large'));
           else chunks.push(chunk);
         });
-        response.on('end', () => done({ contentType, bytes: Buffer.concat(chunks, total) }));
+        response.on('end', () => {
+          const bytes = Buffer.concat(chunks, total);
+          const contentType = model.faviconResponseMediaType(
+            declaredContentType,
+            target.url.href,
+            bytes,
+          );
+          done(contentType ? { contentType, bytes } : null);
+        });
         response.on('error', () => done(null));
       });
     } catch {
