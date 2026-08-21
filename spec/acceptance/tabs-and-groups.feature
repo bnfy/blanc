@@ -50,6 +50,7 @@ Feature: Tabs and tab groups
   Scenario: Recently closed is a bounded undo list the user can clear
     Given recently closed contains "older.example" and "newer.example"
     When I open the command palette
+    And I unfold recently closed
     Then recently closed exposes no recovery-tier jargon
     When I forget the newest recently closed tab
     Then recently closed contains only "older.example"
