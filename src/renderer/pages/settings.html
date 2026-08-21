@@ -174,14 +174,14 @@
               </div>
               <select id="webrtcPolicy">
                 <option value="standard">Standard (recommended)</option>
-                <option value="strict">Strict — stronger, but can break some video calls</option>
+                <option value="strict">Strict — stronger for proxy users, but can break some video calls</option>
               </select>
             </div>
 
             <div class="setting">
               <div class="label">
                 <span>Encrypted DNS</span>
-                <span class="hint">Encrypts the behind-the-scenes lookups that turn a web address into a connection, so others on your Wi-Fi can't easily see which sites you open. It doesn't hide your browsing from your internet provider. Automatic is safe to leave on — if a Wi-Fi login page ever won't load, switch back to it.</span>
+                <span class="hint">Encrypts the behind-the-scenes lookups that turn a web address into a connection, so someone sniffing those lookups can't read the names. It does not hide the sites you visit from your network, and it makes the DNS provider someone you trust. Automatic uses encryption when it can and may fall back to ordinary DNS — safe to leave on. If a Wi-Fi login page won't load, switch to Automatic or Off temporarily.</span>
               </div>
               <select id="secureDns">
                 <option value="auto">Automatic (recommended)</option>
@@ -197,7 +197,7 @@
               <div class="label">
                 <span>Custom provider address</span>
                 <span class="hint">The secure DNS address your provider gave you (an https:// link), e.g. https://dns.nextdns.io/&lt;profile&gt;.</span>
-                <span class="hint field-error" id="secureDnsError" hidden>That is not a valid DoH URL — the previous provider is still in use.</span>
+                <span class="hint field-error" id="secureDnsError" hidden>That address isn't valid — the previous provider is still in use.</span>
               </div>
               <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" />
             </div>

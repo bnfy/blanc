@@ -39,7 +39,7 @@ body:
     attributes:
       label: Blanc version
       description: "Find it under **Blanc → About Blanc** (macOS) or **Help → About Blanc** (Windows and Linux)."
-      placeholder: "1.4.0"
+      placeholder: "1.8.1"
     validations:
       required: true
 
