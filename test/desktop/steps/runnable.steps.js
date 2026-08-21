@@ -118,8 +118,19 @@ Given('recently closed contains {string} and {string}', async function (older, n
   );
 });
 
-Then('recently closed exposes no recovery-tier jargon', async function () {
+When('I unfold recently closed', async function () {
   await openOverlaySurface(this, 'openPalette', 'palette');
+  const page = await overlayPage();
+  const header = page.locator('.island-ghead').filter({ hasText: 'recently closed' });
+  await header.waitFor({ state: 'visible' });
+  if (!await header.locator('.caret').evaluate((caret) => caret.classList.contains('open'))) {
+    await header.click();
+  }
+  const rows = page.locator('.closed-row');
+  await rows.first().waitFor({ state: 'visible' });
+});
+
+Then('recently closed exposes no recovery-tier jargon', async function () {
   const page = await overlayPage();
   const rows = page.locator('.closed-row');
   await rows.first().waitFor({ state: 'visible' });
