@@ -5,6 +5,11 @@ name: Pre-release smoke
 # cross-platform execution path for the network-privacy DoH config (see the M2+M3 plan).
 on:
   workflow_dispatch:
+    inputs:
+      release_version:
+        description: Optional published version whose Linux AppImage should be launched (for example, 1.8.1)
+        required: false
+        type: string
   push:
     branches: [main]
     paths:
@@ -16,6 +21,7 @@ on:
 
 permissions:
   contents: read
+  attestations: read
 
 jobs:
   smoke:
@@ -37,3 +43,51 @@ jobs:
       - name: DNS launch smoke (Windows)
         if: runner.os == 'Windows'
         run: npm run test:dns-smoke
+
+  published-linux-appimage:
+    if: ${{ inputs.release_version != '' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Validate release version
+        env:
+          VERSION: ${{ inputs.release_version }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]] || {
+            echo "Invalid release version: $VERSION" >&2
+            exit 1
+          }
+      - name: Install AppImage runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libfuse2 xvfb
+      - name: Download published AppImage and manifest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.release_version }}
+        run: |
+          mkdir release-smoke
+          gh release download "v$VERSION" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern "Blanc-$VERSION.AppImage" \
+            --pattern SHA256SUMS \
+            --dir release-smoke
+      - name: Verify published AppImage identity and digest
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.release_version }}
+        run: |
+          ARTIFACT="Blanc-$VERSION.AppImage"
+          cd release-smoke
+          EXPECTED=$(awk -v file="$ARTIFACT" '$2 == file { print $1 }' SHA256SUMS)
+          [ -n "$EXPECTED" ] || { echo "$ARTIFACT is missing from SHA256SUMS" >&2; exit 1; }
+          echo "$EXPECTED  $ARTIFACT" | sha256sum --check --strict
+          gh attestation verify "$ARTIFACT" --repo "$GITHUB_REPOSITORY"
+          chmod +x "$ARTIFACT"
+      - name: Launch published AppImage
+        env:
+          VERSION: ${{ inputs.release_version }}
+        run: node scripts/smoke-public-appimage.mjs "release-smoke/Blanc-$VERSION.AppImage" "$VERSION"
