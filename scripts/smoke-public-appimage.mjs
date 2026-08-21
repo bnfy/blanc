@@ -71,7 +71,7 @@ async function stopApp() {
   await waitForExit(2000);
 }
 
-async function readPageText(webSocketDebuggerUrl) {
+async function readVersionMarker(webSocketDebuggerUrl) {
   return new Promise((resolve, reject) => {
     const socket = new WebSocket(webSocketDebuggerUrl);
     const timeout = setTimeout(() => {
@@ -84,7 +84,7 @@ async function readPageText(webSocketDebuggerUrl) {
         id: 1,
         method: 'Runtime.evaluate',
         params: {
-          expression: 'document.body.innerText',
+          expression: "document.getElementById('version')?.textContent || ''",
           returnByValue: true,
         },
       }));
@@ -128,9 +128,9 @@ try {
 
   if (!targets) throw new Error('AppImage did not expose Blanc chrome and new-tab targets within 60s');
   const newTab = targets.find((target) => target.url.startsWith('blanc://newtab/'));
-  const bodyText = await readPageText(newTab.webSocketDebuggerUrl);
-  if (!bodyText.includes(`v${expectedVersion}`)) {
-    throw new Error(`new-tab surface did not report v${expectedVersion}`);
+  const versionMarker = await readVersionMarker(newTab.webSocketDebuggerUrl);
+  if (versionMarker !== `v${expectedVersion}`) {
+    throw new Error(`new-tab version marker was ${JSON.stringify(versionMarker)}, expected v${expectedVersion}`);
   }
 
   console.log(JSON.stringify({
@@ -138,7 +138,7 @@ try {
     expectedVersion,
     pid: child.pid,
     targets: targets.map((target) => target.url).sort(),
-    versionMarker: `v${expectedVersion}`,
+    versionMarker,
   }, null, 2));
 } catch (error) {
   const captured = logs.join('').trim();
