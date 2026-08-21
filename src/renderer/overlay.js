@@ -151,6 +151,10 @@
   let createWorkspaceValue = '';
   let pendingSaveAsWorkspace = false;
   let saveAsWorkspaceValue = '';
+  // Non-Patrons can discover the surface, but creation entry stops here —
+  // before a name editor implies that the paid write is available. This row
+  // links to Patron Settings; main still re-checks the entitlement on commit.
+  let workspacePatronGateVisible = false;
   // Scratch guard (Task 9 follow-up): set when an open/create attempt comes
   // back {error:'unsaved-scratch'} — this window is unbound and holds real
   // tabs, so main refused to switch it without confirming first. Carries
@@ -624,6 +628,7 @@
   function applyWorkspacesPayload(payload) {
     wsPatronActive = !!payload?.patronActive;
     wsWorkspaces = Array.isArray(payload?.items) ? payload.items : [];
+    if (wsPatronActive) workspacePatronGateVisible = false;
     syncFooterWorkspace();
     if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
   }
@@ -660,11 +665,13 @@
     createWorkspaceValue = '';
     pendingSaveAsWorkspace = false;
     saveAsWorkspaceValue = '';
+    workspacePatronGateVisible = false;
     claimEditorFocus = false;
   }
 
   function workspacePopoverEditing() {
-    return pendingCreateWorkspace
+    return workspacePatronGateVisible
+      || pendingCreateWorkspace
       || pendingSaveAsWorkspace
       || pendingRenameWorkspaceId != null
       || pendingDeleteWorkspaceId != null;
@@ -748,6 +755,27 @@
     wsSwitcherSaveAs.hidden = !visible;
   }
 
+  function renderWorkspacePatronGateRow() {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'ws-switcher-row workspace-row';
+    row.setAttribute('role', 'menuitem');
+    row.setAttribute('aria-label', 'Open Patron Settings for Named Workspaces');
+    const name = document.createElement('span');
+    name.className = 'ws-switcher-name';
+    name.textContent = 'Creating workspaces needs Blanc Patron';
+    const action = document.createElement('span');
+    action.className = 'ws-switcher-n';
+    action.textContent = 'settings →';
+    row.append(name, action);
+    row.addEventListener('click', () => {
+      closeWorkspaceSwitcher();
+      window.browserAPI.closeOverlay();
+      window.browserAPI.openPage('settings', 'patron');
+    });
+    return row;
+  }
+
   /** Shared name field for create / save-as / rename inside the popover. */
   function renderSwitcherNameInput({
     value, placeholder, ariaLabel, onInput, onCommit, onCancel, selectAll, caret, className,
@@ -772,8 +800,15 @@
   }
 
   function renderWorkspaceSwitcherList() {
-    const naming = pendingCreateWorkspace || pendingSaveAsWorkspace;
-    setSwitcherCommandVisibility(!naming);
+    const exclusiveState = workspacePatronGateVisible
+      || pendingCreateWorkspace
+      || pendingSaveAsWorkspace;
+    setSwitcherCommandVisibility(!exclusiveState);
+
+    if (workspacePatronGateVisible) {
+      workspaceSwitcherList.replaceChildren(renderWorkspacePatronGateRow());
+      return;
+    }
 
     if (pendingCreateWorkspace) {
       const wrap = document.createElement('div');
@@ -981,10 +1016,22 @@
     });
   }
 
+  /** Renderer-side UX gate only. Main remains authoritative and repeats the
+   * entitlement check before every create/save write. Existing workspaces are
+   * deliberately not gated, so a lapsed Patron keeps access to their data. */
+  function guardWorkspaceCreationEntry() {
+    if (wsPatronActive) return false;
+    clearWorkspacePopoverEditors();
+    workspacePatronGateVisible = true;
+    openWorkspaceSwitcher();
+    return true;
+  }
+
   /** "Save this window as…" — name the capture inside the popover, then
    * commit via saveWorkspaceAs (same path /workspace <name> uses). Also the
    * scratch guard's "save first" step. */
   function beginSaveWorkspace() {
+    if (guardWorkspaceCreationEntry()) return;
     pendingCreateWorkspace = false;
     createWorkspaceValue = '';
     pendingRenameWorkspaceId = null;
@@ -1019,6 +1066,7 @@
 
   /** "new…" — create an empty workspace; name field stays in the popover. */
   function beginCreateWorkspace() {
+    if (guardWorkspaceCreationEntry()) return;
     pendingSaveAsWorkspace = false;
     saveAsWorkspaceValue = '';
     pendingRenameWorkspaceId = null;
@@ -1266,6 +1314,29 @@
 
   // --- Slash commands ---
 
+  function runWorkspaceCommand(input) {
+    const name = (input ?? '').replace(/^\/workspace\s*/, '').trim();
+    if (!name) {
+      // Reveal the footer switcher — the resting list no longer carries a
+      // workspaces section to scroll to.
+      openWorkspaceSwitcher();
+      return;
+    }
+    // Case-insensitive switch-if-exists stays lapse-safe. Only a new name is
+    // creation, so stop that path at the upfront renderer gate before an IPC
+    // round-trip; main repeats the entitlement check as the authority.
+    const existing = wsWorkspaces.find((w) => w.name.toLowerCase() === name.toLowerCase());
+    if (existing) { switchToWorkspace(existing); return; }
+    if (guardWorkspaceCreationEntry()) return;
+    runWorkspaceMutation(window.browserAPI.saveWorkspaceAs(name), {
+      context: { name },
+      // Scratch guard's "save first" lands here: a save that succeeds while
+      // a guard is awaiting one means THIS window is now bound. Retry still
+      // uses force:false so remaining private pages re-trip the guard.
+      onSuccess: () => { if (pendingScratchGuard?.awaitingSave) retryScratchGuard(false); },
+    });
+  }
+
   const COMMANDS = [
     // Also listed on blanc://shortcuts/ — update SLASH_COMMANDS in
     // pages/shortcuts.js when adding or changing a command here.
@@ -1306,28 +1377,7 @@
       window.browserAPI.cycleTheme(requested || null);
     } },
     { cmd: '/patron', hint: 'Support Blanc with a Patron subscription', run: () => window.browserAPI.openPage('settings', 'patron') },
-    { cmd: '/workspace', hint: 'Switch to a named workspace, or type a new name to save this window', keepOverlay: true, clearInput: true, run: (input) => {
-      const name = (input ?? '').replace(/^\/workspace\s*/, '').trim();
-      if (!name) {
-        // Reveal the footer switcher — the resting list no longer carries a
-        // workspaces section to scroll to.
-        openWorkspaceSwitcher();
-        return;
-      }
-      // Case-insensitive switch-if-exists; create (Patron-gated) if not —
-      // never create-only, and never /group-style find-or-create-a-group.
-      const existing = wsWorkspaces.find((w) => w.name.toLowerCase() === name.toLowerCase());
-      if (existing) { switchToWorkspace(existing); return; }
-      runWorkspaceMutation(window.browserAPI.saveWorkspaceAs(name), {
-        context: { name },
-        // Scratch guard's "save first" (beginScratchGuardSaveFirst) lands
-        // here: a save that succeeds while a guard is awaiting one means
-        // THIS window is now bound, so persistable tabs are covered. Retry
-        // still uses force:false — private pages remaining will re-trip,
-        // and retryScratchGuard's onUnsavedScratch re-shows the confirm.
-        onSuccess: () => { if (pendingScratchGuard?.awaitingSave) retryScratchGuard(false); },
-      });
-    } },
+    { cmd: '/workspace', hint: 'Switch to a named workspace, or type a new name to save this window', keepOverlay: true, clearInput: true, run: runWorkspaceCommand },
   ];
 
   function runCommand(command) {
