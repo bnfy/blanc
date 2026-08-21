@@ -1,0 +1,199 @@
+<!-- @dsCard group="Components" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Quiet Tabs — state treatments</title>
+<style>
+/* Blanc's own tokens, copied verbatim from src/renderer/styles.css.
+   This sheet is a specimen, not an illustration: every dot, tag and row
+   below is built from the shipping declarations, so what you see here is
+   what the chrome renders. */
+:root {
+  --bg: #ffffff;
+  --surface-raised: #ffffff;
+  --border: #dedede;
+  --text: #0e0e0e;
+  --text-dim: #6b6b6b;
+  --accent: #111111;
+  --accent-dim: #e9e9e9;
+  --font: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+/* The page chrome follows the viewer. The specimens below deliberately do
+   not — they are shown on both grounds at once, because the question this
+   sheet answers is whether the treatment survives in each. */
+@media (prefers-color-scheme: dark) {
+  :root { --bg:#0e0e0e; --surface-raised:#1f1f1f; --border:#2e2e2e; --text:#f5f5f5; --text-dim:#9c9c9c; --accent:#f5f5f5; --accent-dim:#333; }
+}
+:root[data-theme="dark"] { --bg:#0e0e0e; --surface-raised:#1f1f1f; --border:#2e2e2e; --text:#f5f5f5; --text-dim:#9c9c9c; --accent:#f5f5f5; --accent-dim:#333; }
+:root[data-theme="light"] { --bg:#ffffff; --surface-raised:#ffffff; --border:#dedede; --text:#0e0e0e; --text-dim:#6b6b6b; --accent:#111111; --accent-dim:#e9e9e9; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 40px 32px 72px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: 44px; }
+
+header { display: flex; flex-direction: column; gap: 10px; }
+h1 { margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.02em; text-wrap: balance; }
+.lede { margin: 0; color: var(--text-dim); max-width: 62ch; }
+.provenance {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);
+  border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px;
+}
+
+section { display: flex; flex-direction: column; gap: 14px; }
+h2 {
+  margin: 0; font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.09em; color: var(--text-dim);
+}
+.note { margin: 0; color: var(--text-dim); max-width: 62ch; font-size: 13px; }
+
+/* Two grounds, side by side. */
+.grounds { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 720px) { .grounds { grid-template-columns: 1fr; } }
+.ground {
+  border: 1px solid var(--border); border-radius: 10px; padding: 18px 16px 16px;
+  display: flex; flex-direction: column; gap: 14px; overflow-x: auto;
+}
+.ground[data-g="light"] { --border:#dedede; --text:#0e0e0e; --text-dim:#6b6b6b; --accent:#111111; --accent-dim:#e9e9e9; --surface-raised:#ffffff; background:#ffffff; color:#0e0e0e; }
+.ground[data-g="dark"]  { --border:#2e2e2e; --text:#f5f5f5; --text-dim:#9c9c9c; --accent:#f5f5f5; --accent-dim:#333;    --surface-raised:#1f1f1f; background:#0e0e0e; color:#f5f5f5; }
+.ground-label {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-dim);
+}
+
+/* ---- Panel row: styles.css + overlay.js tabRow ---- */
+.island-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 9px; border-radius: 8px; background: var(--surface-raised);
+}
+.row-favicon { width: 14px; height: 14px; border-radius: 3px; background: var(--border); flex: 0 0 auto; }
+.row-title { font-size: 13px; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-private {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
+  border: 1px solid var(--border); border-radius: 999px; padding: 0 6px; flex: 0 0 auto;
+}
+.row-favicon-wrap { position: relative; display: flex; flex: 0 0 auto; }
+.island-row.quiet .row-favicon-wrap { opacity: .45; }
+
+/* ---- Quiet glyph: ONE block for panel + rail, mirroring the shipping shared
+   rule (.vertical-tab-state, .island-row .row-quiet). Two matching rule sets
+   would be exactly the drift the shipping CSS avoids. ---- */
+.row-quiet, .vertical-tab-quiet {
+  width: 14px; height: 14px; display: inline-flex; align-items: center;
+  justify-content: center; color: var(--text-dim); flex: 0 0 auto;
+}
+.row-quiet svg, .vertical-tab-quiet svg {
+  width: 13px; height: 13px; fill: none; stroke: currentColor;
+  stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round;
+}
+
+/* ---- Rail row: styles.css ---- */
+.vertical-tab-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; }
+.vertical-tab-favicon { width: 15px; height: 15px; border-radius: 3px; background: var(--border); flex: 0 0 auto; }
+.vertical-tab-row.quiet .vertical-tab-favicon { opacity: .45; }
+.vertical-tab-title { font-size: 13px; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Spec table ---- */
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-dim); font-weight: 500; }
+td.code { font-family: var(--font-mono); font-size: 11px; white-space: nowrap; }
+.scroller { overflow-x: auto; }
+
+.rule {
+  border-left: 2px solid var(--text-dim); padding: 2px 0 2px 14px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.rule b { font-weight: 600; }
+.rule p { margin: 0; color: var(--text-dim); font-size: 13px; max-width: 60ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Quiet Tabs</h1>
+    <p class="lede">A tab left idle has its renderer discarded to reclaim memory, and rebuilt when you return to it. Quiet is shown in exactly one way, on two surfaces: the panel row and the vertical rail each draw a <b>Zzz glyph</b> and <b>dim the favicon</b>. Nowhere else — pill dots and the Quick Switcher carry no quiet state. The word a person sees or hears is always <b>quiet</b> — <code>asleep</code> is the internal field name only; the Zzz is a pictogram, not a string.</p>
+    <div class="provenance">specimen built from src/renderer/styles.css · shared glyph block (.vertical-tab-state, .island-row .row-quiet) · favicon dims · src/renderer/quiet-glyph.js</div>
+  </header>
+
+  <section>
+    <h2>Command panel row</h2>
+    <p class="note">The ⌘L list. The Zzz glyph sits where <code>private</code> would, and is visible at rest — unlike the hover-only metadata tag, because a state you can only see by hovering is not a state you can see. The favicon dims alongside it.</p>
+    <div class="grounds">
+      <div class="ground" data-g="light">
+        <span class="ground-label">light</span>
+        <div class="island-row"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">Electron Documentation</span></div>
+        <div class="island-row quiet"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">MDN Web Docs</span><span class="row-quiet"><svg class="quiet-glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 9.75H6.25L1.5 14H6.25M7.75 5.5H11.5L7.75 9H11.5M12.75 1.75H15L12.75 4.25H15"/></svg></span></div>
+        <div class="island-row"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">New Tab</span><span class="row-private">private</span></div>
+      </div>
+      <div class="ground" data-g="dark">
+        <span class="ground-label">dark</span>
+        <div class="island-row"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">Electron Documentation</span></div>
+        <div class="island-row quiet"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">MDN Web Docs</span><span class="row-quiet"><svg class="quiet-glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 9.75H6.25L1.5 14H6.25M7.75 5.5H11.5L7.75 9H11.5M12.75 1.75H15L12.75 4.25H15"/></svg></span></div>
+        <div class="island-row"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">New Tab</span><span class="row-private">private</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Vertical rail row</h2>
+    <p class="note">The rail dims the <b>favicon</b>, not the title: loading already dims the title, and the title span is <code>aria-hidden</code> — the favicon is what you scan down the rail. The marker carries the state for anyone who cannot see the dim.</p>
+    <div class="grounds">
+      <div class="ground" data-g="light">
+        <span class="ground-label">light</span>
+        <div class="vertical-tab-row"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">Electron Documentation</span></div>
+        <div class="vertical-tab-row quiet"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">MDN Web Docs</span><span class="vertical-tab-quiet" title="Quiet"><svg class="quiet-glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 9.75H6.25L1.5 14H6.25M7.75 5.5H11.5L7.75 9H11.5M12.75 1.75H15L12.75 4.25H15"/></svg></span></div>
+      </div>
+      <div class="ground" data-g="dark">
+        <span class="ground-label">dark</span>
+        <div class="vertical-tab-row"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">Electron Documentation</span></div>
+        <div class="vertical-tab-row quiet"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">MDN Web Docs</span><span class="vertical-tab-quiet" title="Quiet"><svg class="quiet-glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 9.75H6.25L1.5 14H6.25M7.75 5.5H11.5L7.75 9H11.5M12.75 1.75H15L12.75 4.25H15"/></svg></span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Values</h2>
+    <div class="scroller">
+      <table>
+        <thead><tr><th>Surface</th><th>Selector</th><th>Declaration</th></tr></thead>
+        <tbody>
+          <tr><td>Panel + rail container</td><td class="code">.vertical-tab-state, .island-row .row-quiet</td><td class="code">14×14, inline-flex, var(--text-dim)</td></tr>
+          <tr><td>Panel + rail svg</td><td class="code">…svg</td><td class="code">13×13, stroke 1.35 round, fill: none</td></tr>
+          <tr><td>Panel favicon</td><td class="code">.island-row.quiet .row-favicon-wrap</td><td class="code">opacity: .45</td></tr>
+          <tr><td>Rail favicon</td><td class="code">.vertical-tab-row.quiet .vertical-tab-favicon</td><td class="code">opacity: .45</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why it looks like this</h2>
+    <div class="rule">
+      <b>One treatment, two surfaces.</b>
+      <p>Quiet is the Zzz glyph plus a dimmed favicon, drawn on the panel row and the vertical rail, and nowhere else. Pill dots are switch targets, not status fields — nothing legible fits at 6px — and the Quick Switcher sub line is search text. A quiet mark on either added clutter without value, so neither carries one.</p>
+    </div>
+    <div class="rule">
+      <b>Dim the favicon, not the title.</b>
+      <p>The favicon is the whole visual unit that dims (it also holds the mute badge), so a quiet tab fades as one object. The title is left alone: loading already dims it, and the title span is <code>aria-hidden</code> — the favicon is what you scan.</p>
+    </div>
+    <div class="rule">
+      <b>The word is “quiet”.</b>
+      <p>Every visible and assistive string says quiet. The tab record's field is <code>asleep</code> (internal only); the command is <code>/sleep</code>, the one deliberate place where the internal word is shown to users — the opposite of the <code>bookmarks</code> split, where an identifier no user ever sees. A test fails the build if <code>asleep</code> reaches a user-facing string.</p>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
