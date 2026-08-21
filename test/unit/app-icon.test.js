@@ -289,12 +289,16 @@ test('the Icon Composer mark fills the same share of its tile as the flat colorw
   assert.ok(composed.height > 600 && composed.height < 700, 'mark stays within the icon safe area');
 });
 
-test('settings exposes icon colorways and Supporter only on macOS', () => {
+test('settings exposes icon colorways only on macOS; Patron activation is cross-platform', () => {
   const renderer = fs.readFileSync(
     path.join(root, 'src/renderer/pages/settings.js'),
     'utf8',
   );
   assert.match(renderer, /const supportsNativeAppIcon = appIconPlatform\.startsWith\('Mac'\);/);
   assert.doesNotMatch(renderer, /supportsNativeAppIcon[^;]+startsWith\('Win'\)/);
-  assert.match(renderer, /supports\('supporter'\) && supportsNativeAppIcon/);
+  // Colorways stay macOS-only; Patron checkout + license activation must remain
+  // available on every platform (workspaces and founding keys are not Dock-bound).
+  assert.match(renderer, /supports\('appIcon'\) \|\| !supportsNativeAppIcon/);
+  assert.match(renderer, /if \(supports\('supporter'\)\)/);
+  assert.doesNotMatch(renderer, /supports\('supporter'\)\s*&&\s*supportsNativeAppIcon/);
 });

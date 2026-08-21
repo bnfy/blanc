@@ -1289,6 +1289,14 @@ function install(refs) {
         `(() => { const a = document.querySelector('a[href^="https"], a[href^="http"]'); if (a) a.click(); return !!a; })()`);
       if (!clicked) throw new Error('no outbound link rendered in sheet');
     },
+    async clickPatronCheckout() {
+      const wc = getUtilitySheetWebContents();
+      if (!wc) throw new Error('sheet not open');
+      const clicked = await wc.executeJavaScript(
+        `(() => { const a = document.getElementById('patronCheckout'); if (a) { a.click(); return true; } return false; })()`);
+      if (clicked !== true) throw new Error('Patron checkout CTA not rendered in Settings');
+      return true;
+    },
     attemptChromeNavigation(url) { return attemptChromeNavigation(String(url)); },
     chromeUrl() { return getChromeUrl(); },
     persistedSessionData() { return persistedSessionData(); },

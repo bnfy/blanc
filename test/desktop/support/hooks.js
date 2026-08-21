@@ -47,6 +47,13 @@ async function closeApp(electronApp) {
 }
 
 async function launchApp() {
+  // Cursor/VS Code agent shells inherit ELECTRON_RUN_AS_NODE=1 so their own
+  // Electron host can spawn Node helpers. That makes the app binary reject
+  // Playwright's --remote-debugging-port as a "bad option" and exit before
+  // main.js runs — strip it so acceptance launches a real Electron process.
+  const { ELECTRON_RUN_AS_NODE: _ignored, ...cleanEnv } = process.env;
+  void _ignored;
+
   const electronApp = await _electron.launch({
     // insecure.test maps to loopback at the resolver so the F12-7 scenario can
     // load a genuinely non-loopback-HOSTNAMED page offline: the connection
@@ -65,7 +72,7 @@ async function launchApp() {
       `--ignore-certificate-errors-spki-list=${secureSpkiHash}`,
     ],
     env: {
-      ...process.env,
+      ...cleanEnv,
       BLANC_TEST: '1',
       BLANC_TEST_BROWSER_HOME: browserHomeDir,
       BLANC_TEST_UNCAUGHT_LOG: uncaughtLogPath,

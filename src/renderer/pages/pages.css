@@ -184,6 +184,22 @@ button {
 button:hover { color: var(--text); border-color: var(--text-dim); }
 button.danger:hover { color: var(--on-danger); background: var(--danger); border-color: var(--danger); }
 
+/* Same-frame checkout CTA — must remain an <a>, never target=_blank (utility
+   sheet denies window.open). Visually matches a primary settings button. */
+a.patron-checkout {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--surface-raised);
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  text-decoration: none;
+  cursor: pointer;
+}
+a.patron-checkout:hover { filter: brightness(1.05); }
+
 .hint.field-error { color: var(--danger); }
 
 .spacer { flex: 1 1 auto; }

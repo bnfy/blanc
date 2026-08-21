@@ -286,7 +286,11 @@
   // --- Patron activation ---
   // Capability key stays 'supporter' — guarded by
   // test/unit/app-icon.test.js's literal-string match; Phase 4 renames it.
-  if (supports('supporter') && supportsNativeAppIcon) {
+  // Checkout + license activation are cross-platform (workspaces and founding
+  // keys are not Dock-bound); only the icon colorway grid is macOS-gated above.
+  if (supports('supporter')) {
+    const patronCheckoutRow = document.getElementById('patronCheckoutRow');
+    const patronActivateHint = document.getElementById('patronActivateHint');
     const patronActivateRow = document.getElementById('patronActivateRow');
     const patronKey = document.getElementById('patronKey');
     const patronActivateBtn = document.getElementById('patronActivate');
@@ -294,6 +298,8 @@
 
     function renderPatronState() {
       if (!patronActive) return;
+      patronCheckoutRow.hidden = true;
+      patronActivateHint.hidden = true;
       patronActivateRow.hidden = true;
       // Never gate on this date's presence — it's null for active subscribers
       // (only founding/lifetime carry a mirror date). Show it when present,
