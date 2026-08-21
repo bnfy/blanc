@@ -6,7 +6,25 @@ const path = require('path');
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-sync-icons-'));
 const requests = [];
+const retryTimers = [];
 let responseStatus = 404;
+const realSetTimeout = global.setTimeout;
+const realClearTimeout = global.clearTimeout;
+global.setTimeout = (fn, delay, ...args) => {
+  if (delay === 65_000) {
+    const timer = { fn, delay, cleared: false };
+    retryTimers.push(timer);
+    return timer;
+  }
+  return realSetTimeout(fn, delay, ...args);
+};
+global.clearTimeout = (timer) => {
+  if (timer && retryTimers.includes(timer)) {
+    timer.cleared = true;
+    return;
+  }
+  return realClearTimeout(timer);
+};
 const electronId = require.resolve('electron');
 require.cache[electronId] = {
   id: electronId,
@@ -43,10 +61,22 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
 
 const sync = require('../../src/main/sync');
 
-test('an older Worker rejecting the optional icons store does not fail profile sync', async () => {
+test.after(async () => {
+  await sync.disable();
+  global.setTimeout = realSetTimeout;
+  global.clearTimeout = realClearTimeout;
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+test('a missing optional icon store is not created from an empty local sidecar', async () => {
   const result = await sync.syncNow(['icons']);
   assert.equal(result.ok, true);
-  assert.deepEqual(requests.map(({ method }) => method), ['GET', 'PUT']);
+  assert.deepEqual(requests.map(({ method }) => method), ['GET']);
+  assert.equal(retryTimers.length, 1, 'one bounded propagation retry is scheduled');
+  retryTimers[0].fn();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual(requests.map(({ method }) => method), ['GET', 'GET']);
+  assert.equal(retryTimers.length, 1, 'a still-missing older Worker is not polled forever');
   assert.equal(sync.status().lastSyncedAt, 1234);
   assert.equal(sync.status().lastError, 'A required store failed earlier.');
   const migrated = JSON.parse(fs.readFileSync(path.join(tmp, 'sync.json'), 'utf8'));
