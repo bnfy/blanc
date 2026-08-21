@@ -154,5 +154,10 @@ try {
   throw error;
 } finally {
   await stopApp();
-  await rm(profileDir, { recursive: true, force: true });
+  await rm(profileDir, {
+    recursive: true,
+    force: true,
+    maxRetries: 5,
+    retryDelay: 200,
+  });
 }
