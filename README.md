@@ -13,6 +13,31 @@ Plus favorites, history, downloads, settings, private tabs, per-site
 permission prompts, session restore, and signed + notarized auto-updating
 macOS builds.
 
+## Source and license
+
+Blanc is **source-available, not open source**. The application source is
+public so you can inspect what the browser does and build and run it locally
+for verification. GitHub's terms permit users to fork public repositories
+within the service, but Blanc is published as `UNLICENSED`: there is no grant
+to modify or redistribute the code, or to publish your own builds.
+
+The release process signs and notarizes macOS builds, applies timestamped
+Authenticode signatures to Windows builds, signs the complete checksum
+manifest with Sigstore, and publishes provenance attestations for native
+artifacts. See the [FAQ](https://blancbrowser.com/faq) for the plain-English
+version and the release repository for the verifiable records.
+
+## Free browser, optional Patron
+
+Everything that makes Blanc a browser is free: ad and tracker blocking,
+encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc
+Patron costs $30 a year or $4 a month and adds three app-icon colorways plus
+Named Workspaces. Creating a named workspace requires an active Patron;
+renaming and removing workspaces you already have keeps working if it lapses.
+
+The memory benchmark, method, and raw runs are in
+[`bench/memory/`](bench/memory/).
+
 ## Install
 
 Grab the latest build from

@@ -83,6 +83,28 @@ test('grant drafts and metrics labels do not overclaim licensing or installs', (
   assert.doesNotMatch(readme, /else\s+builds unsigned/i);
 });
 
+test('public Patron copy states the named-workspace boundary consistently', () => {
+  const publicCopyFiles = [
+    'README.md',
+    'site/src/pages/about.astro',
+    'site/src/pages/faq.astro',
+    'site/src/pages/index.astro',
+    'site/src/pages/press.astro',
+    'site/src/pages/terms.astro',
+  ];
+  const staleClaims = /every browser feature is free|all browser features included|none of them are locked behind payment|nothing is locked behind payment|cosmetic Dock icons today/i;
+
+  for (const relativePath of publicCopyFiles) {
+    const source = read(relativePath);
+    assert.doesNotMatch(source, staleClaims, `${relativePath} must not overstate the free feature boundary`);
+    assert.match(source, /named workspace/i, `${relativePath} must disclose the named-workspace Patron boundary`);
+  }
+
+  const terms = read('site/src/pages/terms.astro');
+  assert.match(terms, /Creating a named workspace requires an active subscription/i);
+  assert.match(terms, /renaming and removing workspaces you already have\s+continue to work/i);
+});
+
 test('platform specs match the shipped first-run telemetry contract', () => {
   const matrix = read('spec/parity-matrix.md');
   const services = read('spec/acceptance/platform-services.feature');

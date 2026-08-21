@@ -19,6 +19,7 @@ const MANIFEST = [
   { path: '/privacy',                  changefreq: 'monthly', priority: '0.3' },
   { path: '/terms',                    changefreq: 'monthly', priority: '0.3' },
   { path: '/press',                    changefreq: 'monthly', priority: '0.5' },
+  { path: '/faq',                      changefreq: 'monthly', priority: '0.5' },
 ];
 
 const SITE = 'https://blancbrowser.com';

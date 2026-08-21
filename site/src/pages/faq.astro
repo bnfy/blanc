@@ -1,0 +1,78 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const QUESTIONS = [
+  {
+    q: 'Is Blanc open source?',
+    a: [
+      'No — but the source is public, and those are two different things worth separating.',
+      'The repository at github.com/bnfy/blanc contains the application source. You can read every line, inspect what the blocker does and what the launch ping sends, and build and run it locally to verify the published binary against the source. That is what the README setup steps are for.',
+      'The code is not openly licensed. package.json says UNLICENSED, so it carries no open-source grant. GitHub’s terms permit users to fork public repositories within the service, but Blanc grants no licence to modify the code, redistribute it, or publish your own builds. The accurate term is source-available, not open source.',
+      'Every macOS build is signed and notarized, every Windows build carries a timestamped Authenticode signature checked at release time, the checksum manifest is signed with Sigstore under a verified OIDC identity, and native artifacts carry GitHub provenance attestations.',
+    ],
+  },
+  {
+    q: "It's Electron. Isn't that just Chrome with extra memory?",
+    a: [
+      'Blanc is Chromium-based, and yes, that means it uses Electron. The memory assumption is the part worth measuring rather than assuming.',
+      'Blanc includes a published benchmark harness and its raw runs. It sums phys_footprint across each browser’s whole process tree rather than summing RSS, which counts the engine framework once per renderer and systematically penalizes whichever engine isolates more per site.',
+      'Two qualifications travel with the figures: Brave is the fair peer because it also blocks by default, and the gap is not only blocking — with Blanc Blocker switched off, Blanc still came in under Chrome.',
+    ],
+  },
+  {
+    q: 'Does Blanc phone home?',
+    a: [
+      'Packaged builds send one launch ping, and you can turn it off. Its six fields are a random install ID, a session ID, app version, platform, architecture, and OS version coarsened to a major number. It contains no page, URL, search, or history data, and it is not joined to other Blanc data.',
+      'On a fresh profile, the choice is presented during first-run setup and must be saved before a ping can be sent. The server HMACs the install ID before storage, applies replay deduplication and rate caps, and retains only expiring seen-markers plus aggregate counts.',
+      'The install ID lives in a device-local file and is never synced. Profile Sync never carries it.',
+    ],
+  },
+  {
+    q: 'Why does a free browser have a subscription?',
+    a: [
+      'Blanc Patron is $30 a year or $4 a month, and it is optional. Everything that makes Blanc a browser is free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys.',
+      'Patron unlocks three extra app-icon colorways and the ability to save a window as a named workspace. Creating a named workspace needs an active Patron; renaming and removing workspaces you already have keeps working if your subscription lapses, so your own data is never held hostage.',
+      'Patron exists because Blanc has no ad business and no investors, and an independent browser needs a way to pay for itself that is not selling the people using it. Nothing that was free has moved behind payment.',
+    ],
+  },
+  {
+    q: 'Why no extensions?',
+    a: [
+      'It is deliberate, not a roadmap gap. Blanc previously included an extension runtime, but it caused native crashes, required an unsandboxed chrome window, and imposed a licensing constraint on the project.',
+      'The feature most people want extensions for is blocking, and that is built into Blanc at the network layer instead — below the extension system and outside Manifest V3’s rule caps.',
+    ],
+  },
+  {
+    q: 'Who makes Blanc?',
+    a: [
+      'Bananify, an independent software studio. Blanc is built without venture funding or investors setting the product agenda.',
+    ],
+  },
+];
+---
+<BaseLayout
+  title="Straight answers about Blanc Browser"
+  description="Honest answers about Blanc Browser: source availability, Electron memory, telemetry, Patron pricing, and extension support."
+  path="/faq"
+  page="faq"
+  header="solid"
+  ogTitle="Straight answers about Blanc Browser"
+  ogDescription="Source availability, Electron memory, telemetry, Patron pricing, and extension support — answered plainly."
+>
+  <main class="faq-page">
+    <header class="faq-page-head">
+      <p class="section-kicker">the hard questions</p>
+      <h1>Straight answers.</h1>
+      <p>The questions worth asking about Blanc, answered plainly — including the ones where the honest answer is a trade-off rather than a win.</p>
+    </header>
+
+    <div class="faq-page-list">
+      {QUESTIONS.map(({ q, a }) => (
+        <section class="faq-page-item">
+          <h2>{q}</h2>
+          <div>{a.map((paragraph) => <p>{paragraph}</p>)}</div>
+        </section>
+      ))}
+    </div>
+  </main>
+</BaseLayout>

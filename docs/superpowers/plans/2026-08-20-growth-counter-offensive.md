@@ -4,11 +4,23 @@
 
 **Goal:** Fire the five discovery channels Blanc has never used — in one concentrated week, with measurement restored and the payment path proven first — so the September cohort is large enough for retention to become a real question.
 
-**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review, ~1–2 business days; Google Ads verification by Sep 2) and de-risks the spike (site copy corrected, production Patron purchase proven, v1.8.0 released + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires channels cheap→expensive across four days so neither one-shot card is spent on untested copy.
+**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review, ~1–2 business days; Google Ads verification by Sep 2) and de-risks the spike (site copy corrected, production Patron purchase proven, v1.8.1 released + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires channels cheap→expensive across four days so neither one-shot card is spent on untested copy.
 
 **Tech Stack:** Astro 7 (`site/`), Cloudflare Pages, GA4 (property 544287080), Polar.sh (Patron checkout), `blanc-ping` Worker stats, `gh` CLI.
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
+
+## Execution status — August 21, 2026
+
+- Blanc v1.8.0 shipped, followed immediately by v1.8.1. The current public
+  macOS and Windows updater handoffs and the authenticated Linux AppImage launch
+  are proven for v1.8.1; see `docs/release-incidents/2026-08-21-v1.8.1.md`.
+- Task 7's release and platform-evidence gate is therefore complete through
+  v1.8.1. Its 48-hour soak ends at **2026-08-23 03:42:09 UTC**
+  (**August 22, 11:42:09 p.m. ET**).
+- Tasks 5 and 6 did not land before the release. Resume at Task 5: correct and
+  deploy the public Patron claims and `/faq`, then make the repository README a
+  launch-ready landing page. Do not begin launch week while either remains open.
 
 ## Owner legend
 
@@ -25,7 +37,7 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship as-is.** No telemetry changes, no open-sourcing any component, Patron stays in the launch narrative. These were considered and declined during brainstorming.
-- **Launch rides v1.8.0 after a ≥48h soak.** Never launch on a build published the same day.
+- **Launch rides v1.8.1 after a ≥48h soak.** Never launch on a build published the same day.
 - **Channel order is cheap→expensive and is not negotiable:** listings → Show HN → Reddit → Product Hunt.
 - **No retention experiments this cycle.** n=27 cannot support one. The checkpoint is Oct 1.
 - **Adding a site page REQUIRES adding its path to `MANIFEST` in `site/src/pages/sitemap.xml.js`** — the sitemap endpoint asserts the manifest matches discovered pages exactly and **fails the build** otherwise.
@@ -285,11 +297,11 @@ If any step fails, **stop the whole plan here** and fix the checkout. Launching 
 
 **Owner:** `agent` — this is ordinary site work.
 
-**MUST LAND BEFORE TASK 7 PUBLISHES v1.8.0.** Four existing pages currently
-state that no feature is locked behind payment. The moment v1.8.0 ships
-Patron-gated workspace creation those statements become false — and one of them
-is the Terms of Service. Shipping the release first opens a window where the
-site's legal page contradicts the product.
+**POST-RELEASE CORRECTION — DO THIS FIRST.** Four existing pages state that no
+feature is locked behind payment even though v1.8.0 shipped Patron-gated
+workspace creation and v1.8.1 made that gate explicit before the editor opens.
+One of those pages is the Terms of Service. Until this task deploys, the site's
+legal page contradicts the current product.
 
 **Files:**
 - Create: `site/src/pages/faq.astro`
@@ -531,7 +543,7 @@ telemetry, pricing and extensions."
 
 - [ ] **Step 10: Push, open a PR, and merge — before deploying**
 
-Task 7 depends on this work being *merged*, not merely committed locally.
+Launch execution depends on this work being *merged*, not merely committed locally.
 
 **`site:deploy` forcibly passes `--branch=main`**, so deploying from a feature
 branch produces a deployment labelled `Branch: main` that looks correct while
@@ -565,10 +577,10 @@ confirm it is live.
 
 **Owner:** `agent`.
 
-**Why this sits in Phase 0, before the release:** `README.md` is one of
-`release.sh`'s `RELEASE_SOURCES`. If it is edited after v1.8.0 ships, the change
-is not in the released commit and `release.sh` would have refused the release
-anyway for a dirty source. It must be correct and committed *before* Task 7 runs.
+**Why this sits in Phase 0, before launch:** the repository is the Show HN
+landing page. v1.8.1 has already shipped, so the release-source ordering concern
+is historical; the live requirement now is that this README be correct and
+merged before Task 12 posts.
 
 It is also, once Task 12 submits the repository to Show HN, the first thing
 thousands of sceptical readers see. Build instructions alone will not do.
@@ -600,12 +612,11 @@ git status --short
 git commit -m "README: licence status, Patron boundary, benchmark and FAQ links"
 ```
 
-Leave it committed on the branch that Task 7 Step 6 merges, or merge it
-separately — either way it must be in `origin/main` before the release runs.
+Merge it into `origin/main` before Task 12 posts.
 
 ---
 
-### Task 7: Release v1.8.0 and soak
+### Task 7: Release v1.8.0, supersede with v1.8.1, and soak — release complete
 
 **Owner:** `owner` — the release script requires interactive 1Password/Terminal auth.
 
@@ -811,14 +822,18 @@ echo '{"date":"YYYY-MM-DD","version":"1.8.0","publishedAt":"<ISO>","soakEndsAt":
   >> "$LAUNCH_LOG"
 ```
 
-- [ ] **Step 11: Soak exit criteria — real upgrade evidence, not elapsed time**
+- [x] **Step 11: Soak exit criteria — real upgrade evidence, not elapsed time**
 
 48 hours passing is necessary but not sufficient. Per `CLAUDE.md`, the current
 public baseline is **v1.7.0**, and the next release must validate:
 
-- [x] the normal **v1.7.0 → v1.8.0 upgrade path on macOS**
-- [ ] the normal **v1.7.0 → v1.8.0 upgrade path on Windows**
-- [ ] **Linux install/launch**
+- [x] the current **v1.8.0 → v1.8.1 updater handoff on macOS**, including Restart Now
+- [x] the current **v1.8.0 → v1.8.1 updater handoff on Windows**, including Restart Now
+- [x] the authenticated public **v1.8.1 Linux AppImage install/launch**
+
+The older exact Windows v1.7.0→v1.8.0 and Linux v1.8.0 gaps were not
+reconstructed after v1.8.1 shipped. The equivalent current public paths above
+supersede them, as recorded in `docs/release-incidents/2026-08-21-v1.8.1.md`.
 
 A Windows updater check must *begin inside the old packaged Blanc*: it discovers
 the staged `latest.yml`, downloads the matching installer, and the user invokes
@@ -892,7 +907,7 @@ git status --short
 git commit -m "README: use the Island demo"
 ```
 
-This lands after v1.8.0, which is fine: `README.md` is a release source for the
+This lands after v1.8.1, which is fine: `README.md` is a release source for the
 *next* release, not this one. It must be merged before Task 12 posts.
 
 ---
@@ -1287,8 +1302,8 @@ cat "$LAUNCH_LOG"
 - [ ] Task 4 — production Patron purchase **PASS**
 - [ ] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
 - [ ] Task 6 — README refreshed and merged (it is the Show HN landing page)
-- [x] Task 7 — v1.8.0 published, post-publication workflow complete
-- [ ] Task 7 — macOS upgrade, Windows updater handoff, Linux install/launch all verified
+- [x] Task 7 — v1.8.1 published, post-publication workflow complete
+- [x] Task 7 — macOS upgrade, Windows updater handoff, Linux install/launch all verified
 - [ ] Task 8 — demo video exported
 - [ ] Task 9 — newsletter capture verified with a fresh alias
 - [ ] Task 10 — copy pack committed
@@ -1321,7 +1336,7 @@ gh api --paginate repos/bnfy/blanc/releases --jq '.[].assets[] | select(.name | 
 ```
 
 ```bash
-echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline","totalDownloads":N,"version":"1.8.0","postedAnythingYet":false}' \
+echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline","totalDownloads":N,"version":"1.8.1","postedAnythingYet":false}' \
   >> "$LAUNCH_LOG"
 ```
 
@@ -1578,7 +1593,7 @@ PHASE 0 — prep, in this order
   Task 5  Site: /faq + fix 4 false Patron claims, DEPLOYED to production
   Task 6  README refreshed and merged             (a release source; also the HN landing page)
             ▼
-  Task 7  Release v1.8.0 → 48h soak + upgrade evidence
+  Task 7  Release v1.8.1 → 48h soak + upgrade evidence
             (requires 4 passed, 5 live, 6 merged)
 
 PHASE 1 — assets, during the freeze
