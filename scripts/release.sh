@@ -305,7 +305,7 @@ echo "==> Smoke-testing packaged release regressions"
 BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
   npm run test:packaged:regressions
 
-echo "==> Checking live favicon compatibility — primary 25-site matrix"
+echo "==> Checking live favicon compatibility — primary 26-site matrix"
 BLANC_FAVICON_MATRIX=primary \
   BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$NATIVE_MAC_DIR/Blanc.app/Contents/MacOS/Blanc" \
   npm run test:packaged:favicons-live

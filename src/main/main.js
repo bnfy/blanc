@@ -61,7 +61,11 @@ const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
 const iconRaster = require('./icon-raster');
 const { sanitizeFavicon } = require('./favicon-sanitizer');
-const { resolvedFavicon, updateFaviconAfterDomReady } = require('./favicon-policy');
+const {
+  resolvedFavicon,
+  shouldClearFaviconOnNavigate,
+  updateFaviconAfterDomReady,
+} = require('./favicon-policy');
 const { effectiveTabMuted, revealTabAudio } = require('./tab-audio');
 const { validFavicon } = require('./bookmark-validate');
 const {
@@ -153,6 +157,7 @@ const {
 } = require('./platform-main-menu');
 const { showAboutPanel } = require('./about-panel');
 const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
+const { bringExternalWindowToFront } = require('./window-activation');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
@@ -318,8 +323,7 @@ if (!app.requestSingleInstanceLock()) {
     withWindowRuntime(runtime, () => {
       openExternalUrls(urlsFromArgv(commandLine));
       if (rt().window && !rt().window.isDestroyed()) {
-        if (rt().window.isMinimized()) rt().window.restore();
-        rt().window.focus();
+        bringExternalWindowToFront(app, rt().window);
       }
     });
   });
@@ -437,8 +441,7 @@ function openExternalUrl(url, { activate = true } = {}) {
   const id = createTab(url);
   if (activate) {
     setActiveTab(id);
-    if (rt().window.isMinimized()) rt().window.restore();
-    rt().window.focus();
+    bringExternalWindowToFront(app, rt().window);
   }
 }
 
@@ -2892,7 +2895,7 @@ async function setTabFavicon(tab, source) {
     !tabs.has(tab.id) ||
     tab.faviconEpoch !== epoch ||
     tab.faviconSource !== candidate ||
-    tab.url !== urlAtStart
+    (tab.url !== urlAtStart && shouldClearFaviconOnNavigate(urlAtStart, tab.url))
   ) return false;
   const next = resolvedFavicon(tab.favicon, candidate, sanitized);
   if (!sanitized) tab.faviconSource = previousSource;

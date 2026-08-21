@@ -46,6 +46,10 @@ const primarySites = [
   { name: 'ESPN', url: 'https://www.espn.com/', host: 'espn.com' },
   { name: 'DuckDuckGo', url: 'https://duckduckgo.com/', host: 'duckduckgo.com' },
   { name: 'Stripe', url: 'https://stripe.com/', host: 'stripe.com' },
+  // Only a large touch icon is declared; the usable /favicon.ico is valid ICO
+  // bytes served as application/octet-stream. This guards the shared local +
+  // synced fallback that browsers such as Brave already support.
+  { name: 'App Store Connect', url: 'https://appstoreconnect.apple.com/', host: 'appstoreconnect.apple.com' },
 ];
 const additionalSites = [
   { name: 'Facebook', url: 'https://www.facebook.com/', host: 'facebook.com' },
@@ -76,10 +80,10 @@ const additionalSites = [
 ];
 const matrices = { primary: primarySites, additional: additionalSites };
 const allSites = [...primarySites, ...additionalSites];
-assert.equal(primarySites.length, 25);
+assert.equal(primarySites.length, 26);
 assert.equal(additionalSites.length, 25);
-assert.equal(new Set(allSites.map(({ name }) => name.toLowerCase())).size, 50, 'favicon matrix names must be unique');
-assert.equal(new Set(allSites.map(({ host }) => host)).size, 50, 'favicon matrix hosts must be unique');
+assert.equal(new Set(allSites.map(({ name }) => name.toLowerCase())).size, 51, 'favicon matrix names must be unique');
+assert.equal(new Set(allSites.map(({ host }) => host)).size, 51, 'favicon matrix hosts must be unique');
 
 const matrixName = String(process.env.BLANC_FAVICON_MATRIX ?? '').trim().toLowerCase();
 if (matrixName && !matrices[matrixName]) {

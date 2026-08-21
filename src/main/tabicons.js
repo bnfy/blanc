@@ -176,12 +176,21 @@ async function rasterizeSource(source, browsingSession, signal) {
         signal: requestSignal,
       });
       if (!response.ok || requestSignal.aborted) return null;
-      const contentType = response.headers?.get?.('content-type')?.split(';', 1)[0]?.trim()?.toLowerCase();
-      const isPng = contentType === 'image/png';
-      // Reject non-image responses before reading the body at all.
-      if (!isPng && !model.isImageMediaType(contentType)) return null;
+      const declaredContentType = response.headers?.get?.('content-type');
+      // App Store Connect's conventional favicon is a real bounded ICO served
+      // as application/octet-stream. The shared model admits that narrow case
+      // for both local display and this synced sidecar path, then validates the
+      // completed ICO container before Chromium sees any bytes.
+      if (!model.canReadFaviconResponse(declaredContentType, source)) return null;
       const bytes = await readBounded(response);
       if (requestSignal.aborted || !bytes) return null;
+      const contentType = model.faviconResponseMediaType(
+        declaredContentType,
+        source,
+        bytes,
+      );
+      if (!contentType) return null;
+      const isPng = contentType === 'image/png';
       if (isPng) {
         // PNG: cheap header/dimension guard, then decode natively — unchanged.
         const png = model.validSourcePngBytes(bytes);

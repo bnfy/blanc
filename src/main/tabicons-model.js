@@ -22,6 +22,7 @@ const MAX_SOURCE_DIMENSION = 1024;
 const MAX_SOURCE_PIXELS = 512 * 512;
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const PNG_DATA_PREFIX = 'data:image/png;base64,';
+const GENERIC_BINARY_MEDIA_TYPE = 'application/octet-stream';
 
 function canonical(value) {
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
@@ -82,6 +83,52 @@ function validSourcePngBytes(raw) {
   return bytes;
 }
 
+/** A bounded, structurally valid ICO container. Some otherwise ordinary
+ * sites (App Store Connect is the production case) serve `/favicon.ico` as
+ * `application/octet-stream`. We may sniff that narrow fallback only after
+ * proving it is actually an icon container; arbitrary generic downloads must
+ * never reach Chromium's image decoder merely because their URL ends in .ico. */
+function validSourceIcoBytes(raw) {
+  if (!Buffer.isBuffer(raw) && !(raw instanceof Uint8Array)) return null;
+  const bytes = Buffer.isBuffer(raw)
+    ? raw
+    : Buffer.from(raw.buffer, raw.byteOffset, raw.byteLength);
+  if (
+    bytes.length < 22 ||
+    bytes.length > MAX_SOURCE_BYTES ||
+    bytes.readUInt16LE(0) !== 0 ||
+    bytes.readUInt16LE(2) !== 1
+  ) return null;
+  const count = bytes.readUInt16LE(4);
+  if (count < 1 || count > 256) return null;
+  const directoryEnd = 6 + count * 16;
+  if (directoryEnd > bytes.length) return null;
+  for (let index = 0; index < count; index++) {
+    const entry = 6 + index * 16;
+    const width = bytes[entry] || 256;
+    const height = bytes[entry + 1] || 256;
+    const size = bytes.readUInt32LE(entry + 8);
+    const offset = bytes.readUInt32LE(entry + 12);
+    if (
+      width > MAX_SOURCE_DIMENSION ||
+      height > MAX_SOURCE_DIMENSION ||
+      width * height > MAX_SOURCE_PIXELS ||
+      size < 8 ||
+      offset < directoryEnd ||
+      offset > bytes.length - size
+    ) return null;
+    const frame = bytes.subarray(offset, offset + size);
+    const png = frame.length >= PNG_SIGNATURE.length &&
+      frame.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE);
+    // ICO frames are either PNGs or DIBs. These are the Windows bitmap header
+    // generations accepted by Chromium's ICO decoder.
+    const dib = frame.length >= 4 &&
+      [12, 40, 52, 56, 108, 124].includes(frame.readUInt32LE(0));
+    if (!png && !dib) return null;
+  }
+  return bytes;
+}
+
 function sourcePngFromDataUrl(source) {
   if (typeof source !== 'string') return null;
   const comma = source.indexOf(',');
@@ -116,6 +163,43 @@ function normalizeImageMediaType(contentType) {
 }
 
 const isImageMediaType = (contentType) => normalizeImageMediaType(contentType) !== null;
+
+function normalizedMediaType(contentType) {
+  return typeof contentType === 'string'
+    ? contentType.split(';', 1)[0].trim().toLowerCase()
+    : '';
+}
+
+function isIcoUrl(source) {
+  try {
+    return /\.ico$/i.test(new URL(source).pathname);
+  } catch {
+    return false;
+  }
+}
+
+/** Whether a response is worth reading under the existing byte ceiling.
+ * Generic binary is allowed only for a conventional `.ico` URL; callers must
+ * still pass the completed bytes through faviconResponseMediaType below. */
+function canReadFaviconResponse(contentType, source) {
+  const type = normalizedMediaType(contentType);
+  return isImageMediaType(type) ||
+    (type === GENERIC_BINARY_MEDIA_TYPE && isIcoUrl(source));
+}
+
+/** Resolve the inert media type used for decoding after a bounded read.
+ * Honest image/* labels retain their existing path. A generic `.ico` response
+ * is promoted only when its bytes pass validSourceIcoBytes. */
+function faviconResponseMediaType(contentType, source, bytes) {
+  const type = normalizedMediaType(contentType);
+  if (isImageMediaType(type)) return type;
+  if (
+    type === GENERIC_BINARY_MEDIA_TYPE &&
+    isIcoUrl(source) &&
+    validSourceIcoBytes(bytes)
+  ) return 'image/x-icon';
+  return null;
+}
 
 /** The image MIME type of a `data:` URL, or null when it isn't an image. */
 function dataUrlMediaType(source) {
@@ -378,8 +462,11 @@ module.exports = {
   canonical,
   validIconData,
   validSourcePngBytes,
+  validSourceIcoBytes,
   sourcePngFromDataUrl,
   isImageMediaType,
+  canReadFaviconResponse,
+  faviconResponseMediaType,
   dataUrlMediaType,
   imageSourceToDataUrl,
   boundedImageDataUrl,

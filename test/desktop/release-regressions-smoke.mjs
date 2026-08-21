@@ -16,6 +16,33 @@ if (!executablePath || !fs.existsSync(executablePath)) {
   );
 }
 
+// A real 32-bit DIB-framed ICO, matching App Store Connect's production
+// container shape rather than taking the newer PNG-in-ICO decoder branch.
+const GENERIC_ICO_DIB = Buffer.alloc(40 + (32 * 32 * 4) + (32 * 4));
+GENERIC_ICO_DIB.writeUInt32LE(40, 0);
+GENERIC_ICO_DIB.writeInt32LE(32, 4);
+GENERIC_ICO_DIB.writeInt32LE(64, 8); // XOR bitmap + AND mask
+GENERIC_ICO_DIB.writeUInt16LE(1, 12);
+GENERIC_ICO_DIB.writeUInt16LE(32, 14);
+GENERIC_ICO_DIB.writeUInt32LE(32 * 32 * 4, 20);
+for (let pixel = 0; pixel < 32 * 32; pixel++) {
+  const offset = 40 + pixel * 4;
+  GENERIC_ICO_DIB[offset] = 0x20;
+  GENERIC_ICO_DIB[offset + 1] = 0x78;
+  GENERIC_ICO_DIB[offset + 2] = 0xd8;
+  GENERIC_ICO_DIB[offset + 3] = 0xff;
+}
+const GENERIC_ICO = Buffer.alloc(22 + GENERIC_ICO_DIB.length);
+GENERIC_ICO.writeUInt16LE(1, 2);
+GENERIC_ICO.writeUInt16LE(1, 4);
+GENERIC_ICO[6] = 32;
+GENERIC_ICO[7] = 32;
+GENERIC_ICO.writeUInt16LE(1, 10);
+GENERIC_ICO.writeUInt16LE(32, 12);
+GENERIC_ICO.writeUInt32LE(GENERIC_ICO_DIB.length, 14);
+GENERIC_ICO.writeUInt32LE(22, 18);
+GENERIC_ICO_DIB.copy(GENERIC_ICO, 22);
+
 const poll = async (read, predicate, message, timeoutMs = 30_000) => {
   const deadline = Date.now() + timeoutMs;
   let value;
@@ -29,6 +56,33 @@ const poll = async (read, predicate, message, timeoutMs = 30_000) => {
 
 const server = http.createServer((request, response) => {
   response.setHeader('Content-Type', 'text/html; charset=utf-8');
+  if (request.url === '/favicon.ico') {
+    // App Store Connect serves this exact combination: valid ICO bytes under
+    // a generic binary label. Blanc must sniff only after the bounded
+    // container validates, then rasterize it for local and synced surfaces.
+    response.setHeader('Content-Type', 'application/octet-stream');
+    setTimeout(() => response.end(GENERIC_ICO), 300);
+    return;
+  }
+  if (request.url === '/oversized-touch.png') {
+    response.setHeader('Content-Type', 'image/png');
+    response.end(Buffer.alloc(256 * 1024 + 1));
+    return;
+  }
+  if (request.url === '/generic-ico') {
+    response.end(`<!doctype html>
+      <title>Generic ICO probe</title>
+      <link rel="apple-touch-icon" href="/oversized-touch.png">
+      <script>location.replace('/generic-ico/login')</script>
+      <main>generic ICO probe</main>`);
+    return;
+  }
+  if (request.url === '/generic-ico/login') {
+    response.end(`<!doctype html>
+      <title>Generic ICO redirect target</title>
+      <main>generic ICO redirect target</main>`);
+    return;
+  }
   if (request.url === '/favicon') {
     response.end(`<!doctype html>
       <title>Favicon probe</title>
@@ -134,6 +188,24 @@ try {
     const faviconBytes = Buffer.from(faviconTab.favicon.split(',')[1], 'base64');
     assert.equal(faviconBytes.subarray(1, 4).toString('ascii'), 'PNG');
     assert.ok(faviconBytes.length > 100, 'sanitized favicon should contain real image bytes');
+  });
+
+  await withPackagedApp({
+    label: 'release-regressions-generic-ico',
+    launchArgs: [`${origin}/generic-ico`],
+  }, async (app) => {
+    const faviconTab = await poll(
+      () => readTabState(app).then((state) =>
+        state?.tabs?.find((tab) => tab.url === `${origin}/generic-ico/login`) ?? null),
+      (tab) => tab?.favicon?.startsWith('data:image/png;base64,'),
+      'packaged candidate did not rasterize the bounded generic-MIME ICO fallback',
+      45_000,
+    );
+    const faviconBytes = Buffer.from(faviconTab.favicon.split(',')[1], 'base64');
+    assert.equal(faviconBytes.subarray(1, 4).toString('ascii'), 'PNG');
+    assert.equal(faviconBytes.readUInt32BE(16), 32);
+    assert.equal(faviconBytes.readUInt32BE(20), 32);
+    assert.ok(faviconBytes.length > 100, 'generic-MIME ICO should contain real pixels');
   });
 
   await withPackagedApp({

@@ -18,6 +18,7 @@ test('closed-tab recovery tiers remain internal implementation detail', () => {
 
 test('closed-tab rows can forget one entry or clear the undo list', () => {
   const overlay = read('src/renderer/overlay.js');
+  const styles = read('src/renderer/styles.css');
   const preload = read('src/main/preload.js');
   const main = read('src/main/main.js');
   assert.match(overlay, /browserAPI\.forgetClosedEntry\(entry\.id\)/);
@@ -27,6 +28,11 @@ test('closed-tab rows can forget one entry or clear the undo list', () => {
   assert.match(main, /chromeHandle\('tabs:forget-closed-entry'/);
   assert.match(main, /chromeHandle\('tabs:clear-closed'/);
   assert.match(main, /if \(entry\.view\) downgradeHeldEntry\(entry\)/);
+  assert.match(
+    styles,
+    /\.closed-clear\s*\{[^}]*font-family:\s*var\(--font-ui\)/,
+    'the recently-closed clear action uses Inter with the rest of the section UI',
+  );
 });
 
 test('every closed entry gets a bounded undo lifetime', () => {
