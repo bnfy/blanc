@@ -471,6 +471,21 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 
 .settings-content { flex: 1 1 auto; min-width: 0; }
 
+/* Settings fields use Inter, not the shared monospace input face. Settings is
+   prose-like configuration, and the mono treatment read as unnecessarily
+   technical here (it stays elsewhere — search boxes, group labels — by design).
+   The one exception is the Patron license key: a monospace face keeps an
+   opaque key legible character-by-character while typing or checking it. */
+.settings-content input[type="text"],
+.settings-content input[type="url"],
+.settings-content input[type="password"],
+.settings-content select {
+  font-family: var(--font-ui);
+}
+.settings-content #patronKey {
+  font-family: var(--font-mono);
+}
+
 .settings-group + .settings-group { margin-top: 40px; }
 /* Anchor targets (e.g. the shield popover's "blocking settings →" deep-link,
    blanc://settings/#group-privacy) must clear the sheet's 69px sticky band —
