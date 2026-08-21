@@ -93,6 +93,14 @@ const STORES = [
     // Keeping this separate preserves the mixed-version `session` schema.
     name: 'icons',
     optional: true,
+    // A newly joining device can observe Cloudflare KV's short missing-read
+    // window after another device creates this optional store. Never answer
+    // that transient 404 by creating an EMPTY sidecar: doing so can replace
+    // the sender's not-yet-visible icon map. A device with real pixels may
+    // still create/repair the store normally.
+    hasPublishableContent: (payload) => Object.values(payload?.devices ?? {}).some(
+      (entry) => !entry?.retracted && Array.isArray(entry.icons) && entry.icons.length > 0
+    ),
     export: (ctx) => tabicons.exportForSync(ctx),
     merge: (remote, ctx) => tabicons.mergeFromSync(remote, ctx),
     equals: (exported, remote) => tabicons.equalsRemote(exported, remote),
@@ -100,6 +108,37 @@ const STORES = [
 ];
 
 let syncing = false, timer = null, sessionTimer = null, iconTimer = null;
+const OPTIONAL_MISSING_RETRY_MS = 65_000;
+// One bounded retry per account/store generation. This covers KV propagation
+// without turning an older Worker (where `icons` genuinely does not exist)
+// into an endless background poll.
+const optionalMissingRetries = new Set();
+const optionalMissingRetryTimers = new Map();
+function clearOptionalMissingRetries() {
+  for (const retryTimer of optionalMissingRetryTimers.values()) clearTimeout(retryTimer);
+  optionalMissingRetryTimers.clear();
+  optionalMissingRetries.clear();
+}
+function scheduleOptionalMissingRetry(accountId, storeName) {
+  const retryKey = `${accountId}:${storeName}`;
+  if (optionalMissingRetries.has(retryKey)) return;
+  optionalMissingRetries.add(retryKey);
+  const retryTimer = setTimeout(() => withLocalProfile(
+    DEFAULT_PROFILE_ID,
+    () => {
+      optionalMissingRetryTimers.delete(retryKey);
+      syncNow([storeName]).catch(() => {});
+    }
+  ), OPTIONAL_MISSING_RETRY_MS);
+  optionalMissingRetryTimers.set(retryKey, retryTimer);
+}
+function noteOptionalStorePresent(accountId, storeName) {
+  const retryKey = `${accountId}:${storeName}`;
+  const retryTimer = optionalMissingRetryTimers.get(retryKey);
+  if (retryTimer) clearTimeout(retryTimer);
+  optionalMissingRetryTimers.delete(retryKey);
+  optionalMissingRetries.delete(retryKey);
+}
 /** Coalesced re-run request while a sync is in flight: undefined = none,
  * null = all stores, array = just those names. */
 let pendingNames;
@@ -177,6 +216,7 @@ async function enable({ handle, passphrase }) {
     };
   }
   syncGen += 1; // new identity — strand any in-flight run from the old one
+  clearOptionalMissingRetries();
   tabicons.cancelCaptures();
   const syncStore = ensureStore();
   syncStore.update((d) => {
@@ -223,6 +263,7 @@ async function disable({ wipeRemote = false } = {}) {
   // network included. Only then is the DELETE (or the credential clear) safe.
   suspended = true;
   syncGen += 1;
+  clearOptionalMissingRetries();
   tabicons.cancelCaptures();
   try {
     await passSettled;
@@ -273,7 +314,7 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
   const url = `${SYNC_ENDPOINT}/v1/blob/${accountId}/${desc.name}`;
   const getRes = await net.fetch(url);
   if (run.stale()) throw new SyncError('stale');
-  let version = null, remote = null;
+  let version = null, remote = null, missing = false;
   if (getRes.status === 200) {
     let body;
     try { body = await getRes.json(); } catch { throw new SyncError('server'); }
@@ -283,7 +324,9 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     catch { throw new SyncError('bad-passphrase'); }
   } else if (getRes.status === 429) {
     throw new SyncError('rate-limited');
-  } else if (getRes.status !== 404) {
+  } else if (getRes.status === 404) {
+    missing = true;
+  } else {
     throw new SyncError(`http-${getRes.status}`);
   }
   if (remote) {
@@ -291,6 +334,14 @@ async function syncOne(accountId, key, desc, run, attempt = 0) {
     try { desc.merge(remote, run.ctx); } finally { applyingRemote = false; }
   }
   const payload = desc.export(run.ctx);
+  if (
+    missing &&
+    desc.optional &&
+    desc.hasPublishableContent &&
+    !desc.hasPublishableContent(payload)
+  ) {
+    return { missing: true };
+  }
   if (remote && desc.equals?.(payload, remote)) return; // true no-op — skip the PUT
   const blob = encrypt(key, JSON.stringify(payload));
   if (run.stale()) throw new SyncError('stale'); // last gate before the write
@@ -348,7 +399,16 @@ async function syncNow(names = null) {
       if (names && !names.includes(desc.name)) continue;
       if (!ensureStore().data.enabled) break; // disabled mid-flight — stop
       if (!desc.optional) ranRequiredStore = true;
-      try { await syncOne(accountId, key, desc, run); }
+      try {
+        const outcome = await syncOne(accountId, key, desc, run);
+        if (desc.optional) {
+          if (outcome?.missing) {
+            scheduleOptionalMissingRetry(accountId, desc.name);
+          } else {
+            noteOptionalStorePresent(accountId, desc.name);
+          }
+        }
+      }
       catch (err) {
         if (err instanceof SyncError && err.message === 'stale') { stranded = true; break; }
         // Cosmetic sidecars degrade to fallback UI; they must never make

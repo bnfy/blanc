@@ -74,10 +74,10 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
 const sync = require('../../src/main/sync');
 
 test('an in-flight trigger runs one follow-up pass after releasing the guard', async () => {
-  const first = sync.syncNow(['icons']);
+  const first = sync.syncNow(['session']);
   await firstGetStarted;
 
-  const coalesced = await sync.syncNow(['icons']);
+  const coalesced = await sync.syncNow(['session']);
   assert.deepEqual(coalesced, { ok: true });
   assert.equal(getCalls, 1, 'the second trigger is coalesced while the pass is active');
 
