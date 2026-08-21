@@ -611,6 +611,21 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .faq-list article { padding: 21px 0 23px; border-bottom: 1px solid var(--border); }
 .faq-list h3 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
 .faq-list p { max-width: 57ch; margin: 8px 0 0; color: var(--text-dim); font-size: 14px; line-height: 1.6; }
+
+/* ---------- straight answers ---------- */
+.faq-page { width: min(960px, 100%); margin: 0 auto; padding: clamp(76px, 10vw, 126px) 24px 112px; }
+.faq-page-head { max-width: 720px; }
+.faq-page-head h1 { margin: 0; font-size: clamp(46px, 7vw, 82px); font-weight: 500; letter-spacing: -0.05em; line-height: 0.98; text-wrap: balance; }
+.faq-page-head > p:last-child { max-width: 57ch; margin: 24px 0 0; color: var(--text-dim); font-size: 16px; line-height: 1.68; }
+.faq-page-list { margin-top: clamp(64px, 9vw, 104px); border-top: 1px solid var(--text); }
+.faq-page-item { display: grid; grid-template-columns: minmax(220px, 0.72fr) minmax(0, 1.28fr); gap: clamp(32px, 7vw, 92px); padding: 34px 0 38px; border-bottom: 1px solid var(--border); }
+.faq-page-item h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.35; }
+.faq-page-item p { margin: 0; color: var(--text-dim); font-size: 14px; line-height: 1.72; }
+.faq-page-item p + p { margin-top: 13px; }
+@media (max-width: 680px) {
+  .faq-page { padding-top: 64px; }
+  .faq-page-item { grid-template-columns: 1fr; gap: 16px; }
+}
 .home-close { margin: 0 24px 96px; padding: 76px 24px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); text-align: center; }
 .home-close h2 { max-width: 13ch; margin: 0 auto; }
 .home-close > p:not(.section-kicker) { margin: 16px 0 0; color: var(--text-dim); font-size: 15px; }
