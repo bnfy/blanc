@@ -794,7 +794,7 @@ git checkout main && git pull
 npm run site:deploy
 ```
 
-- [ ] **Step 9: Verify the deploy reached production, not a preview**
+- [x] **Step 9: Verify the deploy reached production, not a preview**
 
 ```bash
 npx wrangler pages deployment list --project-name=blancbrowser
@@ -804,7 +804,7 @@ Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
 changelog and the homepage show 1.8.0 — not a Cloudflare preview URL.
 
-- [ ] **Step 10: Start the soak clock**
+- [x] **Step 10: Start the soak clock**
 
 ```bash
 echo '{"date":"YYYY-MM-DD","version":"1.8.0","publishedAt":"<ISO>","soakEndsAt":"<ISO + 48h>"}' \
@@ -816,7 +816,7 @@ echo '{"date":"YYYY-MM-DD","version":"1.8.0","publishedAt":"<ISO>","soakEndsAt":
 48 hours passing is necessary but not sufficient. Per `CLAUDE.md`, the current
 public baseline is **v1.7.0**, and the next release must validate:
 
-- [ ] the normal **v1.7.0 → v1.8.0 upgrade path on macOS**
+- [x] the normal **v1.7.0 → v1.8.0 upgrade path on macOS**
 - [ ] the normal **v1.7.0 → v1.8.0 upgrade path on Windows**
 - [ ] **Linux install/launch**
 
@@ -1287,7 +1287,7 @@ cat "$LAUNCH_LOG"
 - [ ] Task 4 — production Patron purchase **PASS**
 - [ ] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
 - [ ] Task 6 — README refreshed and merged (it is the Show HN landing page)
-- [ ] Task 7 — v1.8.0 published, post-publication workflow complete
+- [x] Task 7 — v1.8.0 published, post-publication workflow complete
 - [ ] Task 7 — macOS upgrade, Windows updater handoff, Linux install/launch all verified
 - [ ] Task 8 — demo video exported
 - [ ] Task 9 — newsletter capture verified with a fresh alias
