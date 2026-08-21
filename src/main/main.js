@@ -6928,6 +6928,11 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     applyAppIcon();
     applyVerticalTabsWidth(s.verticalTabsWidth);
     applyTabLayout(s.tabLayout);
+    // setPatron() uses this same fan-out after activation and each scheduled
+    // subscription validation. Re-project the derived entitlement so an open
+    // Workspaces popover hides or restores creation controls immediately;
+    // never expose the Patron record itself to chrome.
+    broadcastWorkspacesUpdated();
     // WebRTC reapply is unconditional — setWebRTCIPHandlingPolicy is a cheap,
     // idempotent per-tab call and settings writes are infrequent/user-initiated.
     applyWebrtcPolicyToAllTabs();

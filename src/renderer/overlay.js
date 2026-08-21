@@ -151,10 +151,6 @@
   let createWorkspaceValue = '';
   let pendingSaveAsWorkspace = false;
   let saveAsWorkspaceValue = '';
-  // Non-Patrons can discover the surface, but creation entry stops here —
-  // before a name editor implies that the paid write is available. This row
-  // links to Patron Settings; main still re-checks the entitlement on commit.
-  let workspacePatronGateVisible = false;
   // Scratch guard (Task 9 follow-up): set when an open/create attempt comes
   // back {error:'unsaved-scratch'} — this window is unbound and holds real
   // tabs, so main refused to switch it without confirming first. Carries
@@ -628,7 +624,6 @@
   function applyWorkspacesPayload(payload) {
     wsPatronActive = !!payload?.patronActive;
     wsWorkspaces = Array.isArray(payload?.items) ? payload.items : [];
-    if (wsPatronActive) workspacePatronGateVisible = false;
     syncFooterWorkspace();
     if (workspaceSwitcherOpen) paintWorkspaceSwitcher();
   }
@@ -665,13 +660,11 @@
     createWorkspaceValue = '';
     pendingSaveAsWorkspace = false;
     saveAsWorkspaceValue = '';
-    workspacePatronGateVisible = false;
     claimEditorFocus = false;
   }
 
   function workspacePopoverEditing() {
-    return workspacePatronGateVisible
-      || pendingCreateWorkspace
+    return pendingCreateWorkspace
       || pendingSaveAsWorkspace
       || pendingRenameWorkspaceId != null
       || pendingDeleteWorkspaceId != null;
@@ -755,7 +748,7 @@
     wsSwitcherSaveAs.hidden = !visible;
   }
 
-  function renderWorkspacePatronGateRow() {
+  function renderWorkspacePatronGateRow(hasExisting = wsWorkspaces.length > 0) {
     const row = document.createElement('button');
     row.type = 'button';
     row.className = 'ws-switcher-row workspace-row';
@@ -763,10 +756,12 @@
     row.setAttribute('aria-label', 'Open Patron Settings for Named Workspaces');
     const name = document.createElement('span');
     name.className = 'ws-switcher-name';
-    name.textContent = 'Creating workspaces needs Blanc Patron';
+    name.textContent = hasExisting
+      ? 'Renew Patron to create another'
+      : 'Named Workspaces — Patron';
     const action = document.createElement('span');
     action.className = 'ws-switcher-n';
-    action.textContent = 'settings →';
+    action.textContent = hasExisting ? '→' : 'unlock →';
     row.append(name, action);
     row.addEventListener('click', () => {
       closeWorkspaceSwitcher();
@@ -800,15 +795,11 @@
   }
 
   function renderWorkspaceSwitcherList() {
-    const exclusiveState = workspacePatronGateVisible
-      || pendingCreateWorkspace
-      || pendingSaveAsWorkspace;
-    setSwitcherCommandVisibility(!exclusiveState);
-
-    if (workspacePatronGateVisible) {
-      workspaceSwitcherList.replaceChildren(renderWorkspacePatronGateRow());
-      return;
-    }
+    const naming = pendingCreateWorkspace || pendingSaveAsWorkspace;
+    // Inactive users keep the discoverable Workspaces surface, but creation
+    // controls never masquerade as enabled. Their single CTA is rendered in
+    // the list below; existing rows remain lapse-safe.
+    setSwitcherCommandVisibility(wsPatronActive && !naming);
 
     if (pendingCreateWorkspace) {
       const wrap = document.createElement('div');
@@ -846,12 +837,14 @@
 
     const nodes = [];
     if (wsWorkspaces.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'ws-switcher-empty';
-      empty.textContent = wsPatronActive
-        ? 'No workspaces yet'
-        : 'Named sets of tabs — Patron';
-      nodes.push(empty);
+      if (wsPatronActive) {
+        const empty = document.createElement('div');
+        empty.className = 'ws-switcher-empty';
+        empty.textContent = 'No workspaces yet';
+        nodes.push(empty);
+      } else {
+        nodes.push(renderWorkspacePatronGateRow(false));
+      }
     } else {
       for (const workspace of wsWorkspaces) {
         if (pendingRenameWorkspaceId === workspace.id) {
@@ -862,6 +855,7 @@
           nodes.push(renderSwitcherWorkspaceRow(workspace));
         }
       }
+      if (!wsPatronActive) nodes.push(renderWorkspacePatronGateRow(true));
     }
     workspaceSwitcherList.replaceChildren(...nodes);
   }
@@ -1022,7 +1016,6 @@
   function guardWorkspaceCreationEntry() {
     if (wsPatronActive) return false;
     clearWorkspacePopoverEditors();
-    workspacePatronGateVisible = true;
     openWorkspaceSwitcher();
     return true;
   }
