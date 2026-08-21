@@ -92,17 +92,48 @@ test('public Patron copy states the named-workspace boundary consistently', () =
     'site/src/pages/press.astro',
     'site/src/pages/terms.astro',
   ];
+  const detailedBoundaryFiles = [
+    'README.md',
+    'site/src/pages/about.astro',
+    'site/src/pages/faq.astro',
+    'site/src/pages/index.astro',
+    'site/src/pages/terms.astro',
+  ];
   const staleClaims = /every browser feature is free|all browser features included|none of them are locked behind payment|nothing is locked behind payment|cosmetic Dock icons today/i;
+  const macColorwayBoundary = /(?:macOS[^.\n]*(?:app-icon|Dock)[^.\n]*colorways|(?:app-icon|Dock)[^.\n]*colorways[^.\n]*macOS)/i;
 
   for (const relativePath of publicCopyFiles) {
     const source = read(relativePath);
     assert.doesNotMatch(source, staleClaims, `${relativePath} must not overstate the free feature boundary`);
-    assert.match(source, /named workspace/i, `${relativePath} must disclose the named-workspace Patron boundary`);
+    assert.match(source, /named workspace/i, `${relativePath} must name the Patron workspace benefit`);
+    assert.match(source, macColorwayBoundary, `${relativePath} must say the colorways are macOS-only`);
   }
 
-  const terms = read('site/src/pages/terms.astro');
-  assert.match(terms, /Creating a named workspace requires an active subscription/i);
-  assert.match(terms, /renaming and removing workspaces you already have\s+continue to work/i);
+  for (const relativePath of detailedBoundaryFiles) {
+    const source = read(relativePath);
+    assert.match(
+      source,
+      /Creating\s+a\s+named\s+workspace\s+requires\s+an\s+active\s+Patron\s+subscription/i,
+      `${relativePath} must state the creation gate`
+    );
+    assert.match(
+      source,
+      /Renaming\s+and\s+removing\s+existing\s+workspaces\s+continue\s+to\s+work\s+if\s+it\s+lapses/i,
+      `${relativePath} must state the lapsed-subscription behavior`
+    );
+  }
+});
+
+test('public supply-chain copy distinguishes inspection from binary authentication', () => {
+  const readme = read('README.md');
+  const faq = read('site/src/pages/faq.astro');
+
+  for (const [relativePath, source] of [['README.md', readme], ['site/src/pages/faq.astro', faq]]) {
+    assert.doesNotMatch(source, /verify (?:that )?the published binary matches|verify the published binary against/i, relativePath);
+    assert.doesNotMatch(source, /provenance attestations for native artifacts|native artifacts carry GitHub provenance/i, relativePath);
+    assert.match(source, /Windows and Linux CI\s+artifacts (?:receive|carry) GitHub provenance attestations/i, relativePath);
+    assert.match(source, /(?:not proof|does not prove|do not make).*published binary|do not make.*local builds reproducible/i, relativePath);
+  }
 });
 
 test('platform specs match the shipped first-run telemetry contract', () => {

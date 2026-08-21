@@ -345,9 +345,9 @@ const QUESTIONS = [
     q: 'Is Blanc open source?',
     a: [
       'No — but the source is public, and those are two different things worth separating.',
-      'The repository at github.com/bnfy/blanc is public and contains the application source. You can read every line, check what the blocker does, and check what the launch ping sends. Building and running it locally to verify that the published binary matches is explicitly welcome \u2014 that is what the README\u2019s setup steps are for.',
+      'The repository at github.com/bnfy/blanc is public and contains the application source. You can read every line, check what the blocker does, check what the launch ping sends, and build and run the checked-out source locally. A local build shows what that source does; it does not prove that a published binary matches it byte for byte.',
       'What it is not is openly licensed. package.json says UNLICENSED, so the code carries no open-source grant. You can read it, and GitHub\u2019s own terms let you fork any public repository there. What is not granted is a licence to modify it, redistribute it, or publish your own builds. The accurate term is source-available, not open source.',
-      'Alongside that, every macOS build is signed and notarized, every Windows build carries a timestamped Authenticode signature whose subject is checked at release time, the release checksum manifest is signed with Sigstore under a verified OIDC identity, and native artifacts carry GitHub provenance attestations.',
+      'Published macOS releases are signed and notarized, and published Windows releases carry a timestamped Authenticode signature whose subject is checked at release time. The release checksum manifest is signed with Sigstore under a verified OIDC identity, while Windows and Linux CI artifacts carry GitHub provenance attestations. Those records authenticate the published artifacts; they do not make a local build reproducible.',
     ],
   },
   {
@@ -370,7 +370,7 @@ const QUESTIONS = [
     q: 'Why does a free browser have a subscription?',
     a: [
       'Blanc Patron is $30/year or $4/month, and it is optional. Everything that makes Blanc a browser is free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, passkeys.',
-      'Patron unlocks three extra app-icon colorways and the ability to save a window as a named workspace. To be exact about that second one, because it is the newest: creating a named workspace needs an active Patron, while renaming and removing workspaces you already have keeps working even if your subscription lapses — your own data does not get held hostage.',
+      'On macOS, Patron unlocks three extra Dock colorways. On every platform, it adds the ability to save a window as a named workspace. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses — your own data does not get held hostage.',
       'Patron exists because Blanc has no ad business and no investors, and an independent browser needs some way to pay for itself that is not selling the people using it. Nothing that was free has ever moved behind payment, and nothing will.',
     ],
   },
@@ -471,7 +471,7 @@ Open `/faq` and read every answer against the source of truth. Specifically conf
 free, and nothing is locked behind payment."* Replace that answer with:
 
 ```html
-        <p>Yes — Blanc is free, and everything that makes it a browser stays free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, passkeys. Blanc Patron is an optional subscription that adds extra app-icon colorways and saving a window as a named workspace. Nothing that is free today ever moves behind payment.</p>
+        <p>Yes — Blanc is free, and everything that makes it a browser stays free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. On macOS, Blanc Patron adds three extra Dock colorways; on every platform, it lets you save a window as a named workspace. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses.</p>
 ```
 
 - [ ] **Step 8b: Correct the About page claim**
@@ -482,7 +482,7 @@ that one is still true; named workspaces were never free. Replace the opening
 clause:
 
 ```html
-        <p>Blanc is free, and everything that makes it a browser stays free — blocking, encrypted sync, private tabs, tab groups, quiet tabs, passkeys — and nothing that&rsquo;s free today ever moves behind payment. Blanc Patron is an optional subscription — $30 a year or $4 a month — that funds the work and adds three extra app-icon colorways plus saving a window as a named workspace. Supporters who bought the earlier one-time purchase keep everything, free, forever.</p>
+        <p>Blanc is free, and everything that makes it a browser stays free — blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc Patron is an optional subscription — $30 a year or $4 a month — that funds the work and adds three macOS Dock colorways plus named workspaces on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses. Supporters who bought the earlier one-time purchase keep everything, free, forever.</p>
 ```
 
 - [ ] **Step 8c: Correct the Terms of Service**
@@ -492,7 +492,7 @@ states *"Blanc's features are free, and none of them are locked behind
 payment."* That becomes false on the day v1.8.0 ships. Replace it:
 
 ```html
-  <p>Blanc is free to download and use. Everything that makes it a browser — ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, passkeys — is free and stays free. Blanc Patron is an optional subscription, billed monthly or yearly, that adds extra app-icon colorways and lets you save a window as a named workspace; creating a named workspace requires an active subscription, while renaming and removing workspaces you already have continues to work if it lapses. Nothing that is free today is moved behind Patron.</p>
+  <p>Blanc is free to download and use. Everything that makes it a browser — ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys — is free and stays free. Blanc Patron is an optional subscription, billed monthly or yearly, that adds three macOS Dock colorways and lets you save a window as a named workspace on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses. Nothing that is free today is moved behind Patron.</p>
 ```
 
 - [ ] **Step 8d: Correct the press fact sheet**
@@ -502,7 +502,7 @@ and describes Patron as `cosmetic Dock icons today`. Both are now wrong.
 
 ```html
           <div><dt>price</dt><dd>Free; all core browsing features included</dd></div>
-          <div><dt>optional support</dt><dd>Blanc Patron subscription, US$30/year or $4/month, plus tax; extra Dock icon colorways and named workspaces, more Patron extras over time</dd></div>
+          <div><dt>optional support</dt><dd>Blanc Patron subscription, US$30/year or $4/month, plus tax; three macOS Dock colorways and named workspaces on every platform</dd></div>
 ```
 
 - [ ] **Step 8e: Prove no "nothing is locked behind payment" claim survives**
@@ -596,9 +596,9 @@ Confirm or add, in this order:
 - **Licence status, stated plainly:** source-available, `UNLICENSED`, forkable on
   GitHub, no grant to modify/redistribute/publish builds. Do not let a reader
   infer "open source" from the repo being public.
-- **The Patron boundary:** every core browsing feature is free; Patron adds icon
-  colorways and named workspaces; creating a workspace needs an active
-  subscription, renaming/removing does not.
+- **The Patron boundary:** every core browsing feature is free; Patron adds
+  three macOS Dock colorways and named workspaces on every platform; creating a
+  workspace needs an active subscription, renaming/removing does not.
 - **A link to the memory benchmark** (`bench/memory/`) — the strongest technical
   artifact and the direct answer to the Electron objection.
 - **A link to https://blancbrowser.com/faq**.
@@ -620,11 +620,14 @@ Merge it into `origin/main` before Task 12 posts.
 
 **Owner:** `owner` — the release script requires interactive 1Password/Terminal auth.
 
-**Depends on: Task 4 passing, Task 5 merged AND deployed to production, and Task 6's README committed.**
+**Status: COMPLETE. Do not rerun any release command in this task.** v1.8.0 and
+v1.8.1 are immutable public releases. The detailed steps below remain only as
+the completed historical record.
 
-Task 5 is a hard prerequisite, not a suggestion. Until its copy corrections are
-live on `blancbrowser.com`, publishing v1.8.0 puts the shipped product in direct
-contradiction with the site's own Terms of Service. Verify before starting:
+**Current launch gate:** Task 4 must pass, Task 5 must be merged and deployed,
+Task 6 must be merged, and the v1.8.1 soak must elapse before Task 11 starts.
+Because the releases already happened, Tasks 5 and 6 are launch prerequisites,
+not release prerequisites. Verify the live Terms before launch:
 
 A bare `curl -s | grep -c` prints `0` when the request *fails* — an empty body
 contains no matches, so an outage or a typo'd URL reads as a pass. This gate must
@@ -636,12 +639,12 @@ set -o pipefail
 TERMS=$(curl -fsS https://blancbrowser.com/terms) || { echo "STOP: /terms did not return 200"; exit 1; }
 echo "$TERMS" | grep -q "none of them are locked behind payment" \
   && { echo "STOP: obsolete no-paywall claim is still live"; exit 1; }
-echo "$TERMS" | grep -q "creating a named workspace requires an active subscription" \
+echo "$TERMS" | grep -qi "creating a named workspace requires an active Patron subscription" \
   || { echo "STOP: corrected Patron wording is NOT live — Task 5 has not deployed"; exit 1; }
 echo "OK: Terms page reflects the Patron gate"
 ```
 
-Expected: `OK`. Any `STOP` means Task 5 has not reached production — do not release.
+Expected: `OK`. Any `STOP` means Task 5 has not reached production — do not launch.
 
 **Why:** v1.8.0 is the **build** the launch runs on, not the **story** the launch
 tells. Those were conflated in the first draft of this plan and it produced a
@@ -657,7 +660,7 @@ Hunt listing where a paid tier reads as normal. It is not the Show HN pitch.
 The soak exists so the launch rides a build that has survived a weekend, not one
 that is hours old.
 
-- [ ] **Step 1: Read the release runbook before touching anything**
+- [x] **Step 1: Read the release runbook before touching anything**
 
 ```bash
 cat docs/release-verification.md
@@ -665,7 +668,7 @@ cat docs/release-verification.md
 
 Also invoke the `releasing-blanc` skill — it carries the required `BLANC_RELEASE_*` env vars that the checked-in runbook omits.
 
-- [ ] **Step 2: Bump the version and the lockfile together**
+- [x] **Step 2: Bump the version and the lockfile together**
 
 Set `version` to `1.8.0` in `package.json`, then regenerate the lockfile so the
 two agree — a release built from a lockfile still pinned to the old version is a
@@ -679,7 +682,7 @@ git diff --stat package.json package-lock.json
 Consider whether the `electron` devDependency should move with it (Chromium
 cannot be swapped out of a running app).
 
-- [ ] **Step 3: Write the release notes file**
+- [x] **Step 3: Write the release notes file**
 
 `release.sh` ships `docs/press/release-notes/v1.8.0.md` **verbatim** via
 `--notes-file`. Write it before releasing.
@@ -689,7 +692,7 @@ from the published release body: put **each paragraph on ONE line** (a wrapped
 paragraph fragments into separate blocks), use no markdown headings, and let
 dates render in America/New_York.
 
-- [ ] **Step 4: Pin the press page AND its guard test to the new version**
+- [x] **Step 4: Pin the press page AND its guard test to the new version**
 
 `site/src/pages/press.astro` carries `const VERSION = '1.7.0';`. Advance it to
 `1.8.0`, or the press kit states the old version beside the new release.
@@ -705,7 +708,7 @@ grep -n "1\.7\.0" test/unit/press-kit.test.js   # confirm the pin before editing
 
 Advance it to `1.8.0` and stage it in Step 6's release commit.
 
-- [ ] **Step 5: Run the real release gate**
+- [x] **Step 5: Run the real release gate**
 
 Not `test:unit` alone — the repository defines a far broader gate:
 
@@ -721,7 +724,7 @@ That runs `substrate:check`, `icons:windows:check`, `test:unit`,
 Note the known first-attempt killers: the press-kit version pin (Step 4),
 `npm audit` findings, and site dependency issues.
 
-- [ ] **Step 6: Commit the release inputs, merge them, and enter a clean checkout**
+- [x] **Step 6: Commit the release inputs, merge them, and enter a clean checkout**
 
 **`release.sh` will refuse to run otherwise.** It checks that every release
 source is clean and that `HEAD == origin/main`:
@@ -757,14 +760,14 @@ git status --porcelain      # must be EMPTY
 Both checks must pass before the next step. This is also why Step 5's gate runs
 *before* the PR: a red gate should never become a merged commit.
 
-- [ ] **Step 7: Release**
+- [x] **Step 7: Release**
 
 Run `npm run release` in a **native Terminal**, foreground and interactive.
 Never backgrounded — cosign falls back to a 300s device code and has burned a
 release before. Never rerun an immutable release after its tag or draft exists;
 an abort after the tag push forces a version bump.
 
-- [ ] **Step 8: Complete the post-publication workflow**
+- [x] **Step 8: Complete the post-publication workflow**
 
 `docs/release-verification.md` specifies this exactly; all of it, in order:
 
@@ -824,8 +827,8 @@ echo '{"date":"YYYY-MM-DD","version":"1.8.0","publishedAt":"<ISO>","soakEndsAt":
 
 - [x] **Step 11: Soak exit criteria — real upgrade evidence, not elapsed time**
 
-48 hours passing is necessary but not sufficient. Per `CLAUDE.md`, the current
-public baseline is **v1.7.0**, and the next release must validate:
+48 hours passing is necessary but not sufficient. The current public baseline
+is **v1.8.1**, and its equivalent current platform paths are validated:
 
 - [x] the current **v1.8.0 → v1.8.1 updater handoff on macOS**, including Restart Now
 - [x] the current **v1.8.0 → v1.8.1 updater handoff on Windows**, including Restart Now
@@ -1104,17 +1107,20 @@ repo if you want to pull it apart: https://blancbrowser.com/faq
 ```
 Not open source, but the source is public — worth separating those. The repo
 you're looking at has the whole application in it; you can read what the blocker
-does and what the launch ping sends, and build it yourself with npm install &&
-npm start to check that the binary matches. GitHub's terms also let you fork any
-public repo, so that's not restricted either. What's missing is the licence:
+does and what the launch ping sends, and build the checked-out source yourself
+with npm install && npm start. A local build shows what that source does; it does
+not prove that a published binary matches it byte for byte. GitHub's terms also
+let you fork any public repo there. What's missing is the licence:
 package.json says UNLICENSED, so there's no grant to modify it, redistribute it,
 or publish your own builds. Source-available, not open source, and I'd rather
 use the accurate word than the flattering one.
 
-On top of that, macOS builds are signed and notarized, Windows builds carry a
-timestamped Authenticode signature verified against an expected publisher at
-release time, the checksum manifest is Sigstore-signed under a verified OIDC
-identity, and artifacts carry GitHub provenance attestations.
+On top of that, published macOS releases are signed and notarized, and published
+Windows releases carry a timestamped Authenticode signature verified against an
+expected publisher at release time. The checksum manifest is Sigstore-signed
+under a verified OIDC identity, while Windows and Linux CI artifacts carry
+GitHub provenance attestations. Those records authenticate the published
+artifacts; they do not make a local build reproducible.
 ```
 
 **On telemetry:**
@@ -1134,11 +1140,11 @@ https://blancbrowser.com/faq
 ```
 $30/year or $4/month, entirely optional. Everything that makes it a browser is
 free — blocking, encrypted sync, private tabs, tab groups, quiet tabs,
-passkeys. Patron unlocks extra app-icon colorways and saving a window as a
-named workspace. I'll be precise about that last one since it's new in this
-release: creating a named workspace needs Patron; renaming and deleting ones
-you already have keeps working if your subscription lapses, because that's your
-data, not mine. There's no ad business and no investors here, so this is the
+passkeys. On macOS, Patron unlocks three extra Dock colorways; on every platform,
+it adds saving a window as a named workspace. Creating a named workspace requires
+an active Patron subscription. Renaming and deleting existing workspaces continue
+to work if it lapses, because that's your data, not mine. There's no ad business
+and no investors here, so this is the
 alternative to monetising the people using it. Nothing that was free moved
 behind payment to create it.
 ```
@@ -1185,8 +1191,9 @@ Being upfront about the rest: it's Electron; the source is public and you can
 read it or fork it on GitHub, but it isn't open-source licensed, so there's no
 grant to redistribute it or ship your own builds; there's no mobile version; and
 there's a $30/year optional Patron subscription. Every core browsing feature is
-free — Patron adds icon colorways and named workspaces, and creating a named
-workspace is the one action that needs an active subscription.
+free — Patron adds three macOS Dock colorways and named workspaces on every
+platform, and creating a named workspace is the one action that needs an active
+subscription.
 
 https://blancbrowser.com/?ref=reddit
 
@@ -1217,9 +1224,9 @@ extension, so Manifest V3's rule caps don't apply to it.
 New in this release: named workspaces — save a window's whole set of tabs and
 groups and bring it back later.
 
-Free on macOS, Windows and Linux. Blanc Patron ($30/yr or $4/mo) is optional and
-adds extra app-icon colorways and named workspaces; every core browsing feature
-is free.
+Free on macOS, Windows and Linux. Blanc Patron ($30/yr or $4/mo) is optional;
+it adds three macOS Dock colorways and named workspaces on every platform. Every
+core browsing feature is free.
 ```
 
 **First comment (maker):** reuse the two decisions from the Show HN body — why
@@ -1245,7 +1252,7 @@ encrypted sync, and Touch ID passkeys on macOS.
 
 Blanc is free. The source is publicly available on GitHub but is not released
 under an open-source licence. An optional Patron subscription ($30/year or
-$4/month) adds extra app-icon colorways and named workspaces.
+$4/month) adds three macOS Dock colorways and named workspaces on every platform.
 ```
 
 **Alternative to:** Chrome, Arc, Brave, Vivaldi, Opera, Zen.
@@ -1579,9 +1586,9 @@ If the September cohort cleared 81, retention becomes measurable and earns its o
 
 ## Dependency summary
 
-Tasks are ordered so every dependency runs **forward**. An executor working
-strictly top-to-bottom never reaches a task whose prerequisite is still ahead of
-it — the first draft of this plan failed that test twice.
+Tasks are ordered so every remaining dependency runs **forward**. Task 7 is an
+immutable historical completion, not an executable step; its soak is checked at
+Task 11 alongside the remaining Phase 0 and Phase 1 gates.
 
 ```
 PHASE 0 — prep, in this order
@@ -1591,10 +1598,11 @@ PHASE 0 — prep, in this order
   Task 4  Production Patron purchase              ── HARD STOP if it fails
             ▼
   Task 5  Site: /faq + fix 4 false Patron claims, DEPLOYED to production
-  Task 6  README refreshed and merged             (a release source; also the HN landing page)
-            ▼
-  Task 7  Release v1.8.1 → 48h soak + upgrade evidence
-            (requires 4 passed, 5 live, 6 merged)
+  Task 6  README refreshed and merged             (the HN landing page)
+
+ALREADY COMPLETE — historical, do not execute
+  Task 7  v1.8.1 published + platform evidence recorded
+          48h soak is checked mechanically at Task 11
 
 PHASE 1 — assets, during the freeze
   Task 8  Demo video
@@ -1602,7 +1610,8 @@ PHASE 1 — assets, during the freeze
   Task 10 Copy pack committed
 
 PHASE 2 — launch week
-  Task 11 Mon  baseline FIRST, then listings   (requires Tasks 1–10)
+  Task 11 Mon  baseline FIRST, then listings
+               (requires Tasks 1–10 + Task 7's elapsed soak)
      ▼
   Task 12 Tue  Show HN        (URL only; body as first comment)
      ▼
@@ -1613,23 +1622,20 @@ PHASE 2 — launch week
   Task 15      Measure + Oct 1 checkpoint
 ```
 
-**Why Tasks 5 and 6 precede the release.** Both edit things the release depends
-on. Task 5's corrections must be live because publishing Patron-gated workspace
-creation while `blancbrowser.com/terms` still denies any paywall puts the
-shipped product in conflict with its own legal page. Task 6 edits `README.md`,
-which is in `release.sh`'s `RELEASE_SOURCES` — an uncommitted change there makes
-`release.sh` exit 1 on a dirty source, and a change made *after* the release is
-simply absent from the released commit.
+**Why Tasks 5 and 6 precede launch.** Task 5's corrections must be live because
+the current product already gates workspace creation while the production Terms
+still deny any paywall. Task 6 makes the repository—the Show HN target—a candid,
+complete landing page. Both must land before outreach; neither is now a release
+prerequisite because v1.8.1 is already public.
 
 **Hard stops:**
 
 - **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means that feature is unreachable *and* the best traffic day converts nothing.
-- **Task 5 not deployed to production** → do not release. Verified by curl against the live Terms page, not by looking at the diff.
-- **Task 6 not merged** → `release.sh` refuses the dirty `README.md`, or the release ships without it.
+- **Task 5 not deployed to production** → do not launch. Verify against the live Terms page, not by looking at the diff.
+- **Task 6 not merged** → do not launch; the repository landing page is still incomplete.
 - **Task 7's soak not cleared** — either <48h elapsed *or* the macOS/Windows/Linux upgrade evidence missing → the launch week moves. Task 11 Step 0a enforces the time half mechanically; the evidence half is a human check.
 - **Task 1 still pending review on Monday** → that channel does not fire. This is *not* a reason to move the launch week; the corrected rules mean there is no account-age clock to miss.
 
-**Open decision carried into execution:** the licence question (see Global
-Constraints). Tasks 5 and 6 both publish wording about it, so settle it before
-either is finalised, or accept the precise "source-available / no redistribution
-grant" phrasing they currently use.
+**Licence decision:** resolved in Global Constraints. Keep the precise
+"source-available / no redistribution grant" phrasing unless counsel approves a
+replacement licence later.

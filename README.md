@@ -16,24 +16,29 @@ macOS builds.
 ## Source and license
 
 Blanc is **source-available, not open source**. The application source is
-public so you can inspect what the browser does and build and run it locally
-for verification. GitHub's terms permit users to fork public repositories
-within the service, but Blanc is published as `UNLICENSED`: there is no grant
-to modify or redistribute the code, or to publish your own builds.
+public so you can inspect what the browser does and build and run the checked-out
+source locally. A local build shows what that source does; it is not proof that
+a published binary is byte-for-byte identical. GitHub's terms permit users to
+fork public repositories within the service, but Blanc is published as
+`UNLICENSED`: there is no grant to modify or redistribute the code, or to
+publish your own builds.
 
-The release process signs and notarizes macOS builds, applies timestamped
-Authenticode signatures to Windows builds, signs the complete checksum
-manifest with Sigstore, and publishes provenance attestations for native
-artifacts. See the [FAQ](https://blancbrowser.com/faq) for the plain-English
-version and the release repository for the verifiable records.
+Published macOS releases are signed and notarized, and published Windows
+releases carry timestamped Authenticode signatures. The release process signs
+the complete checksum manifest with Sigstore, while Windows and Linux CI
+artifacts receive GitHub provenance attestations. These records authenticate
+the published artifacts; they do not make local builds reproducible. See the
+[FAQ](https://blancbrowser.com/faq) for the plain-English version and the
+[release repository](https://github.com/bnfy/blanc/releases) for the records.
 
 ## Free browser, optional Patron
 
 Everything that makes Blanc a browser is free: ad and tracker blocking,
 encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc
-Patron costs $30 a year or $4 a month and adds three app-icon colorways plus
-Named Workspaces. Creating a named workspace requires an active Patron;
-renaming and removing workspaces you already have keeps working if it lapses.
+Patron costs $30 a year or $4 a month and, on macOS, adds three Dock colorways;
+on every platform, it also adds Named Workspaces. Creating a named workspace
+requires an active Patron subscription. Renaming and removing existing
+workspaces continue to work if it lapses.
 
 The memory benchmark, method, and raw runs are in
 [`bench/memory/`](bench/memory/).

@@ -6,9 +6,9 @@ const QUESTIONS = [
     q: 'Is Blanc open source?',
     a: [
       'No — but the source is public, and those are two different things worth separating.',
-      'The repository at github.com/bnfy/blanc contains the application source. You can read every line, inspect what the blocker does and what the launch ping sends, and build and run it locally to verify the published binary against the source. That is what the README setup steps are for.',
+      'The repository at github.com/bnfy/blanc contains the application source. You can read every line, inspect what the blocker does and what the launch ping sends, and build and run the checked-out source locally. A local build shows what that source does; it does not prove that a published binary matches it byte for byte.',
       'The code is not openly licensed. package.json says UNLICENSED, so it carries no open-source grant. GitHub’s terms permit users to fork public repositories within the service, but Blanc grants no licence to modify the code, redistribute it, or publish your own builds. The accurate term is source-available, not open source.',
-      'Every macOS build is signed and notarized, every Windows build carries a timestamped Authenticode signature checked at release time, the checksum manifest is signed with Sigstore under a verified OIDC identity, and native artifacts carry GitHub provenance attestations.',
+      'Published macOS releases are signed and notarized, and published Windows releases carry a timestamped Authenticode signature checked at release time. The checksum manifest is signed with Sigstore under a verified OIDC identity, while Windows and Linux CI artifacts carry GitHub provenance attestations. Those records authenticate published artifacts; they do not make a local build reproducible.',
     ],
   },
   {
@@ -31,7 +31,7 @@ const QUESTIONS = [
     q: 'Why does a free browser have a subscription?',
     a: [
       'Blanc Patron is $30 a year or $4 a month, and it is optional. Everything that makes Blanc a browser is free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys.',
-      'Patron unlocks three extra app-icon colorways and the ability to save a window as a named workspace. Creating a named workspace needs an active Patron; renaming and removing workspaces you already have keeps working if your subscription lapses, so your own data is never held hostage.',
+      'On macOS, Patron unlocks three extra Dock colorways. On every platform, it adds the ability to save a window as a named workspace. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses, so your own data is never held hostage.',
       'Patron exists because Blanc has no ad business and no investors, and an independent browser needs a way to pay for itself that is not selling the people using it. Nothing that was free has moved behind payment.',
     ],
   },
