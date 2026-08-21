@@ -1,6 +1,6 @@
 # Blanc Browser — press fact sheet
 
-Last updated: August 17, 2026
+Last updated: August 20, 2026
 
 ## The short version
 
@@ -11,19 +11,19 @@ when they are not.
 Blanc is an independent Chromium-based desktop browser from Bananify. It ships
 with built-in ad and tracker blocking, private tabs, Favorites, history,
 downloads, a command palette, named tab groups, independent windows, isolated
-local profiles, a focused two-page Glance view, optional vertical tabs, and
-end-to-end-encrypted Profile Sync. It does not ship an AI assistant or an
-extension runtime.
+local profiles, a focused two-page Glance view, optional vertical tabs, Named
+Workspaces for Patrons, and end-to-end-encrypted Profile Sync. It does not ship
+an AI assistant or an extension runtime.
 
 ## Product facts
 
 | Item | Fact |
 |---|---|
 | Product | Blanc Browser |
-| Current public baseline | [1.5.0](https://github.com/bnfy/blanc/releases/tag/v1.5.0) |
+| Current public baseline | [1.8.0](https://github.com/bnfy/blanc/releases/tag/v1.8.0) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
-| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks three cosmetic app-icon colorways today, with more Patron-only extras over time. Founding supporters from the earlier one-time purchase keep their benefits permanently |
+| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Named Workspaces on every platform and three cosmetic app-icon colorways on macOS. Founding supporters from the earlier one-time purchase keep their benefits permanently |
 | Browser engine | Chromium through Electron |
 | Default search | DuckDuckGo; Google, Bing, and Brave Search are also available |
 | Blocking | Reviewed, hash-pinned EasyList + EasyPrivacy snapshots bundled into each release; browser-level request blocking, cosmetic CSS, and isolated blocker scriptlets |
