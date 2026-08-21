@@ -13,6 +13,7 @@ const vm = require('node:vm');
 
 const ROOT = path.resolve(__dirname, '../..');
 const overlaySource = fs.readFileSync(path.join(ROOT, 'src/renderer/overlay.js'), 'utf8');
+const mainSource = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
 
 const lift = (name) => {
   const re = new RegExp(`function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n  \\}`);
@@ -110,7 +111,7 @@ test('/workspace sends a new name to main only after the renderer gate passes', 
   assert.deepEqual(calls, [['save', 'Deep Work'], ['mutation', 'pending']]);
 });
 
-test('the Patron gate row links directly to the Patron Settings section', () => {
+test('the Patron gate row distinguishes unlock from lapse and links to Patron Settings', () => {
   const calls = [];
   class El {
     constructor(tag) { this.tagName = tag; this.children = []; this.listeners = {}; }
@@ -119,6 +120,7 @@ test('the Patron gate row links directly to the Patron Settings section', () => 
     addEventListener(name, fn) { this.listeners[name] = fn; }
   }
   const sandbox = {
+    wsWorkspaces: [],
     document: { createElement: (tag) => new El(tag) },
     closeWorkspaceSwitcher: () => calls.push(['close-switcher']),
     window: { browserAPI: {
@@ -130,10 +132,13 @@ test('the Patron gate row links directly to the Patron Settings section', () => 
     `${lift('renderWorkspacePatronGateRow')}; this.render = renderWorkspacePatronGateRow;`,
     sandbox,
   );
-  const row = sandbox.render();
-  assert.equal(row.children[0].textContent, 'Creating workspaces needs Blanc Patron');
-  assert.equal(row.children[1].textContent, 'settings →');
-  row.listeners.click();
+  const unlock = sandbox.render(false);
+  assert.equal(unlock.children[0].textContent, 'Named Workspaces — Patron');
+  assert.equal(unlock.children[1].textContent, 'unlock →');
+  const renew = sandbox.render(true);
+  assert.equal(renew.children[0].textContent, 'Renew Patron to create another');
+  assert.equal(renew.children[1].textContent, '→');
+  unlock.listeners.click();
   assert.deepEqual(calls, [
     ['close-switcher'],
     ['close-overlay'],
@@ -141,11 +146,20 @@ test('the Patron gate row links directly to the Patron Settings section', () => 
   ]);
 });
 
-test('the gate row replaces editor commands instead of appearing beside them', () => {
+test('inactive users get one CTA instead of new and save-as controls', () => {
   const render = lift('renderWorkspaceSwitcherList');
-  assert.match(render, /exclusiveState = workspacePatronGateVisible/);
-  assert.match(render, /setSwitcherCommandVisibility\(!exclusiveState\)/);
-  assert.ok(render.indexOf('if (workspacePatronGateVisible)')
-    < render.indexOf('if (pendingCreateWorkspace)'),
-  'the Patron row must win before either editor is rendered');
+  assert.match(render, /setSwitcherCommandVisibility\(wsPatronActive && !naming\)/);
+  assert.match(render, /renderWorkspacePatronGateRow\(false\)/,
+    'never-Patrons need one unlock CTA');
+  assert.match(render, /if \(!wsPatronActive\) nodes\.push\(renderWorkspacePatronGateRow\(true\)\)/,
+    'lapsed Patrons keep rows plus one renew CTA');
+});
+
+test('Patron activation and validation repaint an already-open workspace popover', () => {
+  const settingsFanout = mainSource.match(
+    /settings\.onSettingsChanged\(\(s\) => \{[\s\S]*?\n  \}\);/,
+  )?.[0];
+  assert.ok(settingsFanout, 'settings fan-out not found in main.js');
+  assert.match(settingsFanout, /broadcastWorkspacesUpdated\(\)/,
+    'setPatron changes must push the newly derived entitlement to chrome');
 });
