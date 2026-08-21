@@ -15,6 +15,14 @@ Feature: Supporter colorways and session restore
     Then the supporter colorways are shown as locked
     And selecting one leaves the app icon at "paper"
 
+  @F17-3 @F17 @all @desktop
+  Scenario: Become a Patron opens Polar checkout in a real tab
+    Given there is no active supporter license
+    And Personal profile settings are open
+    When I activate Become a Patron from Settings
+    Then exactly one new tab opens on "buy.polar.sh"
+    And the utility sheet is dismissed
+
   @F18-1 @F18 @all @D8
   Scenario: Relaunch restores groups but not private tabs
     Given a group "work" with 2 tabs

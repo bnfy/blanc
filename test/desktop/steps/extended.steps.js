@@ -168,3 +168,11 @@ When('I choose the app icon {string}', async function (id) { await this.call('se
 Then('the app icon {string} is applied', async function (id) {
   assert.strictEqual(await this.call('appIcon'), id);
 });
+
+// ---------- F17-3: Patron checkout CTA from Settings ----------
+
+When('I activate Become a Patron from Settings', async function () {
+  this.tabStateBefore = await this.call('state');
+  assert.strictEqual(await this.call('clickPatronCheckout'), true);
+  await this.waitForState((s) => s.tabs.length === this.tabStateBefore.tabs.length + 1);
+});
