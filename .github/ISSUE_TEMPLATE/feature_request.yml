@@ -1,0 +1,36 @@
+name: Idea or request
+description: Suggest something Blanc should do differently
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Blanc is deliberately small. It ships no AI assistant and no extension
+        runtime, and it favours one coherent product over a configurable one —
+        so some good ideas get declined on fit rather than merit. Saying what
+        you were trying to do helps more than naming a feature, because there
+        may already be a way, or a smaller change that solves it.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The situation you're in when you want this, not the feature itself.
+      placeholder: I keep losing track of which tab is playing audio when I have a group open.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like Blanc to do?
+    validations:
+      required: false
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: How do you handle it today?
+      description: Including "I switch to another browser for this" — that's useful to know.
+    validations:
+      required: false

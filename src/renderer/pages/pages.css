@@ -200,6 +200,24 @@ a.patron-checkout {
 }
 a.patron-checkout:hover { filter: brightness(1.05); }
 
+/* An <a> that reads as a NEUTRAL button (matches Activate / Turn on sync, not
+   the accent patron CTA above). Stays an anchor for the same reason: the
+   utility sheet's will-navigate handler turns an http(s) target into a real
+   tab, and window.open is denied there. */
+.link-button {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 12px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.link-button:hover { color: var(--text); border-color: var(--text-dim); }
+
 .hint.field-error { color: var(--danger); }
 
 .spacer { flex: 1 1 auto; }
@@ -452,6 +470,21 @@ a.patron-checkout:hover { filter: brightness(1.05); }
 .settings-nav a.current { color: var(--accent); border-left-color: var(--accent); }
 
 .settings-content { flex: 1 1 auto; min-width: 0; }
+
+/* Settings fields use Inter, not the shared monospace input face. Settings is
+   prose-like configuration, and the mono treatment read as unnecessarily
+   technical here (it stays elsewhere — search boxes, group labels — by design).
+   The one exception is the Patron license key: a monospace face keeps an
+   opaque key legible character-by-character while typing or checking it. */
+.settings-content input[type="text"],
+.settings-content input[type="url"],
+.settings-content input[type="password"],
+.settings-content select {
+  font-family: var(--font-ui);
+}
+.settings-content #patronKey {
+  font-family: var(--font-mono);
+}
 
 .settings-group + .settings-group { margin-top: 40px; }
 /* Anchor targets (e.g. the shield popover's "blocking settings →" deep-link,

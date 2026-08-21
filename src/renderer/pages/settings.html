@@ -24,6 +24,7 @@
         <a href="#group-privacy" data-group="privacy">Privacy &amp; Security</a>
         <a href="#group-sync" data-group="sync">Sync</a>
         <a href="#group-patron" data-group="patron">Patron</a>
+        <a href="#group-help" data-group="help">Help</a>
       </nav>
 
       <div class="settings-content">
@@ -158,7 +159,7 @@
             <div class="setting">
               <div class="label">
                 <span>Block ads &amp; trackers</span>
-                <span class="hint">EasyList + EasyPrivacy at the network layer, plus element hiding</span>
+                <span class="hint">Stops ads and the hidden trackers that follow you from site to site. On by default.</span>
               </div>
               <label class="toggle">
                 <input id="adblockEnabled" type="checkbox" />
@@ -168,35 +169,35 @@
 
             <div class="setting">
               <div class="label">
-                <span>WebRTC</span>
-                <span class="hint">Limits which network addresses WebRTC may reveal. Standard hides non-default-route and multi-homed addresses.</span>
+                <span>IP address in video calls</span>
+                <span class="hint">Video and voice calls in your browser can reveal your real IP address, even on a VPN. Standard is right for almost everyone.</span>
               </div>
               <select id="webrtcPolicy">
-                <option value="standard">Standard — hide non-default addresses</option>
-                <option value="strict">Disable direct UDP — for proxy users; may break or degrade some video calls</option>
+                <option value="standard">Standard (recommended)</option>
+                <option value="strict">Strict — stronger for proxy users, but can break some video calls</option>
               </select>
             </div>
 
             <div class="setting">
               <div class="label">
                 <span>Encrypted DNS</span>
-                <span class="hint">Encrypts DNS lookups between Blanc and the chosen resolver. It does not hide the sites you visit from your network, and it makes the resolver a party you trust. Automatic does not guarantee encryption. Strict providers may block captive-portal login pages — switch to Automatic to get through.</span>
+                <span class="hint">Encrypts the behind-the-scenes lookups that turn a web address into a connection, so someone sniffing those lookups can't read the names. It does not hide the sites you visit from your network, and it makes the DNS provider someone you trust. Automatic uses encryption when it can and may fall back to ordinary DNS — safe to leave on. If a Wi-Fi login page won't load, switch to Automatic or Off temporarily.</span>
               </div>
               <select id="secureDns">
-                <option value="auto">Automatic — upgrade when available (may fall back to unencrypted)</option>
-                <option value="off">Off — use the system resolver (best with a VPN's own DNS)</option>
-                <option value="cloudflare">Cloudflare — unfiltered</option>
-                <option value="quad9">Quad9 — blocks known-malware domains, validates DNSSEC</option>
-                <option value="mullvad">Mullvad — unfiltered</option>
+                <option value="auto">Automatic (recommended)</option>
+                <option value="off">Off — use your system setting (best with a VPN)</option>
+                <option value="cloudflare">Cloudflare</option>
+                <option value="quad9">Quad9 — also blocks known malware sites</option>
+                <option value="mullvad">Mullvad</option>
                 <option value="custom">Custom provider…</option>
               </select>
             </div>
 
             <div class="setting" id="secureDnsCustomRow" hidden>
               <div class="label">
-                <span>Custom DoH template</span>
-                <span class="hint">An https:// DoH URL (RFC 8484), e.g. https://dns.nextdns.io/&lt;profile&gt;.</span>
-                <span class="hint field-error" id="secureDnsError" hidden>That is not a valid DoH URL — the previous provider is still in use.</span>
+                <span>Custom provider address</span>
+                <span class="hint">The secure DNS address your provider gave you (an https:// link), e.g. https://dns.nextdns.io/&lt;profile&gt;.</span>
+                <span class="hint field-error" id="secureDnsError" hidden>That address isn't valid — the previous provider is still in use.</span>
               </div>
               <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" />
             </div>
@@ -302,6 +303,20 @@
               <button id="patronActivate">Activate</button>
             </div>
             <p class="section-hint" id="patronStatus" role="status"></p>
+          </div>
+        </section>
+
+        <section class="settings-group" id="group-help">
+          <h2 class="group-title">Help</h2>
+          <div class="settings-card">
+            <p class="section-hint">
+              Something broken, or working in a way it shouldn&rsquo;t? Reports go to Blanc&rsquo;s
+              public issue tracker on GitHub. Saying which version you&rsquo;re on, which operating
+              system, and what page you were looking at makes a report much faster to act on.
+            </p>
+            <div class="toolbar-row">
+              <a class="link-button" href="https://github.com/bnfy/blanc/issues/new/choose" rel="noreferrer">Report an issue</a>
+            </div>
           </div>
         </section>
       </div>
