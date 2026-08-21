@@ -100,6 +100,11 @@ function setupPages(hooks = {}) {
   };
 
   handle('pages:surface:close', [...UTILITY_PAGES], () => hooks.utilitySheet.close());
+  // Settings opaque pickers arm Escape so main forwards it into the sheet
+  // instead of dismissing the sheet (see createUtilitySheet before-input-event).
+  handle('pages:surface:escape-arm', [...UTILITY_PAGES], (armed) => {
+    hooks.utilitySheet.setEscapeArmed?.(!!armed);
+  });
 
   handle('pages:bookmarks:list', ['bookmarks', 'newtab'], () => bookmarks.listBookmarks());
   handle('pages:bookmarks:remove', 'bookmarks', (id) => {

@@ -1,7 +1,9 @@
 // Shared glue for utility pages presented in the sheet (body.sheet):
 // dialog semantics, the ✕, scrim-click dismissal, and initial focus on the
 // page heading so keyboard/screen-reader users land on what just opened.
-// Esc is handled main-side (before-input-event); this file never needs it.
+// Esc is handled main-side (before-input-event). In-page consumers (Settings
+// pickers) arm pages:surface:escape-arm so the first Esc closes them before
+// the sheet dismisses — this file never needs its own Esc handler.
 (() => {
   const page = document.querySelector('.page');
   if (!page || !window.bowserPages?.surface) return;

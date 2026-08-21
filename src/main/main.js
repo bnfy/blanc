@@ -2137,11 +2137,17 @@ function createUtilitySheet() {
   runtime.utilitySheetView = view;
   installChromeShortcuts(wc);
   // Esc dismisses no matter what inside the page holds focus (mirrors the
-  // island overlay's handler).
+  // island overlay's handler). When a Settings picker (or similar) has armed
+  // escape interest, forward Esc into the sheet first so the picker can close
+  // without dismissing the whole sheet — same layering as workspaceSwitcherOpen.
   wc.on('before-input-event', bindWindowRuntime(runtime, (event, input) => {
     if (runtime.utilitySheetView !== view) return;
     if (runtime.utilitySheetUrl && input.type === 'keyDown' && input.key === 'Escape') {
       event.preventDefault();
+      if (runtime.utilitySheetEscapeArmed && !wc.isDestroyed()) {
+        wc.send('pages:surface:escape');
+        return;
+      }
       hideUtilitySheet();
     }
   }));
@@ -2177,6 +2183,7 @@ function createUtilitySheet() {
     if (runtime.utilitySheetView !== view) return event.preventDefault();
     if (isUtilityUrl(targetUrl)) {
       runtime.utilitySheetUrl = targetUrl; // keep the toggle honest across in-sheet nav
+      runtime.utilitySheetEscapeArmed = false; // document is about to be replaced
       return;
     }
     event.preventDefault();
@@ -2218,6 +2225,7 @@ function showUtilityPage(url) {
   }
   if (!sheet) return;
   runtime.utilitySheetUrl = url;
+  runtime.utilitySheetEscapeArmed = false;
   scheduleUtilitySheetNavigation(runtime, sheet, url);
   // Mirror tabs: a detached view's document still reports visibilityState
   // 'visible' and never background-throttles — toggle real visibility.
@@ -2234,6 +2242,7 @@ function hideUtilitySheet({ refocusContent = true } = {}) {
   const runtime = rt();
   if (!runtime.utilitySheetUrl) return;
   runtime.utilitySheetUrl = null;
+  runtime.utilitySheetEscapeArmed = false;
   cancelUtilitySheetNavigation(runtime.utilitySheetView);
   const sheet = liveUtilitySheet(runtime);
   if (hasLiveWindow() && sheet) {
@@ -6683,6 +6692,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         return !!sheet && wc === sheet.wc;
       },
       close: () => hideUtilitySheet(),
+      setEscapeArmed: (armed) => {
+        rt().utilitySheetEscapeArmed = !!armed;
+      },
     },
     pageSurfaces: {
       owns: (host, wc) => {

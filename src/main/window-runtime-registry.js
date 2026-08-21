@@ -84,6 +84,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     shieldTrigger: null,
     utilitySheetView: null,
     utilitySheetUrl: null,
+    /** Settings (and similar) in-page pickers arm this so Escape closes the
+     * picker before dismissing the utility sheet — same layering as
+     * workspaceSwitcherOpen on the overlay. */
+    utilitySheetEscapeArmed: false,
     /** The floating bottom-center permission-prompt view; attached only
      * while permissionPrompts is non-empty. */
     permissionView: null,
@@ -162,6 +166,7 @@ function detachWindow(runtime) {
   runtime.glanceTabId = null;
   runtime.utilitySheetView = null;
   runtime.utilitySheetUrl = null;
+  runtime.utilitySheetEscapeArmed = false;
   runtime.permissionView = null;
   runtime.permissionViewAttached = false;
 }
