@@ -4,23 +4,32 @@
 
 **Goal:** Fire the five discovery channels Blanc has never used — in one concentrated week, with measurement restored and the payment path proven first — so the September cohort is large enough for retention to become a real question.
 
-**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review, ~1–2 business days; Google Ads verification by Sep 2) and de-risks the spike (site copy corrected, production Patron purchase proven, v1.8.1 released + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires channels cheap→expensive across four days so neither one-shot card is spent on untested copy.
+**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review, ~1–2 business days; Google Ads verification by Sep 2) and de-risks the spike (site copy corrected, production Patron purchase proven, v1.8.2 released + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires channels cheap→expensive across four days so neither one-shot card is spent on untested copy.
 
 **Tech Stack:** Astro 7 (`site/`), Cloudflare Pages, GA4 (property 544287080), Polar.sh (Patron checkout), `blanc-ping` Worker stats, `gh` CLI.
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — August 21, 2026
+## Execution status — August 22, 2026
 
-- Blanc v1.8.0 shipped, followed immediately by v1.8.1. The current public
-  macOS and Windows updater handoffs and the authenticated Linux AppImage launch
-  are proven for v1.8.1; see `docs/release-incidents/2026-08-21-v1.8.1.md`.
-- Task 7's release and platform-evidence gate is therefore complete through
-  v1.8.1. Its 48-hour soak ends at **2026-08-23 03:42:09 UTC**
-  (**August 22, 11:42:09 p.m. ET**).
-- Tasks 5 and 6 did not land before the release. Resume at Task 5: correct and
-  deploy the public Patron claims and `/faq`, then make the repository README a
-  launch-ready landing page. Do not begin launch week while either remains open.
+- Blanc v1.8.2 is the current public baseline. Its signed/notarized macOS
+  artifacts, signed Windows artifacts, authenticated Linux AppImage, updater
+  metadata, checksums, SBOM, Sigstore material, and provenance attestations were
+  published from `3998b36`; see
+  `docs/release-incidents/2026-08-22-v1.8.2.md`.
+- The v1.8.1 → v1.8.2 macOS updater handoff and public v1.8.2 Linux launch are
+  proven. Windows reached the native **Update downloaded** prompt and invoked
+  **Restart Now**, but installer completion and relaunch remain unverified
+  because the Parallels harness contaminated process ownership. This is an
+  evidence gap, not a confirmed product regression and not a passing result.
+- v1.8.2 was published at **2026-08-22 17:31:40 UTC**; its 48-hour soak ends at
+  **2026-08-24 17:31:40 UTC** (**August 24, 1:31:40 p.m. ET**).
+- Tasks 2, 5, and 6 are complete. GA4 recorded the live self-test; `/faq` and
+  the corrected Patron claims are deployed; the Show HN README is merged.
+- Before launch week, Task 7 still needs either clean Windows updater-handoff
+  evidence or an explicit owner waiver recorded in the release incident after
+  the missing evidence and risk are stated. Never silently convert the
+  inconclusive harness run into a pass.
 
 ## Owner legend
 
@@ -37,7 +46,7 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship as-is.** No telemetry changes, no open-sourcing any component, Patron stays in the launch narrative. These were considered and declined during brainstorming.
-- **Launch rides v1.8.1 after a ≥48h soak.** Never launch on a build published the same day.
+- **Launch rides v1.8.2 after a ≥48h soak.** Never launch on a build published the same day.
 - **Channel order is cheap→expensive and is not negotiable:** listings → Show HN → Reddit → Product Hunt.
 - **No retention experiments this cycle.** n=27 cannot support one. The checkpoint is Oct 1.
 - **Adding a site page REQUIRES adding its path to `MANIFEST` in `site/src/pages/sitemap.xml.js`** — the sitemap endpoint asserts the manifest matches discovered pages exactly and **fails the build** otherwise.
@@ -142,7 +151,7 @@ consent banner. Confirm the visit appears in Realtime within ~30 seconds.
 The property has an active internal-traffic exclusion, so a known internal
 network can produce a false failure. If a local visit does not appear, repeat
 the check from an external network (for example, a phone with Wi-Fi off). On
-2026-08-22, two local `?ref=selftest` sessions appeared after a longer-than-
+2026-08-22, two local `?ref=selftest` sessions appeared after a longer than
 expected delay, producing two active users, four `user_engagement` events, and
 the `/` page path in Realtime.
 
@@ -304,11 +313,14 @@ If any step fails, **stop the whole plan here** and fix the checkout. Launching 
 
 **Owner:** `agent` — this is ordinary site work.
 
-**POST-RELEASE CORRECTION — DO THIS FIRST.** Four existing pages state that no
-feature is locked behind payment even though v1.8.0 shipped Patron-gated
-workspace creation and v1.8.1 made that gate explicit before the editor opens.
-One of those pages is the Terms of Service. Until this task deploys, the site's
-legal page contradicts the current product.
+**Status: COMPLETE.** Merged in `ba18dc9` and deployed to production. The
+completed steps remain as the implementation and verification record.
+
+**COMPLETED POST-RELEASE CORRECTION.** Four pages previously stated that no
+feature was locked behind payment even though v1.8.0 shipped Patron-gated
+workspace creation and v1.8.1 made that gate explicit before the editor opened.
+One of those pages was the Terms of Service. The detailed steps below preserve
+the corrected implementation record.
 
 **Files:**
 - Create: `site/src/pages/faq.astro`
@@ -324,7 +336,7 @@ legal page contradicts the current product.
 
 **Why:** So the answers are *linkable* in a hostile thread rather than retyped under pressure at hour three of a Show HN.
 
-- [ ] **Step 1: Add the route to the sitemap manifest first**
+- [x] **Step 1: Add the route to the sitemap manifest first**
 
 In `site/src/pages/sitemap.xml.js`, add to `MANIFEST` after the `/press` entry:
 
@@ -332,14 +344,14 @@ In `site/src/pages/sitemap.xml.js`, add to `MANIFEST` after the `/press` entry:
   { path: '/faq',                      changefreq: 'monthly', priority: '0.5' },
 ```
 
-- [ ] **Step 2: Verify the build fails right now**
+- [x] **Step 2: Verify the build fails right now**
 
 ```bash
 npm run site:build
 ```
 Expected: **FAIL** — the manifest lists `/faq` but no page exists. This proves the guard works before you rely on it.
 
-- [ ] **Step 3: Create the page**
+- [x] **Step 3: Create the page**
 
 Create `site/src/pages/faq.astro`. Use the `standard` header profile, matching every non-index, non-legal page:
 
@@ -424,7 +436,7 @@ const QUESTIONS = [
 </BaseLayout>
 ```
 
-- [ ] **Step 4: Add the footer link**
+- [x] **Step 4: Add the footer link**
 
 In `site/src/components/Footer.astro`, add to `LINKS` between the `/press` and `/privacy` entries:
 
@@ -432,7 +444,7 @@ In `site/src/components/Footer.astro`, add to `LINKS` between the `/press` and `
   { href: '/faq', label: 'FAQ' },
 ```
 
-- [ ] **Step 5: Add the page styles**
+- [x] **Step 5: Add the page styles**
 
 Append to `site/src/styles/site.css`. Reuse existing custom properties rather than hardcoding colours:
 
@@ -457,14 +469,14 @@ Append to `site/src/styles/site.css`. Reuse existing custom properties rather th
 }
 ```
 
-- [ ] **Step 6: Verify the build now passes**
+- [x] **Step 6: Verify the build now passes**
 
 ```bash
 npm run site:build
 ```
 Expected: PASS. The manifest and the page now agree.
 
-- [ ] **Step 7: Verify the page renders and the claims are accurate**
+- [x] **Step 7: Verify the page renders and the claims are accurate**
 
 ```bash
 npm run site:dev
@@ -472,18 +484,18 @@ npm run site:dev
 
 Open `/faq` and read every answer against the source of truth. Specifically confirm the telemetry payload really is those six fields (`src/main/telemetry.js`) and that the Patron prices match the live Polar products. **A factually wrong FAQ linked into a Show HN thread is worse than no FAQ.**
 
-- [ ] **Step 8a: Correct the homepage claim**
+- [x] **Step 8a: Correct the homepage claim**
 
-`site/src/pages/index.astro:258` currently reads *"every browser feature is
-free, and nothing is locked behind payment."* Replace that answer with:
+`site/src/pages/index.astro:258` previously read *"every browser feature is
+free, and nothing is locked behind payment."* It was replaced with:
 
 ```html
         <p>Yes — Blanc is free, and everything that makes it a browser stays free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. On macOS, Blanc Patron adds three extra Dock colorways; on every platform, it lets you save a window as a named workspace. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses.</p>
 ```
 
-- [ ] **Step 8b: Correct the About page claim**
+- [x] **Step 8b: Correct the About page claim**
 
-`site/src/pages/about.astro:41` opens *"Every browser feature is free."* Keep
+`site/src/pages/about.astro:41` previously opened *"Every browser feature is free."* Keep
 the promise that follows it — *nothing free moves behind payment* — because
 that one is still true; named workspaces were never free. Replace the opening
 clause:
@@ -492,27 +504,27 @@ clause:
         <p>Blanc is free, and everything that makes it a browser stays free — blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc Patron is an optional subscription — $30 a year or $4 a month — that funds the work and adds three macOS Dock colorways plus named workspaces on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses. Supporters who bought the earlier one-time purchase keep everything, free, forever.</p>
 ```
 
-- [ ] **Step 8c: Correct the Terms of Service**
+- [x] **Step 8c: Correct the Terms of Service**
 
 **This one is legal text, not marketing.** `site/src/pages/terms.astro:28`
-states *"Blanc's features are free, and none of them are locked behind
-payment."* That becomes false on the day v1.8.0 ships. Replace it:
+previously stated *"Blanc's features are free, and none of them are locked
+behind payment."* That became false when v1.8.0 shipped. It was replaced with:
 
 ```html
   <p>Blanc is free to download and use. Everything that makes it a browser — ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys — is free and stays free. Blanc Patron is an optional subscription, billed monthly or yearly, that adds three macOS Dock colorways and lets you save a window as a named workspace on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses. Nothing that is free today is moved behind Patron.</p>
 ```
 
-- [ ] **Step 8d: Correct the press fact sheet**
+- [x] **Step 8d: Correct the press fact sheet**
 
-`site/src/pages/press.astro:297` reads `Free; all browser features included`
-and describes Patron as `cosmetic Dock icons today`. Both are now wrong.
+`site/src/pages/press.astro:297` previously read `Free; all browser features
+included` and described Patron as `cosmetic Dock icons today`. Both were wrong.
 
 ```html
           <div><dt>price</dt><dd>Free; all core browsing features included</dd></div>
           <div><dt>optional support</dt><dd>Blanc Patron subscription, US$30/year or $4/month, plus tax; three macOS Dock colorways and named workspaces on every platform</dd></div>
 ```
 
-- [ ] **Step 8e: Prove no "nothing is locked behind payment" claim survives**
+- [x] **Step 8e: Prove no "nothing is locked behind payment" claim survives**
 
 ```bash
 grep -rn "nothing is locked behind payment\|none of them are locked behind payment\|every browser feature is free\|all browser features included" site/src/ ; echo "exit=$?"
@@ -521,7 +533,7 @@ grep -rn "nothing is locked behind payment\|none of them are locked behind payme
 Expected: **no matches** (`exit=1`). A single survivor is a public contradiction
 of the product on launch day.
 
-- [ ] **Step 8f: Run the guard tests — AFTER every file is edited**
+- [x] **Step 8f: Run the guard tests — AFTER every file is edited**
 
 ```bash
 npm run test:unit && npm run substrate:check
@@ -532,7 +544,7 @@ site files, so running the guards before them tests a state that never ships.
 default OG image, so `og-cards.test.js` is unaffected — but run them to confirm
 rather than assume.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add site/src/pages/faq.astro site/src/pages/sitemap.xml.js \
@@ -548,7 +560,7 @@ alongside a new /faq covering source availability, Electron memory,
 telemetry, pricing and extensions."
 ```
 
-- [ ] **Step 10: Push, open a PR, and merge — before deploying**
+- [x] **Step 10: Push, open a PR, and merge — before deploying**
 
 Launch execution depends on this work being *merged*, not merely committed locally.
 
@@ -569,7 +581,7 @@ git checkout main && git pull && git fetch origin
 git status --porcelain    # must be EMPTY
 ```
 
-- [ ] **Step 11: Deploy from the merged checkout**
+- [x] **Step 11: Deploy from the merged checkout**
 
 ```bash
 npm run site:deploy
@@ -584,15 +596,18 @@ confirm it is live.
 
 **Owner:** `agent`.
 
+**Status: COMPLETE.** Merged in `ba18dc9`. Task 8 may still replace the static
+image with the final launch demo before Show HN.
+
 **Why this sits in Phase 0, before launch:** the repository is the Show HN
-landing page. v1.8.1 has already shipped, so the release-source ordering concern
+landing page. v1.8.2 has already shipped, so the release-source ordering concern
 is historical; the live requirement now is that this README be correct and
 merged before Task 12 posts.
 
 It is also, once Task 12 submits the repository to Show HN, the first thing
 thousands of sceptical readers see. Build instructions alone will not do.
 
-- [ ] **Step 1: Rewrite the README to carry the story**
+- [x] **Step 1: Rewrite the README to carry the story**
 
 Confirm or add, in this order:
 
@@ -611,7 +626,7 @@ Confirm or add, in this order:
 - **A link to https://blancbrowser.com/faq**.
 - **Download links** for macOS, Windows, Linux.
 
-- [ ] **Step 2: Commit it (explicit path)**
+- [x] **Step 2: Commit it (explicit path)**
 
 ```bash
 git add README.md
@@ -623,18 +638,21 @@ Merge it into `origin/main` before Task 12 posts.
 
 ---
 
-### Task 7: Release v1.8.0, supersede with v1.8.1, and soak — release complete
+### Task 7: Release v1.8.0, supersede through v1.8.2, and soak
 
 **Owner:** `owner` — the release script requires interactive 1Password/Terminal auth.
 
-**Status: COMPLETE. Do not rerun any release command in this task.** v1.8.0 and
-v1.8.1 are immutable public releases. The detailed steps below remain only as
-the completed historical record.
+**Status: RELEASE COMPLETE; LAUNCH EVIDENCE OPEN. Do not rerun any immutable
+release command in this task.** v1.8.0, v1.8.1, and v1.8.2 are immutable public
+releases. The detailed release steps below remain only as the completed
+historical record. The current launch gate is the v1.8.2 soak plus the Windows
+evidence gap recorded in Step 11.
 
-**Current launch gate:** Task 4 must pass, Task 5 must be merged and deployed,
-Task 6 must be merged, and the v1.8.1 soak must elapse before Task 11 starts.
-Because the releases already happened, Tasks 5 and 6 are launch prerequisites,
-not release prerequisites. Verify the live Terms before launch:
+**Current launch gate:** Task 4 must pass; Tasks 5 and 6 are already satisfied;
+the v1.8.2 soak must elapse; and the Windows updater evidence must pass or be
+explicitly waived before Task 11 starts. Because the releases already happened,
+Tasks 5 and 6 are launch prerequisites, not release prerequisites. Verify the
+live Terms before launch:
 
 A bare `curl -s | grep -c` prints `0` when the request *fails* — an empty body
 contains no matches, so an outage or a typo'd URL reads as a pass. This gate must
@@ -653,9 +671,9 @@ echo "OK: Terms page reflects the Patron gate"
 
 Expected: `OK`. Any `STOP` means Task 5 has not reached production — do not launch.
 
-**Why:** v1.8.0 is the **build** the launch runs on, not the **story** the launch
-tells. Those were conflated in the first draft of this plan and it produced a
-contradiction: Named Workspaces was called the headline, yet the Show HN post
+**Why:** the v1.8.x release line is the **build** the launch runs on, not the
+**story** the launch tells. Those were conflated in the first draft of this plan
+and it produced a contradiction: Named Workspaces was called the headline, yet the Show HN post
 never mentioned it — correctly, because workspace *creation* is Patron-gated and
 a paywalled headline is a weak opening on Hacker News.
 
@@ -825,39 +843,43 @@ Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
 changelog and the homepage show 1.8.0 — not a Cloudflare preview URL.
 
-- [x] **Step 10: Start the soak clock**
+- [ ] **Step 10: Record the current v1.8.2 soak clock**
 
 ```bash
-echo '{"date":"YYYY-MM-DD","version":"1.8.0","publishedAt":"<ISO>","soakEndsAt":"<ISO + 48h>"}' \
+echo '{"date":"2026-08-22","version":"1.8.2","publishedAt":"2026-08-22T17:31:40Z","soakEndsAt":"2026-08-24T17:31:40Z"}' \
   >> "$LAUNCH_LOG"
 ```
 
-- [x] **Step 11: Soak exit criteria — real upgrade evidence, not elapsed time**
+- [ ] **Step 11: Soak exit criteria — real upgrade evidence, not elapsed time**
 
 48 hours passing is necessary but not sufficient. The current public baseline
-is **v1.8.1**, and its equivalent current platform paths are validated:
+is **v1.8.2**, with this evidence state:
 
-- [x] the current **v1.8.0 → v1.8.1 updater handoff on macOS**, including Restart Now
-- [x] the current **v1.8.0 → v1.8.1 updater handoff on Windows**, including Restart Now
-- [x] the authenticated public **v1.8.1 Linux AppImage install/launch**
+- [x] the current **v1.8.1 → v1.8.2 updater handoff on macOS**, including Restart Now, installer completion, and relaunch
+- [ ] the current **v1.8.1 → v1.8.2 updater handoff on Windows**, including Restart Now, installer completion, relaunch, and installed-version confirmation
+- [x] the authenticated public **v1.8.2 Linux AppImage install/launch**
 
-The older exact Windows v1.7.0→v1.8.0 and Linux v1.8.0 gaps were not
-reconstructed after v1.8.1 shipped. The equivalent current public paths above
-supersede them, as recorded in `docs/release-incidents/2026-08-21-v1.8.1.md`.
+Windows produced the expected signed native artifacts, and packaged v1.8.1
+downloaded the public v1.8.2 installer and reached the native **Update
+downloaded** prompt. The final install and relaunch are still unverified because
+Parallels Coherence and guest-exec contaminated process ownership. Do not call
+that inconclusive harness result a product regression or completed evidence.
+The full record is `docs/release-incidents/2026-08-22-v1.8.2.md`.
 
 A Windows updater check must *begin inside the old packaged Blanc*: it discovers
 the staged `latest.yml`, downloads the matching installer, and the user invokes
 **Restart Now**. A directly launched NSIS installer is **not** an updater-handoff
 test and does not satisfy this.
 
-(An earlier review of this plan cited `AGENTS.md`'s demand for v1.4.0/v1.5.0
-Windows journeys. That gap was **closed during v1.7.0**, and `AGENTS.md` was
-resynchronised to the v1.7.0 baseline in `e39fb6b` — both files now agree. The
-requirement above is the current one.)
+Before launch, either complete that exact v1.8.1 → v1.8.2 journey in a clean
+Windows desktop session or obtain an explicit written owner waiver after
+stating the missing evidence and risk, then record the waiver in the incident.
+The next release must still validate the normal v1.8.2 → next-version Windows
+handoff; a waiver here does not retire that release requirement.
 
 If any upgrade check fails, the launch week moves.
 
-**Launch Monday must fall after `soakEndsAt`.** If a regression surfaces during the soak, the launch week moves — it does not proceed on a known-bad build.
+**Launch Monday must fall after the v1.8.2 `soakEndsAt`.** If a regression surfaces during the soak, the launch week moves — it does not proceed on a known-bad build.
 
 ---
 
@@ -917,7 +939,7 @@ git status --short
 git commit -m "README: use the Island demo"
 ```
 
-This lands after v1.8.1, which is fine: `README.md` is a release source for the
+This lands after v1.8.2, which is fine: `README.md` is a release source for the
 *next* release, not this one. It must be merged before Task 12 posts.
 
 ---
@@ -1311,13 +1333,14 @@ cat "$LAUNCH_LOG"
 ```
 
 - [ ] Task 1 — AlternativeTo submitted, priority review paid, status recorded
-- [ ] Task 2 — GA4 confirmed live via a **Realtime** self-test
+- [x] Task 2 — GA4 confirmed live via a **Realtime** self-test
 - [ ] Task 3 — Google Ads verification complete, campaign Enabled
 - [ ] Task 4 — production Patron purchase **PASS**
-- [ ] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
-- [ ] Task 6 — README refreshed and merged (it is the Show HN landing page)
-- [x] Task 7 — v1.8.1 published, post-publication workflow complete
-- [x] Task 7 — macOS upgrade, Windows updater handoff, Linux install/launch all verified
+- [x] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
+- [x] Task 6 — README refreshed and merged (it is the Show HN landing page)
+- [x] Task 7 — v1.8.2 published, post-publication workflow complete
+- [ ] Task 7 — v1.8.2 48-hour soak elapsed and recorded
+- [ ] Task 7 — macOS upgrade and Linux launch verified; Windows updater install/relaunch still open
 - [ ] Task 8 — demo video exported
 - [ ] Task 9 — newsletter capture verified with a fresh alias
 - [ ] Task 10 — copy pack committed
@@ -1350,7 +1373,7 @@ gh api --paginate repos/bnfy/blanc/releases --jq '.[].assets[] | select(.name | 
 ```
 
 ```bash
-echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline","totalDownloads":N,"version":"1.8.1","postedAnythingYet":false}' \
+echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline","totalDownloads":N,"version":"1.8.2","postedAnythingYet":false}' \
   >> "$LAUNCH_LOG"
 ```
 
@@ -1593,9 +1616,9 @@ If the September cohort cleared 81, retention becomes measurable and earns its o
 
 ## Dependency summary
 
-Tasks are ordered so every remaining dependency runs **forward**. Task 7 is an
-immutable historical completion, not an executable step; its soak is checked at
-Task 11 alongside the remaining Phase 0 and Phase 1 gates.
+Tasks are ordered so every remaining dependency runs **forward**. Task 7's
+release commands are immutable historical completions, but its v1.8.2 soak row
+and Windows launch evidence remain executable gates checked again at Task 11.
 
 ```
 PHASE 0 — prep, in this order
@@ -1607,9 +1630,9 @@ PHASE 0 — prep, in this order
   Task 5  Site: /faq + fix 4 false Patron claims, DEPLOYED to production
   Task 6  README refreshed and merged             (the HN landing page)
 
-ALREADY COMPLETE — historical, do not execute
-  Task 7  v1.8.1 published + platform evidence recorded
-          48h soak is checked mechanically at Task 11
+RELEASE COMPLETE — remaining launch evidence is still executable
+  Task 7  v1.8.2 published; macOS updater + Linux launch proven
+          Windows updater install/relaunch OPEN; 48h soak ends Aug 24 13:31 ET
 
 PHASE 1 — assets, during the freeze
   Task 8  Demo video
@@ -1629,18 +1652,18 @@ PHASE 2 — launch week
   Task 15      Measure + Oct 1 checkpoint
 ```
 
-**Why Tasks 5 and 6 precede launch.** Task 5's corrections must be live because
-the current product already gates workspace creation while the production Terms
-still deny any paywall. Task 6 makes the repository—the Show HN target—a candid,
-complete landing page. Both must land before outreach; neither is now a release
-prerequisite because v1.8.1 is already public.
+**Why Tasks 5 and 6 precede launch.** Task 5's corrections are live because the
+current product gates workspace creation and the public Terms must say so. Task
+6 makes the repository—the Show HN target—a candid, complete landing page. Both
+requirements are currently satisfied in `ba18dc9`; neither is a release
+prerequisite because v1.8.2 is already public.
 
 **Hard stops:**
 
 - **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means that feature is unreachable *and* the best traffic day converts nothing.
-- **Task 5 not deployed to production** → do not launch. Verify against the live Terms page, not by looking at the diff.
-- **Task 6 not merged** → do not launch; the repository landing page is still incomplete.
-- **Task 7's soak not cleared** — either <48h elapsed *or* the macOS/Windows/Linux upgrade evidence missing → the launch week moves. Task 11 Step 0a enforces the time half mechanically; the evidence half is a human check.
+- **Task 5 not deployed to production** → do not launch. **Currently satisfied** by production deployment `ba18dc9`; keep verifying the live Terms page, not the diff.
+- **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`; Task 8's demo swap remains separate.
+- **Task 7's soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. Task 11 Step 0a enforces the time half mechanically; Step 11 records the evidence half.
 - **Task 1 still pending review on Monday** → that channel does not fire. This is *not* a reason to move the launch week; the corrected rules mean there is no account-age clock to miss.
 
 **Licence decision:** resolved in Global Constraints. Keep the precise
