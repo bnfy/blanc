@@ -125,19 +125,26 @@ a reason to move the launch week. Record the outcome either way.
 **Interfaces:**
 - Produces: the canonical tagged URL set used verbatim by Tasks 11–14.
 
-- [ ] **Step 1: Reconnect Claude in Chrome, then confirm GA4 loads**
+- [x] **Step 1: Reconnect Claude in Chrome, then confirm GA4 loads**
 
 Connect the extension, then open the GA4 reporting hub for property 544287080:
 `https://analytics.google.com/analytics/web/?authuser=1#/p544287080/reports/reportinghub`
 
 If a sign-in wall appears, the owner signs in personally — an agent must not.
 
-- [ ] **Step 2: Verify GA4 is recording NOW, with a live Realtime event**
+- [x] **Step 2: Verify GA4 is recording NOW, with a live Realtime event**
 
 A non-zero count for the last 7 days proves the tag worked *at some point*, not
 that it works today. Open the **Realtime** report, then load
 `https://blancbrowser.com/?ref=selftest` in a normal browser and accept the
 consent banner. Confirm the visit appears in Realtime within ~30 seconds.
+
+The property has an active internal-traffic exclusion, so a known internal
+network can produce a false failure. If a local visit does not appear, repeat
+the check from an external network (for example, a phone with Wi-Fi off). On
+2026-08-22, two local `?ref=selftest` sessions appeared after a longer-than-
+expected delay, producing two active users, four `user_engagement` events, and
+the `/` page path in Realtime.
 
 If it does not appear, the tag is broken and every `?ref=` value in this plan
 measures nothing. Fix it before continuing.
@@ -147,7 +154,7 @@ Note the consent gate: `site/src/scripts/site.js` loads gtag with
 contributes only cookieless modelling signal. Channel landings are therefore a
 **floor**, never a full count.
 
-- [ ] **Step 3: Write down the canonical tagged URLs**
+- [x] **Step 3: Write down the canonical tagged URLs**
 
 One value per channel, used verbatim everywhere. No variants — a typo splits the data.
 
@@ -191,7 +198,7 @@ git add docs/superpowers/plans/assets/launch-urls.md
 git commit -m "docs: canonical tagged launch URLs for the growth counter-offensive"
 ```
 
-- [ ] **Step 4: Confirm the independent fallback exists**
+- [x] **Step 4: Confirm the independent fallback exists**
 
 GA4 has been flaky. The independent read is the existing series, which does not
 depend on Google at all:
@@ -203,7 +210,7 @@ tail -3 /Users/anthonyjloria/.claude/scheduled-tasks/blanc-daily-analytics/downl
 Confirm the daily digest is still appending rows. Only `valid:true` rows are usable
 as a baseline. **This is the measurement of record if GA4 fails again.**
 
-- [ ] **Step 5: Write down what this measurement CANNOT do**
+- [x] **Step 5: Write down what this measurement CANNOT do**
 
 Be explicit now, so Task 15 does not promise a number that cannot exist.
 
