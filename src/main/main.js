@@ -34,7 +34,11 @@ const {
 } = require('./adblock');
 const { blockableHostname, resolveBlockAdsCommand } = require('./adblock-exceptions');
 const islandProximity = require('./island-proximity');
-const { recordActivation, previousSurvivor } = require('./tab-activation');
+const {
+  recordActivation,
+  previousSurvivor,
+  previousActiveSurvivor,
+} = require('./tab-activation');
 const {
   shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
@@ -4499,6 +4503,23 @@ function cycleTab(direction) {
   setActiveTab(rt().tabOrder[(i + direction + rt().tabOrder.length) % rt().tabOrder.length]);
 }
 
+function lastActiveTabId(runtime = rt()) {
+  if (!runtime?.activeTabId) return null;
+  return previousActiveSurvivor(
+    runtime.activationHistory,
+    runtime.activeTabId,
+    (id) => tabs.has(id) && windowRuntimes.runtimeForTab(id) === runtime
+  );
+}
+
+/** ⌥⌘Z: alternate between the two most recently active live tabs. */
+function switchToLastActiveTab() {
+  const id = lastActiveTabId();
+  if (!id) return false;
+  setActiveTab(id);
+  return true;
+}
+
 /** ⌥⌘←/→: previous/next tab within the active tab's cluster, wrapping.
  * With no groups and no pins everything is one loose cluster, so this
  * degrades to plain tab cycling (same result as Ctrl+Tab). */
@@ -5446,6 +5467,11 @@ const SLASH_COMMANDS = [
 // A hand-picked subset of the full inventory (blanc://shortcuts/, via
 // listShortcuts()) for a quick reference right in the Help menu — not
 // exhaustive by design, "Show All Shortcuts…" links to the rest.
+// This chord is deliberately macOS-only: Ctrl+Alt is AltGr on international
+// Windows/Linux layouts, where Ctrl+Alt+Z may be ordinary text input.
+const LAST_ACTIVE_TAB_ACCELERATOR = process.platform === 'darwin'
+  ? 'Cmd+Alt+Z'
+  : null;
 const COMMON_KEYSTROKES = [
   ['New Window', 'CmdOrCtrl+N'],
   ['New Tab', 'CmdOrCtrl+T'],
@@ -5456,6 +5482,9 @@ const COMMON_KEYSTROKES = [
   ['Find in Page', 'CmdOrCtrl+F'],
   ['Toggle Vertical Tabs', 'CmdOrCtrl+Alt+V'],
   ['Open or Close Glance', 'CmdOrCtrl+Shift+G'],
+  ...(LAST_ACTIVE_TAB_ACCELERATOR
+    ? [['Switch to Last Active Tab', LAST_ACTIVE_TAB_ACCELERATOR]]
+    : []),
   ['Next Tab', 'Ctrl+Tab'],
   ['Previous Tab', 'Ctrl+Shift+Tab'],
   ['Next Tab in Group', 'Alt+CmdOrCtrl+Right'],
@@ -5523,6 +5552,9 @@ function buildMenuForRuntime(runtime) {
         },
         { label: 'Print…', accelerator: 'CmdOrCtrl+P', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.print()) },
         { type: 'separator' },
+        { label: 'Downloads', accelerator: 'CmdOrCtrl+Shift+J', click: bound(() => openInternalPage('blanc://downloads/')) },
+        { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: bound(() => openInternalPage('blanc://settings/')) },
+        { type: 'separator' },
         ...(isMac ? [] : [{ label: 'Check for Updates…', click: bound(checkForUpdatesManually) }, { type: 'separator' }]),
         isMac ? { role: 'close' } : { role: 'quit' },
       ],
@@ -5581,15 +5613,22 @@ function buildMenuForRuntime(runtime) {
           click: bound(toggleGlance),
         },
         { type: 'separator' },
-        { label: 'Downloads', accelerator: 'CmdOrCtrl+Shift+J', click: bound(() => openInternalPage('blanc://downloads/')) },
-        { label: 'Settings', accelerator: 'CmdOrCtrl+,', click: bound(() => openInternalPage('blanc://settings/')) },
-        { type: 'separator' },
         { role: 'toggleDevTools' },
       ],
     },
     {
       label: 'Tabs',
       submenu: [
+        {
+          id: 'switch-last-active-tab',
+          label: 'Switch to Last Active Tab',
+          ...(LAST_ACTIVE_TAB_ACCELERATOR
+            ? { accelerator: LAST_ACTIVE_TAB_ACCELERATOR }
+            : {}),
+          enabled: !!lastActiveTabId(runtime),
+          click: bound(switchToLastActiveTab),
+        },
+        { type: 'separator' },
         { label: 'Next Tab', accelerator: 'Ctrl+Tab', click: bound(() => cycleTab(1)) },
         { label: 'Previous Tab', accelerator: 'Ctrl+Shift+Tab', click: bound(() => cycleTab(-1)) },
         { label: 'Next Tab in Group', accelerator: 'Alt+CmdOrCtrl+Right', click: bound(() => cycleTabInCluster(1)) },

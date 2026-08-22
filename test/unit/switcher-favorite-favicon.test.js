@@ -15,6 +15,10 @@ const overlay = fs.readFileSync(
   path.join(__dirname, '../../src/renderer/overlay.js'),
   'utf8',
 );
+const styles = fs.readFileSync(
+  path.join(__dirname, '../../src/renderer/styles.css'),
+  'utf8',
+);
 
 const switcher = overlay.match(/function switcherResults\(query\) \{[\s\S]*?\n  \}/)?.[0];
 const resultRow = overlay.match(/function resultRow\(result, isActive, isEnterTarget\) \{[\s\S]*?\n  \}/)?.[0];
@@ -35,4 +39,15 @@ test('a favorite result carries a tab-shaped record with its favicon', () => {
 
 test('resultRow paints page-like results from result.tab', () => {
   assert.match(resultRow, /setFavicon\(leading,\s*result\.tab\s*\?\?\s*null\)/);
+});
+
+test('switcher metadata and source labels use the Inter UI face', () => {
+  assert.match(
+    styles,
+    /\.island-row \.row-sub\s*\{[^}]*font-family: var\(--font-ui\)/s,
+  );
+  assert.match(
+    styles,
+    /\.island-row \.row-tag\s*\{[^}]*font-family: var\(--font-ui\)/s,
+  );
 });

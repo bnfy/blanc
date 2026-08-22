@@ -3,7 +3,11 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const { recordActivation, previousSurvivor } = require('../../src/main/tab-activation');
+const {
+  recordActivation,
+  previousSurvivor,
+  previousActiveSurvivor,
+} = require('../../src/main/tab-activation');
 
 test('recordActivation appends, keeping one occurrence per id', () => {
   let h = [];
@@ -34,6 +38,32 @@ test('previousSurvivor skips dead ids and returns null when exhausted', () => {
   assert.equal(previousSurvivor(['x', 'y'], () => false), null);
   assert.equal(previousSurvivor([], () => true), null);
   assert.equal(previousSurvivor(undefined, () => true), null);
+});
+
+test('previousActiveSurvivor skips the current tab', () => {
+  assert.equal(
+    previousActiveSurvivor(['a', 'b', 'c'], 'c', () => true),
+    'b'
+  );
+});
+
+test('recording a last-tab switch makes the shortcut alternate back', () => {
+  let history = ['a', 'b', 'c'];
+  const firstTarget = previousActiveSurvivor(history, 'c', () => true);
+  assert.equal(firstTarget, 'b');
+
+  history = recordActivation(history, firstTarget);
+  assert.deepEqual(history, ['a', 'c', 'b']);
+  assert.equal(previousActiveSurvivor(history, 'b', () => true), 'c');
+});
+
+test('previousActiveSurvivor skips closed tabs and exhausts safely', () => {
+  const alive = new Set(['a', 'c']);
+  assert.equal(
+    previousActiveSurvivor(['a', 'b', 'c'], 'c', (id) => alive.has(id)),
+    'a'
+  );
+  assert.equal(previousActiveSurvivor(['c'], 'c', () => true), null);
 });
 
 // Closing A (active) then B keeps walking history: A → B → C.

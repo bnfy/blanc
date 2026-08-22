@@ -170,6 +170,36 @@ test('macOS and missing window/menu state never open a popup', async () => {
   assert.equal(popupCalls, 0);
 });
 
+test('Downloads and Settings live in File rather than View', () => {
+  const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+  const fileStart = main.indexOf("label: 'File'");
+  const profilesStart = main.indexOf("label: 'Profiles'", fileStart);
+  const viewStart = main.indexOf("label: 'View'", profilesStart);
+  const tabsStart = main.indexOf("label: 'Tabs'", viewStart);
+
+  assert.ok(fileStart >= 0 && profilesStart > fileStart);
+  assert.ok(viewStart > profilesStart && tabsStart > viewStart);
+
+  const fileMenu = main.slice(fileStart, profilesStart);
+  const viewMenu = main.slice(viewStart, tabsStart);
+  assert.match(fileMenu, /label: 'Downloads'[^\n]*CmdOrCtrl\+Shift\+J/);
+  assert.match(fileMenu, /label: 'Settings'[^\n]*CmdOrCtrl\+,/);
+  assert.doesNotMatch(viewMenu, /label: '(?:Downloads|Settings)'/);
+});
+
+test('Tabs exposes the last-active-tab chord only on macOS', () => {
+  const main = fs.readFileSync(path.join(ROOT, 'src/main/main.js'), 'utf8');
+  assert.match(
+    main,
+    /const LAST_ACTIVE_TAB_ACCELERATOR = process\.platform === 'darwin'\s*\? 'Cmd\+Alt\+Z'\s*: null;/
+  );
+  assert.match(
+    main,
+    /id: 'switch-last-active-tab',[\s\S]*?label: 'Switch to Last Active Tab',[\s\S]*?LAST_ACTIVE_TAB_ACCELERATOR[\s\S]*?enabled: !!lastActiveTabId\(runtime\),[\s\S]*?click: bound\(switchToLastActiveTab\)/
+  );
+  assert.doesNotMatch(main, /CmdOrCtrl\+Alt\+Z/);
+});
+
 test('chrome markup and IPC keep one native menu definition', () => {
   const html = fs.readFileSync(path.join(ROOT, 'src/renderer/index.html'), 'utf8');
   const renderer = fs.readFileSync(path.join(ROOT, 'src/renderer/renderer.js'), 'utf8');

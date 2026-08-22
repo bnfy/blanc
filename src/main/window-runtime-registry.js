@@ -94,9 +94,10 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     permissionViewAttached: false,
     tabsWantingAddressBarFocus: new Set(),
     /** Tab ids in activation order, most recent last, one occurrence per id.
-     * Closing the active tab returns to the most recent survivor here (see
-     * tab-activation.js). Memory-only: never persisted, synced, or exposed
-     * over IPC; pruned as tabs close, so bounded by the live tab count. */
+     * Closing the active tab and the last-active-tab shortcut both return to
+     * the most recent survivor here (see tab-activation.js). Memory-only:
+     * never persisted, synced, or exposed over IPC; pruned as tabs close, so
+     * bounded by the live tab count. */
     activationHistory: [],
     chromeHeight: 64,
     tabsBroadcastTimer: null,
