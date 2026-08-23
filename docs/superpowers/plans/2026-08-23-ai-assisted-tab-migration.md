@@ -407,7 +407,7 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 - [x] **Step 1:** Re-read the tracked design spec and plan against the implemented interfaces, accepted model decision, final copy, and F39 acceptance evidence. Amend only to record intentional implementation decisions; do not silently weaken locked requirements.
 - [x] **Step 2:** Confirm no unchecked plan-time decision or stale task reference remains.
-- [ ] **Step 3:** Commit any reconciliation — `docs(tab-import): reconcile F39 spec and implementation plan`
+- [x] **Step 3:** Commit any reconciliation — `docs(tab-import): reconcile F39 spec and implementation plan`
 
 ---
 
