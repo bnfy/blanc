@@ -393,11 +393,11 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 ### Task 18: Final governance + substrate
 
-- [ ] **Step 1:** `spec/acceptance/index.md` — mark F39 scenarios ✅ as implemented.
-- [ ] **Step 2:** `npm run substrate:check` + `npm run test:unit` + full desktop acceptance profile.
-- [ ] **Step 3:** Confirm no startup model load (packaged smoke: devtools/network idle at launch).
-- [ ] **Step 4:** Confirm macOS library validation unchanged (only Plugin helper exception).
-- [ ] **Step 5:** Commit — `docs(spec): mark F39 desktop scenarios runnable`
+- [x] **Step 1:** `spec/acceptance/index.md` — mark F39 scenarios ✅ as implemented. *(The eight Task 14 runnable scenarios remain the automated desktop floor; unchecked scenarios are not overstated.)*
+- [x] **Step 2:** `npm run substrate:check` + `npm run test:unit` + full desktop acceptance profile. *(1,079/1,079 unit tests; 124/124 scenarios and 749/749 steps.)*
+- [x] **Step 3:** Confirm no startup model load (packaged smoke: devtools/network idle at launch). *(Signed unpacked build passed the first-run smoke; its startup documents recorded zero resource entries, and `app.asar` contains no ONNX, Transformers, model, or WASM payload.)*
+- [x] **Step 4:** Confirm macOS library validation unchanged. *(The F39 diff changes no build/signing files; signed app and all four helpers carry the existing JIT entitlements and no library-validation exception.)*
+- [x] **Step 5:** Commit — `docs(spec): mark F39 desktop scenarios runnable`
 
 ---
 
