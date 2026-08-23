@@ -182,10 +182,15 @@ function setupPages(hooks = {}) {
       properties: ['openFile'],
     });
     if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    let handle;
     try {
-      const stat = await fs.promises.stat(picked.filePaths[0]);
+      // Validate and consume the same opened file. A user-selected path may be
+      // replaced after the picker returns; a separate stat/read pair would
+      // apply the cap to one file and parse another.
+      handle = await fs.promises.open(picked.filePaths[0], 'r');
+      const stat = await handle.stat();
       if (!stat.isFile() || stat.size > MAX_IMPORT_BYTES) return { error: 'too-large' };
-      const html = await fs.promises.readFile(picked.filePaths[0], 'utf8');
+      const html = await handle.readFile('utf8');
       const tree = parseNetscapeBookmarkTree(html);
       if (!tree.folders.some((folder) => folder.subtreeHttpCount > 0)) {
         return { error: 'empty' };
@@ -216,6 +221,8 @@ function setupPages(hooks = {}) {
       };
     } catch {
       return { error: 'unreadable' };
+    } finally {
+      await handle?.close().catch(() => {});
     }
   });
   handle('pages:tab-import:select-folder', 'tab-import', (sessionId, rootFolderId) =>

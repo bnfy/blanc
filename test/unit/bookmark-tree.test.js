@@ -172,11 +172,11 @@ test('buildNetscapeTree counts folders and bookmarks and bounds nesting', () => 
 test('public folder projections omit bookmark payloads', () => {
   const tree = buildChromiumTree(JSON.parse(fixture('chromium-mini.json')), { now: NOW });
   for (const folder of tree.folders) {
-    assert.equal('bookmarks' in folder, false);
-    assert.equal('urls' in folder, false);
+    assert.deepEqual(Object.keys(folder).sort(), [
+      'childFolderIds', 'folderId', 'httpCount', 'name', 'pathLabels', 'subtreeHttpCount',
+    ]);
   }
   assert.deepEqual(Object.keys(tree), ['folders', 'rootFolderIds']);
   assert.equal('nodes' in tree, false);
-  assert.equal(JSON.stringify(tree).includes('https://github.com/org/repo'), false);
   assert.ok(extractSubtree(tree, tree.rootFolderIds[0]).candidates.length > 0);
 });

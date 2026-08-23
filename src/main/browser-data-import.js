@@ -223,14 +223,21 @@ function createBrowserDataImportService({
   async function readTree(id) {
     const source = (await discover()).find((candidate) => candidate.id === id);
     if (!source) return { error: 'source-unavailable' };
+    let handle;
     try {
-      const stat = await fsPromises.stat(source.bookmarksPath);
+      // Keep validation and reading on one opened descriptor. A profile file
+      // replaced between path-based stat() and readFile() must never bypass
+      // the size/type check applied to the bytes we actually parse.
+      handle = await fsPromises.open(source.bookmarksPath, 'r');
+      const stat = await handle.stat();
       if (!stat.isFile()) return { error: 'source-unavailable' };
       if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
-      const raw = await fsPromises.readFile(source.bookmarksPath, 'utf8');
+      const raw = await handle.readFile('utf8');
       return { source, tree: buildChromiumTree(raw) };
     } catch {
       return { error: 'unreadable' };
+    } finally {
+      await handle?.close().catch(() => {});
     }
   }
 

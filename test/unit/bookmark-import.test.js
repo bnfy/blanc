@@ -8,6 +8,9 @@ const { extractSubtree, folderIdFromPath } = require('../../src/main/bookmark-tr
 const FIXED_NOW = 1710000000000; // ms, after all fixture ADD_DATEs, before the "future" one
 const fixture = (name) => fs.readFileSync(path.join(__dirname, '..', 'fixtures', name), 'utf8');
 const byUrl = (entries) => new Map(entries.map((e) => [e.url, e]));
+const PUBLIC_FOLDER_KEYS = [
+  'childFolderIds', 'folderId', 'httpCount', 'name', 'pathLabels', 'subtreeHttpCount',
+];
 
 test('chrome: immediate-parent folders, entity decode, icon, non-http dropped', () => {
   const entries = parseNetscapeBookmarks(fixture('chrome-bookmarks.html'), { now: FIXED_NOW });
@@ -52,7 +55,10 @@ test('parseNetscapeBookmarkTree exposes folder counts without changing flat pars
   const tree = parseNetscapeBookmarkTree(html, { now: FIXED_NOW });
   assert.ok(tree.rootFolderIds.length >= 1);
   assert.ok(tree.folders.some((folder) => folder.name === 'News'));
-  assert.equal(JSON.stringify(tree).includes('https://news.example.com'), false);
+  assert.deepEqual(Object.keys(tree).sort(), ['folders', 'rootFolderIds']);
+  for (const folder of tree.folders) {
+    assert.deepEqual(Object.keys(folder).sort(), PUBLIC_FOLDER_KEYS);
+  }
   const newsId = folderIdFromPath(['Bookmarks bar', 'News']);
   const subtree = extractSubtree(tree, newsId);
   assert.equal(subtree.candidates.length, 1);

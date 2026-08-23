@@ -169,7 +169,12 @@ test('readFolderTree and readSubtreeCandidates preserve F30 flat readSource outp
   assert.ok(tree.folders.some((folder) => folder.name === 'Reading'));
   const readingId = folderIdFromPath(['Bookmarks bar', 'Reading']);
   assert.ok(tree.folders.some((folder) => folder.folderId === readingId));
-  assert.equal(JSON.stringify(tree).includes('https://article.example'), false);
+  assert.deepEqual(Object.keys(tree).sort(), ['folders', 'rootFolderIds', 'source']);
+  for (const folder of tree.folders) {
+    assert.deepEqual(Object.keys(folder).sort(), [
+      'childFolderIds', 'folderId', 'httpCount', 'name', 'pathLabels', 'subtreeHttpCount',
+    ]);
+  }
 
   const subtree = await service.readSubtreeCandidates(source.id, readingId);
   assert.equal(subtree.candidates.length, 1);
