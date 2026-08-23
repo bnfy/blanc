@@ -303,11 +303,11 @@ write partially reached disk.
 
 Wire window close, profile deletion, utility sheet dismiss, and app quit to `tabImportSessions.destroyForRuntime(runtimeId)`.
 
-- [ ] **Step 1:** Failing tests for batch splice order, existing-group merge without `groupTabByName()` side effects, full tab/group rollback, the `ready` → `tabsApplied` transition, and Favorites-only retry without duplicate tabs.
-- [ ] **Step 2:** Implement batch seam + apply hook.
-- [ ] **Step 3:** Verify `createTab` loop would have called `hideUtilitySheet` — batch path does not.
-- [ ] **Step 4:** `npm run test:unit` green.
-- [ ] **Step 5:** Commit — `feat(tab-import): batch quiet-tab apply seam`
+- [x] **Step 1:** Failing tests for batch splice order, existing-group merge without `groupTabByName()` side effects, full tab/group rollback, the `ready` → `tabsApplied` transition, and Favorites-only retry without duplicate tabs.
+- [x] **Step 2:** Implement batch seam + apply hook.
+- [x] **Step 3:** Verify `createTab` loop would have called `hideUtilitySheet` — batch path does not.
+- [x] **Step 4:** `npm run test:unit` green.
+- [x] **Step 5:** Commit — `feat(tab-import): batch quiet-tab apply seam`
 
 ---
 

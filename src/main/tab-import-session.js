@@ -72,10 +72,28 @@ function createTabImportSessionStore({
     return true;
   }
 
-  function destroyForRuntime(runtimeId) {
+  function destroyForRuntime(runtimeId, reason = 'runtime-destroyed') {
     const sessionId = runtimeIndex.get(runtimeId);
     if (!sessionId) return false;
-    return destroySession(sessionId, 'runtime-destroyed');
+    return destroySession(sessionId, reason);
+  }
+
+  function ownSession(sessionId, owner, at = now()) {
+    const session = getSession(sessionId);
+    if (!session) return { error: 'session-unavailable' };
+    if (!assertOwner(session, owner)) return { error: 'forbidden' };
+    if (at - session.lastTouchAt >= SESSION_TTL_MS) {
+      destroySession(session.sessionId, 'expired');
+      return { error: 'session-unavailable' };
+    }
+    session.lastTouchAt = at;
+    return {
+      ok: true,
+      state: session.state,
+      generation: session.generation,
+      focusTabId: session.focusTabId,
+      tabIds: session.tabIds ? [...session.tabIds] : null,
+    };
   }
 
   function touch(sessionId) {
@@ -391,6 +409,7 @@ function createTabImportSessionStore({
     resolveApply,
     markTabsApplied,
     resolveFavoritesRetry,
+    ownSession,
     touch,
     expireIdleSessions,
     destroySession,

@@ -145,6 +145,29 @@ test('ready to tabsApplied is one-way and blocks duplicate tab apply', () => {
   );
 });
 
+test('ownSession tracks tabsApplied ownership without candidates', () => {
+  const s = store();
+  const owner = { runtimeId: 'rt-1', profileId: 'profile-a' };
+  const { sessionId, generation } = s.createSession({
+    runtimeId: 'rt-1',
+    profileId: 'profile-a',
+    sourceKind: 'chromium',
+    sourceLabel: 'Chrome',
+  });
+  s.assignCandidates(sessionId, candidates);
+  assert.equal(s.ownSession(sessionId, owner).state, 'ready');
+  s.markTabsApplied(sessionId, generation, {
+    tabIds: ['tab-a'],
+    focusTabId: 'tab-a',
+    favoriteEntries: [],
+  });
+  const owned = s.ownSession(sessionId, owner);
+  assert.equal(owned.ok, true);
+  assert.equal(owned.state, 'tabsApplied');
+  assert.equal(owned.focusTabId, 'tab-a');
+  assert.deepEqual(owned.tabIds, ['tab-a']);
+});
+
 test('resolveFavoritesRetry returns bounded payload only after tabsApplied', () => {
   const s = store();
   const { sessionId, generation } = s.createSession({

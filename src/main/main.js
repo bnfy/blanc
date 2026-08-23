@@ -170,6 +170,12 @@ const {
   proposeFromEmbeddings,
   validateProposal,
 } = require('./tab-import-organizer');
+const { planTabImportApply } = require('./tab-import-apply');
+const {
+  computeBatchInsertAt,
+  reorderTabOrderForBatch,
+  resolveBatchGroupId,
+} = require('./tab-import-batch');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
@@ -449,8 +455,274 @@ function submitTabImportEmbeddings(sessionId, generation, matrix) {
 // Task 11 replaces this no-mutation floor with the transactional batch apply
 // seam. Keeping the endpoint delegated through main now prevents pages.js or
 // the utility renderer from ever acquiring direct tab/group/Favorites access.
-function applyTabImport() {
-  return { error: 'apply-unavailable' };
+let tabCreationBatchDepth = 0;
+let tabImportApplyBroadcasted = false;
+let tabImportFavoritesThrowForTest = false;
+
+function isTabCreationBatched() {
+  return tabCreationBatchDepth > 0;
+}
+
+function ownedTabImportSession(sessionId) {
+  const key = String(sessionId ?? '');
+  const owner = tabImportOwner();
+  const owned = tabImportSessions.ownSession(key, owner);
+  if (owned.error) return dropUnavailableTabImportSource(key, owned);
+  return {
+    key,
+    owner,
+    generation: owned.generation,
+    state: owned.state,
+    focusTabId: owned.focusTabId,
+    tabIds: owned.tabIds,
+  };
+}
+
+function destroyQuietTabRecord(id) {
+  const tab = tabs.get(id);
+  if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
+  forgetTabWebContentsIds(id);
+  tabs.delete(id);
+  popupChildCounts.delete(id);
+  windowRuntimes.detachTab(id);
+  rt().tabOrder = rt().tabOrder.filter((tid) => tid !== id);
+  rt().activationHistory = (rt().activationHistory ?? []).filter((tid) => tid !== id);
+}
+
+function rollbackQuietTabBatch(rollback) {
+  for (const id of rollback.tabIds) destroyQuietTabRecord(id);
+  rt().tabOrder = [...rollback.priorTabOrder];
+  if (rollback.createdGroupIds.length) {
+    const created = new Set(rollback.createdGroupIds);
+    rt().groups = rt().groups.filter((group) => !created.has(group.id));
+  }
+}
+
+function createQuietTabsBatch(runtime, tabSpecs, { insertAt } = {}) {
+  return withWindowRuntime(runtime, () => {
+    if (!Array.isArray(tabSpecs) || !tabSpecs.length || tabSpecs.length > 500) {
+      return { error: 'invalid-spec' };
+    }
+    const rollback = {
+      tabIds: [],
+      createdGroupIds: [],
+      priorTabOrder: [...rt().tabOrder],
+    };
+    tabCreationBatchDepth += 1;
+    try {
+      const createdIds = [];
+      const tabIdByCandidateId = {};
+      for (const spec of tabSpecs) {
+        if (!spec || typeof spec.candidateId !== 'string' || typeof spec.url !== 'string') {
+          rollbackQuietTabBatch(rollback);
+          return { error: 'invalid-spec' };
+        }
+        let groupId = null;
+        if (spec.groupName) {
+          groupId = resolveBatchGroupId(rt().groups, spec.groupName, rollback.createdGroupIds);
+          if (!groupId) {
+            rollbackQuietTabBatch(rollback);
+            return { error: 'invalid-spec' };
+          }
+        }
+        const id = createTab(spec.url, {
+          asleep: true,
+          title: spec.title,
+          favicon: spec.favicon,
+          groupId,
+          private: false,
+        });
+        if (!id) {
+          rollbackQuietTabBatch(rollback);
+          return { error: 'invalid-tab' };
+        }
+        createdIds.push(id);
+        tabIdByCandidateId[spec.candidateId] = id;
+        rollback.tabIds.push(id);
+      }
+      const targetInsert = Number.isInteger(insertAt)
+        ? insertAt
+        : computeBatchInsertAt(rt().tabOrder, rt().activeTabId);
+      rt().tabOrder = reorderTabOrderForBatch(rt().tabOrder, createdIds, targetInsert);
+      return {
+        tabIds: createdIds,
+        tabIdByCandidateId,
+        createdGroupIds: [...rollback.createdGroupIds],
+      };
+    } finally {
+      tabCreationBatchDepth -= 1;
+    }
+  });
+}
+
+function broadcastTabImportSurfaceOnce() {
+  if (tabImportApplyBroadcasted) return;
+  tabImportApplyBroadcasted = true;
+  broadcastTabs();
+  scheduleMenuRebuild();
+}
+
+function importTabImportFavorites(entries) {
+  if (acceptanceTestMode && tabImportFavoritesThrowForTest) {
+    throw new Error('tab-import-favorites-failed');
+  }
+  return bookmarks.importBookmarks(entries);
+}
+
+function completeTabImportSuccess(sessionId) {
+  forgetTabImportSource(sessionId);
+  tabImportSessions.destroySession(sessionId, 'applied');
+  hideUtilitySheet();
+  showOverlay('panel', { purpose: { postImportWorkspace: true } });
+}
+
+function finishTabImportFavorites(owned) {
+  const retry = tabImportSessions.resolveFavoritesRetry(
+    owned.key,
+    owned.generation,
+    owned.owner,
+  );
+  if (retry.error) return dropUnavailableTabImportSource(owned.key, retry);
+  try {
+    importTabImportFavorites(retry.favoriteEntries);
+  } catch {
+    broadcastTabImportSurfaceOnce();
+    return {
+      ok: false,
+      phase: 'favorites',
+      retryable: true,
+      generation: owned.generation,
+      tabIds: owned.tabIds,
+    };
+  }
+  completeTabImportSuccess(owned.key);
+  return { ok: true, tabIds: owned.tabIds };
+}
+
+function activateTabImportFocusTab(focusTabId) {
+  setActiveTab(focusTabId, { focusContent: true, dismissUtilitySheet: false });
+  return rt().activeTabId === focusTabId && tabs.has(focusTabId);
+}
+
+function applyTabImport(sessionId, request = {}) {
+  if (request?.retryFavorites || request?.phase === 'favorites-retry') {
+    const owned = ownedTabImportSession(sessionId);
+    if (owned.error) return owned;
+    if (request.generation && request.generation !== owned.generation) {
+      return { error: 'stale-generation' };
+    }
+    return finishTabImportFavorites(owned);
+  }
+  if (request?.retryActivation || request?.phase === 'activation-retry') {
+    const owned = ownedTabImportSession(sessionId);
+    if (owned.error) return owned;
+    if (owned.state !== 'tabsApplied') return { error: 'session-not-ready' };
+    if (request.generation && request.generation !== owned.generation) {
+      return { error: 'stale-generation' };
+    }
+    if (!owned.focusTabId) return { error: 'session-not-ready' };
+    if (!activateTabImportFocusTab(owned.focusTabId)) {
+      broadcastTabImportSurfaceOnce();
+      return {
+        ok: false,
+        phase: 'activation',
+        retryable: true,
+        generation: owned.generation,
+        tabIds: owned.tabIds,
+      };
+    }
+    return finishTabImportFavorites(owned);
+  }
+
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+
+  const applied = tabImportSessions.resolveApply(resolved.key, request, resolved.owner);
+  if (applied.error) return dropUnavailableTabImportSource(resolved.key, applied);
+
+  const candidates = applied.entries.map((entry) => ({
+    candidateId: entry.candidateId,
+    url: entry.url,
+    title: entry.title,
+    favicon: entry.favicon,
+    addedAt: entry.addedAt,
+    favoriteFolder: entry.favoriteFolder,
+  }));
+  const proposal = {
+    version: 1,
+    groups: applied.groups.map((group) => ({
+      suggestionId: group.name,
+      name: group.name,
+      candidateIds: [...group.candidateIds],
+    })),
+    ungroupedCandidateIds: [...applied.ungroupedCandidateIds],
+  };
+  const plan = planTabImportApply({
+    candidates,
+    proposal,
+    existingGroupNames: rt().groups.map((group) => group.name),
+  });
+  if (plan.error) return { error: 'invalid-proposal' };
+
+  tabImportApplyBroadcasted = false;
+  const priorTabOrder = [...rt().tabOrder];
+  const insertAt = computeBatchInsertAt(rt().tabOrder, rt().activeTabId);
+  const batch = createQuietTabsBatch(rt(), plan.tabs, { insertAt });
+  if (batch.error) return batch;
+
+  pruneEmptyGroups();
+
+  const focusTabId = batch.tabIdByCandidateId[plan.focusCandidateId];
+  if (!focusTabId) {
+    rollbackQuietTabBatch({
+      tabIds: batch.tabIds,
+      createdGroupIds: batch.createdGroupIds,
+      priorTabOrder,
+    });
+    return { error: 'invalid-proposal' };
+  }
+
+  const marked = tabImportSessions.markTabsApplied(resolved.key, applied.generation, {
+    tabIds: batch.tabIds,
+    focusTabId,
+    favoriteEntries: plan.favoriteEntries,
+  });
+  if (marked.error) {
+    rollbackQuietTabBatch({
+      tabIds: batch.tabIds,
+      createdGroupIds: batch.createdGroupIds,
+      priorTabOrder,
+    });
+    return dropUnavailableTabImportSource(resolved.key, marked);
+  }
+  forgetTabImportSource(resolved.key);
+
+  if (!activateTabImportFocusTab(focusTabId)) {
+    broadcastTabImportSurfaceOnce();
+    return {
+      ok: false,
+      phase: 'activation',
+      retryable: true,
+      generation: applied.generation,
+      tabIds: batch.tabIds,
+    };
+  }
+
+  try {
+    importTabImportFavorites(plan.favoriteEntries);
+  } catch {
+    broadcastTabImportSurfaceOnce();
+    return {
+      ok: false,
+      phase: 'favorites',
+      retryable: true,
+      generation: applied.generation,
+      tabIds: batch.tabIds,
+    };
+  }
+
+  completeTabImportSuccess(resolved.key);
+  return { ok: true, tabIds: batch.tabIds };
 }
 
 function cancelTabImport(sessionId) {
@@ -2660,6 +2932,9 @@ let isQuitting = false;
 let sessionPersistenceSuspended = false;
 app.on('before-quit', () => {
   isQuitting = true;
+  for (const runtime of windowRuntimes.all()) {
+    forgetTabImportForRuntime(runtime.id, 'cancel');
+  }
   for (const snapshot of [...sleepSnapshots.values()]) {
     const wc = snapshot.view?.webContents;
     if (wc && !wc.isDestroyed()) wc.close();
@@ -3949,7 +4224,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // sheet; when foreground creation follows with setActiveTab, that call
   // immediately re-focuses the new tab — the transient refocus is harmless.
   // No-ops during session restore and window creation (sheet hidden).
-  hideUtilitySheet();
+  if (!isTabCreationBatched()) hideUtilitySheet();
   const id = crypto.randomUUID();
   const owner = currentRuntime();
   // An adopted view (window.open child, see the window-open handler) arrives
@@ -4038,7 +4313,7 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
   // A quiet-born tab has no webContents until wakeTab builds one. Everything
   // below this point dereferences the view, so return before wiring/navigation.
   if (bornQuiet) {
-    scheduleMenuRebuild();
+    if (!isTabCreationBatched()) scheduleMenuRebuild();
     return id;
   }
 
@@ -4077,11 +4352,15 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     if (restoreHistory) wc.navigationHistory.restore(restoreHistory).catch(() => {});
     else wc.loadURL(url).catch(() => {});
   }
-  scheduleMenuRebuild();
+  if (!isTabCreationBatched()) scheduleMenuRebuild();
   return id;
 }
 
-function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
+function setActiveTab(id, {
+  focusContent = true,
+  focusAddress = false,
+  dismissUtilitySheet = true,
+} = {}) {
   const next = tabs.get(id);
   if (!next || windowRuntimes.runtimeForTab(id) !== rt()) return;
   // The wake's synchronous prefix creates its view before returning. This is
@@ -4102,7 +4381,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
   // the existing flow below.
-  hideUtilitySheet({ refocusContent: false });
+  if (dismissUtilitySheet) hideUtilitySheet({ refocusContent: false });
 
   rt().lastActiveByCluster.set(clusterKeyForTab(next), id);
   rt().activationHistory = recordActivation(rt().activationHistory, id);
@@ -6090,6 +6369,7 @@ function createMainWindowForRuntime(runtime) {
     runtime.closing = true;
   }));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
+    forgetTabImportForRuntime(runtime.id, 'runtime-destroyed');
     // Destroy the views the window owned — detachWindow only forgets them.
     liveViewContents(runtime.overlayView)?.close();
     liveViewContents(runtime.utilitySheetView)?.close();

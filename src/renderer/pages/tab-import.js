@@ -45,6 +45,8 @@ let duplicateCount = 0;
 let proposal = null;
 let originalProposal = null;
 let selectionSync = 0;
+/** @type {null | 'activation' | 'favorites'} */
+let pendingApplyPhase = null;
 
 function cloneProposal(value) {
   if (!value) return null;
@@ -215,6 +217,7 @@ function resetFlow({ keepStatus = false } = {}) {
   duplicateCount = 0;
   proposal = null;
   originalProposal = null;
+  pendingApplyPhase = null;
   if (!keepStatus) setStatus('');
   renderSourcesLoading();
   folderTreeEl.replaceChildren();
@@ -379,6 +382,7 @@ function beginFolderStep(opened) {
   duplicateCount = 0;
   proposal = null;
   originalProposal = null;
+  pendingApplyPhase = null;
   renderFolderTree();
   folderContinueBtn.disabled = true;
   setStep('folder');
@@ -801,7 +805,7 @@ function renderReview() {
   const counts = reviewCounts(proposal);
   const issue = reviewProposalIssue(proposal, candidates);
   applyBtn.disabled = !!issue;
-  applyBtn.textContent = tabImportApplyLabel(counts);
+  if (proposal) applyBtn.textContent = tabImportApplyLabel(counts);
 
   if (issue) {
     const warning = document.createElement('p');
@@ -843,20 +847,47 @@ async function tryApply() {
   applyBtn.disabled = true;
   setStatus('Applying…');
   try {
-    const result = await api.apply(sessionId, tabImportApplyRequest(proposal, generation));
-    if (await handleSessionError(result)) return;
-    if (result.error === 'apply-unavailable') {
-      setStatus('Apply lands in Task 11 — groups are ready to review.');
-      return;
+    const request = tabImportApplyRequest(proposal, generation);
+    if (pendingApplyPhase === 'favorites') {
+      request.retryFavorites = true;
+    } else if (pendingApplyPhase === 'activation') {
+      request.retryActivation = true;
     }
+    const result = await api.apply(sessionId, request);
+    if (await handleSessionError(result)) return;
     if (result.error) {
       setStatus("Couldn't apply this import.");
       return;
     }
-    setStatus('Import applied.');
-    await dismissSheet();
+    if (result.retryable && result.phase === 'activation') {
+      pendingApplyPhase = 'activation';
+      generation = result.generation ?? generation;
+      setStatus('Tabs are ready, but Blanc could not focus the first one. Try again.');
+      applyBtn.textContent = 'Retry focusing first tab';
+      applyBtn.disabled = false;
+      return;
+    }
+    if (result.retryable && result.phase === 'favorites') {
+      pendingApplyPhase = 'favorites';
+      generation = result.generation ?? generation;
+      setStatus('Tabs are open, but favorites could not be saved. Try again.');
+      applyBtn.textContent = 'Retry saving favorites';
+      applyBtn.disabled = false;
+      return;
+    }
+    if (result.ok) {
+      pendingApplyPhase = null;
+      sessionId = null;
+      proposal = null;
+      originalProposal = null;
+      setStatus('');
+      return;
+    }
+    setStatus("Couldn't apply this import.");
   } finally {
-    if (proposal) applyBtn.disabled = !!reviewProposalIssue(proposal, candidates);
+    if (proposal && pendingApplyPhase === null) {
+      applyBtn.disabled = !!reviewProposalIssue(proposal, candidates);
+    }
   }
 }
 
@@ -868,6 +899,7 @@ useFoldersBtn.addEventListener('click', () => suggestFromFolders());
 backToPreviewBtn.addEventListener('click', () => {
   proposal = null;
   originalProposal = null;
+  pendingApplyPhase = null;
   setStep('preview');
   setStatus('');
 });
