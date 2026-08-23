@@ -116,11 +116,11 @@ Model asset path chosen in **Task 15** after benchmark (e.g. `build/tab-import-m
 - `enforceCandidateCap(candidates, max = 500)` → `{ ok, candidates }` or `{ ok: false, count }`
 - Folder records: `folderId` (stable hash of path within snapshot), `name`, `pathLabels`, `childFolderIds`, `httpCount`, `subtreeHttpCount`
 
-- [ ] **Step 1:** Write failing tests — nested folders, HTTP(S) filter, depth/node caps, dedup collapse, 500 cap after dedup, `folderPath` vs `favoriteFolder` on nested HTML/Chromium fixtures.
-- [ ] **Step 2:** `node --test test/unit/bookmark-tree.test.js` → FAIL.
-- [ ] **Step 3:** Implement minimal tree builders reusing logic from `parseChromiumBookmarks` / `parseNetscapeBookmarks` traversal patterns.
-- [ ] **Step 4:** Tests PASS.
-- [ ] **Step 5:** Commit — `feat(tab-import): pure bookmark tree and subtree extraction`
+- [x] **Step 1:** Write failing tests — nested folders, HTTP(S) filter, depth/node caps, dedup collapse, 500 cap after dedup, `folderPath` vs `favoriteFolder` on nested HTML/Chromium fixtures.
+- [x] **Step 2:** `node --test test/unit/bookmark-tree.test.js` → FAIL.
+- [x] **Step 3:** Implement minimal tree builders reusing logic from `parseChromiumBookmarks` / `parseNetscapeBookmarks` traversal patterns.
+- [x] **Step 4:** Tests PASS.
+- [x] **Step 5:** Commit — `feat(tab-import): pure bookmark tree and subtree extraction`
 
 ---
 
