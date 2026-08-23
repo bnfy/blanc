@@ -62,6 +62,7 @@ function createNode(pathLabels, name) {
       : null,
     childFolderIds: [],
     bookmarks: [],
+    orderedEntries: [],
   };
 }
 
@@ -75,6 +76,7 @@ function ensureNode(nodes, pathLabels, name) {
       const parent = nodes.get(node.parentFolderId);
       if (parent && !parent.childFolderIds.includes(folderId)) {
         parent.childFolderIds.push(folderId);
+        parent.orderedEntries.push({ kind: 'folder', folderId });
       }
     }
   }
@@ -143,11 +145,13 @@ function buildChromiumTree(input, {
       const title = typeof node.name === 'string' && node.name.trim()
         ? node.name.trim()
         : node.url;
-      parent.bookmarks.push({
+      const bookmark = {
         url: node.url,
         title,
         addedAt: chromiumTimestampMs(node.date_added, now),
-      });
+      };
+      parent.bookmarks.push(bookmark);
+      parent.orderedEntries.push({ kind: 'bookmark', bookmark });
       return;
     }
 
@@ -263,12 +267,14 @@ function buildNetscapeTree(html, {
       }
       const parentPath = labels;
       const parent = ensureNode(nodes, parentPath, parentPath[parentPath.length - 1]);
-      parent.bookmarks.push({
+      const bookmark = {
         url,
         title: title || url,
         favicon: validFavicon(rawIcon),
         addedAt,
-      });
+      };
+      parent.bookmarks.push(bookmark);
+      parent.orderedEntries.push({ kind: 'bookmark', bookmark });
     }
   }
 
@@ -287,21 +293,27 @@ function extractSubtree(tree, rootFolderId) {
     const node = nodes.get(folderId);
     if (!node) return;
     const isMigrationRoot = folderId === rootFolderId;
-    for (const bookmark of node.bookmarks) {
-      const beneath = node.pathLabels.slice(rootPathLen);
-      const favoriteFolder = isMigrationRoot
-        ? null
-        : validFolder(node.name);
-      candidates.push({
-        url: bookmark.url,
-        title: bookmark.title,
-        addedAt: bookmark.addedAt,
-        folderPath: beneath,
-        favoriteFolder,
-        sourceFolderId: node.folderId,
-      });
+    for (const entry of node.orderedEntries) {
+      if (entry.kind === 'folder') {
+        walk(entry.folderId);
+        continue;
+      }
+      const bookmark = entry.bookmark;
+      if (entry.kind === 'bookmark' && bookmark) {
+        const beneath = node.pathLabels.slice(rootPathLen);
+        const favoriteFolder = isMigrationRoot
+          ? null
+          : validFolder(node.name);
+        candidates.push({
+          url: bookmark.url,
+          title: bookmark.title,
+          addedAt: bookmark.addedAt,
+          folderPath: beneath,
+          favoriteFolder,
+          sourceFolderId: node.folderId,
+        });
+      }
     }
-    for (const childId of node.childFolderIds) walk(childId);
   };
 
   walk(rootFolderId);

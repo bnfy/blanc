@@ -16,6 +16,7 @@
 const common = {
   paths: ['spec/acceptance/**/*.feature'],
   require: ['test/desktop/support/**/*.js', 'test/desktop/steps/**/*.js'],
+  import: ['test/desktop/tab-import.mjs'],
 };
 
 // The scenarios implemented in steps/ (by their stable @F#-n ids).
@@ -45,6 +46,8 @@ const RUNNABLE = [
   '@F33-1', '@F33-2', '@F33-3',
   '@F34-1',
   '@F37-1', '@F37-2', '@F37-3',
+  '@F39-1', '@F39-2', '@F39-4', '@F39-5',
+  '@F39-8', '@F39-9', '@F39-11', '@F39-14',
 ].join(' or ');
 
 export default { ...common, tags: 'not @mobile' };

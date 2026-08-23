@@ -23,6 +23,19 @@ const {
   ADDRESS_INPUT_ID,
 } = require('./address-menu');
 
+const TAB_IMPORT_FIXTURES = Object.freeze({
+  'folder-fallback': Object.freeze({
+    sourceLabel: 'Google Chrome — Tab migration fixture',
+    folderName: 'tab reset',
+    candidateCount: 5,
+  }),
+  'merge-existing': Object.freeze({
+    sourceLabel: 'Google Chrome — Tab migration fixture',
+    folderName: 'merge fixture',
+    candidateCount: 2,
+  }),
+});
+
 /**
  * @param {object} refs - live references from main.js's module scope.
  */
@@ -120,6 +133,9 @@ function install(refs) {
     getSleepSnapshots,
     getClosedEntries,
     clearClosedEntries,
+    testRuntimeId,
+    getTabImportSessionProjection,
+    applyTabImportFromRuntime,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -138,6 +154,9 @@ function install(refs) {
   const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
   const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
+  let activeTabImportFixtureName = null;
+  const projectRootTabImportSession = () =>
+    getTabImportSessionProjection(testRuntimeId);
   const beforeUnloadProbes = new Map();
   const remoteFixture = [{
     deviceId: 'acceptance-remote-device',
@@ -174,6 +193,162 @@ function install(refs) {
         tab.view?.webContents?.send('pages:start:remote-tabs', devices);
       }
     }
+  }
+
+  async function readTabImportDom() {
+    const wc = getUtilitySheetWebContents();
+    if (!wc || wc.isDestroyed()) return null;
+    return wc.executeJavaScript(`(() => {
+      if (location.host !== 'tab-import') return null;
+      const visiblePanel = [...document.querySelectorAll('[data-step-panel]')]
+        .find((panel) => !panel.hidden);
+      return {
+        step: visiblePanel?.dataset.stepPanel ?? null,
+        sourceLabels: [...document.querySelectorAll('.tab-import-source-btn')]
+          .map((button) => button.textContent),
+        folders: [...document.querySelectorAll('.tab-import-folder-row')]
+          .map((button) => ({
+            label: button.textContent,
+            path: button.title,
+            selected: button.classList.contains('selected'),
+          })),
+        preview: [...document.querySelectorAll('.tab-import-preview-row')]
+          .map((row) => ({
+            title: row.querySelector('.title')?.textContent ?? '',
+            meta: row.querySelector('.meta')?.textContent ?? '',
+            selected: row.querySelector('input[type="checkbox"]')?.checked ?? false,
+          })),
+        duplicateBadge: document.getElementById('tabImportDuplicateBadge')?.hidden
+          ? ''
+          : (document.getElementById('tabImportDuplicateBadge')?.textContent ?? ''),
+        groupNames: [...document.querySelectorAll('.tab-import-group-name')]
+          .map((input) => input.value),
+        applyLabel: document.getElementById('tabImportApplyBtn')?.textContent ?? '',
+        applyDisabled: document.getElementById('tabImportApplyBtn')?.disabled ?? true,
+        status: document.getElementById('tabImportStatus')?.textContent ?? '',
+      };
+    })()`);
+  }
+
+  async function waitForTabImportDom(predicate, label, timeout = 8_000) {
+    const deadline = Date.now() + timeout;
+    let last = null;
+    for (;;) {
+      const surface = getUtilitySheetState();
+      if (surface?.visible && surface.ready && surface.url === 'blanc://tab-import/') {
+        try { last = await readTabImportDom(); } catch { last = null; }
+      } else {
+        last = null;
+      }
+      if (predicate(last)) return last;
+      if (Date.now() > deadline) {
+        throw new Error(`timed out waiting for ${label}; last: ${JSON.stringify(last)}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+
+  async function clickTabImportSelector(selector, matcher = null) {
+    const wc = getUtilitySheetWebContents();
+    if (!wc || wc.isDestroyed()) throw new Error('tab-import sheet is not open');
+    const clicked = await wc.executeJavaScript(`(() => {
+      const nodes = [...document.querySelectorAll(${JSON.stringify(selector)})];
+      const matcher = ${JSON.stringify(matcher)};
+      const node = matcher === null
+        ? nodes[0]
+        : nodes.find((candidate) =>
+          candidate.textContent === matcher || candidate.textContent.startsWith(matcher + ' ('));
+      if (!node || node.disabled) return false;
+      node.click();
+      return true;
+    })()`);
+    if (!clicked) throw new Error(`tab-import control unavailable: ${selector} ${matcher ?? ''}`);
+  }
+
+  async function ensureTabImportFixtureStage(name, targetStage) {
+    const fixture = TAB_IMPORT_FIXTURES[name];
+    if (!fixture) throw new Error(`unknown tab-import fixture: ${name}`);
+    const surface = getUtilitySheetState();
+    let dom = await readTabImportDom();
+    if (!surface?.visible || !dom || (activeTabImportFixtureName && activeTabImportFixtureName !== name)) {
+      if (surface?.visible) hideUtilitySheet();
+      openInternalPage('blanc://tab-import/');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceLabels.includes(fixture.sourceLabel),
+        `${fixture.sourceLabel} source button`,
+      );
+    }
+    activeTabImportFixtureName = name;
+    if (dom.step === 'source') {
+      await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'folder',
+        'tab-import folder step',
+      );
+    }
+    if (dom.step === 'folder') {
+      await clickTabImportSelector('.tab-import-folder-row', fixture.folderName);
+      await clickTabImportSelector('#tabImportFolderContinue');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'preview' && value.preview.length === fixture.candidateCount,
+        'tab-import preview step',
+      );
+    }
+    if (targetStage === 'preview') return dom;
+    if (dom.step === 'preview') {
+      await clickTabImportSelector('#tabImportUseFolders');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'review' && !value.applyDisabled,
+        'tab-import review step',
+      );
+    }
+    return dom;
+  }
+
+  async function renameTabImportGroup(from, to) {
+    const wc = getUtilitySheetWebContents();
+    if (!wc || wc.isDestroyed()) throw new Error('tab-import sheet is not open');
+    const changed = await wc.executeJavaScript(`(() => {
+      const input = [...document.querySelectorAll('.tab-import-group-name')]
+        .find((candidate) => candidate.value === ${JSON.stringify(String(from))});
+      if (!input) return false;
+      input.value = ${JSON.stringify(String(to))};
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    })()`);
+    if (!changed) throw new Error(`review group not found: ${from}`);
+    return waitForTabImportDom(
+      (value) => value?.step === 'review' && value.groupNames.includes(String(to)),
+      `review group rename to ${to}`,
+    );
+  }
+
+  async function waitForTabImportProjection(candidateCount, timeout = 8_000) {
+    const deadline = Date.now() + timeout;
+    let last;
+    for (;;) {
+      last = projectRootTabImportSession();
+      if (!last?.error && last?.candidates?.length === candidateCount) return last;
+      if (Date.now() > deadline) {
+        throw new Error(`timed out waiting for tab-import projection; last: ${JSON.stringify(last)}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+
+  function tabImportApplyRequestFromProjection(projection) {
+    if (!projection || projection.error || !projection.proposal) {
+      throw new Error(`tab-import projection unavailable: ${JSON.stringify(projection)}`);
+    }
+    return {
+      generation: projection.generation,
+      groups: projection.proposal.groups.map((group) => ({
+        name: group.name,
+        candidateIds: [...group.candidateIds],
+      })),
+      ungroupedCandidateIds: [...projection.proposal.ungroupedCandidateIds],
+    };
   }
 
   globalThis.__blanc = {
@@ -1141,6 +1316,79 @@ function install(refs) {
       return labels;
     },
     openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
+    openTabImport() { openInternalPage('blanc://tab-import/'); },
+    readTabImportDom,
+    getTabImportSessionProjection() { return projectRootTabImportSession(); },
+    async applyTabImportFixture(name, options = {}) {
+      const fixtureName = String(name ?? '');
+      const stage = String(options?.stage ?? 'apply');
+      let dom = await ensureTabImportFixtureStage(
+        fixtureName,
+        stage === 'preview' ? 'preview' : 'review',
+      );
+      if (stage === 'preview' || stage === 'review') {
+        return {
+          ok: true,
+          dom,
+          projection: await waitForTabImportProjection(
+            TAB_IMPORT_FIXTURES[fixtureName].candidateCount,
+          ),
+        };
+      }
+      if (options?.renameFrom && options?.renameTo) {
+        dom = await renameTabImportGroup(options.renameFrom, options.renameTo);
+      }
+      const projection = await waitForTabImportProjection(
+        TAB_IMPORT_FIXTURES[fixtureName].candidateCount,
+      );
+      if (options?.runtimeId !== undefined && options?.runtimeId !== null) {
+        const request = tabImportApplyRequestFromProjection(projection);
+        if (options?.staleGeneration) request.generation = `stale-${request.generation}`;
+        return applyTabImportFromRuntime(
+          options.runtimeId,
+          projection.sessionId,
+          request,
+        );
+      }
+      if (stage === 'cancel') {
+        // Use the renderer's real close control. tab-import.js wraps the
+        // shared sheet close so it cancels the opaque session before main
+        // dismisses the surface; calling hideUtilitySheet directly would
+        // skip that renderer-owned cancellation path when a sheet was
+        // already visually detached.
+        await clickTabImportSelector('.sheet-close');
+        const closeDeadline = Date.now() + 8_000;
+        while (getUtilitySheetState()?.visible) {
+          if (Date.now() > closeDeadline) throw new Error('timed out dismissing tab-import sheet');
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        activeTabImportFixtureName = null;
+        return {
+          ok: true,
+          cancelled: true,
+          projectionAfterCancel: projectRootTabImportSession(),
+          surfaceAfterCancel: getUtilitySheetState(),
+        };
+      }
+      await clickTabImportSelector('#tabImportApplyBtn');
+      const deadline = Date.now() + 8_000;
+      while (getUtilitySheetState()?.visible) {
+        if (Date.now() > deadline) {
+          throw new Error(`timed out applying tab-import fixture; last: ${JSON.stringify(await readTabImportDom())}`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      activeTabImportFixtureName = null;
+      return { ok: true, applied: true, projection };
+    },
+    activePageHasTabImportBridge() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return false;
+      return wc.executeJavaScript(
+        `typeof window.bowserPages?.tabImport === 'object'`
+      );
+    },
     utilitySheetContentsId() { return getUtilitySheetWebContents()?.id ?? null; },
     destroyUtilitySheetContents() {
       const wc = getUtilitySheetWebContents();
@@ -1391,6 +1639,7 @@ function install(refs) {
     // ---- isolation between scenarios ----
     async reset() {
       clearFocusObservation();
+      activeTabImportFixtureName = null;
       for (const profile of localProfileSnapshots()) {
         if (profile.id === 'default') continue;
         await deleteNamedLocalProfile(profile.id, profile.name);

@@ -4,7 +4,7 @@ Feature: Bring Your Tabs
   ordered set of quiet Blanc tabs without exposing their browsing data or
   depending on a cloud organizer.
 
-  @F39-1 @all @D22
+  @F39-1 @all @D22 @runnable
   Scenario: A selected bookmarks folder becomes a reviewable candidate list
     Given I opened Bring Your Tabs without selecting a source
     When I select a bookmarks source and one of its folders
@@ -12,7 +12,7 @@ Feature: Bring Your Tabs
     And exact duplicate URLs appear only once
     And no tabs, groups, or Favorites have been created
 
-  @F39-2 @all
+  @F39-2 @all @runnable
   Scenario: Apply preserves preview order, quiet state, and Favorite folders
     Given I reviewed selected candidates from nested source folders
     When I apply the tab migration
@@ -28,7 +28,7 @@ Feature: Bring Your Tabs
     Then I can rename, move, ungroup, exclude, and restore candidates before apply
     And applying the reviewed groups does not require Patron
 
-  @F39-4 @all @D22
+  @F39-4 @all @D22 @runnable
   Scenario: Source data is not read before explicit selection
     Given I opened Bring Your Tabs without selecting a source
     Then available source labels may be listed
@@ -36,7 +36,7 @@ Feature: Bring Your Tabs
     When I select a source
     Then Blanc reads only its bounded bookmarks snapshot
 
-  @F39-5 @desktop @D22
+  @F39-5 @desktop @D22 @runnable
   Scenario: The utility renderer receives no full URLs or source paths
     Given a desktop tab-migration session contains candidate URLs and a source path
     When the utility renderer requests its folder and candidate projections
@@ -59,7 +59,7 @@ Feature: Bring Your Tabs
     Then Blanc does not create the tabs or groups again
     And the Favorites import resumes through the add-only deduplicating path
 
-  @F39-8 @all
+  @F39-8 @all @runnable
   Scenario: A reviewed name matching an existing group merges
     Given the destination already has a tab group named "work"
     And I renamed a reviewed migration group to "work"
@@ -67,7 +67,7 @@ Feature: Bring Your Tabs
     Then those imported tabs join the existing "work" group
     And no second "work" group is created
 
-  @F39-9 @desktop @D22
+  @F39-9 @desktop @D22 @runnable
   Scenario: A stale or differently owned session cannot apply
     Given a desktop tab-migration session belongs to one window and profile
     When a stale generation, another window, or another profile tries to apply it
@@ -81,7 +81,7 @@ Feature: Bring Your Tabs
     Then I can select one of its folders and review the same candidate fields
     And apply follows the same ordering, grouping, and Favorites rules
 
-  @F39-11 @all @F36 @D22
+  @F39-11 @all @F36 @D22 @runnable
   Scenario: Both onboarding paths reach the same migration sheet
     Given I am on first-run onboarding's import step
     When I finish a Favorites import and choose to bring a folder in as tabs
@@ -104,7 +104,7 @@ Feature: Bring Your Tabs
     When I choose to save that setup as a Named Workspace
     Then Blanc uses the existing Patron-gated workspace flow as a separate gesture
 
-  @F39-14 @all
+  @F39-14 @all @runnable
   Scenario: Cancel destroys the ephemeral migration session
     Given a tab-migration session has candidates or embeddings in memory
     When I cancel or dismiss Bring Your Tabs

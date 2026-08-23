@@ -136,7 +136,14 @@ BeforeAll({ timeout: 120_000 }, async () => {
   fs.mkdirSync(profileDir, { recursive: true });
   fs.writeFileSync(
     path.join(chromeRoot, 'Local State'),
-    JSON.stringify({ profile: { info_cache: { Default: { name: 'Acceptance profile' } } } })
+    JSON.stringify({
+      profile: {
+        info_cache: {
+          Default: { name: 'Acceptance profile' },
+          'Profile 1': { name: 'Tab migration fixture' },
+        },
+      },
+    })
   );
   fs.writeFileSync(path.join(profileDir, 'Bookmarks'), JSON.stringify({
     roots: {
@@ -174,6 +181,12 @@ BeforeAll({ timeout: 120_000 }, async () => {
       },
     },
   }));
+  const tabImportProfileDir = path.join(chromeRoot, 'Profile 1');
+  fs.mkdirSync(tabImportProfileDir, { recursive: true });
+  fs.copyFileSync(
+    path.join(REPO_ROOT, 'test', 'fixtures', 'tab-import', 'chromium-acceptance.json'),
+    path.join(tabImportProfileDir, 'Bookmarks')
+  );
 
   ctx.app = await launchApp();
   // F28-1 exercises a genuine process relaunch against this same profile,

@@ -55,6 +55,39 @@ test('extractSubtree preserves folderPath and immediate-parent favorite folders'
   assert.equal(byUrl.get('https://direct-in-root.example/').favoriteFolder, null);
 });
 
+test('extractSubtree preserves page/folder interleaving from the source tree', () => {
+  const tree = buildChromiumTree({
+    roots: {
+      bookmark_bar: {
+        type: 'folder',
+        name: 'Bookmarks bar',
+        children: [{
+          type: 'folder',
+          name: 'tab reset',
+          children: [
+            {
+              type: 'folder',
+              name: 'first folder',
+              children: [{ type: 'url', name: 'First', url: 'https://first.example/' }],
+            },
+            { type: 'url', name: 'Middle', url: 'https://middle.example/' },
+            {
+              type: 'folder',
+              name: 'last folder',
+              children: [{ type: 'url', name: 'Last', url: 'https://last.example/' }],
+            },
+          ],
+        }],
+      },
+    },
+  }, { now: NOW });
+  const resetId = folderIdFromPath(['Bookmarks bar', 'tab reset']);
+  assert.deepEqual(
+    extractSubtree(tree, resetId).candidates.map((candidate) => candidate.title),
+    ['First', 'Middle', 'Last'],
+  );
+});
+
 test('buildNetscapeTree matches nested folder paths for HTML exports', () => {
   const tree = buildNetscapeTree(fixture('netscape-mini.html'), { now: NOW });
   const resetId = folderIdFromPath(['Bookmarks bar', 'tab reset']);

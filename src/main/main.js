@@ -733,6 +733,49 @@ function cancelTabImport(sessionId) {
   return { ok: true };
 }
 
+// Acceptance-only readers below are passed to test-hook.js only when
+// acceptanceTestMode is true. They project the same opaque candidate shape as
+// the renderer and invoke the real owner-bound apply path; exact URLs and
+// source-reader closures never leave this module.
+function currentTabImportAcceptanceProjection(runtimeId) {
+  if (!acceptanceTestMode) return { error: 'test-hook-unavailable' };
+  const runtime = windowRuntimes.all()
+    .find((candidate) => String(candidate.id) === String(runtimeId));
+  if (!runtime) return { error: 'runtime-unavailable' };
+  const owner = { runtimeId: runtime.id, profileId: runtime.profileId };
+  const entry = [...tabImportSourceReaders.entries()]
+    .find(([, record]) => sameTabImportOwner(record, owner));
+  if (!entry) return { error: 'session-unavailable' };
+  const [sessionId] = entry;
+  const owned = tabImportSessions.ownSession(sessionId, owner);
+  if (owned.error) return dropUnavailableTabImportSource(sessionId, owned);
+  const projected = tabImportSessions.projectCandidates(sessionId, owner);
+  if (projected.error) return dropUnavailableTabImportSource(sessionId, projected);
+  const selected = projected.candidates.filter((candidate) =>
+    candidate.selected && !candidate.excluded);
+  const checked = validateProposal(proposeFromFolders(selected), {
+    selectedIds: selected.map((candidate) => candidate.candidateId),
+    excludedIds: projected.candidates
+      .filter((candidate) => candidate.excluded)
+      .map((candidate) => candidate.candidateId),
+  });
+  return {
+    sessionId,
+    generation: owned.generation,
+    state: owned.state,
+    candidates: projected.candidates,
+    proposal: checked.ok ? checked.proposal : null,
+  };
+}
+
+function applyTabImportAcceptanceFromRuntime(runtimeId, sessionId, request) {
+  if (!acceptanceTestMode) return { error: 'test-hook-unavailable' };
+  const runtime = windowRuntimes.all()
+    .find((candidate) => String(candidate.id) === String(runtimeId));
+  if (!runtime) return { error: 'runtime-unavailable' };
+  return withWindowRuntime(runtime, () => applyTabImport(sessionId, request));
+}
+
 function withWindowRuntime(runtime, work) {
   if (!runtime) return undefined;
   return withLocalProfile(
@@ -7460,6 +7503,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // place. Entries never leave the main process — the hook only clears.
       getClosedEntries: () => rt().closedEntries ??= [],
       clearClosedEntries,
+      testRuntimeId: primaryRuntime.id,
+      getTabImportSessionProjection: currentTabImportAcceptanceProjection,
+      applyTabImportFromRuntime: applyTabImportAcceptanceFromRuntime,
       setSleepThresholdOverride: (ms) => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
         return sleepThresholdOverrideMs;

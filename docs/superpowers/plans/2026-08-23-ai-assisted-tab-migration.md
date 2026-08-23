@@ -338,12 +338,12 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 ### Task 14: Test hook + desktop acceptance (folder fallback path)
 
-**Files:** `src/main/test-hook.js`, `test/desktop/tab-import.mjs`, extend `spec/acceptance/tab-migration.feature` `@runnable` tags
+**Files:** `src/main/test-hook.js`, `test/desktop/tab-import.mjs`, `test/desktop/cucumber.mjs`, F39 browser fixture/harness, `spec/acceptance/tab-migration.feature` `@runnable` tags + index, `src/main/bookmark-tree.js` source-order regression found by acceptance
 
-- [ ] **Step 1:** Test hook — `openTabImport()`, `getTabImportSessionProjection()`, `applyTabImportFixture(name)` for fixtures only when `BLANC_TEST=1`.
-- [ ] **Step 2:** Desktop steps — open sheet, select fixture source/folder, folder fallback, apply, assert quiet tabs, single wake, favorite folders, profile isolation, IPC denial cases.
-- [ ] **Step 3:** `npm run test:acceptance:desktop -- --tags "@F39 and @runnable"`.
-- [ ] **Step 4:** Commit — `test(tab-import): acceptance harness and folder-fallback scenarios`
+- [x] **Step 1:** Test hook — `openTabImport()`, `getTabImportSessionProjection()`, `applyTabImportFixture(name)` for fixtures only when `BLANC_TEST=1`.
+- [x] **Step 2:** Desktop steps — open sheet, select fixture source/folder, folder fallback, apply, assert quiet tabs, single wake, favorite folders, profile isolation, IPC denial cases.
+- [x] **Step 3:** `npm run test:acceptance:desktop -- --tags "@F39 and @runnable"`.
+- [x] **Step 4:** Commit — `test(tab-import): acceptance harness and folder-fallback scenarios`
 
 ---
 
