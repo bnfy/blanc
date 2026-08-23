@@ -10,6 +10,7 @@ const {
   parseChromiumBookmarks,
   createBrowserDataImportService,
 } = require('../../src/main/browser-data-import');
+const { folderIdFromPath } = require('../../src/main/bookmark-tree');
 
 const NOW = Date.UTC(2026, 6, 30);
 const chromiumTime = (unixMs) =>
@@ -144,4 +145,90 @@ test('parser bounds hostile nesting and node counts', () => {
     /bookmarks-too-complex/
   );
   assert.throws(() => parseChromiumBookmarks('{}'), /invalid-bookmarks/);
+});
+
+test('readFolderTree and readSubtreeCandidates preserve F30 flat readSource output', async (t) => {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-browser-import-tree-'));
+  t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));
+  const root = browserDataRoot('chrome', { platform: 'darwin', homeDir, env: {} });
+  fs.mkdirSync(path.join(root, 'Default'), { recursive: true });
+  fs.writeFileSync(path.join(root, 'Default', 'Bookmarks'), JSON.stringify(fixture()));
+
+  const service = createBrowserDataImportService({
+    platform: 'darwin',
+    homeDir,
+    env: {},
+  });
+  const [source] = await service.listSources();
+  const flatBefore = await service.readSource(source.id);
+  assert.equal(flatBefore.entries.length, 3);
+  assert.deepEqual(Object.keys(flatBefore).sort(), ['entries', 'source']);
+
+  const tree = await service.readFolderTree(source.id);
+  assert.equal(tree.source.label, 'Google Chrome');
+  assert.ok(tree.folders.some((folder) => folder.name === 'Reading'));
+  const readingId = folderIdFromPath(['Bookmarks bar', 'Reading']);
+  assert.ok(tree.folders.some((folder) => folder.folderId === readingId));
+  assert.equal(JSON.stringify(tree).includes('https://article.example'), false);
+
+  const subtree = await service.readSubtreeCandidates(source.id, readingId);
+  assert.equal(subtree.candidates.length, 1);
+  assert.equal(subtree.candidates[0].url, 'https://article.example/');
+  assert.equal(subtree.candidates[0].favoriteFolder, null);
+  assert.deepEqual(subtree.candidates[0].folderPath, []);
+
+  const flatAfter = await service.readSource(source.id);
+  const pick = (entries) => entries.map(({ url, title, folder, favicon }) => ({
+    url, title, folder, favicon,
+  }));
+  assert.deepEqual(pick(flatAfter.entries), pick(flatBefore.entries));
+
+  const expectedFlat = parseChromiumBookmarks(fixture(), { now: NOW });
+  assert.deepEqual(pick(flatBefore.entries), pick(expectedFlat));
+});
+
+test('tree reads reject empty sources and enforce the candidate cap after dedup', async (t) => {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-browser-import-tree-cap-'));
+  t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));
+  const root = browserDataRoot('chrome', { platform: 'darwin', homeDir, env: {} });
+  const file = path.join(root, 'Default', 'Bookmarks');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+
+  const empty = {
+    roots: {
+      bookmark_bar: {
+        type: 'folder',
+        name: 'Bookmarks bar',
+        children: [],
+      },
+    },
+  };
+  fs.writeFileSync(file, JSON.stringify(empty));
+  const service = createBrowserDataImportService({ platform: 'darwin', homeDir, env: {} });
+  const [source] = await service.listSources();
+  assert.deepEqual(await service.readFolderTree(source.id), { error: 'empty' });
+
+  const children = Array.from({ length: 500 }, (_, index) => ({
+    type: 'url',
+    name: `Page ${index}`,
+    url: `https://example.com/${index}`,
+  }));
+  children.push({ ...children[0], name: 'Duplicate page' });
+  empty.roots.bookmark_bar.children = children;
+  fs.writeFileSync(file, JSON.stringify(empty));
+  const rootId = folderIdFromPath(['Bookmarks bar']);
+  const atCap = await service.readSubtreeCandidates(source.id, rootId);
+  assert.equal(atCap.candidates.length, 500);
+  assert.equal(atCap.duplicateCount, 1);
+
+  children.splice(children.length - 1, 1, {
+    type: 'url',
+    name: 'Page 500',
+    url: 'https://example.com/500',
+  });
+  fs.writeFileSync(file, JSON.stringify(empty));
+  assert.deepEqual(await service.readSubtreeCandidates(source.id, rootId), {
+    error: 'too-many-candidates',
+    count: 501,
+  });
 });

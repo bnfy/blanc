@@ -128,11 +128,11 @@ Model asset path chosen in **Task 15** after benchmark (e.g. `build/tab-import-m
 
 **Files:** Modify `src/main/browser-data-import.js`, `src/main/bookmark-import.js`, extend `test/unit/browser-data-import.test.js`, `test/unit/bookmark-import.test.js`
 
-- [ ] **Step 1:** Add failing tests — `readFolderTree` / `readSubtreeCandidates` on test home via `BLANC_TEST_BROWSER_HOME`; assert `readSource().entries` unchanged vs pre-task snapshots.
-- [ ] **Step 2:** `browser-data-import`: after `readSource` parse, also expose `readFolderTree(id)` and `readSubtreeCandidates(id, rootFolderId)` using `bookmark-tree.js`.
-- [ ] **Step 3:** `bookmark-import`: export `parseNetscapeBookmarkTree(html)` returning tree shape; keep `parseNetscapeBookmarks` as flat `extractSubtree(all roots)` for F30 compatibility.
-- [ ] **Step 4:** All unit tests PASS; `npm run test:unit` green.
-- [ ] **Step 5:** Commit — `feat(tab-import): tree read APIs with F30 flat import preserved`
+- [x] **Step 1:** Add failing tests — `readFolderTree` / `readSubtreeCandidates` on test home via `BLANC_TEST_BROWSER_HOME`; assert `readSource().entries` unchanged vs pre-task snapshots.
+- [x] **Step 2:** `browser-data-import`: after `readSource` parse, also expose `readFolderTree(id)` and `readSubtreeCandidates(id, rootFolderId)` using `bookmark-tree.js`.
+- [x] **Step 3:** `bookmark-import`: export `parseNetscapeBookmarkTree(html)` returning tree shape; keep `parseNetscapeBookmarks` as flat `extractSubtree(all roots)` for F30 compatibility.
+- [x] **Step 4:** All unit tests PASS; `npm run test:unit` green.
+- [x] **Step 5:** Commit — `feat(tab-import): tree read APIs with F30 flat import preserved`
 
 ---
 

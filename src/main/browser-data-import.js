@@ -3,6 +3,12 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { validFolder } = require('./bookmark-validate');
+const {
+  buildChromiumTree,
+  extractSubtree,
+  dedupeCandidatesByUrl,
+  enforceCandidateCap,
+} = require('./bookmark-tree');
 
 const MAX_BROWSER_BOOKMARK_BYTES = 20 * 1024 * 1024;
 const MAX_BROWSER_BOOKMARK_NODES = 100_000;
@@ -214,6 +220,20 @@ function createBrowserDataImportService({
       a.browser.localeCompare(b.browser) || a.profile.localeCompare(b.profile));
   }
 
+  async function readTree(id) {
+    const source = (await discover()).find((candidate) => candidate.id === id);
+    if (!source) return { error: 'source-unavailable' };
+    try {
+      const stat = await fsPromises.stat(source.bookmarksPath);
+      if (!stat.isFile()) return { error: 'source-unavailable' };
+      if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
+      const raw = await fsPromises.readFile(source.bookmarksPath, 'utf8');
+      return { source, tree: buildChromiumTree(raw) };
+    } catch {
+      return { error: 'unreadable' };
+    }
+  }
+
   return {
     async listSources() {
       return (await discover()).map(publicSource);
@@ -233,6 +253,36 @@ function createBrowserDataImportService({
       } catch {
         return { error: 'unreadable' };
       }
+    },
+
+    async readFolderTree(id) {
+      const result = await readTree(id);
+      if (result.error) return result;
+      const { source, tree } = result;
+      if (!tree.folders.some((folder) => folder.subtreeHttpCount > 0)) {
+        return { error: 'empty' };
+      }
+      return {
+        source: publicSource(source),
+        folders: tree.folders,
+        rootFolderIds: tree.rootFolderIds,
+      };
+    },
+
+    async readSubtreeCandidates(id, rootFolderId) {
+      const result = await readTree(id);
+      if (result.error) return result;
+      const { source, tree } = result;
+      const { candidates } = extractSubtree(tree, String(rootFolderId ?? ''));
+      const { candidates: deduped, duplicateCount } = dedupeCandidatesByUrl(candidates);
+      const capped = enforceCandidateCap(deduped);
+      if (!capped.ok) return { error: 'too-many-candidates', count: capped.count };
+      if (!capped.candidates.length) return { error: 'empty' };
+      return {
+        source: publicSource(source),
+        candidates: capped.candidates,
+        duplicateCount,
+      };
     },
   };
 }

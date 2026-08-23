@@ -2,7 +2,8 @@ const assert = require('node:assert/strict');
 const test = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
-const { parseNetscapeBookmarks } = require('../../src/main/bookmark-import');
+const { parseNetscapeBookmarks, parseNetscapeBookmarkTree } = require('../../src/main/bookmark-import');
+const { extractSubtree, folderIdFromPath } = require('../../src/main/bookmark-tree');
 
 const FIXED_NOW = 1710000000000; // ms, after all fixture ADD_DATEs, before the "future" one
 const fixture = (name) => fs.readFileSync(path.join(__dirname, '..', 'fixtures', name), 'utf8');
@@ -43,4 +44,18 @@ test('over-length ICON is dropped to null favicon', () => {
   const html = `<DL><p><DT><A HREF="https://x.com/" ICON="${big}">X</A></DL><p>`;
   const [e] = parseNetscapeBookmarks(html, { now: FIXED_NOW });
   assert.equal(e.favicon, null);
+});
+
+test('parseNetscapeBookmarkTree exposes folder counts without changing flat parse output', () => {
+  const html = fixture('chrome-bookmarks.html');
+  const flatBefore = parseNetscapeBookmarks(html, { now: FIXED_NOW });
+  const tree = parseNetscapeBookmarkTree(html, { now: FIXED_NOW });
+  assert.ok(tree.rootFolderIds.length >= 1);
+  assert.ok(tree.folders.some((folder) => folder.name === 'News'));
+  assert.equal(JSON.stringify(tree).includes('https://news.example.com'), false);
+  const newsId = folderIdFromPath(['Bookmarks bar', 'News']);
+  const subtree = extractSubtree(tree, newsId);
+  assert.equal(subtree.candidates.length, 1);
+  const flatAfter = parseNetscapeBookmarks(html, { now: FIXED_NOW });
+  assert.deepEqual(flatAfter, flatBefore);
 });
