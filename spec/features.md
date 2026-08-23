@@ -716,7 +716,10 @@ From the desktop `DEFAULTS`:
   closes only on a confirmed write. The import step embeds F30's migration
   with its explicit-discovery rule intact: no other browser's profile is read
   until the person asks to look, and the universal bookmarks-file import is
-  offered from the start.
+  offered from the start. After a successful Favorites import it offers
+  **Bring a folder in as tabs…**; skipping full import instead offers
+  **Bring tabs without importing everything…**. Both open the same F39 utility
+  sheet, and neither makes F39 depend on completing an F30 import first.
 - Ad-blocking and theme choices apply live during the flow through the same
   validated settings paths as Settings itself; the default-browser step uses
   the OS registration only where the platform genuinely supports it and
@@ -729,7 +732,8 @@ From the desktop `DEFAULTS`:
   [`acceptance/onboarding.feature`](./acceptance/onboarding.feature) shows the
   walkthrough to a fresh profile once, proves skip records the privacy
   choices, never re-asks a completed profile, and verifies the import step
-  reads nothing before the explicit ask.
+  reads nothing before the explicit ask. F39's onboarding handoff is covered by
+  [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature).
 
 ## F37 — The blank tab shows where to type
 
@@ -755,3 +759,38 @@ From the desktop `DEFAULTS`:
   typing on a blank tab whose *page content* holds focus opens the island
   carrying that character, and that the commands affordance opens the command
   list.
+
+## F39 — Bring Your Tabs (AI-assisted tab migration)
+
+- A person explicitly chooses a bookmarks folder from a supported browser
+  profile or bookmarks HTML file, reviews its supported web pages, and brings
+  the approved set into Blanc as ordinary non-private tabs. F39 never reads a
+  live browser session, and source discovery follows F30/D22: listing sources
+  is allowed, but no profile or file is read until the person selects it.
+- The preview keeps the selected folder's order, collapses only exact duplicate
+  URLs, and exposes titles, hostnames, folder labels, and opaque candidate IDs —
+  never full URLs or source paths — to the utility renderer. Inputs are bounded
+  to 500 candidates. Sessions are window/profile-owned, memory-only, and expire
+  or are destroyed on dismissal; they never enter persistence, sync, telemetry,
+  logs, crash reports, or support bundles.
+- Blanc always offers deterministic folder-based group suggestions. A desktop
+  build may additionally propose semantic groups using a packaged, hash-verified
+  model running on device; no candidate metadata, model input, or embedding is
+  sent to Blanc or a model provider. Every suggestion is editable and migration
+  remains free regardless of Patron status.
+- Apply is explicit and ordered. Tabs and groups are created transactionally in
+  preview order before Favorites are written; a failed tab batch leaves no new
+  tabs, groups, or Favorites. A later Favorites failure keeps the tabs/groups
+  and offers an idempotent Favorites-only retry. Each Favorite preserves its
+  immediate source subfolder, matching F30.
+- Imported tabs are born quiet and viewless. Only the first selected candidate
+  wakes and receives focus. Saving the result as a Named Workspace is a separate,
+  optional Patron gesture after migration and never blocks the imported state.
+- F36 offers the same Bring Your Tabs sheet after a successful Favorites import
+  and through **Bring tabs without importing everything…** when import is skipped.
+- **Acceptance:** The scenarios in
+  [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature) cover
+  explicit discovery, bounded safe preview, editable deterministic grouping,
+  transactional ordered apply, quiet-tab activation, partial Favorites retry,
+  ownership/cancellation, onboarding entry, on-device fallback, and optional
+  workspace handoff.

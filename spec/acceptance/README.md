@@ -76,10 +76,12 @@ A feature's row in [`../parity-matrix.md`](../parity-matrix.md) should not move 
 
 ## Scope of this first cut
 
-- Eighteen feature files cover `F1–F24`, `F27–F28`, and `F30–F34`; the differentiators and
-  the most divergence-heavy features have several scenarios. F25 (DoH) and F26
-  (WebRTC policy) still have manual acceptance contracts in `features.md` but no
-  Gherkin transcription.
+- Twenty-three feature files cover `F1–F24`, `F27–F28`, `F30–F37`, and `F39`; the
+  differentiators and the most divergence-heavy features have several scenarios.
+  F25 (DoH) and F26 (WebRTC policy) still have manual acceptance contracts in
+  `features.md` but no Gherkin transcription. F39 is a planned contract: its
+  scenarios remain unverified and have no `@runnable` tag until their desktop
+  bindings land.
 - Desktop step definitions cover the `runnable` subset in
   `test/desktop/cucumber.mjs`. The complete desktop-only F28/D19 rail contract
   is bound and verified there; other blank checklist cells remain acceptance

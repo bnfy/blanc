@@ -94,12 +94,12 @@ Model asset path chosen in **Task 15** after benchmark (e.g. `build/tab-import-m
 
 **Files:** `spec/features.md`, `spec/parity-matrix.md`, `spec/acceptance/tab-migration.feature`, `spec/acceptance/index.md`, `spec/acceptance/README.md`, `security/network-data-inventory.json`
 
-- [ ] **Step 1:** Add **F39 — Bring Your Tabs** to `spec/features.md` (copy acceptance outline from design spec §Spec parity).
-- [ ] **Step 2:** Add parity-matrix row with desktop, iOS, and Android all `PLANNED`. Desktop may become `SHIPPED` only in Task 18 after its acceptance gate passes; mobile remains `PLANNED` (export-only + folder fallback; no on-device ML until separate review).
-- [ ] **Step 3:** Create `spec/acceptance/tab-migration.feature` with `@F39` scenarios stubbed from design test matrix (tag `@runnable` only for implemented steps).
-- [ ] **Step 4:** Update `spec/acceptance/index.md` checklist.
-- [ ] **Step 5:** Register `pages:tab-import:*` channels in `security/network-data-inventory.json` as local IPC, no network.
-- [ ] **Step 6:** Commit — `docs(spec): add F39 Bring Your Tabs contracts`
+- [x] **Step 1:** Add **F39 — Bring Your Tabs** to `spec/features.md` (copy acceptance outline from design spec §Spec parity).
+- [x] **Step 2:** Add parity-matrix row with desktop, iOS, and Android all `PLANNED`. Desktop may become `SHIPPED` only in Task 18 after its acceptance gate passes; mobile remains `PLANNED` (export-only + folder fallback; no on-device ML until separate review).
+- [x] **Step 3:** Create `spec/acceptance/tab-migration.feature` with `@F39` scenarios stubbed from design test matrix (tag `@runnable` only for implemented steps).
+- [x] **Step 4:** Update `spec/acceptance/index.md` checklist.
+- [x] **Step 5:** Register `pages:tab-import:*` channels in `security/network-data-inventory.json` as local IPC, no network.
+- [x] **Step 6:** Commit — `docs(spec): add F39 Bring Your Tabs contracts`
 
 ---
 
