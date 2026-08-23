@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; worker-src 'self';" />
+  <title>Bring Your Tabs</title>
+  <link rel="icon" href="icon.svg" />
+  <link rel="stylesheet" href="pages.css" />
+</head>
+<body class="sheet">
+  <div class="page tab-import-page">
+    <nav class="page-nav">
+      <a href="blanc://bookmarks/">Favorites</a>
+      <a href="blanc://settings/">Settings</a>
+    </nav>
+    <div class="page-head">
+      <h1>Bring your tabs</h1>
+      <p class="section-hint tab-import-lede">
+        Bookmark the pages you want to keep in your old browser. Blanc can import that folder,
+        suggest groups, and open the result without loading every page at once.
+      </p>
+    </div>
+    <ol class="tab-import-steps" aria-label="Import steps">
+      <li data-step-marker="source" class="current">Source</li>
+      <li data-step-marker="folder">Folder</li>
+      <li data-step-marker="preview">Preview</li>
+      <li data-step-marker="review">Review</li>
+    </ol>
+    <section class="tab-import-panel" data-step-panel="source" aria-labelledby="tabImportSourceTitle">
+      <h2 id="tabImportSourceTitle" class="section-title">Choose a source</h2>
+      <p class="section-hint">Pick a browser profile or bookmarks file. IPC wiring lands in a later task.</p>
+      <div id="tabImportSourceList" class="tab-import-placeholder" role="status">Source picker</div>
+    </section>
+    <section class="tab-import-panel" data-step-panel="folder" hidden aria-labelledby="tabImportFolderTitle">
+      <h2 id="tabImportFolderTitle" class="section-title">Choose a folder</h2>
+      <p class="section-hint">Select the migration root from the source folder tree.</p>
+      <div id="tabImportFolderTree" class="tab-import-placeholder" role="status">Folder tree</div>
+    </section>
+    <section class="tab-import-panel" data-step-panel="preview" hidden aria-labelledby="tabImportPreviewTitle">
+      <h2 id="tabImportPreviewTitle" class="section-title">Preview candidates</h2>
+      <p class="section-hint">Review titles and hostnames only — full URLs stay in main.</p>
+      <div id="tabImportPreviewList" class="tab-import-placeholder" role="status">Candidate list</div>
+    </section>
+    <section class="tab-import-panel" data-step-panel="review" hidden aria-labelledby="tabImportReviewTitle">
+      <h2 id="tabImportReviewTitle" class="section-title">Review groups</h2>
+      <p class="section-hint">Rename, regroup, and confirm before Blanc opens quiet tabs.</p>
+      <div id="tabImportReviewBoard" class="tab-import-placeholder" role="status">Group review</div>
+    </section>
+  </div>
+  <script src="sheet.js"></script>
+  <script src="tab-import.js"></script>
+</body>
+</html>

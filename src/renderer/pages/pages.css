@@ -1185,6 +1185,29 @@ body.sheet .page h1:focus { outline: none; }
   body.sheet { background: rgba(0, 0, 0, 0.35); }
 }
 
+/* ---------- tab-import wizard shell (blanc://tab-import/) ---------- */
+.tab-import-page .page-head { margin-bottom: 8px; }
+.tab-import-lede { margin-top: 0; max-width: 52rem; }
+.tab-import-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.tab-import-steps li.current { color: var(--text); font-weight: 600; }
+.tab-import-panel[hidden] { display: none; }
+.tab-import-placeholder {
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 /* ---------- start-page layouts ----------
    Three alternatives to the shipped ledger, transcribed value-for-value from
    the design system's "New tab v2" handoff prototype. The ledger is unchanged.
