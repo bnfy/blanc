@@ -176,11 +176,11 @@ Inject `now`, `randomId`, `randomBytes` for deterministic tests.
 - `validateProposal(proposal, { selectedIds, excludedIds })` → `{ ok: true, proposal }` or `{ ok: false, reason }`
 - `CLUSTER_THRESHOLD = 0.72` (exported constant)
 
-- [ ] **Step 1:** Failing tests for folder anchors, min group size 2, max 12 groups, invalid IDs rejected, generic name avoidance, collision handling.
-- [ ] **Step 2:** Implement folder fallback + validator first (no embeddings math yet).
-- [ ] **Step 3:** Add cosine similarity + agglomerative clustering with fixed fixture matrix → stable clusters across runs.
-- [ ] **Step 4:** Tests PASS.
-- [ ] **Step 5:** Commit — `feat(tab-import): organizer fallback, clustering, and validator`
+- [x] **Step 1:** Failing tests for folder anchors, min group size 2, max 12 groups, invalid IDs rejected, generic name avoidance, collision handling.
+- [x] **Step 2:** Implement folder fallback + validator first (no embeddings math yet).
+- [x] **Step 3:** Add cosine similarity + agglomerative clustering with fixed fixture matrix → stable clusters across runs.
+- [x] **Step 4:** Tests PASS.
+- [x] **Step 5:** Commit — `feat(tab-import): organizer fallback, clustering, and validator`
 
 ---
 
@@ -192,12 +192,13 @@ Inject `now`, `randomId`, `randomBytes` for deterministic tests.
 
 - `planTabImportApply({ candidates, proposal, existingGroupNames })` → ordered `{ tabs[], groups[], favoriteEntries[], focusCandidateId }`
 - Resolves group-name collision with existing window groups (merge vs create)
+- Planned groups carry `action: 'merge' | 'create'`; tab specs carry normalized `groupName` intent for destination-runtime revalidation.
 - Preserves preview order; `focusCandidateId` = first selected in that order
 
-- [ ] **Step 1:** Failing tests — order, merge into existing group name, immediate-subfolder favorite mapping.
-- [ ] **Step 2:** Implement pure planner.
-- [ ] **Step 3:** Tests PASS.
-- [ ] **Step 4:** Commit — `feat(tab-import): pure apply planner`
+- [x] **Step 1:** Failing tests — order, merge into existing group name, immediate-subfolder favorite mapping.
+- [x] **Step 2:** Implement pure planner.
+- [x] **Step 3:** Tests PASS.
+- [x] **Step 4:** Commit — `feat(tab-import): pure apply planner`
 
 ---
 
