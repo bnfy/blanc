@@ -814,8 +814,7 @@ footer .foot-nav a[aria-current="page"] { color: var(--text); font-weight: 600; 
 footer .foot-legal { display: flex; flex-direction: column; gap: 3px; line-height: 1.4; }
 footer .foot-legal a { color: inherit; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; transition: color 0.15s; }
 footer .foot-legal a:hover { color: var(--accent); }
-/* Social glyphs are monochrome and brighten to the accent, except Substack's
-   fixed-color official asset. */
+/* Social glyphs: monochrome, muted with the footer, brightening to accent. */
 footer .foot-social { display: flex; align-items: center; gap: 24px; margin-top: 48px; }
 footer .foot-ic { display: inline-flex; color: inherit; transition: color 0.15s; }
 footer .foot-ic:hover { color: var(--accent); }
@@ -824,7 +823,7 @@ footer .foot-ic svg { width: 20px; height: 20px; display: block; fill: currentCo
    style (the global fill would paint it solid); the solid GitHub blob reads
    heavier than the line glyphs at equal size, so it sits a hair smaller. */
 footer .foot-ic.mail svg { width: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-footer .foot-ic.ss img { width: 30px; height: 30px; display: block; margin: -5px; }
+footer .foot-ic.ss svg { width: 19px; height: 19px; }
 footer .foot-ic.gh svg { width: 19px; height: 19px; }
 /* Instagram's official glyph is drawn as hairline shapes and reads thinner
    than Threads' solid mark at the same size — add a slight stroke on top
