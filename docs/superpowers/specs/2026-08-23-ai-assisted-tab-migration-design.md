@@ -1,8 +1,9 @@
 # AI-assisted tab migration — bring the keepers, not the mess
 
 **Date:** 2026-08-23  
-**Status:** Draft for product review. Locked decisions (2026-08-23 review) appended —
-ready for implementation planning once product signs off.  
+**Status:** Implemented on desktop (folder-only v1, 2026-08-23). Locked decisions below
+remain binding; on-device semantic grouping is deferred until a model passes the
+packaging gate (`tab-import/embedding-ship-decision.json`). Mobile remains PLANNED.  
 **Extends:** [Import Favorites + Favorites Folders](2026-07-11-import-favorites-folders-design.md) and [Blanc Patron](2026-08-18-blanc-patron-design.md)
 
 ## Context
@@ -235,6 +236,11 @@ The primary action reads **Suggest groups on this device**. Supporting copy is e
 
 The deterministic fallback action, **Use bookmark folders**, is always available and never
 requires the model.
+
+**Desktop v1 (2026-08-23):** only **Use bookmark folders** ships. The semantic primary
+action is not shown until a reviewed model passes packaging gates on all three desktop
+platforms. Main retains `pages:tab-import:suggest-embed` and
+`pages:tab-import:submit-embeddings` for a future worker; no renderer invokes them in v1.
 
 During organization, show progress without fabricated precision:
 
@@ -635,7 +641,7 @@ Expected implementation surface:
 | `src/main/bookmark-import.js` | Netscape HTML parser exposes the same tree/subtree seam as Chromium JSON |
 | `src/main/tab-import-session.js` | Ephemeral ticket/candidate store, ownership, expiry, generation, cancellation |
 | `src/main/tab-import-organizer.js` | Pure sanitization, clustering, naming, fallback, and output validation; no Electron |
-| `src/renderer/pages/tab-import-worker.js` | Sandboxed Web Worker: WASM embedding inference; posts vectors to main only |
+| `src/renderer/pages/tab-import-worker.js` | Deferred | Sandboxed Web Worker: WASM embedding inference (not shipped v1) |
 | `src/main/pages.js` | Exact-host guarded tab-import channels and file picker |
 | `src/main/tab-preload.js` | `blanc://tab-import/`-only bridge |
 | `src/main/utility-pages.js` | Classify `blanc://tab-import/` as a utility sheet |
@@ -668,9 +674,10 @@ it as **F39 — Bring Your Tabs (AI-assisted tab migration)** in platform contra
 | `docs/superpowers/specs/2026-08-16-newtab-layouts-onboarding-design.md` | Amend import-step handoff per **First-run handoff** above |
 
 **Divergence register:** no new `D#` required if v1 stays within D22 (explicit user action,
-bounded profile/HTML reads, no live session parsing). On-device embedding is a **desktop
-implementation choice** for F39; mobile v1 uses deterministic folder suggestions only until a
-separate mobile ML review lands.
+bounded profile/HTML reads, no live session parsing). On-device embedding was a **desktop
+implementation target** for F39 but **did not ship in v1** after the packaging gate failed;
+desktop v1 uses deterministic folder suggestions only. Mobile v1 uses the same folder path
+until a separate mobile ML review lands.
 
 **Substrate checks:** `npm run substrate:check` must pass after slash-command and settings
 touchpoints change.
@@ -726,8 +733,9 @@ touchpoints change.
 ### Packaged/release
 
 - exact model/runtime bytes are present and SHA-256 verified in macOS, Windows, and Linux
-  packages;
-- SBOM and third-party notices include the runtime and model license;
+  packages when the semantic path ships; **v1 packages contain no model, ONNX, Transformers,
+  or ORT WASM payload**;
+- SBOM and third-party notices include the runtime and model license when bundled;
 - macOS hardened runtime and library validation remain unchanged outside the existing
   1Password Plugin helper exception;
 - no startup model load;
@@ -738,14 +746,16 @@ touchpoints change.
 
 ## Rollout
 
-1. Land the pure candidate/session/organizer modules and fixtures.
-2. Land the dedicated trusted utility surface with deterministic folder suggestions.
-3. Land batch quiet-tab application and packaged acceptance.
-4. Add the reviewed local embedding runtime behind the same organizer interface.
+1. Land the pure candidate/session/organizer modules and fixtures. ✅
+2. Land the dedicated trusted utility surface with deterministic folder suggestions. ✅
+3. Land batch quiet-tab application and packaged acceptance. ✅ (desktop folder floor:
+   eight `@runnable` F39 scenarios, Task 14)
+4. Add the reviewed local embedding runtime behind the same organizer interface. **Deferred**
+   — Task 15 packaging gate failed (30.04 MiB minimum payload > 30 MiB).
 5. Compare fixed fixtures and real opt-in dogfood sets; adjust only versioned thresholds,
-   never train on customer data.
+   never train on customer data. *(Pending step 4.)*
 6. Enable the AI action once all three packaged platforms pass privacy, performance,
-   licensing, and exact-payload gates.
+   licensing, and exact-payload gates. *(Deferred.)*
 7. Update the #TabBarReset campaign only after the public release containing the feature is
    available on every advertised platform.
 
@@ -780,3 +790,48 @@ The project is successful when a new user can:
 The feature must feel like migration assistance, not an autonomous agent. Blanc organizes
 with the user, never behind them.
 
+## Implementation record (desktop v1, reconciled 2026-08-23)
+
+Reference branch: `codex/f39-task1`. Parity matrix marks desktop **SHIPPED**; iOS/Android
+**PLANNED**.
+
+### Shipped
+
+- Utility sheet `blanc://tab-import/` — source picker, folder tree, candidate preview,
+  folder-based review, explicit apply.
+- Entry points — Favorites **Bring tabs…**; `/bring-tabs`; F36 onboarding
+  **Bring a folder in as tabs…** / **Bring tabs without importing everything…**.
+- Pure modules — `bookmark-tree`, `tab-import-session`, `tab-import-organizer`,
+  `tab-import-apply`, `tab-import-batch` helpers; main `createQuietTabsBatch` and
+  `applyTabImport`.
+- Organize UI — **Use bookmark folders** only (`tabImportUseFolders` in
+  `tab-import.html`).
+- Post-apply — optional Patron Named Workspace handoff via overlay `postImportWorkspace`
+  purpose (separate gesture; migration itself is free).
+
+### Deferred (packaging gate)
+
+- Sandboxed worker (`tab-import-worker.js`) and **Suggest groups on this device** UI.
+- Bundled model/runtime bytes; `tab-import/embedding-ship-decision.json` records
+  `shipOnDeviceEmbeddings: false`.
+- Tasks 16–17 in the implementation plan.
+
+Main still implements `pages:tab-import:suggest-embed` and
+`pages:tab-import:submit-embeddings` plus pure `proposeFromEmbeddings` for a future enablement
+pass; v1 renderers do not call them.
+
+### Desktop acceptance (`@runnable`)
+
+Automated floor (Task 14): F39-1, F39-2, F39-4, F39-5, F39-8, F39-9, F39-11, F39-14 —
+eight scenarios, 46 steps. Remaining F39 scenarios stay in the feature file without
+`@runnable` until bindings land; index cells are not overstated.
+
+### Governance evidence (Task 18)
+
+- Unit 1,079/1,079; desktop acceptance 124/124 scenarios, 749/749 steps;
+  `npm run substrate:check` green.
+- Signed unpacked macOS build: packaged first-run smoke passed; startup documents show zero
+  model/runtime loads; `app.asar` contains no ONNX/Transformers/model/WASM payload.
+- macOS signing posture unchanged (no new library-validation exception).
+
+See also `docs/superpowers/specs/2026-08-23-tab-import-embedding-benchmark.md`.

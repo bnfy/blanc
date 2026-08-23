@@ -773,11 +773,13 @@ From the desktop `DEFAULTS`:
   to 500 candidates. Sessions are window/profile-owned, memory-only, and expire
   or are destroyed on dismissal; they never enter persistence, sync, telemetry,
   logs, crash reports, or support bundles.
-- Blanc always offers deterministic folder-based group suggestions. A desktop
-  build may additionally propose semantic groups using a packaged, hash-verified
-  model running on device; no candidate metadata, model input, or embedding is
-  sent to Blanc or a model provider. Every suggestion is editable and migration
-  remains free regardless of Patron status.
+- Blanc always offers deterministic folder-based group suggestions through **Use bookmark
+  folders**. Desktop v1 ships this path only; **Suggest groups on this device** stays hidden
+  until a packaged model passes the 30 MiB gate (`tab-import/embedding-ship-decision.json`).
+  A future desktop build may additionally propose semantic groups using a packaged,
+  hash-verified model running on device; no candidate metadata, model input, or embedding is
+  sent to Blanc or a model provider. Every suggestion is editable and migration remains free
+  regardless of Patron status.
 - Apply is explicit and ordered. Tabs and groups are created transactionally in
   preview order before Favorites are written; a failed tab batch leaves no new
   tabs, groups, or Favorites. A later Favorites failure keeps the tabs/groups

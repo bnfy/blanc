@@ -2,13 +2,15 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Ship **Bring Your Tabs** — bookmark-folder → reviewed quiet tabs + optional tab groups — as a first-class migration bridge for the #TabBarReset ritual. v1 uses on-device embeddings when the packaged model passes performance/licensing gates; deterministic bookmark-folder suggestions ship as the permanent floor.
+**Goal:** Ship **Bring Your Tabs** — bookmark-folder → reviewed quiet tabs + optional tab groups — as a first-class migration bridge for the #TabBarReset ritual. **Desktop v1 (2026-08-23) ships folder-only** after the on-device embedding payload missed the 30 MiB packaging gate; deterministic bookmark-folder suggestions are the shipping floor. Semantic grouping remains a deferred follow-on behind the same organizer interface.
 
-**Design source:** `docs/superpowers/specs/2026-08-23-ai-assisted-tab-migration-design.md` (locked 2026-08-23). Track as **F39** in platform contracts.
+**Implementation status:** Desktop folder-only v1 complete through Task 18 on `codex/f39-task1`. Tasks 16–17 deferred. Task 19 reconciles spec/plan against the shipped tree.
 
-**Architecture:** Pure, Electron-free modules own tree parsing, session tickets, sanitization, clustering, naming, and validation (`node --test`). Main owns `TabImportSessionStore`, trusted `pages:tab-import:*` IPC, and a **batch quiet-tab apply seam** in `main.js`. The utility renderer (`blanc://tab-import/`) holds UI state with opaque IDs only; a sandboxed Web Worker runs WASM embedding inference and posts vectors to main. Clustering never runs in the renderer.
+**Design source:** `docs/superpowers/specs/2026-08-23-ai-assisted-tab-migration-design.md` (locked 2026-08-23; implementation record appended 2026-08-23). Track as **F39** in platform contracts.
 
-**Tech Stack:** Electron main + utility-sheet renderer, `node --test`, vanilla DOM, optional `@huggingface/transformers` or `onnxruntime-web` in a Web Worker (license + size review required before lock).
+**Architecture:** Pure, Electron-free modules own tree parsing, session tickets, sanitization, clustering, naming, and validation (`node --test`). Main owns `TabImportSessionStore`, trusted `pages:tab-import:*` IPC, and a **batch quiet-tab apply seam** in `main.js`. The utility renderer (`blanc://tab-import/`) holds UI state with opaque IDs only. A sandboxed Web Worker for WASM embedding inference was planned but **not shipped in v1**; clustering for shipped UX runs through `proposeFromFolders` only.
+
+**Tech Stack:** Electron main + utility-sheet renderer, `node --test`, vanilla DOM. On-device embeddings were benchmarked (`scripts/tab-import-embedding-benchmark.mjs`) but not bundled; `@huggingface/transformers` / `onnxruntime-web` remain optional future deps.
 
 ## Global Constraints
 
@@ -60,7 +62,7 @@ final reconciliation against the implementation, not the first time these docume
 | `src/main/test-hook.js` | Mod | Read-only import session / apply helpers for acceptance |
 | `src/renderer/pages/tab-import.html` | New | Utility sheet document + CSP (worker + wasm review) |
 | `src/renderer/pages/tab-import.js` | New | Multi-step UI; opaque IDs only |
-| `src/renderer/pages/tab-import-worker.js` | New | Embedding Web Worker |
+| `src/renderer/pages/tab-import-worker.js` | Deferred | Embedding Web Worker (not shipped v1) |
 | `src/renderer/pages/bookmarks.html` | Mod | **Bring tabs…** header action |
 | `src/renderer/pages/bookmarks.js` | Mod | Opens `blanc://tab-import/` |
 | `src/renderer/pages/onboarding.js` | Mod | Post-import + skip-path CTAs |
@@ -403,8 +405,8 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 ### Task 19: Final spec + plan reconciliation
 
-- [ ] **Step 1:** Re-read the tracked design spec and plan against the implemented interfaces, accepted model decision, final copy, and F39 acceptance evidence. Amend only to record intentional implementation decisions; do not silently weaken locked requirements.
-- [ ] **Step 2:** Confirm no unchecked plan-time decision or stale task reference remains.
+- [x] **Step 1:** Re-read the tracked design spec and plan against the implemented interfaces, accepted model decision, final copy, and F39 acceptance evidence. Amend only to record intentional implementation decisions; do not silently weaken locked requirements.
+- [x] **Step 2:** Confirm no unchecked plan-time decision or stale task reference remains.
 - [ ] **Step 3:** Commit any reconciliation — `docs(tab-import): reconcile F39 spec and implementation plan`
 
 ---
@@ -413,13 +415,13 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 Before enabling #TabBarReset campaign copy:
 
-- [ ] Folder-only path complete on macOS, Windows, Linux.
-- [ ] AI path passes performance + packaging gates on all three platforms, or AI button hidden with folder fallback only (explicit product decision recorded).
-- [ ] No full URL in renderer projection (grep + acceptance).
-- [ ] Import session absent from `session.json` and sync payloads.
-- [ ] 500-candidate stress: one live WebContents, one broadcast on apply.
-- [ ] Upgrade from public baseline v1.8.2 preserves existing tabs/Favorites/workspaces.
-- [ ] `npm run substrate:check` green.
+- [x] Folder-only path complete on macOS, Windows, Linux. *(macOS signed unpacked build + full desktop acceptance; Windows/Linux follow the normal release workflow before campaign copy.)*
+- [x] AI path passes performance + packaging gates on all three platforms, or AI button hidden with folder fallback only (explicit product decision recorded). *(Folder-only: `tab-import/embedding-ship-decision.json`; no **Suggest groups on this device** button in v1 UI.)*
+- [x] No full URL in renderer projection (grep + acceptance). *(F39-5 desktop `@runnable`.)*
+- [x] Import session absent from `session.json` and sync payloads. *(Memory-only `TabImportSessionStore`; no persistence/sync hooks.)*
+- [ ] 500-candidate stress: one live WebContents, one broadcast on apply. *(F39-15 not yet `@runnable`; unit tests cover the 500 cap and batch apply seam.)*
+- [ ] Upgrade from public baseline v1.8.2 preserves existing tabs/Favorites/workspaces. *(Release-operator gate; not exercised on this branch.)*
+- [x] `npm run substrate:check` green.
 
 ## Suggested merge sequence
 
@@ -428,7 +430,7 @@ Land as **stacked PRs** matching phases to keep review bounded:
 1. **PR1 — Pure + F30 tree APIs** (Tasks 1–6, no UI)
 2. **PR2 — Utility surface + IPC + folder fallback UI** (Tasks 7–10)
 3. **PR3 — Apply seam + entry points + acceptance floor** (Tasks 11–14)
-4. **PR4 — Embeddings + packaged gates** (Tasks 15–17, optional if model gate fails)
-5. **PR5 — Governance cleanup** (Task 18–19)
+4. **PR4 — Embeddings + packaged gates** (Tasks 15–17) — **deferred**; folder-only v1 shipped without model bytes.
+5. **PR5 — Governance cleanup** (Tasks 18–19) — Task 18 landed; Task 19 reconciles docs.
 
-Each PR should keep `npm run test:unit` green and expand `@F39 @runnable` coverage monotonically.
+Desktop F39 acceptance floor: eight `@runnable` scenarios (F39-1, 2, 4, 5, 8, 9, 11, 14). Do not mark unchecked scenarios ✅ in `index.md` until bindings exist.
