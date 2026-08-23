@@ -156,10 +156,10 @@ Model asset path chosen in **Task 15** after benchmark (e.g. `build/tab-import-m
 
 Inject `now`, `randomId`, `randomBytes` for deterministic tests.
 
-- [ ] **Step 1:** Failing tests for TTL, double-apply rejection, stale generation, projection omits URL, `ready` → `tabsApplied`, Favorites-only retry, and destroy on cancel.
-- [ ] **Step 2:** Implement store (in-memory Map; no disk). A partial Favorites failure retains only the bounded retry payload and created-tab IDs; it can never transition back to `ready`.
-- [ ] **Step 3:** Tests PASS.
-- [ ] **Step 4:** Commit — `feat(tab-import): ephemeral main-process session store`
+- [x] **Step 1:** Failing tests for TTL, double-apply rejection, stale generation, projection omits URL, `ready` → `tabsApplied`, Favorites-only retry, and destroy on cancel.
+- [x] **Step 2:** Implement store (in-memory Map; no disk). A partial Favorites failure retains only the bounded retry payload and created-tab IDs; it can never transition back to `ready`.
+- [x] **Step 3:** Tests PASS.
+- [x] **Step 4:** Commit — `feat(tab-import): ephemeral main-process session store`
 
 ---
 
