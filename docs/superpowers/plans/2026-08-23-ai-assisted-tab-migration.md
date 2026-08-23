@@ -420,7 +420,7 @@ Before enabling #TabBarReset campaign copy:
 - [x] No full URL in renderer projection (grep + acceptance). *(F39-5 desktop `@runnable`.)*
 - [x] Import session absent from `session.json` and sync payloads. *(Memory-only `TabImportSessionStore`; no persistence/sync hooks.)*
 - [x] 500-candidate stress: one live WebContents, one broadcast on apply. *(F39-15 desktop `@runnable`; generated 500-entry browser fixture exercises the production batch/apply path.)*
-- [ ] Upgrade from public baseline v1.8.2 preserves existing tabs/Favorites/workspaces. *(Release-operator gate; not exercised on this branch.)*
+- [x] Upgrade from public baseline v1.8.2 preserves existing tabs/Favorites/workspaces. *(Verified installed v1.8.2: valid notarized Developer ID signature; the same isolated profile then passed the signed candidate migration smoke with tabs, group membership, pinning, Favorites, history, settings, and a bound Named Workspace preserved. This is a profile-migration gate, not an updater handoff.)*
 - [x] `npm run substrate:check` green.
 
 ## Suggested merge sequence
