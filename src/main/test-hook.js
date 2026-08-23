@@ -34,6 +34,12 @@ const TAB_IMPORT_FIXTURES = Object.freeze({
     folderName: 'merge fixture',
     candidateCount: 2,
   }),
+  'stress-500': Object.freeze({
+    sourceLabel: 'Google Chrome — Tab migration fixture',
+    folderName: 'stress 500',
+    candidateCount: 500,
+    timeout: 20_000,
+  }),
 });
 
 /**
@@ -136,6 +142,7 @@ function install(refs) {
     testRuntimeId,
     getTabImportSessionProjection,
     applyTabImportFromRuntime,
+    getTabStateBroadcastCount,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -276,6 +283,7 @@ function install(refs) {
       dom = await waitForTabImportDom(
         (value) => value?.step === 'source' && value.sourceLabels.includes(fixture.sourceLabel),
         `${fixture.sourceLabel} source button`,
+        fixture.timeout,
       );
     }
     activeTabImportFixtureName = name;
@@ -284,6 +292,7 @@ function install(refs) {
       dom = await waitForTabImportDom(
         (value) => value?.step === 'folder',
         'tab-import folder step',
+        fixture.timeout,
       );
     }
     if (dom.step === 'folder') {
@@ -292,6 +301,7 @@ function install(refs) {
       dom = await waitForTabImportDom(
         (value) => value?.step === 'preview' && value.preview.length === fixture.candidateCount,
         'tab-import preview step',
+        fixture.timeout,
       );
     }
     if (targetStage === 'preview') return dom;
@@ -300,6 +310,7 @@ function install(refs) {
       dom = await waitForTabImportDom(
         (value) => value?.step === 'review' && !value.applyDisabled,
         'tab-import review step',
+        fixture.timeout,
       );
     }
     return dom;
@@ -1332,6 +1343,7 @@ function install(refs) {
           dom,
           projection: await waitForTabImportProjection(
             TAB_IMPORT_FIXTURES[fixtureName].candidateCount,
+            TAB_IMPORT_FIXTURES[fixtureName].timeout,
           ),
         };
       }
@@ -1340,6 +1352,7 @@ function install(refs) {
       }
       const projection = await waitForTabImportProjection(
         TAB_IMPORT_FIXTURES[fixtureName].candidateCount,
+        TAB_IMPORT_FIXTURES[fixtureName].timeout,
       );
       if (options?.runtimeId !== undefined && options?.runtimeId !== null) {
         const request = tabImportApplyRequestFromProjection(projection);
@@ -1349,6 +1362,18 @@ function install(refs) {
           projection.sessionId,
           request,
         );
+      }
+      if (options?.directApply) {
+        const request = tabImportApplyRequestFromProjection(projection);
+        const beforeBroadcasts = getTabStateBroadcastCount();
+        const result = applyTabImportFromRuntime(
+          testRuntimeId,
+          projection.sessionId,
+          request,
+        );
+        const broadcastCount = getTabStateBroadcastCount() - beforeBroadcasts;
+        if (result?.ok) activeTabImportFixtureName = null;
+        return { ...result, applied: result?.ok === true, projection, broadcastCount };
       }
       if (stage === 'cancel') {
         // Use the renderer's real close control. tab-import.js wraps the
@@ -1648,10 +1673,14 @@ function install(refs) {
         if (runtime.id !== 'primary') closeWindowRuntimeAction(runtime.id);
       }
       await new Promise((resolve) => setImmediate(resolve));
-      // Do not let a scenario inherit quiet state or retained page state. A
-      // quiet record is safe for closeTab, but waking first makes teardown and
-      // the subsequent snapshot clear explicit.
-      for (const [id, tab] of tabs) if (tab.asleep) await wakeTab(id);
+      // Do not let a scenario inherit retained page state. Quiet imported tabs
+      // are viewless and have no snapshot, so waking hundreds of them merely to
+      // delete them makes the stress scenario's cleanup slower than the product
+      // operation itself. Only retained snapshot state needs an explicit wake
+      // before teardown; closeTab safely removes the other quiet records.
+      for (const [id, tab] of tabs) {
+        if (tab.asleep && getSleepSnapshots().has(id)) await wakeTab(id);
+      }
       getSleepSnapshots().clear();
       getPermissionPrompts().clear();
       beforeUnloadProbes.clear();

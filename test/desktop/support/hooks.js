@@ -183,9 +183,23 @@ BeforeAll({ timeout: 120_000 }, async () => {
   }));
   const tabImportProfileDir = path.join(chromeRoot, 'Profile 1');
   fs.mkdirSync(tabImportProfileDir, { recursive: true });
-  fs.copyFileSync(
+  const tabImportFixture = JSON.parse(fs.readFileSync(
     path.join(REPO_ROOT, 'test', 'fixtures', 'tab-import', 'chromium-acceptance.json'),
-    path.join(tabImportProfileDir, 'Bookmarks')
+    'utf8',
+  ));
+  tabImportFixture.roots.bookmark_bar.children.push({
+    type: 'folder',
+    name: 'stress 500',
+    children: Array.from({ length: 500 }, (_, index) => ({
+      type: 'url',
+      name: `Stress candidate ${String(index + 1).padStart(3, '0')}`,
+      url: `https://stress-${String(index + 1).padStart(3, '0')}.example/page`,
+      date_added: String(13380000000000000 + index),
+    })),
+  });
+  fs.writeFileSync(
+    path.join(tabImportProfileDir, 'Bookmarks'),
+    JSON.stringify(tabImportFixture),
   );
 
   ctx.app = await launchApp();

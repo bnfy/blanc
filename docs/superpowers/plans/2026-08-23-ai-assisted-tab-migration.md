@@ -395,8 +395,8 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 ### Task 18: Final governance + substrate
 
-- [x] **Step 1:** `spec/acceptance/index.md` — mark F39 scenarios ✅ as implemented. *(The eight Task 14 runnable scenarios remain the automated desktop floor; unchecked scenarios are not overstated.)*
-- [x] **Step 2:** `npm run substrate:check` + `npm run test:unit` + full desktop acceptance profile. *(1,079/1,079 unit tests; 124/124 scenarios and 749/749 steps.)*
+- [x] **Step 1:** `spec/acceptance/index.md` — mark F39 scenarios ✅ as implemented. *(Nine scenarios are now runnable: the eight Task 14 scenarios plus the F39-15 500-candidate release gate; unchecked scenarios are not overstated.)*
+- [x] **Step 2:** `npm run substrate:check` + `npm run test:unit` + full desktop acceptance profile. *(1,079/1,079 unit tests; 125/125 scenarios and 755/755 steps.)*
 - [x] **Step 3:** Confirm no startup model load (packaged smoke: devtools/network idle at launch). *(Signed unpacked build passed the first-run smoke; its startup documents recorded zero resource entries, and `app.asar` contains no ONNX, Transformers, model, or WASM payload.)*
 - [x] **Step 4:** Confirm macOS library validation unchanged. *(The F39 diff changes no build/signing files; signed app and all four helpers carry the existing JIT entitlements and no library-validation exception.)*
 - [x] **Step 5:** Commit — `docs(spec): mark F39 desktop scenarios runnable`
@@ -419,7 +419,7 @@ Before enabling #TabBarReset campaign copy:
 - [x] AI path passes performance + packaging gates on all three platforms, or AI button hidden with folder fallback only (explicit product decision recorded). *(Folder-only: `tab-import/embedding-ship-decision.json`; no **Suggest groups on this device** button in v1 UI.)*
 - [x] No full URL in renderer projection (grep + acceptance). *(F39-5 desktop `@runnable`.)*
 - [x] Import session absent from `session.json` and sync payloads. *(Memory-only `TabImportSessionStore`; no persistence/sync hooks.)*
-- [ ] 500-candidate stress: one live WebContents, one broadcast on apply. *(F39-15 not yet `@runnable`; unit tests cover the 500 cap and batch apply seam.)*
+- [x] 500-candidate stress: one live WebContents, one broadcast on apply. *(F39-15 desktop `@runnable`; generated 500-entry browser fixture exercises the production batch/apply path.)*
 - [ ] Upgrade from public baseline v1.8.2 preserves existing tabs/Favorites/workspaces. *(Release-operator gate; not exercised on this branch.)*
 - [x] `npm run substrate:check` green.
 
@@ -433,4 +433,4 @@ Land as **stacked PRs** matching phases to keep review bounded:
 4. **PR4 — Embeddings + packaged gates** (Tasks 15–17) — **deferred**; folder-only v1 shipped without model bytes.
 5. **PR5 — Governance cleanup** (Tasks 18–19) — Task 18 landed; Task 19 reconciles docs.
 
-Desktop F39 acceptance floor: eight `@runnable` scenarios (F39-1, 2, 4, 5, 8, 9, 11, 14). Do not mark unchecked scenarios ✅ in `index.md` until bindings exist.
+Desktop F39 acceptance floor: nine `@runnable` scenarios (F39-1, 2, 4, 5, 8, 9, 11, 14, 15). Do not mark unchecked scenarios ✅ in `index.md` until bindings exist.

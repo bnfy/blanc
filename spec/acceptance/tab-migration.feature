@@ -111,7 +111,7 @@ Feature: Bring Your Tabs
     Then the session and embeddings are destroyed
     And no migration secret enters persistence, sync, telemetry, or logs
 
-  @F39-15 @desktop
+  @F39-15 @desktop @runnable
   Scenario: A 500-candidate import keeps one live imported tab
     Given I reviewed the maximum 500 tab-migration candidates
     When I apply the tab migration

@@ -749,7 +749,7 @@ touchpoints change.
 1. Land the pure candidate/session/organizer modules and fixtures. ✅
 2. Land the dedicated trusted utility surface with deterministic folder suggestions. ✅
 3. Land batch quiet-tab application and packaged acceptance. ✅ (desktop folder floor:
-   eight `@runnable` F39 scenarios, Task 14)
+   eight Task 14 scenarios plus the runnable F39-15 500-candidate release gate)
 4. Add the reviewed local embedding runtime behind the same organizer interface. **Deferred**
    — Task 15 packaging gate failed (30.04 MiB minimum payload > 30 MiB).
 5. Compare fixed fixtures and real opt-in dogfood sets; adjust only versioned thresholds,
@@ -822,13 +822,14 @@ pass; v1 renderers do not call them.
 
 ### Desktop acceptance (`@runnable`)
 
-Automated floor (Task 14): F39-1, F39-2, F39-4, F39-5, F39-8, F39-9, F39-11, F39-14 —
-eight scenarios, 46 steps. Remaining F39 scenarios stay in the feature file without
-`@runnable` until bindings land; index cells are not overstated.
+Automated floor: F39-1, F39-2, F39-4, F39-5, F39-8, F39-9, F39-11, F39-14, F39-15 —
+nine scenarios. Task 14 supplied the first eight; F39-15 later added the 500-candidate
+release gate. Remaining F39 scenarios stay in the feature file without `@runnable` until
+bindings land; index cells are not overstated.
 
 ### Governance evidence (Task 18)
 
-- Unit 1,079/1,079; desktop acceptance 124/124 scenarios, 749/749 steps;
+- Unit 1,079/1,079; desktop acceptance 125/125 scenarios, 755/755 steps;
   `npm run substrate:check` green.
 - Signed unpacked macOS build: packaged first-run smoke passed; startup documents show zero
   model/runtime loads; `app.asar` contains no ONNX/Transformers/model/WASM payload.

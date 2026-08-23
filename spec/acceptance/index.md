@@ -172,7 +172,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F39-12 | Unavailable semantic assistance falls back locally | — | ⬜ | ➖ | ➖ |
 | F39-13 | Workspace save stays separate from migration | — | ⬜ | ➖ | ➖ |
 | F39-14 | Cancel destroys the ephemeral migration session | — | ✅ | ⬜ | ⬜ |
-| F39-15 | A 500-candidate import keeps one live imported tab | — | ⬜ | ➖ | ➖ |
+| F39-15 | A 500-candidate import keeps one live imported tab | — | ✅ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

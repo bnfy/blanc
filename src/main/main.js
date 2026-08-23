@@ -456,8 +456,10 @@ function submitTabImportEmbeddings(sessionId, generation, matrix) {
 // seam. Keeping the endpoint delegated through main now prevents pages.js or
 // the utility renderer from ever acquiring direct tab/group/Favorites access.
 let tabCreationBatchDepth = 0;
+let tabStateBroadcastSuppressionDepth = 0;
 let tabImportApplyBroadcasted = false;
 let tabImportFavoritesThrowForTest = false;
+let acceptanceTabStateBroadcastCount = 0;
 
 function isTabCreationBatched() {
   return tabCreationBatchDepth > 0;
@@ -600,8 +602,18 @@ function finishTabImportFavorites(owned) {
 }
 
 function activateTabImportFocusTab(focusTabId) {
-  setActiveTab(focusTabId, { focusContent: true, dismissUtilitySheet: false });
-  return rt().activeTabId === focusTabId && tabs.has(focusTabId);
+  // Waking the first quiet tab can emit did-start-loading synchronously, and
+  // setActiveTab emits again after attaching it. Neither intermediate view is
+  // useful to render; publish the complete imported state exactly once.
+  tabStateBroadcastSuppressionDepth += 1;
+  try {
+    setActiveTab(focusTabId, { focusContent: true, dismissUtilitySheet: false });
+  } finally {
+    tabStateBroadcastSuppressionDepth -= 1;
+  }
+  const activated = rt().activeTabId === focusTabId && tabs.has(focusTabId);
+  broadcastTabImportSurfaceOnce();
+  return activated;
 }
 
 function applyTabImport(sessionId, request = {}) {
@@ -621,6 +633,7 @@ function applyTabImport(sessionId, request = {}) {
       return { error: 'stale-generation' };
     }
     if (!owned.focusTabId) return { error: 'session-not-ready' };
+    tabImportApplyBroadcasted = false;
     if (!activateTabImportFocusTab(owned.focusTabId)) {
       broadcastTabImportSurfaceOnce();
       return {
@@ -3277,6 +3290,8 @@ function currentTabsPayload() {
 }
 
 function broadcastTabs() {
+  if (tabStateBroadcastSuppressionDepth > 0) return;
+  if (acceptanceTestMode) acceptanceTabStateBroadcastCount += 1;
   persistSession();
   // The Dock menu's active-tab line reflects the frontmost window, which may
   // not be rt() — refresh unconditionally, before the rt()-liveness return.
@@ -7506,6 +7521,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       testRuntimeId: primaryRuntime.id,
       getTabImportSessionProjection: currentTabImportAcceptanceProjection,
       applyTabImportFromRuntime: applyTabImportAcceptanceFromRuntime,
+      getTabStateBroadcastCount: () => acceptanceTabStateBroadcastCount,
       setSleepThresholdOverride: (ms) => {
         sleepThresholdOverrideMs = Number.isFinite(ms) && ms >= 0 ? Number(ms) : null;
         return sleepThresholdOverrideMs;

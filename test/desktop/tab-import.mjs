@@ -22,6 +22,8 @@ const MERGE_URLS = [
   'https://project-board.example/',
 ];
 
+const STRESS_URL_PREFIX = 'https://stress-';
+
 async function waitFor(read, predicate, label, timeout = 8_000) {
   const deadline = Date.now() + timeout;
   let last;
@@ -97,6 +99,7 @@ Then('no tabs, groups, or Favorites have been created', async function () {
 });
 
 Given('I reviewed selected candidates from nested source folders', async function () {
+  this.tabImportFixture = 'folder-fallback';
   this.tabImportBefore = await this.call('state');
   const prepared = await this.call(
     'applyTabImportFixture',
@@ -245,10 +248,12 @@ Given('I renamed a reviewed migration group to {string}', async function (name) 
 });
 
 When('I apply the tab migration', async function () {
-  const fixture = this.tabImportRenameTarget ? 'merge-existing' : 'folder-fallback';
-  const options = this.tabImportRenameTarget
+  const fixture = this.tabImportFixture ??
+    (this.tabImportRenameTarget ? 'merge-existing' : 'folder-fallback');
+  let options = this.tabImportRenameTarget
     ? { renameFrom: 'project', renameTo: this.tabImportRenameTarget }
     : {};
+  if (fixture === 'stress-500') options = { ...options, directApply: true };
   this.tabImportApply = await this.call('applyTabImportFixture', fixture, options);
   assert.equal(this.tabImportApply.ok, true);
 });
@@ -435,5 +440,56 @@ Then('no migration secret enters persistence, sync, telemetry, or logs', async f
   });
   for (const url of this.cancelledTabImportUrls) {
     assert.equal(exposed.includes(url), false, `${url} leaked after migration cancellation`);
+  }
+});
+
+Given('I reviewed the maximum 500 tab-migration candidates', async function () {
+  this.tabImportFixture = 'stress-500';
+  const prepared = await this.call(
+    'applyTabImportFixture',
+    this.tabImportFixture,
+    { stage: 'review' },
+  );
+  assert.equal(prepared.ok, true);
+  assert.equal(prepared.projection.candidates.length, 500);
+  assert.match(prepared.dom.applyLabel, /^Open 500 tabs/);
+});
+
+Then('the batch produces one tab-state broadcast', function () {
+  assert.equal(this.tabImportApply.broadcastCount, 1);
+});
+
+Then('only the focused imported tab has live web contents', async function () {
+  this.tabImportStressState = await this.waitForState(
+    (state) => {
+      const imported = state.tabOrder
+        .map((id) => state.tabs.find((tab) => tab.id === id))
+        .filter((tab) => importedSourceUrl(tab).startsWith(STRESS_URL_PREFIX));
+      return imported.length === 500 &&
+        state.activeTabId === imported[0].id &&
+        imported[0].asleep === false &&
+        imported.filter((tab) => tab.webContentsId !== null).length === 1;
+    },
+    { timeout: 30_000 },
+  );
+  const imported = importedTabs(
+    this.tabImportStressState,
+    this.tabImportStressState.tabs
+      .map(importedSourceUrl)
+      .filter((url) => url.startsWith(STRESS_URL_PREFIX)),
+  );
+  assert.equal(imported.length, 500);
+  assert.equal(imported[0].id, this.tabImportStressState.activeTabId);
+  assert.equal(imported[0].asleep, false);
+  assert.ok(imported[0].webContentsId);
+});
+
+Then('the other imported tabs remain quiet and viewless', function () {
+  const imported = this.tabImportStressState.tabOrder
+    .map((id) => this.tabImportStressState.tabs.find((tab) => tab.id === id))
+    .filter((tab) => importedSourceUrl(tab).startsWith(STRESS_URL_PREFIX));
+  for (const tab of imported.slice(1)) {
+    assert.equal(tab.asleep, true, `${tab.url} should remain quiet`);
+    assert.equal(tab.webContentsId, null, `${tab.url} should remain viewless`);
   }
 });
