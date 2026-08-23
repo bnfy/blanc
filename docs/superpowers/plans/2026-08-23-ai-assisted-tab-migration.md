@@ -247,26 +247,26 @@ Inject `now`, `randomId`, `randomBytes` for deterministic tests.
 
 **Files:** `src/renderer/pages/tab-import.js`, `src/renderer/pages/pages.css`
 
-- [ ] **Step 1:** Source list UI (reuse browser source labels from F30).
-- [ ] **Step 2:** Folder tree with counts; highlight heuristic names (`tab reset`, etc.) without auto-select.
-- [ ] **Step 3:** Preview table — checkbox per row, select all/none, duplicate-removed badge, hostname + folder path only.
-- [ ] **Step 4:** **Use bookmark folders** → folder proposal → review screen (drag/drop can be minimal v1: move menus + keyboard).
-- [ ] **Step 5:** Cancel/scrim/Escape → `pages:tab-import:cancel`; session destroyed.
-- [ ] **Step 6:** Manual relaunch smoke through folder fallback review (apply stubbed or TODO next task).
-- [ ] **Step 7:** Commit — `feat(tab-import): source, folder, and preview UI`
+- [x] **Step 1:** Source list UI (reuse browser source labels from F30).
+- [x] **Step 2:** Folder tree with counts; highlight heuristic names (`tab reset`, etc.) without auto-select.
+- [x] **Step 3:** Preview table — checkbox per row, select all/none, duplicate-removed badge, hostname + folder path only.
+- [x] **Step 4:** **Use bookmark folders** → folder proposal → review screen (drag/drop can be minimal v1: move menus + keyboard).
+- [x] **Step 5:** Cancel/scrim/Escape → `pages:tab-import:cancel`; session destroyed.
+- [x] **Step 6:** Manual relaunch smoke through folder fallback review (apply stubbed or TODO next task).
+- [x] **Step 7:** Commit — `feat(tab-import): source, folder, and preview UI`
 
 ---
 
 ### Task 10: Review UI + apply consequence copy
 
-**Files:** `src/renderer/pages/tab-import.js`, `src/renderer/pages/pages.css`
+**Files:** `src/renderer/pages/tab-import.js`, `src/renderer/pages/pages.css`, `src/renderer/overlay.js` (post-apply workspace handoff only)
 
-- [ ] **Step 1:** Review columns — rename group (validated input), move between groups, ungrouped lane, exclude/restore.
-- [ ] **Step 2:** Confidence treatment — solid / “needs a look” / ungrouped; no numeric scores; not color-only.
-- [ ] **Step 3:** Primary button copy — `Open N tabs in M groups · K ungrouped` dynamic counts.
-- [ ] **Step 4:** Post-apply Patron workspace CTA + quiet non-Patron line (no checkout); wire workspace save only to existing `chrome:workspaces-save-as` / patron surfaces.
-- [ ] **Step 5:** A11y — live region for progress/errors; checkbox rows; keyboard move menus.
-- [ ] **Step 6:** Commit — `feat(tab-import): review UI and apply confirmation`
+- [x] **Step 1:** Review columns — rename group (validated input), move between groups, ungrouped lane, exclude/restore.
+- [x] **Step 2:** Confidence treatment — solid / “needs a look” / ungrouped; no numeric scores; not color-only.
+- [x] **Step 3:** Primary button copy — `Open N tabs in M groups · K ungrouped` dynamic counts.
+- [x] **Step 4:** Post-apply Patron workspace CTA + quiet non-Patron line (no checkout); wire workspace save only to existing `chrome:workspaces-save-as` / patron surfaces.
+- [x] **Step 5:** A11y — live region for progress/errors; checkbox rows; keyboard move menus.
+- [x] **Step 6:** Commit — `feat(tab-import): review UI and apply confirmation`
 
 ---
 
@@ -293,6 +293,7 @@ Inject `now`, `randomId`, `randomBytes` for deterministic tests.
 5. Wake and activate only that tab. Extend the internal activation call with `dismissUtilitySheet: false` so the normal `setActiveTab()` dismissal does not hide a recoverable result. If activation fails, retain `tabsApplied`, leave Favorites untouched, broadcast/persist the created tabs once, and offer activation retry without recreating anything.
 6. Call `bookmarks.importBookmarks(favoriteEntries)`. On failure, perform the single `broadcastTabs()`/session persistence and menu rebuild, retain the `tabsApplied` session, keep the sheet open, and return `{ ok: false, phase: 'favorites', tabIds, retryable: true }`.
 7. On initial success—or a later Favorites-only retry—perform the single broadcast/persist/menu update if it has not already occurred, destroy the import session and embeddings, and call `hideUtilitySheet()` once.
+8. After a successful apply closes the sheet, call `showOverlay('panel', { purpose: { postImportWorkspace: true } })`; Task 10's existing workspace popover owns the optional Patron/non-Patron follow-up and all actual saves remain on `chrome:workspaces-save-as`.
 
 **Favorites retry:** the retry action calls `resolveFavoritesRetry()` and
 `bookmarks.importBookmarks()` only. It must not re-run `planTabImportApply`,
