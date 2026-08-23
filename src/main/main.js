@@ -5560,7 +5560,7 @@ function registerIpcHandlers() {
   chromeHandle('tabs:toggle-muted', (_e, id) => toggleTabMuted(id));
   chromeHandle('tabs:duplicate', (_e, id) => duplicateTab(id));
   chromeHandle('tabs:open-page', (_e, name, section) => {
-    if (['bookmarks', 'history', 'downloads', 'settings'].includes(name)) {
+    if (['bookmarks', 'history', 'downloads', 'settings', 'tab-import'].includes(name)) {
       // Deep-link into a page section via URL fragment — allowlisted only,
       // never interpolated from renderer-supplied text (privileged URL).
       const sectionMap = { blocking: '#group-privacy', patron: '#group-patron' };
@@ -5956,6 +5956,7 @@ function listShortcuts() {
 // SLASH_COMMANDS — keep all three in sync when adding or changing a command.
 const SLASH_COMMANDS = [
   ['/favorites', 'Open favorites'],
+  ['/bring-tabs', 'Bring tabs from another browser'],
   ['/save [folder]', 'Save this page to favorites, into a folder if you name one'],
   ['/history', 'Open browsing history'],
   ['/downloads', 'Open downloads'],

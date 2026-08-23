@@ -1,11 +1,19 @@
 (async () => {
   const list = document.getElementById('list');
+  const bringTabsBtn = document.getElementById('bringTabsBtn');
   const importBtn = document.getElementById('importBtn');
   const importStatus = document.getElementById('importStatus');
   const browserSourceWrap = document.getElementById('browserSourceWrap');
   const browserSource = document.getElementById('browserSource');
   const browserImportBtn = document.getElementById('browserImportBtn');
   const browserFindBtn = document.getElementById('browserFindBtn');
+
+  // This stays inside the existing utility sheet. Main's will-navigate guard
+  // permits only allowlisted blanc:// utility pages and updates the sheet's
+  // owned URL before this document is replaced.
+  bringTabsBtn.addEventListener('click', () => {
+    window.location.href = 'blanc://tab-import/';
+  });
 
   const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
   function importSummary(added, skipped) {

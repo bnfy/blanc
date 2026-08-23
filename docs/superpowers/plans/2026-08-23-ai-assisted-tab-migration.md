@@ -313,13 +313,13 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 ### Task 12: Entry points — Favorites + slash command
 
-**Files:** `src/renderer/pages/bookmarks.html`, `src/renderer/pages/bookmarks.js`, `copy/slash-commands.json`, `src/renderer/overlay.js`, `src/renderer/pages/shortcuts.js`
+**Files:** `src/renderer/pages/bookmarks.html`, `src/renderer/pages/bookmarks.js`, `copy/slash-commands.json`, generated mobile copy, `src/renderer/overlay.js`, `src/renderer/pages/shortcuts.js`, `src/main/main.js` (privileged page allowlist), entry-point tests
 
-- [ ] **Step 1:** Favorites header **Bring tabs…** → `openInternalPage('blanc://tab-import/')` via `bowserPages` surface opener or IPC already used for navigation.
-- [ ] **Step 2:** Add `/bring-tabs` to `copy/slash-commands.json`; `npm run copy:build`.
-- [ ] **Step 3:** `overlay.js` — dispatch opens tab-import sheet (same as bookmarks).
-- [ ] **Step 4:** `shortcuts.js` hint line; `npm run substrate:check`.
-- [ ] **Step 5:** Commit — `feat(tab-import): Favorites and slash entry points`
+- [x] **Step 1:** Favorites header **Bring tabs…** → the existing main-guarded utility-sheet navigation path for `blanc://tab-import/`.
+- [x] **Step 2:** Add `/bring-tabs` to `copy/slash-commands.json`; `npm run copy:build`.
+- [x] **Step 3:** `overlay.js` — dispatch opens tab-import sheet (same as bookmarks).
+- [x] **Step 4:** `shortcuts.js` hint line; `npm run substrate:check`.
+- [x] **Step 5:** Commit — `feat(tab-import): Favorites and slash entry points`
 
 ---
 
