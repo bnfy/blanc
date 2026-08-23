@@ -353,17 +353,19 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 **Files:** research note in plan commit or `docs/superpowers/specs/2026-08-23-ai-assisted-tab-migration-design.md` appendix, `package.json` (if dep added), `src/THIRD_PARTY_NOTICES.txt`
 
-- [ ] **Step 1:** Evaluate 1–2 candidates (e.g. small MiniLM-class ONNX via `transformers.js`) on 100- and 500-candidate fixtures — time, memory, installer delta.
-- [ ] **Step 2:** Record SHA-256, license, compressed size; fail gate if > 30 MiB installer increase.
-- [ ] **Step 3:** Pin exact model bytes in repo; add SBOM/notices entries.
-- [ ] **Step 4:** If gate fails — document ship decision: folder-only until re-review; skip Tasks 16–17 model enablement.
+- [x] **Step 1:** Evaluate 1–2 candidates (e.g. small MiniLM-class ONNX via `transformers.js`) on 100- and 500-candidate fixtures — time, memory, installer delta.
+- [x] **Step 2:** Record SHA-256, license, compressed size; fail gate if > 30 MiB installer increase.
+- [x] **Step 3:** Pin exact model bytes in repo; add SBOM/notices entries. *(Deferred — gate failed; candidate metadata recorded in `tab-import/embedding-ship-decision.json` without bundling bytes.)*
+- [x] **Step 4:** If gate fails — document ship decision: folder-only until re-review; skip Tasks 16–17 model enablement.
 - [ ] **Step 5:** Commit — `chore(tab-import): pin embedding model and packaging benchmark`
+
+**Outcome:** `Xenova/paraphrase-MiniLM-L3-v2` uint8 selected for a future pin; **30.04 MiB** minimum payload fails gate. See `docs/superpowers/specs/2026-08-23-tab-import-embedding-benchmark.md`. Tasks **16–17 skipped** for F39 v1.
 
 ---
 
-### Task 16: Web Worker embedding path
+### Task 16: Web Worker embedding path *(deferred — Task 15 packaging gate failed)*
 
-**Files:** `src/renderer/pages/tab-import-worker.js`, `src/renderer/pages/tab-import.js`, `src/renderer/pages/tab-import.html` (CSP), `src/main/pages.js` (`submit-embeddings` handler)
+**Files:** `src/renderer/pages/tab-import-worker.js`, `src/renderer/pages/tab-import.js`, `src/renderer/pages/tab-import.html` (CSP), `src/main/pages.js` (`submit-embeddings` handler`)
 
 - [ ] **Step 1:** Worker loads model lazily on first **Suggest groups on this device**; progress UI “Finding related pages…”.
 - [ ] **Step 2:** Worker computes embeddings; posts `Float32Array[]` + generation to main via `pages:tab-import:submit-embeddings` (main validates generation + session).
@@ -374,7 +376,7 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 ---
 
-### Task 17: Packaged verification + performance gates
+### Task 17: Packaged verification + performance gates *(deferred — Task 15 packaging gate failed)*
 
 **Files:** `scripts/verify-packaged-tab-import-model.js`, hook in `scripts/verify-packaged-adblock.js` pattern or `afterPack`, extend acceptance for AI path
 

@@ -393,6 +393,14 @@ asset. The default decision is **bundle it** if the compressed installer increas
 exceeds that limit, this design returns for review rather than silently adding a network
 model download.
 
+**Task 15 benchmark (2026-08-23):** the smallest reviewed curated payload
+(`Xenova/paraphrase-MiniLM-L3-v2` `model_uint8.onnx` + ORT Web WASM + Transformers.js
+web runtime) is **30.04 MiB uncompressed**, failing the 30 MiB gate. Performance
+budgets pass on the dev benchmark host (100 candidates in 80 ms, 500 in 299 ms). **F39 v1
+ships folder-only**; on-device embeddings and Tasks 16–17 are deferred. See
+`docs/superpowers/specs/2026-08-23-tab-import-embedding-benchmark.md` and
+`tab-import/embedding-ship-decision.json`.
+
 ### Clustering and naming
 
 Clustering lives in a pure Electron-free module and is deterministic for a fixed input and
