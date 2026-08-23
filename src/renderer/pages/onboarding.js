@@ -27,6 +27,7 @@
   const lookBtn = document.getElementById('obLook');
   const sourceList = document.getElementById('obSources');
   const importStatus = document.getElementById('obImportStatus');
+  const bringTabsBtn = document.getElementById('obBringTabs');
   const adblockToggle = document.getElementById('obAdblock');
   const suggestionsToggle = document.getElementById('obSuggestions');
   const pingToggle = document.getElementById('obPing');
@@ -45,6 +46,8 @@
     // users need no discovery to use it. Look prepends detected browsers.
     sources: [{ id: FILE_SOURCE, label: 'From a bookmarks file (HTML)…' }],
     importSource: null,    // selected source id, or null = "no thanks"
+    // 'skip' — Bring tabs without importing everything…; 'post-import' — folder handoff.
+    importHandoff: 'skip',
     // Shared transition lock: one navigation/import/persist at a time. While
     // held, Continue/Back/Skip and the import controls are disabled — a
     // second Continue during a pending import must never advance the step.
@@ -84,6 +87,11 @@
 
     lookBtn.hidden = state.looked;
     lookBtn.disabled = state.busy;
+    bringTabsBtn.hidden = state.step !== IMPORT_STEP || !state.importHandoff;
+    bringTabsBtn.disabled = state.busy;
+    bringTabsBtn.textContent = state.importHandoff === 'post-import'
+      ? 'Bring a folder in as tabs…'
+      : 'Bring tabs without importing everything…';
     renderSources();
 
     setToggle(adblockToggle, state.adblock);
@@ -169,12 +177,18 @@
         importStatus.textContent = 'That profile is too large to import safely.';
       } else if (result?.error) {
         importStatus.textContent = "Couldn't read that browser profile.";
-      } else {
+      } else if (result.added > 0) {
         const from = result.source?.label ? ` from ${result.source.label}` : '';
         const skipped = result.skipped
           ? `; skipped ${plural(result.skipped, 'favorite')} already saved`
           : '';
         importStatus.textContent = `Imported ${plural(result.added, 'favorite')}${from}${skipped}.`;
+        state.importHandoff = 'post-import';
+      } else {
+        importStatus.textContent = result.skipped
+          ? `All ${plural(result.skipped, 'favorite')} were already saved.`
+          : 'No favorites found there.';
+        state.importHandoff = 'skip';
       }
     } catch {
       importStatus.textContent = "Couldn't import from there.";
@@ -199,6 +213,17 @@
 
   // Close ONLY on confirmed persistence: a failed write keeps the dialog up
   // and surfaces the card's error copy on the privacy step.
+  function dismissForHandoff() {
+    scrim.hidden = true;
+    dialog.hidden = true;
+    setBackgroundInert(false);
+  }
+
+  function openBringTabs() {
+    dismissForHandoff();
+    window.location.href = 'blanc://tab-import/';
+  }
+
   async function finish() {
     if (!(await persistPrivacy())) {
       state.step = PRIVACY_STEP;
@@ -284,6 +309,7 @@
     sync();
   });
   lookBtn.addEventListener('click', () => withBusy(lookForBrowsers));
+  bringTabsBtn.addEventListener('click', () => withBusy(openBringTabs));
   adblockToggle.addEventListener('click', () => {
     state.adblock = !state.adblock;
     window.bowserPages.start.onboardingSet({ adblockEnabled: state.adblock });

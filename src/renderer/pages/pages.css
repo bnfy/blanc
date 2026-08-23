@@ -1852,6 +1852,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ob-radio span { width: 6px; height: 6px; border-radius: 50%; background: transparent; }
 .ob-src-row.selected .ob-radio span { background: var(--accent); }
 .ob-status { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-top: 10px; min-height: 14px; }
+.ob-handoff { margin-top: 14px; }
 .ob-error { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--danger); margin-top: 10px; }
 .ob-error:empty { display: none; }
 

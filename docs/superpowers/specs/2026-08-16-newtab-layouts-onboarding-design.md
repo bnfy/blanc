@@ -160,7 +160,12 @@ Monday.
      the always-available bookmarks-file row; `browserSources()` runs only on
      that click. Import runs when the user advances with a source selected
      ("no thanks" = advancing with nothing selected); result feedback is the
-     imported count in the step body, prototype-styled.
+     imported count in the step body, prototype-styled. **F39 first-run handoff:**
+     the same import step also offers **Bring tabs without importing everything…**
+     before any import runs, and after a successful import switches to **Bring a
+     folder in as tabs…** beneath the count; both open `blanc://tab-import/` via
+     the same utility-sheet opener as Favorites and `/bring-tabs`, dismiss the
+     dialog first, and do not complete first-run privacy persistence.
   3. *the island* — static vignette, verbatim.
   4. *ad blocking* — toggle writes `adblockEnabled` through the normal settings
      path, live (matches the existing Settings toggle semantics).

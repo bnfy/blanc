@@ -327,11 +327,11 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 
 **Files:** `src/renderer/pages/onboarding.js`, `src/renderer/pages/newtab.html`, `docs/superpowers/specs/2026-08-16-newtab-layouts-onboarding-design.md` (amend import step copy)
 
-- [ ] **Step 1:** After successful `importBrowser` / file import — show **Bring a folder in as tabs…** secondary action.
-- [ ] **Step 2:** Skip / zero-import path — **Bring tabs without importing everything…**.
-- [ ] **Step 3:** Both call existing utility opener (closes onboarding dialog first if needed).
-- [ ] **Step 4:** Update onboarding design spec cross-ref paragraph.
-- [ ] **Step 5:** Manual fresh-profile smoke; repoint F30-3/F36 acceptance steps if needed.
+- [x] **Step 1:** After successful `importBrowser` / file import — show **Bring a folder in as tabs…** secondary action.
+- [x] **Step 2:** Skip / zero-import path — **Bring tabs without importing everything…**.
+- [x] **Step 3:** Both call existing utility opener (closes onboarding dialog first if needed).
+- [x] **Step 4:** Update onboarding design spec cross-ref paragraph.
+- [x] **Step 5:** Manual fresh-profile smoke; repoint F30-3/F36 acceptance steps if needed.
 - [ ] **Step 6:** Commit — `feat(tab-import): onboarding import-step handoff`
 
 ---

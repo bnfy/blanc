@@ -41,3 +41,15 @@ test('/bring-tabs is catalogued and dispatches through the privileged page allow
   assert.match(handler, /'tab-import'/);
   assert.match(handler, /openInternalPage\(`blanc:\/\/\$\{name\}\/\$\{fragment\}`\)/);
 });
+
+test('onboarding import step exposes both Bring Your Tabs handoff labels', () => {
+  const html = read('src/renderer/pages/newtab.html');
+  const renderer = read('src/renderer/pages/onboarding.js');
+
+  assert.match(html, /id="obBringTabs"/);
+  assert.match(renderer, /Bring a folder in as tabs…/);
+  assert.match(renderer, /Bring tabs without importing everything…/);
+  assert.match(renderer, /bringTabsBtn\.addEventListener\('click'/);
+  assert.match(renderer, /window\.location\.href = 'blanc:\/\/tab-import\/'/);
+  assert.match(renderer, /state\.importHandoff = 'post-import'/);
+});

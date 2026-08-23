@@ -1207,6 +1207,8 @@ function install(refs) {
         findHidden: document.getElementById('obLook')?.hidden ?? true,
         options: [...document.querySelectorAll('#obSources .ob-src-row')].map((row) => row.textContent),
         status: document.getElementById('obImportStatus')?.textContent ?? '',
+        bringTabsHidden: document.getElementById('obBringTabs')?.hidden ?? true,
+        bringTabsLabel: document.getElementById('obBringTabs')?.textContent ?? '',
         step: document.getElementById('onboardDialog')?.dataset.step ?? null,
       }))()`);
     },
@@ -1243,6 +1245,16 @@ function install(refs) {
         if (!rows.length) return false;
         if (!rows[0].classList.contains('selected')) rows[0].click();
         document.getElementById('obNext').click();
+        return true;
+      })()`);
+    },
+    clickFirstRunBringTabs() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('obBringTabs');
+        if (!button || button.hidden) return false;
+        button.click();
         return true;
       })()`);
     },
