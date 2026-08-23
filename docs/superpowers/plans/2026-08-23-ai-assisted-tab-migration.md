@@ -357,7 +357,7 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 - [x] **Step 2:** Record SHA-256, license, compressed size; fail gate if > 30 MiB installer increase.
 - [x] **Step 3:** Pin exact model bytes in repo; add SBOM/notices entries. *(Deferred — gate failed; candidate metadata recorded in `tab-import/embedding-ship-decision.json` without bundling bytes.)*
 - [x] **Step 4:** If gate fails — document ship decision: folder-only until re-review; skip Tasks 16–17 model enablement.
-- [ ] **Step 5:** Commit — `chore(tab-import): pin embedding model and packaging benchmark`
+- [x] **Step 5:** Commit — `chore(tab-import): pin embedding model and packaging benchmark`
 
 **Outcome:** `Xenova/paraphrase-MiniLM-L3-v2` uint8 selected for a future pin; **30.04 MiB** minimum payload fails gate. See `docs/superpowers/specs/2026-08-23-tab-import-embedding-benchmark.md`. Tasks **16–17 skipped** for F39 v1.
 
