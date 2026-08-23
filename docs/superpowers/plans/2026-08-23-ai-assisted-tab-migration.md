@@ -332,7 +332,7 @@ Wire window close, profile deletion, utility sheet dismiss, and app quit to `tab
 - [x] **Step 3:** Both call existing utility opener (closes onboarding dialog first if needed).
 - [x] **Step 4:** Update onboarding design spec cross-ref paragraph.
 - [x] **Step 5:** Manual fresh-profile smoke; repoint F30-3/F36 acceptance steps if needed.
-- [ ] **Step 6:** Commit — `feat(tab-import): onboarding import-step handoff`
+- [x] **Step 6:** Commit — `feat(tab-import): onboarding import-step handoff`
 
 ---
 
