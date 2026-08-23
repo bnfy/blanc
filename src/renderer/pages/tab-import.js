@@ -262,9 +262,11 @@ function renderSourcesLoading() {
   sourceListEl.append(loading);
 }
 
-function renderSourceButtons(sources) {
+function renderSourceButtons(result) {
+  const sources = result?.sources ?? [];
+  const unavailable = result?.unavailable ?? [];
   sourceListEl.replaceChildren();
-  if (!sources.length) {
+  if (!sources.length && !unavailable.length) {
     const empty = document.createElement('p');
     empty.className = 'section-hint';
     empty.textContent = 'No other browser profiles found on this device.';
@@ -279,14 +281,26 @@ function renderSourceButtons(sources) {
     btn.addEventListener('click', () => openBrowserSource(source.id, source.label));
     sourceListEl.append(btn);
   }
+  for (const entry of unavailable) {
+    const row = document.createElement('div');
+    row.className = 'tab-import-source-unavailable';
+    const name = document.createElement('span');
+    name.className = 'tab-import-source-unavailable-name';
+    name.textContent = entry.label;
+    const hint = document.createElement('p');
+    hint.className = 'tab-import-source-unavailable-hint';
+    hint.textContent = entry.guidance ?? '';
+    row.append(name, hint);
+    sourceListEl.append(row);
+  }
 }
 
 async function loadSources() {
   if (!api) return;
   renderSourcesLoading();
   try {
-    const sources = await api.sources();
-    renderSourceButtons(sources);
+    const result = await api.sources();
+    renderSourceButtons(result);
   } catch {
     sourceListEl.replaceChildren();
     const err = document.createElement('p');

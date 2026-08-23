@@ -105,6 +105,19 @@
   function renderSources() {
     sourceList.replaceChildren();
     for (const source of state.sources) {
+      if (source.unavailable) {
+        const row = document.createElement('div');
+        row.className = 'ob-src-unavailable';
+        const label = document.createElement('span');
+        label.className = 'ob-src-unavailable-name';
+        label.textContent = source.label;
+        const hint = document.createElement('span');
+        hint.className = 'ob-src-unavailable-hint';
+        hint.textContent = source.guidance ?? '';
+        row.append(label, hint);
+        sourceList.appendChild(row);
+        continue;
+      }
       const row = document.createElement('button');
       row.type = 'button';
       row.className = 'ob-src-row' + (state.importSource === source.id ? ' selected' : '');
@@ -144,13 +157,23 @@
     lookBtn.disabled = true;
     importStatus.textContent = 'Looking for installed browsers…';
     try {
-      const sources = await window.bowserPages.bookmarks.browserSources();
+      const result = await window.bowserPages.bookmarks.browserSources();
+      const sources = result?.sources ?? [];
+      const unavailable = result?.unavailable ?? [];
       state.looked = true;
       state.sources = [
-        ...(sources ?? []),
+        ...sources.map((source) => ({ id: source.id, label: source.label })),
+        ...unavailable.map((entry) => ({
+          id: null,
+          label: entry.label,
+          unavailable: true,
+          guidance: entry.guidance ?? '',
+        })),
         state.sources[state.sources.length - 1], // the file row stays last
       ];
-      importStatus.textContent = sources?.length ? '' : 'No other browser profiles found.';
+      importStatus.textContent = (sources.length || unavailable.length)
+        ? ''
+        : 'No other browser profiles found.';
     } catch {
       importStatus.textContent = "Couldn't check for other browsers.";
     } finally {

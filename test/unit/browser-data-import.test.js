@@ -5,6 +5,7 @@ const path = require('node:path');
 const test = require('node:test');
 const {
   MAX_BROWSER_BOOKMARK_BYTES,
+  BROWSER_PERMISSION_GUIDANCE,
   browserDataRoot,
   chromiumTimestampMs,
   parseChromiumBookmarks,
@@ -105,7 +106,8 @@ test('service discovers opaque sources and reads only a rediscovered source id',
     homeDir,
     env: {},
   });
-  const sources = await service.listSources();
+  const result = await service.listSources();
+  const sources = result.sources;
   assert.deepEqual(sources.map(({ browser, profile, label }) => ({ browser, profile, label })), [{
     browser: 'Google Chrome',
     profile: 'Person 1',
@@ -134,7 +136,7 @@ test('service rejects an oversized Bookmarks file before reading it', async (t) 
     homeDir,
     env: {},
   });
-  const [source] = await service.listSources();
+  const [source] = (await service.listSources()).sources;
   assert.equal((await service.readSource(source.id)).error, 'too-large');
 });
 
@@ -159,7 +161,7 @@ test('readFolderTree and readSubtreeCandidates preserve F30 flat readSource outp
     homeDir,
     env: {},
   });
-  const [source] = await service.listSources();
+  const [source] = (await service.listSources()).sources;
   const flatBefore = await service.readSource(source.id);
   assert.equal(flatBefore.entries.length, 3);
   assert.deepEqual(Object.keys(flatBefore).sort(), ['entries', 'source']);
@@ -210,7 +212,7 @@ test('tree reads reject empty sources and enforce the candidate cap after dedup'
   };
   fs.writeFileSync(file, JSON.stringify(empty));
   const service = createBrowserDataImportService({ platform: 'darwin', homeDir, env: {} });
-  const [source] = await service.listSources();
+  const [source] = (await service.listSources()).sources;
   assert.deepEqual(await service.readFolderTree(source.id), { error: 'empty' });
 
   const children = Array.from({ length: 500 }, (_, index) => ({
@@ -236,4 +238,26 @@ test('tree reads reject empty sources and enforce the candidate cap after dedup'
     error: 'too-many-candidates',
     count: 501,
   });
+});
+
+test('listSources reports permission-blocked browsers instead of omitting them', async (t) => {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-browser-import-blocked-'));
+  t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));
+  const chromeRoot = browserDataRoot('chrome', { platform: 'darwin', homeDir, env: {} });
+  fs.mkdirSync(chromeRoot, { recursive: true });
+  fs.chmodSync(chromeRoot, 0);
+  const service = createBrowserDataImportService({ platform: 'darwin', homeDir, env: {} });
+  try {
+    const result = await service.listSources();
+    assert.equal(result.sources.length, 0);
+    assert.deepEqual(result.unavailable, [{
+      browserId: 'chrome',
+      browser: 'Google Chrome',
+      label: 'Google Chrome',
+      reason: 'permission',
+      guidance: BROWSER_PERMISSION_GUIDANCE,
+    }]);
+  } finally {
+    fs.chmodSync(chromeRoot, 0o755);
+  }
 });

@@ -14,6 +14,13 @@ const MAX_BROWSER_BOOKMARK_BYTES = 20 * 1024 * 1024;
 const MAX_BROWSER_BOOKMARK_NODES = 100_000;
 const CHROMIUM_EPOCH_OFFSET_MS = 11_644_473_600_000;
 
+const BROWSER_PERMISSION_GUIDANCE =
+  'macOS blocked access to this browser\'s profile folder. Grant Blanc Full Disk Access in System Settings → Privacy & Security, or export bookmarks as HTML and use the file import option below.';
+
+function isBrowserAccessError(err) {
+  return err?.code === 'EPERM' || err?.code === 'EACCES';
+}
+
 const BROWSERS = Object.freeze([
   {
     id: 'chrome',
@@ -167,6 +174,16 @@ function safeProfileName(infoCache, directory) {
   return directory === 'Default' ? 'Default' : directory.slice(0, 120);
 }
 
+function publicUnavailable(browser) {
+  return {
+    browserId: browser.id,
+    browser: browser.name,
+    label: browser.name,
+    reason: 'permission',
+    guidance: BROWSER_PERMISSION_GUIDANCE,
+  };
+}
+
 function publicSource(source) {
   return {
     id: source.id,
@@ -185,14 +202,31 @@ function createBrowserDataImportService({
   fsPromises = fs.promises,
 } = {}) {
   async function discover() {
-    const found = [];
+    const sources = [];
+    const unavailable = [];
+    const blockedBrowserIds = new Set();
     for (const browser of BROWSERS) {
       const root = browserDataRoot(browser.id, { platform, homeDir, env });
       if (!root) continue;
+      try {
+        const rootStat = await fsPromises.stat(root);
+        if (!rootStat.isDirectory()) continue;
+      } catch (err) {
+        if (err?.code === 'ENOENT') continue;
+        if (isBrowserAccessError(err) && !blockedBrowserIds.has(browser.id)) {
+          blockedBrowserIds.add(browser.id);
+          unavailable.push({ browserId: browser.id, browser: browser.name });
+        }
+        continue;
+      }
       let directories;
       try {
         directories = await fsPromises.readdir(root, { withFileTypes: true });
-      } catch {
+      } catch (err) {
+        if (isBrowserAccessError(err) && !blockedBrowserIds.has(browser.id)) {
+          blockedBrowserIds.add(browser.id);
+          unavailable.push({ browserId: browser.id, browser: browser.name });
+        }
         continue;
       }
       const localState = await readJsonIfSmall(path.join(root, 'Local State'), fsPromises);
@@ -203,10 +237,14 @@ function createBrowserDataImportService({
         try {
           const stat = await fsPromises.stat(bookmarksPath);
           if (!stat.isFile()) continue;
-        } catch {
+        } catch (err) {
+          if (isBrowserAccessError(err) && !blockedBrowserIds.has(browser.id)) {
+            blockedBrowserIds.add(browser.id);
+            unavailable.push({ browserId: browser.id, browser: browser.name });
+          }
           continue;
         }
-        found.push({
+        sources.push({
           id: sourceId(browser.id, entry.name),
           browserId: browser.id,
           browser: browser.name,
@@ -216,12 +254,13 @@ function createBrowserDataImportService({
         });
       }
     }
-    return found.sort((a, b) =>
+    sources.sort((a, b) =>
       a.browser.localeCompare(b.browser) || a.profile.localeCompare(b.profile));
+    return { sources, unavailable };
   }
 
   async function readTree(id) {
-    const source = (await discover()).find((candidate) => candidate.id === id);
+    const source = (await discover()).sources.find((candidate) => candidate.id === id);
     if (!source) return { error: 'source-unavailable' };
     let handle;
     try {
@@ -243,11 +282,21 @@ function createBrowserDataImportService({
 
   return {
     async listSources() {
-      return (await discover()).map(publicSource);
+      const { sources, unavailable } = await discover();
+      return {
+        sources: sources.map(publicSource),
+        unavailable: unavailable.map((entry) =>
+          publicUnavailable(
+            BROWSERS.find((browser) => browser.id === entry.browserId) ?? {
+              id: entry.browserId,
+              name: entry.browser,
+            },
+          )),
+      };
     },
 
     async readSource(id) {
-      const source = (await discover()).find((candidate) => candidate.id === id);
+      const source = (await discover()).sources.find((candidate) => candidate.id === id);
       if (!source) return { error: 'source-unavailable' };
       try {
         const stat = await fsPromises.stat(source.bookmarksPath);
@@ -296,6 +345,7 @@ function createBrowserDataImportService({
 
 module.exports = {
   BROWSERS,
+  BROWSER_PERMISSION_GUIDANCE,
   MAX_BROWSER_BOOKMARK_BYTES,
   browserDataRoot,
   chromiumTimestampMs,

@@ -1227,6 +1227,26 @@ body.sheet .page h1:focus { outline: none; }
 }
 .tab-import-source-btn:hover,
 .tab-import-secondary:hover { border-color: var(--text-dim); }
+.tab-import-source-unavailable {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text-dim);
+}
+.tab-import-source-unavailable-name {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+}
+.tab-import-source-unavailable-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+.import-guidance:empty,
+.import-guidance[hidden] { display: none; }
 .tab-import-folder-tree {
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1837,6 +1857,21 @@ body:not([data-layout="ledger"]) .ledger-footer {
   font-family: var(--font-ui);
 }
 .ob-src-row + .ob-src-row { border-top: 1px solid var(--border); }
+.ob-src-unavailable {
+  display: block;
+  padding: 9px 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+.ob-src-unavailable-name {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.ob-src-unavailable-hint { display: block; }
 .ob-src-row:hover, .ob-src-row.selected { background: var(--accent-dim); }
 .ob-radio {
   width: 14px;
