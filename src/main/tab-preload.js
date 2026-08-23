@@ -87,6 +87,28 @@ if (window.location.protocol === 'blanc:') {
       surface,
       shortcuts: { list: () => invoke('pages:shortcuts:list') },
     };
+  } else if (host === 'tab-import') {
+    api = {
+      surface,
+      tabImport: {
+        sources: () => invoke('pages:tab-import:sources'),
+        openSource: (id) => invoke('pages:tab-import:open-source', id),
+        openFile: () => invoke('pages:tab-import:open-file'),
+        selectFolder: (sessionId, rootFolderId) =>
+          invoke('pages:tab-import:select-folder', sessionId, rootFolderId),
+        setSelection: (sessionId, selection) =>
+          invoke('pages:tab-import:set-selection', sessionId, selection),
+        suggestFolders: (sessionId) =>
+          invoke('pages:tab-import:suggest-folders', sessionId),
+        suggestEmbed: (sessionId) =>
+          invoke('pages:tab-import:suggest-embed', sessionId),
+        submitEmbeddings: (sessionId, generation, matrix) =>
+          invoke('pages:tab-import:submit-embeddings', sessionId, generation, matrix),
+        apply: (sessionId, request) =>
+          invoke('pages:tab-import:apply', sessionId, request),
+        cancel: (sessionId) => invoke('pages:tab-import:cancel', sessionId),
+      },
+    };
   } else if (host === 'settings') {
     api = {
       surface,

@@ -208,11 +208,11 @@ Inject `now`, `randomId`, `randomBytes` for deterministic tests.
 
 **Files:** `src/main/utility-pages.js`, `src/main/pages.js`, `src/renderer/pages/tab-import.html`, `src/renderer/pages/tab-import.js` (skeleton), `src/renderer/pages/pages.css`
 
-- [ ] **Step 1:** Add `tab-import` to `UTILITY_PAGES` and `KNOWN_PAGES`.
-- [ ] **Step 2:** Create `tab-import.html` with utility `body.sheet` layout, CSP allowing `worker-src 'self'` (tighten wasm rules in Task 16).
-- [ ] **Step 3:** Skeleton `tab-import.js` — step enum (`source` | `folder` | `preview` | `review`), no IPC yet.
-- [ ] **Step 4:** `openInternalPage('blanc://tab-import/')` opens sheet; relaunch verify manually.
-- [ ] **Step 5:** Commit — `feat(tab-import): utility sheet host and shell`
+- [x] **Step 1:** Add `tab-import` to `UTILITY_PAGES` and `KNOWN_PAGES`.
+- [x] **Step 2:** Create `tab-import.html` with utility `body.sheet` layout, CSP allowing `worker-src 'self'` (tighten wasm rules in Task 16).
+- [x] **Step 3:** Skeleton `tab-import.js` — step enum (`source` | `folder` | `preview` | `review`), no IPC yet.
+- [x] **Step 4:** `openInternalPage('blanc://tab-import/')` opens sheet; relaunch verify manually.
+- [x] **Step 5:** Commit — `feat(tab-import): utility sheet host and shell`
 
 ---
 
@@ -235,11 +235,11 @@ Inject `now`, `randomId`, `randomBytes` for deterministic tests.
 | `pages:tab-import:apply` | Delegates to `applyTabImport` hook |
 | `pages:tab-import:cancel` | Destroy session |
 
-- [ ] **Step 1:** Extend `pageSurfaces.owns` — `UTILITY_PAGES.has(host)` already covers new host when in set.
-- [ ] **Step 2:** Register handlers with `handle(channel, 'tab-import', fn)` + `runInPageRuntime`.
-- [ ] **Step 3:** `tab-preload.js` — expose `bowserPages.tabImport` only when `host === 'tab-import'`.
-- [ ] **Step 4:** Unit-level denial tests via `test/desktop` stub or small `pages-ipc-trust` extension test — wrong host/frame rejected.
-- [ ] **Step 5:** Commit — `feat(tab-import): trusted pages:tab-import IPC surface`
+- [x] **Step 1:** Extend `pageSurfaces.owns` — `UTILITY_PAGES.has(host)` already covers new host when in set.
+- [x] **Step 2:** Register handlers with `handle(channel, 'tab-import', fn)` + `runInPageRuntime`.
+- [x] **Step 3:** `tab-preload.js` — expose `bowserPages.tabImport` only when `host === 'tab-import'`.
+- [x] **Step 4:** Unit-level denial tests via `test/desktop` stub or small `pages-ipc-trust` extension test — wrong host/frame rejected.
+- [x] **Step 5:** Commit — `feat(tab-import): trusted pages:tab-import IPC surface`
 
 ---
 

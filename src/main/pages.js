@@ -3,8 +3,13 @@ const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 const bookmarks = require('./bookmarks');
-const { parseNetscapeBookmarks } = require('./bookmark-import');
+const { parseNetscapeBookmarks, parseNetscapeBookmarkTree } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
+const {
+  extractSubtree,
+  dedupeCandidatesByUrl,
+  enforceCandidateCap,
+} = require('./bookmark-tree');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
@@ -145,6 +150,105 @@ function setupPages(hooks = {}) {
     hooks.onDataChanged?.();
     return { added, skipped, source: read.source };
   });
+
+  // Bring Your Tabs gets a separate, exact-host surface from F30 Favorites
+  // import. Browser/file readers retain URLs in main; the sheet receives only
+  // folder metadata until it selects a subtree, then only the session store's
+  // opaque candidate projection.
+  handle('pages:tab-import:sources', 'tab-import', () => browserImport.listSources());
+  handle('pages:tab-import:open-source', 'tab-import', async (id) => {
+    const sourceId = String(id ?? '');
+    const read = await browserImport.readFolderTree(sourceId);
+    if (read.error) return { error: read.error };
+    const opened = hooks.tabImport?.openSource?.({
+      sourceKind: 'chromium',
+      sourceLabel: read.source.label,
+      readCandidates: (rootFolderId) =>
+        browserImport.readSubtreeCandidates(sourceId, rootFolderId),
+    }) ?? { error: 'session-unavailable' };
+    if (opened.error) return opened;
+    return {
+      ...opened,
+      source: read.source,
+      folders: read.folders,
+      rootFolderIds: read.rootFolderIds,
+    };
+  });
+  handle('pages:tab-import:open-file', 'tab-import', async () => {
+    const parent = hooks.getMainWindow?.();
+    const picked = await dialog.showOpenDialog(parent ?? undefined, {
+      title: 'Bring tabs from a bookmarks file',
+      filters: [{ name: 'Bookmarks', extensions: ['html', 'htm'] }],
+      properties: ['openFile'],
+    });
+    if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
+    try {
+      const stat = await fs.promises.stat(picked.filePaths[0]);
+      if (!stat.isFile() || stat.size > MAX_IMPORT_BYTES) return { error: 'too-large' };
+      const html = await fs.promises.readFile(picked.filePaths[0], 'utf8');
+      const tree = parseNetscapeBookmarkTree(html);
+      if (!tree.folders.some((folder) => folder.subtreeHttpCount > 0)) {
+        return { error: 'empty' };
+      }
+      const opened = hooks.tabImport?.openSource?.({
+        sourceKind: 'html',
+        // Deliberately omit the local filename/path from the renderer-facing
+        // source projection and from the session label.
+        sourceLabel: 'Bookmarks file',
+        readCandidates: async (rootFolderId) => {
+          const extracted = extractSubtree(tree, String(rootFolderId ?? ''));
+          const deduped = dedupeCandidatesByUrl(extracted.candidates);
+          const capped = enforceCandidateCap(deduped.candidates);
+          if (!capped.ok) return { error: 'too-many-candidates', count: capped.count };
+          if (!capped.candidates.length) return { error: 'empty' };
+          return {
+            candidates: capped.candidates,
+            duplicateCount: deduped.duplicateCount,
+          };
+        },
+      }) ?? { error: 'session-unavailable' };
+      if (opened.error) return opened;
+      return {
+        ...opened,
+        source: { kind: 'html', label: 'Bookmarks file' },
+        folders: tree.folders,
+        rootFolderIds: tree.rootFolderIds,
+      };
+    } catch {
+      return { error: 'unreadable' };
+    }
+  });
+  handle('pages:tab-import:select-folder', 'tab-import', (sessionId, rootFolderId) =>
+    hooks.tabImport?.selectFolder?.(
+      String(sessionId ?? ''),
+      String(rootFolderId ?? ''),
+    ) ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:set-selection', 'tab-import', (sessionId, selection) =>
+    hooks.tabImport?.setSelection?.(
+      String(sessionId ?? ''),
+      selection ?? {},
+    ) ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-folders', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestFolders?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-embed', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestEmbed?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle(
+    'pages:tab-import:submit-embeddings',
+    'tab-import',
+    (sessionId, generation, matrix) => hooks.tabImport?.submitEmbeddings?.(
+      String(sessionId ?? ''),
+      String(generation ?? ''),
+      matrix,
+    ) ?? { error: 'session-unavailable' },
+  );
+  handle('pages:tab-import:apply', 'tab-import', (sessionId, request) =>
+    hooks.tabImport?.apply?.(String(sessionId ?? ''), request ?? {})
+      ?? { error: 'apply-unavailable' });
+  handle('pages:tab-import:cancel', 'tab-import', (sessionId) =>
+    hooks.tabImport?.cancel?.(String(sessionId ?? '')) ?? { ok: false });
+
   handle('pages:bookmarks:set-folder', 'bookmarks', (id, folder) => {
     bookmarks.setBookmarkFolder(id, folder);
     hooks.onDataChanged?.();

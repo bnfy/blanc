@@ -163,6 +163,13 @@ const { showAboutPanel } = require('./about-panel');
 const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront } = require('./window-activation');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
+const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
+const {
+  sanitizeCandidateInput,
+  proposeFromFolders,
+  proposeFromEmbeddings,
+  validateProposal,
+} = require('./tab-import-organizer');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
@@ -229,6 +236,230 @@ const rt = currentRuntime;
 // run from startup contexts.
 primaryRuntime = windowRuntimes.createRuntime({ id: PRIMARY_WINDOW_ID });
 focusedRuntime = primaryRuntime;
+
+// F39 import state is main-process-only. Source readers either re-read a
+// browser's bounded bookmark file or close over an already-parsed HTML tree;
+// neither the reader nor exact URLs ever cross the tab-import page bridge.
+const tabImportSessions = createTabImportSessionStore();
+const tabImportSourceReaders = new Map(); // sessionId -> owner + reader + generation
+
+function tabImportOwner() {
+  return { runtimeId: rt().id, profileId: rt().profileId };
+}
+
+function sameTabImportOwner(record, owner) {
+  return !!record && record.runtimeId === owner.runtimeId && record.profileId === owner.profileId;
+}
+
+function forgetTabImportSource(sessionId) {
+  return tabImportSourceReaders.delete(String(sessionId ?? ''));
+}
+
+function forgetTabImportForRuntime(runtimeId, reason = 'runtime-destroyed') {
+  for (const [sessionId, record] of tabImportSourceReaders) {
+    if (record.runtimeId === runtimeId) tabImportSourceReaders.delete(sessionId);
+  }
+  return tabImportSessions.destroyForRuntime(runtimeId, reason);
+}
+
+function expireTabImportSessions(at = Date.now()) {
+  for (const [sessionId, record] of tabImportSourceReaders) {
+    if (at - record.lastTouchAt >= SESSION_TTL_MS) {
+      tabImportSourceReaders.delete(sessionId);
+      tabImportSessions.destroySession(sessionId, 'expired');
+    }
+  }
+  // Also catches a future session without a source reader. Source-backed
+  // sessions were destroyed above so the store call remains idempotent.
+  tabImportSessions.expireIdleSessions(at);
+}
+
+function openTabImportSource({ sourceKind, sourceLabel, readCandidates } = {}) {
+  const owner = tabImportOwner();
+  if (typeof readCandidates !== 'function') return { error: 'source-unavailable' };
+  // createSession enforces one session per runtime; mirror that replacement
+  // in the source-reader map so an old HTML tree cannot outlive its ticket.
+  for (const [sessionId, record] of tabImportSourceReaders) {
+    if (record.runtimeId === owner.runtimeId) tabImportSourceReaders.delete(sessionId);
+  }
+  const created = tabImportSessions.createSession({
+    ...owner,
+    sourceKind: String(sourceKind ?? '').slice(0, 40),
+    sourceLabel: String(sourceLabel ?? '').slice(0, 120),
+  });
+  tabImportSourceReaders.set(created.sessionId, {
+    ...owner,
+    generation: created.generation,
+    readCandidates,
+    lastTouchAt: Date.now(),
+  });
+  return created;
+}
+
+function ownedTabImportSource(sessionId) {
+  const key = String(sessionId ?? '');
+  const owner = tabImportOwner();
+  const record = tabImportSourceReaders.get(key);
+  if (!record) return { error: 'session-unavailable' };
+  if (!sameTabImportOwner(record, owner)) return { error: 'forbidden' };
+  if (Date.now() - record.lastTouchAt >= SESSION_TTL_MS) {
+    tabImportSourceReaders.delete(key);
+    tabImportSessions.destroySession(key, 'expired');
+    return { error: 'session-unavailable' };
+  }
+  record.lastTouchAt = Date.now();
+  return { key, owner, record };
+}
+
+function dropUnavailableTabImportSource(sessionId, result) {
+  if (result?.error === 'session-unavailable') forgetTabImportSource(sessionId);
+  return result;
+}
+
+async function selectTabImportFolder(sessionId, rootFolderId) {
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+  let read;
+  try {
+    read = await resolved.record.readCandidates(String(rootFolderId ?? ''));
+  } catch {
+    return { error: 'unreadable' };
+  }
+  if (!read || read.error) return read ?? { error: 'unreadable' };
+  const assigned = tabImportSessions.assignCandidates(
+    resolved.key,
+    read.candidates,
+    resolved.owner,
+  );
+  if (assigned.error) return dropUnavailableTabImportSource(resolved.key, assigned);
+  // A newly selected folder invalidates vectors from an earlier preview.
+  tabImportSessions.clearEmbeddings(resolved.key, resolved.owner);
+  const projection = tabImportSessions.projectCandidates(resolved.key, resolved.owner);
+  if (projection.error) return dropUnavailableTabImportSource(resolved.key, projection);
+  return {
+    generation: resolved.record.generation,
+    candidates: projection.candidates,
+    duplicateCount: Number(read.duplicateCount) || 0,
+  };
+}
+
+function setTabImportSelection(sessionId, selection) {
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+  const changed = tabImportSessions.setSelection(resolved.key, selection, resolved.owner);
+  if (changed.error) return dropUnavailableTabImportSource(resolved.key, changed);
+  // Selection changes alter worker row order/cardinality, so old vectors are
+  // never eligible for a later proposal even within the same session.
+  tabImportSessions.clearEmbeddings(resolved.key, resolved.owner);
+  const projection = tabImportSessions.projectCandidates(resolved.key, resolved.owner);
+  if (projection.error) return dropUnavailableTabImportSource(resolved.key, projection);
+  return { generation: resolved.record.generation, candidates: projection.candidates };
+}
+
+function selectedTabImportProjection(sessionId) {
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+  const projection = tabImportSessions.projectCandidates(resolved.key, resolved.owner);
+  if (projection.error) return dropUnavailableTabImportSource(resolved.key, projection);
+  return {
+    ...resolved,
+    selected: projection.candidates.filter((candidate) =>
+      candidate.selected && !candidate.excluded),
+    excludedIds: projection.candidates
+      .filter((candidate) => candidate.excluded)
+      .map((candidate) => candidate.candidateId),
+  };
+}
+
+function validatedTabImportProposal(selected, excludedIds, proposal) {
+  const checked = validateProposal(proposal, {
+    selectedIds: selected.map((candidate) => candidate.candidateId),
+    excludedIds,
+  });
+  return checked.ok ? { proposal: checked.proposal } : { error: 'invalid-proposal' };
+}
+
+function suggestTabImportFolders(sessionId) {
+  const projected = selectedTabImportProjection(sessionId);
+  if (projected.error) return projected;
+  return validatedTabImportProposal(
+    projected.selected,
+    projected.excludedIds,
+    proposeFromFolders(projected.selected),
+  );
+}
+
+function startTabImportEmbedding(sessionId) {
+  const projected = selectedTabImportProjection(sessionId);
+  if (projected.error) return projected;
+  tabImportSessions.clearEmbeddings(projected.key, projected.owner);
+  return {
+    generation: projected.record.generation,
+    // sanitizeCandidateInput is the complete worker/model allowlist: opaque
+    // id, bounded title, hostname, and folder path only.
+    candidates: projected.selected.map(sanitizeCandidateInput),
+  };
+}
+
+function normalizeTabImportEmbeddingMatrix(matrix, expectedRows) {
+  if (!Array.isArray(matrix) || matrix.length !== expectedRows || matrix.length > 500) return null;
+  let dimensions = null;
+  const normalized = [];
+  for (const row of matrix) {
+    const values = Array.isArray(row)
+      ? row
+      : (ArrayBuffer.isView(row) ? Array.from(row) : null);
+    if (!values || values.length < 1 || values.length > 4096) return null;
+    if (dimensions === null) dimensions = values.length;
+    if (values.length !== dimensions || !values.every((value) => Number.isFinite(value))) return null;
+    normalized.push(values.map(Number));
+  }
+  return normalized;
+}
+
+function submitTabImportEmbeddings(sessionId, generation, matrix) {
+  const projected = selectedTabImportProjection(sessionId);
+  if (projected.error) return projected;
+  const normalized = normalizeTabImportEmbeddingMatrix(matrix, projected.selected.length);
+  if (!normalized) return { error: 'invalid-embeddings' };
+  const stored = tabImportSessions.storeEmbeddings(
+    projected.key,
+    generation,
+    normalized,
+    projected.owner,
+  );
+  if (stored.error) return dropUnavailableTabImportSource(projected.key, stored);
+  const proposal = proposeFromEmbeddings(projected.selected, normalized);
+  const validated = validatedTabImportProposal(
+    projected.selected,
+    projected.excludedIds,
+    proposal,
+  );
+  if (!validated.error) return validated;
+  // A malformed/unsuitable model result fails closed to the deterministic
+  // folder organizer; there is no cloud fallback.
+  const fallback = validatedTabImportProposal(
+    projected.selected,
+    projected.excludedIds,
+    proposeFromFolders(projected.selected),
+  );
+  return fallback.error ? fallback : { ...fallback, fallback: true };
+}
+
+// Task 11 replaces this no-mutation floor with the transactional batch apply
+// seam. Keeping the endpoint delegated through main now prevents pages.js or
+// the utility renderer from ever acquiring direct tab/group/Favorites access.
+function applyTabImport() {
+  return { error: 'apply-unavailable' };
+}
+
+function cancelTabImport(sessionId) {
+  const resolved = ownedTabImportSource(sessionId);
+  if (resolved.error) return resolved;
+  tabImportSessions.destroySession(resolved.key, 'cancel');
+  forgetTabImportSource(resolved.key);
+  return { ok: true };
+}
 
 function withWindowRuntime(runtime, work) {
   if (!runtime) return undefined;
@@ -6747,6 +6978,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         });
       },
     },
+    tabImport: {
+      openSource: openTabImportSource,
+      selectFolder: selectTabImportFolder,
+      setSelection: setTabImportSelection,
+      suggestFolders: suggestTabImportFolders,
+      suggestEmbed: startTabImportEmbedding,
+      submitEmbeddings: submitTabImportEmbeddings,
+      apply: applyTabImport,
+      cancel: cancelTabImport,
+    },
     // The start page's ledger sections read live tab-group state and the
     // rolling blocked counter, both owned here.
     startPage: {
@@ -6943,6 +7184,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // One 30-second sweep fans out across independent workspaces. The immediate
   // keeps WebContents lifecycle work outside settings fan-out turns.
   setInterval(() => {
+    expireTabImportSessions();
     setImmediate(() => forEachWindowRuntime((runtime) => {
       runSleepSweep().catch((err) =>
         console.warn(`[quiet-tabs] sweep (${runtime.id}):`, err?.message));
