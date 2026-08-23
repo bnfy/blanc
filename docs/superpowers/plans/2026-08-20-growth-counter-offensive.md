@@ -249,16 +249,25 @@ deliberately **out of scope**. Task 15 reports per-channel *landings* plus
 
 **Owner:** `owner` — identity verification.
 
-**Why:** Due **2026-09-02**. If it lapses, paid delivery stops — potentially mid-launch. Account: Bananify Creative, 747-455-5018, campaign 24027915268.
+**Why:** Due **2026-09-15** in the live Google Ads UI. If it lapses, paid
+delivery stops — potentially mid-launch. Account: Bananify Creative,
+747-455-5018, campaign 24027915268.
 
 - [ ] **Step 1: Complete verification in the Google Ads UI**
 
 Must be finished **before launch week begins**, not during it.
 
-- [ ] **Step 2: Confirm the campaign is still Enabled and serving**
+Submitted on 2026-08-23 under Bananify Creative; all required tasks and
+documents show completed. Google quotes a 1–10 day review. Leave this unchecked
+until the account is approved, not merely submitted.
+
+- [x] **Step 2: Confirm the campaign is still Enabled and serving**
 
 Check campaign 24027915268 shows `Enabled` with recent impressions. A verified
 account with a paused campaign delivers nothing.
+
+Verified live on 2026-08-23: campaign 24027915268 is `Enabled`, status
+`Limited by budget`, with 1.95K impressions and 80 clicks for Aug 16–22.
 
 - [ ] **Step 3: Record the outcome**
 
@@ -273,12 +282,25 @@ echo '{"date":"YYYY-MM-DD","googleAdsVerification":"complete","campaignStatus":"
 
 **Owner:** `owner` — real payment. **An agent must not attempt a purchase.**
 
-**Why:** Sandbox purchase→activate→create was proven 2026-08-20; **production has never been run.** Named Workspaces (merged in `8a3dcf5`, PR #177) carries this as an explicit release gate. A successful launch week points the largest traffic spike in Blanc's history at a payment path that has never processed a real transaction.
+**Status: PASSED 2026-08-23.** The owner opened the live checkout from the
+public packaged v1.8.2 app, bought the real $4/month subscription, activated it,
+and confirmed Named Workspaces creation and renaming. Polar's customer portal
+shows exactly one active allocation labeled `Blanc`; against the configured
+five-device cap, the customer retains four activations of headroom. The portal's
+initial `Validations: 0` / `Never Validated` display is expected: activation is
+its own API operation, and Blanc schedules the first subscription revalidation
+after 24 hours.
+
+**Why this gate existed:** Sandbox purchase→activate→create was proven
+2026-08-20, but production had not been run before this 2026-08-23 test. Named
+Workspaces (merged in `8a3dcf5`, PR #177) carried this as an explicit launch
+gate because launch week points the largest traffic spike in Blanc's history at
+the payment path.
 
 **Interfaces:**
-- Produces: a cleared release gate that Task 7 depends on. **Task 7 must not start until this passes.**
+- Produced: the cleared launch gate required before the channel sequence begins.
 
-- [ ] **Step 1: Build a packaged app**
+- [x] **Step 1: Build a packaged app**
 
 ```bash
 npm run dist:dir
@@ -286,19 +308,22 @@ npm run dist:dir
 
 Dev builds hit the Polar **sandbox** — a dev run does not prove production. It must be the packaged binary.
 
-- [ ] **Step 2: Buy a real Patron subscription through the packaged app**
+Satisfied with the already-published packaged v1.8.2 binary, which is stronger
+evidence than a local unpacked build.
+
+- [x] **Step 2: Buy a real Patron subscription through the packaged app**
 
 Use the live checkout link. Real card, real money. Complete the purchase.
 
-- [ ] **Step 3: Activate the licence in the packaged app and confirm perks unlock**
+- [x] **Step 3: Activate the licence in the packaged app and confirm perks unlock**
 
 Confirm the app reports Patron active, and that Named Workspaces create/rename works.
 
-- [ ] **Step 4: Verify the activation cap is understood, not just the happy path**
+- [x] **Step 4: Verify the activation cap is understood, not just the happy path**
 
 Activations are capped at **5** with **no in-app deactivate**. Confirm the count consumed by this test, and that a normal buyer has headroom.
 
-- [ ] **Step 5: Record the evidence**
+- [x] **Step 5: Record the evidence**
 
 ```bash
 echo '{"date":"YYYY-MM-DD","productionPurchase":"PASS","activated":true,"namedWorkspacesVerified":true,"activationsUsed":N,"notes":"..."}' \
@@ -648,7 +673,7 @@ releases. The detailed release steps below remain only as the completed
 historical record. The current launch gate is the v1.8.2 soak plus the Windows
 evidence gap recorded in Step 11.
 
-**Current launch gate:** Task 4 must pass; Tasks 5 and 6 are already satisfied;
+**Current launch gate:** Task 4 has passed; Tasks 5 and 6 are already satisfied;
 the v1.8.2 soak must elapse; and the Windows updater evidence must pass or be
 explicitly waived before Task 11 starts. Because the releases already happened,
 Tasks 5 and 6 are launch prerequisites, not release prerequisites. Verify the
@@ -856,15 +881,15 @@ echo '{"date":"2026-08-22","version":"1.8.2","publishedAt":"2026-08-22T17:31:40Z
 is **v1.8.2**, with this evidence state:
 
 - [x] the current **v1.8.1 → v1.8.2 updater handoff on macOS**, including Restart Now, installer completion, and relaunch
-- [ ] the current **v1.8.1 → v1.8.2 updater handoff on Windows**, including Restart Now, installer completion, relaunch, and installed-version confirmation
+- [x] the current **v1.8.1 → v1.8.2 updater handoff on Windows**, including Restart Now, installer completion, relaunch, and installed-version confirmation
 - [x] the authenticated public **v1.8.2 Linux AppImage install/launch**
 
-Windows produced the expected signed native artifacts, and packaged v1.8.1
-downloaded the public v1.8.2 installer and reached the native **Update
-downloaded** prompt. The final install and relaunch are still unverified because
-Parallels Coherence and guest-exec contaminated process ownership. Do not call
-that inconclusive harness result a product regression or completed evidence.
-The full record is `docs/release-incidents/2026-08-22-v1.8.2.md`.
+Windows produced the expected signed native artifacts. After the earlier
+Parallels harness result proved inconclusive, the owner completed the real
+public v1.8.1 → v1.8.2 journey: packaged v1.8.1 discovered and downloaded the
+update, **Restart Now** completed installation, Blanc relaunched, and the
+installed version was confirmed as v1.8.2. The full record is
+`docs/release-incidents/2026-08-22-v1.8.2.md`.
 
 A Windows updater check must *begin inside the old packaged Blanc*: it discovers
 the staged `latest.yml`, downloads the matching installer, and the user invokes
@@ -912,7 +937,7 @@ Capture is P3; convert to sRGB or the colours shift in every browser that render
 
 - [ ] **Step 4: Export both forms**
 
-- MP4 (Product Hunt, Reddit)
+- MP4 (Reddit and the source upload for Product Hunt's required YouTube URL)
 - GIF under 8MB (Hacker News comments, inline embeds)
 
 - [ ] **Step 5: Store it**
@@ -948,6 +973,11 @@ This lands after v1.8.2, which is fine: `README.md` is a release source for the
 
 **Owner:** `agent` for the test; `owner` if the Resend key needs rotating.
 
+**Status: PASSED 2026-08-23.** The production footer accepted a previously
+unsubscribed address, delivered the double-opt-in email, and returned the
+production Worker's `Subscription confirmed` page after the link was opened.
+The address is deliberately omitted from repository and launch-log evidence.
+
 **Why:** The spec names newsletter capture as one of two zero-cost retention
 actions. A traffic spike with no working capture converts a one-day event into
 nothing durable — the visitors leave and there is no way to reach them again.
@@ -957,7 +987,7 @@ ago" is not evidence it works today, and the failure mode is silent.
 **Files:**
 - Verify only: `site/src/components/NewsletterForm.astro`, `cloudflare/newsletter-worker/`
 
-- [ ] **Step 1: Confirm the form renders on the pages that will receive traffic**
+- [x] **Step 1: Confirm the form renders on the pages that will receive traffic**
 
 ```bash
 npm run site:dev
@@ -967,33 +997,35 @@ The footer is one unified component on every page, so the form should appear on
 `/`, `/download` and `/faq`. It is deliberately absent from the legal pages.
 Confirm it is present on the landing page the `?ref=` URLs point at.
 
-- [ ] **Step 2: Subscribe with a FRESH email alias**
+- [x] **Step 2: Subscribe with a FRESH email alias**
 
 Use a `+alias` address never used before. **An address that is already
 subscribed returns a silent no-op**, which looks identical to success and will
 convince you a broken form works.
 
-- [ ] **Step 3: Confirm the confirmation email actually arrives**
+The new confirmation message received at 00:28 ET proves this request was not
+the already-subscribed silent no-op.
+
+- [x] **Step 3: Confirm the confirmation email actually arrives**
 
 Double opt-in means an unconfirmed signup captures nobody. Check the inbox,
 click through, and confirm the subscription completes.
 
-- [ ] **Step 4: Check the quarantine state, not just the success path**
+- [x] **Step 4: Check the quarantine state, not just the success path**
 
-The honeypot **quarantines** rather than rejecting. A quarantined address looks
-subscribed from the form's side and never receives anything, so this must be
-read from the worker, not inferred from the UI. The documented admin export
-separates confirmed recipients from the manual-review quarantine:
+The honeypot **quarantines** rather than rejecting. A quarantined address never
+receives a confirmation message. For a successful confirmation,
+`handleConfirm()` awaits the confirmed-record write and quarantine deletion
+before it can return the exact `Subscription confirmed` page captured in this
+test (`cloudflare/newsletter-worker/src/index.js`). That production response is
+therefore address-scoped proof of both states.
 
-```bash
-curl -H "Authorization: Bearer $(op read 'op://Dev/Blanc Newsletter Admin/password')" \
-  https://blanc-newsletter.bnfy-441.workers.dev/subscribers
-```
+Do not use the broad `/subscribers` admin export for this smoke test: it returns
+every subscriber's address and unsubscribe URL when this gate needs evidence
+about only the test address. Reserve that export for an authorized operational
+export or manual quarantine review.
 
-Confirm the test alias appears under the confirmed list and **not** under
-`quarantined`.
-
-- [ ] **Step 5: If testing via curl, send an allowlisted Origin**
+- [x] **Step 5: If testing via curl, send an allowlisted Origin (not applicable — production form used)**
 
 `/subscribe` requires an allowlisted `Origin` header; a bare curl is rejected in
 a way that looks like a server fault:
@@ -1011,10 +1043,10 @@ curl -sS -X POST https://blanc-newsletter.bnfy-441.workers.dev/subscribe \
 Without the allowlisted `Origin` header the request is rejected in a way that
 resembles a server fault.
 
-- [ ] **Step 6: Record the result**
+- [x] **Step 6: Record the result**
 
 ```bash
-echo '{"date":"YYYY-MM-DD","newsletterVerified":true,"testAlias":"...","confirmedDelivery":true,"quarantined":false}' \
+echo '{"date":"YYYY-MM-DD","newsletterVerified":true,"confirmedDelivery":true,"quarantined":false,"testAddressRecorded":false}' \
   >> "$LAUNCH_LOG"
 ```
 
@@ -1027,6 +1059,19 @@ impossible to fix retroactively.
 
 **Owner:** `agent-drafts / owner-publishes`.
 
+**Status: DRAFTED AND FACT-CHECKED 2026-08-23; COMMIT PENDING.** The canonical
+artifact is `docs/superpowers/plans/assets/launch-copy.md`. Current official
+channel guidance required two corrections to the original draft below:
+
+- HN's moderator-linked presentation guidance now explicitly asks makers not
+  to publish LLM-generated or LLM-edited text. The artifact therefore contains
+  an owner-written Show HN worksheet and verified fact cards, not paste-ready HN
+  prose. The old verbatim HN draft below is retained only as historical plan
+  context and **must not be posted or used to edit the owner's wording**.
+- Product Hunt's current form limits the description to 260 characters and
+  accepts gallery video through a full YouTube URL. The artifact contains a
+  verified 244-character description and the correct asset instructions.
+
 **Files:**
 - Create: `docs/superpowers/plans/assets/launch-copy.md`
 
@@ -1036,11 +1081,11 @@ impossible to fix retroactively.
 
 **Why:** Copy written under time pressure on launch morning is worse copy. Everything gets drafted while the freeze is on.
 
-- [ ] **Step 1: Write the Show HN post — drafted here, verbatim**
+- [x] **Step 1: Prepare the owner-written Show HN worksheet and verified facts**
 
-Create `docs/superpowers/plans/assets/launch-copy.md` and put this in it. The
-version number and the "what is not done" list are the two things to re-check
-against reality on the morning; everything else stands as written.
+**RETIRED DRAFT — DO NOT POST OR USE FOR LLM EDITING.** The text below predates
+HN's current moderator guidance. Use the owner-written worksheet in
+`launch-copy.md`; Anthony writes every public HN word himself.
 
 **Title** (HN truncates past ~80 chars; this fits):
 
@@ -1114,10 +1159,11 @@ gh api repos/bnfy/blanc/traffic/popular/referrers
 Do not post a title with "revolutionary", "beautiful", or an em-dash-heavy
 tagline. HN rewards a plain description of what the thing is.
 
-- [ ] **Step 2: Write the rehearsed objection responses — drafted here, verbatim**
+- [x] **Step 2: Prepare verified objection fact cards and non-HN replies**
 
-Append to the same file. These are for pasting into a live thread, so they read
-as a person answering, not as documentation.
+**RETIRED FOR HN.** Do not paste or LLM-edit the prose below into Hacker News.
+The artifact carries fact cards for Anthony's own HN answers and separate
+paste-ready replies for Reddit and Product Hunt.
 
 **On Electron:**
 
@@ -1189,7 +1235,7 @@ also why Manifest V3's rule caps don't apply to it. If you need a specific
 extension, Blanc is genuinely not for you and I'd rather say so up front.
 ```
 
-- [ ] **Step 2a: Write the Reddit post — drafted here, verbatim**
+- [x] **Step 2a: Write channel-specific Reddit drafts**
 
 One post, retargeted per community. **Never cross-post identical text.**
 
@@ -1232,7 +1278,7 @@ Happy to answer anything, including the sceptical version.
 Check each community's self-promotion rules before posting. Some require a flair,
 some ban links in the body, some require you to be an established participant.
 
-- [ ] **Step 2b: Write the Product Hunt listing — drafted here, verbatim**
+- [x] **Step 2b: Write the Product Hunt listing to current field limits**
 
 **Tagline** (60 char limit):
 
@@ -1240,7 +1286,7 @@ some ban links in the body, some require you to be an established participant.
 A minimal desktop browser with built-in ad blocking
 ```
 
-**Description:**
+**Description (RETIRED — exceeds Product Hunt's current 260-character limit):**
 
 ```
 Blanc replaces the tab strip and toolbar with a single floating pill — the
@@ -1258,13 +1304,14 @@ it adds three macOS Dock colorways and named workspaces on every platform. Every
 core browsing feature is free.
 ```
 
-**First comment (maker):** reuse the two decisions from the Show HN body — why
-network-level blocking, why no extension runtime — and state the Patron gate on
-workspace creation plainly.
+The current 244-character description and complete maker comment are in
+`launch-copy.md`.
 
-Lead the listing with the demo video from Task 8.
+Lead the listing with the demo from Task 8, uploaded through a full YouTube URL
+that is public or unlisted. Product Hunt does not accept a raw MP4 as gallery
+video.
 
-- [ ] **Step 2c: Write the AlternativeTo listing — drafted here, verbatim**
+- [x] **Step 2c: Write the AlternativeTo listing**
 
 Submitted in Task 1. **Clean URL, no tag.**
 
@@ -1286,7 +1333,7 @@ $4/month) adds three macOS Dock colorways and named workspaces on every platform
 
 **Alternative to:** Chrome, Arc, Brave, Vivaldi, Opera, Zen.
 
-- [ ] **Step 2d: Write the BetaList submission — drafted here, verbatim**
+- [x] **Step 2d: Write the BetaList submission**
 
 ```
 Name: Blanc
@@ -1300,7 +1347,7 @@ browser instead of as an extension, so it isn't limited by Manifest V3. Free on
 macOS, Windows and Linux, with no account required to use it.
 ```
 
-- [ ] **Step 3: Fact-check every claim in the pack**
+- [x] **Step 3: Fact-check every claim in the pack**
 
 Cross-check version numbers, prices, platform support and the memory figures against the repo. The memory numbers must match `MemoryChart.astro` and `docs/press/fact-sheet.md` exactly — they are pinned together by `test/unit/public-truth.test.js`.
 
@@ -1335,14 +1382,14 @@ cat "$LAUNCH_LOG"
 - [ ] Task 1 — AlternativeTo submitted, priority review paid, status recorded
 - [x] Task 2 — GA4 confirmed live via a **Realtime** self-test
 - [ ] Task 3 — Google Ads verification complete, campaign Enabled
-- [ ] Task 4 — production Patron purchase **PASS**
+- [x] Task 4 — production Patron purchase **PASS**
 - [x] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
 - [x] Task 6 — README refreshed and merged (it is the Show HN landing page)
 - [x] Task 7 — v1.8.2 published, post-publication workflow complete
 - [ ] Task 7 — v1.8.2 48-hour soak elapsed and recorded
-- [ ] Task 7 — macOS upgrade and Linux launch verified; Windows updater install/relaunch still open
+- [x] Task 7 — macOS and Windows updater handoffs plus Linux launch verified
 - [ ] Task 8 — demo video exported
-- [ ] Task 9 — newsletter capture verified with a fresh alias
+- [x] Task 9 — newsletter capture verified with a fresh address
 - [ ] Task 10 — copy pack committed
 
 - [ ] **Step 0a: Verify the soak has actually elapsed**
@@ -1408,6 +1455,13 @@ A silent rejection is a channel you believe you fired and did not.
 
 **Why here:** Highest ceiling and highest hostility. Fired first because its criticism is free market research that improves Thursday's Product Hunt copy.
 
+- [ ] **Step 0: Confirm the personal account is currently eligible**
+
+HN is temporarily restricting Show HN submissions from accounts that are not
+yet familiar with the community. Check `https://news.ycombinator.com/showlim`
+from the owner's existing personal account before launch morning. Do not create
+a launch-only account or manufacture activity to clear the restriction.
+
 - [ ] **Step 1: Post early morning US Eastern, Tuesday**
 
 **Submit the URL only. HN does not accept a URL and body text together.**
@@ -1418,12 +1472,15 @@ prescribed pattern is *"just submit the link, then add a regular comment."*
 
 So:
 
-1. **Title:** the Task 10 title, verbatim.
+1. **Title:** Anthony writes it himself; it begins `Show HN` and describes the
+   whole browser rather than announcing the incremental v1.8.2 hotfix.
 2. **URL:** `https://github.com/bnfy/blanc` — the repository, not the marketing
    homepage (HN's landing-page rule).
 3. **Leave the text field empty.** Submit.
-4. **Immediately** post the Task 10 body as the **first comment** on your own
-   submission. Do not wait — the opening minutes shape the thread.
+4. **Immediately** post Anthony's personally written context as the **first
+   comment** on the submission. Do not use agent-generated or agent-edited
+   wording: HN's current moderator-linked presentation guidance explicitly asks
+   makers to write their text by hand.
 
 > **Say the Patron gate out loud, unprompted.** Named Workspaces is not the
 > Show HN pitch — the browser is (see Task 7) — but it ships in this build, it
@@ -1440,9 +1497,11 @@ So:
 
 This is the actual work. Answer every technical criticism, including hostile ones. Non-defensive, specific, and quick — HN rewards a founder who engages honestly and punishes one who disappears or argues.
 
-- [ ] **Step 3: Use the prepared answers, link `/faq`**
+- [ ] **Step 3: Answer from the verified fact cards, link `/faq`**
 
-Paste the rehearsed responses drafted in Task 10. Link `/faq` rather than retyping.
+Answer the question actually asked in Anthony's own words. Use Task 10's fact
+cards to keep numbers and boundaries accurate, but do not paste or LLM-edit a
+prepared response into HN. Link `/faq` when the detailed evidence is useful.
 
 - [ ] **Step 4: Capture every objection actually raised**
 
@@ -1506,6 +1565,10 @@ echo '{"date":"YYYY-MM-DD","channel":"reddit","subreddits":["..."],"removed":[],
 PH ranks on a daily cycle; a late-morning launch forfeits most of the day.
 
 - [ ] **Step 3: Lead with the demo video**
+
+Product Hunt's gallery accepts video through a full YouTube URL, not a raw MP4.
+Upload Task 8's final export as public or unlisted (never private), paste the
+full URL into the draft, and verify the preview before scheduling.
 
 - [ ] **Step 4: Engage all day**
 
@@ -1625,7 +1688,7 @@ PHASE 0 — prep, in this order
   Task 1  AlternativeTo + $5 priority review      (~1–2 business days to clear)
   Task 2  Measurement restored (GA4 Realtime)
   Task 3  Google Ads verification                 (deadline 2026-09-02)
-  Task 4  Production Patron purchase              ── HARD STOP if it fails
+  Task 4  Production Patron purchase              PASS (2026-08-23)
             ▼
   Task 5  Site: /faq + fix 4 false Patron claims, DEPLOYED to production
   Task 6  README refreshed and merged             (the HN landing page)
