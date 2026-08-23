@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const ROOT = path.join(__dirname, '..');
+const ROOT = path.join(__dirname, '..', '..');
 const decision = JSON.parse(
   fs.readFileSync(path.join(ROOT, 'tab-import/embedding-ship-decision.json'), 'utf8'),
 );
