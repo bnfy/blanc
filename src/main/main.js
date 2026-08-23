@@ -2476,6 +2476,11 @@ function showUtilityPage(url) {
 function hideUtilitySheet({ refocusContent = true } = {}) {
   const runtime = rt();
   if (!runtime.utilitySheetUrl) return;
+  try {
+    if (new URL(runtime.utilitySheetUrl).host === 'tab-import') {
+      forgetTabImportForRuntime(runtime.id, 'cancel');
+    }
+  } catch { /* ignore malformed sheet URLs */ }
   runtime.utilitySheetUrl = null;
   runtime.utilitySheetEscapeArmed = false;
   cancelUtilitySheetNavigation(runtime.utilitySheetView);

@@ -1207,6 +1207,102 @@ body.sheet .page h1:focus { outline: none; }
   color: var(--muted);
   font-size: 13px;
 }
+.tab-import-status:empty { display: none; }
+.tab-import-source-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.tab-import-source-btn,
+.tab-import-secondary {
+  font: inherit;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+.tab-import-source-btn:hover,
+.tab-import-secondary:hover { border-color: var(--text-dim); }
+.tab-import-folder-tree {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  max-height: 320px;
+  overflow: auto;
+}
+.tab-import-folder-children {
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
+}
+.tab-import-folder-children .tab-import-folder-children {
+  padding-left: 16px;
+  margin-top: 4px;
+}
+.tab-import-folder-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 8px;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+}
+.tab-import-folder-row:hover { background: var(--surface); }
+.tab-import-folder-row.selected {
+  background: var(--surface);
+  font-weight: 600;
+}
+.tab-import-folder-row.hint {
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+}
+.tab-import-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.tab-import-preview-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+.tab-import-badge {
+  font-size: 12px;
+  color: var(--muted);
+}
+.tab-import-preview-row {
+  align-items: flex-start;
+  gap: 10px;
+}
+.tab-import-preview-row .tab-import-row-check {
+  margin-top: 3px;
+  flex: 0 0 auto;
+}
+.tab-import-review-board {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tab-import-review-group .section-title {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.tab-import-confidence {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+}
 
 /* ---------- start-page layouts ----------
    Three alternatives to the shipped ledger, transcribed value-for-value from

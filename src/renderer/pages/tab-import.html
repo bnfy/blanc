@@ -26,25 +26,41 @@
       <li data-step-marker="preview">Preview</li>
       <li data-step-marker="review">Review</li>
     </ol>
+    <p id="tabImportStatus" class="section-hint tab-import-status" role="status" aria-live="polite"></p>
     <section class="tab-import-panel" data-step-panel="source" aria-labelledby="tabImportSourceTitle">
       <h2 id="tabImportSourceTitle" class="section-title">Choose a source</h2>
-      <p class="section-hint">Pick a browser profile or bookmarks file. IPC wiring lands in a later task.</p>
-      <div id="tabImportSourceList" class="tab-import-placeholder" role="status">Source picker</div>
+      <div id="tabImportSourceList" class="tab-import-source-list"></div>
+      <button id="tabImportFileBtn" type="button" class="tab-import-secondary">From a bookmarks file (HTML)…</button>
     </section>
     <section class="tab-import-panel" data-step-panel="folder" hidden aria-labelledby="tabImportFolderTitle">
       <h2 id="tabImportFolderTitle" class="section-title">Choose a folder</h2>
-      <p class="section-hint">Select the migration root from the source folder tree.</p>
-      <div id="tabImportFolderTree" class="tab-import-placeholder" role="status">Folder tree</div>
+      <p class="section-hint">Select the migration root. Descendants are included automatically.</p>
+      <div id="tabImportFolderTree" class="tab-import-folder-tree"></div>
+      <div class="tab-import-panel-actions">
+        <button id="tabImportFolderContinue" type="button" disabled>Continue with this folder</button>
+      </div>
     </section>
     <section class="tab-import-panel" data-step-panel="preview" hidden aria-labelledby="tabImportPreviewTitle">
       <h2 id="tabImportPreviewTitle" class="section-title">Preview candidates</h2>
-      <p class="section-hint">Review titles and hostnames only — full URLs stay in main.</p>
-      <div id="tabImportPreviewList" class="tab-import-placeholder" role="status">Candidate list</div>
+      <p class="section-hint">Titles and hostnames only — full URLs stay in Blanc.</p>
+      <div class="tab-import-preview-toolbar">
+        <button id="tabImportSelectAll" type="button">Select all</button>
+        <button id="tabImportSelectNone" type="button">Select none</button>
+        <span id="tabImportDuplicateBadge" class="tab-import-badge" hidden></span>
+      </div>
+      <div id="tabImportPreviewList" class="row-list tab-import-preview-list"></div>
+      <div class="tab-import-panel-actions">
+        <button id="tabImportUseFolders" type="button">Use bookmark folders</button>
+      </div>
     </section>
     <section class="tab-import-panel" data-step-panel="review" hidden aria-labelledby="tabImportReviewTitle">
       <h2 id="tabImportReviewTitle" class="section-title">Review groups</h2>
-      <p class="section-hint">Rename, regroup, and confirm before Blanc opens quiet tabs.</p>
-      <div id="tabImportReviewBoard" class="tab-import-placeholder" role="status">Group review</div>
+      <p class="section-hint">Folder-based groups for now — rename and move land in the next pass.</p>
+      <div id="tabImportReviewBoard" class="tab-import-review-board"></div>
+      <div class="tab-import-panel-actions">
+        <button id="tabImportBackToPreview" type="button" class="tab-import-secondary">Back to preview</button>
+        <button id="tabImportApplyBtn" type="button" disabled>Open tabs…</button>
+      </div>
     </section>
   </div>
   <script src="sheet.js"></script>
