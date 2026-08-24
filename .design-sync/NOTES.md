@@ -80,9 +80,16 @@ Diffed all three canonical pairs against the live project.
 - **`extensions`** stays as a retired/historical glyph (app removed extensions); left
   as-is — already documented that way in `Icon.d.ts`/`Icon.prompt.md`.
 - **Island.jsx:** already current for capture / quiet dim-only / downloads / shield /
-  groups. NOT modeled: the **Named Workspaces footer switcher** (Patron — the
-  `workspaces` icon is synced, but the switcher button + `#workspaceSwitcher` menu
-  structure isn't in Island.jsx). Deferred, judgment-heavy; offer next time.
+  groups. **Follow-up same day (user-approved): modeled the Named Workspaces footer
+  switcher.** Added the footer button (`.bw-island-act.ws` / `.ws.bound` label) + the
+  240px `.bw-ws-switcher` popover (workspace rows with ✓/tabCount, separator, new…/save
+  as…) + props `workspaces` / `onSwitchWorkspace` / `onNewWorkspace` / `onSaveAsWorkspace`.
+  CSS copied verbatim from `styles.css` (`.footer-act.ws` / `.ws-switcher*`); structure
+  from `overlay.html`. Verified by rendering the real component (Babel-clean; switcher
+  opens with the 3 sample workspaces + commands in light+dark). Updated Island.d.ts /
+  Island.prompt.md; chrome.card.html now passes `workspaces` and its hint's stale quiet
+  "dim + tag" was corrected to "dim only". The Patron gate / inline rename-delete-create
+  editor states are deliberately NOT modeled (transient app-only states).
 - Fixed a **stale local specimen** (repo fix, NOT a DS push): `design-system/components/
   quiet-tabs/index.html` (committed #198 on 2026-08-21) still documented the retired
   Zzz-glyph design — it referenced `quiet-glyph.js`, `.quiet-glyph`, `.row-quiet`, all
@@ -93,7 +100,7 @@ Diffed all three canonical pairs against the live project.
 
 ### Still open (carried forward)
 - **Glance split-view** has no DS representation (PORT-CHECKLIST OPEN, since #139) — needs authoring.
-- **Named Workspaces footer switcher** not modeled in `Island.jsx`.
+  (Named Workspaces footer switcher — resolved 2026-08-24, see above.)
 
 ## Gotchas
 - Preview cards render from compiled `_ds_bundle.js`. To rebuild it after pushing source changes: write
