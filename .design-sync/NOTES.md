@@ -60,6 +60,41 @@ change needed); sentinel re-armed. The deviations that were queued:
   rows/footers, clock clamp, sub-960px shelf/tally compaction (user directive).
 - Set-default CTA renders disabled where the OS registration is unavailable.
 
+## 2026-08-24 sync (push-drift, v1.6.0 → v1.8.2)
+
+Diffed all three canonical pairs against the live project.
+- **Tokens:** no drift. Semantic color/type/shadow/radius core in `styles.css` +
+  `pages.css` matches `colors/typography/layout.css` exactly; the layout/type/motion
+  values the DS files enumerate are hardcoded in the app (not custom props) and unchanged.
+- **Icons:** one candidate gap — **`reopen`** (`overlay.js` ICONS.reopen, the
+  Reopen-Closed-Tab / ⌘⇧T return arrow: `M3.5 6.75h6a3 3 0 0 1 0 6h-3` +
+  `M6.25 4 3.5 6.75l2.75 2.75`). It IS rendered, but only as the ↶ glyph on rows
+  inside the ⌘L panel's "recently closed" section (`closedRow`, overlay.js:1482) —
+  which exists only when `state.closed` is non-empty AND is folded by default
+  (`closedSectionOpen=false`), so a user essentially never sees it. **Pushed then
+  rolled back the same day (user call): the DS should not carry a glyph users never
+  see.** Icon.jsx/.d.ts/.prompt.md/icons.card.html are back to the 30-icon set;
+  sentinel re-armed. Treat `reopen` as a **deliberate NON-sync** going forward — do
+  not re-flag it as missing drift (same class as the rail-plus). Every other chrome
+  icon matched verbatim; `workspaces` was already synced (prior run).
+- **`extensions`** stays as a retired/historical glyph (app removed extensions); left
+  as-is — already documented that way in `Icon.d.ts`/`Icon.prompt.md`.
+- **Island.jsx:** already current for capture / quiet dim-only / downloads / shield /
+  groups. NOT modeled: the **Named Workspaces footer switcher** (Patron — the
+  `workspaces` icon is synced, but the switcher button + `#workspaceSwitcher` menu
+  structure isn't in Island.jsx). Deferred, judgment-heavy; offer next time.
+- Fixed a **stale local specimen** (repo fix, NOT a DS push): `design-system/components/
+  quiet-tabs/index.html` (committed #198 on 2026-08-21) still documented the retired
+  Zzz-glyph design — it referenced `quiet-glyph.js`, `.quiet-glyph`, `.row-quiet`, all
+  removed 2026-08-18 when quiet went dim-only. Rewrote to dim-only (whole-row `opacity: .5`
+  + hover/focus restore, verbatim from `styles.css` `.island-row.quiet` /
+  `.vertical-tab-row.quiet`). This file is NOT in the DS project (no remote
+  `components/quiet-tabs`) — it's a repo artifact; left in the working tree for commit.
+
+### Still open (carried forward)
+- **Glance split-view** has no DS representation (PORT-CHECKLIST OPEN, since #139) — needs authoring.
+- **Named Workspaces footer switcher** not modeled in `Island.jsx`.
+
 ## Gotchas
 - Preview cards render from compiled `_ds_bundle.js`. To rebuild it after pushing source changes: write
   a `_ds_needs_recompile` sentinel file (finalize_plan + write_files, any content) and open the project —

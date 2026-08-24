@@ -3,12 +3,12 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Quiet Tabs — state treatments</title>
+<title>Quiet Tabs — state treatment</title>
 <style>
 /* Blanc's own tokens, copied verbatim from src/renderer/styles.css.
-   This sheet is a specimen, not an illustration: every dot, tag and row
-   below is built from the shipping declarations, so what you see here is
-   what the chrome renders. */
+   This sheet is a specimen, not an illustration: every row below is built
+   from the shipping declarations, so what you see here is what the chrome
+   renders. */
 :root {
   --bg: #ffffff;
   --surface-raised: #ffffff;
@@ -77,31 +77,28 @@ h2 {
   padding: 7px 9px; border-radius: 8px; background: var(--surface-raised);
 }
 .row-favicon { width: 14px; height: 14px; border-radius: 3px; background: var(--border); flex: 0 0 auto; }
+.row-favicon-wrap { position: relative; display: flex; flex: 0 0 auto; }
 .row-title { font-size: 13px; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row-private {
   font-family: var(--font-mono); font-size: 10px; color: var(--text-dim);
   border: 1px solid var(--border); border-radius: 999px; padding: 0 6px; flex: 0 0 auto;
 }
-.row-favicon-wrap { position: relative; display: flex; flex: 0 0 auto; }
-.island-row.quiet .row-favicon-wrap { opacity: .45; }
-
-/* ---- Quiet glyph: ONE block for panel + rail, mirroring the shipping shared
-   rule (.vertical-tab-state, .island-row .row-quiet). Two matching rule sets
-   would be exactly the drift the shipping CSS avoids. ---- */
-.row-quiet, .vertical-tab-quiet {
-  width: 14px; height: 14px; display: inline-flex; align-items: center;
-  justify-content: center; color: var(--text-dim); flex: 0 0 auto;
-}
-.row-quiet svg, .vertical-tab-quiet svg {
-  width: 13px; height: 13px; fill: none; stroke: currentColor;
-  stroke-width: 1.35; stroke-linecap: round; stroke-linejoin: round;
-}
 
 /* ---- Rail row: styles.css ---- */
 .vertical-tab-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 7px; }
 .vertical-tab-favicon { width: 15px; height: 15px; border-radius: 3px; background: var(--border); flex: 0 0 auto; }
-.vertical-tab-row.quiet .vertical-tab-favicon { opacity: .45; }
 .vertical-tab-title { font-size: 13px; flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---- Quiet: ONE rule for both surfaces, verbatim from styles.css
+   (.island-row.quiet / .vertical-tab-row.quiet). The whole row fades to
+   half; hover or focus restores it, because the row is about to wake and its
+   actions should read at full contrast. The fade is the entire marker — no
+   glyph, tag or word (the Zzz pictogram and "quiet" label were removed
+   2026-08-18, dim-only). Two matching rule sets would be exactly the drift
+   the shipping CSS avoids. ---- */
+.island-row.quiet, .vertical-tab-row.quiet { opacity: .5; transition: opacity 120ms ease; }
+.island-row.quiet:hover, .island-row.quiet:focus-within,
+.vertical-tab-row.quiet:hover, .vertical-tab-row.quiet:focus-within { opacity: 1; }
 
 /* ---- Spec table ---- */
 table { border-collapse: collapse; width: 100%; font-size: 12px; }
@@ -123,24 +120,24 @@ td.code { font-family: var(--font-mono); font-size: 11px; white-space: nowrap; }
 
   <header>
     <h1>Quiet Tabs</h1>
-    <p class="lede">A tab left idle has its renderer discarded to reclaim memory, and rebuilt when you return to it. Quiet is shown in exactly one way, on two surfaces: the panel row and the vertical rail each draw a <b>Zzz glyph</b> and <b>dim the favicon</b>. Nowhere else — pill dots and the Quick Switcher carry no quiet state. The word a person sees or hears is always <b>quiet</b> — <code>asleep</code> is the internal field name only; the Zzz is a pictogram, not a string.</p>
-    <div class="provenance">specimen built from src/renderer/styles.css · shared glyph block (.vertical-tab-state, .island-row .row-quiet) · favicon dims · src/renderer/quiet-glyph.js</div>
+    <p class="lede">A tab left idle has its renderer discarded to reclaim memory, and rebuilt when you return to it. A quiet tab is shown in exactly one way: its <b>whole row dims to half</b>, on the ⌘L panel and the vertical rail. Hover or focus the row and it returns to full strength — it is about to wake. There is no glyph, tag or word; the fade alone is the marker (an earlier build drew a Zzz pictogram and a "quiet" label, removed 2026-08-18 because they repeated down every restored row and read as junk). Pill dots and the Quick Switcher carry no quiet state. Every visible and assistive string still says <b>quiet</b> — <code>asleep</code> is the internal field name only.</p>
+    <div class="provenance">specimen built from src/renderer/styles.css · .island-row.quiet / .vertical-tab-row.quiet (opacity .5, 120ms, hover/focus restore) · docs/superpowers/specs/2026-08-18-quiet-marker-dim-only-design.md</div>
   </header>
 
   <section>
     <h2>Command panel row</h2>
-    <p class="note">The ⌘L list. The Zzz glyph sits where <code>private</code> would, and is visible at rest — unlike the hover-only metadata tag, because a state you can only see by hovering is not a state you can see. The favicon dims alongside it.</p>
+    <p class="note">The ⌘L list. A quiet row dims as one unit. Hover or focus the dimmed row below and it returns to full strength — the row is about to wake, so its actions read at full contrast while in use.</p>
     <div class="grounds">
       <div class="ground" data-g="light">
         <span class="ground-label">light</span>
         <div class="island-row"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">Electron Documentation</span></div>
-        <div class="island-row quiet"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">MDN Web Docs</span><span class="row-quiet"><svg class="quiet-glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 9.75H6.25L1.5 14H6.25M7.75 5.5H11.5L7.75 9H11.5M12.75 1.75H15L12.75 4.25H15"/></svg></span></div>
+        <div class="island-row quiet" tabindex="0"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">MDN Web Docs</span></div>
         <div class="island-row"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">New Tab</span><span class="row-private">private</span></div>
       </div>
       <div class="ground" data-g="dark">
         <span class="ground-label">dark</span>
         <div class="island-row"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">Electron Documentation</span></div>
-        <div class="island-row quiet"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">MDN Web Docs</span><span class="row-quiet"><svg class="quiet-glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 9.75H6.25L1.5 14H6.25M7.75 5.5H11.5L7.75 9H11.5M12.75 1.75H15L12.75 4.25H15"/></svg></span></div>
+        <div class="island-row quiet" tabindex="0"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">MDN Web Docs</span></div>
         <div class="island-row"><span class="row-favicon-wrap"><span class="row-favicon"></span></span><span class="row-title">New Tab</span><span class="row-private">private</span></div>
       </div>
     </div>
@@ -148,17 +145,17 @@ td.code { font-family: var(--font-mono); font-size: 11px; white-space: nowrap; }
 
   <section>
     <h2>Vertical rail row</h2>
-    <p class="note">The rail dims the <b>favicon</b>, not the title: loading already dims the title, and the title span is <code>aria-hidden</code> — the favicon is what you scan down the rail. The marker carries the state for anyone who cannot see the dim.</p>
+    <p class="note">The rail dims the whole row too — same rule, same restore on hover or focus. Nothing else marks the state: a mark shown only on hover is not a state you can see, and one shown at rest repeated down the rail as clutter.</p>
     <div class="grounds">
       <div class="ground" data-g="light">
         <span class="ground-label">light</span>
         <div class="vertical-tab-row"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">Electron Documentation</span></div>
-        <div class="vertical-tab-row quiet"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">MDN Web Docs</span><span class="vertical-tab-quiet" title="Quiet"><svg class="quiet-glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 9.75H6.25L1.5 14H6.25M7.75 5.5H11.5L7.75 9H11.5M12.75 1.75H15L12.75 4.25H15"/></svg></span></div>
+        <div class="vertical-tab-row quiet" tabindex="0"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">MDN Web Docs</span></div>
       </div>
       <div class="ground" data-g="dark">
         <span class="ground-label">dark</span>
         <div class="vertical-tab-row"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">Electron Documentation</span></div>
-        <div class="vertical-tab-row quiet"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">MDN Web Docs</span><span class="vertical-tab-quiet" title="Quiet"><svg class="quiet-glyph" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 9.75H6.25L1.5 14H6.25M7.75 5.5H11.5L7.75 9H11.5M12.75 1.75H15L12.75 4.25H15"/></svg></span></div>
+        <div class="vertical-tab-row quiet" tabindex="0"><span class="vertical-tab-favicon"></span><span class="vertical-tab-title">MDN Web Docs</span></div>
       </div>
     </div>
   </section>
@@ -169,10 +166,10 @@ td.code { font-family: var(--font-mono); font-size: 11px; white-space: nowrap; }
       <table>
         <thead><tr><th>Surface</th><th>Selector</th><th>Declaration</th></tr></thead>
         <tbody>
-          <tr><td>Panel + rail container</td><td class="code">.vertical-tab-state, .island-row .row-quiet</td><td class="code">14×14, inline-flex, var(--text-dim)</td></tr>
-          <tr><td>Panel + rail svg</td><td class="code">…svg</td><td class="code">13×13, stroke 1.35 round, fill: none</td></tr>
-          <tr><td>Panel favicon</td><td class="code">.island-row.quiet .row-favicon-wrap</td><td class="code">opacity: .45</td></tr>
-          <tr><td>Rail favicon</td><td class="code">.vertical-tab-row.quiet .vertical-tab-favicon</td><td class="code">opacity: .45</td></tr>
+          <tr><td>Panel row — quiet</td><td class="code">.island-row.quiet</td><td class="code">opacity: .5; transition: opacity 120ms ease</td></tr>
+          <tr><td>Panel row — restore</td><td class="code">.island-row.quiet:hover, :focus-within</td><td class="code">opacity: 1</td></tr>
+          <tr><td>Rail row — quiet</td><td class="code">.vertical-tab-row.quiet</td><td class="code">opacity: .5; transition: opacity 120ms ease</td></tr>
+          <tr><td>Rail row — restore</td><td class="code">.vertical-tab-row.quiet:hover, :focus-within</td><td class="code">opacity: 1</td></tr>
         </tbody>
       </table>
     </div>
@@ -181,16 +178,20 @@ td.code { font-family: var(--font-mono); font-size: 11px; white-space: nowrap; }
   <section>
     <h2>Why it looks like this</h2>
     <div class="rule">
-      <b>One treatment, two surfaces.</b>
-      <p>Quiet is the Zzz glyph plus a dimmed favicon, drawn on the panel row and the vertical rail, and nowhere else. Pill dots are switch targets, not status fields — nothing legible fits at 6px — and the Quick Switcher sub line is search text. A quiet mark on either added clutter without value, so neither carries one.</p>
+      <b>The fade is the whole marker.</b>
+      <p>Quiet dims the entire row to half on the panel and the rail, and nowhere else. An earlier build drew a Zzz glyph and a "quiet" tag at rest; on a freshly restored session those repeated down every row and read as junk, so they were removed 2026-08-18. That a fully-restored list dims uniformly is a known, accepted trade-off — waking is transparent.</p>
     </div>
     <div class="rule">
-      <b>Dim the favicon, not the title.</b>
-      <p>The favicon is the whole visual unit that dims (it also holds the mute badge), so a quiet tab fades as one object. The title is left alone: loading already dims it, and the title span is <code>aria-hidden</code> — the favicon is what you scan.</p>
+      <b>Restore on hover or focus.</b>
+      <p>Touch a quiet row and it returns to full strength: it is about to wake, and its pin, mute and close actions should read at full contrast while in use. The transition is a 120ms fade, matched on both surfaces.</p>
     </div>
     <div class="rule">
-      <b>The word is “quiet”.</b>
-      <p>Every visible and assistive string says quiet. The tab record's field is <code>asleep</code> (internal only); the command is <code>/sleep</code>, the one deliberate place where the internal word is shown to users — the opposite of the <code>bookmarks</code> split, where an identifier no user ever sees. A test fails the build if <code>asleep</code> reaches a user-facing string.</p>
+      <b>Not the pill dots or the Quick Switcher.</b>
+      <p>Pill dots are switch targets, not status fields — nothing legible fits at 6px — and the Quick Switcher sub line is search text. A quiet mark on either added clutter without value, so neither carries one.</p>
+    </div>
+    <div class="rule">
+      <b>The word is "quiet".</b>
+      <p>Every visible and assistive string says quiet — the dim carries no text, so the accessible name is what announces the state to anyone who cannot see it. The tab record's field is <code>asleep</code> (internal only); the command is <code>/sleep</code>, the one deliberate place the internal word is shown to users — the opposite of the <code>bookmarks</code> split, where an identifier no user ever sees. A test fails the build if <code>asleep</code> reaches a user-facing string.</p>
     </div>
   </section>
 
