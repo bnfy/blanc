@@ -98,9 +98,22 @@ Diffed all three canonical pairs against the live project.
   `.vertical-tab-row.quiet`). This file is NOT in the DS project (no remote
   `components/quiet-tabs`) — it's a repo artifact; left in the working tree for commit.
 
+- **Glance split-view (follow-up, user-approved): authored `guidelines/glance.html`.** The
+  Glance split view was the PORT-CHECKLIST's "biggest gap" (no DS representation since #139).
+  Built a guideline specimen verbatim from `styles.css` `.glance-*` + `index.html` markup,
+  geometry from `glance-layout.js`: the side-by-side + stacked schematic, the owned header
+  (eyebrow · favicon · title · make-main / change / close, + the change-open caret, private
+  variant, and the ≤360 / ≤300 container-query collapse), and the draggable divider (both
+  grips). `#glanceTitle`/`#glanceChange` shown as classes so several headers coexist on the
+  page; `position: fixed` → `relative` (app ships native geometry) — every other declaration
+  byte-for-byte. Verified via a real render (hero + each variant's computed behaviour). Also
+  moved Glance out of PORT-CHECKLIST OPEN.
+
 ### Still open (carried forward)
-- **Glance split-view** has no DS representation (PORT-CHECKLIST OPEN, since #139) — needs authoring.
-  (Named Workspaces footer switcher — resolved 2026-08-24, see above.)
+- Nothing in the three canonical push-drift pairs (tokens / icons / island chrome) is
+  outstanding as of 2026-08-24. The PORT-CHECKLIST's own OPEN list still carries two smaller,
+  pre-existing gaps to author when wanted: the **capture-controls popover** (the pill's
+  capture chip is modeled; the popover it opens is not) and **retinted theme icons**.
 
 ## Gotchas
 - Preview cards render from compiled `_ds_bundle.js`. To rebuild it after pushing source changes: write
