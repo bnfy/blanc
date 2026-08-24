@@ -169,7 +169,13 @@ Create `src/main/chromium-session.js` with no Electron dependency.
 
 - [x] Run substrate/parity/security checks.
 - [x] Build `npm run dist:dir`; verify no model/WASM payload.
-- [ ] macOS: signed candidate reads an explicitly selected real test profile with Full Disk Access.
+- [x] macOS: signed candidate reads an explicitly selected real test profile with Full Disk Access.
+  - 2026-08-24: Developer ID-signed `79d3660` `dist:dir` candidate launched through
+    LaunchServices with isolated `userData`; Full Disk Access exposed installed Brave,
+    Chrome, Edge, and Vivaldi profiles. An explicitly selected real Brave profile
+    produced a five-tab ordered preview, reached Named Group organization and the
+    quiet-tab confirmation, then was dismissed before apply. No imported tabs or
+    Favorites were created.
 - [ ] Windows: prove locked-current-file quit/retry behavior and read after browser exit.
 - [ ] Linux: prove installed Chromium-family cleartext session read.
 - [x] Capture visual QA for Source, Tabs, Organize, Review at desktop and narrow sheet sizes.
