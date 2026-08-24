@@ -3,13 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 const bookmarks = require('./bookmarks');
-const { parseNetscapeBookmarks, parseNetscapeBookmarkTree } = require('./bookmark-import');
+const { parseNetscapeBookmarks } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
-const {
-  extractSubtree,
-  dedupeCandidatesByUrl,
-  enforceCandidateCap,
-} = require('./bookmark-tree');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
@@ -152,91 +147,43 @@ function setupPages(hooks = {}) {
   });
 
   // Bring Your Tabs gets a separate, exact-host surface from F30 Favorites
-  // import. Browser/file readers retain URLs in main; the sheet receives only
-  // folder metadata until it selects a subtree, then only the session store's
-  // opaque candidate projection.
-  handle('pages:tab-import:sources', 'tab-import', () => browserImport.listSources());
-  handle('pages:tab-import:open-source', 'tab-import', async (id) => {
+  // import. Selecting a profile reads its restorable open-tab session in
+  // main; the sheet receives only the opaque candidate projection.
+  handle('pages:tab-import:sources', 'tab-import', () => browserImport.listOpenTabSources());
+  handle('pages:tab-import:open-source', 'tab-import', async (id, options = {}) => {
     const sourceId = String(id ?? '');
-    const read = await browserImport.readFolderTree(sourceId);
-    if (read.error) return { error: read.error };
+    const read = await browserImport.readOpenTabs(sourceId, {
+      afterQuit: options?.afterQuit === true,
+    });
+    if (read.error) {
+      return {
+        error: read.error,
+        recoverable: read.recoverable === true,
+        recoverableTabCount: Number(read.recoverableTabCount) || 0,
+      };
+    }
     const opened = hooks.tabImport?.openSource?.({
       sourceKind: 'chromium',
       sourceLabel: read.source.label,
-      readCandidates: (rootFolderId) =>
-        browserImport.readSubtreeCandidates(sourceId, rootFolderId),
+      readCandidates: async () => read,
     }) ?? { error: 'session-unavailable' };
     if (opened.error) return opened;
+    const loaded = await hooks.tabImport?.loadCandidates?.(opened.sessionId)
+      ?? { error: 'session-unavailable' };
+    if (loaded.error) return loaded;
     return {
       ...opened,
+      ...loaded,
       source: read.source,
-      folders: read.folders,
-      rootFolderIds: read.rootFolderIds,
     };
   });
-  handle('pages:tab-import:open-file', 'tab-import', async () => {
-    const parent = hooks.getMainWindow?.();
-    const picked = await dialog.showOpenDialog(parent ?? undefined, {
-      title: 'Bring tabs from a bookmarks file',
-      filters: [{ name: 'Bookmarks', extensions: ['html', 'htm'] }],
-      properties: ['openFile'],
-    });
-    if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
-    let handle;
-    try {
-      // Validate and consume the same opened file. A user-selected path may be
-      // replaced after the picker returns; a separate stat/read pair would
-      // apply the cap to one file and parse another.
-      handle = await fs.promises.open(picked.filePaths[0], 'r');
-      const stat = await handle.stat();
-      if (!stat.isFile() || stat.size > MAX_IMPORT_BYTES) return { error: 'too-large' };
-      const html = await handle.readFile('utf8');
-      const tree = parseNetscapeBookmarkTree(html);
-      if (!tree.folders.some((folder) => folder.subtreeHttpCount > 0)) {
-        return { error: 'empty' };
-      }
-      const opened = hooks.tabImport?.openSource?.({
-        sourceKind: 'html',
-        // Deliberately omit the local filename/path from the renderer-facing
-        // source projection and from the session label.
-        sourceLabel: 'Bookmarks file',
-        readCandidates: async (rootFolderId) => {
-          const extracted = extractSubtree(tree, String(rootFolderId ?? ''));
-          const deduped = dedupeCandidatesByUrl(extracted.candidates);
-          const capped = enforceCandidateCap(deduped.candidates);
-          if (!capped.ok) return { error: 'too-many-candidates', count: capped.count };
-          if (!capped.candidates.length) return { error: 'empty' };
-          return {
-            candidates: capped.candidates,
-            duplicateCount: deduped.duplicateCount,
-          };
-        },
-      }) ?? { error: 'session-unavailable' };
-      if (opened.error) return opened;
-      return {
-        ...opened,
-        source: { kind: 'html', label: 'Bookmarks file' },
-        folders: tree.folders,
-        rootFolderIds: tree.rootFolderIds,
-      };
-    } catch {
-      return { error: 'unreadable' };
-    } finally {
-      await handle?.close().catch(() => {});
-    }
-  });
-  handle('pages:tab-import:select-folder', 'tab-import', (sessionId, rootFolderId) =>
-    hooks.tabImport?.selectFolder?.(
-      String(sessionId ?? ''),
-      String(rootFolderId ?? ''),
-    ) ?? { error: 'session-unavailable' });
   handle('pages:tab-import:set-selection', 'tab-import', (sessionId, selection) =>
     hooks.tabImport?.setSelection?.(
       String(sessionId ?? ''),
       selection ?? {},
     ) ?? { error: 'session-unavailable' });
-  handle('pages:tab-import:suggest-folders', 'tab-import', (sessionId) =>
-    hooks.tabImport?.suggestFolders?.(String(sessionId ?? ''))
+  handle('pages:tab-import:suggest-source-groups', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestSourceGroups?.(String(sessionId ?? ''))
       ?? { error: 'session-unavailable' });
   handle('pages:tab-import:suggest-embed', 'tab-import', (sessionId) =>
     hooks.tabImport?.suggestEmbed?.(String(sessionId ?? ''))

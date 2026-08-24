@@ -8,6 +8,7 @@ const fixtures = require('./fixtures-server');
 const ctx = require('./context');
 const { callTestHook } = require('./test-hook-call');
 const { browserDataRoot } = require('../../../src/main/browser-data-import');
+const { createChromiumSession } = require('../../support/chromium-session-fixture');
 
 // Launching Electron + first evaluate is slow; give scenarios generous headroom.
 setDefaultTimeout(60_000);
@@ -141,6 +142,9 @@ BeforeAll({ timeout: 120_000 }, async () => {
         info_cache: {
           Default: { name: 'Acceptance profile' },
           'Profile 1': { name: 'Tab migration fixture' },
+          'Profile 2': { name: 'Merge fixture' },
+          'Profile 3': { name: 'Stress 500' },
+          'Profile 4': { name: 'Quit safety fixture' },
         },
       },
     })
@@ -200,6 +204,69 @@ BeforeAll({ timeout: 120_000 }, async () => {
   fs.writeFileSync(
     path.join(tabImportProfileDir, 'Bookmarks'),
     JSON.stringify(tabImportFixture),
+  );
+
+  const writeSession = (directory, windows, activeWindowId) => {
+    const sessionsDir = path.join(chromeRoot, directory, 'Sessions');
+    fs.mkdirSync(sessionsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(sessionsDir, 'Session_100'),
+      createChromiumSession({ windows, activeWindowId }),
+    );
+  };
+  writeSession('Profile 1', [
+    {
+      id: 10,
+      tabs: [
+        { id: 101, url: 'https://hotels.example/stay', title: 'Hotels', groupName: 'travel' },
+        { id: 102, url: 'https://flights.example/search', title: 'Flights', groupName: 'travel' },
+        { id: 103, url: 'https://direct-in-reset.example/', title: 'Direct in session' },
+        { id: 104, url: 'chrome://settings/', title: 'Browser settings' },
+      ],
+    },
+    {
+      id: 20,
+      tabs: [
+        { id: 201, url: 'https://atlas-docs.example/guide', title: 'Atlas docs', groupName: 'work', pinned: true },
+        { id: 202, url: 'https://atlas-issues.example/board', title: 'Atlas issues', groupName: 'work' },
+        { id: 203, url: 'https://atlas-docs.example/guide', title: 'Atlas docs duplicate', groupName: 'work' },
+      ],
+    },
+  ], 20);
+  writeSession('Profile 2', [{
+    id: 30,
+    tabs: [
+      { id: 301, url: 'https://project-brief.example/', title: 'Project brief', groupName: 'project' },
+      { id: 302, url: 'https://project-board.example/', title: 'Project board', groupName: 'project' },
+    ],
+  }], 30);
+  writeSession('Profile 3', [{
+    id: 40,
+    tabs: Array.from({ length: 500 }, (_, index) => ({
+      id: 4000 + index,
+      url: `https://stress-${String(index + 1).padStart(3, '0')}.example/page`,
+      title: `Stress candidate ${String(index + 1).padStart(3, '0')}`,
+    })),
+  }], 40);
+  const quitSafetyDir = path.join(chromeRoot, 'Profile 4', 'Sessions');
+  fs.mkdirSync(quitSafetyDir, { recursive: true });
+  const recoverableSession = createChromiumSession({
+    windows: [{
+      id: 50,
+      tabs: [
+        { id: 5001, url: 'https://saved-one.example/', title: 'Saved one' },
+        { id: 5002, url: 'https://saved-two.example/', title: 'Saved two' },
+      ],
+    }],
+    activeWindowId: 50,
+  });
+  fs.writeFileSync(path.join(quitSafetyDir, 'Session_100'), recoverableSession);
+  // The newest file models a browser that has not completed its final save.
+  // Removing only the terminal marker leaves an older snapshot as preflight
+  // evidence while making the exact newest snapshot ineligible for import.
+  fs.writeFileSync(
+    path.join(quitSafetyDir, 'Session_200'),
+    recoverableSession.subarray(0, recoverableSession.length - 3),
   );
 
   ctx.app = await launchApp();

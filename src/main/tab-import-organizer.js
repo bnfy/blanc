@@ -1,5 +1,6 @@
-// Pure on-device tab-import organizer: folder anchors, embedding clusters,
-// naming, and proposal validation. No Electron.
+// Pure on-device tab-import organizer: source-group preservation, legacy
+// folder anchors, embedding clusters, naming, and proposal validation.
+// No Electron.
 const crypto = require('node:crypto');
 
 const CLUSTER_THRESHOLD = 0.72;
@@ -46,6 +47,7 @@ function sanitizeCandidateInput(candidate) {
     title: sanitizeText(candidate?.title, MAX_TITLE_CODE_POINTS),
     hostname: sanitizeText(candidate?.hostname, MAX_GROUP_NAME_LEN),
     folderPath: sanitizeFolderParts(candidate?.folderPath),
+    sourceGroupName: normalizeGroupName(candidate?.sourceGroupName) || null,
   };
 }
 
@@ -320,6 +322,38 @@ function proposeFromFolders(candidates, {
   return finalizeProposal(groups, ungrouped);
 }
 
+function proposeFromSourceGroups(candidates, {
+  randomId = () => crypto.randomUUID(),
+} = {}) {
+  const sanitized = candidates.map(sanitizeCandidateInput).filter((candidate) => candidate.candidateId);
+  const buckets = new Map();
+  for (const candidate of sanitized) {
+    if (!candidate.sourceGroupName) continue;
+    if (!buckets.has(candidate.sourceGroupName)) buckets.set(candidate.sourceGroupName, []);
+    buckets.get(candidate.sourceGroupName).push(candidate);
+  }
+  const groupedIds = new Set();
+  const groups = [];
+  for (const [name, members] of buckets) {
+    if (members.length < MIN_GROUP_SIZE) continue;
+    const group = makeSuggestion(
+      name,
+      members.map((member) => member.candidateId),
+      'high',
+      randomId,
+    );
+    if (!group) continue;
+    groups.push(group);
+    for (const member of members) groupedIds.add(member.candidateId);
+  }
+  return finalizeProposal(
+    groups,
+    sanitized
+      .filter((candidate) => !groupedIds.has(candidate.candidateId))
+      .map((candidate) => candidate.candidateId),
+  );
+}
+
 function proposeFromEmbeddings(candidates, embeddingMatrix, {
   threshold = CLUSTER_THRESHOLD,
   randomId = () => crypto.randomUUID(),
@@ -386,6 +420,7 @@ module.exports = {
   MAX_GROUPS,
   sanitizeCandidateInput,
   deriveGroupName,
+  proposeFromSourceGroups,
   proposeFromFolders,
   proposeFromEmbeddings,
   validateProposal,

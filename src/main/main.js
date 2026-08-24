@@ -166,6 +166,7 @@ const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { createTabImportSessionStore, SESSION_TTL_MS } = require('./tab-import-session');
 const {
   sanitizeCandidateInput,
+  proposeFromSourceGroups,
   proposeFromFolders,
   proposeFromEmbeddings,
   validateProposal,
@@ -243,9 +244,8 @@ const rt = currentRuntime;
 primaryRuntime = windowRuntimes.createRuntime({ id: PRIMARY_WINDOW_ID });
 focusedRuntime = primaryRuntime;
 
-// F39 import state is main-process-only. Source readers either re-read a
-// browser's bounded bookmark file or close over an already-parsed HTML tree;
-// neither the reader nor exact URLs ever cross the tab-import page bridge.
+// F39 import state is main-process-only. Selecting a profile reads its bounded
+// restorable open-tab session once; exact URLs never cross the page bridge.
 const tabImportSessions = createTabImportSessionStore();
 const tabImportSourceReaders = new Map(); // sessionId -> owner + reader + generation
 
@@ -284,7 +284,7 @@ function openTabImportSource({ sourceKind, sourceLabel, readCandidates } = {}) {
   const owner = tabImportOwner();
   if (typeof readCandidates !== 'function') return { error: 'source-unavailable' };
   // createSession enforces one session per runtime; mirror that replacement
-  // in the source-reader map so an old HTML tree cannot outlive its ticket.
+  // in the source-reader map so an old source snapshot cannot outlive its ticket.
   for (const [sessionId, record] of tabImportSourceReaders) {
     if (record.runtimeId === owner.runtimeId) tabImportSourceReaders.delete(sessionId);
   }
@@ -322,12 +322,12 @@ function dropUnavailableTabImportSource(sessionId, result) {
   return result;
 }
 
-async function selectTabImportFolder(sessionId, rootFolderId) {
+async function loadTabImportCandidates(sessionId) {
   const resolved = ownedTabImportSource(sessionId);
   if (resolved.error) return resolved;
   let read;
   try {
-    read = await resolved.record.readCandidates(String(rootFolderId ?? ''));
+    read = await resolved.record.readCandidates();
   } catch {
     return { error: 'unreadable' };
   }
@@ -338,14 +338,15 @@ async function selectTabImportFolder(sessionId, rootFolderId) {
     resolved.owner,
   );
   if (assigned.error) return dropUnavailableTabImportSource(resolved.key, assigned);
-  // A newly selected folder invalidates vectors from an earlier preview.
+  // A newly loaded source invalidates vectors from an earlier preview.
   tabImportSessions.clearEmbeddings(resolved.key, resolved.owner);
   const projection = tabImportSessions.projectCandidates(resolved.key, resolved.owner);
   if (projection.error) return dropUnavailableTabImportSource(resolved.key, projection);
   return {
     generation: resolved.record.generation,
     candidates: projection.candidates,
-    duplicateCount: Number(read.duplicateCount) || 0,
+    windowCount: Number(read.windowCount) || 0,
+    excludedCount: Number(read.excludedCount) || 0,
   };
 }
 
@@ -385,13 +386,13 @@ function validatedTabImportProposal(selected, excludedIds, proposal) {
   return checked.ok ? { proposal: checked.proposal } : { error: 'invalid-proposal' };
 }
 
-function suggestTabImportFolders(sessionId) {
+function suggestTabImportSourceGroups(sessionId) {
   const projected = selectedTabImportProjection(sessionId);
   if (projected.error) return projected;
   return validatedTabImportProposal(
     projected.selected,
     projected.excludedIds,
-    proposeFromFolders(projected.selected),
+    proposeFromSourceGroups(projected.selected),
   );
 }
 
@@ -453,12 +454,11 @@ function submitTabImportEmbeddings(sessionId, generation, matrix) {
 }
 
 // Task 11 replaces this no-mutation floor with the transactional batch apply
-// seam. Keeping the endpoint delegated through main now prevents pages.js or
-// the utility renderer from ever acquiring direct tab/group/Favorites access.
+// seam. Keeping the endpoint delegated through main prevents pages.js or the
+// utility renderer from ever acquiring direct tab/group mutation access.
 let tabCreationBatchDepth = 0;
 let tabStateBroadcastSuppressionDepth = 0;
 let tabImportApplyBroadcasted = false;
-let tabImportFavoritesThrowForTest = false;
 let acceptanceTabStateBroadcastCount = 0;
 
 function isTabCreationBatched() {
@@ -532,6 +532,7 @@ function createQuietTabsBatch(runtime, tabSpecs, { insertAt } = {}) {
           title: spec.title,
           favicon: spec.favicon,
           groupId,
+          pinned: spec.pinned === true,
           private: false,
         });
         if (!id) {
@@ -564,41 +565,11 @@ function broadcastTabImportSurfaceOnce() {
   scheduleMenuRebuild();
 }
 
-function importTabImportFavorites(entries) {
-  if (acceptanceTestMode && tabImportFavoritesThrowForTest) {
-    throw new Error('tab-import-favorites-failed');
-  }
-  return bookmarks.importBookmarks(entries);
-}
-
 function completeTabImportSuccess(sessionId) {
   forgetTabImportSource(sessionId);
   tabImportSessions.destroySession(sessionId, 'applied');
   hideUtilitySheet();
   showOverlay('panel', { purpose: { postImportWorkspace: true } });
-}
-
-function finishTabImportFavorites(owned) {
-  const retry = tabImportSessions.resolveFavoritesRetry(
-    owned.key,
-    owned.generation,
-    owned.owner,
-  );
-  if (retry.error) return dropUnavailableTabImportSource(owned.key, retry);
-  try {
-    importTabImportFavorites(retry.favoriteEntries);
-  } catch {
-    broadcastTabImportSurfaceOnce();
-    return {
-      ok: false,
-      phase: 'favorites',
-      retryable: true,
-      generation: owned.generation,
-      tabIds: owned.tabIds,
-    };
-  }
-  completeTabImportSuccess(owned.key);
-  return { ok: true, tabIds: owned.tabIds };
 }
 
 function activateTabImportFocusTab(focusTabId) {
@@ -617,14 +588,6 @@ function activateTabImportFocusTab(focusTabId) {
 }
 
 function applyTabImport(sessionId, request = {}) {
-  if (request?.retryFavorites || request?.phase === 'favorites-retry') {
-    const owned = ownedTabImportSession(sessionId);
-    if (owned.error) return owned;
-    if (request.generation && request.generation !== owned.generation) {
-      return { error: 'stale-generation' };
-    }
-    return finishTabImportFavorites(owned);
-  }
   if (request?.retryActivation || request?.phase === 'activation-retry') {
     const owned = ownedTabImportSession(sessionId);
     if (owned.error) return owned;
@@ -644,7 +607,8 @@ function applyTabImport(sessionId, request = {}) {
         tabIds: owned.tabIds,
       };
     }
-    return finishTabImportFavorites(owned);
+    completeTabImportSuccess(owned.key);
+    return { ok: true, tabIds: owned.tabIds };
   }
 
   const resolved = ownedTabImportSource(sessionId);
@@ -658,8 +622,7 @@ function applyTabImport(sessionId, request = {}) {
     url: entry.url,
     title: entry.title,
     favicon: entry.favicon,
-    addedAt: entry.addedAt,
-    favoriteFolder: entry.favoriteFolder,
+    pinned: entry.pinned,
   }));
   const proposal = {
     version: 1,
@@ -698,7 +661,6 @@ function applyTabImport(sessionId, request = {}) {
   const marked = tabImportSessions.markTabsApplied(resolved.key, applied.generation, {
     tabIds: batch.tabIds,
     focusTabId,
-    favoriteEntries: plan.favoriteEntries,
   });
   if (marked.error) {
     rollbackQuietTabBatch({
@@ -715,19 +677,6 @@ function applyTabImport(sessionId, request = {}) {
     return {
       ok: false,
       phase: 'activation',
-      retryable: true,
-      generation: applied.generation,
-      tabIds: batch.tabIds,
-    };
-  }
-
-  try {
-    importTabImportFavorites(plan.favoriteEntries);
-  } catch {
-    broadcastTabImportSurfaceOnce();
-    return {
-      ok: false,
-      phase: 'favorites',
       retryable: true,
       generation: applied.generation,
       tabIds: batch.tabIds,
@@ -766,7 +715,7 @@ function currentTabImportAcceptanceProjection(runtimeId) {
   if (projected.error) return dropUnavailableTabImportSource(sessionId, projected);
   const selected = projected.candidates.filter((candidate) =>
     candidate.selected && !candidate.excluded);
-  const checked = validateProposal(proposeFromFolders(selected), {
+  const checked = validateProposal(proposeFromSourceGroups(selected), {
     selectedIds: selected.map((candidate) => candidate.candidateId),
     excludedIds: projected.candidates
       .filter((candidate) => candidate.excluded)
@@ -6014,7 +5963,7 @@ function listShortcuts() {
 // SLASH_COMMANDS — keep all three in sync when adding or changing a command.
 const SLASH_COMMANDS = [
   ['/favorites', 'Open favorites'],
-  ['/bring-tabs', 'Bring tabs from another browser'],
+  ['/bring-tabs', 'Bring open tabs from another browser'],
   ['/save [folder]', 'Save this page to favorites, into a folder if you name one'],
   ['/history', 'Open browsing history'],
   ['/downloads', 'Open downloads'],
@@ -7324,9 +7273,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     },
     tabImport: {
       openSource: openTabImportSource,
-      selectFolder: selectTabImportFolder,
+      loadCandidates: loadTabImportCandidates,
       setSelection: setTabImportSelection,
-      suggestFolders: suggestTabImportFolders,
+      suggestSourceGroups: suggestTabImportSourceGroups,
       suggestEmbed: startTabImportEmbedding,
       submitEmbeddings: submitTabImportEmbeddings,
       apply: applyTabImport,

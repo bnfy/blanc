@@ -7,7 +7,7 @@ const test = require('node:test');
 const vm = require('node:vm');
 
 const source = fs.readFileSync(
-  path.join(__dirname, '../../src/renderer/pages/tab-import.js'),
+  path.join(__dirname, '../../src/renderer/pages/tab-import-open-tabs.js'),
   'utf8',
 );
 const overlaySource = fs.readFileSync(
@@ -17,7 +17,7 @@ const overlaySource = fs.readFileSync(
 
 function lift(name) {
   const match = source.match(new RegExp(`function ${name}\\([^)]*\\) \\{[\\s\\S]*?\\n\\}`));
-  assert.ok(match, `${name} not found in tab-import.js — update this test with it`);
+  assert.ok(match, `${name} not found in tab-import-open-tabs.js — update this test with it`);
   return match[0];
 }
 
@@ -120,11 +120,11 @@ test('apply consequence copy pluralizes its exact tab and group counts', () => {
   const model = loadReviewModel();
   assert.equal(
     model.tabImportApplyLabel({ tabs: 4, groups: 1, ungrouped: 2 }),
-    'Open 4 tabs in 1 group · 2 ungrouped',
+    'Open 4 tabs in Blanc',
   );
   assert.equal(
     model.tabImportApplyLabel({ tabs: 1, groups: 0, ungrouped: 1 }),
-    'Open 1 tab in 0 groups · 1 ungrouped',
+    'Open 1 tab in Blanc',
   );
 });
 

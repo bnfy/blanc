@@ -9,6 +9,7 @@ const {
   sanitizeCandidateInput,
   deriveGroupName,
   proposeFromFolders,
+  proposeFromSourceGroups,
   proposeFromEmbeddings,
   validateProposal,
   cosineSimilarity,
@@ -41,6 +42,20 @@ test('proposeFromFolders anchors folders with at least two members', () => {
   assert.deepEqual(proposal.groups[0].candidateIds, ['atlas-a', 'atlas-b']);
   assert.deepEqual(proposal.ungroupedCandidateIds, ['solo-c']);
   assert.equal(proposal.groups[0].confidence, 'high');
+});
+
+test('proposeFromSourceGroups preserves eligible named groups without inventing placeholders', () => {
+  const proposal = proposeFromSourceGroups([
+    { candidateId: 'a', title: 'A', hostname: 'a.example', sourceGroupName: ' Project Atlas ' },
+    { candidateId: 'b', title: 'B', hostname: 'b.example', sourceGroupName: 'project atlas' },
+    { candidateId: 'c', title: 'C', hostname: 'c.example', sourceGroupName: 'single' },
+    { candidateId: 'd', title: 'D', hostname: 'd.example', sourceGroupName: null },
+  ], { randomId });
+  assert.equal(proposal.groups.length, 1);
+  assert.equal(proposal.groups[0].name, 'project atlas');
+  assert.deepEqual(proposal.groups[0].candidateIds, ['a', 'b']);
+  assert.deepEqual(proposal.ungroupedCandidateIds, ['c', 'd']);
+  assert.equal(JSON.stringify(proposal).includes('imported tabs'), false);
 });
 
 test('deriveGroupName avoids generic placeholders', () => {

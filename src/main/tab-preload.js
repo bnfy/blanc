@@ -92,14 +92,11 @@ if (window.location.protocol === 'blanc:') {
       surface,
       tabImport: {
         sources: () => invoke('pages:tab-import:sources'),
-        openSource: (id) => invoke('pages:tab-import:open-source', id),
-        openFile: () => invoke('pages:tab-import:open-file'),
-        selectFolder: (sessionId, rootFolderId) =>
-          invoke('pages:tab-import:select-folder', sessionId, rootFolderId),
+        openSource: (id, options) => invoke('pages:tab-import:open-source', id, options),
         setSelection: (sessionId, selection) =>
           invoke('pages:tab-import:set-selection', sessionId, selection),
-        suggestFolders: (sessionId) =>
-          invoke('pages:tab-import:suggest-folders', sessionId),
+        suggestSourceGroups: (sessionId) =>
+          invoke('pages:tab-import:suggest-source-groups', sessionId),
         suggestEmbed: (sessionId) =>
           invoke('pages:tab-import:suggest-embed', sessionId),
         submitEmbeddings: (sessionId, generation, matrix) =>

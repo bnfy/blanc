@@ -1,12 +1,22 @@
+# SUPERSEDED — do not execute
+
+This bookmark-folder plan was rejected on 2026-08-23 because it implemented the wrong product.
+The corrected plan is
+[`2026-08-23-direct-open-tab-migration.md`](2026-08-23-direct-open-tab-migration.md).
+The remainder of this file is retained only as a non-normative audit record. Its tasks and
+checkboxes are frozen historical evidence, not current implementation direction.
+
 # Bring Your Tabs (F39) — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship **Bring Your Tabs** — bookmark-folder → reviewed quiet tabs + optional tab groups — as a first-class migration bridge for the #TabBarReset ritual. **Desktop v1 (2026-08-23) ships folder-only** after the on-device embedding payload missed the 30 MiB packaging gate; deterministic bookmark-folder suggestions are the shipping floor. Semantic grouping remains a deferred follow-on behind the same organizer interface.
 
-**Implementation status:** Desktop folder-only v1 complete through Task 18 on `codex/f39-task1`. Tasks 16–17 deferred. Task 19 reconciles spec/plan against the shipped tree.
+**Historical implementation status at rejection:** The folder-backed prototype had reached Task
+18, but it never shipped as F39 and has been replaced by the corrected direct-session plan.
 
-**Design source:** `docs/superpowers/specs/2026-08-23-ai-assisted-tab-migration-design.md` (locked 2026-08-23; implementation record appended 2026-08-23). Track as **F39** in platform contracts.
+**Superseded design record:** `docs/superpowers/specs/2026-08-23-ai-assisted-tab-migration-design.md`.
+The only current F39 plan is `2026-08-23-direct-open-tab-migration.md`.
 
 **Architecture:** Pure, Electron-free modules own tree parsing, session tickets, sanitization, clustering, naming, and validation (`node --test`). Main owns `TabImportSessionStore`, trusted `pages:tab-import:*` IPC, and a **batch quiet-tab apply seam** in `main.js`. The utility renderer (`blanc://tab-import/`) holds UI state with opaque IDs only. A sandboxed Web Worker for WASM embedding inference was planned but **not shipped in v1**; clustering for shipped UX runs through `proposeFromFolders` only.
 

@@ -158,18 +158,18 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F37-1 | The blank-tab island invites typing | — | ✅ | ⬜ | ⬜ |
 | F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
 | F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |
-| F39-1 | A selected bookmarks folder becomes a reviewable candidate list | D22 | ✅ | ⬜ | ⬜ |
-| F39-2 | Apply preserves preview order, quiet state, and Favorite folders | — | ✅ | ⬜ | ⬜ |
-| F39-3 | Folder suggestions remain editable and free | — | ⬜ | ⬜ | ⬜ |
+| F39-1 | A selected browser profile exposes its verified open-tab session | D22 | ✅ | ⬜ | ⬜ |
+| F39-2 | Apply preserves source order, duplicates, pins, and quiet state | — | ✅ | ⬜ | ⬜ |
+| F39-3 | Source groups seed editable Named Groups without placeholders | — | ⬜ | ⬜ | ⬜ |
 | F39-4 | Source data is not read before explicit selection | D22 | ✅ | ⬜ | ⬜ |
 | F39-5 | The utility renderer receives no full URLs or source paths | D22 | ✅ | ➖ | ➖ |
-| F39-6 | A failed tab batch leaves no imported state | — | ⬜ | ⬜ | ⬜ |
-| F39-7 | A Favorites failure retries without duplicating tabs | — | ⬜ | ⬜ | ⬜ |
+| F39-6 | A failed tab batch leaves tabs, groups, and Favorites unchanged | — | ⬜ | ⬜ | ⬜ |
+| F39-7 | A quit prompt appears only after recoverability preflight | D22 | ✅ | ⬜ | ⬜ |
 | F39-8 | A reviewed name matching an existing group merges | — | ✅ | ⬜ | ⬜ |
 | F39-9 | A stale or differently owned session cannot apply | D22 | ✅ | ➖ | ➖ |
-| F39-10 | A bookmarks HTML file uses the same folder flow | D22 | ⬜ | ⬜ | ⬜ |
+| F39-10 | Post-quit import requires the exact newest complete session | D22 | ✅ | ⬜ | ⬜ |
 | F39-11 | Both onboarding paths reach the same migration sheet | D22 | ✅ | ⬜ | ⬜ |
-| F39-12 | Unavailable semantic assistance falls back locally | — | ⬜ | ➖ | ➖ |
+| F39-12 | Encrypted or malformed sessions fail without credential access | D22 | ⬜ | ➖ | ➖ |
 | F39-13 | Workspace save stays separate from migration | — | ⬜ | ➖ | ➖ |
 | F39-14 | Cancel destroys the ephemeral migration session | — | ✅ | ⬜ | ⬜ |
 | F39-15 | A 500-candidate import keeps one live imported tab | — | ✅ | ➖ | ➖ |

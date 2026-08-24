@@ -1379,7 +1379,7 @@
     // Also listed on blanc://shortcuts/ — update SLASH_COMMANDS in
     // pages/shortcuts.js when adding or changing a command here.
     { cmd: '/favorites', hint: 'Open favorites', run: () => window.browserAPI.openPage('bookmarks') },
-    { cmd: '/bring-tabs', hint: 'Bring tabs from another browser', run: () => window.browserAPI.openPage('tab-import') },
+    { cmd: '/bring-tabs', hint: 'Bring open tabs from another browser', run: () => window.browserAPI.openPage('tab-import') },
     { cmd: '/save', hint: 'Save this page to favorites — name a folder to file it', run: (input) => {
       const folder = (input ?? '').replace(/^\/save\s*/, '').trim();
       window.browserAPI.saveFavorite(folder || null);

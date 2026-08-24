@@ -161,7 +161,7 @@ Monday.
      that click. Import runs when the user advances with a source selected
      ("no thanks" = advancing with nothing selected); result feedback is the
      imported count in the step body, prototype-styled. **F39 first-run handoff:**
-     the same import step also offers **Bring tabs without importing everything…**
+     the same import step also offers **Bring your open tabs…**
      before any import runs, and after a successful import switches to **Bring a
      folder in as tabs…** beneath the count; both open `blanc://tab-import/` via
      the same utility-sheet opener as Favorites and `/bring-tabs`, dismiss the

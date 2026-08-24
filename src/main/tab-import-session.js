@@ -64,10 +64,8 @@ function createTabImportSessionStore({
     session.candidates.clear();
     session.previewOrder.length = 0;
     if (session.tabIds) session.tabIds.length = 0;
-    if (session.favoriteEntries) session.favoriteEntries.length = 0;
     session.tabIds = null;
     session.focusTabId = null;
-    session.favoriteEntries = null;
     session.destroyedReason = reason;
     return true;
   }
@@ -141,7 +139,6 @@ function createTabImportSessionStore({
       embeddingGeneration: null,
       tabIds: null,
       focusTabId: null,
-      favoriteEntries: null,
     };
     sessions.set(session.sessionId, session);
     runtimeIndex.set(runtimeId, session.sessionId);
@@ -166,9 +163,16 @@ function createTabImportSessionStore({
         candidateId,
         url: raw.url,
         title: typeof raw.title === 'string' && raw.title ? raw.title : raw.url,
-        addedAt: Number.isFinite(raw.addedAt) ? raw.addedAt : now(),
-        folderPath: Array.isArray(raw.folderPath) ? raw.folderPath.map(String) : [],
-        favoriteFolder: raw.favoriteFolder ?? null,
+        sourceWindow: Number.isInteger(raw.sourceWindow) && raw.sourceWindow > 0
+          ? raw.sourceWindow
+          : 1,
+        sourceTabOrder: Number.isInteger(raw.sourceTabOrder) ? raw.sourceTabOrder : candidateIds.length,
+        sourceGroupName: normalizeGroupName(raw.sourceGroupName) || null,
+        sourceGroupToken: typeof raw.sourceGroupToken === 'string'
+          ? raw.sourceGroupToken.slice(0, 80)
+          : null,
+        pinned: raw.pinned === true,
+        lastActiveAt: Number.isFinite(raw.lastActiveAt) ? raw.lastActiveAt : 0,
         hostname: hostnameFromUrl(raw.url),
         selected: true,
         excluded: false,
@@ -194,7 +198,10 @@ function createTabImportSessionStore({
           candidateId: id,
           title: candidate.title,
           hostname: candidate.hostname,
-          folderPath: [...candidate.folderPath],
+          sourceWindow: candidate.sourceWindow,
+          sourceTabOrder: candidate.sourceTabOrder,
+          sourceGroupName: candidate.sourceGroupName,
+          pinned: candidate.pinned,
           selected: candidate.selected,
           excluded: candidate.excluded,
         };
@@ -328,8 +335,7 @@ function createTabImportSessionStore({
         url: candidate.url,
         title: candidate.title,
         favicon: null,
-        addedAt: candidate.addedAt,
-        favoriteFolder: candidate.favoriteFolder,
+        pinned: candidate.pinned,
       };
     };
 
@@ -354,48 +360,23 @@ function createTabImportSessionStore({
     const {
       tabIds = [],
       focusTabId = null,
-      favoriteEntries = [],
     } = result;
     if (!Array.isArray(tabIds) || tabIds.length === 0
       || tabIds.length > MAX_SESSION_CANDIDATES
       || !tabIds.every((id) => typeof id === 'string' && id)
       || new Set(tabIds).size !== tabIds.length
-      || (focusTabId !== null && !tabIds.includes(focusTabId))
-      || !Array.isArray(favoriteEntries)
-      || favoriteEntries.length > MAX_SESSION_CANDIDATES
-      || !favoriteEntries.every((entry) => entry && typeof entry === 'object'
-        && typeof entry.url === 'string')) {
+      || (focusTabId !== null && !tabIds.includes(focusTabId))) {
       return { error: 'invalid-apply-result' };
     }
-    const retainedFavorites = favoriteEntries.map((entry) => ({
-      url: entry.url,
-      title: entry.title,
-      favicon: entry.favicon,
-      addedAt: entry.addedAt,
-      folder: entry.folder,
-    }));
     session.state = 'tabsApplied';
     session.tabIds = [...tabIds];
     session.focusTabId = focusTabId;
-    session.favoriteEntries = retainedFavorites;
     session.embeddings = null;
     session.embeddingGeneration = null;
     session.candidates.clear();
     session.previewOrder.length = 0;
     touch(sessionId);
     return { ok: true };
-  }
-
-  function resolveFavoritesRetry(sessionId, generation, owner) {
-    const session = getSession(sessionId);
-    if (!session) return { error: 'session-unavailable' };
-    if (!assertOwner(session, owner)) return { error: 'forbidden' };
-    if (session.state !== 'tabsApplied') return { error: 'session-not-ready' };
-    if (generation !== session.generation) return { error: 'stale-generation' };
-    touch(sessionId);
-    return {
-      favoriteEntries: session.favoriteEntries?.map((entry) => ({ ...entry })) ?? [],
-    };
   }
 
   return {
@@ -408,7 +389,6 @@ function createTabImportSessionStore({
     clearEmbeddings,
     resolveApply,
     markTabsApplied,
-    resolveFavoritesRetry,
     ownSession,
     touch,
     expireIdleSessions,

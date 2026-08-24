@@ -8,24 +8,21 @@ const candidates = [
     url: 'https://first.example/',
     title: 'First',
     favicon: null,
-    addedAt: 100,
-    favoriteFolder: null,
+    pinned: true,
   },
   {
     candidateId: 'work-b',
     url: 'https://work.example/b',
     title: 'Work B',
     favicon: null,
-    addedAt: 200,
-    favoriteFolder: 'github.com',
+    pinned: false,
   },
   {
     candidateId: 'work-a',
     url: 'https://work.example/a',
     title: 'Work A',
     favicon: null,
-    addedAt: 150,
-    favoriteFolder: 'github.com',
+    pinned: false,
   },
 ];
 
@@ -55,6 +52,8 @@ test('planner preserves preview order and focuses the first candidate', () => {
     [null, 'work', 'work'],
   );
   assert.equal(plan.focusCandidateId, 'preview-first');
+  assert.deepEqual(plan.tabs.map((tab) => tab.pinned), [true, false, false]);
+  assert.equal('favoriteEntries' in plan, false);
 });
 
 test('planner marks exact lowercase group collisions for merge', () => {
@@ -65,16 +64,14 @@ test('planner marks exact lowercase group collisions for merge', () => {
       url: 'https://reading.example/a',
       title: 'Reading A',
       favicon: null,
-      addedAt: 300,
-      favoriteFolder: 'reading',
+      pinned: false,
     },
     {
       candidateId: 'reading-b',
       url: 'https://reading.example/b',
       title: 'Reading B',
       favicon: null,
-      addedAt: 400,
-      favoriteFolder: 'reading',
+      pinned: false,
     },
   ];
   const plan = planTabImportApply({
@@ -104,33 +101,6 @@ test('planner marks exact lowercase group collisions for merge', () => {
       name: 'reading',
       candidateIds: ['reading-a', 'reading-b'],
       action: 'create',
-    },
-  ]);
-});
-
-test('Favorites use the immediate source subfolder, never the full path', () => {
-  const plan = planTabImportApply({ candidates, proposal, existingGroupNames: [] });
-  assert.deepEqual(plan.favoriteEntries, [
-    {
-      url: 'https://first.example/',
-      title: 'First',
-      favicon: null,
-      addedAt: 100,
-      folder: null,
-    },
-    {
-      url: 'https://work.example/b',
-      title: 'Work B',
-      favicon: null,
-      addedAt: 200,
-      folder: 'github.com',
-    },
-    {
-      url: 'https://work.example/a',
-      title: 'Work A',
-      favicon: null,
-      addedAt: 150,
-      folder: 'github.com',
     },
   ]);
 });

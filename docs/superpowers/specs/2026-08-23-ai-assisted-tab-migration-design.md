@@ -1,9 +1,17 @@
+# SUPERSEDED — do not implement
+
+This bookmark-folder design was rejected on 2026-08-23 because it contradicted the product
+requirement: users must be able to import their already-open tabs without first organizing or
+bookmarking them in the source browser. The corrected source of truth is
+[`2026-08-23-direct-open-tab-migration-design.md`](2026-08-23-direct-open-tab-migration-design.md).
+The remainder of this file is retained only as a non-normative audit record of the invalid design.
+It must not be used for implementation or product-review decisions.
+
 # AI-assisted tab migration — bring the keepers, not the mess
 
 **Date:** 2026-08-23  
-**Status:** Implemented on desktop (folder-only v1, 2026-08-23). Locked decisions below
-remain binding; on-device semantic grouping is deferred until a model passes the
-packaging gate (`tab-import/embedding-ship-decision.json`). Mobile remains PLANNED.  
+**Historical status at rejection:** The folder-backed prototype had been implemented on desktop,
+but it never shipped as F39 and has been replaced. No decisions below remain binding.
 **Extends:** [Import Favorites + Favorites Folders](2026-07-11-import-favorites-folders-design.md) and [Blanc Patron](2026-08-18-blanc-patron-design.md)
 
 ## Context

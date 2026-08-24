@@ -1,7 +1,7 @@
 // Pure apply planning for F39 Bring Your Tabs. This module resolves opaque
-// candidate membership into preview-ordered tab specs and Favorites entries;
+// candidate membership into preview-ordered tab specs;
 // Electron-owned mutation remains in main.js.
-const { validFavicon, validFolder } = require('./bookmark-validate');
+const { validFavicon } = require('./bookmark-validate');
 
 const MAX_CANDIDATES = 500;
 const MAX_GROUPS = 12;
@@ -102,14 +102,8 @@ function planTabImportApply({
   if (seen.size !== candidates.length) return invalidPlan();
 
   const tabs = [];
-  const favoriteEntries = [];
   for (const candidate of candidates) {
     if (!seen.has(candidate.candidateId)) return invalidPlan();
-    let folder = null;
-    if (candidate.favoriteFolder != null) {
-      folder = validFolder(candidate.favoriteFolder);
-      if (folder === null) return invalidPlan();
-    }
     const title = typeof candidate.title === 'string' && candidate.title
       ? candidate.title
       : candidate.url;
@@ -120,20 +114,13 @@ function planTabImportApply({
       title,
       favicon,
       groupName: groupNameByCandidateId.get(candidate.candidateId) ?? null,
-    });
-    favoriteEntries.push({
-      url: candidate.url,
-      title,
-      favicon,
-      addedAt: Number.isFinite(candidate.addedAt) ? candidate.addedAt : undefined,
-      folder,
+      pinned: candidate.pinned === true,
     });
   }
 
   return {
     tabs,
     groups: [...groupByName.values()],
-    favoriteEntries,
     focusCandidateId: candidates[0]?.candidateId ?? null,
   };
 }

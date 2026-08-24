@@ -46,7 +46,7 @@
     // users need no discovery to use it. Look prepends detected browsers.
     sources: [{ id: FILE_SOURCE, label: 'From a bookmarks file (HTML)…' }],
     importSource: null,    // selected source id, or null = "no thanks"
-    // 'skip' — Bring tabs without importing everything…; 'post-import' — folder handoff.
+    // Both paths hand off to the separate open-tab migration flow.
     importHandoff: 'skip',
     // Shared transition lock: one navigation/import/persist at a time. While
     // held, Continue/Back/Skip and the import controls are disabled — a
@@ -89,9 +89,7 @@
     lookBtn.disabled = state.busy;
     bringTabsBtn.hidden = state.step !== IMPORT_STEP || !state.importHandoff;
     bringTabsBtn.disabled = state.busy;
-    bringTabsBtn.textContent = state.importHandoff === 'post-import'
-      ? 'Bring a folder in as tabs…'
-      : 'Bring tabs without importing everything…';
+    bringTabsBtn.textContent = 'Bring your open tabs…';
     renderSources();
 
     setToggle(adblockToggle, state.adblock);

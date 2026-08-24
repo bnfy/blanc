@@ -43,17 +43,17 @@ test('tab-import preload exposes only the dedicated capability set', async () =>
   assert.deepEqual(
     Object.keys(loaded.exposed.api.tabImport).sort(),
     [
-      'apply', 'cancel', 'openFile', 'openSource', 'selectFolder',
+      'apply', 'cancel', 'openSource',
       'setSelection', 'sources', 'submitEmbeddings', 'suggestEmbed',
-      'suggestFolders',
+      'suggestSourceGroups',
     ],
   );
   assert.equal('bookmarks' in loaded.exposed.api, false);
   assert.equal('settings' in loaded.exposed.api, false);
 
-  await loaded.exposed.api.tabImport.selectFolder('session', 'folder');
+  await loaded.exposed.api.tabImport.openSource('source', { afterQuit: true });
   assert.deepEqual(loaded.invocations, [[
-    'pages:tab-import:select-folder', 'session', 'folder',
+    'pages:tab-import:open-source', 'source', { afterQuit: true },
   ]]);
 });
 

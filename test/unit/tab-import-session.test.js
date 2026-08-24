@@ -17,18 +17,20 @@ const candidates = [
   {
     url: 'https://article.example/',
     title: 'Article',
-    addedAt: NOW - 1000,
-    folderPath: ['reading'],
-    favoriteFolder: 'reading',
-    sourceFolderId: 'folder-reading',
+    sourceWindow: 1,
+    sourceTabOrder: 0,
+    sourceGroupName: 'reading',
+    sourceGroupToken: 'token-reading',
+    pinned: true,
   },
   {
     url: 'https://other.example/',
     title: 'Other',
-    addedAt: NOW - 500,
-    folderPath: [],
-    favoriteFolder: null,
-    sourceFolderId: 'folder-root',
+    sourceWindow: 2,
+    sourceTabOrder: 0,
+    sourceGroupName: null,
+    sourceGroupToken: null,
+    pinned: false,
   },
 ];
 
@@ -57,15 +59,17 @@ test('projectCandidates omits exact URLs', () => {
   const { sessionId } = s.createSession({
     runtimeId: 'rt-1',
     profileId: 'profile-a',
-    sourceKind: 'html',
-    sourceLabel: 'HTML file',
+    sourceKind: 'chromium',
+    sourceLabel: 'Chrome',
   });
   s.assignCandidates(sessionId, candidates);
   const projected = s.projectCandidates(sessionId);
   assert.equal(projected.candidates.length, 2);
   assert.equal('url' in projected.candidates[0], false);
   assert.equal(projected.candidates[0].hostname, 'article.example');
-  assert.deepEqual(projected.candidates[0].folderPath, ['reading']);
+  assert.equal(projected.candidates[0].sourceWindow, 1);
+  assert.equal(projected.candidates[0].sourceGroupName, 'reading');
+  assert.equal(projected.candidates[0].pinned, true);
   assert.equal(JSON.stringify(projected).includes('https://'), false);
 });
 
@@ -105,7 +109,7 @@ test('ready to tabsApplied is one-way and blocks duplicate tab apply', () => {
     sourceLabel: 'Chrome',
   });
   const { candidateIds } = s.assignCandidates(sessionId, candidates);
-  const resolved = s.resolveApply(sessionId, {
+  s.resolveApply(sessionId, {
     generation,
     groups: [],
     ungroupedCandidateIds: candidateIds,
@@ -114,13 +118,6 @@ test('ready to tabsApplied is one-way and blocks duplicate tab apply', () => {
     s.markTabsApplied(sessionId, generation, {
       tabIds: ['tab-a', 'tab-b'],
       focusTabId: 'tab-a',
-      favoriteEntries: resolved.entries.map((entry) => ({
-        url: entry.url,
-        title: entry.title,
-        favicon: null,
-        addedAt: entry.addedAt,
-        folder: entry.favoriteFolder,
-      })),
     }).ok,
     true,
   );
@@ -135,7 +132,6 @@ test('ready to tabsApplied is one-way and blocks duplicate tab apply', () => {
   const markAgain = s.markTabsApplied(sessionId, generation, {
     tabIds: ['tab-c'],
     focusTabId: 'tab-c',
-    favoriteEntries: [],
   });
   assert.equal(markAgain.error, 'session-not-ready');
   assert.deepEqual(s.projectCandidates(sessionId), { candidates: [] });
@@ -159,39 +155,12 @@ test('ownSession tracks tabsApplied ownership without candidates', () => {
   s.markTabsApplied(sessionId, generation, {
     tabIds: ['tab-a'],
     focusTabId: 'tab-a',
-    favoriteEntries: [],
   });
   const owned = s.ownSession(sessionId, owner);
   assert.equal(owned.ok, true);
   assert.equal(owned.state, 'tabsApplied');
   assert.equal(owned.focusTabId, 'tab-a');
   assert.deepEqual(owned.tabIds, ['tab-a']);
-});
-
-test('resolveFavoritesRetry returns bounded payload only after tabsApplied', () => {
-  const s = store();
-  const { sessionId, generation } = s.createSession({
-    runtimeId: 'rt-1',
-    profileId: 'profile-a',
-    sourceKind: 'chromium',
-    sourceLabel: 'Chrome',
-  });
-  const favoriteEntries = [{
-    url: 'https://article.example/',
-    title: 'Article',
-    favicon: null,
-    addedAt: NOW,
-    folder: 'reading',
-  }];
-  assert.equal(s.resolveFavoritesRetry(sessionId, generation).error, 'session-not-ready');
-  s.markTabsApplied(sessionId, generation, {
-    tabIds: ['tab-a'],
-    focusTabId: 'tab-a',
-    favoriteEntries,
-  });
-  const retry = s.resolveFavoritesRetry(sessionId, generation);
-  assert.deepEqual(retry.favoriteEntries, favoriteEntries);
-  assert.equal('tabIds' in retry, false);
 });
 
 test('destroySession and idle expiry remove secrets', () => {
@@ -232,7 +201,7 @@ test('idle expiry fires at the exact 15-minute boundary', () => {
   assert.equal(s.projectCandidates(sessionId).error, 'session-unavailable');
 });
 
-test('candidate and retry payloads are bounded inside the store', () => {
+test('candidate and applied-tab payloads are bounded inside the store', () => {
   const s = store();
   const { sessionId, generation } = s.createSession({
     runtimeId: 'rt-bounds',
@@ -253,19 +222,10 @@ test('candidate and retry payloads are bounded inside the store', () => {
   assert.deepEqual(s.markTabsApplied(sessionId, generation, {
     tabIds: Array.from({ length: 501 }, (_, index) => `tab-${index}`),
     focusTabId: 'tab-0',
-    favoriteEntries: [],
-  }), { error: 'invalid-apply-result' });
-  assert.deepEqual(s.markTabsApplied(sessionId, generation, {
-    tabIds: ['tab-a'],
-    focusTabId: 'tab-a',
-    favoriteEntries: Array.from({ length: 501 }, () => ({
-      url: 'https://example.com/',
-    })),
   }), { error: 'invalid-apply-result' });
   assert.deepEqual(s.markTabsApplied(sessionId, generation, {
     tabIds: [],
     focusTabId: null,
-    favoriteEntries: [],
   }), { error: 'invalid-apply-result' });
 });
 

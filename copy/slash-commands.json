@@ -7,7 +7,7 @@
   },
   "commands": [
     { "command": "/favorites", "hint": "Open favorites" },
-    { "command": "/bring-tabs", "hint": "Bring tabs from another browser" },
+    { "command": "/bring-tabs", "hint": "Bring open tabs from another browser" },
     { "command": "/save", "hint": "Save this page to favorites — name a folder to file it", "doc": { "command": "/save [folder]", "hint": "Save this page to favorites, into a folder if you name one" } },
     { "command": "/history", "hint": "Open browsing history" },
     { "command": "/downloads", "hint": "Open downloads" },

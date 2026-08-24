@@ -26,19 +26,20 @@ const {
 const TAB_IMPORT_FIXTURES = Object.freeze({
   'folder-fallback': Object.freeze({
     sourceLabel: 'Google Chrome — Tab migration fixture',
-    folderName: 'tab reset',
-    candidateCount: 5,
+    candidateCount: 6,
   }),
   'merge-existing': Object.freeze({
-    sourceLabel: 'Google Chrome — Tab migration fixture',
-    folderName: 'merge fixture',
+    sourceLabel: 'Google Chrome — Merge fixture',
     candidateCount: 2,
   }),
   'stress-500': Object.freeze({
-    sourceLabel: 'Google Chrome — Tab migration fixture',
-    folderName: 'stress 500',
+    sourceLabel: 'Google Chrome — Stress 500',
     candidateCount: 500,
     timeout: 20_000,
+  }),
+  'quit-safety': Object.freeze({
+    sourceLabel: 'Google Chrome — Quit safety fixture',
+    candidateCount: 2,
   }),
 });
 
@@ -212,26 +213,32 @@ function install(refs) {
       return {
         step: visiblePanel?.dataset.stepPanel ?? null,
         sourceLabels: [...document.querySelectorAll('.tab-import-source-btn')]
-          .map((button) => button.textContent),
-        folders: [...document.querySelectorAll('.tab-import-folder-row')]
-          .map((button) => ({
-            label: button.textContent,
-            path: button.title,
-            selected: button.classList.contains('selected'),
-          })),
+          .map((button) => button.dataset.sourceLabel ?? button.textContent),
+        windows: [...document.querySelectorAll('.tab-import-window-heading h3')]
+          .map((heading) => heading.textContent),
         preview: [...document.querySelectorAll('.tab-import-preview-row')]
           .map((row) => ({
             title: row.querySelector('.title')?.textContent ?? '',
             meta: row.querySelector('.meta')?.textContent ?? '',
             selected: row.querySelector('input[type="checkbox"]')?.checked ?? false,
           })),
-        duplicateBadge: document.getElementById('tabImportDuplicateBadge')?.hidden
-          ? ''
-          : (document.getElementById('tabImportDuplicateBadge')?.textContent ?? ''),
+        selectedCount: document.getElementById('tabImportSelectedCount')?.textContent ?? '',
         groupNames: [...document.querySelectorAll('.tab-import-group-name')]
           .map((input) => input.value),
         applyLabel: document.getElementById('tabImportApplyBtn')?.textContent ?? '',
         applyDisabled: document.getElementById('tabImportApplyBtn')?.disabled ?? true,
+        reviewDisabled: document.getElementById('tabImportContinueToReview')?.disabled ?? true,
+        recoveryHidden: document.getElementById('tabImportSourceRecovery')?.hidden ?? true,
+        recoveryText: document.getElementById('tabImportSourceRecovery')?.textContent ?? '',
+        recoveryButton: document.querySelector('#tabImportSourceRecovery button')?.textContent ?? '',
+        recoveryButtonCount: document.querySelectorAll('#tabImportSourceRecovery button').length,
+        sourceRows: [...document.querySelectorAll('.tab-import-source-btn')]
+          .map((button) => ({
+            label: button.dataset.sourceLabel ?? '',
+            disabled: button.disabled,
+            waiting: button.classList.contains('waiting'),
+            affordance: button.querySelector('.tab-import-source-waiting')?.textContent ?? '',
+          })),
         status: document.getElementById('tabImportStatus')?.textContent ?? '',
       };
     })()`);
@@ -264,7 +271,8 @@ function install(refs) {
       const node = matcher === null
         ? nodes[0]
         : nodes.find((candidate) =>
-          candidate.textContent === matcher || candidate.textContent.startsWith(matcher + ' ('));
+          (candidate.dataset.sourceLabel ?? candidate.textContent) === matcher
+          || (candidate.dataset.sourceLabel ?? candidate.textContent).startsWith(matcher + ' ('));
       if (!node || node.disabled) return false;
       node.click();
       return true;
@@ -290,26 +298,52 @@ function install(refs) {
     if (dom.step === 'source') {
       await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
       dom = await waitForTabImportDom(
-        (value) => value?.step === 'folder',
-        'tab-import folder step',
+        (value) => value?.step === 'tabs' && value.preview.length === fixture.candidateCount,
+        'tab-import tabs step',
         fixture.timeout,
       );
     }
-    if (dom.step === 'folder') {
-      await clickTabImportSelector('.tab-import-folder-row', fixture.folderName);
-      await clickTabImportSelector('#tabImportFolderContinue');
+    if (targetStage === 'tabs') return dom;
+    if (dom.step === 'tabs') {
+      await clickTabImportSelector('#tabImportContinueToOrganize');
       dom = await waitForTabImportDom(
-        (value) => value?.step === 'preview' && value.preview.length === fixture.candidateCount,
-        'tab-import preview step',
+        (value) => value?.step === 'organize' && !value.reviewDisabled,
+        'tab-import organize step',
         fixture.timeout,
       );
     }
-    if (targetStage === 'preview') return dom;
-    if (dom.step === 'preview') {
-      await clickTabImportSelector('#tabImportUseFolders');
+    if (targetStage === 'organize') return dom;
+    if (dom.step === 'organize') {
+      await clickTabImportSelector('#tabImportContinueToReview');
       dom = await waitForTabImportDom(
         (value) => value?.step === 'review' && !value.applyDisabled,
         'tab-import review step',
+        fixture.timeout,
+      );
+    }
+    return dom;
+  }
+
+  async function ensureTabImportQuitGate(name) {
+    const fixture = TAB_IMPORT_FIXTURES[name];
+    if (!fixture) throw new Error(`unknown tab-import fixture: ${name}`);
+    const surface = getUtilitySheetState();
+    let dom = await readTabImportDom();
+    if (!surface?.visible || !dom || (activeTabImportFixtureName && activeTabImportFixtureName !== name)) {
+      if (surface?.visible) hideUtilitySheet();
+      openInternalPage('blanc://tab-import/');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceLabels.includes(fixture.sourceLabel),
+        `${fixture.sourceLabel} source button`,
+        fixture.timeout,
+      );
+    }
+    activeTabImportFixtureName = name;
+    if (dom.recoveryHidden) {
+      await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.recoveryHidden === false,
+        'tab-import verified quit gate',
         fixture.timeout,
       );
     }
@@ -330,8 +364,8 @@ function install(refs) {
     })()`);
     if (!changed) throw new Error(`review group not found: ${from}`);
     return waitForTabImportDom(
-      (value) => value?.step === 'review' && value.groupNames.includes(String(to)),
-      `review group rename to ${to}`,
+      (value) => value?.step === 'organize' && value.groupNames.includes(String(to)),
+      `organize group rename to ${to}`,
     );
   }
 
@@ -1333,11 +1367,26 @@ function install(refs) {
     async applyTabImportFixture(name, options = {}) {
       const fixtureName = String(name ?? '');
       const stage = String(options?.stage ?? 'apply');
+      if (stage === 'quit-gate' || stage === 'after-quit-refusal') {
+        let dom = await ensureTabImportQuitGate(fixtureName);
+        if (stage === 'after-quit-refusal') {
+          await clickTabImportSelector('#tabImportSourceRecovery button');
+          dom = await waitForTabImportDom(
+            (value) => value?.step === 'source' && value.status.includes('Reopen'),
+            'tab-import exact-newest refusal',
+            TAB_IMPORT_FIXTURES[fixtureName].timeout,
+          );
+        }
+        return { ok: true, dom };
+      }
+      const targetStage = stage === 'preview' || stage === 'cancel'
+        ? 'tabs'
+        : (stage === 'organize' || options?.renameFrom || options?.directApply ? 'organize' : 'review');
       let dom = await ensureTabImportFixtureStage(
         fixtureName,
-        stage === 'preview' ? 'preview' : 'review',
+        targetStage,
       );
-      if (stage === 'preview' || stage === 'review') {
+      if (stage === 'preview' || stage === 'organize' || stage === 'review') {
         return {
           ok: true,
           dom,
@@ -1349,6 +1398,12 @@ function install(refs) {
       }
       if (options?.renameFrom && options?.renameTo) {
         dom = await renameTabImportGroup(options.renameFrom, options.renameTo);
+        await clickTabImportSelector('#tabImportContinueToReview');
+        dom = await waitForTabImportDom(
+          (value) => value?.step === 'review' && !value.applyDisabled,
+          'tab-import review after rename',
+          TAB_IMPORT_FIXTURES[fixtureName].timeout,
+        );
       }
       const projection = await waitForTabImportProjection(
         TAB_IMPORT_FIXTURES[fixtureName].candidateCount,
@@ -1376,7 +1431,7 @@ function install(refs) {
         return { ...result, applied: result?.ok === true, projection, broadcastCount };
       }
       if (stage === 'cancel') {
-        // Use the renderer's real close control. tab-import.js wraps the
+        // Use the renderer's real close control. tab-import-open-tabs.js wraps the
         // shared sheet close so it cancels the opaque session before main
         // dismisses the surface; calling hideUtilitySheet directly would
         // skip that renderer-owned cancellation path when a sheet was
@@ -1665,14 +1720,18 @@ function install(refs) {
     async reset() {
       clearFocusObservation();
       activeTabImportFixtureName = null;
-      for (const profile of localProfileSnapshots()) {
-        if (profile.id === 'default') continue;
-        await deleteNamedLocalProfile(profile.id, profile.name);
-      }
       for (const runtime of windowRuntimeSnapshots()) {
         if (runtime.id !== 'primary') closeWindowRuntimeAction(runtime.id);
       }
       await new Promise((resolve) => setImmediate(resolve));
+      // Close named-profile windows before asking the deletion workflow to
+      // clear their sessions. Driving deletion against a still-visible test
+      // window can leave Electron waiting for a native hide event that the
+      // headless acceptance host never delivers.
+      for (const profile of localProfileSnapshots()) {
+        if (profile.id === 'default') continue;
+        await deleteNamedLocalProfile(profile.id, profile.name);
+      }
       // Do not let a scenario inherit retained page state. Quiet imported tabs
       // are viewless and have no snapshot, so waking hundreds of them merely to
       // delete them makes the stress scenario's cleanup slower than the product
