@@ -27,6 +27,8 @@ test('Bring Your Tabs groups profiles under bundled browser artwork', () => {
   assert.match(html, /id="tabImportBrowserList"[^>]+role="radiogroup"/);
   assert.match(html, /id="tabImportProfileSection"/);
   assert.match(html, /Source[\s\S]*Tabs[\s\S]*Organize[\s\S]*Review/);
+  assert.match(html, /local to this device[\s\S]*source browser unchanged[\s\S]*Favorites untouched/);
+  assert.match(html, /Quiet by default[\s\S]*Nothing removed[\s\S]*Favorites stay separate/);
   assert.doesNotMatch(html, /HTML bookmarks|bookmarks file|Choose a bookmarks folder/);
 
   for (const browser of ['brave', 'chrome', 'edge', 'vivaldi', 'chromium']) {
@@ -64,6 +66,20 @@ test('Bring Your Tabs groups profiles under bundled browser artwork', () => {
   assert.match(css, /\.tab-import-review-actions \.tab-import-restore-btn \{ max-width: none; width: 100%; \}/,
     'only row-level restore controls may stretch at the narrow breakpoint');
   assert.doesNotMatch(renderer, /openFile|selectFolder|suggestFolders|Save to Favorites/);
+});
+
+test('every start-page layout promotes the same local Bring Your Tabs flow', () => {
+  const html = read('src/renderer/pages/newtab.html');
+  const css = read('src/renderer/pages/pages.css');
+  const entryPoints = [...html.matchAll(
+    /class="tab-import-promo [^"]+" href="blanc:\/\/tab-import\/"/g,
+  )];
+
+  assert.equal(entryPoints.length, 4, 'ledger, billboard, shelf, and tally each need one CTA');
+  assert.match(html, /Skip the cleanup in your old browser/);
+  assert.match(html, /sort it into Named Groups/);
+  assert.match(css, /:root\[data-theme="private"\] \.tab-import-promo \{ display: none; \}/,
+    'private start tabs must not advertise a regular-profile migration action');
 });
 
 test('/bring-tabs is catalogued and dispatches through the privileged page allowlist', () => {

@@ -177,6 +177,7 @@ function dispositionIssue() {
 function setStep(next) {
   if (!STEPS.includes(next)) return;
   step = next;
+  if (pageEl) pageEl.dataset.activeStep = step;
   for (const panel of document.querySelectorAll('[data-step-panel]')) {
     panel.hidden = panel.dataset.stepPanel !== step;
   }
@@ -401,6 +402,7 @@ function showQuitGate(id, label, result, browserName = label) {
   note.textContent = `Whether those tabs reopen automatically in ${browserName} depends on its startup setting.`;
   const retry = document.createElement('button');
   retry.type = 'button';
+  retry.className = 'tab-import-primary';
   retry.textContent = `I’ve quit ${browserName} — check again`;
   retry.addEventListener('click', () => openSource(id, label, {
     afterQuit: true,
@@ -748,10 +750,16 @@ function groupSection(group, byId) {
 function laneSection(title, ids, byId, className = '') {
   const section = document.createElement('section');
   section.className = `tab-import-review-group tab-import-review-lane ${className}`.trim();
+  const headingRow = document.createElement('div');
+  headingRow.className = 'tab-import-lane-heading';
   const heading = document.createElement('h3');
   heading.className = 'section-title';
   heading.textContent = title;
-  section.append(heading);
+  const count = document.createElement('span');
+  count.className = 'tab-import-lane-count';
+  count.textContent = `${ids.length} ${ids.length === 1 ? 'tab' : 'tabs'}`;
+  headingRow.append(heading, count);
+  section.append(headingRow);
   const list = document.createElement('div');
   list.className = 'row-list';
   if (!ids.length) {
