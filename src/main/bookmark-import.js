@@ -3,6 +3,7 @@
 // normalizeAddressInput), not a DOM parse: attribute values containing an
 // unescaped '>' are not supported, which real exports never emit.
 const { validFavicon } = require('./bookmark-validate');
+const { buildNetscapeTree } = require('./bookmark-tree');
 
 function decodeEntities(s) {
   return String(s)
@@ -69,4 +70,9 @@ function parseNetscapeBookmarks(html, { now = Date.now() } = {}) {
   return out;
 }
 
-module.exports = { parseNetscapeBookmarks };
+/** Folder tree for F39 tab migration — public projection only (no URLs). */
+function parseNetscapeBookmarkTree(html, options = {}) {
+  return buildNetscapeTree(html, options);
+}
+
+module.exports = { parseNetscapeBookmarks, parseNetscapeBookmarkTree };

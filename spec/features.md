@@ -716,7 +716,9 @@ From the desktop `DEFAULTS`:
   closes only on a confirmed write. The import step embeds F30's migration
   with its explicit-discovery rule intact: no other browser's profile is read
   until the person asks to look, and the universal bookmarks-file import is
-  offered from the start.
+  offered from the start. The import step also offers **Bring your open tabs…**
+  as a separate F39 handoff before or after F30 Favorites import. F39 does not
+  depend on completing a Favorites import first.
 - Ad-blocking and theme choices apply live during the flow through the same
   validated settings paths as Settings itself; the default-browser step uses
   the OS registration only where the platform genuinely supports it and
@@ -729,7 +731,8 @@ From the desktop `DEFAULTS`:
   [`acceptance/onboarding.feature`](./acceptance/onboarding.feature) shows the
   walkthrough to a fresh profile once, proves skip records the privacy
   choices, never re-asks a completed profile, and verifies the import step
-  reads nothing before the explicit ask.
+  reads nothing before the explicit ask. F39's onboarding handoff is covered by
+  [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature).
 
 ## F37 — The blank tab shows where to type
 
@@ -755,3 +758,29 @@ From the desktop `DEFAULTS`:
   typing on a blank tab whose *page content* holds focus opens the island
   carrying that character, and that the commands affordance opens the command
   list.
+
+## F39 — Bring Your Tabs (direct open-tab migration)
+
+- A person explicitly chooses a supported Chromium-family browser profile.
+  Blanc reads that profile's newest restorable open-tab session only after the
+  selection; it does not use bookmarks or require source-browser preparation.
+- The Tabs step preserves source-window/tab order, exact duplicates, pins, and
+  named source groups. The renderer receives bounded titles, hostnames, opaque
+  candidate IDs, source-window/group labels, and selection state—never full
+  URLs or source filesystem paths. Inputs are bounded to 500 candidates.
+- A normal source-browser quit is requested only when a read-only preflight
+  proves a saved/restorable session exists. Blanc never force-quits or modifies
+  the source profile, never promises automatic reopening, and never imports an
+  older snapshot after post-quit verification fails.
+- Eligible source groups seed editable Blanc Named Groups. Everything else
+  remains ungrouped until the person creates, renames, or moves it; no bookmark
+  folders, placeholder groups, cloud organizer, or hidden semantic-model promise
+  participates in v1.
+- Apply creates tabs/groups transactionally in preview order and never writes
+  Favorites. Imported tabs are quiet and viewless; only the first selected tab
+  wakes. A Named Workspace remains a separate optional Patron gesture.
+- **Acceptance:**
+  [`acceptance/tab-migration.feature`](./acceptance/tab-migration.feature)
+  covers explicit session reads, quit safety, duplicate/order/group fidelity,
+  opaque renderer projection, transactional apply, ownership/cancellation,
+  onboarding, and the separate workspace handoff.

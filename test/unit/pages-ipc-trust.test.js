@@ -36,3 +36,23 @@ test('pages IPC rejects non-root paths and contents/frame URL disagreement', () 
     hosts: new Set(['settings']), sessions: new Set([mismatch.session]), ownsSender: () => true,
   }), false);
 });
+
+test('tab-import IPC rejects a different internal host and subframe', () => {
+  const { event, sender, session } = eventFor('blanc://tab-import/');
+  const policy = {
+    hosts: new Set(['tab-import']),
+    sessions: new Set([session]),
+    ownsSender: (host, candidate) => host === 'tab-import' && candidate === sender,
+  };
+  assert.equal(isTrustedPagesEvent(event, policy), true);
+
+  const wrongHost = eventFor('blanc://bookmarks/');
+  assert.equal(isTrustedPagesEvent(wrongHost.event, {
+    ...policy,
+    sessions: new Set([wrongHost.session]),
+    ownsSender: () => true,
+  }), false);
+
+  const childFrame = { url: 'blanc://tab-import/' };
+  assert.equal(isTrustedPagesEvent({ ...event, senderFrame: childFrame }, policy), false);
+});

@@ -9,6 +9,7 @@ test('isUtilityUrl: utility hosts match, with paths and queries', () => {
   assert.equal(isUtilityUrl('blanc://downloads/'), true);
   assert.equal(isUtilityUrl('blanc://settings/'), true);
   assert.equal(isUtilityUrl('blanc://shortcuts/'), true);
+  assert.equal(isUtilityUrl('blanc://tab-import/'), true);
   assert.equal(isUtilityUrl('blanc://settings/?section=sync'), true);
 });
 
@@ -24,7 +25,7 @@ test('isUtilityUrl: non-utility internal pages and other schemes do not match', 
   assert.equal(isUtilityUrl(undefined), false);
 });
 
-test('UTILITY_PAGES is exactly the five sheet pages', () => {
+test('UTILITY_PAGES is exactly the six sheet pages', () => {
   assert.deepEqual([...UTILITY_PAGES].sort(),
-    ['bookmarks', 'downloads', 'history', 'settings', 'shortcuts']);
+    ['bookmarks', 'downloads', 'history', 'settings', 'shortcuts', 'tab-import']);
 });

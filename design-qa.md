@@ -132,3 +132,113 @@ responsive rule, and the intentional visible picker-cancel affordance.
 No P3 visual follow-up is required for this release candidate.
 
 final result: passed
+
+---
+
+# Bring Your Tabs design QA
+
+**Final result:** passed for the corrected direct-open-tab flow
+
+## Comparison target
+
+- Approved source-card direction: `docs/superpowers/specs/assets/tab-import-source-option-3.png`
+- Reference/live comparison: `docs/superpowers/specs/assets/tab-import-source-design-qa-current.jpg`
+- Desktop live states:
+  - `docs/superpowers/specs/assets/tab-import-source-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-tabs-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-organize-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-review-live-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-quit-gate-live-final.jpg`
+- Compact 700×600 states:
+  - `docs/superpowers/specs/assets/tab-import-source-narrow-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-tabs-narrow-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-organize-narrow-final.jpg`
+  - `docs/superpowers/specs/assets/tab-import-review-narrow-final.jpg`
+
+## Normalization
+
+- Desktop implementation capture: 1229×768 macOS Electron content, light appearance, no page zoom.
+- The approved source-card direction was normalized to 1229×768 and placed beside the desktop
+  source capture in a 2458×768 comparison image.
+- Compact capture: the real Electron window was set to 700×600 through the acceptance-only main
+  process hook; the utility sheet retained its production 24px scrim margin and vertical scrollport.
+- Data is synthetic but structurally realistic: two source windows, six HTTP(S) tabs, a duplicate,
+  a pin, two named source groups, one ungrouped tab, and one unsupported internal URL.
+- The old mock's Folder step, bookmark-oriented profile copy, and HTML fallback were treated as
+  superseded semantics. The approved visual direction—official-logo cards, profile rows, spacing,
+  and restrained monochrome shell—remains the visual target.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings in the implemented desktop flow.
+
+- Source: official bundled Brave, Chrome, Edge, Vivaldi, and Chromium artwork is crisp and
+  consistently framed. Available, selected, permission-needed, and profile-count states preserve
+  the approved card hierarchy without implying that Favorites are involved.
+- Tabs: source windows, duplicate tabs, pin/group metadata, selected count, and unsupported-tab
+  copy are readable without exposing full URLs. The sheet scrolls vertically at compact heights.
+- Organize: preserved group names are visibly labelled **from source**; group rename, create,
+  remove, and move controls use the existing Blanc form language. Compact group headers remain
+  one line and row actions stack without stretching header controls.
+- Review: exact tab/group/ungrouped consequences are prominent. Desktop uses three compact metric
+  columns; the 700×600 layout stacks them and exposes a clear scroll affordance.
+- Quit safeguard: the prompt appears only with a proven saved/restorable session count, asks for a
+  normal quit, says Blanc only reads and never removes source tabs, and avoids promising automatic
+  reopening. While the gate is open, every profile row is disabled and the selected row replaces
+  its chevron with **Waiting…**, leaving the explicit **check again** button as the sole primary
+  continuation. Post-quit verification refuses an incomplete newest session rather than falling
+  back.
+- Accessibility: the wizard exposes labelled steps, browser radios, profile buttons, selected-tab
+  checkboxes, labelled group-name inputs, move selects, live status text, and a persistent close
+  control. Step changes reset the sheet scrollport so the next heading remains visible.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] The implemented feature still used a bookmarks-folder source, contradicting the requested
+  open-tab migration outcome.
+- [P1] Source profiles were plain text rows without the selected official-logo visual direction.
+
+Fix: replaced the source with explicit Chromium restorable-session reads and retained the approved
+official-logo browser-card/profile-row layout.
+
+### Iteration 2 — blocked
+
+- [P1] Advancing from a long Tabs panel carried its scroll position into Organize, clipping the
+  Organize heading beneath the sticky navigation.
+- [P2] At 700×600, the group-name flex basis became vertical blank space and the remove-group
+  action stretched across the card.
+- [P2] Preserved source groups were incorrectly labelled **new**.
+
+Fix: reset the sheet scrollport immediately and on the next animation frame at every step change;
+kept group headers horizontal at the compact breakpoint; scoped full-width controls to row actions;
+and mapped high-confidence preserved groups to **from source**.
+
+### Iteration 3 — passed
+
+The desktop and 700×600 captures show complete headings, consistent card rhythm, usable scrolling,
+compact group controls, accurate source provenance, and no clipped or horizontally overflowing UI.
+
+### Final cleanup — passed
+
+The quit-safeguard profile row is now visibly dimmed, disabled, and labelled **Waiting…** while
+the retry gate is active. The rejected bookmark-folder renderer was removed rather than retained
+as a second dead F39 UI, and its design and plan are explicitly non-normative superseded records.
+
+## Functional evidence
+
+- Unit: 1,088/1,088 passed after the direct-session and scroll-transition changes.
+- Focused F39 Electron acceptance with retries disabled: 11/11 scenarios, 63/63 steps passed.
+- Full Electron acceptance before the final presentation-only fixes: 127/127 scenarios and
+  766/766 steps passed; the focused no-retry run was repeated afterward.
+- Substrate: token, settings, generated copy, and pinned adblock checks pass; the production
+  dependency audit reports zero vulnerabilities.
+
+## Remaining release evidence
+
+- Packaged macOS, Windows, and Linux source-session reads remain release-operator gates.
+- The signed unpacked macOS app passes post-sign verification and contains no ONNX, MiniLM,
+  Transformers, embedding, or `.wasm` payload. F39 remains `PLANNED` until the platform reads pass.
+
+final result: passed

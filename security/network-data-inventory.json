@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-08-12",
+  "reviewedAt": "2026-08-23",
   "principles": {
     "freshProfileNetworkChoices": "must-be-saved-before-first-send",
     "blockerInputs": "bundled-and-hash-verified",
@@ -97,6 +97,17 @@
       "data": ["license key", "public organization ID", "Blanc desktop label", "ordinary network metadata"],
       "retentionByBlanc": "local activation record trusted offline",
       "code": ["src/main/supporter.js"]
+    },
+    {
+      "id": "tab-import-local-ipc",
+      "surface": "desktop",
+      "trigger": "user explicitly selects, reviews, or applies a source in Bring Your Tabs",
+      "default": "off; no source is read until explicit selection",
+      "recipient": "Blanc main process only; no network recipient",
+      "data": ["opaque session and candidate identifiers", "sanitized titles, hostnames, and folder labels", "on-device embedding matrix when semantic suggestions are enabled"],
+      "retentionByBlanc": "memory-only import session for at most 15 minutes; destroyed on cancel, apply, window close, profile deletion, or quit; never sent over the network",
+      "channels": ["pages:tab-import:sources", "pages:tab-import:open-source", "pages:tab-import:open-file", "pages:tab-import:select-folder", "pages:tab-import:set-selection", "pages:tab-import:suggest-folders", "pages:tab-import:suggest-embed", "pages:tab-import:submit-embeddings", "pages:tab-import:apply", "pages:tab-import:cancel"],
+      "code": ["src/main/browser-data-import.js", "src/main/pages.js", "src/main/tab-preload.js"]
     },
     {
       "id": "website-release-resolution",

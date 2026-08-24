@@ -2,9 +2,9 @@
 // docs/superpowers/specs/2026-07-22-utility-sheet-design.md §4). Every
 // route into a tab checks this; pages.js's KNOWN_PAGES stays the superset
 // of all internal pages and is deliberately separate.
-const UTILITY_PAGES = new Set(['bookmarks', 'history', 'downloads', 'settings', 'shortcuts']);
+const UTILITY_PAGES = new Set(['bookmarks', 'history', 'downloads', 'settings', 'shortcuts', 'tab-import']);
 
-/** Exact-host blanc:// match: true only for the five sheet pages. */
+/** Exact-host blanc:// match: true only for utility sheet pages. */
 function isUtilityUrl(url) {
   try {
     const u = new URL(url);

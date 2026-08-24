@@ -3,10 +3,32 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { validFolder } = require('./bookmark-validate');
+const {
+  buildChromiumTree,
+  extractSubtree,
+  dedupeCandidatesByUrl,
+  enforceCandidateCap,
+} = require('./bookmark-tree');
+const {
+  MAX_SESSION_BYTES,
+  parseChromiumSession,
+} = require('./chromium-session');
 
 const MAX_BROWSER_BOOKMARK_BYTES = 20 * 1024 * 1024;
 const MAX_BROWSER_BOOKMARK_NODES = 100_000;
 const CHROMIUM_EPOCH_OFFSET_MS = 11_644_473_600_000;
+
+const BROWSER_PERMISSION_GUIDANCE =
+  'macOS blocked access to this browser\'s profile folder. Grant Blanc Full Disk Access in System Settings → Privacy & Security, then try again.';
+
+function isBrowserAccessError(err) {
+  return err?.code === 'EPERM' || err?.code === 'EACCES';
+}
+
+function isBrowserSessionLockError(err, platform) {
+  return err?.code === 'EBUSY' || err?.code === 'ETXTBSY'
+    || (platform === 'win32' && isBrowserAccessError(err));
+}
 
 const BROWSERS = Object.freeze([
   {
@@ -161,6 +183,16 @@ function safeProfileName(infoCache, directory) {
   return directory === 'Default' ? 'Default' : directory.slice(0, 120);
 }
 
+function publicUnavailable(browser) {
+  return {
+    browserId: browser.id,
+    browser: browser.name,
+    label: browser.name,
+    reason: 'permission',
+    guidance: BROWSER_PERMISSION_GUIDANCE,
+  };
+}
+
 function publicSource(source) {
   return {
     id: source.id,
@@ -178,49 +210,208 @@ function createBrowserDataImportService({
   env = process.env,
   fsPromises = fs.promises,
 } = {}) {
-  async function discover() {
-    const found = [];
+  async function discover({ requireBookmarks = true } = {}) {
+    const sources = [];
+    const unavailable = [];
+    const blockedBrowserIds = new Set();
     for (const browser of BROWSERS) {
       const root = browserDataRoot(browser.id, { platform, homeDir, env });
       if (!root) continue;
+      try {
+        const rootStat = await fsPromises.stat(root);
+        if (!rootStat.isDirectory()) continue;
+      } catch (err) {
+        if (err?.code === 'ENOENT') continue;
+        if (isBrowserAccessError(err) && !blockedBrowserIds.has(browser.id)) {
+          blockedBrowserIds.add(browser.id);
+          unavailable.push({ browserId: browser.id, browser: browser.name });
+        }
+        continue;
+      }
       let directories;
       try {
         directories = await fsPromises.readdir(root, { withFileTypes: true });
-      } catch {
+      } catch (err) {
+        if (isBrowserAccessError(err) && !blockedBrowserIds.has(browser.id)) {
+          blockedBrowserIds.add(browser.id);
+          unavailable.push({ browserId: browser.id, browser: browser.name });
+        }
         continue;
       }
       const localState = await readJsonIfSmall(path.join(root, 'Local State'), fsPromises);
       const infoCache = localState?.profile?.info_cache;
       for (const entry of directories) {
         if (!entry.isDirectory() || !/^(Default|Profile .+)$/.test(entry.name)) continue;
+        const profilePath = path.join(root, entry.name);
         const bookmarksPath = path.join(root, entry.name, 'Bookmarks');
-        try {
-          const stat = await fsPromises.stat(bookmarksPath);
-          if (!stat.isFile()) continue;
-        } catch {
-          continue;
+        if (requireBookmarks) {
+          try {
+            const stat = await fsPromises.stat(bookmarksPath);
+            if (!stat.isFile()) continue;
+          } catch (err) {
+            if (isBrowserAccessError(err) && !blockedBrowserIds.has(browser.id)) {
+              blockedBrowserIds.add(browser.id);
+              unavailable.push({ browserId: browser.id, browser: browser.name });
+            }
+            continue;
+          }
         }
-        found.push({
+        sources.push({
           id: sourceId(browser.id, entry.name),
           browserId: browser.id,
           browser: browser.name,
           profileDirectory: entry.name,
           profile: safeProfileName(infoCache, entry.name),
+          profilePath,
           bookmarksPath,
+          sessionsPath: path.join(profilePath, 'Sessions'),
         });
       }
     }
-    return found.sort((a, b) =>
+    sources.sort((a, b) =>
       a.browser.localeCompare(b.browser) || a.profile.localeCompare(b.profile));
+    return { sources, unavailable };
+  }
+
+  async function readNewestOpenTabSession(source, { afterQuit = false } = {}) {
+    let entries;
+    try {
+      entries = await fsPromises.readdir(source.sessionsPath, { withFileTypes: true });
+    } catch (err) {
+      if (isBrowserSessionLockError(err, platform)) return { error: 'source-locked' };
+      if (isBrowserAccessError(err)) return { error: 'permission' };
+      return { error: err?.code === 'ENOENT' ? 'empty' : 'unreadable' };
+    }
+    const sessionNames = entries
+      .filter((entry) => entry.isFile() && /^Session_[0-9]+$/.test(entry.name))
+      .map((entry) => entry.name)
+      .sort((a, b) => {
+        const aStamp = BigInt(a.slice('Session_'.length));
+        const bStamp = BigInt(b.slice('Session_'.length));
+        return aStamp === bStamp ? 0 : aStamp > bStamp ? -1 : 1;
+      });
+    if (!sessionNames.length) return { error: 'empty' };
+
+    async function readSession(sessionName) {
+      const sessionPath = path.join(source.sessionsPath, sessionName);
+      let handle;
+      try {
+        handle = await fsPromises.open(sessionPath, 'r');
+        const before = await handle.stat();
+        if (!before.isFile()) return { error: 'unreadable' };
+        if (before.size > MAX_SESSION_BYTES) {
+          return { error: 'session-too-large', count: before.size };
+        }
+        const parsed = parseChromiumSession(await handle.readFile());
+        const after = await handle.stat();
+        const changedSize = before.size !== after.size;
+        const changedTime = Number.isFinite(before.mtimeMs) && Number.isFinite(after.mtimeMs)
+          && before.mtimeMs !== after.mtimeMs;
+        return changedSize || changedTime ? { error: 'source-saving' } : parsed;
+      } catch (err) {
+        if (isBrowserSessionLockError(err, platform)) return { error: 'source-locked' };
+        if (isBrowserAccessError(err)) return { error: 'permission' };
+        return { error: 'unreadable' };
+      } finally {
+        await handle?.close().catch(() => {});
+      }
+    }
+
+    const newest = await readSession(sessionNames[0]);
+    if (!newest.error) return newest;
+    if (afterQuit) return newest;
+
+    const needsNormalQuit = new Set([
+      'source-locked',
+      'source-saving',
+      'missing-session-marker',
+      'incomplete-session',
+    ]);
+    if (!needsNormalQuit.has(newest.error)) return newest;
+
+    // Older snapshots are preflight evidence only. They are never returned as
+    // the import source. A normal-quit prompt is allowed only when Blanc can
+    // already prove that this profile has a saved, restorable session.
+    for (const sessionName of sessionNames.slice(1)) {
+      const recovery = await readSession(sessionName);
+      if (!recovery.error && recovery.candidates?.length) {
+        return {
+          error: 'source-locked',
+          recoverable: true,
+          recoverableTabCount: recovery.candidates.length,
+        };
+      }
+    }
+    return { ...newest, recoverable: false };
+  }
+
+  async function readTree(id) {
+    const source = (await discover()).sources.find((candidate) => candidate.id === id);
+    if (!source) return { error: 'source-unavailable' };
+    let handle;
+    try {
+      // Keep validation and reading on one opened descriptor. A profile file
+      // replaced between path-based stat() and readFile() must never bypass
+      // the size/type check applied to the bytes we actually parse.
+      handle = await fsPromises.open(source.bookmarksPath, 'r');
+      const stat = await handle.stat();
+      if (!stat.isFile()) return { error: 'source-unavailable' };
+      if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
+      const raw = await handle.readFile('utf8');
+      return { source, tree: buildChromiumTree(raw) };
+    } catch {
+      return { error: 'unreadable' };
+    } finally {
+      await handle?.close().catch(() => {});
+    }
   }
 
   return {
     async listSources() {
-      return (await discover()).map(publicSource);
+      const { sources, unavailable } = await discover();
+      return {
+        sources: sources.map(publicSource),
+        unavailable: unavailable.map((entry) =>
+          publicUnavailable(
+            BROWSERS.find((browser) => browser.id === entry.browserId) ?? {
+              id: entry.browserId,
+              name: entry.browser,
+            },
+          )),
+      };
+    },
+
+    async listOpenTabSources() {
+      const { sources, unavailable } = await discover({ requireBookmarks: false });
+      return {
+        sources: sources.map(publicSource),
+        unavailable: unavailable.map((entry) =>
+          publicUnavailable(
+            BROWSERS.find((browser) => browser.id === entry.browserId) ?? {
+              id: entry.browserId,
+              name: entry.browser,
+            },
+          )),
+      };
+    },
+
+    async readOpenTabs(id, { afterQuit = false } = {}) {
+      const source = (await discover({ requireBookmarks: false })).sources
+        .find((candidate) => candidate.id === id);
+      if (!source) return { error: 'source-unavailable' };
+      const parsed = await readNewestOpenTabSession(source, { afterQuit: afterQuit === true });
+      if (parsed.error) return { ...parsed, source: publicSource(source) };
+      return {
+        source: publicSource(source),
+        candidates: parsed.candidates,
+        windowCount: parsed.windowCount,
+        excludedCount: parsed.excludedCount,
+        partialTail: parsed.partialTail,
+      };
     },
 
     async readSource(id) {
-      const source = (await discover()).find((candidate) => candidate.id === id);
+      const source = (await discover()).sources.find((candidate) => candidate.id === id);
       if (!source) return { error: 'source-unavailable' };
       try {
         const stat = await fsPromises.stat(source.bookmarksPath);
@@ -234,12 +425,44 @@ function createBrowserDataImportService({
         return { error: 'unreadable' };
       }
     },
+
+    async readFolderTree(id) {
+      const result = await readTree(id);
+      if (result.error) return result;
+      const { source, tree } = result;
+      if (!tree.folders.some((folder) => folder.subtreeHttpCount > 0)) {
+        return { error: 'empty' };
+      }
+      return {
+        source: publicSource(source),
+        folders: tree.folders,
+        rootFolderIds: tree.rootFolderIds,
+      };
+    },
+
+    async readSubtreeCandidates(id, rootFolderId) {
+      const result = await readTree(id);
+      if (result.error) return result;
+      const { source, tree } = result;
+      const { candidates } = extractSubtree(tree, String(rootFolderId ?? ''));
+      const { candidates: deduped, duplicateCount } = dedupeCandidatesByUrl(candidates);
+      const capped = enforceCandidateCap(deduped);
+      if (!capped.ok) return { error: 'too-many-candidates', count: capped.count };
+      if (!capped.candidates.length) return { error: 'empty' };
+      return {
+        source: publicSource(source),
+        candidates: capped.candidates,
+        duplicateCount,
+      };
+    },
   };
 }
 
 module.exports = {
   BROWSERS,
+  BROWSER_PERMISSION_GUIDANCE,
   MAX_BROWSER_BOOKMARK_BYTES,
+  MAX_SESSION_BYTES,
   browserDataRoot,
   chromiumTimestampMs,
   parseChromiumBookmarks,

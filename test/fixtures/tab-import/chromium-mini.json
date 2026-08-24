@@ -1,0 +1,65 @@
+{
+  "roots": {
+    "bookmark_bar": {
+      "type": "folder",
+      "name": "Bookmarks bar",
+      "children": [
+        {
+          "type": "url",
+          "name": "Top",
+          "url": "https://top.example/",
+          "date_added": "13396214569237870"
+        },
+        {
+          "type": "folder",
+          "name": "tab reset",
+          "children": [
+            {
+              "type": "folder",
+              "name": "work",
+              "children": [
+                {
+                  "type": "folder",
+                  "name": "github.com",
+                  "children": [
+                    {
+                      "type": "url",
+                      "name": "Repo",
+                      "url": "https://github.com/org/repo",
+                      "date_added": "13396214569237871"
+                    },
+                    {
+                      "type": "url",
+                      "name": "Dup",
+                      "url": "https://github.com/org/repo",
+                      "date_added": "13396214569237872"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "folder",
+              "name": "travel",
+              "children": [
+                {
+                  "type": "url",
+                  "name": "Hotels",
+                  "url": "https://hotels.example/",
+                  "date_added": "13396214569237873"
+                }
+              ]
+            },
+            {
+              "type": "url",
+              "name": "Direct",
+              "url": "https://direct-in-root.example/",
+              "date_added": "13396214569237874"
+            }
+          ]
+        },
+        { "type": "url", "name": "Internal", "url": "chrome://settings/" }
+      ]
+    }
+  }
+}

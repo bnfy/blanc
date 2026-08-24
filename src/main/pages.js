@@ -23,7 +23,7 @@ const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 // file:// so they get a real origin, and so ordinary web content can never
 // link into arbitrary local files.
 const PAGES_DIR = path.join(__dirname, '../renderer/pages');
-const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'settings', 'error', 'auth', 'shortcuts']);
+const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'settings', 'error', 'auth', 'shortcuts', 'tab-import']);
 
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
@@ -145,6 +145,64 @@ function setupPages(hooks = {}) {
     hooks.onDataChanged?.();
     return { added, skipped, source: read.source };
   });
+
+  // Bring Your Tabs gets a separate, exact-host surface from F30 Favorites
+  // import. Selecting a profile reads its restorable open-tab session in
+  // main; the sheet receives only the opaque candidate projection.
+  handle('pages:tab-import:sources', 'tab-import', () => browserImport.listOpenTabSources());
+  handle('pages:tab-import:open-source', 'tab-import', async (id, options = {}) => {
+    const sourceId = String(id ?? '');
+    const read = await browserImport.readOpenTabs(sourceId, {
+      afterQuit: options?.afterQuit === true,
+    });
+    if (read.error) {
+      return {
+        error: read.error,
+        recoverable: read.recoverable === true,
+        recoverableTabCount: Number(read.recoverableTabCount) || 0,
+      };
+    }
+    const opened = hooks.tabImport?.openSource?.({
+      sourceKind: 'chromium',
+      sourceLabel: read.source.label,
+      readCandidates: async () => read,
+    }) ?? { error: 'session-unavailable' };
+    if (opened.error) return opened;
+    const loaded = await hooks.tabImport?.loadCandidates?.(opened.sessionId)
+      ?? { error: 'session-unavailable' };
+    if (loaded.error) return loaded;
+    return {
+      ...opened,
+      ...loaded,
+      source: read.source,
+    };
+  });
+  handle('pages:tab-import:set-selection', 'tab-import', (sessionId, selection) =>
+    hooks.tabImport?.setSelection?.(
+      String(sessionId ?? ''),
+      selection ?? {},
+    ) ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-source-groups', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestSourceGroups?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle('pages:tab-import:suggest-embed', 'tab-import', (sessionId) =>
+    hooks.tabImport?.suggestEmbed?.(String(sessionId ?? ''))
+      ?? { error: 'session-unavailable' });
+  handle(
+    'pages:tab-import:submit-embeddings',
+    'tab-import',
+    (sessionId, generation, matrix) => hooks.tabImport?.submitEmbeddings?.(
+      String(sessionId ?? ''),
+      String(generation ?? ''),
+      matrix,
+    ) ?? { error: 'session-unavailable' },
+  );
+  handle('pages:tab-import:apply', 'tab-import', (sessionId, request) =>
+    hooks.tabImport?.apply?.(String(sessionId ?? ''), request ?? {})
+      ?? { error: 'apply-unavailable' });
+  handle('pages:tab-import:cancel', 'tab-import', (sessionId) =>
+    hooks.tabImport?.cancel?.(String(sessionId ?? '')) ?? { ok: false });
+
   handle('pages:bookmarks:set-folder', 'bookmarks', (id, folder) => {
     bookmarks.setBookmarkFolder(id, folder);
     hooks.onDataChanged?.();

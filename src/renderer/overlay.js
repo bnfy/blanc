@@ -151,6 +151,12 @@
   let createWorkspaceValue = '';
   let pendingSaveAsWorkspace = false;
   let saveAsWorkspaceValue = '';
+  // Task 10's post-import handoff lives on the existing workspace popover,
+  // never the tab-import renderer. Task 11 opens the panel with
+  // { postImportWorkspace: true } after the batch succeeds and the utility
+  // sheet closes. The CTA below then enters the established save-as editor,
+  // whose commit still uses chrome:workspaces-save-as and its Patron gate.
+  let pendingPostImportWorkspacePrompt = false;
   // Scratch guard (Task 9 follow-up): set when an open/create attempt comes
   // back {error:'unsaved-scratch'} — this window is unbound and holds real
   // tabs, so main refused to switch it without confirming first. Carries
@@ -689,6 +695,7 @@
     workspaceSwitcher.style.visibility = '';
     clearScratchGuardAwaitingSave();
     clearWorkspacePopoverEditors();
+    pendingPostImportWorkspacePrompt = false;
     footerWorkspace.setAttribute('aria-expanded', 'false');
     window.browserAPI.setWorkspaceSwitcherOpen(false);
   }
@@ -771,6 +778,38 @@
     return row;
   }
 
+  function renderPostImportWorkspaceRow() {
+    const row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'ws-switcher-row workspace-row';
+    row.setAttribute('role', 'menuitem');
+    const name = document.createElement('span');
+    name.className = 'ws-switcher-name';
+    const action = document.createElement('span');
+    action.className = 'ws-switcher-n';
+    if (wsPatronActive) {
+      name.textContent = 'Save this setup as a workspace…';
+      action.textContent = '→';
+      row.setAttribute('aria-label', 'Save imported tabs as a Named Workspace');
+      row.addEventListener('click', () => {
+        pendingPostImportWorkspacePrompt = false;
+        beginSaveWorkspace();
+      });
+    } else {
+      name.textContent = 'Named Workspaces can save this whole setup for later';
+      action.textContent = 'learn more →';
+      row.setAttribute('aria-label', 'Learn about Named Workspaces in Patron Settings');
+      row.addEventListener('click', () => {
+        pendingPostImportWorkspacePrompt = false;
+        closeWorkspaceSwitcher();
+        window.browserAPI.closeOverlay();
+        window.browserAPI.openPage('settings', 'patron');
+      });
+    }
+    row.append(name, action);
+    return row;
+  }
+
   /** Shared name field for create / save-as / rename inside the popover. */
   function renderSwitcherNameInput({
     value, placeholder, ariaLabel, onInput, onCommit, onCancel, selectAll, caret, className,
@@ -800,6 +839,12 @@
     // controls never masquerade as enabled. Their single CTA is rendered in
     // the list below; existing rows remain lapse-safe.
     setSwitcherCommandVisibility(wsPatronActive && !naming);
+
+    if (pendingPostImportWorkspacePrompt) {
+      setSwitcherCommandVisibility(false);
+      workspaceSwitcherList.replaceChildren(renderPostImportWorkspaceRow());
+      return;
+    }
 
     if (pendingCreateWorkspace) {
       const wrap = document.createElement('div');
@@ -1334,6 +1379,7 @@
     // Also listed on blanc://shortcuts/ — update SLASH_COMMANDS in
     // pages/shortcuts.js when adding or changing a command here.
     { cmd: '/favorites', hint: 'Open favorites', run: () => window.browserAPI.openPage('bookmarks') },
+    { cmd: '/bring-tabs', hint: 'Bring open tabs from another browser', run: () => window.browserAPI.openPage('tab-import') },
     { cmd: '/save', hint: 'Save this page to favorites — name a folder to file it', run: (input) => {
       const folder = (input ?? '').replace(/^\/save\s*/, '').trim();
       window.browserAPI.saveFavorite(folder || null);
@@ -2005,6 +2051,7 @@
         suppressProviderSuggestions = false;
         commandResultGeneration += 1;
         commandNotice = '';
+        pendingPostImportWorkspacePrompt = false;
       }
       if (!reshow) resetSearchSuggestions();
       // A menu-triggered "New Group…" carries its target tab inside the
@@ -2041,6 +2088,11 @@
         pendingRenameWorkspaceId = null;
         workspaceEditValue = '';
       }
+      if (purpose && typeof purpose === 'object' && purpose.postImportWorkspace === true) {
+        clearWorkspacePopoverEditors();
+        pendingScratchGuard = null;
+        pendingPostImportWorkspacePrompt = true;
+      }
       if (prefill) {
         // A menu-triggered command (e.g. "New Group…") arrives pre-typed —
         // land the cursor at the end, ready to type the rest, rather than
@@ -2055,7 +2107,7 @@
       }
       refreshSwitcherData();
       renderPanel();
-      if (workspacePopoverEditing()) {
+      if (workspacePopoverEditing() || pendingPostImportWorkspacePrompt) {
         openWorkspaceSwitcher();
       } else {
         // A pending workspace edit/confirm already claimed focus on its own

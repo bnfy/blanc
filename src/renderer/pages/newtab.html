@@ -27,6 +27,14 @@
       <div id="favoritesList" class="ledger-list"></div>
     </section>
 
+    <a class="tab-import-promo ledger-tab-import-promo" href="blanc://tab-import/" aria-label="Bring open tabs from another browser into Blanc">
+      <span class="tab-import-promo-text">
+        <span class="tab-import-promo-title">Bring your tabs</span>
+        <span class="tab-import-promo-copy">Move open tabs from another browser and organize them here.</span>
+      </span>
+      <img class="tab-import-promo-arrow" src="import-chevron-right.svg" alt="" />
+    </a>
+
     <section id="groupsSection" class="ledger-section" hidden>
       <div class="ledger-label">pick up where you left off</div>
       <div id="groupsList" class="ledger-list ledger-groups"></div>
@@ -54,6 +62,13 @@
     <div id="bbBlocked" class="bb-blocked"></div>
     <div id="bbFavorites" class="bb-favs"></div>
     <div id="bbGroups" class="bb-groups"></div>
+    <a class="tab-import-promo bb-tab-import-promo" href="blanc://tab-import/" aria-label="Bring open tabs from another browser into Blanc">
+      <span class="tab-import-promo-text">
+        <span class="tab-import-promo-title">Bring your tabs</span>
+        <span class="tab-import-promo-copy">Move open tabs from another browser and organize them here.</span>
+      </span>
+      <img class="tab-import-promo-arrow" src="import-chevron-right.svg" alt="" />
+    </a>
     <p class="bb-patron js-patron-callout" hidden>
       <a href="blanc://settings/#group-patron">Support Blanc</a>
     </p>
@@ -77,6 +92,13 @@
           <span class="shelf-unit">ads this week</span>
         </div>
       </div>
+      <a class="tab-import-promo shelf-tab-import-promo" href="blanc://tab-import/" aria-label="Bring open tabs from another browser into Blanc">
+        <span class="tab-import-promo-text">
+          <span class="tab-import-promo-title">Bring your tabs</span>
+          <span class="tab-import-promo-copy">Move open tabs from another browser and organize them here.</span>
+        </span>
+        <img class="tab-import-promo-arrow" src="import-chevron-right.svg" alt="" />
+      </a>
     </div>
     <p class="shelf-patron js-patron-callout" hidden>
       <a href="blanc://settings/#group-patron">Support Blanc</a>
@@ -91,6 +113,13 @@
       <div id="tlFavorites" class="ledger-list"></div>
       <div class="ledger-label tally-label tally-label-groups">pick up where you left off</div>
       <div id="tlGroups" class="tally-chiprow"></div>
+      <a class="tab-import-promo tally-tab-import-promo" href="blanc://tab-import/" aria-label="Bring open tabs from another browser into Blanc">
+        <span class="tab-import-promo-text">
+          <span class="tab-import-promo-title">Bring your tabs</span>
+          <span class="tab-import-promo-copy">Move open tabs from another browser and organize them here.</span>
+        </span>
+        <img class="tab-import-promo-arrow" src="import-chevron-right.svg" alt="" />
+      </a>
       <p class="tally-patron js-patron-callout" hidden>
         <a href="blanc://settings/#group-patron">Support Blanc</a>
       </p>
@@ -152,6 +181,7 @@
         <div class="ob-cta-row"><button id="obLook" class="ob-btn-secondary" type="button">Look for installed browsers</button></div>
         <div id="obSources" class="ob-srclist"></div>
         <span id="obImportStatus" class="ob-status" role="status"></span>
+        <button id="obBringTabs" class="ob-btn-secondary ob-handoff" type="button" hidden>Bring your open tabs…</button>
       </section>
       <section data-step="2" hidden>
         <h1>Meet the island</h1>

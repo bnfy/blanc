@@ -23,6 +23,26 @@ const {
   ADDRESS_INPUT_ID,
 } = require('./address-menu');
 
+const TAB_IMPORT_FIXTURES = Object.freeze({
+  'folder-fallback': Object.freeze({
+    sourceLabel: 'Google Chrome — Tab migration fixture',
+    candidateCount: 6,
+  }),
+  'merge-existing': Object.freeze({
+    sourceLabel: 'Google Chrome — Merge fixture',
+    candidateCount: 2,
+  }),
+  'stress-500': Object.freeze({
+    sourceLabel: 'Google Chrome — Stress 500',
+    candidateCount: 500,
+    timeout: 20_000,
+  }),
+  'quit-safety': Object.freeze({
+    sourceLabel: 'Google Chrome — Quit safety fixture',
+    candidateCount: 2,
+  }),
+});
+
 /**
  * @param {object} refs - live references from main.js's module scope.
  */
@@ -120,6 +140,10 @@ function install(refs) {
     getSleepSnapshots,
     getClosedEntries,
     clearClosedEntries,
+    testRuntimeId,
+    getTabImportSessionProjection,
+    applyTabImportFromRuntime,
+    getTabStateBroadcastCount,
   } = refs;
 
   // The tab model's committed .url is the app's own source of truth (see
@@ -138,6 +162,9 @@ function install(refs) {
   const titleOf = (t) => { try { return t.view.webContents.getTitle(); } catch { return ''; } };
   const lc = (s) => String(s).trim().toLowerCase();
   let focusObservation = null;
+  let activeTabImportFixtureName = null;
+  const projectRootTabImportSession = () =>
+    getTabImportSessionProjection(testRuntimeId);
   const beforeUnloadProbes = new Map();
   const remoteFixture = [{
     deviceId: 'acceptance-remote-device',
@@ -174,6 +201,199 @@ function install(refs) {
         tab.view?.webContents?.send('pages:start:remote-tabs', devices);
       }
     }
+  }
+
+  async function readTabImportDom() {
+    const wc = getUtilitySheetWebContents();
+    if (!wc || wc.isDestroyed()) return null;
+    return wc.executeJavaScript(`(() => {
+      if (location.host !== 'tab-import') return null;
+      const visiblePanel = [...document.querySelectorAll('[data-step-panel]')]
+        .find((panel) => !panel.hidden);
+      return {
+        step: visiblePanel?.dataset.stepPanel ?? null,
+        sourceLabels: [...document.querySelectorAll('.tab-import-source-btn')]
+          .map((button) => button.dataset.sourceLabel ?? button.textContent),
+        windows: [...document.querySelectorAll('.tab-import-window-heading h3')]
+          .map((heading) => heading.textContent),
+        preview: [...document.querySelectorAll('.tab-import-preview-row')]
+          .map((row) => ({
+            title: row.querySelector('.title')?.textContent ?? '',
+            meta: row.querySelector('.meta')?.textContent ?? '',
+            selected: row.querySelector('input[type="checkbox"]')?.checked ?? false,
+          })),
+        selectedCount: document.getElementById('tabImportSelectedCount')?.textContent ?? '',
+        groupNames: [...document.querySelectorAll('.tab-import-group-name')]
+          .map((input) => input.value),
+        applyLabel: document.getElementById('tabImportApplyBtn')?.textContent ?? '',
+        applyDisabled: document.getElementById('tabImportApplyBtn')?.disabled ?? true,
+        reviewDisabled: document.getElementById('tabImportContinueToReview')?.disabled ?? true,
+        recoveryHidden: document.getElementById('tabImportSourceRecovery')?.hidden ?? true,
+        recoveryText: document.getElementById('tabImportSourceRecovery')?.textContent ?? '',
+        recoveryButton: document.querySelector('#tabImportSourceRecovery button')?.textContent ?? '',
+        recoveryButtonCount: document.querySelectorAll('#tabImportSourceRecovery button').length,
+        sourceRows: [...document.querySelectorAll('.tab-import-source-btn')]
+          .map((button) => ({
+            label: button.dataset.sourceLabel ?? '',
+            disabled: button.disabled,
+            waiting: button.classList.contains('waiting'),
+            affordance: button.querySelector('.tab-import-source-waiting')?.textContent ?? '',
+          })),
+        status: document.getElementById('tabImportStatus')?.textContent ?? '',
+      };
+    })()`);
+  }
+
+  async function waitForTabImportDom(predicate, label, timeout = 8_000) {
+    const deadline = Date.now() + timeout;
+    let last = null;
+    for (;;) {
+      const surface = getUtilitySheetState();
+      if (surface?.visible && surface.ready && surface.url === 'blanc://tab-import/') {
+        try { last = await readTabImportDom(); } catch { last = null; }
+      } else {
+        last = null;
+      }
+      if (predicate(last)) return last;
+      if (Date.now() > deadline) {
+        throw new Error(`timed out waiting for ${label}; last: ${JSON.stringify(last)}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+
+  async function clickTabImportSelector(selector, matcher = null) {
+    const wc = getUtilitySheetWebContents();
+    if (!wc || wc.isDestroyed()) throw new Error('tab-import sheet is not open');
+    const clicked = await wc.executeJavaScript(`(() => {
+      const nodes = [...document.querySelectorAll(${JSON.stringify(selector)})];
+      const matcher = ${JSON.stringify(matcher)};
+      const node = matcher === null
+        ? nodes[0]
+        : nodes.find((candidate) =>
+          (candidate.dataset.sourceLabel ?? candidate.textContent) === matcher
+          || (candidate.dataset.sourceLabel ?? candidate.textContent).startsWith(matcher + ' ('));
+      if (!node || node.disabled) return false;
+      node.click();
+      return true;
+    })()`);
+    if (!clicked) throw new Error(`tab-import control unavailable: ${selector} ${matcher ?? ''}`);
+  }
+
+  async function ensureTabImportFixtureStage(name, targetStage) {
+    const fixture = TAB_IMPORT_FIXTURES[name];
+    if (!fixture) throw new Error(`unknown tab-import fixture: ${name}`);
+    const surface = getUtilitySheetState();
+    let dom = await readTabImportDom();
+    if (!surface?.visible || !dom || (activeTabImportFixtureName && activeTabImportFixtureName !== name)) {
+      if (surface?.visible) hideUtilitySheet();
+      openInternalPage('blanc://tab-import/');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceLabels.includes(fixture.sourceLabel),
+        `${fixture.sourceLabel} source button`,
+        fixture.timeout,
+      );
+    }
+    activeTabImportFixtureName = name;
+    if (dom.step === 'source') {
+      await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'tabs' && value.preview.length === fixture.candidateCount,
+        'tab-import tabs step',
+        fixture.timeout,
+      );
+    }
+    if (targetStage === 'tabs') return dom;
+    if (dom.step === 'tabs') {
+      await clickTabImportSelector('#tabImportContinueToOrganize');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'organize' && !value.reviewDisabled,
+        'tab-import organize step',
+        fixture.timeout,
+      );
+    }
+    if (targetStage === 'organize') return dom;
+    if (dom.step === 'organize') {
+      await clickTabImportSelector('#tabImportContinueToReview');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'review' && !value.applyDisabled,
+        'tab-import review step',
+        fixture.timeout,
+      );
+    }
+    return dom;
+  }
+
+  async function ensureTabImportQuitGate(name) {
+    const fixture = TAB_IMPORT_FIXTURES[name];
+    if (!fixture) throw new Error(`unknown tab-import fixture: ${name}`);
+    const surface = getUtilitySheetState();
+    let dom = await readTabImportDom();
+    if (!surface?.visible || !dom || (activeTabImportFixtureName && activeTabImportFixtureName !== name)) {
+      if (surface?.visible) hideUtilitySheet();
+      openInternalPage('blanc://tab-import/');
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.sourceLabels.includes(fixture.sourceLabel),
+        `${fixture.sourceLabel} source button`,
+        fixture.timeout,
+      );
+    }
+    activeTabImportFixtureName = name;
+    if (dom.recoveryHidden) {
+      await clickTabImportSelector('.tab-import-source-btn', fixture.sourceLabel);
+      dom = await waitForTabImportDom(
+        (value) => value?.step === 'source' && value.recoveryHidden === false,
+        'tab-import verified quit gate',
+        fixture.timeout,
+      );
+    }
+    return dom;
+  }
+
+  async function renameTabImportGroup(from, to) {
+    const wc = getUtilitySheetWebContents();
+    if (!wc || wc.isDestroyed()) throw new Error('tab-import sheet is not open');
+    const changed = await wc.executeJavaScript(`(() => {
+      const input = [...document.querySelectorAll('.tab-import-group-name')]
+        .find((candidate) => candidate.value === ${JSON.stringify(String(from))});
+      if (!input) return false;
+      input.value = ${JSON.stringify(String(to))};
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+      return true;
+    })()`);
+    if (!changed) throw new Error(`review group not found: ${from}`);
+    return waitForTabImportDom(
+      (value) => value?.step === 'organize' && value.groupNames.includes(String(to)),
+      `organize group rename to ${to}`,
+    );
+  }
+
+  async function waitForTabImportProjection(candidateCount, timeout = 8_000) {
+    const deadline = Date.now() + timeout;
+    let last;
+    for (;;) {
+      last = projectRootTabImportSession();
+      if (!last?.error && last?.candidates?.length === candidateCount) return last;
+      if (Date.now() > deadline) {
+        throw new Error(`timed out waiting for tab-import projection; last: ${JSON.stringify(last)}`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+
+  function tabImportApplyRequestFromProjection(projection) {
+    if (!projection || projection.error || !projection.proposal) {
+      throw new Error(`tab-import projection unavailable: ${JSON.stringify(projection)}`);
+    }
+    return {
+      generation: projection.generation,
+      groups: projection.proposal.groups.map((group) => ({
+        name: group.name,
+        candidateIds: [...group.candidateIds],
+      })),
+      ungroupedCandidateIds: [...projection.proposal.ungroupedCandidateIds],
+    };
   }
 
   globalThis.__blanc = {
@@ -1141,6 +1361,114 @@ function install(refs) {
       return labels;
     },
     openFavoritesSheet() { openInternalPage('blanc://bookmarks/'); },
+    openTabImport() { openInternalPage('blanc://tab-import/'); },
+    readTabImportDom,
+    getTabImportSessionProjection() { return projectRootTabImportSession(); },
+    async applyTabImportFixture(name, options = {}) {
+      const fixtureName = String(name ?? '');
+      const stage = String(options?.stage ?? 'apply');
+      if (stage === 'quit-gate' || stage === 'after-quit-refusal') {
+        let dom = await ensureTabImportQuitGate(fixtureName);
+        if (stage === 'after-quit-refusal') {
+          await clickTabImportSelector('#tabImportSourceRecovery button');
+          dom = await waitForTabImportDom(
+            (value) => value?.step === 'source' && value.status.includes('Reopen'),
+            'tab-import exact-newest refusal',
+            TAB_IMPORT_FIXTURES[fixtureName].timeout,
+          );
+        }
+        return { ok: true, dom };
+      }
+      const targetStage = stage === 'preview' || stage === 'cancel'
+        ? 'tabs'
+        : (stage === 'organize' || options?.renameFrom || options?.directApply ? 'organize' : 'review');
+      let dom = await ensureTabImportFixtureStage(
+        fixtureName,
+        targetStage,
+      );
+      if (stage === 'preview' || stage === 'organize' || stage === 'review') {
+        return {
+          ok: true,
+          dom,
+          projection: await waitForTabImportProjection(
+            TAB_IMPORT_FIXTURES[fixtureName].candidateCount,
+            TAB_IMPORT_FIXTURES[fixtureName].timeout,
+          ),
+        };
+      }
+      if (options?.renameFrom && options?.renameTo) {
+        dom = await renameTabImportGroup(options.renameFrom, options.renameTo);
+        await clickTabImportSelector('#tabImportContinueToReview');
+        dom = await waitForTabImportDom(
+          (value) => value?.step === 'review' && !value.applyDisabled,
+          'tab-import review after rename',
+          TAB_IMPORT_FIXTURES[fixtureName].timeout,
+        );
+      }
+      const projection = await waitForTabImportProjection(
+        TAB_IMPORT_FIXTURES[fixtureName].candidateCount,
+        TAB_IMPORT_FIXTURES[fixtureName].timeout,
+      );
+      if (options?.runtimeId !== undefined && options?.runtimeId !== null) {
+        const request = tabImportApplyRequestFromProjection(projection);
+        if (options?.staleGeneration) request.generation = `stale-${request.generation}`;
+        return applyTabImportFromRuntime(
+          options.runtimeId,
+          projection.sessionId,
+          request,
+        );
+      }
+      if (options?.directApply) {
+        const request = tabImportApplyRequestFromProjection(projection);
+        const beforeBroadcasts = getTabStateBroadcastCount();
+        const result = applyTabImportFromRuntime(
+          testRuntimeId,
+          projection.sessionId,
+          request,
+        );
+        const broadcastCount = getTabStateBroadcastCount() - beforeBroadcasts;
+        if (result?.ok) activeTabImportFixtureName = null;
+        return { ...result, applied: result?.ok === true, projection, broadcastCount };
+      }
+      if (stage === 'cancel') {
+        // Use the renderer's real close control. tab-import-open-tabs.js wraps the
+        // shared sheet close so it cancels the opaque session before main
+        // dismisses the surface; calling hideUtilitySheet directly would
+        // skip that renderer-owned cancellation path when a sheet was
+        // already visually detached.
+        await clickTabImportSelector('.sheet-close');
+        const closeDeadline = Date.now() + 8_000;
+        while (getUtilitySheetState()?.visible) {
+          if (Date.now() > closeDeadline) throw new Error('timed out dismissing tab-import sheet');
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
+        activeTabImportFixtureName = null;
+        return {
+          ok: true,
+          cancelled: true,
+          projectionAfterCancel: projectRootTabImportSession(),
+          surfaceAfterCancel: getUtilitySheetState(),
+        };
+      }
+      await clickTabImportSelector('#tabImportApplyBtn');
+      const deadline = Date.now() + 8_000;
+      while (getUtilitySheetState()?.visible) {
+        if (Date.now() > deadline) {
+          throw new Error(`timed out applying tab-import fixture; last: ${JSON.stringify(await readTabImportDom())}`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      activeTabImportFixtureName = null;
+      return { ok: true, applied: true, projection };
+    },
+    activePageHasTabImportBridge() {
+      const tab = tabs.get(getActiveTabId());
+      const wc = tab?.view?.webContents;
+      if (!wc || wc.isDestroyed()) return false;
+      return wc.executeJavaScript(
+        `typeof window.bowserPages?.tabImport === 'object'`
+      );
+    },
     utilitySheetContentsId() { return getUtilitySheetWebContents()?.id ?? null; },
     destroyUtilitySheetContents() {
       const wc = getUtilitySheetWebContents();
@@ -1207,6 +1535,8 @@ function install(refs) {
         findHidden: document.getElementById('obLook')?.hidden ?? true,
         options: [...document.querySelectorAll('#obSources .ob-src-row')].map((row) => row.textContent),
         status: document.getElementById('obImportStatus')?.textContent ?? '',
+        bringTabsHidden: document.getElementById('obBringTabs')?.hidden ?? true,
+        bringTabsLabel: document.getElementById('obBringTabs')?.textContent ?? '',
         step: document.getElementById('onboardDialog')?.dataset.step ?? null,
       }))()`);
     },
@@ -1243,6 +1573,16 @@ function install(refs) {
         if (!rows.length) return false;
         if (!rows[0].classList.contains('selected')) rows[0].click();
         document.getElementById('obNext').click();
+        return true;
+      })()`);
+    },
+    clickFirstRunBringTabs() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const button = document.getElementById('obBringTabs');
+        if (!button || button.hidden) return false;
+        button.click();
         return true;
       })()`);
     },
@@ -1379,18 +1719,27 @@ function install(refs) {
     // ---- isolation between scenarios ----
     async reset() {
       clearFocusObservation();
-      for (const profile of localProfileSnapshots()) {
-        if (profile.id === 'default') continue;
-        await deleteNamedLocalProfile(profile.id, profile.name);
-      }
+      activeTabImportFixtureName = null;
       for (const runtime of windowRuntimeSnapshots()) {
         if (runtime.id !== 'primary') closeWindowRuntimeAction(runtime.id);
       }
       await new Promise((resolve) => setImmediate(resolve));
-      // Do not let a scenario inherit quiet state or retained page state. A
-      // quiet record is safe for closeTab, but waking first makes teardown and
-      // the subsequent snapshot clear explicit.
-      for (const [id, tab] of tabs) if (tab.asleep) await wakeTab(id);
+      // Close named-profile windows before asking the deletion workflow to
+      // clear their sessions. Driving deletion against a still-visible test
+      // window can leave Electron waiting for a native hide event that the
+      // headless acceptance host never delivers.
+      for (const profile of localProfileSnapshots()) {
+        if (profile.id === 'default') continue;
+        await deleteNamedLocalProfile(profile.id, profile.name);
+      }
+      // Do not let a scenario inherit retained page state. Quiet imported tabs
+      // are viewless and have no snapshot, so waking hundreds of them merely to
+      // delete them makes the stress scenario's cleanup slower than the product
+      // operation itself. Only retained snapshot state needs an explicit wake
+      // before teardown; closeTab safely removes the other quiet records.
+      for (const [id, tab] of tabs) {
+        if (tab.asleep && getSleepSnapshots().has(id)) await wakeTab(id);
+      }
       getSleepSnapshots().clear();
       getPermissionPrompts().clear();
       beforeUnloadProbes.clear();
