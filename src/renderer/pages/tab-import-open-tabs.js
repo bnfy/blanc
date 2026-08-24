@@ -30,11 +30,11 @@ const surface = window.bowserPages?.surface;
 const el = (id) => document.getElementById(id);
 const pageEl = document.querySelector('.tab-import-page');
 const statusEl = el('tabImportStatus');
+const stepProgressEl = el('tabImportStepProgress');
 const browserListEl = el('tabImportBrowserList');
 const sourceRecoveryEl = el('tabImportSourceRecovery');
 const profileSectionEl = el('tabImportProfileSection');
 const profileTitleEl = el('tabImportProfileTitle');
-const profileHintEl = el('tabImportProfileHint');
 const sourceListEl = el('tabImportSourceList');
 const tabsListEl = el('tabImportTabsList');
 const selectedCountEl = el('tabImportSelectedCount');
@@ -177,15 +177,9 @@ function dispositionIssue() {
 function setStep(next) {
   if (!STEPS.includes(next)) return;
   step = next;
-  if (pageEl) pageEl.dataset.activeStep = step;
+  if (stepProgressEl) stepProgressEl.textContent = `Step ${STEPS.indexOf(step) + 1} of ${STEPS.length}`;
   for (const panel of document.querySelectorAll('[data-step-panel]')) {
     panel.hidden = panel.dataset.stepPanel !== step;
-  }
-  for (const marker of document.querySelectorAll('[data-step-marker]')) {
-    const markerIndex = STEPS.indexOf(marker.dataset.stepMarker);
-    const currentIndex = STEPS.indexOf(step);
-    marker.classList.toggle('current', markerIndex === currentIndex);
-    marker.classList.toggle('complete', markerIndex >= 0 && markerIndex < currentIndex);
   }
   // Each wizard step starts at its own heading. A long Tabs or Organize
   // panel can leave the sheet scrollport near the bottom; carrying that
@@ -282,9 +276,6 @@ function renderProfiles() {
   profileTitleEl.textContent = unavailable
     ? `${name} needs access`
     : `Choose ${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name} profile`;
-  profileHintEl.textContent = unavailable
-    ? 'Blanc can see this browser, but macOS is blocking its profile.'
-    : 'Profiles keep separate windows and open tabs.';
   if (unavailable) {
     const row = document.createElement('div');
     row.className = 'tab-import-source-unavailable';

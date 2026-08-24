@@ -26,9 +26,11 @@ test('Bring Your Tabs groups profiles under bundled browser artwork', () => {
 
   assert.match(html, /id="tabImportBrowserList"[^>]+role="radiogroup"/);
   assert.match(html, /id="tabImportProfileSection"/);
-  assert.match(html, /Source[\s\S]*Tabs[\s\S]*Organize[\s\S]*Review/);
-  assert.match(html, /local to this device[\s\S]*source browser unchanged[\s\S]*Favorites untouched/);
-  assert.match(html, /Quiet by default[\s\S]*Nothing removed[\s\S]*Favorites stay separate/);
+  assert.match(html, /id="tabImportStepProgress"[^>]+aria-live="polite"[^>]*>Step 1 of 4/);
+  assert.match(renderer, /stepProgressEl\.textContent = `Step \$\{STEPS\.indexOf\(step\) \+ 1\} of \$\{STEPS\.length\}`/);
+  assert.doesNotMatch(html, /tab-import-kicker|tab-import-assurances|data-step-marker/);
+  assert.match(html, /Only the first tab wakes\. Your source browser and Favorites stay unchanged\./);
+  assert.doesNotMatch(html, /Profiles keep separate windows|Changing the browser updates the profiles/);
   assert.doesNotMatch(html, /HTML bookmarks|bookmarks file|Choose a bookmarks folder/);
 
   for (const browser of ['brave', 'chrome', 'edge', 'vivaldi', 'chromium']) {
@@ -76,8 +78,9 @@ test('every start-page layout promotes the same local Bring Your Tabs flow', () 
   )];
 
   assert.equal(entryPoints.length, 4, 'ledger, billboard, shelf, and tally each need one CTA');
-  assert.match(html, /Skip the cleanup in your old browser/);
-  assert.match(html, /sort it into Named Groups/);
+  assert.equal((html.match(/Move open tabs from another browser and organize them here\./g) ?? []).length, 4);
+  assert.equal((html.match(/class="tab-import-promo-arrow" src="import-chevron-right\.svg"/g) ?? []).length, 4);
+  assert.doesNotMatch(html, /tab-import-promo-kicker|tab-import-promo-action|new in blanc/);
   assert.match(css, /:root\[data-theme="private"\] \.tab-import-promo \{ display: none; \}/,
     'private start tabs must not advertise a regular-profile migration action');
 });

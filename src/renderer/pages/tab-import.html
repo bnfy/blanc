@@ -13,52 +13,24 @@
       <a href="blanc://bookmarks/">Favorites</a>
       <a href="blanc://settings/">Settings</a>
     </nav>
-    <header class="tab-import-hero">
-      <p class="tab-import-kicker">move in without the cleanup</p>
+    <header class="tab-import-header">
       <h1>Bring your tabs</h1>
-      <p>
-        Review what comes with you, shape it into Named Groups, and let Blanc
-        open the pile quietly.
-      </p>
-      <div class="tab-import-assurances" aria-label="Import assurances">
-        <span>local to this device</span>
-        <span>source browser unchanged</span>
-        <span>Favorites untouched</span>
-      </div>
+      <p id="tabImportStepProgress" aria-live="polite">Step 1 of 4</p>
     </header>
-    <ol class="tab-import-steps" aria-label="Import steps">
-      <li data-step-marker="source" class="current"><span aria-hidden="true">1</span>Source</li>
-      <li data-step-marker="tabs"><span aria-hidden="true">2</span>Tabs</li>
-      <li data-step-marker="organize"><span aria-hidden="true">3</span>Organize</li>
-      <li data-step-marker="review"><span aria-hidden="true">4</span>Review</li>
-    </ol>
     <p id="tabImportStatus" class="section-hint tab-import-status" role="status" aria-live="polite"></p>
     <section class="tab-import-panel" data-step-panel="source" aria-labelledby="tabImportSourceTitle">
-      <div class="tab-import-step-intro tab-import-source-heading">
-        <h2 id="tabImportSourceTitle" class="section-title">Where are your tabs now?</h2>
-        <p class="section-hint">Choose a browser and profile. Blanc will find its open tabs—no cleanup first.</p>
-      </div>
+      <h2 id="tabImportSourceTitle" class="section-title tab-import-panel-title">Choose a browser</h2>
       <div id="tabImportBrowserList" class="tab-import-browser-list" role="radiogroup" aria-label="Browsers"></div>
       <div id="tabImportSourceRecovery" class="tab-import-source-recovery" hidden></div>
       <div id="tabImportProfileSection" class="tab-import-profile-section" hidden>
         <div class="tab-import-profile-head">
-          <div>
-            <h3 id="tabImportProfileTitle" class="tab-import-profile-title">Choose a profile</h3>
-            <p id="tabImportProfileHint" class="section-hint tab-import-profile-hint">
-              Profiles keep separate windows and open tabs.
-            </p>
-          </div>
-          <p class="section-hint tab-import-profile-note">Changing the browser updates the profiles.</p>
+          <h3 id="tabImportProfileTitle" class="tab-import-profile-title">Choose a profile</h3>
         </div>
         <div id="tabImportSourceList" class="tab-import-source-list"></div>
       </div>
     </section>
     <section class="tab-import-panel" data-step-panel="tabs" hidden aria-labelledby="tabImportTabsTitle">
-      <div class="tab-import-step-intro">
-        <p class="tab-import-kicker">choose what crosses over</p>
-        <h2 id="tabImportTabsTitle" class="section-title">Choose the tabs to bring</h2>
-        <p class="section-hint">They stay in their current window order. Duplicate tabs stay separate.</p>
-      </div>
+      <h2 id="tabImportTabsTitle" class="section-title tab-import-panel-title">Choose tabs</h2>
       <div class="tab-import-preview-toolbar">
         <div class="tab-import-selection-actions">
           <button id="tabImportSelectAll" type="button" class="tab-import-secondary">Select all</button>
@@ -73,23 +45,11 @@
       </div>
     </section>
     <section class="tab-import-panel" data-step-panel="organize" hidden aria-labelledby="tabImportOrganizeTitle">
-      <div class="tab-import-step-intro">
-        <p class="tab-import-kicker">give the pile a little shape</p>
-        <h2 id="tabImportOrganizeTitle" class="section-title">Organize them for Blanc</h2>
-        <p class="section-hint">
-          Keep groups from your old browser, rename them, or move tabs into a new Named Group.
-        </p>
-      </div>
-      <div class="tab-import-group-builder">
-        <div>
-          <strong>Create a Named Group</strong>
-          <span>Give related tabs a short name. You can always regroup them later.</span>
-        </div>
-        <form id="tabImportNewGroupForm" class="tab-import-new-group-form">
-          <input id="tabImportNewGroupName" type="text" maxlength="40" placeholder="for example: launch week" aria-label="New group name" />
-          <button type="submit" class="tab-import-secondary">Create group</button>
-        </form>
-      </div>
+      <h2 id="tabImportOrganizeTitle" class="section-title tab-import-panel-title">Organize tabs</h2>
+      <form id="tabImportNewGroupForm" class="tab-import-new-group-form" aria-label="Create a Named Group">
+        <input id="tabImportNewGroupName" type="text" maxlength="40" placeholder="new group name" aria-label="New group name" />
+        <button type="submit" class="tab-import-secondary">Create</button>
+      </form>
       <div id="tabImportOrganizeBoard" class="tab-import-review-board"></div>
       <div class="tab-import-panel-actions">
         <button id="tabImportBackToTabs" type="button" class="tab-import-secondary">Back to tabs</button>
@@ -97,17 +57,9 @@
       </div>
     </section>
     <section class="tab-import-panel" data-step-panel="review" hidden aria-labelledby="tabImportReviewTitle">
-      <div class="tab-import-step-intro">
-        <p class="tab-import-kicker">one last look</p>
-        <h2 id="tabImportReviewTitle" class="section-title">Ready for a cleaner start</h2>
-        <p class="section-hint">Here is exactly what Blanc will open.</p>
-      </div>
+      <h2 id="tabImportReviewTitle" class="section-title tab-import-panel-title">Review import</h2>
       <div id="tabImportReviewSummary" class="tab-import-final-summary"></div>
-      <div class="tab-import-final-notes" aria-label="What happens next">
-        <p><strong>Quiet by default</strong><span>Only the first tab wakes right away.</span></p>
-        <p><strong>Nothing removed</strong><span>Your source browser stays exactly as it is.</span></p>
-        <p><strong>Favorites stay separate</strong><span>This flow only brings open tabs.</span></p>
-      </div>
+      <p class="tab-import-final-note">Only the first tab wakes. Your source browser and Favorites stay unchanged.</p>
       <div class="tab-import-panel-actions">
         <button id="tabImportBackToOrganize" type="button" class="tab-import-secondary">Back to organize</button>
         <button id="tabImportApplyBtn" type="button" class="tab-import-primary" disabled>Open tabs in Blanc</button>
