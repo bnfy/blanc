@@ -1,65 +1,26 @@
-/* ---- rotating hero messages ---- */
-(function () {
-  const messageEl = document.getElementById('heroMessage');
-  const messages = Array.from(document.querySelectorAll('[data-hero-message]'));
-  if (!messageEl || messages.length < 2) return;
-
-  const motionMq = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const ROTATION_MS = 6000;
-  const FADE_MS = 180;
-  let index = 0;
-  let rotationTimer = null;
-  let fadeTimer = null;
-
-  function scheduleRotation() {
-    clearTimeout(rotationTimer);
-    if (document.hidden) return;
-    rotationTimer = setTimeout(() => showMessage((index + 1) % messages.length), ROTATION_MS);
-  }
-
-  function renderMessage(nextIndex) {
-    index = nextIndex;
-    messages.forEach((message, messageIndex) => {
-      const active = messageIndex === index;
-      message.classList.toggle('is-active', active);
-      message.setAttribute('aria-hidden', String(!active));
-    });
-    messageEl.classList.remove('is-changing');
-    scheduleRotation();
-  }
-
-  function showMessage(nextIndex) {
-    clearTimeout(fadeTimer);
-    if (nextIndex === index) {
-      messageEl.classList.remove('is-changing');
-      scheduleRotation();
-      return;
-    }
-    if (motionMq.matches) {
-      renderMessage(nextIndex);
-      return;
-    }
-    messageEl.classList.add('is-changing');
-    fadeTimer = setTimeout(() => renderMessage(nextIndex), FADE_MS);
-  }
-
-  document.addEventListener('visibilitychange', scheduleRotation);
-
-  scheduleRotation();
-})();
-
 /* ---- large live demo: data-driven, self-playing on a fixed loop ----
    Each scene declares the full workspace state (which sites are pinned,
-   grouped, or loose) plus the caption, so pinning and grouping read as
-   real state changes rather than flashing option lists. */
+   grouped, or loose) plus the hero message that explains the current beat, so
+   pinning and grouping read as real state changes rather than option flashes. */
 (function () {
   const stage = document.getElementById('demoStage');
   const demo = document.getElementById('demoIsland');
+  const heroMessageEl = document.getElementById('demoHeroMessage');
+  const headlineEl = document.getElementById('demoHeadline');
+  const subtextEl = document.getElementById('demoSubtext');
   const dotsEl = document.getElementById('demoDots');
   const favEl = document.getElementById('demoFav');
   const domainEl = document.getElementById('demoDomain');
   const slashEl = document.getElementById('demoSlash');
   const newtabEl = document.getElementById('demoNewtab');
+  const privateSkeletonEl = document.getElementById('demoPrivateSkeleton');
+  const glanceEl = document.getElementById('demoGlance');
+  const glanceHeaderEl = document.getElementById('demoGlanceHeader');
+  const glanceShotEl = document.getElementById('demoGlanceShot');
+  const glanceDividerEl = document.getElementById('demoGlanceDivider');
+  const glanceFaviconEl = document.getElementById('demoGlanceFavicon');
+  const glanceTitleEl = document.getElementById('demoGlanceTitle');
+  const glanceMakeMainEl = document.getElementById('demoGlanceMakeMain');
   const shieldEl = document.getElementById('demoShield');
   const shieldCountEl = document.getElementById('demoShieldCount');
   const shieldHostEl = document.getElementById('demoShieldHost');
@@ -67,8 +28,11 @@
   const typedEl = document.getElementById('demoTyped');
   const listEl = document.getElementById('demoList');
   const footEl = document.getElementById('demoFoot');
-  const capEl = document.getElementById('demoCaption');
   const heartEl = document.getElementById('demoHeart');
+  const workspaceEl = document.getElementById('demoWorkspace');
+  const workspaceLabelEl = document.getElementById('demoWorkspaceLabel');
+  const workspaceSwitcherEl = document.getElementById('demoWorkspaceSwitcher');
+  const cursorEl = document.getElementById('demoCursor');
 
   // The blank-tab beat renders a miniature of the "billboard" start page. The
   // date, clock, and meridiem use the app's own formats; the blocked line is
@@ -93,6 +57,52 @@
      approximating the look of them. */
   const panelEl = demo.querySelector('.panel');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let cursorMoveTimer = null;
+  let cursorClickTimer = null;
+
+  function setCursorCue(cue, { openingPanel = false } = {}) {
+    clearTimeout(cursorMoveTimer);
+    clearTimeout(cursorClickTimer);
+    cursorEl.classList.remove('clicking', 'dragging');
+    if (!cue || reduceMotion.matches) {
+      cursorEl.classList.remove('visible');
+      cursorEl.hidden = true;
+      return;
+    }
+
+    const stageRect = stage.getBoundingClientRect();
+    if (cursorEl.hidden) {
+      cursorEl.style.setProperty('--cursor-x', `${stageRect.width * 0.78}px`);
+      cursorEl.style.setProperty('--cursor-y', `${stageRect.height * 0.78}px`);
+      cursorEl.hidden = false;
+      void cursorEl.offsetWidth;
+      cursorEl.classList.add('visible');
+    }
+
+    const delay = cue.delay ?? (openingPanel ? MORPH_MS + 80 : 90);
+    cursorMoveTimer = setTimeout(() => {
+      const target = stage.querySelector(cue.target);
+      if (!target) {
+        cursorEl.classList.remove('visible');
+        return;
+      }
+      const targetRect = target.getBoundingClientRect();
+      const currentStageRect = stage.getBoundingClientRect();
+      const targetX = targetRect.left - currentStageRect.left + targetRect.width * (cue.x ?? 0.5);
+      const targetY = targetRect.top - currentStageRect.top + targetRect.height * (cue.y ?? 0.5);
+      const x = Math.max(4, Math.min(currentStageRect.width - 24, targetX));
+      const y = Math.max(4, Math.min(currentStageRect.height - 30, targetY));
+      cursorEl.style.setProperty('--cursor-x', `${Math.round(x)}px`);
+      cursorEl.style.setProperty('--cursor-y', `${Math.round(y)}px`);
+      if (cue.click || cue.drag) {
+        cursorClickTimer = setTimeout(() => {
+          cursorEl.classList.remove('clicking', 'dragging');
+          void cursorEl.offsetWidth;
+          cursorEl.classList.add(cue.drag ? 'dragging' : 'clicking');
+        }, 730);
+      }
+    }, delay);
+  }
 
   // Proximity, mirroring src/main/island-proximity.js: a 250px range on a
   // smoothstep so neither end has an edge you can feel, a lean scaled by
@@ -228,9 +238,9 @@
     queueProximity();
   }
 
-  const NORMAL_FOOT = 'esc to dismiss · ⌘L summons · / for commands';
-  const GROUP_FOOT = 'esc to dismiss · /group moves this tab · ⌘1–9 jumps groups';
-  const PRIVATE_FOOT = 'private · nothing here is saved to history · esc to dismiss';
+  const NORMAL_FOOT = '⌘L summons · / for commands';
+  const GROUP_FOOT = '/group moves this tab · ⌘1–9 jumps between sections';
+  const PRIVATE_FOOT = 'private · nothing here is saved to history';
 
   // Real sites. `fav` is the domain whose favicon we fetch (a couple differ
   // from the display domain); a missing icon falls back to a neutral square,
@@ -242,7 +252,7 @@
     threads:  { title: 'Threads',   domain: 'threads.net',     fav: 'threads.net',  shield: 6 },
     scroll:   { title: 'Scroll',    domain: 'scrollapp.co',    fav: 'scrollapp.co', shield: 0 },
     nintendo: { title: 'Nintendo',  domain: 'nintendo.com',    fav: 'nintendo.com', shield: 4 },
-    msnow:    { title: 'MS NOW',    domain: 'msnow.com',       fav: 'msnbc.com',    shield: 14 },
+    msnow:    { title: 'MS NOW',    domain: 'msnow.com',       fav: 'msnbc.com',    shield: 14, quiet: true },
     netflix:  { title: 'Netflix',   domain: 'netflix.com',     fav: 'netflix.com',  shield: 3 },
     github:   { title: 'GitHub',    domain: 'github.com',      fav: 'github.com',   shield: 0 },
     // A blank tab. No domain puts the pill in placeholder mode: the prompt
@@ -268,12 +278,11 @@
   const mobileMq = window.matchMedia('(max-width: 560px)');
   let MOBILE = mobileMq.matches;
   const SHOT_IDS = ['github', 'notion', 'scroll', 'netflix']; // sites with a bundled render
-  const PRIVATE_SHOT = 'private'; // page shown behind the private-tab scene
-  const PRELOAD_IDS = [...SHOT_IDS, PRIVATE_SHOT];
+  const PRELOAD_IDS = [...SHOT_IDS];
   // Sampled top-edge color of each bundled render, so the Island's top strip
   // blends into the page below it (the CSS reads --demo-strip-bg). A scene with
   // no bundled shot falls back to the theme surface (matches the skeleton); the
-  // private scene keeps Blanc's own dark strip regardless of the page behind it.
+  // private scene keeps Blanc's own dark strip above its animated loading view.
   const SHOT_TOP = { github: '#030442', notion: '#ffffff', scroll: '#ffffff', netflix: '#080706' };
   const PRIVATE_TOP = '#0a0a0a';
   const shots = {}; // id -> { src, ready }
@@ -300,6 +309,10 @@
     PRELOAD_IDS.forEach((id) => delete shots[id]);
     PRELOAD_IDS.forEach(preloadShot);
     showShot(currentShotId);
+    if (glanceModeVisible) {
+      glanceShotEl.src = shotSrc(glanceTabId);
+      layoutDemoGlance();
+    }
   });
 
   function showShot(id) {
@@ -313,22 +326,143 @@
     }
   }
 
-  const PIN_ICON = '<svg class="ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>';
+  let glanceModeVisible = false;
+  let glanceRatio = 0.62;
+  let glanceTabId = 'notion';
+  let glanceActionTimer = null;
+  let glanceEffectTimer = null;
+  let shieldActionTimer = null;
+
+  function setGlanceTab(id) {
+    glanceTabId = id;
+    const tab = TABS[id];
+    glanceTitleEl.textContent = tab.title;
+    glanceFaviconEl.style.backgroundImage = `url('${ICON_BASE}${tab.fav}.ico')`;
+    const src = shotSrc(id);
+    if (glanceShotEl.getAttribute('src') !== src) glanceShotEl.src = src;
+  }
+
+  function setGlanceRatio(ratio) {
+    // Match src/main/glance-layout.js: the primary page remains dominant and
+    // the divider is constrained to the app's real 50–78% range.
+    glanceRatio = Math.max(0.5, Math.min(0.78, ratio));
+    layoutDemoGlance();
+  }
+
+  function layoutDemoGlance() {
+    if (!glanceModeVisible) return;
+    const width = stage.clientWidth;
+    const height = stage.clientHeight;
+    const pageY = parseFloat(getComputedStyle(stage).getPropertyValue('--demo-strip-h')) || 48;
+    const pageHeight = Math.max(0, height - pageY);
+    const divider = Math.min(12, width);
+
+    if (width >= 800) {
+      const primaryWidth = Math.round((width - divider) * glanceRatio);
+      const glanceLeft = primaryWidth + divider;
+      glanceEl.dataset.direction = 'horizontal';
+      demo.style.left = `${Math.round(primaryWidth / 2)}px`;
+      Object.assign(shotEl.style, { left: '0px', top: `${pageY}px`, width: `${primaryWidth}px`, height: `${pageHeight}px` });
+      Object.assign(glanceHeaderEl.style, { left: `${primaryWidth}px`, top: '0px', width: `${width - primaryWidth}px`, height: `${pageY}px` });
+      Object.assign(glanceDividerEl.style, { left: `${primaryWidth}px`, top: `${pageY}px`, width: `${divider}px`, height: `${pageHeight}px` });
+      Object.assign(glanceShotEl.style, { left: `${glanceLeft}px`, top: `${pageY}px`, width: `${Math.max(0, width - glanceLeft)}px`, height: `${pageHeight}px` });
+      return;
+    }
+
+    const stackedHeader = Math.min(44, Math.max(0, pageHeight - divider));
+    const usable = Math.max(0, pageHeight - divider - stackedHeader);
+    const primaryHeight = Math.round(usable * glanceRatio);
+    const dividerTop = pageY + primaryHeight;
+    const headerTop = dividerTop + divider;
+    const glanceTop = headerTop + stackedHeader;
+    glanceEl.dataset.direction = 'vertical';
+    demo.style.left = `${Math.round(width / 2)}px`;
+    Object.assign(shotEl.style, { left: '0px', top: `${pageY}px`, width: `${width}px`, height: `${primaryHeight}px` });
+    Object.assign(glanceDividerEl.style, { left: '0px', top: `${dividerTop}px`, width: `${width}px`, height: `${divider}px` });
+    Object.assign(glanceHeaderEl.style, { left: '0px', top: `${headerTop}px`, width: `${width}px`, height: `${stackedHeader}px` });
+    Object.assign(glanceShotEl.style, { left: '0px', top: `${glanceTop}px`, width: `${width}px`, height: `${Math.max(0, height - glanceTop)}px` });
+  }
+
+  function setDemoGlance(visible, { ratio = 0.62, tab = 'notion' } = {}) {
+    glanceModeVisible = visible;
+    glanceEl.hidden = !visible;
+    stage.classList.toggle('glance-mode', visible);
+    if (!visible) {
+      for (const prop of ['left', 'top', 'width', 'height']) shotEl.style.removeProperty(prop);
+      demo.style.removeProperty('left');
+      return;
+    }
+    setGlanceTab(tab);
+    setGlanceRatio(ratio);
+  }
+
+  function moveCursorWithGlanceDivider(ratio) {
+    if (cursorEl.hidden || reduceMotion.matches) return;
+    const width = stage.clientWidth;
+    const height = stage.clientHeight;
+    const pageY = parseFloat(getComputedStyle(stage).getPropertyValue('--demo-strip-h')) || 48;
+    const divider = Math.min(12, width);
+    if (width >= 800) {
+      const x = Math.round((width - divider) * ratio + divider / 2);
+      cursorEl.style.setProperty('--cursor-x', `${x}px`);
+      cursorEl.style.setProperty('--cursor-y', `${Math.round(pageY + (height - pageY) * 0.55)}px`);
+      return;
+    }
+    const pageHeight = Math.max(0, height - pageY);
+    const stackedHeader = Math.min(44, Math.max(0, pageHeight - divider));
+    const usable = Math.max(0, pageHeight - divider - stackedHeader);
+    cursorEl.style.setProperty('--cursor-x', `${Math.round(width * 0.55)}px`);
+    cursorEl.style.setProperty('--cursor-y', `${Math.round(pageY + usable * ratio + divider / 2)}px`);
+  }
+
+  function animateGlanceResize(toRatio) {
+    stage.classList.add('glance-resizing');
+    setGlanceRatio(toRatio);
+    moveCursorWithGlanceDivider(toRatio);
+    glanceEffectTimer = setTimeout(() => stage.classList.remove('glance-resizing'), 1100);
+  }
+
+  function swapGlanceMain(layout, mainId, glanceId, scene) {
+    stage.classList.add('glance-swapping');
+    glanceMakeMainEl.classList.add('activated');
+    renderPill(layout, mainId, { ...scene, current: mainId, glanceTab: glanceId });
+    showShot(mainId);
+    setGlanceTab(glanceId);
+    stage.style.setProperty('--demo-strip-bg', SHOT_TOP[mainId] || '');
+    glanceEffectTimer = setTimeout(() => {
+      stage.classList.remove('glance-swapping');
+      glanceMakeMainEl.classList.remove('activated');
+    }, 720);
+  }
+
+  window.addEventListener('resize', layoutDemoGlance, { passive: true });
+
   const CARET_ICON = '<svg class="caret" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 2 L7 5 L3.5 8"/></svg>';
+  const PIN_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3h6l-1 5 2 2v1H4v-1l2-2z"/><path d="M8 11v3"/></svg>';
+  const CLOSE_ICON = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>';
   const COMMANDS = [
     { cmd: '/favorites', hint: 'Open favorites' },
+    { cmd: '/save', hint: 'Save this page to favorites' },
     { cmd: '/history', hint: 'Open browsing history' },
     { cmd: '/downloads', hint: 'Open downloads' },
     { cmd: '/settings', hint: 'Open settings' },
+    { cmd: '/clear', hint: 'Clear browsing history' },
     { cmd: '/new', hint: 'Open a new tab' },
     { cmd: '/private', hint: 'Open a private tab (history stays untouched)' },
+    { cmd: '/close', hint: 'Close this tab' },
+    { cmd: '/reopen', hint: 'Reopen the tab you just closed' },
     { cmd: '/pin', hint: 'Pin or unpin this tab' },
+    { cmd: '/mute', hint: 'Mute or unmute this tab' },
+    { cmd: '/sleep', hint: 'Quiet background tabs and free their memory' },
     { cmd: '/group', hint: 'Type a space, then a group name — e.g. "work"' },
+    { cmd: '/ungroup', hint: 'Take this tab out of its group' },
     { cmd: '/close-group', hint: 'Close every tab in this group' },
     { cmd: '/find', hint: 'Find in page' },
     { cmd: '/block-ads', hint: 'Block ads here, or toggle blocking everywhere' },
-    { cmd: '/allow-ads', hint: 'Allow ads on this site' },
+    { cmd: '/1password', hint: 'Fill a login from 1Password' },
     { cmd: '/theme', hint: 'Cycle appearance, or choose system / light / dark' },
+    { cmd: '/patron', hint: 'Support Blanc with a Patron subscription' },
+    { cmd: '/workspace', hint: 'Switch to a named workspace, or save this window' },
   ];
   const SEARCH_TAGS = {
     notion: 'favorite',
@@ -373,6 +507,14 @@
       ],
       loose: ['nintendo', 'msnow', 'github'],
     },
+    // A separate saved window state. Keeping it group-free makes the workspace
+    // handoff unmistakable: the entire set of tabs and pins changes rather
+    // than another named cluster appearing inside the same window.
+    writing: {
+      pinned: ['notion'],
+      groups: [],
+      loose: ['github', 'gmail', 'scroll'],
+    },
   };
 
   const allIds = (lay) => [...lay.pinned, ...lay.groups.flatMap((g) => g.ids), ...lay.loose];
@@ -390,52 +532,55 @@
   function tabRow(id, opts) {
     opts = opts || {};
     const t = TABS[id];
-    const cls = 'trow' + (opts.hl ? ' hl' : '') + (opts.just ? ' just' : '');
+    const cls = 'trow' + (opts.hl ? ' hl' : '') + (opts.just ? ' just' : '') + (t.quiet && !opts.sub ? ' quiet' : '') + (opts.inGroup ? ' in-group' : '');
     const dom = opts.sub ? `<span class="dom">${t.domain}</span>` : '';
     const tag = opts.tag ? `<span class="tag">${opts.tag}</span>` : '';
     const enter = opts.enter ? '<span class="enter">↵</span>' : '';
+    const rowActions = opts.sub ? '' :
+      `<span class="row-pin${opts.pinned ? ' on' : ''}">${PIN_ICON}</span>` +
+      (opts.glance ? '<span class="row-glance on">glance</span>' : opts.glanceCue ? '<span class="row-glance cue">glance</span>' : '<span class="row-glance">glance</span>') +
+      `<span class="row-close">${CLOSE_ICON}</span>`;
     return `<div class="${cls}"><span class="fav" style="${favStyle(t)}"></span>` +
-           `<span class="title">${t.title}</span>${dom}${tag}${enter}</div>`;
+           `<span class="title">${t.title}</span>${dom}${tag}${rowActions}${enter}</div>`;
   }
 
-  function secHead(label, count, icon, just, collapsed) {
+  function secHead(label, count, { caret = false, just = false, collapsed = false, kbd = '' } = {}) {
     const cls = 'sec-head' + (just ? ' just' : '') + (collapsed ? ' collapsed' : '');
-    return `<div class="${cls}">${icon || ''}<span>${label}</span>` +
-           `<span class="rule"></span>${count != null ? `<span class="count">${count}</span>` : ''}</div>`;
+    return `<div class="${cls}">${caret ? CARET_ICON : ''}<span>${label}</span>` +
+           `${count != null ? `<span class="count">${count}</span>` : ''}${kbd ? `<span class="kbd">${kbd}</span>` : ''}</div>`;
   }
 
   function renderTabsPanel(layName, opts) {
     opts = opts || {};
     const lay = LAYOUTS[layName];
 
-    let html = secHead('pinned', null, PIN_ICON, false);
-    lay.pinned.forEach((id) => { html += tabRow(id, { hl: id === opts.current, just: id === opts.justPin }); });
+    let html = secHead('pinned', lay.pinned.length);
+    lay.pinned.forEach((id) => { html += tabRow(id, { hl: id === opts.current, just: id === opts.justPin, pinned: true, glance: id === opts.glanceTab, glanceCue: id === opts.glanceCue }); });
 
-    lay.groups.forEach((g) => {
+    lay.groups.forEach((g, index) => {
       const gjust = g.name === opts.justGroup;
-      html += secHead(g.name, g.ids.length, CARET_ICON, gjust, g.collapsed);
-      if (g.collapsed) {
-        html += `<div class="trow folded">${rowDots(g.ids.length, false)}<span class="title">${g.ids.length} tabs tucked away</span><span class="kbd">click to unfold</span></div>`;
-      } else {
-        g.ids.forEach((id) => { html += tabRow(id, { hl: id === opts.current, just: gjust }); });
-      }
+      let band = secHead(g.name, g.ids.length, { caret: true, just: gjust, collapsed: g.collapsed, kbd: `⌘${index + 2}` });
+      if (!g.collapsed) g.ids.forEach((id) => { band += tabRow(id, { hl: id === opts.current, just: gjust, inGroup: true, glance: id === opts.glanceTab, glanceCue: id === opts.glanceCue }); });
+      html += `<div class="group-band">${band}</div>`;
     });
 
     if (lay.loose.length) {
-      html += secHead('no group', null, null, false);
-      lay.loose.forEach((id) => { html += tabRow(id, { hl: id === opts.current }); });
+      lay.loose.forEach((id) => { html += tabRow(id, { hl: id === opts.current, glance: id === opts.glanceTab, glanceCue: id === opts.glanceCue }); });
     }
+    html += `<div class="panel-furniture">${secHead('recently closed', 2, { caret: true, collapsed: true })}</div>`;
     // New-tab / private launchers live in the panel's footer bar (static
     // markup), not as list rows — mirrors the app's #islandFooter.
     listEl.innerHTML = html;
   }
 
-  function commandRows(input) {
+  function commandRows(input, { all = false } = {}) {
     const word = input.trim().split(/\s+/)[0] || '/';
-    const matches = COMMANDS.filter((c) => c.cmd.startsWith(word) || word === '/').slice(0, 6);
+    const matches = COMMANDS.filter((c) => c.cmd.startsWith(word) || word === '/');
+    const visible = all ? matches : matches.slice(0, 6);
     listEl.innerHTML = matches.length
-      ? matches.map((c, i) => `<div class="trow command${i === 0 ? ' hl' : ''}"><span class="cmd">${c.cmd}</span><span class="hint">${c.hint}</span>${i === 0 ? '<span class="enter">↵</span>' : ''}</div>`).join('')
+      ? (all ? secHead('slash commands', null) : '') + visible.map((c, i) => `<div class="trow command${i === 0 ? ' hl' : ''}"><span class="cmd">${c.cmd}</span><span class="hint">${c.hint}</span>${i === 0 ? '<span class="enter">↵</span>' : ''}</div>`).join('')
       : '<div class="trow"><span class="empty">No matching command</span></div>';
+    listEl.scrollTop = 0;
   }
 
   function matchScore(query, text) {
@@ -477,7 +622,7 @@
 
   function resultRow(result, i) {
     if (result.kind === 'group') {
-      return `<div class="trow${i === 0 ? ' hl' : ''}">${rowDots(result.count, true)}<span class="title">${result.title}</span><span class="dom">${result.domain}</span><span class="tag">group</span>${i === 0 ? '<span class="enter">↵</span>' : ''}</div>`;
+      return `<div class="trow${i === 0 ? ' hl' : ''}"><span class="result-group-mark">${CARET_ICON}</span><span class="title mono">${result.title}</span><span class="dom">${result.domain}</span><span class="tag">group</span>${i === 0 ? '<span class="enter">↵</span>' : ''}</div>`;
     }
     return tabRow(result.id, { hl: i === 0, tag: result.kind, enter: i === 0, sub: true });
   }
@@ -494,13 +639,35 @@
     const DOT_CAP = 8;
     const lay = LAYOUTS[layName];
     const group = activeGroup(lay, current);
-    // The pill shows only the active tab's group (or the ungrouped set) as
-    // dots — pins and other groups live in the panel now, matching the app.
-    // Capped at DOT_CAP with a quiet "+N" for the rest.
-    const members = group ? group.ids : lay.loose;
-    const shown = members.slice(0, DOT_CAP);
-    let dots = shown.map((id) => `<span class="${id === current ? 'cur' : ''}"></span>`).join('');
-    if (members.length > DOT_CAP) dots += `<span class="dot-more">+${members.length - DOT_CAP}</span>`;
+    const activeWindow = (members, capacity) => {
+      if (members.length <= capacity) return members;
+      const activeIndex = Math.max(0, members.indexOf(current));
+      const start = activeIndex < capacity
+        ? 0
+        : Math.min(activeIndex - (capacity - 1), members.length - capacity);
+      return members.slice(start, start + capacity);
+    };
+
+    // Match src/renderer/renderer.js's islandTabPresentation(): standalone
+    // pins remain globally reachable, followed by the active group or loose
+    // section. If the active tab is itself a standalone pin, the pinned shelf
+    // becomes the active section. The +N is window-wide, not section-local.
+    const activeIsPin = lay.pinned.includes(current);
+    const pinned = activeIsPin
+      ? activeWindow(lay.pinned, DOT_CAP)
+      : lay.pinned.slice(0, Math.max(0, DOT_CAP - 1));
+    const section = activeIsPin
+      ? []
+      : activeWindow(group ? group.ids : lay.loose, DOT_CAP - pinned.length);
+    const shown = [...pinned, ...section];
+    const hidden = Math.max(0, allIds(lay).length - shown.length);
+    const classes = (id, sectionStart = false) => [
+      id === current ? 'cur' : '',
+      sectionStart ? 'dot-section-start' : '',
+    ].filter(Boolean).join(' ');
+    let dots = pinned.map((id) => `<span class="${classes(id)}"></span>`).join('');
+    dots += section.map((id, index) => `<span class="${classes(id, index === 0 && pinned.length > 0)}"></span>`).join('');
+    if (hidden > 0) dots += `<span class="dot-more">+${hidden}</span>`;
     dotsEl.innerHTML = dots;
 
     const t = TABS[current];
@@ -526,11 +693,12 @@
     heartEl.classList.toggle('on', SEARCH_TAGS[current] === 'favorite');
   }
 
-  function setCap(text) {
-    capEl.textContent = text;
-    capEl.classList.remove('show');
-    void capEl.offsetWidth; // restart the fade animation
-    capEl.classList.add('show');
+  function setHeroMessage(scene) {
+    headlineEl.textContent = scene.headline;
+    subtextEl.textContent = scene.subtext;
+    heroMessageEl.classList.remove('scene-change');
+    void heroMessageEl.offsetWidth; // restart the quiet message transition
+    heroMessageEl.classList.add('scene-change');
   }
 
   function stopTyping() {
@@ -538,8 +706,8 @@
     typeTimer = null;
   }
 
-  const TYPE_MS = 85;        // per-character typing cadence — snappy, still legible
-  const POST_TYPE_HOLD = 1900; // linger after typing finishes, to read the result + caption
+  const TYPE_MS = 105;          // per-character typing cadence, slow enough to follow
+  const POST_TYPE_HOLD = 2800; // linger after typing finishes to read the result + hero message
 
   function typeInput(text, renderPartial, renderBeforeTyping) {
     stopTyping();
@@ -555,28 +723,36 @@
     }, TYPE_MS);
   }
 
-  // ---- scenes: one linear workflow, ~3–4s each ----
+  // ---- scenes: one linear workflow, paced for the message and interaction ----
   const SCENES = [
-    { view: 'rest',  layout: 'base',    current: 'github',  hold: 3200, cap: 'No tab strip, no toolbar — just one small island.' },
-    { view: 'rest',  layout: 'base',    current: 'github',  scroll: true, hold: 4200, cap: 'Scroll the page and the island stays out of the way.' },
+    { view: 'rest',  layout: 'base',    current: 'github',  hold: 3200, headline: 'The browser that\ngets out of the way.', subtext: 'Blanc puts tabs, search and commands in one floating Island — so the page is all you see.' },
+    { view: 'rest',  layout: 'base',    current: 'github',  scroll: true, hold: 4200, headline: 'Your page stays\nin front.', subtext: 'Scroll freely while the Island remains fixed above the page, ready without taking over.' },
     // An invitation rather than a claim: the pill only reacts to a real cursor,
-    // so the caption points at something the visitor can go and do.
-    { view: 'rest',  layout: 'base',    current: 'github',  hold: 3400, cap: 'Move your pointer toward it — the island leans your way.' },
+    // so the message points at something the visitor can go and do.
+    { view: 'rest',  layout: 'base',    current: 'github',  pointer: { target: '.pill', x: 0.58, y: 0.62 }, hold: 3400, headline: 'Close when you need it.\nQuiet when you do not.', subtext: 'Move toward the Island and it gently meets you; move away and it settles back down.' },
     // The blank-tab beat: the pill drops to its placeholder ("Search or type
     // a URL" + the "/" chip), the state the app shows only on a new tab.
-    { view: 'rest',  layout: 'fresh',   current: 'newtab',  hold: 3600, cap: 'A blank tab shows where to type — and / lists every command.' },
-    { view: 'panel', layout: 'base',    current: 'github',  hold: 3300, cap: 'Open it and the panel grows out of the island itself.' },
-    { view: 'panel', layout: 'base',    current: 'github',  panel: 'switcher', typed: 'scr', hold: 3400, cap: 'A few letters jumps from GitHub to Scroll.' },
-    { view: 'rest',  layout: 'base',    current: 'scroll',  hold: 2800, cap: 'Scroll fills the window while the island stays small.' },
-    { view: 'panel', layout: 'pinned',  current: 'scroll',  panel: 'commands', typed: '/pin', justPin: 'scroll', hold: 3800, cap: 'Commands handle the little browser chores.' },
-    { view: 'panel', layout: 'grouped', current: 'netflix', justGroup: 'watch', hold: 4200, cap: 'YouTube and Netflix sit together in a watch group.' },
-    { view: 'panel', layout: 'folded',  current: 'netflix', hold: 3300, cap: 'Folded groups stay tucked away until you jump back.' },
-    { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', hold: 4200, cap: 'The same input finds tabs, favorites, and history.' },
-    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 3200, cap: 'Enter switches to Notion, with the page back in front.' },
-    { view: 'shield',layout: 'grouped', current: 'netflix', hold: 4200, cap: 'The shield opens direct controls: the connection, Blanc Blocker, and the count.' },
-    { view: 'panel', layout: 'grouped', current: 'github',  panel: 'commands', typed: '/allow', hold: 3400, cap: 'Need a site exception? The shield has a switch, or type /allow-ads.' },
-    { view: 'panel', layout: 'grouped', current: 'youtube', panel: 'commands', typed: '/private', hold: 3600, cap: 'A private tab is one command away.' },
-    { view: 'rest',  layout: 'grouped', current: 'youtube', priv: true, hold: 3800, cap: 'Private tabs shift the chrome and save nothing to history.' },
+    { view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 1600, headline: 'Every command starts\nwith one slash.', subtext: 'On a new tab, click / to open Blanc’s complete command directory.' },
+    { view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 6200, headline: 'Every command.\nOne quiet place.', subtext: 'Scroll the directory or start typing to narrow it to exactly what you need.' },
+    { view: 'panel', layout: 'base',    current: 'github',  panel: 'switcher', typed: 'scr', pointer: { target: '.field', x: 0.2 }, hold: 3400, headline: 'Find anything\nin a few letters.', subtext: 'The same field searches open tabs, Favorites and recent history.' },
+    { view: 'rest',  layout: 'base',    current: 'scroll',  hold: 2800, headline: 'Switch tabs.\nKeep the page.', subtext: 'Press Enter and Blanc puts the destination in front without leaving browser chrome behind.' },
+    { view: 'panel', layout: 'pinned',  current: 'scroll',  panel: 'commands', typed: '/pin', justPin: 'scroll', pointer: { target: '.trow.command.hl', x: 0.18 }, hold: 3800, headline: 'Small browser chores,\none short command.', subtext: 'Pin, mute, find and more without hunting through menus.' },
+    { view: 'panel', layout: 'grouped', current: 'netflix', justGroup: 'watch', pointer: { target: '.group-band:last-of-type .sec-head', x: 0.28 }, hold: 4200, headline: 'Give related tabs\na name.', subtext: 'Named Groups keep YouTube and Netflix together without adding another permanent sidebar.' },
+    { view: 'panel', layout: 'folded',  current: 'netflix', pointer: { target: '.group-band:first-of-type .sec-head', x: 0.28, click: true }, hold: 3300, headline: 'Tuck a group away\nuntil you need it.', subtext: 'Folded groups stay out of sight while remaining one keyboard jump away.' },
+    { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, hold: 4200, headline: 'Search across\nyour whole session.', subtext: 'Tabs, groups, Favorites and history all answer from the same input.' },
+    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 3200, headline: 'Enter switches.\nThe page returns.', subtext: 'Blanc gets the interface out of the way as soon as you choose where to go.' },
+    // Keep the active tab continuous from the prior scene. Both Notion and
+    // Scroll are standalone pins, so making either one main leaves the same
+    // pinned-shelf dot presentation in the pill instead of manufacturing a
+    // Glance-only width jump by silently moving to a different tab section.
+    { view: 'panel', layout: 'grouped', current: 'notion', glanceCue: 'scroll', pointer: { target: '.row-glance.cue', click: true }, hold: 1250, headline: 'Keep another tab\nin Glance.', subtext: 'Choose Glance from any tab row to keep a second page beside the first.' },
+    { view: 'glance', layout: 'grouped', current: 'notion', glanceTab: 'scroll', glanceResize: { from: 0.62, to: 0.5 }, pointer: { target: '#demoGlanceDivider', drag: true }, hold: 5200, headline: 'Give either page\nmore room.', subtext: 'Drag the divider until the balance between your main page and Glance feels right.' },
+    { view: 'glance', layout: 'grouped', current: 'notion', glanceTab: 'scroll', glanceRatio: 0.5, glanceSwap: { main: 'scroll', glance: 'notion' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 5600, headline: 'Make either tab\nthe main page.', subtext: 'Swap their roles instantly without closing a tab or losing its place.' },
+    { view: 'workspace', layout: 'grouped', current: 'scroll', workspaceName: 'research', pointer: { target: '.demo-ws-row:nth-child(2)', click: true }, hold: 1600, headline: 'Move between whole\nWorkspaces.', subtext: 'Named Workspaces preserve an entire window for Patron members.' },
+    { view: 'panel', layout: 'writing', current: 'notion', workspaceName: 'writing', hold: 4800, headline: 'Your whole window,\nright where you left it.', subtext: 'Tabs, pins and the active page arrive together when you open a saved Workspace.' },
+    { view: 'shield',layout: 'grouped', current: 'netflix', pointer: { target: '#demoShield', click: true }, hold: 4800, headline: 'Site controls live\nin the Island.', subtext: 'Click the Blanc Blocker shield to see what was stopped or change protection for this site.' },
+    { view: 'panel', layout: 'grouped', current: 'youtube', panel: 'commands', typed: '/private', pointer: { target: '.trow.command.hl', x: 0.18 }, hold: 3600, headline: 'Open a private tab\nin one command.', subtext: 'Private tabs use a separate session and never enter your browsing history.' },
+    { view: 'rest',  layout: 'grouped', current: 'youtube', priv: true, hold: 3800, headline: 'Private means\nnothing gets saved.', subtext: 'The chrome shifts with the session, and the tab leaves no history behind.' },
   ];
 
   // Chapters group the scenes into the demo's topics; each scrub-bar marker sits
@@ -585,13 +761,16 @@
     { label: 'the island', scene: 0 },
     { label: 'command bar', scene: 4 },
     { label: 'tab groups', scene: 8 },
-    { label: 'blanc blocker', scene: 12 },
-    { label: 'private tabs', scene: 14 },
+    { label: 'glance', scene: 12 },
+    { label: 'workspaces', scene: 15 },
+    { label: 'blanc blocker', scene: 17 },
+    { label: 'private tabs', scene: 18 },
   ];
   // A scene's on-screen duration: typing scenes run for the keystrokes plus a
   // read beat, everything else uses its authored hold. The scrub fill and the
   // scene timer share this so the bar tracks playback exactly.
-  const sceneDuration = (s) => s.typed ? s.typed.length * TYPE_MS + POST_TYPE_HOLD : s.hold;
+  const DEMO_PACE = 1.18;
+  const sceneDuration = (s) => Math.round((s.typed ? s.typed.length * TYPE_MS + POST_TYPE_HOLD : s.hold) * DEMO_PACE);
   const DUR = SCENES.map(sceneDuration);
   const TOTAL = DUR.reduce((sum, d) => sum + d, 0);
   const START = []; DUR.reduce((acc, d, i) => (START[i] = acc, acc + d), 0);
@@ -600,32 +779,55 @@
 
   function applyScene(s) {
     stopTyping();
-    const open = s.view === 'panel';
+    clearTimeout(glanceActionTimer);
+    clearTimeout(glanceEffectTimer);
+    clearTimeout(shieldActionTimer);
+    stage.classList.remove('glance-resizing', 'glance-swapping');
+    glanceMakeMainEl.classList.remove('activated');
+    const open = s.view === 'panel' || s.view === 'workspace';
+    const openingPanel = open && !panelOpen;
     const showShield = s.view === 'shield';
+    const showWorkspaces = s.view === 'workspace';
+    const showGlance = s.view === 'glance';
     const lay = LAYOUTS[s.layout];
     const current = s.current || allIds(lay)[0];
-    demo.classList.toggle('show-shield', showShield);
+    listEl.classList.toggle('command-directory', !!s.allCommands);
+    // A shield scene starts closed. The popover is revealed only after the
+    // staged pointer has reached and clicked the shield below.
+    demo.classList.remove('show-shield');
+    demo.classList.toggle('show-workspaces', showWorkspaces);
+    workspaceSwitcherEl.hidden = !showWorkspaces;
+    workspaceLabelEl.textContent = s.workspaceName || 'research';
+    workspaceEl.setAttribute('aria-label', `Workspace ${s.workspaceName || 'research'}`);
+    workspaceEl.setAttribute('aria-expanded', String(showWorkspaces));
     demo.classList.toggle('private', !!s.priv);
     stage.classList.remove('scrolling');
     void stage.offsetWidth; // restart the scroll animation when the scene repeats
     stage.classList.toggle('scrolling', !!s.scroll);
+    stage.classList.toggle('private-loading', !!s.priv);
     stage.setAttribute('data-theme', s.priv ? 'private' : 'light');
     footEl.textContent = s.priv ? PRIVATE_FOOT : lay.groups.length > 1 ? GROUP_FOOT : NORMAL_FOOT;
 
     renderPill(s.layout, current, s);
-    showShot(s.priv ? PRIVATE_SHOT : current); // private scene shows a page browsed privately
+    showShot(s.priv ? null : current);
+    privateSkeletonEl.hidden = !s.priv;
+    const startingGlanceRatio = s.glanceResize?.from ?? s.glanceRatio ?? 0.62;
+    setDemoGlance(showGlance, { ratio: startingGlanceRatio, tab: s.glanceTab });
     // The blank tab shows a miniature of the ledger start page instead of a
     // site render — the surface the quiet pill actually rests over in the app.
     newtabEl.hidden = !TABS[current].internal || !!s.priv;
     // Color-match the top strip to the page now behind it, so the Island reads
     // as floating in the page's top margin rather than on a browser bar.
     stage.style.setProperty('--demo-strip-bg', s.priv ? PRIVATE_TOP : (SHOT_TOP[current] || ''));
-    setCap(s.cap);
+    setHeroMessage(s);
 
     // Content first, then the movement — the morph measures the panel it is
     // about to grow into, so the rows have to be in place before it starts.
     if (open) {
-      if (s.typed && s.panel === 'commands') {
+      if (s.panel === 'commands' && s.allCommands) {
+        typedEl.textContent = '/';
+        commandRows('/', { all: true });
+      } else if (s.typed && s.panel === 'commands') {
         typeInput(s.typed, commandRows, () => renderTabsPanel(s.layout, s));
       } else if (s.typed && s.panel === 'switcher') {
         typeInput(s.typed, (partial) => switcherRows(s.layout, partial), () => renderTabsPanel(s.layout, s));
@@ -637,6 +839,25 @@
       typedEl.textContent = '';
     }
     setPanelOpen(open);
+    setCursorCue(s.pointer, { openingPanel });
+    if (showShield) {
+      shieldActionTimer = setTimeout(
+        () => demo.classList.add('show-shield'),
+        reduceMotion.matches ? 0 : 840
+      );
+    }
+    // The cursor starts after 90ms and travels for 720ms. Begin resizing as
+    // its tip reaches the divider; Make Main keeps its slightly longer click
+    // beat so the button press still reads clearly.
+    const glanceActionDelay = reduceMotion.matches ? 0 : s.glanceResize ? 820 : 920;
+    if (s.glanceResize) {
+      glanceActionTimer = setTimeout(() => animateGlanceResize(s.glanceResize.to), glanceActionDelay);
+    } else if (s.glanceSwap) {
+      glanceActionTimer = setTimeout(
+        () => swapGlanceMain(s.layout, s.glanceSwap.main, s.glanceSwap.glance, s),
+        glanceActionDelay
+      );
+    }
   }
 
   // ---- scrub bar: progress fill + clickable chapter markers ----

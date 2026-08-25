@@ -3,11 +3,11 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
   title={"Blanc Browser Features — Minimal browsing, built in"}
-  description={"Explore search built into the Blanc Island, direct site controls for ad and tracker blocking, private tabs, the command palette, tab groups, optional vertical tabs, and the security architecture of a minimal desktop browser."}
+  description={"Explore the Blanc Island, Glance, built-in blocking, Named Groups, Patron Named Workspaces, Quiet Tabs, local profiles, encrypted sync, and structural security."}
   path="/features"
   page="features"
   current="features"
-  ogDescription={"Search, tabs, and browser controls in one floating Island, with direct site controls, private tabs, tab groups, and structural security."}
+  ogDescription={"A focused desktop browser with Glance, built-in blocking, Named Groups, Patron Named Workspaces, Quiet Tabs, encrypted sync, and structural security."}
 >
   <script type="application/ld+json" is:inline slot="head">
 {
@@ -40,8 +40,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <a class="text-link" href="/features/island" data-track="feature_cta_click" data-feature="island" data-cta-position="feature-hub">Meet the Island <span aria-hidden="true">↗</span></a>
       </div>
     </article>
-    <article class="feature-hub-row feature-hub-row--featured" id="ad-blocking">
+    <article class="feature-hub-row feature-hub-row--featured" id="glance">
       <p class="feature-number">02</p>
+      <div>
+        <p class="feature-label">side by side, briefly</p>
+        <h2>Open a reference without leaving your place.</h2>
+      </div>
+      <div class="feature-row-end">
+        <p>Glance opens a temporary page beside the one you are using, then gets out of the way when you are done. It stays local and is never restored or synced.</p>
+      </div>
+    </article>
+    <article class="feature-hub-row" id="ad-blocking">
+      <p class="feature-number">03</p>
       <div>
         <p class="feature-label">built in</p>
         <h2>Site controls that say what they do.</h2>
@@ -52,7 +62,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
     </article>
     <article class="feature-hub-row" id="private-tabs">
-      <p class="feature-number">03</p>
+      <p class="feature-number">04</p>
       <div>
         <p class="feature-label">a clean trail</p>
         <h2>Private tabs that stay out of the record.</h2>
@@ -63,31 +73,45 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
     </article>
     <article class="feature-hub-row" id="commands">
-      <p class="feature-number">04</p>
+      <p class="feature-number">05</p>
       <div>
         <p class="feature-label">keyboard first</p>
         <h2>One shortcut to move through your whole session.</h2>
       </div>
       <div class="feature-row-end">
-        <p>Command or Control L blends open tabs, favorites, history, and named groups. Live suggestions from your chosen search engine can be turned off before first use or later in Settings; type / to run a browser command.</p>
+        <p>Command or Control L blends open tabs, Favorites, history, and Named Groups. Type / to run browser commands, or reopen a recently closed tab or group without rebuilding your place.</p>
         <a class="text-link" href="/features/command-palette" data-track="feature_cta_click" data-feature="command-palette" data-cta-position="feature-hub">Explore commands <span aria-hidden="true">↗</span></a>
       </div>
     </article>
     <article class="feature-hub-row" id="tab-groups">
-      <p class="feature-number">05</p>
+      <p class="feature-number">06</p>
       <div>
-        <p class="feature-label">a little order</p>
-        <h2>Keep the tabs you need. Tuck away the rest.</h2>
+        <p class="feature-label">named groups</p>
+        <h2>Name the task. Keep its tabs together.</h2>
       </div>
       <div class="feature-row-end">
-        <p>Name a group for the task in front of you. Blanc keeps the active one on the Island while the rest stay close, not constantly visible.</p>
-        <a class="text-link" href="/features/tab-groups" data-track="feature_cta_click" data-feature="tab-groups" data-cta-position="feature-hub">Explore tab groups <span aria-hidden="true">↗</span></a>
+        <p>Named Groups keep related tabs in one cluster. Blanc shows the active group on the Island while the others stay close, folded away from the page.</p>
+        <a class="text-link" href="/features/tab-groups" data-track="feature_cta_click" data-feature="tab-groups" data-cta-position="feature-hub">Explore Named Groups <span aria-hidden="true">↗</span></a>
+      </div>
+    </article>
+    <article class="feature-hub-row feature-hub-row--patron" id="workspaces">
+      <p class="feature-number">07</p>
+      <div>
+        <p class="feature-label">named workspaces <span class="feature-patron-badge">Patron</span></p>
+        <h2>Save a whole window. Return to it by name.</h2>
+      </div>
+      <div class="feature-row-end">
+        <p>Named Workspaces save a window’s tabs and groups, switch the set in place, and keep it up to date automatically. Active Patrons can create and save them; anything already saved remains available if membership ends.</p>
+        <div class="feature-row-actions">
+          <a class="feature-patron-cta" data-track="supporter_click" data-feature="named-workspaces" data-cta-position="feature-workspaces" href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf" target="_blank" rel="noopener">become a Patron</a>
+          <a class="text-link" href="/about" data-track="feature_cta_click" data-feature="named-workspaces" data-cta-position="feature-hub">what Patron supports <span aria-hidden="true">↗</span></a>
+        </div>
       </div>
     </article>
     <article class="feature-hub-row" id="vertical-tabs">
-      <p class="feature-number">06</p>
+      <p class="feature-number">08</p>
       <div>
-        <p class="feature-label">new in 1.0</p>
+        <p class="feature-label">your preferred view</p>
         <h2>An optional vertical tab rail. The Island stays.</h2>
       </div>
       <div class="feature-row-end">
@@ -95,21 +119,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <a class="text-link" href="/features/vertical-tabs" data-track="feature_cta_click" data-feature="vertical-tabs" data-cta-position="feature-hub">See vertical tabs <span aria-hidden="true">↗</span></a>
       </div>
     </article>
-    <article class="feature-hub-row" id="sync">
-      <p class="feature-number">07</p>
-      <div>
-        <p class="feature-label">pick up anywhere</p>
-        <h2>Your open tabs, on your other devices.</h2>
-      </div>
-      <div class="feature-row-end">
-        <p>Opt in per device and Blanc shares what each machine has open — end-to-end encrypted, read-only, and never a merged live session.</p>
-        <a class="text-link" href="/features/sync" data-track="feature_cta_click" data-feature="sync" data-cta-position="feature-hub">How tab sync works <span aria-hidden="true">↗</span></a>
-      </div>
-    </article>
     <article class="feature-hub-row" id="quiet-tabs">
-      <p class="feature-number">08</p>
+      <p class="feature-number">09</p>
       <div>
-        <p class="feature-label">new in 1.2</p>
+        <p class="feature-label">memory, on your terms</p>
         <h2>Tabs you are not using give their memory back.</h2>
       </div>
       <div class="feature-row-end">
@@ -117,17 +130,42 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <a class="text-link" href="/features/quiet-tabs" data-track="feature_cta_click" data-feature="quiet-tabs" data-cta-position="feature-hub">How quiet tabs work <span aria-hidden="true">↗</span></a>
       </div>
     </article>
+    <article class="feature-hub-row" id="sync">
+      <p class="feature-number">10</p>
+      <div>
+        <p class="feature-label">profiles, windows, devices</p>
+        <h2>Separate contexts without losing continuity.</h2>
+      </div>
+      <div class="feature-row-end">
+        <p>Keep browsing identities separate with local profiles and open more than one Blanc window. From Personal, opt-in sync shows what each device has open — end-to-end encrypted, read-only, and never one merged live session.</p>
+        <a class="text-link" href="/features/sync" data-track="feature_cta_click" data-feature="sync" data-cta-position="feature-hub">How tab sync works <span aria-hidden="true">↗</span></a>
+      </div>
+    </article>
     <article class="feature-hub-row" id="security">
-      <p class="feature-number">09</p>
+      <p class="feature-number">11</p>
       <div>
         <p class="feature-label">private by architecture</p>
         <h2>Security that is structural, not bolted on.</h2>
       </div>
       <div class="feature-row-end">
-        <p>Sandboxed pages, pinned network-level blocking, protected end-to-end encrypted sync, signed releases, and network choices documented before first use. The quiet parts, documented.</p>
+        <p>Sandboxed pages, pinned network-level blocking, signed releases, device-bound Touch ID passkeys, and optional user-invoked 1Password fill on macOS. The quiet parts, documented.</p>
         <a class="text-link" href="/features/security" data-track="feature_cta_click" data-feature="security" data-cta-position="feature-hub">Read the security story <span aria-hidden="true">↗</span></a>
       </div>
     </article>
+  </section>
+
+  <section class="feature-patron" aria-labelledby="feature-patron-title">
+    <div class="feature-patron-copy">
+      <p class="section-kicker">Patron</p>
+      <h2 id="feature-patron-title">Keep the browser free. Get more room to move.</h2>
+      <p>Blanc’s core stays free. Patron adds cross-platform Named Workspaces and three macOS Dock colorways while helping fund an independent browser.</p>
+    </div>
+    <div class="feature-patron-offer">
+      <p class="feature-patron-price"><strong>$30</strong><span> / year</span></p>
+      <p>or $4 monthly</p>
+      <a class="cta" data-track="supporter_click" data-feature="patron" data-cta-position="feature-patron-close" href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf" target="_blank" rel="noopener">become a Patron</a>
+      <a class="text-link" href="/about" data-track="feature_cta_click" data-feature="patron" data-cta-position="feature-patron-close">what Patron supports <span aria-hidden="true">↗</span></a>
+    </div>
   </section>
 
   <section class="feature-close" aria-labelledby="feature-close-title">
