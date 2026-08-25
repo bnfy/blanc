@@ -40,6 +40,7 @@ function registerPagesScheme() {
  * (e.g. so the star button updates when a bookmark is deleted from the
  * bookmarks page). */
 function setupPages(hooks = {}) {
+  const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
   // Test runs may point discovery at a throwaway synthetic home, but only in
   // an unpackaged BLANC_TEST process. Production always uses the real OS home.
   const testBrowserHome =
@@ -180,9 +181,17 @@ function setupPages(hooks = {}) {
     // Strip both entitlement records out of `rest` (the renderer sees only
     // derived booleans). `patron:` is aliased to `_patron` so it does not
     // shadow the module-level `patron` (the network module) inside this scope.
-    const { supporter: record, patron: _patron, _syncMeta, ...rest } = settings.getSettings();
+    const {
+      supporter: record,
+      patron: _patron,
+      _syncMeta,
+      onePasswordEnabled,
+      onePasswordAccount,
+      ...rest
+    } = settings.getSettings();
     return {
       ...rest,
+      ...(onePasswordAvailable() ? { onePasswordEnabled, onePasswordAccount } : {}),
       patronActive: settings.isPatronActive(),
       supporterActive: settings.isPatronActive(), // temporary alias until Phase 4 renames renderer refs
       supporterActivatedAt: record?.activatedAt ?? null,
@@ -191,6 +200,7 @@ function setupPages(hooks = {}) {
 
   handle('pages:settings:get', 'settings', () => ({
     settings: clientSettings(),
+    onePasswordAvailable: onePasswordAvailable(),
     searchEngines: Object.fromEntries(
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
@@ -198,7 +208,12 @@ function setupPages(hooks = {}) {
     supporterIcons: settings.SUPPORTER_ICON_LABELS,
   }));
   handle('pages:settings:set', 'settings', (partial) => {
-    settings.setSettings(partial ?? {});
+    const next = partial && typeof partial === 'object' ? { ...partial } : {};
+    if (!onePasswordAvailable()) {
+      delete next.onePasswordEnabled;
+      delete next.onePasswordAccount;
+    }
+    settings.setSettings(next);
     // Echo the persisted non-secret projection so the renderer can reflect the
     // actual stored state (e.g. a rejected strict-custom DNS transition). Never
     // raw getSettings() — that includes the supporter key.

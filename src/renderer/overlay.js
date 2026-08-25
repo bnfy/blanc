@@ -1365,7 +1365,9 @@
     { cmd: '/find', hint: 'Find in page', run: () => window.browserAPI.openFindBar(), keepOverlay: true },
     { cmd: '/block-ads', hint: 'Block ads here, or toggle blocking everywhere', run: () => window.browserAPI.toggleAdblock() },
     { cmd: '/allow-ads', hint: 'Allow ads on this site', run: () => window.browserAPI.allowAdsOnActiveSite() },
-    { cmd: '/1password', hint: 'Fill a login from 1Password', run: () => window.browserAPI.fillLoginFromOnePassword() },
+    { cmd: '/1password', hint: 'Fill a login from 1Password',
+      available: typeof window.browserAPI.fillLoginFromOnePassword === 'function',
+      run: () => window.browserAPI.fillLoginFromOnePassword() },
     { cmd: '/theme', hint: 'Cycle appearance, or choose system / light / dark', run: (input) => {
       const requested = (input ?? '').replace(/^\/theme\s*/, '').trim();
       window.browserAPI.cycleTheme(requested || null);
@@ -1814,7 +1816,8 @@
     if (inputTouched && value.startsWith('/')) {
       selectedResultIndex = -1;
       const slashWord = value.trim().split(/\s+/)[0];
-      visibleCommands = COMMANDS.filter((c) => c.cmd.startsWith(slashWord) || slashWord === '/');
+      visibleCommands = COMMANDS.filter((c) =>
+        c.available !== false && (c.cmd.startsWith(slashWord) || slashWord === '/'));
       islandList.replaceChildren(
         ...(visibleCommands.length
           ? visibleCommands.map((c, i) => commandRow(c, i === 0))

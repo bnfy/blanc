@@ -46,8 +46,8 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     When I complete a passkey sign-in
     Then the platform authenticator is invoked
 
-  @F38-1 @F38 @desktop @D26
-  Scenario: Desktop fills only a matching 1Password login after an explicit ask
+  @F38-1 @F38 @desktop @macos @D26
+  Scenario: macOS fills only a matching 1Password login after an explicit ask
     Given filling logins from 1Password is disabled by default
     And the installed 1Password app has ExactDomain, AnywhereOnWebsite, and Never Login items
     When I explicitly ask Blanc to fill the focused login form

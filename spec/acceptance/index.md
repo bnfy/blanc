@@ -156,7 +156,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F37-1 | The blank-tab island invites typing | — | ✅ | ⬜ | ⬜ |
 | F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
 | F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |
-| F38-1 | Explicit matching 1Password fill stays bounded and transient | D26 | ⬜ | ➖ | ➖ |
+| F38-1 | Explicit matching macOS 1Password fill stays bounded and transient | D26 | ⬜ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance

@@ -51,7 +51,7 @@ jobs:
 
       - run: npm ci
 
-      - name: Verify 1Password utility process
+      - name: Verify 1Password macOS-only boundary
         run: npm run test:onepassword:utility
 
       - name: Verify tag matches package version
@@ -221,7 +221,7 @@ jobs:
 
       - run: npm ci
 
-      - name: Verify 1Password utility process
+      - name: Verify 1Password macOS-only boundary
         run: xvfb-run -a npm run test:onepassword:utility
 
       - name: Verify tag matches package version

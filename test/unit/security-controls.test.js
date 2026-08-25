@@ -93,8 +93,20 @@ test('privacy-facing defaults, hardened Electron fuses, and dependency surface d
   ].join('\n');
   assert.match(currentOnePasswordSetupCopy, /Integrate with 1Password SDKs/);
   assert.doesNotMatch(currentOnePasswordSetupCopy, /Integrate with other apps/);
-  assert.doesNotMatch(read('src/main/main.js'), /require\(['"]@1password\/sdk['"]\)/);
-  assert.match(read('src/main/main.js'),
+  const main = read('src/main/main.js');
+  assert.doesNotMatch(main, /require\(['"]@1password\/sdk['"]\)/);
+  assert.match(main, /const ONE_PASSWORD_AVAILABLE = isOnePasswordAvailable\(\)/);
+  assert.match(main, /ONE_PASSWORD_AVAILABLE\s*\?\s*createOnePasswordClient/);
+  assert.match(main,
+    /if \(ONE_PASSWORD_AVAILABLE\) \{\s*chromeHandle\('chrome:onepassword-fill'/s);
+  assert.match(read('src/main/preload.js'),
+    /\.\.\.\(ONE_PASSWORD_AVAILABLE \? \{\s*fillLoginFromOnePassword:/s);
+  assert.doesNotMatch(read('src/main/preload.js'), /require\(['"]\.\/onepassword-availability['"]\)/);
+  assert.match(read('src/main/pages.js'),
+    /delete next\.onePasswordEnabled;\s*delete next\.onePasswordAccount;/s);
+  assert.match(read('src/renderer/pages/settings.html'),
+    /id="onePasswordSettings" hidden/);
+  assert.match(main,
     /acceptanceTestMode\s*\|\|\s*app\.requestSingleInstanceLock\(\)/);
   assert.match(read('src/main/onepassword-broker.js'), /require\(['"]@1password\/sdk['"]\)/);
   assert.doesNotMatch(read('build/entitlements.mac.plist'), /disable-library-validation/);
@@ -122,7 +134,7 @@ test('public claims describe shipped consent mode, 1Password boundaries, bundled
   assert.match(privacy, /private tab remains only in memory/i);
   assert.match(privacy, /hash-pinned EasyList and EasyPrivacy snapshots ship inside/);
   assert.match(privacy, /restricted state.*cookieless pings/is);
-  assert.match(privacy, /1Password login fill \(off by default\)/);
+  assert.match(privacy, /1Password login fill on macOS \(off by default\)/);
   assert.match(privacy, /does not save, log, sync, or send those credentials to Bananify/);
   const terms = read('site/src/pages/terms.astro');
   assert.match(terms, /not affiliated with, endorsed by, or certified by 1Password/);

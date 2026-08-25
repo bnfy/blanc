@@ -570,7 +570,7 @@ no platform silently expands Profile Sync’s approved data scope.
 
 **Status:** Accepted 2026-08-14.
 
-## D26 — Desktop 1Password SDK bridge vs. mobile system AutoFill
+## D26 — macOS 1Password SDK bridge vs. other platforms
 **Features:** F38, F24
 
 **Why:** Desktop Blanc cannot participate in third-party credential providers'
@@ -580,10 +580,14 @@ Mobile web views already participate in the operating system's credential
 provider surface (F24), where adding a second Blanc-specific picker would be
 duplicative and less native.
 
-- **Desktop:** an off-by-default, explicit Fill command uses the installed
+- **macOS:** an off-by-default, explicit Fill command uses the installed
   1Password desktop app and the user's configured account. Blanc applies the
   item's saved-website policy, offers a bounded native chooser, and fills only
   the revalidated active login form. It never becomes a credential store.
+- **Windows/Linux:** F38 is N/A for its first production release. The setting,
+  commands, shortcuts, preload method, and IPC handler are absent, and the
+  credential broker cannot start. A future expansion requires a new review and
+  signed live-account validation on each added platform.
 - **iOS/Android:** F38 is N/A. Use F24's system AutoFill/Credential Manager
   surface, through which 1Password and other installed providers participate.
 
@@ -592,8 +596,8 @@ user-controlled provider surface, fill only into the intended login page, and
 are never added to Blanc persistence, Profile Sync, telemetry, or browsing
 records. The provider-specific setup and picker are platform-native.
 
-**Tagging:** the desktop SDK scenario tags `@D26`; the mobile system-provider
-scenario remains `@D12`.
+**Tagging:** the macOS SDK scenario tags `@macos @D26`; the mobile
+system-provider scenario remains `@D12`.
 
-**Status:** Accepted by the product owner 2026-08-23; packaged cross-platform
-release verification remains pending.
+**Status:** macOS-only first release accepted by the product owner 2026-08-24;
+the signed macOS live matrix is complete.

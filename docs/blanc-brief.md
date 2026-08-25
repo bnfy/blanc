@@ -77,10 +77,11 @@ Respect them:
   integrate with a custom browser shell because vendors verify the browser's
   code signature against an allowlist. Ad blocking replaced the extension
   runtime at the network layer.
-  **Don't propose re-adding an extension runtime.** Blanc's optional 1Password
-  login fill is a separate SDK integration: explicit user gesture only, off by
-  default, and isolated in Electron's Plugin utility helper. It must never grow
-  into a general extension runtime or Blanc-owned credential store.
+  **Don't propose re-adding an extension runtime.** Blanc's optional macOS
+  1Password login fill is a separate SDK integration: explicit user gesture
+  only, off by default, and isolated in Electron's Plugin utility helper. It
+  must never grow into a general extension runtime or Blanc-owned credential
+  store.
 - **No mascot on the start page.** An earlier version had a pixel-art dog sprite;
   it was retired with the "Bowser" name in the rebrand. Don't reintroduce one
   unless asked.

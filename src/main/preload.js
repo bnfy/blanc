@@ -1,5 +1,11 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+// Sandboxed Electron preloads have only a narrow built-in `require`; importing
+// a local helper here would abort this entire preload before browserAPI exists.
+// Main owns the authoritative capability gate. This renderer-side projection
+// uses the platform value already provided by Electron's sandboxed `process`.
+const ONE_PASSWORD_AVAILABLE = process.platform === 'darwin';
+
 // This preload is intentionally attached only to Blanc's three privileged
 // chrome surfaces. Re-check the committed document before exposing anything:
 // a future accidental reuse of this preload must fail closed.
@@ -131,7 +137,9 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),
   allowAdsOnActiveSite: () => ipcRenderer.invoke('chrome:adblock-exempt-active'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
-  fillLoginFromOnePassword: () => ipcRenderer.invoke('chrome:onepassword-fill'),
+  ...(ONE_PASSWORD_AVAILABLE ? {
+    fillLoginFromOnePassword: () => ipcRenderer.invoke('chrome:onepassword-fill'),
+  } : {}),
   cycleTheme: (theme) => ipcRenderer.invoke('chrome:cycle-theme', theme),
   onThemeAppearance: (callback) => {
     const listener = (_event, appearance) => callback(appearance);

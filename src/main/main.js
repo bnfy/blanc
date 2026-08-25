@@ -164,6 +164,7 @@ const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls')
 const { bringExternalWindowToFront } = require('./window-activation');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { createOnePasswordClient } = require('./onepassword-client');
+const { isOnePasswordAvailable } = require('./onepassword-availability');
 const { createCredentialFillController } = require('./credential-fill-controller');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
@@ -178,10 +179,14 @@ const {
   resolveOpen, scratchSwitchGuardResult, bindingsAfterSwap, bindingsAfterUnbind, bindingsAfterDelete,
 } = require('./workspaces-model');
 
-// The SDK never loads in main. This lazy client forks Electron's dedicated
-// Plugin utility process only after an explicit Fill command reaches the
-// controller below.
-const onePasswordBroker = createOnePasswordClient({ utilityProcess });
+// The SDK never loads in main. The first production release is macOS-only;
+// unsupported platforms do not even create the lazy client, so no command can
+// fork a credential broker there. On macOS the Plugin utility process still
+// starts only after an explicit Fill command reaches the controller below.
+const ONE_PASSWORD_AVAILABLE = isOnePasswordAvailable();
+const onePasswordBroker = ONE_PASSWORD_AVAILABLE
+  ? createOnePasswordClient({ utilityProcess })
+  : null;
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -2312,6 +2317,7 @@ function prepareOnePasswordTarget(runtime) {
 }
 
 function getOnePasswordFillController() {
+  if (!ONE_PASSWORD_AVAILABLE) return null;
   if (!onePasswordFillController) {
     onePasswordFillController = createCredentialFillController({
       broker: onePasswordBroker,
@@ -2328,7 +2334,8 @@ function getOnePasswordFillController() {
 }
 
 function fillLoginFromOnePassword() {
-  return getOnePasswordFillController().fill(rt());
+  const controller = getOnePasswordFillController();
+  return controller ? controller.fill(rt()) : Promise.resolve(false);
 }
 
 function normalizeAddressInput(input) {
@@ -2499,7 +2506,7 @@ let isQuitting = false;
 let sessionPersistenceSuspended = false;
 app.on('before-quit', () => {
   isQuitting = true;
-  onePasswordBroker.stop();
+  onePasswordBroker?.stop();
   for (const snapshot of [...sleepSnapshots.values()]) {
     const wc = snapshot.view?.webContents;
     if (wc && !wc.isDestroyed()) wc.close();
@@ -5227,7 +5234,9 @@ function registerIpcHandlers() {
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => sync.listRemoteDevices());
-  chromeHandle('chrome:onepassword-fill', () => fillLoginFromOnePassword());
+  if (ONE_PASSWORD_AVAILABLE) {
+    chromeHandle('chrome:onepassword-fill', () => fillLoginFromOnePassword());
+  }
 
   // Named Workspaces. Per the locked spec, Patron only ever ADDS: list/open/
   // rename/remove stay fully usable on a lapsed Patron (it's the user's own
@@ -5550,10 +5559,7 @@ const SLASH_COMMANDS = [
 const LAST_ACTIVE_TAB_ACCELERATOR = process.platform === 'darwin'
   ? 'Cmd+Alt+Z'
   : null;
-// Ctrl+Alt chords are ordinary AltGr text input on many Windows/Linux
-// layouts, so the physical shortcut is macOS-only; the View menu and
-// /1password command remain available everywhere.
-const ONE_PASSWORD_ACCELERATOR = process.platform === 'darwin'
+const ONE_PASSWORD_ACCELERATOR = ONE_PASSWORD_AVAILABLE
   ? 'Cmd+Alt+P'
   : null;
 const COMMON_KEYSTROKES = [
@@ -5661,11 +5667,11 @@ function buildMenuForRuntime(runtime) {
       submenu: [
         { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: bound(toggleIsland) },
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: bound(openFindBar) },
-        {
+        ...(ONE_PASSWORD_AVAILABLE ? [{
           label: 'Fill Login from 1Password',
-          ...(ONE_PASSWORD_ACCELERATOR ? { accelerator: ONE_PASSWORD_ACCELERATOR } : {}),
+          accelerator: ONE_PASSWORD_ACCELERATOR,
           click: bound(fillLoginFromOnePassword),
-        },
+        }] : []),
         { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.reload()) },
         { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.reloadIgnoringCache()) },
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
@@ -5797,7 +5803,9 @@ function buildMenuForRuntime(runtime) {
           label: 'Slash Commands',
           // Plain reference rows, not disabled — legible at a glance, and a
           // stray click just closes the menu since none of them has a handler.
-          submenu: SLASH_COMMANDS.map(([cmd, hint]) => ({ label: mn(`${cmd} — ${hint}`) })),
+          submenu: SLASH_COMMANDS
+            .filter(([cmd]) => ONE_PASSWORD_AVAILABLE || cmd !== '/1password')
+            .map(([cmd, hint]) => ({ label: mn(`${cmd} — ${hint}`) })),
         },
         {
           label: 'Keyboard Shortcuts',
@@ -6898,7 +6906,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     },
     // listShortcuts() reads only the live Electron application menu — no
     // runtime-owned state — so this one hook is left unwrapped.
-    shortcuts: { list: listShortcuts },
+    shortcuts: {
+      list: () => ({
+        rows: listShortcuts(),
+        onePasswordAvailable: ONE_PASSWORD_AVAILABLE,
+      }),
+    },
+    onePasswordAvailable: () => ONE_PASSWORD_AVAILABLE,
   });
 
   const configuredProfileSessions = new Set([DEFAULT_PROFILE_ID]);
@@ -6970,7 +6984,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
-      probeOnePasswordPackage: () => onePasswordBroker.probePackage(),
+      probeOnePasswordPackage: () => ONE_PASSWORD_AVAILABLE
+        ? onePasswordBroker.probePackage()
+        : Promise.resolve({ available: false, loaded: false, processCount: 0 }),
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
@@ -7075,7 +7091,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       onePasswordConfigurationKey = nextOnePasswordConfigurationKey;
       // A disable/account change ends the old account-scoped SDK client
       // immediately; no authorization handle survives under a new setting.
-      onePasswordBroker.stop();
+      onePasswordBroker?.stop();
     }
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();

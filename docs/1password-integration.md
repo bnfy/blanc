@@ -1,13 +1,17 @@
 # 1Password login fill
 
-Status: production candidate for the build after v1.8.2. The product-owner risk
-decision is recorded in [`1password-legal-inquiry.md`](1password-legal-inquiry.md).
-This integration is independent, is not affiliated with or endorsed by
-1Password, and remains subject to 1Password's SDK terms.
+Status: macOS-only production candidate for the build after v1.8.2. The
+product-owner risk decision is recorded in
+[`1password-legal-inquiry.md`](1password-legal-inquiry.md). This integration is
+independent, is not affiliated with or endorsed by 1Password, and remains
+subject to 1Password's SDK terms. Windows and Linux do not expose its setting,
+menu item, keyboard shortcut, slash command, preload method, or IPC handler,
+and cannot create the credential broker.
 
 ## User setup
 
-1. Install the current 1Password desktop app and sign into the account to use.
+1. On macOS, install the current 1Password desktop app and sign into the account
+   to use.
 2. In 1Password, open **Settings → Developer** and turn on **Integrate with
    1Password SDKs**.
 3. In Blanc, open **Settings → Privacy & Security → 1Password**, turn on
@@ -24,7 +28,10 @@ this device and are excluded from Profile Sync.
 ## Security boundary
 
 - The page is inspected without credentials before the SDK is contacted.
-- `@1password/sdk` is pinned exactly and loads only in
+- The platform capability gate runs before any client or UI construction.
+  Windows and Linux fail closed without creating a 1Password client or utility
+  process.
+- `@1password/sdk` is pinned exactly and loads only on macOS in
   `src/main/onepassword-broker.js`, an Electron utility process named **Blanc
   Credential Broker**.
 - On macOS that process alone uses `Blanc Helper (Plugin).app`. It retains
@@ -60,15 +67,16 @@ this device and are excluded from Profile Sync.
 - A signed unpacked macOS build proves the Plugin helper is the sole
   library-validation exception, retains all three required Plugin runtime
   entitlements, and the package contains SDK 0.5.0 plus its bundled MIT notice.
-- On real installed 1Password accounts, verify one exact-domain login, one
+- On a real installed 1Password account on macOS, verify one exact-domain login, one
   AnywhereOnWebsite subdomain login, multiple matching Login items, cancellation,
   `Never`, signup refusal, navigation/tab-switch cancellation, and private-tab
-  behavior on macOS, Windows, and Linux candidates.
+  behavior.
 - The redacted field-contract fixture follows [1Password's documented Login IDs](https://www.1password.dev/sdks/manage-items)
   (`username` and `password`); confirm those exact fields in a live DesktopAuth
   response during the real-account macOS gate before calling the contract proven.
 - Windows and Linux artifacts must still pass their existing fuse/signature/
-  packaged-payload gates. A release requires the ordinary explicit owner
+  packaged-payload gates, and their native smoke test must prove the 1Password
+  broker is unavailable. A release requires the ordinary explicit owner
   go-ahead; preparing this feature does not itself authorize tagging/publishing.
 
 ### macOS signed-candidate evidence — 2026-08-23
@@ -104,13 +112,21 @@ loopback-only form that never submitted data:
 The supported reset is to lock the account: 1Password's
 [SDK integration security model](https://www.1password.dev/sdks/desktop-app-integrations)
 states that locking the desktop app immediately revokes every existing SDK
-authorization. The signed macOS functional gate is closed. Windows and Linux
-remain untested.
+authorization. The signed macOS functional gate is closed.
 
-### Windows/Linux live-gate harness
+### macOS-only release decision — 2026-08-24
 
-Run the candidate and this loopback-only fixture server on the same test
-machine:
+The product owner selected a macOS-only first release after Parallels repeatedly
+hung during attempted Windows validation. This is a platform boundary, not a
+waiver: Windows and Linux expose no 1Password surface and cannot start the
+broker. Their ordinary artifact checks remain required, with an automated native
+assertion that this feature is unavailable. Expanding support later requires an
+explicit code, test, security, documentation, and live-account review.
+
+### Future Windows/Linux enablement harness
+
+If cross-platform support is reconsidered, run the candidate and this
+loopback-only fixture server on the same test machine:
 
 ```sh
 npm run test:onepassword:live-server

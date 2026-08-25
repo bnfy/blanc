@@ -42,7 +42,7 @@ Where a divergence (`D#`) is invisible to the user (e.g. the ad-block *engine* D
 or per-site exception *latency* D2), the scenario stays `@all` and asserts only the
 user-observable outcome. Only where the observable outcome itself legitimately
 differs (e.g. F24 system AutoFill is mobile-only, F38's explicit 1Password SDK
-bridge is desktop-only, and F22's self-updater is desktop-only) does a scenario
+bridge is macOS-only, and F22's self-updater is desktop-only) does a scenario
 carry a platform tag instead of `@all`.
 
 ## Tags
@@ -52,7 +52,7 @@ carry a platform tag instead of `@all`.
 | `@F12`, `@D1` | Traceability to a feature / divergence (see `../features.md`, `../divergence-register.md`). |
 | `@F12-2` | Stable **scenario id** (`F<feature>-<n>`). Used in the checklist grid ([`index.md`](./index.md)). Never renumber. |
 | `@all` | Must pass identically on every platform. |
-| `@desktop` `@ios` `@android` `@mobile` | Applies only to the tagged platform(s); `@mobile` = iOS + Android. |
+| `@desktop` `@macos` `@ios` `@android` `@mobile` | Applies only to the tagged platform(s); `@macos` is the macOS slice of desktop and `@mobile` = iOS + Android. |
 | domain tag (e.g. `@island`) | Feature-file level, for running a whole file. |
 
 ## Running a subset

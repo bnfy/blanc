@@ -139,8 +139,8 @@ toolbar (Bowser Design System "Island Chrome").
 
 ## F7 — Slash commands
 
-Typed into the command bar. The full set (names + hints are the contract, shared
-copy → substrate):
+Typed into the command bar. Names + hints are the shared-copy contract below;
+`/1password` is the one platform-specific entry and appears only on macOS (D26):
 
 | Command | Hint |
 |---------|------|
@@ -160,6 +160,7 @@ copy → substrate):
 | `/find` | Find in page |
 | `/block-ads` | Toggle ad & tracker blocking |
 | `/allow-ads` | Allow ads on this site |
+| `/1password` | Fill a login from 1Password (macOS only) |
 | `/theme [system\|light\|dark]` | Cycle appearance, or switch directly to system, light, or dark |
 
 - Prefix filtering: typing `/gr` narrows to `/group`; typing `/` alone lists all.
@@ -760,9 +761,9 @@ From the desktop `DEFAULTS`:
   carrying that character, and that the commands affordance opens the command
   list.
 
-## F38 — Fill a login from 1Password (desktop)
+## F38 — Fill a login from 1Password (macOS)
 
-- Desktop Blanc can ask the user's installed 1Password app for Login items that
+- On macOS, Blanc can ask the user's installed 1Password app for Login items that
   match the active HTTP(S) page, then fill the selected item's built-in username
   and current-password fields. This is an explicit bridge to the user's existing
   1Password account, not a Blanc password store: Blanc cannot provide the
@@ -791,4 +792,5 @@ From the desktop `DEFAULTS`:
   verifies off-by-default behavior, saved-website policy, bounded selection,
   target-change cancellation, signup refusal, and absence of persistence or
   background access. A release additionally needs a signed packaged test with
-  a real installed 1Password desktop app on macOS, Windows, and Linux.
+  a real installed 1Password desktop app on macOS. Windows and Linux must prove
+  the feature is unavailable and cannot start its broker.

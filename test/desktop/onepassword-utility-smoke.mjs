@@ -1,6 +1,6 @@
-// Proves the real Electron utility process can load the pinned 1Password SDK.
-// Unit tests keep matching and RPC policy deterministic, while this catches
-// Electron/Node/WASM packaging incompatibilities that a mocked broker cannot.
+// Proves the platform boundary in a real Electron process: macOS can load the
+// pinned SDK in one utility process, while other platforms cannot start the
+// broker at all.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -20,8 +20,14 @@ try {
   });
   await electronApp.firstWindow();
   const result = await callTestHook(electronApp, 'probeOnePasswordUtilityProcess');
-  assert.deepEqual(result, { loaded: true, processCount: 1 });
-  console.log(`onepassword-utility-smoke OK on ${process.platform}`);
+  const expected = process.platform === 'darwin'
+    ? { loaded: true, processCount: 1 }
+    : { available: false, loaded: false, processCount: 0 };
+  assert.deepEqual(result, expected);
+  console.log(
+    `onepassword-utility-smoke OK on ${process.platform} ` +
+    `(available=${process.platform === 'darwin'})`,
+  );
 } finally {
   if (electronApp) await electronApp.close();
   fs.rmSync(userDataDir, { recursive: true, force: true });

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "reviewedAt": "2026-08-23",
+  "reviewedAt": "2026-08-24",
   "principles": {
     "freshProfileNetworkChoices": "must-be-saved-before-first-send",
     "blockerInputs": "bundled-and-hash-verified",
@@ -41,12 +41,12 @@
     {
       "id": "onepassword-login-fill",
       "surface": "desktop",
-      "trigger": "user enables the device-local integration, invokes Fill on a detected login form, and authorizes Blanc in the 1Password desktop app",
+      "trigger": "on macOS, the user enables the device-local integration, invokes Fill on a detected login form, and authorizes Blanc in the 1Password desktop app",
       "default": "off",
       "recipient": "the user's installed 1Password desktop app and the 1Password account service it uses",
       "data": ["configured 1Password account name or account ID", "Blanc integration name and version", "vault and Login-item overview metadata needed for local website matching and a chooser of at most ten items", "only the selected Login item's built-in username and/or password required by the detected fields"],
       "retentionByBlanc": "account routing metadata stays device-local in settings; returned metadata and credentials are transient memory only and are never persisted, logged, synced, or sent to Bananify",
-      "code": ["src/main/onepassword-broker.js", "src/main/onepassword-client.js", "src/main/credential-fill-controller.js", "src/main/onepassword-policy.js"]
+      "code": ["src/main/onepassword-availability.js", "src/main/onepassword-broker.js", "src/main/onepassword-client.js", "src/main/credential-fill-controller.js", "src/main/onepassword-policy.js"]
     },
     {
       "id": "launch-usage-ping",

@@ -1,9 +1,17 @@
 (async () => {
-  const { settings, searchEngines, appIcons, supporterIcons, capabilities } =
+  const {
+    settings,
+    searchEngines,
+    appIcons,
+    supporterIcons,
+    capabilities,
+    onePasswordAvailable,
+  } =
     await window.bowserPages.settings.get();
 
-  // Desktop sends no `capabilities` field → every feature is supported and this
-  // file behaves exactly as before. A platform that DOES send the list (iOS)
+  // Electron desktop sends no `capabilities` field; its main process separately
+  // reports whether the macOS-only 1Password bridge is available. A platform
+  // that DOES send the capabilities list (iOS)
   // gets each unsupported feature skipped ENTIRELY — no child getElementById, no
   // bridge call to an unimplemented method, no listener — then its control is
   // removed. Guarding (not merely removing) matters because several sections
@@ -145,8 +153,9 @@
     document.getElementById('secureDnsCustomRow')?.remove();
   }
 
-  // --- 1Password desktop-app bridge (desktop-only, device-local, opt-in) ---
-  if (supports('onePassword')) {
+  // --- 1Password desktop-app bridge (macOS-only, device-local, opt-in) ---
+  if (onePasswordAvailable === true && supports('onePassword')) {
+    document.getElementById('onePasswordSettings').hidden = false;
     const onePasswordEnabled = document.getElementById('onePasswordEnabled');
     const onePasswordAccount = document.getElementById('onePasswordAccount');
     onePasswordEnabled.checked = settings.onePasswordEnabled ?? false;
