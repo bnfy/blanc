@@ -115,6 +115,40 @@ Diffed all three canonical pairs against the live project.
   pre-existing gaps to author when wanted: the **capture-controls popover** (the pill's
   capture chip is modeled; the popover it opens is not) and **retinted theme icons**.
 
+## 2026-08-25 sync (push-drift, v1.9.0)
+
+Two DS-relevant changes landed in v1.9.0 (concurrent session): the **Blanc mark redesign
+(#211)** and the **quiet-dots fix (#208)**. User approved a full brand sync.
+
+- **Mark redesign (#211): stroked line-art B → filled logotype.** The app replaced the old
+  `stroke-width:4` line-art mark with a detailed FILLED mark (fill-only, no stroke), viewBox
+  `157.08×207.08`, TWO paths (counter dot + body); canonical source
+  `src/renderer/pages/icon.svg`. Synced to the DS with paths embedded **byte-identical**
+  (generated via `scratchpad/gen-mark.py` straight from icon.svg — never redrawn):
+  `components/icons/Logo.jsx` (new mark + viewBox + fill-only, comment rewritten),
+  `assets/blanc-symbol.svg` (currentColor), `assets/app-icon.svg` (#111111),
+  `assets/app-icon.png` (← `export/app-icons-1024-square/icon-paper-1024.png`),
+  `assets/dock-icons/icon-{cream,default,forest,midnight,sage}.png` (← the app's regenerated
+  `src/renderer/pages/icon-*.png`; the DS carries these 5 of 11 colorways), and
+  `guidelines/brand-logos.html` (inline mark + note rewritten). Verified by rendering: reads
+  as a clean filled B, scales to nav size, inverts for dark, dock colorways carry it; Logo.jsx
+  compiles with `stroke:none`. **`Logo.d.ts`/`Logo.prompt.md` needed no mark change** (they say
+  "monogram", still true; no stroke mention).
+- **#208 quiet dots:** the app reworked pill-dot selection to "standalone pins + active
+  section" with a 4px gap and made quiet irrelevant to dots. The DS `Island.jsx` already
+  modeled dots simply + quiet-agnostically, so the only new visible atom is the gap — added
+  `.bw-island-dot.dot-section-start { margin-left: 4px }` + a pins-first render (verified: the
+  4px lands on the first non-pin dot). No prompt/d.ts change needed.
+
+### ⚠️ App ↔ site mark divergence (NOT a DS issue — flagged for the site workflow)
+#211 touched only the app + internal pages. The **marketing site still ships the OLD stroked
+mark** everywhere: `site/src/components/BrandMark.astro`, `site/public/favicon.svg`,
+`site/src/pages/index.astro`, and all built `site/dist/*.html`. The DS now shows the new mark
+(canonical / app-wins); the brand-logos note records the lag. The site needs its own mark
+update (BrandMark.astro + favicon + rebuild) — a separate task, not this push-drift mirror.
+Also out of scope: `Logo.prompt.md` still says "use --accent green" (palette went monochrome
+long ago) — cosmetic, left for a later pass.
+
 ## Gotchas
 - Preview cards render from compiled `_ds_bundle.js`. To rebuild it after pushing source changes: write
   a `_ds_needs_recompile` sentinel file (finalize_plan + write_files, any content) and open the project —
