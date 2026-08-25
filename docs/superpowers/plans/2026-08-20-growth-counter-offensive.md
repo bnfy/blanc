@@ -47,12 +47,23 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship as-is.** No telemetry changes, no open-sourcing any component, Patron stays in the launch narrative. These were considered and declined during brainstorming.
 - **Launch rides v1.8.2 after a ≥48h soak.** Never launch on a build published the same day.
-- **Lock the launch to published v1.8.2 behavior.** The Show HN repository,
-  README, copy, screenshots, and demo must describe the packaged public build.
-  Do not merge or demonstrate the unreleased 1Password integration, tab-import
-  work, or revised window-wide Island-dot presentation before the channel
-  sequence finishes. If that feature work lands first, stop and re-audit every
-  public claim instead of presenting unreleased behavior as v1.8.2.
+- **Lock the launch to published v1.8.2 behavior. HARD STOP TRIGGERED
+  2026-08-24.** PR #208 (`6d76ddc`) merged the revised window-wide Island-dot
+  presentation to `main` after v1.8.2 shipped. The public binary remains
+  v1.8.2. The README now states that boundary and links the v1.8.2 source tag,
+  but no channel may publish until the owner resolves the launch target:
+
+  1. **Keep the planned v1.8.2 launch:** record packaged v1.8.2, retain the
+     candid README boundary, and never describe the `main`-only dot behavior as
+     downloadable. This preserves the passed release and soak gates.
+  2. **Promote the new dot behavior:** bump to a new immutable version, run the
+     complete release and platform handoff protocol, and restart the ≥48-hour
+     soak. This moves the launch date and requires re-freezing every product
+     fact and asset.
+
+  Reverting the owner's merged feature is not an assumed option. Unreleased
+  1Password and tab-import work must still remain off `main` through the launch
+  unless the same release re-gating decision is made for them.
 - **Channel order is cheap→expensive and is not negotiable:** listings → Show HN → Reddit → Product Hunt.
 - **No retention experiments this cycle.** n=27 cannot support one. The checkpoint is Oct 1.
 - **Adding a site page REQUIRES adding its path to `MANIFEST` in `site/src/pages/sitemap.xml.js`** — the sitemap endpoint asserts the manifest matches discovered pages exactly and **fails the build** otherwise.
