@@ -7,10 +7,12 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
-**Release lock:** This pack describes packaged public v1.8.2. Do not use UI or
-claims from the unreleased 1Password, tab-import, or revised Island-dot work.
-If any of that work reaches `main` before launch, stop and re-audit the README,
-demo, frozen facts, and every channel draft before publishing.
+**Release lock — HARD STOP TRIGGERED 2026-08-24:** This pack describes packaged
+public v1.8.2, but PR #208 (`6d76ddc`) has since placed a revised Island-dot
+presentation on `main`. The README now discloses the source/release boundary.
+Do not publish this pack until the owner either keeps the v1.8.2 launch with
+that boundary or releases and soaks a new version, then re-freezes these facts.
+Do not use UI or claims from unreleased 1Password or tab-import work.
 
 ## Frozen facts
 
@@ -26,6 +28,7 @@ demo, frozen facts, and every channel draft before publishing.
 | Telemetry | One packaged-build launch ping: random install ID, random session ID, version, platform, architecture, coarse OS major. Fresh profiles save the presented choice before a ping can send |
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
+| Repository/build boundary | Packaged downloads are v1.8.2. `main` contains a post-v1.8.2 Island-dot refinement; the v1.8.2 tag is the source snapshot associated with the public binaries |
 
 Canonical URLs—copy exactly:
 
@@ -458,6 +461,8 @@ drop a full defense where one sentence would do.
 ## Morning-of fact check
 
 - [ ] `package.json` and the latest public release both still say v1.8.2.
+- [ ] The README still distinguishes the current public binaries from any
+  post-v1.8.2 code on `main`.
 - [ ] The macOS, Windows, and Linux downloads linked from the site resolve.
 - [ ] Pricing still reads $4/month and $30/year in Polar and on the site.
 - [ ] Named Workspace creation still requires Patron; rename/removal still work
