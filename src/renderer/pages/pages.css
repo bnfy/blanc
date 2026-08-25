@@ -1571,8 +1571,8 @@ body:not([data-layout="ledger"]) .ledger-footer {
   color: var(--surface-raised);
   box-shadow: var(--shadow-pill);
 }
-/* The blanc mark is filled+stroked in currentColor (stroked-mark rule). */
-.ob-tile-blanc svg { fill: currentColor; stroke: currentColor; stroke-width: 4; }
+/* The Blanc mark carries its final weight in the filled source artwork. */
+.ob-tile-blanc svg { fill: currentColor; stroke: none; }
 .ob-tile-blanc-sm { width: 48px; height: 48px; border-radius: 11px; box-shadow: none; }
 .ob-vignette-import { gap: 16px; padding: 14px 0 2px; color: var(--text-dim); }
 .ob-arrow { flex: 0 0 auto; }

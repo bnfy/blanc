@@ -6519,6 +6519,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   applyTheme();
   lastNativeThemeAppearance = resolvedThemeAppearance();
   applyAppIcon();
+  // Unpackaged Electron can restore Electron.app's bundle icon when the first
+  // native window is realized. Reapply Blanc's selected flat icon afterward
+  // so the development Dock tile matches Settings from the first launch.
+  if (process.platform === 'darwin' && !app.isPackaged) {
+    app.once('browser-window-created', applyAppIcon);
+  }
   dockMenuHandle = installDockMenu({
     app, Menu, nativeImage,
     actions: {
