@@ -45,3 +45,17 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     Then the system offers to fill the saved credentials
     When I complete a passkey sign-in
     Then the platform authenticator is invoked
+
+  @F38-1 @F38 @desktop @D26
+  Scenario: Desktop fills only a matching 1Password login after an explicit ask
+    Given filling logins from 1Password is disabled by default
+    And the installed 1Password app has ExactDomain, AnywhereOnWebsite, and Never Login items
+    When I explicitly ask Blanc to fill the focused login form
+    Then Blanc asks me to enable and configure the integration
+    When I enable it and explicitly ask again
+    Then only Login items whose saved-website behavior permits this page are offered
+    And at most ten choices appear in a native picker
+    And signup and new-password fields are not filled
+    And changing the tab, navigation, document, or chosen fields cancels the fill
+    And no credential is persisted, synced, logged, telemetered, or sent through renderer IPC
+    And Blanc makes no 1Password request while I merely browse

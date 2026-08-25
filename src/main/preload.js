@@ -131,6 +131,7 @@ if (TRUSTED_CHROME_DOCUMENTS.has(window.location.href)) {
   toggleAdblock: () => ipcRenderer.invoke('chrome:adblock-toggle'),
   allowAdsOnActiveSite: () => ipcRenderer.invoke('chrome:adblock-exempt-active'),
   sleepBackgroundTabs: () => ipcRenderer.invoke('chrome:sleep-background-tabs'),
+  fillLoginFromOnePassword: () => ipcRenderer.invoke('chrome:onepassword-fill'),
   cycleTheme: (theme) => ipcRenderer.invoke('chrome:cycle-theme', theme),
   onThemeAppearance: (callback) => {
     const listener = (_event, appearance) => callback(appearance);

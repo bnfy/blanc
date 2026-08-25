@@ -27,7 +27,7 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F11 | Downloads | SHIPPED | PLANNED | PLANNED | Downloads list UI + progress, capped 200. | D3 |
 | F12 | Ad/tracker blocking | SHIPPED | PARTIAL | PLANNED | Ads/trackers blocked by default; per-tab shield count; per-site allow and re-block from the same command; shield chip opens a site-protection popover (desktop); global toggle. Filter data shared. | D1, D2, D13, D14 |
 | F13 | Permissions | SHIPPED | PLANNED | PLANNED | Explicit per-permission prompts with the same policy/copy. | — |
-| F14 | Settings | SHIPPED | PARTIAL | PLANNED | Same keys, defaults, and validation (search engine, device-local `searchSuggestions`, adblock, home page, theme, app icon, exceptions, usage ping, supporter). | D5, D6 |
+| F14 | Settings | SHIPPED | PARTIAL | PLANNED | Same shared keys, defaults, and validation (search engine, device-local `searchSuggestions`, adblock, home page, theme, app icon, exceptions, usage ping, supporter); desktop alone carries F38's device-local 1Password toggle/account routing value. | D5, D6, D26 |
 | F15 | Theming | SHIPPED | SHIPPED | PLANNED | system/light/dark + private scope; propagates to chrome, internal pages, web content live, no restart. | — |
 | F16 | Internal `blanc://` pages | SHIPPED | PARTIAL | PLANNED | newtab ledger, favorites, history, downloads, settings, shortcuts, error, auth — same content/copy; utility pages present as a transient chrome surface (desktop: sheet), never tabs. | — |
 | F17 | Supporter & app icons | SHIPPED | PLANNED | PLANNED | 8 free + 3 supporter colorways; supporter unlock is trusted-forever, offline-OK, cosmetic-only. | D5, D6 |
@@ -48,14 +48,17 @@ See [`README.md`](./README.md#status-legend) for meanings.
 | F35 | Start page layouts | SHIPPED | PLANNED | PLANNED | Four arrangements of the same start-page material (ledger/billboard/shelf/tally), chosen by a synced setting with an in-page switcher; per-day blocked counts feed the tally chart; no horizontal overflow at any width. | — |
 | F36 | First-run onboarding | SHIPPED | PLANNED | PLANNED | A six-step walkthrough shown once to fresh profiles (default browser, import, island, blocking, privacy, theme); privacy consent gates its network features, import keeps F30's explicit discovery, replayable from Settings. Default-browser registration and live profile import are desktop surfaces (D22). | D22 |
 | F37 | Blank tab shows where to type | SHIPPED | PLANNED | PLANNED | A blank tab's island reads as a text field (prompt in placeholder ink, plus a commands affordance that opens the command list) and typing on the blank tab begins entry in the island. The *contract* is product-level and portable; its desktop expression — a caret, a `/` chip, and a hardware-keyboard type-to-open path — is not. Mobile satisfies it with a tap target and the platform keyboard; there is no physical-keyboard gate to port. | — |
+| F38 | Fill a login from 1Password | PARTIAL | N/A | N/A | Desktop-only, off-by-default explicit bridge to the user's installed 1Password app/account; saved-website behavior and a revalidated login form bound the fill; no Blanc credential store, background lookup, renderer IPC, persistence, sync, or telemetry. | D26 |
 
 ## Notes on the "mobile-only wins"
 
-Two rows invert the usual desktop-leads pattern:
+Two existing rows invert the usual desktop-leads pattern, while F38 records the
+narrow desktop alternative explicitly:
 
 - **F24 (AutoFill/passkeys)** is `N/A` on desktop (blocked by vendor code-signature
-  allowlists — see `CLAUDE.md`) but achievable on mobile via the system credential
-  provider inside `WKWebView`/Android `WebView`. This is a feature mobile *gains*.
+  allowlists) but achievable on mobile via the system credential provider inside
+  `WKWebView`/Android `WebView`. F38 does not change that: it is a user-invoked,
+  1Password-dependent SDK bridge rather than native system AutoFill (D26).
 - **F12 blocking** is the differentiator that is *strongest on Android* (programmatic
   interception, like desktop) and *weakest on iOS* (declarative, capped). Keep the
   Android backend powerful; do not flatten it to the iOS ceiling for symmetry — see

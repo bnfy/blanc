@@ -18,6 +18,7 @@
 "slash_find" = "Find in page";
 "slash_block_ads" = "Block ads here, or toggle blocking everywhere";
 "slash_allow_ads" = "Allow ads on this site";
+"slash_1password" = "Fill a login from 1Password";
 "slash_theme" = "Cycle appearance, or choose system / light / dark";
 "slash_patron" = "Support Blanc with a Patron subscription";
 "slash_workspace" = "Switch to a named workspace, or type a new name to save this window";

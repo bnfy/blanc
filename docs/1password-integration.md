@@ -1,0 +1,116 @@
+# 1Password login fill
+
+Status: production candidate for the build after v1.8.2. The product-owner risk
+decision is recorded in [`1password-legal-inquiry.md`](1password-legal-inquiry.md).
+This integration is independent, is not affiliated with or endorsed by
+1Password, and remains subject to 1Password's SDK terms.
+
+## User setup
+
+1. Install the current 1Password desktop app and sign into the account to use.
+2. In 1Password, open **Settings → Developer** and turn on **Integrate with
+   1Password SDKs**.
+3. In Blanc, open **Settings → Privacy & Security → 1Password**, turn on
+   **Fill logins from 1Password**, and enter the account name shown at the top
+   of the 1Password sidebar or the account ID.
+4. On a website login form, choose **View → Fill Login from 1Password**, press
+   **⌥⌘P** on macOS, or run **/1password** from the Island.
+5. Approve Blanc Browser in the 1Password desktop prompt. If several Login
+   items match, choose one from the native menu.
+
+Blanc never fills automatically. The setting and account identifier stay on
+this device and are excluded from Profile Sync.
+
+## Security boundary
+
+- The page is inspected without credentials before the SDK is contacted.
+- `@1password/sdk` is pinned exactly and loads only in
+  `src/main/onepassword-broker.js`, an Electron utility process named **Blanc
+  Credential Broker**.
+- On macOS that process alone uses `Blanc Helper (Plugin).app`. It retains
+  Electron's required `allow-jit` and `allow-unsigned-executable-memory`, and
+  only that helper adds `disable-library-validation` so it can load 1Password's
+  separately signed native bridge. Signed-build verification fails if any
+  required Plugin entitlement is missing or if the library-validation exception
+  appears on Blanc or an ordinary helper.
+- The SDK authorization may cover the approved account. Blanc calls only
+  vault/item list and item read operations. Overview metadata is matched in the
+  broker and a metadata-only native picker is bounded to ten candidates. Because
+  SDK 0.5.0 exposes no field-projection read, Blanc does not open candidate items:
+  the selected item is the only full item retrieved, and only its required
+  built-in username and/or password leaves the broker.
+- Credentials cross only the broker→main utility-process channel, are injected
+  into a dedicated isolated world, and never cross renderer IPC, disk, Profile
+  Sync, logs, telemetry, or crash reporting.
+- The exact runtime, tab, navigation epoch, URL, document time origin, and DOM
+  element identities are revalidated after every prompt and before injection.
+  Signup/new-password, ambiguous, hidden, search, and newsletter fields fail
+  closed. A heuristic current-password target requires an extra native prompt
+  before SDK authorization.
+- Disabling the feature or changing the account stops the broker immediately.
+  Otherwise its credential-free SDK client is discarded after ten minutes of
+  inactivity, matching 1Password's documented authorization window.
+
+## Release gates
+
+- `npm run substrate:check`, `npm run test:unit`,
+  `npm run test:acceptance:dry`, `npm run test:acceptance:desktop`, and
+  `npm run test:onepassword:utility` pass.
+- Production dependency audit is clean at high severity.
+- A signed unpacked macOS build proves the Plugin helper is the sole
+  library-validation exception, retains all three required Plugin runtime
+  entitlements, and the package contains SDK 0.5.0 plus its bundled MIT notice.
+- On real installed 1Password accounts, verify one exact-domain login, one
+  AnywhereOnWebsite subdomain login, multiple matching Login items, cancellation,
+  `Never`, signup refusal, navigation/tab-switch cancellation, and private-tab
+  behavior on macOS, Windows, and Linux candidates.
+- The redacted field-contract fixture follows [1Password's documented Login IDs](https://www.1password.dev/sdks/manage-items)
+  (`username` and `password`); confirm those exact fields in a live DesktopAuth
+  response during the real-account macOS gate before calling the contract proven.
+- Windows and Linux artifacts must still pass their existing fuse/signature/
+  packaged-payload gates. A release requires the ordinary explicit owner
+  go-ahead; preparing this feature does not itself authorize tagging/publishing.
+
+### macOS signed-candidate evidence — 2026-08-23
+
+The fresh signed and notarized unpacked `dist/mac-arm64/Blanc.app` passed strict
+nested-signature verification and the repository's DER entitlement verifier.
+Its packaged controller and Settings surfaces contain the current **Integrate
+with 1Password SDKs** copy. The live Plugin helper remained running after
+repeated DesktopAuth reads. Disabling the Blanc setting stopped that helper;
+enabling it again created a fresh helper process.
+
+Using three disposable Login items in the real account's Dev vault and a
+loopback-only form that never submitted data:
+
+- **PASS:** Exact Host filled the Login built-ins `username` and `password`.
+- **PASS:** Fill Anywhere on This Website matched a parent-domain item on a
+  subdomain, including the effective port.
+- **PASS:** two matching items produced the bounded native metadata picker;
+  only the selected item was then revealed and filled.
+- **PASS:** picker cancellation left both fields empty.
+- **PASS:** an isolated Never item produced **No matching login** and left both
+  fields empty. A broad Anywhere item was temporarily narrowed during this
+  case so it could not independently match the Never host, then restored.
+- **PASS:** switching tabs and navigating while the picker was pending canceled
+  the flow; the original and replacement documents remained empty.
+- **PASS:** explicit fill worked in a private tab, and signup/new-password fields
+  were refused before any item selection.
+- **PASS:** locking 1Password revoked the cached SDK grant and produced a fresh
+  **1Password Access Requested** DesktopAuth dialog. Canceling it produced a
+  clean Blanc authorization error, left both fields empty, and an immediate
+  retry produced a new authorization dialog rather than a stuck broker.
+
+The supported reset is to lock the account: 1Password's
+[SDK integration security model](https://www.1password.dev/sdks/desktop-app-integrations)
+states that locking the desktop app immediately revokes every existing SDK
+authorization. The signed macOS functional gate is closed. Windows and Linux
+remain untested.
+
+## Frozen names for the first release
+
+The user-facing feature name is **1Password login fill**. The device-local keys
+remain `onePasswordEnabled` and `onePasswordAccount`; broker methods remain
+`find-logins`, `reveal-credential`, and `probe-package`; `vaultId` and `itemId`
+remain opaque SDK identifiers. Renaming any of these after release requires an
+explicit settings/protocol migration rather than an incidental cleanup.

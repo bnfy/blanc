@@ -41,8 +41,9 @@ the thing that must be identical, and pushes platform mechanics into the binding
 Where a divergence (`D#`) is invisible to the user (e.g. the ad-block *engine* D1,
 or per-site exception *latency* D2), the scenario stays `@all` and asserts only the
 user-observable outcome. Only where the observable outcome itself legitimately
-differs (e.g. F24 AutoFill is mobile-only; F22 self-updater is desktop-only) does a
-scenario carry a platform tag instead of `@all`.
+differs (e.g. F24 system AutoFill is mobile-only, F38's explicit 1Password SDK
+bridge is desktop-only, and F22's self-updater is desktop-only) does a scenario
+carry a platform tag instead of `@all`.
 
 ## Tags
 
@@ -76,7 +77,7 @@ A feature's row in [`../parity-matrix.md`](../parity-matrix.md) should not move 
 
 ## Scope of this first cut
 
-- Eighteen feature files cover `F1–F24`, `F27–F28`, and `F30–F34`; the differentiators and
+- The feature files cover `F1–F24`, `F27–F28`, and `F30–F38`; the differentiators and
   the most divergence-heavy features have several scenarios. F25 (DoH) and F26
   (WebRTC policy) still have manual acceptance contracts in `features.md` but no
   Gherkin transcription.

@@ -145,6 +145,32 @@
     document.getElementById('secureDnsCustomRow')?.remove();
   }
 
+  // --- 1Password desktop-app bridge (desktop-only, device-local, opt-in) ---
+  if (supports('onePassword')) {
+    const onePasswordEnabled = document.getElementById('onePasswordEnabled');
+    const onePasswordAccount = document.getElementById('onePasswordAccount');
+    onePasswordEnabled.checked = settings.onePasswordEnabled ?? false;
+    onePasswordAccount.value = settings.onePasswordAccount ?? '';
+    onePasswordAccount.disabled = !onePasswordEnabled.checked;
+    onePasswordEnabled.addEventListener('change', async () => {
+      onePasswordAccount.disabled = !onePasswordEnabled.checked;
+      await window.bowserPages.settings.set({
+        onePasswordEnabled: onePasswordEnabled.checked,
+      });
+      if (onePasswordEnabled.checked && !onePasswordAccount.value.trim()) {
+        onePasswordAccount.focus();
+      }
+    });
+    onePasswordAccount.addEventListener('change', async () => {
+      const next = await window.bowserPages.settings.set({
+        onePasswordAccount: onePasswordAccount.value,
+      });
+      onePasswordAccount.value = next.onePasswordAccount ?? '';
+    });
+  } else {
+    document.getElementById('onePasswordSettings')?.remove();
+  }
+
   // --- Usage ping ---
   if (supports('usagePing')) {
     const usagePing = document.getElementById('usagePing');

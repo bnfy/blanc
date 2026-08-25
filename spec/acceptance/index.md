@@ -27,7 +27,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | Permissions & auth | `permissions-and-auth.feature` | F13, F20 |
 | Internal pages | `internal-pages.feature` | F16 |
 | Supporter & session | `supporter-and-session.feature` | F17, F18 |
-| Platform services | `platform-services.feature` | F21, F22, F23, F24 |
+| Platform services | `platform-services.feature` | F21, F22, F23, F24, F38 |
 | Tab sync | `sync.feature` | F27 |
 | Vertical tabs | `vertical-tabs.feature` | F28 (D19) |
 | Browser migration | `browser-migration.feature` | F30 (D22) |
@@ -156,6 +156,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F37-1 | The blank-tab island invites typing | — | ✅ | ⬜ | ⬜ |
 | F37-2 | Typing on a cold-launched blank tab opens the island | — | ✅ | ⬜ | ⬜ |
 | F37-3 | The commands chip opens the command list | — | ✅ | ⬜ | ⬜ |
+| F38-1 | Explicit matching 1Password fill stays bounded and transient | D26 | ⬜ | ➖ | ➖ |
 
 > **M0–M1 note (2026-07-08):** F5 (address/search + OS hand-off) and F1 (minimal
 > address surface) are implemented and unit-tested on iOS, but the iOS acceptance
@@ -163,7 +164,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 
 ## Coverage check
 
-- Features `F1–F24`, `F27–F28`, and `F30–F37` have ≥1 Gherkin scenario. F25 (DoH) and F26
+- Features `F1–F24`, `F27–F28`, and `F30–F38` have ≥1 Gherkin scenario. F25 (DoH) and F26
   (WebRTC policy) retain manual acceptance contracts in `features.md` but have
   not yet been transcribed into this suite.
 - The suite explicitly tags D1–D12, D16, D19, D23, and D25. D11 is exercised
@@ -172,5 +173,5 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
   iOS per D13 — see
   [`../blocking-backends.md`](../blocking-backends.md)). D15, D17, and D18 do
   not yet have discrete Gherkin assertions.
-- Mobile-gained / platform-specific outcomes (F22, F24, F28) correctly carry
+- Mobile-gained / platform-specific outcomes (F22, F24, F28, F38) correctly carry
   platform tags rather than `@all`.

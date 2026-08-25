@@ -33,6 +33,7 @@ test('network/data inventory is complete enough to act as a release drift guard'
   for (const id of ['profile-sync', 'supporter-activation', 'newsletter']) {
     assert.equal(inventory.flows.find((flow) => flow.id === id)?.default, 'off', id);
   }
+  assert.equal(inventory.flows.find((flow) => flow.id === 'onepassword-login-fill')?.default, 'off');
   assert.match(
     inventory.flows.find((flow) => flow.id === 'search-suggestions')?.default ?? '',
     /presented on/
@@ -64,7 +65,8 @@ test('public site ships baseline browser security headers and disclosure metadat
 
 test('privacy-facing defaults, hardened Electron fuses, and dependency surface do not regress', () => {
   const pkg = JSON.parse(read('package.json'));
-  assert.equal(pkg.dependencies?.['@1password/sdk'], undefined);
+  assert.equal(pkg.dependencies?.['@1password/sdk'], '0.5.0');
+  assert.match(read('src/THIRD_PARTY_NOTICES.txt'), /Copyright \(c\) 2024 1Password/);
   assert.equal(pkg.build?.protocols?.some((entry) => entry.schemes?.includes('file')), false);
   assert.deepEqual(pkg.build.electronFuses, {
     runAsNode: false,
@@ -80,13 +82,37 @@ test('privacy-facing defaults, hardened Electron fuses, and dependency surface d
   const schema = JSON.parse(read('settings-schema/schema.json'));
   assert.equal(schema.defaults.searchSuggestions, true);
   assert.equal(schema.defaults.usagePing, true);
-  assert.equal(fs.existsSync(path.join(ROOT, 'src/main/onepassword.js')), false);
+  assert.equal(schema.internalDefaults.includes('onePasswordEnabled'), true);
+  assert.equal(schema.internalDefaults.includes('onePasswordAccount'), true);
+  assert.match(read('src/main/settings.js'), /onePasswordEnabled:\s*false/);
+  assert.match(read('src/main/settings.js'), /onePasswordAccount:\s*''/);
+  const currentOnePasswordSetupCopy = [
+    read('src/main/credential-fill-controller.js'),
+    read('src/renderer/pages/settings.html'),
+    read('docs/1password-integration.md'),
+  ].join('\n');
+  assert.match(currentOnePasswordSetupCopy, /Integrate with 1Password SDKs/);
+  assert.doesNotMatch(currentOnePasswordSetupCopy, /Integrate with other apps/);
+  assert.doesNotMatch(read('src/main/main.js'), /require\(['"]@1password\/sdk['"]\)/);
+  assert.match(read('src/main/main.js'),
+    /acceptanceTestMode\s*\|\|\s*app\.requestSingleInstanceLock\(\)/);
+  assert.match(read('src/main/onepassword-broker.js'), /require\(['"]@1password\/sdk['"]\)/);
   assert.doesNotMatch(read('build/entitlements.mac.plist'), /disable-library-validation/);
   assert.doesNotMatch(read('build/entitlements.mac.inherit.plist'), /disable-library-validation/);
-
+  const pluginEntitlements = read('build/entitlements.mac.plugin.plist');
+  assert.match(pluginEntitlements, /allow-jit/);
+  assert.match(pluginEntitlements, /disable-library-validation/);
+  const afterSign = read('scripts/after-sign-verify.js');
+  assert.match(afterSign, /com\.apple\.security\.cs\.allow-jit/);
+  assert.match(afterSign, /['"]asn1parse['"]/);
+  assert.match(afterSign, /['"]--der['"]/);
+  assert.doesNotMatch(afterSign, /--entitlements['"],\s*['"]-['"]/);
+  assert.equal(pkg.build.mac.sign, 'scripts/sign-mac.js');
+  assert.match(read('src/main/onepassword-client.js'), /allowLoadingUnsignedLibraries:\s*true/);
+  assert.match(read('src/main/onepassword-client.js'), /stdio:\s*'ignore'/);
 });
 
-test('public claims describe shipped consent mode, bundled blocker inputs, private downloads, and double opt-in', () => {
+test('public claims describe shipped consent mode, 1Password boundaries, bundled blocker inputs, private downloads, and double opt-in', () => {
   const privacy = read('site/src/pages/privacy.astro');
   const siteScript = read('site/src/scripts/site.js');
   assert.match(privacy, /<h3>Usage ping<\/h3>/);
@@ -96,6 +122,11 @@ test('public claims describe shipped consent mode, bundled blocker inputs, priva
   assert.match(privacy, /private tab remains only in memory/i);
   assert.match(privacy, /hash-pinned EasyList and EasyPrivacy snapshots ship inside/);
   assert.match(privacy, /restricted state.*cookieless pings/is);
+  assert.match(privacy, /1Password login fill \(off by default\)/);
+  assert.match(privacy, /does not save, log, sync, or send those credentials to Bananify/);
+  const terms = read('site/src/pages/terms.astro');
+  assert.match(terms, /not affiliated with, endorsed by, or certified by 1Password/);
+  assert.match(terms, /1Password is not a party to these terms/);
   assert.match(privacy, /30-day quarantine/);
   assert.match(siteScript, /GA4 Consent Mode/);
   assert.match(siteScript, /analytics_storage: 'denied'/);
