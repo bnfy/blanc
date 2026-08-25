@@ -169,11 +169,14 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.match(releaseWorkflow, /default: release/);
   assert.match(releaseWorkflow, /inputs\.mode == 'release' && inputs\.tag \|\| github\.ref/);
   assert.match(releaseWorkflow, /Upload private signed Windows validation artifact/);
+  assert.match(releaseWorkflow, /Upload private Linux validation artifact/);
+  assert.match(releaseWorkflow, /Blanc-Linux-\$\{\{ github\.run_id \}\}-validation/);
   assert.match(releaseWorkflow, /actions\/upload-artifact@[0-9a-f]{40}/);
   assert.match(releaseWorkflow, /retention-days: 3/);
   assert.match(releaseWorkflow, /if: \$\{\{ inputs\.mode == 'release' \}\}\s+shell: bash\s+env:\s+GH_TOKEN:/);
   assert.match(releaseWorkflow, /if: \$\{\{ inputs\.mode == 'validation' \}\}\s+uses: actions\/upload-artifact/);
-  assert.match(releaseWorkflow, /inputs\.mode == 'release' && \(inputs\.platform == 'all' \|\| inputs\.platform == 'linux'\)/);
+  assert.match(releaseWorkflow, /\(inputs\.mode == 'release' \|\| inputs\.mode == 'validation'\) && \(inputs\.platform == 'all' \|\| inputs\.platform == 'linux'\)/);
+  assert.match(releaseWorkflow, /ref: \$\{\{ inputs\.mode == 'release' && inputs\.tag \|\| github\.ref \}\}/);
   assert.match(releaseScript, /verify-electron-fuses\.mjs/);
   assert.deepEqual(packageConfig.build.electronFuses, {
     runAsNode: false,
