@@ -16,13 +16,16 @@ The single custom command surface that replaces a traditional tab strip +
 toolbar (Bowser Design System "Island Chrome").
 
 - **Resting pill** shows, left→right: back/forward (desktop; mobile uses edge-swipe
-  gestures per D7), the *active group's* tab dots (capped at 8, with a quiet `+N`
-  that opens the panel; on a pointer platform, hovering/focusing a dot reveals
-  that tab's favicon so it can be identified before switching), favicon,
+  gestures per D7), direct dots for standalone pinned tabs followed by the
+  active section (named group, loose tabs, or pinned shelf), capped at 8 total,
+  with a quiet window-wide `+N` for every omitted tab that opens the panel; on
+  a pointer platform, hovering/focusing a dot reveals that tab's favicon so it
+  can be identified before switching), favicon,
   domain, shield count (F12), a private chip when private (F4), and a trailing
   action cluster (reload / favorite / close tab / downloads). The resting pill
-  carries **no group name** — group identity is conveyed by the dots (which
-  render the active group only) and named in full in the panel (F3). In
+  carries **no group name** — group identity is named in full in the panel
+  (F3). Each dot always represents one tab; making a tab quiet (F31) never
+  removes, moves, or restyles its dot. In
   desktop vertical mode (F28/D19), the rail becomes the persistent tab
   presentation and the resting pill omits only its redundant tab dots.
 - **Expanded states** (one at a time): `panel` (command bar expanded in place),
@@ -67,18 +70,21 @@ toolbar (Bowser Design System "Island Chrome").
   while it holds ≥1 tab (auto-pruned when empty).
 - Create/join via `/group <name>` (find-or-create) or an inline picker on the
   tab row; leave via `/ungroup`; close all via `/close-group`.
-- The **pill renders only the active tab's group** as dots + name. A group's
-  pinned tabs stay inside it and lead its rows/dots; only ungrouped pins use the
-  standalone pinned section. Other groups live in the palette panel (per-group
-  headers, foldable; collapsed group shows an "N tabs tucked away" row).
+- The pill's direct dots show standalone pins followed by the active section:
+  the active named group, loose ungrouped tabs, or the pinned shelf itself.
+  They share an eight-dot budget, always retain the active tab, and use `+N` to
+  count every other tab in the window. A group's pinned tabs stay inside it and
+  lead its rows/dots; only ungrouped pins use the standalone pinned section.
+  Other groups live in the palette panel (per-group headers, foldable;
+  collapsed group shows an "N tabs tucked away" row).
 - The Quick Switcher (F6) matches group names, ranked above tabs; picking a group
   focuses it (unfolding if collapsed). The nth-cluster shortcut (D7) focuses the
   nth *group's* first tab when groups exist.
 - New **private** tabs are never grouped.
-- **Acceptance:** `/group work` on the active tab creates `work` and moves the tab
-  in. Open a second group `play`; the pill shows only the active group. Collapse
-  `work` → its tabs show as "N tabs tucked away" in the panel. Delete the last tab
-  in `play` → `play` disappears.
+- **Acceptance:** With one standalone pin, 2 tabs in `work`, and 3 tabs in
+  `play`, activating `work` shows 3 direct dots and `+3`; activating `play`
+  shows 4 direct dots and `+2`. Collapse `work` → its tabs show as "N tabs
+  tucked away" in the panel. Delete the last tab in `play` → `play` disappears.
 
 ## F4 — Private tabs
 

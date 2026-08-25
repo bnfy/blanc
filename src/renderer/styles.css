@@ -910,14 +910,16 @@ body.mac .vertical-tabs-toolbar {
     box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dot clusters: one cluster per tab group (group order), ungrouped tabs
-   trail. The active tab's cluster is full-strength; others dim. */
+/* Direct tab targets: globally reachable standalone pins, then the active
+   section. A small extra gap is the only distinction between those sets; all
+   dots keep the same one-dot/one-tab visual and interaction contract. */
 #pillDots {
   display: flex;
   gap: 10px;
   align-items: center;
   flex: 0 0 auto;
 }
+.island-dot.dot-section-start { margin-left: 4px; }
 
 .pill-overflow {
   font-family: var(--font-mono);

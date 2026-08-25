@@ -927,16 +927,34 @@ function install(refs) {
         };
       })()`);
     },
-    async quietChromeState(title, id) {
+    async islandDotsState() {
       const chrome = getChromeWebContents();
       if (!chrome) return null;
       return chrome.executeJavaScript(`(() => {
-        const dot = [...document.querySelectorAll('.island-dot')]
-          .find((candidate) => candidate.title === ${JSON.stringify(String(title))});
+        const overflow = document.querySelector('.pill-overflow');
+        return {
+          directCount: document.querySelectorAll('.island-dot').length,
+          directIds: [...document.querySelectorAll('.island-dot')]
+            .map((dot) => dot.dataset.tabId),
+          directTitles: [...document.querySelectorAll('.island-dot')]
+            .map((dot) => dot.title),
+          overflowText: overflow?.textContent ?? '',
+          overflowLabel: overflow?.getAttribute('aria-label') ?? '',
+        };
+      })()`);
+    },
+    async quietChromeState(id) {
+      const chrome = getChromeWebContents();
+      if (!chrome) return null;
+      return chrome.executeJavaScript(`(() => {
+        const dot = document.querySelector(
+          '.island-dot[data-tab-id="' + CSS.escape(${JSON.stringify(String(id))}) + '"]'
+        );
         const row = document.querySelector(
           '.vertical-tab-row[data-tab-id="' + CSS.escape(${JSON.stringify(String(id))}) + '"]'
         );
         return {
+          dotPresent: !!dot,
           dotQuiet: !!dot?.classList.contains('asleep'),
           dotPrivate: !!dot?.classList.contains('private'),
           dotLabel: dot?.getAttribute('aria-label') ?? '',
@@ -944,6 +962,18 @@ function install(refs) {
           railPrivate: !!row?.classList.contains('private'),
           railLabel: row?.querySelector('.vertical-tab-primary')?.getAttribute('aria-label') ?? '',
         };
+      })()`);
+    },
+    async clickIslandDot(id) {
+      const chrome = getChromeWebContents();
+      if (!chrome) return false;
+      return chrome.executeJavaScript(`(() => {
+        const dot = document.querySelector(
+          '.island-dot[data-tab-id="' + CSS.escape(${JSON.stringify(String(id))}) + '"]'
+        );
+        if (!dot || dot.getClientRects().length === 0) return false;
+        dot.click();
+        return true;
       })()`);
     },
     async quietRowDimStyles(id) {
