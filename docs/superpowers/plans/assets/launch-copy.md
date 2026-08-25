@@ -1,4 +1,4 @@
-# Blanc v1.8.2 launch copy pack
+# Blanc v1.9.0 launch copy pack
 
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
@@ -7,18 +7,17 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
-**Release lock — HARD STOP TRIGGERED 2026-08-24:** This pack describes packaged
-public v1.8.2, but PR #208 (`6d76ddc`) has since placed a revised Island-dot
-presentation on `main`. The README now discloses the source/release boundary.
-Do not publish this pack until the owner either keeps the v1.8.2 launch with
-that boundary or releases and soaks a new version, then re-freezes these facts.
-Do not use UI or claims from unreleased 1Password or tab-import work.
+**Release lock — REBASELINED 2026-08-25:** This pack describes packaged public
+v1.9.0, published from `e55fc13`. It includes the revised Island-dot
+presentation and the optional macOS 1Password login-fill action. Do not publish
+until the v1.9.0 48-hour soak and all three follow-up platform checks are
+recorded. Do not use UI or claims from later work on `main`.
 
 ## Frozen facts
 
 | Claim | Launch truth |
 |---|---|
-| Current public release | v1.8.2 |
+| Current public release | v1.9.0 |
 | Platforms | macOS, Windows, Linux |
 | Core price | Free |
 | Blanc Patron | US$4/month or $30/year, plus applicable taxes |
@@ -28,7 +27,8 @@ Do not use UI or claims from unreleased 1Password or tab-import work.
 | Telemetry | One packaged-build launch ping: random install ID, random session ID, version, platform, architecture, coarse OS major. Fresh profiles save the presented choice before a ping can send |
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
-| Repository/build boundary | Packaged downloads are v1.8.2. `main` contains a post-v1.8.2 Island-dot refinement; the v1.8.2 tag is the source snapshot associated with the public binaries |
+| macOS 1Password boundary | Optional, device-local, and explicitly invoked; reads matching Login items through the installed 1Password app. It does not fill automatically, store credentials, or provide a general extension runtime |
+| Repository/build boundary | The v1.9.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
 
 Canonical URLs—copy exactly:
 
@@ -59,7 +59,7 @@ Submission mechanics:
    submit a Show HN. Do not create a launch-only account or manufacture activity.
 2. Write the title and first comment personally, without agent drafting or
    editing. The title must begin `Show HN` and describe the whole browser—not
-   announce the incremental v1.8.2 hotfix.
+   announce the incremental v1.9.0 release.
 3. Submit `https://github.com/bnfy/blanc`, not the marketing homepage. The repo
    lets readers inspect and run the product; HN says not to submit landing pages
    or fundraisers.
@@ -84,6 +84,9 @@ Write these ideas in Anthony's natural words:
   do not turn a single-session benchmark into a universal claim.
 - What it is not: no mobile version; no extension support; source-available,
   not open source.
+- Narrow exception to the extension boundary: packaged macOS v1.9.0 can fill a
+  matching Login item from the installed 1Password app only when the user asks;
+  it is not an extension runtime or a Blanc-owned credential store.
 - Money, unprompted: the browser is free. Patron is $4/month or $30/year.
   Creating a Named Workspace requires active Patron; existing workspaces remain
   renameable and removable after a lapse.
@@ -457,12 +460,15 @@ drop a full defense where one sentence would do.
 > after native crashes, an unsandboxed-chrome requirement, and a licensing
 > constraint. Blocking is built into the browser at the network layer, but if a
 > particular extension is essential, Blanc genuinely is not the right browser.
+> On macOS there is one narrow exception: an explicit Fill gesture can ask the
+> installed 1Password app for a matching Login item. It is opt-in, never fills
+> automatically, and does not add a general extension runtime.
 
 ## Morning-of fact check
 
-- [ ] `package.json` and the latest public release both still say v1.8.2.
-- [ ] The README still distinguishes the current public binaries from any
-  post-v1.8.2 code on `main`.
+- [ ] `package.json` and the latest public release both still say v1.9.0.
+- [ ] The README still links the v1.9.0 tag as the exact source snapshot for
+  the current public binaries, and any newer `main` work is excluded from copy.
 - [ ] The macOS, Windows, and Linux downloads linked from the site resolve.
 - [ ] Pricing still reads $4/month and $30/year in Polar and on the site.
 - [ ] Named Workspace creation still requires Patron; rename/removal still work

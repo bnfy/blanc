@@ -136,6 +136,21 @@ test('public supply-chain copy distinguishes inspection from binary authenticati
   }
 });
 
+test('public extension copy includes the shipped macOS 1Password boundary', () => {
+  const publicCopy = [
+    ['README.md', read('README.md')],
+    ['site/src/pages/faq.astro', read('site/src/pages/faq.astro')],
+    ['launch copy', read('docs/superpowers/plans/assets/launch-copy.md')],
+  ];
+
+  for (const [label, source] of publicCopy) {
+    assert.doesNotMatch(source, /password managers can(?:not|'t) integrate/i, label);
+    assert.match(source, /1Password/i, `${label} must name the supported provider`);
+    assert.match(source, /(?:explicit|user-invoked|user asks|user explicitly asks)/i, `${label} must state that fill is user-invoked`);
+    assert.match(source, /not an extension runtime/i, `${label} must preserve the extension boundary`);
+  }
+});
+
 test('platform specs match the shipped first-run telemetry contract', () => {
   const matrix = read('spec/parity-matrix.md');
   const services = read('spec/acceptance/platform-services.feature');

@@ -227,17 +227,15 @@ the Favorites sheet keeps that explicit, deduplicating import available later,
 alongside the universal bookmarks-HTML fallback. Profile paths and raw browser
 data never cross into a renderer.
 
-**No Chrome extensions — by design.** The two things most people install
-extensions for are covered natively: ad blocking is built in at the
-network layer (above), and password managers can't integrate with a
-custom browser shell anyway — they verify the browser's code signature
-against vendor allowlists. (Bowser is now in Apple's allowlist source
-data via
-[apple/password-manager-resources#1137](https://github.com/apple/password-manager-resources/pull/1137);
-meanwhile, the macOS Passwords menu-bar app works well alongside it. The
-PR predates this app's rename to Blanc and refers to it by its former
-name — a follow-up PR to Apple's allowlist under the new name is a
-later, separate task.)
+**No Chrome extensions — by design.** Ad blocking is built in at the network
+layer (above). On macOS, Blanc can also fill a matching Login item from the
+installed 1Password desktop app when the user explicitly asks it to. That is a
+narrow, opt-in SDK integration—not an extension runtime or a Blanc-owned
+password store. Other password-manager browser integrations generally rely on
+vendor code-signing allowlists. Bowser, Blanc's former name, appears in Apple's
+allowlist source through
+[apple/password-manager-resources#1137](https://github.com/apple/password-manager-resources/pull/1137),
+but that historical entry is separate from the 1Password feature.
 Skipping an extension runtime also keeps the whole chrome sandboxed and
 the app small.
 
