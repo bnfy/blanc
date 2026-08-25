@@ -202,6 +202,31 @@
               <input id="secureDnsTemplate" type="url" placeholder="https://your-provider.example/dns-query" />
             </div>
 
+            <div class="group-subsection" id="onePasswordSettings" hidden>
+              <h3 class="section-title">1Password</h3>
+              <p class="section-hint">
+                Fill a matching Login item from your installed 1Password app when you ask. Blanc does not store your login data or read it while you browse.
+              </p>
+              <div class="setting">
+                <div class="label">
+                  <span id="onePasswordEnabledLabel">Fill logins from 1Password</span>
+                  <span class="hint" id="onePasswordEnabledHint">In 1Password, open Settings → Developer and turn on Integrate with 1Password SDKs</span>
+                </div>
+                <label class="toggle">
+                  <input id="onePasswordEnabled" type="checkbox" aria-labelledby="onePasswordEnabledLabel" aria-describedby="onePasswordEnabledHint" />
+                  <span class="track"></span>
+                </label>
+              </div>
+              <div class="setting">
+                <div class="label">
+                  <span id="onePasswordAccountLabel">1Password account</span>
+                  <span class="hint" id="onePasswordAccountHint">The account name at the top of the 1Password sidebar, or the account ID. Stored only on this device.</span>
+                </div>
+                <input id="onePasswordAccount" type="text" maxlength="200" autocomplete="off" spellcheck="false" placeholder="My account" aria-labelledby="onePasswordAccountLabel" aria-describedby="onePasswordAccountHint" />
+              </div>
+              <p class="section-hint">Use View → Fill Login from 1Password or <code>/1password</code>. On Mac: ⌥⌘P.</p>
+            </div>
+
             <div class="group-subsection">
               <h3 class="section-title">Ad-block exceptions</h3>
               <p class="section-hint">

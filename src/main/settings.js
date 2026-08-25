@@ -32,7 +32,8 @@ const SECURE_DNS_OPTIONS = ['auto', 'off', 'cloudflare', 'quad9', 'mullvad', 'cu
 const FIRST_RUN_VERSION = 1;
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
-// excludes tabLayout, verticalTabsWidth, appIcon, and searchSuggestions
+// excludes tabLayout, verticalTabsWidth, appIcon, searchSuggestions, and the
+// device's 1Password integration configuration
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
 const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout'];
@@ -105,6 +106,11 @@ const DEFAULTS = {
   webrtcPolicy: 'standard',
   secureDns: 'auto',
   secureDnsTemplate: '',
+  // Optional, device-local bridge to the user's installed 1Password app.
+  // Off until explicitly enabled. The account name/id is routing metadata,
+  // never a password or service-account token, and never Profile Synced.
+  onePasswordEnabled: false,
+  onePasswordAccount: '',
   // Anonymous "app launched" ping — see main/telemetry.js. On by default
   // (opt-out in Settings); no browsing data, only version/OS plus a random
   // per-install id used solely to count distinct active users.
@@ -196,6 +202,12 @@ function getSettings() {
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (typeof data.onePasswordEnabled !== 'boolean') {
+    data.onePasswordEnabled = DEFAULTS.onePasswordEnabled;
+  }
+  if (typeof data.onePasswordAccount !== 'string' || data.onePasswordAccount.length > 200) {
+    data.onePasswordAccount = DEFAULTS.onePasswordAccount;
+  }
   data.homePage = normalizeHomepage(data.homePage, DEFAULTS.homePage);
   data.verticalTabsWidth = normalizeVerticalTabsWidth(data.verticalTabsWidth);
   if (!isAppIconAllowed(data.appIcon)) data.appIcon = DEFAULTS.appIcon;
@@ -243,6 +255,12 @@ function sanitize(partial) {
     // cross-field guard in setSettings then decides the secureDns transition.
     const t = partial.secureDnsTemplate.trim();
     if (t === '' || isValidDohTemplate(t)) clean.secureDnsTemplate = t;
+  }
+  if (typeof partial.onePasswordEnabled === 'boolean') {
+    clean.onePasswordEnabled = partial.onePasswordEnabled;
+  }
+  if (typeof partial.onePasswordAccount === 'string') {
+    clean.onePasswordAccount = partial.onePasswordAccount.trim().slice(0, 200);
   }
   if (isAppIconAllowed(partial.appIcon)) clean.appIcon = partial.appIcon;
   if (Array.isArray(partial.adblockExceptions)) {

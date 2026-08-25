@@ -1,9 +1,17 @@
 (async () => {
-  const { settings, searchEngines, appIcons, supporterIcons, capabilities } =
+  const {
+    settings,
+    searchEngines,
+    appIcons,
+    supporterIcons,
+    capabilities,
+    onePasswordAvailable,
+  } =
     await window.bowserPages.settings.get();
 
-  // Desktop sends no `capabilities` field → every feature is supported and this
-  // file behaves exactly as before. A platform that DOES send the list (iOS)
+  // Electron desktop sends no `capabilities` field; its main process separately
+  // reports whether the macOS-only 1Password bridge is available. A platform
+  // that DOES send the capabilities list (iOS)
   // gets each unsupported feature skipped ENTIRELY — no child getElementById, no
   // bridge call to an unimplemented method, no listener — then its control is
   // removed. Guarding (not merely removing) matters because several sections
@@ -143,6 +151,33 @@
   } else {
     document.getElementById('secureDns')?.closest('.setting')?.remove();
     document.getElementById('secureDnsCustomRow')?.remove();
+  }
+
+  // --- 1Password desktop-app bridge (macOS-only, device-local, opt-in) ---
+  if (onePasswordAvailable === true && supports('onePassword')) {
+    document.getElementById('onePasswordSettings').hidden = false;
+    const onePasswordEnabled = document.getElementById('onePasswordEnabled');
+    const onePasswordAccount = document.getElementById('onePasswordAccount');
+    onePasswordEnabled.checked = settings.onePasswordEnabled ?? false;
+    onePasswordAccount.value = settings.onePasswordAccount ?? '';
+    onePasswordAccount.disabled = !onePasswordEnabled.checked;
+    onePasswordEnabled.addEventListener('change', async () => {
+      onePasswordAccount.disabled = !onePasswordEnabled.checked;
+      await window.bowserPages.settings.set({
+        onePasswordEnabled: onePasswordEnabled.checked,
+      });
+      if (onePasswordEnabled.checked && !onePasswordAccount.value.trim()) {
+        onePasswordAccount.focus();
+      }
+    });
+    onePasswordAccount.addEventListener('change', async () => {
+      const next = await window.bowserPages.settings.set({
+        onePasswordAccount: onePasswordAccount.value,
+      });
+      onePasswordAccount.value = next.onePasswordAccount ?? '';
+    });
+  } else {
+    document.getElementById('onePasswordSettings')?.remove();
   }
 
   // --- Usage ping ---

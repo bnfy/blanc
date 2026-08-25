@@ -73,7 +73,10 @@ const comparison = [
   ['Default experience', 'Controls surround the page', 'An agent joins the task', 'The website stays center stage'],
 ];
 
-const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entry);
+const slashCommands = slashCommandCopy.commands.map((entry) => ({
+  ...(entry.doc ?? entry),
+  platforms: entry.platforms,
+}));
 ---
 <BaseLayout
   title="Blanc Press Kit — Independent Browser Launch"
@@ -321,7 +324,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
               {slashCommands.map((entry) => (
                 <div>
                   <dt><code>{entry.command}</code></dt>
-                  <dd>{entry.hint}</dd>
+                  <dd>{entry.hint}{entry.platforms?.includes('macos') ? ' · macOS only' : ''}</dd>
                 </div>
               ))}
             </dl>
@@ -340,7 +343,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => entry.doc ?? entr
       <h2 id="press-boundaries-title">What Blanc deliberately leaves out.</h2>
     </div>
     <div class="press-boundary-grid">
-      <p><strong>No extension marketplace.</strong> Ad and tracker blocking is built in, but third-party extensions—including password-manager extensions—are unavailable.</p>
+      <p><strong>No extension marketplace.</strong> Ad and tracker blocking is built in, but third-party extensions remain unavailable. Optional macOS 1Password login fill is a narrow, user-invoked SDK bridge to the installed 1Password app—not an extension runtime or a Blanc password store.</p>
       <p><strong>No built-in agent.</strong> Blanc does not place an assistant between you and the websites you choose to visit.</p>
       <p><strong>No growth-at-all-costs business model.</strong> Anthony J. Loria builds Blanc independently through Bananify. The browser is free; an optional Blanc Patron subscription funds the work and adds three macOS Dock colorways plus named workspaces on every platform.</p>
     </div>

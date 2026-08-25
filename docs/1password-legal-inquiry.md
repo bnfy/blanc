@@ -1,10 +1,11 @@
 # 1Password SDK — terms/compliance inquiry
 
-> **Historical record.** The experiment was fully removed from Blanc on
-> August 12, 2026. No 1Password SDK, credential-fill code, runtime toggle, or
-> library-validation entitlement is present in the shipping tree. Any future
-> proposal starts from a new threat model and legal review; this document does
-> not authorize reintroducing the retired spike.
+> **Historical inquiry and current decision record.** The original spike was
+> fully removed from Blanc on August 12, 2026. On August 23 the product owner
+> superseded the personal-only decision and authorized a new, independently
+> threat-modeled production candidate under the risk-accept path recorded at
+> the end of this document. The current design and release gates live in
+> [`1password-integration.md`](1password-integration.md).
 
 **Purpose:** Blanc's built-in 1Password fill (branch `feature/1password-fill`) is technically proven feasible (see `docs/superpowers/specs/2026-07-12-1password-autofill-spike-design.md` → Findings). Before building the *shippable* engine, one clause in 1Password's [API and SDK Terms of Service](https://1password.com/legal/api-sdk-terms-of-service) — **§4.1(e)**, the competitive/replication restriction — needs written confirmation from 1Password. This file holds the inquiry and (later) their reply, so the answer lives beside the code that depends on it.
 
@@ -111,9 +112,24 @@ Paperwork/policy layer — *not code blockers*, and the spike already satisfies 
 | **Personal-only** *(current state)* | None | Zero terms risk; feature stays local to the developer |
 | **Shelve distribution, keep the work** | None | Branch + specs stay intact if the picture changes (clearer guidance, a partner program, or counsel later) |
 
-**Current decision (2026-07-17): personal-only / distribution shelved.** The dev
-build stays in use; the shippable engine is not being built. Revisit if/when
-counsel review is worth the cost or 1Password's published guidance changes.
+**Superseded decision (2026-07-17): personal-only / distribution shelved.** This
+was the decision that retired the spike before Blanc 1.0.
+
+**Current owner decision (2026-08-23): risk-accept and prepare for distribution.**
+The product owner determined that Blanc is complementary rather than competitive:
+it gives users quick access to login data in their existing 1Password account and
+cannot function as this feature without that account. The production implementation
+is therefore authorized for the next build, subject to the technical and release
+gates in `docs/1password-integration.md`. This is a recorded owner risk decision,
+not a claim that 1Password pre-approved the integration or legal advice.
+
+The production candidate is deliberately more transparent than the old email's
+“selected item only” shorthand: SDK authorization can cover the approved account,
+and Blanc lists vault/Login overview metadata for local website matching and a
+metadata-only chooser of at most ten items. Only the selected full item is read;
+from it, only the built-in fields required by the page leave the broker, and a
+username-only page does not request its password. None of those values persist,
+sync, log, enter telemetry, or cross renderer IPC.
 
 **Standing arguments for the record** (if this is revisited — *product/legal
 reasoning, not legal advice*): the API/SDK Terms grant "incorporate and distribute

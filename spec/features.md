@@ -145,8 +145,8 @@ toolbar (Bowser Design System "Island Chrome").
 
 ## F7 — Slash commands
 
-Typed into the command bar. The full set (names + hints are the contract, shared
-copy → substrate):
+Typed into the command bar. Names + hints are the shared-copy contract below;
+`/1password` is the one platform-specific entry and appears only on macOS (D26):
 
 | Command | Hint |
 |---------|------|
@@ -166,6 +166,7 @@ copy → substrate):
 | `/find` | Find in page |
 | `/block-ads` | Toggle ad & tracker blocking |
 | `/allow-ads` | Allow ads on this site |
+| `/1password` | Fill a login from 1Password (macOS only) |
 | `/theme [system\|light\|dark]` | Cycle appearance, or switch directly to system, light, or dark |
 
 - Prefix filtering: typing `/gr` narrows to `/group`; typing `/` alone lists all.
@@ -278,6 +279,8 @@ From the desktop `DEFAULTS`:
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
 | `appIcon` | `paper` | a free icon id, or a supporter id **iff** supporter active |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
+| `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
+| `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
 | `usagePing` | `true` | boolean (F21) |
 | `supporter` | `null` | written only by the activation flow, never generic writes (F17) |
 
@@ -424,7 +427,9 @@ From the desktop `DEFAULTS`:
   limitation (vendor code-signature allowlists) does not apply (D12). `N/A` on
   desktop for credential providers; desktop *does* offer **device-bound Secure
   Enclave passkeys** via Touch ID in signed builds (Blanc's own keychain access
-  group, not iCloud-synced), with private-tab passkeys ephemeral per D16.
+  group, not iCloud-synced), with private-tab passkeys ephemeral per D16. F38's
+  explicit 1Password SDK bridge is separate from system credential-provider
+  AutoFill.
 - **Acceptance:** On a login form in a Blanc tab, the OS AutoFill affordance offers
   saved credentials; a passkey sign-in invokes the platform authenticator.
 
@@ -761,3 +766,37 @@ From the desktop `DEFAULTS`:
   typing on a blank tab whose *page content* holds focus opens the island
   carrying that character, and that the commands affordance opens the command
   list.
+
+## F38 — Fill a login from 1Password (macOS)
+
+- On macOS, Blanc can ask the user's installed 1Password app for Login items that
+  match the active HTTP(S) page, then fill the selected item's built-in username
+  and current-password fields. This is an explicit bridge to the user's existing
+  1Password account, not a Blanc password store: Blanc cannot provide the
+  feature without that account and app (D26).
+- The integration is off by default, device-local, and never Profile Synced.
+  It starts only from **View → Fill Login from 1Password**, the platform shortcut
+  where one is safe, or `/1password`; there is no background lookup, automatic
+  fill, save/update, password generation, TOTP, passkey, payment-card, bulk
+  export, or service-account flow.
+- Before asking 1Password for anything, Blanc must find a safe login target in
+  the focused top-level document. It honors each saved website's
+  `AnywhereOnWebsite`, `ExactDomain`, or `Never` behavior, keeps matching
+  one-way from a saved parent site to its subdomains, and never guesses across
+  sibling or parent domains. Signup/new-password, ambiguous, hidden, search,
+  and newsletter fields fail closed; a heuristic current-password target needs
+  an extra confirmation.
+- If several Login items match, a native picker shows at most ten choices. The
+  page never receives vault/item identifiers or candidate data. Only the chosen
+  username/password may reach a dedicated isolated world, and only after the
+  window, tab, navigation, URL, document, and exact DOM elements are
+  revalidated. No credential is written to disk, sync, logs, telemetry, crash
+  reports, or chrome-renderer IPC. The same explicit flow may be used in a
+  private tab without changing private-history/session rules.
+- **Acceptance:**
+  [`acceptance/platform-services.feature`](./acceptance/platform-services.feature)
+  verifies off-by-default behavior, saved-website policy, bounded selection,
+  target-change cancellation, signup refusal, and absence of persistence or
+  background access. A release additionally needs a signed packaged test with
+  a real installed 1Password desktop app on macOS. Windows and Linux must prove
+  the feature is unavailable and cannot start its broker.

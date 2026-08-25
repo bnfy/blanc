@@ -51,24 +51,29 @@ must not be asked to copy, paste, or reconstruct the command. The release must
 remain visible and interactive; this is not permission for a background
 wrapper.
 
-### Private Windows validation before a hotfix release
+### Private Windows and Linux validation before release
 
-When a Windows fix needs affected-machine confirmation, build a signed
-candidate without creating a tag, draft, or public updater entry:
+When a platform feature needs affected-machine confirmation, build private
+candidates without creating a tag, draft, or public updater entry:
 
 ```sh
 gh workflow run release-windows-linux.yml \
   --repo bnfy/blanc \
   --ref <candidate-branch> \
   -f mode=validation \
-  -f platform=windows
+  -f platform=all
 ```
 
 The Windows runner applies the normal fail-closed signing, timestamp, fuse, and
 artifact checks, then stores the installer, blockmap, signature record, and
 `latest.yml` together as a private GitHub Actions artifact for three days.
-Validation mode cannot upload to a GitHub Release and never runs the Linux job.
-Install that candidate on the affected Windows machine and get the user's
+The Linux runner applies the normal AppImage, fuse, and packaged-payload checks,
+then stores the AppImage and `latest-linux.yml` in a separate private artifact
+with the same retention. Linux has no OS-level publisher signature, so retain
+the GitHub Actions run as the source-commit record for the candidate. Select
+`platform=windows` or `platform=linux` when only one candidate is needed.
+Validation mode cannot create or modify a GitHub Release or public updater
+entry. Install the candidate on each affected machine and get the user's
 explicit confirmation before merging, tagging, or starting the public release.
 The public release path is separate: `scripts/release.sh` explicitly dispatches
 the workflow with `mode=release`.

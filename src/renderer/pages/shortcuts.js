@@ -22,6 +22,7 @@ const SLASH_COMMANDS = [
   ['/find', 'Find in page'],
   ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
+  ['/1password', 'Fill a login from 1Password'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
   ['/patron', 'Support Blanc with a Patron subscription'],
   ['/workspace', 'Switch to a named workspace, or type a new name to save this window'],
@@ -52,7 +53,10 @@ function section(title, pairs) {
 }
 
 (async () => {
-  const rows = await window.bowserPages.shortcuts.list();
+  const response = await window.bowserPages.shortcuts.list();
+  const rows = Array.isArray(response) ? response : (response.rows ?? []);
+  const onePasswordAvailable = !Array.isArray(response) &&
+    response.onePasswordAvailable === true;
   const byCategory = new Map();
   for (const row of rows) {
     if (!byCategory.has(row.category)) byCategory.set(row.category, []);
@@ -60,5 +64,7 @@ function section(title, pairs) {
   }
   const root = document.getElementById('sections');
   for (const [title, pairs] of byCategory) root.appendChild(section(title, pairs));
-  root.appendChild(section('Slash Commands', SLASH_COMMANDS.map(([cmd, hint]) => [hint, cmd])));
+  const slashCommands = SLASH_COMMANDS
+    .filter(([cmd]) => onePasswordAvailable || cmd !== '/1password');
+  root.appendChild(section('Slash Commands', slashCommands.map(([cmd, hint]) => [hint, cmd])));
 })();

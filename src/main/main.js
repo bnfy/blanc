@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -163,6 +163,9 @@ const { showAboutPanel } = require('./about-panel');
 const { externalUrlActivationPlan, webUrlsFromArgv } = require('./startup-urls');
 const { bringExternalWindowToFront } = require('./window-activation');
 const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
+const { createOnePasswordClient } = require('./onepassword-client');
+const { isOnePasswordAvailable } = require('./onepassword-availability');
+const { createCredentialFillController } = require('./credential-fill-controller');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
@@ -175,6 +178,15 @@ const namedWorkspaces = require('./workspaces');
 const {
   resolveOpen, scratchSwitchGuardResult, bindingsAfterSwap, bindingsAfterUnbind, bindingsAfterDelete,
 } = require('./workspaces-model');
+
+// The SDK never loads in main. The first production release is macOS-only;
+// unsupported platforms do not even create the lazy client, so no command can
+// fork a credential broker there. On macOS the Plugin utility process still
+// starts only after an explicit Fill command reaches the controller below.
+const ONE_PASSWORD_AVAILABLE = isOnePasswordAvailable();
+const onePasswordBroker = ONE_PASSWORD_AVAILABLE
+  ? createOnePasswordClient({ utilityProcess })
+  : null;
 
 const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
@@ -318,8 +330,11 @@ settings.setExistingProfileHint(
   )
 );
 
-// One instance per profile: a second launch defers to the first.
-if (!app.requestSingleInstanceLock()) {
+// One production instance per profile: a second launch defers to the first.
+// The unpackaged acceptance harness already has a unique userData directory;
+// do not let a running installed Blanc make isolated test launches impossible.
+// acceptanceTestMode is airtight (`!app.isPackaged && BLANC_TEST === '1'`).
+if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
   app.quit();
 } else {
   app.on('second-instance', (_e, commandLine) => {
@@ -340,7 +355,9 @@ if (!app.requestSingleInstanceLock()) {
   // extension profile state from older versions is cleared below. (The
   // profile's 'Service Worker' dir is left alone — it also holds ordinary
   // websites' service workers, and with no extension runtime a stale
-  // extension worker registration in there is inert.)
+  // extension worker registration in there is inert.) The separate opt-in
+  // 1Password SDK integration does not restore an extension runtime: its
+  // native bridge is isolated in one utility process and runs only on Fill.
   const staleExtensionState = [
     'Extensions', 'Extension State', 'Extension Scripts', 'Extension Rules', '.running',
   ];
@@ -1517,6 +1534,10 @@ function cancelPermissionPromptsForTab(tabId) {
 // one coherent value throughout a layout transition.
 const initialPresentationSettings = settings.getSettings();
 let tabLayout = normalizeTabLayout(initialPresentationSettings.tabLayout);
+let onePasswordConfigurationKey = JSON.stringify([
+  initialPresentationSettings.onePasswordEnabled,
+  initialPresentationSettings.onePasswordAccount,
+]);
 // This is the saved preference, not necessarily the current rendered width.
 // calculateChromeLayout temporarily caps it when the window is too narrow to
 // preserve the 392px website pane.
@@ -2256,6 +2277,67 @@ function hideUtilitySheet({ refocusContent = true } = {}) {
   if (refocusContent) liveContents(tabs.get(runtime.activeTabId))?.focus();
 }
 
+let onePasswordFillController = null;
+
+function captureOnePasswordTarget(runtime) {
+  if (!runtime || !runtime.window || runtime.window.isDestroyed()) return null;
+  const tab = tabs.get(runtime.activeTabId);
+  const wc = liveContents(tab);
+  if (!tab || !wc || wc.isDestroyed()) return null;
+  const island = runtime.islandRect;
+  return {
+    runtime,
+    runtimeId: runtime.id,
+    tabId: tab.id,
+    navEpoch: tab.navEpoch,
+    url: wc.getURL(),
+    webContents: wc,
+    window: runtime.window,
+    pickerPoint: island
+      ? { x: island.x + Math.round(island.width / 2), y: island.y + island.height }
+      : { x: 16, y: runtime.chromeHeight },
+  };
+}
+
+function isOnePasswordTargetCurrent(target) {
+  if (!target?.runtime || target.runtime.id !== target.runtimeId) return false;
+  if (!target.window || target.window.isDestroyed()) return false;
+  if (target.runtime.activeTabId !== target.tabId) return false;
+  const tab = tabs.get(target.tabId);
+  if (!tab || tab.navEpoch !== target.navEpoch) return false;
+  const wc = liveContents(tab);
+  return wc === target.webContents && !wc.isDestroyed() && wc.getURL() === target.url;
+}
+
+function prepareOnePasswordTarget(runtime) {
+  return withWindowRuntime(runtime, () => {
+    hideOverlay({ refocusContent: false });
+    hideUtilitySheet({ refocusContent: false });
+  });
+}
+
+function getOnePasswordFillController() {
+  if (!ONE_PASSWORD_AVAILABLE) return null;
+  if (!onePasswordFillController) {
+    onePasswordFillController = createCredentialFillController({
+      broker: onePasswordBroker,
+      Menu,
+      dialog,
+      getSettings: settings.getSettings,
+      captureTarget: captureOnePasswordTarget,
+      isTargetCurrent: isOnePasswordTargetCurrent,
+      prepareTarget: prepareOnePasswordTarget,
+      openSettings: () => openInternalPage('blanc://settings/'),
+    });
+  }
+  return onePasswordFillController;
+}
+
+function fillLoginFromOnePassword() {
+  const controller = getOnePasswordFillController();
+  return controller ? controller.fill(rt()) : Promise.resolve(false);
+}
+
 function normalizeAddressInput(input) {
   const trimmed = input.trim();
   const scheme = trimmed.match(/^([a-zA-Z][a-zA-Z0-9+.-]*):\/\//)?.[1]?.toLowerCase();
@@ -2424,6 +2506,7 @@ let isQuitting = false;
 let sessionPersistenceSuspended = false;
 app.on('before-quit', () => {
   isQuitting = true;
+  onePasswordBroker?.stop();
   for (const snapshot of [...sleepSnapshots.values()]) {
     const wc = snapshot.view?.webContents;
     if (wc && !wc.isDestroyed()) wc.close();
@@ -5151,6 +5234,9 @@ function registerIpcHandlers() {
   chromeHandle('chrome:history-list', (_e, opts) => history.listHistory(opts ?? {}));
   chromeHandle('chrome:favorites-list', () => bookmarks.listBookmarks());
   chromeHandle('chrome:remote-tabs-list', () => sync.listRemoteDevices());
+  if (ONE_PASSWORD_AVAILABLE) {
+    chromeHandle('chrome:onepassword-fill', () => fillLoginFromOnePassword());
+  }
 
   // Named Workspaces. Per the locked spec, Patron only ever ADDS: list/open/
   // rename/remove stay fully usable on a lapsed Patron (it's the user's own
@@ -5459,6 +5545,7 @@ const SLASH_COMMANDS = [
   ['/find', 'Find in page'],
   ['/block-ads', 'Block ads here, or toggle blocking everywhere'],
   ['/allow-ads', 'Allow ads on this site'],
+  ['/1password', 'Fill a login from 1Password'],
   ['/theme [system|light|dark]', 'Cycle appearance, or switch directly to system, light, or dark'],
   ['/patron', 'Support Blanc with a Patron subscription'],
   ['/workspace', 'Switch to a named workspace, or type a new name to save this window'],
@@ -5472,6 +5559,9 @@ const SLASH_COMMANDS = [
 const LAST_ACTIVE_TAB_ACCELERATOR = process.platform === 'darwin'
   ? 'Cmd+Alt+Z'
   : null;
+const ONE_PASSWORD_ACCELERATOR = ONE_PASSWORD_AVAILABLE
+  ? 'Cmd+Alt+P'
+  : null;
 const COMMON_KEYSTROKES = [
   ['New Window', 'CmdOrCtrl+N'],
   ['New Tab', 'CmdOrCtrl+T'],
@@ -5480,6 +5570,9 @@ const COMMON_KEYSTROKES = [
   ['Reopen Closed Tab', 'CmdOrCtrl+Shift+T'],
   ['Search & Commands', 'CmdOrCtrl+L'],
   ['Find in Page', 'CmdOrCtrl+F'],
+  ...(ONE_PASSWORD_ACCELERATOR
+    ? [['Fill Login from 1Password', ONE_PASSWORD_ACCELERATOR]]
+    : []),
   ['Toggle Vertical Tabs', 'CmdOrCtrl+Alt+V'],
   ['Open or Close Glance', 'CmdOrCtrl+Shift+G'],
   ...(LAST_ACTIVE_TAB_ACCELERATOR
@@ -5574,6 +5667,11 @@ function buildMenuForRuntime(runtime) {
       submenu: [
         { label: mn('Search & Commands'), accelerator: 'CmdOrCtrl+L', click: bound(toggleIsland) },
         { label: 'Find…', accelerator: 'CmdOrCtrl+F', click: bound(openFindBar) },
+        ...(ONE_PASSWORD_AVAILABLE ? [{
+          label: 'Fill Login from 1Password',
+          accelerator: ONE_PASSWORD_ACCELERATOR,
+          click: bound(fillLoginFromOnePassword),
+        }] : []),
         { label: 'Reload Tab', accelerator: 'CmdOrCtrl+R', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.reload()) },
         { label: 'Hard Reload Tab (Bypass Cache)', accelerator: 'CmdOrCtrl+Shift+R', click: bound(() => rt().activeTabId && tabs.get(rt().activeTabId)?.view.webContents.reloadIgnoringCache()) },
         { label: 'Zoom In', accelerator: 'CmdOrCtrl+Plus', click: bound(() => zoomActiveTab(ZOOM_STEP)) },
@@ -5705,7 +5803,9 @@ function buildMenuForRuntime(runtime) {
           label: 'Slash Commands',
           // Plain reference rows, not disabled — legible at a glance, and a
           // stray click just closes the menu since none of them has a handler.
-          submenu: SLASH_COMMANDS.map(([cmd, hint]) => ({ label: mn(`${cmd} — ${hint}`) })),
+          submenu: SLASH_COMMANDS
+            .filter(([cmd]) => ONE_PASSWORD_AVAILABLE || cmd !== '/1password')
+            .map(([cmd, hint]) => ({ label: mn(`${cmd} — ${hint}`) })),
         },
         {
           label: 'Keyboard Shortcuts',
@@ -6812,7 +6912,13 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     },
     // listShortcuts() reads only the live Electron application menu — no
     // runtime-owned state — so this one hook is left unwrapped.
-    shortcuts: { list: listShortcuts },
+    shortcuts: {
+      list: () => ({
+        rows: listShortcuts(),
+        onePasswordAvailable: ONE_PASSWORD_AVAILABLE,
+      }),
+    },
+    onePasswordAvailable: () => ONE_PASSWORD_AVAILABLE,
   });
 
   const configuredProfileSessions = new Set([DEFAULT_PROFILE_ID]);
@@ -6884,6 +6990,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      probeOnePasswordPackage: () => ONE_PASSWORD_AVAILABLE
+        ? onePasswordBroker.probePackage()
+        : Promise.resolve({ available: false, loaded: false, processCount: 0 }),
       runBlockAdsCommand, runAllowAdsCommand,
       getOverlayMode: () => rt().overlayMode, showOverlay, hideOverlay, getPrivateBrowsingSession,
       showUtilityPage, hideUtilitySheet,
@@ -6980,6 +7089,16 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // from setSettings()/etc, which can be reached from pages.js's OWN unbound
   // 'pages:settings:set' IPC handler — not only from already-bound callers here.
   settings.onSettingsChanged((s) => {
+    const nextOnePasswordConfigurationKey = JSON.stringify([
+      s.onePasswordEnabled,
+      s.onePasswordAccount,
+    ]);
+    if (nextOnePasswordConfigurationKey !== onePasswordConfigurationKey) {
+      onePasswordConfigurationKey = nextOnePasswordConfigurationKey;
+      // A disable/account change ends the old account-scoped SDK client
+      // immediately; no authorization handle survives under a new setting.
+      onePasswordBroker?.stop();
+    }
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();
     applyAppIcon();

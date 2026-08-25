@@ -83,6 +83,7 @@ function install(refs) {
     isSessionPersistenceReady,
     getRailActivationSerial,
     normalizeAddressInput,
+    probeOnePasswordPackage,
     pasteAndGo,
     handoffProtocols,
     openInternalPage,
@@ -407,6 +408,14 @@ function install(refs) {
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
+    async probeOnePasswordUtilityProcess() {
+      const result = await probeOnePasswordPackage();
+      return {
+        ...result,
+        processCount: app.getAppMetrics()
+          .filter((metric) => metric.name === 'Blanc Credential Broker').length,
+      };
+    },
     // The REAL handler body from main.js, not a copy of it — a mirror here
     // would keep the suite green even with the shipping handler reverted to
     // the bare global toggle this whole change exists to fix.
@@ -1455,6 +1464,8 @@ function install(refs) {
         verticalTabsWidth: 248,
         appIcon: 'paper',
         adblockExceptions: [],
+        onePasswordEnabled: false,
+        onePasswordAccount: '',
         tabSleep: '1h',
         // The launch-time auto-complete records false; F36-2 seeds true and
         // relies on Skip to overwrite it — a failure before Skip must not
