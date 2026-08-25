@@ -13,11 +13,10 @@ Plus favorites, history, downloads, settings, private tabs, per-site
 permission prompts, session restore, and signed + notarized auto-updating
 macOS builds.
 
-> **Release/source boundary:** downloads are currently v1.8.2. The default
-> branch includes the post-v1.8.2 Island-dot refinement, updated app icons,
-> and optional macOS 1Password login fill; use the
-> [v1.8.2 tag](https://github.com/bnfy/blanc/tree/v1.8.2) for the source snapshot
-> associated with the current public binaries.
+> **Current release:** v1.9.0 includes the refined Island tab dots, updated app
+> icons, and optional macOS 1Password login fill. Use the
+> [v1.9.0 tag](https://github.com/bnfy/blanc/tree/v1.9.0) for the exact source
+> snapshot associated with the public binaries.
 
 ## Source and license
 
@@ -88,13 +87,10 @@ window-wide `+N` counts every omitted tab and opens the full list. Accent means
 active, pulsing means loading, and hollow means private. Quiet tabs keep their
 normal dot and click-to-wake behavior.
 
-The downloadable v1.8.2 build instead limits those eight dots to the active
-tab's group (or the ungrouped set); its `+N` counts overflow within that
-context, while other groups live in the expanded panel. Both versions also
-show the active site's favicon and domain and the count of ads/trackers blocked
-on the page. Click a dot to switch tabs without expanding. The strip behind
-the pill tints itself with the page's own top-edge color, so the chrome reads
-as a continuation of the site rather than a bar above it.
+The pill also shows the active site's favicon and domain and the count of
+ads/trackers blocked on the page. Click a dot to switch tabs without expanding.
+The strip behind the pill tints itself with the page's own top-edge color, so
+the chrome reads as a continuation of the site rather than a bar above it.
 
 **Expanded command bar** (click the pill): address input,
 back/forward/reload, favorite (heart), and a tab switcher. `Cmd/Ctrl+L`

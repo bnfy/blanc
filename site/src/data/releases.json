@@ -1,5 +1,92 @@
 [
   {
+    "tag": "v1.9.0",
+    "version": "1.9.0",
+    "name": "1.9.0",
+    "publishedAt": "2026-08-25T04:09:19.000Z",
+    "humanDate": "August 25, 2026",
+    "machineDate": "2026-08-25",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.9.0",
+    "anchor": "v1-9-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, Blanc can now fill a login from the installed 1Password app when you explicitly ask it to. Enable the device-local option in Settings, then use Option-Command-P, View → Fill Login from 1Password, or "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/1password"
+                  },
+                  {
+                    "type": "text",
+                    "value": ". Blanc never fills automatically, and Windows and Linux do not expose the integration."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's app icons now use a stronger, more legible mark across macOS, Windows, Linux, iOS, the start page, Settings colorways, and exported artwork."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The browser engine has been updated to Electron 44 and its current Chromium release."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Quiet tabs remain represented in the Island's tab dots, preserving their normal order and click-to-wake behavior while using a calm dimmed treatment."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.8.2",
     "version": "1.8.2",
     "name": "1.8.2",
