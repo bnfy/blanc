@@ -705,7 +705,7 @@ function install(refs) {
       // acceptance binding exercises the real field-read path, not a copy.
       return readAddressFieldText(wc);
     },
-    addressMenu({ fieldText }) {
+    async addressMenu({ fieldText }) {
       return buildAddressMenu({
         // In the real event Blink reports all-true flags for a focused,
         // populated input; the flag→enabled mapping is unit-tested.
@@ -713,7 +713,7 @@ function install(refs) {
           canUndo: true, canRedo: true, canCut: true, canCopy: true,
           canPaste: true, canDelete: true, canSelectAll: true,
         },
-        clipboardText: clipboard.readText(),
+        clipboardText: await clipboard.readText(),
         fieldText,
       });
     },

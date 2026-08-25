@@ -39,7 +39,7 @@ function isAddressMenuAttached() { return attachedCount > 0; }
 /** Execute one menu item. Exported separately so the acceptance test hook can
  * drive the exact action path a native popup click runs (a native Menu can't
  * be driven by Playwright). */
-function runAddressMenuItem(id, { wc, fieldText, actions }) {
+async function runAddressMenuItem(id, { wc, fieldText, actions }) {
   switch (id) {
     // Explicit calls (not menu roles) so edits always target the overlay,
     // never whatever happens to hold focus — same reasoning as context-menu.js.
@@ -56,7 +56,12 @@ function runAddressMenuItem(id, { wc, fieldText, actions }) {
       return;
     }
     case 'paste-and-go': {
-      const text = clipboard.readText().trim();
+      let text;
+      try {
+        text = (await clipboard.readText()).trim();
+      } catch {
+        return;
+      }
       if (text) actions.pasteAndGo(text);
       return;
     }
@@ -89,14 +94,21 @@ function attachAddressMenu(wc, deps) {
       return; // overlay destroyed or mid-navigation — no menu, no fallback
     }
     if (typeof fieldText !== 'string') return; // not the address input
-    // The await opened a lifecycle window: Escape can race the right-click
+    let clipboardText;
+    try {
+      clipboardText = await clipboard.readText();
+    } catch {
+      return;
+    }
+
+    // The awaits opened a lifecycle window: Escape can race the right-click
     // and dismiss the overlay. Revalidate before popping, or the menu would
     // float over nothing.
     if (!deps.isOverlayLive()) return;
 
     const items = buildAddressMenu({
       editFlags: params.editFlags,
-      clipboardText: clipboard.readText(),
+      clipboardText,
       fieldText,
     });
     const menu = Menu.buildFromTemplate(items.map((item) =>

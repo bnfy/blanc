@@ -14,7 +14,8 @@ permission prompts, session restore, and signed + notarized auto-updating
 macOS builds.
 
 > **Release/source boundary:** downloads are currently v1.8.2. The default
-> branch includes a post-v1.8.2 Island-dot refinement; use the
+> branch includes the post-v1.8.2 Island-dot refinement, updated app icons,
+> and optional macOS 1Password login fill; use the
 > [v1.8.2 tag](https://github.com/bnfy/blanc/tree/v1.8.2) for the source snapshot
 > associated with the current public binaries.
 
