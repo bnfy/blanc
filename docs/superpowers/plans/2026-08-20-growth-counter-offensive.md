@@ -960,12 +960,26 @@ Total ~20s. No narration, no captions burned in — it gets reposted in contexts
 
 - [ ] **Step 3: Convert colour space**
 
-Capture is P3; convert to sRGB or the colours shift in every browser that renders it.
+Run the checked-in exporter. It inspects the source metadata, converts a
+non-BT.709 input rather than merely relabelling it, emits a 30 fps H.264 MP4,
+and fails if the final capture is not 18–24 seconds:
+
+```bash
+scripts/export-launch-demo.sh
+```
+
+The existing raw captures are already tagged BT.709. A new Screen Recording
+may instead be Display P3; the exporter handles either case but fails closed if
+the input metadata is missing.
 
 - [ ] **Step 4: Export both forms**
 
 - MP4 (Reddit and the source upload for Product Hunt's required YouTube URL)
 - GIF under 8MB (Hacker News comments, inline embeds)
+
+The exporter tries progressively smaller GIF presets and refuses to report
+success unless `island-demo.gif` is below 8 MiB. Do not hand-wave a larger
+file as “close enough.”
 
 - [ ] **Step 5: Store it**
 
