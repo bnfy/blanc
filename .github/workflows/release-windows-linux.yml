@@ -219,6 +219,7 @@ jobs:
       - run: npm ci
 
       - name: Verify tag matches package version
+        if: ${{ inputs.mode == 'release' }}
         env:
           RELEASE_TAG: ${{ inputs.tag }}
         run: |

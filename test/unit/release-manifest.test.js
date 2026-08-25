@@ -173,6 +173,11 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.match(releaseWorkflow, /Blanc-Linux-\$\{\{ github\.run_id \}\}-validation/);
   assert.match(releaseWorkflow, /actions\/upload-artifact@[0-9a-f]{40}/);
   assert.match(releaseWorkflow, /retention-days: 3/);
+  assert.equal(
+    (releaseWorkflow.match(/Verify tag matches package version\s+if: \$\{\{ inputs\.mode == 'release' \}\}/g) ?? []).length,
+    2,
+    'Windows and Linux tag/version checks must be skipped for tagless validation builds'
+  );
   assert.match(releaseWorkflow, /if: \$\{\{ inputs\.mode == 'release' \}\}\s+shell: bash\s+env:\s+GH_TOKEN:/);
   assert.match(releaseWorkflow, /if: \$\{\{ inputs\.mode == 'validation' \}\}\s+uses: actions\/upload-artifact/);
   assert.match(releaseWorkflow, /\(inputs\.mode == 'release' \|\| inputs\.mode == 'validation'\) && \(inputs\.platform == 'all' \|\| inputs\.platform == 'linux'\)/);
