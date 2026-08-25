@@ -51,6 +51,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Verify 1Password utility process
+        run: npm run test:onepassword:utility
+
       - name: Verify tag matches package version
         if: ${{ inputs.mode == 'release' }}
         shell: bash
@@ -217,6 +220,9 @@ jobs:
           node-version: 22
 
       - run: npm ci
+
+      - name: Verify 1Password utility process
+        run: xvfb-run -a npm run test:onepassword:utility
 
       - name: Verify tag matches package version
         if: ${{ inputs.mode == 'release' }}
