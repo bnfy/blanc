@@ -52,7 +52,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F2-5 | Reopen-closed history is workspace-local | D11 | ✅ | ➖ | ➖ |
 | F2-6 | Closing a group is one undo step | — | ✅ | ⬜ | ⬜ |
 | F3-1 | `/group` creates + moves | — | ✅ | ⬜ | ⬜ |
-| F3-2 | Pill's dots render only active group | — | ✅ | ⬜ | ⬜ |
+| F3-2 | Pill shows pins + active section + global remainder | — | ✅ | ⬜ | ⬜ |
 | F3-3 | Collapse tucks tabs away | — | ✅ | ⬜ | ⬜ |
 | F3-4 | Last tab prunes group | — | ✅ | ⬜ | ⬜ |
 | F3-5 | Grouped pin stays in group | — | ✅ | ⬜ | ⬜ |

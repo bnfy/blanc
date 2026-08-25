@@ -13,7 +13,7 @@ Feature: Island chrome, command palette, and slash commands
     And the active tab is in "work" on a page where 2 requests were blocked
     When the island is at rest
     Then the island shows back and forward controls
-    And the island shows 3 group dots
+    And the island shows 3 direct tab dots
     And the island shows the active page's domain
     And the island shows a shield count of 2
     And the island shows the trailing action cluster

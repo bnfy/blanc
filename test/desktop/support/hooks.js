@@ -196,6 +196,8 @@ Before(async function () {
   ctx.enteredInput = null;
   ctx.addressMenuItems = null;
   ctx.addressMenuFieldText = null;
+  ctx.groupMembers = null;
+  ctx.standalonePinnedTabId = null;
   await callTestHook(ctx.app, 'reset');
 });
 
