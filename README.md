@@ -76,12 +76,14 @@ electron-builder derives the .icns/.ico from it automatically.
 
 ## The island
 
-**Resting pill:** one dot per open tab (accent = active, pulsing =
-loading, hollow = private), the active site's favicon and domain, and the
-count of ads/trackers blocked on the page. Click a dot to switch tabs
-without expanding. The strip behind the pill tints itself with the page's
-own top-edge color, so the chrome reads as a continuation of the site
-rather than a bar above it.
+**Resting pill:** up to eight dots from the active tab's group (or the
+ungrouped set), with accent = active, pulsing = loading, and hollow = private.
+When that context has more tabs, a `+N` control opens the full list; other
+groups live in the expanded panel. The pill also shows the active site's
+favicon and domain and the count of ads/trackers blocked on the page. Click a
+dot to switch tabs without expanding. The strip behind the pill tints itself
+with the page's own top-edge color, so the chrome reads as a continuation of
+the site rather than a bar above it.
 
 **Expanded command bar** (click the pill): address input,
 back/forward/reload, favorite (heart), and a tab switcher. `Cmd/Ctrl+L`

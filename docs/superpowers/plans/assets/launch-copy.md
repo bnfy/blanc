@@ -7,6 +7,11 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
+**Release lock:** This pack describes packaged public v1.8.2. Do not use UI or
+claims from the unreleased 1Password, tab-import, or revised Island-dot work.
+If any of that work reaches `main` before launch, stop and re-audit the README,
+demo, frozen facts, and every channel draft before publishing.
+
 ## Frozen facts
 
 | Claim | Launch truth |
