@@ -1362,7 +1362,7 @@ button.insecure-badge {
 }
 /* Pixel-grid snap for the pill's favicon: under the pill's zoom the base
    14px box lands on a fractional 16.09px, and the internal pages' Blanc
-   mark — fine line art whose strokes are already sub-pixel at this size —
+   mark — detailed artwork whose edges are already sub-pixel at this size —
    rasterizes visibly mushy off the integer grid. Pre-divide so the
    post-zoom box is exactly 16px. (Pill only: the overlay panel's .favicon
    rows aren't zoomed and stay on the plain 14px.) */

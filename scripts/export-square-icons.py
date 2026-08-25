@@ -24,8 +24,8 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 SRC_DIR = os.path.join(ROOT, "src/renderer/pages")
 OUT_DIR = os.path.join(ROOT, "export/app-icons-1024-square")
 
-# Centered region that fully contains the mark (ink bbox ~x[341,731]
-# y[251,772]) while staying clear of paper's edge ring (<108px in).
+# Centered region that fully contains the mark (ink bbox ~x[330,741]
+# y[240,783]) while staying clear of paper's edge ring (<108px in).
 BOX = (170, 170, 854, 854)
 
 # Free colorways first (settings.js APP_ICON_LABELS order), then supporter.

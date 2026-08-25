@@ -133,7 +133,7 @@ test('Windows enlarges the Blanc mark without changing the full-size Paper tile'
     }
   }
   const markHeightRatio = (darkBounds.maxY - darkBounds.minY + 1) / info.height;
-  assert.ok(markHeightRatio >= 0.68 && markHeightRatio <= 0.72, markHeightRatio);
+  assert.ok(markHeightRatio >= 0.71 && markHeightRatio <= 0.75, markHeightRatio);
 });
 
 test('uses the adaptive named icon in a packaged macOS 26+ build', () => {
@@ -225,7 +225,7 @@ test('sets Blanc’s packaged Windows AppUserModelID before creating taskbar but
 // this test exists to spring. The flat colorway PNGs paint their own 824px
 // squircle inside a 1024 canvas, so their mark reads against 824. The Icon
 // Composer document supplies only the mark — macOS paints the squircle itself,
-// full-bleed at 1024 — so the same 522px mark reads ~19% smaller there. Matching
+// full-bleed at 1024 — so the same 544px mark reads ~19% smaller there. Matching
 // the marks in CANVAS terms (which they did) still leaves the Dock icon visibly
 // changing size between the quit-state bundle icon and the running app.
 // Compare the fraction of the VISIBLE tile instead; that is what the eye sees.
@@ -286,7 +286,7 @@ test('the Icon Composer mark fills the same share of its tile as the flat colorw
     + `but the flat colorways sit at ${(flatOffset * 100).toFixed(2)}% — the mark would jump `
     + 'sideways when the Dock swaps sources. Adjust the translate in blanc-mark.svg.',
   );
-  assert.ok(composed.height > 600 && composed.height < 700, 'mark stays within the icon safe area');
+  assert.ok(composed.height > 650 && composed.height < 700, 'mark stays within the icon safe area');
 });
 
 test('settings exposes icon colorways only on macOS; Patron activation is cross-platform', () => {

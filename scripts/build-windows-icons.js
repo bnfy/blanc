@@ -22,8 +22,8 @@ const WINDOWS_VISIBLE_SCALE = 1;
 // Windows glyphs. Scale only that central region; macOS keeps its source art.
 const WINDOWS_MARK_SCALE = 1.1;
 // Bounds inside the trimmed 824px Paper tile, including an 8px white guard
-// around the 391x522 mark so resampling preserves its antialiased edge.
-const WINDOWS_MARK_REGION = { left: 233, top: 143, width: 407, height: 538 };
+// around the 412x544 mark so resampling preserves its antialiased edge.
+const WINDOWS_MARK_REGION = { left: 222, top: 132, width: 428, height: 560 };
 
 function createIco(frames) {
   const headerSize = 6;
