@@ -107,6 +107,34 @@ states that locking the desktop app immediately revokes every existing SDK
 authorization. The signed macOS functional gate is closed. Windows and Linux
 remain untested.
 
+### Windows/Linux live-gate harness
+
+Run the candidate and this loopback-only fixture server on the same test
+machine:
+
+```sh
+npm run test:onepassword:live-server
+```
+
+The server binds only `127.0.0.1`, accepts GET/HEAD only, never submits forms,
+and never logs requests or field values. Chromium resolves the `.localhost`
+test names to loopback. Keep the terminal open and create disposable Dev-vault
+Login items for these URLs, using the server's printed port (default `48765`):
+
+| Item | Stored website | Autofill behavior |
+| --- | --- | --- |
+| Exact | `http://exact.localhost:48765/login` | ExactDomain |
+| Anywhere | `http://parent.localhost:48765/login` | AnywhereOnWebsite |
+| Never | `http://never.localhost:48765/login` | Never |
+| Second match | `http://exact.localhost:48765/login` | ExactDomain |
+
+Use `http://child.parent.localhost:48765/login` for the one-way subdomain case
+and `http://exact.localhost:48765/signup` for signup refusal. The login page has
+a **Navigate during Fill** link and a local field-state indicator; its Sign in
+button is inert. For the fresh-authorization case, lock 1Password immediately
+before invoking Fill, cancel the prompt, confirm both fields remain empty, then
+retry and confirm the prompt returns and the broker is usable.
+
 ## Frozen names for the first release
 
 The user-facing feature name is **1Password login fill**. The device-local keys
