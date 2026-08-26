@@ -34,6 +34,7 @@ require.cache[electronId] = {
 };
 
 const sync = require('../../src/main/sync');
+sync.setTabStateReady(true);
 
 test('a successful wipe cannot be undone by an already-dispatched PUT', async () => {
   // Fake worker: blobs apply in settlement order, like the real network.

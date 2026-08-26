@@ -62,6 +62,10 @@ function rebind(accountId) {
 
 function exportForSync(ctx) {
   const s = rebind(ctx.accountId);
+  // Missing provider + still sharing: restore has not handed us live tabs yet —
+  // never invent a retraction from that gap (sync.js also gates these stores).
+  // Consent-off is the opposite: pass snapshot=null so the model publishes it.
+  if (!snapshotProvider && ctx.syncTabs) return { devices: s.data.devices };
   // Persist the FULL merged map; upload the budget-trimmed copy. The split
   // lives in the pure, regression-tested model.exportDevices — persisting
   // the trimmed copy would PUT on every refresh (spec §7).

@@ -494,6 +494,9 @@ async function refreshCurrent(ctx, { isCurrent = () => true } = {}) {
 
 function exportForSync(ctx) {
   const s = bindContext(ctx);
+  // Same readiness rule as tabsync: preserve the map only while still sharing
+  // without a provider; consent-off must reach the model with snapshot=null.
+  if (!snapshotProvider && ctx.syncTabs) return { devices: s.data.devices };
   const { store: next, upload } = model.exportDevices({
     devices: s.data.devices,
     deviceId: ctx.deviceId,

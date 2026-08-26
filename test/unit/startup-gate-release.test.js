@@ -75,3 +75,29 @@ test('deferred wakes drain before ordinary startup navigations replay', () => {
   assert.deepEqual(result.woken, ['quiet-a', 'quiet-b']);
   assert.equal(result.pendingWakes.size, 0);
 });
+
+test('profile sync starts only after the complete saved tab set is restored', () => {
+  const initializer = mainSource.indexOf('const startProfileSync = () =>');
+  const syncInit = mainSource.indexOf('sync.init();', initializer);
+  const restore = mainSource.indexOf('const restoredIds = saved.urls.map');
+  const resumePersistence = mainSource.indexOf('sessionPersistenceSuspended = false;', restore);
+  const persist = mainSource.indexOf('persistSession();', resumePersistence);
+  const start = mainSource.indexOf('startProfileSync();', persist);
+
+  assert.ok(initializer >= 0, 'guarded profile-sync initializer is present');
+  assert.ok(syncInit > initializer, 'sync.init lives inside the guarded initializer');
+  assert.ok(restore > syncInit, 'saved tabs restore after the initializer definition');
+  assert.ok(resumePersistence > restore, 'session restore finishes before persistence resumes');
+  assert.ok(persist > resumePersistence, 'the complete restored session is persisted first');
+  assert.ok(start > persist, 'the authoritative tab/icon providers start after restore');
+  assert.equal(
+    mainSource.match(/\bsync\.init\(\);/g)?.length,
+    1,
+    'there is no eager sync.init against the disposable startup tab'
+  );
+  assert.equal(
+    mainSource.match(/\bstartProfileSync\(\);/g)?.length,
+    1,
+    'the startup release owns the single initialization call'
+  );
+});

@@ -56,6 +56,7 @@ fs.writeFileSync(path.join(tmp, 'sync.json'), JSON.stringify({
 }));
 
 const sync = require('../../src/main/sync');
+sync.setTabStateReady(true);
 
 test('credential failures release the sync guard so later passes can retry', async () => {
   const unlockFailure = await sync.syncNow(['icons']);

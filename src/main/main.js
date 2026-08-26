@@ -7125,44 +7125,59 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     }
   });
 
-  // Live tab state for tab sync's snapshot builder. Must be registered
-  // before sync.init() so the launch sync can publish. sync.js/tabicons.js
-  // pull this provider from their own timers/session flows — bind it here
-  // rather than trust every possible caller to already be bound.
-  tabsync.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-    tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
-    groups: rt().groups,
-  })));
-  tabicons.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
-    tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
-  })));
-  // A pull changed the cached device map: push the fresh list to the open
-  // surfaces (overlay panel; any tab currently on the start page).
-  const pushRemoteDevices = () => {
-    forEachWindowRuntime((runtime) => {
-      const devices = sync.listRemoteDevices();
-      runtime.overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
-      for (const id of runtime.tabOrder) {
-        const tab = tabs.get(id);
-        if (!tab?.url?.startsWith('blanc://newtab')) continue;
-        liveContents(tab)?.send('pages:start:remote-tabs', devices);
-      }
-    });
+  let profileSyncStarted = false;
+  /** Start profile/tab sync only after releaseStartup has replaced the
+   * temporary startup tab with the complete restored Personal workspace.
+   * tabicons treats its provider as authoritative and prunes cached pixels
+   * for URLs absent from it; starting against the temporary new-tab record
+   * used to erase every persisted icon on each launch, after which only the
+   * one restored tab that woke could repopulate the sidecar. */
+  const startProfileSync = () => {
+    if (profileSyncStarted) return;
+    profileSyncStarted = true;
+
+    // sync.js/tabicons.js pull these providers from their own timers/session
+    // flows — bind them rather than trust every caller to already be bound.
+    tabsync.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
+      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+      groups: rt().groups,
+    })));
+    tabicons.setSnapshotProvider(bindWindowRuntime(primaryRuntime, () => ({
+      tabList: rt().tabOrder.map((id) => tabs.get(id)).filter(Boolean),
+    })));
+
+    // Session/icon sync may run from palette open or Sync Now before this
+    // point; keep those stores no-ops until the restored tab set is authoritative.
+    sync.setTabStateReady(true);
+
+    // A pull changed the cached device map: push the fresh list to the open
+    // surfaces (overlay panel; any tab currently on the start page).
+    const pushRemoteDevices = () => {
+      forEachWindowRuntime((runtime) => {
+        const devices = sync.listRemoteDevices();
+        runtime.overlayView?.webContents.send('chrome:remote-tabs-updated', devices);
+        for (const id of runtime.tabOrder) {
+          const tab = tabs.get(id);
+          if (!tab?.url?.startsWith('blanc://newtab')) continue;
+          liveContents(tab)?.send('pages:start:remote-tabs', devices);
+        }
+      });
+    };
+    tabsync.onRemoteChanged(pushRemoteDevices);
+    tabicons.onRemoteChanged(pushRemoteDevices);
+
+    // Profile sync: sync-on-launch if configured, then follow local changes.
+    // Failures are swallowed and surfaced only in Settings (never startup).
+    sync.init();
+    // Freshness pull when Blanc regains focus (tab-sync spec §6; throttled inside).
+    app.on('browser-window-focus', () => sync.refreshSession());
+    // Best-effort final push — fire-and-forget, never blocks quit (spec §6).
+    app.on('before-quit', bindWindowRuntime(primaryRuntime, () => { sync.syncNow().catch(() => {}); }));
+    // A sync pull that merged in favorites from another device refreshes the
+    // pill's favorite state; open internal pages still pull on their next load,
+    // as with any cross-surface bookmark change.
+    bookmarks.onMerged(refreshBookmarkFlags);
   };
-  tabsync.onRemoteChanged(pushRemoteDevices);
-  tabicons.onRemoteChanged(pushRemoteDevices);
-  // Profile sync: sync-on-launch if configured, then follow local changes.
-  // Runs after stores + setupPages so its triggers see a live app; failures
-  // are swallowed and surfaced only in Settings (never block startup).
-  sync.init();
-  // Freshness pull when Blanc regains focus (tab-sync spec §6; throttled inside).
-  app.on('browser-window-focus', () => sync.refreshSession());
-  // Best-effort final push — fire-and-forget, never blocks quit (spec §6).
-  app.on('before-quit', bindWindowRuntime(primaryRuntime, () => { sync.syncNow().catch(() => {}); }));
-  // A sync pull that merged in favorites from another device refreshes the
-  // pill's favorite state; open internal pages still pull on their next load,
-  // as with any cross-surface bookmark change.
-  bookmarks.onMerged(refreshBookmarkFlags);
 
   // HTTP basic/digest auth: without this handler, 401-protected sites
   // (routers, staging servers) simply fail.
@@ -7360,6 +7375,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
 
     sessionPersistenceSuspended = false;
     persistSession();
+
+    // The icon sidecar's first authoritative snapshot must be the restored
+    // workspace, never the disposable startup tab above.
+    startProfileSync();
 
     // Cold-start URL handoff waits until the blocker decision and session
     // restore are both complete.
