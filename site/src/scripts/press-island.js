@@ -101,7 +101,7 @@
   // The blank-tab state (the "new tab" footer button): the island collapses to
   // the quiet placeholder pill — prompt label, Blanc-mark favicon, the "/"
   // chip, no shield (the app hides it entirely on internal pages) — resting
-  // over a miniature of the ledger start page.
+  // over a miniature of Blanc's start page.
   function enterBlankTab() {
     interact();
     selectedDomain = '';

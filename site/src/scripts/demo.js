@@ -13,7 +13,6 @@
   const domainEl = document.getElementById('demoDomain');
   const slashEl = document.getElementById('demoSlash');
   const newtabEl = document.getElementById('demoNewtab');
-  const privateSkeletonEl = document.getElementById('demoPrivateSkeleton');
   const glanceEl = document.getElementById('demoGlance');
   const glanceHeaderEl = document.getElementById('demoGlanceHeader');
   const glanceShotEl = document.getElementById('demoGlanceShot');
@@ -25,6 +24,7 @@
   const shieldCountEl = document.getElementById('demoShieldCount');
   const shieldHostEl = document.getElementById('demoShieldHost');
   const shieldBlockedEl = document.getElementById('demoShieldBlocked');
+  const shieldStateEl = document.getElementById('demoShieldState');
   const typedEl = document.getElementById('demoTyped');
   const listEl = document.getElementById('demoList');
   const footEl = document.getElementById('demoFoot');
@@ -32,6 +32,7 @@
   const workspaceEl = document.getElementById('demoWorkspace');
   const workspaceLabelEl = document.getElementById('demoWorkspaceLabel');
   const workspaceSwitcherEl = document.getElementById('demoWorkspaceSwitcher');
+  const tabContextEl = document.getElementById('demoTabContext');
   const cursorEl = document.getElementById('demoCursor');
 
   // The blank-tab beat renders a miniature of the "billboard" start page. The
@@ -57,6 +58,7 @@
      approximating the look of them. */
   const panelEl = demo.querySelector('.panel');
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let paused = reduceMotion.matches;
   let cursorMoveTimer = null;
   let cursorClickTimer = null;
 
@@ -64,7 +66,7 @@
     clearTimeout(cursorMoveTimer);
     clearTimeout(cursorClickTimer);
     cursorEl.classList.remove('clicking', 'dragging');
-    if (!cue || reduceMotion.matches) {
+    if (!cue || reduceMotion.matches || paused) {
       cursorEl.classList.remove('visible');
       cursorEl.hidden = true;
       return;
@@ -94,12 +96,12 @@
       const y = Math.max(4, Math.min(currentStageRect.height - 30, targetY));
       cursorEl.style.setProperty('--cursor-x', `${Math.round(x)}px`);
       cursorEl.style.setProperty('--cursor-y', `${Math.round(y)}px`);
-      if (cue.click || cue.drag) {
+      if (cue.click || cue.drag || cue.rightClick) {
         cursorClickTimer = setTimeout(() => {
           cursorEl.classList.remove('clicking', 'dragging');
           void cursorEl.offsetWidth;
           cursorEl.classList.add(cue.drag ? 'dragging' : 'clicking');
-        }, 730);
+        }, cue.actionDelay ?? 730);
       }
     }, delay);
   }
@@ -240,21 +242,23 @@
 
   const NORMAL_FOOT = '⌘L summons · / for commands';
   const GROUP_FOOT = '/group moves this tab · ⌘1–9 jumps between sections';
-  const PRIVATE_FOOT = 'private · nothing here is saved to history';
 
   // Real sites. `fav` is the domain whose favicon we fetch (a couple differ
-  // from the display domain); a missing icon falls back to a neutral square,
-  // so the demo never shows a broken image.
+  // from the display domain); a missing icon preserves its slot transparently
+  // so the demo never shows a broken image or a generic square.
   const TABS = {
-    gmail:    { title: 'Gmail',     domain: 'mail.google.com', fav: 'gmail.com',    shield: 2 },
-    notion:   { title: 'Notion',    domain: 'notion.so',       fav: 'notion.so',    shield: 1 },
-    youtube:  { title: 'YouTube',   domain: 'youtube.com',     fav: 'youtube.com',  shield: 9 },
-    threads:  { title: 'Threads',   domain: 'threads.net',     fav: 'threads.net',  shield: 6 },
-    scroll:   { title: 'Scroll',    domain: 'scrollapp.co',    fav: 'scrollapp.co', shield: 0 },
-    nintendo: { title: 'Nintendo',  domain: 'nintendo.com',    fav: 'nintendo.com', shield: 4 },
-    msnow:    { title: 'MS NOW',    domain: 'msnow.com',       fav: 'msnbc.com',    shield: 14, quiet: true },
-    netflix:  { title: 'Netflix',   domain: 'netflix.com',     fav: 'netflix.com',  shield: 3 },
-    github:   { title: 'GitHub',    domain: 'github.com',      fav: 'github.com',   shield: 0 },
+    gmail:    { title: 'Inbox (3) - Gmail', domain: 'mail.google.com', fav: 'gmail.com', shield: 2 },
+    notion:   { title: 'Blanc launch notes - Notion', domain: 'notion.so', fav: 'notion.so', shield: 1 },
+    youtube:  { title: 'The best new music this week - YouTube', domain: 'youtube.com', fav: 'youtube.com', shield: 9 },
+    threads:  { title: 'For you - Threads', domain: 'threads.net', fav: 'threads.net', shield: 6 },
+    scroll:   { title: 'Scroll - the browser with less noise', domain: 'scrollapp.co', fav: 'scrollapp.co', shield: 0 },
+    nintendo: { title: 'Nintendo Switch 2 | Nintendo', domain: 'nintendo.com', fav: 'nintendo.com', shield: 4 },
+    msnow:    { title: 'Live updates: what happened today | MS NOW', domain: 'msnow.com', fav: 'msnbc.com', shield: 14, quiet: true },
+    netflix:  { title: 'Home - Netflix', domain: 'netflix.com', fav: 'netflix.com', shield: 3 },
+    github:   { title: 'blanc-browser/site: main · GitHub', domain: 'github.com', fav: 'github.com', shield: 0 },
+    verge:    { title: 'The Verge - Tech, science, art, and culture', domain: 'theverge.com', fav: 'theverge.com', shield: 5, shot: 'theverge' },
+    nine:     { title: 'Apple reports Q3 2026 earnings: revenue up 16% [Charts]', domain: '9to5mac.com', fav: '9to5mac.com', shield: 4, shot: '9to5mac' },
+    cnet:     { title: 'CNET | Product reviews, tech news & more', domain: 'cnet.com', fav: 'cnet.com', shield: 18, shot: 'cnet-before' },
     // A blank tab. No domain puts the pill in placeholder mode: the prompt
     // label, the Blanc-mark favicon, the "/" chip, and no shield (the app
     // hides it entirely on internal pages) — matching the real app's state.
@@ -277,18 +281,24 @@
   // it never leaves the pill and its background render from different modes.
   const mobileMq = window.matchMedia('(max-width: 560px)');
   let MOBILE = mobileMq.matches;
-  const SHOT_IDS = ['github', 'notion', 'scroll', 'netflix']; // sites with a bundled render
+  const SHOT_IDS = [
+    'github', 'notion', 'scroll', 'netflix',
+    'theverge', '9to5mac', 'cnet-before', 'cnet-clean',
+  ]; // sites with a bundled render
   const PRELOAD_IDS = [...SHOT_IDS];
   // Sampled top-edge color of each bundled render, so the Island's top strip
   // blends into the page below it (the CSS reads --demo-strip-bg). A scene with
-  // no bundled shot falls back to the theme surface (matches the skeleton); the
-  // private scene keeps Blanc's own dark strip above its animated loading view.
-  const SHOT_TOP = { github: '#030442', notion: '#ffffff', scroll: '#ffffff', netflix: '#080706' };
-  const PRIVATE_TOP = '#0a0a0a';
+  // no bundled shot falls back to the theme surface (matching the skeleton).
+  const SHOT_TOP = {
+    github: '#030442', notion: '#ffffff', scroll: '#ffffff', netflix: '#080706',
+    theverge: '#ffffff', '9to5mac': '#ffffff',
+    'cnet-before': '#111116', 'cnet-clean': '#111116',
+  };
   const shots = {}; // id -> { src, ready }
   let currentShotId = null;
 
   const shotSrc = (id) => '/shots/' + (MOBILE ? 'mobile' : 'desktop') + '/' + id + '.jpg';
+  const tabShotId = (id) => TABS[id]?.shot || id;
 
   function preloadShot(id) {
     if (shots[id]) return;
@@ -310,7 +320,7 @@
     PRELOAD_IDS.forEach(preloadShot);
     showShot(currentShotId);
     if (glanceModeVisible) {
-      glanceShotEl.src = shotSrc(glanceTabId);
+      glanceShotEl.src = shotSrc(tabShotId(glanceTabId));
       layoutDemoGlance();
     }
   });
@@ -331,14 +341,19 @@
   let glanceTabId = 'notion';
   let glanceActionTimer = null;
   let glanceEffectTimer = null;
+  let glanceOpenTimer = null;
   let shieldActionTimer = null;
+  let blockerActionTimer = null;
+  let sceneMessageTimer = null;
+  let listResetTimer = null;
+  let contextMenuTimer = null;
 
   function setGlanceTab(id) {
     glanceTabId = id;
     const tab = TABS[id];
     glanceTitleEl.textContent = tab.title;
     glanceFaviconEl.style.backgroundImage = `url('${ICON_BASE}${tab.fav}.ico')`;
-    const src = shotSrc(id);
+    const src = shotSrc(tabShotId(id));
     if (glanceShotEl.getAttribute('src') !== src) glanceShotEl.src = src;
   }
 
@@ -426,9 +441,9 @@
     stage.classList.add('glance-swapping');
     glanceMakeMainEl.classList.add('activated');
     renderPill(layout, mainId, { ...scene, current: mainId, glanceTab: glanceId });
-    showShot(mainId);
+    showShot(tabShotId(mainId));
     setGlanceTab(glanceId);
-    stage.style.setProperty('--demo-strip-bg', SHOT_TOP[mainId] || '');
+    stage.style.setProperty('--demo-strip-bg', SHOT_TOP[tabShotId(mainId)] || '');
     glanceEffectTimer = setTimeout(() => {
       stage.classList.remove('glance-swapping');
       glanceMakeMainEl.classList.remove('activated');
@@ -474,10 +489,36 @@
   // Workspace layouts. The loop progresses base → pinned → grouped as the
   // demo pins a site and then forms a new group.
   const LAYOUTS = {
+    // The opening chapters deliberately use a fresher visual cast than the
+    // utility-heavy scenes below: editorial reading, entertainment, and a
+    // technology article make the page/Glance contrast immediately visible.
+    showcase: {
+      pinned: ['gmail', 'notion', 'nine'],
+      groups: [{ name: 'weekend', ids: ['netflix', 'verge'] }],
+      loose: ['scroll', 'github'],
+    },
+    blocker: {
+      pinned: ['gmail', 'notion', 'nine'],
+      groups: [{ name: 'weekend', ids: ['netflix', 'verge'] }],
+      loose: ['cnet', 'github'],
+    },
     base: {
       pinned: ['gmail', 'notion'],
       groups: [{ name: 'social', ids: ['youtube', 'threads'] }],
       loose: ['scroll', 'nintendo', 'msnow', 'netflix', 'github'],
+    },
+    // Keep the tab being acted on directly beneath the existing group. In the
+    // real panel a longer loose list can continue below the fold, but the demo
+    // needs the right-click target fully visible before its native menu opens.
+    groupingNetflix: {
+      pinned: ['gmail', 'notion'],
+      groups: [{ name: 'social', ids: ['youtube', 'threads'] }],
+      loose: ['netflix', 'scroll', 'nintendo', 'msnow', 'github'],
+    },
+    socialNetflix: {
+      pinned: ['gmail', 'notion'],
+      groups: [{ name: 'social', ids: ['youtube', 'threads', 'netflix'] }],
+      loose: ['scroll', 'nintendo', 'msnow', 'github'],
     },
     // base plus a just-opened blank tab. A plain new tab always launches
     // ungrouped, so it joins the loose set — the dots the pill shows for it.
@@ -491,6 +532,14 @@
       groups: [{ name: 'social', ids: ['youtube', 'threads'] }],
       loose: ['nintendo', 'msnow', 'netflix', 'github'],
     },
+    watchNetflix: {
+      pinned: ['gmail', 'notion'],
+      groups: [
+        { name: 'social', ids: ['youtube', 'threads'] },
+        { name: 'watch', ids: ['netflix'] },
+      ],
+      loose: ['scroll', 'nintendo', 'msnow', 'github'],
+    },
     grouped: {
       pinned: ['gmail', 'notion', 'scroll'],
       groups: [
@@ -502,8 +551,8 @@
     folded: {
       pinned: ['gmail', 'notion', 'scroll'],
       groups: [
-        { name: 'social', ids: ['threads'], collapsed: true },
-        { name: 'watch', ids: ['youtube', 'netflix'] },
+        { name: 'social', ids: ['threads'] },
+        { name: 'watch', ids: ['youtube', 'netflix'], collapsed: true },
       ],
       loose: ['nintendo', 'msnow', 'github'],
     },
@@ -540,8 +589,85 @@
       `<span class="row-pin${opts.pinned ? ' on' : ''}">${PIN_ICON}</span>` +
       (opts.glance ? '<span class="row-glance on">glance</span>' : opts.glanceCue ? '<span class="row-glance cue">glance</span>' : '<span class="row-glance">glance</span>') +
       `<span class="row-close">${CLOSE_ICON}</span>`;
-    return `<div class="${cls}"><span class="fav" style="${favStyle(t)}"></span>` +
+    return `<div class="${cls}" data-demo-tab="${id}"><span class="fav" style="${favStyle(t)}"></span>` +
            `<span class="title">${t.title}</span>${dom}${tag}${rowActions}${enter}</div>`;
+  }
+
+  // The stage mirrors the shipped native menu model rather than inventing a
+  // smaller "group picker": the same sections and accelerators appear, group
+  // rows are native radio items, and the current membership receives the lone
+  // checkmark. A background-row target also gets Glance + Quiet, exactly as the
+  // real row menu does.
+  function contextMenuMarkup(menu) {
+    const mode = menu.mode;
+    const item = (label, { cls = '', accel = '', arrow = false, optional = false } = {}) =>
+      `<span class="demo-context-item${cls ? ` ${cls}` : ''}${optional ? ' context-optional' : ''}"><span>${label}</span>${accel ? `<span class="demo-context-accelerator">${accel}</span>` : ''}${arrow ? '<b>›</b>' : ''}</span>`;
+    const sep = (optional = false) => `<span class="demo-context-separator${optional ? ' context-optional' : ''}"></span>`;
+
+    let rootItems = item('Copy Link', { optional: true }) + sep(true) +
+      item('Reload', { accel: '⌘ R', optional: true }) +
+      item('Duplicate Tab', { optional: true }) + sep(true) +
+      item('Pin Tab') +
+      item('Mute Tab', { optional: true }) +
+      item('Save to Favorites', { optional: true }) +
+      item('Move to Group', { cls: `demo-context-move${mode !== 'root' ? ' active' : ''}`, arrow: true });
+    rootItems += sep(true);
+    if (menu.inactive) {
+      rootItems += item('Open in Glance', { optional: true }) +
+        item('Quiet This Tab Now', { optional: true }) + sep(true);
+    }
+    rootItems += item('New Tab', { accel: '⌘ T', optional: true }) +
+      item('New Private Tab', { accel: '⇧⌘ N', optional: true }) + sep(true) +
+      item('Close Other Tabs', { optional: true }) +
+      item('Move Tab to New Window', { optional: true }) + sep(true) +
+      item('Reopen Closed Tab', { accel: '⇧⌘ T', optional: true }) +
+      item('Close Tab', { accel: '⌘ W', optional: true });
+    const root = `<div class="demo-context-card demo-context-root">${rootItems}</div>`;
+    if (mode === 'root') return root;
+
+    const groupRows = (menu.groups || ['social']).map((name) => {
+      const checked = menu.currentGroup === name;
+      const cued = mode === 'existing' && menu.targetGroup === name;
+      return `<span class="demo-context-item demo-context-choice${cued ? ' cue' : ''}" data-demo-group="${name}"><span class="demo-context-check">${checked ? '✓' : ''}</span><span>${name}</span></span>`;
+    }).join('');
+    const remove = menu.currentGroup
+      ? '<span class="demo-context-item demo-context-remove"><span class="demo-context-check"></span><span>Remove from Group</span></span>'
+      : '';
+    return root + `<div class="demo-context-card demo-context-submenu">
+      ${groupRows}
+      <span class="demo-context-separator"></span>
+      ${remove}
+      <span class="demo-context-item demo-context-new${mode === 'new' ? ' cue' : ''}"><span class="demo-context-check"></span><span>New Group…</span></span>
+    </div>`;
+  }
+
+  function setTabContext(menu) {
+    clearTimeout(contextMenuTimer);
+    if (!tabContextEl) return;
+    tabContextEl.hidden = true;
+    tabContextEl.replaceChildren();
+    if (!menu) return;
+
+    const show = () => {
+      const target = listEl.querySelector(`[data-demo-tab="${menu.tab}"]`);
+      if (!target) return;
+      const stageRect = stage.getBoundingClientRect();
+      const targetRect = target.getBoundingClientRect();
+      const mobile = stage.clientWidth <= 560;
+      const menuWidth = mobile
+        ? (menu.mode === 'root' ? 128 : 242)
+        : (menu.mode === 'root' ? 202 : 370);
+      const menuHeight = mobile ? 154 : (menu.inactive ? 370 : 322);
+      const left = Math.max(8, Math.min(stage.clientWidth - menuWidth - 8, targetRect.left - stageRect.left + 110));
+      const top = Math.max(8, Math.min(stage.clientHeight - menuHeight - 8, targetRect.top - stageRect.top - 5));
+      tabContextEl.innerHTML = contextMenuMarkup(menu);
+      tabContextEl.style.left = `${Math.round(left)}px`;
+      tabContextEl.style.top = `${Math.round(top)}px`;
+      tabContextEl.dataset.mode = menu.mode;
+      tabContextEl.hidden = false;
+    };
+
+    contextMenuTimer = setTimeout(show, (reduceMotion.matches || paused) ? 0 : (menu.delay ?? 0));
   }
 
   function secHead(label, count, { caret = false, just = false, collapsed = false, kbd = '' } = {}) {
@@ -685,10 +811,17 @@
     // Protected with nothing blocked yet is a state of its own in the app — a
     // dimmed shield with no badge, not a missing one. The shield is a permanent
     // landmark in the pill; only the badge comes and goes.
-    shieldEl.classList.toggle('shield-quiet', !t.shield);
-    shieldCountEl.textContent = t.shield || '';
+    const blockerOn = opts.blockerState !== 'off';
+    const blocked = blockerOn ? t.shield : 0;
+    shieldEl.classList.toggle('shield-quiet', !blocked);
+    shieldCountEl.textContent = blocked || '';
     shieldHostEl.textContent = t.domain;
-    shieldBlockedEl.textContent = t.shield ? `${t.shield} request${t.shield === 1 ? '' : 's'} blocked` : 'Nothing blocked on this page';
+    shieldStateEl.textContent = blockerOn ? 'on' : 'off';
+    demo.classList.toggle('blocker-off', !blockerOn);
+    demo.classList.toggle('blocker-on', blockerOn);
+    shieldBlockedEl.textContent = blockerOn
+      ? (blocked ? `${blocked} request${blocked === 1 ? '' : 's'} blocked` : 'Nothing blocked on this page')
+      : 'Blocking is off for this site';
     // Favorite (heart) fills for the sites the demo treats as favorites.
     heartEl.classList.toggle('on', SEARCH_TAGS[current] === 'favorite');
   }
@@ -709,11 +842,19 @@
   const TYPE_MS = 105;          // per-character typing cadence, slow enough to follow
   const POST_TYPE_HOLD = 2800; // linger after typing finishes to read the result + hero message
 
-  function typeInput(text, renderPartial, renderBeforeTyping) {
+  function typeInput(text, renderPartial, renderBeforeTyping, prefill = '') {
     stopTyping();
-    typedEl.textContent = '';
+    typedEl.textContent = prefill;
     renderBeforeTyping();
-    let i = 0;
+    if (prefill) renderPartial(prefill);
+    // Paused and reduced-motion visitors get a complete, stable state rather
+    // than a half-typed result that changes without their asking.
+    if (paused || reduceMotion.matches) {
+      typedEl.textContent = text;
+      renderPartial(text);
+      return;
+    }
+    let i = prefill.length;
     typeTimer = setInterval(() => {
       i++;
       const partial = text.slice(0, i);
@@ -723,102 +864,116 @@
     }, TYPE_MS);
   }
 
-  // ---- scenes: one linear workflow, paced for the message and interaction ----
+  // ---- scenes: a proof-first story, paced for first-time visitors ----
+  // The distinctive product moments arrive first. Supporting organization and
+  // Patron features follow only after the Island, Glance, and Blocker have
+  // made Blanc's core idea visible.
   const SCENES = [
-    { view: 'rest',  layout: 'base',    current: 'github',  hold: 3200, headline: 'The browser that\ngets out of the way.', subtext: 'Blanc puts tabs, search and commands in one floating Island — so the page is all you see.' },
-    { view: 'rest',  layout: 'base',    current: 'github',  scroll: true, hold: 4200, headline: 'Your page stays\nin front.', subtext: 'Scroll freely while the Island remains fixed above the page, ready without taking over.' },
-    // An invitation rather than a claim: the pill only reacts to a real cursor,
-    // so the message points at something the visitor can go and do.
-    { view: 'rest',  layout: 'base',    current: 'github',  pointer: { target: '.pill', x: 0.58, y: 0.62 }, hold: 3400, headline: 'Close when you need it.\nQuiet when you do not.', subtext: 'Move toward the Island and it gently meets you; move away and it settles back down.' },
-    // The blank-tab beat: the pill drops to its placeholder ("Search or type
-    // a URL" + the "/" chip), the state the app shows only on a new tab.
-    { view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 1600, headline: 'Every command starts\nwith one slash.', subtext: 'On a new tab, click / to open Blanc’s complete command directory.' },
-    { view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 6200, headline: 'Every command.\nOne quiet place.', subtext: 'Scroll the directory or start typing to narrow it to exactly what you need.' },
-    { view: 'panel', layout: 'base',    current: 'github',  panel: 'switcher', typed: 'scr', pointer: { target: '.field', x: 0.2 }, hold: 3400, headline: 'Find anything\nin a few letters.', subtext: 'The same field searches open tabs, Favorites and recent history.' },
-    { view: 'rest',  layout: 'base',    current: 'scroll',  hold: 2800, headline: 'Switch tabs.\nKeep the page.', subtext: 'Press Enter and Blanc puts the destination in front without leaving browser chrome behind.' },
-    { view: 'panel', layout: 'pinned',  current: 'scroll',  panel: 'commands', typed: '/pin', justPin: 'scroll', pointer: { target: '.trow.command.hl', x: 0.18 }, hold: 3800, headline: 'Small browser chores,\none short command.', subtext: 'Pin, mute, find and more without hunting through menus.' },
-    { view: 'panel', layout: 'grouped', current: 'netflix', justGroup: 'watch', pointer: { target: '.group-band:last-of-type .sec-head', x: 0.28 }, hold: 4200, headline: 'Give related tabs\na name.', subtext: 'Named Groups keep YouTube and Netflix together without adding another permanent sidebar.' },
-    { view: 'panel', layout: 'folded',  current: 'netflix', pointer: { target: '.group-band:first-of-type .sec-head', x: 0.28, click: true }, hold: 3300, headline: 'Tuck a group away\nuntil you need it.', subtext: 'Folded groups stay out of sight while remaining one keyboard jump away.' },
-    { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, hold: 4200, headline: 'Search across\nyour whole session.', subtext: 'Tabs, groups, Favorites and history all answer from the same input.' },
-    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 3200, headline: 'Enter switches.\nThe page returns.', subtext: 'Blanc gets the interface out of the way as soon as you choose where to go.' },
-    // Keep the active tab continuous from the prior scene. Both Notion and
-    // Scroll are standalone pins, so making either one main leaves the same
-    // pinned-shelf dot presentation in the pill instead of manufacturing a
-    // Glance-only width jump by silently moving to a different tab section.
-    { view: 'panel', layout: 'grouped', current: 'notion', glanceCue: 'scroll', pointer: { target: '.row-glance.cue', click: true }, hold: 1250, headline: 'Keep another tab\nin Glance.', subtext: 'Choose Glance from any tab row to keep a second page beside the first.' },
-    { view: 'glance', layout: 'grouped', current: 'notion', glanceTab: 'scroll', glanceResize: { from: 0.62, to: 0.5 }, pointer: { target: '#demoGlanceDivider', drag: true }, hold: 5200, headline: 'Give either page\nmore room.', subtext: 'Drag the divider until the balance between your main page and Glance feels right.' },
-    { view: 'glance', layout: 'grouped', current: 'notion', glanceTab: 'scroll', glanceRatio: 0.5, glanceSwap: { main: 'scroll', glance: 'notion' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 5600, headline: 'Make either tab\nthe main page.', subtext: 'Swap their roles instantly without closing a tab or losing its place.' },
-    { view: 'workspace', layout: 'grouped', current: 'scroll', workspaceName: 'research', pointer: { target: '.demo-ws-row:nth-child(2)', click: true }, hold: 1600, headline: 'Move between whole\nWorkspaces.', subtext: 'Named Workspaces preserve an entire window for Patron members.' },
-    { view: 'panel', layout: 'writing', current: 'notion', workspaceName: 'writing', hold: 4800, headline: 'Your whole window,\nright where you left it.', subtext: 'Tabs, pins and the active page arrive together when you open a saved Workspace.' },
-    { view: 'shield',layout: 'grouped', current: 'netflix', pointer: { target: '#demoShield', click: true }, hold: 4800, headline: 'Site controls live\nin the Island.', subtext: 'Click the Blanc Blocker shield to see what was stopped or change protection for this site.' },
-    { view: 'panel', layout: 'grouped', current: 'youtube', panel: 'commands', typed: '/private', pointer: { target: '.trow.command.hl', x: 0.18 }, hold: 3600, headline: 'Open a private tab\nin one command.', subtext: 'Private tabs use a separate session and never enter your browsing history.' },
-    { view: 'rest',  layout: 'grouped', current: 'youtube', priv: true, hold: 3800, headline: 'Private means\nnothing gets saved.', subtext: 'The chrome shifts with the session, and the tab leaves no history behind.' },
+    { view: 'rest',  layout: 'showcase', current: 'verge', hold: 3200, headline: 'The browser that\ngets out of the way.', subtext: 'Blanc puts tabs, search and commands in one floating Island — so the page is all you see.' },
+    { view: 'rest',  layout: 'showcase', current: 'verge', scroll: true, pointer: { target: '.pill', x: 0.58, y: 0.62 }, hold: 3800, headline: 'Your page stays\nin front.', subtext: 'Scroll freely. The Island stays fixed, then gently meets you when the cursor moves close.' },
+
+    // Open Glance as the direct result of the staged click. The cursor keeps
+    // moving toward the divider while the panel retracts, avoiding a dead beat
+    // between the pane appearing and the resize demonstration.
+    { view: 'panel', layout: 'showcase', current: 'nine', glanceCue: 'netflix', glanceOpen: { tab: 'netflix', ratio: 0.62 }, pointer: { target: '.row-glance.cue', click: true }, hold: 2050, headline: 'Keep browsing.\nKeep watching.', subtext: 'Open Netflix in Glance while the article you’re reading stays exactly where it is.' },
+    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceResize: { from: 0.62, to: 0.5 }, glanceActionDelay: 140, pointer: { target: '#demoGlanceDivider', drag: true, delay: 0, actionDelay: 140 }, hold: 4300, headline: 'Give either page\nmore room.', subtext: 'Drag the divider until the balance between your main page and Glance feels right.' },
+    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceRatio: 0.5, glanceSwap: { main: 'netflix', glance: 'nine' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 4300, headline: 'Make either tab\nthe main page.', subtext: 'Swap their roles instantly without closing a tab or losing its place.' },
+
+    // The blocker now proves the outcome instead of only explaining the
+    // popover. First show the ad-heavy page with protection disabled, then
+    // click the real per-site switch and reload into the clean reflowed page.
+    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', pointer: { target: '#demoShield', click: true }, hold: 2500, headline: 'A noisy page,\nbefore Blanc.', subtext: 'The page is competing with three separate ad placements.', afterAction: { headline: 'Protection lives\nin the Island.', subtext: 'The shield puts each site’s blocking control one click away.' } },
+    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', blockerToggle: true, pointer: { target: '#demoShieldSwitch', click: true }, hold: 4300, headline: 'Turn the ad layer\noff.', subtext: 'One per-site switch reloads the page with ads and known trackers blocked.', afterAction: { headline: 'The page,\nwithout the ad layer.', subtext: 'Ad slots collapse and the story returns to the foreground.' } },
+
+    // The blank-tab beat uses the app's real placeholder state. One mixed
+    // search replaces the old duplicate tab-search stories.
+    { view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 2300, headline: 'Every command starts\nwith one slash.', subtext: 'On a new tab, click / to open Blanc’s complete command directory.' },
+    { view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 4200, headline: 'Every command.\nOne quiet place.', subtext: 'Scroll the directory or start typing to narrow it to exactly what you need.' },
+    { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, headline: 'One field searches\nyour whole session.', subtext: 'Tabs, groups, Favorites and history all answer from the same input.' },
+    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 2600, headline: 'Enter switches.\nThe page returns.', subtext: 'Blanc gets the interface out of the way as soon as you choose where to go.' },
+
+    // The shipped native menu is the workflow: right-click a background row,
+    // pick an existing radio item, see membership update, then use the same
+    // submenu's New Group… handoff without ever switching away from the page.
+    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'root', tab: 'netflix', inactive: true, groups: ['social'], delay: 1180 }, pointer: { target: '[data-demo-tab="netflix"]', rightClick: true }, hold: 2500, headline: 'Move a tab\nwithout switching to it.', subtext: 'Right-click the loose Netflix tab while your current page stays in front.' },
+    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'existing', tab: 'netflix', inactive: true, groups: ['social'], targetGroup: 'social' }, pointer: { target: '[data-demo-group="social"]', click: true }, hold: 2500, headline: 'Choose the group\nit belongs in.', subtext: 'Existing Named Groups are direct choices in Move to Group.' },
+    { view: 'panel', layout: 'socialNetflix', current: 'scroll', contextMenu: { mode: 'new', tab: 'netflix', inactive: true, groups: ['social'], currentGroup: 'social' }, pointer: { target: '.demo-context-new', click: true }, hold: 3300, headline: 'Netflix joins Social.', subtext: 'The checkmark confirms the move. Remove from Group and New Group… stay in the same menu.' },
+    { view: 'panel', layout: 'socialNetflix', current: 'scroll', panel: 'commands', prefill: '/group ', typed: '/group watch', headline: 'Or name a new group.', subtext: 'New Group… opens the real /group handoff, still bound to Netflix.' },
+    { view: 'panel', layout: 'watchNetflix', current: 'scroll', justGroup: 'watch', hold: 3200, headline: 'Netflix moves\ninto Watch.', subtext: 'Only that tab moves. Every other pin, group and loose tab stays put.' },
+
+    { view: 'workspace', layout: 'grouped', current: 'scroll', workspaceName: 'research', pointer: { target: '.demo-ws-row:nth-child(2)', click: true }, hold: 2400, headline: 'Switch whole windows\nwith Workspaces.', subtext: 'Patron members can save a complete window and return to it later.' },
+    { view: 'panel', layout: 'writing', current: 'notion', workspaceName: 'writing', hold: 4200, headline: 'Your whole window,\nright where you left it.', subtext: 'Tabs, pins and the active page arrive together when you open a saved Workspace.' },
   ];
 
   // Chapters group the scenes into the demo's topics; each scrub-bar marker sits
   // at the start of one and jumps playback there.
   const CHAPTERS = [
     { label: 'the island', scene: 0 },
-    { label: 'command bar', scene: 4 },
-    { label: 'tab groups', scene: 8 },
-    { label: 'glance', scene: 12 },
-    { label: 'workspaces', scene: 15 },
-    { label: 'blanc blocker', scene: 17 },
-    { label: 'private tabs', scene: 18 },
+    { label: 'glance', scene: 2 },
+    { label: 'blanc blocker', scene: 5 },
+    { label: 'command bar', scene: 7 },
+    { label: 'tab groups', scene: 11 },
+    { label: 'workspaces', scene: 16 },
   ];
   // A scene's on-screen duration: typing scenes run for the keystrokes plus a
   // read beat, everything else uses its authored hold. The scrub fill and the
   // scene timer share this so the bar tracks playback exactly.
   const DEMO_PACE = 1.18;
-  const sceneDuration = (s) => Math.round((s.typed ? s.typed.length * TYPE_MS + POST_TYPE_HOLD : s.hold) * DEMO_PACE);
+  const sceneDuration = (s) => Math.round((s.typed ? Math.max(0, s.typed.length - (s.prefill?.length || 0)) * TYPE_MS + POST_TYPE_HOLD : s.hold) * DEMO_PACE);
   const DUR = SCENES.map(sceneDuration);
   const TOTAL = DUR.reduce((sum, d) => sum + d, 0);
   const START = []; DUR.reduce((acc, d, i) => (START[i] = acc, acc + d), 0);
 
   let idx = 0, timer = null, typeTimer = null;
+  let sceneStartedAt = 0;
+  let remaining = DUR[0];
 
   function applyScene(s) {
     stopTyping();
     clearTimeout(glanceActionTimer);
     clearTimeout(glanceEffectTimer);
+    clearTimeout(glanceOpenTimer);
     clearTimeout(shieldActionTimer);
-    stage.classList.remove('glance-resizing', 'glance-swapping');
+    clearTimeout(blockerActionTimer);
+    clearTimeout(sceneMessageTimer);
+    clearTimeout(listResetTimer);
+    clearTimeout(contextMenuTimer);
+    stage.classList.remove('glance-resizing', 'glance-swapping', 'blocker-activating');
     glanceMakeMainEl.classList.remove('activated');
     const open = s.view === 'panel' || s.view === 'workspace';
     const openingPanel = open && !panelOpen;
     const showShield = s.view === 'shield';
+    const keepShieldOpen = showShield && !!s.blockerToggle;
     const showWorkspaces = s.view === 'workspace';
     const showGlance = s.view === 'glance';
     const lay = LAYOUTS[s.layout];
     const current = s.current || allIds(lay)[0];
     listEl.classList.toggle('command-directory', !!s.allCommands);
-    // A shield scene starts closed. The popover is revealed only after the
-    // staged pointer has reached and clicked the shield below.
-    demo.classList.remove('show-shield');
+    // The first blocker beat opens from the shield; the follow-up keeps the
+    // same popover open so the cursor can move directly to its switch.
+    demo.classList.toggle('show-shield', keepShieldOpen);
     demo.classList.toggle('show-workspaces', showWorkspaces);
     workspaceSwitcherEl.hidden = !showWorkspaces;
     workspaceLabelEl.textContent = s.workspaceName || 'research';
     workspaceEl.setAttribute('aria-label', `Workspace ${s.workspaceName || 'research'}`);
     workspaceEl.setAttribute('aria-expanded', String(showWorkspaces));
-    demo.classList.toggle('private', !!s.priv);
     stage.classList.remove('scrolling');
     void stage.offsetWidth; // restart the scroll animation when the scene repeats
     stage.classList.toggle('scrolling', !!s.scroll);
-    stage.classList.toggle('private-loading', !!s.priv);
-    stage.setAttribute('data-theme', s.priv ? 'private' : 'light');
-    footEl.textContent = s.priv ? PRIVATE_FOOT : lay.groups.length > 1 ? GROUP_FOOT : NORMAL_FOOT;
+    stage.setAttribute('data-theme', 'light');
+    footEl.textContent = lay.groups.length > 1 ? GROUP_FOOT : NORMAL_FOOT;
 
     renderPill(s.layout, current, s);
-    showShot(s.priv ? null : current);
-    privateSkeletonEl.hidden = !s.priv;
+    const initialShot = s.blockerState ? 'cnet-before' : tabShotId(current);
+    showShot(initialShot);
     const startingGlanceRatio = s.glanceResize?.from ?? s.glanceRatio ?? 0.62;
     setDemoGlance(showGlance, { ratio: startingGlanceRatio, tab: s.glanceTab });
-    // The blank tab shows a miniature of the ledger start page instead of a
+    // The blank tab shows a miniature of Blanc's start page instead of a
     // site render — the surface the quiet pill actually rests over in the app.
-    newtabEl.hidden = !TABS[current].internal || !!s.priv;
+    newtabEl.hidden = !TABS[current].internal;
     // Color-match the top strip to the page now behind it, so the Island reads
     // as floating in the page's top margin rather than on a browser bar.
-    stage.style.setProperty('--demo-strip-bg', s.priv ? PRIVATE_TOP : (SHOT_TOP[current] || ''));
+    stage.style.setProperty('--demo-strip-bg', SHOT_TOP[initialShot] || '');
     setHeroMessage(s);
 
     // Content first, then the movement — the morph measures the panel it is
@@ -828,7 +983,7 @@
         typedEl.textContent = '/';
         commandRows('/', { all: true });
       } else if (s.typed && s.panel === 'commands') {
-        typeInput(s.typed, commandRows, () => renderTabsPanel(s.layout, s));
+        typeInput(s.typed, commandRows, () => renderTabsPanel(s.layout, s), s.prefill);
       } else if (s.typed && s.panel === 'switcher') {
         typeInput(s.typed, (partial) => switcherRows(s.layout, partial), () => renderTabsPanel(s.layout, s));
       } else {
@@ -839,17 +994,49 @@
       typedEl.textContent = '';
     }
     setPanelOpen(open);
+    if (s.contextMenu) listEl.scrollTop = 0;
+    setTabContext(s.contextMenu);
+    // WebKit can preserve a scrolled anchor while the panel grows. A complete
+    // directory must always begin at the first shipped command.
+    if (s.allCommands) {
+      listEl.scrollTop = 0;
+      listResetTimer = setTimeout(() => { listEl.scrollTop = 0; }, (reduceMotion.matches || paused) ? 0 : MORPH_MS + 40);
+    }
     setCursorCue(s.pointer, { openingPanel });
-    if (showShield) {
+    if (s.glanceOpen) {
+      glanceOpenTimer = setTimeout(() => {
+        setPanelOpen(false);
+        setDemoGlance(true, { ratio: s.glanceOpen.ratio, tab: s.glanceOpen.tab });
+        setCursorCue({ target: '#demoGlanceDivider', delay: 0 });
+      }, (reduceMotion.matches || paused) ? 0 : 1320);
+    }
+    if (showShield && !keepShieldOpen) {
       shieldActionTimer = setTimeout(
         () => demo.classList.add('show-shield'),
-        reduceMotion.matches ? 0 : 840
+        (reduceMotion.matches || paused) ? 0 : 840
       );
+      if (s.afterAction) {
+        sceneMessageTimer = setTimeout(
+          () => setHeroMessage(s.afterAction),
+          (reduceMotion.matches || paused) ? 0 : 1040
+        );
+      }
+    }
+    if (s.blockerToggle) {
+      blockerActionTimer = setTimeout(() => {
+        stage.classList.remove('blocker-activating');
+        void stage.offsetWidth;
+        renderPill(s.layout, current, { ...s, blockerState: 'on' });
+        showShot('cnet-clean');
+        stage.style.setProperty('--demo-strip-bg', SHOT_TOP['cnet-clean']);
+        stage.classList.add('blocker-activating');
+        if (s.afterAction) setHeroMessage(s.afterAction);
+      }, (reduceMotion.matches || paused) ? 0 : 820);
     }
     // The cursor starts after 90ms and travels for 720ms. Begin resizing as
     // its tip reaches the divider; Make Main keeps its slightly longer click
     // beat so the button press still reads clearly.
-    const glanceActionDelay = reduceMotion.matches ? 0 : s.glanceResize ? 820 : 920;
+    const glanceActionDelay = (reduceMotion.matches || paused) ? 0 : (s.glanceActionDelay ?? (s.glanceResize ? 820 : 920));
     if (s.glanceResize) {
       glanceActionTimer = setTimeout(() => animateGlanceResize(s.glanceResize.to), glanceActionDelay);
     } else if (s.glanceSwap) {
@@ -863,6 +1050,8 @@
   // ---- scrub bar: progress fill + clickable chapter markers ----
   const trackEl = document.getElementById('demoScrubTrack');
   const fillEl = document.getElementById('demoScrubFill');
+  const currentChapterEl = document.getElementById('demoScrubCurrent');
+  const playbackToggleEl = document.getElementById('demoScrubToggle');
   const markerEls = trackEl ? CHAPTERS.map((ch) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -882,19 +1071,77 @@
   // Fill the bar linearly over the current scene's duration. The fill is snapped
   // back to the scene's start with the transition disabled (so a loop wrap
   // doesn't animate backwards), then transitions to the scene's end.
-  function updateScrub() {
-    if (fillEl) {
-      const from = START[idx] / TOTAL * 100;
-      const to = (START[idx] + DUR[idx]) / TOTAL * 100;
-      fillEl.style.transition = 'none';
-      fillEl.style.width = from + '%';
-      void fillEl.offsetWidth; // reflow so the snap-back applies before animating
-      fillEl.style.transition = 'width ' + DUR[idx] + 'ms linear';
+  function activeChapter() {
+    let active = CHAPTERS[0];
+    for (const ch of CHAPTERS) if (ch.scene <= idx) active = ch;
+    return active;
+  }
+
+  function setFillPosition(elapsed = 0, animateFor = 0) {
+    if (!fillEl) return;
+    const from = (START[idx] + elapsed) / TOTAL * 100;
+    const to = (START[idx] + DUR[idx]) / TOTAL * 100;
+    fillEl.style.transition = 'none';
+    fillEl.style.width = from + '%';
+    void fillEl.offsetWidth;
+    if (animateFor > 0) {
+      fillEl.style.transition = 'width ' + animateFor + 'ms linear';
       fillEl.style.width = to + '%';
     }
-    let activeScene = 0;
-    for (const ch of CHAPTERS) if (ch.scene <= idx) activeScene = ch.scene;
-    markerEls.forEach((m) => m.classList.toggle('active', m._scene === activeScene));
+  }
+
+  function updateScrub() {
+    if (fillEl) {
+      setFillPosition(0, paused ? 0 : DUR[idx]);
+    }
+    const active = activeChapter();
+    if (currentChapterEl) currentChapterEl.textContent = active.label;
+    markerEls.forEach((m) => {
+      const isActive = m._scene === active.scene;
+      m.classList.toggle('active', isActive);
+      if (isActive) m.setAttribute('aria-current', 'step');
+      else m.removeAttribute('aria-current');
+    });
+  }
+
+  function updatePlaybackControl() {
+    if (!playbackToggleEl) return;
+    playbackToggleEl.textContent = paused ? 'play' : 'pause';
+    playbackToggleEl.setAttribute('aria-label', paused ? 'Play demo' : 'Pause demo');
+  }
+
+  function scheduleNext(delay) {
+    clearTimeout(timer);
+    if (paused) return;
+    timer = setTimeout(() => {
+      idx = (idx + 1) % SCENES.length;
+      tick();
+    }, delay);
+  }
+
+  function setPaused(nextPaused) {
+    if (paused === nextPaused) {
+      updatePlaybackControl();
+      return;
+    }
+    if (nextPaused) {
+      const elapsed = Math.min(DUR[idx], Math.max(0, performance.now() - sceneStartedAt));
+      remaining = Math.max(0, DUR[idx] - elapsed);
+      clearTimeout(timer);
+      paused = true;
+      // Resolve the current beat into a stable end state. This stops cursor,
+      // typing, and delayed popover movement without stranding the visitor on
+      // a half-typed query or an unexplained pre-click frame.
+      applyScene(SCENES[idx]);
+      setFillPosition(elapsed, 0);
+    } else {
+      paused = false;
+      const elapsed = DUR[idx] - remaining;
+      sceneStartedAt = performance.now() - elapsed;
+      setFillPosition(elapsed, remaining);
+      scheduleNext(remaining);
+    }
+    updatePlaybackControl();
   }
 
   function jumpTo(sceneIndex) {
@@ -905,9 +1152,17 @@
   }
 
   function tick() {
+    sceneStartedAt = performance.now();
+    remaining = DUR[idx];
     applyScene(SCENES[idx]);
     updateScrub();
-    timer = setTimeout(() => { idx = (idx + 1) % SCENES.length; tick(); }, DUR[idx]);
+    scheduleNext(DUR[idx]);
   }
+
+  playbackToggleEl?.addEventListener('click', () => setPaused(!paused));
+  reduceMotion.addEventListener('change', (event) => {
+    if (event.matches) setPaused(true);
+  });
+  updatePlaybackControl();
   tick();
 })();

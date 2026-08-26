@@ -132,3 +132,202 @@ responsive rule, and the intentional visible picker-cancel affordance.
 No P3 visual follow-up is required for this release candidate.
 
 final result: passed
+
+---
+
+# Home demo native Move to Group flow — 2026-08-25
+
+**Final result:** passed
+
+## Comparison target
+
+- Source visual truth:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-08-25 at 9.55.40 PM.png`.
+- Rendered implementation states:
+  `/private/tmp/blanc-accurate-group-menu-qa/existing-group-choice.png` and
+  `/private/tmp/blanc-accurate-group-menu-qa/checked-group-state.png`.
+- Focused side-by-side evidence:
+  `/private/tmp/blanc-accurate-group-menu-qa/source-vs-demo-focused.jpg`.
+- Viewport: 912×802 CSS pixels at device scale 1 for the implementation. The
+  source is a 1404×1602 native Blanc capture.
+- State: light appearance, an inactive tab row's native context menu open,
+  Move to Group expanded, followed by the checked membership state.
+
+## Normalization
+
+- The source menu region was cropped to 825×620 pixels from the original
+  1404×1602 capture.
+- The implementation's visible menu region was cropped to 372×317 pixels from
+  the 912×802 browser capture and normalized to 825×620 for the focused
+  structural comparison.
+- Group names and page content intentionally differ. The comparison target is
+  the native menu hierarchy, radio/check state, separator structure, and move
+  outcome rather than the user's live tabs.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Interaction fidelity: the demo now right-clicks an inactive loose tab, opens
+  the full shipped row menu, selects the existing Social radio item, and shows
+  Netflix inside Social without switching away from the current Scroll page.
+  The next beat reopens the same menu with Social checked before choosing New
+  Group… and entering the real `/group ` handoff.
+- Spacing and layout rhythm: the root-menu width remains proportional to the
+  scaled Island panel, all native sections fit inside the demo stage, the
+  submenu aligns with Move to Group, and its check gutter remains stable across
+  checked and unchecked rows.
+- Fonts and typography: the menu uses the macOS system stack, compact native
+  row sizing, muted accelerator labels, and the same sentence casing and
+  ellipsis treatment as the shipped menu model.
+- Colors and visual tokens: the translucent native surface, fine border,
+  macOS blue hover selection, separator contrast, shadow, and subdued
+  accelerators match the source hierarchy.
+- Image quality and asset fidelity: page captures and favicons remain bundled
+  source assets. The menu is browser-rendered UI; no new raster placeholder or
+  decorative asset was introduced.
+- Copy and content: every shipped row-menu section shown in the source is now
+  present: Copy Link; reload/duplicate; pin/mute/favorite/group; Glance/Quiet;
+  new/private; close-others/new-window; reopen/close. The submenu lists existing
+  groups, current membership, Remove from Group, and New Group… according to
+  the real tab-context-menu model.
+- Accessibility and runtime: scene copy describes the result rather than the
+  simulated pointer mechanics, the timeline remains keyboard reachable, and
+  browser console verification returned no warnings or errors.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] The demo used an abbreviated context card and jumped directly to New
+  Group…, so it neither taught the existing-group move nor represented the
+  checked radio state and conditional Remove from Group action.
+
+Fixes: rebuilt the context menu from the shipped menu model, added the full
+inactive-row sections and accelerators, represented group radio/check state,
+and inserted an explicit Social move before the New Group… branch.
+
+### Iteration 2 — passed
+
+The post-fix captures show the direct Social choice, Social's checked state,
+Remove from Group, New Group…, and the complete menu around them. The Astro
+production build and `git diff --check` pass, and the browser console is clean.
+
+final result: passed
+
+---
+
+# Home demo Named Groups target visibility — 2026-08-25
+
+**Final result:** passed
+
+## Comparison target
+
+- Source visual truth: the pre-fix Named Groups submenu capture at
+  `/private/tmp/blanc-named-group-audit/12-revised-choice.jpg`, corroborated by
+  the user's attached 9:47:54 PM screenshot. In both, Netflix follows three
+  loose tabs and falls at the panel's clipped lower edge.
+- Rendered implementation:
+  `/private/tmp/blanc-grouping-visibility-qa/implementation-submenu-top.png`.
+- Normalized full-view comparison:
+  `/private/tmp/blanc-grouping-visibility-qa/normalized-old-vs-new.jpg`.
+- Focused interaction evidence:
+  `/private/tmp/blanc-grouping-visibility-qa/implementation-root.png` and
+  `/private/tmp/blanc-grouping-visibility-qa/implementation-submenu.png`.
+
+## Normalization
+
+- Source pixels: 912×2048 from an earlier half-scale full-page capture. Its
+  first 912×802 CSS viewport was normalized to 1824×4096 pixels, then cropped
+  back to 912×802 so the hero, demo frame, and panel match the live capture's
+  CSS scale and crop.
+- Implementation pixels and CSS viewport: 912×802 at device scale 1.
+- State: desktop light appearance, Named Groups chapter, Netflix active, native
+  tab context menu open, followed by the Move to Group submenu.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Spacing and layout rhythm: Netflix is now the first loose tab directly below
+  the Social group, fully visible before the cursor arrives. The panel resets to
+  scrollTop 0 for both context-menu scenes, eliminating retained-scroll drift.
+- Interaction hierarchy: the right-click target remains visible beside the
+  root menu, and the same row anchors the submenu beat. The menu no longer reads
+  as detached from an offscreen or clipped tab.
+- Fonts and typography: existing UI, mono, native-menu typography, weights,
+  truncation, and active-tab emphasis are unchanged.
+- Colors and visual tokens: existing panel, group-band, menu blur, border,
+  shadow, and macOS blue selection treatments are unchanged.
+- Image quality and asset fidelity: the real bundled Netflix page capture and
+  favicon remain unchanged; no placeholder or synthetic visual asset was added.
+- Copy and content: the chapter's instructional headline and menu labels are
+  unchanged. Only tab ordering inside this isolated demonstration state changed.
+- Responsiveness and accessibility: no control size, timeline target, semantic
+  label, or reading order changed. Browser console verification returned no
+  warnings or errors.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] Netflix appeared after Scroll, Nintendo, and MS NOW. At the demonstrated
+  panel height its row was partially clipped by the footer, so the context menu
+  did not have an obvious visual origin.
+
+Fixes: added a Named-Groups-specific layout with Netflix first among the loose
+tabs, used it throughout the setup/name beats, and reset the list scroll before
+the staged right-click.
+
+### Iteration 2 — passed
+
+Post-fix evidence shows the complete Netflix row directly under Social in both
+the root-menu and submenu states. Every other tab and group retains its state;
+the Astro production build and `git diff --check` pass.
+
+final result: passed
+
+---
+
+# Home demo design QA — 2026-08-25
+
+**Final result:** passed
+
+## Comparison target
+
+- Source: the deployed home demo captured before this revision.
+- Implementation: the revised local Astro home demo at matching viewport and
+  Glance-resize state.
+- Side-by-side evidence:
+  `docs/superpowers/specs/assets/home-demo-glance-sequence-qa.png`.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Narrative hierarchy: the 20-scene, roughly 85-second loop is now a 15-scene,
+  roughly 59-second story. Island, Glance, and Blanc Blocker arrive first;
+  command search, Named Groups, and Patron Workspaces follow. The expected
+  private-tab beat is intentionally omitted in favor of Blanc-specific proof.
+- Interaction fidelity: the Glance pane appears directly after the row action,
+  the cursor continues toward the divider, resizing begins without an idle
+  beat, and Make main remains a separate readable action. The Blocker popover
+  stays closed until the shield click, then its switch reloads the same
+  editorial page from an ad-heavy layout into a clean, reflowed reading view.
+- Content: the low-impact `/pin` beat and duplicate search sequence are gone.
+  The command directory begins at `/favorites`; the same `watch` group is named
+  and folded; the private-tab chapter has been removed from the loop.
+- Timeline and control: each chapter has a 24px target, the active chapter is
+  named persistently, `aria-current="step"` follows playback, and pause/play
+  freezes the loop on a complete representative state.
+- Responsiveness: all six chapters fit without horizontal overflow at
+  390×844. Glance uses the stacked mobile direction, the panel remains inside
+  the 354px stage, and the 333px chapter control remains usable.
+- Reduced motion: animation preference initializes playback paused, hides the
+  staged cursor, disables progress and transition motion, and exposes complete
+  static chapter states for manual selection.
+- Runtime: the Astro production build passes, the command directory stays at
+  scrollTop 0, group/workspace outcomes match their messages, and the
+  browser console has no warnings or errors attributable to the demo.
+
+final result: passed

@@ -115,33 +115,11 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
    shot crossfades in over them once its real image has arrived. */
 .demo-shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; opacity: 0; transition: opacity 360ms ease, left 360ms cubic-bezier(0.4, 0, 0.2, 1), width 360ms cubic-bezier(0.4, 0, 0.2, 1), height 360ms cubic-bezier(0.4, 0, 0.2, 1), top 360ms cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
 .demo-shot.show { opacity: 1; }
-
-/* Private mode replaces the old stock photo with a deliberately anonymous
-   loading page. The shimmer suggests a page arriving without implying that
-   Blanc captures or remembers any particular private destination. */
-.demo-private-skeleton { position: absolute; inset: var(--demo-strip-h) 0 0; z-index: 1; padding: 34px clamp(30px, 6vw, 58px); overflow: hidden; background: #0a0a0a; }
-.demo-private-skeleton[hidden] { display: none; }
-.private-skeleton-nav { display: flex; align-items: center; justify-content: space-between; gap: 28px; }
-.private-skeleton-links { display: flex; align-items: center; gap: 18px; }
-.private-skeleton-links .private-skeleton-block { width: 54px; height: 8px; }
-.private-skeleton-brand { width: 92px; height: 12px; }
-.private-skeleton-body { width: min(74%, 610px); margin: 46px auto 0; display: flex; flex-direction: column; align-items: center; }
-.private-skeleton-kicker { width: 72px; height: 8px; margin-bottom: 18px; }
-.private-skeleton-title { width: 100%; display: grid; justify-items: center; gap: 11px; }
-.private-skeleton-title .private-skeleton-block { height: clamp(28px, 4.3vw, 40px); }
-.private-skeleton-title .private-skeleton-block:first-child { width: 82%; }
-.private-skeleton-title .private-skeleton-block:last-child { width: 61%; }
-.private-skeleton-copy { width: 74%; margin-top: 22px; display: grid; justify-items: center; gap: 9px; }
-.private-skeleton-copy .private-skeleton-block { width: 100%; height: 9px; }
-.private-skeleton-copy .private-skeleton-block:last-child { width: 72%; }
-.private-skeleton-cards { width: 100%; margin-top: 34px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.private-skeleton-cards .private-skeleton-block { height: 74px; border-radius: 10px; }
-.private-skeleton-block { display: block; border-radius: 5px; border: 1px solid rgba(255,255,255,0.035); background: linear-gradient(100deg, #171717 22%, #242424 42%, #171717 62%); background-size: 240% 100%; animation: private-skeleton-shimmer 1.8s linear infinite; }
-.private-skeleton-block:nth-child(2) { animation-delay: -0.6s; }
-.private-skeleton-block:nth-child(3) { animation-delay: -1.2s; }
-@keyframes private-skeleton-shimmer {
-  from { background-position: 120% 0; }
-  to { background-position: -120% 0; }
+.demo-stage.blocker-activating .demo-shot.show { animation: demo-blocker-reload 620ms cubic-bezier(0.2, 0.7, 0.16, 1) both; }
+@keyframes demo-blocker-reload {
+  0% { opacity: 0.08; filter: saturate(0.7) blur(1px); }
+  34% { opacity: 0.32; }
+  100% { opacity: 1; filter: none; }
 }
 
 .demo-glance[hidden] { display: none; }
@@ -225,19 +203,24 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
    hide them — otherwise the scrolling scene animates a bar up into the top
    strip (which the shot doesn't cover) and it peeks out over the strip color. */
 #demoStage:has(.demo-shot.show) .demo-page { display: none; }
-#demoStage.private-loading .demo-page { display: none; }
 
 /* Persistent demo timeline. It sits below the canvas rather than over a page
    render, so every chapter remains reachable while the Island panel, Glance,
    workspace switcher, or private state occupies the demo itself. */
-.demo-scrub { position: relative; z-index: 6; display: flex; align-items: center; width: min(76%, 520px); margin: 18px auto 0; padding: 12px 20px; background: #111; border: 1px solid #111; border-radius: 999px; box-shadow: 0 8px 24px rgba(14, 14, 14, 0.16); }
-.demo-scrub-track { position: relative; flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.24); }
+.demo-scrub { position: relative; z-index: 6; display: flex; align-items: center; gap: 12px; width: min(86%, 610px); margin: 18px auto 0; padding: 8px 12px; background: #111; border: 1px solid #111; border-radius: 999px; box-shadow: 0 8px 24px rgba(14, 14, 14, 0.16); }
+.demo-scrub-current { flex: 0 0 92px; overflow: hidden; color: #fff; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.01em; line-height: 1; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
+.demo-scrub-track { position: relative; flex: 1; min-width: 0; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.24); }
 .demo-scrub-fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 2px; background: #fff; }
-.demo-scrub-marker { position: absolute; top: 50%; left: 0; width: 11px; height: 11px; padding: 0; transform: translate(-50%, -50%); border-radius: 50%; background: rgba(255, 255, 255, 0.32); border: 1.5px solid rgba(255, 255, 255, 0.9); cursor: pointer; transition: transform 0.15s ease, background 0.15s ease; }
-.demo-scrub-marker:hover, .demo-scrub-marker:focus-visible { transform: translate(-50%, -50%) scale(1.3); background: #fff; outline: none; }
-.demo-scrub-marker.active { background: #fff; }
-.demo-scrub-label { position: absolute; bottom: 190%; left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.02em; color: #fff; background: rgba(18, 18, 20, 0.88); padding: 3px 7px; border-radius: 5px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
+.demo-scrub-marker { position: absolute; top: 50%; left: 0; width: 24px; height: 24px; padding: 0; transform: translate(-50%, -50%); border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.demo-scrub-marker::before { content: ""; position: absolute; inset: 50% auto auto 50%; width: 9px; height: 9px; transform: translate(-50%, -50%); border: 1.5px solid rgba(255, 255, 255, 0.9); border-radius: 50%; background: rgba(255, 255, 255, 0.32); transition: transform 0.15s ease, background 0.15s ease; }
+.demo-scrub-marker:hover::before, .demo-scrub-marker:focus-visible::before { transform: translate(-50%, -50%) scale(1.3); background: #fff; }
+.demo-scrub-marker:focus-visible { outline: 1.5px solid rgba(255, 255, 255, 0.9); outline-offset: 1px; }
+.demo-scrub-marker.active::before { background: #fff; }
+.demo-scrub-label { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.02em; color: #fff; background: rgba(18, 18, 20, 0.9); padding: 3px 7px; border-radius: 5px; opacity: 0; pointer-events: none; transition: opacity 0.15s ease; }
 .demo-scrub-marker:hover .demo-scrub-label, .demo-scrub-marker:focus-visible .demo-scrub-label { opacity: 1; }
+.demo-scrub-toggle { flex: 0 0 auto; min-width: 42px; height: 28px; padding: 0 5px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, 0.12); color: #fff; font-family: var(--font-mono); font-size: 9.5px; cursor: pointer; }
+.demo-scrub-toggle:hover { background: rgba(255, 255, 255, 0.2); }
+.demo-scrub-toggle:focus-visible { outline: 1.5px solid #fff; outline-offset: 2px; }
 
 /* A staged pointer makes the demo's implied clicks legible. Its tip is the
    transform origin, so demo.js can aim it at live controls instead of keeping
@@ -254,6 +237,24 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 .demo-cursor::after { content: ""; position: absolute; top: -10px; left: -10px; width: 20px; height: 20px; border: 1.5px solid rgba(14,14,14,0.45); border-radius: 50%; opacity: 0; transform: scale(0.35); }
 .demo-cursor.clicking::after { animation: demo-cursor-click 440ms ease-out; }
 @keyframes demo-cursor-click { 0% { opacity: 0.75; transform: scale(0.35); } 100% { opacity: 0; transform: scale(1.7); } }
+
+/* A compact representation of Blanc's native macOS tab menu. It keeps the
+   system-menu density and blue selection treatment instead of reusing the
+   Island's black primary-action styling. */
+.demo-tab-context { position: absolute; z-index: 13; width: 202px; pointer-events: none; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, var(--font-ui), sans-serif; font-size: 10.5px; font-weight: 400; line-height: 1; text-align: left; }
+.demo-tab-context[hidden] { display: none; }
+.demo-context-card { position: relative; padding: 4px; border: 0.5px solid rgba(0,0,0,0.14); border-radius: 8px; background: rgba(249,249,249,0.93); box-shadow: 0 10px 24px rgba(0,0,0,0.22), 0 1px 3px rgba(0,0,0,0.1); backdrop-filter: blur(18px) saturate(1.35); }
+.demo-context-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 20px; padding: 0 8px; border-radius: 4px; white-space: nowrap; }
+.demo-context-item b { font-family: -apple-system, BlinkMacSystemFont, var(--font-ui), sans-serif; font-size: 14px; font-weight: 400; line-height: 1; }
+.demo-context-accelerator { margin-left: auto; color: rgba(60,60,67,0.46); font-size: 10px; }
+.demo-context-choice,
+.demo-context-remove,
+.demo-context-new { justify-content: flex-start; gap: 6px; }
+.demo-context-check { width: 10px; flex: 0 0 10px; color: currentColor; font-size: 12px; font-weight: 600; text-align: center; }
+.demo-context-item.active,
+.demo-context-item.cue { color: #fff; background: #0a84ff; }
+.demo-context-separator { display: block; height: 1px; margin: 4px; background: rgba(60,60,67,0.22); }
+.demo-context-submenu { position: absolute; top: 142px; left: calc(100% - 2px); width: 170px; }
 
 /* Contrast-rim specular shading, ported from the app's --shadow-pill and
    --shadow-popover. A single flat drop shadow read as a sticker on the page;
@@ -326,7 +327,7 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 .demo-stage[data-theme="private"] .demo-island .dots > span:not(.dot-more) { background: transparent; border: 1px solid var(--text-dim); opacity: 0.85; }
 .demo-stage[data-theme="private"] .demo-island .dots > span.cur { border-color: var(--accent); background: var(--accent-dim); opacity: 1; }
 
-.demo-island .pill-fav { width: 16px; height: 16px; border-radius: 4px; background-color: var(--border); background-size: cover; background-position: center; flex: 0 0 auto; }
+.demo-island .pill-fav { width: 16px; height: 16px; border-radius: 4px; background-color: transparent; background-size: cover; background-position: center; flex: 0 0 auto; }
 /* Inter, not mono, since 1.1.0 — the URL is read, not typed at. */
 .demo-island .domain { font-family: var(--font-ui); font-size: 14px; }
 
@@ -386,13 +387,9 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 .demo-bb-fav .tile { width: 30px; height: 30px; border-radius: 6px; background: var(--surface) center / 19px no-repeat; border: 1px solid var(--border); }
 .demo-bb-fav .label { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-dim); }
 .demo-island .priv-chip { display: none; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 11.5px; padding: 2px 5px 2px 9px; border-radius: 999px; border: 1px dashed var(--accent); color: var(--accent); }
-/* The chip's ✕ is the app's own 16-grid glyph, drawn small — it used to be a
-   bespoke cross on a 12 grid, the one shape in the demos outside the app's
-   icon language. Sizing and stroke match #pillPrivateChip svg. */
 .demo-island .priv-chip svg { display: block; width: 9px; height: 9px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .demo-island.private .priv-chip { display: flex; }
 .demo-island.private .domain, .demo-island.private .shield, .demo-island.private .pill-fav, .demo-island.private .pnav, .demo-island.private .psep, .demo-island.private .pacts { display: none; }
-
 /* The shield is now a direct, per-site control. This lightweight state in the
    hero loop shows the same small popover the product uses, instead of treating
    the blocked-request number as a passive badge. */
@@ -425,6 +422,12 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 .demo-shield-popover b { font-weight: 600; }
 .demo-shield-switch { position: relative; display: block; width: 34px; height: 20px; flex: 0 0 auto; border: 1px solid var(--accent); border-radius: 999px; background: var(--accent); }
 .demo-shield-switch i { position: absolute; top: 2px; left: 16px; width: 14px; height: 14px; border-radius: 50%; background: var(--bg); }
+.demo-island.blocker-off .demo-shield-switch { border-color: var(--border); background: var(--surface); }
+.demo-island.blocker-off .demo-shield-switch i { left: 2px; background: var(--text-dim); }
+.demo-island.blocker-off .shield { opacity: 0.58; }
+.demo-island.blocker-off .demo-shield-popover small { color: var(--text); }
+.demo-shield-switch,
+.demo-shield-switch i { transition: background 180ms ease, border-color 180ms ease, left 180ms ease; }
 .demo-shield-popover > p { margin: 9px 0 0; color: var(--text-dim); font-size: 11.5px; }
 .demo-shield-popover > p + p { margin-top: 5px; }
 .demo-shield-popover small { display: block; margin-top: 4px; color: var(--text-dim); font-size: 11.5px; }
@@ -518,9 +521,9 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 
 .demo-island .list { margin-top: 6px; display: flex; flex-direction: column; min-height: 0; max-height: 300px; overflow-y: auto; scrollbar-width: none; }
 .demo-island .list::-webkit-scrollbar { display: none; }
-.demo-island .list.command-directory { scroll-snap-type: y proximity; }
+.demo-island .list.command-directory { overflow-anchor: none; scroll-snap-type: none; }
 .demo-island .list.command-directory .sec-head { position: sticky; top: 0; z-index: 1; background: var(--surface-raised); }
-.demo-island .list.command-directory .trow { flex: 0 0 auto; scroll-snap-align: start; }
+.demo-island .list.command-directory .trow { flex: 0 0 auto; scroll-snap-align: none; }
 
 /* Section headers and named-group bands mirror the live panel. */
 .demo-island .sec-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px 3px; font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); }
@@ -538,7 +541,7 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 .demo-island .trow.hl .cmd { font-weight: 600; }
 .demo-island .trow.just { animation: rowpulse 1000ms ease; }
 @keyframes rowpulse { 0%, 55% { background: var(--accent-dim); } 100% { background: transparent; } }
-.demo-island .trow .fav { width: 16px; height: 16px; border-radius: 4px; flex: 0 0 auto; background-color: var(--border); background-size: cover; background-position: center; box-shadow: inset 0 0 0 1px rgba(14,14,14,0.05); }
+.demo-island .trow .fav { width: 16px; height: 16px; border-radius: 4px; flex: 0 0 auto; background-color: transparent; background-size: cover; background-position: center; }
 /* Overflowing titles wash out at the right edge instead of cutting to an
    ellipsis. The element is flex-grown to fill the row, so the fade zone only
    touches glyphs when the text genuinely overflows — short titles are
@@ -599,19 +602,6 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
    cluster, the group name — and keep the core identity (dots, favicon,
    domain, shield) centered, the way a narrow island sheds chrome. */
 @media (max-width: 560px) {
-  .demo-private-skeleton { padding: 24px 22px; }
-  .private-skeleton-links { gap: 10px; }
-  .private-skeleton-links .private-skeleton-block { width: 28px; height: 7px; }
-  .private-skeleton-brand { width: 68px; height: 10px; }
-  .private-skeleton-body { width: 94%; margin-top: 27px; }
-  .private-skeleton-kicker { margin-bottom: 13px; }
-  .private-skeleton-title { gap: 8px; }
-  .private-skeleton-title .private-skeleton-block { height: 25px; }
-  .private-skeleton-copy { width: 84%; margin-top: 16px; gap: 7px; }
-  .private-skeleton-copy .private-skeleton-block { height: 7px; }
-  .private-skeleton-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 22px; gap: 9px; }
-  .private-skeleton-cards .private-skeleton-block { height: 50px; border-radius: 8px; }
-  .private-skeleton-cards .private-skeleton-block:last-child { display: none; }
   .demo-island .pnav,
   .demo-island .pacts,
   .demo-island .psep { display: none; }
@@ -623,6 +613,11 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
   .demo-island .foot-act.ws span { display: none; }
   .demo-island .foot-act.ws { width: 28px; padding: 0; }
   .demo-island .demo-workspace-switcher { right: 6px; }
+  .demo-tab-context { width: 164px; font-size: 10px; transform: scale(0.78); transform-origin: top left; }
+  .demo-context-item { min-height: 22px; padding: 0 7px; }
+  .demo-context-item.context-optional,
+  .demo-context-separator.context-optional { display: none; }
+  .demo-context-submenu { top: 26px; left: calc(100% - 2px); width: 148px; }
   /* The panel footer hint is a single nowrap line that overruns the narrow
      panel — let it wrap and center instead of overflowing off the edge. */
   .demo-island .foot { white-space: normal; text-align: center; }
@@ -637,13 +632,14 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
   /* Both island effects are decorative — off entirely, not just shortened,
      which is what the app does with the same preference. */
   .demo-cursor { display: none !important; }
-  .private-skeleton-block { animation: none; background: #1b1b1b; }
   .demo-stage.glance-resizing .demo-shot,
   .demo-stage.glance-resizing .demo-glance-header,
   .demo-stage.glance-resizing .demo-glance-divider,
   .demo-stage.glance-resizing .demo-glance-shot { transition: none; }
   .demo-stage.glance-swapping .demo-shot,
   .demo-stage.glance-swapping .demo-glance-shot { animation: none; }
+  .demo-stage.blocker-activating .demo-shot.show { animation: none; }
+  .demo-scrub-fill { transition: none !important; }
   /* Keeps the base presentation scale — only the proximity reaction goes. */
   .demo-island .pill { transform: scale(var(--pill-scale, 1)); transition: none; box-shadow: var(--rim-pill), 0 12px 28px rgba(14,14,14,0.1); }
   .demo-island .panel,
@@ -1068,8 +1064,9 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
   .hero .hero-copy { margin-top: 20px; font-size: 18px; line-height: 1.42; }
   .demo-stage { height: 348px; margin-top: 22px; border-radius: 11px; }
   .demo-page { padding: 78px 28px 0; }
-  .demo-scrub { width: min(88%, 420px); margin-top: 16px; padding: 10px 16px; }
-  .demo-scrub-marker { width: 13px; height: 13px; }
+  .demo-scrub { gap: 8px; width: min(94%, 440px); margin-top: 16px; padding: 7px 9px; }
+  .demo-scrub-current { flex-basis: 72px; font-size: 9px; }
+  .demo-scrub-toggle { min-width: 38px; height: 28px; padding-inline: 4px; font-size: 9px; }
   .hero .platforms { margin-top: 12px; white-space: normal; line-height: 1.7; }
   .proof-rail { justify-content: flex-start; gap: 8px 14px; padding: 15px 18px; font-size: 10.5px; }
   .home-intro { padding: 82px 18px 62px; }
