@@ -77,13 +77,16 @@ const additionalSites = [
   { name: 'Marriott', url: 'https://www.marriott.com/', host: 'marriott.com' },
   { name: 'The Guardian', url: 'https://www.theguardian.com/', host: 'theguardian.com' },
   { name: 'Reuters', url: 'https://www.reuters.com/', host: 'reuters.com' },
+  // NFL's only ordinary favicon is compressed app artwork (currently
+  // 2000x2000), with no working /favicon.ico fallback.
+  { name: 'NFL', url: 'https://www.nfl.com/', host: 'nfl.com' },
 ];
 const matrices = { primary: primarySites, additional: additionalSites };
 const allSites = [...primarySites, ...additionalSites];
 assert.equal(primarySites.length, 26);
-assert.equal(additionalSites.length, 25);
-assert.equal(new Set(allSites.map(({ name }) => name.toLowerCase())).size, 51, 'favicon matrix names must be unique');
-assert.equal(new Set(allSites.map(({ host }) => host)).size, 51, 'favicon matrix hosts must be unique');
+assert.equal(additionalSites.length, 26);
+assert.equal(new Set(allSites.map(({ name }) => name.toLowerCase())).size, 52, 'favicon matrix names must be unique');
+assert.equal(new Set(allSites.map(({ host }) => host)).size, 52, 'favicon matrix hosts must be unique');
 
 const matrixName = String(process.env.BLANC_FAVICON_MATRIX ?? '').trim().toLowerCase();
 if (matrixName && !matrices[matrixName]) {

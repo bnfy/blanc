@@ -4,6 +4,7 @@ import http from 'node:http';
 import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
+import sharp from 'sharp';
 import { launchPackagedOverCdp } from './support/packaged-cdp.mjs';
 
 const defaultExecutable = process.platform === 'darwin'
@@ -43,6 +44,19 @@ GENERIC_ICO.writeUInt32LE(GENERIC_ICO_DIB.length, 14);
 GENERIC_ICO.writeUInt32LE(22, 18);
 GENERIC_ICO_DIB.copy(GENERIC_ICO, 22);
 
+// NFL currently uses compressed 2000x2000 app artwork as its sole ordinary
+// favicon. Generate that shape locally so this compatibility case remains a
+// deterministic release gate even when the public site or CDN changes.
+const LARGE_FAVICON = await sharp({
+  create: {
+    width: 2000,
+    height: 2000,
+    channels: 4,
+    background: { r: 214, g: 36, b: 54, alpha: 1 },
+  },
+}).png().toBuffer();
+assert.ok(LARGE_FAVICON.length < 256 * 1024, 'large favicon fixture must remain byte-bounded');
+
 const poll = async (read, predicate, message, timeoutMs = 30_000) => {
   const deadline = Date.now() + timeoutMs;
   let value;
@@ -67,6 +81,18 @@ const server = http.createServer((request, response) => {
   if (request.url === '/oversized-touch.png') {
     response.setHeader('Content-Type', 'image/png');
     response.end(Buffer.alloc(256 * 1024 + 1));
+    return;
+  }
+  if (request.url === '/large-favicon.png') {
+    response.setHeader('Content-Type', 'image/png');
+    response.end(LARGE_FAVICON);
+    return;
+  }
+  if (request.url === '/large-favicon') {
+    response.end(`<!doctype html>
+      <title>Large favicon probe</title>
+      <link rel="icon" type="image/png" href="/large-favicon.png">
+      <main>large favicon probe</main>`);
     return;
   }
   if (request.url === '/generic-ico') {
@@ -188,6 +214,25 @@ try {
     const faviconBytes = Buffer.from(faviconTab.favicon.split(',')[1], 'base64');
     assert.equal(faviconBytes.subarray(1, 4).toString('ascii'), 'PNG');
     assert.ok(faviconBytes.length > 100, 'sanitized favicon should contain real image bytes');
+  });
+
+  await withPackagedApp({
+    label: 'release-regressions-large-favicon',
+    launchArgs: [`${origin}/large-favicon`],
+  }, async (app) => {
+    const faviconTab = await poll(
+      () => readTabState(app).then((state) =>
+        state?.tabs?.find((tab) => tab.url === `${origin}/large-favicon`) ?? null),
+      (tab) => tab?.favicon?.startsWith('data:image/png;base64,'),
+      'packaged candidate did not rasterize bounded 2000x2000 favicon artwork',
+      45_000,
+    );
+    const faviconBytes = Buffer.from(faviconTab.favicon.split(',')[1], 'base64');
+    const { data, info } = await sharp(faviconBytes).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    assert.equal(info.width, 32);
+    assert.equal(info.height, 32);
+    assert.deepEqual([...data.subarray(0, 4)], [214, 36, 54, 255],
+      'large declared artwork must win over the unrelated conventional ICO fallback');
   });
 
   await withPackagedApp({

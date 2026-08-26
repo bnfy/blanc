@@ -3,6 +3,7 @@ const test = require('node:test');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { MAX_SOURCE_DIMENSION } = require('../../src/main/tabicons-model');
 
 const LEGACY_PNG_DATA = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGElEQVR42mNgGAWjYBSMglEwCkbBqAABBgAE/wABeV0FzgAAAABJRU5ErkJggg==';
 const pngBytes = Buffer.from(LEGACY_PNG_DATA.split(',')[1], 'base64');
@@ -151,7 +152,7 @@ test('capture rejects non-image responses before decoding or serializing them', 
 test('PNG sources are format- and dimension-guarded before nativeImage decode', async () => {
   const before = decodeCount;
   const huge = Buffer.from(PNG_BYTES);
-  huge.writeUInt32BE(1025, 16);
+  huge.writeUInt32BE(MAX_SOURCE_DIMENSION + 1, 16);
   const cases = [
     {
       // An image/png label over non-PNG bytes must not smuggle another format

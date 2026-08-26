@@ -52,9 +52,9 @@ npm run test:acceptance:desktop      # execute the runnable scenarios against th
 xvfb-run -a npm run test:acceptance:desktop   # ...on a headless Linux/CI box
 
 npm run test:packaged:regressions    # deterministic signed-build release regressions
-npm run test:packaged:favicons-live  # both pre-tag live favicon matrices (51 unique public sites)
+npm run test:packaged:favicons-live  # both pre-tag live favicon matrices (52 unique public sites)
 BLANC_FAVICON_MATRIX=primary npm run test:packaged:favicons-live    # original 25 + App Store Connect
-BLANC_FAVICON_MATRIX=additional npm run test:packaged:favicons-live # separate 25
+BLANC_FAVICON_MATRIX=additional npm run test:packaged:favicons-live # separate 26
 ```
 
 The desktop script is plain `cucumber-js` so it works on a dev machine with a
@@ -62,7 +62,7 @@ display (macOS); prefix `xvfb-run -a` on headless Linux.
 
 The two favicon live matrices are intentionally not PR/CI checks because third-party
 availability is outside the repository's control. The fail-closed release
-script runs two non-overlapping sets (26 primary, 25 additional) against the signed packaged
+script runs two non-overlapping sets (26 primary, 26 additional) against the signed packaged
 candidate before creating the immutable source tag, alongside the deterministic
 packaged regression smoke. Sites run in cold batches of at most five: enough
 concurrency to cover background-tab behavior without turning favicon

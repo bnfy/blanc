@@ -255,9 +255,19 @@
 
   // `base` kept for parity with renderer.js's twin (the dot-peek reuses it
   // there); the overlay only ever needs the default. Keep the two in sync.
+  function faviconFallbackLabel(tab) {
+    try {
+      const host = new URL(tab?.url || '').hostname.replace(/^www\./i, '');
+      return Array.from(host)[0]?.toUpperCase() || '•';
+    } catch {
+      return '•';
+    }
+  }
+
   function setFavicon(el, tab, base = 'favicon') {
     el.className = base + (tab?.isLoading ? ' loading' : '');
     el.style.backgroundImage = '';
+    el.textContent = '';
     if (!tab || tab.isLoading) return;
     if (tab.url.startsWith('blanc://')) {
       // Blanc mark via CSS mask so it follows the theme — the pages' own SVG
@@ -266,6 +276,9 @@
     } else if (tab.favicon) {
       el.classList.add('has-icon');
       el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
+    } else {
+      el.classList.add('fallback');
+      el.textContent = faviconFallbackLabel(tab);
     }
   }
 
@@ -1730,7 +1743,10 @@
       leading.innerHTML = ICONS.search;
     } else {
       leading = document.createElement('span');
-      setFavicon(leading, result.tab ?? null);
+      // History entries do not carry a full tab record. Preserve the shared
+      // favicon path with a URL-shaped fallback so they receive a domain
+      // initial instead of reverting to the anonymous gray slot.
+      setFavicon(leading, result.tab ?? { url: result.url || '' });
     }
 
     const title = document.createElement('span');

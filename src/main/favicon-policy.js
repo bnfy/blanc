@@ -245,9 +245,17 @@ async function updateFaviconAfterDomReady(tab, webContents, deps) {
     return deps.setTabFavicon(tab, best);
   }
   const preferred = pickBestDeclaredFavicon(candidates);
-  const favicons = candidates
+  const ordinary = candidates
     .filter(({ rel }) => /(?:^|\s)icon(?:\s|$)/i.test(rel))
     .map(({ href }) => href);
+  // A broken ordinary icon must not strand the tab when the same document
+  // also provides usable app/touch artwork. Keep ordinary favicons ahead of
+  // touch icons for desktop fidelity, but exhaust both classes before the
+  // conventional /favicon.ico fallback.
+  const touch = candidates
+    .filter(({ rel }) => /(?:^|\s)apple-touch-icon(?:\s|$)/i.test(rel))
+    .map(({ href }) => href);
+  const favicons = [...ordinary, ...touch];
   if (preferred) favicons.unshift(preferred);
   return updateFaviconFromPage(tab, favicons, deps);
 }

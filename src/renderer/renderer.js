@@ -339,9 +339,19 @@
     pillSlash.hidden = next !== 'placeholder';
   }
 
+  function faviconFallbackLabel(tab) {
+    try {
+      const host = new URL(tab?.url || '').hostname.replace(/^www\./i, '');
+      return Array.from(host)[0]?.toUpperCase() || '•';
+    } catch {
+      return '•';
+    }
+  }
+
   function setFavicon(el, tab, base = 'favicon') {
     el.className = base + (tab?.isLoading ? ' loading' : '');
     el.style.backgroundImage = '';
+    el.textContent = '';
     if (!tab || tab.isLoading) return;
     if (tab.url.startsWith('blanc://')) {
       // Blanc mark via CSS mask so it follows the theme — the pages' own SVG
@@ -350,6 +360,12 @@
     } else if (tab.favicon) {
       el.classList.add('has-icon');
       el.style.backgroundImage = `url("${tab.favicon.replace(/[\\"]/g, '\\$&')}")`;
+    } else {
+      // A site with no usable image still gets a recognizable identity instead
+      // of the old anonymous gray box. The real favicon replaces this on the
+      // next tabs:updated broadcast if a later candidate succeeds.
+      el.classList.add('fallback');
+      el.textContent = faviconFallbackLabel(tab);
     }
   }
 

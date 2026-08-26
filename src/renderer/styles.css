@@ -1331,13 +1331,23 @@ button.insecure-badge {
   stroke-linejoin: round;
 }
 
-/* Site favicon slot: neutral square fallback, spinner while loading. */
+/* Site favicon slot: domain initial fallback, spinner while loading. */
 .favicon {
   width: 14px;
   height: 14px;
   flex: 0 0 auto;
   border-radius: 2px;
   background: var(--border);
+}
+.favicon.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  line-height: 1;
 }
 .favicon.has-icon {
   background-color: transparent;
@@ -1408,6 +1418,11 @@ button.insecure-badge {
 .dot-peek.has-icon {
   background-color: var(--surface-raised);
   background-size: 12px 12px;
+}
+.dot-peek.fallback {
+  background-color: var(--surface-raised);
+  color: var(--text-dim);
+  font-size: 9px;
 }
 .dot-peek.internal {
   background: var(--surface-raised);
@@ -2693,9 +2708,11 @@ body[data-glance-purpose="change"] .glance-picker {
    only paints the top band, and anything near the island competes with it.
    Still deliberately SUBORDINATE styling: flat surface, hairline border,
    small radius, no popover shadow. The island stays the only capsule. */
+html:has(> body.permission-surface),
+body.permission-surface { background: transparent; }
+
 .permission-surface {
   margin: 0;
-  background: transparent;
   overflow: hidden;
   display: flex;
   align-items: flex-end;

@@ -37,8 +37,11 @@ test('a favorite result carries a tab-shaped record with its favicon', () => {
   );
 });
 
-test('resultRow paints page-like results from result.tab', () => {
-  assert.match(resultRow, /setFavicon\(leading,\s*result\.tab\s*\?\?\s*null\)/);
+test('resultRow supplies a URL-shaped fallback for history and other page-like results', () => {
+  assert.match(
+    resultRow,
+    /setFavicon\(leading,\s*result\.tab\s*\?\?\s*\{\s*url:\s*result\.url\s*\|\|\s*''\s*\}\)/,
+  );
 });
 
 test('switcher metadata and source labels use the Inter UI face', () => {
