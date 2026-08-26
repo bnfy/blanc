@@ -13,9 +13,9 @@ Plus favorites, history, downloads, settings, private tabs, per-site
 permission prompts, session restore, and signed + notarized auto-updating
 macOS builds.
 
-> **Current release:** v1.9.0 includes the refined Island tab dots, updated app
-> icons, and optional macOS 1Password login fill. Use the
-> [v1.9.0 tag](https://github.com/bnfy/blanc/tree/v1.9.0) for the exact source
+> **Current release:** v1.9.1 fixes synced-tab favicon loss during startup,
+> broadens favicon compatibility, and keeps permission prompts transparent. Use
+> the [v1.9.1 tag](https://github.com/bnfy/blanc/tree/v1.9.1) for the exact source
 > snapshot associated with the public binaries.
 
 ## Source and license
