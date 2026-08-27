@@ -25,9 +25,10 @@
   clear before **2026-08-28 04:29:03 UTC** (**August 28, 12:29:03 a.m. ET**),
   and elapsed time alone is insufficient without all three platform checks.
 - AlternativeTo approved Blanc at **2026-08-25 02:04 a.m. ET**. The canonical
-  listing is `https://alternativeto.net/software/blanc/`; automated logged-out
-  retrieval currently receives AlternativeTo's Cloudflare challenge, so the
-  approval email is the recorded moderation evidence.
+  listing is `https://alternativeto.net/software/blanc/`; a signed-out browser
+  check passed on August 27 with the listing title, six alternatives, and
+  `Sign In` control visible. Automated clients still receive AlternativeTo's
+  Cloudflare challenge, so do not use `curl` as the availability check.
 - Tasks 2, 4–6, 9, and 10 are complete. Google Ads verification is submitted
   and the campaign is serving, but account approval is still pending.
 - Task 8 remains the owner-executed asset gate: record the complete 20-second
@@ -133,12 +134,13 @@ echo '{"date":"YYYY-MM-DD","channel":"alternativeto","submitted":true,"priorityR
   >> "$LAUNCH_LOG"
 ```
 
-- [ ] **Step 5: Confirm it is live before launch week**
+- [x] **Step 5: Confirm it is live before launch week**
 
 AlternativeTo approved Blanc at 2:04 a.m. ET on August 25. Canonical listing:
-`https://alternativeto.net/software/blanc/`. Automated logged-out requests hit
-AlternativeTo's Cloudflare challenge; the approval email is retained as the
-moderation evidence. One logged-out browser check remains before launch Monday.
+`https://alternativeto.net/software/blanc/`. A signed-out browser check passed
+on August 27: the page rendered the Blanc listing, six alternatives, and a
+`Sign In` control. Automated clients still hit AlternativeTo's Cloudflare
+challenge; the approval email remains the moderation evidence.
 
 ---
 
@@ -1470,12 +1472,13 @@ echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline
 
 **Every number in Task 15 is measured against this row.**
 
-- [ ] **Step 2: Confirm the AlternativeTo listing is publicly reachable**
+- [x] **Step 2: Confirm the AlternativeTo listing is publicly reachable**
 
-Approved in Task 1. Open `https://alternativeto.net/software/blanc/` in a
-logged-out browser and confirm the listing renders before recording it live.
-AlternativeTo presents a Cloudflare challenge to automated clients, so a `403`
-from `curl` is not evidence that the approved listing is unavailable.
+Passed August 27 in a signed-out browser at
+`https://alternativeto.net/software/blanc/`: the page rendered the Blanc
+listing, six alternatives, and the `Sign In` control. AlternativeTo presents a
+Cloudflare challenge to automated clients, so a `403` from `curl` is not
+evidence that the approved listing is unavailable.
 
 - [ ] **Step 3: Submit to BetaList**
 

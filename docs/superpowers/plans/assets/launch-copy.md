@@ -355,7 +355,7 @@ Use only topics that exist in the live form and genuinely fit.
 
 ## AlternativeTo
 
-**Status:** submitted; priority review paid; approval pending.
+**Status:** approved August 25; public signed-out browser check passed August 27.
 
 **Listing:** https://alternativeto.net/software/blanc/
 
