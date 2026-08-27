@@ -135,9 +135,12 @@ test('public claims describe shipped consent mode, 1Password boundaries, bundled
   assert.match(privacy, /hash-pinned EasyList and EasyPrivacy snapshots ship inside/);
   assert.match(privacy, /restricted state.*cookieless pings/is);
   assert.match(privacy, /1Password login fill on macOS \(off by default\)/);
-  assert.match(privacy, /built-in usernames of at most ten candidates/);
-  assert.match(privacy, /Passwords from unselected items never leave the helper/);
-  assert.match(privacy, /does not save, log, sync, or send these values to Bananify/);
+  assert.match(privacy, /current public v1\.9\.1 build/);
+  assert.match(privacy, /chooser of at most ten items/);
+  assert.match(privacy, /one selected Login item/);
+  assert.doesNotMatch(privacy, /built-in usernames of at most ten candidates/);
+  assert.doesNotMatch(privacy, /Candidate usernames/);
+  assert.match(privacy, /does not save, log, sync, or send those credentials to Bananify/);
   const terms = read('site/src/pages/terms.astro');
   assert.match(terms, /not affiliated with, endorsed by, or certified by 1Password/);
   assert.match(terms, /1Password is not a party to these terms/);

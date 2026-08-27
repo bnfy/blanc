@@ -32,6 +32,9 @@ test('privacy copy accounts for suggestions, telemetry, tab/icon sync, and servi
   assert.match(privacy, /source-rasterized PNG favicons/);
   assert.match(privacy, /checks GitHub for app updates/);
   assert.match(privacy, /secure-DNS provider/);
+  assert.match(privacy, /Cloudflare download Worker/);
+  assert.match(privacy, /one aggregate counter for that UTC day and platform target/);
+  assert.match(privacy, /no download cookie, IP address, user agent, or per-user identifier/);
 });
 
 test('private-tab copy matches the isolated in-memory session', () => {

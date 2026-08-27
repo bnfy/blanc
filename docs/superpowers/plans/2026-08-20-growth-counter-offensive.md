@@ -1819,7 +1819,7 @@ prerequisite because v1.9.1 is already public.
 - **Task 8 demo incomplete** → do not start Task 11. **Currently satisfied:**
   the 20.433333-second packaged-v1.9.1 demo contains the complete beat sheet,
   and both MP4 and sub-8-MiB GIF exports are committed.
-- **Unreleased feature work reaches `main` before launch** → stop and re-audit the README, demo, copy pack, and public binary/repository boundary before posting any channel. Do not quietly mix v1.9.1 claims with newer UI.
+- **Unreleased feature work reaches `main` before launch** → stop and re-audit the README, demo, copy pack, and public binary/repository boundary before posting any channel. This triggered on August 27: `main` contains post-v1.9.1 1Password-picker and download-metrics work. The audit confirmed the README release/tag boundary and packaged-v1.9.1 demo, but found the live Privacy page describing the unreleased candidate-username picker and omitting the active aggregate `/dl/<target>` counter. Correcting source and regression checks are prepared; **launch remains stopped until the correcting SHA is deployed to production and the live page is verified.**
 - **Task 1 approved but listing not visible logged out on Monday** → that channel does not fire. This is *not* a reason to move the launch week.
 
 **Licence decision:** resolved in Global Constraints. Keep the precise
