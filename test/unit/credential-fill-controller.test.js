@@ -91,11 +91,11 @@ test('multiple matches show projected usernames and reveal only the selected ite
   assert.deepEqual(calls.find((call) => call?.ref)?.ref,
     { vaultId: 'v2', itemId: 'i2', itemVersion: 7 });
   const pickerText = JSON.stringify(calls.find((call) => call?.pickerLabels)?.pickerLabels);
-  assert.match(pickerText, /alice@gmail\.com/);
-  assert.match(pickerText, /google\.com/);
-  assert.match(pickerText, /Personal/);
-  assert.match(pickerText, /alice@example\.com/);
-  assert.match(pickerText, /Work/);
+  assert.ok(pickerText.includes('alice@gmail.com'));
+  assert.ok(pickerText.includes('google.com'));
+  assert.ok(pickerText.includes('Personal'));
+  assert.ok(pickerText.includes('alice@example.com'));
+  assert.ok(pickerText.includes('Work'));
 });
 
 test('an item changed after picker projection stops before filling', async () => {
