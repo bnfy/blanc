@@ -170,6 +170,7 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.ok(copy.includes(`v${version} tag is the exact source snapshot`));
   assert.ok(plan.includes(`Blanc v${version} is the current public baseline`));
   assert.ok(plan.includes(`Launch rides v${version} after a ≥48h soak`));
+  assert.ok(plan.includes(`homepage show ${version} — not a Cloudflare preview URL`));
 });
 
 test('platform specs match the shipped first-run telemetry contract', () => {

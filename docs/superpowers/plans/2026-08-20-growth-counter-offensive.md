@@ -894,14 +894,16 @@ npx wrangler pages deployment list --project-name=blancbrowser
 
 Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
-changelog and the homepage show 1.8.0 — not a Cloudflare preview URL.
+changelog and the homepage show 1.9.1 — not a Cloudflare preview URL.
 
-- [ ] **Step 10: Record the current v1.9.1 soak clock**
+- [x] **Step 10: Record the current v1.9.1 soak clock**
 
 ```bash
 echo '{"date":"2026-08-26","version":"1.9.1","publishedAt":"2026-08-26T04:29:03Z","soakEndsAt":"2026-08-28T04:29:03Z"}' \
   >> "$LAUNCH_LOG"
 ```
+
+Recorded once in the private launch log on August 27.
 
 - [ ] **Step 11: Soak exit criteria — real upgrade evidence, not elapsed time**
 
