@@ -41,6 +41,16 @@ Canonical URLs—copy exactly:
 | AlternativeTo | https://blancbrowser.com |
 | BetaList | https://blancbrowser.com/?ref=betalist |
 
+Final demo assets—use these exact immutable URLs:
+
+| Form | URL |
+|---|---|
+| MP4 | https://raw.githubusercontent.com/bnfy/blanc/9890d9e5b5adbe368e0138e0175fd4327200b68d/docs/superpowers/plans/assets/island-demo.mp4 |
+| GIF | https://raw.githubusercontent.com/bnfy/blanc/9890d9e5b5adbe368e0138e0175fd4327200b68d/docs/superpowers/plans/assets/island-demo.gif |
+
+The MP4 is the source for the required public or unlisted YouTube upload before
+Product Hunt. A raw MP4 URL does not satisfy Product Hunt's gallery-video field.
+
 ## Show HN — owner writes every public word
 
 Do **not** paste AI-generated or AI-edited copy into Hacker News. The HN
@@ -241,8 +251,8 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > caused native crashes, forced the browser chrome out of its sandbox, and
 > introduced a licensing constraint.
 >
-> The Windows release uses a timestamped Authenticode-signed installer and has a
-> tested in-app update handoff. The app is free; the source is public but
+> The Windows release uses a timestamped Authenticode-signed installer. The app
+> is free; the source is public but
 > `UNLICENSED`. Optional Patron ($4/month or $30/year) adds Named Workspaces on
 > Windows, while existing workspaces remain renameable and removable after a
 > lapse.
@@ -337,8 +347,8 @@ Use only topics that exist in the live form and genuinely fit.
 > shipped one, then removed it after native crashes and the sandboxing and
 > licensing compromises it required.
 >
-> Blanc 1.8 added Named Workspaces, which save a window's tabs and groups. The
-> browser is free. Optional Patron is $4/month or $30/year and adds workspace
+> Named Workspaces save a window's tabs and groups. The browser is free.
+> Optional Patron is $4/month or $30/year and adds workspace
 > creation on every platform plus three macOS Dock colorways. Existing
 > workspaces remain renameable and removable after a subscription lapses.
 >
@@ -477,7 +487,7 @@ drop a full defense where one sentence would do.
 - [ ] The telemetry payload remains exactly six fields.
 - [ ] `npm run test:unit` passes, including
   `test/unit/public-truth.test.js`.
-- [ ] The final Island demo URL works without authentication.
+- [ ] Both immutable final Island demo URLs above work without authentication.
 - [ ] Product Hunt's full YouTube URL is not private and appears in the preview.
 - [ ] Each Reddit community's live rules permit the planned post format.
 - [ ] The HN account is eligible under the current Show HN restriction.

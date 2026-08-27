@@ -1132,7 +1132,7 @@ impossible to fix retroactively.
 
 **Owner:** `agent-drafts / owner-publishes`.
 
-**Status: COMMITTED AND FACT-CHECKED 2026-08-23.** The canonical
+**Status: COMMITTED AND FACT-CHECKED 2026-08-23; RE-AUDITED 2026-08-27.** The canonical
 artifact is `docs/superpowers/plans/assets/launch-copy.md`. Current official
 channel guidance required two corrections to the original draft below:
 
@@ -1144,6 +1144,9 @@ channel guidance required two corrections to the original draft below:
 - Product Hunt's current form limits the description to 260 characters and
   accepts gallery video through a full YouTube URL. The artifact contains a
   verified 244-character description and the correct asset instructions.
+- The final demo's immutable MP4 and GIF URLs are pinned in the artifact. The
+  re-audit also removed a Windows-draft claim that the current public updater
+  handoff was already tested; that v1.9.0 → v1.9.1 evidence remains open.
 
 **Files:**
 - Create: `docs/superpowers/plans/assets/launch-copy.md`
