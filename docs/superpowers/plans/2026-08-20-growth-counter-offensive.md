@@ -29,8 +29,9 @@
   check passed on August 27 with the listing title, six alternatives, and
   `Sign In` control visible. Automated clients still receive AlternativeTo's
   Cloudflare challenge, so do not use `curl` as the availability check.
-- Tasks 2, 4–6, 9, and 10 are complete. Google Ads verification is submitted
-  and the campaign is serving, but account approval is still pending.
+- Tasks 2–6, 9, and 10 are complete. Google Ads verification moved entirely
+  into the live account's `Completed tasks` section on August 27, with no
+  pending, in-review, or action-required state; the Blanc campaign is serving.
 - Task 8 remains the owner-executed asset gate: record the complete 20-second
   Island demo from the packaged public v1.9.1 app.
 
@@ -268,32 +269,40 @@ deliberately **out of scope**. Task 15 reports per-channel *landings* plus
 
 **Owner:** `owner` — identity verification.
 
+**Status: COMPLETE 2026-08-27.** The live account page shows the organization
+questionnaire and submitted documents under `Completed tasks`, with no pending,
+in-review, or action-required state. The private launch log records the outcome.
+
 **Why:** Due **2026-09-15** in the live Google Ads UI. If it lapses, paid
 delivery stops — potentially mid-launch. Account: Bananify Creative,
 747-455-5018, campaign 24027915268.
 
-- [ ] **Step 1: Complete verification in the Google Ads UI**
+- [x] **Step 1: Complete verification in the Google Ads UI**
 
 Must be finished **before launch week begins**, not during it.
 
-Submitted on 2026-08-23 under Bananify Creative; all required tasks and
-documents show completed. Google quotes a 1–10 day review. Leave this unchecked
-until the account is approved, not merely submitted.
+Submitted on 2026-08-23 under Bananify Creative. Verified again on August 27:
+the account page contains only `Completed tasks`, including the organization
+questionnaire and submitted documents, and exposes no pending, in-review, or
+action-required verification state.
 
 - [x] **Step 2: Confirm the campaign is still Enabled and serving**
 
 Check campaign 24027915268 shows `Enabled` with recent impressions. A verified
 account with a paused campaign delivers nothing.
 
-Verified live on 2026-08-23: campaign 24027915268 is `Enabled`, status
-`Limited by budget`, with 1.95K impressions and 80 clicks for Aug 16–22.
+Verified live again on 2026-08-27: the Blanc campaign is `Eligible (Limited)`
+only because it is limited by budget, and the Aug 20–26 overview reports 81
+clicks, proving delivery continued after the verification submission.
 
-- [ ] **Step 3: Record the outcome**
+- [x] **Step 3: Record the outcome**
 
 ```bash
-echo '{"date":"YYYY-MM-DD","googleAdsVerification":"complete","campaignStatus":"enabled","deadline":"2026-09-02"}' \
+echo '{"date":"2026-08-27","googleAdsVerification":"complete","campaignStatus":"eligible-limited-budget","evidence":"completed-tasks-no-pending-state"}' \
   >> "$LAUNCH_LOG"
 ```
+
+Recorded once in the private launch log on August 27.
 
 ---
 
@@ -1427,7 +1436,7 @@ cat "$LAUNCH_LOG"
 
 - [x] Task 1 — AlternativeTo approved; canonical listing recorded
 - [x] Task 2 — GA4 confirmed live via a **Realtime** self-test
-- [ ] Task 3 — Google Ads verification complete, campaign Enabled
+- [x] Task 3 — Google Ads verification complete, campaign serving
 - [x] Task 4 — production Patron purchase **PASS**
 - [x] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
 - [x] Task 6 — README refreshed and merged (it is the Show HN landing page)
@@ -1737,7 +1746,7 @@ Task 11.
 PHASE 0 — prep, in this order
   Task 1  AlternativeTo + $5 priority review      (~1–2 business days to clear)
   Task 2  Measurement restored (GA4 Realtime)
-  Task 3  Google Ads verification                 (deadline 2026-09-02)
+  Task 3  Google Ads verification                 COMPLETE (2026-08-27)
   Task 4  Production Patron purchase              PASS (2026-08-23)
             ▼
   Task 5  Site: /faq + fix 4 false Patron claims, DEPLOYED to production
@@ -1779,7 +1788,9 @@ prerequisite because v1.9.1 is already public.
 - **Task 5 not deployed to production** → do not launch. **Currently satisfied** by production deployment `ba18dc9`; keep verifying the live Terms page, not the diff.
 - **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`; Task 8's demo swap remains separate.
 - **Task 7's soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. **Currently open:** v1.9.1 cannot clear before Aug 28 00:29:03 ET, and all three platform checks remain unrecorded.
-- **Task 3 still awaiting Google approval** → do not start Task 11. A submitted verification is not an approved account, even while the campaign is still serving.
+- **Task 3 Google approval regresses or shows a new required action** → do not
+  start Task 11. **Currently satisfied:** verification is in `Completed tasks`
+  and the campaign is serving; recheck before the Monday baseline.
 - **Task 8 demo incomplete** → do not start Task 11. Record the full beat sheet from packaged v1.9.1; the existing 11.2-second clip is not a substitute.
 - **Unreleased feature work reaches `main` before launch** → stop and re-audit the README, demo, copy pack, and public binary/repository boundary before posting any channel. Do not quietly mix v1.9.1 claims with newer UI.
 - **Task 1 approved but listing not visible logged out on Monday** → that channel does not fire. This is *not* a reason to move the launch week.
