@@ -90,10 +90,16 @@ test('multiple matches show projected usernames and reveal only the selected ite
   assert.equal(calls.filter((call) => call === 'reveal').length, 1);
   assert.deepEqual(calls.find((call) => call?.ref)?.ref,
     { vaultId: 'v2', itemId: 'i2', itemVersion: 7 });
-  assert.deepEqual(calls.find((call) => call?.pickerLabels)?.pickerLabels, [
-    { label: 'alice@gmail.com', sublabel: 'google.com · Personal' },
-    { label: 'alice@example.com', sublabel: 'google.com · Work' },
-  ]);
+  const expectedLabels = process.platform === 'darwin'
+    ? [
+      { label: 'alice@gmail.com', sublabel: 'google.com · Personal' },
+      { label: 'alice@example.com', sublabel: 'google.com · Work' },
+    ]
+    : [
+      { label: 'alice@gmail.com — google.com · Personal', sublabel: undefined },
+      { label: 'alice@example.com — google.com · Work', sublabel: undefined },
+    ];
+  assert.deepEqual(calls.find((call) => call?.pickerLabels)?.pickerLabels, expectedLabels);
 });
 
 test('an item changed after picker projection stops before filling', async () => {
