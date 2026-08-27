@@ -27,7 +27,9 @@ export function earliestBucketById(keyNames) {
 
 function listKeys(prefix) {
   const raw = execFileSync('npx', [
-    'wrangler', 'kv', 'key', 'list',
+    // --remote is load-bearing: without it wrangler v4 lists a LOCAL simulated
+    // namespace (empty) instead of production KV.
+    'wrangler', 'kv', 'key', 'list', '--remote',
     `--namespace-id=${NAMESPACE_ID}`, `--prefix=${prefix}`,
   ], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   return JSON.parse(raw).map((k) => k.name);
@@ -42,7 +44,7 @@ function main() {
   writeFileSync(file, JSON.stringify(bulk, null, 1));
   console.log(`writing ${bulk.length} first: markers from ${keys.length} seen keys`);
   execFileSync('npx', [
-    'wrangler', 'kv', 'bulk', 'put', fileURLToPath(file),
+    'wrangler', 'kv', 'bulk', 'put', '--remote', fileURLToPath(file),
     `--namespace-id=${NAMESPACE_ID}`,
   ], { stdio: 'inherit' });
 }
