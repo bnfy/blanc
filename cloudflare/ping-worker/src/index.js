@@ -22,6 +22,7 @@
 // closed) rather than falling back to the raw id; launches still count.
 
 import { DL_TARGETS, pickAsset, dlCountKey, groupDlCounts } from './dl.js';
+import { markFirstSeen } from './first-seen.js';
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
@@ -245,6 +246,9 @@ async function handlePing(request, env, ctx, now) {
   ];
   if (hashedId) {
     work.push(
+      // One extra KV read per install per launch-day at most — the event:
+      // dedup and markActive reads already dwarf it.
+      markFirstSeen(env.PINGS, hashedId, dayBucket(now), bump),
       markActive(env.PINGS, 'day', dayBucket(now), hashedId, DAY_SEEN_TTL),
       markActive(env.PINGS, 'week', weekBucket(now), hashedId, WEEK_SEEN_TTL),
       markActive(env.PINGS, 'month', monthBucket(now), hashedId, MONTH_SEEN_TTL)
@@ -351,7 +355,7 @@ async function handleStats(request, env, now) {
     return new Response('unauthorized', { status: 401 });
   }
 
-  const [total, byDay, byVersion, byPlatform, byOsVersion, daily, weekly, monthly, dlFlat] = await Promise.all([
+  const [total, byDay, byVersion, byPlatform, byOsVersion, daily, weekly, monthly, dlFlat, newByDay] = await Promise.all([
     env.PINGS.get('total'),
     readMap(env.PINGS, 'day:'),
     readMap(env.PINGS, 'version:'),
@@ -363,6 +367,8 @@ async function handleStats(request, env, now) {
     // 'dl:' cannot collide with 'dlcache:release' — the prefix requires a
     // colon as the third character.
     readMap(env.PINGS, 'dl:'),
+    // No other key family starts 'new:'.
+    readMap(env.PINGS, 'new:day:'),
   ]);
 
   // Month-over-month retention: of the installs active last month, how many
@@ -400,6 +406,9 @@ async function handleStats(request, env, now) {
     },
     siteDownloads: {
       byDay: groupDlCounts(dlFlat),
+    },
+    newInstalls: {
+      byDay: pickRecent(newByDay, 60),
     },
   };
   return new Response(JSON.stringify(stats, null, 2), {
