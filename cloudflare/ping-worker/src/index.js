@@ -399,6 +399,8 @@ async function handleStats(request, env, now) {
   });
 }
 
+const RELEASES_LATEST_PAGE = 'https://github.com/bnfy/blanc/releases/latest';
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -415,6 +417,12 @@ export default {
       return handlePing(request, env, ctx, now);
     }
     if (request.method === 'GET' && url.pathname === '/stats') return handleStats(request, env, now);
+    if (request.method === 'GET' && url.pathname.startsWith('/dl/')) {
+      return new Response(null, {
+        status: 302,
+        headers: { Location: RELEASES_LATEST_PAGE, 'Cache-Control': 'no-store' },
+      });
+    }
     if (request.method === 'POST' && url.pathname === '/admin/purge-legacy-ids') return handlePurgeLegacy(request, env);
     return new Response('not found', { status: 404 });
   },
