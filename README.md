@@ -1,6 +1,6 @@
 # Blanc Browser
 
-![Blanc's Island chrome floating over github.com — tab dots, the current domain, and the ad-block counter in a single pill](docs/island-chrome.png)
+[![Blanc's Island chrome opening into the Quick Switcher, switching tabs, and showing a live blocker count](docs/superpowers/plans/assets/island-demo.gif)](docs/superpowers/plans/assets/island-demo.mp4)
 
 A minimal Electron browser with **Island chrome**: instead of a tab strip
 and toolbar, a single floating pill sits top-center over the page — tab

@@ -30,11 +30,11 @@
   check passed on August 27 with the listing title, six alternatives, and
   `Sign In` control visible. Automated clients still receive AlternativeTo's
   Cloudflare challenge, so do not use `curl` as the availability check.
-- Tasks 2–6, 9, and 10 are complete. Google Ads verification moved entirely
+- Tasks 2–6 and 8–10 are complete. Google Ads verification moved entirely
   into the live account's `Completed tasks` section on August 27, with no
   pending, in-review, or action-required state; the Blanc campaign is serving.
-- Task 8 remains the owner-executed asset gate: record the complete 20-second
-  Island demo from the packaged public v1.9.1 app.
+- Task 8's complete 20-second Island demo was captured from the packaged public
+  v1.9.1 app on August 27 and exported in both MP4 and GIF form.
 
 ## Owner legend
 
@@ -650,8 +650,8 @@ confirm it is live.
 
 **Owner:** `agent`.
 
-**Status: COMPLETE.** Merged in `ba18dc9`. Task 8 may still replace the static
-image with the final launch demo before Show HN.
+**Status: COMPLETE.** Merged in `ba18dc9`; Task 8 subsequently replaced the
+static image with the final launch demo before Show HN.
 
 **Why this sits in Phase 0, before launch:** the repository is the Show HN
 landing page. v1.9.1 has already shipped, so the release-source ordering concern
@@ -665,10 +665,9 @@ thousands of sceptical readers see. Build instructions alone will not do.
 
 Confirm or add, in this order:
 
-- **One-line description** and an image. Use a screenshot that is **already
-  committed** (`site/public/og-image.png`, or one of the `feature-*.png` cards) —
-  the demo GIF comes from Task 8, which runs *after* this task, and the README
-  must be release-ready now. Task 8 Step 6 swaps the GIF in later.
+- **One-line description** and an image. The initial release-ready README used
+  an already-committed screenshot; Task 8 Step 6 has now replaced it with the
+  final demo GIF linked to the MP4.
 - **Licence status, stated plainly:** source-available, `UNLICENSED`, forkable on
   GitHub, no grant to modify/redistribute/publish builds. Do not let a reader
   infer "open source" from the repo being public.
@@ -955,18 +954,18 @@ If any upgrade check fails, the launch week moves.
 
 ### Task 8: Cut the 20-second Island demo
 
-**Owner:** `owner` — screen capture on the real machine.
+**Owner:** `agent` — app-only capture from the real packaged application.
 
-**Status: NEW CAPTURE REQUIRED.** The 2026-08-24 asset audit found several
-usable social clips, but none satisfies this launch beat sheet. The strongest
-candidate, `export/product-demos/blanc-social-source-polished-v3.mp4`, is 11.2
-seconds and BT.709, but it does not clearly include the required typed Quick
-Switcher filter, tab-dot switch, blocked-count beat, and final resting hold.
-Do not mark Task 8 complete by substituting that narrower clip.
+**Status: COMPLETE 2026-08-27.** Captured from the authenticated public v1.9.1
+macOS app with a scratch profile and three seeded tabs. The 20.433333-second
+export is 1228×768, 30 fps H.264, and BT.709. It contains the full resting
+Island, `⌘L` expansion, typed Quick Switcher filter, tab-dot switch, live
+18-item blocker count and popover on The Verge, and final resting hold. The
+MP4 is 498,997 bytes and the GIF is 444,336 bytes.
 
 **Why:** One asset, reused across every channel. The outreach plan already calls for it, and Product Hunt in particular under-performs badly without video.
 
-- [ ] **Step 1: Set up a clean capture environment**
+- [x] **Step 1: Set up a clean capture environment**
 
 Use the packaged public **v1.9.1** app with a scratch `--user-data-dir` and a
 seeded `session.json` so the window shows real sites rather than an empty
@@ -975,7 +974,7 @@ not distract from the interaction. Do not record a development build or any
 behavior added to `main` after the v1.9.1 tag.
 Relaunch the dev instance afterwards if you touched it.
 
-- [ ] **Step 2: Record the beat sheet, in this order**
+- [x] **Step 2: Record the beat sheet, in this order**
 
 1. Resting island over a real page (2s)
 2. `⌘L` — island morphs open into the command palette (4s)
@@ -986,7 +985,7 @@ Relaunch the dev instance afterwards if you touched it.
 
 Total ~20s. No narration, no captions burned in — it gets reposted in contexts with sound off and with different copy around it.
 
-- [ ] **Step 3: Convert colour space**
+- [x] **Step 3: Convert colour space**
 
 Run the checked-in exporter. It inspects the source metadata, converts a
 non-BT.709 input rather than merely relabelling it, emits a 30 fps H.264 MP4,
@@ -1000,7 +999,12 @@ The existing raw captures are already tagged BT.709. A new Screen Recording
 may instead be Display P3; the exporter handles either case but fails closed if
 the input metadata is missing.
 
-- [ ] **Step 4: Export both forms**
+The app-only source frames carried the machine's `Color LCD` ICC profile. They
+were converted through ColorSync to the system ITU-709 profile before the
+source MOV was encoded; `ffprobe` then reported complete BT.709 space,
+transfer, and primaries metadata before the checked-in exporter ran.
+
+- [x] **Step 4: Export both forms**
 
 - MP4 (Reddit and the source upload for Product Hunt's required YouTube URL)
 - GIF under 8MB (Hacker News comments, inline embeds)
@@ -1009,7 +1013,7 @@ The exporter tries progressively smaller GIF presets and refuses to report
 success unless `island-demo.gif` is below 8 MiB. Do not hand-wave a larger
 file as “close enough.”
 
-- [ ] **Step 5: Store it**
+- [x] **Step 5: Store it**
 
 ```bash
 mkdir -p docs/superpowers/plans/assets
@@ -1021,7 +1025,7 @@ Do **not** commit large binaries to the repo if they exceed a few MB — store
 them where the launch posts can reach them and record the location in
 `"$LAUNCH_LOG"` (never a file inside the repository).
 
-- [ ] **Step 6: Swap the GIF into the README, before Show HN**
+- [x] **Step 6: Swap the GIF into the README, before Show HN**
 
 Task 6 shipped the README with an already-committed screenshot because the demo
 did not exist yet. Now that it does, replace it — the README is the Show HN
@@ -1460,7 +1464,7 @@ cat "$LAUNCH_LOG"
 - [x] Task 7 — v1.9.1 published, post-publication workflow complete
 - [ ] Task 7 — v1.9.1 48-hour soak elapsed and recorded
 - [ ] Task 7 — macOS updater and v1.9.1 Linux launch passed; Windows updater handoff still open
-- [ ] Task 8 — demo video exported
+- [x] Task 8 — demo video exported and README swapped to the GIF
 - [x] Task 9 — newsletter capture verified with a fresh address
 - [x] Task 10 — copy pack committed
 
@@ -1777,7 +1781,7 @@ RELEASE PUBLISHED — remaining launch evidence is still executable
           48h soak cannot clear before Aug 28 00:29 ET
 
 PHASE 1 — assets, during the freeze
-  Task 8  Demo video
+  Task 8  Demo video exported; README GIF swapped
   Task 9  Newsletter capture verified
   Task 10 Copy pack committed
 
@@ -1804,12 +1808,14 @@ prerequisite because v1.9.1 is already public.
 
 - **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means that feature is unreachable *and* the best traffic day converts nothing.
 - **Task 5 not deployed to production** → do not launch. **Currently satisfied** by production deployment `ba18dc9`; keep verifying the live Terms page, not the diff.
-- **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`; Task 8's demo swap remains separate.
+- **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`; Task 8's demo swap is also complete.
 - **Task 7's soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. **Currently open:** v1.9.1 cannot clear before Aug 28 00:29:03 ET, and the Windows updater handoff remains unrecorded. The macOS handoff and Linux AppImage launch passed August 27.
 - **Task 3 Google approval regresses or shows a new required action** → do not
   start Task 11. **Currently satisfied:** verification is in `Completed tasks`
   and the campaign is serving; recheck before the Monday baseline.
-- **Task 8 demo incomplete** → do not start Task 11. Record the full beat sheet from packaged v1.9.1; the existing 11.2-second clip is not a substitute.
+- **Task 8 demo incomplete** → do not start Task 11. **Currently satisfied:**
+  the 20.433333-second packaged-v1.9.1 demo contains the complete beat sheet,
+  and both MP4 and sub-8-MiB GIF exports are committed.
 - **Unreleased feature work reaches `main` before launch** → stop and re-audit the README, demo, copy pack, and public binary/repository boundary before posting any channel. Do not quietly mix v1.9.1 claims with newer UI.
 - **Task 1 approved but listing not visible logged out on Monday** → that channel does not fire. This is *not* a reason to move the launch week.
 
