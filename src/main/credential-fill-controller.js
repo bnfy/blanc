@@ -46,6 +46,10 @@ const ERROR_COPY = Object.freeze({
     '1Password couldn’t complete the request',
     'No credential data was filled. Check 1Password and try again.',
   ],
+  'selection-changed': [
+    '1Password login changed',
+    'The selected Login item changed after the list opened. Nothing was filled. Try again.',
+  ],
 });
 
 function createCredentialFillController({
@@ -213,12 +217,13 @@ function createCredentialFillController({
 
       let selectedIndex = 0;
       if (candidates.length > 1) {
-        // v0.5.0 has no field-projection API: items.get() materializes the
-        // complete item. Keep candidate selection metadata-only and decrypt
-        // exactly one item after the user chooses it.
+        // SDK 0.5.0 has no field-projection API. The isolated broker opens only
+        // this bounded set and projects each built-in username so repeated,
+        // generic item titles remain distinguishable; passwords stay there.
         const rows = candidates.map((candidate) => ({
           title: candidate.title,
           vaultName: candidate.vaultName,
+          username: candidate.username,
         }));
         const anchor = initial.pickerPoint ?? { x: 16, y: 64 };
         selectedIndex = await pickCredential({
@@ -238,6 +243,7 @@ function createCredentialFillController({
         credential = await broker.revealCredential(account, {
           vaultId: selected.vaultId,
           itemId: selected.itemId,
+          itemVersion: selected.itemVersion,
         }, {
           username: inspect.hasUsername,
           password: inspect.hasPassword,

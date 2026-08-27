@@ -9,7 +9,7 @@ function harness({ inspect = {
   passwordBasis: 'authoritative',
 }, dialogResponses = [], candidates = [
   { vaultId: 'v', itemId: 'i', title: 'Example', vaultName: 'Personal' },
-] } = {}) {
+], revealError = null } = {}) {
   const calls = [];
   let scriptCall = 0;
   const webContents = {
@@ -37,6 +37,7 @@ function harness({ inspect = {
     revealCredential: async (_account, ref, fields) => {
       calls.push('reveal');
       calls.push({ fields, ref });
+      if (revealError) throw revealError;
       return { username: 'alice', password: 'secret' };
     },
   };
@@ -77,20 +78,40 @@ test('flow inspects without credentials before contacting 1Password and reveals 
     { username: true, password: true });
 });
 
-test('multiple matches use overview metadata and decrypt only the selected item', async () => {
+test('multiple matches show projected usernames and reveal only the selected item for filling', async () => {
   const { controller, calls, broker } = harness({ candidates: [
-    { vaultId: 'v1', itemId: 'i1', title: 'Example personal', vaultName: 'Personal' },
-    { vaultId: 'v2', itemId: 'i2', title: 'Example work', vaultName: 'Work' },
+    { vaultId: 'v1', itemId: 'i1', title: 'google.com', vaultName: 'Personal',
+      username: 'alice@gmail.com', itemVersion: 4 },
+    { vaultId: 'v2', itemId: 'i2', title: 'google.com', vaultName: 'Work',
+      username: 'alice@example.com', itemVersion: 7 },
   ] });
   assert.equal('revealUsernames' in broker, false);
   assert.deepEqual(await controller.fill({}), { ok: true, filledUser: true, filledPass: true });
   assert.equal(calls.filter((call) => call === 'reveal').length, 1);
-  assert.deepEqual(calls.find((call) => call?.ref)?.ref, { vaultId: 'v2', itemId: 'i2' });
+  assert.deepEqual(calls.find((call) => call?.ref)?.ref,
+    { vaultId: 'v2', itemId: 'i2', itemVersion: 7 });
   const pickerText = JSON.stringify(calls.find((call) => call?.pickerLabels)?.pickerLabels);
-  assert.match(pickerText, /Example personal/);
+  assert.match(pickerText, /alice@gmail\.com/);
+  assert.match(pickerText, /google\.com/);
   assert.match(pickerText, /Personal/);
-  assert.match(pickerText, /Example work/);
+  assert.match(pickerText, /alice@example\.com/);
   assert.match(pickerText, /Work/);
+});
+
+test('an item changed after picker projection stops before filling', async () => {
+  const changed = Object.assign(new Error('changed'), { code: 'selection-changed' });
+  const { controller, calls } = harness({
+    revealError: changed,
+    candidates: [
+      { vaultId: 'v1', itemId: 'i1', title: 'google.com', vaultName: 'Personal',
+        username: 'alice@gmail.com', itemVersion: 4 },
+      { vaultId: 'v2', itemId: 'i2', title: 'google.com', vaultName: 'Work',
+        username: 'alice@example.com', itemVersion: 7 },
+    ],
+  });
+  assert.deepEqual(await controller.fill({}), { ok: false, reason: 'selection-changed' });
+  assert.equal(calls.includes('fill'), false);
+  assert.equal(calls.includes('dialog'), true);
 });
 
 test('username-only pages do not request the selected password from the broker', async () => {

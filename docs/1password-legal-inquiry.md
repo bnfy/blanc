@@ -123,13 +123,16 @@ is therefore authorized for the next build, subject to the technical and release
 gates in `docs/1password-integration.md`. This is a recorded owner risk decision,
 not a claim that 1Password pre-approved the integration or legal advice.
 
-The production candidate is deliberately more transparent than the old email's
-“selected item only” shorthand: SDK authorization can cover the approved account,
-and Blanc lists vault/Login overview metadata for local website matching and a
-metadata-only chooser of at most ten items. Only the selected full item is read;
-from it, only the built-in fields required by the page leave the broker, and a
-username-only page does not request its password. None of those values persist,
-sync, log, enter telemetry, or cross renderer IPC.
+The production implementation is deliberately more transparent than the old
+email's “selected item only” shorthand: SDK authorization can cover the approved
+account, and Blanc lists vault/Login overview metadata for local website matching.
+When several items match, the broker opens the bounded set of at most ten items
+and sends only their built-in usernames plus non-secret SDK item versions to main
+so the native chooser can identify the accounts and bind the later selection;
+passwords and other fields from unselected items never leave the broker. The
+selected item is read again for filling and must still match that version, then
+only the built-in fields required by the page leave the broker. None of those
+values persist, sync, log, enter telemetry, or cross renderer IPC.
 
 **Standing arguments for the record** (if this is revisited — *product/legal
 reasoning, not legal advice*): the API/SDK Terms grant "incorporate and distribute

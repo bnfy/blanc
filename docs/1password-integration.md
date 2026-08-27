@@ -42,13 +42,18 @@ this device and are excluded from Profile Sync.
   appears on Blanc or an ordinary helper.
 - The SDK authorization may cover the approved account. Blanc calls only
   vault/item list and item read operations. Overview metadata is matched in the
-  broker and a metadata-only native picker is bounded to ten candidates. Because
-  SDK 0.5.0 exposes no field-projection read, Blanc does not open candidate items:
-  the selected item is the only full item retrieved, and only its required
-  built-in username and/or password leaves the broker.
-- Credentials cross only the broker→main utility-process channel, are injected
-  into a dedicated isolated world, and never cross renderer IPC, disk, Profile
-  Sync, logs, telemetry, or crash reporting.
+  broker and the native picker is bounded to ten candidates. Because SDK 0.5.0
+  exposes no field-projection read, a multiple-match flow opens only that bounded
+  candidate set inside the broker, projects each built-in username for the native
+  picker, and immediately drops the full items. Passwords, notes, and custom
+  fields never leave the helper during selection. The chosen item is read again,
+  and only its built-in username and/or password required by the page leaves the
+  broker for filling. The broker binds the picker snapshot to the item's SDK
+  version and aborts without credentials if the item changes before selection.
+- Projected candidate usernames and the selected credential cross only the
+  broker→main utility-process channel, are never sent through renderer IPC, and
+  are never written to disk, Profile Sync, logs, telemetry, or crash reporting.
+  Only the selected credential is injected into the dedicated isolated world.
 - The exact runtime, tab, navigation epoch, URL, document time origin, and DOM
   element identities are revalidated after every prompt and before injection.
   Signup/new-password, ambiguous, hidden, search, and newsletter fields fail
@@ -70,7 +75,11 @@ this device and are excluded from Profile Sync.
 - On a real installed 1Password account on macOS, verify one exact-domain login, one
   AnywhereOnWebsite subdomain login, multiple matching Login items, cancellation,
   `Never`, signup refusal, navigation/tab-switch cancellation, and private-tab
-  behavior.
+  behavior. The multiple-match gate must confirm that distinct built-in usernames
+  appear as the primary picker labels with the item title and vault beneath them,
+  and that entries without a username retain the title/vault fallback. With the
+  picker open on disposable items, change the selected item in 1Password before
+  choosing it; Blanc must report that the Login item changed and fill nothing.
 - The redacted field-contract fixture follows [1Password's documented Login IDs](https://www.1password.dev/sdks/manage-items)
   (`username` and `password`); confirm those exact fields in a live DesktopAuth
   response during the real-account macOS gate before calling the contract proven.

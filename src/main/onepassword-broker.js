@@ -20,6 +20,7 @@ function validId(value) {
 }
 
 function fixedErrorCode(error) {
+  if (error?.code === 'selection-changed') return 'selection-changed';
   const names = new Set([
     String(error?.name || ''),
     String(error?.constructor?.name || ''),
@@ -90,7 +91,10 @@ async function findLoginsWith(client, pageUrl) {
     }
   }
   const ranked = rankMatches(candidates, pageUrl);
-  return { candidates: ranked.kept, truncated: ranked.truncated };
+  return {
+    candidates: await addPickerUsernames(client, ranked.kept),
+    truncated: ranked.truncated,
+  };
 }
 
 async function findLogins({ account, pageUrl }) {
@@ -111,8 +115,35 @@ function readBuiltIn(item, id) {
   return typeof field?.value === 'string' ? field.value : null;
 }
 
+async function addPickerUsernames(client, candidates) {
+  if (!Array.isArray(candidates) || candidates.length < 2) return candidates;
+  return Promise.all(candidates.map(async (candidate) => {
+    let item = null;
+    try {
+      item = await client.items.get(candidate.vaultId, candidate.itemId);
+      const username = readBuiltIn(item, 'username');
+      const itemVersion = Number.isSafeInteger(item?.version) && item.version >= 0
+        ? item.version
+        : null;
+      return {
+        ...candidate,
+        // Candidate selection is bounded to PICKER_MAX before these reads.
+        // Project only the Login built-in needed to distinguish accounts;
+        // passwords, notes, and custom fields never leave this helper.
+        // Never show an identity that cannot be bound to the later reveal.
+        username: itemVersion !== null && typeof username === 'string'
+          ? username.slice(0, 320)
+          : '',
+        itemVersion,
+      };
+    } finally {
+      item = null;
+    }
+  }));
+}
+
 async function revealCredential({
-  account, vaultId, itemId, includeUsername, includePassword,
+  account, vaultId, itemId, expectedItemVersion, includeUsername, includePassword,
 }) {
   if (!validId(vaultId) || !validId(itemId)) {
     throw Object.assign(new Error('invalid ref'), { code: 'invalid-request' });
@@ -121,14 +152,25 @@ async function revealCredential({
       || (!includeUsername && !includePassword)) {
     throw Object.assign(new Error('invalid field request'), { code: 'invalid-request' });
   }
+  if (expectedItemVersion !== null && expectedItemVersion !== undefined
+      && (!Number.isSafeInteger(expectedItemVersion) || expectedItemVersion < 0)) {
+    throw Object.assign(new Error('invalid item version'), { code: 'invalid-request' });
+  }
   const client = await clientFor(account);
-  let item = await client.items.get(vaultId, itemId);
-  const credential = {
-    username: includeUsername ? readBuiltIn(item, 'username') : null,
-    password: includePassword ? readBuiltIn(item, 'password') : null,
-  };
-  item = null;
-  return credential;
+  let item = null;
+  try {
+    item = await client.items.get(vaultId, itemId);
+    if (expectedItemVersion !== null && expectedItemVersion !== undefined
+        && item?.version !== expectedItemVersion) {
+      throw Object.assign(new Error('selected item changed'), { code: 'selection-changed' });
+    }
+    return {
+      username: includeUsername ? readBuiltIn(item, 'username') : null,
+      password: includePassword ? readBuiltIn(item, 'password') : null,
+    };
+  } finally {
+    item = null;
+  }
 }
 
 async function dispatch(method, payload) {
