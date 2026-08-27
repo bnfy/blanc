@@ -7,6 +7,13 @@ kv_namespaces = [
   { binding = "PINGS", id = "2c71bddea5b842d49fee1c972b70e8d9" }
 ]
 
+# blancbrowser.com is a Pages project; these routes carve /dl/* out of it so
+# download clicks are counted at the edge (no JS, no ad-blocker exposure).
+routes = [
+  { pattern = "blancbrowser.com/dl/*", zone_name = "blancbrowser.com" },
+  { pattern = "www.blancbrowser.com/dl/*", zone_name = "blancbrowser.com" }
+]
+
 [vars]
 # Best-effort application cap; also configure a Cloudflare route rate-limit
 # rule and billing notification because KV counters are not strongly atomic.

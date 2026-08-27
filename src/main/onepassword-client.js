@@ -131,7 +131,9 @@ function createOnePasswordClient({
     findLogins: (account, pageUrl) => request('find-logins', { account, pageUrl }),
     revealCredential: (account, ref, fields) => request('reveal-credential', {
       account,
-      ...ref,
+      vaultId: ref?.vaultId,
+      itemId: ref?.itemId,
+      expectedItemVersion: ref?.itemVersion ?? null,
       includeUsername: fields?.username === true,
       includePassword: fields?.password === true,
     }),

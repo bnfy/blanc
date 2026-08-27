@@ -52,3 +52,27 @@ test('non-mac clients never request unsigned-library loading', async () => {
   assert.equal('allowLoadingUnsignedLibraries' in options, false);
   client.stop();
 });
+
+test('credential reveal forwards the picker item-version binding', async () => {
+  const child = new EventEmitter();
+  child.kill = () => true;
+  let posted;
+  child.postMessage = (message) => {
+    posted = message;
+    setImmediate(() => child.emit('message', {
+      id: message.id, ok: true, value: { username: 'alice', password: 'secret' },
+    }));
+  };
+  const client = createOnePasswordClient({
+    utilityProcess: { fork: () => child },
+    platform: 'darwin', idleExitMs: 60_000,
+  });
+  await client.revealCredential('Account', {
+    vaultId: 'vault', itemId: 'item', itemVersion: 7,
+  }, { username: true, password: true });
+  assert.deepEqual(posted.payload, {
+    account: 'Account', vaultId: 'vault', itemId: 'item', expectedItemVersion: 7,
+    includeUsername: true, includePassword: true,
+  });
+  client.stop();
+});
