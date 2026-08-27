@@ -119,6 +119,16 @@
       "code": ["site/src/scripts/site.js"]
     },
     {
+      "id": "website-download-counter",
+      "surface": "website",
+      "trigger": "user chooses a platform artifact from a Blanc download control",
+      "default": "on for download controls",
+      "recipient": "Blanc Cloudflare Worker followed by GitHub Releases",
+      "data": ["platform target", "UTC day", "aggregate counter increment", "ordinary edge request metadata processed by Cloudflare and GitHub"],
+      "retentionByBlanc": "aggregate per-day, per-target counts and a cached public GitHub asset list in KV; no IP address, user agent, cookie, or per-user identifier stored by Blanc",
+      "code": ["site/src/pages/download.astro", "site/src/scripts/site.js", "cloudflare/ping-worker/src/index.js", "cloudflare/ping-worker/src/dl.js"]
+    },
+    {
       "id": "website-analytics",
       "surface": "website",
       "trigger": "non-legal page load in restricted mode; visitor clicks Allow for full measurement",
