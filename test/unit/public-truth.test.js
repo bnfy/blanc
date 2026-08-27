@@ -64,7 +64,12 @@ test('downloads distinguish both Mac architectures without guessing from user ag
   assert.match(page, /data-platform="mac-x64"/);
   assert.match(script, /if \(kind === 'mac'\) return null/);
   assert.doesNotMatch(script, /\|\| dmgs\[0\]/);
-  assert.match(script, /link\.hidden = true/);
+  // Cards hide whenever the release lacks their artifact, and hrefs stay on
+  // the counted /dl redirects - rewriting them to direct asset URLs would
+  // bypass the edge download counter.
+  assert.match(script, /link\.hidden = !pickAsset/);
+  assert.doesNotMatch(script, /link\.href = asset/);
+  assert.match(page, /href="\/dl\/mac-x64"/);
 });
 
 test('grant drafts and metrics labels do not overclaim licensing or installs', () => {
