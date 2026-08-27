@@ -21,6 +21,8 @@
 // describes exactly this. If the secret is unset, uniques are SKIPPED (fail
 // closed) rather than falling back to the raw id; launches still count.
 
+import { DL_TARGETS, pickAsset, dlCountKey, groupDlCounts } from './dl.js';
+
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
 const ALLOWED_ARCHES = new Set(['arm64', 'x64', 'ia32']);
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.]+)?$/;
@@ -349,7 +351,7 @@ async function handleStats(request, env, now) {
     return new Response('unauthorized', { status: 401 });
   }
 
-  const [total, byDay, byVersion, byPlatform, byOsVersion, daily, weekly, monthly] = await Promise.all([
+  const [total, byDay, byVersion, byPlatform, byOsVersion, daily, weekly, monthly, dlFlat] = await Promise.all([
     env.PINGS.get('total'),
     readMap(env.PINGS, 'day:'),
     readMap(env.PINGS, 'version:'),
@@ -358,6 +360,9 @@ async function handleStats(request, env, now) {
     readMap(env.PINGS, 'active:day:'),
     readMap(env.PINGS, 'active:week:'),
     readMap(env.PINGS, 'active:month:'),
+    // 'dl:' cannot collide with 'dlcache:release' — the prefix requires a
+    // colon as the third character.
+    readMap(env.PINGS, 'dl:'),
   ]);
 
   // Month-over-month retention: of the installs active last month, how many
@@ -393,6 +398,9 @@ async function handleStats(request, env, now) {
       rate: cohortSize ? Number((returned / cohortSize).toFixed(4)) : 0,
       truncated: cohort.truncated || current.truncated,
     },
+    siteDownloads: {
+      byDay: groupDlCounts(dlFlat),
+    },
   };
   return new Response(JSON.stringify(stats, null, 2), {
     headers: { 'Content-Type': 'application/json' },
@@ -400,6 +408,56 @@ async function handleStats(request, env, now) {
 }
 
 const RELEASES_LATEST_PAGE = 'https://github.com/bnfy/blanc/releases/latest';
+const RELEASE_CACHE_KEY = 'dlcache:release';
+const RELEASE_CACHE_FRESH_MS = 10 * 60 * 1000;
+
+// Resolve the latest release's assets, KV-cached. The cache entry is stored
+// WITHOUT a TTL and carries its own fetchedAt: when GitHub is unreachable or
+// rate-limits (unauthenticated Workers egress IPs are shared, 60 req/hr/IP),
+// a stale entry keeps /dl serving artifacts instead of dumping every click
+// on the releases page.
+async function latestReleaseAssets(env, now) {
+  let cached = null;
+  try {
+    cached = JSON.parse((await env.PINGS.get(RELEASE_CACHE_KEY)) ?? 'null');
+  } catch { /* corrupt cache reads as absent */ }
+  if (cached && now.getTime() - cached.fetchedAt < RELEASE_CACHE_FRESH_MS) return cached.assets;
+  try {
+    const res = await fetch('https://api.github.com/repos/bnfy/blanc/releases/latest', {
+      headers: { 'User-Agent': 'blanc-ping-worker', Accept: 'application/vnd.github+json' },
+    });
+    if (!res.ok) throw new Error(`GitHub ${res.status}`);
+    const release = await res.json();
+    const assets = (release.assets ?? [])
+      .map((a) => ({ name: a.name, browser_download_url: a.browser_download_url }));
+    if (!assets.length) throw new Error('empty asset list');
+    await env.PINGS.put(RELEASE_CACHE_KEY, JSON.stringify({ fetchedAt: now.getTime(), assets }));
+    return assets;
+  } catch (err) {
+    console.warn('release resolve failed:', err.message);
+    return cached?.assets ?? null;
+  }
+}
+
+// GET /dl/<target> — counted download redirect for blancbrowser.com. Bumps
+// one KV counter per click (a bare count: no IP, no UA, nothing per-user)
+// and 302s to the latest release artifact. ANY failure degrades to the
+// releases page so a person always reaches the file; unknown targets
+// redirect without counting.
+async function handleDownload(request, env, ctx, now, target) {
+  const redirect = (to) => new Response(null, {
+    status: 302,
+    headers: { Location: to, 'Cache-Control': 'no-store' },
+  });
+  if (!DL_TARGETS.has(target)) return redirect(RELEASES_LATEST_PAGE);
+  ctx.waitUntil(
+    bump(env.PINGS, dlCountKey(dayBucket(now), target))
+      .catch((err) => console.error('dl count failed:', err.message))
+  );
+  const assets = await latestReleaseAssets(env, now);
+  const asset = assets ? pickAsset(assets, target) : null;
+  return redirect(asset ? asset.browser_download_url : RELEASES_LATEST_PAGE);
+}
 
 export default {
   async fetch(request, env, ctx) {
@@ -418,10 +476,7 @@ export default {
     }
     if (request.method === 'GET' && url.pathname === '/stats') return handleStats(request, env, now);
     if (request.method === 'GET' && url.pathname.startsWith('/dl/')) {
-      return new Response(null, {
-        status: 302,
-        headers: { Location: RELEASES_LATEST_PAGE, 'Cache-Control': 'no-store' },
-      });
+      return handleDownload(request, env, ctx, now, url.pathname.slice('/dl/'.length));
     }
     if (request.method === 'POST' && url.pathname === '/admin/purge-legacy-ids') return handlePurgeLegacy(request, env);
     return new Response('not found', { status: 404 });
