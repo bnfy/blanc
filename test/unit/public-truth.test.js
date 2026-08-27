@@ -156,6 +156,22 @@ test('public extension copy includes the shipped macOS 1Password boundary', () =
   }
 });
 
+test('official launch artifacts track the release declared by the README', () => {
+  const readme = read('README.md');
+  const plan = read('docs/superpowers/plans/2026-08-20-growth-counter-offensive.md');
+  const copy = read('docs/superpowers/plans/assets/launch-copy.md');
+  const match = readme.match(/\*\*Current release:\*\* v(\d+\.\d+\.\d+)/);
+
+  assert.ok(match, 'README must declare the current release');
+  const version = match[1];
+
+  assert.ok(copy.startsWith(`# Blanc v${version} launch copy pack`));
+  assert.ok(copy.includes(`| Current public release | v${version} |`));
+  assert.ok(copy.includes(`v${version} tag is the exact source snapshot`));
+  assert.ok(plan.includes(`Blanc v${version} is the current public baseline`));
+  assert.ok(plan.includes(`Launch rides v${version} after a ≥48h soak`));
+});
+
 test('platform specs match the shipped first-run telemetry contract', () => {
   const matrix = read('spec/parity-matrix.md');
   const services = read('spec/acceptance/platform-services.feature');

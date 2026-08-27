@@ -4,25 +4,25 @@
 
 **Goal:** Fire the five discovery channels Blanc has never used — in one concentrated week, with measurement restored and the payment path proven first — so the September cohort is large enough for retention to become a real question.
 
-**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Google Ads verification) and de-risks the spike (site copy corrected, production Patron purchase proven, v1.9.0 released + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires channels cheap→expensive across four days so neither one-shot card is spent on untested copy.
+**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Google Ads verification) and de-risks the spike (site copy corrected, production Patron purchase proven, v1.9.1 released + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires channels cheap→expensive across four days so neither one-shot card is spent on untested copy.
 
 **Tech Stack:** Astro 7 (`site/`), Cloudflare Pages, GA4 (property 544287080), Polar.sh (Patron checkout), `blanc-ping` Worker stats, `gh` CLI.
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — August 25, 2026
+## Execution status — August 27, 2026
 
-- Blanc v1.9.0 is the current public baseline. Its signed/notarized macOS
+- Blanc v1.9.1 is the current public baseline. Its signed/notarized macOS
   artifacts, signed Windows artifacts, authenticated Linux AppImage, updater
   metadata, checksums, SBOM, Sigstore material, and provenance attestations were
-  published from `e55fc13`; see
-  `docs/release-incidents/2026-08-25-v1.9.0.md`.
+  published from `09ae98c`; see
+  `docs/release-incidents/2026-08-26-v1.9.1.md`.
 - Publication and logged-out download smoke passed, but publication is not the
-  updater handoff. The real public **v1.8.2 → v1.9.0 Restart Now** flows on
-  macOS and Windows, plus a downloaded public v1.9.0 AppImage launch/render,
+  updater handoff. The real public **v1.9.0 → v1.9.1 Restart Now** flows on
+  macOS and Windows, plus a downloaded public v1.9.1 AppImage launch/render,
   remain open evidence gates.
-- v1.9.0 was published at **2026-08-25 04:09:19 UTC**. Its 48-hour soak cannot
-  clear before **2026-08-27 04:09:19 UTC** (**August 27, 12:09:19 a.m. ET**),
+- v1.9.1 was published at **2026-08-26 04:29:03 UTC**. Its 48-hour soak cannot
+  clear before **2026-08-28 04:29:03 UTC** (**August 28, 12:29:03 a.m. ET**),
   and elapsed time alone is insufficient without all three platform checks.
 - AlternativeTo approved Blanc at **2026-08-25 02:04 a.m. ET**. The canonical
   listing is `https://alternativeto.net/software/blanc/`; automated logged-out
@@ -31,7 +31,7 @@
 - Tasks 2, 4–6, 9, and 10 are complete. Google Ads verification is submitted
   and the campaign is serving, but account approval is still pending.
 - Task 8 remains the owner-executed asset gate: record the complete 20-second
-  Island demo from the packaged public v1.9.0 app.
+  Island demo from the packaged public v1.9.1 app.
 
 ## Owner legend
 
@@ -48,11 +48,12 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship as-is.** No telemetry changes, no open-sourcing any component, Patron stays in the launch narrative. These were considered and declined during brainstorming.
-- **Launch rides v1.9.0 after a ≥48h soak.** Never launch on a build published the same day.
-- **Lock the launch to published v1.9.0 behavior.** The release-target decision
-  is resolved: v1.9.0 includes the refined window-wide Island-dot presentation,
-  updated icon, and optional macOS 1Password login fill. Freeze public claims to
-  the `v1.9.0` tag. Later work on `main` is not downloadable behavior unless a
+- **Launch rides v1.9.1 after a ≥48h soak.** Never launch on a build published the same day.
+- **Lock the launch to published v1.9.1 behavior.** The release-target decision
+  is resolved: v1.9.1 carries the refined window-wide Island-dot presentation,
+  updated icon, and optional macOS 1Password login fill, plus its Profile Sync
+  and favicon fixes. Freeze public claims to the `v1.9.1` tag. Later work on
+  `main` is not downloadable behavior unless a
   new immutable release completes the same platform checks and restarts the
   ≥48-hour soak.
 - **Channel order is cheap→expensive and is not negotiable:** listings → Show HN → Reddit → Product Hunt.
@@ -641,7 +642,7 @@ confirm it is live.
 image with the final launch demo before Show HN.
 
 **Why this sits in Phase 0, before launch:** the repository is the Show HN
-landing page. v1.9.0 has already shipped, so the release-source ordering concern
+landing page. v1.9.1 has already shipped, so the release-source ordering concern
 is historical; the live requirement now is that this README be correct and
 merged before Task 12 posts.
 
@@ -679,18 +680,18 @@ Merge it into `origin/main` before Task 12 posts.
 
 ---
 
-### Task 7: Release v1.8.0, supersede through v1.9.0, and soak
+### Task 7: Release v1.8.0, supersede through v1.9.1, and soak
 
 **Owner:** `owner` — the release script requires interactive 1Password/Terminal auth.
 
-**Status: v1.9.0 PUBLISHED; FOLLOW-UP EVIDENCE OPEN. Do not rerun any immutable
-release command in this task.** v1.8.0 through v1.9.0 are immutable public
+**Status: v1.9.1 PUBLISHED; FOLLOW-UP EVIDENCE OPEN. Do not rerun any immutable
+release command in this task.** v1.8.0 through v1.9.1 are immutable public
 releases. The detailed v1.8.x release steps below remain only as the completed
-historical record. Step 11 now carries the executable v1.9.0 soak and platform
+historical record. Step 11 now carries the executable v1.9.1 soak and platform
 checks.
 
 **Current launch gate:** Task 4 has passed; Tasks 5 and 6 are already satisfied;
-v1.9.0 is public, but its 48-hour soak and its macOS/Windows updater handoffs
+v1.9.1 is public, but its 48-hour soak and its macOS/Windows updater handoffs
 plus Linux public-AppImage launch remain open. Because the release already
 happened, Tasks 5 and 6 are launch prerequisites, not release prerequisites.
 Verify the live Terms before launch:
@@ -712,7 +713,7 @@ echo "OK: Terms page reflects the Patron gate"
 
 Expected: `OK`. Any `STOP` means Task 5 has not reached production — do not launch.
 
-**Why:** v1.9.0 is the **build** the launch runs on, not the
+**Why:** v1.9.1 is the **build** the launch runs on, not the
 **story** the launch tells. Those were conflated in the first draft of this plan
 and it produced a contradiction: Named Workspaces was called the headline, yet the Show HN post
 never mentioned it — correctly, because workspace *creation* is Patron-gated and
@@ -884,32 +885,32 @@ Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
 changelog and the homepage show 1.8.0 — not a Cloudflare preview URL.
 
-- [ ] **Step 10: Record the current v1.9.0 soak clock**
+- [ ] **Step 10: Record the current v1.9.1 soak clock**
 
 ```bash
-echo '{"date":"2026-08-25","version":"1.9.0","publishedAt":"2026-08-25T04:09:19Z","soakEndsAt":"2026-08-27T04:09:19Z"}' \
+echo '{"date":"2026-08-26","version":"1.9.1","publishedAt":"2026-08-26T04:29:03Z","soakEndsAt":"2026-08-28T04:29:03Z"}' \
   >> "$LAUNCH_LOG"
 ```
 
 - [ ] **Step 11: Soak exit criteria — real upgrade evidence, not elapsed time**
 
-**OPEN.** The exact clock ends at `2026-08-27T04:09:19Z` (August 27,
-12:09:19 a.m. ET). Do not mark this step passed before that instant or before
+**OPEN.** The exact clock ends at `2026-08-28T04:29:03Z` (August 28,
+12:29:03 a.m. ET). Do not mark this step passed before that instant or before
 all three platform checks below are recorded in
-`docs/release-incidents/2026-08-25-v1.9.0.md`.
+`docs/release-incidents/2026-08-26-v1.9.1.md`.
 
 48 hours passing is necessary but not sufficient. The current public baseline
-is **v1.9.0**, with this evidence state:
+is **v1.9.1**, with this evidence state:
 
-- [ ] the current **v1.8.2 → v1.9.0 updater handoff on macOS**, including Restart Now, installer completion, relaunch, and installed-version confirmation
-- [ ] the current **v1.8.2 → v1.9.0 updater handoff on Windows**, including Restart Now, installer completion, relaunch, and installed-version confirmation
-- [ ] the authenticated public **v1.9.0 Linux AppImage download/launch/render**, including installed version confirmation
+- [ ] the current **v1.9.0 → v1.9.1 updater handoff on macOS**, including Restart Now, installer completion, relaunch, and installed-version confirmation
+- [ ] the current **v1.9.0 → v1.9.1 updater handoff on Windows**, including Restart Now, installer completion, relaunch, and installed-version confirmation
+- [ ] the authenticated public **v1.9.1 Linux AppImage download/launch/render**, including installed version confirmation
 
 The publication gate proved signed native artifacts, immutable updater metadata,
 authenticated checksums, and logged-out downloads. It did not prove that an old
 packaged Blanc can complete the public updater journey or that the downloaded
 AppImage renders successfully. The full open record is
-`docs/release-incidents/2026-08-25-v1.9.0.md`.
+`docs/release-incidents/2026-08-26-v1.9.1.md`.
 
 A Windows updater check must *begin inside the old packaged Blanc*: it discovers
 the staged `latest.yml`, downloads the matching installer, and the user invokes
@@ -918,7 +919,7 @@ test and does not satisfy this.
 
 If any upgrade check fails, the launch week moves.
 
-**Launch Monday must fall after the v1.9.0 `soakEndsAt`.** If a regression surfaces during the soak, the launch week moves — it does not proceed on a known-bad build.
+**Launch Monday must fall after the v1.9.1 `soakEndsAt`.** If a regression surfaces during the soak, the launch week moves — it does not proceed on a known-bad build.
 
 ---
 
@@ -939,11 +940,11 @@ Do not mark Task 8 complete by substituting that narrower clip.
 
 - [ ] **Step 1: Set up a clean capture environment**
 
-Use the packaged public **v1.9.0** app with a scratch `--user-data-dir` and a
+Use the packaged public **v1.9.1** app with a scratch `--user-data-dir` and a
 seeded `session.json` so the window shows real sites rather than an empty
 profile. Use three or four tabs in one active context so the eight-dot cap does
 not distract from the interaction. Do not record a development build or any
-behavior added to `main` after the v1.9.0 tag.
+behavior added to `main` after the v1.9.1 tag.
 Relaunch the dev instance afterwards if you touched it.
 
 - [ ] **Step 2: Record the beat sheet, in this order**
@@ -1004,7 +1005,7 @@ git status --short
 git commit -m "README: use the Island demo"
 ```
 
-This lands after v1.9.0, which is fine: `README.md` is a release source for the
+This lands after v1.9.1, which is fine: `README.md` is a release source for the
 *next* release, not this one. It must be merged before Task 12 posts.
 
 ---
@@ -1428,9 +1429,9 @@ cat "$LAUNCH_LOG"
 - [x] Task 4 — production Patron purchase **PASS**
 - [x] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
 - [x] Task 6 — README refreshed and merged (it is the Show HN landing page)
-- [x] Task 7 — v1.9.0 published, post-publication workflow complete
-- [ ] Task 7 — v1.9.0 48-hour soak elapsed and recorded
-- [ ] Task 7 — v1.8.2 → v1.9.0 macOS and Windows updater handoffs plus v1.9.0 Linux launch verified
+- [x] Task 7 — v1.9.1 published, post-publication workflow complete
+- [ ] Task 7 — v1.9.1 48-hour soak elapsed and recorded
+- [ ] Task 7 — v1.9.0 → v1.9.1 macOS and Windows updater handoffs plus v1.9.1 Linux launch verified
 - [ ] Task 8 — demo video exported
 - [x] Task 9 — newsletter capture verified with a fresh address
 - [x] Task 10 — copy pack committed
@@ -1463,7 +1464,7 @@ gh api --paginate repos/bnfy/blanc/releases --jq '.[].assets[] | select(.name | 
 ```
 
 ```bash
-echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline","totalDownloads":N,"version":"1.9.0","postedAnythingYet":false}' \
+echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline","totalDownloads":N,"version":"1.9.1","postedAnythingYet":false}' \
   >> "$LAUNCH_LOG"
 ```
 
@@ -1518,7 +1519,7 @@ prescribed pattern is *"just submit the link, then add a regular comment."*
 So:
 
 1. **Title:** Anthony writes it himself; it begins `Show HN` and describes the
-   whole browser rather than announcing the incremental v1.9.0 release.
+   whole browser rather than announcing the incremental v1.9.1 release.
 2. **URL:** `https://github.com/bnfy/blanc` — the repository, not the marketing
    homepage (HN's landing-page rule).
 3. **Leave the text field empty.** Submit.
@@ -1725,7 +1726,7 @@ If the September cohort cleared 81, retention becomes measurable and earns its o
 ## Dependency summary
 
 Tasks are ordered so every remaining dependency runs **forward**. Task 7's
-release commands are immutable historical completions, but its v1.9.0 soak row
+release commands are immutable historical completions, but its v1.9.1 soak row
 and three follow-up platform checks remain executable gates checked again at
 Task 11.
 
@@ -1740,10 +1741,10 @@ PHASE 0 — prep, in this order
   Task 6  README refreshed and merged             (the HN landing page)
 
 RELEASE PUBLISHED — remaining launch evidence is still executable
-  Task 7  v1.9.0 published Aug 25 00:09 ET
+  Task 7  v1.9.1 published Aug 26 00:29 ET
           macOS + Windows updater handoffs OPEN
           Linux public AppImage launch/render OPEN
-          48h soak cannot clear before Aug 27 00:09 ET
+          48h soak cannot clear before Aug 28 00:29 ET
 
 PHASE 1 — assets, during the freeze
   Task 8  Demo video
@@ -1767,17 +1768,17 @@ PHASE 2 — launch week
 current product gates workspace creation and the public Terms must say so. Task
 6 makes the repository—the Show HN target—a candid, complete landing page. Both
 requirements are currently satisfied in `ba18dc9`; neither is a release
-prerequisite because v1.9.0 is already public.
+prerequisite because v1.9.1 is already public.
 
 **Hard stops:**
 
 - **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means that feature is unreachable *and* the best traffic day converts nothing.
 - **Task 5 not deployed to production** → do not launch. **Currently satisfied** by production deployment `ba18dc9`; keep verifying the live Terms page, not the diff.
 - **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`; Task 8's demo swap remains separate.
-- **Task 7's soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. **Currently open:** v1.9.0 cannot clear before Aug 27 00:09:19 ET, and all three platform checks remain unrecorded.
+- **Task 7's soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. **Currently open:** v1.9.1 cannot clear before Aug 28 00:29:03 ET, and all three platform checks remain unrecorded.
 - **Task 3 still awaiting Google approval** → do not start Task 11. A submitted verification is not an approved account, even while the campaign is still serving.
-- **Task 8 demo incomplete** → do not start Task 11. Record the full beat sheet from packaged v1.9.0; the existing 11.2-second clip is not a substitute.
-- **Unreleased feature work reaches `main` before launch** → stop and re-audit the README, demo, copy pack, and public binary/repository boundary before posting any channel. Do not quietly mix v1.9.0 claims with newer UI.
+- **Task 8 demo incomplete** → do not start Task 11. Record the full beat sheet from packaged v1.9.1; the existing 11.2-second clip is not a substitute.
+- **Unreleased feature work reaches `main` before launch** → stop and re-audit the README, demo, copy pack, and public binary/repository boundary before posting any channel. Do not quietly mix v1.9.1 claims with newer UI.
 - **Task 1 approved but listing not visible logged out on Monday** → that channel does not fire. This is *not* a reason to move the launch week.
 
 **Licence decision:** resolved in Global Constraints. Keep the precise

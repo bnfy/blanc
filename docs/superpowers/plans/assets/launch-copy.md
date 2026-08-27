@@ -1,4 +1,4 @@
-# Blanc v1.9.0 launch copy pack
+# Blanc v1.9.1 launch copy pack
 
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
@@ -7,17 +7,18 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
-**Release lock — REBASELINED 2026-08-25:** This pack describes packaged public
-v1.9.0, published from `e55fc13`. It includes the revised Island-dot
-presentation and the optional macOS 1Password login-fill action. Do not publish
-until the v1.9.0 48-hour soak and all three follow-up platform checks are
-recorded. Do not use UI or claims from later work on `main`.
+**Release lock — REBASELINED 2026-08-27:** This pack describes packaged public
+v1.9.1, published from `09ae98c`. It carries the revised Island-dot
+presentation and optional macOS 1Password login fill, and fixes startup Profile
+Sync retractions plus favicon compatibility. Do not publish until the v1.9.1
+48-hour soak and all three follow-up platform checks are recorded. Do not use
+UI or claims from later work on `main`.
 
 ## Frozen facts
 
 | Claim | Launch truth |
 |---|---|
-| Current public release | v1.9.0 |
+| Current public release | v1.9.1 |
 | Platforms | macOS, Windows, Linux |
 | Core price | Free |
 | Blanc Patron | US$4/month or $30/year, plus applicable taxes |
@@ -28,7 +29,7 @@ recorded. Do not use UI or claims from later work on `main`.
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
 | macOS 1Password boundary | Optional, device-local, and explicitly invoked; reads matching Login items through the installed 1Password app. It does not fill automatically, store credentials, or provide a general extension runtime |
-| Repository/build boundary | The v1.9.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
+| Repository/build boundary | The v1.9.1 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
 
 Canonical URLs—copy exactly:
 
@@ -59,7 +60,7 @@ Submission mechanics:
    submit a Show HN. Do not create a launch-only account or manufacture activity.
 2. Write the title and first comment personally, without agent drafting or
    editing. The title must begin `Show HN` and describe the whole browser—not
-   announce the incremental v1.9.0 release.
+   announce the incremental v1.9.1 release.
 3. Submit `https://github.com/bnfy/blanc`, not the marketing homepage. The repo
    lets readers inspect and run the product; HN says not to submit landing pages
    or fundraisers.
@@ -84,7 +85,7 @@ Write these ideas in Anthony's natural words:
   do not turn a single-session benchmark into a universal claim.
 - What it is not: no mobile version; no extension support; source-available,
   not open source.
-- Narrow exception to the extension boundary: packaged macOS v1.9.0 can fill a
+- Narrow exception to the extension boundary: packaged macOS v1.9.1 can fill a
   matching Login item from the installed 1Password app only when the user asks;
   it is not an extension runtime or a Blanc-owned credential store.
 - Money, unprompted: the browser is free. Patron is $4/month or $30/year.
@@ -466,8 +467,8 @@ drop a full defense where one sentence would do.
 
 ## Morning-of fact check
 
-- [ ] `package.json` and the latest public release both still say v1.9.0.
-- [ ] The README still links the v1.9.0 tag as the exact source snapshot for
+- [ ] `package.json` and the latest public release both still say v1.9.1.
+- [ ] The README still links the v1.9.1 tag as the exact source snapshot for
   the current public binaries, and any newer `main` work is excluded from copy.
 - [ ] The macOS, Windows, and Linux downloads linked from the site resolve.
 - [ ] Pricing still reads $4/month and $30/year in Polar and on the site.
