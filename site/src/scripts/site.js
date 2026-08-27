@@ -40,34 +40,31 @@
     return null;
   };
 
+  // The card hrefs are static /dl/<target> counted redirects and are never
+  // rewritten — pointing them at direct asset URLs would bypass the edge
+  // counter. The release fetch survives only to reveal/hide option cards
+  // (Cards for artifacts the current release may lack — Mac Intel — ship
+  // hidden in the static markup) so no card ever promises an artifact the
+  // current release does not contain.
   fetch('https://api.github.com/repos/bnfy/blanc/releases/latest')
     .then((response) => response.ok ? response.json() : Promise.reject())
     .then((release) => {
       links.forEach((link) => {
-        const asset = pickAsset(release.assets, link.dataset.platform);
-        if (asset) {
-          link.href = asset.browser_download_url;
-          // Cards for artifacts the current release may lack (Mac Intel) ship
-          // hidden in the static markup; reveal one only once its asset is
-          // confirmed, so a failed fetch or disabled JS never shows a promise
-          // the release can't keep.
-          if (link.parentElement === downloadOptions) link.hidden = false;
-        } else if (link.parentElement === downloadOptions) {
-          // The release pipeline may intentionally omit an architecture or
-          // platform that has not passed its native gate. Do not leave a card
-          // that promises an artifact the current release does not contain.
-          link.hidden = true;
-        }
-      });
-      if (!os) return;
-      const asset = pickAsset(release.assets, os);
-      if (!asset) return;
-      ctas.forEach((cta) => {
-        cta.href = asset.browser_download_url;
-        cta.dataset.platform = os;
+        if (link.parentElement !== downloadOptions) return;
+        link.hidden = !pickAsset(release.assets, link.dataset.platform);
       });
     })
-    .catch(() => { /* Releases page remains the deliberate fallback. */ });
+    .catch(() => { /* Cards keep their static hidden/visible state. */ });
+
+  // CTAs need no release data any more: the counted redirect resolves the
+  // artifact server-side. Generic 'mac' stays on /download (arm64 vs x64
+  // can't be told from a UA — see pickAsset).
+  if (os && os !== 'mac') {
+    ctas.forEach((cta) => {
+      cta.href = '/dl/' + os;
+      cta.dataset.platform = os;
+    });
+  }
 })();
 
 // GA4 Consent Mode: gtag loads with analytics_storage denied by default.
