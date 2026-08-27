@@ -2,6 +2,11 @@ name = "blanc-ping"
 main = "src/index.js"
 compatibility_date = "2026-07-01"
 
+# Load-bearing: declaring `routes` below disables the workers.dev route by
+# default, and blanc-ping.bnfy-441.workers.dev is where every shipped
+# install's telemetry ping (and the stats digest) points. Never remove.
+workers_dev = true
+
 # Created by `wrangler kv namespace create PINGS` — paste the returned id below.
 kv_namespaces = [
   { binding = "PINGS", id = "2c71bddea5b842d49fee1c972b70e8d9" }
