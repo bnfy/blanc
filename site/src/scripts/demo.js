@@ -286,7 +286,7 @@
     'theverge', '9to5mac', 'cnet-before', 'cnet-clean',
   ]; // sites with a bundled render
   const PRELOAD_IDS = [...SHOT_IDS];
-  // Sampled top-edge color of each bundled render, so the Island's top strip
+  // Sampled top-edge color of each bundled render, so the island's top strip
   // blends into the page below it (the CSS reads --demo-strip-bg). A scene with
   // no bundled shot falls back to the theme surface (matching the skeleton).
   const SHOT_TOP = {
@@ -866,23 +866,23 @@
 
   // ---- scenes: a proof-first story, paced for first-time visitors ----
   // The distinctive product moments arrive first. Supporting organization and
-  // Patron features follow only after the Island, Glance, and Blocker have
+  // Patron features follow only after the island, Glance, and Blocker have
   // made Blanc's core idea visible.
   const SCENES = [
-    { view: 'rest',  layout: 'showcase', current: 'verge', hold: 3200, headline: 'The browser that\ngets out of the way.', subtext: 'Blanc puts tabs, search and commands in one floating Island — so the page is all you see.' },
-    { view: 'rest',  layout: 'showcase', current: 'verge', scroll: true, pointer: { target: '.pill', x: 0.58, y: 0.62 }, hold: 3800, headline: 'Your page stays\nin front.', subtext: 'Scroll freely. The Island stays fixed, then gently meets you when the cursor moves close.' },
+    { view: 'rest',  layout: 'showcase', current: 'verge', hold: 3200, headline: 'The browser that\ngets out of the way.', subtext: 'Blanc puts tabs, search and commands in one floating island — so the page is all you see.' },
+    { view: 'rest',  layout: 'showcase', current: 'verge', scroll: true, pointer: { target: '.pill', x: 0.58, y: 0.62, delay: 650 }, hold: 3800, headline: 'Your page stays\nin front.', subtext: 'Scroll freely. The island stays fixed, then gently meets you when the cursor moves close.' },
 
-    // Open Glance as the direct result of the staged click. The cursor keeps
-    // moving toward the divider while the panel retracts, avoiding a dead beat
-    // between the pane appearing and the resize demonstration.
-    { view: 'panel', layout: 'showcase', current: 'nine', glanceCue: 'netflix', glanceOpen: { tab: 'netflix', ratio: 0.62 }, pointer: { target: '.row-glance.cue', click: true }, hold: 2050, headline: 'Keep browsing.\nKeep watching.', subtext: 'Open Netflix in Glance while the article you’re reading stays exactly where it is.' },
-    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceResize: { from: 0.62, to: 0.5 }, glanceActionDelay: 140, pointer: { target: '#demoGlanceDivider', drag: true, delay: 0, actionDelay: 140 }, hold: 4300, headline: 'Give either page\nmore room.', subtext: 'Drag the divider until the balance between your main page and Glance feels right.' },
+    // Open Glance as the direct result of the staged click, then leave the
+    // completed split view on screen long enough to register before the next
+    // chapter moves the cursor to the divider.
+    { view: 'panel', layout: 'showcase', current: 'nine', glanceCue: 'netflix', glanceOpen: { tab: 'netflix', ratio: 0.62 }, pointer: { target: '.row-glance.cue', click: true }, hold: 3000, headline: 'Keep browsing.\nKeep watching.', subtext: 'Open Netflix in Glance while the article you’re reading stays exactly where it is.' },
+    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceResize: { from: 0.62, to: 0.5 }, glanceActionDelay: 720, pointer: { target: '#demoGlanceDivider', drag: true, delay: 0, actionDelay: 720 }, hold: 4300, headline: 'Give either page\nmore room.', subtext: 'Drag the divider until the balance between your main page and Glance feels right.' },
     { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceRatio: 0.5, glanceSwap: { main: 'netflix', glance: 'nine' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 4300, headline: 'Make either tab\nthe main page.', subtext: 'Swap their roles instantly without closing a tab or losing its place.' },
 
     // The blocker now proves the outcome instead of only explaining the
     // popover. First show the ad-heavy page with protection disabled, then
     // click the real per-site switch and reload into the clean reflowed page.
-    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', pointer: { target: '#demoShield', click: true }, hold: 2500, headline: 'A noisy page,\nbefore Blanc.', subtext: 'The page is competing with three separate ad placements.', afterAction: { headline: 'Protection lives\nin the Island.', subtext: 'The shield puts each site’s blocking control one click away.' } },
+    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', pointer: { target: '#demoShield', click: true }, hold: 2500, headline: 'A noisy page,\nbefore Blanc.', subtext: 'The page is competing with three separate ad placements.', afterAction: { headline: 'Protection lives\nin the island.', subtext: 'The shield puts each site’s blocking control one click away.' } },
     { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', blockerToggle: true, pointer: { target: '#demoShieldSwitch', click: true }, hold: 4300, headline: 'Turn the ad layer\noff.', subtext: 'One per-site switch reloads the page with ads and known trackers blocked.', afterAction: { headline: 'The page,\nwithout the ad layer.', subtext: 'Ad slots collapse and the story returns to the foreground.' } },
 
     // The blank-tab beat uses the app's real placeholder state. One mixed
@@ -971,7 +971,7 @@
     // The blank tab shows a miniature of Blanc's start page instead of a
     // site render — the surface the quiet pill actually rests over in the app.
     newtabEl.hidden = !TABS[current].internal;
-    // Color-match the top strip to the page now behind it, so the Island reads
+    // Color-match the top strip to the page now behind it, so the island reads
     // as floating in the page's top margin rather than on a browser bar.
     stage.style.setProperty('--demo-strip-bg', SHOT_TOP[initialShot] || '');
     setHeroMessage(s);

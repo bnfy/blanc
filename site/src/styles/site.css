@@ -116,10 +116,31 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 .demo-shot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; opacity: 0; transition: opacity 360ms ease, left 360ms cubic-bezier(0.4, 0, 0.2, 1), width 360ms cubic-bezier(0.4, 0, 0.2, 1), height 360ms cubic-bezier(0.4, 0, 0.2, 1), top 360ms cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; }
 .demo-shot.show { opacity: 1; }
 .demo-stage.blocker-activating .demo-shot.show { animation: demo-blocker-reload 620ms cubic-bezier(0.2, 0.7, 0.16, 1) both; }
+.demo-stage.blocker-activating .demo-island .shield {
+  z-index: 2;
+  animation: demo-blocker-shield-result 1500ms cubic-bezier(0.2, 0.72, 0.16, 1) both;
+}
+.demo-stage.blocker-activating .demo-island .shield-count {
+  animation: demo-blocker-count-result 1500ms cubic-bezier(0.2, 0.72, 0.16, 1) both;
+}
 @keyframes demo-blocker-reload {
   0% { opacity: 0.08; filter: saturate(0.7) blur(1px); }
   34% { opacity: 0.32; }
   100% { opacity: 1; filter: none; }
+}
+@keyframes demo-blocker-shield-result {
+  0%, 8% { transform: scale(1); background: transparent; box-shadow: none; color: var(--text); }
+  28%, 68% {
+    transform: scale(1.5);
+    background: var(--text);
+    box-shadow: 0 0 0 4px var(--surface-raised), 0 0 0 6px var(--text), 0 12px 24px rgba(14,14,14,0.24);
+    color: var(--bg);
+  }
+  100% { transform: scale(1); background: transparent; box-shadow: none; color: var(--text); }
+}
+@keyframes demo-blocker-count-result {
+  0%, 8%, 100% { transform: scale(1); }
+  28%, 68% { transform: scale(1.18); }
 }
 
 .demo-glance[hidden] { display: none; }
@@ -185,8 +206,8 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 }
 
 /* Hero demo models the real Blanc window, same as the static figures (see the
-   .island-figure block near the end of this file): the resting Island lives in
-   a slim top strip and the page render begins BELOW it, so the Island is fixed
+   .island-figure block near the end of this file): the resting island lives in
+   a slim top strip and the page render begins BELOW it, so the island is fixed
    above the content area rather than sitting on top of the site. The strip is
    color-matched to the current scene's page top edge (--demo-strip-bg, set per
    scene by demo.js) so it reads as the page's own top margin, not a browser
@@ -205,7 +226,7 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 #demoStage:has(.demo-shot.show) .demo-page { display: none; }
 
 /* Persistent demo timeline. It sits below the canvas rather than over a page
-   render, so every chapter remains reachable while the Island panel, Glance,
+   render, so every chapter remains reachable while the island panel, Glance,
    workspace switcher, or private state occupies the demo itself. */
 .demo-scrub { position: relative; z-index: 6; display: flex; align-items: center; gap: 12px; width: min(86%, 610px); margin: 18px auto 0; padding: 8px 12px; background: #111; border: 1px solid #111; border-radius: 999px; box-shadow: 0 8px 24px rgba(14, 14, 14, 0.16); }
 .demo-scrub-current { flex: 0 0 92px; overflow: hidden; color: #fff; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.01em; line-height: 1; text-align: left; text-overflow: ellipsis; white-space: nowrap; }
@@ -224,7 +245,7 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 
 /* A staged pointer makes the demo's implied clicks legible. Its tip is the
    transform origin, so demo.js can aim it at live controls instead of keeping
-   a second set of hard-coded coordinates in sync with the Island. */
+   a second set of hard-coded coordinates in sync with the island. */
 .demo-cursor { position: absolute; top: 0; left: 0; z-index: 14; width: 20px; height: 26px; pointer-events: none; opacity: 0; transform: translate3d(var(--cursor-x, 50%), var(--cursor-y, 50%), 0); transition: transform 720ms cubic-bezier(0.22, 0.78, 0.22, 1), opacity 160ms ease; will-change: transform; filter: drop-shadow(0 2px 3px rgba(14,14,14,0.28)); }
 .demo-cursor.visible { opacity: 1; }
 .demo-cursor[hidden] { display: none; }
@@ -240,7 +261,7 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 
 /* A compact representation of Blanc's native macOS tab menu. It keeps the
    system-menu density and blue selection treatment instead of reusing the
-   Island's black primary-action styling. */
+   island's black primary-action styling. */
 .demo-tab-context { position: absolute; z-index: 13; width: 202px; pointer-events: none; color: #1d1d1f; font-family: -apple-system, BlinkMacSystemFont, var(--font-ui), sans-serif; font-size: 10.5px; font-weight: 400; line-height: 1; text-align: left; }
 .demo-tab-context[hidden] { display: none; }
 .demo-context-card { position: relative; padding: 4px; border: 0.5px solid rgba(0,0,0,0.14); border-radius: 8px; background: rgba(249,249,249,0.93); box-shadow: 0 10px 24px rgba(0,0,0,0.22), 0 1px 3px rgba(0,0,0,0.1); backdrop-filter: blur(18px) saturate(1.35); }
@@ -639,6 +660,14 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
   .demo-stage.glance-swapping .demo-shot,
   .demo-stage.glance-swapping .demo-glance-shot { animation: none; }
   .demo-stage.blocker-activating .demo-shot.show { animation: none; }
+  .demo-stage.blocker-activating .demo-island .shield {
+    transform: scale(1.12);
+    animation: none;
+    background: var(--text);
+    box-shadow: 0 0 0 3px var(--surface-raised), 0 0 0 5px var(--text);
+    color: var(--bg);
+  }
+  .demo-stage.blocker-activating .demo-island .shield-count { animation: none; }
   .demo-scrub-fill { transition: none !important; }
   /* Keeps the base presentation scale — only the proximity reaction goes. */
   .demo-island .pill { transform: scale(var(--pill-scale, 1)); transition: none; box-shadow: var(--rim-pill), 0 12px 28px rgba(14,14,14,0.1); }
@@ -651,9 +680,9 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 
 /* ---------- shared marketing navigation ---------- */
 /*
-   The home Island is fixed furniture: the document moves behind it, then
+   The home island is fixed furniture: the document moves behind it, then
    dissolves as it enters this late, soft lower edge.  Keeping the gradient on
-   the header layer (rather than masking the Island) leaves the controls crisp
+   the header layer (rather than masking the island) leaves the controls crisp
    while making the page itself recede from the browser chrome.
 */
 .site-header {
@@ -719,7 +748,7 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 .site-nav-cta { min-height: 42px; margin-left: 0; padding: 0 16px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--accent); border-radius: 999px; background: var(--accent); color: var(--bg); text-decoration: none; font-family: var(--font-mono); font-size: 12px; white-space: nowrap; transition: opacity 0.15s ease; }
 .site-nav-cta:hover { opacity: 0.84; }
 .site-nav-cta.is-current { pointer-events: none; }
-/* On desktop, the real Blanc Island can already be sitting above the site.
+/* On desktop, the real Blanc island can already be sitting above the site.
    A shallower, softly squared nav keeps the two layers from reading as a
    duplicate pair of browser pills while preserving the compact mobile island. */
 @media (min-width: 641px) {
@@ -981,7 +1010,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 .truth-note > p:not(.section-kicker) { max-width: 68ch; margin: 20px 0 0; color: var(--text-dim); font-size: 15px; line-height: 1.68; }
 
 /* ---------- tablet containment ----------
-   Between phone and desktop widths, the Island capture's intrinsic dimensions
+   Between phone and desktop widths, the island capture's intrinsic dimensions
    could keep the two-column story wider than the viewport. Let it yield before
    the phone breakpoint takes over. The proof rail stays centered here — it
    wraps, so it can't overflow; only the ≤640px scroller needs flex-start. */
@@ -1265,7 +1294,7 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
 .island-figure--panel { height: 456px; }
 
 /* A compact rendering of the current shield popover. The app anchors this
-   beneath the Island; showing it in the capture makes the newer interaction
+   beneath the island; showing it in the capture makes the newer interaction
    legible without adding another, competing browser surface. */
 .island-figure--site-controls { height: 354px; }
 .site-controls-island .site-controls-popover {
@@ -1313,7 +1342,7 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
    not a browser bar. So here: push the page shot down by the strip height,
    fill the strip band with the page's top-edge color (--fig-strip-bg, keyed
    per figure via data-page-tone), and scale the pill to the same ratio the
-   shot itself is reduced to, so the Island reads at true size rather than
+   shot itself is reduced to, so the island reads at true size rather than
    oversized. Panel figures are exempt — their expanded panel genuinely
    floats over the page (overlay view), so they stay full-bleed. */
 .island-figure { --fig-strip-h: 36px; --fig-strip-bg: var(--bg); }
