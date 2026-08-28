@@ -24,7 +24,7 @@ const graph = {
       url: 'https://blancbrowser.com/',
       name: 'Blanc Browser',
       alternateName: 'Blanc',
-      description: 'A minimal desktop browser built around the Blanc island.',
+      description: 'A minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands.',
       publisher: {
         '@id': 'https://blancbrowser.com/#organization',
       },
@@ -35,7 +35,7 @@ const graph = {
       name: 'Blanc Browser',
       alternateName: 'Blanc',
       url: 'https://blancbrowser.com/',
-      description: 'Blanc is a minimal desktop browser with search built into the Blanc island, direct site controls for ad and tracker blocking, private tabs, slash commands, and real pages that stay in front.',
+      description: 'Blanc is a minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands.',
       applicationCategory: 'BrowserApplication',
       operatingSystem: 'macOS, Windows, Linux',
       softwareVersion: version,
@@ -53,22 +53,26 @@ const graph = {
 };
 ---
 <BaseLayout
-  title="Blanc — A Minimal, Private Desktop Browser"
-  description="Blanc is a minimal desktop browser with search built into one floating island, direct site controls for ad and tracker blocking, private tabs, and keyboard-first commands for macOS, Windows, and Linux."
+  title="Blanc Browser — Minimal Desktop Browser with Ad Blocking"
+  description="Blanc is a minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands."
   path="/"
   page="home"
   header="island"
   social="rich"
-  ogTitle="Blanc Browser — A minimal desktop browser with built-in ad blocking"
-  ogDescription="Search, tabs, and browser controls in one floating island, with direct site controls for ad and tracker blocking and private tabs."
+  ogTitle="Blanc Browser — Minimal Desktop Browser with Ad Blocking"
+  ogDescription="A minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands."
 >
   <script type="application/ld+json" is:inline set:html={JSON.stringify(graph)} slot="head" />
 
 <!-- ============ hero: message, then the live island demo ============ -->
   <header class="hero">
+  <div class="hero-intro">
+    <h1>A minimal desktop browser<br />that gets out of the way.</h1>
+    <p class="hero-intro-copy">Blanc is a minimal desktop browser for macOS, Windows and Linux with built-in ad and tracker blocking, private tabs, tab groups and keyboard-first commands.</p>
+  </div>
   <div class="hero-message" id="demoHeroMessage">
-    <h1 id="demoHeadline">The browser that<br />gets out of the way.</h1>
-    <p class="hero-copy" id="demoSubtext">Blanc puts tabs, search and commands in one floating island — so the page is all you see.</p>
+    <h2 id="demoHeadline">Your browser controls,<br />in one floating island.</h2>
+    <p class="hero-copy" id="demoSubtext">Blanc keeps tabs, search and commands together so the page stays in front.</p>
   </div>
 
   <div class="demo-stage" id="demoStage">
