@@ -92,8 +92,11 @@ for (const file of htmlFiles) {
   if (!description) errors.push(`${route}: missing meta description`);
   if (h1s.length !== 1) errors.push(`${route}: expected one H1, found ${h1s.length}`);
   if (!canonical) errors.push(`${route}: missing canonical URL`);
-  if (/href=["']mailto:/i.test(unprotectedEmailHtml)) {
-    errors.push(`${route}: mailto link is not protected from Cloudflare email-address rewriting`);
+  const hasUnprotectedMailto = /href=["']mailto:/i.test(unprotectedEmailHtml);
+  const hasUnprotectedVisibleEmail = />[^<]*[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}[^<]*</i
+    .test(unprotectedEmailHtml);
+  if (hasUnprotectedMailto || hasUnprotectedVisibleEmail) {
+    errors.push(`${route}: email address is not protected from Cloudflare email-address rewriting`);
   }
   if (!/\bindex\b/i.test(robots) || /\bnoindex\b/i.test(robots)) errors.push(`${route}: page is not indexable`);
   if (!NO_SOCIAL_ROUTES.has(route)) {

@@ -4,16 +4,21 @@
 // value goes through Astro's auto-escaping, so release-note text — including
 // contributor-supplied PR titles — can never introduce markup of its own.
 const { spans = [] } = Astro.props;
+const EMAIL_ADDRESS = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
+const containsEmail = (span) =>
+  EMAIL_ADDRESS.test(String(span.value ?? '')) || String(span.url ?? '').startsWith('mailto:');
 ---
 {spans.map((span) => (
-  span.type === 'strong' ? <strong>{span.value}</strong>
-  : span.type === 'code' ? <code>{span.value}</code>
-  : span.type === 'link' ? (
-      span.url.startsWith('https:')
-        ? <a href={span.url} target="_blank" rel="noopener">{span.value}</a>
-        : span.url.startsWith('mailto:')
-          ? <><Fragment set:html="<!--email_off-->" /><a href={span.url}>{span.value}</a><Fragment set:html="<!--/email_off-->" /></>
+  <Fragment>
+    {containsEmail(span) && <Fragment set:html="<!--email_off-->" />}
+    {span.type === 'strong' ? <strong>{span.value}</strong>
+    : span.type === 'code' ? <code>{span.value}</code>
+    : span.type === 'link' ? (
+        span.url.startsWith('https:')
+          ? <a href={span.url} target="_blank" rel="noopener">{span.value}</a>
           : <a href={span.url}>{span.value}</a>
-    )
-  : <Fragment>{span.value}</Fragment>
+      )
+    : <Fragment>{span.value}</Fragment>}
+    {containsEmail(span) && <Fragment set:html="<!--/email_off-->" />}
+  </Fragment>
 ))}
