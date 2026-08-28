@@ -958,7 +958,12 @@
     footEl.textContent = lay.groups.length > 1 ? GROUP_FOOT : NORMAL_FOOT;
 
     renderPill(s.layout, current, s);
-    const initialShot = s.blockerState ? 'cnet-before' : tabShotId(current);
+    // Internal pages draw their own miniature surface. Do not probe for a
+    // screenshot that cannot exist (the New Tab chapter previously requested
+    // /shots/{mode}/newtab.jpg and generated a needless 404).
+    const initialShot = TABS[current].internal
+      ? null
+      : (s.blockerState ? 'cnet-before' : tabShotId(current));
     showShot(initialShot);
     // Warm only the visual needed by an imminent in-scene reveal. Loading the
     // whole demo cast at startup made screenshots from much later chapters

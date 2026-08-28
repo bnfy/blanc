@@ -63,6 +63,11 @@ const graph = {
   ogDescription="A minimal desktop browser for macOS, Windows, and Linux with built-in ad and tracker blocking, private tabs, tab groups, and keyboard-first commands."
 >
   <script type="application/ld+json" is:inline set:html={JSON.stringify(graph)} slot="head" />
+  <!-- The autoplay demo's first bundled capture is the homepage LCP image.
+       Start the matching responsive file during HTML parsing instead of
+       waiting for demo.js to initialize and discover it. -->
+  <link rel="preload" as="image" href="/shots/mobile/theverge.jpg" media="(max-width: 560px)" fetchpriority="high" slot="head" />
+  <link rel="preload" as="image" href="/shots/desktop/theverge.jpg" media="(min-width: 561px)" fetchpriority="high" slot="head" />
 
 <!-- ============ hero: message, then the live island demo ============ -->
   <header class="hero">
@@ -83,7 +88,7 @@ const graph = {
       <div class="bar w3"></div>
       <div class="bar w4"></div>
     </div>
-    <img class="demo-shot" id="demoShot" alt="" aria-hidden="true">
+    <img class="demo-shot" id="demoShot" alt="" aria-hidden="true" fetchpriority="high">
     <div class="demo-glance" id="demoGlance" hidden aria-hidden="true">
       <div class="demo-glance-header" id="demoGlanceHeader">
         <div class="demo-glance-copy">
