@@ -6,6 +6,34 @@
 // generic Mac CTAs go to /download where both artifacts are explicit.
 export const DL_TARGETS = new Set(['mac-arm64', 'mac-x64', 'win', 'linux']);
 
+// Public Ads Manager data-source identifier. The API credential stays in the
+// OPENAI_CONVERSIONS_API_KEY Worker secret and never enters source or the site.
+export const OPENAI_PIXEL_ID = 'KgcfQzLTx8Dr91nDiQLFAk';
+export const OPENAI_CONVERSION_EVENT = 'blanc_download';
+
+export function validOppref(value) {
+  return typeof value === 'string' && value.length > 0 && value.length <= 2048;
+}
+
+// Deliberately contains no user object, IP, user agent, email, or persistent
+// Blanc identifier. opt_out also asks OpenAI not to use this event for future
+// user-level personalization.
+export function buildDownloadConversionEvent({ target, oppref, timestampMs, eventId }) {
+  if (!DL_TARGETS.has(target) || !validOppref(oppref)) return null;
+  if (!Number.isSafeInteger(timestampMs) || typeof eventId !== 'string' || !eventId) return null;
+  return {
+    id: eventId,
+    type: 'custom',
+    custom_event_name: OPENAI_CONVERSION_EVENT,
+    timestamp_ms: timestampMs,
+    oppref,
+    source_url: `https://blancbrowser.com/dl/${target}`,
+    action_source: 'web',
+    opt_out: true,
+    data: { type: 'custom', platform: target },
+  };
+}
+
 // Pick the artifact for a target from a release's assets
 // ([{name, browser_download_url}]). Returns null when the release has no such
 // artifact (e.g. releases that intentionally omit mac-x64) — callers must then

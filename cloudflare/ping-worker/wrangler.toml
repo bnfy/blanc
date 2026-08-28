@@ -24,9 +24,11 @@ routes = [
 # rule and billing notification because KV counters are not strongly atomic.
 PING_DAILY_LIMIT = "250000"
 
-# STATS_TOKEN and INSTALL_HASH_SECRET are secrets, not vars — set them with:
+# STATS_TOKEN, INSTALL_HASH_SECRET, and OPENAI_CONVERSIONS_API_KEY are secrets,
+# not vars — set them with:
 #   wrangler secret put STATS_TOKEN
 #   wrangler secret put INSTALL_HASH_SECRET
+#   wrangler secret put OPENAI_CONVERSIONS_API_KEY
 # INSTALL_HASH_SECRET keys the HMAC applied to install ids before storage/GA
 # forwarding; unset means unique-install counting is skipped (fail closed).
 

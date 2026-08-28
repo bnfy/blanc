@@ -22,7 +22,7 @@ test('app chrome and internal pages have no live Google Fonts dependency', () =>
   }
 });
 
-test('privacy copy accounts for suggestions, telemetry, tab/icon sync, and service requests', () => {
+test('privacy copy accounts for suggestions, telemetry, ad measurement, tab/icon sync, and service requests', () => {
   const privacy = read('site/src/pages/privacy.astro');
   assert.doesNotMatch(privacy, /exactly three things/i);
   assert.doesNotMatch(privacy, /nothing else leaves your device/i);
@@ -35,6 +35,25 @@ test('privacy copy accounts for suggestions, telemetry, tab/icon sync, and servi
   assert.match(privacy, /Cloudflare download Worker/);
   assert.match(privacy, /one aggregate counter for that UTC day and platform target/);
   assert.match(privacy, /no download cookie, IP address, user agent, or per-user identifier/);
+  assert.match(privacy, /opaque <code>oppref<\/code> reference/);
+  assert.match(privacy, /does not include a name, email, account, visitor IP address, user agent, or user profile/);
+  assert.match(privacy, /OpenAI receives the limited ChatGPT-ad conversion event/);
+});
+
+test('ChatGPT ad attribution is consent-gated and server-side only', () => {
+  const siteScript = read('site/src/scripts/site.js');
+  const worker = read('cloudflare/ping-worker/src/index.js');
+  const conversion = read('cloudflare/ping-worker/src/dl.js');
+  const workerConfig = read('cloudflare/ping-worker/wrangler.toml');
+
+  assert.match(siteScript, /localStorage\.getItem\(CONSENT_KEY\) !== 'granted'/);
+  assert.match(siteScript, /measurement-consent-v2/);
+  assert.match(siteScript, /sessionStorage\.setItem\(STORAGE_KEY, pendingOppref\)/);
+  assert.match(siteScript, /url\.searchParams\.set\('oppref', oppref\)/);
+  assert.doesNotMatch(siteScript, /oaiq|cdn\.openai\.com|bzr\.openai\.com/);
+  assert.match(worker, /OPENAI_CONVERSIONS_API_KEY/);
+  assert.match(conversion, /opt_out: true/);
+  assert.doesNotMatch(workerConfig, /OPENAI_CONVERSIONS_API_KEY\s*=\s*["']/);
 });
 
 test('private-tab copy matches the isolated in-memory session', () => {
