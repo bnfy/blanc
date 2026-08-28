@@ -50,13 +50,13 @@ Modified:
 
 - [ ] **Step 1: Create the feature branch from the approved history**
 
-The approved spec (`1873f15`), plan (`6c50b62`), and the CLAUDE.md staleness fix (`7af0714`) live on **local `main`** and may not be on `origin/main` yet — branching from `origin/main` would silently drop them. Branch from local `main` and verify:
+The approved spec (`1873f15`) and the revised plan (`84a9709`) live on **local `main`** and may not be on `origin/main` yet — branching from `origin/main` would silently drop them. Other sessions also commit to this shared checkout, so the approved commits may be ancestors rather than the tip — check ancestry, not the recent log:
 
 ```bash
-cd "/Users/anthonyjloria/Projects/Blanc Browser" && git log --oneline -3 main
+cd "/Users/anthonyjloria/Projects/Blanc Browser" && git merge-base --is-ancestor 1873f15 main && git merge-base --is-ancestor 84a9709 main && echo ancestry-ok
 ```
 
-Expected: the top commits include `6c50b62` (plan) and `1873f15` (spec). If they don't, STOP and find where those commits went before branching.
+Expected: `ancestry-ok`. If either check fails (non-zero exit, no output), STOP and find where the approved commits went before branching.
 
 ```bash
 git checkout -b feature/1password-ux-overhaul main
@@ -350,15 +350,17 @@ git commit -m "feat(1password): fill-status capsule document with narrow preload
 
 **Interfaces:**
 - Consumes: `FILL_KINDS`, `MODES`, `FILL_COPY`, `kindForErrorCode` (Task 1).
-- Produces: `createFillStatusSurface(deps)` returning `{ notice(target, kind), decision(target, kind) → Promise<'primary'|'cancel'>, handleReply(senderCheck, payload), invalidatePending(runtimeId), viewGone(), isShowing() }`. The pending slot records its target's `runtimeId`; `invalidatePending(runtimeId)` acts only when they match, so one window's surface transitions can never cancel another window's flow. Deps (all injectable for tests): `{ ensureView() → {webContents:{send,once,on,isDestroyed}, presentedOnce:boolean}|null, present(target) → boolean, hide(), showFallbackDialog(target, kind) → Promise<'primary'|'cancel'>, restoreFocus(target), setTimeout, clearTimeout, readinessMs = 2000, successNoticeMs = 4000 }`. Task 6 wires real deps.
+- Produces: `createFillStatusSurface(deps)` returning `{ notice(target, kind), decision(target, kind) → Promise<'primary'|'cancel'>, handleReply(senderCheck, payload), invalidatePending(runtimeId), viewGone(runtimeId), loadFailed(runtimeId), isShowing() }`. The surface keeps ONE **active-message record** for whichever mode is showing — `{ runtimeId, requestId, mode, presented }` — not just a pending-decision slot (notices resolve immediately at this layer but still need runtime-filtered dismissal and death handling). Every externally triggered event — `invalidatePending`, `viewGone`, `loadFailed` — carries a `runtimeId` and acts only when it matches the active record's, so a stale capsule view crashing in window B can never cancel a decision showing in window A. Deps (all injectable for tests): `{ ensureView() → {webContents:{send,once,on,isDestroyed}, presentedOnce:boolean}|null, present(target) → boolean, hide(), showFallbackDialog(target, kind) → Promise<'primary'|'cancel'>, restoreFocus(target), setTimeout, clearTimeout, readinessMs = 2000, successNoticeMs = 4000 }`. Task 6 wires real deps.
 
 Behavior to implement and test (each bullet = one test):
 
 1. `decision()` assigns a monotonically increasing requestId, sends `fill:show {kind, mode:'decision', requestId}`, and resolves `'primary'`/`'cancel'` from a matching `handleReply`.
 2. A reply with a stale requestId, an unknown requestId, or a verb outside the kind's verb set is ignored (promise stays pending).
 3. A reply failing the injected `senderCheck` is ignored.
-4. **Readiness before first visible presentation:** if `present()` has not succeeded within `readinessMs` (or `ensureView()` returns null, or the view fires the injected load-failure callback), the pending decision is answered by `showFallbackDialog(target, kind)` — the native dialog substitutes; the capsule show for that requestId is abandoned (`fill:hide` sent if the view exists).
-5. **After first visible presentation** (`present()` returned true for this requestId): view death (`viewGone()`) resolves the pending decision as `'cancel'` — no re-prompt, no fallback dialog.
+4. **Readiness before first visible presentation:** if `present()` has not succeeded within `readinessMs`, or `ensureView()` returns null, or `loadFailed(runtimeId)` fires for the active record's runtime (main routes `loadURL` rejection and `did-fail-load` here — Task 6), the pending decision is answered by `showFallbackDialog(target, kind)` — the native dialog substitutes; the capsule show for that requestId is abandoned (`fill:hide` sent if the view exists). A notice in the same situation falls back to the native notice dialog.
+5. **After first visible presentation** (`present()` returned true for this requestId): view death (`viewGone(runtimeId)`) or `loadFailed(runtimeId)` resolves the pending decision as `'cancel'` — no re-prompt, no fallback dialog.
+5a. **Cross-window death is a no-op:** `viewGone`/`loadFailed` with a runtimeId different from the active record's leaves the pending decision pending (test: window B's view dies while window A's decision shows).
+5b. **Same-runtime notice dismissal:** `invalidatePending(runtimeId)` with a matching runtimeId hides an active notice (sends `fill:hide` for its requestId); a mismatched runtimeId leaves it showing.
 6. `invalidatePending(runtimeId)` (called by main on surface transitions / permission arrival / tab switches) resolves a pending decision `'cancel'` and hides — but ONLY when `runtimeId` equals the pending target's `runtimeId`; a mismatched runtimeId is a no-op (cross-window isolation test: window B's id leaves window A's pending decision pending).
 7. `notice()` for an error kind sends show and resolves immediately (non-blocking); a success kind behaves identically at this layer (the renderer owns the timer).
 8. **Reason-aware focus:** `decision()` resolution via reply, Escape-cancel, or notice dismissal calls `restoreFocus(target)`; resolution via `invalidatePending(runtimeId)` (successor surface) does NOT.
@@ -366,8 +368,8 @@ Behavior to implement and test (each bullet = one test):
 
 - [ ] **Step 1: Write the failing tests** — one `test()` per numbered behavior, driving the factory with fake deps (pattern: the fakes record `sent` messages; `senderCheck` is a boolean-returning stub; timers via a manual `{ set, fire, clear }` fake clock as in `test/unit/tab-sleep.test.js` — check that file for the repo's fake-timer idiom and reuse it).
 - [ ] **Step 2: Run — expect FAIL** (module missing).
-- [ ] **Step 3: Implement `fill-status-surface.js`** to the contract above (~150 lines; single pending-decision slot, `requestId` counter, `presentedIds` Set for the boundary).
-- [ ] **Step 4: Run — expect PASS (9 tests).**
+- [ ] **Step 3: Implement `fill-status-surface.js`** to the contract above (~170 lines; single active-message record `{runtimeId, requestId, mode, presented}`, `requestId` counter, pending-decision resolver held alongside the record).
+- [ ] **Step 4: Run — expect PASS (one test per numbered/lettered behavior above).**
 - [ ] **Step 5: Commit** — `git add src/main/fill-status-surface.js test/unit/fill-status-surface.test.js && git commit -m "feat(1password): fill-status surface controller with readiness boundary"`
 
 ---
@@ -522,10 +524,23 @@ with `currentGeneration` a mutable harness variable and `prepareTarget: (t) => {
 All wiring mirrors the permission view functions (main.js:1745–1811) — read them first. Steps:
 
 - [ ] **Step 1: View plumbing.** Add `fillStatusView`/`fillStatusViewAttached` to the runtime record (window-runtime-registry.js, beside `permissionView` fields — check the exact names there) and `ensureFillStatusView()`/`attachFillStatusView()`/`detachFillStatusView()`/`fillStatusViewBounds()` beside their permission twins: same `CHROME_PARTITION`, `preload: path.join(__dirname, 'fill-status-preload.js')`, `contextIsolation: true, nodeIntegration: false, sandbox: true`, transparent background, `lockPrivilegedNavigation(view.webContents, CHROME_FILL_STATUS_URL)`, bottom-center bounds (same formula as `permissionViewBounds`, height 64). Recompute bounds in the same window-resize path that calls `permissionViewBounds` (main.js:2850 region).
+
+  **Readiness wiring is NOT covered by mirroring the permission view** (its precedent neither catches `loadURL` rejection nor handles `did-fail-load`). In `ensureFillStatusView()`, with `owner` the creating runtime, wire all three failure signals explicitly:
+
+```js
+view.webContents.loadURL(CHROME_FILL_STATUS_URL)
+  .catch(bindWindowRuntime(owner, () => fillStatusSurface?.loadFailed(owner.id)));
+view.webContents.on('did-fail-load', bindWindowRuntime(owner, (_e, _code, _desc, _url, isMainFrame) => {
+  if (isMainFrame) fillStatusSurface?.loadFailed(owner.id);
+}));
+view.webContents.once('did-finish-load', bindWindowRuntime(owner, () => { /* flush surface replay queue for owner.id */ }));
+```
+
+  The never-finishes case is the surface's own `readinessMs` deadline (Task 3 behavior 4) — no extra wiring here, but both sides of the first-visible-presentation boundary must be exercised against this real wiring in Step 7's manual check (kill the view before/after presenting via the test hook or devtools).
 - [ ] **Step 2: Stacking.** In `setActiveTab`'s re-stack region and the Glance-open function (both call `restackPermissionView()`) add a `restackFillStatusView()` **before** the permission restack — permission stays topmost (precedence).
 - [ ] **Step 3: Instantiate the surface** beside `getOnePasswordFillController` (main.js:2319): `createFillStatusSurface` with real deps — `ensureView` wraps Step 1; `present` attaches + returns whether the document has finished its first load (`webContents.did-finish-load` once-flag, replay via the queue in the surface); `showFallbackDialog(target, kind)` builds a `dialog.showMessageBox` from `FILL_COPY[kind]` (decision: two buttons, `defaultId`/`cancelId` on Cancel; notice: single OK) — this is the only main-side copy consumer; `restoreFocus: (target) => { if (isOnePasswordTargetCurrent(target)) target.webContents.focus(); }` (reason-aware: the surface only calls it on plain dismissals, and a stale target no-ops).
 - [ ] **Step 4: Reply IPC.** `ipcMain.on('fill:reply', (event, payload) => surface.handleReply(senderIsFillStatusView(event), payload))` with `senderIsFillStatusView` checking `event.sender === rt-of-owner.fillStatusView?.webContents && event.senderFrame?.url === CHROME_FILL_STATUS_URL` — model on the trusted-sender list at main.js:4812.
-- [ ] **Step 5: Invalidation hooks.** Uncomment/insert the line inside `bumpSurfaceGeneration` (Task 4): `fillStatusSurface?.invalidatePending(runtime.id)` — a bump while that runtime's decision is pending = successor surface; the runtimeId filter keeps window B's transitions from cancelling window A's flow. Because Task 4 routed **every** bump (overlay, sheet, Glance, permission arrival, tab switch) through the helper, all of them now both invalidate the flow and dismiss that window's visible capsule. Active-tab **navigation** is the one dismissal source with no generation bump: call `surface.invalidatePending(rt().id)` from the same active-tab site-changing-navigation hook that dismisses the shield popover (grep the shield dismissal in main.js and add beside it) — the flow side is already covered by `navEpoch`, which correctly classifies it as `page-changed` (noticed, not silent). `view.webContents.once('destroyed', …)` and `'render-process-gone'` → `surface.viewGone()`. Escape: extend the existing `before-input-event` chrome handler (grep `before-input-event` in main.js) so Escape with a visible capsule dismisses/cancels it before falling through to overlay logic.
+- [ ] **Step 5: Invalidation hooks.** Uncomment/insert the line inside `bumpSurfaceGeneration` (Task 4): `fillStatusSurface?.invalidatePending(runtime.id)` — a bump while that runtime's decision is pending = successor surface; the runtimeId filter keeps window B's transitions from cancelling window A's flow. Because Task 4 routed **every** bump (overlay, sheet, Glance, permission arrival, tab switch) through the helper, all of them now both invalidate the flow and dismiss that window's visible capsule. Active-tab **navigation** is the one dismissal source with no generation bump: call `surface.invalidatePending(rt().id)` from the same active-tab site-changing-navigation hook that dismisses the shield popover (grep the shield dismissal in main.js and add beside it) — the flow side is already covered by `navEpoch`, which correctly classifies it as `page-changed` (noticed, not silent). `view.webContents.once('destroyed', …)` and `'render-process-gone'` → `surface.viewGone(owner.id)` — the owning runtime's id from the creation closure, never `rt().id` (these events cross unbound native boundaries, and the runtime filter is what keeps window B's dead view from cancelling window A's decision). Escape: extend the existing `before-input-event` chrome handler (grep `before-input-event` in main.js) so Escape with a visible capsule dismisses/cancels it before falling through to overlay logic.
 - [ ] **Step 6: Pass the new seams** to `createCredentialFillController`: `notify: (t, k) => surface.notice(t, k)`, `confirm: (t, k) => surface.decision(t, k)`, `surfaceChanged: onePasswordSurfaceChanged`, drop `dialog`.
 - [ ] **Step 7: Manual verification (relaunch dev — chrome docs load once).** `npm start`, then on a login page run `/1password` with the feature disabled → the setup decision capsule appears bottom-center, focus on Cancel, Escape dismisses, "Open Settings" opens the settings sheet. Force an error kind (empty account) → persistent error capsule with ✕. Verify permission-prompt precedence: trigger a mic prompt (e.g. meet.google.com) while a capsule shows — capsule hides. Screenshot the capsule for the record.
 - [ ] **Step 8: Full unit suite green; commit** — `git commit -m "feat(1password): wire fill-status capsule surface into main"`
@@ -633,6 +648,8 @@ plus: exactly one vaults-list call on the fake SDK; an SDK auth failure replies 
 - Modify: `src/renderer/pages/settings.html` (:205 region), `src/renderer/pages/settings.js` (:156–180 region)
 - Modify: `src/main/pages.js` (:194–220 region), `src/main/main.js` (hooks passed to `setupPages`)
 - Modify: `src/main/tab-preload.js` — the `bowserPages` bridge is an exact allowlist; the new channels are unreachable without bridge entries. Add, in the settings group only: `onePasswordStatus: () => invoke('pages:settings:onepassword-status')`, `onePasswordVerify: (account) => invoke('pages:settings:onepassword-verify', account)`, `openOnePasswordApp: () => invoke('pages:settings:open-onepassword-app')`.
+- Create: `src/renderer/pages/settings-verify-model.js` — the Verify state machine as a pure reducer, dual-environment like `fill-status-copy.js` (served flat from the pages dir via a `<script>` tag, `require`-able by node tests), so the stale/pending/reset paths get real unit tests instead of source-lifting.
+- Test: `test/unit/settings-verify-model.test.js`
 - Test: the pages unit test file (`grep -rl "pages:settings:get" test/unit`) + whatever test covers the preload bridge shape (`grep -rl "bowserPages" test/unit` — extend it with the three new method names so a bridge regression fails a test, not a silent renderer).
 
 **Interfaces:**
@@ -647,7 +664,28 @@ plus: exactly one vaults-list call on the fake SDK; an SDK auth failure replies 
   - an empty/whitespace account replies `{ ok: false, kind: 'account-not-found', account: '' }` without touching the broker.
 - [ ] **Step 2: Implement pages.js handlers** — inside the existing `onePasswordAvailable()`-guarded region; `onepassword-verify` maps broker error codes through `kindForErrorCode`, and after the broker await re-reads the stored account, returning `{ ok: false, stale: true }` unless it still equals the probed value. Main supplies hooks: `onePasswordAppDetected: () => fs.existsSync('/Applications/1Password.app')` (a *hint* — never gates anything), `onePasswordVerify: (account) => onePasswordBroker.verifyAccount(account)`, `openOnePasswordApp: () => shell.openPath('/Applications/1Password.app')`.
 - [ ] **Step 3: settings.html** — restructure the `#onePasswordSettings` subsection into the status card: row 1 app-presence line + `Open 1Password` button (shown when detected) / soft guidance text when not ("Blanc couldn't find the 1Password app in Applications — if it's installed elsewhere, Verify below still works."); row 2 keeps the toggle + account input and adds `<button id="onePasswordVerify">Verify</button>` + `<span id="onePasswordVerifyState" role="status">`. **Replace the section hint copy** (posture change, spec §5): "Fill a matching Login item from your installed 1Password app when you ask. While this is on, Blanc checks pages for a login form so the island can offer Fill — it never reads what you type and never contacts 1Password until you ask."
-- [ ] **Step 4: settings.js Verify logic** — a `verifyToken` counter: click → `token = ++verifyToken`; disable button, set pending text; `await bowserPages.settings.onePasswordVerify(value)`. On resolve, apply only when ALL of: `token === verifyToken`; `!reply.stale` (the handler's stored-account revalidation — a stale reply is discarded silently, no state change); and the input's **trimmed** current value equals `reply.account`. On `ok: true`, first set the field to the normalized `reply.account` (the raw field may carry whitespace the normalization stripped — normalizing the display is what makes the field-vs-echo equality meaningful and shows the user the value that actually verified), then render "Connected". Failures render the error kind's copy (keep the six-or-so error strings inline in settings.js; they're settings-local, not capsule copy). `input` event on the account field: `verifyToken++` and reset the state span to unverified. Disable Verify while the trimmed input is empty.
+- [ ] **Step 4: The Verify state machine** — `settings-verify-model.js` exports a pure reducer; `settings.js` only maps its output onto the DOM. Shape:
+
+```js
+// state: { phase: 'idle'|'pending'|'connected'|'error', token, field, kind }
+createVerifyModel() → {
+  onInput(state, value),        // any edit: token++, phase 'idle' (drops Connected/pending)
+  onVerifyClick(state),         // trimmed non-empty only: token++, phase 'pending'
+  onReply(state, { token, ok, stale, account, kind }),
+  view(state),                  // → { buttonDisabled, statusText, normalizeFieldTo|null }
+}
+```
+
+`onReply` rules — the reply is dropped entirely unless `token === state.token` (superseded); with the latest token:
+  - `ok: true` and trimmed `state.field === account` → phase `connected`, `normalizeFieldTo: account` (the raw field may carry whitespace the normalization stripped — normalizing the display is what makes the equality meaningful and shows the user the value that verified);
+  - **`stale: true` → phase `idle`** — never `connected`, but ALSO never left `pending`: the cross-window account edit produced no local `input` event, so without this transition the button would stay disabled and the pending label would show forever. `view()` recomputes `buttonDisabled` from the current trimmed field;
+  - `ok: false` with `kind` → phase `error` (kind's copy; the six-or-so error strings stay inline in `settings.js` — settings-local, not capsule copy).
+
+`view()` always derives `buttonDisabled` = `phase === 'pending' || trimmed field empty` — so an `onInput` during pending (token bump → the in-flight reply will be dropped as superseded) immediately re-enables Verify for the new non-empty value.
+
+  **Unit tests** (`test/unit/settings-verify-model.test.js`), one per path: superseded reply dropped; connected happy path with field normalization; **latest-token stale reply lands in idle with the button re-enabled** (the P1 regression); **input during pending re-enables for the new value and the old reply is dropped**; empty field keeps the button disabled in every phase; error path renders kind.
+
+  `settings.js` wiring: instantiate the model, translate `input`/click/reply events, apply `view()` to `#onePasswordVerify.disabled`, `#onePasswordVerifyState.textContent`, and the field when `normalizeFieldTo` is set.
 - [ ] **Step 5: Run pages tests — PASS. Manual check** (settings is an internal page — reloads fresh per navigation, no chrome relaunch needed): toggle on, type a wrong account, Verify → inline error; correct account, Verify → 1Password DesktopAuth prompt → "Connected"; edit the field → resets to unverified. **Commit.**
 
 ---
@@ -659,29 +697,42 @@ plus: exactly one vaults-list call on the fake SDK; an SDK auth failure replies 
 - Test: `test/unit/fill-hint.test.js`
 
 **Interfaces:**
-- Produces: `buildHintProbeScript()` → isolated-world script string returning `boolean`; `createFillHintScheduler({ runProbe(tab) → Promise<boolean>, isEligible(tab) → boolean, tabEpoch(tab) → number, contentsToken(tab) → number|null, onHint(tab, hinted) → void, setTimeout, clearTimeout, recheckMs = 2500 })` returning `{ probeTab(tab), clearTab(tabId), clearAll(), notePageLoad(tab), noteInPageNavigation(tab), noteActivated(tab), noteConfigChanged(activeTab) }`. `contentsToken` is the WebContents-identity seam: the scheduler captures it when the probe (or recheck) is scheduled and re-reads it before applying any result — a mismatch (quiet/wake replaced the renderer; `null` = no live contents) discards the result. Task 11 supplies `contentsToken: (tab) => liveContents(tab)?.id ?? null`. Consumed by Task 11's wiring.
+- Produces: `buildHintProbeScript()` → isolated-world script string returning `boolean`; `createFillHintScheduler({ runProbe(tab) → Promise<boolean>, isEligible(tab) → boolean, tabEpoch(tab) → number, contentsToken(tab) → number|null, onHint(tab, hinted) → void, setTimeout, clearTimeout, recheckMs = 2500 })` returning `{ probeTab(tab), clearTab(tabId), clearAll(), notePageLoad(tab), noteInPageNavigation(tab), noteActivated(tab), noteConfigChanged(activeTab) }`. `contentsToken` is the WebContents-identity seam: the scheduler captures it when the probe (or recheck) is scheduled and re-reads it before applying any result — a mismatch (quiet/wake replaced the renderer; `null` = no live contents) discards the result. Task 11 supplies `contentsToken: (tab) => liveContents(tab)?.id ?? null`. Also produces `configTransition(prev, next) → 'became-eligible' | 'cleared' | null` — a pure classifier over two `{ onePasswordEnabled, onePasswordAccount }` pairs: `'became-eligible'` when enabled-with-nonempty-account becomes true from false, `'cleared'` when it becomes false OR the (trimmed) account value changes while enabled, `null` otherwise. Consumed by Task 11's wiring.
 
 - [ ] **Step 1: Failing tests:**
-  - probe script string contains `current-password`, contains no `.value` read, no `innerText`, no `textContent` (structure-only assertion);
+  - probe script string contains `current-password`, rejects `new-password` (assert the string contains the contradiction check), uses `checkVisibility` with the opacity option and a viewport-intersection bound, and contains no `.value` read, no `innerText`, no `textContent` (structure-only assertion);
   - a positive probe calls `onHint(tab, true)`; a negative schedules exactly one recheck at `recheckMs`, and a positive recheck hints;
   - **stale-result discard:** epoch changes, `isEligible` turning false, or `contentsToken` differing from the captured token (including → `null`) between schedule and resolve → `onHint` never fires — one test per condition, and the token test simulates the quiet/wake path by returning a new token for the same tab object;
   - `clearTab` cancels a pending recheck timer and emits `onHint(tab, false)`;
   - `clearAll` clears every timer (disable/account-change path);
   - `noteConfigChanged` probes the active tab immediately when eligible;
+  - `configTransition`: enable-with-account from off → `'became-eligible'`; disable → `'cleared'`; account edit (including whitespace-only differences that trim equal → `null`) while enabled → `'cleared'`; unrelated settings churn → `null`;
   - re-probing an already-probed epoch is a no-op (`noteActivated` after `notePageLoad` on the same epoch runs one probe total).
 - [ ] **Step 2: Implement.** `buildHintProbeScript` (authoritative signal only — mirror `isAuthoritativeCurrent`'s token logic from onepassword-policy.js:160 but DOM-side):
 
 ```js
 function buildHintProbeScript() {
+  // Uncontradicted authoritative signal + genuinely visible, per the spec:
+  // a token list carrying new-password alongside current-password is a
+  // contradiction (signup/reset), and opacity-zero or fully off-screen
+  // fields are not an affordance the user can see. Mirrors the visibility
+  // idiom collectCandidates already uses (onepassword-policy.js:298) —
+  // checkVisibility plus viewport intersection. Structure only; never
+  // reads values or text.
   return `(() => {
     try {
       const els = document.querySelectorAll('input[type=password]');
+      const vw = window.innerWidth || 0, vh = window.innerHeight || 0;
       for (const el of els) {
-        const ac = (el.getAttribute('autocomplete') || '').toLowerCase();
-        if (!ac.split(/\\s+/).includes('current-password')) continue;
+        const tokens = (el.getAttribute('autocomplete') || '').toLowerCase().split(/\\s+/);
+        if (!tokens.includes('current-password') || tokens.includes('new-password')) continue;
+        const visible = typeof el.checkVisibility === 'function'
+          ? el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+          : true;
+        if (!visible) continue;
         const r = el.getBoundingClientRect();
-        const style = el.ownerDocument.defaultView.getComputedStyle(el);
-        if (r.width > 0 && r.height > 0 && style.visibility !== 'hidden') return true;
+        if (r.width > 0 && r.height > 0
+            && r.bottom > 0 && r.right > 0 && r.top < vh && r.left < vw) return true;
       }
     } catch {}
     return false;
@@ -723,7 +774,7 @@ const isEligible = (tab) => {
 ```
 
 `contentsToken: (tab) => liveContents(tab)?.id ?? null`; `runProbe(tab)` = `liveContents(tab).executeJavaScriptInIsolatedWorld(FILL_WORLD_ID, [{ code: buildHintProbeScript() }])`; `onHint(tab, hinted)` sets `tab.fillHint = hinted` and `broadcastTabs()` (coalesced like the blocker counts — reuse the existing coalescing broadcast if one is exported, else plain broadcastTabs).
-- [ ] **Step 3: Triggers.** tab-view.js: the existing `did-finish-load` handler at :268 is registered with **`wc.once(...)`** — it fires only for the WebContents' first document, so hooking it would probe once and never again (later navigations would clear the hint at `did-start-navigation` and never re-probe). Register a **separate, persistent** `wc.on('did-finish-load', boundToTab(() => hooks.onFillHintLoad?.(tab)))` listener beside it, and add the hook call in the main-frame branch of `did-navigate-in-page` (:248) (`hooks.onFillHintInPageNavigation?.(tab)`) — follow how tab-view already receives its handler set; grep `wireTabView(` in main.js for the wiring site. Main maps these to `scheduler.notePageLoad`/`noteInPageNavigation`. main.js: `setActiveTab` → `scheduler.noteActivated(tab)`; the settings-apply path for `onePasswordEnabled`/`onePasswordAccount` changes (grep `setSettings` consumers in main.js — the pages:settings:set hook) → `scheduler.noteConfigChanged(activeTab)` on enable, `scheduler.clearAll()` on disable/account change; `did-start-navigation` main-frame (tab-view.js:256) → `hooks` call mapped to `scheduler.clearTab(tab.id)`; `sleepTab` and `closeTab` → `clearTab`.
+- [ ] **Step 3: Triggers.** tab-view.js: the existing `did-finish-load` handler at :268 is registered with **`wc.once(...)`** — it fires only for the WebContents' first document, so hooking it would probe once and never again (later navigations would clear the hint at `did-start-navigation` and never re-probe). Register a **separate, persistent** `wc.on('did-finish-load', boundToTab(() => hooks.onFillHintLoad?.(tab)))` listener beside it, and add the hook call in the main-frame branch of `did-navigate-in-page` (:248) (`hooks.onFillHintInPageNavigation?.(tab)`) — follow how tab-view already receives its handler set; grep `wireTabView(` in main.js for the wiring site. Main maps these to `scheduler.notePageLoad`/`noteInPageNavigation`. main.js: `setActiveTab` → `scheduler.noteActivated(tab)`. **Configuration changes attach at the central settings fan-out, NOT any single write path**: main.js:7091 already has a `settings.onSettingsChanged` listener that diffs exactly `[onePasswordEnabled, onePasswordAccount]` (it stops the broker on change) — extend that existing block, keeping the previous pair it already tracks, and dispatch on `configTransition(prev, next)`: `'became-eligible'` → `scheduler.noteConfigChanged(activeTab)` for each window's active tab; `'cleared'` → `scheduler.clearAll()`. This catches every writer by construction — the Settings toggle, Task 9's Verify handler (which persists through `setSettings` before probing), and any future caller — where hooking `pages:settings:set` alone would miss Verify-driven persistence. `did-start-navigation` main-frame (tab-view.js:256) → `hooks` call mapped to `scheduler.clearTab(tab.id)`; `sleepTab` and `closeTab` → `clearTab`.
 - [ ] **Step 4: Pill chip.** index.html: insert after `#pillCapture` (line 50):
 
 ```html
@@ -746,7 +797,7 @@ renderer.js: in the `tabs:updated` active-tab render path (grep `pillShield` in 
 
 - [ ] **Step 1:** Read `test/desktop/`'s existing step-definition pattern for an overlay assertion (any `overlay:` step) and the test-hook surface. Add to test-hook (env-gated as everything there): `fillStatus: { showForTest(kind), state() }` calling the Task 6 surface with a synthetic target, and `fillHint: { stateFor(tabId) }`.
 - [ ] **Step 2:** Scenarios (Gherkin in spec/acceptance, tagged into the `runnable` desktop profile; the probe needs no broker so they run offline under `BLANC_TEST=1`):
-  - "Ambient hint appears on an authoritative login form and clears on navigation" (fixture page served by the harness's existing local-server helper — grep `test/desktop` for how pages are served);
+  - "Ambient hint appears on an authoritative login form and clears on navigation" (fixture page served by the harness's existing local-server helper — grep `test/desktop` for how pages are served); the fixture also carries a signup variant whose only password field declares `autocomplete="current-password new-password"` and an opacity-zero login variant — neither may produce the hint;
   - "Decision capsule opens with focus on Cancel and is keyboard operable" (showForTest `confirm-heuristic`; assert `role=dialog`; focused element id `fillCancelBtn`; **Tab moves focus to `fillPrimaryBtn` and Tab again wraps back to `fillCancelBtn` (Shift-Tab reverses)**; **Enter with focus on Cancel resolves cancel — never primary — and Space on the primary button resolves primary**; Escape resolves cancel);
   - "Error notice persists until dismissed" (showForTest `no-match`; assert `role=alert` present after 5 s, ✕ dismisses);
   - "Success notice announces via status live region and auto-dismisses" (showForTest `filled`; assert `#fillLive` has `role=status` with the success title text; the notice is gone after ~5 s without any interaction);
