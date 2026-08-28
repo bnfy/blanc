@@ -28,8 +28,6 @@ const PUBLIC_ROOT = path.join(SITE_ROOT, 'public');
 
 const WIDTH = 1200;
 const HEIGHT = 630;
-const VERSION = JSON.parse(fs.readFileSync(path.join(SITE_ROOT, '..', 'package.json'), 'utf8')).version;
-
 /* Headlines are each page's own h1, so a shared link previews the sentence the
  * visitor is about to land on. og-image.png is the site-wide default and takes
  * the homepage hero's line instead. */
@@ -39,12 +37,14 @@ const CARDS = [
     page: '/features/island.html',
     figure: '.island-figure',
     headline: 'The browser that gets out of your way.',
+    identity: { domain: 'blancbrowser.com', favicon: '/favicon.svg' },
   },
   {
     out: 'feature-island.png',
     page: '/features/island.html',
     figure: '.island-figure',
-    headline: 'One small Island. The whole browser.',
+    headline: 'One small island. The whole browser.',
+    identity: { domain: 'blancbrowser.com', favicon: '/favicon.svg' },
   },
   {
     out: 'feature-ad-blocking.png',
@@ -141,6 +141,22 @@ try {
       ${card.figure} { background: #fbfbfa !important; --fig-strip-bg: #fbfbfa !important; }
       ${card.figure} .demo-stage, ${card.figure}::before { background: #fbfbfa !important; }
     ` });
+    // The feature page demonstrates the island over a third-party website, but
+    // the share card represents Blanc itself. Give the card Blanc's real site
+    // identity without changing the live example rendered on the page.
+    if (card.identity) {
+      await shooter.evaluate(({ sel, identity }) => {
+        const figure = document.querySelector(sel);
+        const domain = figure?.querySelector('.domain');
+        const favicon = figure?.querySelector('.pill-fav');
+        if (domain) domain.textContent = identity.domain;
+        if (favicon) {
+          favicon.style.backgroundImage = `url('${identity.favicon}')`;
+          favicon.style.backgroundSize = 'contain';
+          favicon.style.backgroundRepeat = 'no-repeat';
+        }
+      }, { sel: card.figure, identity: card.identity });
+    }
     await shooter.evaluate((sel) => document.querySelector(sel).scrollIntoView({ block: 'center' }), card.figure);
     await shooter.evaluate(() => document.fonts.ready);
 
@@ -207,7 +223,7 @@ try {
                     object-fit: contain; object-position: center bottom; }
       </style></head>
       <body>
-        <div class="brand"><img src="${brandMark}" alt="" /><span>Blanc ${VERSION}</span></div>
+        <div class="brand"><img src="${brandMark}" alt="" /><span>Blanc</span></div>
         <h1>${card.headline}</h1>
         <figure class="band"><img src="data:image/png;base64,${figureShot.toString('base64')}" alt="" /></figure>
       </body></html>`, { waitUntil: 'load' });

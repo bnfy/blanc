@@ -281,11 +281,6 @@
   // it never leaves the pill and its background render from different modes.
   const mobileMq = window.matchMedia('(max-width: 560px)');
   let MOBILE = mobileMq.matches;
-  const SHOT_IDS = [
-    'github', 'notion', 'scroll', 'netflix',
-    'theverge', '9to5mac', 'cnet-before', 'cnet-clean',
-  ]; // sites with a bundled render
-  const PRELOAD_IDS = [...SHOT_IDS];
   // Sampled top-edge color of each bundled render, so the island's top strip
   // blends into the page below it (the CSS reads --demo-strip-bg). A scene with
   // no bundled shot falls back to the theme surface (matching the skeleton).
@@ -308,16 +303,14 @@
     img.onload = () => { rec.src = src; rec.ready = true; showShot(currentShotId); };
     img.src = src;
   }
-  PRELOAD_IDS.forEach(preloadShot);
 
   // Crossing the 560px breakpoint (mainly a phone rotation) swaps the desktop
   // renders for the mobile ones and vice versa. Drop the cached other-mode
-  // shots, re-preload for the new mode, and refresh the on-screen tab so the
-  // background never disagrees with the pill the CSS is now showing.
+  // shots and refresh only the visible render; later scenes stay on-demand so
+  // a rotation never triggers a second full screenshot download batch.
   mobileMq.addEventListener('change', (e) => {
     MOBILE = e.matches;
-    PRELOAD_IDS.forEach((id) => delete shots[id]);
-    PRELOAD_IDS.forEach(preloadShot);
+    Object.keys(shots).forEach((id) => delete shots[id]);
     showShot(currentShotId);
     if (glanceModeVisible) {
       glanceShotEl.src = shotSrc(tabShotId(glanceTabId));
@@ -327,6 +320,7 @@
 
   function showShot(id) {
     currentShotId = id;
+    if (id && !shots[id]) preloadShot(id);
     const rec = id && shots[id];
     if (rec && rec.ready) {
       if (shotEl.getAttribute('src') !== rec.src) shotEl.src = rec.src;
@@ -966,6 +960,11 @@
     renderPill(s.layout, current, s);
     const initialShot = s.blockerState ? 'cnet-before' : tabShotId(current);
     showShot(initialShot);
+    // Warm only the visual needed by an imminent in-scene reveal. Loading the
+    // whole demo cast at startup made screenshots from much later chapters
+    // compete with the first paint and become mobile LCP candidates.
+    if (s.glanceOpen) preloadShot(tabShotId(s.glanceOpen.tab));
+    if (s.layout === 'blocker' && s.blockerState === 'off') preloadShot('cnet-clean');
     const startingGlanceRatio = s.glanceResize?.from ?? s.glanceRatio ?? 0.62;
     setDemoGlance(showGlance, { ratio: startingGlanceRatio, tab: s.glanceTab });
     // The blank tab shows a miniature of Blanc's start page instead of a

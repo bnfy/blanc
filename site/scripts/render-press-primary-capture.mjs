@@ -8,31 +8,14 @@ import { chromium } from 'playwright';
 const SITE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const DIST_ROOT = path.join(SITE_ROOT, 'dist');
 const OUTPUT = path.join(SITE_ROOT, 'public/press/blanc-island-product-capture-v2.png');
-const LAUNCH_OUTPUT = path.join(SITE_ROOT, 'public/press/blanc-1.0-launch-card-v3.png');
+const LAUNCH_OUTPUT = path.join(SITE_ROOT, 'public/press/blanc-press-card.png');
 
 function dataUrl(file, mimeType) {
   return `data:${mimeType};base64,${fs.readFileSync(file).toString('base64')}`;
 }
 
-/* The card renders whatever the Island looks like today, so the version and
-   date printed on it are the current release's — not the launch's. They come
-   from the same two sources the press page uses, so a release moves the card,
-   the fact sheet and the changelog together instead of one at a time. The
-   file name keeps its 1.0 in it deliberately: that is a stable public URL,
-   not a claim about the build. */
-const VERSION = JSON.parse(
-  fs.readFileSync(path.join(SITE_ROOT, '..', 'package.json'), 'utf8')
-).version;
-const RELEASES = JSON.parse(
-  fs.readFileSync(path.join(SITE_ROOT, 'src/data/releases.json'), 'utf8')
-);
-const CURRENT_RELEASE = (RELEASES.releases ?? RELEASES).find((entry) => entry.tag === `v${VERSION}`);
-if (!CURRENT_RELEASE) {
-  throw new Error(
-    `render-press-primary-capture: releases.json has no entry for v${VERSION}. ` +
-    'Run `npm run site:changelog` first — the card would otherwise print a blank date.'
-  );
-}
+/* The press card is an evergreen social-preview asset. Release-specific facts
+   stay in the press page and changelog rather than being burned into a PNG. */
 
 function serve(root) {
   return new Promise((resolve) => {
@@ -209,11 +192,11 @@ try {
       </head>
       <body>
         <main class="card">
-          <div class="brand"><img src="${brandMark}" alt="" /><span>Blanc ${VERSION}&nbsp; · &nbsp;Press</span></div>
-          <h1>The browser<br />in one small<br />Island.</h1>
-          <div class="meta"><span>${CURRENT_RELEASE.humanDate}</span><span class="platforms">macOS · Windows · Linux</span></div>
+          <div class="brand"><img src="${brandMark}" alt="" /><span>Blanc&nbsp; · &nbsp;Press</span></div>
+          <h1>The browser<br />in one small<br />island.</h1>
+          <div class="meta"><span class="platforms">macOS · Windows · Linux</span></div>
           <figure class="frame"><img src="${productCapture}" alt="" /></figure>
-          <div class="caption">The Island, shown at editorial scale</div>
+          <div class="caption">The island, shown at editorial scale</div>
         </main>
       </body>
     </html>`, { waitUntil: 'load' });

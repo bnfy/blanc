@@ -1,25 +1,26 @@
-// Explicit route manifest — changefreq/priority preserved from the
-// hand-maintained sitemap this endpoint replaced. lastmod is the build date
-// (the old file's lastmod was sed-bumped by release.sh; that step is gone).
+// Explicit route manifest. Google ignores priority/changefreq and only trusts
+// lastmod when it consistently reflects a significant page change, so this
+// sitemap deliberately publishes only canonical URLs rather than stamping
+// every page with the build date.
 const MANIFEST = [
-  { path: '/',                         changefreq: 'weekly',  priority: '1.0' },
-  { path: '/download',                 changefreq: 'monthly', priority: '0.9' },
-  { path: '/features',                 changefreq: 'monthly', priority: '0.8' },
-  { path: '/features/ad-blocking',     changefreq: 'monthly', priority: '0.8' },
-  { path: '/features/island',          changefreq: 'monthly', priority: '0.7' },
-  { path: '/features/private-tabs',    changefreq: 'monthly', priority: '0.7' },
-  { path: '/features/command-palette', changefreq: 'monthly', priority: '0.7' },
-  { path: '/features/tab-groups',      changefreq: 'monthly', priority: '0.7' },
-  { path: '/features/vertical-tabs',   changefreq: 'monthly', priority: '0.7' },
-  { path: '/features/quiet-tabs',      changefreq: 'monthly', priority: '0.7' },
-  { path: '/features/sync',            changefreq: 'monthly', priority: '0.7' },
-  { path: '/features/security',        changefreq: 'monthly', priority: '0.7' },
-  { path: '/changelog',                changefreq: 'weekly',  priority: '0.8' },
-  { path: '/about',                    changefreq: 'yearly',  priority: '0.6' },
-  { path: '/privacy',                  changefreq: 'monthly', priority: '0.3' },
-  { path: '/terms',                    changefreq: 'monthly', priority: '0.3' },
-  { path: '/press',                    changefreq: 'monthly', priority: '0.5' },
-  { path: '/faq',                      changefreq: 'monthly', priority: '0.5' },
+  '/',
+  '/download',
+  '/features',
+  '/features/ad-blocking',
+  '/features/island',
+  '/features/private-tabs',
+  '/features/command-palette',
+  '/features/tab-groups',
+  '/features/vertical-tabs',
+  '/features/quiet-tabs',
+  '/features/sync',
+  '/features/security',
+  '/changelog',
+  '/about',
+  '/privacy',
+  '/terms',
+  '/press',
+  '/faq',
 ];
 
 const SITE = 'https://blancbrowser.com';
@@ -34,22 +35,18 @@ export function GET() {
       .replace(/\.astro$/, '')
       .replace(/\/index$/, '/'))
     .filter((route) => !unlisted.has(route));
-  const manifestSet = new Set(MANIFEST.map((r) => r.path));
+  const manifestSet = new Set(MANIFEST);
   const discoveredSet = new Set(discovered);
   const missingFromManifest = discovered.filter((p) => !manifestSet.has(p));
-  const missingPages = MANIFEST.filter((r) => !discoveredSet.has(r.path)).map((r) => r.path);
+  const missingPages = MANIFEST.filter((path) => !discoveredSet.has(path));
   if (missingFromManifest.length || missingPages.length) {
     throw new Error(
       `sitemap manifest out of sync — add to MANIFEST: [${missingFromManifest}] / no page for: [${missingPages}]`
     );
   }
 
-  const lastmod = new Date().toISOString().slice(0, 10);
-  const urls = MANIFEST.map((r) => `  <url>
-    <loc>${SITE}${r.path}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>${r.changefreq}</changefreq>
-    <priority>${r.priority}</priority>
+  const urls = MANIFEST.map((path) => `  <url>
+    <loc>${SITE}${path}</loc>
   </url>`).join('\n');
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

@@ -7,7 +7,9 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && npm run check:seo",
+    "check:seo": "node scripts/verify-seo.mjs",
+    "audit:seo:live": "node scripts/audit-live-seo.mjs",
     "preview": "astro preview"
   },
   "dependencies": {

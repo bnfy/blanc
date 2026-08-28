@@ -9,10 +9,22 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   current="download"
   ogDescription={"A minimal desktop browser with built-in ad and tracker blocking, private tabs, and a floating island interface."}
 >
+<script type="application/ld+json" is:inline slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://blancbrowser.com/" },
+    { "@type": "ListItem", "position": 2, "name": "Download", "item": "https://blancbrowser.com/download" }
+  ]
+}
+</script>
+
 <main class="download-page">
+  <nav class="breadcrumb breadcrumb--page" aria-label="Breadcrumb"><a href="/">home</a><span aria-hidden="true">/</span><span aria-current="page">download</span></nav>
   <section class="download-hero" aria-labelledby="download-title">
     <p class="section-kicker">get blanc</p>
-    <h1 id="download-title">Ready for a browser with less in the way?</h1>
+    <h1 id="download-title">Download Blanc for macOS, Windows, or Linux.</h1>
     <p>Choose your desktop. Blanc is free, and installed builds keep themselves up to date.</p>
   </section>
 
@@ -91,7 +103,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <section class="download-footnote" aria-label="Download details">
     <p>Every download button points to the latest Blanc release on GitHub. If your download does not start, <a href="https://github.com/bnfy/blanc/releases/latest" target="_blank" rel="noopener">open the release page</a>.</p>
-    <p><a href="/privacy">Read how Blanc handles your data</a>, <a href="https://github.com/bnfy/blanc/blob/main/docs/release-verification.md" target="_blank" rel="noopener">verify a release</a>, or email <a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a> if you need a hand.</p>
+    <p><a href="/privacy">Read how Blanc handles your data</a>, <a href="https://github.com/bnfy/blanc/blob/main/docs/release-verification.md" target="_blank" rel="noopener">verify a release</a>, or email <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off--> if you need a hand.</p>
   </section>
 </main>
 </BaseLayout>

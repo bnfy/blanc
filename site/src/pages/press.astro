@@ -5,8 +5,9 @@ import PressIslandDemo from '../components/PressIslandDemo.astro';
 import MemoryChart from '../components/MemoryChart.astro';
 import slashCommandCopy from '../../../copy/slash-commands.json';
 import releaseData from '../data/releases.json';
+import { version } from '../../../package.json';
 
-const VERSION = '1.9.1';
+const VERSION = version;
 const TAG = `v${VERSION}`;
 /* Wherever this page states a version and a date together, the date is that
    version's own ship date — read from the generated changelog data rather than
@@ -40,7 +41,7 @@ const RELEASE_URL = `${RELEASE_BASE}/tag/${TAG}`;
 const MAC_REVIEW_URL = `${RELEASE_BASE}/download/${TAG}/Blanc-${VERSION}-arm64.dmg`;
 const CHECKSUM_URL = `${RELEASE_BASE}/download/${TAG}/SHA256SUMS`;
 const DOWNLOAD_OPTIONS_URL = '/download#download-options';
-const PRESS_REQUEST_URL = 'mailto:support@blancbrowser.com?subject=Blanc%201.0%20press%20request';
+const PRESS_REQUEST_URL = 'mailto:support@blancbrowser.com?subject=Blanc%20press%20request';
 
 const proofPoints = [
   {
@@ -79,16 +80,16 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
 }));
 ---
 <BaseLayout
-  title="Blanc Press Kit — Independent Browser Launch"
-  description="Press materials for Blanc, the free independent browser that replaces browser clutter with one compact island and puts websites back at center stage."
+  title="Blanc Browser Press Kit — Screenshots, Facts, and Review Assets"
+  description="Download current Blanc Browser screenshots, product facts, release verification links, benchmark data, and press contact information."
   path="/press"
   page="press"
   header="legal"
   analytics={false}
   ogTitle="Blanc replaces browser clutter with one small island"
   ogDescription="No permanent tab row, no required account, and no built-in AI agent. Blanc is free for macOS, Windows, and Linux."
-  ogImage="/press/blanc-1.0-launch-card-v3.png"
-  ogImageAlt={`Blanc ${VERSION} press kit: the browser in one small island.`}
+  ogImage="/press/blanc-press-card.png"
+  ogImageAlt="Blanc press kit: the browser in one small island."
 >
 <main class="press-page">
   <header class="press-masthead">
@@ -101,7 +102,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
 
   <section class="press-hero" aria-labelledby="press-title">
     <div class="press-hero-copy">
-      <p class="section-kicker">Blanc {VERSION} · independent browser</p>
+      <p class="section-kicker">Blanc press kit · independent browser</p>
       <h1 id="press-title">Blanc replaces browser clutter with one small island.</h1>
       <p>No permanent tab row, no required account, and no AI assistant competing for attention. Open the island when you need it; give the rest of the window back to the web.</p>
       <div class="press-actions" aria-label="Press actions">
@@ -111,7 +112,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
       </div>
     </div>
     <dl class="press-release-meta">
-      <div><dt>release</dt><dd>Blanc {VERSION}</dd></div>
+      <div><dt>current release</dt><dd>Blanc {RELEASE_VERSION}</dd></div>
       <div><dt>date</dt><dd><time datetime={RELEASED_MACHINE}>{RELEASED_HUMAN}</time></dd></div>
       <div><dt>platforms</dt><dd>macOS · Windows · Linux</dd></div>
       <div><dt>release files</dt><dd>macOS: DMG + ZIP · Windows: EXE · Linux: AppImage</dd></div>
@@ -153,7 +154,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
             <th scope="col"><span class="sr-only">Dimension</span></th>
             <th scope="col">Traditional browser</th>
             <th scope="col">Agent browser</th>
-            <th scope="col">Blanc {VERSION}</th>
+            <th scope="col">Blanc</th>
           </tr>
         </thead>
         <tbody>
@@ -162,7 +163,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
               <th scope="row">{dimension}</th>
               <td data-label="Traditional browser">{traditional}</td>
               <td data-label="Agent browser">{agent}</td>
-              <td data-label={`Blanc ${VERSION}`}>{blanc}</td>
+              <td data-label="Blanc">{blanc}</td>
             </tr>
           ))}
         </tbody>
@@ -200,12 +201,12 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
 
       <div class="press-secondary-assets">
         <figure class="press-launch-card">
-          <a href="/press/blanc-1.0-launch-card-v3.png" download>
-            <img src="/press/blanc-1.0-launch-card-v3.png" width="2400" height="1260" alt={`Blanc ${VERSION} launch card with the Blanc mark, the statement 'The browser in one small island,' and the brand-neutral island product capture.`} />
+          <a href="/press/blanc-press-card.png" download>
+            <img src="/press/blanc-press-card.png" width="2400" height="1260" alt="Blanc press card with the Blanc mark, the statement 'The browser in one small island,' and the brand-neutral island product capture." />
           </a>
           <figcaption>
-            <span><strong>Launch card</strong> Ready for social posts, newsletters, and story previews.</span>
-            <a href="/press/blanc-1.0-launch-card-v3.png" download>download PNG · 2400 × 1260</a>
+            <span><strong>Press card</strong> Ready for social posts, newsletters, and story previews.</span>
+            <a href="/press/blanc-press-card.png" download>download PNG · 2400 × 1260</a>
           </figcaption>
         </figure>
 
@@ -230,7 +231,7 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
       </div>
     </aside>
 
-    <p class="press-assets-contact">Need a different crop, background, or product state? <a href={PRESS_REQUEST_URL}>Ask Anthony J. Loria directly.</a></p>
+    <p class="press-assets-contact">Need a different crop, background, or product state? <!--email_off--><a href={PRESS_REQUEST_URL}>Ask Anthony J. Loria directly.</a><!--/email_off--></p>
   </section>
 
   <section class="press-announcement" id="announcement" aria-labelledby="press-announcement-title">
@@ -352,12 +353,12 @@ const slashCommands = slashCommandCopy.commands.map((entry) => ({
   <section class="press-contact" aria-labelledby="press-contact-title">
     <p class="section-kicker">get the launch story</p>
     <h2 id="press-contact-title">Talk directly to the person who built Blanc.</h2>
-    <p><strong>Anthony J. Loria</strong><br />Creator of Blanc · Bananify<br /><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a></p>
+    <p><strong>Anthony J. Loria</strong><br />Creator of Blanc · Bananify<br /><!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off--></p>
     <p>Request an interview, fact-check a claim, troubleshoot a review build, or ask for a custom product capture. Every press inquiry reaches Anthony J. Loria directly.</p>
     <div class="press-contact-links">
       <a href={RELEASE_URL}>release notes</a>
       <a href={CHECKSUM_URL}>SHA-256 manifest</a>
-      <a href={PRESS_REQUEST_URL}>request press files</a>
+      <!--email_off--><a href={PRESS_REQUEST_URL}>request press files</a><!--/email_off-->
     </div>
   </section>
 </main>
