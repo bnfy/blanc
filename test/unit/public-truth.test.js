@@ -79,6 +79,27 @@ test('marketing fixtures use bundled favicon assets only', () => {
   }
 });
 
+test('marketing claims are release-gated and article assets avoid semantic-automation claims', () => {
+  const policy = read('docs/marketing-claims.md');
+  const composer = read('marketing/article-assets/ai-clean-browser/compose.py');
+  const claimRecord = read('marketing/article-assets/ai-clean-browser/CLAIMS.md');
+
+  for (const instructions of [read('AGENTS.md'), read('CLAUDE.md')]) {
+    assert.match(instructions, /follow `docs\/marketing-claims\.md`/);
+    assert.match(instructions, /does not understand assignments/);
+  }
+
+  assert.match(policy, /current public release/);
+  assert.match(policy, /current first-party documentation/);
+  assert.match(policy, /Text inside an image is a product claim/);
+
+  assert.doesNotMatch(composer, /understand the assignment/i);
+  assert.doesNotMatch(composer, /blanc sees context/i);
+  assert.match(composer, /user-directed groups and Patron workspaces\. no AI required\./);
+  assert.match(composer, /you name the groups\. blanc keeps them together\./);
+  assert.match(claimRecord, /Checked against the public `v1\.9\.1` tag/);
+});
+
 test('downloads distinguish both Mac architectures without guessing from user agent', () => {
   const page = read('site/src/pages/download.astro');
   const script = read('site/src/scripts/site.js');
