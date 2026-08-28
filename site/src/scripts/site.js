@@ -1,4 +1,50 @@
-/* Shared marketing-site behaviour: release resolution and opt-in analytics. */
+/* Shared marketing-site behaviour: release resolution and opt-in measurement. */
+const openAIAttribution = (() => {
+  const CONSENT_KEY = 'measurement-consent-v2';
+  const STORAGE_KEY = 'openai-oppref';
+  const MAX_OPPREF_LENGTH = 2048;
+  const validOppref = (value) =>
+    typeof value === 'string' && value.length > 0 && value.length <= MAX_OPPREF_LENGTH;
+
+  let pendingOppref = null;
+  try {
+    const landingOppref = new URL(location.href).searchParams.get('oppref');
+    if (validOppref(landingOppref)) pendingOppref = landingOppref;
+
+    const consent = localStorage.getItem(CONSENT_KEY);
+    if (consent === 'granted' && pendingOppref) {
+      sessionStorage.setItem(STORAGE_KEY, pendingOppref);
+    } else if (consent === 'denied') {
+      pendingOppref = null;
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  } catch { /* Storage restrictions disable attribution, never downloads. */ }
+
+  return {
+    grant() {
+      try {
+        if (pendingOppref) sessionStorage.setItem(STORAGE_KEY, pendingOppref);
+      } catch { /* Storage restrictions disable attribution. */ }
+    },
+    deny() {
+      pendingOppref = null;
+      try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* No stored attribution. */ }
+    },
+    decorateDownload(link) {
+      try {
+        if (localStorage.getItem(CONSENT_KEY) !== 'granted') return;
+        const oppref = sessionStorage.getItem(STORAGE_KEY);
+        if (!validOppref(oppref)) return;
+
+        const url = new URL(link.href, location.href);
+        if (url.origin !== location.origin || !url.pathname.startsWith('/dl/')) return;
+        url.searchParams.set('oppref', oppref);
+        link.href = url.href;
+      } catch { /* Attribution must never affect the download path. */ }
+    },
+  };
+})();
+
 (function () {
   const ctas = Array.from(document.querySelectorAll('[data-download-cta]'));
   const links = Array.from(document.querySelectorAll('[data-download-link]'));
@@ -65,6 +111,14 @@
       cta.dataset.platform = os;
     });
   }
+
+  // OpenAI's opaque ad-click reference is forwarded only after the site's
+  // measurement consent is granted. The download stays a normal link and the
+  // server-side event path receives no form data or browser identifiers.
+  document.addEventListener('click', (event) => {
+    const link = event.target.closest('a[data-download-cta], a[data-download-link]');
+    if (link) openAIAttribution.decorateDownload(link);
+  });
 })();
 
 // GA4 Consent Mode: gtag loads with analytics_storage denied by default.
@@ -82,7 +136,9 @@ try {
   document.head.appendChild(script);
 
   const banner = document.getElementById('consent');
-  const consent = localStorage.getItem('ga-consent');
+  // Version the broader choice so an earlier analytics-only Allow is not
+  // silently treated as consent to the newly added ad-conversion purpose.
+  const consent = localStorage.getItem('measurement-consent-v2');
   if (consent === 'granted') {
     window.gtag('consent', 'update', { analytics_storage: 'granted' });
   } else if (consent !== 'denied' && banner) {
@@ -100,7 +156,7 @@ try {
     const observer = window.ResizeObserver ? new ResizeObserver(reserve) : null;
     if (observer) observer.observe(banner);
     const dismiss = (choice) => {
-      localStorage.setItem('ga-consent', choice);
+      localStorage.setItem('measurement-consent-v2', choice);
       // Let the bar slide out before it leaves the layout, so the hero and the
       // footer only take back their reserved space once it has gone.
       banner.classList.add('is-leaving');
@@ -114,8 +170,12 @@ try {
     document.getElementById('consentAllow').addEventListener('click', () => {
       dismiss('granted');
       window.gtag('consent', 'update', { analytics_storage: 'granted' });
+      openAIAttribution.grant();
     });
-    document.getElementById('consentDeny').addEventListener('click', () => dismiss('denied'));
+    document.getElementById('consentDeny').addEventListener('click', () => {
+      dismiss('denied');
+      openAIAttribution.deny();
+    });
   }
 
   document.addEventListener('click', (event) => {

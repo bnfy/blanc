@@ -21,7 +21,15 @@
 // describes exactly this. If the secret is unset, uniques are SKIPPED (fail
 // closed) rather than falling back to the raw id; launches still count.
 
-import { DL_TARGETS, pickAsset, dlCountKey, groupDlCounts } from './dl.js';
+import {
+  DL_TARGETS,
+  OPENAI_PIXEL_ID,
+  buildDownloadConversionEvent,
+  validOppref,
+  pickAsset,
+  dlCountKey,
+  groupDlCounts,
+} from './dl.js';
 import { markFirstSeen } from './first-seen.js';
 
 const ALLOWED_PLATFORMS = new Set(['darwin', 'win32', 'linux']);
@@ -39,6 +47,7 @@ const MAX_PING_BODY_BYTES = 2048;
 
 const GA_MEASUREMENT_ID = 'G-MN8BLY6GE9';
 const GA_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
+const OPENAI_CONVERSIONS_ENDPOINT = 'https://bzr.openai.com/v1/events';
 
 // How long each period's per-install "seen" flags live. The unique COUNTERS
 // (active:*) never expire — they're the growth history. The seen flags only
@@ -463,6 +472,27 @@ async function handleDownload(request, env, ctx, now, target) {
     bump(env.PINGS, dlCountKey(dayBucket(now), target))
       .catch((err) => console.error('dl count failed:', err.message))
   );
+  const oppref = new URL(request.url).searchParams.get('oppref');
+  if (env.OPENAI_CONVERSIONS_API_KEY && validOppref(oppref)) {
+    const event = buildDownloadConversionEvent({
+      target,
+      oppref,
+      timestampMs: now.getTime(),
+      eventId: crypto.randomUUID(),
+    });
+    ctx.waitUntil(
+      fetch(`${OPENAI_CONVERSIONS_ENDPOINT}?pid=${encodeURIComponent(OPENAI_PIXEL_ID)}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${env.OPENAI_CONVERSIONS_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ validate_only: false, events: [event] }),
+      }).then((response) => {
+        if (!response.ok) throw new Error('conversion request rejected');
+      }).catch(() => console.warn('OpenAI conversion send failed'))
+    );
+  }
   const assets = await latestReleaseAssets(env, now);
   const asset = assets ? pickAsset(assets, target) : null;
   return redirect(asset ? asset.browser_download_url : RELEASES_LATEST_PAGE);
