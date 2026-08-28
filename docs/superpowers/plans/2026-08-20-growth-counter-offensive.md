@@ -10,7 +10,7 @@
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — August 27, 2026
+## Execution status — August 28, 2026
 
 - Blanc v1.9.1 is the current public baseline. Its signed/notarized macOS
   artifacts, signed Windows artifacts, authenticated Linux AppImage, updater
@@ -22,9 +22,10 @@
   macOS passed on August 27. A fresh authenticated download of the public
   v1.9.1 AppImage also passed its Ubuntu launch/render/version check. The
   corresponding Windows handoff remains the open platform evidence gate.
-- v1.9.1 was published at **2026-08-26 04:29:03 UTC**. Its 48-hour soak cannot
-  clear before **2026-08-28 04:29:03 UTC** (**August 28, 12:29:03 a.m. ET**),
-  and elapsed time alone is insufficient without the remaining platform check.
+- v1.9.1 was published at **2026-08-26 04:29:03 UTC**. Its 48-hour soak deadline
+  of **2026-08-28 04:29:03 UTC** (**August 28, 12:29:03 a.m. ET**) elapsed and
+  was verified at `2026-08-28T14:32:38Z`. Elapsed time alone is insufficient;
+  the Windows platform check remains open.
 - AlternativeTo approved Blanc at **2026-08-25 02:04 a.m. ET**. The canonical
   listing is `https://alternativeto.net/software/blanc/`; a signed-out browser
   check passed on August 27 with the listing title, six alternatives, and
@@ -702,8 +703,9 @@ historical record. Step 11 now carries the executable v1.9.1 soak and platform
 checks.
 
 **Current launch gate:** Task 4 has passed; Tasks 5 and 6 are already satisfied;
-v1.9.1 is public, but its 48-hour soak and Windows updater handoff remain open.
-The macOS updater handoff and Linux public-AppImage launch passed on August 27.
+v1.9.1 is public and its 48-hour soak clock has elapsed. The Windows updater
+handoff remains open. The macOS updater handoff and Linux public-AppImage launch
+passed on August 27.
 Because the release already
 happened, Tasks 5 and 6 are launch prerequisites, not release prerequisites.
 Verify the live Terms before launch:
@@ -1465,8 +1467,9 @@ cat "$LAUNCH_LOG"
 - [x] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
 - [x] Task 6 — README refreshed and merged (it is the Show HN landing page)
 - [x] Task 7 — v1.9.1 published, post-publication workflow complete
-- [ ] Task 7 — v1.9.1 48-hour soak elapsed and recorded
-- [ ] Task 7 — macOS updater and v1.9.1 Linux launch passed; Windows updater handoff still open
+- [x] Task 7 — v1.9.1 48-hour soak elapsed and recorded
+- [x] Task 7 — macOS updater and v1.9.1 Linux launch passed
+- [ ] Task 7 — v1.9.0 → v1.9.1 Windows updater handoff still open
 - [x] Task 8 — demo video exported and README swapped to the GIF
 - [x] Task 9 — newsletter capture verified with a fresh address
 - [x] Task 10 — copy pack committed
@@ -1762,9 +1765,9 @@ If the September cohort cleared 81, retention becomes measurable and earns its o
 ## Dependency summary
 
 Tasks are ordered so every remaining dependency runs **forward**. Task 7's
-release commands are immutable historical completions, but its v1.9.1 soak row
-and one follow-up platform check remains an executable gate checked again at
-Task 11.
+release commands are immutable historical completions and its v1.9.1 soak clock
+has cleared, but one follow-up platform check remains an executable gate checked
+again at Task 11.
 
 ```
 PHASE 0 — prep, in this order
@@ -1781,7 +1784,7 @@ RELEASE PUBLISHED — remaining launch evidence is still executable
           macOS updater handoff PASS
           Linux public AppImage launch/render PASS
           Windows updater handoff OPEN
-          48h soak cannot clear before Aug 28 00:29 ET
+          48h soak PASS — elapsed Aug 28 00:29 ET, verified Aug 28 10:32 ET
 
 PHASE 1 — assets, during the freeze
   Task 8  Demo video exported; README GIF swapped
@@ -1790,7 +1793,7 @@ PHASE 1 — assets, during the freeze
 
 PHASE 2 — launch week
   Task 11 Mon  baseline FIRST, then listings
-               (requires Tasks 1–10 + Task 7's elapsed soak)
+               (requires Tasks 1–10 + all remaining Task 7 evidence)
      ▼
   Task 12 Tue  Show HN        (URL only; body as first comment)
      ▼
@@ -1812,7 +1815,7 @@ prerequisite because v1.9.1 is already public.
 - **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means that feature is unreachable *and* the best traffic day converts nothing.
 - **Task 5 not deployed to production** → do not launch. **Currently satisfied** by production deployment `ba18dc9`; keep verifying the live Terms page, not the diff.
 - **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`; Task 8's demo swap is also complete.
-- **Task 7's soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. **Currently open:** v1.9.1 cannot clear before Aug 28 00:29:03 ET, and the Windows updater handoff remains unrecorded. The macOS handoff and Linux AppImage launch passed August 27.
+- **Task 7's soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. **Partially cleared:** the v1.9.1 48-hour clock elapsed at Aug 28 00:29:03 ET and was recorded; the exact v1.9.0 → v1.9.1 Windows updater handoff remains unrecorded. The macOS handoff and Linux AppImage launch passed August 27.
 - **Task 3 Google approval regresses or shows a new required action** → do not
   start Task 11. **Currently satisfied:** verification is in `Completed tasks`
   and the campaign is serving; recheck before the Monday baseline.
