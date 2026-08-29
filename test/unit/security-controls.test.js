@@ -135,7 +135,10 @@ test('public claims describe shipped consent mode, 1Password boundaries, bundled
   assert.match(privacy, /hash-pinned EasyList and EasyPrivacy snapshots ship inside/);
   assert.match(privacy, /restricted state.*cookieless pings/is);
   assert.match(privacy, /1Password login fill on macOS \(off by default\)/);
-  assert.match(privacy, /current public v1\.9\.1 build/);
+  assert.match(privacy, /bounded check in an isolated world/i);
+  assert.match(privacy, /reads form structure only—never field values, page text, or content/i);
+  assert.match(privacy, /does not contact the 1Password SDK or credential broker/i);
+  assert.match(privacy, /Blanc never fills automatically/i);
   assert.match(privacy, /chooser of at most ten items/);
   assert.match(privacy, /one selected Login item/);
   assert.doesNotMatch(privacy, /built-in usernames of at most ten candidates/);
