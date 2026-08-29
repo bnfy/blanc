@@ -815,6 +815,8 @@ renderer.js: in the `tabs:updated` active-tab render path (grep `pillShield` in 
   - "Decision capsule opens with focus on Cancel and is keyboard operable" (showForTest `confirm-heuristic`; assert `role=dialog`; focused element id `fillCancelBtn`; **Tab moves focus to `fillPrimaryBtn` and Tab again wraps back to `fillCancelBtn` (Shift-Tab reverses)**; **Enter with focus on Cancel resolves cancel — never primary — and Space on the primary button resolves primary**; Escape resolves cancel);
   - "Error notice persists until dismissed" (showForTest `no-match`; assert `role=alert` present after 5 s, ✕ dismisses);
   - "Success notice announces via status live region and auto-dismisses" (showForTest `filled`; assert `#fillLive` has `role=status` with the success title text; the notice is gone after ~5 s without any interaction);
+  - "Live region survives an early dismissal" (showForTest `no-match`, click ✕ immediately; `#fillLive` must still carry `role=alert` and the announcement text after the capsule hides — Checkpoint A review regression);
+  - "Success timer pauses while either hover or focus holds" (showForTest `filled`; focus the dismiss button, hover the capsule, move the pointer away; the notice must still be visible past the auto-dismiss interval because focus remains — Checkpoint A review regression);
   - "Decision capsule cancels on tab switch".
 - [ ] **Step 3:** `npm run test:acceptance:dry` (definitions resolve), then `npm run test:acceptance:desktop` — green. **Commit.**
 

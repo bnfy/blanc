@@ -42,9 +42,20 @@ function createFillStatusSurface({
     }
   };
 
-  /** Tear down the record. A pending decision resolves `outcome` (or stays
-   * for the caller when outcome is null). Every resolution path funnels
-   * here so `activeFlow` can never be left waiting on a lost message. */
+  /** Resolve a record's decision exactly once. Late resolutions — a native
+   * fallback dialog answered after invalidation or displacement — are
+   * ignored here, never re-delivered. */
+  const resolveOnce = (record, outcome, { focus = false } = {}) => {
+    if (record.settled) return;
+    record.settled = true;
+    if (focus) restoreFocus?.(record.target);
+    if (record.resolve) record.resolve(outcome);
+  };
+
+  /** Tear down the record. A pending decision resolves `outcome` (or is
+   * left for the fallback dialog when outcome is null). Every resolution
+   * path funnels here so `activeFlow` can never be left waiting on a lost
+   * message. */
   const settle = ({ outcome, sendHide = true, focus = false }) => {
     if (!active) return;
     const record = active;
@@ -54,23 +65,36 @@ function createFillStatusSurface({
       record.webContents.send('fill:hide', { requestId: record.requestId });
     }
     hide?.(record.target);
-    if (focus) restoreFocus?.(record.target);
-    if (outcome !== null && record.resolve) record.resolve(outcome);
+    if (outcome !== null) resolveOnce(record, outcome, { focus });
+    else if (focus) restoreFocus?.(record.target); // notice replies have no outcome
   };
 
   /** Pre-presentation failure: the native dialog substitutes as the
-   * presentation and answers the same pending decision. */
+   * presentation and answers the same pending decision. The record STAYS
+   * active while the dialog is up — invalidation and displacement must be
+   * able to cancel the decision (resolving exactly once), after which the
+   * dialog's late answer is ignored. A native dialog cannot be dismissed
+   * programmatically, so an invalidated one stays visible until answered
+   * and its answer is dropped. */
   const fallBack = (record) => {
-    const { target, kind, resolve } = record;
-    settle({ outcome: null, sendHide: true });
-    Promise.resolve(showFallbackDialog(target, kind)).then(
+    if (record.deadline != null) {
+      clearTimeout(record.deadline);
+      record.deadline = null;
+    }
+    record.fallingBack = true;
+    if (record.webContents && !record.webContents.isDestroyed?.()) {
+      record.webContents.send('fill:hide', { requestId: record.requestId });
+    }
+    hide?.(record.target);
+    Promise.resolve(showFallbackDialog(record.target, record.kind)).then(
       (answer) => {
-        if (resolve) {
-          restoreFocus?.(target);
-          resolve(answer === 'primary' ? 'primary' : 'cancel');
-        }
+        if (active === record) active = null;
+        resolveOnce(record, answer === 'primary' ? 'primary' : 'cancel', { focus: true });
       },
-      () => { if (resolve) resolve('cancel'); },
+      () => {
+        if (active === record) active = null;
+        resolveOnce(record, 'cancel');
+      },
     );
   };
 
@@ -89,9 +113,12 @@ function createFillStatusSurface({
       webContents: view?.webContents ?? null,
       presented: false,
       deadline: null,
+      settled: false,
+      fallingBack: false,
       resolve,
     };
     if (!view) {
+      active = record; // keep it cancellable while the native dialog is up
       fallBack(record);
       return;
     }
@@ -124,7 +151,7 @@ function createFillStatusSurface({
     },
 
     handleReply(senderOk, payload) {
-      if (senderOk !== true || !active) return;
+      if (senderOk !== true || !active || active.fallingBack) return;
       const requestId = payload?.requestId;
       const verb = payload?.verb;
       if (requestId !== active.requestId) return;
@@ -137,7 +164,7 @@ function createFillStatusSurface({
     },
 
     rendererReady(runtimeId, viewId) {
-      if (!active || active.presented) return;
+      if (!active || active.presented || active.fallingBack) return;
       if (active.runtimeId !== runtimeId || active.viewId !== viewId) return;
       clearDeadline();
       active.presented = true;
@@ -145,14 +172,14 @@ function createFillStatusSurface({
     },
 
     viewGone(runtimeId, viewId) {
-      if (!active) return;
+      if (!active || active.fallingBack) return;
       if (active.runtimeId !== runtimeId || active.viewId !== viewId) return;
       if (!active.presented) fallBack(active);
       else settle({ outcome: 'cancel', sendHide: false });
     },
 
     loadFailed(runtimeId, viewId) {
-      if (!active) return;
+      if (!active || active.fallingBack) return;
       if (active.runtimeId !== runtimeId || active.viewId !== viewId) return;
       if (!active.presented) fallBack(active);
       else settle({ outcome: 'cancel', sendHide: false });

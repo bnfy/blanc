@@ -37,8 +37,10 @@
     clearDismissTimer();
     decisionEl.hidden = true;
     noticeEl.hidden = true;
-    liveEl.textContent = '';
-    liveEl.removeAttribute('role');
+    // Deliberately NOT clearing the live region here: announcement lifetime
+    // is independent of visual lifetime, and an early reply or fill:hide
+    // must not retract an alert assistive tech hasn't consumed yet. The
+    // next announcement overwrites it (the element is sr-only regardless).
     current = null;
   };
 
@@ -56,6 +58,12 @@
     dismissTimer = setTimeout(() => reply('dismiss'), ms);
   };
 
+  // Hover and focus pause the success timer independently; it resumes only
+  // when NEITHER holds (e.g. focusing the dismiss button while hovering,
+  // then moving the pointer away, must stay paused).
+  let noticeHovered = false;
+  let noticeFocused = false;
+
   const pauseDismissTimer = () => {
     if (dismissTimer === null) return;
     dismissRemaining = Math.max(0, dismissRemaining - (Date.now() - dismissStartedAt));
@@ -64,6 +72,7 @@
   };
 
   const resumeDismissTimer = () => {
+    if (noticeHovered || noticeFocused) return;
     if (!current || current.mode !== 'notice' || !SUCCESS_KINDS.has(current.kind)) return;
     if (dismissTimer !== null) return;
     startDismissTimer(Math.max(250, dismissRemaining));
@@ -94,7 +103,12 @@
     liveEl.textContent = entry.body ? `${entry.title} ${entry.body}` : entry.title;
     current = { requestId, mode: 'notice', kind };
     noticeEl.hidden = false;
-    if (success) startDismissTimer(SUCCESS_DISMISS_MS);
+    if (success) {
+      dismissRemaining = SUCCESS_DISMISS_MS;
+      // Appearing under an already-hovering pointer or held focus starts
+      // paused; resumeDismissTimer picks it up when both conditions clear.
+      if (!noticeHovered && !noticeFocused) startDismissTimer(SUCCESS_DISMISS_MS);
+    }
   };
 
   window.blancFillStatus.onShow(({ kind, mode, requestId } = {}) => {
@@ -126,10 +140,16 @@
   cancelBtn.addEventListener('click', () => { if (current?.mode === 'decision') reply('cancel'); });
   noticeDismiss.addEventListener('click', () => { if (current?.mode === 'notice') reply('dismiss'); });
 
-  noticeEl.addEventListener('mouseenter', pauseDismissTimer);
-  noticeEl.addEventListener('mouseleave', resumeDismissTimer);
-  noticeEl.addEventListener('focusin', pauseDismissTimer);
-  noticeEl.addEventListener('focusout', resumeDismissTimer);
+  noticeEl.addEventListener('mouseenter', () => { noticeHovered = true; pauseDismissTimer(); });
+  noticeEl.addEventListener('mouseleave', () => { noticeHovered = false; resumeDismissTimer(); });
+  noticeEl.addEventListener('focusin', () => { noticeFocused = true; pauseDismissTimer(); });
+  noticeEl.addEventListener('focusout', (event) => {
+    // focusout fires even when focus moves within the notice; only a true
+    // exit clears the hold.
+    if (noticeEl.contains(event.relatedTarget)) return;
+    noticeFocused = false;
+    resumeDismissTimer();
+  });
 
   document.addEventListener('keydown', (event) => {
     if (!current) return;

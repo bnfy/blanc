@@ -16,10 +16,14 @@ function fakeClock() {
   };
 }
 
-function harness({ loaded = true, viewId = 7, ensureViewNull = false, fallbackResult = 'cancel' } = {}) {
+function harness({
+  loaded = true, viewId = 7, ensureViewNull = false, fallbackResult = 'cancel',
+  fallbackControlled = false,
+} = {}) {
   const sent = [];
   const calls = { attach: 0, hide: 0, restoreFocus: 0, fallback: [] };
   const clock = fakeClock();
+  const fallbackResolvers = [];
   const view = {
     webContents: { send: (channel, payload) => sent.push({ channel, payload }), isDestroyed: () => false },
     id: viewId,
@@ -29,14 +33,19 @@ function harness({ loaded = true, viewId = 7, ensureViewNull = false, fallbackRe
     ensureView: () => (ensureViewNull ? null : view),
     attach: () => { calls.attach += 1; },
     hide: () => { calls.hide += 1; },
-    showFallbackDialog: async (_target, kind) => { calls.fallback.push(kind); return fallbackResult; },
+    showFallbackDialog: (_target, kind) => {
+      calls.fallback.push(kind);
+      if (!fallbackControlled) return Promise.resolve(fallbackResult);
+      return new Promise((resolve) => { fallbackResolvers.push(resolve); });
+    },
     restoreFocus: () => { calls.restoreFocus += 1; },
     setTimeout: clock.setTimeout,
     clearTimeout: clock.clearTimeout,
     readinessMs: 2000,
   });
   const target = { runtimeId: 11, tabId: 't1' };
-  return { surface, target, sent, calls, clock, view };
+  const answerFallback = (answer) => { fallbackResolvers.shift()?.(answer); };
+  return { surface, target, sent, calls, clock, view, answerFallback };
 }
 
 const shown = (sent) => sent.filter((m) => m.channel === 'fill:show');
@@ -215,6 +224,52 @@ test('a new message displaces the old: hide sent, pending decision cancelled', a
   assert.equal(await p, 'cancel');
   assert.equal(hidden(sent)[0].payload.requestId, first);
   assert.equal(shown(sent).length, 2);
+});
+
+test('fallback stays cancellable: invalidation resolves cancel once and the late Primary is ignored', async () => {
+  const { surface, target, clock, answerFallback, calls } = harness({ loaded: false, fallbackControlled: true });
+  const p = surface.decision(target, 'confirm-heuristic');
+  clock.fireAll(); // deadline → native dialog pending
+  assert.equal(calls.fallback.length, 1);
+  assert.equal(surface.isShowing(), true, 'a pending fallback decision is still a showing message');
+  surface.invalidatePending(target.runtimeId); // successor surface during the dialog
+  assert.equal(await p, 'cancel');
+  const p2 = surface.decision(target, 'setup-enable'); // new flow after invalidation
+  answerFallback('primary'); // the abandoned dialog answered late
+  await tick();
+  let settled2 = false;
+  p2.then(() => { settled2 = true; });
+  await tick();
+  assert.equal(settled2, false, 'the late Primary must not resolve the new decision');
+  assert.equal(calls.restoreFocus, 0, 'a dropped late answer must not steal focus');
+  surface.invalidatePending(target.runtimeId);
+  assert.equal(await p2, 'cancel');
+});
+
+test('a new message during a pending fallback cancels the old decision exactly once', async () => {
+  const { surface, target, sent, clock, answerFallback } = harness({ loaded: false, fallbackControlled: true });
+  const p = surface.decision(target, 'confirm-heuristic');
+  clock.fireAll();
+  await surface.notice(target, 'no-match'); // displacement while the dialog is up
+  assert.equal(await p, 'cancel');
+  assert.equal(surface.isShowing(), true, 'the displacing notice is active');
+  surface.rendererReady(target.runtimeId, 7); // the unloaded view finishes loading
+  assert.equal(shown(sent).filter((m) => m.payload.kind === 'no-match').length, 1);
+  answerFallback('primary'); // late answer ignored
+  await tick();
+  assert.equal(surface.isShowing(), true, 'the notice must survive the stale dialog answer');
+});
+
+test('view events during a pending fallback are inert', async () => {
+  const { surface, target, clock, answerFallback, calls } = harness({ loaded: false, fallbackControlled: true });
+  const p = surface.decision(target, 'confirm-heuristic');
+  clock.fireAll();
+  surface.viewGone(target.runtimeId, 7);
+  surface.loadFailed(target.runtimeId, 7);
+  surface.rendererReady(target.runtimeId, 7);
+  assert.equal(calls.fallback.length, 1, 'no second dialog');
+  answerFallback('primary');
+  assert.equal(await p, 'primary');
 });
 
 test('notice replies restore focus and hide', async () => {
