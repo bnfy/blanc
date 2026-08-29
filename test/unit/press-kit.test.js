@@ -28,7 +28,7 @@ test('press-kit raster assets exist at their declared editorial dimensions', () 
     { width: 2784, height: 1824 }
   );
   assert.deepEqual(
-    pngSize('site/public/press/blanc-1.0-launch-card-v3.png'),
+    pngSize('site/public/press/blanc-press-card.png'),
     { width: 2400, height: 1260 }
   );
   assert.deepEqual(
@@ -51,8 +51,12 @@ test('the public press page keeps its release links, indexability, and no-analyt
     fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')
   ).version;
 
-  assert.equal(packageVersion, '1.9.1');
-  assert.match(page, new RegExp(`const VERSION = '${packageVersion.replaceAll('.', '\\.')}'`));
+  // Since 25caa2c the page reads its version straight from package.json
+  // instead of a hand-pinned literal, so page ≡ released version holds by
+  // construction. The guard asserts that exact wiring — a hand-typed
+  // version reappearing here would be the regression.
+  assert.match(page, /import \{ version \} from '\.\.\/\.\.\/\.\.\/package\.json'/);
+  assert.match(page, /const VERSION = version;/);
   assert.equal(
     fs.existsSync(path.join(ROOT, `docs/press/release-notes/v${packageVersion}.md`)),
     true
@@ -64,7 +68,7 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(page, /Blanc-\$\{VERSION\}-arm64\.dmg/);
   assert.match(page, /SHA256SUMS/);
   assert.match(page, /press\/blanc-island-product-capture-v2\.png/);
-  assert.match(page, /Make the Island the lead image/);
+  assert.match(page, /Make the [Ii]sland the lead image/);
   assert.match(page, /Download high-resolution product imagery, launch artwork, and the Blanc mark/);
   assert.match(page, /Each visual shows the real interface without turning another website’s brand into the story/);
   assert.doesNotMatch(page, /The Island, ready for publication/);
@@ -97,13 +101,15 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(page, /<dt>released<\/dt><dd><time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
   assert.match(page, /<dt>date<\/dt><dd><time datetime=\{RELEASED_MACHINE\}>\{RELEASED_HUMAN\}<\/time>/);
   assert.doesNotMatch(page, /<dt>(?:released|date)<\/dt><dd>[A-Z][a-z]+ \d/);
-  assert.match(page, /press\/blanc-1\.0-launch-card-v3\.png/);
-  assert.doesNotMatch(page, /press\/blanc-1\.0-launch-card-v2\.png/);
+  // The version-free press card replaced the 1.0 launch card (site copy
+  // rework, 25caa2c-era) — no launch-card variant may come back.
+  assert.match(page, /press\/blanc-press-card\.png/);
+  assert.doesNotMatch(page, /blanc-1\.0-launch-card/);
   assert.match(page, /<PressIslandDemo \/>/);
   assert.doesNotMatch(page, /press-product-callouts/);
   assert.doesNotMatch(page, /press\/vertical-tabs\.png/);
   // Version-free on purpose: the demo recreates whatever the Island is today.
-  assert.match(islandDemo, /Interactive recreation of the Blanc Island/);
+  assert.match(islandDemo, /Interactive recreation of the Blanc [Ii]sland/);
   assert.doesNotMatch(islandDemo, /Blanc 1\.0 Island/);
   assert.match(islandDemo, /id="pressIslandInput"/);
   assert.match(islandDemo, /name: 'tech news'/);
@@ -191,19 +197,24 @@ test('the public press page keeps its release links, indexability, and no-analyt
   assert.match(siteStyles, /\.press-motion-ready \.press-reveal\.is-visible/);
   assert.match(siteStyles, /\.press-compare-table tbody tr:hover/);
   assert.match(page, /<td data-label="Traditional browser">/);
-  // Every version stated beside current-product content tracks VERSION. Only
-  // the announcement below stays pinned to 1.0 — it is a dated document, not a
-  // claim about the shipping build.
-  assert.match(page, /<td data-label=\{`Blanc \$\{VERSION\}`\}>/);
-  assert.match(page, /<th scope="col">Blanc \{VERSION\}<\/th>/);
-  assert.match(page, /<p class="section-kicker">Blanc \{VERSION\} · independent browser<\/p>/);
-  assert.match(page, /ogImageAlt=\{`Blanc \$\{VERSION\} press kit/);
-  assert.doesNotMatch(page, /Blanc 1\.0 · independent browser/);
+  // The comparison table, kicker, and OG alt went version-FREE in the site
+  // copy rework: prose that named a version went stale every release, so
+  // versions now appear only in the release-facts group (RELEASE_VERSION,
+  // asserted above) and the download links (VERSION). A hand-typed or
+  // templated version reappearing in these spots is the regression. The
+  // announcement below stays pinned to 1.0 — a dated document, not a claim
+  // about the shipping build.
+  assert.match(page, /<td data-label="Blanc">/);
+  assert.match(page, /<th scope="col">Blanc<\/th>/);
+  assert.match(page, /<p class="section-kicker">Blanc press kit · independent browser<\/p>/);
+  assert.match(page, /ogImageAlt="Blanc press kit: the browser in one small island\."/);
+  assert.doesNotMatch(page, /section-kicker">Blanc (?:\{VERSION\}|\d)/);
+  assert.doesNotMatch(page, /data-label=\{`Blanc \$\{VERSION\}`\}/);
   assert.match(siteStyles, /\.press-compare-table tbody td::before/);
   assert.match(siteStyles, /\.press-primary-asset > a:hover img/);
   assert.match(page, /macOS · Windows · Linux/);
   assert.match(page, /macOS: DMG \+ ZIP · Windows: EXE · Linux: AppImage/);
-  assert.match(page, /<h1 id="press-title">Blanc replaces browser clutter with one small Island\.<\/h1>/);
+  assert.match(page, /<h1 id="press-title">Blanc replaces browser clutter with one small [Ii]sland\.<\/h1>/);
   assert.doesNotMatch(page, /Blanc 1\.0 replaces the browser toolbar/);
   assert.match(page, /Anthony J\. Loria/);
   assert.doesNotMatch(page, /Anthony Loria/);
@@ -233,6 +244,6 @@ test('the public press page keeps its release links, indexability, and no-analyt
   // The press page only uses native, approved press captures. Feature-page
   // compositions are retained for marketing pages, but are not editorial files.
   assert.doesNotMatch(page, /feature-(?:island|command-palette|tab-groups|private-tabs)\.png/);
-  assert.match(sitemap, /\{ path: '\/press',/);
+  assert.match(sitemap, /'\/press',/); // listed (indexable) — plain-path form since the sitemap rework
   assert.doesNotMatch(sitemap, /new Set\(\['\/press'\]\)/);
 });
