@@ -163,6 +163,58 @@ The supported reset is to lock the account: 1Password's
 states that locking the desktop app immediately revokes every existing SDK
 authorization. The signed macOS functional gate is closed.
 
+### macOS signed-candidate evidence, UX overhaul — 2026-08-29
+
+The signed (unnotarized, locally built) `dist/mac-arm64/Blanc.app` at
+`a1f7ad5` passed after-sign verification (pinned certificate, embedded
+profile, Plugin-only library-validation exception) and was driven over CDP on
+a scratch profile against the operator's real 1Password account, with the
+loopback fixture server and four fresh disposable Dev-vault Login items. The
+operator supplied every DesktopAuth decision and native-menu interaction.
+
+- **PASS:** Settings Verify — wrong email produced the inline error; the
+  correct email produced DesktopAuth then **Connected**. Persist-first was
+  observed end-to-end: a wrong value left saved by a Verify test made the
+  next fill fail closed with **Account not found** and the corrected
+  email-first copy.
+- **PASS:** single-match AnywhereOnWebsite fill on `parent.localhost`,
+  followed by the polite auto-dismissing success capsule (`role=status`).
+- **PASS:** one-way subdomain match on `child.parent.localhost`, port
+  included.
+- **PASS:** the multiple-match native picker opened **anchored at the
+  password field** (operator: "right at the password field and not up top
+  near the island like it used to"); choosing the second item revealed and
+  filled exactly that item; a later Escape left both fields empty.
+- **PASS:** signup refusal (`/signup`) returned no-form before any SDK
+  contact, with the persistent `role=alert` error capsule and ✕ dismissal.
+- **PASS:** ambient hint — shown on the fixture login page and on the real
+  `github.com/login`; absent on the signup page (new-password contradiction)
+  and cleared on a non-login page; absent while unconfigured.
+- **PASS:** permission precedence — a page microphone request cleared the
+  persistent fill capsule and presented the permission bar.
+- **PASS:** setup capsules — full two-line body with the revised email-first
+  copy, unwrapped buttons, hairline focus ring on the auto-focused Cancel
+  (screenshot reviewed); Open Settings verb honored.
+- **PASS:** lock cycle — locking 1Password forced a fresh DesktopAuth;
+  summoning ⌘L during the wait then cancelling the prompt aborted the flow
+  **silently** with nothing filled (the rejected-await revalidation);
+  an immediate retry produced a fresh prompt (a second cancel produced the
+  clean not-authorized capsule, no stuck helper); approval then filled.
+
+Findings, all fixed during the gate at `a1f7ad5`: the account field's
+"account name or account ID" phrasing confused the operator (email-first copy
+now everywhere), the capsule body ellipsized mid-instruction with wrapping
+button labels (two-line body, nowrap buttons, taller view), and the thick
+focus ring on the auto-focused Cancel (hairline ring).
+
+Deferred with rationale: the ExactDomain and Never tier cases were not
+re-proven — the operator's real `localhost` dev Logins match every
+`*.localhost` fixture host as descendants (by-design AnywhereOnWebsite
+matching), confounding those cases; the matching engine is untouched by this
+release and its tiers, including Never, remain covered by the 2026-08-23
+evidence above. Private-tab fill likewise unchanged and not re-run. Future
+gates should use fixture hosts that are not `localhost` descendants.
+
 ### macOS-only release decision — 2026-08-24
 
 The product owner selected a macOS-only first release after Parallels repeatedly
