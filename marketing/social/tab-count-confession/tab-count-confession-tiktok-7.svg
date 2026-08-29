@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+    
+    <defs>
+      <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="3" seed="18" result="noise"/>
+        <feColorMatrix in="noise" type="saturate" values="0"/>
+        <feComponentTransfer><feFuncA type="table" tableValues="0 0.055"/></feComponentTransfer>
+      </filter>
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity="0.16"/>
+      </filter>
+      <style>
+        text { font-family: Inter, Arial, sans-serif; fill: #0e0e0e; }
+        .caps { font-weight: 900; letter-spacing: -5px; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; }
+      </style>
+    </defs>
+    <rect width="1080" height="1920" fill="#ffffff"/>
+    <rect width="1080" height="1920" fill="#0e0e0e" filter="url(#grain)" opacity="0.16"/>
+    
+    
+    <rect x="72" y="108" width="510" height="62" rx="31" fill="#0e0e0e"/>
+    <text x="102" y="150" class="mono" font-size="30" letter-spacing="4" fill="#ffffff" style="fill:#ffffff">CONFESSION TIME.</text>
+    <circle cx="930" cy="210" r="300" fill="#f7f7f7" stroke="#dedede" stroke-width="4"/>
+    
+    <g transform="rotate(9 855 337.5)" filter="url(#shadow)">
+      <rect x="730" y="270" width="250" height="135" rx="27" fill="#0e0e0e" fill-opacity="1" stroke="#0e0e0e" stroke-width="5"/>
+      <circle cx="757" cy="296" r="8" fill="#f5f5f5"/>
+      <line x1="780" y1="296" x2="956" y2="296" stroke="#f5f5f5" stroke-width="6" stroke-linecap="round" opacity="0.24"/>
+    </g>
+    
+    <g transform="rotate(-7 792.5 547.5)" filter="url(#shadow)">
+      <rect x="650" y="475" width="285" height="145" rx="29" fill="#ffffff" fill-opacity="1" stroke="#0e0e0e" stroke-width="5"/>
+      <circle cx="677" cy="501" r="8" fill="#0e0e0e"/>
+      <line x1="700" y1="501" x2="911" y2="501" stroke="#0e0e0e" stroke-width="6" stroke-linecap="round" opacity="0.24"/>
+    </g>
+    <text x="70" y="695" class="caps" font-size="124">
+      <tspan x="70">DROP THE</tspan><tspan x="70" dy="132">NUMBER +</tspan><tspan x="70" dy="132">YOUR</tspan><tspan x="70" dy="132">OLDEST TAB.</tspan>
+    </text>
+    <rect x="70" y="1320" width="940" height="150" rx="75" fill="#0e0e0e" stroke="#0e0e0e" stroke-width="6"/>
+    <text x="540" y="1412" text-anchor="middle" class="mono" font-size="46" fill="#ffffff" style="fill:#ffffff">PUT BOTH IN THE COMMENTS.</text>
+  
+  </svg>

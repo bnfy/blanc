@@ -1,0 +1,46 @@
+{
+  "capturedAt": "2026-08-29T17:02:25Z",
+  "source": "GitHub Releases asset downloadCount via gh release view",
+  "repository": "bnfy/blanc",
+  "release": {
+    "tag": "v1.9.1",
+    "name": "1.9.1",
+    "publishedAt": "2026-08-26T04:29:03Z",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.9.1"
+  },
+  "totals": {
+    "packageAssetRequests": 137,
+    "updaterMetadataAndBlockmapRequests": 764,
+    "auxiliaryAssetRequests": 6,
+    "allAssetRequests": 907
+  },
+  "packageAssetRequestsByPlatform": {
+    "mac": 41,
+    "windows": 66,
+    "linux": 30
+  },
+  "packageAssets": [
+    {
+      "name": "Blanc-1.9.1-arm64-mac.zip",
+      "downloadCount": 9
+    },
+    {
+      "name": "Blanc-1.9.1-arm64.dmg",
+      "downloadCount": 32
+    },
+    {
+      "name": "Blanc-1.9.1.AppImage",
+      "downloadCount": 30
+    },
+    {
+      "name": "Blanc-Setup-1.9.1.exe",
+      "downloadCount": 66
+    }
+  ],
+  "limitations": [
+    "Counts are requests for release assets, not unique people.",
+    "The macOS ZIP can be fetched by the updater as well as downloaded directly.",
+    "QA, retries, updater handoffs, and non-social traffic are included.",
+    "A before/after delta is aggregate corroboration, not social attribution."
+  ]
+}

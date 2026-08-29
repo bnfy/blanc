@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
+    <defs>
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="18" stdDeviation="26" flood-color="#000" flood-opacity="0.14"/>
+      </filter>
+      <style>
+        text { font-family: "Inter Variable", Inter, Arial, sans-serif; fill: #f5f5f5; }
+        .mono { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+        .hero { font-size: 104px; font-weight: 500; letter-spacing: -3.6px; text-anchor: middle; }
+        .sub { font-size: 31px; font-weight: 400; letter-spacing: -0.4px; text-anchor: middle; }
+      </style>
+    </defs>
+    <rect width="1080" height="1350" fill="#0e0e0e"/>
+    <line x1="60" y1="82" x2="1020" y2="82" stroke="#333333"/>
+    <text x="60" y="56" class="mono" font-size="17" letter-spacing="3" fill="#9c9c9c" style="fill:#9c9c9c">BLANC / QUIET TABS</text>
+    <text x="1020" y="56" text-anchor="end" class="mono" font-size="17" fill="#9c9c9c" style="fill:#9c9c9c">3 / 4</text>
+    
+    <text x="540" y="265" class="hero" fill="#f5f5f5" style="fill:#f5f5f5">
+      <tspan x="540">Your work in</tspan><tspan x="540" dy="114">progress stays live.</tspan>
+    </text>
+    <text x="540" y="565" class="sub" fill="#9c9c9c" style="fill:#9c9c9c">Forms, media, pins, and permission prompts keep their live page.</text>
+    <g transform="translate(60 770)">
+    <rect width="450" height="162" rx="28" fill="#191919" stroke="#333333" stroke-width="2"/>
+    <circle cx="38" cy="42" r="10" fill="#f5f5f5"/>
+    <text x="64" y="50" class="mono" font-size="19" fill="#f5f5f5" style="fill:#f5f5f5">IN PROGRESS</text>
+    <text x="38" y="101" font-size="24" fill="#9c9c9c" style="fill:#9c9c9c">half-filled forms</text>
+  </g>
+    <g transform="translate(570 770)">
+    <rect width="450" height="162" rx="28" fill="#191919" stroke="#333333" stroke-width="2"/>
+    <circle cx="38" cy="42" r="10" fill="#f5f5f5"/>
+    <text x="64" y="50" class="mono" font-size="19" fill="#f5f5f5" style="fill:#f5f5f5">PLAYING</text>
+    <text x="38" y="101" font-size="24" fill="#9c9c9c" style="fill:#9c9c9c">audio or video</text>
+  </g>
+    <g transform="translate(60 962)">
+    <rect width="450" height="162" rx="28" fill="#191919" stroke="#333333" stroke-width="2"/>
+    <circle cx="38" cy="42" r="10" fill="#f5f5f5"/>
+    <text x="64" y="50" class="mono" font-size="19" fill="#f5f5f5" style="fill:#f5f5f5">KEPT CLOSE</text>
+    <text x="38" y="101" font-size="24" fill="#9c9c9c" style="fill:#9c9c9c">pinned tabs</text>
+  </g>
+    <g transform="translate(570 962)">
+    <rect width="450" height="162" rx="28" fill="#191919" stroke="#333333" stroke-width="2"/>
+    <circle cx="38" cy="42" r="10" fill="#f5f5f5"/>
+    <text x="64" y="50" class="mono" font-size="19" fill="#f5f5f5" style="fill:#f5f5f5">WAITING</text>
+    <text x="38" y="101" font-size="24" fill="#9c9c9c" style="fill:#9c9c9c">permission prompts</text>
+  </g>
+    <text x="60" y="1215" class="mono" font-size="20" fill="#9c9c9c" style="fill:#9c9c9c">Eligibility is conservative by design.</text>
+  
+  </svg>

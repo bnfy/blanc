@@ -38,6 +38,36 @@ each one, record:
 Do not publish while a material claim is `remove`, while an aspiration reads
 as a present capability, or while the evidence describes a different release.
 
+## Benefit-first message gate
+
+A shipped feature is evidence, not the whole message. Feature-led marketing
+must make the reader's benefit explicit so a person can understand why the
+capability should matter to them.
+
+Use this order:
+
+1. **Tension:** name the familiar frustration, tradeoff, or feeling in the
+   user's experience.
+2. **Payoff:** state the relief or better experience Blanc offers in plain,
+   human language.
+3. **Mechanism:** connect that payoff to a specific shipped capability.
+4. **Qualification and action:** preserve every material limit, then give the
+   reader an honest next step.
+
+Do not open with a feature inventory and leave the reader to infer the value.
+Do not make internal state vocabulary carry the message: words such as
+“quiet,” “awake,” “eligible,” or “renderer” need a plain-language consequence
+beside them. A reader should not need to understand browser architecture to
+know what is in it for them.
+Prefer ordinary cause-and-effect language over a coined slogan: “free up
+memory without closing the tab” is clearer than “give the memory back.” Name
+only the resource the release evidence supports. Do not broaden a verified
+memory behavior into claims about generic resources, CPU use, battery life,
+heat, speed, or how hard the computer is working without separate evidence.
+Do not turn the emotional payoff into an unsupported speed, productivity,
+memory-savings, privacy, security, or wellbeing guarantee. The mechanism and
+its qualifications remain subject to the release-backed claim gate above.
+
 ## Current Blanc capability boundaries
 
 These boundaries are verified for the v1.9.1 public release:
@@ -58,6 +88,13 @@ These boundaries are verified for the v1.9.1 public release:
   uncertain, active, recording, or otherwise ineligible tabs remain awake.
   A quiet tab reloads; it does not promise exact resumption of all live page
   state.
+- **Reopen Closed Tab:** Blanc records eligible ordinary tabs in a bounded,
+  per-window Recently Closed undo buffer. At most one eligible closed page per
+  window may keep its same live view for about 30 seconds; reopening it during
+  that window can avoid a reload. After the live hold ends, a still-recent
+  entry may fall back to its safe navigation snapshot or URL. Entries expire,
+  the buffer is capped, and private tabs never enter Recently Closed. Do not
+  promise exact state recovery, permanent retention, or recovery of every tab.
 - **AI:** Blanc ships no AI assistant or agent browser. It does not understand
   assignments, detect semantic task boundaries, automatically organize tabs
   by meaning, or isolate automated browsing work from a person's session.
@@ -97,3 +134,7 @@ Text inside an image is a product claim and follows the same gate. Product UI
 must come from the current public build or a clearly labelled preview build.
 Do not let generated imagery invent controls, automatic behavior, names, or
 states that Blanc does not ship.
+
+Visual identity follows `docs/brand-usage.md`. In particular, the Blanc mark is
+always black on white or white on black and is never placed on, inside, or
+visually backed by an accent-colored treatment.

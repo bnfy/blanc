@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+  <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+    
+    <defs>
+      <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="3" seed="18" result="noise"/>
+        <feColorMatrix in="noise" type="saturate" values="0"/>
+        <feComponentTransfer><feFuncA type="table" tableValues="0 0.055"/></feComponentTransfer>
+      </filter>
+      <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000" flood-opacity="0.16"/>
+      </filter>
+      <style>
+        text { font-family: Inter, Arial, sans-serif; fill: #0e0e0e; }
+        .caps { font-weight: 900; letter-spacing: -5px; }
+        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 800; }
+      </style>
+    </defs>
+    <rect width="1080" height="1920" fill="#ffffff"/>
+    <rect width="1080" height="1920" fill="#0e0e0e" filter="url(#grain)" opacity="0.16"/>
+    
+    
+    <rect x="72" y="110" width="510" height="62" rx="31" fill="#0e0e0e"/>
+    <text x="102" y="152" class="mono" font-size="30" letter-spacing="4" fill="#ffffff" style="fill:#ffffff">HOW MANY ARE OPEN?</text>
+    <circle cx="905" cy="385" r="300" fill="#f7f7f7" stroke="#dedede" stroke-width="4"/>
+    
+    <g transform="rotate(-8 230 426)" filter="url(#shadow)">
+      <rect x="105" y="360" width="250" height="132" rx="26" fill="#ffffff" fill-opacity="1" stroke="#0e0e0e" stroke-width="5"/>
+      <circle cx="132" cy="386" r="8" fill="#0e0e0e"/>
+      <line x1="155" y1="386" x2="331" y2="386" stroke="#0e0e0e" stroke-width="6" stroke-linecap="round" opacity="0.24"/>
+    </g>
+    
+    <g transform="rotate(9 860 801)" filter="url(#shadow)">
+      <rect x="735" y="735" width="250" height="132" rx="26" fill="#0e0e0e" fill-opacity="1" stroke="#0e0e0e" stroke-width="5"/>
+      <circle cx="762" cy="761" r="8" fill="#f5f5f5"/>
+      <line x1="785" y1="761" x2="961" y2="761" stroke="#f5f5f5" stroke-width="6" stroke-linecap="round" opacity="0.24"/>
+    </g>
+    
+    <g transform="rotate(7 255 1396)" filter="url(#shadow)">
+      <rect x="110" y="1325" width="290" height="142" rx="28" fill="#f7f7f7" fill-opacity="0.86" stroke="#0e0e0e" stroke-width="5"/>
+      <circle cx="137" cy="1351" r="8" fill="#0e0e0e"/>
+      <line x1="160" y1="1351" x2="376" y2="1351" stroke="#0e0e0e" stroke-width="6" stroke-linecap="round" opacity="0.24"/>
+    </g>
+    <text x="540" y="1140" text-anchor="middle" class="caps" font-size="520" fill="#0e0e0e" style="fill:#0e0e0e">28</text>
+    <text x="540" y="1645" text-anchor="middle" class="mono" font-size="48">NO CLEANING UP FIRST.</text>
+  
+  </svg>

@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-08-29T17:37:59.047Z",
+  "source": "GitHub Releases asset downloadCount via gh release view",
+  "repository": "bnfy/blanc",
+  "release": {
+    "tag": "v1.9.1",
+    "name": "1.9.1",
+    "publishedAt": "2026-08-26T04:29:03Z",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.9.1"
+  },
+  "totals": {
+    "packageAssetRequests": 138,
+    "updaterMetadataAndBlockmapRequests": 769,
+    "auxiliaryAssetRequests": 6,
+    "allAssetRequests": 913
+  },
+  "packageAssetRequestsByPlatform": {
+    "mac": 41,
+    "windows": 67,
+    "linux": 30
+  },
+  "comparison": {
+    "baselinePath": "marketing/social/download-baseline-2026-08-29.json",
+    "baselineCapturedAt": "2026-08-29T17:02:25Z",
+    "elapsedMinutes": 36,
+    "packageAssetRequestDelta": 1,
+    "packageAssetRequestDeltaByPlatform": {
+      "mac": 0,
+      "windows": 1,
+      "linux": 0
+    },
+    "updaterMetadataAndBlockmapRequestDelta": 5,
+    "allAssetRequestDelta": 6
+  },
+  "limitations": [
+    "Counts are release-asset requests, not unique people.",
+    "QA, retries, updater handoffs, direct traffic, and non-social acquisition are included.",
+    "The Windows request cannot be attributed to social without a matching first-party campaign path."
+  ]
+}

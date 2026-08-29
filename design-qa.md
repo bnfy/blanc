@@ -135,6 +135,140 @@ final result: passed
 
 ---
 
+# Home intro and demo separation — 2026-08-28
+
+**Final result:** passed
+
+## Comparison target
+
+- Problem reference:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-08-28 at 6.03.55 PM.png`.
+- Revised desktop implementation:
+  `/private/tmp/blanc-home-separation-desktop.png`.
+- Side-by-side full-view comparison:
+  `/private/tmp/blanc-home-separation-comparison.png`.
+- Responsive evidence:
+  `/private/tmp/blanc-home-separation-mobile-top.png`.
+- Viewport and normalization: source and desktop implementation are both
+  1810×1322 pixels at a matching 1810×1322 CSS viewport. No density or crop
+  normalization was required. Mobile was checked separately at 390×844.
+- State: light appearance, Glance resize chapter paused. The implementation
+  intentionally changes the surrounding composition while retaining the same
+  chapter copy and demo content.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Fonts and typography: the stable product claim remains the sole large text
+  block before the demo. The platform support line is now a small mono eyebrow,
+  while scene-specific copy retains its existing UI type hierarchy inside the
+  demo surface.
+- Spacing and layout rhythm: the former long product-description paragraph has
+  been removed from the visible intro. A 58px desktop handoff separates the
+  stable claim from a softly bordered demo container, turning the changing
+  headline, stage, timeline, and supporting feature summary into one unit.
+- Colors and tokens: the new `#fafafa` demo surface and `#e9e9e9` boundary are
+  deliberately close to the existing white page so separation is clear without
+  introducing a card-heavy visual language.
+- Image quality and asset fidelity: all existing page captures, favicons, and
+  island visuals are unchanged. No new or substitute image asset was introduced.
+- Copy and content: search-relevant product context remains in the H1, platform
+  eyebrow, metadata, structured data, and compact feature summary after the
+  timeline. It no longer creates a second paragraph before the demo.
+- Responsiveness: at 390×844 the claim and demo container stack cleanly with no
+  horizontal overflow. The container creates the same visual handoff while the
+  existing mobile stage and controls remain unchanged.
+
+The full view was sufficient for this hierarchy change because all modified
+surfaces—the intro, inter-section gap, demo boundary, and opening scene copy—are
+legible together. No focused crop was needed. Browser console verification
+returned no warnings or errors.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] The stable H1, long SEO paragraph, changing demo headline, and changing
+  demo subtext read as two consecutive hero blocks with no visual ownership.
+
+Fixes: replaced the visible SEO paragraph with a small platform eyebrow, moved
+the compact feature summary below the demo controls, and enclosed the live
+sequence in a subtle surface with its own padding and radius.
+
+### Iteration 2 — passed
+
+The desktop side-by-side shows one concise product claim followed by a clearly
+owned demo unit. The 390px capture confirms the same hierarchy without overflow
+or clipped controls.
+
+final result: passed
+
+---
+
+# Quiet Tabs vertical wake scene — 2026-08-28
+
+**Final result:** passed
+
+## Comparison target
+
+- Source visual truth: `marketing/article-assets/ai-clean-browser/expanded-source.jpeg`,
+  corroborated by the released `v1.9.1` expanded-Island markup and styles in
+  `src/renderer/overlay.html`, `src/renderer/overlay.js`, and
+  `src/renderer/styles.css`.
+- Rendered implementation: `/tmp/quiet-tabs-expanded-island-final-10.1.png`,
+  extracted from the final vertical video at 10.1 seconds.
+- Focused side-by-side evidence: `/tmp/quiet-tabs-panel-qa-side-by-side.png`.
+- Viewport: 1080×1920 video frame; focused implementation crop is 830×414.
+- Source pixels: 1229×768. Its expanded-Island crop was normalized to 830px
+  wide and padded to 830×414 for comparison. The implementation remained at
+  native output density.
+- State: expanded Island at rest. The campaign intentionally adapts the source
+  from light to shipped dark tokens and adds two ordinary tab rows so the
+  released Quiet state can be demonstrated.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Fonts and typography: row titles retain Blanc's Inter hierarchy, with the
+  active row at weight 600 and ordinary rows at 400. The Quiet row changes
+  opacity only; it gains no label or alternate type treatment.
+- Spacing and layout rhythm: the 620px shipped panel proportions are scaled to
+  the video's 830px evidence slot. Address field, list rows, separator, primary
+  and private launchers, and right-side action cluster preserve the expanded
+  Island's ordering and visual rhythm.
+- Colors and visual tokens: the campaign uses the shipped dark surface,
+  raised-surface, border, text, and text-dim values. The Quiet row is exactly
+  50% opacity, matching `.island-row.quiet` in v1.9.1.
+- Image quality and asset fidelity: the Blanc, MDN, and Notion favicons are
+  raster source assets. The Blanc mark remains black on white. No accent color
+  was applied to the Blanc mark or surrounding campaign treatment.
+- Copy and content: the invented “PAGE UNLOADED → RELOAD” card is gone. The
+  visual now supports the release-backed instruction “Click the dimmed tab to
+  wake it up” with the real dim-only row convention.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] The scene used a generic status card with an invented ring glyph,
+  “PAGE UNLOADED,” a reload arrow, and a “RELOAD” label. None represented how
+  Quiet Tabs appear in the expanded Island.
+
+Fix: replaced the card with the released expanded-Island anatomy and applied
+the real whole-row 50% Quiet state to a normal favicon-and-title row.
+
+### Iteration 2 — passed
+
+The focused comparison shows the same address, row, divider, launcher, and
+action hierarchy as the released Island. The only state treatment on the MDN
+row is the shipped full-row dimming.
+
+final result: passed
+
+---
+
 # Home demo native Move to Group flow — 2026-08-25
 
 **Final result:** passed
