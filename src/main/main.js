@@ -168,7 +168,8 @@ const { createOnePasswordClient } = require('./onepassword-client');
 const { isOnePasswordAvailable } = require('./onepassword-availability');
 const { createCredentialFillController } = require('./credential-fill-controller');
 const { createFillStatusSurface } = require('./fill-status-surface');
-const { pickerAnchorPoint } = require('./onepassword-policy');
+const { pickerAnchorPoint, parseWebUrl: parseOnePasswordWebUrl, FILL_WORLD_ID } = require('./onepassword-policy');
+const { buildHintProbeScript, configTransition, createFillHintScheduler } = require('./fill-hint');
 const { FILL_KINDS, MODES: FILL_MODES, FILL_COPY } = require('./fill-status-kinds');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
@@ -913,6 +914,8 @@ async function sleepTab(id, { broadcast = true } = {}) {
   const tab = tabs.get(id);
   const wc = liveContents(tab);
   if (!tab || !wc || tab.asleep || tab.sleeping || tab.waking) return false;
+  // Quieting discards the renderer the hint was probed in.
+  fillHintScheduler?.clearTab(tab);
 
   const epochAtProbe = tab.navEpoch;
   let snapshot;
@@ -2391,6 +2394,39 @@ function bumpSurfaceGeneration(runtime = rt()) {
   fillStatusSurface?.invalidatePending(runtime.id);
 }
 
+// --- Ambient fill hint (spec §5) ---------------------------------------
+// Structure-only probe on the ACTIVE tab; the scheduler owns epochs, the
+// identity token, and the single recheck (fill-hint.js, unit-tested).
+// Probe callbacks resolve outside any ALS binding, so the hint write
+// rebinds the tab's own runtime before broadcasting — same rule as the
+// capture broadcasts.
+const HINT_PROBE_SCRIPT = ONE_PASSWORD_AVAILABLE ? buildHintProbeScript() : null;
+const fillHintScheduler = !ONE_PASSWORD_AVAILABLE ? null : createFillHintScheduler({
+  runProbe: (tab) => liveContents(tab).executeJavaScriptInIsolatedWorld(
+    FILL_WORLD_ID, [{ code: HINT_PROBE_SCRIPT }]
+  ),
+  isEligible: (tab) => {
+    const wc = liveContents(tab);
+    if (!wc || wc.isDestroyed() || tab.asleep) return false;
+    const { onePasswordEnabled, onePasswordAccount } = settings.getSettings();
+    if (!onePasswordEnabled || !String(onePasswordAccount ?? '').trim()) return false;
+    const url = wc.getURL();
+    if (!parseOnePasswordWebUrl(url) || isUtilityUrl(url)) return false;
+    const runtime = windowRuntimes.runtimeForTab(tab.id);
+    return runtime?.activeTabId === tab.id; // private tabs eligible; quiet excluded above
+  },
+  tabEpoch: (tab) => tab.navEpoch,
+  contentsToken: (tab) => liveContents(tab)?.id ?? null,
+  onHint: (tab, hinted) => {
+    if ((tab.fillHint === true) === hinted) return;
+    tab.fillHint = hinted;
+    const runtime = windowRuntimes.runtimeForTab(tab.id);
+    if (runtime) withWindowRuntime(runtime, () => broadcastTabs());
+  },
+  setTimeout,
+  clearTimeout,
+});
+
 function captureOnePasswordTarget(runtime) {
   if (!runtime || !runtime.window || runtime.window.isDestroyed()) return null;
   const tab = tabs.get(runtime.activeTabId);
@@ -2629,6 +2665,9 @@ function serializeTabs() {
         // Capture projection only — the record (anchors, frame counts) is
         // main-process-only, like every capture-state internal (spec §8).
         capture: tab.capture ?? { audio: false, video: false },
+        // Ambient login-form hint — display state only, never persisted
+        // or synced (spec §5).
+        fillHint: tab.fillHint === true,
       };
       // Whether ads are allow-listed here. Derived rather than stored: the
       // exception list is edited from Settings and the slash commands alike,
@@ -3950,6 +3989,10 @@ initTabView({
   // Optional (not in tab-view's required list): active-tab main-frame and
   // same-document navigations dismiss that window's fill capsule.
   dismissFillStatusForNavigation: (owner) => fillStatusSurface?.invalidatePending(owner.id),
+  // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
+  onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
+  onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),
+  onFillHintNavigationStart: (tab) => fillHintScheduler?.clearTab(tab),
   broadcastTabs,
   scheduleBroadcastTabs,
   scheduleSampleTint,
@@ -4215,6 +4258,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
 
   rt().activeTabId = id;
+  fillHintScheduler?.noteActivated(next);
   if (prevId && prevId !== id) rt().tabsWantingAddressBarFocus.delete(prevId);
   const shouldFocusAddress = focusAddress && !focusContent;
   if (shouldFocusAddress) {
@@ -4519,6 +4563,7 @@ function closeTab(id) {
   // A user close during a sleep teardown wins: do not rewire a tab going away.
   sleepTeardownInProgress = false;
   const tab = tabs.get(id);
+  if (tab) fillHintScheduler?.clearTab(tab);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   forgetTabWebContentsIds(id);
 
@@ -7375,10 +7420,26 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       s.onePasswordAccount,
     ]);
     if (nextOnePasswordConfigurationKey !== onePasswordConfigurationKey) {
+      const [prevEnabled, prevAccount] = JSON.parse(onePasswordConfigurationKey);
       onePasswordConfigurationKey = nextOnePasswordConfigurationKey;
       // A disable/account change ends the old account-scoped SDK client
       // immediately; no authorization handle survives under a new setting.
       onePasswordBroker?.stop();
+      // Ambient-hint transitions attach HERE, the central fan-out — every
+      // writer (Settings toggle, Verify's persist-first save, any future
+      // setSettings caller) flows through this listener by construction.
+      const transition = configTransition(
+        { onePasswordEnabled: prevEnabled, onePasswordAccount: prevAccount },
+        { onePasswordEnabled: s.onePasswordEnabled, onePasswordAccount: s.onePasswordAccount },
+      );
+      if (transition === 'cleared') {
+        fillHintScheduler?.clearAll();
+      } else if (transition === 'became-eligible' && fillHintScheduler) {
+        for (const runtime of windowRuntimes.all()) {
+          const active = runtime.activeTabId != null ? tabs.get(runtime.activeTabId) : null;
+          if (active) withWindowRuntime(runtime, () => fillHintScheduler.noteConfigChanged(active));
+        }
+      }
     }
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();

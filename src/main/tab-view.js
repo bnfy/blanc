@@ -249,8 +249,10 @@ function wireTabView(tab, view, { owner, adopted }) {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (isMainFrame) tab.navEpoch++;
     // A same-document navigation of the active tab replaces what a fill
-    // message was about — dismiss it (runtime-scoped; optional dep).
+    // message was about — dismiss it (runtime-scoped; optional dep), and
+    // re-probe the new route for the ambient hint.
     if (isMainFrame && id === owner.activeTabId) deps.dismissFillStatusForNavigation?.(owner);
+    if (isMainFrame) deps.onFillHintInPageNavigation?.(tab);
     syncNavState();
     if (isMainFrame && tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
     broadcastTabs();
@@ -264,6 +266,8 @@ function wireTabView(tab, view, { owner, adopted }) {
     // error notice persist, over the successor page (same posture as the
     // shield dismissal below).
     if (isMainFrame && id === owner.activeTabId) deps.dismissFillStatusForNavigation?.(owner);
+    // The outgoing document's hint is stale the moment navigation starts.
+    if (isMainFrame) deps.onFillHintNavigationStart?.(tab);
     if (
       isMainFrame
       && owner.overlayMode === 'shield'
@@ -276,6 +280,13 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.once('did-finish-load', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (shouldReclaimAddressBarFocus(id)) reclaimAddressBarFocus(id, { consume: true });
+  }));
+  // PERSISTENT load listener for the ambient hint — the `.once` above fires
+  // only for the WebContents' first document; later full-page navigations
+  // would clear the hint at did-start-navigation and never re-probe.
+  wc.on('did-finish-load', boundToTab(() => {
+    if (tab.sleeping || tab.view?.webContents !== wc) return;
+    deps.onFillHintLoad?.(tab);
   }));
   wc.on('focus', boundToTab(() => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;

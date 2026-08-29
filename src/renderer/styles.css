@@ -1261,6 +1261,31 @@ body.mac .vertical-tabs-toolbar {
 
 /* Live-capture chip: same anatomy as the shield, but the one pill state
    that earns an alarm color (--danger) — steady, no pulse, no count. */
+/* Ambient 1Password fill hint — same chip family as the capture chip, but
+   quiet (text-dim) rather than danger: it is an invitation, not an alarm. */
+.fill-hint-chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 2px;
+  border: none;
+  border-radius: 12px;
+  background: none;
+  color: var(--text-dim);
+  flex: 0 0 auto;
+  cursor: pointer;
+}
+.fill-hint-chip:hover,
+.fill-hint-chip:focus-visible { color: var(--text); }
+.fill-hint-chip[hidden] { display: none; }
+.fill-hint-chip svg {
+  width: 15px; height: 15px; fill: none; stroke: currentColor;
+  stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round;
+}
+
 .capture-chip {
   appearance: none;
   display: inline-flex;

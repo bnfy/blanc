@@ -409,7 +409,11 @@ function install(refs) {
     clearHistory() { history.clearHistory(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
 
-    // ---- 1Password fill capsule (macOS-only; null off-platform) ----
+    // ---- 1Password fill capsule + hint (macOS-only; null off-platform) ----
+    setOnePasswordConfig(enabled, account) {
+      settings.setSettings({ onePasswordEnabled: !!enabled, onePasswordAccount: String(account ?? '') });
+      return settings.getSettings().onePasswordEnabled;
+    },
     showFillStatus(kind) { return showFillStatusForTest?.(String(kind)) ?? null; },
     fillStatusState() { return fillStatusState?.() ?? null; },
     readFillStatusDom(script) { return readFillStatusDom?.(script) ?? null; },

@@ -2,6 +2,8 @@
 
 const assert = require('node:assert/strict');
 const test = require('node:test');
+const fs = require('node:fs');
+const path = require('node:path');
 const {
   buildHintProbeScript,
   createFillHintScheduler,
@@ -191,6 +193,13 @@ test('probe rejections are swallowed silently', async () => {
   await tick();
   await tick();
   assert.deepEqual(hints, []);
+});
+
+test('serializeTabs projects fillHint like other display state (source-anchored, fail-loud)', () => {
+  const source = fs.readFileSync(path.resolve(__dirname, '../../src/main/main.js'), 'utf8');
+  const body = source.match(/function serializeTabs\(\) \{[\s\S]*?\n\}/)?.[0];
+  assert.ok(body, 'serializeTabs not found — fail loud, never silently pass');
+  assert.match(body, /fillHint: tab\.fillHint === true/);
 });
 
 test('configTransition classifies enable, disable, account edits, and noise', () => {
