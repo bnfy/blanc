@@ -29,10 +29,10 @@ test('every kind has complete copy and a valid mode', () => {
   }
 });
 
-test('controller error codes all map to kinds; broker-unavailable unifies', () => {
-  const { ERROR_COPY } = require('../../src/main/credential-fill-controller');
-  for (const code of Object.keys(ERROR_COPY)) {
-    assert.ok(FILL_KINDS[kindForErrorCode(code)], `unmapped error code ${code}`);
+test('every controller-emitted reason maps to a kind; broker-unavailable unifies', () => {
+  const { FILL_REASONS } = require('../../src/main/credential-fill-controller');
+  for (const reason of FILL_REASONS) {
+    assert.ok(FILL_KINDS[kindForErrorCode(reason)], `unmapped controller reason ${reason}`);
   }
   assert.equal(kindForErrorCode('broker-unavailable'), 'broker-stopped');
   assert.equal(kindForErrorCode('made-up-code'), 'sdk-error');
