@@ -89,6 +89,10 @@ Then('the island never shows the fill hint', async function () {
 
 // Keyword-agnostic: F38-3 reaches this via When, F38-6 via Given.
 When('a fill confirmation question is presented', async function () {
+  // Native focus lands on the capsule at presentation; in a long suite run
+  // the app window may be backgrounded, so front it FIRST (same rule as the
+  // pointer-driven steps) or isFocused() reads false for the whole window.
+  await this.call('focusWindow');
   assert.deepEqual(await this.call('showFillStatus', 'confirm-heuristic'), { mode: 'decision' });
   await waitForCapsule(this, '#fillDecision');
 });
@@ -100,8 +104,17 @@ Then('the capsule is a dialog with initial focus on Cancel', async function () {
   }))()`);
   assert.equal(dom.role, 'dialog');
   assert.equal(dom.focused, 'fillCancelBtn');
-  const state = await this.call('fillStatusState');
-  assert.equal(state.viewFocused, true, 'the capsule WebContents must hold native focus');
+  // WebContentsView focus settles asynchronously (the address-bar reclaim
+  // dance exists for the same reason) — poll briefly instead of one read.
+  const deadline = Date.now() + 3000;
+  for (;;) {
+    const state = await this.call('fillStatusState');
+    if (state.viewFocused === true) return;
+    if (Date.now() > deadline) {
+      throw new Error('the capsule WebContents never took native focus');
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
 });
 
 Then('Tab cycles focus between Cancel and Fill Login', async function () {
