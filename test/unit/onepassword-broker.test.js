@@ -8,6 +8,8 @@ const {
   dispatch,
   fixedErrorCode,
   findLoginsWith,
+  verifyAccountWith,
+  handleMessage,
   isStaleClientError,
   readBuiltIn,
 } = require('../../src/main/onepassword-broker');
@@ -16,6 +18,35 @@ test('requiring the broker does not eagerly load the 1Password SDK', () => {
   const sdkPath = require.resolve('@1password/sdk');
   assert.equal(require.cache[sdkPath], undefined);
   assert.ok(require.cache[path.resolve(__dirname, '../../src/main/onepassword-broker.js')]);
+});
+
+test('verify-account performs exactly one authenticated vault list and leaks no metadata', async () => {
+  let lists = 0;
+  const client = {
+    vaults: { list: async () => { lists += 1; return [{ id: 'v', title: 'Personal' }]; } },
+  };
+  const result = await verifyAccountWith(client);
+  assert.deepEqual(result, { ok: true });
+  assert.deepEqual(Object.keys(result), ['ok'], 'no vault metadata may leave the broker');
+  assert.equal(lists, 1);
+});
+
+test('verify-account propagates auth failures with the same fixed codes as find-logins', async () => {
+  const denied = Object.assign(new Error('authorization denied'), { name: 'AuthError' });
+  const client = { vaults: { list: async () => { throw denied; } } };
+  await assert.rejects(() => verifyAccountWith(client), denied);
+  assert.equal(fixedErrorCode(denied), 'not-authorized');
+});
+
+test('verify-account speaks the {id, ok, value|error} protocol and fails closed on bad input', async () => {
+  const replies = [];
+  await handleMessage({ id: 7, method: 'verify-account', payload: { account: '   ' } },
+    (reply) => replies.push(reply));
+  assert.deepEqual(replies, [{ id: 7, ok: false, error: 'invalid-request' }]);
+  // A message without a positive safe-integer id is dropped entirely.
+  await handleMessage({ method: 'verify-account', payload: { account: 'a' } },
+    (reply) => replies.push(reply));
+  assert.equal(replies.length, 1);
 });
 
 test('broker lists overviews and returns only matching Login metadata', async () => {

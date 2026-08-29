@@ -10,6 +10,7 @@ const CHROME_PARTITION = 'blanc-chrome';
 const CHROME_INDEX_URL = `${CHROME_SCHEME}://index/`;
 const CHROME_OVERLAY_URL = `${CHROME_SCHEME}://overlay/`;
 const CHROME_PERMISSION_URL = `${CHROME_SCHEME}://permission/`;
+const CHROME_FILL_STATUS_URL = `${CHROME_SCHEME}://fill-status/`;
 const RENDERER_DIR = path.join(__dirname, '../renderer');
 
 // Chrome is intentionally much smaller than the internal-pages surface. Each
@@ -39,6 +40,11 @@ const HOST_ASSETS = new Map([
   ['permission', new Map([
     ['/', 'permission.html'],
     ['/permission.js', 'permission.js'],
+  ])],
+  ['fill-status', new Map([
+    ['/', 'fill-status.html'],
+    ['/fill-status.js', 'fill-status.js'],
+    ['/fill-status-copy.js', 'fill-status-copy.js'],
   ])],
 ]);
 
@@ -84,6 +90,7 @@ module.exports = {
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
   CHROME_PERMISSION_URL,
+  CHROME_FILL_STATUS_URL,
   chromeResourcePath,
   createChromeProtocolHandler,
   setupChromeProtocol,

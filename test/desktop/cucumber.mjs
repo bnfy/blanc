@@ -45,6 +45,7 @@ const RUNNABLE = [
   '@F33-1', '@F33-2', '@F33-3',
   '@F34-1',
   '@F37-1', '@F37-2', '@F37-3',
+  '@F38-2', '@F38-3', '@F38-4', '@F38-5', '@F38-6', '@F38-7',
 ].join(' or ');
 
 export default { ...common, tags: 'not @mobile' };

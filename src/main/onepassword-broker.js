@@ -107,6 +107,24 @@ async function findLogins({ account, pageUrl }) {
   }
 }
 
+/** Settings → Verify: authorization plus the cheapest authenticated read.
+ * The vault list is discarded — only ok/error-kind ever leaves the broker.
+ * An addition beside the frozen methods, never a rename (plan Task 8). */
+async function verifyAccountWith(client) {
+  await client.vaults.list();
+  return { ok: true };
+}
+
+async function verifyAccount({ account }) {
+  try {
+    return await verifyAccountWith(await clientFor(account));
+  } catch (error) {
+    if (!isStaleClientError(error)) throw error;
+    cachedClient = null;
+    return verifyAccountWith(await clientFor(account));
+  }
+}
+
 function readBuiltIn(item, id) {
   // @1password/sdk defines Login's built-ins by these stable IDs. Keep this
   // exact instead of guessing from localized titles or broad field types.
@@ -176,6 +194,7 @@ async function revealCredential({
 async function dispatch(method, payload) {
   if (method === 'find-logins') return findLogins(payload ?? {});
   if (method === 'reveal-credential') return revealCredential(payload ?? {});
+  if (method === 'verify-account') return verifyAccount(payload ?? {});
   if (method === 'probe-package') {
     require('@1password/sdk');
     return { loaded: true };
@@ -208,6 +227,7 @@ module.exports = {
   fixedErrorCode,
   isStaleClientError,
   findLoginsWith,
+  verifyAccountWith,
   readBuiltIn,
   dispatch,
   handleMessage,

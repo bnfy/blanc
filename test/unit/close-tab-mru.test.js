@@ -19,6 +19,7 @@ function makeSandbox({ runtime, tabs, onSelect }) {
   return {
     sleepSnapshots: new Map(),
     sleepTeardownInProgress: false,
+    fillHintScheduler: null,
     tabs,
     forgetTabWebContentsIds: () => {},
     cancelPermissionPromptsForTab: () => {},

@@ -100,6 +100,9 @@ if (window.location.protocol === 'blanc:') {
         syncNow: () => invoke('pages:settings:sync-now'),
         syncTabsSet: (on) => invoke('pages:settings:sync-tabs-set', on),
         welcomeTour: () => invoke('pages:settings:welcome-tour'),
+        onePasswordStatus: () => invoke('pages:settings:onepassword-status'),
+        onePasswordVerify: (account) => invoke('pages:settings:onepassword-verify', account),
+        openOnePasswordApp: () => invoke('pages:settings:open-onepassword-app'),
       },
       profiles: {
         list: () => invoke('pages:profiles:list'),

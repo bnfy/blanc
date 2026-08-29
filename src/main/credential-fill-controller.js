@@ -6,103 +6,83 @@ const {
   buildProbeScript,
   buildInspectScript,
   buildFillScript,
+  buildFieldRectScript,
   isValidPickIndex,
   parseWebUrl,
 } = require('./onepassword-policy');
+const { kindForErrorCode } = require('./fill-status-kinds');
 const { pickCredential } = require('./credential-picker');
 
 const nextTurn = () => new Promise((resolve) => setImmediate(resolve));
 
-const ERROR_COPY = Object.freeze({
-  'desktop-unavailable': [
-    '1Password isn’t available',
-    'Install or open the 1Password desktop app. In 1Password Settings → Developer, turn on Integrate with 1Password SDKs.',
-  ],
-  'account-not-found': [
-    '1Password account not found',
-    'Check the account name or account ID in Blanc Settings, then try again.',
-  ],
-  'not-authorized': [
-    '1Password didn’t authorize Blanc',
-    'Unlock 1Password and approve the Blanc Browser integration, then try again.',
-  ],
-  'session-expired': [
-    '1Password authorization expired',
-    'Try again to authorize a fresh session.',
-  ],
-  'timed-out': [
-    '1Password timed out',
-    'No credential data was filled. Try again when the 1Password app is ready.',
-  ],
-  'broker-unavailable': [
-    '1Password helper stopped',
-    'No credential data was filled. Try again.',
-  ],
-  'broker-stopped': [
-    '1Password helper stopped',
-    'No credential data was filled. Try again.',
-  ],
-  'sdk-error': [
-    '1Password couldn’t complete the request',
-    'No credential data was filled. Check 1Password and try again.',
-  ],
-  'selection-changed': [
-    '1Password login changed',
-    'The selected Login item changed after the list opened. Nothing was filled. Try again.',
-  ],
-});
+/** Every message kind this controller can emit through notify()/confirm().
+ * The kind-registry test walks this list, so a new emission without copy
+ * fails loudly instead of rendering an empty capsule. */
+const FILL_REASONS = Object.freeze([
+  'busy',
+  'setup-enable',
+  'setup-account',
+  'unsupported-page',
+  'page-changed',
+  'no-form',
+  'confirm-heuristic',
+  'no-match',
+  'empty-login',
+  'nothing-filled',
+  'unexpected',
+  'filled',
+  // Broker/SDK error codes, post kindForErrorCode mapping:
+  'desktop-unavailable',
+  'account-not-found',
+  'not-authorized',
+  'session-expired',
+  'timed-out',
+  'broker-stopped',
+  'sdk-error',
+  'selection-changed',
+]);
 
 function createCredentialFillController({
   broker,
   Menu,
-  dialog,
   getSettings,
   captureTarget,
   isTargetCurrent,
+  surfaceChanged,
   prepareTarget,
   openSettings,
+  notify,
+  confirm,
+  toWindowPoint,
 } = {}) {
   let activeFlow = false;
 
-  const message = async (target, title, body, type = 'info') => {
-    if (!target?.window || target.window.isDestroyed?.()) return;
-    await dialog.showMessageBox(target.window, {
-      type,
-      title,
-      message: title,
-      detail: body,
-      buttons: ['OK'],
-      defaultId: 0,
-      cancelId: 0,
-      noLink: true,
-    });
+  /** A rejected await can land AFTER a surface change or navigation — the
+   * broker error must never surface under the successor surface or page.
+   * Revalidate first: a stale target aborts through currentOrExplain
+   * (silent for surface changes, page-changed otherwise); only a current
+   * target shows the broker error. Returns the flow's result either way. */
+  const failWithError = async (target, error) => {
+    if (!isTargetCurrent(target)) {
+      await currentOrExplain(target);
+      return { ok: false, reason: 'page-changed' };
+    }
+    await notify(target, kindForErrorCode(error?.code));
+    return { ok: false, reason: error?.code ?? 'sdk-error' };
   };
 
-  const setupPrompt = async (target, body) => {
-    if (!target?.window || target.window.isDestroyed?.()) return false;
-    const { response } = await dialog.showMessageBox(target.window, {
-      type: 'info',
-      title: 'Set up 1Password',
-      message: 'Set up 1Password in Blanc',
-      detail: body,
-      buttons: ['Open Settings', 'Cancel'],
-      defaultId: 0,
-      cancelId: 1,
-      noLink: true,
-    });
-    if (response === 0) openSettings?.();
+  /** Setup nudges: a decision capsule whose primary verb opens Settings. */
+  const setupPrompt = async (target, kind) => {
+    if (await confirm(target, kind) === 'primary') openSettings?.();
     return false;
-  };
-
-  const showFixedError = async (target, error) => {
-    const [title, body] = ERROR_COPY[error?.code] ?? ERROR_COPY['sdk-error'];
-    await message(target, title, body, 'warning');
   };
 
   const currentOrExplain = async (target) => {
     if (isTargetCurrent(target)) return true;
-    await message(target, 'The page changed',
-      'Blanc stopped before filling anything. Return to the login form and try again.');
+    // Surface-transition aborts are silent — the user chose to leave
+    // (⌘L, a sheet, Glance, a tab switch, a permission prompt). Genuine
+    // page changes keep their notice.
+    if (!surfaceChanged?.(target)) await notify(target, 'page-changed');
     return false;
   };
 
@@ -117,33 +97,29 @@ function createCredentialFillController({
     const initial = captureTarget(runtime);
     if (!initial) return { ok: false, reason: 'no-active-page' };
     if (activeFlow) {
-      await message(initial, '1Password is already open',
-        'Finish or cancel the current 1Password request before starting another.');
+      await notify(initial, 'busy');
       return { ok: false, reason: 'busy' };
     }
     activeFlow = true;
     try {
       const configured = getSettings();
       if (!configured.onePasswordEnabled) {
-        await setupPrompt(initial,
-          'Turn on “Fill logins from 1Password” under Privacy & Security. Blanc only reads a matching login when you invoke Fill.');
+        await setupPrompt(initial, 'setup-enable');
         return { ok: false, reason: 'disabled' };
       }
       const account = typeof configured.onePasswordAccount === 'string'
         ? configured.onePasswordAccount.trim()
         : '';
       if (!account) {
-        await setupPrompt(initial,
-          'Add the 1Password account name shown at the top of the 1Password sidebar, or its account ID.');
+        await setupPrompt(initial, 'setup-account');
         return { ok: false, reason: 'missing-account' };
       }
       if (!parseWebUrl(initial.url)) {
-        await message(initial, 'Open a website first',
-          '1Password login fill is available only on HTTP or HTTPS pages.');
+        await notify(initial, 'unsupported-page');
         return { ok: false, reason: 'unsupported-page' };
       }
 
-      await prepareTarget(runtime);
+      await prepareTarget(initial);
       if (!await focusAndCheck(initial)) {
         await currentOrExplain(initial);
         return { ok: false, reason: 'page-changed' };
@@ -171,8 +147,7 @@ function createCredentialFillController({
         return { ok: false, reason: 'page-changed' };
       }
       if (!inspect?.hasPassword && !inspect?.hasUsername) {
-        await message(initial, 'No login form found',
-          'Blanc couldn’t identify a safe username or current-password field on this page.');
+        await notify(initial, 'no-form');
         return { ok: false, reason: 'no-form' };
       }
 
@@ -180,17 +155,9 @@ function createCredentialFillController({
       // before authenticating or decrypting anything; authoritative
       // autocomplete=current-password fields need no extra prompt.
       if (inspect.passwordBasis === 'heuristic') {
-        const { response } = await dialog.showMessageBox(initial.window, {
-          type: 'question',
-          title: 'Confirm login form',
-          message: 'Fill the detected login form?',
-          detail: 'This page did not explicitly identify its current-password field. Blanc will re-check the exact fields before filling.',
-          buttons: ['Fill Login', 'Cancel'],
-          defaultId: 1,
-          cancelId: 1,
-          noLink: true,
-        });
-        if (response !== 0) return { ok: false, reason: 'cancelled' };
+        if (await confirm(initial, 'confirm-heuristic') !== 'primary') {
+          return { ok: false, reason: 'cancelled' };
+        }
         if (!await focusAndCheck(initial)) {
           await currentOrExplain(initial);
           return { ok: false, reason: 'page-changed' };
@@ -201,8 +168,7 @@ function createCredentialFillController({
       try {
         found = await broker.findLogins(account, initial.url);
       } catch (error) {
-        await showFixedError(initial, error);
-        return { ok: false, reason: error?.code ?? 'sdk-error' };
+        return failWithError(initial, error);
       }
       if (!await focusAndCheck(initial)) {
         await currentOrExplain(initial);
@@ -210,8 +176,7 @@ function createCredentialFillController({
       }
       const candidates = Array.isArray(found?.candidates) ? found.candidates : [];
       if (!candidates.length) {
-        await message(initial, 'No matching login',
-          '1Password has no Login item whose saved website permits filling on this page.');
+        await notify(initial, 'no-match');
         return { ok: false, reason: 'no-match' };
       }
 
@@ -225,7 +190,30 @@ function createCredentialFillController({
           vaultName: candidate.vaultName,
           username: candidate.username,
         }));
-        const anchor = initial.pickerPoint ?? { x: 16, y: 64 };
+        // Geometry has exactly one channel: a live read immediately before
+        // the popup — the broker await above can sit in DesktopAuth for many
+        // seconds, during which the user may scroll or reflow the page.
+        let anchor = initial.pickerPoint ?? { x: 16, y: 64 };
+        let geo = null;
+        try {
+          geo = await initial.webContents.executeJavaScriptInIsolatedWorld(
+            FILL_WORLD_ID,
+            [{ code: buildFieldRectScript({
+              expectedURL: initial.url,
+              expectedTimeOrigin: probe.timeOrigin,
+              nonce,
+            }) }]
+          );
+        } catch { /* anchor falls back to the island pill — flow unaffected */ }
+        // The geometry read is a new await: a navigation or successor
+        // surface can land inside it. Re-check before converting or popping,
+        // preserving the silent-vs-page-changed classification — never pop a
+        // picker over content the user has left.
+        if (!await focusAndCheck(initial)) {
+          await currentOrExplain(initial);
+          return { ok: false, reason: 'page-changed' };
+        }
+        if (geo?.ok) anchor = toWindowPoint?.(initial, geo.rect) ?? anchor;
         selectedIndex = await pickCredential({
           Menu, window: initial.window, rows, point: anchor,
         });
@@ -249,8 +237,7 @@ function createCredentialFillController({
           password: inspect.hasPassword,
         });
       } catch (error) {
-        await showFixedError(initial, error);
-        return { ok: false, reason: error?.code ?? 'sdk-error' };
+        return failWithError(initial, error);
       }
       if (!await focusAndCheck(initial)) {
         await currentOrExplain(initial);
@@ -259,8 +246,7 @@ function createCredentialFillController({
       const username = typeof credential?.username === 'string' ? credential.username : null;
       const password = typeof credential?.password === 'string' ? credential.password : null;
       if (username === null && password === null) {
-        await message(initial, 'Login has no fillable fields',
-          'The selected item has no built-in username or password value.');
+        await notify(initial, 'empty-login');
         return { ok: false, reason: 'empty-login' };
       }
 
@@ -281,14 +267,19 @@ function createCredentialFillController({
         return { ok: false, reason: 'page-changed' };
       }
       if (!result?.filledUser && !result?.filledPass) {
-        await message(initial, 'Nothing was filled',
-          'The selected login did not contain a value for the safe fields Blanc found.');
+        await notify(initial, 'nothing-filled');
         return { ok: false, reason: 'nothing-filled' };
       }
+      await notify(initial, 'filled');
       return { ok: true, filledUser: !!result.filledUser, filledPass: !!result.filledPass };
     } catch {
-      await message(initial, '1Password fill stopped',
-        'No credential data was filled. Return to the login form and try again.', 'warning');
+      // Same revalidation as the broker catches: an unexpected throw after
+      // a surface change or navigation stays silent / page-changed.
+      if (!isTargetCurrent(initial)) {
+        await currentOrExplain(initial);
+        return { ok: false, reason: 'page-changed' };
+      }
+      await notify(initial, 'unexpected');
       return { ok: false, reason: 'unexpected' };
     } finally {
       activeFlow = false;
@@ -298,4 +289,4 @@ function createCredentialFillController({
   return { fill, isBusy: () => activeFlow };
 }
 
-module.exports = { ERROR_COPY, createCredentialFillController };
+module.exports = { FILL_REASONS, createCredentialFillController };

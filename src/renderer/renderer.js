@@ -30,6 +30,7 @@
   const pillFavicon = document.getElementById('pillFavicon');
   const pillDomain = document.getElementById('pillDomain');
   const pillSlash = document.getElementById('pillSlash');
+  const pillFillHint = document.getElementById('pillFillHint');
   const pillShield = document.getElementById('pillShield');
   const pillShieldCount = document.getElementById('pillShieldCount');
   const pillCapture = document.getElementById('pillCapture');
@@ -677,6 +678,13 @@
     // the same thing is noise.
     pillSourceChip.hidden = !viewSourceTarget(tab?.url) || !!tab?.private;
 
+    // Fill-hint chip (spec §5): the active tab declared an authoritative
+    // login form and 1Password fill is configured. Click = the normal
+    // explicit fill — an invitation, never an action. Gated on the API
+    // existing so Windows/Linux never surface it.
+    pillFillHint.hidden = !(tab?.fillHint === true
+      && typeof window.browserAPI.fillLoginFromOnePassword === 'function');
+
     // Shield chip: state fully derived in main (shield-model.js) and shipped
     // on the broadcast — the strip only renders. Always present on a page
     // with a blockable host, so the popover entry point never vanishes.
@@ -734,6 +742,11 @@
     e.stopPropagation();
     const r = pillShield.getBoundingClientRect();
     window.browserAPI.openShieldPopover({ right: r.right, trigger: 'shield' });
+  });
+
+  pillFillHint.addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.browserAPI.fillLoginFromOnePassword?.();
   });
 
   // The not-secure badge is the popover's second door — same room, anchored

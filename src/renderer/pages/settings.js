@@ -158,9 +158,37 @@
     document.getElementById('onePasswordSettings').hidden = false;
     const onePasswordEnabled = document.getElementById('onePasswordEnabled');
     const onePasswordAccount = document.getElementById('onePasswordAccount');
+    const verifyButton = document.getElementById('onePasswordVerify');
+    const verifyState = document.getElementById('onePasswordVerifyState');
+    const appHint = document.getElementById('onePasswordAppHint');
+    const openAppButton = document.getElementById('onePasswordOpenApp');
+    const model = window.blancVerifyModel;
+    // Settings-local status strings — not capsule copy (that lives in
+    // fill-status-copy.js); these describe the Verify action itself.
+    const VERIFY_ERRORS = {
+      'account-not-found': 'Account not found — check your 1Password email address and try again.',
+      'not-authorized': '1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc Browser, and try again.',
+      'session-expired': 'Authorization expired — try again.',
+      'desktop-unavailable': '1Password isn’t available. Open the app and turn on Settings → Developer → Integrate with 1Password SDKs.',
+      'timed-out': '1Password timed out — try again when the app is ready.',
+      'broker-stopped': 'The 1Password helper stopped — try again.',
+      'sdk-error': '1Password couldn’t complete the check — try again.',
+    };
+    let verify = model.onFieldInput(model.createVerifyModel(), settings.onePasswordAccount ?? '');
+    verify = { ...verify, token: 0 }; // the seed edit is not a user supersession
+    const renderVerify = () => {
+      const projection = model.view(verify);
+      verifyButton.disabled = projection.buttonDisabled;
+      if (projection.normalizeFieldTo !== null) onePasswordAccount.value = projection.normalizeFieldTo;
+      verifyState.textContent = projection.phase === 'pending' ? 'Checking with 1Password…'
+        : projection.phase === 'connected' ? 'Connected.'
+          : projection.phase === 'error' ? (VERIFY_ERRORS[projection.kind] ?? VERIFY_ERRORS['sdk-error'])
+            : '';
+    };
     onePasswordEnabled.checked = settings.onePasswordEnabled ?? false;
     onePasswordAccount.value = settings.onePasswordAccount ?? '';
     onePasswordAccount.disabled = !onePasswordEnabled.checked;
+    renderVerify();
     onePasswordEnabled.addEventListener('change', async () => {
       onePasswordAccount.disabled = !onePasswordEnabled.checked;
       await window.bowserPages.settings.set({
@@ -170,11 +198,39 @@
         onePasswordAccount.focus();
       }
     });
+    onePasswordAccount.addEventListener('input', () => {
+      verify = model.onFieldInput(verify, onePasswordAccount.value);
+      renderVerify();
+    });
     onePasswordAccount.addEventListener('change', async () => {
       const next = await window.bowserPages.settings.set({
         onePasswordAccount: onePasswordAccount.value,
       });
       onePasswordAccount.value = next.onePasswordAccount ?? '';
+    });
+    verifyButton.addEventListener('click', async () => {
+      const before = verify;
+      verify = model.onVerifyClick(verify);
+      if (verify === before) return; // empty field or already pending
+      renderVerify();
+      const token = verify.token;
+      // Verify persists first main-side (onepassword-verify-flow.js) and
+      // echoes the normalized probed value; a stale reply means another
+      // window changed the stored account mid-flight and is dropped.
+      const reply = await window.bowserPages.settings.onePasswordVerify(onePasswordAccount.value)
+        .catch(() => ({ ok: false, kind: 'sdk-error', account: onePasswordAccount.value.trim() }));
+      verify = model.onReply(verify, { ...reply, token });
+      renderVerify();
+    });
+    // App presence is a soft hint — Verify above is the authoritative check.
+    window.bowserPages.settings.onePasswordStatus().then(({ appDetected }) => {
+      appHint.textContent = appDetected
+        ? 'Installed on this Mac.'
+        : 'Blanc couldn’t find the 1Password app in Applications — if it’s installed elsewhere, Verify below still works.';
+      openAppButton.hidden = !appDetected;
+    }).catch(() => { appHint.textContent = ''; });
+    openAppButton.addEventListener('click', () => {
+      window.bowserPages.settings.openOnePasswordApp().catch(() => {});
     });
   } else {
     document.getElementById('onePasswordSettings')?.remove();

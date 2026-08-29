@@ -55,6 +55,7 @@ const {
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
   CHROME_PERMISSION_URL,
+  CHROME_FILL_STATUS_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
@@ -166,6 +167,10 @@ const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { createOnePasswordClient } = require('./onepassword-client');
 const { isOnePasswordAvailable } = require('./onepassword-availability');
 const { createCredentialFillController } = require('./credential-fill-controller');
+const { createFillStatusSurface } = require('./fill-status-surface');
+const { pickerAnchorPoint, parseWebUrl: parseOnePasswordWebUrl, FILL_WORLD_ID } = require('./onepassword-policy');
+const { buildHintProbeScript, configTransition, createFillHintScheduler } = require('./fill-hint');
+const { FILL_KINDS, MODES: FILL_MODES, FILL_COPY } = require('./fill-status-kinds');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
@@ -195,6 +200,10 @@ const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+// Test-only: the most recent forced fill decision's resolution, so the
+// acceptance keyboard scenarios can assert WHICH verb a real keypress
+// produced. Written solely by showFillStatusForTest's continuation.
+let testFillStatusOutcome = null;
 
 const { AsyncLocalStorage } = require('node:async_hooks');
 const windowRuntimes = require('./window-runtime-registry');
@@ -909,6 +918,8 @@ async function sleepTab(id, { broadcast = true } = {}) {
   const tab = tabs.get(id);
   const wc = liveContents(tab);
   if (!tab || !wc || tab.asleep || tab.sleeping || tab.waking) return false;
+  // Quieting discards the renderer the hint was probed in.
+  fillHintScheduler?.clearTab(tab);
 
   const epochAtProbe = tab.navEpoch;
   let snapshot;
@@ -1810,6 +1821,99 @@ function detachPermissionView() {
   }
 }
 
+// --- 1Password fill capsule view (fill-status.html) ---------------------
+// Same lifecycle family as the permission view above, with one deliberate
+// difference: a dedicated narrow preload (fill-status-preload.js) instead of
+// the rich browserAPI bridge, and explicit readiness wiring — loadURL
+// rejection and did-fail-load are real failure inputs to the surface's
+// first-visible-presentation boundary, which the permission precedent never
+// needed (spec §1, plan Task 6).
+
+function fillStatusViewBounds() {
+  const { width, height } = rt().window.getContentBounds();
+  const w = Math.min(560, Math.max(0, width - 24));
+  // Title row + up-to-two-line body + padding + the 12px bottom margin the
+  // document draws. The capsule bottom-anchors inside this band, so keep it
+  // as tight as the two-line case allows — the view intercepts clicks over
+  // the page for its whole bounds (same rule as the find capsule).
+  const h = 88;
+  return { x: Math.round((width - w) / 2), y: Math.max(0, height - h), width: w, height: h };
+}
+
+function ensureFillStatusView() {
+  if (rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()) return rt().fillStatusView;
+  const owner = rt();
+  owner.fillStatusViewLoaded = false;
+  owner.fillStatusView = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      preload: path.join(__dirname, 'fill-status-preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  const view = owner.fillStatusView;
+  // Capture the id up front, like ensurePermissionView's wcId: it may be
+  // unreadable by the time a destroy callback runs, and every signal must
+  // carry THIS view's identity so a recreated view's late failure can't
+  // touch its replacement's message (surface behavior 5c).
+  const wcId = view.webContents.id;
+  windowRuntimes.registerChromeSurface(owner, wcId);
+  view.webContents.once('destroyed', bindWindowRuntime(owner, () => {
+    windowRuntimes.unregisterChromeSurface(wcId);
+    if (rt().fillStatusView === view) {
+      rt().fillStatusView = null;
+      rt().fillStatusViewAttached = false;
+      rt().fillStatusViewLoaded = false;
+    }
+    fillStatusSurface?.viewGone(owner.id, wcId);
+  }));
+  view.webContents.on('render-process-gone', bindWindowRuntime(owner, () => {
+    rt().fillStatusViewLoaded = false;
+    fillStatusSurface?.viewGone(owner.id, wcId);
+  }));
+  view.setBackgroundColor('#00000000');
+  lockPrivilegedNavigation(view.webContents, CHROME_FILL_STATUS_URL);
+  view.webContents.loadURL(CHROME_FILL_STATUS_URL)
+    .catch(bindWindowRuntime(owner, () => fillStatusSurface?.loadFailed(owner.id, wcId)));
+  view.webContents.on('did-fail-load', bindWindowRuntime(owner, (_e, _code, _desc, _url, isMainFrame) => {
+    if (isMainFrame) fillStatusSurface?.loadFailed(owner.id, wcId);
+  }));
+  // `on`, not `once`: a crashed-and-reloaded document must re-signal
+  // readiness so a queued show can still replay.
+  view.webContents.on('did-finish-load', bindWindowRuntime(owner, () => {
+    rt().fillStatusViewLoaded = true;
+    fillStatusSurface?.rendererReady(owner.id, wcId);
+  }));
+  return view;
+}
+
+/** Keep the capsule above the tab view; permission prompts stay above it
+ * (call restackPermissionView after this wherever both apply). */
+function restackFillStatusView() {
+  if (rt().fillStatusViewAttached && rt().fillStatusView && hasLiveWindow()) {
+    rt().window.contentView.addChildView(rt().fillStatusView);
+  }
+}
+
+function attachFillStatusView() {
+  if (!hasLiveWindow()) return;
+  const view = ensureFillStatusView();
+  view.setBounds(fillStatusViewBounds());
+  rt().window.contentView.addChildView(view);
+  rt().fillStatusViewAttached = true;
+  restackPermissionView();
+}
+
+function detachFillStatusView() {
+  if (!rt().fillStatusViewAttached) return;
+  rt().fillStatusViewAttached = false;
+  if (hasLiveWindow() && rt().fillStatusView) {
+    rt().window.contentView.removeChildView(rt().fillStatusView);
+  }
+}
+
 function createOverlay() {
   const owner = rt();
   // A menu open when the previous window died may never have fired its close
@@ -1965,6 +2069,7 @@ function refocusOverlayAfterMenu() {
 
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
+  bumpSurfaceGeneration();
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
   hideUtilitySheet({ refocusContent: false });
@@ -1975,6 +2080,8 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   rt().overlayPrefill = prefill ?? null;
   rt().overlayPurpose = purpose ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
+  // Stack order: tab < fill capsule < overlay < permission prompt.
+  restackFillStatusView();
   rt().window.contentView.addChildView(rt().overlayView);
   restackPermissionView();
   if (rt().overlayExitTimer) {
@@ -2026,6 +2133,7 @@ const OVERLAY_RETRACT_MS = 200;
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
   if (!rt().overlayMode) return;
+  bumpSurfaceGeneration();
   const closingMode = rt().overlayMode;
   const closingPurpose = rt().overlayPurpose;
   const closingTrigger = rt().shieldTrigger;
@@ -2249,6 +2357,7 @@ function showUtilityPage(url) {
     sheet = createUtilitySheet();
   }
   if (!sheet) return;
+  bumpSurfaceGeneration(runtime);
   runtime.utilitySheetUrl = url;
   runtime.utilitySheetEscapeArmed = false;
   scheduleUtilitySheetNavigation(runtime, sheet, url);
@@ -2266,6 +2375,7 @@ function showUtilityPage(url) {
 function hideUtilitySheet({ refocusContent = true } = {}) {
   const runtime = rt();
   if (!runtime.utilitySheetUrl) return;
+  bumpSurfaceGeneration(runtime);
   runtime.utilitySheetUrl = null;
   runtime.utilitySheetEscapeArmed = false;
   cancelUtilitySheetNavigation(runtime.utilitySheetView);
@@ -2278,6 +2388,52 @@ function hideUtilitySheet({ refocusContent = true } = {}) {
 }
 
 let onePasswordFillController = null;
+// The capsule surface controller (Task 6 wires it); declared here because
+// bumpSurfaceGeneration below must reference it before it exists.
+let fillStatusSurface = null;
+
+/** The single mutator for runtime.surfaceGeneration — every working-surface
+ * transition (overlay, utility sheet, Glance, permission arrival, real tab
+ * switch) funnels through here so the 1Password fill flow's invalidation
+ * and the capsule's dismissal can never disagree. Never inline the
+ * increment at a call site. */
+function bumpSurfaceGeneration(runtime = rt()) {
+  runtime.surfaceGeneration += 1;
+  fillStatusSurface?.invalidatePending(runtime.id);
+}
+
+// --- Ambient fill hint (spec §5) ---------------------------------------
+// Structure-only probe on the ACTIVE tab; the scheduler owns epochs, the
+// identity token, and the single recheck (fill-hint.js, unit-tested).
+// Probe callbacks resolve outside any ALS binding, so the hint write
+// rebinds the tab's own runtime before broadcasting — same rule as the
+// capture broadcasts.
+const HINT_PROBE_SCRIPT = ONE_PASSWORD_AVAILABLE ? buildHintProbeScript() : null;
+const fillHintScheduler = !ONE_PASSWORD_AVAILABLE ? null : createFillHintScheduler({
+  runProbe: (tab) => liveContents(tab).executeJavaScriptInIsolatedWorld(
+    FILL_WORLD_ID, [{ code: HINT_PROBE_SCRIPT }]
+  ),
+  isEligible: (tab) => {
+    const wc = liveContents(tab);
+    if (!wc || wc.isDestroyed() || tab.asleep) return false;
+    const { onePasswordEnabled, onePasswordAccount } = settings.getSettings();
+    if (!onePasswordEnabled || !String(onePasswordAccount ?? '').trim()) return false;
+    const url = wc.getURL();
+    if (!parseOnePasswordWebUrl(url) || isUtilityUrl(url)) return false;
+    const runtime = windowRuntimes.runtimeForTab(tab.id);
+    return runtime?.activeTabId === tab.id; // private tabs eligible; quiet excluded above
+  },
+  tabEpoch: (tab) => tab.navEpoch,
+  contentsToken: (tab) => liveContents(tab)?.id ?? null,
+  onHint: (tab, hinted) => {
+    if ((tab.fillHint === true) === hinted) return;
+    tab.fillHint = hinted;
+    const runtime = windowRuntimes.runtimeForTab(tab.id);
+    if (runtime) withWindowRuntime(runtime, () => broadcastTabs());
+  },
+  setTimeout,
+  clearTimeout,
+});
 
 function captureOnePasswordTarget(runtime) {
   if (!runtime || !runtime.window || runtime.window.isDestroyed()) return null;
@@ -2303,31 +2459,113 @@ function isOnePasswordTargetCurrent(target) {
   if (!target?.runtime || target.runtime.id !== target.runtimeId) return false;
   if (!target.window || target.window.isDestroyed()) return false;
   if (target.runtime.activeTabId !== target.tabId) return false;
+  if (target.surfaceGeneration !== undefined
+      && target.surfaceGeneration !== target.runtime.surfaceGeneration) return false;
   const tab = tabs.get(target.tabId);
   if (!tab || tab.navEpoch !== target.navEpoch) return false;
   const wc = liveContents(tab);
   return wc === target.webContents && !wc.isDestroyed() && wc.getURL() === target.url;
 }
 
-function prepareOnePasswordTarget(runtime) {
-  return withWindowRuntime(runtime, () => {
+/** True when the ONLY reason the target is stale is a surface transition —
+ * the user opened ⌘L/a sheet/Glance, switched tabs (even away and back), or
+ * a permission prompt arrived. Such aborts are silent: the user chose to
+ * leave (spec: Flow-level invalidation). */
+function onePasswordSurfaceChanged(target) {
+  if (!target?.runtime || target.surfaceGeneration === undefined) return false;
+  return target.surfaceGeneration !== target.runtime.surfaceGeneration;
+}
+
+function prepareOnePasswordTarget(target) {
+  return withWindowRuntime(target.runtime, () => {
     hideOverlay({ refocusContent: false });
     hideUtilitySheet({ refocusContent: false });
+    // Capture AFTER the controller-owned cleanup above: a palette-started
+    // fill closes the overlay as part of starting, which must not
+    // self-invalidate (spec: Flow-level invalidation).
+    target.surfaceGeneration = target.runtime.surfaceGeneration;
   });
+}
+
+/** Native-dialog fallback for the capsule surface: the only main-side
+ * consumer of FILL_COPY. Decision kinds keep Cancel as default/cancel id
+ * (today's `defaultId: 1` safety); notices are a single OK. */
+async function showFillFallbackDialog(target, kind) {
+  if (!target?.window || target.window.isDestroyed?.()) return 'cancel';
+  const entry = FILL_COPY[kind];
+  const def = FILL_KINDS[kind];
+  if (!entry || !def) return 'cancel';
+  const decision = def.mode === FILL_MODES.DECISION;
+  const { response } = await dialog.showMessageBox(target.window, {
+    type: decision ? 'question' : 'warning',
+    title: entry.title,
+    message: entry.title,
+    detail: entry.body,
+    buttons: decision ? [entry.primaryLabel, entry.cancelLabel] : ['OK'],
+    defaultId: decision ? 1 : 0,
+    cancelId: decision ? 1 : 0,
+    noLink: true,
+  });
+  return decision && response === 0 ? 'primary' : 'cancel';
+}
+
+/** CSS field rect → window anchor, read against the tab's CURRENT view
+ * bounds and zoom (vertical tabs, Glance, and non-100% zoom all move the
+ * mapping). Null when the tab/view no longer matches the captured target —
+ * the controller then falls back to the island pill anchor. */
+function onePasswordToWindowPoint(target, rect) {
+  const tab = tabs.get(target.tabId);
+  const view = tab?.view;
+  const wc = liveContents(tab);
+  if (!view || !wc || wc !== target.webContents || wc.isDestroyed()) return null;
+  return pickerAnchorPoint({ rect, viewBounds: view.getBounds(), zoomFactor: wc.getZoomFactor() });
+}
+
+function getFillStatusSurface() {
+  if (!ONE_PASSWORD_AVAILABLE) return null;
+  if (!fillStatusSurface) {
+    fillStatusSurface = createFillStatusSurface({
+      ensureView: (target) => withWindowRuntime(target.runtime, () => {
+        const view = ensureFillStatusView();
+        return view
+          ? {
+            webContents: view.webContents,
+            id: view.webContents.id,
+            loaded: rt().fillStatusViewLoaded === true,
+          }
+          : null;
+      }),
+      attach: (target) => withWindowRuntime(target.runtime, () => attachFillStatusView()),
+      hide: (target) => withWindowRuntime(target.runtime, () => detachFillStatusView()),
+      showFallbackDialog: showFillFallbackDialog,
+      restoreFocus: (target) => {
+        // Reason-aware: the surface only calls this on plain dismissals,
+        // and a stale target (page changed, surface replaced) no-ops.
+        if (isOnePasswordTargetCurrent(target)) target.webContents.focus();
+      },
+      setTimeout,
+      clearTimeout,
+    });
+  }
+  return fillStatusSurface;
 }
 
 function getOnePasswordFillController() {
   if (!ONE_PASSWORD_AVAILABLE) return null;
   if (!onePasswordFillController) {
+    const surface = getFillStatusSurface();
     onePasswordFillController = createCredentialFillController({
       broker: onePasswordBroker,
       Menu,
-      dialog,
       getSettings: settings.getSettings,
       captureTarget: captureOnePasswordTarget,
       isTargetCurrent: isOnePasswordTargetCurrent,
+      surfaceChanged: onePasswordSurfaceChanged,
       prepareTarget: prepareOnePasswordTarget,
       openSettings: () => openInternalPage('blanc://settings/'),
+      notify: (target, kind) => surface.notice(target, kind),
+      confirm: (target, kind) => surface.decision(target, kind),
+      toWindowPoint: onePasswordToWindowPoint,
     });
   }
   return onePasswordFillController;
@@ -2435,6 +2673,9 @@ function serializeTabs() {
         // Capture projection only — the record (anchors, frame counts) is
         // main-process-only, like every capture-state internal (spec §8).
         capture: tab.capture ?? { audio: false, video: false },
+        // Ambient login-form hint — display state only, never persisted
+        // or synced (spec §5).
+        fillHint: tab.fillHint === true,
       };
       // Whether ads are allow-listed here. Derived rather than stored: the
       // exception list is edited from Settings and the slash commands alike,
@@ -2849,6 +3090,9 @@ function resizeActiveView() {
   if (rt().permissionViewAttached && rt().permissionView) {
     rt().permissionView.setBounds(permissionViewBounds());
   }
+  if (rt().fillStatusViewAttached && rt().fillStatusView) {
+    rt().fillStatusView.setBounds(fillStatusViewBounds());
+  }
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) sheet.view.setBounds(layout.utilityBounds);
   // The BrowserWindow renderer and native child views must move in the same
@@ -2959,6 +3203,18 @@ function installGlanceShortcut(webContents, owner = rt()) {
 function installChromeShortcuts(webContents, owner = rt()) {
   installVerticalTabsShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
+  // Escape dismisses a visible fill capsule no matter which surface holds
+  // focus (the capsule's own document also handles Escape when focused).
+  // Guarded by this window's attach flag, so other windows' messages and
+  // ordinary Escape uses are untouched.
+  if (ONE_PASSWORD_AVAILABLE) {
+    webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+      if (input.type !== 'keyDown' || input.key !== 'Escape') return;
+      if (!rt().fillStatusViewAttached) return;
+      event.preventDefault();
+      fillStatusSurface?.invalidatePending(rt().id);
+    }));
+  }
   installPlatformMainMenuShortcut({
     webContents,
     Menu,
@@ -3738,6 +3994,13 @@ initTabView({
   windowRuntimes,
   bindWindowRuntime,
   tabIdByWebContentsId,
+  // Optional (not in tab-view's required list): active-tab main-frame and
+  // same-document navigations dismiss that window's fill capsule.
+  dismissFillStatusForNavigation: (owner) => fillStatusSurface?.invalidatePending(owner.id),
+  // Optional ambient-hint triggers (fill-hint.js owns all revalidation).
+  onFillHintLoad: (tab) => fillHintScheduler?.notePageLoad(tab),
+  onFillHintInPageNavigation: (tab) => fillHintScheduler?.noteInPageNavigation(tab),
+  onFillHintNavigationStart: (tab) => fillHintScheduler?.clearTab(tab),
   broadcastTabs,
   scheduleBroadcastTabs,
   scheduleSampleTint,
@@ -3945,6 +4208,10 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // Re-selecting the active tab is a no-op.
   if (id === rt().activeTabId) return;
+  // A real tab switch is a surface transition: without this, switching away
+  // and back during a broker await would restore every current-state
+  // predicate and let the fill proceed on a tab the user left.
+  bumpSurfaceGeneration();
   const promotingGlance = id === rt().glanceTabId;
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
@@ -3999,6 +4266,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   }
 
   rt().activeTabId = id;
+  fillHintScheduler?.noteActivated(next);
   if (prevId && prevId !== id) rt().tabsWantingAddressBarFocus.delete(prevId);
   const shouldFocusAddress = focusAddress && !focusContent;
   if (shouldFocusAddress) {
@@ -4019,6 +4287,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // but a race must never paint a tab over either floating layer).
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
+  restackFillStatusView(); // below the overlay and permission prompt
   if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
   restackPermissionView();
   resizeActiveView();
@@ -4070,12 +4339,14 @@ async function setGlanceTab(id) {
     previous.lastActiveAt = Date.now();
   }
 
+  bumpSurfaceGeneration();
   rt().glanceTabId = id;
   tab.view.setVisible(true);
   rt().window.contentView.addChildView(tab.view);
   // Floating trusted surfaces must stay above both page panes.
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
+  restackFillStatusView(); // below the overlay and permission prompt
   if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
   restackPermissionView();
   resizeActiveView();
@@ -4088,6 +4359,7 @@ async function setGlanceTab(id) {
 function closeGlance({ focusContent = true } = {}) {
   const tab = activeGlanceTab();
   if (!rt().glanceTabId) return false;
+  bumpSurfaceGeneration();
   rt().glanceTabId = null;
   if (tab?.view && hasLiveWindow()) {
     rt().window.contentView.removeChildView(tab.view);
@@ -4299,6 +4571,7 @@ function closeTab(id) {
   // A user close during a sleep teardown wins: do not rewire a tab going away.
   sleepTeardownInProgress = false;
   const tab = tabs.get(id);
+  if (tab) fillHintScheduler?.clearTab(tab);
   if (!tab || windowRuntimes.runtimeForTab(id) !== rt()) return;
   forgetTabWebContentsIds(id);
 
@@ -4815,6 +5088,9 @@ function isTrustedChromeSender(event) {
       : null,
     rt().permissionView && !rt().permissionView.webContents.isDestroyed()
       ? { webContents: rt().permissionView.webContents, url: CHROME_PERMISSION_URL }
+      : null,
+    rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
+      ? { webContents: rt().fillStatusView.webContents, url: CHROME_FILL_STATUS_URL }
       : null,
   ]);
 }
@@ -5958,6 +6234,11 @@ function createMainWindowForRuntime(runtime) {
     liveViewContents(runtime.overlayView)?.close();
     liveViewContents(runtime.utilitySheetView)?.close();
     liveViewContents(runtime.permissionView)?.close();
+    // A pending fill decision must not survive its window invisibly and
+    // keep activeFlow occupied — release it (covers the native-fallback
+    // case too, where no view exists), then destroy the capsule view.
+    fillStatusSurface?.invalidatePending(runtime.id);
+    liveViewContents(runtime.fillStatusView)?.close();
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
       // Named Workspaces: a real (non-primary) window close is a real,
@@ -6672,6 +6953,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // renderer is gone would persist a decision for a page the user cannot see.
       // The payload is retained so a still-loading prompt view can replay it.
       owner.permissionPrompts.set(promptId, { resolve, tabId: tab?.id ?? null, payload });
+      // A prompt arrival replaces the user's working surface for the fill
+      // flow too — invalidate a mid-broker fill, not just a visible capsule.
+      bumpSurfaceGeneration(owner);
       bindWindowRuntime(owner, () => {
         attachPermissionView();
         rt().permissionView.webContents.send('permissions:prompt', payload);
@@ -6757,6 +7041,25 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (!frame || frame !== event.sender.mainFrame) return null;
     return mediaQueryState(event.sender.session, frame.url, mediaType);
   });
+
+  if (ONE_PASSWORD_AVAILABLE) {
+    // Capsule replies: chromeOn already proved the sender is one of this
+    // runtime's registered chrome surfaces; the surface then enforces the
+    // requestId echo and per-kind verb set.
+    chromeOn('fill:reply', (event, payload) => {
+      // chromeOn proved the sender is one of THIS runtime's trusted chrome
+      // surfaces; require it to be this runtime's capsule view specifically,
+      // and hand the surface the sender's exact identity so a reply can only
+      // resolve a record owned by that same window and view.
+      const view = rt().fillStatusView;
+      const senderIsCapsule = view && !view.webContents.isDestroyed()
+        && event.sender === view.webContents;
+      fillStatusSurface?.handleReply(
+        senderIsCapsule ? { runtimeId: rt().id, viewId: view.webContents.id } : null,
+        payload,
+      );
+    });
+  }
 
   chromeOn('permissions:respond', (_e, { id, allow }) => {
     const sender = rt(); // the sender's runtime, established by chromeOn
@@ -6919,6 +7222,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }),
     },
     onePasswordAvailable: () => ONE_PASSWORD_AVAILABLE,
+    // Settings status card (Task 9): presence is a hint, Verify is truth.
+    onePasswordAppDetected: () => {
+      try { return fs.existsSync('/Applications/1Password.app'); } catch { return false; }
+    },
+    onePasswordVerify: (probed) => onePasswordBroker.verifyAccount(probed),
+    openOnePasswordApp: () => { shell.openPath('/Applications/1Password.app').catch(() => {}); },
   });
 
   const configuredProfileSessions = new Set([DEFAULT_PROFILE_ID]);
@@ -6990,6 +7299,40 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      // Fill-capsule hooks: drive the REAL surface (view creation, IPC,
+      // readiness) against a real captured target — not a reimplementation.
+      showFillStatusForTest: (kind) => {
+        const surface = getFillStatusSurface();
+        const target = captureOnePasswordTarget(rt());
+        if (!surface || !target) return null;
+        target.surfaceGeneration = target.runtime.surfaceGeneration;
+        const def = FILL_KINDS[kind];
+        if (!def) return null;
+        if (def.mode === FILL_MODES.DECISION) {
+          testFillStatusOutcome = null;
+          surface.decision(target, kind).then((outcome) => { testFillStatusOutcome = outcome; });
+          return { mode: 'decision' };
+        }
+        surface.notice(target, kind);
+        return { mode: 'notice' };
+      },
+      fillStatusState: () => ({
+        lastOutcome: testFillStatusOutcome,
+        showing: fillStatusSurface?.isShowing() ?? false,
+        attached: rt().fillStatusViewAttached === true,
+        loaded: rt().fillStatusViewLoaded === true,
+        viewFocused: rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
+          ? rt().fillStatusView.webContents.isFocused()
+          : false,
+        viewContentsId: rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
+          ? rt().fillStatusView.webContents.id
+          : null,
+      }),
+      readFillStatusDom: (script) => {
+        const wc = rt().fillStatusView?.webContents;
+        if (!wc || wc.isDestroyed()) return null;
+        return wc.executeJavaScript(String(script));
+      },
       probeOnePasswordPackage: () => ONE_PASSWORD_AVAILABLE
         ? onePasswordBroker.probePackage()
         : Promise.resolve({ available: false, loaded: false, processCount: 0 }),
@@ -7094,10 +7437,26 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       s.onePasswordAccount,
     ]);
     if (nextOnePasswordConfigurationKey !== onePasswordConfigurationKey) {
+      const [prevEnabled, prevAccount] = JSON.parse(onePasswordConfigurationKey);
       onePasswordConfigurationKey = nextOnePasswordConfigurationKey;
       // A disable/account change ends the old account-scoped SDK client
       // immediately; no authorization handle survives under a new setting.
       onePasswordBroker?.stop();
+      // Ambient-hint transitions attach HERE, the central fan-out — every
+      // writer (Settings toggle, Verify's persist-first save, any future
+      // setSettings caller) flows through this listener by construction.
+      const transition = configTransition(
+        { onePasswordEnabled: prevEnabled, onePasswordAccount: prevAccount },
+        { onePasswordEnabled: s.onePasswordEnabled, onePasswordAccount: s.onePasswordAccount },
+      );
+      if (transition === 'cleared') {
+        fillHintScheduler?.clearAll();
+      } else if (transition === 'became-eligible' && fillHintScheduler) {
+        for (const runtime of windowRuntimes.all()) {
+          const active = runtime.activeTabId != null ? tabs.get(runtime.activeTabId) : null;
+          if (active) withWindowRuntime(runtime, () => fillHintScheduler.noteConfigChanged(active));
+        }
+      }
     }
     setAdBlockEnabled(s.adblockEnabled);
     applyTheme();
