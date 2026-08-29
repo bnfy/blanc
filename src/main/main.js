@@ -200,6 +200,10 @@ const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
+// Test-only: the most recent forced fill decision's resolution, so the
+// acceptance keyboard scenarios can assert WHICH verb a real keypress
+// produced. Written solely by showFillStatusForTest's continuation.
+let testFillStatusOutcome = null;
 
 const { AsyncLocalStorage } = require('node:async_hooks');
 const windowRuntimes = require('./window-runtime-registry');
@@ -7039,10 +7043,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // runtime's registered chrome surfaces; the surface then enforces the
     // requestId echo and per-kind verb set.
     chromeOn('fill:reply', (event, payload) => {
-      const senderOk = rt().fillStatusView
-        && !rt().fillStatusView.webContents.isDestroyed()
-        && event.sender === rt().fillStatusView.webContents;
-      fillStatusSurface?.handleReply(senderOk === true, payload);
+      // chromeOn proved the sender is one of THIS runtime's trusted chrome
+      // surfaces; require it to be this runtime's capsule view specifically,
+      // and hand the surface the sender's exact identity so a reply can only
+      // resolve a record owned by that same window and view.
+      const view = rt().fillStatusView;
+      const senderIsCapsule = view && !view.webContents.isDestroyed()
+        && event.sender === view.webContents;
+      fillStatusSurface?.handleReply(
+        senderIsCapsule ? { runtimeId: rt().id, viewId: view.webContents.id } : null,
+        payload,
+      );
     });
   }
 
@@ -7294,13 +7305,15 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         const def = FILL_KINDS[kind];
         if (!def) return null;
         if (def.mode === FILL_MODES.DECISION) {
-          surface.decision(target, kind).then(() => {});
+          testFillStatusOutcome = null;
+          surface.decision(target, kind).then((outcome) => { testFillStatusOutcome = outcome; });
           return { mode: 'decision' };
         }
         surface.notice(target, kind);
         return { mode: 'notice' };
       },
       fillStatusState: () => ({
+        lastOutcome: testFillStatusOutcome,
         showing: fillStatusSurface?.isShowing() ?? false,
         attached: rt().fillStatusViewAttached === true,
         loaded: rt().fillStatusViewLoaded === true,

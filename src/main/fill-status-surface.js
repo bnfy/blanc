@@ -155,8 +155,15 @@ function createFillStatusSurface({
       return new Promise((resolve) => { show(target, kind, MODES.DECISION, resolve); });
     },
 
-    handleReply(senderOk, payload) {
-      if (senderOk !== true || !active || active.fallingBack) return;
+    /** senderIdentity: {runtimeId, viewId} of the VERIFIED sending capsule
+     * view (or null when sender verification failed). A reply resolves the
+     * active record only when the sender IS that record's own view — a
+     * different window's genuine capsule holds trusted status but no
+     * authority over another window's decision (security review P1). */
+    handleReply(senderIdentity, payload) {
+      if (!senderIdentity || !active || active.fallingBack) return;
+      if (senderIdentity.runtimeId !== active.runtimeId
+          || senderIdentity.viewId !== active.viewId) return;
       const requestId = payload?.requestId;
       const verb = payload?.verb;
       if (requestId !== active.requestId) return;

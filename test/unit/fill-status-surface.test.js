@@ -55,6 +55,9 @@ function harness({
 const shown = (sent) => sent.filter((m) => m.channel === 'fill:show');
 const hidden = (sent) => sent.filter((m) => m.channel === 'fill:hide');
 const tick = () => new Promise((resolve) => setImmediate(resolve));
+// The harness target's window and its capsule view — the identity a reply
+// must carry to resolve that window's record.
+const CAPSULE_ID = { runtimeId: 11, viewId: 7 };
 
 test('decision sends a monotonically increasing requestId and resolves from a matching reply', async () => {
   const { surface, target, sent, calls } = harness();
@@ -62,14 +65,14 @@ test('decision sends a monotonically increasing requestId and resolves from a ma
   assert.equal(shown(sent).length, 1);
   const { kind, mode, requestId } = shown(sent)[0].payload;
   assert.deepEqual({ kind, mode }, { kind: 'confirm-heuristic', mode: 'decision' });
-  surface.handleReply(true, { requestId, verb: 'fill' });
+  surface.handleReply(CAPSULE_ID, { requestId, verb: 'fill' });
   assert.equal(await p, 'primary');
   assert.equal(calls.restoreFocus, 1);
 
   const p2 = surface.decision(target, 'setup-enable');
   const second = shown(sent)[1].payload.requestId;
   assert.ok(second > requestId, 'requestId must increase');
-  surface.handleReply(true, { requestId: second, verb: 'cancel' });
+  surface.handleReply(CAPSULE_ID, { requestId: second, verb: 'cancel' });
   assert.equal(await p2, 'cancel');
 });
 
@@ -77,15 +80,15 @@ test('stale, unknown, and wrong-verb replies are ignored', async () => {
   const { surface, target, sent } = harness();
   const p = surface.decision(target, 'confirm-heuristic');
   const { requestId } = shown(sent)[0].payload;
-  surface.handleReply(true, { requestId: requestId - 1, verb: 'fill' }); // stale
-  surface.handleReply(true, { requestId: requestId + 5, verb: 'fill' }); // unknown
-  surface.handleReply(true, { requestId, verb: 'open-settings' }); // not in this kind's verbs
-  surface.handleReply(true, { requestId, verb: 'dismiss' }); // notice verb on a decision
+  surface.handleReply(CAPSULE_ID, { requestId: requestId - 1, verb: 'fill' }); // stale
+  surface.handleReply(CAPSULE_ID, { requestId: requestId + 5, verb: 'fill' }); // unknown
+  surface.handleReply(CAPSULE_ID, { requestId, verb: 'open-settings' }); // not in this kind's verbs
+  surface.handleReply(CAPSULE_ID, { requestId, verb: 'dismiss' }); // notice verb on a decision
   let settled = false;
   p.then(() => { settled = true; });
   await tick();
   assert.equal(settled, false, 'decision must still be pending');
-  surface.handleReply(true, { requestId, verb: 'cancel' });
+  surface.handleReply(CAPSULE_ID, { requestId, verb: 'cancel' });
   assert.equal(await p, 'cancel');
 });
 
@@ -93,13 +96,30 @@ test('a reply failing the sender check is ignored', async () => {
   const { surface, target, sent } = harness();
   const p = surface.decision(target, 'confirm-heuristic');
   const { requestId } = shown(sent)[0].payload;
-  surface.handleReply(false, { requestId, verb: 'fill' });
+  surface.handleReply(null, { requestId, verb: 'fill' });
   let settled = false;
   p.then(() => { settled = true; });
   await tick();
   assert.equal(settled, false);
-  surface.handleReply(true, { requestId, verb: 'cancel' });
+  surface.handleReply(CAPSULE_ID, { requestId, verb: 'cancel' });
   await p;
+});
+
+test("another window's trusted capsule cannot resolve this window's decision", async () => {
+  const { surface, target, sent } = harness();
+  const p = surface.decision(target, 'confirm-heuristic');
+  const { requestId } = shown(sent)[0].payload;
+  // Window B's capsule is a verified, trusted chrome surface — but not the
+  // active record's view. Correct requestId and verb must still be ignored.
+  surface.handleReply({ runtimeId: 42, viewId: 9 }, { requestId, verb: 'fill' });
+  surface.handleReply({ runtimeId: 11, viewId: 9 }, { requestId, verb: 'fill' }); // same window, stale view
+  surface.handleReply({ runtimeId: 42, viewId: 7 }, { requestId, verb: 'fill' }); // right view id, wrong window
+  let settled = false;
+  p.then(() => { settled = true; });
+  await tick();
+  assert.equal(settled, false, 'only the owning capsule may resolve the decision');
+  surface.handleReply(CAPSULE_ID, { requestId, verb: 'cancel' });
+  assert.equal(await p, 'cancel');
 });
 
 test('readiness deadline before first presentation answers via the native fallback', async () => {
@@ -128,7 +148,7 @@ test('queued-show replay: rendererReady resends the original requestId, presents
   clock.fireAll(); // any leftover deadline must be inert
   await tick();
   assert.equal(calls.fallback.length, 0, 'presented message must not fall back');
-  surface.handleReply(true, { requestId, verb: 'fill' });
+  surface.handleReply(CAPSULE_ID, { requestId, verb: 'fill' });
   assert.equal(await p, 'primary');
 });
 
@@ -178,7 +198,7 @@ test('cross-window death is a no-op', async () => {
   p.then(() => { settled = true; });
   await tick();
   assert.equal(settled, false, 'window A decision must stay pending');
-  surface.handleReply(true, { requestId: shown(sent)[0].payload.requestId, verb: 'cancel' });
+  surface.handleReply(CAPSULE_ID, { requestId: shown(sent)[0].payload.requestId, verb: 'cancel' });
   await p;
 });
 
@@ -281,7 +301,7 @@ test('decisions focus the capsule WebContents on both presentation paths; notice
     const { surface, target, calls, sent } = harness({ loaded: true }); // fast path
     const p = surface.decision(target, 'confirm-heuristic');
     assert.equal(calls.viewFocus, 1, 'fast-path decision must take native focus');
-    surface.handleReply(true, { requestId: shown(sent)[0].payload.requestId, verb: 'cancel' });
+    surface.handleReply(CAPSULE_ID, { requestId: shown(sent)[0].payload.requestId, verb: 'cancel' });
     await p;
   }
   {
@@ -290,7 +310,7 @@ test('decisions focus the capsule WebContents on both presentation paths; notice
     assert.equal(calls.viewFocus ?? 0, 0);
     surface.rendererReady(target.runtimeId, 7);
     assert.equal(calls.viewFocus, 1, 'replayed decision must take native focus');
-    surface.handleReply(true, { requestId: shown(sent)[0].payload.requestId, verb: 'cancel' });
+    surface.handleReply(CAPSULE_ID, { requestId: shown(sent)[0].payload.requestId, verb: 'cancel' });
     await p;
   }
   {
@@ -304,7 +324,7 @@ test('notice replies restore focus and hide', async () => {
   const { surface, target, sent, calls } = harness();
   await surface.notice(target, 'no-match');
   const { requestId } = shown(sent)[0].payload;
-  surface.handleReply(true, { requestId, verb: 'dismiss' });
+  surface.handleReply(CAPSULE_ID, { requestId, verb: 'dismiss' });
   assert.equal(surface.isShowing(), false);
   assert.equal(calls.restoreFocus, 1);
 });

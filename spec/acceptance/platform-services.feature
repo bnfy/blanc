@@ -78,7 +78,11 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     When a fill confirmation question is presented
     Then the capsule is a dialog with initial focus on Cancel
     And Tab cycles focus between Cancel and Fill Login
-    And pressing Escape cancels the question
+    And pressing Enter with Cancel focused resolves the question as cancelled
+    When a fill confirmation question is presented
+    Then pressing Space with Fill Login focused resolves the question as confirmed
+    When a fill confirmation question is presented
+    Then pressing Escape cancels the question
 
   @F38-4 @F38 @desktop @macos @D26
   Scenario: Fill errors persist until dismissed and their announcement survives

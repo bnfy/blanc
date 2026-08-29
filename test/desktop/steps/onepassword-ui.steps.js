@@ -129,6 +129,35 @@ Then('Tab cycles focus between Cancel and Fill Login', async function () {
   assert.equal(await readCapsule(this, 'document.activeElement?.id'), 'fillCancelBtn');
 });
 
+async function waitForOutcome(world, expected) {
+  const deadline = Date.now() + 5000;
+  for (;;) {
+    const state = await world.call('fillStatusState');
+    if (state.lastOutcome === expected && !state.showing && !state.attached) return;
+    if (Date.now() > deadline) {
+      throw new Error(`decision never resolved as ${expected}; last: ${JSON.stringify(state)}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
+Then('pressing Enter with Cancel focused resolves the question as cancelled', async function () {
+  // Tab-cycling above ended back on Cancel; a real Enter must activate ONLY
+  // the focused button — the safe default, never Fill Login.
+  assert.equal(await readCapsule(this, 'document.activeElement?.id'), 'fillCancelBtn');
+  const page = await capsulePage();
+  await page.keyboard.press('Enter');
+  await waitForOutcome(this, 'cancel');
+});
+
+Then('pressing Space with Fill Login focused resolves the question as confirmed', async function () {
+  const page = await capsulePage();
+  await page.keyboard.press('Tab'); // Cancel → Fill Login
+  assert.equal(await readCapsule(this, 'document.activeElement?.id'), 'fillPrimaryBtn');
+  await page.keyboard.press('Space');
+  await waitForOutcome(this, 'primary');
+});
+
 Then('pressing Escape cancels the question', async function () {
   const page = await capsulePage();
   await page.keyboard.press('Escape');
@@ -186,8 +215,13 @@ When('a filled confirmation is presented', async function () {
 });
 
 Then('the confirmation is announced politely', async function () {
-  assert.equal(await readCapsule(this,
-    `document.getElementById('fillLive').getAttribute('role')`), 'status');
+  const dom = await readCapsule(this, `(() => ({
+    role: document.getElementById('fillLive').getAttribute('role'),
+    text: document.getElementById('fillLive').textContent,
+  }))()`);
+  assert.equal(dom.role, 'status');
+  assert.match(dom.text, /Filled from 1Password/,
+    'the success announcement must carry the confirmation title');
 });
 
 Then('the capsule dismisses itself without any interaction', async function () {
