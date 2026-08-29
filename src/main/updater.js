@@ -70,6 +70,10 @@ let manualDownloadPending = false;
 let activeDownloadCancellation = null;
 let downloadProgressLogger = null;
 let downloadStallWatchdog = null;
+// True from the first Authenticode verifier call until update-downloaded/error.
+// A repeated check during this phase can still return a cancellation token, but
+// there are no download-progress events left to feed the stall watchdog.
+let downloadVerificationInProgress = false;
 
 function updaterLogger() {
   return autoUpdater.logger || console;
@@ -77,6 +81,7 @@ function updaterLogger() {
 
 function clearDownloadTracking() {
   activeDownloadCancellation = null;
+  downloadVerificationInProgress = false;
   downloadStallWatchdog?.disarm();
   downloadProgressLogger?.reset();
 }
@@ -112,6 +117,7 @@ const updateChecks = createUpdateCheckCoordinator({
     if (shouldArmDownloadStallWatchdog(result, {
       alreadyDownloading: Boolean(activeDownloadCancellation),
       alreadyDownloaded: updateDownloaded,
+      verificationInProgress: downloadVerificationInProgress,
     })) {
       activeDownloadCancellation = result.cancellationToken;
       downloadProgressLogger?.reset();
@@ -155,6 +161,7 @@ function setupAutoUpdater() {
   installWindowsSignatureVerifier({
     logger: autoUpdater.logger,
     onVerifyStart: () => {
+      downloadVerificationInProgress = true;
       downloadStallWatchdog?.disarm();
       activeDownloadCancellation = null;
     },
