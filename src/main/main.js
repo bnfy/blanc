@@ -7162,6 +7162,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       }),
     },
     onePasswordAvailable: () => ONE_PASSWORD_AVAILABLE,
+    // Settings status card (Task 9): presence is a hint, Verify is truth.
+    onePasswordAppDetected: () => {
+      try { return fs.existsSync('/Applications/1Password.app'); } catch { return false; }
+    },
+    onePasswordVerify: (probed) => onePasswordBroker.verifyAccount(probed),
+    openOnePasswordApp: () => { shell.openPath('/Applications/1Password.app').catch(() => {}); },
   });
 
   const configuredProfileSessions = new Set([DEFAULT_PROFILE_ID]);

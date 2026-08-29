@@ -10,6 +10,7 @@ const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
 const downloads = require('./downloads');
 const settings = require('./settings');
+const { runOnePasswordVerify } = require('./onepassword-verify-flow');
 const supporter = require('./supporter');
 const patron = require('./patron');
 const sync = require('./sync');
@@ -220,6 +221,24 @@ function setupPages(hooks = {}) {
     return clientSettings();
   });
   handle('pages:settings:supporter-activate', 'settings', (key) => patron.activate(key));
+  if (onePasswordAvailable()) {
+    // App presence is a HINT (movable installs false-negative); Verify is
+    // the authoritative check. The verify flow persists first and replies
+    // only exact shapes — see onepassword-verify-flow.js.
+    handle('pages:settings:onepassword-status', 'settings', () => ({
+      appDetected: hooks.onePasswordAppDetected?.() === true,
+    }));
+    handle('pages:settings:onepassword-verify', 'settings', (account) => runOnePasswordVerify({
+      account: typeof account === 'string' ? account : '',
+      saveAccount: (raw) => settings.setSettings({ onePasswordAccount: raw }).onePasswordAccount,
+      readStoredAccount: () => settings.getSettings().onePasswordAccount,
+      brokerVerify: (probed) => hooks.onePasswordVerify(probed),
+    }));
+    handle('pages:settings:open-onepassword-app', 'settings', () => {
+      hooks.openOnePasswordApp?.();
+      return true;
+    });
+  }
 
   // Local-profile identity and destructive confirmation stay in main. The
   // renderer receives only opaque ids, display names, and result messages.
