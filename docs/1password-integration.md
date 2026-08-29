@@ -15,8 +15,9 @@ and cannot create the credential broker.
 2. In 1Password, open **Settings → Developer** and turn on **Integrate with
    1Password SDKs**.
 3. In Blanc, open **Settings → Privacy & Security → 1Password**, turn on
-   **Fill logins from 1Password**, and enter the account name shown at the top
-   of the 1Password sidebar or the account ID.
+   **Fill logins from 1Password**, and enter the email address you sign in to
+   1Password with (an account ID also works). Use **Verify** to confirm it on
+   the spot.
 4. On a website login form, choose **View → Fill Login from 1Password**, press
    **⌥⌘P** on macOS, or run **/1password** from the Island.
 5. Approve Blanc Browser in the 1Password desktop prompt. If several Login

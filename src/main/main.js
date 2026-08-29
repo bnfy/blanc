@@ -1832,7 +1832,11 @@ function detachPermissionView() {
 function fillStatusViewBounds() {
   const { width, height } = rt().window.getContentBounds();
   const w = Math.min(560, Math.max(0, width - 24));
-  const h = 64; // capsule + its 12px bottom margin, drawn by fill-status.html
+  // Title row + up-to-two-line body + padding + the 12px bottom margin the
+  // document draws. The capsule bottom-anchors inside this band, so keep it
+  // as tight as the two-line case allows — the view intercepts clicks over
+  // the page for its whole bounds (same rule as the find capsule).
+  const h = 88;
   return { x: Math.round((width - w) / 2), y: Math.max(0, height - h), width: w, height: h };
 }
 

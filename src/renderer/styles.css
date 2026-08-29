@@ -2908,14 +2908,26 @@ body.fill-status-surface { background: transparent; }
   border-radius: 9px;
 }
 .fill-capsule[hidden] { display: none; }
-.fill-copy { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+/* Title above body: instructions must stay readable, never ellipsize into
+   "Add the account name from t…" (live-gate finding, 2026-08-29). The body
+   wraps to at most two lines; the view height budgets for it. */
+.fill-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
 .fill-title { font-size: 12.5px; color: var(--text); white-space: nowrap; }
 .fill-body {
   font-size: 12px;
+  line-height: 1.35;
   color: var(--text-dim);
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 .fill-body[hidden] { display: none; }
 .fill-capsule button {
@@ -2923,10 +2935,20 @@ body.fill-status-surface { background: transparent; }
   padding: 0 14px;
   border-radius: 7px;
   font-size: 12px;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 #fillPrimaryBtn { background: var(--accent); color: var(--bg); }
 #fillCancelBtn { border: 1px solid var(--border); color: var(--text-dim); }
 #fillCancelBtn:hover { color: var(--text); background: var(--surface); }
+/* Cancel is auto-focused on every decision, so the app-wide 2px focus ring
+   would sit heavy on the capsule at every open (owner preference: no thick
+   focus rings). A hairline ring keeps keyboard focus visible without the
+   double-border look. */
+.fill-capsule button:focus-visible {
+  outline: 1px solid var(--text-dim);
+  outline-offset: 0;
+}
 #fillNoticeDismiss {
   padding: 0;
   width: 26px;

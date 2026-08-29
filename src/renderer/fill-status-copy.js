@@ -17,7 +17,7 @@
     },
     'setup-account': {
       title: 'Add your 1Password account',
-      body: 'Add the account name from the top of the 1Password sidebar, or its account ID, in Settings.',
+      body: 'Add the email address you sign in to 1Password with, in Settings.',
       primaryLabel: 'Open Settings',
       cancelLabel: 'Cancel',
     },
@@ -36,7 +36,7 @@
     'nothing-filled': { title: 'Nothing was filled', body: 'The selected login had no value for the fields Blanc found.' },
     unexpected: { title: '1Password fill stopped', body: 'Nothing was filled. Try again from the login form.' },
     'desktop-unavailable': { title: '1Password isn’t available', body: 'Open the 1Password app and turn on Settings → Developer → Integrate with 1Password SDKs.' },
-    'account-not-found': { title: 'Account not found', body: 'Check the account name or ID in Blanc Settings, then try again.' },
+    'account-not-found': { title: 'Account not found', body: 'Check your 1Password email address in Blanc Settings, then try again.' },
     'not-authorized': { title: '1Password didn’t authorize Blanc', body: 'Unlock 1Password and approve Blanc Browser, then try again.' },
     'session-expired': { title: 'Authorization expired', body: 'Try again to authorize a fresh session.' },
     'timed-out': { title: '1Password timed out', body: 'Nothing was filled. Try again when 1Password is ready.' },

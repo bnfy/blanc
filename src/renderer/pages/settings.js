@@ -166,7 +166,7 @@
     // Settings-local status strings — not capsule copy (that lives in
     // fill-status-copy.js); these describe the Verify action itself.
     const VERIFY_ERRORS = {
-      'account-not-found': 'Account not found — check the name or ID and try again.',
+      'account-not-found': 'Account not found — check your 1Password email address and try again.',
       'not-authorized': '1Password didn’t authorize Blanc. Unlock 1Password, approve Blanc Browser, and try again.',
       'session-expired': 'Authorization expired — try again.',
       'desktop-unavailable': '1Password isn’t available. Open the app and turn on Settings → Developer → Integrate with 1Password SDKs.',
