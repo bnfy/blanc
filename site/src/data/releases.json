@@ -1,5 +1,134 @@
 [
   {
+    "tag": "v1.10.0",
+    "version": "1.10.0",
+    "name": "1.10.0",
+    "publishedAt": "2026-08-29T18:58:24.000Z",
+    "humanDate": "August 29, 2026",
+    "machineDate": "2026-08-29",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.10.0",
+    "anchor": "v1-10-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, the optional 1Password integration can now show a small key hint when the active page declares a visible current-password field. The bounded local check reads form structure only, never field values or page text, and does not contact 1Password. Filling still begins only when you explicitly choose the hint, use "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "View → Fill Login from 1Password"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", press "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Option-Command-P"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", or run "
+                  },
+                  {
+                    "type": "code",
+                    "value": "/1password"
+                  },
+                  {
+                    "type": "text",
+                    "value": "."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The 1Password section in Settings now includes "
+                  },
+                  {
+                    "type": "strong",
+                    "value": "Verify"
+                  },
+                  {
+                    "type": "text",
+                    "value": ", which saves the entered sign-in email or account ID and confirms the connection through the installed 1Password app."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "1Password setup decisions, errors, and success feedback now appear in a Blanc-styled in-app capsule instead of stock dialogs. When several Login items match, the native picker opens beside the detected login field."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "1Password setup copy now leads with the email address used to sign in to 1Password while continuing to accept an account ID."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "1Password fill attempts now withdraw cleanly when you navigate, switch tabs, open another Blanc surface, or dismiss an authorization prompt, preventing late results from appearing over or filling a page you have left."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The fill capsule now preserves keyboard cancellation, accessible status announcements, and success-message timing while hovered or focused."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.9.1",
     "version": "1.9.1",
     "name": "1.9.1",
@@ -125,7 +254,7 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "Quiet tabs remain represented in the island's tab dots, preserving their normal order and click-to-wake behavior while using a calm dimmed treatment."
+                    "value": "Quiet tabs remain represented in the Island's tab dots, preserving their normal order and click-to-wake behavior while using a calm dimmed treatment."
                   }
                 ],
                 "url": null
@@ -1207,7 +1336,7 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "Blanc now supports multiple independent browser windows. Each window owns its own tabs, groups, island overlay, utility sheets, and restored workspace, while the application menu follows whichever window is focused."
+                    "value": "Blanc now supports multiple independent browser windows. Each window owns its own tabs, groups, Island overlay, utility sheets, and restored workspace, while the application menu follows whichever window is focused."
                   }
                 ],
                 "url": null
@@ -1326,7 +1455,7 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "Blanc now keeps the sharp declared SVG or Retina website icon when a site also supplies an earlier low-resolution ICO. This restores the crisp Blanc mark in the island without reducing compatibility for ordinary site icons."
+                    "value": "Blanc now keeps the sharp declared SVG or Retina website icon when a site also supplies an earlier low-resolution ICO. This restores the crisp Blanc mark in the Island without reducing compatibility for ordinary site icons."
                   }
                 ],
                 "url": null
@@ -1583,7 +1712,7 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "Blanc now gives back the memory of tabs you have not opened in a while. A tab left alone past the delay you choose hands its page back to the system; it keeps its place in the island, the rail, and the switcher, and reloads when you come back to it. Choose the delay — off, 30 minutes, 1 hour, or 6 hours — under Settings → General → Quiet inactive tabs. It is set to an hour to begin with, and the choice stays on this device."
+                    "value": "Blanc now gives back the memory of tabs you have not opened in a while. A tab left alone past the delay you choose hands its page back to the system; it keeps its place in the Island, the rail, and the switcher, and reloads when you come back to it. Choose the delay — off, 30 minutes, 1 hour, or 6 hours — under Settings → General → Quiet inactive tabs. It is set to an hour to begin with, and the choice stays on this device."
                   }
                 ],
                 "url": null
@@ -1635,7 +1764,7 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "You can now see when a site is using your microphone or camera. While any tab or pop-out window is recording, a red microphone or camera mark appears in the island; clicking it lists every site currently listening or watching, and each one has a stop button. Blanc knows a site started recording because it granted the permission itself, so the mark cannot be suppressed by the page — and if a site's own recording ends in a way Blanc cannot observe, the mark stays up rather than going quietly dark. A tab that is recording is never quieted."
+                    "value": "You can now see when a site is using your microphone or camera. While any tab or pop-out window is recording, a red microphone or camera mark appears in the Island; clicking it lists every site currently listening or watching, and each one has a stop button. Blanc knows a site started recording because it granted the permission itself, so the mark cannot be suppressed by the page — and if a site's own recording ends in a way Blanc cannot observe, the mark stays up rather than going quietly dark. A tab that is recording is never quieted."
                   }
                 ],
                 "url": null
@@ -1663,7 +1792,7 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "Permission requests now appear along the bottom of the page instead of beside the island, where they crowded it, and a request for your microphone or camera shows which one it is asking for."
+                    "value": "Permission requests now appear along the bottom of the page instead of beside the Island, where they crowded it, and a request for your microphone or camera shows which one it is asking for."
                   }
                 ],
                 "url": null
@@ -3216,7 +3345,7 @@
             "spans": [
               {
                 "type": "text",
-                "value": "Blanc 1.0 puts the browser in one small island: navigation, search, tabs, named groups, page actions, and slash commands stay close without a permanent horizontal tab strip or conventional toolbar."
+                "value": "Blanc 1.0 puts the browser in one small Island: navigation, search, tabs, named groups, page actions, and slash commands stay close without a permanent horizontal tab strip or conventional toolbar."
               }
             ]
           }
@@ -3236,7 +3365,7 @@
                   },
                   {
                     "type": "text",
-                    "value": " Turn on the resizable left rail from the island, View menu, Settings, or with "
+                    "value": " Turn on the resizable left rail from the Island, View menu, Settings, or with "
                   },
                   {
                     "type": "strong",
@@ -3244,7 +3373,7 @@
                   },
                   {
                     "type": "text",
-                    "value": ". It preserves open pages and keeps the island as Blanc's only address, search, and command surface."
+                    "value": ". It preserves open pages and keeps the Island as Blanc's only address, search, and command surface."
                   }
                 ],
                 "url": null
@@ -3253,7 +3382,7 @@
                 "spans": [
                   {
                     "type": "strong",
-                    "value": "A first-class island."
+                    "value": "A first-class Island."
                   },
                   {
                     "type": "text",
@@ -3278,7 +3407,7 @@
                   },
                   {
                     "type": "text",
-                    "value": " Right-click the island's address field for the usual editing items plus two Blanc actions. "
+                    "value": " Right-click the Island's address field for the usual editing items plus two Blanc actions. "
                   },
                   {
                     "type": "strong",
@@ -3294,7 +3423,7 @@
                   },
                   {
                     "type": "text",
-                    "value": " navigates straight from the clipboard through the same path as a typed address, then closes the island."
+                    "value": " navigates straight from the clipboard through the same path as a typed address, then closes the Island."
                   }
                 ],
                 "url": null
@@ -3544,7 +3673,7 @@
             "spans": [
               {
                 "type": "text",
-                "value": "Blanc v0.22.0 turns the island into a full search surface. Start typing in ⌘L and Blanc now blends your open tabs, groups, Favorites, and history with live suggestions from the search engine you chose in Settings; arrow through the six-row list or press Enter to search exactly what you typed. Suggestions can be switched off, and private tabs, pasted text, addresses, local paths, and sensitive-looking input never leave the device for autocomplete."
+                "value": "Blanc v0.22.0 turns the Island into a full search surface. Start typing in ⌘L and Blanc now blends your open tabs, groups, Favorites, and history with live suggestions from the search engine you chose in Settings; arrow through the six-row list or press Enter to search exactly what you typed. Suggestions can be switched off, and private tabs, pasted text, addresses, local paths, and sensitive-looking input never leave the device for autocomplete."
               }
             ]
           },
@@ -3641,7 +3770,7 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "Quiet rows for the expanded island panel"
+                    "value": "Quiet rows for the expanded Island panel"
                   }
                 ],
                 "url": "https://github.com/bnfy/blanc/pull/44"
@@ -3775,7 +3904,7 @@
             "spans": [
               {
                 "type": "text",
-                "value": "Blanc v0.18.0 sharpens the everyday chrome. The resting island pill is larger and easier to read, and each tab dot now blooms into a small disc showing that tab's favicon when you hover or focus it — so you can see which tab you're switching to before you click."
+                "value": "Blanc v0.18.0 sharpens the everyday chrome. The resting Island pill is larger and easier to read, and each tab dot now blooms into a small disc showing that tab's favicon when you hover or focus it — so you can see which tab you're switching to before you click."
               }
             ]
           },
@@ -4172,7 +4301,7 @@
                 "spans": [
                   {
                     "type": "text",
-                    "value": "island chrome: monochrome palette, favicon fix, and pill polish"
+                    "value": "Island chrome: monochrome palette, favicon fix, and pill polish"
                   }
                 ],
                 "url": "https://github.com/bnfy/blanc/pull/24"
