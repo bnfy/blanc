@@ -31,7 +31,7 @@ const EXPECTED_KEYS = [
   'id', 'title', 'url', 'isLoading', 'canGoBack', 'canGoForward', 'favicon',
   'bookmarked', 'blockedCount', 'private', 'pinned', 'muted', 'audible',
   'groupId', 'pageBg', 'themeColor', 'asleep', 'excepted', 'shield', 'connection',
-  'capture',
+  'capture', 'fillHint',
 ].sort();
 
 const record = (over = {}) => ({
