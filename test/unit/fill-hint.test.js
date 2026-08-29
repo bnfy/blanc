@@ -156,6 +156,32 @@ test('clearAll clears every timer and retracts every shown hint', async () => {
   void state;
 });
 
+test('an in-flight probe cannot publish after clearAll — the account-change contract', async () => {
+  const { scheduler, tab, hints, state, resolveNext } = harness();
+  scheduler.notePageLoad(tab);
+  // An enabled account A→B change: eligibility, epoch, and token all still
+  // hold — only the record generation separates before from after.
+  scheduler.clearAll();
+  resolveNext(true);
+  await tick();
+  assert.deepEqual(hints, [], 'a cleared probe must never restore the hint');
+  assert.equal(state.probes, 1);
+});
+
+test('an in-flight probe cannot publish after clearTab', async () => {
+  const { scheduler, tab, hints, resolveNext } = harness();
+  scheduler.notePageLoad(tab);
+  scheduler.clearTab(tab);
+  resolveNext(true);
+  await tick();
+  assert.deepEqual(hints, []);
+  // A post-clear re-probe gets a fresh generation and works normally.
+  scheduler.notePageLoad(tab);
+  resolveNext(true);
+  await tick();
+  assert.deepEqual(hints, [{ id: 1, hinted: true }]);
+});
+
 test('noteConfigChanged probes the active tab immediately when eligible', async () => {
   const { scheduler, tab, hints, state, resolveNext } = harness();
   scheduler.noteConfigChanged(tab);

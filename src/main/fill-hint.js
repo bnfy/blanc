@@ -73,6 +73,10 @@ function createFillHintScheduler({
   const records = new Map();
 
   const recordFor = (tab) => {
+    // Deliberately reuses a still-registered record (same generation: a
+    // re-probe of the same tab supersedes via cancelTimer + fresh
+    // epoch/token) but a cleared tab gets a NEW object, which is what
+    // invalidates any probe still in flight from before the clear.
     let record = records.get(tab.id);
     if (!record) {
       record = { tab, epoch: null, token: null, timer: null, probedEpoch: null, hinted: false };
@@ -96,6 +100,12 @@ function createFillHintScheduler({
   };
 
   const stillValid = (record, epoch, token) => token !== null
+    // Registration binds the run to its generation: clearTab/clearAll
+    // delete the record and a post-clear probe creates a NEW object, so an
+    // in-flight probe from before the clear can never publish late — even
+    // when eligibility, epoch, and token all still hold (an enabled
+    // account A→B change is exactly that case).
+    && records.get(record.tab.id) === record
     && isEligible(record.tab)
     && tabEpoch(record.tab) === epoch
     && contentsToken(record.tab) === token;
