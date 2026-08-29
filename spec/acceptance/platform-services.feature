@@ -59,3 +59,54 @@ Feature: Platform services — telemetry, updates, zoom, autofill
     And changing the tab, navigation, document, or chosen fields cancels the fill
     And no credential is persisted, synced, logged, telemetered, or sent through renderer IPC
     And Blanc makes no 1Password request while I merely browse
+
+  @F38-2 @F38 @desktop @macos @D26
+  Scenario: The island offers Fill only for a visible, uncontradicted login form
+    Given filling logins from 1Password is configured on this device
+    When I open a page whose login form authoritatively declares a current-password field
+    Then the island shows the fill hint
+    When I navigate that tab to a page with no login form
+    Then the fill hint disappears
+    When I open a page whose only password field also declares new-password
+    Then the island never shows the fill hint
+    When I open a page whose login field is invisible
+    Then the island never shows the fill hint
+
+  @F38-3 @F38 @desktop @macos @D26
+  Scenario: Fill questions open as a dialog capsule with Cancel focused and full keyboard control
+    Given filling logins from 1Password is configured on this device
+    When a fill confirmation question is presented
+    Then the capsule is a dialog with initial focus on Cancel
+    And Tab cycles focus between Cancel and Fill Login
+    And pressing Escape cancels the question
+
+  @F38-4 @F38 @desktop @macos @D26
+  Scenario: Fill errors persist until dismissed and their announcement survives
+    Given filling logins from 1Password is configured on this device
+    When a no-matching-login notice is presented
+    Then the notice is announced assertively
+    And the notice is still visible past the auto-dismiss interval
+    When I dismiss the notice
+    Then the capsule is gone
+    And the announcement is not retracted
+
+  @F38-5 @F38 @desktop @macos @D26
+  Scenario: A successful fill confirms politely and gets out of the way on its own
+    Given filling logins from 1Password is configured on this device
+    When a filled confirmation is presented
+    Then the confirmation is announced politely
+    And the capsule dismisses itself without any interaction
+
+  @F38-6 @F38 @desktop @macos @D26
+  Scenario: Switching tabs withdraws a pending fill question
+    Given filling logins from 1Password is configured on this device
+    And a fill confirmation question is presented
+    When I switch to another tab
+    Then the capsule is gone
+
+  @F38-7 @F38 @desktop @macos @D26
+  Scenario: The success confirmation waits while pointed at or focused
+    Given filling logins from 1Password is configured on this device
+    When a filled confirmation is presented
+    And I hold focus on its dismiss control while hovering and then move the pointer away
+    Then the confirmation stays visible past the auto-dismiss interval
