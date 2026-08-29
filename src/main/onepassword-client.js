@@ -138,6 +138,7 @@ function createOnePasswordClient({
       includePassword: fields?.password === true,
     }),
     probePackage: () => request('probe-package', {}),
+    verifyAccount: (account) => request('verify-account', { account }),
     stop,
   };
 }
