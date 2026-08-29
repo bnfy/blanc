@@ -248,6 +248,9 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-navigate-in-page', boundToTab((_e, url, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (isMainFrame) tab.navEpoch++;
+    // A same-document navigation of the active tab replaces what a fill
+    // message was about — dismiss it (runtime-scoped; optional dep).
+    if (isMainFrame && id === owner.activeTabId) deps.dismissFillStatusForNavigation?.(owner);
     syncNavState();
     if (isMainFrame && tab.historyEligible && !noteWakeSuppressed(tab)) history.addVisit(url, wc.getTitle());
     broadcastTabs();
@@ -256,6 +259,11 @@ function wireTabView(tab, view, { owner, adopted }) {
   wc.on('did-start-navigation', boundToTab((_e, url, _isInPlace, isMainFrame) => {
     if (tab.sleeping || tab.view?.webContents !== wc) return;
     if (isMainFrame) tab.navEpoch++;
+    // Main-frame navigation of the active tab dismisses a visible fill
+    // message immediately — a decision must not stay actionable, nor an
+    // error notice persist, over the successor page (same posture as the
+    // shield dismissal below).
+    if (isMainFrame && id === owner.activeTabId) deps.dismissFillStatusForNavigation?.(owner);
     if (
       isMainFrame
       && owner.overlayMode === 'shield'

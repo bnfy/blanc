@@ -3947,6 +3947,9 @@ initTabView({
   windowRuntimes,
   bindWindowRuntime,
   tabIdByWebContentsId,
+  // Optional (not in tab-view's required list): active-tab main-frame and
+  // same-document navigations dismiss that window's fill capsule.
+  dismissFillStatusForNavigation: (owner) => fillStatusSurface?.invalidatePending(owner.id),
   broadcastTabs,
   scheduleBroadcastTabs,
   scheduleSampleTint,
@@ -6178,6 +6181,11 @@ function createMainWindowForRuntime(runtime) {
     liveViewContents(runtime.overlayView)?.close();
     liveViewContents(runtime.utilitySheetView)?.close();
     liveViewContents(runtime.permissionView)?.close();
+    // A pending fill decision must not survive its window invisibly and
+    // keep activeFlow occupied — release it (covers the native-fallback
+    // case too, where no view exists), then destroy the capsule view.
+    fillStatusSurface?.invalidatePending(runtime.id);
+    liveViewContents(runtime.fillStatusView)?.close();
     flushPermissionPrompts(runtime);
     if (!isQuitting && runtime !== primaryRuntime) {
       // Named Workspaces: a real (non-primary) window close is a real,
@@ -7245,6 +7253,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         showing: fillStatusSurface?.isShowing() ?? false,
         attached: rt().fillStatusViewAttached === true,
         loaded: rt().fillStatusViewLoaded === true,
+        viewFocused: rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
+          ? rt().fillStatusView.webContents.isFocused()
+          : false,
         viewContentsId: rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
           ? rt().fillStatusView.webContents.id
           : null,

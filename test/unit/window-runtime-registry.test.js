@@ -70,12 +70,18 @@ test('detachWindow: workspace survives, window and surfaces do not', () => {
   r.activeTabId = 7;
   r.groups.push({ id: 'g1', name: 'work', collapsed: false });
   r.glanceTabId = 8;
+  r.fillStatusView = {};
+  r.fillStatusViewAttached = true;
+  r.fillStatusViewLoaded = true;
 
   reg.detachWindow(r);
 
   assert.equal(r.window, null);
   assert.equal(r.overlayView, null);
   assert.equal(r.utilitySheetView, null);
+  assert.equal(r.fillStatusView, null);
+  assert.equal(r.fillStatusViewAttached, false);
+  assert.equal(r.fillStatusViewLoaded, false);
   // Late IPC from the dying chrome resolves to nothing:
   assert.equal(reg.runtimeForChromeWebContentsId(11), null);
   assert.equal(reg.runtimeForChromeWebContentsId(22), null);

@@ -117,6 +117,12 @@
     // slow load; re-rendering would steal focus and restart timers.
     if (current && current.requestId === requestId) return;
     hideAll();
+    // Announcement cleanup happens HERE, at the next accepted show — not at
+    // hide time (an early dismissal must not retract an unconsumed alert),
+    // and not left forever (a stale role=alert must not ride along with a
+    // later decision or re-announce on reattach).
+    liveEl.textContent = '';
+    liveEl.removeAttribute('role');
     const entry = copyTable[kind];
     if (!entry || (mode !== 'decision' && mode !== 'notice')) {
       // Defensive: an unknown kind renders nothing and closes the request.

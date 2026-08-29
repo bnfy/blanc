@@ -185,6 +185,9 @@ function detachWindow(runtime) {
   runtime.utilitySheetEscapeArmed = false;
   runtime.permissionView = null;
   runtime.permissionViewAttached = false;
+  runtime.fillStatusView = null;
+  runtime.fillStatusViewAttached = false;
+  runtime.fillStatusViewLoaded = false;
 }
 
 /** A user-closed secondary window has no dock-reopen contract. Remove every

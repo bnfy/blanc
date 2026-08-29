@@ -257,6 +257,33 @@ test('a genuine page change still notifies page-changed', async () => {
   assert.deepEqual(notified(), ['page-changed']);
 });
 
+test('a broker rejection after a surface change aborts silently, not with the broker error', async () => {
+  const err = Object.assign(new Error('timed-out'), { code: 'timed-out' });
+  const { controller, broker, notified, state } = harness();
+  broker.findLogins = async () => { state.generation += 2; throw err; }; // ⌘L open+close, then reject
+  const result = await controller.fill({});
+  assert.equal(result.reason, 'page-changed');
+  assert.deepEqual(notified(), [], 'no error may surface under the successor surface');
+});
+
+test('a broker rejection after a navigation notices page-changed, not the broker error', async () => {
+  const err = Object.assign(new Error('timed-out'), { code: 'timed-out' });
+  const { controller, broker, notified, state } = harness();
+  broker.findLogins = async () => { state.urlCurrent = false; throw err; };
+  const result = await controller.fill({});
+  assert.equal(result.reason, 'page-changed');
+  assert.deepEqual(notified(), ['page-changed']);
+});
+
+test('a reveal rejection after a surface change aborts silently', async () => {
+  const err = Object.assign(new Error('sdk'), { code: 'sdk-error' });
+  const h = harness();
+  h.broker.revealCredential = async () => { h.state.generation += 1; throw err; };
+  const result = await h.controller.fill({});
+  assert.equal(result.reason, 'page-changed');
+  assert.deepEqual(h.notified(), []);
+});
+
 const TWO_CANDIDATES = [
   { vaultId: 'v1', itemId: 'i1', title: 'a', vaultName: 'P', username: 'a@x', itemVersion: 1 },
   { vaultId: 'v2', itemId: 'i2', title: 'b', vaultName: 'P', username: 'b@x', itemVersion: 2 },

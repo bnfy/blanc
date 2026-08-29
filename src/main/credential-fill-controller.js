@@ -57,7 +57,19 @@ function createCredentialFillController({
 } = {}) {
   let activeFlow = false;
 
-  const notifyError = (target, error) => notify(target, kindForErrorCode(error?.code));
+  /** A rejected await can land AFTER a surface change or navigation — the
+   * broker error must never surface under the successor surface or page.
+   * Revalidate first: a stale target aborts through currentOrExplain
+   * (silent for surface changes, page-changed otherwise); only a current
+   * target shows the broker error. Returns the flow's result either way. */
+  const failWithError = async (target, error) => {
+    if (!isTargetCurrent(target)) {
+      await currentOrExplain(target);
+      return { ok: false, reason: 'page-changed' };
+    }
+    await notify(target, kindForErrorCode(error?.code));
+    return { ok: false, reason: error?.code ?? 'sdk-error' };
+  };
 
   /** Setup nudges: a decision capsule whose primary verb opens Settings. */
   const setupPrompt = async (target, kind) => {
@@ -156,8 +168,7 @@ function createCredentialFillController({
       try {
         found = await broker.findLogins(account, initial.url);
       } catch (error) {
-        await notifyError(initial, error);
-        return { ok: false, reason: error?.code ?? 'sdk-error' };
+        return failWithError(initial, error);
       }
       if (!await focusAndCheck(initial)) {
         await currentOrExplain(initial);
@@ -226,8 +237,7 @@ function createCredentialFillController({
           password: inspect.hasPassword,
         });
       } catch (error) {
-        await notifyError(initial, error);
-        return { ok: false, reason: error?.code ?? 'sdk-error' };
+        return failWithError(initial, error);
       }
       if (!await focusAndCheck(initial)) {
         await currentOrExplain(initial);
@@ -263,6 +273,12 @@ function createCredentialFillController({
       await notify(initial, 'filled');
       return { ok: true, filledUser: !!result.filledUser, filledPass: !!result.filledPass };
     } catch {
+      // Same revalidation as the broker catches: an unexpected throw after
+      // a surface change or navigation stays silent / page-changed.
+      if (!isTargetCurrent(initial)) {
+        await currentOrExplain(initial);
+        return { ok: false, reason: 'page-changed' };
+      }
       await notify(initial, 'unexpected');
       return { ok: false, reason: 'unexpected' };
     } finally {

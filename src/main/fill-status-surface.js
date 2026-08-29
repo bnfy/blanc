@@ -127,6 +127,11 @@ function createFillStatusSurface({
     if (view.loaded) {
       record.presented = true;
       send('fill:show', { kind, mode, requestId });
+      // DOM focus alone is not native view focus: without focusing the
+      // WebContents, keyboard events stay with the page/chrome and the
+      // capsule's Cancel-first keyboard contract is theater. Decisions
+      // only — notices never steal focus.
+      if (mode === MODES.DECISION) record.webContents?.focus?.();
       return;
     }
     // Queued: nothing sent until rendererReady replays it, or the deadline
@@ -169,6 +174,8 @@ function createFillStatusSurface({
       clearDeadline();
       active.presented = true;
       send('fill:show', { kind: active.kind, mode: active.mode, requestId: active.requestId });
+      // Same native-focus rule as the fast path (decisions only).
+      if (active.mode === MODES.DECISION) active.webContents?.focus?.();
     },
 
     viewGone(runtimeId, viewId) {

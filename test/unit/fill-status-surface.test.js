@@ -25,7 +25,11 @@ function harness({
   const clock = fakeClock();
   const fallbackResolvers = [];
   const view = {
-    webContents: { send: (channel, payload) => sent.push({ channel, payload }), isDestroyed: () => false },
+    webContents: {
+      send: (channel, payload) => sent.push({ channel, payload }),
+      focus: () => { calls.viewFocus = (calls.viewFocus ?? 0) + 1; },
+      isDestroyed: () => false,
+    },
     id: viewId,
     loaded,
   };
@@ -270,6 +274,30 @@ test('view events during a pending fallback are inert', async () => {
   assert.equal(calls.fallback.length, 1, 'no second dialog');
   answerFallback('primary');
   assert.equal(await p, 'primary');
+});
+
+test('decisions focus the capsule WebContents on both presentation paths; notices never do', async () => {
+  {
+    const { surface, target, calls, sent } = harness({ loaded: true }); // fast path
+    const p = surface.decision(target, 'confirm-heuristic');
+    assert.equal(calls.viewFocus, 1, 'fast-path decision must take native focus');
+    surface.handleReply(true, { requestId: shown(sent)[0].payload.requestId, verb: 'cancel' });
+    await p;
+  }
+  {
+    const { surface, target, calls, sent } = harness({ loaded: false }); // replay path
+    const p = surface.decision(target, 'confirm-heuristic');
+    assert.equal(calls.viewFocus ?? 0, 0);
+    surface.rendererReady(target.runtimeId, 7);
+    assert.equal(calls.viewFocus, 1, 'replayed decision must take native focus');
+    surface.handleReply(true, { requestId: shown(sent)[0].payload.requestId, verb: 'cancel' });
+    await p;
+  }
+  {
+    const { surface, target, calls } = harness({ loaded: true });
+    await surface.notice(target, 'no-match');
+    assert.equal(calls.viewFocus ?? 0, 0, 'notices must not steal focus');
+  }
 });
 
 test('notice replies restore focus and hide', async () => {
