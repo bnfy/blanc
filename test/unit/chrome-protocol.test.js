@@ -7,6 +7,7 @@ const {
   CHROME_PARTITION,
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
+  CHROME_FILL_STATUS_URL,
   chromeResourcePath,
 } = require('../../src/main/chrome-protocol');
 
@@ -29,6 +30,27 @@ test('chrome protocol exposes only the reviewed resources for each host', () => 
     chromeResourcePath('blanc-chrome://overlay/pages/inter-latin.woff2'),
     path.join(renderer, 'pages/inter-latin.woff2'),
   );
+});
+
+test('fill-status host serves its document, script, copy, and shared styles only', () => {
+  assert.equal(CHROME_FILL_STATUS_URL, 'blanc-chrome://fill-status/');
+  assert.equal(chromeResourcePath(CHROME_FILL_STATUS_URL), path.join(renderer, 'fill-status.html'));
+  assert.equal(
+    chromeResourcePath('blanc-chrome://fill-status/fill-status.js'),
+    path.join(renderer, 'fill-status.js'),
+  );
+  assert.equal(
+    chromeResourcePath('blanc-chrome://fill-status/fill-status-copy.js'),
+    path.join(renderer, 'fill-status-copy.js'),
+  );
+  assert.equal(
+    chromeResourcePath('blanc-chrome://fill-status/styles.css'),
+    path.join(renderer, 'styles.css'),
+  );
+  assert.equal(chromeResourcePath('blanc-chrome://fill-status/renderer.js'), null);
+  assert.equal(chromeResourcePath('blanc-chrome://fill-status/../preload.js'), null);
+  // The capsule's copy module belongs to the fill-status host alone.
+  assert.equal(chromeResourcePath('blanc-chrome://index/fill-status-copy.js'), null);
 });
 
 test('chrome protocol rejects cross-host scripts and path tricks', () => {

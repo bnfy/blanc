@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; img-src 'self' data:;" />
+  <title>Fill status</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="fill-status-surface">
+  <div id="fillDecision" class="fill-capsule no-drag" role="dialog" aria-labelledby="fillDecisionTitle" hidden>
+    <div class="fill-copy">
+      <span id="fillDecisionTitle" class="fill-title"></span>
+      <span id="fillDecisionBody" class="fill-body"></span>
+    </div>
+    <button id="fillPrimaryBtn" type="button"></button>
+    <button id="fillCancelBtn" type="button"></button>
+  </div>
+  <div id="fillNotice" class="fill-capsule no-drag" hidden>
+    <div class="fill-copy">
+      <span id="fillNoticeTitle" class="fill-title"></span>
+      <span id="fillNoticeBody" class="fill-body"></span>
+    </div>
+    <button id="fillNoticeDismiss" type="button" aria-label="Dismiss">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.75 4.75l6.5 6.5M11.25 4.75l-6.5 6.5"/></svg>
+    </button>
+  </div>
+  <div id="fillLive" class="sr-only" aria-atomic="true"></div>
+  <script src="fill-status-copy.js"></script>
+  <script src="fill-status.js"></script>
+</body>
+</html>

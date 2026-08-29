@@ -2857,6 +2857,66 @@ body.permission-surface { background: transparent; }
 #permBlockBtn { border: 1px solid var(--border); color: var(--text-dim); }
 #permBlockBtn:hover { color: var(--text); background: var(--surface); }
 
+/* --- 1Password fill capsule (fill-status.html, fourth chrome document) ---
+   Same bottom-center bar family as #permissionBar: the view is transparent
+   and the capsule draws its own surface. Fixed-kind copy only. */
+html:has(> body.fill-status-surface),
+body.fill-status-surface { background: transparent; }
+
+.fill-status-surface {
+  margin: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100vh;
+}
+.fill-capsule {
+  max-width: calc(100vw - 24px);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 5px 4px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+.fill-capsule[hidden] { display: none; }
+.fill-copy { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.fill-title { font-size: 12.5px; color: var(--text); white-space: nowrap; }
+.fill-body {
+  font-size: 12px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fill-body[hidden] { display: none; }
+.fill-capsule button {
+  height: 26px;
+  padding: 0 14px;
+  border-radius: 7px;
+  font-size: 12px;
+}
+#fillPrimaryBtn { background: var(--accent); color: var(--bg); }
+#fillCancelBtn { border: 1px solid var(--border); color: var(--text-dim); }
+#fillCancelBtn:hover { color: var(--text); background: var(--surface); }
+#fillNoticeDismiss {
+  padding: 0;
+  width: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+}
+#fillNoticeDismiss:hover { color: var(--text); }
+#fillNoticeDismiss svg {
+  width: 14px; height: 14px; fill: none; stroke: currentColor;
+  stroke-width: 1.4; stroke-linecap: round;
+}
+.fill-success .fill-title { color: var(--accent); }
+
 @media (prefers-reduced-motion: reduce) {
   .island-dot,
   .island-dot.loading { transition: none; animation: none; }
