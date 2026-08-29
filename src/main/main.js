@@ -55,6 +55,7 @@ const {
   CHROME_INDEX_URL,
   CHROME_OVERLAY_URL,
   CHROME_PERMISSION_URL,
+  CHROME_FILL_STATUS_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
@@ -166,6 +167,8 @@ const { isForbiddenTopLevelUrl } = require('./top-level-url-policy');
 const { createOnePasswordClient } = require('./onepassword-client');
 const { isOnePasswordAvailable } = require('./onepassword-availability');
 const { createCredentialFillController } = require('./credential-fill-controller');
+const { createFillStatusSurface } = require('./fill-status-surface');
+const { FILL_KINDS, MODES: FILL_MODES, FILL_COPY } = require('./fill-status-kinds');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
   expireHolds, expireEntries, projectEntries, CLOSED_GRACE_MS, CLOSED_ENTRY_TTL_MS,
@@ -1810,6 +1813,95 @@ function detachPermissionView() {
   }
 }
 
+// --- 1Password fill capsule view (fill-status.html) ---------------------
+// Same lifecycle family as the permission view above, with one deliberate
+// difference: a dedicated narrow preload (fill-status-preload.js) instead of
+// the rich browserAPI bridge, and explicit readiness wiring — loadURL
+// rejection and did-fail-load are real failure inputs to the surface's
+// first-visible-presentation boundary, which the permission precedent never
+// needed (spec §1, plan Task 6).
+
+function fillStatusViewBounds() {
+  const { width, height } = rt().window.getContentBounds();
+  const w = Math.min(560, Math.max(0, width - 24));
+  const h = 64; // capsule + its 12px bottom margin, drawn by fill-status.html
+  return { x: Math.round((width - w) / 2), y: Math.max(0, height - h), width: w, height: h };
+}
+
+function ensureFillStatusView() {
+  if (rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()) return rt().fillStatusView;
+  const owner = rt();
+  owner.fillStatusViewLoaded = false;
+  owner.fillStatusView = new WebContentsView({
+    webPreferences: {
+      partition: CHROME_PARTITION,
+      preload: path.join(__dirname, 'fill-status-preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+  const view = owner.fillStatusView;
+  // Capture the id up front, like ensurePermissionView's wcId: it may be
+  // unreadable by the time a destroy callback runs, and every signal must
+  // carry THIS view's identity so a recreated view's late failure can't
+  // touch its replacement's message (surface behavior 5c).
+  const wcId = view.webContents.id;
+  windowRuntimes.registerChromeSurface(owner, wcId);
+  view.webContents.once('destroyed', bindWindowRuntime(owner, () => {
+    windowRuntimes.unregisterChromeSurface(wcId);
+    if (rt().fillStatusView === view) {
+      rt().fillStatusView = null;
+      rt().fillStatusViewAttached = false;
+      rt().fillStatusViewLoaded = false;
+    }
+    fillStatusSurface?.viewGone(owner.id, wcId);
+  }));
+  view.webContents.on('render-process-gone', bindWindowRuntime(owner, () => {
+    rt().fillStatusViewLoaded = false;
+    fillStatusSurface?.viewGone(owner.id, wcId);
+  }));
+  view.setBackgroundColor('#00000000');
+  lockPrivilegedNavigation(view.webContents, CHROME_FILL_STATUS_URL);
+  view.webContents.loadURL(CHROME_FILL_STATUS_URL)
+    .catch(bindWindowRuntime(owner, () => fillStatusSurface?.loadFailed(owner.id, wcId)));
+  view.webContents.on('did-fail-load', bindWindowRuntime(owner, (_e, _code, _desc, _url, isMainFrame) => {
+    if (isMainFrame) fillStatusSurface?.loadFailed(owner.id, wcId);
+  }));
+  // `on`, not `once`: a crashed-and-reloaded document must re-signal
+  // readiness so a queued show can still replay.
+  view.webContents.on('did-finish-load', bindWindowRuntime(owner, () => {
+    rt().fillStatusViewLoaded = true;
+    fillStatusSurface?.rendererReady(owner.id, wcId);
+  }));
+  return view;
+}
+
+/** Keep the capsule above the tab view; permission prompts stay above it
+ * (call restackPermissionView after this wherever both apply). */
+function restackFillStatusView() {
+  if (rt().fillStatusViewAttached && rt().fillStatusView && hasLiveWindow()) {
+    rt().window.contentView.addChildView(rt().fillStatusView);
+  }
+}
+
+function attachFillStatusView() {
+  if (!hasLiveWindow()) return;
+  const view = ensureFillStatusView();
+  view.setBounds(fillStatusViewBounds());
+  rt().window.contentView.addChildView(view);
+  rt().fillStatusViewAttached = true;
+  restackPermissionView();
+}
+
+function detachFillStatusView() {
+  if (!rt().fillStatusViewAttached) return;
+  rt().fillStatusViewAttached = false;
+  if (hasLiveWindow() && rt().fillStatusView) {
+    rt().window.contentView.removeChildView(rt().fillStatusView);
+  }
+}
+
 function createOverlay() {
   const owner = rt();
   // A menu open when the previous window died may never have fired its close
@@ -1976,6 +2068,8 @@ function showOverlay(mode, { prefill, purpose } = {}) {
   rt().overlayPrefill = prefill ?? null;
   rt().overlayPurpose = purpose ?? null;
   // (Re-)adding moves the overlay to the top of the child-view stack.
+  // Stack order: tab < fill capsule < overlay < permission prompt.
+  restackFillStatusView();
   rt().window.contentView.addChildView(rt().overlayView);
   restackPermissionView();
   if (rt().overlayExitTimer) {
@@ -2348,18 +2442,72 @@ function prepareOnePasswordTarget(target) {
   });
 }
 
+/** Native-dialog fallback for the capsule surface: the only main-side
+ * consumer of FILL_COPY. Decision kinds keep Cancel as default/cancel id
+ * (today's `defaultId: 1` safety); notices are a single OK. */
+async function showFillFallbackDialog(target, kind) {
+  if (!target?.window || target.window.isDestroyed?.()) return 'cancel';
+  const entry = FILL_COPY[kind];
+  const def = FILL_KINDS[kind];
+  if (!entry || !def) return 'cancel';
+  const decision = def.mode === FILL_MODES.DECISION;
+  const { response } = await dialog.showMessageBox(target.window, {
+    type: decision ? 'question' : 'warning',
+    title: entry.title,
+    message: entry.title,
+    detail: entry.body,
+    buttons: decision ? [entry.primaryLabel, entry.cancelLabel] : ['OK'],
+    defaultId: decision ? 1 : 0,
+    cancelId: decision ? 1 : 0,
+    noLink: true,
+  });
+  return decision && response === 0 ? 'primary' : 'cancel';
+}
+
+function getFillStatusSurface() {
+  if (!ONE_PASSWORD_AVAILABLE) return null;
+  if (!fillStatusSurface) {
+    fillStatusSurface = createFillStatusSurface({
+      ensureView: (target) => withWindowRuntime(target.runtime, () => {
+        const view = ensureFillStatusView();
+        return view
+          ? {
+            webContents: view.webContents,
+            id: view.webContents.id,
+            loaded: rt().fillStatusViewLoaded === true,
+          }
+          : null;
+      }),
+      attach: (target) => withWindowRuntime(target.runtime, () => attachFillStatusView()),
+      hide: (target) => withWindowRuntime(target.runtime, () => detachFillStatusView()),
+      showFallbackDialog: showFillFallbackDialog,
+      restoreFocus: (target) => {
+        // Reason-aware: the surface only calls this on plain dismissals,
+        // and a stale target (page changed, surface replaced) no-ops.
+        if (isOnePasswordTargetCurrent(target)) target.webContents.focus();
+      },
+      setTimeout,
+      clearTimeout,
+    });
+  }
+  return fillStatusSurface;
+}
+
 function getOnePasswordFillController() {
   if (!ONE_PASSWORD_AVAILABLE) return null;
   if (!onePasswordFillController) {
+    const surface = getFillStatusSurface();
     onePasswordFillController = createCredentialFillController({
       broker: onePasswordBroker,
       Menu,
-      dialog,
       getSettings: settings.getSettings,
       captureTarget: captureOnePasswordTarget,
       isTargetCurrent: isOnePasswordTargetCurrent,
+      surfaceChanged: onePasswordSurfaceChanged,
       prepareTarget: prepareOnePasswordTarget,
       openSettings: () => openInternalPage('blanc://settings/'),
+      notify: (target, kind) => surface.notice(target, kind),
+      confirm: (target, kind) => surface.decision(target, kind),
     });
   }
   return onePasswordFillController;
@@ -2881,6 +3029,9 @@ function resizeActiveView() {
   if (rt().permissionViewAttached && rt().permissionView) {
     rt().permissionView.setBounds(permissionViewBounds());
   }
+  if (rt().fillStatusViewAttached && rt().fillStatusView) {
+    rt().fillStatusView.setBounds(fillStatusViewBounds());
+  }
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) sheet.view.setBounds(layout.utilityBounds);
   // The BrowserWindow renderer and native child views must move in the same
@@ -2991,6 +3142,18 @@ function installGlanceShortcut(webContents, owner = rt()) {
 function installChromeShortcuts(webContents, owner = rt()) {
   installVerticalTabsShortcut(webContents, owner);
   installGlanceShortcut(webContents, owner);
+  // Escape dismisses a visible fill capsule no matter which surface holds
+  // focus (the capsule's own document also handles Escape when focused).
+  // Guarded by this window's attach flag, so other windows' messages and
+  // ordinary Escape uses are untouched.
+  if (ONE_PASSWORD_AVAILABLE) {
+    webContents.on('before-input-event', bindWindowRuntime(owner, (event, input) => {
+      if (input.type !== 'keyDown' || input.key !== 'Escape') return;
+      if (!rt().fillStatusViewAttached) return;
+      event.preventDefault();
+      fillStatusSurface?.invalidatePending(rt().id);
+    }));
+  }
   installPlatformMainMenuShortcut({
     webContents,
     Menu,
@@ -4055,6 +4218,7 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
   // but a race must never paint a tab over either floating layer).
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
+  restackFillStatusView(); // below the overlay and permission prompt
   if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
   restackPermissionView();
   resizeActiveView();
@@ -4113,6 +4277,7 @@ async function setGlanceTab(id) {
   // Floating trusted surfaces must stay above both page panes.
   const sheet = rt().utilitySheetUrl ? liveUtilitySheet() : null;
   if (sheet) rt().window.contentView.addChildView(sheet.view);
+  restackFillStatusView(); // below the overlay and permission prompt
   if (rt().overlayMode && rt().overlayView) rt().window.contentView.addChildView(rt().overlayView);
   restackPermissionView();
   resizeActiveView();
@@ -4853,6 +5018,9 @@ function isTrustedChromeSender(event) {
       : null,
     rt().permissionView && !rt().permissionView.webContents.isDestroyed()
       ? { webContents: rt().permissionView.webContents, url: CHROME_PERMISSION_URL }
+      : null,
+    rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
+      ? { webContents: rt().fillStatusView.webContents, url: CHROME_FILL_STATUS_URL }
       : null,
   ]);
 }
@@ -6799,6 +6967,18 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     return mediaQueryState(event.sender.session, frame.url, mediaType);
   });
 
+  if (ONE_PASSWORD_AVAILABLE) {
+    // Capsule replies: chromeOn already proved the sender is one of this
+    // runtime's registered chrome surfaces; the surface then enforces the
+    // requestId echo and per-kind verb set.
+    chromeOn('fill:reply', (event, payload) => {
+      const senderOk = rt().fillStatusView
+        && !rt().fillStatusView.webContents.isDestroyed()
+        && event.sender === rt().fillStatusView.webContents;
+      fillStatusSurface?.handleReply(senderOk === true, payload);
+    });
+  }
+
   chromeOn('permissions:respond', (_e, { id, allow }) => {
     const sender = rt(); // the sender's runtime, established by chromeOn
     const pending = sender.permissionPrompts.get(id);
@@ -7031,6 +7211,35 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       getVerticalTabsMetrics: () => hasLiveWindow() ? verticalTabsMetrics() : null,
       getRailActivationSerial: () => rt().railActivationSerial,
       normalizeAddressInput, pasteAndGo, handoffProtocols: HANDOFF_PROTOCOLS, openInternalPage, openFindBar,
+      // Fill-capsule hooks: drive the REAL surface (view creation, IPC,
+      // readiness) against a real captured target — not a reimplementation.
+      showFillStatusForTest: (kind) => {
+        const surface = getFillStatusSurface();
+        const target = captureOnePasswordTarget(rt());
+        if (!surface || !target) return null;
+        target.surfaceGeneration = target.runtime.surfaceGeneration;
+        const def = FILL_KINDS[kind];
+        if (!def) return null;
+        if (def.mode === FILL_MODES.DECISION) {
+          surface.decision(target, kind).then(() => {});
+          return { mode: 'decision' };
+        }
+        surface.notice(target, kind);
+        return { mode: 'notice' };
+      },
+      fillStatusState: () => ({
+        showing: fillStatusSurface?.isShowing() ?? false,
+        attached: rt().fillStatusViewAttached === true,
+        loaded: rt().fillStatusViewLoaded === true,
+        viewContentsId: rt().fillStatusView && !rt().fillStatusView.webContents.isDestroyed()
+          ? rt().fillStatusView.webContents.id
+          : null,
+      }),
+      readFillStatusDom: (script) => {
+        const wc = rt().fillStatusView?.webContents;
+        if (!wc || wc.isDestroyed()) return null;
+        return wc.executeJavaScript(String(script));
+      },
       probeOnePasswordPackage: () => ONE_PASSWORD_AVAILABLE
         ? onePasswordBroker.probePackage()
         : Promise.resolve({ available: false, loaded: false, processCount: 0 }),

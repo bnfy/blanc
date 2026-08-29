@@ -92,6 +92,13 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * while permissionPrompts is non-empty. */
     permissionView: null,
     permissionViewAttached: false,
+    /** The floating bottom-center 1Password fill capsule (fill-status.html);
+     * attached only while a fill message is showing. `Loaded` is the
+     * has-finished-first-load fast-path flag for the surface's readiness
+     * boundary — reset on view creation and render-process-gone. */
+    fillStatusView: null,
+    fillStatusViewAttached: false,
+    fillStatusViewLoaded: false,
     tabsWantingAddressBarFocus: new Set(),
     /** Tab ids in activation order, most recent last, one occurrence per id.
      * Closing the active tab and the last-active-tab shortcut both return to

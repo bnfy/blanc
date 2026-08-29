@@ -117,6 +117,9 @@ function install(refs) {
     runSleepSweep,
     sleepBackgroundTabsNow,
     getPermissionPrompts,
+    showFillStatusForTest,
+    fillStatusState,
+    readFillStatusDom,
     setSleepThresholdOverride,
     getSleepSnapshots,
     getClosedEntries,
@@ -405,6 +408,11 @@ function install(refs) {
     seedHistory() { history.addVisit('http://seed.local/', 'Seed'); },
     clearHistory() { history.clearHistory(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
+
+    // ---- 1Password fill capsule (macOS-only; null off-platform) ----
+    showFillStatus(kind) { return showFillStatusForTest?.(String(kind)) ?? null; },
+    fillStatusState() { return fillStatusState?.() ?? null; },
+    readFillStatusDom(script) { return readFillStatusDom?.(script) ?? null; },
 
     // ---- settings ----
     setAdblock(on) { settings.setSettings({ adblockEnabled: !!on }); },
