@@ -11,7 +11,8 @@ function harness({ inspect = {
 }, confirmResponses = [], candidates = [
   { vaultId: 'v', itemId: 'i', title: 'Example', vaultName: 'Personal' },
 ], revealError = null, settings = { onePasswordEnabled: true, onePasswordAccount: 'Account' },
-duringFind = null, startGeneration = 0 } = {}) {
+duringFind = null, startGeneration = 0,
+geometryResult = { ok: false }, duringGeometry = null } = {}) {
   const calls = [];
   const state = { generation: startGeneration, urlCurrent: true };
   let scriptCall = 0;
@@ -21,6 +22,12 @@ duringFind = null, startGeneration = 0 } = {}) {
       scriptCall += 1;
       if (scriptCall === 1) { calls.push('probe'); return { url: 'https://example.com/login', timeOrigin: 123, focused: true }; }
       if (scriptCall === 2) { calls.push('inspect'); return inspect; }
+      if (code.includes('ok: true, rect')) { // buildFieldRectScript's unique shape
+        calls.push('geometry');
+        assert.ok(!code.includes('.value'), 'geometry script must never read values');
+        await duringGeometry?.(state);
+        return geometryResult;
+      }
       calls.push('fill');
       assert.match(code, /alice/);
       assert.match(code, /secret/);
@@ -47,8 +54,9 @@ duringFind = null, startGeneration = 0 } = {}) {
   };
   const Menu = {
     buildFromTemplate: (template) => ({
-      popup: ({ callback }) => {
+      popup: ({ callback, x, y }) => {
         calls.push({ pickerLabels: template.map(({ label, sublabel }) => ({ label, sublabel })) });
+        calls.push({ pickerPoint: { x, y } });
         template[1].click();
         callback();
       },
@@ -73,6 +81,7 @@ duringFind = null, startGeneration = 0 } = {}) {
       calls.push(`confirm:${kind}`);
       return confirmResponses.length ? confirmResponses.shift() : 'primary';
     },
+    toWindowPoint: (_t, rect) => ({ x: 1000 + rect.x, y: 2000 + rect.y }),
   });
   const notified = () => calls.filter((c) => typeof c === 'string' && c.startsWith('notify:'))
     .map((c) => c.slice('notify:'.length));
@@ -246,4 +255,48 @@ test('a genuine page change still notifies page-changed', async () => {
   });
   assert.equal((await controller.fill({})).reason, 'page-changed');
   assert.deepEqual(notified(), ['page-changed']);
+});
+
+const TWO_CANDIDATES = [
+  { vaultId: 'v1', itemId: 'i1', title: 'a', vaultName: 'P', username: 'a@x', itemVersion: 1 },
+  { vaultId: 'v2', itemId: 'i2', title: 'b', vaultName: 'P', username: 'b@x', itemVersion: 2 },
+];
+
+test('a fresh field rect anchors the picker through toWindowPoint', async () => {
+  const { controller, calls } = harness({
+    candidates: TWO_CANDIDATES,
+    geometryResult: { ok: true, rect: { x: 40, y: 60, width: 200, height: 30 } },
+  });
+  assert.equal((await controller.fill({})).ok, true);
+  assert.ok(calls.indexOf('geometry') > calls.indexOf('find'), 'geometry reads after the broker');
+  assert.deepEqual(calls.find((c) => c?.pickerPoint)?.pickerPoint, { x: 1040, y: 2060 });
+});
+
+test('unrevalidatable geometry falls back to the island pill anchor', async () => {
+  const { controller, calls } = harness({ candidates: TWO_CANDIDATES, geometryResult: { ok: false } });
+  assert.equal((await controller.fill({})).ok, true);
+  assert.deepEqual(calls.find((c) => c?.pickerPoint)?.pickerPoint, { x: 10, y: 20 });
+});
+
+test('invalidation during the geometry await never pops the picker', async () => {
+  {
+    const { controller, calls, notified } = harness({
+      candidates: TWO_CANDIDATES,
+      geometryResult: { ok: true, rect: { x: 1, y: 2, width: 3, height: 4 } },
+      duringGeometry: async (state) => { state.generation += 2; }, // surface: silent
+    });
+    assert.equal((await controller.fill({})).reason, 'page-changed');
+    assert.equal(calls.some((c) => c?.pickerLabels), false, 'no picker after a surface change');
+    assert.deepEqual(notified(), []);
+  }
+  {
+    const { controller, calls, notified } = harness({
+      candidates: TWO_CANDIDATES,
+      geometryResult: { ok: true, rect: { x: 1, y: 2, width: 3, height: 4 } },
+      duringGeometry: async (state) => { state.urlCurrent = false; }, // navigation: noticed
+    });
+    assert.equal((await controller.fill({})).reason, 'page-changed');
+    assert.equal(calls.some((c) => c?.pickerLabels), false, 'no picker over changed content');
+    assert.deepEqual(notified(), ['page-changed']);
+  }
 });

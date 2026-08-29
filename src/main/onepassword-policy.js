@@ -414,6 +414,44 @@ function buildInspectScript({ expectedURL, expectedTimeOrigin, nonce }) {
   })();`;
 }
 
+/** Live pre-popup geometry: the ONLY rectangle channel for the picker
+ * anchor. Reads the inspect-authorized element's current viewport rect
+ * under the same URL/timeOrigin/nonce validation as the fill, WITHOUT
+ * consuming the stash (the fill still needs it after the menu). Geometry
+ * only — never values. */
+function buildFieldRectScript({ expectedURL, expectedTimeOrigin, nonce }) {
+  if (typeof nonce !== 'string' || !nonce) throw new Error('nonce required');
+  const url = JSON.stringify(expectedURL);
+  const timeOrigin = JSON.stringify(expectedTimeOrigin);
+  const nonceValue = JSON.stringify(nonce);
+  return `(function () {
+    var authorization = globalThis.__blancOnePasswordFill;
+    if (location.href !== ${url}
+        || performance.timeOrigin !== ${timeOrigin}
+        || !authorization || authorization.nonce !== ${nonceValue}) return { ok: false };
+    var element = authorization.passwordElement || authorization.usernameElement;
+    if (!element || !element.isConnected) return { ok: false };
+    var rect = element.getBoundingClientRect();
+    if (!(rect.width > 0) || !(rect.height > 0)) return { ok: false };
+    return { ok: true, rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height } };
+  })();`;
+}
+
+/** CSS-pixel field rect → window-coordinate anchor at the field's bottom
+ * edge, honoring the view's actual origin (vertical tabs' x offset, Glance's
+ * primary rect) and the tab's page zoom, clamped into the view so a
+ * scrolled-out or oversized rect still anchors over the page area. */
+function pickerAnchorPoint({ rect, viewBounds, zoomFactor }) {
+  const zoom = Number.isFinite(zoomFactor) && zoomFactor > 0 ? zoomFactor : 1;
+  const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+  return {
+    x: clamp(viewBounds.x + Math.round(rect.x * zoom),
+      viewBounds.x, viewBounds.x + viewBounds.width),
+    y: clamp(viewBounds.y + Math.round((rect.y + rect.height) * zoom),
+      viewBounds.y, viewBounds.y + viewBounds.height),
+  };
+}
+
 function buildFillScript({ expectedURL, expectedTimeOrigin, username, password, nonce }) {
   if (typeof nonce !== 'string' || !nonce) throw new Error('nonce required');
   const url = JSON.stringify(expectedURL);
@@ -487,4 +525,6 @@ module.exports = {
   buildProbeScript,
   buildInspectScript,
   buildFillScript,
+  buildFieldRectScript,
+  pickerAnchorPoint,
 };

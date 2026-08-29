@@ -6,6 +6,7 @@ const {
   buildProbeScript,
   buildInspectScript,
   buildFillScript,
+  buildFieldRectScript,
   isValidPickIndex,
   parseWebUrl,
 } = require('./onepassword-policy');
@@ -178,7 +179,30 @@ function createCredentialFillController({
           vaultName: candidate.vaultName,
           username: candidate.username,
         }));
-        const anchor = initial.pickerPoint ?? { x: 16, y: 64 };
+        // Geometry has exactly one channel: a live read immediately before
+        // the popup — the broker await above can sit in DesktopAuth for many
+        // seconds, during which the user may scroll or reflow the page.
+        let anchor = initial.pickerPoint ?? { x: 16, y: 64 };
+        let geo = null;
+        try {
+          geo = await initial.webContents.executeJavaScriptInIsolatedWorld(
+            FILL_WORLD_ID,
+            [{ code: buildFieldRectScript({
+              expectedURL: initial.url,
+              expectedTimeOrigin: probe.timeOrigin,
+              nonce,
+            }) }]
+          );
+        } catch { /* anchor falls back to the island pill — flow unaffected */ }
+        // The geometry read is a new await: a navigation or successor
+        // surface can land inside it. Re-check before converting or popping,
+        // preserving the silent-vs-page-changed classification — never pop a
+        // picker over content the user has left.
+        if (!await focusAndCheck(initial)) {
+          await currentOrExplain(initial);
+          return { ok: false, reason: 'page-changed' };
+        }
+        if (geo?.ok) anchor = toWindowPoint?.(initial, geo.rect) ?? anchor;
         selectedIndex = await pickCredential({
           Menu, window: initial.window, rows, point: anchor,
         });

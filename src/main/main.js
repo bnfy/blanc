@@ -168,6 +168,7 @@ const { createOnePasswordClient } = require('./onepassword-client');
 const { isOnePasswordAvailable } = require('./onepassword-availability');
 const { createCredentialFillController } = require('./credential-fill-controller');
 const { createFillStatusSurface } = require('./fill-status-surface');
+const { pickerAnchorPoint } = require('./onepassword-policy');
 const { FILL_KINDS, MODES: FILL_MODES, FILL_COPY } = require('./fill-status-kinds');
 const {
   holdEligibility, sanitizeSnapshot, buildTabEntry, buildGroupEntry, buildBatchEntry,
@@ -2464,6 +2465,18 @@ async function showFillFallbackDialog(target, kind) {
   return decision && response === 0 ? 'primary' : 'cancel';
 }
 
+/** CSS field rect → window anchor, read against the tab's CURRENT view
+ * bounds and zoom (vertical tabs, Glance, and non-100% zoom all move the
+ * mapping). Null when the tab/view no longer matches the captured target —
+ * the controller then falls back to the island pill anchor. */
+function onePasswordToWindowPoint(target, rect) {
+  const tab = tabs.get(target.tabId);
+  const view = tab?.view;
+  const wc = liveContents(tab);
+  if (!view || !wc || wc !== target.webContents || wc.isDestroyed()) return null;
+  return pickerAnchorPoint({ rect, viewBounds: view.getBounds(), zoomFactor: wc.getZoomFactor() });
+}
+
 function getFillStatusSurface() {
   if (!ONE_PASSWORD_AVAILABLE) return null;
   if (!fillStatusSurface) {
@@ -2508,6 +2521,7 @@ function getOnePasswordFillController() {
       openSettings: () => openInternalPage('blanc://settings/'),
       notify: (target, kind) => surface.notice(target, kind),
       confirm: (target, kind) => surface.decision(target, kind),
+      toWindowPoint: onePasswordToWindowPoint,
     });
   }
   return onePasswordFillController;
