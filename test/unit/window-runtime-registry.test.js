@@ -31,6 +31,7 @@ test('createRuntime initializes the per-window inventory to main.js defaults', (
   assert.ok(r.lastActiveByCluster instanceof Map);
   assert.equal(r.railActivationSerial, 0);
   assert.ok(r.permissionPrompts instanceof Map);
+  assert.equal(r.surfaceGeneration, 0);
   assert.equal(r.addressMenuTicket, 0);
   assert.equal(r.addressMenuSeq, 0);
   assert.ok(Number.isInteger(r.id));

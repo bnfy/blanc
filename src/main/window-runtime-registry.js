@@ -105,6 +105,14 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
     lastActiveByCluster: new Map(),
     railActivationSerial: 0,
     permissionPrompts: new Map(),
+    /** Monotonic count of working-surface transitions in this window —
+     * overlay show/hide, utility sheet open/close, Glance enter/leave,
+     * permission-prompt arrival, and real tab switches. The 1Password fill
+     * flow captures it after prepareTarget's cleanup and aborts on any
+     * mismatch, so a surface opened AND closed within one broker await
+     * still invalidates the flow. Mutated only via main.js's
+     * bumpSurfaceGeneration. */
+    surfaceGeneration: 0,
     addressMenuTicket: 0,
     addressMenuSeq: 0,
     /** The resting pill's box in window coordinates, reported by the chrome

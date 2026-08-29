@@ -1965,6 +1965,7 @@ function refocusOverlayAfterMenu() {
 
 function showOverlay(mode, { prefill, purpose } = {}) {
   if (!hasLiveWindow() || !rt().overlayView) return;
+  bumpSurfaceGeneration();
   // One floating layer at a time: summoning the island dismisses the sheet
   // (the overlay takes focus itself — no tab refocus in between).
   hideUtilitySheet({ refocusContent: false });
@@ -2026,6 +2027,7 @@ const OVERLAY_RETRACT_MS = 200;
 
 function hideOverlay({ refocusContent = true, reason = null } = {}) {
   if (!rt().overlayMode) return;
+  bumpSurfaceGeneration();
   const closingMode = rt().overlayMode;
   const closingPurpose = rt().overlayPurpose;
   const closingTrigger = rt().shieldTrigger;
@@ -2249,6 +2251,7 @@ function showUtilityPage(url) {
     sheet = createUtilitySheet();
   }
   if (!sheet) return;
+  bumpSurfaceGeneration(runtime);
   runtime.utilitySheetUrl = url;
   runtime.utilitySheetEscapeArmed = false;
   scheduleUtilitySheetNavigation(runtime, sheet, url);
@@ -2266,6 +2269,7 @@ function showUtilityPage(url) {
 function hideUtilitySheet({ refocusContent = true } = {}) {
   const runtime = rt();
   if (!runtime.utilitySheetUrl) return;
+  bumpSurfaceGeneration(runtime);
   runtime.utilitySheetUrl = null;
   runtime.utilitySheetEscapeArmed = false;
   cancelUtilitySheetNavigation(runtime.utilitySheetView);
@@ -2278,6 +2282,19 @@ function hideUtilitySheet({ refocusContent = true } = {}) {
 }
 
 let onePasswordFillController = null;
+// The capsule surface controller (Task 6 wires it); declared here because
+// bumpSurfaceGeneration below must reference it before it exists.
+let fillStatusSurface = null;
+
+/** The single mutator for runtime.surfaceGeneration — every working-surface
+ * transition (overlay, utility sheet, Glance, permission arrival, real tab
+ * switch) funnels through here so the 1Password fill flow's invalidation
+ * and the capsule's dismissal can never disagree. Never inline the
+ * increment at a call site. */
+function bumpSurfaceGeneration(runtime = rt()) {
+  runtime.surfaceGeneration += 1;
+  fillStatusSurface?.invalidatePending(runtime.id);
+}
 
 function captureOnePasswordTarget(runtime) {
   if (!runtime || !runtime.window || runtime.window.isDestroyed()) return null;
@@ -2303,16 +2320,31 @@ function isOnePasswordTargetCurrent(target) {
   if (!target?.runtime || target.runtime.id !== target.runtimeId) return false;
   if (!target.window || target.window.isDestroyed()) return false;
   if (target.runtime.activeTabId !== target.tabId) return false;
+  if (target.surfaceGeneration !== undefined
+      && target.surfaceGeneration !== target.runtime.surfaceGeneration) return false;
   const tab = tabs.get(target.tabId);
   if (!tab || tab.navEpoch !== target.navEpoch) return false;
   const wc = liveContents(tab);
   return wc === target.webContents && !wc.isDestroyed() && wc.getURL() === target.url;
 }
 
-function prepareOnePasswordTarget(runtime) {
-  return withWindowRuntime(runtime, () => {
+/** True when the ONLY reason the target is stale is a surface transition —
+ * the user opened ⌘L/a sheet/Glance, switched tabs (even away and back), or
+ * a permission prompt arrived. Such aborts are silent: the user chose to
+ * leave (spec: Flow-level invalidation). */
+function onePasswordSurfaceChanged(target) {
+  if (!target?.runtime || target.surfaceGeneration === undefined) return false;
+  return target.surfaceGeneration !== target.runtime.surfaceGeneration;
+}
+
+function prepareOnePasswordTarget(target) {
+  return withWindowRuntime(target.runtime, () => {
     hideOverlay({ refocusContent: false });
     hideUtilitySheet({ refocusContent: false });
+    // Capture AFTER the controller-owned cleanup above: a palette-started
+    // fill closes the overlay as part of starting, which must not
+    // self-invalidate (spec: Flow-level invalidation).
+    target.surfaceGeneration = target.runtime.surfaceGeneration;
   });
 }
 
@@ -3945,6 +3977,10 @@ function setActiveTab(id, { focusContent = true, focusAddress = false } = {}) {
 
   // Re-selecting the active tab is a no-op.
   if (id === rt().activeTabId) return;
+  // A real tab switch is a surface transition: without this, switching away
+  // and back during a broker await would restore every current-state
+  // predicate and let the fill proceed on a tab the user left.
+  bumpSurfaceGeneration();
   const promotingGlance = id === rt().glanceTabId;
 
   // Tab switches dismiss the sheet; the switched-to tab takes focus via
@@ -4070,6 +4106,7 @@ async function setGlanceTab(id) {
     previous.lastActiveAt = Date.now();
   }
 
+  bumpSurfaceGeneration();
   rt().glanceTabId = id;
   tab.view.setVisible(true);
   rt().window.contentView.addChildView(tab.view);
@@ -4088,6 +4125,7 @@ async function setGlanceTab(id) {
 function closeGlance({ focusContent = true } = {}) {
   const tab = activeGlanceTab();
   if (!rt().glanceTabId) return false;
+  bumpSurfaceGeneration();
   rt().glanceTabId = null;
   if (tab?.view && hasLiveWindow()) {
     rt().window.contentView.removeChildView(tab.view);
@@ -6672,6 +6710,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // renderer is gone would persist a decision for a page the user cannot see.
       // The payload is retained so a still-loading prompt view can replay it.
       owner.permissionPrompts.set(promptId, { resolve, tabId: tab?.id ?? null, payload });
+      // A prompt arrival replaces the user's working surface for the fill
+      // flow too — invalidate a mid-broker fill, not just a visible capsule.
+      bumpSurfaceGeneration(owner);
       bindWindowRuntime(owner, () => {
         attachPermissionView();
         rt().permissionView.webContents.send('permissions:prompt', payload);
