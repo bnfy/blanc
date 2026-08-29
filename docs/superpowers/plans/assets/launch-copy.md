@@ -1,4 +1,4 @@
-# Blanc v1.9.1 launch copy pack
+# Blanc v1.10.0 launch copy pack
 
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
@@ -7,18 +7,18 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
-**Release lock — REBASELINED 2026-08-27:** This pack describes packaged public
-v1.9.1, published from `09ae98c`. It carries the revised Island-dot
-presentation and optional macOS 1Password login fill, and fixes startup Profile
-Sync retractions plus favicon compatibility. Do not publish until the v1.9.1
-48-hour soak and all three follow-up platform checks are recorded. Do not use
-UI or claims from later work on `main`.
+**Release lock — REBASELINED 2026-08-29:** This pack describes packaged public
+v1.10.0, published from `a96eb47`. It carries the optional macOS 1Password
+ambient login hint and Settings account verification while keeping credential
+lookup and fill explicit. Do not publish until the v1.10.0 48-hour soak and all
+three follow-up platform checks are recorded. Do not use UI or claims from
+later work on `main`.
 
 ## Frozen facts
 
 | Claim | Launch truth |
 |---|---|
-| Current public release | v1.9.1 |
+| Current public release | v1.10.0 |
 | Platforms | macOS, Windows, Linux |
 | Core price | Free |
 | Blanc Patron | US$4/month or $30/year, plus applicable taxes |
@@ -28,8 +28,8 @@ UI or claims from later work on `main`.
 | Telemetry | One packaged-build launch ping: random install ID, random session ID, version, platform, architecture, coarse OS major. Fresh profiles save the presented choice before a ping can send |
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
-| macOS 1Password boundary | Optional, device-local, and explicitly invoked; reads matching Login items through the installed 1Password app. It does not fill automatically, store credentials, or provide a general extension runtime |
-| Repository/build boundary | The v1.9.1 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
+| macOS 1Password boundary | Optional and device-local. A small hint may use bounded structure-only metadata from a visible current-password field, without field values, page text, or a 1Password request. Settings can explicitly verify a saved account identifier. Credential lookup and fill remain user-invoked; Blanc does not fill automatically or store credentials. It is not an extension runtime |
+| Repository/build boundary | The v1.10.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
 
 Canonical URLs—copy exactly:
 
@@ -41,15 +41,18 @@ Canonical URLs—copy exactly:
 | AlternativeTo | https://blancbrowser.com |
 | BetaList | https://blancbrowser.com/?ref=betalist |
 
-Final demo assets—use these exact immutable URLs:
+Retired v1.9.1 demo assets—keep only as the shot list for the replacement:
 
 | Form | URL |
 |---|---|
 | MP4 | https://raw.githubusercontent.com/bnfy/blanc/9890d9e5b5adbe368e0138e0175fd4327200b68d/docs/superpowers/plans/assets/island-demo.mp4 |
 | GIF | https://raw.githubusercontent.com/bnfy/blanc/9890d9e5b5adbe368e0138e0175fd4327200b68d/docs/superpowers/plans/assets/island-demo.gif |
 
-The MP4 is the source for the required public or unlisted YouTube upload before
-Product Hunt. A raw MP4 URL does not satisfy Product Hunt's gallery-video field.
+These files were captured from packaged v1.9.1 and are no longer launch-ready.
+Re-record the same beat sheet from packaged public v1.10.0 and replace both
+URLs before publishing any launch channel. The replacement MP4 is the source
+for the required public or unlisted YouTube upload before Product Hunt. A raw
+MP4 URL does not satisfy Product Hunt's gallery-video field.
 
 ## Show HN — owner writes every public word
 
@@ -70,7 +73,7 @@ Submission mechanics:
    submit a Show HN. Do not create a launch-only account or manufacture activity.
 2. Write the title and first comment personally, without agent drafting or
    editing. The title must begin `Show HN` and describe the whole browser—not
-   announce the incremental v1.9.1 release.
+   announce the incremental v1.10.0 release.
 3. Submit `https://github.com/bnfy/blanc`, not the marketing homepage. The repo
    lets readers inspect and run the product; HN says not to submit landing pages
    or fundraisers.
@@ -95,9 +98,11 @@ Write these ideas in Anthony's natural words:
   do not turn a single-session benchmark into a universal claim.
 - What it is not: no mobile version; no extension support; source-available,
   not open source.
-- Narrow exception to the extension boundary: packaged macOS v1.9.1 can fill a
-  matching Login item from the installed 1Password app only when the user asks;
-  it is not an extension runtime or a Blanc-owned credential store.
+- Narrow exception to the extension boundary: packaged macOS v1.10.0 may show
+  a small local hint for a visible current-password field and can verify a
+  saved account identifier in Settings. A matching Login item is requested
+  from the installed 1Password app only when the user asks to fill; it is not
+  automatic fill, an extension runtime, or a Blanc-owned credential store.
 - Money, unprompted: the browser is free. Patron is $4/month or $30/year.
   Creating a Named Workspace requires active Patron; existing workspaces remain
   renameable and removable after a lapse.
@@ -477,8 +482,8 @@ drop a full defense where one sentence would do.
 
 ## Morning-of fact check
 
-- [ ] `package.json` and the latest public release both still say v1.9.1.
-- [ ] The README still links the v1.9.1 tag as the exact source snapshot for
+- [ ] `package.json` and the latest public release both still say v1.10.0.
+- [ ] The README still links the v1.10.0 tag as the exact source snapshot for
   the current public binaries, and any newer `main` work is excluded from copy.
 - [ ] The macOS, Windows, and Linux downloads linked from the site resolve.
 - [ ] Pricing still reads $4/month and $30/year in Polar and on the site.
@@ -487,7 +492,9 @@ drop a full defense where one sentence would do.
 - [ ] The telemetry payload remains exactly six fields.
 - [ ] `npm run test:unit` passes, including
   `test/unit/public-truth.test.js`.
-- [ ] Both immutable final Island demo URLs above work without authentication.
+- [ ] The Island demo was re-recorded from packaged public v1.10.0, both new
+  immutable URLs work without authentication, and this retired v1.9.1 pair is
+  no longer referenced by launch posts.
 - [ ] Product Hunt's full YouTube URL is not private and appears in the preview.
 - [ ] Each Reddit community's live rules permit the planned post format.
 - [ ] The HN account is eligible under the current Show HN restriction.
