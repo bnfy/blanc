@@ -66,15 +66,20 @@ test('unparseable verifier output fails OPEN', async () => {
   assert.equal(await verify(['Bananify Creative'], 'C:/x.exe'), null);
 });
 
-test('runAuthenticodeSignature passes the generous timeout to execFile', async () => {
+test('runAuthenticodeSignature owns PowerShell directly so timeout releases the installer', async () => {
   const { runAuthenticodeSignature, SIGNATURE_TIMEOUT_MS } = require('../../src/main/updater-signature');
-  let capturedTimeout;
-  await runAuthenticodeSignature('C:/installer.exe', {
-    execFileImpl: (_cmd, _args, options, cb) => {
-      capturedTimeout = options.timeout;
+  let invocation;
+  await runAuthenticodeSignature("C:/O'Brien/installer.exe", {
+    execFileImpl: (cmd, args, options, cb) => {
+      invocation = { cmd, args, options };
       cb(null, '{"Status":0}');
     },
   });
-  assert.equal(capturedTimeout, SIGNATURE_TIMEOUT_MS);
+  assert.equal(invocation.cmd, 'powershell.exe');
+  assert.equal(invocation.options.timeout, SIGNATURE_TIMEOUT_MS);
+  assert.equal(invocation.options.shell, undefined, 'no cmd.exe parent can survive while PowerShell holds the installer');
+  assert.equal(invocation.options.env.PSModulePath, '');
+  assert.match(invocation.args.at(-1), /OutputEncoding/);
+  assert.match(invocation.args.at(-1), /O''Brien/, 'single quotes in the literal path stay escaped');
   assert.ok(SIGNATURE_TIMEOUT_MS > 20 * 1000, 'well above electron-updater\'s 20s cliff');
 });
