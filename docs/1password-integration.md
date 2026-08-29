@@ -62,6 +62,37 @@ this device and are excluded from Profile Sync.
 - Disabling the feature or changing the account stops the broker immediately.
   Otherwise its credential-free SDK client is discarded after ten minutes of
   inactivity, matching 1Password's documented authorization window.
+- **Ambient hint (structure only).** While the feature is enabled and
+  configured, Blanc runs a bounded isolated-world check on the active tab's
+  page (on load, same-document navigation, and activation, with one delayed
+  recheck) asking a single yes/no question: does the page declare a visible
+  `autocomplete="current-password"` field without a contradicting
+  `new-password` token? The check reads form structure only — never values,
+  text, or content — returns a boolean, never contacts the SDK or broker,
+  and can never surface an error. Its only output is the island's key-glyph
+  affordance; clicking that runs the same explicit fill as ⌥⌘P. Every probe
+  is bound to the tab's navigation epoch, live-renderer identity, and its
+  scheduling generation, so navigations, quieting, disabling, or an account
+  change discard in-flight results. The hint is never persisted or synced.
+- **Fill capsule (credential-free by construction).** In-flow prompts,
+  errors, and confirmations render in a dedicated `blanc-chrome://`
+  fill-status view with its own narrow preload (no `browserAPI`). The
+  renderer receives only a fixed message-kind identifier and a request id;
+  all copy is bundled in the document, and replies are fixed verbs validated
+  against the sender, the request id, and the kind's verb set. No
+  vault-derived, page-derived, or free-form string ever crosses to a
+  renderer — strictly less data than the native dialogs previously showed.
+  The multiple-match picker remains a native menu; candidate usernames still
+  never cross renderer IPC.
+- **Whole-flow invalidation.** Every working-surface transition (island
+  overlay, utility sheet, Glance, permission-prompt arrival, tab switch)
+  advances a per-window generation captured by the fill flow after its own
+  setup cleanup. Any transition — even one opened and closed entirely inside
+  a broker wait — aborts the flow at its next checkpoint, silently; genuine
+  page changes keep their notice, and broker errors are never shown for a
+  page or surface the user has already left. The picker anchors at the login
+  field's live position, re-read under the fill's nonce immediately before
+  the menu opens.
 
 ## Release gates
 
@@ -75,7 +106,15 @@ this device and are excluded from Profile Sync.
 - On a real installed 1Password account on macOS, verify one exact-domain login, one
   AnywhereOnWebsite subdomain login, multiple matching Login items, cancellation,
   `Never`, signup refusal, navigation/tab-switch cancellation, and private-tab
-  behavior. The multiple-match gate must confirm that distinct built-in usernames
+  behavior. For the UX surfaces added after v1.9.1, additionally verify: the
+  picker anchors at the login field's current position, including after
+  scrolling the page during the DesktopAuth wait; summoning ⌘L or a utility
+  sheet during the broker wait aborts the flow with nothing filled; each
+  capsule shape (setup nudges, heuristic confirmation, persistent errors,
+  auto-dismissing success); Settings Verify success, wrong-account failure,
+  and DesktopAuth cancel; the ambient hint on a real login page, an SPA, and
+  a non-login page; and a permission prompt taking precedence over a pending
+  capsule. The multiple-match gate must confirm that distinct built-in usernames
   appear as the primary picker labels with the item title and vault beneath them,
   and that entries without a username retain the title/vault fallback. With the
   picker open on disposable items, change the selected item in 1Password before
@@ -164,6 +203,9 @@ retry and confirm the prompt returns and the broker is usable.
 
 The user-facing feature name is **1Password login fill**. The device-local keys
 remain `onePasswordEnabled` and `onePasswordAccount`; broker methods remain
-`find-logins`, `reveal-credential`, and `probe-package`; `vaultId` and `itemId`
-remain opaque SDK identifiers. Renaming any of these after release requires an
+`find-logins`, `reveal-credential`, and `probe-package`, joined (first release
+after v1.9.1) by `verify-account` — an addition, never a rename — which
+performs authorization plus one discarded vault list and returns only
+ok/error-kind for the Settings Verify button; `vaultId` and `itemId` remain
+opaque SDK identifiers. Renaming any of these after release requires an
 explicit settings/protocol migration rather than an incidental cleanup.
