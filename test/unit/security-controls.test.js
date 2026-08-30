@@ -78,6 +78,10 @@ test('privacy-facing defaults, hardened Electron fuses, and dependency surface d
     loadBrowserProcessSpecificV8Snapshot: false,
     grantFileProtocolExtraPrivileges: false,
   });
+  const stagingSmoke = read('test/desktop/packaged-update-staging-smoke.mjs');
+  assert.match(stagingSmoke, /launchPackagedOverCdp/);
+  assert.doesNotMatch(stagingSmoke, /\b_electron\b/);
+  assert.match(stagingSmoke, /updated root-owned app retained for inspection/);
 
   const schema = JSON.parse(read('settings-schema/schema.json'));
   assert.equal(schema.defaults.searchSuggestions, true);

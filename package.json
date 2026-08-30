@@ -30,6 +30,8 @@
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",
     "test:packaged:regressions": "node test/desktop/release-regressions-smoke.mjs",
     "test:packaged:favicons-live": "node test/desktop/packaged-live-favicons-smoke.mjs",
+    "test:packaged:update-staging": "node test/desktop/packaged-update-staging-smoke.mjs",
+    "update:staging:prepare": "node scripts/prepare-staging-update-feed.mjs",
     "bench:memory": "node bench/memory/run.js",
     "release:security": "npm audit --omit=dev --audit-level=high",
     "release:verify:press": "npm run substrate:check && npm run icons:windows:check && npm run test:unit && npm run test:acceptance:dry && npm run test:acceptance:desktop && npm run test:cold-launch && npm run test:oauth:desktop && npm run test:dns-smoke && npm run release:security && npm run site:build",
