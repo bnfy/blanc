@@ -96,13 +96,12 @@ function faceSVG(kind) {
     svg.append(textEl(22, 38, 24, id.toUpperCase()));
   } else if (family === 'drg') {
     if (id === 'p') {
-      // The white dragon is the Blanc tile: blanc = white, and the white
-      // dragon's traditional face is an empty frame — here it frames the
-      // canonical Blanc mark (BLANC_MARK_PATHS, embedded verbatim).
-      svg.append(el('rect', { x: 10, y: 13, width: 24, height: 34, rx: 3, fill: 'none', stroke: 'currentColor', 'stroke-width': 1.5 }));
-      const scale = 22 / 207.08;
+      // The white dragon is the Blanc tile (blanc = white): the canonical
+      // mark alone, embedded verbatim. Brand rule: the logomark appears
+      // ONLY in black or white (here the theme ink) and NEVER in a frame.
+      const scale = 26 / 207.08;
       const g = el('g', {
-        transform: `translate(${22 - (157.08 * scale) / 2}, ${30 - 11}) scale(${scale})`,
+        transform: `translate(${22 - (157.08 * scale) / 2}, ${30 - 13}) scale(${scale})`,
       });
       for (const d of BLANC_MARK_PATHS) g.append(el('path', { d, fill: 'currentColor' }));
       svg.append(g);

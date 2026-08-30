@@ -1883,8 +1883,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
 /* Suit inks: dots and winds stay ink; the rest follow tradition. */
 .mj-tile[data-suit="chr"], .mj-tile[data-suit="drg-c"] { color: var(--mj-red); }
 .mj-tile[data-suit="bam"], .mj-tile[data-suit="drg-f"] { color: var(--mj-green); }
-.mj-tile[data-suit="drg-p"], .mj-tile[data-suit="flower"],
-.mj-tile[data-suit="season"] { color: var(--mj-blue); }
+.mj-tile[data-suit="flower"], .mj-tile[data-suit="season"] { color: var(--mj-blue); }
+/* drg-p (the Blanc tile) stays on the theme ink: the logomark renders only
+   in black or white, never a suit color, never framed. */
 /* Blocked tiles dim AND desaturate, so live color itself means playable. */
 .mj-tile[data-blocked] { cursor: default; filter: saturate(0.35) brightness(0.94); }
 @media (prefers-color-scheme: dark) {
