@@ -36,7 +36,7 @@ Canonical URLs—copy exactly:
 | Channel | URL |
 |---|---|
 | Show HN | https://github.com/bnfy/blanc |
-| Reddit | https://blancbrowser.com/?ref=reddit |
+| Reddit | https://blancbrowser.com |
 | Product Hunt | https://blancbrowser.com/?ref=ph |
 | AlternativeTo | https://blancbrowser.com |
 | BetaList | https://blancbrowser.com/?ref=betalist |
@@ -169,12 +169,25 @@ These are facts to answer from, not sentences to paste.
 
 ## Reddit
 
-Candidate communities are not a posting list. Re-check each community's current
-self-promotion, flair, account-history, and link rules on posting day. Post only
-where the rules allow it, from the owner's personal account, and do not
-cross-post identical text. Revise these drafts after the Show HN objection log.
+Candidate communities are not a posting list. The owner must re-open each
+community's live rules on posting day, use a personal account, disclose that he
+built Blanc, and never manufacture karma, comments, account history, or
+moderator access to clear a gate. Use the clean `https://blancbrowser.com` URL:
+several candidate communities prohibit affiliate, referral, invite, shortened,
+or redirecting links, and Reddit's HTTP referrer is enough for aggregate source
+measurement. Do not cross-post identical text. Revise any eligible draft after
+the Show HN objection log.
 
-### Browser community draft
+Current eligibility matrix (re-check immediately before posting):
+
+| Community | Launch status | Hard gate |
+|---|---|---|
+| r/browsers | Candidate | Re-open the [live rules](https://www.reddit.com/r/browsers/about/rules). Use the clean official URL; no affiliate/referral or invite link, and the post must be a substantive founder post rather than an FAQ/how-to link drop. |
+| r/macapps | Conditional | The personal account must already have at least 10 local karma, complete the community's “Read the Rules” approval, be outside the once-per-developer 30-day cooldown, and qualify for the main feed through the current trust or transparency path. A main-feed post must use the open-source `[OS]` title prefix, the correct live pricing flair, founder disclosure, and Problem/Comparison/Pricing format. If the account does not qualify for the main feed, use the current App Pile megathread only if its rules permit it; otherwise skip. See the [live rules](https://www.reddit.com/r/macapps/about/rules), [current trust-path and PCP policy](https://www.reddit.com/r/macapps/comments/1ryaeex/), and [post-approval instructions](https://www.reddit.com/r/macapps/comments/1smg62t/). |
+| r/windows | Skip unless already approved | Software promotion requires prior moderator permission plus the green-check user flair, and the [live rules](https://www.reddit.com/r/windows/about/rules) currently say new applicants are not being accepted. Do not apply, modmail, or post unless the owner's account already holds that permission and flair. |
+| r/linux | Conditional | The personal account must already satisfy the [live rules](https://www.reddit.com/r/linux/about/rules): no more than 10% of its posts may be the owner's own content, Blanc must be directly relevant to Linux/open source, the owner must make a genuine reply to a related story before posting, use the direct official source, and stay to engage. If the existing participation ratio fails, skip rather than creating activity to qualify. |
+
+### Browser community draft — candidate after same-day rule check
 
 **Title**
 
@@ -206,15 +219,15 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > workspace requires Patron; renaming and removing one you already have keeps
 > working after a lapse.
 >
-> https://blancbrowser.com/?ref=reddit
+> https://blancbrowser.com
 >
 > Happy to answer the skeptical version of any of this.
 
-### macOS community draft
+### macOS community draft — conditional, rewrite into live PCP format
 
 **Title**
 
-> I made a minimal macOS browser around one floating command surface
+> [OS] I made a minimal macOS browser around one floating command surface
 
 **Body**
 
@@ -235,12 +248,12 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > Named Workspaces. Existing workspaces remain renameable and removable if the
 > subscription lapses.
 >
-> https://blancbrowser.com/?ref=reddit
+> https://blancbrowser.com
 >
 > I would especially value feedback on whether the Island still exposes enough
 > state when several tabs are open.
 
-### Windows community draft
+### Windows community draft — hold; do not post without existing approval
 
 **Title**
 
@@ -265,12 +278,12 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > Windows, while existing workspaces remain renameable and removable after a
 > lapse.
 >
-> https://blancbrowser.com/?ref=reddit
+> https://blancbrowser.com
 >
 > If you try it, I would like to know where the Island feels clearer—or less
 > clear—than a conventional toolbar.
 
-### Linux community draft
+### Linux community draft — conditional on existing participation eligibility
 
 **Title**
 
@@ -293,7 +306,7 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > License. The browser is free; optional Patron ($4/month or $30/year) adds Named
 > Workspaces, with rename and removal preserved after a lapse.
 >
-> https://blancbrowser.com/?ref=reddit
+> https://blancbrowser.com
 >
 > I am interested in practical AppImage and desktop-integration feedback across
 > distributions.
@@ -538,7 +551,8 @@ drop a full defense where one sentence would do.
 - [ ] The owner's personal Product Hunt account can reach the submission form.
 - [ ] Product Hunt's full YouTube URL is not private, has had processing time,
   and appears in the preview with both stills before **Schedule Launch**.
-- [ ] Each Reddit community's live rules permit the planned post format.
+- [ ] Each Reddit community's live rules and the eligibility matrix permit the
+      planned post format; every ineligible candidate is explicitly skipped.
 - [ ] The HN account is eligible under the current Show HN restriction.
 - [ ] Anthony writes the HN title, first comment, and replies himself without
   agent drafting or editing.
