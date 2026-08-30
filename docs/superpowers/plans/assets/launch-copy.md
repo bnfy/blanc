@@ -7,6 +7,13 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
+**Schedule reset — OWNER DECISION 2026-08-30:** Show HN is Tuesday,
+September 8, Reddit is Wednesday, September 9, and Product Hunt is Thursday,
+September 10. A bounded backlog-cleanup window now precedes the launch freeze.
+This v1.10.0 pack remains the current factual reference, but if cleanup changes
+downloadable behavior it becomes non-publishable until every fact, asset, URL,
+and version below is regenerated from the replacement public launch release.
+
 **Release lock — REBASELINED 2026-08-29; EVIDENCE UPDATED 2026-08-30:** This pack describes packaged public
 v1.10.0, published from `a96eb47`. It carries the optional macOS 1Password
 ambient login hint and Settings account verification while keeping credential
@@ -550,9 +557,11 @@ drop a full defense where one sentence would do.
 - [ ] `package.json` and the latest public release both still say v1.10.0.
 - [ ] The README still links the v1.10.0 tag as the exact source snapshot for
   the current public binaries, and any newer `main` work is excluded from copy.
-- [ ] Since freeze anchor `0de37a1`, `origin/main` contains only launch
-  evidence/copy/guard changes; no product/runtime, dependency, packaging,
-  release-workflow, or feature-spec PR has merged.
+- [ ] The latest `launch-freeze-start` row records the final `origin/main`
+  anchor, launch release tag, and release SHA; since that dynamic anchor,
+  `origin/main` contains only launch evidence/copy/guard changes and no
+  product/runtime, dependency, packaging, release-workflow, or feature-spec
+  merge.
 - [ ] The macOS, Windows, and Linux downloads linked from the site resolve.
 - [ ] Pricing still reads $4/month and $30/year in Polar and on the site.
 - [ ] Named Workspace creation still requires Patron; rename/removal still work

@@ -7,11 +7,18 @@
 > MIT rule in Global Constraints and the terms in `LICENSE`,
 > `THIRD-PARTY-NOTICES.md`, and `ASSET-LICENSE.md`.
 
+> **Owner reschedule (2026-08-30).** The official launch sequence now runs
+> Monday, September 7 through Thursday, September 10, with Show HN on
+> **Tuesday, September 8, 2026**. The previous August 31–September 3 calendar
+> and the `0de37a1` pre-launch merge-freeze anchor are retired. A bounded
+> backlog-cleanup window precedes a new release-backed freeze; the reschedule
+> itself does not authorize a merge, release, or evidence waiver.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Fire the five discovery channels Blanc has never used — in one concentrated week, with measurement restored and the payment path proven first — so the September cohort is large enough for retention to become a real question.
 
-**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Product Hunt personal-account access; Google Ads verification) and de-risks the spike (site copy corrected, production Patron purchase proven, current release + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires evergreen listings, then argumentative communities, then Product Hunt across four days so neither one-shot card is spent on untested copy.
+**Architecture:** Four phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Product Hunt personal-account access; Google Ads verification) and de-risks the spike. Phase 1 builds reusable assets. Phase 1.5 closes the selected backlog, cuts and proves a new immutable launch release if downloadable behavior changes, refreshes release-bound assets, and starts a new freeze. Phase 2 fires evergreen listings, then argumentative communities, then Product Hunt across four days so neither one-shot card is spent on untested copy.
 
 **Tech Stack:** Astro 7 (`site/`), Cloudflare Pages, GA4 (property 544287080), Polar.sh (Patron checkout), `blanc-ping` Worker stats, `gh` CLI.
 
@@ -27,9 +34,10 @@
   ET). The published v1.10.0 Linux AppImage digest/attestation/launch/render
   check passed in run `33269704113`. The exact public v1.9.1 → v1.10.0 updater
   handoffs passed on macOS and Windows; macOS also passed strict post-update
-  signature and Gatekeeper checks. Launch remains stopped only until the soak
-  elapses and the still-public stable release is checked and recorded, unless
-  the owner explicitly records a waiver after the risk is stated.
+  signature and Gatekeeper checks. This remains valid historical v1.10.0
+  evidence, but it is not sufficient for launch if backlog cleanup changes
+  downloadable behavior; in that case the replacement launch release must
+  repeat the release, platform, updater, and soak gates below.
 - Task 8's Island demo was re-recorded on August 30 from the installed packaged
   public v1.10.0 app in an isolated local profile. The launch-ready 20.50-second
   MP4 and sub-8-MiB GIF are committed in `0cc0c57`; the launch pack points to
@@ -76,31 +84,30 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 ## Global Constraints
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
-- **Ship the released browser as-is.** No telemetry or feature changes during
-  launch week; Patron stays in the launch narrative. The later MIT licensing
-  decision changes source permissions and public wording, not packaged
-  v1.10.0 behavior.
-- **Launch rides v1.10.0 after a ≥48h soak.** Never launch on a build published the same day.
-- **Lock the launch to published v1.10.0 behavior.** The release-target decision
-  is resolved: v1.10.0 carries the optional macOS 1Password ambient login hint
-  and Settings account verification while keeping fill explicit, plus every
-  previously shipped browser capability. Freeze public claims to the
-  `v1.10.0` tag. Later work on
-  `main` is not downloadable behavior unless a
-  new immutable release completes the same platform checks and restarts the
-  ≥48-hour soak.
-- **Freeze product merges through the Show HN post.** The repository is the Show
-  HN landing page, so it must not begin advertising unreleased runtime behavior
-  while the copy and downloads remain locked to v1.10.0. The launch-freeze
-  anchor is `0de37a16f49827646c288d6216ca137bbfb5cb9e` (PR #245). Until the Show HN
-  submission is live, `origin/main` may advance only for launch evidence,
-  launch copy, and their regression guards. Hold product/runtime, dependency,
-  packaging, release-workflow, and feature-spec merges. In particular, do not
-  merge #238 or #205: both change application behavior and each records missing
-  platform/updater evidence. Hold Dependabot PRs #214, #213, #176, #175, and
-  #174 too. A genuine security emergency requires an explicit owner decision,
-  a new release if downloadable behavior changes, and a restarted ≥48-hour
-  soak; it is not a silent exception.
+- **Ship one proven launch release as-is.** No telemetry or feature changes
+  during launch week; Patron stays in the launch narrative. v1.10.0 remains the
+  public baseline until superseded, but any product/runtime, dependency,
+  packaging, or release-workflow merge during backlog cleanup requires a new
+  immutable launch release. Never describe newer `main` behavior as shipped.
+- **The backlog-cleanup window is open only before the new freeze.** PRs #238
+  and #205 and the held dependency PRs may be reviewed in this window, but this
+  reschedule is not merge approval. Apply their ordinary tests, platform gates,
+  issue-specific evidence, and the required explicit affected-machine owner
+  confirmation. Close dead ideas instead of merging them merely to reduce a
+  count.
+- **Cut the launch release by Friday, September 4 at 3:00 p.m. ET.** If cleanup
+  changes downloadable behavior, publish its immutable release, complete the
+  authenticated macOS/Windows/Linux and updater evidence, refresh every
+  release-bound asset and claim, and start a fresh ≥48-hour soak. The Friday
+  cutoff leaves a full extra day before Monday's baseline. Missing the cutoff
+  moves the launch again; it never shortens or waives the soak.
+- **Freeze the final launch state through the Show HN post.** After the release
+  and its release-bound copy/assets are committed, append a
+  `launch-freeze-start` record containing the exact `origin/main` anchor,
+  release tag, and release-tag SHA to the launch log. From that point until Show
+  HN is live, `origin/main` may advance only for launch evidence, launch copy,
+  and their regression guards. The old `0de37a1` anchor is historical and must
+  not be reused.
 - **Channel order is not negotiable:** evergreen listings → Show HN → Reddit → Product Hunt.
 - **No retention experiments this cycle.** n=27 cannot support one. The checkpoint is Oct 1.
 - **Adding a site page REQUIRES adding its path to `MANIFEST` in `site/src/pages/sitemap.xml.js`** — the sitemap endpoint asserts the manifest matches discovered pages exactly and **fails the build** otherwise.
@@ -998,17 +1005,18 @@ test and does not satisfy this.
 
 If any upgrade check fails, the launch week moves.
 
-**Launch Monday must fall after the v1.9.1 `soakEndsAt`.** If a regression surfaces during the soak, the launch week moves — it does not proceed on a known-bad build.
+**Launch Monday must fall after the selected launch release's `soakEndsAt`.** If a regression surfaces during the soak, the launch week moves — it does not proceed on a known-bad build.
 
 ---
 
-## Phase 1 — Assets (built during the freeze)
+## Phase 1 — Assets (v1.10.0 set complete; refresh after backlog cleanup if needed)
 
 ### Task 8: Cut the 20-second Island demo
 
 **Owner:** `agent` — app-only capture from the real packaged application.
 
-**Status: COMPLETE 2026-08-30 for the current launch baseline.** Re-recorded
+**Status: COMPLETE 2026-08-30 for the current public v1.10.0 baseline;
+conditionally stale for launch after backlog cleanup.** Re-recorded
 from the installed packaged public v1.10.0 macOS app in an isolated local
 profile with three seeded tabs. The 20.50-second export is 1228×768, 30 fps
 H.264, and BT.709. It contains the full resting Island, `⌘L` expansion, typed
@@ -1495,6 +1503,90 @@ git commit -m "docs: launch copy pack for the growth counter-offensive"
 
 ---
 
+## Phase 1.5 — backlog cleanup and launch-candidate reset
+
+The owner moved Show HN to Tuesday, September 8 so selected product work can be
+resolved before the launch freeze. This is a quality window, not a permission
+shortcut or a requirement to merge every open PR.
+
+- [ ] **Step 1: Select the backlog that actually belongs in the launch release**
+
+Review #192–#197 / PR #238, #205, and the held dependency PRs against their
+current issue bodies, merge gates, security boundaries, and platform impact.
+Close work the owner no longer wants. For platform-sensitive changes, obtain
+the owner's explicit affected-machine confirmation before merging. Do not
+convert the scheduling decision into implicit approval for any individual PR.
+
+- [ ] **Step 2: End product merges by Thursday, September 3 at noon ET**
+
+After the selected backlog is merged, product/runtime, dependencies, package
+metadata, packaging, release workflows, and feature specs stop moving. If the
+selected work is not merge-ready by the cutoff, leave it open and move on; do
+not consume the release-verification buffer trying to make the count zero.
+
+- [ ] **Step 3: Publish and prove the immutable launch release by Friday,
+      September 4 at 3:00 p.m. ET**
+
+If downloadable behavior changed after v1.10.0, follow the complete release
+operator protocol. The macOS, Windows, and Linux artifacts, updater metadata,
+authenticated manifest/Sigstore material, platform signatures/fuses/payloads,
+logged-out downloads, and required updater handoffs must pass. A direct
+installer launch is not an updater handoff. This step requires the owner's
+explicit release approval and cannot be delegated by this plan.
+
+If no downloadable behavior changed, v1.10.0 may remain the launch release,
+but record that decision explicitly after auditing the final `origin/main`
+diff. Missing the Friday cutoff moves all four launch days again.
+
+- [ ] **Step 4: Refresh every release-bound launch artifact**
+
+Regenerate the README release boundary, launch copy pack, packaged Island demo,
+Product Hunt stills, download-baseline tag, FAQ facts, and release evidence for
+the selected public release. An old v1.10.0 asset may remain only when its exact
+behavior and visible version are still truthful for the selected release.
+
+- [ ] **Step 5: Record the new freeze state after the release and refreshed
+      assets are on `origin/main`**
+
+Set `LAUNCH_RELEASE_TAG` to the immutable public tag, then run:
+
+```bash
+git fetch origin --tags
+LAUNCH_FREEZE_ANCHOR="$(git rev-parse origin/main)"
+LAUNCH_RELEASE_SHA="$(git rev-list -n 1 "$LAUNCH_RELEASE_TAG")"
+test -n "$LAUNCH_RELEASE_SHA"
+export LAUNCH_FREEZE_ANCHOR LAUNCH_RELEASE_SHA LAUNCH_RELEASE_TAG
+python3 - <<'FREEZE'
+import datetime, json, os, pathlib
+
+anchor = os.environ['LAUNCH_FREEZE_ANCHOR']
+release_sha = os.environ['LAUNCH_RELEASE_SHA']
+release_tag = os.environ['LAUNCH_RELEASE_TAG']
+row = {
+    'date': datetime.datetime.now(datetime.timezone.utc).date().isoformat(),
+    'event': 'launch-freeze-start',
+    'launchDate': '2026-09-08',
+    'anchor': anchor,
+    'releaseTag': release_tag,
+    'releaseSha': release_sha,
+}
+with pathlib.Path(os.environ['LAUNCH_LOG']).open('a') as launch_log:
+    launch_log.write(json.dumps(row, separators=(',', ':')) + '\n')
+print(json.dumps(row, indent=2))
+FREEZE
+```
+
+The recorded `anchor` is the only valid merge-freeze baseline. From this row
+through the live Show HN submission, only launch evidence, launch copy, and
+their regression guards may merge.
+
+- [ ] **Step 6: Complete and record a fresh ≥48-hour soak before Task 11**
+
+The release must remain public and stable throughout the soak. Any replacement
+release restarts the clock. Do not shorten this gate to recover calendar time.
+
+---
+
 ## Phase 2 — Launch week (feature freeze in effect)
 
 The owner moved the official launch one week later on August 30. The fixed
@@ -1515,12 +1607,12 @@ date merely to preserve the weekday labels.
 
 **Owner:** `owner` — posting under an account.
 
-**Depends on: Tasks 1–10, all of them.** Not a subset. An executor working
+**Depends on: Tasks 1–10 and Phase 1.5, all of them.** Not a subset. An executor working
 task-by-task must not be able to legally start launch week with measurement
 dark, the Ads account unverified, the checkout unproven, or the release
 unshipped.
 
-- [ ] **Step 0: Verify every Phase 0 and Phase 1 gate has actually passed**
+- [ ] **Step 0: Verify every Phase 0, Phase 1, and Phase 1.5 gate has actually passed**
 
 Do not proceed until each of these is true. Check, do not assume:
 
@@ -1535,7 +1627,6 @@ cat "$LAUNCH_LOG"
 - [x] Task 5 — `/faq` live **and** the four contradicting pages corrected and deployed
 - [x] Task 6 — README refreshed and merged (it is the Show HN landing page)
 - [x] Task 7 — v1.10.0 published; publication workflow complete
-- [ ] Task 7 — v1.10.0 48-hour soak elapsed and recorded
 - [x] Task 7 — v1.9.1 → v1.10.0 macOS updater handoff and strict
   post-update trust checks passed
 - [x] Task 7 — v1.9.1 → v1.10.0 Windows updater handoff passed
@@ -1543,6 +1634,16 @@ cat "$LAUNCH_LOG"
 - [x] Task 8 — packaged-v1.10.0 demo exported and README assets replaced
 - [x] Task 9 — newsletter capture verified with a fresh address
 - [x] Task 10 — copy pack committed
+- [ ] Phase 1.5 — selected backlog resolved; unselected work remains open or is
+  explicitly closed, not rushed into the release
+- [ ] Phase 1.5 — immutable launch release published by the Friday cutoff and
+  all required macOS/Windows/Linux, updater, manifest, and download gates passed
+- [ ] Phase 1.5 — README, copy pack, demo/stills, FAQ facts, and baseline tag
+  refreshed for that exact launch release
+- [ ] Phase 1.5 — `launch-freeze-start` row records the final `origin/main`
+  anchor, release tag, and release SHA
+- [ ] Phase 1.5 — fresh ≥48-hour soak elapsed and recorded for the selected
+  launch release
 
 - [ ] **Step 0a: Verify the soak has actually elapsed**
 
@@ -1550,10 +1651,11 @@ cat "$LAUNCH_LOG"
 python3 -c "
 import datetime, json, os, pathlib
 rows = [json.loads(l) for l in pathlib.Path(os.environ['LAUNCH_LOG']).read_text().splitlines() if l.strip()]
-soak = [r for r in rows if r.get('soakEndsAt')][-1]
+freeze = [r for r in rows if r.get('event') == 'launch-freeze-start'][-1]
+soak = [r for r in rows if r.get('releaseTag') == freeze.get('releaseTag') and r.get('soakEndsAt')][-1]
 ends = datetime.datetime.fromisoformat(soak['soakEndsAt'].replace('Z','+00:00'))
 now  = datetime.datetime.now(datetime.timezone.utc)
-print('soakEndsAt:', ends, '| now:', now)
+print('releaseTag:', freeze['releaseTag'], '| soakEndsAt:', ends, '| now:', now)
 print('CLEARED' if now >= ends else 'NOT CLEARED — DO NOT LAUNCH')
 "
 ```
@@ -1564,8 +1666,26 @@ enough — Task 7 Step 11's upgrade evidence must also be recorded.
 - [ ] **Step 0b: Verify the repository landing page is still inside the merge freeze**
 
 ```bash
-git fetch origin
-git diff --name-only 0de37a16f49827646c288d6216ca137bbfb5cb9e..origin/main
+git fetch origin --tags
+python3 - <<'FREEZE'
+import json, os, pathlib, re, subprocess
+
+rows = [json.loads(line) for line in pathlib.Path(os.environ['LAUNCH_LOG']).read_text().splitlines() if line.strip()]
+freeze = [row for row in rows if row.get('event') == 'launch-freeze-start'][-1]
+anchor = freeze.get('anchor', '')
+release_tag = freeze.get('releaseTag', '')
+release_sha = freeze.get('releaseSha', '')
+if not re.fullmatch(r'[0-9a-f]{40}', anchor) or not re.fullmatch(r'[0-9a-f]{40}', release_sha):
+    raise SystemExit('STOP: invalid launch-freeze SHA record')
+if not re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?', release_tag):
+    raise SystemExit('STOP: invalid launch release tag')
+resolved = subprocess.check_output(['git', 'rev-list', '-n', '1', release_tag], text=True).strip()
+if resolved != release_sha:
+    raise SystemExit('STOP: recorded release tag no longer resolves to recorded SHA')
+print('launch release:', release_tag, release_sha)
+print('freeze anchor :', anchor)
+subprocess.run(['git', 'diff', '--name-only', f'{anchor}..origin/main'], check=True)
+FREEZE
 gh pr list --repo bnfy/blanc --state open --limit 100 \
   --json number,title,headRefName,isDraft,url
 ```
@@ -1574,9 +1694,8 @@ Review the diff; do not reduce this to a count. Changes after the anchor may be
 launch evidence, launch copy, or their tests. If application/runtime code,
 dependencies, package metadata, packaging, release workflows, or unrelated
 feature specs reached `origin/main`, stop: the GitHub landing page and frozen
-v1.10.0 story have diverged. The known product and dependency PRs named in the
-global freeze must remain open. Do not merge them merely because their current
-checks are green.
+release story have diverged. Do not merge a late product or dependency PR merely
+because its checks are green.
 
 - [ ] **Step 1: Take the pre-launch baseline BEFORE anything is posted**
 
@@ -1584,25 +1703,27 @@ This must be the first action of launch week. A snapshot taken after the
 listings go out is not a pre-launch baseline, and it silently absorbs the first
 hours of lift into the "before" number.
 
-Capture **v1.10.0 only**, not the lifetime sum across every release. Preserve
+Capture the **recorded launch release only**, not the lifetime sum across every release. Preserve
 the full public-safe snapshot beside the private launch log so later reads use
 the same asset scope and can report per-platform deltas. Refuse to overwrite an
 existing baseline: a second capture after a listing goes live is not a valid
 replacement for the pre-launch floor.
 
 ```bash
-BASELINE_FILE="$(dirname "$LAUNCH_LOG")/download-baseline-v1.10.0-launch-week.json"
+LAUNCH_RELEASE_TAG="$(python3 -c "import json,os,pathlib; rows=[json.loads(line) for line in pathlib.Path(os.environ['LAUNCH_LOG']).read_text().splitlines() if line.strip()]; print([row for row in rows if row.get('event') == 'launch-freeze-start'][-1]['releaseTag'])")"
+case "$LAUNCH_RELEASE_TAG" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo "STOP: invalid launch release tag"; exit 1;; esac
+BASELINE_FILE="$(dirname "$LAUNCH_LOG")/download-baseline-${LAUNCH_RELEASE_TAG#v}-launch-week.json"
 test ! -e "$BASELINE_FILE" || { echo "STOP: launch baseline already exists at $BASELINE_FILE"; exit 1; }
-node marketing/social/capture-download-baseline.mjs v1.10.0 > "$BASELINE_FILE"
-export BASELINE_FILE
+node marketing/social/capture-download-baseline.mjs "$LAUNCH_RELEASE_TAG" > "$BASELINE_FILE"
+export BASELINE_FILE LAUNCH_RELEASE_TAG
 python3 - <<'BASELINE'
 import datetime, json, os, pathlib
 from zoneinfo import ZoneInfo
 
 snapshot_path = pathlib.Path(os.environ['BASELINE_FILE'])
 snapshot = json.loads(snapshot_path.read_text())
-if snapshot.get('release', {}).get('tag') != 'v1.10.0':
-    raise SystemExit('STOP: snapshot is not for v1.10.0')
+if snapshot.get('release', {}).get('tag') != os.environ['LAUNCH_RELEASE_TAG']:
+    raise SystemExit('STOP: snapshot is not for the recorded launch release')
 
 captured = datetime.datetime.fromisoformat(snapshot['capturedAt'].replace('Z', '+00:00'))
 eastern = captured.astimezone(ZoneInfo('America/New_York'))
@@ -1610,7 +1731,7 @@ row = {
     'date': eastern.date().isoformat(),
     'measuredAt': eastern.strftime('%H:%M:%S ET'),
     'event': 'launch-week-baseline',
-    'releaseTag': 'v1.10.0',
+    'releaseTag': os.environ['LAUNCH_RELEASE_TAG'],
     'packageAssetRequests': snapshot['totals']['packageAssetRequests'],
     'packageAssetRequestsByPlatform': snapshot['packageAssetRequestsByPlatform'],
     'postedAnythingYet': False,
@@ -1691,7 +1812,7 @@ prescribed pattern is *"just submit the link, then add a regular comment."*
 So:
 
 1. **Title:** Anthony writes it himself; it begins `Show HN` and describes the
-   whole browser rather than announcing the incremental v1.10.0 release.
+   whole browser rather than announcing the incremental launch release.
 2. **URL:** `https://github.com/bnfy/blanc` — the repository, not the marketing
    homepage (HN's landing-page rule).
 3. **Leave the text field empty.** Submit.
@@ -1737,12 +1858,13 @@ gh api repos/bnfy/blanc/traffic/popular/referrers   # HN should appear here
 gh api repos/bnfy/blanc/traffic/views --jq '.count, .uniques'
 ```
 
-Also compare the same v1.10.0 asset scope against Monday's full Step 1
+Also compare the same recorded launch-release asset scope against Monday's full Step 1
 snapshot:
 
 ```bash
-BASELINE_FILE="$(dirname "$LAUNCH_LOG")/download-baseline-v1.10.0-launch-week.json"
-node marketing/social/capture-download-baseline.mjs v1.10.0 "$BASELINE_FILE"
+LAUNCH_RELEASE_TAG="$(python3 -c "import json,os,pathlib; rows=[json.loads(line) for line in pathlib.Path(os.environ['LAUNCH_LOG']).read_text().splitlines() if line.strip()]; print([row for row in rows if row.get('event') == 'launch-freeze-start'][-1]['releaseTag'])")"
+BASELINE_FILE="$(dirname "$LAUNCH_LOG")/download-baseline-${LAUNCH_RELEASE_TAG#v}-launch-week.json"
+node marketing/social/capture-download-baseline.mjs "$LAUNCH_RELEASE_TAG" "$BASELINE_FILE"
 ```
 
 Per Task 2 Step 5, `packageAssetRequestDelta` is **aggregate** request lift —
@@ -1882,8 +2004,8 @@ be. Compute it, over an explicit window, from `valid:true` rows only:
 python3 - <<'CALC'
 import json, pathlib, statistics
 HIST = pathlib.Path.home() / '.claude/scheduled-tasks/blanc-daily-analytics/downloads-history.jsonl'
-WINDOW_START = '2026-09-14'   # first day AFTER launch week ends; set explicitly
-WINDOW_END   = '2026-09-27'   # 14 days later
+WINDOW_START = '2026-09-14'   # first Monday AFTER launch week ends; set explicitly
+WINDOW_END   = '2026-09-27'   # 14 inclusive calendar days
 
 rows = []
 for line in HIST.read_text().splitlines():
@@ -1937,7 +2059,7 @@ Record **only what the instrumentation can actually support** (Task 2, Step 5):
 - Objections raised, verbatim.
 
 **Aggregate only — NOT per channel:**
-- v1.10.0 package-asset-request lift vs the Monday Step 1 baseline.
+- Recorded launch-release package-asset-request lift vs the Monday Step 1 baseline.
 - Newsletter signups during the week.
 
 **Do not write a per-channel download number.** Nothing in the site persists
@@ -1959,9 +2081,10 @@ If the September cohort cleared 81, retention becomes measurable and earns its o
 ## Dependency summary
 
 Tasks are ordered so every remaining dependency runs **forward**. Task 7's
-release command is an immutable historical completion. All v1.10.0 platform
-follow-ups have cleared; only its 48-hour soak remains pending. Task 11 rechecks
-that evidence before taking the baseline.
+v1.10.0 release command is an immutable historical completion. Phase 1.5 now
+establishes the actual launch release, refreshed assets, dynamic freeze anchor,
+and soak evidence. Task 11 checks that replacement state before taking the
+baseline.
 
 ```
 PHASE 0 — prep, in this order
@@ -1980,14 +2103,20 @@ RELEASE PUBLISHED — platform evidence complete; soak pending
           v1.9.1 → v1.10.0 Windows updater handoff PASS
           48h soak PENDING — ends Aug 31 14:58 ET
 
-PHASE 1 — assets, during the freeze
-  Task 8  Packaged-v1.10.0 demo exported; README assets replaced
+PHASE 1 — initial assets
+  Task 8  Packaged-v1.10.0 demo exported; refresh if launch release changes
   Task 9  Newsletter capture verified
   Task 10 Copy pack committed
 
+PHASE 1.5 — backlog cleanup + release reset
+  Resolve selected backlog by Thu Sep 3 noon ET
+  Publish/prove immutable launch release by Fri Sep 4 15:00 ET
+  Refresh release-bound assets and record the new freeze anchor
+  Complete a fresh ≥48h soak
+
 PHASE 2 — launch week
   Task 11 Mon Sep 7  baseline FIRST, then listings
-               (requires Tasks 1–10 + completed Task 7 evidence)
+               (requires Tasks 1–10 + complete Phase 1.5 release/freeze/soak evidence)
      ▼
   Task 12 Tue Sep 8  Show HN  (URL only; body as first comment)
      ▼
@@ -2011,23 +2140,26 @@ prerequisite because v1.10.0 is already public.
 - **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`;
   Task 8's current packaged-v1.10.0 demo replacement is also complete in
   `0cc0c57`.
-- **Current release soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. **Currently blocked for v1.10.0 only on time:** all three platform follow-ups passed; the 48-hour clock ends at `2026-08-31T18:58:24Z` and the still-public stable release must then be checked and recorded.
+- **Selected launch release soak or evidence not cleared** — either <48h elapsed
+  or current platform evidence missing → the launch week moves unless the owner
+  explicitly waives the remaining evidence after the risk is stated and records
+  that waiver in the release incident. The v1.10.0 record remains historical;
+  if cleanup changes downloadable behavior, only the replacement release's
+  evidence and soak count.
 - **Task 3 Google approval regresses or shows a new required action** → do not
   start Task 11. **Currently satisfied:** verification is in `Completed tasks`
   and the campaign is serving; recheck before the Monday baseline.
-- **Task 8 demo incomplete** → do not start Task 11. **Currently satisfied:**
-  the 20.50-second MP4 and sub-8-MiB GIF were captured from packaged public
-  v1.10.0 and committed in `0cc0c57`.
-- **Unreleased feature work reaches `main` before launch** → stop and re-audit
+- **Task 8 demo incomplete or stale for the selected release** → do not start
+  Task 11. The current 20.50-second MP4 and sub-8-MiB GIF were captured from
+  packaged public v1.10.0 and committed in `0cc0c57`; recapture them if backlog
+  cleanup changes visible or claimed behavior.
+- **Unreleased feature work reaches `main` after the new freeze anchor** → stop and re-audit
   the README, demo, copy pack, and public binary/repository boundary before
-  posting any channel. **Currently satisfied after the August 30 re-audit:**
-  the copy pack freezes downloadable behavior to tag `v1.10.0`, does not claim
-  the post-release Windows updater fix is already shipped, and distinguishes
-  the post-release MIT source permission from packaged behavior. The demo was
-  recaptured from installed public v1.10.0 rather than `main`. The earlier
-  August 27 Privacy correction remains live in production deployment
-  `87ad52a1-667e-4fea-93da-1091c33532a0`.
-- **Task 1 approved but listing not visible logged out on Monday** → that channel does not fire. This is *not* a reason to move the launch week.
+  posting any channel. **Pending:** Phase 1.5 must record the replacement anchor,
+  release tag/SHA, refreshed copy/assets, and soak evidence before this becomes
+  satisfied.
+- **Task 1 approved but listing not visible logged out on Monday, September 7**
+  → that channel does not fire. This is *not* a reason to move the launch week.
 
 **Licence decision:** resolved in Global Constraints. Use MIT/open-source
 wording with the bundled-filter-list and Blanc trademark carve-outs; never use
