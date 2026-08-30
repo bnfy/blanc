@@ -7093,6 +7093,8 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       // Carried on every status push so a start page opened in one window
       // re-inks when the layout is changed from Settings or another window.
       layout: current.newtabLayout,
+      // Gates the start-page footer's mahjong link (spec 2026-08-30).
+      newtabMahjong: current.newtabMahjong === true,
       privacy: {
         required: !settings.isFirstRunComplete(),
         searchSuggestions: current.searchSuggestions,

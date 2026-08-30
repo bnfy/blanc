@@ -16,6 +16,13 @@ document.getElementById('dateLine').textContent = dateText;
 
 document.getElementById('goAnywhere').textContent = `${isMac ? '⌘' : 'Ctrl+'}L to go anywhere`;
 
+// Opt-in footer link to the mahjong page (settings.newtabMahjong, reaching
+// this page via the startPageStatus projection — initial data and live
+// status pushes both carry it). Private tabs pass the presentation marker on.
+const mahjongLink = document.getElementById('mahjongLink');
+if (isPrivate) mahjongLink.href = 'blanc://mahjong/?private=1';
+const renderMahjongLink = (on) => { mahjongLink.hidden = !on; };
+
 if (isPrivate) {
   document.getElementById('footerLeft').textContent =
     'not saved to history · site data stays in a private in-memory session · passkeys created here are lost on quit';
@@ -458,6 +465,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
   });
   renderLaunchStatus({ startup: data.startup, privacy: data.privacy });
   renderPatronCallout(data.patronActive);
+  renderMahjongLink(data.newtabMahjong === true);
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =
       `${state.blockedThisWeek.toLocaleString()} ads blocked this week`;
@@ -474,6 +482,7 @@ window.bowserPages?.start.onStatus((status) => {
   renderLaunchStatus(status);
   if (status?.layout && status.layout !== state.layout) applyLayout(status.layout);
   if (status && 'patronActive' in status) renderPatronCallout(status.patronActive);
+  if (status && 'newtabMahjong' in status) renderMahjongLink(status.newtabMahjong === true);
 });
 
 // The pill's caret says keystrokes land somewhere. They do: a printable
