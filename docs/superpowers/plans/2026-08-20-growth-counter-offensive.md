@@ -11,7 +11,7 @@
 
 **Goal:** Fire the five discovery channels Blanc has never used — in one concentrated week, with measurement restored and the payment path proven first — so the September cohort is large enough for retention to become a real question.
 
-**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Google Ads verification) and de-risks the spike (site copy corrected, production Patron purchase proven, current release + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires channels cheap→expensive across four days so neither one-shot card is spent on untested copy.
+**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Product Hunt personal-account access; Google Ads verification) and de-risks the spike (site copy corrected, production Patron purchase proven, current release + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires evergreen listings, then argumentative communities, then Product Hunt across four days so neither one-shot card is spent on untested copy.
 
 **Tech Stack:** Astro 7 (`site/`), Cloudflare Pages, GA4 (property 544287080), Polar.sh (Patron checkout), `blanc-ping` Worker stats, `gh` CLI.
 
@@ -89,7 +89,7 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
   `main` is not downloadable behavior unless a
   new immutable release completes the same platform checks and restarts the
   ≥48-hour soak.
-- **Channel order is cheap→expensive and is not negotiable:** listings → Show HN → Reddit → Product Hunt.
+- **Channel order is not negotiable:** evergreen listings → Show HN → Reddit → Product Hunt.
 - **No retention experiments this cycle.** n=27 cannot support one. The checkpoint is Oct 1.
 - **Adding a site page REQUIRES adding its path to `MANIFEST` in `site/src/pages/sitemap.xml.js`** — the sitemap endpoint asserts the manifest matches discovered pages exactly and **fails the build** otherwise.
 - **Site deploys use `npm run site:deploy`** (includes the mandatory `--branch=main`). After deploying, confirm Wrangler reports `Environment: Production`, `Branch: main`, and the expected source SHA.
@@ -1690,21 +1690,39 @@ echo '{"date":"YYYY-MM-DD","channel":"reddit","subreddits":["..."],"removed":[],
 
 **Why last:** The copy has now been tested against two days of live argument. A PH badge is permanent — spend it on a message proven to work.
 
+- [ ] **Step 0: Confirm the owner's personal account can post — do this before Thursday**
+
+Product Hunt requires a personal account; company accounts cannot post. Its
+current [posting-access guide](https://help.producthunt.com/en/articles/481909-how-can-i-get-access-to-post)
+says a newly created personal account normally waits one week before posting,
+while subscribing to the newsletter can grant immediate access. The owner must
+open the live submission flow and confirm it reaches the product form. An agent
+must not create the account, subscribe, or claim access from account age alone.
+
 - [ ] **Step 1: Revise the listing using both days' objections**
 
-- [ ] **Step 2: Launch at 00:01 Pacific**
-
-PH ranks on a daily cycle; a late-morning launch forfeits most of the day.
-
-- [ ] **Step 3: Lead with the demo video and verified stills**
+- [ ] **Step 2: Upload the demo video and verified stills early enough to preview**
 
 Product Hunt's gallery accepts video through a full YouTube URL, not a raw MP4.
-Upload Task 8's final export as public or unlisted (never private), paste the
-full URL into the draft, and verify the preview before scheduling. Upload the
-prepared 240×240 thumbnail and both 1270×760 packaged-v1.10.0 stills from
+Upload Task 8's final export as public or unlisted (never private). Its current
+[YouTube troubleshooting guide](https://help.producthunt.com/en/articles/11869741-youtube-link-troubleshooting)
+warns that a newly uploaded video may need about **12 hours** before Product
+Hunt can integrate it, so do not leave the upload for launch night. Paste the
+full URL into the draft and verify the rendered preview. Upload the prepared
+240×240 thumbnail and both 1270×760 packaged-v1.10.0 stills from
 `docs/superpowers/plans/assets/product-hunt/`; those two images satisfy the
 gallery's two-image floor. A Named Workspaces still is optional and must be
 omitted unless it is a release-backed capture labeled as a Patron feature.
+
+- [ ] **Step 3: Schedule Thursday's launch**
+
+Use **Schedule Launch**, not a manual launch-night action. Product Hunt's
+current [scheduling guide](https://help.producthunt.com/en/articles/2724119-how-to-schedule-a-post)
+allows selecting a date within 30 days, and its
+[posting guide](https://help.producthunt.com/en/articles/479557-how-to-post-a-product)
+says scheduled posts go live at **12:01 a.m. Pacific** on the selected day.
+Before scheduling, verify the Thursday date, the full YouTube preview, both
+stills, the thumbnail, the pricing tag, and the final objection-informed copy.
 
 - [ ] **Step 4: Engage all day**
 

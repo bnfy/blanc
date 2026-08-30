@@ -300,11 +300,20 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 
 ## Product Hunt
 
+**Account gate:** use the owner's personal account and confirm it can reach the
+submission form before Thursday. Product Hunt's current
+[posting-access guide](https://help.producthunt.com/en/articles/481909-how-can-i-get-access-to-post)
+says company accounts cannot post and newly created personal accounts normally
+wait one week; newsletter subscription can grant immediate access.
+
 Product Hunt's current form allows a 260-character description, recommends a
 240×240 square thumbnail, requires at least two gallery images for the gallery
 to appear, recommends 1270×760 gallery images, and supports gallery video only
 through a full YouTube URL. Upload the final demo to YouTube as public or
-unlisted—not private—and verify the full URL before scheduling. Re-check the
+unlisted—not private—at least 12 hours before the final preview when possible;
+Product Hunt warns that new YouTube uploads may need about 12 hours before they
+can be integrated. Verify the full URL in the preview, then use **Schedule
+Launch** for Thursday; scheduled posts go live at 12:01 a.m. Pacific. Re-check the
 [official posting guide](https://help.producthunt.com/en/articles/479557-how-to-post-a-product)
 when creating the draft.
 
@@ -526,7 +535,9 @@ drop a full defense where one sentence would do.
   v1.9.1 pair.
 - [ ] The Product Hunt thumbnail is 240×240 and both prepared gallery stills
   are 1270×760; the stills render without private data or post-v1.10.0 UI.
-- [ ] Product Hunt's full YouTube URL is not private and appears in the preview.
+- [ ] The owner's personal Product Hunt account can reach the submission form.
+- [ ] Product Hunt's full YouTube URL is not private, has had processing time,
+  and appears in the preview with both stills before **Schedule Launch**.
 - [ ] Each Reddit community's live rules permit the planned post format.
 - [ ] The HN account is eligible under the current Show HN restriction.
 - [ ] Anthony writes the HN title, first comment, and replies himself without
