@@ -236,16 +236,6 @@
     document.getElementById('onePasswordSettings')?.remove();
   }
 
-  // --- Mahjong on new tab ---
-  if (supports('newtabMahjong')) {
-    const newtabMahjong = document.getElementById('newtabMahjong');
-    newtabMahjong.checked = settings.newtabMahjong;
-    newtabMahjong.addEventListener('change', () =>
-      window.bowserPages.settings.set({ newtabMahjong: newtabMahjong.checked }));
-  } else {
-    document.getElementById('newtabMahjong')?.closest('.setting')?.remove();
-  }
-
   // --- Usage ping ---
   if (supports('usagePing')) {
     const usagePing = document.getElementById('usagePing');

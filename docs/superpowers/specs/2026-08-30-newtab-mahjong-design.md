@@ -245,3 +245,9 @@ framed). This supersedes §2's "fifth layout" non-goal; the §3 opt-in footer
 link and `newtabMahjong` setting remain unchanged. Later same day: suit
 inks + bone-ivory shading, and the Blanc mark as the white dragon face
 (ink only, never framed — logomark brand rule).
+
+Follow-up, same day: with the layout in the switcher the §3 opt-in footer
+link was redundant — the `newtabMahjong` setting, footer link, Settings
+toggle, and startPageStatus projection were all removed (never shipped in a
+release, so no migration). The game is reached via the `mahjong` layout or
+by typing `blanc://mahjong`.

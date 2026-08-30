@@ -871,11 +871,6 @@ a.ledger-label:hover { color: var(--accent); }
    mono face, which draws ⌘ malformed. Scoped to the element so the rest of
    the footer line stays mono. */
 #goAnywhere { font-family: var(--font-kbd); }
-/* mahjong link + ⌘L hint share the footer's right grid cell (a fourth
-   direct child would wrap the 1fr auto 1fr grid onto a second row). */
-.footer-right { display: inline-flex; gap: 16px; align-items: baseline; }
-.mahjong-link { color: inherit; text-decoration: none; }
-.mahjong-link:hover { text-decoration: underline; color: var(--text); }
 
 @media (max-width: 720px) {
   .ledger-body { padding: 90px 48px 40px; }
@@ -1495,7 +1490,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ledger-footer .footer-left,
 .ledger-footer > #footerLeft { justify-self: start; }
 .ledger-footer .layout-switcher { justify-self: center; }
-.ledger-footer > .footer-right { justify-self: end; }
+.ledger-footer > #goAnywhere { justify-self: end; }
 /* Too narrow for one row: wrap as centered lines instead (no overflow). */
 @media (max-width: 760px) {
   .ledger-footer { display: flex; flex-wrap: wrap; justify-content: center; row-gap: 4px; }
