@@ -130,22 +130,25 @@ worth running at all.
 
 Ordered by external clock, not by convenience.
 
-1. **Create the AlternativeTo account immediately.** Its submission FAQ requires
-   seven days of account age before the account may suggest an app. This is the
-   only item with a hard external lead time, and missing it removes a channel
-   from launch week entirely.
-2. **Restore measurement.** GA4 has been unreadable for several days — the
+1. **Submit AlternativeTo immediately.** Its current FAQ requires email
+   verification, not account age. The real lead time is editorial review: paid
+   priority review is normally 1–2 business days and can take longer when busy.
+2. **Verify Product Hunt posting access immediately.** Product Hunt requires a
+   personal account. Its current first-party guidance says a new account
+   normally waits one week before it can post, while subscribing to the
+   newsletter can grant immediate access. Do not discover this gate on Thursday.
+3. **Restore measurement.** GA4 has been unreadable for several days — the
    Claude in Chrome extension reports zero connected browsers — so site→download
    conversion is currently invisible. Reconnect it, and *independently* tag every
    channel URL with `?ref=` so per-channel attribution survives even if GA4 stays
    flaky. Launching the biggest traffic event in Blanc's history without
    measurement wastes it twice: no read on which channel worked, and no baseline
    for the next attempt.
-3. **Complete Google Ads advertiser verification.** Due **2026-09-02**; delivery
+4. **Complete Google Ads advertiser verification.** Due **2026-09-02**; delivery
    stops if it lapses. It must be finished before launch week, not during it.
-4. **Run one real production Patron purchase** on a packaged build. Clears the
+5. **Run one real production Patron purchase** on a packaged build. Clears the
    Named Workspaces gate and proves the checkout before traffic arrives.
-5. **Release v1.8.0** with Named Workspaces, then **soak at least 48 hours**
+6. **Release v1.8.0** with Named Workspaces, then **soak at least 48 hours**
    before launch day, so the launch rides a build that has survived a weekend
    rather than one that is hours old.
 
