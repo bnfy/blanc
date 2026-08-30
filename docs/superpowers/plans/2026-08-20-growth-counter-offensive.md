@@ -125,7 +125,9 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 alternatives, approval email, and canonical listing URL are recorded. AlternativeTo's current
 FAQ requires email verification—not account age—and says paid priority
 submissions are usually reviewed within 1–2 business days, or up to a week in
-busy periods.
+busy periods. The approved description predates Blanc's August 30 adoption of
+the MIT License; Task 11 Step 2 corrects that public source-status sentence
+after the pre-launch baseline and verifies the result signed out.
 
 **Why in Phase 0, not launch week:** The plan originally claimed a seven-day
 account-age requirement. **That is false** — it came from a stale line in
@@ -1545,13 +1547,16 @@ echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline
 
 **Every number in Task 15 is measured against this row.**
 
-- [x] **Step 2: Confirm the AlternativeTo listing is publicly reachable**
+- [ ] **Step 2: Confirm the AlternativeTo listing and correct its pre-MIT copy**
 
-Passed August 27 in a signed-out browser at
+The availability half passed August 27 in a signed-out browser at
 `https://alternativeto.net/software/blanc/`: the page rendered the Blanc
-listing, six alternatives, and the `Sign In` control. AlternativeTo presents a
-Cloudflare challenge to automated clients, so a `403` from `curl` is not
-evidence that the approved listing is unavailable.
+listing, six alternatives, and the `Sign In` control. **After Step 1 captures
+the pre-launch baseline**, the owner edits the description to the current MIT
+wording in Task 10, saves it, and rechecks the public signed-out listing until
+the MIT source-status sentence is visible. Do not edit the listing before the
+baseline. AlternativeTo presents a Cloudflare challenge to automated clients,
+so a `403` from `curl` is not evidence that the approved listing is unavailable.
 
 - [ ] **Step 3: Submit to BetaList**
 
