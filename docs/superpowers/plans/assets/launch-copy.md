@@ -308,6 +308,17 @@ unlisted—not private—and verify the full URL before scheduling. Re-check the
 [official posting guide](https://help.producthunt.com/en/articles/479557-how-to-post-a-product)
 when creating the draft.
 
+Prepared release-backed media:
+
+- Thumbnail: `product-hunt/thumbnail-240x240.png`
+- Gallery still 1: `product-hunt/island-resting-1270x760.png`
+- Gallery still 2: `product-hunt/quick-switcher-1270x760.png`
+
+The two stills satisfy the guide's two-image gallery floor. Both come directly
+from the packaged-v1.10.0 demo; provenance is in `product-hunt/README.md`.
+The full YouTube URL remains owner-supplied and must not be inferred from a raw
+MP4 URL.
+
 **Name**
 
 > Blanc
@@ -367,9 +378,11 @@ Use only topics that exist in the live form and genuinely fit.
 **Gallery order**
 
 1. Island demo through a verified full YouTube URL.
-2. 1270×760 Island resting-state image.
-3. 1270×760 expanded command palette/quick-switcher image.
-4. 1270×760 Named Workspaces image with a visible `Patron` label in its caption.
+2. `product-hunt/island-resting-1270x760.png`.
+3. `product-hunt/quick-switcher-1270x760.png`.
+4. Optional: a packaged-v1.10.0 Named Workspaces capture with a visible
+   `Patron` label in its caption. Omit it rather than substituting a mockup,
+   development build, or unlabeled paid feature.
 
 ## AlternativeTo
 
@@ -503,6 +516,8 @@ drop a full defense where one sentence would do.
 - [ ] The Island demo still resolves from both immutable packaged-v1.10.0 URLs
   above without authentication, and no launch post references the retired
   v1.9.1 pair.
+- [ ] The Product Hunt thumbnail is 240×240 and both prepared gallery stills
+  are 1270×760; the stills render without private data or post-v1.10.0 UI.
 - [ ] Product Hunt's full YouTube URL is not private and appears in the preview.
 - [ ] Each Reddit community's live rules permit the planned post format.
 - [ ] The HN account is eligible under the current Show HN restriction.

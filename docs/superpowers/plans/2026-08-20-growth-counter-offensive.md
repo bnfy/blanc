@@ -1686,11 +1686,15 @@ echo '{"date":"YYYY-MM-DD","channel":"reddit","subreddits":["..."],"removed":[],
 
 PH ranks on a daily cycle; a late-morning launch forfeits most of the day.
 
-- [ ] **Step 3: Lead with the demo video**
+- [ ] **Step 3: Lead with the demo video and verified stills**
 
 Product Hunt's gallery accepts video through a full YouTube URL, not a raw MP4.
 Upload Task 8's final export as public or unlisted (never private), paste the
-full URL into the draft, and verify the preview before scheduling.
+full URL into the draft, and verify the preview before scheduling. Upload the
+prepared 240×240 thumbnail and both 1270×760 packaged-v1.10.0 stills from
+`docs/superpowers/plans/assets/product-hunt/`; those two images satisfy the
+gallery's two-image floor. A Named Workspaces still is optional and must be
+omitted unless it is a release-backed capture labeled as a Patron feature.
 
 - [ ] **Step 4: Engage all day**
 
