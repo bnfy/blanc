@@ -327,7 +327,7 @@ thread as a substitute launch.
 ## Product Hunt
 
 **Account gate:** use the owner's personal account and confirm it can reach the
-submission form before Thursday. Product Hunt's current
+submission form before Thursday, September 10. Product Hunt's current
 [posting-access guide](https://help.producthunt.com/en/articles/481909-how-can-i-get-access-to-post)
 says company accounts cannot post and newly created personal accounts normally
 wait one week; newsletter subscription can grant immediate access.
@@ -339,7 +339,7 @@ through a full YouTube URL. Upload the final demo to YouTube as public or
 unlisted—not private—at least 12 hours before the final preview when possible;
 Product Hunt warns that new YouTube uploads may need about 12 hours before they
 can be integrated. Verify the full URL in the preview, then use **Schedule
-Launch** for **Thursday, September 3, 2026**; Product Hunt says its 24-hour PST
+Launch** for **Thursday, September 10, 2026**; Product Hunt says its 24-hour PST
 period puts scheduled posts live at **12:01 a.m. PST**. Re-check the
 [official posting guide](https://help.producthunt.com/en/articles/479557-how-to-post-a-product)
 when creating the draft.
@@ -568,7 +568,7 @@ drop a full defense where one sentence would do.
 - [ ] The owner's personal Product Hunt account can reach the submission form.
 - [ ] Product Hunt's full YouTube URL is not private, has had processing time,
   and appears in the preview with both stills before **Schedule Launch**.
-- [ ] Product Hunt's live form displays **September 3, 2026** before scheduling;
+- [ ] Product Hunt's live form displays **September 10, 2026** before scheduling;
       if an earlier channel slipped, every downstream date moved with it.
 - [ ] Each Reddit community's live rules and the eligibility matrix permit the
       planned post format; every ineligible candidate is explicitly skipped.

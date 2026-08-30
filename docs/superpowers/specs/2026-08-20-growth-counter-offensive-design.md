@@ -7,6 +7,12 @@
 > is no longer an accurate statement of Blanc's licensing. For current terms see
 > `LICENSE`, `THIRD-PARTY-NOTICES.md`, and `ASSET-LICENSE.md`.
 
+> **Calendar supersession (2026-08-30).** The owner moved the operational
+> launch sequence one week later. The original proposed calendar below remains
+> as historical design context; execution now follows the implementation plan:
+> September 7 baseline/listings, September 8 Show HN, September 9 eligible
+> Reddit communities, and September 10 Product Hunt.
+
 **Date:** 2026-08-20
 **Status:** Approved 2026-08-20 (brainstorming). Ready for implementation planning.
 **Related:** [Press outreach plan](../../press-outreach-plan.md) (research July 11, 2026),
