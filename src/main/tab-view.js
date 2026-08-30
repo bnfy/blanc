@@ -96,7 +96,7 @@ function initTabView(injected) {
     'isUtilityUrl', 'handOffToOs', 'setTabFavicon',
     'isStartupGateActive', 'startupQueuedNavigations',
     'onMainFrameCommit', 'noteWakeSuppressed', 'notePopupChild',
-    'registerPopupCaptureSurface', 'clearTabCaptureState',
+    'registerPopupCaptureSurface', 'clearTabCaptureState', 'recordRendererCrash',
   ];
   for (const name of required) {
     if (injected?.[name] === undefined) throw new Error(`initTabView missing dependency: ${name}`);
@@ -148,7 +148,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     isUtilityUrl, handOffToOs, setTabFavicon,
     isStartupGateActive, startupQueuedNavigations,
     onMainFrameCommit, noteWakeSuppressed, notePopupChild,
-    registerPopupCaptureSurface, clearTabCaptureState,
+    registerPopupCaptureSurface, clearTabCaptureState, recordRendererCrash,
   } = deps;
   const id = tab.id;
   const wc = view.webContents;
@@ -332,6 +332,7 @@ function wireTabView(tab, view, { owner, adopted }) {
     // error page's commit — that loadURL can itself fail (spec §3.2).
     clearTabCaptureState(tab);
     if (details.reason === 'clean-exit') return;
+    recordRendererCrash('tab', details);
     const q = new URLSearchParams({ url: tab.url, code: details.reason, desc: 'The page crashed' });
     wc.loadURL(`blanc://error/?${q}`).catch(() => {});
   }));

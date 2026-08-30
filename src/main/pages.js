@@ -15,6 +15,7 @@ const supporter = require('./supporter');
 const patron = require('./patron');
 const sync = require('./sync');
 const telemetry = require('./telemetry');
+const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
 const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
@@ -324,6 +325,11 @@ function setupPages(hooks = {}) {
     () => hooks.startPage?.continueWithoutAdblock?.(),
   );
   handle(
+    'pages:start:recover-session',
+    'newtab',
+    (choice) => hooks.startPage?.recoverSession?.(String(choice ?? '')),
+  );
+  handle(
     'pages:start:privacy-complete',
     'newtab',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
@@ -371,6 +377,13 @@ function setupPages(hooks = {}) {
   // Privacy reset for the usage ping's per-install id (see telemetry.js) —
   // from the next ping on, this install counts as brand new.
   handle('pages:telemetry:reset-install-id', 'settings', () => telemetry.resetInstallId());
+
+  // This device-local ledger excludes browsing state and leaves main only
+  // through an explicit native save dialog opened from Settings.
+  handle('pages:diagnostics:status', 'settings', () => diagnostics.status());
+  handle('pages:diagnostics:export', 'settings', () =>
+    diagnostics.exportReport(hooks.getMainWindow?.()));
+  handle('pages:diagnostics:clear', 'settings', () => diagnostics.clear());
 
   // The settings page promises "cookies, cache & site data" — clear both.
   handle('pages:clear-browsing-data', 'settings', () => {

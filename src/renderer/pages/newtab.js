@@ -27,16 +27,36 @@ const startupMessage = document.getElementById('startupMessage');
 const startupActions = document.getElementById('startupActions');
 const startupRetry = document.getElementById('startupRetry');
 const startupContinue = document.getElementById('startupContinue');
-function renderLaunchStatus({ startup, privacy } = {}) {
+const recoveryActions = document.getElementById('recoveryActions');
+const recoveryRestore = document.getElementById('recoveryRestore');
+const recoveryFresh = document.getElementById('recoveryFresh');
+const recoveryError = document.getElementById('recoveryError');
+function renderLaunchStatus({ startup, recovery, privacy } = {}) {
   if (isPrivate) {
     startupCard.hidden = true;
     return;
   }
 
-  const showStartup = startup?.phase === 'initializing' || startup?.phase === 'failed';
+  const showRecovery = recovery?.required === true;
+  const showStartup = !showRecovery &&
+    (startup?.phase === 'initializing' || startup?.phase === 'failed');
   const startupWasHidden = startupCard.hidden;
-  startupCard.hidden = !showStartup;
-  if (showStartup) {
+  startupCard.hidden = !(showRecovery || showStartup);
+  startupActions.hidden = true;
+  recoveryActions.hidden = true;
+  recoveryError.hidden = true;
+  if (showRecovery) {
+    const tabs = Number.isInteger(recovery.tabCount) ? recovery.tabCount : 0;
+    const windows = Number.isInteger(recovery.windowCount) ? recovery.windowCount : 0;
+    startupTitle.textContent = 'Pick up where you left off?';
+    startupMessage.textContent = `Blanc did not close normally. Restore ${tabs} ${tabs === 1 ? 'tab' : 'tabs'} across ${windows} ${windows === 1 ? 'window' : 'windows'}, or start with a clean Personal window. No saved website will open until you choose.`;
+    recoveryActions.hidden = false;
+    if (recovery.error) {
+      recoveryError.textContent = recovery.error;
+      recoveryError.hidden = false;
+    }
+    if (startupWasHidden) recoveryRestore.focus();
+  } else if (showStartup) {
     const failed = startup.phase === 'failed';
     startupTitle.textContent = failed
       ? 'Blocking could not start.'
@@ -53,7 +73,10 @@ function renderLaunchStatus({ startup, privacy } = {}) {
   // First-run onboarding replaced the privacy card outright (privacy is its
   // step 5, migration its step 2). It waits out the startup card and needs
   // the onboarding projection from start.data() before it will open.
-  window.blancOnboarding?.maybeShow({ startup, privacy }, state.onboarding);
+  window.blancOnboarding?.maybeShow({
+    startup: showRecovery ? { phase: 'initializing' } : startup,
+    privacy,
+  }, state.onboarding);
 }
 
 // Quiet, understated Patron callout — one per start-page layout (ledger,
@@ -86,6 +109,20 @@ startupContinue.addEventListener('click', async () => {
     startupContinue.disabled = false;
   }
 });
+
+async function chooseRecovery(choice) {
+  recoveryRestore.disabled = true;
+  recoveryFresh.disabled = true;
+  try {
+    const result = await window.bowserPages?.start.recoverSession(choice);
+    if (result?.recovery) renderLaunchStatus({ recovery: result.recovery });
+  } finally {
+    recoveryRestore.disabled = false;
+    recoveryFresh.disabled = false;
+  }
+}
+recoveryRestore.addEventListener('click', () => chooseRecovery('restore'));
+recoveryFresh.addEventListener('click', () => chooseRecovery('fresh'));
 
 window.bowserPages?.appVersion().then((version) => {
   document.getElementById('version').textContent = `v${version}`;
@@ -482,7 +519,7 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
     blockedBarHeights: data.blockedBarHeights ?? state.blockedBarHeights,
     onboarding: data.onboarding ?? null,
   });
-  renderLaunchStatus({ startup: data.startup, privacy: data.privacy });
+  renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
   renderPatronCallout(data.patronActive);
   if (!isPrivate) {
     document.getElementById('footerLeft').textContent =
