@@ -41,7 +41,7 @@ class FakeAudioContext {
     this.oscillators = [];
     this.gains = [];
     this.resumeCount = 0;
-    this.suspendCount = 0;
+    this.closeCount = 0;
   }
   createOscillator() {
     const oscillator = new FakeOscillator();
@@ -54,7 +54,7 @@ class FakeAudioContext {
     return gain;
   }
   async resume() { this.resumeCount += 1; this.state = 'running'; }
-  async suspend() { this.suspendCount += 1; this.state = 'suspended'; }
+  async close() { this.closeCount += 1; this.state = 'closed'; }
 }
 FakeAudioContext.instances = [];
 
@@ -107,8 +107,12 @@ test('the persisted toggle suppresses cues and resumes them when enabled', () =>
 
   assert.equal(sound.setEnabled(false), false);
   assert.equal(storage.value(STORAGE_KEY), 'off');
-  assert.equal(FakeAudioContext.instances[0].suspendCount, 1);
+  assert.equal(FakeAudioContext.instances[0].closeCount, 1);
   assert.equal(sound.play('hint'), false);
+
+  assert.equal(sound.setEnabled(true), true);
+  assert.equal(sound.play('toggle'), true);
+  assert.equal(FakeAudioContext.instances.length, 2, 'unmute gets a fresh audio graph');
 });
 
 test('unsupported or unavailable audio fails quietly', () => {
@@ -120,4 +124,14 @@ test('unsupported or unavailable audio fails quietly', () => {
     storage: memoryStorage(),
   });
   assert.equal(broken.play('select'), false);
+
+  class PartiallyBrokenAudioContext extends FakeAudioContext {
+    createOscillator() { throw new Error('audio graph unavailable'); }
+  }
+  const partial = createMahjongSound({
+    AudioContextClass: PartiallyBrokenAudioContext,
+    storage: memoryStorage(),
+  });
+  assert.equal(partial.play('select'), false);
+  assert.equal(FakeAudioContext.instances[0].closeCount, 1);
 });

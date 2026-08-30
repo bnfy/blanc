@@ -36,36 +36,50 @@
       }
     }
 
+    function discardContext() {
+      const discarded = context;
+      context = null;
+      if (!discarded || discarded.state === 'closed') return;
+      try { Promise.resolve(discarded.close()).catch(() => {}); } catch { /* already gone */ }
+    }
+
     function play(name) {
       const cue = CUES[name];
       if (!enabled || !cue) return false;
       const audio = ensureContext();
       if (!audio) return false;
 
-      const now = audio.currentTime;
-      for (const [offset, frequency, duration, peak, type] of cue) {
-        const start = now + offset;
-        const oscillator = audio.createOscillator();
-        const gain = audio.createGain();
-        oscillator.type = type;
-        oscillator.frequency.setValueAtTime(frequency, start);
-        gain.gain.setValueAtTime(0.0001, start);
-        gain.gain.exponentialRampToValueAtTime(peak, start + 0.006);
-        gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-        oscillator.connect(gain);
-        gain.connect(audio.destination);
-        oscillator.start(start);
-        oscillator.stop(start + duration + 0.01);
+      try {
+        const now = audio.currentTime;
+        for (const [offset, frequency, duration, peak, type] of cue) {
+          const start = now + offset;
+          const oscillator = audio.createOscillator();
+          const gain = audio.createGain();
+          oscillator.type = type;
+          oscillator.frequency.setValueAtTime(frequency, start);
+          gain.gain.setValueAtTime(0.0001, start);
+          gain.gain.exponentialRampToValueAtTime(peak, start + 0.006);
+          gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+          oscillator.connect(gain);
+          gain.connect(audio.destination);
+          oscillator.start(start);
+          oscillator.stop(start + duration + 0.01);
+        }
+        return true;
+      } catch {
+        // Audio is optional: a partially failed graph must never interrupt a
+        // game interaction or leave scheduled nodes around for a later cue.
+        discardContext();
+        return false;
       }
-      return true;
     }
 
     function setEnabled(next) {
       enabled = !!next;
       try { storage?.setItem(STORAGE_KEY, enabled ? 'on' : 'off'); } catch { /* session only */ }
-      if (!enabled && context?.state === 'running') {
-        try { Promise.resolve(context.suspend()).catch(() => {}); } catch { /* already gone */ }
-      }
+      // Closing rather than suspending cancels scheduled tails and avoids an
+      // asynchronous off/on race that can leave an enabled context paused.
+      if (!enabled) discardContext();
       return enabled;
     }
 
