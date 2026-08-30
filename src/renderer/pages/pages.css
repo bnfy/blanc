@@ -1789,6 +1789,9 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 
 /* ---- mahjong (blanc://mahjong — opt-in solitaire, see 2026-08-30 spec) ---- */
+/* Suit inks follow traditional four-color tile engraving (black, red,
+   green, blue) so color carries suit identity; faces get a faint bone-ivory
+   gradient. Scoped here, not :root — these are game-local, not app tokens. */
 .mahjong-body {
   margin: 0;
   height: 100vh;
@@ -1796,6 +1799,36 @@ body:not([data-layout="ledger"]) .ledger-footer {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
+  --mj-red: #a63d33;
+  --mj-green: #41724f;
+  --mj-blue: #46648c;
+  --mj-tile-top: #fffef9;
+  --mj-tile-bottom: #f4f1e8;
+  --mj-tile-border: #d9d5ca;
+  --mj-shadow-contact: rgba(60, 50, 30, 0.10);
+  --mj-shadow-ambient: rgba(60, 50, 30, 0.10);
+}
+@media (prefers-color-scheme: dark) {
+  .mahjong-body {
+    --mj-red: #cf8d82;
+    --mj-green: #8db396;
+    --mj-blue: #92a9cb;
+    --mj-tile-top: #272624;
+    --mj-tile-bottom: #1d1c1b;
+    --mj-tile-border: #383632;
+    --mj-shadow-contact: rgba(0, 0, 0, 0.35);
+    --mj-shadow-ambient: rgba(0, 0, 0, 0.30);
+  }
+}
+:root[data-theme="private"] .mahjong-body {
+  --mj-red: #cf8d82;
+  --mj-green: #8db396;
+  --mj-blue: #92a9cb;
+  --mj-tile-top: #232221;
+  --mj-tile-bottom: #191818;
+  --mj-tile-border: #343230;
+  --mj-shadow-contact: rgba(0, 0, 0, 0.35);
+  --mj-shadow-ambient: rgba(0, 0, 0, 0.30);
 }
 .mj { display: flex; flex-direction: column; height: 100%; }
 .mj-head {
@@ -1836,20 +1869,28 @@ body:not([data-layout="ledger"]) .ledger-footer {
   position: absolute;
   box-sizing: border-box;
   display: block;
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--mj-tile-top), var(--mj-tile-bottom));
+  border: 1px solid var(--mj-tile-border);
   border-radius: var(--radius);
-  box-shadow: -2px 2px 0 rgba(0, 0, 0, 0.10);
+  box-shadow:
+    -2px 2px 0 var(--mj-shadow-contact),
+    -4px 5px 9px var(--mj-shadow-ambient);
   cursor: pointer;
   color: var(--text);
 }
 .mj-tile svg { display: block; width: 100%; height: 100%; }
 .mj-face text { font-family: var(--font-mono); }
-.mj-tile[data-blocked] { cursor: default; filter: brightness(0.92); }
+/* Suit inks: dots and winds stay ink; the rest follow tradition. */
+.mj-tile[data-suit="chr"], .mj-tile[data-suit="drg-c"] { color: var(--mj-red); }
+.mj-tile[data-suit="bam"], .mj-tile[data-suit="drg-f"] { color: var(--mj-green); }
+.mj-tile[data-suit="drg-p"], .mj-tile[data-suit="flower"],
+.mj-tile[data-suit="season"] { color: var(--mj-blue); }
+/* Blocked tiles dim AND desaturate, so live color itself means playable. */
+.mj-tile[data-blocked] { cursor: default; filter: saturate(0.35) brightness(0.94); }
 @media (prefers-color-scheme: dark) {
-  .mj-tile[data-blocked] { filter: brightness(0.78); }
+  .mj-tile[data-blocked] { filter: saturate(0.35) brightness(0.76); }
 }
-:root[data-theme="private"] .mj-tile[data-blocked] { filter: brightness(0.78); }
+:root[data-theme="private"] .mj-tile[data-blocked] { filter: saturate(0.35) brightness(0.76); }
 .mj-tile.selected {
   border-color: var(--accent);
   background: var(--accent-dim);

@@ -125,6 +125,9 @@ function renderBoard() {
     b.style.zIndex = p.z;
     b.setAttribute('aria-label', tileName(game.kinds[i]));
     b.setAttribute('aria-pressed', 'false');
+    // Suit ink (traditional four-color engraving; dragons colored per-tile).
+    const [family, id] = game.kinds[i].split('-');
+    b.dataset.suit = family === 'drg' ? `drg-${id}` : family;
     b.append(faceSVG(game.kinds[i]));
     board.append(b);
     tileButtons.push(b);
