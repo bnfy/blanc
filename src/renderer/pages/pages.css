@@ -1200,13 +1200,21 @@ body.sheet .page h1:focus { outline: none; }
    so display:block would break it. */
 #layoutBillboard,
 #layoutShelf,
-#layoutTally { display: none; }
+#layoutTally,
+#layoutMahjong { display: none; }
 body[data-layout="billboard"] #layoutLedger,
 body[data-layout="shelf"] #layoutLedger,
-body[data-layout="tally"] #layoutLedger { display: none; }
+body[data-layout="tally"] #layoutLedger,
+body[data-layout="mahjong"] #layoutLedger { display: none; }
 body[data-layout="billboard"] #layoutBillboard { display: flex; }
 body[data-layout="shelf"] #layoutShelf { display: block; }
 body[data-layout="tally"] #layoutTally { display: block; }
+body[data-layout="mahjong"] #layoutMahjong { display: block; }
+
+/* The mahjong layout embeds blanc://mahjong full-bleed above the absolute
+   footer band; the game page paints its own background and scales itself. */
+.mahjong-embed { position: absolute; inset: 0 0 64px 0; }
+.mahjong-embed iframe { display: block; width: 100%; height: 100%; border: 0; }
 
 /* The ledger keeps its shipped in-flow footer (it may scroll away when the
    ledger overflows — deliberate). The other three do not overflow, so they

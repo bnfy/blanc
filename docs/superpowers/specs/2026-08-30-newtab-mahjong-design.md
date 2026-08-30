@@ -232,3 +232,16 @@ Manual verification (chrome-level pages need a relaunch, not Cmd+R):
 - Additional board layouts, sound, animations beyond subtle pulses.
 - Cross-device sync of best times.
 - Mobile port (would need touch sizing and its own spec entry).
+
+## 9. Addendum (2026-08-30, post-ship)
+
+By owner request after playing v1, the game is ALSO the fifth start-page
+layout: `mahjong` joined `NEWTAB_LAYOUTS` (settings.js + schema + generated
+enums), picked from the footer switcher like the other four. The layout
+embeds `blanc://mahjong/` in an iframe (newtab.html allows it via
+`frame-src blanc://mahjong`; src set lazily on first show; `?private=1`
+carried in private tabs; the game's wordmark back-link goes inert when
+framed). This supersedes §2's "fifth layout" non-goal; the §3 opt-in footer
+link and `newtabMahjong` setting remain unchanged. Later same day: suit
+inks + bone-ivory shading, and the Blanc mark as the white dragon face
+(ink only, never framed — logomark brand rule).

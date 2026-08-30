@@ -22,7 +22,7 @@ const THEMES = ['system', 'light', 'dark'];
 const TAB_LAYOUTS = ['island', 'vertical'];
 // Start-page layouts (Bowser Design System, "New tab v2" handoff). Same class
 // of preference as the theme — it describes the browser you want, so it syncs.
-const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally'];
+const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally', 'mahjong'];
 // Device-local Quiet Tabs memory policy; deliberately not in SYNCED_KEYS.
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
 

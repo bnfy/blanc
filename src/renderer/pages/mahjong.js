@@ -14,6 +14,13 @@ if (isPrivate) {
   document.querySelector('.mj-title').href = 'blanc://newtab/?private=1';
 }
 
+// Inside the newtab "mahjong" layout the page runs framed; the back-link
+// would try to navigate the frame itself (and the parent's frame-src rightly
+// blocks it), so the wordmark goes inert there.
+if (window.top !== window.self) {
+  document.querySelector('.mj-title').removeAttribute('href');
+}
+
 // Geometry: half-unit -> px. A tile is 2x2 half-units = 52x68 px; layers
 // shift 4px up-right so stack depth reads without 3D theatrics.
 const HU_X = 26;

@@ -16,7 +16,7 @@ enum class BlancThemePreference(val id: String) {
     DARK("dark");
 }
 
-enum class BlancNewtabLayout(val id: String) { LEDGER("ledger"), BILLBOARD("billboard"), SHELF("shelf"), TALLY("tally") }
+enum class BlancNewtabLayout(val id: String) { LEDGER("ledger"), BILLBOARD("billboard"), SHELF("shelf"), TALLY("tally"), MAHJONG("mahjong") }
 
 enum class BlancWebrtcPolicy(val id: String) {
     STANDARD("standard"),
