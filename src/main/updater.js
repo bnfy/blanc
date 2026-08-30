@@ -4,6 +4,8 @@ const { createUpdateCheckCoordinator } = require('./update-checks');
 const { createUpdateRestarter } = require('./update-restart');
 const { createUpdaterLog } = require('./updater-log');
 const { createWindowsSignatureVerifier } = require('./updater-signature');
+const { resolveUpdaterPolicy } = require('./updater-policy');
+const { buildStagingStatus, writeStagingStatus } = require('./updater-staging-status');
 const {
   createDownloadProgressLogger,
   createDownloadStallWatchdog,
@@ -74,6 +76,19 @@ let downloadStallWatchdog = null;
 // A repeated check during this phase can still return a cancellation token, but
 // there are no download-progress events left to feed the stall watchdog.
 let downloadVerificationInProgress = false;
+let activePolicy = null;
+
+function noteStagingStatus(phase, detail = {}) {
+  if (!activePolicy?.statusFile) return;
+  try {
+    writeStagingStatus(activePolicy.statusFile, buildStagingStatus(phase, {
+      currentVersion: app.getVersion(),
+      ...detail,
+    }));
+  } catch (error) {
+    updaterLogger().warn(`[updater] could not write staging status: ${error.message}`);
+  }
+}
 
 function updaterLogger() {
   return autoUpdater.logger || console;
@@ -143,6 +158,17 @@ function promptRestart(info) {
 function setupAutoUpdater() {
   if (!app.isPackaged) return; // dev builds have nothing to update against
 
+  activePolicy = resolveUpdaterPolicy({ isPackaged: app.isPackaged });
+  if (!activePolicy.enabled) {
+    console.warn(`[updater] disabled for this launch: ${activePolicy.reason}`);
+    return;
+  }
+  if (activePolicy.feed) {
+    autoUpdater.setFeedURL(activePolicy.feed);
+    autoUpdater.allowPrerelease = activePolicy.allowPrerelease;
+    console.info('[updater] using the isolated staging channel');
+  }
+
   // Persist electron-updater's own diagnostics (progress, the differential
   // fallback notice, errors). Unconfigured they go to the packaged app's
   // invisible console; on disk they become a trace we can read after a slow or
@@ -179,6 +205,10 @@ function setupAutoUpdater() {
   // "completes, but takes forever" behavior on every platform's delta path).
   autoUpdater.disableDifferentialDownload = true;
   autoUpdater.disableWebInstaller = true;
+  if (activePolicy.autoInstall) {
+    autoUpdater.autoInstallOnAppQuit = false;
+    autoUpdater.autoRunAppAfterInstall = false;
+  }
 
   downloadProgressLogger = createDownloadProgressLogger({
     log: (message) => updaterLogger().info(message),
@@ -191,6 +221,13 @@ function setupAutoUpdater() {
     const percent = Number(progress?.percent);
     if (Number.isFinite(percent)) setDownloadProgress(percent / 100);
   });
+  autoUpdater.on('checking-for-update', () => noteStagingStatus('checking'));
+  autoUpdater.on('update-available', (info) => {
+    noteStagingStatus('available', { updateVersion: info?.version });
+  });
+  autoUpdater.on('update-not-available', (info) => {
+    noteStagingStatus('not-available', { updateVersion: info?.version });
+  });
   autoUpdater.on('update-downloaded', (info) => {
     manualDownloadPending = false;
     clearDownloadTracking();
@@ -198,6 +235,16 @@ function setupAutoUpdater() {
     if (updateDownloaded) return;
     updateDownloaded = true;
     downloadedUpdateInfo = info;
+    noteStagingStatus('downloaded', { updateVersion: info?.version });
+    if (activePolicy.autoInstall) {
+      noteStagingStatus('installing', { updateVersion: info?.version });
+      // The automated replacement smoke currently targets Squirrel.Mac and
+      // suppresses relaunch so it can inspect the replaced bundle first.
+      // Other platforms keep the existing installer-owned restart path.
+      if (process.platform === 'darwin') autoUpdater.quitAndInstall(false, false);
+      else restartToInstallUpdate();
+      return;
+    }
     promptRestart(info);
   });
   autoUpdater.on('error', (err) => {
@@ -206,6 +253,7 @@ function setupAutoUpdater() {
     // logger is our file logger (which itself falls back to console when it
     // can't write) or, if getPath threw, electron-updater's default console.
     updaterLogger().error('[updater]', err?.stack ?? err?.message ?? err);
+    noteStagingStatus('error', { error: err?.message ?? err });
     // Only interrupt the user when a download THEY started from the menu fails.
     // The `error` event also fires for background metadata checks (which run
     // concurrently with a download on the 30-min/on-focus timer) and for
@@ -221,6 +269,7 @@ function setupAutoUpdater() {
     }
   });
 
+  noteStagingStatus('configured', { updateVersion: null });
   updateChecks.start();
   app.on('browser-window-focus', updateChecks.checkOnFocus);
 }
@@ -229,6 +278,14 @@ function setupAutoUpdater() {
 async function checkForUpdatesManually() {
   if (!app.isPackaged) {
     showDialog({ type: 'info', message: 'Updates are only available in packaged builds.' });
+    return;
+  }
+  if (activePolicy && !activePolicy.enabled) {
+    showDialog({
+      type: 'warning',
+      message: 'Updates are disabled for this launch',
+      detail: activePolicy.reason,
+    });
     return;
   }
   if (updateDownloaded && downloadedUpdateInfo) {

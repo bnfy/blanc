@@ -11,6 +11,9 @@ const FILES = [
   'adblock/sources/pinned.json',
   'adblock/sources/easylist.txt',
   'adblock/sources/easyprivacy.txt',
+  'adblock/sources/ghostery-resources.json',
+  'src/main/assets/adblock-engine-seed.bin',
+  'src/main/assets/adblock-engine-seed.json',
 ];
 const sha256 = (value) => crypto.createHash('sha256').update(value).digest('hex');
 const archiveMemberPath = (relativePath, separator = path.sep) => (
@@ -53,6 +56,20 @@ function verifyPackagedAdblock(asarPath, { root = ROOT } = {}) {
     manifest.combinedSha256,
     'packaged blocker combined hash mismatch'
   );
+  const resourcePin = manifest.ghosteryResources;
+  assert.equal(
+    sha256(packaged.get(`adblock/sources/${resourcePin.file}`)),
+    resourcePin.sha256,
+    'packaged Ghostery resource hash mismatch'
+  );
+  const seedManifest = JSON.parse(
+    packaged.get('src/main/assets/adblock-engine-seed.json').toString('utf8')
+  );
+  const seed = packaged.get('src/main/assets/adblock-engine-seed.bin');
+  assert.equal(seed.length, seedManifest.byteLength, 'packaged blocker seed length mismatch');
+  assert.equal(sha256(seed), seedManifest.sha256, 'packaged blocker seed hash mismatch');
+  assert.equal(seedManifest.filters.combinedSha256, manifest.combinedSha256);
+  assert.equal(seedManifest.resources.sha256, resourcePin.sha256);
 
   const summary = expectedFiles
     .map((file, index) => `${file}=${sha256(listBytes[index]).slice(0, 12)}…`)

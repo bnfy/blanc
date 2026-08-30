@@ -13,5 +13,11 @@
       "sha256": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
     }
   ],
-  "combinedSha256": "35cfb31efe041f8203e047f9339a59995083b7c33f19ee59e562739739240d7e"
+  "combinedSha256": "35cfb31efe041f8203e047f9339a59995083b7c33f19ee59e562739739240d7e",
+  "ghosteryResources": {
+    "file": "ghostery-resources.json",
+    "packageVersion": "2.18.2",
+    "commit": "c4c20aa63e3a72113f66777cf35a3f58877a36ee",
+    "sha256": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5"
+  }
 }

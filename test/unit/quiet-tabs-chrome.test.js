@@ -171,6 +171,9 @@ function runSerializeTabs(tabList) {
     rt: () => ({ tabOrder: tabList.map((tab) => tab.id) }),
     tabs: new Map(tabList.map((tab) => [tab.id, tab])),
     isHostnameExcepted: () => false, shieldChipState, connectionFor, committedUrlOf,
+    buildSiteInfo: (url) => ({ state: url ? 'secure' : 'neutral' }),
+    liveContents: () => null,
+    certificateObserver: { get: () => null },
   };
   vm.runInNewContext(`${serializeSource}\nthis.__fn = serializeTabs;`, sandbox);
   return sandbox.__fn();

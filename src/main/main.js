@@ -42,6 +42,12 @@ const {
 const {
   shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
+const {
+  sanitizeCertificate,
+  createCertificateObserver,
+  buildSiteInfo,
+  certificateErrorQuery,
+} = require('./site-security');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -61,6 +67,7 @@ const {
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const { sendLaunchPing } = require('./telemetry');
+const diagnostics = require('./diagnostics');
 const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
@@ -100,6 +107,13 @@ const {
   buildSaveShape,
   removeProfileWorkspaces,
 } = require('./session-workspace');
+const {
+  RECOVERY_WINDOW_ID,
+  freshRecoveryWindow,
+  recoveryHostWindow,
+  summarizeRecoveryWindows,
+  validRecoveryChoice,
+} = require('./session-recovery');
 const { DEFAULT_PROFILE_ID } = require('./local-profile-model');
 const localProfiles = require('./local-profiles');
 const profileDeletions = require('./profile-deletions');
@@ -197,6 +211,7 @@ const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 // The query flag tells the newtab page to show private copy + theme.
 const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
+const certificateObserver = createCertificateObserver();
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
@@ -346,6 +361,7 @@ settings.setExistingProfileHint(
 if (!(acceptanceTestMode || app.requestSingleInstanceLock())) {
   app.quit();
 } else {
+  diagnostics.start();
   app.on('second-instance', (_e, commandLine) => {
     const runtime = focusedRuntime ?? primaryRuntime;
     withWindowRuntime(runtime, () => {
@@ -1936,6 +1952,9 @@ function createOverlay() {
   // overlayView no longer exists after the Task 7 sweep.
   const overlay = rt().overlayView; // just assigned above
   const overlayWcId = overlay.webContents.id;
+  overlay.webContents.on('render-process-gone', bindWindowRuntime(owner, (_event, details) => {
+    diagnostics.recordRendererCrash('overlay', details);
+  }));
   overlay.webContents.once('destroyed', bindWindowRuntime(owner, () => {
     windowRuntimes.unregisterChromeSurface(overlayWcId);
     if (rt().overlayView === overlay) rt().overlayView = null;
@@ -2288,7 +2307,8 @@ function createUtilitySheet() {
   // lazily recreates it. Close the dead webContents — dropping the
   // reference alone leaks the crashed guest. Default refocus: nothing else
   // will hand focus back after a crash.
-  wc.on('render-process-gone', bindWindowRuntime(runtime, () => {
+  wc.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('utility-sheet', details);
     if (runtime.utilitySheetView !== view) return;
     hideUtilitySheet();
     if (!wc.isDestroyed()) wc.close();
@@ -2695,9 +2715,21 @@ function serializeTabs() {
       // quiet only after committing, so its stored URL is honest in that one
       // state. Do not broaden committedUrlOf's null default: it prevents an
       // ahead-of-navigation URL from making a false security claim.
+      const committedUrl = rest.asleep ? rest.url : committedUrlOf(tab.view);
       const connection = connectionFor({
-        url: rest.asleep ? rest.url : committedUrlOf(tab.view),
+        url: committedUrl,
         isLoading: rest.isLoading,
+      });
+      const targetUrl = tab.certificateError?.url ?? committedUrl ?? '';
+      let certificateRecord = null;
+      try {
+        const wc = liveContents(tab);
+        if (wc) certificateRecord = certificateObserver.get(wc.session, targetUrl);
+      } catch { /* a view can disappear while projecting; fail neutral */ }
+      const siteInfo = buildSiteInfo(targetUrl, {
+        certificateRecord,
+        certificateError: tab.certificateError,
+        blockedCount: rest.blockedCount,
       });
       if (rest.private && rest.favicon) {
         // A page-favicon URL belongs to the tab's browsing session. Sending a
@@ -2705,9 +2737,9 @@ function serializeTabs() {
         // session fetch it again merely to paint the pill/overlay/rail, escaping
         // the non-persistent private-session boundary. Private rows deliberately
         // use the renderer's neutral fallback instead.
-        return { ...rest, favicon: null, excepted, shield, connection };
+        return { ...rest, favicon: null, excepted, shield, connection, siteInfo };
       }
-      return { ...rest, excepted, shield, connection };
+      return { ...rest, excepted, shield, connection, siteInfo };
     });
 }
 
@@ -4034,6 +4066,9 @@ initTabView({
   clearTabCaptureState(tab) {
     if (tab.captureRecord) clearCaptureState({ kind: 'tab', tab, record: tab.captureRecord });
   },
+  recordRendererCrash: (surface, details) => diagnostics.recordRendererCrash(surface, details),
+  sanitizeCertificate,
+  certificateErrorQuery,
   isStartupGateActive: () => startupNavigationGateActive,
   startupQueuedNavigations,
   onMainFrameCommit,
@@ -4116,6 +4151,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // Monotonic main-frame navigation generation used to reject stale async
     // quiet-tab probes and snapshot work after a page swap.
     navEpoch: 0,
+    // In-memory only: bounded details for the rejected top-level TLS load.
+    certificateError: null,
     // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
     // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
     asleep: bornQuiet,        // renderer discarded; tab.view is null
@@ -6205,6 +6242,9 @@ function createMainWindowForRuntime(runtime) {
 
   lockPrivilegedNavigation(rt().window.webContents, CHROME_INDEX_URL);
   installChromeShortcuts(rt().window.webContents);
+  rt().window.webContents.on('render-process-gone', bindWindowRuntime(runtime, (_event, details) => {
+    diagnostics.recordRendererCrash('chrome', details);
+  }));
   attachChromeMenu(rt().window.webContents, {
     getWindow: bindWindowRuntime(runtime, () => rt().window),
     resolveActiveTab: bindWindowRuntime(runtime, () =>
@@ -6793,6 +6833,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const ses = personalSessions.normal;
   const privateSes = personalSessions.private;
   const browsingSessions = profileSessionRegistry.all();
+  for (const browsingSession of browsingSessions) certificateObserver.observe(browsingSession);
   const chromeSes = session.fromPartition(CHROME_PARTITION);
   setupChromeProtocol({ session: chromeSes, net });
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
@@ -7086,10 +7127,19 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   let adblockStartupController = null;
   let adblockEngineReady = false;
   let releaseStartup = async () => {};
+  let chooseSessionRecovery = async () => ({ ok: false, error: 'not-ready' });
+  let sessionRecoveryState = {
+    required: false,
+    phase: 'none',
+    tabCount: 0,
+    windowCount: 0,
+    error: null,
+  };
   const startPageStatus = () => {
     const current = settings.getSettings();
     return {
       startup: adblockStartupState,
+      recovery: sessionRecoveryState,
       // Carried on every status push so a start page opened in one window
       // re-inks when the layout is changed from Settings or another window.
       layout: current.newtabLayout,
@@ -7193,6 +7243,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       retryAdblock: () => adblockStartupController?.retry() ?? startPageStatus().startup,
       continueWithoutAdblock: () =>
         adblockStartupController?.continueWithoutBlocking() ?? startPageStatus().startup,
+      recoverSession: (choice) => chooseSessionRecovery(choice),
       completePrivacy: (choices) => {
         const result = settings.completeFirstRunPrivacyChoices(choices);
         if (result.completed) {
@@ -7235,6 +7286,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const owned = profileSessionRegistry.forProfile(profileId);
     if (configuredProfileSessions.has(owned.profileId)) return owned;
     const targetSessions = [owned.normal, owned.private];
+    for (const targetSession of targetSessions) certificateObserver.observe(targetSession);
     pagesRegistration.addSessions(targetSessions);
     installSessionPreloads(targetSessions);
     installClientHintFallback(targetSessions);
@@ -7585,42 +7637,54 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     };
   });
   if (!savedWindows.length) {
-    savedWindows.push({
-      id: PRIMARY_WINDOW_ID,
-      profileId: DEFAULT_PROFILE_ID,
-      urls: [],
-      groupIds: [],
-      pinned: [],
-      meta: [],
-      activeIndex: 0,
-      groups: [],
-    });
+    savedWindows.push(freshRecoveryWindow());
   }
-  const restoredActiveWindowId = savedWindows.some((saved) => saved.id === activeWindowId)
+  let restoredActiveWindowId = savedWindows.some((saved) => saved.id === activeWindowId)
     ? activeWindowId
     : savedWindows[0].id;
+  const recoverySummary = summarizeRecoveryWindows(savedWindows, { newTabUrl: NEW_TAB_URL });
+  const recoveryRequired = !sessionReadOnly &&
+    diagnostics.sessionRecoveryPending() &&
+    recoverySummary.hasRecoverableContent;
+  if (recoveryRequired) {
+    sessionRecoveryState = {
+      required: true,
+      phase: 'pending',
+      tabCount: recoverySummary.tabCount,
+      windowCount: recoverySummary.windowCount,
+      error: null,
+    };
+  } else if (diagnostics.sessionRecoveryPending()) {
+    // A single disposable blank tab has no meaningful recovery choice.
+    diagnostics.resolveSessionRecovery();
+  }
   sessionPersistenceSuspended = true;
 
   const blockingRequested =
     !acceptanceTestMode && settings.getSettings().adblockEnabled;
+  const navigationGateRequested = blockingRequested || recoveryRequired;
   // Materialize every restored profile's session pair before the temporary
   // navigation gate is installed; a named workspace must never race startup
   // through an unconfigured partition.
   for (const profileId of new Set(savedWindows.map((saved) => saved.profileId))) {
     installProfileSessionPolicies(profileId);
   }
-  if (blockingRequested) installStartupNavigationGate(profileSessionRegistry.all());
+  if (navigationGateRequested) installStartupNavigationGate(profileSessionRegistry.all());
 
-  // Create the previously focused workspace last so the OS fronts the same
-  // independent window after relaunch. Each gets a local startup page while
-  // the blocker gate settles; saved pages remain viewless until release.
-  const orderedSavedWindows = [...savedWindows].sort((a, b) =>
+  // Normal launches create every saved window. Recovery creates one neutral
+  // Personal window and does not materialize any saved web tab or profile
+  // window until the user has made a durable choice.
+  const orderedSavedWindows = () => [...savedWindows].sort((a, b) =>
     Number(a.id === restoredActiveWindowId) - Number(b.id === restoredActiveWindowId));
   const startupTabIds = new Map();
-  const startupRuntimes = orderedSavedWindows.map((saved) => {
+  const startupRuntimes = [];
+  const savedStartupRuntimes = [];
+  const chromeReadyPromises = [];
+  const createStartupRuntime = (saved, { savedWorkspace = true } = {}) => {
+    const existing = windowRuntimes.all().find((runtime) => runtime.id === saved.id);
     const runtime = saved.id === PRIMARY_WINDOW_ID
       ? primaryRuntime
-      : windowRuntimes.createRuntime({ id: saved.id, profileId: saved.profileId });
+      : (existing ?? windowRuntimes.createRuntime({ id: saved.id, profileId: saved.profileId }));
     // The primary runtime exists before session.json is read so early app
     // callbacks always have an owner. At this point it owns no tabs or native
     // window yet, so adopting its persisted profile is the one safe identity
@@ -7628,39 +7692,113 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     if (runtime === primaryRuntime) runtime.profileId = saved.profileId;
     createMainWindow(runtime);
     withWindowRuntime(runtime, () => {
-      runtime.groups = saved.groups;
+      runtime.groups = savedWorkspace ? saved.groups : [];
       startupTabIds.set(runtime.id, createTab(NEW_TAB_URL));
     });
+    startupRuntimes.push(runtime);
+    if (savedWorkspace) savedStartupRuntimes.push(runtime);
+    chromeReadyPromises.push(new Promise((resolve) => {
+      runtime.window.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
+        const startupTabId = startupTabIds.get(runtime.id);
+        if (startupTabId && tabs.has(startupTabId)) {
+          setActiveTab(startupTabId, { focusContent: true });
+        }
+        resolve();
+      }));
+    }));
     return runtime;
-  });
-  const savedById = new Map(savedWindows.map((saved) => [saved.id, saved]));
-  focusedRuntime = startupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
-    ?? startupRuntimes.at(-1)
-    ?? primaryRuntime;
+  };
+  if (recoveryRequired) {
+    createStartupRuntime(recoveryHostWindow(), { savedWorkspace: false });
+  } else {
+    for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
+  }
+  let savedById = new Map(savedWindows.map((saved) => [saved.id, saved]));
+  focusedRuntime = recoveryRequired
+    ? startupRuntimes[0]
+    : (savedStartupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
+      ?? savedStartupRuntimes.at(-1)
+      ?? primaryRuntime);
   setFocusedLocalProfile(focusedRuntime.profileId);
   focusedRuntime.window?.focus();
-  const chromeReady = Promise.all(startupRuntimes.map((runtime) => new Promise((resolve) => {
-    runtime.window.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
-      const startupTabId = startupTabIds.get(runtime.id);
-      if (startupTabId && tabs.has(startupTabId)) {
-        setActiveTab(startupTabId, { focusContent: true });
-      }
-      resolve();
-    }));
-  })));
 
   let startupReleased = false;
-  releaseStartup = async ({ blocking, preservePreference = false }) => {
+  let pendingStartupRelease = null;
+  let recoveryChoice = null;
+  chooseSessionRecovery = async (choice) => {
+    if (!sessionRecoveryState.required) {
+      return { ok: false, error: 'not-pending', recovery: sessionRecoveryState };
+    }
+    if (!validRecoveryChoice(choice)) {
+      return { ok: false, error: 'invalid-choice', recovery: sessionRecoveryState };
+    }
+
+    if (choice === 'fresh') {
+      const fresh = freshRecoveryWindow();
+      const written = ensureSessionStore().updateAndFlush((data) => {
+        Object.assign(data, buildSaveShape([fresh], data, { activeWindowId: PRIMARY_WINDOW_ID }));
+      });
+      if (!written) {
+        sessionRecoveryState = {
+          ...sessionRecoveryState,
+          error: 'Couldn’t replace the saved session. Check disk access and try again.',
+        };
+        broadcastStartPageStatus();
+        return { ok: false, error: 'write-failed', recovery: sessionRecoveryState };
+      }
+      savedWindows.splice(0, savedWindows.length, fresh);
+      restoredActiveWindowId = PRIMARY_WINDOW_ID;
+      savedById = new Map([[PRIMARY_WINDOW_ID, fresh]]);
+    }
+
+    if (!diagnostics.resolveSessionRecovery()) {
+      sessionRecoveryState = {
+        ...sessionRecoveryState,
+        error: 'Couldn’t save the recovery choice. Check disk access and try again.',
+      };
+      broadcastStartPageStatus();
+      return { ok: false, error: 'write-failed', recovery: sessionRecoveryState };
+    }
+
+    recoveryChoice = choice;
+    sessionRecoveryState = {
+      ...sessionRecoveryState,
+      required: false,
+      phase: choice === 'restore' ? 'restoring' : 'fresh',
+      error: null,
+    };
+    broadcastStartPageStatus();
+    if (pendingStartupRelease) {
+      const release = pendingStartupRelease;
+      pendingStartupRelease = null;
+      await releaseStartup(release);
+    }
+    return { ok: true, recovery: sessionRecoveryState };
+  };
+
+  releaseStartup = async ({ blocking, preservePreference = false } = {}) => {
     if (startupReleased) return;
+    if (sessionRecoveryState.required) {
+      pendingStartupRelease = { blocking, preservePreference };
+      broadcastStartPageStatus();
+      return;
+    }
     startupReleased = true;
-    await chromeReady;
+    if (recoveryChoice) {
+      for (const saved of orderedSavedWindows()) createStartupRuntime(saved);
+      focusedRuntime = savedStartupRuntimes.find((runtime) => runtime.id === restoredActiveWindowId)
+        ?? savedStartupRuntimes.at(-1)
+        ?? primaryRuntime;
+      setFocusedLocalProfile(focusedRuntime.profileId);
+    }
+    await Promise.all(chromeReadyPromises);
 
     if (!blocking && !preservePreference && settings.getSettings().adblockEnabled) {
       // “Continue without blocking” is an explicit effective-state change,
       // not a shield that stays visually enabled while no engine exists.
       settings.setSettings({ adblockEnabled: false });
     }
-    if (blockingRequested) {
+    if (navigationGateRequested) {
       releaseStartupNavigationGate(profileSessionRegistry.all(), {
         blockerAttached: blocking,
       });
@@ -7672,7 +7810,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // pass below (after every window's tabs exist) resolves that before
     // anything is actually bound.
     const workspaceCandidates = new Map(); // runtime -> workspaceId
-    for (const runtime of startupRuntimes) {
+    for (const runtime of savedStartupRuntimes) {
       const saved = savedById.get(runtime.id);
       if (!saved) continue;
       withWindowRuntime(runtime, () => {
@@ -7714,7 +7852,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // OS fronts on relaunch) and leave every other candidate for that same
     // id scratch. Array.prototype.sort is stable, so on the (already-corrupt-
     // file) case where neither tied candidate is the focused window, the one
-    // earlier in startupRuntimes order wins deterministically rather than at
+    // earlier in savedStartupRuntimes order wins deterministically rather than at
     // random.
     const claimedWorkspaceIds = new Set();
     const candidatesByPreference = [...workspaceCandidates.keys()].sort(
@@ -7727,6 +7865,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       runtime.workspaceId = workspaceId;
     }
 
+    // Recovery is an ephemeral neutral host. Destroy it while persistence is
+    // still suspended so neither its id nor its disposable new tab can enter
+    // session.json.
+    const recoveryRuntime = windowRuntimes.all().find((runtime) => runtime.id === RECOVERY_WINDOW_ID);
+    if (recoveryRuntime?.window && !recoveryRuntime.window.isDestroyed()) {
+      recoveryRuntime.window.destroy();
+    }
+
     // The first menu is built before session restore, while every workspace
     // is still empty. Rebuild after the real tab set exists so dynamic
     // commands such as Glance have truthful enabled states on first launch.
@@ -7734,6 +7880,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
 
     sessionPersistenceSuspended = false;
     persistSession();
+    sessionRecoveryState = {
+      ...sessionRecoveryState,
+      required: false,
+      phase: 'complete',
+      error: null,
+    };
+    broadcastStartPageStatus();
+    focusedRuntime.window?.focus();
 
     // The icon sidecar's first authoritative snapshot must be the restored
     // workspace, never the disposable startup tab above.

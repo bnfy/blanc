@@ -1,0 +1,1930 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "bom-ref": "application:runtime:blanc@1.10.0",
+      "name": "Blanc",
+      "version": "1.10.0",
+      "description": "Shipped desktop runtime: npm closure, Electron framework, bundled fonts, and blocker data provenance."
+    },
+    "properties": [
+      {
+        "name": "blanc:generated-from",
+        "value": "committed lockfiles and compliance/policy.json"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "data",
+      "bom-ref": "asset:blanc-adblock-seed",
+      "name": "Blanc compiled blocker seed",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "194ddc2d204c13b9ccbd853240fa75e5f2014b88d7fdd864a4b9471cb74a67d4"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MPL-2.0 AND CC-BY-SA-3.0-or-later"
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:file",
+          "value": "src/main/assets/adblock-engine-seed.bin"
+        }
+      ],
+      "version": "194ddc2d204c13b9"
+    },
+    {
+      "type": "data",
+      "bom-ref": "asset:easylist-data",
+      "name": "EasyList",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ceac7bd34d538ad448f05a7237b600485f2185a620d8ce32f77ae7365e1e662b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "CC-BY-SA-3.0-or-later"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "The EasyList authors (https://easylist.to/)"
+        },
+        {
+          "name": "blanc:file",
+          "value": "adblock/sources/easylist.txt"
+        },
+        {
+          "name": "blanc:licenseUrl",
+          "value": "https://easylist.to/pages/licence.html"
+        }
+      ],
+      "version": "202607091627",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://easylist.to/"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "bom-ref": "asset:easyprivacy-data",
+      "name": "EasyPrivacy",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5b69cbb6958485b5688e76bf2a43a548acaa5cc57380aed7d3dc800da7e0bf6b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "CC-BY-SA-3.0-or-later"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:attribution",
+          "value": "The EasyList authors (https://easylist.to/)"
+        },
+        {
+          "name": "blanc:file",
+          "value": "adblock/sources/easyprivacy.txt"
+        },
+        {
+          "name": "blanc:licenseUrl",
+          "value": "https://easylist.to/pages/licence.html"
+        }
+      ],
+      "version": "202607091627",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://easylist.to/"
+        }
+      ]
+    },
+    {
+      "type": "data",
+      "bom-ref": "asset:ghostery-resources",
+      "name": "Ghostery adblocker resources",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e14b498f693c4166d27971f7fdfe49b167c139a8e659cc59bedc9ab29a2348f5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:file",
+          "value": "adblock/sources/ghostery-resources.json"
+        }
+      ],
+      "version": "c4c20aa63e3a72113f66777cf35a3f58877a36ee",
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/ghostery/adblocker"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "asset:inter-font",
+      "name": "Inter Latin webfont",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "OFL-1.1"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/pages/inter-latin.woff2"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/pages/inter-OFL.txt"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/rsms/inter"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "asset:jetbrains-mono-font",
+      "name": "JetBrains Mono Latin webfont",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2c32b9b3ee358c119e210f6f5195f9bd34894d78a785ff2e95d60e718e400af4"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "OFL-1.1"
+          }
+        }
+      ],
+      "properties": [
+        {
+          "name": "blanc:file",
+          "value": "src/renderer/pages/jetbrains-mono-latin.woff2"
+        },
+        {
+          "name": "blanc:licenseFile",
+          "value": "src/renderer/pages/jetbrains-mono-OFL.txt"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "website",
+          "url": "https://github.com/JetBrains/JetBrainsMono"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%401password/sdk-core@0.5.0",
+      "name": "@1password/sdk-core",
+      "version": "0.5.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f60ecb58e29129d78f67ce5ebd5804f711289b70c083785123241d3b02cfbe92ff17b2a90d79941cc8bbdabb2a27129a0db580a579ab6230c4c4c48fa9483bc7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%401password/sdk-core@0.5.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@1password/sdk-core"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@1password/sdk-core/-/sdk-core-0.5.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%401password/sdk@0.5.0",
+      "name": "@1password/sdk",
+      "version": "0.5.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "93a928bf7a5c03b3d1836b5ebfd0a04df11fff7252c80a75d413d034212ca800f7d906ea334df63970b5adf8f20bc05ad2c7c7f8d1d86717227d4653a321b260"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%401password/sdk@0.5.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@1password/sdk"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@1password/sdk/-/sdk-0.5.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker-content@2.18.2",
+      "name": "@ghostery/adblocker-content",
+      "version": "2.18.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4ce7bf6f828e04511cf4e8cb1bec2f81a9867124c83d20c100be5849af25ce306ca1297c2039df3a37890e57652da72c0bf24450c2e46480c33649c4a25255aa"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40ghostery/adblocker-content@2.18.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@ghostery/adblocker-content"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@ghostery/adblocker-content/-/adblocker-content-2.18.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker-electron-preload@2.18.2",
+      "name": "@ghostery/adblocker-electron-preload",
+      "version": "2.18.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "97de3584d0015ec50cc75a2a5521e344c4175850a6942fc317cac7041387f80d2ec4b8cbeabeb6165e8ab0bec5e21c658377725ab0cf10870acdac56a9175f3a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40ghostery/adblocker-electron-preload@2.18.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@ghostery/adblocker-electron-preload"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@ghostery/adblocker-electron-preload/-/adblocker-electron-preload-2.18.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
+      "name": "@ghostery/adblocker-electron",
+      "version": "2.18.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "9693e1ec49852c3216f8ec9429a602514507c157d55e9c25c1fc73a3a22573ea07e8dfab0935624f4f28957e235ec7f17b367acdfc821b948bf622c1535c2b9e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@ghostery/adblocker-electron"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@ghostery/adblocker-electron/-/adblocker-electron-2.18.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2",
+      "name": "@ghostery/adblocker-extended-selectors",
+      "version": "2.18.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "76828d4a1064dfe73340bd3c524af2b079023de1bf90d3e55efcf70c7ed25f10fd63bf28bd69040218de47eba9a1a9f77e898926e2b7743f88ae5a1f9e372463"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@ghostery/adblocker-extended-selectors"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@ghostery/adblocker-extended-selectors/-/adblocker-extended-selectors-2.18.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40ghostery/adblocker@2.18.2",
+      "name": "@ghostery/adblocker",
+      "version": "2.18.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c7acc491fd5d1d2374b781312e6b8dea72201f4a008ba95aa0a7b9c86b22201e23904beeb5e6b53c98318115088d67cd6c346691fe068d4b6ea9015982f406d7"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40ghostery/adblocker@2.18.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@ghostery/adblocker"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@ghostery/adblocker/-/adblocker-2.18.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40ghostery/url-parser@1.3.1",
+      "name": "@ghostery/url-parser",
+      "version": "1.3.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "40aa868beeda0d0e117321f20b080493a07dbd69ec04fe10ee1b5a374ccf255dc04ea4ca1100ed4936fd73f00de7cea82540ecdb861729cc05630370798fd88d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40ghostery/url-parser@1.3.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@ghostery/url-parser"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@ghostery/url-parser/-/url-parser-1.3.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40remusao/guess-url-type@2.1.0",
+      "name": "@remusao/guess-url-type",
+      "version": "2.1.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cc8ddd953531a63bf1d860b1a7d9cb3922b9c8422a0c2a71940546c1bd98e3d44a912ef6a1e35ac71a3e5564b9f97439f8c7fc65fa7d65722593e1b97a810df0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40remusao/guess-url-type@2.1.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@remusao/guess-url-type"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@remusao/guess-url-type/-/guess-url-type-2.1.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40remusao/small@2.1.0",
+      "name": "@remusao/small",
+      "version": "2.1.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6359328d9a7b254edd5ddc8e7711d535fa13af55cb6494f240fdfafdeb19514fd6456abd5d8d0f5761ec1370ac207b9a4dfe29be05afda9bf3be767ffd41c825"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40remusao/small@2.1.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@remusao/small"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@remusao/small/-/small-2.1.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40remusao/smaz-compress@2.2.0",
+      "name": "@remusao/smaz-compress",
+      "version": "2.2.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4d7a533e020b45460eb76ac47b4fbd3c2d76c542cfbc1a9e3299a2a7307d03ba0ce1f6bd66dbf2f652d8ccf4ddeed89011ea0d6b5a66c6286929f26db319ccff"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40remusao/smaz-compress@2.2.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@remusao/smaz-compress"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@remusao/smaz-compress/-/smaz-compress-2.2.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40remusao/smaz-decompress@2.2.0",
+      "name": "@remusao/smaz-decompress",
+      "version": "2.2.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "11100fc313da034ff2838864354ed3d92fa59e9f638f5b00a5c40cb4ec913af390ca8f99ba1e879ffa11717afc9a68e5633c91682ec4eabde64f59eb74747aa6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40remusao/smaz-decompress@2.2.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@remusao/smaz-decompress"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@remusao/smaz-decompress/-/smaz-decompress-2.2.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40remusao/smaz@2.2.0",
+      "name": "@remusao/smaz",
+      "version": "2.2.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "79277742cd042cffdeeed535488e515977029fd2a30e0bc163e2ad59b2f88b642fbc784939f748b78bf4000dd2e416cb580af9742102ec2e0b51fa200e6eaafd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40remusao/smaz@2.2.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@remusao/smaz"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@remusao/smaz/-/smaz-2.2.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40remusao/trie@2.1.0",
+      "name": "@remusao/trie",
+      "version": "2.1.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "12bdd0f2ad3fd8e70224f41824e3cb982baa3b4c2eedc6afdd23eda6397149b8c58b5c7e035a599242c3e9cf6adab1849065bfb64ad1cdfae134cb7c5508f35e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40remusao/trie@2.1.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@remusao/trie"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@remusao/trie/-/trie-2.1.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/argparse@2.0.1",
+      "name": "argparse",
+      "version": "2.0.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f3ef56a9e6db173a57f4e47e59ae8edbd6ac22881e44ccdc1ad00835da4c1c7c80835d1fd3969215505b704a867ff3d7c35123019faadbf6c4060dc3beeacadd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Python-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/argparse@2.0.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/argparse"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/argparse/-/argparse-2.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/builder-util-runtime@9.7.0",
+      "name": "builder-util-runtime",
+      "version": "9.7.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "83f911e76d208801589125d3cdc985de4a90abbc22f05e8de92cde0e066ba9304df951dd9a058ec93743d720fb0004c321dff25cbbee3f7e02c56e3afc1c0277"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/builder-util-runtime@9.7.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/builder-util-runtime"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/builder-util-runtime/-/builder-util-runtime-9.7.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/debug@4.4.3",
+      "name": "debug",
+      "version": "4.4.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "446c305a7c10be455f6af295b76d8518bc3ec5849dcc04709b4aeee83853540dee994e6165cdbc57790ee2cb6062bcab4e52e9baf808f468a28e5b408cd6dca8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/debug@4.4.3",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/debug"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/debug/-/debug-4.4.3.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/electron-updater@6.8.9",
+      "name": "electron-updater",
+      "version": "6.8.9",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "66157133d88638d52964623517174c4602635055e2ec060655ae4fc0a94ed6d575ff8cc3c5099f2a95ce1d5ced2ab77a2fdacb7058c446f8b531fdafc724e48a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/electron-updater@6.8.9",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/electron-updater"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/electron-updater/-/electron-updater-6.8.9.tgz"
+        }
+      ]
+    },
+    {
+      "type": "framework",
+      "bom-ref": "pkg:npm/electron@44.0.0",
+      "name": "electron",
+      "version": "44.0.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "1644ea3eb14f65896374f2396fb28e446b094dde8581440379f97932b5375f3f51f3ba408fd24bade2230ea71137c849224147228bb4a3c90acef7294fdaa245"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/electron@44.0.0",
+      "properties": [
+        {
+          "name": "blanc:declaration",
+          "value": "devDependency used as the packaged application framework"
+        },
+        {
+          "name": "blanc:distributedRuntime",
+          "value": "true"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/electron/-/electron-44.0.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/fs-extra@10.1.0",
+      "name": "fs-extra",
+      "version": "10.1.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a115c0a6ae78113463e1e3221731a71d61b2fb3a39adab9d8eec4dd1bf07eecfd1536a16d16becc7d3b400244dfe446af44f15bbf45eb24181e68de38be1731d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/fs-extra@10.1.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/fs-extra"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/fs-extra/-/fs-extra-10.1.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/graceful-fs@4.2.11",
+      "name": "graceful-fs",
+      "version": "4.2.11",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "45b279fe398570d342703579a3d7939c12c9fc7b33595d0fef76dcf857f89d2feb263f98692e881b288e2f45680585fe9755ab97793ade1fcaac7fa7849d17bd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/graceful-fs@4.2.11",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/graceful-fs"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.2.11.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/js-yaml@4.3.1",
+      "name": "js-yaml",
+      "version": "4.3.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "098e9cac6ab7d77317f06930bc1eedce0a7df6f8d0c58d7efb9cb5d3f04a37f1947c7a9668e19030d66406fa92cec64a5a4fe28f01e55b3ce42ee96c18786359"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/js-yaml@4.3.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/js-yaml"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/js-yaml/-/js-yaml-4.3.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/jsonfile@6.2.1",
+      "name": "jsonfile",
+      "version": "6.2.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cf039374bdeb150fe545d0679ed295397ea4e5c289c047351dd8a54fbd41584bbb278d605c8076311a7ebf176e3d2c1924f581c44cefe321f5c182c91941d7e1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/jsonfile@6.2.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/jsonfile"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/jsonfile/-/jsonfile-6.2.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/lazy-val@1.0.5",
+      "name": "lazy-val",
+      "version": "1.0.5",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "d3f06718209fc943240697838168a16a720017d2666611c1814844ab3bdff9a7613462e83fa4da888e6817ca326f7238e4ff8f727aea8a149fd353349741b9f9"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/lazy-val@1.0.5",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/lazy-val"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/lazy-val/-/lazy-val-1.0.5.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/lodash.escaperegexp@4.1.2",
+      "name": "lodash.escaperegexp",
+      "version": "4.1.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4ccf5806fc82f38671137ae07de7f151689028b8a5b2d0fa93b3d31adeb07dbb5717c8b12092ce2f7558c95ff3f9988f2ec57102c280155c1695679bd98f18cb"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/lodash.escaperegexp@4.1.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/lodash.escaperegexp"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/lodash.escaperegexp/-/lodash.escaperegexp-4.1.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/lodash.isequal@4.5.0",
+      "name": "lodash.isequal",
+      "version": "4.5.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a43a3796ef0985f8ea96ce8690c8296a1b05f640b26b2860ca48f22cc3454ca5aba5574042d6320789ae00c5a8cc10788a0fddb56026b0cc4b108f30bb3f8361"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/lodash.isequal@4.5.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/lodash.isequal"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/lodash.isequal/-/lodash.isequal-4.5.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/ms@2.1.3",
+      "name": "ms",
+      "version": "2.1.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e85973b9b4cb646dc9d9afcd542025784863ceae68c601f268253dc985ef70bb2fa1568726afece715c8ebf5d73fab73ed1f7100eb479d23bfb57b45dd645394"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/ms@2.1.3",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/ms"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/ms/-/ms-2.1.3.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/sax@1.6.0",
+      "name": "sax",
+      "version": "1.6.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e91dc9e4ce0071bb4b51d66646fd92ca079568cec886b2d7bbd0669ce1a698009a93c7e252d3ac60d5944b8b8aeeea5b9872016cb05e15e23fff8efb04a2c1cc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BlueOak-1.0.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/sax@1.6.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/sax"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/sax/-/sax-1.6.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/semver@7.7.4",
+      "name": "semver",
+      "version": "7.7.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "bc5282d8812d427561a53efc875629f30cf0adff0233e33328c1c62597c1b738593727111675ec1e4e84e53c4892432c80d4bb99d5f700607bc7640cd9d8b894"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/semver@7.7.4",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/electron-updater/node_modules/semver"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/semver/-/semver-7.7.4.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/tiny-typed-emitter@2.1.0",
+      "name": "tiny-typed-emitter",
+      "version": "2.1.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a95b6f3317976d57a3d1c4162aa5524801e629910702fc5d17c1c4501156b6cf21fb1128e66fe51223da92ec99dc19c2063383f22db893334e88e2cb82c4b184"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/tiny-typed-emitter@2.1.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/tiny-typed-emitter"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tiny-typed-emitter/-/tiny-typed-emitter-2.1.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/tldts-core@7.4.10",
+      "name": "tldts-core",
+      "version": "7.4.10",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "2a7423a79dd97a42a09bfaf797ebbc909186cd882b59d3fcf8caa5edae2f8a3876584d08ad95aca508ff4e94f10e1a3f6313be0273999c88d07020feaba889b3"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/tldts-core@7.4.10",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/tldts-core"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tldts-core/-/tldts-core-7.4.10.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/tldts-experimental@7.4.10",
+      "name": "tldts-experimental",
+      "version": "7.4.10",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "97e154193ab0ddc60b9cceae2f8e4885d206d6e7bd37b66731ef59142d12dff44e4cbeb1909ad4150bec8dfa920fd633cb00ef8168fdb916535e26f7bf76e71f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/tldts-experimental@7.4.10",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/tldts-experimental"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tldts-experimental/-/tldts-experimental-7.4.10.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/universalify@2.0.1",
+      "name": "universalify",
+      "version": "2.0.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "829b4735082120d9dcfef4c6224d12385185357c3b255ae5454b42a2725196f6b0e83b97d303b925e928f6c5ab301861f8fb18019ee85c088e9dffd42a88328b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/universalify@2.0.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/universalify"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/universalify/-/universalify-2.0.1.tgz"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "application:runtime:blanc@1.10.0",
+      "dependsOn": [
+        "asset:blanc-adblock-seed",
+        "asset:inter-font",
+        "asset:jetbrains-mono-font",
+        "pkg:npm/%401password/sdk@0.5.0",
+        "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
+        "pkg:npm/electron-updater@6.8.9",
+        "pkg:npm/electron@44.0.0"
+      ]
+    },
+    {
+      "ref": "asset:blanc-adblock-seed",
+      "dependsOn": [
+        "asset:easylist-data",
+        "asset:easyprivacy-data",
+        "asset:ghostery-resources",
+        "pkg:npm/%40ghostery/adblocker-electron@2.18.2"
+      ]
+    },
+    {
+      "ref": "asset:easylist-data",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:easyprivacy-data",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:ghostery-resources",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:inter-font",
+      "dependsOn": []
+    },
+    {
+      "ref": "asset:jetbrains-mono-font",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%401password/sdk-core@0.5.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%401password/sdk@0.5.0",
+      "dependsOn": [
+        "pkg:npm/%401password/sdk-core@0.5.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40ghostery/adblocker-content@2.18.2",
+      "dependsOn": [
+        "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40ghostery/adblocker-electron-preload@2.18.2",
+      "dependsOn": [
+        "pkg:npm/%40ghostery/adblocker-content@2.18.2"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
+      "dependsOn": [
+        "pkg:npm/%40ghostery/adblocker-electron-preload@2.18.2",
+        "pkg:npm/%40ghostery/adblocker@2.18.2",
+        "pkg:npm/tldts-experimental@7.4.10"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40ghostery/adblocker@2.18.2",
+      "dependsOn": [
+        "pkg:npm/%40ghostery/adblocker-content@2.18.2",
+        "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2",
+        "pkg:npm/%40ghostery/url-parser@1.3.1",
+        "pkg:npm/%40remusao/guess-url-type@2.1.0",
+        "pkg:npm/%40remusao/small@2.1.0",
+        "pkg:npm/%40remusao/smaz@2.2.0",
+        "pkg:npm/tldts-experimental@7.4.10"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40ghostery/url-parser@1.3.1",
+      "dependsOn": [
+        "pkg:npm/tldts-experimental@7.4.10"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40remusao/guess-url-type@2.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40remusao/small@2.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40remusao/smaz-compress@2.2.0",
+      "dependsOn": [
+        "pkg:npm/%40remusao/trie@2.1.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40remusao/smaz-decompress@2.2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40remusao/smaz@2.2.0",
+      "dependsOn": [
+        "pkg:npm/%40remusao/smaz-compress@2.2.0",
+        "pkg:npm/%40remusao/smaz-decompress@2.2.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40remusao/trie@2.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/argparse@2.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/builder-util-runtime@9.7.0",
+      "dependsOn": [
+        "pkg:npm/debug@4.4.3",
+        "pkg:npm/sax@1.6.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/debug@4.4.3",
+      "dependsOn": [
+        "pkg:npm/ms@2.1.3"
+      ]
+    },
+    {
+      "ref": "pkg:npm/electron-updater@6.8.9",
+      "dependsOn": [
+        "pkg:npm/builder-util-runtime@9.7.0",
+        "pkg:npm/fs-extra@10.1.0",
+        "pkg:npm/js-yaml@4.3.1",
+        "pkg:npm/lazy-val@1.0.5",
+        "pkg:npm/lodash.escaperegexp@4.1.2",
+        "pkg:npm/lodash.isequal@4.5.0",
+        "pkg:npm/semver@7.7.4",
+        "pkg:npm/tiny-typed-emitter@2.1.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/electron@44.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/fs-extra@10.1.0",
+      "dependsOn": [
+        "pkg:npm/graceful-fs@4.2.11",
+        "pkg:npm/jsonfile@6.2.1",
+        "pkg:npm/universalify@2.0.1"
+      ]
+    },
+    {
+      "ref": "pkg:npm/graceful-fs@4.2.11",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/js-yaml@4.3.1",
+      "dependsOn": [
+        "pkg:npm/argparse@2.0.1"
+      ]
+    },
+    {
+      "ref": "pkg:npm/jsonfile@6.2.1",
+      "dependsOn": [
+        "pkg:npm/graceful-fs@4.2.11",
+        "pkg:npm/universalify@2.0.1"
+      ]
+    },
+    {
+      "ref": "pkg:npm/lazy-val@1.0.5",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/lodash.escaperegexp@4.1.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/lodash.isequal@4.5.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/ms@2.1.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/sax@1.6.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/semver@7.7.4",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/tiny-typed-emitter@2.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/tldts-core@7.4.10",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/tldts-experimental@7.4.10",
+      "dependsOn": [
+        "pkg:npm/tldts-core@7.4.10"
+      ]
+    },
+    {
+      "ref": "pkg:npm/universalify@2.0.1",
+      "dependsOn": []
+    }
+  ]
+}
