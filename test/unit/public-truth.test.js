@@ -234,10 +234,13 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(plan, /do not\s+merge #238 or #205/i);
   assert.match(plan, /Step 0b: Verify the repository landing page is still inside the merge freeze/i);
   assert.match(copy, /freeze anchor `0de37a1`[\s\S]{0,300}no product\/runtime/i);
+  assert.match(plan, /Monday, August 31, 2026[\s\S]{0,300}Tuesday, September 1, 2026[\s\S]{0,300}Wednesday, September 2, 2026[\s\S]{0,300}Thursday, September 3, 2026/i);
+  assert.match(copy, /Thursday, September 3, 2026[\s\S]{0,200}12:01 a\.m\. PST/i);
+  assert.match(plan, /Select \*\*September 3, 2026\*\*[\s\S]{0,300}If Tasks 12 or 13 slipped, move Product Hunt too/i);
   assert.doesNotMatch(copy, /https:\/\/blancbrowser\.com\/\?ref=reddit/);
   assert.doesNotMatch(plan, /https:\/\/blancbrowser\.com\/\?ref=reddit/);
   const productHuntUpload = plan.indexOf('Step 2: Upload the demo video');
-  const productHuntSchedule = plan.indexOf("Step 3: Schedule Thursday's launch");
+  const productHuntSchedule = plan.indexOf('Step 3: Schedule the Thursday, September 3 launch');
   assert.ok(productHuntUpload >= 0, 'Product Hunt upload step must exist');
   assert.ok(productHuntSchedule > productHuntUpload, 'Product Hunt media preview must precede scheduling');
   assert.ok(plan.includes(`Blanc v${version} is the current public baseline`));
