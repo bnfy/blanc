@@ -18,7 +18,7 @@
 
 **Goal:** Fire the five discovery channels Blanc has never used — in one concentrated week, with measurement restored and the payment path proven first — so the September cohort is large enough for retention to become a real question.
 
-**Architecture:** Four phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Product Hunt personal-account access; Google Ads verification) and de-risks the spike. Phase 1 builds reusable assets. Phase 1.5 closes the selected backlog, cuts and proves a new immutable launch release if downloadable behavior changes, refreshes release-bound assets, and starts a new freeze. Phase 2 fires evergreen listings, then argumentative communities, then Product Hunt across four days so neither one-shot card is spent on untested copy.
+**Architecture:** Four phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Product Hunt personal-account access; Google Ads verification) and de-risks the spike. Phase 1 builds reusable assets. Phase 1.5 closes the selected backlog, runs the approved immutable pre-launch release train, proves its final launch release, refreshes release-bound assets, and starts a new freeze. Phase 2 fires evergreen listings, then argumentative communities, then Product Hunt across four days so neither one-shot card is spent on untested copy.
 
 **Tech Stack:** Astro 7 (`site/`), Cloudflare Pages, GA4 (property 544287080), Polar.sh (Patron checkout), `blanc-ping` Worker stats, `gh` CLI.
 
@@ -95,12 +95,16 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
   issue-specific evidence, and the required explicit affected-machine owner
   confirmation. Close dead ideas instead of merging them merely to reduce a
   count.
-- **Cut the launch release by Friday, September 4 at 3:00 p.m. ET.** If cleanup
-  changes downloadable behavior, publish its immutable release, complete the
-  authenticated macOS/Windows/Linux and updater evidence, refresh every
-  release-bound asset and claim, and start a fresh ≥48-hour soak. The Friday
-  cutoff leaves a full extra day before Monday's baseline. Missing the cutoff
-  moves the launch again; it never shortens or waives the soak.
+- **Finish the release train with the launch release by Friday, September 4 at
+  3:00 p.m. ET.** The owner expects more than one post-v1.10.0 release. Every
+  published version is immutable and must complete its publication,
+  macOS/Windows/Linux, manifest, download, and incident-record evidence. Every
+  updater handoff starts in the immediately preceding public version; skipping
+  an intermediate version does not prove the real update chain. Only the final
+  selected launch release must complete the launch's fresh ≥48-hour soak, and
+  any later replacement restarts that clock. The Friday cutoff leaves a full
+  extra day before Monday's baseline. Missing it moves the launch again; it
+  never shortens or waives the soak.
 - **Freeze the final launch state through the Show HN post.** After the release
   and its release-bound copy/assets are committed, append a
   `launch-freeze-start` record containing the exact `origin/main` anchor,
@@ -1503,7 +1507,7 @@ git commit -m "docs: launch copy pack for the growth counter-offensive"
 
 ---
 
-## Phase 1.5 — backlog cleanup and launch-candidate reset
+## Phase 1.5 — backlog cleanup and pre-launch release train
 
 The owner moved Show HN to Tuesday, September 8 so selected product work can be
 resolved before the launch freeze. This is a quality window, not a permission
@@ -1524,19 +1528,26 @@ metadata, packaging, release workflows, and feature specs stop moving. If the
 selected work is not merge-ready by the cutoff, leave it open and move on; do
 not consume the release-verification buffer trying to make the count zero.
 
-- [ ] **Step 3: Publish and prove the immutable launch release by Friday,
-      September 4 at 3:00 p.m. ET**
+- [ ] **Step 3: Publish and prove each immutable pre-launch release, ending with
+      the launch release by Friday, September 4 at 3:00 p.m. ET**
 
-If downloadable behavior changed after v1.10.0, follow the complete release
-operator protocol. The macOS, Windows, and Linux artifacts, updater metadata,
-authenticated manifest/Sigstore material, platform signatures/fuses/payloads,
-logged-out downloads, and required updater handoffs must pass. A direct
-installer launch is not an updater handoff. This step requires the owner's
-explicit release approval and cannot be delegated by this plan.
+For every post-v1.10.0 version, follow the complete release operator protocol.
+The macOS, Windows, and Linux artifacts, updater metadata, authenticated
+manifest/Sigstore material, platform signatures/fuses/payloads, logged-out
+downloads, and dated release incident must pass. Test the updater handoff from
+the immediately preceding public version to that exact new version on macOS
+and Windows; a direct installer launch, or a jump over an intermediate public
+version, is not that handoff. Do not overwrite assets or reuse a released
+version. Each release requires the owner's explicit release approval and
+cannot be delegated by this plan.
 
-If no downloadable behavior changed, v1.10.0 may remain the launch release,
-but record that decision explicitly after auditing the final `origin/main`
-diff. Missing the Friday cutoff moves all four launch days again.
+An intermediate release does not need to complete a separate 48-hour launch
+soak if it is intentionally superseded by the next approved release, but its
+publication and platform evidence still must be truthful and complete. Any
+known regression stops the train. The final selected launch release starts the
+only soak that can clear Task 11, and any subsequent release restarts it.
+
+Missing the Friday cutoff moves all four launch days again.
 
 - [ ] **Step 4: Refresh every release-bound launch artifact**
 
@@ -2110,7 +2121,7 @@ PHASE 1 — initial assets
 
 PHASE 1.5 — backlog cleanup + release reset
   Resolve selected backlog by Thu Sep 3 noon ET
-  Publish/prove immutable launch release by Fri Sep 4 15:00 ET
+  Publish/prove each immutable release; final launch release by Fri Sep 4 15:00 ET
   Refresh release-bound assets and record the new freeze anchor
   Complete a fresh ≥48h soak
 
