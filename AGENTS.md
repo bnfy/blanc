@@ -10,6 +10,27 @@ The app was renamed from "Bowser" to Blanc in July 2026 — its former name was 
 
 **Current public baseline (Aug 29, 2026): v1.10.0.** It was published from `a96eb47` after the complete macOS arm64 signing/notarization, Windows exact-publisher/timestamp Authenticode, Linux/Windows packaged-payload and hardened-fuse, authenticated checksum-manifest, SBOM, provenance, and logged-out download gates passed. It adds the optional macOS 1Password ambient login hint and Settings account verification while keeping credential lookup/fill explicit and user-invoked. The authenticated public v1.10.0 AppImage passed a fresh Ubuntu download/digest/attestation/launch/render check with Blanc chrome, overlay, new-tab targets, and a rendered `v1.10.0` marker. The public v1.9.1 → v1.10.0 updater handoffs on macOS and Windows, the macOS post-update signature/Gatekeeper confirmation, and the 48-hour soak remain pending and must not be claimed complete until recorded. The completed v1.9.1 evidence remains in `docs/release-incidents/2026-08-26-v1.9.1.md`; the v1.10.0 publication and follow-ups are in `docs/release-incidents/2026-08-29-v1.10.0.md`. A directly launched installer is not an updater-handoff test — the handoff must begin inside the old packaged Blanc, discover the public updater metadata, download the matching artifact, and invoke Restart Now.
 
+**Open-source baseline (Aug 30, 2026): MIT is the deliberate direction.**
+Blanc is open source, not merely source-available. Commit `b49261a` adopted the
+MIT License for Bananify Creative-owned software, documentation, and media and
+aligned the repository, FAQ, and Terms; the canonical site was deployed from
+that exact commit. Do not reintroduce `UNLICENSED`, "source-available, not open
+source", or language forbidding modification or redistribution unless the owner
+explicitly reverses this decision. Open source is part of Blanc's trust,
+adoption, auditability, and grant strategy. Patron should be framed as support
+for Blanc and the best official experience, not as a source-code restriction.
+
+The grant is intentionally bounded. The Blanc and Bananify Creative names,
+logos, and other identity assets listed in `ASSET-LICENSE.md` remain reserved;
+MIT does not grant trademark rights. Upstream files and third-party material
+retain their own terms, recorded in `THIRD-PARTY-NOTICES.md` and the packaged
+`src/THIRD_PARTY_NOTICES.txt`, including EasyList/EasyPrivacy, 1Password, Inter,
+JetBrains Mono, and Lucide. Never describe the whole repository as blanket MIT
+or remove those carve-outs. The public v1.10.0 binaries predate the licensing
+change; the next packaged release must carry `LICENSE`, both notice files,
+`ASSET-LICENSE.md`, both OFL texts, and the pinned EasyList/EasyPrivacy sources
+inside `app.asar`, as already required by `package.json`.
+
 **Marketing claims must be release-backed.** Before writing, approving, or publishing any article, social post, ad, demo caption, outreach message, comparison, or image text about Blanc, follow `docs/marketing-claims.md`. Verify shipped capability against the current public release tag and its release evidence, not merely the working tree, a design spec, a plan, a mockup, or aspirational copy. Treat external-product claims the same way: use a current first-party source and distinguish sourced fact from inference. In particular, Blanc does not understand assignments, detect semantic task boundaries, automatically organize tabs by meaning, or provide an AI/agent browser; Named Groups and Named Workspaces are user-directed features. Do not publish while any material claim is unsupported or ambiguous.
 
 ## Commands
