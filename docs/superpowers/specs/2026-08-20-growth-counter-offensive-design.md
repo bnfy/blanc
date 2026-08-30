@@ -160,14 +160,20 @@ Ordered by external clock, not by convenience.
   stated limits is the currency HN trades in, and it is the direct answer to the
   Electron objection.
 
-### Phase 2 — Launch week, sequenced cheap → expensive
+### Phase 2 — Launch week, sequenced evergreen → argumentative → showcase
 
 | Day | Channel | Rationale |
 |---|---|---|
-| Mon | AlternativeTo + BetaList listings | Zero-risk, permanent long-tail SEO. Lands even if every other channel flops. |
+| Mon | AlternativeTo + BetaList listings | Permanent long-tail groundwork. AlternativeTo is already approved; BetaList now requires a paid owner-selected plan. |
 | Tue AM ET | **Show HN** | Highest ceiling and highest hostility. Fired first because its criticism is free market research. |
 | Wed | Reddit founder posts | Rewritten using the objections HN actually raised, in communities whose rules permit self-promotion. |
 | Thu 00:01 PT | **Product Hunt** | Copy now battle-tested by two days of live argument. |
+
+**External-policy correction, 2026-08-30:** BetaList's current first-party
+[support page](https://betalist.com/support) says every submission is paid and
+there is no free option. Current plans, prices, and timelines appear at the end
+of its authenticated submission form. The original zero-risk/free assumption
+is retired; Task 11 treats BetaList as an explicit owner budget decision.
 
 The ordering is the central design decision. Show HN and Product Hunt are both
 effectively one-shot cards. Firing them on the same untested narrative risks

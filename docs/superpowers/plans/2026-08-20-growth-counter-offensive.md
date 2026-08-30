@@ -1560,13 +1560,18 @@ so a `403` from `curl` is not evidence that the approved listing is unavailable.
 
 - [ ] **Step 3: Submit to BetaList**
 
-Use `https://blancbrowser.com/?ref=betalist` and the Task 10 copy. Standard
-review can take ~2 months; submitting Monday costs nothing and may land later.
+Use `https://blancbrowser.com/?ref=betalist` and the Task 10 copy. BetaList's
+current first-party [support page](https://betalist.com/support) says **all
+submissions are paid** and there is no free option; its live authenticated form
+shows the current plans, prices, and review/featuring timelines. After Steps 1
+and 2, the owner reviews those live choices and explicitly decides whether to
+purchase one. An agent must not choose or buy a plan. If the owner declines,
+record `not-submitted-paid-only` and do not count BetaList as a fired channel.
 
 - [ ] **Step 4: Record both statuses**
 
 ```bash
-echo '{"date":"YYYY-MM-DD","alternativeTo":"live|pending","betaList":"submitted"}' \
+echo '{"date":"YYYY-MM-DD","alternativeTo":"live|pending","betaList":"submitted|not-submitted-paid-only"}' \
   >> "$LAUNCH_LOG"
 ```
 

@@ -429,6 +429,13 @@ Do not put URLs, email addresses, or phone numbers in the description.
 
 ## BetaList
 
+**Submission gate:** pending owner payment decision. BetaList's current
+[first-party support page](https://betalist.com/support) says all submissions
+are paid and there is no free option. Review the live plans, prices, and
+timelines in the authenticated form after the pre-launch baseline; do not infer
+or freeze a price from an earlier plan. If the owner declines, record the
+channel as not submitted rather than calling it fired.
+
 **Name**
 
 > Blanc
