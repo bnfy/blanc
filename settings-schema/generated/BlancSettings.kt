@@ -55,6 +55,7 @@ object BlancSettingsDefaults {
     const val homePage = ""
     val theme = BlancThemePreference.SYSTEM
     val newtabLayout = BlancNewtabLayout.LEDGER
+    const val newtabMahjong = false
     val webrtcPolicy = BlancWebrtcPolicy.STANDARD
     val secureDns = BlancSecureDns.AUTO
     const val secureDnsTemplate = ""

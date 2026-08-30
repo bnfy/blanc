@@ -36,7 +36,7 @@ const FIRST_RUN_VERSION = 1;
 // device's 1Password integration configuration
 // (device-local), usagePing (per-install consent), and supporter (never —
 // that would be license sharing).
-const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout'];
+const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout', 'newtabMahjong'];
 
 // App icon colorways — id maps to src/renderer/pages/icon-<id>.png; order
 // here is also the tile order Settings renders. 'default' is the original
@@ -92,6 +92,9 @@ const DEFAULTS = {
   // How blanc://newtab arranges itself — the shipped ledger plus three
   // alternatives from the design system's "New tab v2" handoff.
   newtabLayout: 'ledger',
+  // Opt-in mahjong solitaire link on the new-tab footer (blanc://mahjong).
+  // Synced like newtabLayout — it describes the browser you want.
+  newtabMahjong: false,
   // Device-local presentation preference; deliberately not Profile Synced.
   tabLayout: 'island',
   // Preferred rail width. The live layout may temporarily cap it to preserve
@@ -201,6 +204,7 @@ function getSettings() {
   }
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
+  if (typeof data.newtabMahjong !== 'boolean') data.newtabMahjong = DEFAULTS.newtabMahjong;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
   if (typeof data.onePasswordEnabled !== 'boolean') {
     data.onePasswordEnabled = DEFAULTS.onePasswordEnabled;
@@ -242,6 +246,7 @@ function sanitize(partial) {
   }
   if (THEMES.includes(partial.theme)) clean.theme = partial.theme;
   if (NEWTAB_LAYOUTS.includes(partial.newtabLayout)) clean.newtabLayout = partial.newtabLayout;
+  if (typeof partial.newtabMahjong === 'boolean') clean.newtabMahjong = partial.newtabMahjong;
   if (TAB_LAYOUTS.includes(partial.tabLayout)) clean.tabLayout = partial.tabLayout;
   if (TAB_SLEEP_DELAYS.includes(partial.tabSleep)) clean.tabSleep = partial.tabSleep;
   if (Number.isFinite(partial.verticalTabsWidth)) {

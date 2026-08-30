@@ -84,6 +84,7 @@ public struct BlancSettingsDefaults {
     public static let homePage: String = ""
     public static let theme: BlancThemePreference = .system
     public static let newtabLayout: BlancNewtabLayout = .ledger
+    public static let newtabMahjong: Bool = false
     public static let webrtcPolicy: BlancWebrtcPolicy = .standard
     public static let secureDns: BlancSecureDns = .auto
     public static let secureDnsTemplate: String = ""

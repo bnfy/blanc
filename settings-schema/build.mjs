@@ -65,6 +65,7 @@ function genSwift() {
   out += `    public static let homePage: String = ${JSON.stringify(spec.defaults.homePage)}\n`;
   out += `    public static let theme: BlancThemePreference = .${swiftCase(spec.defaults.theme)}\n`;
   out += `    public static let newtabLayout: BlancNewtabLayout = .${swiftCase(spec.defaults.newtabLayout)}\n`;
+  out += `    public static let newtabMahjong: Bool = ${spec.defaults.newtabMahjong}\n`;
   out += `    public static let webrtcPolicy: BlancWebrtcPolicy = .${swiftCase(spec.defaults.webrtcPolicy)}\n`;
   out += `    public static let secureDns: BlancSecureDns = .${swiftCase(spec.defaults.secureDns)}\n`;
   out += `    public static let secureDnsTemplate: String = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
@@ -99,6 +100,7 @@ function genKotlin() {
   out += `    const val homePage = ${JSON.stringify(spec.defaults.homePage)}\n`;
   out += `    val theme = BlancThemePreference.${upper(spec.defaults.theme)}\n`;
   out += `    val newtabLayout = BlancNewtabLayout.${upper(spec.defaults.newtabLayout)}\n`;
+  out += `    const val newtabMahjong = ${spec.defaults.newtabMahjong}\n`;
   out += `    val webrtcPolicy = BlancWebrtcPolicy.${upper(spec.defaults.webrtcPolicy)}\n`;
   out += `    val secureDns = BlancSecureDns.${upper(spec.defaults.secureDns)}\n`;
   out += `    const val secureDnsTemplate = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
@@ -145,6 +147,7 @@ function parseSettingsJs() {
     homePage: s(/^\s*homePage:\s*'([^']*)'/m),
     theme: s(/^\s*theme:\s*'([^']*)'/m),
     newtabLayout: s(/^\s*newtabLayout:\s*'([^']*)'/m),
+    newtabMahjong: s(/^\s*newtabMahjong:\s*(true|false)/m),
     webrtcPolicy: s(/^\s*webrtcPolicy:\s*'([^']*)'/m),
     secureDns: s(/^\s*secureDns:\s*'([^']*)'/m),
     secureDnsTemplate: s(/^\s*secureDnsTemplate:\s*'([^']*)'/m),
@@ -195,6 +198,7 @@ function check() {
   eq('homePage', jd.homePage, d.homePage);
   eq('theme', jd.theme, d.theme);
   eq('newtabLayout', jd.newtabLayout, d.newtabLayout);
+  eq('newtabMahjong', jd.newtabMahjong, String(d.newtabMahjong));
   eq('webrtcPolicy', jd.webrtcPolicy, d.webrtcPolicy);
   eq('secureDns', jd.secureDns, d.secureDns);
   eq('secureDnsTemplate', jd.secureDnsTemplate, d.secureDnsTemplate);
