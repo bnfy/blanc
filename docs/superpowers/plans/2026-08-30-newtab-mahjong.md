@@ -95,22 +95,23 @@ test('newtabMahjong defaults off, validates as boolean, and syncs', (t) => {
   assert.equal(settings.setSettings({ newtabMahjong: null }).newtabMahjong, true);
   assert.equal(settings.setSettings({ newtabMahjong: false }).newtabMahjong, false);
 
-  // Synced: present in the export, adoptable from a newer remote write.
+  // Synced: present in the export, and a newer remote write flips the value
+  // (local is false here, so adopting true proves real adoption).
   assert.equal(
     Object.prototype.hasOwnProperty.call(settings.exportForSync().values, 'newtabMahjong'),
     true
   );
   settings.mergeFromSync({
-    values: { newtabMahjong: false },
+    values: { newtabMahjong: true },
     meta: { newtabMahjong: Date.now() + 60_000 },
   });
-  assert.equal(settings.getSettings().newtabMahjong, false);
+  assert.equal(settings.getSettings().newtabMahjong, true);
   // A tampered remote value routes through sanitize() and is dropped.
   settings.mergeFromSync({
     values: { newtabMahjong: 'evil' },
     meta: { newtabMahjong: Date.now() + 120_000 },
   });
-  assert.equal(settings.getSettings().newtabMahjong, false);
+  assert.equal(settings.getSettings().newtabMahjong, true);
 });
 
 test('a corrupted stored newtabMahjong reads back as the default', (t) => {
@@ -659,6 +660,21 @@ test('movesAvailable pairs are all free and matching', () => {
     assert.equal(E.matchKey(game.kinds[i]), E.matchKey(game.kinds[j]));
   }
 });
+
+test('a non-winning state with no matchable free pair reports stuck', () => {
+  const game = E.createGame(5);
+  // Hand-built stuck state: exactly two tiles left, both free, not matching.
+  game.removed.fill(true);
+  const i = 0;
+  const j = game.kinds.findIndex(
+    (k, idx) => idx !== i && E.matchKey(k) !== E.matchKey(game.kinds[i])
+  );
+  game.removed[i] = game.removed[j] = false;
+  assert.ok(E.isFree(game, i) && E.isFree(game, j));
+  assert.equal(E.isWon(game), false);
+  assert.deepEqual(E.movesAvailable(game), []);
+  assert.equal(E.removePair(game, i, j), false);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -789,6 +805,9 @@ git commit -m "feat(mahjong): game-state machine (remove/undo/moves/win)"
     <div id="mjNotice" class="mj-notice" hidden>
       no moves left — <button id="mjNoticeUndo" type="button">undo</button> or
       <button id="mjNoticeNew" type="button">new deal</button>
+    </div>
+    <div id="mjError" class="mj-notice" hidden>
+      couldn't deal — <button id="mjErrorNew" type="button">try again</button>
     </div>
   </main>
   <script src="mahjong-engine.js"></script>
@@ -922,7 +941,11 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 // Private tabs carry ?private=1 (same mechanism as newtab.js) — token
 // selection only; the session itself needs no signal.
 const isPrivate = new URLSearchParams(location.search).has('private');
-if (isPrivate) document.documentElement.dataset.theme = 'private';
+if (isPrivate) {
+  document.documentElement.dataset.theme = 'private';
+  // Keep private presentation on the way back to the start page too.
+  document.querySelector('.mj-title').href = 'blanc://newtab/?private=1';
+}
 
 // Geometry: half-unit -> px. A tile is 2x2 half-units = 52x68 px; layers
 // shift 4px up-right so stack depth reads without 3D theatrics.
@@ -973,6 +996,18 @@ function textEl(x, y, size, content) {
   return t;
 }
 
+const NUM_WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+function tileName(kind) {
+  const [family, id] = kind.split('-');
+  if (family === 'dot') return `${NUM_WORDS[id - 1]} dot`;
+  if (family === 'bam') return `${NUM_WORDS[id - 1]} bamboo`;
+  if (family === 'chr') return `${NUM_WORDS[id - 1]} character`;
+  if (family === 'wind') return `${{ e: 'east', s: 'south', w: 'west', n: 'north' }[id]} wind`;
+  if (family === 'drg') return { c: 'red dragon', f: 'green dragon', p: 'white dragon' }[id];
+  if (family === 'flower') return `flower ${id}`;
+  return `season ${id}`;
+}
+
 function faceSVG(kind) {
   const svg = el('svg', { viewBox: '0 0 44 60', 'aria-hidden': 'true' });
   svg.classList.add('mj-face');
@@ -1021,6 +1056,8 @@ function renderBoard() {
     b.style.width = `${2 * HU_X}px`;
     b.style.height = `${2 * HU_Y}px`;
     b.style.zIndex = p.z;
+    b.setAttribute('aria-label', tileName(game.kinds[i]));
+    b.setAttribute('aria-pressed', 'false');
     b.append(faceSVG(game.kinds[i]));
     board.append(b);
     tileButtons.push(b);
@@ -1092,7 +1129,7 @@ git commit -m "feat(mahjong): board rendering, ink-on-paper tile faces"
 
 - [ ] **Step 1: Implement selection / removal / undo / hint / stuck / win**
 
-Replace the bare `newGame()` bootstrapping at the end of `mahjong.js` with the interaction layer (everything below appends to the file; `newGame` grows the reset lines shown):
+Delete Task 6's trailing `newGame();` call, append the interaction layer and timer below, and end the file with `newGame();` as its very last statement — the bootstrap must run only after every `let` below (`selected`, `startedAt`, …) has initialized, or the first click path hits a temporal dead zone. `newGame` itself grows the reset lines shown in Step 2.
 
 ```js
 // --- interaction ----------------------------------------------------------
@@ -1100,9 +1137,15 @@ Replace the bare `newGame()` bootstrapping at the end of `mahjong.js` with the i
 let selected = null;
 
 function setSelected(i) {
-  if (selected !== null) tileButtons[selected].classList.remove('selected');
+  if (selected !== null) {
+    tileButtons[selected].classList.remove('selected');
+    tileButtons[selected].setAttribute('aria-pressed', 'false');
+  }
   selected = i;
-  if (i !== null) tileButtons[i].classList.add('selected');
+  if (i !== null) {
+    tileButtons[i].classList.add('selected');
+    tileButtons[i].setAttribute('aria-pressed', 'true');
+  }
 }
 
 function checkEndStates() {
@@ -1118,6 +1161,7 @@ function checkEndStates() {
 }
 
 board.addEventListener('click', (event) => {
+  if (!game) return;
   const tile = event.target.closest('.mj-tile');
   if (!tile || tile.hidden) return;
   const i = Number(tile.dataset.i);
@@ -1144,7 +1188,7 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.getElementById('mjUndo').addEventListener('click', () => {
-  if (!E.undo(game)) return;
+  if (!game || !E.undo(game)) return;
   resumeTimerAfterUndo();
   setSelected(null);
   refreshTiles();
@@ -1154,6 +1198,7 @@ document.getElementById('mjNoticeUndo').addEventListener('click', () =>
   document.getElementById('mjUndo').click());
 
 document.getElementById('mjHint').addEventListener('click', () => {
+  if (!game) return;
   const moves = E.movesAvailable(game);
   if (!moves.length) return;
   const [i, j] = moves[0];
@@ -1167,6 +1212,7 @@ document.getElementById('mjHint').addEventListener('click', () => {
 document.getElementById('mjNew').addEventListener('click', newGame);
 document.getElementById('mjNoticeNew').addEventListener('click', newGame);
 document.getElementById('mjWinNew').addEventListener('click', newGame);
+document.getElementById('mjErrorNew').addEventListener('click', newGame);
 ```
 
 - [ ] **Step 2: Implement the timestamp-based timer and best time**
@@ -1242,21 +1288,35 @@ function showWin() {
 }
 ```
 
-Extend `newGame()` to reset per-deal state:
+Extend `newGame()` to reset per-deal state and handle the never-expected generation failure explicitly (spec §6: the defensive cap throws rather than dealing a possibly-unwinnable board; the page answers with a quiet retry state, no stale board left behind — each retry click re-rolls with a fresh random seed):
 
 ```js
 function newGame() {
-  game = E.createGame(Math.floor(Math.random() * 2 ** 31));
   selected = null;
   resetTimer();
   document.getElementById('mjNotice').hidden = true;
+  document.getElementById('mjError').hidden = true;
   document.getElementById('mjWin').hidden = true;
+  try {
+    game = E.createGame(Math.floor(Math.random() * 2 ** 31));
+  } catch {
+    game = null;
+    board.replaceChildren();
+    tileButtons.length = 0;
+    document.getElementById('mjPairs').textContent = '';
+    document.getElementById('mjError').hidden = false;
+    return;
+  }
   renderBoard();
   fitBoard();
 }
 ```
 
-(Deal generation throwing past the defensive cap is never expected; if it ever did, the uncaught error leaves a blank board — acceptable for v1, per spec §6 the cap exists to fail loudly, and a plain reload re-rolls. Add a `try/catch` around `E.createGame` that renders "couldn't deal — try again" in `#mjNotice` with `#mjNoticeNew` visible.)
+End the file with the bootstrap, after every declaration above:
+
+```js
+newGame();
+```
 
 - [ ] **Step 3: Full manual playthrough (relaunch dev app)**
 
@@ -1303,20 +1363,25 @@ No other main.js change: `pages:start:data` already spreads `...hooks.startPage?
 
 - [ ] **Step 2: Footer link in `newtab.html`**
 
-In the `<footer class="ledger-footer">`, between the `layoutSwitcher` span and `goAnywhere`:
+The footer is a three-column grid in the alternative layouts (`.ledger-footer { display: grid; grid-template-columns: 1fr auto 1fr; }`, pages.css ~line 1481, with `#goAnywhere` as the third direct child) — a fourth direct child would wrap onto an implicit second row. Wrap the link and `goAnywhere` together so the footer keeps exactly three children:
 
 ```html
-    <a id="mahjongLink" class="mahjong-link" href="blanc://mahjong/" hidden>mahjong</a>
+    <span class="footer-right">
+      <a id="mahjongLink" class="mahjong-link" href="blanc://mahjong/" hidden>mahjong</a>
+      <span id="goAnywhere"></span>
+    </span>
 ```
 
-Style (pages.css, next to the existing `.layout-switcher` rules, matching their look):
+pages.css: change the existing `.ledger-footer > #goAnywhere { justify-self: end; }` rule to target the wrapper, and style the link to match the footer's quiet mono (check the real `.layout-switcher button` rules and mirror their color/hover treatment; the footer is all `--text-dim` mono):
 
 ```css
+.ledger-footer > .footer-right { justify-self: end; }
+.footer-right { display: inline-flex; gap: 16px; align-items: baseline; }
 .mahjong-link { color: inherit; text-decoration: none; }
 .mahjong-link:hover { text-decoration: underline; }
 ```
 
-(Check the real `.layout-switcher button` rules first and mirror their color/hover treatment exactly; the footer is all `--text-dim` mono.)
+Verify the ledger layout's default flex footer (`display: flex; justify-content: space-between`) and the narrow-viewport flex fallback (~line 1488) still read correctly with the wrapper — three children flow the same in flex.
 
 - [ ] **Step 3: Wire it in `newtab.js`**
 
@@ -1404,14 +1469,14 @@ Expected: all PASS (acceptance dry-run proves no step-definition resolution brok
 
 One sitting, fresh relaunch: enable in Settings → open new tab → footer link → play to a win (hints allowed) → best persists across a full app restart → private-tab pass → toggle off → link gone live. Confirm the game page issues zero network requests (main-process console stays quiet; no fetch anywhere in `mahjong.js`).
 
-- [ ] **Step 3: Update `CLAUDE.md`**
+- [ ] **Step 3: Update `CLAUDE.md` AND `AGENTS.md`**
 
-Add one sentence to the `blanc://` internal-pages paragraph: `mahjong` is a KNOWN page served flat like the others but deliberately NOT a utility page (opens as a normal tab, opt-in via `newtabMahjong`).
+Both files carry the same `blanc://` internal-pages paragraph (AGENTS.md governs Codex sessions). Add the same one sentence to each: `mahjong` is a KNOWN page served flat like the others but deliberately NOT a utility page (opens as a normal tab, opt-in via `newtabMahjong`). Touch only that paragraph — the two files have unrelated existing differences that must be preserved, so do NOT copy one file's paragraph over the other's; add the sentence to each in place.
 
 - [ ] **Step 4: Commit**
 
 ```bash
-git add CLAUDE.md
+git add CLAUDE.md AGENTS.md
 git commit -m "docs: note blanc://mahjong in architecture overview"
 ```
 
