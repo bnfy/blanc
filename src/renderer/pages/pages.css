@@ -1236,6 +1236,28 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .layout-switcher button:hover { color: var(--text); }
 .layout-switcher button.active { color: var(--text); }
 
+/* A just-shipped layout gets a quiet pill + "new" badge so it's noticed;
+   the badge retires once the layout has been tried (see applyLayout). */
+.layout-switcher button.layout-pill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 9px;
+  margin-left: 2px;
+}
+.layout-switcher button.layout-pill:hover,
+.layout-switcher button.layout-pill.active { border-color: var(--text-dim); }
+.layout-new-badge {
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--text);
+}
+
 /* Shared group chip (billboard, shelf, tally) */
 .group-chip {
   display: inline-flex;
