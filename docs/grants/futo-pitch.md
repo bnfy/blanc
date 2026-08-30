@@ -10,7 +10,7 @@ Hi there,
 
 I'm the founder of Bananify Creative and the developer of Blanc Browser
 (https://blancbrowser.com, https://github.com/bnfy/blanc), an independent,
-source-visible proprietary desktop web browser for macOS/Windows/Linux with
+open-source (MIT) desktop web browser for macOS/Windows/Linux with
 one premise: the browser itself should get out of the way so the user can
 focus on the website itself.
 

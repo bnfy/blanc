@@ -46,7 +46,7 @@
     "substrate:check": "npm run tokens:check && npm run settings:check && npm run copy:check && npm run adblock:check"
   },
   "author": "",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "devDependencies": {
     "@cucumber/cucumber": "^13.2.1",
@@ -97,7 +97,10 @@
     "files": [
       "src/**/*",
       "adblock/sources/**/*",
-      "package.json"
+      "package.json",
+      "LICENSE",
+      "THIRD-PARTY-NOTICES.md",
+      "ASSET-LICENSE.md"
     ],
     "afterPack": "scripts/after-pack-app-icons.js",
     "afterSign": "scripts/after-sign-verify.js",
