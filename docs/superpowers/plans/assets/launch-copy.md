@@ -24,7 +24,7 @@ UI or claims from later work on `main`.
 | Blanc Patron | US$4/month or $30/year, plus applicable taxes |
 | Patron boundary | Creating a Named Workspace requires active Patron. Renaming and removing an existing workspace continue after a lapse |
 | Other Patron benefits | Three extra macOS Dock colorways; Named Workspaces on every platform |
-| Source status | Source-available, not open source; `UNLICENSED`; GitHub permits an in-service fork, but Blanc grants no right to modify, redistribute, or publish builds |
+| Source status | Open source under the MIT License (adopted 2026-08-30); modification, redistribution, and third-party builds are permitted. Publishing a build carries the bundled filter lists' CC BY-SA 3.0+ attribution/share-alike terms, and the Blanc name and logo stay reserved as trademarks |
 | Telemetry | One packaged-build launch ping: random install ID, random session ID, version, platform, architecture, coarse OS major. Fresh profiles save the presented choice before a ping can send |
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
@@ -93,8 +93,7 @@ Write these ideas in Anthony's natural words:
   licensing constraint.
 - The honest limitation: Electron. Point to the measured method and raw data;
   do not turn a single-session benchmark into a universal claim.
-- What it is not: no mobile version; no extension support; source-available,
-  not open source.
+- What it is not: no mobile version; no extension support.
 - Narrow exception to the extension boundary: packaged macOS v1.9.1 can fill a
   matching Login item from the installed 1Password app only when the user asks;
   it is not an extension runtime or a Blanc-owned credential store.
@@ -126,7 +125,9 @@ These are facts to answer from, not sentences to paste.
 - `npm install && npm start` runs the checked-out source.
 - A local build demonstrates that source; it does not prove a published binary
   is byte-for-byte identical.
-- `UNLICENSED`: no Blanc grant to modify, redistribute, or publish builds.
+- MIT License: modification, redistribution, and third-party builds are granted.
+- Publishing a build still carries the filter lists' CC BY-SA 3.0+ terms, and the
+  Blanc name and logo are reserved trademarks.
 - GitHub's terms permit an in-service fork of a public repository.
 - Signing, notarization, checksums, Sigstore, and CI provenance authenticate the
   release records; they do not make the build reproducible.
@@ -188,10 +189,9 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > licensing constraint. If a particular extension is essential to you, Blanc
 > probably isn't the right browser.
 >
-> Other candid limitations: it is Electron, there is no mobile version, and it
-> is source-available rather than open source. The code is readable and forkable
-> on GitHub, but `UNLICENSED` grants no right to redistribute it or publish your
-> own builds.
+> Other candid limitations: it is Electron, and there is no mobile version. The
+> code is open source under the MIT License, so it is readable, forkable, and
+> yours to build on.
 >
 > The browser is free. Optional Patron is $4/month or $30/year and adds three
 > macOS Dock colorways plus Named Workspaces on every platform. Creating a named
@@ -222,7 +222,7 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > extension runtime; I removed the one I had after native crashes and the
 > security/licensing compromises it required.
 >
-> Blanc is free and source-available rather than open source. Optional Patron
+> Blanc is free and open source under the MIT License. Optional Patron
 > ($4/month or $30/year) adds three Dock colorways and the ability to create
 > Named Workspaces. Existing workspaces remain renameable and removable if the
 > subscription lapses.
@@ -252,8 +252,8 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > introduced a licensing constraint.
 >
 > The Windows release uses a timestamped Authenticode-signed installer. The app
-> is free; the source is public but
-> `UNLICENSED`. Optional Patron ($4/month or $30/year) adds Named Workspaces on
+> is free and the source is open source under the MIT
+> License. Optional Patron ($4/month or $30/year) adds Named Workspaces on
 > Windows, while existing workspaces remain renameable and removable after a
 > lapse.
 >
@@ -281,8 +281,8 @@ cross-post identical text. Revise these drafts after the Show HN objection log.
 > it also means Blanc is not a fit if your workflow depends on an extension.
 >
 > Linux ships as an x86_64 AppImage. The application source is public for
-> inspection but is `UNLICENSED`, so this is source-available rather than open
-> source. The browser is free; optional Patron ($4/month or $30/year) adds Named
+> inspection and open source under the MIT
+> License. The browser is free; optional Patron ($4/month or $30/year) adds Named
 > Workspaces, with rename and removal preserved after a lapse.
 >
 > https://blancbrowser.com/?ref=reddit
@@ -352,7 +352,7 @@ Use only topics that exist in the live form and genuinely fit.
 > creation on every platform plus three macOS Dock colorways. Existing
 > workspaces remain renameable and removable after a subscription lapses.
 >
-> It is Electron, source-available rather than open source, and intentionally
+> It is Electron, open source under the MIT License, and intentionally
 > has no mobile or extension support. I would love feedback on the Island and on
 > where this narrower browser is—or is not—useful for you.
 
@@ -444,11 +444,16 @@ drop a full defense where one sentence would do.
 
 ### “Is it open source?”
 
-> No. It is source-available, not open source. The whole application is readable
-> in the public repo and the checked-out source can be run locally, but
-> `package.json` is `UNLICENSED`: Blanc grants no right to modify, redistribute,
-> or publish builds. A local build demonstrates the checked-out source; it does
-> not prove a published binary is byte-for-byte identical.
+> Yes, under the MIT License. The whole application is readable in the public
+> repo, the checked-out source runs locally, and you may modify it, redistribute
+> it, and publish your own builds. Two conditions ride along: the bundled
+> EasyList and EasyPrivacy filter lists are redistributed under CC BY-SA 3.0 or
+> later, which requires attribution to The EasyList authors and carries
+> share-alike terms on the redistributed lists and Blanc's derived filter data;
+> and the Blanc name and logo are trademarks a
+> copyright licence does not convey, so publish under your own mark. A local
+> build demonstrates the checked-out source; it does not prove a published binary
+> is byte-for-byte identical.
 
 ### “What telemetry does it send?”
 

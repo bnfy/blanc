@@ -20,13 +20,20 @@ macOS builds.
 
 ## Source and license
 
-Blanc is **source-available, not open source**. The application source is
-public so you can inspect what the browser does and build and run the checked-out
-source locally. A local build shows what that source does; it is not proof that
-a published binary is byte-for-byte identical. GitHub's terms permit users to
-fork public repositories within the service, but Blanc is published as
-`UNLICENSED`: there is no grant to modify or redistribute the code, or to
-publish your own builds.
+Blanc is **open source**, released under the [MIT License](LICENSE). You can
+inspect the source, build and run it locally, modify it, and publish your own
+builds. A local build shows what that source does; it is not proof that a
+published binary is byte-for-byte identical.
+
+Publishing a derivative build carries two conditions the MIT grant does not
+cover. The bundled EasyList and EasyPrivacy filter lists are redistributed under
+[CC BY-SA 3.0 or later](https://creativecommons.org/licenses/by-sa/3.0/legalcode.en),
+which requires attribution to The EasyList authors and carries share-alike terms
+on the redistributed lists and Blanc's derived filter data. And the Blanc and
+Bananify Creative names and logos are trademarks that a copyright licence does
+not convey — ship your build under your own name and mark. Details in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and
+[ASSET-LICENSE.md](ASSET-LICENSE.md).
 
 Published macOS releases are signed and notarized, and published Windows
 releases carry timestamped Authenticode signatures. The release process signs

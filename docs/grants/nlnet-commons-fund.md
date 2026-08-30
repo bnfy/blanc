@@ -6,9 +6,11 @@
 > Stack" effort — regular calls reopen after the summer (check
 > https://nlnet.nl/propose/ around September 2026). The questions below
 > match NLnet's long-standing form and should carry over. Nothing here has
-> been submitted. **Eligibility blocker:** Blanc is currently proprietary
-> (`UNLICENSED`) even though its source repository is visible. Do not submit
-> this open-source grant application unless the licensing decision changes.
+> been submitted. **Licensing (updated 2026-08-30):** Blanc is now open source
+> under the MIT License, reversing the 2026-08-20 decision to stay
+> `UNLICENSED`. The former eligibility blocker is cleared. Bundled EasyList and
+> EasyPrivacy snapshots remain CC BY-SA 3.0-or-later, and the Blanc name and
+> logo stay reserved as trademarks.
 
 ## Project name
 
@@ -20,7 +22,7 @@ https://blancbrowser.com · https://github.com/bnfy/blanc
 
 ## Abstract (max ~1200 chars)
 
-Blanc is an independent, source-visible proprietary desktop browser for
+Blanc is an independent, open-source (MIT) desktop browser for
 macOS, Windows, and Linux that treats user agency as the baseline, not an
 extension.
 Ad and tracker blocking (EasyList/EasyPrivacy) is wired in at the network
@@ -73,8 +75,8 @@ a deliberately small, auditable codebase (~single-digit-thousands of
 lines around the Chromium engine via Electron) where blocking, privacy
 behavior, and UI are all first-party code — small enough for one person
 to understand end-to-end, which is precisely the property that makes
-user-agency guarantees easier to inspect, while the current proprietary
-license limits reuse.
+user-agency guarantees easier to inspect — and, under the MIT License, easy
+for others to reuse.
 
 ## What are significant technical challenges you expect to solve during the project?
 
@@ -90,6 +92,6 @@ Users: people who want a quiet, blocking-by-default browser without a
 corporate agenda. Ecosystem: EasyList/EasyPrivacy maintainers (upstream
 filter lists), Ghostery's adblocker library (engine), the Electron
 project, and Apple's password-manager-resources dataset. Technical outcomes
-and documentation can land in the publicly visible repo under Blanc's current
-license; the entitlement documentation in particular fills a gap every
-independent browser project currently hits blind.
+and documentation land in the public repo under the MIT License, free for any
+other project to reuse; the entitlement documentation in particular fills a gap
+every independent browser project currently hits blind.

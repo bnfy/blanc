@@ -1,5 +1,12 @@
 # Growth Counter-Offensive Implementation Plan
 
+> **Superseded (2026-08-30) — licensing only.** The licence decisions recorded
+> in this document are historical. Blanc adopted the MIT License on 2026-08-30,
+> reversing the 2026-08-20 decision to remain `UNLICENSED`. The original text
+> below is preserved unchanged as a record of what was decided at the time; it
+> is no longer an accurate statement of Blanc's licensing. For current terms see
+> `LICENSE`, `THIRD-PARTY-NOTICES.md`, and `ASSET-LICENSE.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Fire the five discovery channels Blanc has never used — in one concentrated week, with measurement restored and the payment path proven first — so the September cohort is large enough for retention to become a real question.

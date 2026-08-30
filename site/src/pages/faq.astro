@@ -5,9 +5,9 @@ const QUESTIONS = [
   {
     q: 'Is Blanc open source?',
     a: [
-      'No — but the source is public, and those are two different things worth separating.',
+      'Yes. Blanc is released under the MIT License.',
       'The repository at github.com/bnfy/blanc contains the application source. You can read every line, inspect what the blocker does and what the launch ping sends, and build and run the checked-out source locally. A local build shows what that source does; it does not prove that a published binary matches it byte for byte.',
-      'The code is not openly licensed. package.json says UNLICENSED, so it carries no open-source grant. GitHub’s terms permit users to fork public repositories within the service, but Blanc grants no licence to modify the code, redistribute it, or publish your own builds. The accurate term is source-available, not open source.',
+      'The MIT licence covers Blanc’s own code: you may modify it, redistribute it, and publish your own builds. Publishing a build carries two conditions MIT does not cover. The bundled EasyList and EasyPrivacy filter lists are redistributed under CC BY-SA 3.0 or later, which requires attribution to The EasyList authors and carries share-alike terms on the redistributed lists and Blanc’s derived filter data. And the Blanc name and logo are trademarks that a copyright licence does not convey — publish under your own name and mark, not as Blanc.',
       'Published macOS releases are signed and notarized, and published Windows releases carry a timestamped Authenticode signature checked at release time. The checksum manifest is signed with Sigstore under a verified OIDC identity, while Windows and Linux CI artifacts carry GitHub provenance attestations. Those records authenticate published artifacts; they do not make a local build reproducible.',
     ],
   },

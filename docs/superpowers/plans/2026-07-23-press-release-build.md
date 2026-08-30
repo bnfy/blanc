@@ -1,5 +1,12 @@
 # Blanc v1.0 — Criticality-Ordered 14-Day Press Build Plan
 
+> **Superseded (2026-08-30) — licensing only.** The licence decisions recorded
+> in this document are historical. Blanc adopted the MIT License on 2026-08-30,
+> reversing the 2026-08-20 decision to remain `UNLICENSED`. The original text
+> below is preserved unchanged as a record of what was decided at the time; it
+> is no longer an accurate statement of Blanc's licensing. For current terms see
+> `LICENSE`, `THIRD-PARTY-NOTICES.md`, and `ASSET-LICENSE.md`.
+
 **Goal:** Produce a verified `v1.0.0-rc.1` on Day 5, complete a seven-day
 active candidate window, and publish `v1.0.0` on Day 14.
 

@@ -121,9 +121,14 @@ test('grant drafts and metrics labels do not overclaim licensing or installs', (
   const stats = read('scripts/stats.sh');
   const readme = read('README.md');
 
-  assert.doesNotMatch(nlnet, /Blanc is an independent, open-source/i);
-  assert.match(nlnet, /currently proprietary/);
-  assert.doesNotMatch(futo, /an open-source desktop/i);
+  // Licensing reversed on 2026-08-30: Blanc adopted the MIT License, undoing
+  // the 2026-08-20 decision to stay UNLICENSED. Open-source claims in the grant
+  // drafts are now accurate, so this guard flipped: it holds the drafts to the
+  // MIT wording and fails if the retired proprietary framing creeps back.
+  assert.match(nlnet, /MIT License/);
+  assert.doesNotMatch(nlnet, /currently proprietary/);
+  assert.doesNotMatch(nlnet, /source-visible proprietary/i);
+  assert.doesNotMatch(futo, /source-visible proprietary/i);
   assert.doesNotMatch(futo, /only network call/i);
   assert.doesNotMatch(futo, /launch ping,\s*off by default/i);
   assert.match(stats, /artifact-downloads/);
