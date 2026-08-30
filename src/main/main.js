@@ -42,6 +42,12 @@ const {
 const {
   shieldChipState, shieldPopoverModel, connectionFor, committedUrlOf, activeConnection,
 } = require('./shield-model');
+const {
+  sanitizeCertificate,
+  createCertificateObserver,
+  buildSiteInfo,
+  certificateErrorQuery,
+} = require('./site-security');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
 const {
   chromeClientHintPlatform,
@@ -205,6 +211,7 @@ const NEW_TAB_URL = 'blanc://newtab/';
 const newTabUrl = () => settings.getSettings().homePage || NEW_TAB_URL;
 // The query flag tells the newtab page to show private copy + theme.
 const PRIVATE_NEW_TAB_URL = 'blanc://newtab/?private=1';
+const certificateObserver = createCertificateObserver();
 // Exact, unpackaged-only gate for the Electron acceptance harness. A stray
 // BLANC_TEST=0/false in a real launch must not weaken normal chrome behavior.
 const acceptanceTestMode = !app.isPackaged && process.env.BLANC_TEST === '1';
@@ -2708,9 +2715,21 @@ function serializeTabs() {
       // quiet only after committing, so its stored URL is honest in that one
       // state. Do not broaden committedUrlOf's null default: it prevents an
       // ahead-of-navigation URL from making a false security claim.
+      const committedUrl = rest.asleep ? rest.url : committedUrlOf(tab.view);
       const connection = connectionFor({
-        url: rest.asleep ? rest.url : committedUrlOf(tab.view),
+        url: committedUrl,
         isLoading: rest.isLoading,
+      });
+      const targetUrl = tab.certificateError?.url ?? committedUrl ?? '';
+      let certificateRecord = null;
+      try {
+        const wc = liveContents(tab);
+        if (wc) certificateRecord = certificateObserver.get(wc.session, targetUrl);
+      } catch { /* a view can disappear while projecting; fail neutral */ }
+      const siteInfo = buildSiteInfo(targetUrl, {
+        certificateRecord,
+        certificateError: tab.certificateError,
+        blockedCount: rest.blockedCount,
       });
       if (rest.private && rest.favicon) {
         // A page-favicon URL belongs to the tab's browsing session. Sending a
@@ -2718,9 +2737,9 @@ function serializeTabs() {
         // session fetch it again merely to paint the pill/overlay/rail, escaping
         // the non-persistent private-session boundary. Private rows deliberately
         // use the renderer's neutral fallback instead.
-        return { ...rest, favicon: null, excepted, shield, connection };
+        return { ...rest, favicon: null, excepted, shield, connection, siteInfo };
       }
-      return { ...rest, excepted, shield, connection };
+      return { ...rest, excepted, shield, connection, siteInfo };
     });
 }
 
@@ -4048,6 +4067,8 @@ initTabView({
     if (tab.captureRecord) clearCaptureState({ kind: 'tab', tab, record: tab.captureRecord });
   },
   recordRendererCrash: (surface, details) => diagnostics.recordRendererCrash(surface, details),
+  sanitizeCertificate,
+  certificateErrorQuery,
   isStartupGateActive: () => startupNavigationGateActive,
   startupQueuedNavigations,
   onMainFrameCommit,
@@ -4130,6 +4151,8 @@ function createTab(url = newTabUrl(), { private: isPrivate = false, groupId = nu
     // Monotonic main-frame navigation generation used to reject stale async
     // quiet-tab probes and snapshot work after a page swap.
     navEpoch: 0,
+    // In-memory only: bounded details for the rejected top-level TLS load.
+    certificateError: null,
     // --- Quiet Tabs (spec §3). None of these are serialized except `asleep`;
     // serializeTabs is an explicit allowlist precisely so they cannot leak. ---
     asleep: bornQuiet,        // renderer discarded; tab.view is null
@@ -6810,6 +6833,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const ses = personalSessions.normal;
   const privateSes = personalSessions.private;
   const browsingSessions = profileSessionRegistry.all();
+  for (const browsingSession of browsingSessions) certificateObserver.observe(browsingSession);
   const chromeSes = session.fromPartition(CHROME_PARTITION);
   setupChromeProtocol({ session: chromeSes, net });
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
@@ -7262,6 +7286,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     const owned = profileSessionRegistry.forProfile(profileId);
     if (configuredProfileSessions.has(owned.profileId)) return owned;
     const targetSessions = [owned.normal, owned.private];
+    for (const targetSession of targetSessions) certificateObserver.observe(targetSession);
     pagesRegistration.addSessions(targetSessions);
     installSessionPreloads(targetSessions);
     installClientHintFallback(targetSessions);

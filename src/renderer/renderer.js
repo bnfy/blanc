@@ -668,7 +668,11 @@
 
     // tab.connection is main's single derivation (null while loading, so the
     // old page's security state can't linger under a "Loading…" domain).
-    pillInsecure.hidden = tab?.connection !== 'http';
+    const securityWarning = tab?.siteInfo?.state === 'insecure' ||
+      tab?.siteInfo?.state === 'certificate-error';
+    pillInsecure.hidden = !securityWarning;
+    pillInsecure.title = tab?.siteInfo?.title ?? 'Connection is not secure';
+    pillInsecure.setAttribute('aria-label', `${pillInsecure.title}. Open site controls.`);
 
     pillPrivateChip.hidden = !tab?.private;
     // A view-source tab is opened fresh, so Back is dead and the island has
@@ -753,6 +757,10 @@
   // under whichever control was clicked. Enter/Space come free (real button).
   pillInsecure.addEventListener('click', (e) => {
     e.stopPropagation();
+    if (activeTab()?.siteInfo?.state === 'certificate-error') {
+      window.browserAPI.openIsland();
+      return;
+    }
     const r = pillInsecure.getBoundingClientRect();
     window.browserAPI.openShieldPopover({ right: r.right, trigger: 'insecure' });
   });
