@@ -89,6 +89,18 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
   `main` is not downloadable behavior unless a
   new immutable release completes the same platform checks and restarts the
   ≥48-hour soak.
+- **Freeze product merges through the Show HN post.** The repository is the Show
+  HN landing page, so it must not begin advertising unreleased runtime behavior
+  while the copy and downloads remain locked to v1.10.0. The launch-freeze
+  anchor is `0de37a16f49827646c288d6216ca137bbfb5cb9e` (PR #245). Until the Show HN
+  submission is live, `origin/main` may advance only for launch evidence,
+  launch copy, and their regression guards. Hold product/runtime, dependency,
+  packaging, release-workflow, and feature-spec merges. In particular, do not
+  merge #238 or #205: both change application behavior and each records missing
+  platform/updater evidence. Hold Dependabot PRs #214, #213, #176, #175, and
+  #174 too. A genuine security emergency requires an explicit owner decision,
+  a new release if downloadable behavior changes, and a restarted ≥48-hour
+  soak; it is not a silent exception.
 - **Channel order is not negotiable:** evergreen listings → Show HN → Reddit → Product Hunt.
 - **No retention experiments this cycle.** n=27 cannot support one. The checkpoint is Oct 1.
 - **Adding a site page REQUIRES adding its path to `MANIFEST` in `site/src/pages/sitemap.xml.js`** — the sitemap endpoint asserts the manifest matches discovered pages exactly and **fails the build** otherwise.
@@ -1535,6 +1547,23 @@ print('CLEARED' if now >= ends else 'NOT CLEARED — DO NOT LAUNCH')
 Expected: `CLEARED`. If not, the launch week moves. Elapsed time alone is not
 enough — Task 7 Step 11's upgrade evidence must also be recorded.
 
+- [ ] **Step 0b: Verify the repository landing page is still inside the merge freeze**
+
+```bash
+git fetch origin
+git diff --name-only 0de37a16f49827646c288d6216ca137bbfb5cb9e..origin/main
+gh pr list --repo bnfy/blanc --state open --limit 100 \
+  --json number,title,headRefName,isDraft,url
+```
+
+Review the diff; do not reduce this to a count. Changes after the anchor may be
+launch evidence, launch copy, or their tests. If application/runtime code,
+dependencies, package metadata, packaging, release workflows, or unrelated
+feature specs reached `origin/main`, stop: the GitHub landing page and frozen
+v1.10.0 story have diverged. The known product and dependency PRs named in the
+global freeze must remain open. Do not merge them merely because their current
+checks are green.
+
 - [ ] **Step 1: Take the pre-launch baseline BEFORE anything is posted**
 
 This must be the first action of launch week. A snapshot taken after the
@@ -1598,6 +1627,13 @@ HN is temporarily restricting Show HN submissions from accounts that are not
 yet familiar with the community. Check `https://news.ycombinator.com/showlim`
 from the owner's existing personal account before launch morning. Do not create
 a launch-only account or manufacture activity to clear the restriction.
+
+- [ ] **Step 0a: Re-run the repository merge-freeze check immediately before submission**
+
+Repeat Task 11 Step 0b after the listings work and before opening the HN submit
+form. A clean result means every post-anchor change is launch-only. Any
+unreleased product/runtime or dependency merge stops the submission until the
+release/copy boundary is reconciled.
 
 - [ ] **Step 1: Post early morning US Eastern, Tuesday**
 

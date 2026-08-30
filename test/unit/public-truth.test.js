@@ -230,6 +230,10 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(plan, /r\/linux:[\s\S]{0,500}no-more-than-10%[\s\S]{0,300}related story/i);
   assert.match(copy, /third-party user[\s\S]{0,300}1vj0og9[\s\S]{0,500}does not complete the Reddit launch task/i);
   assert.match(plan, /1vj0og9[\s\S]{0,500}not a founder launch[\s\S]{0,500}skip r\/browsers/i);
+  assert.match(plan, /launch-freeze\s+anchor is `0de37a16f49827646c288d6216ca137bbfb5cb9e`/i);
+  assert.match(plan, /do not\s+merge #238 or #205/i);
+  assert.match(plan, /Step 0b: Verify the repository landing page is still inside the merge freeze/i);
+  assert.match(copy, /freeze anchor `0de37a1`[\s\S]{0,300}no product\/runtime/i);
   assert.doesNotMatch(copy, /https:\/\/blancbrowser\.com\/\?ref=reddit/);
   assert.doesNotMatch(plan, /https:\/\/blancbrowser\.com\/\?ref=reddit/);
   const productHuntUpload = plan.indexOf('Step 2: Upload the demo video');
