@@ -161,7 +161,7 @@ never-expected infinite loop into a thrown error.
 
 ### 4.6 Persistence
 
-- Personal best time only, in the page's own `localStorage`
+- Personal best time and the sound on/off preference only, in the page's own `localStorage`
   (`blanc://mahjong` is its own origin under the `standard: true` scheme).
   Nothing crosses IPC, nothing is written to a `JsonStore`, nothing syncs.
 - In private tabs the non-persistent session makes it ephemeral — correct
@@ -173,14 +173,15 @@ never-expected infinite loop into a thrown error.
 | Unit | Purpose | Depends on |
 |---|---|---|
 | `mahjong-engine.js` | Pure logic: turtle position table, tile set, freeness, winnable deal generation (seedable RNG), match/select/undo state machine, stuck & win detection. **No DOM, no `require('electron')`.** | nothing |
-| `mahjong.js` | DOM: renders tiles from engine state, wires clicks/keys, timer, controls, localStorage best, theme comes free from CSS. | `mahjong-engine.js` |
+| `mahjong-sound.js` | Lazy Web Audio synthesis, cue definitions, and the local sound preference. No assets or network. | nothing |
+| `mahjong.js` | DOM: renders tiles from engine state, wires clicks/keys, timer, controls, localStorage best, and sound toggle; theme comes free from CSS. | `mahjong-engine.js`, `mahjong-sound.js` |
 | `mahjong.html` | Markup shell + CSP. | pages.css |
 | `settings.js` (+ schema) | `newtabMahjong` key. | existing |
 | `newtab.js`/`newtab.html` | footer entry, gated by the setting. | existing |
 
-`mahjong.js` loads the engine via a plain `<script>` tag pair (the engine
-attaches a single namespace global when `module` is absent, same pattern the
-unit tests need — the engine file is `require()`-able under `node --test` and
+`mahjong.js` loads the engine and sound helper through plain `<script>` tags
+(each attaches one namespace global when `module` is absent, the same pattern
+their unit tests need — both files are `require()`-able under `node --test` and
 script-taggable in the page).
 
 ## 6. Error handling
@@ -189,7 +190,7 @@ script-taggable in the page).
   than ever dealing a possibly-unwinnable board, and `mahjong.js` surfaces a
   quiet "couldn't deal — try again" state in that never-expected case.
 - `localStorage` reads/writes wrapped in try/catch; a missing/failed best time
-  renders as no best line, never an error.
+  renders as no best line and a failed sound preference remains in memory.
 - No other failure surface: no network, no IPC, no persistence beyond the
   above.
 
@@ -229,7 +230,7 @@ Manual verification (chrome-level pages need a relaunch, not Cmd+R):
 
 ## 8. Out of scope / future
 
-- Additional board layouts, sound, animations beyond subtle pulses.
+- Additional board layouts and animations beyond subtle pulses.
 - Cross-device sync of best times.
 - Mobile port (would need touch sizing and its own spec entry).
 
@@ -251,3 +252,11 @@ link was redundant — the `newtabMahjong` setting, footer link, Settings
 toggle, and startPageStatus projection were all removed (never shipped in a
 release, so no migration). The game is reached via the `mahjong` layout or
 by typing `blanc://mahjong`.
+
+Follow-up, same day: the game gained quiet Web Audio cues for selection,
+matching, blocked moves, hints, undo, new deals, and wins. They are synthesized
+locally by `mahjong-sound.js` — no media assets or requests — and AudioContext
+is created only after a user gesture. An accessible `sound on` / `sound off`
+button persists the preference in the Mahjong origin's `localStorage` (and is
+therefore ephemeral in private tabs); sound defaults on and initial page load
+is silent.

@@ -9,6 +9,14 @@ const styles = fs.readFileSync(
   path.join(__dirname, '../../src/renderer/pages/pages.css'),
   'utf8'
 );
+const html = fs.readFileSync(
+  path.join(__dirname, '../../src/renderer/pages/mahjong.html'),
+  'utf8'
+);
+const controller = fs.readFileSync(
+  path.join(__dirname, '../../src/renderer/pages/mahjong.js'),
+  'utf8'
+);
 
 function mediaBlocks(query) {
   const marker = `@media ${query}`;
@@ -39,4 +47,24 @@ test('mahjong provides static hint feedback and suppresses shake for reduced mot
   assert.match(block, /\.mj-tile\.hinted\s*\{[^}]*animation:\s*none;/);
   assert.match(block, /\.mj-tile\.hinted\s*\{[^}]*border-color:\s*var\(--accent\);/);
   assert.match(block, /\.mj-tile\.shake\s*\{[^}]*animation:\s*none;/);
+});
+
+test('mahjong loads its sound module before the controller and exposes a pressed toggle', () => {
+  assert.match(
+    html,
+    /<button id="mjSound" type="button" aria-pressed="true">sound on<\/button>/
+  );
+  const soundModule = html.indexOf('<script src="mahjong-sound.js"></script>');
+  const controllerScript = html.indexOf('<script src="mahjong.js"></script>');
+  assert.ok(soundModule !== -1, 'mahjong-sound.js is not loaded');
+  assert.ok(soundModule < controllerScript, 'sound module must load before mahjong.js');
+});
+
+test('every game interaction is wired to its sound cue and bootstrap stays silent', () => {
+  for (const cue of ['blocked', 'select', 'pair', 'win', 'undo', 'hint', 'deal', 'toggle']) {
+    assert.match(controller, new RegExp(`sound\\.play\\([^\\n]*'${cue}'`), `missing ${cue} cue`);
+  }
+  assert.match(controller, /function newGameFromControl\(\) \{\s*sound\.play\('deal'\);\s*newGame\(\);/);
+  assert.match(controller, /document\.getElementById\('mjNew'\)\.addEventListener\('click', newGameFromControl\);/);
+  assert.match(controller, /\nnewGame\(\);\s*$/);
 });

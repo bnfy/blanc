@@ -702,6 +702,10 @@ From the desktop `DEFAULTS`:
   instantly from the start page's own footer switcher and from Settings; a
   change made anywhere reaches every open start page. It travels with the
   profile the way the theme does.
+- Mahjong uses quiet, locally synthesized cues for tile selection, matching,
+  blocked moves, hints, undo, new deals, and wins. Its in-game sound control is
+  on by default and persists only in the Mahjong page's `localStorage`; private
+  tabs keep that preference ephemeral with the rest of their page storage.
 - The tally chart tells the truth: every bar — today's included — is
   normalized to the busiest day, colour alone marks today, and a week that
   blocked nothing draws no bars. Its data is the blocker's per-day counts,
