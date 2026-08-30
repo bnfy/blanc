@@ -230,15 +230,18 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(plan, /r\/linux:[\s\S]{0,500}no-more-than-10%[\s\S]{0,300}related story/i);
   assert.match(copy, /third-party user[\s\S]{0,300}1vj0og9[\s\S]{0,500}does not complete the Reddit launch task/i);
   assert.match(plan, /1vj0og9[\s\S]{0,500}not a founder launch[\s\S]{0,500}skip r\/browsers/i);
-  assert.match(plan, /launch-freeze\s+anchor is `0de37a16f49827646c288d6216ca137bbfb5cb9e`/i);
-  assert.match(plan, /do not\s+merge #238 or #205/i);
+  assert.match(plan, /old `0de37a1` anchor is historical and must\s+not be reused/i);
+  assert.match(plan, /PRs #238[\s\S]{0,120}#205[\s\S]{0,300}reschedule is not merge approval/i);
   assert.match(plan, /Step 0b: Verify the repository landing page is still inside the merge freeze/i);
-  assert.match(copy, /freeze anchor `0de37a1`[\s\S]{0,300}no product\/runtime/i);
+  assert.match(plan, /launch-freeze-start[\s\S]{0,500}anchor[\s\S]{0,200}releaseTag[\s\S]{0,100}releaseSha/);
+  assert.match(copy, /launch-freeze-start[\s\S]{0,300}dynamic anchor[\s\S]{0,300}no\s+product\/runtime/i);
   assert.match(plan, /Monday, September 7, 2026[\s\S]{0,300}Tuesday, September 8, 2026[\s\S]{0,300}Wednesday, September 9, 2026[\s\S]{0,300}Thursday, September 10, 2026/i);
-  assert.match(plan, /WINDOW_START = '2026-09-14'[\s\S]{0,120}WINDOW_END\s+= '2026-09-27'/);
+  assert.match(plan, /Thursday, September 3 at noon ET[\s\S]{0,600}Friday,\s+September 4 at 3:00 p\.m\. ET/i);
+  assert.match(plan, /WINDOW_START = '2026-09-14'[\s\S]{0,100}WINDOW_END\s+= '2026-09-27'/);
   assert.doesNotMatch(plan, /Monday, August 31, 2026|Tuesday, September 1, 2026|Wednesday, September 2, 2026|Thursday, September 3, 2026/);
   assert.doesNotMatch(copy, /September 3, 2026/);
-  assert.ok(plan.includes(`capture-download-baseline.mjs v${version}`));
+  assert.match(plan, /capture-download-baseline\.mjs "\$LAUNCH_RELEASE_TAG"/);
+  assert.doesNotMatch(plan, /capture-download-baseline\.mjs v1\.10\.0/);
   assert.match(plan, /releaseTag[\s\S]{0,80}packageAssetRequests[\s\S]{0,120}packageAssetRequestsByPlatform/);
   assert.doesNotMatch(plan, /gh api --paginate repos\/bnfy\/blanc\/releases/);
   assert.doesNotMatch(plan, /"totalDownloads"/);
@@ -251,7 +254,9 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.ok(productHuntUpload >= 0, 'Product Hunt upload step must exist');
   assert.ok(productHuntSchedule > productHuntUpload, 'Product Hunt media preview must precede scheduling');
   assert.ok(plan.includes(`Blanc v${version} is the current public baseline`));
-  assert.ok(plan.includes(`Launch rides v${version} after a ≥48h soak`));
+  assert.match(plan, /selected launch release's `soakEndsAt`/i);
+  assert.match(plan, /Complete and record a fresh ≥48-hour soak before Task 11/i);
+  assert.match(plan, /Cut the launch release by Friday, September 4 at 3:00 p\.m\. ET/i);
   assert.ok(plan.includes(`homepage show ${version} — not a Cloudflare preview URL`));
 });
 

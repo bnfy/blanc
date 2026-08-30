@@ -158,7 +158,7 @@ Ordered by external clock, not by convenience.
    before launch day, so the launch rides a build that has survived a weekend
    rather than one that is hours old.
 
-### Phase 1 — Assets, built during the freeze
+### Phase 1 — Initial assets, refreshed after backlog cleanup when release-bound
 
 - **A 20-second Island demo** (rest → ⌘L → tab switch → blocked count), already
   called for by the outreach plan. One asset, reused across every channel.
@@ -170,6 +170,11 @@ Ordered by external clock, not by convenience.
   Electron objection.
 
 ### Phase 2 — Launch week, sequenced evergreen → argumentative → showcase
+
+**Calendar decision, 2026-08-30:** the owner moved Show HN to Tuesday,
+September 8 so selected backlog work can be resolved first. Product work may
+merge only during the bounded cleanup window; the final launch release, assets,
+copy, platform evidence, and fresh soak must be complete before this phase.
 
 | Day | Channel | Rationale |
 |---|---|---|
@@ -233,10 +238,13 @@ Falsifiable, and checked against the existing `downloads-history.jsonl` and
 | Launch happens but is unmeasured | GA4 reconnected *and* `?ref=` tagging as an independent fallback |
 | AlternativeTo unavailable at launch | Account created at the very start of Phase 0 to clear the 7-day age requirement |
 
-## Proposed calendar
+## Owner-approved calendar
 
-- **Aug 20–28** — Phase 0 and Phase 1. Ads verification complete before Sep 2.
-- **Aug 31 – Sep 3** — launch week, feature freeze in effect.
+- **Aug 20–Sep 4** — Phase 0, Phase 1, and bounded backlog cleanup; final
+  product merges stop September 3 at noon ET and the immutable launch release
+  is due September 4 at 3:00 p.m. ET.
+- **Sep 7–10** — launch week, feature freeze in effect; Show HN is Tuesday,
+  September 8.
 - **Oct 1** — retention checkpoint on the September cohort.
 
 ## Out of scope
