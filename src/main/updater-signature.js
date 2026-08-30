@@ -37,24 +37,32 @@ function extractCommonName(dn) {
 }
 
 // Runs PowerShell's Get-AuthenticodeSignature and returns {error, stdout}. Never
-// rejects — the caller decides what a failure means. Mirrors electron-updater's
-// invocation (PSModulePath reset + chcp for non-ASCII cert subjects) but with a
-// long timeout. The file path is single-quote-escaped to prevent command
-// injection (Get-AuthenticodeSignature 'a';calc;'b' would otherwise run calc).
+// rejects — the caller decides what a failure means. Invoke powershell.exe
+// directly so Node's timeout terminates the process that owns the installer
+// handle. Running it behind cmd.exe (`shell: true`) only kills the shell on some
+// Windows versions, leaving PowerShell alive and the temporary installer locked.
+// Reset PSModulePath through the child environment and set PowerShell's output
+// encoding in-process instead of relying on `chcp`. The file path is
+// single-quote-escaped to prevent command injection
+// (Get-AuthenticodeSignature 'a';calc;'b' would otherwise run calc).
 function runAuthenticodeSignature(filePath, { execFileImpl = execFile, timeoutMs = SIGNATURE_TIMEOUT_MS } = {}) {
   return new Promise((resolve) => {
     const escaped = String(filePath).replace(/'/g, "''");
     execFileImpl(
-      'set "PSModulePath=" & chcp 65001 >NUL & powershell.exe',
+      'powershell.exe',
       [
         '-NoProfile',
         '-NonInteractive',
         '-InputFormat',
         'None',
         '-Command',
-        `"Get-AuthenticodeSignature -LiteralPath '${escaped}' | ConvertTo-Json -Compress"`,
+        `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); Get-AuthenticodeSignature -LiteralPath '${escaped}' | ConvertTo-Json -Compress`,
       ],
-      { shell: true, timeout: timeoutMs, windowsHide: true },
+      {
+        timeout: timeoutMs,
+        windowsHide: true,
+        env: { ...process.env, PSModulePath: '' },
+      },
       (error, stdout) => resolve({ error, stdout }),
     );
   });

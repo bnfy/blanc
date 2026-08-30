@@ -11,13 +11,29 @@
 
 **Goal:** Fire the five discovery channels Blanc has never used — in one concentrated week, with measurement restored and the payment path proven first — so the September cohort is large enough for retention to become a real question.
 
-**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Google Ads verification) and de-risks the spike (site copy corrected, production Patron purchase proven, v1.9.1 released + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires channels cheap→expensive across four days so neither one-shot card is spent on untested copy.
+**Architecture:** Three phases. Phase 0 clears real lead times (AlternativeTo's paid priority review; Google Ads verification) and de-risks the spike (site copy corrected, production Patron purchase proven, current release + 48h soak with upgrade evidence). Phase 1 builds the reusable assets during the feature freeze. Phase 2 fires channels cheap→expensive across four days so neither one-shot card is spent on untested copy.
 
 **Tech Stack:** Astro 7 (`site/`), Cloudflare Pages, GA4 (property 544287080), Polar.sh (Patron checkout), `blanc-ping` Worker stats, `gh` CLI.
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — August 28, 2026
+## Execution status — August 29, 2026
+
+- Blanc v1.10.0 is the current public baseline. It was published from
+  `a96eb47` at `2026-08-29T18:58:24Z`; publication, the authenticated manifest,
+  native platform gates, and logged-out download smoke passed. See
+  `docs/release-incidents/2026-08-29-v1.10.0.md`.
+- Its 48-hour soak ends at `2026-08-31T18:58:24Z` (August 31, 2:58:24 p.m.
+  ET). The published v1.10.0 Linux AppImage digest/attestation/launch/render
+  check passed in run `33269704113`. The exact public v1.9.1 → v1.10.0 updater
+  handoffs on macOS and Windows remain pending. Launch remains stopped until
+  those three remaining follow-up conditions pass
+  or the owner explicitly records a waiver after the risk is stated.
+- The existing Island demo was captured from packaged v1.9.1. Re-record the
+  same beat sheet from packaged public v1.10.0 before any launch channel; the
+  old MP4/GIF are now shot-list references, not launch assets.
+
+## Superseded execution status — August 28, 2026
 
 - Blanc v1.9.1 is the current public baseline. Its signed/notarized macOS
   artifacts, signed Windows artifacts, authenticated Linux AppImage, updater
@@ -59,11 +75,12 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship as-is.** No telemetry changes, no open-sourcing any component, Patron stays in the launch narrative. These were considered and declined during brainstorming.
-- **Launch rides v1.9.1 after a ≥48h soak.** Never launch on a build published the same day.
-- **Lock the launch to published v1.9.1 behavior.** The release-target decision
-  is resolved: v1.9.1 carries the refined window-wide Island-dot presentation,
-  updated icon, and optional macOS 1Password login fill, plus its Profile Sync
-  and favicon fixes. Freeze public claims to the `v1.9.1` tag. Later work on
+- **Launch rides v1.10.0 after a ≥48h soak.** Never launch on a build published the same day.
+- **Lock the launch to published v1.10.0 behavior.** The release-target decision
+  is resolved: v1.10.0 carries the optional macOS 1Password ambient login hint
+  and Settings account verification while keeping fill explicit, plus every
+  previously shipped browser capability. Freeze public claims to the
+  `v1.10.0` tag. Later work on
   `main` is not downloadable behavior unless a
   new immutable release completes the same platform checks and restarts the
   ≥48-hour soak.
@@ -903,7 +920,7 @@ npx wrangler pages deployment list --project-name=blancbrowser
 
 Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
-changelog and the homepage show 1.9.1 — not a Cloudflare preview URL.
+changelog and the homepage show 1.10.0 — not a Cloudflare preview URL.
 
 - [x] **Step 10: Record the current v1.9.1 soak clock**
 
@@ -1827,13 +1844,14 @@ prerequisite because v1.9.1 is already public.
 - **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means that feature is unreachable *and* the best traffic day converts nothing.
 - **Task 5 not deployed to production** → do not launch. **Currently satisfied** by production deployment `ba18dc9`; keep verifying the live Terms page, not the diff.
 - **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`; Task 8's demo swap is also complete.
-- **Task 7's soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. **Currently satisfied:** the v1.9.1 48-hour clock elapsed and was recorded; the exact v1.9.0 → v1.9.1 updater handoffs passed on macOS and Windows; the authenticated Linux AppImage launch/render check passed.
+- **Current release soak or evidence not cleared** — either <48h elapsed or current platform evidence missing → the launch week moves unless the owner explicitly waives the remaining evidence after the risk is stated and records that waiver in the release incident. **Currently blocked for v1.10.0:** the Linux AppImage check passed, but the 48-hour clock ends at `2026-08-31T18:58:24Z` and the exact v1.9.1 → v1.10.0 updater handoffs on macOS and Windows must be recorded.
 - **Task 3 Google approval regresses or shows a new required action** → do not
   start Task 11. **Currently satisfied:** verification is in `Completed tasks`
   and the campaign is serving; recheck before the Monday baseline.
-- **Task 8 demo incomplete** → do not start Task 11. **Currently satisfied:**
-  the 20.433333-second packaged-v1.9.1 demo contains the complete beat sheet,
-  and both MP4 and sub-8-MiB GIF exports are committed.
+- **Task 8 demo incomplete** → do not start Task 11. **Currently blocked after
+  the v1.10.0 release:** the 20.433333-second packaged-v1.9.1 demo remains the
+  approved beat sheet, but both MP4 and sub-8-MiB GIF must be re-recorded from
+  packaged public v1.10.0 before launch.
 - **Unreleased feature work reaches `main` before launch** → stop and re-audit the README, demo, copy pack, and public binary/repository boundary before posting any channel. This triggered on August 27: `main` contains post-v1.9.1 1Password-picker and download-metrics work. The audit confirmed the README release/tag boundary and packaged-v1.9.1 demo, but found the live Privacy page describing the unreleased candidate-username picker and omitting the active aggregate `/dl/<target>` counter. **Satisfied August 27:** source `9186c95` deployed to Cloudflare Pages as `Production` on branch `main` in deployment `87ad52a1-667e-4fea-93da-1091c33532a0`; the canonical Privacy page now limits the 1Password description to the current public v1.9.1 behavior, discloses the aggregate `/dl/<target>` counter, and contains neither of the two stale candidate-username phrases.
 - **Task 1 approved but listing not visible logged out on Monday** → that channel does not fire. This is *not* a reason to move the launch week.
 
