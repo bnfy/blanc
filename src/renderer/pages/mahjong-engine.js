@@ -61,7 +61,64 @@
     return leftOpen || rightOpen;
   }
 
-  const MahjongEngine = { TURTLE_LAYOUT, createRng, matchKey, isFreeAt };
+  function shuffle(arr, rng) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // 72 matching pairs covering the standard 144-tile set: two identical
+  // pairs per quad, flowers paired with flowers, seasons with seasons.
+  function shuffledPairs(rng) {
+    const pairs = [];
+    for (const suit of ['dot', 'bam', 'chr']) for (let n = 1; n <= 9; n++) {
+      pairs.push([`${suit}-${n}`, `${suit}-${n}`], [`${suit}-${n}`, `${suit}-${n}`]);
+    }
+    for (const w of ['e', 's', 'w', 'n']) pairs.push([`wind-${w}`, `wind-${w}`], [`wind-${w}`, `wind-${w}`]);
+    for (const d of ['c', 'f', 'p']) pairs.push([`drg-${d}`, `drg-${d}`], [`drg-${d}`, `drg-${d}`]);
+    const flowers = shuffle(['flower-1', 'flower-2', 'flower-3', 'flower-4'], rng);
+    pairs.push([flowers[0], flowers[1]], [flowers[2], flowers[3]]);
+    const seasons = shuffle(['season-1', 'season-2', 'season-3', 'season-4'], rng);
+    pairs.push([seasons[0], seasons[1]], [seasons[2], seasons[3]]);
+    return shuffle(pairs, rng);
+  }
+
+  // Winnable by construction: simulate a winning game on the full layout.
+  // Both picked positions are free at the same board state, so the recorded
+  // order is itself a valid playthrough of the finished deal. A greedy pass
+  // can dead-end (e.g. a lone surviving stack leaves only one free tile);
+  // retry with the advancing RNG. The cap only turns a never-expected
+  // infinite loop into an error — there is no non-constructive fallback.
+  function generateDeal(seed) {
+    const rng = createRng(seed);
+    for (let attempt = 0; attempt < 1000; attempt++) {
+      const kinds = new Array(TURTLE_LAYOUT.length).fill(null);
+      const occupied = new Array(TURTLE_LAYOUT.length).fill(true);
+      const present = (k) => occupied[k];
+      const solution = [];
+      let dead = false;
+      for (const [a, b] of shuffledPairs(rng)) {
+        const free = [];
+        for (let i = 0; i < TURTLE_LAYOUT.length; i++) {
+          if (occupied[i] && isFreeAt(TURTLE_LAYOUT, i, present)) free.push(i);
+        }
+        if (free.length < 2) { dead = true; break; }
+        const i = free.splice(Math.floor(rng() * free.length), 1)[0];
+        const j = free.splice(Math.floor(rng() * free.length), 1)[0];
+        kinds[i] = a;
+        kinds[j] = b;
+        occupied[i] = occupied[j] = false;
+        solution.push([i, j]);
+      }
+      if (!dead) return { kinds, solution };
+    }
+    throw new Error('mahjong: deal generation failed');
+  }
+
+  const MahjongEngine = { TURTLE_LAYOUT, createRng, matchKey, isFreeAt, generateDeal };
   if (typeof module !== 'undefined' && module.exports) module.exports = MahjongEngine;
   else window.MahjongEngine = MahjongEngine;
 })();

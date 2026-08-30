@@ -63,3 +63,42 @@ test('freeness: covered tiles and doubly-flanked tiles are blocked', () => {
   const interior = L.findIndex((p) => p.z === 0 && p.x === 12 && p.y === 0);
   assert.equal(E.isFreeAt(L, interior, all), false);
 });
+
+test('deals are winnable by construction across many seeds', () => {
+  for (let seed = 1; seed <= 50; seed++) {
+    const { kinds, solution } = E.generateDeal(seed);
+    assert.equal(kinds.length, 144);
+    assert.ok(kinds.every((k) => typeof k === 'string'));
+    assert.equal(solution.length, 72);
+    // Full standard set: 34 quads + 4 flowers + 4 seasons.
+    const counts = new Map();
+    for (const k of kinds) counts.set(k, (counts.get(k) ?? 0) + 1);
+    for (const suit of ['dot', 'bam', 'chr']) for (let n = 1; n <= 9; n++) {
+      assert.equal(counts.get(`${suit}-${n}`), 4);
+    }
+    for (const w of ['e', 's', 'w', 'n']) assert.equal(counts.get(`wind-${w}`), 4);
+    for (const d of ['c', 'f', 'p']) assert.equal(counts.get(`drg-${d}`), 4);
+    for (let n = 1; n <= 4; n++) {
+      assert.equal(counts.get(`flower-${n}`), 1);
+      assert.equal(counts.get(`season-${n}`), 1);
+    }
+    // Replay the recorded removal order as an actual game: every step must
+    // remove a FREE, MATCHING pair, and the board must end empty.
+    const removed = new Array(144).fill(false);
+    const present = (k) => !removed[k];
+    for (const [i, j] of solution) {
+      assert.notEqual(i, j);
+      assert.ok(!removed[i] && !removed[j]);
+      assert.ok(E.isFreeAt(E.TURTLE_LAYOUT, i, present), `seed ${seed}: tile ${i} not free`);
+      assert.ok(E.isFreeAt(E.TURTLE_LAYOUT, j, present), `seed ${seed}: tile ${j} not free`);
+      assert.equal(E.matchKey(kinds[i]), E.matchKey(kinds[j]));
+      removed[i] = removed[j] = true;
+    }
+    assert.ok(removed.every(Boolean));
+  }
+});
+
+test('deals are deterministic per seed and differ across seeds', () => {
+  assert.deepEqual(E.generateDeal(7).kinds, E.generateDeal(7).kinds);
+  assert.notDeepEqual(E.generateDeal(7).kinds, E.generateDeal(8).kinds);
+});
