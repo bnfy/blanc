@@ -410,10 +410,11 @@ free, while Named Workspace creation is paid.
 > quiet background tabs that release memory, private tabs, end-to-end encrypted
 > sync, and Touch ID passkeys on macOS.
 >
-> Blanc is free. The source is publicly available on GitHub but is not released
-> under an open-source licence. Optional Patron ($30/year or $4/month) adds three
-> macOS Dock colorways and the ability to create Named Workspaces on every
-> platform. Existing workspaces remain renameable and removable after a lapse.
+> Blanc is free and open source under the MIT License. The bundled filter lists
+> retain their CC BY-SA terms, and the Blanc name and logo remain reserved
+> trademarks. Optional Patron ($30/year or $4/month) adds three macOS Dock
+> colorways and the ability to create Named Workspaces on every platform.
+> Existing workspaces remain renameable and removable after a lapse.
 
 Do not put URLs, email addresses, or phone numbers in the description.
 
