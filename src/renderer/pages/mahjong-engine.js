@@ -118,7 +118,62 @@
     throw new Error('mahjong: deal generation failed');
   }
 
-  const MahjongEngine = { TURTLE_LAYOUT, createRng, matchKey, isFreeAt, generateDeal };
+  function createGame(seed) {
+    const { kinds } = generateDeal(seed);
+    return {
+      seed,
+      kinds,
+      removed: new Array(TURTLE_LAYOUT.length).fill(false),
+      history: [],
+    };
+  }
+
+  function isFree(state, i) {
+    if (state.removed[i]) return false;
+    return isFreeAt(TURTLE_LAYOUT, i, (k) => !state.removed[k]);
+  }
+
+  function movesAvailable(state) {
+    const freeByKey = new Map();
+    for (let i = 0; i < TURTLE_LAYOUT.length; i++) {
+      if (!isFree(state, i)) continue;
+      const key = matchKey(state.kinds[i]);
+      if (!freeByKey.has(key)) freeByKey.set(key, []);
+      freeByKey.get(key).push(i);
+    }
+    const moves = [];
+    for (const indices of freeByKey.values()) {
+      for (let a = 0; a < indices.length; a++) {
+        for (let b = a + 1; b < indices.length; b++) moves.push([indices[a], indices[b]]);
+      }
+    }
+    return moves;
+  }
+
+  function removePair(state, i, j) {
+    if (i === j) return false;
+    if (!isFree(state, i) || !isFree(state, j)) return false;
+    if (matchKey(state.kinds[i]) !== matchKey(state.kinds[j])) return false;
+    state.removed[i] = state.removed[j] = true;
+    state.history.push([i, j]);
+    return true;
+  }
+
+  function undo(state) {
+    const last = state.history.pop();
+    if (!last) return false;
+    state.removed[last[0]] = state.removed[last[1]] = false;
+    return true;
+  }
+
+  function isWon(state) {
+    return state.removed.every(Boolean);
+  }
+
+  const MahjongEngine = {
+    TURTLE_LAYOUT, createRng, matchKey, isFreeAt, generateDeal,
+    createGame, isFree, movesAvailable, removePair, undo, isWon,
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = MahjongEngine;
   else window.MahjongEngine = MahjongEngine;
 })();

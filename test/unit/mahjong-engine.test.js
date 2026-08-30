@@ -102,3 +102,64 @@ test('deals are deterministic per seed and differ across seeds', () => {
   assert.deepEqual(E.generateDeal(7).kinds, E.generateDeal(7).kinds);
   assert.notDeepEqual(E.generateDeal(7).kinds, E.generateDeal(8).kinds);
 });
+
+test('game state: remove validates, undo round-trips, win detected', () => {
+  const game = E.createGame(11);
+  assert.equal(game.removed.filter(Boolean).length, 0);
+
+  const moves = E.movesAvailable(game);
+  assert.ok(moves.length > 0);
+  const [i, j] = moves[0];
+
+  // Invalid removals are rejected without mutating.
+  assert.equal(E.removePair(game, i, i), false);
+  const blocked = game.kinds.findIndex((_, k) => !E.isFree(game, k));
+  assert.equal(E.removePair(game, i, blocked), false);
+  assert.equal(game.history.length, 0);
+
+  // A valid removal mutates and records.
+  const before = JSON.parse(JSON.stringify({ removed: game.removed }));
+  assert.equal(E.removePair(game, i, j), true);
+  assert.ok(game.removed[i] && game.removed[j]);
+  assert.equal(game.history.length, 1);
+
+  // Undo restores exactly the prior state.
+  assert.equal(E.undo(game), true);
+  assert.deepEqual(game.removed, before.removed);
+  assert.equal(game.history.length, 0);
+  assert.equal(E.undo(game), false); // nothing left to undo
+
+  // Playing the whole generated solution wins the game.
+  const { solution } = E.generateDeal(11);
+  for (const [a, b] of solution) assert.equal(E.removePair(game, a, b), true);
+  assert.equal(E.isWon(game), true);
+  assert.deepEqual(E.movesAvailable(game), []);
+
+  // Undo after a win resumes play.
+  assert.equal(E.undo(game), true);
+  assert.equal(E.isWon(game), false);
+  assert.equal(E.movesAvailable(game).length > 0, true);
+});
+
+test('movesAvailable pairs are all free and matching', () => {
+  const game = E.createGame(23);
+  for (const [i, j] of E.movesAvailable(game)) {
+    assert.ok(E.isFree(game, i) && E.isFree(game, j));
+    assert.equal(E.matchKey(game.kinds[i]), E.matchKey(game.kinds[j]));
+  }
+});
+
+test('a non-winning state with no matchable free pair reports stuck', () => {
+  const game = E.createGame(5);
+  // Hand-built stuck state: exactly two tiles left, both free, not matching.
+  game.removed.fill(true);
+  const i = 0;
+  const j = game.kinds.findIndex(
+    (k, idx) => idx !== i && E.matchKey(k) !== E.matchKey(game.kinds[i])
+  );
+  game.removed[i] = game.removed[j] = false;
+  assert.ok(E.isFree(game, i) && E.isFree(game, j));
+  assert.equal(E.isWon(game), false);
+  assert.deepEqual(E.movesAvailable(game), []);
+  assert.equal(E.removePair(game, i, j), false);
+});
