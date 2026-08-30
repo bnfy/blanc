@@ -40,6 +40,10 @@ board.style.height = `${BOARD_H}px`;
 // winds/dragons mono letterforms, white dragon a hollow frame, flowers and
 // seasons small marks with a corner numeral. All currentColor.
 
+// Traditional arrangements. Dots follow real circle tiles (7 is a diagonal
+// of three over a 2x2 square — never the domino 6+1); bamboo overrides the
+// counts where slats stack differently (2: centered pair, 3: one over two,
+// 7: one over three over three).
 const NINE_GRID = { xs: [11, 22, 33], ys: [13, 30, 47] };
 const SPOTS = {
   1: [[22, 30]],
@@ -48,9 +52,15 @@ const SPOTS = {
   4: [[11, 13], [33, 13], [11, 47], [33, 47]],
   5: [[11, 13], [33, 13], [22, 30], [11, 47], [33, 47]],
   6: [[11, 13], [33, 13], [11, 30], [33, 30], [11, 47], [33, 47]],
-  7: [[11, 13], [33, 13], [11, 30], [22, 30], [33, 30], [11, 47], [33, 47]],
+  7: [[9, 9], [22, 13], [35, 17], [11, 34], [33, 34], [11, 49], [33, 49]],
   8: [[11, 9], [33, 9], [11, 23], [33, 23], [11, 37], [33, 37], [11, 51], [33, 51]],
   9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
+};
+const BAM_SPOTS = {
+  ...SPOTS,
+  2: [[22, 13], [22, 47]],
+  3: [[22, 13], [11, 47], [33, 47]],
+  7: [[22, 9], [11, 30], [22, 30], [33, 30], [11, 51], [22, 51], [33, 51]],
 };
 
 function el(tag, attrs) {
@@ -109,7 +119,7 @@ function faceSVG(kind) {
   if (family === 'dot') {
     for (const [x, y] of SPOTS[Number(id)]) svg.append(el('circle', { cx: x, cy: y, r: 4.5, fill: 'currentColor' }));
   } else if (family === 'bam') {
-    for (const [x, y] of SPOTS[Number(id)]) {
+    for (const [x, y] of BAM_SPOTS[Number(id)]) {
       svg.append(el('rect', { x: x - 2, y: y - 7, width: 4, height: 14, rx: 2, fill: 'currentColor' }));
     }
   } else if (family === 'chr') {
