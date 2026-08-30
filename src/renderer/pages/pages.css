@@ -1892,13 +1892,23 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .mj-tile[data-blocked] { filter: saturate(0.35) brightness(0.76); }
 }
 :root[data-theme="private"] .mj-tile[data-blocked] { filter: saturate(0.35) brightness(0.76); }
+/* Selection/hint tint layers OVER the opaque face — accent-dim is
+   translucent, and a bare translucent background lets the tile beneath
+   (layer offsets overlap) bleed through the selected tile. */
 .mj-tile.selected {
   border-color: var(--accent);
-  background: var(--accent-dim);
+  background:
+    linear-gradient(var(--accent-dim), var(--accent-dim)),
+    linear-gradient(180deg, var(--mj-tile-top), var(--mj-tile-bottom));
 }
 .mj-tile.hinted { animation: mj-pulse 0.6s ease-in-out 2; }
 @keyframes mj-pulse {
-  50% { border-color: var(--accent); background: var(--accent-dim); }
+  50% {
+    border-color: var(--accent);
+    background:
+      linear-gradient(var(--accent-dim), var(--accent-dim)),
+      linear-gradient(180deg, var(--mj-tile-top), var(--mj-tile-bottom));
+  }
 }
 .mj-tile.shake { animation: mj-shake 0.18s ease-in-out; }
 @keyframes mj-shake {
