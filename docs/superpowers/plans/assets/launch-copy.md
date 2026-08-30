@@ -187,6 +187,19 @@ Current eligibility matrix (re-check immediately before posting):
 | r/windows | Skip unless already approved | Software promotion requires prior moderator permission plus the green-check user flair, and the [live rules](https://www.reddit.com/r/windows/about/rules) currently say new applicants are not being accepted. Do not apply, modmail, or post unless the owner's account already holds that permission and flair. |
 | r/linux | Conditional | The personal account must already satisfy the [live rules](https://www.reddit.com/r/linux/about/rules): no more than 10% of its posts may be the owner's own content, Blanc must be directly relevant to Linux/open source, the owner must make a genuine reply to a related story before posting, use the direct official source, and stay to engage. If the existing participation ratio fails, skip rather than creating activity to qualify. |
 
+**Known pre-launch mention:** a third-party user opened an
+[r/browsers discussion about Blanc](https://www.reddit.com/r/browsers/comments/1vj0og9/has_anyone_heard_of_blanc_browser/)
+on 2026-08-08 after seeing an Instagram ad. It is not the owner's founder post,
+does not complete the Reddit launch task, and its traffic or engagement must not
+be attributed to the launch. Its comments are still useful objection evidence:
+some readers questioned whether the project was AI/vibe-coded, whether the
+repository history was enough to trust, and whether Blanc should be framed as
+an Arc replacement. Address those themes with concrete release evidence and
+candid product boundaries. On posting day, also decide whether a new founder
+post so soon after that discussion would be welcome under the live r/browsers
+rules; skip if the answer is ambiguous. Do not revive or commandeer the old
+thread as a substitute launch.
+
 ### Browser community draft — candidate after same-day rule check
 
 **Title**

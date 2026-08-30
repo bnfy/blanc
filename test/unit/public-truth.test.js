@@ -228,6 +228,8 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(copy, /r\/linux[\s\S]{0,500}10%[\s\S]{0,400}related story/i);
   assert.match(plan, /r\/windows:[\s\S]{0,300}skip unless[\s\S]{0,300}green-check flair/i);
   assert.match(plan, /r\/linux:[\s\S]{0,500}no-more-than-10%[\s\S]{0,300}related story/i);
+  assert.match(copy, /third-party user[\s\S]{0,300}1vj0og9[\s\S]{0,500}does not complete the Reddit launch task/i);
+  assert.match(plan, /1vj0og9[\s\S]{0,500}not a founder launch[\s\S]{0,500}skip r\/browsers/i);
   assert.doesNotMatch(copy, /https:\/\/blancbrowser\.com\/\?ref=reddit/);
   assert.doesNotMatch(plan, /https:\/\/blancbrowser\.com\/\?ref=reddit/);
   const productHuntUpload = plan.indexOf('Step 2: Upload the demo video');

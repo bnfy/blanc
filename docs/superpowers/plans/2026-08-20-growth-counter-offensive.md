@@ -1668,6 +1668,17 @@ specifically, and the retrospective must not claim otherwise.
 
 **Depends on:** Task 12, including its objection list.
 
+- [ ] **Step 0: Account for the pre-existing third-party r/browsers thread**
+
+A third-party user—not the owner—posted
+[“Has anyone heard of Blanc Browser?”](https://www.reddit.com/r/browsers/comments/1vj0og9/has_anyone_heard_of_blanc_browser/)
+on 2026-08-08 after seeing an Instagram ad. This is public pre-launch objection
+evidence, not a founder launch and not attributable launch traffic. Carry its
+AI/vibe-coding, repository-trust, and Arc-replacement questions into the rewrite.
+On posting day, assess whether another Blanc thread would be welcome so soon
+after the existing discussion; skip r/browsers if the live rules or context are
+ambiguous. Do not revive the old thread or treat it as the Wednesday post.
+
 - [ ] **Step 1: Revise the Reddit copy (Task 10) using Tuesday's objections**
 
 Pre-empt in the post body whatever HN hit hardest. If telemetry dominated Tuesday, address it in the post rather than waiting to be asked.
@@ -1698,7 +1709,7 @@ reads as spam and gets removed.
 - [ ] **Step 4: Record results**
 
 ```bash
-echo '{"date":"YYYY-MM-DD","channel":"reddit","posted":["..."],"skipped":[{"subreddit":"...","reason":"rule or eligibility gate"}],"removed":[],"objections":["..."]}' \
+echo '{"date":"YYYY-MM-DD","channel":"reddit","preExistingMentions":["r/browsers:1vj0og9 (third party; not launch-attributable)"],"posted":["..."],"skipped":[{"subreddit":"...","reason":"rule, eligibility, or recent-duplicate gate"}],"removed":[],"objections":["..."]}' \
   >> "$LAUNCH_LOG"
 ```
 
