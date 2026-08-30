@@ -86,6 +86,21 @@ test('the layout enum reaches the schema and both generated mobile artifacts', (
   assert.match(kotlin, /val newtabLayout = BlancNewtabLayout\.LEDGER/);
 });
 
+test('Settings offers every supported start-page layout', () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, '../../src/renderer/pages/settings.html'),
+    'utf8'
+  );
+
+  for (const layout of settingsSchema.newtabLayouts) {
+    assert.match(
+      html,
+      new RegExp(`<option value="${layout}">${layout}</option>`),
+      `missing Settings option for ${layout}`
+    );
+  }
+});
+
 test('privacy choices re-save after first run completes (tour replay)', (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-privacy-resave-'));
   t.after(async () => {

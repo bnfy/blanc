@@ -1186,8 +1186,9 @@ body.sheet .page h1:focus { outline: none; }
 }
 
 /* ---------- start-page layouts ----------
-   Three alternatives to the shipped ledger, transcribed value-for-value from
-   the design system's "New tab v2" handoff prototype. The ledger is unchanged.
+   Three informational alternatives to the shipped ledger come from the design
+   system's "New tab v2" handoff; Mahjong adds a local game layout. The ledger
+   is unchanged.
 
    Visibility is CSS-only: no [hidden] attributes, because this file's
    [hidden] rule is !important and would outrank these selectors. Each active
@@ -1208,6 +1209,7 @@ body[data-layout="mahjong"] #layoutMahjong { display: block; }
 
 /* The mahjong layout embeds blanc://mahjong full-bleed above the absolute
    footer band; the game page paints its own background and scales itself. */
+body[data-layout="mahjong"] { padding: 0; overflow: hidden; }
 .mahjong-embed { position: absolute; inset: 0 0 64px 0; }
 .mahjong-embed iframe { display: block; width: 100%; height: 100%; border: 0; }
 
@@ -1518,6 +1520,39 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .ledger-footer { display: flex; flex-wrap: wrap; justify-content: center; row-gap: 4px; }
 }
 
+/* Browser zoom reduces the layout viewport in CSS pixels. Once either axis is
+   tight, put the game and footer in document flow: the iframe keeps enough
+   height to operate and the parent page can scroll to its layout switcher. */
+@media (max-width: 480px), (max-height: 360px) {
+  body[data-layout="mahjong"] {
+    height: auto;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  body[data-layout="mahjong"] .mahjong-embed {
+    position: relative;
+    inset: auto;
+    height: max(320px, calc(100vh - 64px));
+  }
+  body[data-layout="mahjong"] .ledger-footer {
+    position: relative;
+    inset: auto;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 64px;
+    margin: 0;
+    padding: 12px;
+  }
+  body[data-layout="mahjong"] .footer-left,
+  body[data-layout="mahjong"] #goAnywhere { display: none; }
+  body[data-layout="mahjong"] .layout-switcher {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 960px) {
   .shelf { left: 48px; right: 48px; }
   .shelf-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1809,7 +1844,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .ob-dots span.on { background: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) {
-  /* The toggle's 140ms slide is the dialog's only motion. */
+  /* Remove the onboarding toggle's 140ms slide. */
   .ob-toggle, .ob-knob { transition: none; }
 }
 
@@ -1820,7 +1855,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .mahjong-body {
   margin: 0;
   height: 100vh;
-  overflow: hidden;
+  overflow: auto;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
@@ -1855,7 +1890,7 @@ body:not([data-layout="ledger"]) .ledger-footer {
   --mj-shadow-contact: rgba(0, 0, 0, 0.35);
   --mj-shadow-ambient: rgba(0, 0, 0, 0.30);
 }
-.mj { display: flex; flex-direction: column; height: 100%; }
+.mj { display: flex; flex-direction: column; height: 100%; min-height: 320px; }
 .mj-head {
   display: flex;
   align-items: baseline;
@@ -1939,6 +1974,35 @@ body:not([data-layout="ledger"]) .ledger-footer {
 @keyframes mj-shake {
   25% { translate: -2px 0; }
   75% { translate: 2px 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mj-tile.hinted {
+    animation: none;
+    border-color: var(--accent);
+    background:
+      linear-gradient(var(--accent-dim), var(--accent-dim)),
+      linear-gradient(180deg, var(--mj-tile-top), var(--mj-tile-bottom));
+  }
+  .mj-tile.shake { animation: none; }
+}
+@media (max-width: 480px) {
+  .mj-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    padding: 12px 12px 0;
+  }
+  .mj-title { flex: 0 0 100%; }
+  .mj-controls { display: flex; flex-wrap: wrap; gap: 4px 8px; }
+  .mj-sep { display: none; }
+  .mj-meters {
+    flex: 1 0 100%;
+    justify-content: space-between;
+    margin-left: 0;
+    gap: 8px;
+  }
+  .mj-board-wrap { padding: 8px; }
+  .mahjong-body .mj-notice { padding: 0 12px 12px; }
 }
 .mj-notice {
   padding: 0 28px 18px;

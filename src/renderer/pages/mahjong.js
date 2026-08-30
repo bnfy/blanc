@@ -204,9 +204,9 @@ function refreshTiles() {
 
 function fitBoard() {
   const wrap = document.getElementById('mjBoardWrap');
-  // Floor guards the moment before the view has settled its size; the
-  // resize listener re-fits once real dimensions land.
-  const scale = Math.max(0.2, Math.min(
+  // The small floor guards the moment before the view has settled its size;
+  // supported browser zoom can legitimately need a scale below 0.2.
+  const scale = Math.max(0.05, Math.min(
     1.25,
     (wrap.clientWidth - 32) / BOARD_W,
     (wrap.clientHeight - 32) / BOARD_H
