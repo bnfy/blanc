@@ -1497,7 +1497,20 @@ git commit -m "docs: launch copy pack for the growth counter-offensive"
 
 ## Phase 2 — Launch week (feature freeze in effect)
 
-### Task 11: Monday — baseline, then evergreen listings
+The fixed launch calendar is:
+
+| Date | Task |
+|---|---|
+| Monday, August 31, 2026, after 3:00 p.m. ET | Task 11 — post-soak baseline, then evergreen listings |
+| Tuesday, September 1, 2026, early US Eastern | Task 12 — Show HN |
+| Wednesday, September 2, 2026 | Task 13 — eligible Reddit communities |
+| Thursday, September 3, 2026 | Task 14 — Product Hunt; select this date in **Schedule Launch** |
+
+If any dependency slips, move that task and every downstream task. Do not
+compress two launch channels into one day or select a different Product Hunt
+date merely to preserve the weekday labels.
+
+### Task 11: Monday, August 31 — baseline, then evergreen listings
 
 **Owner:** `owner` — posting under an account.
 
@@ -1613,7 +1626,7 @@ A silent rejection is a channel you believe you fired and did not.
 
 ---
 
-### Task 12: Tuesday — Show HN
+### Task 12: Tuesday, September 1 — Show HN
 
 **Owner:** `owner` — must post and engage personally. **An agent must not post to Hacker News.**
 
@@ -1635,7 +1648,7 @@ form. A clean result means every post-anchor change is launch-only. Any
 unreleased product/runtime or dependency merge stops the submission until the
 release/copy boundary is reconciled.
 
-- [ ] **Step 1: Post early morning US Eastern, Tuesday**
+- [ ] **Step 1: Post early morning US Eastern on Tuesday, September 1**
 
 **Submit the URL only. HN does not accept a URL and body text together.**
 
@@ -1698,7 +1711,7 @@ specifically, and the retrospective must not claim otherwise.
 
 ---
 
-### Task 13: Wednesday — Reddit
+### Task 13: Wednesday, September 2 — Reddit
 
 **Owner:** `owner` — posting under a personal identity.
 
@@ -1751,7 +1764,7 @@ echo '{"date":"YYYY-MM-DD","channel":"reddit","preExistingMentions":["r/browsers
 
 ---
 
-### Task 14: Thursday — Product Hunt
+### Task 14: Thursday, September 3 — Product Hunt
 
 **Owner:** `owner` — posting and engaging.
 
@@ -1783,15 +1796,18 @@ full URL into the draft and verify the rendered preview. Upload the prepared
 gallery's two-image floor. A Named Workspaces still is optional and must be
 omitted unless it is a release-backed capture labeled as a Patron feature.
 
-- [ ] **Step 3: Schedule Thursday's launch**
+- [ ] **Step 3: Schedule the Thursday, September 3 launch**
 
 Use **Schedule Launch**, not a manual launch-night action. Product Hunt's
 current [scheduling guide](https://help.producthunt.com/en/articles/2724119-how-to-schedule-a-post)
 allows selecting a date within 30 days, and its
 [posting guide](https://help.producthunt.com/en/articles/479557-how-to-post-a-product)
-says scheduled posts go live at **12:01 a.m. Pacific** on the selected day.
-Before scheduling, verify the Thursday date, the full YouTube preview, both
-stills, the thumbnail, the pricing tag, and the final objection-informed copy.
+says the site operates in 24-hour **PST** periods and scheduled posts go live at
+**12:01 a.m. PST** on the selected day. Select **September 3, 2026** in the live
+form. Before scheduling, verify that exact displayed date, the full YouTube
+preview, both stills, the thumbnail, the pricing tag, and the final
+objection-informed copy. If Tasks 12 or 13 slipped, move Product Hunt too; do not
+schedule the old date with stale objection handling.
 
 - [ ] **Step 4: Engage all day**
 
