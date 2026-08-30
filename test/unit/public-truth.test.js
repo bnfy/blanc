@@ -218,6 +218,9 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.ok(copy.includes(`v${version} tag is the exact source snapshot`));
   assert.match(copy, /Blanc is free and open source under the MIT License/);
   assert.doesNotMatch(copy, /not released under an open-source licen[cs]e/i);
+  assert.match(copy, /BetaList's current[\s\S]{0,200}all submissions[\s\S]{0,80}paid/i);
+  assert.match(plan, /BetaList's[\s\S]{0,200}all\s+submissions are paid/i);
+  assert.doesNotMatch(plan, /submitting Monday costs nothing/i);
   assert.ok(plan.includes(`Blanc v${version} is the current public baseline`));
   assert.ok(plan.includes(`Launch rides v${version} after a ≥48h soak`));
   assert.ok(plan.includes(`homepage show ${version} — not a Cloudflare preview URL`));
