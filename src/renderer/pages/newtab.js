@@ -413,6 +413,27 @@ function stopClock() {
   clockTimer = null;
 }
 
+// The mahjong layout embeds the real game page — one implementation, one
+// localStorage best. The iframe stays src-less until first shown; the game
+// is unaffected by this page's data feeds, so it never re-renders.
+function renderMahjongEmbed() {
+  document.getElementById('mahjongFrame').src =
+    isPrivate ? 'blanc://mahjong/?private=1' : 'blanc://mahjong/';
+}
+
+// The switcher's "new" badge retires once the layout has been tried on this
+// device. localStorage is a per-viewer convenience here — absent or blocked
+// storage just means the badge stays, never an error.
+const MAHJONG_SEEN_KEY = 'mahjongLayoutSeen';
+function syncMahjongBadge() {
+  try {
+    if (localStorage.getItem(MAHJONG_SEEN_KEY)) {
+      document.getElementById('mahjongNewBadge').hidden = true;
+    }
+  } catch { /* badge stays */ }
+}
+syncMahjongBadge();
+
 function applyLayout(name) {
   state.layout = name;
   document.body.dataset.layout = name;
@@ -424,7 +445,12 @@ function applyLayout(name) {
     if (name === 'billboard') renderBillboard();
     if (name === 'shelf') renderShelf();
     if (name === 'tally') renderTally();
+    if (name === 'mahjong') renderMahjongEmbed();
     rendered.add(name);
+  }
+  if (name === 'mahjong') {
+    try { localStorage.setItem(MAHJONG_SEEN_KEY, '1'); } catch { /* badge stays */ }
+    syncMahjongBadge();
   }
   if (name === 'billboard') startClock();
 }

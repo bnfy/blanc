@@ -24,7 +24,7 @@ public enum BlancThemePreference: String, CaseIterable {
     case dark
 }
 
-public enum BlancNewtabLayout: String, CaseIterable { case ledger, billboard, shelf, tally }
+public enum BlancNewtabLayout: String, CaseIterable { case ledger, billboard, shelf, tally, mahjong }
 
 public enum BlancWebrtcPolicy: String, CaseIterable {
     case standard

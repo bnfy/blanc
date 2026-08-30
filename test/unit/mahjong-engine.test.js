@@ -1,0 +1,165 @@
+const assert = require('node:assert/strict');
+const test = require('node:test');
+const E = require('../../src/renderer/pages/mahjong-engine');
+
+test('turtle layout: 144 positions, unique, well-formed', () => {
+  assert.equal(E.TURTLE_LAYOUT.length, 144);
+  const seen = new Set(E.TURTLE_LAYOUT.map((p) => `${p.x},${p.y},${p.z}`));
+  assert.equal(seen.size, 144);
+  const perLayer = [0, 0, 0, 0, 0];
+  for (const p of E.TURTLE_LAYOUT) {
+    assert.ok(Number.isInteger(p.x) && Number.isInteger(p.y) && Number.isInteger(p.z));
+    perLayer[p.z]++;
+  }
+  assert.deepEqual(perLayer, [87, 36, 16, 4, 1]);
+  // No two tiles on the same layer overlap (tiles are 2x2 in half-units).
+  for (let i = 0; i < 144; i++) for (let j = i + 1; j < 144; j++) {
+    const a = E.TURTLE_LAYOUT[i], b = E.TURTLE_LAYOUT[j];
+    if (a.z !== b.z) continue;
+    assert.ok(Math.abs(a.x - b.x) >= 2 || Math.abs(a.y - b.y) >= 2,
+      `tiles ${i} and ${j} overlap`);
+  }
+});
+
+test('rng is deterministic and in [0,1)', () => {
+  const a = E.createRng(42), b = E.createRng(42), c = E.createRng(43);
+  const seqA = [a(), a(), a()], seqB = [b(), b(), b()];
+  assert.deepEqual(seqA, seqB);
+  assert.notDeepEqual(seqA, [c(), c(), c()]);
+  for (const v of seqA) assert.ok(v >= 0 && v < 1);
+});
+
+test('matchKey: flowers and seasons are class-matched, all else identity', () => {
+  assert.equal(E.matchKey('flower-1'), 'flower');
+  assert.equal(E.matchKey('flower-4'), 'flower');
+  assert.equal(E.matchKey('season-2'), 'season');
+  assert.equal(E.matchKey('dot-5'), 'dot-5');
+  assert.equal(E.matchKey('wind-e'), 'wind-e');
+  assert.equal(E.matchKey('drg-p'), 'drg-p');
+});
+
+test('freeness: covered tiles and doubly-flanked tiles are blocked', () => {
+  const L = E.TURTLE_LAYOUT;
+  const all = () => true;
+  // The apex tile (z=4) is free on a full board.
+  const apex = L.findIndex((p) => p.z === 4);
+  assert.ok(E.isFreeAt(L, apex, all));
+  // The far-left odd tile (x=0) is free on a full board.
+  const farLeft = L.findIndex((p) => p.x === 0);
+  assert.ok(E.isFreeAt(L, farLeft, all));
+  // The very last tile of the far-right pair (x=28) is free; its inner
+  // neighbor (x=26) is flanked on both sides -> blocked.
+  const outerRight = L.findIndex((p) => p.x === 28);
+  const innerRight = L.findIndex((p) => p.x === 26);
+  assert.ok(E.isFreeAt(L, outerRight, all));
+  assert.equal(E.isFreeAt(L, innerRight, all), false);
+  // A z=0 tile under the z=1 block (col 4..9, row 1..6) is covered -> blocked.
+  const covered = L.findIndex((p) => p.z === 0 && p.x === 8 && p.y === 2);
+  assert.equal(E.isFreeAt(L, covered, all), false);
+  // Row 0 end tile (x=24, y=0): right side open on a full board -> free.
+  const rowEnd = L.findIndex((p) => p.z === 0 && p.x === 24 && p.y === 0);
+  assert.ok(E.isFreeAt(L, rowEnd, all));
+  // An interior row-0 tile is flanked left+right and uncovered -> blocked.
+  const interior = L.findIndex((p) => p.z === 0 && p.x === 12 && p.y === 0);
+  assert.equal(E.isFreeAt(L, interior, all), false);
+});
+
+test('deals are winnable by construction across many seeds', () => {
+  for (let seed = 1; seed <= 50; seed++) {
+    const { kinds, solution } = E.generateDeal(seed);
+    assert.equal(kinds.length, 144);
+    assert.ok(kinds.every((k) => typeof k === 'string'));
+    assert.equal(solution.length, 72);
+    // Full standard set: 34 quads + 4 flowers + 4 seasons.
+    const counts = new Map();
+    for (const k of kinds) counts.set(k, (counts.get(k) ?? 0) + 1);
+    for (const suit of ['dot', 'bam', 'chr']) for (let n = 1; n <= 9; n++) {
+      assert.equal(counts.get(`${suit}-${n}`), 4);
+    }
+    for (const w of ['e', 's', 'w', 'n']) assert.equal(counts.get(`wind-${w}`), 4);
+    for (const d of ['c', 'f', 'p']) assert.equal(counts.get(`drg-${d}`), 4);
+    for (let n = 1; n <= 4; n++) {
+      assert.equal(counts.get(`flower-${n}`), 1);
+      assert.equal(counts.get(`season-${n}`), 1);
+    }
+    // Replay the recorded removal order as an actual game: every step must
+    // remove a FREE, MATCHING pair, and the board must end empty.
+    const removed = new Array(144).fill(false);
+    const present = (k) => !removed[k];
+    for (const [i, j] of solution) {
+      assert.notEqual(i, j);
+      assert.ok(!removed[i] && !removed[j]);
+      assert.ok(E.isFreeAt(E.TURTLE_LAYOUT, i, present), `seed ${seed}: tile ${i} not free`);
+      assert.ok(E.isFreeAt(E.TURTLE_LAYOUT, j, present), `seed ${seed}: tile ${j} not free`);
+      assert.equal(E.matchKey(kinds[i]), E.matchKey(kinds[j]));
+      removed[i] = removed[j] = true;
+    }
+    assert.ok(removed.every(Boolean));
+  }
+});
+
+test('deals are deterministic per seed and differ across seeds', () => {
+  assert.deepEqual(E.generateDeal(7).kinds, E.generateDeal(7).kinds);
+  assert.notDeepEqual(E.generateDeal(7).kinds, E.generateDeal(8).kinds);
+});
+
+test('game state: remove validates, undo round-trips, win detected', () => {
+  const game = E.createGame(11);
+  assert.equal(game.removed.filter(Boolean).length, 0);
+
+  const moves = E.movesAvailable(game);
+  assert.ok(moves.length > 0);
+  const [i, j] = moves[0];
+
+  // Invalid removals are rejected without mutating.
+  assert.equal(E.removePair(game, i, i), false);
+  const blocked = game.kinds.findIndex((_, k) => !E.isFree(game, k));
+  assert.equal(E.removePair(game, i, blocked), false);
+  assert.equal(game.history.length, 0);
+
+  // A valid removal mutates and records.
+  const before = JSON.parse(JSON.stringify({ removed: game.removed }));
+  assert.equal(E.removePair(game, i, j), true);
+  assert.ok(game.removed[i] && game.removed[j]);
+  assert.equal(game.history.length, 1);
+
+  // Undo restores exactly the prior state.
+  assert.equal(E.undo(game), true);
+  assert.deepEqual(game.removed, before.removed);
+  assert.equal(game.history.length, 0);
+  assert.equal(E.undo(game), false); // nothing left to undo
+
+  // Playing the whole generated solution wins the game.
+  const { solution } = E.generateDeal(11);
+  for (const [a, b] of solution) assert.equal(E.removePair(game, a, b), true);
+  assert.equal(E.isWon(game), true);
+  assert.deepEqual(E.movesAvailable(game), []);
+
+  // Undo after a win resumes play.
+  assert.equal(E.undo(game), true);
+  assert.equal(E.isWon(game), false);
+  assert.equal(E.movesAvailable(game).length > 0, true);
+});
+
+test('movesAvailable pairs are all free and matching', () => {
+  const game = E.createGame(23);
+  for (const [i, j] of E.movesAvailable(game)) {
+    assert.ok(E.isFree(game, i) && E.isFree(game, j));
+    assert.equal(E.matchKey(game.kinds[i]), E.matchKey(game.kinds[j]));
+  }
+});
+
+test('a non-winning state with no matchable free pair reports stuck', () => {
+  const game = E.createGame(5);
+  // Hand-built stuck state: exactly two tiles left, both free, not matching.
+  game.removed.fill(true);
+  const i = 0;
+  const j = game.kinds.findIndex(
+    (k, idx) => idx !== i && E.matchKey(k) !== E.matchKey(game.kinds[i])
+  );
+  game.removed[i] = game.removed[j] = false;
+  assert.ok(E.isFree(game, i) && E.isFree(game, j));
+  assert.equal(E.isWon(game), false);
+  assert.deepEqual(E.movesAvailable(game), []);
+  assert.equal(E.removePair(game, i, j), false);
+});

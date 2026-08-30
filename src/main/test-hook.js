@@ -452,9 +452,25 @@ function install(refs) {
         layout: document.body.dataset.layout ?? null,
         active: document.querySelector('[data-layout-pick].active')?.dataset.layoutPick ?? null,
         // The active layout root is the one whose computed display isn't none.
-        visible: ['Ledger', 'Billboard', 'Shelf', 'Tally']
+        visible: ['Ledger', 'Billboard', 'Shelf', 'Tally', 'Mahjong']
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
+    },
+    async readMahjongEmbedDom() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return null;
+      try {
+        return await frame.executeJavaScript(`(() => ({
+          url: location.href,
+          tileCount: document.querySelectorAll('.mj-tile').length,
+          freeTileCount: document.querySelectorAll('.mj-tile:not([data-blocked])').length,
+        }))()`);
+      } catch {
+        return null;
+      }
     },
     clickNewtabLayoutSwitcher(name) {
       const tab = tabs.get(getActiveTabId());

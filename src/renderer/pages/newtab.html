@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; frame-src blanc://mahjong;" />
   <title>New Tab</title>
   <link rel="icon" href="icon.svg" />
   <link rel="stylesheet" href="pages.css" />
@@ -104,6 +104,12 @@
     </div>
   </main>
 
+  <main class="mahjong-embed" id="layoutMahjong">
+    <!-- src is set lazily by applyLayout the first time this layout shows,
+         so the other layouts never pay for loading the game. -->
+    <iframe id="mahjongFrame" title="Mahjong solitaire"></iframe>
+  </main>
+
   <footer class="ledger-footer">
     <span class="footer-left">
       <span id="footerLeft"></span>
@@ -113,7 +119,8 @@
       <button type="button" data-layout-pick="ledger">ledger</button> ·
       <button type="button" data-layout-pick="billboard">billboard</button> ·
       <button type="button" data-layout-pick="shelf">shelf</button> ·
-      <button type="button" data-layout-pick="tally">tally</button>
+      <button type="button" data-layout-pick="tally">tally</button> ·
+      <button type="button" data-layout-pick="mahjong" class="layout-pill">mahjong<span id="mahjongNewBadge" class="layout-new-badge">new</span></button>
     </span>
     <span id="goAnywhere"></span>
   </footer>

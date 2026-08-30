@@ -691,12 +691,13 @@ From the desktop `DEFAULTS`:
 
 ## F35 — Start page layouts
 
-- The start page offers four arrangements of the same material: **ledger** (the
-  original column), **billboard** (a live clock over favorite tiles), **shelf**
-  (a favorites grid with group and blocked-count cards), and **tally** (the
-  ledger column beside a week-of-blocking bar chart). Every layout draws the
-  same feeds — favorites, tab groups, and the blocker's counters — and re-inks
-  under the light, dark, and private themes with no layout-specific colors.
+- The start page offers five layouts: **ledger** (the original column),
+  **billboard** (a live clock over favorite tiles), **shelf** (a favorites grid
+  with group and blocked-count cards), **tally** (the ledger column beside a
+  week-of-blocking bar chart), and **mahjong** (an embedded, local solitaire
+  deal). The four informational layouts draw the same favorites, tab-group, and
+  blocker feeds; Mahjong deliberately replaces those feeds with the game. All
+  five re-ink under the light, dark, and private themes.
 - The choice is a synced setting (`newtabLayout`, default `ledger`), changeable
   instantly from the start page's own footer switcher and from Settings; a
   change made anywhere reaches every open start page. It travels with the
@@ -707,11 +708,14 @@ From the desktop `DEFAULTS`:
   tracked locally alongside the existing weekly total.
 - No layout may ever scroll horizontally, at any window width; narrow windows
   compact insets, wrap rows, and stack the tally columns rather than overflow.
+  At supported browser zoom levels, Mahjong's controls, board, and footer
+  switcher remain reachable through vertical scrolling.
   Empty feeds remove their section — row, label, and card — with no
   placeholder copy on the three newer layouts.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
-  renders the saved layout on a new tab and persists a footer switch.
+  renders the saved layout on a new tab, persists a footer switch, and verifies
+  that Mahjong embeds a playable 144-tile deal.
 
 ## F36 — First-run onboarding
 

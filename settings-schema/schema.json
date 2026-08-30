@@ -9,7 +9,7 @@
   ],
   "themes": ["system", "light", "dark"],
   "$newtabLayouts": "Start-page layouts (Bowser Design System, 'New tab v2' handoff). Synced, like the theme — it describes the browser you want, not the device you are on.",
-  "newtabLayouts": ["ledger", "billboard", "shelf", "tally"],
+  "newtabLayouts": ["ledger", "billboard", "shelf", "tally", "mahjong"],
   "$tabLayouts": "Desktop-only, device-local tab presentation. Default: island. Never included in Profile Sync or generated mobile settings.",
   "tabLayouts": ["island", "vertical"],
   "webrtcPolicies": ["standard", "strict"],

@@ -43,7 +43,7 @@ test('the start-page layout defaults to ledger, validates its enum, and syncs', 
   });
   const settings = loadSettings(userData);
 
-  assert.deepEqual(settings.NEWTAB_LAYOUTS, ['ledger', 'billboard', 'shelf', 'tally']);
+  assert.deepEqual(settings.NEWTAB_LAYOUTS, ['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
   assert.equal(settings.getSettings().newtabLayout, 'ledger');
 
   assert.equal(settings.setSettings({ newtabLayout: 'billboard' }).newtabLayout, 'billboard');
@@ -64,7 +64,7 @@ test('the start-page layout defaults to ledger, validates its enum, and syncs', 
 const settingsSchema = require('../../settings-schema/schema.json');
 
 test('the layout enum reaches the schema and both generated mobile artifacts', () => {
-  assert.deepEqual(settingsSchema.newtabLayouts, ['ledger', 'billboard', 'shelf', 'tally']);
+  assert.deepEqual(settingsSchema.newtabLayouts, ['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
   assert.equal(settingsSchema.defaults.newtabLayout, 'ledger');
   assert.equal(settingsSchema.internalDefaults.includes('newtabLayout'), false);
   assert.ok(settingsSchema.settings.some((s) => s.key === 'newtabLayout'));
@@ -76,14 +76,29 @@ test('the layout enum reaches the schema and both generated mobile artifacts', (
 
   assert.match(
     swift,
-    /public enum BlancNewtabLayout: String, CaseIterable \{ case ledger, billboard, shelf, tally \}/
+    /public enum BlancNewtabLayout: String, CaseIterable \{ case ledger, billboard, shelf, tally, mahjong \}/
   );
   assert.match(swift, /public static let newtabLayout: BlancNewtabLayout = \.ledger/);
   assert.match(
     kotlin,
-    /enum class BlancNewtabLayout\(val id: String\) \{ LEDGER\("ledger"\), BILLBOARD\("billboard"\), SHELF\("shelf"\), TALLY\("tally"\) \}/
+    /enum class BlancNewtabLayout\(val id: String\) \{ LEDGER\("ledger"\), BILLBOARD\("billboard"\), SHELF\("shelf"\), TALLY\("tally"\), MAHJONG\("mahjong"\) \}/
   );
   assert.match(kotlin, /val newtabLayout = BlancNewtabLayout\.LEDGER/);
+});
+
+test('Settings offers every supported start-page layout', () => {
+  const html = fs.readFileSync(
+    path.join(__dirname, '../../src/renderer/pages/settings.html'),
+    'utf8'
+  );
+
+  for (const layout of settingsSchema.newtabLayouts) {
+    assert.match(
+      html,
+      new RegExp(`<option value="${layout}">${layout}</option>`),
+      `missing Settings option for ${layout}`
+    );
+  }
 });
 
 test('privacy choices re-save after first run completes (tour replay)', (t) => {

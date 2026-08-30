@@ -46,3 +46,14 @@ Then('the saved start page layout is {string}', async function (layout) {
     `newtabLayout setting to persist as ${layout}`
   );
 });
+
+Then('the embedded mahjong game is ready', async function () {
+  await waitForValue(
+    () => this.call('readMahjongEmbedDom'),
+    (dom) =>
+      dom?.url?.startsWith('blanc://mahjong/') &&
+      dom.tileCount === 144 &&
+      dom.freeTileCount >= 2,
+    'the embedded mahjong frame to render a playable 144-tile deal'
+  );
+});
