@@ -225,7 +225,7 @@ One value per channel, used verbatim everywhere. No variants — a typo splits t
 
 ```
 Show HN        https://github.com/bnfy/blanc          (see Task 12 — NOT the marketing root)
-Reddit         https://blancbrowser.com/?ref=reddit
+Reddit         https://blancbrowser.com
 Product Hunt   https://blancbrowser.com/?ref=ph
 AlternativeTo  https://blancbrowser.com                (clean — tags risk the listing)
 BetaList       https://blancbrowser.com/?ref=betalist
@@ -251,7 +251,7 @@ cat > docs/superpowers/plans/assets/launch-urls.md <<'URLS'
 | Channel | URL | Attribution |
 |---|---|---|
 | Show HN | https://github.com/bnfy/blanc | GitHub referrer traffic |
-| Reddit | https://blancbrowser.com/?ref=reddit | GA4 landing page |
+| Reddit | https://blancbrowser.com | HTTP referrer; clean URL conservatively satisfies no-referral-link rules |
 | Product Hunt | https://blancbrowser.com/?ref=ph | GA4 landing page |
 | AlternativeTo | https://blancbrowser.com | HTTP referrer (tags discouraged) |
 | BetaList | https://blancbrowser.com/?ref=betalist | GA4 landing page |
@@ -1351,9 +1351,14 @@ extension, Blanc is genuinely not for you and I'd rather say so up front.
 
 - [x] **Step 2a: Write channel-specific Reddit drafts**
 
-One post, retargeted per community. **Never cross-post identical text.**
+One post, retargeted per eligible community. **Never cross-post identical
+text.** The drafts are candidates, not a posting list: r/windows is on hold
+unless the owner's account already has promotion permission and the green-check
+flair; r/macapps and r/linux each have account-history gates documented in the
+copy pack. Do not manufacture eligibility.
 
-**Title** (r/browsers, r/macapps, r/windows, r/linux variants):
+**Base title** (rewrite to the live community's format; r/macapps requires the
+`[OS]` prefix if eligible):
 
 ```
 I built Blanc, a desktop browser that replaces the tab strip with one floating pill
@@ -1385,7 +1390,7 @@ adds three macOS Dock colorways and named workspaces on every
 platform, and creating a named workspace is the one action that needs an active
 subscription.
 
-https://blancbrowser.com/?ref=reddit
+https://blancbrowser.com
 
 Happy to answer anything, including the sceptical version.
 ```
@@ -1667,16 +1672,33 @@ specifically, and the retrospective must not claim otherwise.
 
 Pre-empt in the post body whatever HN hit hardest. If telemetry dominated Tuesday, address it in the post rather than waiting to be asked.
 
-- [ ] **Step 2: Post to browser communities first, then platform communities**
+- [ ] **Step 2: Resolve eligibility, then post only where the live rules permit**
 
-Check each community's self-promotion rules before posting. Founder-authored, with screenshots and a candid limitations section. **Do not paste identical text across subreddits** — it reads as spam and gets removed.
+Use Task 10's current eligibility matrix and re-open every linked rule page on
+posting day. Founder-authored, with screenshots, founder disclosure, and a
+candid limitations section. Use the clean `https://blancbrowser.com` URL, not a
+`?ref=reddit` variant. **Do not paste identical text across subreddits** — it
+reads as spam and gets removed.
+
+- **r/browsers:** candidate after the same-day rule check.
+- **r/macapps:** main feed only if the personal account already has 10 local
+  karma, “Read the Rules” approval, is outside the 30-day cooldown, and meets
+  the current trust/transparency path. Use `[OS]`, the live pricing flair, and
+  Problem/Comparison/Pricing format. Otherwise use the current App Pile
+  megathread only if permitted, or skip.
+- **r/windows:** skip unless the personal account already has moderator
+  permission and the green-check flair. The current rules say new applicants
+  are not being accepted; do not request or manufacture an exception.
+- **r/linux:** post only if the account already meets the no-more-than-10%
+  own-content ratio. Make the required genuine reply to a related story, use a
+  direct source, and stay to engage. If the existing ratio fails, skip.
 
 - [ ] **Step 3: Engage in comments the same day**
 
 - [ ] **Step 4: Record results**
 
 ```bash
-echo '{"date":"YYYY-MM-DD","channel":"reddit","subreddits":["..."],"removed":[],"objections":["..."]}' \
+echo '{"date":"YYYY-MM-DD","channel":"reddit","posted":["..."],"skipped":[{"subreddit":"...","reason":"rule or eligibility gate"}],"removed":[],"objections":["..."]}' \
   >> "$LAUNCH_LOG"
 ```
 

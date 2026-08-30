@@ -223,6 +223,13 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.doesNotMatch(plan, /submitting Monday costs nothing/i);
   assert.match(copy, /Product Hunt[\s\S]{0,600}personal account[\s\S]{0,400}one week/i);
   assert.match(copy, /YouTube[\s\S]{0,400}12 hours/i);
+  assert.match(copy, /r\/windows[\s\S]{0,300}Skip unless already approved/i);
+  assert.match(copy, /r\/macapps[\s\S]{0,800}10 local karma[\s\S]{0,500}Problem\/Comparison\/Pricing/i);
+  assert.match(copy, /r\/linux[\s\S]{0,500}10%[\s\S]{0,400}related story/i);
+  assert.match(plan, /r\/windows:[\s\S]{0,300}skip unless[\s\S]{0,300}green-check flair/i);
+  assert.match(plan, /r\/linux:[\s\S]{0,500}no-more-than-10%[\s\S]{0,300}related story/i);
+  assert.doesNotMatch(copy, /https:\/\/blancbrowser\.com\/\?ref=reddit/);
+  assert.doesNotMatch(plan, /https:\/\/blancbrowser\.com\/\?ref=reddit/);
   const productHuntUpload = plan.indexOf('Step 2: Upload the demo video');
   const productHuntSchedule = plan.indexOf("Step 3: Schedule Thursday's launch");
   assert.ok(productHuntUpload >= 0, 'Product Hunt upload step must exist');
