@@ -1,5 +1,6 @@
 const { app, ipcMain, webContents } = require('electron');
-const { ElectronBlocker } = require('@ghostery/adblocker-electron');
+const { ElectronBlocker, ENGINE_VERSION } = require('@ghostery/adblocker-electron');
+const enginePackage = require('@ghostery/adblocker-electron/package.json');
 const path = require('path');
 const settings = require('./settings');
 const { installScriptletIsolation } = require('./adblock-scriptlets');
@@ -12,7 +13,7 @@ const {
   installCosmeticExceptionHandlers,
 } = require('./adblock-exceptions');
 const { createAdblockEventBridge } = require('./adblock-events');
-const { loadOrBuildAdblockEngine } = require('./adblock-cache');
+const { loadAdblockEngine } = require('./adblock-engine-loader');
 
 const bundledSourcesPath = () => path.join(app.getAppPath(), 'adblock', 'sources');
 
@@ -93,14 +94,22 @@ function applyBlockingWithExceptions(session) {
  */
 async function setupAdBlocker(session, { enabled = true } = {}) {
   const snapshot = loadVerifiedAdblockSnapshot(bundledSourcesPath());
-  const engineCache = path.join(app.getPath('userData'), adblockCacheName(snapshot.digest));
+  const engineCache = path.join(
+    app.getPath('userData'),
+    adblockCacheName(snapshot.digest, snapshot.resourceDigest)
+  );
   const simulateLockedCache = process.env.BLANC_TEST === '1'
     && process.env.BLANC_TEST_ADBLOCK_CACHE_WRITE_FAILURE === '1';
-  blocker = await loadOrBuildAdblockEngine({
+  const loaded = await loadAdblockEngine({
     cachePath: engineCache,
-    raw: snapshot.raw,
+    snapshot,
+    engineIdentity: { packageVersion: enginePackage.version, formatVersion: ENGINE_VERSION },
     deserialize: (bytes) => ElectronBlocker.deserialize(bytes),
-    parse: (raw) => ElectronBlocker.parse(raw),
+    compile: (verified) => {
+      const engine = ElectronBlocker.parse(verified.raw);
+      engine.updateResources(verified.resources, verified.resourceDigest);
+      return engine;
+    },
     ...(simulateLockedCache ? {
       writeCache: async () => {
         const error = new Error('packaged smoke: simulated locked blocker cache');
@@ -109,6 +118,11 @@ async function setupAdBlocker(session, { enabled = true } = {}) {
       },
     } : {}),
   });
+  blocker = loaded.engine;
+  for (const recovery of loaded.recoveries) {
+    console.warn(`[adblock] recovered from ${recovery.stage}: ${recovery.message}`);
+  }
+  console.log(`[adblock] engine loaded from ${loaded.source}`);
 
   // Cosmetic filters can contain multiple uBO scriptlets for one page.
   // Ghostery executes each in the page's global scope; isolating their

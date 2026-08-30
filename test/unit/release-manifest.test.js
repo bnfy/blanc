@@ -57,7 +57,10 @@ function run(script, args) {
 
 function addReleaseMetadata(dir) {
   fs.writeFileSync(path.join(dir, `Blanc-${version}.cdx.json`), JSON.stringify({
-    bomFormat: 'CycloneDX', specVersion: '1.6', components: [],
+    bomFormat: 'CycloneDX',
+    specVersion: '1.6',
+    metadata: { component: { name: 'Blanc', version } },
+    components: [{ type: 'library', name: 'fixture', version: '1.0.0' }],
   }));
   fs.writeFileSync(path.join(dir, 'SHA256SUMS.sigstore.json'), '{"mediaType":"application/vnd.dev.sigstore.bundle+json;version=0.3"}');
 }
@@ -159,12 +162,23 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.match(releaseWorkflow, /verify-electron-fuses\.mjs/);
   assert.match(releaseWorkflow, /Verify packaged blocker inputs\s+run: npm run adblock:check/);
   assert.equal(
+    (releaseWorkflow.match(/Verify dependency compliance inputs/g) ?? []).length,
+    2,
+    'Windows and Linux must verify deterministic compliance inputs'
+  );
+  assert.equal(
     (releaseWorkflow.match(/Verify packaged blocker payload/g) ?? []).length,
     2,
     'Windows and Linux must both inspect the packaged app.asar blocker payload'
   );
   assert.match(releaseScript, /Verifying byte-identical blocker payloads in packaged apps/);
   assert.match(releaseScript, /verify-packaged-adblock\.js/);
+  assert.match(releaseScript, /verify-packaged-compliance\.js/);
+  assert.equal(
+    (releaseWorkflow.match(/Verify packaged compliance payload/g) ?? []).length,
+    2,
+    'Windows and Linux must verify packaged notices, licenses, and runtime SBOM'
+  );
   assert.match(releaseScript, /-f mode=release/);
   assert.match(releaseWorkflow, /default: release/);
   assert.match(releaseWorkflow, /inputs\.mode == 'release' && inputs\.tag \|\| github\.ref/);
@@ -207,7 +221,8 @@ test('Windows releases fail closed and carry a verified signature attestation', 
   assert.doesNotMatch(allWorkflows, /uses:\s+[^\n]+@[vV]\d+(?:\s|$)/);
   assert.match(allWorkflows, /actions\/checkout@[0-9a-f]{40}/);
   assert.match(allWorkflows, /actions\/setup-node@[0-9a-f]{40}/);
-  assert.match(releaseScript, /npm sbom/);
+  assert.match(releaseScript, /cp compliance\/runtime-sbom\.cdx\.json "\$VERIFY_DIR\/Blanc-\$VERSION\.cdx\.json"/);
+  assert.doesNotMatch(releaseScript, /npm sbom/);
   assert.match(releaseScript, /cosign sign-blob/);
   assert.match(releaseScript, /cosign verify-blob/);
   assert.match(releaseScript, /SHA256SUMS\.sigstore\.json/);

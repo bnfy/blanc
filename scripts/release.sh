@@ -220,6 +220,7 @@ RELEASE_SOURCES=(
   tokens
   copy
   adblock
+  compliance
   docs/press
   docs/grants
   README.md
@@ -275,6 +276,12 @@ $HAS_MAC_ARM64 && node scripts/verify-packaged-adblock.js \
   "dist/mac-arm64/Blanc.app/Contents/Resources/app.asar"
 $HAS_MAC_X64 && node scripts/verify-packaged-adblock.js \
   "dist/mac/Blanc.app/Contents/Resources/app.asar"
+
+echo "==> Verifying packaged compliance payloads"
+$HAS_MAC_ARM64 && node scripts/verify-packaged-compliance.js \
+  "dist/mac-arm64/Blanc.app/Contents/Resources"
+$HAS_MAC_X64 && node scripts/verify-packaged-compliance.js \
+  "dist/mac/Blanc.app/Contents/Resources"
 
 MAC_ASSETS=("dist/latest-mac.yml")
 if $HAS_MAC_ARM64; then
@@ -404,8 +411,7 @@ node scripts/verify-release-manifest.mjs \
   --version "$VERSION" \
   --platforms "$PLATFORM_CSV" \
   --mac-arches "$MAC_ARCH_CSV"
-npm sbom --package-lock-only --sbom-format cyclonedx --sbom-type application \
-  > "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
+cp compliance/runtime-sbom.cdx.json "$VERIFY_DIR/Blanc-$VERSION.cdx.json"
 node scripts/create-checksums.mjs "$VERIFY_DIR"
 echo "==> Signing the complete checksum manifest through Sigstore"
 echo "    Safari will open for the GitHub approval; complete the fresh page immediately."

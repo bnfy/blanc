@@ -51,6 +51,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Verify dependency compliance inputs
+        run: npm run compliance:check
+
       - name: Verify 1Password macOS-only boundary
         run: npm run test:onepassword:utility
 
@@ -122,6 +125,9 @@ jobs:
 
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/win-unpacked/resources/app.asar
+
+      - name: Verify packaged compliance payload
+        run: node scripts/verify-packaged-compliance.js dist/win-unpacked/resources
 
       - name: Verify hardened Electron fuses
         shell: bash
@@ -221,6 +227,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Verify dependency compliance inputs
+        run: npm run compliance:check
+
       - name: Verify 1Password macOS-only boundary
         run: xvfb-run -a npm run test:onepassword:utility
 
@@ -250,6 +259,9 @@ jobs:
 
       - name: Verify packaged blocker payload
         run: node scripts/verify-packaged-adblock.js dist/linux-unpacked/resources/app.asar
+
+      - name: Verify packaged compliance payload
+        run: node scripts/verify-packaged-compliance.js dist/linux-unpacked/resources
 
       - name: Verify hardened Electron fuses
         run: |
