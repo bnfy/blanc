@@ -16,7 +16,7 @@ const patron = require('./patron');
 const sync = require('./sync');
 const telemetry = require('./telemetry');
 const { listDecisions, removeDecision } = require('./permissions');
-const { UTILITY_PAGES } = require('./utility-pages');
+const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
@@ -24,7 +24,6 @@ const { isTrustedPagesEvent } = require('./pages-ipc-trust');
 // file:// so they get a real origin, and so ordinary web content can never
 // link into arbitrary local files.
 const PAGES_DIR = path.join(__dirname, '../renderer/pages');
-const KNOWN_PAGES = new Set(['newtab', 'bookmarks', 'history', 'downloads', 'settings', 'error', 'auth', 'shortcuts']);
 
 /** Must run before app 'ready'. */
 function registerPagesScheme() {
