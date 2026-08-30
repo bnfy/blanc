@@ -235,6 +235,10 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(plan, /Step 0b: Verify the repository landing page is still inside the merge freeze/i);
   assert.match(copy, /freeze anchor `0de37a1`[\s\S]{0,300}no product\/runtime/i);
   assert.match(plan, /Monday, August 31, 2026[\s\S]{0,300}Tuesday, September 1, 2026[\s\S]{0,300}Wednesday, September 2, 2026[\s\S]{0,300}Thursday, September 3, 2026/i);
+  assert.ok(plan.includes(`capture-download-baseline.mjs v${version}`));
+  assert.match(plan, /releaseTag[\s\S]{0,80}packageAssetRequests[\s\S]{0,120}packageAssetRequestsByPlatform/);
+  assert.doesNotMatch(plan, /gh api --paginate repos\/bnfy\/blanc\/releases/);
+  assert.doesNotMatch(plan, /"totalDownloads"/);
   assert.match(copy, /Thursday, September 3, 2026[\s\S]{0,200}12:01 a\.m\. PST/i);
   assert.match(plan, /Select \*\*September 3, 2026\*\*[\s\S]{0,300}If Tasks 12 or 13 slipped, move Product Hunt too/i);
   assert.doesNotMatch(copy, /https:\/\/blancbrowser\.com\/\?ref=reddit/);

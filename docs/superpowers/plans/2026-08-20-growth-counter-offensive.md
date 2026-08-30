@@ -1583,16 +1583,47 @@ This must be the first action of launch week. A snapshot taken after the
 listings go out is not a pre-launch baseline, and it silently absorbs the first
 hours of lift into the "before" number.
 
-```bash
-gh api --paginate repos/bnfy/blanc/releases --jq '.[].assets[] | select(.name | (endswith(".dmg") or endswith(".exe") or endswith(".AppImage") or endswith(".zip")) and (endswith(".blockmap") | not)) | .download_count' | paste -sd+ - | bc
-```
+Capture **v1.10.0 only**, not the lifetime sum across every release. Preserve
+the full public-safe snapshot beside the private launch log so later reads use
+the same asset scope and can report per-platform deltas. Refuse to overwrite an
+existing baseline: a second capture after a listing goes live is not a valid
+replacement for the pre-launch floor.
 
 ```bash
-echo '{"date":"YYYY-MM-DD","measuredAt":"HH:MM ET","event":"launch-week-baseline","totalDownloads":N,"version":"1.10.0","postedAnythingYet":false}' \
-  >> "$LAUNCH_LOG"
+BASELINE_FILE="$(dirname "$LAUNCH_LOG")/download-baseline-v1.10.0-launch-week.json"
+test ! -e "$BASELINE_FILE" || { echo "STOP: launch baseline already exists at $BASELINE_FILE"; exit 1; }
+node marketing/social/capture-download-baseline.mjs v1.10.0 > "$BASELINE_FILE"
+export BASELINE_FILE
+python3 - <<'BASELINE'
+import datetime, json, os, pathlib
+from zoneinfo import ZoneInfo
+
+snapshot_path = pathlib.Path(os.environ['BASELINE_FILE'])
+snapshot = json.loads(snapshot_path.read_text())
+if snapshot.get('release', {}).get('tag') != 'v1.10.0':
+    raise SystemExit('STOP: snapshot is not for v1.10.0')
+
+captured = datetime.datetime.fromisoformat(snapshot['capturedAt'].replace('Z', '+00:00'))
+eastern = captured.astimezone(ZoneInfo('America/New_York'))
+row = {
+    'date': eastern.date().isoformat(),
+    'measuredAt': eastern.strftime('%H:%M:%S ET'),
+    'event': 'launch-week-baseline',
+    'releaseTag': 'v1.10.0',
+    'packageAssetRequests': snapshot['totals']['packageAssetRequests'],
+    'packageAssetRequestsByPlatform': snapshot['packageAssetRequestsByPlatform'],
+    'postedAnythingYet': False,
+}
+with pathlib.Path(os.environ['LAUNCH_LOG']).open('a') as launch_log:
+    launch_log.write(json.dumps(row, separators=(',', ':')) + '\n')
+print(json.dumps(row, indent=2))
+BASELINE
 ```
 
-**Every number in Task 15 is measured against this row.**
+The baseline measures package-asset **requests**, not people or attributed
+conversions. The macOS ZIP can be fetched by the updater, and QA, retries,
+updater handoffs, and non-launch traffic are included. Task 12 and Task 15 may
+report only the aggregate request delta from this snapshot.
 
 - [ ] **Step 2: Confirm the AlternativeTo listing and correct its pre-MIT copy**
 
@@ -1705,9 +1736,17 @@ gh api repos/bnfy/blanc/traffic/popular/referrers   # HN should appear here
 gh api repos/bnfy/blanc/traffic/views --jq '.count, .uniques'
 ```
 
-Also check the download counter against Monday's Step 1 baseline. Per Task 2
-Step 5, this gives **aggregate** lift — it cannot attribute downloads to HN
-specifically, and the retrospective must not claim otherwise.
+Also compare the same v1.10.0 asset scope against Monday's full Step 1
+snapshot:
+
+```bash
+BASELINE_FILE="$(dirname "$LAUNCH_LOG")/download-baseline-v1.10.0-launch-week.json"
+node marketing/social/capture-download-baseline.mjs v1.10.0 "$BASELINE_FILE"
+```
+
+Per Task 2 Step 5, `packageAssetRequestDelta` is **aggregate** request lift —
+it cannot attribute downloads to HN specifically or identify unique people,
+and the retrospective must not claim otherwise.
 
 ---
 
@@ -1897,7 +1936,7 @@ Record **only what the instrumentation can actually support** (Task 2, Step 5):
 - Objections raised, verbatim.
 
 **Aggregate only — NOT per channel:**
-- Total download lift vs the Monday Step 1 baseline.
+- v1.10.0 package-asset-request lift vs the Monday Step 1 baseline.
 - Newsletter signups during the week.
 
 **Do not write a per-channel download number.** Nothing in the site persists
