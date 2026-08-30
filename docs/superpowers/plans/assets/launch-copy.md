@@ -7,12 +7,12 @@ fact-check and prepare non-Hacker-News copy, but never post it.
 update a single channel when a product fact changes; update the frozen facts and
 every affected section together.
 
-**Release lock — REBASELINED 2026-08-29:** This pack describes packaged public
+**Release lock — REBASELINED 2026-08-29; EVIDENCE UPDATED 2026-08-30:** This pack describes packaged public
 v1.10.0, published from `a96eb47`. It carries the optional macOS 1Password
 ambient login hint and Settings account verification while keeping credential
-lookup and fill explicit. Do not publish until the v1.10.0 48-hour soak and all
-three follow-up platform checks are recorded. Do not use UI or claims from
-later work on `main`.
+lookup and fill explicit. All three follow-up platform checks are recorded as
+passing. Do not publish until the v1.10.0 48-hour soak is recorded as passing.
+Do not use UI or claims from later work on `main`.
 
 ## Frozen facts
 
@@ -41,18 +41,21 @@ Canonical URLs—copy exactly:
 | AlternativeTo | https://blancbrowser.com |
 | BetaList | https://blancbrowser.com/?ref=betalist |
 
-Retired v1.9.1 demo assets—keep only as the shot list for the replacement:
+Launch-ready packaged-v1.10.0 demo assets:
 
 | Form | URL |
 |---|---|
-| MP4 | https://raw.githubusercontent.com/bnfy/blanc/9890d9e5b5adbe368e0138e0175fd4327200b68d/docs/superpowers/plans/assets/island-demo.mp4 |
-| GIF | https://raw.githubusercontent.com/bnfy/blanc/9890d9e5b5adbe368e0138e0175fd4327200b68d/docs/superpowers/plans/assets/island-demo.gif |
+| MP4 | https://raw.githubusercontent.com/bnfy/blanc/0cc0c57b31c4b619aa18fe6fa1713002e2060b7d/docs/superpowers/plans/assets/island-demo.mp4 |
+| GIF | https://raw.githubusercontent.com/bnfy/blanc/0cc0c57b31c4b619aa18fe6fa1713002e2060b7d/docs/superpowers/plans/assets/island-demo.gif |
 
-These files were captured from packaged v1.9.1 and are no longer launch-ready.
-Re-record the same beat sheet from packaged public v1.10.0 and replace both
-URLs before publishing any launch channel. The replacement MP4 is the source
-for the required public or unlisted YouTube upload before Product Hunt. A raw
-MP4 URL does not satisfy Product Hunt's gallery-video field.
+These files were captured on August 30 from the installed packaged public
+v1.10.0 app in an isolated local profile. The 20.50-second export is 1228×768,
+30 fps H.264, and BT.709; the GIF is below 8 MiB. It shows the resting Island,
+`⌘L` expansion, a live `git` Quick Switcher filter, a tab-dot switch, The
+Verge's live 13-item blocker count and popover, and the final resting hold. The
+MP4 is the source for the required public or unlisted YouTube upload before
+Product Hunt. A raw MP4 URL does not satisfy Product Hunt's gallery-video
+field.
 
 ## Show HN — owner writes every public word
 
@@ -497,9 +500,9 @@ drop a full defense where one sentence would do.
 - [ ] The telemetry payload remains exactly six fields.
 - [ ] `npm run test:unit` passes, including
   `test/unit/public-truth.test.js`.
-- [ ] The Island demo was re-recorded from packaged public v1.10.0, both new
-  immutable URLs work without authentication, and this retired v1.9.1 pair is
-  no longer referenced by launch posts.
+- [ ] The Island demo still resolves from both immutable packaged-v1.10.0 URLs
+  above without authentication, and no launch post references the retired
+  v1.9.1 pair.
 - [ ] Product Hunt's full YouTube URL is not private and appears in the preview.
 - [ ] Each Reddit community's live rules permit the planned post format.
 - [ ] The HN account is eligible under the current Show HN restriction.
