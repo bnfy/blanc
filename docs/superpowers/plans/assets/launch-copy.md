@@ -549,6 +549,9 @@ drop a full defense where one sentence would do.
 - [ ] `package.json` and the latest public release both still say v1.10.0.
 - [ ] The README still links the v1.10.0 tag as the exact source snapshot for
   the current public binaries, and any newer `main` work is excluded from copy.
+- [ ] Since freeze anchor `0de37a1`, `origin/main` contains only launch
+  evidence/copy/guard changes; no product/runtime, dependency, packaging,
+  release-workflow, or feature-spec PR has merged.
 - [ ] The macOS, Windows, and Linux downloads linked from the site resolve.
 - [ ] Pricing still reads $4/month and $30/year in Polar and on the site.
 - [ ] Named Workspace creation still requires Patron; rename/removal still work
