@@ -34,7 +34,12 @@ New boolean `newtabMahjong`, default `false`.
   normalizer, accept in the `setSettings()` whitelist, and add to
   `SYNCED_KEYS` — it is the same class of new-tab presentation preference as
   `newtabLayout`.
-- `settings-schema/schema.json`: mirror the key + default, then run
+- `settings-schema/`: the generator is not schema-driven — `build.mjs`
+  hand-emits every key into the Swift/Kotlin outputs and its drift
+  comparisons. Adding the key therefore means, in one commit: mirror key +
+  default in `schema.json`, extend the Swift and Kotlin emitters (and any
+  per-key drift check) in `build.mjs` — treated like `usagePing`, a plain
+  boolean default even though the feature itself is desktop-only — then run
   `npm run settings:build` and commit the regenerated artifacts, or
   `substrate:check` fails CI.
 - Settings → General gains a toggle labeled **Mahjong on new tab** with a
@@ -48,9 +53,13 @@ layouts, so it appears identically under ledger/billboard/shelf/tally with no
 per-layout work): a quiet lowercase link, `mahjong`, styled like the layout
 switcher's buttons, placed in the footer's right cluster next to `goAnywhere`.
 
-- `newtab.js` shows/hides it from the same settings payload that already
-  reaches the page; toggling in Settings updates an open new tab on the next
-  data broadcast, same as other preferences.
+- Data path: there is no generic settings payload on the page.
+  `startPageStatus()` in `main.js` projects selected fields to the start
+  page — add `newtabMahjong` to that projection, include it in the initial
+  `pages:start:data` result, and handle it in `pages:start:status` updates so
+  toggling in Settings shows/hides the link on an already-open new tab.
+- In a private new tab (`?private=1`), the link's href carries the marker
+  forward: `blanc://mahjong/?private=1` (see §4.2).
 - When `newtabMahjong` is `false` the element is `hidden` — zero visual
   footprint, and the game page itself still loads if navigated to directly
   (the toggle gates discovery, not access; no enforcement needed).
@@ -64,13 +73,15 @@ switcher's buttons, placed in the footer's right cluster next to `goAnywhere`.
 - Styles live in a `/* mahjong */` section appended to `pages.css`, using the
   existing token set (same hand-synced duplication rules as the rest of the
   file; no new token values, so no `tokens/tokens.json` change).
-- Served at `blanc://mahjong/` by the existing `pages.js` handler — the
-  handler already serves any flat file in `PAGES_DIR`, so no route change; the
-  page name is added wherever internal hostnames are enumerated (e.g. address
-  autocompletion), if anywhere.
+- Served at `blanc://mahjong/` by the existing `pages.js` handler. The
+  handler 404s hosts absent from its `KNOWN_PAGES` allowlist, so `mahjong`
+  must be added there.
 - **Deliberately NOT added to `UTILITY_PAGES`** — it opens as a normal tab
   page like `newtab`, not in the utility sheet. Back returns to the start
-  page; session restore and tab switching just work; the game survives both.
+  page. Ordinary tab switching preserves the in-progress deal (the
+  `WebContentsView` stays alive); app restart / session restore reopens the
+  URL as a fresh deal — in-progress games are not persisted (§4.6). A unit
+  test asserts `mahjong` is in `KNOWN_PAGES` and not in `UTILITY_PAGES`.
 - CSP meta tag identical in spirit to `newtab.html`:
   `default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:;`
   — no remote anything.
@@ -91,8 +102,12 @@ switcher's buttons, placed in the footer's right cluster next to `goAnywhere`.
   line marks each. One color; no reds/greens — suit identity comes from form.
 - Selection: hairline focus/selected ring per the no-thick-focus-rings rule,
   plus a slight ink-tint fill on the selected tile.
-- Theme: light/dark/private all flow from the existing `:root` tokens in
-  `pages.css`; no theme-specific art.
+- Theme: light/dark flow from the existing `:root` tokens in `pages.css`; no
+  theme-specific art. Private is query-signaled, same mechanism as newtab:
+  when opened as `blanc://mahjong/?private=1` (the footer link appends the
+  marker in private tabs), `mahjong.js` sets
+  `document.documentElement.dataset.theme = 'private'`. The private session
+  itself needs no signal — only token selection does.
 - The Blanc mark appears only in the win/empty state, not on tile backs
   (backs are never visible in solitaire) and not as a watermark.
 
@@ -113,15 +128,19 @@ switcher's buttons, placed in the footer's right cluster next to `goAnywhere`.
 
 ### 4.4 Winnable deals
 
-Deals are winnable **by construction**: play the layout in reverse — starting
-from the full set of unassigned positions, repeatedly pick two positions that
-are free with respect to the remaining unassigned positions, assign them the
-next matching pair (pair order shuffled), and remove them. The removal order
-reversed is a valid solution, so the deal is solvable. If the greedy pass
-dead-ends (fewer than two free positions remain — rare but possible), discard
-and retry with a fresh shuffle; bound retries (e.g. 50) and fall back to a
-plain shuffle only past the bound (in practice unreachable; the unit suite
-asserts construction succeeds across many seeds).
+Deals are winnable **by construction**: simulate a winning game on the full
+layout — starting from the full set of unassigned positions, repeatedly pick
+two positions that are free with respect to the remaining unassigned
+positions, assign them the next matching pair (pair order shuffled), and
+remove them. The removal order, **as recorded**, is itself a valid
+playthrough, so the deal is solvable. If the greedy pass dead-ends (fewer
+than two free positions remain — rare but possible, e.g. a lone surviving
+stack), discard and retry with the next state of the seeded RNG until
+construction succeeds. There is **no non-constructive fallback** — a deal
+that could be unwinnable is never shipped. Retries always terminate in
+practice; the unit suite asserts construction succeeds across many seeds, and
+a defensive attempt cap (large, e.g. 1000) exists only to turn a
+never-expected infinite loop into a thrown error.
 
 ### 4.5 Controls and feedback
 
@@ -166,8 +185,9 @@ script-taggable in the page).
 
 ## 6. Error handling
 
-- Deal-generation retry bound as in 4.4; construction failure past the bound
-  falls back to plain shuffle rather than a broken page.
+- Deal-generation retries as in §4.4; the defensive attempt cap throws rather
+  than ever dealing a possibly-unwinnable board, and `mahjong.js` surfaces a
+  quiet "couldn't deal — try again" state in that never-expected case.
 - `localStorage` reads/writes wrapped in try/catch; a missing/failed best time
   renders as no best line, never an error.
 - No other failure surface: no network, no IPC, no persistence beyond the
@@ -179,8 +199,8 @@ Unit tests (`test/unit/mahjong-engine.test.js`):
 - Position table integrity: 144 positions, no duplicate coordinates,
   overlap/adjacency relations symmetric.
 - Deal generation: for many seeds, generation succeeds and the recorded
-  reverse order is a valid playthrough (each step removes a free matching
-  pair) ending empty.
+  removal order is a valid playthrough of the dealt board (each step removes
+  a free matching pair) ending empty.
 - Freeness edge cases: covered tile not free; tile with both neighbors not
   free; end tiles free; layer boundaries.
 - Matching: identical-only for suits, class-wide for flowers/seasons.
@@ -188,10 +208,19 @@ Unit tests (`test/unit/mahjong-engine.test.js`):
 - Stuck detection: hand-built stuck position reports no moves; win reported
   only at zero tiles.
 
-Static wiring:
-- `settings-schema` check already guards the key via `substrate:check`; add
-  the key to the schema in the same commit as `settings.js` (per
-  `blanc-policy-tests` memory: guard and policy change land together).
+Settings and wiring tests (`test/unit/`):
+- `newtabMahjong` defaults to `false`; normalizer coerces to boolean and
+  rejects/repairs invalid stored values; `setSettings()` accepts the key.
+- Sync: the key participates in `SYNCED_KEYS` export and merge.
+- Page routing: `mahjong` is in `pages.js`'s `KNOWN_PAGES` and not in
+  `UTILITY_PAGES` (so it never routes into the utility sheet).
+- Schema: `settings-schema` drift check covers the key via `substrate:check`;
+  schema + generator + regenerated artifacts land in the same commit as
+  `settings.js` (per `blanc-policy-tests`: guard and policy change together).
+- Start page: `startPageStatus()` projection includes `newtabMahjong`
+  (covered by whatever unit seam exists for the projection, else by the
+  manual checklist below for initial `pages:start:data` and live
+  `pages:start:status` visibility).
 
 Manual verification (chrome-level pages need a relaunch, not Cmd+R):
 - Toggle off→on: footer link appears on all four layouts; off: gone.
