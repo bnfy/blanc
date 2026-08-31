@@ -78,6 +78,26 @@ test('bonus families use professional shared motifs and hints clear stale emphas
   assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*clearHint\(\);/);
 });
 
+test('the bamboo suit uses sculpted canes and a staggered eight-tile composition', () => {
+  assert.match(controller, /function bambooSegment\(x, y, index, scale = 1\)/);
+  assert.match(controller, /class:\s*'mj-bamboo-segment'/);
+  assert.match(controller, /class:\s*'mj-bamboo-node'/);
+  assert.match(controller, /class:\s*'mj-bamboo-glint'/);
+  assert.match(controller, /function oneBambooFace\(\)/);
+  assert.match(controller, /class:\s*'mj-one-bamboo'/);
+  assert.match(controller, /class:\s*'mj-bamboo-leaf'/);
+  assert.match(controller, /const BAM_TILTS = Object\.freeze\(\[-1\.5, 1\.5, 1, -1, -1, 1, 1\.5, -1\.5, 0\]\)/);
+  assert.match(controller, /const BAM_SCALES = Object\.freeze\(\{ 2: 1\.18,[^}]*9: 0\.9 \}\)/);
+  assert.match(controller, /8:\s*\[\[13, 7\.5\], \[31, 7\.5\], \[11, 22\.5\], \[33, 22\.5\], \[13, 37\.5\], \[31, 37\.5\], \[11, 52\.5\], \[33, 52\.5\]\]/);
+  assert.match(controller, /if \(count === 1\) svg\.append\(oneBambooFace\(\)\)/);
+  assert.match(controller, /BAM_SPOTS\[count\]\.forEach\(\(\[x, y\], index\) => svg\.append\(bambooSegment\(x, y, index, BAM_SCALES\[count\]\)\)\)/);
+  assert.doesNotMatch(controller, /el\('rect', \{ x: x - 2, y: y - 7, width: 4, height: 14/);
+  assert.match(styles, /\.mj-bamboo-segment\s*\{[^}]*shape-rendering:\s*geometricPrecision;[^}]*drop-shadow/);
+  assert.match(styles, /\.mj-bamboo-node\s*\{[^}]*stroke:\s*var\(--mj-tile-top\);[^}]*stroke-width:\s*0\.48;/);
+  assert.match(styles, /\.mj-bamboo-glint\s*\{[^}]*stroke:\s*rgba\(255, 255, 255, 0\.58\);[^}]*stroke-width:\s*0\.62;/);
+  assert.match(styles, /\.mj-bamboo-leaf\s*\{[^}]*opacity:\s*0\.82;/);
+});
+
 test('mahjong loads its sound module before the controller and exposes a pressed toggle', () => {
   assert.match(
     html,

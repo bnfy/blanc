@@ -71,10 +71,16 @@ const SPOTS = {
 };
 const BAM_SPOTS = {
   ...SPOTS,
-  2: [[22, 13], [22, 47]],
-  3: [[22, 13], [11, 47], [33, 47]],
+  2: [[22, 17], [22, 43]],
+  3: [[22, 14], [11, 44], [33, 44]],
   7: [[22, 9], [11, 30], [22, 30], [33, 30], [11, 51], [22, 51], [33, 51]],
+  // Stagger the four pairs so eight bamboo reads as individual engraved
+  // pieces instead of two uninterrupted dashed rails.
+  8: [[13, 7.5], [31, 7.5], [11, 22.5], [33, 22.5], [13, 37.5], [31, 37.5], [11, 52.5], [33, 52.5]],
 };
+
+const BAM_TILTS = Object.freeze([-1.5, 1.5, 1, -1, -1, 1, 1.5, -1.5, 0]);
+const BAM_SCALES = Object.freeze({ 2: 1.18, 3: 1.12, 4: 1.08, 5: 1.04, 6: 1, 7: 0.94, 8: 0.92, 9: 0.9 });
 
 // One rounded plum-blossom petal. Five rotations make a botanical engraving
 // whose negative space stays open when the 44 × 60 face is rendered small.
@@ -85,6 +91,59 @@ function el(tag, attrs) {
   const node = document.createElementNS(SVG_NS, tag);
   for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
   return node;
+}
+
+// A compact three-part cane: two gently tapered sections around a broad,
+// unmistakable node. The narrow ivory glints keep the engraving legible when
+// the board scales down, instead of letting the pieces collapse into bars.
+function bambooSegment(x, y, index, scale = 1) {
+  const g = el('g', {
+    class: 'mj-bamboo-segment',
+    transform: `translate(${x} ${y}) rotate(${BAM_TILTS[index] || 0}) scale(${scale})`,
+  });
+  g.append(
+    el('path', {
+      d: 'M-2.15-5.15Q0-6.05 2.15-5.15L1.8-1.7Q0-.9-1.8-1.7Z',
+      fill: 'currentColor',
+    }),
+    el('path', {
+      class: 'mj-bamboo-node',
+      d: 'M-3.3-1.1Q0-1.9 3.3-1.1L2.85 1.1Q0 1.9-2.85 1.1Z',
+      fill: 'currentColor',
+    }),
+    el('path', {
+      d: 'M-1.8 1.7Q0 .9 1.8 1.7L2.15 5.15Q0 6.05-2.15 5.15Z',
+      fill: 'currentColor',
+    }),
+    el('path', {
+      class: 'mj-bamboo-glint',
+      d: 'M-.72-4.75L-.56-2.05M-.56 2.05L-.72 4.75',
+    }),
+  );
+  return g;
+}
+
+// One bamboo is a single ceremonial stalk rather than one undersized pip.
+// Three joined sections and two restrained leaves preserve the count while
+// giving the lowest tile the same presence as the rest of the suit.
+function oneBambooFace() {
+  const g = el('g', { class: 'mj-one-bamboo' });
+  g.append(
+    bambooSegment(22, 12.5, 0, 1.08),
+    bambooSegment(22, 30, 1, 1.08),
+    bambooSegment(22, 47.5, 2, 1.08),
+    el('path', {
+      class: 'mj-bamboo-leaf',
+      d: 'M19.5 20.5C14.2 16.1 9.7 15.7 7.2 18.2c2.9 4.4 7 6.1 12.3 5.2Z',
+      fill: 'currentColor',
+    }),
+    el('path', {
+      class: 'mj-bamboo-leaf',
+      d: 'M24.4 36.7c4.5-4.8 8.7-5.8 12-3.7-2.2 4.8-6 7.2-11.4 7.1Z',
+      fill: 'currentColor',
+    }),
+  );
+  return g;
 }
 
 function textEl(x, y, size, content) {
@@ -156,9 +215,9 @@ function faceSVG(kind) {
   if (family === 'dot') {
     for (const [x, y] of SPOTS[Number(id)]) svg.append(el('circle', { cx: x, cy: y, r: 4.5, fill: 'currentColor' }));
   } else if (family === 'bam') {
-    for (const [x, y] of BAM_SPOTS[Number(id)]) {
-      svg.append(el('rect', { x: x - 2, y: y - 7, width: 4, height: 14, rx: 2, fill: 'currentColor' }));
-    }
+    const count = Number(id);
+    if (count === 1) svg.append(oneBambooFace());
+    else BAM_SPOTS[count].forEach(([x, y], index) => svg.append(bambooSegment(x, y, index, BAM_SCALES[count])));
   } else if (family === 'chr') {
     svg.append(textEl(22, 36, 26, id));
     svg.append(el('rect', { x: 12, y: 46, width: 20, height: 1.5, fill: 'currentColor' }));
