@@ -78,38 +78,26 @@ test('bonus families use professional shared motifs and hints clear stale emphas
   assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*clearHint\(\);/);
 });
 
-test('the bamboo suit uses faceted multicolor pips and a full-height one-bamboo emblem', () => {
-  assert.match(controller, /function bambooPip\(x, y, index, scale = 1\)/);
-  assert.match(controller, /class:\s*'mj-bamboo-pip'/);
-  assert.match(controller, /class:\s*'mj-bamboo-cane mj-bamboo-cane-top'/);
-  assert.match(controller, /class:\s*'mj-bamboo-cane mj-bamboo-cane-bottom'/);
-  assert.match(controller, /class:\s*'mj-bamboo-facet'/);
-  assert.match(controller, /class:\s*'mj-bamboo-joint'/);
-  assert.match(controller, /class:\s*'mj-bamboo-joint-shadow'/);
-  assert.match(controller, /class:\s*'mj-bamboo-engraving'/);
-  assert.match(controller, /function oneBambooFace\(\)/);
-  assert.match(controller, /class:\s*'mj-one-bamboo'/);
-  assert.match(controller, /class:\s*'mj-bamboo-leaf'/);
-  assert.match(controller, /class:\s*'mj-bamboo-one-section mj-bamboo-one-section-top'/);
-  assert.match(controller, /class:\s*'mj-bamboo-one-section mj-bamboo-one-section-middle'/);
-  assert.match(controller, /class:\s*'mj-bamboo-one-joint'/);
-  assert.match(controller, /const BAM_TILTS = Object\.freeze\(\[-1\.5, 1\.5, 1, -1, -1, 1, 1\.5, -1\.5, 0\]\)/);
-  assert.match(controller, /const BAM_SCALES = Object\.freeze\(\{ 2: 1\.18,[^}]*9: 0\.9 \}\)/);
+test('the bamboo suit uses the supplied raster artwork across every rank', () => {
+  assert.match(controller, /one:\s*'mahjong-bamboo-one\.png'/);
+  assert.match(controller, /two:\s*'mahjong-bamboo-two\.png'/);
+  assert.match(controller, /stalk:\s*'mahjong-bamboo-stalk\.png'/);
+  assert.match(controller, /function bambooImage\(href, x, y, width, height, className\)/);
+  assert.match(controller, /return el\('image', \{/);
+  assert.match(controller, /preserveAspectRatio:\s*'xMidYMid meet'/);
+  assert.match(controller, /function bambooFace\(count\)/);
+  assert.match(controller, /BAMBOO_ART\.one, 22, 30, 38, 44/);
+  assert.match(controller, /BAMBOO_ART\.two, 22, 30, 31, 31/);
+  assert.match(controller, /for \(const \[x, y\] of BAM_SPOTS\[count\]\)/);
+  assert.match(controller, /BAMBOO_ART\.stalk, x, y, width, height/);
+  assert.match(controller, /svg\.append\(bambooFace\(Number\(id\)\)\)/);
   assert.match(controller, /8:\s*\[\[13, 7\.5\], \[31, 7\.5\], \[11, 22\.5\], \[33, 22\.5\], \[13, 37\.5\], \[31, 37\.5\], \[11, 52\.5\], \[33, 52\.5\]\]/);
-  assert.match(controller, /if \(count === 1\) svg\.append\(oneBambooFace\(\)\)/);
-  assert.match(controller, /BAM_SPOTS\[count\]\.forEach\(\(\[x, y\], index\) => svg\.append\(bambooPip\(x, y, index, BAM_SCALES\[count\]\)\)\)/);
-  assert.doesNotMatch(controller, /el\('rect', \{ x: x - 2, y: y - 7, width: 4, height: 14/);
-  assert.match(styles, /\.mj-bamboo-pip\s*\{[^}]*shape-rendering:\s*geometricPrecision;[^}]*drop-shadow/);
-  assert.match(styles, /--mj-bamboo-blue:\s*#1d70a3;/);
-  assert.match(styles, /--mj-bamboo-jade:\s*#12805a;/);
-  assert.match(styles, /--mj-bamboo-red:\s*#bd4036;/);
-  assert.match(styles, /\.mj-bamboo-cane-top,[\s\S]*fill:\s*var\(--mj-bamboo-blue\);/);
-  assert.match(styles, /\.mj-bamboo-cane-bottom,[\s\S]*fill:\s*var\(--mj-bamboo-jade\);/);
-  assert.match(styles, /\.mj-bamboo-joint,[\s\S]*fill:\s*var\(--mj-bamboo-red\);/);
-  assert.match(styles, /\.mj-bamboo-facet\s*\{[^}]*fill:\s*rgba\(0, 28, 23, 0\.24\);/);
-  assert.match(styles, /\.mj-bamboo-joint,[\s\S]*stroke-width:\s*0\.42;/);
-  assert.match(styles, /\.mj-bamboo-engraving,[\s\S]*stroke:\s*rgba\(255, 255, 255, 0\.6\);[\s\S]*stroke-width:\s*0\.64;/);
-  assert.match(styles, /\.mj-bamboo-leaf\s*\{[^}]*opacity:\s*0\.9;/);
+  assert.match(styles, /\.mj-bamboo-source\s*\{[^}]*image-rendering:\s*auto;[^}]*drop-shadow/);
+
+  for (const asset of ['mahjong-bamboo-one.png', 'mahjong-bamboo-two.png', 'mahjong-bamboo-stalk.png']) {
+    const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/${asset}`));
+    assert.equal(data.subarray(1, 4).toString(), 'PNG', `${asset} is not a PNG`);
+  }
 });
 
 test('mahjong loads its sound module before the controller and exposes a pressed toggle', () => {

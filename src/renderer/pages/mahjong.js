@@ -79,8 +79,20 @@ const BAM_SPOTS = {
   8: [[13, 7.5], [31, 7.5], [11, 22.5], [33, 22.5], [13, 37.5], [31, 37.5], [11, 52.5], [33, 52.5]],
 };
 
-const BAM_TILTS = Object.freeze([-1.5, 1.5, 1, -1, -1, 1, 1.5, -1.5, 0]);
-const BAM_SCALES = Object.freeze({ 2: 1.18, 3: 1.12, 4: 1.08, 5: 1.04, 6: 1, 7: 0.94, 8: 0.92, 9: 0.9 });
+const BAMBOO_ART = Object.freeze({
+  one: 'mahjong-bamboo-one.png',
+  two: 'mahjong-bamboo-two.png',
+  stalk: 'mahjong-bamboo-stalk.png',
+});
+const BAMBOO_STALK_SIZES = Object.freeze({
+  3: [12, 17],
+  4: [11.5, 16],
+  5: [11, 15.5],
+  6: [10.5, 15],
+  7: [10, 14],
+  8: [9.5, 13.5],
+  9: [9, 13],
+});
 
 // One rounded plum-blossom petal. Five rotations make a botanical engraving
 // whose negative space stays open when the 44 × 60 face is rendered small.
@@ -93,83 +105,34 @@ function el(tag, attrs) {
   return node;
 }
 
-// A faceted jade pip with a warm brass joint. The asymmetric band, tapered
-// cane, and engraved glints remain recognizable at every board scale without
-// falling back to the generic rounded bars used by the first two passes.
-function bambooPip(x, y, index, scale = 1) {
-  const g = el('g', {
-    class: 'mj-bamboo-pip',
-    transform: `translate(${x} ${y}) rotate(${BAM_TILTS[index] || 0}) scale(${scale})`,
+function bambooImage(href, x, y, width, height, className) {
+  return el('image', {
+    href,
+    x: x - width / 2,
+    y: y - height / 2,
+    width,
+    height,
+    class: className,
+    preserveAspectRatio: 'xMidYMid meet',
   });
-  g.append(
-    el('path', {
-      class: 'mj-bamboo-cane mj-bamboo-cane-top',
-      d: 'M-3.55-4.95Q0-6.25 3.55-4.95L2.95-1.88Q0-.88-2.95-1.88Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-cane mj-bamboo-cane-bottom',
-      d: 'M-2.95 1.88Q0 .88 2.95 1.88L3.55 4.95Q0 6.25-3.55 4.95Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-facet',
-      d: 'M1.15-5.62q1.3.05 2.4.67l-.6 3.07q-.9.55-1.8.58Zm0 6.92q.9.03 1.8.58l.6 3.07q-1.1.62-2.4.67Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-joint-shadow',
-      d: 'M-4.55-.38L4.2-1.18L4.55 1.82L-4.2 2.52Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-joint',
-      d: 'M-4.55-1.3L4.2-2.1L4.55.9L-4.2 1.6Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-engraving',
-      d: 'M-1.18-4.68L-.92-2.5M-.92 2.5L-1.18 4.68',
-    }),
-  );
-  return g;
 }
 
-// One bamboo is a single full-height stalk—an emblem rather than a tiny pip.
-// Its two brass nodes share the same material language as the numbered suit,
-// while the paired leaves make the silhouette unmistakably botanical.
-function oneBambooFace() {
-  const g = el('g', { class: 'mj-one-bamboo', transform: 'rotate(-3 22 30)' });
-  g.append(
-    el('path', {
-      class: 'mj-bamboo-leaf',
-      d: 'M19 20.5C13.4 14.8 8.3 14 5.8 17.3c3 5.5 7.5 7.5 13.2 6.1Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-leaf mj-bamboo-leaf-sapphire',
-      d: 'M25 36.2c5-5.7 10.1-6.8 13.2-3.8-2.7 5.5-7 8.1-12.9 7.4Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-one-section mj-bamboo-one-section-top',
-      d: 'M18.9 6.8Q22 4.9 25.1 6.8l-1.3 13.4q-1.8 1.7-3.6 0L18.9 6.8Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-one-section mj-bamboo-one-section-middle',
-      d: 'M20.2 23q1.8-1.7 3.6 0l.4 14.3q-2.2 1.9-4.4 0l.4-14.3Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-one-section mj-bamboo-one-section-bottom',
-      d: 'M19.8 40.1q2.2-1.9 4.4 0l.9 13.1Q22 55.1 18.9 53.2l.9-13.1Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-one-shadow',
-      d: 'M17.9 20.4L25.8 19.6l.4 3.2-7.9.8-.4-3.2Zm.5 17.2l7.7-.7.3 3.2-7.8.7-.2-3.2Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-one-joint',
-      d: 'M17.9 19.7l7.9-.8.4 3.2-7.9.8-.4-3.2Zm.5 17.2l7.7-.7.3 3.2-7.8.7-.2-3.2Z',
-    }),
-    el('path', {
-      class: 'mj-bamboo-one-engraving',
-      d: 'M21.1 8.5l-.5 9.3m.4 7.2-.2 10.2m.3 7-.4 8.7M17.4 17.8l-7.9-.5m17 16.1 7.8-.7',
-    }),
-  );
-  return g;
+// Use the supplied bamboo artwork directly. One and two are distinctive
+// emblems; higher ranks repeat the single-stalk source in traditional pip
+// arrangements so every bamboo tile shares the same visual language.
+function bambooFace(count) {
+  const group = el('g', { class: `mj-bamboo-art mj-bamboo-art-${count}` });
+  if (count === 1) {
+    group.append(bambooImage(BAMBOO_ART.one, 22, 30, 38, 44, 'mj-bamboo-source mj-bamboo-source-one'));
+  } else if (count === 2) {
+    group.append(bambooImage(BAMBOO_ART.two, 22, 30, 31, 31, 'mj-bamboo-source mj-bamboo-source-two'));
+  } else {
+    const [width, height] = BAMBOO_STALK_SIZES[count];
+    for (const [x, y] of BAM_SPOTS[count]) {
+      group.append(bambooImage(BAMBOO_ART.stalk, x, y, width, height, 'mj-bamboo-source mj-bamboo-source-stalk'));
+    }
+  }
+  return group;
 }
 
 function textEl(x, y, size, content) {
@@ -241,9 +204,7 @@ function faceSVG(kind) {
   if (family === 'dot') {
     for (const [x, y] of SPOTS[Number(id)]) svg.append(el('circle', { cx: x, cy: y, r: 4.5, fill: 'currentColor' }));
   } else if (family === 'bam') {
-    const count = Number(id);
-    if (count === 1) svg.append(oneBambooFace());
-    else BAM_SPOTS[count].forEach(([x, y], index) => svg.append(bambooPip(x, y, index, BAM_SCALES[count])));
+    svg.append(bambooFace(Number(id)));
   } else if (family === 'chr') {
     svg.append(textEl(22, 36, 26, id));
     svg.append(el('rect', { x: 12, y: 46, width: 20, height: 1.5, fill: 'currentColor' }));

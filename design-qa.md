@@ -1,3 +1,4 @@
+/Users/anthonyjloria/.rvm/scripts/rvm:29: operation not permitted: ps
 # Glance design QA
 
 **Final result:** passed
@@ -463,5 +464,88 @@ There are no remaining actionable P0, P1, or P2 findings.
 - Runtime: the Astro production build passes, the command directory stays at
   scrollTop 0, group/workspace outcomes match their messages, and the
   browser console has no warnings or errors attributable to the demo.
+
+final result: passed
+
+---
+
+# Mahjong supplied bamboo artwork — 2026-08-30
+
+**Final result:** passed
+
+## Comparison target
+
+- Source visual truth:
+  - `/Users/anthonyjloria/Downloads/bamboo.png`
+  - `/Users/anthonyjloria/Downloads/bamboo2.png`
+  - `/Users/anthonyjloria/Downloads/bamboo3.png`
+- Rendered implementation: `/private/tmp/mahjong-bamboo-source-final.png`.
+- Focused implementation crop: `/private/tmp/mahjong-bamboo-source-final-crop.png`.
+- Combined source-and-implementation evidence:
+  `/private/tmp/mahjong-bamboo-design-comparison.png`.
+- Viewport: live Blanc development window at 1229×768 CSS px, Turtle layout,
+  Classic mode, light chrome and lacquer game surface.
+
+## Normalization
+
+- Each supplied source is a 512×512 RGBA PNG. Temporary comparison copies of
+  the transparent black artwork were flattened onto white only so it remained
+  visible in the evidence image; the three bundled assets are byte-identical
+  to the supplied files.
+- The implementation capture is 1229×768 pixels at the live window's 1×
+  capture density. The focused board crop was enlarged uniformly to 1440×1120
+  for asset inspection; no non-uniform scaling or color adjustment was used.
+- One-bamboo uses the leafy color emblem, two-bamboo uses the black circular
+  emblem, and ranks three through nine repeat the single-stalk source in their
+  traditional pip arrangements.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Fonts and typography: unaffected; the existing hierarchy and optical weights
+  remain unchanged.
+- Spacing and layout rhythm: the supplied motifs balance inside the 44×60 face,
+  retain clear pip separation from three through nine, and do not clip.
+- Colors and visual tokens: the supplied green/cyan and black/white treatments
+  are preserved. Only the existing restrained tile-material shadow is applied.
+- Image quality and asset fidelity: the exact local PNGs render with
+  `preserveAspectRatio="xMidYMid meet"`; edges and transparency are clean. The
+  previous handcrafted SVG bamboo artwork and its palette rules are removed.
+- Copy and content: unaffected.
+- Full-view evidence confirms the suit integrates with free, blocked, and
+  layered tile states without changing board scale or composition.
+- Focused evidence confirms the source silhouettes, leaf shapes, color blocks,
+  negative space, and transparency are preserved at actual tile size.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+The first outer-page reload left the embedded Mahjong renderer cached, so the
+capture still showed the previous generated bamboo artwork. No visual judgment
+was made from that stale state.
+
+Fix: fully restarted the Electron development app so the embedded game loaded
+the new local PNG assets.
+
+### Iteration 2 — passed
+
+Post-restart evidence shows the three supplied designs mapped across the full
+bamboo suit with no remaining P0/P1/P2 mismatch. The renderer and engine tests
+also pass.
+
+## Functional evidence
+
+- The live Electron board restored successfully after restart and rendered the
+  updated suit across blocked, free, and layered tiles.
+- `node --check src/renderer/pages/mahjong.js` passes.
+- 41 focused Mahjong renderer and engine tests pass.
+- `git diff --check` passes.
+
+## Follow-up polish
+
+No P3 implementation follow-up is required. A preference change to any source
+motif would be a new visual direction rather than an implementation correction.
 
 final result: passed

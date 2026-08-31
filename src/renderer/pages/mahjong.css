@@ -26,9 +26,6 @@
   --mj-blue: #275d86;
   --mj-flower: #9f3657;
   --mj-season: #8a5a18;
-  --mj-bamboo-blue: #1d70a3;
-  --mj-bamboo-jade: #12805a;
-  --mj-bamboo-red: #bd4036;
   --mj-focus: #ffe3a0;
 
   position: relative;
@@ -416,41 +413,11 @@
   stroke-width: 1.75;
 }
 .mj-bonus-flower .mj-flower-center { fill: currentColor; stroke: none; }
-.mj-bamboo-pip {
-  shape-rendering: geometricPrecision;
-  filter:
-    drop-shadow(0 0.85px 0.2px rgba(0, 27, 20, 0.42))
-    drop-shadow(0 -0.4px 0 rgba(255, 255, 255, 0.12));
+.mj-bamboo-source {
+  image-rendering: auto;
+  filter: drop-shadow(0 0.65px 0.35px rgba(0, 25, 19, 0.28));
 }
-.mj-bamboo-joint,
-.mj-bamboo-one-joint {
-  fill: var(--mj-bamboo-red);
-  paint-order: stroke;
-  stroke: rgba(255, 247, 219, 0.72);
-  stroke-linejoin: round;
-  stroke-width: 0.42;
-}
-.mj-bamboo-joint-shadow,
-.mj-bamboo-one-shadow {
-  fill: rgba(0, 31, 24, 0.42);
-}
-.mj-bamboo-cane-top,
-.mj-bamboo-one-section-top,
-.mj-bamboo-one-section-bottom,
-.mj-bamboo-leaf-sapphire { fill: var(--mj-bamboo-blue); }
-.mj-bamboo-cane-bottom,
-.mj-bamboo-one-section-middle,
-.mj-bamboo-leaf:not(.mj-bamboo-leaf-sapphire) { fill: var(--mj-bamboo-jade); }
-.mj-bamboo-facet { fill: rgba(0, 28, 23, 0.24); }
-.mj-bamboo-engraving,
-.mj-bamboo-one-engraving {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.6);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 0.64;
-}
-.mj-bamboo-leaf { opacity: 0.9; }
+.mj-bamboo-source-two { opacity: 0.9; }
 .mj-tile[data-suit="chr"], .mj-tile[data-suit="drg-c"] { color: var(--mj-red); }
 .mj-tile[data-suit="bam"], .mj-tile[data-suit="drg-f"] { color: var(--mj-green); }
 .mj-tile[data-suit="flower"] { color: var(--mj-flower); }
