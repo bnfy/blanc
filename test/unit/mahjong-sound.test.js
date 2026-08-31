@@ -76,6 +76,15 @@ test('the cue set covers every Mahjong interaction sound', () => {
   );
 });
 
+test('every synthesized voice stays within an audible, non-clipping peak range', () => {
+  for (const [cue, voices] of Object.entries(CUES)) {
+    for (const [, , , peak] of voices) {
+      assert.ok(peak >= 0.07, `${cue} voice is too quiet to hear reliably`);
+      assert.ok(peak <= 0.13, `${cue} voice risks an excessively loud peak`);
+    }
+  }
+});
+
 test('sound is enabled by default and creates Web Audio lazily for a known cue', () => {
   const sound = createMahjongSound({ AudioContextClass: FakeAudioContext, storage: memoryStorage() });
 

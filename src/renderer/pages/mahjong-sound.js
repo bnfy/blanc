@@ -7,14 +7,14 @@
   const STORAGE_KEY = 'mahjong.sound';
   // [start offset, frequency, duration, peak gain, oscillator type]
   const CUES = Object.freeze({
-    select: [[0, 190, 0.035, 0.012, 'triangle']],
-    pair: [[0, 220, 0.055, 0.026, 'triangle'], [0.045, 330, 0.07, 0.024, 'triangle']],
-    blocked: [[0, 105, 0.06, 0.014, 'triangle']],
-    undo: [[0, 330, 0.055, 0.018, 'triangle'], [0.045, 220, 0.07, 0.018, 'triangle']],
-    hint: [[0, 520, 0.08, 0.014, 'sine'], [0.07, 660, 0.1, 0.014, 'sine']],
-    deal: [[0, 170, 0.04, 0.014, 'triangle'], [0.035, 210, 0.04, 0.014, 'triangle'], [0.07, 255, 0.055, 0.014, 'triangle']],
-    win: [[0, 392, 0.24, 0.022, 'sine'], [0.12, 523.25, 0.28, 0.022, 'sine'], [0.24, 659.25, 0.36, 0.024, 'sine']],
-    toggle: [[0, 440, 0.08, 0.014, 'sine']],
+    select: [[0, 190, 0.035, 0.07, 'triangle']],
+    pair: [[0, 220, 0.055, 0.13, 'triangle'], [0.045, 330, 0.07, 0.11, 'triangle']],
+    blocked: [[0, 105, 0.06, 0.08, 'triangle']],
+    undo: [[0, 330, 0.055, 0.09, 'triangle'], [0.045, 220, 0.07, 0.09, 'triangle']],
+    hint: [[0, 520, 0.08, 0.07, 'sine'], [0.07, 660, 0.1, 0.07, 'sine']],
+    deal: [[0, 170, 0.04, 0.08, 'triangle'], [0.035, 210, 0.04, 0.08, 'triangle'], [0.07, 255, 0.055, 0.08, 'triangle']],
+    win: [[0, 392, 0.24, 0.1, 'sine'], [0.12, 523.25, 0.28, 0.1, 'sine'], [0.24, 659.25, 0.36, 0.11, 'sine']],
+    toggle: [[0, 440, 0.08, 0.08, 'sine']],
   });
 
   function createMahjongSound({ AudioContextClass, storage } = {}) {
