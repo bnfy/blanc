@@ -53,31 +53,46 @@ function setLayoutGeometry(layoutId) {
 // winds/dragons mono letterforms, the Blanc white dragon, and distinct
 // botanical bonus-family engravings. All currentColor.
 
-// Traditional arrangements. Dots follow real circle tiles (7 is a diagonal
-// of three over a 2x2 square — never the domino 6+1); bamboo overrides the
-// counts where sticks stack differently (2: parallel pair, 3: one over two,
-// 6: two rows of three, 7: one over three over three).
+// Traditional arrangements. Dot tiles use centered ring compositions rather
+// than domino diagonals; bamboo overrides the counts where sticks stack
+// differently (2: parallel pair, 3: one over two, 6: two rows of three,
+// 7: one over three over three).
 const NINE_GRID = { xs: [11, 22, 33], ys: [13, 30, 47] };
-const SPOTS = {
+const DOT_SPOTS = {
   1: [[22, 30]],
-  2: [[11, 13], [33, 47]],
-  3: [[11, 13], [22, 30], [33, 47]],
-  4: [[11, 13], [33, 13], [11, 47], [33, 47]],
-  5: [[11, 13], [33, 13], [22, 30], [11, 47], [33, 47]],
-  6: [[11, 13], [33, 13], [11, 30], [33, 30], [11, 47], [33, 47]],
-  7: [[9, 9], [22, 13], [35, 17], [11, 34], [33, 34], [11, 49], [33, 49]],
-  8: [[11, 9], [33, 9], [11, 23], [33, 23], [11, 37], [33, 37], [11, 51], [33, 51]],
+  2: [[22, 18], [22, 42]],
+  3: [[22, 12], [22, 30], [22, 48]],
+  4: [[12, 16], [32, 16], [12, 44], [32, 44]],
+  5: [[12, 14], [32, 14], [22, 30], [12, 46], [32, 46]],
+  6: [[12, 12], [32, 12], [12, 30], [32, 30], [12, 48], [32, 48]],
+  7: [[11, 13], [22, 13], [33, 13], [22, 30], [11, 47], [22, 47], [33, 47]],
+  8: [[12, 9], [32, 9], [12, 23], [32, 23], [12, 37], [32, 37], [12, 51], [32, 51]],
   9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
 };
+const DOT_ART = 'mahjong-dot-pip.png';
+const DOT_PIP_SIZES = Object.freeze({
+  1: 26,
+  2: 15,
+  3: 13.5,
+  4: 12.5,
+  5: 11.75,
+  6: 10.5,
+  7: 9.75,
+  8: 9.5,
+  9: 9,
+});
 const BAM_SPOTS = {
-  ...SPOTS,
+  1: [[22, 30]],
   2: [[14, 30], [30, 30]],
   3: [[22, 14], [11, 44], [33, 44]],
+  4: [[11, 13], [33, 13], [11, 47], [33, 47]],
+  5: [[11, 13], [33, 13], [22, 30], [11, 47], [33, 47]],
   6: [[11, 17], [22, 17], [33, 17], [11, 43], [22, 43], [33, 43]],
   7: [[22, 9], [11, 30], [22, 30], [33, 30], [11, 51], [22, 51], [33, 51]],
   // Stagger the four pairs so eight bamboo reads as individual sticks instead
   // of two uninterrupted rails.
   8: [[13, 7.5], [31, 7.5], [11, 22.5], [33, 22.5], [13, 37.5], [31, 37.5], [11, 52.5], [33, 52.5]],
+  9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
 };
 
 const BAMBOO_ART = Object.freeze({
@@ -107,7 +122,7 @@ function el(tag, attrs) {
   return node;
 }
 
-function bambooImage(href, x, y, width, height, className) {
+function faceImage(href, x, y, width, height, className) {
   return el('image', {
     href,
     x: x - width / 2,
@@ -117,6 +132,15 @@ function bambooImage(href, x, y, width, height, className) {
     class: className,
     preserveAspectRatio: 'xMidYMid meet',
   });
+}
+
+function dotFace(count) {
+  const group = el('g', { class: `mj-dot-art mj-dot-art-${count}` });
+  const size = DOT_PIP_SIZES[count];
+  for (const [x, y] of DOT_SPOTS[count]) {
+    group.append(faceImage(DOT_ART, x, y, size, size, 'mj-dot-source'));
+  }
+  return group;
 }
 
 function bambooStickAsset(count, index, x) {
@@ -135,11 +159,11 @@ function bambooStickAsset(count, index, x) {
 function bambooFace(count) {
   const group = el('g', { class: `mj-bamboo-art mj-bamboo-art-${count}` });
   if (count === 1) {
-    group.append(bambooImage(BAMBOO_ART.one, 22, 30, 42, 48, 'mj-bamboo-source mj-bamboo-source-one'));
+    group.append(faceImage(BAMBOO_ART.one, 22, 30, 42, 48, 'mj-bamboo-source mj-bamboo-source-one'));
   } else {
     const [width, height] = BAMBOO_STICK_SIZES[count];
     BAM_SPOTS[count].forEach(([x, y], index) => {
-      group.append(bambooImage(
+      group.append(faceImage(
         bambooStickAsset(count, index, x),
         x,
         y,
@@ -219,7 +243,7 @@ function faceSVG(kind) {
   svg.classList.add('mj-face');
   const [family, id] = kind.split('-');
   if (family === 'dot') {
-    for (const [x, y] of SPOTS[Number(id)]) svg.append(el('circle', { cx: x, cy: y, r: 4.5, fill: 'currentColor' }));
+    svg.append(dotFace(Number(id)));
   } else if (family === 'bam') {
     svg.append(bambooFace(Number(id)));
   } else if (family === 'chr') {

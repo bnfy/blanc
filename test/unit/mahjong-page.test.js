@@ -79,11 +79,32 @@ test('bonus families use professional shared motifs and hints clear stale emphas
   assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*clearHint\(\);/);
 });
 
+test('the dot suit uses the reference ring pip in centered Mahjong arrangements', () => {
+  assert.match(controller, /const DOT_ART = 'mahjong-dot-pip\.png'/);
+  assert.match(controller, /2:\s*\[\[22, 18\], \[22, 42\]\]/);
+  assert.match(controller, /3:\s*\[\[22, 12\], \[22, 30\], \[22, 48\]\]/);
+  assert.match(controller, /7:\s*\[\[11, 13\], \[22, 13\], \[33, 13\], \[22, 30\], \[11, 47\], \[22, 47\], \[33, 47\]\]/);
+  assert.match(controller, /const DOT_PIP_SIZES = Object\.freeze\(\{[\s\S]*1:\s*26,[\s\S]*2:\s*15,[\s\S]*9:\s*9,/);
+  assert.match(controller, /function dotFace\(count\)/);
+  assert.match(controller, /DOT_SPOTS\[count\]/);
+  assert.match(controller, /faceImage\(DOT_ART, x, y, size, size, 'mj-dot-source'\)/);
+  assert.match(controller, /svg\.append\(dotFace\(Number\(id\)\)\)/);
+  assert.doesNotMatch(controller, /family === 'dot'[\s\S]{0,180}el\('circle'/);
+  assert.match(styles, /\.mj-dot-source\s*\{[^}]*image-rendering:\s*auto;/);
+
+  const pip = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-dot-pip.png'));
+  assert.equal(pip.subarray(1, 4).toString(), 'PNG');
+  assert.equal(
+    crypto.createHash('sha256').update(pip).digest('hex'),
+    '39bc795cf513242a477cbf398d6885490f58d13768a4311f38c704398724086c'
+  );
+});
+
 test('the bamboo suit uses a panda emblem plus the supplied jade and gold stick artwork', () => {
   assert.match(controller, /one:\s*'mahjong-bamboo-one\.png'/);
   assert.match(controller, /jade:\s*'mahjong-bamboo-jade\.svg'/);
   assert.match(controller, /gold:\s*'mahjong-bamboo-gold\.svg'/);
-  assert.match(controller, /function bambooImage\(href, x, y, width, height, className\)/);
+  assert.match(controller, /function faceImage\(href, x, y, width, height, className\)/);
   assert.match(controller, /return el\('image', \{/);
   assert.match(controller, /preserveAspectRatio:\s*'xMidYMid meet'/);
   assert.match(controller, /function bambooStickAsset\(count, index, x\)/);

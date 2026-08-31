@@ -802,3 +802,99 @@ P0/P1/P2 mismatch.
 No P3 implementation follow-up is required.
 
 final result: passed
+
+---
+
+# Mahjong ring-pip dot suit — 2026-08-31
+
+**Final result:** passed
+
+## Comparison target
+
+- Source visual truth:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-08-30 at 11.52.51 PM.png`.
+- Source-derived, normalized pip preview:
+  `/private/tmp/mahjong-dot-pip-preview.png`.
+- Initial rendered implementation:
+  `/private/tmp/mahjong-dot-ring-suit.png`.
+- Final rendered implementation:
+  `/private/tmp/mahjong-dot-ring-suit-final.png`.
+- Focused final crop:
+  `/private/tmp/mahjong-dot-ring-implementation-crop.png`.
+- Combined source-pip-and-implementation evidence:
+  `/private/tmp/mahjong-dot-ring-design-comparison.png`.
+- Viewport: live Blanc development window at 1229×768 CSS px, Turtle layout,
+  Classic mode, light chrome and lacquer game surface.
+
+## Normalization
+
+- The 158×190 source screenshot was opened at original resolution. Its visual
+  target is a flat jade ring with a small ivory center and a vertically stacked
+  two-dot composition.
+- A transparent 256×256 local pip was generated from that attached source,
+  flattened to the authoritative board jade `#1f6d50`, and stripped of gradient,
+  background, shadow, and metadata. The final alpha silhouette has minimal
+  transparent padding so its measured SVG image boxes correspond to visible
+  pip diameter.
+- The full implementation captures are 1229×768 pixels at the live window's 1×
+  capture density. The focused 800×540 board crop remains at native density
+  beside the 320×320 source-derived pip preview; no board scaling was applied.
+- State: ranks one through nine are visible across free and blocked tiles. Two
+  uses a vertical pair; three uses a vertical trio; seven uses a balanced 3–1–3
+  composition; eight and nine use compact, evenly spaced grids.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Fonts and typography: unaffected. Character, wind, dragon, bamboo, and bonus
+  faces retain their established family, weights, and optical hierarchy.
+- Spacing and layout rhythm: the diagonal domino two/three arrangements are
+  removed. Ring sizes step down by density while retaining visible separation,
+  centered alignment, and consistent outer margins from one through nine.
+- Colors and visual tokens: every ring uses the existing Mahjong jade rather
+  than the prior black/current-color domino marks. Blocked-tile desaturation
+  continues to communicate availability without erasing the ring center.
+- Image quality and asset fidelity: each mark is a shared local RGBA sprite with
+  smooth alpha edges, a true transparent center, no halo, and no code-drawn
+  substitute. It remains crisp at actual tile scale.
+- Copy and content: unaffected. Accessibility names still announce rank and
+  suit (`two dot`, `nine dot`) rather than decorative appearance.
+- Full-view evidence confirms the refreshed suit is immediately distinct from
+  dominoes and remains readable across the layered Turtle board.
+- Focused evidence confirms the source's ring weight and center opening survive
+  on free, blocked, single-pip, vertical, and dense-grid tile states.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P2] The first live rendering retained too much transparent padding around
+  the sprite, making two through nine visually smaller than the supplied
+  reference and weaker than neighboring tile faces.
+
+Fix: trimmed the generated alpha bounds, enlarged the visible ring to 244×244
+inside its 256×256 sprite, and preserved only six pixels of safety padding.
+
+### Iteration 2 — passed
+
+The post-restart capture shows substantial reference-weight rings, a clear
+vertical two-dot tile, readable dense ranks, and no clipping or collisions.
+
+## Functional evidence
+
+- The Electron development app was fully restarted after each sprite-scale pass
+  so the embedded Mahjong renderer did not reuse a cached image.
+- The controller has no dot-suit `circle` primitive and loads the bundled PNG
+  for every dot pip.
+- `node --check src/renderer/pages/mahjong.js` passes.
+- 42 focused Mahjong renderer and engine tests pass.
+- `git diff --check` passes.
+- The live development terminal showed no renderer or main-process errors
+  during the final visual pass.
+
+## Follow-up polish
+
+No P3 implementation follow-up is required.
+
+final result: passed
