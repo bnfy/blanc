@@ -40,8 +40,10 @@
 - Task 8's Island demo was recorded on August 30 from installed packaged public
   v1.10.0. Its 20.50-second MP4 and sub-8-MiB GIF remain immutable in
   `0cc0c57`, but they are no longer launch-ready because v1.11.0 ships the
-  revised Blanc mark. Recapture the demo and Product Hunt stills from packaged
-  public v1.11.0 before launch.
+  revised Blanc mark. **OWNER DECISION 2026-08-31:** because more releases are
+  likely before launch week, do not recapture the demo or Product Hunt stills
+  for v1.11.0. Refresh them once, from the final selected launch release, after
+  its required evidence is complete.
 
 ## Superseded execution status — August 28, 2026
 
@@ -2162,8 +2164,9 @@ prerequisite because v1.10.0 is already public.
   and the campaign is serving; recheck before the Monday baseline.
 - **Task 8 demo incomplete or stale for the selected release** → do not start
   Task 11. The current 20.50-second MP4 and sub-8-MiB GIF were captured from
-  packaged public v1.10.0 and committed in `0cc0c57`; recapture them if backlog
-  cleanup changes visible or claimed behavior.
+  packaged public v1.10.0 and committed in `0cc0c57`; keep them as historical
+  inputs during the release train and recapture them from the final selected
+  launch release before Task 11.
 - **Unreleased feature work reaches `main` after the new freeze anchor** → stop and re-audit
   the README, demo, copy pack, and public binary/repository boundary before
   posting any channel. **Pending:** Phase 1.5 must record the replacement anchor,

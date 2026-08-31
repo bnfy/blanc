@@ -10,9 +10,11 @@ every affected section together.
 **Schedule reset — OWNER DECISION 2026-08-30:** Show HN is Tuesday,
 September 8, Reddit is Wednesday, September 9, and Product Hunt is Thursday,
 September 10. A bounded backlog-cleanup window now precedes the launch freeze.
-This v1.11.0 pack is the current factual reference. It remains non-publishable
-until the adjacent-version updater handoffs and 48-hour soak pass and the
-v1.10.0 demo/gallery assets identified below are recaptured from v1.11.0.
+This v1.11.0 pack is the current factual reference, not the final launch pack.
+**OWNER DECISION 2026-08-31:** more releases are likely before launch week, so
+do not refresh launch media for v1.11.0. Keep this pack non-publishable and
+recapture the demo/gallery assets only after the final launch release is
+selected and its required evidence is complete.
 
 **Release lock — REBASELINED 2026-08-31:** This pack describes packaged public
 v1.11.0, published from `e3ab5b6`. It carries the optional macOS 1Password
@@ -50,7 +52,7 @@ Canonical URLs—copy exactly:
 | AlternativeTo | https://blancbrowser.com |
 | BetaList | https://blancbrowser.com/?ref=betalist |
 
-Historical packaged-v1.10.0 demo assets (not launch-ready for v1.11.0):
+Historical packaged-v1.10.0 demo assets (not launch-ready):
 
 | Form | URL |
 |---|---|
@@ -58,9 +60,9 @@ Historical packaged-v1.10.0 demo assets (not launch-ready for v1.11.0):
 | GIF | https://raw.githubusercontent.com/bnfy/blanc/0cc0c57b31c4b619aa18fe6fa1713002e2060b7d/docs/superpowers/plans/assets/island-demo.gif |
 
 These files were captured on August 30 from the installed packaged public
-v1.10.0 app in an isolated local profile. They must be recaptured from v1.11.0
-before launch because the public app now carries the revised Blanc mark. The
-20.50-second historical export is 1228×768,
+v1.10.0 app in an isolated local profile. Do not recapture them for v1.11.0;
+wait until the final launch release is selected, then recapture from that exact
+packaged version. The 20.50-second historical export is 1228×768,
 30 fps H.264, and BT.709; the GIF is below 8 MiB. It shows the resting Island,
 `⌘L` expansion, a live `git` Quick Switcher filter, a tab-dot switch, The
 Verge's live 13-item blocker count and popover, and the final resting hold. The
@@ -362,8 +364,8 @@ Prepared release-backed media:
 - Gallery still 2: `product-hunt/quick-switcher-1270x760.png`
 
 The two historical stills satisfy the guide's two-image gallery floor, but they
-must be recaptured from packaged v1.11.0 before launch. Their v1.10.0 provenance
-is in `product-hunt/README.md`.
+must be recaptured from the final packaged launch release. Their v1.10.0
+provenance is in `product-hunt/README.md`.
 The full YouTube URL remains owner-supplied and must not be inferred from a raw
 MP4 URL.
 
@@ -574,11 +576,12 @@ drop a full defense where one sentence would do.
 - [ ] The telemetry payload remains exactly six fields.
 - [ ] `npm run test:unit` passes, including
   `test/unit/public-truth.test.js`.
-- [ ] The Island demo has been recaptured from packaged v1.11.0, resolves from
-  immutable URLs without authentication, and no launch post references the
-  retired v1.9.1 or historical v1.10.0 pair.
-- [ ] The Product Hunt thumbnail is 240×240 and both v1.11.0 gallery stills are
-  1270×760; the stills render without private data or post-v1.11.0 UI.
+- [ ] The Island demo has been recaptured from the final packaged launch
+  release, resolves from immutable URLs without authentication, and no launch
+  post references the retired v1.9.1 or historical v1.10.0 pair.
+- [ ] The Product Hunt thumbnail is 240×240 and both final-release gallery
+  stills are 1270×760; the stills render without private data or UI newer than
+  the selected launch release.
 - [ ] The owner's personal Product Hunt account can reach the submission form.
 - [ ] Product Hunt's full YouTube URL is not private, has had processing time,
   and appears in the preview with both stills before **Schedule Launch**.
