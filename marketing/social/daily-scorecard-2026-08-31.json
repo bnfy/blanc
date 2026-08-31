@@ -1,0 +1,112 @@
+{
+  "date": "2026-08-31",
+  "asOf": "2026-08-31T13:41:35-04:00",
+  "timezone": "America/New_York",
+  "targetNewAudiencePerPriorityPlatform": 10,
+  "comparisonBasis": "Movement since the last verified August 30 checkpoint; no exact midnight snapshot is available.",
+  "audience": {
+    "x": {
+      "priorCheckpoint": 9,
+      "current": 11,
+      "movementSinceCheckpoint": 2,
+      "gapFromTargetPace": 8,
+      "unit": "followers",
+      "following": 95,
+      "posts": 69,
+      "confirmedExternalMovement": 2,
+      "newFollowerIdentities": [
+        "@lilmiss_tech",
+        "@aalvated"
+      ],
+      "note": "The ordered live follower list contains the prior nine accounts followed by the two new top entries, Simone and Aalvated Browser."
+    },
+    "threads": {
+      "priorCheckpoint": 21,
+      "current": 21,
+      "movementSinceCheckpoint": 0,
+      "gapFromTargetPace": 10,
+      "unit": "followers",
+      "recentViews": 12900
+    },
+    "instagram": {
+      "priorCheckpoint": 104,
+      "current": 105,
+      "movementSinceCheckpoint": 1,
+      "gapFromTargetPace": 9,
+      "unit": "followers"
+    },
+    "facebook": {
+      "priorCheckpoint": 9,
+      "current": 9,
+      "movementSinceCheckpoint": 0,
+      "gapFromTargetPace": 10,
+      "unit": "followers"
+    },
+    "tiktok": {
+      "priorCheckpoint": 26,
+      "current": 26,
+      "movementSinceCheckpoint": 0,
+      "gapFromTargetPace": 10,
+      "unit": "followers",
+      "following": 17,
+      "profileLikes": 6
+    },
+    "substack": {
+      "priorCheckpoint": 2,
+      "current": 2,
+      "movementSinceCheckpoint": 0,
+      "gapFromTargetPace": 10,
+      "unit": "publication subscribers",
+      "sevenDayViews": 48,
+      "priorSevenDayViews": 74,
+      "sevenDayViewChangePercent": -35.1
+    }
+  },
+  "freshSignals": {
+    "x": "No unanswered inbound. The queued Ubuntu browser question now has 403 views, 21 replies, 22 likes, and no Blanc reply.",
+    "threads": "No unanswered inbound. Causal's queued tab-overload prompt now has 255 views, one like, one share, no replies, and no Blanc reply.",
+    "instagram": "No fresh relevant native conversation surfaced.",
+    "facebook": "No fresh relevant conversation or inbound surfaced in Meta Business Suite.",
+    "tiktok": "No under-24-hour relevant result surfaced; the newest clearly dated candidate was two days old.",
+    "substack": "No unanswered inbound. Ira and Tami liked Blanc activity. Shadia's queued Note still has six likes, no replies, and no Blanc activity."
+  },
+  "completedEngagementBatch": [
+    {
+      "platform": "threads",
+      "action": "like-and-reply",
+      "targetUrl": "https://www.threads.com/@causal.so/post/Dcte0qglxzd",
+      "text": "the dangerous ones are the tabs with names like ‘untitled’ or ‘new document.’ apparently that’s where the breakthrough lives",
+      "resultUrl": "https://www.threads.com/@blancbrowser/post/DctqdLQkaCe"
+    },
+    {
+      "platform": "threads",
+      "action": "follow",
+      "targetUrl": "https://www.threads.com/@causal.so"
+    },
+    {
+      "platform": "x",
+      "action": "like-and-reply",
+      "targetUrl": "https://x.com/SaraDiscovers/status/2094409417869742265",
+      "text": "biased answer from the people building one: the best browser is the one you stop noticing. Blanc has a Linux AppImage if you feel like trying a less conventional take on browser UI.",
+      "claimBasis": "Public v1.10.0 includes a Linux AppImage.",
+      "resultUrl": "https://x.com/blancbrowser/status/2094483116244996379"
+    },
+    {
+      "platform": "substack",
+      "action": "comment",
+      "targetUrl": "https://substack.com/@shadiasabagh/note/c-326525813",
+      "text": "and power shows up in the incentives. privacy controls matter, but so does asking who the product needs to please when the user’s interests conflict with the business.",
+      "resultUrl": "https://substack.com/profile/542769413-blanc-browser/note/c-326728672"
+    },
+    {
+      "platform": "x",
+      "action": "follow-back",
+      "targetUrl": "https://x.com/aalvated",
+      "rationale": "New follower and active independent Android-browser peer with relevant privacy and local-profile work."
+    }
+  ],
+  "currentApprovalQueue": [],
+  "publicActionsAuthorized": true,
+  "publicActionsCompleted": true,
+  "targetAchieved": false
+}

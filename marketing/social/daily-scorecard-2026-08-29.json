@@ -1,6 +1,6 @@
 {
   "date": "2026-08-29",
-  "asOf": "2026-08-29T17:37:59.047Z",
+  "asOf": "2026-08-29T18:27:47.000Z",
   "timezone": "America/New_York",
   "targetNewAudiencePerPriorityPlatform": 10,
   "audience": {
@@ -114,6 +114,8 @@
     "TikTok exposes no dependable clickable website field.",
     "Several current platform surfaces do not expose fresh post-level or profile-visit data in the web UI."
   ],
-  "nextApprovedDistributionUnit": "marketing/social/first-wave-reply-card-2026-08-29.md",
-  "publicActionsAuthorized": false
+  "nextApprovedDistributionUnit": null,
+  "lastExecutedDistributionUnit": "marketing/social/first-wave-reply-card-2026-08-29.md",
+  "publicActionsAuthorized": true,
+  "publicActionsCompleted": true
 }

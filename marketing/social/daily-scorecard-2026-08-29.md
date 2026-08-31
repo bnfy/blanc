@@ -1,6 +1,6 @@
 # Blanc daily social scorecard — August 29, 2026
 
-As of 13:38 EDT. Daily target: **+10 followers or subscribers on each priority
+As of 14:28 EDT. Daily target: **+10 followers or subscribers on each priority
 platform**.
 
 This is the one-page operating score. Detailed evidence remains in
@@ -56,12 +56,14 @@ or social conversion. The checkpoint is
 - TikTok has no dependable clickable website field.
 - Some web surfaces do not expose fresh post-level or profile-visit metrics.
 
-## Next distribution unit
+## Latest distribution unit
 
-The six-platform conversation-first batch is prepared in
+The six-platform conversation-first batch in
 [`first-wave-reply-card-2026-08-29.md`](first-wave-reply-card-2026-08-29.md).
-It remains unexecuted. Every parent requires a final age and duplicate check,
-and every public reply still requires explicit approval in the active thread.
+was approved and executed at approximately 14:19–14:27 EDT. All six intended
+replies are live; their direct URLs and pre-publication evidence are recorded
+in the card and detailed growth log. The next meaningful read is the 60–90
+minute conversion window, followed by the 24-hour check.
 
 The scorecard does not treat impressions, historical net follows, or aggregate
 download requests as today's follower growth.

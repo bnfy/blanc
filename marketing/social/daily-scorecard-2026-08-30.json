@@ -1,0 +1,131 @@
+{
+  "date": "2026-08-30",
+  "asOf": "2026-08-31T01:48:40.000Z",
+  "timezone": "America/New_York",
+  "targetNewAudiencePerPriorityPlatform": 10,
+  "audience": {
+    "x": {
+      "starting": 7,
+      "current": 9,
+      "publicCountDelta": 2,
+      "confirmedExternalDelta": 1,
+      "delta": 1,
+      "remainingToTarget": 9,
+      "unit": "followers",
+      "note": "Nzo is the confirmed external follower; the other newly listed account is Blanc-owned @NicoFromBlanc."
+    },
+    "threads": {
+      "starting": 21,
+      "current": 21,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers"
+    },
+    "instagram": {
+      "starting": 105,
+      "current": 104,
+      "delta": -1,
+      "remainingToTarget": 11,
+      "unit": "followers"
+    },
+    "facebook": {
+      "starting": 9,
+      "current": 9,
+      "delta": 0,
+      "remainingToTarget": 10,
+      "unit": "followers"
+    },
+    "tiktok": {
+      "starting": 27,
+      "current": 26,
+      "delta": -1,
+      "remainingToTarget": 11,
+      "unit": "followers"
+    },
+    "substack": {
+      "starting": 1,
+      "current": 2,
+      "delta": 1,
+      "remainingToTarget": 9,
+      "unit": "subscribers",
+      "profileFollowers": 5,
+      "profileFollowerDeltaSincePriorCheck": 2,
+      "note": "Live publication dashboard reports 2 total subscribers; the Network dashboard attributes 1 subscriber to the Substack App, representing 100% of the network-attributed subscriber shown. Latest article has 2 views and 50% opened, while the first article has 13 views and 100% opened."
+    }
+  },
+  "freshSignals": {
+    "x": "Live profile recheck reports 9 followers, 92 following, and 68 posts. Corrected reply remains at 39 views, one like, and a positive author reply with 34 views that Blanc has liked. The approved browser-recommendation reply is live at https://x.com/blancbrowser/status/2094240434960695668; its parent moved from 31 to 32 replies.",
+    "threads": "Live profile recheck reports 21 followers and 12.9K recent views. Blanc liked the Cake Marketing author's response and published the approved follow-up at https://www.threads.com/@blancbrowser/post/Dcr8GDtjmCd; the branch moved from two to three replies. The earlier phone-and-laptop reply has three views and two likes.",
+    "instagram": "Quiet Tabs has 401 views from 102 viewers, 95.5% non-followers, two insight interactions, three public likes, and zero comments, saves, shares, profile actions, or follows.",
+    "facebook": "Meta Business Suite reverified nine followers. Quiet Tabs cross-post has 288 views, one reaction, and zero comments; the newest unread-comment card is six days old. The five new-message cards are two-to-three-week-old scam, unavailable, or attachment-only threads.",
+    "tiktok": "Follower count is 26; Quiet Tabs has 68 views and no likes or comments. The activity panel contains only one-day-old likes on Blanc comments and no reply that needs an answer. A fresh browser-tabs video search produced no under-24-hour candidate; the newest explicitly relative result was two days old.",
+    "substack": "The live publication dashboard reports two total subscribers and five public profile followers remain visible separately. The Network dashboard attributes one subscriber to the Substack App (100% of the network-attributed subscriber shown), but does not expose which exact Note or comment converted. The approved EKO comment is live at https://ekolovesyou.com/p/privacy-policy/comment/326268547, and the approved owned privacy/business-model Note is live at https://substack.com/@blancbrowser/note/c-326268718. The first privacy/business-model essay remains a separate unpublished draft."
+  },
+  "downloads": {
+    "release": "v1.10.0",
+    "baselineCapturedAt": "2026-08-30T15:15:54.311Z",
+    "currentCapturedAt": "2026-08-30T15:18:32.065Z",
+    "baselinePackageAssetRequests": 40,
+    "currentPackageAssetRequests": 41,
+    "currentPackageAssetRequestsByPlatform": {
+      "mac": 15,
+      "windows": 16,
+      "linux": 10
+    },
+    "packageAssetRequestDelta": 1,
+    "currentUpdaterMetadataAndBlockmapRequests": 129,
+    "attributedToSocial": false
+  },
+  "currentApprovalQueue": [],
+  "publicActionsAuthorized": false,
+  "publicActionsCompleted": true,
+  "latestApprovedBatch": {
+    "approvedAt": "2026-08-30T21:43:00.000-04:00",
+    "executedAt": "2026-08-30T21:48:40.000-04:00",
+    "threads": {
+      "status": "liked-replied-and-verified",
+      "parentUrl": "https://www.threads.com/@blancbrowser/post/DcrgpL4kWXA",
+      "replyUrl": "https://www.threads.com/@blancbrowser/post/Dcr8GDtjmCd",
+      "text": "exactly. on a 13-inch screen every permanent strip feels expensive. that's the whole reason Blanc hides ours until you need it."
+    },
+    "x": {
+      "status": "published-and-verified",
+      "parentUrl": "https://x.com/KuroSekaiAnime/status/2094120501484376574",
+      "replyUrl": "https://x.com/blancbrowser/status/2094240434960695668",
+      "text": "honest answer: it depends which browser compromise annoys you most. we built Blanc for one very specific irritation—the tab strip taking permanent space while your tabs keep changing."
+    },
+    "substackComment": {
+      "status": "published-and-verified",
+      "parentUrl": "https://ekolovesyou.com/p/privacy-policy/comments",
+      "replyUrl": "https://ekolovesyou.com/p/privacy-policy/comment/326268547",
+      "text": "this is the part most privacy policies skip: saying what the business actually sells. once that's clear, the rest of the data story becomes much easier to evaluate."
+    },
+    "substackOwnedNote": {
+      "status": "published-and-verified",
+      "url": "https://substack.com/@blancbrowser/note/c-326268718",
+      "draftPath": "marketing/social/substack-owned-note-business-model-2026-08-30.md"
+    }
+  },
+  "approvedActionResult": {
+    "threads": {
+      "status": "published-and-verified",
+      "url": "https://www.threads.com/@blancbrowser/post/Dcq1RMRkafY"
+    },
+    "substack": {
+      "status": "published-and-verified",
+      "parentUrl": "https://substack.com/@byirawrites/note/c-322182726"
+    },
+    "facebook": {
+      "status": "featured-and-verified",
+      "url": "https://www.facebook.com/blancbrowser/posts/pfbid0QAEofeY1ruBVkTigDiNiEFgmbYHyYD6UzFdnE9EeMNgbewHzExvBFU7uJqxck1Lpl"
+    },
+    "x": {
+      "status": "replacement-published-and-verified",
+      "originalTargetResult": "Skipped because the approved parent was more than 25 hours old at action time.",
+      "replacementParentUrl": "https://x.com/fukingbcjr/status/2094011746612560020",
+      "replyUrl": "https://x.com/blancbrowser/status/2094086920280113219",
+      "text": "every fic tab is emotionally load-bearing. closing one without finishing it would be irresponsible.",
+      "correction": "Malformed first attempt was permanently deleted after separate action-time confirmation."
+    }
+  }
+}

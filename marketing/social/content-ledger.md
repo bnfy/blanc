@@ -1,6 +1,17 @@
 # Blanc social content ledger
 
-Last verified: 2026-08-29, 13:09 ET.
+## 2026-08-30 — Substack privacy/business-model Note
+
+- **Status:** published and verified at
+  [`c-326268718`](https://substack.com/@blancbrowser/note/c-326268718).
+- **Asset:** [`substack-owned-note-business-model-2026-08-30.md`](substack-owned-note-business-model-2026-08-30.md)
+- **Purpose:** convert the new privacy/incentives editorial lane into a concise,
+  follow-oriented owned Note while honestly disclosing that the fresh-install
+  usage-ping choice starts on and can be disabled before the first event.
+- **Release baseline:** v1.10.0; claim ledger included in the draft.
+- **Public action:** approved, published, and verified at 21:48 EDT.
+
+Last verified: 2026-08-30, 21:48 ET.
 
 Use this ledger before proposing, approving, or publishing social content. Its
 purpose is to prevent accidental recycling, duplicate replies, and attention
@@ -51,6 +62,18 @@ executions are in
 [`reopen-closed-tab-campaign-brief-2026-08-29.md`](reopen-closed-tab-campaign-brief-2026-08-29.md).
 Its read-only public-build and recovery-policy verifier is
 [`reopen-closed-tab-campaign-preflight.mjs`](reopen-closed-tab-campaign-preflight.mjs).
+The Substack-specific privacy, power, consent, and business-model editorial
+lane is in
+[`substack-privacy-editorial-lane-2026-08-30.md`](substack-privacy-editorial-lane-2026-08-30.md).
+It is a strategy and draft queue, not authorization to publish, reply, like,
+restack, or subscribe.
+The first article in that lane, including its first-party source list and
+claim ledger, is drafted in
+[`substack-article-business-model-draft-2026-08-30.md`](substack-article-business-model-draft-2026-08-30.md).
+It has not been entered into Substack or published.
+Its concept-only 5:2 cover direction is in
+[`substack-business-model-header-brief-2026-08-30.md`](substack-business-model-header-brief-2026-08-30.md).
+No cover asset has been generated or approved.
 
 ## Published campaigns
 
@@ -58,6 +81,7 @@ Its read-only public-build and recovery-policy verifier is
 | --- | --- | --- | --- | --- | --- |
 | Aug 24 | Same 12 Tabs | X | static comparison | [post](https://x.com/blancbrowser/status/2092003832507011242) | Retire the creative; do not repost. |
 | Aug 24 | Same 12 Tabs | Instagram | feed image | [post](https://www.instagram.com/blancbrowser/p/DccGgL1CXvg/) | Retire the creative; do not repost. |
+| Aug 25 | Same 12 Tabs | Facebook | feed image; Featured Aug 30 | [post](https://www.facebook.com/blancbrowser/posts/pfbid0QAEofeY1ruBVkTigDiNiEFgmbYHyYD6UzFdnE9EeMNgbewHzExvBFU7uJqxck1Lpl) | Featured for profile conversion; retire the creative and do not repost. |
 | Aug 27 | Nico UGC | X | 15-second video | [post](https://x.com/blancbrowser/status/2093179290867155407) | Retire this cut; Nico may return only with a new script and visual treatment. |
 | Aug 27 | Nico UGC | Threads | 15-second video | [post](https://www.threads.com/@blancbrowser/post/DckZAIJjmj3) | Retire this cut. |
 | Aug 27 | Nico UGC | Instagram | Reel | [reel](https://www.instagram.com/blancbrowser/reel/DckYq1aTwdI/) | Retire this cut. |
@@ -65,6 +89,7 @@ Its read-only public-build and recovery-policy verifier is
 | Aug 27 | Nico UGC | Facebook | Reel | Live; canonical URL not captured | Retire this cut. |
 | Aug 27 | Nico UGC | Substack | Note with video | [note](https://substack.com/@blancbrowser/note/c-324262960) | Retire this cut. |
 | Aug 27 | Open tabs are not a personal failure | X | Article | [article post](https://x.com/blancbrowser/status/2093185805489443190) | Article may be linked contextually; do not republish its body as a new post. |
+| Aug 30 | Privacy features live inside business models | Substack | text Note | [note](https://substack.com/@blancbrowser/note/c-326268718) | Keep native to Substack; do not cross-post the exact wording. |
 | Aug 27 | Open tabs are not a personal failure | Substack | publication post | [article](https://blancbrowser.substack.com/p/your-open-tabs-are-not-a-personal) | May be linked contextually; do not republish. |
 | Aug 28 | Tab Count Confession | Instagram | feed image | [post](https://www.instagram.com/blancbrowser/p/DclnaMqDoL1/) | Do not repost the static graphic. |
 | Aug 28 | Tab Count Confession | Threads | image post | [post](https://www.threads.com/@blancbrowser/post/DclpG-XDo7N) | Do not repost the static graphic. |
@@ -80,7 +105,7 @@ Its read-only public-build and recovery-policy verifier is
 | Quiet Tabs | Instagram + Facebook | `quiet-tabs-carousel/quiet-tabs-carousel-{1..4}-1080x1350.png` | New four-slide carousel; release-backed claim ledger complete; awaiting explicit creative/publication approval. |
 | Quiet Tabs, native vertical cut | TikTok + Instagram/Facebook Reels | `quiet-tabs-carousel/quiet-tabs-vertical-1080x1920.mp4` | New 16.5-second monochrome motion asset with the release-backed approved storyboard and 600-weight headlines; exported frames, safe area, dimensions, codec, timing, and logo treatment verified; awaiting explicit creative/publication approval. |
 | Quick Switcher | X, Threads, Instagram, Facebook, TikTok, Substack | storyboard only; no asset yet | New release-backed `⌘L` product-proof concept with six native executions; awaiting storyboard approval before capture or rendering. |
-| Start here profile trailer | X, Threads, Instagram, Facebook, TikTok, Substack | storyboard and read-only preflight only; no asset yet | New first-visit conversion asset using fresh v1.9.1 Island footage and six native executions; awaiting storyboard approval before capture or rendering. |
+| Start here profile trailer | Paused across all platforms | No retained asset | Rejected on Aug 30; the local storyboard, captures, renders, captions, and review files were discarded. Do not publish or reuse this direction. Daily social listening, engagement, and follower growth take priority. |
 | Reopen Closed Tab | X, Threads, Instagram, Facebook, TikTok, Substack | storyboard and read-only preflight only; no asset yet | New mistake-recovery lane showing one eligible page return inside the verified short live-hold window; awaiting storyboard approval before capture or rendering. |
 
 ## Themes already used heavily
