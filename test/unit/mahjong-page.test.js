@@ -54,29 +54,33 @@ test('mahjong provides static hint feedback and suppresses shake for reduced mot
   assert.match(block, /\.mj-tile\.shake\s*\{[^}]*animation:\s*none;/);
 });
 
-test('bonus families use professional shared motifs and hints clear stale emphasis', () => {
+test('bonus families use full-scale lacquer artwork and hints clear stale emphasis', () => {
   assert.doesNotMatch(controller, /BLANC_GLYPHS/);
   assert.match(controller, /function bonusFace\(family\)/);
-  assert.match(controller, /classList\.add\('mj-bonus-flower'\)/);
-  assert.match(controller, /classList\.add\('mj-bonus-season'\)/);
-  assert.match(controller, /const FLOWER_PETAL_PATH\s*=/);
-  assert.match(controller, /for \(const angle of \[0, 72, 144, 216, 288\]\)/);
-  assert.match(controller, /class:\s*'mj-flower-center',[^}]*cx:\s*22,[^}]*cy:\s*30,[^}]*r:\s*3\.7/);
+  assert.match(controller, /flower:\s*'mahjong-flower\.png'/);
+  assert.match(controller, /season:\s*'mahjong-season\.png'/);
+  assert.match(controller, /class: `mj-bonus-art mj-bonus-\$\{family\}`/);
+  assert.match(controller, /faceImage\(BONUS_ART\[family\], 22, 30, 42, 48, 'mj-bonus-source'\)/);
   assert.match(controller, /if \(family === 'flower'\) return 'flower bonus';/);
-  assert.doesNotMatch(controller, /M22 28c-5-1-8-5-7-9/);
+  assert.doesNotMatch(controller, /FLOWER_PETAL_PATH/);
   assert.doesNotMatch(controller, /textEl\(36,\s*54,\s*10,\s*id\)/);
-  assert.doesNotMatch(controller, /M22 39v8M17 47h10/);
-  assert.doesNotMatch(controller, /cx:\s*31\.5,\s*cy:\s*17\.5/);
-  assert.doesNotMatch(controller, /M22 33l-1-7M26 29l6 1/);
-  assert.match(controller, /d:\s*'M13 40c8-8 14-14 21-20'/);
   assert.match(styles, /\.mj-tile\[data-suit="flower"\]\s*\{[^}]*var\(--mj-flower\)/);
   assert.match(styles, /\.mj-tile\[data-suit="season"\]\s*\{[^}]*var\(--mj-season\)/);
-  assert.match(styles, /\.mj-bonus-flower \.mj-flower-petals\s*\{[^}]*fill-opacity:\s*0\.055;[^}]*stroke-width:\s*1\.75;/);
-  assert.match(styles, /\.mj-bonus-flower \.mj-flower-center\s*\{[^}]*fill:\s*currentColor;[^}]*stroke:\s*none;/);
+  assert.match(styles, /\.mj-bonus-source\s*\{[^}]*image-rendering:\s*auto;[^}]*drop-shadow/);
   assert.match(controller, /let hintTimer = null;/);
   assert.match(controller, /function clearHint\(\)\s*\{[\s\S]*classList\.remove\('hinted'\)/);
   assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 1400\);/);
   assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*clearHint\(\);/);
+
+  const expected = new Map([
+    ['mahjong-flower.png', '81dbfb0478ab92974406a9f174234f7bea308c4e849625fc2a73c4351c11bd39'],
+    ['mahjong-season.png', '382c076ccc109512804d11216d6162c4e2fcce0b0c304531f93e80f0ca83de91'],
+  ]);
+  for (const [asset, digest] of expected) {
+    const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/${asset}`));
+    assert.equal(data.subarray(1, 4).toString(), 'PNG', `${asset} is not a PNG`);
+    assert.equal(crypto.createHash('sha256').update(data).digest('hex'), digest);
+  }
 });
 
 test('the dot suit uses the reference ring pip in centered Mahjong arrangements', () => {
@@ -96,14 +100,73 @@ test('the dot suit uses the reference ring pip in centered Mahjong arrangements'
   assert.equal(pip.subarray(1, 4).toString(), 'PNG');
   assert.equal(
     crypto.createHash('sha256').update(pip).digest('hex'),
-    '39bc795cf513242a477cbf398d6885490f58d13768a4311f38c704398724086c'
+    '81a435812d1b6196d30fda4167597877523c60c934a6334698d2109efbd3a70c'
   );
+});
+
+test('winds and dragons unite all motif and compass-seal designs at their intended scale', () => {
+  assert.match(controller, /n:\s*'mahjong-wind-north\.png'/);
+  assert.match(controller, /e:\s*'mahjong-wind-east\.png'/);
+  assert.match(controller, /s:\s*'mahjong-wind-south\.png'/);
+  assert.match(controller, /w:\s*'mahjong-wind-west\.png'/);
+  assert.match(controller, /const WIND_SEAL_ART = 'mahjong-wind-compass\.png'/);
+  assert.match(controller, /WIND_SEAL_ROTATION = Object\.freeze\(\{ n: 0, e: 90, s: 180, w: 270 \}\)/);
+  assert.match(controller, /c:\s*'mahjong-dragon-red\.png'/);
+  assert.match(controller, /f:\s*'mahjong-dragon-green\.png'/);
+  assert.match(controller, /p:\s*'mahjong-dragon-white\.png'/);
+  assert.match(controller, /c:\s*'mahjong-dragon-red-seal\.png'/);
+  assert.match(controller, /f:\s*'mahjong-dragon-green-seal\.png'/);
+  assert.match(controller, /p:\s*'mahjong-dragon-white-seal\.png'/);
+  assert.match(controller, /faceImage\(WIND_ART\[id\], 22, 30, 42, 48, 'mj-wind-source mj-wind-source-motif'\)/);
+  assert.match(controller, /faceImage\(WIND_SEAL_ART, 22, 30, 40, 40, 'mj-wind-source mj-wind-source-seal'\)/);
+  assert.match(controller, /compass\.setAttribute\('transform', `rotate\(\$\{WIND_SEAL_ROTATION\[id\]\} 22 30\)`\)/);
+  assert.match(controller, /const \[width, height\] = variant === 'seal' \? \[40, 40\] : \[42, 48\]/);
+  assert.match(controller, /svg\.append\(windFace\(id, variant\)\)/);
+  assert.match(controller, /svg\.append\(dragonFace\(id, variant\)\)/);
+  assert.doesNotMatch(controller, /family === 'wind'[\s\S]{0,160}id\.toUpperCase\(\)/);
+  assert.doesNotMatch(controller, /family === 'drg'[\s\S]{0,240}id\.toUpperCase\(\)/);
+  assert.doesNotMatch(controller, /const BLANC_MARK_PATHS/);
+  assert.doesNotMatch(controller, /for \(const d of BLANC_MARK_PATHS\)/);
+  assert.match(styles, /\.mj-wind-source,\s*\.mj-dragon-source,\s*\.mj-bonus-source\s*\{[^}]*image-rendering:\s*auto;[^}]*drop-shadow/);
+  assert.match(controller, /const motif = \{ e: 'sunrise', s: 'sun', w: 'moon and wave', n: 'mountain' \}\[id\];/);
+  assert.match(controller, /return `\$\{direction\} wind, \$\{variant === 'seal' \? 'compass' : motif\}`;/);
+  assert.match(controller, /const motif = \{ c: 'flame', f: 'flourish', p: 'Blanc mark' \}\[id\];/);
+  assert.match(controller, /return `\$\{dragon\}, \$\{variant === 'seal' \? 'seal' : motif\}`;/);
+
+  const expected = new Map([
+    ['mahjong-wind-north.png', '5a2be0fdd57bcc7cc6ad6b1faac6b04a52b16417004474cd3368c406ff49a743'],
+    ['mahjong-wind-east.png', 'f003b0ac6781390482ddabd94986935e805809354f2b02dfb7c79c9e20f1dcc5'],
+    ['mahjong-wind-south.png', '862042ff9a958846bf75bd6e9209ef19222c094a14f09adfcb582e0b302ca390'],
+    ['mahjong-wind-west.png', '85025a29255c5774479219a8912f74020c301e3a8a4e825c179f73909ff9cbf7'],
+    ['mahjong-dragon-red.png', '63737ac5058ff5e342336a8a0781b15b64bf873ddb9f8ad5942662b6069aefe0'],
+    ['mahjong-dragon-green.png', 'c86c6b593a1ac802307a862c617b705d3fa6b68369bdd729bbbab7fe90be9925'],
+    ['mahjong-dragon-white.png', 'e9315bb2a7fd7ae39c8a8a253e1946d0f40dbf8b2e2bd6ef9aaa58f92a0f6f74'],
+    ['mahjong-wind-compass.png', 'f3c61bde97bf34933421a7bd46fd386ce9fb29f0208cf69ea2a5c0685c5cd39c'],
+    ['mahjong-dragon-red-seal.png', '8f107b4828e67aa9a904b6e7d4d7311f367523ca52b8395a8284f64f730b7f16'],
+    ['mahjong-dragon-green-seal.png', 'ce6cd0c15b5b7be36bf52b885b88f692fceda4b6aa855ee4feb10b3efe13ccb0'],
+    ['mahjong-dragon-white-seal.png', '18dbe60105c492f6fd413f4a6084041b90c5182a455ffdb5f656003194a7ac0c'],
+  ]);
+  for (const [asset, digest] of expected) {
+    const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/${asset}`));
+    assert.equal(data.subarray(1, 4).toString(), 'PNG', `${asset} is not a PNG`);
+    assert.equal(crypto.createHash('sha256').update(data).digest('hex'), digest);
+  }
+});
+
+test('character numerals fill their tile faces in ink without underline marks', () => {
+  assert.match(controller, /family === 'chr'[\s\S]{0,100}textEl\(22, 30, 42, id\)/);
+  assert.match(controller, /number\.classList\.add\('mj-character-number'\)/);
+  assert.match(controller, /'text-anchor': 'middle',[\s\S]{0,80}'dominant-baseline': 'central'/);
+  assert.doesNotMatch(controller, /family === 'chr'[\s\S]{0,180}el\('rect'/);
+  assert.match(styles, /\.mj-tile\[data-suit="chr"\]\s*\{\s*color:\s*var\(--mj-ink\);\s*\}/);
+  assert.doesNotMatch(styles, /\.mj-tile\[data-suit="chr"\][^{]*\{[^}]*var\(--mj-red\)/);
+  assert.match(styles, /\.mj-character-number\s*\{[^}]*font-weight:\s*850;[^}]*stroke-width:\s*0\.7px;[^}]*paint-order:\s*stroke fill;/);
 });
 
 test('the bamboo suit uses a panda emblem plus the supplied jade and gold stick artwork', () => {
   assert.match(controller, /one:\s*'mahjong-bamboo-one\.png'/);
-  assert.match(controller, /jade:\s*'mahjong-bamboo-jade\.svg'/);
-  assert.match(controller, /gold:\s*'mahjong-bamboo-gold\.svg'/);
+  assert.match(controller, /jade:\s*'mahjong-bamboo-jade\.png'/);
+  assert.match(controller, /gold:\s*'mahjong-bamboo-gold\.png'/);
   assert.match(controller, /function faceImage\(href, x, y, width, height, className\)/);
   assert.match(controller, /return el\('image', \{/);
   assert.match(controller, /preserveAspectRatio:\s*'xMidYMid meet'/);
@@ -119,27 +182,16 @@ test('the bamboo suit uses a panda emblem plus the supplied jade and gold stick 
   assert.match(controller, /8:\s*\[\[13, 7\.5\], \[31, 7\.5\], \[11, 22\.5\], \[33, 22\.5\], \[13, 37\.5\], \[31, 37\.5\], \[11, 52\.5\], \[33, 52\.5\]\]/);
   assert.match(styles, /\.mj-bamboo-source\s*\{[^}]*image-rendering:\s*auto;[^}]*drop-shadow/);
 
-  for (const asset of ['mahjong-bamboo-one.png']) {
+  const expected = new Map([
+    ['mahjong-bamboo-one.png', '22b440a2a744684926340c672dc2961ad25365c8663ed17958a93565705a30d3'],
+    ['mahjong-bamboo-jade.png', '95ee4db4a473a4007d355c33dcb9084e282bbc4805e0e36cd38abe9b494616cc'],
+    ['mahjong-bamboo-gold.png', '14b428a5f41a790f70ac0387312a27c4c8668600cdfc56172be16e44b7ea50ef'],
+  ]);
+  for (const [asset, digest] of expected) {
     const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/${asset}`));
     assert.equal(data.subarray(1, 4).toString(), 'PNG', `${asset} is not a PNG`);
+    assert.equal(crypto.createHash('sha256').update(data).digest('hex'), digest);
   }
-  const suppliedStickPath = 'M9.63,26.39c-1.84,1.85-10.13,3.68-9.61-.82.17-4.22.23-14.87.24-20.11-.03-1.87.45-3.49,2.33-4.37C4.66.16,7.54-.45,9.71.42c1.55.78,1.08,2.04,1.04,4.44-.03,1.4-.02,2.75-.03,4.21-.02,3.69-.04,7.69-.06,11.35-.03,2.96.14,4.71-.94,5.87l-.09.1Z';
-  const suppliedAssets = new Map([
-    ['mahjong-bamboo-jade.svg', '#1f6d50'],
-    ['mahjong-bamboo-gold.svg', '#8a5a18'],
-  ]);
-  for (const [asset, color] of suppliedAssets) {
-    const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/${asset}`), 'utf8');
-    assert.match(data, /viewBox="0 0 10\.85 28\.38"/);
-    assert.ok(data.includes(suppliedStickPath), `${asset} does not preserve the supplied bamboo path`);
-    assert.ok(data.includes(`fill="${color}"`), `${asset} does not use its Mahjong board accent`);
-    assert.doesNotMatch(data, /<script|href=|xlink:href|foreignObject/);
-  }
-  const panda = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-bamboo-one.png'));
-  assert.equal(
-    crypto.createHash('sha256').update(panda).digest('hex'),
-    '6f3d925c19f739e79e11f92921f4d020bb6f7be9fe2527be033f3bac12ea79d9'
-  );
 });
 
 test('mahjong loads its sound module before the controller and exposes a pressed toggle', () => {
@@ -302,6 +354,12 @@ test('the completion card keeps its center transform after dialog motion', () =>
   assert.match(rule, /max-height:\s*calc\(100% - 28px\);/);
   assert.doesNotMatch(rule, /(?:^|;)\s*translate:/);
   assert.match(styles, /@keyframes mj-dialog-in\s*\{[\s\S]*translate:\s*0 12px;[\s\S]*translate:\s*0 0;/);
+});
+
+test('dialog actions keep readable lacquer contrast through hover and keyboard focus', () => {
+  assert.match(styles, /\.mj-button:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-ivory\);[^}]*border-color:\s*var\(--mj-brass\);[^}]*translate:\s*0 -1px;/);
+  assert.match(styles, /\.mj-button-primary:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-lacquer-ink\);[^}]*background:\s*#fffaf0;/);
+  assert.match(styles, /\.mj-button:active\s*\{[^}]*translate:\s*0 1px;/);
 });
 
 test('mahjong reports play only after a real free-tile move', () => {

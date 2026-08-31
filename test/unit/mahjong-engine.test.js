@@ -36,6 +36,12 @@ test('matchKey: flowers and seasons are class-matched, all else identity', () =>
   assert.equal(E.matchKey('dot-5'), 'dot-5');
   assert.equal(E.matchKey('wind-e'), 'wind-e');
   assert.equal(E.matchKey('drg-p'), 'drg-p');
+  assert.equal(E.matchKey('wind-e-motif'), 'wind-e-motif');
+  assert.equal(E.matchKey('wind-e-seal'), 'wind-e-seal');
+  assert.equal(E.matchKey('drg-c-motif'), 'drg-c-motif');
+  assert.equal(E.matchKey('drg-c-seal'), 'drg-c-seal');
+  assert.notEqual(E.matchKey('wind-e-motif'), E.matchKey('wind-e-seal'));
+  assert.notEqual(E.matchKey('drg-c-motif'), E.matchKey('drg-c-seal'));
 });
 
 test('freeness: covered tiles and doubly-flanked tiles are blocked', () => {
@@ -70,14 +76,14 @@ test('deals are winnable by construction across many seeds', () => {
     assert.equal(kinds.length, 144);
     assert.ok(kinds.every((k) => typeof k === 'string'));
     assert.equal(solution.length, 72);
-    // Full standard set: 34 quads + 4 flowers + 4 seasons.
+    // Turtle keeps the full ordinary set, while every visual special is an
+    // exact two-tile pair rather than a four-tile symbol family.
     const counts = new Map();
     for (const k of kinds) counts.set(k, (counts.get(k) ?? 0) + 1);
     for (const suit of ['dot', 'bam', 'chr']) for (let n = 1; n <= 9; n++) {
       assert.equal(counts.get(`${suit}-${n}`), 4);
     }
-    for (const w of ['e', 's', 'w', 'n']) assert.equal(counts.get(`wind-${w}`), 4);
-    for (const d of ['c', 'f', 'p']) assert.equal(counts.get(`drg-${d}`), 4);
+    for (const kind of E.SPECIAL_VARIANT_KINDS) assert.equal(counts.get(kind), 2);
     for (let n = 1; n <= 4; n++) {
       assert.equal(counts.get(`flower-${n}`), 1);
       assert.equal(counts.get(`season-${n}`), 1);
@@ -237,12 +243,19 @@ test('Arch is a broad, supported three-layer table rather than a portrait stack'
   assert.equal(positions.filter((_, index) => E.isFreeAt(positions, index, () => true)).length, 18);
 });
 
-test('every layout is solvable by construction across hundreds of seeded deals', () => {
+test('every layout is solvable and contains every special visual pair across hundreds of seeded deals', () => {
   for (const [layoutId, definition] of Object.entries(E.LAYOUTS)) {
-    for (let seed = 0; seed < 75; seed++) {
+    for (let seed = 0; seed < 200; seed++) {
       const { kinds, solution } = E.generateDeal({ seed, layoutId });
       assert.equal(kinds.length, definition.tileCount);
       assert.equal(solution.length, definition.tileCount / 2);
+      const specialCounts = new Map(E.SPECIAL_VARIANT_KINDS.map((kind) => [kind, 0]));
+      for (const kind of kinds) {
+        if (specialCounts.has(kind)) specialCounts.set(kind, specialCounts.get(kind) + 1);
+      }
+      for (const [kind, count] of specialCounts) {
+        assert.equal(count, 2, `${layoutId}/${seed}: expected one exact ${kind} pair`);
+      }
       const removed = new Array(definition.tileCount).fill(false);
       const present = (index) => !removed[index];
       for (const [first, second] of solution) {
@@ -304,6 +317,51 @@ test('Classic selectTile selects, switches, removes a pair, and undo restores it
   assert.equal(state.removed[first], false);
   assert.equal(state.removed[second], false);
   assert.equal(state.assists.undo, 1);
+});
+
+test('Classic hints and Tray auto-matching never pair different-looking variants', () => {
+  const classic = E.createGame({ seed: 42, layoutId: 'arch', mode: 'classic' });
+  const free = Array.from({ length: classic.kinds.length }, (_, index) => index)
+    .filter((index) => E.isFree(classic, index));
+  assert.ok(free.length >= 4);
+  const [motifOne, sealOne, motifTwo, sealTwo] = free;
+  classic.kinds[motifOne] = classic.kinds[motifTwo] = 'wind-n-motif';
+  classic.kinds[sealOne] = classic.kinds[sealTwo] = 'wind-n-seal';
+
+  const relevantMoves = E.availableMoves(classic).filter((move) =>
+    move.some((index) => [motifOne, sealOne, motifTwo, sealTwo].includes(index))
+  );
+  assert.ok(relevantMoves.some((move) => move.includes(motifOne) && move.includes(motifTwo)));
+  assert.ok(relevantMoves.some((move) => move.includes(sealOne) && move.includes(sealTwo)));
+  assert.equal(relevantMoves.some((move) =>
+    move.some((index) => [motifOne, motifTwo].includes(index))
+      && move.some((index) => [sealOne, sealTwo].includes(index))
+  ), false);
+
+  assert.equal(E.selectTile(classic, motifOne).type, 'selected');
+  assert.equal(E.selectTile(classic, sealOne).type, 'mismatch');
+  assert.equal(classic.removed[motifOne], false);
+  assert.equal(classic.removed[sealOne], false);
+  E.selectTile(classic, sealOne);
+  E.selectTile(classic, motifOne);
+  assert.equal(E.selectTile(classic, motifTwo).type, 'pair');
+
+  const tray = E.createGame({ seed: 43, layoutId: 'arch', mode: 'tray' });
+  const trayFree = Array.from({ length: tray.kinds.length }, (_, index) => index)
+    .filter((index) => E.isFree(tray, index));
+  const [trayMotifOne, traySealOne, trayMotifTwo, traySealTwo] = trayFree;
+  tray.kinds[trayMotifOne] = tray.kinds[trayMotifTwo] = 'drg-c-motif';
+  tray.kinds[traySealOne] = tray.kinds[traySealTwo] = 'drg-c-seal';
+  assert.equal(E.selectTile(tray, trayMotifOne).type, 'tray-park');
+  assert.equal(E.selectTile(tray, traySealOne).type, 'tray-park');
+  const matched = E.selectTile(tray, trayMotifTwo);
+  assert.equal(matched.type, 'tray-pair');
+  assert.deepEqual(matched.indices, [trayMotifOne, trayMotifTwo]);
+  assert.deepEqual(tray.tray, [traySealOne]);
+  assert.equal(E.undo(tray), true);
+  assert.deepEqual(tray.tray, [traySealOne]);
+  assert.equal(tray.removed[trayMotifOne], false);
+  assert.equal(tray.removed[trayMotifTwo], false);
 });
 
 test('Tray clean-match scoring climbs to 200 and caps there', () => {
@@ -545,6 +603,10 @@ test('v2 serialization round-trips independent state and rejects corruption', ()
   assert.notEqual(restored, state);
   assert.notEqual(restored.kinds, state.kinds);
   assert.deepEqual(E.restoreGame(JSON.stringify(payload)), state);
+  for (const kind of E.SPECIAL_VARIANT_KINDS) {
+    assert.equal(payload.kinds.filter((candidate) => candidate === kind).length, 2);
+    assert.equal(restored.kinds.filter((candidate) => candidate === kind).length, 2);
+  }
 
   assert.equal(E.restoreGame('{broken'), null);
   assert.equal(E.restoreGame({ ...payload, version: 99 }), null);
@@ -566,4 +628,20 @@ test('v2 serialization round-trips independent state and rejects corruption', ()
   const legacyArchPayload = E.serializeGame(E.createGame({ seed: 9, layoutId: 'arch', mode: 'classic' }));
   delete legacyArchPayload.layoutRevision;
   assert.equal(E.restoreGame(legacyArchPayload), null, 'old Arch coordinates cannot restore into revision 2');
+
+  const legacyKindsPayload = E.serializeGame(E.createGame({ seed: 10, layoutId: 'peaks', mode: 'classic' }));
+  for (const [variant, legacy] of [
+    ['wind-n-motif', 'wind-n'],
+    ['drg-c-motif', 'drg-c'],
+  ]) {
+    const indices = legacyKindsPayload.kinds
+      .map((kind, index) => kind === variant ? index : -1)
+      .filter((index) => index >= 0);
+    assert.equal(indices.length, 2);
+    for (const index of indices) legacyKindsPayload.kinds[index] = legacy;
+  }
+  const restoredLegacyKinds = E.restoreGame(legacyKindsPayload);
+  assert.ok(restoredLegacyKinds, 'unsuffixed V2 winds and dragons remain restorable');
+  assert.equal(restoredLegacyKinds.kinds.filter((kind) => kind === 'wind-n').length, 2);
+  assert.equal(restoredLegacyKinds.kinds.filter((kind) => kind === 'drg-c').length, 2);
 });

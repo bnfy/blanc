@@ -9,6 +9,15 @@
   const STATUSES = Object.freeze({ PLAYING: 'playing', RESCUE: 'rescue', WON: 'won' });
   const TRAY_SIZE = 4;
   const MAX_HISTORY = 160;
+  const SPECIAL_VARIANT_KINDS = Object.freeze([
+    'wind-n-motif', 'wind-n-seal',
+    'wind-e-motif', 'wind-e-seal',
+    'wind-s-motif', 'wind-s-seal',
+    'wind-w-motif', 'wind-w-seal',
+    'drg-c-motif', 'drg-c-seal',
+    'drg-f-motif', 'drg-f-seal',
+    'drg-p-motif', 'drg-p-seal',
+  ]);
 
   // Coordinates are in half-tile units. A tile occupies [x,x+2) x [y,y+2)
   // on one layer. Integer half-units let a raised tile bridge four tiles.
@@ -131,25 +140,26 @@
     return result;
   }
 
-  function standardPairs(rng) {
-    const pairs = [];
+  function standardPairs(rng, pairCount) {
+    const ordinaryPairs = [];
     for (const suit of ['dot', 'bam', 'chr']) {
       for (let value = 1; value <= 9; value++) {
-        pairs.push([`${suit}-${value}`, `${suit}-${value}`]);
-        pairs.push([`${suit}-${value}`, `${suit}-${value}`]);
+        ordinaryPairs.push([`${suit}-${value}`, `${suit}-${value}`]);
+        ordinaryPairs.push([`${suit}-${value}`, `${suit}-${value}`]);
       }
     }
-    for (const wind of ['e', 's', 'w', 'n']) {
-      pairs.push([`wind-${wind}`, `wind-${wind}`], [`wind-${wind}`, `wind-${wind}`]);
-    }
-    for (const dragon of ['c', 'f', 'p']) {
-      pairs.push([`drg-${dragon}`, `drg-${dragon}`], [`drg-${dragon}`, `drg-${dragon}`]);
-    }
     const flowers = shuffled(['flower-1', 'flower-2', 'flower-3', 'flower-4'], rng);
-    pairs.push([flowers[0], flowers[1]], [flowers[2], flowers[3]]);
+    ordinaryPairs.push([flowers[0], flowers[1]], [flowers[2], flowers[3]]);
     const seasons = shuffled(['season-1', 'season-2', 'season-3', 'season-4'], rng);
-    pairs.push([seasons[0], seasons[1]], [seasons[2], seasons[3]]);
-    return shuffled(pairs, rng);
+    ordinaryPairs.push([seasons[0], seasons[1]], [seasons[2], seasons[3]]);
+
+    if (!Number.isInteger(pairCount) || pairCount < SPECIAL_VARIANT_KINDS.length) {
+      throw new TypeError('mahjong: deal cannot contain the complete special collection');
+    }
+    const specialPairs = SPECIAL_VARIANT_KINDS.map((kind) => [kind, kind]);
+    const selectedOrdinaryPairs = shuffled(ordinaryPairs, rng)
+      .slice(0, pairCount - specialPairs.length);
+    return shuffled([...specialPairs, ...selectedOrdinaryPairs], rng);
   }
 
   const KNOWN_KINDS = (() => {
@@ -157,8 +167,11 @@
     for (const suit of ['dot', 'bam', 'chr']) {
       for (let value = 1; value <= 9; value++) kinds.add(`${suit}-${value}`);
     }
+    // Unsuffixed winds and dragons are kept for V2 saves created before the
+    // unified visual-pair theme. New deals exclusively use stable variants.
     for (const wind of ['e', 's', 'w', 'n']) kinds.add(`wind-${wind}`);
     for (const dragon of ['c', 'f', 'p']) kinds.add(`drg-${dragon}`);
+    for (const kind of SPECIAL_VARIANT_KINDS) kinds.add(kind);
     for (let value = 1; value <= 4; value++) {
       kinds.add(`flower-${value}`);
       kinds.add(`season-${value}`);
@@ -234,7 +247,7 @@
     const occupied = new Array(layout.length).fill(true);
     const plan = constructRemovalPlan(layout, occupied, rng);
     if (!plan) throw new Error(`mahjong: deal generation failed for ${layoutId}`);
-    const pairs = standardPairs(rng).slice(0, layout.length / 2);
+    const pairs = standardPairs(rng, layout.length / 2);
     const kinds = new Array(layout.length).fill(null);
     for (let index = 0; index < plan.length; index++) {
       const [first, second] = plan[index];
@@ -790,6 +803,7 @@
     MODES,
     STATUSES,
     TRAY_SIZE,
+    SPECIAL_VARIANT_KINDS,
     LAYOUTS,
     TURTLE_LAYOUT,
     ARCH_LAYOUT,

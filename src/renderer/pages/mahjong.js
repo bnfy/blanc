@@ -49,9 +49,9 @@ function setLayoutGeometry(layoutId) {
 }
 
 // --- tile faces -----------------------------------------------------------
-// One-color ink marks: dots/bamboo pictorial, characters numeral + rule,
-// winds/dragons mono letterforms, the Blanc white dragon, and distinct
-// botanical bonus-family engravings. All currentColor.
+// Tile-face artwork: dots/bamboo pictorial, characters numeral + rule,
+// landscape winds, emblematic dragons, and distinct botanical bonus-family
+// engravings. All art stays local to the flat-served internal pages directory.
 
 // Traditional arrangements. Dot tiles use centered ring compositions rather
 // than domino diagonals; bamboo overrides the counts where sticks stack
@@ -70,6 +70,28 @@ const DOT_SPOTS = {
   9: NINE_GRID.ys.flatMap((y) => NINE_GRID.xs.map((x) => [x, y])),
 };
 const DOT_ART = 'mahjong-dot-pip.png';
+const WIND_ART = Object.freeze({
+  n: 'mahjong-wind-north.png',
+  e: 'mahjong-wind-east.png',
+  s: 'mahjong-wind-south.png',
+  w: 'mahjong-wind-west.png',
+});
+const WIND_SEAL_ART = 'mahjong-wind-compass.png';
+const WIND_SEAL_ROTATION = Object.freeze({ n: 0, e: 90, s: 180, w: 270 });
+const DRAGON_ART = Object.freeze({
+  c: 'mahjong-dragon-red.png',
+  f: 'mahjong-dragon-green.png',
+  p: 'mahjong-dragon-white.png',
+});
+const DRAGON_SEAL_ART = Object.freeze({
+  c: 'mahjong-dragon-red-seal.png',
+  f: 'mahjong-dragon-green-seal.png',
+  p: 'mahjong-dragon-white-seal.png',
+});
+const BONUS_ART = Object.freeze({
+  flower: 'mahjong-flower.png',
+  season: 'mahjong-season.png',
+});
 const DOT_PIP_SIZES = Object.freeze({
   1: 26,
   2: 15,
@@ -97,24 +119,19 @@ const BAM_SPOTS = {
 
 const BAMBOO_ART = Object.freeze({
   one: 'mahjong-bamboo-one.png',
-  jade: 'mahjong-bamboo-jade.svg',
-  gold: 'mahjong-bamboo-gold.svg',
+  jade: 'mahjong-bamboo-jade.png',
+  gold: 'mahjong-bamboo-gold.png',
 });
 const BAMBOO_STICK_SIZES = Object.freeze({
-  2: [10, 34],
-  3: [10, 20],
-  4: [9.5, 18],
-  5: [9, 16.5],
-  6: [8.5, 15.5],
-  7: [8, 14.5],
-  8: [7.5, 13.5],
-  9: [7, 13],
+  2: [13, 36],
+  3: [12, 24],
+  4: [11, 21],
+  5: [10.5, 19],
+  6: [10, 18],
+  7: [9.5, 17],
+  8: [9, 15.5],
+  9: [8.5, 14.5],
 });
-
-// One rounded plum-blossom petal. Five rotations make a botanical engraving
-// whose negative space stays open when the 44 × 60 face is rendered small.
-const FLOWER_PETAL_PATH =
-  'M19.6 27.4C16.5 23.8 16.1 19.2 18.5 15.2C20.2 12.4 23.8 12.4 25.5 15.2C27.9 19.2 27.5 23.8 24.4 27.4C22.8 28.4 21.2 28.4 19.6 27.4Z';
 
 function el(tag, attrs) {
   const node = document.createElementNS(SVG_NS, tag);
@@ -143,6 +160,33 @@ function dotFace(count) {
   return group;
 }
 
+function windFace(id, variant = 'motif') {
+  const group = el('g', { class: `mj-wind-art mj-wind-art-${id} mj-wind-art-${variant}` });
+  if (variant === 'seal') {
+    const compass = faceImage(WIND_SEAL_ART, 22, 30, 40, 40, 'mj-wind-source mj-wind-source-seal');
+    compass.setAttribute('transform', `rotate(${WIND_SEAL_ROTATION[id]} 22 30)`);
+    group.append(compass);
+  } else {
+    group.append(faceImage(WIND_ART[id], 22, 30, 42, 48, 'mj-wind-source mj-wind-source-motif'));
+  }
+  return group;
+}
+
+function dragonFace(id, variant = 'motif') {
+  const group = el('g', { class: `mj-dragon-art mj-dragon-art-${id} mj-dragon-art-${variant}` });
+  const source = variant === 'seal' ? DRAGON_SEAL_ART[id] : DRAGON_ART[id];
+  const [width, height] = variant === 'seal' ? [40, 40] : [42, 48];
+  group.append(faceImage(
+    source,
+    22,
+    30,
+    width,
+    height,
+    `mj-dragon-source mj-dragon-source-${variant}`
+  ));
+  return group;
+}
+
 function bambooStickAsset(count, index, x) {
   const goldAccent =
     (count === 3 && index === 0) ||
@@ -153,9 +197,8 @@ function bambooStickAsset(count, index, x) {
 }
 
 // One bamboo keeps its special panda emblem. The numbered suit uses bold,
-// segmented jade sticks with restrained seasonal-gold accents, borrowing
-// Mahjong Blast's at-a-glance clarity while preserving the supplied local
-// vector shape.
+// segmented lacquer sticks with restrained brass accents, borrowing Mahjong
+// Blast's at-a-glance clarity while keeping Blanc's engraved material finish.
 function bambooFace(count) {
   const group = el('g', { class: `mj-bamboo-art mj-bamboo-art-${count}` });
   if (count === 1) {
@@ -181,15 +224,12 @@ function textEl(x, y, size, content) {
     x, y,
     'font-size': size,
     'text-anchor': 'middle',
+    'dominant-baseline': 'central',
     fill: 'currentColor',
   });
   t.textContent = content;
   return t;
 }
-
-// Canonical Blanc mark (two paths, copied verbatim from the newtab vignette
-// — never redrawn). Drawn inside the white-dragon frame.
-const BLANC_MARK_PATHS = ["M126.07,9.65s0,0,0,0c0,0,.01,0,.02.01l-.02-.02Z","M153.05,123.49h0s0-.02-.01-.03c0-.02-.01-.03-.02-.05h0c-1.42-3.8-3.32-7.27-5.21-10.57-1.9-3.31-3.8-6.46-5.28-9.5l-.06-.13-.04-.08-.04-.08c-1.92-3.63-2.59-6.78-2.6-9.97,0-1.98.27-3.98.75-6.06.72-3.13,1.9-6.44,3.19-10,1.29-3.57,2.68-7.39,3.7-11.59v-.02s.01-.04.01-.04c.89-3.93,1.33-7.96,1.33-11.99,0-8.53-1.96-17.06-5.77-24.68-3.81-7.61-9.49-14.32-16.93-19.06-3.91-2.53-7.71-4.42-11.53-5.78-5.74-2.06-11.49-2.94-17.7-3.33-6.22-.39-12.94-.31-20.92-.4h-.02s-.02,0-.02,0C61.41.13,45.12,0,30.04,0c-4.51,0-8.92.01-13.14.04h-.03s-.03,0-.03,0c-2.57.05-4.75.14-6.75.43-1.49.22-2.91.56-4.28,1.2-1.02.48-2.01,1.15-2.83,2.02-.61.65-1.12,1.39-1.52,2.17-.59,1.18-.93,2.42-1.13,3.71-.2,1.29-.28,2.65-.28,4.15,0,.24,0,.49,0,.74-.01,22.39-.08,85.06-.08,132.38,0,18.98.01,35.49.04,45.95v.08s0,.08,0,.08c.07,1.52.04,3.35.46,5.41.22,1.03.56,2.13,1.19,3.21.62,1.08,1.53,2.13,2.69,2.91l.03.02.04.02c.97.64,2,1.05,3.06,1.35,1.59.45,3.29.67,5.23.82,1.94.15,4.14.21,6.66.24h.02s.02,0,.02,0c8.88.04,18.46.05,28.12.05s19.04,0,28.08,0c1,0,1.99,0,2.98,0,2.34.06,4.62.1,6.84.1,11.36,0,21.42-.9,30.74-4.07,4.65-1.58,9.1-3.73,13.35-6.58,4.26-2.85,8.32-6.38,12.25-10.7l.02-.02h.01c9.98-11.23,15.25-25.89,15.26-40.6,0-7.32-1.31-14.67-4.04-21.61ZM122.32,183.57c-3.67,2.39-8.05,4.16-12.92,5.43-7.3,1.91-15.69,2.69-24.21,2.99-8.5.3-17.13.14-25.06.28-8.58-.06-16.83-.12-23.11-.27h-.01c-2.19-.05-4.06-.12-5.58-.24-1.01-.08-1.86-.18-2.55-.29.35-.44.78-.94,1.29-1.51.94-1.04,2.15-2.26,3.59-3.66,20.75-19.95,54.25-52.14,75.59-72.41,1.9-1.74,3.97-3.49,5.97-4.79,1-.65,1.99-1.19,2.9-1.57.89-.37,1.71-.59,2.42-.67.2-.02.4-.02.59-.02.95,0,1.89.17,2.87.52,1.7.6,3.52,1.79,5.3,3.47,2.67,2.52,5.2,6.13,7.23,9.98,2.04,3.85,3.59,7.94,4.48,11.34v.03s0,0,0,0c.99,3.66,1.48,7.52,1.48,11.43,0,7.79-1.93,15.81-5.45,22.84-3.52,7.04-8.61,13.09-14.82,17.11h0ZM27.87,172.46c-.42.36-.83.73-1.29,1.17-.94.9-2.06,2.04-3.29,3.24-1.84,1.81-3.93,3.78-5.75,5.18-.56.43-1.09.8-1.56,1.1,0-.04,0-.07,0-.1,0-1.02.1-2.35.28-3.81.53-4.4,1.81-9.99,2.87-13.39l.03-.09.02-.09c4.53-17.55,15.62-34.58,30.07-47.08,7.22-6.25,15.28-11.38,23.73-14.92,8.45-3.55,17.29-5.52,26.13-5.52,1.13,0,2.27.03,3.4.1.36.04.66.09.91.14-.08.15-.17.31-.28.48-.57.91-1.48,2.04-2.47,3.13-.99,1.09-2.04,2.14-2.94,3.04-6.26,6.14-12.82,12.38-19.74,19.08h0c-15.42,14.87-35.83,34.55-50.13,48.34ZM16.83,23.17c.05-2.03.22-3.65.49-4.86.2-.91.45-1.58.7-2.06.19-.36.38-.62.59-.84.32-.33.69-.6,1.32-.87.63-.27,1.51-.51,2.69-.68,4.12-.56,8.4-.66,12.86-.66,2.21,0,4.47.02,6.77.02.75,0,1.5,0,2.26,0,11.64.04,24.53.04,35.96.11,6.07.12,11.73.12,17.02.71,5.3.59,10.21,1.73,14.97,4.08h.01c6.24,3.06,11.27,8.13,14.76,14.25,3.49,6.11,5.39,13.25,5.38,20.21,0,4.2-.69,8.34-2.09,12.16-1.41,3.82-3.52,7.33-6.42,10.36-1.84,1.88-3.92,3.43-6.24,4.74-3.47,1.96-7.46,3.35-11.7,4.42-4.22,1.06-8.67,1.79-13.06,2.48-15.4,1.8-29.25,6.75-41.4,14.46-12.16,7.7-22.63,18.12-31.43,30.78-.67.81-1.32,1.69-1.99,2.6-.44.61-.89,1.21-1.34,1.8-.07-1.19-.13-2.5-.17-3.91-.08-2.67-.1-5.67-.1-8.8,0-5.16.07-10.68.07-15.76,0-1.89,0-3.73-.04-5.46.01-3.39.02-6.87.02-10.42,0-12.98-.06-26.83-.06-40.11,0-10.13.04-19.92.16-28.71Z"];
 
 // Bonus tiles match by family in classic Mahjong solitaire: every flower can
 // pair with every flower, and every season can pair with every season. Their
@@ -197,43 +237,28 @@ const BLANC_MARK_PATHS = ["M126.07,9.65s0,0,0,0c0,0,.01,0,.02.01l-.02-.02Z","M15
 // avoids the false promise of exact matching created by unrelated UI glyphs
 // and corner numerals while keeping the underlying four-tile sets intact.
 function bonusFace(family) {
-  const g = el('g', {
-    fill: 'none',
-    stroke: 'currentColor',
-    'stroke-width': 2.1,
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'round',
-  });
-  if (family === 'flower') {
-    g.classList.add('mj-bonus-flower');
-    const petals = el('g', { class: 'mj-flower-petals' });
-    for (const angle of [0, 72, 144, 216, 288]) {
-      const attributes = { d: FLOWER_PETAL_PATH };
-      if (angle) attributes.transform = `rotate(${angle} 22 30)`;
-      petals.append(el('path', attributes));
-    }
-    g.append(
-      petals,
-      el('circle', { class: 'mj-flower-center', cx: 22, cy: 30, r: 3.7 }),
-    );
-  } else {
-    g.classList.add('mj-bonus-season');
-    g.append(el('path', {
-      d: 'M11 42c1-16 10-25 25-24 0 15-9 24-25 24Z',
-    }));
-    g.append(el('path', { d: 'M13 40c8-8 14-14 21-20', 'stroke-width': 1.7 }));
-  }
-  return g;
+  const group = el('g', { class: `mj-bonus-art mj-bonus-${family}` });
+  group.append(faceImage(BONUS_ART[family], 22, 30, 42, 48, 'mj-bonus-source'));
+  return group;
 }
 
 const NUM_WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
 function tileName(kind) {
-  const [family, id] = kind.split('-');
+  const [family, id, rawVariant] = kind.split('-');
+  const variant = rawVariant || 'motif';
   if (family === 'dot') return `${NUM_WORDS[id - 1]} dot`;
   if (family === 'bam') return `${NUM_WORDS[id - 1]} bamboo`;
   if (family === 'chr') return `${NUM_WORDS[id - 1]} character`;
-  if (family === 'wind') return `${{ e: 'east', s: 'south', w: 'west', n: 'north' }[id]} wind`;
-  if (family === 'drg') return { c: 'red dragon', f: 'green dragon', p: 'white dragon' }[id];
+  if (family === 'wind') {
+    const direction = { e: 'east', s: 'south', w: 'west', n: 'north' }[id];
+    const motif = { e: 'sunrise', s: 'sun', w: 'moon and wave', n: 'mountain' }[id];
+    return `${direction} wind, ${variant === 'seal' ? 'compass' : motif}`;
+  }
+  if (family === 'drg') {
+    const dragon = { c: 'red dragon', f: 'green dragon', p: 'white dragon' }[id];
+    const motif = { c: 'flame', f: 'flourish', p: 'Blanc mark' }[id];
+    return `${dragon}, ${variant === 'seal' ? 'seal' : motif}`;
+  }
   if (family === 'flower') return 'flower bonus';
   return 'season bonus';
 }
@@ -241,28 +266,20 @@ function tileName(kind) {
 function faceSVG(kind) {
   const svg = el('svg', { viewBox: '0 0 44 60', 'aria-hidden': 'true' });
   svg.classList.add('mj-face');
-  const [family, id] = kind.split('-');
+  const [family, id, rawVariant] = kind.split('-');
+  const variant = rawVariant || 'motif';
   if (family === 'dot') {
     svg.append(dotFace(Number(id)));
   } else if (family === 'bam') {
     svg.append(bambooFace(Number(id)));
   } else if (family === 'chr') {
-    svg.append(textEl(22, 36, 26, id));
-    svg.append(el('rect', { x: 12, y: 46, width: 20, height: 1.5, fill: 'currentColor' }));
+    const number = textEl(22, 30, 42, id);
+    number.classList.add('mj-character-number');
+    svg.append(number);
   } else if (family === 'wind') {
-    svg.append(textEl(22, 38, 24, id.toUpperCase()));
+    svg.append(windFace(id, variant));
   } else if (family === 'drg') {
-    if (id === 'p') {
-      // The white dragon is the Blanc tile (blanc = white): the canonical
-      // mark alone, embedded verbatim. Brand rule: the logomark appears
-      // ONLY in black or white (here the theme ink) and NEVER in a frame.
-      const scale = 26 / 207.08;
-      const g = el('g', {
-        transform: `translate(${22 - (157.08 * scale) / 2}, ${30 - 13}) scale(${scale})`,
-      });
-      for (const d of BLANC_MARK_PATHS) g.append(el('path', { d, fill: 'currentColor' }));
-      svg.append(g);
-    } else svg.append(textEl(22, 38, 24, id.toUpperCase()));
+    svg.append(dragonFace(id, variant));
   } else if (family === 'flower' || family === 'season') {
     svg.append(bonusFace(family));
   }

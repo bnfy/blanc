@@ -136,6 +136,311 @@ final result: passed
 
 ---
 
+# Mahjong unified 14-design lacquer theme — 2026-08-31
+
+**Final result:** passed
+
+## Comparison target
+
+- Primary source visual truth:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-08-31 at 12.05.42 AM.png`.
+- Button-state issue reference:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-08-31 at 1.01.15 AM.png`.
+- Fresh Turtle implementation:
+  `/private/tmp/mahjong-unified-turtle.png`.
+- Fresh Arch implementation:
+  `/private/tmp/mahjong-unified-arch.png`.
+- Fresh Peaks implementation:
+  `/private/tmp/mahjong-unified-peaks.png`.
+- Full source-and-three-layout comparison:
+  `/private/tmp/mahjong-unified-full-comparison.png`.
+- Focused source-and-board comparison:
+  `/private/tmp/mahjong-unified-focus-comparison.png`.
+- Post-fix button-state implementation:
+  `/private/tmp/mahjong-hover-focus-final.png`.
+- Viewport: isolated live Blanc development window at 1229×768 CSS px,
+  light chrome, lacquer game surface, 1× capture density.
+
+## Normalization
+
+- The source mockup is 862×1140 pixels. A normalized 1229×768 comparison copy
+  preserves aspect ratio, centers the complete two-panel catalog, and pads with
+  white; the source itself was not cropped or distorted.
+- Turtle, Arch, and Peaks are each browser-rendered 1229×768 captures at the
+  same 1× density and viewport. Full-view evidence uses the complete windows.
+- Focused comparison uses native board crops—760×540 Turtle, 830×540 Arch, and
+  560×540 Peaks—scaled uniformly into 900×600 panels. The layout-specific crop
+  widths preserve each board's intended tile scale rather than forcing the
+  three layouts into an artificial common width.
+- State: fresh random Classic deals at 72, 48, and 36 pairs remaining. Unit
+  verification separately exercises both Classic and Tray exact-pair behavior.
+
+## Findings
+
+The tile theme and completion actions have no remaining actionable P0, P1, or
+P2 findings.
+
+- Fonts and typography: black character numerals remain bold, optically
+  centered, and dominant at game scale. The compact mono status system and
+  Inter action labels keep their established hierarchy. No letter tiles were
+  reintroduced.
+- Spacing and layout rhythm: all seven landscape/emblem faces retain the
+  larger 42×48 treatment; compasses and seals sit in 40×40 boxes. Turtle, Arch,
+  and Peaks preserve centered playing surfaces, clear layer depth, and the
+  left control rail without shrinking their native layouts.
+- Colors and visual tokens: motif and seal artwork shares the same ink, jade,
+  oxblood, bone-ivory, and brass vocabulary. Blocked tiles desaturate all
+  variants consistently without erasing their silhouettes or orientation.
+- Image quality and asset fidelity: the four new local transparent raster
+  assets have clean alpha edges and no background halos. The compass source is
+  rotated at 0°, 90°, 180°, and 270° without resampling separate derivatives;
+  circular red/green seals and the square white seal stay sharp at live size.
+- Copy and content: every variant has a distinct accessible name, including
+  `north wind, mountain`, `north wind, compass`, `red dragon, flame`, and
+  `red dragon, seal`. Visual identity and announced identity remain aligned.
+- Full-view evidence confirms the complete family integrates with the lacquer
+  board and remains readable through free, blocked, and raised tile states.
+- Focused evidence confirms the supplied 14-design catalog's scale, materials,
+  compass orientations, and mixed rectangular/circular seal silhouettes carry
+  into all three layouts.
+
+## Comparison history
+
+### Iteration 1 — tile collection passed
+
+The first live unified-theme pass showed all 14 exact-pair designs at strong
+game scale across fresh Turtle, Arch, and Peaks boards. No P0/P1/P2 tile-art,
+layout, color, typography, image-quality, or copy mismatch remained.
+
+### Iteration 2 — button interaction blocked
+
+- [P2] The completion dialog's outlined `choose board` action inherited the
+  shared utility-page hover text color. Its label became black against a dark
+  green hover fill, making a live secondary action look disabled.
+
+Fix: the Mahjong button component now owns hover and `:focus-visible` color,
+border, fill, elevation, and translation at higher specificity. Secondary
+actions keep ivory text with a brass edge and lacquer lift; primary actions
+retain dark ink on the ivory surface; active state presses back down by 1px.
+
+Post-fix evidence: a dedicated isolated Electron instance rendered the actual
+completion card and hovered `choose board`. The live computed state confirms
+ivory text, the brass border, the layered lacquer fill, and elevated shadow;
+the matching screenshot is
+`/private/tmp/mahjong-hover-focus-final.png`.
+
+## Functional evidence
+
+- 74 focused Mahjong tests pass, including exact variant matching through
+  hints, Classic selection, Tray auto-match, undo, shuffle, serialization,
+  legacy V2 restoration, and duplicate-tab forking.
+- Each layout contains exactly two of every stable special variant across 200
+  deterministic seeds per layout, while every generated deal remains solvable.
+- The complete 907-test unit suite passes with ordinary local permissions. Its
+  two loopback tests were also observed to fail only under the filesystem
+  sandbox's `listen EPERM` restriction, then pass unchanged outside it.
+- `git diff --check` passes.
+- All artwork remains local to the flat-served internal-pages directory; no
+  state version, network path, theme picker, release version, or telemetry was
+  added.
+
+## Follow-up polish
+
+No P3 tile-theme follow-up is required.
+
+final result: passed
+
+---
+
+# Mahjong complete lacquer tile family — 2026-08-31
+
+**Final result:** passed
+
+## Comparison target
+
+- User-reported thin-bamboo capture:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-08-31 at 12.41.39 AM.png`.
+- Seven-motif art-direction source:
+  `/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/codex-clipboard-09c20896-38cb-4e96-a41f-126a7b888db9.png`.
+- Final live Blanc capture:
+  `/private/tmp/mahjong-complete-lacquer-suits.png`.
+- Final board crop:
+  `/private/tmp/mahjong-complete-lacquer-board-crop.png`.
+- Normalized thin-to-substantial comparison:
+  `/private/tmp/mahjong-bamboo-number-focus-before-after.png`.
+- Final local-asset-and-live-board comparison:
+  `/private/tmp/mahjong-complete-lacquer-comparison.png`.
+- Final asset contact sheet:
+  `/private/tmp/mahjong-final-lacquer-assets.png`.
+- Viewport: live Blanc development window at 1229×768 CSS px, Turtle layout,
+  Classic mode, light chrome and lacquer game surface.
+
+## Normalization
+
+- The user's bamboo capture and the live result were normalized to the same
+  visual height, then the live board was cropped to its playing surface so tile
+  faces can be compared at a similar scale rather than against app chrome.
+- The final asset comparison places the transparent flower, ginkgo leaf, ring
+  pip, panda, jade bamboo, and brass bamboo sprites beside the uncropped live
+  Electron capture. No sprite or board was redrawn for QA.
+- The live app was fully restarted after changing the same-filename local PNGs,
+  avoiding stale iframe or image-cache evidence.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Typography: character numerals use an exact `(22, 30)` SVG center with
+  `text-anchor: middle` and `dominant-baseline: central`. The Inter variable
+  face is 42px at weight 850, with an ink fill, restrained brass engraved
+  keyline, and two-level inset/raised shadow. There are no underline marks.
+- Bamboo scale: the jade and brass stalk sprites now have tight alpha bounds,
+  a deliberately substantial 96×244 silhouette, and larger per-rank image
+  boxes. Two-bamboo reads as a bold pair, while eight and nine remain separated
+  instead of collapsing into hairlines.
+- Material consistency: flower, leaf, dots, panda, and bamboo all use the same
+  glossy lacquer, engraved brass, deep jade/ink, and bone-ivory vocabulary as
+  the large wind and dragon motifs.
+- Hierarchy and spacing: larger numerals and thicker stalks occupy the tile face
+  without touching its inset border or colliding with neighboring pips.
+- Accessibility and copy: semantic names remain rank-and-suit based; decorative
+  material changes do not alter matching rules, hints, or keyboard navigation.
+- Full-view evidence confirms the revised marks remain legible on free, blocked,
+  and layered tiles across the complete Turtle board.
+
+## Comparison history
+
+### Iteration 1 — failed
+
+- [P2] Square transparent padding forced the tall bamboo sprites to scale by
+  width, reducing detailed lacquer stalks to one- or two-pixel hairlines.
+- [P2] Character numerals were centered but visually lighter and smaller than
+  the rest of the refreshed engraved family.
+
+### Iteration 2 — passed
+
+The final focused comparison shows materially thicker bamboo at every visible
+rank and larger, bolder, geometrically centered ink numerals. The asset/contact
+sheet comparison confirms consistent lacquer and brass detailing across the six
+new local sprite families.
+
+## Functional evidence
+
+- 71 focused Mahjong engine, renderer, sound, persistence, and duplicate-tab
+  tests pass.
+- The complete 904-test unit suite passes.
+- The live Electron accessibility tree reports rank-and-suit names for every
+  tile after the visual changes.
+- The development terminal showed no renderer or main-process errors during
+  the final visual pass.
+
+## Follow-up polish
+
+No P3 implementation follow-up is required.
+
+final result: passed
+
+---
+
+# Mahjong seven-motif wind and dragon set — 2026-08-31
+
+**Final result:** passed
+
+## Comparison target
+
+- Source visual truth:
+  `/var/folders/4x/r7mr2b5d4q53x8nbf_trvcxw0000gn/T/codex-clipboard-09c20896-38cb-4e96-a41f-126a7b888db9.png`.
+- Rendered implementation:
+  `/private/tmp/mahjong-large-black-numerals-normalized.png`.
+- Full-view combined evidence:
+  `/private/tmp/mahjong-final-design-comparison.png`.
+- Focused source-and-board evidence:
+  `/private/tmp/mahjong-final-focus-comparison.png`.
+- Viewport: live Blanc development window at 1229×768 CSS px and 1× capture
+  density, Turtle layout, Classic mode, light chrome and lacquer game surface.
+- State: a solvable shuffle exposes the mountain, sunrise, sun, moon-and-wave,
+  flame, jade flourish, and Blanc-mark motifs across free and blocked tiles.
+
+## Normalization
+
+- The source is 1536×1024 pixels. The full source and 1229×768 implementation
+  were independently scaled to 640 pixels high and joined without non-uniform
+  distortion; the resulting comparison is 1984×640.
+- The focused source crop is 1220×770 from `(150, 140)` and the focused board
+  crop is 980×560 from `(170, 120)`. Each was uniformly scaled to 560 pixels
+  high before being joined; no tile or artwork was stretched.
+- Each motif is a separate transparent 256×256 RGBA sprite. Its visible bounds
+  are trimmed, enlarged to 244×244, centered, and stripped of metadata.
+- Every sprite renders in a 42×48 face box inside the 44×60 tile viewBox. This
+  gives the motifs the mockup's confident face coverage while retaining a safe
+  ivory margin and the artwork's original aspect ratio.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Fonts and typography: the four wind letters and two dragon letters are gone.
+  Character numerals now use 42px ink-black faces without the old underline,
+  giving their single digits the substantial scale requested in the final
+  visual pass. Accessible names still announce semantic rank and suit.
+- Spacing and layout rhythm: the seven artworks share the same substantial
+  42×48 image box. Their baselines align, visual centers remain balanced, and
+  neither the tallest mountain nor widest moon-and-wave clips the tile face.
+- Colors and visual tokens: ink-black, warm brass, oxblood, and deep jade match
+  the supplied mockup and the existing lacquer board. The established blocked
+  filter produces an intentional subdued state without losing motif identity.
+- Image quality and asset fidelity: all seven visible designs are real local
+  transparent raster assets, not text glyphs or code-drawn approximations.
+  Alpha edges are clean at actual game scale and the Blanc mark remains
+  recognizable.
+- Copy and content: no user-facing copy changed. The semantic names `north
+  wind`, `east wind`, `south wind`, `west wind`, and the three dragon names are
+  preserved for assistive technology.
+- Full-view evidence confirms the complete set integrates with the existing
+  board, tile depth, free/blocked states, bamboo, dot, character, and bonus
+  families without shifting board geometry.
+- Focused evidence confirms the motifs use the same confident proportion as
+  the mockup rather than the undersized first implementation.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P2] The first implementation used only the later compass-seal option and
+  rendered its shared compass and dragon medallions in 34–35px square boxes.
+  It omitted the seven explicitly expected motifs and looked visibly smaller
+  than the selected mockup.
+
+Fix: replaced that set with seven separate source-matched assets—mountain,
+sunrise, sun, moon-and-wave, flame, jade flourish, and Blanc mark—and increased
+their common image box to 42×48.
+
+### Iteration 2 — passed
+
+The post-restart, post-shuffle capture shows all seven motifs at the expected
+scale, with clean margins, readable blocked states, and no clipping or layout
+regression.
+
+## Functional evidence
+
+- The Electron development app was fully restarted before the final capture so
+  the embedded Mahjong renderer loaded the new flat-served assets.
+- A live solvable shuffle was exercised; the final settled board was captured
+  after the cascade completed.
+- `node --check src/renderer/pages/mahjong.js` passes.
+- All 71 focused Mahjong renderer, engine, sound, state, and storage tests pass.
+- `git diff --check` passes.
+- The live development terminal showed no renderer or main-process errors
+  during the final visual pass.
+
+## Follow-up polish
+
+No P3 implementation follow-up is required.
+
+final result: passed
+
+---
+
 # Asset 2 bamboo silhouette and board-accent palette — 2026-08-30
 
 **Final result:** passed

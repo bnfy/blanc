@@ -250,6 +250,24 @@ test('forkSavedGame copies a validated save without changing its source id', () 
   assert.equal(store.load(target).gameId, target);
 });
 
+test('duplicate-tab forking preserves every stable Mahjong visual variant', () => {
+  const storage = new MemoryStorage();
+  const store = S.createGameStore({ storage, engine: E, now: () => 101 });
+  const source = uuid(22);
+  const target = uuid(23);
+  const game = E.createGame({ seed: 831, layoutId: 'peaks', mode: 'tray', gameId: source });
+  assert.equal(store.save(source, game), true);
+
+  const forked = store.forkSavedGame(source, target);
+  assert.ok(forked);
+  assert.equal(forked.gameId, target);
+  for (const kind of E.SPECIAL_VARIANT_KINDS) {
+    assert.equal(forked.kinds.filter((candidate) => candidate === kind).length, 2);
+  }
+  assert.deepEqual(store.load(source).kinds, game.kinds);
+  assert.deepEqual(store.load(target).kinds, game.kinds);
+});
+
 test('legacy best migrates to Turtle Classic without touching sound', () => {
   const storage = new MemoryStorage({
     [S.LEGACY_BEST_KEY]: '81234',
