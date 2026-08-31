@@ -22,6 +22,10 @@ const newtab = fs.readFileSync(
   path.join(__dirname, '../../src/renderer/pages/newtab.js'),
   'utf8'
 );
+const newtabHtml = fs.readFileSync(
+  path.join(__dirname, '../../src/renderer/pages/newtab.html'),
+  'utf8'
+);
 
 function mediaBlocks(query) {
   const marker = `@media ${query}`;
@@ -394,6 +398,22 @@ test('embedded Mahjong shares its opaque game id with the persisted parent URL',
   assert.match(controller, /event\.data\?\.type !== 'blanc:mahjong-active'/);
   assert.match(controller, /if \(!embedActive\) \{[\s\S]*pauseTimer\(\);[\s\S]*saveAfterMutation\(\);/);
   assert.doesNotMatch(newtab, /searchParams\.set\('(seed|layout|mode|score)'/);
+});
+
+test('Mahjong footer can collapse, expand the game, and persist locally', () => {
+  assert.match(newtabHtml, /id="mahjongFooterToggle"[^>]*aria-controls="layoutFooter"[^>]*aria-expanded="true"/);
+  assert.match(newtab, /const MAHJONG_FOOTER_KEY = 'mahjongFooterHidden'/);
+  assert.match(newtab, /localStorage\.getItem\(MAHJONG_FOOTER_KEY\) === '1'/);
+  assert.match(newtab, /mahjongFooterHidden = !mahjongFooterHidden[\s\S]*localStorage\.setItem\(MAHJONG_FOOTER_KEY, mahjongFooterHidden \? '1' : '0'\)[\s\S]*syncMahjongFooter\(\{ animate: true \}\)/);
+  assert.match(newtab, /mahjongFooterToggle\.hidden = state\.layout !== 'mahjong'/);
+  assert.match(newtab, /document\.startViewTransition\(paintMahjongFooter\)/);
+  assert.match(newtab, /mahjongFooterTransition\?\.skipTransition\(\)/);
+  assert.match(styles, /body\[data-layout="mahjong"\]\[data-mahjong-footer="hidden"\] \.mahjong-embed\s*\{[^}]*bottom:\s*0/);
+  assert.match(styles, /body\[data-layout="mahjong"\]\[data-mahjong-footer="hidden"\] \.ledger-footer\s*\{[^}]*visibility:\s*hidden[^}]*pointer-events:\s*none/);
+  assert.match(styles, /body\[data-layout="mahjong"\]\[data-mahjong-footer="hidden"\] \.mahjong-footer-toggle\s*\{[^}]*bottom:\s*12px/);
+  assert.match(styles, /\.mahjong-footer-toggle:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*#fff6dc/);
+  assert.match(styles, /::view-transition-group\(mahjong-game\)[\s\S]*animation-duration:\s*260ms/);
+  assert.doesNotMatch(styles, /\.mahjong-embed\s*\{[^}]*transition:\s*bottom/);
 });
 
 test('compact and zoomed layouts retain status with a scroll recovery path', () => {

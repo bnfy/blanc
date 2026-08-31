@@ -521,6 +521,46 @@ window.addEventListener('message', (event) => {
 // device. localStorage is a per-viewer convenience here — absent or blocked
 // storage just means the badge stays, never an error.
 const MAHJONG_SEEN_KEY = 'mahjongLayoutSeen';
+const MAHJONG_FOOTER_KEY = 'mahjongFooterHidden';
+const mahjongFooterToggle = document.getElementById('mahjongFooterToggle');
+const mahjongFooterToggleLabel = document.getElementById('mahjongFooterToggleLabel');
+let mahjongFooterHidden = false;
+let mahjongFooterTransition = null;
+try { mahjongFooterHidden = localStorage.getItem(MAHJONG_FOOTER_KEY) === '1'; } catch { /* visible is the safe default */ }
+
+function paintMahjongFooter() {
+  document.body.dataset.mahjongFooter = mahjongFooterHidden ? 'hidden' : 'visible';
+  mahjongFooterToggle.hidden = state.layout !== 'mahjong';
+  mahjongFooterToggle.setAttribute('aria-expanded', String(!mahjongFooterHidden));
+  const label = mahjongFooterHidden ? 'show footer' : 'hide footer';
+  mahjongFooterToggle.setAttribute('aria-label', label);
+  mahjongFooterToggle.title = label;
+  mahjongFooterToggleLabel.textContent = label;
+}
+
+function syncMahjongFooter({ animate = false } = {}) {
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if (!animate || reducedMotion || typeof document.startViewTransition !== 'function') {
+    paintMahjongFooter();
+    return;
+  }
+  mahjongFooterTransition?.skipTransition();
+  document.documentElement.classList.add('is-mahjong-footer-transitioning');
+  const transition = document.startViewTransition(paintMahjongFooter);
+  mahjongFooterTransition = transition;
+  transition.finished.catch(() => {}).finally(() => {
+    if (mahjongFooterTransition !== transition) return;
+    mahjongFooterTransition = null;
+    document.documentElement.classList.remove('is-mahjong-footer-transitioning');
+  });
+}
+
+mahjongFooterToggle.addEventListener('click', () => {
+  mahjongFooterHidden = !mahjongFooterHidden;
+  try { localStorage.setItem(MAHJONG_FOOTER_KEY, mahjongFooterHidden ? '1' : '0'); } catch { /* keep the in-memory choice */ }
+  syncMahjongFooter({ animate: true });
+});
+
 function syncMahjongBadge() {
   try {
     if (localStorage.getItem(MAHJONG_SEEN_KEY)) {
@@ -533,6 +573,7 @@ syncMahjongBadge();
 function applyLayout(name) {
   state.layout = name;
   document.body.dataset.layout = name;
+  syncMahjongFooter();
   window.bowserPages?.start?.layoutUsed?.(name).catch(() => {});
   for (const button of document.querySelectorAll('[data-layout-pick]')) {
     button.classList.toggle('active', button.dataset.layoutPick === name);

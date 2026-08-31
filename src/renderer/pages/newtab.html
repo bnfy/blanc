@@ -115,7 +115,7 @@
     <iframe id="mahjongFrame" title="Mahjong solitaire"></iframe>
   </main>
 
-  <footer class="ledger-footer">
+  <footer id="layoutFooter" class="ledger-footer">
     <span class="footer-left">
       <span id="footerLeft"></span>
       <span id="version" class="ledger-version"></span>
@@ -129,6 +129,11 @@
     </span>
     <span id="goAnywhere"></span>
   </footer>
+
+  <button id="mahjongFooterToggle" class="mahjong-footer-toggle" type="button" aria-controls="layoutFooter" aria-expanded="true" hidden>
+    <span class="mahjong-footer-toggle-icon" aria-hidden="true"></span>
+    <span id="mahjongFooterToggleLabel">hide footer</span>
+  </button>
 
   <!-- First-run onboarding (design system, "New tab v2 + onboarding" handoff;
        six-step variant per the 2026-08-16 spec — privacy consent is step 5).

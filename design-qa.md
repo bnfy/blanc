@@ -17,6 +17,7 @@
 - Blanc final icon-first desktop rail: `/private/tmp/blanc-mahjong-icon-rail-final.png`; keyboard-focus tooltip and live score/wind-badge check: `/private/tmp/blanc-mahjong-icon-tooltip-final.png`.
 - Blanc elevated rescue and setup surfaces: `/private/tmp/blanc-mahjong-dialog-polish-final.png` and `/private/tmp/blanc-mahjong-setup-polish-final.png`.
 - Final header polish: `/private/tmp/blanc-mahjong-header-polish-final.png`; the live reload confirms the enlarged Daily/layout/Burst identity and grouped pairs, time, score, and combo lacquer status surface remain balanced above the board.
+- Rebuilt hidden-footer state: `/private/tmp/blanc-mahjong-footer-hidden-final.png`; the device-local preference survives a full Electron restart, the game reclaims the full 64px band, and the ivory `SHOW FOOTER` handle remains visible and keyboard accessible.
 - Blanc reduced-motion hint and ×5 milestone: `/private/tmp/blanc-burst-hint-reduced-motion.jpg` and `/private/tmp/blanc-burst-combo-5-reduced-motion-final.jpg`.
 
 ## Findings
@@ -32,6 +33,7 @@ There are no remaining actionable P0, P1, or P2 findings.
 - Setup, rescue, and win surfaces now share presentation-scale type, larger 48–52px action targets, more dimensional layered lacquer cards, stronger selected/primary controls, and a clearer headline/body/stat hierarchy instead of utility-scale dialog text.
 - The celebration pass now avoids expensive full-surface screen blending and per-slot layout flushes. Particle/glint motion stays on isolated transform/opacity layers, the rack burst attacks in 60ms and clears in 500ms, and ordinary/milestone tails finish in 560–760ms instead of lingering for 820–1250ms.
 - The animated combo callout is now a tier-aware reward capsule with a separate uppercase label and dimensional `×N`, rather than a single flat text string. The persistent header uses larger numeric type, grouped lacquer surfaces, stronger dividers, and a thicker countdown rail to match the elevated board and rack.
+- Mahjong mode can now collapse the start-page footer and expand into the recovered space. The choice is device-local, survives restart, exposes a reversible show/hide control only in Mahjong, and uses a 260ms snapshot transition so the embedded game lays out only at stable endpoints instead of reflowing every animation frame. Hover and focus retain high-contrast ivory text and icon color.
 - Mahjong Blast hints both members of a pair with a bright cyan underglow and a repeated lift/rock gesture. Blanc now uses an equivalently distinct cyan pair pulse for two board tiles and for a board tile paired with one already in the Burst rack.
 - Mahjong Blast resets its multiplier on a blocked-tile mistake but does not expose a timer. Blanc deliberately keeps its five-second actionable-time window because speed is the differentiating promise of Burst; blocked taps gain a clear red × and shake without adding a second hidden combo-reset rule.
 - The public label is now **Burst** everywhere visible and assistive. The persisted/internal identifier remains `tray` so existing saves, records, duplicate-tab recovery, and telemetry stay compatible.
