@@ -186,6 +186,34 @@ re-armed. NOT modeled: the fill-status capsule (fourth chrome document — trans
 in-flow UI, same class as the Patron gate), and the shield popover's site-scoped
 internals (unchanged).
 
+## 2026-08-31 follow-up sync (brand: Mahjong-inspired mark, PR #256)
+
+Caught after the morning sync: 61da29f ("Mahjong v2", merged same day) ALSO rolled out
+a **new Blanc mark** in its final commit ("roll out Mahjong-inspired Blanc mark") — the
+morning drift scan stat-checked only chrome renderer files for that commit and
+miscategorized it as game-styles-only. The design-side agent flagged the stale mark.
+
+- New canonical mark: `src/renderer/pages/icon.svg`, viewBox **290.91×344**, built as a
+  LUMINANCE MASK (1 silhouette path + 13 cutout paths + 1 cutout polygon) painted through
+  a currentColor/themable rect; master artwork `assets/blanc-mark.svg`. Replaces the
+  v1.9.0 (#211) 157.08×207.08 filled two-path cut. All 11 dock colorway PNGs + export
+  app icons regenerated in the same commit.
+- Pushed (user-directed; verified by rendering — light pixels + dark computed-style
+  currentColor flip; generated SVG vs shipped icon.svg side-by-side identical; path
+  data diffed byte-identical; per-instance React.useId mask ids so multiple Logos
+  coexist): `Logo.jsx` (mask-based symbol), `Logo.prompt.md` (also fixed the stale
+  "--accent green" line → monochrome-ink rule), `assets/blanc-symbol.svg` (currentColor),
+  `assets/app-icon.svg` (#111111), `assets/app-icon.png` (← export icon-paper-1024),
+  the 5 dock-icon PNGs (← src/renderer/pages, verbatim copies), and
+  `guidelines/brand-logos.html` (inline mask marks nm-a/nm-b + note). `Logo.d.ts`
+  unchanged (API identical). Sentinel re-armed. Generation was scripted straight from
+  icon.svg — never redrawn.
+- **Site is now TWO mark generations behind** (still the pre-#211 stroked cut in
+  BrandMark.astro/favicon) — separate task, re-flagged.
+- Scan lesson: the drift diff must include `src/renderer/pages/icon.svg` + `icon-*.png`
+  in the per-commit stat, not just chrome renderer files — a mark change can ride in on
+  an unrelated feature PR.
+
 ## Gotchas
 - Preview cards render from compiled `_ds_bundle.js`. To rebuild it after pushing source changes: write
   a `_ds_needs_recompile` sentinel file (finalize_plan + write_files, any content) and open the project —
