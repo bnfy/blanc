@@ -1739,6 +1739,15 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 /* The Blanc mark carries its final weight in the filled source artwork. */
 .ob-tile-blanc svg { fill: currentColor; stroke: none; }
+.ob-blanc-mark {
+  display: block;
+  width: 20px;
+  height: 24px;
+  background: currentColor;
+  -webkit-mask: url("icon.svg") center / contain no-repeat;
+  mask: url("icon.svg") center / contain no-repeat;
+}
+.ob-tile-blanc-sm .ob-blanc-mark { width: 18px; height: 21px; }
 .ob-tile-blanc-sm { width: 48px; height: 48px; border-radius: 11px; box-shadow: none; }
 .ob-vignette-import { gap: 16px; padding: 14px 0 2px; color: var(--text-dim); }
 .ob-arrow { flex: 0 0 auto; }

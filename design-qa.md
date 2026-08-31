@@ -176,6 +176,124 @@ final result: passed
 
 ---
 
+# Blanc Mahjong-inspired brand mark rollout — 2026-08-31
+
+## Comparison target
+
+- Source visual truth: the approved right-hand Dock candidate in
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-08-31 at 12.50.06 PM.png`
+  and its exact supplied vector at
+  `/Users/anthonyjloria/Projects/Blanc Browser/brand/SVG/Asset 12.svg`.
+- Canonical checked-in source: `assets/blanc-mark.svg`.
+- Focused source-and-Paper comparison:
+  `/private/tmp/blanc-brand-focused-comparison.png`.
+- Full source, colorway, app, website, OpenGraph, press, article, launch, and
+  social comparison: `/private/tmp/blanc-brand-full-comparison.png`.
+- Focused app implementation: `/private/tmp/blanc-brand-settings-preview.png`.
+- Browser-rendered website implementation:
+  `/private/tmp/blanc-site-brand-home.png`.
+- Rollout surface sheet: `/private/tmp/blanc-brand-rollout-surfaces.png`.
+
+## Normalization
+
+- The user-selected source screenshot is 186×112 px; its 93×112 candidate
+  half was isolated and centered on a 512×512 comparison field without
+  changing its aspect ratio. The supplied SVG remains the geometry authority.
+- The Paper icon is generated at 1024×1024 and normalized to 512×512 beside
+  the approved candidate. It retains the existing 824 px tile, a 544 px-high
+  mark, and Blanc's established optical offset.
+- The in-app Browser rendered the site at a 1280×720 CSS viewport with device
+  pixel ratio 2. Its screenshot transport produced a 981×720 normalized JPEG;
+  no further crop or scale was used for the site evidence.
+- The live Electron app capture is 1229×768 at the macOS window's 1× capture
+  density. State: isolated fresh development profile, Paper selected, Mahjong
+  open, and Settings showing the icon colorway rail.
+- The 1200×630 OpenGraph card, 1024×1024 website logo, 240×240 Product Hunt
+  thumbnail, 1080×1920 social frames, and all 1024×1024 icon colorways were
+  inspected at their native output dimensions before contact-sheet scaling.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Fonts and typography: unaffected. Existing Blanc UI, mono, marketing, and
+  editorial type systems remain unchanged; only the mark geometry changed.
+- Spacing and layout rhythm: the wider mark keeps the existing optical center
+  in the Dock tile, app chrome, Settings rail, site navigation, footer, press
+  masthead, OpenGraph cards, and small editorial lockups. The site mark widths
+  were increased only enough to preserve the supplied aspect ratio at the
+  existing visual height.
+- Colors and visual tokens: all eleven app icon palettes retain their existing
+  background and mark colors. Paper, dark/tinted, website, and monochrome
+  treatments change polarity without introducing a third brand color.
+- Image quality and asset fidelity: the supplied curves and distressed detail
+  remain exact. White highlight paths are represented as transparent
+  negative-space cutouts, avoiding muddy gray artifacts on dark, tinted, 64,
+  32, and 16 px outputs. No mark was approximated with CSS or redrawn geometry.
+- Copy and content: unchanged. Public names, accessibility labels, app icon
+  identifiers, bundle identity, settings schema, and release configuration are
+  untouched.
+- The live Electron capture confirms the mark in the Island chrome, Mahjong
+  identity, white-dragon tile, onboarding, and visible Settings colorways after
+  a full `npm start` relaunch rather than a renderer reload.
+- The in-app Browser capture confirms the real Astro header and footer
+  component render with the new mask at Retina density. Browser console error
+  inspection returned no errors.
+- Generated and retained outward-facing assets now cover the website favicon
+  family, Apple touch icon, OpenGraph cards, press cards, Product Hunt
+  thumbnail, article covers and embedded Blanc captures, social stills, and
+  retained social-video end cards. Historical QA screenshots remain evidence
+  of the states they recorded and are not treated as current brand exports.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] The active Product Hunt thumbnail still contained the former mark.
+- [P2] Three retained article source captures still embedded the former mark
+  inside their Island/New Tab UI, which propagated into generated article art.
+
+Fixes: added the Product Hunt thumbnail to the canonical brand generator;
+updated the retained article captures at their measured icon slots; regenerated
+the article header, cover, and context image; and rebuilt the combined rollout
+sheet.
+
+### Iteration 2 — passed
+
+Post-fix evidence:
+
+- `/private/tmp/blanc-brand-focused-comparison.png`
+- `/private/tmp/blanc-brand-full-comparison.png`
+- `/private/tmp/blanc-brand-rollout-surfaces.png`
+- `/private/tmp/blanc-brand-settings-preview.png`
+- `/private/tmp/blanc-site-brand-home.png`
+
+The selected silhouette, distress, perceived scale, and optical position now
+remain consistent across active app, website, launch, press, editorial, and
+social surfaces with no actionable fidelity drift.
+
+## Functional evidence
+
+- Primary interactions tested: fresh-profile onboarding dismissal, Mahjong
+  launch, Settings opening, and icon colorway visibility in the running app;
+  website navigation landmarks and both brand-home links were present in the
+  rendered DOM.
+- `npm run brand:check`, `npm run icons:windows:check`, `npm run site:build`,
+  SEO verification, the 22 focused icon/brand/OG/press tests, and the complete
+  unit suite pass.
+- `git diff --check` passes.
+- The rebuilt development process remains running from the feature worktree;
+  neither the installed Blanc application nor the primary checkout was
+  modified by the preview relaunch.
+
+## Follow-up polish
+
+No P3 visual follow-up is required.
+
+final result: passed
+
+---
+
 # Mahjong unified 14-design lacquer theme — 2026-08-31
 
 **Final result:** passed

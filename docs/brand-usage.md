@@ -26,9 +26,12 @@ color, reject the asset; do not approve it as an exception and do not publish
 it. The permitted lockups are entirely black and white, not merely a
 monochrome mark placed inside a colored composition.
 
-Use `site/public/logo.png`, `site/public/favicon.svg`, or the path geometry in
-`site/src/components/BrandMark.astro` as the source. A white-on-black variant
-must keep the same geometry and change only the mark/field polarity.
+Use `assets/blanc-mark.svg` as the canonical authoring source. Its white
+distressed strokes are cutout instructions, not a third brand color;
+`npm run brand:build` converts them to transparent negative space and
+regenerates the app icons, in-product marks, website logo and favicons, and
+their exported variants. A white-on-black treatment must keep the same
+geometry and change only the mark/field polarity.
 
 ## Core palette
 
