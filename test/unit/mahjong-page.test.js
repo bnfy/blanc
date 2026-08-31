@@ -111,6 +111,7 @@ test('winds and dragons unite all motif and compass-seal designs at their intend
   assert.match(controller, /w:\s*'mahjong-wind-west\.png'/);
   assert.match(controller, /const WIND_SEAL_ART = 'mahjong-wind-compass\.png'/);
   assert.match(controller, /WIND_SEAL_ROTATION = Object\.freeze\(\{ n: 0, e: 90, s: 180, w: 270 \}\)/);
+  assert.match(controller, /WIND_DIRECTION_LABEL = Object\.freeze\(\{ n: 'N', e: 'E', s: 'S', w: 'W' \}\)/);
   assert.match(controller, /c:\s*'mahjong-dragon-red\.png'/);
   assert.match(controller, /f:\s*'mahjong-dragon-green\.png'/);
   assert.match(controller, /p:\s*'mahjong-dragon-white\.png'/);
@@ -120,14 +121,19 @@ test('winds and dragons unite all motif and compass-seal designs at their intend
   assert.match(controller, /faceImage\(WIND_ART\[id\], 22, 30, 42, 48, 'mj-wind-source mj-wind-source-motif'\)/);
   assert.match(controller, /faceImage\(WIND_SEAL_ART, 22, 30, 40, 40, 'mj-wind-source mj-wind-source-seal'\)/);
   assert.match(controller, /compass\.setAttribute\('transform', `rotate\(\$\{WIND_SEAL_ROTATION\[id\]\} 22 30\)`\)/);
+  assert.match(controller, /class: `mj-wind-direction mj-wind-direction-\$\{id\}`/);
+  assert.match(controller, /textEl\(22, 51, 7\.5, WIND_DIRECTION_LABEL\[id\]\)/);
   assert.match(controller, /const \[width, height\] = variant === 'seal' \? \[40, 40\] : \[42, 48\]/);
   assert.match(controller, /svg\.append\(windFace\(id, variant\)\)/);
   assert.match(controller, /svg\.append\(dragonFace\(id, variant\)\)/);
-  assert.doesNotMatch(controller, /family === 'wind'[\s\S]{0,160}id\.toUpperCase\(\)/);
   assert.doesNotMatch(controller, /family === 'drg'[\s\S]{0,240}id\.toUpperCase\(\)/);
   assert.doesNotMatch(controller, /const BLANC_MARK_PATHS/);
   assert.doesNotMatch(controller, /for \(const d of BLANC_MARK_PATHS\)/);
   assert.match(styles, /\.mj-wind-source,\s*\.mj-dragon-source,\s*\.mj-bonus-source\s*\{[^}]*image-rendering:\s*auto;[^}]*drop-shadow/);
+  assert.match(styles, /\.mj-wind-direction-label\s*\{[^}]*fill:\s*#fff8e6;[^}]*font-weight:\s*820/);
+  for (const direction of ['n', 'e', 's', 'w']) {
+    assert.match(styles, new RegExp(`\\.mj-wind-direction-${direction} rect\\s*\\{[^}]*fill:`));
+  }
   assert.match(controller, /const motif = \{ e: 'sunrise', s: 'sun', w: 'moon and wave', n: 'mountain' \}\[id\];/);
   assert.match(controller, /return `\$\{direction\} wind, \$\{variant === 'seal' \? 'compass' : motif\}`;/);
   assert.match(controller, /const motif = \{ c: 'flame', f: 'flourish', p: 'Blanc mark' \}\[id\];/);
@@ -197,7 +203,7 @@ test('the bamboo suit uses a panda emblem plus the supplied jade and gold stick 
 test('mahjong loads its sound module before the controller and exposes a pressed toggle', () => {
   assert.match(
     html,
-    /<button id="mjSound" type="button" aria-pressed="true">[\s\S]*mahjong-icons\.svg#sound-on[\s\S]*data-dock-label>sound on<\/span>/
+    /<button id="mjSound" type="button" aria-label="Sound effects on" data-tooltip="Sound on" aria-pressed="true">[\s\S]*mahjong-icons\.svg#sound-on[\s\S]*data-dock-label>sound on<\/span>/
   );
   const soundModule = html.indexOf('<script src="mahjong-sound.js"></script>');
   const controllerScript = html.indexOf('<script src="mahjong.js"></script>');
@@ -211,6 +217,11 @@ test('the game dock uses one local professional SVG icon family instead of font 
   }
   assert.doesNotMatch(styles, /content:\s*["'](?:▦|↶|◇|⤨|◖)/);
   assert.match(styles, /\.mj-dock-icon\s*\{/);
+  assert.match(html, /id="mjSetup"[^>]*aria-label="Boards"[^>]*data-tooltip="Boards"/);
+  assert.match(html, /id="mjUndo"[^>]*aria-label="Undo"[^>]*data-tooltip="Undo"/);
+  assert.match(styles, /\.mj-dock \[data-dock-label\]\s*\{[^}]*clip-path:\s*inset\(50%\)/);
+  assert.match(styles, /\.mj-dock > button::after\s*\{[^}]*content:\s*attr\(data-tooltip\)[^}]*background:/);
+  assert.match(controller, /button\.dataset\.tooltip = label/);
 });
 
 test('the Mahjong wordmark carries a locally weighted canonical Blanc mark', () => {
@@ -394,6 +405,7 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
   assert.match(desktop, /color-mix\(in srgb,\s*var\(--mj-panel-solid\) 92%,\s*var\(--mj-ivory\)\)[\s\S]*var\(--mj-lacquer-deep\)/);
   assert.doesNotMatch(desktop, /rgba\(21,\s*78,\s*63/);
   assert.match(desktop, /\.mj-dock > button:active\s*\{[^}]*translate:\s*0 1px;[^}]*inset 0 2px 6px/);
+  assert.match(desktop, /\.mj-dock-icon\s*\{[^}]*width:\s*34px;[^}]*height:\s*34px;[^}]*flex-basis:\s*34px;/);
   assert.match(controller, /getPropertyValue\('--mj-board-safe-side'\)/);
   assert.match(controller, /wrap\.clientWidth - 36 - \(safeSide \* 2\)/);
   assert.match(desktop, /\.mj\[data-mode="classic"\] \.mj-game\s*\{[^}]*gap:\s*0;/);
@@ -421,6 +433,11 @@ test('the completion card keeps its center transform after dialog motion', () =>
 });
 
 test('dialog actions keep readable lacquer contrast through hover and keyboard focus', () => {
+  assert.match(styles, /\.mj-setup-card,\s*\.mj-rescue-card,\s*\.mj-card-overlay\s*\{[^}]*radial-gradient\(circle at 50% -16%[^}]*0 34px 90px[^}]*inset 0 -2px 0/);
+  assert.match(styles, /\.mj-modal h1,\s*\.mj-card-overlay h1\s*\{[^}]*clamp\(30px, 3\.6vw, 40px\)/);
+  assert.match(styles, /\.mj-button\s*\{[^}]*min-height:\s*48px;[^}]*font-size:\s*14px;[^}]*font-weight:\s*660/);
+  assert.match(styles, /\.mj-rescue-card > p:not\(\.mj-overline\)\s*\{[^}]*font-size:\s*15px;[^}]*line-height:\s*1\.55/);
+  assert.match(styles, /\.mj-rescue-actions \.mj-button\s*\{[^}]*min-height:\s*52px/);
   assert.match(styles, /\.mj-button:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-ivory\);[^}]*border-color:\s*var\(--mj-brass\);[^}]*translate:\s*0 -1px;/);
   assert.match(styles, /\.mj-button-primary:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-lacquer-ink\);[^}]*background:\s*#fffaf0;/);
   assert.match(styles, /\.mj-button:active\s*\{[^}]*translate:\s*0 1px;/);

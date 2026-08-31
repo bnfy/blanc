@@ -78,6 +78,7 @@ const WIND_ART = Object.freeze({
 });
 const WIND_SEAL_ART = 'mahjong-wind-compass.png';
 const WIND_SEAL_ROTATION = Object.freeze({ n: 0, e: 90, s: 180, w: 270 });
+const WIND_DIRECTION_LABEL = Object.freeze({ n: 'N', e: 'E', s: 'S', w: 'W' });
 const DRAGON_ART = Object.freeze({
   c: 'mahjong-dragon-red.png',
   f: 'mahjong-dragon-green.png',
@@ -165,7 +166,12 @@ function windFace(id, variant = 'motif') {
   if (variant === 'seal') {
     const compass = faceImage(WIND_SEAL_ART, 22, 30, 40, 40, 'mj-wind-source mj-wind-source-seal');
     compass.setAttribute('transform', `rotate(${WIND_SEAL_ROTATION[id]} 22 30)`);
-    group.append(compass);
+    const badge = el('g', { class: `mj-wind-direction mj-wind-direction-${id}` });
+    badge.append(el('rect', { x: 15, y: 46, width: 14, height: 10, rx: 4 }));
+    const direction = textEl(22, 51, 7.5, WIND_DIRECTION_LABEL[id]);
+    direction.classList.add('mj-wind-direction-label');
+    badge.append(direction);
+    group.append(compass, badge);
   } else {
     group.append(faceImage(WIND_ART[id], 22, 30, 42, 48, 'mj-wind-source mj-wind-source-motif'));
   }
@@ -1033,6 +1039,7 @@ function setDockLabel(button, label) {
   const target = button.querySelector('[data-dock-label]');
   if (target) target.textContent = label;
   else button.textContent = label;
+  button.dataset.tooltip = label;
 }
 function paintSoundButton() {
   const enabled = sound.isEnabled();
