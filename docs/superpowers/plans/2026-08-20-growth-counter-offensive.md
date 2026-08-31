@@ -24,24 +24,22 @@
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — August 30, 2026
+## Execution status — August 31, 2026
 
-- Blanc v1.10.0 is the current public baseline. It was published from
-  `a96eb47` at `2026-08-29T18:58:24Z`; publication, the authenticated manifest,
-  native platform gates, and logged-out download smoke passed. See
-  `docs/release-incidents/2026-08-29-v1.10.0.md`.
-- Its 48-hour soak ends at `2026-08-31T18:58:24Z` (August 31, 2:58:24 p.m.
-  ET). The published v1.10.0 Linux AppImage digest/attestation/launch/render
-  check passed in run `33269704113`. The exact public v1.9.1 → v1.10.0 updater
-  handoffs passed on macOS and Windows; macOS also passed strict post-update
-  signature and Gatekeeper checks. This remains valid historical v1.10.0
-  evidence, but it is not sufficient for launch if backlog cleanup changes
-  downloadable behavior; in that case the replacement launch release must
-  repeat the release, platform, updater, and soak gates below.
-- Task 8's Island demo was re-recorded on August 30 from the installed packaged
-  public v1.10.0 app in an isolated local profile. The launch-ready 20.50-second
-  MP4 and sub-8-MiB GIF are committed in `0cc0c57`; the launch pack points to
-  that immutable asset commit.
+- Blanc v1.11.0 is the current public baseline. It was published from
+  `e3ab5b6` at `2026-08-31T19:34:52Z`; publication, the authenticated manifest,
+  native platform gates, logged-out download smoke, and the authenticated
+  public Linux AppImage launch/render check passed. See
+  `docs/release-incidents/2026-08-31-v1.11.0.md`.
+- The exact public v1.10.0 → v1.11.0 updater handoffs on macOS and Windows and
+  the v1.11.0 48-hour soak remain open. The earlier v1.9.1 → v1.10.0 handoffs,
+  trust checks, Linux smoke, and soak remain valid historical v1.10.0 evidence;
+  they do not satisfy the replacement launch release's adjacent-version gates.
+- Task 8's Island demo was recorded on August 30 from installed packaged public
+  v1.10.0. Its 20.50-second MP4 and sub-8-MiB GIF remain immutable in
+  `0cc0c57`, but they are no longer launch-ready because v1.11.0 ships the
+  revised Blanc mark. Recapture the demo and Product Hunt stills from packaged
+  public v1.11.0 before launch.
 
 ## Superseded execution status — August 28, 2026
 
@@ -85,8 +83,8 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship one proven launch release as-is.** No telemetry or feature changes
-  during launch week; Patron stays in the launch narrative. v1.10.0 remains the
-  public baseline until superseded, but any product/runtime, dependency,
+  during launch week; Patron stays in the launch narrative. v1.11.0 is the
+  public baseline, and any later product/runtime, dependency,
   packaging, or release-workflow merge during backlog cleanup requires a new
   immutable launch release. Never describe newer `main` behavior as shipped.
 - **The backlog-cleanup window is open only before the new freeze.** PRs #238
@@ -952,7 +950,7 @@ npx wrangler pages deployment list --project-name=blancbrowser
 
 Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
-changelog and the homepage show 1.10.0 — not a Cloudflare preview URL.
+changelog and the homepage show 1.11.0 — not a Cloudflare preview URL.
 
 - [x] **Step 10: Record the current v1.9.1 soak clock**
 
