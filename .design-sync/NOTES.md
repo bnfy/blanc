@@ -208,8 +208,12 @@ miscategorized it as game-styles-only. The design-side agent flagged the stale m
   `guidelines/brand-logos.html` (inline mask marks nm-a/nm-b + note). `Logo.d.ts`
   unchanged (API identical). Sentinel re-armed. Generation was scripted straight from
   icon.svg — never redrawn.
-- **Site is now TWO mark generations behind** (still the pre-#211 stroked cut in
-  BrandMark.astro/favicon) — separate task, re-flagged.
+- ~~Site two mark generations behind~~ **WRONG, corrected same day:** #256 itself
+  updated every site brand asset (BrandMark.astro, favicons, logo.png, OG/press cards)
+  and the v1.11.0 release flow deployed it — live blancbrowser.com byte-matches the
+  repo assets (verified 2026-08-31). App, DS, and site are aligned; the DS note/Logo.jsx
+  comment were re-pushed with the correction. Lesson: verify the LIVE site before
+  flagging it stale — the old flag was carried forward from pre-#256 notes.
 - Scan lesson: the drift diff must include `src/renderer/pages/icon.svg` + `icon-*.png`
   in the per-commit stat, not just chrome renderer files — a mark change can ride in on
   an unrelated feature PR.
