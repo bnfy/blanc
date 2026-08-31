@@ -20,10 +20,9 @@ selected and its required evidence is complete.
 v1.11.0, published from `e3ab5b6`. It carries the optional macOS 1Password
 ambient login hint and Settings account verification while keeping credential
 lookup and fill explicit. The authenticated public Linux launch/render check
-and the macOS v1.10.0 -> v1.11.0 updater handoff passed; the corresponding
-Windows handoff remains open. Do not publish until that handoff and the v1.11.0
-48-hour soak are recorded as passing. Do not use UI or claims from later work
-on `main`.
+and both v1.10.0 -> v1.11.0 updater handoffs passed. The v1.11.0 48-hour soak
+remains open, but may be superseded if another approved release replaces it.
+Do not publish this pack or use UI or claims from later work on `main`.
 
 ## Frozen facts
 
