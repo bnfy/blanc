@@ -69,7 +69,7 @@ test('bonus families use full-scale lacquer artwork and hints clear stale emphas
   assert.match(styles, /\.mj-bonus-source\s*\{[^}]*image-rendering:\s*auto;[^}]*drop-shadow/);
   assert.match(controller, /let hintTimer = null;/);
   assert.match(controller, /function clearHint\(\)\s*\{[\s\S]*classList\.remove\('hinted'\)/);
-  assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 1400\);/);
+  assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 2200\);/);
   assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*clearHint\(\);/);
 
   const expected = new Map([
@@ -240,18 +240,30 @@ test('every game interaction is wired to its sound cue and bootstrap stays silen
   for (const cue of ['select', 'pair', 'tray', 'rescue', 'win']) {
     assert.match(controller, new RegExp(`return '${cue}'`), `missing ${cue} result cue`);
   }
-  assert.match(controller, /result\.points > 100 \? 'chain' : 'pair'/);
+  for (const cue of ['comboStep', 'comboFlowing', 'comboBrilliant', 'comboMasterful', 'autoClear']) {
+    assert.match(controller, new RegExp(`'${cue}'`), `missing ${cue} cue`);
+  }
   assert.match(controller, /if \(soundCue\) sound\.play\('deal'\)/);
-  assert.match(controller, /startGame\(\{ layoutId: 'turtle', mode: 'classic', seed: randomSeed\(\) \}, \{ soundCue: false \}\)/);
+  assert.match(controller, /const daily = S\.dailyDeal\(new Date\(\)\);[\s\S]*startGame\(\{ \.\.\.daily, mode: 'tray' \}, \{ soundCue: false \}\)/);
   assert.match(controller, /document\.getElementById\('mjNew'\)\.addEventListener\('click', newGameFromControl\);/);
   assert.match(controller, /\nbootstrap\(\);\s*$/);
+});
+
+test('a fresh table defaults to Daily Burst while the tray id preserves saved-game compatibility', () => {
+  assert.match(controller, /setupChoice = \{ layoutId: S\.dailyDeal\(new Date\(\)\)\.layoutId, mode: 'tray', source: 'daily' \}/);
+  assert.match(controller, /if \(restored\) \{[\s\S]*configureGame\(restored\);[\s\S]*\} else \{[\s\S]*startGame\(\{ \.\.\.daily, mode: 'tray' \}/);
+  assert.match(html, /id="mjModeTray"[^>]*data-mode="tray"[^>]*>Burst<\/button>/);
+  assert.match(html, /burst rack/i);
+  assert.match(html, /id="mjBurstScoreWrap"[^>]*>[\s\n]*<strong id="mjBurstScore">0<\/strong>/);
+  assert.match(controller, /game\.mode === 'tray' \? 'Burst' : 'Classic'/);
+  assert.match(controller, /Build rapid matches in a four-slot Burst rack\./);
 });
 
 test('v2 exposes setup, Tray rescue, local restoration, and keyboard affordances', () => {
   for (const id of [
     'mjSetupSheet', 'mjLayoutTurtle', 'mjLayoutArch', 'mjLayoutPeaks',
     'mjModeClassic', 'mjModeTray', 'mjSourceRandom', 'mjSourceDaily',
-    'mjTraySlot0', 'mjTraySlot1', 'mjTraySlot2', 'mjTraySlot3',
+    'mjTraySlot0', 'mjTraySlot1', 'mjTraySlot2', 'mjTraySlot3', 'mjBurstScore',
     'mjRescueUndo', 'mjRescueShuffle', 'mjRescueRestart', 'mjLive',
   ]) assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
 
@@ -270,14 +282,55 @@ test('v2 exposes setup, Tray rescue, local restoration, and keyboard affordances
   assert.match(controller, /S\.createGameStore/);
   assert.match(controller, /S\.createDuplicateGuard/);
   assert.match(controller, /new BroadcastChannel\('blanc-mahjong-v2-live'\)/);
+  for (const id of ['mjCombo', 'mjComboBar', 'mjComboFill', 'mjComboFx', 'mjWinCombo', 'mjWinAutoClears']) {
+    assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
+  }
+  assert.match(controller, /E\.advanceComboClock\(game, delta\)/);
+  assert.match(controller, /game\?\.mode === 'tray'[\s\S]*!document\.hidden[\s\S]*embedActive[\s\S]*!tileAnimationBusy[\s\S]*comboAnimationPauseCount === 0[\s\S]*!activeModal\(\)/);
+  assert.match(controller, /document\.getElementById\('mjHint'\)\.addEventListener[\s\S]*game\.assists\.hint \+= 1[\s\S]*saveAfterMutation\(\)/);
+  assert.doesNotMatch(controller, /getElementById\('mjHint'\)[\s\S]{0,600}resetCombo/);
 });
 
-test('tile motion locks the board, dock, and keyboard until state is settled', () => {
+test('only automatic-clear motion locks input while ordinary tile feedback stays responsive', () => {
   assert.match(controller, /let tileAnimationBusy = false/);
+  assert.match(controller, /let comboAnimationPauseCount = 0/);
   assert.match(controller, /element\.inert = covered \|\| tileAnimationBusy/);
   assert.match(controller, /function setTileAnimationBusy\(busy\)/);
-  assert.match(controller, /setTileAnimationBusy\(true\)[\s\S]*setTimeout\(\(\) => finishTileResult/);
+  assert.match(controller, /const locksInput = Boolean\(result\.autoClear\)/);
+  assert.match(controller, /if \(locksInput\) setTileAnimationBusy\(true\)/);
+  assert.match(controller, /button\.disabled = true[\s\S]*button\.style\.pointerEvents = 'none'/);
+  assert.match(controller, /result\.type === 'tray-pair' \? 760[\s\S]*result\.type === 'tray-park' \|\| result\.type === 'rescue' \? 340[\s\S]*: 240/);
+  assert.match(controller, /comboAnimationPauseCount === 0/);
   assert.match(controller, /if \(tileAnimationBusy\) \{[\s\S]*event\.preventDefault\(\);[\s\S]*return;/);
+});
+
+test('combo feedback restores animated tiles and removes immediately for reduced motion', () => {
+  assert.match(controller, /b\.disabled = false;/);
+  assert.match(controller, /b\.classList\.remove\('removing', 'tray-travel', 'is-flight-source', 'auto-clearing'\)/);
+  assert.match(controller, /generation !== tileAnimationGeneration/);
+  assert.match(controller, /immediate \? 0 : duration/);
+  assert.match(controller, /mj-tray-slot\[data-tile-index=/);
+  assert.match(styles, /\.mj-tray-slot\.auto-clearing/);
+  assert.match(controller, /classList\.add\('is-impact'\)/);
+  assert.match(controller, /scoreMeter\?\.classList\.toggle\('is-heated', count >= 3\)/);
+  assert.match(controller, /burstScore\?\.classList\.toggle\('is-heated', count >= 3\)/);
+  assert.match(controller, /animateDisplayedScore\(from, result\.score, Math\.max\(300, flightDuration\)\)/);
+  assert.match(controller, /clone\.animate\(\[/);
+  assert.match(controller, /document\.getElementById\('mjBurstScore'\)/);
+  assert.match(styles, /@keyframes mj-particles-impact/);
+  assert.match(styles, /@keyframes mj-score-spark/);
+  assert.match(styles, /@keyframes mj-score-flight/);
+  assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*color:\s*var\(--mj-ink\)/);
+  assert.match(styles, /\.mj-tray-slot\.is-receiving/);
+  assert.match(styles, /\.mj-tile\.shake::before/);
+});
+
+test('hints pulse a complete pair and include a parked Burst tile', () => {
+  assert.match(controller, /document\.querySelector\(`\.mj-tray-slot\[data-tile-index="\$\{trayIndex\}"\]`\)\?\.classList\.add\('hinted'\)/);
+  assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 2200\)/);
+  assert.match(styles, /\.mj-tile\.hinted\s*\{[^}]*mj-hint-pulse 720ms ease-in-out 3/);
+  assert.match(styles, /\.mj-tray-slot\.hinted/);
+  assert.match(styles, /#65f0dc/);
 });
 
 test('mahjong owns a local lacquer presentation with motion and no remote data path', () => {
@@ -291,6 +344,14 @@ test('mahjong owns a local lacquer presentation with motion and no remote data p
   assert.match(controller, /classList\.add\('shuffle-cascade'\)/);
   assert.match(controller, /button\.classList\.add\(className\)/);
   assert.match(styles, /:root\[data-theme="private"\] \.mahjong-body/);
+  assert.match(html, /src="mahjong-combo-particles\.png"/);
+  assert.match(html, /src="mahjong-combo-glint\.png"/);
+  assert.match(styles, /@keyframes mj-auto-clear/);
+});
+
+test('layout-card hover and focus preserve readable lacquer text colors', () => {
+  assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\)\s*\{[^}]*color:\s*var\(--mj-ivory\)/);
+  assert.match(styles, /\.mj-choice:is\(:hover, :focus-visible\) small\s*\{[^}]*color:\s*var\(--mj-muted\)/);
 });
 
 test('embedded Mahjong shares its opaque game id with the persisted parent URL', () => {
@@ -334,17 +395,18 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
   assert.match(controller, /getPropertyValue\('--mj-board-safe-side'\)/);
   assert.match(controller, /wrap\.clientWidth - 36 - \(safeSide \* 2\)/);
   assert.match(desktop, /\.mj\[data-mode="classic"\] \.mj-game\s*\{[^}]*gap:\s*0;/);
-  assert.match(desktop, /\.mj-tray-slot\s*\{[^}]*width:\s*52px;[^}]*height:\s*60px;/);
+  assert.match(desktop, /\.mj-tray-slot\s*\{[^}]*width:\s*64px;[^}]*height:\s*74px;/);
 });
 
 test('starting another board clears a stale recovery notice', () => {
   assert.match(controller, /function configureGame\(nextGame\)[\s\S]*getElementById\('mjRecoveryNotice'\)\.hidden = true;/);
-  assert.match(controller, /startGame\(\{ layoutId: 'turtle',[\s\S]*if \(hadSave\) document\.getElementById\('mjRecoveryNotice'\)\.hidden = false;/);
+  assert.match(controller, /const daily = S\.dailyDeal\(new Date\(\)\);[\s\S]*startGame\(\{ \.\.\.daily, mode: 'tray' \}[\s\S]*if \(hadSave\) document\.getElementById\('mjRecoveryNotice'\)\.hidden = false;/);
 });
 
 test('best records are scoped to the active layout revision', () => {
   assert.match(controller, /const layoutRevision = record\.layoutRevision === undefined \? 1 : record\.layoutRevision;/);
-  assert.match(controller, /return layoutRevision === game\.layoutRevision \? record : null;/);
+  assert.match(controller, /if \(layoutRevision !== game\.layoutRevision\) return null;/);
+  assert.match(controller, /record\.scoringRevision !== E\.TRAY_SCORING_REVISION/);
   assert.match(controller, /layoutId: game\.layoutId,\s*layoutRevision: game\.layoutRevision,\s*mode: game\.mode,/);
 });
 

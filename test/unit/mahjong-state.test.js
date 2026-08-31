@@ -256,6 +256,11 @@ test('duplicate-tab forking preserves every stable Mahjong visual variant', () =
   const source = uuid(22);
   const target = uuid(23);
   const game = E.createGame({ seed: 831, layoutId: 'peaks', mode: 'tray', gameId: source });
+  for (let count = 0; count < 5; count++) {
+    const [first, second] = E.availableMoves(game).find((move) => move.length === 2);
+    assert.equal(E.selectTile(game, first).type, 'tray-park');
+    assert.equal(E.selectTile(game, second).type, 'tray-pair');
+  }
   assert.equal(store.save(source, game), true);
 
   const forked = store.forkSavedGame(source, target);
@@ -264,6 +269,12 @@ test('duplicate-tab forking preserves every stable Mahjong visual variant', () =
   for (const kind of E.SPECIAL_VARIANT_KINDS) {
     assert.equal(forked.kinds.filter((candidate) => candidate === kind).length, 2);
   }
+  assert.equal(forked.comboCount, game.comboCount);
+  assert.equal(forked.maxCombo, game.maxCombo);
+  assert.equal(forked.comboRemainingMs, game.comboRemainingMs);
+  assert.equal(forked.autoClears, game.autoClears);
+  assert.equal(forked.scoringRevision, E.TRAY_SCORING_REVISION);
+  assert.deepEqual(forked.history, game.history);
   assert.deepEqual(store.load(source).kinds, game.kinds);
   assert.deepEqual(store.load(target).kinds, game.kinds);
 });
@@ -304,19 +315,39 @@ test('records keep per-layout Classic time and Tray score with time tie-break', 
 
   records = S.applyResult(records, {
     layoutId: 'arch', layoutRevision: 2, mode: 'tray', elapsedMs: 70_000, score: 800,
+    scoringRevision: 2, maxCombo: 5, autoClears: 1,
   }, 4);
   records = S.applyResult(records, {
     layoutId: 'arch', layoutRevision: 2, mode: 'tray', elapsedMs: 65_000, score: 800,
+    scoringRevision: 2, maxCombo: 7, autoClears: 1,
   }, 5);
   records = S.applyResult(records, {
     layoutId: 'arch', layoutRevision: 2, mode: 'tray', elapsedMs: 40_000, score: 700,
+    scoringRevision: 2, maxCombo: 9, autoClears: 2,
   }, 6);
   assert.deepEqual(records.tray.arch, {
     layoutRevision: 2,
+    scoringRevision: 2,
     bestScore: 800,
     bestTimeMs: 65_000,
+    maxCombo: 7,
+    autoClears: 1,
     updatedAt: 5,
   });
+});
+
+test('revision-1 Tray records remain preserved but are excluded from current records', () => {
+  const normalized = S.normalizeRecords({ version: S.RECORDS_VERSION, classic: {}, tray: {
+    turtle: { layoutRevision: 1, bestScore: 99_999, bestTimeMs: 1, updatedAt: 1 },
+  }, daily: {} });
+  assert.equal(normalized.tray.turtle, undefined);
+  assert.equal(normalized.trayLegacy.turtle.bestScore, 99_999);
+  const current = S.applyResult(normalized, {
+    layoutId: 'turtle', layoutRevision: 1, mode: 'tray', elapsedMs: 60_000, score: 500,
+    scoringRevision: 2, maxCombo: 3, autoClears: 0,
+  }, 2);
+  assert.equal(current.tray.turtle.bestScore, 500);
+  assert.equal(current.trayLegacy.turtle.bestScore, 99_999);
 });
 
 test('record revisions preserve unchanged layouts and discard retired Arch geometry', () => {
@@ -348,7 +379,8 @@ test('record revisions preserve unchanged layouts and discard retired Arch geome
   assert.equal(normalized.tray.arch, undefined);
   assert.equal(normalized.daily['2026-08-30'].classic, undefined);
   assert.equal(normalized.classic.turtle.layoutRevision, 1);
-  assert.equal(normalized.tray.peaks.layoutRevision, 1);
+  assert.equal(normalized.tray.peaks, undefined);
+  assert.equal(normalized.trayLegacy.peaks.layoutRevision, 1);
   assert.equal(normalized.daily['2026-08-30'].tray.layoutRevision, 1);
 
   const revised = S.applyResult(normalized, {
@@ -385,16 +417,20 @@ test('daily Classic and Tray results remain separate with sanitized assists', ()
   }, 100);
   records = S.applyResult(records, {
     layoutId: 'turtle', layoutRevision: 1, mode: 'tray', dailyKey: '2026-08-30', completed: true,
-    elapsedMs: 90_000, score: 1_250, assists: { hint: 0, undo: 3, shuffle: 1 },
+    elapsedMs: 90_000, score: 1_250, scoringRevision: 2, maxCombo: 10, autoClears: 2,
+    assists: { hint: 0, undo: 3, shuffle: 1 },
   }, 101);
   assert.equal(records.daily['2026-08-30'].classic.elapsedMs, 70_000);
   assert.equal(records.daily['2026-08-30'].tray.score, 1_250);
+  assert.equal(records.daily['2026-08-30'].tray.scoringRevision, 2);
+  assert.equal(records.daily['2026-08-30'].tray.maxCombo, 10);
+  assert.equal(records.daily['2026-08-30'].tray.autoClears, 2);
   assert.deepEqual(records.daily['2026-08-30'].classic.assists, { undo: 1, hint: 2, shuffle: 0 });
 
   // The better result replaces its own mode only.
   records = S.applyResult(records, {
     layoutId: 'turtle', layoutRevision: 1, mode: 'tray', dailyKey: '2026-08-30', completed: true,
-    elapsedMs: 100_000, score: 1_500, assists: {},
+    elapsedMs: 100_000, score: 1_500, scoringRevision: 2, maxCombo: 12, autoClears: 2, assists: {},
   }, 102);
   assert.equal(records.daily['2026-08-30'].tray.score, 1_500);
   assert.equal(records.daily['2026-08-30'].classic.elapsedMs, 70_000);

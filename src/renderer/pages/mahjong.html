@@ -40,8 +40,11 @@
           <strong id="mjScore" class="mj-score">0</strong>
         </span>
         <span class="mj-meter mj-chain-meter">
-          <span class="mj-meter-label">chain</span>
-          <strong id="mjChain" class="mj-chain">×1</strong>
+          <span class="mj-meter-label">combo</span>
+          <strong id="mjCombo" class="mj-chain">—</strong>
+          <span id="mjComboBar" class="mj-combo-bar" role="progressbar" aria-label="Combo time remaining" aria-valuemin="0" aria-valuemax="5000" aria-valuenow="0">
+            <i id="mjComboFill"></i>
+          </span>
         </span>
       </div>
     </header>
@@ -51,12 +54,23 @@
         <div class="mj-board-wrap" id="mjBoardWrap">
           <div id="mjBoard" class="mj-board" role="group" tabindex="-1" aria-label="Mahjong tiles. Use arrow keys to move and Enter or Space to select."></div>
 
+          <div id="mjComboFx" class="mj-combo-fx" aria-hidden="true">
+            <img class="mj-combo-particles" src="mahjong-combo-particles.png" alt="" />
+            <img class="mj-combo-glint" src="mahjong-combo-glint.png" alt="" />
+            <div id="mjComboCallout" class="mj-combo-callout"></div>
+            <div id="mjAutoChip" class="mj-auto-chip">+100 <span>auto clear</span></div>
+          </div>
+
           <section id="mjWin" class="mj-win mj-card-overlay" role="dialog" aria-modal="true" aria-labelledby="mjWinTitle" hidden>
             <div class="mj-win-flourish" aria-hidden="true"><span>✦</span><span>✦</span><span>✦</span></div>
             <p class="mj-overline">board cleared</p>
             <h1 id="mjWinTitle">A beautiful finish.</h1>
             <div id="mjWinTime" class="mj-win-time"></div>
             <div id="mjWinBest" class="mj-win-best"></div>
+            <div id="mjWinStats" class="mj-win-stats" hidden>
+              <span><small>best combo</small><strong id="mjWinCombo">×0</strong></span>
+              <span><small>auto clears</small><strong id="mjWinAutoClears">0</strong></span>
+            </div>
             <div class="mj-overlay-actions">
               <button id="mjWinNew" class="mj-button mj-button-primary" type="button">play another</button>
               <button id="mjWinBoards" class="mj-button" type="button">choose board</button>
@@ -65,16 +79,21 @@
         </div>
       </div>
 
-      <aside id="mjTrayRail" class="mj-tray-rail" aria-label="Four-slot matching tray">
+      <aside id="mjTrayRail" class="mj-tray-rail" aria-label="Four-slot Burst rack">
         <div class="mj-tray-copy">
-          <span class="mj-tray-kicker">matching tray</span>
+          <span class="mj-tray-kicker">burst rack</span>
           <strong id="mjTrayPrompt">Pair tiles before all four slots fill.</strong>
         </div>
-        <div id="mjTray" class="mj-tray" role="list" aria-label="Selected tiles, four slots">
-          <div id="mjTraySlot0" class="mj-tray-slot" role="listitem" aria-label="Tray slot 1, empty"></div>
-          <div id="mjTraySlot1" class="mj-tray-slot" role="listitem" aria-label="Tray slot 2, empty"></div>
-          <div id="mjTraySlot2" class="mj-tray-slot" role="listitem" aria-label="Tray slot 3, empty"></div>
-          <div id="mjTraySlot3" class="mj-tray-slot" role="listitem" aria-label="Tray slot 4, empty"></div>
+        <div class="mj-burst-stage">
+          <div id="mjBurstScoreWrap" class="mj-burst-score" aria-hidden="true">
+            <strong id="mjBurstScore">0</strong>
+          </div>
+          <div id="mjTray" class="mj-tray" role="list" aria-label="Burst rack, four selected-tile slots">
+            <div id="mjTraySlot0" class="mj-tray-slot" role="listitem" aria-label="Burst slot 1, empty"></div>
+            <div id="mjTraySlot1" class="mj-tray-slot" role="listitem" aria-label="Burst slot 2, empty"></div>
+            <div id="mjTraySlot2" class="mj-tray-slot" role="listitem" aria-label="Burst slot 3, empty"></div>
+            <div id="mjTraySlot3" class="mj-tray-slot" role="listitem" aria-label="Burst slot 4, empty"></div>
+          </div>
         </div>
         <div class="mj-tray-best"><span>best</span><strong id="mjBest">—</strong></div>
       </aside>
@@ -155,7 +174,7 @@
             <legend>mode</legend>
             <div class="mj-segmented">
               <button id="mjModeClassic" type="button" data-mode="classic" aria-pressed="true" class="selected">Classic</button>
-              <button id="mjModeTray" type="button" data-mode="tray" aria-pressed="false">Tray</button>
+              <button id="mjModeTray" type="button" data-mode="tray" aria-pressed="false">Burst</button>
             </div>
             <p id="mjModeDescription">Match two free tiles directly.</p>
           </fieldset>
@@ -189,7 +208,7 @@
       <div class="mj-modal-scrim" aria-hidden="true"></div>
       <div class="mj-rescue-card">
         <span class="mj-rescue-mark" aria-hidden="true">4</span>
-        <p class="mj-overline">tray full</p>
+        <p class="mj-overline">burst rack full</p>
         <h1 id="mjRescueTitle">Make some room.</h1>
         <p id="mjRescueCopy">Four unmatched tiles are waiting. Choose how you want to continue.</p>
         <div class="mj-rescue-actions">

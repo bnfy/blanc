@@ -292,12 +292,52 @@ let game = null;
 const tileButtons = [];
 let focusIndex = 0;
 let tileAnimationBusy = false;
+let comboAnimationPauseCount = 0;
+let comboFxTimer = null;
+let tileAnimationGeneration = 0;
+let scoreAnimationGeneration = 0;
 let hintTimer = null;
+const transientMotion = new Set();
+
+function scoreElements() {
+  return ['mjScore', 'mjBurstScore']
+    .map((id) => document.getElementById(id))
+    .filter(Boolean);
+}
+
+function setDisplayedScore(value) {
+  const label = Number(value || 0).toLocaleString();
+  for (const element of scoreElements()) element.textContent = label;
+}
+
+function animateDisplayedScore(from, to, duration = 360) {
+  const generation = ++scoreAnimationGeneration;
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if (reducedMotion || to <= from || typeof requestAnimationFrame !== 'function') {
+    setDisplayedScore(to);
+    return;
+  }
+  const startedAt = performance.now();
+  const tick = (now) => {
+    if (generation !== scoreAnimationGeneration) return;
+    const progress = Math.min(1, Math.max(0, (now - startedAt) / duration));
+    const eased = 1 - ((1 - progress) ** 3);
+    setDisplayedScore(Math.round(from + (to - from) * eased));
+    if (progress < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function clearTransientMotion() {
+  for (const element of transientMotion) element.remove();
+  transientMotion.clear();
+}
 
 function clearHint() {
   if (hintTimer !== null) window.clearTimeout(hintTimer);
   hintTimer = null;
   for (const button of tileButtons) button.classList.remove('hinted');
+  for (const slot of document.querySelectorAll('.mj-tray-slot')) slot.classList.remove('hinted');
 }
 
 function trayIndices() {
@@ -348,11 +388,14 @@ function renderTray() {
     const target = document.getElementById(`mjTraySlot${slot}`);
     if (!target) continue;
     target.replaceChildren();
+    target.classList.remove('auto-clearing', 'is-rippling', 'is-receiving', 'is-matching');
     const index = indices[slot];
+    if (Number.isInteger(index)) target.dataset.tileIndex = String(index);
+    else delete target.dataset.tileIndex;
     target.classList.toggle('filled', Number.isInteger(index));
     target.setAttribute('aria-label', Number.isInteger(index)
-      ? `Tray slot ${slot + 1}: ${tileName(game.kinds[index])}`
-      : `Tray slot ${slot + 1}: empty`);
+      ? `Burst slot ${slot + 1}: ${tileName(game.kinds[index])}`
+      : `Burst slot ${slot + 1}: empty`);
     if (!Number.isInteger(index)) continue;
     const face = faceSVG(game.kinds[index]);
     face.classList.add('mj-tray-face');
@@ -366,6 +409,9 @@ function refreshTiles({ recoverFocus = false } = {}) {
   clearHint();
   let nextFocus = focusIndex;
   tileButtons.forEach((b, i) => {
+    b.disabled = false;
+    b.style.pointerEvents = '';
+    b.classList.remove('removing', 'tray-travel', 'is-flight-source', 'auto-clearing');
     b.hidden = game.removed[i];
     const free = !game.removed[i] && E.isFree(game, i);
     if (free) {
@@ -389,10 +435,9 @@ function refreshTiles({ recoverFocus = false } = {}) {
   const left = Math.max(0, positions.length / 2 - clearedPairs());
   document.getElementById('mjPairs').textContent =
     `${left} ${left === 1 ? 'pair' : 'pairs'} left`;
-  const score = document.getElementById('mjScore');
-  if (score) score.textContent = game.mode === 'tray' ? game.score.toLocaleString() : '—';
-  const chain = document.getElementById('mjChain');
-  if (chain) chain.textContent = game.mode === 'tray' && game.chain > 0 ? `×${game.chain}` : '—';
+  if (game.mode === 'tray') setDisplayedScore(game.score);
+  else document.getElementById('mjScore').textContent = '—';
+  paintCombo();
   document.body.dataset.mode = game.mode;
   const shell = document.querySelector('.mj');
   if (shell) {
@@ -403,7 +448,7 @@ function refreshTiles({ recoverFocus = false } = {}) {
   const layoutName = document.getElementById('mjLayoutName');
   if (layoutName) layoutName.textContent = E.LAYOUTS[game.layoutId].name;
   const modeName = document.getElementById('mjModeName');
-  if (modeName) modeName.textContent = game.mode === 'tray' ? 'Tray' : 'Classic';
+  if (modeName) modeName.textContent = game.mode === 'tray' ? 'Burst' : 'Classic';
   const dailyBadge = document.getElementById('mjDailyBadge');
   if (dailyBadge) dailyBadge.hidden = !game.dailyKey;
   renderTray();
@@ -477,9 +522,21 @@ function syncModalBackground() {
 
 function setTileAnimationBusy(busy) {
   tileAnimationBusy = busy;
+  comboClockAt = Date.now();
   board.toggleAttribute('aria-busy', busy);
   board.style.pointerEvents = busy ? 'none' : '';
   syncModalBackground();
+}
+
+function beginComboAnimationPause() {
+  checkpointComboClock();
+  comboAnimationPauseCount += 1;
+  comboClockAt = Date.now();
+}
+
+function endComboAnimationPause() {
+  comboAnimationPauseCount = Math.max(0, comboAnimationPauseCount - 1);
+  comboClockAt = Date.now();
 }
 
 function setDialogVisible(element, visible) {
@@ -555,7 +612,7 @@ function checkEndStates() {
   setDialogVisible(document.getElementById('mjRescue'), rescuing);
   if (rescuing) {
     pauseTimer();
-    announce('The tray is full. Undo, shuffle and continue, or restart.');
+    announce('The Burst rack is full. Undo, shuffle and continue, or restart.');
   }
   if (notice) notice.hidden = rescuing || E.availableMoves(game).length > 0;
 }
@@ -563,23 +620,172 @@ function checkEndStates() {
 function cueForResult(result) {
   if (E.isWon(game)) return 'win';
   if (game.status === 'rescue' || result.type === 'rescue') return 'rescue';
-  if (result.type === 'tray-pair') return result.points > 100 ? 'chain' : 'pair';
+  if (result.type === 'tray-pair' && result.comboCount >= 15) return 'comboMasterful';
+  if (result.type === 'tray-pair' && result.comboCount >= 10) return 'comboBrilliant';
+  if (result.type === 'tray-pair' && result.milestone) return 'comboFlowing';
+  if (result.type === 'tray-pair' && result.comboCount > 1) return 'comboStep';
+  if (result.type === 'tray-pair') return 'pair';
   if (result.type === 'tray-park') return 'tray';
   if (result.type === 'pair') return 'pair';
   return 'select';
 }
 
-function finishTileResult(result, index) {
-  setTileAnimationBusy(false);
+function finishTileResult(result, index, { unlockInput = false, endAnimationPause = false } = {}) {
+  if (unlockInput) setTileAnimationBusy(false);
+  if (endAnimationPause) endComboAnimationPause();
   refreshTiles({ recoverFocus: ['pair', 'tray-pair', 'tray-park', 'rescue'].includes(result.type) });
   checkEndStates();
   if (result.type === 'tray-pair') {
-    announce(`${result.points} points. ${game.score} total. ${clearedPairs()} pairs cleared.`);
+    const automatic = result.autoClear
+      ? ` Automatic pair cleared for ${result.bonusPoints} bonus points.`
+      : result.milestone ? ` ${result.bonusPoints} milestone bonus points.` : '';
+    announce(`Combo ${result.comboCount}. ${result.userPoints} points.${automatic} ${game.score} total.`);
   } else if (result.type === 'tray-park') {
-    announce(`${tileName(game.kinds[index])} moved to tray. ${trayIndices().length} of 4 slots filled.`);
+    announce(`${tileName(game.kinds[index])} moved to the Burst rack. ${trayIndices().length} of 4 slots filled.`);
   } else if (result.type === 'pair') {
     announce(`Pair cleared. ${Math.max(0, positions.length / 2 - clearedPairs())} pairs left.`);
   }
+}
+
+function comboTier(count) {
+  if (count >= 15) return { name: 'masterful', label: `MASTERFUL ×${count}` };
+  if (count >= 10) return { name: 'brilliant', label: `BRILLIANT ×${count}` };
+  return { name: 'flowing', label: `FLOWING ×${count}` };
+}
+
+function trackTransient(element, duration) {
+  transientMotion.add(element);
+  window.setTimeout(() => {
+    element.remove();
+    transientMotion.delete(element);
+  }, duration);
+}
+
+function nextTrayTarget() {
+  return [...document.querySelectorAll('.mj-tray-slot')]
+    .find((slot) => !slot.classList.contains('filled')) || null;
+}
+
+function startTrayFlight(result, index) {
+  if (!['tray-park', 'rescue', 'tray-pair'].includes(result.type)) return 0;
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const source = tileButtons[index];
+  const target = nextTrayTarget();
+  if (!source || !target) return 0;
+  target.classList.add('is-receiving');
+  if (result.type === 'tray-pair') {
+    target.classList.add('is-matching');
+    document.querySelector(`.mj-tray-slot[data-tile-index="${result.indices[0]}"]`)
+      ?.classList.add('is-matching');
+  }
+  if (reducedMotion || typeof source.animate !== 'function') return 0;
+
+  const sourceRect = source.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const clone = source.cloneNode(true);
+  clone.removeAttribute('id');
+  clone.removeAttribute('aria-label');
+  clone.removeAttribute('aria-pressed');
+  clone.removeAttribute('tabindex');
+  clone.className = 'mj-tile mj-tile-flight';
+  clone.disabled = true;
+  Object.assign(clone.style, {
+    position: 'fixed',
+    left: `${sourceRect.left}px`,
+    top: `${sourceRect.top}px`,
+    width: `${sourceRect.width}px`,
+    height: `${sourceRect.height}px`,
+  });
+  document.body.append(clone);
+  const dx = targetRect.left + targetRect.width / 2 - sourceRect.left - sourceRect.width / 2;
+  const dy = targetRect.top + targetRect.height / 2 - sourceRect.top - sourceRect.height / 2;
+  const scaleX = targetRect.width / sourceRect.width;
+  const scaleY = targetRect.height / sourceRect.height;
+  const targetTransform = `translate3d(${dx}px, ${dy}px, 0) scale(${scaleX}, ${scaleY})`;
+  if (result.type === 'tray-pair') {
+    trackTransient(clone, 780);
+    clone.animate([
+      { transform: 'translate3d(0, 0, 0) scale(1)', filter: 'brightness(1)', opacity: 1, offset: 0 },
+      { transform: `translate3d(${dx * 0.55}px, ${dy * 0.46 - 18}px, 0) scale(1.08)`, filter: 'brightness(1.12)', opacity: 1, offset: 0.22 },
+      { transform: targetTransform, filter: 'brightness(1.16)', opacity: 1, offset: 0.42 },
+      { transform: targetTransform, filter: 'brightness(1.08)', opacity: 1, offset: 0.58 },
+      { transform: `translate3d(${dx + 5}px, ${dy - 4}px, 0) scale(${scaleX * 1.08}, ${scaleY * 1.08})`, filter: 'brightness(1.32)', opacity: 1, offset: 0.73 },
+      { transform: `translate3d(${dx + 10}px, ${dy - 15}px, 0) scale(${scaleX * 0.76}, ${scaleY * 0.76})`, filter: 'brightness(1.45)', opacity: 0, offset: 1 },
+    ], { duration: 760, easing: 'cubic-bezier(.18,.82,.2,1)', fill: 'forwards' });
+  } else {
+    trackTransient(clone, 380);
+    clone.animate([
+      { transform: 'translate3d(0, 0, 0) scale(1)', filter: 'brightness(1)', offset: 0 },
+      { transform: `translate3d(${dx * 0.55}px, ${dy * 0.46 - 18}px, 0) scale(1.08)`, filter: 'brightness(1.12)', offset: 0.52 },
+      { transform: targetTransform, filter: 'brightness(1.16)', offset: 1 },
+    ], { duration: 320, easing: 'cubic-bezier(.18,.82,.2,1)', fill: 'forwards' });
+  }
+  return 320;
+}
+
+function launchTrayBurst() {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  const anchor = [...document.querySelectorAll('.mj-tray-slot.is-matching')].at(-1);
+  const rect = anchor?.getBoundingClientRect();
+  if (!rect) return;
+  const burst = document.createElement('img');
+  burst.className = 'mj-tray-burst';
+  burst.src = 'mahjong-combo-particles.png';
+  burst.alt = '';
+  burst.style.left = `${rect.left + rect.width / 2}px`;
+  burst.style.top = `${rect.top + rect.height / 2}px`;
+  document.body.append(burst);
+  trackTransient(burst, 980);
+}
+
+function launchScoreFlight(result, index) {
+  if (result.type !== 'tray-pair') return;
+  const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const sourceRect = [...document.querySelectorAll('.mj-tray-slot.is-matching')].at(-1)
+    ?.getBoundingClientRect() || tileButtons[index]?.getBoundingClientRect();
+  const scoreRect = document.getElementById('mjBurstScore')?.getBoundingClientRect();
+  if (reducedMotion || !sourceRect || !scoreRect) return;
+  const chip = document.createElement('div');
+  chip.className = 'mj-score-flight';
+  chip.textContent = `+${result.userPoints}`;
+  chip.style.setProperty('--mj-flight-from-x', `${sourceRect.left + sourceRect.width / 2}px`);
+  chip.style.setProperty('--mj-flight-from-y', `${sourceRect.top + sourceRect.height / 2}px`);
+  chip.style.setProperty('--mj-flight-to-x', `${scoreRect.left + scoreRect.width / 2}px`);
+  chip.style.setProperty('--mj-flight-to-y', `${scoreRect.top + scoreRect.height / 2}px`);
+  document.body.append(chip);
+  trackTransient(chip, 760);
+}
+
+function startComboFeedback(result, index) {
+  const fx = document.getElementById('mjComboFx');
+  if (!fx || result.type !== 'tray-pair') return;
+  const tier = comboTier(result.comboCount);
+  fx.dataset.tier = tier.name;
+  document.getElementById('mjComboCallout').textContent = result.milestone
+    ? tier.label
+    : result.comboCount > 1 ? `COMBO ×${result.comboCount}` : '';
+  fx.className = 'mj-combo-fx';
+  if (comboFxTimer !== null) window.clearTimeout(comboFxTimer);
+  void fx.offsetWidth;
+  fx.classList.add('is-impact');
+  if (result.comboCount >= 3) fx.classList.add('is-heated');
+  if (result.comboCount > 1) fx.classList.add('is-combo');
+  if (result.milestone) fx.classList.add('is-milestone');
+  if (result.autoClear) fx.classList.add('is-auto');
+  for (const slot of document.querySelectorAll('.mj-tray-slot')) {
+    slot.classList.remove('is-rippling');
+    void slot.offsetWidth;
+    slot.classList.add('is-rippling');
+  }
+  if (result.autoClear) window.setTimeout(() => sound.play('autoClear'), 250);
+  launchScoreFlight(result, index);
+  launchTrayBurst();
+  const fxDuration = result.comboCount >= 15 ? 1280 : result.milestone ? 1120 : result.comboCount > 1 ? 980 : 820;
+  comboFxTimer = window.setTimeout(() => {
+    fx.className = 'mj-combo-fx';
+    for (const slot of document.querySelectorAll('.mj-tray-slot')) slot.classList.remove('is-rippling');
+    comboFxTimer = null;
+  }, fxDuration);
 }
 
 function animateTileResult(result, index) {
@@ -592,25 +798,60 @@ function animateTileResult(result, index) {
     finishTileResult(result, index);
     return;
   }
-  const className = result.type === 'tray-park' || result.type === 'rescue'
-    ? 'tray-travel'
-    : 'removing';
-  setTileAnimationBusy(true);
+  const trayMotion = ['tray-park', 'rescue', 'tray-pair'].includes(result.type);
+  const className = trayMotion ? 'is-flight-source' : 'removing';
+  const locksInput = Boolean(result.autoClear);
+  const generation = tileAnimationGeneration;
+  const immediate = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  beginComboAnimationPause();
+  if (locksInput) setTileAnimationBusy(true);
+  const flightDuration = startTrayFlight(result, index);
+  if (result.type === 'tray-pair') {
+    const from = Math.max(0, result.score - result.userPoints - result.bonusPoints);
+    animateDisplayedScore(from, result.score, Math.max(300, flightDuration));
+    window.setTimeout(() => {
+      if (generation === tileAnimationGeneration) startComboFeedback(result, index);
+    }, immediate ? 0 : Math.max(220, flightDuration - 40));
+  }
   for (const tileIndex of departing) {
     const button = tileButtons[tileIndex];
     if (!button || button.hidden) continue;
     button.classList.remove(className);
     void button.offsetWidth;
     button.classList.add(className);
+    button.disabled = true;
+    button.style.pointerEvents = 'none';
+  }
+  for (const autoIndex of result.autoClear?.indices || []) {
+    const button = tileButtons[autoIndex];
+    if (!button || button.hidden) continue;
+    button.classList.remove('auto-clearing');
+    void button.offsetWidth;
+    button.classList.add('auto-clearing');
+  }
+  if (result.autoClear?.source === 'tray') {
+    const trayIndex = result.autoClear.indices[0];
+    const traySlot = document.querySelector(`.mj-tray-slot[data-tile-index="${trayIndex}"]`);
+    traySlot?.classList.add('auto-clearing');
   }
   if (result.type === 'tray-pair') {
-    const score = document.getElementById('mjScore');
-    score?.classList.remove('score-pulse');
-    if (score) void score.offsetWidth;
-    score?.classList.add('score-pulse');
+    for (const score of scoreElements()) {
+      score.classList.remove('score-pulse');
+      void score.offsetWidth;
+      score.classList.add('score-pulse');
+    }
   }
-  const immediate = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  window.setTimeout(() => finishTileResult(result, index), immediate ? 0 : 300);
+  const duration = locksInput ? 1080
+    : result.type === 'tray-pair' ? 760
+      : result.type === 'tray-park' || result.type === 'rescue' ? 340
+      : 240;
+  window.setTimeout(
+    () => {
+      if (generation !== tileAnimationGeneration) return;
+      finishTileResult(result, index, { unlockInput: locksInput, endAnimationPause: true });
+    },
+    immediate ? 0 : duration,
+  );
 }
 
 function activateTile(i, tile = tileButtons[i]) {
@@ -622,6 +863,7 @@ function activateTile(i, tile = tileButtons[i]) {
     tile.classList.remove('shake');
     void tile.offsetWidth; // restart the animation
     tile.classList.add('shake');
+    window.setTimeout(() => tile.classList.remove('shake'), 420);
     return;
   }
   // The timer's first real move is also the analytics definition of "played".
@@ -633,7 +875,9 @@ function activateTile(i, tile = tileButtons[i]) {
   const result = E.selectTile(game, i);
   if (!result?.ok) return;
   focusIndex = i;
-  sound.play(cueForResult(result));
+  const cue = cueForResult(result);
+  const semitones = cue === 'comboStep' ? Math.min(7, Math.max(0, result.comboCount - 2)) : 0;
+  sound.play(cue, { semitones });
   const wonNow = !wasWon && E.isWon(game);
   if (wonNow || game.status === 'rescue') pauseTimer();
   if (wonNow) recordCompletion();
@@ -741,14 +985,17 @@ document.getElementById('mjHint').addEventListener('click', () => {
     void tileButtons[k].offsetWidth;
     tileButtons[k].classList.add('hinted');
   }
-  hintTimer = window.setTimeout(clearHint, 1400);
+  const trayIndex = move.find((index) => game.tray.includes(index));
+  if (Number.isInteger(trayIndex)) {
+    document.querySelector(`.mj-tray-slot[data-tile-index="${trayIndex}"]`)?.classList.add('hinted');
+  }
+  hintTimer = window.setTimeout(clearHint, 2200);
   if (move.length === 2 && move.some((index) => game.tray.includes(index))) {
-    const trayIndex = move.find((index) => game.tray.includes(index));
-    announce(`Hint: a ${tileName(game.kinds[trayIndex])} in the tray has a free match.`);
+    announce(`Hint: a ${tileName(game.kinds[trayIndex])} in the Burst rack has a free match.`);
   } else if (visible.length === 2) {
     announce(`Hint: two ${tileName(game.kinds[visible[0]])} tiles are available.`);
   } else {
-    announce(`Hint: ${tileName(game.kinds[visible[0]])} is free to move into the tray.`);
+    announce(`Hint: ${tileName(game.kinds[visible[0]])} is free to move into the Burst rack.`);
   }
 });
 
@@ -807,6 +1054,7 @@ paintSoundButton();
 let runningSince = null;
 let hasStarted = false;
 let tickHandle = null;
+let comboClockAt = Date.now();
 
 function formatMs(ms) {
   const total = Math.floor(ms / 1000);
@@ -815,16 +1063,61 @@ function formatMs(ms) {
 
 function paintTimer() {
   if (!game) return;
+  checkpointComboClock();
   const live = runningSince === null ? 0 : Math.max(0, Date.now() - runningSince);
   document.getElementById('mjTimer').textContent = formatMs(game.elapsedMs + live);
+  paintCombo();
+}
+
+function comboActionable() {
+  return Boolean(game?.mode === 'tray' && game.status === 'playing' && !document.hidden && embedActive
+    && !tileAnimationBusy && comboAnimationPauseCount === 0 && !activeModal());
+}
+
+function checkpointComboClock() {
+  const now = Date.now();
+  const delta = Math.max(0, now - comboClockAt);
+  comboClockAt = now;
+  if (!comboActionable() || delta === 0) return;
+  const result = E.advanceComboClock(game, delta);
+  if (result.expired) saveAfterMutation();
+}
+
+function paintCombo() {
+  if (!game) return;
+  const combo = document.getElementById('mjCombo');
+  const bar = document.getElementById('mjComboBar');
+  const score = document.getElementById('mjScore');
+  const scoreMeter = score?.closest('.mj-score-meter');
+  const burstScore = document.getElementById('mjBurstScoreWrap');
+  const rail = document.getElementById('mjTrayRail');
+  const count = game.mode === 'tray' ? game.comboCount : 0;
+  const progress = game.mode === 'tray' && game.comboCount > 0
+    ? Math.max(0, Math.min(1, game.comboRemainingMs / E.COMBO_WINDOW_MS))
+    : 0;
+  if (combo) combo.textContent = game.mode === 'tray' && game.comboCount > 0 ? `×${game.comboCount}` : '—';
+  if (bar) {
+    bar.style.setProperty('--mj-combo-progress', String(progress));
+    bar.setAttribute('aria-valuenow', String(Math.round(game.comboRemainingMs || 0)));
+    bar.classList.toggle('is-urgent', game.comboCount > 0 && game.comboRemainingMs <= 1500);
+  }
+  scoreMeter?.classList.toggle('is-heated', count >= 3);
+  scoreMeter?.classList.toggle('is-brilliant', count >= 10);
+  scoreMeter?.classList.toggle('is-masterful', count >= 15);
+  burstScore?.classList.toggle('is-heated', count >= 3);
+  burstScore?.classList.toggle('is-brilliant', count >= 10);
+  burstScore?.classList.toggle('is-masterful', count >= 15);
+  rail?.classList.toggle('is-live', count > 0);
+  rail?.classList.toggle('is-hot', count >= 5);
 }
 
 function startTimer() {
   hasStarted = true;
   if (runningSince !== null || document.hidden || !embedActive || game?.status !== 'playing') return;
   runningSince = Date.now();
+  comboClockAt = runningSince;
   clearInterval(tickHandle);
-  tickHandle = setInterval(paintTimer, 500);
+  tickHandle = setInterval(paintTimer, 50);
 }
 
 function checkpointTimer() {
@@ -835,6 +1128,7 @@ function checkpointTimer() {
 }
 
 function pauseTimer() {
+  checkpointComboClock();
   checkpointTimer();
   runningSince = null;
   clearInterval(tickHandle);
@@ -866,7 +1160,9 @@ function bestForGame() {
     : records.tray[game.layoutId] || null;
   if (!record) return null;
   const layoutRevision = record.layoutRevision === undefined ? 1 : record.layoutRevision;
-  return layoutRevision === game.layoutRevision ? record : null;
+  if (layoutRevision !== game.layoutRevision) return null;
+  if (game.mode === 'tray' && record.scoringRevision !== E.TRAY_SCORING_REVISION) return null;
+  return record;
 }
 
 function paintBest() {
@@ -896,6 +1192,9 @@ function recordCompletion() {
     completed: true,
     dailyKey: game.dailyKey,
     assists: game.assists,
+    maxCombo: game.maxCombo,
+    autoClears: game.autoClears,
+    scoringRevision: game.scoringRevision,
   });
   game.completionRecorded = Boolean(updated);
   const after = updated && (game.mode === 'classic'
@@ -922,6 +1221,10 @@ function showWin() {
           ? `best ${formatMs(best.bestTimeMs)}`
           : `best ${best.bestScore.toLocaleString()} · ${formatMs(best.bestTimeMs)}`)
       : 'complete';
+  const stats = document.getElementById('mjWinStats');
+  if (stats) stats.hidden = game.mode !== 'tray';
+  document.getElementById('mjWinCombo').textContent = `×${game.maxCombo || 0}`;
+  document.getElementById('mjWinAutoClears').textContent = String(game.autoClears || 0);
   setDialogVisible(document.getElementById('mjWin'), true);
   announce(`Board cleared. ${label}.`);
 }
@@ -935,7 +1238,7 @@ let recordStore = null;
 let duplicateGuard = null;
 let duplicateChannel = null;
 let embedActive = true;
-let setupChoice = { layoutId: 'turtle', mode: 'classic', source: 'random' };
+let setupChoice = { layoutId: S.dailyDeal(new Date()).layoutId, mode: 'tray', source: 'daily' };
 let setupReturnToWin = false;
 
 function saveAfterMutation() {
@@ -947,6 +1250,15 @@ function saveAfterMutation() {
 }
 
 function configureGame(nextGame) {
+  tileAnimationGeneration += 1;
+  scoreAnimationGeneration += 1;
+  comboAnimationPauseCount = 0;
+  clearTransientMotion();
+  if (comboFxTimer !== null) window.clearTimeout(comboFxTimer);
+  comboFxTimer = null;
+  const fx = document.getElementById('mjComboFx');
+  if (fx) fx.className = 'mj-combo-fx';
+  setTileAnimationBusy(false);
   game = nextGame;
   game.gameId = gameId;
   game.assists ||= { undo: 0, hint: 0, shuffle: 0 };
@@ -978,7 +1290,7 @@ function startGame({ layoutId, mode, seed, dailyKey = null }, { soundCue = true 
     configureGame(next);
     saveAfterMutation();
     if (soundCue) sound.play('deal');
-    announce(`${E.LAYOUTS[layoutId].name} ${mode} game ready.`);
+    announce(`${E.LAYOUTS[layoutId].name} ${mode === 'tray' ? 'Burst' : 'Classic'} game ready.`);
   } catch {
     // Never expected (defensive cap in generateDeal); leave no stale board.
     game = null;
@@ -1017,7 +1329,7 @@ function paintSetupChoices() {
   }
   const modeDescription = document.getElementById('mjModeDescription');
   if (modeDescription) modeDescription.textContent = setupChoice.mode === 'tray'
-    ? 'Move free tiles into a four-slot matching tray.'
+    ? 'Build rapid matches in a four-slot Burst rack.'
     : 'Match two free tiles directly.';
   const sourceDescription = document.getElementById('mjSourceDescription');
   if (sourceDescription) sourceDescription.textContent = setupChoice.source === 'daily'
@@ -1026,6 +1338,7 @@ function paintSetupChoices() {
 }
 
 function openSetup() {
+  pauseTimer();
   setupReturnToWin = E.isWon(game);
   if (setupReturnToWin) setDialogVisible(document.getElementById('mjWin'), false);
   setupChoice = {
@@ -1046,6 +1359,7 @@ function closeSetup() {
     setupReturnToWin = false;
     document.getElementById('mjSetup')?.focus();
   }
+  if (!document.hidden && embedActive && hasStarted && game?.status === 'playing') startTimer();
 }
 
 function startSetupChoice() {
@@ -1179,7 +1493,8 @@ function bootstrap() {
     configureGame(restored);
     announce('Saved game restored.');
   } else {
-    startGame({ layoutId: 'turtle', mode: 'classic', seed: randomSeed() }, { soundCue: false });
+    const daily = S.dailyDeal(new Date());
+    startGame({ ...daily, mode: 'tray' }, { soundCue: false });
     if (hadSave) document.getElementById('mjRecoveryNotice').hidden = false;
   }
   notifyParentGameId();

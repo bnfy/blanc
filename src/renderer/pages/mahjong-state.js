@@ -24,6 +24,7 @@
   // into the wider revision-2 board.
   const LAYOUT_REVISIONS = Object.freeze({ turtle: 1, arch: 2, peaks: 1 });
   const MODES = Object.freeze(['classic', 'tray']);
+  const TRAY_SCORING_REVISION = 2;
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const DAILY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -333,7 +334,7 @@
   }
 
   function emptyRecords() {
-    return { version: RECORDS_VERSION, classic: {}, tray: {}, daily: {} };
+    return { version: RECORDS_VERSION, classic: {}, tray: {}, trayLegacy: {}, daily: {} };
   }
 
   function normalizeAssists(value) {
@@ -373,11 +374,31 @@
         ? normalizedLayoutRevision(layoutId, tray.layoutRevision)
         : null;
       if (trayRevision !== null && finiteInteger(tray.bestScore) && finiteInteger(tray.bestTimeMs, 1)) {
-        clean.tray[layoutId] = {
+        const scoringRevision = tray.scoringRevision === undefined ? 1 : tray.scoringRevision;
+        const target = scoringRevision === TRAY_SCORING_REVISION ? clean.tray : clean.trayLegacy;
+        target[layoutId] = {
           layoutRevision: trayRevision,
+          scoringRevision,
           bestScore: tray.bestScore,
           bestTimeMs: tray.bestTimeMs,
+          maxCombo: finiteInteger(tray.maxCombo) ? tray.maxCombo : 0,
+          autoClears: finiteInteger(tray.autoClears) ? tray.autoClears : 0,
           updatedAt: finiteInteger(tray.updatedAt) ? tray.updatedAt : 0,
+        };
+      }
+      const legacyTray = value.trayLegacy && value.trayLegacy[layoutId];
+      const legacyRevision = isObject(legacyTray)
+        ? normalizedLayoutRevision(layoutId, legacyTray.layoutRevision)
+        : null;
+      if (legacyRevision !== null && finiteInteger(legacyTray.bestScore) && finiteInteger(legacyTray.bestTimeMs, 1)) {
+        clean.trayLegacy[layoutId] = {
+          layoutRevision: legacyRevision,
+          scoringRevision: 1,
+          bestScore: legacyTray.bestScore,
+          bestTimeMs: legacyTray.bestTimeMs,
+          maxCombo: 0,
+          autoClears: 0,
+          updatedAt: finiteInteger(legacyTray.updatedAt) ? legacyTray.updatedAt : 0,
         };
       }
     }
@@ -397,6 +418,11 @@
             completed: result.completed,
             elapsedMs: result.elapsedMs,
             score: finiteInteger(result.score) ? result.score : 0,
+            scoringRevision: mode === 'tray'
+              ? (finiteInteger(result.scoringRevision, 1) ? result.scoringRevision : 1)
+              : 0,
+            maxCombo: mode === 'tray' && finiteInteger(result.maxCombo) ? result.maxCombo : 0,
+            autoClears: mode === 'tray' && finiteInteger(result.autoClears) ? result.autoClears : 0,
             assists: normalizeAssists(result.assists),
             updatedAt: finiteInteger(result.updatedAt) ? result.updatedAt : 0,
           };
@@ -412,6 +438,9 @@
     if (candidate.completed !== current.completed) return candidate.completed;
     if (!candidate.completed) return candidate.updatedAt >= current.updatedAt;
     if (mode === 'classic') return candidate.elapsedMs < current.elapsedMs;
+    if (candidate.scoringRevision !== current.scoringRevision) {
+      return candidate.scoringRevision === TRAY_SCORING_REVISION;
+    }
     if (candidate.score !== current.score) return candidate.score > current.score;
     return candidate.elapsedMs < current.elapsedMs;
   }
@@ -425,6 +454,11 @@
     const completed = result.completed !== false;
     const elapsedMs = result.elapsedMs;
     const score = result.score || 0;
+    const scoringRevision = result.mode === 'tray'
+      ? (finiteInteger(result.scoringRevision, 1) ? result.scoringRevision : 1)
+      : 0;
+    const maxCombo = result.mode === 'tray' && finiteInteger(result.maxCombo) ? result.maxCombo : 0;
+    const autoClears = result.mode === 'tray' && finiteInteger(result.autoClears) ? result.autoClears : 0;
     if (completed && elapsedMs > 0) {
       if (result.mode === 'classic') {
         const current = next.classic[result.layoutId];
@@ -433,8 +467,11 @@
         }
       } else {
         const current = next.tray[result.layoutId];
-        if (!current || score > current.bestScore || (score === current.bestScore && elapsedMs < current.bestTimeMs)) {
-          next.tray[result.layoutId] = { layoutRevision, bestScore: score, bestTimeMs: elapsedMs, updatedAt: timestamp };
+        if (scoringRevision === TRAY_SCORING_REVISION && (!current || score > current.bestScore || (score === current.bestScore && elapsedMs < current.bestTimeMs))) {
+          next.tray[result.layoutId] = {
+            layoutRevision, scoringRevision, bestScore: score, bestTimeMs: elapsedMs,
+            maxCombo, autoClears, updatedAt: timestamp,
+          };
         }
       }
     }
@@ -445,6 +482,9 @@
         completed,
         elapsedMs,
         score,
+        scoringRevision,
+        maxCombo,
+        autoClears,
         assists: normalizeAssists(result.assists),
         updatedAt: timestamp,
       };
@@ -737,6 +777,7 @@
     LAYOUT_IDS,
     LAYOUT_REVISIONS,
     MODES,
+    TRAY_SCORING_REVISION,
     isValidGameId,
     mintGameId,
     ensureGameId,

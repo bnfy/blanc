@@ -9,6 +9,11 @@
   const STATUSES = Object.freeze({ PLAYING: 'playing', RESCUE: 'rescue', WON: 'won' });
   const TRAY_SIZE = 4;
   const MAX_HISTORY = 160;
+  const COMBO_WINDOW_MS = 5000;
+  const AUTO_CLEAR_INTERVAL = 5;
+  const AUTO_CLEAR_POINTS = 100;
+  const MAX_COMBO_PAIR_POINTS = 500;
+  const TRAY_SCORING_REVISION = 2;
   const SPECIAL_VARIANT_KINDS = Object.freeze([
     'wind-n-motif', 'wind-n-seal',
     'wind-e-motif', 'wind-e-seal',
@@ -292,7 +297,11 @@
       selected: null,
       history: [],
       score: 0,
-      chain: 0,
+      comboCount: 0,
+      maxCombo: 0,
+      comboRemainingMs: 0,
+      autoClears: 0,
+      scoringRevision: options.mode === MODES.TRAY ? TRAY_SCORING_REVISION : 0,
       elapsedMs: 0,
       dailyKey: options.dailyKey,
       status: STATUSES.PLAYING,
@@ -367,24 +376,79 @@
     if (state.history.length > MAX_HISTORY) state.history.splice(0, state.history.length - MAX_HISTORY);
   }
 
-  function cleanEligibilitySnapshot(state, tray) {
-    const snapshot = [];
-    for (const trayIndex of tray) {
-      const action = state.history.findLast(
-        (entry) => entry.type === 'tray-park' && entry.index === trayIndex
-      );
-      if (action) snapshot.push([trayIndex, action.cleanEligible === true]);
-    }
-    return snapshot;
+  function resetCombo(state) {
+    if (!state) return false;
+    const changed = state.comboCount !== 0 || state.comboRemainingMs !== 0;
+    state.comboCount = 0;
+    state.comboRemainingMs = 0;
+    return changed;
   }
 
-  function restoreCleanEligibility(state, snapshot) {
-    for (const [trayIndex, eligible] of snapshot || []) {
-      const action = state.history.findLast(
-        (entry) => entry.type === 'tray-park' && entry.index === trayIndex
-      );
-      if (action) action.cleanEligible = eligible;
+  function advanceComboClock(state, elapsedMs) {
+    if (!state || state.mode !== MODES.TRAY || state.status !== STATUSES.PLAYING) {
+      return { changed: false, expired: false, remainingMs: state?.comboRemainingMs || 0 };
     }
+    if (!Number.isFinite(elapsedMs) || elapsedMs < 0) throw new TypeError('mahjong: combo elapsed time must be non-negative');
+    if (state.comboCount <= 0 || state.comboRemainingMs <= 0 || elapsedMs === 0) {
+      return { changed: false, expired: false, remainingMs: state.comboRemainingMs || 0 };
+    }
+    const previous = state.comboRemainingMs;
+    const next = Math.max(0, previous - elapsedMs);
+    const expired = next === 0;
+    state.comboRemainingMs = next;
+    if (expired) state.comboCount = 0;
+    if (next !== previous || expired) touch(state);
+    return { changed: true, expired, remainingMs: next };
+  }
+
+  function removeParkHistory(state, trayIndex) {
+    const parkedAction = state.history.findLastIndex(
+      (action) => action.type === 'tray-park' && action.index === trayIndex
+    );
+    if (parkedAction >= 0) state.history.splice(parkedAction, 1);
+    for (const action of state.history) {
+      if (Array.isArray(action.priorTray)) {
+        action.priorTray = action.priorTray.filter((index) => index !== trayIndex);
+      }
+    }
+  }
+
+  function newlyExposedCount(state, removedIndices) {
+    const definition = stateLayout(state);
+    if (!definition) return 0;
+    const removed = new Set(removedIndices);
+    const beforePresent = (index) => !state.removed[index];
+    const afterPresent = (index) => !state.removed[index] && !removed.has(index);
+    let count = 0;
+    for (let index = 0; index < definition.positions.length; index++) {
+      if (!afterPresent(index)) continue;
+      if (!isFreeAt(definition.positions, index, beforePresent)
+        && isFreeAt(definition.positions, index, afterPresent)) count += 1;
+    }
+    return count;
+  }
+
+  function automaticPair(state) {
+    const definition = stateLayout(state);
+    if (!definition) return null;
+    for (const trayIndex of state.tray) {
+      const candidates = [];
+      for (let index = 0; index < state.kinds.length; index++) {
+        if (!isFree(state, index) || matchKey(state.kinds[index]) !== matchKey(state.kinds[trayIndex])) continue;
+        candidates.push({ index, exposed: newlyExposedCount(state, [index]), z: definition.positions[index].z });
+      }
+      candidates.sort((a, b) => b.exposed - a.exposed || b.z - a.z || a.index - b.index);
+      if (candidates.length) return { indices: [trayIndex, candidates[0].index], source: 'tray' };
+    }
+    const moves = availableMoves({ ...state, mode: MODES.CLASSIC });
+    const candidates = moves.map((indices) => ({
+      indices,
+      exposed: newlyExposedCount(state, indices),
+      z: definition.positions[indices[0]].z + definition.positions[indices[1]].z,
+    }));
+    candidates.sort((a, b) => b.exposed - a.exposed || b.z - a.z
+      || a.indices[0] - b.indices[0] || a.indices[1] - b.indices[1]);
+    return candidates.length ? { indices: candidates[0].indices.slice(), source: 'board' } : null;
   }
 
   function updateWonStatus(state) {
@@ -430,40 +494,36 @@
     if (!isFree(state, index)) return { ok: false, type: 'blocked', index };
     const priorTray = state.tray.slice();
     const priorScore = state.score;
-    const priorCleanEligibility = cleanEligibilitySnapshot(state, priorTray);
+    const priorMaxCombo = state.maxCombo;
+    const priorAutoClears = state.autoClears;
     const key = matchKey(state.kinds[index]);
     const matchOffset = priorTray.findIndex((trayIndex) => matchKey(state.kinds[trayIndex]) === key);
     state.removed[index] = true;
     if (matchOffset >= 0) {
       const matchedIndex = priorTray[matchOffset];
       state.tray.splice(matchOffset, 1);
-      // The parked tile and this pick become one undoable pair. Remove the
-      // older park action, and rebase later tray snapshots so a subsequent
-      // sequence of undos never puts the restored tile back into the tray.
-      const parkedAction = state.history.findLastIndex(
-        (action) => action.type === 'tray-park' && action.index === matchedIndex
-      );
-      const clean = priorTray.length === 1 && parkedAction >= 0 &&
-        state.history[parkedAction].cleanEligible === true;
-      if (parkedAction >= 0) {
-        state.history.splice(parkedAction, 1);
-        for (const action of state.history) {
-          if (Array.isArray(action.priorTray)) {
-            action.priorTray = action.priorTray.filter((trayIndex) => trayIndex !== matchedIndex);
+      removeParkHistory(state, matchedIndex);
+      state.comboCount = state.comboRemainingMs > 0 ? state.comboCount + 1 : 1;
+      state.maxCombo = Math.max(state.maxCombo, state.comboCount);
+      const userPoints = Math.min(100 + (state.comboCount - 1) * 50, MAX_COMBO_PAIR_POINTS);
+      state.score += userPoints;
+      state.comboRemainingMs = COMBO_WINDOW_MS;
+      const milestone = state.comboCount % AUTO_CLEAR_INTERVAL === 0;
+      let autoClear = null;
+      let bonusPoints = 0;
+      if (milestone) {
+        bonusPoints = AUTO_CLEAR_POINTS;
+        autoClear = automaticPair(state);
+        if (autoClear) {
+          if (autoClear.source === 'tray') {
+            const [trayIndex] = autoClear.indices;
+            state.tray.splice(state.tray.indexOf(trayIndex), 1);
+            removeParkHistory(state, trayIndex);
           }
-          if (Array.isArray(action.priorCleanEligibility)) {
-            action.priorCleanEligibility = action.priorCleanEligibility.filter(
-              ([trayIndex]) => trayIndex !== matchedIndex
-            );
-          }
+          for (const clearedIndex of autoClear.indices) state.removed[clearedIndex] = true;
+          state.autoClears += 1;
         }
-      }
-      if (clean) {
-        state.chain = Math.min(5, state.chain + 1);
-        state.score += 100 + (state.chain - 1) * 25;
-      } else {
-        state.chain = 0;
-        state.score += 100;
+        state.score += bonusPoints;
       }
       state.status = STATUSES.PLAYING;
       pushHistory(state, {
@@ -472,6 +532,9 @@
         priorTray: state.tray.slice(),
         priorScore,
         priorStatus: STATUSES.PLAYING,
+        priorMaxCombo,
+        priorAutoClears,
+        autoClear,
       });
       updateWonStatus(state);
       touch(state);
@@ -479,34 +542,28 @@
         ok: true,
         type: 'tray-pair',
         indices: [matchedIndex, index],
-        clean,
-        points: state.score - priorScore,
+        points: userPoints,
+        userPoints,
+        bonusPoints,
         score: state.score,
-        chain: state.chain,
+        comboCount: state.comboCount,
+        autoClear,
+        milestone,
         won: state.status === STATUSES.WON,
       };
     }
 
-    if (priorTray.length > 0) {
-      state.chain = 0;
-      // Parking any additional unmatched tile breaks the clean opportunity
-      // for every tile already waiting in the tray.
-      for (const action of state.history) {
-        if (action.type === 'tray-park' && state.tray.includes(action.index)) {
-          action.cleanEligible = false;
-        }
-      }
-    }
     state.tray.push(index);
-    if (state.tray.length === TRAY_SIZE) state.status = STATUSES.RESCUE;
+    if (state.tray.length === TRAY_SIZE) {
+      state.status = STATUSES.RESCUE;
+      resetCombo(state);
+    }
     pushHistory(state, {
       type: 'tray-park',
       index,
       priorTray,
       priorScore,
       priorStatus: STATUSES.PLAYING,
-      cleanEligible: priorTray.length === 0,
-      priorCleanEligibility,
     });
     touch(state);
     return {
@@ -536,17 +593,19 @@
       state.tray = action.priorTray.slice();
       state.score = action.priorScore;
       state.selected = null;
-      restoreCleanEligibility(state, action.priorCleanEligibility);
     } else if (action.type === 'tray-pair') {
       state.removed[action.indices[0]] = false;
       state.removed[action.indices[1]] = false;
+      for (const autoIndex of action.autoClear?.indices || []) state.removed[autoIndex] = false;
       state.tray = action.priorTray.slice();
       state.score = action.priorScore;
+      state.maxCombo = action.priorMaxCombo;
+      state.autoClears = action.priorAutoClears;
       state.selected = null;
     } else {
       return false;
     }
-    state.chain = 0;
+    resetCombo(state);
     state.status = STATUSES.PLAYING;
     state.completionRecorded = false;
     if (!state.assists) state.assists = { undo: 0, hint: 0, shuffle: 0 };
@@ -609,7 +668,7 @@
     state.tray = [];
     state.selected = null;
     state.history = [];
-    state.chain = 0;
+    resetCombo(state);
     state.status = STATUSES.PLAYING;
     if (!state.assists) state.assists = { undo: 0, hint: 0, shuffle: 0 };
     state.assists.shuffle += 1;
@@ -645,28 +704,14 @@
           || !raw.priorTray.every((index) => validIndex(index, length))
           || !Number.isInteger(raw.priorScore) || raw.priorScore < 0
           || !Object.values(STATUSES).includes(raw.priorStatus)) return null;
-        const priorCleanEligibility = raw.priorCleanEligibility === undefined
-          ? []
-          : raw.priorCleanEligibility;
-        if (!Array.isArray(priorCleanEligibility)
-          || new Set(priorCleanEligibility.map((entry) => Array.isArray(entry) ? entry[0] : -1)).size !== priorCleanEligibility.length
-          || !priorCleanEligibility.every((entry) => Array.isArray(entry) && entry.length === 2
-            && validIndex(entry[0], length) && raw.priorTray.includes(entry[0])
-            && typeof entry[1] === 'boolean')) return null;
         if (raw.matchedIndex != null && !validIndex(raw.matchedIndex, length)) return null;
-        const action = {
+        result.push({
           type: 'tray-park',
           index: raw.index,
           priorTray: raw.priorTray.slice(),
           priorScore: raw.priorScore,
           priorStatus: raw.priorStatus,
-          // Saves from an interrupted pre-release v2 build did not carry
-          // provenance. Defaulting those to false avoids awarding a chain the
-          // user may already have broken.
-          cleanEligible: raw.cleanEligible === true,
-          priorCleanEligibility: priorCleanEligibility.map(([index, eligible]) => [index, eligible]),
-        };
-        result.push(action);
+        });
       } else if (raw.type === 'tray-pair') {
         if (!Array.isArray(raw.indices) || raw.indices.length !== 2
           || raw.indices[0] === raw.indices[1]
@@ -676,12 +721,27 @@
           || !raw.priorTray.every((index) => validIndex(index, length))
           || !Number.isInteger(raw.priorScore) || raw.priorScore < 0
           || !Object.values(STATUSES).includes(raw.priorStatus)) return null;
+        const priorMaxCombo = raw.priorMaxCombo === undefined ? 0 : raw.priorMaxCombo;
+        const priorAutoClears = raw.priorAutoClears === undefined ? 0 : raw.priorAutoClears;
+        if (!Number.isInteger(priorMaxCombo) || priorMaxCombo < 0
+          || !Number.isInteger(priorAutoClears) || priorAutoClears < 0) return null;
+        let autoClear = null;
+        if (raw.autoClear != null) {
+          if (!raw.autoClear || !['tray', 'board'].includes(raw.autoClear.source)
+            || !Array.isArray(raw.autoClear.indices) || raw.autoClear.indices.length !== 2
+            || raw.autoClear.indices[0] === raw.autoClear.indices[1]
+            || !raw.autoClear.indices.every((index) => validIndex(index, length))) return null;
+          autoClear = { source: raw.autoClear.source, indices: raw.autoClear.indices.slice() };
+        }
         result.push({
           type: 'tray-pair',
           indices: raw.indices.slice(),
           priorTray: raw.priorTray.slice(),
           priorScore: raw.priorScore,
           priorStatus: raw.priorStatus,
+          priorMaxCombo,
+          priorAutoClears,
+          autoClear,
         });
       } else return null;
     }
@@ -706,9 +766,14 @@
         ...action,
         ...(action.indices ? { indices: action.indices.slice() } : {}),
         ...(action.priorTray ? { priorTray: action.priorTray.slice() } : {}),
+        ...(action.autoClear ? { autoClear: { ...action.autoClear, indices: action.autoClear.indices.slice() } } : {}),
       })),
       score: restored.score,
-      chain: restored.chain,
+      comboCount: restored.comboCount,
+      maxCombo: restored.maxCombo,
+      comboRemainingMs: restored.comboRemainingMs,
+      autoClears: restored.autoClears,
+      scoringRevision: restored.scoringRevision,
       elapsedMs: restored.elapsedMs,
       dailyKey: restored.dailyKey,
       status: restored.status,
@@ -743,8 +808,23 @@
     if (raw.mode === MODES.CLASSIC && raw.tray.length !== 0) return null;
     if (raw.selected != null && (!validIndex(raw.selected, length) || raw.removed[raw.selected])) return null;
     if (raw.mode === MODES.TRAY && raw.selected != null) return null;
+    const legacyTray = raw.mode === MODES.TRAY && raw.comboCount === undefined;
+    const comboCount = raw.mode === MODES.TRAY ? (legacyTray ? 0 : raw.comboCount) : 0;
+    const maxCombo = raw.mode === MODES.TRAY ? (legacyTray ? 0 : raw.maxCombo) : 0;
+    const comboRemainingMs = raw.mode === MODES.TRAY ? (legacyTray ? 0 : raw.comboRemainingMs) : 0;
+    const autoClears = raw.mode === MODES.TRAY ? (legacyTray ? 0 : raw.autoClears) : 0;
+    const scoringRevision = raw.mode === MODES.TRAY
+      ? (raw.scoringRevision === undefined ? 1 : raw.scoringRevision)
+      : 0;
     if (!Number.isInteger(raw.score) || raw.score < 0
-      || !Number.isInteger(raw.chain) || raw.chain < 0 || raw.chain > 5
+      || !Number.isInteger(comboCount) || comboCount < 0
+      || !Number.isInteger(maxCombo) || maxCombo < comboCount
+      || !Number.isInteger(comboRemainingMs) || comboRemainingMs < 0 || comboRemainingMs > COMBO_WINDOW_MS
+      || (comboCount === 0 && comboRemainingMs !== 0)
+      || (comboCount > 0 && comboRemainingMs === 0)
+      || !Number.isInteger(autoClears) || autoClears < 0
+      || !Number.isInteger(scoringRevision) || ![0, 1, TRAY_SCORING_REVISION].includes(scoringRevision)
+      || (raw.mode === MODES.CLASSIC && scoringRevision !== 0)
       || !Number.isFinite(raw.elapsedMs) || raw.elapsedMs < 0
       || !Object.values(STATUSES).includes(raw.status)
       || (raw.completionRecorded !== undefined && typeof raw.completionRecorded !== 'boolean')
@@ -786,7 +866,11 @@
       selected: raw.selected == null ? null : raw.selected,
       history,
       score: raw.score,
-      chain: raw.chain,
+      comboCount,
+      maxCombo,
+      comboRemainingMs,
+      autoClears,
+      scoringRevision,
       elapsedMs: Math.floor(raw.elapsedMs),
       dailyKey: raw.dailyKey == null ? null : raw.dailyKey,
       status: raw.status,
@@ -803,6 +887,11 @@
     MODES,
     STATUSES,
     TRAY_SIZE,
+    COMBO_WINDOW_MS,
+    AUTO_CLEAR_INTERVAL,
+    AUTO_CLEAR_POINTS,
+    MAX_COMBO_PAIR_POINTS,
+    TRAY_SCORING_REVISION,
     SPECIAL_VARIANT_KINDS,
     LAYOUTS,
     TURTLE_LAYOUT,
@@ -817,6 +906,8 @@
     availableMoves,
     movesAvailable,
     selectTile,
+    advanceComboClock,
+    automaticPair,
     removePair,
     undo,
     shuffleRemaining,

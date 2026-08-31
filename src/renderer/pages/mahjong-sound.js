@@ -10,7 +10,11 @@
     select: [[0, 190, 0.035, 0.07, 'triangle']],
     tray: [[0, 245, 0.045, 0.08, 'triangle'], [0.028, 305, 0.055, 0.07, 'sine']],
     pair: [[0, 220, 0.055, 0.13, 'triangle'], [0.045, 330, 0.07, 0.11, 'triangle']],
-    chain: [[0, 392, 0.08, 0.09, 'triangle'], [0.055, 523.25, 0.11, 0.09, 'sine'], [0.12, 659.25, 0.14, 0.08, 'sine']],
+    comboStep: [[0, 392, 0.07, 0.085, 'triangle'], [0.052, 523.25, 0.1, 0.085, 'sine'], [0.108, 659.25, 0.13, 0.075, 'sine']],
+    comboFlowing: [[0, 392, 0.1, 0.09, 'triangle'], [0.07, 523.25, 0.14, 0.09, 'sine'], [0.14, 659.25, 0.18, 0.09, 'sine'], [0.22, 783.99, 0.22, 0.075, 'sine']],
+    comboBrilliant: [[0, 392, 0.12, 0.09, 'triangle'], [0.06, 523.25, 0.15, 0.09, 'sine'], [0.12, 659.25, 0.19, 0.095, 'sine'], [0.19, 783.99, 0.24, 0.085, 'sine'], [0.28, 1046.5, 0.28, 0.07, 'sine']],
+    comboMasterful: [[0, 329.63, 0.14, 0.085, 'triangle'], [0.05, 440, 0.16, 0.09, 'triangle'], [0.1, 523.25, 0.2, 0.095, 'sine'], [0.17, 659.25, 0.24, 0.09, 'sine'], [0.25, 880, 0.3, 0.08, 'sine'], [0.34, 1174.66, 0.34, 0.07, 'sine']],
+    autoClear: [[0, 698.46, 0.12, 0.08, 'sine'], [0.055, 987.77, 0.18, 0.075, 'sine'], [0.12, 1318.51, 0.22, 0.07, 'sine']],
     blocked: [[0, 105, 0.06, 0.08, 'triangle']],
     undo: [[0, 330, 0.055, 0.09, 'triangle'], [0.045, 220, 0.07, 0.09, 'triangle']],
     hint: [[0, 520, 0.08, 0.07, 'sine'], [0.07, 660, 0.1, 0.07, 'sine']],
@@ -47,9 +51,12 @@
       try { Promise.resolve(discarded.close()).catch(() => {}); } catch { /* already gone */ }
     }
 
-    function play(name) {
+    function play(name, { semitones = 0 } = {}) {
       const cue = CUES[name];
       if (!enabled || !cue) return false;
+      const transpose = Number.isFinite(semitones)
+        ? Math.pow(2, Math.max(-12, Math.min(12, semitones)) / 12)
+        : 1;
       const audio = ensureContext();
       if (!audio) return false;
 
@@ -60,7 +67,7 @@
           const oscillator = audio.createOscillator();
           const gain = audio.createGain();
           oscillator.type = type;
-          oscillator.frequency.setValueAtTime(frequency, start);
+          oscillator.frequency.setValueAtTime(frequency * transpose, start);
           gain.gain.setValueAtTime(0.0001, start);
           gain.gain.exponentialRampToValueAtTime(peak, start + 0.006);
           gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);

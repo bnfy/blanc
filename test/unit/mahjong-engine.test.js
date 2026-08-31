@@ -364,33 +364,39 @@ test('Classic hints and Tray auto-matching never pair different-looking variants
   assert.equal(tray.removed[trayMotifTwo], false);
 });
 
-test('Tray clean-match scoring climbs to 200 and caps there', () => {
-  const seed = 118;
-  const state = E.createGame({ seed, layoutId: 'turtle', mode: 'tray' });
-  const { solution } = E.generateDeal({ seed, layoutId: 'turtle' });
-  const expectedPoints = [100, 125, 150, 175, 200, 200];
-  let expectedScore = 0;
-  for (let offset = 0; offset < expectedPoints.length; offset++) {
-    const [first, second] = solution[offset];
-    assert.equal(E.selectTile(state, first).type, 'tray-park');
-    const result = E.selectTile(state, second);
-    expectedScore += expectedPoints[offset];
-    assert.equal(result.type, 'tray-pair');
-    assert.equal(result.clean, true);
-    assert.equal(result.points, expectedPoints[offset]);
-    assert.equal(state.score, expectedScore);
-    assert.equal(state.chain, Math.min(5, offset + 1));
-    assert.deepEqual(state.tray, []);
-  }
-  assert.equal(state.score, 950);
+function clearAvailableTrayPair(state) {
+  const move = E.availableMoves(state).find((candidate) => candidate.length === 2);
+  assert.ok(move, 'expected a matchable pair');
+  if (state.tray.includes(move[0])) return E.selectTile(state, move[1]);
+  assert.equal(E.selectTile(state, move[0]).type, 'tray-park');
+  return E.selectTile(state, move[1]);
+}
 
-  const lastPair = solution[expectedPoints.length - 1];
-  assert.equal(E.undo(state), true);
-  assert.equal(state.score, 750);
-  assert.equal(state.chain, 0);
-  assert.deepEqual(state.tray, []);
-  assert.equal(state.removed[lastPair[0]], false);
-  assert.equal(state.removed[lastPair[1]], false);
+test('Tray momentum scoring rises by 50, caps at 500, and milestones add a flat non-recursive bonus', () => {
+  const state = E.createGame({ seed: 118, layoutId: 'turtle', mode: 'tray' });
+  let expectedScore = 0;
+  for (let count = 1; count <= 15; count++) {
+    const result = clearAvailableTrayPair(state);
+    const points = Math.min(100 + (count - 1) * 50, 500);
+    expectedScore += points + (count % 5 === 0 ? 100 : 0);
+    assert.equal(result.comboCount, count);
+    assert.equal(result.userPoints, points);
+    assert.equal(result.bonusPoints, count % 5 === 0 ? 100 : 0);
+    assert.equal(result.milestone, count % 5 === 0);
+    assert.equal(state.comboRemainingMs, E.COMBO_WINDOW_MS);
+    assert.equal(state.score, expectedScore);
+  }
+  assert.equal(state.maxCombo, 15);
+});
+
+test('the pure combo clock expires exactly at five seconds', () => {
+  const state = E.createGame({ seed: 119, layoutId: 'peaks', mode: 'tray' });
+  clearAvailableTrayPair(state);
+  assert.equal(E.advanceComboClock(state, 4_999).expired, false);
+  assert.equal(state.comboRemainingMs, 1);
+  assert.equal(E.advanceComboClock(state, 1).expired, true);
+  assert.equal(state.comboCount, 0);
+  assert.throws(() => E.advanceComboClock(state, -1), /non-negative/);
 });
 
 test('Tray matches the oldest compatible tile and undo restores the cleared pair', () => {
@@ -406,7 +412,6 @@ test('Tray matches the oldest compatible tile and undo restores the cleared pair
   assert.equal(E.selectTile(state, parkedOther).type, 'tray-park');
   const matched = E.selectTile(state, mate);
   assert.equal(matched.type, 'tray-pair');
-  assert.equal(matched.clean, false);
   assert.equal(matched.points, 100);
   assert.deepEqual(matched.indices, [first, mate]);
   assert.deepEqual(state.tray, [parkedOther]);
@@ -443,7 +448,7 @@ test('Tray move discovery includes parked-tile mates and safe singleton picks', 
   assert.ok(moves.every((move) => move.length === 1 || state.tray.includes(move[0])));
 });
 
-test('clearing an old leftover tray tile does not restart the clean chain', () => {
+test('parking unmatched tiles keeps momentum alive and a later match continues it', () => {
   const state = E.createGame({ seed: 206, layoutId: 'turtle', mode: 'tray' });
   const free = Array.from({ length: state.kinds.length }, (_, index) => index)
     .filter((index) => E.isFree(state, index));
@@ -454,63 +459,73 @@ test('clearing an old leftover tray tile does not restart the clean chain', () =
   state.kinds[c1] = state.kinds[c2] = 'chr-3';
 
   E.selectTile(state, a1);
-  E.selectTile(state, b1); // parking a second tile breaks A's clean provenance
-  assert.equal(E.selectTile(state, b2).clean, false);
+  E.selectTile(state, b1);
+  assert.equal(E.selectTile(state, b2).comboCount, 1);
   const oldA = E.selectTile(state, a2);
-  assert.equal(oldA.clean, false);
-  assert.equal(state.chain, 0);
-  assert.equal(state.score, 200);
+  assert.equal(oldA.comboCount, 2);
+  assert.equal(state.score, 250);
 
   E.selectTile(state, c1);
   const fresh = E.selectTile(state, c2);
-  assert.equal(fresh.clean, true);
-  assert.equal(fresh.points, 100);
-  assert.equal(state.chain, 1);
+  assert.equal(fresh.comboCount, 3);
+  assert.equal(fresh.points, 200);
 });
 
-test('undo restores the clean opportunity invalidated by an unmatched pick', () => {
+test('undo restores a composite milestone action and ends momentum', () => {
   let state = E.createGame({ seed: 207, layoutId: 'turtle', mode: 'tray' });
-  const pairs = E.availableMoves(state);
-  let firstPair = null;
-  let otherPair = null;
-  for (const candidate of pairs) {
-    const other = pairs.find((pair) =>
-      new Set([...candidate, ...pair]).size === 4 &&
-      E.matchKey(state.kinds[candidate[0]]) !== E.matchKey(state.kinds[pair[0]])
-    );
-    if (other) {
-      firstPair = candidate;
-      otherPair = other;
-      break;
-    }
-  }
-  assert.ok(firstPair && otherPair);
-  const [a1, a2] = firstPair;
-  const [b1] = otherPair;
-
-  E.selectTile(state, a1);
-  E.selectTile(state, b1);
-  // Exercise the persisted snapshot, not just its in-memory representation.
+  for (let count = 1; count < 5; count++) clearAvailableTrayPair(state);
+  const before = E.serializeGame(state);
+  const milestone = clearAvailableTrayPair(state);
   state = E.restoreGame(E.serializeGame(state));
-  assert.ok(state);
   assert.equal(E.undo(state), true);
-  assert.deepEqual(state.tray, [a1]);
-  const waitingAction = state.history.find((action) =>
-    action.type === 'tray-park' && action.index === a1
-  );
-  assert.equal(waitingAction.cleanEligible, true);
+  assert.equal(state.score, before.score);
+  assert.equal(state.autoClears, before.autoClears);
+  assert.equal(state.comboCount, 0);
+  for (const index of [...milestone.indices, ...(milestone.autoClear?.indices || [])]) assert.equal(state.removed[index], false);
+});
 
-  const restoredMatch = E.selectTile(state, a2);
-  assert.equal(restoredMatch.clean, true);
-  assert.equal(restoredMatch.points, 100);
-  assert.equal(state.chain, 1);
+test('milestone automatic clears protect the oldest parked tray tile first', () => {
+  const state = E.createGame({ seed: 208, layoutId: 'peaks', mode: 'tray' });
+  const free = Array.from({ length: state.kinds.length }, (_, index) => index)
+    .filter((index) => E.isFree(state, index));
+  const [parked, userFirst, userSecond, parkedMate] = free;
+  state.kinds[parked] = state.kinds[parkedMate] = 'chr-1';
+  state.kinds[userFirst] = state.kinds[userSecond] = 'chr-2';
+  E.selectTile(state, parked);
+  state.comboCount = state.maxCombo = 4;
+  state.comboRemainingMs = E.COMBO_WINDOW_MS;
+  E.selectTile(state, userFirst);
+  const result = E.selectTile(state, userSecond);
+  assert.deepEqual(result.autoClear, { source: 'tray', indices: [parked, parkedMate] });
+  assert.equal(state.autoClears, 1);
+  assert.deepEqual(state.tray, []);
+});
 
-  const [c1, c2] = E.availableMoves(state).find((move) => move.length === 2);
-  E.selectTile(state, c1);
-  const nextMatch = E.selectTile(state, c2);
-  assert.equal(nextMatch.clean, true);
-  assert.equal(nextMatch.points, 125);
-  assert.equal(state.chain, 2);
+test('board automatic clears rank exposure, then layer height, then board indices', () => {
+  for (const [seed, expected] of [
+    [1, [90, 143]],
+    [2, [87, 143]],
+    [7, [90, 143]],
+  ]) {
+    const state = E.createGame({ seed, layoutId: 'turtle', mode: 'tray' });
+    assert.deepEqual(E.automaticPair(state), { source: 'board', indices: expected });
+  }
+});
+
+test('a milestone without an eligible automatic pair still awards its one-time bonus', () => {
+  const state = E.createGame({ seed: 209, layoutId: 'peaks', mode: 'tray' });
+  const [first, second] = E.generateDeal({ seed: 209, layoutId: 'peaks' }).solution[0];
+  state.removed.fill(true);
+  state.removed[first] = state.removed[second] = false;
+  state.comboCount = state.maxCombo = 4;
+  state.comboRemainingMs = E.COMBO_WINDOW_MS;
+  E.selectTile(state, first);
+  const result = E.selectTile(state, second);
+  assert.equal(result.autoClear, null);
+  assert.equal(result.bonusPoints, 100);
+  assert.equal(result.score, 400);
+  assert.equal(state.autoClears, 0);
+  assert.equal(state.status, 'won');
 });
 
 function fillUnmatchedTray(state) {
@@ -528,10 +543,29 @@ function fillUnmatchedTray(state) {
   return picked;
 }
 
+test('shuffle and a fresh board reset active momentum', () => {
+  const state = E.createGame({ seed: 776, layoutId: 'arch', mode: 'tray' });
+  clearAvailableTrayPair(state);
+  assert.equal(state.comboCount, 1);
+  assert.equal(E.shuffleRemaining(state, E.createRng(42)), true);
+  assert.equal(state.comboCount, 0);
+  assert.equal(state.comboRemainingMs, 0);
+
+  const restarted = E.createGame({ seed: state.seed, layoutId: state.layoutId, mode: state.mode });
+  assert.equal(restarted.comboCount, 0);
+  assert.equal(restarted.maxCombo, 0);
+  assert.equal(restarted.comboRemainingMs, 0);
+  assert.equal(restarted.autoClears, 0);
+});
+
 test('four unmatched Tray tiles enter rescue; undo and shuffle both recover', () => {
   const undoState = E.createGame({ seed: 777, layoutId: 'peaks', mode: 'tray' });
+  clearAvailableTrayPair(undoState);
+  assert.equal(undoState.comboCount, 1);
   const picked = fillUnmatchedTray(undoState);
   assert.equal(undoState.status, 'rescue');
+  assert.equal(undoState.comboCount, 0);
+  assert.equal(undoState.comboRemainingMs, 0);
   assert.equal(undoState.tray.length, 4);
   assert.equal(E.selectTile(undoState, 0).type, 'rescue');
   assert.equal(E.undo(undoState), true);
@@ -547,7 +581,7 @@ test('four unmatched Tray tiles enter rescue; undo and shuffle both recover', ()
   assert.deepEqual(shuffleState.tray, []);
   assert.equal(shuffleState.removed.filter(Boolean).length, 0);
   assert.deepEqual(shuffleState.kinds.slice().sort(), multiset);
-  assert.equal(shuffleState.chain, 0);
+  assert.equal(shuffleState.comboCount, 0);
   assert.equal(shuffleState.history.length, 0);
   assert.equal(shuffleState.assists.shuffle, 1);
   assert.ok(E.availableMoves(shuffleState).length > 0);
@@ -621,6 +655,18 @@ test('v2 serialization round-trips independent state and rejects corruption', ()
   assert.equal(E.restoreGame({ ...payload, status: 'rescue' }), null);
   assert.equal(E.restoreGame({ ...payload, completionRecorded: 'yes' }), null);
   assert.equal(E.restoreGame({ ...payload, completionRecorded: true }), null);
+  assert.equal(E.restoreGame({ ...payload, comboRemainingMs: 5001 }), null);
+  assert.equal(E.restoreGame({ ...payload, comboCount: 2, maxCombo: 1 }), null);
+
+  const legacyTrayPayload = { ...payload, chain: 4 };
+  for (const key of ['comboCount', 'maxCombo', 'comboRemainingMs', 'autoClears', 'scoringRevision']) {
+    delete legacyTrayPayload[key];
+  }
+  const restoredLegacyTray = E.restoreGame(legacyTrayPayload);
+  assert.equal(restoredLegacyTray.score, payload.score);
+  assert.equal(restoredLegacyTray.comboCount, 0);
+  assert.equal(restoredLegacyTray.comboRemainingMs, 0);
+  assert.equal(restoredLegacyTray.scoringRevision, 1);
 
   const legacyPeaksPayload = { ...payload };
   delete legacyPeaksPayload.layoutRevision;

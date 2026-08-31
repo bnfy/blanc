@@ -1,4 +1,33 @@
 /Users/anthonyjloria/.rvm/scripts/rvm:29: operation not permitted: ps
+# Mahjong Burst momentum and hint design QA — 2026-08-31
+
+**Final result:** passed
+
+## Comparison and live evidence
+
+- Native reference app: Mahjong Blast on macOS, observed through live play rather than static marketing media.
+- Reference combo evidence: `/private/tmp/mahjong-blast-combo-3.jpg` and `/private/tmp/mahjong-blast-combo-3-settled.jpg`.
+- Reference board-to-rack and match recording: `/private/tmp/mahjong-blast-tray-match-detailed.mov`; frame-level evidence in `/private/tmp/blast-match-detailed-frames/` captures lift, flight, landing, pair separation, fragment burst, score count-up, and combo callout.
+- Reference hint evidence: `/private/tmp/mahjong-blast-hint.jpg` and `/private/tmp/mahjong-blast-hint-pulse.jpg`.
+- Blanc Burst hint: `/private/tmp/blanc-burst-hint.jpg`.
+- Blanc animated ×5 milestone: `/private/tmp/blanc-burst-combo-5-final.jpg`.
+- Blanc final prominent score and high-visibility rack: `/private/tmp/blanc-burst-score-rack-final.png`.
+- Blanc filled-slot ink regression check, including a vector character tile beside raster faces: `/private/tmp/blanc-burst-filled-ink-final.png`.
+- Blanc reduced-motion hint and ×5 milestone: `/private/tmp/blanc-burst-hint-reduced-motion.jpg` and `/private/tmp/blanc-burst-combo-5-reduced-motion-final.jpg`.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Mahjong Blast makes consecutive matches legible through rising points, a white-to-gold score transition, persistent sparkles, and broad tile-fragment bursts. Blanc now gives every Burst pair a lighter particle impact, heats the score and rack as the combo grows, and retains stronger FLOWING, BRILLIANT, and MASTERFUL milestones with automatic clears.
+- Mahjong Blast treats the board-to-rack move as a full-size, high-z tile flight into a brightly acknowledged well; matching tiles briefly hold, separate, then shatter at the rack. Blanc now follows that readable sequence with a 320ms arcing tile flight, mint/brass receiving glow, pair separation, and a locally bundled rack-centered fragment burst. The interaction remains immediate under reduced motion.
+- Mahjong Blast's rack tiles are proportionally larger and far higher contrast than Blanc's prior miniature faces. Burst now uses 64×74px desktop tiles with complete ivory bodies, lacquer-edge depth, stronger ink, more separation, and a deeper inset rack. A live pass also caught and fixed the vector character tiles inheriting the empty-slot color at 22% opacity; every filled rack tile now uses full-strength face ink.
+- The score now sits directly above the Burst rack as a large tabular number, counts upward during the arrival, receives a visible `+points` flight, and turns increasingly gold and sparkled as the streak heats. The redundant large `SCORE` label was removed after live visual review; the compact header keeps the semantic label and the rack number remains assistively hidden to avoid duplicate announcements.
+- Mahjong Blast hints both members of a pair with a bright cyan underglow and a repeated lift/rock gesture. Blanc now uses an equivalently distinct cyan pair pulse for two board tiles and for a board tile paired with one already in the Burst rack.
+- Mahjong Blast resets its multiplier on a blocked-tile mistake but does not expose a timer. Blanc deliberately keeps its five-second actionable-time window because speed is the differentiating promise of Burst; blocked taps gain a clear red × and shake without adding a second hidden combo-reset rule.
+- The public label is now **Burst** everywhere visible and assistive. The persisted/internal identifier remains `tray` so existing saves, records, duplicate-tab recovery, and telemetry stay compatible.
+- Reduced motion removes travel, particles, glints, shaking, and pulsing while retaining static cyan hint rings, heated score color, milestone labeling, and the red blocked mark.
+
 # Glance design QA
 
 **Final result:** passed
