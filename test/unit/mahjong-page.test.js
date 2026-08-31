@@ -336,6 +336,22 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*color:\s*var\(--mj-ink\)/);
   assert.match(styles, /\.mj-tray-slot\.is-receiving/);
   assert.match(styles, /\.mj-tile\.shake::before/);
+  assert.match(controller, /callout\.replaceChildren\(\)[\s\S]*label\.textContent = result\.milestone \? tier\.name : 'combo'[\s\S]*multiplier\.textContent = `×\$\{result\.comboCount\}`/);
+  assert.match(controller, /document\.querySelectorAll\('\.mj-tray-slot\.filled'\)/);
+  assert.doesNotMatch(controller, /for \(const slot of rippleSlots\)[^{]*\{[^}]*offsetWidth/);
+  assert.match(controller, /result\.comboCount >= 15 \? 860[\s\S]*result\.milestone \? 760[\s\S]*result\.comboCount > 1 \? 660[\s\S]*: 560/);
+  assert.match(styles, /\.mj-combo-fx\s*\{[^}]*contain:\s*layout paint;[^}]*isolation:\s*isolate;/);
+  assert.match(styles, /\.mj-combo-callout strong\s*\{[^}]*font:\s*820[^}]*-webkit-text-stroke:[^}]*text-shadow:/);
+  assert.doesNotMatch(styles, /\.mj-(?:combo-particles|combo-glint|tray-burst)[^{]*\{[^}]*mix-blend-mode:/);
+});
+
+test('desktop game header promotes session identity and status hierarchy', () => {
+  assert.match(styles, /\.mj-head\s*\{[^}]*min-height:\s*58px/);
+  assert.match(styles, /\.mj-session\s*\{[^}]*min-height:\s*44px[^}]*border-radius:\s*999px[^}]*font:\s*600 15px/);
+  assert.match(styles, /\.mj-meters\s*\{[^}]*min-height:\s*56px[^}]*border:[^}]*border-radius:\s*15px/);
+  assert.match(styles, /\.mj-meter strong\s*\{[^}]*font:\s*740 18px/);
+  assert.match(styles, /\.mj-chain-meter \.mj-chain\s*\{[^}]*font-size:\s*20px[^}]*text-shadow:/);
+  assert.match(styles, /\.mj-combo-bar\s*\{[^}]*width:\s*98px[^}]*height:\s*7px/);
 });
 
 test('hints pulse a complete pair and include a parked Burst tile', () => {

@@ -741,7 +741,7 @@ function launchTrayBurst() {
   burst.style.left = `${rect.left + rect.width / 2}px`;
   burst.style.top = `${rect.top + rect.height / 2}px`;
   document.body.append(burst);
-  trackTransient(burst, 980);
+  trackTransient(burst, 560);
 }
 
 function launchScoreFlight(result, index) {
@@ -767,26 +767,30 @@ function startComboFeedback(result, index) {
   if (!fx || result.type !== 'tray-pair') return;
   const tier = comboTier(result.comboCount);
   fx.dataset.tier = tier.name;
-  document.getElementById('mjComboCallout').textContent = result.milestone
-    ? tier.label
-    : result.comboCount > 1 ? `COMBO ×${result.comboCount}` : '';
+  const callout = document.getElementById('mjComboCallout');
+  callout.replaceChildren();
+  if (result.comboCount > 1) {
+    const label = document.createElement('span');
+    label.textContent = result.milestone ? tier.name : 'combo';
+    const multiplier = document.createElement('strong');
+    multiplier.textContent = `×${result.comboCount}`;
+    callout.append(label, multiplier);
+  }
   fx.className = 'mj-combo-fx';
   if (comboFxTimer !== null) window.clearTimeout(comboFxTimer);
+  const rippleSlots = [...document.querySelectorAll('.mj-tray-slot.filled')];
+  for (const slot of rippleSlots) slot.classList.remove('is-rippling');
   void fx.offsetWidth;
   fx.classList.add('is-impact');
   if (result.comboCount >= 3) fx.classList.add('is-heated');
   if (result.comboCount > 1) fx.classList.add('is-combo');
   if (result.milestone) fx.classList.add('is-milestone');
   if (result.autoClear) fx.classList.add('is-auto');
-  for (const slot of document.querySelectorAll('.mj-tray-slot')) {
-    slot.classList.remove('is-rippling');
-    void slot.offsetWidth;
-    slot.classList.add('is-rippling');
-  }
+  for (const slot of rippleSlots) slot.classList.add('is-rippling');
   if (result.autoClear) window.setTimeout(() => sound.play('autoClear'), 250);
   launchScoreFlight(result, index);
   launchTrayBurst();
-  const fxDuration = result.comboCount >= 15 ? 1280 : result.milestone ? 1120 : result.comboCount > 1 ? 980 : 820;
+  const fxDuration = result.comboCount >= 15 ? 860 : result.milestone ? 760 : result.comboCount > 1 ? 660 : 560;
   comboFxTimer = window.setTimeout(() => {
     fx.className = 'mj-combo-fx';
     for (const slot of document.querySelectorAll('.mj-tray-slot')) slot.classList.remove('is-rippling');
