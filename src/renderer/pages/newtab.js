@@ -573,8 +573,8 @@ syncMahjongBadge();
 function applyLayout(name) {
   state.layout = name;
   document.body.dataset.layout = name;
-  syncMahjongFooter();
   window.bowserPages?.start?.layoutUsed?.(name).catch(() => {});
+  syncMahjongFooter();
   for (const button of document.querySelectorAll('[data-layout-pick]')) {
     button.classList.toggle('active', button.dataset.layoutPick === name);
   }
