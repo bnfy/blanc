@@ -335,6 +335,11 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.match(styles, /@keyframes mj-particles-impact/);
   assert.match(styles, /@keyframes mj-score-spark/);
   assert.match(styles, /@keyframes mj-score-twinkle/);
+  assert.match(styles, /\.mj-score-meter\.is-heated \.mj-score::before\s*\{[^}]*left:\s*calc\(100% \+ 8px\)/);
+  assert.match(styles, /\.mj-score-meter\.is-heated \.mj-score::after\s*\{[^}]*right:\s*calc\(100% \+ 8px\)/);
+  assert.match(styles, /\.mj-burst-score strong::before\s*\{[^}]*left:\s*calc\(100% \+ 8px\)/);
+  assert.match(styles, /\.mj-burst-score strong::after\s*\{[^}]*right:\s*calc\(100% \+ 8px\)/);
+  assert.doesNotMatch(styles, /\.mj-burst-score::(?:before|after)/);
   assert.match(styles, /\.mj-burst-score strong\s*\{[^}]*background:\s*linear-gradient[^}]*-webkit-background-clip:\s*text[^}]*-webkit-text-stroke:[^}]*text-shadow:/);
   assert.match(styles, /@keyframes mj-score-flight/);
   assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*color:\s*var\(--mj-ink\)/);
