@@ -20,14 +20,14 @@
   "components": [
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-darwin-arm64@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-darwin-arm64@0.4.0",
       "name": "@astrojs/compiler-binding-darwin-arm64",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "30cf2d9fc0928a671fcad68e95ae1be9a70df2629688bfeb9400357e94f7fd697b74d192138cbc1634cdff32553676fadc2b0b586e736700add354d7b432a1f6"
+          "content": "6555301ee9dd690c8536313aba86b4bac682d163828ad0c22d2ff899d6f8ace8895f0554b8a24133123958ccd72d699a9ac5ed2bf67ffe27cb5ef57961e8781f"
         }
       ],
       "licenses": [
@@ -37,7 +37,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding-darwin-arm64@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding-darwin-arm64@0.4.0",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -67,20 +67,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-darwin-arm64/-/compiler-binding-darwin-arm64-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-darwin-arm64/-/compiler-binding-darwin-arm64-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-darwin-x64@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-darwin-x64@0.4.0",
       "name": "@astrojs/compiler-binding-darwin-x64",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "da55ce9737fcc5bee32e8991b1ffdab3087ad7f3671aeb329c1d8ec0590aea4e2998eb697d73189c6d0f2df5eb12fc57623ebd35d0a7994617b470ddf8938e6a"
+          "content": "148e86f0063cbba7d1d5223f411479c86330b6f6703f7e020e66696791f02466b9d143355484932e1aa4855e1ae3bea99a0776e57d40babd9dab0ea1527ae528"
         }
       ],
       "licenses": [
@@ -90,7 +90,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding-darwin-x64@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding-darwin-x64@0.4.0",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -120,20 +120,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-darwin-x64/-/compiler-binding-darwin-x64-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-darwin-x64/-/compiler-binding-darwin-x64-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-gnu@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-gnu@0.4.0",
       "name": "@astrojs/compiler-binding-linux-arm64-gnu",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "0665379168fbaa72eb778bf39b8f731443c9e681679f5b424f856df6165ba9d5390a66fc19997b7e7e9516c9cd7deec1d7c6b680816d5736cb20db589799018d"
+          "content": "941f602c524aee6f361278da53c9e544111f73018d78789d5b7b128ce0d352330d6a87b056e533f5fc30758e4ce238925c8a962c7df297a4d7f054c3280ef84b"
         }
       ],
       "licenses": [
@@ -143,7 +143,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-gnu@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-gnu@0.4.0",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -173,20 +173,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-linux-arm64-gnu/-/compiler-binding-linux-arm64-gnu-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-linux-arm64-gnu/-/compiler-binding-linux-arm64-gnu-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-musl@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-musl@0.4.0",
       "name": "@astrojs/compiler-binding-linux-arm64-musl",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "7f485e4fd65912c792bb96c709e6fcd1e2f60c7d3b02b13a53dc62d564ff3c4bac363ccf984af7189b231b5b512e8e556145185fb87749c6aa1a61ab30e5469b"
+          "content": "1cf6ef5aa6f1171c9aa102612f109a4a3b58071f4a068ec9195cc41590a6325f7af1ad8fb121f451f88e0d88183d7a1f4ce22c207d9aa0272b1d730bd080378a"
         }
       ],
       "licenses": [
@@ -196,7 +196,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-musl@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-musl@0.4.0",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -226,20 +226,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-linux-arm64-musl/-/compiler-binding-linux-arm64-musl-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-linux-arm64-musl/-/compiler-binding-linux-arm64-musl-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-linux-x64-gnu@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-linux-x64-gnu@0.4.0",
       "name": "@astrojs/compiler-binding-linux-x64-gnu",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "33c7ce52dd22b51a6a886ca8100fe28f5f38b3c3be86a6c2cf7f98a3346eb0e38cde8b201a58e90d38616ca0098ea87cdb03a8e858a8438c3c3c1bd4d57303e5"
+          "content": "b502a894cc6827ffb40262d69b53e627f8becf78b5d195356cdb958c40ee9427f8f1acc432d50d8d36601c9e4c3eda5844d73b765113afc42e8d47ddbb3a02ed"
         }
       ],
       "licenses": [
@@ -249,7 +249,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding-linux-x64-gnu@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding-linux-x64-gnu@0.4.0",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -279,20 +279,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-linux-x64-gnu/-/compiler-binding-linux-x64-gnu-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-linux-x64-gnu/-/compiler-binding-linux-x64-gnu-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-linux-x64-musl@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-linux-x64-musl@0.4.0",
       "name": "@astrojs/compiler-binding-linux-x64-musl",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "fca79b93cb0ee879cb79277af752646803df37b0aa47dfca117996bf234f91a28d1a68fcad367f95fdae5ed9cfbbdd8b6a7f3852b29d20a54fcb57d2a367a771"
+          "content": "e6fe58ca6b9db31307a773412c24bc05496ee4246a78bb560fd70a4bfe272212041c26e9cfda2499557a2341d6aa60403e15987036b7bf0fef96d60face4024c"
         }
       ],
       "licenses": [
@@ -302,7 +302,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding-linux-x64-musl@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding-linux-x64-musl@0.4.0",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -332,20 +332,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-linux-x64-musl/-/compiler-binding-linux-x64-musl-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-linux-x64-musl/-/compiler-binding-linux-x64-musl-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-wasm32-wasi@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-wasm32-wasi@0.4.0",
       "name": "@astrojs/compiler-binding-wasm32-wasi",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a5403ac5b70e481ec385fcc802b07c04202415f008aab8a247bce5e73392b5dea85361b49082a3f8651d1a7c97ca17e2bfcf351df7f2939b42d26475f2c0e30f"
+          "content": "9bfa61b87df1dcf444befd4e9e4338e0da0f87831ab5469d8b1d5f075bb94af30b0b20d3519ca40c96ca9d67f57239d898776507c1dc8d38e5e89ac2a8021773"
         }
       ],
       "licenses": [
@@ -355,7 +355,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding-wasm32-wasi@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding-wasm32-wasi@0.4.0",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -381,20 +381,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-wasm32-wasi/-/compiler-binding-wasm32-wasi-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-wasm32-wasi/-/compiler-binding-wasm32-wasi-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-win32-arm64-msvc@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-win32-arm64-msvc@0.4.0",
       "name": "@astrojs/compiler-binding-win32-arm64-msvc",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "112aee7fee90925d6dac7505c48e8649feade768fcc8dda408d4b3316773b7b57f4f4f6d147ad8ceb55a250a216f60bd6c9507efaa4dbd7e996f9d7ec4241cf5"
+          "content": "07dcd87f7a24118f3790cf20c9d9691f60473f4d30e227f13ea958956ae04f0b83eb09e4ac90c2c01960cb5ab7d5c1118c22515cdd65ac4d959a42ef163bffea"
         }
       ],
       "licenses": [
@@ -404,7 +404,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding-win32-arm64-msvc@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding-win32-arm64-msvc@0.4.0",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -434,20 +434,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-win32-arm64-msvc/-/compiler-binding-win32-arm64-msvc-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-win32-arm64-msvc/-/compiler-binding-win32-arm64-msvc-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-win32-x64-msvc@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding-win32-x64-msvc@0.4.0",
       "name": "@astrojs/compiler-binding-win32-x64-msvc",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c33cd5ac46cec1bb0b58e7446e872c923311c766993f127b65b98bfa39e905a985c268a09bed8cff0cee33a2569dca1c818c0b89cd5cb12a5a94187dea440a5c"
+          "content": "cc1d0daefd1d19cd336563c60d19a61134cf84346ac998c08e4fa058c955ac95f953cf686e9077554504d59887c4e08de4b4288de2cae8ef0bfdd9e81e896f35"
         }
       ],
       "licenses": [
@@ -457,7 +457,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding-win32-x64-msvc@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding-win32-x64-msvc@0.4.0",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -487,20 +487,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-win32-x64-msvc/-/compiler-binding-win32-x64-msvc-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding-win32-x64-msvc/-/compiler-binding-win32-x64-msvc-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-binding@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-binding@0.4.0",
       "name": "@astrojs/compiler-binding",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "f30ffd096998ac0249f0dd126373b8df0b36060c685babb742c0fcbb6984d78d25318025c21fad94da1479206adb6c1585e16e8816d1db5da5ea2c59d8822009"
+          "content": "c764630d4b967f02cdb5cde68c07524489f0aa1feba9b2daafd726ff914e31b1ef998641ef27ca7b0cd27250315a3219b32a490d7bf596168fd961be3fc4cade"
         }
       ],
       "licenses": [
@@ -510,7 +510,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-binding@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-binding@0.4.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -532,20 +532,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-binding/-/compiler-binding-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-binding/-/compiler-binding-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/compiler-rs@0.3.2",
+      "bom-ref": "pkg:npm/%40astrojs/compiler-rs@0.4.0",
       "name": "@astrojs/compiler-rs",
-      "version": "0.3.2",
+      "version": "0.4.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c65c7f4fb268bc829dbaee2e71b4d0531439f90f30c641f184b8e7664dd59496e16d0f512efbee0e4d69d98605605439cb5e1d566dc51863b88ac4176b817e4e"
+          "content": "92856291ea27d64ade132fbf2732d0472defcc71d054e8f272ce1d7a0838bc5b9f280a593b0319bd2480133b5836199c4157cd56c559648e1c1207b771ec406d"
         }
       ],
       "licenses": [
@@ -555,7 +555,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/compiler-rs@0.3.2",
+      "purl": "pkg:npm/%40astrojs/compiler-rs@0.4.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -577,20 +577,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/compiler-rs/-/compiler-rs-0.3.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/compiler-rs/-/compiler-rs-0.4.0.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/internal-helpers@0.10.2",
+      "bom-ref": "pkg:npm/%40astrojs/internal-helpers@0.10.4",
       "name": "@astrojs/internal-helpers",
-      "version": "0.10.2",
+      "version": "0.10.4",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cadedf3203d8a923384e6afeb5a4d6e8f7abfa18c9f0f93a940d4f01c0f2ab33adf07cc9e8a8dee56cc2c40d9277ef70b145bbba190b7a84cc2b47173f01fdad"
+          "content": "9e8cd94b2fe62982ea7b862ba9b2ad74eb3379d01f5d80adc37c19d1df82023cf81aa4382fdae5d65b482f90658309985629c983f459d0c806b9639d97245994"
         }
       ],
       "licenses": [
@@ -600,7 +600,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/internal-helpers@0.10.2",
+      "purl": "pkg:npm/%40astrojs/internal-helpers@0.10.4",
       "properties": [
         {
           "name": "blanc:development",
@@ -622,20 +622,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/internal-helpers/-/internal-helpers-0.10.2.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/internal-helpers/-/internal-helpers-0.10.4.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40astrojs/markdown-satteri@0.3.5",
+      "bom-ref": "pkg:npm/%40astrojs/markdown-satteri@0.3.8",
       "name": "@astrojs/markdown-satteri",
-      "version": "0.3.5",
+      "version": "0.3.8",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "0af59510501b6b2ed83be8bd49aa8326e6e2a40e5c922541f3d416a0c2795c2d26e42b4583c27067b29abba5fdb1863b1595111f4c36974dc8487da3392fd10d"
+          "content": "9fc22da454c29a50ec551e7eaf00e67a149ffa314260b5a66628ac64d1ae17bc482ea621b157817dc85ae2a812d927aaddf01cf539b9f1956bbea150e9142045"
         }
       ],
       "licenses": [
@@ -645,7 +645,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40astrojs/markdown-satteri@0.3.5",
+      "purl": "pkg:npm/%40astrojs/markdown-satteri@0.3.8",
       "properties": [
         {
           "name": "blanc:development",
@@ -667,7 +667,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@astrojs/markdown-satteri/-/markdown-satteri-0.3.5.tgz"
+          "url": "https://registry.npmjs.org/@astrojs/markdown-satteri/-/markdown-satteri-0.3.8.tgz"
         }
       ]
     },
@@ -943,14 +943,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40bruits/satteri-darwin-arm64@0.9.5",
+      "bom-ref": "pkg:npm/%40bruits/satteri-darwin-arm64@0.10.5",
       "name": "@bruits/satteri-darwin-arm64",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "8b0e27660c7dbf7d255a8fcc4e7810aa2d6923bf0a2340e79129be95524661d98f2e00320cd2628158691b8dbf22ae7903a7352e5f2aeba963cb2462414c70a3"
+          "content": "dbb293565e1326455a84ccbfa21c80eea778f77f06e54367785533fcfb127187e92218f4215012db79a97095dd3c5e38b1aea7bdad7df25995fdc2886f660fc8"
         }
       ],
       "licenses": [
@@ -960,7 +960,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40bruits/satteri-darwin-arm64@0.9.5",
+      "purl": "pkg:npm/%40bruits/satteri-darwin-arm64@0.10.5",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -990,20 +990,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@bruits/satteri-darwin-arm64/-/satteri-darwin-arm64-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/@bruits/satteri-darwin-arm64/-/satteri-darwin-arm64-0.10.5.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40bruits/satteri-darwin-x64@0.9.5",
+      "bom-ref": "pkg:npm/%40bruits/satteri-darwin-x64@0.10.5",
       "name": "@bruits/satteri-darwin-x64",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e93dba67929fddc156d8f4a593da7bcd3ef2571bee052889bd8cb3f6ef0a8d8c0c4ea6722033a3db00f2369c4a578fbac94546eeb75dab6430bc6ffc2c9036f9"
+          "content": "2239cb7b79cab29abaa9a7aa1a08d3ecc4fc56b4d5ef8c9646569a83b65d36c23c4c301867488fc4c0a8fbd290647524e44c9507eade048fcf1562f92ae170f5"
         }
       ],
       "licenses": [
@@ -1013,7 +1013,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40bruits/satteri-darwin-x64@0.9.5",
+      "purl": "pkg:npm/%40bruits/satteri-darwin-x64@0.10.5",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -1043,20 +1043,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@bruits/satteri-darwin-x64/-/satteri-darwin-x64-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/@bruits/satteri-darwin-x64/-/satteri-darwin-x64-0.10.5.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40bruits/satteri-linux-arm64-gnu@0.9.5",
+      "bom-ref": "pkg:npm/%40bruits/satteri-linux-arm64-gnu@0.10.5",
       "name": "@bruits/satteri-linux-arm64-gnu",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bb9d62775eee27034430af67065202b2ae94df573e5d5a90b9e541930448cd91be80ca52f1338972db798795b3df767cc6731d4ddf9a76d002573d321e01ae38"
+          "content": "8259185d9089cb08cfd77bfaede03200c489745fa772f11b62f822ff03ad7df2fdb50dbb96bff3b32cd47e0b3ea2f8c9f5df093502a25de880ac9717f0f24bf7"
         }
       ],
       "licenses": [
@@ -1066,7 +1066,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40bruits/satteri-linux-arm64-gnu@0.9.5",
+      "purl": "pkg:npm/%40bruits/satteri-linux-arm64-gnu@0.10.5",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -1096,20 +1096,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@bruits/satteri-linux-arm64-gnu/-/satteri-linux-arm64-gnu-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/@bruits/satteri-linux-arm64-gnu/-/satteri-linux-arm64-gnu-0.10.5.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40bruits/satteri-linux-arm64-musl@0.9.5",
+      "bom-ref": "pkg:npm/%40bruits/satteri-linux-arm64-musl@0.10.5",
       "name": "@bruits/satteri-linux-arm64-musl",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "bf7f47c62c060b946a9b4d4792c3fafb963ec4a2cf96cb95160220a44028f92890db673e9895614b7bbb67a78f00a7612f9349a0ad71abbd242f3dcbd77021a5"
+          "content": "c967601b5835ecd8764321959455311916b714417088c729644c8c35691b33775e0bde1c99573efe2f4ebb216974ab96a371a48280ad6153a8c64d6e0a709920"
         }
       ],
       "licenses": [
@@ -1119,7 +1119,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40bruits/satteri-linux-arm64-musl@0.9.5",
+      "purl": "pkg:npm/%40bruits/satteri-linux-arm64-musl@0.10.5",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -1149,20 +1149,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@bruits/satteri-linux-arm64-musl/-/satteri-linux-arm64-musl-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/@bruits/satteri-linux-arm64-musl/-/satteri-linux-arm64-musl-0.10.5.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40bruits/satteri-linux-x64-gnu@0.9.5",
+      "bom-ref": "pkg:npm/%40bruits/satteri-linux-x64-gnu@0.10.5",
       "name": "@bruits/satteri-linux-x64-gnu",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "177b8ef2e169de900fe59197b6dc2f879ec64bbb3494bf79ded9cd772236811c8fe2438e929ea9c86a23349cc28e40ef588d82bdbf6236b2a89376aa40f6ae03"
+          "content": "15568ba0f4f57c180697427e01879bcb25c960169c84697c3b2cab7f59727b8453a820784b41b0923d6e33d449c938543afc795549804f50a7361d5214703e93"
         }
       ],
       "licenses": [
@@ -1172,7 +1172,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40bruits/satteri-linux-x64-gnu@0.9.5",
+      "purl": "pkg:npm/%40bruits/satteri-linux-x64-gnu@0.10.5",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -1202,20 +1202,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@bruits/satteri-linux-x64-gnu/-/satteri-linux-x64-gnu-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/@bruits/satteri-linux-x64-gnu/-/satteri-linux-x64-gnu-0.10.5.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40bruits/satteri-linux-x64-musl@0.9.5",
+      "bom-ref": "pkg:npm/%40bruits/satteri-linux-x64-musl@0.10.5",
       "name": "@bruits/satteri-linux-x64-musl",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "6e2704aa094b973fbe996c800da6683f4258db4b38bc37cb8da3d8810a82f8d238cd92d338e8354f8181f1aaad73cdb63ea8e2f12401992ad36fb0ab3fc8b4f1"
+          "content": "107a55031d9ba96dc620d1d32a4963b7155f42654319622ec0e60e3f96208538fed0f9016b6a3ca0a3d1b50f4a6ecaf51727bc8ed51c0e38708f68cc36e8192a"
         }
       ],
       "licenses": [
@@ -1225,7 +1225,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40bruits/satteri-linux-x64-musl@0.9.5",
+      "purl": "pkg:npm/%40bruits/satteri-linux-x64-musl@0.10.5",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -1255,20 +1255,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@bruits/satteri-linux-x64-musl/-/satteri-linux-x64-musl-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/@bruits/satteri-linux-x64-musl/-/satteri-linux-x64-musl-0.10.5.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40bruits/satteri-wasm32-wasi@0.9.5",
+      "bom-ref": "pkg:npm/%40bruits/satteri-wasm32-wasi@0.10.5",
       "name": "@bruits/satteri-wasm32-wasi",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cdab80b8cc1f3e728f5247780058b1445a577602b03f698a831ac8228da02735b4fd99de17d75b1e72e4a234a96819c20a9ed550bd61222e56599bc1d42aa601"
+          "content": "ca9cfc73f6668a9c69e08a1e0dadb6f06b2dbfa4cbcd598db37c82eb0282a0d48e8f1d62c29833bbced8de14e45c57700a154653ce6a7940ee3886ab1946502f"
         }
       ],
       "licenses": [
@@ -1278,7 +1278,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40bruits/satteri-wasm32-wasi@0.9.5",
+      "purl": "pkg:npm/%40bruits/satteri-wasm32-wasi@0.10.5",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -1304,20 +1304,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@bruits/satteri-wasm32-wasi/-/satteri-wasm32-wasi-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/@bruits/satteri-wasm32-wasi/-/satteri-wasm32-wasi-0.10.5.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40bruits/satteri-win32-arm64-msvc@0.9.5",
+      "bom-ref": "pkg:npm/%40bruits/satteri-win32-arm64-msvc@0.10.5",
       "name": "@bruits/satteri-win32-arm64-msvc",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "4ab7c4ecd12c8198c1bd4ddcf9147aa1046ed13a17639b952446e2797105d184dcb48576cc05656da32358bb6cd3be100a08776be5c75a447f956876547d8b52"
+          "content": "b224d5f3c9dbd0b46a36990bda05dba2a0b055dabde6c2edccc1d2d7fdde38d57680b6c1dcd00ae3ac2648cbc23bfcaab81bc8da5bda1487ddf0fd7679cb3107"
         }
       ],
       "licenses": [
@@ -1327,7 +1327,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40bruits/satteri-win32-arm64-msvc@0.9.5",
+      "purl": "pkg:npm/%40bruits/satteri-win32-arm64-msvc@0.10.5",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -1357,20 +1357,20 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@bruits/satteri-win32-arm64-msvc/-/satteri-win32-arm64-msvc-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/@bruits/satteri-win32-arm64-msvc/-/satteri-win32-arm64-msvc-0.10.5.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40bruits/satteri-win32-x64-msvc@0.9.5",
+      "bom-ref": "pkg:npm/%40bruits/satteri-win32-x64-msvc@0.10.5",
       "name": "@bruits/satteri-win32-x64-msvc",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e4ac3d640b53192f161e2cf29fe0898638df210af0fbb8dc6687699a95c98de7e73b5e4cf147b1222e89476139b61cafb261f284be990c3314351e1b2893dde2"
+          "content": "0b721f3ef7ef3179a5cc1c5a30f2854b55e2b95f69bb6982ed8aa43e4ecf4af4e03d9f206dd0122291e9ced0cbbd34d08ea674cf53a5f2d2b95fe57a5d70b4c1"
         }
       ],
       "licenses": [
@@ -1380,7 +1380,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40bruits/satteri-win32-x64-msvc@0.9.5",
+      "purl": "pkg:npm/%40bruits/satteri-win32-x64-msvc@0.10.5",
       "properties": [
         {
           "name": "blanc:cpu",
@@ -1410,7 +1410,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@bruits/satteri-win32-x64-msvc/-/satteri-win32-x64-msvc-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/@bruits/satteri-win32-x64-msvc/-/satteri-win32-x64-msvc-0.10.5.tgz"
         }
       ]
     },
@@ -6420,6 +6420,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/ansi-styles@4.3.0",
+      "name": "ansi-styles",
+      "version": "4.3.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cdb07dac22404f5adb8e25436f686a2851cd60bc60b64f0d511c59dc86700f717a36dc5b5d94029e74a2d4b931f880e885d3e5169db6db05402c885e64941212"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/ansi-styles@4.3.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/ansi-styles"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-4.3.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/anymatch@3.1.3",
       "name": "anymatch",
       "version": "3.1.3",
@@ -6555,14 +6600,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/astro@7.2.0",
+      "bom-ref": "pkg:npm/astro@7.2.7",
       "name": "astro",
-      "version": "7.2.0",
+      "version": "7.2.7",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "94b4d8cf1ddf3af0a6b700f725504b41c6ce45b20e5b5fe3d11fb722f271fd72b0306ae4ee616717405848e79188dc35a87511e66740ebe8519f2bf20dfaab59"
+          "content": "f975bb675c74de1abfcd5f2d8849ef4bc13b2582a8e62c9854f245b79461123ddd384fb34b085569469b72a36c1035497277905f69aac68e1f3e0a123be25cdb"
         }
       ],
       "licenses": [
@@ -6572,7 +6617,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/astro@7.2.0",
+      "purl": "pkg:npm/astro@7.2.7",
       "properties": [
         {
           "name": "blanc:development",
@@ -6594,7 +6639,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/astro/-/astro-7.2.0.tgz"
+          "url": "https://registry.npmjs.org/astro/-/astro-7.2.7.tgz"
         }
       ]
     },
@@ -6775,6 +6820,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/ccount/-/ccount-2.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/chalk@4.1.2",
+      "name": "chalk",
+      "version": "4.1.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a0a9db845c91217a54b9ecfc881326c846b89db8f820e432ba173fc32f6463bfd654f73020ef5503aebc3eef1190eefed06efa48b44e7b2c3d0a9434eb58b898"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/chalk@4.1.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/chalk"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/chalk/-/chalk-4.1.2.tgz"
         }
       ]
     },
@@ -7005,6 +7095,96 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/color-convert@2.0.1",
+      "name": "color-convert",
+      "version": "2.0.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4511023ec8fb8aeff16f9a0a61cb051d2a6914d9ec8ffe763954d129be333f9a275f0545df3566993a0d70e7c60be0910e97cafd4e7ce1f320dfc64709a12529"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/color-convert@2.0.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/color-convert"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/color-name@1.1.4",
+      "name": "color-name",
+      "version": "1.1.4",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "74ecbedc0b96ddadb035b64722e319a537208c6b8b53fb812ffb9b71917d3976c3a3c7dfe0ef32569e417f479f4bcb84a18a39ab8171edd63d3a04065e002c40"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/color-name@1.1.4",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/color-name"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/color-name/-/color-name-1.1.4.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/comma-separated-tokens@2.0.3",
       "name": "comma-separated-tokens",
       "version": "2.0.3",
@@ -7090,6 +7270,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/commander/-/commander-11.1.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/commander@14.0.3",
+      "name": "commander",
+      "version": "14.0.3",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "1fecb4268fd3d5167da8f3f8121d6991c41c2d1825ada25a48ba323ad1f1bba01aa648d6542cb64a2b75410e31dc39e0f2a0e54ac6447adee0e4fab4e8cbd383"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/commander@14.0.3",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/find-process/node_modules/commander"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/commander/-/commander-14.0.3.tgz"
         }
       ]
     },
@@ -7770,14 +7995,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/diff@8.0.4",
+      "bom-ref": "pkg:npm/diff@9.0.0",
       "name": "diff",
-      "version": "8.0.4",
+      "version": "9.0.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "0cf8b41668e2494e44bd0574fbe1850ce27d012414545879903f8ecce9d8762ee7dd6a66f6159619f07f3b66e57c770c5532f95a44174a74622bd99a921adc9f"
+          "content": "b2fb5c7694bc0a0272a808c44085dd6f73a3845555623cc600f3bc5860a645bae697ae123f0fe3243e06a04f7c691eebdb90345dc82b2b7174db2c3d47fbe143"
         }
       ],
       "licenses": [
@@ -7787,7 +8012,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/diff@8.0.4",
+      "purl": "pkg:npm/diff@9.0.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -7809,7 +8034,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/diff/-/diff-8.0.4.tgz"
+          "url": "https://registry.npmjs.org/diff/-/diff-9.0.0.tgz"
         }
       ]
     },
@@ -8080,51 +8305,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/entities/-/entities-4.5.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/entities@6.0.1",
-      "name": "entities",
-      "version": "6.0.1",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "68df7b357585e805814da85f54e22b07f352864ce2e47ec5f6bd6cf660f77038f82a8e5fdaa86156860c89b5c5ec694bbde6ff0f68a859acbc97123ded57a7de"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "BSD-2-Clause"
-          }
-        }
-      ],
-      "purl": "pkg:npm/entities@6.0.1",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/entities"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/entities/-/entities-6.0.1.tgz"
         }
       ]
     },
@@ -8490,6 +8670,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/find-process@2.1.1",
+      "name": "find-process",
+      "version": "2.1.1",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4ab403c774219661ccf748aa9fdadd8c241cc3f4fe5a5a4e90716c8e846007ecd3a437e5b4d03555235879810bc21513272d76505c6a8d686684eac973ea38b0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/find-process@2.1.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/find-process"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/find-process/-/find-process-2.1.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/flattie@1.1.1",
       "name": "flattie",
       "version": "1.1.1",
@@ -8809,104 +9034,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/hast-util-from-html@2.0.3",
-      "name": "hast-util-from-html",
-      "version": "2.0.3",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "0944911d7c8a8f31e8bfcc8ab108c6384957cbfdc42a9c97e7a10b9e41c7df8bc3570d4dd57490d59700bd3c803ed1aa2d3b8a3ffbb133e68b9123ea17f12d33"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/hast-util-from-html@2.0.3",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/hast-util-from-html"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/hast-util-from-html/-/hast-util-from-html-2.0.3.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/hast-util-from-parse5@8.0.3",
-      "name": "hast-util-from-parse5",
-      "version": "8.0.3",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "de4c4456410ab74cef719de1091608f2baab830b6520e14c5a46dc9400af8e50f0f0b8bd4b6864fdde75388d27aff808a5d30735ea7080e2aa67fb32d02969ca"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/hast-util-from-parse5@8.0.3",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/hast-util-from-parse5"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/hast-util-from-parse5/-/hast-util-from-parse5-8.0.3.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/hast-util-parse-selector@4.0.0",
-      "name": "hast-util-parse-selector",
+      "bom-ref": "pkg:npm/has-flag@4.0.0",
+      "name": "has-flag",
       "version": "4.0.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c2440291262838609128444559cc4c54c39c604d8ad4068d2d4f035d2f5aaf19cb3941166ce5ca5e2254373129a99dc938aa6785ade3905aee9848d59620deec"
+          "content": "1329094ff4352a34d672da698080207d23b4b4a56e6548e180caf5ee4a93ba6325e807efdc421295e53ba99533a170c54c01d30c2e0d3a81bf67153712f94c3d"
         }
       ],
       "licenses": [
@@ -8916,7 +9051,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/hast-util-parse-selector@4.0.0",
+      "purl": "pkg:npm/has-flag@4.0.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -8924,7 +9059,7 @@
         },
         {
           "name": "blanc:lockPath",
-          "value": "node_modules/hast-util-parse-selector"
+          "value": "node_modules/has-flag"
         },
         {
           "name": "blanc:optional",
@@ -8938,7 +9073,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/hast-util-parse-selector/-/hast-util-parse-selector-4.0.0.tgz"
+          "url": "https://registry.npmjs.org/has-flag/-/has-flag-4.0.0.tgz"
         }
       ]
     },
@@ -9029,51 +9164,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/hast-util-whitespace/-/hast-util-whitespace-3.0.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/hastscript@9.0.1",
-      "name": "hastscript",
-      "version": "9.0.1",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "83b75ff6b3055ff48f8b7e2dc860b25014444282a46a9c1d63f4f4e109fd4c359f1e1018b78fc8d203158abccae70133794a888c407e2d70bfca96fb02a9e8e7"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/hastscript@9.0.1",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/hastscript"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/hastscript/-/hastscript-9.0.1.tgz"
         }
       ]
     },
@@ -10067,6 +10157,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/loglevel@1.9.2",
+      "name": "loglevel",
+      "version": "1.9.2",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "1e03260aa2094802aaa3af25d2b4b601a9c459f931699e703621056f98209b4f250ecf579762b10655f73d371a0f672104cd605c061fe3dd7f33646ff09c1aca"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/loglevel@1.9.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/loglevel"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/loglevel/-/loglevel-1.9.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/lru-cache@11.5.2",
       "name": "lru-cache",
       "version": "11.5.2",
@@ -11012,14 +11147,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/ohash@2.0.11",
+      "bom-ref": "pkg:npm/ohash@2.0.12",
       "name": "ohash",
-      "version": "2.0.11",
+      "version": "2.0.12",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "45d47d150ac5c0d04d5c0af81a2c4cf186916512793d459b2986c4e5e3acaf0023256d2ad9110671fefda183ec2f2b24402646d4f2cdf92fcad55d348e8640a1"
+          "content": "eb94bfe6093d612b1a4637327fb35f6ba87f77713cff582c9695df2385bb0f19ffa1aa7c20a46e353e555e42d0d5814a2048386a9458e0f8fa6a2c05ceb0dd9b"
         }
       ],
       "licenses": [
@@ -11029,7 +11164,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/ohash@2.0.11",
+      "purl": "pkg:npm/ohash@2.0.12",
       "properties": [
         {
           "name": "blanc:development",
@@ -11051,7 +11186,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/ohash/-/ohash-2.0.11.tgz"
+          "url": "https://registry.npmjs.org/ohash/-/ohash-2.0.12.tgz"
         }
       ]
     },
@@ -11322,51 +11457,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/package-manager-detector/-/package-manager-detector-1.8.0.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/parse5@7.3.0",
-      "name": "parse5",
-      "version": "7.3.0",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "2089ef53b7da6e5df8aa68bd818f17395c61632332b87db150da5bdaaf3f63eef9e762a57a3911beabc3d7d9cca145bfb901866ea36903a4ee7eee452f905983"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/parse5@7.3.0",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/parse5"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/parse5/-/parse5-7.3.0.tgz"
         }
       ]
     },
@@ -12092,14 +12182,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/satteri@0.9.5",
+      "bom-ref": "pkg:npm/satteri@0.10.5",
       "name": "satteri",
-      "version": "0.9.5",
+      "version": "0.10.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "66e59597ebe733ae32fbf4ed5fc2a8b2fd9cd345be84b4228b09c42fa1f450a555af116a330e03d822471d06a8b9577cf4e021b4105f8d62ea84a8b74d5515e3"
+          "content": "028d4b2a90046bd59d834a2d81b54a56264712af5e6dd5dee0332ba77b3dbd0014d07348b879c512e32e39c9b46485f2574633c63f7536f84ba6f5d924eff965"
         }
       ],
       "licenses": [
@@ -12109,7 +12199,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/satteri@0.9.5",
+      "purl": "pkg:npm/satteri@0.10.5",
       "properties": [
         {
           "name": "blanc:development",
@@ -12131,7 +12221,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/satteri/-/satteri-0.9.5.tgz"
+          "url": "https://registry.npmjs.org/satteri/-/satteri-0.10.5.tgz"
         }
       ]
     },
@@ -12537,6 +12627,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/stringify-entities/-/stringify-entities-4.0.4.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/supports-color@7.2.0",
+      "name": "supports-color",
+      "version": "7.2.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "aa9080bd197db2db8e1ef78ab27ec79dc251befe74d6a21a70acd094effe2f0c5cf7ed2adb02f2bf80dfbedf34fc33e7da9a8e06c25d0e2a205c647df8ebf047"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/supports-color@7.2.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/supports-color"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/supports-color/-/supports-color-7.2.0.tgz"
         }
       ]
     },
@@ -13037,6 +13172,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/undici@8.10.0",
+      "name": "undici",
+      "version": "8.10.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "1ef96d1ddedabcad77408c3fa0b7b8aa838bca8552a1a7ea2768d83abb4c44191b613df57a2050f0ed1e851299884642304c8b150348003a600960b97c02ef61"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/undici@8.10.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "false"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/undici"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "site"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/undici/-/undici-8.10.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/unified@11.0.5",
       "name": "unified",
       "version": "11.0.5",
@@ -13082,14 +13262,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/unifont@0.7.4",
+      "bom-ref": "pkg:npm/unifont@0.7.5",
       "name": "unifont",
-      "version": "0.7.4",
+      "version": "0.7.5",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a077a2b38ff1978d87508787b8d651184bf18f901a20a47e6c73cd7a046ae4b57581d7378ee9dda4e35b8e094aa6286625ff9db30ca074c267dde7ed18831e9a"
+          "content": "50b7bf0acf9922cabe75c1687cd921aa27a50ab5099dbe66afe61ce0404cd9594bfba39947af9c8ed236993d5b26f441ad59dca8701b2d447198f2dc097cd632"
         }
       ],
       "licenses": [
@@ -13099,7 +13279,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/unifont@0.7.4",
+      "purl": "pkg:npm/unifont@0.7.5",
       "properties": [
         {
           "name": "blanc:development",
@@ -13121,7 +13301,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/unifont/-/unifont-0.7.4.tgz"
+          "url": "https://registry.npmjs.org/unifont/-/unifont-0.7.5.tgz"
         }
       ]
     },
@@ -13397,51 +13577,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/vfile-location@5.0.3",
-      "name": "vfile-location",
-      "version": "5.0.3",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "e725ef583120a9e8988817b595bc5817b50c0089bf21ca29c4c1eb3100eade7bca7233ca22166495428bf8013b27bb80a48e24c1edac9ec2be788e944e3f441e"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/vfile-location@5.0.3",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/vfile-location"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/vfile-location/-/vfile-location-5.0.3.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/vfile-message@4.0.3",
       "name": "vfile-message",
       "version": "4.0.3",
@@ -13617,51 +13752,6 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/vitefu/-/vitefu-1.1.3.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/web-namespaces@2.0.1",
-      "name": "web-namespaces",
-      "version": "2.0.1",
-      "scope": "required",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "6caaf50e488d6b692b4bbab136d76bb47026cee6061502e2435dd3b28aec753e942d390f2cabaee7e1ac1690e583a2458d44f05f60f284c3c6d9b7bcb8faeab1"
-        }
-      ],
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "purl": "pkg:npm/web-namespaces@2.0.1",
-      "properties": [
-        {
-          "name": "blanc:development",
-          "value": "false"
-        },
-        {
-          "name": "blanc:lockPath",
-          "value": "node_modules/web-namespaces"
-        },
-        {
-          "name": "blanc:optional",
-          "value": "false"
-        },
-        {
-          "name": "blanc:workspace",
-          "value": "site"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/web-namespaces/-/web-namespaces-2.0.1.tgz"
         }
       ]
     },
@@ -13897,70 +13987,70 @@
       "dependsOn": [
         "pkg:npm/%40fontsource-variable/inter@5.3.0",
         "pkg:npm/%40fontsource/jetbrains-mono@5.3.0",
-        "pkg:npm/astro@7.2.0",
+        "pkg:npm/astro@7.2.7",
         "pkg:npm/sharp@0.35.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding-darwin-arm64@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding-darwin-arm64@0.4.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding-darwin-x64@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding-darwin-x64@0.4.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-gnu@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-gnu@0.4.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-musl@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding-linux-arm64-musl@0.4.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding-linux-x64-gnu@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding-linux-x64-gnu@0.4.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding-linux-x64-musl@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding-linux-x64-musl@0.4.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding-wasm32-wasi@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding-wasm32-wasi@0.4.0",
       "dependsOn": [
         "pkg:npm/%40napi-rs/wasm-runtime@1.2.3"
       ]
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding-win32-arm64-msvc@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding-win32-arm64-msvc@0.4.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding-win32-x64-msvc@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding-win32-x64-msvc@0.4.0",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-binding@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-binding@0.4.0",
       "dependsOn": [
-        "pkg:npm/%40astrojs/compiler-binding-darwin-arm64@0.3.2",
-        "pkg:npm/%40astrojs/compiler-binding-darwin-x64@0.3.2",
-        "pkg:npm/%40astrojs/compiler-binding-linux-arm64-gnu@0.3.2",
-        "pkg:npm/%40astrojs/compiler-binding-linux-arm64-musl@0.3.2",
-        "pkg:npm/%40astrojs/compiler-binding-linux-x64-gnu@0.3.2",
-        "pkg:npm/%40astrojs/compiler-binding-linux-x64-musl@0.3.2",
-        "pkg:npm/%40astrojs/compiler-binding-wasm32-wasi@0.3.2",
-        "pkg:npm/%40astrojs/compiler-binding-win32-arm64-msvc@0.3.2",
-        "pkg:npm/%40astrojs/compiler-binding-win32-x64-msvc@0.3.2"
+        "pkg:npm/%40astrojs/compiler-binding-darwin-arm64@0.4.0",
+        "pkg:npm/%40astrojs/compiler-binding-darwin-x64@0.4.0",
+        "pkg:npm/%40astrojs/compiler-binding-linux-arm64-gnu@0.4.0",
+        "pkg:npm/%40astrojs/compiler-binding-linux-arm64-musl@0.4.0",
+        "pkg:npm/%40astrojs/compiler-binding-linux-x64-gnu@0.4.0",
+        "pkg:npm/%40astrojs/compiler-binding-linux-x64-musl@0.4.0",
+        "pkg:npm/%40astrojs/compiler-binding-wasm32-wasi@0.4.0",
+        "pkg:npm/%40astrojs/compiler-binding-win32-arm64-msvc@0.4.0",
+        "pkg:npm/%40astrojs/compiler-binding-win32-x64-msvc@0.4.0"
       ]
     },
     {
-      "ref": "pkg:npm/%40astrojs/compiler-rs@0.3.2",
+      "ref": "pkg:npm/%40astrojs/compiler-rs@0.4.0",
       "dependsOn": [
-        "pkg:npm/%40astrojs/compiler-binding@0.3.2"
+        "pkg:npm/%40astrojs/compiler-binding@0.4.0"
       ]
     },
     {
-      "ref": "pkg:npm/%40astrojs/internal-helpers@0.10.2",
+      "ref": "pkg:npm/%40astrojs/internal-helpers@0.10.4",
       "dependsOn": [
         "pkg:npm/%40types/hast@3.0.5",
         "pkg:npm/%40types/mdast@4.0.4",
@@ -13973,13 +14063,12 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40astrojs/markdown-satteri@0.3.5",
+      "ref": "pkg:npm/%40astrojs/markdown-satteri@0.3.8",
       "dependsOn": [
-        "pkg:npm/%40astrojs/internal-helpers@0.10.2",
+        "pkg:npm/%40astrojs/internal-helpers@0.10.4",
         "pkg:npm/%40astrojs/prism@4.0.2",
         "pkg:npm/github-slugger@2.0.0",
-        "pkg:npm/hast-util-from-html@2.0.3",
-        "pkg:npm/satteri@0.9.5"
+        "pkg:npm/satteri@0.10.5"
       ]
     },
     {
@@ -14019,31 +14108,31 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40bruits/satteri-darwin-arm64@0.9.5",
+      "ref": "pkg:npm/%40bruits/satteri-darwin-arm64@0.10.5",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40bruits/satteri-darwin-x64@0.9.5",
+      "ref": "pkg:npm/%40bruits/satteri-darwin-x64@0.10.5",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40bruits/satteri-linux-arm64-gnu@0.9.5",
+      "ref": "pkg:npm/%40bruits/satteri-linux-arm64-gnu@0.10.5",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40bruits/satteri-linux-arm64-musl@0.9.5",
+      "ref": "pkg:npm/%40bruits/satteri-linux-arm64-musl@0.10.5",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40bruits/satteri-linux-x64-gnu@0.9.5",
+      "ref": "pkg:npm/%40bruits/satteri-linux-x64-gnu@0.10.5",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40bruits/satteri-linux-x64-musl@0.9.5",
+      "ref": "pkg:npm/%40bruits/satteri-linux-x64-musl@0.10.5",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40bruits/satteri-wasm32-wasi@0.9.5",
+      "ref": "pkg:npm/%40bruits/satteri-wasm32-wasi@0.10.5",
       "dependsOn": [
         "pkg:npm/%40emnapi/core@1.11.1",
         "pkg:npm/%40emnapi/runtime@1.11.1",
@@ -14051,11 +14140,11 @@
       ]
     },
     {
-      "ref": "pkg:npm/%40bruits/satteri-win32-arm64-msvc@0.9.5",
+      "ref": "pkg:npm/%40bruits/satteri-win32-arm64-msvc@0.10.5",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40bruits/satteri-win32-x64-msvc@0.9.5",
+      "ref": "pkg:npm/%40bruits/satteri-win32-x64-msvc@0.10.5",
       "dependsOn": []
     },
     {
@@ -14547,6 +14636,12 @@
       ]
     },
     {
+      "ref": "pkg:npm/ansi-styles@4.3.0",
+      "dependsOn": [
+        "pkg:npm/color-convert@2.0.1"
+      ]
+    },
+    {
       "ref": "pkg:npm/anymatch@3.1.3",
       "dependsOn": [
         "pkg:npm/normalize-path@3.0.0",
@@ -14562,11 +14657,11 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/astro@7.2.0",
+      "ref": "pkg:npm/astro@7.2.7",
       "dependsOn": [
-        "pkg:npm/%40astrojs/compiler-rs@0.3.2",
-        "pkg:npm/%40astrojs/internal-helpers@0.10.2",
-        "pkg:npm/%40astrojs/markdown-satteri@0.3.5",
+        "pkg:npm/%40astrojs/compiler-rs@0.4.0",
+        "pkg:npm/%40astrojs/internal-helpers@0.10.4",
+        "pkg:npm/%40astrojs/markdown-satteri@0.3.8",
         "pkg:npm/%40astrojs/telemetry@3.3.3",
         "pkg:npm/%40capsizecss/unpack@4.0.1",
         "pkg:npm/%40clack/prompts@1.7.0",
@@ -14579,10 +14674,11 @@
         "pkg:npm/common-ancestor-path@2.0.0",
         "pkg:npm/cookie@2.0.1",
         "pkg:npm/devalue@5.8.2",
-        "pkg:npm/diff@8.0.4",
+        "pkg:npm/diff@9.0.0",
         "pkg:npm/dset@3.1.4",
         "pkg:npm/es-module-lexer@2.3.1",
         "pkg:npm/esbuild@0.28.2",
+        "pkg:npm/find-process@2.1.1",
         "pkg:npm/flattie@1.1.1",
         "pkg:npm/fontace@0.4.1",
         "pkg:npm/get-tsconfig@5.0.0-beta.4",
@@ -14610,7 +14706,7 @@
         "pkg:npm/tinyexec@1.2.4",
         "pkg:npm/tinyglobby@0.2.17",
         "pkg:npm/ultrahtml@1.7.0",
-        "pkg:npm/unifont@0.7.4",
+        "pkg:npm/unifont@0.7.5",
         "pkg:npm/unstorage@1.17.5",
         "pkg:npm/vite@8.2.1",
         "pkg:npm/vitefu@1.1.3",
@@ -14636,6 +14732,13 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/chalk@4.1.2",
+      "dependsOn": [
+        "pkg:npm/ansi-styles@4.3.0",
+        "pkg:npm/supports-color@7.2.0"
+      ]
+    },
+    {
       "ref": "pkg:npm/character-entities-html4@2.1.0",
       "dependsOn": []
     },
@@ -14658,11 +14761,25 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/color-convert@2.0.1",
+      "dependsOn": [
+        "pkg:npm/color-name@1.1.4"
+      ]
+    },
+    {
+      "ref": "pkg:npm/color-name@1.1.4",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/comma-separated-tokens@2.0.3",
       "dependsOn": []
     },
     {
       "ref": "pkg:npm/commander@11.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/commander@14.0.3",
       "dependsOn": []
     },
     {
@@ -14744,7 +14861,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/diff@8.0.4",
+      "ref": "pkg:npm/diff@9.0.0",
       "dependsOn": []
     },
     {
@@ -14779,10 +14896,6 @@
     },
     {
       "ref": "pkg:npm/entities@4.5.0",
-      "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/entities@6.0.1",
       "dependsOn": []
     },
     {
@@ -14849,6 +14962,14 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/find-process@2.1.1",
+      "dependsOn": [
+        "pkg:npm/chalk@4.1.2",
+        "pkg:npm/commander@14.0.3",
+        "pkg:npm/loglevel@1.9.2"
+      ]
+    },
+    {
       "ref": "pkg:npm/flattie@1.1.1",
       "dependsOn": []
     },
@@ -14893,34 +15014,8 @@
       ]
     },
     {
-      "ref": "pkg:npm/hast-util-from-html@2.0.3",
-      "dependsOn": [
-        "pkg:npm/%40types/hast@3.0.5",
-        "pkg:npm/devlop@1.1.0",
-        "pkg:npm/hast-util-from-parse5@8.0.3",
-        "pkg:npm/parse5@7.3.0",
-        "pkg:npm/vfile-message@4.0.3",
-        "pkg:npm/vfile@6.0.3"
-      ]
-    },
-    {
-      "ref": "pkg:npm/hast-util-from-parse5@8.0.3",
-      "dependsOn": [
-        "pkg:npm/%40types/hast@3.0.5",
-        "pkg:npm/%40types/unist@3.0.3",
-        "pkg:npm/devlop@1.1.0",
-        "pkg:npm/hastscript@9.0.1",
-        "pkg:npm/property-information@7.2.0",
-        "pkg:npm/vfile-location@5.0.3",
-        "pkg:npm/vfile@6.0.3",
-        "pkg:npm/web-namespaces@2.0.1"
-      ]
-    },
-    {
-      "ref": "pkg:npm/hast-util-parse-selector@4.0.0",
-      "dependsOn": [
-        "pkg:npm/%40types/hast@3.0.5"
-      ]
+      "ref": "pkg:npm/has-flag@4.0.0",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/hast-util-to-html@9.0.5",
@@ -14942,16 +15037,6 @@
       "ref": "pkg:npm/hast-util-whitespace@3.0.0",
       "dependsOn": [
         "pkg:npm/%40types/hast@3.0.5"
-      ]
-    },
-    {
-      "ref": "pkg:npm/hastscript@9.0.1",
-      "dependsOn": [
-        "pkg:npm/%40types/hast@3.0.5",
-        "pkg:npm/comma-separated-tokens@2.0.3",
-        "pkg:npm/hast-util-parse-selector@4.0.0",
-        "pkg:npm/property-information@7.2.0",
-        "pkg:npm/space-separated-tokens@2.0.2"
       ]
     },
     {
@@ -15048,6 +15133,10 @@
         "pkg:npm/lightningcss-win32-arm64-msvc@1.33.0",
         "pkg:npm/lightningcss-win32-x64-msvc@1.33.0"
       ]
+    },
+    {
+      "ref": "pkg:npm/loglevel@1.9.2",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/lru-cache@11.5.2",
@@ -15165,7 +15254,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/ohash@2.0.11",
+      "ref": "pkg:npm/ohash@2.0.12",
       "dependsOn": []
     },
     {
@@ -15200,12 +15289,6 @@
     {
       "ref": "pkg:npm/package-manager-detector@1.8.0",
       "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/parse5@7.3.0",
-      "dependsOn": [
-        "pkg:npm/entities@6.0.1"
-      ]
     },
     {
       "ref": "pkg:npm/piccolore@0.1.3",
@@ -15301,17 +15384,17 @@
       ]
     },
     {
-      "ref": "pkg:npm/satteri@0.9.5",
+      "ref": "pkg:npm/satteri@0.10.5",
       "dependsOn": [
-        "pkg:npm/%40bruits/satteri-darwin-arm64@0.9.5",
-        "pkg:npm/%40bruits/satteri-darwin-x64@0.9.5",
-        "pkg:npm/%40bruits/satteri-linux-arm64-gnu@0.9.5",
-        "pkg:npm/%40bruits/satteri-linux-arm64-musl@0.9.5",
-        "pkg:npm/%40bruits/satteri-linux-x64-gnu@0.9.5",
-        "pkg:npm/%40bruits/satteri-linux-x64-musl@0.9.5",
-        "pkg:npm/%40bruits/satteri-wasm32-wasi@0.9.5",
-        "pkg:npm/%40bruits/satteri-win32-arm64-msvc@0.9.5",
-        "pkg:npm/%40bruits/satteri-win32-x64-msvc@0.9.5",
+        "pkg:npm/%40bruits/satteri-darwin-arm64@0.10.5",
+        "pkg:npm/%40bruits/satteri-darwin-x64@0.10.5",
+        "pkg:npm/%40bruits/satteri-linux-arm64-gnu@0.10.5",
+        "pkg:npm/%40bruits/satteri-linux-arm64-musl@0.10.5",
+        "pkg:npm/%40bruits/satteri-linux-x64-gnu@0.10.5",
+        "pkg:npm/%40bruits/satteri-linux-x64-musl@0.10.5",
+        "pkg:npm/%40bruits/satteri-wasm32-wasi@0.10.5",
+        "pkg:npm/%40bruits/satteri-win32-arm64-msvc@0.10.5",
+        "pkg:npm/%40bruits/satteri-win32-x64-msvc@0.10.5",
         "pkg:npm/%40types/estree-jsx@1.0.5",
         "pkg:npm/%40types/hast@3.0.5",
         "pkg:npm/%40types/mdast@4.0.4",
@@ -15396,6 +15479,12 @@
       ]
     },
     {
+      "ref": "pkg:npm/supports-color@7.2.0",
+      "dependsOn": [
+        "pkg:npm/has-flag@4.0.0"
+      ]
+    },
+    {
       "ref": "pkg:npm/svgo@4.0.2",
       "dependsOn": [
         "pkg:npm/commander@11.1.0",
@@ -15451,6 +15540,10 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/undici@8.10.0",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/unified@11.0.5",
       "dependsOn": [
         "pkg:npm/%40types/unist@3.0.3",
@@ -15463,11 +15556,11 @@
       ]
     },
     {
-      "ref": "pkg:npm/unifont@0.7.4",
+      "ref": "pkg:npm/unifont@0.7.5",
       "dependsOn": [
         "pkg:npm/css-tree@3.2.1",
-        "pkg:npm/ofetch@1.5.1",
-        "pkg:npm/ohash@2.0.11"
+        "pkg:npm/ohash@2.0.12",
+        "pkg:npm/undici@8.10.0"
       ]
     },
     {
@@ -15517,13 +15610,6 @@
       ]
     },
     {
-      "ref": "pkg:npm/vfile-location@5.0.3",
-      "dependsOn": [
-        "pkg:npm/%40types/unist@3.0.3",
-        "pkg:npm/vfile@6.0.3"
-      ]
-    },
-    {
       "ref": "pkg:npm/vfile-message@4.0.3",
       "dependsOn": [
         "pkg:npm/%40types/unist@3.0.3",
@@ -15550,10 +15636,6 @@
     },
     {
       "ref": "pkg:npm/vitefu@1.1.3",
-      "dependsOn": []
-    },
-    {
-      "ref": "pkg:npm/web-namespaces@2.0.1",
       "dependsOn": []
     },
     {
