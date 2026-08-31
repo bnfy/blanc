@@ -1424,8 +1424,8 @@
 .mj-rescue-actions .mj-button { min-height: 52px; }
 
 .mj-win {
-  position: absolute;
-  z-index: 10;
+  position: fixed;
+  z-index: 40;
   inset: 50% auto auto 50%;
   transform: translate(-50%, -50%);
   width: min(520px, calc(100% - 28px));
@@ -1433,6 +1433,12 @@
   overflow: hidden;
   padding: clamp(30px, 4.2vw, 42px);
   text-align: center;
+  box-shadow:
+    0 0 0 100vmax rgba(0, 14, 11, 0.62),
+    0 34px 90px rgba(0, 7, 6, 0.72),
+    0 0 0 5px rgba(2, 27, 22, 0.44),
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    inset 0 -2px 0 rgba(0, 12, 9, 0.28);
 }
 .mj-win > :not(.mj-win-visual) { position: relative; z-index: 1; }
 .mj-win-visual {
@@ -1823,6 +1829,26 @@
     padding: 7px 8px 10px;
   }
   .mj-tray-slot { width: 64px; height: 74px; }
+}
+
+@media (max-width: 1080px) {
+  .mj-head {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 14px;
+  }
+  .mj-brand-lockup { grid-column: 1; grid-row: 1; min-width: 0; }
+  .mj-session {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+    justify-content: flex-start;
+  }
+  .mj-meters { grid-column: 2; grid-row: 1; padding-inline: 6px; }
+  .mj-meter { min-width: 60px; padding-inline: 8px; }
+  .mj-meter:first-child { min-width: 96px; }
+  .mj-chain-meter { min-width: 94px; }
+  .mj-combo-bar { width: 84px; }
+  .mj-feedback { top: calc(var(--mj-shell-block) + 112px + var(--mj-shell-gap) + 8px); }
 }
 
 @media (max-width: 780px) {

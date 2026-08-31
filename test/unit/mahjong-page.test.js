@@ -355,12 +355,19 @@ test('combo feedback restores animated tiles and removes immediately for reduced
 });
 
 test('desktop game header promotes session identity and status hierarchy', () => {
+  const responsiveHeader = styles.slice(
+    styles.indexOf('@media (max-width: 1080px)'),
+    styles.indexOf('@media (max-width: 780px)')
+  );
   assert.match(styles, /\.mj-head\s*\{[^}]*min-height:\s*58px/);
   assert.match(styles, /\.mj-session\s*\{[^}]*min-height:\s*44px[^}]*border-radius:\s*999px[^}]*font:\s*600 15px/);
   assert.match(styles, /\.mj-meters\s*\{[^}]*min-height:\s*56px[^}]*border:[^}]*border-radius:\s*15px/);
   assert.match(styles, /\.mj-meter strong\s*\{[^}]*font:\s*740 18px/);
   assert.match(styles, /\.mj-chain-meter \.mj-chain\s*\{[^}]*font-size:\s*20px[^}]*text-shadow:/);
   assert.match(styles, /\.mj-combo-bar\s*\{[^}]*width:\s*98px[^}]*height:\s*7px/);
+  assert.match(responsiveHeader, /\.mj-head\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto/);
+  assert.match(responsiveHeader, /\.mj-session\s*\{[^}]*grid-column:\s*1 \/ -1;[^}]*grid-row:\s*2;/);
+  assert.match(responsiveHeader, /\.mj-meters\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1;/);
 });
 
 test('hints pulse a complete pair and include a parked Burst tile', () => {
@@ -467,6 +474,8 @@ test('best records are scoped to the active layout revision', () => {
 
 test('the completion card keeps its center transform after dialog motion', () => {
   const rule = styles.match(/\.mj-win\s*\{([^}]*)\}/)?.[1] || '';
+  assert.ok(html.indexOf('id="mjWin"') > html.indexOf('id="mjTrayRail"'));
+  assert.match(rule, /position:\s*fixed;/);
   assert.match(rule, /transform:\s*translate\(-50%,\s*-50%\);/);
   assert.match(rule, /max-height:\s*calc\(100% - 28px\);/);
   assert.doesNotMatch(rule, /(?:^|;)\s*translate:/);
