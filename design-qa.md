@@ -136,6 +136,89 @@ final result: passed
 
 ---
 
+# Asset 2 bamboo silhouette and board-accent palette — 2026-08-30
+
+**Final result:** passed
+
+## Comparison target
+
+- Exact silhouette source:
+  `/Users/anthonyjloria/Desktop/SVG/Asset 2.svg`.
+- Rendered implementation:
+  `/private/tmp/mahjong-asset2-jade-gold.png`.
+- Focused implementation crop:
+  `/private/tmp/mahjong-asset2-implementation-crop.png`.
+- Combined source-and-implementation evidence:
+  `/private/tmp/mahjong-asset2-design-comparison.png`.
+- Viewport: live Blanc development window at 1229×768 CSS px, Turtle layout,
+  Classic mode, light chrome and lacquer game surface.
+
+## Normalization
+
+- The source is a self-contained SVG with viewBox `0 0 10.85 28.38`. Its sole
+  path is preserved verbatim in separate jade and seasonal-gold local copies;
+  only `fill` differs.
+- The full implementation capture is 1229×768 pixels at the live window's 1×
+  capture density. The 780×555 board crop is shown at native pixel dimensions
+  beside 90×229 normalized source, jade, and gold silhouette renderings. No
+  non-uniform scaling, path editing, or edge processing was used.
+- State: the panda remains one-bamboo. Ranks two through nine use Asset 2 with
+  board-native jade `#1f6d50` as the primary color and seasonal gold `#8a5a18`
+  as the restrained accent.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Fonts and typography: unaffected; all adjacent numeral, wind, dragon, dot,
+  and bonus faces retain their established hierarchy and optical weight.
+- Spacing and layout rhythm: Asset 2 preserves the existing rank arrangements
+  and fills the same measured pip boxes without clipping or merging.
+- Colors and visual tokens: the former blue/red pair is fully removed. Jade and
+  seasonal gold reuse the board's authoritative bamboo and season accents, so
+  the suit now belongs to the lacquer palette rather than introducing two new
+  colors.
+- Image quality and asset fidelity: each numbered bamboo mark is the exact
+  supplied vector path, rendered locally with aspect-ratio preservation and a
+  restrained tile-face shadow. The SVGs contain no scripts, links, external
+  references, images, or foreign objects.
+- Copy and content: unaffected. Accessibility continues to announce game rank
+  and suit rather than decorative color.
+- Full-view evidence confirms the updated suit remains legible across free,
+  blocked, layered, and partially obscured tiles without affecting board scale.
+- Focused comparison confirms the asymmetric rounded ends and subtle organic
+  sides of Asset 2 survive at actual game size in both palette variants.
+
+## Comparison history
+
+### Asset 1 blue/red treatment — superseded by user direction
+
+The prior implementation used Asset 1 with blue and red artwork. The user
+selected Asset 2 instead and requested existing board accent colors.
+
+### Asset 2 jade/gold implementation — passed
+
+The first live comparison shows the exact replacement shape with a cohesive
+jade/gold palette, clean edges, readable ranks, and no P0/P1/P2 mismatch.
+
+## Functional evidence
+
+- The Electron development app was fully restarted before capture so the
+  embedded Mahjong renderer loaded the replacement flat SVG assets.
+- SVG guards verify the exact source viewBox/path and palette, and reject
+  scripts, links, external references, and foreign objects.
+- `node --check src/renderer/pages/mahjong.js` passes.
+- 41 focused Mahjong renderer and engine tests pass.
+- `git diff --check` passes.
+
+## Follow-up polish
+
+No P3 implementation follow-up is required.
+
+final result: passed
+
+---
+
 # Home intro and demo separation — 2026-08-28
 
 **Final result:** passed

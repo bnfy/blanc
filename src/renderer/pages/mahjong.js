@@ -82,8 +82,8 @@ const BAM_SPOTS = {
 
 const BAMBOO_ART = Object.freeze({
   one: 'mahjong-bamboo-one.png',
-  blue: 'mahjong-bamboo-blue.svg',
-  red: 'mahjong-bamboo-red.svg',
+  jade: 'mahjong-bamboo-jade.svg',
+  gold: 'mahjong-bamboo-gold.svg',
 });
 const BAMBOO_STICK_SIZES = Object.freeze({
   2: [10, 34],
@@ -120,17 +120,18 @@ function bambooImage(href, x, y, width, height, className) {
 }
 
 function bambooStickAsset(count, index, x) {
-  const redAccent =
+  const goldAccent =
     (count === 3 && index === 0) ||
     (count === 5 && index === 2) ||
     (count === 7 && index === 0) ||
     ((count === 6 || count === 9) && x === 22);
-  return redAccent ? BAMBOO_ART.red : BAMBOO_ART.blue;
+  return goldAccent ? BAMBOO_ART.gold : BAMBOO_ART.jade;
 }
 
 // One bamboo keeps its special panda emblem. The numbered suit uses bold,
-// segmented blue sticks with restrained red accents, borrowing Mahjong Blast's
-// at-a-glance clarity while preserving the supplied local vector shape.
+// segmented jade sticks with restrained seasonal-gold accents, borrowing
+// Mahjong Blast's at-a-glance clarity while preserving the supplied local
+// vector shape.
 function bambooFace(count) {
   const group = el('g', { class: `mj-bamboo-art mj-bamboo-art-${count}` });
   if (count === 1) {

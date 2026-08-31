@@ -79,10 +79,10 @@ test('bonus families use professional shared motifs and hints clear stale emphas
   assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*clearHint\(\);/);
 });
 
-test('the bamboo suit uses a panda emblem plus the supplied blue and red stick artwork', () => {
+test('the bamboo suit uses a panda emblem plus the supplied jade and gold stick artwork', () => {
   assert.match(controller, /one:\s*'mahjong-bamboo-one\.png'/);
-  assert.match(controller, /blue:\s*'mahjong-bamboo-blue\.svg'/);
-  assert.match(controller, /red:\s*'mahjong-bamboo-red\.svg'/);
+  assert.match(controller, /jade:\s*'mahjong-bamboo-jade\.svg'/);
+  assert.match(controller, /gold:\s*'mahjong-bamboo-gold\.svg'/);
   assert.match(controller, /function bambooImage\(href, x, y, width, height, className\)/);
   assert.match(controller, /return el\('image', \{/);
   assert.match(controller, /preserveAspectRatio:\s*'xMidYMid meet'/);
@@ -102,11 +102,16 @@ test('the bamboo suit uses a panda emblem plus the supplied blue and red stick a
     const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/${asset}`));
     assert.equal(data.subarray(1, 4).toString(), 'PNG', `${asset} is not a PNG`);
   }
-  const suppliedStickPath = 'M9.79,24.79c-2.59,2.61-6.68,2.61-9.79,1.85l.34-2.68L.44,2.02C4.84-.93,12.25-.5,9.9,2.36l-.11,22.44Z';
-  for (const asset of ['mahjong-bamboo-blue.svg', 'mahjong-bamboo-red.svg']) {
+  const suppliedStickPath = 'M9.63,26.39c-1.84,1.85-10.13,3.68-9.61-.82.17-4.22.23-14.87.24-20.11-.03-1.87.45-3.49,2.33-4.37C4.66.16,7.54-.45,9.71.42c1.55.78,1.08,2.04,1.04,4.44-.03,1.4-.02,2.75-.03,4.21-.02,3.69-.04,7.69-.06,11.35-.03,2.96.14,4.71-.94,5.87l-.09.1Z';
+  const suppliedAssets = new Map([
+    ['mahjong-bamboo-jade.svg', '#1f6d50'],
+    ['mahjong-bamboo-gold.svg', '#8a5a18'],
+  ]);
+  for (const [asset, color] of suppliedAssets) {
     const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/${asset}`), 'utf8');
-    assert.match(data, /viewBox="0 0 10\.35 27\.08"/);
+    assert.match(data, /viewBox="0 0 10\.85 28\.38"/);
     assert.ok(data.includes(suppliedStickPath), `${asset} does not preserve the supplied bamboo path`);
+    assert.ok(data.includes(`fill="${color}"`), `${asset} does not use its Mahjong board accent`);
     assert.doesNotMatch(data, /<script|href=|xlink:href|foreignObject/);
   }
   const panda = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-bamboo-one.png'));
