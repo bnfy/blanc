@@ -23,3 +23,12 @@ Feature: Start page layouts
     When I open a new tab
     Then the start page renders the "mahjong" layout
     And the embedded mahjong game is ready
+
+  @F35-4 @desktop
+  Scenario: An embedded Mahjong timer pauses when another start layout is shown
+    Given a profile whose start page layout is "mahjong"
+    When I open a new tab
+    Then the embedded mahjong game is ready
+    When I make a move in embedded Mahjong
+    And I choose the "ledger" start page layout from its footer
+    Then the hidden embedded Mahjong timer stays paused

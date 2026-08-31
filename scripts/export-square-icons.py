@@ -24,7 +24,7 @@ ROOT = os.path.join(os.path.dirname(__file__), "..")
 SRC_DIR = os.path.join(ROOT, "src/renderer/pages")
 OUT_DIR = os.path.join(ROOT, "export/app-icons-1024-square")
 
-# Centered region that fully contains the mark (ink bbox ~x[330,741]
+# Centered region that fully contains the mark (ink bbox ~x[306,765]
 # y[240,783]) while staying clear of paper's edge ring (<108px in).
 BOX = (170, 170, 854, 854)
 

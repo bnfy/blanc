@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="boards" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3.5" y="4" width="7" height="7" rx="1.8" />
+      <rect x="13.5" y="4" width="7" height="7" rx="1.8" />
+      <rect x="8.5" y="13" width="7" height="7" rx="1.8" />
+      <path d="M6.5 7.5h1M16.5 7.5h1M11.5 16.5h1" />
+    </g>
+  </symbol>
+
+  <symbol id="undo" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8.5 7H4.5V3" />
+      <path d="M4.8 6.8A8.2 8.2 0 1 1 5.4 18" />
+    </g>
+  </symbol>
+
+  <symbol id="hint" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M8.4 15.1c-1.2-1-2-2.5-2-4.2a5.6 5.6 0 0 1 11.2 0c0 1.7-.8 3.2-2 4.2-.9.7-1.2 1.3-1.3 2.1H9.7c-.1-.8-.4-1.4-1.3-2.1Z" />
+      <path d="M9.8 20h4.4M12 1.8v1.5M3 10.8h1.5M19.5 10.8H21M5.6 4.5l1.1 1.1M17.3 5.6l1.1-1.1" />
+    </g>
+  </symbol>
+
+  <symbol id="shuffle" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 7h2.2c4.5 0 7.1 10 11.6 10H20" />
+      <path d="m17 14 3 3-3 3" />
+      <path d="M4 17h2.2c1.7 0 3.1-1.4 4.3-3.2M13.6 8.7c1.2-1 2.5-1.7 4.2-1.7H20" />
+      <path d="m17 4 3 3-3 3" />
+    </g>
+  </symbol>
+
+  <symbol id="sound-on" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 9.2v5.6h3.4l4.6 3.7v-13L7.4 9.2H4Z" />
+      <path d="M15.2 9a4.3 4.3 0 0 1 0 6M18 6.3a8 8 0 0 1 0 11.4" />
+    </g>
+  </symbol>
+
+  <symbol id="sound-off" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 9.2v5.6h3.4l4.6 3.7v-13L7.4 9.2H4Z" />
+      <path d="m16 10 4 4M20 10l-4 4" />
+    </g>
+  </symbol>
+</svg>

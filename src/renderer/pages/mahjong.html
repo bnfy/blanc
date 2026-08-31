@@ -2,44 +2,238 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:;" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self'; media-src 'none'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mahjong</title>
   <link rel="icon" href="icon.svg" />
   <link rel="stylesheet" href="pages.css" />
+  <link rel="stylesheet" href="mahjong.css" />
 </head>
 <body class="mahjong-body">
-  <main class="mj">
+  <a class="mj-skip" href="#mjBoard">skip to tiles</a>
+
+  <main class="mj" data-mode="classic" data-layout="turtle" data-source="random">
     <header class="mj-head">
-      <a class="mj-title" href="blanc://newtab/">mahjong</a>
-      <span class="mj-controls">
-        <button id="mjUndo" type="button">undo</button><span class="mj-sep">·</span>
-        <button id="mjHint" type="button">hint</button><span class="mj-sep">·</span>
-        <button id="mjNew" type="button">new deal</button><span class="mj-sep">·</span>
-        <button id="mjSound" type="button" aria-pressed="true">sound on</button>
-      </span>
-      <span class="mj-meters">
-        <span id="mjPairs" class="mj-pairs"></span>
-        <span id="mjTimer" class="mj-timer">0:00</span>
-      </span>
+      <div class="mj-brand-lockup">
+        <a class="mj-title" href="blanc://newtab/" aria-label="Back to Blanc new tab"><span class="mj-brand-mark" aria-hidden="true"></span><span>mahjong</span></a>
+        <span id="mjPrivateChip" class="mj-private-chip">private</span>
+      </div>
+
+      <div class="mj-session" aria-label="Current game">
+        <span id="mjDailyBadge" class="mj-daily-badge" hidden>daily</span>
+        <strong id="mjLayoutName">Turtle</strong>
+        <span aria-hidden="true">/</span>
+        <span id="mjModeName">Classic</span>
+      </div>
+
+      <div class="mj-meters" aria-label="Game status">
+        <span class="mj-meter">
+          <span class="mj-meter-label">pairs</span>
+          <strong id="mjPairs" class="mj-pairs">72 left</strong>
+        </span>
+        <span class="mj-meter">
+          <span class="mj-meter-label">time</span>
+          <strong id="mjTimer" class="mj-timer">0:00</strong>
+        </span>
+        <span class="mj-meter mj-score-meter">
+          <span class="mj-meter-label">score</span>
+          <strong id="mjScore" class="mj-score">0</strong>
+        </span>
+        <span class="mj-meter mj-chain-meter">
+          <span class="mj-meter-label">combo</span>
+          <strong id="mjCombo" class="mj-chain">—</strong>
+          <span id="mjComboBar" class="mj-combo-bar" role="progressbar" aria-label="Combo time remaining" aria-valuemin="0" aria-valuemax="5000" aria-valuenow="0">
+            <i id="mjComboFill"></i>
+          </span>
+        </span>
+      </div>
     </header>
-    <div class="mj-board-wrap" id="mjBoardWrap">
-      <div id="mjBoard" class="mj-board"></div>
-      <div id="mjWin" class="mj-win" hidden>
-        <svg class="mj-win-mark" viewBox="0 0 157.08 207.08" width="36" height="47" aria-hidden="true" fill="currentColor"><path d="M126.07,9.65s0,0,0,0c0,0,.01,0,.02.01l-.02-.02Z"></path><path d="M153.05,123.49h0s0-.02-.01-.03c0-.02-.01-.03-.02-.05h0c-1.42-3.8-3.32-7.27-5.21-10.57-1.9-3.31-3.8-6.46-5.28-9.5l-.06-.13-.04-.08-.04-.08c-1.92-3.63-2.59-6.78-2.6-9.97,0-1.98.27-3.98.75-6.06.72-3.13,1.9-6.44,3.19-10,1.29-3.57,2.68-7.39,3.7-11.59v-.02s.01-.04.01-.04c.89-3.93,1.33-7.96,1.33-11.99,0-8.53-1.96-17.06-5.77-24.68-3.81-7.61-9.49-14.32-16.93-19.06-3.91-2.53-7.71-4.42-11.53-5.78-5.74-2.06-11.49-2.94-17.7-3.33-6.22-.39-12.94-.31-20.92-.4h-.02s-.02,0-.02,0C61.41.13,45.12,0,30.04,0c-4.51,0-8.92.01-13.14.04h-.03s-.03,0-.03,0c-2.57.05-4.75.14-6.75.43-1.49.22-2.91.56-4.28,1.2-1.02.48-2.01,1.15-2.83,2.02-.61.65-1.12,1.39-1.52,2.17-.59,1.18-.93,2.42-1.13,3.71-.2,1.29-.28,2.65-.28,4.15,0,.24,0,.49,0,.74-.01,22.39-.08,85.06-.08,132.38,0,18.98.01,35.49.04,45.95v.08s0,.08,0,.08c.07,1.52.04,3.35.46,5.41.22,1.03.56,2.13,1.19,3.21.62,1.08,1.53,2.13,2.69,2.91l.03.02.04.02c.97.64,2,1.05,3.06,1.35,1.59.45,3.29.67,5.23.82,1.94.15,4.14.21,6.66.24h.02s.02,0,.02,0c8.88.04,18.46.05,28.12.05s19.04,0,28.08,0c1,0,1.99,0,2.98,0,2.34.06,4.62.1,6.84.1,11.36,0,21.42-.9,30.74-4.07,4.65-1.58,9.1-3.73,13.35-6.58,4.26-2.85,8.32-6.38,12.25-10.7l.02-.02h.01c9.98-11.23,15.25-25.89,15.26-40.6,0-7.32-1.31-14.67-4.04-21.61ZM122.32,183.57c-3.67,2.39-8.05,4.16-12.92,5.43-7.3,1.91-15.69,2.69-24.21,2.99-8.5.3-17.13.14-25.06.28-8.58-.06-16.83-.12-23.11-.27h-.01c-2.19-.05-4.06-.12-5.58-.24-1.01-.08-1.86-.18-2.55-.29.35-.44.78-.94,1.29-1.51.94-1.04,2.15-2.26,3.59-3.66,20.75-19.95,54.25-52.14,75.59-72.41,1.9-1.74,3.97-3.49,5.97-4.79,1-.65,1.99-1.19,2.9-1.57.89-.37,1.71-.59,2.42-.67.2-.02.4-.02.59-.02.95,0,1.89.17,2.87.52,1.7.6,3.52,1.79,5.3,3.47,2.67,2.52,5.2,6.13,7.23,9.98,2.04,3.85,3.59,7.94,4.48,11.34v.03s0,0,0,0c.99,3.66,1.48,7.52,1.48,11.43,0,7.79-1.93,15.81-5.45,22.84-3.52,7.04-8.61,13.09-14.82,17.11h0ZM27.87,172.46c-.42.36-.83.73-1.29,1.17-.94.9-2.06,2.04-3.29,3.24-1.84,1.81-3.93,3.78-5.75,5.18-.56.43-1.09.8-1.56,1.1,0-.04,0-.07,0-.1,0-1.02.1-2.35.28-3.81.53-4.4,1.81-9.99,2.87-13.39l.03-.09.02-.09c4.53-17.55,15.62-34.58,30.07-47.08,7.22-6.25,15.28-11.38,23.73-14.92,8.45-3.55,17.29-5.52,26.13-5.52,1.13,0,2.27.03,3.4.1.36.04.66.09.91.14-.08.15-.17.31-.28.48-.57.91-1.48,2.04-2.47,3.13-.99,1.09-2.04,2.14-2.94,3.04-6.26,6.14-12.82,12.38-19.74,19.08h0c-15.42,14.87-35.83,34.55-50.13,48.34ZM16.83,23.17c.05-2.03.22-3.65.49-4.86.2-.91.45-1.58.7-2.06.19-.36.38-.62.59-.84.32-.33.69-.6,1.32-.87.63-.27,1.51-.51,2.69-.68,4.12-.56,8.4-.66,12.86-.66,2.21,0,4.47.02,6.77.02.75,0,1.5,0,2.26,0,11.64.04,24.53.04,35.96.11,6.07.12,11.73.12,17.02.71,5.3.59,10.21,1.73,14.97,4.08h.01c6.24,3.06,11.27,8.13,14.76,14.25,3.49,6.11,5.39,13.25,5.38,20.21,0,4.2-.69,8.34-2.09,12.16-1.41,3.82-3.52,7.33-6.42,10.36-1.84,1.88-3.92,3.43-6.24,4.74-3.47,1.96-7.46,3.35-11.7,4.42-4.22,1.06-8.67,1.79-13.06,2.48-15.4,1.8-29.25,6.75-41.4,14.46-12.16,7.7-22.63,18.12-31.43,30.78-.67.81-1.32,1.69-1.99,2.6-.44.61-.89,1.21-1.34,1.8-.07-1.19-.13-2.5-.17-3.91-.08-2.67-.1-5.67-.1-8.8,0-5.16.07-10.68.07-15.76,0-1.89,0-3.73-.04-5.46.01-3.39.02-6.87.02-10.42,0-12.98-.06-26.83-.06-40.11,0-10.13.04-19.92.16-28.71Z"></path></svg>
-        <div id="mjWinTime" class="mj-win-time"></div>
+
+    <section class="mj-game" aria-label="Mahjong game surface">
+      <div class="mj-board-frame">
+        <div class="mj-board-wrap" id="mjBoardWrap">
+          <div id="mjBoard" class="mj-board" role="group" tabindex="-1" aria-label="Mahjong tiles. Use arrow keys to move and Enter or Space to select."></div>
+
+          <div id="mjComboFx" class="mj-combo-fx" aria-hidden="true">
+            <img class="mj-combo-particles" src="mahjong-combo-particles.png" alt="" />
+            <img class="mj-combo-glint" src="mahjong-combo-glint.png" alt="" />
+            <div id="mjComboCallout" class="mj-combo-callout"></div>
+            <div id="mjAutoChip" class="mj-auto-chip">+100 <span>auto clear</span></div>
+          </div>
+
+        </div>
+      </div>
+
+      <aside id="mjTrayRail" class="mj-tray-rail" aria-label="Four-slot Burst rack">
+        <div class="mj-tray-copy">
+          <span class="mj-tray-kicker">burst rack</span>
+          <strong id="mjTrayPrompt">Pair tiles before all four slots fill.</strong>
+        </div>
+        <div class="mj-burst-stage">
+          <div id="mjBurstScoreWrap" class="mj-burst-score" aria-hidden="true">
+            <strong id="mjBurstScore">0</strong>
+          </div>
+          <div id="mjTray" class="mj-tray" role="list" aria-label="Burst rack, four selected-tile slots">
+            <div id="mjTraySlot0" class="mj-tray-slot" role="listitem" aria-label="Burst slot 1, empty"></div>
+            <div id="mjTraySlot1" class="mj-tray-slot" role="listitem" aria-label="Burst slot 2, empty"></div>
+            <div id="mjTraySlot2" class="mj-tray-slot" role="listitem" aria-label="Burst slot 3, empty"></div>
+            <div id="mjTraySlot3" class="mj-tray-slot" role="listitem" aria-label="Burst slot 4, empty"></div>
+          </div>
+        </div>
+        <div class="mj-tray-best"><span>best</span><strong id="mjBest">—</strong></div>
+      </aside>
+    </section>
+
+    <section id="mjWin" class="mj-win mj-card-overlay" role="dialog" aria-modal="true" aria-labelledby="mjWinTitle" hidden>
+      <div class="mj-win-visual" aria-hidden="true">
+        <img class="mj-win-particles" src="mahjong-combo-particles.png" alt="" />
+        <img class="mj-win-glint" src="mahjong-combo-glint.png" alt="" />
+      </div>
+      <div class="mj-win-copy">
+        <p class="mj-overline">board cleared</p>
+        <h1 id="mjWinTitle">A beautiful finish.</h1>
+      </div>
+      <div class="mj-win-result">
+        <strong id="mjWinScore" class="mj-win-score">0</strong>
+        <span id="mjWinUnit" class="mj-win-unit">points</span>
         <div id="mjWinBest" class="mj-win-best"></div>
-        <button id="mjWinNew" type="button">new deal</button>
+      </div>
+      <div id="mjWinStats" class="mj-win-stats" hidden>
+        <span><small>time</small><strong id="mjWinTime">0:00</strong></span>
+        <span><small>best combo</small><strong id="mjWinCombo">×0</strong></span>
+        <span><small>auto clears</small><strong id="mjWinAutoClears">0</strong></span>
+      </div>
+      <div class="mj-overlay-actions">
+        <button id="mjWinNew" class="mj-button mj-button-primary" type="button">play another</button>
+        <button id="mjWinBoards" class="mj-button" type="button">choose board</button>
+      </div>
+    </section>
+
+    <div class="mj-feedback" aria-live="polite">
+      <div id="mjNotice" class="mj-notice" hidden>
+        <span>No moves remain.</span>
+        <button id="mjNoticeUndo" type="button">undo</button>
+        <span aria-hidden="true">or</span>
+        <button id="mjNoticeNew" type="button">new deal</button>
+      </div>
+      <div id="mjError" class="mj-notice mj-notice-error" hidden>
+        <span>That deal could not be built.</span>
+        <button id="mjErrorNew" type="button">try again</button>
+      </div>
+      <div id="mjRecoveryNotice" class="mj-notice" hidden>
+        Your saved game could not be restored, so a fresh deal was prepared.
       </div>
     </div>
-    <div id="mjNotice" class="mj-notice" hidden>
-      no moves left — <button id="mjNoticeUndo" type="button">undo</button> or
-      <button id="mjNoticeNew" type="button">new deal</button>
-    </div>
-    <div id="mjError" class="mj-notice" hidden>
-      couldn't deal — <button id="mjErrorNew" type="button">try again</button>
-    </div>
+
+    <nav class="mj-dock" aria-label="Game controls">
+      <button id="mjSetup" class="mj-dock-action" type="button" aria-label="Boards" data-tooltip="Boards" aria-haspopup="dialog" aria-controls="mjSetupSheet">
+        <svg class="mj-dock-icon" aria-hidden="true"><use href="mahjong-icons.svg#boards"></use></svg>
+        <span data-dock-label>boards</span>
+      </button>
+      <button id="mjUndo" class="mj-dock-action" type="button" aria-label="Undo" data-tooltip="Undo" aria-keyshortcuts="Meta+Z Control+Z">
+        <svg class="mj-dock-icon" aria-hidden="true"><use href="mahjong-icons.svg#undo"></use></svg>
+        <span data-dock-label>undo</span>
+      </button>
+      <button id="mjHint" class="mj-dock-action" type="button" aria-label="Hint" data-tooltip="Hint" aria-keyshortcuts="H">
+        <svg class="mj-dock-icon" aria-hidden="true"><use href="mahjong-icons.svg#hint"></use></svg>
+        <span data-dock-label>hint</span>
+      </button>
+      <button id="mjShuffle" class="mj-dock-action" type="button" aria-label="Shuffle" data-tooltip="Shuffle" aria-keyshortcuts="S">
+        <svg class="mj-dock-icon" aria-hidden="true"><use href="mahjong-icons.svg#shuffle"></use></svg>
+        <span data-dock-label>shuffle</span>
+      </button>
+      <button id="mjSound" type="button" aria-label="Sound effects on" data-tooltip="Sound on" aria-pressed="true">
+        <svg class="mj-dock-icon mj-icon-sound-on" aria-hidden="true"><use href="mahjong-icons.svg#sound-on"></use></svg>
+        <svg class="mj-dock-icon mj-icon-sound-off" aria-hidden="true"><use href="mahjong-icons.svg#sound-off"></use></svg>
+        <span data-dock-label>sound on</span>
+      </button>
+    </nav>
+
+    <!-- Backwards-compatible action target while Boards owns the visible
+         new-game entry point in v2. -->
+    <button id="mjNew" type="button" hidden>new deal</button>
+
+    <section id="mjSetupSheet" class="mj-modal" role="dialog" aria-modal="true" aria-labelledby="mjSetupTitle" hidden>
+      <div id="mjSetupScrim" class="mj-modal-scrim" aria-hidden="true"></div>
+      <div class="mj-setup-card">
+        <header class="mj-modal-head">
+          <div><p class="mj-overline">new table</p><h1 id="mjSetupTitle">Choose your game</h1></div>
+          <button id="mjSetupClose" class="mj-close" type="button" aria-label="Close board setup">×</button>
+        </header>
+
+        <fieldset class="mj-choice-group" id="mjLayoutChoices">
+          <legend>layout</legend>
+          <div class="mj-layout-grid">
+            <button id="mjLayoutTurtle" class="mj-choice mj-layout-choice selected" type="button" data-layout="turtle" aria-pressed="true">
+              <span class="mj-layout-mini mj-layout-mini-turtle" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span><strong>Turtle</strong><small>144 tiles · unhurried</small></span>
+            </button>
+            <button id="mjLayoutArch" class="mj-choice mj-layout-choice" type="button" data-layout="arch" aria-pressed="false">
+              <span class="mj-layout-mini mj-layout-mini-arch" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span><strong>Arch</strong><small>96 tiles · balanced</small></span>
+            </button>
+            <button id="mjLayoutPeaks" class="mj-choice mj-layout-choice" type="button" data-layout="peaks" aria-pressed="false">
+              <span class="mj-layout-mini mj-layout-mini-peaks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span><strong>Peaks</strong><small>72 tiles · quick</small></span>
+            </button>
+          </div>
+        </fieldset>
+
+        <div class="mj-setup-row">
+          <fieldset class="mj-choice-group">
+            <legend>mode</legend>
+            <div class="mj-segmented">
+              <button id="mjModeClassic" type="button" data-mode="classic" aria-pressed="true" class="selected">Classic</button>
+              <button id="mjModeTray" type="button" data-mode="tray" aria-pressed="false">Burst</button>
+            </div>
+            <p id="mjModeDescription">Match two free tiles directly.</p>
+          </fieldset>
+
+          <fieldset class="mj-choice-group">
+            <legend>deal</legend>
+            <div class="mj-segmented">
+              <button id="mjSourceRandom" type="button" data-source="random" aria-pressed="true" class="selected">Random</button>
+              <button id="mjSourceDaily" type="button" data-source="daily" aria-pressed="false">Daily</button>
+            </div>
+            <p id="mjSourceDescription">A fresh, guaranteed-solvable board.</p>
+          </fieldset>
+        </div>
+
+        <label class="mj-accessibility-toggle" for="mjFreeHighlight">
+          <input id="mjFreeHighlight" type="checkbox" />
+          <span>
+            <strong>Stronger free-tile highlight</strong>
+            Adds a persistent high-contrast ring to every tile available to play.
+          </span>
+        </label>
+
+        <footer class="mj-modal-foot">
+          <p>Starting replaces the board currently on this table.</p>
+          <button id="mjStart" class="mj-button mj-button-primary" type="button">start game</button>
+        </footer>
+      </div>
+    </section>
+
+    <section id="mjRescue" class="mj-modal mj-rescue" role="alertdialog" aria-modal="true" aria-labelledby="mjRescueTitle" aria-describedby="mjRescueCopy" hidden>
+      <div class="mj-modal-scrim" aria-hidden="true"></div>
+      <div class="mj-rescue-card">
+        <span class="mj-rescue-mark" aria-hidden="true">4</span>
+        <p class="mj-overline">burst rack full</p>
+        <h1 id="mjRescueTitle">Make some room.</h1>
+        <p id="mjRescueCopy">Four unmatched tiles are waiting. Choose how you want to continue.</p>
+        <div class="mj-rescue-actions">
+          <button id="mjRescueUndo" class="mj-button mj-button-primary" type="button">undo last pick</button>
+          <button id="mjRescueShuffle" class="mj-button" type="button">shuffle &amp; continue</button>
+          <button id="mjRescueRestart" class="mj-button mj-button-quiet" type="button">restart this board</button>
+        </div>
+      </div>
+    </section>
+
+    <div id="mjLive" class="mj-sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
   </main>
+
   <script src="mahjong-engine.js"></script>
+  <script src="mahjong-state.js"></script>
   <script src="mahjong-sound.js"></script>
   <script src="mahjong.js"></script>
 </body>
