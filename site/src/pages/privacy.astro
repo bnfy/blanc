@@ -13,10 +13,10 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 <main class="legal-doc">
   <p class="eyebrow">privacy</p>
   <h1>Privacy Policy</h1>
-  <p class="legal-updated">Last updated: August 29, 2026</p>
+  <p class="legal-updated">Last updated: August 30, 2026</p>
 
   <div class="legal-tldr">
-    <p><strong>The short version.</strong> Blanc keeps browsing data on your device unless you enable end-to-end-encrypted Profile Sync for eligible data. A fresh install asks before search suggestions or the pseudonymous launch ping can send anything; both choices are presented on and can be turned off before continuing. The blocker ships with the app instead of downloading filter code at first launch. This website runs Google Analytics in restricted, cookieless Consent Mode by default and enables full analytics and ad-conversion measurement only if you allow them.</p>
+    <p><strong>The short version.</strong> Blanc keeps browsing data on your device unless you enable end-to-end-encrypted Profile Sync for eligible data. A fresh install asks before search suggestions or pseudonymous usage measurement can send anything; both choices are presented on and can be turned off before continuing. Usage measurement counts launches and a small allowlist of local feature actions, never browsing activity, and excludes private tabs from feature-use events. The blocker ships with the app instead of downloading filter code at first launch. This website runs Google Analytics in restricted, cookieless Consent Mode by default and enables full analytics and ad-conversion measurement only if you allow them.</p>
   </div>
 
   <h2>Who is responsible</h2>
@@ -38,8 +38,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
   <h2>Optional app requests</h2>
 
-  <h3>Usage ping</h3>
-  <p>Blanc asks before the first usage ping. On a fresh profile, “Help improve Blanc” is presented on; you can turn it off before continuing or later in Settings. Existing profiles retain their saved setting. When the saved setting is on, a packaged build sends one pseudonymous event at launch containing:</p>
+  <h3>Usage measurement</h3>
+  <p>Blanc asks before the first usage event. On a fresh profile, “Help improve Blanc” is presented on; you can turn it off before continuing or later in Settings. Existing profiles retain their saved setting. When the saved setting is on, a packaged build sends one pseudonymous event at launch containing:</p>
   <ul>
     <li>a random installation UUID;</li>
     <li>a random per-launch session ID;</li>
@@ -47,8 +47,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <li>the operating-system family and coarse major version; and</li>
     <li>the processor architecture.</li>
   </ul>
-  <p>It contains no URL, history, search, page content, account, name, email address, or precise location. The collector immediately replaces the installation UUID with a secret-keyed hash. The raw UUID is not retained or forwarded. Short-lived per-IP keys, expiring after about two minutes, enforce abuse limits; Cloudflare may also process ordinary edge logs to deliver and protect the Worker.</p>
-  <p>The keyed hash deduplicates daily, weekly, and monthly active-install counts. Daily markers expire after about 90 days and weekly/monthly markers after about 13 months; aggregate counts are retained for product trends. If the collector's optional Google Analytics mirror is configured, Google receives the keyed hash as a client ID plus the same version, platform, architecture, coarse OS, and session fields. Development builds do not send pings.</p>
+  <p>During the same app run, Blanc may also send each of these bounded feature-use events once: <code>mahjong_play</code> after the first real move in Mahjong, and <code>newtab_layout</code> when each start-page layout actually renders. A layout event carries only one fixed value: <code>ledger</code>, <code>billboard</code>, <code>shelf</code>, <code>tally</code>, or <code>mahjong</code>. These feature-use events are never sent from private tabs.</p>
+  <p>No usage event contains a URL, history, search, page content, account, name, email address, precise location, tile choice, game state, or custom text. The collector immediately replaces the installation UUID with a secret-keyed hash. The raw UUID is not retained or forwarded. Short-lived per-IP keys, expiring after about two minutes, enforce abuse limits; Cloudflare may also process ordinary edge logs to deliver and protect the Worker.</p>
+  <p>The keyed hash deduplicates daily, weekly, and monthly active-install counts for launches and each fixed feature metric. Daily markers expire after about 90 days and weekly/monthly markers after about 13 months; aggregate counts are retained for product trends. If the collector's optional Google Analytics mirror is configured, Google receives the keyed hash as a client ID plus the same version, platform, architecture, coarse OS, session, fixed event name, and fixed layout value when applicable. Development builds do not send usage events.</p>
   <p>The random ID lives in <code>install.json</code>, does not enter Profile Sync, and can be reset in Settings. Turning the ping off stops future events; resetting the ID makes any future enabled event appear as a new installation.</p>
 
   <h3>Search suggestions (optional)</h3>
@@ -99,14 +100,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   <ul>
     <li>Local records remain until you clear them, the applicable cap removes older entries, or you remove the profile.</li>
     <li>Private browsing state and private download metadata disappear when Blanc quits; downloaded files remain until you delete them.</li>
-    <li>Usage markers and aggregate counts follow the periods described under Usage ping.</li>
+    <li>Usage markers and aggregate counts follow the periods described under Usage measurement.</li>
     <li>Encrypted sync blobs remain until a configured client erases the server copy. The sync server is not a backup; keep a device containing the source data.</li>
     <li>Unconfirmed newsletter requests expire after 24 hours. Honeypot quarantine records expire after 30 days. Confirmed records remain until unsubscribe or deletion.</li>
     <li>Provider security and delivery logs follow the provider's configured retention.</li>
   </ul>
 
   <h2>Your choices and rights</h2>
-  <p>You can turn search suggestions and the usage ping off before completing first run or later in Settings, leave 1Password login fill off or disable it to end Blanc's cached SDK session, reset the installation ID, leave Profile Sync off or erase its server copy, clear local browsing records, decline full site analytics and ad-conversion measurement, and unsubscribe from email. Depending on where you live, you may also have rights to access, correct, delete, restrict, object to, or receive a portable copy of personal information, withdraw consent, and appeal or complain to a data-protection authority. Blanc does not sell personal information or share it for cross-context behavioral advertising.</p>
+  <p>You can turn search suggestions and usage measurement off before completing first run or later in Settings, leave 1Password login fill off or disable it to end Blanc's cached SDK session, reset the installation ID, leave Profile Sync off or erase its server copy, clear local browsing records, decline full site analytics and ad-conversion measurement, and unsubscribe from email. Depending on where you live, you may also have rights to access, correct, delete, restrict, object to, or receive a portable copy of personal information, withdraw consent, and appeal or complain to a data-protection authority. Blanc does not sell personal information or share it for cross-context behavioral advertising.</p>
   <p>Email <!--email_off--><a href="mailto:support@blancbrowser.com">support@blancbrowser.com</a><!--/email_off--> to exercise a right. We may need enough information to verify that a request concerns your record; for server-blind ciphertext or an unlinked pseudonymous event, we may be unable to identify a record from your identity alone.</p>
 
   <h2>Children</h2>

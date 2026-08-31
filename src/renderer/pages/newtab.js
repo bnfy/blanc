@@ -421,6 +421,19 @@ function renderMahjongEmbed() {
     isPrivate ? 'blanc://mahjong/?private=1' : 'blanc://mahjong/';
 }
 
+// A WebContentsView preload deliberately does not run in child frames. Relay
+// the game's one fixed signal through this trusted top-level document only
+// when it comes from the exact managed iframe and its internal origin.
+const mahjongFrame = document.getElementById('mahjongFrame');
+window.addEventListener('message', (event) => {
+  if (
+    event.origin !== 'blanc://mahjong' ||
+    event.source !== mahjongFrame.contentWindow ||
+    event.data !== 'blanc:mahjong-played'
+  ) return;
+  window.bowserPages.start.mahjongPlayed().catch(() => {});
+});
+
 // The switcher's "new" badge retires once the layout has been tried on this
 // device. localStorage is a per-viewer convenience here — absent or blocked
 // storage just means the badge stays, never an error.
@@ -437,6 +450,7 @@ syncMahjongBadge();
 function applyLayout(name) {
   state.layout = name;
   document.body.dataset.layout = name;
+  window.bowserPages?.start?.layoutUsed?.(name).catch(() => {});
   for (const button of document.querySelectorAll('[data-layout-pick]')) {
     button.classList.toggle('active', button.dataset.layoutPick === name);
   }

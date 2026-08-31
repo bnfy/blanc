@@ -85,9 +85,12 @@ produced it is `bench/memory/` in the repository.
 - Search suggestions can send eligible typed prefixes to the selected search
   provider. They are skipped for private tabs, pasted or dropped text,
   URL-like/local input, and sensitive-looking values, and can be disabled.
-- The optional usage ping contains a random install ID, a random per-launch
-  session ID, version, platform, architecture, and coarse OS major. It contains no URLs,
-  searches, history, or page content and can be disabled in Settings.
+- Optional usage measurement contains a random install ID, a random per-launch
+  session ID, version, platform, architecture, and coarse OS major. It counts
+  launches plus a fixed allowlist: the first real Mahjong move and which of the
+  five start-page layouts render, at most once each per app session. It contains
+  no URLs, searches, history, page content, game state, or private-tab feature
+  activity and can be disabled in Settings.
 - Private tabs use a separate, non-persistent in-memory browser session and stay
   out of Blanc history, session restore, and reopen-closed.
 - Profile Sync encrypts data on the device before upload. Open-tab sharing is

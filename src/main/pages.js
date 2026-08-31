@@ -99,6 +99,21 @@ function setupPages(hooks = {}) {
       return run(event, () => fn(...args));
     });
   };
+  const handleEvent = (channel, hosts, fn) => {
+    const expectedHosts = new Set(Array.isArray(hosts) ? hosts : [hosts]);
+    ipcMain.handle(channel, (event, ...args) => {
+      const trusted = isTrustedPagesEvent(event, {
+        hosts: expectedHosts,
+        sessions: expectedSessions,
+        ownsSender: hooks.pageSurfaces?.owns ?? (() => false),
+      });
+      if (!trusted) {
+        throw new Error(`${channel}: denied for ${event.senderFrame?.url ?? event.sender.getURL()}`);
+      }
+      const run = hooks.runInPageRuntime ?? ((_event, work) => work());
+      return run(event, () => fn(event, ...args));
+    });
+  };
 
   handle('pages:surface:close', [...UTILITY_PAGES], () => hooks.utilitySheet.close());
   // Settings opaque pickers arm Escape so main forwards it into the sheet
@@ -295,6 +310,10 @@ function setupPages(hooks = {}) {
     'newtab',
     (name) => hooks.startPage?.setLayout?.(String(name ?? '')),
   );
+  handleEvent('pages:start:layout-used', 'newtab', (event, name) => {
+    if (!settings.NEWTAB_LAYOUTS.includes(name)) return false;
+    return hooks.telemetry?.newtabLayoutUsed?.(event.sender, name) === true;
+  });
   handle(
     'pages:start:focus-group',
     'newtab',
@@ -328,6 +347,13 @@ function setupPages(hooks = {}) {
     'newtab',
     (choices) => hooks.startPage?.completePrivacy?.(choices ?? {}),
   );
+
+  // Standalone games invoke from their exact top-level document. The embedded
+  // game has no preload authority; it posts a fixed signal to newtab.js, which
+  // verifies the frame source + origin before the trusted top-level newtab
+  // invokes this same argument-free channel.
+  handleEvent('pages:mahjong:played', ['mahjong', 'newtab'], (event) =>
+    hooks.telemetry?.mahjongPlayed?.(event.sender) === true);
 
   // Default-browser state lives in LaunchServices/the OS, not settings.json.
   // canSet: a dev run must never register the bare Electron binary as a

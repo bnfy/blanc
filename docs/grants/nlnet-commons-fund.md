@@ -31,7 +31,7 @@ Manifest V3's declarativeNetRequest limits, which are steadily narrowing
 what user-installed blockers may do. The interface is a single floating
 "island" replacing the tab strip and toolbar, private tabs never touch
 disk history, permissions are explicit, and the app's default-on
-pseudonymous launch ping is disclosed on first run and can be switched off.
+pseudonymous usage measurement is disclosed on first run and can be switched off.
 This grant funds work that strengthens Blanc as a practical daily browser:
 WebAuthn
 platform-authenticator (passkey) support, which today is gated behind

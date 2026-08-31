@@ -219,6 +219,17 @@ window.addEventListener('resize', fitBoard);
 // --- interaction ----------------------------------------------------------
 
 let selected = null;
+let playReported = false;
+
+function reportPlayOnce() {
+  if (playReported) return;
+  playReported = true;
+  if (window.top !== window.self) {
+    window.parent.postMessage('blanc:mahjong-played', 'blanc://newtab');
+    return;
+  }
+  window.bowserPages?.mahjong?.played?.().catch(() => {});
+}
 
 function setSelected(i) {
   if (selected !== null) {
@@ -256,6 +267,10 @@ board.addEventListener('click', (event) => {
     tile.classList.add('shake');
     return;
   }
+  // The timer's first real move is also the analytics definition of "played".
+  // Main independently gates this on saved consent, a non-private managed tab,
+  // a packaged build, and one event per app session.
+  reportPlayOnce();
   startTimer();
   if (selected === null) { sound.play('select'); setSelected(i); return; }
   if (selected === i) { sound.play('select'); setSelected(null); return; }

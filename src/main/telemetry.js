@@ -3,6 +3,7 @@ const { randomUUID } = require('crypto');
 // The collector Worker in cloudflare/ping-worker — accepts a JSON POST,
 // returns 204.
 const PING_ENDPOINT = 'https://blanc-ping.bnfy-441.workers.dev/ping';
+const EVENT_ENDPOINT = 'https://blanc-ping.bnfy-441.workers.dev/event';
 
 // A stable, random per-install id — generated once, stored device-locally in
 // install.json, and sent with the launch ping so the collector can dedupe
@@ -67,36 +68,127 @@ function coarseOsVersion(platform, systemVersion) {
   return String(parts[0]);
 }
 
-// On by default (Settings → usagePing, opt-out). Fire-and-forget: a failed or
-// blocked ping must never affect startup or show the user anything. Carries
-// only version/platform/arch/osVersion plus the pseudonymous install id above
-// — enough to count active users and bucket by version and OS, nothing that
-// identifies a person.
-function sendLaunchPing() {
-  const { app, net } = require('electron');
-  if (!app.isPackaged) return; // dev runs shouldn't inflate counts
-
-  const payload = JSON.stringify({
-    installId: installId(),
-    // Each app launch is a GA4 session; session_id is a random positive
-    // 32-bit integer per the Measurement Protocol spec.
-    sessionId: (Math.random() * 0x7FFFFFFF) >>> 0,
-    version: app.getVersion(),
-    platform: process.platform,
-    arch: process.arch,
-    // getSystemVersion() is the OS's own version (macOS marketing number,
-    // Windows 10.0.<build>) — os.release() would give the Darwin build on mac,
-    // which is not what anyone means by "macOS 26".
-    osVersion: coarseOsVersion(process.platform, process.getSystemVersion()),
-  });
-
-  net.fetch(PING_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: payload,
-  }).catch((err) => {
-    console.warn('[telemetry] launch ping failed:', err.message);
-  });
+function productUsageAllowed({ firstRunComplete, usagePing, privateTab }) {
+  return firstRunComplete === true && usagePing === true && privateTab !== true;
 }
 
-module.exports = { sendLaunchPing, resetInstallId, coarseOsVersion };
+// Build one process-lifetime sender so the launch and bounded product-use
+// events share a GA session id. Every event is attempted at most once per app
+// session; the Worker separately dedupes and counts distinct installs by day,
+// week, and month. Consent/private-tab policy stays in main.js, at the trusted
+// event boundary. This layer independently refuses development builds and
+// unknown layout values.
+function createTelemetrySender({
+  isPackaged,
+  fetchImpl,
+  getInstallId,
+  getVersion,
+  platform,
+  arch,
+  getSystemVersion,
+  random = Math.random,
+  newtabLayouts,
+  warn = console.warn,
+}) {
+  const allowedLayouts = new Set(newtabLayouts ?? []);
+  const sent = new Set();
+  let sessionId = null;
+
+  function commonPayload() {
+    if (sessionId === null) {
+      // GA4 requires a positive 32-bit session id; Math.random() can return 0.
+      sessionId = Math.max(1, (random() * 0x7FFFFFFF) >>> 0);
+    }
+    return {
+      installId: getInstallId(),
+      sessionId,
+      version: getVersion(),
+      platform,
+      arch,
+      // getSystemVersion() is the OS's own version (macOS marketing number,
+      // Windows 10.0.<build>) — os.release() would give Darwin on macOS.
+      osVersion: coarseOsVersion(platform, getSystemVersion()),
+    };
+  }
+
+  function postOnce(key, endpoint, payload, label) {
+    if (!isPackaged() || sent.has(key)) return false;
+    sent.add(key);
+    try {
+      const options = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload()),
+      };
+      Promise.resolve(fetchImpl(endpoint, options)).catch((err) => {
+        warn(`[telemetry] ${label} failed: ${err?.message ?? err}`);
+      });
+    } catch (err) {
+      warn(`[telemetry] ${label} failed: ${err?.message ?? err}`);
+    }
+    return true;
+  }
+
+  function sendLaunchPing() {
+    return postOnce('app_launch', PING_ENDPOINT, commonPayload, 'launch ping');
+  }
+
+  function sendMahjongPlay() {
+    return postOnce(
+      'mahjong_play',
+      EVENT_ENDPOINT,
+      () => ({ ...commonPayload(), event: 'mahjong_play' }),
+      'Mahjong usage event',
+    );
+  }
+
+  function sendNewtabLayoutUsed(layout) {
+    if (!allowedLayouts.has(layout)) return false;
+    return postOnce(
+      `newtab_layout:${layout}`,
+      EVENT_ENDPOINT,
+      () => ({ ...commonPayload(), event: 'newtab_layout', layout }),
+      'new-tab layout event',
+    );
+  }
+
+  return { sendLaunchPing, sendMahjongPlay, sendNewtabLayoutUsed };
+}
+
+let defaultSender = null;
+function ensureDefaultSender() {
+  if (!defaultSender) {
+    const { app, net } = require('electron');
+    // Lazy to keep telemetry.js loadable under plain node --test.
+    const { NEWTAB_LAYOUTS } = require('./settings');
+    defaultSender = createTelemetrySender({
+      isPackaged: () => app.isPackaged,
+      fetchImpl: net.fetch.bind(net),
+      getInstallId: installId,
+      getVersion: () => app.getVersion(),
+      platform: process.platform,
+      arch: process.arch,
+      getSystemVersion: () => process.getSystemVersion(),
+      newtabLayouts: NEWTAB_LAYOUTS,
+    });
+  }
+  return defaultSender;
+}
+
+function sendLaunchPing() { return ensureDefaultSender().sendLaunchPing(); }
+function sendMahjongPlay() { return ensureDefaultSender().sendMahjongPlay(); }
+function sendNewtabLayoutUsed(layout) {
+  return ensureDefaultSender().sendNewtabLayoutUsed(layout);
+}
+
+module.exports = {
+  PING_ENDPOINT,
+  EVENT_ENDPOINT,
+  createTelemetrySender,
+  productUsageAllowed,
+  sendLaunchPing,
+  sendMahjongPlay,
+  sendNewtabLayoutUsed,
+  resetInstallId,
+  coarseOsVersion,
+};

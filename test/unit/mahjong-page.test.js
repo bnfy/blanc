@@ -68,3 +68,18 @@ test('every game interaction is wired to its sound cue and bootstrap stays silen
   assert.match(controller, /document\.getElementById\('mjNew'\)\.addEventListener\('click', newGameFromControl\);/);
   assert.match(controller, /\nnewGame\(\);\s*$/);
 });
+
+test('mahjong reports play only after a real free-tile move', () => {
+  assert.match(
+    controller,
+    /function reportPlayOnce\(\) \{[\s\S]*if \(playReported\) return;[\s\S]*mahjong\?\.played\?\.\(\)/,
+  );
+  assert.match(
+    controller,
+    /window\.parent\.postMessage\('blanc:mahjong-played', 'blanc:\/\/newtab'\)/,
+  );
+  assert.match(
+    controller,
+    /if \(!E\.isFree\(game, i\)\) \{[\s\S]*return;[\s\S]*reportPlayOnce\(\);\s*startTimer\(\);/,
+  );
+});

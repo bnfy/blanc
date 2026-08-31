@@ -20,7 +20,9 @@ language, with undo, hint, a timer, and a locally stored personal best.
 **Non-goals:**
 - Real four-player mahjong (rules engine, AI opponents).
 - Multiple board layouts — v1 ships the classic 144-tile turtle only.
-- Any network access, remote assets, sync of game data, or telemetry.
+- Any game-state, tile-choice, timing, score, or best-time telemetry. The shared
+  consent-gated product counter may record only the first real move per app
+  session, and never from a private tab.
 - Mobile parity work — desktop-only; no `F#`/`D#` spec entries in v1.
 - Supporter gating — the game is free.
 
@@ -163,10 +165,24 @@ never-expected infinite loop into a thrown error.
 
 - Personal best time and the sound on/off preference only, in the page's own `localStorage`
   (`blanc://mahjong` is its own origin under the `standard: true` scheme).
-  Nothing crosses IPC, nothing is written to a `JsonStore`, nothing syncs.
+  No game state crosses IPC, nothing is written to a `JsonStore`, nothing syncs.
 - In private tabs the non-persistent session makes it ephemeral — correct
   behavior, no special-casing.
 - In-progress games are not persisted across app restarts (v1).
+
+### 4.7 Bounded usage measurement
+
+- When the existing `usagePing` choice is saved on, the first real free-tile
+  selection in an app session emits the argument-free `mahjong_play` signal.
+  Reloads and new deals in the same app session do not emit it again.
+- A standalone game uses its exact top-level `blanc://mahjong/` bridge. Electron
+  deliberately does not load that preload in child frames, so the embed sends a
+  fixed `postMessage`; `newtab.js` accepts it only from the exact Mahjong origin
+  and its own iframe, then relays through the exact top-level new-tab bridge.
+  Main independently verifies the owned tab/session, saved consent,
+  packaged-build status, and that the owning tab is not private before sending.
+- No tile identity, match, board, seed, timer, score, best time, or other game
+  state is included. Failure is fire-and-forget and has no UI effect.
 
 ## 5. Module boundaries
 
@@ -178,6 +194,7 @@ never-expected infinite loop into a thrown error.
 | `mahjong.html` | Markup shell + CSP. | pages.css |
 | `settings.js` (+ schema) | `newtabMahjong` key. | existing |
 | `newtab.js`/`newtab.html` | footer entry, gated by the setting. | existing |
+| `telemetry.js` + `pages:*` bridge | Once-per-session fixed play signal; consent, ownership, private-tab, and packaged-build gates. | existing telemetry collector |
 
 `mahjong.js` loads the engine and sound helper through plain `<script>` tags
 (each attaches one namespace global when `module` is absent, the same pattern
@@ -191,8 +208,8 @@ script-taggable in the page).
   quiet "couldn't deal — try again" state in that never-expected case.
 - `localStorage` reads/writes wrapped in try/catch; a missing/failed best time
   renders as no best line and a failed sound preference remains in memory.
-- No other failure surface: no network, no IPC, no persistence beyond the
-  above.
+- Telemetry IPC/network failures are swallowed like the existing launch event;
+  they never alter the game or surface an error.
 
 ## 7. Testing
 

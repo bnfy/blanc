@@ -1,6 +1,6 @@
-// Collector for Blanc's anonymous launch ping (see src/main/telemetry.js in
-// the main repo). Tallies anonymous counts in Workers KV — no IPs, no
-// browsing data are ever stored.
+// Collector for Blanc's anonymous launch and bounded product-use events (see
+// src/main/telemetry.js in the main repo). Tallies anonymous counts in Workers
+// KV — no IPs, URLs, browsing data, or game state are ever stored.
 //
 // Two things are counted, from one ping:
 //   1. Launches — every ping bumps aggregate counters (total, per-day,
@@ -41,6 +41,17 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 // forged body — both become 'unknown' rather than opening an unbounded key
 // space in KV.
 const OS_VERSION_RE = /^\d{1,4}$/;
+const NEWTAB_LAYOUTS = new Set(['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
+const USAGE_METRICS = Object.freeze({
+  mahjong: 'mahjong-play',
+  newtabLayouts: Object.freeze({
+    ledger: 'newtab-layout-ledger',
+    billboard: 'newtab-layout-billboard',
+    shelf: 'newtab-layout-shelf',
+    tally: 'newtab-layout-tally',
+    mahjong: 'newtab-layout-mahjong',
+  }),
+});
 const PING_RATE_LIMIT = 20; // per edge-observed IP per minute
 const DEFAULT_DAILY_INGEST_LIMIT = 250_000;
 const MAX_PING_BODY_BYTES = 2048;
@@ -89,7 +100,12 @@ async function hashInstallId(env, installId) {
 //      point event, not a timed session.
 // User properties (platform, arch, app_version) are set once per client_id
 // and stick to the user in GA's user-scoped reports / explorations.
-function forwardToGA(env, { version, platform, arch, osVersion, installId, sessionId }) {
+function forwardToGA(
+  env,
+  { version, platform, arch, osVersion, installId, sessionId },
+  eventName = 'app_launch',
+  eventParams = {},
+) {
   if (!env.GA_API_SECRET || !installId) return Promise.resolve();
   const url = `${GA_ENDPOINT}?measurement_id=${GA_MEASUREMENT_ID}&api_secret=${env.GA_API_SECRET}`;
   const sid = sessionId || String((Math.random() * 0x7FFFFFFF) >>> 0);
@@ -104,7 +120,7 @@ function forwardToGA(env, { version, platform, arch, osVersion, installId, sessi
         os_version: { value: osVersion },
       },
       events: [{
-        name: 'app_launch',
+        name: eventName,
         params: {
           session_id: parseInt(sid, 10),
           engagement_time_msec: 1,
@@ -112,6 +128,7 @@ function forwardToGA(env, { version, platform, arch, osVersion, installId, sessi
           platform,
           arch,
           os_version: osVersion,
+          ...eventParams,
         },
       }],
     }),
@@ -138,6 +155,13 @@ async function markActive(kv, scope, bucket, installId, ttl) {
   const seenKey = `seen:${scope}:${bucket}:${installId}`;
   if ((await kv.get(seenKey)) !== null) return;
   await bump(kv, `active:${scope}:${bucket}`);
+  await kv.put(seenKey, '1', { expirationTtl: ttl });
+}
+
+async function markUsageActive(kv, metric, scope, bucket, installId, ttl) {
+  const seenKey = `usage:${metric}:seen:${scope}:${bucket}:${installId}`;
+  if ((await kv.get(seenKey)) !== null) return;
+  await bump(kv, `usage:${metric}:active:${scope}:${bucket}`);
   await kv.put(seenKey, '1', { expirationTtl: ttl });
 }
 
@@ -192,15 +216,8 @@ function todayLaunchKey(now) {
   return `day:${dayBucket(now)}`;
 }
 
-async function handlePing(request, env, ctx, now) {
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return new Response('bad request', { status: 400 });
-  }
-  if (!body || typeof body !== 'object') return new Response('bad request', { status: 400 });
-
+function validatedClientFields(body) {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null;
   const version = typeof body.version === 'string' && VERSION_RE.test(body.version.slice(0, 32))
     ? body.version.slice(0, 32)
     : null;
@@ -220,10 +237,27 @@ async function handlePing(request, env, ctx, now) {
       body.sessionId > 0 && body.sessionId <= 0x7fffffff
       ? String(Math.floor(body.sessionId))
       : null;
-  if (!version || !platform || !arch || !installId || !sessionId) {
+  if (!version || !platform || !arch || !installId || !sessionId) return null;
+  return { version, platform, arch, osVersion, installId, sessionId };
+}
+
+async function readClientRequest(request) {
+  try {
+    const body = await request.json();
+    const fields = validatedClientFields(body);
+    return fields ? { body, fields } : null;
+  } catch {
+    return null;
+  }
+}
+
+async function handlePing(request, env, ctx, now) {
+  const client = await readClientRequest(request);
+  if (!client) {
     console.warn(JSON.stringify({ event: 'ping-rejected', reason: 'implausible-payload' }));
     return new Response('bad request', { status: 400 });
   }
+  const { version, platform, arch, osVersion, installId, sessionId } = client.fields;
 
   // The raw id stops here: everything downstream — KV seen-keys AND the GA
   // mirror — sees only the keyed hash (or nothing, if the secret is unset).
@@ -265,6 +299,59 @@ async function handlePing(request, env, ctx, now) {
   }
   await Promise.all(work).catch((err) => console.error('KV write failed:', err.message));
 
+  return new Response(null, { status: 204 });
+}
+
+function usageEventFrom(body) {
+  if (body.event === 'mahjong_play') {
+    return { eventName: 'mahjong_play', metric: USAGE_METRICS.mahjong, params: {} };
+  }
+  if (body.event === 'newtab_layout' && NEWTAB_LAYOUTS.has(body.layout)) {
+    return {
+      eventName: 'newtab_layout',
+      metric: USAGE_METRICS.newtabLayouts[body.layout],
+      params: { layout: body.layout },
+    };
+  }
+  return null;
+}
+
+async function handleUsageEvent(request, env, ctx, now) {
+  const client = await readClientRequest(request);
+  const usage = client ? usageEventFrom(client.body) : null;
+  if (!client || !usage) {
+    console.warn(JSON.stringify({ event: 'usage-rejected', reason: 'implausible-payload' }));
+    return new Response('bad request', { status: 400 });
+  }
+
+  const fields = client.fields;
+  const hashedId = await hashInstallId(env, fields.installId);
+  if (hashedId) {
+    const replayKey = `usage:${usage.metric}:event:${hashedId}:${fields.sessionId}`;
+    if ((await env.PINGS.get(replayKey)) !== null) return new Response(null, { status: 204 });
+    await env.PINGS.put(replayKey, '1', { expirationTtl: 2 * 24 * 3600 });
+  }
+
+  ctx.waitUntil(forwardToGA(
+    env,
+    { ...fields, installId: hashedId },
+    usage.eventName,
+    usage.params,
+  ));
+
+  const day = dayBucket(now);
+  const work = [
+    bump(env.PINGS, `usage:${usage.metric}:total`),
+    bump(env.PINGS, `usage:${usage.metric}:day:${day}`),
+  ];
+  if (hashedId) {
+    work.push(
+      markUsageActive(env.PINGS, usage.metric, 'day', day, hashedId, DAY_SEEN_TTL),
+      markUsageActive(env.PINGS, usage.metric, 'week', weekBucket(now), hashedId, WEEK_SEEN_TTL),
+      markUsageActive(env.PINGS, usage.metric, 'month', monthBucket(now), hashedId, MONTH_SEEN_TTL),
+    );
+  }
+  await Promise.all(work).catch((err) => console.error('KV write failed:', err.message));
   return new Response(null, { status: 204 });
 }
 
@@ -316,6 +403,39 @@ function pickRecent(map, n) {
   );
 }
 
+async function readUsageMetric(kv, metric) {
+  const [total, byDay, daily, weekly, monthly] = await Promise.all([
+    kv.get(`usage:${metric}:total`),
+    readMap(kv, `usage:${metric}:day:`),
+    readMap(kv, `usage:${metric}:active:day:`),
+    readMap(kv, `usage:${metric}:active:week:`),
+    readMap(kv, `usage:${metric}:active:month:`),
+  ]);
+  return {
+    events: {
+      total: parseInt(total ?? '0', 10),
+      byDay: pickRecent(byDay, 30),
+    },
+    activeUsers: {
+      daily: pickRecent(daily, 30),
+      weekly: pickRecent(weekly, 12),
+      monthly: pickRecent(monthly, 12),
+    },
+  };
+}
+
+async function readProductUsage(kv) {
+  const layouts = Object.keys(USAGE_METRICS.newtabLayouts);
+  const [mahjong, ...layoutStats] = await Promise.all([
+    readUsageMetric(kv, USAGE_METRICS.mahjong),
+    ...layouts.map((layout) => readUsageMetric(kv, USAGE_METRICS.newtabLayouts[layout])),
+  ]);
+  return {
+    mahjong,
+    newtabLayouts: Object.fromEntries(layouts.map((layout, i) => [layout, layoutStats[i]])),
+  };
+}
+
 // POST /admin/purge-legacy-ids — one-shot migration for the 2026-07-11 HMAC
 // change: pings before it wrote seen:* markers keyed by the RAW install UUID
 // (some monthly ones with the old 800-day TTL). Deleting them is what makes
@@ -364,7 +484,10 @@ async function handleStats(request, env, now) {
     return new Response('unauthorized', { status: 401 });
   }
 
-  const [total, byDay, byVersion, byPlatform, byOsVersion, daily, weekly, monthly, dlFlat, newByDay] = await Promise.all([
+  const [
+    total, byDay, byVersion, byPlatform, byOsVersion,
+    daily, weekly, monthly, dlFlat, newByDay, productUsage,
+  ] = await Promise.all([
     env.PINGS.get('total'),
     readMap(env.PINGS, 'day:'),
     readMap(env.PINGS, 'version:'),
@@ -378,6 +501,7 @@ async function handleStats(request, env, now) {
     readMap(env.PINGS, 'dl:'),
     // No other key family starts 'new:'.
     readMap(env.PINGS, 'new:day:'),
+    readProductUsage(env.PINGS),
   ]);
 
   // Month-over-month retention: of the installs active last month, how many
@@ -419,6 +543,7 @@ async function handleStats(request, env, now) {
     newInstalls: {
       byDay: pickRecent(newByDay, 60),
     },
+    productUsage,
   };
   return new Response(JSON.stringify(stats, null, 2), {
     headers: { 'Content-Type': 'application/json' },
@@ -502,16 +627,21 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const now = new Date();
-    if (request.method === 'POST' && url.pathname === '/ping') {
+    if (request.method === 'POST' && (url.pathname === '/ping' || url.pathname === '/event')) {
       const denied = await ingestionGate(request, env, now);
       if (denied) {
-        console.warn(JSON.stringify({ event: 'ping-rejected', reason: denied.reason }));
+        console.warn(JSON.stringify({
+          event: url.pathname === '/ping' ? 'ping-rejected' : 'usage-rejected',
+          reason: denied.reason,
+        }));
         return new Response(denied.reason, {
           status: denied.status,
           headers: denied.status === 429 ? { 'Retry-After': '60' } : {},
         });
       }
-      return handlePing(request, env, ctx, now);
+      return url.pathname === '/ping'
+        ? handlePing(request, env, ctx, now)
+        : handleUsageEvent(request, env, ctx, now);
     }
     if (request.method === 'GET' && url.pathname === '/stats') return handleStats(request, env, now);
     if (request.method === 'GET' && url.pathname.startsWith('/dl/')) {

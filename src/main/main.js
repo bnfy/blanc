@@ -60,7 +60,12 @@ const {
 } = require('./chrome-protocol');
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
-const { sendLaunchPing } = require('./telemetry');
+const {
+  sendLaunchPing,
+  sendMahjongPlay,
+  sendNewtabLayoutUsed,
+  productUsageAllowed,
+} = require('./telemetry');
 const sync = require('./sync');
 const tabsync = require('./tabsync');
 const tabicons = require('./tabicons');
@@ -455,6 +460,18 @@ function maybeSendLaunchPing() {
   ) return;
   launchPingSent = true;
   sendLaunchPing();
+}
+
+function maybeSendProductUsage(wc, report) {
+  const tabId = tabIdByWebContentsId.get(wc?.id);
+  const tab = tabId ? tabs.get(tabId) : null;
+  const current = settings.getSettings();
+  if (!tab || !productUsageAllowed({
+    firstRunComplete: settings.isFirstRunComplete(),
+    usagePing: current.usagePing,
+    privateTab: tab.private,
+  })) return false;
+  return report();
 }
 
 // Only web URLs may enter from command-line/default-browser handoff. Local
@@ -7150,11 +7167,17 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         if (!runtime) return false;
         return withWindowRuntime(runtime, () => {
           if (UTILITY_PAGES.has(host)) return liveUtilitySheet()?.wc === wc;
-          if (host !== 'newtab') return false;
+          if (host !== 'newtab' && host !== 'mahjong') return false;
           const tabId = tabIdByWebContentsId.get(wc.id);
           return !!tabId && windowRuntimes.runtimeForTab(tabId) === runtime;
         });
       },
+    },
+    telemetry: {
+      mahjongPlayed: (wc) =>
+        maybeSendProductUsage(wc, () => sendMahjongPlay()),
+      newtabLayoutUsed: (wc, layout) =>
+        maybeSendProductUsage(wc, () => sendNewtabLayoutUsed(layout)),
     },
     // The start page's ledger sections read live tab-group state and the
     // rolling blocked counter, both owned here.
