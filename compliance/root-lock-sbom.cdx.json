@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:root:blanc@1.10.0",
+      "bom-ref": "application:root:blanc@1.11.0",
       "name": "blanc dependency lock",
-      "version": "1.10.0",
+      "version": "1.11.0",
       "description": "Complete root npm supply-chain inventory, including development and optional packages."
     },
     "properties": [
@@ -7629,14 +7629,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/electron@44.0.0",
+      "bom-ref": "pkg:npm/electron@44.1.0",
       "name": "electron",
-      "version": "44.0.0",
+      "version": "44.1.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "1644ea3eb14f65896374f2396fb28e446b094dde8581440379f97932b5375f3f51f3ba408fd24bade2230ea71137c849224147228bb4a3c90acef7294fdaa245"
+          "content": "9262e0f1ac4e836d830b77d7c79342c01616f1fc74acadb3cc9dd37faec68cd0a4c5fa3111c77eca8d107c38e506d1c9b37c5e03c7d383ae1bea2573153544ae"
         }
       ],
       "licenses": [
@@ -7646,7 +7646,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.0.0",
+      "purl": "pkg:npm/electron@44.1.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -7668,7 +7668,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.0.0.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.1.0.tgz"
         }
       ]
     },
@@ -18197,7 +18197,7 @@
   ],
   "dependencies": [
     {
-      "ref": "application:root:blanc@1.10.0",
+      "ref": "application:root:blanc@1.11.0",
       "dependsOn": [
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40cucumber/cucumber@13.2.1",
@@ -18206,7 +18206,7 @@
         "pkg:npm/%40ghostery/adblocker@2.18.2",
         "pkg:npm/electron-builder@26.15.3",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.0.0",
+        "pkg:npm/electron@44.1.0",
         "pkg:npm/playwright@1.62.1",
         "pkg:npm/sharp@0.35.3"
       ]
@@ -19280,7 +19280,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.0.0",
+      "ref": "pkg:npm/electron@44.1.0",
       "dependsOn": [
         "pkg:npm/%40electron-internal/extract-zip@1.0.4",
         "pkg:npm/%40electron/get@5.0.0",
