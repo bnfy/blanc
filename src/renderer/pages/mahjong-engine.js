@@ -32,19 +32,18 @@
     return positions;
   }
 
-  // A broad, approachable three-layer arch. The half-offset middle deck
-  // leaves the long base ends visually and mechanically open.
+  // A broad, approachable three-layer arch. The half-offset middle deck and
+  // crest bridge their supports while the long base ends stay mechanically
+  // open. Its 2:1 logical footprint keeps tiles large in a landscape table.
   function buildArchLayout() {
     const positions = [];
-    for (let row = 0; row < 8; row++) {
-      for (let col = 0; col < 8; col++) positions.push({ x: col * 2, y: row * 2, z: 0 });
-    }
-    for (let row = 0; row < 4; row++) {
-      for (let col = 0; col < 7; col++) positions.push({ x: 1 + col * 2, y: 4 + row * 2, z: 1 });
+    for (let row = 0; row < 6; row++) {
+      for (let col = 0; col < 12; col++) positions.push({ x: col * 2, y: row * 2, z: 0 });
     }
     for (let row = 0; row < 2; row++) {
-      for (let col = 0; col < 2; col++) positions.push({ x: 6 + col * 2, y: 6 + row * 2, z: 2 });
+      for (let col = 0; col < 9; col++) positions.push({ x: 3 + col * 2, y: 4 + row * 2, z: 1 });
     }
+    for (let col = 0; col < 6; col++) positions.push({ x: 6 + col * 2, y: 5, z: 2 });
     return positions;
   }
 
@@ -76,9 +75,9 @@
   const ARCH_LAYOUT = freezePositions(buildArchLayout());
   const PEAKS_LAYOUT = freezePositions(buildPeaksLayout());
   const LAYOUTS = Object.freeze({
-    turtle: Object.freeze({ id: 'turtle', name: 'Turtle', positions: TURTLE_LAYOUT, tileCount: 144, layers: 5 }),
-    arch: Object.freeze({ id: 'arch', name: 'Arch', positions: ARCH_LAYOUT, tileCount: 96, layers: 3 }),
-    peaks: Object.freeze({ id: 'peaks', name: 'Peaks', positions: PEAKS_LAYOUT, tileCount: 72, layers: 4 }),
+    turtle: Object.freeze({ id: 'turtle', name: 'Turtle', revision: 1, positions: TURTLE_LAYOUT, tileCount: 144, layers: 5 }),
+    arch: Object.freeze({ id: 'arch', name: 'Arch', revision: 2, positions: ARCH_LAYOUT, tileCount: 96, layers: 3 }),
+    peaks: Object.freeze({ id: 'peaks', name: 'Peaks', revision: 1, positions: PEAKS_LAYOUT, tileCount: 72, layers: 4 }),
   });
 
   function layoutFor(layoutId) {
@@ -266,11 +265,13 @@
     if (!layoutFor(options.layoutId)) throw new TypeError(`mahjong: unknown layout ${options.layoutId}`);
     if (![MODES.CLASSIC, MODES.TRAY].includes(options.mode)) throw new TypeError(`mahjong: unknown mode ${options.mode}`);
     const { kinds } = generateDeal({ seed, layoutId: options.layoutId });
+    const definition = layoutFor(options.layoutId);
     return {
       version: GAME_STATE_VERSION,
       gameId: options.gameId,
       mode: options.mode,
       layoutId: options.layoutId,
+      layoutRevision: definition.revision,
       seed,
       kinds,
       removed: new Array(kinds.length).fill(false),
@@ -682,6 +683,7 @@
       gameId: restored.gameId,
       mode: restored.mode,
       layoutId: restored.layoutId,
+      layoutRevision: restored.layoutRevision,
       seed: restored.seed,
       kinds: restored.kinds.slice(),
       removed: restored.removed.slice(),
@@ -711,6 +713,11 @@
     if (!raw || typeof raw !== 'object' || raw.version !== GAME_STATE_VERSION) return null;
     const definition = layoutFor(raw.layoutId);
     if (!definition || ![MODES.CLASSIC, MODES.TRAY].includes(raw.mode)) return null;
+    // V2 saves created before per-layout revisions implicitly used revision 1.
+    // This preserves unchanged Turtle/Peaks games while invalidating the old,
+    // portrait Arch assignment after its coordinates changed.
+    const layoutRevision = raw.layoutRevision === undefined ? 1 : raw.layoutRevision;
+    if (!Number.isInteger(layoutRevision) || layoutRevision !== definition.revision) return null;
     const length = definition.positions.length;
     if (!Number.isInteger(raw.seed) || raw.seed < 0 || raw.seed > 0xffffffff) return null;
     if (!Array.isArray(raw.kinds) || raw.kinds.length !== length
@@ -758,6 +765,7 @@
       gameId: raw.gameId,
       mode: raw.mode,
       layoutId: raw.layoutId,
+      layoutRevision,
       seed: raw.seed >>> 0,
       kinds: raw.kinds.slice(),
       removed: raw.removed.slice(),

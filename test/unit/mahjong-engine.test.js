@@ -171,7 +171,7 @@ test('a non-winning state with no matchable free pair reports stuck', () => {
 test('all v2 layouts have the promised size, layer count, and valid coordinates', () => {
   const expected = {
     turtle: { count: 144, layers: [87, 36, 16, 4, 1] },
-    arch: { count: 96, layers: [64, 28, 4] },
+    arch: { count: 96, layers: [72, 18, 6] },
     peaks: { count: 72, layers: [48, 16, 6, 2] },
   };
   assert.deepEqual(Object.keys(E.LAYOUTS), ['turtle', 'arch', 'peaks']);
@@ -180,6 +180,7 @@ test('all v2 layouts have the promised size, layer count, and valid coordinates'
     assert.equal(positions.length, expected[id].count);
     assert.equal(definition.tileCount, expected[id].count);
     assert.equal(definition.layers, expected[id].layers.length);
+    assert.ok(Number.isInteger(definition.revision) && definition.revision > 0);
     const seen = new Set();
     const layers = new Array(definition.layers).fill(0);
     positions.forEach((position) => {
@@ -203,6 +204,37 @@ test('all v2 layouts have the promised size, layer count, and valid coordinates'
       }
     }
   }
+});
+
+test('Arch is a broad, supported three-layer table rather than a portrait stack', () => {
+  const positions = E.ARCH_LAYOUT;
+  const expectedLayers = [
+    { xs: Array.from({ length: 12 }, (_, index) => index * 2), ys: [0, 2, 4, 6, 8, 10] },
+    { xs: Array.from({ length: 9 }, (_, index) => 3 + index * 2), ys: [4, 6] },
+    { xs: [6, 8, 10, 12, 14, 16], ys: [5] },
+  ];
+  expectedLayers.forEach(({ xs, ys }, layer) => {
+    const actual = positions.filter((position) => position.z === layer);
+    assert.deepEqual([...new Set(actual.map((position) => position.x))], xs);
+    assert.deepEqual([...new Set(actual.map((position) => position.y))], ys);
+    assert.equal(actual.length, xs.length * ys.length);
+  });
+
+  const minX = Math.min(...positions.map((position) => position.x));
+  const maxX = Math.max(...positions.map((position) => position.x));
+  const minY = Math.min(...positions.map((position) => position.y));
+  const maxY = Math.max(...positions.map((position) => position.y));
+  assert.deepEqual([maxX + 2 - minX, maxY + 2 - minY], [24, 12]);
+
+  for (const position of positions.filter((candidate) => candidate.z > 0)) {
+    const supports = positions.filter((candidate) =>
+      candidate.z === position.z - 1
+      && Math.abs(candidate.x - position.x) < 2
+      && Math.abs(candidate.y - position.y) < 2
+    );
+    assert.equal(supports.length, position.z === 1 ? 2 : 4);
+  }
+  assert.equal(positions.filter((_, index) => E.isFreeAt(positions, index, () => true)).length, 18);
 });
 
 test('every layout is solvable by construction across hundreds of seeded deals', () => {
@@ -239,6 +271,7 @@ test('createGame supports v2 options while preserving the numeric legacy form', 
   });
   assert.equal(tray.version, 2);
   assert.equal(tray.layoutId, 'peaks');
+  assert.equal(tray.layoutRevision, E.LAYOUTS.peaks.revision);
   assert.equal(tray.mode, 'tray');
   assert.equal(tray.gameId, 'game-912');
   assert.equal(tray.dailyKey, '2026-08-30');
@@ -516,10 +549,21 @@ test('v2 serialization round-trips independent state and rejects corruption', ()
   assert.equal(E.restoreGame('{broken'), null);
   assert.equal(E.restoreGame({ ...payload, version: 99 }), null);
   assert.equal(E.restoreGame({ ...payload, layoutId: 'missing' }), null);
+  assert.equal(E.restoreGame({ ...payload, layoutRevision: payload.layoutRevision + 1 }), null);
+  for (const layoutRevision of [null, '1', 0]) {
+    assert.equal(E.restoreGame({ ...payload, layoutRevision }), null);
+  }
   assert.equal(E.restoreGame({ ...payload, removed: payload.removed.slice(1) }), null);
   assert.equal(E.restoreGame({ ...payload, kinds: payload.kinds.map((kind, index) => index === 0 ? 'unknown' : kind) }), null);
   assert.equal(E.restoreGame({ ...payload, tray: [999] }), null);
   assert.equal(E.restoreGame({ ...payload, status: 'rescue' }), null);
   assert.equal(E.restoreGame({ ...payload, completionRecorded: 'yes' }), null);
   assert.equal(E.restoreGame({ ...payload, completionRecorded: true }), null);
+
+  const legacyPeaksPayload = { ...payload };
+  delete legacyPeaksPayload.layoutRevision;
+  assert.ok(E.restoreGame(legacyPeaksPayload), 'unchanged revision-1 layouts migrate');
+  const legacyArchPayload = E.serializeGame(E.createGame({ seed: 9, layoutId: 'arch', mode: 'classic' }));
+  delete legacyArchPayload.layoutRevision;
+  assert.equal(E.restoreGame(legacyArchPayload), null, 'old Arch coordinates cannot restore into revision 2');
 });

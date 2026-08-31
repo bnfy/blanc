@@ -53,6 +53,31 @@ test('mahjong provides static hint feedback and suppresses shake for reduced mot
   assert.match(block, /\.mj-tile\.shake\s*\{[^}]*animation:\s*none;/);
 });
 
+test('bonus families use professional shared motifs and hints clear stale emphasis', () => {
+  assert.doesNotMatch(controller, /BLANC_GLYPHS/);
+  assert.match(controller, /function bonusFace\(family\)/);
+  assert.match(controller, /classList\.add\('mj-bonus-flower'\)/);
+  assert.match(controller, /classList\.add\('mj-bonus-season'\)/);
+  assert.match(controller, /const FLOWER_PETAL_PATH\s*=/);
+  assert.match(controller, /for \(const angle of \[0, 72, 144, 216, 288\]\)/);
+  assert.match(controller, /class:\s*'mj-flower-center',[^}]*cx:\s*22,[^}]*cy:\s*30,[^}]*r:\s*3\.7/);
+  assert.match(controller, /if \(family === 'flower'\) return 'flower bonus';/);
+  assert.doesNotMatch(controller, /M22 28c-5-1-8-5-7-9/);
+  assert.doesNotMatch(controller, /textEl\(36,\s*54,\s*10,\s*id\)/);
+  assert.doesNotMatch(controller, /M22 39v8M17 47h10/);
+  assert.doesNotMatch(controller, /cx:\s*31\.5,\s*cy:\s*17\.5/);
+  assert.doesNotMatch(controller, /M22 33l-1-7M26 29l6 1/);
+  assert.match(controller, /d:\s*'M13 40c8-8 14-14 21-20'/);
+  assert.match(styles, /\.mj-tile\[data-suit="flower"\]\s*\{[^}]*var\(--mj-flower\)/);
+  assert.match(styles, /\.mj-tile\[data-suit="season"\]\s*\{[^}]*var\(--mj-season\)/);
+  assert.match(styles, /\.mj-bonus-flower \.mj-flower-petals\s*\{[^}]*fill-opacity:\s*0\.055;[^}]*stroke-width:\s*1\.75;/);
+  assert.match(styles, /\.mj-bonus-flower \.mj-flower-center\s*\{[^}]*fill:\s*currentColor;[^}]*stroke:\s*none;/);
+  assert.match(controller, /let hintTimer = null;/);
+  assert.match(controller, /function clearHint\(\)\s*\{[\s\S]*classList\.remove\('hinted'\)/);
+  assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 1400\);/);
+  assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*clearHint\(\);/);
+});
+
 test('mahjong loads its sound module before the controller and exposes a pressed toggle', () => {
   assert.match(
     html,
@@ -70,6 +95,26 @@ test('the game dock uses one local professional SVG icon family instead of font 
   }
   assert.doesNotMatch(styles, /content:\s*["'](?:▦|↶|◇|⤨|◖)/);
   assert.match(styles, /\.mj-dock-icon\s*\{/);
+});
+
+test('the Mahjong wordmark carries a locally weighted canonical Blanc mark', () => {
+  assert.match(html, /class="mj-brand-mark" aria-hidden="true"/);
+  assert.match(styles, /\.mj-brand-mark\s*\{[^}]*mask:\s*url\("icon\.svg"\)/);
+  assert.match(styles, /\.mj-brand-mark\s*\{[^}]*drop-shadow\(0\.55px 0 0 currentColor\)[^}]*drop-shadow\(-0\.55px 0 0 currentColor\)/);
+});
+
+test('setup cards devote their visual field to substantial layout previews', () => {
+  const turtle = html.match(/mj-layout-mini-turtle[^>]*>([\s\S]*?)<\/span>/)?.[1] || '';
+  const arch = html.match(/mj-layout-mini-arch[^>]*>([\s\S]*?)<\/span>/)?.[1] || '';
+  const peaks = html.match(/mj-layout-mini-peaks[^>]*>([\s\S]*?)<\/span>/)?.[1] || '';
+  assert.equal((turtle.match(/<i><\/i>/g) || []).length, 9);
+  assert.equal((arch.match(/<i><\/i>/g) || []).length, 7);
+  assert.equal((peaks.match(/<i><\/i>/g) || []).length, 9);
+  assert.match(styles, /\.mj-layout-mini\s*\{[^}]*width:\s*100%;[^}]*max-width:\s*180px;[^}]*height:\s*78px;/);
+  assert.match(styles, /\.mj-layout-mini i\s*\{[^}]*width:\s*30px;[^}]*height:\s*39px;/);
+  assert.match(styles, /\.mj-layout-mini-turtle i:nth-child\(9\)/);
+  assert.match(styles, /\.mj-layout-mini-arch i:nth-child\(7\)/);
+  assert.match(styles, /\.mj-layout-mini-peaks i:nth-child\(9\)/);
 });
 
 test('every game interaction is wired to its sound cue and bootstrap stays silent', () => {
@@ -151,6 +196,48 @@ test('compact and zoomed layouts retain status with a scroll recovery path', () 
   assert.ok(compact, 'missing compact Mahjong rules');
   assert.doesNotMatch(compact, /\.mj-score-meter[^}]*display:\s*none/);
   assert.doesNotMatch(compact, /\.mj-chain-meter[^}]*display:\s*none/);
+});
+
+test('desktop Mahjong overlays its left rail inside a centered full-width table', () => {
+  const desktop = mediaBlocks('(min-width: 1000px) and (min-height: 611px)')[0];
+  assert.ok(desktop, 'missing desktop rail rules');
+  assert.match(desktop, /--mj-shell-block:\s*clamp\(10px,\s*1\.4vh,\s*16px\)/);
+  assert.match(desktop, /grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+  assert.match(desktop, /\.mj-head\s*\{[^}]*grid-column:\s*1;/);
+  assert.match(desktop, /\.mj-game\s*\{[^}]*grid-column:\s*1;/);
+  assert.match(desktop, /\.mj-board-frame\s*\{\s*anchor-name:\s*--mj-table;\s*\}/);
+  assert.match(desktop, /\.mj-board-wrap\s*\{\s*--mj-board-safe-side:\s*88px;\s*\}/);
+  assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;/);
+  assert.match(desktop, /\.mj-dock\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-table;[^}]*left:\s*calc\(anchor\(left\) \+ 16px\);[^}]*top:\s*anchor\(center\);[^}]*transform:\s*translateY\(-50%\);[^}]*grid-template-columns:\s*1fr;/);
+  assert.match(desktop, /\.mj-dock\s*\{[^}]*width:\s*64px;[^}]*grid-template-rows:\s*repeat\(5,\s*64px\);[^}]*gap:\s*16px;[^}]*padding:\s*0;[^}]*border:\s*0;[^}]*background:\s*none;[^}]*box-shadow:\s*none;/);
+  assert.match(desktop, /\.mj-dock > button\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*64px;[^}]*height:\s*64px;[^}]*aspect-ratio:\s*1;[^}]*border-radius:\s*50%;/);
+  assert.match(desktop, /\.mj-dock > button\s*\{[^}]*radial-gradient\(circle at 35% 23%[^}]*0 3px 0[^}]*inset 0 -9px 13px/);
+  assert.match(desktop, /color-mix\(in srgb,\s*var\(--mj-panel-solid\) 92%,\s*var\(--mj-ivory\)\)[\s\S]*var\(--mj-lacquer-deep\)/);
+  assert.doesNotMatch(desktop, /rgba\(21,\s*78,\s*63/);
+  assert.match(desktop, /\.mj-dock > button:active\s*\{[^}]*translate:\s*0 1px;[^}]*inset 0 2px 6px/);
+  assert.match(controller, /getPropertyValue\('--mj-board-safe-side'\)/);
+  assert.match(controller, /wrap\.clientWidth - 36 - \(safeSide \* 2\)/);
+  assert.match(desktop, /\.mj\[data-mode="classic"\] \.mj-game\s*\{[^}]*gap:\s*0;/);
+  assert.match(desktop, /\.mj-tray-slot\s*\{[^}]*width:\s*52px;[^}]*height:\s*60px;/);
+});
+
+test('starting another board clears a stale recovery notice', () => {
+  assert.match(controller, /function configureGame\(nextGame\)[\s\S]*getElementById\('mjRecoveryNotice'\)\.hidden = true;/);
+  assert.match(controller, /startGame\(\{ layoutId: 'turtle',[\s\S]*if \(hadSave\) document\.getElementById\('mjRecoveryNotice'\)\.hidden = false;/);
+});
+
+test('best records are scoped to the active layout revision', () => {
+  assert.match(controller, /const layoutRevision = record\.layoutRevision === undefined \? 1 : record\.layoutRevision;/);
+  assert.match(controller, /return layoutRevision === game\.layoutRevision \? record : null;/);
+  assert.match(controller, /layoutId: game\.layoutId,\s*layoutRevision: game\.layoutRevision,\s*mode: game\.mode,/);
+});
+
+test('the completion card keeps its center transform after dialog motion', () => {
+  const rule = styles.match(/\.mj-win\s*\{([^}]*)\}/)?.[1] || '';
+  assert.match(rule, /transform:\s*translate\(-50%,\s*-50%\);/);
+  assert.match(rule, /max-height:\s*calc\(100% - 28px\);/);
+  assert.doesNotMatch(rule, /(?:^|;)\s*translate:/);
+  assert.match(styles, /@keyframes mj-dialog-in\s*\{[\s\S]*translate:\s*0 12px;[\s\S]*translate:\s*0 0;/);
 });
 
 test('mahjong reports play only after a real free-tile move', () => {

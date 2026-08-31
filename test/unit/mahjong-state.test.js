@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const S = require('../../src/renderer/pages/mahjong-state');
+const E = require('../../src/renderer/pages/mahjong-engine');
 
 class MemoryStorage {
   constructor(entries = {}) { this.values = new Map(Object.entries(entries)); }
@@ -18,6 +19,13 @@ function uuid(number) {
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
+
+test('record revisions stay aligned with engine layout revisions', () => {
+  assert.deepEqual(
+    S.LAYOUT_REVISIONS,
+    Object.fromEntries(Object.entries(E.LAYOUTS).map(([id, layout]) => [id, layout.revision]))
+  );
+});
 
 const engine = {
   serializeGame(state) {
@@ -248,7 +256,11 @@ test('legacy best migrates to Turtle Classic without touching sound', () => {
     [S.SOUND_KEY]: 'off',
   });
   const records = S.createRecordStore({ storage, now: () => 1234 }).read();
-  assert.deepEqual(records.classic.turtle, { bestTimeMs: 81234, updatedAt: 1234 });
+  assert.deepEqual(records.classic.turtle, {
+    layoutRevision: S.LAYOUT_REVISIONS.turtle,
+    bestTimeMs: 81234,
+    updatedAt: 1234,
+  });
   assert.equal(storage.getItem(S.LEGACY_BEST_KEY), null);
   assert.equal(storage.getItem(S.SOUND_KEY), 'off');
 
@@ -261,27 +273,75 @@ test('legacy best migrates to Turtle Classic without touching sound', () => {
 test('records keep per-layout Classic time and Tray score with time tie-break', () => {
   let records = S.emptyRecords();
   records = S.applyResult(records, {
-    layoutId: 'arch', mode: 'classic', elapsedMs: 80_000, score: 0,
+    layoutId: 'arch', layoutRevision: 2, mode: 'classic', elapsedMs: 80_000, score: 0,
   }, 1);
   records = S.applyResult(records, {
-    layoutId: 'arch', mode: 'classic', elapsedMs: 90_000, score: 0,
+    layoutId: 'arch', layoutRevision: 2, mode: 'classic', elapsedMs: 90_000, score: 0,
   }, 2);
   records = S.applyResult(records, {
-    layoutId: 'peaks', mode: 'classic', elapsedMs: 30_000, score: 0,
+    layoutId: 'peaks', layoutRevision: 1, mode: 'classic', elapsedMs: 30_000, score: 0,
   }, 3);
   assert.equal(records.classic.arch.bestTimeMs, 80_000);
   assert.equal(records.classic.peaks.bestTimeMs, 30_000);
 
   records = S.applyResult(records, {
-    layoutId: 'arch', mode: 'tray', elapsedMs: 70_000, score: 800,
+    layoutId: 'arch', layoutRevision: 2, mode: 'tray', elapsedMs: 70_000, score: 800,
   }, 4);
   records = S.applyResult(records, {
-    layoutId: 'arch', mode: 'tray', elapsedMs: 65_000, score: 800,
+    layoutId: 'arch', layoutRevision: 2, mode: 'tray', elapsedMs: 65_000, score: 800,
   }, 5);
   records = S.applyResult(records, {
-    layoutId: 'arch', mode: 'tray', elapsedMs: 40_000, score: 700,
+    layoutId: 'arch', layoutRevision: 2, mode: 'tray', elapsedMs: 40_000, score: 700,
   }, 6);
-  assert.deepEqual(records.tray.arch, { bestScore: 800, bestTimeMs: 65_000, updatedAt: 5 });
+  assert.deepEqual(records.tray.arch, {
+    layoutRevision: 2,
+    bestScore: 800,
+    bestTimeMs: 65_000,
+    updatedAt: 5,
+  });
+});
+
+test('record revisions preserve unchanged layouts and discard retired Arch geometry', () => {
+  const legacy = {
+    version: S.RECORDS_VERSION,
+    classic: {
+      turtle: { bestTimeMs: 60_000, updatedAt: 1 },
+      arch: { bestTimeMs: 50_000, updatedAt: 2 },
+    },
+    tray: {
+      peaks: { bestScore: 900, bestTimeMs: 70_000, updatedAt: 3 },
+      arch: { bestScore: 1_200, bestTimeMs: 80_000, updatedAt: 4 },
+    },
+    daily: {
+      '2026-08-30': {
+        classic: {
+          layoutId: 'arch', completed: true, elapsedMs: 50_000,
+          score: 0, assists: {}, updatedAt: 5,
+        },
+        tray: {
+          layoutId: 'peaks', completed: true, elapsedMs: 70_000,
+          score: 900, assists: {}, updatedAt: 6,
+        },
+      },
+    },
+  };
+  const normalized = S.normalizeRecords(legacy);
+  assert.equal(normalized.classic.arch, undefined);
+  assert.equal(normalized.tray.arch, undefined);
+  assert.equal(normalized.daily['2026-08-30'].classic, undefined);
+  assert.equal(normalized.classic.turtle.layoutRevision, 1);
+  assert.equal(normalized.tray.peaks.layoutRevision, 1);
+  assert.equal(normalized.daily['2026-08-30'].tray.layoutRevision, 1);
+
+  const revised = S.applyResult(normalized, {
+    layoutId: 'arch', layoutRevision: 2, mode: 'classic', completed: true,
+    elapsedMs: 45_000, score: 0, assists: {}, dailyKey: '2026-08-30',
+  }, 7);
+  assert.equal(revised.classic.arch.layoutRevision, 2);
+  assert.equal(revised.daily['2026-08-30'].classic.layoutRevision, 2);
+  assert.equal(S.applyResult(revised, {
+    layoutId: 'arch', layoutRevision: 1, mode: 'classic', elapsedMs: 1, score: 0,
+  }, 8).classic.arch.bestTimeMs, 45_000);
 });
 
 test('daily deal identity is deterministic and rotates Turtle, Arch, Peaks', () => {
@@ -302,11 +362,11 @@ test('daily deal identity is deterministic and rotates Turtle, Arch, Peaks', () 
 test('daily Classic and Tray results remain separate with sanitized assists', () => {
   let records = S.emptyRecords();
   records = S.applyResult(records, {
-    layoutId: 'turtle', mode: 'classic', dailyKey: '2026-08-30', completed: true,
+    layoutId: 'turtle', layoutRevision: 1, mode: 'classic', dailyKey: '2026-08-30', completed: true,
     elapsedMs: 70_000, score: 0, assists: { hint: 2, undo: 1, shuffle: -4 },
   }, 100);
   records = S.applyResult(records, {
-    layoutId: 'turtle', mode: 'tray', dailyKey: '2026-08-30', completed: true,
+    layoutId: 'turtle', layoutRevision: 1, mode: 'tray', dailyKey: '2026-08-30', completed: true,
     elapsedMs: 90_000, score: 1_250, assists: { hint: 0, undo: 3, shuffle: 1 },
   }, 101);
   assert.equal(records.daily['2026-08-30'].classic.elapsedMs, 70_000);
@@ -315,7 +375,7 @@ test('daily Classic and Tray results remain separate with sanitized assists', ()
 
   // The better result replaces its own mode only.
   records = S.applyResult(records, {
-    layoutId: 'turtle', mode: 'tray', dailyKey: '2026-08-30', completed: true,
+    layoutId: 'turtle', layoutRevision: 1, mode: 'tray', dailyKey: '2026-08-30', completed: true,
     elapsedMs: 100_000, score: 1_500, assists: {},
   }, 102);
   assert.equal(records.daily['2026-08-30'].tray.score, 1_500);
@@ -329,12 +389,12 @@ test('immutable record events recover both modes after a stale aggregate write',
   const first = S.createRecordStore(options);
   const second = S.createRecordStore(options);
   first.record({
-    gameId: uuid(1), layoutId: 'arch', mode: 'classic', dailyKey: '2026-08-30',
+    gameId: uuid(1), layoutId: 'arch', layoutRevision: 2, mode: 'classic', dailyKey: '2026-08-30',
     completed: true, elapsedMs: 70_000, score: 0, assists: {},
   });
   const staleAggregate = storage.getItem(S.RECORDS_KEY);
   second.record({
-    gameId: uuid(2), layoutId: 'arch', mode: 'tray', dailyKey: '2026-08-30',
+    gameId: uuid(2), layoutId: 'arch', layoutRevision: 2, mode: 'tray', dailyKey: '2026-08-30',
     completed: true, elapsedMs: 80_000, score: 1_200, assists: {},
   });
 
@@ -348,10 +408,52 @@ test('immutable record events recover both modes after a stale aggregate write',
   assert.equal(eventKeys.length, 2);
 });
 
+test('record events discard retired Arch revisions and migrate unchanged layouts', () => {
+  const staleArchId = uuid(301);
+  const legacyTurtleId = uuid(302);
+  const staleArchKey = `${S.RECORD_EVENT_PREFIX}${staleArchId}`;
+  const legacyTurtleKey = `${S.RECORD_EVENT_PREFIX}${legacyTurtleId}`;
+  const storage = new MemoryStorage({
+    [staleArchKey]: JSON.stringify({
+      version: S.RECORDS_VERSION,
+      eventId: staleArchId,
+      updatedAt: 1,
+      result: {
+        layoutId: 'arch', mode: 'classic', completed: true,
+        elapsedMs: 10_000, score: 0, assists: {},
+      },
+    }),
+    [legacyTurtleKey]: JSON.stringify({
+      version: S.RECORDS_VERSION,
+      eventId: legacyTurtleId,
+      updatedAt: 2,
+      result: {
+        layoutId: 'turtle', mode: 'classic', completed: true,
+        elapsedMs: 20_000, score: 0, assists: {},
+      },
+    }),
+  });
+  const store = S.createRecordStore({ storage, now: () => 3, uuid: () => uuid(303) });
+  const records = store.read();
+  assert.equal(storage.getItem(staleArchKey), null);
+  assert.notEqual(storage.getItem(legacyTurtleKey), null);
+  assert.deepEqual(records.classic.turtle, {
+    layoutRevision: 1,
+    bestTimeMs: 20_000,
+    updatedAt: 2,
+  });
+
+  assert.equal(store.record({
+    layoutId: 'arch', layoutRevision: 1, mode: 'classic', completed: true,
+    elapsedMs: 1, score: 0, assists: {},
+  }), null);
+  assert.equal(storage.getItem(`${S.RECORD_EVENT_PREFIX}${uuid(303)}`), null);
+});
+
 test('record-event pruning is bound to the enumerated key and rejects suffix mismatches', () => {
   const storage = new MemoryStorage({ [S.SOUND_KEY]: 'off' });
   const result = {
-    gameId: uuid(1), layoutId: 'turtle', mode: 'classic', completed: true,
+    gameId: uuid(1), layoutId: 'turtle', layoutRevision: 1, mode: 'classic', completed: true,
     elapsedMs: 80_000, score: 0, assists: {},
   };
   let firstEventKey = null;

@@ -24,6 +24,8 @@
   --mj-red: #a63730;
   --mj-green: #1f6d50;
   --mj-blue: #275d86;
+  --mj-flower: #9f3657;
+  --mj-season: #8a5a18;
   --mj-focus: #ffe3a0;
 
   position: relative;
@@ -177,6 +179,9 @@
 .mj-brand-lockup { gap: 10px; }
 
 .mj-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   color: var(--mj-ivory);
   font: 650 clamp(17px, 1.8vw, 22px)/1 var(--font-ui);
   letter-spacing: -0.03em;
@@ -184,12 +189,26 @@
   text-shadow: 0 1px 14px var(--mj-shadow);
 }
 
+.mj-brand-mark {
+  width: 13px;
+  height: 18px;
+  flex: none;
+  display: block;
+  color: var(--mj-ivory);
+  background: currentColor;
+  -webkit-mask: url("icon.svg") center / contain no-repeat;
+  mask: url("icon.svg") center / contain no-repeat;
+  /* A local double edge gives the game lockup a touch more presence than the
+     same canonical mark elsewhere without altering the source artwork. */
+  filter: drop-shadow(0.55px 0 0 currentColor) drop-shadow(-0.55px 0 0 currentColor);
+}
+
 .mj-title::after {
   content: "";
   display: inline-block;
   width: 4px;
   height: 4px;
-  margin-left: 8px;
+  margin-left: 1px;
   border-radius: 50%;
   vertical-align: 0.25em;
   background: var(--mj-brass);
@@ -388,9 +407,16 @@
 
 .mj-tile svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35)); }
 .mj-face text { font-family: var(--font-mono); font-weight: 650; }
+.mj-bonus-flower .mj-flower-petals {
+  fill: currentColor;
+  fill-opacity: 0.055;
+  stroke-width: 1.75;
+}
+.mj-bonus-flower .mj-flower-center { fill: currentColor; stroke: none; }
 .mj-tile[data-suit="chr"], .mj-tile[data-suit="drg-c"] { color: var(--mj-red); }
 .mj-tile[data-suit="bam"], .mj-tile[data-suit="drg-f"] { color: var(--mj-green); }
-.mj-tile[data-suit="flower"], .mj-tile[data-suit="season"] { color: var(--mj-blue); }
+.mj-tile[data-suit="flower"] { color: var(--mj-flower); }
+.mj-tile[data-suit="season"] { color: var(--mj-season); }
 
 .mj-tile[data-blocked] {
   cursor: default;
@@ -690,36 +716,57 @@
 
 .mj-layout-mini {
   position: relative;
-  width: 76px;
-  height: 40px;
+  width: 100%;
+  max-width: 180px;
+  height: 78px;
   align-self: center;
 }
 
 .mj-layout-mini i {
   position: absolute;
   display: block;
-  width: 17px;
-  height: 22px;
+  width: 30px;
+  height: 39px;
   border: 1px solid rgba(103, 89, 58, 0.54);
-  border-radius: 3px;
+  border-radius: 5px;
   background: linear-gradient(160deg, var(--mj-tile-top), var(--mj-tile-bottom));
-  box-shadow: -1px 2px 0 var(--mj-tile-side);
+  box-shadow:
+    -1px 2px 0 var(--mj-tile-side),
+    -3px 5px 7px rgba(0, 14, 11, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  transform: translate(-50%, -50%);
 }
-.mj-layout-mini i:nth-child(1) { left: 7px; top: 14px; }
-.mj-layout-mini i:nth-child(2) { left: 23px; top: 10px; }
-.mj-layout-mini i:nth-child(3) { left: 39px; top: 10px; }
-.mj-layout-mini i:nth-child(4) { left: 55px; top: 14px; }
-.mj-layout-mini i:nth-child(5) { left: 31px; top: 0; }
-.mj-layout-mini-arch i:nth-child(1) { left: 4px; top: 16px; }
-.mj-layout-mini-arch i:nth-child(2) { left: 19px; top: 7px; }
-.mj-layout-mini-arch i:nth-child(3) { left: 34px; top: 1px; }
-.mj-layout-mini-arch i:nth-child(4) { left: 49px; top: 7px; }
-.mj-layout-mini-arch i:nth-child(5) { left: 64px; top: 16px; }
-.mj-layout-mini-peaks i:nth-child(1) { left: 4px; top: 17px; }
-.mj-layout-mini-peaks i:nth-child(2) { left: 14px; top: 4px; }
-.mj-layout-mini-peaks i:nth-child(3) { left: 31px; top: 15px; }
-.mj-layout-mini-peaks i:nth-child(4) { left: 48px; top: 3px; }
-.mj-layout-mini-peaks i:nth-child(5) { left: 59px; top: 17px; }
+
+/* Broad previews use the whole card field and mirror each layout's actual
+   silhouette: a layered center for Turtle, a lifted span for Arch, and three
+   staggered rises for Peaks. Later tiles sit above earlier ones. */
+.mj-layout-mini-turtle i:nth-child(1) { left: 14%; top: 57px; }
+.mj-layout-mini-turtle i:nth-child(2) { left: 32%; top: 57px; }
+.mj-layout-mini-turtle i:nth-child(3) { left: 50%; top: 57px; }
+.mj-layout-mini-turtle i:nth-child(4) { left: 68%; top: 57px; }
+.mj-layout-mini-turtle i:nth-child(5) { left: 86%; top: 57px; }
+.mj-layout-mini-turtle i:nth-child(6) { left: 32%; top: 38px; }
+.mj-layout-mini-turtle i:nth-child(7) { left: 50%; top: 38px; }
+.mj-layout-mini-turtle i:nth-child(8) { left: 68%; top: 38px; }
+.mj-layout-mini-turtle i:nth-child(9) { left: 50%; top: 19px; }
+
+.mj-layout-mini-arch i:nth-child(1) { left: 12%; top: 58px; }
+.mj-layout-mini-arch i:nth-child(2) { left: 88%; top: 58px; }
+.mj-layout-mini-arch i:nth-child(3) { left: 26%; top: 47px; }
+.mj-layout-mini-arch i:nth-child(4) { left: 74%; top: 47px; }
+.mj-layout-mini-arch i:nth-child(5) { left: 39%; top: 31px; }
+.mj-layout-mini-arch i:nth-child(6) { left: 61%; top: 31px; }
+.mj-layout-mini-arch i:nth-child(7) { left: 50%; top: 18px; }
+
+.mj-layout-mini-peaks i:nth-child(1) { left: 10%; top: 58px; }
+.mj-layout-mini-peaks i:nth-child(2) { left: 26%; top: 58px; }
+.mj-layout-mini-peaks i:nth-child(3) { left: 42%; top: 58px; }
+.mj-layout-mini-peaks i:nth-child(4) { left: 58%; top: 58px; }
+.mj-layout-mini-peaks i:nth-child(5) { left: 74%; top: 58px; }
+.mj-layout-mini-peaks i:nth-child(6) { left: 90%; top: 58px; }
+.mj-layout-mini-peaks i:nth-child(7) { left: 26%; top: 31px; }
+.mj-layout-mini-peaks i:nth-child(8) { left: 50%; top: 19px; }
+.mj-layout-mini-peaks i:nth-child(9) { left: 74%; top: 31px; }
 
 .mj-setup-row {
   display: grid;
@@ -860,8 +907,9 @@
   position: absolute;
   z-index: 10;
   inset: 50% auto auto 50%;
-  translate: -50% -50%;
+  transform: translate(-50%, -50%);
   width: min(390px, calc(100% - 28px));
+  max-height: calc(100% - 28px);
   padding: 34px;
   text-align: center;
 }
@@ -903,6 +951,136 @@
 }
 @keyframes mj-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
+/* A landscape game deserves game-shaped chrome. On roomy desktop surfaces,
+   controls float inside the lacquer table's left breathing room while the
+   board stays centered on the full playing surface. Compact windows retain
+   the reachable bottom dock defined above and below. */
+@media (min-width: 1000px) and (min-height: 611px) {
+  .mj {
+    --mj-shell-block: clamp(10px, 1.4vh, 16px);
+    --mj-shell-gap: clamp(6px, 0.8vh, 10px);
+    --mj-shell-inline: clamp(12px, 2.3vw, 28px);
+
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--mj-shell-gap);
+    padding-block: var(--mj-shell-block);
+    padding-inline: var(--mj-shell-inline);
+  }
+
+  .mj-head {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 42px;
+  }
+
+  .mj-game {
+    grid-column: 1;
+    grid-row: 2;
+    gap: 6px;
+  }
+
+  .mj-board-frame { anchor-name: --mj-table; }
+  .mj-board-wrap { --mj-board-safe-side: 88px; }
+
+  .mj-feedback {
+    position: absolute;
+    z-index: 6;
+    top: calc(var(--mj-shell-block) + 42px + var(--mj-shell-gap) + 8px);
+    inset-inline-start: calc(var(--mj-shell-inline) + 104px);
+    inset-inline-end: calc(var(--mj-shell-inline) + 12px);
+    min-height: 0;
+    pointer-events: none;
+  }
+
+  .mj-feedback > :not([hidden]) { pointer-events: auto; }
+
+  .mj-dock {
+    position: absolute;
+    position-anchor: --mj-table;
+    z-index: 7;
+    left: calc(anchor(left) + 16px);
+    top: anchor(center);
+    width: 64px;
+    min-height: 0;
+    transform: translateY(-50%);
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(5, 64px);
+    gap: 16px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .mj-dock > button {
+    box-sizing: border-box;
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+    min-height: 64px;
+    aspect-ratio: 1;
+    place-self: center;
+    gap: 3px;
+    border: 1px solid color-mix(in srgb, var(--mj-brass) 62%, transparent);
+    border-radius: 50%;
+    color: var(--mj-muted);
+    background:
+      radial-gradient(circle at 35% 23%, rgba(255, 255, 255, 0.15), transparent 34%),
+      linear-gradient(
+        155deg,
+        color-mix(in srgb, var(--mj-panel-solid) 92%, var(--mj-ivory)),
+        var(--mj-lacquer-deep)
+      );
+    box-shadow:
+      0 3px 0 color-mix(in srgb, var(--mj-brass) 26%, var(--mj-lacquer-deep)),
+      0 12px 22px rgba(0, 9, 7, 0.42),
+      inset 0 2px 0 rgba(255, 255, 255, 0.11),
+      inset 0 -9px 13px rgba(0, 16, 13, 0.26);
+    backdrop-filter: blur(15px) saturate(1.08);
+    font-size: 8px;
+    translate: 0 -1px;
+  }
+
+  .mj-dock > button:hover {
+    border-color: var(--mj-brass);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.095), transparent 38%),
+      color-mix(in srgb, var(--mj-panel-solid) 88%, var(--mj-brass));
+    box-shadow:
+      0 4px 0 color-mix(in srgb, var(--mj-brass) 32%, var(--mj-lacquer-deep)),
+      0 15px 26px rgba(0, 9, 7, 0.48),
+      inset 0 2px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -9px 13px rgba(0, 16, 13, 0.22);
+    translate: 0 -2px;
+  }
+
+  .mj-dock > button:active {
+    translate: 0 1px;
+    box-shadow:
+      0 1px 0 color-mix(in srgb, var(--mj-brass) 22%, var(--mj-lacquer-deep)),
+      0 6px 12px rgba(0, 9, 7, 0.38),
+      inset 0 2px 6px rgba(0, 12, 10, 0.22);
+  }
+
+  .mj-dock-icon { width: 22px; height: 22px; flex-basis: 22px; }
+
+  .mj[data-mode="classic"] .mj-game {
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .mj-tray-rail { width: min(760px, 100%); padding-block: 6px; }
+  .mj-tray {
+    grid-template-columns: repeat(4, 52px);
+    gap: 6px;
+    padding: 4px;
+  }
+  .mj-tray-slot { width: 52px; height: 60px; }
+}
+
 @media (max-width: 780px) {
   .mj { padding: 12px; gap: 8px; }
   .mj-head { grid-template-columns: 1fr auto; gap: 9px 14px; }
@@ -913,7 +1091,7 @@
   .mj-tray { justify-self: center; }
   .mj-layout-grid { grid-template-columns: 1fr; }
   .mj-choice { min-height: 78px; flex-direction: row; align-items: center; justify-content: flex-start; }
-  .mj-layout-mini { flex: none; scale: 0.88; }
+  .mj-layout-mini { width: min(180px, 44vw); flex: none; scale: 0.82; }
 }
 
 @media (max-width: 520px), (max-height: 610px) {

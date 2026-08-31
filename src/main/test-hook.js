@@ -463,14 +463,91 @@ function install(refs) {
         .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
       if (!frame) return null;
       try {
-        return await frame.executeJavaScript(`(() => ({
-          url: location.href,
-          tileCount: document.querySelectorAll('.mj-tile').length,
-          freeTileCount: document.querySelectorAll('.mj-tile:not([data-blocked])').length,
-          timer: document.getElementById('mjTimer')?.textContent ?? null,
-          mode: document.querySelector('.mj')?.dataset.mode ?? null,
-          layout: document.querySelector('.mj')?.dataset.layout ?? null,
-        }))()`);
+        return await frame.executeJavaScript(`(() => {
+          const tileRect = document.querySelector('.mj-tile:not([hidden])')?.getBoundingClientRect();
+          const frameRect = document.querySelector('.mj-board-frame')?.getBoundingClientRect();
+          const wrapRect = document.getElementById('mjBoardWrap')?.getBoundingClientRect();
+          const boardRect = document.getElementById('mjBoard')?.getBoundingClientRect();
+          const dockRect = document.querySelector('.mj-dock')?.getBoundingClientRect();
+          const dockButtons = [...document.querySelectorAll('.mj-dock > button')]
+            .map((button) => button.getBoundingClientRect());
+          const firstDockButton = dockButtons[0];
+          const secondDockButton = dockButtons[1];
+          return {
+            url: location.href,
+            tileCount: document.querySelectorAll('.mj-tile').length,
+            freeTileCount: document.querySelectorAll('.mj-tile:not([data-blocked])').length,
+            timer: document.getElementById('mjTimer')?.textContent ?? null,
+            mode: document.querySelector('.mj')?.dataset.mode ?? null,
+            layout: document.querySelector('.mj')?.dataset.layout ?? null,
+            tileWidth: tileRect?.width ?? 0,
+            tileHeight: tileRect?.height ?? 0,
+            boardFrameHeight: frameRect?.height ?? 0,
+            boardWrapWidth: wrapRect?.width ?? 0,
+            boardCenterDeltaX: boardRect && frameRect
+              ? Math.abs((boardRect.left + boardRect.right - frameRect.left - frameRect.right) / 2)
+              : Infinity,
+            boardFrameLeft: frameRect?.left ?? 0,
+            boardFrameRight: frameRect?.right ?? 0,
+            boardFrameTop: frameRect?.top ?? 0,
+            boardFrameBottom: frameRect?.bottom ?? 0,
+            dockLeft: dockRect?.left ?? 0,
+            dockRight: dockRect?.right ?? 0,
+            dockTop: dockRect?.top ?? 0,
+            dockBottom: dockRect?.bottom ?? 0,
+            dockButtonWidth: firstDockButton?.width ?? 0,
+            dockButtonHeight: firstDockButton?.height ?? 0,
+            dockButtonGap: firstDockButton && secondDockButton
+              ? secondDockButton.top - firstDockButton.bottom
+              : 0,
+            viewportWidth: innerWidth,
+            viewportHeight: innerHeight,
+          };
+        })()`);
+      } catch {
+        return null;
+      }
+    },
+    async readMahjongCompletionGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return null;
+      try {
+        return await frame.executeJavaScript(`(async () => {
+          const card = document.getElementById('mjWin');
+          const wrap = document.getElementById('mjBoardWrap');
+          const time = document.getElementById('mjWinTime');
+          const best = document.getElementById('mjWinBest');
+          if (!card || !wrap || !time || !best) return null;
+          const wasHidden = card.hidden;
+          const previousTime = time.textContent;
+          const previousBest = best.textContent;
+          try {
+            // Use the longest realistic Tray labels so containment reflects
+            // the completed UI rather than its shorter dormant markup.
+            time.textContent = '14,400 points · 9999:59';
+            best.textContent = 'best 14,400 · 9999:59';
+            card.hidden = false;
+            void card.offsetWidth;
+            await new Promise((resolve) => setTimeout(resolve, 320));
+            const cardRect = card.getBoundingClientRect();
+            const wrapRect = wrap.getBoundingClientRect();
+            return {
+              card: { left: cardRect.left, top: cardRect.top, right: cardRect.right, bottom: cardRect.bottom },
+              wrap: { left: wrapRect.left, top: wrapRect.top, right: wrapRect.right, bottom: wrapRect.bottom },
+              centerDeltaX: Math.abs((cardRect.left + cardRect.right - wrapRect.left - wrapRect.right) / 2),
+              centerDeltaY: Math.abs((cardRect.top + cardRect.bottom - wrapRect.top - wrapRect.bottom) / 2),
+              clientHeight: card.clientHeight,
+              scrollHeight: card.scrollHeight,
+            };
+          } finally {
+            card.hidden = wasHidden;
+            time.textContent = previousTime;
+            best.textContent = previousBest;
+          }
+        })()`);
       } catch {
         return null;
       }

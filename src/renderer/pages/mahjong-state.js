@@ -18,6 +18,11 @@
   const MAX_RECORD_EVENTS = 128;
   const GAME_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
   const LAYOUT_IDS = Object.freeze(['turtle', 'arch', 'peaks']);
+  // Record revisions deliberately mirror the pure engine's layout revisions.
+  // A missing revision is legacy revision 1, which keeps unchanged Turtle and
+  // Peaks results while preventing the retired portrait Arch from replaying
+  // into the wider revision-2 board.
+  const LAYOUT_REVISIONS = Object.freeze({ turtle: 1, arch: 2, peaks: 1 });
   const MODES = Object.freeze(['classic', 'tray']);
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const DAILY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -341,20 +346,35 @@
     return clean;
   }
 
+  function normalizedLayoutRevision(layoutId, value) {
+    const revision = value === undefined ? 1 : value;
+    return finiteInteger(revision, 1) && revision === LAYOUT_REVISIONS[layoutId]
+      ? revision
+      : null;
+  }
+
   function normalizeRecords(value) {
     const clean = emptyRecords();
     if (!isObject(value) || value.version !== RECORDS_VERSION) return clean;
     for (const layoutId of LAYOUT_IDS) {
       const classic = value.classic && value.classic[layoutId];
-      if (isObject(classic) && finiteInteger(classic.bestTimeMs, 1)) {
+      const classicRevision = isObject(classic)
+        ? normalizedLayoutRevision(layoutId, classic.layoutRevision)
+        : null;
+      if (classicRevision !== null && finiteInteger(classic.bestTimeMs, 1)) {
         clean.classic[layoutId] = {
+          layoutRevision: classicRevision,
           bestTimeMs: classic.bestTimeMs,
           updatedAt: finiteInteger(classic.updatedAt) ? classic.updatedAt : 0,
         };
       }
       const tray = value.tray && value.tray[layoutId];
-      if (isObject(tray) && finiteInteger(tray.bestScore) && finiteInteger(tray.bestTimeMs, 1)) {
+      const trayRevision = isObject(tray)
+        ? normalizedLayoutRevision(layoutId, tray.layoutRevision)
+        : null;
+      if (trayRevision !== null && finiteInteger(tray.bestScore) && finiteInteger(tray.bestTimeMs, 1)) {
         clean.tray[layoutId] = {
+          layoutRevision: trayRevision,
           bestScore: tray.bestScore,
           bestTimeMs: tray.bestTimeMs,
           updatedAt: finiteInteger(tray.updatedAt) ? tray.updatedAt : 0,
@@ -368,9 +388,12 @@
         for (const mode of MODES) {
           const result = modes[mode];
           if (!isObject(result) || !LAYOUT_IDS.includes(result.layoutId)) continue;
+          const layoutRevision = normalizedLayoutRevision(result.layoutId, result.layoutRevision);
+          if (layoutRevision === null) continue;
           if (typeof result.completed !== 'boolean' || !finiteInteger(result.elapsedMs)) continue;
           entry[mode] = {
             layoutId: result.layoutId,
+            layoutRevision,
             completed: result.completed,
             elapsedMs: result.elapsedMs,
             score: finiteInteger(result.score) ? result.score : 0,
@@ -396,6 +419,8 @@
   function applyResult(records, result, timestamp = Date.now()) {
     const next = normalizeRecords(records);
     if (!isObject(result) || !LAYOUT_IDS.includes(result.layoutId) || !MODES.includes(result.mode)) return next;
+    const layoutRevision = normalizedLayoutRevision(result.layoutId, result.layoutRevision);
+    if (layoutRevision === null) return next;
     if (!finiteInteger(result.elapsedMs) || !finiteInteger(result.score || 0)) return next;
     const completed = result.completed !== false;
     const elapsedMs = result.elapsedMs;
@@ -404,18 +429,19 @@
       if (result.mode === 'classic') {
         const current = next.classic[result.layoutId];
         if (!current || elapsedMs < current.bestTimeMs) {
-          next.classic[result.layoutId] = { bestTimeMs: elapsedMs, updatedAt: timestamp };
+          next.classic[result.layoutId] = { layoutRevision, bestTimeMs: elapsedMs, updatedAt: timestamp };
         }
       } else {
         const current = next.tray[result.layoutId];
         if (!current || score > current.bestScore || (score === current.bestScore && elapsedMs < current.bestTimeMs)) {
-          next.tray[result.layoutId] = { bestScore: score, bestTimeMs: elapsedMs, updatedAt: timestamp };
+          next.tray[result.layoutId] = { layoutRevision, bestScore: score, bestTimeMs: elapsedMs, updatedAt: timestamp };
         }
       }
     }
     if (isDailyKey(result.dailyKey)) {
       const candidate = {
         layoutId: result.layoutId,
+        layoutRevision,
         completed,
         elapsedMs,
         score,
@@ -433,8 +459,11 @@
     const events = [];
     try {
       if (!storage || !finiteInteger(storage.length)) return events;
-      for (let index = 0; index < storage.length; index++) {
-        const key = storage.key(index);
+      // Snapshot keys before validating. Removing one corrupt event from a
+      // live Storage index shifts later entries and would otherwise skip the
+      // immediately following valid completion.
+      const keys = Array.from({ length: storage.length }, (_, index) => storage.key(index));
+      for (const key of keys) {
         if (typeof key !== 'string' || !key.startsWith(RECORD_EVENT_PREFIX)) continue;
         let wrapper;
         try { wrapper = JSON.parse(safeGet(storage, key)); } catch { wrapper = null; }
@@ -449,9 +478,22 @@
           safeRemove(storage, key);
           continue;
         }
+        const layoutRevision = normalizedLayoutRevision(
+          wrapper.result.layoutId,
+          wrapper.result.layoutRevision
+        );
+        if (layoutRevision === null) {
+          safeRemove(storage, key);
+          continue;
+        }
         // The enumerated key is authoritative. Never let a corrupt wrapper's
         // own `key` field redirect bounded-event pruning to another local key.
-        events.push({ ...wrapper, eventId: suffix, key });
+        events.push({
+          ...wrapper,
+          eventId: suffix,
+          key,
+          result: { ...wrapper.result, layoutRevision },
+        });
       }
     } catch { /* record recovery is best effort */ }
     return events.sort((a, b) => a.updatedAt - b.updatedAt || a.eventId.localeCompare(b.eventId));
@@ -481,7 +523,11 @@
       const migrated = normalizeRecords(records);
       const current = migrated.classic.turtle;
       if (!current || bestTimeMs < current.bestTimeMs) {
-        migrated.classic.turtle = { bestTimeMs, updatedAt: now() };
+        migrated.classic.turtle = {
+          layoutRevision: LAYOUT_REVISIONS.turtle,
+          bestTimeMs,
+          updatedAt: now(),
+        };
       }
       // Only retire the legacy key after the v2 record has been written. No
       // other preference is read or rewritten, so `mahjong.sound` survives.
@@ -514,6 +560,9 @@
       try { eventId = mintGameId(uuid); } catch { return null; }
       try { clonedResult = JSON.parse(JSON.stringify(result)); } catch { return null; }
       if (!isObject(clonedResult)) return null;
+      const layoutRevision = normalizedLayoutRevision(clonedResult.layoutId, clonedResult.layoutRevision);
+      if (layoutRevision === null) return null;
+      clonedResult.layoutRevision = layoutRevision;
       const key = `${RECORD_EVENT_PREFIX}${eventId}`;
       if (!safeSet(storage, key, JSON.stringify({
         version: RECORDS_VERSION,
@@ -686,6 +735,7 @@
     MAX_RECORD_EVENTS,
     GAME_EXPIRY_MS,
     LAYOUT_IDS,
+    LAYOUT_REVISIONS,
     MODES,
     isValidGameId,
     mintGameId,
