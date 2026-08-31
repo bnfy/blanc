@@ -1,47 +1,44 @@
 'use strict';
 
 const assert = require('node:assert/strict');
-const http = require('node:http');
 const test = require('node:test');
 
 async function loadGate() {
   return import('../../scripts/onepassword-live-gate-server.mjs');
 }
 
-function request(server, { hostname = 'exact.localhost', method = 'GET', path = '/login', body = '' } = {}) {
-  const port = server.address().port;
-  return new Promise((resolve, reject) => {
-    const outgoing = http.request({
-      hostname: '127.0.0.1',
-      port,
-      method,
-      path,
-      headers: { Host: `${hostname}:${port}` },
-    }, (incoming) => {
-      const chunks = [];
-      incoming.on('data', (chunk) => chunks.push(chunk));
-      incoming.on('end', () => resolve({
-        statusCode: incoming.statusCode,
-        headers: incoming.headers,
-        body: Buffer.concat(chunks).toString('utf8'),
-      }));
-    });
-    outgoing.on('error', reject);
-    if (body) outgoing.write(body);
-    outgoing.end();
-  });
+function request(handler, {
+  hostname = 'exact.localhost', method = 'GET', path = '/login', body = '',
+} = {}) {
+  const headers = {};
+  let statusCode = null;
+  let responseBody = '';
+  let resumed = false;
+  const incoming = {
+    method,
+    url: path,
+    headers: { host: `${hostname}:48765` },
+    body,
+    resume() { resumed = true; },
+  };
+  const outgoing = {
+    writeHead(nextStatusCode, nextHeaders) {
+      statusCode = nextStatusCode;
+      for (const [name, value] of Object.entries(nextHeaders)) {
+        headers[name.toLowerCase()] = value;
+      }
+    },
+    end(payload) {
+      responseBody = payload ? Buffer.from(payload).toString('utf8') : '';
+    },
+  };
+  handler(incoming, outgoing);
+  return { statusCode, headers, body: responseBody, resumed };
 }
 
-test('live gate serves an inert login form only on loopback test hosts', async (t) => {
-  const { createGateServer } = await loadGate();
-  const server = createGateServer();
-  await new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', resolve);
-  });
-  t.after(() => new Promise((resolve) => server.close(resolve)));
-
-  const response = await request(server);
+test('live gate serves an inert login form only on loopback test hosts', async () => {
+  const { handleGateRequest } = await loadGate();
+  const response = request(handleGateRequest);
   assert.equal(response.statusCode, 200);
   assert.equal(response.headers['cache-control'], 'no-store');
   assert.match(response.headers['content-security-policy'], /form-action 'none'/);
@@ -51,7 +48,7 @@ test('live gate serves an inert login form only on loopback test hosts', async (
   assert.match(response.body, /event\.preventDefault\(\)/);
   assert.match(response.body, /never logs requests/);
 
-  const rejected = await request(server, { hostname: 'example.com' });
+  const rejected = request(handleGateRequest, { hostname: 'example.com' });
   assert.equal(rejected.statusCode, 421);
 });
 
@@ -63,17 +60,11 @@ test('live gate signup fixture is unambiguously new-password-only', async () => 
   assert.match(page, /Create test account/);
 });
 
-test('live gate rejects submission methods without reflecting field values', async (t) => {
-  const { createGateServer } = await loadGate();
-  const server = createGateServer();
-  await new Promise((resolve, reject) => {
-    server.once('error', reject);
-    server.listen(0, '127.0.0.1', resolve);
-  });
-  t.after(() => new Promise((resolve) => server.close(resolve)));
-
+test('live gate rejects submission methods without reflecting field values', async () => {
+  const { handleGateRequest } = await loadGate();
   const secret = 'must-not-appear';
-  const response = await request(server, { method: 'POST', body: secret });
+  const response = request(handleGateRequest, { method: 'POST', body: secret });
   assert.equal(response.statusCode, 405);
+  assert.equal(response.resumed, true);
   assert.doesNotMatch(response.body, new RegExp(secret));
 });
