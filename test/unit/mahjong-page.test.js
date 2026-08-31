@@ -473,6 +473,23 @@ test('the completion card keeps its center transform after dialog motion', () =>
   assert.match(styles, /@keyframes mj-dialog-in\s*\{[\s\S]*translate:\s*0 12px;[\s\S]*translate:\s*0 0;/);
 });
 
+test('completion results promote the score and separate time from Burst performance', () => {
+  for (const id of ['mjWinScore', 'mjWinUnit', 'mjWinBest', 'mjWinTime', 'mjWinCombo', 'mjWinAutoClears']) {
+    assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
+  }
+  assert.match(html, /class="mj-win-particles" src="mahjong-combo-particles\.png"/);
+  assert.match(html, /class="mj-win-glint" src="mahjong-combo-glint\.png"/);
+  assert.match(controller, /win\.dataset\.mode = isBurst \? 'burst' : 'classic'/);
+  assert.match(controller, /getElementById\('mjWinScore'\)\.textContent = isBurst[\s\S]*game\.score\.toLocaleString\(\)[\s\S]*: time/);
+  assert.match(controller, /getElementById\('mjWinTime'\)\.textContent = time/);
+  assert.match(controller, /record\.classList\.toggle\('is-record', Boolean\(game\._newRecord\)\)/);
+  assert.match(styles, /\.mj-win-result\s*\{[^}]*border-radius:\s*22px[^}]*radial-gradient[^}]*box-shadow:/);
+  assert.match(styles, /\.mj-win-score\s*\{[^}]*clamp\(46px, 6\.2vw, 64px\)[^}]*text-shadow:/);
+  assert.match(styles, /\.mj-win-stats\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(styles, /@keyframes mj-win-particles/);
+  assert.match(styles, /@keyframes mj-win-glint/);
+});
+
 test('dialog actions keep readable lacquer contrast through hover and keyboard focus', () => {
   assert.match(styles, /\.mj-setup-card,\s*\.mj-rescue-card,\s*\.mj-card-overlay\s*\{[^}]*radial-gradient\(circle at 50% -16%[^}]*0 34px 90px[^}]*inset 0 -2px 0/);
   assert.match(styles, /\.mj-modal h1,\s*\.mj-card-overlay h1\s*\{[^}]*clamp\(30px, 3\.6vw, 40px\)/);

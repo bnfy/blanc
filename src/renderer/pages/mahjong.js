@@ -1221,22 +1221,30 @@ function recordCompletion() {
 
 function showWin() {
   const best = bestForGame();
-  const label = game.mode === 'classic'
-    ? formatMs(game.elapsedMs)
-    : `${game.score.toLocaleString()} points · ${formatMs(game.elapsedMs)}`;
-  document.getElementById('mjWinTime').textContent = label;
-  document.getElementById('mjWinBest').textContent = game._newRecord
+  const win = document.getElementById('mjWin');
+  const isBurst = game.mode === 'tray';
+  const time = formatMs(game.elapsedMs);
+  const label = isBurst ? `${game.score.toLocaleString()} points. ${time}` : time;
+  win.dataset.mode = isBurst ? 'burst' : 'classic';
+  document.getElementById('mjWinScore').textContent = isBurst
+    ? game.score.toLocaleString()
+    : time;
+  document.getElementById('mjWinUnit').textContent = isBurst ? 'points' : 'clear time';
+  document.getElementById('mjWinTime').textContent = time;
+  const record = document.getElementById('mjWinBest');
+  record.textContent = game._newRecord
     ? 'new record'
     : best
       ? (game.mode === 'classic'
           ? `best ${formatMs(best.bestTimeMs)}`
           : `best ${best.bestScore.toLocaleString()} · ${formatMs(best.bestTimeMs)}`)
-      : 'complete';
+      : 'first clear';
+  record.classList.toggle('is-record', Boolean(game._newRecord));
   const stats = document.getElementById('mjWinStats');
-  if (stats) stats.hidden = game.mode !== 'tray';
+  if (stats) stats.hidden = !isBurst;
   document.getElementById('mjWinCombo').textContent = `×${game.maxCombo || 0}`;
   document.getElementById('mjWinAutoClears').textContent = String(game.autoClears || 0);
-  setDialogVisible(document.getElementById('mjWin'), true);
+  setDialogVisible(win, true);
   announce(`Board cleared. ${label}.`);
 }
 

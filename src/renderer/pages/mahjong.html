@@ -62,12 +62,21 @@
           </div>
 
           <section id="mjWin" class="mj-win mj-card-overlay" role="dialog" aria-modal="true" aria-labelledby="mjWinTitle" hidden>
-            <div class="mj-win-flourish" aria-hidden="true"><span>✦</span><span>✦</span><span>✦</span></div>
-            <p class="mj-overline">board cleared</p>
-            <h1 id="mjWinTitle">A beautiful finish.</h1>
-            <div id="mjWinTime" class="mj-win-time"></div>
-            <div id="mjWinBest" class="mj-win-best"></div>
+            <div class="mj-win-visual" aria-hidden="true">
+              <img class="mj-win-particles" src="mahjong-combo-particles.png" alt="" />
+              <img class="mj-win-glint" src="mahjong-combo-glint.png" alt="" />
+            </div>
+            <div class="mj-win-copy">
+              <p class="mj-overline">board cleared</p>
+              <h1 id="mjWinTitle">A beautiful finish.</h1>
+            </div>
+            <div class="mj-win-result">
+              <strong id="mjWinScore" class="mj-win-score">0</strong>
+              <span id="mjWinUnit" class="mj-win-unit">points</span>
+              <div id="mjWinBest" class="mj-win-best"></div>
+            </div>
             <div id="mjWinStats" class="mj-win-stats" hidden>
+              <span><small>time</small><strong id="mjWinTime">0:00</strong></span>
               <span><small>best combo</small><strong id="mjWinCombo">×0</strong></span>
               <span><small>auto clears</small><strong id="mjWinAutoClears">0</strong></span>
             </div>
