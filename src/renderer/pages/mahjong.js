@@ -93,54 +93,80 @@ function el(tag, attrs) {
   return node;
 }
 
-// A compact three-part cane: two gently tapered sections around a broad,
-// unmistakable node. The narrow ivory glints keep the engraving legible when
-// the board scales down, instead of letting the pieces collapse into bars.
-function bambooSegment(x, y, index, scale = 1) {
+// A faceted jade pip with a warm brass joint. The asymmetric band, tapered
+// cane, and engraved glints remain recognizable at every board scale without
+// falling back to the generic rounded bars used by the first two passes.
+function bambooPip(x, y, index, scale = 1) {
   const g = el('g', {
-    class: 'mj-bamboo-segment',
+    class: 'mj-bamboo-pip',
     transform: `translate(${x} ${y}) rotate(${BAM_TILTS[index] || 0}) scale(${scale})`,
   });
   g.append(
     el('path', {
-      d: 'M-2.15-5.15Q0-6.05 2.15-5.15L1.8-1.7Q0-.9-1.8-1.7Z',
-      fill: 'currentColor',
+      class: 'mj-bamboo-cane mj-bamboo-cane-top',
+      d: 'M-3.55-4.95Q0-6.25 3.55-4.95L2.95-1.88Q0-.88-2.95-1.88Z',
     }),
     el('path', {
-      class: 'mj-bamboo-node',
-      d: 'M-3.3-1.1Q0-1.9 3.3-1.1L2.85 1.1Q0 1.9-2.85 1.1Z',
-      fill: 'currentColor',
+      class: 'mj-bamboo-cane mj-bamboo-cane-bottom',
+      d: 'M-2.95 1.88Q0 .88 2.95 1.88L3.55 4.95Q0 6.25-3.55 4.95Z',
     }),
     el('path', {
-      d: 'M-1.8 1.7Q0 .9 1.8 1.7L2.15 5.15Q0 6.05-2.15 5.15Z',
-      fill: 'currentColor',
+      class: 'mj-bamboo-facet',
+      d: 'M1.15-5.62q1.3.05 2.4.67l-.6 3.07q-.9.55-1.8.58Zm0 6.92q.9.03 1.8.58l.6 3.07q-1.1.62-2.4.67Z',
     }),
     el('path', {
-      class: 'mj-bamboo-glint',
-      d: 'M-.72-4.75L-.56-2.05M-.56 2.05L-.72 4.75',
+      class: 'mj-bamboo-joint-shadow',
+      d: 'M-4.55-.38L4.2-1.18L4.55 1.82L-4.2 2.52Z',
+    }),
+    el('path', {
+      class: 'mj-bamboo-joint',
+      d: 'M-4.55-1.3L4.2-2.1L4.55.9L-4.2 1.6Z',
+    }),
+    el('path', {
+      class: 'mj-bamboo-engraving',
+      d: 'M-1.18-4.68L-.92-2.5M-.92 2.5L-1.18 4.68',
     }),
   );
   return g;
 }
 
-// One bamboo is a single ceremonial stalk rather than one undersized pip.
-// Three joined sections and two restrained leaves preserve the count while
-// giving the lowest tile the same presence as the rest of the suit.
+// One bamboo is a single full-height stalk—an emblem rather than a tiny pip.
+// Its two brass nodes share the same material language as the numbered suit,
+// while the paired leaves make the silhouette unmistakably botanical.
 function oneBambooFace() {
-  const g = el('g', { class: 'mj-one-bamboo' });
+  const g = el('g', { class: 'mj-one-bamboo', transform: 'rotate(-3 22 30)' });
   g.append(
-    bambooSegment(22, 12.5, 0, 1.08),
-    bambooSegment(22, 30, 1, 1.08),
-    bambooSegment(22, 47.5, 2, 1.08),
     el('path', {
       class: 'mj-bamboo-leaf',
-      d: 'M19.5 20.5C14.2 16.1 9.7 15.7 7.2 18.2c2.9 4.4 7 6.1 12.3 5.2Z',
-      fill: 'currentColor',
+      d: 'M19 20.5C13.4 14.8 8.3 14 5.8 17.3c3 5.5 7.5 7.5 13.2 6.1Z',
     }),
     el('path', {
-      class: 'mj-bamboo-leaf',
-      d: 'M24.4 36.7c4.5-4.8 8.7-5.8 12-3.7-2.2 4.8-6 7.2-11.4 7.1Z',
-      fill: 'currentColor',
+      class: 'mj-bamboo-leaf mj-bamboo-leaf-sapphire',
+      d: 'M25 36.2c5-5.7 10.1-6.8 13.2-3.8-2.7 5.5-7 8.1-12.9 7.4Z',
+    }),
+    el('path', {
+      class: 'mj-bamboo-one-section mj-bamboo-one-section-top',
+      d: 'M18.9 6.8Q22 4.9 25.1 6.8l-1.3 13.4q-1.8 1.7-3.6 0L18.9 6.8Z',
+    }),
+    el('path', {
+      class: 'mj-bamboo-one-section mj-bamboo-one-section-middle',
+      d: 'M20.2 23q1.8-1.7 3.6 0l.4 14.3q-2.2 1.9-4.4 0l.4-14.3Z',
+    }),
+    el('path', {
+      class: 'mj-bamboo-one-section mj-bamboo-one-section-bottom',
+      d: 'M19.8 40.1q2.2-1.9 4.4 0l.9 13.1Q22 55.1 18.9 53.2l.9-13.1Z',
+    }),
+    el('path', {
+      class: 'mj-bamboo-one-shadow',
+      d: 'M17.9 20.4L25.8 19.6l.4 3.2-7.9.8-.4-3.2Zm.5 17.2l7.7-.7.3 3.2-7.8.7-.2-3.2Z',
+    }),
+    el('path', {
+      class: 'mj-bamboo-one-joint',
+      d: 'M17.9 19.7l7.9-.8.4 3.2-7.9.8-.4-3.2Zm.5 17.2l7.7-.7.3 3.2-7.8.7-.2-3.2Z',
+    }),
+    el('path', {
+      class: 'mj-bamboo-one-engraving',
+      d: 'M21.1 8.5l-.5 9.3m.4 7.2-.2 10.2m.3 7-.4 8.7M17.4 17.8l-7.9-.5m17 16.1 7.8-.7',
     }),
   );
   return g;
@@ -217,7 +243,7 @@ function faceSVG(kind) {
   } else if (family === 'bam') {
     const count = Number(id);
     if (count === 1) svg.append(oneBambooFace());
-    else BAM_SPOTS[count].forEach(([x, y], index) => svg.append(bambooSegment(x, y, index, BAM_SCALES[count])));
+    else BAM_SPOTS[count].forEach(([x, y], index) => svg.append(bambooPip(x, y, index, BAM_SCALES[count])));
   } else if (family === 'chr') {
     svg.append(textEl(22, 36, 26, id));
     svg.append(el('rect', { x: 12, y: 46, width: 20, height: 1.5, fill: 'currentColor' }));
