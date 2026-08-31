@@ -319,6 +319,8 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.match(controller, /document\.getElementById\('mjBurstScore'\)/);
   assert.match(styles, /@keyframes mj-particles-impact/);
   assert.match(styles, /@keyframes mj-score-spark/);
+  assert.match(styles, /@keyframes mj-score-twinkle/);
+  assert.match(styles, /\.mj-burst-score strong\s*\{[^}]*background:\s*linear-gradient[^}]*-webkit-background-clip:\s*text[^}]*-webkit-text-stroke:[^}]*text-shadow:/);
   assert.match(styles, /@keyframes mj-score-flight/);
   assert.match(styles, /\.mj-tray-slot\.filled\s*\{[^}]*color:\s*var\(--mj-ink\)/);
   assert.match(styles, /\.mj-tray-slot\.is-receiving/);
