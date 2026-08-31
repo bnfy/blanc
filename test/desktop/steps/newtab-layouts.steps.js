@@ -57,3 +57,20 @@ Then('the embedded mahjong game is ready', async function () {
     'the embedded mahjong frame to render a playable 144-tile deal'
   );
 });
+
+When('I make a move in embedded Mahjong', async function () {
+  assert.equal(await this.call('clickMahjongFreeTile'), true);
+  const dom = await waitForValue(
+    () => this.call('readMahjongEmbedDom'),
+    (value) => typeof value?.timer === 'string',
+    'embedded Mahjong to start its timer'
+  );
+  assert.equal(typeof dom.timer, 'string');
+});
+
+Then('the hidden embedded Mahjong timer stays paused', async function () {
+  const before = await this.call('readMahjongEmbedDom');
+  await new Promise((resolve) => setTimeout(resolve, 1_250));
+  const after = await this.call('readMahjongEmbedDom');
+  assert.equal(after?.timer, before?.timer);
+});

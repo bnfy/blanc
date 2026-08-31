@@ -135,10 +135,14 @@ test('game state: remove validates, undo round-trips, win detected', () => {
   assert.equal(E.isWon(game), true);
   assert.deepEqual(E.movesAvailable(game), []);
 
-  // Undo after a win resumes play.
+  // Undo after a recorded win resumes play with a serializable, recordable
+  // state instead of retaining terminal-only completion metadata.
+  game.completionRecorded = true;
   assert.equal(E.undo(game), true);
   assert.equal(E.isWon(game), false);
+  assert.equal(game.completionRecorded, false);
   assert.equal(E.movesAvailable(game).length > 0, true);
+  assert.deepEqual(E.restoreGame(E.serializeGame(game)), game);
 });
 
 test('movesAvailable pairs are all free and matching', () => {
@@ -162,4 +166,360 @@ test('a non-winning state with no matchable free pair reports stuck', () => {
   assert.equal(E.isWon(game), false);
   assert.deepEqual(E.movesAvailable(game), []);
   assert.equal(E.removePair(game, i, j), false);
+});
+
+test('all v2 layouts have the promised size, layer count, and valid coordinates', () => {
+  const expected = {
+    turtle: { count: 144, layers: [87, 36, 16, 4, 1] },
+    arch: { count: 96, layers: [64, 28, 4] },
+    peaks: { count: 72, layers: [48, 16, 6, 2] },
+  };
+  assert.deepEqual(Object.keys(E.LAYOUTS), ['turtle', 'arch', 'peaks']);
+  for (const [id, definition] of Object.entries(E.LAYOUTS)) {
+    const positions = definition.positions;
+    assert.equal(positions.length, expected[id].count);
+    assert.equal(definition.tileCount, expected[id].count);
+    assert.equal(definition.layers, expected[id].layers.length);
+    const seen = new Set();
+    const layers = new Array(definition.layers).fill(0);
+    positions.forEach((position) => {
+      assert.ok(Number.isInteger(position.x) && position.x >= 0);
+      assert.ok(Number.isInteger(position.y) && position.y >= 0);
+      assert.ok(Number.isInteger(position.z) && position.z >= 0 && position.z < definition.layers);
+      const key = `${position.x},${position.y},${position.z}`;
+      assert.equal(seen.has(key), false, `${id}: duplicate ${key}`);
+      seen.add(key);
+      layers[position.z] += 1;
+    });
+    assert.deepEqual(layers, expected[id].layers);
+    for (let first = 0; first < positions.length; first++) {
+      for (let second = first + 1; second < positions.length; second++) {
+        const a = positions[first];
+        const b = positions[second];
+        if (a.z === b.z) {
+          assert.ok(Math.abs(a.x - b.x) >= 2 || Math.abs(a.y - b.y) >= 2,
+            `${id}: same-layer overlap at ${first}/${second}`);
+        }
+      }
+    }
+  }
+});
+
+test('every layout is solvable by construction across hundreds of seeded deals', () => {
+  for (const [layoutId, definition] of Object.entries(E.LAYOUTS)) {
+    for (let seed = 0; seed < 75; seed++) {
+      const { kinds, solution } = E.generateDeal({ seed, layoutId });
+      assert.equal(kinds.length, definition.tileCount);
+      assert.equal(solution.length, definition.tileCount / 2);
+      const removed = new Array(definition.tileCount).fill(false);
+      const present = (index) => !removed[index];
+      for (const [first, second] of solution) {
+        assert.ok(E.isFreeAt(definition.positions, first, present), `${layoutId}/${seed}: first blocked`);
+        assert.ok(E.isFreeAt(definition.positions, second, present), `${layoutId}/${seed}: second blocked`);
+        assert.equal(E.matchKey(kinds[first]), E.matchKey(kinds[second]));
+        removed[first] = removed[second] = true;
+      }
+      assert.ok(removed.every(Boolean));
+    }
+  }
+});
+
+test('createGame supports v2 options while preserving the numeric legacy form', () => {
+  const legacy = E.createGame(912);
+  assert.equal(legacy.layoutId, 'turtle');
+  assert.equal(legacy.mode, 'classic');
+  assert.equal(legacy.kinds.length, 144);
+
+  const tray = E.createGame({
+    seed: 912,
+    layoutId: 'peaks',
+    mode: 'tray',
+    gameId: 'game-912',
+    dailyKey: '2026-08-30',
+  });
+  assert.equal(tray.version, 2);
+  assert.equal(tray.layoutId, 'peaks');
+  assert.equal(tray.mode, 'tray');
+  assert.equal(tray.gameId, 'game-912');
+  assert.equal(tray.dailyKey, '2026-08-30');
+  assert.equal(tray.kinds.length, 72);
+  assert.deepEqual(tray.tray, []);
+  assert.deepEqual(tray.assists, { undo: 0, hint: 0, shuffle: 0 });
+});
+
+test('Classic selectTile selects, switches, removes a pair, and undo restores it', () => {
+  const state = E.createGame({ seed: 41, layoutId: 'arch', mode: 'classic' });
+  const [first, second] = E.availableMoves(state)[0];
+  assert.deepEqual(E.selectTile(state, first), { ok: true, type: 'selected', index: first });
+  assert.equal(state.selected, first);
+  assert.deepEqual(E.selectTile(state, first), { ok: true, type: 'deselected', index: first });
+
+  const mismatch = Array.from({ length: state.kinds.length }, (_, index) => index).find(
+    (index) => E.isFree(state, index) && E.matchKey(state.kinds[index]) !== E.matchKey(state.kinds[first])
+  );
+  E.selectTile(state, first);
+  const mismatchResult = E.selectTile(state, mismatch);
+  assert.equal(mismatchResult.type, 'mismatch');
+  assert.equal(state.selected, mismatch);
+
+  state.selected = null;
+  E.selectTile(state, first);
+  const pairResult = E.selectTile(state, second);
+  assert.equal(pairResult.type, 'pair');
+  assert.ok(state.removed[first] && state.removed[second]);
+  assert.equal(E.undo(state), true);
+  assert.equal(state.removed[first], false);
+  assert.equal(state.removed[second], false);
+  assert.equal(state.assists.undo, 1);
+});
+
+test('Tray clean-match scoring climbs to 200 and caps there', () => {
+  const seed = 118;
+  const state = E.createGame({ seed, layoutId: 'turtle', mode: 'tray' });
+  const { solution } = E.generateDeal({ seed, layoutId: 'turtle' });
+  const expectedPoints = [100, 125, 150, 175, 200, 200];
+  let expectedScore = 0;
+  for (let offset = 0; offset < expectedPoints.length; offset++) {
+    const [first, second] = solution[offset];
+    assert.equal(E.selectTile(state, first).type, 'tray-park');
+    const result = E.selectTile(state, second);
+    expectedScore += expectedPoints[offset];
+    assert.equal(result.type, 'tray-pair');
+    assert.equal(result.clean, true);
+    assert.equal(result.points, expectedPoints[offset]);
+    assert.equal(state.score, expectedScore);
+    assert.equal(state.chain, Math.min(5, offset + 1));
+    assert.deepEqual(state.tray, []);
+  }
+  assert.equal(state.score, 950);
+
+  const lastPair = solution[expectedPoints.length - 1];
+  assert.equal(E.undo(state), true);
+  assert.equal(state.score, 750);
+  assert.equal(state.chain, 0);
+  assert.deepEqual(state.tray, []);
+  assert.equal(state.removed[lastPair[0]], false);
+  assert.equal(state.removed[lastPair[1]], false);
+});
+
+test('Tray matches the oldest compatible tile and undo restores the cleared pair', () => {
+  const seed = 204;
+  const state = E.createGame({ seed, layoutId: 'arch', mode: 'tray' });
+  const { solution } = E.generateDeal({ seed, layoutId: 'arch' });
+  const [first, mate] = solution[0];
+  const parkedOther = Array.from({ length: state.kinds.length }, (_, index) => index).find(
+    (index) => index !== first && index !== mate && E.isFree(state, index)
+      && E.matchKey(state.kinds[index]) !== E.matchKey(state.kinds[first])
+  );
+  assert.equal(E.selectTile(state, first).type, 'tray-park');
+  assert.equal(E.selectTile(state, parkedOther).type, 'tray-park');
+  const matched = E.selectTile(state, mate);
+  assert.equal(matched.type, 'tray-pair');
+  assert.equal(matched.clean, false);
+  assert.equal(matched.points, 100);
+  assert.deepEqual(matched.indices, [first, mate]);
+  assert.deepEqual(state.tray, [parkedOther]);
+
+  assert.equal(E.undo(state), true);
+  assert.deepEqual(state.tray, [parkedOther]);
+  assert.equal(state.removed[first], false);
+  assert.equal(state.removed[mate], false);
+  assert.equal(state.score, 0);
+  assert.equal(E.undo(state), true);
+  assert.deepEqual(state.tray, []);
+  assert.equal(state.removed[parkedOther], false);
+});
+
+test('Tray move discovery includes parked-tile mates and safe singleton picks', () => {
+  const state = E.createGame({ seed: 205, layoutId: 'peaks', mode: 'tray' });
+  const free = Array.from({ length: state.kinds.length }, (_, index) => index)
+    .filter((index) => E.isFree(state, index));
+  assert.ok(free.length >= 5);
+  state.kinds[free[0]] = state.kinds[free[1]] = 'chr-1';
+  state.kinds[free[2]] = 'chr-2';
+  state.kinds[free[3]] = 'chr-3';
+  state.kinds[free[4]] = 'chr-4';
+
+  E.selectTile(state, free[0]);
+  assert.deepEqual(E.availableMoves(state)[0], [free[0], free[1]]);
+
+  // Three unmatched parked tiles still expose legal single-tile actions;
+  // the engine must not report a false no-moves state before Rescue.
+  E.selectTile(state, free[2]);
+  E.selectTile(state, free[3]);
+  const moves = E.availableMoves(state);
+  assert.ok(moves.length > 0);
+  assert.ok(moves.every((move) => move.length === 1 || state.tray.includes(move[0])));
+});
+
+test('clearing an old leftover tray tile does not restart the clean chain', () => {
+  const state = E.createGame({ seed: 206, layoutId: 'turtle', mode: 'tray' });
+  const free = Array.from({ length: state.kinds.length }, (_, index) => index)
+    .filter((index) => E.isFree(state, index));
+  assert.ok(free.length >= 6);
+  const [a1, a2, b1, b2, c1, c2] = free;
+  state.kinds[a1] = state.kinds[a2] = 'chr-1';
+  state.kinds[b1] = state.kinds[b2] = 'chr-2';
+  state.kinds[c1] = state.kinds[c2] = 'chr-3';
+
+  E.selectTile(state, a1);
+  E.selectTile(state, b1); // parking a second tile breaks A's clean provenance
+  assert.equal(E.selectTile(state, b2).clean, false);
+  const oldA = E.selectTile(state, a2);
+  assert.equal(oldA.clean, false);
+  assert.equal(state.chain, 0);
+  assert.equal(state.score, 200);
+
+  E.selectTile(state, c1);
+  const fresh = E.selectTile(state, c2);
+  assert.equal(fresh.clean, true);
+  assert.equal(fresh.points, 100);
+  assert.equal(state.chain, 1);
+});
+
+test('undo restores the clean opportunity invalidated by an unmatched pick', () => {
+  let state = E.createGame({ seed: 207, layoutId: 'turtle', mode: 'tray' });
+  const pairs = E.availableMoves(state);
+  let firstPair = null;
+  let otherPair = null;
+  for (const candidate of pairs) {
+    const other = pairs.find((pair) =>
+      new Set([...candidate, ...pair]).size === 4 &&
+      E.matchKey(state.kinds[candidate[0]]) !== E.matchKey(state.kinds[pair[0]])
+    );
+    if (other) {
+      firstPair = candidate;
+      otherPair = other;
+      break;
+    }
+  }
+  assert.ok(firstPair && otherPair);
+  const [a1, a2] = firstPair;
+  const [b1] = otherPair;
+
+  E.selectTile(state, a1);
+  E.selectTile(state, b1);
+  // Exercise the persisted snapshot, not just its in-memory representation.
+  state = E.restoreGame(E.serializeGame(state));
+  assert.ok(state);
+  assert.equal(E.undo(state), true);
+  assert.deepEqual(state.tray, [a1]);
+  const waitingAction = state.history.find((action) =>
+    action.type === 'tray-park' && action.index === a1
+  );
+  assert.equal(waitingAction.cleanEligible, true);
+
+  const restoredMatch = E.selectTile(state, a2);
+  assert.equal(restoredMatch.clean, true);
+  assert.equal(restoredMatch.points, 100);
+  assert.equal(state.chain, 1);
+
+  const [c1, c2] = E.availableMoves(state).find((move) => move.length === 2);
+  E.selectTile(state, c1);
+  const nextMatch = E.selectTile(state, c2);
+  assert.equal(nextMatch.clean, true);
+  assert.equal(nextMatch.points, 125);
+  assert.equal(state.chain, 2);
+});
+
+function fillUnmatchedTray(state) {
+  const picked = [];
+  const keys = new Set();
+  while (picked.length < E.TRAY_SIZE) {
+    const index = Array.from({ length: state.kinds.length }, (_, candidate) => candidate).find(
+      (candidate) => E.isFree(state, candidate) && !keys.has(E.matchKey(state.kinds[candidate]))
+    );
+    assert.notEqual(index, undefined, 'expected another nonmatching free tile');
+    keys.add(E.matchKey(state.kinds[index]));
+    picked.push(index);
+    E.selectTile(state, index);
+  }
+  return picked;
+}
+
+test('four unmatched Tray tiles enter rescue; undo and shuffle both recover', () => {
+  const undoState = E.createGame({ seed: 777, layoutId: 'peaks', mode: 'tray' });
+  const picked = fillUnmatchedTray(undoState);
+  assert.equal(undoState.status, 'rescue');
+  assert.equal(undoState.tray.length, 4);
+  assert.equal(E.selectTile(undoState, 0).type, 'rescue');
+  assert.equal(E.undo(undoState), true);
+  assert.equal(undoState.status, 'playing');
+  assert.equal(undoState.tray.length, 3);
+  assert.equal(undoState.removed[picked.at(-1)], false);
+
+  const shuffleState = E.createGame({ seed: 778, layoutId: 'peaks', mode: 'tray' });
+  fillUnmatchedTray(shuffleState);
+  const multiset = shuffleState.kinds.slice().sort();
+  assert.equal(E.shuffleRemaining(shuffleState, E.createRng(99)), true);
+  assert.equal(shuffleState.status, 'playing');
+  assert.deepEqual(shuffleState.tray, []);
+  assert.equal(shuffleState.removed.filter(Boolean).length, 0);
+  assert.deepEqual(shuffleState.kinds.slice().sort(), multiset);
+  assert.equal(shuffleState.chain, 0);
+  assert.equal(shuffleState.history.length, 0);
+  assert.equal(shuffleState.assists.shuffle, 1);
+  assert.ok(E.availableMoves(shuffleState).length > 0);
+});
+
+test('solvable shuffle preserves removed tiles and the live multiset across partial games', () => {
+  for (const layoutId of Object.keys(E.LAYOUTS)) {
+    for (let seed = 1; seed <= 30; seed++) {
+      const state = E.createGame({ seed, layoutId, mode: 'classic' });
+      const { solution } = E.generateDeal({ seed, layoutId });
+      const pairsToRemove = seed % 9;
+      for (let offset = 0; offset < pairsToRemove; offset++) {
+        assert.equal(E.removePair(state, ...solution[offset]), true);
+      }
+      const removedBefore = state.removed.slice();
+      const removedKinds = state.kinds.filter((_, index) => removedBefore[index]);
+      const liveKinds = state.kinds.filter((_, index) => !removedBefore[index]).sort();
+      assert.equal(E.shuffleRemaining(state, E.createRng(0x10000 + seed)), true, `${layoutId}/${seed}`);
+      assert.deepEqual(state.removed, removedBefore);
+      assert.deepEqual(state.kinds.filter((_, index) => removedBefore[index]), removedKinds);
+      assert.deepEqual(state.kinds.filter((_, index) => !removedBefore[index]).sort(), liveKinds);
+      assert.ok(E.availableMoves(state).length > 0);
+      assert.ok(E.restoreGame(E.serializeGame(state)));
+    }
+  }
+});
+
+test('shuffle failure is atomic', () => {
+  const state = E.createGame({ seed: 63, layoutId: 'arch', mode: 'classic' });
+  const originalKey = E.matchKey(state.kinds[0]);
+  state.kinds[0] = ['dot-1', 'bam-1', 'chr-1'].find((kind) => E.matchKey(kind) !== originalKey);
+  const before = structuredClone(state);
+  assert.equal(E.shuffleRemaining(state, E.createRng(5)), false);
+  assert.deepEqual(state, before);
+});
+
+test('v2 serialization round-trips independent state and rejects corruption', () => {
+  const seed = 3001;
+  const state = E.createGame({
+    seed,
+    layoutId: 'peaks',
+    mode: 'tray',
+    gameId: '96dcb5b0-8dc8-4cce-a671-167c5ff65652',
+    dailyKey: '2026-08-30',
+  });
+  const [first, second] = E.generateDeal({ seed, layoutId: 'peaks' }).solution[0];
+  E.selectTile(state, first);
+  E.selectTile(state, second);
+  state.elapsedMs = 12_345;
+  const payload = E.serializeGame(state);
+  const restored = E.restoreGame(payload);
+  assert.deepEqual(restored, state);
+  assert.notEqual(restored, state);
+  assert.notEqual(restored.kinds, state.kinds);
+  assert.deepEqual(E.restoreGame(JSON.stringify(payload)), state);
+
+  assert.equal(E.restoreGame('{broken'), null);
+  assert.equal(E.restoreGame({ ...payload, version: 99 }), null);
+  assert.equal(E.restoreGame({ ...payload, layoutId: 'missing' }), null);
+  assert.equal(E.restoreGame({ ...payload, removed: payload.removed.slice(1) }), null);
+  assert.equal(E.restoreGame({ ...payload, kinds: payload.kinds.map((kind, index) => index === 0 ? 'unknown' : kind) }), null);
+  assert.equal(E.restoreGame({ ...payload, tray: [999] }), null);
+  assert.equal(E.restoreGame({ ...payload, status: 'rescue' }), null);
+  assert.equal(E.restoreGame({ ...payload, completionRecorded: 'yes' }), null);
+  assert.equal(E.restoreGame({ ...payload, completionRecorded: true }), null);
 });

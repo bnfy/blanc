@@ -3,6 +3,7 @@
 'use strict';
 
 const E = window.MahjongEngine;
+const S = window.MahjongState;
 const sound = window.MahjongSound;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -22,19 +23,30 @@ if (window.top !== window.self) {
   document.querySelector('.mj-title').removeAttribute('href');
 }
 
-// Geometry: half-unit -> px. A tile is 2x2 half-units = 52x68 px; layers
-// shift 4px up-right so stack depth reads without 3D theatrics.
+// Geometry: half-unit -> px. Layout descriptors all use the same coordinate
+// system, while the virtual board is recalculated per layout and scaled once
+// into the available lacquer table.
 const HU_X = 26;
 const HU_Y = 34;
-const LAYER_SHIFT = 4;
-const EXTENT_X = Math.max(...E.TURTLE_LAYOUT.map((p) => p.x)) + 2;
-const EXTENT_Y = Math.max(...E.TURTLE_LAYOUT.map((p) => p.y)) + 2;
-const BOARD_W = EXTENT_X * HU_X + 5 * LAYER_SHIFT;
-const BOARD_H = EXTENT_Y * HU_Y + 5 * LAYER_SHIFT;
+const LAYER_SHIFT = 5;
 
 const board = document.getElementById('mjBoard');
-board.style.width = `${BOARD_W}px`;
-board.style.height = `${BOARD_H}px`;
+let positions = E.TURTLE_LAYOUT;
+let boardWidth = 0;
+let boardHeight = 0;
+let extentY = 0;
+
+function setLayoutGeometry(layoutId) {
+  positions = E.LAYOUTS?.[layoutId]?.positions || E.TURTLE_LAYOUT;
+  const maxLayer = Math.max(...positions.map((p) => p.z));
+  const extentX = Math.max(...positions.map((p) => p.x)) + 2;
+  extentY = Math.max(...positions.map((p) => p.y)) + 2;
+  boardWidth = extentX * HU_X + (maxLayer + 1) * LAYER_SHIFT;
+  boardHeight = extentY * HU_Y + (maxLayer + 1) * LAYER_SHIFT;
+  board.style.width = `${boardWidth}px`;
+  board.style.height = `${boardHeight}px`;
+  board.style.setProperty('--mj-layout-layers', String(maxLayer + 1));
+}
 
 // --- tile faces -----------------------------------------------------------
 // One-color ink marks: dots/bamboo pictorial, characters numeral + rule,
@@ -161,22 +173,41 @@ function faceSVG(kind) {
 
 let game = null;
 const tileButtons = [];
+let focusIndex = 0;
+let tileAnimationBusy = false;
+
+function trayIndices() {
+  return Array.isArray(game?.tray)
+    ? game.tray.map((entry) => typeof entry === 'number' ? entry : entry.index)
+        .filter((index) => Number.isInteger(index))
+    : [];
+}
+
+function clearedPairs() {
+  if (!game) return 0;
+  const offBoard = game.removed.reduce((count, removed) => count + Number(removed), 0);
+  return Math.max(0, (offBoard - trayIndices().length) / 2);
+}
 
 function renderBoard() {
+  setLayoutGeometry(game.layoutId);
   board.replaceChildren();
   tileButtons.length = 0;
-  E.TURTLE_LAYOUT.forEach((p, i) => {
+  positions.forEach((p, i) => {
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'mj-tile';
     b.dataset.i = i;
     b.style.left = `${p.x * HU_X + p.z * LAYER_SHIFT}px`;
-    b.style.top = `${(EXTENT_Y - 2 - p.y) * HU_Y - p.z * LAYER_SHIFT + 5 * LAYER_SHIFT}px`;
+    b.style.top = `${(extentY - 2 - p.y) * HU_Y - p.z * LAYER_SHIFT +
+      (Math.max(...positions.map((tile) => tile.z)) + 1) * LAYER_SHIFT}px`;
     b.style.width = `${2 * HU_X}px`;
     b.style.height = `${2 * HU_Y}px`;
-    b.style.zIndex = p.z;
+    b.style.zIndex = String(10 + p.z);
+    b.style.setProperty('--mj-order', String(i));
     b.setAttribute('aria-label', tileName(game.kinds[i]));
     b.setAttribute('aria-pressed', 'false');
+    b.tabIndex = -1;
     // Suit ink (traditional four-color engraving; dragons colored per-tile).
     const [family, id] = game.kinds[i].split('-');
     b.dataset.suit = family === 'drg' ? `drg-${id}` : family;
@@ -187,20 +218,74 @@ function renderBoard() {
   refreshTiles();
 }
 
-function refreshTiles() {
+function renderTray() {
+  const indices = trayIndices();
+  for (let slot = 0; slot < 4; slot++) {
+    const target = document.getElementById(`mjTraySlot${slot}`);
+    if (!target) continue;
+    target.replaceChildren();
+    const index = indices[slot];
+    target.classList.toggle('filled', Number.isInteger(index));
+    target.setAttribute('aria-label', Number.isInteger(index)
+      ? `Tray slot ${slot + 1}: ${tileName(game.kinds[index])}`
+      : `Tray slot ${slot + 1}: empty`);
+    if (!Number.isInteger(index)) continue;
+    const face = faceSVG(game.kinds[index]);
+    face.classList.add('mj-tray-face');
+    target.append(face);
+  }
+  document.getElementById('mjTrayRail')?.toggleAttribute('hidden', game.mode !== 'tray');
+}
+
+function refreshTiles({ recoverFocus = false } = {}) {
+  if (!game) return;
+  let nextFocus = focusIndex;
   tileButtons.forEach((b, i) => {
     b.hidden = game.removed[i];
-    if (E.isFree(game, i)) {
+    const free = !game.removed[i] && E.isFree(game, i);
+    if (free) {
       delete b.dataset.blocked;
       b.removeAttribute('aria-disabled');
     } else {
       b.dataset.blocked = '';
       b.setAttribute('aria-disabled', 'true');
     }
+    b.classList.toggle('selected', game.selected === i);
+    b.setAttribute('aria-pressed', String(game.selected === i));
+    b.setAttribute('aria-label', `${tileName(game.kinds[i])}, ${free ? 'free' : 'blocked'}`);
   });
-  const left = 72 - game.history.length;
+
+  if (!tileButtons[nextFocus] || tileButtons[nextFocus].hidden) {
+    nextFocus = nearestVisibleIndex(focusIndex);
+  }
+  focusIndex = nextFocus;
+  tileButtons.forEach((button, index) => { button.tabIndex = index === focusIndex ? 0 : -1; });
+
+  const left = Math.max(0, positions.length / 2 - clearedPairs());
   document.getElementById('mjPairs').textContent =
     `${left} ${left === 1 ? 'pair' : 'pairs'} left`;
+  const score = document.getElementById('mjScore');
+  if (score) score.textContent = game.mode === 'tray' ? game.score.toLocaleString() : '—';
+  const chain = document.getElementById('mjChain');
+  if (chain) chain.textContent = game.mode === 'tray' && game.chain > 0 ? `×${game.chain}` : '—';
+  document.body.dataset.mode = game.mode;
+  const shell = document.querySelector('.mj');
+  if (shell) {
+    shell.dataset.mode = game.mode;
+    shell.dataset.layout = game.layoutId;
+    shell.dataset.source = game.dailyKey ? 'daily' : 'random';
+  }
+  const layoutName = document.getElementById('mjLayoutName');
+  if (layoutName) layoutName.textContent = E.LAYOUTS[game.layoutId].name;
+  const modeName = document.getElementById('mjModeName');
+  if (modeName) modeName.textContent = game.mode === 'tray' ? 'Tray' : 'Classic';
+  const dailyBadge = document.getElementById('mjDailyBadge');
+  if (dailyBadge) dailyBadge.hidden = !game.dailyKey;
+  renderTray();
+  paintBest();
+  if (recoverFocus && tileButtons[focusIndex] && !tileButtons[focusIndex].hidden) {
+    requestAnimationFrame(() => tileButtons[focusIndex]?.focus({ preventScroll: true }));
+  }
 }
 
 function fitBoard() {
@@ -208,17 +293,17 @@ function fitBoard() {
   // The small floor guards the moment before the view has settled its size;
   // supported browser zoom can legitimately need a scale below 0.2.
   const scale = Math.max(0.05, Math.min(
-    1.25,
-    (wrap.clientWidth - 32) / BOARD_W,
-    (wrap.clientHeight - 32) / BOARD_H
+    1.35,
+    (wrap.clientWidth - 36) / boardWidth,
+    (wrap.clientHeight - 36) / boardHeight
   ));
   board.style.transform = `scale(${scale})`;
+  board.style.setProperty('--mj-board-scale', String(scale));
 }
 window.addEventListener('resize', fitBoard);
 
 // --- interaction ----------------------------------------------------------
 
-let selected = null;
 let playReported = false;
 
 function reportPlayOnce() {
@@ -231,35 +316,178 @@ function reportPlayOnce() {
   window.bowserPages?.mahjong?.played?.().catch(() => {});
 }
 
-function setSelected(i) {
-  if (selected !== null) {
-    tileButtons[selected].classList.remove('selected');
-    tileButtons[selected].setAttribute('aria-pressed', 'false');
+function announce(message) {
+  const live = document.getElementById('mjLive');
+  if (!live) return;
+  live.textContent = '';
+  requestAnimationFrame(() => { live.textContent = message; });
+}
+
+const modalBackground = () => [
+  document.querySelector('.mj-skip'),
+  document.querySelector('.mj-head'),
+  document.getElementById('mjBoard'),
+  document.getElementById('mjTrayRail'),
+  document.querySelector('.mj-feedback'),
+  document.querySelector('.mj-dock'),
+].filter(Boolean);
+
+function activeModal() {
+  return ['mjSetupSheet', 'mjRescue', 'mjWin']
+    .map((id) => document.getElementById(id))
+    .find((element) => element && !element.hidden) || null;
+}
+
+function syncModalBackground() {
+  const covered = Boolean(activeModal());
+  for (const element of modalBackground()) {
+    element.inert = covered || tileAnimationBusy;
+    element.toggleAttribute('aria-hidden', covered);
   }
-  selected = i;
-  if (i !== null) {
-    tileButtons[i].classList.add('selected');
-    tileButtons[i].setAttribute('aria-pressed', 'true');
+}
+
+function setTileAnimationBusy(busy) {
+  tileAnimationBusy = busy;
+  board.toggleAttribute('aria-busy', busy);
+  board.style.pointerEvents = busy ? 'none' : '';
+  syncModalBackground();
+}
+
+function setDialogVisible(element, visible) {
+  if (!element) return;
+  if (typeof element.showModal === 'function' && typeof element.close === 'function') {
+    if (visible && !element.open) element.showModal();
+    else if (!visible && element.open) element.close();
+  } else {
+    element.hidden = !visible;
   }
+  syncModalBackground();
+  if (visible) {
+    requestAnimationFrame(() => element.querySelector(
+      'button:not([disabled]):not([tabindex="-1"]), input:not([disabled])'
+    )?.focus({ preventScroll: true }));
+  }
+}
+
+function nearestVisibleIndex(origin = 0) {
+  const source = positions[origin] || positions[0];
+  let best = -1;
+  let bestDistance = Infinity;
+  for (let index = 0; index < positions.length; index++) {
+    if (game?.removed[index]) continue;
+    const point = positions[index];
+    const distance = Math.hypot(point.x - source.x, point.y - source.y) + Math.abs(point.z - source.z) * 0.35;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      best = index;
+    }
+  }
+  return Math.max(0, best);
+}
+
+function spatialNeighbor(origin, key) {
+  const source = positions[origin];
+  if (!source) return nearestVisibleIndex(0);
+  const direction = {
+    ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1],
+  }[key];
+  if (!direction) return origin;
+  let winner = origin;
+  let winnerScore = Infinity;
+  for (let index = 0; index < positions.length; index++) {
+    if (index === origin || game.removed[index]) continue;
+    const candidate = positions[index];
+    const dx = candidate.x - source.x;
+    const dy = candidate.y - source.y;
+    const forward = dx * direction[0] + dy * direction[1];
+    if (forward <= 0) continue;
+    const across = Math.abs(dx * direction[1] - dy * direction[0]);
+    const score = forward + across * 2.4 + Math.abs(candidate.z - source.z) * 0.8;
+    if (score < winnerScore) {
+      winnerScore = score;
+      winner = index;
+    }
+  }
+  return winner;
 }
 
 function checkEndStates() {
   const notice = document.getElementById('mjNotice');
   if (E.isWon(game)) {
     stopTimer();
-    notice.hidden = true;
+    if (notice) notice.hidden = true;
+    setDialogVisible(document.getElementById('mjRescue'), false);
+    recordCompletion();
     showWin();
     return;
   }
-  document.getElementById('mjWin').hidden = true;
-  notice.hidden = E.movesAvailable(game).length > 0;
+  setDialogVisible(document.getElementById('mjWin'), false);
+  const rescuing = game.status === 'rescue';
+  setDialogVisible(document.getElementById('mjRescue'), rescuing);
+  if (rescuing) {
+    pauseTimer();
+    announce('The tray is full. Undo, shuffle and continue, or restart.');
+  }
+  if (notice) notice.hidden = rescuing || E.availableMoves(game).length > 0;
 }
 
-board.addEventListener('click', (event) => {
+function cueForResult(result) {
+  if (E.isWon(game)) return 'win';
+  if (game.status === 'rescue' || result.type === 'rescue') return 'rescue';
+  if (result.type === 'tray-pair') return result.points > 100 ? 'chain' : 'pair';
+  if (result.type === 'tray-park') return 'tray';
+  if (result.type === 'pair') return 'pair';
+  return 'select';
+}
+
+function finishTileResult(result, index) {
+  setTileAnimationBusy(false);
+  refreshTiles({ recoverFocus: ['pair', 'tray-pair', 'tray-park', 'rescue'].includes(result.type) });
+  checkEndStates();
+  if (result.type === 'tray-pair') {
+    announce(`${result.points} points. ${game.score} total. ${clearedPairs()} pairs cleared.`);
+  } else if (result.type === 'tray-park') {
+    announce(`${tileName(game.kinds[index])} moved to tray. ${trayIndices().length} of 4 slots filled.`);
+  } else if (result.type === 'pair') {
+    announce(`Pair cleared. ${Math.max(0, positions.length / 2 - clearedPairs())} pairs left.`);
+  }
+}
+
+function animateTileResult(result, index) {
+  const departing = result.type === 'pair' || result.type === 'tray-pair'
+    ? result.indices
+    : result.type === 'tray-park' || result.type === 'rescue'
+      ? [result.index]
+      : [];
+  if (!departing.length) {
+    finishTileResult(result, index);
+    return;
+  }
+  const className = result.type === 'tray-park' || result.type === 'rescue'
+    ? 'tray-travel'
+    : 'removing';
+  setTileAnimationBusy(true);
+  for (const tileIndex of departing) {
+    const button = tileButtons[tileIndex];
+    if (!button || button.hidden) continue;
+    button.classList.remove(className);
+    void button.offsetWidth;
+    button.classList.add(className);
+  }
+  if (result.type === 'tray-pair') {
+    const score = document.getElementById('mjScore');
+    score?.classList.remove('score-pulse');
+    if (score) void score.offsetWidth;
+    score?.classList.add('score-pulse');
+  }
+  const immediate = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  window.setTimeout(() => finishTileResult(result, index), immediate ? 0 : 300);
+}
+
+function activateTile(i, tile = tileButtons[i]) {
   if (!game) return;
-  const tile = event.target.closest('.mj-tile');
-  if (!tile || tile.hidden) return;
-  const i = Number(tile.dataset.i);
+  if (board.hasAttribute('aria-busy')) return;
+  if (!tile || tile.hidden || game.status === 'won' || game.status === 'rescue') return;
   if (!E.isFree(game, i)) {
     sound.play('blocked');
     tile.classList.remove('shake');
@@ -272,51 +500,166 @@ board.addEventListener('click', (event) => {
   // a packaged build, and one event per app session.
   reportPlayOnce();
   startTimer();
-  if (selected === null) { sound.play('select'); setSelected(i); return; }
-  if (selected === i) { sound.play('select'); setSelected(null); return; }
-  if (E.removePair(game, selected, i)) {
-    sound.play(E.isWon(game) ? 'win' : 'pair');
-    setSelected(null);
-    refreshTiles();
-    checkEndStates();
-  } else {
-    sound.play('select');
-    setSelected(i); // non-matching free tile: move the selection
-  }
+  const wasWon = E.isWon(game);
+  const result = E.selectTile(game, i);
+  if (!result?.ok) return;
+  focusIndex = i;
+  sound.play(cueForResult(result));
+  const wonNow = !wasWon && E.isWon(game);
+  if (wonNow || game.status === 'rescue') pauseTimer();
+  if (wonNow) recordCompletion();
+  else saveAfterMutation();
+  animateTileResult(result, i);
+}
+
+board.addEventListener('click', (event) => {
+  const tile = event.target.closest('.mj-tile');
+  if (!tile) return;
+  activateTile(Number(tile.dataset.i), tile);
 });
 
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') setSelected(null);
+  const target = event.target;
+  if (tileAnimationBusy) {
+    const key = event.key.toLowerCase();
+    if (event.key.startsWith('Arrow') || event.key === 'Enter' || event.key === ' ' ||
+        ['u', 'h', 's'].includes(key) || ((event.metaKey || event.ctrlKey) && key === 'z')) {
+      event.preventDefault();
+    }
+    return;
+  }
+  const modal = activeModal();
+  if (modal) {
+    if (event.key === 'Escape' && modal.id === 'mjSetupSheet') {
+      event.preventDefault();
+      closeSetup();
+      return;
+    }
+    if (event.key === 'Tab') {
+      const focusable = [...modal.querySelectorAll(
+        'button:not([disabled]):not([tabindex="-1"]), input:not([disabled])'
+      )].filter((element) => !element.hidden);
+      if (focusable.length) {
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    }
+    return;
+  }
+  if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) return;
+  if (event.key.startsWith('Arrow') && game) {
+    event.preventDefault();
+    focusIndex = spatialNeighbor(focusIndex, event.key);
+    refreshTiles();
+    tileButtons[focusIndex]?.focus({ preventScroll: true });
+    return;
+  }
+  if ((event.key === 'Enter' || event.key === ' ') && target?.classList?.contains('mj-tile')) {
+    event.preventDefault();
+    activateTile(Number(target.dataset.i), target);
+    return;
+  }
+  const key = event.key.toLowerCase();
+  if ((event.metaKey || event.ctrlKey) && key === 'z') {
+    event.preventDefault();
+    document.getElementById('mjUndo').click();
+  } else if (!event.metaKey && !event.ctrlKey && !event.altKey && key === 'u') {
+    event.preventDefault();
+    document.getElementById('mjUndo').click();
+  } else if (!event.metaKey && !event.ctrlKey && !event.altKey && key === 'h') {
+    event.preventDefault();
+    document.getElementById('mjHint').click();
+  } else if (!event.metaKey && !event.ctrlKey && !event.altKey && key === 's') {
+    event.preventDefault();
+    document.getElementById('mjShuffle').click();
+  } else if (event.key === 'Escape' && game?.selected !== null) {
+    game.selected = null;
+    saveAfterMutation();
+    refreshTiles();
+  }
 });
 
 document.getElementById('mjUndo').addEventListener('click', () => {
   if (!game || !E.undo(game)) return;
   sound.play('undo');
   resumeTimerAfterUndo();
-  setSelected(null);
-  refreshTiles();
+  saveAfterMutation();
+  refreshTiles({ recoverFocus: true });
   checkEndStates();
+  announce('Last move undone.');
 });
 document.getElementById('mjNoticeUndo').addEventListener('click', () =>
   document.getElementById('mjUndo').click());
 
 document.getElementById('mjHint').addEventListener('click', () => {
   if (!game) return;
-  const moves = E.movesAvailable(game);
+  const moves = E.availableMoves(game);
   if (!moves.length) return;
+  game.assists.hint += 1;
+  saveAfterMutation();
   sound.play('hint');
-  const [i, j] = moves[0];
-  for (const k of [i, j]) {
+  const move = moves[0];
+  const visible = move.filter((index) => tileButtons[index] && !game.removed[index]);
+  for (const k of visible) {
     tileButtons[k].classList.remove('hinted');
     void tileButtons[k].offsetWidth;
     tileButtons[k].classList.add('hinted');
   }
+  if (move.length === 2 && move.some((index) => game.tray.includes(index))) {
+    const trayIndex = move.find((index) => game.tray.includes(index));
+    announce(`Hint: a ${tileName(game.kinds[trayIndex])} in the tray has a free match.`);
+  } else if (visible.length === 2) {
+    announce(`Hint: two ${tileName(game.kinds[visible[0]])} tiles are available.`);
+  } else {
+    announce(`Hint: ${tileName(game.kinds[visible[0]])} is free to move into the tray.`);
+  }
 });
 
+function randomSeed() {
+  const values = new Uint32Array(1);
+  crypto.getRandomValues(values);
+  return values[0];
+}
+
+function shuffleGame() {
+  if (!game || E.isWon(game)) return false;
+  const wasRescue = game.status === 'rescue';
+  if (!E.shuffleRemaining(game, E.createRng(randomSeed()))) return false;
+  sound.play('shuffle');
+  saveAfterMutation();
+  renderBoard();
+  refreshTiles({ recoverFocus: true });
+  board.classList.remove('shuffle-cascade');
+  void board.offsetWidth;
+  board.classList.add('shuffle-cascade');
+  window.setTimeout(() => board.classList.remove('shuffle-cascade'), 540);
+  fitBoard();
+  checkEndStates();
+  if (wasRescue) resumeTimerAfterUndo();
+  announce('Remaining tiles shuffled into a new solvable deal.');
+  return true;
+}
+document.getElementById('mjShuffle').addEventListener('click', shuffleGame);
+document.getElementById('mjRescueUndo')?.addEventListener('click', () =>
+  document.getElementById('mjUndo').click());
+document.getElementById('mjRescueShuffle')?.addEventListener('click', shuffleGame);
+
 const soundButton = document.getElementById('mjSound');
+function setDockLabel(button, label) {
+  const target = button.querySelector('[data-dock-label]');
+  if (target) target.textContent = label;
+  else button.textContent = label;
+}
 function paintSoundButton() {
   const enabled = sound.isEnabled();
-  soundButton.textContent = enabled ? 'sound on' : 'sound off';
+  setDockLabel(soundButton, enabled ? 'Sound on' : 'Sound off');
   soundButton.setAttribute('aria-pressed', String(enabled));
   soundButton.setAttribute('aria-label', `Sound effects ${enabled ? 'on' : 'off'}`);
 }
@@ -328,11 +671,11 @@ soundButton.addEventListener('click', () => {
 paintSoundButton();
 
 // --- timer + best ---------------------------------------------------------
-// Elapsed is always Date.now() - startedAt: background tabs throttle
-// intervals, so ticks only repaint — they never accumulate time.
+// Elapsed time is checkpointed into the serializable state. Hidden pages,
+// quiet tabs, rescue dialogs, and a closed Blanc window never accrue time.
 
-let startedAt = null;
-let finishedAt = null;
+let runningSince = null;
+let hasStarted = false;
 let tickHandle = null;
 
 function formatMs(ms) {
@@ -341,71 +684,166 @@ function formatMs(ms) {
 }
 
 function paintTimer() {
-  const elapsed = startedAt === null ? 0 : (finishedAt ?? Date.now()) - startedAt;
-  document.getElementById('mjTimer').textContent = formatMs(elapsed);
+  if (!game) return;
+  const live = runningSince === null ? 0 : Math.max(0, Date.now() - runningSince);
+  document.getElementById('mjTimer').textContent = formatMs(game.elapsedMs + live);
 }
 
 function startTimer() {
-  if (startedAt !== null) return;
-  startedAt = Date.now();
+  hasStarted = true;
+  if (runningSince !== null || document.hidden || !embedActive || game?.status !== 'playing') return;
+  runningSince = Date.now();
+  clearInterval(tickHandle);
   tickHandle = setInterval(paintTimer, 500);
 }
 
-function stopTimer() {
-  finishedAt = Date.now();
+function checkpointTimer() {
+  if (!game || runningSince === null) return;
+  const now = Date.now();
+  game.elapsedMs += Math.max(0, now - runningSince);
+  runningSince = now;
+}
+
+function pauseTimer() {
+  checkpointTimer();
+  runningSince = null;
   clearInterval(tickHandle);
   tickHandle = null;
   paintTimer();
 }
 
+function stopTimer() { pauseTimer(); }
+
 function resumeTimerAfterUndo() {
-  if (finishedAt === null) return;
-  startedAt += Date.now() - finishedAt; // don't bill the time spent won
-  finishedAt = null;
-  tickHandle = setInterval(paintTimer, 500);
+  if (!game) return;
+  game.status = 'playing';
+  if (hasStarted) startTimer();
 }
 
 function resetTimer() {
   clearInterval(tickHandle);
   tickHandle = null;
-  startedAt = null;
-  finishedAt = null;
+  runningSince = null;
+  hasStarted = false;
   paintTimer();
 }
 
-function readBest() {
-  try {
-    const raw = Number(localStorage.getItem('mahjong.best'));
-    return Number.isFinite(raw) && raw > 0 ? raw : null;
-  } catch { return null; }
+function bestForGame() {
+  if (!recordStore || !game) return null;
+  const records = recordStore.read();
+  return game.mode === 'classic'
+    ? records.classic[game.layoutId] || null
+    : records.tray[game.layoutId] || null;
 }
 
-function writeBest(ms) {
-  try { localStorage.setItem('mahjong.best', String(ms)); } catch { /* no best line */ }
+function paintBest() {
+  const target = document.getElementById('mjBest');
+  if (!target || !game) return;
+  const best = bestForGame();
+  if (!best) {
+    target.textContent = 'No record';
+  } else if (game.mode === 'classic') {
+    target.textContent = `Best ${formatMs(best.bestTimeMs)}`;
+  } else {
+    target.textContent = `Best ${best.bestScore.toLocaleString()} · ${formatMs(best.bestTimeMs)}`;
+  }
+}
+
+function recordCompletion() {
+  if (!game || game.completionRecorded) return true;
+  pauseTimer();
+  const before = bestForGame();
+  const updated = recordStore?.record({
+    gameId,
+    layoutId: game.layoutId,
+    mode: game.mode,
+    elapsedMs: game.elapsedMs,
+    score: game.score,
+    completed: true,
+    dailyKey: game.dailyKey,
+    assists: game.assists,
+  });
+  game.completionRecorded = Boolean(updated);
+  const after = updated && (game.mode === 'classic'
+    ? updated.classic[game.layoutId]
+    : updated.tray[game.layoutId]);
+  game._newRecord = !before || (game.mode === 'classic'
+    ? after?.bestTimeMs < before.bestTimeMs
+    : after?.bestScore > before.bestScore ||
+      (after?.bestScore === before.bestScore && after?.bestTimeMs < before.bestTimeMs));
+  saveAfterMutation();
+  return Boolean(updated);
 }
 
 function showWin() {
-  const elapsed = finishedAt - startedAt;
-  const prior = readBest();
-  const isNewBest = prior === null || elapsed < prior;
-  if (isNewBest) writeBest(elapsed);
-  document.getElementById('mjWinTime').textContent = formatMs(elapsed);
-  document.getElementById('mjWinBest').textContent = isNewBest
-    ? (prior === null ? 'first win' : `new best — was ${formatMs(prior)}`)
-    : `best ${formatMs(readBest())}`;
-  document.getElementById('mjWin').hidden = false;
+  const best = bestForGame();
+  const label = game.mode === 'classic'
+    ? formatMs(game.elapsedMs)
+    : `${game.score.toLocaleString()} points · ${formatMs(game.elapsedMs)}`;
+  document.getElementById('mjWinTime').textContent = label;
+  document.getElementById('mjWinBest').textContent = game._newRecord
+    ? 'new record'
+    : best
+      ? (game.mode === 'classic'
+          ? `best ${formatMs(best.bestTimeMs)}`
+          : `best ${best.bestScore.toLocaleString()} · ${formatMs(best.bestTimeMs)}`)
+      : 'complete';
+  setDialogVisible(document.getElementById('mjWin'), true);
+  announce(`Board cleared. ${label}.`);
 }
 
 // --- lifecycle ------------------------------------------------------------
 
-function newGame() {
-  selected = null;
+const FREE_HIGHLIGHT_KEY = 'mahjong.free-highlight';
+let gameId = null;
+let gameStore = null;
+let recordStore = null;
+let duplicateGuard = null;
+let duplicateChannel = null;
+let embedActive = true;
+let setupChoice = { layoutId: 'turtle', mode: 'classic', source: 'random' };
+let setupReturnToWin = false;
+
+function saveAfterMutation() {
+  if (!game || !gameStore || !gameId) return false;
+  checkpointTimer();
+  game.gameId = gameId;
+  game.updatedAt = Date.now();
+  return gameStore.save(gameId, game);
+}
+
+function configureGame(nextGame, { recovered = false } = {}) {
+  game = nextGame;
+  game.gameId = gameId;
+  game.assists ||= { undo: 0, hint: 0, shuffle: 0 };
+  focusIndex = nearestVisibleIndex(0);
+  hasStarted = game.elapsedMs > 0 || game.history.length > 0 ||
+    game.tray.length > 0 || game.selected !== null;
   resetTimer();
+  hasStarted = game.elapsedMs > 0 || game.history.length > 0 ||
+    game.tray.length > 0 || game.selected !== null;
   document.getElementById('mjNotice').hidden = true;
   document.getElementById('mjError').hidden = true;
-  document.getElementById('mjWin').hidden = true;
+  setDialogVisible(document.getElementById('mjWin'), false);
+  setDialogVisible(document.getElementById('mjRescue'), false);
+  renderBoard();
+  fitBoard();
+  requestAnimationFrame(fitBoard);
+  paintTimer();
+  checkEndStates();
+  if (hasStarted && game.status === 'playing') startTimer();
+}
+
+function startGame({ layoutId, mode, seed, dailyKey = null }, { soundCue = true } = {}) {
+  pauseTimer();
   try {
-    game = E.createGame(Math.floor(Math.random() * 2 ** 31));
+    const next = E.createGame({ seed, layoutId, mode, gameId, dailyKey });
+    next.gameId = gameId;
+    next.dailyKey = dailyKey;
+    configureGame(next);
+    saveAfterMutation();
+    if (soundCue) sound.play('deal');
+    announce(`${E.LAYOUTS[layoutId].name} ${mode} game ready.`);
   } catch {
     // Never expected (defensive cap in generateDeal); leave no stale board.
     game = null;
@@ -413,20 +851,240 @@ function newGame() {
     tileButtons.length = 0;
     document.getElementById('mjPairs').textContent = '';
     document.getElementById('mjError').hidden = false;
-    return;
+    return false;
   }
-  renderBoard();
-  fitBoard();
-  requestAnimationFrame(fitBoard);
+  return true;
 }
 
 function newGameFromControl() {
-  sound.play('deal');
-  newGame();
+  const layoutId = game?.layoutId || 'turtle';
+  const mode = game?.mode || 'classic';
+  startGame({ layoutId, mode, seed: randomSeed() });
 }
+
+function paintSetupChoices() {
+  if (setupChoice.source === 'daily') setupChoice.layoutId = S.dailyDeal(new Date()).layoutId;
+  for (const button of document.querySelectorAll('#mjSetupSheet button[data-layout]')) {
+    const selected = button.dataset.layout === setupChoice.layoutId;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+    button.disabled = setupChoice.source === 'daily';
+  }
+  for (const button of document.querySelectorAll('#mjSetupSheet button[data-mode]')) {
+    const selected = button.dataset.mode === setupChoice.mode;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  }
+  for (const button of document.querySelectorAll('#mjSetupSheet button[data-source]')) {
+    const selected = button.dataset.source === setupChoice.source;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', String(selected));
+  }
+  const modeDescription = document.getElementById('mjModeDescription');
+  if (modeDescription) modeDescription.textContent = setupChoice.mode === 'tray'
+    ? 'Move free tiles into a four-slot matching tray.'
+    : 'Match two free tiles directly.';
+  const sourceDescription = document.getElementById('mjSourceDescription');
+  if (sourceDescription) sourceDescription.textContent = setupChoice.source === 'daily'
+    ? `${S.dailyDeal(new Date()).dailyKey} · ${E.LAYOUTS[setupChoice.layoutId].name}`
+    : 'A fresh, guaranteed-solvable board.';
+}
+
+function openSetup() {
+  setupReturnToWin = E.isWon(game);
+  if (setupReturnToWin) setDialogVisible(document.getElementById('mjWin'), false);
+  setupChoice = {
+    layoutId: game?.layoutId || 'turtle',
+    mode: game?.mode || 'classic',
+    source: game?.dailyKey ? 'daily' : 'random',
+  };
+  paintSetupChoices();
+  setDialogVisible(document.getElementById('mjSetupSheet'), true);
+}
+
+function closeSetup() {
+  setDialogVisible(document.getElementById('mjSetupSheet'), false);
+  if (setupReturnToWin && E.isWon(game)) {
+    setupReturnToWin = false;
+    setDialogVisible(document.getElementById('mjWin'), true);
+  } else {
+    setupReturnToWin = false;
+    document.getElementById('mjSetup')?.focus();
+  }
+}
+
+function startSetupChoice() {
+  if (setupChoice.source === 'daily') {
+    const daily = S.dailyDeal(new Date());
+    startGame({ ...daily, mode: setupChoice.mode });
+  } else {
+    startGame({
+      layoutId: setupChoice.layoutId,
+      mode: setupChoice.mode,
+      seed: randomSeed(),
+    });
+  }
+  closeSetup();
+}
+
+for (const button of document.querySelectorAll('#mjSetupSheet button[data-layout]')) {
+  button.addEventListener('click', () => {
+    if (setupChoice.source === 'daily') return;
+    setupChoice.layoutId = button.dataset.layout;
+    paintSetupChoices();
+  });
+}
+for (const button of document.querySelectorAll('#mjSetupSheet button[data-mode]')) {
+  button.addEventListener('click', () => {
+    setupChoice.mode = button.dataset.mode;
+    paintSetupChoices();
+  });
+}
+for (const button of document.querySelectorAll('#mjSetupSheet button[data-source]')) {
+  button.addEventListener('click', () => {
+    setupChoice.source = button.dataset.source;
+    if (setupChoice.source === 'daily') setupChoice.layoutId = S.dailyDeal(new Date()).layoutId;
+    paintSetupChoices();
+  });
+}
+
+document.getElementById('mjSetup')?.addEventListener('click', openSetup);
+document.getElementById('mjSetupClose')?.addEventListener('click', closeSetup);
+document.getElementById('mjSetupScrim')?.addEventListener('click', closeSetup);
+document.getElementById('mjStart')?.addEventListener('click', startSetupChoice);
 document.getElementById('mjNew').addEventListener('click', newGameFromControl);
 document.getElementById('mjNoticeNew').addEventListener('click', newGameFromControl);
-document.getElementById('mjWinNew').addEventListener('click', newGameFromControl);
+document.getElementById('mjWinNew').addEventListener('click', openSetup);
+document.getElementById('mjWinBoards')?.addEventListener('click', openSetup);
 document.getElementById('mjErrorNew').addEventListener('click', newGameFromControl);
+document.getElementById('mjRescueRestart')?.addEventListener('click', () => {
+  if (!game) return;
+  const started = startGame({
+    layoutId: game.layoutId,
+    mode: game.mode,
+    seed: game.seed,
+    dailyKey: game.dailyKey,
+  });
+  if (started) requestAnimationFrame(() => tileButtons[focusIndex]?.focus({ preventScroll: true }));
+});
 
-newGame();
+const freeHighlight = document.getElementById('mjFreeHighlight');
+function setFreeHighlight(enabled) {
+  document.body.dataset.freeHighlight = enabled ? 'strong' : 'standard';
+  const shell = document.querySelector('.mj');
+  if (shell) shell.dataset.freeHighlight = enabled ? 'strong' : 'standard';
+  if (freeHighlight) freeHighlight.checked = enabled;
+  try { localStorage.setItem(FREE_HIGHLIGHT_KEY, enabled ? 'on' : 'off'); } catch { /* per-session */ }
+}
+let strongFree = false;
+try { strongFree = localStorage.getItem(FREE_HIGHLIGHT_KEY) === 'on'; } catch { /* default restrained */ }
+setFreeHighlight(strongFree);
+freeHighlight?.addEventListener('change', () => setFreeHighlight(freeHighlight.checked));
+
+function notifyParentGameId() {
+  if (window.top !== window.self) {
+    window.parent.postMessage({ type: 'blanc:mahjong-game-id', id: gameId }, 'blanc://newtab');
+  }
+}
+
+function installDuplicateGuard() {
+  if (duplicateGuard || typeof BroadcastChannel !== 'function') return;
+  duplicateChannel = new BroadcastChannel('blanc-mahjong-v2-live');
+  duplicateGuard = S.createDuplicateGuard({
+    channel: duplicateChannel,
+    gameId,
+    onFork: ({ from, to }) => {
+      pauseTimer();
+      // Never write the duplicate's in-memory state back over the original
+      // id during the fork handshake. Preserve its current moves directly
+      // under the new id; fall back to the validated shared save only when
+      // this renderer has not configured a game yet.
+      let forked = null;
+      if (game) {
+        const payload = E.serializeGame(game);
+        payload.gameId = to;
+        forked = E.restoreGame(payload);
+        if (forked) gameStore.save(to, forked);
+      }
+      if (!forked) forked = gameStore.forkSavedGame(from, to);
+      const changed = S.forkGameId({ href: location.href, history, uuid: () => to });
+      gameId = changed.gameId;
+      if (forked) game = forked;
+      if (!game) return;
+      game.gameId = gameId;
+      saveAfterMutation();
+      notifyParentGameId();
+      renderBoard();
+      fitBoard();
+      announce('This duplicated tab now has its own independent game.');
+      if (hasStarted && game.status === 'playing') startTimer();
+    },
+  });
+}
+
+function disposeDuplicateGuard() {
+  duplicateGuard?.dispose();
+  duplicateChannel?.close();
+  duplicateGuard = null;
+  duplicateChannel = null;
+}
+
+function bootstrap() {
+  const identity = S.ensureGameId({ href: location.href, history });
+  gameId = identity.gameId;
+  gameStore = S.createGameStore({ storage: localStorage, engine: E });
+  recordStore = S.createRecordStore({ storage: localStorage });
+  recordStore.migrateLegacy();
+
+  let hadSave = false;
+  try { hadSave = localStorage.getItem(S.gameStorageKey(gameId)) !== null; } catch { /* unavailable */ }
+  gameStore.cleanup();
+  const restored = gameStore.load(gameId);
+  if (restored) {
+    configureGame(restored, { recovered: true });
+    announce('Saved game restored.');
+  } else {
+    if (hadSave) {
+      const notice = document.getElementById('mjRecoveryNotice');
+      if (notice) notice.hidden = false;
+    }
+    startGame({ layoutId: 'turtle', mode: 'classic', seed: randomSeed() }, { soundCue: false });
+  }
+  notifyParentGameId();
+  installDuplicateGuard();
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!game) return;
+  if (document.hidden) {
+    pauseTimer();
+    saveAfterMutation();
+  } else if (embedActive && hasStarted && game.status === 'playing') {
+    startTimer();
+  }
+});
+
+window.addEventListener('message', (event) => {
+  if (window.top === window.self || event.source !== window.parent || event.origin !== 'blanc://newtab' ||
+      event.data?.type !== 'blanc:mahjong-active' || typeof event.data.active !== 'boolean') return;
+  embedActive = event.data.active;
+  if (!embedActive) {
+    pauseTimer();
+    saveAfterMutation();
+  } else if (!document.hidden && hasStarted && game?.status === 'playing') {
+    startTimer();
+  }
+});
+
+window.addEventListener('pagehide', (event) => {
+  pauseTimer();
+  saveAfterMutation();
+  if (!event.persisted) disposeDuplicateGuard();
+});
+
+window.addEventListener('pageshow', (event) => {
+  if (event.persisted) installDuplicateGuard();
+  if (!document.hidden && embedActive && hasStarted && game?.status === 'playing') startTimer();
+});
+
+bootstrap();

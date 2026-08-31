@@ -467,9 +467,29 @@ function install(refs) {
           url: location.href,
           tileCount: document.querySelectorAll('.mj-tile').length,
           freeTileCount: document.querySelectorAll('.mj-tile:not([data-blocked])').length,
+          timer: document.getElementById('mjTimer')?.textContent ?? null,
+          mode: document.querySelector('.mj')?.dataset.mode ?? null,
+          layout: document.querySelector('.mj')?.dataset.layout ?? null,
         }))()`);
       } catch {
         return null;
+      }
+    },
+    async clickMahjongFreeTile() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return false;
+      try {
+        return await frame.executeJavaScript(`(() => {
+          const tile = document.querySelector('.mj-tile:not([data-blocked]):not([hidden])');
+          if (!tile) return false;
+          tile.click();
+          return true;
+        })()`);
+      } catch {
+        return false;
       }
     },
     clickNewtabLayoutSwitcher(name) {

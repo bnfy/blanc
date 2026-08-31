@@ -450,25 +450,71 @@ function stopClock() {
   clockTimer = null;
 }
 
-// The mahjong layout embeds the real game page — one implementation, one
-// localStorage best. The iframe stays src-less until first shown; the game
-// is unaffected by this page's data feeds, so it never re-renders.
+// The mahjong layout embeds the real game page — one implementation and one
+// independently restorable instance. The opaque id lives on the parent URL
+// so Blanc's ordinary session persistence restores embedded boards after a
+// relaunch; the deal itself never enters the URL.
+function freshMahjongGameId() {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+function setMahjongGameId(id) {
+  const url = new URL(location.href);
+  url.searchParams.set('game', id);
+  history.replaceState(history.state, '', url);
+  return id;
+}
+
+function mahjongGameId() {
+  const existing = new URLSearchParams(location.search).get('game');
+  return existing || setMahjongGameId(freshMahjongGameId());
+}
+
 function renderMahjongEmbed() {
-  document.getElementById('mahjongFrame').src =
-    isPrivate ? 'blanc://mahjong/?private=1' : 'blanc://mahjong/';
+  const frame = document.getElementById('mahjongFrame');
+  if (frame.getAttribute('src')) return;
+  const url = new URL('blanc://mahjong/');
+  if (isPrivate) url.searchParams.set('private', '1');
+  url.searchParams.set('game', mahjongGameId());
+  frame.src = url.href;
+}
+
+function notifyMahjongActivity() {
+  if (!mahjongFrame.getAttribute('src') || !mahjongFrame.contentWindow) return;
+  mahjongFrame.contentWindow.postMessage({
+    type: 'blanc:mahjong-active',
+    active: state.layout === 'mahjong',
+  }, 'blanc://mahjong');
 }
 
 // A WebContentsView preload deliberately does not run in child frames. Relay
 // the game's one fixed signal through this trusted top-level document only
 // when it comes from the exact managed iframe and its internal origin.
 const mahjongFrame = document.getElementById('mahjongFrame');
+mahjongFrame.addEventListener('load', notifyMahjongActivity);
 window.addEventListener('message', (event) => {
   if (
     event.origin !== 'blanc://mahjong' ||
     event.source !== mahjongFrame.contentWindow ||
-    event.data !== 'blanc:mahjong-played'
+    (event.data !== 'blanc:mahjong-played' && event.data?.type !== 'blanc:mahjong-game-id')
   ) return;
-  window.bowserPages.start.mahjongPlayed().catch(() => {});
+  if (event.data === 'blanc:mahjong-played') {
+    window.bowserPages.start.mahjongPlayed().catch(() => {});
+    return;
+  }
+  // A duplicated live game forks itself before saving. Mirror that new id
+  // onto the parent URL so the fork survives a full Blanc restart.
+  if (event.data?.type === 'blanc:mahjong-game-id' &&
+      typeof event.data.id === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(event.data.id)) {
+    setMahjongGameId(event.data.id);
+  }
 });
 
 // The switcher's "new" badge retires once the layout has been tried on this
@@ -503,6 +549,7 @@ function applyLayout(name) {
     try { localStorage.setItem(MAHJONG_SEEN_KEY, '1'); } catch { /* badge stays */ }
     syncMahjongBadge();
   }
+  notifyMahjongActivity();
   if (name === 'billboard') startClock();
 }
 

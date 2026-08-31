@@ -72,7 +72,25 @@ test.beforeEach(() => { FakeAudioContext.instances.length = 0; });
 test('the cue set covers every Mahjong interaction sound', () => {
   assert.deepEqual(
     Object.keys(CUES),
-    ['select', 'pair', 'blocked', 'undo', 'hint', 'deal', 'win', 'toggle']
+    [
+      'select', 'tray', 'pair', 'chain', 'blocked', 'undo', 'hint', 'deal',
+      'shuffle', 'rescue', 'win', 'toggle',
+    ]
+  );
+});
+
+test('v2 tray, chain, rescue, and shuffle cues remain local and lazy', () => {
+  const sound = createMahjongSound({ AudioContextClass: FakeAudioContext, storage: memoryStorage() });
+  assert.equal(FakeAudioContext.instances.length, 0, 'construction must stay silent');
+
+  for (const cue of ['tray', 'chain', 'rescue', 'shuffle']) {
+    assert.equal(sound.play(cue), true, `${cue} cue should be playable`);
+  }
+
+  assert.equal(FakeAudioContext.instances.length, 1, 'all cues should reuse one local graph');
+  assert.equal(
+    FakeAudioContext.instances[0].oscillators.length,
+    CUES.tray.length + CUES.chain.length + CUES.rescue.length + CUES.shuffle.length,
   );
 });
 
