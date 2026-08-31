@@ -534,6 +534,22 @@ function setTileAnimationBusy(busy) {
   syncModalBackground();
 }
 
+function invalidateTileAnimations() {
+  tileAnimationGeneration += 1;
+  scoreAnimationGeneration += 1;
+  comboAnimationPauseCount = 0;
+  clearTransientMotion();
+  if (comboFxTimer !== null) window.clearTimeout(comboFxTimer);
+  comboFxTimer = null;
+  const fx = document.getElementById('mjComboFx');
+  if (fx) fx.className = 'mj-combo-fx';
+  for (const slot of document.querySelectorAll('.mj-tray-slot')) {
+    slot.classList.remove('auto-clearing', 'is-rippling', 'is-receiving', 'is-matching');
+  }
+  for (const score of scoreElements()) score.classList.remove('score-pulse');
+  setTileAnimationBusy(false);
+}
+
 function beginComboAnimationPause() {
   checkpointComboClock();
   comboAnimationPauseCount += 1;
@@ -971,6 +987,7 @@ document.addEventListener('keydown', (event) => {
 
 document.getElementById('mjUndo').addEventListener('click', () => {
   if (!game || !E.undo(game)) return;
+  invalidateTileAnimations();
   sound.play('undo');
   resumeTimerAfterUndo();
   saveAfterMutation();
@@ -1019,6 +1036,7 @@ function shuffleGame() {
   if (!game || E.isWon(game)) return false;
   const wasRescue = game.status === 'rescue';
   if (!E.shuffleRemaining(game, E.createRng(randomSeed()))) return false;
+  invalidateTileAnimations();
   sound.play('shuffle');
   saveAfterMutation();
   renderBoard();
@@ -1269,15 +1287,7 @@ function saveAfterMutation() {
 }
 
 function configureGame(nextGame) {
-  tileAnimationGeneration += 1;
-  scoreAnimationGeneration += 1;
-  comboAnimationPauseCount = 0;
-  clearTransientMotion();
-  if (comboFxTimer !== null) window.clearTimeout(comboFxTimer);
-  comboFxTimer = null;
-  const fx = document.getElementById('mjComboFx');
-  if (fx) fx.className = 'mj-combo-fx';
-  setTileAnimationBusy(false);
+  invalidateTileAnimations();
   game = nextGame;
   game.gameId = gameId;
   game.assists ||= { undo: 0, hint: 0, shuffle: 0 };
@@ -1441,7 +1451,10 @@ function setFreeHighlight(enabled) {
   document.body.dataset.freeHighlight = enabled ? 'strong' : 'standard';
   const shell = document.querySelector('.mj');
   if (shell) shell.dataset.freeHighlight = enabled ? 'strong' : 'standard';
-  if (freeHighlight) freeHighlight.checked = enabled;
+  if (freeHighlight) {
+    freeHighlight.checked = enabled;
+    freeHighlight.defaultChecked = enabled;
+  }
   try { localStorage.setItem(FREE_HIGHLIGHT_KEY, enabled ? 'on' : 'off'); } catch { /* per-session */ }
 }
 let strongFree = false;

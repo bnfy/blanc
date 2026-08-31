@@ -520,30 +520,51 @@ function install(refs) {
           const wrap = document.getElementById('mjBoardWrap');
           const time = document.getElementById('mjWinTime');
           const best = document.getElementById('mjWinBest');
-          if (!card || !wrap || !time || !best) return null;
+          const lastAction = document.getElementById('mjWinBoards');
+          if (!card || !wrap || !time || !best || !lastAction) return null;
           const wasHidden = card.hidden;
           const previousTime = time.textContent;
           const previousBest = best.textContent;
+          const previousScrollTop = card.scrollTop;
           try {
             // Use the longest realistic Tray labels so containment reflects
             // the completed UI rather than its shorter dormant markup.
             time.textContent = '14,400 points · 9999:59';
             best.textContent = 'best 14,400 · 9999:59';
             card.hidden = false;
+            card.scrollTop = 0;
             void card.offsetWidth;
             await new Promise((resolve) => setTimeout(resolve, 320));
             const cardRect = card.getBoundingClientRect();
             const wrapRect = wrap.getBoundingClientRect();
+            const initialActionRect = lastAction.getBoundingClientRect();
+            const actionInitiallyVisible =
+              initialActionRect.top >= cardRect.top - 1 &&
+              initialActionRect.bottom <= cardRect.bottom + 1;
+            if (!actionInitiallyVisible) {
+              card.scrollTop = card.scrollHeight;
+              await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+            }
+            const actionRect = lastAction.getBoundingClientRect();
             return {
               card: { left: cardRect.left, top: cardRect.top, right: cardRect.right, bottom: cardRect.bottom },
               wrap: { left: wrapRect.left, top: wrapRect.top, right: wrapRect.right, bottom: wrapRect.bottom },
-              centerDeltaX: Math.abs((cardRect.left + cardRect.right - wrapRect.left - wrapRect.right) / 2),
-              centerDeltaY: Math.abs((cardRect.top + cardRect.bottom - wrapRect.top - wrapRect.bottom) / 2),
+              viewport: { left: 0, top: 0, right: innerWidth, bottom: innerHeight },
+              centerDeltaX: Math.abs((cardRect.left + cardRect.right - innerWidth) / 2),
+              centerDeltaY: Math.abs((cardRect.top + cardRect.bottom - innerHeight) / 2),
               clientHeight: card.clientHeight,
               scrollHeight: card.scrollHeight,
+              scrollTop: card.scrollTop,
+              overflowY: getComputedStyle(card).overflowY,
+              actionInitiallyVisible,
+              actionVisibleAfterScroll:
+                actionRect.top >= cardRect.top - 1 && actionRect.bottom <= cardRect.bottom + 1,
+              viewportWidth: innerWidth,
+              viewportHeight: innerHeight,
             };
           } finally {
             card.hidden = wasHidden;
+            card.scrollTop = previousScrollTop;
             time.textContent = previousTime;
             best.textContent = previousBest;
           }
@@ -567,6 +588,47 @@ function install(refs) {
         })()`);
       } catch {
         return false;
+      }
+    },
+    async rapidUndoMahjongMatch() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return null;
+      try {
+        return await frame.executeJavaScript(`(async () => {
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          const free = [...document.querySelectorAll('.mj-tile:not([data-blocked]):not([hidden])')];
+          let pair = null;
+          for (let first = 0; first < free.length && !pair; first += 1) {
+            const firstName = free[first].getAttribute('aria-label')?.split(',')[0];
+            for (let second = first + 1; second < free.length; second += 1) {
+              const secondName = free[second].getAttribute('aria-label')?.split(',')[0];
+              if (firstName && firstName === secondName) {
+                pair = [free[first], free[second]];
+                break;
+              }
+            }
+          }
+          if (!pair) return { matched: false };
+          pair[0].click();
+          pair[1].click();
+          await sleep(50);
+          document.getElementById('mjUndo')?.click();
+          await sleep(900);
+          return {
+            matched: true,
+            score: document.getElementById('mjScore')?.textContent ?? null,
+            live: document.getElementById('mjLive')?.textContent ?? null,
+            transientCount: document.querySelectorAll(
+              '.mj-tile-flight, .mj-score-flight, .mj-tray-burst'
+            ).length,
+            comboFxClass: document.getElementById('mjComboFx')?.className ?? null,
+          };
+        })()`);
+      } catch {
+        return null;
       }
     },
     clickNewtabLayoutSwitcher(name) {

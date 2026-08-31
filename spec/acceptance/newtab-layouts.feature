@@ -23,6 +23,8 @@ Feature: Start page layouts
     When I open a new tab
     Then the start page renders the "mahjong" layout
     And the embedded mahjong game is ready
+    And rapid Undo cancels pending Mahjong feedback
+    And the Mahjong completion dialog remains usable at the minimum desktop size
 
   @F35-4 @desktop
   Scenario: An embedded Mahjong timer pauses when another start layout is shown

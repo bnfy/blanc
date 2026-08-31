@@ -10,6 +10,10 @@ const styles = ['pages.css', 'mahjong.css'].map((name) => fs.readFileSync(
   path.join(__dirname, `../../src/renderer/pages/${name}`),
   'utf8'
 )).join('\n');
+const mahjongStyles = fs.readFileSync(
+  path.join(__dirname, '../../src/renderer/pages/mahjong.css'),
+  'utf8'
+);
 const html = fs.readFileSync(
   path.join(__dirname, '../../src/renderer/pages/mahjong.html'),
   'utf8'
@@ -47,6 +51,20 @@ function mediaBlocks(query) {
     searchFrom = cursor;
   }
 }
+
+test('the Mahjong stylesheet has balanced blocks', () => {
+  let depth = 0;
+  let line = 1;
+  for (const character of mahjongStyles) {
+    if (character === '\n') line += 1;
+    else if (character === '{') depth += 1;
+    else if (character === '}') {
+      depth -= 1;
+      assert.ok(depth >= 0, `unexpected closing brace on line ${line}`);
+    }
+  }
+  assert.equal(depth, 0, 'Mahjong CSS ends with an open block');
+});
 
 test('mahjong provides static hint feedback and suppresses shake for reduced motion', () => {
   const block = mediaBlocks('(prefers-reduced-motion: reduce)')
@@ -304,6 +322,7 @@ test('v2 exposes setup, Tray rescue, local restoration, and keyboard affordances
   assert.match(controller, /game\?\.mode === 'tray'[\s\S]*!document\.hidden[\s\S]*embedActive[\s\S]*!tileAnimationBusy[\s\S]*comboAnimationPauseCount === 0[\s\S]*!activeModal\(\)/);
   assert.match(controller, /document\.getElementById\('mjHint'\)\.addEventListener[\s\S]*game\.assists\.hint \+= 1[\s\S]*saveAfterMutation\(\)/);
   assert.doesNotMatch(controller, /getElementById\('mjHint'\)[\s\S]{0,600}resetCombo/);
+  assert.match(controller, /freeHighlight\.checked = enabled;\s*freeHighlight\.defaultChecked = enabled;/);
 });
 
 test('only automatic-clear motion locks input while ordinary tile feedback stays responsive', () => {
@@ -317,6 +336,10 @@ test('only automatic-clear motion locks input while ordinary tile feedback stays
   assert.match(controller, /result\.type === 'tray-pair' \? 760[\s\S]*result\.type === 'tray-park' \|\| result\.type === 'rescue' \? 340[\s\S]*: 240/);
   assert.match(controller, /comboAnimationPauseCount === 0/);
   assert.match(controller, /if \(tileAnimationBusy\) \{[\s\S]*event\.preventDefault\(\);[\s\S]*return;/);
+  assert.match(controller, /function invalidateTileAnimations\(\)[\s\S]*tileAnimationGeneration \+= 1;[\s\S]*scoreAnimationGeneration \+= 1;/);
+  assert.match(controller, /getElementById\('mjUndo'\)\.addEventListener[\s\S]*E\.undo\(game\)[\s\S]*invalidateTileAnimations\(\)/);
+  assert.match(controller, /E\.shuffleRemaining\(game,[\s\S]*invalidateTileAnimations\(\)/);
+  assert.match(controller, /function configureGame\(nextGame\) \{\s*invalidateTileAnimations\(\);/);
 });
 
 test('combo feedback restores animated tiles and removes immediately for reduced motion', () => {
@@ -352,6 +375,12 @@ test('combo feedback restores animated tiles and removes immediately for reduced
   assert.match(styles, /\.mj-combo-fx\s*\{[^}]*contain:\s*layout paint;[^}]*isolation:\s*isolate;/);
   assert.match(styles, /\.mj-combo-callout strong\s*\{[^}]*font:\s*820[^}]*-webkit-text-stroke:[^}]*text-shadow:/);
   assert.doesNotMatch(styles, /\.mj-(?:combo-particles|combo-glint|tray-burst)[^{]*\{[^}]*mix-blend-mode:/);
+});
+
+test('the completion card scrolls its content while its decorative layer stays clipped', () => {
+  assert.match(styles, /\.mj-win\s*\{[^}]*max-height:[^}]*overflow-x:\s*hidden;[^}]*overflow-y:\s*auto;/);
+  assert.doesNotMatch(styles, /\.mj-win\s*\{[^}]*overflow:\s*hidden;/);
+  assert.match(styles, /\.mj-win-visual\s*\{[^}]*overflow:\s*hidden;/);
 });
 
 test('desktop game header promotes session identity and status hierarchy', () => {
