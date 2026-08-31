@@ -18,11 +18,11 @@ The experience is deliberately lean and minimal, but still has the web
 browsing features that users expect in modern browsers. Ad and tracker
 blocking runs at the network layer of the app without add-ons. Private
 tabs stay out of history and use a separate in-memory session. A fresh
-profile asks before search suggestions or a pseudonymous launch ping can
-send data; both choices can be switched off. Blanc also makes the ordinary
+profile asks before search suggestions or bounded pseudonymous usage
+measurement can send data; both choices can be switched off. Blanc also makes the ordinary
 service requests a browser needs for filter lists, update checks, and any
 optional sync or supporter activation the user enables. The privacy policy
-documents those requests and the exact launch-ping fields.
+documents those requests and the exact usage fields.
 
 It's shipping today on three desktop platforms, with signed and notarized
 macOS builds and auto-updates, and was recently accepted into Apple's

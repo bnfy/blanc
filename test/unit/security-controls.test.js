@@ -132,7 +132,10 @@ test('privacy-facing defaults, hardened Electron fuses, and dependency surface d
 test('public claims describe shipped consent mode, 1Password boundaries, bundled blocker inputs, private downloads, and double opt-in', () => {
   const privacy = read('site/src/pages/privacy.astro');
   const siteScript = read('site/src/scripts/site.js');
-  assert.match(privacy, /<h3>Usage ping<\/h3>/);
+  assert.match(privacy, /<h3>Usage measurement<\/h3>/);
+  assert.match(privacy, /<code>mahjong_play<\/code>/);
+  assert.match(privacy, /<code>newtab_layout<\/code>/);
+  assert.match(privacy, /never sent from private tabs/i);
   assert.match(privacy, /Search suggestions \(optional\)/);
   assert.match(privacy, /both choices are presented on/i);
   assert.match(privacy, /double opt-in/);

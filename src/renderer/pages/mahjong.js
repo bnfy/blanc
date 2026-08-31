@@ -1,8 +1,9 @@
 // blanc://mahjong — board rendering and interaction. All game rules live in
-// MahjongEngine; this file owns DOM, timer, and the localStorage best.
+// MahjongEngine; this file owns DOM, timer, best time, and the sound toggle.
 'use strict';
 
 const E = window.MahjongEngine;
+const sound = window.MahjongSound;
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 // Private tabs carry ?private=1 (same mechanism as newtab.js) — token
@@ -218,6 +219,17 @@ window.addEventListener('resize', fitBoard);
 // --- interaction ----------------------------------------------------------
 
 let selected = null;
+let playReported = false;
+
+function reportPlayOnce() {
+  if (playReported) return;
+  playReported = true;
+  if (window.top !== window.self) {
+    window.parent.postMessage('blanc:mahjong-played', 'blanc://newtab');
+    return;
+  }
+  window.bowserPages?.mahjong?.played?.().catch(() => {});
+}
 
 function setSelected(i) {
   if (selected !== null) {
@@ -249,19 +261,26 @@ board.addEventListener('click', (event) => {
   if (!tile || tile.hidden) return;
   const i = Number(tile.dataset.i);
   if (!E.isFree(game, i)) {
+    sound.play('blocked');
     tile.classList.remove('shake');
     void tile.offsetWidth; // restart the animation
     tile.classList.add('shake');
     return;
   }
+  // The timer's first real move is also the analytics definition of "played".
+  // Main independently gates this on saved consent, a non-private managed tab,
+  // a packaged build, and one event per app session.
+  reportPlayOnce();
   startTimer();
-  if (selected === null) { setSelected(i); return; }
-  if (selected === i) { setSelected(null); return; }
+  if (selected === null) { sound.play('select'); setSelected(i); return; }
+  if (selected === i) { sound.play('select'); setSelected(null); return; }
   if (E.removePair(game, selected, i)) {
+    sound.play(E.isWon(game) ? 'win' : 'pair');
     setSelected(null);
     refreshTiles();
     checkEndStates();
   } else {
+    sound.play('select');
     setSelected(i); // non-matching free tile: move the selection
   }
 });
@@ -272,6 +291,7 @@ document.addEventListener('keydown', (event) => {
 
 document.getElementById('mjUndo').addEventListener('click', () => {
   if (!game || !E.undo(game)) return;
+  sound.play('undo');
   resumeTimerAfterUndo();
   setSelected(null);
   refreshTiles();
@@ -284,6 +304,7 @@ document.getElementById('mjHint').addEventListener('click', () => {
   if (!game) return;
   const moves = E.movesAvailable(game);
   if (!moves.length) return;
+  sound.play('hint');
   const [i, j] = moves[0];
   for (const k of [i, j]) {
     tileButtons[k].classList.remove('hinted');
@@ -291,6 +312,20 @@ document.getElementById('mjHint').addEventListener('click', () => {
     tileButtons[k].classList.add('hinted');
   }
 });
+
+const soundButton = document.getElementById('mjSound');
+function paintSoundButton() {
+  const enabled = sound.isEnabled();
+  soundButton.textContent = enabled ? 'sound on' : 'sound off';
+  soundButton.setAttribute('aria-pressed', String(enabled));
+  soundButton.setAttribute('aria-label', `Sound effects ${enabled ? 'on' : 'off'}`);
+}
+soundButton.addEventListener('click', () => {
+  const enabled = sound.setEnabled(!sound.isEnabled());
+  paintSoundButton();
+  if (enabled) sound.play('toggle');
+});
+paintSoundButton();
 
 // --- timer + best ---------------------------------------------------------
 // Elapsed is always Date.now() - startedAt: background tabs throttle
@@ -385,9 +420,13 @@ function newGame() {
   requestAnimationFrame(fitBoard);
 }
 
-document.getElementById('mjNew').addEventListener('click', newGame);
-document.getElementById('mjNoticeNew').addEventListener('click', newGame);
-document.getElementById('mjWinNew').addEventListener('click', newGame);
-document.getElementById('mjErrorNew').addEventListener('click', newGame);
+function newGameFromControl() {
+  sound.play('deal');
+  newGame();
+}
+document.getElementById('mjNew').addEventListener('click', newGameFromControl);
+document.getElementById('mjNoticeNew').addEventListener('click', newGameFromControl);
+document.getElementById('mjWinNew').addEventListener('click', newGameFromControl);
+document.getElementById('mjErrorNew').addEventListener('click', newGameFromControl);
 
 newGame();

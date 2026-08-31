@@ -375,17 +375,23 @@ From the desktop `DEFAULTS`:
 - **Acceptance:** Navigating to a basic-auth-protected URL raises the credential
   prompt; correct credentials proceed, cancel aborts the navigation.
 
-## F21 — Telemetry (usage ping)
+## F21 — Telemetry (bounded usage measurement)
 
-- Single launch ping, **on by default, opt-out** (`usagePing`), **packaged
-  builds only**, fire-and-forget (a failed/blocked ping never affects startup or
-  surfaces to the user). Payload: `{installId, sessionId, version, platform,
-  arch}`. `installId` is a random per-install token stored in its own
+- Usage measurement is **on by default, opt-out** (`usagePing`), **packaged
+  builds only**, and fire-and-forget (a failed/blocked event never affects the
+  app or surfaces to the user). A launch sends `{installId, sessionId, version,
+  platform, arch, osVersion}`. During that app session, the client may also send
+  each fixed product event once: `{event:'mahjong_play'}` after Mahjong's first
+  real free-tile move and `{event:'newtab_layout', layout}` when each start-page
+  layout actually renders. `layout` is strictly one of
+  `ledger|billboard|shelf|tally|mahjong`; no arbitrary label or content crosses
+  the boundary. Product events are never sent for a private tab. `installId` is
+  a random per-install token stored in its own
   `install.json` (not in settings, never synced) — it maps to a device install,
   never a person. `sessionId` is a random 32-bit integer per launch for GA4
-  session tracking. Endpoint is the shared `blanc-ping` worker, which dedupes
-  repeat launches into DAU/WAU/MAU via TTL'd `seen:*` flags and optionally
-  mirrors to GA4.
+  session tracking. The shared `blanc-ping` worker dedupes launches and each
+  fixed metric into DAU/WAU/MAU via TTL'd keyed seen flags, retains aggregate
+  event totals, and optionally mirrors the same bounded fields to GA4.
 - **Pseudonymity guarantees (2026-07-11 audit):** the worker never stores or
   forwards the raw `installId` — it's HMAC'd under the `INSTALL_HASH_SECRET`
   worker secret on arrival (secret unset ⇒ uniques skipped, fail closed), and
@@ -399,10 +405,13 @@ From the desktop `DEFAULTS`:
   `POST /admin/purge-legacy-ids` — run to `done:true` after deploy and BEFORE
   publishing the policy page (see the worker README); pre-migration GA events
   carried the raw token, disclosed in the policy's transition note.
-- **Acceptance:** With the setting off, no ping is sent; with the default (on),
-  exactly one ping is sent at launch in a packaged build; blocking the network
-  changes nothing user-visible; deleting `install.json` — or the Settings
-  "Reset install ID" button — resets the install identity.
+- **Acceptance:** With the setting off, no usage event is sent; with the default
+  (on), exactly one launch event is sent in a packaged build. A session reports
+  Mahjong at most once after a real move and each rendered start-page layout at
+  most once; unknown layouts, development builds, and private tabs report
+  nothing. Blocking the network changes nothing user-visible; deleting
+  `install.json` — or the Settings "Reset install ID" button — resets the
+  install identity.
 
 ## F22 — Distribution & updates
 
@@ -702,6 +711,14 @@ From the desktop `DEFAULTS`:
   instantly from the start page's own footer switcher and from Settings; a
   change made anywhere reaches every open start page. It travels with the
   profile the way the theme does.
+- Mahjong uses quiet, locally synthesized cues for tile selection, matching,
+  blocked moves, hints, undo, new deals, and wins. Its in-game sound control is
+  on by default and persists only in the Mahjong page's `localStorage`; private
+  tabs keep that preference ephemeral with the rest of their page storage.
+- When F21 is enabled, the first real free-tile move in an app session reports
+  the fixed `mahjong_play` metric, and every layout that actually renders reports
+  its fixed `newtab_layout` value once that session. No game state is reported,
+  and private tabs report neither metric.
 - The tally chart tells the truth: every bar — today's included — is
   normalized to the busiest day, colour alone marks today, and a week that
   blocked nothing draws no bars. Its data is the blocker's per-day counts,
@@ -726,7 +743,7 @@ From the desktop `DEFAULTS`:
   profiles that completed first run (including every pre-existing install) are
   never asked.
 - The privacy step carries the mandatory consent choices (search suggestions,
-  usage ping); **no network feature they govern starts before the choices are
+  usage measurement); **no network feature they govern starts before the choices are
   saved**, skipping records exactly the values on screen, and the walkthrough
   closes only on a confirmed write. The import step embeds F30's migration
   with its explicit-discovery rule intact: no other browser's profile is read

@@ -32,6 +32,8 @@ if (window.location.protocol === 'blanc:') {
         data: () => invoke('pages:start:data'),
         focusGroup: (id) => invoke('pages:start:focus-group', id),
         setLayout: (name) => invoke('pages:start:set-layout', name),
+        layoutUsed: (name) => invoke('pages:start:layout-used', name),
+        mahjongPlayed: () => invoke('pages:mahjong:played'),
         openIsland: (char) => invoke('pages:start:open-island', char),
         retryStartup: () => invoke('pages:start:startup-retry'),
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
@@ -47,6 +49,10 @@ if (window.location.protocol === 'blanc:') {
           ipcRenderer.on('pages:start:remote-tabs', (_event, devices) => callback(devices));
         },
       },
+    };
+  } else if (host === 'mahjong') {
+    api = {
+      mahjong: { played: () => invoke('pages:mahjong:played') },
     };
   } else if (host === 'bookmarks') {
     api = {

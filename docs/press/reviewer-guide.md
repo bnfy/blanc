@@ -20,8 +20,9 @@ fresh profile, review the compact privacy card before continuing:
 
 - live search suggestions may send eligible typed prefixes to the search
   provider you select;
-- the launch-usage ping contains only the documented install/session/version/
-  platform/architecture fields.
+- usage measurement contains only the documented install/session/version/
+  platform/architecture/coarse-OS fields plus fixed Mahjong-play and rendered
+  start-page-layout events; product events are excluded from private tabs.
 
 Neither path should send before the choices are committed. If filter
 initialization fails, Blanc presents **Retry** and **Continue without blocking**

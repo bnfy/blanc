@@ -77,10 +77,10 @@ EasyPrivacy snapshots bundled with that release. It does not download filter
 code at startup. Web navigation waits for that protection; if the build fails,
 the start page offers Retry or an explicit Continue without blocking. The
 compiled engine is cached in userData; deleting `adblock-engine.v*.bin` forces
-a rebuild from the same bundled snapshot. Search suggestions and the usage
-ping are both presented on, but cannot send until the first-run choices are
+a rebuild from the same bundled snapshot. Search suggestions and bounded usage
+measurement are both presented on, but cannot send until the first-run choices are
 saved and can be turned off before continuing.
-Dev runs use their own userData profile and never send usage pings.
+Dev runs use their own userData profile and never send usage events.
 
 To build an installable app: `npm run dist` (or `npm run dist:dir` for a
 quick unpacked build in `dist/`). Targets: macOS dmg/zip, Windows NSIS,

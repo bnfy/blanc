@@ -210,6 +210,10 @@
     scrim.hidden = true;
     dialog.hidden = true;
     setBackgroundInert(false);
+    // The initial layout rendered before consent and was deliberately ignored
+    // by main. Report it now that the user's saved choice permits measurement;
+    // the process sender dedupes it against later re-renders.
+    window.bowserPages.start.layoutUsed(document.body.dataset.layout).catch(() => {});
   }
 
   async function next() {

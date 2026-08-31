@@ -270,8 +270,9 @@ test('platform specs match the shipped first-run telemetry contract', () => {
   const telemetryRow = matrix.split('\n').find((line) => line.startsWith('| F21 |')) || '';
   assert.doesNotMatch(telemetryRow, /Opt-in, off by default/i);
   assert.doesNotMatch(services, /usage ping is off by default/i);
-  assert.match(matrix, /commit its on\/off choice before any ping/i);
-  assert.match(matrix, /\{installId,sessionId,version,platform,arch,osVersion\}/);
+  assert.match(matrix, /commit its on\/off choice before any event/i);
+  assert.match(matrix, /first Mahjong move and each rendered start-page layout/i);
+  assert.match(matrix, /Private tabs and browsing\/game content are excluded/i);
   assert.match(services, /no telemetry install id exists/i);
 });
 

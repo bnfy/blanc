@@ -6,7 +6,7 @@ const QUESTIONS = [
     q: 'Is Blanc open source?',
     a: [
       'Yes. Blanc is released under the MIT License.',
-      'The repository at github.com/bnfy/blanc contains the application source. You can read every line, inspect what the blocker does and what the launch ping sends, and build and run the checked-out source locally. A local build shows what that source does; it does not prove that a published binary matches it byte for byte.',
+      'The repository at github.com/bnfy/blanc contains the application source. You can read every line, inspect what the blocker does and what usage measurement sends, and build and run the checked-out source locally. A local build shows what that source does; it does not prove that a published binary matches it byte for byte.',
       'The MIT licence covers Blanc’s own code: you may modify it, redistribute it, and publish your own builds. Publishing a build carries two conditions MIT does not cover. The bundled EasyList and EasyPrivacy filter lists are redistributed under CC BY-SA 3.0 or later, which requires attribution to The EasyList authors and carries share-alike terms on the redistributed lists and Blanc’s derived filter data. And the Blanc name and logo are trademarks that a copyright licence does not convey — publish under your own name and mark, not as Blanc.',
       'Published macOS releases are signed and notarized, and published Windows releases carry a timestamped Authenticode signature checked at release time. The checksum manifest is signed with Sigstore under a verified OIDC identity, while Windows and Linux CI artifacts carry GitHub provenance attestations. Those records authenticate published artifacts; they do not make a local build reproducible.',
     ],
@@ -22,8 +22,8 @@ const QUESTIONS = [
   {
     q: 'Does Blanc phone home?',
     a: [
-      'Packaged builds send one launch ping, and you can turn it off. Its six fields are a random install ID, a session ID, app version, platform, architecture, and OS version coarsened to a major number. It contains no page, URL, search, or history data, and it is not joined to other Blanc data.',
-      'On a fresh profile, the choice is presented during first-run setup and must be saved before a ping can be sent. The server HMACs the install ID before storage, applies replay deduplication and rate caps, and retains only expiring seen-markers plus aggregate counts.',
+      'Packaged builds can send a launch event plus bounded, once-per-app-session counts for the first real Mahjong move and each start-page layout that actually renders. Every event carries a random install ID, session ID, app version, platform, architecture, and coarse OS major; layout events add only one fixed layout name. It contains no page, URL, search, history, game-state, or custom-text data, and feature-use events are excluded from private tabs.',
+      'On a fresh profile, the choice is presented during first-run setup and must be saved before an event can be sent. The server HMACs the install ID before storage, applies replay deduplication and rate caps, and retains only expiring seen-markers plus aggregate counts.',
       'The install ID lives in a device-local file and is never synced. Profile Sync never carries it.',
     ],
   },

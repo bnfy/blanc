@@ -25,6 +25,7 @@
     "test:onepassword:utility": "node test/desktop/onepassword-utility-smoke.mjs",
     "test:onepassword:live-server": "node scripts/onepassword-live-gate-server.mjs",
     "test:dns-smoke": "node test/desktop/dns-smoke.mjs",
+    "test:mahjong-telemetry": "node test/desktop/mahjong-telemetry-relay-smoke.mjs",
     "test:cold-launch": "node test/desktop/cold-launch-smoke.mjs",
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",
