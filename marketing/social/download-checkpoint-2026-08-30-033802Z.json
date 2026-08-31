@@ -1,0 +1,40 @@
+{
+  "capturedAt": "2026-08-30T03:38:02.329Z",
+  "source": "GitHub Releases asset downloadCount via gh release view",
+  "repository": "bnfy/blanc",
+  "release": {
+    "tag": "v1.9.1",
+    "name": "1.9.1",
+    "publishedAt": "2026-08-26T04:29:03Z",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.9.1"
+  },
+  "totals": {
+    "packageAssetRequests": 140,
+    "updaterMetadataAndBlockmapRequests": 792,
+    "auxiliaryAssetRequests": 6,
+    "allAssetRequests": 938
+  },
+  "packageAssetRequestsByPlatform": {
+    "mac": 43,
+    "windows": 67,
+    "linux": 30
+  },
+  "comparison": {
+    "baselinePath": "marketing/social/download-checkpoint-2026-08-29-173759Z.json",
+    "baselineCapturedAt": "2026-08-29T17:37:59.047Z",
+    "elapsedMinutes": 600,
+    "packageAssetRequestDelta": 2,
+    "packageAssetRequestDeltaByPlatform": {
+      "mac": 2,
+      "windows": 0,
+      "linux": 0
+    },
+    "updaterMetadataAndBlockmapRequestDelta": 23,
+    "allAssetRequestDelta": 25
+  },
+  "limitations": [
+    "Counts are release-asset requests, not unique people.",
+    "QA, retries, updater handoffs, direct traffic, and non-social acquisition are included.",
+    "The macOS movement cannot be attributed to social without matching first-party campaign evidence."
+  ]
+}

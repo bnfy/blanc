@@ -5,13 +5,13 @@
  *
  * This does not launch Blanc, close or reopen a tab, seed a profile, render
  * creative, or write files. It verifies the installed public build and the
- * exact v1.9.1 shortcut, live-hold, bounded-recovery, private-tab exclusion,
+ * exact v1.10.0 shortcut, live-hold, bounded-recovery, private-tab exclusion,
  * and public feature-copy sources used by the campaign brief.
  */
 import { execFileSync } from 'node:child_process';
 
-const TAG = 'v1.9.1';
-const EXPECTED_VERSION = '1.9.1';
+const TAG = 'v1.10.0';
+const EXPECTED_VERSION = '1.10.0';
 const APP_PLIST = '/Applications/Blanc.app/Contents/Info.plist';
 
 function fail(message) {
@@ -26,7 +26,7 @@ function gitShow(path) {
 }
 
 function requireMarker(text, marker, label) {
-  if (!text.includes(marker)) fail(`v1.9.1 is missing ${label}: ${marker}`);
+  if (!text.includes(marker)) fail(`v1.10.0 is missing ${label}: ${marker}`);
 }
 
 const appVersion = execFileSync('/usr/bin/plutil', [
@@ -104,7 +104,7 @@ console.log(JSON.stringify({
   captureGuardrails: [
     'Demonstrate only an eligible ordinary page inside the live-hold window.',
     'Say about 30 seconds and eligible; never promise exact recovery for every page.',
-    'Use the installed public v1.9.1 build and real shipped Blanc chrome.',
+    'Use the installed public v1.10.0 build and real shipped Blanc chrome.',
     'Keep private-tab language scoped to Blanc recently closed records.',
   ],
 }, null, 2));
