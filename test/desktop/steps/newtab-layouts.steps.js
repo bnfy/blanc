@@ -4,6 +4,8 @@ const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
 
+const MAHJONG_TILE_COUNTS = Object.freeze({ turtle: 144, arch: 96, peaks: 72 });
+
 async function openNewTab(world) {
   await world.call('newTab');
   await world.waitForState((state) => {
@@ -52,11 +54,11 @@ Then('the embedded mahjong game is ready', async function () {
     () => this.call('readMahjongEmbedDom'),
     (dom) =>
       dom?.url?.startsWith('blanc://mahjong/') &&
-      dom.tileCount === 144 &&
+      dom.tileCount === MAHJONG_TILE_COUNTS[dom.layout] &&
       dom.freeTileCount >= 2 &&
       dom.tileHeight >= 59 &&
-      dom.boardFrameHeight >= 535,
-    'the embedded mahjong frame to render a playable, full-size 144-tile deal'
+      dom.boardFrameHeight >= 400,
+    'the embedded mahjong frame to render its active Daily layout at playable size'
   );
   const game = await this.call('readMahjongEmbedDom');
   assert.ok(game.boardCenterDeltaX <= 1, `board x center drifted ${game.boardCenterDeltaX}px`);
@@ -73,15 +75,63 @@ Then('the embedded mahjong game is ready', async function () {
   const completion = await this.call('readMahjongCompletionGeometry');
   assert.ok(completion, 'completion geometry should be measurable');
   assert.ok(completion.centerDeltaX <= 1, `completion x center drifted ${completion.centerDeltaX}px`);
-  assert.ok(completion.centerDeltaY <= 1, `completion y center drifted ${completion.centerDeltaY}px`);
-  assert.ok(completion.card.left >= completion.wrap.left - 1);
-  assert.ok(completion.card.top >= completion.wrap.top - 1);
-  assert.ok(completion.card.right <= completion.wrap.right + 1);
-  assert.ok(completion.card.bottom <= completion.wrap.bottom + 1);
+  assert.ok(
+    completion.centerDeltaY <= 1,
+    `completion y center drifted ${completion.centerDeltaY}px: ${JSON.stringify(completion)}`
+  );
+  assert.ok(completion.card.left >= completion.viewport.left - 1);
+  assert.ok(completion.card.top >= completion.viewport.top - 1);
+  assert.ok(completion.card.right <= completion.viewport.right + 1);
+  assert.ok(completion.card.bottom <= completion.viewport.bottom + 1);
   assert.ok(
     completion.scrollHeight <= completion.clientHeight + 1,
     `completion card unexpectedly scrolls (${completion.scrollHeight}px > ${completion.clientHeight}px)`
   );
+});
+
+Then('rapid Undo cancels pending Mahjong feedback', async function () {
+  const result = await this.call('rapidUndoMahjongMatch');
+  assert.ok(result?.matched, 'a free matching pair should be available');
+  assert.equal(result.score, '0');
+  assert.equal(result.live, 'Last move undone.');
+  assert.equal(result.transientCount, 0, 'stale motion elements should be removed');
+  assert.equal(result.comboFxClass, 'mj-combo-fx');
+});
+
+Then('the Mahjong completion dialog remains usable at the minimum desktop size', async function () {
+  const original = await this.call('windowContentBounds');
+  assert.ok(original, 'window content bounds should be available');
+  try {
+    await this.call('setWindowContentSize', 640, 480);
+    await waitForValue(
+      () => this.call('windowContentBounds'),
+      (bounds) => bounds?.width === 640 && bounds?.height === 480,
+      'minimum desktop content bounds'
+    );
+    const completion = await waitForValue(
+      () => this.call('readMahjongCompletionGeometry'),
+      (value) => value?.viewportWidth === 640 && value.actionVisibleAfterScroll,
+      'scrollable compact Mahjong completion dialog'
+    );
+    assert.equal(completion.overflowY, 'auto');
+    assert.ok(
+      completion.scrollHeight > completion.clientHeight,
+      'the compact regression should exercise the card scroll path'
+    );
+    assert.ok(completion.scrollTop > 0, 'the final action should be reachable by scrolling');
+    assert.equal(completion.actionVisibleAfterScroll, true);
+    assert.ok(completion.card.left >= completion.viewport.left - 1);
+    assert.ok(completion.card.top >= completion.viewport.top - 1);
+    assert.ok(completion.card.right <= completion.viewport.right + 1);
+    assert.ok(completion.card.bottom <= completion.viewport.bottom + 1);
+  } finally {
+    await this.call('setWindowContentSize', original.width, original.height);
+    await waitForValue(
+      () => this.call('windowContentBounds'),
+      (bounds) => bounds?.width === original.width && bounds?.height === original.height,
+      'restored desktop content bounds'
+    );
+  }
 });
 
 When('I make a move in embedded Mahjong', async function () {
