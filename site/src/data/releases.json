@@ -1,5 +1,147 @@
 [
   {
+    "tag": "v1.11.0",
+    "version": "1.11.0",
+    "name": "1.11.0",
+    "publishedAt": "2026-08-31T19:34:52.000Z",
+    "humanDate": "August 31, 2026",
+    "machineDate": "2026-08-31",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.11.0",
+    "anchor": "v1-11-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong is now available as a complete start-page layout. Fresh Mahjong tables begin with the deterministic Daily Peaks board in Burst mode, with scoring, timed combos, automatic clears, hints, shuffle, undo, records, sound controls, and a footer that can be hidden while playing."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Local crash diagnostics can now be exported from Settings, and an unclean shutdown offers explicit recovery choices without sending browsing data anywhere."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Certificate failures now use a dedicated Blanc surface with clearer site-trust information instead of falling through to a generic navigation error."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Changed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong has a more visual, responsive game experience: clearer rack tiles, dimensional score feedback, board-to-rack movement, stronger match and hint effects, polished dialogs and controls, reduced-motion fallbacks, and layouts that adapt cleanly to smaller windows."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's revised B mark now appears consistently across the desktop app, app-icon variants, internal pages, website, favicons, press assets, and social media artwork included in the repository."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The desktop blocker now ships with a verified precompiled seed for faster initialization while retaining the same bundled, hash-pinned filter inputs and fail-closed package checks."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc is now distributed under the MIT License, with generated dependency notices, packaged compliance checks, and a CycloneDX software bill of materials for releases."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "When optional usage measurement is enabled, packaged builds can record one bounded Mahjong-use event and the fixed start-page layouts rendered during an app session. These events contain no URLs, searches, page content, custom text, or game state and are never sent from private tabs."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Electron has been updated to 44.1.0."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong completion actions remain reachable at Blanc's minimum window size, Daily acceptance respects the selected layout, and Undo or Shuffle can no longer leave stale motion or score feedback behind."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Windows update verification now releases installer handles reliably and avoids rearming the download watchdog while signature verification is in progress."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.10.0",
     "version": "1.10.0",
     "name": "1.10.0",

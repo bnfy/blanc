@@ -13,10 +13,10 @@ Plus favorites, history, downloads, settings, private tabs, per-site
 permission prompts, session restore, and signed + notarized auto-updating
 macOS builds.
 
-> **Current release:** v1.10.0 refines the optional macOS 1Password integration
-> with device-local login hints and Settings verification while keeping
-> credential fill explicit and user-invoked. Use the
-> [v1.10.0 tag](https://github.com/bnfy/blanc/tree/v1.10.0) for the exact source
+> **Current release:** v1.11.0 adds a complete Mahjong start-page layout,
+> local crash diagnostics and recovery choices, clearer certificate-failure
+> UX, and the revised Blanc mark. Use the
+> [v1.11.0 tag](https://github.com/bnfy/blanc/tree/v1.11.0) for the exact source
 > snapshot associated with the public binaries.
 
 ## Source and license

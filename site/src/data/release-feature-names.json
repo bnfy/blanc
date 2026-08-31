@@ -1,4 +1,5 @@
 {
+  "1.11.0": ["Mahjong start-page layout", "Crash recovery and diagnostics", "Certificate failure details"],
   "1.10.0": ["1Password login hint", "1Password account verification"],
   "1.9.0": ["1Password login fill", "Refined app icons", "Quiet tab dots"],
   "1.8.2": ["Last active tab shortcut", "Report an issue"],
