@@ -5,6 +5,8 @@ module.exports = {
   app: null,
   relaunch: null,
   fixturesBase: null,
+  secureFixturesBase: null,
+  untrustedFixturesBase: null,
   tabByName: {},
   activeExpectedUrl: null,
   lastNewTabId: null,

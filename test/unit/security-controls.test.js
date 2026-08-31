@@ -66,7 +66,8 @@ test('public site ships baseline browser security headers and disclosure metadat
 test('privacy-facing defaults, hardened Electron fuses, and dependency surface do not regress', () => {
   const pkg = JSON.parse(read('package.json'));
   assert.equal(pkg.dependencies?.['@1password/sdk'], '0.5.0');
-  assert.match(read('src/THIRD_PARTY_NOTICES.txt'), /Copyright \(c\) 2024 1Password/);
+  assert.match(read('compliance/THIRD_PARTY_NOTICES.txt'), /@1password\/sdk 0\.5\.0/);
+  assert.match(read('compliance/evidence/onepassword-sdk-0.5.0-LICENSE.txt'), /Copyright \(c\) 2024 1Password/);
   assert.equal(pkg.build?.protocols?.some((entry) => entry.schemes?.includes('file')), false);
   assert.deepEqual(pkg.build.electronFuses, {
     runAsNode: false,
@@ -78,6 +79,10 @@ test('privacy-facing defaults, hardened Electron fuses, and dependency surface d
     loadBrowserProcessSpecificV8Snapshot: false,
     grantFileProtocolExtraPrivileges: false,
   });
+  const stagingSmoke = read('test/desktop/packaged-update-staging-smoke.mjs');
+  assert.match(stagingSmoke, /launchPackagedOverCdp/);
+  assert.doesNotMatch(stagingSmoke, /\b_electron\b/);
+  assert.match(stagingSmoke, /updated root-owned app retained for inspection/);
 
   const schema = JSON.parse(read('settings-schema/schema.json'));
   assert.equal(schema.defaults.searchSuggestions, true);

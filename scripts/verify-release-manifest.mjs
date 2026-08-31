@@ -111,7 +111,14 @@ if (platforms.has('windows')) {
 
 if (fs.existsSync(sumsFile)) {
   const sbom = JSON.parse(fs.readFileSync(path.join(directory, sbomName), 'utf8'));
-  if (sbom.bomFormat !== 'CycloneDX' || !Array.isArray(sbom.components)) {
+  if (
+    sbom.bomFormat !== 'CycloneDX'
+    || sbom.specVersion !== '1.6'
+    || sbom.metadata?.component?.name !== 'Blanc'
+    || sbom.metadata?.component?.version !== version
+    || !Array.isArray(sbom.components)
+    || sbom.components.length === 0
+  ) {
     throw new Error('invalid CycloneDX SBOM');
   }
   const sums = new Map(

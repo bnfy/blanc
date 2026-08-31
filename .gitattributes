@@ -1,3 +1,8 @@
 /adblock/sources/*.txt text eol=lf
 /adblock/sources/pinned.json text eol=lf
+/adblock/sources/ghostery-resources.json text eol=lf
 /adblock/generated/*.json text eol=lf
+/src/main/assets/adblock-engine-seed.json text eol=lf
+/compliance/*.json text eol=lf
+/compliance/*.txt text eol=lf
+/compliance/evidence/*.txt text eol=lf

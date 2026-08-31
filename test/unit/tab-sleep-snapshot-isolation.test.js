@@ -22,6 +22,9 @@ function serialize(tabList) {
     shieldChipState: () => ({ kind: 'stub' }),
     connectionFor: () => 'secure',
     committedUrlOf: () => 'https://committed.example/',
+    buildSiteInfo: () => ({ state: 'secure', certificate: null }),
+    liveContents: () => null,
+    certificateObserver: { get: () => null },
   };
   vm.runInNewContext(`${fnSource}\nthis.__fn = serializeTabs;`, sandbox);
   return sandbox.__fn();
@@ -32,6 +35,7 @@ const EXPECTED_KEYS = [
   'bookmarked', 'blockedCount', 'private', 'pinned', 'muted', 'audible',
   'groupId', 'pageBg', 'themeColor', 'asleep', 'excepted', 'shield', 'connection',
   'capture', 'fillHint',
+  'siteInfo',
 ].sort();
 
 const record = (over = {}) => ({
@@ -54,12 +58,17 @@ test('main-process-only state on the record never reaches the payload', () => {
     sleepSnapshot: { entries: [{ url: 'https://example.com/', pageState: 'BASE64…' }], index: 0 },
     pageState: 'BASE64…', runtimeId: 42, historyEligible: false, navEpoch: 99,
     capturing: true,
+    certificateError: {
+      url: 'https://secret.example/',
+      certificate: { raw: 'SECRET DER', issuer: 'bounded display' },
+    },
     captureRecord: { anchors: [{ origin: 'https://example.com' }], frames: new Map(), generation: 3 },
   })]);
   for (const forbidden of [
     'view', 'lastActiveAt', 'sleepSnapshot', 'pageState',
     'runtimeId', 'historyEligible', 'navEpoch',
     'capturing', 'captureRecord',
+    'certificateError',
   ]) {
     assert.ok(!(forbidden in row), `${forbidden} must not be broadcast`);
   }

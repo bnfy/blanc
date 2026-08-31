@@ -37,6 +37,7 @@ if (window.location.protocol === 'blanc:') {
         openIsland: (char) => invoke('pages:start:open-island', char),
         retryStartup: () => invoke('pages:start:startup-retry'),
         continueWithoutBlocking: () => invoke('pages:start:startup-continue'),
+        recoverSession: (choice) => invoke('pages:start:recover-session', choice),
         completePrivacy: (choices) => invoke('pages:start:privacy-complete', choices),
         defaultBrowser: () => invoke('pages:default-browser:get'),
         setDefaultBrowser: () => invoke('pages:default-browser:set'),
@@ -127,6 +128,11 @@ if (window.location.protocol === 'blanc:') {
       },
       clearBrowsingData: () => invoke('pages:clear-browsing-data'),
       resetInstallId: () => invoke('pages:telemetry:reset-install-id'),
+      diagnostics: {
+        status: () => invoke('pages:diagnostics:status'),
+        export: () => invoke('pages:diagnostics:export'),
+        clear: () => invoke('pages:diagnostics:clear'),
+      },
     };
   }
 

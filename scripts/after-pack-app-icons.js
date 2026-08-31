@@ -8,6 +8,8 @@ const os = require('node:os');
 const path = require('node:path');
 const APP_ICON_ASSETS = require('../src/main/app-icon-assets');
 const { verifyPackagedAdblock } = require('./verify-packaged-adblock');
+const { packageCompliance } = require('./package-compliance');
+const { verifyPackagedCompliance } = require('./verify-packaged-compliance');
 
 function iconComposerColor(hex) {
   const match = /^#([0-9a-f]{6})$/i.exec(hex);
@@ -60,6 +62,8 @@ module.exports = async function afterPackAppIcons(context) {
     )
     : path.join(context.appOutDir, 'resources');
   verifyPackagedAdblock(path.join(resourcesDir, 'app.asar'));
+  await packageCompliance(context);
+  verifyPackagedCompliance(resourcesDir);
 
   if (context.electronPlatformName !== 'darwin') return;
 

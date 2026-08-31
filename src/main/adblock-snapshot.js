@@ -6,6 +6,7 @@ const path = require('node:path');
 
 const SNAPSHOT_VERSION = 1;
 const EXPECTED_LISTS = ['easylist.txt', 'easyprivacy.txt'];
+const EXPECTED_RESOURCE = 'ghostery-resources.json';
 
 const sha256 = (value) => crypto.createHash('sha256').update(value).digest('hex');
 
@@ -38,12 +39,34 @@ function loadVerifiedAdblockSnapshot(sourcesDir) {
   if (digest !== manifest.combinedSha256) {
     throw new Error('Bundled adblock combined hash mismatch');
   }
-  return { raw, digest, sourceDate: manifest.date };
+  const resourcePin = manifest.ghosteryResources;
+  if (
+    resourcePin?.file !== EXPECTED_RESOURCE
+    || !/^\d+\.\d+\.\d+$/.test(resourcePin.packageVersion || '')
+    || !/^[a-f0-9]{40}$/.test(resourcePin.commit || '')
+    || !/^[a-f0-9]{64}$/.test(resourcePin.sha256 || '')
+  ) throw new Error('Invalid bundled Ghostery resource pin');
+  const resources = fs.readFileSync(path.join(sourcesDir, EXPECTED_RESOURCE), 'utf8');
+  const resourceDigest = sha256(resources);
+  if (resourceDigest !== resourcePin.sha256) {
+    throw new Error('Bundled Ghostery resource hash mismatch');
+  }
+  return {
+    raw,
+    digest,
+    files: EXPECTED_LISTS.map((file) => ({ file, sha256: entries.get(file).sha256 })),
+    resources,
+    resourceDigest,
+    resourcePackageVersion: resourcePin.packageVersion,
+    sourceDate: manifest.date,
+  };
 }
 
-function adblockCacheName(digest) {
-  if (!/^[a-f0-9]{64}$/.test(digest ?? '')) throw new Error('Invalid adblock snapshot digest');
-  return `adblock-engine.v3.${digest.slice(0, 16)}.bin`;
+function adblockCacheName(digest, resourceDigest = '') {
+  if (!/^[a-f0-9]{64}$/.test(digest ?? '') || !/^[a-f0-9]{64}$/.test(resourceDigest ?? '')) {
+    throw new Error('Invalid adblock snapshot digest');
+  }
+  return `adblock-engine.v4.${sha256(`${digest}:${resourceDigest}`).slice(0, 16)}.bin`;
 }
 
 async function writeCacheAtomically(filePath, bytes) {
@@ -63,6 +86,7 @@ async function writeCacheAtomically(filePath, bytes) {
 
 module.exports = {
   EXPECTED_LISTS,
+  EXPECTED_RESOURCE,
   loadVerifiedAdblockSnapshot,
   adblockCacheName,
   writeCacheAtomically,
