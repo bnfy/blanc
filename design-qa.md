@@ -549,3 +549,173 @@ No P3 implementation follow-up is required. A preference change to any source
 motif would be a new visual direction rather than an implementation correction.
 
 final result: passed
+
+---
+
+# Mahjong panda one-bamboo emblem — 2026-08-30
+
+**Final result:** passed
+
+## Comparison target
+
+- Source visual truth: `/Users/anthonyjloria/Downloads/animal.png`.
+- Initial rendered implementation: `/private/tmp/mahjong-panda-implementation.png`.
+- Final rendered implementation:
+  `/private/tmp/mahjong-panda-implementation-final.png`.
+- Focused final crop: `/private/tmp/mahjong-panda-focus-final.png`.
+- Combined source-and-implementation evidence:
+  `/private/tmp/mahjong-panda-design-comparison.png`.
+- Viewport: live Blanc development window at 1229×768 CSS px, Turtle layout,
+  Classic mode, light chrome and lacquer game surface.
+
+## Normalization
+
+- The source is a 512×512 RGBA PNG. A temporary comparison copy was flattened
+  onto an ivory background so the transparent black panda remained visible;
+  the bundled game asset is byte-identical to the supplied PNG.
+- The final implementation capture is 1229×768 pixels at the live window's 1×
+  capture density. The focused 300×260 board region was enlarged uniformly to
+  840×728 beside a 500×500 normalized source rendering. No non-uniform scaling,
+  recoloring, crop of the asset itself, or edge processing was used.
+- State: a blocked panda one-bamboo tile is visible near the right edge of the
+  central stack, surrounded by dot, wind, character, and higher bamboo tiles.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Fonts and typography: unaffected; the surrounding tile labels retain their
+  established family, weight, scale, and hierarchy.
+- Spacing and layout rhythm: the panda is centered in the 44×60 tile face and
+  has enough margin for its ears, back, foot, and bamboo leaves without clipping.
+- Colors and visual tokens: the source's pure black silhouette and transparent
+  negative space are preserved against the existing bone-ivory tile material.
+- Image quality and asset fidelity: the exact source file replaces the former
+  green one-bamboo image. Its silhouette, bamboo sprig, antialiasing, and alpha
+  edges remain intact under `preserveAspectRatio="xMidYMid meet"`.
+- Copy and content: unaffected. Accessibility continues to announce the tile
+  by its game identity (`one bamboo`) rather than adding decorative copy.
+- Full-view evidence confirms the panda integrates with the complete board and
+  blocked/free rendering without changing layout or tile scale.
+- Focused evidence confirms the panda remains recognizable at actual game size
+  and that no part of the supplied image is substituted or redrawn.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P2] The first 38px-wide rendering was recognizable but visually lighter than
+  the adjacent high-density tile faces because the square source includes its
+  own transparent perimeter.
+
+Fix: increased only the one-bamboo image box from 38×44 to 42×48 while retaining
+center alignment and aspect-ratio preservation.
+
+### Iteration 2 — passed
+
+Post-restart evidence shows the panda with a confident visual weight, clean
+margins, and no clipping. The rest of the bamboo suit and board remain unchanged.
+
+## Functional evidence
+
+- The Electron development app was fully restarted after each asset/scale pass
+  so the embedded Mahjong renderer did not reuse a cached image.
+- The source and bundled asset share SHA-256
+  `6f3d925c19f739e79e11f92921f4d020bb6f7be9fe2527be033f3bac12ea79d9`.
+- `node --check src/renderer/pages/mahjong.js` passes.
+- 41 focused Mahjong renderer and engine tests pass.
+- `git diff --check` passes.
+
+## Follow-up polish
+
+No P3 implementation follow-up is required.
+
+final result: passed
+
+---
+
+# Mahjong Blast-inspired bamboo suit — 2026-08-30
+
+**Final result:** passed
+
+## Comparison target
+
+- Style reference:
+  `/Users/anthonyjloria/Desktop/Screenshot 2026-08-30 at 6.36.49 PM.png`.
+- Exact individual-pip shape:
+  `/Users/anthonyjloria/Desktop/SVG/Asset 1.svg`.
+- Rendered implementation:
+  `/private/tmp/mahjong-supplied-bamboo-shape.png`.
+- Focused reference crop:
+  `/private/tmp/mahjong-blast-bamboo-reference-crop.png`.
+- Focused implementation crop:
+  `/private/tmp/mahjong-supplied-bamboo-implementation-crop.png`.
+- Combined source-and-implementation evidence:
+  `/private/tmp/mahjong-bamboo-blast-design-comparison.png`.
+- Viewport: live Blanc development window at 1229×768 CSS px, Turtle layout,
+  Classic mode, light chrome and lacquer game surface.
+
+## Normalization
+
+- The style reference is 1470×1950 pixels. Its bamboo-rich 520×620 region was
+  cropped and enlarged uniformly to 780×930 for focused comparison.
+- The implementation is a 1229×768 1× live-window capture. Its 520×560
+  bamboo-rich region was enlarged uniformly to 780×840 and centered on a
+  780×930 comparison panel. The different crop heights preserve each board's
+  native tile proportions rather than forcing non-uniform scaling.
+- The supplied SVG uses viewBox `0 0 10.35 27.08`. Its sole path is preserved
+  verbatim in separate blue and red local copies; only `fill` differs.
+- State: the panda remains one-bamboo. Ranks two through nine use the supplied
+  pip silhouette, with blue as the primary color and restrained red accents.
+
+## Findings
+
+There are no remaining actionable P0, P1, or P2 findings.
+
+- Fonts and typography: unaffected; adjacent character, wind, dragon, dot, and
+  bonus faces retain their established families, weights, and optical scale.
+- Spacing and layout rhythm: two bamboo is a parallel pair; three remains one
+  over two; six uses two rows of three; seven uses one over three over three;
+  eight and nine fill their faces without merging into rails.
+- Colors and visual tokens: deep blue dominates the suit while red accents the
+  center/top sticks of selected ranks, matching the reference's visual rhythm
+  without copying its exact palette or graphics.
+- Image quality and asset fidelity: every individual stick uses the exact
+  user-supplied SVG path. The raster generation experiment was discarded after
+  the SVG arrived; no generated approximation ships.
+- Copy and content: unaffected. Tile accessibility names continue to communicate
+  game identity rather than decorative color or shape.
+- Full-view evidence confirms the stronger sticks remain readable on free,
+  blocked, and layered tiles without changing board geometry.
+- Focused comparison confirms the new suit now has the reference's bold upright
+  marks, clear blue/red grouping, and at-a-glance rank legibility.
+
+## Comparison history
+
+### Selected-source change — superseded before implementation
+
+An original raster stick draft was explored after the Mahjong Blast reference
+arrived. The user then supplied `Asset 1.svg` as the authoritative pip shape, so
+the generated draft was removed before it reached the live game or PR.
+
+### Supplied-shape implementation — passed
+
+The first live comparison using the supplied SVG shows clear, substantial
+sticks across ranks two through nine with no clipping, collisions, or remaining
+P0/P1/P2 mismatch.
+
+## Functional evidence
+
+- The Electron development app was fully restarted before capture so the
+  embedded Mahjong renderer loaded the new flat SVG assets.
+- SVG guards verify the exact source viewBox/path and reject scripts, links,
+  external references, and foreign objects.
+- `node --check src/renderer/pages/mahjong.js` passes.
+- 41 focused Mahjong renderer and engine tests pass.
+- `git diff --check` passes.
+
+## Follow-up polish
+
+No P3 implementation follow-up is required.
+
+final result: passed

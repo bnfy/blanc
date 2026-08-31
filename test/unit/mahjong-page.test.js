@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
@@ -78,26 +79,41 @@ test('bonus families use professional shared motifs and hints clear stale emphas
   assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*clearHint\(\);/);
 });
 
-test('the bamboo suit uses the supplied raster artwork across every rank', () => {
+test('the bamboo suit uses a panda emblem plus the supplied blue and red stick artwork', () => {
   assert.match(controller, /one:\s*'mahjong-bamboo-one\.png'/);
-  assert.match(controller, /two:\s*'mahjong-bamboo-two\.png'/);
-  assert.match(controller, /stalk:\s*'mahjong-bamboo-stalk\.png'/);
+  assert.match(controller, /blue:\s*'mahjong-bamboo-blue\.svg'/);
+  assert.match(controller, /red:\s*'mahjong-bamboo-red\.svg'/);
   assert.match(controller, /function bambooImage\(href, x, y, width, height, className\)/);
   assert.match(controller, /return el\('image', \{/);
   assert.match(controller, /preserveAspectRatio:\s*'xMidYMid meet'/);
+  assert.match(controller, /function bambooStickAsset\(count, index, x\)/);
+  assert.match(controller, /\(count === 6 \|\| count === 9\) && x === 22/);
   assert.match(controller, /function bambooFace\(count\)/);
-  assert.match(controller, /BAMBOO_ART\.one, 22, 30, 38, 44/);
-  assert.match(controller, /BAMBOO_ART\.two, 22, 30, 31, 31/);
-  assert.match(controller, /for \(const \[x, y\] of BAM_SPOTS\[count\]\)/);
-  assert.match(controller, /BAMBOO_ART\.stalk, x, y, width, height/);
+  assert.match(controller, /BAMBOO_ART\.one, 22, 30, 42, 48/);
+  assert.match(controller, /2:\s*\[\[14, 30\], \[30, 30\]\]/);
+  assert.match(controller, /6:\s*\[\[11, 17\], \[22, 17\], \[33, 17\], \[11, 43\], \[22, 43\], \[33, 43\]\]/);
+  assert.match(controller, /BAM_SPOTS\[count\]\.forEach\(\(\[x, y\], index\) =>/);
+  assert.match(controller, /bambooStickAsset\(count, index, x\)/);
   assert.match(controller, /svg\.append\(bambooFace\(Number\(id\)\)\)/);
   assert.match(controller, /8:\s*\[\[13, 7\.5\], \[31, 7\.5\], \[11, 22\.5\], \[33, 22\.5\], \[13, 37\.5\], \[31, 37\.5\], \[11, 52\.5\], \[33, 52\.5\]\]/);
   assert.match(styles, /\.mj-bamboo-source\s*\{[^}]*image-rendering:\s*auto;[^}]*drop-shadow/);
 
-  for (const asset of ['mahjong-bamboo-one.png', 'mahjong-bamboo-two.png', 'mahjong-bamboo-stalk.png']) {
+  for (const asset of ['mahjong-bamboo-one.png']) {
     const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/${asset}`));
     assert.equal(data.subarray(1, 4).toString(), 'PNG', `${asset} is not a PNG`);
   }
+  const suppliedStickPath = 'M9.79,24.79c-2.59,2.61-6.68,2.61-9.79,1.85l.34-2.68L.44,2.02C4.84-.93,12.25-.5,9.9,2.36l-.11,22.44Z';
+  for (const asset of ['mahjong-bamboo-blue.svg', 'mahjong-bamboo-red.svg']) {
+    const data = fs.readFileSync(path.join(__dirname, `../../src/renderer/pages/${asset}`), 'utf8');
+    assert.match(data, /viewBox="0 0 10\.35 27\.08"/);
+    assert.ok(data.includes(suppliedStickPath), `${asset} does not preserve the supplied bamboo path`);
+    assert.doesNotMatch(data, /<script|href=|xlink:href|foreignObject/);
+  }
+  const panda = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-bamboo-one.png'));
+  assert.equal(
+    crypto.createHash('sha256').update(panda).digest('hex'),
+    '6f3d925c19f739e79e11f92921f4d020bb6f7be9fe2527be033f3bac12ea79d9'
+  );
 });
 
 test('mahjong loads its sound module before the controller and exposes a pressed toggle', () => {

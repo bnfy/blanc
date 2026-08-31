@@ -55,8 +55,8 @@ function setLayoutGeometry(layoutId) {
 
 // Traditional arrangements. Dots follow real circle tiles (7 is a diagonal
 // of three over a 2x2 square — never the domino 6+1); bamboo overrides the
-// counts where slats stack differently (2: centered pair, 3: one over two,
-// 7: one over three over three).
+// counts where sticks stack differently (2: parallel pair, 3: one over two,
+// 6: two rows of three, 7: one over three over three).
 const NINE_GRID = { xs: [11, 22, 33], ys: [13, 30, 47] };
 const SPOTS = {
   1: [[22, 30]],
@@ -71,27 +71,29 @@ const SPOTS = {
 };
 const BAM_SPOTS = {
   ...SPOTS,
-  2: [[22, 17], [22, 43]],
+  2: [[14, 30], [30, 30]],
   3: [[22, 14], [11, 44], [33, 44]],
+  6: [[11, 17], [22, 17], [33, 17], [11, 43], [22, 43], [33, 43]],
   7: [[22, 9], [11, 30], [22, 30], [33, 30], [11, 51], [22, 51], [33, 51]],
-  // Stagger the four pairs so eight bamboo reads as individual engraved
-  // pieces instead of two uninterrupted dashed rails.
+  // Stagger the four pairs so eight bamboo reads as individual sticks instead
+  // of two uninterrupted rails.
   8: [[13, 7.5], [31, 7.5], [11, 22.5], [33, 22.5], [13, 37.5], [31, 37.5], [11, 52.5], [33, 52.5]],
 };
 
 const BAMBOO_ART = Object.freeze({
   one: 'mahjong-bamboo-one.png',
-  two: 'mahjong-bamboo-two.png',
-  stalk: 'mahjong-bamboo-stalk.png',
+  blue: 'mahjong-bamboo-blue.svg',
+  red: 'mahjong-bamboo-red.svg',
 });
-const BAMBOO_STALK_SIZES = Object.freeze({
-  3: [12, 17],
-  4: [11.5, 16],
-  5: [11, 15.5],
-  6: [10.5, 15],
-  7: [10, 14],
-  8: [9.5, 13.5],
-  9: [9, 13],
+const BAMBOO_STICK_SIZES = Object.freeze({
+  2: [10, 34],
+  3: [10, 20],
+  4: [9.5, 18],
+  5: [9, 16.5],
+  6: [8.5, 15.5],
+  7: [8, 14.5],
+  8: [7.5, 13.5],
+  9: [7, 13],
 });
 
 // One rounded plum-blossom petal. Five rotations make a botanical engraving
@@ -117,20 +119,34 @@ function bambooImage(href, x, y, width, height, className) {
   });
 }
 
-// Use the supplied bamboo artwork directly. One and two are distinctive
-// emblems; higher ranks repeat the single-stalk source in traditional pip
-// arrangements so every bamboo tile shares the same visual language.
+function bambooStickAsset(count, index, x) {
+  const redAccent =
+    (count === 3 && index === 0) ||
+    (count === 5 && index === 2) ||
+    (count === 7 && index === 0) ||
+    ((count === 6 || count === 9) && x === 22);
+  return redAccent ? BAMBOO_ART.red : BAMBOO_ART.blue;
+}
+
+// One bamboo keeps its special panda emblem. The numbered suit uses bold,
+// segmented blue sticks with restrained red accents, borrowing Mahjong Blast's
+// at-a-glance clarity while preserving the supplied local vector shape.
 function bambooFace(count) {
   const group = el('g', { class: `mj-bamboo-art mj-bamboo-art-${count}` });
   if (count === 1) {
-    group.append(bambooImage(BAMBOO_ART.one, 22, 30, 38, 44, 'mj-bamboo-source mj-bamboo-source-one'));
-  } else if (count === 2) {
-    group.append(bambooImage(BAMBOO_ART.two, 22, 30, 31, 31, 'mj-bamboo-source mj-bamboo-source-two'));
+    group.append(bambooImage(BAMBOO_ART.one, 22, 30, 42, 48, 'mj-bamboo-source mj-bamboo-source-one'));
   } else {
-    const [width, height] = BAMBOO_STALK_SIZES[count];
-    for (const [x, y] of BAM_SPOTS[count]) {
-      group.append(bambooImage(BAMBOO_ART.stalk, x, y, width, height, 'mj-bamboo-source mj-bamboo-source-stalk'));
-    }
+    const [width, height] = BAMBOO_STICK_SIZES[count];
+    BAM_SPOTS[count].forEach(([x, y], index) => {
+      group.append(bambooImage(
+        bambooStickAsset(count, index, x),
+        x,
+        y,
+        width,
+        height,
+        'mj-bamboo-source mj-bamboo-source-stick'
+      ));
+    });
   }
   return group;
 }

@@ -417,7 +417,6 @@
   image-rendering: auto;
   filter: drop-shadow(0 0.65px 0.35px rgba(0, 25, 19, 0.28));
 }
-.mj-bamboo-source-two { opacity: 0.9; }
 .mj-tile[data-suit="chr"], .mj-tile[data-suit="drg-c"] { color: var(--mj-red); }
 .mj-tile[data-suit="bam"], .mj-tile[data-suit="drg-f"] { color: var(--mj-green); }
 .mj-tile[data-suit="flower"] { color: var(--mj-flower); }
