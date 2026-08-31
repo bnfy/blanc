@@ -1,4 +1,4 @@
-const { randomUUID } = require('crypto');
+const { randomInt, randomUUID } = require('crypto');
 
 // The collector Worker in cloudflare/ping-worker — accepts a JSON POST,
 // returns 204.
@@ -86,7 +86,7 @@ function createTelemetrySender({
   platform,
   arch,
   getSystemVersion,
-  random = Math.random,
+  makeSessionId = () => randomInt(1, 0x80000000),
   newtabLayouts,
   warn = console.warn,
 }) {
@@ -96,8 +96,9 @@ function createTelemetrySender({
 
   function commonPayload() {
     if (sessionId === null) {
-      // GA4 requires a positive 32-bit session id; Math.random() can return 0.
-      sessionId = Math.max(1, (random() * 0x7FFFFFFF) >>> 0);
+      // GA4 requires a positive 32-bit session id. Use cryptographic randomness
+      // because the Worker also relies on this value for replay deduplication.
+      sessionId = makeSessionId();
     }
     return {
       installId: getInstallId(),

@@ -20,7 +20,7 @@ function senderHarness({ packaged = true } = {}) {
     platform: 'darwin',
     arch: 'arm64',
     getSystemVersion: () => '26.4.1',
-    random: () => 0.5,
+    makeSessionId: () => 0x3fffffff,
     newtabLayouts: ['ledger', 'billboard', 'shelf', 'tally', 'mahjong'],
     warn: () => {},
   });
@@ -98,7 +98,7 @@ test('a synchronous or asynchronous network failure remains fire-and-forget', as
       platform: 'darwin',
       arch: 'arm64',
       getSystemVersion: () => '26.4.1',
-      random: () => 0,
+      makeSessionId: () => 1,
       newtabLayouts: ['ledger'],
       warn: () => {},
     });
