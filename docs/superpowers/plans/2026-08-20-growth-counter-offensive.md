@@ -31,10 +31,12 @@
   native platform gates, logged-out download smoke, and the authenticated
   public Linux AppImage launch/render check passed. See
   `docs/release-incidents/2026-08-31-v1.11.0.md`.
-- The exact public v1.10.0 → v1.11.0 updater handoffs on macOS and Windows and
-  the v1.11.0 48-hour soak remain open. The earlier v1.9.1 → v1.10.0 handoffs,
-  trust checks, Linux smoke, and soak remain valid historical v1.10.0 evidence;
-  they do not satisfy the replacement launch release's adjacent-version gates.
+- The exact public v1.10.0 → v1.11.0 updater handoff passed on macOS, including
+  strict post-update signature and Gatekeeper checks. The corresponding Windows
+  handoff and the v1.11.0 48-hour soak remain open. The earlier v1.9.1 → v1.10.0
+  handoffs, trust checks, Linux smoke, and soak remain valid historical v1.10.0
+  evidence; they do not satisfy the replacement launch release's remaining
+  adjacent-version gate.
 - Task 8's Island demo was recorded on August 30 from installed packaged public
   v1.10.0. Its 20.50-second MP4 and sub-8-MiB GIF remain immutable in
   `0cc0c57`, but they are no longer launch-ready because v1.11.0 ships the
