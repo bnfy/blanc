@@ -149,6 +149,43 @@ update (BrandMark.astro + favicon + rebuild) — a separate task, not this push-
 Also out of scope: `Logo.prompt.md` still says "use --accent green" (palette went monochrome
 long ago) — cosmetic, left for a later pass.
 
+## 2026-08-31 sync (push-drift, v1.9.0 → v1.11.0)
+
+Diffed all three canonical pairs from baseline 9396fc8^ (the 2026-08-25 sync predates
+that same-day commit). **Tokens: no drift** (all post-baseline pages.css churn was
+Mahjong game styles, no `:root` changes). Three app changes pushed (user approved all
+three; verified by rendering the real components locally — Babel-clean, light + dark,
+trust card + local state + fallbacks exercised via a served harness):
+
+- **Site trust (0b88915):** Icon.jsx gained `secure` (closed padlock) + `local`
+  (target dot) verbatim from overlay.js ICONS (`insecure` was already synced).
+  Island.jsx: the panel address row is now LED by the `.bw-site-info-button`
+  (secure/insecure/certificate-error/local states; internal/neutral/loading draw
+  nothing — same visibility rule as overlay.js), replacing the old in-row insecure
+  span; clicking swaps the list for the `.bw-site-info-card` (state dot, title, mono
+  origin, summary, certificate dl grid, blocked tally + "Privacy settings" via new
+  `onOpenPrivacySettings`); the hint line switches to "connection details are
+  supplied by Chromium" / cert-error "Blanc did not offer a bypass". The pill's
+  insecure badge became a button (opens site controls → `onShieldClick`) shown for
+  insecure OR certificate-error, title from `siteInfo.title`; tab prop `siteInfo`
+  added, legacy `insecure: true` still works (synthesized as an insecure siteInfo).
+- **1Password fill hint (819d901):** Icon.jsx gained `key` (verbatim from
+  index.html #pillFillHint); Island.jsx gained the `.bw-fill-hint-chip` between the
+  capture chip and the shield (`tab.fillHint` + `onFillLogin`) — text-dim
+  invitation, macOS-only in the app (documented in .d.ts/.prompt.md).
+- **Favicon fallback (9396fc8):** Favicon gained a `url` prop → domain-initial
+  fallback (`.bw-island-favicon.fallback`, mono 8px; `faviconFallbackLabel` logic
+  verbatim); the dot peek mirrors it at 9px (`.bw-dot-peek.fallback` — the app
+  composes `.dot-peek favicon` classes, DS folds the two rules). Tab rows, Quick
+  Switcher rows, and the pill slot all pass `url` now.
+
+chrome.card.html now exercises all three (active Verge tab carries full `siteInfo` +
+`fillHint`; new 5th favicon-less tab shows the initial); icons.card.html renders the
+31-glyph set (+secure/local/key; `reopen` stays a deliberate NON-sync). Sentinel
+re-armed. NOT modeled: the fill-status capsule (fourth chrome document — transient
+in-flow UI, same class as the Patron gate), and the shield popover's site-scoped
+internals (unchanged).
+
 ## Gotchas
 - Preview cards render from compiled `_ds_bundle.js`. To rebuild it after pushing source changes: write
   a `_ds_needs_recompile` sentinel file (finalize_plan + write_files, any content) and open the project —
