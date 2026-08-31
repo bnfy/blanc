@@ -359,14 +359,14 @@ test('desktop game header promotes session identity and status hierarchy', () =>
     styles.indexOf('@media (max-width: 1080px)'),
     styles.indexOf('@media (max-width: 780px)')
   );
-  assert.match(styles, /\.mj-head\s*\{[^}]*min-height:\s*58px/);
-  assert.match(styles, /\.mj-session\s*\{[^}]*min-height:\s*44px[^}]*border-radius:\s*999px[^}]*font:\s*600 15px/);
-  assert.match(styles, /\.mj-meters\s*\{[^}]*min-height:\s*56px[^}]*border:[^}]*border-radius:\s*15px/);
-  assert.match(styles, /\.mj-meter strong\s*\{[^}]*font:\s*740 18px/);
-  assert.match(styles, /\.mj-chain-meter \.mj-chain\s*\{[^}]*font-size:\s*20px[^}]*text-shadow:/);
-  assert.match(styles, /\.mj-combo-bar\s*\{[^}]*width:\s*98px[^}]*height:\s*7px/);
+  assert.match(styles, /\.mj-head\s*\{[^}]*min-height:\s*52px/);
+  assert.match(styles, /\.mj-session\s*\{[^}]*min-height:\s*40px[^}]*border-radius:\s*999px[^}]*font:\s*600 13px/);
+  assert.match(styles, /\.mj-meters\s*\{[^}]*min-height:\s*50px[^}]*border:[^}]*border-radius:\s*15px/);
+  assert.match(styles, /\.mj-meter strong\s*\{[^}]*font:\s*740 16px/);
+  assert.match(styles, /\.mj-chain-meter \.mj-chain\s*\{[^}]*font-size:\s*18px[^}]*text-shadow:/);
+  assert.match(styles, /\.mj-combo-bar\s*\{[^}]*width:\s*90px[^}]*height:\s*6px/);
   assert.match(responsiveHeader, /\.mj-head\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto/);
-  assert.match(responsiveHeader, /\.mj-session\s*\{[^}]*grid-column:\s*1 \/ -1;[^}]*grid-row:\s*2;/);
+  assert.match(responsiveHeader, /\.mj-session\s*\{[^}]*display:\s*none;/);
   assert.match(responsiveHeader, /\.mj-meters\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1;/);
 });
 

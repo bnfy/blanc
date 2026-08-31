@@ -159,7 +159,7 @@
 
 .mj-head {
   z-index: 4;
-  min-height: 58px;
+  min-height: 52px;
   display: grid;
   grid-template-columns: minmax(112px, 1fr) auto minmax(260px, 1fr);
   align-items: center;
@@ -183,7 +183,7 @@
   align-items: center;
   gap: 7px;
   color: var(--mj-ivory);
-  font: 650 clamp(17px, 1.8vw, 22px)/1 var(--font-ui);
+  font: 650 clamp(16px, 1.55vw, 20px)/1 var(--font-ui);
   letter-spacing: -0.03em;
   text-decoration: none;
   text-shadow: 0 1px 14px var(--mj-shadow);
@@ -245,9 +245,9 @@
 
 .mj-session {
   justify-content: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 6px 14px 6px 7px;
+  gap: 8px;
+  min-height: 40px;
+  padding: 5px 12px 5px 6px;
   border: 1px solid rgba(224, 194, 121, 0.34);
   border-radius: 999px;
   color: var(--mj-muted);
@@ -256,26 +256,26 @@
     rgba(2, 37, 29, 0.72);
   box-shadow: 0 4px 0 rgba(0, 20, 16, 0.58), 0 9px 24px rgba(0, 8, 6, 0.28), inset 0 1px rgba(255, 255, 255, 0.075);
   backdrop-filter: blur(10px) saturate(1.06);
-  font: 600 15px/1 var(--font-mono);
+  font: 600 13px/1 var(--font-mono);
   letter-spacing: 0.025em;
   white-space: nowrap;
 }
 
 .mj-session strong {
   color: var(--mj-ivory);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 720;
   text-shadow: 0 2px 9px rgba(0, 8, 6, 0.6);
 }
-.mj-session > [aria-hidden="true"] { color: rgba(228, 197, 121, 0.58); font-size: 17px; }
+.mj-session > [aria-hidden="true"] { color: rgba(228, 197, 121, 0.58); font-size: 15px; }
 #mjModeName { color: #e7d7ac; font-weight: 650; }
 
 .mj-meters {
   justify-self: end;
   justify-content: flex-end;
   gap: 0;
-  min-height: 56px;
-  padding: 5px 7px;
+  min-height: 50px;
+  padding: 4px 6px;
   border: 1px solid rgba(224, 194, 121, 0.3);
   border-radius: 15px;
   background:
@@ -286,29 +286,29 @@
 }
 
 .mj-meter {
-  min-width: 70px;
-  min-height: 44px;
+  min-width: 66px;
+  min-height: 40px;
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  gap: 6px;
-  padding: 2px 11px;
+  gap: 5px;
+  padding: 2px 10px;
 }
-.mj-meter:first-child { min-width: 112px; }
+.mj-meter:first-child { min-width: 104px; }
 .mj-meter + .mj-meter { border-left: 1px solid rgba(226, 195, 120, 0.14); }
 
 .mj-meter-label,
 .mj-tray-kicker,
 .mj-overline {
   color: var(--mj-muted);
-  font: 740 10px/1 var(--font-mono);
+  font: 740 9px/1 var(--font-mono);
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .mj-meter strong {
   color: var(--mj-ivory);
-  font: 740 18px/1 var(--font-mono);
+  font: 740 16px/1 var(--font-mono);
   font-variant-numeric: tabular-nums;
   text-shadow: 0 2px 9px rgba(0, 8, 6, 0.62);
 }
@@ -318,10 +318,10 @@
 .mj[data-mode="tray"] .mj-score-meter,
 .mj[data-mode="tray"] .mj-chain-meter { display: flex; }
 
-.mj-chain-meter { min-width: 108px; }
+.mj-chain-meter { min-width: 100px; }
 .mj-chain-meter .mj-chain {
   color: #f5d98e;
-  font-size: 20px;
+  font-size: 18px;
   text-shadow: 0 2px 0 rgba(77, 47, 7, 0.76), 0 0 15px rgba(235, 191, 83, 0.34);
 }
 .mj-score-meter { position: relative; isolation: isolate; }
@@ -364,8 +364,8 @@
 .mj-score-meter.is-heated .mj-score::after { right: calc(100% + 8px); bottom: -4px; animation-delay: -460ms; scale: 0.72; }
 .mj-combo-bar {
   position: relative;
-  width: 98px;
-  height: 7px;
+  width: 90px;
+  height: 6px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(3, 19, 16, 0.72);
@@ -1834,21 +1834,16 @@
 @media (max-width: 1080px) {
   .mj-head {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px 14px;
+    gap: 14px;
   }
   .mj-brand-lockup { grid-column: 1; grid-row: 1; min-width: 0; }
-  .mj-session {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: start;
-    justify-content: flex-start;
-  }
+  .mj-session { display: none; }
   .mj-meters { grid-column: 2; grid-row: 1; padding-inline: 6px; }
-  .mj-meter { min-width: 60px; padding-inline: 8px; }
-  .mj-meter:first-child { min-width: 96px; }
-  .mj-chain-meter { min-width: 94px; }
-  .mj-combo-bar { width: 84px; }
-  .mj-feedback { top: calc(var(--mj-shell-block) + 112px + var(--mj-shell-gap) + 8px); }
+  .mj-meter { min-width: 56px; padding-inline: 7px; }
+  .mj-meter:first-child { min-width: 88px; }
+  .mj-chain-meter { min-width: 88px; }
+  .mj-combo-bar { width: 78px; }
+  .mj-feedback { top: calc(var(--mj-shell-block) + 52px + var(--mj-shell-gap) + 8px); }
 }
 
 @media (max-width: 780px) {
