@@ -135,6 +135,13 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           node scripts/verify-electron-fuses.mjs "dist/win-unpacked/$PRODUCT_NAME.exe"
 
+      - name: Verify packaged microphone permission and live track
+        shell: pwsh
+        run: |
+          $product = node -p "require('./package.json').productName"
+          $env:BLANC_PACKAGED_EXECUTABLE = (Resolve-Path "dist/win-unpacked/$product.exe").Path
+          node test/desktop/packaged-media-smoke.mjs
+
       - name: Verify Authenticode signature
         shell: pwsh
         env:
@@ -267,6 +274,12 @@ jobs:
         run: |
           EXECUTABLE=$(node -p "require('./package.json').build.executableName || require('./package.json').name")
           node scripts/verify-electron-fuses.mjs "dist/linux-unpacked/$EXECUTABLE"
+
+      - name: Verify packaged microphone permission and live track
+        run: |
+          EXECUTABLE=$(node -p "require('./package.json').build.executableName || require('./package.json').name")
+          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/linux-unpacked/$EXECUTABLE" \
+            xvfb-run -a node test/desktop/packaged-media-smoke.mjs
 
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}

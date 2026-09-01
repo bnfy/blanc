@@ -161,9 +161,17 @@ module.exports = async function afterSignVerify(context) {
       )) {
         fail(`${path.basename(bundlePath)} unexpectedly disables library validation.`);
       }
+      for (const capability of [
+        'com.apple.security.device.audio-input',
+        'com.apple.security.device.camera',
+      ]) {
+        if (!derBooleanTrue(bundlePath, capability)) {
+          fail(`${path.basename(bundlePath)} is missing ${capability}.`);
+        }
+      }
     }
 
-    console.log(`after-sign-verify: ok — signed by ${signer.slice(0, 8)}…, profile embedded and authorizing, DER WebAuthn entitlement present, Plugin JIT/runtime entitlements present, and Plugin is the sole library-validation exception.`);
+    console.log(`after-sign-verify: ok — signed by ${signer.slice(0, 8)}…, profile embedded and authorizing, DER WebAuthn and ordinary-helper media entitlements present, Plugin JIT/runtime entitlements present, and Plugin is the sole library-validation exception.`);
   } finally {
     rmSync(tmp, { recursive: true, force: true });
   }

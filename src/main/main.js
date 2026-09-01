@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess } = require('electron');
+const { app, BrowserWindow, WebContentsView, session, ipcMain, Menu, nativeTheme, nativeImage, dialog, shell, net, powerMonitor, webContents, clipboard, utilityProcess, systemPreferences } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
@@ -49,6 +49,7 @@ const {
   certificateErrorQuery,
 } = require('./site-security');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
+const { createNativeMediaAccessGate } = require('./native-media-access');
 const {
   chromeClientHintPlatform,
   chromeClientHintArchitecture,
@@ -65,6 +66,14 @@ const {
   setupChromeProtocol,
 } = require('./chrome-protocol');
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
+const nativeMediaAccess = createNativeMediaAccessGate({
+  platform: process.platform,
+  systemPreferences,
+});
+const nativeMediaPermissionOptions = {
+  requestNativeMediaAccess: nativeMediaAccess.request,
+  nativeMediaAccessState: nativeMediaAccess.state,
+};
 const { setupAutoUpdater, checkForUpdatesManually } = require('./updater');
 const {
   sendLaunchPing,
@@ -6976,10 +6985,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // Also follow a live OS appearance change while the preference is "system".
   nativeTheme.on('updated', bindWindowRuntime(primaryRuntime, handleNativeThemeUpdated));
 
-  setupPermissionPolicy(ses, { profileId: DEFAULT_PROFILE_ID });
+  setupPermissionPolicy(ses, {
+    profileId: DEFAULT_PROFILE_ID,
+    ...nativeMediaPermissionOptions,
+  });
   setupPermissionPolicy(privateSes, {
     persistDecisions: false,
     profileId: DEFAULT_PROFILE_ID,
+    ...nativeMediaPermissionOptions,
   });
   let permissionPromptCounter = 0;
   // Resolve the tab owning a requesting webContents through the maintained
@@ -7313,10 +7326,14 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     pagesRegistration.addSessions(targetSessions);
     installSessionPreloads(targetSessions);
     installClientHintFallback(targetSessions);
-    setupPermissionPolicy(owned.normal, { profileId: owned.profileId });
+    setupPermissionPolicy(owned.normal, {
+      profileId: owned.profileId,
+      ...nativeMediaPermissionOptions,
+    });
     setupPermissionPolicy(owned.private, {
       persistDecisions: false,
       profileId: owned.profileId,
+      ...nativeMediaPermissionOptions,
     });
     setupDownloads(owned.normal, broadcastDownloadsActivity, {
       private: false,

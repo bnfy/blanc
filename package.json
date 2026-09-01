@@ -1,7 +1,7 @@
 {
   "name": "blanc",
   "productName": "Blanc",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "Minimal Electron browser shell: custom chrome UI + built-in ad/tracker blocking, no extension-store dependency.",
   "main": "src/main/main.js",
   "type": "commonjs",
@@ -30,6 +30,7 @@
     "test:packaged:first-run": "node test/desktop/packaged-first-run-smoke.mjs",
     "test:packaged:migration": "node test/desktop/packaged-migration-smoke.mjs",
     "test:packaged:regressions": "node test/desktop/release-regressions-smoke.mjs",
+    "test:packaged:native-media": "node test/desktop/packaged-native-media-smoke.mjs",
     "test:packaged:favicons-live": "node test/desktop/packaged-live-favicons-smoke.mjs",
     "test:packaged:update-staging": "node test/desktop/packaged-update-staging-smoke.mjs",
     "update:staging:prepare": "node scripts/prepare-staging-update-feed.mjs",
@@ -122,7 +123,8 @@
       "provisioningProfile": "build/embedded.provisionprofile",
       "extendInfo": {
         "CFBundleDisplayName": "Blanc Browser",
-        "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone."
+        "NSMicrophoneUsageDescription": "Blanc allows websites you approve to use your microphone.",
+        "NSCameraUsageDescription": "Blanc allows websites you approve to use your camera."
       },
       "target": [
         "dmg",

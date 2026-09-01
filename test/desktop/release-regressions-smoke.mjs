@@ -255,6 +255,11 @@ try {
 
   await withPackagedApp({
     label: 'release-regressions-microphone',
+    // This scenario verifies Blanc's site prompt, live PermissionStatus, and
+    // stream instrumentation deterministically. macOS TCC is a separate,
+    // human-gated packaged check covered structurally/unit-wise in
+    // native-media-{access,permission-policy,packaging}.test.js and exercised
+    // on the signed candidate before publication.
     launchArgs: ['--use-fake-device-for-media-stream', `${origin}/mic`],
   }, async (app) => {
     const micPage = await poll(

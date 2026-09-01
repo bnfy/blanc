@@ -7,5 +7,11 @@
   <true/>
   <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
   <true/>
+  <!-- Chromium captures web media in helper processes, so the ordinary
+       hardened helpers need the same device capabilities as the main app. -->
+  <key>com.apple.security.device.audio-input</key>
+  <true/>
+  <key>com.apple.security.device.camera</key>
+  <true/>
 </dict>
 </plist>
