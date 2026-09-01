@@ -275,6 +275,11 @@ jobs:
           EXECUTABLE=$(node -p "require('./package.json').build.executableName || require('./package.json').name")
           node scripts/verify-electron-fuses.mjs "dist/linux-unpacked/$EXECUTABLE"
 
+      - name: Install AppImage smoke runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes libfuse2 xvfb
+
       - name: Verify packaged microphone permission and live track
         run: |
           VERSION=$(node -p "require('./package.json').version")
