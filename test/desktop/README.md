@@ -52,8 +52,9 @@ npm run test:acceptance:desktop      # execute the runnable scenarios against th
 xvfb-run -a npm run test:acceptance:desktop   # ...on a headless Linux/CI box
 
 npm run test:packaged:regressions    # deterministic signed-build release regressions
-node test/desktop/packaged-media-smoke.mjs  # cross-platform packaged site grant + live fake track
+node test/desktop/packaged-media-smoke.mjs  # cross-platform packaged site grants + live fake audio/video tracks
 npm run test:packaged:native-media   # macOS-only real device/TCC check; records no audio
+npm run test:packaged:native-camera  # macOS-only real camera/TCC check; records/uploads no frames
 npm run test:packaged:favicons-live  # both pre-tag live favicon matrices (52 unique public sites)
 BLANC_FAVICON_MATRIX=primary npm run test:packaged:favicons-live    # original 25 + App Store Connect
 BLANC_FAVICON_MATRIX=additional npm run test:packaged:favicons-live # separate 26

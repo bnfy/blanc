@@ -35,3 +35,35 @@ test('every browsing session receives the native media permission gate', () => {
     'Personal/named regular and private sessions must all share the native gate'
   );
 });
+
+test('packaged release gates exercise real macOS camera and cross-platform audio/video tracks', () => {
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+  assert.match(pkg.scripts?.['test:packaged:native-camera'] ?? '', /--media=camera/);
+
+  const nativeSmoke = fs.readFileSync(
+    path.join(ROOT, 'test/desktop/packaged-native-media-smoke.mjs'),
+    'utf8'
+  );
+  assert.match(nativeSmoke, /getVideoTracks/);
+  assert.match(nativeSmoke, /videoWidth/);
+  assert.match(nativeSmoke, /recorded or uploaded/);
+
+  const packagedSmoke = fs.readFileSync(
+    path.join(ROOT, 'test/desktop/packaged-media-smoke.mjs'),
+    'utf8'
+  );
+  assert.match(packagedSmoke, /getUserMedia\(\{ audio: true, video: true \}\)/);
+  assert.match(packagedSmoke, /liveAudioTracks > 0/);
+  assert.match(packagedSmoke, /liveVideoTracks > 0/);
+
+  const workflow = fs.readFileSync(
+    path.join(ROOT, '.github/workflows/release-windows-linux.yml'),
+    'utf8'
+  );
+  assert.equal(
+    [...workflow.matchAll(/Verify packaged microphone and camera permissions and live tracks/g)]
+      .length,
+    2,
+    'Windows and Linux must both run the combined packaged media gate'
+  );
+});

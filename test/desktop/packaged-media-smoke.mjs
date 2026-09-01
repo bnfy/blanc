@@ -33,14 +33,14 @@ const poll = async (read, predicate, message, timeoutMs = 45_000) => {
 const server = http.createServer((_request, response) => {
   response.setHeader('Content-Type', 'text/html; charset=utf-8');
   response.end(`<!doctype html>
-    <title>Blanc packaged microphone check</title>
-    <button id="ask" type="button">Test microphone</button>
+    <title>Blanc packaged microphone and camera check</title>
+    <button id="ask" type="button">Test microphone and camera</button>
     <script>
       globalThis.__requestState = 'idle';
       document.getElementById('ask').addEventListener('click', async () => {
         globalThis.__requestState = 'pending';
         try {
-          globalThis.__stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          globalThis.__stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
           globalThis.__requestState = 'granted';
         } catch (error) {
           globalThis.__requestState = 'rejected:' + error.name;
@@ -80,15 +80,19 @@ try {
     'packaged Blanc did not open the local media probe',
   );
   const initial = await page.evaluate(async () => {
-    const status = await navigator.permissions.query({ name: 'microphone' });
-    globalThis.__heldPermissionStatus = status;
-    globalThis.__permissionChanges = [];
-    status.addEventListener('change', () => {
-      globalThis.__permissionChanges.push(status.state);
+    const microphone = await navigator.permissions.query({ name: 'microphone' });
+    const camera = await navigator.permissions.query({ name: 'camera' });
+    globalThis.__heldPermissionStatus = { microphone, camera };
+    globalThis.__permissionChanges = { microphone: [], camera: [] };
+    microphone.addEventListener('change', () => {
+      globalThis.__permissionChanges.microphone.push(microphone.state);
     });
-    return status.state;
+    camera.addEventListener('change', () => {
+      globalThis.__permissionChanges.camera.push(camera.state);
+    });
+    return { microphone: microphone.state, camera: camera.state };
   });
-  assert.equal(initial, 'prompt');
+  assert.deepEqual(initial, { microphone: 'prompt', camera: 'prompt' });
 
   await page.locator('#ask').click();
   const permissionPage = await poll(
@@ -96,26 +100,35 @@ try {
       app.pages().find((candidate) => candidate.url() === 'blanc-chrome://permission/') ?? null
     ),
     Boolean,
-    'Blanc did not show its site microphone prompt',
+    'Blanc did not show its site microphone and camera prompt',
   );
   await permissionPage.locator('#permAllowBtn').click();
 
   const granted = await poll(
     () => page.evaluate(async () => ({
       requestState: globalThis.__requestState,
-      heldState: globalThis.__heldPermissionStatus?.state,
+      heldMicrophoneState: globalThis.__heldPermissionStatus?.microphone?.state,
+      heldCameraState: globalThis.__heldPermissionStatus?.camera?.state,
       changes: globalThis.__permissionChanges,
-      canonical: await navigator.permissions.query({ name: 'microphone' })
-        === globalThis.__heldPermissionStatus,
-      liveTracks: globalThis.__stream?.getAudioTracks()
+      canonicalMicrophone: await navigator.permissions.query({ name: 'microphone' })
+        === globalThis.__heldPermissionStatus?.microphone,
+      canonicalCamera: await navigator.permissions.query({ name: 'camera' })
+        === globalThis.__heldPermissionStatus?.camera,
+      liveAudioTracks: globalThis.__stream?.getAudioTracks()
+        .filter((track) => track.readyState === 'live').length ?? 0,
+      liveVideoTracks: globalThis.__stream?.getVideoTracks()
         .filter((track) => track.readyState === 'live').length ?? 0,
     })),
     (state) => state.requestState === 'granted'
-      && state.heldState === 'granted'
-      && state.changes.includes('granted')
-      && state.canonical
-      && state.liveTracks > 0,
-    'packaged microphone permission did not produce a live audio track',
+      && state.heldMicrophoneState === 'granted'
+      && state.heldCameraState === 'granted'
+      && state.changes.microphone.includes('granted')
+      && state.changes.camera.includes('granted')
+      && state.canonicalMicrophone
+      && state.canonicalCamera
+      && state.liveAudioTracks > 0
+      && state.liveVideoTracks > 0,
+    'packaged media permission did not produce live audio and video tracks',
   );
   assert.equal(granted.requestState, 'granted');
   console.log(`packaged-media-smoke OK: ${process.platform} ${executablePath}`);
@@ -130,6 +143,7 @@ try {
     }
     await app.close();
   }
+  server.closeAllConnections?.();
   await new Promise((resolve) => server.close(resolve));
   fs.rmSync(userDataDir, { recursive: true, force: true });
 }

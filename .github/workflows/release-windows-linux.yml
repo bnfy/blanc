@@ -135,7 +135,7 @@ jobs:
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
           node scripts/verify-electron-fuses.mjs "dist/win-unpacked/$PRODUCT_NAME.exe"
 
-      - name: Verify packaged microphone permission and live track
+      - name: Verify packaged microphone and camera permissions and live tracks
         shell: pwsh
         run: |
           $product = node -p "require('./package.json').productName"
@@ -280,7 +280,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes libfuse2 xvfb
 
-      - name: Verify packaged microphone permission and live track
+      - name: Verify packaged microphone and camera permissions and live tracks
         run: |
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
