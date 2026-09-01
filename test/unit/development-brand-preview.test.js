@@ -3,9 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const {
-  HIDE_ISLAND_BRAND_MARK_CSS,
   developmentBrandAssetPath,
-  shouldHideIslandBrandMark,
 } = require('../../src/main/development-brand-preview');
 
 test('development brand preview redirects only the shared Blanc mark', () => {
@@ -57,13 +55,4 @@ test('development brand preview is inert when no preview paths are supplied', ()
     name: 'icon-default.png',
     defaultPath: '/renderer/pages/icon-default.png',
   }), '/renderer/pages/icon-default.png');
-});
-
-test('Island mark suppression is explicit and unpackaged-only', () => {
-  assert.equal(shouldHideIslandBrandMark({ isPackaged: false, value: '1' }), true);
-  assert.equal(shouldHideIslandBrandMark({ isPackaged: false, value: '0' }), false);
-  assert.equal(shouldHideIslandBrandMark({ isPackaged: true, value: '1' }), false);
-  assert.match(HIDE_ISLAND_BRAND_MARK_CSS, /#pillFavicon\.internal/);
-  assert.match(HIDE_ISLAND_BRAND_MARK_CSS, /\.dot-peek\.internal::after/);
-  assert.doesNotMatch(HIDE_ISLAND_BRAND_MARK_CSS, /vertical-tab-favicon/);
 });

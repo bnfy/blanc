@@ -1481,6 +1481,11 @@ button.insecure-badge {
   width: calc(16px / var(--pill-zoom));
   height: calc(16px / var(--pill-zoom));
 }
+/* Internal pages already read as Blanc through the chrome itself. Repeating
+   the app mark in the resting Island adds noise, so this slot stays empty. */
+#islandPill #pillFavicon.internal {
+  display: none;
+}
 
 /* Hover/focus peek: an otherwise-anonymous tab dot blooms into a disc showing
    its tab's favicon, so you can tell which site you're about to switch to
@@ -1537,6 +1542,10 @@ button.insecure-badge {
   background: var(--text);
   -webkit-mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
   mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
+}
+/* Keep internal tabs anonymous when their dot blooms inside the Island too. */
+#islandPill .dot-peek.internal::after {
+  display: none;
 }
 /* A loading tab's peek carries `loading` too (setFavicon adds it), and
    `.favicon.loading` (0,2,0) would otherwise win — turning the disc into a

@@ -103,6 +103,8 @@ test('internal pages use Sunrise artwork instead of the retired B favicon', () =
   const chromeStyles = source('src/renderer/styles.css');
   assert.match(chromeStyles, /\.favicon\.internal\s*\{[^}]*mask:\s*url\("pages\/sunrise-favicon-mark\.png"\)/);
   assert.doesNotMatch(chromeStyles, /\.favicon\.internal\s*\{[^}]*url\("pages\/icon\.svg"\)/);
+  assert.match(chromeStyles, /#islandPill #pillFavicon\.internal\s*\{[^}]*display:\s*none/);
+  assert.match(chromeStyles, /#islandPill \.dot-peek\.internal::after\s*\{[^}]*display:\s*none/);
 });
 
 test('the tiny monochrome Sunrise omits every water line beneath the sun', async () => {

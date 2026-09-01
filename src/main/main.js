@@ -69,10 +69,6 @@ const {
   CHROME_FILL_STATUS_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
-const {
-  HIDE_ISLAND_BRAND_MARK_CSS,
-  shouldHideIslandBrandMark,
-} = require('./development-brand-preview');
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const nativeMediaAccess = createNativeMediaAccessGate({
   platform: process.platform,
@@ -6310,15 +6306,6 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     }),
     actions: menuContextActions(runtime),
   });
-  if (shouldHideIslandBrandMark({
-    isPackaged: app.isPackaged,
-    value: process.env.BLANC_DEV_HIDE_ISLAND_BRAND_MARK,
-  })) {
-    newWindow.webContents.on('dom-ready', () => {
-      if (newWindow.webContents.isDestroyed()) return;
-      newWindow.webContents.insertCSS(HIDE_ISLAND_BRAND_MARK_CSS).catch(() => {});
-    });
-  }
   rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
   rt().window.on('resize', bindWindowRuntime(runtime, resizeActiveView));
