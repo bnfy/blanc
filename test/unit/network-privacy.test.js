@@ -13,6 +13,7 @@ const {
 
 test('webrtcPolicyFor maps settings to Electron policy strings', () => {
   assert.equal(webrtcPolicyFor('standard'), 'default_public_interface_only');
+  assert.equal(webrtcPolicyFor('compatibility'), 'default');
   assert.equal(webrtcPolicyFor('strict'), 'disable_non_proxied_udp');
   // unknown/garbage falls back to the hardened standard default, never 'default'
   assert.equal(webrtcPolicyFor('nonsense'), 'default_public_interface_only');

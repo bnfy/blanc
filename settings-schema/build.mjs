@@ -43,6 +43,9 @@ function genSwift() {
   out += 'public enum BlancWebrtcPolicy: String, CaseIterable {\n';
   for (const v of spec.webrtcPolicies) out += `    case ${swiftCase(v)}\n`;
   out += '}\n\n';
+  out += 'public enum BlancWebrtcAudioBuffer: String, CaseIterable {\n';
+  for (const v of spec.webrtcAudioBuffers) out += `    case ${swiftCase(v)}\n`;
+  out += '}\n\n';
   out += 'public enum BlancSecureDns: String, CaseIterable {\n';
   for (const v of spec.secureDnsOptions) out += `    case ${swiftCase(v)}\n`;
   out += '}\n\n';
@@ -66,6 +69,7 @@ function genSwift() {
   out += `    public static let theme: BlancThemePreference = .${swiftCase(spec.defaults.theme)}\n`;
   out += `    public static let newtabLayout: BlancNewtabLayout = .${swiftCase(spec.defaults.newtabLayout)}\n`;
   out += `    public static let webrtcPolicy: BlancWebrtcPolicy = .${swiftCase(spec.defaults.webrtcPolicy)}\n`;
+  out += `    public static let webrtcAudioBuffer: BlancWebrtcAudioBuffer = .${swiftCase(spec.defaults.webrtcAudioBuffer)}\n`;
   out += `    public static let secureDns: BlancSecureDns = .${swiftCase(spec.defaults.secureDns)}\n`;
   out += `    public static let secureDnsTemplate: String = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
   out += `    public static let appIcon: BlancAppIcon = .${swiftCase(spec.defaults.appIcon)}\n`;
@@ -87,6 +91,8 @@ function genKotlin() {
   out += `enum class BlancNewtabLayout(val id: String) { ${spec.newtabLayouts.map((v) => `${upper(v)}("${v}")`).join(', ')} }\n\n`;
   out += 'enum class BlancWebrtcPolicy(val id: String) {\n';
   out += spec.webrtcPolicies.map((v) => `    ${upper(v)}("${v}")`).join(',\n') + ';\n}\n\n';
+  out += 'enum class BlancWebrtcAudioBuffer(val id: String) {\n';
+  out += spec.webrtcAudioBuffers.map((v) => `    ${upper(v)}("${v}")`).join(',\n') + ';\n}\n\n';
   out += 'enum class BlancSecureDns(val id: String) {\n';
   out += spec.secureDnsOptions.map((v) => `    ${upper(v)}("${v}")`).join(',\n') + ';\n}\n\n';
   out += `enum class BlancTabSleepDelay(val id: String) { ${spec.tabSleepDelays.map((v) => `${upper(sleepCase(v))}("${v}")`).join(', ')} }\n\n`;
@@ -100,6 +106,7 @@ function genKotlin() {
   out += `    val theme = BlancThemePreference.${upper(spec.defaults.theme)}\n`;
   out += `    val newtabLayout = BlancNewtabLayout.${upper(spec.defaults.newtabLayout)}\n`;
   out += `    val webrtcPolicy = BlancWebrtcPolicy.${upper(spec.defaults.webrtcPolicy)}\n`;
+  out += `    val webrtcAudioBuffer = BlancWebrtcAudioBuffer.${upper(spec.defaults.webrtcAudioBuffer)}\n`;
   out += `    val secureDns = BlancSecureDns.${upper(spec.defaults.secureDns)}\n`;
   out += `    const val secureDnsTemplate = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
   out += `    val appIcon = BlancAppIcon.${upper(spec.defaults.appIcon)}\n`;
@@ -130,6 +137,8 @@ function parseSettingsJs() {
   const newtabLayouts = [...newtabLayoutBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
   const webrtcBlock = (js.match(/const WEBRTC_POLICIES = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
   const webrtcPolicies = [...webrtcBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+  const webrtcAudioBufferBlock = (js.match(/const WEBRTC_AUDIO_BUFFERS = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
+  const webrtcAudioBuffers = [...webrtcAudioBufferBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
   const secureDnsBlock = (js.match(/const SECURE_DNS_OPTIONS = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
   const secureDnsOptions = [...secureDnsBlock.matchAll(/'([^']+)'/g)].map((m) => m[1]);
   const tabSleepBlock = (js.match(/const TAB_SLEEP_DELAYS = \[([^\]]*)\]/)?.[1] ?? '').replace(/\/\/.*$/gm, '');
@@ -146,6 +155,7 @@ function parseSettingsJs() {
     theme: s(/^\s*theme:\s*'([^']*)'/m),
     newtabLayout: s(/^\s*newtabLayout:\s*'([^']*)'/m),
     webrtcPolicy: s(/^\s*webrtcPolicy:\s*'([^']*)'/m),
+    webrtcAudioBuffer: s(/^\s*webrtcAudioBuffer:\s*'([^']*)'/m),
     secureDns: s(/^\s*secureDns:\s*'([^']*)'/m),
     secureDnsTemplate: s(/^\s*secureDnsTemplate:\s*'([^']*)'/m),
     appIcon: s(/^\s*appIcon:\s*'([^']*)'/m),
@@ -157,7 +167,7 @@ function parseSettingsJs() {
   // Every key literally declared in DEFAULTS (line-anchored, so // comments are
   // excluded) — used to catch keys the schema doesn't know about.
   const defaultKeys = [...D.matchAll(/^\s*(\w+):/gm)].map((m) => m[1]);
-  return { engines, themes, newtabLayouts, webrtcPolicies, secureDnsOptions, tabSleepDelays, appIcons, supporterIcons, defaults, defaultKeys };
+  return { engines, themes, newtabLayouts, webrtcPolicies, webrtcAudioBuffers, secureDnsOptions, tabSleepDelays, appIcons, supporterIcons, defaults, defaultKeys };
 }
 
 function check() {
@@ -170,6 +180,7 @@ function check() {
   cmp('themes', js.themes, spec.themes);
   cmp('newtabLayouts', js.newtabLayouts, spec.newtabLayouts);
   cmp('webrtcPolicies', js.webrtcPolicies, spec.webrtcPolicies);
+  cmp('webrtcAudioBuffers', js.webrtcAudioBuffers, spec.webrtcAudioBuffers);
   cmp('secureDnsOptions', js.secureDnsOptions, spec.secureDnsOptions);
   cmp('tabSleepDelays', js.tabSleepDelays, spec.tabSleepDelays);
   cmp('appIcons', js.appIcons, spec.appIcons);
@@ -196,6 +207,7 @@ function check() {
   eq('theme', jd.theme, d.theme);
   eq('newtabLayout', jd.newtabLayout, d.newtabLayout);
   eq('webrtcPolicy', jd.webrtcPolicy, d.webrtcPolicy);
+  eq('webrtcAudioBuffer', jd.webrtcAudioBuffer, d.webrtcAudioBuffer);
   eq('secureDns', jd.secureDns, d.secureDns);
   eq('secureDnsTemplate', jd.secureDnsTemplate, d.secureDnsTemplate);
   eq('appIcon', jd.appIcon, d.appIcon);

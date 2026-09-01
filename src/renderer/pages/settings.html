@@ -173,11 +173,24 @@
             <div class="setting">
               <div class="label">
                 <span>IP address in video calls</span>
-                <span class="hint">Video and voice calls in your browser can reveal your real IP address, even on a VPN. Standard is right for almost everyone.</span>
+                <span class="hint">Standard limits calls to your default network route. If a call stutters or won't connect, try Compatibility; it can reveal local network addresses to the site. Strict is for application-proxy users.</span>
               </div>
               <select id="webrtcPolicy">
                 <option value="standard">Standard (recommended)</option>
+                <option value="compatibility">Compatibility — widest call support, less IP privacy</option>
                 <option value="strict">Strict — stronger for proxy users, but can break some video calls</option>
+              </select>
+            </div>
+
+            <div class="setting">
+              <div class="label">
+                <span>Call audio</span>
+                <span class="hint">Automatic keeps conversation delay as low as possible. Stable targets about 400 ms of receive buffering. Resilient targets about 1 second for severe crackling or chopped speech, making back-and-forth conversation slower. Start a new call after changing it.</span>
+              </div>
+              <select id="webrtcAudioBuffer">
+                <option value="automatic">Automatic (lowest latency)</option>
+                <option value="stable">Stable — smoother playback, about 400 ms buffer</option>
+                <option value="resilient">Resilient — high stability, about 1 second buffer</option>
               </select>
             </div>
 

@@ -28,7 +28,14 @@ public enum BlancNewtabLayout: String, CaseIterable { case ledger, billboard, sh
 
 public enum BlancWebrtcPolicy: String, CaseIterable {
     case standard
+    case compatibility
     case strict
+}
+
+public enum BlancWebrtcAudioBuffer: String, CaseIterable {
+    case automatic
+    case stable
+    case resilient
 }
 
 public enum BlancSecureDns: String, CaseIterable {
@@ -85,6 +92,7 @@ public struct BlancSettingsDefaults {
     public static let theme: BlancThemePreference = .system
     public static let newtabLayout: BlancNewtabLayout = .ledger
     public static let webrtcPolicy: BlancWebrtcPolicy = .standard
+    public static let webrtcAudioBuffer: BlancWebrtcAudioBuffer = .automatic
     public static let secureDns: BlancSecureDns = .auto
     public static let secureDnsTemplate: String = ""
     public static let appIcon: BlancAppIcon = .paper

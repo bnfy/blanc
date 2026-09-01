@@ -5,11 +5,15 @@
 
 // WebRTC: map the user-facing setting to a Chromium IP-handling policy.
 // 'standard' hides non-default-route/multi-homed addresses (Blanc's hardened
-// default). 'strict' additionally disables direct UDP that would bypass an
-// application-level proxy — this is NOT relay-only enforcement (Electron only
-// offers disable_non_proxied_udp), so no caller may describe it as such.
+// default). 'compatibility' restores Chromium's ordinary candidate discovery
+// for calls that do not behave well under the narrower policy; it can expose
+// local-network addresses to the site. 'strict' additionally disables direct
+// UDP that would bypass an application-level proxy — this is NOT relay-only
+// enforcement (Electron only offers disable_non_proxied_udp), so no caller may
+// describe it as such.
 const WEBRTC_IP_HANDLING_POLICY = {
   standard: 'default_public_interface_only',
+  compatibility: 'default',
   strict: 'disable_non_proxied_udp',
 };
 

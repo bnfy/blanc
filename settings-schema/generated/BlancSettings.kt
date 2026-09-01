@@ -20,7 +20,14 @@ enum class BlancNewtabLayout(val id: String) { LEDGER("ledger"), BILLBOARD("bill
 
 enum class BlancWebrtcPolicy(val id: String) {
     STANDARD("standard"),
+    COMPATIBILITY("compatibility"),
     STRICT("strict");
+}
+
+enum class BlancWebrtcAudioBuffer(val id: String) {
+    AUTOMATIC("automatic"),
+    STABLE("stable"),
+    RESILIENT("resilient");
 }
 
 enum class BlancSecureDns(val id: String) {
@@ -56,6 +63,7 @@ object BlancSettingsDefaults {
     val theme = BlancThemePreference.SYSTEM
     val newtabLayout = BlancNewtabLayout.LEDGER
     val webrtcPolicy = BlancWebrtcPolicy.STANDARD
+    val webrtcAudioBuffer = BlancWebrtcAudioBuffer.AUTOMATIC
     val secureDns = BlancSecureDns.AUTO
     const val secureDnsTemplate = ""
     val appIcon = BlancAppIcon.PAPER

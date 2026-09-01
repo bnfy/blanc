@@ -27,7 +27,10 @@ const NEWTAB_LAYOUTS = ['ledger', 'billboard', 'shelf', 'tally', 'mahjong'];
 const TAB_SLEEP_DELAYS = ['off', '30m', '1h', '6h'];
 
 // Network-privacy enums (bare arrays, like THEMES — build.mjs parses them by name).
-const WEBRTC_POLICIES = ['standard', 'strict'];
+const WEBRTC_POLICIES = ['standard', 'compatibility', 'strict'];
+// WebRTC audio playout policy. Stable targets 400 ms and Resilient 1000 ms in
+// the receiver jitter buffer; Automatic leaves Chromium's tradeoff untouched.
+const WEBRTC_AUDIO_BUFFERS = ['automatic', 'stable', 'resilient'];
 const SECURE_DNS_OPTIONS = ['auto', 'off', 'cloudflare', 'quad9', 'mullvad', 'custom'];
 const FIRST_RUN_VERSION = 1;
 
@@ -104,6 +107,8 @@ const DEFAULTS = {
   adblockExceptions: [],
   // Network privacy (device-local — deliberately NOT in SYNCED_KEYS).
   webrtcPolicy: 'standard',
+  // Call playback continuity (device-local — deliberately NOT in SYNCED_KEYS).
+  webrtcAudioBuffer: 'automatic',
   secureDns: 'auto',
   secureDnsTemplate: '',
   // Optional, device-local bridge to the user's installed 1Password app.
@@ -202,6 +207,10 @@ function getSettings() {
   if (!TAB_LAYOUTS.includes(data.tabLayout)) data.tabLayout = DEFAULTS.tabLayout;
   if (!NEWTAB_LAYOUTS.includes(data.newtabLayout)) data.newtabLayout = DEFAULTS.newtabLayout;
   if (!TAB_SLEEP_DELAYS.includes(data.tabSleep)) data.tabSleep = DEFAULTS.tabSleep;
+  if (!WEBRTC_POLICIES.includes(data.webrtcPolicy)) data.webrtcPolicy = DEFAULTS.webrtcPolicy;
+  if (!WEBRTC_AUDIO_BUFFERS.includes(data.webrtcAudioBuffer)) {
+    data.webrtcAudioBuffer = DEFAULTS.webrtcAudioBuffer;
+  }
   if (typeof data.onePasswordEnabled !== 'boolean') {
     data.onePasswordEnabled = DEFAULTS.onePasswordEnabled;
   }
@@ -248,6 +257,9 @@ function sanitize(partial) {
     clean.verticalTabsWidth = normalizeVerticalTabsWidth(partial.verticalTabsWidth);
   }
   if (WEBRTC_POLICIES.includes(partial.webrtcPolicy)) clean.webrtcPolicy = partial.webrtcPolicy;
+  if (WEBRTC_AUDIO_BUFFERS.includes(partial.webrtcAudioBuffer)) {
+    clean.webrtcAudioBuffer = partial.webrtcAudioBuffer;
+  }
   if (SECURE_DNS_OPTIONS.includes(partial.secureDns)) clean.secureDns = partial.secureDns;
   if (typeof partial.secureDnsTemplate === 'string') {
     // Accept only an empty string or a valid template. An invalid value is DROPPED
