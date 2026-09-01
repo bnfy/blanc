@@ -277,8 +277,9 @@ jobs:
 
       - name: Verify packaged microphone permission and live track
         run: |
-          EXECUTABLE=$(node -p "require('./package.json').build.executableName || require('./package.json').name")
-          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/linux-unpacked/$EXECUTABLE" \
+          VERSION=$(node -p "require('./package.json').version")
+          PRODUCT_NAME=$(node -p "require('./package.json').productName")
+          BLANC_PACKAGED_EXECUTABLE="$PWD/dist/$PRODUCT_NAME-$VERSION.AppImage" \
             xvfb-run -a node test/desktop/packaged-media-smoke.mjs
 
       - name: Upload to release
