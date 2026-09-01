@@ -106,6 +106,7 @@ const {
 } = require('./downloads');
 const { attachAddressMenu } = require('./address-menu');
 const { installDockMenu } = require('./dock-menu');
+const { createDockReopenLifecycle } = require('./dock-reopen');
 /** Handle from installDockMenu ({ update }); null until app-ready (macOS). */
 let dockMenuHandle = null;
 const { closableTabIds, pickSurvivorTabId } = require('./tab-context-menu-model');
@@ -6221,8 +6222,8 @@ function menuContextActions(owner) {
   };
 }
 
-function createMainWindow(runtime = primaryRuntime) {
-  return withWindowRuntime(runtime, () => createMainWindowForRuntime(runtime));
+function createMainWindow(runtime = primaryRuntime, options = {}) {
+  return withWindowRuntime(runtime, () => createMainWindowForRuntime(runtime, options));
 }
 
 function profileWindowTitle(profile) {
@@ -6231,7 +6232,7 @@ function profileWindowTitle(profile) {
     : `${profile?.name ?? 'Profile'} — Blanc`;
 }
 
-function createMainWindowForRuntime(runtime) {
+function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
   if (runtime.window && !runtime.window.isDestroyed()) return runtime;
   runtime.closing = false;
   installProfileSessionPolicies(runtime.profileId);
@@ -6296,9 +6297,20 @@ function createMainWindowForRuntime(runtime) {
     refreshDockMenu(); // frontmost window changed → new active-tab line
     refocusAddressBarIfWanted();
   }));
-  rt().window.on('close', bindWindowRuntime(runtime, () => {
-    runtime.closing = true;
-  }));
+  const dockReopenLifecycle = createDockReopenLifecycle({
+    platform: process.platform,
+    runtime,
+    primaryRuntime,
+    window: newWindow,
+    tabs,
+    liveContents,
+    getIsQuitting: () => isQuitting,
+    ensureStartTab,
+    createStartTab: () => createTab(newTabUrl()),
+    activateTab: (id) => setActiveTab(id),
+    flushExternalUrls,
+  });
+  rt().window.on('close', bindWindowRuntime(runtime, dockReopenLifecycle.onWindowClose));
   rt().window.on('closed', bindWindowRuntime(runtime, () => {
     // Destroy the views the window owned — detachWindow only forgets them.
     liveViewContents(runtime.overlayView)?.close();
@@ -6352,15 +6364,10 @@ function createMainWindowForRuntime(runtime) {
   // Tabs survive window close (macOS dock-reopen recreates the window);
   // re-attach the active tab's view or the new window sits over nothing.
   // First launch has no activeTabId yet — app.whenReady handles that one.
-  rt().window.webContents.once('did-finish-load', bindWindowRuntime(runtime, () => {
-    if (!rt().activeTabId || !tabs.has(rt().activeTabId)) return;
-    const id = rt().activeTabId;
-    rt().activeTabId = null; // force setActiveTab to treat it as a fresh attach
-    setActiveTab(id);
-    // An 'open-url' with no window queues; opening it is why the window
-    // was recreated (macOS dock-reopen path).
-    flushExternalUrls();
-  }));
+  rt().window.webContents.once('did-finish-load', bindWindowRuntime(
+    runtime,
+    dockReopenLifecycle.onChromeReady
+  ));
   return runtime;
 }
 
@@ -6405,7 +6412,9 @@ function focusDockActiveWindow() {
     win.focus();
     return;
   }
-  if (BrowserWindow.getAllWindows().length === 0) createMainWindow(primaryRuntime);
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createMainWindow(primaryRuntime, { ensureStartTab: true });
+  }
   focusedRuntime = primaryRuntime;
   setFocusedLocalProfile(primaryRuntime.profileId);
 }
@@ -8040,7 +8049,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   setupAutoUpdater();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow(primaryRuntime);
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createMainWindow(primaryRuntime, { ensureStartTab: true });
+    }
     focusedRuntime = primaryRuntime;
     setFocusedLocalProfile(primaryRuntime.profileId);
     refreshDockMenu();
