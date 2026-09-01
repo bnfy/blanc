@@ -50,6 +50,8 @@ public enum BlancSecureDns: String, CaseIterable {
 public enum BlancTabSleepDelay: String, CaseIterable { case off, m30 = "30m", h1 = "1h", h6 = "6h" }
 
 public enum BlancAppIcon: String, CaseIterable {
+    case sunrise
+    case sunriseDark
     case paper
     case ink
     case graphite
@@ -63,6 +65,8 @@ public enum BlancAppIcon: String, CaseIterable {
     case gold
     public var label: String {
         switch self {
+        case .sunrise: return "Sunrise"
+        case .sunriseDark: return "Sunrise Dark"
         case .paper: return "Paper"
         case .ink: return "Ink"
         case .graphite: return "Graphite"
@@ -90,12 +94,12 @@ public struct BlancSettingsDefaults {
     public static let adblockEnabled: Bool = true
     public static let homePage: String = ""
     public static let theme: BlancThemePreference = .system
-    public static let newtabLayout: BlancNewtabLayout = .ledger
+    public static let newtabLayout: BlancNewtabLayout = .billboard
     public static let webrtcPolicy: BlancWebrtcPolicy = .standard
     public static let webrtcAudioBuffer: BlancWebrtcAudioBuffer = .automatic
     public static let secureDns: BlancSecureDns = .auto
     public static let secureDnsTemplate: String = ""
-    public static let appIcon: BlancAppIcon = .paper
+    public static let appIcon: BlancAppIcon = .sunrise
     public static let usagePing: Bool = true
     public static let tabSleep: BlancTabSleepDelay = .h1
     // adblockExceptions defaults to []; supporter defaults to nil (structural).

@@ -89,6 +89,39 @@ test('all app icon variants and platform copies are generated from the wider mar
   assert.ok(fs.statSync(path.join(ROOT, 'build/windows-icons/icon-paper.ico')).size > 10_000);
 });
 
+test('internal pages use Sunrise artwork instead of the retired B favicon', () => {
+  const pages = [
+    'auth', 'bookmarks', 'downloads', 'error', 'history',
+    'mahjong', 'newtab', 'settings', 'shortcuts',
+  ];
+  for (const page of pages) {
+    const html = source(`src/renderer/pages/${page}.html`);
+    assert.match(html, /<link rel="icon" type="image\/png" href="icon-sunrise\.png" \/>/, page);
+    assert.doesNotMatch(html, /<link rel="icon"[^>]*href="icon\.svg"/, page);
+  }
+
+  const chromeStyles = source('src/renderer/styles.css');
+  assert.match(chromeStyles, /\.favicon\.internal\s*\{[^}]*mask:\s*url\("pages\/sunrise-favicon-mark\.png"\)/);
+  assert.doesNotMatch(chromeStyles, /\.favicon\.internal\s*\{[^}]*url\("pages\/icon\.svg"\)/);
+});
+
+test('the tiny monochrome Sunrise omits every water line beneath the sun', async () => {
+  const file = path.join(ROOT, 'src/renderer/pages/sunrise-favicon-mark.png');
+  const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let widestOpaqueRun = 0;
+  for (let y = 0; y < info.height; y += 1) {
+    let run = 0;
+    for (let x = 0; x < info.width; x += 1) {
+      const alpha = data[((y * info.width) + x) * info.channels + 3];
+      run = alpha > 24 ? run + 1 : 0;
+      widestOpaqueRun = Math.max(widestOpaqueRun, run);
+    }
+  }
+  assert.equal(info.width, 680);
+  assert.equal(info.height, 680);
+  assert.ok(widestOpaqueRun < 450, `unexpected horizontal water line spans ${widestOpaqueRun}px`);
+});
+
 test('website identity, OpenGraph, press, and retained social outputs are all covered', () => {
   for (const relativePath of [
     'site/public/logo.png',

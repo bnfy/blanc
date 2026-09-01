@@ -190,17 +190,12 @@
 }
 
 .mj-brand-mark {
-  width: 13px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   flex: none;
   display: block;
-  color: var(--mj-ivory);
-  background: currentColor;
-  -webkit-mask: url("icon.svg") center / contain no-repeat;
-  mask: url("icon.svg") center / contain no-repeat;
-  /* A local double edge gives the game lockup a touch more presence than the
-     same canonical mark elsewhere without altering the source artwork. */
-  filter: drop-shadow(0.55px 0 0 currentColor) drop-shadow(-0.55px 0 0 currentColor);
+  background: url("sunrise-mark.png") center / contain no-repeat;
+  filter: drop-shadow(0 1px 8px rgba(216, 185, 105, 0.24));
 }
 
 .mj-title::after {

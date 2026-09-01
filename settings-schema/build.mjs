@@ -21,6 +21,8 @@ const spec = JSON.parse(fs.readFileSync(SPEC, 'utf8'));
 const SWIFT_RESERVED = new Set(['default', 'class', 'enum', 'case', 'func', 'import', 'public', 'private', 'static', 'protocol', 'in', 'is', 'let', 'var']);
 const swiftCase = (id) => (SWIFT_RESERVED.has(id) ? `\`${id}\`` : id);
 const upper = (id) => id.toUpperCase();
+const iconSwiftCase = (id) => swiftCase(id.replace(/-([a-z0-9])/g, (_match, char) => char.toUpperCase()));
+const iconUpper = (id) => id.replace(/-/g, '_').toUpperCase();
 // Leading-digit delay ids are not identifiers: 30m -> m30, 1h -> h1.
 const sleepCase = (id) => (/^\d/.test(id) ? id.slice(-1) + id.slice(0, -1) : id);
 
@@ -54,12 +56,12 @@ function genSwift() {
     .join(', ');
   out += `public enum BlancTabSleepDelay: String, CaseIterable { case ${sleepCases} }\n\n`;
   out += 'public enum BlancAppIcon: String, CaseIterable {\n';
-  for (const i of icons) out += `    case ${swiftCase(i.id)}\n`;
+  for (const i of icons) out += `    case ${iconSwiftCase(i.id)}\n`;
   out += '    public var label: String {\n        switch self {\n';
-  for (const i of icons) out += `        case .${swiftCase(i.id)}: return ${JSON.stringify(i.label)}\n`;
+  for (const i of icons) out += `        case .${iconSwiftCase(i.id)}: return ${JSON.stringify(i.label)}\n`;
   out += '        }\n    }\n';
   out += '    public var isSupporterOnly: Bool {\n        switch self {\n';
-  out += `        case ${[...supporterIds].map((id) => `.${swiftCase(id)}`).join(', ')}: return true\n`;
+  out += `        case ${[...supporterIds].map((id) => `.${iconSwiftCase(id)}`).join(', ')}: return true\n`;
   out += '        default: return false\n        }\n    }\n}\n\n';
   out += 'public struct BlancSettingsDefaults {\n';
   out += `    public static let searchEngine: BlancSearchEngine = .${swiftCase(spec.defaults.searchEngine)}\n`;
@@ -72,7 +74,7 @@ function genSwift() {
   out += `    public static let webrtcAudioBuffer: BlancWebrtcAudioBuffer = .${swiftCase(spec.defaults.webrtcAudioBuffer)}\n`;
   out += `    public static let secureDns: BlancSecureDns = .${swiftCase(spec.defaults.secureDns)}\n`;
   out += `    public static let secureDnsTemplate: String = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
-  out += `    public static let appIcon: BlancAppIcon = .${swiftCase(spec.defaults.appIcon)}\n`;
+  out += `    public static let appIcon: BlancAppIcon = .${iconSwiftCase(spec.defaults.appIcon)}\n`;
   out += `    public static let usagePing: Bool = ${spec.defaults.usagePing}\n`;
   out += `    public static let tabSleep: BlancTabSleepDelay = .${sleepCase(spec.defaults.tabSleep)}\n`;
   out += '    // adblockExceptions defaults to []; supporter defaults to nil (structural).\n}\n';
@@ -97,7 +99,7 @@ function genKotlin() {
   out += spec.secureDnsOptions.map((v) => `    ${upper(v)}("${v}")`).join(',\n') + ';\n}\n\n';
   out += `enum class BlancTabSleepDelay(val id: String) { ${spec.tabSleepDelays.map((v) => `${upper(sleepCase(v))}("${v}")`).join(', ')} }\n\n`;
   out += 'enum class BlancAppIcon(val id: String, val label: String, val isSupporterOnly: Boolean) {\n';
-  out += icons.map((i) => `    ${upper(i.id)}("${i.id}", ${JSON.stringify(i.label)}, ${i.sup})`).join(',\n') + ';\n}\n\n';
+  out += icons.map((i) => `    ${iconUpper(i.id)}("${i.id}", ${JSON.stringify(i.label)}, ${i.sup})`).join(',\n') + ';\n}\n\n';
   out += 'object BlancSettingsDefaults {\n';
   out += `    val searchEngine = BlancSearchEngine.${upper(spec.defaults.searchEngine)}\n`;
   out += `    const val searchSuggestions = ${spec.defaults.searchSuggestions}\n`;
@@ -109,7 +111,7 @@ function genKotlin() {
   out += `    val webrtcAudioBuffer = BlancWebrtcAudioBuffer.${upper(spec.defaults.webrtcAudioBuffer)}\n`;
   out += `    val secureDns = BlancSecureDns.${upper(spec.defaults.secureDns)}\n`;
   out += `    const val secureDnsTemplate = ${JSON.stringify(spec.defaults.secureDnsTemplate)}\n`;
-  out += `    val appIcon = BlancAppIcon.${upper(spec.defaults.appIcon)}\n`;
+  out += `    val appIcon = BlancAppIcon.${iconUpper(spec.defaults.appIcon)}\n`;
   out += `    const val usagePing = ${spec.defaults.usagePing}\n`;
   out += `    val tabSleep = BlancTabSleepDelay.${upper(sleepCase(spec.defaults.tabSleep))}\n`;
   out += '    // adblockExceptions defaults to emptyList(); supporter defaults to null (structural).\n}\n';
@@ -127,7 +129,9 @@ function parseSettingsJs() {
   const js = fs.readFileSync(path.join(ROOT, spec.source), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   // Label maps can be single-line (SUPPORTER_ICON_LABELS) so line-anchoring
   // won't work; strip // line comments instead (label values never contain //).
-  const pairs = (block) => [...String(block ?? '').replace(/\/\/.*$/gm, '').matchAll(/(\w+):\s*'([^']+)'/g)].map((m) => ({ id: m[1], label: m[2] }));
+  const pairs = (block) => [...String(block ?? '').replace(/\/\/.*$/gm, '')
+    .matchAll(/(?:(\w+)|'([\w-]+)'):\s*'([^']+)'/g)]
+    .map((m) => ({ id: m[1] ?? m[2], label: m[3] }));
   const engines = [...js.matchAll(/^\s*(\w+):\s*\{\s*label:\s*'([^']+)'/gm)].map((m) => ({ id: m[1], label: m[2] }));
   // THEMES may be multiline; strip // comments from its block (theme ids never
   // contain //) so a commented-out entry like `// 'dark'` isn't read as live.

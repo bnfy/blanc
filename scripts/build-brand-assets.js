@@ -7,12 +7,15 @@ const { createIco } = require('./build-windows-icons');
 
 const ROOT = path.join(__dirname, '..');
 const SOURCE = path.join(ROOT, 'assets/blanc-mark.svg');
+const SUNRISE_SOURCE = path.join(ROOT, 'src/renderer/pages/mahjong-wind-east.png');
 const PAGES_DIR = path.join(ROOT, 'src/renderer/pages');
-const ICON_IDS = [
+const MONOGRAM_ICON_IDS = [
   'paper', 'ink', 'graphite', 'default', 'midnight', 'cream',
   'forest', 'sage', 'ember', 'plum', 'gold',
 ];
 const ICON_COLORS = {
+  sunrise: { background: [247, 240, 229] },
+  'sunrise-dark': { background: [28, 26, 22] },
   paper: { background: [255, 255, 255], mark: [14, 14, 14] },
   ink: { background: [13, 13, 13], mark: [244, 244, 244] },
   graphite: { background: [98, 98, 98], mark: [244, 244, 244] },
@@ -32,6 +35,14 @@ const ICON_MARK_HEIGHT = 544;
 const ICON_MARK_CENTER = { x: 535.5, y: 511.5 };
 const ICON_ERASE_REGION = { left: 296, top: 226, width: 480, height: 572 };
 const SQUARE_EXPORT_BOX = { left: 170, top: 170, width: 684, height: 684 };
+const SUNRISE_CROP = { left: 36, top: 16, width: 190, height: 194 };
+// The 14px internal-page favicon keeps only the rays and half-sun. The water
+// lines begin on source row 146 and collapse into noise at that scale.
+const SUNRISE_FAVICON_CROP = { left: 36, top: 16, width: 190, height: 130 };
+const SUNRISE_FLAT_SIZE = 680;
+const SUNRISE_FLAT_POSITION = 172;
+const SUNRISE_NATIVE_SIZE = 845;
+const SUNRISE_NATIVE_POSITION = 89;
 
 const check = process.argv.includes('--check');
 const changed = [];
@@ -186,6 +197,111 @@ async function buildSquareExport(icon, background) {
   }).composite([{ input: crop, left: box.left, top: box.top }]).png({ compressionLevel: 9 }).toBuffer();
 }
 
+function sunriseTileSvg({ dark }) {
+  const stops = dark
+    ? [
+      ['0', '#292720'],
+      ['0.52', '#1c1a16'],
+      ['1', '#11100e'],
+    ]
+    : [
+      ['0', '#fffaf1'],
+      ['0.52', '#f7f0e5'],
+      ['1', '#eee4d5'],
+    ];
+  const shadowOpacity = dark ? '0.5' : '0.24';
+  return Buffer.from(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+      <defs>
+        <linearGradient id="face" x1="0" y1="0" x2="0" y2="1">
+          ${stops.map(([offset, color]) => `<stop offset="${offset}" stop-color="${color}"/>`).join('')}
+        </linearGradient>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+          <feDropShadow dx="0" dy="15" stdDeviation="18" flood-color="#000000" flood-opacity="${shadowOpacity}"/>
+        </filter>
+      </defs>
+      <rect x="100" y="100" width="824" height="824" rx="184" fill="url(#face)" filter="url(#shadow)"/>
+    </svg>
+  `);
+}
+
+async function buildSunriseAssets() {
+  const { data, info } = await sharp(SUNRISE_SOURCE)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  if (info.width !== 256 || info.height !== 256 || info.channels !== 4) {
+    throw new Error('mahjong-wind-east.png must remain a 256px RGBA source asset');
+  }
+  const cleaned = Buffer.from(data);
+  for (let pixel = 0; pixel < info.width * info.height; pixel += 1) {
+    const alphaIndex = pixel * 4 + 3;
+    if (cleaned[alphaIndex] < 4) cleaned[alphaIndex] = 0;
+  }
+  const sourceOptions = {
+    raw: { width: info.width, height: info.height, channels: 4 },
+  };
+  const motif = await sharp(cleaned, sourceOptions)
+    .extract(SUNRISE_CROP)
+    .resize(SUNRISE_FLAT_SIZE, SUNRISE_FLAT_SIZE, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      kernel: sharp.kernel.lanczos3,
+    })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+  const faviconMotif = await sharp(cleaned, sourceOptions)
+    .extract(SUNRISE_FAVICON_CROP)
+    .resize(SUNRISE_FLAT_SIZE, SUNRISE_FLAT_SIZE, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      kernel: sharp.kernel.lanczos3,
+    })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+  const nativeMotif = await sharp(cleaned, sourceOptions)
+    .extract(SUNRISE_CROP)
+    .resize(SUNRISE_NATIVE_SIZE, SUNRISE_NATIVE_SIZE, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      kernel: sharp.kernel.lanczos3,
+    })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+  const nativeLayer = await sharp({
+    create: {
+      width: ICON_CANVAS,
+      height: ICON_CANVAS,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  }).composite([{
+    input: nativeMotif,
+    left: SUNRISE_NATIVE_POSITION,
+    top: SUNRISE_NATIVE_POSITION,
+  }]).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
+
+  const buildFlat = (dark) => sharp({
+    create: {
+      width: ICON_CANVAS,
+      height: ICON_CANVAS,
+      channels: 4,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    },
+  }).composite([
+    { input: sunriseTileSvg({ dark }), left: 0, top: 0 },
+    { input: motif, left: SUNRISE_FLAT_POSITION, top: SUNRISE_FLAT_POSITION },
+  ]).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
+
+  return {
+    light: await buildFlat(false),
+    dark: await buildFlat(true),
+    faviconMotif,
+    motif,
+    nativeLayer,
+  };
+}
+
 async function raster(svg, width, height = width) {
   return sharp(Buffer.from(svg), { density: 384 })
     .resize(width, height, { fit: 'fill', kernel: sharp.kernel.lanczos3 })
@@ -280,7 +396,7 @@ async function main() {
   const artwork = sourceArtwork(source);
 
   const builtIcons = new Map();
-  for (const id of ICON_IDS) {
+  for (const id of MONOGRAM_ICON_IDS) {
     const relativePath = `src/renderer/pages/icon-${id}.png`;
     const icon = await buildAppIcon(relativePath, artwork, ICON_COLORS[id]);
     builtIcons.set(id, icon);
@@ -292,10 +408,25 @@ async function main() {
     );
   }
 
+  const sunrise = await buildSunriseAssets();
+  for (const [id, icon] of [
+    ['sunrise', sunrise.light],
+    ['sunrise-dark', sunrise.dark],
+  ]) {
+    builtIcons.set(id, icon);
+    await emit(`src/renderer/pages/icon-${id}.png`, icon);
+    await emit(
+      `export/app-icons-1024-square/icon-${id}-1024.png`,
+      await buildSquareExport(icon, ICON_COLORS[id].background),
+    );
+  }
+
   const paper = builtIcons.get('paper');
   await emit('build/icon.png', paper);
   await emit('ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-paper.png', paper);
   await emit('src/renderer/pages/icon.svg', standaloneMarkSvg(artwork));
+  await emit('src/renderer/pages/sunrise-favicon-mark.png', sunrise.faviconMotif);
+  await emit('src/renderer/pages/sunrise-mark.png', sunrise.motif);
 
   const nativeHeight = ICON_MARK_HEIGHT * (ICON_CANVAS / 824);
   const nativeCenterX = (ICON_CANVAS / 2) + (((ICON_MARK_CENTER.x - 511.5) / 824) * ICON_CANVAS);
@@ -308,6 +439,7 @@ async function main() {
     centerY: ICON_CANVAS / 2,
     color: '#0e0e0e',
   }));
+  await emit('build/app-icons/Icon.icon/Assets/sunrise-mark.png', sunrise.nativeLayer);
 
   await buildSiteAssets(artwork);
 

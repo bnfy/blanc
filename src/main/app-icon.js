@@ -10,7 +10,7 @@ function macOSMajorVersion(version) {
 }
 
 function nativeIconNameFor(appIcon) {
-  return (APP_ICON_ASSETS[appIcon] ?? APP_ICON_ASSETS.paper).nativeName;
+  return (APP_ICON_ASSETS[appIcon] ?? APP_ICON_ASSETS.sunrise).nativeName;
 }
 
 /** Set the process identity before Windows creates its taskbar button. */
@@ -40,6 +40,9 @@ function applyDockAppIcon({
   app,
   nativeImage,
   appIcon,
+  developmentPreviewPath = null,
+  developmentDarkPreviewPath = null,
+  darkAppearance = false,
   platform = process.platform,
   systemVersion = typeof process.getSystemVersion === 'function'
     ? process.getSystemVersion()
@@ -47,6 +50,19 @@ function applyDockAppIcon({
   iconsDirectory = path.join(__dirname, '../renderer/pages'),
 }) {
   if (platform !== 'darwin' || !app.dock) return null;
+
+  // A deliberately explicit, unpackaged-only seam for reviewing candidate
+  // artwork in the real Dock. It never changes Settings or packaged assets.
+  if (!app.isPackaged && developmentPreviewPath) {
+    const previewPath = darkAppearance && developmentDarkPreviewPath
+      ? developmentDarkPreviewPath
+      : developmentPreviewPath;
+    const previewIcon = nativeImage.createFromPath(previewPath);
+    if (!previewIcon.isEmpty()) {
+      app.dock.setIcon(previewIcon);
+      return { source: 'development-preview', path: previewPath };
+    }
+  }
 
   if (app.isPackaged && macOSMajorVersion(systemVersion) >= NATIVE_ICON_MIN_MACOS) {
     const nativeName = nativeIconNameFor(appIcon);
@@ -57,11 +73,12 @@ function applyDockAppIcon({
     }
   }
 
-  const safeId = APP_ICON_ASSETS[appIcon] ? appIcon : 'paper';
-  const flatIcon = nativeImage.createFromPath(path.join(iconsDirectory, `icon-${safeId}.png`));
+  const safeId = APP_ICON_ASSETS[appIcon] ? appIcon : 'sunrise';
+  const renderedId = safeId === 'sunrise' && darkAppearance ? 'sunrise-dark' : safeId;
+  const flatIcon = nativeImage.createFromPath(path.join(iconsDirectory, `icon-${renderedId}.png`));
   if (flatIcon.isEmpty()) return null;
   app.dock.setIcon(flatIcon);
-  return { source: 'png', appIcon: safeId };
+  return { source: 'png', appIcon: renderedId };
 }
 
 module.exports = {

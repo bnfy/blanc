@@ -246,10 +246,11 @@ test('the game dock uses one local professional SVG icon family instead of font 
   assert.match(controller, /button\.dataset\.tooltip = label/);
 });
 
-test('the Mahjong wordmark carries a locally weighted canonical Blanc mark', () => {
+test('the Mahjong wordmark carries the Sunrise mark without the retired B', () => {
   assert.match(html, /class="mj-brand-mark" aria-hidden="true"/);
-  assert.match(styles, /\.mj-brand-mark\s*\{[^}]*mask:\s*url\("icon\.svg"\)/);
-  assert.match(styles, /\.mj-brand-mark\s*\{[^}]*drop-shadow\(0\.55px 0 0 currentColor\)[^}]*drop-shadow\(-0\.55px 0 0 currentColor\)/);
+  assert.match(styles, /\.mj-brand-mark\s*\{[^}]*width:\s*24px;[^}]*height:\s*24px;/);
+  assert.match(styles, /\.mj-brand-mark\s*\{[^}]*background:\s*url\("sunrise-mark\.png"\) center \/ contain no-repeat/);
+  assert.doesNotMatch(styles, /\.mj-brand-mark\s*\{[^}]*icon\.svg/);
 });
 
 test('setup cards devote their visual field to substantial layout previews', () => {

@@ -4,8 +4,24 @@
 // free to render Default, Dark, Clear, or Tinted (including the user's tint).
 // Keep ids aligned with settings.js APP_ICON_LABELS/SUPPORTER_ICON_LABELS.
 module.exports = {
-  paper: {
+  sunrise: {
     nativeName: 'Icon',
+    background: '#F7F0E5',
+    darkBackground: '#1C1A16',
+    imageName: 'sunrise-mark.png',
+    preserveColor: true,
+    layerName: 'Sunrise',
+  },
+  'sunrise-dark': {
+    nativeName: 'SunriseDark',
+    background: '#1C1A16',
+    darkBackground: '#1C1A16',
+    imageName: 'sunrise-mark.png',
+    preserveColor: true,
+    layerName: 'Sunrise',
+  },
+  paper: {
+    nativeName: 'Paper',
     background: '#FFFFFF',
     foreground: '#0E0E0E',
     darkForeground: '#F4F4F4',

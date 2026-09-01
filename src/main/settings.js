@@ -41,11 +41,12 @@ const FIRST_RUN_VERSION = 1;
 // that would be license sharing).
 const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout'];
 
-// App icon colorways — id maps to src/renderer/pages/icon-<id>.png; order
-// here is also the tile order Settings renders. 'default' is the original
-// green colorway — the id (and file name) is frozen for saved settings,
-// only the label moved on when Paper became the default.
+// App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
+// is also the tile order Settings renders. 'default' is the original green
+// colorway; that id and file name remain frozen for saved settings.
 const APP_ICON_LABELS = {
+  sunrise: 'Sunrise',
+  'sunrise-dark': 'Sunrise Dark',
   paper: 'Paper',
   ink: 'Ink',
   graphite: 'Graphite',
@@ -63,7 +64,7 @@ const SUPPORTER_ICON_LABELS = { ember: 'Ember', plum: 'Plum', gold: 'Gold' };
 const SUPPORTER_ICONS = Object.keys(SUPPORTER_ICON_LABELS);
 
 // A selectable id without a packaged native stack would silently fall back to
-// Paper on macOS 26+, so fail fast during startup if the two sources drift.
+// Sunrise on macOS 26+, so fail fast during startup if the two sources drift.
 const missingNativeAppIcons = [...APP_ICONS, ...SUPPORTER_ICONS]
   .filter((id) => !APP_ICON_ASSETS[id]);
 if (missingNativeAppIcons.length) {
@@ -94,7 +95,7 @@ const DEFAULTS = {
   theme: 'system',
   // How blanc://newtab arranges itself — the shipped ledger plus three
   // alternatives from the design system's "New tab v2" handoff.
-  newtabLayout: 'ledger',
+  newtabLayout: 'billboard',
   // Device-local presentation preference; deliberately not Profile Synced.
   tabLayout: 'island',
   // Preferred rail width. The live layout may temporarily cap it to preserve
@@ -102,7 +103,7 @@ const DEFAULTS = {
   verticalTabsWidth: VERTICAL_TABS_DEFAULT_WIDTH,
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
-  appIcon: 'paper',
+  appIcon: 'sunrise',
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
   // Network privacy (device-local — deliberately NOT in SYNCED_KEYS).

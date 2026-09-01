@@ -69,6 +69,10 @@ const {
   CHROME_FILL_STATUS_URL,
   setupChromeProtocol,
 } = require('./chrome-protocol');
+const {
+  HIDE_ISLAND_BRAND_MARK_CSS,
+  shouldHideIslandBrandMark,
+} = require('./development-brand-preview');
 const { setupPermissionPolicy, setPermissionPrompter, setCaptureGrantObserver, setPermissionDecisionObserver, mediaQueryState, setHeldRequesterCheck } = require('./permissions');
 const nativeMediaAccess = createNativeMediaAccessGate({
   platform: process.platform,
@@ -764,6 +768,7 @@ function handleNativeThemeUpdated() {
   forEachWindowRuntime(() => applyChromeThemeAppearance(appearance), { liveOnly: true });
   if (appearance === lastNativeThemeAppearance) return;
   lastNativeThemeAppearance = appearance;
+  applyAppIcon();
   // Covers live OS appearance changes while the setting is "system". Explicit
   // app theme changes already invalidated before assigning themeSource; doing
   // it again here is harmless and keeps this path self-contained.
@@ -777,7 +782,25 @@ function applyAppIcon() {
   // (hand-edited or copied settings.json) to the default — nothing further
   // to validate here.
   const { appIcon } = settings.getSettings();
-  applyDockAppIcon({ app, nativeImage, appIcon });
+  const developmentPreviewPath = !app.isPackaged && process.env.BLANC_DEV_DOCK_ICON_PREVIEW
+    ? path.resolve(process.env.BLANC_DEV_DOCK_ICON_PREVIEW)
+    : null;
+  const developmentDarkPreviewPath = !app.isPackaged && process.env.BLANC_DEV_DOCK_ICON_DARK_PREVIEW
+    ? path.resolve(process.env.BLANC_DEV_DOCK_ICON_DARK_PREVIEW)
+    : null;
+  applyDockAppIcon({
+    app,
+    nativeImage,
+    appIcon,
+    developmentPreviewPath,
+    developmentDarkPreviewPath,
+    darkAppearance: nativeTheme.shouldUseDarkColors,
+  });
+}
+
+function developmentPreviewPath(environmentKey) {
+  const rawPath = process.env[environmentKey];
+  return !app.isPackaged && rawPath ? path.resolve(rawPath) : null;
 }
 
 const hasLiveWindow = () => !!rt().window && !rt().window.isDestroyed();
@@ -6287,6 +6310,15 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     }),
     actions: menuContextActions(runtime),
   });
+  if (shouldHideIslandBrandMark({
+    isPackaged: app.isPackaged,
+    value: process.env.BLANC_DEV_HIDE_ISLAND_BRAND_MARK,
+  })) {
+    newWindow.webContents.on('dom-ready', () => {
+      if (newWindow.webContents.isDestroyed()) return;
+      newWindow.webContents.insertCSS(HIDE_ISLAND_BRAND_MARK_CSS).catch(() => {});
+    });
+  }
   rt().window.loadURL(CHROME_INDEX_URL);
   createOverlay();
   rt().window.on('resize', bindWindowRuntime(runtime, resizeActiveView));
@@ -6886,7 +6918,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   const browsingSessions = profileSessionRegistry.all();
   for (const browsingSession of browsingSessions) certificateObserver.observe(browsingSession);
   const chromeSes = session.fromPartition(CHROME_PARTITION);
-  setupChromeProtocol({ session: chromeSes, net });
+  const developmentBrandMarkPath = developmentPreviewPath('BLANC_DEV_BRAND_MARK_PREVIEW');
+  const developmentDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_PREVIEW');
+  const developmentDarkDockIconPath = developmentPreviewPath('BLANC_DEV_DOCK_ICON_DARK_PREVIEW');
+  setupChromeProtocol({ session: chromeSes, net, developmentBrandMarkPath });
   // Acceptance runs are isolated, unpackaged fixtures. Complete first-run
   // locally so existing suggestion/navigation scenarios exercise their
   // intended feature instead of the onboarding card; telemetry is disabled.
@@ -7234,6 +7269,9 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
   // read or mutate the focused window's groups or overlay.
   const pagesRegistration = setupPages({
     sessions: browsingSessions,
+    developmentBrandMarkPath,
+    developmentDockIconPath,
+    developmentDarkDockIconPath,
     sessionsForCurrentRuntime: () => {
       const owned = profileSessionRegistry.forProfile(rt().profileId);
       return [owned.normal, owned.private];

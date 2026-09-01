@@ -276,7 +276,7 @@ function renderRemote(remoteDevices) {
 // only when their layout is first shown — so the cache is cleared whenever a
 // feed changes, or a layout drawn from stale data would never redraw.
 const state = {
-  layout: 'ledger',
+  layout: 'billboard',
   groups: [],
   blockedThisWeek: 0,
   blockedByDay: [0, 0, 0, 0, 0, 0, 0],
@@ -614,7 +614,7 @@ const favoritesReady = window.bowserPages?.bookmarks.list().then((items) => {
 
 const dataReady = window.bowserPages?.start.data().then((data) => {
   Object.assign(state, {
-    layout: data.layout ?? 'ledger',
+    layout: data.layout ?? 'billboard',
     groups: data.groups,
     blockedThisWeek: data.blockedThisWeek,
     blockedByDay: data.blockedByDay ?? state.blockedByDay,

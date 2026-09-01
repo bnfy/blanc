@@ -355,8 +355,8 @@
     el.textContent = '';
     if (!tab || tab.isLoading) return;
     if (tab.url.startsWith('blanc://')) {
-      // Blanc mark via CSS mask so it follows the theme — the pages' own SVG
-      // favicon always rasterizes light-scheme (see .favicon.internal).
+      // CSS supplies the reviewed internal-page artwork consistently across
+      // the resting pill, glance picker, overlay rows, and dot peeks.
       el.classList.add('internal');
     } else if (tab.favicon) {
       el.classList.add('has-icon');
