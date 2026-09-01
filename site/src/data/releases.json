@@ -1,5 +1,46 @@
 [
   {
+    "tag": "v1.11.1",
+    "version": "1.11.1",
+    "name": "1.11.1",
+    "publishedAt": "2026-09-01T01:51:06.000Z",
+    "humanDate": "August 31, 2026",
+    "machineDate": "2026-08-31",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.11.1",
+    "anchor": "v1-11-1",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "On macOS, approving a website's microphone or camera request now also asks for the required system-level access before capture begins. This restores live microphone input for ChatGPT voice and other approved media sites."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Blanc's capture indicator now turns on only after both the website permission and the native macOS permission have been granted."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.11.0",
     "version": "1.11.0",
     "name": "1.11.0",

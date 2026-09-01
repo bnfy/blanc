@@ -70,7 +70,7 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries are verified for the v1.11.0 public release:
+These boundaries are verified for the v1.11.1 public release:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. The user opens its panel for

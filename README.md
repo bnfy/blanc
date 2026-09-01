@@ -13,10 +13,10 @@ Plus favorites, history, downloads, settings, private tabs, per-site
 permission prompts, session restore, and signed + notarized auto-updating
 macOS builds.
 
-> **Current release:** v1.11.0 adds a complete Mahjong start-page layout,
-> local crash diagnostics and recovery choices, clearer certificate-failure
-> UX, and the revised Blanc mark. Use the
-> [v1.11.0 tag](https://github.com/bnfy/blanc/tree/v1.11.0) for the exact source
+> **Current release:** v1.11.1 restores microphone and camera capture on macOS
+> by joining Blanc's per-site permission with the required native system access.
+> It also makes the capture indicator wait for both decisions. Use the
+> [v1.11.1 tag](https://github.com/bnfy/blanc/tree/v1.11.1) for the exact source
 > snapshot associated with the public binaries.
 
 ## Source and license
