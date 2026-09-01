@@ -390,11 +390,13 @@ whatever layer that platform provides.
 
 ---
 
-## D18 — WebRTC IP-handling control (F26)
+## D18 — WebRTC IP-handling and receiver-buffer controls (F26)
 **Features:** F26
-**Why:** WebRTC IP-policy control depends on the engine.
+**Why:** WebRTC IP-policy and receiver-buffer controls depend on the engine.
 
-- **Desktop:** `webContents.setWebRTCIPHandlingPolicy` (standard + disable-direct-UDP).
+- **Desktop:** `webContents.setWebRTCIPHandlingPolicy` (standard + compatibility +
+  disable-direct-UDP), plus `RTCRtpReceiver.jitterBufferTarget` for the Stable
+  and Resilient call-audio modes.
 - **Android:** WebView WebRTC IP-handling support to be assessed at port time.
 - **iOS:** WKWebView exposes no WebRTC IP-handling policy; iOS contract downgrades
   to **platform default behavior, documented** (no in-app control).

@@ -455,15 +455,32 @@ From the desktop `DEFAULTS`:
   provider's equivalent) reports DoH active; a deliberately-unreachable custom
   template fails closed rather than silently resolving over plaintext.
 
-## F26 — WebRTC leak protection
+## F26 — WebRTC privacy and call stability
 
 - A Settings → Privacy control sets the WebRTC IP-handling policy: **Standard**
-  exposes no addresses beyond the default route's public interface; **Disable
-  direct UDP** additionally stops WebRTC from opening direct UDP paths that bypass
-  an application-level proxy (not relay-only enforcement). Applied to every tab.
+  exposes no addresses beyond the default route's public interface;
+  **Compatibility** restores the engine's ordinary public-and-local candidate
+  discovery for calls that stutter or fail under the narrower policy, with an
+  explicit local-address privacy warning; **Disable direct UDP** additionally
+  stops WebRTC from opening direct UDP paths that bypass an application-level
+  proxy (not relay-only enforcement). Applied to every tab.
+- A separate device-local **Call audio** control chooses the receiver playout
+  policy. **Automatic** leaves Chromium's latency/continuity tradeoff untouched;
+  **Stable** targets about 400 ms through the standards-track
+  `RTCRtpReceiver.jitterBufferTarget` property for smoother speech when a live
+  call arrives in bursts; **Resilient** targets about 1 second for severe burst
+  arrival at the cost of slower conversational turn-taking. Both explicit
+  targets apply only to audio receivers and do not alter video timing or the
+  selected IP-handling policy.
 - **Acceptance:** On a WebRTC test page, Standard reveals no local/multi-homed
-  private addresses; with an application proxy configured, Disable-direct-UDP
-  removes direct UDP candidates.
+  private addresses; Compatibility exposes the engine-default candidate set;
+  with an application proxy configured, Disable-direct-UDP removes direct UDP
+  candidates. In a new call begun with Stable selected, each audio receiver
+  reports a 400 ms `jitterBufferTarget` while Resilient reports 1000 ms and
+  video receivers remain unchanged;
+  returning to Automatic writes `null` to receivers managed by Blanc and a new
+  call resumes engine-default buffering. A new call started after changing
+  either setting uses the new policy.
 
 ## F27 — Tab Sync (open tabs from your other devices)
 

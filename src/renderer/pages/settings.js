@@ -96,6 +96,16 @@
     document.getElementById('webrtcPolicy')?.closest('.setting')?.remove();
   }
 
+  // --- WebRTC audio receive buffer ---
+  if (supports('webrtcAudioBuffer')) {
+    const webrtcAudioBuffer = document.getElementById('webrtcAudioBuffer');
+    webrtcAudioBuffer.value = settings.webrtcAudioBuffer ?? 'automatic';
+    webrtcAudioBuffer.addEventListener('change', () =>
+      window.bowserPages.settings.set({ webrtcAudioBuffer: webrtcAudioBuffer.value }));
+  } else {
+    document.getElementById('webrtcAudioBuffer')?.closest('.setting')?.remove();
+  }
+
   // --- Encrypted DNS (DoH) ---
   if (supports('secureDns')) {
     const secureDns = document.getElementById('secureDns');

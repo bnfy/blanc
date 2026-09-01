@@ -49,6 +49,10 @@ const {
   certificateErrorQuery,
 } = require('./site-security');
 const { webrtcPolicyFor, hostResolverOptionsFor } = require('./network-privacy');
+const {
+  WEBRTC_AUDIO_BUFFER_GET_CHANNEL,
+  sendWebrtcAudioBufferMode,
+} = require('./webrtc-audio-buffer');
 const { createNativeMediaAccessGate } = require('./native-media-access');
 const {
   chromeClientHintPlatform,
@@ -6843,6 +6847,18 @@ function applyWebrtcPolicyToAllTabs() {
   }
 }
 
+// Broadcast the call-audio choice to every WebContents on a browsing session,
+// including held views and auxiliary popups that are intentionally absent from
+// the live tab map. Their session preload applies it in the page's main world.
+function broadcastWebrtcAudioBufferToBrowsingContents() {
+  const mode = settings.getSettings().webrtcAudioBuffer;
+  return sendWebrtcAudioBufferMode({
+    contents: webContents.getAllWebContents(),
+    sessions: profileSessionRegistry?.all() ?? [],
+    mode,
+  });
+}
+
 // Last-applied encrypted-DNS values, so onSettingsChanged only reconfigures the
 // resolver + clears its cache when DNS actually changes — the listener fires on
 // every settings write, and clearing the cache mid-session isn't free.
@@ -6905,6 +6921,10 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
         type: 'frame',
         filePath: path.join(__dirname, 'chrome-compat-preload.js'),
       });
+      browsingSession.registerPreloadScript({
+        type: 'frame',
+        filePath: path.join(__dirname, 'webrtc-audio-buffer-preload.js'),
+      });
       // Capture instrumentation relay (spec §4). Per the §4.1 spike, session
       // preloads only reach MAIN frames on our configuration — subframe grants
       // stay unconfirmable and fail toward stuck-on, never silently-off.
@@ -6914,6 +6934,12 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
       });
     }
   };
+  // The session preload needs the persisted target before page scripts run.
+  // This synchronous reply is one enum read from the in-memory settings store;
+  // no page API or browsing data crosses the isolated-world boundary.
+  ipcMain.on(WEBRTC_AUDIO_BUFFER_GET_CHANNEL, (event) => {
+    event.returnValue = settings.getSettings().webrtcAudioBuffer;
+  });
   installSessionPreloads(browsingSessions);
 
   // Fallback: patch Sec-CH-UA HTTP headers for webContents where the CDP
@@ -7563,6 +7589,7 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
     // WebRTC reapply is unconditional — setWebRTCIPHandlingPolicy is a cheap,
     // idempotent per-tab call and settings writes are infrequent/user-initiated.
     applyWebrtcPolicyToAllTabs();
+    broadcastWebrtcAudioBufferToBrowsingContents();
     if (s.secureDns !== lastSecureDns || s.secureDnsTemplate !== lastSecureDnsTemplate) {
       lastSecureDns = s.secureDns;
       lastSecureDnsTemplate = s.secureDnsTemplate;
