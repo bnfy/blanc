@@ -36,7 +36,7 @@
     searchEngine.append(opt);
   }
   theme.value = settings.theme ?? 'system';
-  newtabLayout.value = settings.newtabLayout ?? 'ledger';
+  newtabLayout.value = settings.newtabLayout ?? 'billboard';
   searchEngine.value = settings.searchEngine;
   searchSuggestions.checked = settings.searchSuggestions ?? false;
   adblockEnabled.checked = settings.adblockEnabled;
@@ -305,7 +305,7 @@
   // Tracked directly rather than re-derived from the DOM on every render —
   // ids/labels come from main (settings.js APP_ICON_LABELS/SUPPORTER_ICON_LABELS)
   // so there's one source of truth instead of a hand-typed second copy.
-  let selectedIcon = settings.appIcon ?? 'paper';
+  let selectedIcon = settings.appIcon ?? 'sunrise';
 
   const selectAppIcon = (id) => {
     selectedIcon = id;

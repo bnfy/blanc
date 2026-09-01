@@ -724,7 +724,7 @@ From the desktop `DEFAULTS`:
   deal). The four informational layouts draw the same favorites, tab-group, and
   blocker feeds; Mahjong deliberately replaces those feeds with the game. All
   five re-ink under the light, dark, and private themes.
-- The choice is a synced setting (`newtabLayout`, default `ledger`), changeable
+- The choice is a synced setting (`newtabLayout`, default `billboard`), changeable
   instantly from the start page's own footer switcher and from Settings; a
   change made anywhere reaches every open start page. It travels with the
   profile the way the theme does.

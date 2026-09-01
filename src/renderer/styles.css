@@ -1455,13 +1455,14 @@ button.insecure-badge {
   background-position: center;
   background-repeat: no-repeat;
 }
-/* Internal pages wear the Blanc mark tinted by the theme's text color.
-   Chromium rasterizes SVG images in a fixed light scheme (prefers-color-scheme
-   never reaches them), so the SVG is used as a mask and colored here. */
+/* Internal-page rows use the simplified monochrome Sunrise silhouette. The
+   Island hides this mark in the selected development treatment; keeping the
+   source here prevents a missing preview environment variable from reviving
+   the retired B. */
 .favicon.internal {
   background: var(--text);
-  -webkit-mask: url("pages/icon.svg") center / contain no-repeat;
-  mask: url("pages/icon.svg") center / contain no-repeat;
+  -webkit-mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
+  mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
 }
 .favicon.loading {
   background: transparent;
@@ -1479,6 +1480,11 @@ button.insecure-badge {
 #pillFavicon {
   width: calc(16px / var(--pill-zoom));
   height: calc(16px / var(--pill-zoom));
+}
+/* Internal pages already read as Blanc through the chrome itself. Repeating
+   the app mark in the resting Island adds noise, so this slot stays empty. */
+#islandPill #pillFavicon.internal {
+  display: none;
 }
 
 /* Hover/focus peek: an otherwise-anonymous tab dot blooms into a disc showing
@@ -1534,8 +1540,12 @@ button.insecure-badge {
   position: absolute;
   inset: 3px;
   background: var(--text);
-  -webkit-mask: url("pages/icon.svg") center / contain no-repeat;
-  mask: url("pages/icon.svg") center / contain no-repeat;
+  -webkit-mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
+  mask: url("pages/sunrise-favicon-mark.png") center / contain no-repeat;
+}
+/* Keep internal tabs anonymous when their dot blooms inside the Island too. */
+#islandPill .dot-peek.internal::after {
+  display: none;
 }
 /* A loading tab's peek carries `loading` too (setFavicon adds it), and
    `.favicon.loading` (0,2,0) would otherwise win — turning the disc into a

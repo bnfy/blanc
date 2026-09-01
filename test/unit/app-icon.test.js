@@ -5,6 +5,7 @@ const test = require('node:test');
 const sharp = require('sharp');
 
 const APP_ICON_ASSETS = require('../../src/main/app-icon-assets');
+const { createIconDocument } = require('../../scripts/after-pack-app-icons');
 const {
   applyDockAppIcon,
   macOSMajorVersion,
@@ -44,6 +45,7 @@ function harness({ packaged = true, namedEmpty = false, pathEmpty = false } = {}
 
 test('every selectable colorway has a named native icon stack', () => {
   const selectable = [
+    'sunrise', 'sunrise-dark',
     'paper', 'ink', 'graphite', 'default', 'midnight', 'cream', 'forest', 'sage',
     'ember', 'plum', 'gold',
   ].sort();
@@ -60,9 +62,17 @@ test('packaging wires the Icon Composer source and multi-colorway compiler', () 
     path.join(root, 'build/app-icons/Icon.icon/icon.json'),
     'utf8',
   ));
-  const appearances = source.groups[0].layers[0]['fill-specializations']
-    .map(({ appearance }) => appearance ?? 'default');
-  assert.deepEqual(appearances, ['default', 'dark', 'tinted']);
+  assert.equal(source.groups[0].layers[0]['image-name'], 'sunrise-mark.png');
+  assert.equal(source.groups[0].layers[0]['fill-specializations'], undefined);
+  assert.equal(source['fill-specializations'][0].appearance, 'dark');
+  assert.equal(
+    source['fill-specializations'][0].value['automatic-gradient'],
+    'extended-srgb:0.10980,0.10196,0.08627,1.00000',
+  );
+
+  const generated = createIconDocument(APP_ICON_ASSETS.sunrise);
+  assert.deepEqual(generated['fill-specializations'], source['fill-specializations']);
+  assert.equal(generated.groups[0].layers[0]['image-name'], 'sunrise-mark.png');
 });
 
 test('packaging wires one fixed Windows ICO without colorway resources', () => {
@@ -165,6 +175,83 @@ test('uses the flat PNG in dev and on pre-Tahoe macOS', () => {
   }
 });
 
+test('uses an explicit candidate icon only for an unpackaged macOS preview', () => {
+  const previewPath = '/candidate/quiet-horizon.png';
+  const dev = harness({ packaged: false });
+  const devResult = applyDockAppIcon({
+    ...dev,
+    appIcon: 'paper',
+    developmentPreviewPath: previewPath,
+    platform: 'darwin',
+  });
+  assert.deepEqual(devResult, { source: 'development-preview', path: previewPath });
+  assert.equal(dev.calls.length, 2);
+  assert.deepEqual(dev.calls[0], ['path', previewPath]);
+  assert.equal(dev.calls[1][0], 'setIcon');
+
+  const packaged = harness({ packaged: true });
+  const packagedResult = applyDockAppIcon({
+    ...packaged,
+    appIcon: 'paper',
+    developmentPreviewPath: previewPath,
+    platform: 'darwin',
+    systemVersion: '26.0',
+  });
+  assert.deepEqual(packagedResult, { source: 'native', nativeName: 'Paper' });
+  assert.deepEqual(packaged.calls[0], ['named', 'Paper']);
+});
+
+test('uses the dark candidate in dark appearance and keeps packaged adaptation native', () => {
+  const lightPath = '/candidate/sunrise.png';
+  const darkPath = '/candidate/sunrise-dark.png';
+  const dev = harness({ packaged: false });
+  const devResult = applyDockAppIcon({
+    ...dev,
+    appIcon: 'sunrise',
+    developmentPreviewPath: lightPath,
+    developmentDarkPreviewPath: darkPath,
+    darkAppearance: true,
+    platform: 'darwin',
+  });
+  assert.deepEqual(devResult, { source: 'development-preview', path: darkPath });
+  assert.deepEqual(dev.calls[0], ['path', darkPath]);
+
+  const packaged = harness({ packaged: true });
+  const packagedResult = applyDockAppIcon({
+    ...packaged,
+    appIcon: 'sunrise',
+    darkAppearance: true,
+    platform: 'darwin',
+    systemVersion: '26.0',
+  });
+  assert.deepEqual(packagedResult, { source: 'native', nativeName: 'Icon' });
+  assert.deepEqual(packaged.calls[0], ['named', 'Icon']);
+});
+
+test('the flat Sunrise fallback follows appearance while Sunrise Dark stays dark', () => {
+  const adaptive = harness({ packaged: false });
+  const adaptiveResult = applyDockAppIcon({
+    ...adaptive,
+    appIcon: 'sunrise',
+    darkAppearance: true,
+    platform: 'darwin',
+    iconsDirectory: '/icons',
+  });
+  assert.deepEqual(adaptiveResult, { source: 'png', appIcon: 'sunrise-dark' });
+  assert.deepEqual(adaptive.calls[0], ['path', path.join('/icons', 'icon-sunrise-dark.png')]);
+
+  const explicit = harness({ packaged: false });
+  const explicitResult = applyDockAppIcon({
+    ...explicit,
+    appIcon: 'sunrise-dark',
+    darkAppearance: false,
+    platform: 'darwin',
+    iconsDirectory: '/icons',
+  });
+  assert.deepEqual(explicitResult, { source: 'png', appIcon: 'sunrise-dark' });
+  assert.deepEqual(explicit.calls[0], ['path', path.join('/icons', 'icon-sunrise-dark.png')]);
+});
+
 test('falls back to the PNG if the packaged asset catalog cannot resolve a name', () => {
   const h = harness({ namedEmpty: true });
   const result = applyDockAppIcon({
@@ -181,7 +268,7 @@ test('falls back to the PNG if the packaged asset catalog cannot resolve a name'
   ]);
 });
 
-test('unknown ids safely resolve to Paper', () => {
+test('unknown ids safely resolve to Sunrise', () => {
   assert.equal(nativeIconNameFor('not-an-icon'), 'Icon');
   assert.equal(macOSMajorVersion('26.4.1'), 26);
   assert.equal(macOSMajorVersion('n/a'), 0);
@@ -221,16 +308,10 @@ test('sets Blanc’s packaged Windows AppUserModelID before creating taskbar but
   assert.deepEqual(calls, ['me.bnfy.bowser']);
 });
 
-// The two macOS icon sources compose the tile DIFFERENTLY, and that is the trap
-// this test exists to spring. The flat colorway PNGs paint their own 824px
-// squircle inside a 1024 canvas, so their mark reads against 824. The Icon
-// Composer document supplies only the mark — macOS paints the squircle itself,
-// full-bleed at 1024 — so the same 544px mark reads ~19% smaller there. Matching
-// the marks in CANVAS terms (which they did) still leaves the Dock icon visibly
-// changing size between the quit-state bundle icon and the running app.
-// Compare the fraction of the VISIBLE tile instead; that is what the eye sees.
-// (scripts/build-windows-icons.js compensates for the same mismatch a third way,
-// via WINDOWS_MARK_SCALE.)
+// Flat PNGs paint an 824px tile inside the 1024px canvas. Icon Composer paints
+// the native tile itself, so its artwork layer must occupy the same fraction of
+// 1024 that the flat artwork occupies of 824. This prevents an apparent size
+// jump between the flat fallback and the adaptive packaged icon.
 async function markBoundsOf(image, isMark) {
   const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const bounds = { minX: info.width, minY: info.height, maxX: -1, maxY: -1 };
@@ -248,45 +329,58 @@ async function markBoundsOf(image, isMark) {
   return { ...bounds, width: bounds.maxX - bounds.minX + 1, height: bounds.maxY - bounds.minY + 1 };
 }
 
-test('the Icon Composer mark fills the same share of its tile as the flat colorways', async () => {
+test('the adaptive Sunrise artwork matches the flat icon scale and omits the detached baseline', async () => {
   const CANVAS = 1024;
-  const opaque = (_r, _g, _b, a) => a > 24;
-  const dark = (r, g, b, a) => a > 24 && (r + g + b) / 3 < 128;
+  const opaque = (_r, _g, _b, a) => a > 250;
+  const gold = (r, g, b, a) => a > 24 && r > 75 && r > b + 45 && g > b + 15;
 
-  // Flat PNG: it draws its own squircle, so measure the mark against THAT.
-  const flat = path.join(root, 'src/renderer/pages/icon-paper.png');
+  const flat = path.join(root, 'src/renderer/pages/icon-sunrise.png');
+  const internalMark = path.join(root, 'src/renderer/pages/sunrise-mark.png');
+  assert.ok(fs.statSync(internalMark).size > 0, 'the internal Sunrise mark must be generated');
   const tile = await markBoundsOf(sharp(flat), opaque);
-  const flatMark = await markBoundsOf(sharp(flat), dark);
-  assert.equal(tile.height, 824, 'the flat colorways keep their 824px visible tile');
+  const flatMark = await markBoundsOf(sharp(flat), gold);
+  assert.equal(tile.height, 824, 'the flat Sunrise icon keeps its 824px visible tile');
   const flatRatio = flatMark.height / tile.height;
 
-  // Icon Composer: macOS paints the squircle full-bleed, so the tile IS the canvas.
-  const svg = path.join(root, 'build/app-icons/Icon.icon/Assets/blanc-mark.svg');
-  const composed = await markBoundsOf(sharp(svg).resize(CANVAS, CANVAS), opaque);
+  const nativeLayer = path.join(root, 'build/app-icons/Icon.icon/Assets/sunrise-mark.png');
+  const composed = await markBoundsOf(sharp(nativeLayer), gold);
   const composedRatio = composed.height / CANVAS;
 
   assert.ok(
     Math.abs(composedRatio - flatRatio) < 0.01,
-    `Icon Composer mark is ${(composedRatio * 100).toFixed(2)}% of its tile but the flat `
-    + `colorways are ${(flatRatio * 100).toFixed(2)}% — the Dock icon would change size `
-    + 'between the quit-state bundle icon and the running app. Rescale the transform in '
-    + 'blanc-mark.svg (the canvas-relative sizes are SUPPOSED to differ by 1024/824).',
+    `Icon Composer artwork is ${(composedRatio * 100).toFixed(2)}% of its tile but the flat `
+    + `Sunrise artwork is ${(flatRatio * 100).toFixed(2)}% — the Dock icon would change size.`,
   );
 
-  // The mark sits ~24px right of the tile's true center — a deliberate optical
-  // adjustment, so the vector source has to carry it too or the mark visibly
-  // shifts when the Dock swaps sources. Measured as a fraction of the tile,
-  // since the two tiles are different sizes.
   const flatOffset = ((flatMark.minX + flatMark.maxX) / 2 - (tile.minX + tile.maxX) / 2) / tile.width;
   const composedOffset = ((composed.minX + composed.maxX) / 2 - (CANVAS - 1) / 2) / CANVAS;
-  assert.ok(flatOffset > 0.02, 'the flat colorways still carry their optical offset');
   assert.ok(
     Math.abs(composedOffset - flatOffset) < 0.005,
-    `Icon Composer mark sits at ${(composedOffset * 100).toFixed(2)}% of tile width off center `
-    + `but the flat colorways sit at ${(flatOffset * 100).toFixed(2)}% — the mark would jump `
-    + 'sideways when the Dock swaps sources. Adjust the translate in blanc-mark.svg.',
+    `Icon Composer artwork sits at ${(composedOffset * 100).toFixed(2)}% of tile width off center `
+    + `but the flat icon sits at ${(flatOffset * 100).toFixed(2)}%.`,
   );
-  assert.ok(composed.height > 650 && composed.height < 700, 'mark stays within the icon safe area');
+  assert.ok(composed.height > 780 && composed.height < 820, 'artwork stays large within the icon safe area');
+
+  const { data, info } = await sharp(nativeLayer).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let lowestRow = -1;
+  let lowestMinX = info.width;
+  let lowestMaxX = -1;
+  for (let y = 0; y < info.height; y += 1) {
+    let rowMinX = info.width;
+    let rowMaxX = -1;
+    for (let x = 0; x < info.width; x += 1) {
+      if (data[((y * info.width) + x) * info.channels + 3] <= 24) continue;
+      rowMinX = Math.min(rowMinX, x);
+      rowMaxX = Math.max(rowMaxX, x);
+    }
+    if (rowMaxX >= 0) {
+      lowestRow = y;
+      lowestMinX = rowMinX;
+      lowestMaxX = rowMaxX;
+    }
+  }
+  assert.ok(lowestRow > 0);
+  assert.ok(lowestMaxX - lowestMinX < 100, 'the removed detached baseline must not return');
 });
 
 test('settings exposes icon colorways only on macOS; Patron activation is cross-platform', () => {

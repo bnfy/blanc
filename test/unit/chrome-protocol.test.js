@@ -30,6 +30,10 @@ test('chrome protocol exposes only the reviewed resources for each host', () => 
     chromeResourcePath('blanc-chrome://overlay/pages/inter-latin.woff2'),
     path.join(renderer, 'pages/inter-latin.woff2'),
   );
+  assert.equal(
+    chromeResourcePath('blanc-chrome://overlay/pages/sunrise-favicon-mark.png'),
+    path.join(renderer, 'pages/sunrise-favicon-mark.png'),
+  );
 });
 
 test('fill-status host serves its document, script, copy, and shared styles only', () => {

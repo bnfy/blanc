@@ -2,6 +2,7 @@
 
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
+const { developmentBrandAssetPath } = require('./development-brand-preview');
 
 const CHROME_SCHEME = 'blanc-chrome';
 // No `persist:` prefix: privileged UI state lives in an in-memory session that
@@ -21,6 +22,7 @@ const SHARED_ASSETS = new Set([
   '/styles.css',
   '/panel-left.svg',
   '/pages/icon.svg',
+  '/pages/sunrise-favicon-mark.png',
   '/pages/inter-latin.woff2',
   '/pages/jetbrains-mono-latin.woff2',
   // Pure keyboard-gate logic, no IPC and no application data — the chrome
@@ -72,16 +74,24 @@ function chromeResourcePath(rawUrl) {
   return path.join(RENDERER_DIR, relative);
 }
 
-function createChromeProtocolHandler({ net }) {
+function createChromeProtocolHandler({ net, developmentBrandMarkPath = null }) {
   return (request) => {
-    const resource = chromeResourcePath(request.url);
-    if (!resource) return new Response('Not found', { status: 404 });
+    const defaultPath = chromeResourcePath(request.url);
+    if (!defaultPath) return new Response('Not found', { status: 404 });
+    const resource = developmentBrandAssetPath({
+      name: path.basename(defaultPath),
+      defaultPath,
+      brandMarkPath: developmentBrandMarkPath,
+    });
     return net.fetch(pathToFileURL(resource).href);
   };
 }
 
-function setupChromeProtocol({ session, net }) {
-  session.protocol.handle(CHROME_SCHEME, createChromeProtocolHandler({ net }));
+function setupChromeProtocol({ session, net, developmentBrandMarkPath = null }) {
+  session.protocol.handle(CHROME_SCHEME, createChromeProtocolHandler({
+    net,
+    developmentBrandMarkPath,
+  }));
 }
 
 module.exports = {

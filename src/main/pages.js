@@ -19,6 +19,7 @@ const diagnostics = require('./diagnostics');
 const { listDecisions, removeDecision } = require('./permissions');
 const { KNOWN_PAGES, UTILITY_PAGES } = require('./utility-pages');
 const { isTrustedPagesEvent } = require('./pages-ipc-trust');
+const { developmentBrandAssetPath } = require('./development-brand-preview');
 
 // Internal chrome pages (bookmarks, history, downloads, settings, the new
 // tab page) are served over a dedicated `blanc://` scheme instead of
@@ -42,6 +43,9 @@ function registerPagesScheme() {
  * bookmarks page). */
 function setupPages(hooks = {}) {
   const onePasswordAvailable = () => hooks.onePasswordAvailable?.() === true;
+  const developmentBrandMarkPath = hooks.developmentBrandMarkPath ?? null;
+  const developmentDockIconPath = hooks.developmentDockIconPath ?? null;
+  const developmentDarkDockIconPath = hooks.developmentDarkDockIconPath ?? null;
   // Test runs may point discovery at a throwaway synthetic home, but only in
   // an unpackaged BLANC_TEST process. Production always uses the real OS home.
   const testBrowserHome =
@@ -63,7 +67,15 @@ function setupPages(hooks = {}) {
     // shared asset (pages.css, pages.js) resolved inside PAGES_DIR only.
     const name = pathname === '/' ? `${host}.html` : path.basename(pathname);
     if (!/^[\w.-]+$/.test(name)) return new Response('Bad request', { status: 400 });
-    return net.fetch(pathToFileURL(path.join(PAGES_DIR, name)).toString());
+    const defaultPath = path.join(PAGES_DIR, name);
+    const resource = developmentBrandAssetPath({
+      name,
+      defaultPath,
+      brandMarkPath: developmentBrandMarkPath,
+      dockIconPath: developmentDockIconPath,
+      darkDockIconPath: developmentDarkDockIconPath,
+    });
+    return net.fetch(pathToFileURL(resource).toString());
   };
 
   // The top-level `protocol` module binds only to the default session, so a

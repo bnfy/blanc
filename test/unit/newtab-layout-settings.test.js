@@ -33,7 +33,7 @@ test.after(() => {
   else delete require.cache[electronId];
 });
 
-test('the start-page layout defaults to ledger, validates its enum, and syncs', (t) => {
+test('the start-page layout defaults to billboard, validates its enum, and syncs', (t) => {
   const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-newtab-layout-'));
   t.after(async () => {
     // JsonStore writes on a 250 ms debounce; let it finish before removing
@@ -44,7 +44,14 @@ test('the start-page layout defaults to ledger, validates its enum, and syncs', 
   const settings = loadSettings(userData);
 
   assert.deepEqual(settings.NEWTAB_LAYOUTS, ['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
-  assert.equal(settings.getSettings().newtabLayout, 'ledger');
+  assert.equal(settings.getSettings().newtabLayout, 'billboard');
+
+  const newtabHtml = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/newtab.html'), 'utf8');
+  const newtabScript = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/newtab.js'), 'utf8');
+  assert.match(newtabHtml, /<body class="ledger-body" data-layout="billboard">/);
+  assert.match(newtabScript, /layout:\s*'billboard'/);
+  assert.match(newtabScript, /layout:\s*data\.layout \?\? 'billboard'/);
+  assert.doesNotMatch(newtabHtml, /<body[^>]*data-layout="mahjong"/);
 
   assert.equal(settings.setSettings({ newtabLayout: 'billboard' }).newtabLayout, 'billboard');
   assert.equal(settings.setSettings({ newtabLayout: 'tally' }).newtabLayout, 'tally');
@@ -65,7 +72,7 @@ const settingsSchema = require('../../settings-schema/schema.json');
 
 test('the layout enum reaches the schema and both generated mobile artifacts', () => {
   assert.deepEqual(settingsSchema.newtabLayouts, ['ledger', 'billboard', 'shelf', 'tally', 'mahjong']);
-  assert.equal(settingsSchema.defaults.newtabLayout, 'ledger');
+  assert.equal(settingsSchema.defaults.newtabLayout, 'billboard');
   assert.equal(settingsSchema.internalDefaults.includes('newtabLayout'), false);
   assert.ok(settingsSchema.settings.some((s) => s.key === 'newtabLayout'));
 
@@ -78,12 +85,12 @@ test('the layout enum reaches the schema and both generated mobile artifacts', (
     swift,
     /public enum BlancNewtabLayout: String, CaseIterable \{ case ledger, billboard, shelf, tally, mahjong \}/
   );
-  assert.match(swift, /public static let newtabLayout: BlancNewtabLayout = \.ledger/);
+  assert.match(swift, /public static let newtabLayout: BlancNewtabLayout = \.billboard/);
   assert.match(
     kotlin,
     /enum class BlancNewtabLayout\(val id: String\) \{ LEDGER\("ledger"\), BILLBOARD\("billboard"\), SHELF\("shelf"\), TALLY\("tally"\), MAHJONG\("mahjong"\) \}/
   );
-  assert.match(kotlin, /val newtabLayout = BlancNewtabLayout\.LEDGER/);
+  assert.match(kotlin, /val newtabLayout = BlancNewtabLayout\.BILLBOARD/);
 });
 
 test('Settings offers every supported start-page layout', () => {
