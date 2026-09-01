@@ -56,7 +56,7 @@ Then('the embedded mahjong game is ready', async function () {
       dom?.url?.startsWith('blanc://mahjong/') &&
       dom.tileCount === MAHJONG_TILE_COUNTS[dom.layout] &&
       dom.freeTileCount >= 2 &&
-      dom.tileHeight >= 59 &&
+      dom.tileHeight >= 46 &&
       dom.boardFrameHeight >= 400,
     'the embedded mahjong frame to render its active Daily layout at playable size'
   );

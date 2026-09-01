@@ -12,7 +12,7 @@ Feature: Settings and theming
   Scenario: A supporter icon without a license falls back to the default
     Given there is no active supporter license
     When settings contain the app icon "ember"
-    Then the effective app icon is "paper"
+    Then the effective app icon is "sunrise"
 
   @F14-3 @F14 @all
   Scenario: Exception hostnames are normalized

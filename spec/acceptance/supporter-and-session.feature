@@ -13,7 +13,7 @@ Feature: Supporter colorways and session restore
   Scenario: Non-supporters cannot use supporter colorways
     Given there is no active supporter license
     Then the supporter colorways are shown as locked
-    And selecting one leaves the app icon at "paper"
+    And selecting one leaves the app icon at "sunrise"
 
   @F17-3 @F17 @all @desktop
   Scenario: Become a Patron opens Polar checkout in a real tab

@@ -37,7 +37,7 @@ test('Settings Patron CTA is a same-frame link to the production Polar checkout'
   assert.match(block, /Named Workspaces on every platform/);
   assert.match(block, /on macOS three\s+extra Dock colorways/);
   assert.match(block, /existing workspaces stay available while creating new ones pauses/);
-  assert.match(block, /on macOS,\s+colorways quietly revert to Paper/);
+  assert.match(block, /on macOS,\s+colorways quietly revert to Sunrise/);
 
   assert.match(
     block,

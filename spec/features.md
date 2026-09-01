@@ -277,7 +277,7 @@ From the desktop `DEFAULTS`:
 | `theme` | `system` | system/light/dark |
 | `tabLayout` | `island` | desktop-only `island`/`vertical`; device-local, never synced (F28/D19) |
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
-| `appIcon` | `paper` | a free icon id, or a supporter id **iff** supporter active |
+| `appIcon` | `sunrise` | a free icon id, or a supporter id **iff** supporter active |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
@@ -323,15 +323,15 @@ From the desktop `DEFAULTS`:
 
 ## F17 — Supporter & app icons
 
-- 8 free colorways (`paper` default, `ink`, `graphite`, `default`/"Evergreen",
-  `midnight`, `cream`, `forest`, `sage`) + 3 supporter-gated (`ember`, `plum`,
-  `gold`), same fixed geometry.
+- 10 free colorways (`sunrise` default, `sunrise-dark`, `paper`, `ink`,
+  `graphite`, `default`/"Evergreen", `midnight`, `cream`, `forest`, `sage`) +
+  3 supporter-gated (`ember`, `plum`, `gold`).
 - Supporter unlock is **trusted forever, offline-OK, cosmetic-only** — no
   revalidation, no DRM. Renderers only ever see a derived `supporterActive` boolean.
 - **Diverges:** purchase rails (D5 — Apple IAP / Play Billing, not Polar, on mobile)
   and icon-switching mechanism (D6 — clean on iOS, limited on Android).
 - **Acceptance:** A supporter can select `ember`; a non-supporter sees it locked and
-  any hand-set supporter id falls back to `paper`.
+  any hand-set supporter id falls back to `sunrise`.
 
 ## F18 — Session persistence & restore
 

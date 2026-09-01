@@ -5,9 +5,9 @@
   "metadata": {
     "component": {
       "type": "application",
-      "bom-ref": "application:runtime:blanc@1.11.1",
+      "bom-ref": "application:runtime:blanc@1.12.0",
       "name": "Blanc",
-      "version": "1.11.1",
+      "version": "1.12.0",
       "description": "Shipped desktop runtime: npm closure, Electron framework, bundled fonts, and blocker data provenance."
     },
     "properties": [
@@ -1036,14 +1036,14 @@
     },
     {
       "type": "framework",
-      "bom-ref": "pkg:npm/electron@44.1.0",
+      "bom-ref": "pkg:npm/electron@44.1.1",
       "name": "electron",
-      "version": "44.1.0",
+      "version": "44.1.1",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9262e0f1ac4e836d830b77d7c79342c01616f1fc74acadb3cc9dd37faec68cd0a4c5fa3111c77eca8d107c38e506d1c9b37c5e03c7d383ae1bea2573153544ae"
+          "content": "376582ab6b1b3a4a9082f5c9631da54ba5223bc6c5f98afaeedac39d2e8929ad96c5309142c0231a5e7b494b5d5bd87aaf93e576e0458c8871860777773bf586"
         }
       ],
       "licenses": [
@@ -1053,7 +1053,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/electron@44.1.0",
+      "purl": "pkg:npm/electron@44.1.1",
       "properties": [
         {
           "name": "blanc:declaration",
@@ -1067,7 +1067,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/electron/-/electron-44.1.0.tgz"
+          "url": "https://registry.npmjs.org/electron/-/electron-44.1.1.tgz"
         }
       ]
     },
@@ -1704,7 +1704,7 @@
   ],
   "dependencies": [
     {
-      "ref": "application:runtime:blanc@1.11.1",
+      "ref": "application:runtime:blanc@1.12.0",
       "dependsOn": [
         "asset:blanc-adblock-seed",
         "asset:inter-font",
@@ -1712,7 +1712,7 @@
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
         "pkg:npm/electron-updater@6.8.9",
-        "pkg:npm/electron@44.1.0"
+        "pkg:npm/electron@44.1.1"
       ]
     },
     {
@@ -1856,7 +1856,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/electron@44.1.0",
+      "ref": "pkg:npm/electron@44.1.1",
       "dependsOn": []
     },
     {
