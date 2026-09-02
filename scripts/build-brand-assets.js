@@ -94,38 +94,38 @@ function standaloneMarkSvg(artwork) {
 `;
 }
 
-function siteBrandComponent(artwork) {
-  const cutoutArtwork = artwork.replaceAll('class="cls-1"', 'class="blanc-cutout"');
+function siteBrandComponent(marks) {
+  // The site's in-page mark. Sunrise is raster (see buildSunriseAssets), so the
+  // component paints currentColor through the silhouette's alpha — the same
+  // construction the app chrome uses for blanc:// favicons — with both masks
+  // embedded so nothing is fetched at runtime. `small` swaps in the rays-only
+  // crop for ≤16px placements, where the water lines collapse into noise.
   return `---
-const { class: className, ariaLabel } = Astro.props;
-const maskId = \`blanc-mark-\${String(className || 'default').replace(/[^a-z0-9_-]/gi, '-')}\`;
+const { class: className, ariaLabel, small = false } = Astro.props;
 ---
-<svg class={className} viewBox="0 0 ${SOURCE_WIDTH} ${SOURCE_HEIGHT}" aria-label={ariaLabel} aria-hidden={ariaLabel ? undefined : 'true'}>
-  <defs>
-    <style>.blanc-cutout { fill: #000 !important; }</style>
-    <mask id={maskId} x="0" y="0" width="${SOURCE_WIDTH}" height="${SOURCE_HEIGHT}" maskUnits="userSpaceOnUse" style="mask-type:luminance">
-      <g fill="#fff">${cutoutArtwork}</g>
-    </mask>
-  </defs>
-  <rect width="${SOURCE_WIDTH}" height="${SOURCE_HEIGHT}" fill="currentColor" mask={\`url(#\${maskId})\`} />
-</svg>
+<span class:list={['blanc-mark', { 'blanc-mark--small': small }, className]} role={ariaLabel ? 'img' : undefined} aria-label={ariaLabel} aria-hidden={ariaLabel ? undefined : 'true'}></span>
+<style>
+  .blanc-mark {
+    display: block;
+    background: currentColor;
+    -webkit-mask: url("${marks.full}") center / contain no-repeat;
+    mask: url("${marks.full}") center / contain no-repeat;
+  }
+  .blanc-mark--small {
+    -webkit-mask-image: url("${marks.small}");
+    mask-image: url("${marks.small}");
+  }
+</style>
 `;
 }
 
-function faviconSvg(artwork) {
-  const markHeight = 169.32;
+function tileSvg(dataUri) {
+  // The 256 favicon tile keeps the B-era geometry: white, rx 48, mark at 66%.
+  const markSize = 169.32;
+  const offset = ((256 - markSize) / 2).toFixed(2);
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
   <rect width="256" height="256" rx="48" fill="#fff"/>
-  ${maskedMarkSvg({
-    artwork,
-    canvasWidth: 256,
-    canvasHeight: 256,
-    markHeight,
-    centerX: 135.45,
-    centerY: 128,
-    color: '#0e0e0e',
-    maskId: 'blanc-favicon-mark',
-  }).replace(/^<\?xml[^>]*>\n/, '').replace(/^<svg[^>]*>\n/, '').replace(/<\/svg>\n$/, '')}
+  <image href="${dataUri}" x="${offset}" y="${offset}" width="${markSize}" height="${markSize}"/>
 </svg>
 `;
 }
@@ -151,6 +151,10 @@ function pixelAt(data, info, x, y) {
 
 function distance(a, b) {
   return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
+
+function cssRgbTuple(hex) {
+  return [1, 3, 5].map((offset) => parseInt(hex.slice(offset, offset + 2), 16));
 }
 
 function cssRgb(color) {
@@ -310,7 +314,28 @@ async function raster(svg, width, height = width) {
     .toBuffer();
 }
 
-async function patchStaticBrandMark(relativePath, artwork, placement) {
+// A Sunrise motif (RGBA, transparent field) as a flat ink silhouette at `size`:
+// the artwork's own alpha, painted one color — exactly what a CSS mask of the
+// motif produces in the app chrome.
+async function silhouettePng(motif, size, color = [14, 14, 14]) {
+  const tight = await sharp(motif).trim({ threshold: 8 }).png().toBuffer();
+  const alpha = await sharp(tight)
+    .resize(size, size, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 }, kernel: sharp.kernel.lanczos3 })
+    .ensureAlpha()
+    .extractChannel(3)
+    .raw()
+    .toBuffer();
+  return sharp({ create: { width: size, height: size, channels: 3, background: { r: color[0], g: color[1], b: color[2] } } })
+    .joinChannel(alpha, { raw: { width: size, height: size, channels: 1 } })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+}
+
+function pngDataUri(png) {
+  return `data:image/png;base64,${png.toString('base64')}`;
+}
+
+async function patchStaticBrandMark(relativePath, motif, placement) {
   const source = path.join(ROOT, relativePath);
   const { data, info } = await sharp(source).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const background = pixelAt(data, info, placement.sampleX, placement.sampleY);
@@ -322,72 +347,66 @@ async function patchStaticBrandMark(relativePath, artwork, placement) {
       background: { r: background[0], g: background[1], b: background[2], alpha: background[3] / 255 },
     },
   }).png().toBuffer();
-  const mark = maskedMarkSvg({
-    artwork,
-    canvasWidth: info.width,
-    canvasHeight: info.height,
-    markHeight: placement.height,
-    centerX: placement.centerX,
-    centerY: placement.centerY,
-    color: placement.color,
-  });
+  const mark = await silhouettePng(motif, placement.height, cssRgbTuple(placement.color));
   const output = await sharp(data, { raw: info }).composite([
     { input: blank, left: placement.erase.left, top: placement.erase.top },
-    { input: Buffer.from(mark) },
+    {
+      input: mark,
+      left: placement.erase.left + Math.round((placement.erase.width - placement.height) / 2),
+      top: placement.erase.top + Math.round((placement.erase.height - placement.height) / 2),
+    },
   ]).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
   await emit(relativePath, output);
 }
 
-async function buildSiteAssets(artwork) {
-  const favicon = faviconSvg(artwork);
-  await emit('site/public/favicon.svg', favicon);
-  await emit('site/src/components/BrandMark.astro', siteBrandComponent(artwork));
+async function buildSiteAssets(sunrise) {
+  const ink = [14, 14, 14];
+  const marks = {
+    full: pngDataUri(await silhouettePng(sunrise.motif, 256, ink)),
+    small: pngDataUri(await silhouettePng(sunrise.faviconMotif, 128, ink)),
+  };
+  await emit('site/src/components/BrandMark.astro', siteBrandComponent(marks));
 
+  // Favicons carry the rays-only crop (the app's own ≤16px rule); the 180px
+  // touch icon has room for the full mark.
+  const favicon = tileSvg(pngDataUri(await silhouettePng(sunrise.faviconMotif, 256, ink)));
+  await emit('site/public/favicon.svg', favicon);
   const favicon16 = await raster(favicon, 16);
   const favicon32 = await raster(favicon, 32);
   const favicon48 = await raster(favicon, 48);
   await emit('site/public/favicon-16x16.png', favicon16);
   await emit('site/public/favicon-32x32.png', favicon32);
-  await emit('site/public/apple-touch-icon.png', await raster(favicon, 180));
+  await emit('site/public/apple-touch-icon.png', await raster(tileSvg(marks.full), 180));
   await emit('site/public/favicon.ico', createIco([
     { size: 16, png: favicon16 },
     { size: 32, png: favicon32 },
     { size: 48, png: favicon48 },
   ]));
 
-  const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><rect width="1024" height="1024" fill="#fff"/>${maskedMarkSvg({
-    artwork,
-    canvasWidth: 1024,
-    canvasHeight: 1024,
-    markHeight: 824,
-    centerX: 512,
-    centerY: 512,
-    color: '#0e0e0e',
-    maskId: 'blanc-logo-mark',
-  }).replace(/^<\?xml[^>]*>\n/, '').replace(/^<svg[^>]*>\n/, '').replace(/<\/svg>\n$/, '')}</svg>`;
-  const siteLogo = await raster(logoSvg, 1024);
+  // Press-kit mark: white 1024 square, mark at 80% height (unchanged geometry).
+  const logoMark = await silhouettePng(sunrise.motif, 824, ink);
+  const siteLogo = await sharp({ create: { width: 1024, height: 1024, channels: 3, background: '#ffffff' } })
+    .composite([{ input: logoMark, left: 100, top: 100 }])
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
   await emit('site/public/logo.png', siteLogo);
   await emit(
     'docs/superpowers/plans/assets/product-hunt/thumbnail-240x240.png',
     await sharp(siteLogo).resize(240, 240, { kernel: sharp.kernel.lanczos3 }).png({ compressionLevel: 9 }).toBuffer(),
   );
 
-  await patchStaticBrandMark('site/public/press/blanc-1.0-launch-card-v2.png', artwork, {
+  await patchStaticBrandMark('site/public/press/blanc-1.0-launch-card-v2.png', sunrise.motif, {
     sampleX: 120,
     sampleY: 104,
     erase: { left: 121, top: 110, width: 62, height: 72 },
-    height: 66,
-    centerX: 151,
-    centerY: 146,
+    height: 62,
     color: '#0e0e0e',
   });
-  await patchStaticBrandMark('site/public/press/blanc-1.0-launch-card-v3.png', artwork, {
+  await patchStaticBrandMark('site/public/press/blanc-1.0-launch-card-v3.png', sunrise.motif, {
     sampleX: 110,
     sampleY: 92,
     erase: { left: 111, top: 93, width: 36, height: 43 },
-    height: 38,
-    centerX: 128,
-    centerY: 114,
+    height: 36,
     color: '#0e0e0e',
   });
 }
@@ -448,7 +467,7 @@ async function main() {
   }));
   await emit('build/app-icons/Icon.icon/Assets/sunrise-mark.png', sunrise.nativeLayer);
 
-  await buildSiteAssets(artwork);
+  await buildSiteAssets(sunrise);
 
   if (stale.length) {
     throw new Error(`Brand assets are stale:\n  ${stale.join('\n  ')}\nRun npm run brand:build and commit the generated files.`);

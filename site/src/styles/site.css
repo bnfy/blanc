@@ -378,7 +378,9 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
 .demo-island .pill-slash { flex: 0 0 auto; padding: 0 5px; color: var(--text-dim); background: transparent; border: 1px solid var(--border); border-radius: 5px; font-family: var(--font-mono); font-size: 10px; line-height: 15px; cursor: pointer; transition: color 120ms ease, border-color 120ms ease; }
 .demo-island .pill-slash:hover { color: var(--accent); border-color: var(--accent); }
 .demo-island .pill-slash[hidden] { display: none; }
-.demo-island .pill-fav.internal { background: #fff url('/logo.png') center / cover no-repeat; box-shadow: inset 0 0 0 1px var(--border); }
+/* Internal pages show no favicon at all: since 1.12.0 the app hides the pill's
+   slot on blanc:// pages (the chrome already reads as Blanc), so the demo does too. */
+.demo-island .pill-fav.internal { display: none; }
 .demo-island .domain.placeholder {
   color: var(--text-dim);
   background-image: linear-gradient(90deg, var(--text-dim) 0%, var(--text-dim) 35%, var(--text) 50%, var(--text-dim) 65%, var(--text-dim) 100%);
@@ -746,7 +748,7 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
   text-decoration: none;
   color: var(--text);
 }
-.site-brand-mark { width: 20px; height: 23px; display: block; }
+.site-brand-mark { width: 20px; height: 20px; display: block; }
 .site-nav-links { display: inline-flex; align-items: center; gap: 16px; }
 .site-nav-links a { min-height: 42px; display: inline-flex; align-items: center; color: var(--text-dim); text-decoration: none; font-family: var(--font-mono); font-size: 12px; transition: color 0.15s ease; }
 .site-nav-links a:hover { color: var(--accent); }
@@ -1042,7 +1044,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outlin
 footer { background: var(--surface); padding: 48px max(24px, calc((100vw - 1132px) / 2)) 56px; display: flex; flex-direction: column; align-items: flex-start; gap: 13px; font-family: var(--font-ui); font-size: 12.5px; color: var(--text-dim); }
 footer .foot-brand { display: inline-flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; transition: color 0.15s; }
 footer .foot-brand:hover { color: var(--accent); }
-footer .foot-brand .foot-mark { width: 16px; height: 19px; display: block; }
+footer .foot-brand .foot-mark { width: 16px; height: 16px; display: block; }
 footer .foot-brand > span:last-child { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
 footer .foot-crumb { opacity: 0.5; }
 footer .foot-nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
@@ -1167,7 +1169,7 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
 
   .site-nav { height: 52px; padding: 5px 6px 5px 14px; gap: 8px; }
   .site-brand { min-height: 34px; padding-right: 12px; gap: 7px; }
-  .site-brand-mark { width: 18px; height: 21px; }
+  .site-brand-mark { width: 18px; height: 18px; }
   .site-nav-links a { min-height: 40px; display: inline-flex; align-items: center; }
   .site-nav-links { gap: 4px; margin-left: 0; }
   .site-nav-links a { padding: 0 4px; }
@@ -1271,7 +1273,7 @@ footer .foot-ic.ig svg path { stroke: currentColor; stroke-width: 0.35; stroke-l
 .legal-top { display: flex; justify-content: center; padding: 30px 24px 4px; }
 .legal-home { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; color: var(--text); transition: opacity 0.15s; }
 .legal-home:hover { opacity: 0.7; }
-.legal-home .mark { height: 24px; width: auto; color: var(--accent); }
+.legal-home .mark { width: 24px; height: 24px; color: var(--accent); }
 .legal-home .wordmark { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
 
 .legal-doc { max-width: 680px; margin: 0 auto; padding: 44px 24px 76px; }
@@ -1415,7 +1417,7 @@ body[data-page="press"] > .legal-top { display: none; }
 .press-page { max-width: 1240px; margin: 0 auto; padding: 24px 28px 112px; }
 .press-masthead { display: flex; align-items: center; justify-content: space-between; min-height: 64px; padding-bottom: 20px; border-bottom: 1px solid var(--text); }
 .press-brand { display: inline-flex; align-items: center; gap: 9px; color: var(--text); text-decoration: none; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
-.press-brand-mark { display: block; width: 21px; height: 25px; }
+.press-brand-mark { display: block; width: 21px; height: 21px; }
 .press-masthead > p { display: flex; gap: 15px; margin: 0; color: var(--text); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
 .press-page .section-kicker { font-size: 12px; }
 .press-hero { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: clamp(40px, 5vw, 72px); padding: 54px 0 50px; border-bottom: 1px solid var(--border); }

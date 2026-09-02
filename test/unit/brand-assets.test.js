@@ -52,8 +52,6 @@ test('the supplied Mahjong-inspired mark is the canonical brand source', () => {
 test('every active vector surface uses the new geometry as transparent cutouts', () => {
   const generated = [
     'src/renderer/pages/icon.svg',
-    'site/public/favicon.svg',
-    'site/src/components/BrandMark.astro',
     'build/app-icons/Icon.icon/Assets/blanc-mark.svg',
   ];
   for (const relativePath of generated) {
@@ -165,4 +163,66 @@ test('website identity, OpenGraph, press, and retained social outputs are all co
   assert.match(source('marketing/article-assets/ai-clean-browser/compose.py'), /src\/renderer\/pages\/icon-ink\.png/);
   assert.match(source('marketing/social/quiet-tabs-carousel/render.js'), /site\/public\/logo\.png/);
   assert.match(source('marketing/social/tab-count-confession/render.js'), /site\/public\/logo\.png/);
+});
+
+async function regionBounds(relativePath, region, predicate) {
+  const buffer = await sharp(path.join(ROOT, relativePath)).extract(region).png().toBuffer();
+  return boundsOf(buffer, predicate);
+}
+
+const isInk = (r, g, b, a) => a > 24 && ((r + g + b) / 3) < 128;
+
+test('the website brand component paints the Sunrise silhouette in currentColor', () => {
+  const component = source('site/src/components/BrandMark.astro');
+  assert.match(component, /data:image\/png;base64,/, 'embeds the raster silhouette');
+  assert.match(component, /mask/, 'paints through the alpha as a mask');
+  assert.match(component, /currentColor/, 'takes the page ink');
+  assert.doesNotMatch(component, new RegExp(NEW_GEOMETRY.replace('.', '\\.')), 'drops the retired B');
+  assert.doesNotMatch(component, /blanc-cutout/);
+});
+
+test('the website favicon carries the Sunrise silhouette on the white tile', () => {
+  const favicon = source('site/public/favicon.svg');
+  assert.match(favicon, /<rect width="256" height="256" rx="48" fill="#fff"\/>/, 'keeps the rounded white tile');
+  assert.match(favicon, /<image [^>]*href="data:image\/png;base64,/, 'embeds the raster silhouette');
+  assert.doesNotMatch(favicon, new RegExp(NEW_GEOMETRY.replace('.', '\\.')), 'drops the retired B');
+});
+
+test('logo.png keeps the press-kit geometry with the square Sunrise mark', async () => {
+  const mark = await boundsOf(path.join(ROOT, 'site/public/logo.png'), isInk);
+  assert.ok(mark.height >= 805 && mark.height <= 830, `mark height is ${mark.height}px (80% of 1024, soft edges)`);
+  assert.ok(mark.width >= 780, `Sunrise is near-square; the B was ~697px wide, got ${mark.width}px`);
+});
+
+test('the launch cards carry the square Sunrise mark at the old placements', async () => {
+  const v2 = await regionBounds('site/public/press/blanc-1.0-launch-card-v2.png', { left: 121, top: 110, width: 62, height: 72 }, isInk);
+  assert.ok(v2.height >= 60 && v2.height <= 64, `v2 mark height ${v2.height}px`);
+  assert.ok(v2.width >= 58, `v2 mark is near-square, got ${v2.width}px wide`);
+  const v3 = await regionBounds('site/public/press/blanc-1.0-launch-card-v3.png', { left: 111, top: 93, width: 36, height: 43 }, isInk);
+  assert.ok(v3.height >= 34 && v3.height <= 38, `v3 mark height ${v3.height}px`);
+  assert.ok(v3.width >= 33, `v3 mark is near-square, got ${v3.width}px wide`);
+});
+
+test('the site sizes the square mark everywhere the portrait B was sized', () => {
+  const css = source('site/src/styles/site.css');
+  assert.match(css, /\.site-brand-mark \{ width: 20px; height: 20px;/);
+  assert.match(css, /\.site-brand-mark \{ width: 18px; height: 18px;/);
+  assert.match(css, /footer \.foot-brand \.foot-mark \{ width: 16px; height: 16px;/);
+  assert.match(css, /\.legal-home \.mark \{ width: 24px; height: 24px;/);
+  assert.match(css, /\.press-brand-mark \{ display: block; width: 21px; height: 21px;/);
+  for (const selector of ['\\.site-brand-mark', 'footer \\.foot-brand \\.foot-mark', '\\.legal-home \\.mark', '\\.press-brand-mark']) {
+    const rules = [...css.matchAll(new RegExp(`${selector} \\{([^}]*)\\}`, 'g'))];
+    assert.ok(rules.length > 0, `${selector} is styled`);
+    for (const [, body] of rules) {
+      const width = body.match(/width: (\\d+)px/)?.[1];
+      const height = body.match(/height: (\\d+)px/)?.[1];
+      assert.equal(width, height, `${selector} is square, got ${body.trim()}`);
+    }
+  }
+});
+
+test('the demo island hides the favicon slot on internal pages like the shipped app', () => {
+  const css = source('site/src/styles/site.css');
+  assert.match(css, /\.demo-island \.pill-fav\.internal \{ display: none;/);
+  assert.doesNotMatch(css, /\.demo-island \.pill-fav\.internal \{[^}]*logo\.png/);
 });
