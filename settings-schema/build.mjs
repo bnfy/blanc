@@ -61,7 +61,9 @@ function genSwift() {
   for (const i of icons) out += `        case .${iconSwiftCase(i.id)}: return ${JSON.stringify(i.label)}\n`;
   out += '        }\n    }\n';
   out += '    public var isSupporterOnly: Bool {\n        switch self {\n';
-  out += `        case ${[...supporterIds].map((id) => `.${iconSwiftCase(id)}`).join(', ')}: return true\n`;
+  if (supporterIds.size) {
+    out += `        case ${[...supporterIds].map((id) => `.${iconSwiftCase(id)}`).join(', ')}: return true\n`;
+  }
   out += '        default: return false\n        }\n    }\n}\n\n';
   out += 'public struct BlancSettingsDefaults {\n';
   out += `    public static let searchEngine: BlancSearchEngine = .${swiftCase(spec.defaults.searchEngine)}\n`;
@@ -127,8 +129,8 @@ function parseSettingsJs() {
   // — that would let real drift pass. Anchoring is used instead of stripping `//`
   // because a value string can legitimately contain `//` (e.g. a homePage URL).
   const js = fs.readFileSync(path.join(ROOT, spec.source), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
-  // Label maps can be single-line (SUPPORTER_ICON_LABELS) so line-anchoring
-  // won't work; strip // line comments instead (label values never contain //).
+  // Label maps may be single-line, so line-anchoring won't work; strip // line
+  // comments instead (label values never contain //).
   const pairs = (block) => [...String(block ?? '').replace(/\/\/.*$/gm, '')
     .matchAll(/(?:(\w+)|'([\w-]+)'):\s*'([^']+)'/g)]
     .map((m) => ({ id: m[1] ?? m[2], label: m[3] }));

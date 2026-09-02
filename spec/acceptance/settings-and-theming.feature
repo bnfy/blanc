@@ -8,9 +8,8 @@ Feature: Settings and theming
     When I attempt to set the search engine to "askjeeves"
     Then the search engine remains unchanged
 
-  @F14-2 @F14 @all @D5
-  Scenario: A supporter icon without a license falls back to the default
-    Given there is no active supporter license
+  @F14-2 @F14 @all
+  Scenario: A retired app icon falls back to the default
     When settings contain the app icon "ember"
     Then the effective app icon is "sunrise"
 

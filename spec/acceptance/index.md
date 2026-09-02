@@ -88,7 +88,7 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F12-9 | Site controls follow their opening control | — | ✅ | ⬜ | ⬜ |
 | F13-1 | Geolocation prompt + deny persists | — | ✅ | ⬜ | ⬜ |
 | F14-1 | Invalid search engine rejected | — | ✅ | ⬜ | ⬜ |
-| F14-2 | Unlicensed supporter icon → default | D5 | ✅ | ⬜ | ⬜ |
+| F14-2 | Retired app icon → default | — | ✅ | ⬜ | ⬜ |
 | F14-3 | Exception hostnames normalized | — | ✅ | ⬜ | ⬜ |
 | F14-4 | Search-suggestion opt-out stays device-local | — | ✅ | ⬜ | ⬜ |
 | F15-1 | Dark recolors chrome + page live | — | ✅ | ⬜ | ⬜ |
@@ -96,8 +96,8 @@ feature's row in [`../parity-matrix.md`](../parity-matrix.md) shouldn't reach
 | F16-1 | Newtab ledger contents | — | ✅ | ⬜ | ⬜ |
 | F16-2 | Internal nav stays in scheme | — | ✅ | ⬜ | ⬜ |
 | F16-3 | Privileged chrome rejects web navigation | D11 | ✅ | ➖ | ➖ |
-| F17-1 | Supporter unlock enables colorways | D6 | ✅ | ⬜ | ⬜ |
-| F17-2 | Non-supporter locked + fallback | — | ✅ | ⬜ | ⬜ |
+| F17-1 | Current app icon applies | D6 | ✅ | ⬜ | ⬜ |
+| F17-2 | Patron cannot restore retired icon | — | ✅ | ⬜ | ⬜ |
 | F18-1 | Relaunch restores groups, not private | D8 | ✅ | ⬜ | ⬜ |
 | F19-1 | Background tab inherits group | D4, D7 | ✅ | ⬜ | ⬜ |
 | F19-2 | Copy Clean Link strips tracking params | D20 | ✅ | ➖ | ➖ |

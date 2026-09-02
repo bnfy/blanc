@@ -1,19 +1,18 @@
 @supporter @session
-Feature: Supporter colorways and session restore
-  Cosmetic supporter colorways (trusted-forever, offline-OK) and session restore
-  that preserves groups but never private tabs.
+Feature: App icon catalog, Patron, and session restore
+  The current app icon catalog stays independent of Patron, while session restore
+  preserves groups but never private tabs.
 
   @F17-1 @F17 @all @D6
-  Scenario: An active supporter unlock enables the supporter colorways
-    Given an active supporter unlock
-    When I choose the app icon "ember"
-    Then the app icon "ember" is applied
+  Scenario: A current app icon can be selected
+    When I choose the app icon "ink"
+    Then the app icon "ink" is applied
 
   @F17-2 @F17 @all
-  Scenario: Non-supporters cannot use supporter colorways
-    Given there is no active supporter license
-    Then the supporter colorways are shown as locked
-    And selecting one leaves the app icon at "sunrise"
+  Scenario: A retired icon cannot be restored by an active Patron
+    Given an active supporter unlock
+    When I choose the app icon "ember"
+    Then the app icon "sunrise" is applied
 
   @F17-3 @F17 @all @desktop
   Scenario: Become a Patron opens Polar checkout in a real tab

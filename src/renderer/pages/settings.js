@@ -3,7 +3,6 @@
     settings,
     searchEngines,
     appIcons,
-    supporterIcons,
     capabilities,
     onePasswordAvailable,
   } =
@@ -293,17 +292,15 @@
   }
 
   // --- App icon colorways (macOS Dock only) ---
-  // These four bindings stay in IIFE scope unconditionally because the Patron
-  // section below reads `patronActive` and calls `renderAppIconGrid`. The
-  // function/const definitions are inert until called; only the executable tail
-  // (render vs. remove) is gated.
+  // The bindings stay in IIFE scope unconditionally because only the executable
+  // tail (render vs. remove) is gated by the platform capability below.
   const appIconSetting = document.getElementById('appIconSetting');
   // `patronActive` is the durable projection field; `supporterActive` is only a
   // temporary alias to the same boolean (see pages.js's clientSettings()).
   let patronActive = settings.patronActive ?? false;
   const appIconGrid = document.getElementById('appIconGrid');
   // Tracked directly rather than re-derived from the DOM on every render —
-  // ids/labels come from main (settings.js APP_ICON_LABELS/SUPPORTER_ICON_LABELS)
+  // ids/labels come from main (settings.js APP_ICON_LABELS)
   // so there's one source of truth instead of a hand-typed second copy.
   let selectedIcon = settings.appIcon ?? 'sunrise';
 
@@ -317,14 +314,10 @@
 
   function renderAppIconGrid() {
     appIconGrid.replaceChildren();
-    const entries = [
-      ...Object.entries(appIcons).map(([id, label]) => [id, label, false]),
-      ...Object.entries(supporterIcons).map(([id, label]) => [id, label, !patronActive]),
-    ];
-    for (const [id, label, locked] of entries) {
+    for (const [id, label] of Object.entries(appIcons)) {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = locked ? 'icon-swatch locked' : 'icon-swatch';
+      btn.className = 'icon-swatch';
       btn.dataset.icon = id;
       btn.setAttribute('role', 'radio');
       const img = document.createElement('img');
@@ -333,39 +326,13 @@
       const name = document.createElement('span');
       name.textContent = label;
       btn.append(img, name);
-      if (locked) {
-        const tag = document.createElement('span');
-        tag.className = 'tag';
-        tag.textContent = 'patron';
-        btn.append(tag);
-        // A locked tile points at the Patron section instead of
-        // silently failing (main would reject the id anyway).
-        btn.addEventListener('click', () => {
-          document.getElementById('patronTitle').scrollIntoView({ behavior: 'smooth' });
-          document.getElementById('patronKey').focus({ preventScroll: true });
-        });
-      } else {
-        btn.addEventListener('click', async () => {
-          await window.bowserPages.settings.set({ appIcon: id });
-          selectAppIcon(id);
-        });
-      }
+      btn.addEventListener('click', async () => {
+        await window.bowserPages.settings.set({ appIcon: id });
+        selectAppIcon(id);
+      });
       appIconGrid.append(btn);
     }
     selectAppIcon(selectedIcon);
-    updateIconCarets();
-  }
-
-  // The scroller hides its scrollbar; these carets are the only visible
-  // affordance, so they dim out at either end of the scroll range.
-  const iconPrev = document.getElementById('appIconPrev');
-  const iconNext = document.getElementById('appIconNext');
-  const CARET_SCROLL_STEP = 3 * (58 + 14); // three tiles per click
-
-  function updateIconCarets() {
-    const max = appIconGrid.scrollWidth - appIconGrid.clientWidth;
-    iconPrev.disabled = appIconGrid.scrollLeft <= 1;
-    iconNext.disabled = appIconGrid.scrollLeft >= max - 1;
   }
 
   const appIconPlatform = navigator.platform;
@@ -375,12 +342,6 @@
   } else {
     document.getElementById('appIconHint').textContent =
       'Follows macOS Icon & Widget Style; Finder keeps Paper';
-    iconPrev.addEventListener('click', () =>
-      appIconGrid.scrollBy({ left: -CARET_SCROLL_STEP, behavior: 'smooth' }));
-    iconNext.addEventListener('click', () =>
-      appIconGrid.scrollBy({ left: CARET_SCROLL_STEP, behavior: 'smooth' }));
-    appIconGrid.addEventListener('scroll', updateIconCarets);
-    window.addEventListener('resize', updateIconCarets);
     renderAppIconGrid();
   }
 
@@ -437,7 +398,6 @@
         // was at page load, and renderPatronState() shows it only when set.
         patronActive = true;
         renderPatronState();
-        if (navigator.platform.startsWith('Mac')) renderAppIconGrid();
       } else {
         patronStatus.textContent = result.message;
       }

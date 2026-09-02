@@ -33,6 +33,10 @@ const WEBRTC_POLICIES = ['standard', 'compatibility', 'strict'];
 const WEBRTC_AUDIO_BUFFERS = ['automatic', 'stable', 'resilient'];
 const SECURE_DNS_OPTIONS = ['auto', 'off', 'cloudflare', 'quad9', 'mullvad', 'custom'];
 const FIRST_RUN_VERSION = 1;
+// One deliberate reset for the release that establishes Sunrise + Billboard
+// as Blanc's new presentation defaults. Existing profiles without this marker
+// are reset once; choices made afterward survive every later update.
+const PRESENTATION_DEFAULTS_RESET_VERSION = 1;
 
 // Keys that sync across devices (see the profile-sync spec). Deliberately
 // excludes tabLayout, verticalTabsWidth, appIcon, searchSuggestions, and the
@@ -42,30 +46,18 @@ const FIRST_RUN_VERSION = 1;
 const SYNCED_KEYS = ['searchEngine', 'adblockEnabled', 'homePage', 'theme', 'adblockExceptions', 'newtabLayout'];
 
 // App icon variants — id maps to src/renderer/pages/icon-<id>.png; order here
-// is also the tile order Settings renders. 'default' is the original green
-// colorway; that id and file name remain frozen for saved settings.
+// is also the tile order Settings renders.
 const APP_ICON_LABELS = {
   sunrise: 'Sunrise',
   'sunrise-dark': 'Sunrise Dark',
   paper: 'Paper',
   ink: 'Ink',
-  graphite: 'Graphite',
-  default: 'Evergreen',
-  midnight: 'Midnight',
-  cream: 'Cream',
-  forest: 'Forest',
-  sage: 'Sage',
 };
 const APP_ICONS = Object.keys(APP_ICON_LABELS);
 
-// Supporter-only colorways — same geometry, unlocked by a Polar license
-// key (see main/supporter.js). Gated at validation time, not render time.
-const SUPPORTER_ICON_LABELS = { ember: 'Ember', plum: 'Plum', gold: 'Gold' };
-const SUPPORTER_ICONS = Object.keys(SUPPORTER_ICON_LABELS);
-
 // A selectable id without a packaged native stack would silently fall back to
 // Sunrise on macOS 26+, so fail fast during startup if the two sources drift.
-const missingNativeAppIcons = [...APP_ICONS, ...SUPPORTER_ICONS]
+const missingNativeAppIcons = APP_ICONS
   .filter((id) => !APP_ICON_ASSETS[id]);
 if (missingNativeAppIcons.length) {
   throw new Error(`Missing native app-icon assets: ${missingNativeAppIcons.join(', ')}`);
@@ -104,6 +96,8 @@ const DEFAULTS = {
   // 'off' disables automatic quieting; the manual /sleep command still works.
   tabSleep: '1h',
   appIcon: 'sunrise',
+  // Device-local migration marker; never user-writable or Profile Synced.
+  presentationDefaultsResetVersion: PRESENTATION_DEFAULTS_RESET_VERSION,
   // Lowercased hostnames, no protocol/path/www. prefix.
   adblockExceptions: [],
   // Network privacy (device-local — deliberately NOT in SYNCED_KEYS).
@@ -164,6 +158,9 @@ function ensureStore() {
     const hasOnboardingMarker =
       storedSettings &&
       Object.prototype.hasOwnProperty.call(storedSettings, 'onboardingVersion');
+    const storedPresentationResetVersion = Number.isInteger(
+      storedSettings?.presentationDefaultsResetVersion,
+    ) ? storedSettings.presentationDefaultsResetVersion : 0;
     store = new JsonStore('settings', DEFAULTS);
     // Profiles created before the first-run card already made their privacy
     // choices through Settings (or accepted the then-current defaults).
@@ -181,6 +178,21 @@ function ensureStore() {
       // launch from mistaking that interrupted first run for a legacy profile.
       store.flush();
     }
+    if (
+      profileAlreadyExisted &&
+      storedPresentationResetVersion < PRESENTATION_DEFAULTS_RESET_VERSION
+    ) {
+      const resetAt = Date.now();
+      store.updateAndFlush((data) => {
+        data.appIcon = DEFAULTS.appIcon;
+        data.newtabLayout = DEFAULTS.newtabLayout;
+        data.presentationDefaultsResetVersion = PRESENTATION_DEFAULTS_RESET_VERSION;
+        // newtabLayout is synced. Give this deliberate local reset a fresh
+        // clock so an older remote preference cannot immediately undo it.
+        data._syncMeta ??= {};
+        data._syncMeta.newtabLayout = resetAt;
+      });
+    }
     // A legacy settings.json carrying only `supporter` gains the equivalent
     // `patron` record on next launch. Mutates the persisted store directly
     // (not a getSettings() copy) so the migration survives every future
@@ -195,8 +207,8 @@ function ensureStore() {
 }
 
 // The appIcon read back is sanitized the same way setSettings() validates
-// writes — a stale/hand-edited supporter icon id with no active license
-// must never reach a renderer or applyAppIcon() as if it were still valid.
+// writes — a stale/hand-edited retired id must never reach a renderer or
+// applyAppIcon() as if it were still valid.
 function getSettings() {
   const data = { ...ensureStore().data };
   if (typeof data.searchSuggestions !== 'boolean') {
@@ -229,7 +241,7 @@ function getSettings() {
 }
 
 function isAppIconAllowed(id) {
-  return APP_ICONS.includes(id) || (SUPPORTER_ICONS.includes(id) && isPatronActive());
+  return APP_ICONS.includes(id);
 }
 
 /** Validate a partial settings patch against the whitelist, returning only
@@ -441,10 +453,9 @@ module.exports = {
   TAB_LAYOUTS,
   NEWTAB_LAYOUTS,
   TAB_SLEEP_DELAYS,
+  PRESENTATION_DEFAULTS_RESET_VERSION,
   APP_ICONS,
   APP_ICON_LABELS,
-  SUPPORTER_ICONS,
-  SUPPORTER_ICON_LABELS,
   getSettings,
   setExistingProfileHint,
   setSettings,

@@ -48,11 +48,7 @@ function harness({ packaged = true, namedEmpty = false, pathEmpty = false } = {}
 }
 
 test('every selectable colorway has a named native icon stack', () => {
-  const selectable = [
-    'sunrise', 'sunrise-dark',
-    'paper', 'ink', 'graphite', 'default', 'midnight', 'cream', 'forest', 'sage',
-    'ember', 'plum', 'gold',
-  ].sort();
+  const selectable = ['sunrise', 'sunrise-dark', 'paper', 'ink'].sort();
   assert.deepEqual(Object.keys(APP_ICON_ASSETS).sort(), selectable);
   assert.equal(new Set(Object.values(APP_ICON_ASSETS).map((x) => x.nativeName)).size, selectable.length);
 });
@@ -184,13 +180,13 @@ test('uses the adaptive named icon in a packaged macOS 26+ build', () => {
   const h = harness();
   const result = applyDockAppIcon({
     ...h,
-    appIcon: 'default',
+    appIcon: 'ink',
     platform: 'darwin',
     systemVersion: '26.5.1',
   });
-  assert.deepEqual(result, { source: 'native', nativeName: 'Evergreen' });
+  assert.deepEqual(result, { source: 'native', nativeName: 'Ink' });
   assert.equal(h.calls[0][0], 'named');
-  assert.equal(h.calls[0][1], 'Evergreen');
+  assert.equal(h.calls[0][1], 'Ink');
   assert.equal(h.calls.some(([kind]) => kind === 'path'), false);
 });
 
@@ -290,15 +286,15 @@ test('falls back to the PNG if the packaged asset catalog cannot resolve a name'
   const h = harness({ namedEmpty: true });
   const result = applyDockAppIcon({
     ...h,
-    appIcon: 'plum',
+    appIcon: 'paper',
     platform: 'darwin',
     systemVersion: '27.0',
     iconsDirectory: '/icons',
   });
-  assert.deepEqual(result, { source: 'png', appIcon: 'plum' });
+  assert.deepEqual(result, { source: 'png', appIcon: 'paper' });
   assert.deepEqual(h.calls.slice(0, 2), [
-    ['named', 'Plum'],
-    ['path', path.join('/icons', 'icon-plum.png')],
+    ['named', 'Paper'],
+    ['path', path.join('/icons', 'icon-paper.png')],
   ]);
 });
 

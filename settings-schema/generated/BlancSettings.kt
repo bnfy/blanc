@@ -45,16 +45,7 @@ enum class BlancAppIcon(val id: String, val label: String, val isSupporterOnly: 
     SUNRISE("sunrise", "Sunrise", false),
     SUNRISE_DARK("sunrise-dark", "Sunrise Dark", false),
     PAPER("paper", "Paper", false),
-    INK("ink", "Ink", false),
-    GRAPHITE("graphite", "Graphite", false),
-    DEFAULT("default", "Evergreen", false),
-    MIDNIGHT("midnight", "Midnight", false),
-    CREAM("cream", "Cream", false),
-    FOREST("forest", "Forest", false),
-    SAGE("sage", "Sage", false),
-    EMBER("ember", "Ember", true),
-    PLUM("plum", "Plum", true),
-    GOLD("gold", "Gold", true);
+    INK("ink", "Ink", false);
 }
 
 object BlancSettingsDefaults {

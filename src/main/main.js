@@ -774,9 +774,8 @@ function handleNativeThemeUpdated() {
 // Swap the chosen macOS Dock icon. Windows uses one fixed Sunrise icon embedded
 // into Blanc.exe by electron-builder.
 function applyAppIcon() {
-  // getSettings() already falls back an unauthorized/stale supporter icon
-  // (hand-edited or copied settings.json) to the default — nothing further
-  // to validate here.
+  // getSettings() already falls back a stale retired icon id (hand-edited or
+  // copied settings.json) to the default — nothing further to validate here.
   const { appIcon } = settings.getSettings();
   const developmentPreviewPath = !app.isPackaged && process.env.BLANC_DEV_DOCK_ICON_PREVIEW
     ? path.resolve(process.env.BLANC_DEV_DOCK_ICON_PREVIEW)

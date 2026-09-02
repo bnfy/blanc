@@ -1,5 +1,5 @@
 {
-  "$note": "Single source of truth for the settings schema (substrate S5). Guards src/main/settings.js against drift (npm run settings:check) and generates mobile Swift/Kotlin enums + defaults (npm run settings:build). Enums and defaults MUST NOT fork across platforms; labels are shared copy. The `appIcon` value is sanitized on read the same way it is validated on write, and supporter icons are allowed only when a supporter license is active (see settings.js isAppIconAllowed). `supporter` is written only by the activation flow, never by generic setSettings.",
+  "$note": "Single source of truth for the settings schema (substrate S5). Guards src/main/settings.js against drift (npm run settings:check) and generates mobile Swift/Kotlin enums + defaults (npm run settings:build). Enums and defaults MUST NOT fork across platforms; labels are shared copy. The `appIcon` value is sanitized on read the same way it is validated on write. `supporter` is written only by the activation flow, never by generic setSettings.",
   "source": "src/main/settings.js",
   "searchEngines": [
     { "id": "duckduckgo", "label": "DuckDuckGo" },
@@ -22,19 +22,9 @@
     { "id": "sunrise", "label": "Sunrise" },
     { "id": "sunrise-dark", "label": "Sunrise Dark" },
     { "id": "paper", "label": "Paper" },
-    { "id": "ink", "label": "Ink" },
-    { "id": "graphite", "label": "Graphite" },
-    { "id": "default", "label": "Evergreen" },
-    { "id": "midnight", "label": "Midnight" },
-    { "id": "cream", "label": "Cream" },
-    { "id": "forest", "label": "Forest" },
-    { "id": "sage", "label": "Sage" }
+    { "id": "ink", "label": "Ink" }
   ],
-  "supporterIcons": [
-    { "id": "ember", "label": "Ember" },
-    { "id": "plum", "label": "Plum" },
-    { "id": "gold", "label": "Gold" }
-  ],
+  "supporterIcons": [],
   "defaults": {
     "searchEngine": "duckduckgo",
     "searchSuggestions": true,
@@ -55,7 +45,7 @@
     "patron": null
   },
   "$internalDefaults": "Keys present in settings.js DEFAULTS that are intentionally desktop-only (not mobile-parity settings); settings:check allowlists these instead of requiring them in the schema.",
-  "internalDefaults": ["tabLayout", "verticalTabsWidth", "onePasswordEnabled", "onePasswordAccount", "onboardingVersion", "_syncMeta"],
+  "internalDefaults": ["tabLayout", "verticalTabsWidth", "onePasswordEnabled", "onePasswordAccount", "onboardingVersion", "presentationDefaultsResetVersion", "_syncMeta"],
   "settings": [
     { "key": "searchEngine", "type": "enum", "enum": "searchEngines", "default": "duckduckgo" },
     { "key": "searchSuggestions", "type": "boolean", "default": true, "note": "device-local; not synced; private tabs override off" },
@@ -67,7 +57,7 @@
     { "key": "webrtcAudioBuffer", "type": "enum", "enum": "webrtcAudioBuffers", "default": "automatic", "note": "device-local; Stable targets 400 ms and Resilient targets 1000 ms for audio receivers through the W3C jitterBufferTarget API; Automatic leaves Chromium untouched" },
     { "key": "secureDns", "type": "enum", "enum": "secureDnsOptions", "default": "auto", "note": "app.configureHostResolver secureDnsMode; strict positions hard-fail" },
     { "key": "secureDnsTemplate", "type": "string", "default": "", "note": "custom DoH RFC8484 template; validated raw (not URL-normalized)" },
-    { "key": "appIcon", "type": "enum", "enum": "appIcons+supporterIcons", "default": "sunrise", "note": "system-adaptive Sunrise is the macOS default; Sunrise Dark remains explicitly selectable; supporter ids allowed only when supporter active; sanitize-on-read == validate-on-write" },
+    { "key": "appIcon", "type": "enum", "enum": "appIcons", "default": "sunrise", "note": "system-adaptive Sunrise is the macOS default; Sunrise Dark remains explicitly selectable; sanitize-on-read == validate-on-write" },
     { "key": "adblockExceptions", "type": "string[]", "default": [], "normalize": "trim, lowercase, strip leading www., dedupe" },
     { "key": "usagePing", "type": "boolean", "default": true },
     { "key": "tabSleep", "type": "enum", "enum": "tabSleepDelays", "default": "1h", "note": "device-local; not synced; 'off' stops future quieting and never wakes an already-quiet tab" },

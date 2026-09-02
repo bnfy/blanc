@@ -22,9 +22,9 @@ OUT_DIR = os.path.join(ROOT, "export/app-icons-1024-square")
 # y[240,783]) while staying clear of paper's edge ring (<108px in).
 BOX = (170, 170, 854, 854)
 
-# Free colorways first (settings.js APP_ICON_LABELS order), then supporter.
-ORDER = ["sunrise", "sunrise-dark", "paper", "ink", "graphite", "default", "midnight",
-         "cream", "forest", "sage", "ember", "plum", "gold"]
+# Current Settings order. Retired source artwork remains available in the repo,
+# but new export runs produce only the four selectable colorways.
+ORDER = ["sunrise", "sunrise-dark", "paper", "ink"]
 
 
 def square(src_path, out_path):

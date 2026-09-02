@@ -35,9 +35,8 @@ test('Settings Patron CTA is a same-frame link to the production Polar checkout'
   assert.match(cta, /Become a Patron — \$4\/month or \$30\/year/);
 
   assert.match(block, /Named Workspaces on every platform/);
-  assert.match(block, /on macOS three\s+extra Dock colorways/);
-  assert.match(block, /existing workspaces stay available while creating new ones pauses/);
-  assert.match(block, /on macOS,\s+colorways quietly revert to Sunrise/);
+  assert.match(block, /existing\s+workspaces stay available while creating new ones pauses/);
+  assert.doesNotMatch(block, /Dock colorways|ember, plum, and gold|revert to Sunrise/);
 
   assert.match(
     block,
@@ -51,7 +50,7 @@ test('the Settings checkout URL matches the live marketing-site Polar link', () 
   assert.match(siteIndex, new RegExp(POLAR_CHECKOUT.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
-test('Patron activation stays available on every platform; only icon colorways are macOS-gated', () => {
+test('Patron activation stays available on every platform; the icon picker remains macOS-gated', () => {
   assert.match(page, /supports\('supporter'\)/);
   assert.doesNotMatch(
     page,

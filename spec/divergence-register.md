@@ -97,20 +97,21 @@ platform that allows it.
 
 ---
 
-## D5 — Supporter monetization rails
-**Features:** F17, F14 (`supporter`)
+## D5 — Patron monetization rails
+**Features:** F17, F14 (`patron`)
 **Why:** App Store and Play require their own in-app billing for digital unlocks;
 the desktop Polar.sh flow cannot be used in-app on mobile (and would violate store
 policy).
 
-- **Desktop:** Polar.sh one-time license, activated against Polar's API.
+- **Desktop:** Polar monthly/annual subscription, with earlier founding licenses
+  honored permanently.
 - **iOS:** **StoreKit / In-App Purchase** (Apple's cut applies).
 - **Android:** **Google Play Billing.**
 
-**Parity contract:** the unlock is a **one-time purchase** that flips
-`supporterActive` and unlocks the same 3 colorways; once unlocked it is
-**trusted-forever, offline-OK, cosmetic-only** (no revalidation/DRM) on every
-platform. Renderers only ever see the derived boolean, never a key.
+**Parity contract:** Patron unlocks creation of Named Workspaces on every
+platform. Existing workspaces remain available after a subscription lapses;
+founding licenses retain permanent access. App-icon colorways are not a Patron
+benefit. Renderers only ever see the derived boolean, never a key.
 
 **Cross-honor (decided 2026-07-07):** a purchase on **either** platform unlocks the
 other (not independent). The activation *mechanism* is non-trivial and deferred to
@@ -121,8 +122,7 @@ Blanc has no cross-platform account. Favour activation-time-only checks to prese
 the trusted-forever/offline-OK posture after unlock. See
 [the iOS port roadmap](../docs/superpowers/specs/2026-07-07-ios-port-roadmap-design.md) §5.5.
 
-**Status:** Accepted; **cross-honor both ways** — direction decided 2026-07-07,
-activation mechanism TBD @ iOS M13.
+**Status:** Accepted; mobile activation mechanism TBD @ iOS M13.
 
 ---
 

@@ -23,7 +23,7 @@ an AI assistant or an extension runtime.
 | Current public baseline | [1.12.0](https://github.com/bnfy/blanc/releases/tag/v1.12.0) |
 | Press-build platform | macOS on Apple Silicon |
 | Price | Free |
-| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Named Workspaces on every platform and three cosmetic app-icon colorways on macOS. Founding supporters from the earlier one-time purchase keep their benefits permanently |
+| Optional support | Blanc Patron subscription, US$30/year or $4/month, plus applicable taxes; unlocks Named Workspaces on every platform. Founding supporters from the earlier one-time purchase keep their benefits permanently |
 | Browser engine | Chromium through Electron |
 | Default search | DuckDuckGo; Google, Bing, and Brave Search are also available |
 | Blocking | Reviewed, hash-pinned EasyList + EasyPrivacy snapshots bundled into each release; browser-level request blocking, cosmetic CSS, and isolated blocker scriptlets |

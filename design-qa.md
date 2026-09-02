@@ -173,7 +173,6 @@ responsive rule, and the intentional visible picker-cancel affordance.
 No P3 visual follow-up is required for this release candidate.
 
 final result: passed
-
 ---
 
 # Blanc Mahjong-inspired brand mark rollout — 2026-08-31
@@ -1359,5 +1358,48 @@ vertical two-dot tile, readable dense ranks, and no clipping or collisions.
 ## Follow-up polish
 
 No P3 implementation follow-up is required.
+
+final result: passed
+
+---
+
+# Design QA — macOS Settings app icons
+
+- Source visual truth path: `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 1.02.25 PM.png` (conversation attachment Image #1; the original desktop file was no longer present after attachment).
+- Implementation full-view screenshot: `/private/tmp/blanc-settings-icon-qa.png`.
+- Implementation focused-region screenshot: `/private/tmp/blanc-settings-icon-qa-crop.png`.
+- Viewport: 1280 × 736 CSS px Settings WebContentsView inside a 1280 × 800 Blanc window.
+- Pixels and density: source attachment 1374 × 282 px focused crop; implementation full view 2560 × 1472 px and focused crop 1252 × 244 px at macOS 2× density. The focused implementation bounds were 626 × 122 CSS px. Comparison used the app-icon row as the common content region rather than scaling either raster.
+- State: light appearance, General Settings, Sunrise selected and keyboard-focused.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Fonts and typography: the existing Inter hierarchy, 13 px labels, and muted hint treatment remain consistent with the source. All four icon names stay on one line.
+- Spacing and layout rhythm: the four retained variants fit comfortably in one row. Removing the obsolete caret controls eliminates the uneven edge spacing visible in the source. The 14 px swatch gap and 5 px ring clearance remain balanced at the target viewport.
+- Colors and visual tokens: the selection/focus state uses the existing theme-aware `--accent`; it remains high contrast in light, dark, and private token scopes.
+- Image quality and asset fidelity: the original Sunrise, Sunrise Dark, Paper, and Ink PNG previews are reused at their native UI slot with the existing alpha shape and shadow; there are no generated substitutes or stretched assets.
+- Copy and content: only the four requested names remain. Patron copy no longer promises icon colorways, while the macOS adaptive-icon hint remains accurate.
+- Interaction and accessibility: each swatch remains a native button with `role="radio"` and `aria-checked`. Selection and keyboard focus now share one rounded, offset halo around the preview; the former stacked square button outline and image outline are gone.
+
+## Comparison history
+
+- Initial source findings: P1 — the picker exposed more than the four requested variants, including Patron-only choices; P2 — the chosen icon showed stacked square active/focus outlines.
+- Fixes made: reduced the authoritative selectable catalog and packaged adaptive icon definitions to Sunrise, Sunrise Dark, Paper, and Ink; removed Patron gating and carousel carets; replaced the two outlines with one rounded preview halo.
+- Post-fix evidence: `/private/tmp/blanc-settings-icon-qa-crop.png` shows four variants, no arrows or Patron tags, and one rounded halo around focused Sunrise. `/private/tmp/blanc-settings-icon-qa.png` confirms the row remains aligned within the complete Settings sheet.
+
+## Implementation checklist
+
+- [x] Four-icon catalog and selection behavior.
+- [x] Retired-id fallback to Sunrise.
+- [x] Single accessible selected/focus halo.
+- [x] One-time Sunrise/Billboard upgrade reset with future-choice preservation.
+- [x] Patron copy and public source claims updated.
+- [x] Unit, schema, site-build, and targeted desktop acceptance verification.
+
+## Follow-up polish
+
+No P3 follow-up is required for this focused change.
 
 final result: passed
