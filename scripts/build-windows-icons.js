@@ -44,19 +44,28 @@ async function createFrame(trimmedSource, size) {
   const visibleSize = Math.max(1, Math.round(size * WINDOWS_VISIBLE_SCALE));
   const horizontalMargin = size - visibleSize;
   const verticalMargin = size - visibleSize;
-  return sharp(trimmedSource)
+  const resized = await sharp(trimmedSource)
     .resize(visibleSize, visibleSize, {
       fit: 'contain',
       kernel: sharp.kernel.lanczos3,
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
-    .extend({
-      left: Math.floor(horizontalMargin / 2),
-      right: Math.ceil(horizontalMargin / 2),
-      top: Math.floor(verticalMargin / 2),
-      bottom: Math.ceil(verticalMargin / 2),
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer();
+
+  return sharp({
+    create: {
+      width: size,
+      height: size,
+      channels: 4,
       background: { r: 0, g: 0, b: 0, alpha: 0 },
-    })
+    },
+  })
+    .composite([{
+      input: resized,
+      left: Math.floor(horizontalMargin / 2),
+      top: Math.floor(verticalMargin / 2),
+    }])
     .png({ compressionLevel: 9, adaptiveFiltering: true })
     .toBuffer();
 }
