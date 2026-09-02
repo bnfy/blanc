@@ -36,6 +36,7 @@ a { color: inherit; }
    treatment belongs to the same translucent Blanc family. */
 .consent {
   position: fixed; inset: max(12px, env(safe-area-inset-top, 0px)) 16px auto auto; z-index: 100;
+  isolation: isolate;
   width: min(330px, calc(100vw - 32px));
   padding: 16px;
   background: rgba(255,255,255,.96);
