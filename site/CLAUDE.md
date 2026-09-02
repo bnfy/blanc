@@ -79,6 +79,18 @@ no double opt-in yet and unsubscribe is manual (token-gated DELETE) until a
 sending provider is chosen. The privacy page's "Newsletter (optional)" section
 describes exactly this contract — change them together or not at all.
 
+**Ambassador applications:** `src/pages/ambassadors.astro` posts the compact
+application form to `/ambassador-apply` on the same Worker. It sends name,
+email, one HTTPS creator-profile URL, a short introduction, and the hidden
+honeypot. The form has a real form-encoded POST fallback so script failure can
+never put application data into a URL. The Worker validates the request, uses
+its `AMBASSADOR_RATE_LIMITER` binding, then asks Resend to deliver it to the
+fixed `AMBASSADOR_TO` inbox with the applicant as reply-to.
+It never writes applications to KV or enrolls applicants in the newsletter.
+The application form, Worker contract, and privacy-page disclosure must change
+together. Deploy the Worker and confirm inbox delivery before deploying a site
+version that advertises the form.
+
 **Sitemap:** `src/pages/sitemap.xml.js` — an explicit route manifest with
 per-route `changefreq`/`priority`, asserted at build time against the real
 page list (adding/removing a page without updating the manifest fails the

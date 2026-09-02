@@ -20,6 +20,7 @@ const MANIFEST = [
   '/privacy',
   '/terms',
   '/press',
+  '/ambassadors',
   '/faq',
 ];
 
