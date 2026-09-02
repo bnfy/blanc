@@ -13,7 +13,7 @@ const SOURCE_ICON = path.join(ROOT, 'build/app-icons/Icon.icon/Assets/sunrise-ma
 const OUTPUT_DIR = path.join(ROOT, 'build/windows-icons');
 const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-sunrise.ico');
 const ICON_SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256];
-const WINDOWS_VISIBLE_SCALE = 0.9;
+const WINDOWS_VISIBLE_SCALE = 1;
 
 function createIco(frames) {
   const headerSize = 6;
