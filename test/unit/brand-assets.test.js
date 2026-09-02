@@ -226,3 +226,11 @@ test('the demo island hides the favicon slot on internal pages like the shipped 
   assert.match(css, /\.demo-island \.pill-fav\.internal \{ display: none;/);
   assert.doesNotMatch(css, /\.demo-island \.pill-fav\.internal \{[^}]*logo\.png/);
 });
+
+test('the site icon links carry a version query so cached favicons refetch after a mark change', () => {
+  const layout = source('site/src/layouts/BaseLayout.astro');
+  for (const file of ['favicon.ico', 'favicon.svg', 'favicon-32x32.png', 'favicon-16x16.png', 'apple-touch-icon.png']) {
+    assert.match(layout, new RegExp('href="/' + file.replace('.', '\\.') + '\\?v=[A-Za-z0-9._-]+"'), file + ' link is versioned');
+  }
+  assert.doesNotMatch(layout, /href="\/favicon[^"?]*"/, 'no unversioned favicon link remains');
+});
