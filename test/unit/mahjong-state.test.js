@@ -17,11 +17,15 @@ function uuid(number) {
 }
 
 class HookedStorage extends MemoryStorage {
-  constructor(entries) { super(entries); this.failKeys = new Set(); this.onSet = null; }
+  constructor(entries) { super(entries); this.failKeys = new Set(); this.failRemoveKeys = new Set(); this.onSet = null; }
   setItem(key, value) {
     if (this.failKeys.has(key)) throw new Error(`write refused: ${key}`);
     super.setItem(key, value);
     if (this.onSet) { const hook = this.onSet; this.onSet = null; hook(key); }
+  }
+  removeItem(key) {
+    if (this.failRemoveKeys.has(key)) throw new Error(`removal refused: ${key}`);
+    super.removeItem(key);
   }
 }
 
@@ -817,4 +821,23 @@ test('recordsSummary lays out eight rows in order, marks the current board, and 
   const empty = S.recordsSummary(S.emptyRecords(), { today: '2026-09-02' });
   assert.deepEqual(empty.overview, { cleared: 0, streak: 0, longest: 0, dailies: 0 });
   assert.ok(empty.rows.every((row) => row.classicBestMs === null && row.trayBestScore === null && row.cleared === 0 && !row.current));
+});
+
+test('a failed event removal keeps its id counted so the surviving event is never counted twice', () => {
+  const storage = new HookedStorage();
+  for (let n = 1; n <= S.MAX_RECORD_EVENTS + 1; n++) rawEvent(storage, n, completion('turtle', 'classic'), n);
+  const oldestKey = `${S.RECORD_EVENT_PREFIX}${uuid(1)}`;
+  storage.failRemoveKeys.add(oldestKey);
+  const store = S.createRecordStore({ storage, now: () => 10_000, uuid: () => uuid(9_999) });
+  const first = store.read();
+  assert.equal(first.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1);
+  assert.notEqual(storage.getItem(oldestKey), null, 'the removal failed, so the event is still stored');
+  assert.ok(first.totals.countedEvents.includes(uuid(1)), 'an event that survived pruning stays marked as counted');
+  const second = store.read();
+  assert.equal(second.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1, 'no double count after the failed prune');
+  storage.failRemoveKeys.clear();
+  const third = store.read();
+  assert.equal(third.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1);
+  assert.equal(storage.getItem(oldestKey), null, 'the prune succeeds once removal works again');
+  assert.equal(third.totals.countedEvents.length, S.MAX_RECORD_EVENTS);
 });

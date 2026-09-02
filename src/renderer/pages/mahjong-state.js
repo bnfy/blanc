@@ -125,8 +125,12 @@
 
   function safeRemove(storage, key) {
     try {
-      if (storage) storage.removeItem(key);
-    } catch { /* storage is best effort */ }
+      if (!storage) return false;
+      storage.removeItem(key);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   function storedKeysWithPrefix(storage, prefix) {
@@ -781,8 +785,9 @@
       if (events.length > MAX_RECORD_EVENTS) {
         const excess = events.length - MAX_RECORD_EVENTS;
         for (const event of events.filter((entry) => counted.has(entry.eventId)).slice(0, excess)) {
-          safeRemove(storage, event.key);
-          pruned.add(event.eventId);
+          // An event that survives a failed removal must stay counted, or
+          // the next read would count it a second time.
+          if (safeRemove(storage, event.key)) pruned.add(event.eventId);
         }
       }
       // Phase 3: compact to ids still retained. This is the only place the
