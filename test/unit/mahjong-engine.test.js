@@ -179,8 +179,15 @@ test('all v2 layouts have the promised size, layer count, and valid coordinates'
     turtle: { count: 144, layers: [87, 36, 16, 4, 1] },
     arch: { count: 96, layers: [72, 18, 6] },
     peaks: { count: 72, layers: [48, 16, 6, 2] },
+    pyramid: { count: 108, layers: [60, 32, 12, 4] },
+    fortress: { count: 96, layers: [50, 44, 2] },
+    butterfly: { count: 94, layers: [70, 21, 3] },
+    bridge: { count: 100, layers: [52, 29, 15, 4] },
+    cross: { count: 86, layers: [48, 24, 13, 1] },
   };
-  assert.deepEqual(Object.keys(E.LAYOUTS), ['turtle', 'arch', 'peaks']);
+  assert.deepEqual(Object.keys(E.LAYOUTS), [
+    'turtle', 'arch', 'peaks', 'pyramid', 'fortress', 'butterfly', 'bridge', 'cross',
+  ]);
   for (const [id, definition] of Object.entries(E.LAYOUTS)) {
     const positions = definition.positions;
     assert.equal(positions.length, expected[id].count);
@@ -785,4 +792,31 @@ test('matching a re-parked position after a shuffle never corrupts pre-shuffle u
     assert.equal(E.undo(state), false);
   }
   assert.ok(exercised, 'expected at least one seed to exercise the re-park path');
+});
+
+test('every layout is physically valid, opens as specified, and always deals', () => {
+  const freeAtStart = {
+    turtle: 35, arch: 18, peaks: 18, pyramid: 26, fortress: 20, butterfly: 43, bridge: 8, cross: 17,
+  };
+  for (const [id, definition] of Object.entries(E.LAYOUTS)) {
+    const positions = definition.positions;
+    assert.ok(positions.length % 2 === 0 && positions.length >= 28, `${id}: even count of at least 28`);
+    assert.equal(definition.id, id);
+    assert.equal(typeof definition.name, 'string');
+    for (const [index, position] of positions.entries()) {
+      if (position.z === 0) continue;
+      const supported = positions.some((other) => other.z === position.z - 1
+        && Math.abs(other.x - position.x) < 2 && Math.abs(other.y - position.y) < 2);
+      assert.ok(supported, `${id}: tile ${index} at (${position.x},${position.y},${position.z}) floats`);
+    }
+    const free = positions.filter((_, index) => E.isFreeAt(positions, index, () => true)).length;
+    assert.equal(free, freeAtStart[id], `${id}: free tiles at the start`);
+    const width = Math.max(...positions.map((p) => p.x)) + 2;
+    const height = Math.max(...positions.map((p) => p.y)) + 2;
+    assert.ok(width <= 30 && height <= 16, `${id}: footprint ${width}x${height} exceeds Turtle's 30x16`);
+    for (let seed = 1; seed <= 60; seed++) {
+      const game = E.createGame({ seed, layoutId: id, mode: 'classic' });
+      assert.ok(E.availableMoves(game).length > 0, `${id}/${seed}: opening move`);
+    }
+  }
 });

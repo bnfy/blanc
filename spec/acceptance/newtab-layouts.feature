@@ -25,6 +25,8 @@ Feature: Start page layouts
     And the embedded mahjong game is ready
     And rapid Undo cancels pending Mahjong feedback
     And the Mahjong completion dialog remains usable at the minimum desktop size
+    And the six-control Mahjong rail fits its table at every desktop breakpoint
+    And the Mahjong records sheet stays contained at the default, minimum, and zoomed desktop sizes
 
   @F35-4 @desktop
   Scenario: An embedded Mahjong timer pauses when another start layout is shown

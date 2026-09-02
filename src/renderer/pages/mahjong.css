@@ -962,7 +962,7 @@
   min-height: 60px;
   justify-self: center;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 4px;
   padding: 5px;
   border: 1px solid var(--mj-line-strong);
@@ -1155,7 +1155,7 @@
 
 .mj-layout-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
 }
 
@@ -1247,6 +1247,57 @@
 .mj-layout-mini-peaks i:nth-child(7) { left: 26%; top: 31px; }
 .mj-layout-mini-peaks i:nth-child(8) { left: 50%; top: 19px; }
 .mj-layout-mini-peaks i:nth-child(9) { left: 74%; top: 31px; }
+
+/* v2.1 previews. Pyramid: a four-course stepped stack. Fortress: a ring with
+   a raised keep. Butterfly: two lifted wings and a body. Bridge: two towers
+   and a low span. Cross: a plus that rises at the centre. */
+.mj-layout-mini-pyramid i:nth-child(1) { left: 20%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(2) { left: 40%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(3) { left: 60%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(4) { left: 80%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(5) { left: 30%; top: 46px; }
+.mj-layout-mini-pyramid i:nth-child(6) { left: 50%; top: 46px; }
+.mj-layout-mini-pyramid i:nth-child(7) { left: 70%; top: 46px; }
+.mj-layout-mini-pyramid i:nth-child(8) { left: 40%; top: 30px; }
+.mj-layout-mini-pyramid i:nth-child(9) { left: 60%; top: 30px; }
+.mj-layout-mini-pyramid i:nth-child(10) { left: 50%; top: 14px; }
+
+.mj-layout-mini-fortress i:nth-child(1) { left: 10%; top: 58px; }
+.mj-layout-mini-fortress i:nth-child(2) { left: 50%; top: 58px; }
+.mj-layout-mini-fortress i:nth-child(3) { left: 90%; top: 58px; }
+.mj-layout-mini-fortress i:nth-child(4) { left: 10%; top: 30px; }
+.mj-layout-mini-fortress i:nth-child(5) { left: 50%; top: 30px; }
+.mj-layout-mini-fortress i:nth-child(6) { left: 90%; top: 30px; }
+.mj-layout-mini-fortress i:nth-child(7) { left: 50%; top: 44px; }
+
+.mj-layout-mini-butterfly i:nth-child(1) { left: 12%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(2) { left: 30%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(3) { left: 70%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(4) { left: 88%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(5) { left: 21%; top: 40px; }
+.mj-layout-mini-butterfly i:nth-child(6) { left: 79%; top: 40px; }
+.mj-layout-mini-butterfly i:nth-child(7) { left: 50%; top: 60px; }
+.mj-layout-mini-butterfly i:nth-child(8) { left: 50%; top: 42px; }
+.mj-layout-mini-butterfly i:nth-child(9) { left: 50%; top: 24px; }
+
+.mj-layout-mini-bridge i:nth-child(1) { left: 12%; top: 60px; }
+.mj-layout-mini-bridge i:nth-child(2) { left: 88%; top: 60px; }
+.mj-layout-mini-bridge i:nth-child(3) { left: 37%; top: 52px; }
+.mj-layout-mini-bridge i:nth-child(4) { left: 50%; top: 52px; }
+.mj-layout-mini-bridge i:nth-child(5) { left: 63%; top: 52px; }
+.mj-layout-mini-bridge i:nth-child(6) { left: 12%; top: 42px; }
+.mj-layout-mini-bridge i:nth-child(7) { left: 88%; top: 42px; }
+.mj-layout-mini-bridge i:nth-child(8) { left: 12%; top: 24px; }
+.mj-layout-mini-bridge i:nth-child(9) { left: 88%; top: 24px; }
+
+.mj-layout-mini-cross i:nth-child(1) { left: 14%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(2) { left: 32%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(3) { left: 68%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(4) { left: 86%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(5) { left: 50%; top: 66px; }
+.mj-layout-mini-cross i:nth-child(6) { left: 50%; top: 34px; }
+.mj-layout-mini-cross i:nth-child(7) { left: 50%; top: 18px; }
+.mj-layout-mini-cross i:nth-child(8) { left: 50%; top: 50px; }
 
 .mj-setup-row {
   display: grid;
@@ -1533,6 +1584,90 @@
   letter-spacing: 0.04em;
 }
 .mj-win-daily[hidden] { display: none; }
+
+/* Records sheet: reuses the setup card shell; the overview tiles mirror the
+   completion card's stat tiles, the table is semantic and tabular. */
+.mj-records-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.mj-records-overview span {
+  min-height: 67px;
+  display: grid;
+  place-content: center;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(226, 195, 120, 0.2);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), 0 8px 18px rgba(0, 8, 6, 0.14);
+  text-align: center;
+}
+.mj-records-overview small { color: var(--mj-muted); font: 660 10px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.mj-records-overview strong { color: var(--mj-ivory); font: 760 22px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.mj-records-table {
+  width: 100%;
+  margin-top: 22px;
+  border-collapse: collapse;
+  color: var(--mj-ivory);
+  font: 520 12px/1.4 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.mj-records-table caption {
+  caption-side: top;
+  padding-bottom: 9px;
+  color: var(--mj-muted);
+  font: 660 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.mj-records-table th,
+.mj-records-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--mj-line);
+  text-align: left;
+  vertical-align: middle;
+}
+.mj-records-table th[scope="col"] {
+  color: var(--mj-muted);
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.mj-records-table th[scope="row"] { font-weight: 660; }
+.mj-records-table th:not(:first-child),
+.mj-records-table td:not(:first-child) { text-align: right; }
+.mj-records-table tr[aria-current="true"] th {
+  box-shadow: inset 3px 0 0 var(--mj-brass);
+  color: var(--mj-brass-bright);
+}
+
+.mj-records-days { margin-top: 22px; }
+.mj-records-strip {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 5px;
+  max-width: 420px;
+}
+.mj-records-strip i {
+  display: block;
+  aspect-ratio: 1;
+  border: 1px solid var(--mj-line);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.mj-records-strip i.is-cleared {
+  border-color: var(--mj-brass);
+  background: var(--mj-brass);
+}
+.mj-records-strip i.is-today {
+  outline: 1px solid var(--mj-ivory);
+  outline-offset: 1px;
+}
+.mj-records-days p { margin: 9px 0 0; color: var(--mj-muted); font: 520 11px/1.4 var(--font-mono); }
 .mj-win-best.is-record {
   border-color: rgba(255, 219, 119, 0.78);
   color: #fff1bd;
@@ -1759,7 +1894,7 @@
     min-height: 0;
     transform: translateY(-50%);
     grid-template-columns: 1fr;
-    grid-template-rows: repeat(5, 64px);
+    grid-template-rows: repeat(6, 64px);
     gap: 16px;
     padding: 0;
     border: 0;
@@ -1843,6 +1978,23 @@
   .mj-tray-slot { width: 64px; height: 74px; }
 }
 
+/* The rail is sized from the embedded frame's height, not the window's: the
+   start page's footer sits outside this document. Tiers were measured against
+   the worst case (a Burst table, whose rack sits below the board): six
+   controls must fit a 369px table at a 611px frame and a 418px table at
+   660px. At 721px and above the desktop block's 64px/16px rail fits. */
+@media (min-width: 1000px) and (min-height: 611px) and (max-height: 659px) {
+  .mj-dock { grid-template-rows: repeat(6, 52px); gap: 10px; width: 52px; }
+  .mj-dock > button { width: 52px; height: 52px; min-width: 52px; min-height: 52px; }
+  .mj-dock-icon { width: 26px; height: 26px; flex-basis: 26px; }
+}
+
+@media (min-width: 1000px) and (min-height: 660px) and (max-height: 720px) {
+  .mj-dock { grid-template-rows: repeat(6, 56px); gap: 14px; width: 56px; }
+  .mj-dock > button { width: 56px; height: 56px; min-width: 56px; min-height: 56px; }
+  .mj-dock-icon { width: 29px; height: 29px; flex-basis: 29px; }
+}
+
 @media (max-width: 1080px) {
   .mj-head {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1856,6 +2008,10 @@
   .mj-chain-meter { min-width: 88px; }
   .mj-combo-bar { width: 78px; }
   .mj-feedback { top: calc(var(--mj-shell-block) + 52px + var(--mj-shell-gap) + 8px); }
+}
+
+@media (max-width: 900px) {
+  .mj-layout-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 780px) {
@@ -1874,6 +2030,9 @@
   .mj-tray-copy strong { display: none; }
   .mj-tray { justify-self: center; }
   .mj-layout-grid { grid-template-columns: 1fr; }
+  .mj-records-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mj-records-table { font-size: 11px; }
+  .mj-records-table th, .mj-records-table td { padding: 7px 6px; }
   .mj-choice { min-height: 78px; flex-direction: row; align-items: center; justify-content: flex-start; }
   .mj-layout-mini { width: min(180px, 44vw); flex: none; scale: 0.82; }
 }

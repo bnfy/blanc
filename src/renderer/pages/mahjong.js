@@ -513,7 +513,7 @@ const modalBackground = () => [
 ].filter(Boolean);
 
 function activeModal() {
-  return ['mjSetupSheet', 'mjRescue', 'mjWin']
+  return ['mjSetupSheet', 'mjRecordsSheet', 'mjRescue', 'mjWin']
     .map((id) => document.getElementById(id))
     .find((element) => element && !element.hidden) || null;
 }
@@ -935,6 +935,11 @@ document.addEventListener('keydown', (event) => {
       closeSetup();
       return;
     }
+    if (event.key === 'Escape' && modal.id === 'mjRecordsSheet') {
+      event.preventDefault();
+      closeRecords();
+      return;
+    }
     if (event.key === 'Tab') {
       const focusable = [...modal.querySelectorAll(
         'button:not([disabled]):not([tabindex="-1"]), input:not([disabled])'
@@ -979,6 +984,9 @@ document.addEventListener('keydown', (event) => {
   } else if (!event.metaKey && !event.ctrlKey && !event.altKey && key === 's') {
     event.preventDefault();
     document.getElementById('mjShuffle').click();
+  } else if (!event.metaKey && !event.ctrlKey && !event.altKey && key === 'r') {
+    event.preventDefault();
+    openRecords();
   } else if (event.key === 'Escape' && game?.selected !== null) {
     game.selected = null;
     saveAfterMutation();
@@ -1494,6 +1502,73 @@ function startSetupChoice() {
   }
   closeSetup();
 }
+
+// --- records sheet -----------------------------------------------------------
+// Everything shown here is derived by S.recordsSummary from the local records
+// aggregate; this file only maps that view model to DOM.
+
+function paintRecords() {
+  if (!recordStore) return;
+  const summary = S.recordsSummary(recordStore.read(), {
+    today: new Date(),
+    layoutIds: S.LAYOUT_IDS,
+    currentLayoutId: game?.layoutId || null,
+  });
+  document.getElementById('mjRecordsCleared').textContent = summary.overview.cleared.toLocaleString();
+  document.getElementById('mjRecordsStreak').textContent = String(summary.overview.streak);
+  document.getElementById('mjRecordsLongest').textContent = String(summary.overview.longest);
+  document.getElementById('mjRecordsDailies').textContent = String(summary.overview.dailies);
+
+  const rows = document.getElementById('mjRecordsRows');
+  rows.replaceChildren(...summary.rows.map((row) => {
+    const tr = document.createElement('tr');
+    if (row.current) tr.setAttribute('aria-current', 'true');
+    const name = document.createElement('th');
+    name.scope = 'row';
+    name.textContent = E.LAYOUTS[row.layoutId]?.name || row.layoutId;
+    const classic = document.createElement('td');
+    classic.textContent = row.classicBestMs == null ? '—' : formatMs(row.classicBestMs);
+    const burst = document.createElement('td');
+    burst.textContent = row.trayBestScore == null
+      ? '—'
+      : `${row.trayBestScore.toLocaleString()} · ${formatMs(row.trayBestMs)}`;
+    const cleared = document.createElement('td');
+    cleared.textContent = String(row.cleared);
+    tr.append(name, classic, burst, cleared);
+    return tr;
+  }));
+
+  const strip = document.getElementById('mjRecordsDays');
+  strip.replaceChildren(...summary.days.map((day) => {
+    const cell = document.createElement('i');
+    cell.classList.toggle('is-cleared', day.cleared);
+    cell.classList.toggle('is-today', day.today);
+    return cell;
+  }));
+  const clearedDays = summary.days.filter((day) => day.cleared);
+  strip.setAttribute('aria-label', clearedDays.length
+    ? `Daily cleared on ${clearedDays.map((day) => day.key).join(', ')}.`
+    : 'No dailies cleared in the last 28 days.');
+  document.getElementById('mjRecordsDaysCaption').textContent = clearedDays.length
+    ? `cleared ${clearedDays.length} of the last 28 dailies`
+    : 'no dailies cleared yet';
+}
+
+function openRecords() {
+  pauseTimer();
+  paintRecords();
+  setDialogVisible(document.getElementById('mjRecordsSheet'), true);
+}
+
+function closeRecords() {
+  setDialogVisible(document.getElementById('mjRecordsSheet'), false);
+  document.getElementById('mjRecords')?.focus();
+  if (!document.hidden && embedActive && hasStarted && game?.status === 'playing') startTimer();
+}
+
+document.getElementById('mjRecords')?.addEventListener('click', openRecords);
+document.getElementById('mjRecordsClose')?.addEventListener('click', closeRecords);
+document.getElementById('mjRecordsScrim')?.addEventListener('click', closeRecords);
 
 for (const button of document.querySelectorAll('#mjSetupSheet button[data-layout]')) {
   button.addEventListener('click', () => {

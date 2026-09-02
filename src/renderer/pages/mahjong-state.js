@@ -18,12 +18,14 @@
   const MAX_SAVED_GAMES = 32;
   const MAX_RECORD_EVENTS = 128;
   const GAME_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
-  const LAYOUT_IDS = Object.freeze(['turtle', 'arch', 'peaks']);
+  const LAYOUT_IDS = Object.freeze(['turtle', 'arch', 'peaks', 'pyramid', 'fortress', 'butterfly', 'bridge', 'cross']);
   // Record revisions deliberately mirror the pure engine's layout revisions.
   // A missing revision is legacy revision 1, which keeps unchanged Turtle and
   // Peaks results while preventing the retired portrait Arch from replaying
   // into the wider revision-2 board.
-  const LAYOUT_REVISIONS = Object.freeze({ turtle: 1, arch: 2, peaks: 1 });
+  const LAYOUT_REVISIONS = Object.freeze({
+    turtle: 1, arch: 2, peaks: 1, pyramid: 1, fortress: 1, butterfly: 1, bridge: 1, cross: 1,
+  });
   const MODES = Object.freeze(['classic', 'tray']);
   const SOURCES = Object.freeze(['random', 'daily']);
   const DEFAULT_PREFS = Object.freeze({ layoutId: 'turtle', mode: 'tray', source: 'daily' });
@@ -123,8 +125,12 @@
 
   function safeRemove(storage, key) {
     try {
-      if (storage) storage.removeItem(key);
-    } catch { /* storage is best effort */ }
+      if (!storage) return false;
+      storage.removeItem(key);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   function storedKeysWithPrefix(storage, prefix) {
@@ -417,8 +423,99 @@
       : `cleared · ${time}`;
   }
 
+  function shiftDailyKey(key, days) {
+    const [year, month, day] = dailyKey(key).split('-').map(Number);
+    const shifted = new Date(Date.UTC(year, month - 1, day + days));
+    return `${String(shifted.getUTCFullYear()).padStart(4, '0')}-${String(shifted.getUTCMonth() + 1).padStart(2, '0')}-${String(shifted.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  function clearedDailyKeys(records) {
+    const clean = normalizeRecords(records);
+    return new Set(Object.entries(clean.daily)
+      .filter(([, modes]) => MODES.some((mode) => modes[mode] && modes[mode].completed))
+      .map(([key]) => key));
+  }
+
+  // Derived, never stored. A day counts when either mode's daily is complete.
+  // `current` counts back from today, or from yesterday while today is still
+  // open, so a streak is not shown as broken before the day is over.
+  function dailyStreak(records, today = new Date()) {
+    const days = clearedDailyKeys(records);
+    const todayKey = dailyKey(today);
+    let cursor = days.has(todayKey) ? todayKey : shiftDailyKey(todayKey, -1);
+    let current = 0;
+    while (days.has(cursor)) {
+      current += 1;
+      cursor = shiftDailyKey(cursor, -1);
+    }
+    let longest = 0;
+    let run = 0;
+    let previous = null;
+    for (const key of [...days].sort()) {
+      run = previous !== null && shiftDailyKey(previous, 1) === key ? run + 1 : 1;
+      longest = Math.max(longest, run);
+      previous = key;
+    }
+    return { current, longest, cleared: days.size };
+  }
+
+  function recordsSummary(records, { today = new Date(), layoutIds = LAYOUT_IDS, currentLayoutId = null, days = 28 } = {}) {
+    const clean = normalizeRecords(records);
+    const streak = dailyStreak(clean, today);
+    const rows = layoutIds.map((layoutId) => {
+      const classic = clean.classic[layoutId] || null;
+      const tray = clean.tray[layoutId] || null;
+      return {
+        layoutId,
+        classicBestMs: classic ? classic.bestTimeMs : null,
+        trayBestScore: tray ? tray.bestScore : null,
+        trayBestMs: tray ? tray.bestTimeMs : null,
+        cleared: (clean.totals.cleared.classic[layoutId] || 0) + (clean.totals.cleared.tray[layoutId] || 0),
+        current: layoutId === currentLayoutId,
+      };
+    });
+    const cleared = rows.reduce((sum, row) => sum + row.cleared, 0);
+    const clearedDays = clearedDailyKeys(clean);
+    const todayKey = dailyKey(today);
+    const strip = [];
+    for (let offset = days - 1; offset >= 0; offset--) {
+      const key = shiftDailyKey(todayKey, -offset);
+      strip.push({ key, cleared: clearedDays.has(key), today: offset === 0 });
+    }
+    return {
+      overview: { cleared, streak: streak.current, longest: streak.longest, dailies: streak.cleared },
+      rows,
+      days: strip,
+    };
+  }
+
+  function emptyTotals() {
+    return { cleared: { classic: {}, tray: {} }, countedEvents: [] };
+  }
+
   function emptyRecords() {
-    return { version: RECORDS_VERSION, classic: {}, tray: {}, trayLegacy: {}, daily: {} };
+    return { version: RECORDS_VERSION, classic: {}, tray: {}, trayLegacy: {}, daily: {}, totals: emptyTotals() };
+  }
+
+  function normalizeTotals(value) {
+    const clean = emptyTotals();
+    if (!isObject(value)) return clean;
+    const cleared = isObject(value.cleared) ? value.cleared : {};
+    for (const mode of MODES) {
+      const bucket = isObject(cleared[mode]) ? cleared[mode] : {};
+      for (const layoutId of LAYOUT_IDS) {
+        const count = bucket[layoutId];
+        if (finiteInteger(count, 1)) clean.cleared[mode][layoutId] = Math.min(count, 1_000_000);
+      }
+    }
+    // Never truncate here: phase 1 of mergeEvents must persist every seen id.
+    // The list is bounded only by post-prune compaction (phase 3).
+    if (Array.isArray(value.countedEvents)) {
+      clean.countedEvents = [...new Set(
+        value.countedEvents.filter(isValidGameId).map((id) => id.toLowerCase())
+      )];
+    }
+    return clean;
   }
 
   function normalizeAssists(value) {
@@ -441,6 +538,7 @@
   function normalizeRecords(value) {
     const clean = emptyRecords();
     if (!isObject(value) || value.version !== RECORDS_VERSION) return clean;
+    clean.totals = normalizeTotals(value.totals);
     for (const layoutId of LAYOUT_IDS) {
       const classic = value.classic && value.classic[layoutId];
       const classicRevision = isObject(classic)
@@ -659,16 +757,47 @@
       return migrated;
     }
 
+    // Best-of records are rebuilt from retained events, so re-applying them
+    // on every read is harmless. Counts are not: once an event is pruned it
+    // is gone, so `totals` is a durable aggregate. The order below is the
+    // contract: count, persist, then prune only what was persisted, then
+    // compact the counted list.
     function mergeEvents(records) {
       const events = storedRecordEvents(storage);
       let merged = normalizeRecords(records);
-      for (const event of events) merged = applyResult(merged, event.result, event.updatedAt);
-      // The aggregate is a compact cache. Immutable per-completion events are
-      // the concurrency-safe source of truth, so simultaneous Classic/Tray
-      // finishes cannot overwrite one another with stale read/modify/write.
-      write(merged);
+      const counted = new Set(merged.totals.countedEvents);
+      for (const event of events) {
+        merged = applyResult(merged, event.result, event.updatedAt);
+        if (counted.has(event.eventId)) continue;
+        const { mode, layoutId } = event.result;
+        if (event.result.completed === true && MODES.includes(mode) && LAYOUT_IDS.includes(layoutId)) {
+          const bucket = merged.totals.cleared[mode];
+          bucket[layoutId] = (bucket[layoutId] || 0) + 1;
+        }
+        counted.add(event.eventId);
+      }
+      merged.totals.countedEvents = [...counted];
+      // Phase 1: persist counts for every seen event before anything is pruned.
+      if (!write(merged)) return merged;
+      // Phase 2: prune only counted events beyond the cap, oldest first. An
+      // event another tab wrote after our snapshot is never in `counted`.
+      const pruned = new Set();
       if (events.length > MAX_RECORD_EVENTS) {
-        for (const event of events.slice(0, events.length - MAX_RECORD_EVENTS)) safeRemove(storage, event.key);
+        const excess = events.length - MAX_RECORD_EVENTS;
+        for (const event of events.filter((entry) => counted.has(entry.eventId)).slice(0, excess)) {
+          // An event that survives a failed removal must stay counted, or
+          // the next read would count it a second time.
+          if (safeRemove(storage, event.key)) pruned.add(event.eventId);
+        }
+      }
+      // Phase 3: compact to ids still retained. This is the only place the
+      // list is bounded (retained events never exceed MAX_RECORD_EVENTS). Best
+      // effort: a failed write here only leaves extra ids until a later read.
+      const retained = new Set(events.filter((entry) => !pruned.has(entry.eventId)).map((entry) => entry.eventId));
+      const compacted = merged.totals.countedEvents.filter((id) => retained.has(id));
+      if (compacted.length !== merged.totals.countedEvents.length) {
+        merged.totals.countedEvents = compacted;
+        write(merged);
       }
       return merged;
     }
@@ -874,7 +1003,11 @@
     createPrefsStore,
     completionOutcome,
     describeDailyResult,
+    shiftDailyKey,
+    dailyStreak,
+    recordsSummary,
     emptyRecords,
+    emptyTotals,
     normalizeAssists,
     normalizeRecords,
     applyResult,

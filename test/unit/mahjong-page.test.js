@@ -234,7 +234,7 @@ test('mahjong loads its sound module before the controller and exposes a pressed
 });
 
 test('the game dock uses one local professional SVG icon family instead of font glyphs', () => {
-  for (const icon of ['boards', 'undo', 'hint', 'shuffle', 'sound-on', 'sound-off']) {
+  for (const icon of ['boards', 'records', 'undo', 'hint', 'shuffle', 'sound-on', 'sound-off']) {
     assert.match(html, new RegExp(`mahjong-icons\\.svg#${icon}`), `missing ${icon} dock icon`);
   }
   assert.doesNotMatch(styles, /content:\s*["'](?:▦|↶|◇|⤨|◖)/);
@@ -481,7 +481,7 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
   assert.match(desktop, /\.mj-board-wrap\s*\{\s*--mj-board-safe-side:\s*88px;\s*\}/);
   assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;/);
   assert.match(desktop, /\.mj-dock\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-table;[^}]*left:\s*calc\(anchor\(left\) \+ 16px\);[^}]*top:\s*anchor\(center\);[^}]*transform:\s*translateY\(-50%\);[^}]*grid-template-columns:\s*1fr;/);
-  assert.match(desktop, /\.mj-dock\s*\{[^}]*width:\s*64px;[^}]*grid-template-rows:\s*repeat\(5,\s*64px\);[^}]*gap:\s*16px;[^}]*padding:\s*0;[^}]*border:\s*0;[^}]*background:\s*none;[^}]*box-shadow:\s*none;/);
+  assert.match(desktop, /\.mj-dock\s*\{[^}]*width:\s*64px;[^}]*grid-template-rows:\s*repeat\(6,\s*64px\);[^}]*gap:\s*16px;[^}]*padding:\s*0;[^}]*border:\s*0;[^}]*background:\s*none;[^}]*box-shadow:\s*none;/);
   assert.match(desktop, /\.mj-dock > button\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*64px;[^}]*height:\s*64px;[^}]*aspect-ratio:\s*1;[^}]*border-radius:\s*50%;/);
   assert.match(desktop, /\.mj-dock > button\s*\{[^}]*radial-gradient\(circle at 35% 23%[^}]*0 3px 0[^}]*inset 0 -9px 13px/);
   assert.match(desktop, /color-mix\(in srgb,\s*var\(--mj-panel-solid\) 92%,\s*var\(--mj-ivory\)\)[\s\S]*var\(--mj-lacquer-deep\)/);
@@ -602,4 +602,64 @@ test('a fresh tab offers to continue the most recent unfinished board without au
   assert.match(controller, /function adoptGame[\s\S]*?S\.forkGameId\(\{ href: location\.href, history, uuid: \(\) => targetId \}\)[\s\S]*?notifyParentGameId\(\);[\s\S]*?disposeDuplicateGuard\(\);[\s\S]*?installDuplicateGuard\(\);/);
   // the untouched fresh deal this tab just made is discarded rather than orphaned
   assert.match(controller, /function adoptGame[\s\S]*?gameStore\.discard\(previousId\)/);
+});
+
+test('the Boards sheet lists all eight layouts in registry order on a four-column grid', () => {
+  const S = require('../../src/renderer/pages/mahjong-state');
+  const ids = [...html.matchAll(/class="mj-choice mj-layout-choice[^"]*"[^>]*data-layout="([a-z]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(ids, [...S.LAYOUT_IDS]);
+  for (const id of ['Pyramid', 'Fortress', 'Butterfly', 'Bridge', 'Cross']) {
+    assert.match(html, new RegExp(`id="mjLayout${id}"`), `missing card for ${id}`);
+    assert.match(mahjongStyles, new RegExp(`\\.mj-layout-mini-${id.toLowerCase()} i:nth-child\\(1\\)`), `missing preview for ${id}`);
+  }
+  assert.match(html, /108 tiles · steep/);
+  assert.match(html, /96 tiles · walled/);
+  assert.match(html, /94 tiles · open/);
+  assert.match(html, /100 tiles · narrow/);
+  assert.match(html, /86 tiles · layered/);
+  assert.match(mahjongStyles, /\.mj-layout-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(mahjongStyles, /@media \(max-width: 900px\)\s*\{[^@]*\.mj-layout-grid\s*\{[^}]*repeat\(2, minmax\(0, 1fr\)\)/);
+});
+
+test('the Records dock action and sheet are wired with accessible semantics', () => {
+  const icons = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-icons.svg'), 'utf8');
+  assert.match(icons, /<symbol id="records" viewBox="0 0 24 24">/);
+  assert.match(html, /<button id="mjRecords" class="mj-dock-action" type="button" aria-label="Records" data-tooltip="Records" aria-haspopup="dialog" aria-controls="mjRecordsSheet" aria-keyshortcuts="R">[\s\S]*?mahjong-icons\.svg#records[\s\S]*?data-dock-label>records<\/span>/);
+  assert.match(html, /id="mjSetup"[\s\S]*id="mjRecords"[\s\S]*id="mjUndo"/, 'records follows boards in the dock');
+  assert.match(html, /<section id="mjRecordsSheet" class="mj-modal" role="dialog" aria-modal="true" aria-labelledby="mjRecordsTitle" hidden>/);
+  for (const id of ['mjRecordsScrim', 'mjRecordsClose', 'mjRecordsCleared', 'mjRecordsStreak', 'mjRecordsLongest', 'mjRecordsDailies', 'mjRecordsRows', 'mjRecordsDays', 'mjRecordsDaysCaption']) {
+    assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
+  }
+  assert.match(html, /<table class="mj-records-table">\s*<caption>best results by board<\/caption>\s*<thead>\s*<tr>\s*<th scope="col">board<\/th>\s*<th scope="col">classic best<\/th>\s*<th scope="col">burst best<\/th>\s*<th scope="col">cleared<\/th>/);
+  assert.match(html, /<tbody id="mjRecordsRows"><\/tbody>/);
+  assert.match(mahjongStyles, /\.mj-dock\s*\{[^}]*grid-template-columns:\s*repeat\(6, minmax\(0, 1fr\)\)/);
+  assert.match(mahjongStyles, /\.mj-records-overview\s*\{[^}]*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(mahjongStyles, /\.mj-records-table tr\[aria-current="true"\] th\s*\{/);
+  assert.match(mahjongStyles, /\.mj-records-strip i\.is-cleared\s*\{/);
+  assert.match(mahjongStyles, /\.mj-records-strip i\.is-today\s*\{/);
+  // The rail is sized from the embedded frame's height (the start page's
+  // footer sits outside it), in tiers measured against the Burst table:
+  // 611–659 → 52/10, 660–720 → 56/14, ≥721 → the desktop block's 64/16.
+  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 659px\)\s*\{[^@]*\.mj-dock\s*\{[^}]*grid-template-rows:\s*repeat\(6, 52px\);[^}]*gap:\s*10px;/);
+  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 659px\)\s*\{[^@]*\.mj-dock > button\s*\{[^}]*width:\s*52px;[^}]*height:\s*52px;[^}]*min-width:\s*52px;[^}]*min-height:\s*52px;/);
+  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 660px\) and \(max-height: 720px\)\s*\{[^@]*\.mj-dock\s*\{[^}]*grid-template-rows:\s*repeat\(6, 56px\);[^}]*gap:\s*14px;/);
+  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 660px\) and \(max-height: 720px\)\s*\{[^@]*\.mj-dock > button\s*\{[^}]*width:\s*56px;[^}]*height:\s*56px;[^}]*min-width:\s*56px;[^}]*min-height:\s*56px;/);
+  assert.doesNotMatch(mahjongStyles, /repeat\(6, 54px\)/);
+});
+
+test('the Records sheet opens from the dock and R, paints from the pure summary, and returns focus', () => {
+  assert.match(controller, /function activeModal\(\) \{\s*return \['mjSetupSheet', 'mjRecordsSheet', 'mjRescue', 'mjWin'\]/);
+  assert.match(controller, /function paintRecords\(\)[\s\S]*?S\.recordsSummary\(recordStore\.read\(\), \{[\s\S]*?currentLayoutId: game\?\.layoutId \|\| null/);
+  assert.match(controller, /function openRecords\(\) \{\s*pauseTimer\(\);\s*paintRecords\(\);\s*setDialogVisible\(document\.getElementById\('mjRecordsSheet'\), true\);/);
+  assert.match(controller, /function closeRecords\(\) \{[\s\S]*?setDialogVisible\(document\.getElementById\('mjRecordsSheet'\), false\);[\s\S]*?document\.getElementById\('mjRecords'\)\?\.focus\(\);/);
+  assert.match(controller, /if \(event\.key === 'Escape' && modal\.id === 'mjRecordsSheet'\) \{[\s\S]*?closeRecords\(\);/);
+  assert.match(controller, /!event\.altKey && key === 'r'\) \{\s*event\.preventDefault\(\);\s*openRecords\(\);/);
+  assert.match(controller, /getElementById\('mjRecords'\)\?\.addEventListener\('click', openRecords\)/);
+  assert.match(controller, /getElementById\('mjRecordsClose'\)\?\.addEventListener\('click', closeRecords\)/);
+  assert.match(controller, /getElementById\('mjRecordsScrim'\)\?\.addEventListener\('click', closeRecords\)/);
+  // rows are real table semantics built per layout, with the current board marked
+  assert.match(controller, /name\.scope = 'row'/);
+  assert.match(controller, /tr\.setAttribute\('aria-current', 'true'\)/);
+  assert.match(controller, /'No dailies cleared in the last 28 days\.'/);
+  assert.match(controller, /`cleared \$\{clearedDays\.length\} of the last 28 dailies`/);
 });
