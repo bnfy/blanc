@@ -143,6 +143,12 @@ test('Windows releases fail closed and carry a verified signature attestation', 
     .map((name) => fs.readFileSync(path.join(root, '.github/workflows', name), 'utf8'))
     .join('\n');
 
+  const rootInstall = releaseScript.indexOf('npm ci\n');
+  const siteInstall = releaseScript.indexOf('npm ci --prefix site');
+  const pressGate = releaseScript.indexOf('npm run release:verify:press');
+  assert.ok(rootInstall >= 0, 'release must install locked app dependencies');
+  assert.ok(siteInstall > rootInstall, 'release must install locked site dependencies');
+  assert.ok(siteInstall < pressGate, 'site dependencies must exist before the press gate');
   assert.ok(releaseScript.indexOf('--draft') < releaseScript.indexOf('--draft=false'));
   const sourceTagPush = releaseScript.indexOf('git push origin "refs/tags/$TAG"');
   const draftCreate = releaseScript.indexOf('gh "${CREATE_ARGS[@]}"');

@@ -246,6 +246,7 @@ fi
 
 echo "==> Installing locked dependencies and running the press verification gate"
 npm ci
+npm ci --prefix site
 npm run release:verify:press
 
 echo "==> Preflighting the macOS identity and provisioning profile"
