@@ -305,9 +305,9 @@ silhouette in `BrandMark.astro`, rays-only crop for the ≤16px favicons, white-
 slot). Deployed as Cloudflare Pages deployment 5457bcd8, Production, branch main, source
 c91bc87; `favicon.svg`, `logo.png`, `favicon-32x32.png`, `apple-touch-icon.png`, and
 `og-image.png` verified byte-identical on the live domain. App, DS, and site are aligned.
-Stale wording still in the DS itself: `guidelines/brand-logos.html`'s note, `readme.md`'s
-Logos bullet, and `github.md`'s entry say the site "still ships the B" — a small follow-up
-push to correct.
+The DS's own "still ships the B" wording (`guidelines/brand-logos.html` note, `readme.md`
+Logos bullet, `github.md` entry) was corrected in a same-day follow-up push; the readme's
+site-lockup sizes now match the live site (header 20×20 mark alone, press 21×21, legal 24×24).
 
 ### (original flag kept for the record)
 As of df7a0e5, `site/` has NO Sunrise asset (only `releases.json` mentions it) and the live
