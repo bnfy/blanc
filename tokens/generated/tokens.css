@@ -7,6 +7,7 @@
   --bg: #ffffff;
   --surface: #f7f7f7;
   --surface-raised: #ffffff;
+  --island-resting-surface: rgba(255,255,255,.94);
   --border: #dedede;
   --text: #0e0e0e;
   --text-dim: #6b6b6b;
@@ -19,9 +20,12 @@
   --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --shadow-popover: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 10px -8px rgba(14,14,14,0.12), inset 0 -1px 0 rgba(14,14,14,0.035), 0 10px 44px -4px rgba(14,14,14,0.12);
   --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10);
-  --strip-h: 64px;
+  --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+  --strip-h: 68px;
   --pill-zoom: 1.15;
   --radius: 6px;
+  --island-resting-height: 44px;
+  --island-resting-radius: 17px;
   --island-panel-radius: 18px;
 }
 @media (prefers-color-scheme: dark) {
@@ -29,6 +33,7 @@
     --bg: #0e0e0e;
     --surface: #171717;
     --surface-raised: #1f1f1f;
+    --island-resting-surface: rgba(31,31,31,.94);
     --border: #2e2e2e;
     --text: #f5f5f5;
     --text-dim: #9c9c9c;
@@ -42,6 +47,7 @@
   --bg: #0a0a0a;
   --surface: #131313;
   --surface-raised: #191919;
+  --island-resting-surface: rgba(25,25,25,.94);
   --border: #333333;
   --text: #f5f5f5;
   --text-dim: #9c9c9c;

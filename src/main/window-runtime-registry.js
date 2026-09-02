@@ -106,7 +106,7 @@ function createRuntime({ id = null, profileId = DEFAULT_PROFILE_ID } = {}) {
      * never persisted, synced, or exposed over IPC; pruned as tabs close, so
      * bounded by the live tab count. */
     activationHistory: [],
-    chromeHeight: 64,
+    chromeHeight: 68,
     tabsBroadcastTimer: null,
     themeTintRefreshGeneration: 0,
     lastActiveByCluster: new Map(),

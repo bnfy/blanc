@@ -25,7 +25,7 @@ test('createRuntime initializes the per-window inventory to main.js defaults', (
   assert.equal(r.utilitySheetUrl, null);
   assert.equal(r.utilitySheetEscapeArmed, false);
   assert.ok(r.tabsWantingAddressBarFocus instanceof Set);
-  assert.equal(r.chromeHeight, 64);
+  assert.equal(r.chromeHeight, 68);
   assert.equal(r.tabsBroadcastTimer, null);
   assert.equal(r.themeTintRefreshGeneration, 0);
   assert.ok(r.lastActiveByCluster instanceof Map);

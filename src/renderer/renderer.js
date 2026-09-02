@@ -88,6 +88,7 @@
   const PILL_ICONS = {
     back: '<svg viewBox="0 0 16 16"><path d="M9.75 3.5 5.25 8l4.5 4.5"/></svg>',
     forward: '<svg viewBox="0 0 16 16"><path d="M6.25 3.5 10.75 8l-4.5 4.5"/></svg>',
+    plus: '<svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg>',
     reload: '<svg viewBox="0 0 16 16"><path d="M12.42 10.35a5 5 0 1 1-4.42-7.35c1.4 0 2.74.56 3.74 1.53L13 5.78"/><path d="M13 3v2.78h-2.78"/></svg>',
     // Deliberately NOT an ✕ (which is what most browsers use for stop): the
     // pill's trailing cluster already ends in the close-tab ✕, so a loading
@@ -126,6 +127,14 @@
   const forwardBtn = pillButton('forward', 'Forward', () => state.activeTabId && window.browserAPI.goForward(state.activeTabId));
   pillNav.append(backBtn, forwardBtn);
 
+  const newTabShortcut = window.browserAPI.platform === 'darwin' ? '⌘T' : 'Ctrl+T';
+  const newTabBtn = pillButton('plus', `New tab (${newTabShortcut})`, () => {
+    window.browserAPI.createTab(null, { focusAddress: true });
+  });
+  newTabBtn.id = 'pillNewTab';
+  newTabBtn.classList.add('pill-shortcut');
+  newTabBtn.setAttribute('aria-label', 'New tab');
+  pillSlash.after(newTabBtn);
   const reloadBtn = pillButton('reload', 'Reload', () => {
     const t = activeTab();
     if (!t) return;
@@ -959,6 +968,8 @@
   requestAnimationFrame(reportIslandRect);
 
   window.browserAPI.onIslandProximity(({ k }) => {
-    islandPill.style.setProperty('--island-k', String(k ?? 0));
+    const next = Number(k) || 0;
+    islandPill.style.setProperty('--island-k', String(next));
+    islandPill.classList.toggle('proximity-active', next > 0);
   });
 })();

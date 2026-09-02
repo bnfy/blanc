@@ -22,6 +22,7 @@
   --bg: #ffffff;
   --surface: #f7f7f7;
   --surface-raised: #ffffff;
+  --island-resting-surface: rgba(255,255,255,.94);
   --border: #dedede;
   --text: #0e0e0e;
   --text-dim: #6b6b6b;
@@ -34,20 +35,21 @@
   --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --font-kbd: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
-  /* The island is the one shadowed chrome element. The full popover shadow
-     is reserved for the overlay states (panel/palette/find), which render
-     over the page and can't clip; the resting pill wears the fitted pill
-     shadow, which fades out entirely inside the 64px strip — a shadow
-     crossing the strip/page seam would be sliced off at the boundary. */
+  /* The full popover shadow is reserved for overlay states. The resting
+     island copies the website nav's shorter material shadow exactly and fits
+     it inside the 68px strip; --shadow-pill remains the favicon-peek shadow. */
   --shadow-popover: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -6px 10px -8px rgba(14,14,14,0.12), inset 0 -1px 0 rgba(14,14,14,0.035), 0 10px 44px -4px rgba(14,14,14,0.12);
   --shadow-pill: inset 0 1px 0 rgba(255,255,255,0.65), inset 1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset -1px 0 0.5px -0.5px rgba(255,255,255,0.28), inset 0 -5px 7px -6px rgba(14,14,14,0.16), inset 0 -1px 0 rgba(14,14,14,0.045), 0 2px 16px -3px rgba(14,14,14,0.10);
+  --shadow-island-resting: inset 0 1px 0 rgba(255,255,255,.72), inset 0 -1px 0 rgba(14,14,14,.035), 0 5px 18px -12px rgba(14,14,14,.24);
+  --island-resting-height: 44px;
+  --island-resting-radius: 17px;
   --island-panel-radius: 18px;
-  --strip-h: 64px;
+  --strip-h: 68px;
   --radius: 6px;
   /* The resting pill's proportional scale-up (see #islandPill). Lives here so
      counter-scaled children (#pillDomain's font, #pillFavicon's pixel-grid
-     snap) stay coupled to the one factor. Keep in step with --strip-h
-     (56 × zoom ≈ 64). */
+     snap) stay coupled to the one factor. Fixed outer geometry below is also
+     counter-scaled so the rendered island remains exactly 44px × 17px. */
   --pill-zoom: 1.15;
 }
 
@@ -56,6 +58,7 @@
     --bg: #0e0e0e;
     --surface: #171717;
     --surface-raised: #1f1f1f;
+    --island-resting-surface: rgba(31,31,31,.94);
     --border: #2e2e2e;
     --text: #f5f5f5;
     --text-dim: #9c9c9c;
@@ -73,6 +76,7 @@
   --bg: #0a0a0a;
   --surface: #131313;
   --surface-raised: #191919;
+  --island-resting-surface: rgba(25,25,25,.94);
   --border: #333333;
   --text: #f5f5f5;
   --text-dim: #9c9c9c;
@@ -859,23 +863,29 @@ body.mac .vertical-tabs-toolbar {
   align-items: center;
   gap: 10px;
   margin-top: 10px;
-  padding: 4px 14px;
+  height: calc(var(--island-resting-height) / var(--pill-zoom));
+  padding: 0 14px;
   /* Scale the whole resting pill — and every element inside it (buttons,
      favicon, domain, dots, shield, the dot favicon-peek) — up proportionally
      in one place. `zoom` reflows (so the pill genuinely grows and its box
      drives layout) and re-rasterizes text crisp, unlike `transform: scale`.
-     Kept in lockstep with `--strip-h` (56 × 1.15 ≈ 64) so the band grows with
-     it and the web view below drops to match. Only the collapsed pill scales;
-     the expanded panel is a separate overlay surface. */
+     Its fixed height and radius are counter-scaled below so zoom preserves
+     the canonical rendered geometry. Only the collapsed pill scales; the
+     expanded panel is a separate overlay surface. */
   zoom: var(--pill-zoom);
+  position: relative;
+  isolation: isolate;
   /* Clear the macOS traffic lights / window controls on narrow windows.
      `100vw` resolves against the unscaled viewport, but `zoom` then multiplies
      the used length — so divide by the zoom to keep the real 170px clearance
      (without this the pill renders 1.15× wider and runs under the controls). */
   max-width: calc((100vw - 170px) / var(--pill-zoom));
-  background: var(--surface-raised);
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  background: transparent;
+  /* Keep the one-pixel border in layout while the visible material moves to
+     ::after. The resting pill has no transform, which keeps the URL and
+     glyphs as crisp as the website until the unified proximity response. */
+  border: 1px solid transparent;
+  border-radius: calc(var(--island-resting-radius) / var(--pill-zoom));
   white-space: nowrap;
   cursor: pointer;
 
@@ -887,27 +897,38 @@ body.mac .vertical-tabs-toolbar {
      the lean plus larger magnitudes displaced edge buttons by up to ~15px
      during approach and caused mis-clicks, so the motion is vertical-only now.
 
-     THE RISE IS LOAD-BEARING, not decoration. The shadow below fades to
-     nothing exactly at the strip's bottom edge — there is no headroom at all
-     (see the --shadow-pill note in tokens/layout.css). Scaling would clip it
-     twice: the box grows downward AND the shadow stretches with it. The rise
-     out-runs both, so the shadow's bottom edge actually pulls UP as you
-     approach. Shrink the rise or grow the scale and the shadow starts getting
-     sliced again — test/unit/island-proximity.test.js fails if you do.
+     The rise remains load-bearing: it out-runs the face and shadow growth, so
+     the website shadow stays fully visible above the webpage boundary at
+     every proximity value. The shadow itself never changes; the copied stack
+     is the single authority for the island's material treatment.
 
-     The shadow deepens by DARKNESS only; its offset, blur and spread never
-     change. Growing its size is what would clip, and a denser shadow reads as
-     "closer to the surface" anyway. */
+     The entire island grows together: face, URL, dots, shield, and trailing
+     controls. Keep the resting transform at `none` so the idle layer stays
+     pixel-sharp; renderer.js adds `.proximity-active` only while the cursor is
+     near enough for the unified rise/grow response. */
   transform-origin: 50% 0%;
+  transform: none;
+  transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#islandPill::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--island-resting-surface);
+  border: 1px solid var(--border);
+  border-radius: inherit;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-island-resting);
+}
+
+#islandPill.proximity-active {
   transform:
     translateY(calc(-2px * var(--island-k, 0)))
     scale(calc(1 + 0.02 * var(--island-k, 0)));
-  box-shadow:
-    var(--shadow-pill),
-    0 2px 16px -3px rgba(14, 14, 14, calc(0.07 * var(--island-k, 0)));
-  transition:
-    transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
-    box-shadow 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Direct tab targets: globally reachable standalone pins, then the active
@@ -952,6 +973,7 @@ body.mac .vertical-tabs-toolbar {
    `display: none`; restore it (higher specificity) so the contextual
    downloads button can hide itself. */
 .pill-btn[hidden] { display: none; }
+:root[data-tab-layout="vertical"] #pillNewTab { display: none; }
 .pill-btn:hover { background: var(--accent-dim); color: var(--accent); }
 .pill-btn:disabled { color: var(--border); cursor: default; background: transparent; }
 .pill-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
@@ -1128,25 +1150,66 @@ body.mac .vertical-tabs-toolbar {
   }
 }
 
-/* The "/" chip — a real button that opens the panel showing the command
-   list. Mono because the slash palette it opens is mono. A bare "/" cannot
-   say what it does, so clicking it shows you instead. */
+/* Quiet shortcut keycaps sit beside the domain. Slash opens the command list;
+   Plus creates a tab. Their shared outline keeps both secondary to the URL
+   and leaves Reload/Favorite/Close as the untouched trailing action cluster. */
+.pill-shortcuts {
+  display: flex;
+  align-items: center;
+  gap: calc(4px / var(--pill-zoom));
+  flex: 0 0 auto;
+}
+/* The vertical rail already owns New tab. Once a real page also hides Slash,
+   collapse their wrapper so the Island does not retain an empty flex item
+   (and the parent's inter-item gap) ahead of the trailing separator. */
+:root[data-tab-layout="vertical"] .pill-shortcuts:has(#pillSlash[hidden]) {
+  display: none;
+}
+.pill-slash,
+.pill-shortcut {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: calc(5px / var(--pill-zoom));
+  color: var(--text-dim);
+  background: transparent;
+  flex: 0 0 auto;
+  cursor: pointer;
+  position: relative;
+}
 .pill-slash {
   font-family: var(--font-mono);
   font-size: calc(10px / var(--pill-zoom));
-  line-height: calc(15px / var(--pill-zoom));
-  color: var(--text-dim);
-  background: transparent;
+  line-height: 1;
+}
+.pill-slash::before,
+.pill-shortcut::before {
+  content: '';
+  position: absolute;
+  width: calc(18px / var(--pill-zoom));
+  height: calc(17px / var(--pill-zoom));
   border: 1px solid var(--border);
   border-radius: calc(5px / var(--pill-zoom));
-  padding: 0 calc(5px / var(--pill-zoom));
-  flex: 0 0 auto;
-  cursor: pointer;
+  pointer-events: none;
 }
-.pill-slash:hover { color: var(--accent); border-color: var(--accent); }
+.pill-shortcut svg {
+  width: calc(11px / var(--pill-zoom));
+  height: calc(11px / var(--pill-zoom));
+  /* Same --text-dim ink as Slash; the tiny weight correction compensates for
+     SVG stroke antialiasing so the two glyphs read equally dark at Retina. */
+  stroke-width: 1.5;
+}
+.pill-slash:hover,
+.pill-shortcut:hover { color: var(--accent); background: transparent; }
+.pill-slash:hover::before,
+.pill-shortcut:hover::before { border-color: var(--accent); }
 .pill-slash[hidden] { display: none; }
 
-[data-theme="private"] #islandPill { border: 1px dashed var(--text-dim); }
+[data-theme="private"] #islandPill::after { border: 1px dashed var(--text-dim); }
 
 /* Quick exit chips — clicking one closes the tab. Shared geometry; the
    private chip keeps the dashed accent treatment that marks the mode, while
@@ -1821,13 +1884,13 @@ body[data-glance-purpose="change"] .glance-picker {
 #addressInput {
   flex: 1 1 auto;
   min-width: 0;
-  height: 28px;
+  height: 36px;
   padding: 0 12px;
   font-family: var(--font-ui);
   font-size: 12.5px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 999px;
+  border-radius: 14px;
   color: var(--text);
 }
 #addressInput::placeholder { color: var(--text-dim); }
@@ -3079,6 +3142,7 @@ body.fill-status-surface { background: transparent; }
      the inverted glyph all remain. */
   .dl-done-disc { animation: none; }
   /* The proximity reaction is entirely decorative — off, not just instant. */
-  #islandPill { transform: none; transition: none; box-shadow: var(--shadow-pill); }
+  #islandPill,
+  #islandPill.proximity-active { transform: none; transition: none; }
   #strip { transition: none; }
 }

@@ -6292,7 +6292,7 @@ function createMainWindowForRuntime(runtime, { ensureStartTab = false } = {}) {
     event.preventDefault();
     newWindow.setTitle(profileWindowTitle(localProfiles.getLocalProfile(runtime.profileId)));
   }));
-  // The strip's own 64px band. Its document IS the window, so no offset.
+  // The strip's own 68px band. Its document IS the window, so no offset.
   watchCursorFor(newWindow.webContents, { x: 0, y: 0 },
     (fn) => bindWindowRuntime(runtime, fn));
 

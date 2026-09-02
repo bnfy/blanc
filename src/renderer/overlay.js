@@ -2337,9 +2337,9 @@
     // Scaling warps the corners: a round corner under a non-uniform scale
     // renders as an ellipse, and no amount of pre-compensating the radius
     // holds it steady, because the radius interpolates linearly while the
-    // scale does not. The panel's resting corner (18px) and the pill's
-    // (half its height, ~19px) are nearly the same, so the corner should
-    // barely move at all — and with real width and height it doesn't.
+    // scale does not. The panel moves from the resting island's canonical
+    // 17px corner to its own 18px corner, so the corner barely moves at all —
+    // and with real width and height it doesn't.
     //
     // It also means the contents are revealed rather than squashed, so they
     // never rubber out on the way in.
@@ -2354,7 +2354,7 @@
     islandPanel.classList.add('morph-start');
     islandPanel.style.width = `${pillRect.width.toFixed(1)}px`;
     islandPanel.style.height = `${pillRect.height.toFixed(1)}px`;
-    islandPanel.style.borderRadius = `${(pillRect.height / 2).toFixed(1)}px`;
+    islandPanel.style.borderRadius = 'var(--island-resting-radius)';
     islandPanel.style.setProperty('--morph-x', `${(pillCentre - panelCentre).toFixed(2)}px`);
     islandPanel.style.setProperty('--morph-y', `${(pillRect.y - panelBox.top).toFixed(2)}px`);
 
@@ -2420,7 +2420,7 @@
       const centreShift = (pill.x + pill.width / 2) - (box.left + box.width / 2);
       islandPanel.style.width = `${pill.width.toFixed(1)}px`;
       islandPanel.style.height = `${pill.height.toFixed(1)}px`;
-      islandPanel.style.borderRadius = `${(pill.height / 2).toFixed(1)}px`;
+      islandPanel.style.borderRadius = 'var(--island-resting-radius)';
       islandPanel.style.setProperty('--morph-x', `${centreShift.toFixed(2)}px`);
       islandPanel.style.setProperty('--morph-y', `${(pill.y - box.top).toFixed(2)}px`);
     });

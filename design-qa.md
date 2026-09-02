@@ -176,6 +176,91 @@ final result: passed
 
 ---
 
+# Design QA — website-inspired resting Island
+
+## Comparison target
+
+- Source visual truth: `/Users/anthonyjloria/Desktop/Blanc/Screenshot 2026-09-02 at 3.09.47 PM.png`.
+- Final full-window implementation: `/private/tmp/blanc-island-resting-final-window.png`.
+- Final focused resting implementation: `/private/tmp/blanc-island-focused-final-2x.png`.
+- Final focused hover implementation: `/private/tmp/blanc-island-hover-2x.png`.
+- Expanded-state implementation: `/private/tmp/blanc-island-expanded-final.png`.
+- Narrow-state implementation: `/private/tmp/blanc-island-narrow-2x.png`.
+
+## Normalization and state
+
+- The source is 956 × 154 pixels at Retina density, representing a 478 × 77 CSS-pixel crop. The visible website face is approximately 48 CSS pixels high.
+- The focused resting implementation is 818 × 136 pixels at device scale factor 2, representing a 409 × 68 CSS-pixel strip crop. CDP measured the live Island itself at 377.69 × 44 CSS pixels.
+- The full-window implementation is a 1229 × 768 macOS Computer Use capture of the live 1280 × 800 CSS-pixel Electron viewport. It is composition evidence; the equal-density focused captures are the fidelity authority.
+- State: macOS, light appearance, resting proximity `k=0`, normal horizontal tabs, live dynamic tab content. The user-approved app specification intentionally uses a 44px face and 17px radius rather than copying the website component's approximately 48px face and near-capsule radius.
+- The source and implementation contain different controls and dynamic text, so comparison is limited to the requested material, edge, shadow, typography crispness, vertical density, and interaction behavior rather than exact width or content alignment.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Fonts and typography: the URL resolves to bundled Inter at weight 400. The resting transform is `none`, keeping the idle URL and glyph layer sharp; the unified proximity transform exists only while hover proximity is active. Long URLs remain single-line and ellipsize (`scrollWidth 476`, `clientWidth 189` in the 640px check).
+- Spacing and layout rhythm: live geometry is exactly 44px high with a 17px rendered radius inside a 68px strip. The copied shadow remains inside the strip at rest and at the 2% hover scale. The expanded address input is 36px high with a 14px radius, and the panel morph uses 17px at the collapsed endpoints and 18px when fully open.
+- Colors and visual tokens: light mode uses `rgba(255,255,255,.94)`, `#dedede`, 16px backdrop blur, and the exact three-layer website shadow. Dark uses `rgba(31,31,31,.94)` with `#2e2e2e`; private uses `rgba(25,25,25,.94)` with its existing dashed state treatment.
+- Image quality and asset fidelity: the Island introduces no new raster imagery or replacement art. Existing favicons and Lucide-style application glyphs remain on their original rendering paths; no source asset was approximated.
+- Copy and content: no app-specific copy changed. The live domain, placeholder, counts, chips, and accessible labels continue to come from existing state.
+- Icons and affordances: trailing reload, favorite, close, and contextual downloads controls remain individually bare. The trailing group and each visible action compute to transparent backgrounds with no group shadow or shared dark wrapper.
+- Interaction state: at proximity `k=1`, the whole Island computes `matrix(1.02, 0, 0, 1.02, 0, -2)`. Measured URL, dot, and reload geometry each scales by 1.02; the shield and contextual chips share that same parent transform when visible. At `k=0` the whole Island returns to `transform: none`.
+- Responsiveness and accessibility: the 640px horizontal, vertical-tabs, and Glance constraints keep the Island within the available pane; long content truncates. Reduced-motion forces both resting and proximity-active states to `transform: none` with no transition. Existing role, keyboard entry, focus, private, capture, and contextual-chip behavior is unchanged.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P2] The first live implementation looked softer than the website reference in the focused Retina comparison because the resting content layer was continuously transform-composited.
+
+Fix: moved the exact website face, border, blur, and shadow onto the Island material pseudo-element and made the resting content layer explicitly `transform: none`.
+
+### Iteration 2 — blocked
+
+- [P1] The first crispness correction scaled only the material face on proximity. User review correctly identified that the URL, dots, shield, and trailing controls no longer grew together with the Island.
+
+Fix: restored the unified 2% rise/grow transform to `#islandPill`, gated it behind `.proximity-active`, restored resting-box compensation in `renderer.js`, and kept the exact website material stack unchanged.
+
+### Iteration 3 — passed
+
+Post-fix evidence:
+
+- `/private/tmp/blanc-island-focused-final-2x.png`
+- `/private/tmp/blanc-island-hover-2x.png`
+- `/private/tmp/blanc-island-resting-final-window.png`
+
+The final resting capture is crisp, and measured child geometry confirms the full Island scales as one object during proximity hover. The supplied website source and final focused capture were opened together in the same comparison input; no actionable P0/P1/P2 visual drift remains within the approved 44px/17px app geometry.
+
+## Functional evidence
+
+- Token generation and validation: `npm run tokens:build` and `npm run tokens:check` passed.
+- Complete unit suite: 1,386 tests passed, 0 failed.
+- Live state sweep: 1280px and 640px widths, horizontal tabs, vertical tabs, Glance constraint, light/dark/private material, reduced motion, long URL ellipsis, bare trailing actions, expanded input, and open/close restoration checked.
+- Proximity geometry: URL, active dot, and reload action measured at 1.02× together; resting geometry returned exactly to 44px with no transform.
+- `git diff --check` passed.
+
+## Open questions
+
+None.
+
+## Implementation checklist
+
+- [x] Preserve 44px resting height, 17px radius, and 68px chrome strip.
+- [x] Copy the website face, border, blur, and exact shadow stack.
+- [x] Keep Inter regular URL typography and bare trailing actions.
+- [x] Preserve unified proximity rise/grow without extra shadow darkening.
+- [x] Use 36px/14px expanded address geometry and 17px morph endpoints.
+- [x] Verify themes, reduced motion, alternate layouts, narrow width, overflow, and contextual states.
+
+## Follow-up polish
+
+No P3 follow-up is required for this focused change.
+
+final result: passed
+
+---
+
 # Blanc Mahjong-inspired brand mark rollout — 2026-08-31
 
 ## Comparison target
@@ -1493,5 +1578,68 @@ No actionable P0, P1, or P2 findings remain.
 ## Follow-up polish
 
 No P3 follow-up is required for this correction.
+
+final result: passed
+
+---
+
+# Design QA — resting Island new-tab shortcut
+
+- Rejected CTA source: `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 3.56.22 PM.png`.
+- Spacing and color refinement source: `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 4.05.07 PM.png`.
+- Final full-window implementation: `/private/tmp/blanc-island-plus-keycap-tight-window.jpg`.
+- Final focused resting implementation: `/private/tmp/blanc-island-plus-keycap-resting-2x.png`.
+- Final focused proximity implementation: `/private/tmp/blanc-island-plus-keycap-hover-2x.png`.
+- Final keyboard-focus implementation: `/private/tmp/blanc-island-plus-keycap-focus-2x.png`.
+- Final matched-keycap crop: `/private/tmp/blanc-keycap-parity.png`.
+- Viewport and density: focused captures use the live 1280 × 800 CSS-pixel chrome renderer at macOS device scale factor 2. The resting Island measures 406.98 × 44 CSS pixels; Slash and Plus now share identical 25.30 × 25.30 CSS-pixel rendered hit targets and identical centered 18 × 17 CSS-pixel outlined faces before proximity scaling.
+- State: horizontal light appearance on a blank tab at rest and at proximity `k=1`; additional computed checks cover a regular page, private theme, vertical tabs, reduced motion, and a 640px viewport with a long domain.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Hierarchy: the Plus no longer reads as a CTA or competes with the URL. It sits immediately after the slash command keycap and shares its transparent face, one-pixel `--border` outline, compact radius, and accent-only hover treatment.
+- Color and optical weight: both glyphs compute to the exact same `rgb(107, 107, 107)` `--text-dim` ink in light mode. The Plus keeps that shared color and uses a small 1.5px stroke correction to counter the lighter antialiasing of its 11px SVG against the slash font glyph.
+- Grouping: Reload, Favorite, Close, and contextual Downloads remain the complete trailing action cluster. That cluster has a transparent background and no dark or shared wrapper.
+- Geometry and rhythm: the two shortcut keycaps form a quiet pair before the existing separator. Their dedicated wrapper reduces the rendered internal gap from the Island-wide 11.5px rhythm to 4px. Both outlined faces and full button targets are now exactly the same size; the Island remains exactly 44px tall, and the new placement avoids adding a fourth persistent icon to the trailing cluster.
+- Motion: the domain, Plus keycap, Reload, and Favorite each measured the same 1.02 scale ratio at maximum proximity, preserving the unified Island rise/grow response.
+- Responsive behavior: at 640px, the Island remains within the viewport and the long domain ellipsizes. The Plus computes `display: none` in vertical-tabs mode while the rail's existing New tab control remains available; on a nonblank vertical tab, the now-empty shortcut wrapper also collapses and consumes 0px rather than leaving an 11.5px Island gap.
+- Accessibility: the Plus remains a native button with `aria-label="New tab"`, the platform tooltip `New tab (⌘T)`, keyboard focus behavior inherited from the Island controls, and a non-bubbling click target.
+
+## Comparison history
+
+### Iteration 1 — functionally passed, visually superseded
+
+The initial bare Plus sat before Reload in the trailing action cluster. It created one regular ungrouped tab and focused the address field, but its position made the cluster busier.
+
+### Iteration 2 — rejected
+
+- [P1] A filled black circular CTA became the first element the eye landed on and broke the intended quiet Island hierarchy.
+
+Fix: removed the filled treatment entirely rather than muting it incrementally.
+
+### Iteration 3 — user-reviewed refinement
+
+The Plus adopted the existing slash-command keycap language beside that control, but the pair still inherited the Island-wide gap and the SVG Plus appeared optically lighter than the font-rendered slash.
+
+### Iteration 4 — passed
+
+The pair now has a dedicated 4px rendered gap. Both glyphs retain the exact same color token, with only a slight Plus stroke-weight correction for optical parity. The supplied refinement crop and final resting and focus captures were opened together in one comparison input; the pair is visibly tighter without becoming a combined wrapper or sacrificing either hit target.
+
+### Iteration 5 — passed
+
+Slash moved from a font-sized border box to the same 22px target and the same 18 × 17px pseudo-element outline as Plus. Live computed geometry and the matched crop confirm equal targets, equal faces, equal border weight/radius, and the retained 4px gap.
+
+## Functional evidence
+
+- Live Electron click check: tab dots increased from one to two, the new active tab showed the blank-address placeholder, and `#addressInput` received focus immediately.
+- Computed visual checks: identical slash/Plus `rgb(107, 107, 107)` ink, 25.30 × 25.30px targets, 18 × 17px outlined faces, 4px rendered pair gap, transparent faces and action cluster, exact shortcut adjacency, platform tooltip and accessible label, keycap-shaped focus ring, shared 1.02 proximity scale, zero-width empty wrapper in vertical mode, 640px fit and ellipsis, and zero-duration reduced-motion transition all passed.
+- `npm run tokens:check` passed.
+- Complete unit suite: 1,390 tests passed.
+
+## Follow-up polish
+
+No P3 follow-up is required for this focused change.
 
 final result: passed

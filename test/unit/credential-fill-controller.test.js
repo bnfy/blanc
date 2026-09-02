@@ -12,7 +12,8 @@ function harness({ inspect = {
   { vaultId: 'v', itemId: 'i', title: 'Example', vaultName: 'Personal' },
 ], revealError = null, settings = { onePasswordEnabled: true, onePasswordAccount: 'Account' },
 duringFind = null, startGeneration = 0,
-geometryResult = { ok: false }, duringGeometry = null } = {}) {
+geometryResult = { ok: false }, duringGeometry = null,
+pickerPoint = { x: 10, y: 20 } } = {}) {
   const calls = [];
   const state = { generation: startGeneration, urlCurrent: true };
   let scriptCall = 0;
@@ -37,7 +38,7 @@ geometryResult = { ok: false }, duringGeometry = null } = {}) {
   const target = {
     runtimeId: 1, tabId: 'tab', navEpoch: 3,
     url: 'https://example.com/login', webContents,
-    window: { isDestroyed: () => false }, pickerPoint: { x: 10, y: 20 },
+    window: { isDestroyed: () => false }, pickerPoint,
   };
   const broker = {
     findLogins: async () => {
@@ -303,6 +304,16 @@ test('unrevalidatable geometry falls back to the island pill anchor', async () =
   const { controller, calls } = harness({ candidates: TWO_CANDIDATES, geometryResult: { ok: false } });
   assert.equal((await controller.fill({})).ok, true);
   assert.deepEqual(calls.find((c) => c?.pickerPoint)?.pickerPoint, { x: 10, y: 20 });
+});
+
+test('missing island geometry falls back below the canonical 68px strip', async () => {
+  const { controller, calls } = harness({
+    candidates: TWO_CANDIDATES,
+    geometryResult: { ok: false },
+    pickerPoint: null,
+  });
+  assert.equal((await controller.fill({})).ok, true);
+  assert.deepEqual(calls.find((c) => c?.pickerPoint)?.pickerPoint, { x: 16, y: 68 });
 });
 
 test('invalidation during the geometry await never pops the picker', async () => {
