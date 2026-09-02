@@ -16,6 +16,28 @@ function uuid(number) {
   return `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 }
 
+class HookedStorage extends MemoryStorage {
+  constructor(entries) { super(entries); this.failKeys = new Set(); this.onSet = null; }
+  setItem(key, value) {
+    if (this.failKeys.has(key)) throw new Error(`write refused: ${key}`);
+    super.setItem(key, value);
+    if (this.onSet) { const hook = this.onSet; this.onSet = null; hook(key); }
+  }
+}
+
+function completion(layoutId, mode, extra = {}) {
+  return {
+    layoutId, layoutRevision: S.LAYOUT_REVISIONS[layoutId], mode, elapsedMs: 60_000, score: mode === 'tray' ? 1000 : 0,
+    scoringRevision: mode === 'tray' ? 2 : 0, completed: true, assists: { undo: 0, hint: 0, shuffle: 0 }, ...extra,
+  };
+}
+
+function rawEvent(storage, number, result, updatedAt) {
+  const eventId = uuid(number);
+  storage.setItem(`${S.RECORD_EVENT_PREFIX}${eventId}`, JSON.stringify({ version: 2, eventId, updatedAt, result }));
+  return eventId;
+}
+
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -665,4 +687,81 @@ test('daily results describe a cleared day per mode', () => {
   }, 6);
   assert.equal(S.describeDailyResult(classic, '2026-09-02', 'classic', formatMs), 'cleared · 1:01');
   assert.equal(S.describeDailyResult(classic, '2026-09-03', 'classic', formatMs), null);
+});
+
+test('totals count each completion once across repeated reads and are normalised safely', () => {
+  const storage = new HookedStorage();
+  let clock = 1000;
+  const store = S.createRecordStore({ storage, now: () => clock, uuid: () => uuid(clock++) });
+  store.record(completion('peaks', 'classic'));
+  store.record(completion('peaks', 'classic'));
+  store.record(completion('arch', 'tray'));
+  for (let i = 0; i < 3; i++) store.read();
+  const records = store.read();
+  assert.deepEqual(records.totals.cleared, { classic: { peaks: 2 }, tray: { arch: 1 } });
+  assert.equal(records.totals.countedEvents.length, 3);
+  assert.deepEqual(S.emptyRecords().totals, S.emptyTotals());
+  const oversized = Array.from({ length: S.MAX_RECORD_EVENTS * 3 }, (_, i) => uuid(10_000 + i));
+  assert.equal(
+    S.normalizeRecords({ version: 2, totals: { cleared: {}, countedEvents: oversized } }).totals.countedEvents.length,
+    oversized.length,
+    'normalisation never truncates seen ids; only compaction after a prune bounds them'
+  );
+  const corrupt = S.normalizeRecords({ version: 2, classic: { peaks: { layoutRevision: 1, bestTimeMs: 5 } }, totals: { cleared: { classic: { peaks: -4, castle: 2 }, tray: 'x' }, countedEvents: 'nope' } });
+  assert.deepEqual(corrupt.totals, S.emptyTotals());
+  assert.equal(corrupt.classic.peaks.bestTimeMs, 5, 'a corrupt totals block never disturbs best records');
+});
+
+test('only completed: true events increment totals; false or missing never do', () => {
+  const storage = new HookedStorage();
+  rawEvent(storage, 1, completion('peaks', 'classic'), 1);
+  rawEvent(storage, 2, completion('peaks', 'classic', { completed: false }), 2);
+  const missing = completion('peaks', 'classic');
+  delete missing.completed;
+  rawEvent(storage, 3, missing, 3);
+  const store = S.createRecordStore({ storage, now: () => 10, uuid: () => uuid(99) });
+  const records = store.read();
+  assert.deepEqual(records.totals.cleared, { classic: { peaks: 1 }, tray: {} });
+  assert.equal(records.totals.countedEvents.length, 3, 'non-counting events are still marked seen so they are never re-examined');
+  assert.deepEqual(store.read().totals.cleared, { classic: { peaks: 1 }, tray: {} });
+});
+
+test('a failed aggregate write leaves every event in place and never prunes', () => {
+  const storage = new HookedStorage();
+  for (let n = 1; n <= S.MAX_RECORD_EVENTS + 1; n++) rawEvent(storage, n, completion('turtle', 'classic'), n);
+  storage.failKeys.add(S.RECORDS_KEY);
+  const store = S.createRecordStore({ storage, now: () => 10_000, uuid: () => uuid(9_999) });
+  const view = store.read();
+  assert.equal(view.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1, 'the in-memory view still counts');
+  assert.equal(storage.getItem(S.RECORDS_KEY), null, 'nothing persisted');
+  const remaining = [...storage.values.keys()].filter((key) => key.startsWith(S.RECORD_EVENT_PREFIX));
+  assert.equal(remaining.length, S.MAX_RECORD_EVENTS + 1, 'no event pruned while the count is unpersisted');
+  storage.failKeys.clear();
+  const recovered = store.read();
+  assert.equal(recovered.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1);
+  const afterPrune = [...storage.values.keys()].filter((key) => key.startsWith(S.RECORD_EVENT_PREFIX));
+  assert.equal(afterPrune.length, S.MAX_RECORD_EVENTS);
+  assert.equal(storage.getItem(`${S.RECORD_EVENT_PREFIX}${uuid(1)}`), null, 'the oldest counted event is the one pruned');
+  assert.equal(recovered.totals.countedEvents.length, S.MAX_RECORD_EVENTS, 'countedEvents compacts to retained ids');
+  assert.ok(!recovered.totals.countedEvents.includes(uuid(1)));
+});
+
+test('an event written between persist and prune is never pruned before it is counted', () => {
+  const storage = new HookedStorage();
+  for (let n = 1; n <= S.MAX_RECORD_EVENTS + 1; n++) rawEvent(storage, n, completion('turtle', 'classic'), n);
+  const late = S.MAX_RECORD_EVENTS + 2;
+  // Another tab lands its completion the instant this tab persists its aggregate.
+  storage.onSet = (key) => { if (key === S.RECORDS_KEY) rawEvent(storage, late, completion('cross', 'tray'), late); };
+  const store = S.createRecordStore({ storage, now: () => 10_000, uuid: () => uuid(9_999) });
+  const first = store.read();
+  assert.equal(first.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1);
+  assert.equal(first.totals.cleared.tray.cross, undefined, 'the late event is not yet counted');
+  assert.notEqual(storage.getItem(`${S.RECORD_EVENT_PREFIX}${uuid(late)}`), null, 'the late event survived pruning');
+  assert.equal(storage.getItem(`${S.RECORD_EVENT_PREFIX}${uuid(1)}`), null, 'the oldest counted event was pruned instead');
+  const second = store.read();
+  assert.equal(second.totals.cleared.tray.cross, 1);
+  assert.equal(second.totals.cleared.classic.turtle, S.MAX_RECORD_EVENTS + 1, 'no double count');
+  const retained = [...storage.values.keys()].filter((key) => key.startsWith(S.RECORD_EVENT_PREFIX)).length;
+  assert.equal(retained, S.MAX_RECORD_EVENTS);
+  assert.equal(second.totals.countedEvents.length, S.MAX_RECORD_EVENTS);
 });
