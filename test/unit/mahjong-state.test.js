@@ -596,3 +596,75 @@ test('duplicate guard forks the newer live instance and announces its new id', (
   first.dispose();
   second.dispose();
 });
+
+test('game summaries expose resumable saves without touching access times', () => {
+  const storage = new MemoryStorage();
+  let clock = 1000;
+  const store = S.createGameStore({ storage, engine: E, now: () => clock });
+  const untouched = E.createGame({ seed: 1, layoutId: 'peaks', mode: 'tray' });
+  store.save(uuid(1), untouched);
+  clock = 2000;
+  const played = E.createGame({ seed: 2, layoutId: 'arch', mode: 'classic', dailyKey: '2026-09-02' });
+  const [first, second] = E.generateDeal({ seed: 2, layoutId: 'arch' }).solution[0];
+  E.removePair(played, first, second);
+  store.save(uuid(2), played);
+  clock = 3000;
+  const won = E.createGame({ seed: 3, layoutId: 'peaks', mode: 'classic' });
+  for (const pair of E.generateDeal({ seed: 3, layoutId: 'peaks' }).solution) E.removePair(won, ...pair);
+  store.save(uuid(3), won);
+
+  clock = 9000;
+  const summaries = store.summaries();
+  assert.deepEqual(summaries.map((entry) => entry.gameId), [uuid(3), uuid(2), uuid(1)]);
+  assert.deepEqual(summaries[1], {
+    gameId: uuid(2), lastAccessAt: 2000, layoutId: 'arch', mode: 'classic',
+    dailyKey: '2026-09-02', status: 'playing', started: true, pairsLeft: 47,
+  });
+  assert.equal(summaries[0].status, 'won');
+  assert.equal(summaries[2].started, false);
+  assert.equal(JSON.parse(storage.getItem(S.gameAccessKey(uuid(2)))).lastAccessAt, 2000, 'summaries never touch access');
+
+  assert.equal(S.resumeCandidate(summaries, { excludeGameId: uuid(9) }).gameId, uuid(2));
+  assert.equal(S.resumeCandidate(summaries, { excludeGameId: uuid(2) }), null);
+  assert.equal(S.resumeCandidate([], {}), null);
+});
+
+test('table preferences persist the last layout, mode, and deal source with safe defaults', () => {
+  const storage = new MemoryStorage();
+  const prefs = S.createPrefsStore({ storage });
+  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'daily' });
+  assert.equal(prefs.write({ layoutId: 'arch', mode: 'classic', source: 'random' }), true);
+  assert.deepEqual(prefs.read(), { layoutId: 'arch', mode: 'classic', source: 'random' });
+  assert.deepEqual(S.createPrefsStore({ storage }).read(), { layoutId: 'arch', mode: 'classic', source: 'random' });
+  storage.setItem(S.PREFS_KEY, JSON.stringify({ version: 1, layoutId: 'castle', mode: 'zen', source: 'random' }));
+  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'random' });
+  storage.setItem(S.PREFS_KEY, '{not json');
+  assert.deepEqual(prefs.read(), { layoutId: 'turtle', mode: 'tray', source: 'daily' });
+});
+
+test('completion outcome distinguishes a first clear, a new record, and no change', () => {
+  const classicBefore = { bestTimeMs: 90_000 };
+  assert.equal(S.completionOutcome({ mode: 'classic', before: null, after: null }), 'none');
+  assert.equal(S.completionOutcome({ mode: 'classic', before: null, after: { bestTimeMs: 100 } }), 'first');
+  assert.equal(S.completionOutcome({ mode: 'classic', before: classicBefore, after: { bestTimeMs: 80_000 } }), 'record');
+  assert.equal(S.completionOutcome({ mode: 'classic', before: classicBefore, after: { bestTimeMs: 90_000 } }), 'none');
+  const trayBefore = { bestScore: 3000, bestTimeMs: 100_000 };
+  assert.equal(S.completionOutcome({ mode: 'tray', before: trayBefore, after: { bestScore: 3100, bestTimeMs: 200_000 } }), 'record');
+  assert.equal(S.completionOutcome({ mode: 'tray', before: trayBefore, after: { bestScore: 3000, bestTimeMs: 90_000 } }), 'record');
+  assert.equal(S.completionOutcome({ mode: 'tray', before: trayBefore, after: { bestScore: 3000, bestTimeMs: 100_000 } }), 'none');
+});
+
+test('daily results describe a cleared day per mode', () => {
+  const formatMs = (ms) => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}`;
+  const records = S.applyResult(S.emptyRecords(), {
+    layoutId: 'arch', layoutRevision: 2, mode: 'tray', elapsedMs: 252_000, score: 3450,
+    scoringRevision: 2, completed: true, dailyKey: '2026-09-02', assists: {},
+  }, 5);
+  assert.equal(S.describeDailyResult(records, '2026-09-02', 'tray', formatMs), 'cleared · 3,450 pts · 4:12');
+  assert.equal(S.describeDailyResult(records, '2026-09-02', 'classic', formatMs), null);
+  const classic = S.applyResult(records, {
+    layoutId: 'arch', layoutRevision: 2, mode: 'classic', elapsedMs: 61_000, completed: true, dailyKey: '2026-09-02', assists: {},
+  }, 6);
+  assert.equal(S.describeDailyResult(classic, '2026-09-02', 'classic', formatMs), 'cleared · 1:01');
+  assert.equal(S.describeDailyResult(classic, '2026-09-03', 'classic', formatMs), null);
+});

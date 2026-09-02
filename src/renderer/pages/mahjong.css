@@ -1519,6 +1519,20 @@
   background: rgba(216, 185, 105, 0.08);
   font: 650 11px/1 var(--font-mono);
 }
+.mj-layout-choice:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: saturate(0.6);
+}
+.mj-layout-choice:disabled:hover { transform: none; }
+.mj-win-daily {
+  display: block;
+  margin-top: 9px;
+  color: var(--mj-muted);
+  font: 600 10px/1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+}
+.mj-win-daily[hidden] { display: none; }
 .mj-win-best.is-record {
   border-color: rgba(255, 219, 119, 0.78);
   color: #fff1bd;

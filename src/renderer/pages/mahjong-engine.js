@@ -401,13 +401,20 @@
     return { changed: true, expired, remainingMs: next };
   }
 
+  // A shuffle empties the rack, so tray indices recorded before the most
+  // recent shuffle belong to an earlier epoch. Only the current epoch's park
+  // and its priorTray references are rewritten when a parked tile matches;
+  // the shuffle action itself and everything before it stay intact so undo
+  // can walk back through the shuffle faithfully.
   function removeParkHistory(state, trayIndex) {
+    const epochStart = state.history.findLastIndex((action) => action.type === 'shuffle') + 1;
     const parkedAction = state.history.findLastIndex(
-      (action) => action.type === 'tray-park' && action.index === trayIndex
+      (action, offset) => offset >= epochStart && action.type === 'tray-park' && action.index === trayIndex
     );
     if (parkedAction >= 0) state.history.splice(parkedAction, 1);
-    for (const action of state.history) {
-      if (Array.isArray(action.priorTray)) {
+    for (let offset = epochStart; offset < state.history.length; offset++) {
+      const action = state.history[offset];
+      if (action.type !== 'shuffle' && Array.isArray(action.priorTray)) {
         action.priorTray = action.priorTray.filter((index) => index !== trayIndex);
       }
     }
@@ -584,6 +591,7 @@
     if (!state || !Array.isArray(state.history)) return false;
     const action = state.history.pop();
     if (!action) return false;
+    let restoredStatus = STATUSES.PLAYING;
     if (action.type === 'classic-pair') {
       state.removed[action.indices[0]] = false;
       state.removed[action.indices[1]] = false;
@@ -602,11 +610,17 @@
       state.maxCombo = action.priorMaxCombo;
       state.autoClears = action.priorAutoClears;
       state.selected = null;
+    } else if (action.type === 'shuffle') {
+      state.kinds = action.priorKinds.slice();
+      state.removed = action.priorRemoved.slice();
+      state.tray = action.priorTray.slice();
+      state.selected = null;
+      restoredStatus = action.priorStatus;
     } else {
       return false;
     }
     resetCombo(state);
-    state.status = STATUSES.PLAYING;
+    state.status = restoredStatus;
     state.completionRecorded = false;
     if (!state.assists) state.assists = { undo: 0, hint: 0, shuffle: 0 };
     state.assists.undo += 1;
@@ -663,11 +677,20 @@
       if (matchKey(nextKinds[first]) !== matchKey(nextKinds[second])) return false;
     }
     // Commit only after construction and replay validation both succeeded.
+    // The shuffle is itself an undoable action: it records the exact prior
+    // board (including parked rack tiles and Rescue status) so a stray
+    // keypress never destroys a game.
+    pushHistory(state, {
+      type: 'shuffle',
+      priorKinds: state.kinds.slice(),
+      priorRemoved: state.removed.slice(),
+      priorTray: (state.tray || []).slice(),
+      priorStatus: state.status,
+    });
     state.kinds = nextKinds;
     state.removed = nextRemoved;
     state.tray = [];
     state.selected = null;
-    state.history = [];
     resetCombo(state);
     state.status = STATUSES.PLAYING;
     if (!state.assists) state.assists = { undo: 0, hint: 0, shuffle: 0 };
@@ -743,6 +766,23 @@
           priorAutoClears,
           autoClear,
         });
+      } else if (raw.type === 'shuffle') {
+        if (!Array.isArray(raw.priorKinds) || raw.priorKinds.length !== length
+          || !raw.priorKinds.every((kind) => typeof kind === 'string' && KNOWN_KINDS.has(kind))
+          || !Array.isArray(raw.priorRemoved) || raw.priorRemoved.length !== length
+          || !raw.priorRemoved.every((value) => typeof value === 'boolean')
+          || !Array.isArray(raw.priorTray) || raw.priorTray.length > TRAY_SIZE
+          || new Set(raw.priorTray).size !== raw.priorTray.length
+          || !raw.priorTray.every((index) => validIndex(index, length) && raw.priorRemoved[index])
+          || ![STATUSES.PLAYING, STATUSES.RESCUE].includes(raw.priorStatus)
+          || (raw.priorStatus === STATUSES.RESCUE) !== (raw.priorTray.length === TRAY_SIZE)) return null;
+        result.push({
+          type: 'shuffle',
+          priorKinds: raw.priorKinds.slice(),
+          priorRemoved: raw.priorRemoved.slice(),
+          priorTray: raw.priorTray.slice(),
+          priorStatus: raw.priorStatus,
+        });
       } else return null;
     }
     return result;
@@ -766,6 +806,8 @@
         ...action,
         ...(action.indices ? { indices: action.indices.slice() } : {}),
         ...(action.priorTray ? { priorTray: action.priorTray.slice() } : {}),
+        ...(action.priorKinds ? { priorKinds: action.priorKinds.slice() } : {}),
+        ...(action.priorRemoved ? { priorRemoved: action.priorRemoved.slice() } : {}),
         ...(action.autoClear ? { autoClear: { ...action.autoClear, indices: action.autoClear.indices.slice() } } : {}),
       })),
       score: restored.score,

@@ -97,6 +97,7 @@
         <strong id="mjWinScore" class="mj-win-score">0</strong>
         <span id="mjWinUnit" class="mj-win-unit">points</span>
         <div id="mjWinBest" class="mj-win-best"></div>
+        <div id="mjWinDaily" class="mj-win-daily" hidden></div>
       </div>
       <div id="mjWinStats" class="mj-win-stats" hidden>
         <span><small>time</small><strong id="mjWinTime">0:00</strong></span>
@@ -113,8 +114,16 @@
       <div id="mjNotice" class="mj-notice" hidden>
         <span>No moves remain.</span>
         <button id="mjNoticeUndo" type="button">undo</button>
+        <span aria-hidden="true">·</span>
+        <button id="mjNoticeShuffle" type="button">shuffle</button>
         <span aria-hidden="true">or</span>
         <button id="mjNoticeNew" type="button">new deal</button>
+      </div>
+      <div id="mjResumeNotice" class="mj-notice" hidden>
+        <span id="mjResumeCopy">You left a board unfinished.</span>
+        <button id="mjResumeContinue" type="button">continue it</button>
+        <span aria-hidden="true">or</span>
+        <button id="mjResumeDismiss" type="button">keep this deal</button>
       </div>
       <div id="mjError" class="mj-notice mj-notice-error" hidden>
         <span>That deal could not be built.</span>
