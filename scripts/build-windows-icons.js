@@ -1,18 +1,22 @@
 #!/usr/bin/env node
 // Build Blanc's fixed Sunrise application icon for Windows. Windows gets the
-// freestanding mark rather than the macOS square tile, with a small optical
-// margin so it reads at the same scale as neighboring taskbar icons. The ICO
-// embeds raster frames for the sizes Windows commonly asks for instead of
-// relying on Electron to downsample one large PNG at runtime.
+// freestanding canonical mark rather than the macOS square tile. Its three
+// shortest reflection lines are omitted before the artwork is uniformly
+// scaled, preserving the original sun, horizon, rays, and their proportions.
+// The ICO embeds raster frames for the sizes Windows commonly asks for instead
+// of relying on Electron to downsample one large PNG at runtime.
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const sharp = require('sharp');
 
 const ROOT = path.join(__dirname, '..');
-const SOURCE_ICON = path.join(ROOT, 'build/windows-icons/sunrise-mark-simplified.png');
+const SOURCE_ICON = path.join(ROOT, 'build/app-icons/Icon.icon/Assets/sunrise-mark.png');
 const OUTPUT_DIR = path.join(ROOT, 'build/windows-icons');
 const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-sunrise.ico');
 const ICON_SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256];
+// The two widest reflection lines end at y=783 in the canonical 1024px source.
+// Cropping at 784 removes only the three shorter lines below them.
+const WINDOWS_SOURCE_CROP_HEIGHT = 784;
 const WINDOWS_VISIBLE_SCALE = 1;
 const WINDOWS_PIXEL_DELTA_TOLERANCE = 3;
 
@@ -136,7 +140,17 @@ async function createWindowsIcon() {
     throw new Error(`${path.relative(ROOT, SOURCE_ICON)} must be a square PNG`);
   }
 
-  const windowsSource = await sharp(SOURCE_ICON)
+  const croppedSource = await sharp(SOURCE_ICON)
+    .extract({
+      left: 0,
+      top: 0,
+      width: metadata.width,
+      height: WINDOWS_SOURCE_CROP_HEIGHT,
+    })
+    .png()
+    .toBuffer();
+
+  const windowsSource = await sharp(croppedSource)
     .ensureAlpha()
     .trim()
     .png()
@@ -181,6 +195,7 @@ module.exports = {
   ICON_SIZES,
   SOURCE_ICON,
   WINDOWS_PIXEL_DELTA_TOLERANCE,
+  WINDOWS_SOURCE_CROP_HEIGHT,
   WINDOWS_VISIBLE_SCALE,
   createIco,
   sameIcoPixels,

@@ -17,6 +17,7 @@ const {
   ICON_SIZES,
   SOURCE_ICON,
   WINDOWS_PIXEL_DELTA_TOLERANCE,
+  WINDOWS_SOURCE_CROP_HEIGHT,
   WINDOWS_VISIBLE_SCALE,
   createIco,
   sameIcoPixels,
@@ -100,11 +101,12 @@ test('packaging wires fixed Sunrise icons on Windows and Linux', () => {
   assert.deepEqual(sizes, ICON_SIZES);
 });
 
-test('Windows ICOs use the transparent Sunrise mark at the largest uncropped taskbar scale', async () => {
+test('Windows ICOs preserve the canonical Sunrise proportions while omitting three short reflections', async () => {
   assert.equal(
     path.relative(root, SOURCE_ICON),
-    'build/windows-icons/sunrise-mark-simplified.png',
+    'build/app-icons/Icon.icon/Assets/sunrise-mark.png',
   );
+  assert.equal(WINDOWS_SOURCE_CROP_HEIGHT, 784);
   assert.equal(WINDOWS_VISIBLE_SCALE, 1);
   const ico = fs.readFileSync(path.join(root, 'build/windows-icons/icon-sunrise.ico'));
   const frameIndex = ICON_SIZES.indexOf(32);
@@ -127,7 +129,7 @@ test('Windows ICOs use the transparent Sunrise mark at the largest uncropped tas
   assert.equal(opaqueBounds.minX, 0);
   assert.equal(opaqueBounds.maxX, 31);
   assert.ok(opaqueBounds.minY <= 2, `top inset is ${opaqueBounds.minY}px`);
-  assert.ok(opaqueBounds.maxY >= 29, `bottom edge is ${opaqueBounds.maxY}px`);
+  assert.ok(opaqueBounds.maxY >= 28, `bottom edge is ${opaqueBounds.maxY}px`);
 
   for (const [x, y] of [[0, 0], [31, 0], [0, 31], [31, 31]]) {
     assert.equal(data[((y * info.width) + x) * info.channels + 3], 0, `corner ${x},${y} is transparent`);

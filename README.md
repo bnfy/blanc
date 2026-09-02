@@ -86,9 +86,9 @@ To build an installable app: `npm run dist` (or `npm run dist:dir` for a
 quick unpacked build in `dist/`). Targets: macOS dmg/zip, Windows NSIS,
 Linux AppImage. `assets/sunrise-app-icon.png` is the canonical static app-icon
 source for Linux and iOS, and the brand build copies it to `build/icon.png`.
-Windows generates its multi-frame ICO from the transparent, taskbar-optimized
-`build/windows-icons/sunrise-mark-simplified.png`; macOS uses the
-appearance-aware Sunrise Icon Composer document.
+Windows generates its multi-frame ICO from the canonical transparent Sunrise
+mark, omitting only its three shortest reflection lines for taskbar scale;
+macOS uses the appearance-aware Sunrise Icon Composer document.
 
 ## The island
 
