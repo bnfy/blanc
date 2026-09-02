@@ -637,7 +637,14 @@ test('the Records dock action and sheet are wired with accessible semantics', ()
   assert.match(mahjongStyles, /\.mj-records-table tr\[aria-current="true"\] th\s*\{/);
   assert.match(mahjongStyles, /\.mj-records-strip i\.is-cleared\s*\{/);
   assert.match(mahjongStyles, /\.mj-records-strip i\.is-today\s*\{/);
-  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 720px\)\s*\{[^@]*\.mj-dock\s*\{[^}]*repeat\(6, 54px\)/);
+  // The rail is sized from the embedded frame's height (the start page's
+  // footer sits outside it), in tiers measured against the Burst table:
+  // 611–659 → 52/10, 660–720 → 56/14, ≥721 → the desktop block's 64/16.
+  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 659px\)\s*\{[^@]*\.mj-dock\s*\{[^}]*grid-template-rows:\s*repeat\(6, 52px\);[^}]*gap:\s*10px;/);
+  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 659px\)\s*\{[^@]*\.mj-dock > button\s*\{[^}]*width:\s*52px;[^}]*height:\s*52px;[^}]*min-width:\s*52px;[^}]*min-height:\s*52px;/);
+  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 660px\) and \(max-height: 720px\)\s*\{[^@]*\.mj-dock\s*\{[^}]*grid-template-rows:\s*repeat\(6, 56px\);[^}]*gap:\s*14px;/);
+  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 660px\) and \(max-height: 720px\)\s*\{[^@]*\.mj-dock > button\s*\{[^}]*width:\s*56px;[^}]*height:\s*56px;[^}]*min-width:\s*56px;[^}]*min-height:\s*56px;/);
+  assert.doesNotMatch(mahjongStyles, /repeat\(6, 54px\)/);
 });
 
 test('the Records sheet opens from the dock and R, paints from the pure summary, and returns focus', () => {

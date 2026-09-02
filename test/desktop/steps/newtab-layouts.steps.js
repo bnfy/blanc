@@ -216,9 +216,11 @@ Then('the embedded mahjong game is ready', async function () {
     Math.abs(game.dockButtonWidth - game.dockButtonHeight) <= 0.5,
     `dock control must be circular (${game.dockButtonWidth}px × ${game.dockButtonHeight}px)`
   );
-  assert.ok(game.dockButtonWidth >= 63.5, `dock control is too small (${game.dockButtonWidth}px)`);
+  // At the 1280x800 default the embedded frame is ~668px tall (the start
+  // page's footer sits outside it), which is the 56px/14px rail tier.
+  assert.ok(game.dockButtonWidth >= 55.5, `dock control is too small (${game.dockButtonWidth}px)`);
   assert.equal(game.dockButtonCount, 6, 'the dock exposes boards, records, undo, hint, shuffle, and sound');
-  assert.ok(game.dockButtonGap >= 15.5, `dock controls are too close (${game.dockButtonGap}px)`);
+  assert.ok(game.dockButtonGap >= 13.5, `dock controls are too close (${game.dockButtonGap}px)`);
   const completion = await this.call('readMahjongCompletionGeometry');
   assert.ok(completion, 'completion geometry should be measurable');
   assert.ok(completion.centerDeltaX <= 1, `completion x center drifted ${completion.centerDeltaX}px`);
@@ -236,35 +238,53 @@ Then('the embedded mahjong game is ready', async function () {
   );
 });
 
+// The rail's media queries measure the embedded Mahjong frame, which is the
+// window minus the start page's footer (~132px). Expected tier is derived from
+// the frame height the app reports, so the step never hard-codes that offset.
+function expectedRailTier(frameHeight) {
+  if (frameHeight >= 721) return { button: 64, gap: 16, label: 'full 64/16' };
+  if (frameHeight >= 660) return { button: 56, gap: 14, label: '56/14' };
+  if (frameHeight >= 611) return { button: 52, gap: 10, label: '52/10' };
+  return null; // below the rail: the dock is the horizontal bar
+}
+
 Then('the six-control Mahjong rail fits its table at every desktop breakpoint', async function () {
   const original = await this.call('windowContentBounds');
   assert.ok(original, 'window content bounds should be available');
-  const sizes = [
-    { width: 1000, height: 611, minButton: 53.5, label: 'rail breakpoint (compact fallback)' },
-    { width: 1000, height: 720, minButton: 53.5, label: 'top of the compact fallback' },
-    { width: 1000, height: 721, minButton: 63.5, label: 'full-size rail resumes' },
-    { width: 1280, height: 800, minButton: 63.5, label: 'default' },
-  ];
+  // Window heights chosen to land the embedded frame on every tier edge:
+  // 743→611 (lowest rail), 791→659, 792→660, 800→668 (the real default),
+  // 852→720, 853→721 (full-size rail), plus 742→610 (bar, not rail).
+  const sizes = [742, 743, 791, 792, 800, 852, 853].map((height) => ({ width: 1280, height }));
+  const seenTiers = new Set();
   try {
     for (const size of sizes) {
       await this.call('setWindowContentSize', size.width, size.height);
       await waitForValue(
         () => this.call('windowContentBounds'),
         (bounds) => bounds?.width === size.width && bounds?.height === size.height,
-        `${size.label} desktop content bounds`
+        `${size.width}x${size.height} desktop content bounds`
       );
       const game = await waitForValue(
         () => this.call('readMahjongEmbedDom'),
         (value) => value?.viewportWidth === size.width && value.dockButtonCount === 6,
-        `six-control Mahjong rail at the ${size.label} size`
+        `six-control Mahjong dock at ${size.width}x${size.height}`
       );
-      const context = `rail at ${size.width}x${size.height}`;
-      assert.ok(game.dockTop >= game.boardFrameTop - 1, `${context} starts above the table`);
-      assert.ok(game.dockBottom <= game.boardFrameBottom + 1, `${context} ends below the table`);
+      const tier = expectedRailTier(game.viewportHeight);
+      const context = `dock at ${size.width}x${size.height} (frame ${game.viewportHeight}px, ${tier ? tier.label : 'bar'})`;
+      assert.equal(game.dockButtonCount, 6, `${context} must expose six controls`);
+      if (!tier) {
+        assert.ok(game.dockTop >= game.boardFrameBottom - 1, `${context} should sit below the table as a bar`);
+        continue;
+      }
+      seenTiers.add(tier.label);
+      assert.ok(game.dockTop >= game.boardFrameTop - 1, `${context} starts above the table (dockTop ${game.dockTop}, frameTop ${game.boardFrameTop})`);
+      assert.ok(game.dockBottom <= game.boardFrameBottom + 1, `${context} ends below the table (dockBottom ${game.dockBottom}, frameBottom ${game.boardFrameBottom})`);
       assert.ok(game.dockLeft >= game.boardFrameLeft - 1, `${context} starts left of the table`);
       assert.ok(Math.abs(game.dockButtonWidth - game.dockButtonHeight) <= 0.5, `${context} controls must stay circular`);
-      assert.ok(game.dockButtonWidth >= size.minButton, `${context} control is too small (${game.dockButtonWidth}px)`);
+      assert.ok(game.dockButtonWidth >= tier.button - 0.5, `${context} control is too small (${game.dockButtonWidth}px)`);
+      assert.ok(game.dockButtonGap >= tier.gap - 0.5, `${context} controls are too close (${game.dockButtonGap}px)`);
     }
+    assert.deepEqual([...seenTiers].sort(), ['52/10', '56/14', 'full 64/16'], 'every rail tier must be exercised');
   } finally {
     await this.call('setWindowContentSize', original.width, original.height);
     await waitForValue(

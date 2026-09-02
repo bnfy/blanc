@@ -1978,10 +1978,21 @@
   .mj-tray-slot { width: 64px; height: 74px; }
 }
 
-@media (min-width: 1000px) and (min-height: 611px) and (max-height: 720px) {
-  .mj-dock { grid-template-rows: repeat(6, 54px); gap: 10px; width: 54px; }
-  .mj-dock > button { width: 54px; height: 54px; }
-  .mj-dock-icon { width: 28px; height: 28px; flex-basis: 28px; }
+/* The rail is sized from the embedded frame's height, not the window's: the
+   start page's footer sits outside this document. Tiers were measured against
+   the worst case (a Burst table, whose rack sits below the board): six
+   controls must fit a 369px table at a 611px frame and a 418px table at
+   660px. At 721px and above the desktop block's 64px/16px rail fits. */
+@media (min-width: 1000px) and (min-height: 611px) and (max-height: 659px) {
+  .mj-dock { grid-template-rows: repeat(6, 52px); gap: 10px; width: 52px; }
+  .mj-dock > button { width: 52px; height: 52px; min-width: 52px; min-height: 52px; }
+  .mj-dock-icon { width: 26px; height: 26px; flex-basis: 26px; }
+}
+
+@media (min-width: 1000px) and (min-height: 660px) and (max-height: 720px) {
+  .mj-dock { grid-template-rows: repeat(6, 56px); gap: 14px; width: 56px; }
+  .mj-dock > button { width: 56px; height: 56px; min-width: 56px; min-height: 56px; }
+  .mj-dock-icon { width: 29px; height: 29px; flex-basis: 29px; }
 }
 
 @media (max-width: 1080px) {
