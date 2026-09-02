@@ -1,12 +1,19 @@
-<div id="consent" class="consent" role="region" aria-label="Measurement consent" hidden>
-  <div class="consent-row">
-    <span class="consent-copy">
-      <span>Optional analytics and ad measurement help us gauge interest — allow?</span>
-      <a href="/privacy">privacy</a>
-    </span>
-    <div class="consent-actions">
-      <button id="consentAllow">Allow</button>
-      <button id="consentDeny" class="ghost">No thanks</button>
-    </div>
+<div
+  id="consent"
+  class="consent"
+  role="dialog"
+  aria-modal="false"
+  aria-labelledby="consentTitle"
+  aria-describedby="consentDescription"
+  hidden
+>
+  <h2 id="consentTitle">Help improve Blanc</h2>
+  <p id="consentDescription" class="consent-copy">
+    Allow analytics and limited ad measurement to see what visitors explore.
+  </p>
+  <div class="consent-actions">
+    <button id="consentAllow" type="button">Allow</button>
+    <button id="consentDeny" class="ghost" type="button">No thanks</button>
+    <a href="/privacy">Privacy details</a>
   </div>
 </div>

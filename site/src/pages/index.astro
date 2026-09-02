@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import BrandMark from '../components/BrandMark.astro';
 import { version } from '../../../package.json';
 
 const graph = {
@@ -72,6 +73,7 @@ const graph = {
 <!-- ============ hero: message, then the live island demo ============ -->
   <header class="hero">
   <div class="hero-intro">
+    <BrandMark class="hero-sunrise-mark" />
     <p class="hero-eyebrow">Blanc for macOS, Windows and Linux</p>
     <h1>A minimal desktop browser<br />that gets out of the way.</h1>
   </div>
@@ -133,7 +135,10 @@ const graph = {
         <div class="dots" id="demoDots"></div>
         <span class="pill-fav" id="demoFav"></span>
         <span class="domain" id="demoDomain"></span>
-        <span class="pill-slash" id="demoSlash" hidden>/</span>
+        <span class="pill-shortcuts">
+          <span class="pill-slash" id="demoSlash" hidden>/</span>
+          <span class="pill-shortcut" title="New tab (⌘T)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg></span>
+        </span>
         <span class="shield" id="demoShield"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></svg><span class="shield-count" id="demoShieldCount"></span></span>
         <span class="psep"></span>
         <div class="pacts">
@@ -243,6 +248,7 @@ const graph = {
             <div class="dots"><span></span><span class="cur"></span><span></span><span></span></div>
             <span class="pill-fav" style="background-image:url('/favicons/notion.so.ico')"></span>
             <span class="domain">notion.so</span>
+            <span class="pill-shortcuts"><span class="pill-shortcut" title="New tab (⌘T)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.25v9.5M3.25 8h9.5"/></svg></span></span>
             <span class="shield"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.8l5 1.9v3.8c0 3.1-2.1 5.3-5 6.7-2.9-1.4-5-3.6-5-6.7V3.7z"/><path d="M4.4 11.47 12.61 3.55"/></svg><span class="shield-count">1</span></span>
             <span class="psep"></span>
             <div class="pacts">

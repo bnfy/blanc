@@ -136,44 +136,47 @@ try {
   document.head.appendChild(script);
 
   const banner = document.getElementById('consent');
+  const allowButton = document.getElementById('consentAllow');
+  const denyButton = document.getElementById('consentDeny');
+  const choiceButtons = document.querySelectorAll('[data-consent-open]');
   // Version the broader choice so an earlier analytics-only Allow is not
   // silently treated as consent to the newly added ad-conversion purpose.
   const consent = localStorage.getItem('measurement-consent-v2');
   if (consent === 'granted') {
     window.gtag('consent', 'update', { analytics_storage: 'granted' });
-  } else if (consent !== 'denied' && banner) {
+  }
+
+  let leaveTimer = null;
+  const showConsent = ({ focus = false } = {}) => {
+    if (!banner) return;
+    if (leaveTimer) clearTimeout(leaveTimer);
+    banner.classList.remove('is-leaving');
     banner.hidden = false;
-    document.body.classList.add('has-consent');
-    // How tall the bar ends up depends on how the question wraps, which moves
-    // with viewport width and with whichever font actually loaded. The hero and
-    // footer hold back --consent-h, so measure it rather than guess: a reserve
-    // that guesses low puts the hero's CTA under the bar. The CSS value stands
-    // in until this runs.
-    const reserve = () => {
-      document.documentElement.style.setProperty('--consent-h', banner.offsetHeight + 'px');
-    };
-    reserve();
-    const observer = window.ResizeObserver ? new ResizeObserver(reserve) : null;
-    if (observer) observer.observe(banner);
-    const dismiss = (choice) => {
-      localStorage.setItem('measurement-consent-v2', choice);
-      // Let the bar slide out before it leaves the layout, so the hero and the
-      // footer only take back their reserved space once it has gone.
-      banner.classList.add('is-leaving');
-      setTimeout(() => {
-        banner.hidden = true;
-        banner.classList.remove('is-leaving');
-        document.body.classList.remove('has-consent');
-        if (observer) observer.disconnect();
-      }, 200);
-    };
-    document.getElementById('consentAllow').addEventListener('click', () => {
-      dismiss('granted');
+    if (focus) requestAnimationFrame(() => allowButton?.focus());
+  };
+  const dismissConsent = (choice) => {
+    localStorage.setItem('measurement-consent-v2', choice);
+    banner.classList.add('is-leaving');
+    leaveTimer = setTimeout(() => {
+      banner.hidden = true;
+      banner.classList.remove('is-leaving');
+      leaveTimer = null;
+    }, 180);
+  };
+
+  if (consent !== 'granted' && consent !== 'denied') showConsent();
+  choiceButtons.forEach((button) => {
+    button.addEventListener('click', () => showConsent({ focus: true }));
+  });
+  if (banner && allowButton && denyButton) {
+    allowButton.addEventListener('click', () => {
+      dismissConsent('granted');
       window.gtag('consent', 'update', { analytics_storage: 'granted' });
       openAIAttribution.grant();
     });
-    document.getElementById('consentDeny').addEventListener('click', () => {
-      dismiss('denied');
+    denyButton.addEventListener('click', () => {
+      dismissConsent('denied');
+      window.gtag('consent', 'update', { analytics_storage: 'denied' });
       openAIAttribution.deny();
     });
   }

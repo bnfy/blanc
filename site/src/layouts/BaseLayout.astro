@@ -76,7 +76,7 @@ const ogImageUrl = SITE + ogImage;
 <body data-page={page ?? undefined}>
 <Header variant={header} current={current} />
 <slot />
-<Footer />
+<Footer measurementControls={analytics} />
 {analytics && <Consent />}
 {analytics && <script src="../scripts/site.js"></script>}
 </body>
