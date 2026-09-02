@@ -1,4 +1,4 @@
-# Blanc v1.12.0 launch copy pack
+# Blanc v1.13.0 launch copy pack
 
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
@@ -10,23 +10,28 @@ every affected section together.
 **Schedule reset — OWNER DECISION 2026-08-30:** Show HN is Tuesday,
 September 8, Reddit is Wednesday, September 9, and Product Hunt is Thursday,
 September 10. A bounded backlog-cleanup window now precedes the launch freeze.
-This v1.12.0 pack is the current factual reference, not the final launch pack.
+This v1.13.0 pack is the current factual reference, not the final launch pack.
 **OWNER DECISION 2026-08-31:** more releases are likely before launch week, so
-do not refresh launch media for v1.12.0. Keep this pack non-publishable and
+do not refresh launch media for v1.13.0 unless it is selected as the final
+launch release. Keep this pack non-publishable and
 recapture the demo/gallery assets only after the final launch release is
 selected and its required evidence is complete.
 
-**Release lock — REBASELINED 2026-09-01:** This pack describes packaged public
-v1.12.0, published from `a117852`. It carries the optional macOS 1Password
+**Release lock — REBASELINED 2026-09-02:** This pack describes packaged public
+v1.13.0, published from `25e682f`. It carries the optional macOS 1Password
 ambient login hint and Settings account verification while keeping credential
 lookup and fill explicit. It also carries WebRTC receive-buffer controls,
-Electron 44.1.1, the Sunrise default macOS icon, and the Billboard default for
-new profiles. The authenticated public v1.12.0 Linux launch/render check
-passed. The adjacent v1.11.1 -> v1.12.0 macOS in-app updater handoff passed,
+Electron 44.1.1, device-local frequently visited Billboard sites, Inter across
+every start-page template, Sunrise branding on all platforms, and four macOS
+icon choices. It resets every profile
+once to Sunrise and Billboard, then preserves later user changes. The
+authenticated public v1.13.0 Linux launch/render check passed. The adjacent
+v1.11.1 -> v1.12.0 macOS in-app updater handoff passed,
 including installed-version, strict signature, designated-requirement, and
 Gatekeeper checks. The owner also confirmed that the adjacent Windows in-app
 updater completed successfully; its exact-publisher/timestamp evidence remains
-the tagged native release gate. This release may still be
+the tagged native release gate. The adjacent v1.12.0 -> v1.13.0 macOS and
+Windows updater handoffs remain follow-ups. This release may still be
 superseded if another approved release replaces it.
 Do not publish this pack or use UI or claims from later work on `main`.
 
@@ -34,18 +39,18 @@ Do not publish this pack or use UI or claims from later work on `main`.
 
 | Claim | Launch truth |
 |---|---|
-| Current public release | v1.12.0 |
+| Current public release | v1.13.0 |
 | Platforms | macOS, Windows, Linux |
 | Core price | Free |
 | Blanc Patron | US$4/month or $30/year, plus applicable taxes |
 | Patron boundary | Creating a Named Workspace requires active Patron. Renaming and removing an existing workspace continue after a lapse |
-| Other Patron benefits | Three extra macOS Dock colorways; Named Workspaces on every platform |
+| Other Patron benefits | Named Workspaces on every platform |
 | Source status | Open source under the MIT License (adopted 2026-08-30); modification, redistribution, and third-party builds are permitted. Publishing a build carries the bundled filter lists' CC BY-SA 3.0+ attribution/share-alike terms, and the Blanc name and logo stay reserved as trademarks |
 | Telemetry | One packaged-build launch ping: random install ID, random session ID, version, platform, architecture, coarse OS major. Fresh profiles save the presented choice before a ping can send |
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
 | macOS 1Password boundary | Optional and device-local. A small hint may use bounded structure-only metadata from a visible current-password field, without field values, page text, or a 1Password request. Settings can explicitly verify a saved account identifier. Credential lookup and fill remain user-invoked; Blanc does not fill automatically or store credentials. It is not an extension runtime |
-| Repository/build boundary | The v1.12.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
+| Repository/build boundary | The v1.13.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
 
 Canonical URLs—copy exactly:
 
@@ -65,7 +70,8 @@ Historical packaged-v1.10.0 demo assets (not launch-ready):
 | GIF | https://raw.githubusercontent.com/bnfy/blanc/0cc0c57b31c4b619aa18fe6fa1713002e2060b7d/docs/superpowers/plans/assets/island-demo.gif |
 
 These files were captured on August 30 from the installed packaged public
-v1.10.0 app in an isolated local profile. Do not recapture them for v1.12.0;
+v1.10.0 app in an isolated local profile. Do not recapture them for v1.13.0
+unless it is selected as the final launch release;
 wait until the final launch release is selected, then recapture from that exact
 packaged version. The 20.50-second historical export is 1228×768,
 30 fps H.264, and BT.709; the GIF is below 8 MiB. It shows the resting Island,
@@ -94,7 +100,7 @@ Submission mechanics:
    submit a Show HN. Do not create a launch-only account or manufacture activity.
 2. Write the title and first comment personally, without agent drafting or
    editing. The title must begin `Show HN` and describe the whole browser—not
-   announce the incremental v1.12.0 release.
+   announce the incremental v1.13.0 release.
 3. Submit `https://github.com/bnfy/blanc`, not the marketing homepage. The repo
    lets readers inspect and run the product; HN says not to submit landing pages
    or fundraisers.
@@ -118,7 +124,7 @@ Write these ideas in Anthony's natural words:
 - The honest limitation: Electron. Point to the measured method and raw data;
   do not turn a single-session benchmark into a universal claim.
 - What it is not: no mobile version; no extension support.
-- Narrow exception to the extension boundary: packaged macOS v1.12.0 may show
+- Narrow exception to the extension boundary: packaged macOS v1.13.0 may show
   a small local hint for a visible current-password field and can verify a
   saved account identifier in Settings. A matching Login item is requested
   from the installed 1Password app only when the user asks to fill; it is not
@@ -172,7 +178,7 @@ These are facts to answer from, not sentences to paste.
 - $4/month or $30/year, plus applicable taxes.
 - Core browsing remains free: blocking, encrypted sync, private tabs, groups,
   quiet tabs, and passkeys.
-- Patron adds three macOS Dock colorways and Named Workspaces on every platform.
+- Patron adds Named Workspaces on every platform.
 - Only workspace creation requires an active subscription; rename and removal
   continue after a lapse.
 - Earlier one-time founding supporters keep their benefits permanently.
@@ -387,7 +393,7 @@ MP4 URL.
 > Paid (with a free plan)
 
 This is more candid than `Free`: core browsing is free, but Named Workspace
-creation and cosmetic colorways are paid benefits.
+creation is a paid benefit.
 
 **Tagline** — 51 characters
 
@@ -395,7 +401,7 @@ creation and cosmetic colorways are paid benefits.
 
 **Description** — 244 characters, within the current 260-character limit
 
-> Blanc is a free desktop browser for macOS, Windows and Linux. Its floating Island replaces the tab strip and toolbar, while ad and tracker blocking runs at the network layer. Optional Patron adds Named Workspaces and three macOS Dock colorways.
+> Blanc is a free desktop browser for macOS, Windows and Linux. Its floating Island replaces the tab strip and toolbar, while ad and tracker blocking runs at the network layer. Optional Patron adds Named Workspaces.
 
 **Suggested topics**
 
@@ -423,7 +429,7 @@ Use only topics that exist in the live form and genuinely fit.
 >
 > Named Workspaces save a window's tabs and groups. The browser is free.
 > Optional Patron is $4/month or $30/year and adds workspace
-> creation on every platform plus three macOS Dock colorways. Existing
+> creation on every platform. Existing
 > workspaces remain renameable and removable after a subscription lapses.
 >
 > It is Electron, open source under the MIT License, and intentionally
@@ -435,7 +441,7 @@ Use only topics that exist in the live form and genuinely fit.
 1. Island demo through a verified full YouTube URL.
 2. `product-hunt/island-resting-1270x760.png`.
 3. `product-hunt/quick-switcher-1270x760.png`.
-4. Optional: a packaged-v1.12.0 Named Workspaces capture with a visible
+4. Optional: a packaged-v1.13.0 Named Workspaces capture with a visible
    `Patron` label in its caption. Omit it rather than substituting a mockup,
    development build, or unlabeled paid feature.
 
@@ -467,8 +473,8 @@ free, while Named Workspace creation is paid.
 >
 > Blanc is free and open source under the MIT License. The bundled filter lists
 > retain their CC BY-SA terms, and the Blanc name and logo remain reserved
-> trademarks. Optional Patron ($30/year or $4/month) adds three macOS Dock
-> colorways and the ability to create Named Workspaces on every platform.
+> trademarks. Optional Patron ($30/year or $4/month) adds the ability to create
+> Named Workspaces on every platform.
 > Existing workspaces remain renameable and removable after a lapse.
 
 Do not put URLs, email addresses, or phone numbers in the description.
@@ -509,8 +515,7 @@ channel as not submitted rather than calling it fired.
 > tab strip and toolbar with one floating pill. Ad and tracker blocking runs at
 > the browser session's network layer instead of as an extension, so it does not
 > use Manifest V3's extension rule budget. No account is required for ordinary
-> browsing. Optional Patron adds Named Workspace creation and three macOS Dock
-> colorways.
+> browsing. Optional Patron adds Named Workspace creation.
 
 ## Reusable replies for Reddit and Product Hunt
 
@@ -551,8 +556,8 @@ drop a full defense where one sentence would do.
 
 > Patron is optional at $4/month or $30/year. Core browsing—including blocking,
 > encrypted sync, private tabs, tab groups, quiet tabs, and passkeys—is free.
-> Patron adds three macOS Dock colorways and Named Workspace creation on every
-> platform. Existing workspaces remain renameable and removable after a lapse.
+> Patron adds Named Workspace creation on every platform. Existing workspaces
+> remain renameable and removable after a lapse.
 
 ### “Why no extensions?”
 
@@ -566,8 +571,8 @@ drop a full defense where one sentence would do.
 
 ## Morning-of fact check
 
-- [ ] `package.json` and the latest public release both still say v1.12.0.
-- [ ] The README still links the v1.12.0 tag as the exact source snapshot for
+- [ ] `package.json` and the latest public release both still say v1.13.0.
+- [ ] The README still links the v1.13.0 tag as the exact source snapshot for
   the current public binaries, and any newer `main` work is excluded from copy.
 - [ ] The latest `launch-freeze-start` row records the final `origin/main`
   anchor, launch release tag, and release SHA; since that dynamic anchor,

@@ -1,5 +1,122 @@
 [
   {
+    "tag": "v1.13.0",
+    "version": "1.13.0",
+    "name": "1.13.0",
+    "publishedAt": "2026-09-02T18:55:29.000Z",
+    "humanDate": "September 2, 2026",
+    "machineDate": "2026-09-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.13.0",
+    "anchor": "v1-13-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Frequently visited sites"
+                  },
+                  {
+                    "type": "text",
+                    "value": " make Billboard useful automatically from local browsing history. Ranking and favicon artwork stay on the device, private tabs receive no history-derived row, and each tile can be hidden without deleting history."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Updated",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Inter start pages"
+                  },
+                  {
+                    "type": "text",
+                    "value": " replace the remaining monospaced typography across Ledger, Billboard, Shelf, Tally, Mahjong, onboarding, and the shared footer."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise branding"
+                  },
+                  {
+                    "type": "text",
+                    "value": " now carries across Blanc's supported platforms and public brand surfaces, with a Windows-specific icon treatment for clearer small taskbar sizes."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Simpler macOS icon choices"
+                  },
+                  {
+                    "type": "text",
+                    "value": " retain Sunrise, Sunrise Dark, Paper, and Ink while retiring the other legacy variants."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "One-time presentation reset"
+                  },
+                  {
+                    "type": "text",
+                    "value": " moves every existing profile to Sunrise and Billboard for this release. Users can change either setting afterward, and those choices remain preserved across future updates."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "A populated Billboard remains readable and scrollable at Blanc's minimum supported window size instead of pushing its date above the viewport."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.12.0",
     "version": "1.12.0",
     "name": "1.12.0",

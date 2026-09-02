@@ -24,25 +24,30 @@
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — September 1, 2026
+## Execution status — September 2, 2026
 
-- Blanc v1.12.0 is the current public baseline. It was published from
-  `a117852` at `2026-09-02T03:16:49Z`; publication, the authenticated manifest,
+- Blanc v1.13.0 is the current public baseline. It was published from
+  `25e682f` at `2026-09-02T18:55:29Z`; publication, the authenticated manifest,
   native platform gates, logged-out download smoke, and fresh authenticated
   public Linux AppImage launch/render check passed. Its adjacent updater
   follow-ups are tracked in
-  `docs/release-incidents/2026-09-01-v1.12.0.md`.
+  `docs/release-incidents/2026-09-02-v1.13.0.md`.
 - The adjacent public v1.11.1 → v1.12.0 macOS in-app updater handoff passed,
   including installed-version, strict signature, designated-requirement, and
   Gatekeeper checks. The owner also confirmed that the adjacent Windows in-app
   updater completed successfully; its exact-publisher/timestamp evidence
   remains the tagged native release gate. Both adjacent handoffs are complete.
+- The adjacent public v1.12.0 → v1.13.0 macOS and Windows in-app updater
+  handoffs remain required follow-ups. The owner's installed signed Windows
+  candidate screenshot confirms the new Sunrise taskbar icon, but a direct
+  install is not counted as either updater handoff.
 - Task 8's Island demo was recorded on August 30 from installed packaged public
   v1.10.0. Its 20.50-second MP4 and sub-8-MiB GIF remain immutable in
   `0cc0c57`, but they are no longer launch-ready because v1.11.0 ships the
   revised Blanc mark. **OWNER DECISION 2026-08-31:** because more releases are
   likely before launch week, do not recapture the demo or Product Hunt stills
-  for v1.12.0. Refresh them once, from the final selected launch release, after
+  for v1.13.0 unless it becomes the final launch release. Refresh them once,
+  from the final selected launch release, after
   its required evidence is complete.
 
 ## Superseded execution status — August 28, 2026
@@ -87,7 +92,7 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship one proven launch release as-is.** No telemetry or feature changes
-  during launch week; Patron stays in the launch narrative. v1.12.0 is the
+  during launch week; Patron stays in the launch narrative. v1.13.0 is the
   public baseline, and any later product/runtime, dependency,
   packaging, or release-workflow merge during backlog cleanup requires a new
   immutable launch release. Never describe newer `main` behavior as shipped.
@@ -502,7 +507,7 @@ const QUESTIONS = [
     q: 'Why does a free browser have a subscription?',
     a: [
       'Blanc Patron is $30/year or $4/month, and it is optional. Everything that makes Blanc a browser is free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, passkeys.',
-      'On macOS, Patron unlocks three extra Dock colorways. On every platform, it adds the ability to save a window as a named workspace. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses — your own data does not get held hostage.',
+      'Patron adds the ability to save a window as a named workspace on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses — your own data does not get held hostage.',
       'Patron exists because Blanc has no ad business and no investors, and an independent browser needs some way to pay for itself that is not selling the people using it. Nothing that was free has ever moved behind payment, and nothing will.',
     ],
   },
@@ -603,7 +608,7 @@ Open `/faq` and read every answer against the source of truth. Specifically conf
 free, and nothing is locked behind payment."* It was replaced with:
 
 ```html
-        <p>Yes — Blanc is free, and everything that makes it a browser stays free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. On macOS, Blanc Patron adds three extra Dock colorways; on every platform, it lets you save a window as a named workspace. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses.</p>
+        <p>Yes — Blanc is free, and everything that makes it a browser stays free: ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc Patron lets you save a window as a named workspace on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses.</p>
 ```
 
 - [x] **Step 8b: Correct the About page claim**
@@ -614,7 +619,7 @@ that one is still true; named workspaces were never free. Replace the opening
 clause:
 
 ```html
-        <p>Blanc is free, and everything that makes it a browser stays free — blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc Patron is an optional subscription — $30 a year or $4 a month — that funds the work and adds three macOS Dock colorways plus named workspaces on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses. Supporters who bought the earlier one-time purchase keep everything, free, forever.</p>
+        <p>Blanc is free, and everything that makes it a browser stays free — blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc Patron is an optional subscription — $30 a year or $4 a month — that funds the work and adds named workspaces on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses. Supporters who bought the earlier one-time purchase keep everything, free, forever.</p>
 ```
 
 - [x] **Step 8c: Correct the Terms of Service**
@@ -624,17 +629,17 @@ previously stated *"Blanc's features are free, and none of them are locked
 behind payment."* That became false when v1.8.0 shipped. It was replaced with:
 
 ```html
-  <p>Blanc is free to download and use. Everything that makes it a browser — ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys — is free and stays free. Blanc Patron is an optional subscription, billed monthly or yearly, that adds three macOS Dock colorways and lets you save a window as a named workspace on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses. Nothing that is free today is moved behind Patron.</p>
+  <p>Blanc is free to download and use. Everything that makes it a browser — ad and tracker blocking, encrypted sync, private tabs, tab groups, quiet tabs, and passkeys — is free and stays free. Blanc Patron is an optional subscription, billed monthly or yearly, that lets you save a window as a named workspace on every platform. Creating a named workspace requires an active Patron subscription. Renaming and removing existing workspaces continue to work if it lapses. Nothing that is free today is moved behind Patron.</p>
 ```
 
 - [x] **Step 8d: Correct the press fact sheet**
 
 `site/src/pages/press.astro:297` previously read `Free; all browser features
-included` and described Patron as `cosmetic Dock icons today`. Both were wrong.
+included`. That was wrong.
 
 ```html
           <div><dt>price</dt><dd>Free; all core browsing features included</dd></div>
-          <div><dt>optional support</dt><dd>Blanc Patron subscription, US$30/year or $4/month, plus tax; three macOS Dock colorways and named workspaces on every platform</dd></div>
+          <div><dt>optional support</dt><dd>Blanc Patron subscription, US$30/year or $4/month, plus tax; named workspaces on every platform</dd></div>
 ```
 
 - [x] **Step 8e: Prove no "nothing is locked behind payment" claim survives**
@@ -954,7 +959,7 @@ npx wrangler pages deployment list --project-name=blancbrowser
 
 Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
-changelog and the homepage show 1.12.0 — not a Cloudflare preview URL.
+changelog and the homepage show 1.13.0 — not a Cloudflare preview URL.
 
 - [x] **Step 10: Record the current v1.9.1 soak clock**
 
@@ -1355,8 +1360,8 @@ https://blancbrowser.com/faq
 ```
 $30/year or $4/month, entirely optional. Everything that makes it a browser is
 free — blocking, encrypted sync, private tabs, tab groups, quiet tabs,
-passkeys. On macOS, Patron unlocks three extra Dock colorways; on every platform,
-it adds saving a window as a named workspace. Creating a named workspace requires
+passkeys. Patron adds saving a window as a named workspace on every platform.
+Creating a named workspace requires
 an active Patron subscription. Renaming and deleting existing workspaces continue
 to work if it lapses, because that's your data, not mine. There's no ad business
 and no investors here, so this is the

@@ -70,7 +70,7 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries are verified for the v1.12.0 public release:
+These boundaries are verified for the v1.13.0 public release:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. The user opens its panel for
@@ -112,6 +112,13 @@ These boundaries are verified for the v1.12.0 public release:
   second, trading responsiveness for more tolerance of choppy playback. Do not
   promise that either mode eliminates every crackle or fixes source-side,
   network, Bluetooth, driver, or hardware faults.
+- **Billboard frequently visited sites:** Billboard ranks ordinary browsing
+  history on the device and keeps its favicon artwork and hidden-tile choices
+  local. Private tabs do not contribute or receive this row. Do not describe
+  the feature as synced, account-based, remotely retained, or semantically
+  organized.
+- **App icons:** Public v1.13.0 offers Sunrise, Sunrise Dark, Paper, and Ink on
+  macOS. Public copy must not present app icons as a paid benefit.
 - **AI:** Blanc ships no AI assistant or agent browser. It does not understand
   assignments, detect semantic task boundaries, automatically organize tabs
   by meaning, or isolate automated browsing work from a person's session.
