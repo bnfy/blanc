@@ -122,26 +122,16 @@
 
   const smoothstep = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 
-  // The pill's on-screen box. .demo-island's own border box is the pill's
-  // untransformed one — a transform on a child never changes its parent's box,
-  // which is exactly what makes it a stable reference — so the hero's base
-  // presentation scale (--pill-scale, origin 50% 0%) is folded back in by hand.
-  // The proximity scale is deliberately left out: the app measures the
-  // untransformed pill too, and including it here would feed the pill's own
-  // growth back into the next frame's distance.
+  // The pill's untransformed box is the stable proximity reference. Including
+  // its own 2% reaction here would feed growth back into the next frame.
   function pillBox() {
     const r = demo.getBoundingClientRect();
-    const s = parseFloat(getComputedStyle(demo).getPropertyValue('--pill-scale')) || 1;
-    const width = r.width * s;
-    const height = r.height * s;
-    const left = r.left + (r.width - width) / 2;
-    return { left, top: r.top, right: left + width, bottom: r.top + height, width, height };
+    return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
   }
 
   function applyProximity() {
     proxFrame = null;
     let k = 0;
-    let lean = 0;
     // Nothing moves while the panel is open or the page has lost the cursor —
     // the app holds just as still when it is not the focused application.
     if (cursor && !reduceMotion.matches && !panelOpen) {
@@ -149,11 +139,9 @@
       const dx = Math.max(r.left - cursor.x, 0, cursor.x - r.right);
       const dy = Math.max(r.top - cursor.y, 0, cursor.y - r.bottom);
       k = smoothstep(1 - Math.min(Math.hypot(dx, dy), PROX_RANGE) / PROX_RANGE);
-      const offset = (cursor.x - (r.left + r.width / 2)) / (r.width / 2 + PROX_RANGE);
-      lean = Math.max(-1, Math.min(1, offset)) * k;
     }
     demo.style.setProperty('--island-k', k.toFixed(4));
-    demo.style.setProperty('--island-lean', lean.toFixed(4));
+    demo.classList.toggle('proximity-active', k > 0);
   }
 
   function queueProximity() {
@@ -194,10 +182,9 @@
     }
 
     const pill = pillBox();
-    // The pill's *used* corner radius: 999px on a box this short resolves to
-    // half its height. Travelling from that to the panel's own 18px is a
-    // movement of about a pixel — the corner should barely register.
-    const pillRadius = pill.height / 2;
+    // The native Island morphs from the canonical 17px resting corner to the
+    // panel's 18px corner rather than resolving a stadium radius from height.
+    const pillRadius = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--island-resting-radius')) || 17;
     const panelRadius = getComputedStyle(panelEl).borderTopLeftRadius;
 
     if (open) {
@@ -371,6 +358,7 @@
       const glanceLeft = primaryWidth + divider;
       glanceEl.dataset.direction = 'horizontal';
       demo.style.left = `${Math.round(primaryWidth / 2)}px`;
+      demo.style.maxWidth = `${Math.max(0, primaryWidth - 24)}px`;
       Object.assign(shotEl.style, { left: '0px', top: `${pageY}px`, width: `${primaryWidth}px`, height: `${pageHeight}px` });
       Object.assign(glanceHeaderEl.style, { left: `${primaryWidth}px`, top: '0px', width: `${width - primaryWidth}px`, height: `${pageY}px` });
       Object.assign(glanceDividerEl.style, { left: `${primaryWidth}px`, top: `${pageY}px`, width: `${divider}px`, height: `${pageHeight}px` });
@@ -386,6 +374,7 @@
     const glanceTop = headerTop + stackedHeader;
     glanceEl.dataset.direction = 'vertical';
     demo.style.left = `${Math.round(width / 2)}px`;
+    demo.style.maxWidth = `${Math.max(0, width - 24)}px`;
     Object.assign(shotEl.style, { left: '0px', top: `${pageY}px`, width: `${width}px`, height: `${primaryHeight}px` });
     Object.assign(glanceDividerEl.style, { left: '0px', top: `${dividerTop}px`, width: `${width}px`, height: `${divider}px` });
     Object.assign(glanceHeaderEl.style, { left: '0px', top: `${headerTop}px`, width: `${width}px`, height: `${stackedHeader}px` });
@@ -399,6 +388,7 @@
     if (!visible) {
       for (const prop of ['left', 'top', 'width', 'height']) shotEl.style.removeProperty(prop);
       demo.style.removeProperty('left');
+      demo.style.removeProperty('max-width');
       return;
     }
     setGlanceTab(tab);
