@@ -260,8 +260,8 @@
     nine:     { title: 'Apple reports Q3 2026 earnings: revenue up 16% [Charts]', domain: '9to5mac.com', fav: '9to5mac.com', shield: 4, shot: '9to5mac' },
     cnet:     { title: 'CNET | Product reviews, tech news & more', domain: 'cnet.com', fav: 'cnet.com', shield: 18, shot: 'cnet-before' },
     // A blank tab. No domain puts the pill in placeholder mode: the prompt
-    // label, the Blanc-mark favicon, the "/" chip, and no shield (the app
-    // hides it entirely on internal pages) — matching the real app's state.
+    // label, an empty favicon slot, the "/" chip, and no shield (since 1.12.0
+    // the app hides both on internal pages) — matching the real app's state.
     newtab:   { title: 'New Tab',   domain: '',                fav: null,           shield: 0, internal: true },
   };
 
@@ -792,7 +792,7 @@
 
     const t = TABS[current];
     // No domain = the app's placeholder mode (1.6.0): the prompt label with
-    // its wash, the "/" chip, the Blanc-mark favicon, and no shield at all —
+    // its wash, the "/" chip, a hidden favicon slot (1.12.0), and no shield at all —
     // internal pages hide the shield entirely, unlike a protected site with
     // zero blocked (which keeps a quiet shield).
     const blank = !t.domain;
