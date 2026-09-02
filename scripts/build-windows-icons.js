@@ -1,17 +1,19 @@
 #!/usr/bin/env node
-// Build Blanc's fixed Sunrise application icon for Windows. The ICO embeds
-// raster frames for the taskbar/display scaling sizes Windows commonly asks
-// for instead of relying on Electron to downsample one large PNG at runtime.
+// Build Blanc's fixed Sunrise application icon for Windows. Windows gets the
+// freestanding mark rather than the macOS square tile, with a small optical
+// margin so it reads at the same scale as neighboring taskbar icons. The ICO
+// embeds raster frames for the sizes Windows commonly asks for instead of
+// relying on Electron to downsample one large PNG at runtime.
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const sharp = require('sharp');
 
 const ROOT = path.join(__dirname, '..');
-const SOURCE_ICON = path.join(ROOT, 'build/icon.png');
+const SOURCE_ICON = path.join(ROOT, 'build/app-icons/Icon.icon/Assets/sunrise-mark.png');
 const OUTPUT_DIR = path.join(ROOT, 'build/windows-icons');
 const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-sunrise.ico');
 const ICON_SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256];
-const WINDOWS_VISIBLE_SCALE = 1;
+const WINDOWS_VISIBLE_SCALE = 0.9;
 
 function createIco(frames) {
   const headerSize = 6;
@@ -43,7 +45,11 @@ async function createFrame(trimmedSource, size) {
   const horizontalMargin = size - visibleSize;
   const verticalMargin = size - visibleSize;
   return sharp(trimmedSource)
-    .resize(visibleSize, visibleSize, { fit: 'fill', kernel: sharp.kernel.lanczos3 })
+    .resize(visibleSize, visibleSize, {
+      fit: 'contain',
+      kernel: sharp.kernel.lanczos3,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
     .extend({
       left: Math.floor(horizontalMargin / 2),
       right: Math.ceil(horizontalMargin / 2),
@@ -61,7 +67,11 @@ async function createWindowsIcon() {
     throw new Error(`${path.relative(ROOT, SOURCE_ICON)} must be a square PNG`);
   }
 
-  const windowsSource = await sharp(SOURCE_ICON).ensureAlpha().png().toBuffer();
+  const windowsSource = await sharp(SOURCE_ICON)
+    .ensureAlpha()
+    .trim()
+    .png()
+    .toBuffer();
 
   const frames = [];
   for (const size of ICON_SIZES) {
@@ -98,6 +108,7 @@ if (require.main === module) {
 
 module.exports = {
   ICON_SIZES,
+  SOURCE_ICON,
   WINDOWS_VISIBLE_SCALE,
   createIco,
 };

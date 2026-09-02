@@ -15,6 +15,7 @@ const {
 } = require('../../src/main/app-icon');
 const {
   ICON_SIZES,
+  SOURCE_ICON,
   WINDOWS_VISIBLE_SCALE,
 } = require('../../scripts/build-windows-icons');
 
@@ -96,8 +97,12 @@ test('packaging wires fixed Sunrise icons on Windows and Linux', () => {
   assert.deepEqual(sizes, ICON_SIZES);
 });
 
-test('Windows ICOs fill the native icon canvas instead of retaining macOS margins', async () => {
-  assert.equal(WINDOWS_VISIBLE_SCALE, 1);
+test('Windows ICOs use the transparent Sunrise mark with optical taskbar margins', async () => {
+  assert.equal(
+    path.relative(root, SOURCE_ICON),
+    'build/app-icons/Icon.icon/Assets/sunrise-mark.png',
+  );
+  assert.equal(WINDOWS_VISIBLE_SCALE, 0.9);
   const ico = fs.readFileSync(path.join(root, 'build/windows-icons/icon-sunrise.ico'));
   const frameIndex = ICON_SIZES.indexOf(32);
   const entryOffset = 6 + (frameIndex * 16);
@@ -116,7 +121,16 @@ test('Windows ICOs fill the native icon canvas instead of retaining macOS margin
       opaqueBounds.maxY = Math.max(opaqueBounds.maxY, y);
     }
   }
-  assert.deepEqual(opaqueBounds, { minX: 0, minY: 0, maxX: 31, maxY: 31 });
+  assert.ok(opaqueBounds.minX >= 1, `left optical margin is ${opaqueBounds.minX}px`);
+  assert.ok(opaqueBounds.minY >= 1, `top optical margin is ${opaqueBounds.minY}px`);
+  assert.ok(opaqueBounds.maxX <= 30, `rightmost opaque pixel is ${opaqueBounds.maxX}px`);
+  assert.ok(opaqueBounds.maxY <= 30, `bottommost opaque pixel is ${opaqueBounds.maxY}px`);
+  assert.ok(opaqueBounds.maxX - opaqueBounds.minX + 1 >= 27, `mark width is ${opaqueBounds.maxX - opaqueBounds.minX + 1}px`);
+  assert.ok(opaqueBounds.maxY - opaqueBounds.minY + 1 >= 27, `mark height is ${opaqueBounds.maxY - opaqueBounds.minY + 1}px`);
+
+  for (const [x, y] of [[0, 0], [31, 0], [0, 31], [31, 31]]) {
+    assert.equal(data[((y * info.width) + x) * info.channels + 3], 0, `corner ${x},${y} is transparent`);
+  }
 });
 
 test('Windows ICO carries the gold Sunrise artwork', async () => {
