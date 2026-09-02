@@ -18,12 +18,14 @@
   const MAX_SAVED_GAMES = 32;
   const MAX_RECORD_EVENTS = 128;
   const GAME_EXPIRY_MS = 30 * 24 * 60 * 60 * 1000;
-  const LAYOUT_IDS = Object.freeze(['turtle', 'arch', 'peaks']);
+  const LAYOUT_IDS = Object.freeze(['turtle', 'arch', 'peaks', 'pyramid', 'fortress', 'butterfly', 'bridge', 'cross']);
   // Record revisions deliberately mirror the pure engine's layout revisions.
   // A missing revision is legacy revision 1, which keeps unchanged Turtle and
   // Peaks results while preventing the retired portrait Arch from replaying
   // into the wider revision-2 board.
-  const LAYOUT_REVISIONS = Object.freeze({ turtle: 1, arch: 2, peaks: 1 });
+  const LAYOUT_REVISIONS = Object.freeze({
+    turtle: 1, arch: 2, peaks: 1, pyramid: 1, fortress: 1, butterfly: 1, bridge: 1, cross: 1,
+  });
   const MODES = Object.freeze(['classic', 'tray']);
   const SOURCES = Object.freeze(['random', 'daily']);
   const DEFAULT_PREFS = Object.freeze({ layoutId: 'turtle', mode: 'tray', source: 'daily' });

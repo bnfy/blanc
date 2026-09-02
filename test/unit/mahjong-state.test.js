@@ -394,18 +394,16 @@ test('record revisions preserve unchanged layouts and discard retired Arch geome
   }, 8).classic.arch.bestTimeMs, 45_000);
 });
 
-test('daily deal identity is deterministic and rotates Turtle, Arch, Peaks', () => {
+test('daily deal identity is deterministic and rotates through every layout', () => {
   const first = S.dailyDeal('2026-08-30');
   assert.deepEqual(first, S.dailyDeal('2026-08-30'));
   assert.notEqual(first.seed, S.dailySeed('2026-08-31'));
-  const layouts = [
-    S.dailyLayoutId('2026-08-30'),
-    S.dailyLayoutId('2026-08-31'),
-    S.dailyLayoutId('2026-09-01'),
-    S.dailyLayoutId('2026-09-02'),
-  ];
-  assert.equal(new Set(layouts.slice(0, 3)).size, 3);
-  assert.equal(layouts[0], layouts[3]);
+  const days = ['2026-09-07', '2026-09-08', '2026-09-09', '2026-09-10', '2026-09-11', '2026-09-12', '2026-09-13', '2026-09-14'];
+  const layouts = days.map((day) => S.dailyLayoutId(day));
+  assert.deepEqual([...layouts].sort(), [...S.LAYOUT_IDS].sort(), 'eight consecutive days visit every layout once');
+  assert.equal(S.dailyLayoutId('2026-09-15'), layouts[0], 'the ninth day wraps');
+  assert.equal(S.LAYOUT_IDS.length, 8);
+  assert.deepEqual(S.LAYOUT_IDS, ['turtle', 'arch', 'peaks', 'pyramid', 'fortress', 'butterfly', 'bridge', 'cross']);
   assert.equal(S.dailyKey(new Date(2026, 7, 30, 23, 59)), '2026-08-30');
 });
 
