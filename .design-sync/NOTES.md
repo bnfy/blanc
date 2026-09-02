@@ -303,7 +303,7 @@ brand mark is still the Mahjong-inspired B from #256. With the owner's "Sunrise 
 decision the DS is deliberately AHEAD of the site; BrandMark.astro, favicons, logo.png,
 OG/press cards need their own pass. Also uncommitted in the shared checkout at sync time:
 a Sunrise-for-Windows/Linux/iOS icon pass (build/icon.png, icon-sunrise.ico, iOS asset,
-ASSET-LICENSE/README) — unshipped, so not mirrored; re-scan after it lands.
+ASSET-LICENSE/README) — it LANDED mid-sync as 5e0964e ("Adopt Sunrise across all platforms", between df7a0e5 and this record). It changes no DS surface (Windows ICO, Linux PNG, iOS asset, docs), so nothing further to mirror; it is on main but not in a public release yet.
 
 ### Gotchas learned
 - The Browser pane cannot crop (`zoom` region unsupported) and stalls while hidden; use the
