@@ -32,9 +32,11 @@
   public Linux AppImage launch/render check passed. Its adjacent updater
   follow-ups are tracked in
   `docs/release-incidents/2026-09-01-v1.12.0.md`.
-- The adjacent public v1.11.1 → v1.12.0 updater handoffs are still required.
-  The earlier v1.11.0 → v1.11.1 record remains historical evidence and does
-  not replace the new adjacent handoffs.
+- The adjacent public v1.11.1 → v1.12.0 macOS in-app updater handoff passed,
+  including installed-version, strict signature, designated-requirement, and
+  Gatekeeper checks. The Windows handoff remains required. The earlier
+  v1.11.0 → v1.11.1 record remains historical evidence and does not replace
+  the new adjacent Windows handoff.
 - Task 8's Island demo was recorded on August 30 from installed packaged public
   v1.10.0. Its 20.50-second MP4 and sub-8-MiB GIF remain immutable in
   `0cc0c57`, but they are no longer launch-ready because v1.11.0 ships the

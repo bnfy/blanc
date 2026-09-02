@@ -22,8 +22,10 @@ ambient login hint and Settings account verification while keeping credential
 lookup and fill explicit. It also carries WebRTC receive-buffer controls,
 Electron 44.1.1, the Sunrise default macOS icon, and the Billboard default for
 new profiles. The authenticated public v1.12.0 Linux launch/render check
-passed. The adjacent v1.11.1 -> v1.12.0 updater handoffs remain release
-follow-ups; this release may still be
+passed. The adjacent v1.11.1 -> v1.12.0 macOS in-app updater handoff passed,
+including installed-version, strict signature, designated-requirement, and
+Gatekeeper checks. The Windows handoff remains a release follow-up; this
+release may still be
 superseded if another approved release replaces it.
 Do not publish this pack or use UI or claims from later work on `main`.
 
