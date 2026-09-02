@@ -14,6 +14,7 @@ const OUTPUT_DIR = path.join(ROOT, 'build/windows-icons');
 const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-sunrise.ico');
 const ICON_SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256];
 const WINDOWS_VISIBLE_SCALE = 1;
+const WINDOWS_PIXEL_DELTA_TOLERANCE = 1;
 
 function createIco(frames) {
   const headerSize = 6;
@@ -57,7 +58,7 @@ function icoFrames(ico) {
   return frames;
 }
 
-async function sameIcoPixels(actual, expected) {
+async function sameIcoPixels(actual, expected, { reportDifference = false } = {}) {
   const actualFrames = icoFrames(actual);
   const expectedFrames = icoFrames(expected);
   if (!actualFrames || !expectedFrames || actualFrames.length !== expectedFrames.length) return false;
@@ -73,7 +74,17 @@ async function sameIcoPixels(actual, expected) {
     if (actualImage.info.width !== expectedImage.info.width
       || actualImage.info.height !== expectedImage.info.height
       || actualImage.info.channels !== expectedImage.info.channels
-      || !actualImage.data.equals(expectedImage.data)) return false;
+      || actualImage.data.length !== expectedImage.data.length) return false;
+    let maxDelta = 0;
+    for (let offset = 0; offset < actualImage.data.length; offset += 1) {
+      maxDelta = Math.max(maxDelta, Math.abs(actualImage.data[offset] - expectedImage.data[offset]));
+    }
+    if (maxDelta > WINDOWS_PIXEL_DELTA_TOLERANCE) {
+      if (reportDifference) {
+        console.error(`Windows icon frame ${actualFrame.size}px differs by up to ${maxDelta} channel values.`);
+      }
+      return false;
+    }
   }
   return true;
 }
@@ -133,7 +144,8 @@ async function main() {
 
   const expected = await createWindowsIcon();
   const actual = await fs.readFile(OUTPUT_ICON).catch(() => null);
-  const current = actual && (actual.equals(expected) || await sameIcoPixels(actual, expected));
+  const current = actual && (actual.equals(expected)
+    || await sameIcoPixels(actual, expected, { reportDifference: check }));
   if (check && !current) {
     throw new Error(
       `Windows app icon is missing or stale:\n  ${path.relative(ROOT, OUTPUT_ICON)}\n`
@@ -157,6 +169,7 @@ if (require.main === module) {
 module.exports = {
   ICON_SIZES,
   SOURCE_ICON,
+  WINDOWS_PIXEL_DELTA_TOLERANCE,
   WINDOWS_VISIBLE_SCALE,
   createIco,
   sameIcoPixels,

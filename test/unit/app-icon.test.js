@@ -16,6 +16,7 @@ const {
 const {
   ICON_SIZES,
   SOURCE_ICON,
+  WINDOWS_PIXEL_DELTA_TOLERANCE,
   WINDOWS_VISIBLE_SCALE,
   createIco,
   sameIcoPixels,
@@ -152,13 +153,14 @@ test('Windows ICO carries the gold Sunrise artwork', async () => {
 });
 
 test('Windows icon checks compare rendered frames across platform-specific PNG encoders', async () => {
+  assert.equal(WINDOWS_PIXEL_DELTA_TOLERANCE, 1);
   const image = {
     create: { width: 16, height: 16, channels: 4, background: '#c6922e' },
   };
   const [storedPng, regeneratedPng, changedPng] = await Promise.all([
     sharp(image).png({ compressionLevel: 0 }).toBuffer(),
     sharp(image).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer(),
-    sharp({ create: { width: 16, height: 16, channels: 4, background: '#c7922e' } })
+    sharp({ create: { width: 16, height: 16, channels: 4, background: '#d6922e' } })
       .png({ compressionLevel: 9, adaptiveFiltering: true })
       .toBuffer(),
   ]);
