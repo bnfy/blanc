@@ -24,8 +24,9 @@ Electron 44.1.1, the Sunrise default macOS icon, and the Billboard default for
 new profiles. The authenticated public v1.12.0 Linux launch/render check
 passed. The adjacent v1.11.1 -> v1.12.0 macOS in-app updater handoff passed,
 including installed-version, strict signature, designated-requirement, and
-Gatekeeper checks. The Windows handoff remains a release follow-up; this
-release may still be
+Gatekeeper checks. The owner also confirmed that the adjacent Windows in-app
+updater completed successfully; its exact-publisher/timestamp evidence remains
+the tagged native release gate. This release may still be
 superseded if another approved release replaces it.
 Do not publish this pack or use UI or claims from later work on `main`.
 
