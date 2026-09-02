@@ -297,7 +297,18 @@ Deliberately NOT touched: `explorations/*`, `design_handoff_*/*` (historical sna
 `thumbnail.html` (wordmark text only), `guidelines/island-hero.html` (comment only),
 the five monogram dock PNGs (the app still ships the B tile in those colorways).
 
-### Site lag — RESOLVED same day (PR #263, merge c91bc87, deployed 5457bcd8 as Production/main; live assets byte-match the repo)
+### ✅ The site is LIVE on Sunrise (2026-09-02)
+blancbrowser.com ships the Sunrise mark: PR #263 (squash c91bc87) generated every site
+brand surface from the Sunrise motifs via `scripts/build-brand-assets.js` (in-page ink
+silhouette in `BrandMark.astro`, rays-only crop for the ≤16px favicons, white-tile
+`logo.png`, re-rendered OG/feature/press cards, demo island hides the blank tab's favicon
+slot). Deployed as Cloudflare Pages deployment 5457bcd8, Production, branch main, source
+c91bc87; `favicon.svg`, `logo.png`, `favicon-32x32.png`, `apple-touch-icon.png`, and
+`og-image.png` verified byte-identical on the live domain. App, DS, and site are aligned.
+Stale wording still in the DS itself: `guidelines/brand-logos.html`'s note, `readme.md`'s
+Logos bullet, and `github.md`'s entry say the site "still ships the B" — a small follow-up
+push to correct.
+
 ### (original flag kept for the record)
 As of df7a0e5, `site/` has NO Sunrise asset (only `releases.json` mentions it) and the live
 brand mark is still the Mahjong-inspired B from #256. With the owner's "Sunrise everywhere"
