@@ -37,10 +37,11 @@
   Gatekeeper checks. The owner also confirmed that the adjacent Windows in-app
   updater completed successfully; its exact-publisher/timestamp evidence
   remains the tagged native release gate. Both adjacent handoffs are complete.
-- The adjacent public v1.12.0 → v1.13.0 and v1.13.0 → v1.14.0 macOS and Windows
-  in-app updater handoffs remain required follow-ups. The owner's installed
-  signed v1.14.0 Windows candidate confirms the revised Island and Inter rail,
-  but a direct install is not counted as any updater handoff.
+- The adjacent public v1.12.0 → v1.13.0 macOS and Windows in-app updater
+  handoffs remain required follow-ups.
+- The owner confirmed that both adjacent public v1.13.0 → v1.14.0 macOS and
+  Windows in-app updater handoffs completed successfully. The earlier signed
+  v1.14.0 Windows candidate install remains separate validation evidence.
 - Task 8's Island demo was recorded on August 30 from installed packaged public
   v1.10.0. Its 20.50-second MP4 and sub-8-MiB GIF remain immutable in
   `0cc0c57`, but they are no longer launch-ready because v1.11.0 ships the
