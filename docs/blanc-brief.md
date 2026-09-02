@@ -33,7 +33,7 @@ If you understand one thing about the architecture, make it this:
 - Each native window owns an independent runtime: tabs, groups, overlays,
   utility sheets, permission prompts, focus, and profile identity never route
   through another window's state.
-- The window's own `webContents` renders the **chrome strip** — the slim (64px)
+- The window's own `webContents` renders the **chrome strip** — the slim (68px)
   band the resting pill floats in.
 - **Each tab is a separate `WebContentsView`**, added as a child of the window's
   content view. Only the active tab's view is attached, so switching tabs is

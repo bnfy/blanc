@@ -286,7 +286,7 @@ body.has-consent footer { padding-bottom: calc(56px + var(--consent-h)); }
    --shadow-popover. A single flat drop shadow read as a sticker on the page;
    the inset rim gives the surface a lit top edge and a settled bottom one. The
    outer drop stays the demo's own — these figures float over a full page render
-   at a larger scale than the real 64px strip, and need more separation than the
+   at a larger scale than the real 68px strip, and need more separation than the
    app's 0 2px 16px does. Kept as variables so the resting, morphing and
    reduced-motion states all state the same rim. */
 .demo-island {

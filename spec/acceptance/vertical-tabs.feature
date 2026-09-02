@@ -45,7 +45,7 @@ Feature: Desktop vertical tabs
     Then the rendered vertical tab width is 248 pixels
     When I drag the vertical tab resize handle to 320 pixels
     Then the rendered vertical tab width is 320 pixels
-    And its guest bounds are x 320, y 64, width 680, height 636
+    And its guest bounds are x 320, y 68, width 680, height 632
     When I drag the vertical tab resize handle to 120 pixels
     Then the rendered vertical tab width is 200 pixels
     When I drag the vertical tab resize handle to 500 pixels
@@ -98,12 +98,12 @@ Feature: Desktop vertical tabs
   @F28-3 @F28 @desktop @D19
   Scenario: Guest content and the utility sheet use the vertical page pane
     Given a 1000 by 700 desktop window with the vertical tab layout
-    When an ordinary tab is active below the 64 pixel sampled safe-area gutter
-    Then its guest bounds are x 248, y 64, width 752, height 636
+    When an ordinary tab is active below the 68 pixel sampled safe-area gutter
+    Then its guest bounds are x 248, y 68, width 752, height 632
     And the vertical rail bounds are x 0, y 0, width 248, height 700
     And the resting Island is centered over the website pane
     When I open a utility page
-    Then its sheet bounds are x 248, y 64, width 752, height 636
+    Then its sheet bounds are x 248, y 68, width 752, height 632
     And the rail remains visible and unobscured
 
   @F28-4 @F28 @desktop @D19

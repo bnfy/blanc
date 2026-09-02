@@ -33,7 +33,7 @@ toolbar (Bowser Design System "Island Chrome").
   `find` (F8). Only the active state shows; Escape/back dismisses.
 - The panel's list area shows: the **tab switcher** at rest, **slash commands**
   (F7) when input starts with `/`, the **Quick Switcher** (F6) otherwise.
-- **Platform note:** desktop draws this as a 64px strip + an always-on-top overlay
+- **Platform note:** desktop draws this as a 68px strip + an always-on-top overlay
   view. Mobile renders it natively (SwiftUI / Compose) driven by shared design
   tokens (→ substrate). The *layout, contents, and states* are the contract; the
   windowing is D11, the input affordances are D7.
@@ -516,7 +516,7 @@ From the desktop `DEFAULTS`:
   the rendered width is temporarily capped so the website retains at least
   392px; widening restores the saved preference. The Island remains the only
   address, search, and command surface. Guest tabs and the utility sheet
-  occupy the remaining page pane below a 64px safe-area gutter whose color is
+  occupy the remaining page pane below a 68px safe-area gutter whose color is
   sampled from the active website; the Island floats in that gutter without
   covering website pixels.
   The resting Island plus its panel and palette share the remaining website

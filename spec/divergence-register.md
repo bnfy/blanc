@@ -241,7 +241,7 @@ is platform-native.
 **Why:** Desktop uses resizable native windows with window controls and a strip + overlay;
 mobile is a single full-screen surface with system insets.
 
-- **Desktop:** one independent workspace per `BrowserWindow`, each with a 64px
+- **Desktop:** one independent workspace per `BrowserWindow`, each with a 68px
   strip, its own always-on-top overlay view, and traffic-lights / window controls.
 - **Mobile:** a single surface; the island adapts to safe-area insets; no window
   controls; multi-window is a tablet/foldable consideration, not a phone one.
@@ -418,7 +418,7 @@ content area and fight the platform's native navigation model.
   resetting to 248px. Its width is directly adjustable and device-local; a
   narrow window temporarily caps the rendered rail to preserve at least 392px
   for the page without overwriting the saved preference. The page pane keeps a
-  64px sampled-color safe-area gutter for the floating Island, which remains
+  68px sampled-color safe-area gutter for the floating Island, which remains
   the sole address, search, and command surface. The rail is another
   presentation of the canonical tab/group model.
 - **iOS:** no reserved rail. Use the native full-screen tab overview while
