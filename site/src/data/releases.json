@@ -1,5 +1,105 @@
 [
   {
+    "tag": "v1.12.0",
+    "version": "1.12.0",
+    "name": "1.12.0",
+    "publishedAt": "2026-09-02T03:16:49.000Z",
+    "humanDate": "September 1, 2026",
+    "machineDate": "2026-09-01",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.12.0",
+    "anchor": "v1-12-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Call audio buffering"
+                  },
+                  {
+                    "type": "text",
+                    "value": " adds Automatic, Stable, and Resilient receive-buffer choices for WebRTC calls. Stable targets about 400 ms for smoother speech, while Resilient targets about 1 second for severe crackling or chopped audio at the cost of slower conversation."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Sunrise app icon"
+                  },
+                  {
+                    "type": "text",
+                    "value": " becomes Blanc's default on macOS, with an appearance-aware light variant and a separately selectable Sunrise Dark variant."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Billboard start page"
+                  },
+                  {
+                    "type": "text",
+                    "value": " becomes the default layout for new profiles. Existing layout choices remain unchanged."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Reopening Blanc from the Dock after closing every browser window no longer leaves a blank macOS window."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Updated",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Electron is updated from 44.1.0 to 44.1.1."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.11.1",
     "version": "1.11.1",
     "name": "1.11.1",

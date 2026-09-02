@@ -1,4 +1,4 @@
-# Blanc v1.11.1 launch copy pack
+# Blanc v1.12.0 launch copy pack
 
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
@@ -10,19 +10,20 @@ every affected section together.
 **Schedule reset — OWNER DECISION 2026-08-30:** Show HN is Tuesday,
 September 8, Reddit is Wednesday, September 9, and Product Hunt is Thursday,
 September 10. A bounded backlog-cleanup window now precedes the launch freeze.
-This v1.11.1 pack is the current factual reference, not the final launch pack.
+This v1.12.0 pack is the current factual reference, not the final launch pack.
 **OWNER DECISION 2026-08-31:** more releases are likely before launch week, so
-do not refresh launch media for v1.11.1. Keep this pack non-publishable and
+do not refresh launch media for v1.12.0. Keep this pack non-publishable and
 recapture the demo/gallery assets only after the final launch release is
 selected and its required evidence is complete.
 
-**Release lock — REBASELINED 2026-08-31:** This pack describes packaged public
-v1.11.1, published from `a3b079a`. It carries the optional macOS 1Password
+**Release lock — REBASELINED 2026-09-01:** This pack describes packaged public
+v1.12.0, published from `a117852`. It carries the optional macOS 1Password
 ambient login hint and Settings account verification while keeping credential
-lookup and fill explicit. The authenticated public Linux launch/render check
-and both v1.10.0 -> v1.11.0 updater handoffs passed. The fresh authenticated
-public v1.11.1 Linux AppImage smoke also passed. The adjacent v1.11.0 ->
-v1.11.1 updater handoffs remain release follow-ups; this release may still be
+lookup and fill explicit. It also carries WebRTC receive-buffer controls,
+Electron 44.1.1, the Sunrise default macOS icon, and the Billboard default for
+new profiles. The authenticated public v1.12.0 Linux launch/render check
+passed. The adjacent v1.11.1 -> v1.12.0 updater handoffs remain release
+follow-ups; this release may still be
 superseded if another approved release replaces it.
 Do not publish this pack or use UI or claims from later work on `main`.
 
@@ -30,7 +31,7 @@ Do not publish this pack or use UI or claims from later work on `main`.
 
 | Claim | Launch truth |
 |---|---|
-| Current public release | v1.11.1 |
+| Current public release | v1.12.0 |
 | Platforms | macOS, Windows, Linux |
 | Core price | Free |
 | Blanc Patron | US$4/month or $30/year, plus applicable taxes |
@@ -41,7 +42,7 @@ Do not publish this pack or use UI or claims from later work on `main`.
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
 | macOS 1Password boundary | Optional and device-local. A small hint may use bounded structure-only metadata from a visible current-password field, without field values, page text, or a 1Password request. Settings can explicitly verify a saved account identifier. Credential lookup and fill remain user-invoked; Blanc does not fill automatically or store credentials. It is not an extension runtime |
-| Repository/build boundary | The v1.11.1 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
+| Repository/build boundary | The v1.12.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
 
 Canonical URLs—copy exactly:
 
@@ -61,7 +62,7 @@ Historical packaged-v1.10.0 demo assets (not launch-ready):
 | GIF | https://raw.githubusercontent.com/bnfy/blanc/0cc0c57b31c4b619aa18fe6fa1713002e2060b7d/docs/superpowers/plans/assets/island-demo.gif |
 
 These files were captured on August 30 from the installed packaged public
-v1.10.0 app in an isolated local profile. Do not recapture them for v1.11.1;
+v1.10.0 app in an isolated local profile. Do not recapture them for v1.12.0;
 wait until the final launch release is selected, then recapture from that exact
 packaged version. The 20.50-second historical export is 1228×768,
 30 fps H.264, and BT.709; the GIF is below 8 MiB. It shows the resting Island,
@@ -90,7 +91,7 @@ Submission mechanics:
    submit a Show HN. Do not create a launch-only account or manufacture activity.
 2. Write the title and first comment personally, without agent drafting or
    editing. The title must begin `Show HN` and describe the whole browser—not
-   announce the incremental v1.11.1 release.
+   announce the incremental v1.12.0 release.
 3. Submit `https://github.com/bnfy/blanc`, not the marketing homepage. The repo
    lets readers inspect and run the product; HN says not to submit landing pages
    or fundraisers.
@@ -114,7 +115,7 @@ Write these ideas in Anthony's natural words:
 - The honest limitation: Electron. Point to the measured method and raw data;
   do not turn a single-session benchmark into a universal claim.
 - What it is not: no mobile version; no extension support.
-- Narrow exception to the extension boundary: packaged macOS v1.11.1 may show
+- Narrow exception to the extension boundary: packaged macOS v1.12.0 may show
   a small local hint for a visible current-password field and can verify a
   saved account identifier in Settings. A matching Login item is requested
   from the installed 1Password app only when the user asks to fill; it is not
@@ -431,7 +432,7 @@ Use only topics that exist in the live form and genuinely fit.
 1. Island demo through a verified full YouTube URL.
 2. `product-hunt/island-resting-1270x760.png`.
 3. `product-hunt/quick-switcher-1270x760.png`.
-4. Optional: a packaged-v1.11.1 Named Workspaces capture with a visible
+4. Optional: a packaged-v1.12.0 Named Workspaces capture with a visible
    `Patron` label in its caption. Omit it rather than substituting a mockup,
    development build, or unlabeled paid feature.
 
@@ -562,8 +563,8 @@ drop a full defense where one sentence would do.
 
 ## Morning-of fact check
 
-- [ ] `package.json` and the latest public release both still say v1.11.1.
-- [ ] The README still links the v1.11.1 tag as the exact source snapshot for
+- [ ] `package.json` and the latest public release both still say v1.12.0.
+- [ ] The README still links the v1.12.0 tag as the exact source snapshot for
   the current public binaries, and any newer `main` work is excluded from copy.
 - [ ] The latest `launch-freeze-start` row records the final `origin/main`
   anchor, launch release tag, and release SHA; since that dynamic anchor,

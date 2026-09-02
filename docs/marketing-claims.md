@@ -70,7 +70,7 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries are verified for the v1.11.1 public release:
+These boundaries are verified for the v1.12.0 public release:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. The user opens its panel for
@@ -107,6 +107,11 @@ These boundaries are verified for the v1.11.1 public release:
   timed combos, automatic clears, hints, shuffle, undo, records, sound controls,
   and a footer that can be hidden while playing. Do not describe the game as
   online multiplayer, cloud-synced, AI-generated, or guaranteed solvable.
+- **Call audio buffering:** Automatic, Stable, and Resilient are receive-buffer
+  choices for WebRTC calls. Stable targets about 400 ms and Resilient about one
+  second, trading responsiveness for more tolerance of choppy playback. Do not
+  promise that either mode eliminates every crackle or fixes source-side,
+  network, Bluetooth, driver, or hardware faults.
 - **AI:** Blanc ships no AI assistant or agent browser. It does not understand
   assignments, detect semantic task boundaries, automatically organize tabs
   by meaning, or isolate automated browsing work from a person's session.

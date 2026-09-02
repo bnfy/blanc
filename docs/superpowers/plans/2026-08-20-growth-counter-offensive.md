@@ -24,26 +24,23 @@
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — August 31, 2026
+## Execution status — September 1, 2026
 
-- Blanc v1.11.1 is the current public baseline. It was published from
-  `a3b079a` at `2026-09-01T01:51:06Z`; publication, the authenticated manifest,
+- Blanc v1.12.0 is the current public baseline. It was published from
+  `a117852` at `2026-09-02T03:16:49Z`; publication, the authenticated manifest,
   native platform gates, logged-out download smoke, and fresh authenticated
   public Linux AppImage launch/render check passed. Its adjacent updater
   follow-ups are tracked in
-  `docs/release-incidents/2026-08-31-v1.11.1.md`.
-- The exact public v1.10.0 → v1.11.0 updater handoffs passed on macOS and
-  Windows; macOS additionally passed strict post-update signature and
-  Gatekeeper checks. The adjacent v1.11.0 → v1.11.1 handoffs are still required
-  before v1.11.1 follow-up evidence is complete. The earlier v1.9.1 → v1.10.0
-  handoffs, trust checks, Linux smoke, and soak remain valid historical
-  v1.10.0 evidence; they do not replace the completed v1.11.0 gates.
+  `docs/release-incidents/2026-09-01-v1.12.0.md`.
+- The adjacent public v1.11.1 → v1.12.0 updater handoffs are still required.
+  The earlier v1.11.0 → v1.11.1 record remains historical evidence and does
+  not replace the new adjacent handoffs.
 - Task 8's Island demo was recorded on August 30 from installed packaged public
   v1.10.0. Its 20.50-second MP4 and sub-8-MiB GIF remain immutable in
   `0cc0c57`, but they are no longer launch-ready because v1.11.0 ships the
   revised Blanc mark. **OWNER DECISION 2026-08-31:** because more releases are
   likely before launch week, do not recapture the demo or Product Hunt stills
-  for v1.11.1. Refresh them once, from the final selected launch release, after
+  for v1.12.0. Refresh them once, from the final selected launch release, after
   its required evidence is complete.
 
 ## Superseded execution status — August 28, 2026
@@ -88,7 +85,7 @@ community on the owner's behalf. Those steps are marked and must stop for the hu
 
 - **Feature freeze is in effect for the whole of Phase 2.** No feature releases during launch week.
 - **Ship one proven launch release as-is.** No telemetry or feature changes
-  during launch week; Patron stays in the launch narrative. v1.11.1 is the
+  during launch week; Patron stays in the launch narrative. v1.12.0 is the
   public baseline, and any later product/runtime, dependency,
   packaging, or release-workflow merge during backlog cleanup requires a new
   immutable launch release. Never describe newer `main` behavior as shipped.
@@ -955,7 +952,7 @@ npx wrangler pages deployment list --project-name=blancbrowser
 
 Confirm the expected source SHA shows `Environment: Production` and
 `Branch: main`. Then load the **canonical domain** and confirm both the
-changelog and the homepage show 1.11.1 — not a Cloudflare preview URL.
+changelog and the homepage show 1.12.0 — not a Cloudflare preview URL.
 
 - [x] **Step 10: Record the current v1.9.1 soak clock**
 
