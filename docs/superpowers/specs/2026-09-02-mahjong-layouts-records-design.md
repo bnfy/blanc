@@ -2,6 +2,7 @@
 
 **Date:** 2026-09-02
 **Status:** Approved direction (owner answered the three design questions), spec for review before planning
+Implemented on branch claude/mahjong-layouts-stats (see docs/superpowers/plans/2026-09-02-mahjong-layouts-records.md).
 **Follows:** `2026-09-02-mahjong-audit.md` (second batch), PR #270 (first batch)
 **Prior art in-tree:** layout registry in `src/renderer/pages/mahjong-engine.js` (`LAYOUTS`, builders), records store in `mahjong-state.js` (`createRecordStore`, immutable completion events, `daily[key][mode]`), the Boards setup sheet in `mahjong.html`/`mahjong.css` (`.mj-modal`, `.mj-setup-card`, `.mj-layout-mini-*`), the dock in `mahjong.html` (`mahjong-icons.svg` symbols).
 
