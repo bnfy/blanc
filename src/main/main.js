@@ -771,8 +771,8 @@ function handleNativeThemeUpdated() {
   forEachWindowRuntime(refreshActivePageTintForThemeChange, { liveOnly: true });
 }
 
-// Swap the chosen macOS Dock icon. Windows deliberately has one fixed icon,
-// embedded into Blanc.exe by electron-builder.
+// Swap the chosen macOS Dock icon. Windows uses one fixed Sunrise icon embedded
+// into Blanc.exe by electron-builder.
 function applyAppIcon() {
   // getSettings() already falls back an unauthorized/stale supporter icon
   // (hand-edited or copied settings.json) to the default — nothing further

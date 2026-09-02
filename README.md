@@ -84,8 +84,10 @@ Dev runs use their own userData profile and never send usage events.
 
 To build an installable app: `npm run dist` (or `npm run dist:dir` for a
 quick unpacked build in `dist/`). Targets: macOS dmg/zip, Windows NSIS,
-Linux AppImage. `build/icon.png` (1024×1024) is the app icon source;
-electron-builder derives the .icns/.ico from it automatically.
+Linux AppImage. `assets/sunrise-app-icon.png` is the canonical static app-icon
+source for Windows, Linux, and iOS; the brand build copies it to
+`build/icon.png` and generates Windows' multi-frame ICO. macOS uses the
+appearance-aware Sunrise Icon Composer document.
 
 ## The island
 

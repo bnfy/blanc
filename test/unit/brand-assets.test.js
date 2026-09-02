@@ -69,7 +69,7 @@ test('every active vector surface uses the new geometry as transparent cutouts',
   assert.doesNotMatch(onboarding, new RegExp(OLD_GEOMETRY.replace('.', '\\.')));
 });
 
-test('all app icon variants and platform copies are generated from the wider mark', async () => {
+test('all app icon variants and platform copies use their canonical identity sources', async () => {
   for (const id of ICON_IDS) {
     assert.equal(fs.existsSync(path.join(ROOT, `src/renderer/pages/icon-${id}.png`)), true, id);
     assert.equal(fs.existsSync(path.join(ROOT, `export/app-icons-1024-square/icon-${id}-1024.png`)), true, `${id} export`);
@@ -80,13 +80,16 @@ test('all app icon variants and platform copies are generated from the wider mar
   assert.ok(mark.width >= 455 && mark.width <= 465, `Paper mark width is ${mark.width}px`);
   assert.ok(mark.height >= 540 && mark.height <= 548, `Paper mark height is ${mark.height}px`);
 
-  const paperBytes = fs.readFileSync(paper);
-  assert.deepEqual(fs.readFileSync(path.join(ROOT, 'build/icon.png')), paperBytes);
+  const platformSource = fs.readFileSync(path.join(ROOT, 'assets/sunrise-app-icon.png'));
+  const platformIcon = fs.readFileSync(path.join(ROOT, 'build/icon.png'));
+  assert.deepEqual(platformIcon, platformSource);
   assert.deepEqual(
-    fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-paper.png')),
-    paperBytes,
+    fs.readFileSync(path.join(ROOT, 'ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png')),
+    platformIcon,
   );
-  assert.ok(fs.statSync(path.join(ROOT, 'build/windows-icons/icon-paper.ico')).size > 10_000);
+  const appIconCatalog = JSON.parse(source('ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/Contents.json'));
+  assert.equal(appIconCatalog.images[0].filename, 'icon-sunrise.png');
+  assert.ok(fs.statSync(path.join(ROOT, 'build/windows-icons/icon-sunrise.ico')).size > 10_000);
 });
 
 test('internal pages use Sunrise artwork instead of the retired B favicon', () => {

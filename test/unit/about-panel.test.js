@@ -20,7 +20,7 @@ test('about panel metadata comes from the running Blanc build', () => {
     credits: 'Independent browser by Bananify.',
     authors: ['Bananify'],
     website: ABOUT_WEBSITE,
-    iconPath: path.join(__dirname, '../../src/renderer/pages/icon-paper.png'),
+    iconPath: path.join(__dirname, '../../src/renderer/pages/icon-sunrise.png'),
   });
 });
 

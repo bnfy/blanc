@@ -15,7 +15,6 @@ const {
 } = require('../../src/main/app-icon');
 const {
   ICON_SIZES,
-  WINDOWS_MARK_SCALE,
   WINDOWS_VISIBLE_SCALE,
 } = require('../../scripts/build-windows-icons');
 
@@ -75,17 +74,18 @@ test('packaging wires the Icon Composer source and multi-colorway compiler', () 
   assert.equal(generated.groups[0].layers[0]['image-name'], 'sunrise-mark.png');
 });
 
-test('packaging wires one fixed Windows ICO without colorway resources', () => {
+test('packaging wires fixed Sunrise icons on Windows and Linux', () => {
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   assert.equal(pkg.build.appId, require('../../src/main/app-identity').APP_ID);
-  assert.equal(pkg.build.win.icon, 'build/windows-icons/icon-paper.ico');
+  assert.equal(pkg.build.win.icon, 'build/windows-icons/icon-sunrise.ico');
+  assert.equal(pkg.build.linux.icon, 'build/icon.png');
   assert.equal(pkg.build.win.extraResources, undefined);
   assert.deepEqual(
     fs.readdirSync(path.join(root, 'build/windows-icons')).filter((file) => file.endsWith('.ico')),
-    ['icon-paper.ico'],
+    ['icon-sunrise.ico'],
   );
 
-  const ico = fs.readFileSync(path.join(root, 'build/windows-icons/icon-paper.ico'));
+  const ico = fs.readFileSync(path.join(root, 'build/windows-icons/icon-sunrise.ico'));
   assert.equal(ico.readUInt16LE(0), 0);
   assert.equal(ico.readUInt16LE(2), 1);
   assert.equal(ico.readUInt16LE(4), ICON_SIZES.length);
@@ -98,7 +98,7 @@ test('packaging wires one fixed Windows ICO without colorway resources', () => {
 
 test('Windows ICOs fill the native icon canvas instead of retaining macOS margins', async () => {
   assert.equal(WINDOWS_VISIBLE_SCALE, 1);
-  const ico = fs.readFileSync(path.join(root, 'build/windows-icons/icon-paper.ico'));
+  const ico = fs.readFileSync(path.join(root, 'build/windows-icons/icon-sunrise.ico'));
   const frameIndex = ICON_SIZES.indexOf(32);
   const entryOffset = 6 + (frameIndex * 16);
   const byteLength = ico.readUInt32LE(entryOffset + 8);
@@ -119,9 +119,8 @@ test('Windows ICOs fill the native icon canvas instead of retaining macOS margin
   assert.deepEqual(opaqueBounds, { minX: 0, minY: 0, maxX: 31, maxY: 31 });
 });
 
-test('Windows enlarges the Blanc mark without changing the full-size Paper tile', async () => {
-  assert.equal(WINDOWS_MARK_SCALE, 1.1);
-  const ico = fs.readFileSync(path.join(root, 'build/windows-icons/icon-paper.ico'));
+test('Windows ICO carries the gold Sunrise artwork', async () => {
+  const ico = fs.readFileSync(path.join(root, 'build/windows-icons/icon-sunrise.ico'));
   const frameIndex = ICON_SIZES.indexOf(256);
   const entryOffset = 6 + (frameIndex * 16);
   const byteLength = ico.readUInt32LE(entryOffset + 8);
@@ -130,20 +129,15 @@ test('Windows enlarges the Blanc mark without changing the full-size Paper tile'
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
-  const darkBounds = { minX: info.width, minY: info.height, maxX: -1, maxY: -1 };
+  let goldPixels = 0;
   for (let y = 0; y < info.height; y += 1) {
     for (let x = 0; x < info.width; x += 1) {
       const offset = ((y * info.width) + x) * info.channels;
       const [r, g, b, a] = data.subarray(offset, offset + 4);
-      if (a < 128 || r >= 100 || g >= 100 || b >= 100) continue;
-      darkBounds.minX = Math.min(darkBounds.minX, x);
-      darkBounds.minY = Math.min(darkBounds.minY, y);
-      darkBounds.maxX = Math.max(darkBounds.maxX, x);
-      darkBounds.maxY = Math.max(darkBounds.maxY, y);
+      if (a >= 128 && r > 100 && g > 50 && b < 120 && r > g + 20) goldPixels += 1;
     }
   }
-  const markHeightRatio = (darkBounds.maxY - darkBounds.minY + 1) / info.height;
-  assert.ok(markHeightRatio >= 0.71 && markHeightRatio <= 0.75, markHeightRatio);
+  assert.ok(goldPixels > 1_000, `expected Sunrise gold pixels, got ${goldPixels}`);
 });
 
 test('uses the adaptive named icon in a packaged macOS 26+ build', () => {
@@ -274,12 +268,12 @@ test('unknown ids safely resolve to Sunrise', () => {
   assert.equal(macOSMajorVersion('n/a'), 0);
 });
 
-test('uses the fixed Paper ICO only for unpackaged Windows development', () => {
+test('uses the fixed Sunrise ICO only for unpackaged Windows development', () => {
   assert.equal(windowsDevelopmentIconPath({
     app: { isPackaged: false },
     platform: 'win32',
     projectRoot: 'C:\\project',
-  }), path.join('C:\\project', 'build/windows-icons/icon-paper.ico'));
+  }), path.join('C:\\project', 'build/windows-icons/icon-sunrise.ico'));
   assert.equal(windowsDevelopmentIconPath({
     app: { isPackaged: true },
     platform: 'win32',

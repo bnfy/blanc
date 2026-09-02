@@ -8,6 +8,7 @@ const { createIco } = require('./build-windows-icons');
 const ROOT = path.join(__dirname, '..');
 const SOURCE = path.join(ROOT, 'assets/blanc-mark.svg');
 const SUNRISE_SOURCE = path.join(ROOT, 'src/renderer/pages/mahjong-wind-east.png');
+const PLATFORM_ICON_SOURCE = path.join(ROOT, 'assets/sunrise-app-icon.png');
 const PAGES_DIR = path.join(ROOT, 'src/renderer/pages');
 const MONOGRAM_ICON_IDS = [
   'paper', 'ink', 'graphite', 'default', 'midnight', 'cream',
@@ -394,6 +395,13 @@ async function buildSiteAssets(artwork) {
 async function main() {
   const source = await fs.readFile(SOURCE, 'utf8');
   const artwork = sourceArtwork(source);
+  const platformIcon = await fs.readFile(PLATFORM_ICON_SOURCE);
+  const platformIconMetadata = await sharp(platformIcon).metadata();
+  if (platformIconMetadata.format !== 'png'
+      || platformIconMetadata.width !== ICON_CANVAS
+      || platformIconMetadata.height !== ICON_CANVAS) {
+    throw new Error('assets/sunrise-app-icon.png must remain a 1024px square PNG');
+  }
 
   const builtIcons = new Map();
   for (const id of MONOGRAM_ICON_IDS) {
@@ -421,9 +429,8 @@ async function main() {
     );
   }
 
-  const paper = builtIcons.get('paper');
-  await emit('build/icon.png', paper);
-  await emit('ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-paper.png', paper);
+  await emit('build/icon.png', platformIcon);
+  await emit('ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png', platformIcon);
   await emit('src/renderer/pages/icon.svg', standaloneMarkSvg(artwork));
   await emit('src/renderer/pages/sunrise-favicon-mark.png', sunrise.faviconMotif);
   await emit('src/renderer/pages/sunrise-mark.png', sunrise.motif);

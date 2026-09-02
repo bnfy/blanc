@@ -20,14 +20,14 @@ function setWindowsAppUserModelId({ app, platform = process.platform }) {
   return true;
 }
 
-/** Use Blanc's fixed Paper ICO for unpackaged Windows development. */
+/** Use Blanc's fixed Sunrise ICO for unpackaged Windows development. */
 function windowsDevelopmentIconPath({
   app,
   platform = process.platform,
   projectRoot = path.join(__dirname, '../..'),
 }) {
   if (platform !== 'win32' || app.isPackaged) return null;
-  return path.join(projectRoot, 'build/windows-icons/icon-paper.ico');
+  return path.join(projectRoot, 'build/windows-icons/icon-sunrise.ico');
 }
 
 /**

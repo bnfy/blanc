@@ -1,12 +1,7 @@
 #!/usr/bin/env node
-// Build Blanc's one fixed Windows application icon.
-//
-// The shared 1024px PNGs intentionally include macOS-style breathing room:
-// their visible tile is 824px wide inside the canvas. Windows scales the full
-// canvas into its taskbar slot, making that layout look materially smaller than
-// native Windows apps. Each ICO therefore trims the shared transparent margin,
-// uses the full native icon canvas, and embeds raster frames for the
-// taskbar/display scaling sizes Windows commonly requests.
+// Build Blanc's fixed Sunrise application icon for Windows. The ICO embeds
+// raster frames for the taskbar/display scaling sizes Windows commonly asks
+// for instead of relying on Electron to downsample one large PNG at runtime.
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const sharp = require('sharp');
@@ -14,16 +9,9 @@ const sharp = require('sharp');
 const ROOT = path.join(__dirname, '..');
 const SOURCE_ICON = path.join(ROOT, 'build/icon.png');
 const OUTPUT_DIR = path.join(ROOT, 'build/windows-icons');
-const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-paper.ico');
+const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-sunrise.ico');
 const ICON_SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256];
 const WINDOWS_VISIBLE_SCALE = 1;
-// The full Paper tile now matches Windows' native taskbar footprint, but the
-// shared macOS composition leaves its mark visually smaller than neighboring
-// Windows glyphs. Scale only that central region; macOS keeps its source art.
-const WINDOWS_MARK_SCALE = 1.1;
-// Bounds inside the trimmed 824px Paper tile, including an 8px white guard
-// around the 460x544 mark so resampling preserves its antialiased edge.
-const WINDOWS_MARK_REGION = { left: 198, top: 132, width: 476, height: 560 };
 
 function createIco(frames) {
   const headerSize = 6;
@@ -67,41 +55,13 @@ async function createFrame(trimmedSource, size) {
     .toBuffer();
 }
 
-async function enlargeWindowsMark(trimmedSource, tileSize) {
-  const region = WINDOWS_MARK_REGION;
-  const width = Math.round(region.width * WINDOWS_MARK_SCALE);
-  const height = Math.round(region.height * WINDOWS_MARK_SCALE);
-  const left = Math.round(region.left + ((region.width - width) / 2));
-  const top = Math.round(region.top + ((region.height - height) / 2));
-  const enlarged = await sharp(trimmedSource)
-    .extract(region)
-    .resize(width, height, { fit: 'fill', kernel: sharp.kernel.lanczos3 })
-    .png()
-    .toBuffer();
-
-  if (left < 0 || top < 0 || left + width > tileSize || top + height > tileSize) {
-    throw new Error('Windows mark enlargement exceeds the Paper tile');
-  }
-  return sharp(trimmedSource)
-    .composite([{ input: enlarged, left, top }])
-    .png()
-    .toBuffer();
-}
-
 async function createWindowsIcon() {
   const metadata = await sharp(SOURCE_ICON).metadata();
-  if (metadata.width !== metadata.height || !metadata.hasAlpha) {
-    throw new Error(`${path.relative(ROOT, SOURCE_ICON)} must be a square PNG with alpha`);
+  if (metadata.width !== metadata.height) {
+    throw new Error(`${path.relative(ROOT, SOURCE_ICON)} must be a square PNG`);
   }
 
-  const { data: trimmedSource, info } = await sharp(SOURCE_ICON)
-    .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 } })
-    .png()
-    .toBuffer({ resolveWithObject: true });
-  if (info.width !== info.height) {
-    throw new Error(`${path.relative(ROOT, SOURCE_ICON)} has non-square visible bounds`);
-  }
-  const windowsSource = await enlargeWindowsMark(trimmedSource, info.width);
+  const windowsSource = await sharp(SOURCE_ICON).ensureAlpha().png().toBuffer();
 
   const frames = [];
   for (const size of ICON_SIZES) {
@@ -126,7 +86,7 @@ async function main() {
     await fs.writeFile(OUTPUT_ICON, expected);
     console.log(`wrote ${path.relative(ROOT, OUTPUT_ICON)}`);
   }
-  if (check) console.log('Windows app icon is current (fixed Paper icon).');
+  if (check) console.log('Windows app icon is current (fixed Sunrise icon).');
 }
 
 if (require.main === module) {
@@ -138,7 +98,6 @@ if (require.main === module) {
 
 module.exports = {
   ICON_SIZES,
-  WINDOWS_MARK_SCALE,
   WINDOWS_VISIBLE_SCALE,
   createIco,
 };

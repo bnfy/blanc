@@ -24,17 +24,21 @@ Source mark:
 
 - `build/app-icons/Icon.icon/` — the Icon Composer document, including
   `Assets/blanc-mark.svg`
+- `assets/sunrise-app-icon.png` — the static Sunrise platform source
 - `build/icon.png` — 1024×1024 raster template
 
-App-icon colorways (eleven, one per colorway):
+App-icon colorways:
 
-- `src/renderer/pages/icon-{paper,ink,graphite,default,midnight,cream,forest,sage,ember,plum,gold}.png`
-- `export/app-icons-1024-square/icon-{paper,ink,graphite,default,midnight,cream,forest,sage,ember,plum,gold}-1024.png`
+- `src/renderer/pages/icon-{sunrise,sunrise-dark,paper,ink,graphite,default,midnight,cream,forest,sage,ember,plum,gold}.png`
+- `export/app-icons-1024-square/icon-{sunrise,sunrise-dark,paper,ink,graphite,default,midnight,cream,forest,sage,ember,plum,gold}-1024.png`
+- `export/app-icons-1024-square/icon-sunrise{,-dark}-4096.png`
+- `export/app-icons-1024-square/icon-sunrise-enhanced-1024.png`
+- `export/app-icons-1024-square/icon-sunrise-dark-enhanced-1024.png`
 
 Platform-packaged forms of the same mark:
 
-- `build/windows-icons/icon-paper.ico`
-- `ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-paper.png`
+- `build/windows-icons/icon-sunrise.ico`
+- `ios/Blanc/Blanc/Assets.xcassets/AppIcon.appiconset/icon-sunrise.png`
 - `src/renderer/pages/icon.svg`
 - `site/public/logo.png`, `site/public/favicon.svg`,
   `site/public/favicon.ico`, `site/public/favicon-16x16.png`,

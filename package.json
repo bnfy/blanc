@@ -133,7 +133,7 @@
       ]
     },
     "win": {
-      "icon": "build/windows-icons/icon-paper.ico",
+      "icon": "build/windows-icons/icon-sunrise.ico",
       "target": [
         "nsis"
       ]
@@ -142,6 +142,7 @@
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "linux": {
+      "icon": "build/icon.png",
       "target": [
         "AppImage"
       ],
