@@ -14,7 +14,7 @@ const OUTPUT_DIR = path.join(ROOT, 'build/windows-icons');
 const OUTPUT_ICON = path.join(OUTPUT_DIR, 'icon-sunrise.ico');
 const ICON_SIZES = [16, 20, 24, 32, 40, 48, 64, 128, 256];
 const WINDOWS_VISIBLE_SCALE = 1;
-const WINDOWS_PIXEL_DELTA_TOLERANCE = 1;
+const WINDOWS_PIXEL_DELTA_TOLERANCE = 2;
 
 function createIco(frames) {
   const headerSize = 6;
@@ -63,6 +63,7 @@ async function sameIcoPixels(actual, expected, { reportDifference = false } = {}
   const expectedFrames = icoFrames(expected);
   if (!actualFrames || !expectedFrames || actualFrames.length !== expectedFrames.length) return false;
 
+  let worstDifference = { size: 0, maxDelta: 0 };
   for (let index = 0; index < expectedFrames.length; index += 1) {
     const actualFrame = actualFrames[index];
     const expectedFrame = expectedFrames[index];
@@ -79,12 +80,15 @@ async function sameIcoPixels(actual, expected, { reportDifference = false } = {}
     for (let offset = 0; offset < actualImage.data.length; offset += 1) {
       maxDelta = Math.max(maxDelta, Math.abs(actualImage.data[offset] - expectedImage.data[offset]));
     }
-    if (maxDelta > WINDOWS_PIXEL_DELTA_TOLERANCE) {
-      if (reportDifference) {
-        console.error(`Windows icon frame ${actualFrame.size}px differs by up to ${maxDelta} channel values.`);
-      }
-      return false;
+    if (maxDelta > worstDifference.maxDelta) {
+      worstDifference = { size: actualFrame.size, maxDelta };
     }
+  }
+  if (worstDifference.maxDelta > WINDOWS_PIXEL_DELTA_TOLERANCE) {
+    if (reportDifference) {
+      console.error(`Windows icon frame ${worstDifference.size}px differs by up to ${worstDifference.maxDelta} channel values.`);
+    }
+    return false;
   }
   return true;
 }

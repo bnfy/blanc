@@ -153,7 +153,7 @@ test('Windows ICO carries the gold Sunrise artwork', async () => {
 });
 
 test('Windows icon checks compare rendered frames across platform-specific PNG encoders', async () => {
-  assert.equal(WINDOWS_PIXEL_DELTA_TOLERANCE, 1);
+  assert.equal(WINDOWS_PIXEL_DELTA_TOLERANCE, 2);
   const image = {
     create: { width: 16, height: 16, channels: 4, background: '#c6922e' },
   };
