@@ -17,6 +17,8 @@ const {
   ICON_SIZES,
   SOURCE_ICON,
   WINDOWS_VISIBLE_SCALE,
+  createIco,
+  sameIcoPixels,
 } = require('../../scripts/build-windows-icons');
 
 const image = (empty = false) => ({ isEmpty: () => empty });
@@ -147,6 +149,28 @@ test('Windows ICO carries the gold Sunrise artwork', async () => {
     }
   }
   assert.ok(goldPixels > 1_000, `expected Sunrise gold pixels, got ${goldPixels}`);
+});
+
+test('Windows icon checks compare rendered frames across platform-specific PNG encoders', async () => {
+  const image = {
+    create: { width: 16, height: 16, channels: 4, background: '#c6922e' },
+  };
+  const [storedPng, regeneratedPng, changedPng] = await Promise.all([
+    sharp(image).png({ compressionLevel: 0 }).toBuffer(),
+    sharp(image).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer(),
+    sharp({ create: { width: 16, height: 16, channels: 4, background: '#c7922e' } })
+      .png({ compressionLevel: 9, adaptiveFiltering: true })
+      .toBuffer(),
+  ]);
+  assert.equal(storedPng.equals(regeneratedPng), false, 'fixture uses different PNG encodings');
+  assert.equal(
+    await sameIcoPixels(createIco([{ size: 16, png: storedPng }]), createIco([{ size: 16, png: regeneratedPng }])),
+    true,
+  );
+  assert.equal(
+    await sameIcoPixels(createIco([{ size: 16, png: storedPng }]), createIco([{ size: 16, png: changedPng }])),
+    false,
+  );
 });
 
 test('uses the adaptive named icon in a packaged macOS 26+ build', () => {

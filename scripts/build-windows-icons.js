@@ -40,6 +40,44 @@ function createIco(frames) {
   return Buffer.concat([header, ...frames.map(({ png }) => png)]);
 }
 
+function icoFrames(ico) {
+  if (!ico || ico.length < 6 || ico.readUInt16LE(0) !== 0 || ico.readUInt16LE(2) !== 1) return null;
+  const count = ico.readUInt16LE(4);
+  if (!count || ico.length < 6 + (count * 16)) return null;
+  const frames = [];
+  for (let index = 0; index < count; index += 1) {
+    const entryOffset = 6 + (index * 16);
+    const width = ico.readUInt8(entryOffset) || 256;
+    const height = ico.readUInt8(entryOffset + 1) || 256;
+    const byteLength = ico.readUInt32LE(entryOffset + 8);
+    const imageOffset = ico.readUInt32LE(entryOffset + 12);
+    if (width !== height || !byteLength || imageOffset + byteLength > ico.length) return null;
+    frames.push({ size: width, png: ico.subarray(imageOffset, imageOffset + byteLength) });
+  }
+  return frames;
+}
+
+async function sameIcoPixels(actual, expected) {
+  const actualFrames = icoFrames(actual);
+  const expectedFrames = icoFrames(expected);
+  if (!actualFrames || !expectedFrames || actualFrames.length !== expectedFrames.length) return false;
+
+  for (let index = 0; index < expectedFrames.length; index += 1) {
+    const actualFrame = actualFrames[index];
+    const expectedFrame = expectedFrames[index];
+    if (actualFrame.size !== expectedFrame.size) return false;
+    const [actualImage, expectedImage] = await Promise.all([
+      sharp(actualFrame.png).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
+      sharp(expectedFrame.png).ensureAlpha().raw().toBuffer({ resolveWithObject: true }),
+    ]);
+    if (actualImage.info.width !== expectedImage.info.width
+      || actualImage.info.height !== expectedImage.info.height
+      || actualImage.info.channels !== expectedImage.info.channels
+      || !actualImage.data.equals(expectedImage.data)) return false;
+  }
+  return true;
+}
+
 async function createFrame(trimmedSource, size) {
   const visibleSize = Math.max(1, Math.round(size * WINDOWS_VISIBLE_SCALE));
   const horizontalMargin = size - visibleSize;
@@ -95,7 +133,8 @@ async function main() {
 
   const expected = await createWindowsIcon();
   const actual = await fs.readFile(OUTPUT_ICON).catch(() => null);
-  if (check && (!actual || !actual.equals(expected))) {
+  const current = actual && (actual.equals(expected) || await sameIcoPixels(actual, expected));
+  if (check && !current) {
     throw new Error(
       `Windows app icon is missing or stale:\n  ${path.relative(ROOT, OUTPUT_ICON)}\n`
       + 'Run npm run icons:windows:build and commit the generated ICO files.'
@@ -120,4 +159,5 @@ module.exports = {
   SOURCE_ICON,
   WINDOWS_VISIBLE_SCALE,
   createIco,
+  sameIcoPixels,
 };
