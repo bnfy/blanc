@@ -4,7 +4,9 @@ const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
 
-const MAHJONG_TILE_COUNTS = Object.freeze({ turtle: 144, arch: 96, peaks: 72 });
+const MAHJONG_TILE_COUNTS = Object.freeze({
+  turtle: 144, arch: 96, peaks: 72, pyramid: 108, fortress: 96, butterfly: 94, bridge: 100, cross: 86,
+});
 
 async function openNewTab(world) {
   await world.call('newTab');

@@ -1155,7 +1155,7 @@
 
 .mj-layout-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
 }
 
@@ -1247,6 +1247,57 @@
 .mj-layout-mini-peaks i:nth-child(7) { left: 26%; top: 31px; }
 .mj-layout-mini-peaks i:nth-child(8) { left: 50%; top: 19px; }
 .mj-layout-mini-peaks i:nth-child(9) { left: 74%; top: 31px; }
+
+/* v2.1 previews. Pyramid: a four-course stepped stack. Fortress: a ring with
+   a raised keep. Butterfly: two lifted wings and a body. Bridge: two towers
+   and a low span. Cross: a plus that rises at the centre. */
+.mj-layout-mini-pyramid i:nth-child(1) { left: 20%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(2) { left: 40%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(3) { left: 60%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(4) { left: 80%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(5) { left: 30%; top: 46px; }
+.mj-layout-mini-pyramid i:nth-child(6) { left: 50%; top: 46px; }
+.mj-layout-mini-pyramid i:nth-child(7) { left: 70%; top: 46px; }
+.mj-layout-mini-pyramid i:nth-child(8) { left: 40%; top: 30px; }
+.mj-layout-mini-pyramid i:nth-child(9) { left: 60%; top: 30px; }
+.mj-layout-mini-pyramid i:nth-child(10) { left: 50%; top: 14px; }
+
+.mj-layout-mini-fortress i:nth-child(1) { left: 10%; top: 58px; }
+.mj-layout-mini-fortress i:nth-child(2) { left: 50%; top: 58px; }
+.mj-layout-mini-fortress i:nth-child(3) { left: 90%; top: 58px; }
+.mj-layout-mini-fortress i:nth-child(4) { left: 10%; top: 30px; }
+.mj-layout-mini-fortress i:nth-child(5) { left: 50%; top: 30px; }
+.mj-layout-mini-fortress i:nth-child(6) { left: 90%; top: 30px; }
+.mj-layout-mini-fortress i:nth-child(7) { left: 50%; top: 44px; }
+
+.mj-layout-mini-butterfly i:nth-child(1) { left: 12%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(2) { left: 30%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(3) { left: 70%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(4) { left: 88%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(5) { left: 21%; top: 40px; }
+.mj-layout-mini-butterfly i:nth-child(6) { left: 79%; top: 40px; }
+.mj-layout-mini-butterfly i:nth-child(7) { left: 50%; top: 60px; }
+.mj-layout-mini-butterfly i:nth-child(8) { left: 50%; top: 42px; }
+.mj-layout-mini-butterfly i:nth-child(9) { left: 50%; top: 24px; }
+
+.mj-layout-mini-bridge i:nth-child(1) { left: 12%; top: 60px; }
+.mj-layout-mini-bridge i:nth-child(2) { left: 88%; top: 60px; }
+.mj-layout-mini-bridge i:nth-child(3) { left: 37%; top: 52px; }
+.mj-layout-mini-bridge i:nth-child(4) { left: 50%; top: 52px; }
+.mj-layout-mini-bridge i:nth-child(5) { left: 63%; top: 52px; }
+.mj-layout-mini-bridge i:nth-child(6) { left: 12%; top: 42px; }
+.mj-layout-mini-bridge i:nth-child(7) { left: 88%; top: 42px; }
+.mj-layout-mini-bridge i:nth-child(8) { left: 12%; top: 24px; }
+.mj-layout-mini-bridge i:nth-child(9) { left: 88%; top: 24px; }
+
+.mj-layout-mini-cross i:nth-child(1) { left: 14%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(2) { left: 32%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(3) { left: 68%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(4) { left: 86%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(5) { left: 50%; top: 66px; }
+.mj-layout-mini-cross i:nth-child(6) { left: 50%; top: 34px; }
+.mj-layout-mini-cross i:nth-child(7) { left: 50%; top: 18px; }
+.mj-layout-mini-cross i:nth-child(8) { left: 50%; top: 50px; }
 
 .mj-setup-row {
   display: grid;
@@ -1856,6 +1907,10 @@
   .mj-chain-meter { min-width: 88px; }
   .mj-combo-bar { width: 78px; }
   .mj-feedback { top: calc(var(--mj-shell-block) + 52px + var(--mj-shell-gap) + 8px); }
+}
+
+@media (max-width: 900px) {
+  .mj-layout-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 780px) {

@@ -603,3 +603,20 @@ test('a fresh tab offers to continue the most recent unfinished board without au
   // the untouched fresh deal this tab just made is discarded rather than orphaned
   assert.match(controller, /function adoptGame[\s\S]*?gameStore\.discard\(previousId\)/);
 });
+
+test('the Boards sheet lists all eight layouts in registry order on a four-column grid', () => {
+  const S = require('../../src/renderer/pages/mahjong-state');
+  const ids = [...html.matchAll(/class="mj-choice mj-layout-choice[^"]*"[^>]*data-layout="([a-z]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(ids, [...S.LAYOUT_IDS]);
+  for (const id of ['Pyramid', 'Fortress', 'Butterfly', 'Bridge', 'Cross']) {
+    assert.match(html, new RegExp(`id="mjLayout${id}"`), `missing card for ${id}`);
+    assert.match(mahjongStyles, new RegExp(`\\.mj-layout-mini-${id.toLowerCase()} i:nth-child\\(1\\)`), `missing preview for ${id}`);
+  }
+  assert.match(html, /108 tiles · steep/);
+  assert.match(html, /96 tiles · walled/);
+  assert.match(html, /94 tiles · open/);
+  assert.match(html, /100 tiles · narrow/);
+  assert.match(html, /86 tiles · layered/);
+  assert.match(mahjongStyles, /\.mj-layout-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(mahjongStyles, /@media \(max-width: 900px\)\s*\{[^@]*\.mj-layout-grid\s*\{[^}]*repeat\(2, minmax\(0, 1fr\)\)/);
+});
