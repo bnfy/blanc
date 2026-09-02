@@ -688,6 +688,7 @@ function install(refs) {
             dockBottom: dockRect?.bottom ?? 0,
             dockButtonWidth: firstDockButton?.width ?? 0,
             dockButtonHeight: firstDockButton?.height ?? 0,
+            dockButtonCount: dockButtons.length,
             dockButtonGap: firstDockButton && secondDockButton
               ? secondDockButton.top - firstDockButton.bottom
               : 0,
@@ -759,6 +760,54 @@ function install(refs) {
             time.textContent = previousTime;
             best.textContent = previousBest;
           }
+        })()`);
+      } catch {
+        return null;
+      }
+    },
+    async setNewtabZoomFactor(factor) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const applied = Math.min(3, Math.max(0.5, Number(factor) || 1));
+      tab.view.webContents.setZoomFactor(applied);
+      return tab.view.webContents.getZoomFactor();
+    },
+    async newtabZoomFactor() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.getZoomFactor();
+    },
+    async readMahjongRecordsGeometry() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return null;
+      try {
+        return await frame.executeJavaScript(`(async () => {
+          const sheet = document.getElementById('mjRecordsSheet');
+          const card = sheet?.querySelector('.mj-records-card');
+          const trigger = document.getElementById('mjRecords');
+          if (!sheet || !card || !trigger || typeof openRecords !== 'function' || typeof closeRecords !== 'function') return null;
+          if (!sheet.hidden) closeRecords();
+          openRecords();
+          await new Promise((resolve) => setTimeout(resolve, 320));
+          const cardRect = card.getBoundingClientRect();
+          const measured = {
+            card: { left: cardRect.left, top: cardRect.top, right: cardRect.right, bottom: cardRect.bottom },
+            viewport: { left: 0, top: 0, right: innerWidth, bottom: innerHeight },
+            scrollWidth: card.scrollWidth,
+            clientWidth: card.clientWidth,
+            overflowY: getComputedStyle(card).overflowY,
+            rowCount: document.querySelectorAll('#mjRecordsRows tr').length,
+            viewportWidth: innerWidth,
+            viewportHeight: innerHeight,
+            zoomFactor: outerWidth ? outerWidth / innerWidth : 1,
+          };
+          closeRecords();
+          await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+          measured.focusReturned = document.activeElement === trigger;
+          return measured;
         })()`);
       } catch {
         return null;
