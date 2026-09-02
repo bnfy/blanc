@@ -241,3 +241,78 @@ miscategorized it as game-styles-only. The design-side agent flagged the stale m
   stays on the old chip until the design project is next opened and recompiles. chrome.card.html's
   quiet MDN demo tab needs no change (it now just renders the dim). guidelines/vertical-tabs.html
   never had quiet rows. Never re-mirror the chip back into the app.
+
+## 2026-09-02 sync (push-drift, v1.11.0 → v1.12.0 — Sunrise brand sync)
+
+Drift scan from a19d334 (last sync commit) to df7a0e5. Only #262 (aa01590, "Adopt Sunrise
+as the default app icon", shipped in v1.12.0) touched DS surfaces. **Tokens: no drift**
+(no `:root` change in styles.css/pages.css/tokens.json since the verified 08-31 sync).
+**Icon glyphs: no drift** (renderer.js/overlay.js ICONS unchanged; only comments moved).
+
+Owner decisions (AskUserQuestion, 2026-09-02): (1) **Sunrise replaces the B everywhere** —
+not just the app icon; (2) full app-icon sync incl. `assets/app-icon.png`; (3) model the
+internal-page favicon change in Island. Rendering proof (Playwright Chromium against the
+real compiled Icon bundle + DS tokens, light and dark, pixel crops) was sent and an
+explicit push approval obtained before any write.
+
+Pushed (plan_bee811dfe403446a_3ee10cffb81e; 24 writes + 1 delete; sentinel fenced first and
+re-armed last):
+- **Brand.** `components/icons/Logo.jsx` now embeds `src/renderer/pages/sunrise-mark.png`
+  (680×680 RGBA, 265 KB base64) VERBATIM as a data URI — Sunrise is raster (the app's brand
+  build derives it from `mahjong-wind-east.png`; there is no vector, never trace it). Two
+  tones: `tone="ink"` (default; currentColor through the PNG alpha via CSS mask — exactly
+  styles.css `.favicon.internal`) and `tone="color"` (the gold `<img>`). Below 20px the ink
+  tone swaps in the app's rays-only `sunrise-favicon-mark.png`, embedded as a **128px
+  alpha-preserving downsample** (3.7 KB; RGB zeroed, alpha kept) — the only non-verbatim
+  bytes in the push, disclosed in the file header; the app itself applies the same crop
+  rule at 14px. `Logo.d.ts` gained `tone`; `Logo.prompt.md` rewritten (monochrome-ink rule
+  kept, gold reserved for app-icon contexts).
+- `assets/blanc-symbol.svg` = the same verbatim PNG wrapped as an alpha `<mask>` over a
+  currentColor rect (266 KB). `assets/app-icon.svg` (B vector) DELETED. `assets/app-icon.png`
+  ← `export/app-icons-1024-square/icon-sunrise-1024.png`. Added `assets/sunrise-mark.png`,
+  `assets/sunrise-favicon-mark.png`, `assets/dock-icons/icon-sunrise{,-dark}.png` (all
+  byte-identical copies). `guidelines/brand-logos.html` (ink + color symbol, nav lockup with
+  the ≤16px crop rule, Sunrise tile; viewport 700×330), `dock-icon-colorways.html`
+  (7 of 13 swatches, Sunrise default first), `wordmark-export.html` (square 21×21 mark).
+  `readme.md` brand/logo/dock paragraphs rewritten; `github.md` sync entry added.
+- **Island internal-page favicon (#262).** Verbatim styles.css rules under bw- names:
+  `.bw-island-favicon.internal` (text-ink mask of the rays-only crop; embedded data URI so
+  it resolves from any card depth), `.bw-pill-favicon.internal { display: none }`
+  (= `#islandPill #pillFavicon.internal`), `.bw-dot-peek.internal` = blank disc
+  (= `#islandPill .dot-peek.internal::after { display:none }`; the app's dot peeks exist
+  only in the pill — renderer.js:620). `Favicon` gained an `internal` state
+  (`isInternalUrl` = url starts with `blanc://`); rows and peeks branch on it. `.d.ts` and
+  `.prompt.md` document it; `chrome.card.html` gained a `blanc://newtab/` tab so the row
+  is visible. Shield comment updated (B "since retired").
+- `ui_kits/browser/index.html` + `templates/browser/app.jsx`: `faviconOf(blanc://)` →
+  `undefined` (the Island supplies the mark; they used to borrow app-icon.svg);
+  `pages.jsx`/`app.jsx` `DOCK_ICONS` = sunrise, sunrise-dark, evergreen (id `default`),
+  midnight, cream, forest, sage; default `sunrise`.
+- `templates/social-covers/CoverBoard.dc.html`: the two blancbrowser.com favicons (pill +
+  pinned row) were the OLD stroked B (`153.09×203.01`, never updated for #211/#256) → Sunrise
+  ink silhouettes (128px data URI). Everything else byte-for-byte as fetched.
+
+Deliberately NOT touched: `explorations/*`, `design_handoff_*/*` (historical snapshots;
+`NewtabOnboarding.dc.html` was already marked historical and still shows the old B),
+`thumbnail.html` (wordmark text only), `guidelines/island-hero.html` (comment only),
+the five monogram dock PNGs (the app still ships the B tile in those colorways).
+
+### ⚠️ Site lag (NOT a DS issue — flagged for the site workflow)
+As of df7a0e5, `site/` has NO Sunrise asset (only `releases.json` mentions it) and the live
+brand mark is still the Mahjong-inspired B from #256. With the owner's "Sunrise everywhere"
+decision the DS is deliberately AHEAD of the site; BrandMark.astro, favicons, logo.png,
+OG/press cards need their own pass. Also uncommitted in the shared checkout at sync time:
+a Sunrise-for-Windows/Linux/iOS icon pass (build/icon.png, icon-sunrise.ico, iOS asset,
+ASSET-LICENSE/README) — unshipped, so not mirrored; re-scan after it lands.
+
+### Gotchas learned
+- The Browser pane cannot crop (`zoom` region unsupported) and stalls while hidden; use the
+  Playwright MCP against a `python3 -m http.server` launch.json entry (temporary
+  `ds-harness`, removed after) and crop the saved PNG with magick.
+- Babel-standalone can't resolve ESM imports: strip `import`/`export` from the sources,
+  bind `Icon` from the fetched `_ds_bundle.js`, concatenate, and render.
+- `get_file` results under ~50 KB are NOT persisted to disk — edits to such files mean
+  re-authoring them in full; larger ones (Island.jsx, the bundle) land in tool-results and
+  can be patched with assert-per-replacement scripts.
+- A CSS `mask` on a raster needs the alpha channel: an alpha-EXTRACTED grayscale PNG masks
+  as a solid square; keep RGBA (zero RGB, keep alpha) instead.
