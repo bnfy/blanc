@@ -77,8 +77,15 @@ async function sameIcoPixels(actual, expected, { reportDifference = false } = {}
       || actualImage.info.channels !== expectedImage.info.channels
       || actualImage.data.length !== expectedImage.data.length) return false;
     let maxDelta = 0;
-    for (let offset = 0; offset < actualImage.data.length; offset += 1) {
-      maxDelta = Math.max(maxDelta, Math.abs(actualImage.data[offset] - expectedImage.data[offset]));
+    for (let offset = 0; offset < actualImage.data.length; offset += 4) {
+      const actualAlpha = actualImage.data[offset + 3];
+      const expectedAlpha = expectedImage.data[offset + 3];
+      maxDelta = Math.max(maxDelta, Math.abs(actualAlpha - expectedAlpha));
+      for (let channel = 0; channel < 3; channel += 1) {
+        const actualPremultiplied = Math.round((actualImage.data[offset + channel] * actualAlpha) / 255);
+        const expectedPremultiplied = Math.round((expectedImage.data[offset + channel] * expectedAlpha) / 255);
+        maxDelta = Math.max(maxDelta, Math.abs(actualPremultiplied - expectedPremultiplied));
+      }
     }
     if (maxDelta > worstDifference.maxDelta) {
       worstDifference = { size: actualFrame.size, maxDelta };
@@ -86,7 +93,7 @@ async function sameIcoPixels(actual, expected, { reportDifference = false } = {}
   }
   if (worstDifference.maxDelta > WINDOWS_PIXEL_DELTA_TOLERANCE) {
     if (reportDifference) {
-      console.error(`Windows icon frame ${worstDifference.size}px differs by up to ${worstDifference.maxDelta} channel values.`);
+      console.error(`Windows icon frame ${worstDifference.size}px differs by up to ${worstDifference.maxDelta} visible channel values.`);
     }
     return false;
   }
