@@ -234,7 +234,7 @@ test('mahjong loads its sound module before the controller and exposes a pressed
 });
 
 test('the game dock uses one local professional SVG icon family instead of font glyphs', () => {
-  for (const icon of ['boards', 'undo', 'hint', 'shuffle', 'sound-on', 'sound-off']) {
+  for (const icon of ['boards', 'records', 'undo', 'hint', 'shuffle', 'sound-on', 'sound-off']) {
     assert.match(html, new RegExp(`mahjong-icons\\.svg#${icon}`), `missing ${icon} dock icon`);
   }
   assert.doesNotMatch(styles, /content:\s*["'](?:▦|↶|◇|⤨|◖)/);
@@ -481,7 +481,7 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
   assert.match(desktop, /\.mj-board-wrap\s*\{\s*--mj-board-safe-side:\s*88px;\s*\}/);
   assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;/);
   assert.match(desktop, /\.mj-dock\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-table;[^}]*left:\s*calc\(anchor\(left\) \+ 16px\);[^}]*top:\s*anchor\(center\);[^}]*transform:\s*translateY\(-50%\);[^}]*grid-template-columns:\s*1fr;/);
-  assert.match(desktop, /\.mj-dock\s*\{[^}]*width:\s*64px;[^}]*grid-template-rows:\s*repeat\(5,\s*64px\);[^}]*gap:\s*16px;[^}]*padding:\s*0;[^}]*border:\s*0;[^}]*background:\s*none;[^}]*box-shadow:\s*none;/);
+  assert.match(desktop, /\.mj-dock\s*\{[^}]*width:\s*64px;[^}]*grid-template-rows:\s*repeat\(6,\s*64px\);[^}]*gap:\s*16px;[^}]*padding:\s*0;[^}]*border:\s*0;[^}]*background:\s*none;[^}]*box-shadow:\s*none;/);
   assert.match(desktop, /\.mj-dock > button\s*\{[^}]*box-sizing:\s*border-box;[^}]*width:\s*64px;[^}]*height:\s*64px;[^}]*aspect-ratio:\s*1;[^}]*border-radius:\s*50%;/);
   assert.match(desktop, /\.mj-dock > button\s*\{[^}]*radial-gradient\(circle at 35% 23%[^}]*0 3px 0[^}]*inset 0 -9px 13px/);
   assert.match(desktop, /color-mix\(in srgb,\s*var\(--mj-panel-solid\) 92%,\s*var\(--mj-ivory\)\)[\s\S]*var\(--mj-lacquer-deep\)/);
@@ -619,4 +619,23 @@ test('the Boards sheet lists all eight layouts in registry order on a four-colum
   assert.match(html, /86 tiles · layered/);
   assert.match(mahjongStyles, /\.mj-layout-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(mahjongStyles, /@media \(max-width: 900px\)\s*\{[^@]*\.mj-layout-grid\s*\{[^}]*repeat\(2, minmax\(0, 1fr\)\)/);
+});
+
+test('the Records dock action and sheet are wired with accessible semantics', () => {
+  const icons = fs.readFileSync(path.join(__dirname, '../../src/renderer/pages/mahjong-icons.svg'), 'utf8');
+  assert.match(icons, /<symbol id="records" viewBox="0 0 24 24">/);
+  assert.match(html, /<button id="mjRecords" class="mj-dock-action" type="button" aria-label="Records" data-tooltip="Records" aria-haspopup="dialog" aria-controls="mjRecordsSheet" aria-keyshortcuts="R">[\s\S]*?mahjong-icons\.svg#records[\s\S]*?data-dock-label>records<\/span>/);
+  assert.match(html, /id="mjSetup"[\s\S]*id="mjRecords"[\s\S]*id="mjUndo"/, 'records follows boards in the dock');
+  assert.match(html, /<section id="mjRecordsSheet" class="mj-modal" role="dialog" aria-modal="true" aria-labelledby="mjRecordsTitle" hidden>/);
+  for (const id of ['mjRecordsScrim', 'mjRecordsClose', 'mjRecordsCleared', 'mjRecordsStreak', 'mjRecordsLongest', 'mjRecordsDailies', 'mjRecordsRows', 'mjRecordsDays', 'mjRecordsDaysCaption']) {
+    assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
+  }
+  assert.match(html, /<table class="mj-records-table">\s*<caption>best results by board<\/caption>\s*<thead>\s*<tr>\s*<th scope="col">board<\/th>\s*<th scope="col">classic best<\/th>\s*<th scope="col">burst best<\/th>\s*<th scope="col">cleared<\/th>/);
+  assert.match(html, /<tbody id="mjRecordsRows"><\/tbody>/);
+  assert.match(mahjongStyles, /\.mj-dock\s*\{[^}]*grid-template-columns:\s*repeat\(6, minmax\(0, 1fr\)\)/);
+  assert.match(mahjongStyles, /\.mj-records-overview\s*\{[^}]*repeat\(4, minmax\(0, 1fr\)\)/);
+  assert.match(mahjongStyles, /\.mj-records-table tr\[aria-current="true"\] th\s*\{/);
+  assert.match(mahjongStyles, /\.mj-records-strip i\.is-cleared\s*\{/);
+  assert.match(mahjongStyles, /\.mj-records-strip i\.is-today\s*\{/);
+  assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 720px\)\s*\{[^@]*\.mj-dock\s*\{[^}]*repeat\(6, 54px\)/);
 });

@@ -139,6 +139,10 @@
         <svg class="mj-dock-icon" aria-hidden="true"><use href="mahjong-icons.svg#boards"></use></svg>
         <span data-dock-label>boards</span>
       </button>
+      <button id="mjRecords" class="mj-dock-action" type="button" aria-label="Records" data-tooltip="Records" aria-haspopup="dialog" aria-controls="mjRecordsSheet" aria-keyshortcuts="R">
+        <svg class="mj-dock-icon" aria-hidden="true"><use href="mahjong-icons.svg#records"></use></svg>
+        <span data-dock-label>records</span>
+      </button>
       <button id="mjUndo" class="mj-dock-action" type="button" aria-label="Undo" data-tooltip="Undo" aria-keyshortcuts="Meta+Z Control+Z">
         <svg class="mj-dock-icon" aria-hidden="true"><use href="mahjong-icons.svg#undo"></use></svg>
         <span data-dock-label>undo</span>
@@ -240,6 +244,41 @@
           <p>Starting replaces the board currently on this table.</p>
           <button id="mjStart" class="mj-button mj-button-primary" type="button">start game</button>
         </footer>
+      </div>
+    </section>
+
+    <section id="mjRecordsSheet" class="mj-modal" role="dialog" aria-modal="true" aria-labelledby="mjRecordsTitle" hidden>
+      <div id="mjRecordsScrim" class="mj-modal-scrim" aria-hidden="true"></div>
+      <div class="mj-setup-card mj-records-card">
+        <header class="mj-modal-head">
+          <div><p class="mj-overline">your table</p><h1 id="mjRecordsTitle">Records</h1></div>
+          <button id="mjRecordsClose" class="mj-close" type="button" aria-label="Close records">×</button>
+        </header>
+
+        <div class="mj-records-overview" aria-label="Overview">
+          <span><small>boards cleared</small><strong id="mjRecordsCleared">0</strong></span>
+          <span><small>daily streak</small><strong id="mjRecordsStreak">0</strong></span>
+          <span><small>longest streak</small><strong id="mjRecordsLongest">0</strong></span>
+          <span><small>dailies cleared</small><strong id="mjRecordsDailies">0</strong></span>
+        </div>
+
+        <table class="mj-records-table">
+          <caption>best results by board</caption>
+          <thead>
+            <tr>
+              <th scope="col">board</th>
+              <th scope="col">classic best</th>
+              <th scope="col">burst best</th>
+              <th scope="col">cleared</th>
+            </tr>
+          </thead>
+          <tbody id="mjRecordsRows"></tbody>
+        </table>
+
+        <div class="mj-records-days">
+          <div id="mjRecordsDays" class="mj-records-strip" role="img" aria-label="No dailies cleared in the last 28 days."></div>
+          <p id="mjRecordsDaysCaption">no dailies cleared yet</p>
+        </div>
       </div>
     </section>
 
