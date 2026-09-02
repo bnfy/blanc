@@ -13,10 +13,10 @@ Plus favorites, history, downloads, settings, private tabs, per-site
 permission prompts, session restore, and signed + notarized auto-updating
 macOS builds.
 
-> **Current release:** v1.13.0 adds device-local frequently visited sites to
-> Billboard, moves all start pages to Inter, carries Sunrise branding across
-> platforms, and streamlines macOS icon choices. Use the
-> [v1.13.0 tag](https://github.com/bnfy/blanc/tree/v1.13.0) for the exact source
+> **Current release:** v1.14.0 gives the resting Island a calmer, more compact
+> material treatment, adds a quiet one-click new-tab shortcut beside the slash
+> keycap, and moves vertical-tab labels to Inter. Use the
+> [v1.14.0 tag](https://github.com/bnfy/blanc/tree/v1.14.0) for the exact source
 > snapshot associated with the public binaries.
 
 ## Source and license

@@ -1,5 +1,96 @@
 [
   {
+    "tag": "v1.14.0",
+    "version": "1.14.0",
+    "name": "1.14.0",
+    "publishedAt": "2026-09-02T21:36:12.000Z",
+    "humanDate": "September 2, 2026",
+    "machineDate": "2026-09-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.14.0",
+    "anchor": "v1-14-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Faster new tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " add a quiet Plus shortcut beside the Island's slash-command keycap. It opens one regular, ungrouped tab and puts the address field immediately in focus."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Updated",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A calmer resting Island"
+                  },
+                  {
+                    "type": "text",
+                    "value": " adopts the website navigation's compact 44px geometry, material surface, and shorter shadow while keeping the existing controls and unified proximity response."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Inter vertical tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " replace the remaining monospaced labels across the rail, including section headings, groups, private markers, and the New tab row."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Vertical-tabs mode no longer reserves an empty shortcut gap when both Island keycaps are hidden on a page."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.13.0",
     "version": "1.13.0",
     "name": "1.13.0",

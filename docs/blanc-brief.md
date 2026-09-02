@@ -9,7 +9,7 @@ git workflow, and release runbooks — for those, see `CLAUDE.md`.
 ## What it is
 
 Blanc is a minimal **Electron desktop browser** (macOS, Windows, Linux;
-current public baseline v1.13.0). Its defining idea is **Island chrome**: instead of a tab strip
+current public baseline v1.14.0). Its defining idea is **Island chrome**: instead of a tab strip
 and a toolbar, a single floating pill sits top-center over the page — showing tab
 dots, the current site, and a count of ads/trackers blocked. Click it (or press
 `Cmd/Ctrl+L`) and it expands into a command bar: address input, slash commands,

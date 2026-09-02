@@ -70,12 +70,16 @@ its qualifications remain subject to the release-backed claim gate above.
 
 ## Current Blanc capability boundaries
 
-These boundaries are verified for the v1.13.0 public release:
+These boundaries are verified for the v1.14.0 public release:
 
 - **Island:** Blanc replaces the permanent horizontal tab strip and
   conventional toolbar with a compact Island. The user opens its panel for
   navigation, switching, search, and commands. Do not turn this into a claim
   that Blanc understands what the user is working on.
+- **New-tab shortcut:** The resting Island's Plus creates one regular,
+  ungrouped tab and focuses its address field. It stays bare beside the slash
+  keycap and is hidden in vertical-tabs mode, where the rail already has a New
+  tab control. Do not describe it as creating private or grouped tabs.
 - **Named Groups:** The user explicitly creates or assigns a tab to a named
   group through `/group` or the grouping UI. Blanc does not infer group names,
   categorize tabs semantically, or organize them automatically.
@@ -117,7 +121,7 @@ These boundaries are verified for the v1.13.0 public release:
   local. Private tabs do not contribute or receive this row. Do not describe
   the feature as synced, account-based, remotely retained, or semantically
   organized.
-- **App icons:** Public v1.13.0 offers Sunrise, Sunrise Dark, Paper, and Ink on
+- **App icons:** Public v1.14.0 offers Sunrise, Sunrise Dark, Paper, and Ink on
   macOS. Public copy must not present app icons as a paid benefit.
 - **AI:** Blanc ships no AI assistant or agent browser. It does not understand
   assignments, detect semantic task boundaries, automatically organize tabs
