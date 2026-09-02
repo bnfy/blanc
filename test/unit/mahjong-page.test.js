@@ -92,7 +92,7 @@ test('bonus families use full-scale lacquer artwork and hints clear stale emphas
   assert.match(controller, /let hintTimer = null;/);
   assert.match(controller, /function clearHint\(\)\s*\{[\s\S]*classList\.remove\('hinted'\)/);
   assert.match(controller, /hintTimer = window\.setTimeout\(clearHint, 2200\);/);
-  assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*clearHint\(\);/);
+  assert.match(controller, /function refreshTiles[\s\S]*if \(!game\) return;\s*if \(!keepHint\) clearHint\(\);/);
 
   const expected = new Map([
     ['mahjong-flower.png', '81dbfb0478ab92974406a9f174234f7bea308c4e849625fc2a73c4351c11bd39'],
@@ -278,14 +278,18 @@ test('every game interaction is wired to its sound cue and bootstrap stays silen
     assert.match(controller, new RegExp(`'${cue}'`), `missing ${cue} cue`);
   }
   assert.match(controller, /if \(soundCue\) sound\.play\('deal'\)/);
-  assert.match(controller, /const daily = S\.dailyDeal\(new Date\(\)\);[\s\S]*startGame\(\{ \.\.\.daily, mode: 'tray' \}, \{ soundCue: false \}\)/);
+  assert.match(controller, /function startPreferredGame\(\{ soundCue = false \} = \{\}\)/);
+  assert.match(controller, /startGame\(\{ \.\.\.S\.dailyDeal\(new Date\(\)\), mode: prefs\.mode \}, \{ soundCue \}\)/);
   assert.match(controller, /document\.getElementById\('mjNew'\)\.addEventListener\('click', newGameFromControl\);/);
   assert.match(controller, /\nbootstrap\(\);\s*$/);
 });
 
-test('a fresh table defaults to Daily Burst while the tray id preserves saved-game compatibility', () => {
-  assert.match(controller, /setupChoice = \{ layoutId: S\.dailyDeal\(new Date\(\)\)\.layoutId, mode: 'tray', source: 'daily' \}/);
-  assert.match(controller, /if \(restored\) \{[\s\S]*configureGame\(restored\);[\s\S]*\} else \{[\s\S]*startGame\(\{ \.\.\.daily, mode: 'tray' \}/);
+test('a fresh table deals the remembered table (Daily Burst by default) while the tray id preserves saved-game compatibility', () => {
+  assert.match(controller, /prefsStore = S\.createPrefsStore\(/);
+  assert.match(controller, /function startPreferredGame\(\{ soundCue = false \} = \{\}\)/);
+  assert.match(controller, /if \(restored\) \{[\s\S]*configureGame\(restored\);[\s\S]*\} else \{[\s\S]*startPreferredGame\(\)/);
+  // every explicit start records the table for the next fresh tab
+  assert.match(controller, /function startGame\([\s\S]*?prefsStore\?\.write\(\{ layoutId, mode, source: dailyKey \? 'daily' : 'random' \}\)/);
   assert.match(html, /id="mjModeTray"[^>]*data-mode="tray"[^>]*>Burst<\/button>/);
   assert.match(html, /burst rack/i);
   assert.match(html, /id="mjBurstScoreWrap"[^>]*>[\s\n]*<strong id="mjBurstScore">0<\/strong>/);
@@ -492,7 +496,7 @@ test('desktop Mahjong overlays its left rail inside a centered full-width table'
 
 test('starting another board clears a stale recovery notice', () => {
   assert.match(controller, /function configureGame\(nextGame\)[\s\S]*getElementById\('mjRecoveryNotice'\)\.hidden = true;/);
-  assert.match(controller, /const daily = S\.dailyDeal\(new Date\(\)\);[\s\S]*startGame\(\{ \.\.\.daily, mode: 'tray' \}[\s\S]*if \(hadSave\) document\.getElementById\('mjRecoveryNotice'\)\.hidden = false;/);
+  assert.match(controller, /startPreferredGame\(\);\s*if \(hadSave\) document\.getElementById\('mjRecoveryNotice'\)\.hidden = false;\s*else offerResume\(\);/);
 });
 
 test('best records are scoped to the active layout revision', () => {
@@ -521,7 +525,7 @@ test('completion results promote the score and separate time from Burst performa
   assert.match(controller, /win\.dataset\.mode = isBurst \? 'burst' : 'classic'/);
   assert.match(controller, /getElementById\('mjWinScore'\)\.textContent = isBurst[\s\S]*game\.score\.toLocaleString\(\)[\s\S]*: time/);
   assert.match(controller, /getElementById\('mjWinTime'\)\.textContent = time/);
-  assert.match(controller, /record\.classList\.toggle\('is-record', Boolean\(game\._newRecord\)\)/);
+  assert.match(controller, /record\.classList\.toggle\('is-record', game\._outcome === 'record' \|\| game\._outcome === 'first'\)/);
   assert.match(styles, /\.mj-win-result\s*\{[^}]*border-radius:\s*22px[^}]*radial-gradient[^}]*box-shadow:/);
   assert.match(styles, /\.mj-win-score\s*\{[^}]*clamp\(46px, 6\.2vw, 64px\)[^}]*text-shadow:/);
   assert.match(styles, /\.mj-win-stats\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\)/);
@@ -553,4 +557,49 @@ test('mahjong reports play only after a real free-tile move', () => {
     controller,
     /if \(!E\.isFree\(game, i\)\) \{[\s\S]*return;[\s\S]*reportPlayOnce\(\);\s*startTimer\(\);/,
   );
+});
+
+test('undo re-renders the board after reversing a shuffle and never forces a status', () => {
+  assert.match(controller, /const undone = game\?\.history\.at\(-1\)\?\.type;[\s\S]*?if \(!game \|\| !E\.undo\(game\)\) return;[\s\S]*?if \(undone === 'shuffle'\) \{[\s\S]*?renderBoard\(\);[\s\S]*?fitBoard\(\);/);
+  assert.doesNotMatch(controller, /function resumeTimerAfterUndo\(\) \{[\s\S]{0,120}game\.status = 'playing'/);
+  assert.match(controller, /announce\('Remaining tiles shuffled into a new solvable deal\. Undo restores the previous board\.'\)/);
+});
+
+test('arrow-key navigation keeps an active hint visible', () => {
+  assert.match(controller, /function refreshTiles\(\{ recoverFocus = false, keepHint = false \} = \{\}\)[\s\S]*?if \(!keepHint\) clearHint\(\);/);
+  assert.match(controller, /event\.key\.startsWith\('Arrow'\) && game\) \{[\s\S]*?refreshTiles\(\{ keepHint: true \}\);/);
+});
+
+test('the dead-end notice offers shuffle alongside undo and a new deal', () => {
+  assert.match(html, /id="mjNotice"[\s\S]*?id="mjNoticeUndo"[\s\S]*?id="mjNoticeShuffle"[\s\S]*?id="mjNoticeNew"/);
+  assert.match(controller, /getElementById\('mjNoticeShuffle'\)\.addEventListener\('click', shuffleGame\)/);
+});
+
+test('daily layout choices read as disabled and the sheet explains the rotation', () => {
+  assert.match(mahjongStyles, /\.mj-layout-choice:disabled\s*\{[^}]*opacity/);
+  assert.match(controller, /layout rotates daily/);
+});
+
+test('completion copy distinguishes first clear from a new record using the stored outcome', () => {
+  assert.match(controller, /S\.completionOutcome\(\{ mode: game\.mode, before, after \}\)/);
+  assert.match(controller, /game\._outcome === 'record'[\s\S]*?'new record'[\s\S]*?game\._outcome === 'first'[\s\S]*?'first clear'/);
+  assert.doesNotMatch(controller, /game\._newRecord/);
+});
+
+test('daily results surface in the setup sheet and the completion card', () => {
+  assert.match(html, /id="mjWinDaily"/);
+  assert.match(controller, /S\.describeDailyResult\(recordStore\.read\(\), S\.dailyDeal\(new Date\(\)\)\.dailyKey, setupChoice\.mode, formatMs\)/);
+  assert.match(controller, /S\.describeDailyResult\(recordStore\.read\(\), game\.dailyKey, game\.mode, formatMs\)/);
+});
+
+test('a fresh tab offers to continue the most recent unfinished board without auto-adopting it', () => {
+  for (const id of ['mjResumeNotice', 'mjResumeCopy', 'mjResumeContinue', 'mjResumeDismiss']) {
+    assert.match(html, new RegExp(`id="${id}"`), `missing ${id}`);
+  }
+  assert.match(controller, /S\.resumeCandidate\(gameStore\.summaries\(\), \{ excludeGameId: gameId \}\)/);
+  assert.match(controller, /function adoptGame\(targetId\)/);
+  // adopting re-points this tab's id, tells the embedding start page, and re-arms the duplicate guard
+  assert.match(controller, /function adoptGame[\s\S]*?S\.forkGameId\(\{ href: location\.href, history, uuid: \(\) => targetId \}\)[\s\S]*?notifyParentGameId\(\);[\s\S]*?disposeDuplicateGuard\(\);[\s\S]*?installDuplicateGuard\(\);/);
+  // the untouched fresh deal this tab just made is discarded rather than orphaned
+  assert.match(controller, /function adoptGame[\s\S]*?gameStore\.discard\(previousId\)/);
 });

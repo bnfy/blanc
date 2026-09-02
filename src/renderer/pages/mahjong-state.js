@@ -12,6 +12,7 @@
   const GAME_INDEX_KEY = 'mahjong.game-index.v2';
   const RECORDS_KEY = 'mahjong.records.v2';
   const RECORD_EVENT_PREFIX = 'mahjong.record-event.v2.';
+  const PREFS_KEY = 'mahjong.prefs.v2';
   const LEGACY_BEST_KEY = 'mahjong.best';
   const SOUND_KEY = 'mahjong.sound';
   const MAX_SAVED_GAMES = 32;
@@ -24,6 +25,8 @@
   // into the wider revision-2 board.
   const LAYOUT_REVISIONS = Object.freeze({ turtle: 1, arch: 2, peaks: 1 });
   const MODES = Object.freeze(['classic', 'tray']);
+  const SOURCES = Object.freeze(['random', 'daily']);
+  const DEFAULT_PREFS = Object.freeze({ layoutId: 'turtle', mode: 'tray', source: 'daily' });
   const TRAY_SCORING_REVISION = 2;
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   const DAILY_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -330,7 +333,88 @@
       return cleanup(now());
     }
 
-    return Object.freeze({ save, load, discard, cleanup, list, forkSavedGame });
+    // Read-only projection of every retained save for "continue last game".
+    // Wrappers were validated by cleanup; nothing here writes access times,
+    // so peeking never promotes a stale save above the one being played.
+    function summaries() {
+      const result = [];
+      for (const entry of cleanup(now())) {
+        let wrapper;
+        try { wrapper = JSON.parse(safeGet(storage, gameStorageKey(entry.gameId))); } catch { wrapper = null; }
+        const payload = wrapper && wrapper.payload;
+        if (!isObject(payload) || !Array.isArray(payload.kinds) || !Array.isArray(payload.removed)) continue;
+        const tray = Array.isArray(payload.tray) ? payload.tray : [];
+        const history = Array.isArray(payload.history) ? payload.history : [];
+        const removedCount = payload.removed.filter(Boolean).length;
+        result.push({
+          gameId: entry.gameId,
+          lastAccessAt: entry.lastAccessAt,
+          layoutId: payload.layoutId,
+          mode: payload.mode,
+          dailyKey: payload.dailyKey == null ? null : payload.dailyKey,
+          status: payload.status,
+          started: history.length > 0 || tray.length > 0 || payload.selected != null
+            || (Number(payload.elapsedMs) || 0) > 0,
+          pairsLeft: Math.max(0, Math.floor((payload.kinds.length - removedCount + tray.length) / 2)),
+        });
+      }
+      return result;
+    }
+
+    return Object.freeze({ save, load, discard, cleanup, list, summaries, forkSavedGame });
+  }
+
+  function resumeCandidate(summaries, { excludeGameId } = {}) {
+    if (!Array.isArray(summaries)) return null;
+    const excluded = typeof excludeGameId === 'string' ? excludeGameId.toLowerCase() : null;
+    return summaries.find((entry) => entry && entry.started && entry.status !== 'won'
+      && isValidGameId(entry.gameId) && entry.gameId.toLowerCase() !== excluded) || null;
+  }
+
+  function normalizePrefs(value) {
+    const source = isObject(value) ? value : {};
+    return {
+      layoutId: LAYOUT_IDS.includes(source.layoutId) ? source.layoutId : DEFAULT_PREFS.layoutId,
+      mode: MODES.includes(source.mode) ? source.mode : DEFAULT_PREFS.mode,
+      source: SOURCES.includes(source.source) ? source.source : DEFAULT_PREFS.source,
+    };
+  }
+
+  // The last chosen table (layout, mode, deal source). Device-local like the
+  // sound and free-highlight preferences; a fresh tab starts from it instead
+  // of always dealing Daily Burst.
+  function createPrefsStore({ storage = defaultStorage() } = {}) {
+    function read() {
+      const raw = safeGet(storage, PREFS_KEY);
+      if (!raw) return { ...DEFAULT_PREFS };
+      try { return normalizePrefs(JSON.parse(raw)); } catch { return { ...DEFAULT_PREFS }; }
+    }
+    function write(prefs) {
+      return safeSet(storage, PREFS_KEY, JSON.stringify({ version: 1, ...normalizePrefs(prefs) }));
+    }
+    return Object.freeze({ read, write });
+  }
+
+  // 'first' when a layout gains its first record, 'record' when an existing
+  // record improved, 'none' when nothing was stored (or nothing changed).
+  function completionOutcome({ mode, before, after } = {}) {
+    if (!isObject(after)) return 'none';
+    if (!isObject(before)) return 'first';
+    if (mode === 'classic') return after.bestTimeMs < before.bestTimeMs ? 'record' : 'none';
+    if (after.bestScore > before.bestScore) return 'record';
+    if (after.bestScore === before.bestScore && after.bestTimeMs < before.bestTimeMs) return 'record';
+    return 'none';
+  }
+
+  function describeDailyResult(records, key, mode, formatMs) {
+    if (!isDailyKey(key) || !MODES.includes(mode) || typeof formatMs !== 'function') return null;
+    const day = normalizeRecords(records).daily[key];
+    const result = day && day[mode];
+    if (!result || !result.completed) return null;
+    const time = formatMs(result.elapsedMs);
+    return mode === 'tray'
+      ? `cleared · ${result.score.toLocaleString()} pts · ${time}`
+      : `cleared · ${time}`;
   }
 
   function emptyRecords() {
@@ -769,6 +853,7 @@
     GAME_INDEX_KEY,
     RECORDS_KEY,
     RECORD_EVENT_PREFIX,
+    PREFS_KEY,
     LEGACY_BEST_KEY,
     SOUND_KEY,
     MAX_SAVED_GAMES,
@@ -785,6 +870,10 @@
     gameStorageKey,
     gameAccessKey,
     createGameStore,
+    resumeCandidate,
+    createPrefsStore,
+    completionOutcome,
+    describeDailyResult,
     emptyRecords,
     normalizeAssists,
     normalizeRecords,
