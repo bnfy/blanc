@@ -26,6 +26,8 @@ Source mark:
   `Assets/blanc-mark.svg`
 - `assets/sunrise-app-icon.png` — the static Sunrise platform source
 - `build/icon.png` — 1024×1024 raster template
+- `build/windows-icons/sunrise-mark-simplified.png` — the transparent,
+  taskbar-optimized Windows source
 
 App-icon colorways:
 
