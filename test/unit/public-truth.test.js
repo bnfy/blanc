@@ -153,13 +153,13 @@ test('public Patron copy states the named-workspace boundary consistently', () =
     'site/src/pages/terms.astro',
   ];
   const staleClaims = /every browser feature is free|all browser features included|none of them are locked behind payment|nothing is locked behind payment|cosmetic Dock icons today/i;
-  const macColorwayBoundary = /(?:macOS[^.\n]*(?:app-icon|Dock)[^.\n]*colorways|(?:app-icon|Dock)[^.\n]*colorways[^.\n]*macOS)/i;
+  const retiredColorwayClaim = /(?:Patron|supporter)[^.\n]*(?:app-icon|Dock)[^.\n]*(?:colorways|icons?|variants?)|(?:app-icon|Dock)[^.\n]*(?:colorways|icons?|variants?)[^.\n]*(?:Patron|supporter)/i;
 
   for (const relativePath of publicCopyFiles) {
     const source = read(relativePath);
     assert.doesNotMatch(source, staleClaims, `${relativePath} must not overstate the free feature boundary`);
     assert.match(source, /named workspace/i, `${relativePath} must name the Patron workspace benefit`);
-    assert.match(source, macColorwayBoundary, `${relativePath} must say the colorways are macOS-only`);
+    assert.doesNotMatch(source, retiredColorwayClaim, `${relativePath} must not advertise retired Patron colorways`);
   }
 
   for (const relativePath of detailedBoundaryFiles) {
@@ -173,6 +173,22 @@ test('public Patron copy states the named-workspace boundary consistently', () =
       source,
       /Renaming\s+and\s+removing\s+existing\s+workspaces\s+continue\s+to\s+work\s+if\s+it\s+lapses/i,
       `${relativePath} must state the lapsed-subscription behavior`
+    );
+  }
+
+  // These are current reusable truth sources. Frozen release notes and
+  // superseded design plans are intentionally excluded: they remain accurate
+  // records of what earlier builds offered, not copy for the next release.
+  for (const relativePath of [
+    'docs/blanc-brief.md',
+    'docs/brand-usage.md',
+    'docs/press/fact-sheet.md',
+    'export/app-icons-1024-square/README.md',
+  ]) {
+    assert.doesNotMatch(
+      read(relativePath),
+      retiredColorwayClaim,
+      `${relativePath} must not carry retired Patron app-icon messaging`,
     );
   }
 });

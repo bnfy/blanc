@@ -48,8 +48,8 @@ Blanc's default visual system is paper/ink with restrained neutral surfaces:
 - muted dark text: `#6b6b6b`.
 
 The authoritative product/site tokens remain in `site/src/styles/site.css` and
-`src/renderer/styles.css`. Feature-specific or Patron colorways are not the
-general Blanc brand palette.
+`src/renderer/styles.css`. Retired feature-specific colorways are not part of
+the general Blanc brand palette.
 
 ## Titles and subtitles
 

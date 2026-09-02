@@ -54,35 +54,16 @@ public enum BlancAppIcon: String, CaseIterable {
     case sunriseDark
     case paper
     case ink
-    case graphite
-    case `default`
-    case midnight
-    case cream
-    case forest
-    case sage
-    case ember
-    case plum
-    case gold
     public var label: String {
         switch self {
         case .sunrise: return "Sunrise"
         case .sunriseDark: return "Sunrise Dark"
         case .paper: return "Paper"
         case .ink: return "Ink"
-        case .graphite: return "Graphite"
-        case .`default`: return "Evergreen"
-        case .midnight: return "Midnight"
-        case .cream: return "Cream"
-        case .forest: return "Forest"
-        case .sage: return "Sage"
-        case .ember: return "Ember"
-        case .plum: return "Plum"
-        case .gold: return "Gold"
         }
     }
     public var isSupporterOnly: Bool {
         switch self {
-        case .ember, .plum, .gold: return true
         default: return false
         }
     }

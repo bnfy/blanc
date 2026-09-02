@@ -277,19 +277,19 @@ From the desktop `DEFAULTS`:
 | `theme` | `system` | system/light/dark |
 | `tabLayout` | `island` | desktop-only `island`/`vertical`; device-local, never synced (F28/D19) |
 | `verticalTabsWidth` | `248` | desktop-only preferred rail width, clamped to 200–360px; device-local, never synced (F28/D19) |
-| `appIcon` | `sunrise` | a free icon id, or a supporter id **iff** supporter active |
+| `appIcon` | `sunrise` | one of `sunrise`/`sunrise-dark`/`paper`/`ink`; device-local |
 | `adblockExceptions` | `[]` | lowercased hostnames, no scheme/path/`www.` |
 | `onePasswordEnabled` | `false` | desktop-only boolean; device-local, never synced (F38/D26) |
 | `onePasswordAccount` | `""` | desktop-only account name/id, trimmed and capped at 200 characters; device-local, never synced (F38/D26) |
 | `usagePing` | `true` | boolean (F21) |
 | `supporter` | `null` | written only by the activation flow, never generic writes (F17) |
 
-- `appIcon` is **sanitized on read** the same way it is validated on write: a
-  stale/unlicensed supporter id reads back as the default. This predicate
+- `appIcon` is **sanitized on read** the same way it is validated on write: any
+  stale or retired id reads back as Sunrise. This predicate
   (`isAppIconAllowed`) is shared logic.
-- **Acceptance:** Setting an invalid search engine is rejected; setting a supporter
-  icon without an active license reads back as `paper`; adding `WWW.Example.com/x`
-  to exceptions stores `example.com`.
+- **Acceptance:** Setting an invalid search engine is rejected; setting a retired
+  icon id reads back as `sunrise`; adding `WWW.Example.com/x` to exceptions
+  stores `example.com`.
 
 ## F15 — Theming
 
@@ -321,17 +321,17 @@ From the desktop `DEFAULTS`:
   pages open in the transient surface leaving the tab set untouched, and
   activating a favorite from the surface opens exactly one real tab.
 
-## F17 — Supporter & app icons
+## F17 — Patron & app icons
 
-- 10 free colorways (`sunrise` default, `sunrise-dark`, `paper`, `ink`,
-  `graphite`, `default`/"Evergreen", `midnight`, `cream`, `forest`, `sage`) +
-  3 supporter-gated (`ember`, `plum`, `gold`).
-- Supporter unlock is **trusted forever, offline-OK, cosmetic-only** — no
-  revalidation, no DRM. Renderers only ever see a derived `supporterActive` boolean.
+- macOS Settings offers four Dock colorways: `sunrise` (default),
+  `sunrise-dark`, `paper`, and `ink`. Older ids are retired; any stale or
+  hand-set retired id falls back to `sunrise`.
+- Patron unlocks Named Workspaces, not icon variants. Renderers only ever see a
+  derived `patronActive` boolean; the entitlement record stays in main.
 - **Diverges:** purchase rails (D5 — Apple IAP / Play Billing, not Polar, on mobile)
   and icon-switching mechanism (D6 — clean on iOS, limited on Android).
-- **Acceptance:** A supporter can select `ember`; a non-supporter sees it locked and
-  any hand-set supporter id falls back to `sunrise`.
+- **Acceptance:** A current colorway can be selected; a retired id is rejected
+  even when Patron is active.
 
 ## F18 — Session persistence & restore
 

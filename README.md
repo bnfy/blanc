@@ -48,10 +48,9 @@ the published artifacts; they do not make local builds reproducible. See the
 
 Everything that makes Blanc a browser is free: ad and tracker blocking,
 encrypted sync, private tabs, tab groups, quiet tabs, and passkeys. Blanc
-Patron costs $30 a year or $4 a month and, on macOS, adds three Dock colorways;
-on every platform, it also adds Named Workspaces. Creating a named workspace
-requires an active Patron subscription. Renaming and removing existing
-workspaces continue to work if it lapses.
+Patron costs $30 a year or $4 a month and adds Named Workspaces on every
+platform. Creating a named workspace requires an active Patron subscription.
+Renaming and removing existing workspaces continue to work if it lapses.
 
 The memory benchmark, method, and raw runs are in
 [`bench/memory/`](bench/memory/).

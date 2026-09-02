@@ -324,31 +324,12 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   flex: 0 0 auto;
 }
 
-/* App icon colorway picker — one row of rounded-square previews that
-   scrolls horizontally as the colorway set grows. The scrollbar is
-   hidden in favor of the caret buttons on either end. The 3px padding
-   keeps the active tile's outline from being clipped by the scroll box. */
-.icon-scroller { display: flex; align-items: flex-start; gap: 4px; min-width: 0; }
-.icon-grid { display: flex; gap: 14px; overflow-x: auto; min-width: 0; padding: 3px; scrollbar-width: none; }
+/* App icon colorway picker — one compact row of rounded-square previews.
+   The 5px inset gives the selected/focused preview ring room to breathe. */
+.icon-scroller { min-width: 0; }
+.icon-grid { display: flex; gap: 14px; overflow-x: auto; min-width: 0; padding: 5px; scrollbar-width: none; }
 .icon-grid::-webkit-scrollbar { display: none; }
 .icon-grid .icon-swatch { flex: 0 0 auto; }
-.icon-caret {
-  flex: 0 0 auto;
-  /* Centers on the 58px tile row (3px scroll-box padding + 29 - 11). */
-  margin-top: 21px;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  background: none;
-  border: none;
-  border-radius: 50%;
-  color: var(--text-dim);
-}
-.icon-caret:hover { color: var(--text); background: var(--accent-dim); border: none; }
-.icon-caret[disabled] { opacity: 0.25; pointer-events: none; }
 .icon-swatch {
   display: flex;
   flex-direction: column;
@@ -360,8 +341,9 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   border-radius: 0;
 }
 .icon-swatch:hover { border: none; }
-/* The previews bake the rounded tile + transparent margins, so the swatch
-   draws no box of its own — just a selection ring. */
+/* The previews bake the rounded tile + transparent margins. Selection and
+   keyboard focus share one offset rounded halo around the preview instead of
+   stacking a square button outline on top of an image outline. */
 .icon-swatch img {
   width: 58px;
   height: 58px;
@@ -371,21 +353,10 @@ a.patron-checkout:hover { filter: brightness(1.05); }
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
 }
 .icon-swatch.active { color: var(--text); }
-.icon-swatch.active img { outline: 2px solid var(--accent); }
-
-/* Patron-only colorways render locked until a license is activated —
-   dimmed tile plus a quiet tag; clicking scrolls to the Patron section. */
-.icon-swatch.locked img { opacity: 0.4; filter: none; }
-.icon-swatch.locked span { color: var(--text-dim); }
-.icon-swatch .tag {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: lowercase;
-  color: var(--text-dim);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1px 5px;
+.icon-swatch:focus-visible { outline: none; }
+.icon-swatch:is(.active, :focus-visible) img {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 /* Accent-colored toggle built on a checkbox. */

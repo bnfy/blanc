@@ -7,10 +7,7 @@ const sharp = require('sharp');
 const ROOT = path.resolve(__dirname, '..', '..');
 const NEW_GEOMETRY = 'M232.18,150.8';
 const OLD_GEOMETRY = 'M153.05,123.49';
-const ICON_IDS = [
-  'paper', 'ink', 'graphite', 'default', 'midnight', 'cream',
-  'forest', 'sage', 'ember', 'plum', 'gold',
-];
+const ICON_IDS = ['sunrise', 'sunrise-dark', 'paper', 'ink'];
 
 function source(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');

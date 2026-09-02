@@ -7,7 +7,7 @@ const { waitForValue, openOverlaySurface } = require('./../support/poll');
 // or observable main-process state (so they are reliable without a live GUI run):
 //   F5  address normalization / search routing / OS hand-off
 //   F7-2 slash-command effects (/new, /downloads, /find)
-//   F17-1 supporter unlock -> app icon
+//   F17-1 Patron activation -> Named Workspaces
 //
 // The F5 steps assert the app's *routing decision* (what it would navigate to /
 // hand off) via the real normalizeAddressInput + handoff predicate, rather than
@@ -161,7 +161,7 @@ Then('the find bar is shown', async function () {
   );
 });
 
-// ---------- F17-1: supporter unlock ----------
+// ---------- F17-1/F17-2: current and retired app icons ----------
 
 Given('an active supporter unlock', async function () { await this.call('setSupporterActive'); });
 When('I choose the app icon {string}', async function (id) { await this.call('setAppIcon', id); });

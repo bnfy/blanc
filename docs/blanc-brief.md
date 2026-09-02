@@ -110,8 +110,9 @@ clearest example: ad blocking is programmatic on desktop/Android but declarative
 
 - **Shipped:** desktop on all three platforms — macOS (signed + notarized),
   Windows (NSIS), Linux (AppImage), all auto-updating via GitHub Releases.
-- **Monetization:** "Blanc Supporter" — a $19 one-time Polar.sh license unlocking
-  three supporter-only Dock colorways. Perks are cosmetic; no DRM, works offline.
+- **Monetization:** Blanc Patron is an optional $4/month or $30/year Polar
+  subscription that funds development and unlocks Named Workspace creation on
+  every platform. Earlier one-time Supporters retain founding Patron access.
 - **Privacy infra:** opt-in, server-blind end-to-end-encrypted Profile Sync v1
   (Favorites, eligible settings, and optional open-tab snapshots) via a
   Cloudflare Worker, with the retained key protected by the OS credential

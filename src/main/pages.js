@@ -215,6 +215,7 @@ function setupPages(hooks = {}) {
       _syncMeta,
       onePasswordEnabled,
       onePasswordAccount,
+      presentationDefaultsResetVersion,
       ...rest
     } = settings.getSettings();
     return {
@@ -233,7 +234,6 @@ function setupPages(hooks = {}) {
       Object.entries(settings.SEARCH_ENGINES).map(([key, { label }]) => [key, label])
     ),
     appIcons: settings.APP_ICON_LABELS,
-    supporterIcons: settings.SUPPORTER_ICON_LABELS,
   }));
   handle('pages:settings:set', 'settings', (partial) => {
     const next = partial && typeof partial === 'object' ? { ...partial } : {};
