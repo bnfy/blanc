@@ -517,9 +517,29 @@ test('totals count each completion once across repeated reads and are normalised
   assert.deepEqual(records.totals.cleared, { classic: { peaks: 2 }, tray: { arch: 1 } });
   assert.equal(records.totals.countedEvents.length, 3);
   assert.deepEqual(S.emptyRecords().totals, S.emptyTotals());
+  const oversized = Array.from({ length: S.MAX_RECORD_EVENTS * 3 }, (_, i) => uuid(10_000 + i));
+  assert.equal(
+    S.normalizeRecords({ version: 2, totals: { cleared: {}, countedEvents: oversized } }).totals.countedEvents.length,
+    oversized.length,
+    'normalisation never truncates seen ids; only compaction after a prune bounds them'
+  );
   const corrupt = S.normalizeRecords({ version: 2, classic: { peaks: { layoutRevision: 1, bestTimeMs: 5 } }, totals: { cleared: { classic: { peaks: -4, castle: 2 }, tray: 'x' }, countedEvents: 'nope' } });
   assert.deepEqual(corrupt.totals, S.emptyTotals());
   assert.equal(corrupt.classic.peaks.bestTimeMs, 5, 'a corrupt totals block never disturbs best records');
+});
+
+test('only completed: true events increment totals; false or missing never do', () => {
+  const storage = new HookedStorage();
+  rawEvent(storage, 1, completion('peaks', 'classic'), 1);
+  rawEvent(storage, 2, completion('peaks', 'classic', { completed: false }), 2);
+  const missing = completion('peaks', 'classic');
+  delete missing.completed;
+  rawEvent(storage, 3, missing, 3);
+  const store = S.createRecordStore({ storage, now: () => 10, uuid: () => uuid(99) });
+  const records = store.read();
+  assert.deepEqual(records.totals.cleared, { classic: { peaks: 1 }, tray: {} });
+  assert.equal(records.totals.countedEvents.length, 3, 'non-counting events are still marked seen so they are never re-examined');
+  assert.deepEqual(store.read().totals.cleared, { classic: { peaks: 1 }, tray: {} });
 });
 
 test('a failed aggregate write leaves every event in place and never prunes', () => {
@@ -594,10 +614,12 @@ Replace `emptyRecords`:
         if (finiteInteger(count, 1)) clean.cleared[mode][layoutId] = Math.min(count, 1_000_000);
       }
     }
+    // Never truncate here: phase 1 of mergeEvents must persist every seen id.
+    // The list is bounded only by post-prune compaction (phase 3).
     if (Array.isArray(value.countedEvents)) {
       clean.countedEvents = [...new Set(
         value.countedEvents.filter(isValidGameId).map((id) => id.toLowerCase())
-      )].slice(0, MAX_RECORD_EVENTS * 2);
+      )];
     }
     return clean;
   }
@@ -625,7 +647,7 @@ Replace `mergeEvents` inside `createRecordStore`:
         merged = applyResult(merged, event.result, event.updatedAt);
         if (counted.has(event.eventId)) continue;
         const { mode, layoutId } = event.result;
-        if (event.result.completed !== false && MODES.includes(mode) && LAYOUT_IDS.includes(layoutId)) {
+        if (event.result.completed === true && MODES.includes(mode) && LAYOUT_IDS.includes(layoutId)) {
           const bucket = merged.totals.cleared[mode];
           bucket[layoutId] = (bucket[layoutId] || 0) + 1;
         }
@@ -644,8 +666,9 @@ Replace `mergeEvents` inside `createRecordStore`:
           pruned.add(event.eventId);
         }
       }
-      // Phase 3: compact to ids still retained (best effort; a failed write
-      // here only leaves extra ids until a later read succeeds).
+      // Phase 3: compact to ids still retained. This is the only place the
+      // list is bounded (retained events never exceed MAX_RECORD_EVENTS). Best
+      // effort: a failed write here only leaves extra ids until a later read.
       const retained = new Set(events.filter((entry) => !pruned.has(entry.eventId)).map((entry) => entry.eventId));
       const compacted = merged.totals.countedEvents.filter((id) => retained.has(id));
       if (compacted.length !== merged.totals.countedEvents.length) {
@@ -1249,30 +1272,49 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ### Task 8: Desktop acceptance: records containment and focus return
 
 **Files:**
-- Modify: `src/main/test-hook.js` (new `readMahjongRecordsGeometry` after `readMahjongCompletionGeometry`)
-- Modify: `test/desktop/steps/newtab-layouts.steps.js` (new `Then` step)
-- Modify: `spec/acceptance/newtab-layouts.feature` (one line in the `Mahjong layout embeds a playable deal` scenario)
+- Modify: `src/main/test-hook.js` (`readMahjongEmbedDom` gains `dockButtonCount`; new `readMahjongRecordsGeometry`, `setNewtabZoomFactor`, `newtabZoomFactor`)
+- Modify: `test/desktop/steps/newtab-layouts.steps.js` (six-control assertion in the existing ready step; two new `Then` steps)
+- Modify: `spec/acceptance/newtab-layouts.feature` (two lines in the `Mahjong layout embeds a playable deal` scenario)
 
 **Interfaces:**
 - Consumes: globals `openRecords`/`closeRecords` from Task 7; ids from Task 6.
-- Produces: hook `readMahjongRecordsGeometry()` returning `{ card, viewport, scrollWidth, clientWidth, overflowY, rowCount, focusReturned, viewportWidth, viewportHeight }`.
+- Produces: hook `readMahjongRecordsGeometry()` returning `{ card, viewport, scrollWidth, clientWidth, overflowY, rowCount, focusReturned, viewportWidth, viewportHeight, zoomFactor }`; `readMahjongEmbedDom()` additionally returns `dockButtonCount`; `setNewtabZoomFactor(factor)` applies `webContents.setZoomFactor` to the active new-tab view (the embedded Mahjong frame zooms with it) and returns the applied factor; `newtabZoomFactor()` reads it back.
 
-- [ ] **Step 1: Add the feature line and step (the dry run will report the step as undefined until Step 3)**
+- [ ] **Step 1: Add the feature lines (the dry run will report two undefined steps until Step 3)**
 
 In `spec/acceptance/newtab-layouts.feature`, after `And the Mahjong completion dialog remains usable at the minimum desktop size`, add:
 
 ```gherkin
-    And the Mahjong records sheet stays contained at the default and minimum desktop sizes
+    And the six-control Mahjong rail fits its table at every desktop breakpoint
+    And the Mahjong records sheet stays contained at the default, minimum, and zoomed desktop sizes
 ```
 
 Run: `npm run test:acceptance:dry 2>&1 | tail -6`
-Expected: the dry run reports 1 undefined step (this proves the step binding below is what satisfies it).
+Expected: the dry run reports 2 undefined steps (this proves the step bindings below are what satisfy them).
 
-- [ ] **Step 2: Add the test hook**
+- [ ] **Step 2: Add the test hooks**
 
-In `src/main/test-hook.js`, immediately after the `readMahjongCompletionGeometry()` method:
+In `src/main/test-hook.js`, inside `readMahjongEmbedDom()`'s returned object, after `dockButtonHeight: firstDockButton?.height ?? 0,` add:
 
 ```js
+            dockButtonCount: dockButtons.length,
+```
+
+Immediately after the `readMahjongCompletionGeometry()` method add three methods. Zoom is applied to the new-tab tab's own `webContents`, which is what the user's ⌘+/⌘− zoom changes, so the embedded frame zooms with the page:
+
+```js
+    async setNewtabZoomFactor(factor) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const applied = Math.min(3, Math.max(0.5, Number(factor) || 1));
+      tab.view.webContents.setZoomFactor(applied);
+      return tab.view.webContents.getZoomFactor();
+    },
+    async newtabZoomFactor() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.getZoomFactor();
+    },
     async readMahjongRecordsGeometry() {
       const tab = tabs.get(getActiveTabId());
       if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
@@ -1298,6 +1340,7 @@ In `src/main/test-hook.js`, immediately after the `readMahjongCompletionGeometry
             rowCount: document.querySelectorAll('#mjRecordsRows tr').length,
             viewportWidth: innerWidth,
             viewportHeight: innerHeight,
+            zoomFactor: outerWidth ? outerWidth / innerWidth : 1,
           };
           closeRecords();
           await new Promise((resolve) => requestAnimationFrame(() => resolve()));
@@ -1310,28 +1353,83 @@ In `src/main/test-hook.js`, immediately after the `readMahjongCompletionGeometry
     },
 ```
 
-- [ ] **Step 3: Add the step**
+- [ ] **Step 3: Add the steps**
 
-In `test/desktop/steps/newtab-layouts.steps.js`, after the `the Mahjong completion dialog remains usable at the minimum desktop size` step:
+In `test/desktop/steps/newtab-layouts.steps.js`, in the existing `the embedded mahjong game is ready` step, right after the `dock control is too small` assertion, add:
 
 ```js
-Then('the Mahjong records sheet stays contained at the default and minimum desktop sizes', async function () {
+  assert.equal(game.dockButtonCount, 6, 'the dock exposes boards, records, undo, hint, shuffle, and sound');
+```
+
+Then, after the `the Mahjong completion dialog remains usable at the minimum desktop size` step, add two steps. The first automates the rail boundary: the desktop rail applies from 1000×611, the 54 px fallback covers heights 611–720, and the full 64 px rail resumes at 721.
+
+```js
+Then('the six-control Mahjong rail fits its table at every desktop breakpoint', async function () {
   const original = await this.call('windowContentBounds');
   assert.ok(original, 'window content bounds should be available');
+  const sizes = [
+    { width: 1000, height: 611, minButton: 53.5, label: 'rail breakpoint (compact fallback)' },
+    { width: 1000, height: 720, minButton: 53.5, label: 'top of the compact fallback' },
+    { width: 1000, height: 721, minButton: 63.5, label: 'full-size rail resumes' },
+    { width: 1280, height: 800, minButton: 63.5, label: 'default' },
+  ];
   try {
-    for (const size of [{ width: 1280, height: 800 }, { width: 640, height: 480 }]) {
+    for (const size of sizes) {
+      await this.call('setWindowContentSize', size.width, size.height);
+      await waitForValue(
+        () => this.call('windowContentBounds'),
+        (bounds) => bounds?.width === size.width && bounds?.height === size.height,
+        `${size.label} desktop content bounds`
+      );
+      const game = await waitForValue(
+        () => this.call('readMahjongEmbedDom'),
+        (value) => value?.viewportWidth === size.width && value.dockButtonCount === 6,
+        `six-control Mahjong rail at the ${size.label} size`
+      );
+      const context = `rail at ${size.width}x${size.height}`;
+      assert.ok(game.dockTop >= game.boardFrameTop - 1, `${context} starts above the table`);
+      assert.ok(game.dockBottom <= game.boardFrameBottom + 1, `${context} ends below the table`);
+      assert.ok(game.dockLeft >= game.boardFrameLeft - 1, `${context} starts left of the table`);
+      assert.ok(Math.abs(game.dockButtonWidth - game.dockButtonHeight) <= 0.5, `${context} controls must stay circular`);
+      assert.ok(game.dockButtonWidth >= size.minButton, `${context} control is too small (${game.dockButtonWidth}px)`);
+    }
+  } finally {
+    await this.call('setWindowContentSize', original.width, original.height);
+    await waitForValue(
+      () => this.call('windowContentBounds'),
+      (bounds) => bounds?.width === original.width && bounds?.height === original.height,
+      'restored desktop content bounds'
+    );
+  }
+});
+
+Then('the Mahjong records sheet stays contained at the default, minimum, and zoomed desktop sizes', async function () {
+  const original = await this.call('windowContentBounds');
+  assert.ok(original, 'window content bounds should be available');
+  const originalZoom = await this.call('newtabZoomFactor');
+  assert.ok(originalZoom, 'zoom factor should be readable');
+  const cases = [
+    { width: 1280, height: 800, zoom: 1 },
+    { width: 640, height: 480, zoom: 1 },
+    { width: 1280, height: 800, zoom: 1.5 },
+    { width: 640, height: 480, zoom: 1.25 },
+  ];
+  try {
+    for (const size of cases) {
       await this.call('setWindowContentSize', size.width, size.height);
       await waitForValue(
         () => this.call('windowContentBounds'),
         (bounds) => bounds?.width === size.width && bounds?.height === size.height,
         `${size.width}x${size.height} desktop content bounds`
       );
+      assert.equal(await this.call('setNewtabZoomFactor', size.zoom), size.zoom);
+      const expectedViewport = Math.round(size.width / size.zoom);
       const records = await waitForValue(
         () => this.call('readMahjongRecordsGeometry'),
-        (value) => value?.viewportWidth === size.width,
-        `Mahjong records sheet at ${size.width}x${size.height}`
+        (value) => value && Math.abs(value.viewportWidth - expectedViewport) <= 1,
+        `Mahjong records sheet at ${size.width}x${size.height} zoom ${size.zoom}`
       );
-      const context = `records sheet at ${size.width}x${size.height}`;
+      const context = `records sheet at ${size.width}x${size.height} zoom ${size.zoom}`;
       assert.equal(records.rowCount, 8, `${context} lists every layout`);
       assert.ok(records.scrollWidth <= records.clientWidth + 1, `${context} scrolls horizontally`);
       assert.equal(records.overflowY, 'auto', `${context} must scroll vertically when needed`);
@@ -1342,6 +1440,7 @@ Then('the Mahjong records sheet stays contained at the default and minimum deskt
       assert.equal(records.focusReturned, true, `${context} must return focus to the records control`);
     }
   } finally {
+    await this.call('setNewtabZoomFactor', originalZoom);
     await this.call('setWindowContentSize', original.width, original.height);
     await waitForValue(
       () => this.call('windowContentBounds'),
@@ -1409,14 +1508,30 @@ Open Boards (dock, first button) at 1280×800, 900×700, and 720×560; screensho
 
 Clear storage, reload, press `R`, screenshot: zeros, eight "—" rows, "no dailies cleared yet". Close with Esc and confirm `document.activeElement.id === 'mjRecords'`. Then script a Peaks Classic clear:
 
+The page refreshes tile state 240–760 ms after each move (and locks input for ~1.1 s on an automatic clear), so a scripted clear must wait for each pair to actually leave the board before clicking the next; `aria-busy` alone only covers auto-clears.
+
 ```js
-startGame({ layoutId: 'peaks', mode: 'classic', seed: 11 });
-const plan = window.MahjongEngine.generateDeal({ seed: game.seed, layoutId: 'peaks' }).solution;
-for (const [a, b] of plan) { tileButtons[a].click(); await new Promise((r) => setTimeout(r, 25)); tileButtons[b].click(); await new Promise((r) => setTimeout(r, 25)); }
-await new Promise((r) => setTimeout(r, 900)); game.status
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const until = async (test, label) => { for (let i = 0; i < 200; i++) { if (test()) return; await sleep(25); } throw new Error(`timed out: ${label}`); };
+const board = document.getElementById('mjBoard');
+async function clearBoard(layoutId, mode, seed) {
+  startGame(seed == null ? { ...window.MahjongState.dailyDeal(new Date()), mode } : { layoutId, mode, seed });
+  await sleep(300);
+  const plan = window.MahjongEngine.generateDeal({ seed: game.seed, layoutId: game.layoutId }).solution;
+  for (const [a, b] of plan) {
+    await until(() => !board.hasAttribute('aria-busy') && !tileButtons[a].disabled && !tileButtons[b].disabled, `pair ${a}/${b} clickable`);
+    tileButtons[a].click();
+    await until(() => mode === 'classic' ? game.selected === a : game.removed[a], `first tile ${a} taken`);
+    tileButtons[b].click();
+    await until(() => tileButtons[a].hidden && tileButtons[b].hidden && !board.hasAttribute('aria-busy'), `pair ${a}/${b} left the board`);
+  }
+  await sleep(900);
+  return game.status;
+}
+await clearBoard('peaks', 'classic', 11);
 ```
 
-Then run a Daily Burst clear the same way after `startGame({ ...window.MahjongState.dailyDeal(new Date()), mode: 'tray' })` (Burst: click first then second of each solution pair; wait for `!document.getElementById('mjBoard').hasAttribute('aria-busy')` between pairs). Open Records: expected boards cleared 2, daily streak 1, the Peaks row shows a classic time, the daily layout's row shows a burst score, the last strip square is filled and outlined. Screenshot at 1280×800 and at 640×480 (the card must scroll vertically, never horizontally: check `card.scrollWidth <= card.clientWidth`).
+Expected: `won`. Then run the Daily Burst clear: `await clearBoard(null, 'tray')` (the helper deals today's daily when `seed` is null; in Burst the first click parks and the second matches, and the helper waits for both buttons to hide, which also absorbs the automatic-clear input lock). Expected: `won`. If a Burst pair's second click ever finds its mate already gone (an automatic clear took it), the `until` for "first tile taken" still passes because the tile was removed; the following `until` then times out with a clear label, which means the run must be repeated with a fresh seed rather than trusted. Open Records: expected boards cleared 2, daily streak 1, the Peaks row shows a classic time, the daily layout's row shows a burst score, the last strip square is filled and outlined. Screenshot at 1280×800 and at 640×480 (the card must scroll vertically, never horizontally: check `card.scrollWidth <= card.clientWidth`).
 
 - [ ] **Step 5: Stop the server, run everything**
 
@@ -1437,4 +1552,4 @@ git commit -m "docs: mark the Mahjong layouts/records spec implemented
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ```
 
-Then push and open the PR (`gh pr create --base main`), carrying the browser-pass screenshots' findings in the test plan and an unchecked item for `npm run test:acceptance:desktop` (new step: records containment at 1280×800 and 640×480) plus a hand-check that the six-control desktop rail fits at the app's 1000×611 breakpoint.
+Then push and open the PR (`gh pr create --base main`), carrying the browser-pass screenshots' findings in the test plan and an unchecked item for `npm run test:acceptance:desktop` (new steps: six-control rail at 1000×611 / 1000×720 / 1000×721 / 1280×800; records containment at 1280×800, 640×480, and zoom 1.5 / 1.25).
