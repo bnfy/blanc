@@ -30,6 +30,7 @@ if (window.location.protocol === 'blanc:') {
       },
       start: {
         data: () => invoke('pages:start:data'),
+        topSites: (options) => invoke('pages:start:top-sites', options),
         focusGroup: (id) => invoke('pages:start:focus-group', id),
         setLayout: (name) => invoke('pages:start:set-layout', name),
         layoutUsed: (name) => invoke('pages:start:layout-used', name),

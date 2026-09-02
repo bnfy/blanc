@@ -118,6 +118,7 @@ const patron = require('./patron');
 const bookmarks = require('./bookmarks');
 const { groupFavoritesForMenu, mayWriteFavoriteFavicon } = require('./bookmark-data');
 const history = require('./history');
+const { siteKey: topSiteKey } = require('./top-sites');
 const { JsonStore, discardProfileStoreEntries } = require('./store');
 const { persistableEntries, sessionTabMeta } = require('./session-snapshot');
 const {
@@ -3338,6 +3339,12 @@ async function setTabFavicon(tab, source) {
   // tab.bookmarked (redirect heal), but private tabs never write Favorites.
   // updateFavicon no-ops when nothing matches.
   if (mayWriteFavoriteFavicon(tab, sanitized)) bookmarks.updateFavicon(tab.url, sanitized);
+  // The Billboard can reuse real site artwork without making a request of its
+  // own. Keep one bounded, profile-local icon only after a successful normal
+  // visit has already produced a sanitized PNG.
+  if (sanitized && !tab.private && tab.historyEligible) {
+    history.cacheSiteIcon(tab.url, sanitized);
+  }
   if (changed) scheduleBroadcastTabs();
   if (sanitized) sync.captureTabIcon(tab).catch(() => {});
   return true;
@@ -7314,6 +7321,35 @@ app.whenReady().then(bindWindowRuntime(primaryRuntime, async () => {
           count: tabIds.filter((id) => !tabs.get(id)?.private).length,
         }))
         .filter((g) => g.count > 0),
+      topSites: (wc, options = {}) => {
+        const owner = tabs.get(tabIdByWebContentsId.get(wc.id));
+        if (!owner || owner.private) return [];
+
+        // Reuse only locally stored, already-sanitized bookmark PNGs. A top
+        // site without one gets the existing letter tile; the start page must
+        // never contact a website or a third-party favicon service to draw it.
+        const faviconsBySite = new Map();
+        for (const favorite of bookmarks.listBookmarks()) {
+          const key = topSiteKey(favorite.url);
+          if (key && favorite.favicon && !faviconsBySite.has(key)) {
+            faviconsBySite.set(key, favorite.favicon);
+          }
+        }
+        // Also reuse icons already held by live or quiet tabs in this local
+        // profile. This gives an existing profile an immediate local backfill
+        // while the bounded history cache fills naturally on later visits.
+        for (const tab of tabs.values()) {
+          if (tab.profileId !== owner.profileId || tab.private || !tab.favicon) continue;
+          const key = topSiteKey(tab.url);
+          if (key) faviconsBySite.set(key, tab.favicon);
+        }
+        return history.listTopSites(options).map(({ key, url, title, favicon }) => ({
+          key,
+          url,
+          title,
+          favicon: favicon ?? faviconsBySite.get(key) ?? null,
+        }));
+      },
       focusGroup,
       blockedThisWeek: () => adblockWeekStats().data.blocked,
       blockedByDay: () => [...adblockWeekStats().data.days],

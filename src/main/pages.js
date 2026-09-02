@@ -300,8 +300,11 @@ function setupPages(hooks = {}) {
 
   // Start page (the ledger new tab): tab groups + the weekly blocked
   // counter live in main.js, reached through hooks rather than a module.
-  handle('pages:start:data', 'newtab', () => ({
+  handleEvent('pages:start:data', 'newtab', (event) => ({
     groups: hooks.startPage?.groups() ?? [],
+    // Derived on demand from the active local profile's history. Private
+    // newtabs receive an empty list from the main-owned hook.
+    topSites: hooks.startPage?.topSites?.(event.sender) ?? [],
     blockedThisWeek: hooks.startPage?.blockedThisWeek() ?? 0,
     // Raw per-day counts drive the tally caption ("busiest day friday");
     // the bar heights are normalized in main so the rule stays unit-tested.
@@ -316,6 +319,14 @@ function setupPages(hooks = {}) {
     // later pages:start:status push, so initial load and live updates agree.
     ...hooks.startPage?.status?.(),
   }));
+  // Billboard asks for another bounded page only when local dismissals consume
+  // the initial candidate set. The hidden-hostname list stays in page storage
+  // and never crosses IPC.
+  handleEvent('pages:start:top-sites', 'newtab', (event, options) =>
+    hooks.startPage?.topSites?.(
+      event.sender,
+      options && typeof options === 'object' ? options : {},
+    ) ?? []);
   // The footer layout switcher. The value is enum-validated by setSettings,
   // so an unknown name is a no-op rather than an error.
   handle(

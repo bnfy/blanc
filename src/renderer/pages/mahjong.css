@@ -2,6 +2,9 @@
    bundled fonts and the [hidden] contract; everything below is game-local. */
 
 .mahjong-body {
+  /* Mahjong is the fifth start-page layout, so its former mono role joins the
+     same Inter-only migration while the rest of Blanc remains unchanged. */
+  --font-mono: var(--font-ui);
   --mj-lacquer: #0b3d31;
   --mj-lacquer-deep: #04251f;
   --mj-lacquer-ink: #021914;

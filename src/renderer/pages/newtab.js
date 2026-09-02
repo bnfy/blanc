@@ -1,5 +1,45 @@
 const isPrivate = new URLSearchParams(location.search).has('private');
 const isMac = navigator.platform.startsWith('Mac');
+const TOP_SITES_HIDDEN_KEY = 'blanc.billboard.hidden-top-sites.v1';
+const MAX_HIDDEN_TOP_SITES = 200;
+const TOP_SITES_PAGE_SIZE = 48;
+
+function readHiddenTopSites() {
+  if (isPrivate) return new Set();
+  try {
+    const saved = JSON.parse(localStorage.getItem(TOP_SITES_HIDDEN_KEY) || '[]');
+    return new Set(
+      (Array.isArray(saved) ? saved : [])
+        // Main owns hostname parsing. A bounded string is enough here: saved
+        // values can only suppress an exact key that main later supplies.
+        .filter((key) => typeof key === 'string' && key.length > 0 && key.length <= 255)
+        .slice(-MAX_HIDDEN_TOP_SITES),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+const hiddenTopSites = readHiddenTopSites();
+let topSitesExhausted = isPrivate;
+let topSitesLoad = null;
+let topSitesReady = false;
+let topSitesOffset = 0;
+
+function rememberHiddenTopSite(key) {
+  if (isPrivate || typeof key !== 'string' || !key) return;
+  hiddenTopSites.delete(key);
+  hiddenTopSites.add(key);
+  while (hiddenTopSites.size > MAX_HIDDEN_TOP_SITES) {
+    hiddenTopSites.delete(hiddenTopSites.values().next().value);
+  }
+  try {
+    localStorage.setItem(TOP_SITES_HIDDEN_KEY, JSON.stringify([...hiddenTopSites]));
+  } catch {
+    // Storage may be unavailable; the in-memory dismissal still lasts for
+    // this page without falling back to any main-process or network store.
+  }
+}
 
 // Opened as a private tab (blanc://newtab/?private=1): private theme,
 // and the ledger's margin copy explains the deal instead of stats.
@@ -282,6 +322,7 @@ const state = {
   blockedByDay: [0, 0, 0, 0, 0, 0, 0],
   blockedBarHeights: [0, 0, 0, 0, 0, 0, 0],
   favorites: [],
+  topSites: [],
   onboarding: null,
 };
 const rendered = new Set();
@@ -325,18 +366,50 @@ function renderBillboard() {
   // its margin, leaving a silent gap where a section pretends to be.
   const favs = document.getElementById('bbFavorites');
   favs.replaceChildren();
-  favs.hidden = !state.favorites.length;
-  for (const b of state.favorites.slice(0, 6)) {
-    const item = document.createElement('a');
-    item.className = 'bb-fav';
-    item.href = b.url;
+  const sites = isPrivate
+    ? []
+    : state.topSites.filter((site) => !hiddenTopSites.has(site.key)).slice(0, 6);
+  favs.hidden = !sites.length;
+  for (const site of sites) {
+    const item = document.createElement('div');
+    item.className = 'bb-site';
+    item.dataset.siteKey = site.key;
+    const link = document.createElement('a');
+    link.className = 'bb-fav';
+    link.href = site.url;
     const tile = document.createElement('span');
     tile.className = 'tile';
-    decorateTile(tile, b);
+    decorateTile(tile, site);
     const label = document.createElement('span');
     label.className = 'label';
-    label.textContent = shortLabel(b.url, b.title);
-    item.append(tile, label);
+    label.textContent = (site.title || hostOf(site.url) || 'Untitled site').trim();
+    label.title = label.textContent;
+    link.setAttribute('aria-label', `Open ${label.textContent}`);
+    link.append(tile, label);
+
+    const dismiss = document.createElement('button');
+    dismiss.type = 'button';
+    dismiss.className = 'bb-site-dismiss';
+    dismiss.title = `Hide ${label.textContent}`;
+    dismiss.setAttribute('aria-label', `Hide ${label.textContent} from Billboard`);
+    const closeIcon = document.createElement('img');
+    closeIcon.src = 'close.svg';
+    closeIcon.alt = '';
+    closeIcon.draggable = false;
+    dismiss.appendChild(closeIcon);
+    dismiss.addEventListener('click', () => {
+      const index = [...favs.children].indexOf(item);
+      rememberHiddenTopSite(site.key);
+      renderBillboard();
+      document.getElementById('bbTopSitesStatus').textContent =
+        `${label.textContent} hidden from Billboard.`;
+      const next = favs.children[Math.min(index, favs.children.length - 1)]
+        ?.querySelector('.bb-fav, .bb-site-dismiss');
+      next?.focus();
+      fillBillboardSites().catch(() => {});
+    });
+
+    item.append(link, dismiss);
     favs.appendChild(item);
   }
 
@@ -344,6 +417,40 @@ function renderBillboard() {
   groups.replaceChildren();
   groups.hidden = !state.groups.length;
   for (const g of state.groups) groups.appendChild(groupChip(g));
+}
+
+function visibleBillboardSites() {
+  return state.topSites.filter((site) => !hiddenTopSites.has(site.key));
+}
+
+async function fillBillboardSites() {
+  if (
+    isPrivate ||
+    !topSitesReady ||
+    topSitesExhausted ||
+    visibleBillboardSites().length >= 6 ||
+    typeof window.bowserPages?.start?.topSites !== 'function'
+  ) return;
+  if (topSitesLoad) return topSitesLoad;
+
+  const offset = topSitesOffset;
+  topSitesLoad = window.bowserPages.start.topSites({
+    offset,
+    limit: TOP_SITES_PAGE_SIZE,
+  }).then((sites) => {
+    const next = Array.isArray(sites) ? sites : [];
+    topSitesOffset += next.length;
+    const known = new Set(state.topSites.map((site) => site.key));
+    state.topSites.push(...next.filter((site) => !known.has(site.key)));
+    if (next.length < TOP_SITES_PAGE_SIZE) topSitesExhausted = true;
+  }).finally(() => {
+    topSitesLoad = null;
+  });
+  await topSitesLoad;
+  renderBillboard();
+  if (visibleBillboardSites().length < 6 && !topSitesExhausted) {
+    await fillBillboardSites();
+  }
 }
 
 function renderShelf() {
@@ -592,6 +699,7 @@ function applyLayout(name) {
   }
   notifyMahjongActivity();
   if (name === 'billboard') startClock();
+  if (name === 'billboard') fillBillboardSites().catch(() => {});
 }
 
 for (const button of document.querySelectorAll('[data-layout-pick]')) {
@@ -619,8 +727,12 @@ const dataReady = window.bowserPages?.start.data().then((data) => {
     blockedThisWeek: data.blockedThisWeek,
     blockedByDay: data.blockedByDay ?? state.blockedByDay,
     blockedBarHeights: data.blockedBarHeights ?? state.blockedBarHeights,
+    topSites: data.topSites ?? [],
     onboarding: data.onboarding ?? null,
   });
+  topSitesReady = true;
+  topSitesOffset = state.topSites.length;
+  topSitesExhausted = isPrivate || state.topSites.length < TOP_SITES_PAGE_SIZE;
   renderLaunchStatus({ startup: data.startup, recovery: data.recovery, privacy: data.privacy });
   renderPatronCallout(data.patronActive);
   if (!isPrivate) {

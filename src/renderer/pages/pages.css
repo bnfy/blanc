@@ -616,6 +616,10 @@ a.patron-checkout:hover { filter: brightness(1.05); }
    overlapping it — once the ledger outgrows the window. The top gap
    yields with the window height for the same reason. */
 .ledger-body {
+  /* First stage of the UI type migration: every start-page surface that used
+     the shared mono role now resolves it to Inter. Other internal pages keep
+     the real --font-mono value from :root. */
+  --font-mono: var(--font-ui);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -838,9 +842,8 @@ a.ledger-label:hover { color: var(--accent); }
   user-select: none;
 }
 .ledger-version { opacity: 0.6; font-size: 11px; }
-/* Renders "⌘L to go anywhere" and would otherwise inherit .ledger-footer's
-   mono face, which draws ⌘ malformed. Scoped to the element so the rest of
-   the footer line stays mono. */
+/* Keep the platform shortcut role for the command glyph; every former mono
+   footer label now resolves to Inter through .ledger-body above. */
 #goAnywhere { font-family: var(--font-kbd); }
 
 @media (max-width: 720px) {
@@ -1384,12 +1387,17 @@ body:not([data-layout="ledger"]) .ledger-footer {
   color: var(--text-dim);
   margin-top: 20px;
 }
-.bb-favs { display: flex; gap: 36px; margin-top: 64px; align-items: flex-start; }
+.bb-favs { display: flex; gap: 20px; margin-top: 64px; align-items: flex-start; }
+.bb-site {
+  position: relative;
+  width: 112px;
+}
 .bb-fav {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  width: 100%;
   cursor: pointer;
   text-decoration: none;
   color: var(--text);
@@ -1409,10 +1417,71 @@ body:not([data-layout="ledger"]) .ledger-footer {
 }
 .bb-fav .tile.has-icon { background-size: 20px; background-position: center; background-repeat: no-repeat; }
 .bb-fav .label { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim); }
+.bb-site-dismiss {
+  position: absolute;
+  top: -8px;
+  right: 28px;
+  width: 18px;
+  height: 18px;
+  min-width: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-raised);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.88);
+  transition: opacity 120ms ease, transform 120ms ease, border-color 120ms ease;
+}
+.bb-site-dismiss img { width: 10px; height: 10px; opacity: 0.68; }
+[data-theme="dark"] .bb-site-dismiss img,
+[data-theme="private"] .bb-site-dismiss img { filter: invert(1); }
+.bb-site:hover .bb-site-dismiss,
+.bb-site:focus-within .bb-site-dismiss,
+.bb-site-dismiss:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+.bb-site-dismiss:hover { border-color: var(--text-dim); }
+.bb-site-dismiss:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+.page-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (hover: none) {
+  .bb-site-dismiss { opacity: 1; pointer-events: auto; transform: scale(1); }
+}
 .bb-groups { display: flex; gap: 14px; margin-top: 38px; }
 /* The billboard's chips are the one place the prototype sizes them up. */
 .bb-groups .group-chip { padding: 7px 16px; }
 .bb-groups .group-chip .chip-name { font-size: 12.5px; }
+
+/* At the minimum desktop height, a populated two-row Billboard is taller
+   than its viewport. Centering that stack makes its first rows unreachable;
+   anchor it instead and reserve a scrollable lane above the fixed footer. */
+@media (max-height: 520px) {
+  .billboard {
+    justify-content: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 16px 24px 80px;
+  }
+  .bb-clock-row { margin-top: 8px; }
+  .bb-blocked { margin-top: 10px; }
+  .bb-favs { margin-top: 24px; }
+  .bb-groups { margin-top: 18px; }
+}
 
 /* ---------- shelf ---------- */
 .shelf {
@@ -1571,7 +1640,17 @@ body:not([data-layout="ledger"]) .ledger-footer {
 .shelf-heading { flex: 0 0 auto; }
 .shelf-date { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bb-favs, .bb-groups { flex-wrap: wrap; justify-content: center; }
-.bb-fav .label { max-width: 96px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bb-fav .label {
+  max-width: 112px;
+  min-height: 2.7em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.35;
+  text-align: center;
+  white-space: normal;
+}
 /* The clock is exactly 148px at any normal window; the clamp only bites in
    windows too narrow to hold "12:58 pm" at full size. */
 .bb-clock { font-size: clamp(64px, 14vw, 148px); }
@@ -1639,11 +1718,11 @@ body:not([data-layout="ledger"]) .ledger-footer {
   .tally-right { margin-top: 56px; max-width: 280px; padding-bottom: 96px; }
 }
 
-/* Every billboard favorite occupies the same slot width, so the ICONS land
+/* Every billboard site occupies the same slot width, so the icons land
    on an even rhythm regardless of how long each label is — with real sites
    ("benjaminmoore" beside "nest") a bare gap spaces the columns evenly but
    the icons unevenly. The label ellipsis above caps at the same 96px. */
-.bb-fav { width: 96px; }
+.bb-site { width: 112px; }
 
 /* ---------- first-run onboarding dialog ----------
    Transcribed from the "New tab v2 + onboarding" prototype; six-step variant

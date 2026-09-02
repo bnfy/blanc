@@ -173,6 +173,7 @@ responsive rule, and the intentional visible picker-cancel affordance.
 No P3 visual follow-up is required for this release candidate.
 
 final result: passed
+
 ---
 
 # Blanc Mahjong-inspired brand mark rollout — 2026-08-31
@@ -1401,5 +1402,96 @@ No actionable P0, P1, or P2 findings remain.
 ## Follow-up polish
 
 No P3 follow-up is required for this focused change.
+
+final result: passed
+
+---
+
+# Design QA — Billboard frequent sites
+
+- Source visual truth: `/private/tmp/blanc-billboard-source.png`, copied from the supplied `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 1.33.42 PM.png`.
+- Implementation screenshot: `/private/tmp/blanc-billboard-top-sites-qa-normalized.png`.
+- Focused interaction screenshot: `/private/tmp/blanc-billboard-top-sites-focus.png`.
+- Side-by-side comparison: `/private/tmp/blanc-billboard-top-sites-comparison.png` (source left, implementation right).
+- Viewport and density: both full views are 1680 × 1028 px at the supplied Retina viewport; the implementation used 840 × 514 CSS px captured at macOS 2× density. The focused row is 1608 × 210 px.
+- State: light appearance, Billboard selected, six ranked local-history fixtures, first dismiss control keyboard-focused. Group chips and nonzero blocker data were intentionally absent from the isolated fixture and were excluded from this focused comparison.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Typography and hierarchy: the existing mono date, clock, status, and site-label hierarchy is unchanged from the supplied source.
+- Spacing and rhythm: six equal 96 px site slots retain the original evenly distributed row at the matching viewport. The dismiss control overlaps only the icon corner and does not shift the tile or label.
+- Visual treatment: the close control is hidden at rest, appears on hover or focus, and uses a compact circular surface with a one-pixel theme-aware focus halo. Dark and private themes invert the reused close mark.
+- Content behavior: the row now presents hostname-level frequent sites instead of Favorites, preserves the six-item cap, and fills a dismissed slot from lower-ranked candidates.
+- Interaction and accessibility: every site remains a direct link. Each dismiss control is a native button with a site-specific accessible label, visible keyboard focus, an aria-live confirmation, and deterministic focus recovery after removal.
+- Privacy: ranking is derived on demand from the active profile's existing local history. Dismissals store only a bounded hostname list in `blanc://newtab` localStorage; private tabs receive no candidates, and no sync, telemetry, remote favicon, or dismissal IPC path was added.
+
+## Comparison history
+
+- Initial source: six static Favorite tiles with no per-item removal affordance.
+- First implementation capture: local-history ordering and dismissal worked, but the two-pixel keyboard halo was visually heavier than the small control.
+- Final implementation capture: the halo was reduced to one pixel while preserving contrast and the source row's alignment. The supplied favicon-backed tiles remain supported whenever a matching locally saved Favorite favicon exists; the isolated QA fixture correctly exercises the no-network letter fallback.
+
+## Implementation checklist
+
+- [x] Local hostname-level frequency ranking with recency tie-break.
+- [x] Six visible slots plus lower-ranked backfill after dismissal.
+- [x] Hover/focus dismiss control with accessible labeling and focus recovery.
+- [x] Profile-local, bounded dismissal storage with no history deletion.
+- [x] Private-tab exclusion and no new server/network retention path.
+- [x] Unit, syntax, site-build, dry-schema, and focused desktop acceptance verification.
+
+## Follow-up polish
+
+No P3 follow-up is required for this focused change.
+
+final result: passed
+
+---
+
+# Design QA — Billboard full titles and local icons
+
+- Correction source: `/private/tmp/blanc-billboard-short-labels-source.png`, copied from the supplied `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 1.48.51 PM.png`.
+- Final resting row: `/private/tmp/blanc-billboard-full-titles-row.png`.
+- Final keyboard-focus row: `/private/tmp/blanc-billboard-top-sites-focus.png`.
+- Side-by-side comparison: `/private/tmp/blanc-billboard-full-titles-comparison.png` (correction source left, implementation right).
+- Viewport and density: source and final comparison rows are both 1654 × 322 px at macOS Retina density. The implementation used an 827 CSS px-wide Billboard view at 2× density.
+- State: light appearance, six frequent-site fixtures with real local favicon rasters; the resting capture has no visible dismiss controls and the focus capture exposes the first one.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Content: the hostname-token labels called out in the source are gone. Tiles now use the complete locally recorded page title, bounded to 120 characters and visibly clamped to two lines; the full value remains available as the native title and accessible name.
+- Image quality: production reuses only inert 32 px PNG pixels Blanc already sanitized while the user visited the site. The QA fixtures use real checked-in favicon artwork rather than letter or placeholder assets.
+- Layout: 112 px title slots and a 20 px inter-item gap preserve the original six-icon center rhythm while making room for descriptive two-line titles. Long titles clamp cleanly without changing tile alignment or overlapping adjacent items.
+- Interaction: the close control remains hidden in the resting comparison and appears without reflow on hover or keyboard focus. Its one-pixel halo stays clear of the favicon tile.
+- Privacy: the new profile-local icon cache is capped at 256 hostnames, contains no count or timestamp, never syncs, never performs a request, and is cleared with local history. Existing local Favorite and same-profile tab icons provide immediate fallback when available.
+
+## Comparison history
+
+### User-reviewed iteration — failed
+
+- [P1] The first implementation reduced every label to a short hostname token, losing the page's useful local title.
+- [P2] Non-Favorite sites fell back to bare letters even after Blanc had already loaded and sanitized their favicons during normal browsing.
+
+### Corrected iteration — passed
+
+- Full local page titles replace the short-label helper on Billboard only.
+- Sanitized favicon pixels are retained locally as bounded appearance metadata and rendered without a Billboard-triggered network request.
+- The exact-width comparison shows six real icons, readable two-line titles, even alignment, and no collision or clipping.
+
+## Functional evidence
+
+- Focused Electron acceptance: 2 scenarios and 15 steps passed, covering frequency order, full titles, six decoded cached icons, dismissal persistence, unchanged history, and backfill beyond the initial 48 candidates.
+- Complete unit suite: 1,379 tests passed.
+- Acceptance schema: 128 scenarios, 788 steps, 0 undefined.
+- Website/privacy build and SEO verification: 19 pages passed.
+- Syntax checks and `git diff --check` passed.
+
+## Follow-up polish
+
+No P3 follow-up is required for this correction.
 
 final result: passed

@@ -11,7 +11,8 @@
 const settings = require('./settings');
 const history = require('./history');
 const bookmarks = require('./bookmarks');
-const { app, Menu, clipboard } = require('electron');
+const path = require('node:path');
+const { app, Menu, clipboard, nativeImage } = require('electron');
 const { buildAddressMenu } = require('./address-menu-model');
 const { blockableHostname } = require('./adblock-exceptions');
 const { syncSnapshot } = require('./session-snapshot');
@@ -406,6 +407,51 @@ function install(refs) {
 
     // ---- history store ----
     seedHistory() { history.addVisit('http://seed.local/', 'Seed'); },
+    async seedBillboardHistory() {
+      const current = tabs.get(getActiveTabId());
+      await current?.view?.webContents?.session.clearStorageData({
+        origin: 'blanc://newtab',
+        storages: ['localstorage'],
+      });
+      for (const [url, title] of [
+        ['https://youtube.com/watch?v=one', 'YouTube – videos worth watching'],
+        ['https://cnet.com/article/one', 'CNET – technology news and reviews'],
+        ['https://youtube.com/watch?v=two', 'YouTube – videos worth watching'],
+        ['https://scrollapp.co/', 'Scroll – creative work, beautifully organized'],
+        ['https://cnet.com/article/two', 'CNET – technology news and reviews'],
+        ['https://youtube.com/watch?v=three', 'YouTube – videos worth watching'],
+        ['https://developer.mozilla.org/docs', 'MDN Web Docs'],
+        ['https://nintendo.com/', 'Nintendo – Official Site'],
+        ['https://blancbrowser.com/', 'Blanc Browser – browse without the baggage'],
+      ]) history.addVisit(url, title);
+      for (const [url, file] of [
+        ['https://youtube.com/', ['favicons', 'youtube.com.ico']],
+        ['https://cnet.com/', ['favicons', 'cnet.com.ico']],
+        ['https://scrollapp.co/', ['favicons', 'scrollapp.co.ico']],
+        ['https://developer.mozilla.org/', ['favicons', 'developer.mozilla.org.ico']],
+        ['https://nintendo.com/', ['favicons', 'nintendo.com.ico']],
+        ['https://blancbrowser.com/', ['favicon-32x32.png']],
+      ]) {
+        const source = path.join(app.getAppPath(), 'site', 'public', ...file);
+        const png = nativeImage.createFromPath(source)
+          .resize({ width: 32, height: 32, quality: 'best' })
+          .toPNG();
+        history.cacheSiteIcon(url, `data:image/png;base64,${png.toString('base64')}`);
+      }
+      return history.listTopSites({ limit: 6 });
+    },
+    seedBillboardOverflowHistory() {
+      history.clearHistory();
+      // Different visit counts make the sixty-host order deterministic even
+      // when this tight fixture loop produces identical Date.now() values.
+      for (let index = 0; index < 60; index++) {
+        const key = `site-${String(index).padStart(2, '0')}.example`;
+        for (let visit = 0; visit < 60 - index; visit++) {
+          history.addVisit(`https://${key}/${visit}`, `Site ${index}`);
+        }
+      }
+      return history.listTopSites({ limit: 48 }).map((site) => site.key);
+    },
     clearHistory() { history.clearHistory(); },
     historyCount() { return history.listHistory({ limit: 5000 }).length; },
 
@@ -455,6 +501,151 @@ function install(refs) {
         visible: ['Ledger', 'Billboard', 'Shelf', 'Tally', 'Mahjong']
           .filter((name) => getComputedStyle(document.getElementById('layout' + name)).display !== 'none'),
       }))()`);
+    },
+    async readStartPageFontUsage() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const page = await tab.view.webContents.executeJavaScript(`(() => {
+        const selectors = [
+          '.ledger-date', '.ledger-label', '.bb-clock', '.bb-meridiem',
+          '.bb-blocked', '.shelf-date', '.shelf-label', '.shelf-count',
+          '.tally-count', '.tally-caption', '.ledger-footer', '.ob-step-label',
+          '.ob-commands'
+        ];
+        return {
+          samples: selectors.map((selector) => ({
+            selector,
+            family: getComputedStyle(document.querySelector(selector)).fontFamily,
+          })),
+          jetbrains: [...document.querySelectorAll('body, body *')]
+            .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'))
+            .slice(0, 20)
+            .map((element) => element.id || element.className || element.tagName),
+        };
+      })()`);
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      if (!frame) return { page, mahjong: null };
+      const mahjong = await frame.executeJavaScript(`(() => {
+        const selectors = ['.mj-meter-label', '.mj-timer', '.mj-dock-action', '.mj-overline'];
+        return {
+          samples: selectors.map((selector) => ({
+            selector,
+            family: getComputedStyle(document.querySelector(selector)).fontFamily,
+          })),
+          jetbrains: [...document.querySelectorAll('body, body *')]
+            .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'))
+            .slice(0, 20)
+            .map((element) => element.id || element.className || element.tagName),
+        };
+      })()`);
+      return { page, mahjong };
+    },
+    async readStartPageLayoutFit() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      const audit = `(() => {
+        scrollTo(0, 0);
+        const root = document.documentElement;
+        const body = document.body;
+        const describe = (element) => {
+          if (element.id) return '#' + element.id;
+          const classes = [...element.classList].slice(0, 3);
+          return element.tagName.toLowerCase() + (classes.length ? '.' + classes.join('.') : '');
+        };
+        const visible = (element) => {
+          const style = getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          return style.display !== 'none' && style.visibility !== 'hidden' &&
+            rect.width > 0 && rect.height > 0;
+        };
+        const hasDirectText = (element) => [...element.childNodes]
+          .some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+        const ignored = (element) => element.matches(
+          '.page-sr-only, .mj-sr-only, .mj-skip, [data-dock-label], [aria-hidden="true"], ' +
+          '.fav .name, .shelf-tile .name, .shelf-tile .host, .shelf-date, .bb-fav .label'
+        );
+        const text = [...body.querySelectorAll('*')]
+          .filter((element) => visible(element) && hasDirectText(element) && !ignored(element));
+        const horizontalText = text.filter((element) => {
+          const rect = element.getBoundingClientRect();
+          return rect.left < -1 || rect.right > innerWidth + 1;
+        }).map(describe);
+        const unreachableText = text.filter((element) => {
+          const rect = element.getBoundingClientRect();
+          const documentBottom = Math.max(root.scrollHeight, body.scrollHeight);
+          return rect.top < -1 || rect.bottom + scrollY > documentBottom + 1;
+        }).map(describe);
+        const clippedText = text.filter((element) => {
+          const style = getComputedStyle(element);
+          const clipsX = style.overflowX === 'hidden' || style.overflowX === 'clip';
+          const clipsY = style.overflowY === 'hidden' || style.overflowY === 'clip';
+          return (clipsX && element.scrollWidth > element.clientWidth + 1) ||
+            (clipsY && element.scrollHeight > element.clientHeight + 1);
+        }).map(describe);
+        const surfaces = [...body.querySelectorAll('main, .ledger-footer')]
+          .filter(visible)
+          .filter((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.left < -1 || rect.right > innerWidth + 1;
+          })
+          .map(describe);
+        return {
+          layout: body.dataset.layout ?? null,
+          viewportWidth: innerWidth,
+          viewportHeight: innerHeight,
+          clientWidth: root.clientWidth,
+          scrollWidth: root.scrollWidth,
+          horizontalText,
+          unreachableText,
+          clippedText,
+          surfaces,
+        };
+      })()`;
+      const page = await tab.view.webContents.executeJavaScript(audit);
+      const frame = tab.view.webContents.mainFrame.framesInSubtree
+        .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
+      const mahjong = frame ? await frame.executeJavaScript(audit) : null;
+      return { page, mahjong };
+    },
+    readBillboardSites() {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return null;
+      return tab.view.webContents.executeJavaScript(`(() => ({
+        sites: [...document.querySelectorAll('#bbFavorites .bb-site')].map((item) => ({
+          key: item.dataset.siteKey,
+          href: item.querySelector('.bb-fav')?.href ?? null,
+          label: item.querySelector('.label')?.textContent ?? null,
+          hasIcon: item.querySelector('.tile')?.classList.contains('has-icon') ?? false,
+          dismissLabel: item.querySelector('.bb-site-dismiss')?.getAttribute('aria-label') ?? null,
+        })),
+        hidden: JSON.parse(localStorage.getItem('blanc.billboard.hidden-top-sites.v1') || '[]'),
+      }))()`);
+    },
+    hideBillboardSite(key) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      return tab.view.webContents.executeJavaScript(`(() => {
+        const item = [...document.querySelectorAll('#bbFavorites .bb-site')]
+          .find((candidate) => candidate.dataset.siteKey === ${JSON.stringify(String(key))});
+        const button = item?.querySelector('.bb-site-dismiss');
+        if (!button) return false;
+        button.focus();
+        button.click();
+        return true;
+      })()`);
+    },
+    setBillboardHidden(keys) {
+      const tab = tabs.get(getActiveTabId());
+      if (!tab || !urlOf(tab).startsWith('blanc://newtab')) return false;
+      const bounded = Array.isArray(keys) ? keys.slice(0, 200).map(String) : [];
+      return tab.view.webContents.executeJavaScript(`(() => {
+        localStorage.setItem(
+          'blanc.billboard.hidden-top-sites.v1',
+          ${JSON.stringify(JSON.stringify(bounded))}
+        );
+        return true;
+      })()`);
     },
     async readMahjongEmbedDom() {
       const tab = tabs.get(getActiveTabId());

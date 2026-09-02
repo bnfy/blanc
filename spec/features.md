@@ -718,12 +718,29 @@ From the desktop `DEFAULTS`:
 ## F35 — Start page layouts
 
 - The start page offers five layouts: **ledger** (the original column),
-  **billboard** (a live clock over favorite tiles), **shelf** (a favorites grid
+  **billboard** (a live clock over locally ranked frequent-site tiles), **shelf** (a favorites grid
   with group and blocked-count cards), **tally** (the ledger column beside a
   week-of-blocking bar chart), and **mahjong** (an embedded, local solitaire
-  deal). The four informational layouts draw the same favorites, tab-group, and
-  blocker feeds; Mahjong deliberately replaces those feeds with the game. All
-  five re-ink under the light, dark, and private themes.
+  deal). Ledger, shelf, and tally draw the Favorites feed. Billboard instead
+  derives up to six hostname-level sites from the active local profile's
+  on-device history, ranked by visit count with recency as the tie-breaker. A
+  full, bounded local page title labels each tile, and a bounded profile-local
+  cache reuses sanitized 32 px favicon pixels captured during normal visits;
+  rendering the row never starts a favicon request. A
+  hover/focus dismiss button stores only a bounded hostname list in that
+  profile's `blanc://newtab` localStorage; it does not delete history, sync,
+  emit telemetry, or contact a favicon service. Clearing history also clears
+  its cached Billboard artwork. Private Billboard tabs receive
+  no history-derived sites. Mahjong replaces the informational feeds with the
+  game. All five re-ink under the light, dark, and private themes.
+- All five start-page layouts use **Inter** for text that previously used the
+  shared JetBrains Mono role, including the shared footer and onboarding. This
+  override is local to the new-tab and embedded Mahjong documents; other
+  internal pages and browser chrome retain their existing typography. Desktop
+  acceptance exercises every layout at the default and minimum supported
+  sizes and on both sides of its responsive breakpoints, with realistic long
+  Billboard titles, and rejects horizontal overflow, unreachable text, or
+  unintended clipping.
 - The choice is a synced setting (`newtabLayout`, default `billboard`), changeable
   instantly from the start page's own footer switcher and from Settings; a
   change made anywhere reaches every open start page. It travels with the
@@ -748,8 +765,9 @@ From the desktop `DEFAULTS`:
   placeholder copy on the three newer layouts.
 - **Acceptance:**
   [`acceptance/newtab-layouts.feature`](./acceptance/newtab-layouts.feature)
-  renders the saved layout on a new tab, persists a footer switch, and verifies
-  that Mahjong embeds a playable 144-tile deal.
+  renders the saved layout on a new tab, persists a footer switch, verifies
+  Billboard's local frequency ranking and dismissal, and confirms that Mahjong
+  embeds a playable 144-tile deal.
 
 ## F36 — First-run onboarding
 
