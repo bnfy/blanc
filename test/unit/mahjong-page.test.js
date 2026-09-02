@@ -639,3 +639,20 @@ test('the Records dock action and sheet are wired with accessible semantics', ()
   assert.match(mahjongStyles, /\.mj-records-strip i\.is-today\s*\{/);
   assert.match(mahjongStyles, /@media \(min-width: 1000px\) and \(min-height: 611px\) and \(max-height: 720px\)\s*\{[^@]*\.mj-dock\s*\{[^}]*repeat\(6, 54px\)/);
 });
+
+test('the Records sheet opens from the dock and R, paints from the pure summary, and returns focus', () => {
+  assert.match(controller, /function activeModal\(\) \{\s*return \['mjSetupSheet', 'mjRecordsSheet', 'mjRescue', 'mjWin'\]/);
+  assert.match(controller, /function paintRecords\(\)[\s\S]*?S\.recordsSummary\(recordStore\.read\(\), \{[\s\S]*?currentLayoutId: game\?\.layoutId \|\| null/);
+  assert.match(controller, /function openRecords\(\) \{\s*pauseTimer\(\);\s*paintRecords\(\);\s*setDialogVisible\(document\.getElementById\('mjRecordsSheet'\), true\);/);
+  assert.match(controller, /function closeRecords\(\) \{[\s\S]*?setDialogVisible\(document\.getElementById\('mjRecordsSheet'\), false\);[\s\S]*?document\.getElementById\('mjRecords'\)\?\.focus\(\);/);
+  assert.match(controller, /if \(event\.key === 'Escape' && modal\.id === 'mjRecordsSheet'\) \{[\s\S]*?closeRecords\(\);/);
+  assert.match(controller, /!event\.altKey && key === 'r'\) \{\s*event\.preventDefault\(\);\s*openRecords\(\);/);
+  assert.match(controller, /getElementById\('mjRecords'\)\?\.addEventListener\('click', openRecords\)/);
+  assert.match(controller, /getElementById\('mjRecordsClose'\)\?\.addEventListener\('click', closeRecords\)/);
+  assert.match(controller, /getElementById\('mjRecordsScrim'\)\?\.addEventListener\('click', closeRecords\)/);
+  // rows are real table semantics built per layout, with the current board marked
+  assert.match(controller, /name\.scope = 'row'/);
+  assert.match(controller, /tr\.setAttribute\('aria-current', 'true'\)/);
+  assert.match(controller, /'No dailies cleared in the last 28 days\.'/);
+  assert.match(controller, /`cleared \$\{clearedDays\.length\} of the last 28 dailies`/);
+});
