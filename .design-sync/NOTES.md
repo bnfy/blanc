@@ -297,7 +297,8 @@ Deliberately NOT touched: `explorations/*`, `design_handoff_*/*` (historical sna
 `thumbnail.html` (wordmark text only), `guidelines/island-hero.html` (comment only),
 the five monogram dock PNGs (the app still ships the B tile in those colorways).
 
-### ⚠️ Site lag (NOT a DS issue — flagged for the site workflow)
+### Site lag — RESOLVED same day (PR #263, merge c91bc87, deployed 5457bcd8 as Production/main; live assets byte-match the repo)
+### (original flag kept for the record)
 As of df7a0e5, `site/` has NO Sunrise asset (only `releases.json` mentions it) and the live
 brand mark is still the Mahjong-inspired B from #256. With the owner's "Sunrise everywhere"
 decision the DS is deliberately AHEAD of the site; BrandMark.astro, favicons, logo.png,
