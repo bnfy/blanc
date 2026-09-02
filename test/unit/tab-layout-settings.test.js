@@ -165,6 +165,20 @@ test('vertical rail top chrome is reduced to an accessible sidebar toggle', () =
   );
 });
 
+test('vertical rail text uses Inter without JetBrains Mono overrides', () => {
+  const styles = fs.readFileSync(
+    path.join(__dirname, '../../src/renderer/styles.css'),
+    'utf8'
+  );
+  const railStart = styles.indexOf('.vertical-tabs-rail {');
+  const railEnd = styles.indexOf('.sr-only {', railStart);
+  assert.ok(railStart >= 0 && railEnd > railStart, 'vertical rail CSS range must exist');
+  const railStyles = styles.slice(railStart, railEnd);
+
+  assert.match(railStyles, /\.vertical-tabs-rail\s*\{[^}]*font-family: var\(--font-ui\);/s);
+  assert.doesNotMatch(railStyles, /font-family:\s*var\(--font-mono\)/);
+});
+
 test('native menu binds a mnemonic vertical-tabs toggle without taking paste shortcuts', () => {
   const main = fs.readFileSync(
     path.join(__dirname, '../../src/main/main.js'),

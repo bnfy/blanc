@@ -387,6 +387,7 @@ button svg {
   background: var(--bg);
   border-right: none;
   color: var(--text);
+  font-family: var(--font-ui);
 }
 
 .vertical-tabs-rail[hidden] {
@@ -528,7 +529,7 @@ body.mac .vertical-tabs-toolbar {
   align-items: center;
   gap: 7px;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 500;
   line-height: 1;
@@ -547,7 +548,7 @@ body.mac .vertical-tabs-toolbar {
   padding: 0 7px;
   border-radius: var(--radius);
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   text-align: left;
 }
@@ -702,7 +703,7 @@ body.mac .vertical-tabs-toolbar {
   max-width: 50px;
   overflow: hidden;
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 9px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -820,7 +821,7 @@ body.mac .vertical-tabs-toolbar {
   padding: 0 10px;
   border-radius: var(--radius);
   color: var(--text-dim);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   text-align: left;
 }
