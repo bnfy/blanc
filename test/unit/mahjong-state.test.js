@@ -765,3 +765,56 @@ test('an event written between persist and prune is never pruned before it is co
   assert.equal(retained, S.MAX_RECORD_EVENTS);
   assert.equal(second.totals.countedEvents.length, S.MAX_RECORD_EVENTS);
 });
+
+function dailyRecords(entries) {
+  let records = S.emptyRecords();
+  for (const [dailyKey, mode, layoutId] of entries) {
+    records = S.applyResult(records, completion(layoutId, mode, { dailyKey }), 5);
+  }
+  return records;
+}
+
+test('dailyStreak counts consecutive local days with any completed daily', () => {
+  assert.deepEqual(S.dailyStreak(S.emptyRecords(), '2026-09-02'), { current: 0, longest: 0, cleared: 0 });
+  assert.deepEqual(S.dailyStreak(dailyRecords([['2026-09-02', 'classic', 'arch']]), '2026-09-02'), { current: 1, longest: 1, cleared: 1 });
+  // yesterday only: today is not yet broken
+  assert.deepEqual(S.dailyStreak(dailyRecords([['2026-09-01', 'tray', 'peaks']]), '2026-09-02'), { current: 1, longest: 1, cleared: 1 });
+  // a gap resets current but keeps longest
+  const gappy = dailyRecords([
+    ['2026-08-20', 'classic', 'turtle'], ['2026-08-21', 'classic', 'turtle'], ['2026-08-22', 'tray', 'turtle'],
+    ['2026-09-01', 'classic', 'arch'], ['2026-09-02', 'classic', 'arch'],
+  ]);
+  assert.deepEqual(S.dailyStreak(gappy, '2026-09-02'), { current: 2, longest: 3, cleared: 5 });
+  // both modes on one day count once; two days ago does not extend the streak
+  const doubled = dailyRecords([['2026-08-31', 'classic', 'peaks'], ['2026-08-31', 'tray', 'peaks']]);
+  assert.deepEqual(S.dailyStreak(doubled, '2026-09-02'), { current: 0, longest: 1, cleared: 1 });
+  assert.equal(S.shiftDailyKey('2026-03-01', -1), '2026-02-28');
+  assert.equal(S.shiftDailyKey('2026-12-31', 1), '2027-01-01');
+});
+
+test('recordsSummary lays out eight rows in order, marks the current board, and ends its strip today', () => {
+  const storage = new MemoryStorage();
+  let clock = 100;
+  const store = S.createRecordStore({ storage, now: () => clock, uuid: () => uuid(clock++) });
+  store.record(completion('cross', 'classic', { elapsedMs: 90_000, dailyKey: '2026-09-02' }));
+  store.record(completion('cross', 'classic', { elapsedMs: 80_000 }));
+  store.record(completion('bridge', 'tray', { elapsedMs: 200_000, score: 4200, dailyKey: '2026-09-01' }));
+  const summary = S.recordsSummary(store.read(), { today: '2026-09-02', currentLayoutId: 'bridge' });
+  assert.deepEqual(summary.overview, { cleared: 3, streak: 2, longest: 2, dailies: 2 });
+  assert.deepEqual(summary.rows.map((row) => row.layoutId), [...S.LAYOUT_IDS]);
+  assert.deepEqual(summary.rows.find((row) => row.layoutId === 'cross'), {
+    layoutId: 'cross', classicBestMs: 80_000, trayBestScore: null, trayBestMs: null, cleared: 2, current: false,
+  });
+  assert.deepEqual(summary.rows.find((row) => row.layoutId === 'bridge'), {
+    layoutId: 'bridge', classicBestMs: null, trayBestScore: 4200, trayBestMs: 200_000, cleared: 1, current: true,
+  });
+  assert.equal(summary.rows.filter((row) => row.current).length, 1);
+  assert.equal(summary.days.length, 28);
+  assert.deepEqual(summary.days.at(-1), { key: '2026-09-02', cleared: true, today: true });
+  assert.deepEqual(summary.days.at(-2), { key: '2026-09-01', cleared: true, today: false });
+  assert.equal(summary.days[0].key, '2026-08-06');
+  assert.equal(summary.days.filter((day) => day.cleared).length, 2);
+  const empty = S.recordsSummary(S.emptyRecords(), { today: '2026-09-02' });
+  assert.deepEqual(empty.overview, { cleared: 0, streak: 0, longest: 0, dailies: 0 });
+  assert.ok(empty.rows.every((row) => row.classicBestMs === null && row.trayBestScore === null && row.cleared === 0 && !row.current));
+});

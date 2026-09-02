@@ -419,6 +419,72 @@
       : `cleared · ${time}`;
   }
 
+  function shiftDailyKey(key, days) {
+    const [year, month, day] = dailyKey(key).split('-').map(Number);
+    const shifted = new Date(Date.UTC(year, month - 1, day + days));
+    return `${String(shifted.getUTCFullYear()).padStart(4, '0')}-${String(shifted.getUTCMonth() + 1).padStart(2, '0')}-${String(shifted.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  function clearedDailyKeys(records) {
+    const clean = normalizeRecords(records);
+    return new Set(Object.entries(clean.daily)
+      .filter(([, modes]) => MODES.some((mode) => modes[mode] && modes[mode].completed))
+      .map(([key]) => key));
+  }
+
+  // Derived, never stored. A day counts when either mode's daily is complete.
+  // `current` counts back from today, or from yesterday while today is still
+  // open, so a streak is not shown as broken before the day is over.
+  function dailyStreak(records, today = new Date()) {
+    const days = clearedDailyKeys(records);
+    const todayKey = dailyKey(today);
+    let cursor = days.has(todayKey) ? todayKey : shiftDailyKey(todayKey, -1);
+    let current = 0;
+    while (days.has(cursor)) {
+      current += 1;
+      cursor = shiftDailyKey(cursor, -1);
+    }
+    let longest = 0;
+    let run = 0;
+    let previous = null;
+    for (const key of [...days].sort()) {
+      run = previous !== null && shiftDailyKey(previous, 1) === key ? run + 1 : 1;
+      longest = Math.max(longest, run);
+      previous = key;
+    }
+    return { current, longest, cleared: days.size };
+  }
+
+  function recordsSummary(records, { today = new Date(), layoutIds = LAYOUT_IDS, currentLayoutId = null, days = 28 } = {}) {
+    const clean = normalizeRecords(records);
+    const streak = dailyStreak(clean, today);
+    const rows = layoutIds.map((layoutId) => {
+      const classic = clean.classic[layoutId] || null;
+      const tray = clean.tray[layoutId] || null;
+      return {
+        layoutId,
+        classicBestMs: classic ? classic.bestTimeMs : null,
+        trayBestScore: tray ? tray.bestScore : null,
+        trayBestMs: tray ? tray.bestTimeMs : null,
+        cleared: (clean.totals.cleared.classic[layoutId] || 0) + (clean.totals.cleared.tray[layoutId] || 0),
+        current: layoutId === currentLayoutId,
+      };
+    });
+    const cleared = rows.reduce((sum, row) => sum + row.cleared, 0);
+    const clearedDays = clearedDailyKeys(clean);
+    const todayKey = dailyKey(today);
+    const strip = [];
+    for (let offset = days - 1; offset >= 0; offset--) {
+      const key = shiftDailyKey(todayKey, -offset);
+      strip.push({ key, cleared: clearedDays.has(key), today: offset === 0 });
+    }
+    return {
+      overview: { cleared, streak: streak.current, longest: streak.longest, dailies: streak.cleared },
+      rows,
+      days: strip,
+    };
+  }
+
   function emptyTotals() {
     return { cleared: { classic: {}, tray: {} }, countedEvents: [] };
   }
@@ -932,6 +998,9 @@
     createPrefsStore,
     completionOutcome,
     describeDailyResult,
+    shiftDailyKey,
+    dailyStreak,
+    recordsSummary,
     emptyRecords,
     emptyTotals,
     normalizeAssists,
