@@ -6,7 +6,7 @@
      same Inter-only migration while the rest of Blanc remains unchanged. */
   --font-mono: var(--font-ui);
   /* Tile faces are exempt from that migration: numerals and wind badge
-     letters keep the bundled JetBrains Mono (a 400–700 variable face), so
+     letters keep the bundled JetBrains Mono (a 400–800 variable face), so
      this token restates the real mono stack rather than the alias above. */
   --mj-face-font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --mj-lacquer: #0b3d31;
@@ -516,8 +516,8 @@
    never won, so the numeral's declared weight had silently never applied. */
 .mj-face text.mj-character-number {
   font-family: var(--mj-face-font);
-  font-weight: 700;
-  font-variation-settings: "wght" 700;
+  font-weight: 800;
+  font-variation-settings: "wght" 800;
   fill: currentColor;
   stroke: rgba(153, 111, 44, 0.62);
   stroke-width: 0.7px;
