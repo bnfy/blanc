@@ -5,6 +5,10 @@
   /* Mahjong is the fifth start-page layout, so its former mono role joins the
      same Inter-only migration while the rest of Blanc remains unchanged. */
   --font-mono: var(--font-ui);
+  /* Tile faces are exempt from that migration: numerals and wind badge
+     letters keep the bundled JetBrains Mono (a 400–800 variable face), so
+     this token restates the real mono stack rather than the alias above. */
+  --mj-face-font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --mj-lacquer: #0b3d31;
   --mj-lacquer-deep: #04251f;
   --mj-lacquer-ink: #021914;
@@ -507,11 +511,13 @@
 }
 
 .mj-tile svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35)); }
-.mj-face text { font-family: var(--font-mono); font-weight: 650; }
-.mj-character-number {
-  font-family: var(--font-ui);
-  font-weight: 850;
-  font-variation-settings: "wght" 850;
+.mj-face text { font-family: var(--mj-face-font); font-weight: 650; }
+/* Element-qualified so this outranks `.mj-face text` above; the bare class
+   never won, so the numeral's declared weight had silently never applied. */
+.mj-face text.mj-character-number {
+  font-family: var(--mj-face-font);
+  font-weight: 800;
+  font-variation-settings: "wght" 800;
   fill: currentColor;
   stroke: rgba(153, 111, 44, 0.62);
   stroke-width: 0.7px;
@@ -939,14 +945,25 @@
 .mj-tray-best strong { color: var(--mj-ivory); font: 650 12px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
 
 .mj-feedback { min-height: 18px; display: grid; place-items: center; }
+/* Notices are lacquer pills with their own ground, so a two-sentence offer
+   (continue an unfinished board) reads as a card floating over the felt
+   instead of loose text wedged between the header and the table edge. */
 .mj-notice {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 6px 9px;
+  max-width: min(640px, 100%);
+  padding: 9px 16px;
+  border: 1px solid var(--mj-line-strong);
+  border-radius: 999px;
   color: var(--mj-muted);
-  font: 500 10px/1.4 var(--font-mono);
+  background: var(--mj-panel);
+  box-shadow: 0 14px 34px var(--mj-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px) saturate(1.1);
+  font: 500 11px/1.45 var(--font-mono);
+  text-align: center;
 }
 .mj-notice button {
   all: unset;
@@ -1872,12 +1889,16 @@
   .mj-board-frame { anchor-name: --mj-table; }
   .mj-board-wrap { --mj-board-safe-side: 88px; }
 
+  /* Anchored inside the table's top edge, like the dock anchors to its left
+     edge, and kept clear of the left rail. */
   .mj-feedback {
     position: absolute;
+    position-anchor: --mj-table;
     z-index: 6;
-    top: calc(var(--mj-shell-block) + 42px + var(--mj-shell-gap) + 8px);
-    inset-inline-start: calc(var(--mj-shell-inline) + 104px);
-    inset-inline-end: calc(var(--mj-shell-inline) + 12px);
+    top: calc(anchor(top) + 14px);
+    left: anchor(center);
+    width: min(640px, calc(anchor-size(width) - 208px));
+    transform: translateX(-50%);
     min-height: 0;
     pointer-events: none;
   }
@@ -2007,7 +2028,6 @@
   .mj-meter:first-child { min-width: 88px; }
   .mj-chain-meter { min-width: 88px; }
   .mj-combo-bar { width: 78px; }
-  .mj-feedback { top: calc(var(--mj-shell-block) + 52px + var(--mj-shell-gap) + 8px); }
 }
 
 @media (max-width: 900px) {

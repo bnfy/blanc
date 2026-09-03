@@ -12,7 +12,9 @@
   font-family: "JetBrains Mono";
   src: url("jetbrains-mono-latin.woff2") format("woff2");
   font-style: normal;
-  font-weight: 400 700;
+  /* The subset carries the full wght 400–800 axis; declaring less would
+     silently clamp heavier requests (the Mahjong tile numerals use 800). */
+  font-weight: 400 800;
   font-display: swap;
 }
 

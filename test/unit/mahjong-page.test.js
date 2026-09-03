@@ -188,7 +188,7 @@ test('character numerals fill their tile faces in ink without underline marks', 
   assert.doesNotMatch(controller, /family === 'chr'[\s\S]{0,180}el\('rect'/);
   assert.match(styles, /\.mj-tile\[data-suit="chr"\]\s*\{\s*color:\s*var\(--mj-ink\);\s*\}/);
   assert.doesNotMatch(styles, /\.mj-tile\[data-suit="chr"\][^{]*\{[^}]*var\(--mj-red\)/);
-  assert.match(styles, /\.mj-character-number\s*\{[^}]*font-weight:\s*850;[^}]*stroke-width:\s*0\.7px;[^}]*paint-order:\s*stroke fill;/);
+  assert.match(styles, /\.mj-character-number\s*\{[^}]*font-weight:\s*800;[^}]*stroke-width:\s*0\.7px;[^}]*paint-order:\s*stroke fill;/);
 });
 
 test('the bamboo suit uses a panda emblem plus the supplied jade and gold stick artwork', () => {
@@ -662,4 +662,27 @@ test('the Records sheet opens from the dock and R, paints from the pure summary,
   assert.match(controller, /tr\.setAttribute\('aria-current', 'true'\)/);
   assert.match(controller, /'No dailies cleared in the last 28 days\.'/);
   assert.match(controller, /`cleared \$\{clearedDays\.length\} of the last 28 dailies`/);
+});
+
+test('tile-face type stays JetBrains Mono while the game chrome uses Inter', () => {
+  // The v1.13.0 start-page typography pass aliased --font-mono to Inter inside
+  // the game. Tile faces are exempt: numerals and wind badge letters keep the
+  // bundled mono stack through a game-local token that bypasses the alias.
+  assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--mj-face-font:\s*"JetBrains Mono", ui-monospace/);
+  assert.match(mahjongStyles, /\.mj-face text\s*\{[^}]*font-family:\s*var\(--mj-face-font\)/);
+  assert.match(mahjongStyles, /\.mj-character-number\s*\{[^}]*font-family:\s*var\(--mj-face-font\);[^}]*font-weight:\s*800;[^}]*font-variation-settings:\s*"wght" 800;/);
+  // The bundled JetBrains Mono file carries wght 400–800; the shared @font-face
+  // must expose the full range or 800 silently clamps to 700.
+  assert.match(styles, /font-family:\s*"JetBrains Mono";\s*src:\s*url\("jetbrains-mono-latin\.woff2"\)[^}]*font-weight:\s*400 800;/);
+  assert.doesNotMatch(mahjongStyles, /\.mj-character-number\s*\{[^}]*var\(--font-ui\)/);
+  // The chrome alias itself stays: meters, sheets, and dock labels remain Inter.
+  assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--font-mono:\s*var\(--font-ui\);/);
+});
+
+test('notices are lacquer pills anchored inside the table instead of loose text at its edge', () => {
+  assert.match(mahjongStyles, /\.mj-notice\s*\{[^}]*max-width:\s*min\(640px, 100%\);[^}]*border-radius:\s*999px;[^}]*background:\s*var\(--mj-panel\);[^}]*backdrop-filter:/);
+  const desktop = mediaBlocks('(min-width: 1000px) and (min-height: 611px)')[0];
+  assert.ok(desktop, 'desktop media block present');
+  assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-table;[^}]*top:\s*calc\(anchor\(top\) \+ 14px\);[^}]*left:\s*anchor\(center\);[^}]*width:\s*min\(640px, calc\(anchor-size\(width\) - 208px\)\);[^}]*transform:\s*translateX\(-50%\);/);
+  assert.doesNotMatch(mahjongStyles, /\.mj-feedback\s*\{[^}]*top:\s*calc\(var\(--mj-shell-block\)/);
 });
