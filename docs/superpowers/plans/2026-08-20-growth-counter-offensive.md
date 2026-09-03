@@ -33,6 +33,12 @@
   v1.14.0 → v1.15.0 macOS and Windows updater handoffs also passed. Complete
   evidence is recorded in
   `docs/release-incidents/2026-09-02-v1.15.0.md`.
+- Release-train evidence remains incomplete: the v1.13.0 incident still lists
+  both adjacent v1.12.0 → v1.13.0 macOS and Windows updater handoffs as pending.
+  Later successful handoffs do not prove those transitions. Obtain the owner's
+  exact confirmation or an explicit, risk-aware waiver before clearing the
+  train gate. The v1.11.1 Windows handoff has its own recorded owner waiver;
+  that waiver does not extend to v1.13.0.
 - v1.15.0 is the selected launch release. Task 8's 22-second Island demo and
   Product Hunt stills were recaptured on September 3 from the installed
   packaged public build in an isolated local profile, then exported in
@@ -1545,12 +1551,13 @@ metadata, packaging, release workflows, and feature specs stop moving. If the
 selected work is not merge-ready by the cutoff, leave it open and move on; do
 not consume the release-verification buffer trying to make the count zero.
 
-- [x] **Step 3: Publish and prove each immutable pre-launch release, ending with
+- [ ] **Step 3: Publish and prove each immutable pre-launch release, ending with
       the launch release by Friday, September 4 at 3:00 p.m. ET**
 
-Completed for selected launch release v1.15.0. The dated incident linked above
-records publication, native-platform, authenticated-manifest, public download,
-Linux launch/render, and adjacent macOS/Windows updater evidence.
+The selected v1.15.0 release's own evidence is complete, but this train-wide
+step remains open for the v1.12.0 → v1.13.0 macOS and Windows updater handoffs.
+The v1.13.0 dated incident still marks both pending. Do not infer a pass from a
+later installed version or copy v1.11.1's explicit Windows waiver to this gate.
 
 For every post-v1.10.0 version, follow the complete release operator protocol.
 The macOS, Windows, and Linux artifacts, updater metadata, authenticated

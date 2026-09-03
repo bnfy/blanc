@@ -18,6 +18,12 @@ build. If a regression forces a replacement release, this pack becomes
 non-publishable until every release-bound fact and asset is rebaselined and the
 fresh launch soak restarts.
 
+**Launch gate still open:** the v1.13.0 incident has no completed evidence for
+the adjacent v1.12.0 → v1.13.0 macOS or Windows updater handoff. The owner must
+confirm those exact flows or explicitly waive the unverified paths after the
+risk is stated. v1.15.0's own successful handoffs do not close that train-wide
+gap; do not publish this pack until the runbook's launch gates are cleared.
+
 **Release lock — REBASELINED 2026-09-02:** This pack describes packaged public
 v1.15.0, published from `d0c2304`. It carries the optional macOS 1Password
 ambient login hint and Settings account verification while keeping credential
