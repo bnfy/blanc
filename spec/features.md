@@ -736,7 +736,11 @@ From the desktop `DEFAULTS`:
 - All five start-page layouts use **Inter** for text that previously used the
   shared JetBrains Mono role, including the shared footer and onboarding. This
   override is local to the new-tab and embedded Mahjong documents; other
-  internal pages and browser chrome retain their existing typography. Desktop
+  internal pages and browser chrome retain their existing typography. The one
+  deliberate exception is Mahjong's tile faces: character numerals and wind
+  badge letters are game artwork and keep the bundled JetBrains Mono (at its
+  ExtraBold weight), while the game's meters, sheets, and dock labels use
+  Inter. Desktop
   acceptance exercises every layout at the default and minimum supported
   sizes and on both sides of its responsive breakpoints, with realistic long
   Billboard titles, and rejects horizontal overflow, unreachable text, or

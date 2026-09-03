@@ -526,17 +526,25 @@ function install(refs) {
       const frame = tab.view.webContents.mainFrame.framesInSubtree
         .find((candidate) => candidate.url.startsWith('blanc://mahjong/'));
       if (!frame) return { page, mahjong: null };
+      // Tile faces (character numerals and wind badge letters inside the
+      // tile SVGs) are game artwork and deliberately keep JetBrains Mono;
+      // the Inter rule covers the game's UI text only. Report the faces
+      // separately so the step can assert both halves of that contract.
       const mahjong = await frame.executeJavaScript(`(() => {
         const selectors = ['.mj-meter-label', '.mj-timer', '.mj-dock-action', '.mj-overline'];
+        const isTileFace = (element) => element.closest('.mj-face') !== null;
+        const monoElements = [...document.querySelectorAll('body, body *')]
+          .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'));
         return {
           samples: selectors.map((selector) => ({
             selector,
             family: getComputedStyle(document.querySelector(selector)).fontFamily,
           })),
-          jetbrains: [...document.querySelectorAll('body, body *')]
-            .filter((element) => getComputedStyle(element).fontFamily.includes('JetBrains Mono'))
+          jetbrains: monoElements
+            .filter((element) => !isTileFace(element))
             .slice(0, 20)
             .map((element) => element.id || element.className || element.tagName),
+          tileFaceMono: monoElements.filter(isTileFace).length,
         };
       })()`);
       return { page, mahjong };
