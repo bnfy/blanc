@@ -139,6 +139,7 @@ test('grant drafts and metrics labels do not overclaim licensing or installs', (
 test('public Patron copy states the named-workspace boundary consistently', () => {
   const publicCopyFiles = [
     'README.md',
+    'docs/superpowers/plans/assets/launch-copy.md',
     'site/src/pages/about.astro',
     'site/src/pages/faq.astro',
     'site/src/pages/index.astro',
@@ -259,7 +260,7 @@ test('official launch artifacts track the release declared by the README', () =>
   assert.match(plan, /final selected launch release starts the\s+only soak that can clear Task 11/i);
   assert.match(plan, /WINDOW_START = '2026-09-14'[\s\S]{0,100}WINDOW_END\s+= '2026-09-27'/);
   assert.doesNotMatch(plan, /Monday, August 31, 2026|Tuesday, September 1, 2026|Wednesday, September 2, 2026|Thursday, September 3, 2026/);
-  assert.doesNotMatch(copy, /September 3, 2026/);
+  assert.doesNotMatch(copy, /Thursday, September 3, 2026/i);
   assert.match(plan, /capture-download-baseline\.mjs "\$LAUNCH_RELEASE_TAG"/);
   assert.doesNotMatch(plan, /capture-download-baseline\.mjs v1\.10\.0/);
   assert.match(plan, /releaseTag[\s\S]{0,80}packageAssetRequests[\s\S]{0,120}packageAssetRequestsByPlatform/);
@@ -283,6 +284,8 @@ test('official launch artifacts track the release declared by the README', () =>
 test('platform specs match the shipped first-run telemetry contract', () => {
   const matrix = read('spec/parity-matrix.md');
   const services = read('spec/acceptance/platform-services.feature');
+  const faq = read('site/src/pages/faq.astro');
+  const launchCopy = read('docs/superpowers/plans/assets/launch-copy.md');
   const telemetryRow = matrix.split('\n').find((line) => line.startsWith('| F21 |')) || '';
   assert.doesNotMatch(telemetryRow, /Opt-in, off by default/i);
   assert.doesNotMatch(services, /usage ping is off by default/i);
@@ -290,6 +293,12 @@ test('platform specs match the shipped first-run telemetry contract', () => {
   assert.match(matrix, /first Mahjong move and each rendered start-page layout/i);
   assert.match(matrix, /Private tabs and browsing\/game content are excluded/i);
   assert.match(services, /no telemetry install id exists/i);
+  for (const [label, source] of [['FAQ', faq], ['launch copy', launchCopy]]) {
+    assert.match(source, /launch event plus bounded, once-per-app-session/i, label);
+    assert.match(source, /first real Mahjong move and each (?:rendered )?start-page layout(?: that (?:actually )?renders)?/i, label);
+    assert.match(source, /layout events add (?:only )?one fixed layout name/i, label);
+    assert.doesNotMatch(source, /telemetry payload remains exactly six fields/i, label);
+  }
 });
 
 test('published memory figures agree across the site, the fact sheet, and the run behind them', () => {

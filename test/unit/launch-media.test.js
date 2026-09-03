@@ -29,11 +29,20 @@ test('Product Hunt media matches the declared dimensions and launch wiring', () 
     path.join(ROOT, PRODUCT_HUNT_DIR, 'README.md'),
     'utf8'
   );
+  const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
+  const version = readme.match(/\*\*Current release:\*\* v(\d+\.\d+\.\d+)/)?.[1];
+
+  assert.ok(version, 'README must declare the public release behind launch media');
 
   for (const [name, expected] of media) {
     assert.deepEqual(pngSize(path.join(PRODUCT_HUNT_DIR, name)), expected);
     assert.match(copy, new RegExp(`product-hunt/${name.replaceAll('.', '\\.')}`));
   }
-  assert.match(provenance, /packaged public Blanc v1\.10\.0/);
+  assert.match(provenance, new RegExp(`packaged public Blanc v${version.replaceAll('.', '\\.')}`));
   assert.match(provenance, /\.\.\/island-demo\.mp4/);
+  assert.notDeepEqual(
+    fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'island-resting-1270x760.png')),
+    fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'quick-switcher-1270x760.png')),
+    'the two required Product Hunt gallery stills must show distinct states'
+  );
 });

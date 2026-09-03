@@ -29,31 +29,15 @@
 - Blanc v1.15.0 is the current public baseline. It was published from
   `d0c2304` at `2026-09-03T01:12:36Z`; publication, the authenticated manifest,
   native platform gates, logged-out download smoke, and fresh authenticated
-  public Linux AppImage launch/render check passed. Its adjacent updater
-  follow-ups are tracked in
+  public Linux AppImage launch/render check passed. Its adjacent public
+  v1.14.0 → v1.15.0 macOS and Windows updater handoffs also passed. Complete
+  evidence is recorded in
   `docs/release-incidents/2026-09-02-v1.15.0.md`.
-- The adjacent public v1.11.1 → v1.12.0 macOS in-app updater handoff passed,
-  including installed-version, strict signature, designated-requirement, and
-  Gatekeeper checks. The owner also confirmed that the adjacent Windows in-app
-  updater completed successfully; its exact-publisher/timestamp evidence
-  remains the tagged native release gate. Both adjacent handoffs are complete.
-- The adjacent public v1.12.0 → v1.13.0 macOS and Windows in-app updater
-  handoffs remain required follow-ups.
-- The owner confirmed that both adjacent public v1.13.0 → v1.14.0 macOS and
-  Windows in-app updater handoffs completed successfully. The earlier signed
-  v1.14.0 Windows candidate install remains separate validation evidence.
-- The owner confirmed that both adjacent public v1.14.0 → v1.15.0 macOS and
-  Windows in-app updater handoffs completed successfully. A supplied Windows
-  11 screenshot shows the relaunched app rendering v1.15.0; the tagged native
-  gate remains the Windows exact-publisher/timestamp evidence.
-- Task 8's Island demo was recorded on August 30 from installed packaged public
-  v1.10.0. Its 20.50-second MP4 and sub-8-MiB GIF remain immutable in
-  `0cc0c57`, but they are no longer launch-ready because v1.11.0 ships the
-  revised Blanc mark. **OWNER DECISION 2026-08-31:** because more releases are
-  likely before launch week, do not recapture the demo or Product Hunt stills
-  for v1.15.0 unless it becomes the final launch release. Refresh them once,
-  from the final selected launch release, after
-  its required evidence is complete.
+- v1.15.0 is the selected launch release. Task 8's 22-second Island demo and
+  Product Hunt stills were recaptured on September 3 from the installed
+  packaged public build in an isolated local profile, then exported in
+  `f6be585`. Any replacement release makes those assets stale and restarts the
+  release-bound refresh and soak gates.
 
 ## Superseded execution status — August 28, 2026
 
@@ -503,8 +487,8 @@ const QUESTIONS = [
   {
     q: 'Does Blanc phone home?',
     a: [
-      'It sends one launch ping, from packaged builds only, and you can turn it off. The payload is six fields: a random install id, a session id, the app version, platform, architecture, and OS version coarsened to a major number. There is no page, URL, search, or history data in it, and none of it is joined to anything else.',
-      'On a fresh profile the choice is presented during first-run setup and must be saved before any ping is sent — it is not a silent default you discover later. The server HMACs the install id before storage, applies replay dedup and rate caps, and keeps only expiring seen-markers plus aggregate counts.',
+      'Packaged builds can send a launch event plus bounded, once-per-app-session counts for the first real Mahjong move and each start-page layout that actually renders. Every event carries a random install ID, session ID, app version, platform, architecture, and coarse OS major; layout events add only one fixed layout name. It contains no page, URL, search, history, game-state, or custom-text data, and feature-use events are excluded from private tabs.',
+      'On a fresh profile, the choice is presented during first-run setup and must be saved before an event can be sent. The server HMACs the install ID before storage, applies replay deduplication and rate caps, and retains only expiring seen-markers plus aggregate counts.',
       'The install id lives in a device-local file and is never synced. Profile Sync never carries it.',
     ],
   },
@@ -741,7 +725,7 @@ Confirm or add, in this order:
   documentation are MIT-licensed and open source. Preserve the bundled filter
   lists' CC BY-SA 3.0+ obligations and reserved Blanc name/logo trademarks.
 - **The Patron boundary:** every core browsing feature is free; Patron adds
-  three macOS Dock colorways and named workspaces on every platform; creating a
+  named workspaces on every platform; creating a
   workspace needs an active subscription, renaming/removing does not.
 - **A link to the memory benchmark** (`bench/memory/`) — the strongest technical
   artifact and the direct answer to the Electron objection.
@@ -1025,30 +1009,30 @@ If any upgrade check fails, the launch week moves.
 
 ---
 
-## Phase 1 — Assets (v1.10.0 set complete; refresh after backlog cleanup if needed)
+## Phase 1 — Assets (v1.15.0 launch set complete)
 
 ### Task 8: Cut the 20-second Island demo
 
 **Owner:** `agent` — app-only capture from the real packaged application.
 
-**Status: COMPLETE 2026-08-30 for the current public v1.10.0 baseline;
-conditionally stale for launch after backlog cleanup.** Re-recorded
-from the installed packaged public v1.10.0 macOS app in an isolated local
-profile with three seeded tabs. The 20.50-second export is 1228×768, 30 fps
-H.264, and BT.709. It contains the full resting Island, `⌘L` expansion, typed
-`git` Quick Switcher filter, tab-dot switch, live 13-item blocker count and
-popover on The Verge, and final resting hold. The MP4 is 464,982 bytes and the
-GIF is 322,600 bytes. Asset commit: `0cc0c57`.
+**Status: COMPLETE 2026-09-03 for the selected public v1.15.0 launch
+release.** Re-recorded from the installed packaged public v1.15.0 macOS app in
+an isolated local profile with telemetry and search suggestions disabled. The
+22-second export is 1920×1200, 30 fps H.264, and BT.709. It contains the full
+resting Island, `⌘L` expansion, typed `git` Quick Switcher filter, tab-dot
+switching, live blocker count and popover on The Verge, and a final resting
+hold. The MP4 is 892,161 bytes and the 960×600 GIF is 864,973 bytes. Asset
+commit: `f6be585`.
 
 **Why:** One asset, reused across every channel. The outreach plan already calls for it, and Product Hunt in particular under-performs badly without video.
 
 - [x] **Step 1: Set up a clean capture environment**
 
-Use the packaged public **v1.10.0** app with an isolated local profile and
+Use the selected packaged public launch release with an isolated local profile and
 seeded public tabs so the window shows real sites rather than an empty profile.
 Use three or four tabs in one active context so the eight-dot cap does not
 distract from the interaction. Do not record a development build or any
-behavior added to `main` after the v1.10.0 tag.
+behavior added to `main` after the selected release tag.
 Relaunch the dev instance afterwards if you touched it.
 
 - [x] **Step 2: Record the beat sheet, in this order**
@@ -1112,8 +1096,9 @@ git status --short
 git commit -m "README: use the Island demo"
 ```
 
-This lands after v1.10.0, which is fine: `README.md` is a release source for the
-*next* release, not this one. It must be merged before Task 12 posts.
+The refreshed files must be merged before Task 12 posts. Because the paths stay
+stable, the existing README embed automatically renders the selected release's
+GIF and links to its MP4.
 
 ---
 
@@ -1351,13 +1336,14 @@ artifacts; they do not make a local build reproducible.
 **On telemetry:**
 
 ```
-One launch ping, packaged builds only, and you can turn it off. It's six
-fields: a random install id, a session id, version, platform, arch, and OS
-version coarsened to a major. No URLs, no page data, no history, and it isn't
-joined to anything else. On a fresh profile the choice is shown during setup
-and has to be saved before anything is sent — it isn't a default you find out
-about later. The server HMACs the install id before storing it. Details:
-https://blancbrowser.com/faq
+Packaged builds can send one launch event plus bounded, once-per-app-session
+events for the first real Mahjong move and each rendered start-page layout.
+Every event carries a random install id, session id, version, platform, arch,
+and coarse OS major; layout events add one fixed layout name. There are no
+URLs, searches, history, page content, game state, or custom text, and
+feature-use events exclude private tabs. On a fresh profile the choice is shown
+during setup and has to be saved before anything can be sent. It can be turned
+off. Details: https://blancbrowser.com/faq
 ```
 
 **On the subscription:**
@@ -1422,7 +1408,7 @@ documentation are open source under the MIT License, with the bundled filter
 lists retaining their own CC BY-SA 3.0+ terms and the Blanc name/logo reserved
 as trademarks; there's no mobile version; and there's a $30/year or $4/month
 optional Patron subscription. Every core browsing feature is free — Patron
-adds three macOS Dock colorways and named workspaces on every
+adds named workspaces on every
 platform, and creating a named workspace is the one action that needs an active
 subscription.
 
@@ -1456,7 +1442,7 @@ New in this release: named workspaces — save a window's whole set of tabs and
 groups and bring it back later.
 
 Free on macOS, Windows and Linux. Blanc Patron ($30/yr or $4/mo) is optional;
-it adds three macOS Dock colorways and named workspaces on every platform. Every
+it adds named workspaces on every platform. Every
 core browsing feature is free.
 ```
 
@@ -1482,9 +1468,11 @@ There is no extension runtime. Other features include tab groups, named
 workspaces, quiet background tabs that release memory, private tabs, end-to-end
 encrypted sync, and Touch ID passkeys on macOS.
 
-Blanc is free. The source is publicly available on GitHub but is not released
-under an open-source licence. An optional Patron subscription ($30/year or
-$4/month) adds three macOS Dock colorways and named workspaces on every platform.
+Blanc is free and open source under the MIT License. The bundled filter lists
+retain their CC BY-SA 3.0+ terms, and the Blanc name and logo remain reserved
+trademarks. An optional Patron subscription ($30/year or $4/month) adds Named
+Workspace creation on every platform. Existing workspaces remain renameable
+and removable after a lapse.
 ```
 
 **Alternative to:** Chrome, Arc, Brave, Vivaldi, Opera, Zen.
@@ -1557,8 +1545,12 @@ metadata, packaging, release workflows, and feature specs stop moving. If the
 selected work is not merge-ready by the cutoff, leave it open and move on; do
 not consume the release-verification buffer trying to make the count zero.
 
-- [ ] **Step 3: Publish and prove each immutable pre-launch release, ending with
+- [x] **Step 3: Publish and prove each immutable pre-launch release, ending with
       the launch release by Friday, September 4 at 3:00 p.m. ET**
+
+Completed for selected launch release v1.15.0. The dated incident linked above
+records publication, native-platform, authenticated-manifest, public download,
+Linux launch/render, and adjacent macOS/Windows updater evidence.
 
 For every post-v1.10.0 version, follow the complete release operator protocol.
 The macOS, Windows, and Linux artifacts, updater metadata, authenticated
@@ -1584,6 +1576,11 @@ Regenerate the README release boundary, launch copy pack, packaged Island demo,
 Product Hunt stills, download-baseline tag, FAQ facts, and release evidence for
 the selected public release. An old v1.10.0 asset may remain only when its exact
 behavior and visible version are still truthful for the selected release.
+
+Progress on September 3: the v1.15.0 demo and Product Hunt stills were exported
+in `f6be585`; the copy pack, provenance, and regression guards are being
+rebaselined in the same launch-only change. Check this step only after that
+change is merged and the remaining README/FAQ/baseline references are verified.
 
 - [ ] **Step 5: Record the new freeze state after the release and refreshed
       assets are on `origin/main`**
@@ -1671,7 +1668,7 @@ cat "$LAUNCH_LOG"
   post-update trust checks passed
 - [x] Task 7 — v1.9.1 → v1.10.0 Windows updater handoff passed
 - [x] Task 7 — authenticated public v1.10.0 Linux AppImage launch/render passed
-- [x] Task 8 — packaged-v1.10.0 demo exported and README assets replaced
+- [x] Task 8 — packaged-v1.15.0 demo exported and README assets replaced
 - [x] Task 9 — newsletter capture verified with a fresh address
 - [x] Task 10 — copy pack committed
 - [ ] Phase 1.5 — selected backlog resolved; unselected work remains open or is
@@ -1993,7 +1990,7 @@ Upload Task 8's final export as public or unlisted (never private). Its current
 warns that a newly uploaded video may need about **12 hours** before Product
 Hunt can integrate it, so do not leave the upload for launch night. Paste the
 full URL into the draft and verify the rendered preview. Upload the prepared
-240×240 thumbnail and both 1270×760 packaged-v1.10.0 stills from
+240×240 thumbnail and both 1270×760 packaged-v1.15.0 stills from
 `docs/superpowers/plans/assets/product-hunt/`; those two images satisfy the
 gallery's two-image floor. A Named Workspaces still is optional and must be
 omitted unless it is a release-backed capture labeled as a Patron feature.
@@ -2143,8 +2140,8 @@ RELEASE PUBLISHED — platform evidence complete; soak pending
           v1.9.1 → v1.10.0 Windows updater handoff PASS
           48h soak PENDING — ends Aug 31 14:58 ET
 
-PHASE 1 — initial assets
-  Task 8  Packaged-v1.10.0 demo exported; refresh if launch release changes
+PHASE 1 — launch assets
+  Task 8  Packaged-v1.15.0 demo and gallery stills exported
   Task 9  Newsletter capture verified
   Task 10 Copy pack committed
 
@@ -2178,8 +2175,8 @@ prerequisite because v1.10.0 is already public.
 - **Task 4 fails** → the whole plan stops until the checkout works. With Named Workspaces confirmed Patron-gated, a broken checkout means that feature is unreachable *and* the best traffic day converts nothing.
 - **Task 5 not deployed to production** → do not launch. **Currently satisfied** by production deployment `ba18dc9`; keep verifying the live Terms page, not the diff.
 - **Task 6 not merged** → do not launch. **Currently satisfied** in `ba18dc9`;
-  Task 8's current packaged-v1.10.0 demo replacement is also complete in
-  `0cc0c57`.
+  Task 8's packaged-v1.15.0 demo replacement is complete in `f6be585` and must
+  merge with its updated provenance before the launch freeze starts.
 - **Selected launch release soak or evidence not cleared** — either <48h elapsed
   or current platform evidence missing → the launch week moves unless the owner
   explicitly waives the remaining evidence after the risk is stated and records
