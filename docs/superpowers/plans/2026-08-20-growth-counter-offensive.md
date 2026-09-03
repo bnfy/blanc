@@ -1525,7 +1525,24 @@ The owner moved Show HN to Tuesday, September 8 so selected product work can be
 resolved before the launch freeze. This is a quality window, not a permission
 shortcut or a requirement to merge every open PR.
 
-- [ ] **Step 1: Select the backlog that actually belongs in the launch release**
+> **Product freeze recorded September 3, 2026.** The first post-cutoff audit at
+> 1:53 p.m. ET found `origin/main` at
+> `3068b65c2f3d19822b52555b5a1a8e81589e0aca`, with no commit after the
+> Thursday noon ET cutoff. That SHA is the product-freeze candidate. The latest
+> public release at the audit was v1.15.0 at
+> `d0c2304c7cef12a6fa0d66c559aebb1198a86434`; its complete publication,
+> platform, public AppImage, site, and adjacent v1.14.0 → v1.15.0 macOS and
+> Windows updater evidence is recorded in
+> `docs/release-incidents/2026-09-02-v1.15.0.md`. PR #238 is merged. The still
+> open dependency PRs and draft/conflicting PRs #205 and #74 are outside this
+> launch candidate and must remain unmerged through launch. PR #258 is also
+> excluded in its current form because its measurement records are pinned to
+> the superseded v1.10.0 baseline. This product-freeze SHA is not the later
+> `launch-freeze-start` anchor and does not start the final launch soak; the
+> final release selection, release-bound asset refresh, private freeze row, and
+> fresh ≥48-hour soak remain required.
+
+- [x] **Step 1: Select the backlog that actually belongs in the launch release**
 
 Review #192–#197 / PR #238, #205, and the held dependency PRs against their
 current issue bodies, merge gates, security boundaries, and platform impact.
@@ -1533,7 +1550,7 @@ Close work the owner no longer wants. For platform-sensitive changes, obtain
 the owner's explicit affected-machine confirmation before merging. Do not
 convert the scheduling decision into implicit approval for any individual PR.
 
-- [ ] **Step 2: End product merges by Thursday, September 3 at noon ET**
+- [x] **Step 2: End product merges by Thursday, September 3 at noon ET**
 
 After the selected backlog is merged, product/runtime, dependencies, package
 metadata, packaging, release workflows, and feature specs stop moving. If the
