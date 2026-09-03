@@ -129,7 +129,10 @@ Then('all start-page templates use Inter instead of JetBrains Mono', async funct
     'the new-tab and embedded Mahjong documents to expose their computed fonts',
   );
   assert.deepEqual(usage.page.jetbrains, []);
-  assert.deepEqual(usage.mahjong.jetbrains, []);
+  assert.deepEqual(usage.mahjong.jetbrains, [], 'Mahjong UI text outside the tile faces must be Inter');
+  // Tile faces are the one deliberate exception: numerals and wind badges are
+  // game artwork set in JetBrains Mono (owner decision, PR #274).
+  assert.ok(usage.mahjong.tileFaceMono > 0, 'Mahjong tile faces keep JetBrains Mono');
   for (const sample of [...usage.page.samples, ...usage.mahjong.samples]) {
     assert.match(sample.family, /Inter/, `${sample.selector} resolved to ${sample.family}`);
   }
