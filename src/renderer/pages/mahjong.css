@@ -5,6 +5,10 @@
   /* Mahjong is the fifth start-page layout, so its former mono role joins the
      same Inter-only migration while the rest of Blanc remains unchanged. */
   --font-mono: var(--font-ui);
+  /* Tile faces are exempt from that migration: numerals and wind badge
+     letters keep the bundled JetBrains Mono (a 400–700 variable face), so
+     this token restates the real mono stack rather than the alias above. */
+  --mj-face-font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --mj-lacquer: #0b3d31;
   --mj-lacquer-deep: #04251f;
   --mj-lacquer-ink: #021914;
@@ -507,11 +511,13 @@
 }
 
 .mj-tile svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35)); }
-.mj-face text { font-family: var(--font-mono); font-weight: 650; }
-.mj-character-number {
-  font-family: var(--font-ui);
-  font-weight: 850;
-  font-variation-settings: "wght" 850;
+.mj-face text { font-family: var(--mj-face-font); font-weight: 650; }
+/* Element-qualified so this outranks `.mj-face text` above; the bare class
+   never won, so the numeral's declared weight had silently never applied. */
+.mj-face text.mj-character-number {
+  font-family: var(--mj-face-font);
+  font-weight: 700;
+  font-variation-settings: "wght" 700;
   fill: currentColor;
   stroke: rgba(153, 111, 44, 0.62);
   stroke-width: 0.7px;
