@@ -678,3 +678,11 @@ test('tile-face type stays JetBrains Mono while the game chrome uses Inter', () 
   // The chrome alias itself stays: meters, sheets, and dock labels remain Inter.
   assert.match(mahjongStyles, /\.mahjong-body\s*\{[^}]*--font-mono:\s*var\(--font-ui\);/);
 });
+
+test('notices are lacquer pills anchored inside the table instead of loose text at its edge', () => {
+  assert.match(mahjongStyles, /\.mj-notice\s*\{[^}]*max-width:\s*min\(640px, 100%\);[^}]*border-radius:\s*999px;[^}]*background:\s*var\(--mj-panel\);[^}]*backdrop-filter:/);
+  const desktop = mediaBlocks('(min-width: 1000px) and (min-height: 611px)')[0];
+  assert.ok(desktop, 'desktop media block present');
+  assert.match(desktop, /\.mj-feedback\s*\{[^}]*position:\s*absolute;[^}]*position-anchor:\s*--mj-table;[^}]*top:\s*calc\(anchor\(top\) \+ 14px\);[^}]*left:\s*anchor\(center\);[^}]*width:\s*min\(640px, calc\(anchor-size\(width\) - 208px\)\);[^}]*transform:\s*translateX\(-50%\);/);
+  assert.doesNotMatch(mahjongStyles, /\.mj-feedback\s*\{[^}]*top:\s*calc\(var\(--mj-shell-block\)/);
+});
