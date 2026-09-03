@@ -38,9 +38,8 @@ updater completed successfully; its exact-publisher/timestamp evidence remains
 the tagged native release gate. The adjacent v1.12.0 -> v1.13.0 macOS and
 Windows updater handoffs remain follow-ups. The owner confirmed that both
 adjacent v1.13.0 -> v1.14.0 updater handoffs completed successfully. This
-release's adjacent v1.14.0 -> v1.15.0 macOS updater handoff passed; the Windows
-handoff remains required. It may still be superseded if another approved
-release replaces it.
+release's adjacent v1.14.0 -> v1.15.0 macOS and Windows updater handoffs both
+passed. It may still be superseded if another approved release replaces it.
 Do not publish this pack or use UI or claims from later work on `main`.
 
 ## Frozen facts

@@ -42,8 +42,10 @@
 - The owner confirmed that both adjacent public v1.13.0 → v1.14.0 macOS and
   Windows in-app updater handoffs completed successfully. The earlier signed
   v1.14.0 Windows candidate install remains separate validation evidence.
-- The owner confirmed that the adjacent public v1.14.0 → v1.15.0 macOS in-app
-  updater handoff completed successfully. The Windows handoff remains required.
+- The owner confirmed that both adjacent public v1.14.0 → v1.15.0 macOS and
+  Windows in-app updater handoffs completed successfully. A supplied Windows
+  11 screenshot shows the relaunched app rendering v1.15.0; the tagged native
+  gate remains the Windows exact-publisher/timestamp evidence.
 - Task 8's Island demo was recorded on August 30 from installed packaged public
   v1.10.0. Its 20.50-second MP4 and sub-8-MiB GIF remain immutable in
   `0cc0c57`, but they are no longer launch-ready because v1.11.0 ships the
