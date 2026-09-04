@@ -32,14 +32,18 @@ on:
           - linux
 
 permissions:
-  contents: write
-  id-token: write
-  attestations: write
+  contents: read
 
 jobs:
   windows:
     if: ${{ inputs.platform == 'all' || inputs.platform == 'windows' }}
     runs-on: windows-latest
+    # Release uploads and provenance require these grants. Keep them local
+    # to the publishing jobs instead of inherited by future jobs.
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -223,6 +227,10 @@ jobs:
   linux:
     if: ${{ (inputs.mode == 'release' || inputs.mode == 'validation') && (inputs.platform == 'all' || inputs.platform == 'linux') }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
