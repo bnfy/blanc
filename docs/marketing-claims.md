@@ -166,6 +166,7 @@ must come from the current public build or a clearly labelled preview build.
 Do not let generated imagery invent controls, automatic behavior, names, or
 states that Blanc does not ship.
 
-Visual identity follows `docs/brand-usage.md`. In particular, the Blanc mark is
-always black on white or white on black and is never placed on, inside, or
-visually backed by an accent-colored treatment.
+Visual identity follows `docs/brand-usage.md`, including its explicit
+website-only Sunrise palette and mark treatments. Outside those website
+exceptions, the Blanc mark is black on white or white on black and is never
+placed on, inside, or visually backed by an accent-colored treatment.

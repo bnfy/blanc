@@ -45,6 +45,144 @@ async function geometry(page) {
   });
 }
 
+async function productColors(page, selector) {
+  return page.locator(selector).evaluate(element => {
+    const style = getComputedStyle(element);
+    const pill = element.querySelector('.pill');
+    return {
+      text: style.color,
+      background: style.getPropertyValue('--bg').trim(),
+      surface: style.getPropertyValue('--surface').trim(),
+      raised: style.getPropertyValue('--surface-raised').trim(),
+      border: style.getPropertyValue('--border').trim(),
+      muted: style.getPropertyValue('--text-dim').trim(),
+      pill: getComputedStyle(pill, '::after').backgroundColor,
+    };
+  });
+}
+
+test('Sunrise website colors never leak into light, private, or enlarged product replicas', async () => {
+  const { page } = await openPage(1440);
+  const light = {
+    text: 'rgb(14, 14, 14)', background: '#ffffff', surface: '#f7f7f7',
+    raised: '#ffffff', border: '#dedede', muted: '#6b6b6b',
+    pill: 'rgba(255, 255, 255, 0.94)',
+  };
+  try {
+    assert.deepEqual(await productColors(page, '#demoStage'), light);
+    await page.locator('#demoEnlarge').click();
+    assert.deepEqual(await productColors(page, '#demoViewer #demoStage'), light);
+    await page.keyboard.press('Escape');
+    await page.locator('#demoMount #demoStage').waitFor({ state: 'attached' });
+    assert.deepEqual(await productColors(page, '#demoStage'), light);
+
+    await page.goto(`${baseURL}/features/private-tabs`);
+    assert.deepEqual(await productColors(page, '.demo-stage'), {
+      text: 'rgb(245, 245, 245)', background: '#0a0a0a', surface: '#131313',
+      raised: '#191919', border: '#333333', muted: '#9c9c9c',
+      pill: 'rgba(25, 25, 25, 0.94)',
+    });
+    await page.goto(`${baseURL}/press`);
+    assert.deepEqual(await productColors(page, '.press-island-stage'), light);
+  } finally { await page.close(); }
+});
+
+test('website palette, text contrast, and ink footer symbols hold across pages and breakpoints', { timeout: 60000 }, async () => {
+  const page = await browser.newPage({ reducedMotion: 'reduce', colorScheme: 'dark' });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const routes = ['/', '/features', '/download', '/changelog', '/about', '/faq', '/press', '/ambassadors', '/privacy', '/terms',
+    ...['ad-blocking', 'command-palette', 'island', 'private-tabs', 'quiet-tabs', 'security', 'sync', 'tab-groups', 'vertical-tabs'].map(name => `/features/${name}`)];
+  try {
+    for (const width of [390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const route of routes) {
+        const response = await page.goto(`${baseURL}${route}`);
+        assert.equal(response.status(), 200, route);
+        const colors = await page.evaluate(() => {
+          const style = getComputedStyle(document.documentElement);
+          const get = name => style.getPropertyValue(name).trim();
+          const luminance = hex => hex.slice(1).match(/../g).map(n => parseInt(n, 16) / 255)
+            .map(n => n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4)
+            .reduce((sum, n, i) => sum + n * [0.2126, 0.7152, 0.0722][i], 0);
+          const ratio = (a, b) => (Math.max(luminance(a), luminance(b)) + 0.05) / (Math.min(luminance(a), luminance(b)) + 0.05);
+          const backgrounds = ['--site-bg', '--site-surface', '--site-surface-raised', '--site-selection'];
+          return {
+            background: getComputedStyle(document.body).backgroundColor,
+            footer: getComputedStyle(document.querySelector('.site-footer')).backgroundColor,
+            mark: getComputedStyle(document.querySelector('.site-footer .foot-brand')).color,
+            theme: document.querySelector('meta[name="theme-color"]').content,
+            overflow: document.documentElement.scrollWidth > innerWidth,
+            contrast: ['--site-text-dim', '--site-gold'].flatMap(text => backgrounds.map(bg => ratio(get(text), get(bg)))),
+            darkContrast: ratio(get('--site-gold-on-dark'), get('--site-accent')),
+          };
+        });
+        assert.equal(colors.background, 'rgb(247, 240, 229)', `${width}px ${route}`);
+        assert.equal(colors.footer, 'rgb(239, 230, 216)', `${width}px ${route}`);
+        assert.equal(colors.mark, 'rgb(14, 14, 14)', `${width}px ${route}`);
+        assert.equal(colors.theme, '#F7F0E5');
+        assert.equal(colors.overflow, false, `${width}px ${route} overflows`);
+        assert.ok(colors.contrast.every(ratio => ratio >= 4.5), `${route}: text contrast`);
+        assert.ok(colors.darkContrast >= 4.5);
+      }
+    }
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+test('gold marks remain visible with reduced motion and mobile navigation stays usable', async () => {
+  const { page } = await openPage(1440);
+  const mark = page.locator('.hero-sunrise-mark');
+  const markStyle = () => mark.evaluate(element => {
+    const s = getComputedStyle(element);
+    return { background: s.backgroundImage, mask: s.maskImage, animation: s.animationName, transform: s.transform };
+  });
+  try {
+    await mark.hover();
+    assert.deepEqual(await markStyle(), {
+      background: `url("${baseURL}/sunrise-hero-mark.png")`, mask: 'none', animation: 'none', transform: 'none',
+    });
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.hero-sunrise-mark')).transform.startsWith('matrix(1.18,'));
+    assert.equal((await markStyle()).animation, 'none');
+    const navBrand = page.locator('.site-brand');
+    await navBrand.hover();
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.site-brand'), '::after').opacity === '1');
+    const navGold = await navBrand.evaluate(el => {
+      const s = getComputedStyle(el, '::after');
+      return { image: s.backgroundImage, width: s.width, height: s.height, duration: s.transitionDuration };
+    });
+    assert.deepEqual(navGold, { image: `url("${baseURL}/sunrise-hero-mark.png")`, width: '20px', height: '20px', duration: '0.22s' });
+    assert.equal(await page.locator('.site-brand-mark').evaluate(el => getComputedStyle(el).opacity), '0');
+    if (process.env.BLANC_NAV_SCREENSHOT) await page.locator('.site-nav').screenshot({ path: process.env.BLANC_NAV_SCREENSHOT });
+    await page.mouse.move(0, 0);
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.site-brand'), '::after').opacity === '0');
+    assert.equal(await page.locator('.site-brand-mark').evaluate(el => getComputedStyle(el).opacity), '1');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await navBrand.focus();
+    await page.keyboard.press('Tab');
+    await page.keyboard.press('Shift+Tab');
+    assert.equal(await navBrand.evaluate(el => getComputedStyle(el, '::after').opacity), '1');
+    assert.equal(await navBrand.evaluate(el => getComputedStyle(el, '::after').transitionDuration), '0s');
+    await page.keyboard.press('Tab');
+    assert.equal(await navBrand.evaluate(el => getComputedStyle(el, '::after').opacity), '0');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await mark.isVisible(), false);
+    assert.equal(await page.locator('.site-brand-mark').evaluate(el => getComputedStyle(el).maskImage), 'none');
+    await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+    assert.equal(await page.locator('#siteMobileMenu').isVisible(), true);
+    await page.keyboard.press('Escape');
+    assert.equal(await page.getByRole('button', { name: 'Open menu', exact: true }).evaluate(el => el === document.activeElement), true);
+    await page.getByRole('button', { name: 'Open menu', exact: true }).click();
+    await page.locator('#siteMobileMenu').getByRole('link', { name: 'Features', exact: true }).click();
+    assert.ok(page.url().endsWith('/features'));
+    const current = page.locator('#siteMobileMenu a[aria-current="page"]');
+    assert.equal(await current.count(), 1);
+    assert.equal(await current.evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(246, 235, 213)');
+  } finally { await page.close(); }
+});
+
 const chapters = ['the island', 'glance split view', 'ad blocker', 'browser commands', 'tab groups', 'workspaces'];
 test('each chapter keeps its desktop geometry and captures at phone widths', { timeout: 60000 }, async () => {
   const baseline = new Map();
