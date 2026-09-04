@@ -1,6 +1,31 @@
 # Blanc first-wave reply card — August 29, 2026
 
-Status: **prepared; no public action authorized**.
+Status: **executed August 29, 2026 at approximately 14:19–14:27 EDT**.
+
+Anthony approved the complete six-reply first wave in the active Codex thread.
+Every target was reopened in visible Brave immediately before entry, checked
+for freshness and an existing Blanc response, and published from the Blanc
+account. No likes, follows, subscriptions, restacks, or unrelated actions were
+added.
+
+Live results:
+
+- Threads: <https://threads.com/@blancbrowser/post/DcolFc6kZy1>
+- X: <https://x.com/blancbrowser/status/2093767233478533136>
+- Instagram: <https://www.instagram.com/p/DclGubHKtyW/c/18113187422068675/>
+- Facebook: <https://www.facebook.com/BraveSoftware/posts/pfbid032bEZGQcEgXs53UUEtxTWWGkb2tV9i2y61ms2weTFrwzy5nspZ5ZFFAPm3ikxPb9Pl?comment_id=1062177083209967>
+- TikTok: <https://www.tiktok.com/@amandamercedesb/video/7679245261239045406> (TikTok's web surface exposed the published comment but no comment permalink.)
+- Substack: <https://substack.com/profile/542769413-blanc-browser/note/c-325381217>
+
+Pre-publication audience baseline: X 7, Threads 21, Instagram 105, Facebook 9,
+TikTok 27, and Substack 1. Early conversion should be measured from this
+baseline rather than inferred from aggregate reach.
+
+Execution incident: X briefly published stale clipboard text despite the
+visible reply field showing the intended copy. The incorrect reply was removed
+immediately. The approved X reply was then re-entered with native keystrokes,
+verified character-for-character before submission, and confirmed live at the
+URL above.
 
 Freshness pass: **August 29, 13:36 EDT**. Native recent searches were rerun in
 one clean visible Brave window across X, Threads, Instagram, Facebook, TikTok,

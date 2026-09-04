@@ -4,15 +4,15 @@
  * Read-only Quick Switcher campaign capture preflight.
  *
  * This does not launch Blanc, browse the web, seed a profile, render creative,
- * or write files. It verifies the installed app version, the exact v1.9.1
+ * or write files. It verifies the installed app version, the exact v1.10.0
  * switcher sources/ranking/labels, the public feature-page claim source, and
  * the deterministic four-source `docs` setup planned for the eventual real
  * product capture.
  */
 import { execFileSync } from 'node:child_process';
 
-const TAG = 'v1.9.1';
-const EXPECTED_VERSION = '1.9.1';
+const TAG = 'v1.10.0';
+const EXPECTED_VERSION = '1.10.0';
 const APP_PLIST = '/Applications/Blanc.app/Contents/Info.plist';
 const QUERY = 'docs';
 
@@ -28,7 +28,7 @@ function gitShow(path) {
 }
 
 function requireMarker(text, marker, label) {
-  if (!text.includes(marker)) fail(`v1.9.1 is missing ${label}: ${marker}`);
+  if (!text.includes(marker)) fail(`v1.10.0 is missing ${label}: ${marker}`);
 }
 
 const appVersion = execFileSync('/usr/bin/plutil', [
@@ -128,8 +128,8 @@ console.log(JSON.stringify({
   captureRecords: records,
   predictedVisibleOrder: visibleRows.map(({ kind, title }) => ({ kind, title })),
   assertions: [
-    'Command/Control L is wired in v1.9.1.',
-    'The v1.9.1 switcher builds group, tab, favorite, and history results.',
+    'Command/Control L is wired in v1.10.0.',
+    'The v1.10.0 switcher builds group, tab, favorite, and history results.',
     'The real UI labels each result with its source kind.',
     'All four planned sources remain visible inside the six-row result cap.',
     'The feature-page claim matches the tagged implementation.',

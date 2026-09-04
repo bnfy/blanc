@@ -1,0 +1,86 @@
+{
+  "capturedAt": "2026-08-30T15:18:32.065Z",
+  "source": "GitHub Releases asset downloadCount via gh release view",
+  "repository": "bnfy/blanc",
+  "release": {
+    "tag": "v1.10.0",
+    "name": "1.10.0",
+    "publishedAt": "2026-08-29T18:58:24Z",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.10.0"
+  },
+  "totals": {
+    "packageAssetRequests": 41,
+    "updaterMetadataAndBlockmapRequests": 129,
+    "auxiliaryAssetRequests": 7,
+    "allAssetRequests": 177
+  },
+  "packageAssetRequestsByPlatform": {
+    "mac": 15,
+    "windows": 16,
+    "linux": 10
+  },
+  "packageAssets": [
+    {
+      "name": "Blanc-1.10.0-arm64-mac.zip",
+      "downloadCount": 9
+    },
+    {
+      "name": "Blanc-1.10.0-arm64.dmg",
+      "downloadCount": 6
+    },
+    {
+      "name": "Blanc-1.10.0.AppImage",
+      "downloadCount": 10
+    },
+    {
+      "name": "Blanc-Setup-1.10.0.exe",
+      "downloadCount": 16
+    }
+  ],
+  "updaterAssets": [
+    {
+      "name": "Blanc-1.10.0-arm64-mac.zip.blockmap",
+      "downloadCount": 3
+    },
+    {
+      "name": "Blanc-1.10.0-arm64.dmg.blockmap",
+      "downloadCount": 3
+    },
+    {
+      "name": "Blanc-Setup-1.10.0.exe.blockmap",
+      "downloadCount": 3
+    },
+    {
+      "name": "latest-linux.yml",
+      "downloadCount": 7
+    },
+    {
+      "name": "latest-mac.yml",
+      "downloadCount": 53
+    },
+    {
+      "name": "latest.yml",
+      "downloadCount": 60
+    }
+  ],
+  "limitations": [
+    "Counts are requests for release assets, not unique people.",
+    "The macOS ZIP can be fetched by the updater as well as downloaded directly.",
+    "QA, retries, updater handoffs, and non-social traffic are included.",
+    "A before/after delta is aggregate corroboration, not social attribution."
+  ],
+  "comparison": {
+    "baselinePath": "marketing/social/download-baseline-v1.10.0-2026-08-30.json",
+    "baselineCapturedAt": "2026-08-30T15:15:54.311Z",
+    "elapsedMinutes": 3,
+    "packageAssetRequestDelta": 1,
+    "packageAssetRequestDeltaByPlatform": {
+      "mac": 1,
+      "windows": 0,
+      "linux": 0
+    },
+    "updaterMetadataAndBlockmapRequestDelta": 1,
+    "allAssetRequestDelta": 2,
+    "interpretation": "Aggregate request movement only; it does not identify unique users or attribute a request to social."
+  }
+}
