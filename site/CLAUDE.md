@@ -15,7 +15,9 @@ newsletter, legal block, social row — email/Threads/Instagram/TikTok/GitHub). 
 Variable"`, and this file is NOT under the root `tokens/` substrate guard).
 `src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
 except legal) and `src/scripts/demo.js` (the self-playing Island demo, index
-only) are Astro-processed. Anything needing a **stable URL** — favicons,
+only) and `src/scripts/reveal.js` (the one-time homepage rise for the
+feature grid and Patron card, index only; adds state only when motion is
+welcome) are Astro-processed. Anything needing a **stable URL** — favicons,
 `og-image.png`, `logo.png`, `feature-*.png` (OG images), `robots.txt`,
 `shots/**` (fetched at runtime by demo.js) — lives in `public/`; never hash or
 rename these.
