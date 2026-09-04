@@ -52,7 +52,8 @@ test('the Patron offer sets its name and price in gold on warm ink under a light
         cta: getComputedStyle(section.querySelector('.cta')).backgroundColor,
       };
     });
-    assert.equal(patron.warmInk, '#12100B');
+    // Minified production CSS lowercases hex, the dev server does not.
+    assert.equal(patron.warmInk.toLowerCase(), '#12100b');
     assert.equal(patron.background, 'rgb(18, 16, 11)', 'Patron sits on the website-only warm ink');
     assert.match(patron.backgroundImage, /radial-gradient/, 'a gold light spill is painted on the card');
     assert.equal(patron.name, 'rgb(212, 173, 102)', 'the Patron name is gold');
