@@ -49,13 +49,17 @@ async function productColors(page, selector) {
   return page.locator(selector).evaluate(element => {
     const style = getComputedStyle(element);
     const pill = element.querySelector('.pill');
+    // Production builds minify #ffffff to #fff; the dev server keeps the
+    // source form. Compare the color, not the spelling.
+    const hex = name => style.getPropertyValue(name).trim()
+      .replace(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i, '#$1$1$2$2$3$3').toLowerCase();
     return {
       text: style.color,
-      background: style.getPropertyValue('--bg').trim(),
-      surface: style.getPropertyValue('--surface').trim(),
-      raised: style.getPropertyValue('--surface-raised').trim(),
-      border: style.getPropertyValue('--border').trim(),
-      muted: style.getPropertyValue('--text-dim').trim(),
+      background: hex('--bg'),
+      surface: hex('--surface'),
+      raised: hex('--surface-raised'),
+      border: hex('--border'),
+      muted: hex('--text-dim'),
       pill: getComputedStyle(pill, '::after').backgroundColor,
     };
   });
