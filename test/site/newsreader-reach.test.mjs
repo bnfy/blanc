@@ -86,3 +86,23 @@ test('every page headline is Newsreader regular, legal pages stay Inter, nothing
     }
   } finally { await context.close(); }
 });
+
+test('the press announcement quote is the only Newsreader italic on the site', async () => {
+  const { page, context } = await openPage('/press');
+  try {
+    const quote = await page.evaluate(() => {
+      const p = getComputedStyle(document.querySelector('.press-announcement blockquote p'));
+      return { font: p.fontFamily, style: p.fontStyle, weight: p.fontWeight, loaded: document.fonts.check('italic 24px "Newsreader Variable"') };
+    });
+    assert.match(quote.font, serif);
+    assert.equal(quote.style, 'italic');
+    assert.equal(quote.weight, '400');
+    assert.equal(quote.loaded, true, 'the italic file is loaded on the press page');
+  } finally { await context.close(); }
+
+  const home = await openPage('/');
+  try {
+    const italicDeclared = await home.page.evaluate(() => [...document.fonts].some(f => f.family === 'Newsreader Variable' && f.style === 'italic'));
+    assert.equal(italicDeclared, false, 'the italic file is not declared on pages that do not use it');
+  } finally { await home.context.close(); }
+});
