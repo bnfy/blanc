@@ -69,6 +69,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <article><h3>DNS you can encrypt — or hand to your VPN.</h3><p>Blanc can send DNS lookups over an encrypted connection (DoH) to Cloudflare, Quad9, Mullvad, or a provider you name — or stay out of the way and leave DNS to your system or VPN. Encryption hides your lookups from the network in transit; it does not hide the sites themselves, and it makes the resolver a party you choose to trust. Automatic mode upgrades opportunistically and is not a guarantee.</p></article>
     </div>
   </section>
+  <section class="security-baseline" aria-labelledby="security-baseline-title">
+    <div class="security-baseline-copy">
+      <p class="section-kicker">documented practice</p>
+      <h2 id="security-baseline-title">A public security baseline.</h2>
+      <p>Blanc&rsquo;s current OpenSSF self-assessment records all 24 Baseline controls as met. The public record covers how the project handles source, changes, dependencies, vulnerability reports, build provenance, and releases.</p>
+      <a class="text-link" href="https://www.bestpractices.dev/en/projects/14451/baseline-1" target="_blank" rel="noopener">Read the OpenSSF assessment <span aria-hidden="true">↗</span></a>
+    </div>
+    <a class="security-baseline-proof" href="https://www.bestpractices.dev/en/projects/14451/baseline-1" target="_blank" rel="noopener" aria-label="View Blanc's OpenSSF Baseline Level 1 self-assessment">
+      <img src="/openssf-baseline.svg" width="213" height="20" loading="lazy" decoding="async" alt="OpenSSF Baseline version 2026.08.28, Level 1" />
+      <span class="security-baseline-score" aria-hidden="true">24 / 24</span>
+      <span class="security-baseline-label" aria-hidden="true">baseline controls documented</span>
+    </a>
+  </section>
   <section class="feature-copy-grid" aria-labelledby="security-verify-title">
     <div><p class="section-kicker">verify a release</p><h2 id="security-verify-title">Check that a download is really ours.</h2></div>
     <ul class="feature-copy-list">
