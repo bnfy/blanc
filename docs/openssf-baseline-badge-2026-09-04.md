@@ -10,6 +10,7 @@ to the public record. It does not describe the badge as a security
 certification or an independent audit.
 
 `site/public/openssf-baseline.svg` is an exact snapshot of the badge returned
-by the official project badge endpoint on that date. Serving the snapshot
-locally avoids a third-party request from every Blanc website page; the badge
-link still opens the live assessment so visitors can check its current state.
+by the official project badge endpoint on that date. It appears only in the
+Security page's assessment block. Serving the snapshot locally avoids a
+third-party request; its link still opens the live assessment so visitors can
+check its current state.
