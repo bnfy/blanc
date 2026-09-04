@@ -117,6 +117,7 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true });
 const brandMark = dataUrl(path.join(PUBLIC_ROOT, 'favicon.svg'), 'image/svg+xml');
 const inter = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'), 'font/woff2');
 const mono = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource/jetbrains-mono/files/jetbrains-mono-latin-500-normal.woff2'), 'font/woff2');
+const newsreader = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2'), 'font/woff2');
 
 try {
   for (const card of CARDS) {
@@ -207,14 +208,15 @@ try {
       <html lang="en"><head><meta charset="utf-8" /><style>
         @font-face { font-family: Inter; src: url('${inter}') format('woff2'); font-weight: 100 900; }
         @font-face { font-family: 'JetBrains Mono'; src: url('${mono}') format('woff2'); font-weight: 500; }
+        @font-face { font-family: Newsreader; src: url('${newsreader}') format('woff2-variations'); font-weight: 200 800; }
         * { box-sizing: border-box; }
         html, body { width: ${WIDTH}px; height: ${HEIGHT}px; margin: 0; overflow: hidden; background: #fbfbfa; }
         body { color: #0e0e0e; font-family: Inter, sans-serif; -webkit-font-smoothing: antialiased; }
         .brand { position: absolute; top: 52px; left: 64px; display: flex; align-items: center; gap: 15px;
                  color: #666; font: 500 13px/1 'JetBrains Mono', monospace; letter-spacing: 0.14em; text-transform: uppercase; }
         .brand img { width: 25px; height: 33px; object-fit: contain; }
-        h1 { position: absolute; top: 118px; left: 62px; width: 900px; margin: 0;
-             font-size: 56px; font-weight: 600; letter-spacing: -0.045em; line-height: 1.02; }
+        h1 { position: absolute; top: 112px; left: 62px; width: 1000px; margin: 0;
+             font-family: Newsreader, serif; font-size: 62px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.04; font-optical-sizing: auto; }
         /* One region for the Island whatever its shape: a resting pill is wide
            and short, an open panel is tall. Containing rather than cropping
            lets both sit at their own proportions on a shared baseline. */
