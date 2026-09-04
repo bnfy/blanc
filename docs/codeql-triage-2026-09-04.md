@@ -19,3 +19,17 @@ Confirmed development-tool issue: the server listened on all interfaces and acce
 ## Other findings
 
 Remaining test-fixture, source-generator and SEO-tooling alerts need individual source review. Do not dismiss them merely because their paths are under test or scripts. No project-wide vulnerability clearance or independent audit is claimed.
+
+## Individually reviewed test-code false positives
+
+| Alerts | Evidence | Disposition rationale |
+| --- | --- | --- |
+| #2 | `test/desktop/steps/quiet-tabs.steps.js:181` | Math.random creates a synthetic page-state marker for a leakage test, not an authentication secret, key or nonce. |
+| #3, #4 | `src/main/test-hook.js:1750–1756`; `main.js` acceptanceTestMode gate | JSON.stringify encodes the supplied URL as a JS string literal. These deliberate navigation attack drivers run only in explicit unpackaged test mode, not a renderer-exposed production API. |
+| #10 | `test/unit/bookmark-import.test.js:22`; `src/main/bookmark-import.js:51` | The test asserts that a javascript bookmark fixture was dropped; it is not the production allowlist. The parser uses anchored http(s)-only acceptance. |
+| #11, #12 | `test/desktop/packaged-first-run-smoke.mjs:288,370` | urls is an array of complete page URL strings; includes is exact element membership, not substring host validation. |
+| #13, #14, #15 | `test/unit/bench-memory.test.js:916,925,954` | missing is an array of absent URLs; includes is exact element membership in test assertions. |
+| #27 | `test/unit/bench-memory.test.js:545` | Regex checks diagnostic text after asserting a benchmark cell failed. It does not authorize a host. |
+| #28, #29 | `test/unit/public-truth.test.js:18,75` | Negative source-text assertions intentionally match forbidden remote-font/favicon domains anywhere in source. Anchoring would weaken the checks, not improve URL validation. |
+
+These classifications follow the call semantics and data flow, not merely the files being tests. Other fixture/server alerts remain open.
