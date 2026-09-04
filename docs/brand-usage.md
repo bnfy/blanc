@@ -103,8 +103,14 @@ labels, and controls. Newsreader replaced Instrument Serif on 4 September 2026
 because that face had become the default serif of current web design; do not
 reintroduce it. Newsreader carries an optical-size axis, so it sharpens on its
 own at Patron sizes; leave optical sizing automatic and set the price numeral
-with lining figures. This is a dedicated website Patron treatment; other
-website headings and the app keep their existing typefaces. Use the
+with lining figures. Newsreader is also the website's display face for
+exactly one line per page: the homepage headline, the page-level heading on
+features, download, changelog, about, FAQ, press, and ambassadors, and the
+press announcement quote in italic. The generated share cards and press card
+set their titles in it. Section headings, feature cards, FAQ questions,
+release names, the footer tagline, legal pages, the consent card, controls,
+body copy, and every product replica stay in Inter, and the app keeps its
+existing typefaces. Use the
 `--site-font-patron` token, regular weight, restrained negative tracking, and
 generous space around the name. Do not use the display serif for small text or
 replace the canonical Sunrise symbol with a letterform.
@@ -218,8 +224,10 @@ website:
   controls require an offset, use the smallest optical shift that preserves
   the safe area and document it; do not push the whole composition visibly to
   one side when a narrower layout or platform-specific crop will solve it;
-- use the UI sans at approximately 500 weight with restrained negative
-  tracking and a compact line height;
+- set titles in Newsreader at regular weight with restrained negative
+  tracking (about -0.02em) and a compact line height; the UI sans at 500
+  remains correct for section-level headings and for assets produced before
+  4 September 2026;
 - place the explanatory subtitle below in a smaller regular-weight size and a
   muted neutral gray;
 - keep the title direct and let the subtitle explain the consequence or proof.

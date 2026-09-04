@@ -12,7 +12,9 @@ footer is one unified component on every page (flush-left stack: brand
 breadcrumb, full nav with the current page highlighted via `Astro.url`,
 newsletter, legal block, social row — email/Threads/Instagram/TikTok/GitHub). `src/styles/site.css` is the one stylesheet
 (bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
-Variable"`, and this file is NOT under the root `tokens/` substrate guard).
+Variable"`, the display family is `"Newsreader Variable"` loaded in
+`BaseLayout.astro` with its italic imported only by `press.astro`, and this
+file is NOT under the root `tokens/` substrate guard).
 `src/scripts/site.js` (release-link resolution + consent-gated GA, all pages
 except legal) and `src/scripts/demo.js` (the self-playing Island demo, index
 only) and `src/scripts/reveal.js` (the one-time homepage rise for the
