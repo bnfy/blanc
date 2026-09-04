@@ -83,6 +83,12 @@ const CARDS = [
   },
 ];
 
+// Allow a single repaired card to be regenerated without touching other exports.
+const selectedOutput = process.argv.find(arg => arg.startsWith('--only='))?.slice(7);
+if (selectedOutput && !CARDS.some(card => card.out === selectedOutput)) {
+  throw new Error(`Unknown card: ${selectedOutput}`);
+}
+
 function serve(root) {
   return new Promise((resolve) => {
     const types = {
@@ -121,6 +127,7 @@ const newsreader = dataUrl(path.join(SITE_ROOT, 'node_modules/@fontsource-variab
 
 try {
   for (const card of CARDS) {
+    if (selectedOutput && card.out !== selectedOutput) continue;
     // 1. Shoot the page's own island figure at 2x.
     const shooter = await browser.newPage({
       viewport: { width: 1280, height: 900 },

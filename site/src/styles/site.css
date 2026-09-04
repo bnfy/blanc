@@ -665,6 +665,7 @@ a { color: inherit; }
 
 /* Section headers and named-group bands mirror the live panel. */
 .demo-island .sec-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px 3px; font-family: var(--font-ui); font-size: 11px; color: var(--text-dim); }
+.demo-island .sec-head .ico { width: 12px; height: 12px; flex: 0 0 auto; }
 .demo-island .sec-head .caret { width: 10px; height: 10px; flex: 0 0 auto; transform: rotate(90deg); transition: transform 160ms ease; }
 .demo-island .sec-head.collapsed .caret { transform: rotate(0deg); }
 .demo-island .sec-head .count { flex: 0 0 auto; }
@@ -2144,4 +2145,3 @@ body[data-page="press"] > .legal-top { display: none; }
 .release-body h2 { font-size: 25px; }
 .download-detail-list h3, .feature-copy-list h3, .ambassador-fit-grid h3, .ambassador-steps h3 { font-size: 22px; letter-spacing: -0.005em; }
 .site-footer .foot-identity p { font-size: 20px; line-height: 1.3; color: var(--site-text); }
-
