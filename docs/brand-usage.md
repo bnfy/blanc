@@ -221,6 +221,23 @@ and may use the warm-ink release card; no mark sits on either. The masthead
 replaced the bottom navigation island on 4 September 2026 (design note:
 `docs/superpowers/specs/2026-09-04-masthead-navigation-design.md`).
 
+Navigation decision, 4 September 2026: the bar reads features, company,
+security, what's new, download. `features` opens a mega menu grouped as
+Interface, Privacy and security, and Workflow, one link per feature page with
+that page's own headline as its description, and a spotlight cropped to the
+island. `company` opens Learn (FAQ, Press, About) and Community
+(Ambassadors, Newsletter, Source on GitHub) with a warm-ink card for the
+current release and a Blanc Patron line. The second menu is deliberately not
+named for the studio or the About page, and About is listed last in its
+group. Security stays a direct link on every page because trust is the
+product's pitch, and it also appears inside features. There is no search
+affordance because the site has no search, and no Patron entry in the bar
+because there is no Patron page. Below 640px the same content becomes two
+native accordions plus the direct links and a pinned download button. Legal
+pages keep their own minimal header. Menu content lives in
+`site/src/data/navigation.mjs` and is guarded by
+`test/unit/site-navigation.test.js`.
+
 ### Mobile header Sunrise mark
 
 The mobile hamburger header uses the original gold Sunrise artwork at its
