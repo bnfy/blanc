@@ -70,22 +70,41 @@ Canonical URLs—copy exactly:
 | AlternativeTo | https://blancbrowser.com |
 | BetaList | https://blancbrowser.com/?ref=betalist |
 
-Packaged-v1.15.0 launch demo assets:
+Packaged-v1.15.0 launch media:
 
 | Form | URL |
 |---|---|
-| MP4 | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.mp4 |
-| GIF | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.gif |
+| Approved launch overview | https://www.youtube.com/watch?v=xqUFMUcCjT0 |
+| Existing short MP4 | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.mp4 |
+| Existing short GIF | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.gif |
 
-These files were captured on September 3 from the installed packaged public
+The existing short files were captured on September 3 from the installed packaged public
 v1.15.0 macOS app in an isolated local profile with telemetry and search
 suggestions disabled. The 22-second export is 1920×1200, 30 fps H.264, and
 BT.709; the 960×600 GIF is below 8 MiB. It shows the resting Island, `⌘L`
 expansion, a live `git` Quick Switcher filter, tab-dot switching, The Verge's
-live blocker count and popover, and a final resting hold. The
-MP4 is the source for the required public or unlisted YouTube upload before
-Product Hunt. A raw MP4 URL does not satisfy Product Hunt's gallery-video
-field.
+live blocker count and popover, and a final resting hold. They remain the README
+demo and were not deleted or replaced.
+
+The approved 42-second launch overview was recorded on September 4 from the
+same installed packaged public release in a dedicated local capture profile.
+It uses the live Blanc site and public GitHub repository as backdrops and shows
+the Quick Switcher and slash commands, an explicitly named tab group, Glance
+with Make main, the real one-request blocker count and site controls, real
+Explore/Build Named Workspace switching with a persistent `Patron` label, and
+one legal Mahjong match. It is a 1920×1200, 30 fps H.264 BT.709 export with no
+audio stream and a 42.000-second duration. Captions occupy a reserved lower
+margin; the two Inter secondary lines are 38 px beneath 62 px Newsreader
+captions. Anthony approved that revision on September 4.
+
+The replacement was uploaded as a new unlisted YouTube video with no copyright
+issues, and its embedding was verified both on a referrer-bearing test page and
+inside the unpublished Product Hunt draft. YouTube custom-thumbnail upload is
+unavailable until the channel completes phone verification, so the matching
+homepage-backed poster remains in the owner's local review output; no account
+verification was attempted. The cleanest homepage-backed frame among YouTube's
+three generated choices was selected instead. The former unlisted YouTube video
+remains intact.
 
 ## Show HN — owner writes every public word
 
@@ -383,11 +402,16 @@ Prepared release-backed media:
 - Gallery still 1: `product-hunt/island-resting-1270x760.png`
 - Gallery still 2: `product-hunt/quick-switcher-1270x760.png`
 
-The two stills were exported from the packaged-v1.15.0 launch demo and satisfy
+The two stills were recaptured on September 4 from packaged v1.15.0 over the
+live Blanc homepage, replacing the Example Domain video frames. They satisfy
 the guide's two-image gallery floor. Their exact provenance is in
 `product-hunt/README.md`.
-The full YouTube URL remains owner-supplied and must not be inferred from a raw
-MP4 URL.
+The demo is uploaded as unlisted at
+`https://www.youtube.com/watch?v=xqUFMUcCjT0`; embedded playback was verified in
+the unpublished Product Hunt draft on September 4. Product Hunt resolved the
+player to `youtube-nocookie.com/embed/xqUFMUcCjT0`, displayed the correct title,
+and reported a 42-second duration. The draft is saved at
+`https://www.producthunt.com/products/blanc-3?launch=blanc-3` and is not scheduled.
 
 **Name**
 
@@ -404,9 +428,9 @@ MP4 URL.
 This is more candid than `Free`: core browsing is free, but Named Workspace
 creation is a paid benefit.
 
-**Tagline** — 51 characters
+**Tagline** — 22 characters; owner-confirmed website wording, September 4
 
-> A minimal desktop browser with built-in ad blocking
+> A little less browser.
 
 **Description** — 244 characters, within the current 260-character limit
 
@@ -447,7 +471,7 @@ Use only topics that exist in the live form and genuinely fit.
 
 **Gallery order**
 
-1. Island demo through a verified full YouTube URL.
+1. Approved 42-second launch overview through its verified full YouTube URL.
 2. `product-hunt/island-resting-1270x760.png`.
 3. `product-hunt/quick-switcher-1270x760.png`.
 4. Optional: a packaged-v1.15.0 Named Workspaces capture with a visible

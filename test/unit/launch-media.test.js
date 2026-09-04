@@ -40,6 +40,10 @@ test('Product Hunt media matches the declared dimensions and launch wiring', () 
   }
   assert.match(provenance, new RegExp(`packaged public Blanc v${version.replaceAll('.', '\\.')}`));
   assert.match(provenance, /\.\.\/island-demo\.mp4/);
+  assert.match(copy, /youtube\.com\/watch\?v=xqUFMUcCjT0/);
+  assert.match(provenance, /youtube\.com\/watch\?v=xqUFMUcCjT0/);
+  assert.match(provenance, /youtube-nocookie\.com\/embed\/xqUFMUcCjT0/);
+  assert.match(provenance, /draft remains unscheduled/);
   assert.notDeepEqual(
     fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'island-resting-1270x760.png')),
     fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'quick-switcher-1270x760.png')),
