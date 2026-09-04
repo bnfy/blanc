@@ -53,55 +53,92 @@ The authoritative product/site tokens remain in `site/src/styles/site.css` and
 `src/renderer/styles.css`. Retired feature-specific colorways are not part of
 the general Blanc brand palette.
 
-### Website Sunrise accents
+### Website Sunrise palette
 
-The website adds muted gold to small editorial and navigation details while
-keeping white backgrounds, neutral surfaces, and black-and-white primary
-buttons. These are website-only tokens, separate from the product palette:
+The website carries the Sunrise icon's warmth through ivory backgrounds,
+warm surfaces, and muted gold details. Keep the existing typography,
+near-black headings, dark primary buttons, and dark desktop navigation.
+These website-only tokens are separate from the released product palette:
 
-- gold on light backgrounds: `#8A6427` (`--sunrise-gold`);
-- gold on dark backgrounds: `#D4AD66` (`--sunrise-gold-on-dark`);
-- pale selected-state background: `#F6EBD5` (`--sunrise-selection`).
+- page background, sampled from the Sunrise source art: `#F7F0E5` (`--site-bg`);
+- section surfaces and footer: `#EFE6D8` (`--site-surface`);
+- raised surfaces and forms: `#FFFCF7` (`--site-surface-raised`);
+- decorative borders and dividers: `#DDD2C2` (`--site-border`);
+- muted text: `#6B6257` (`--site-text-dim`);
+- gold on light backgrounds: `#805D28` (`--site-gold`);
+- gold on dark backgrounds: `#D4AD66` (`--site-gold-on-dark`);
+- pale selected-state background: `#F6EBD5` (`--site-selection`).
 
 Use gold for eyebrows, section kickers, text-link arrows and interaction
 states, FAQ disclosure markers, navigation states, and the changelog's small
 new-feature dot. The pale background belongs only to selected mobile menu
 items. Keep underlines, focus outlines, and other state indicators alongside
-color. Gold text meets 4.5:1 contrast on the specified white, soft-paper, pale
-selection, and dark surfaces when paired with the appropriate token.
+color. Gold and muted text meet 4.5:1 contrast on the specified ivory, section,
+raised, and pale selection surfaces. Use the dark-background gold token on
+dark sections and navigation. Decorative hairlines are not focus indicators;
+retain high-contrast outlines and control states.
 
-Headings, body copy, primary buttons, playback and form controls remain
-neutral. Logos, their backing fields, social icons, product screenshots,
-demos, and illustrations retain their existing colors. Never substitute
-these website tokens for the shared product `--accent` or use them to tint a
-mark or its backing composition; the monochrome logo rules above still apply.
+The website may place its monochrome marks directly on these warm page
+surfaces. This exception permits the shared page background, not added logo
+badges, decorative backings, glows, gradients, or tinted marks. Desktop
+navigation is monochrome at rest, with the hover treatment documented below.
+Footer, legal-header, and press-header marks remain monochrome. Footer social
+glyphs use bronze (`--site-gold`), with ink hover and keyboard-focus states.
 
-### Homepage Sunrise transition
+Product screenshots, embedded demos, illustrations, downloadable press art,
+and their asset-preview backing fields retain their existing colors. Never
+substitute website tokens for the shared product `--accent`, `--bg`, or other
+product variables. Both light and private-mode product replicas must retain
+their released colors, including when enlarged.
 
-The owner-approved homepage introduction is a narrow exception to the
-monochrome rule: the desktop hero mark starts with the original gold Sunrise
-artwork used by the app icon, then fades into its existing ink silhouette.
-Hold the gold briefly and settle to ink within 1.8 seconds, once per page load,
-with no looping, entrance movement, glow, or change to its white backing field.
-Use the generated `site/public/sunrise-hero-mark.png`, which shares the
-monochrome mark's crop and geometry; do not approximate the artwork with a tint.
+### Editorial website footer
 
-On desktop with a fine pointer, hovering gently scales the hero mark to 118%
-and reveals the same gold artwork. Both return to rest over 280ms when the
-pointer leaves. This interaction never restarts the entrance animation.
+The shared website footer uses the monochrome Sunrise symbol alone as its
+home link, without a typeset wordmark. Use the canonical BrandMark component
+at 44px on desktop and 40px below 900px, inside a 44px touch target. Keep it
+in ink (`--site-text`) on the warm section surface (`--site-surface`), including
+on hover. Do not crop, tint, animate, outline, or place it inside a badge;
+retain a visible keyboard focus ring.
 
-Reduced-motion visitors see the static ink hero mark without the hover effect.
-The hero mark remains hidden on mobile.
+Use a quiet editorial layout: the symbol and “A little less browser.” tagline,
+grouped navigation, and a secondary newsletter, followed by a fine rule and compact
+legal/social row. Navigation and utility links may use gold for hover, focus,
+and current-page states. Social/contact icons retain their original geometry
+and use bronze (`--site-gold`) at rest, changing to ink on hover or focus.
+
+### Homepage Sunrise mark
+
+The owner-approved desktop hero mark permanently displays the original gold
+Sunrise artwork used by the app icon, directly on the ivory page. Use the
+generated `site/public/sunrise-hero-mark.png`, which shares the monochrome
+mark's crop and geometry; do not approximate the artwork with a tint. Keep
+its 32px size and existing placement above the eyebrow. There is no entrance
+animation or fade back to ink.
+
+On desktop with a fine pointer, hovering gently scales the gold hero mark to
+118%, returning to rest over 280ms when the pointer leaves. Reduced-motion
+visitors see the same static gold artwork without the hover effect. The hero
+mark remains hidden on mobile.
+
+### Desktop navigation Sunrise hover
+
+The desktop navigation island keeps its white 20px Sunrise mark at rest.
+On hover or keyboard focus, crossfade to the original gold artwork from
+`site/public/sunrise-hero-mark.png` over 220ms; crossfade back when the
+interaction ends. Keep the size, position, dark navigation surface, and focus
+outline unchanged. Reduced-motion visitors get the same state change instantly.
+Use the original artwork rather than tinting the monochrome silhouette.
 
 ### Mobile header Sunrise mark
 
 The mobile hamburger header uses the original gold Sunrise artwork at its
-28px size on white. Reuse `site/public/sunrise-hero-mark.png`; keep
+28px size on ivory. Reuse `site/public/sunrise-hero-mark.png`; keep
 the mark permanently in color without animation, including for reduced-motion
 visitors. Its home link retains the existing 44px touch target and focus style.
 
-Desktop navigation, footer, press-kit, legal-header, and other logo treatments
-stay monochrome. These exceptions do not authorize recoloring other marks.
+Apart from the desktop navigation hover above, footer, press-kit, legal-header,
+and other logo treatments stay monochrome. These exceptions do not authorize
+recoloring other marks.
 
 ## Titles and subtitles
 
@@ -129,8 +166,9 @@ state labels, and interface annotations. It is not a headline treatment.
 Before approving or publishing an asset:
 
 1. Inspect every frame, thumbnail, crop, and end card—not only the source file.
-2. Confirm the mark is black on white or white on black with no accent-colored
-   backing treatment.
+2. Confirm the mark is black on white or white on black, or is one of the
+   website Sunrise treatments explicitly documented above. Outside those
+   website treatments, no accent-colored backing is permitted.
 3. Confirm crop-safe previews do not clip or crowd the mark.
 4. Confirm campaign colors do not override the paper/ink identity.
 5. Confirm titles are sentence case and subtitles follow the website hierarchy.

@@ -83,7 +83,7 @@ test('homepage keeps the Sunrise mark above the hero eyebrow', () => {
   const homepage = source('site/src/pages/index.astro');
   assert.match(homepage, /import BrandMark from '\.\.\/components\/BrandMark\.astro'/);
   assert.match(homepage, /<BrandMark class="hero-sunrise-mark" \/>\s*<p class="hero-eyebrow">/);
-  assert.match(styles, /\.hero-sunrise-mark \{ width: 32px; height: 32px; margin: 0 auto 14px; color: var\(--text\); \}/);
+  assert.match(styles, /\.hero-sunrise-mark \{ width: 32px; height: 32px; margin: 0 auto 14px; color: var\(--site-text\); \}/);
 });
 
 test('optional measurement uses the selected upper-right toast and stays reopenable', () => {
