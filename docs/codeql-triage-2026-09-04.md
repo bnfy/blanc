@@ -14,7 +14,7 @@ Confirmed development-tool issue: the server listened on all interfaces and acce
 
 ## Import size races (#31–33)
 
-`src/main/pages.js` checks a user-selected import path's size before reading it; `src/main/browser-data-import.js` repeats the pattern for discovered browser profile files. A file can change or grow between the check and read. The observed concern is bypassing the intended memory-size bound, not demonstrated remote code execution. A bounded read from one file handle is the next correction to prepare, with deterministic growth/replacement tests. These alerts remain unresolved.
+`src/main/pages.js` checks a user-selected import path's size before reading it; `src/main/browser-data-import.js` repeats the pattern for discovered browser profile files. A file can change or grow between the check and read. The observed concern is bypassing the intended memory-size bound, not demonstrated remote code execution. The candidate now uses one open handle and a fixed byte-bounded buffer, rejecting growth beyond the configured limit before parsing. Tests exercise growth after stat, short reads, exact limits, UTF-8 and cleanup. These alerts remain unresolved on main until the fix lands and is reanalyzed. This is a runtime import change and needs affected-platform validation before merge/release.
 
 ## Other findings
 
