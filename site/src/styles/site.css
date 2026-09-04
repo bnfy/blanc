@@ -30,6 +30,9 @@
   /* Website presentation only. Ivory is sampled from the Sunrise source art. */
   /* Newsreader's optical-size axis sharpens automatically at Patron display sizes. */
   --site-font-patron: "Newsreader Variable", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  /* The one Newsreader line per page (page headlines, the press quote) shares
+     the Patron stack. Everything scanned rather than read stays in Inter. */
+  --site-font-display: var(--site-font-patron);
   --site-bg: #F7F0E5;
   --site-bg-rgb: 247, 240, 229;
   --site-surface: #EFE6D8;
@@ -122,7 +125,7 @@ a { color: inherit; }
   .hero-sunrise-mark:hover { transform: scale(1.18); }
 }
 .hero-eyebrow { margin: 0 0 18px; color: var(--site-gold); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: lowercase; }
-.hero h1 { margin: 0 auto; font-family: var(--font-ui); font-size: clamp(40px, 3.7vw, 54px); font-weight: 500; letter-spacing: -0.025em; line-height: 1.1; text-wrap: balance; }
+.hero h1 { margin: 0 auto; font-family: var(--site-font-display); font-size: clamp(44px, 4.2vw, 62px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.06; text-wrap: balance; font-variant-numeric: lining-nums; }
 /* The frame is lit from its top edge so the demo reads as a raised, warm surface. */
 .demo-showcase { width: 100%; max-width: 1040px; margin-top: 58px; padding: 42px 28px 26px; background-color: var(--site-surface); background-image: linear-gradient(180deg, var(--site-surface-raised) 0%, var(--site-surface) 62%); border: 1px solid var(--site-border); border-radius: 24px; }
 .hero-message { width: 100%; min-height: 118px; display: flex; flex-direction: column; justify-content: flex-end; }
