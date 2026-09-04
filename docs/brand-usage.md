@@ -103,8 +103,15 @@ labels, and controls. Newsreader replaced Instrument Serif on 4 September 2026
 because that face had become the default serif of current web design; do not
 reintroduce it. Newsreader carries an optical-size axis, so it sharpens on its
 own at Patron sizes; leave optical sizing automatic and set the price numeral
-with lining figures. This is a dedicated website Patron treatment; other
-website headings and the app keep their existing typefaces. Use the
+with lining figures. Newsreader is also the website's heading face: every
+page headline, section heading, feature card title, FAQ question, release
+name, and the footer tagline are set in it at regular weight, and the press
+announcement quote takes its italic. The generated share cards and press card
+set their titles in it. Body copy, labels, controls, the legal pages, the
+consent card, and every product replica stay in Inter, and the app keeps its
+existing typefaces. The homepage demo carries one short sentence per scene as
+an Inter figure title, never a second headline-and-subline pair under the
+hero. Use the
 `--site-font-patron` token, regular weight, restrained negative tracking, and
 generous space around the name. Do not use the display serif for small text or
 replace the canonical Sunrise symbol with a letterform.
@@ -143,7 +150,8 @@ in ink (`--site-text`) on the warm section surface (`--site-surface`), including
 on hover. Do not crop, tint, animate, outline, or place it inside a badge;
 retain a visible keyboard focus ring.
 
-Use a quiet editorial layout: the symbol and “A little less browser.” tagline,
+Use a quiet editorial layout: the symbol and “A little less browser.” tagline
+set in Newsreader at 20px,
 grouped navigation, and a secondary newsletter, followed by a fine rule and compact
 legal/social row. Navigation and utility links may use gold for hover, focus,
 and current-page states. Social/contact icons retain their original geometry
@@ -218,8 +226,9 @@ website:
   controls require an offset, use the smallest optical shift that preserves
   the safe area and document it; do not push the whole composition visibly to
   one side when a narrower layout or platform-specific crop will solve it;
-- use the UI sans at approximately 500 weight with restrained negative
-  tracking and a compact line height;
+- set titles in Newsreader at regular weight with restrained negative
+  tracking (about -0.02em) and a compact line height; the UI sans at 500
+  remains correct only for assets produced before 4 September 2026;
 - place the explanatory subtitle below in a smaller regular-weight size and a
   muted neutral gray;
 - keep the title direct and let the subtitle explain the consequence or proof.

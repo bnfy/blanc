@@ -49,13 +49,17 @@ async function productColors(page, selector) {
   return page.locator(selector).evaluate(element => {
     const style = getComputedStyle(element);
     const pill = element.querySelector('.pill');
+    // Production builds minify #ffffff to #fff; the dev server keeps the
+    // source form. Compare the color, not the spelling.
+    const hex = name => style.getPropertyValue(name).trim()
+      .replace(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i, '#$1$1$2$2$3$3').toLowerCase();
     return {
       text: style.color,
-      background: style.getPropertyValue('--bg').trim(),
-      surface: style.getPropertyValue('--surface').trim(),
-      raised: style.getPropertyValue('--surface-raised').trim(),
-      border: style.getPropertyValue('--border').trim(),
-      muted: style.getPropertyValue('--text-dim').trim(),
+      background: hex('--bg'),
+      surface: hex('--surface'),
+      raised: hex('--surface-raised'),
+      border: hex('--border'),
+      muted: hex('--text-dim'),
       pill: getComputedStyle(pill, '::after').backgroundColor,
     };
   });
@@ -320,7 +324,7 @@ test('the complete animated sequence runs without coordinate drift or responsive
     // More than one authored loop, including typing, menus, Glance, and blocker actions.
     await page.clock.runFor(82000);
     const evidence = await page.evaluate(() => window.demoEvidence);
-    for (const text of ['Resize your', 'Make either tab', 'The page,', 'Browse every', 'Netflix joins', 'Netflix moves', 'Reopen the whole']) {
+    for (const text of ['Drag the divider', 'Make either tab', 'Without the ad layer', 'Browse every', 'Netflix joins', 'Netflix moves', 'Reopen the whole']) {
       assert.ok(evidence.headlines.some(headline => headline.startsWith(text)), `missing scene: ${text}`);
     }
     assert.deepEqual(evidence.badShots, []);

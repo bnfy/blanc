@@ -68,3 +68,13 @@ test('the OG cards are generated, not hand-placed', () => {
   // reason — losing this would put a third party's wordmark on every share.
   assert.match(source, /\.demo-shot, \$\{card\.figure\} \.demo-page \{ display: none/);
 });
+
+test('the card generators set their titles in Newsreader, the site display face', () => {
+  for (const script of ['site/scripts/render-og-cards.mjs', 'site/scripts/render-press-primary-capture.mjs']) {
+    const source = fs.readFileSync(path.join(ROOT, script), 'utf8');
+    assert.match(source, /newsreader-latin-opsz-normal\.woff2/, `${script} embeds the Newsreader file`);
+    assert.match(source, /@font-face \{ font-family: Newsreader;/, `${script} declares the face`);
+    assert.match(source, /h1 \{[^}]*font-family: Newsreader[^}]*font-weight: 400/, `${script} sets the title at regular weight`);
+    assert.doesNotMatch(source, /h1 \{[^}]*font-weight: 600/, `${script} no longer sets a bold title`);
+  }
+});
