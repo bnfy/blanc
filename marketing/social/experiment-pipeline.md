@@ -2,18 +2,22 @@
 
 Last release check: `v1.13.0`, September 3, 2026.
 
-> **Superseded for daily operation on September 2, 2026.** Use
-> [`follower-growth-operating-plan-2026-09-02.md`](follower-growth-operating-plan-2026-09-02.md)
-> for priorities and measurement. The source paths below were rechecked against
+> **Superseded for daily operation on September 4, 2026.** Use
+> [`reply-monitoring-growth-plan-2026-09-04.md`](reply-monitoring-growth-plan-2026-09-04.md)
+> for current targets, authorization, schedule and measurement, and the
+> reconciled September 2 operating plan for the ordered content queue.
+> The source paths below were rechecked against
 > public v1.13.0 on September 3, 2026. Each material claim still requires a
 > fresh reading of the tagged evidence and release record before copy, an asset,
 > or a demo is approved or published.
 
 This pipeline exists to prevent Blanc's small content library from collapsing
 into repeated tab-count posts. It is not a publication schedule and grants no
-approval to post. Every public action still requires Anthony's explicit
-approval in the active Codex thread and a final freshness, duplicate, claim,
-brand, crop, and destination check.
+approval to publish these experiments. New posts, creator outreach, profile
+changes and ads remain separate review items. Useful routine inbound replies
+are already authorized by the September 4 plan; read the conversation and log,
+check claims, and verify submission. Publication of an experiment requires a
+final freshness, duplicate, claim, brand, crop and destination check.
 
 ## Operating mix
 

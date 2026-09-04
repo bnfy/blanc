@@ -1,24 +1,31 @@
 # Blanc follower-growth operating plan — September 2, 2026
 
+Operational reconciliation, September 4: the owner's implemented
+[reply monitoring and growth plan](reply-monitoring-growth-plan-2026-09-04.md)
+controls current targets, authorization, schedule and advertising decisions.
+The September 2 performance examples below remain historical evidence.
+
 ## The reset
 
 Follower growth is the primary outcome. Replies, likes, follows, subscriptions,
 and comments are distribution tools, not the score.
 
-The standing ambition remains **+10 followers or subscribers per priority
-platform per day**. Because Blanc's accounts are still small and daily movement
-is noisy, operating decisions use a seven-day portfolio target as well:
+The operating target is **+10 net followers daily on each of X, Threads,
+Instagram, Facebook and TikTok, plus +10 external Substack subscribers**:
 
-- **minimum:** +35 qualified net followers or subscribers across the six
-  platforms in seven days;
-- **platform floors:** Instagram +8, TikTok +8, Threads +7, X +5, Facebook +5,
-  and Substack +2;
-- **breakout target:** +10 on any individual platform in one day;
+- **weekly target:** +70 on each channel separately;
+- **measurement:** comparable daily observations at 5 p.m. Eastern; record
+  met, missed or not measurable, with actual observation time and cache delay;
+- **revision trigger:** three consecutive measured misses on a channel prompt
+  one focused experiment for review; missing observations are not misses;
 - **quality check:** growth must come with relevant profile visits, meaningful
   engagement, site activity, or downloads—not indiscriminate follow-backs.
 
 These are planning thresholds, not predictions or public claims. Counts are
 recorded daily, but experiments are judged after 24 hours and seven days.
+The former +35 portfolio minimum and lower platform floors are superseded;
+growth on one channel does not offset another channel's shortfall. Exclude the
+Substack author account and keep attributed follows separate from net growth.
 
 ## Why the previous loop changes
 
@@ -65,9 +72,12 @@ slots are not quotas that need to be filled.
 6. **End-of-day decision:** scale, revise, or stop. Log the reason and carry
    only the highest-value unfinished item into the next day.
 
-Codex prepares one consolidated approval card for the day's public actions.
-Every post, reply, like, follow, subscription, outreach message, pin, featured
-placement, ad edit, or profile change still requires action-time approval.
+Useful routine inbound replies are authorized under the September 4 plan.
+Read the full conversation and shared log, verify product claims, and verify
+the submitted reply before recording success. Escalate sensitive issues.
+New posts, creator outreach, pins, profile changes and ad changes remain in
+the separate review queue. Scheduled ad reviews are recommendation-only.
+This authorization does not expand into unsolicited engagement actions.
 
 ### Work-in-progress limit
 
@@ -156,6 +166,15 @@ an explanation and introduction path, not an automated acceptance or payment
 system; terms still require a direct conversation and separate approval.
 
 ## Meta ad experiment
+
+Current instruction as of September 4: retain $13/day through the verified
+September 9 end date. Inspect the original live post's comments and measure
+incremental spend and ad-attributed follows separately from net Page growth.
+Prepare a recommendation when completion is observed; do not automatically
+extend. Use the [latest checkpoint](monitoring-check-2026-09-04-1724.md)
+for account identity and current metrics. The numbers and early review
+thresholds below describe the September 2 starting point, not a new trigger
+to repeat checks or change delivery.
 
 The September 2 Facebook Page Visits promotion is a separate paid-acquisition
 test. Its current baseline is:
