@@ -1,0 +1,72 @@
+{
+  "capturedAt": "2026-09-03T17:35:08.630Z",
+  "source": "GitHub Releases asset downloadCount via gh release view",
+  "repository": "bnfy/blanc",
+  "release": {
+    "tag": "v1.13.0",
+    "name": "1.13.0",
+    "publishedAt": "2026-09-02T18:55:29Z",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.13.0"
+  },
+  "totals": {
+    "packageAssetRequests": 28,
+    "updaterMetadataAndBlockmapRequests": 55,
+    "auxiliaryAssetRequests": 6,
+    "allAssetRequests": 89
+  },
+  "packageAssetRequestsByPlatform": {
+    "mac": 11,
+    "windows": 10,
+    "linux": 7
+  },
+  "packageAssets": [
+    {
+      "name": "Blanc-1.13.0-arm64-mac.zip",
+      "downloadCount": 8
+    },
+    {
+      "name": "Blanc-1.13.0-arm64.dmg",
+      "downloadCount": 3
+    },
+    {
+      "name": "Blanc-1.13.0.AppImage",
+      "downloadCount": 7
+    },
+    {
+      "name": "Blanc-Setup-1.13.0.exe",
+      "downloadCount": 10
+    }
+  ],
+  "updaterAssets": [
+    {
+      "name": "Blanc-1.13.0-arm64-mac.zip.blockmap",
+      "downloadCount": 2
+    },
+    {
+      "name": "Blanc-1.13.0-arm64.dmg.blockmap",
+      "downloadCount": 2
+    },
+    {
+      "name": "Blanc-Setup-1.13.0.exe.blockmap",
+      "downloadCount": 2
+    },
+    {
+      "name": "latest-linux.yml",
+      "downloadCount": 5
+    },
+    {
+      "name": "latest-mac.yml",
+      "downloadCount": 26
+    },
+    {
+      "name": "latest.yml",
+      "downloadCount": 18
+    }
+  ],
+  "limitations": [
+    "Counts are requests for release assets, not unique people.",
+    "The macOS ZIP can be fetched by the updater as well as downloaded directly.",
+    "QA, retries, updater handoffs, and non-social traffic are included.",
+    "A before/after delta is aggregate corroboration, not social attribution."
+  ]
+}

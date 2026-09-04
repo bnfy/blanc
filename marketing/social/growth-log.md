@@ -608,6 +608,25 @@ a tracked download click—rather than views alone. Capture, rendering,
 publication, pinning, Featuring, link changes, and profile edits remain
 approval-gated.
 
+### 14:17 ET X creator batch packaged (September 3)
+
+No public action was taken. The three existing invitation-ready X prospects
+are now represented by one bounded approval card containing the exact messages,
+verified tracking links, release-backed positioning limits, and exclusions for
+all other account actions. This closes the execution gap in the current creator
+batch without adding prospects or starting another campaign.
+
+### 14:18 ET X creator-message blocker verified (September 3)
+
+No message was typed or sent. A read-only readiness test used the visible
+Message button on Smartphones sans Google's profile. X redirected Blanc to its
+new encrypted-chat setup and required the account owner to create a passcode.
+This is an account-level blocker for all four unsent X creator invitations, not
+only the previously identified Dominick conversation. The three-invitation
+approval card, pipeline, tracker, and action queue now state that constraint.
+Smartphones sans Google had moved from 6,151 to 6,155 followers; the X tab was
+then restored to Blanc's profile.
+
 ### 13:00 ET Start here production preflight (August 29)
 
 No app was launched, no page was browsed, no asset was captured or rendered,
@@ -892,3 +911,928 @@ requests, not unique people or acquisition sources; QA, retries, updater
 handoffs, direct traffic, and non-social acquisition are included. The Windows
 movement is therefore aggregate corroboration only and is not recorded as a
 new social user, attributed download, or campaign conversion.
+
+### 01:06 ET social-growth checkpoint (September 2)
+
+No public action was taken. Logged-in Brave showed X 11, Threads 21,
+Instagram 104, Facebook 9, TikTok 26, and Substack 2. Relative to the last
+verified checkpoint, Instagram declined by one and every other platform is
+flat. The standing +10-per-platform daily target is unmet.
+
+Threads supplied the clearest distribution evidence: Blanc's casual reply in
+the Causal conversation crossed 50 views while the parent reached 2.6K views,
+32 likes, 8 replies, and 2 shares. Recent owned X posts remained at 13–41 views
+with no visible interaction. TikTok's recent checked videos reached 96, 69,
+and 89 views without a follower change. Substack seven-day views fell to 46,
+down 57.4% from 108, while the subscriber total stayed at 2.
+
+Three current, duplicate-free conversations were prepared for separate
+approval: Nik On A Trip on Threads, Gourav / Startup Community on X, and
+REDefine // Civic Intelligence on Substack. Each proposed reply is
+conversational and claim-free. The previously approved five-action queue is
+already complete and must not be repeated. The full checkpoint and exact draft
+copy are in `daily-scorecard-2026-09-02.md`.
+
+### 01:10 ET five-platform outreach refresh (September 2)
+
+No public action was taken. The Threads, X, and Substack targets were opened
+directly and rechecked for age, current engagement, and duplicate Blanc
+activity. The Threads parent is four hours old with 180 views and no replies;
+the X parent was posted at 12:11 AM ET and has 15 views, 2 likes, and no
+replies; the Substack Note is 19 hours old with 5 likes and no replies. None
+contains existing Blanc activity.
+
+Instagram native keyword search produced a two-day-old tab-hoarding Reel that
+remains active: multiple one-day-old comments have 20–384 likes. It is retained
+as a current-conversation exception with a casual, claim-free comment. TikTok
+produced a one-day-old browser-tool video with 139 likes, 2 comments, 88
+favorites, and 22 shares; its proposed comment is also claim-free.
+
+Facebook was checked through Meta Business Suite plus native searches for
+browser tabs and Chrome memory. It produced no fresh unanswered inbound and no
+relevant current conversation; the useful results were more than a week old
+or unrelated. No Facebook action was manufactured to fill the slot. The new
+five-item approval queue is distinct from the completed historical five-action
+batch and is recorded in `daily-scorecard-2026-09-02.md`.
+
+The same scorecard now contains an unpublished, release-backed v1.12.0 owned
+post for X, Threads, and Substack. It leads with the consequence of chopped
+call audio, names the optional Stable and Resilient receive buffers, states the
+conversational-delay tradeoff, and requires a new call after changing the
+setting. The longer Substack version also says the setting cannot promise to
+fix every source, network, Bluetooth, driver, or hardware issue. No release
+media was recaptured, and Instagram, Facebook, and TikTok were excluded until
+they have an approved native visual treatment.
+
+The pending five-item outreach batch was then tightened around selective
+relationship-building. Gourav on X now includes a follow because he is an
+active productivity-product builder posting about browser workflow. REDefine
+on Substack includes a subscription because its privacy, infrastructure, and
+business-model analysis matches Blanc's editorial lane. Nathan Hodgson on
+TikTok includes a follow because he actively reaches a browser-based tech-tool
+audience. Nik On A Trip and catenaccio.4d remain engagement-only: their posts
+fit, but their broader account focus is not clearly relevant enough to justify
+a follow. None of these actions has been approved or executed.
+
+### 01:17 ET approved five-target outreach completion (September 2)
+
+The user explicitly approved all five newly scouted targets. Each parent was
+refreshed again for age, engagement, and duplicate Blanc activity immediately
+before action. Thirteen discrete public actions were then completed and
+verified in visible, logged-in Brave: 3 follows or subscriptions, 5 likes, and
+5 replies or comments.
+
+Threads' Nik On A Trip post was liked and received the approved casual reply;
+the parent changed from zero to one reply, and Blanc's reply is live at
+<https://www.threads.com/@blancbrowser/post/Dcxdcn6DrJ5>. On X, Blanc followed
+Gourav, liked the parent, and published the approved reply; the parent changed
+from 2 to 3 likes and zero to one reply, and the reply is live at
+<https://x.com/blancbrowser/status/2095017436269408409>.
+
+On Substack, Blanc subscribed to REDefine // Civic Intelligence, liked the
+Note, and published the approved privacy reply. The Note changed from 5 to 6
+likes and zero to one reply; Blanc's reply is live at
+<https://substack.com/profile/542769413-blanc-browser/note/c-327841502>. On
+Instagram, Blanc liked the catenaccio.4d Reel and published the approved
+comment. The post changed from 252 to 253 comments, and the exact comment is
+live at
+<https://www.instagram.com/p/Dcq0uFUK_Je/c/17972839013932818/>.
+
+On TikTok, Blanc liked Nathan Hodgson's one-day-old browser-tool video,
+published the approved comment, and followed the creator. The video changed
+from 139 to 140 likes and from 2 to 3 comments; the exact Blanc comment was
+visible at the top of the comment panel and the creator control changed to
+Following. The target remains
+<https://www.tiktok.com/@nathanhodgson.ai/video/7680215917694881046>.
+
+No Facebook action was taken because current scouting produced no strong,
+fresh target. The separate v1.12.0 owned-post drafts remain unapproved and
+unpublished. The +10-per-platform daily audience target remains unverified and
+unmet pending a fresh follower/subscriber checkpoint.
+
+### 12:42 ET approved second five-target outreach completion (September 2)
+
+The user approved the five newly scouted targets. Every parent was refreshed
+immediately before action to verify freshness and prevent duplicate Blanc
+activity. Fifteen public actions were completed in visible, logged-in Brave:
+four follows, one Substack subscription, five likes, and five replies or
+comments.
+
+Blanc followed alignedoperationsco on Threads, liked its fresh vertical-tabs
+post, and published a casual reply; the parent moved from 2 to 3 likes and from
+zero to one reply. The reply is live at
+<https://www.threads.com/@blancbrowser/post/Dcyr33hEZAT>. On X, Blanc followed
+Serge Berezhnoy, liked his new browser-workflow post, and replied; the parent
+moved from zero to one like and from one to two replies. The reply is live at
+<https://x.com/blancbrowser/status/2095189939210097007>.
+
+On Substack, Blanc subscribed to Ryan Duffy, liked his privacy Note, and
+replied. The Note moved from 3 to 4 likes and from zero to one reply; Blanc's
+reply is live at
+<https://substack.com/profile/542769413-blanc-browser/note/c-328193763>. On
+Instagram, Blanc followed imjonathanacuna, liked his tab-grouping Reel, and
+commented; the Reel moved from 3 to 4 likes and the exact comment is live at
+<https://www.instagram.com/p/DctC4DWEUJB/c/18115214704952542/>.
+
+On TikTok, Blanc followed Gina | UGC, liked her fresh digital-organization
+video, and commented. The video moved from 1 to 2 likes and from zero to one
+comment; the exact comment was visible at the top of the panel and the creator
+follow control showed a checkmark. The target is
+<https://www.tiktok.com/@gis4gina_ugc/video/7680965692526513438>.
+
+No Facebook action was taken because native scouting surfaced only stale
+browser conversations, including results from August 23 and August 26. The
+standing +10-per-platform daily audience target remains unverified and unmet;
+this batch should be measured after 60–90 minutes before another public action
+wave is proposed.
+
+### 12:46 ET early conversion checkpoint (September 2)
+
+Approximately five minutes after the second outreach batch, X still had 11
+followers and Threads still had 21, both unchanged from the pre-batch counts.
+The new Threads reply had no visible reaction yet. The Instagram comment was
+still live and its parent remained at 4 likes. This was recorded only as the
+early baseline; a 60–90-minute check is required before deciding whether the
+targets or the reply style converted.
+
+### 12:52 ET follower-conversion reset and Meta baseline (September 2)
+
+No public action or ad setting was changed. Logged-in Brave showed X 11,
+Threads 21, Instagram 103, Facebook 10, TikTok 26, and Substack 2 with one
+additional subscriber pending. Relative to the earlier verified checkpoint,
+Instagram declined again while Facebook gained one verified follower. The
+pending Substack subscriber is not counted until it resolves.
+
+The active September 2 Facebook Page Visits promotion had spent $4.81 of a
+$13/day budget, reached 77 people, delivered 80 views, and generated 32 Page
+visits. The associated post insight showed 79 viewers, 97.5% non-followers, 25
+engagements, 23 clicks, 21 link clicks, 2 reactions, and 1 follow. That is
+about $0.15 per Page visit at this early checkpoint. The visible screens do not
+attribute the individual follow definitively to paid rather than organic
+delivery.
+
+This evidence triggered an operating reset. Follower growth is now the primary
+score; owned content, profile conversion, creator collaboration, launch
+momentum, and paid acquisition lead. Replies remain secondary and are used
+only for qualified distribution, inbound, or relationship development. The
+standing +10-per-platform daily ambition is retained, with a seven-day
+portfolio minimum of +35 qualified net followers/subscribers added for
+day-to-day decisions. The complete operating system is in
+`follower-growth-operating-plan-2026-09-02.md`.
+
+The previous `blanc-social-growth-check-ins` automation no longer existed in
+the app when opened for an update. A replacement hourly heartbeat,
+`blanc-follower-growth-check-ins`, was created in this task. Its prompt scores
+verified audience and owned-post conversion first, prioritizes profile,
+creator, launch, and paid opportunities, and treats replies as secondary
+distribution or relationship work. It remains read-only until Anthony gives
+action-time approval for a consolidated public batch.
+
+### Approximately 13:00 ET follower-first profile and creator audit (September 2)
+
+No public action was taken. The live profile audit confirmed that follower
+conversion—not reply volume—is the immediate constraint. X and Threads both
+have strong bios, but Mahjong is the first visible post and neither showed a
+pin marker. Facebook already features a product explainer and its Page Visits
+campaign remains the only current unit with a verified follower gain.
+
+Instagram's September 2 full-color ad-blocking post was inspected at roughly
+four hours old and showed 2 likes. Its live copy and visual accurately describe
+the shipped per-site blocker control, although the caption is primarily
+feature-led. A claim-gated, benefit-first X/Threads adaptation is staged for
+approval; it is not published.
+
+The creator audit produced three immediate warm outreach candidates. Gina |
+UGC on TikTok has 280 followers, 1,298 likes, several 1K+ tech/organization
+videos, and replied to Blanc within minutes. Dominick Joseph Luna has 2,049 X
+followers, posted within 21 hours, and has repeatedly joined Blanc's
+browser/workflow conversations. Only tech talk has 964 Instagram followers,
+published twice on September 2, and posts daily tech stories. Causal.so and
+Ryan Duffy remain qualified relationship candidates pending a deeper contact
+check. Exact no-pressure invitations are staged in
+`approval-card-2026-09-02-follower-first.md`; none has been sent.
+
+One secondary distribution opportunity remains current: Brave's September 2 X
+comparison post had 9,867 views, 326 likes, 25 reposts, and 24 replies when
+observed 39 minutes after publication. The reply is deliberately sequenced
+after an X profile-conversion post is live and pinned. No broad reply batch is
+recommended.
+
+### 13:10 ET Meta creative conversion checkpoint (September 2)
+
+No public action or ad setting changed. Instagram's live insight panel for the
+September 2 ad-blocking post showed 80 views, 0 post interactions, 0 profile
+visits, and 0 follows. The public post itself displayed 2 likes while the
+insight panel displayed 0 likes, so the engagement fields appear to be lagging
+or split across Meta surfaces. All 80 insight views were attributed to
+Facebook/Other, and the panel separately listed 80 Facebook views and 2
+Facebook reactions.
+
+The downstream decision is therefore conservative: do not distribute this
+creative to X and Threads. It has not produced a visible Instagram profile
+visit or follow, and the 640-pixel public social-metadata image is an unusable
+center crop. A correctly framed 545-pixel visual reference and a 1080-pixel
+upscale were saved under `assets/2026-09-02-ad-blocking/` for audit and should
+not be mistaken for the original source asset.
+
+The public batch was narrowed to the three warm creator invitations plus one
+secondary X reply. The missing X/Threads pinned conversion unit remains a
+fresh-asset task for the final selected launch release after its evidence gate.
+The release-backed creator handoff is staged in
+`creator-review-brief-v1.12.0.md`; it is not sent until a creator accepts and
+the user approves the follow-up.
+
+### 13:12 ET verified audience checkpoint (September 2)
+
+No public action was taken. Logged-in Brave showed X at 11 followers, Threads
+at 21, Facebook at 10, TikTok at 26, and Substack at 3. Substack therefore
+gained one verified subscriber when the previously pending subscription
+converted. Instagram's latest verified account total remains 103; its post
+insight reported 0 follows and no fresh follow appeared in notifications.
+
+Threads had no Activity item newer than 13 hours. TikTok supplied the strongest
+fresh relationship signal: Gina | UGC's like and reply to Blanc's comment were
+16 and 15 minutes old. This does not count as follower growth, but it makes the
+prepared honest-reaction invitation the most timely public action in the
+approval queue. The +10-per-platform target remains unmet.
+
+Gina's profile then loaded at 281 followers and 1,300 likes, with a direct
+Message control available. Her latest feed included multiple tech-UGC and
+digital-organization posts within 24 hours. The staged invitation was adjusted
+to make posting explicitly optional and to invite a rate card only if she
+works exclusively through paid briefs; no spend or paid relationship is
+authorized.
+
+The Brave X opportunity was refreshed at 53 minutes old. It had grown to 13.2K
+views, 437 likes, 34 reposts, and 31 replies, and the loaded conversation showed
+no existing Blanc reply. The draft was tightened to a conversational privacy
+and performance observation. It remains secondary to the creator invitations
+and unapproved.
+
+### 13:24 ET ambassador-pipeline and Meta checkpoint (September 2)
+
+No public social action, creator message, ad edit, or production deployment was
+made. A release-backed Blanc Ambassador pilot page is complete locally at
+`/ambassadors`. It positions the program as an honest product trial followed by
+editorial feedback, a native collaboration when there is mutual fit, and only
+then a bounded 30-day ambassador pilot. It promises neither payment nor access,
+and leaves compensation, disclosure, terms, and selection for an individually
+approved written agreement. The site build and SEO/sitemap verification pass.
+
+The creator pipeline now contains five warm candidates spanning TikTok, X,
+Instagram, Threads, and Substack. Exact no-pressure invitations are staged, but
+zero messages have been sent. Unique source-specific outreach URLs are prepared
+for use only after the page is deployed, allowing site activity to be separated
+by creator and platform without claiming that a site visit proves acceptance.
+
+The active Facebook Page Visits campaign had spent $5.46, reached 95 people,
+delivered 99 views, and generated 36 Page visits, or approximately $0.15 per
+visit. Its associated post showed 93 Facebook views, 91 non-follower views
+(97.8%), 25 engagements, 23 clicks, 21 link clicks, 2 reactions, and 1 follow.
+The Page still displayed 10 followers, so visible visit-to-follow conversion is
+1 of 36, or 2.78%. A grouped notification named Bobbi Stephens, DailyTatum, and
+Anup Kumar as recent follows, but the unchanged Page total means they are not
+counted as three verified gains.
+
+X remained at 11 followers with no fresh inbound activity. The optional Brave
+reply target had grown to 13.2K views, 439 likes, 34 reposts, and 31 replies; it
+remains secondary and unapproved. The +10-per-platform daily target remains
+unmet.
+
+### 13:29 ET full-network audience and inbound pass (September 2)
+
+No public action was taken. A fresh logged-in Brave pass verified X 11,
+Threads 21, Instagram 103, Facebook 10, TikTok 26, and Substack 3. None reached
+the +10 daily target. X had no notification newer than 11 hours and Threads had
+no Activity item newer than 13 hours. Instagram's newest notification was a
+Reel like from 13 hours ago. Facebook's campaign remained at $5.46 spent, 99
+views, 95 reach, and 36 Page visits.
+
+TikTok still showed 26 followers, 18 following, and 6 profile likes. Gina | UGC
+liked and replied to Blanc's comment 33 and 32 minutes earlier, strengthening
+her position as the first creator invitation, but she had not followed Blanc.
+
+Substack's dashboard displayed 3 subscribers. Ryan Duffy subscribed 44 minutes
+earlier, liked “Your open tabs are not a personal failure,” and replied to
+Blanc's privacy Note with a concrete example of manually muting the microphone
+on his PS5 controller. A contextual follow-up is prepared in the follower-first
+approval card. It remains unpublished, as do all five ambassador invitations.
+
+### 13:35 ET Ambassador page visual QA (September 2)
+
+The local `/ambassadors` page was opened and inspected in the user's visible
+Brave session. The desktop hero, audience-fit grid, four-step trial path,
+editorial-independence panel, final invitation CTA, navigation, footer link, and
+prefilled email destination all rendered with the intended monochrome Blanc
+system and readable hierarchy. The copy clearly separates an unpaid product
+trial from any later paid pilot and avoids guaranteed selection, compensation,
+or endorsement language.
+
+The temporary preview tab was closed after inspection, returning Brave to the
+five active social-network tabs. No public site deployment, email launch,
+creator message, social reply, ad edit, or account setting change occurred.
+
+### 13:40 ET measurable Ambassador funnel created (September 2)
+
+The five warm prospects are now recorded in a structured pilot tracker with
+their pre-outreach platform audience counts, unique source links, invitation
+stage, response and trial fields, and 24-hour and 72-hour conversion fields.
+The first-wave operating targets are a 40% invitation reply rate, at least one
+accepted product trial, and at least one native collaboration. Those milestones
+do not count as follower growth; verified platform counts remain the primary
+score.
+
+No invitation was sent and no program status was advanced. The tracker remains
+at zero messages, zero accepted trials, zero collaborations, and zero new
+verified followers attributable to the pilot.
+
+### 13:45 ET Ambassador discovery copy staged (September 2)
+
+Six platform-native creator-call drafts are ready for the live Ambassador page.
+They share the same program truth—try Blanc, question it, keep your own
+voice—but use distinct hooks for X, Threads, Instagram, Facebook, TikTok, and
+Substack. The public call remains secondary to the five direct invitations and
+includes separate organic-social source links for measurement.
+
+The copy passed the v1.12.0 claim gate and promises no selection, payment,
+Patron access, commission, exclusivity, continuing relationship, positive
+coverage, or growth result. Nothing was published and no profile link changed.
+
+### 13:52 ET Ambassador feed asset staged (September 2)
+
+A new 1080×1350 feed graphic is rendered for X, Threads, Instagram, Facebook,
+and Substack. The monochrome paper/ink composition uses the headline “Try the
+browser. Tell the truth.” and an agreement panel led by “Your opinion stays
+yours.” It contains no reused footage, generated product UI, accent-colored
+mark, all-caps headline, or unsupported product claim.
+
+The PNG was verified at 1080×1350 and inspected at original resolution. Alt
+text and the brand/claim checklist are recorded alongside the source SVG. The
+feed graphic must not be repurposed as a TikTok/Reels crop; that unit requires
+a native recording of the deployed page. Nothing was published.
+
+### 13:56 ET Ambassador asset small-feed correction (September 2)
+
+The 1080×1350 card was downscaled to a 270×338 phone-feed equivalent. The first
+pass kept the headline and URL legible but made the agreement details and a
+secondary footer phrase too fine. The agreement copy was enlarged, the
+expendable footer phrase was removed, and the destination was centered. The
+corrected export passed the same small-feed inspection. Nothing was published.
+
+### 14:47 ET first Ambassador invitations sent (September 2)
+
+Four individually approved, personalized invitations were sent after refreshing
+each creator's profile and checking the destination conversation for a prior
+Blanc message: Only tech talk on Instagram, Gina | UGC on TikTok, Causal on
+Threads, and Ryan Duffy on Substack. Each invite links to the live Ambassador
+pilot page through its creator-specific tracking URL and asks for an honest,
+unscripted trial without requiring praise or a post.
+
+Ryan's approved public privacy reply was also published: “That’s a good example
+of the burden being shifted onto the user. The more devices that ship listening
+by default, the more privacy becomes a daily checklist instead of a baseline.”
+Substack confirmed “Reply sent.”
+
+Dominick Joseph Luna's X invitation remains unsent because X requires the owner
+to create a new encrypted-chat passcode before the account can send its first
+DM. No passcode, public substitute, follow, like, payment, or other account
+change was made. The outreach voice rule was refined during the batch: lowercase
+is an occasional casual device, while partnership outreach, articles, and
+substantive discussions use standard capitalization and punctuation.
+
+### 16:07 ET 60–90-minute Ambassador conversion check (September 2)
+
+No public or account action was taken. The verified audience counts remained X
+11, Threads 21, Facebook 10, and TikTok 26. Instagram's latest verified count
+remains 103. Substack's publisher dashboard last showed 3 subscribers while its
+public profile showed 2; the surfaces remain separated because the public number
+does not include the same audience definition as the dashboard.
+
+The Instagram, TikTok, Threads, and Substack invitation conversations showed no
+creator reply at this checkpoint. TikTok's latest checked video counts remained
+96, 69, and 89, and Threads' latest owned post still showed one like. There is
+therefore no verified follower gain or early creator conversion to attribute to
+the first invitation wave.
+
+The next approval candidate is the live Ambassador program's new 1080×1350 feed
+card on X, Threads, Instagram, Facebook, and Substack, using the already staged
+platform-native copy and source-specific links. TikTok stays out until a native
+vertical treatment exists. The card has been rechecked at full resolution, and
+the staged Threads copy was corrected to standard capitalization. Pinning or
+Featuring remains a separate action-time decision after each post is live.
+
+### Voice-formatting correction (September 3)
+
+The owner clarified that Blanc's casual voice must not be reduced to an
+all-lowercase writing rule. A dedicated voice and formatting canon now makes
+normal capitalization and punctuation the default for professional outreach,
+articles, product explanations, policies, CTAs, and substantive replies.
+Lowercase remains available only as a deliberate device for a short social
+hook, meme line, punchline, or genuinely casual reply. No live post or profile
+was changed.
+
+### 13:00 ET Ambassador vertical asset staged (September 3)
+
+A native nine-second 1080×1920 Ambassador video was created from a fresh,
+full-color recording of the deployed page. It scrolls from the creator hero to
+the “Your opinion stays yours” agreement and then to the application form. The
+three overlays use proper capitalization and each remains on screen for three
+seconds: a creator-specific tension, Blanc's unscripted-trial promise, and the
+application CTA.
+
+The H.264 export and separate cover were verified at full size and at a
+270×480 phone equivalent. The text leaves a 192 px right-side control zone and
+does not occupy the bottom platform-control area. The overlay introduces no
+new product, payment, endorsement, selection, or growth claim. Nothing was
+published.
+
+### 13:00 ET Ambassador publication card finalized (September 3)
+
+The six-platform Ambassador launch is now consolidated into
+`approval-card-2026-09-03-ambassador-launch.md`. It assigns the feed image to X,
+Threads, and Substack; the native vertical video to Instagram Reels, Facebook
+Reels, and TikTok; and includes exact platform copy, source-specific links,
+claim checks, current-versus-stale baseline labels, and 60–90-minute, 24-hour,
+and 72-hour measurement gates.
+
+The TikTok caption no longer assumes a working profile website link; the URL is
+present in the video and caption instead. Instagram and Facebook receive the
+native vertical unit rather than a second copy of the static feed asset. Pins,
+Featured placement, paid boosting, replies, reactions, follows, and profile
+changes remain outside the pending approval. Nothing was published.
+
+### 15:05 ET early Ambassador conversion check (September 2)
+
+No public or account action was taken. X remained at 11 followers and Facebook
+at 10. Substack's public profile showed 2 subscribers while the publisher
+dashboard's latest verified total remains 3; the two surfaces are recorded
+separately rather than treated as a loss. The latest full-network verified
+baseline remains X 11, Threads 21, Instagram 103, Facebook 10, TikTok 26, and
+Substack dashboard 3.
+
+Only tech talk had not replied to the Instagram invitation. The TikTok,
+Threads, and Substack invitations had been live for less than 20 minutes, so
+their lack of an immediate response is not actionable. No additional outreach
+wave is recommended before the planned 60–90-minute conversion check.
+
+### 18:08 ET follower-conversion heartbeat (September 2)
+
+No public post, reply, reaction, follow, creator message, ad edit, or account
+setting change was made. Fresh logged-in Brave totals were X 11, Threads 21,
+Instagram 103, Facebook 11, TikTok 25, and Substack 3 in the publisher
+dashboard / 2 on the public profile. Relative to the previous full-network
+checkpoint, Facebook gained one verified follower while TikTok lost one, so
+the six-platform portfolio total did not move.
+
+The active Facebook Page Visits promotion had spent $7.38 and delivered 159
+views, 148 reach, and 52 Page visits. Against the 13:24 sample, that is +$1.92
+spend, +60 views, +53 reach, and +16 Page visits, or approximately $0.14 per
+Page visit overall. Facebook now displays 11 Page followers, up from 10, but
+the visible surfaces do not prove that the new follower came from the paid
+promotion rather than organic activity.
+
+X remained at 11 followers; its three latest checked owned posts showed 34,
+47, and 15 views. Threads remained at 21 followers and 13K recent views; its
+latest owned post still showed one like. Instagram remained at 103 followers.
+TikTok's recent video counts remained 96, 69, and 89 even as the account total
+moved from 26 to 25 followers. Substack remained at three dashboard
+subscribers, including Ryan Duffy's September 2 subscription, which predates
+the Ambassador invitation and is not attributed to it. No fresh reply was
+visible in the Instagram, TikTok, Threads, or Substack invitation conversations.
+
+The consolidated next approval unit remains the staged Ambassador program feed
+post on X, Threads, Instagram, Facebook, and Substack with platform-native copy
+and source-specific links. TikTok remains excluded until a native vertical
+asset exists. This approval card is unchanged and has not been published.
+
+### 19:08 ET follower-conversion heartbeat (September 2)
+
+No public or account action was taken. Fresh logged-in totals remained X 11,
+Threads 21, Instagram 103, Facebook 11, TikTok 25, and Substack 3 in the
+publisher dashboard. Recent owned-post engagement also remained unchanged:
+X's latest checked posts showed 34, 47, and 15 views; Threads' latest owned
+post showed one like; and TikTok's latest three videos showed 96, 69, and 89
+views.
+
+The active Facebook Page Visits promotion advanced to $10.20 spent, 209 views,
+191 reach, and 67 Page visits. Since 18:08 it added 15 Page visits on $2.82 of
+additional spend without a verified follower increase. Its cumulative cost is
+approximately $0.15 per Page visit. This is useful traffic delivery, but the
+flat Page total indicates that the current profile/post conversion path has not
+produced another observable follow at this sample. No new response appeared in
+the checked creator inboxes. The staged five-platform Ambassador program post
+remains the single pending approval card; TikTok remains excluded until a
+native vertical asset exists.
+
+### 21:08 ET follower-conversion heartbeat (September 2)
+
+No public or account action was taken. Fresh logged-in totals remained X 11,
+Threads 21, Facebook 11, TikTok 25, and Substack 3; Instagram's latest verified
+total remains 103. X's latest owned post added one view, moving from 34 to 35,
+while the next two stayed at 47 and 15. Threads' rolling recent-views display
+moved from 13K to 12.8K without an audience change. The checked TikTok inbox
+still showed only Blanc's outbound invitation to Gina, not a creator response.
+
+The active Facebook Page Visits promotion advanced to $12.04 spent, 239 views,
+215 reach, and 75 Page visits. Since 19:08 it added eight Page visits on $1.84
+of spend without another follower; cumulative cost is about $0.16 per Page
+visit. The Facebook Page remains at 11 followers. With the daily budget nearly
+spent, traffic delivery is proven but an additional follower conversion is not.
+The unchanged consolidated approval card remains the five-platform Ambassador
+program feed post, excluding TikTok until its native vertical asset exists.
+
+### 20:08 ET follower-conversion heartbeat (September 2)
+
+No public or account action was taken. The fresh verified totals that could be
+read in the logged-in sessions remained X 11, Facebook 11, TikTok 25, and
+Substack 3; Threads' latest verified total remains 21 and Instagram's remains
+103. X's three latest checked post counts stayed at 34, 47, and 15 views, while
+TikTok's latest three stayed at 96, 69, and 89.
+
+The active Facebook Page Visits promotion remained at $10.20 spent, 209 views,
+191 reach, and 67 Page visits, with no additional verified Page follower. No
+new creator response or other conversion signal surfaced. The five-platform
+Ambassador program post remains the unchanged pending approval unit, so no new
+approval request is being added at this checkpoint.
+
+### 22:09 ET follower-conversion heartbeat (September 2)
+
+No public or account action was taken. Fresh logged-in totals remained X 11,
+Threads 21, Facebook 11, and Substack 3; the latest verified Instagram and
+TikTok totals remain 103 and 25. X's three checked owned posts remained at 35,
+47, and 15 views. Threads remained at 21 followers and 12.8K rolling recent
+views. Meta's active Page Visits promotion remained at $12.04 spent, 239 views,
+215 reach, and 75 Page visits, with no additional verified Page follower.
+
+TikTok's inbox count increased because of one new message request, but the
+request was unrelated to Blanc, browsers, technology, productivity, privacy,
+design, open source, or the Ambassador pilot. Gina's conversation still showed
+only Blanc's outbound invitation. The request is therefore not a qualified
+inbound or follow-up opportunity. The existing five-platform Ambassador post
+approval card remains unchanged and pending.
+
+### 23:12 ET follower-conversion heartbeat (September 2)
+
+The Mac was locked, so the logged-in social sessions could not be inspected
+without interrupting the owner. No public or account action was taken. The
+latest verified totals remain X 11, Threads 21, Instagram 103, Facebook 11,
+TikTok 25, and Substack 3; the latest Meta sample remains $12.04 spent, 239
+views, 215 reach, and 75 Page visits. No new conclusion or approval card was
+created from stale evidence.
+
+### 08:32 ET follower-conversion heartbeat (September 3)
+
+The Mac remained locked, so the logged-in social sessions could not be checked
+without waking or interrupting the owner. No public or account action was
+taken. The latest verified totals remain X 11, Threads 21, Instagram 103,
+Facebook 11, TikTok 25, and Substack 3. No overnight growth claim, paid-result
+update, creator-response conclusion, or new approval card was created from
+stale evidence.
+
+### 12:27 ET follower-conversion heartbeat (September 3)
+
+Brave was occupied by a sensitive credential-vault surface, so the social tabs
+were not activated or inspected. No public or account action was taken. The
+latest verified totals remain X 11, Threads 21, Instagram 103, Facebook 11,
+TikTok 25, and Substack 3. No new growth, paid-result, creator-response, or
+approval conclusion was inferred from stale evidence.
+
+### 10:26 ET follower-conversion heartbeat (September 3)
+
+No public or account action was taken. The Mac was available again, and the
+fresh logged-in totals remained X 11, Threads 21, and Substack 3. Facebook's
+latest verified total remains 11; Instagram and TikTok remain 103 and 25 from
+their latest verified profile checks. X's checked owned posts remained at 35,
+47, and 15 views. Threads remained at 21 followers and 12.8K rolling recent
+views.
+
+The active Facebook Page Visits promotion remained at $12.04 spent, 239 views,
+215 reach, and 75 Page visits. TikTok still showed one unrelated message
+request and no qualified creator response. No audience, owned-content, paid,
+or Ambassador-pipeline result changed enough to justify a new approval card;
+the staged five-platform Ambassador program post remains the pending action.
+
+### 12:27 ET active social-growth continuation (September 3)
+
+Brave was available again, and a fresh logged-in pass found X 11, Threads 21,
+Facebook 11, TikTok 25, and Substack 3. Instagram's most recent verified total
+remains 103 because its profile did not expose a fresh accessibility tree in
+this pass. X's latest three checked posts remained at 35, 47, and 15 views;
+Threads remained at 12.8K rolling recent views with one like on the latest
+owned post. TikTok's profile-like total moved from 6 to 7 without a follower
+increase. No qualified creator reply was found. Meta's latest complete sample
+remains $12.04 spent, 239 views, 215 reach, and 75 Page visits.
+
+The September 3 daily scorecard was created from those verified totals. The
+Ambassador pipeline was advanced to the current public v1.13.0 baseline: a new
+claim-audited creator review brief is ready, the structured tracker now points
+to it, and the pipeline record now reflects the live application form and the
+four invitations already sent. No creator message, public post, reaction,
+follow, subscription, ad edit, or account setting changed.
+
+### 13:07 ET active social-growth continuation (September 3)
+
+No public or account action was taken. A new logged-in Brave pass verified X at
+11 followers, Threads at 21, Facebook at 12, TikTok at 25, and Substack at
+three. Instagram's last verified total remains 103 because its web profile
+again stopped exposing a readable accessibility tree.
+
+Facebook is the only platform with net audience growth against today's opening
+baseline: +1 follower. Its notifications grouped five follows 16 hours ago,
+but the current Page count supports only the conservative +1 net result. The
+Mahjong Reel also received a reaction 14 hours ago. TikTok's visible videos
+showed 96, 69, 89, 4, and 360 views, with a new like on a Blanc comment three
+hours ago. Threads' newest activity remained a like on a Blanc reply, and X had
+no new reply. None of the fresh interactions required a follow-up response.
+
+The Blanc voice canon was also tightened: standard sentence capitalization is
+the default for owned social posts as well as professional and editorial copy.
+Lowercase is an optional treatment for an intentional casual hook, punchline,
+meme, or brief reply—not a platform-wide house rule.
+
+While the six-platform Ambassador launch awaits action-time approval, a second
+owned-content unit was prepared without publishing it. The 1080×1350 “Moving
+the tab strip still leaves a tab strip” graphic uses a full-color Island image
+present in public v1.13.0 and neutral black, white, and gray framing. X,
+Threads, and Substack copy was drafted in normal sentence case. Chrome's
+horizontal/vertical tab choice was checked against Google's April 7 product
+announcement and current Chrome Help; Blanc's mechanism and visual were
+checked against public v1.13.0. The unit is explicitly sequenced after the
+Ambassador launch checkpoint so the account does not stack two calls for
+attention at once.
+
+### 13:20 ET creator qualification continuation (September 3)
+
+No social action was taken. Live X review produced two qualified, message-ready
+creator prospects rather than another broad reply batch. Smartphones sans
+Google (`@Sans_Google`) had 6,151 followers, current open-source/privacy posts
+at 4,521 and 17,659 views, and recent direct replies to readers. Ram Maheshwari
+(`@rammcodes`) had 4,318 X followers, a current open-source workflow-tool post
+at 9,316 views, and a same-day public reply to a maker who credited an earlier
+feature with driving 800 users per day.
+
+Both prospects were added to the structured Ambassador pipeline at
+`invitation_ready`; the sent-invitation count remains four. Separate tailored
+drafts now use normal sentence capitalization and preserve the v1.13.0 claim
+boundary. The Sans Google draft explicitly states that Blanc is Chromium-based
+via Electron instead of presenting it as de-Googled. Neither draft has been
+typed or sent, and no follow, like, repost, comment, or profile change occurred.
+
+### 13:25 ET full-network inbound refresh (September 3)
+
+No public or account action was taken. Fresh logged-in totals remained X 11,
+Threads 21, Instagram 103, Facebook 12, TikTok 25, and Substack 3. X's three
+latest checked owned posts advanced to 40, 51, and 16 views without a reply.
+
+Instagram supplied the only new interaction: `@eddie.v6` liked Blanc's casual
+domain-portfolio comment approximately one hour earlier. Threads' newest item
+remained the 13-hour-old reply like; Facebook's remained the 14-hour-old Reel
+reaction and 16-hour-old grouped follow notification; TikTok's remained a
+three-hour-old comment like; and Substack showed no new subscriber or response.
+None is an unanswered question or substantive inbound that merits another
+reply. The two qualified X creator invitations remain staged and unsent pending
+action-time approval.
+
+### 13:28 ET Ambassador response check (September 3)
+
+No message or account action was taken. The live Instagram conversation with
+Only tech talk, TikTok conversation with Gina, Threads conversation with
+Causal, and Substack conversation with Ryan Duffy each still ended with Blanc's
+outbound invitation. No creator reply is verified.
+
+Causal's profile now shows 420 followers versus 393 at qualification. That is
+useful evidence of an active creator audience, not growth for Blanc and not an
+invitation conversion. The tracker now records this check; the four invitations
+reach 24 hours between 14:43 and 14:47 EDT, so no premature follow-up was
+prepared or sent.
+
+### 13:30 ET Meta follower-acquisition check (September 3)
+
+No ad setting or public action was changed. Facebook's active Page Visits ad
+now reports $17.86 spent over two days, 368 views, 302 reach, 117 Page visits,
+75 post engagements, 73 link clicks, three Facebook follows, and two reactions.
+That is $0.15 per Page visit and an observational $5.95 per Meta-reported follow.
+
+The Page itself remains at 12 followers, only +1 net against today's opening
+count. Meta's three attributed follows are therefore not rewritten as +3 net
+growth: unfollows or pre-opening conversions can explain the difference. The
+ad remains active at $13 per day with a displayed $21 total budget and $17.86
+already spent. The useful next checkpoint is completion of the remaining spend
+plus a fresh net Page count, not an in-flight budget or creative edit.
+
+### 13:32 ET Ambassador launch-source correction (September 3)
+
+No publication or profile change was made. The consolidated September 3
+approval card already used professional sentence capitalization and the
+reviewed nine-second vertical asset, but its older September 2 source-copy file
+still contained stale variants. That source is now aligned with the approval
+card: the X opening and Substack question use standard capitalization, the
+Threads version includes the creator-tag/follow invitation, and TikTok uses the
+actual three-frame sequence plus the direct Ambassador URL instead of an
+unverified “link in bio” claim.
+
+The Instagram profile still exposes `blancbrowser.com and 1 more` publicly, but
+its web interface stopped exposing a readable link-detail tree before the
+second destination could be verified. The launch card therefore keeps its
+publication-time profile-link check and does not claim that the Ambassador page
+is currently the active bio destination. No link was edited.
+
+### 13:34 ET operating-continuity check (September 3)
+
+The active hourly `blanc-follower-growth-check-ins` heartbeat was verified as
+attached to this task. Its prompt now explicitly carries the corrected voice
+rule: use professional sentence case by default, and reserve lowercase for an
+intentional casual hook, punchline, meme, or brief reply. The audience-growth,
+creator-qualification, paid-versus-organic measurement, and action-time
+approval boundaries were preserved. No social-network or ad action was taken.
+
+### 13:35 ET v1.13.0 download baseline (September 3)
+
+No public or GitHub state was changed. The read-only GitHub release API reports
+28 cumulative package-asset requests for public v1.13.0: 11 macOS DMG/ZIP
+requests, 10 Windows installer requests, and seven Linux AppImage requests.
+Updater metadata and blockmaps account for 55 separate requests.
+
+The exact snapshot is stored in
+`download-baseline-2026-09-03-v1.13.0.json`, and the reusable capture helper now
+defaults to the current v1.13.0 tag instead of v1.9.1. These counters represent
+requests, not unique people, and include QA, retries, update handoffs, direct
+traffic, and non-social acquisition. They are an aggregate comparison baseline,
+not evidence that Meta's link clicks or attributed follows produced a download.
+
+### 13:37 ET Meta audience-quality check (September 3)
+
+No ad setting was changed. Of the active ad's 302 reached accounts, 280 came
+from Facebook mobile feed, 18 from Facebook Reels, three from Facebook mobile
+web feed, and one was uncategorized. The reported gender split was 47.9% women
+and 52.1% men. The chart's largest age band was 65+, while the displayed top
+states were Texas (28), Ohio (16), New York (16), and Pennsylvania (15).
+
+These are reach distributions, not follow-conversion breakdowns; Meta does not
+show which demographic segments produced the three attributed follows. The
+useful creative conclusion is therefore narrow: a legible 4:5 mobile-feed unit
+is the right format for the next paid comparison. The data do not yet justify
+restricting age targeting. The inspected tab was returned to Instagram after
+the check so Brave retains the six standing social dashboards.
+
+### 13:40 ET paid-test direction staged (September 3)
+
+No asset, ad, budget, targeting, or public account state was changed. The
+current observational $5.95 per Meta-reported follow implies about 2.2 reported
+follows on a $13 day; reaching ten at the same rate would imply roughly $59.50
+per day before unfollows. Increasing spend alone is therefore not the next
+recommendation.
+
+A second-test brief is staged at
+`meta-paid-test-2-brief-2026-09-03.md`. It proposes a 1080×1350 mobile-feed unit
+led by “Use the browser. Skip another account.” The benefit is supported by
+public v1.13.0's no-required-account boundary and paired with the verified lack
+of a built-in AI assistant. The real full-color Island capture remains visible;
+the surrounding type treatment stays monochrome. The message requires review
+before asset production, and a later ad still requires separate budget,
+duration, audience, and action-time approval after the current test completes.
+
+### 13:51 ET visible dashboard check (September 3)
+
+No public action was taken. Threads remained at 21 followers and 12.8K recent
+views; Instagram remained at 103 followers and 61 following; Substack remained
+at three subscribers. Ryan Duffy and Gina still had Blanc's invitation as the
+last message, with no creator response. Facebook's ad dashboard still exposed
+the last reliable $17.86-spend, 117-Page-visit, 73-link-click, and three-
+attributed-follow totals, with no reliable evidence of new delivery during this
+pass.
+
+X rendered blank in its standing Brave tab, so its 11-follower figure remains
+the 13:25 verified baseline rather than a newly verified total. The finished
+temporary Substack activity tab was closed, and the browser was restored to six
+standing social dashboards. The two qualified X creator invitations remain the
+strongest ready follower-acquisition action; their product claims were checked
+against the public v1.13.0 tag, and their sentence capitalization already
+matches the corrected voice standard.
+
+### 13:55 ET fresh X distribution opportunity (September 3)
+
+No public action was taken. A live X search surfaced It’s FOSS asking “Brave
+or Firefox?” at 10:00 a.m. EDT. By the current check it had 35,731 views, 445
+replies, 39 reposts, 361 likes, and 27 bookmarks. The exact duplicate query
+`from:blancbrowser conversation_id:2095512327013712030` returned no results.
+
+`approval-card-2026-09-03-its-foss-reply.md` now stages one sentence-case,
+no-link response that presents Blanc as a relevant open-source third option and
+states the Island's payoff without attacking either browser. The Facebook ad
+also advanced to $17.95 spent, 118 Page visits, 371 views, 305 reach, 76
+engagements, and 74 link clicks while holding at three attributed follows. No
+reply, reaction, follow, message, or account setting was changed.
+
+### 13:57 ET creator qualification (September 3)
+
+No public action was taken. Pranav Mailarpawar (`@pranvtwt`) now qualifies for
+the Ambassador pipeline with 18.5K followers, a 267,713-view pinned project
+update, current open-source browser-side tool coverage, open direct messages,
+and same-hour replies to makers and readers. A tailored sentence-case invitation
+and unique tracked URL are staged in `creator-outreach-drafts-2026-09-03.md`.
+He remains `invitation_ready`; the program total is still four invitations
+sent, zero replies, zero accepted trials, and zero collaborations.
+
+### 13:59 ET execution-sequence correction (September 3)
+
+No public action was taken. The follower-growth operating plan now carries an
+explicit work-in-progress limit so a pending approval does not cause the daily
+work to restart elsewhere. The current queue is recorded in the daily
+scorecard: first the time-sensitive It’s FOSS reply, then the three prepared X
+creator invitations, then the four original invitations' 24-hour response
+check at 14:43–14:47 EDT, followed by the completed Meta-test decision. The
+Ambassador launch asset remains staged behind direct outreach. No new creative
+starts until that queue advances.
+
+### 14:04 ET Substack creator qualification (September 3)
+
+No public action was taken. Monique Barrow / The Privacy Cloud published a
+current, highly relevant privacy roundup and shows 846 Substack subscribers.
+The post has three likes and one seven-hour-old reader comment, but no visible
+author response. Because older historical replies do not establish current
+audience responsiveness, she remains a watchlist prospect rather than being
+added to the invitation-ready batch. The working Substack tab was restored to
+Blanc's subscriber dashboard, which still reports three subscribers.
+
+### 14:06 ET X opportunity refresh (September 3)
+
+No public action was taken. The It’s FOSS “Brave or Firefox?” conversation
+advanced to 36,832 views, 455 replies, 39 reposts, 366 likes, and 29 bookmarks,
+adding 1,101 views since the 13:54 EDT check. The exact latest-search query
+again found no existing Blanc reply. Blanc remains at 11 X followers and 102
+following, and its profile tab was restored after the read-only check.
+
+### 14:07 ET creator-batch link verification (September 3)
+
+No public action was taken. The three unique X creator-outreach destinations
+for Smartphones sans Google, Ram Maheshwari, and Pranav Mailarpawar each
+returned HTTP 200 with its distinct `utm_content` parameter intact. The
+structured tracker now records the exact verification time for every link, so
+the current invitation-ready batch has a verified destination rather than an
+assumed one.
+
+### 14:10 ET full-network inbound refresh (September 3)
+
+No public action was taken. Verified audience totals remain X 11, Threads 21,
+Instagram 103, Facebook 12, TikTok 25, and Substack three. Instagram's newest
+signal is a two-hour-old like on a Blanc comment; Threads' newest is a
+14-hour-old like; Facebook's newest is a 15-hour-old Reel reaction. Neither
+TikTok's Gina conversation nor Substack's Ryan Duffy activity contains a new
+creator response. The Facebook ad remains at $17.95 spent, 118 Page visits, 74
+link clicks, and three attributed follows. The six standing Brave dashboards
+were restored after the read-only pass.
+
+### 14:13 ET persistent voice-rule correction (September 3)
+
+No public action was taken. The active hourly follower-growth automation now
+chooses capitalization according to context instead of imposing either
+sentence case or lowercase across every social post. Professional,
+authoritative, educational, and longer-form communication uses proper writing;
+genuinely casual hooks, memes, punchlines, questions, and replies may use
+lowercase when it improves the voice. All growth, measurement, and action-time
+approval rules were preserved.
+
+### 14:14 ET v1.13.0 download checkpoint (September 3)
+
+No public or GitHub state was changed. A read-only comparison against the
+13:35 EDT v1.13.0 baseline found zero movement after 39 minutes: package-asset
+requests remain 28 in total, with 11 macOS, 10 Windows, and seven Linux;
+updater metadata and blockmaps remain 55. These are aggregate request counters,
+not people or attributed conversions. The result cannot establish what any
+specific Meta visitor did, but it provides no download corroboration for the
+ad's 74 reported link clicks.
+
+### 14:16 ET Ambassador checkpoint discipline (September 3)
+
+No message or public action was taken. The structured Ambassador tracker now
+records exact 24-hour and 72-hour response checkpoints for the original four
+invitations. The operating decision is explicit: no response at 24 hours is a
+funnel result, not permission for an automatic follow-up. Silent invitations
+are rechecked at 72 hours, and any later follow-up remains separately
+approval-gated.
+
+### 15:21 ET heartbeat — Mac locked (September 3)
+
+The live Brave check failed because the Mac is locked. No fresh social counts,
+inbox responses, or ad results were obtained. The original four invitations
+have passed their 24-hour checkpoints, but their outcomes remain unverified;
+no missing response or zero conversion is inferred from inaccessible accounts.
+Resume those checks after unlock and record the actual delayed observation time.
+No social action was performed.
+
+### September 4, 12:34–12:43 EDT — unlocked, six-platform check completed
+
+Read-only Brave checks resumed after explicit owner unlock confirmation.
+Audience: X 11, Threads 21, Instagram 103, Facebook 14 (+2 since prior
+observation), TikTok 25, Substack dashboard 3 (includes one Author account).
+Original four Ambassador invitations have no visible direct response; delayed
+checks are recorded without backdating 24-hour results. Gina's friendly public
+reply remains visible but does not establish a trial acceptance.
+
+Meta promotion remains Active: $30.35 spent, 198 Page visits, 575 views,
+435 reach, 132 engagements, 128 link clicks, 5 attributed follows, 2 reactions,
+2 saves. Lifetime cost per attributed follow is $6.07. Link clicks still must
+not be treated as website visits or installs. X Chat remains blocked on owner
+passcode setup. No public communication, spending or account-setting changes.
+Full evidence and next action: daily-scorecard-2026-09-04.md.
