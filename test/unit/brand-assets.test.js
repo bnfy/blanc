@@ -202,7 +202,7 @@ test('the launch cards carry the square Sunrise mark at the old placements', asy
 
 test('the site sizes the square mark everywhere the portrait B was sized', () => {
   const css = source('site/src/styles/site.css');
-  assert.match(css, /\.site-brand-mark \{ width: 20px; height: 20px;/);
+  assert.match(css, /\.site-brand-mark \{ width: 24px; height: 24px;/);
   assert.match(css, /\.site-brand-mark \{ width: 28px; height: 28px;/);
   assert.match(css, /\.legal-home \.mark \{ width: 24px; height: 24px;/);
   assert.match(css, /\.press-brand-mark \{ display: block; width: 21px; height: 21px;/);

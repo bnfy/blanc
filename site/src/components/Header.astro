@@ -1,16 +1,19 @@
 ---
 import BrandMark from './BrandMark.astro';
+import { menus, directLinks } from '../data/navigation.mjs';
+import releases from '../data/releases.json';
+import featureNamesByVersion from '../data/release-feature-names.json';
+import { featureNamesForRelease } from '../lib/release-features.mjs';
 const { variant = 'solid', current = null } = Astro.props;
-const mobileLinks = [
-  { href: '/features', key: 'features', label: 'Features' },
-  { href: '/features/security', key: 'security', label: 'Security' },
-  { href: '/changelog', key: 'changelog', label: 'What’s new' },
-  { href: '/about', key: 'about', label: 'About' },
-  { href: '/faq', key: 'faq', label: 'FAQ' },
-  { href: current === 'download' ? '#download-options' : '/download', key: 'download', label: 'Download on desktop' },
-];
 const pathname = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '');
-const isMobileCurrent = ({ href, key }) => current === key || pathname === href;
+const latest = releases[0];
+const latestVersion = String(latest.version || latest.tag || '').replace(/^v/, '');
+const latestNames = featureNamesForRelease(latest, featureNamesByVersion).slice(0, 3);
+const isCurrent = href => pathname === href || (href === '/download' && current === 'download');
+const downloadHref = current === 'download' ? '#download-options' : '/download';
+const menuTitle = menu => (menu.key === 'features' ? 'Features' : 'Resources');
+const featuresCurrent = current === 'features' || pathname.startsWith('/features');
+void directLinks;
 ---
 {variant === 'legal' ? (
   <header class="legal-top">
@@ -20,17 +23,16 @@ const isMobileCurrent = ({ href, key }) => current === key || pathname === href;
     </a>
   </header>
 ) : (
-  <header class={variant === 'solid' ? 'site-header site-header--solid' : 'site-header'}>
+  <header class={`site-header site-header--${variant}${variant === 'solid' ? ' is-raised' : ''}`}>
     <nav class="site-nav" aria-label="Primary navigation">
-      <a class="site-brand" href="/" aria-label="Blanc Browser home">
-        <BrandMark class="site-brand-mark" />
-      </a>
+      <a class="site-brand" href="/" aria-label="Blanc Browser home"><BrandMark class="site-brand-mark" /></a>
       <div class="site-nav-links">
-        <a href="/features" class={current === 'features' ? 'is-current' : undefined} aria-current={current === 'features' ? 'page' : undefined}>features</a>
-        <a href="/features/security" class={current === 'security' ? 'is-current nav-secondary' : 'nav-secondary'} aria-current={current === 'security' ? 'page' : undefined}>security</a>
-        <a href="/changelog" class={current === 'changelog' ? 'is-current' : undefined} aria-current={current === 'changelog' ? 'page' : undefined}>what's new</a>
+        {menus.map(menu => (
+          <button class="site-menu-trigger" type="button" data-menu={menu.key} aria-expanded="false" aria-controls={`site-menu-${menu.key}`} aria-current={menu.key === 'features' && featuresCurrent ? 'page' : undefined}>{menu.label} <span class="site-menu-caret" aria-hidden="true"></span></button>
+        ))}
+        <a href="/changelog" aria-current={current === 'changelog' ? 'page' : undefined}>what's new</a>
       </div>
-      <a class={current === 'download' ? 'site-nav-cta is-current' : 'site-nav-cta'} href={current === 'download' ? '#download-options' : '/download'}>download</a>
+      <a class={current === 'download' ? 'site-nav-cta is-current' : 'site-nav-cta'} href={downloadHref}>download</a>
       <button class="site-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="siteMobileMenu">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path class="site-menu-open-icon" d="M4 6h16M4 12h16M4 18h16" />
@@ -38,90 +40,136 @@ const isMobileCurrent = ({ href, key }) => current === key || pathname === href;
         </svg>
       </button>
       <div class="site-mobile-menu" id="siteMobileMenu" hidden>
-        {mobileLinks.map(link => (
-          <a href={link.href} aria-current={isMobileCurrent(link) ? 'page' : undefined}>{link.label}</a>
+        {menus.map(menu => (
+          <details open={menu.key === 'features' && featuresCurrent ? true : undefined}>
+            <summary>{menuTitle(menu)}</summary>
+            <div class="site-mobile-group">
+              {menu.groups.flatMap(group => group.links).map(link => (
+                <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>{link.label}</a>
+              ))}
+            </div>
+          </details>
         ))}
+        <a class="site-mobile-plain" href="/changelog" aria-current={current === 'changelog' ? 'page' : undefined}>What's new</a>
+        <a class="site-mobile-download" href={downloadHref}>Download on desktop</a>
       </div>
     </nav>
+    {menus.map(menu => (
+      <div class="site-mega" id={`site-menu-${menu.key}`} data-open="false" role="region" aria-label={menuTitle(menu)}>
+        <div class={`site-mega-inner${menu.key === 'resources' ? ' site-mega-inner--narrow' : ''}`}>
+          <div class="site-mega-main">
+            <div class="site-mega-groups" data-columns={menu.groups.length}>
+              {menu.groups.map(group => (
+                <div>
+                  <p class="site-mega-title">{group.title}</p>
+                  <ul>{group.links.map(link => (
+                    <li><a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}><b>{link.label}</b><span>{link.description}</span></a></li>
+                  ))}</ul>
+                </div>
+              ))}
+            </div>
+            <div class="site-mega-foot"><span>{menu.foot.note}</span><a href={menu.foot.href}>{menu.foot.label} <span aria-hidden="true">↗</span></a></div>
+          </div>
+          {menu.spotlight.kind === 'image' ? (
+            <a class="site-mega-spot" href={menu.spotlight.href}>
+              <img src={menu.spotlight.image} alt={menu.spotlight.alt} width="1200" height="630" loading="lazy" />
+              <span class="site-mega-spot-body"><span class="site-mega-kicker">{menu.spotlight.kicker}</span><span class="site-mega-spot-title">{menu.spotlight.title}</span><span class="site-mega-spot-copy">{menu.spotlight.copy}</span><span class="site-mega-go">{menu.spotlight.cta} <span aria-hidden="true">↗</span></span></span>
+            </a>
+          ) : (
+            <a class="site-mega-spot site-mega-release" href={menu.spotlight.href}>
+              <span class="site-mega-spot-body"><span class="site-mega-kicker">{menu.spotlight.kicker}</span><span class="site-mega-release-title">Blanc {latestVersion}</span><span class="site-mega-spot-copy">{latestNames.length ? latestNames.join(', ') + '.' : 'Every Blanc release, in one place.'}</span><span class="site-mega-go">{menu.spotlight.cta} <span aria-hidden="true">↗</span></span></span>
+            </a>
+          )}
+        </div>
+      </div>
+    ))}
   </header>
 )}
 
 <script>
-  const header = document.querySelector('.site-header');
+  const header = document.querySelector<HTMLElement>('.site-header');
 
   if (header) {
     const desktop = window.matchMedia('(min-width: 641px)');
+    const triggers = [...header.querySelectorAll<HTMLButtonElement>('.site-menu-trigger')];
+    const panelOf = (trigger: HTMLButtonElement) => header.querySelector<HTMLElement>(`#${trigger.getAttribute('aria-controls')}`);
     const menuToggle = header.querySelector<HTMLButtonElement>('.site-menu-toggle');
     const menuPanel = header.querySelector<HTMLElement>('.site-mobile-menu');
-    let previousY = Math.max(window.scrollY, 0);
-    let tuckDistance = 0;
-    let frame = 0;
+    let intent = 0;
 
-    const show = () => {
-      header.classList.remove('is-tucked');
-      tuckDistance = 0;
-    };
-
-    const sync = () => {
-      frame = 0;
-      const nextY = Math.max(window.scrollY, 0);
-      const delta = nextY - previousY;
-
-      if (!desktop.matches || nextY <= 12) {
-        show();
-      } else if (delta > 0) {
-        tuckDistance += delta;
-        if (tuckDistance >= 12) header.classList.add('is-tucked');
-      } else if (delta < 0) {
-        show();
-      }
-
-      previousY = nextY;
-    };
-
-    const queue = () => {
-      if (!frame) frame = window.requestAnimationFrame(sync);
-    };
-
-    const setMenuOpen = (open: boolean, restoreFocus = false) => {
+    // Mobile sheet.
+    function setMenuOpen(open: boolean, restoreFocus = false) {
       if (!menuToggle || !menuPanel) return;
       menuPanel.hidden = !open;
       menuToggle.setAttribute('aria-expanded', String(open));
       menuToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       if (restoreFocus) menuToggle.focus({ preventScroll: true });
-    };
+    }
 
-    menuToggle?.addEventListener('click', () => {
-      if (!desktop.matches && menuPanel) setMenuOpen(menuPanel.hidden);
+    // Mega menus: one open at a time, hover intent, click toggle, Escape.
+    const closeMenus = (except: HTMLButtonElement | null = null) => {
+      for (const trigger of triggers) {
+        if (trigger === except) continue;
+        trigger.setAttribute('aria-expanded', 'false');
+        const panel = panelOf(trigger);
+        if (panel) panel.dataset.open = 'false';
+      }
+      header.classList.toggle('has-open-menu', except !== null);
+    };
+    const openMenu = (trigger: HTMLButtonElement) => {
+      closeMenus(trigger);
+      trigger.setAttribute('aria-expanded', 'true');
+      const panel = panelOf(trigger);
+      if (panel) panel.dataset.open = 'true';
+      header.classList.add('has-open-menu');
+    };
+    for (const trigger of triggers) {
+      const panel = panelOf(trigger);
+      trigger.addEventListener('click', () => (trigger.getAttribute('aria-expanded') === 'true' ? closeMenus() : openMenu(trigger)));
+      trigger.addEventListener('mouseenter', () => {
+        if (!desktop.matches) return;
+        window.clearTimeout(intent);
+        intent = window.setTimeout(() => openMenu(trigger), 120);
+      });
+      trigger.addEventListener('mouseleave', () => window.clearTimeout(intent));
+      panel?.addEventListener('mouseenter', () => window.clearTimeout(intent));
+    }
+    header.addEventListener('mouseleave', () => {
+      window.clearTimeout(intent);
+      intent = window.setTimeout(() => closeMenus(), 260);
     });
-    header.addEventListener('click', event => {
-      if (event.target instanceof Element && event.target.closest('a')) setMenuOpen(false);
-    });
-    document.addEventListener('pointerdown', event => {
-      if (event.target instanceof Node && !header.contains(event.target)) setMenuOpen(false);
-    });
-    document.addEventListener('focusin', event => {
-      if (event.target instanceof Node && !header.contains(event.target)) setMenuOpen(false);
-    });
+    header.addEventListener('mouseenter', () => window.clearTimeout(intent));
     document.addEventListener('keydown', event => {
-      if (event.key === 'Escape' && menuPanel && !menuPanel.hidden) {
+      if (event.key !== 'Escape') return;
+      const open = triggers.find(t => t.getAttribute('aria-expanded') === 'true');
+      if (open) {
+        event.preventDefault();
+        closeMenus();
+        open.focus({ preventScroll: true });
+        return;
+      }
+      if (menuPanel && !menuPanel.hidden) {
         event.preventDefault();
         setMenuOpen(false, true);
       }
     });
+    document.addEventListener('pointerdown', event => {
+      if (event.target instanceof Node && !header.contains(event.target)) { closeMenus(); setMenuOpen(false); }
+    });
+    document.addEventListener('focusin', event => {
+      if (event.target instanceof Node && !header.contains(event.target)) { closeMenus(); setMenuOpen(false); }
+    });
 
-    window.addEventListener('scroll', queue, { passive: true });
-    window.addEventListener('pageshow', () => {
-      setMenuOpen(false);
-      previousY = Math.max(window.scrollY, 0);
-      show();
-    });
-    desktop.addEventListener('change', () => {
-      const mobileFocus = menuPanel?.contains(document.activeElement) || document.activeElement === menuToggle;
-      setMenuOpen(false);
-      if (desktop.matches && mobileFocus) header.querySelector<HTMLAnchorElement>('.site-brand')?.focus({ preventScroll: true });
-      show();
-    });
-    header.addEventListener('focusin', show);
+    // Homepage: transparent over the hero until the page has moved 12px.
+    // Standard pages are raised from the start; phones are always raised.
+    const solid = header.classList.contains('site-header--solid');
+    const raise = () => header.classList.toggle('is-raised', solid || window.scrollY > 12 || !desktop.matches);
+    window.addEventListener('scroll', raise, { passive: true });
+    raise();
+
+    menuToggle?.addEventListener('click', () => { if (!desktop.matches && menuPanel) setMenuOpen(menuPanel.hidden); });
+    menuPanel?.addEventListener('click', event => { if (event.target instanceof Element && event.target.closest('a')) setMenuOpen(false); });
+    window.addEventListener('pageshow', () => { setMenuOpen(false); closeMenus(); raise(); });
+    desktop.addEventListener('change', () => { setMenuOpen(false); closeMenus(); raise(); });
   }
 </script>

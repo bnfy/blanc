@@ -156,7 +156,7 @@ test('gold marks remain visible with reduced motion and mobile navigation stays 
       const s = getComputedStyle(el, '::after');
       return { image: s.backgroundImage, width: s.width, height: s.height, duration: s.transitionDuration };
     });
-    assert.deepEqual(navGold, { image: `url("${baseURL}/sunrise-hero-mark.png")`, width: '20px', height: '20px', duration: '0.22s' });
+    assert.deepEqual(navGold, { image: `url("${baseURL}/sunrise-hero-mark.png")`, width: '24px', height: '24px', duration: '0.22s' });
     assert.equal(await page.locator('.site-brand-mark').evaluate(el => getComputedStyle(el).opacity), '0');
     if (process.env.BLANC_NAV_SCREENSHOT) await page.locator('.site-nav').screenshot({ path: process.env.BLANC_NAV_SCREENSHOT });
     await page.mouse.move(0, 0);
@@ -179,8 +179,9 @@ test('gold marks remain visible with reduced motion and mobile navigation stays 
     await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('button', { name: 'Open menu', exact: true }).evaluate(el => el === document.activeElement), true);
     await page.getByRole('button', { name: 'Open menu', exact: true }).click();
-    await page.locator('#siteMobileMenu').getByRole('link', { name: 'Features', exact: true }).click();
-    assert.ok(page.url().endsWith('/features'));
+    // The sheet's Features entry is an accordion now; the direct link is What's new.
+    await page.locator('#siteMobileMenu').getByRole('link', { name: "What's new", exact: true }).click();
+    assert.ok(page.url().endsWith('/changelog'));
     const current = page.locator('#siteMobileMenu a[aria-current="page"]');
     assert.equal(await current.count(), 1);
     assert.equal(await current.evaluate(el => getComputedStyle(el).backgroundColor), 'rgb(246, 235, 213)');
