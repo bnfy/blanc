@@ -1,4 +1,4 @@
-# Newsreader reach, level A — design
+# Newsreader reach — design (level A, then level B)
 
 **Date:** 2026-09-04
 **Decision:** Level A of three mocked options, chosen by the owner from
@@ -68,3 +68,14 @@ Product Hunt on Thursday so launch assets match what was already approved.
 
 The Electron app and its internal pages. Adding a font there needs its own
 CSP, packaging, OFL bundling, and compliance work, and a separate brief.
+
+## Amendment, same day: level B
+
+After seeing level A on the dev server the owner found the mix of Newsreader
+page headlines over Inter section headings unresolved, reviewed level B live,
+and chose it. Every heading on the website is now Newsreader at regular
+weight through one display-headings rule at the end of `site.css`. The demo
+showcase's headline-and-subline pair, which repeated the hero's shape, was
+merged into a single sentence per scene set as an Inter figure title; the
+merged lines reuse only wording already on the page, so no new claim was
+introduced.

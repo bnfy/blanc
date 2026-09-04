@@ -1,7 +1,8 @@
 // BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/newsreader-reach.test.mjs
 //
-// Level A of the Newsreader reach decision (4 Sep 2026): one Newsreader line
-// per page, the press quote in italic, everything else in Inter.
+// Level B of the Newsreader reach decision (4 Sep 2026): every heading in
+// Newsreader regular, the press quote in italic, the demo's single-sentence
+// figure title and everything else in Inter.
 import assert from 'node:assert/strict';
 import { after, before, test } from 'node:test';
 import { chromium, webkit } from 'playwright';
@@ -28,7 +29,7 @@ async function openPage(path = '/', width = 1440) {
 const serif = /^"?Newsreader Variable"?/;
 const sans = /^"?Inter/;
 
-test('the homepage headline is Newsreader regular and the demo headline stays Inter', async () => {
+test('the homepage headline is Newsreader regular and the demo carries one Inter figure title', async () => {
   const { page, context } = await openPage('/');
   try {
     const type = await page.evaluate(() => {
@@ -38,14 +39,23 @@ test('the homepage headline is Newsreader regular and the demo headline stays In
       return {
         token: root.getPropertyValue('--site-font-display').trim(),
         h1Font: h1.fontFamily, h1Weight: h1.fontWeight, h1Tracking: h1.letterSpacing,
-        demoFont: demo.fontFamily,
+        demoFont: demo.fontFamily, demoSize: parseFloat(demo.fontSize),
+        demoSubtext: document.getElementById('demoSubtext') || document.getElementById('demoViewerSubtext'),
+        demoText: document.getElementById('demoHeadline').textContent.trim(),
+        gridFont: getComputedStyle(document.querySelector('.home-feature h2')).fontFamily,
+        tagFont: getComputedStyle(document.querySelector('.site-footer .foot-identity p')).fontFamily,
         loaded: document.fonts.check('64px "Newsreader Variable"'),
       };
     });
     assert.match(type.token, /Newsreader Variable/);
     assert.match(type.h1Font, serif, 'homepage h1 is Newsreader');
     assert.equal(type.h1Weight, '400');
-    assert.match(type.demoFont, sans, 'demo showcase headline stays Inter');
+    assert.match(type.demoFont, sans, 'the demo figure title stays Inter');
+    assert.ok(type.demoSize <= 21, `the demo title is a figure title, got ${type.demoSize}px`);
+    assert.equal(type.demoSubtext, null, 'the demo has no second line under its title');
+    assert.ok(type.demoText.length > 40 && !type.demoText.includes('\n'), 'each scene is one sentence');
+    assert.match(type.gridFont, serif, 'feature cards are Newsreader');
+    assert.match(type.tagFont, serif, 'the footer tagline is Newsreader');
     assert.equal(type.loaded, true);
   } finally { await context.close(); }
 });
@@ -53,7 +63,7 @@ test('the homepage headline is Newsreader regular and the demo headline stays In
 const serifRoutes = ['/features', '/features/island', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/press', '/ambassadors'];
 const sansRoutes = ['/privacy', '/terms'];
 
-test('every page headline is Newsreader regular, legal pages stay Inter, nothing overflows', { timeout: 120000 }, async () => {
+test('every page headline and section heading is Newsreader regular, legal pages stay Inter, nothing overflows', { timeout: 120000 }, async () => {
   const { page, context } = await openPage('/');
   try {
     for (const width of [390, 768, 1440]) {
@@ -65,11 +75,12 @@ test('every page headline is Newsreader regular, legal pages stay Inter, nothing
         const type = await page.evaluate(() => {
           const h1 = document.querySelector('main h1, .hero h1, h1');
           const s = getComputedStyle(h1);
-          const h2 = document.querySelector('main h2');
+          const h2 = document.querySelector('main h2:not(.foot-nav-group h2)');
+            const h2Style = h2 ? getComputedStyle(h2) : null;
           return {
             font: s.fontFamily, weight: s.fontWeight, tracking: parseFloat(s.letterSpacing),
             size: parseFloat(s.fontSize),
-            h2Font: h2 ? getComputedStyle(h2).fontFamily : null,
+            h2Font: h2Style ? h2Style.fontFamily : null, h2Weight: h2Style ? h2Style.fontWeight : null,
             overflow: document.documentElement.scrollWidth > innerWidth,
           };
         });
@@ -81,7 +92,10 @@ test('every page headline is Newsreader regular, legal pages stay Inter, nothing
         assert.match(type.font, serif, `${width}px ${route} h1 is Newsreader`);
         assert.equal(type.weight, '400', `${route} h1 weight`);
         assert.ok(Math.abs(type.tracking - type.size * -0.02) < 0.6, `${route} h1 tracking is -0.02em, got ${type.tracking}px at ${type.size}px`);
-        if (type.h2Font) assert.match(type.h2Font, sans, `${route} section headings stay Inter`);
+        if (type.h2Font) {
+          assert.match(type.h2Font, serif, `${route} section headings are Newsreader`);
+          assert.equal(type.h2Weight, '400', `${route} section heading weight`);
+        }
       }
     }
   } finally { await context.close(); }
