@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import BrandMark from '../components/BrandMark.astro';
+import '@fontsource/instrument-serif/latin-400.css';
 import { version } from '../../../package.json';
 
 const graph = {
@@ -282,13 +283,19 @@ const graph = {
     </div>
   </section>
 
-  <section class="home-close" aria-labelledby="close-title">
-    <h2 id="close-title">Try Blanc.</h2>
-    <p>Free for macOS, Windows and Linux.</p>
-    <a class="cta" href="/download" data-track="feature_cta_click" data-feature="home" data-cta-position="home-close">
-      <span class="home-download-desktop">Download Blanc</span>
-      <span class="home-download-mobile">Download on desktop</span>
-    </a>
+  <section class="home-patron" aria-labelledby="home-patron-title">
+    <div class="home-patron-copy">
+      <BrandMark class="home-patron-mark" />
+      <h2 id="home-patron-title"><span class="home-patron-intro">Upgrade to</span>{' '}<span class="home-patron-name">Blanc Patron.</span></h2>
+      <p>Keep sets of tabs and groups ready to switch between with Named Workspaces. Your subscription supports Blanc’s development.</p>
+    </div>
+    <div class="home-patron-offer">
+      <p class="home-patron-price"><strong><span class="home-patron-currency">US$</span><span class="home-patron-amount">30</span></strong><span class="home-patron-period"> / year</span></p>
+      <p class="home-patron-monthly">or US$4 / month</p>
+      <p class="home-patron-tax">Plus applicable tax.</p>
+      <a class="cta" href="https://buy.polar.sh/polar_cl_auwRq39Q2hIVLJwANEqFWgWuZ8DGjdJmEI4mE0JaNDf" target="_blank" rel="noopener" data-track="supporter_click" data-feature="patron" data-cta-position="home-patron-close">Upgrade to Blanc Patron</a>
+      <p class="home-patron-reassurance">Blanc is free to browse. Patron is optional.</p>
+    </div>
   </section>
 </main>
 
