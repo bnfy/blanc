@@ -45,8 +45,11 @@ release-operator instructions and immutable-release rules continue to apply.
 
 `CONTRIBUTING.md` now describes public contributions, private security reports,
 setup, relevant checks, review expectations, release boundaries, and licensing.
-The README links to it. This documents the contribution process; it does not
-claim that the user documentation covers every basic browser feature.
+The README links to it and a new release-backed `docs/user-guide.md`.
+`docs/user-guide-evidence.md` records the release sources and qualifications.
+`docs/repository-inventory.md` maps the codebases in this repository and explains
+the checked-in binary assets. The inventory does not assert ownership of every
+external codebase or settle the blocker seed's generated-executable classification.
 
 CodeQL and native release workflows now default to `contents: read`. CodeQL
 grants `security-events: write` only to its analysis job. The two native jobs

@@ -64,6 +64,9 @@ Apple Silicon and/or Intel dmg/zip artifacts, signed & notarized), Windows
 (x86_64 AppImage).
 Installed copies keep themselves current via auto-update.
 
+See the [user guide](docs/user-guide.md) for getting started, browsing,
+privacy controls, profiles, sync, and updates.
+
 ## Run it from source
 
 For bug reports, patches, and documentation improvements, see
