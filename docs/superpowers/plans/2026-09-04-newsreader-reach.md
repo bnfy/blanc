@@ -32,7 +32,7 @@
 **Interfaces:**
 - Produces: CSS token `--site-font-display` on `:root`, identical stack to `--site-font-patron`. Later tasks reference it by that exact name.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `test/site/newsreader-reach.test.mjs`:
 
@@ -89,14 +89,14 @@ test('the homepage headline is Newsreader regular and the demo headline stays In
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Build and serve first (see Global Constraints), then:
 
 Run: `BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/newsreader-reach.test.mjs`
 Expected: FAIL, `token` is empty and `h1Font` starts with `"Inter`.
 
-- [ ] **Step 3: Add the token and move the font import**
+- [x] **Step 3: Add the token and move the font import**
 
 In `site/src/styles/site.css`, directly after the `--site-font-patron` line, add:
 
@@ -124,12 +124,12 @@ In `site/src/layouts/BaseLayout.astro`, add to the frontmatter imports (next to 
 import '@fontsource-variable/newsreader/opsz.css';
 ```
 
-- [ ] **Step 4: Rebuild, restart the preview, run the test**
+- [x] **Step 4: Rebuild, restart the preview, run the test**
 
 Run: `npm run site:build && (cd site && npx astro preview --port 4322 --host 127.0.0.1 &)` then `BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/newsreader-reach.test.mjs test/site/sunrise-light.test.mjs`
 Expected: PASS for both files. `sunrise-light` still passes because the Patron token is untouched.
 
-- [ ] **Step 5: Check the homepage at three widths**
+- [x] **Step 5: Check the homepage at three widths**
 
 Run:
 
@@ -152,7 +152,7 @@ const { chromium } = require("playwright");
 
 Expected: `overflow: false` at every width; `lines` is 1 at 1440 and 768, 1 or 2 at 390.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add site/src/styles/site.css site/src/layouts/BaseLayout.astro site/src/pages/index.astro test/site/newsreader-reach.test.mjs
@@ -174,7 +174,7 @@ regular weight with restrained tracking."
 **Interfaces:**
 - Consumes: `--site-font-display` from Task 1.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `test/site/newsreader-reach.test.mjs`:
 
@@ -217,12 +217,12 @@ test('every page headline is Newsreader regular, legal pages stay Inter, nothing
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/newsreader-reach.test.mjs`
 Expected: FAIL on `/features` with `font` starting `"Inter`.
 
-- [ ] **Step 3: Rewrite the seven rules**
+- [x] **Step 3: Rewrite the seven rules**
 
 Line 915, split the download headline out of the shared selector so the `h2`s keep Inter:
 
@@ -269,16 +269,16 @@ Line 1630:
 
 Leave `.legal-doc h1` (line 1486) untouched.
 
-- [ ] **Step 4: Rebuild, restart the preview, run the test**
+- [x] **Step 4: Rebuild, restart the preview, run the test**
 
 Run: `npm run site:build`, restart the preview, then `BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/*.test.mjs`
 Expected: PASS for all site test files, including the pre-existing `demo-desktop-canvas` palette test that walks every route at three widths.
 
-- [ ] **Step 5: Eyeball the two longest headlines**
+- [x] **Step 5: Eyeball the two longest headlines**
 
 Run the width probe from Task 1 Step 5 against `/press` and `/features` (replace the URL). Expected: no overflow, and the press headline "Blanc replaces browser clutter with one small island." is at most 3 lines at 390px and 2 lines at 1440px.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add site/src/styles/site.css test/site/newsreader-reach.test.mjs
@@ -301,7 +301,7 @@ pages, and controls stay Inter."
 **Interfaces:**
 - Consumes: `--site-font-display` from Task 1.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `test/site/newsreader-reach.test.mjs`:
 
@@ -327,12 +327,12 @@ test('the press announcement quote is the only Newsreader italic on the site', a
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/newsreader-reach.test.mjs`
 Expected: FAIL, `style` is `normal` and `loaded` is `false`.
 
-- [ ] **Step 3: Import the italic on the press page and restyle the quote**
+- [x] **Step 3: Import the italic on the press page and restyle the quote**
 
 In `site/src/pages/press.astro` frontmatter, after the existing imports:
 
@@ -346,12 +346,12 @@ Replace line 1851 of `site/src/styles/site.css`:
 .press-announcement blockquote p { margin: 0; font-family: var(--site-font-display); font-style: italic; font-weight: 400; font-size: clamp(22px, 2.4vw, 29px); line-height: 1.35; letter-spacing: -0.005em; }
 ```
 
-- [ ] **Step 4: Rebuild, restart the preview, run the tests**
+- [x] **Step 4: Rebuild, restart the preview, run the tests**
 
 Run: `npm run site:build`, restart the preview, then `BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/*.test.mjs`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add site/src/pages/press.astro site/src/styles/site.css test/site/newsreader-reach.test.mjs
@@ -374,7 +374,7 @@ italic appears."
 **Interfaces:**
 - Consumes: the woff2 at `site/node_modules/@fontsource-variable/newsreader/files/newsreader-latin-opsz-normal.woff2`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `test/unit/og-cards.test.js`:
 
@@ -390,12 +390,12 @@ test('the card generators set their titles in Newsreader, the site display face'
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `node --test test/unit/og-cards.test.js`
 Expected: FAIL, the Newsreader file is not referenced.
 
-- [ ] **Step 3: Embed the face in both generators**
+- [x] **Step 3: Embed the face in both generators**
 
 In `site/scripts/render-og-cards.mjs`, after line 119 (`const mono = ...`), add:
 
@@ -420,7 +420,7 @@ In `site/scripts/render-press-primary-capture.mjs`, after line 170 (the mono dat
           h1 { position: absolute; top: 246px; left: 94px; width: 720px; margin: 0; font-family: Newsreader, serif; font-size: 122px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.0; font-optical-sizing: auto; }
 ```
 
-- [ ] **Step 4: Run the unit test, then regenerate the cards**
+- [x] **Step 4: Run the unit test, then regenerate the cards**
 
 Run: `node --test test/unit/og-cards.test.js`
 Expected: PASS.
@@ -433,14 +433,14 @@ cd site && node scripts/render-og-cards.mjs && node scripts/render-press-primary
 
 Expected: both scripts print the files they wrote; `git status` shows the six OG PNGs and `site/public/press/blanc-press-card.png` modified. `site/public/press/blanc-island-product-capture-v2.png` may also be rewritten; keep it only if its bytes changed for a reason you can see (the product capture has no title text, so it should be unchanged; if it changed, discard it with `git checkout -- site/public/press/blanc-island-product-capture-v2.png`).
 
-- [ ] **Step 5: Look at one card and run the card guards**
+- [x] **Step 5: Look at one card and run the card guards**
 
 Open `site/public/og-image.png` and `site/public/press/blanc-press-card.png` (use the Read tool). Expected: the title is a serif at regular weight, on one to three lines, with the mark and mono lines untouched.
 
 Run: `node --test test/unit/og-cards.test.js test/unit/press-kit.test.js test/unit/brand-assets.test.js`
 Expected: PASS (dimensions 1200x630, six distinct digests, press card size unchanged).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add site/scripts/render-og-cards.mjs site/scripts/render-press-primary-capture.mjs site/public/og-image.png site/public/feature-island.png site/public/feature-ad-blocking.png site/public/feature-command-palette.png site/public/feature-private-tabs.png site/public/feature-tab-groups.png site/public/press/blanc-press-card.png test/unit/og-cards.test.js
@@ -459,7 +459,7 @@ h1 at regular weight; the PNGs are regenerated at the same stable URLs."
 - Modify: `site/CLAUDE.md` (the fonts sentence in the first paragraph)
 - Test: existing `test/unit/public-truth.test.js`, `test/unit/site-island-visual.test.js`
 
-- [ ] **Step 1: Amend the brand doc**
+- [x] **Step 1: Amend the brand doc**
 
 In `docs/brand-usage.md`, replace the sentence in the Patron section:
 
@@ -496,7 +496,7 @@ with:
   4 September 2026;
 ```
 
-- [ ] **Step 2: Amend the site guidance**
+- [x] **Step 2: Amend the site guidance**
 
 In `site/CLAUDE.md`, the sentence `(bundled + hashed; fonts self-hosted via fontsource — the UI family is "Inter Variable", and this file is NOT under the root tokens/ substrate guard)` becomes:
 
@@ -507,7 +507,7 @@ Variable"`, the display family is `"Newsreader Variable"` loaded in
 file is NOT under the root `tokens/` substrate guard)
 ```
 
-- [ ] **Step 3: Run the doc guards and the full site suite once more**
+- [x] **Step 3: Run the doc guards and the full site suite once more**
 
 Run: `node --test test/unit/public-truth.test.js test/unit/site-island-visual.test.js test/unit/brand-assets.test.js test/unit/press-kit.test.js test/unit/og-cards.test.js test/unit/compliance-model.test.js`
 Expected: PASS.
@@ -515,13 +515,13 @@ Expected: PASS.
 Run: `npm run site:build`, restart the preview, `BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/*.test.mjs`, then stop the preview.
 Expected: PASS, and no process left listening on port 4322.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/brand-usage.md site/CLAUDE.md
 git commit -m "Record the Newsreader display-face rules in brand usage and site guidance"
 ```
 
-- [ ] **Step 5: Report**
+- [x] **Step 5: Report**
 
 Tell the owner the branch is ready, list the seven regenerated PNGs, and remind them that social templates under the title rule wait until after Product Hunt on Thursday 10 September.
