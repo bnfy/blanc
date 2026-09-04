@@ -54,3 +54,7 @@ Request-derived fixture names now receive HTML text encoding. OAuth query values
 ## CI input handling
 
 Release-upload steps now pass the tag via an environment variable and quoted shell expansion rather than interpolating it into shell source. Existing tag/package validation, workflow dispatch access, conditions, artifacts and job permissions are unchanged. Parsed before/after workflow structures differ only in this transport change. Native release jobs have not been dispatched for this draft.
+
+## Candidate preview lookup alerts #50/#51
+
+Both locations are realpath calls, not file reads. URL decoding and lexical root containment precede these calls; resolved-path containment precedes open/stat/read. Existing traversal and symlink-escape HTTP tests return 403 without serving file contents. The extensionless fallback only appends .html to the already confined candidate. The scanner does not model the custom containment predicate. These are false positives for the claimed path-injection read; trusted-local-build-tree and concurrent-writer limitations remain as documented above.
