@@ -49,3 +49,40 @@ test('the homepage headline is Newsreader regular and the demo headline stays In
     assert.equal(type.loaded, true);
   } finally { await context.close(); }
 });
+
+const serifRoutes = ['/features', '/features/island', '/features/ad-blocking', '/download', '/changelog', '/about', '/faq', '/press', '/ambassadors'];
+const sansRoutes = ['/privacy', '/terms'];
+
+test('every page headline is Newsreader regular, legal pages stay Inter, nothing overflows', { timeout: 120000 }, async () => {
+  const { page, context } = await openPage('/');
+  try {
+    for (const width of [390, 768, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const route of [...serifRoutes, ...sansRoutes]) {
+        const response = await page.goto(`${baseURL}${route}`);
+        assert.equal(response.status(), 200, route);
+        await page.evaluate(() => document.fonts.ready);
+        const type = await page.evaluate(() => {
+          const h1 = document.querySelector('main h1, .hero h1, h1');
+          const s = getComputedStyle(h1);
+          const h2 = document.querySelector('main h2');
+          return {
+            font: s.fontFamily, weight: s.fontWeight, tracking: parseFloat(s.letterSpacing),
+            size: parseFloat(s.fontSize),
+            h2Font: h2 ? getComputedStyle(h2).fontFamily : null,
+            overflow: document.documentElement.scrollWidth > innerWidth,
+          };
+        });
+        assert.equal(type.overflow, false, `${width}px ${route} overflows`);
+        if (sansRoutes.includes(route)) {
+          assert.match(type.font, sans, `${route} legal h1 stays Inter`);
+          continue;
+        }
+        assert.match(type.font, serif, `${width}px ${route} h1 is Newsreader`);
+        assert.equal(type.weight, '400', `${route} h1 weight`);
+        assert.ok(Math.abs(type.tracking - type.size * -0.02) < 0.6, `${route} h1 tracking is -0.02em, got ${type.tracking}px at ${type.size}px`);
+        if (type.h2Font) assert.match(type.h2Font, sans, `${route} section headings stay Inter`);
+      }
+    }
+  } finally { await context.close(); }
+});
