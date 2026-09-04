@@ -1,0 +1,369 @@
+{
+  "date": "2026-09-02",
+  "asOf": "2026-09-02T13:29:00-04:00",
+  "timezone": "America/New_York",
+  "targetNewAudiencePerPriorityPlatform": 10,
+  "audience": {
+    "x": { "previousVerified": 11, "current": 11, "delta": 0, "unit": "followers" },
+    "threads": { "previousVerified": 21, "current": 21, "delta": 0, "unit": "followers" },
+    "instagram": { "previousVerified": 105, "current": 103, "delta": -2, "unit": "followers" },
+    "facebook": { "previousVerified": 9, "current": 10, "delta": 1, "unit": "followers" },
+    "tiktok": { "previousVerified": 26, "current": 26, "delta": 0, "unit": "followers" },
+    "substack": { "previousVerified": 2, "current": 3, "delta": 1, "unit": "subscribers", "pendingNewSubscribers": 0 }
+  },
+  "signals": {
+    "x": { "recentOwnedPostViews": [15, 41, 13], "visibleInteractions": 0 },
+    "threads": {
+      "causalParentViews": 2600,
+      "causalParentLikes": 32,
+      "causalParentReplies": 8,
+      "causalParentShares": 2,
+      "blancReplyViewsMinimum": 50,
+      "latestOwnedPostLikes": 1
+    },
+    "instagram": { "freshUnansweredInboundFound": false },
+    "facebook": { "freshUnansweredInboundFound": false },
+    "tiktok": {
+      "recentVideoViews": { "mahjong": 96, "quietTabs": 69, "noAiIsland": 89 },
+      "profileLikes": 6,
+      "freshUnansweredInboundFound": false
+    },
+    "substack": {
+      "sevenDayViews": 46,
+      "sevenDayViewsChangePercent": -57.4,
+      "latestArticleViews": 2,
+      "latestArticleOpenPercent": 50,
+      "firstArticleViews": 13,
+      "firstArticleOpenPercent": 100
+    }
+  },
+  "freshApprovalQueue": [
+    {
+      "platform": "threads",
+      "target": "https://www.threads.com/@nik_onatrip/post/DcxA9pGFGjw",
+      "actions": ["like", "reply"],
+      "status": "completed",
+      "recheck": "4 hours old; 180 views; no replies; no Blanc activity",
+      "reply": "same. closing one feels less like cleanup and more like deleting a task you haven’t done yet",
+      "blancReply": "https://www.threads.com/@blancbrowser/post/Dcxdcn6DrJ5",
+      "verification": "Parent showed Unlike 1 and Reply 1 after publication."
+    },
+    {
+      "platform": "x",
+      "target": "https://x.com/gouravbht/status/2095001575970541987",
+      "actions": ["follow", "like", "reply"],
+      "status": "completed",
+      "recheck": "posted 12:11 AM ET; 15 views; 2 likes; no replies; no Blanc activity",
+      "relationshipRationale": "Active builder working on a job-application productivity product and posting directly about browser workflow.",
+      "reply": "the form is one step. the browser quietly becomes the temporary office for everything around it.",
+      "blancReply": "https://x.com/blancbrowser/status/2095017436269408409",
+      "verification": "Parent showed 3 likes, 1 reply, and Following @gouravbht."
+    },
+    {
+      "platform": "substack",
+      "target": "https://substack.com/@associationredefine/note/c-327171354",
+      "actions": ["subscribe", "like", "reply"],
+      "status": "completed",
+      "recheck": "19 hours old; 5 likes; no replies; no Blanc activity",
+      "relationshipRationale": "Privacy, infrastructure, and business-model analysis matches Blanc's intended Substack editorial lane.",
+      "reply": "Exactly. Consent is often treated as the end of the privacy story, when it’s really the start: what gets collected, where it travels, how long it stays, and what business model depends on keeping it.",
+      "blancReply": "https://substack.com/profile/542769413-blanc-browser/note/c-327841502",
+      "verification": "Publication showed Subscribed; note showed 6 likes and 1 reply."
+    },
+    {
+      "platform": "instagram",
+      "target": "https://www.instagram.com/p/Dcq0uFUK_Je/",
+      "actions": ["like", "comment"],
+      "status": "completed",
+      "recheck": "2 days old; active one-day-old comments with 20-384 likes; no Blanc activity",
+      "reply": "once a tab survives two meetings and a weekend it basically has tenure",
+      "blancComment": "https://www.instagram.com/p/Dcq0uFUK_Je/c/17972839013932818/",
+      "verification": "Post showed Unlike; comment count moved from 252 to 253 and the exact Blanc comment was visible."
+    },
+    {
+      "platform": "tiktok",
+      "target": "https://www.tiktok.com/@nathanhodgson.ai/video/7680215917694881046",
+      "actions": ["follow", "like", "comment"],
+      "status": "completed",
+      "recheck": "1 day old; 139 likes; 2 comments; 88 favorites; 22 shares; no Blanc activity",
+      "relationshipRationale": "Active AI/tech creator reaching people who already think about browser-based tools.",
+      "reply": "the browser has quietly become the place where almost every app goes to live",
+      "verification": "Video showed 140 likes and 3 comments; creator profile showed Following and the exact Blanc comment was visible."
+    }
+  ],
+  "facebookScouting": {
+    "freshUnansweredInboundFound": false,
+    "currentRelevantConversationFound": false,
+    "decision": "No weak or stale Facebook action was added to the approval queue."
+  },
+  "secondOutreachBatch": {
+    "completedAt": "2026-09-02T12:42:00-04:00",
+    "status": "completed",
+    "targets": [
+      {
+        "platform": "threads",
+        "target": "https://www.threads.com/@alignedoperationsco/post/DcyjMjAiMON",
+        "actions": ["follow", "like", "reply"],
+        "recheck": "about 1 hour old; 134 views; 2 likes; no replies; no Blanc activity",
+        "reply": "honestly, hiding the labels is where vertical tabs start feeling less like moving clutter and more like getting space back",
+        "blancReply": "https://www.threads.com/@blancbrowser/post/Dcyr33hEZAT",
+        "verification": "Parent changed from 2 to 3 likes and from 0 to 1 reply; the Blanc reply was visible."
+      },
+      {
+        "platform": "x",
+        "target": "https://x.com/SergBerezhnoy/status/2095186600955093066",
+        "actions": ["follow", "like", "reply"],
+        "recheck": "posted at 12:26 PM ET; 3 views; one self-thread reply; no likes; no Blanc activity",
+        "reply": "there’s a point where research turns into tab archaeology. showing the evidence where the decision happens is the better design.",
+        "blancReply": "https://x.com/blancbrowser/status/2095189939210097007",
+        "verification": "X showed Your post was sent; parent changed from 0 to 1 like and from 1 to 2 replies."
+      },
+      {
+        "platform": "substack",
+        "target": "https://substack.com/@rduffyy/note/c-328116801",
+        "actions": ["subscribe", "like", "reply"],
+        "recheck": "2 hours old; 3 likes; no replies; no Blanc activity",
+        "reply": "The shift from privacy as the default to privacy as unpaid maintenance is the part that wears people down. Every opt-out assumes you noticed the observation in the first place.",
+        "blancReply": "https://substack.com/profile/542769413-blanc-browser/note/c-328193763",
+        "verification": "Substack showed Reply sent; the Note changed from 3 to 4 likes and from 0 to 1 reply."
+      },
+      {
+        "platform": "instagram",
+        "target": "https://www.instagram.com/p/DctC4DWEUJB/",
+        "actions": ["follow", "like", "comment"],
+        "recheck": "2 days old; 3 likes; one comment; no Blanc activity",
+        "reply": "50 tabs and suddenly naming the groups feels less like organizing and more like giving the pile a floor plan",
+        "blancComment": "https://www.instagram.com/p/DctC4DWEUJB/c/18115214704952542/",
+        "verification": "The Reel changed from 3 to 4 likes and the exact Blanc comment was visible as Now."
+      },
+      {
+        "platform": "tiktok",
+        "target": "https://www.tiktok.com/@gis4gina_ugc/video/7680965692526513438",
+        "actions": ["follow", "like", "comment"],
+        "recheck": "about 50 minutes old; 1 like; no comments, favorites, or shares; no Blanc activity",
+        "reply": "screenshot chaos is what happens after tab chaos reaches its final form",
+        "verification": "TikTok showed Comment posted; the video changed from 1 to 2 likes and from 0 to 1 comment, and the creator follow control showed a checkmark."
+      }
+    ],
+    "publicActions": 15,
+    "relationshipActions": 5,
+    "likes": 5,
+    "repliesOrComments": 5,
+    "facebookDecision": "No action: current search results were stale, including the newest relevant results from August 23 and August 26."
+  },
+  "earlyConversionCheckpoint": {
+    "verifiedAt": "2026-09-02T12:46:37-04:00",
+    "elapsedAfterPublication": "approximately 5 minutes",
+    "x": {
+      "followers": 11,
+      "deltaFromPreBatch": 0
+    },
+    "threads": {
+      "followers": 21,
+      "deltaFromPreBatch": 0,
+      "replyLikes": 0,
+      "replyReplies": 0
+    },
+    "instagram": {
+      "commentStillVisible": true,
+      "parentLikes": 4
+    },
+    "interpretation": "Too early for a conversion judgment; no verified follower movement yet on X or Threads. Recheck at 60-90 minutes."
+  },
+  "followerConversionReset": {
+    "verifiedAt": "2026-09-02T12:52:06-04:00",
+    "sevenDayPortfolioMinimum": 35,
+    "dailyPerPlatformStretchTarget": 10,
+    "currentAudience": {
+      "x": 11,
+      "threads": 21,
+      "instagram": 103,
+      "facebook": 10,
+      "tiktok": 26,
+      "substack": 3,
+      "substackPending": 0
+    },
+    "facebookOwnedPost": {
+      "views": 80,
+      "viewers": 79,
+      "nonFollowerViewers": 78,
+      "nonFollowerViewerPercent": 97.5,
+      "followerViewers": 2,
+      "engagements": 25,
+      "clicks": 23,
+      "linkClicks": 21,
+      "reactions": 2,
+      "follows": 1
+    },
+    "activeMetaPromotion": {
+      "objective": "Facebook Page Visits",
+      "status": "active",
+      "started": "2026-09-02",
+      "budgetPerDayUsd": 13,
+      "spentUsd": 4.81,
+      "views": 80,
+      "reach": 77,
+      "facebookPageVisits": 32,
+      "costPerPageVisitUsd": 0.1503125
+    },
+    "interpretation": "Owned content and profile conversion become primary. Creator distribution is secondary. Replies continue only for qualified distribution, inbound, or relationship development."
+  },
+  "followerFirstCheckpoint": {
+    "verifiedAt": "2026-09-02T13:12:00-04:00",
+    "audience": {
+      "x": 11,
+      "threads": 21,
+      "instagramLatestVerified": 103,
+      "facebook": 10,
+      "tiktok": 26,
+      "substack": 3
+    },
+    "verifiedMovement": {
+      "substack": 1,
+      "x": 0,
+      "threads": 0,
+      "facebook": 0,
+      "tiktok": 0
+    },
+    "instagramCurrentPost": {
+      "views": 80,
+      "visiblePublicLikes": 2,
+      "insightPostInteractions": 0,
+      "profileVisits": 0,
+      "follows": 0,
+      "reportingNote": "Public likes and the insight interaction field disagree; downstream profile visits and follows are both zero."
+    },
+    "freshRelationshipSignal": {
+      "platform": "tiktok",
+      "account": "@gis4gina_ugc",
+      "creatorFollowers": 281,
+      "creatorLikes": 1300,
+      "messageControlAvailable": true,
+      "likedBlancCommentMinutesAgo": 16,
+      "repliedToBlancCommentMinutesAgo": 15,
+      "countsAsFollowerGrowth": false
+    },
+    "secondaryReplyOpportunity": {
+      "platform": "x",
+      "target": "https://x.com/brave/status/2095185124388176273",
+      "ageMinutesAtRecheck": 53,
+      "views": 13200,
+      "likes": 437,
+      "reposts": 34,
+      "replies": 31,
+      "existingBlancReplyFound": false,
+      "approved": false
+    },
+    "nextPublicAction": "Send the prepared honest-reaction invitation to Gina after action-time approval; creator invitations precede the single optional X reply."
+  },
+  "metaGrowthCheckpoint": {
+    "verifiedAt": "2026-09-02T13:24:00-04:00",
+    "activePromotion": {
+      "objective": "Facebook Page Visits",
+      "budgetPerDayUsd": 13,
+      "spentUsd": 5.46,
+      "views": 99,
+      "reach": 95,
+      "facebookPageVisits": 36,
+      "costPerPageVisitUsd": 0.1516666667
+    },
+    "associatedPost": {
+      "facebookViews": 93,
+      "nonFollowerViews": 91,
+      "nonFollowerViewPercent": 97.8,
+      "engagements": 25,
+      "clicks": 23,
+      "linkClicks": 21,
+      "reactions": 2,
+      "follows": 1
+    },
+    "pageFollowers": 10,
+    "pageVisitToFollowPercent": 2.78,
+    "notificationSignal": {
+      "accountsNamed": ["Bobbi Stephens", "DailyTatum", "Anup Kumar"],
+      "countedAsGrowth": false,
+      "reason": "The grouped notification did not produce a corresponding change in the verified Page follower total."
+    },
+    "x": {
+      "followers": 11,
+      "freshInboundFound": false,
+      "braveTargetViews": 13200,
+      "braveTargetLikes": 439,
+      "braveTargetReposts": 34,
+      "braveTargetReplies": 31
+    },
+    "decision": "No ad edit yet: page visits are still inexpensive, but follower conversion remains only 1 of 36 visits. Continue measuring rather than changing a same-day campaign from a small sample."
+  },
+  "creatorAmbassadorPipeline": {
+    "websitePath": "/ambassadors",
+    "websiteStatus": "complete locally; build and SEO verification passed; production deployment pending approval",
+    "prospects": [
+      { "platform": "tiktok", "account": "@gis4gina_ugc", "status": "invitation staged" },
+      { "platform": "x", "account": "@DomJoLuna", "status": "invitation staged" },
+      { "platform": "instagram", "account": "@onlytech.talk", "status": "invitation staged" },
+      { "platform": "threads", "account": "@causal.so", "status": "invitation staged" },
+      { "platform": "substack", "account": "@rduffyy", "status": "invitation staged" }
+    ],
+    "messagesSent": 0,
+    "publicAnnouncementPublished": false,
+    "deploymentApproved": false,
+    "outreachApproved": false
+  },
+  "fullNetworkCheckpoint": {
+    "verifiedAt": "2026-09-02T13:29:00-04:00",
+    "audience": {
+      "x": { "followers": 11, "recentOwnedPostViews": [26, 44, 15], "freshInboundFound": false },
+      "threads": { "followers": 21, "recentViews": 13000, "freshInboundFound": false },
+      "instagram": { "followers": 103, "following": 61, "freshInboundFound": false },
+      "facebook": { "followers": 10, "following": 52, "freshInboundFound": false },
+      "tiktok": { "followers": 26, "following": 18, "profileLikes": 6, "freshInboundFound": false },
+      "substack": { "dashboardSubscribers": 3, "freshInboundFound": true }
+    },
+    "warmSignals": [
+      {
+        "platform": "tiktok",
+        "account": "@gis4gina_ugc",
+        "signal": "liked and replied to Blanc's comment",
+        "minutesAgo": 32,
+        "newFollower": false
+      },
+      {
+        "platform": "substack",
+        "account": "@rduffyy",
+        "signal": "subscribed, liked Blanc's article, and replied to Blanc's privacy Note",
+        "newSubscriberAlreadyCounted": true
+      }
+    ],
+    "freshInboundQueue": [
+      {
+        "platform": "substack",
+        "account": "@rduffyy",
+        "incoming": "Exactly. One example I deal with daily is having to go out of my way to mute the microphone on my PS5 controller.",
+        "proposedReply": "That’s a good example of the burden being shifted onto the user. The more devices that ship listening by default, the more privacy becomes a daily checklist instead of a baseline.",
+        "approved": false,
+        "published": false
+      }
+    ],
+    "dailyTargetAchieved": false
+  },
+  "ownedPostDraft": {
+    "publicRelease": "1.12.0",
+    "platforms": ["x", "threads", "substack"],
+    "shortCopy": "Browser calls shouldn’t make every other word disappear.\n\nBlanc 1.12.0 adds optional Stable and Resilient receive buffers. They trade some conversational delay for more tolerance of chopped playback.\n\nChange the setting, then start a new call.\nblancbrowser.com",
+    "shortCopyCharacters": 260,
+    "published": false,
+    "approved": false,
+    "excludedPlatforms": {
+      "instagram": "No approved native visual treatment.",
+      "facebook": "No approved native visual treatment.",
+      "tiktok": "No approved native visual treatment."
+    }
+  },
+  "publicActionsAuthorized": true,
+  "publicActionTargetsCompleted": 10,
+  "publicActionsTakenTodayLogged": 28,
+  "outreachBatchStatus": "completed",
+  "outreachBatchCompletedAt": "2026-09-02T12:42:00-04:00",
+  "priorFiveActionQueueAlreadyCompleted": true,
+  "dailyTargetAchieved": false
+}

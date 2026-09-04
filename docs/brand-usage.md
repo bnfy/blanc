@@ -67,7 +67,8 @@ These website-only tokens are separate from the released product palette:
 - muted text: `#6B6257` (`--site-text-dim`);
 - gold on light backgrounds: `#805D28` (`--site-gold`);
 - gold on dark backgrounds: `#D4AD66` (`--site-gold-on-dark`);
-- pale selected-state background: `#F6EBD5` (`--site-selection`).
+- pale selected-state background: `#F6EBD5` (`--site-selection`);
+- warm ink for the Patron offer only: `#12100B` (`--site-ink-warm`).
 
 Use gold for eyebrows, section kickers, text-link arrows and interaction
 states, FAQ disclosure markers, navigation states, and the changelog's small
@@ -75,8 +76,11 @@ new-feature dot. The pale background belongs only to selected mobile menu
 items. Keep underlines, focus outlines, and other state indicators alongside
 color. Gold and muted text meet 4.5:1 contrast on the specified ivory, section,
 raised, and pale selection surfaces. Use the dark-background gold token on
-dark sections and navigation. Decorative hairlines are not focus indicators;
-retain high-contrast outlines and control states.
+dark sections and navigation; it meets 4.5:1 on both the shared ink and the
+warm ink. The warm ink belongs to the Patron offer alone: the shared
+`--site-accent` stays neutral, and product tokens are never warmed.
+Decorative hairlines are not focus indicators; retain high-contrast outlines
+and control states.
 
 The website may place its monochrome marks directly on these warm page
 surfaces. This exception permits the shared page background, not added logo
@@ -102,10 +106,16 @@ negative tracking, and generous space around the name. Do not use the display
 serif for small text or replace the canonical Sunrise symbol with a letterform.
 
 The homepage offer pairs the monochrome Sunrise symbol with this display name
-on an ink (`--site-accent`) section, using ivory (`--site-bg`) text and a filled
-gold (`--site-gold-on-dark`) button with ink text. Keep the pricing separate
-with a fine rule; retain a light keyboard focus outline and mobile touch target
-of at least 48px. Avoid decorative badges, gradients, and animated ornament.
+on a warm ink (`--site-ink-warm`) section. The display name and the main price
+numeral are set in gold (`--site-gold-on-dark`); supporting copy, currency,
+billing labels, and the symbol stay ivory (`--site-bg`), and the filled gold
+button keeps its ink text. One radial gold light spill, anchored to the
+section's top edge at no more than about a quarter strength, is the section's
+only gradient; the symbol sits below its brightest point and is never backed
+by it. Keep the pricing separate with a fine rule; retain a light keyboard
+focus outline and mobile touch target of at least 48px. Avoid decorative
+badges, additional gradients, and animated ornament. The section may rise
+once into view under the homepage reveal rules below.
 
 The font is self-hosted through the pinned `@fontsource/instrument-serif`
 package and loaded on the homepage. Its SIL Open Font License is included at
@@ -125,6 +135,29 @@ grouped navigation, and a secondary newsletter, followed by a fine rule and comp
 legal/social row. Navigation and utility links may use gold for hover, focus,
 and current-page states. Social/contact icons retain their original geometry
 and use bronze (`--site-gold`) at rest, changing to ink on hover or focus.
+
+### Horizon rule and lit surfaces
+
+The footer seam on every page carries the horizon rule: a 1px gold
+(`--site-gold-on-dark`) hairline that fades out toward both edges, with a
+soft gold glow rising about 160px into the page above it at no more than
+about 30% strength. It replaces the footer's neutral top border. It is a
+decorative seam, not a focus indicator, and no mark, badge, or lockup may sit
+on the glow; the footer symbol remains ink on the warm surface below the line.
+
+The homepage demo showcase frame is lit from its top edge with a raised-to-
+surface (`--site-surface-raised` to `--site-surface`) gradient. The product
+replica inside it keeps its released colors.
+
+### Homepage reveal motion
+
+The homepage feature grid and the Patron section may rise once into view: a
+14px rise with a fade over 360ms, the grid's cards staggered by 70ms. The
+reveal state is added only by script, only when motion is welcome, and only
+for sections that start below the viewport, so server HTML, visitors without
+JavaScript, and reduced-motion visitors always see every section at rest. A
+revealed section never hides again. The hero mark, navigation, and footer
+have no entrance animation.
 
 ### Homepage Sunrise mark
 

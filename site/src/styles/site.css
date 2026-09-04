@@ -42,6 +42,8 @@
   --site-gold: #805D28;
   --site-gold-on-dark: #D4AD66;
   --site-selection: #F6EBD5;
+  /* Warm ink for the Patron offer only: the shared --site-accent stays neutral. */
+  --site-ink-warm: #12100B;
 
 }
 * { box-sizing: border-box; }
@@ -120,7 +122,8 @@ a { color: inherit; }
 }
 .hero-eyebrow { margin: 0 0 18px; color: var(--site-gold); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: lowercase; }
 .hero h1 { margin: 0 auto; font-family: var(--font-ui); font-size: clamp(40px, 3.7vw, 54px); font-weight: 500; letter-spacing: -0.025em; line-height: 1.1; text-wrap: balance; }
-.demo-showcase { width: 100%; max-width: 1040px; margin-top: 58px; padding: 42px 28px 26px; background: var(--site-surface); border: 1px solid var(--site-border); border-radius: 24px; }
+/* The frame is lit from its top edge so the demo reads as a raised, warm surface. */
+.demo-showcase { width: 100%; max-width: 1040px; margin-top: 58px; padding: 42px 28px 26px; background-color: var(--site-surface); background-image: linear-gradient(180deg, var(--site-surface-raised) 0%, var(--site-surface) 62%); border: 1px solid var(--site-border); border-radius: 24px; }
 .hero-message { width: 100%; min-height: 118px; display: flex; flex-direction: column; justify-content: flex-end; }
 .hero-message h2 { margin: 0 auto; font-family: var(--font-ui); font-size: clamp(30px, 3vw, 42px); font-weight: 500; letter-spacing: -0.025em; line-height: 1.1; text-wrap: balance; white-space: pre-line; }
 .hero .hero-copy { max-width: 650px; margin: 16px auto 0; color: var(--site-text-dim); font-size: clamp(16px, 1.25vw, 18px); line-height: 1.45; text-wrap: balance; }
@@ -952,19 +955,23 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .home-patron {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 0.72fr);
   align-items: center; gap: clamp(32px, 5vw, 64px);
-  padding: clamp(32px, 5vw, 64px); border: 1px solid var(--site-accent); border-radius: 18px;
-  background: var(--site-accent); color: var(--site-bg);
+  padding: clamp(32px, 5vw, 64px); border: 1px solid var(--site-ink-warm); border-radius: 18px;
+  /* Warm ink with one gold light spill anchored to the top edge. The mark and
+     supporting copy stay ivory; only the display name and price take gold. */
+  background-color: var(--site-ink-warm);
+  background-image: radial-gradient(70% 55% at 50% -10%, rgba(212, 173, 102, 0.26), rgba(212, 173, 102, 0.06) 45%, transparent 72%);
+  color: var(--site-bg);
 }
 .home-patron .home-patron-mark { display: block; width: 32px; height: 32px; margin-bottom: 36px; }
 .home-patron h2 { margin: 0; font-weight: 400; }
 .home-patron .home-patron-intro { display: block; margin-bottom: 10px; font-size: 14px; line-height: 1.5; }
-.home-patron .home-patron-name { display: block; font-family: var(--site-font-patron); font-size: clamp(52px, 6.5vw, 88px); font-weight: 400; letter-spacing: -0.025em; line-height: 1.04; text-wrap: balance; }
+.home-patron .home-patron-name { display: block; color: var(--site-gold-on-dark); font-family: var(--site-font-patron); font-size: clamp(52px, 6.5vw, 88px); font-weight: 400; letter-spacing: -0.025em; line-height: 1.04; text-wrap: balance; }
 .home-patron .home-patron-copy p { max-width: 43ch; margin: 24px 0 0; font-size: 15px; line-height: 1.7; text-wrap: pretty; }
 .home-patron .home-patron-offer { min-width: 0; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 0 12px clamp(24px, 4vw, 56px); border-left: 1px solid color-mix(in srgb, var(--site-gold-on-dark) 28%, transparent); text-align: center; }
 .home-patron .home-patron-price { display: flex; align-items: baseline; gap: 6px; margin: 0; line-height: 1; white-space: nowrap; }
 .home-patron .home-patron-price strong { display: inline-flex; align-items: baseline; gap: 3px; font-weight: 400; }
 .home-patron .home-patron-currency { font-size: 15px; }
-.home-patron .home-patron-amount { font-family: var(--site-font-patron); font-size: 72px; letter-spacing: -0.025em; }
+.home-patron .home-patron-amount { color: var(--site-gold-on-dark); font-family: var(--site-font-patron); font-size: 72px; letter-spacing: -0.025em; }
 .home-patron .home-patron-period { font-size: 14px; }
 .home-patron .home-patron-monthly { margin: 12px 0 0; font-size: 14px; line-height: 1.5; }
 .home-patron .home-patron-tax { margin: 8px 0 0; color: color-mix(in srgb, var(--site-bg) 75%, var(--site-accent)); font-size: 12px; line-height: 1.5; }
@@ -1258,11 +1265,22 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 /* Shared website footer. Keep this scope separate from quotation attribution
    footers and the product demo's controls. */
 .site-footer {
+  position: relative;
   background: var(--site-surface);
   padding: 56px max(24px, calc((100% - 1132px) / 2)) 88px;
-  border-top: 1px solid var(--site-border);
   font-family: var(--font-ui); font-size: 13px; line-height: 1.5;
   color: var(--site-text-dim);
+}
+/* The horizon rule: a gold hairline at the footer seam with a soft glow rising
+   into the page above it. It is a decorative seam, not a focus indicator, and
+   it never sits behind a mark. */
+.site-footer::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 160px; pointer-events: none;
+  background: radial-gradient(60% 100% at 50% 100%, rgba(212, 173, 102, 0.30), rgba(212, 173, 102, 0.08) 55%, transparent 100%);
+}
+.site-footer::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, var(--site-gold-on-dark) 18%, var(--site-gold-on-dark) 82%, transparent);
 }
 .site-footer .foot-top { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr) minmax(0, 1.15fr); gap: 48px; padding-bottom: 48px; }
 .site-footer .foot-identity p { margin: 20px 0 0; font-size: 12px; line-height: 1.7; }
@@ -2079,4 +2097,19 @@ body[data-page="press"] > .legal-top { display: none; }
   .memchart-table th[scope="row"] { width: 5.5rem; padding-right: 12px; font-size: 0.95rem; }
   .memchart-bar { height: 24px; }
   .memchart-table .is-blanc .memchart-val { font-size: 1.15rem; }
+}
+
+/* ---------- homepage reveal ---------- */
+/* One-time rise for the feature grid and the Patron card. These classes are
+   only ever added by scripts/reveal.js, and only when motion is welcome and a
+   section starts below the viewport, so server HTML, no-script visitors, and
+   reduced-motion visitors always see the sections at rest. */
+.is-waiting { opacity: 0; }
+.is-revealed { animation: site-rise 360ms cubic-bezier(.2, .8, .2, 1) both; }
+.home-feature:nth-child(2).is-revealed { animation-delay: 70ms; }
+.home-feature:nth-child(3).is-revealed { animation-delay: 140ms; }
+@keyframes site-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .is-waiting { opacity: 1; }
+  .is-revealed { animation: none; }
 }

@@ -11,7 +11,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-const tag = process.argv[2] || 'v1.9.1';
+const tag = process.argv[2] || 'v1.13.0';
 const baselinePath = process.argv[3] || null;
 const repository = 'bnfy/blanc';
 
