@@ -1268,10 +1268,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   width: 44px; height: 44px; color: var(--site-text); text-decoration: none;
 }
 .site-footer .foot-mark { width: 44px; height: 44px; flex-shrink: 0; color: inherit; }
-.site-footer .foot-baseline { display: inline-flex; width: fit-content; margin-top: 24px; border-radius: 3px; text-decoration: none; transition: opacity 160ms ease; }
-.site-footer .foot-baseline:hover { opacity: 0.78; }
-.site-footer .foot-baseline:focus-visible { outline: 2px solid var(--site-accent); outline-offset: 4px; }
-.site-footer .foot-baseline img { display: block; width: 213px; max-width: 100%; height: auto; }
 .site-footer .foot-bottom { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-top: 20px; border-top: 1px solid var(--site-border); }
 .site-footer .foot-legal { display: flex; flex-wrap: wrap; align-items: center; gap: 0 28px; min-width: 0; font-size: 12px; }
 .site-footer .foot-credit { display: flex; flex-wrap: wrap; align-items: center; gap: 0 20px; }
@@ -1309,7 +1305,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .site-footer .foot-top { grid-template-columns: 1fr; gap: 36px; padding-bottom: 36px; }
   .site-footer .foot-identity { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 32px; padding-bottom: 28px; border-bottom: 1px solid var(--site-border); }
   .site-footer .foot-identity p { margin: 0; }
-  .site-footer .foot-baseline { margin-top: 0; }
   .site-footer .foot-nav { width: 100%; gap: 24px; }
   .site-footer .foot-news { max-width: 440px; }
   .site-footer .foot-mark { width: 40px; height: 40px; }
