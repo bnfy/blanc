@@ -50,3 +50,7 @@ These are tooling correctness fixes in the draft, not deployed runtime fixes. Al
 ## Test-server HTML injection (#17–19)
 
 Request-derived fixture names now receive HTML text encoding. OAuth query values embedded in script elements use JSON encoding with literal less-than characters escaped, preventing closing-script-tag injection. Malformed percent encoding no longer crashes the fixture name decoder. Unit tests cover payload round trips and actual loopback HTTP responses; full OAuth/acceptance CI remains required. These corrections affect test tooling, not the shipped browser.
+
+## CI input handling
+
+Release-upload steps now pass the tag via an environment variable and quoted shell expansion rather than interpolating it into shell source. Existing tag/package validation, workflow dispatch access, conditions, artifacts and job permissions are unchanged. Parsed before/after workflow structures differ only in this transport change. Native release jobs have not been dispatched for this draft.
