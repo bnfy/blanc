@@ -97,13 +97,17 @@ their released colors, including when enlarged.
 
 ### Blanc Patron website identity
 
-Blanc Patron uses Instrument Serif Regular for its display name and the main
-price numeral, paired with Inter for supporting copy, currency, billing labels,
-and controls. This is a dedicated website
-Patron treatment; other website headings and the app keep their existing
-typefaces. Use the `--site-font-patron` token, regular weight, restrained
-negative tracking, and generous space around the name. Do not use the display
-serif for small text or replace the canonical Sunrise symbol with a letterform.
+Blanc Patron uses Newsreader at regular weight for its display name and the
+main price numeral, paired with Inter for supporting copy, currency, billing
+labels, and controls. Newsreader replaced Instrument Serif on 4 September 2026
+because that face had become the default serif of current web design; do not
+reintroduce it. Newsreader carries an optical-size axis, so it sharpens on its
+own at Patron sizes; leave optical sizing automatic and set the price numeral
+with lining figures. This is a dedicated website Patron treatment; other
+website headings and the app keep their existing typefaces. Use the
+`--site-font-patron` token, regular weight, restrained negative tracking, and
+generous space around the name. Do not use the display serif for small text or
+replace the canonical Sunrise symbol with a letterform.
 
 The homepage offer pairs the monochrome Sunrise symbol with this display name
 on a warm ink (`--site-ink-warm`) section. The display name and the main price
@@ -117,9 +121,9 @@ focus outline and mobile touch target of at least 48px. Avoid decorative
 badges, additional gradients, and animated ornament. The section may rise
 once into view under the homepage reveal rules below.
 
-The font is self-hosted through the pinned `@fontsource/instrument-serif`
+The font is self-hosted through the pinned `@fontsource-variable/newsreader`
 package and loaded on the homepage. Its SIL Open Font License is included at
-`site/public/fonts/instrument-serif-OFL.txt`.
+`site/public/fonts/newsreader-OFL.txt`.
 
 ### Editorial website footer
 

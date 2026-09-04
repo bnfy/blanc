@@ -28,7 +28,8 @@
   --pill-zoom: 1.15;
 
   /* Website presentation only. Ivory is sampled from the Sunrise source art. */
-  --site-font-patron: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  /* Newsreader's optical-size axis sharpens automatically at Patron display sizes. */
+  --site-font-patron: "Newsreader Variable", "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   --site-bg: #F7F0E5;
   --site-bg-rgb: 247, 240, 229;
   --site-surface: #EFE6D8;
@@ -971,7 +972,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 .home-patron .home-patron-price { display: flex; align-items: baseline; gap: 6px; margin: 0; line-height: 1; white-space: nowrap; }
 .home-patron .home-patron-price strong { display: inline-flex; align-items: baseline; gap: 3px; font-weight: 400; }
 .home-patron .home-patron-currency { font-size: 15px; }
-.home-patron .home-patron-amount { color: var(--site-gold-on-dark); font-family: var(--site-font-patron); font-size: 72px; letter-spacing: -0.025em; }
+.home-patron .home-patron-amount { color: var(--site-gold-on-dark); font-family: var(--site-font-patron); font-size: 72px; letter-spacing: -0.025em; font-variant-numeric: lining-nums; }
 .home-patron .home-patron-period { font-size: 14px; }
 .home-patron .home-patron-monthly { margin: 12px 0 0; font-size: 14px; line-height: 1.5; }
 .home-patron .home-patron-tax { margin: 8px 0 0; color: color-mix(in srgb, var(--site-bg) 75%, var(--site-accent)); font-size: 12px; line-height: 1.5; }

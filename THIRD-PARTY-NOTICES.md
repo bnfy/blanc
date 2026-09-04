@@ -56,15 +56,16 @@ Both font files remain under the SIL Open Font License, Version 1.1; Blanc's MIT
 grant does not supersede those terms. The font files and their full licence texts
 ship together inside packaged builds.
 
-## Instrument Serif website font — SIL OFL 1.1
+## Newsreader website font — SIL OFL 1.1
 
-The website uses Instrument Serif Regular for Blanc Patron's display typography,
-self-hosted through `@fontsource/instrument-serif` 5.3.0. It is a website-only
-asset and is not bundled in the desktop application. The font remains under
-the SIL Open Font License, Version 1.1; Blanc's MIT grant does not supersede it.
-The full copyright notice and licence ship with the website at
-[site/public/fonts/instrument-serif-OFL.txt](site/public/fonts/instrument-serif-OFL.txt).
-Upstream: <https://github.com/Instrument/instrument-serif>.
+The website uses Newsreader (variable, optical-size axis, regular weight) for
+Blanc Patron's display typography, self-hosted through
+`@fontsource-variable/newsreader` 5.3.0. It is a website-only asset and is not
+bundled in the desktop application. The font remains under the SIL Open Font
+License, Version 1.1; Blanc's MIT grant does not supersede it. The full
+copyright notice and licence ship with the website at
+[site/public/fonts/newsreader-OFL.txt](site/public/fonts/newsreader-OFL.txt).
+Upstream: <https://github.com/productiontype/Newsreader>.
 
 ## Lucide Panel Left icon — ISC
 

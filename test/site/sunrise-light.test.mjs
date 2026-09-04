@@ -50,6 +50,10 @@ test('the Patron offer sets its name and price in gold on warm ink under a light
         intro: getComputedStyle(section.querySelector('.home-patron-intro')).color,
         mark: getComputedStyle(section.querySelector('.home-patron-mark')).color,
         cta: getComputedStyle(section.querySelector('.cta')).backgroundColor,
+        nameFont: getComputedStyle(section.querySelector('.home-patron-name')).fontFamily,
+        amountFont: getComputedStyle(section.querySelector('.home-patron-amount')).fontFamily,
+        serifLoaded: document.fonts.check('84px "Newsreader Variable"'),
+        instrumentGone: [...document.fonts].every(font => font.family !== 'Instrument Serif'),
       };
     });
     // Minified production CSS lowercases hex, the dev server does not.
@@ -63,6 +67,10 @@ test('the Patron offer sets its name and price in gold on warm ink under a light
     assert.equal(patron.cta, 'rgb(212, 173, 102)', 'the filled gold button is unchanged');
     assert.ok(ratio(patron.goldOnDark, patron.warmInk) >= 4.5, 'gold on warm ink meets 4.5:1');
     assert.ok(ratio('#F7F0E5', patron.warmInk) >= 4.5, 'ivory on warm ink meets 4.5:1');
+    assert.match(patron.nameFont, /^"?Newsreader Variable"?/, 'the Patron name is set in Newsreader');
+    assert.match(patron.amountFont, /^"?Newsreader Variable"?/, 'the price numeral is set in Newsreader');
+    assert.equal(patron.serifLoaded, true, 'the self-hosted Newsreader face is loaded');
+    assert.equal(patron.instrumentGone, true, 'Instrument Serif is no longer declared');
   } finally { await context.close(); }
 });
 

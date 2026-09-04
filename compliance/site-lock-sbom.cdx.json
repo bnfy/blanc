@@ -3244,14 +3244,14 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40fontsource/instrument-serif@5.3.0",
-      "name": "@fontsource/instrument-serif",
+      "bom-ref": "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
+      "name": "@fontsource-variable/newsreader",
       "version": "5.3.0",
       "scope": "required",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "98389a220d2eebbb18579f5f89ef765b3e2c33c5225656cbedf2f19c53c22a45f5e433004849d04d111b68fe52e7fdc309cb2800e710d2c57d13801e63842a61"
+          "content": "aebcd88b8dea3296f3c2e16d7fd3a4587f2cc403d53dc410404c17a4fb7068a61e27cc9583968bb3991ac26a357f6435b75337f132e610a0a41950ec63081d17"
         }
       ],
       "licenses": [
@@ -3261,7 +3261,7 @@
           }
         }
       ],
-      "purl": "pkg:npm/%40fontsource/instrument-serif@5.3.0",
+      "purl": "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
       "properties": [
         {
           "name": "blanc:development",
@@ -3269,7 +3269,7 @@
         },
         {
           "name": "blanc:lockPath",
-          "value": "node_modules/@fontsource/instrument-serif"
+          "value": "node_modules/@fontsource-variable/newsreader"
         },
         {
           "name": "blanc:optional",
@@ -3283,7 +3283,7 @@
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/@fontsource/instrument-serif/-/instrument-serif-5.3.0.tgz"
+          "url": "https://registry.npmjs.org/@fontsource-variable/newsreader/-/newsreader-5.3.0.tgz"
         }
       ]
     },
@@ -3382,7 +3382,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-darwin-arm64@0.35.3",
       "name": "@img/sharp-darwin-arm64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3404,7 +3404,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3435,7 +3435,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-darwin-x64@0.35.3",
       "name": "@img/sharp-darwin-x64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3457,7 +3457,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3488,7 +3488,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-freebsd-wasm32@0.35.3",
       "name": "@img/sharp-freebsd-wasm32",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3506,7 +3506,7 @@
       "properties": [
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3537,7 +3537,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-darwin-arm64@1.3.2",
       "name": "@img/sharp-libvips-darwin-arm64",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3559,7 +3559,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3590,7 +3590,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-darwin-x64@1.3.2",
       "name": "@img/sharp-libvips-darwin-x64",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3612,7 +3612,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3643,7 +3643,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-arm@1.3.2",
       "name": "@img/sharp-libvips-linux-arm",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3665,7 +3665,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3696,7 +3696,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-arm64@1.3.2",
       "name": "@img/sharp-libvips-linux-arm64",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3718,7 +3718,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3749,7 +3749,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-ppc64@1.3.2",
       "name": "@img/sharp-libvips-linux-ppc64",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3771,7 +3771,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3802,7 +3802,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-riscv64@1.3.2",
       "name": "@img/sharp-libvips-linux-riscv64",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3824,7 +3824,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3855,7 +3855,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-s390x@1.3.2",
       "name": "@img/sharp-libvips-linux-s390x",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3877,7 +3877,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3908,7 +3908,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-linux-x64@1.3.2",
       "name": "@img/sharp-libvips-linux-x64",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3930,7 +3930,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -3961,7 +3961,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-arm64@1.3.2",
       "name": "@img/sharp-libvips-linuxmusl-arm64",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -3983,7 +3983,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4014,7 +4014,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-libvips-linuxmusl-x64@1.3.2",
       "name": "@img/sharp-libvips-linuxmusl-x64",
       "version": "1.3.2",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4036,7 +4036,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4067,7 +4067,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-linux-arm@0.35.3",
       "name": "@img/sharp-linux-arm",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4089,7 +4089,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4120,7 +4120,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-linux-arm64@0.35.3",
       "name": "@img/sharp-linux-arm64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4142,7 +4142,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4173,7 +4173,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-linux-ppc64@0.35.3",
       "name": "@img/sharp-linux-ppc64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4195,7 +4195,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4226,7 +4226,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-linux-riscv64@0.35.3",
       "name": "@img/sharp-linux-riscv64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4248,7 +4248,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4279,7 +4279,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-linux-s390x@0.35.3",
       "name": "@img/sharp-linux-s390x",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4301,7 +4301,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4332,7 +4332,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-linux-x64@0.35.3",
       "name": "@img/sharp-linux-x64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4354,7 +4354,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4385,7 +4385,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-linuxmusl-arm64@0.35.3",
       "name": "@img/sharp-linuxmusl-arm64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4407,7 +4407,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4438,7 +4438,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-linuxmusl-x64@0.35.3",
       "name": "@img/sharp-linuxmusl-x64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4460,7 +4460,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4491,7 +4491,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-wasm32@0.35.3",
       "name": "@img/sharp-wasm32",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4507,7 +4507,7 @@
       "properties": [
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4534,7 +4534,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-webcontainers-wasm32@0.35.3",
       "name": "@img/sharp-webcontainers-wasm32",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4556,7 +4556,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4583,7 +4583,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-win32-arm64@0.35.3",
       "name": "@img/sharp-win32-arm64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4603,7 +4603,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4634,7 +4634,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-win32-ia32@0.35.3",
       "name": "@img/sharp-win32-ia32",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4654,7 +4654,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -4685,7 +4685,7 @@
       "bom-ref": "pkg:npm/%40img/sharp-win32-x64@0.35.3",
       "name": "@img/sharp-win32-x64",
       "version": "0.35.3",
-      "scope": "required",
+      "scope": "optional",
       "hashes": [
         {
           "alg": "SHA-512",
@@ -4705,7 +4705,7 @@
         },
         {
           "name": "blanc:development",
-          "value": "false"
+          "value": "true"
         },
         {
           "name": "blanc:lockPath",
@@ -14031,7 +14031,7 @@
       "ref": "application:site:blanc-site@0",
       "dependsOn": [
         "pkg:npm/%40fontsource-variable/inter@5.3.0",
-        "pkg:npm/%40fontsource/instrument-serif@5.3.0",
+        "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
         "pkg:npm/%40fontsource/jetbrains-mono@5.3.0",
         "pkg:npm/astro@7.2.7",
         "pkg:npm/sharp@0.35.3"
@@ -14362,7 +14362,7 @@
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/%40fontsource/instrument-serif@5.3.0",
+      "ref": "pkg:npm/%40fontsource-variable/newsreader@5.3.0",
       "dependsOn": []
     },
     {
