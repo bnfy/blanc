@@ -98,3 +98,11 @@ crossfade. The mobile header section is unchanged.
 ## Out of scope
 
 Site search. A Patron page. Any change to the Electron app.
+
+## Amendment after live review
+
+The owner asked for security back in the bar and declined to feature the
+studio. The second menu is `company`, not `resources`: Learn runs FAQ, Press,
+then About; Community is unchanged. `security` and `what's new` are direct
+links fed by `directLinks` in the data module, on desktop and in the mobile
+sheet. The features group `Privacy` became `Privacy and security`.

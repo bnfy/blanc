@@ -28,6 +28,8 @@ const featureHrefs = ['/features/island', '/features/vertical-tabs', '/features/
 test('the masthead is sticky at the top, 64px tall, and never tucks', async () => {
   const { page, context } = await openPage('/features');
   try {
+    const direct = await page.locator('.site-nav-links > a').evaluateAll(as => as.map(a => [a.textContent.trim(), a.getAttribute('href')]));
+    assert.deepEqual(direct, [['security', '/features/security'], ["what's new", '/changelog']], 'security and what\'s new are direct links in the bar');
     const bar = await page.evaluate(() => { const h = document.querySelector('.site-header'); const s = getComputedStyle(h); return { position: s.position, top: s.top, height: h.getBoundingClientRect().height, tucks: h.className.includes('tuck') }; });
     assert.equal(bar.position, 'sticky');
     assert.equal(bar.top, '0px');
@@ -59,20 +61,20 @@ test('the features menu opens on click, lists every feature page, and closes on 
   } finally { await context.close(); }
 });
 
-test('only one menu is open at a time, hover opens after intent, and the resources card names the current release', async () => {
+test('only one menu is open at a time, hover opens after intent, and the company card names the current release', async () => {
   const { page, context } = await openPage('/about', 1440, 'no-preference');
   try {
     await page.locator('.site-menu-trigger[data-menu="features"]').hover();
     await page.waitForFunction(() => document.querySelector('#site-menu-features').dataset.open === 'true', null, { timeout: 2000 });
-    await page.locator('.site-menu-trigger[data-menu="resources"]').hover();
-    await page.waitForFunction(() => document.querySelector('#site-menu-resources').dataset.open === 'true', null, { timeout: 2000 });
+    await page.locator('.site-menu-trigger[data-menu="company"]').hover();
+    await page.waitForFunction(() => document.querySelector('#site-menu-company').dataset.open === 'true', null, { timeout: 2000 });
     assert.equal(await page.locator('#site-menu-features').getAttribute('data-open'), 'false');
-    const card = await page.locator('#site-menu-resources .site-mega-release').evaluate(el => ({ text: el.textContent, bg: getComputedStyle(el).backgroundColor, title: getComputedStyle(el.querySelector('.site-mega-release-title')).fontFamily }));
+    const card = await page.locator('#site-menu-company .site-mega-release').evaluate(el => ({ text: el.textContent, bg: getComputedStyle(el).backgroundColor, title: getComputedStyle(el.querySelector('.site-mega-release-title')).fontFamily }));
     assert.match(card.text, /Blanc \d+\.\d+\.\d+/);
     assert.equal(card.bg, 'rgb(18, 16, 11)', 'release card sits on warm ink');
     assert.match(card.title, /Newsreader/);
     await page.mouse.move(700, 800);
-    await page.waitForFunction(() => document.querySelector('#site-menu-resources').dataset.open === 'false', null, { timeout: 2000 });
+    await page.waitForFunction(() => document.querySelector('#site-menu-company').dataset.open === 'false', null, { timeout: 2000 });
   } finally { await context.close(); }
 });
 
@@ -105,9 +107,10 @@ test('below 640px the sheet carries both groups as accordions plus the direct li
       overflow: document.documentElement.scrollWidth > innerWidth,
       markSize: getComputedStyle(document.querySelector('.site-brand-mark')).width,
     }));
-    assert.deepEqual(sheet.summaries, ['Features', 'Resources']);
+    assert.deepEqual(sheet.summaries, ['Features', 'Company']);
     for (const href of featureHrefs) assert.ok(sheet.hrefs.includes(href), `${href} in the sheet`);
     assert.ok(sheet.hrefs.includes('/changelog') && sheet.hrefs.some(h => h.includes('/download')), 'direct links present');
+    assert.ok(sheet.hrefs.filter(h => h === '/features/security').length >= 2, 'security is both a direct row and a features row');
     assert.equal(sheet.current, '/features/island');
     assert.equal(sheet.overflow, false);
     assert.equal(sheet.markSize, '28px');

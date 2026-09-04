@@ -14,7 +14,7 @@ export const menus = [
         { href: '/features/tab-groups', label: 'Tab groups', description: 'Keep the tabs you need. Tuck away the rest.' },
         { href: '/features/quiet-tabs', label: 'Quiet tabs', description: 'Tabs you are not using give their memory back.' },
       ] },
-      { title: 'Privacy', links: [
+      { title: 'Privacy and security', links: [
         { href: '/features/ad-blocking', label: 'Ad blocking', description: 'A clearer control for a quieter site.' },
         { href: '/features/private-tabs', label: 'Private tabs', description: 'Private tabs that stay out of the record.' },
         { href: '/features/security', label: 'Security', description: 'Private by architecture.' },
@@ -28,13 +28,13 @@ export const menus = [
     foot: { note: 'Nine features. No account, no AI, no extension store.', label: 'All features', href: '/features' },
   },
   {
-    key: 'resources',
-    label: 'resources',
+    key: 'company',
+    label: 'company',
     groups: [
       { title: 'Learn', links: [
         { href: '/faq', label: 'FAQ', description: 'Straight answers on price, privacy and AI.' },
-        { href: '/about', label: 'About', description: 'A browser with a studio accountable for it.' },
         { href: '/press', label: 'Press', description: 'Fact sheet, captures and the launch card.' },
+        { href: '/about', label: 'About', description: 'Who makes Blanc and how to reach them.' },
       ] },
       { title: 'Community', links: [
         { href: '/ambassadors', label: 'Ambassadors', description: 'Help people see a different kind of browser.' },
@@ -47,7 +47,10 @@ export const menus = [
   },
 ];
 
+// Direct links sit in the bar between the menus and the download pill, and
+// as plain rows in the mobile sheet. Security is the trust page, so it stays
+// one click from everywhere even though it also lives inside features.
 export const directLinks = [
-  { href: '/changelog', key: 'changelog', label: "What's new" },
-  { href: '/download', key: 'download', label: 'Download' },
+  { href: '/features/security', key: 'security', label: 'security', mobileLabel: 'Security' },
+  { href: '/changelog', key: 'changelog', label: "what's new", mobileLabel: "What's new" },
 ];

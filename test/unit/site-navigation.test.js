@@ -24,7 +24,7 @@ test('every feature page is reachable from the features menu with its own headli
   for (const link of links) {
     assert.equal(link.description, pageHeadline(link.href), `${link.href} description is the page headline`);
   }
-  assert.equal(features.groups.map(g => g.title).join(','), 'Interface,Privacy,Workflow');
+  assert.equal(features.groups.map(g => g.title).join(','), 'Interface,Privacy and security,Workflow');
   assert.equal(features.spotlight.image, '/feature-island.png');
   assert.ok(fs.existsSync(path.join(ROOT, 'site/public/feature-island.png')), 'spotlight image is a stable public asset');
 });
@@ -37,11 +37,11 @@ test('resources and direct links point at pages that exist', async () => {
     if (pathname === '/' || pathname === '') return true;
     return fs.existsSync(path.join(ROOT, `site/src/pages${pathname}.astro`));
   };
-  const resources = menus.find(menu => menu.key === 'resources');
+  const resources = menus.find(menu => menu.key === 'company');
   for (const link of [...resources.groups.flatMap(g => g.links), ...directLinks, { href: resources.spotlight.href }, { href: resources.foot.href }, { href: menus[0].foot.href }]) {
     assert.ok(exists(link.href), `${link.href} exists`);
   }
-  assert.deepEqual(directLinks.map(l => l.key), ['changelog', 'download']);
+  assert.deepEqual(directLinks.map(l => l.key), ['security', 'changelog'], 'security stays one click from everywhere');
   const newsletter = resources.groups.flatMap(g => g.links).find(l => l.label === 'Newsletter');
   const form = fs.readFileSync(path.join(ROOT, 'site/src/components/NewsletterForm.astro'), 'utf8');
   assert.ok(form.includes(`id="${newsletter.href.replace('#', '')}"`), 'the newsletter link targets an id on the footer form');

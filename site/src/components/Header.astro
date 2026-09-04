@@ -11,9 +11,9 @@ const latestVersion = String(latest.version || latest.tag || '').replace(/^v/, '
 const latestNames = featureNamesForRelease(latest, featureNamesByVersion).slice(0, 3);
 const isCurrent = href => pathname === href || (href === '/download' && current === 'download');
 const downloadHref = current === 'download' ? '#download-options' : '/download';
-const menuTitle = menu => (menu.key === 'features' ? 'Features' : 'Resources');
+const menuTitle = menu => (menu.key === 'features' ? 'Features' : 'Company');
 const featuresCurrent = current === 'features' || pathname.startsWith('/features');
-void directLinks;
+const directCurrent = link => current === link.key || pathname === link.href;
 ---
 {variant === 'legal' ? (
   <header class="legal-top">
@@ -30,7 +30,9 @@ void directLinks;
         {menus.map(menu => (
           <button class="site-menu-trigger" type="button" data-menu={menu.key} aria-expanded="false" aria-controls={`site-menu-${menu.key}`} aria-current={menu.key === 'features' && featuresCurrent ? 'page' : undefined}>{menu.label} <span class="site-menu-caret" aria-hidden="true"></span></button>
         ))}
-        <a href="/changelog" aria-current={current === 'changelog' ? 'page' : undefined}>what's new</a>
+        {directLinks.map(link => (
+          <a href={link.href} aria-current={directCurrent(link) ? 'page' : undefined}>{link.label}</a>
+        ))}
       </div>
       <a class={current === 'download' ? 'site-nav-cta is-current' : 'site-nav-cta'} href={downloadHref}>download</a>
       <button class="site-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="siteMobileMenu">
@@ -50,13 +52,15 @@ void directLinks;
             </div>
           </details>
         ))}
-        <a class="site-mobile-plain" href="/changelog" aria-current={current === 'changelog' ? 'page' : undefined}>What's new</a>
+        {directLinks.map(link => (
+          <a class="site-mobile-plain" href={link.href} aria-current={directCurrent(link) ? 'page' : undefined}>{link.mobileLabel}</a>
+        ))}
         <a class="site-mobile-download" href={downloadHref}>Download on desktop</a>
       </div>
     </nav>
     {menus.map(menu => (
       <div class="site-mega" id={`site-menu-${menu.key}`} data-open="false" role="region" aria-label={menuTitle(menu)}>
-        <div class={`site-mega-inner${menu.key === 'resources' ? ' site-mega-inner--narrow' : ''}`}>
+        <div class={`site-mega-inner${menu.key === 'company' ? ' site-mega-inner--narrow' : ''}`}>
           <div class="site-mega-main">
             <div class="site-mega-groups" data-columns={menu.groups.length}>
               {menu.groups.map(group => (
