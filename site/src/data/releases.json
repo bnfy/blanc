@@ -1,5 +1,235 @@
 [
   {
+    "tag": "v1.15.0",
+    "version": "1.15.0",
+    "name": "1.15.0",
+    "publishedAt": "2026-09-03T01:12:36.000Z",
+    "humanDate": "September 2, 2026",
+    "machineDate": "2026-09-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.15.0",
+    "anchor": "v1-15-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Five more Mahjong boards."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Pyramid, Fortress, Butterfly, Bridge, and Cross join Turtle, Arch, and Peaks. Every deal is still solvable by construction, and the Daily deal now rotates through all eight layouts."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A Records sheet"
+                  },
+                  {
+                    "type": "text",
+                    "value": " opens from a new dock control or the R key. It shows boards cleared, your current and longest daily streak, dailies cleared, the best Classic time and Burst score for each board, and the last four weeks of dailies. Everything stays on this device."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Pick up where you left off."
+                  },
+                  {
+                    "type": "text",
+                    "value": " A fresh Mahjong tab starts with your last layout, mode, and deal choice, and offers to continue an unfinished board from another tab instead of silently dealing a new one."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Updated",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Shuffle can be undone."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Shuffle records the board it replaced, so Undo restores it exactly, including from the Burst rescue dialog."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Tile faces keep JetBrains Mono."
+                  },
+                  {
+                    "type": "text",
+                    "value": " Character numerals and wind badges return to the bundled monospace at its full ExtraBold weight, while the game's meters and sheets stay in Inter."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Notices float as lacquer pills"
+                  },
+                  {
+                    "type": "text",
+                    "value": " inside the table instead of loose text along its edge, and the desktop control rail now sizes itself to the embedded table so all six controls always fit."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "The first clear of a board reads \"first clear\" rather than \"new record\", hints survive arrow-key navigation, Daily layout cards read as disabled, the dead-end notice offers Shuffle, and the daily result appears in the Boards sheet and on the completion card."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Mahjong completion totals are counted exactly once, even when a storage write or an old-event prune fails."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "v1.14.0",
+    "version": "1.14.0",
+    "name": "1.14.0",
+    "publishedAt": "2026-09-02T21:36:12.000Z",
+    "humanDate": "September 2, 2026",
+    "machineDate": "2026-09-02",
+    "url": "https://github.com/bnfy/blanc/releases/tag/v1.14.0",
+    "anchor": "v1-14-0",
+    "compareUrl": null,
+    "sections": [
+      {
+        "heading": "Added",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Faster new tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " add a quiet Plus shortcut beside the Island's slash-command keycap. It opens one regular, ungrouped tab and puts the address field immediately in focus."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Updated",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "A calmer resting Island"
+                  },
+                  {
+                    "type": "text",
+                    "value": " adopts the website navigation's compact 44px geometry, material surface, and shorter shadow while keeping the existing controls and unified proximity response."
+                  }
+                ],
+                "url": null
+              },
+              {
+                "spans": [
+                  {
+                    "type": "strong",
+                    "value": "Inter vertical tabs"
+                  },
+                  {
+                    "type": "text",
+                    "value": " replace the remaining monospaced labels across the rail, including section headings, groups, private markers, and the New tab row."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "heading": "Fixed",
+        "blocks": [
+          {
+            "type": "list",
+            "items": [
+              {
+                "spans": [
+                  {
+                    "type": "text",
+                    "value": "Vertical-tabs mode no longer reserves an empty shortcut gap when both Island keycaps are hidden on a page."
+                  }
+                ],
+                "url": null
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
     "tag": "v1.13.0",
     "version": "1.13.0",
     "name": "1.13.0",

@@ -4,6 +4,8 @@
 import BrandMark from './BrandMark.astro';
 import NewsletterForm from './NewsletterForm.astro';
 
+const { measurementControls = true } = Astro.props;
+
 const LINKS = [
   { href: '/', label: 'Overview' },
   { href: '/features', label: 'Features' },
@@ -38,6 +40,9 @@ const isCurrent = (href) =>
   <div class="foot-legal">
     <span>© 2026 <a href="https://bnfy.me" target="_blank" rel="noopener">Bananify</a></span>
     <span>built independently · no investors</span>
+    {measurementControls && (
+      <button class="foot-privacy-choices" type="button" data-consent-open>Privacy choices</button>
+    )}
   </div>
   <div class="foot-social">
     <!--email_off--><a class="foot-ic mail" href="mailto:support@blancbrowser.com" aria-label="Email Blanc support" title="Email"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4.5" width="20" height="15" rx="3"/><path d="m3.5 7.5 8.5 6 8.5-6"/></svg></a><!--/email_off-->

@@ -367,6 +367,14 @@ async function buildSiteAssets(sunrise) {
   };
   await emit('site/src/components/BrandMark.astro', siteBrandComponent(marks));
 
+  // The homepage's one-shot gold-to-ink reveal uses the same crop and alpha
+  // as BrandMark, so its artwork never shifts while the gold fades away.
+  const heroMotif = await sharp(sunrise.motif).trim({ threshold: 8 }).png().toBuffer();
+  await emit('site/public/sunrise-hero-mark.png', await sharp(heroMotif)
+    .resize(256, 256, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 }, kernel: sharp.kernel.lanczos3 })
+    .png({ compressionLevel: 9, adaptiveFiltering: true })
+    .toBuffer());
+
   // Favicons carry the rays-only crop (the app's own ≤16px rule); the 180px
   // touch icon has room for the full mark.
   const favicon = tileSvg(pngDataUri(await silhouettePng(sunrise.faviconMotif, 256, ink)));

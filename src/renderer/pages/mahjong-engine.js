@@ -80,6 +80,89 @@
     return positions;
   }
 
+  // Shared helpers for the v2.1 layouts. `grid` seats one tile at every
+  // (x, y) pair on one layer; `span` lists half-unit coordinates in steps of
+  // two (whole tiles) or one (half offsets, used for bridging courses).
+  function span(from, to, step = 2) {
+    const values = [];
+    for (let value = from; value <= to; value += step) values.push(value);
+    return values;
+  }
+  function grid(xs, ys, z) {
+    return xs.flatMap((x) => ys.map((y) => ({ x, y, z })));
+  }
+
+  // One solid stepped block. Only the edges start free, so it plays hard.
+  function buildPyramidLayout() {
+    return [
+      ...grid(span(0, 18), span(0, 10), 0),
+      ...grid(span(2, 16), span(2, 8), 1),
+      ...grid(span(4, 14), span(4, 6), 2),
+      ...grid(span(6, 12), [5], 3),
+    ];
+  }
+
+  // A two-course wall around a courtyard keep. Free tiles are the wall
+  // corners and the keep's edges.
+  function buildFortressLayout() {
+    const ring = (z) => [
+      ...grid(span(0, 26), [0, 14], z),
+      ...grid([0, 26], span(2, 12), z),
+    ];
+    return [
+      ...ring(0), ...ring(1),
+      ...grid(span(8, 16), [6, 8], 0),
+      ...grid(span(9, 15), [7], 1),
+      ...grid([11, 13], [7], 2),
+    ];
+  }
+
+  // Two lifted wings with a one-tile gap to a slim body. Plays easy.
+  function buildButterflyLayout() {
+    const wing = (ox) => [
+      ...grid(span(ox + 2, ox + 8), [0, 10], 0),
+      ...grid(span(ox, ox + 10), [2, 4, 6, 8], 0),
+      ...grid(span(ox + 3, ox + 7), [3, 5, 7], 1),
+      { x: ox + 5, y: 5, z: 2 },
+    ];
+    return [
+      ...wing(0), ...wing(18),
+      ...grid([14], span(0, 10), 0),
+      ...grid([14], [3, 5, 7], 1),
+      { x: 14, y: 5, z: 2 },
+    ];
+  }
+
+  // Two four-course pylons and a low span with a half-tile gap on each side.
+  // Only eight tiles open at the start; the deck ends wait under the cables.
+  function buildBridgeLayout() {
+    const pylon = (ox) => [
+      ...grid(span(ox, ox + 6), span(0, 8), 0),
+      ...grid(span(ox + 1, ox + 5), span(1, 7), 1),
+      ...grid(span(ox + 2, ox + 4), span(2, 6), 2),
+      ...grid([ox + 3], [3, 5], 3),
+    ];
+    return [
+      ...pylon(0), ...pylon(22),
+      ...grid(span(9, 19), [3, 5], 0),
+      ...grid(span(10, 18), [4], 1),
+      ...grid([12, 14, 16], [4], 2),
+    ];
+  }
+
+  // A plus sign that rises toward its centre.
+  function buildCrossLayout() {
+    return [
+      ...grid(span(0, 28), [6, 8], 0),
+      ...grid([12, 14, 16], [0, 2, 4, 10, 12, 14], 0),
+      ...grid(span(3, 25), [7], 1),
+      ...grid([13, 15], [1, 3, 5, 9, 11, 13], 1),
+      ...grid(span(6, 22), [7], 2),
+      ...grid([14], [3, 5, 9, 11], 2),
+      { x: 14, y: 7, z: 3 },
+    ];
+  }
+
   function freezePositions(positions) {
     positions.forEach(Object.freeze);
     return Object.freeze(positions);
@@ -88,10 +171,20 @@
   const TURTLE_LAYOUT = freezePositions(buildTurtleLayout());
   const ARCH_LAYOUT = freezePositions(buildArchLayout());
   const PEAKS_LAYOUT = freezePositions(buildPeaksLayout());
+  const PYRAMID_LAYOUT = freezePositions(buildPyramidLayout());
+  const FORTRESS_LAYOUT = freezePositions(buildFortressLayout());
+  const BUTTERFLY_LAYOUT = freezePositions(buildButterflyLayout());
+  const BRIDGE_LAYOUT = freezePositions(buildBridgeLayout());
+  const CROSS_LAYOUT = freezePositions(buildCrossLayout());
   const LAYOUTS = Object.freeze({
     turtle: Object.freeze({ id: 'turtle', name: 'Turtle', revision: 1, positions: TURTLE_LAYOUT, tileCount: 144, layers: 5 }),
     arch: Object.freeze({ id: 'arch', name: 'Arch', revision: 2, positions: ARCH_LAYOUT, tileCount: 96, layers: 3 }),
     peaks: Object.freeze({ id: 'peaks', name: 'Peaks', revision: 1, positions: PEAKS_LAYOUT, tileCount: 72, layers: 4 }),
+    pyramid: Object.freeze({ id: 'pyramid', name: 'Pyramid', revision: 1, positions: PYRAMID_LAYOUT, tileCount: 108, layers: 4 }),
+    fortress: Object.freeze({ id: 'fortress', name: 'Fortress', revision: 1, positions: FORTRESS_LAYOUT, tileCount: 96, layers: 3 }),
+    butterfly: Object.freeze({ id: 'butterfly', name: 'Butterfly', revision: 1, positions: BUTTERFLY_LAYOUT, tileCount: 94, layers: 3 }),
+    bridge: Object.freeze({ id: 'bridge', name: 'Bridge', revision: 1, positions: BRIDGE_LAYOUT, tileCount: 100, layers: 4 }),
+    cross: Object.freeze({ id: 'cross', name: 'Cross', revision: 1, positions: CROSS_LAYOUT, tileCount: 86, layers: 4 }),
   });
 
   function layoutFor(layoutId) {
@@ -401,13 +494,20 @@
     return { changed: true, expired, remainingMs: next };
   }
 
+  // A shuffle empties the rack, so tray indices recorded before the most
+  // recent shuffle belong to an earlier epoch. Only the current epoch's park
+  // and its priorTray references are rewritten when a parked tile matches;
+  // the shuffle action itself and everything before it stay intact so undo
+  // can walk back through the shuffle faithfully.
   function removeParkHistory(state, trayIndex) {
+    const epochStart = state.history.findLastIndex((action) => action.type === 'shuffle') + 1;
     const parkedAction = state.history.findLastIndex(
-      (action) => action.type === 'tray-park' && action.index === trayIndex
+      (action, offset) => offset >= epochStart && action.type === 'tray-park' && action.index === trayIndex
     );
     if (parkedAction >= 0) state.history.splice(parkedAction, 1);
-    for (const action of state.history) {
-      if (Array.isArray(action.priorTray)) {
+    for (let offset = epochStart; offset < state.history.length; offset++) {
+      const action = state.history[offset];
+      if (action.type !== 'shuffle' && Array.isArray(action.priorTray)) {
         action.priorTray = action.priorTray.filter((index) => index !== trayIndex);
       }
     }
@@ -584,6 +684,7 @@
     if (!state || !Array.isArray(state.history)) return false;
     const action = state.history.pop();
     if (!action) return false;
+    let restoredStatus = STATUSES.PLAYING;
     if (action.type === 'classic-pair') {
       state.removed[action.indices[0]] = false;
       state.removed[action.indices[1]] = false;
@@ -602,11 +703,17 @@
       state.maxCombo = action.priorMaxCombo;
       state.autoClears = action.priorAutoClears;
       state.selected = null;
+    } else if (action.type === 'shuffle') {
+      state.kinds = action.priorKinds.slice();
+      state.removed = action.priorRemoved.slice();
+      state.tray = action.priorTray.slice();
+      state.selected = null;
+      restoredStatus = action.priorStatus;
     } else {
       return false;
     }
     resetCombo(state);
-    state.status = STATUSES.PLAYING;
+    state.status = restoredStatus;
     state.completionRecorded = false;
     if (!state.assists) state.assists = { undo: 0, hint: 0, shuffle: 0 };
     state.assists.undo += 1;
@@ -663,11 +770,20 @@
       if (matchKey(nextKinds[first]) !== matchKey(nextKinds[second])) return false;
     }
     // Commit only after construction and replay validation both succeeded.
+    // The shuffle is itself an undoable action: it records the exact prior
+    // board (including parked rack tiles and Rescue status) so a stray
+    // keypress never destroys a game.
+    pushHistory(state, {
+      type: 'shuffle',
+      priorKinds: state.kinds.slice(),
+      priorRemoved: state.removed.slice(),
+      priorTray: (state.tray || []).slice(),
+      priorStatus: state.status,
+    });
     state.kinds = nextKinds;
     state.removed = nextRemoved;
     state.tray = [];
     state.selected = null;
-    state.history = [];
     resetCombo(state);
     state.status = STATUSES.PLAYING;
     if (!state.assists) state.assists = { undo: 0, hint: 0, shuffle: 0 };
@@ -743,6 +859,23 @@
           priorAutoClears,
           autoClear,
         });
+      } else if (raw.type === 'shuffle') {
+        if (!Array.isArray(raw.priorKinds) || raw.priorKinds.length !== length
+          || !raw.priorKinds.every((kind) => typeof kind === 'string' && KNOWN_KINDS.has(kind))
+          || !Array.isArray(raw.priorRemoved) || raw.priorRemoved.length !== length
+          || !raw.priorRemoved.every((value) => typeof value === 'boolean')
+          || !Array.isArray(raw.priorTray) || raw.priorTray.length > TRAY_SIZE
+          || new Set(raw.priorTray).size !== raw.priorTray.length
+          || !raw.priorTray.every((index) => validIndex(index, length) && raw.priorRemoved[index])
+          || ![STATUSES.PLAYING, STATUSES.RESCUE].includes(raw.priorStatus)
+          || (raw.priorStatus === STATUSES.RESCUE) !== (raw.priorTray.length === TRAY_SIZE)) return null;
+        result.push({
+          type: 'shuffle',
+          priorKinds: raw.priorKinds.slice(),
+          priorRemoved: raw.priorRemoved.slice(),
+          priorTray: raw.priorTray.slice(),
+          priorStatus: raw.priorStatus,
+        });
       } else return null;
     }
     return result;
@@ -766,6 +899,8 @@
         ...action,
         ...(action.indices ? { indices: action.indices.slice() } : {}),
         ...(action.priorTray ? { priorTray: action.priorTray.slice() } : {}),
+        ...(action.priorKinds ? { priorKinds: action.priorKinds.slice() } : {}),
+        ...(action.priorRemoved ? { priorRemoved: action.priorRemoved.slice() } : {}),
         ...(action.autoClear ? { autoClear: { ...action.autoClear, indices: action.autoClear.indices.slice() } } : {}),
       })),
       score: restored.score,
@@ -897,6 +1032,11 @@
     TURTLE_LAYOUT,
     ARCH_LAYOUT,
     PEAKS_LAYOUT,
+    PYRAMID_LAYOUT,
+    FORTRESS_LAYOUT,
+    BUTTERFLY_LAYOUT,
+    BRIDGE_LAYOUT,
+    CROSS_LAYOUT,
     createRng,
     matchKey,
     isFreeAt,

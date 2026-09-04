@@ -410,9 +410,9 @@ function renderTray() {
   document.getElementById('mjTrayRail')?.toggleAttribute('hidden', game.mode !== 'tray');
 }
 
-function refreshTiles({ recoverFocus = false } = {}) {
+function refreshTiles({ recoverFocus = false, keepHint = false } = {}) {
   if (!game) return;
-  clearHint();
+  if (!keepHint) clearHint();
   let nextFocus = focusIndex;
   tileButtons.forEach((b, i) => {
     b.disabled = false;
@@ -513,7 +513,7 @@ const modalBackground = () => [
 ].filter(Boolean);
 
 function activeModal() {
-  return ['mjSetupSheet', 'mjRescue', 'mjWin']
+  return ['mjSetupSheet', 'mjRecordsSheet', 'mjRescue', 'mjWin']
     .map((id) => document.getElementById(id))
     .find((element) => element && !element.hidden) || null;
 }
@@ -900,6 +900,7 @@ function activateTile(i, tile = tileButtons[i]) {
   const wasWon = E.isWon(game);
   const result = E.selectTile(game, i);
   if (!result?.ok) return;
+  dismissResume();
   focusIndex = i;
   const cue = cueForResult(result);
   const semitones = cue === 'comboStep' ? Math.min(7, Math.max(0, result.comboCount - 2)) : 0;
@@ -934,6 +935,11 @@ document.addEventListener('keydown', (event) => {
       closeSetup();
       return;
     }
+    if (event.key === 'Escape' && modal.id === 'mjRecordsSheet') {
+      event.preventDefault();
+      closeRecords();
+      return;
+    }
     if (event.key === 'Tab') {
       const focusable = [...modal.querySelectorAll(
         'button:not([disabled]):not([tabindex="-1"]), input:not([disabled])'
@@ -956,7 +962,7 @@ document.addEventListener('keydown', (event) => {
   if (event.key.startsWith('Arrow') && game) {
     event.preventDefault();
     focusIndex = spatialNeighbor(focusIndex, event.key);
-    refreshTiles();
+    refreshTiles({ keepHint: true });
     tileButtons[focusIndex]?.focus({ preventScroll: true });
     return;
   }
@@ -978,6 +984,9 @@ document.addEventListener('keydown', (event) => {
   } else if (!event.metaKey && !event.ctrlKey && !event.altKey && key === 's') {
     event.preventDefault();
     document.getElementById('mjShuffle').click();
+  } else if (!event.metaKey && !event.ctrlKey && !event.altKey && key === 'r') {
+    event.preventDefault();
+    openRecords();
   } else if (event.key === 'Escape' && game?.selected !== null) {
     game.selected = null;
     saveAfterMutation();
@@ -986,14 +995,20 @@ document.addEventListener('keydown', (event) => {
 });
 
 document.getElementById('mjUndo').addEventListener('click', () => {
+  const undone = game?.history.at(-1)?.type;
   if (!game || !E.undo(game)) return;
   invalidateTileAnimations();
   sound.play('undo');
   resumeTimerAfterUndo();
   saveAfterMutation();
+  if (undone === 'shuffle') {
+    // A reversed shuffle changes tile faces, not just visibility.
+    renderBoard();
+    fitBoard();
+  }
   refreshTiles({ recoverFocus: true });
   checkEndStates();
-  announce('Last move undone.');
+  announce(undone === 'shuffle' ? 'Shuffle undone. The previous board is back.' : 'Last move undone.');
 });
 document.getElementById('mjNoticeUndo').addEventListener('click', () =>
   document.getElementById('mjUndo').click());
@@ -1048,10 +1063,11 @@ function shuffleGame() {
   fitBoard();
   checkEndStates();
   if (wasRescue) resumeTimerAfterUndo();
-  announce('Remaining tiles shuffled into a new solvable deal.');
+  announce('Remaining tiles shuffled into a new solvable deal. Undo restores the previous board.');
   return true;
 }
 document.getElementById('mjShuffle').addEventListener('click', shuffleGame);
+document.getElementById('mjNoticeShuffle').addEventListener('click', shuffleGame);
 document.getElementById('mjRescueUndo')?.addEventListener('click', () =>
   document.getElementById('mjUndo').click());
 document.getElementById('mjRescueShuffle')?.addEventListener('click', shuffleGame);
@@ -1169,7 +1185,6 @@ function stopTimer() { pauseTimer(); }
 
 function resumeTimerAfterUndo() {
   if (!game) return;
-  game.status = 'playing';
   if (hasStarted) startTimer();
 }
 
@@ -1226,13 +1241,8 @@ function recordCompletion() {
     scoringRevision: game.scoringRevision,
   });
   game.completionRecorded = Boolean(updated);
-  const after = updated && (game.mode === 'classic'
-    ? updated.classic[game.layoutId]
-    : updated.tray[game.layoutId]);
-  game._newRecord = !before || (game.mode === 'classic'
-    ? after?.bestTimeMs < before.bestTimeMs
-    : after?.bestScore > before.bestScore ||
-      (after?.bestScore === before.bestScore && after?.bestTimeMs < before.bestTimeMs));
+  const after = bestForGame();
+  game._outcome = S.completionOutcome({ mode: game.mode, before, after });
   saveAfterMutation();
   return Boolean(updated);
 }
@@ -1250,14 +1260,24 @@ function showWin() {
   document.getElementById('mjWinUnit').textContent = isBurst ? 'points' : 'clear time';
   document.getElementById('mjWinTime').textContent = time;
   const record = document.getElementById('mjWinBest');
-  record.textContent = game._newRecord
+  record.textContent = game._outcome === 'record'
     ? 'new record'
-    : best
-      ? (game.mode === 'classic'
-          ? `best ${formatMs(best.bestTimeMs)}`
-          : `best ${best.bestScore.toLocaleString()} · ${formatMs(best.bestTimeMs)}`)
-      : 'first clear';
-  record.classList.toggle('is-record', Boolean(game._newRecord));
+    : game._outcome === 'first'
+      ? 'first clear'
+      : best
+        ? (game.mode === 'classic'
+            ? `best ${formatMs(best.bestTimeMs)}`
+            : `best ${best.bestScore.toLocaleString()} · ${formatMs(best.bestTimeMs)}`)
+        : 'no record';
+  record.classList.toggle('is-record', game._outcome === 'record' || game._outcome === 'first');
+  const dailyLine = document.getElementById('mjWinDaily');
+  if (dailyLine) {
+    const dailyResult = game.dailyKey && recordStore
+      ? S.describeDailyResult(recordStore.read(), game.dailyKey, game.mode, formatMs)
+      : null;
+    dailyLine.hidden = !dailyResult;
+    dailyLine.textContent = dailyResult ? `daily ${game.dailyKey} · ${dailyResult}` : '';
+  }
   const stats = document.getElementById('mjWinStats');
   if (stats) stats.hidden = !isBurst;
   document.getElementById('mjWinCombo').textContent = `×${game.maxCombo || 0}`;
@@ -1272,6 +1292,8 @@ const FREE_HIGHLIGHT_KEY = 'mahjong.free-highlight';
 let gameId = null;
 let gameStore = null;
 let recordStore = null;
+let prefsStore = null;
+let resumeTarget = null;
 let duplicateGuard = null;
 let duplicateChannel = null;
 let embedActive = true;
@@ -1300,6 +1322,7 @@ function configureGame(nextGame) {
   document.getElementById('mjNotice').hidden = true;
   document.getElementById('mjError').hidden = true;
   document.getElementById('mjRecoveryNotice').hidden = true;
+  dismissResume();
   setDialogVisible(document.getElementById('mjWin'), false);
   setDialogVisible(document.getElementById('mjRescue'), false);
   renderBoard();
@@ -1312,6 +1335,8 @@ function configureGame(nextGame) {
 
 function startGame({ layoutId, mode, seed, dailyKey = null }, { soundCue = true } = {}) {
   pauseTimer();
+  // Remember the table so the next fresh tab deals the same kind of game.
+  prefsStore?.write({ layoutId, mode, source: dailyKey ? 'daily' : 'random' });
   try {
     const next = E.createGame({ seed, layoutId, mode, gameId, dailyKey });
     next.gameId = gameId;
@@ -1331,6 +1356,71 @@ function startGame({ layoutId, mode, seed, dailyKey = null }, { soundCue = true 
   }
   return true;
 }
+
+function startPreferredGame({ soundCue = false } = {}) {
+  const prefs = prefsStore ? prefsStore.read() : { layoutId: 'turtle', mode: 'tray', source: 'daily' };
+  if (prefs.source === 'daily') {
+    return startGame({ ...S.dailyDeal(new Date()), mode: prefs.mode }, { soundCue });
+  }
+  return startGame({ layoutId: prefs.layoutId, mode: prefs.mode, seed: randomSeed() }, { soundCue });
+}
+
+// --- continue last game ------------------------------------------------------
+// A fresh tab mints a fresh game id, so a half-finished board in a closed tab
+// would otherwise be unreachable. Offer it explicitly; never adopt silently.
+
+function dismissResume() {
+  resumeTarget = null;
+  const notice = document.getElementById('mjResumeNotice');
+  if (notice) notice.hidden = true;
+}
+
+function offerResume() {
+  if (!gameStore) return;
+  const candidate = S.resumeCandidate(gameStore.summaries(), { excludeGameId: gameId });
+  const notice = document.getElementById('mjResumeNotice');
+  const copy = document.getElementById('mjResumeCopy');
+  if (!candidate || !notice || !copy) return;
+  resumeTarget = candidate.gameId;
+  const layoutName = E.LAYOUTS[candidate.layoutId]?.name || 'Mahjong';
+  const modeName = candidate.mode === 'tray' ? 'Burst' : 'Classic';
+  const pairs = `${candidate.pairsLeft} ${candidate.pairsLeft === 1 ? 'pair' : 'pairs'} left`;
+  copy.textContent = `Your unfinished ${layoutName} ${modeName} board is waiting · ${pairs}.`;
+  notice.hidden = false;
+}
+
+function adoptGame(targetId) {
+  if (!gameStore || !S.isValidGameId(targetId)) return false;
+  pauseTimer();
+  const previousId = gameId;
+  const previous = game;
+  const adopted = gameStore.load(targetId);
+  if (!adopted) {
+    dismissResume();
+    document.getElementById('mjRecoveryNotice').hidden = false;
+    return false;
+  }
+  const changed = S.forkGameId({ href: location.href, history, uuid: () => targetId });
+  gameId = changed.gameId;
+  configureGame(adopted);
+  // The untouched deal this tab made moments ago would otherwise linger as an
+  // orphan save until expiry.
+  if (previous && previousId !== gameId && previous.history.length === 0
+    && previous.elapsedMs === 0 && previous.tray.length === 0) {
+    gameStore.discard(previousId);
+  }
+  saveAfterMutation();
+  notifyParentGameId();
+  disposeDuplicateGuard();
+  installDuplicateGuard();
+  announce('Continuing your unfinished board.');
+  return true;
+}
+
+document.getElementById('mjResumeContinue')?.addEventListener('click', () => {
+  if (resumeTarget) adoptGame(resumeTarget);
+});
+document.getElementById('mjResumeDismiss')?.addEventListener('click', dismissResume);
 
 function newGameFromControl() {
   const layoutId = game?.layoutId || 'turtle';
@@ -1361,9 +1451,17 @@ function paintSetupChoices() {
     ? 'Build rapid matches in a four-slot Burst rack.'
     : 'Match two free tiles directly.';
   const sourceDescription = document.getElementById('mjSourceDescription');
-  if (sourceDescription) sourceDescription.textContent = setupChoice.source === 'daily'
-    ? `${S.dailyDeal(new Date()).dailyKey} · ${E.LAYOUTS[setupChoice.layoutId].name}`
-    : 'A fresh, guaranteed-solvable board.';
+  if (sourceDescription) {
+    if (setupChoice.source === 'daily') {
+      const daily = S.dailyDeal(new Date());
+      const done = recordStore
+        ? S.describeDailyResult(recordStore.read(), S.dailyDeal(new Date()).dailyKey, setupChoice.mode, formatMs)
+        : null;
+      sourceDescription.textContent = `${daily.dailyKey} · ${E.LAYOUTS[setupChoice.layoutId].name} · ${done || 'layout rotates daily'}`;
+    } else {
+      sourceDescription.textContent = 'A fresh, guaranteed-solvable board.';
+    }
+  }
 }
 
 function openSetup() {
@@ -1404,6 +1502,73 @@ function startSetupChoice() {
   }
   closeSetup();
 }
+
+// --- records sheet -----------------------------------------------------------
+// Everything shown here is derived by S.recordsSummary from the local records
+// aggregate; this file only maps that view model to DOM.
+
+function paintRecords() {
+  if (!recordStore) return;
+  const summary = S.recordsSummary(recordStore.read(), {
+    today: new Date(),
+    layoutIds: S.LAYOUT_IDS,
+    currentLayoutId: game?.layoutId || null,
+  });
+  document.getElementById('mjRecordsCleared').textContent = summary.overview.cleared.toLocaleString();
+  document.getElementById('mjRecordsStreak').textContent = String(summary.overview.streak);
+  document.getElementById('mjRecordsLongest').textContent = String(summary.overview.longest);
+  document.getElementById('mjRecordsDailies').textContent = String(summary.overview.dailies);
+
+  const rows = document.getElementById('mjRecordsRows');
+  rows.replaceChildren(...summary.rows.map((row) => {
+    const tr = document.createElement('tr');
+    if (row.current) tr.setAttribute('aria-current', 'true');
+    const name = document.createElement('th');
+    name.scope = 'row';
+    name.textContent = E.LAYOUTS[row.layoutId]?.name || row.layoutId;
+    const classic = document.createElement('td');
+    classic.textContent = row.classicBestMs == null ? '—' : formatMs(row.classicBestMs);
+    const burst = document.createElement('td');
+    burst.textContent = row.trayBestScore == null
+      ? '—'
+      : `${row.trayBestScore.toLocaleString()} · ${formatMs(row.trayBestMs)}`;
+    const cleared = document.createElement('td');
+    cleared.textContent = String(row.cleared);
+    tr.append(name, classic, burst, cleared);
+    return tr;
+  }));
+
+  const strip = document.getElementById('mjRecordsDays');
+  strip.replaceChildren(...summary.days.map((day) => {
+    const cell = document.createElement('i');
+    cell.classList.toggle('is-cleared', day.cleared);
+    cell.classList.toggle('is-today', day.today);
+    return cell;
+  }));
+  const clearedDays = summary.days.filter((day) => day.cleared);
+  strip.setAttribute('aria-label', clearedDays.length
+    ? `Daily cleared on ${clearedDays.map((day) => day.key).join(', ')}.`
+    : 'No dailies cleared in the last 28 days.');
+  document.getElementById('mjRecordsDaysCaption').textContent = clearedDays.length
+    ? `cleared ${clearedDays.length} of the last 28 dailies`
+    : 'no dailies cleared yet';
+}
+
+function openRecords() {
+  pauseTimer();
+  paintRecords();
+  setDialogVisible(document.getElementById('mjRecordsSheet'), true);
+}
+
+function closeRecords() {
+  setDialogVisible(document.getElementById('mjRecordsSheet'), false);
+  document.getElementById('mjRecords')?.focus();
+  if (!document.hidden && embedActive && hasStarted && game?.status === 'playing') startTimer();
+}
+
+document.getElementById('mjRecords')?.addEventListener('click', openRecords);
+document.getElementById('mjRecordsClose')?.addEventListener('click', closeRecords);
+document.getElementById('mjRecordsScrim')?.addEventListener('click', closeRecords);
 
 for (const button of document.querySelectorAll('#mjSetupSheet button[data-layout]')) {
   button.addEventListener('click', () => {
@@ -1515,6 +1680,7 @@ function bootstrap() {
   gameId = identity.gameId;
   gameStore = S.createGameStore({ storage: localStorage, engine: E });
   recordStore = S.createRecordStore({ storage: localStorage });
+  prefsStore = S.createPrefsStore({ storage: localStorage });
   recordStore.migrateLegacy();
 
   let hadSave = false;
@@ -1525,9 +1691,9 @@ function bootstrap() {
     configureGame(restored);
     announce('Saved game restored.');
   } else {
-    const daily = S.dailyDeal(new Date());
-    startGame({ ...daily, mode: 'tray' }, { soundCue: false });
+    startPreferredGame();
     if (hadSave) document.getElementById('mjRecoveryNotice').hidden = false;
+    else offerResume();
   }
   notifyParentGameId();
   installDuplicateGuard();

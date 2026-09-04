@@ -5,6 +5,10 @@
   /* Mahjong is the fifth start-page layout, so its former mono role joins the
      same Inter-only migration while the rest of Blanc remains unchanged. */
   --font-mono: var(--font-ui);
+  /* Tile faces are exempt from that migration: numerals and wind badge
+     letters keep the bundled JetBrains Mono (a 400–800 variable face), so
+     this token restates the real mono stack rather than the alias above. */
+  --mj-face-font: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
   --mj-lacquer: #0b3d31;
   --mj-lacquer-deep: #04251f;
   --mj-lacquer-ink: #021914;
@@ -507,11 +511,13 @@
 }
 
 .mj-tile svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.35)); }
-.mj-face text { font-family: var(--font-mono); font-weight: 650; }
-.mj-character-number {
-  font-family: var(--font-ui);
-  font-weight: 850;
-  font-variation-settings: "wght" 850;
+.mj-face text { font-family: var(--mj-face-font); font-weight: 650; }
+/* Element-qualified so this outranks `.mj-face text` above; the bare class
+   never won, so the numeral's declared weight had silently never applied. */
+.mj-face text.mj-character-number {
+  font-family: var(--mj-face-font);
+  font-weight: 800;
+  font-variation-settings: "wght" 800;
   fill: currentColor;
   stroke: rgba(153, 111, 44, 0.62);
   stroke-width: 0.7px;
@@ -939,14 +945,25 @@
 .mj-tray-best strong { color: var(--mj-ivory); font: 650 12px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
 
 .mj-feedback { min-height: 18px; display: grid; place-items: center; }
+/* Notices are lacquer pills with their own ground, so a two-sentence offer
+   (continue an unfinished board) reads as a card floating over the felt
+   instead of loose text wedged between the header and the table edge. */
 .mj-notice {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 6px 9px;
+  max-width: min(640px, 100%);
+  padding: 9px 16px;
+  border: 1px solid var(--mj-line-strong);
+  border-radius: 999px;
   color: var(--mj-muted);
-  font: 500 10px/1.4 var(--font-mono);
+  background: var(--mj-panel);
+  box-shadow: 0 14px 34px var(--mj-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px) saturate(1.1);
+  font: 500 11px/1.45 var(--font-mono);
+  text-align: center;
 }
 .mj-notice button {
   all: unset;
@@ -962,7 +979,7 @@
   min-height: 60px;
   justify-self: center;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 4px;
   padding: 5px;
   border: 1px solid var(--mj-line-strong);
@@ -1155,7 +1172,7 @@
 
 .mj-layout-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 9px;
 }
 
@@ -1247,6 +1264,57 @@
 .mj-layout-mini-peaks i:nth-child(7) { left: 26%; top: 31px; }
 .mj-layout-mini-peaks i:nth-child(8) { left: 50%; top: 19px; }
 .mj-layout-mini-peaks i:nth-child(9) { left: 74%; top: 31px; }
+
+/* v2.1 previews. Pyramid: a four-course stepped stack. Fortress: a ring with
+   a raised keep. Butterfly: two lifted wings and a body. Bridge: two towers
+   and a low span. Cross: a plus that rises at the centre. */
+.mj-layout-mini-pyramid i:nth-child(1) { left: 20%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(2) { left: 40%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(3) { left: 60%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(4) { left: 80%; top: 62px; }
+.mj-layout-mini-pyramid i:nth-child(5) { left: 30%; top: 46px; }
+.mj-layout-mini-pyramid i:nth-child(6) { left: 50%; top: 46px; }
+.mj-layout-mini-pyramid i:nth-child(7) { left: 70%; top: 46px; }
+.mj-layout-mini-pyramid i:nth-child(8) { left: 40%; top: 30px; }
+.mj-layout-mini-pyramid i:nth-child(9) { left: 60%; top: 30px; }
+.mj-layout-mini-pyramid i:nth-child(10) { left: 50%; top: 14px; }
+
+.mj-layout-mini-fortress i:nth-child(1) { left: 10%; top: 58px; }
+.mj-layout-mini-fortress i:nth-child(2) { left: 50%; top: 58px; }
+.mj-layout-mini-fortress i:nth-child(3) { left: 90%; top: 58px; }
+.mj-layout-mini-fortress i:nth-child(4) { left: 10%; top: 30px; }
+.mj-layout-mini-fortress i:nth-child(5) { left: 50%; top: 30px; }
+.mj-layout-mini-fortress i:nth-child(6) { left: 90%; top: 30px; }
+.mj-layout-mini-fortress i:nth-child(7) { left: 50%; top: 44px; }
+
+.mj-layout-mini-butterfly i:nth-child(1) { left: 12%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(2) { left: 30%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(3) { left: 70%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(4) { left: 88%; top: 58px; }
+.mj-layout-mini-butterfly i:nth-child(5) { left: 21%; top: 40px; }
+.mj-layout-mini-butterfly i:nth-child(6) { left: 79%; top: 40px; }
+.mj-layout-mini-butterfly i:nth-child(7) { left: 50%; top: 60px; }
+.mj-layout-mini-butterfly i:nth-child(8) { left: 50%; top: 42px; }
+.mj-layout-mini-butterfly i:nth-child(9) { left: 50%; top: 24px; }
+
+.mj-layout-mini-bridge i:nth-child(1) { left: 12%; top: 60px; }
+.mj-layout-mini-bridge i:nth-child(2) { left: 88%; top: 60px; }
+.mj-layout-mini-bridge i:nth-child(3) { left: 37%; top: 52px; }
+.mj-layout-mini-bridge i:nth-child(4) { left: 50%; top: 52px; }
+.mj-layout-mini-bridge i:nth-child(5) { left: 63%; top: 52px; }
+.mj-layout-mini-bridge i:nth-child(6) { left: 12%; top: 42px; }
+.mj-layout-mini-bridge i:nth-child(7) { left: 88%; top: 42px; }
+.mj-layout-mini-bridge i:nth-child(8) { left: 12%; top: 24px; }
+.mj-layout-mini-bridge i:nth-child(9) { left: 88%; top: 24px; }
+
+.mj-layout-mini-cross i:nth-child(1) { left: 14%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(2) { left: 32%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(3) { left: 68%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(4) { left: 86%; top: 50px; }
+.mj-layout-mini-cross i:nth-child(5) { left: 50%; top: 66px; }
+.mj-layout-mini-cross i:nth-child(6) { left: 50%; top: 34px; }
+.mj-layout-mini-cross i:nth-child(7) { left: 50%; top: 18px; }
+.mj-layout-mini-cross i:nth-child(8) { left: 50%; top: 50px; }
 
 .mj-setup-row {
   display: grid;
@@ -1519,6 +1587,104 @@
   background: rgba(216, 185, 105, 0.08);
   font: 650 11px/1 var(--font-mono);
 }
+.mj-layout-choice:disabled {
+  opacity: 0.45;
+  cursor: default;
+  filter: saturate(0.6);
+}
+.mj-layout-choice:disabled:hover { transform: none; }
+.mj-win-daily {
+  display: block;
+  margin-top: 9px;
+  color: var(--mj-muted);
+  font: 600 10px/1.4 var(--font-mono);
+  letter-spacing: 0.04em;
+}
+.mj-win-daily[hidden] { display: none; }
+
+/* Records sheet: reuses the setup card shell; the overview tiles mirror the
+   completion card's stat tiles, the table is semantic and tabular. */
+.mj-records-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.mj-records-overview span {
+  min-height: 67px;
+  display: grid;
+  place-content: center;
+  gap: 7px;
+  padding: 8px;
+  border: 1px solid rgba(226, 195, 120, 0.2);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.06), 0 8px 18px rgba(0, 8, 6, 0.14);
+  text-align: center;
+}
+.mj-records-overview small { color: var(--mj-muted); font: 660 10px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; }
+.mj-records-overview strong { color: var(--mj-ivory); font: 760 22px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.mj-records-table {
+  width: 100%;
+  margin-top: 22px;
+  border-collapse: collapse;
+  color: var(--mj-ivory);
+  font: 520 12px/1.4 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.mj-records-table caption {
+  caption-side: top;
+  padding-bottom: 9px;
+  color: var(--mj-muted);
+  font: 660 10px/1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.mj-records-table th,
+.mj-records-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--mj-line);
+  text-align: left;
+  vertical-align: middle;
+}
+.mj-records-table th[scope="col"] {
+  color: var(--mj-muted);
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.mj-records-table th[scope="row"] { font-weight: 660; }
+.mj-records-table th:not(:first-child),
+.mj-records-table td:not(:first-child) { text-align: right; }
+.mj-records-table tr[aria-current="true"] th {
+  box-shadow: inset 3px 0 0 var(--mj-brass);
+  color: var(--mj-brass-bright);
+}
+
+.mj-records-days { margin-top: 22px; }
+.mj-records-strip {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 5px;
+  max-width: 420px;
+}
+.mj-records-strip i {
+  display: block;
+  aspect-ratio: 1;
+  border: 1px solid var(--mj-line);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.mj-records-strip i.is-cleared {
+  border-color: var(--mj-brass);
+  background: var(--mj-brass);
+}
+.mj-records-strip i.is-today {
+  outline: 1px solid var(--mj-ivory);
+  outline-offset: 1px;
+}
+.mj-records-days p { margin: 9px 0 0; color: var(--mj-muted); font: 520 11px/1.4 var(--font-mono); }
 .mj-win-best.is-record {
   border-color: rgba(255, 219, 119, 0.78);
   color: #fff1bd;
@@ -1723,12 +1889,16 @@
   .mj-board-frame { anchor-name: --mj-table; }
   .mj-board-wrap { --mj-board-safe-side: 88px; }
 
+  /* Anchored inside the table's top edge, like the dock anchors to its left
+     edge, and kept clear of the left rail. */
   .mj-feedback {
     position: absolute;
+    position-anchor: --mj-table;
     z-index: 6;
-    top: calc(var(--mj-shell-block) + 42px + var(--mj-shell-gap) + 8px);
-    inset-inline-start: calc(var(--mj-shell-inline) + 104px);
-    inset-inline-end: calc(var(--mj-shell-inline) + 12px);
+    top: calc(anchor(top) + 14px);
+    left: anchor(center);
+    width: min(640px, calc(anchor-size(width) - 208px));
+    transform: translateX(-50%);
     min-height: 0;
     pointer-events: none;
   }
@@ -1745,7 +1915,7 @@
     min-height: 0;
     transform: translateY(-50%);
     grid-template-columns: 1fr;
-    grid-template-rows: repeat(5, 64px);
+    grid-template-rows: repeat(6, 64px);
     gap: 16px;
     padding: 0;
     border: 0;
@@ -1829,6 +1999,23 @@
   .mj-tray-slot { width: 64px; height: 74px; }
 }
 
+/* The rail is sized from the embedded frame's height, not the window's: the
+   start page's footer sits outside this document. Tiers were measured against
+   the worst case (a Burst table, whose rack sits below the board): six
+   controls must fit a 369px table at a 611px frame and a 418px table at
+   660px. At 721px and above the desktop block's 64px/16px rail fits. */
+@media (min-width: 1000px) and (min-height: 611px) and (max-height: 659px) {
+  .mj-dock { grid-template-rows: repeat(6, 52px); gap: 10px; width: 52px; }
+  .mj-dock > button { width: 52px; height: 52px; min-width: 52px; min-height: 52px; }
+  .mj-dock-icon { width: 26px; height: 26px; flex-basis: 26px; }
+}
+
+@media (min-width: 1000px) and (min-height: 660px) and (max-height: 720px) {
+  .mj-dock { grid-template-rows: repeat(6, 56px); gap: 14px; width: 56px; }
+  .mj-dock > button { width: 56px; height: 56px; min-width: 56px; min-height: 56px; }
+  .mj-dock-icon { width: 29px; height: 29px; flex-basis: 29px; }
+}
+
 @media (max-width: 1080px) {
   .mj-head {
     grid-template-columns: minmax(0, 1fr) auto;
@@ -1841,7 +2028,10 @@
   .mj-meter:first-child { min-width: 88px; }
   .mj-chain-meter { min-width: 88px; }
   .mj-combo-bar { width: 78px; }
-  .mj-feedback { top: calc(var(--mj-shell-block) + 52px + var(--mj-shell-gap) + 8px); }
+}
+
+@media (max-width: 900px) {
+  .mj-layout-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 780px) {
@@ -1860,6 +2050,9 @@
   .mj-tray-copy strong { display: none; }
   .mj-tray { justify-self: center; }
   .mj-layout-grid { grid-template-columns: 1fr; }
+  .mj-records-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mj-records-table { font-size: 11px; }
+  .mj-records-table th, .mj-records-table td { padding: 7px 6px; }
   .mj-choice { min-height: 78px; flex-direction: row; align-items: center; justify-content: flex-start; }
   .mj-layout-mini { width: min(180px, 44vw); flex: none; scale: 0.82; }
 }

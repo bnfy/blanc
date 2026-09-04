@@ -1,4 +1,4 @@
-# Blanc v1.13.0 launch copy pack
+# Blanc v1.15.0 launch copy pack
 
 **Owner:** Anthony publishes and replies from his own accounts. Agents may
 fact-check and prepare non-Hacker-News copy, but never post it.
@@ -10,47 +10,55 @@ every affected section together.
 **Schedule reset — OWNER DECISION 2026-08-30:** Show HN is Tuesday,
 September 8, Reddit is Wednesday, September 9, and Product Hunt is Thursday,
 September 10. A bounded backlog-cleanup window now precedes the launch freeze.
-This v1.13.0 pack is the current factual reference, not the final launch pack.
-**OWNER DECISION 2026-08-31:** more releases are likely before launch week, so
-do not refresh launch media for v1.13.0 unless it is selected as the final
-launch release. Keep this pack non-publishable and
-recapture the demo/gallery assets only after the final launch release is
-selected and its required evidence is complete.
+**FINAL RELEASE SELECTION 2026-09-03:** v1.15.0 is the launch release. Its
+publication, all native-platform gates, public Linux launch/render check, and
+adjacent macOS and Windows updater handoffs are complete. The release-bound
+demo and Product Hunt stills were recaptured from that installed packaged
+build. If a regression forces a replacement release, this pack becomes
+non-publishable until every release-bound fact and asset is rebaselined and the
+fresh launch soak restarts.
+
+**Evidence update 2026-09-03:** the owner explicitly confirmed both adjacent
+v1.12.0 → v1.13.0 **Restart Now** handoffs, now recorded in the v1.13.0
+incident. That confirmation closes the earlier evidence gap; it does not waive
+the asset merge, final freeze, or fresh soak. Do not publish this pack until
+the runbook's remaining launch gates are cleared.
 
 **Release lock — REBASELINED 2026-09-02:** This pack describes packaged public
-v1.13.0, published from `25e682f`. It carries the optional macOS 1Password
+v1.15.0, published from `d0c2304`. It carries the optional macOS 1Password
 ambient login hint and Settings account verification while keeping credential
 lookup and fill explicit. It also carries WebRTC receive-buffer controls,
 Electron 44.1.1, device-local frequently visited Billboard sites, Inter across
 every start-page template, Sunrise branding on all platforms, and four macOS
-icon choices. It resets every profile
+icon choices. The resting Island now uses the compact website-inspired
+geometry and material treatment, includes a quiet one-click regular-tab
+shortcut beside the slash keycap, and keeps its unified proximity response;
+the vertical rail uses Inter. Mahjong now has eight layouts, a deterministic
+Daily rotation across all eight, device-local records and streaks, unfinished-
+game continuation across tabs, and undoable Shuffle. It resets every profile
 once to Sunrise and Billboard, then preserves later user changes. The
-authenticated public v1.13.0 Linux launch/render check passed. The adjacent
-v1.11.1 -> v1.12.0 macOS in-app updater handoff passed,
-including installed-version, strict signature, designated-requirement, and
-Gatekeeper checks. The owner also confirmed that the adjacent Windows in-app
-updater completed successfully; its exact-publisher/timestamp evidence remains
-the tagged native release gate. The adjacent v1.12.0 -> v1.13.0 macOS and
-Windows updater handoffs remain follow-ups. This release may still be
-superseded if another approved release replaces it.
-Do not publish this pack or use UI or claims from later work on `main`.
+authenticated public v1.15.0 Linux launch/render check passed, and the adjacent
+v1.14.0 -> v1.15.0 macOS and Windows updater handoffs both passed. Complete
+release evidence is recorded in
+`docs/release-incidents/2026-09-02-v1.15.0.md`. Do not use UI or claims from
+later work on `main`.
 
 ## Frozen facts
 
 | Claim | Launch truth |
 |---|---|
-| Current public release | v1.13.0 |
+| Current public release | v1.15.0 |
 | Platforms | macOS, Windows, Linux |
 | Core price | Free |
 | Blanc Patron | US$4/month or $30/year, plus applicable taxes |
 | Patron boundary | Creating a Named Workspace requires active Patron. Renaming and removing an existing workspace continue after a lapse |
 | Other Patron benefits | Named Workspaces on every platform |
 | Source status | Open source under the MIT License (adopted 2026-08-30); modification, redistribution, and third-party builds are permitted. Publishing a build carries the bundled filter lists' CC BY-SA 3.0+ attribution/share-alike terms, and the Blanc name and logo stay reserved as trademarks |
-| Telemetry | One packaged-build launch ping: random install ID, random session ID, version, platform, architecture, coarse OS major. Fresh profiles save the presented choice before a ping can send |
+| Telemetry | Packaged builds can send one launch event plus bounded, once-per-app-session events for the first real Mahjong move and each start-page layout that renders. Every event carries a random install ID, random session ID, version, platform, architecture, and coarse OS major; layout events add one fixed layout name. Fresh profiles save the presented choice before anything can send; feature-use events exclude private tabs |
 | Memory benchmark | One Mac, one session, three runs per browser, six ad-heavy news sites, median whole-process-tree `phys_footprint`: Blanc 1.3 GB; Brave 1.7 GB; Zen 3.2 GB; Chrome 5.6 GB; Vivaldi 5.9 GB. Blanc with blocking off: 4.2 GB |
 | Release authentication | macOS signed and notarized; Windows timestamped Authenticode; checksum manifest Sigstore-signed; Windows and Linux CI artifacts have GitHub provenance attestations |
 | macOS 1Password boundary | Optional and device-local. A small hint may use bounded structure-only metadata from a visible current-password field, without field values, page text, or a 1Password request. Settings can explicitly verify a saved account identifier. Credential lookup and fill remain user-invoked; Blanc does not fill automatically or store credentials. It is not an extension runtime |
-| Repository/build boundary | The v1.13.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
+| Repository/build boundary | The v1.15.0 tag is the exact source snapshot associated with the public binaries. Re-check `main` on launch morning before describing repository code as downloadable behavior |
 
 Canonical URLs—copy exactly:
 
@@ -62,21 +70,19 @@ Canonical URLs—copy exactly:
 | AlternativeTo | https://blancbrowser.com |
 | BetaList | https://blancbrowser.com/?ref=betalist |
 
-Historical packaged-v1.10.0 demo assets (not launch-ready):
+Packaged-v1.15.0 launch demo assets:
 
 | Form | URL |
 |---|---|
-| MP4 | https://raw.githubusercontent.com/bnfy/blanc/0cc0c57b31c4b619aa18fe6fa1713002e2060b7d/docs/superpowers/plans/assets/island-demo.mp4 |
-| GIF | https://raw.githubusercontent.com/bnfy/blanc/0cc0c57b31c4b619aa18fe6fa1713002e2060b7d/docs/superpowers/plans/assets/island-demo.gif |
+| MP4 | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.mp4 |
+| GIF | https://raw.githubusercontent.com/bnfy/blanc/f6be585924eddfc8858174583f7c38f1ebc1cffb/docs/superpowers/plans/assets/island-demo.gif |
 
-These files were captured on August 30 from the installed packaged public
-v1.10.0 app in an isolated local profile. Do not recapture them for v1.13.0
-unless it is selected as the final launch release;
-wait until the final launch release is selected, then recapture from that exact
-packaged version. The 20.50-second historical export is 1228×768,
-30 fps H.264, and BT.709; the GIF is below 8 MiB. It shows the resting Island,
-`⌘L` expansion, a live `git` Quick Switcher filter, a tab-dot switch, The
-Verge's live 13-item blocker count and popover, and the final resting hold. The
+These files were captured on September 3 from the installed packaged public
+v1.15.0 macOS app in an isolated local profile with telemetry and search
+suggestions disabled. The 22-second export is 1920×1200, 30 fps H.264, and
+BT.709; the 960×600 GIF is below 8 MiB. It shows the resting Island, `⌘L`
+expansion, a live `git` Quick Switcher filter, tab-dot switching, The Verge's
+live blocker count and popover, and a final resting hold. The
 MP4 is the source for the required public or unlisted YouTube upload before
 Product Hunt. A raw MP4 URL does not satisfy Product Hunt's gallery-video
 field.
@@ -100,7 +106,7 @@ Submission mechanics:
    submit a Show HN. Do not create a launch-only account or manufacture activity.
 2. Write the title and first comment personally, without agent drafting or
    editing. The title must begin `Show HN` and describe the whole browser—not
-   announce the incremental v1.13.0 release.
+   announce the incremental v1.15.0 release.
 3. Submit `https://github.com/bnfy/blanc`, not the marketing homepage. The repo
    lets readers inspect and run the product; HN says not to submit landing pages
    or fundraisers.
@@ -124,7 +130,7 @@ Write these ideas in Anthony's natural words:
 - The honest limitation: Electron. Point to the measured method and raw data;
   do not turn a single-session benchmark into a universal claim.
 - What it is not: no mobile version; no extension support.
-- Narrow exception to the extension boundary: packaged macOS v1.13.0 may show
+- Narrow exception to the extension boundary: packaged macOS v1.15.0 may show
   a small local hint for a visible current-password field and can verify a
   saved account identifier in Settings. A matching Login item is requested
   from the installed 1Password app only when the user asks to fill; it is not
@@ -166,11 +172,14 @@ These are facts to answer from, not sentences to paste.
 
 **Telemetry**
 
-- Packaged builds only; one launch ping; opt-out.
-- Six fields: install ID, session ID, version, platform, architecture, coarse OS
-  major.
-- No URLs, searches, history, or page content.
-- A fresh profile saves the presented choice before any ping can send.
+- Packaged builds only; one launch event plus bounded, once-per-app-session
+  events for the first real Mahjong move and each rendered start-page layout;
+  opt-out.
+- Six common fields: install ID, session ID, version, platform, architecture,
+  coarse OS major. Layout events add one fixed layout name.
+- No URLs, searches, history, page content, game state, or custom text;
+  feature-use events exclude private tabs.
+- A fresh profile saves the presented choice before anything can send.
 - The Worker HMACs the install ID before storage.
 
 **Patron**
@@ -251,8 +260,8 @@ thread as a substitute launch.
 > code is open source under the MIT License, so it is readable, forkable, and
 > yours to build on.
 >
-> The browser is free. Optional Patron is $4/month or $30/year and adds three
-> macOS Dock colorways plus Named Workspaces on every platform. Creating a named
+> The browser is free. Optional Patron is $4/month or $30/year and adds Named
+> Workspaces on every platform. Creating a named
 > workspace requires Patron; renaming and removing one you already have keeps
 > working after a lapse.
 >
@@ -281,7 +290,7 @@ thread as a substitute launch.
 > security/licensing compromises it required.
 >
 > Blanc is free and open source under the MIT License. Optional Patron
-> ($4/month or $30/year) adds three Dock colorways and the ability to create
+> ($4/month or $30/year) adds the ability to create
 > Named Workspaces. Existing workspaces remain renameable and removable if the
 > subscription lapses.
 >
@@ -374,9 +383,9 @@ Prepared release-backed media:
 - Gallery still 1: `product-hunt/island-resting-1270x760.png`
 - Gallery still 2: `product-hunt/quick-switcher-1270x760.png`
 
-The two historical stills satisfy the guide's two-image gallery floor, but they
-must be recaptured from the final packaged launch release. Their v1.10.0
-provenance is in `product-hunt/README.md`.
+The two stills were exported from the packaged-v1.15.0 launch demo and satisfy
+the guide's two-image gallery floor. Their exact provenance is in
+`product-hunt/README.md`.
 The full YouTube URL remains owner-supplied and must not be inferred from a raw
 MP4 URL.
 
@@ -441,7 +450,7 @@ Use only topics that exist in the live form and genuinely fit.
 1. Island demo through a verified full YouTube URL.
 2. `product-hunt/island-resting-1270x760.png`.
 3. `product-hunt/quick-switcher-1270x760.png`.
-4. Optional: a packaged-v1.13.0 Named Workspaces capture with a visible
+4. Optional: a packaged-v1.15.0 Named Workspaces capture with a visible
    `Patron` label in its caption. Omit it rather than substituting a mockup,
    development build, or unlabeled paid feature.
 
@@ -546,11 +555,14 @@ drop a full defense where one sentence would do.
 
 ### “What telemetry does it send?”
 
-> Packaged builds send one launch ping, and it can be turned off. The six fields
-> are a random install ID, random session ID, version, platform, architecture,
-> and coarse OS major. There are no URLs, searches, history, or page contents. A
-> fresh profile saves the presented choice before a ping can send. The complete
-> description is at https://blancbrowser.com/faq.
+> Packaged builds can send one launch event plus bounded, once-per-app-session
+> events for the first real Mahjong move and each start-page layout that
+> actually renders. Every event carries a random install ID, random session ID,
+> version, platform, architecture, and coarse OS major; layout events add one
+> fixed layout name. There are no URLs, searches, history, page contents, game
+> state, or custom text, and feature-use events exclude private tabs. A fresh
+> profile saves the presented choice before anything can send. It can be turned
+> off. The complete description is at https://blancbrowser.com/faq.
 
 ### “What is actually paid?”
 
@@ -571,8 +583,8 @@ drop a full defense where one sentence would do.
 
 ## Morning-of fact check
 
-- [ ] `package.json` and the latest public release both still say v1.13.0.
-- [ ] The README still links the v1.13.0 tag as the exact source snapshot for
+- [ ] `package.json` and the latest public release both still say v1.15.0.
+- [ ] The README still links the v1.15.0 tag as the exact source snapshot for
   the current public binaries, and any newer `main` work is excluded from copy.
 - [ ] The latest `launch-freeze-start` row records the final `origin/main`
   anchor, launch release tag, and release SHA; since that dynamic anchor,
@@ -583,7 +595,9 @@ drop a full defense where one sentence would do.
 - [ ] Pricing still reads $4/month and $30/year in Polar and on the site.
 - [ ] Named Workspace creation still requires Patron; rename/removal still work
   after a lapse.
-- [ ] The telemetry payload remains exactly six fields.
+- [ ] Telemetry remains limited to the six common fields plus the bounded
+  fixed event/layout fields described above; no URL, search, history, page,
+  game-state, custom-text, or private-tab feature-use data is sent.
 - [ ] `npm run test:unit` passes, including
   `test/unit/public-truth.test.js`.
 - [ ] The Island demo has been recaptured from the final packaged launch

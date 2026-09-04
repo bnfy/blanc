@@ -16,7 +16,7 @@ TAG="v$VERSION"
 MODE="${BLANC_RELEASE_MODE:-}"
 PLATFORM_CSV="${BLANC_RELEASE_PLATFORMS:-}"
 MAC_ARCH_CSV="${BLANC_MAC_ARCHES:-}"
-MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.13.0}"
+MIGRATION_BASE_VERSION="${BLANC_MIGRATION_BASE_VERSION:-1.15.0}"
 COSIGN_REDIRECT_PORT="${BLANC_COSIGN_REDIRECT_PORT:-49197}"
 RELEASE_OPERATOR="${BLANC_RELEASE_OPERATOR:-terminal}"
 NOTES_FILE="docs/press/release-notes/$TAG.md"
@@ -246,6 +246,7 @@ fi
 
 echo "==> Installing locked dependencies and running the press verification gate"
 npm ci
+npm ci --prefix site
 npm run release:verify:press
 
 echo "==> Preflighting the macOS identity and provisioning profile"

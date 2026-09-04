@@ -176,6 +176,90 @@ final result: passed
 
 ---
 
+# Design QA — optional website measurement toast
+
+## Comparison target
+
+- Source visual truth: `/Users/anthonyjloria/.codex/generated_images/01a06387-2951-7463-80ea-a9de3678b46d/exec-441b237d-270e-43fe-844b-0a9b08f089a2.png`.
+- Final desktop implementation: `/private/tmp/blanc-consent-final-1487.png`.
+- Full-view comparison: `/private/tmp/blanc-consent-final-qa-side-by-side.png`.
+- Focused toast comparison: `/private/tmp/blanc-consent-final-focus-side-by-side.png`.
+- Default-window implementation: `/private/tmp/blanc-consent-finished.png`.
+- Responsive implementation: `/private/tmp/blanc-consent-final-mobile.png`.
+
+## Normalization and state
+
+- Source and matched implementation are both 1487 × 1058 pixels at a 1487 × 1058 CSS-pixel viewport and device scale factor 1.
+- The full-view and focused comparisons place source and implementation together without rescaling. The focused evidence uses equal 420 × 240 crops.
+- State: homepage, light appearance, upper-right measurement choice open. The implementation had an existing denied choice and was reopened through the persistent footer control, which renders the same visual state as first presentation.
+- Responsive evidence uses a 390 × 844 CSS-pixel viewport at device scale factor 1.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Fonts and typography: the toast uses bundled Inter throughout. The final 15.5px semibold heading, 12.5px body, and 12px actions retain a readable hierarchy without turning the consent choice into a large editorial card.
+- Spacing and layout rhythm: the final desktop card is 330 × 144.2 CSS pixels, fixed 12px from the top and 16px from the right edge. Its 16px padding, 16px radius, compact internal gaps, and 34px actions are intentionally smaller than the generated concept following direct user review. At 390px the card keeps 16px side gutters, stays below the mobile navigation, and all three actions remain visible.
+- Colors and visual tokens: the face is `rgba(255,255,255,.96)` over 16px backdrop blur, with the shared `#dedede` border and a quiet three-layer Blanc shadow. The black Allow action leads without hiding or shrinking No thanks.
+- Image quality and asset fidelity: the toast contains no imagery or new icon assets. The existing Sunrise mark and page imagery remain untouched; no placeholder or code-drawn replacement was introduced.
+- Copy and content: final copy is `Help improve Blanc` and `Allow analytics and limited ad measurement to see what visitors explore.` It is concise, product-centered, and explicitly names measurement without sympathy framing. `Privacy details` remains in the action row.
+- Affordances and accessibility: the choice is a labelled non-modal dialog. Allow and No thanks are full buttons, Privacy details is a visible link, and the footer's Privacy choices button reopens the dialog and focuses Allow.
+
+## Comparison history
+
+### Iteration 1 — blocked
+
+- [P1] The original full-width footer banner competed with the newly bottom-centered navigation Island and occupied the entire viewport edge.
+
+Fix: moved measurement consent to the selected upper-right toast and removed all consent-driven page and navigation offsets.
+
+### Iteration 2 — blocked
+
+- [P2] The first implementation used a 370px card with a heading, two explanatory paragraphs, and longer action copy. User review found it materially too wordy and large.
+
+Fix: reduced the card to 330px, tightened its type and controls, removed the separate disclosure paragraph, and kept one explanation sentence.
+
+### Iteration 3 — blocked
+
+- [P2] `Help a small independent browser see what’s working` sounded attention-seeking and weakened Blanc's confidence.
+
+Fix: replaced the sympathy framing with the direct `Help improve Blanc` and tied the request to visitor exploration.
+
+### Iteration 4 — blocked
+
+- [P2] The remaining eyebrow and discovery clause still made the toast feel more promotional and verbose than the quiet Island aesthetic.
+
+Fix: removed the eyebrow and shortened the body to one direct measurement sentence, reducing the default card to 144.2px high.
+
+### Iteration 5 — passed
+
+Post-fix evidence:
+
+- `/private/tmp/blanc-consent-final-qa-side-by-side.png`
+- `/private/tmp/blanc-consent-final-focus-side-by-side.png`
+- `/private/tmp/blanc-consent-final-mobile.png`
+
+The final matched-scale and focused comparisons show the same restrained upper-right treatment as the selected direction, with the user-requested reductions in size and language. No actionable P0/P1/P2 drift remains.
+
+## Functional evidence
+
+- No saved choice: the toast presents automatically without moving page content or the bottom navigation Island.
+- No thanks: stores denial and dismisses the toast.
+- Privacy choices: reopens the toast after denial and moves keyboard focus to Allow.
+- Mobile: all controls remain visible at 390px and the toast clears the fixed navigation.
+- Browser console: no errors during the final desktop and responsive checks.
+- Site build and SEO verification: passed for all 19 pages.
+- Token consistency: passed.
+- Complete unit suite: 1,412 tests passed, 0 failed.
+
+## Follow-up polish
+
+No P3 follow-up is required.
+
+final result: passed
+
+---
+
 # Design QA — website-inspired resting Island
 
 ## Comparison target
@@ -1641,5 +1725,60 @@ Slash moved from a font-sized border box to the same 22px target and the same 18
 ## Follow-up polish
 
 No P3 follow-up is required for this focused change.
+
+final result: passed
+
+---
+
+# Design QA — v1.14 Island website refresh
+
+- Material reference: `/Users/anthonyjloria/Desktop/Blanc/Screenshot 2026-09-02 at 3.09.47 PM.png`.
+- Placement and page-context reference: `/Users/anthonyjloria/Desktop/Screenshot 2026-09-02 at 6.23.57 PM.png`.
+- Final desktop homepage: `/private/tmp/blanc-site-home-desktop-final.png`.
+- Final mobile homepage: `/private/tmp/blanc-site-mobile-final.png`.
+- Final desktop Glance state: `/private/tmp/blanc-site-glance-final.png`.
+- Final expanded press Island: `/private/tmp/blanc-site-press-final.png`.
+- Normalization: desktop was checked at 1440 × 1000 CSS pixels and mobile at 390 × 844. The source material, placement reference, and desktop implementation were opened together in one visual comparison input. The homepage demo used its authored 900px stage; the Glance split was measured against the primary page boundary rather than the full stage.
+
+## Findings
+
+No actionable P0, P1, or P2 findings remain.
+
+- Brand hierarchy: the existing Sunrise mark is centered above the homepage eyebrow at 32px desktop and 26px mobile. Rebalanced hero padding keeps the headline at the intended visual position instead of moving the whole composition down.
+- Island material: public replicas use the released 44px resting height, 17px radius, 68px strip, Inter URL, 36px × 14px expanded field, 18px panel radius, 16px backdrop blur, and the exact three-layer website shadow. Proximity motion rises and grows the complete Island without adding a second shadow treatment.
+- Controls: horizontal Island replicas include the quiet Plus keycap beside Slash with matching face geometry and a 4px rendered pair gap. Reload, Favorite, Close, and contextual Downloads remain bare trailing actions with no shared dark wrapper. Vertical-tabs visuals omit the duplicate Plus because the rail already owns New tab.
+- Navigation: desktop navigation is fixed at bottom center with a 10px viewport inset, moves above the consent surface when present, tucks fully out of view after 12px of cumulative downward scrolling, and returns on upward scrolling or keyboard focus. The mobile navigation remains fixed at the top.
+- Glance containment: at the tested desktop split the Island remained entirely inside the primary page, with 36.2px left and 35.2px right insets. The implementation derives its maximum width from the live primary pane and switches to a full-width-minus-24px constraint in the stacked layout.
+- Responsive layout: at 390px the homepage demo Island remained 13px inside both edges of the stage. The Sunrise mark, headline, demo copy, and top navigation stayed centered without collision or horizontal overflow.
+- Accessibility and motion: the existing semantic navigation and buttons remain intact, scroll-return responds to focus entry, and reduced-motion disables the new header transition and Island movement. Browser console QA reported no warnings or errors.
+- Generated media: homepage social art, feature cards, and press captures were regenerated from the released geometry so static website visuals no longer show the superseded Island.
+
+## Comparison history
+
+### Superseded website state — failed
+
+- Island replicas used an older, taller stadium silhouette and longer shadow.
+- The desktop navigation occupied the same upper page zone as Blanc's real Island.
+- The Glance demo centered the Island across the whole stage, allowing it to cross the active pane divider.
+- The homepage had no primary Sunrise mark above the opening message.
+
+### Final website state — passed
+
+- The source material, page-context reference, and implementation were reviewed together. The nav retains the source face, border, radius, typography, and short shadow while moving to the requested bottom-center position.
+- Resting, hover, expanded, horizontal, vertical, Glance, desktop, mobile, press, and generated-image states now share the released Island geometry and control ordering.
+- The Sunrise mark creates a clear brand-to-eyebrow-to-H1 sequence without disturbing the original headline balance.
+
+## Functional evidence
+
+- `npm run site:build`: 19 pages built and 19 sitemap URLs passed SEO verification.
+- `npm run tokens:check`: generated design-token artifacts are current.
+- Focused website and geometry coverage: 14 tests passed.
+- Complete unit suite: 1,411 tests passed, 0 failed.
+- In-app browser checks: desktop bottom offset, tuck/reveal motion, mobile top navigation, 13px mobile Island inset, Glance pane containment, 36px/14px expanded field, 18px panel radius, and zero browser warnings/errors passed.
+- `git diff --check` passed.
+
+## Follow-up polish
+
+No P3 follow-up is required for this change.
 
 final result: passed

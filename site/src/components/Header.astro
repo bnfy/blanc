@@ -1,6 +1,16 @@
 ---
 import BrandMark from './BrandMark.astro';
 const { variant = 'solid', current = null } = Astro.props;
+const mobileLinks = [
+  { href: '/features', key: 'features', label: 'Features' },
+  { href: '/features/security', key: 'security', label: 'Security' },
+  { href: '/changelog', key: 'changelog', label: 'What’s new' },
+  { href: '/about', key: 'about', label: 'About' },
+  { href: '/faq', key: 'faq', label: 'FAQ' },
+  { href: current === 'download' ? '#download-options' : '/download', key: 'download', label: 'Download on desktop' },
+];
+const pathname = Astro.url.pathname.replace(/\.html$/, '').replace(/\/$/, '');
+const isMobileCurrent = ({ href, key }) => current === key || pathname === href;
 ---
 {variant === 'legal' ? (
   <header class="legal-top">
@@ -21,6 +31,97 @@ const { variant = 'solid', current = null } = Astro.props;
         <a href="/changelog" class={current === 'changelog' ? 'is-current' : undefined} aria-current={current === 'changelog' ? 'page' : undefined}>what's new</a>
       </div>
       <a class={current === 'download' ? 'site-nav-cta is-current' : 'site-nav-cta'} href={current === 'download' ? '#download-options' : '/download'}>download</a>
+      <button class="site-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="siteMobileMenu">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path class="site-menu-open-icon" d="M4 6h16M4 12h16M4 18h16" />
+          <path class="site-menu-close-icon" d="m6 6 12 12M18 6 6 18" />
+        </svg>
+      </button>
+      <div class="site-mobile-menu" id="siteMobileMenu" hidden>
+        {mobileLinks.map(link => (
+          <a href={link.href} aria-current={isMobileCurrent(link) ? 'page' : undefined}>{link.label}</a>
+        ))}
+      </div>
     </nav>
   </header>
 )}
+
+<script>
+  const header = document.querySelector('.site-header');
+
+  if (header) {
+    const desktop = window.matchMedia('(min-width: 641px)');
+    const menuToggle = header.querySelector<HTMLButtonElement>('.site-menu-toggle');
+    const menuPanel = header.querySelector<HTMLElement>('.site-mobile-menu');
+    let previousY = Math.max(window.scrollY, 0);
+    let tuckDistance = 0;
+    let frame = 0;
+
+    const show = () => {
+      header.classList.remove('is-tucked');
+      tuckDistance = 0;
+    };
+
+    const sync = () => {
+      frame = 0;
+      const nextY = Math.max(window.scrollY, 0);
+      const delta = nextY - previousY;
+
+      if (!desktop.matches || nextY <= 12) {
+        show();
+      } else if (delta > 0) {
+        tuckDistance += delta;
+        if (tuckDistance >= 12) header.classList.add('is-tucked');
+      } else if (delta < 0) {
+        show();
+      }
+
+      previousY = nextY;
+    };
+
+    const queue = () => {
+      if (!frame) frame = window.requestAnimationFrame(sync);
+    };
+
+    const setMenuOpen = (open: boolean, restoreFocus = false) => {
+      if (!menuToggle || !menuPanel) return;
+      menuPanel.hidden = !open;
+      menuToggle.setAttribute('aria-expanded', String(open));
+      menuToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      if (restoreFocus) menuToggle.focus({ preventScroll: true });
+    };
+
+    menuToggle?.addEventListener('click', () => {
+      if (!desktop.matches && menuPanel) setMenuOpen(menuPanel.hidden);
+    });
+    header.addEventListener('click', event => {
+      if (event.target instanceof Element && event.target.closest('a')) setMenuOpen(false);
+    });
+    document.addEventListener('pointerdown', event => {
+      if (event.target instanceof Node && !header.contains(event.target)) setMenuOpen(false);
+    });
+    document.addEventListener('focusin', event => {
+      if (event.target instanceof Node && !header.contains(event.target)) setMenuOpen(false);
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && menuPanel && !menuPanel.hidden) {
+        event.preventDefault();
+        setMenuOpen(false, true);
+      }
+    });
+
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('pageshow', () => {
+      setMenuOpen(false);
+      previousY = Math.max(window.scrollY, 0);
+      show();
+    });
+    desktop.addEventListener('change', () => {
+      const mobileFocus = menuPanel?.contains(document.activeElement) || document.activeElement === menuToggle;
+      setMenuOpen(false);
+      if (desktop.matches && mobileFocus) header.querySelector<HTMLAnchorElement>('.site-brand')?.focus({ preventScroll: true });
+      show();
+    });
+    header.addEventListener('focusin', show);
+  }
+</script>

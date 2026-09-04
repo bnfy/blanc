@@ -4,7 +4,9 @@ const assert = require('node:assert/strict');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const { waitForValue } = require('../support/poll');
 
-const MAHJONG_TILE_COUNTS = Object.freeze({ turtle: 144, arch: 96, peaks: 72 });
+const MAHJONG_TILE_COUNTS = Object.freeze({
+  turtle: 144, arch: 96, peaks: 72, pyramid: 108, fortress: 96, butterfly: 94, bridge: 100, cross: 86,
+});
 
 async function openNewTab(world) {
   await world.call('newTab');
@@ -127,7 +129,10 @@ Then('all start-page templates use Inter instead of JetBrains Mono', async funct
     'the new-tab and embedded Mahjong documents to expose their computed fonts',
   );
   assert.deepEqual(usage.page.jetbrains, []);
-  assert.deepEqual(usage.mahjong.jetbrains, []);
+  assert.deepEqual(usage.mahjong.jetbrains, [], 'Mahjong UI text outside the tile faces must be Inter');
+  // Tile faces are the one deliberate exception: numerals and wind badges are
+  // game artwork set in JetBrains Mono (owner decision, PR #274).
+  assert.ok(usage.mahjong.tileFaceMono > 0, 'Mahjong tile faces keep JetBrains Mono');
   for (const sample of [...usage.page.samples, ...usage.mahjong.samples]) {
     assert.match(sample.family, /Inter/, `${sample.selector} resolved to ${sample.family}`);
   }
@@ -214,8 +219,11 @@ Then('the embedded mahjong game is ready', async function () {
     Math.abs(game.dockButtonWidth - game.dockButtonHeight) <= 0.5,
     `dock control must be circular (${game.dockButtonWidth}px × ${game.dockButtonHeight}px)`
   );
-  assert.ok(game.dockButtonWidth >= 63.5, `dock control is too small (${game.dockButtonWidth}px)`);
-  assert.ok(game.dockButtonGap >= 15.5, `dock controls are too close (${game.dockButtonGap}px)`);
+  // At the 1280x800 default the embedded frame is ~668px tall (the start
+  // page's footer sits outside it), which is the 56px/14px rail tier.
+  assert.ok(game.dockButtonWidth >= 55.5, `dock control is too small (${game.dockButtonWidth}px)`);
+  assert.equal(game.dockButtonCount, 6, 'the dock exposes boards, records, undo, hint, shuffle, and sound');
+  assert.ok(game.dockButtonGap >= 13.5, `dock controls are too close (${game.dockButtonGap}px)`);
   const completion = await this.call('readMahjongCompletionGeometry');
   assert.ok(completion, 'completion geometry should be measurable');
   assert.ok(completion.centerDeltaX <= 1, `completion x center drifted ${completion.centerDeltaX}px`);
@@ -231,6 +239,110 @@ Then('the embedded mahjong game is ready', async function () {
     completion.scrollHeight <= completion.clientHeight + 1,
     `completion card unexpectedly scrolls (${completion.scrollHeight}px > ${completion.clientHeight}px)`
   );
+});
+
+// The rail's media queries measure the embedded Mahjong frame, which is the
+// window minus the start page's footer (~132px). Expected tier is derived from
+// the frame height the app reports, so the step never hard-codes that offset.
+function expectedRailTier(frameHeight) {
+  if (frameHeight >= 721) return { button: 64, gap: 16, label: 'full 64/16' };
+  if (frameHeight >= 660) return { button: 56, gap: 14, label: '56/14' };
+  if (frameHeight >= 611) return { button: 52, gap: 10, label: '52/10' };
+  return null; // below the rail: the dock is the horizontal bar
+}
+
+Then('the six-control Mahjong rail fits its table at every desktop breakpoint', async function () {
+  const original = await this.call('windowContentBounds');
+  assert.ok(original, 'window content bounds should be available');
+  // Window heights chosen to land the embedded frame on every tier edge:
+  // 743→611 (lowest rail), 791→659, 792→660, 800→668 (the real default),
+  // 852→720, 853→721 (full-size rail), plus 742→610 (bar, not rail).
+  const sizes = [742, 743, 791, 792, 800, 852, 853].map((height) => ({ width: 1280, height }));
+  const seenTiers = new Set();
+  try {
+    for (const size of sizes) {
+      await this.call('setWindowContentSize', size.width, size.height);
+      await waitForValue(
+        () => this.call('windowContentBounds'),
+        (bounds) => bounds?.width === size.width && bounds?.height === size.height,
+        `${size.width}x${size.height} desktop content bounds`
+      );
+      const game = await waitForValue(
+        () => this.call('readMahjongEmbedDom'),
+        (value) => value?.viewportWidth === size.width && value.dockButtonCount === 6,
+        `six-control Mahjong dock at ${size.width}x${size.height}`
+      );
+      const tier = expectedRailTier(game.viewportHeight);
+      const context = `dock at ${size.width}x${size.height} (frame ${game.viewportHeight}px, ${tier ? tier.label : 'bar'})`;
+      assert.equal(game.dockButtonCount, 6, `${context} must expose six controls`);
+      if (!tier) {
+        assert.ok(game.dockTop >= game.boardFrameBottom - 1, `${context} should sit below the table as a bar`);
+        continue;
+      }
+      seenTiers.add(tier.label);
+      assert.ok(game.dockTop >= game.boardFrameTop - 1, `${context} starts above the table (dockTop ${game.dockTop}, frameTop ${game.boardFrameTop})`);
+      assert.ok(game.dockBottom <= game.boardFrameBottom + 1, `${context} ends below the table (dockBottom ${game.dockBottom}, frameBottom ${game.boardFrameBottom})`);
+      assert.ok(game.dockLeft >= game.boardFrameLeft - 1, `${context} starts left of the table`);
+      assert.ok(Math.abs(game.dockButtonWidth - game.dockButtonHeight) <= 0.5, `${context} controls must stay circular`);
+      assert.ok(game.dockButtonWidth >= tier.button - 0.5, `${context} control is too small (${game.dockButtonWidth}px)`);
+      assert.ok(game.dockButtonGap >= tier.gap - 0.5, `${context} controls are too close (${game.dockButtonGap}px)`);
+    }
+    assert.deepEqual([...seenTiers].sort(), ['52/10', '56/14', 'full 64/16'], 'every rail tier must be exercised');
+  } finally {
+    await this.call('setWindowContentSize', original.width, original.height);
+    await waitForValue(
+      () => this.call('windowContentBounds'),
+      (bounds) => bounds?.width === original.width && bounds?.height === original.height,
+      'restored desktop content bounds'
+    );
+  }
+});
+
+Then('the Mahjong records sheet stays contained at the default, minimum, and zoomed desktop sizes', async function () {
+  const original = await this.call('windowContentBounds');
+  assert.ok(original, 'window content bounds should be available');
+  const originalZoom = await this.call('newtabZoomFactor');
+  assert.ok(originalZoom, 'zoom factor should be readable');
+  const cases = [
+    { width: 1280, height: 800, zoom: 1 },
+    { width: 640, height: 480, zoom: 1 },
+    { width: 1280, height: 800, zoom: 1.5 },
+    { width: 640, height: 480, zoom: 1.25 },
+  ];
+  try {
+    for (const size of cases) {
+      await this.call('setWindowContentSize', size.width, size.height);
+      await waitForValue(
+        () => this.call('windowContentBounds'),
+        (bounds) => bounds?.width === size.width && bounds?.height === size.height,
+        `${size.width}x${size.height} desktop content bounds`
+      );
+      assert.equal(await this.call('setNewtabZoomFactor', size.zoom), size.zoom);
+      const expectedViewport = Math.round(size.width / size.zoom);
+      const records = await waitForValue(
+        () => this.call('readMahjongRecordsGeometry'),
+        (value) => value && Math.abs(value.viewportWidth - expectedViewport) <= 1,
+        `Mahjong records sheet at ${size.width}x${size.height} zoom ${size.zoom}`
+      );
+      const context = `records sheet at ${size.width}x${size.height} zoom ${size.zoom}`;
+      assert.equal(records.rowCount, 8, `${context} lists every layout`);
+      assert.ok(records.scrollWidth <= records.clientWidth + 1, `${context} scrolls horizontally`);
+      assert.equal(records.overflowY, 'auto', `${context} must scroll vertically when needed`);
+      assert.ok(records.card.left >= records.viewport.left - 1, `${context} overflows left`);
+      assert.ok(records.card.top >= records.viewport.top - 1, `${context} overflows top`);
+      assert.ok(records.card.right <= records.viewport.right + 1, `${context} overflows right`);
+      assert.ok(records.card.bottom <= records.viewport.bottom + 1, `${context} overflows bottom`);
+      assert.equal(records.focusReturned, true, `${context} must return focus to the records control`);
+    }
+  } finally {
+    await this.call('setNewtabZoomFactor', originalZoom);
+    await this.call('setWindowContentSize', original.width, original.height);
+    await waitForValue(
+      () => this.call('windowContentBounds'),
+      (bounds) => bounds?.width === original.width && bounds?.height === original.height,
+      'restored desktop content bounds'
+    );
+  }
 });
 
 Then('rapid Undo cancels pending Mahjong feedback', async function () {

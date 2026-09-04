@@ -143,6 +143,12 @@ test('Windows releases fail closed and carry a verified signature attestation', 
     .map((name) => fs.readFileSync(path.join(root, '.github/workflows', name), 'utf8'))
     .join('\n');
 
+  const rootInstall = releaseScript.indexOf('npm ci\n');
+  const siteInstall = releaseScript.indexOf('npm ci --prefix site');
+  const pressGate = releaseScript.indexOf('npm run release:verify:press');
+  assert.ok(rootInstall >= 0, 'release must install locked app dependencies');
+  assert.ok(siteInstall > rootInstall, 'release must install locked site dependencies');
+  assert.ok(siteInstall < pressGate, 'site dependencies must exist before the press gate');
   assert.ok(releaseScript.indexOf('--draft') < releaseScript.indexOf('--draft=false'));
   const sourceTagPush = releaseScript.indexOf('git push origin "refs/tags/$TAG"');
   const draftCreate = releaseScript.indexOf('gh "${CREATE_ARGS[@]}"');
@@ -260,7 +266,7 @@ test('release authentication uses an explicit interactive operator, 1Password de
     assert.match(instructions, /gh auth status/);
     assert.match(instructions, /before asking the user to reauthenticate|Do not ask the user to run `gh auth login`/);
   }
-  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.13.0}'));
+  assert.ok(releaseScript.includes('${BLANC_MIGRATION_BASE_VERSION:-1.15.0}'));
   assert.ok(releaseScript.includes('${BLANC_COSIGN_REDIRECT_PORT:-49197}'));
   assert.ok(releaseScript.includes('http://127.0.0.1:$COSIGN_REDIRECT_PORT/auth/callback'));
   assert.match(releaseScript, /Sigstore callback port \$COSIGN_REDIRECT_PORT is already in use/);

@@ -179,8 +179,15 @@ test('all v2 layouts have the promised size, layer count, and valid coordinates'
     turtle: { count: 144, layers: [87, 36, 16, 4, 1] },
     arch: { count: 96, layers: [72, 18, 6] },
     peaks: { count: 72, layers: [48, 16, 6, 2] },
+    pyramid: { count: 108, layers: [60, 32, 12, 4] },
+    fortress: { count: 96, layers: [50, 44, 2] },
+    butterfly: { count: 94, layers: [70, 21, 3] },
+    bridge: { count: 100, layers: [52, 29, 15, 4] },
+    cross: { count: 86, layers: [48, 24, 13, 1] },
   };
-  assert.deepEqual(Object.keys(E.LAYOUTS), ['turtle', 'arch', 'peaks']);
+  assert.deepEqual(Object.keys(E.LAYOUTS), [
+    'turtle', 'arch', 'peaks', 'pyramid', 'fortress', 'butterfly', 'bridge', 'cross',
+  ]);
   for (const [id, definition] of Object.entries(E.LAYOUTS)) {
     const positions = definition.positions;
     assert.equal(positions.length, expected[id].count);
@@ -582,7 +589,8 @@ test('four unmatched Tray tiles enter rescue; undo and shuffle both recover', ()
   assert.equal(shuffleState.removed.filter(Boolean).length, 0);
   assert.deepEqual(shuffleState.kinds.slice().sort(), multiset);
   assert.equal(shuffleState.comboCount, 0);
-  assert.equal(shuffleState.history.length, 0);
+  assert.equal(shuffleState.history.length, 5);
+  assert.equal(shuffleState.history.at(-1).type, 'shuffle');
   assert.equal(shuffleState.assists.shuffle, 1);
   assert.ok(E.availableMoves(shuffleState).length > 0);
 });
@@ -690,4 +698,125 @@ test('v2 serialization round-trips independent state and rejects corruption', ()
   assert.ok(restoredLegacyKinds, 'unsuffixed V2 winds and dragons remain restorable');
   assert.equal(restoredLegacyKinds.kinds.filter((kind) => kind === 'wind-n').length, 2);
   assert.equal(restoredLegacyKinds.kinds.filter((kind) => kind === 'drg-c').length, 2);
+});
+
+test('shuffle is an undoable action that restores the exact prior board', () => {
+  const state = E.createGame({ seed: 4101, layoutId: 'peaks', mode: 'classic' });
+  const { solution } = E.generateDeal({ seed: 4101, layoutId: 'peaks' });
+  for (let offset = 0; offset < 3; offset++) assert.equal(E.removePair(state, ...solution[offset]), true);
+  const kinds = state.kinds.slice();
+  const removed = state.removed.slice();
+  assert.equal(E.shuffleRemaining(state, E.createRng(9)), true);
+  assert.notDeepEqual(state.kinds, kinds);
+  assert.equal(state.history.length, 4);
+  assert.equal(E.undo(state), true);
+  assert.deepEqual(state.kinds, kinds);
+  assert.deepEqual(state.removed, removed);
+  assert.equal(state.status, 'playing');
+  assert.equal(state.assists.shuffle, 1);
+  assert.equal(state.assists.undo, 1);
+  // the three earlier pairs are still undoable after the shuffle is reversed
+  assert.equal(state.history.length, 3);
+  assert.equal(E.undo(state), true);
+  assert.equal(state.removed.filter(Boolean).length, 4);
+});
+
+test('undoing a Tray rescue shuffle returns the full rack and rescue status', () => {
+  const state = E.createGame({ seed: 4102, layoutId: 'peaks', mode: 'tray' });
+  const picked = fillUnmatchedTray(state);
+  assert.equal(state.status, 'rescue');
+  const kinds = state.kinds.slice();
+  assert.equal(E.shuffleRemaining(state, E.createRng(3)), true);
+  assert.deepEqual(state.tray, []);
+  assert.equal(E.undo(state), true);
+  assert.deepEqual(state.tray, picked);
+  assert.equal(state.status, 'rescue');
+  assert.deepEqual(state.kinds, kinds);
+  assert.ok(E.restoreGame(E.serializeGame(state)), 'restored rescue state is valid');
+  // one more undo steps back the last pick exactly as before
+  assert.equal(E.undo(state), true);
+  assert.equal(state.status, 'playing');
+  assert.equal(state.tray.length, 3);
+});
+
+test('shuffle actions survive serialization and malformed ones are rejected', () => {
+  const state = E.createGame({ seed: 4103, layoutId: 'arch', mode: 'classic' });
+  assert.equal(E.shuffleRemaining(state, E.createRng(1)), true);
+  const payload = E.serializeGame(state);
+  assert.equal(payload.history[0].type, 'shuffle');
+  const restored = E.restoreGame(payload);
+  assert.ok(restored);
+  assert.equal(E.undo(restored), true);
+  assert.deepEqual(restored.kinds, payload.history[0].priorKinds);
+
+  for (const mutate of [
+    (action) => { action.priorKinds = action.priorKinds.slice(1); },
+    (action) => { action.priorKinds[0] = 'not-a-tile'; },
+    (action) => { action.priorRemoved = action.priorRemoved.map(() => 'yes'); },
+    (action) => { action.priorTray = [0, 0]; },
+    (action) => { action.priorStatus = 'won'; },
+    (action) => { action.priorTray = [0, 1, 2, 3]; action.priorStatus = 'playing'; },
+  ]) {
+    const broken = JSON.parse(JSON.stringify(payload));
+    mutate(broken.history[0]);
+    assert.equal(E.restoreGame(broken), null);
+  }
+});
+
+test('matching a re-parked position after a shuffle never corrupts pre-shuffle undo', () => {
+  // Find a Tray deal where a parked position comes back free with a free mate
+  // after the shuffle, so the post-shuffle match erases only its own park.
+  let exercised = false;
+  for (let seed = 4200; seed < 4400 && !exercised; seed++) {
+    const state = E.createGame({ seed, layoutId: 'peaks', mode: 'tray' });
+    const parkedIndex = state.kinds.findIndex((_, index) => E.isFree(state, index));
+    assert.equal(E.selectTile(state, parkedIndex).type, 'tray-park');
+    assert.equal(E.shuffleRemaining(state, E.createRng(seed)), true);
+    const mate = E.availableMoves({ ...state, mode: 'classic' })
+      .find(([a, b]) => a === parkedIndex || b === parkedIndex);
+    if (!mate) continue;
+    exercised = true;
+    const mateIndex = mate[0] === parkedIndex ? mate[1] : mate[0];
+    assert.equal(E.selectTile(state, parkedIndex).type, 'tray-park');
+    assert.equal(E.selectTile(state, mateIndex).type, 'tray-pair');
+    assert.ok(E.restoreGame(E.serializeGame(state)));
+    assert.equal(E.undo(state), true); // the match
+    assert.ok(E.restoreGame(E.serializeGame(state)));
+    assert.equal(E.undo(state), true); // the shuffle
+    assert.deepEqual(state.tray, [parkedIndex]);
+    assert.equal(state.removed[parkedIndex], true);
+    assert.ok(E.restoreGame(E.serializeGame(state)));
+    assert.equal(E.undo(state), true); // the original park
+    assert.deepEqual(state.tray, []);
+    assert.equal(state.removed.filter(Boolean).length, 0);
+    assert.equal(E.undo(state), false);
+  }
+  assert.ok(exercised, 'expected at least one seed to exercise the re-park path');
+});
+
+test('every layout is physically valid, opens as specified, and always deals', () => {
+  const freeAtStart = {
+    turtle: 35, arch: 18, peaks: 18, pyramid: 26, fortress: 20, butterfly: 43, bridge: 8, cross: 17,
+  };
+  for (const [id, definition] of Object.entries(E.LAYOUTS)) {
+    const positions = definition.positions;
+    assert.ok(positions.length % 2 === 0 && positions.length >= 28, `${id}: even count of at least 28`);
+    assert.equal(definition.id, id);
+    assert.equal(typeof definition.name, 'string');
+    for (const [index, position] of positions.entries()) {
+      if (position.z === 0) continue;
+      const supported = positions.some((other) => other.z === position.z - 1
+        && Math.abs(other.x - position.x) < 2 && Math.abs(other.y - position.y) < 2);
+      assert.ok(supported, `${id}: tile ${index} at (${position.x},${position.y},${position.z}) floats`);
+    }
+    const free = positions.filter((_, index) => E.isFreeAt(positions, index, () => true)).length;
+    assert.equal(free, freeAtStart[id], `${id}: free tiles at the start`);
+    const width = Math.max(...positions.map((p) => p.x)) + 2;
+    const height = Math.max(...positions.map((p) => p.y)) + 2;
+    assert.ok(width <= 30 && height <= 16, `${id}: footprint ${width}x${height} exceeds Turtle's 30x16`);
+    for (let seed = 1; seed <= 60; seed++) {
+      const game = E.createGame({ seed, layoutId: id, mode: 'classic' });
+      assert.ok(E.availableMoves(game).length > 0, `${id}/${seed}: opening move`);
+    }
+  }
 });
