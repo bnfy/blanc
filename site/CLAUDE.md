@@ -5,12 +5,15 @@ dependency tree is untouched). Pages live in `src/pages/` (`index`, `download`,
 `features`, `about`, `privacy`, `terms`, `changelog`, and
 `features/{island,ad-blocking,private-tabs,command-palette,tab-groups,sync,security}`),
 sharing `src/layouts/BaseLayout.astro` with three explicit page profiles —
-island (index: non-solid header, rich OG), standard (solid header), legal
+island (index: the masthead starts transparent over the hero and raises on scroll, rich OG), standard (masthead raised from the start), legal
 (privacy/terms: `legal-top` header, **no** analytics/consent, **no**
 OG/Twitter meta). Don't flatten these differences — they're deliberate. The
 footer is one unified component on every page (flush-left stack: brand
 breadcrumb, full nav with the current page highlighted via `Astro.url`,
-newsletter, legal block, social row — email/Threads/Instagram/TikTok/GitHub). `src/styles/site.css` is the one stylesheet
+newsletter, legal block, social row — email/Threads/Instagram/TikTok/GitHub). The masthead and its two mega menus are
+`components/Header.astro` fed by `src/data/navigation.mjs`; menu descriptions are
+the feature pages' own headlines and `test/unit/site-navigation.test.js` keeps
+them in step. `src/styles/site.css` is the one stylesheet
 (bundled + hashed; fonts self-hosted via fontsource — the UI family is `"Inter
 Variable"`, the heading family is `"Newsreader Variable"` loaded in
 `BaseLayout.astro` with its italic imported only by `press.astro`; the

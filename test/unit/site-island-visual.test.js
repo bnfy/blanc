@@ -66,17 +66,15 @@ test('resting website figures show the quiet Plus shortcut in horizontal layouts
   assert.match(pressScript, /enterBlankTab\(\)/);
 });
 
-test('desktop navigation rests at the bottom edge and tucks on downward scroll', () => {
-  assert.match(styles, /\.site-header \{[^}]*position: fixed;[^}]*inset: auto 0 0;[^}]*padding: 0 24px calc\(10px \+ env\(safe-area-inset-bottom, 0px\)\)/s);
-  assert.match(styles, /\.site-header\.is-tucked \{[^}]*opacity: 0;[^}]*translateY\(calc\(100% \+ 12px\)\)/s);
+test('the masthead is a sticky top bar and the tuck-on-scroll island is gone', () => {
+  assert.match(styles, /\.site-header \{ position: sticky; top: 0; z-index: 30;/);
+  assert.doesNotMatch(styles, /is-tucked|inset: auto 0 0/);
   assert.doesNotMatch(styles, /body\.has-consent \.site-header|--consent-h/);
-  assert.match(styles, /@media \(max-width: 640px\)[\s\S]*?\.site-header \{[^}]*inset: 0 0 auto/s);
-  assert.match(styles, /@media \(prefers-reduced-motion: reduce\) \{\s*\.site-header \{ transition: none; \}/);
-  assert.match(header, /matchMedia\('\(min-width: 641px\)'\)/);
-  assert.match(header, /tuckDistance >= 12/);
-  assert.match(header, /else if \(delta < 0\) \{\s*show\(\)/);
-  assert.match(header, /header\.classList\.add\('is-tucked'\)/);
-  assert.match(header, /header\.addEventListener\('focusin', show\)/);
+  assert.match(styles, /\.site-brand-mark \{ width: 24px; height: 24px;/);
+  assert.match(styles, /\.site-mega::before \{[^}]*var\(--site-gold-on-dark\)/);
+  assert.doesNotMatch(header, /tuckDistance|is-tucked/);
+  assert.match(header, /import \{ menus, directLinks \} from '\.\.\/data\/navigation\.mjs'/);
+  assert.match(header, /aria-controls=\{`site-menu-\$\{menu\.key\}`\}/);
 });
 
 test('homepage keeps the Sunrise mark above the hero eyebrow', () => {

@@ -97,7 +97,8 @@ test('footer fits every requested page and width without affecting press attribu
             mark: { color: style.color, animation: style.animationName, transform: style.transform },
             stacked: rect('.foot-news').top >= rect('.foot-nav').bottom,
             groupsSideBySide: rect('.foot-nav-group').top === footer.querySelectorAll('.foot-nav-group')[1].getBoundingClientRect().top,
-            navClear: !navVisible || bottom.bottom + 16 <= nav.getBoundingClientRect().top,
+            // The masthead is sticky at the top; it must never overlap the footer.
+            navClear: !navVisible || nav.getBoundingClientRect().bottom <= footer.getBoundingClientRect().top,
             contentWidth: footer.clientWidth - parseFloat(getComputedStyle(footer).paddingLeft) - parseFloat(getComputedStyle(footer).paddingRight),
           };
         });
