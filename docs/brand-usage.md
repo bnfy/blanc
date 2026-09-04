@@ -57,7 +57,7 @@ the general Blanc brand palette.
 
 The website carries the Sunrise icon's warmth through ivory backgrounds,
 warm surfaces, and muted gold details. Keep the existing typography,
-near-black headings, dark primary buttons, and dark desktop navigation.
+near-black headings, dark primary buttons, and an ivory desktop masthead.
 These website-only tokens are separate from the released product palette:
 
 - page background, sampled from the Sunrise source art: `#F7F0E5` (`--site-bg`);
@@ -207,14 +207,19 @@ On desktop with a fine pointer, hovering gently scales the gold hero mark to
 visitors see the same static gold artwork without the hover effect. The hero
 mark remains hidden on mobile.
 
-### Desktop navigation Sunrise hover
+### Desktop masthead Sunrise hover
 
-The desktop navigation island keeps its white 20px Sunrise mark at rest.
-On hover or keyboard focus, crossfade to the original gold artwork from
-`site/public/sunrise-hero-mark.png` over 220ms; crossfade back when the
-interaction ends. Keep the size, position, dark navigation surface, and focus
-outline unchanged. Reduced-motion visitors get the same state change instantly.
-Use the original artwork rather than tinting the monochrome silhouette.
+The desktop masthead is a sticky ivory bar (`--site-surface-raised` over a
+blur, hairline beneath) that carries the monochrome Sunrise mark at 24px in
+ink at rest. On hover or keyboard focus, crossfade to the original gold
+artwork from `site/public/sunrise-hero-mark.png` over 220ms; crossfade back
+when the interaction ends. Keep the size, position, and focus outline
+unchanged. Reduced-motion visitors get the same state change instantly. Use
+the original artwork rather than tinting the monochrome silhouette. The mega
+menus that drop from the bar carry the horizon hairline along their top edge
+and may use the warm-ink release card; no mark sits on either. The masthead
+replaced the bottom navigation island on 4 September 2026 (design note:
+`docs/superpowers/specs/2026-09-04-masthead-navigation-design.md`).
 
 ### Mobile header Sunrise mark
 

@@ -30,7 +30,7 @@
 **Interfaces:**
 - Produces: `export const menus` (array of `{ key, label, groups: [{ title, links: [{ href, label, description }] }], spotlight, foot }`) and `export const directLinks` (`[{ href, key, label }]`). `spotlight` is `{ kind: 'image', image, alt, kicker, title, copy, href, cta }` for features and `{ kind: 'release', kicker, href, cta }` for resources; the release card's version and names are filled in by the component, not the data module.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 const test = require('node:test');
@@ -71,12 +71,12 @@ test('resources and direct links point at pages that exist', async () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `node --test test/unit/site-navigation.test.js`
 Expected: FAIL, cannot find module `navigation.mjs`.
 
-- [ ] **Step 3: Write the data module**
+- [x] **Step 3: Write the data module**
 
 ```js
 // Navigation content for the masthead and the mobile sheet. Descriptions are
@@ -133,16 +133,16 @@ export const directLinks = [
 
 Check the feature headlines against the pages before committing: `grep -o '<h1[^>]*>[^<]*' site/src/pages/features/*.astro`. The test compares them exactly.
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `node --test test/unit/site-navigation.test.js`
 Expected: PASS. If a description differs from a page headline, copy the page's headline into the data module; never the other way round.
 
-- [ ] **Step 5: Give the footer newsletter form the anchor the menu links to**
+- [x] **Step 5: Give the footer newsletter form the anchor the menu links to**
 
 In `site/src/components/NewsletterForm.astro`, add `id="newsletter"` to the outermost element of the form block if it has none (check with `grep -n 'id=' site/src/components/NewsletterForm.astro`). If the form already has an id, change the menu href in the data module to that id instead.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add site/src/data/navigation.mjs test/unit/site-navigation.test.js site/src/components/NewsletterForm.astro
@@ -164,7 +164,7 @@ git commit -m "Add the navigation data module behind the masthead menus"
 - Consumes: `menus`, `directLinks` from Task 1.
 - Produces: DOM contract used by tests: `.site-header` (sticky), `.site-nav`, `.site-brand` with `.site-brand-mark`, `button.site-menu-trigger[data-menu][aria-expanded][aria-controls]`, `.site-mega#site-menu-<key>[data-open]`, `.site-nav-cta`, `.site-menu-toggle`, `.site-mobile-menu details`.
 
-- [ ] **Step 1: Write the failing site test**
+- [x] **Step 1: Write the failing site test**
 
 Create `test/site/masthead.test.mjs`:
 
@@ -291,12 +291,12 @@ test('the consent toast clears the bar on desktop', async () => {
 });
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Build and serve, then: `BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/masthead.test.mjs`
 Expected: FAIL on the first test, `position` is `fixed`.
 
-- [ ] **Step 3: Rewrite the non-legal header branch in `Header.astro`**
+- [x] **Step 3: Rewrite the non-legal header branch in `Header.astro`**
 
 Replace the frontmatter and the non-legal `<header>` with:
 
@@ -381,7 +381,7 @@ Header markup (replacing the existing `<header class={variant === 'solid' ? …}
 
 Note the group headings are `h2` inside a region, which is fine for the outline since the page's own `h1` precedes the header content only visually; if the site-island-visual test's heading order check complains, change them to `p class="site-mega-title"` and adjust the test's selector accordingly.
 
-- [ ] **Step 4: Replace the header script**
+- [x] **Step 4: Replace the header script**
 
 Replace everything inside `<script>` with:
 
@@ -460,7 +460,7 @@ Replace everything inside `<script>` with:
 
 `setMenuOpen` is referenced before its `const` in the keydown handler; move the mobile-sheet block above the mega-menu block so the declaration comes first, or declare it as a `function`. Use `function setMenuOpen(...)` to avoid the temporal dead zone.
 
-- [ ] **Step 5: Replace the header styles**
+- [x] **Step 5: Replace the header styles**
 
 Delete from `/* Desktop navigation is a floating island` (the comment above `.site-header {`) through the end of the `@media (min-width: 641px) { … }` nav block that ends with `.site-nav-links a:is(:hover, :focus-visible, [aria-current="page"]) { color: var(--site-gold-on-dark); }` and its closing `}`. Insert:
 
@@ -567,7 +567,7 @@ Change `.consent` so its top clears the bar on desktop: keep the rule and add af
 @media (min-width: 641px) { .consent { top: 76px; } }
 ```
 
-- [ ] **Step 6: Update the two tests that pinned the old island**
+- [x] **Step 6: Update the two tests that pinned the old island**
 
 In `test/unit/site-island-visual.test.js`, replace the whole `test('desktop navigation rests at the bottom edge and tucks on downward scroll', …)` block with:
 
@@ -588,16 +588,16 @@ In `test/site/demo-desktop-canvas.test.mjs`, change the expected `width: '20px',
 
 In `test/unit/brand-assets.test.js` line 205, change `\.site-brand-mark \{ width: 20px; height: 20px;` to `24px; height: 24px;`.
 
-- [ ] **Step 7: Build, serve, run every site test and the touched unit tests**
+- [x] **Step 7: Build, serve, run every site test and the touched unit tests**
 
 Run: `npm run site:build`, start the preview, `BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/*.test.mjs`, then `node --test test/unit/site-island-visual.test.js test/unit/brand-assets.test.js test/unit/site-navigation.test.js test/unit/press-kit.test.js`.
 Expected: PASS. The footer test's `navClear` check reads `.site-nav`'s top; with the bar at the top of the page that assertion holds trivially.
 
-- [ ] **Step 8: Look once**
+- [x] **Step 8: Look once**
 
 Screenshot the homepage at 1440 with the features menu open and at 390 with the sheet open, using the direct Playwright script pattern from earlier tasks. Expected: the panel spans the viewport under a hairline bar, the spotlight shows the island card, the sheet shows two accordions and the pinned download button.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add site/src/components/Header.astro site/src/styles/site.css test/site/masthead.test.mjs test/unit/site-island-visual.test.js test/unit/brand-assets.test.js test/site/demo-desktop-canvas.test.mjs
@@ -613,7 +613,7 @@ git commit -m "Replace the bottom navigation island with a sticky masthead and m
 - Modify: `site/CLAUDE.md` (the page-profiles sentence and the fonts sentence)
 - Modify: `docs/superpowers/plans/2026-09-04-masthead-navigation.md` (tick the boxes)
 
-- [ ] **Step 1: Amend the brand doc**
+- [x] **Step 1: Amend the brand doc**
 
 Replace the "Desktop navigation Sunrise hover" section with:
 
@@ -633,11 +633,11 @@ and may use the warm-ink release card; no mark sits on either.
 
 In "Website Sunrise palette", change "near-black headings, dark primary buttons, and dark desktop navigation" to "near-black headings, dark primary buttons, and an ivory desktop masthead".
 
-- [ ] **Step 2: Amend the site guidance**
+- [x] **Step 2: Amend the site guidance**
 
 In `site/CLAUDE.md`, change "island (index: non-solid header, rich OG), standard (solid header)" to "island (index: the masthead starts transparent over the hero and raises on scroll, rich OG), standard (masthead raised from the start)", and add after the footer sentence: "The masthead and its two mega menus are `components/Header.astro` fed by `src/data/navigation.mjs`; menu descriptions are the feature pages' own headlines and `test/unit/site-navigation.test.js` keeps them in step."
 
-- [ ] **Step 3: Run the doc guards and commit**
+- [x] **Step 3: Run the doc guards and commit**
 
 Run: `node --test test/unit/public-truth.test.js test/unit/site-island-visual.test.js`
 Expected: PASS.
