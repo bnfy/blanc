@@ -66,6 +66,10 @@ Installed copies keep themselves current via auto-update.
 
 ## Run it from source
 
+For bug reports, patches, and documentation improvements, see
+[Contributing to Blanc](CONTRIBUTING.md). Report vulnerabilities through
+[the private security reporting process](SECURITY.md).
+
 ```
 npm install
 npm start
