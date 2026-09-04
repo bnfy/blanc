@@ -33,3 +33,16 @@ Remaining test-fixture, source-generator and SEO-tooling alerts need individual 
 | #28, #29 | `test/unit/public-truth.test.js:18,75` | Negative source-text assertions intentionally match forbidden remote-font/favicon domains anywhere in source. Anchoring would weaken the checks, not improve URL validation. |
 
 These classifications follow the call semantics and data flow, not merely the files being tests. Other fixture/server alerts remain open.
+
+## Serialization and SEO corrections
+
+- #20/#21: Android XML string generation now escapes literal backslashes before quote escapes. Existing catalog output remains byte-identical; synthetic backslash/quote tests verify the correction.
+- #44: internal-link classification compares parsed exact origins, including protocol-relative links; hostname suffix and userinfo lookalikes are rejected.
+- #45: supported HTML entities are decoded in one pass, avoiding recursive decoding of nested ampersand entities.
+
+These are tooling correctness fixes in the draft, not deployed runtime fixes. All three targeted tests, generator parity and syntax checks passed.
+
+## Additional false-positive classifications
+
+- #22–25 (`site/scripts/verify-parity.mjs`): script/comment removal creates normalized strings for equality comparison of trusted old/new build output. The result is compared in the CLI, never emitted as sanitized HTML or executed. The patterns are not an XSS sanitizer.
+- #34 (`test/unit/site-changelog.test.js`): the test creates an isolated output directory, checks generated JSON, then intentionally appends a newline to verify stale-output detection. There is no authorization decision between checking and modifying a shared sensitive file.
