@@ -7,7 +7,6 @@
   const demo = document.getElementById('demoIsland');
   const heroMessageEl = document.getElementById('demoHeroMessage');
   const headlineEl = document.getElementById('demoHeadline');
-  const subtextEl = document.getElementById('demoSubtext');
   const dotsEl = document.getElementById('demoDots');
   const favEl = document.getElementById('demoFav');
   const domainEl = document.getElementById('demoDomain');
@@ -39,7 +38,6 @@
   const viewer = document.getElementById('demoViewer');
   const viewerCanvas = document.getElementById('demoViewerCanvas');
   const viewerHeadline = document.getElementById('demoViewerHeadline');
-  const viewerSubtext = document.getElementById('demoViewerSubtext');
   const fitButton = document.getElementById('demoViewerFit');
   const actualButton = document.getElementById('demoViewerActual');
   const enlargeButton = document.getElementById('demoEnlarge');
@@ -826,9 +824,7 @@
 
   function setHeroMessage(scene) {
     headlineEl.textContent = scene.headline;
-    subtextEl.textContent = scene.subtext;
     viewerHeadline.textContent = scene.headline;
-    viewerSubtext.textContent = scene.subtext;
     heroMessageEl.classList.remove('scene-change');
     void heroMessageEl.offsetWidth; // restart the quiet message transition
     heroMessageEl.classList.add('scene-change');
@@ -869,40 +865,40 @@
   // H2 messages can stay benefit-led while still pairing Blanc's feature names
   // with the plain-language terms a new visitor is likely to recognize.
   const SCENES = [
-    { view: 'rest',  layout: 'showcase', current: 'verge', hold: 3200, headline: 'Your browser controls,\nin one floating island.', subtext: 'Blanc keeps tabs, search and commands together so the page stays in front.' },
-    { view: 'rest',  layout: 'showcase', current: 'verge', scroll: true, pointer: { target: '.pill', x: 0.58, y: 0.62, delay: 650 }, hold: 3800, headline: 'Scroll with the page\nstill in front.', subtext: 'The island stays fixed, then gently meets you when the cursor moves close.' },
+    { view: 'rest',  layout: 'showcase', current: 'verge', hold: 3200, headline: 'One floating island holds your tabs, search and browser commands, so the page stays in front.' },
+    { view: 'rest',  layout: 'showcase', current: 'verge', scroll: true, pointer: { target: '.pill', x: 0.58, y: 0.62, delay: 650 }, hold: 3800, headline: 'The island stays fixed while you scroll, then meets you when the cursor moves close.' },
 
     // Open Glance as the direct result of the staged click, then leave the
     // completed split view on screen long enough to register before the next
     // chapter moves the cursor to the divider.
-    { view: 'panel', layout: 'showcase', current: 'nine', glanceCue: 'netflix', glanceOpen: { tab: 'netflix', ratio: 0.62 }, pointer: { target: '.row-glance.cue', click: true }, hold: 3000, headline: 'Open two tabs side by side\nwith Glance.', subtext: 'Watch Netflix while the page you were reading stays open, then resize or swap either side.' },
-    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceResize: { from: 0.62, to: 0.5 }, glanceActionDelay: 720, pointer: { target: '#demoGlanceDivider', drag: true, delay: 0, actionDelay: 720 }, hold: 4300, headline: 'Resize your\nGlance split view.', subtext: 'Drag the divider until the balance between your main page and Glance feels right.' },
-    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceRatio: 0.5, glanceSwap: { main: 'netflix', glance: 'nine' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 4300, headline: 'Make either tab\nthe main page.', subtext: 'Swap their roles instantly without closing a tab or losing its place.' },
+    { view: 'panel', layout: 'showcase', current: 'nine', glanceCue: 'netflix', glanceOpen: { tab: 'netflix', ratio: 0.62 }, pointer: { target: '.row-glance.cue', click: true }, hold: 3000, headline: 'Open two tabs side by side with Glance: watch Netflix while the page you were reading stays open.' },
+    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceResize: { from: 0.62, to: 0.5 }, glanceActionDelay: 720, pointer: { target: '#demoGlanceDivider', drag: true, delay: 0, actionDelay: 720 }, hold: 4300, headline: 'Drag the divider to resize the Glance split view until the balance feels right.' },
+    { view: 'glance', layout: 'showcase', current: 'nine', glanceTab: 'netflix', glanceRatio: 0.5, glanceSwap: { main: 'netflix', glance: 'nine' }, pointer: { target: '#demoGlanceMakeMain', click: true }, hold: 4300, headline: 'Make either tab the main page, swapping roles without closing a tab or losing its place.' },
 
     // The blocker now proves the outcome instead of only explaining the
     // popover. First show the ad-heavy page with protection disabled, then
     // click the real per-site switch and reload into the clean reflowed page.
-    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', pointer: { target: '#demoShield', click: true }, hold: 2500, headline: 'A noisy page,\nbefore Blanc.', subtext: 'The page is competing with three separate ad placements.', afterAction: { headline: 'Built-in ad blocking,\none click away.', subtext: 'Use the Blanc Blocker shield to control ads and known trackers for the current site.' } },
-    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', blockerToggle: true, pointer: { target: '#demoShieldSwitch', click: true }, hold: 4300, headline: 'Block ads and\nknown trackers.', subtext: 'One per-site switch reloads the page with ads and known trackers blocked.', afterAction: { headline: 'The page,\nwithout the ad layer.', subtext: 'Ad slots collapse and the story returns to the foreground.' } },
+    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', pointer: { target: '#demoShield', click: true }, hold: 2500, headline: 'A noisy page before Blanc, competing with three separate ad placements.', afterAction: { headline: 'Built-in ad blocking, one click away: the Blanc Blocker shield controls ads and known trackers for the current site.' } },
+    { view: 'shield', layout: 'blocker', current: 'cnet', blockerState: 'off', blockerToggle: true, pointer: { target: '#demoShieldSwitch', click: true }, hold: 4300, headline: 'One per-site switch reloads the page with ads and known trackers blocked.', afterAction: { headline: 'Without the ad layer, the ad slots collapse and the story returns to the foreground.' } },
 
     // The blank-tab beat uses the app's real placeholder state. One mixed
     // search replaces the old duplicate tab-search stories.
-    { view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 2300, headline: 'Search tabs, history and\nbrowser commands.', subtext: 'Type a slash to browse Blanc’s commands, or search open tabs, groups, Favorites and history.' },
-    { view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 4200, headline: 'Browse every\nbrowser command.', subtext: 'Scroll the directory or start typing to narrow it to exactly what you need.' },
-    { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, headline: 'One field searches\nyour whole session.', subtext: 'Open tabs, tab groups, Favorites and history all answer from the same input.' },
-    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 2600, headline: 'Enter switches.\nThe page returns.', subtext: 'Blanc gets the interface out of the way as soon as you choose where to go.' },
+    { view: 'rest',  layout: 'fresh',   current: 'newtab',  pointer: { target: '#demoSlash', click: true }, hold: 2300, headline: 'Type a slash to search browser commands, or search open tabs, groups, Favorites and history.' },
+    { view: 'panel', layout: 'fresh',   current: 'newtab',  panel: 'commands', allCommands: true, pointer: { target: '.list', x: 0.62, y: 0.32 }, hold: 4200, headline: 'Browse every browser command, or start typing to narrow the directory to exactly what you need.' },
+    { view: 'panel', layout: 'grouped', current: 'netflix', panel: 'switcher', typed: 'No', pointer: { target: '.field', x: 0.18 }, headline: 'One field searches your whole session: open tabs, tab groups, Favorites and history.' },
+    { view: 'rest',  layout: 'grouped', current: 'notion', hold: 2600, headline: 'Enter switches, and Blanc gets the interface out of the way as soon as you choose where to go.' },
 
     // The shipped native menu is the workflow: right-click a background row,
     // pick an existing radio item, see membership update, then use the same
     // submenu's New Group… handoff without ever switching away from the page.
-    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'root', tab: 'netflix', inactive: true, groups: ['social'], delay: 1180 }, pointer: { target: '[data-demo-tab="netflix"]', rightClick: true }, hold: 2500, headline: 'Organize tabs into\nnamed groups.', subtext: 'Right-click any tab to move it into an existing group or create a new one.' },
-    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'existing', tab: 'netflix', inactive: true, groups: ['social'], targetGroup: 'social' }, pointer: { target: '[data-demo-group="social"]', click: true }, hold: 2500, headline: 'Move it to an\nexisting tab group.', subtext: 'Existing named groups are direct choices in Move to Group.' },
-    { view: 'panel', layout: 'socialNetflix', current: 'scroll', contextMenu: { mode: 'new', tab: 'netflix', inactive: true, groups: ['social'], currentGroup: 'social' }, pointer: { target: '.demo-context-new', click: true }, hold: 3300, headline: 'Netflix joins Social.', subtext: 'The checkmark confirms the move. Remove from Group and New Group… stay in the same menu.' },
-    { view: 'panel', layout: 'socialNetflix', current: 'scroll', panel: 'commands', prefill: '/group ', typed: '/group watch', headline: 'Create a new\nnamed tab group.', subtext: 'New Group… opens the /group handoff, still bound to Netflix.' },
-    { view: 'panel', layout: 'watchNetflix', current: 'scroll', justGroup: 'watch', hold: 3200, headline: 'Netflix moves\ninto Watch.', subtext: 'Only that tab moves. Every other pin, group and loose tab stays put.' },
+    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'root', tab: 'netflix', inactive: true, groups: ['social'], delay: 1180 }, pointer: { target: '[data-demo-tab="netflix"]', rightClick: true }, hold: 2500, headline: 'Organize tabs into named groups: right-click any tab to move it into a group or create a new one.' },
+    { view: 'panel', layout: 'groupingNetflix', current: 'scroll', contextMenu: { mode: 'existing', tab: 'netflix', inactive: true, groups: ['social'], targetGroup: 'social' }, pointer: { target: '[data-demo-group="social"]', click: true }, hold: 2500, headline: 'Existing named tab groups are direct choices in Move to Group.' },
+    { view: 'panel', layout: 'socialNetflix', current: 'scroll', contextMenu: { mode: 'new', tab: 'netflix', inactive: true, groups: ['social'], currentGroup: 'social' }, pointer: { target: '.demo-context-new', click: true }, hold: 3300, headline: 'Netflix joins Social, and the checkmark confirms the move; Remove from Group and New Group… stay in the same menu.' },
+    { view: 'panel', layout: 'socialNetflix', current: 'scroll', panel: 'commands', prefill: '/group ', typed: '/group watch', headline: 'New Group… opens the /group handoff to create a named tab group, still bound to Netflix.' },
+    { view: 'panel', layout: 'watchNetflix', current: 'scroll', justGroup: 'watch', hold: 3200, headline: 'Netflix moves into Watch; every other pin, group and loose tab stays put.' },
 
-    { view: 'workspace', layout: 'grouped', current: 'scroll', workspaceName: 'research', pointer: { target: '.demo-ws-row:nth-child(2)', click: true }, hold: 2400, headline: 'Save and reopen complete\nbrowser workspaces.', subtext: 'Patron members can restore a window with its tabs, pins and active page.' },
-    { view: 'panel', layout: 'writing', current: 'notion', workspaceName: 'writing', hold: 4200, headline: 'Reopen the whole\nbrowser workspace.', subtext: 'For Patron members, tabs, pins and the active page arrive together in a saved workspace.' },
+    { view: 'workspace', layout: 'grouped', current: 'scroll', workspaceName: 'research', pointer: { target: '.demo-ws-row:nth-child(2)', click: true }, hold: 2400, headline: 'Patron members can save and reopen complete browser workspaces: a window with its tabs, pins and active page.' },
+    { view: 'panel', layout: 'writing', current: 'notion', workspaceName: 'writing', hold: 4200, headline: 'Reopen the whole browser workspace and its tabs, pins and active page arrive together.' },
   ];
 
   // Chapters group the scenes into the demo's topics; each scrub-bar marker sits

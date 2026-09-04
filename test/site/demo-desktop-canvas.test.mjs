@@ -324,7 +324,7 @@ test('the complete animated sequence runs without coordinate drift or responsive
     // More than one authored loop, including typing, menus, Glance, and blocker actions.
     await page.clock.runFor(82000);
     const evidence = await page.evaluate(() => window.demoEvidence);
-    for (const text of ['Resize your', 'Make either tab', 'The page,', 'Browse every', 'Netflix joins', 'Netflix moves', 'Reopen the whole']) {
+    for (const text of ['Drag the divider', 'Make either tab', 'Without the ad layer', 'Browse every', 'Netflix joins', 'Netflix moves', 'Reopen the whole']) {
       assert.ok(evidence.headlines.some(headline => headline.startsWith(text)), `missing scene: ${text}`);
     }
     assert.deepEqual(evidence.badShots, []);
