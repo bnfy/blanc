@@ -24,7 +24,7 @@
 
 **Source spec:** [2026-08-20-growth-counter-offensive-design.md](../specs/2026-08-20-growth-counter-offensive-design.md)
 
-## Execution status — September 2, 2026
+## Execution status — September 3, 2026
 
 - Blanc v1.15.0 is the current public baseline. It was published from
   `d0c2304` at `2026-09-03T01:12:36Z`; publication, the authenticated manifest,
@@ -33,12 +33,10 @@
   v1.14.0 → v1.15.0 macOS and Windows updater handoffs also passed. Complete
   evidence is recorded in
   `docs/release-incidents/2026-09-02-v1.15.0.md`.
-- Release-train evidence remains incomplete: the v1.13.0 incident still lists
-  both adjacent v1.12.0 → v1.13.0 macOS and Windows updater handoffs as pending.
-  Later successful handoffs do not prove those transitions. Obtain the owner's
-  exact confirmation or an explicit, risk-aware waiver before clearing the
-  train gate. The v1.11.1 Windows handoff has its own recorded owner waiver;
-  that waiver does not extend to v1.13.0.
+- On September 3, the owner explicitly confirmed both adjacent v1.12.0 →
+  v1.13.0 macOS and Windows **Restart Now** handoffs. The v1.13.0 incident now
+  records those owner-attested passes. The v1.11.1 Windows handoff remains a
+  separately recorded owner waiver, not a tested pass.
 - v1.15.0 is the selected launch release. Task 8's 22-second Island demo and
   Product Hunt stills were recaptured on September 3 from the installed
   packaged public build in an isolated local profile, then exported in
@@ -1551,13 +1549,13 @@ metadata, packaging, release workflows, and feature specs stop moving. If the
 selected work is not merge-ready by the cutoff, leave it open and move on; do
 not consume the release-verification buffer trying to make the count zero.
 
-- [ ] **Step 3: Publish and prove each immutable pre-launch release, ending with
+- [x] **Step 3: Publish and prove each immutable pre-launch release, ending with
       the launch release by Friday, September 4 at 3:00 p.m. ET**
 
-The selected v1.15.0 release's own evidence is complete, but this train-wide
-step remains open for the v1.12.0 → v1.13.0 macOS and Windows updater handoffs.
-The v1.13.0 dated incident still marks both pending. Do not infer a pass from a
-later installed version or copy v1.11.1's explicit Windows waiver to this gate.
+The selected v1.15.0 release's own evidence is complete. The owner explicitly
+confirmed both v1.12.0 → v1.13.0 **Restart Now** handoffs on September 3,
+closing the remaining confirmation gap. The v1.11.1 Windows transition retains
+its documented owner waiver and must never be described as a tested pass.
 
 For every post-v1.10.0 version, follow the complete release operator protocol.
 The macOS, Windows, and Linux artifacts, updater metadata, authenticated

@@ -18,11 +18,11 @@ build. If a regression forces a replacement release, this pack becomes
 non-publishable until every release-bound fact and asset is rebaselined and the
 fresh launch soak restarts.
 
-**Launch gate still open:** the v1.13.0 incident has no completed evidence for
-the adjacent v1.12.0 → v1.13.0 macOS or Windows updater handoff. The owner must
-confirm those exact flows or explicitly waive the unverified paths after the
-risk is stated. v1.15.0's own successful handoffs do not close that train-wide
-gap; do not publish this pack until the runbook's launch gates are cleared.
+**Evidence update 2026-09-03:** the owner explicitly confirmed both adjacent
+v1.12.0 → v1.13.0 **Restart Now** handoffs, now recorded in the v1.13.0
+incident. That confirmation closes the earlier evidence gap; it does not waive
+the asset merge, final freeze, or fresh soak. Do not publish this pack until
+the runbook's remaining launch gates are cleared.
 
 **Release lock — REBASELINED 2026-09-02:** This pack describes packaged public
 v1.15.0, published from `d0c2304`. It carries the optional macOS 1Password
