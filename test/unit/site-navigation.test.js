@@ -10,9 +10,18 @@ const ROOT = path.resolve(__dirname, '..', '..');
  * feature page is reachable, each description is the page's own headline, and
  * every href points at a page that exists. */
 
+// Reduces the page's <h1> markup to its text so the menu description can be
+// compared to it. Nested tags are removed until none remain, so the result
+// never depends on a single pass.
+const textOf = markup => {
+  let text = markup;
+  let previous;
+  do { previous = text; text = text.replace(/<[^>]*>/g, ''); } while (text !== previous);
+  return text.replace(/\s+/g, ' ').trim();
+};
 const pageHeadline = href => {
   const source = fs.readFileSync(path.join(ROOT, `site/src/pages${href}.astro`), 'utf8');
-  return source.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+  return textOf(source.match(/<h1[^>]*>([\s\S]*?)<\/h1>/)[1]);
 };
 
 test('every feature page is reachable from the features menu with its own headline', async () => {
