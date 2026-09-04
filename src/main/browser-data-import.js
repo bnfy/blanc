@@ -3,6 +3,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { validFolder } = require('./bookmark-validate');
+const { readBoundedUtf8 } = require('./bounded-file-read');
 
 const MAX_BROWSER_BOOKMARK_BYTES = 20 * 1024 * 1024;
 const MAX_BROWSER_BOOKMARK_NODES = 100_000;
@@ -147,9 +148,7 @@ function parseChromiumBookmarks(input, {
 
 async function readJsonIfSmall(filePath, fsPromises, maxBytes = 2 * 1024 * 1024) {
   try {
-    const stat = await fsPromises.stat(filePath);
-    if (!stat.isFile() || stat.size > maxBytes) return null;
-    return JSON.parse(await fsPromises.readFile(filePath, 'utf8'));
+    return JSON.parse(await readBoundedUtf8(filePath, maxBytes, fsPromises));
   } catch {
     return null;
   }
@@ -223,14 +222,13 @@ function createBrowserDataImportService({
       const source = (await discover()).find((candidate) => candidate.id === id);
       if (!source) return { error: 'source-unavailable' };
       try {
-        const stat = await fsPromises.stat(source.bookmarksPath);
-        if (!stat.isFile()) return { error: 'source-unavailable' };
-        if (stat.size > MAX_BROWSER_BOOKMARK_BYTES) return { error: 'too-large' };
-        const raw = await fsPromises.readFile(source.bookmarksPath, 'utf8');
+        const raw = await readBoundedUtf8(source.bookmarksPath, MAX_BROWSER_BOOKMARK_BYTES, fsPromises);
         const entries = parseChromiumBookmarks(raw);
         if (!entries.length) return { error: 'empty' };
         return { source: publicSource(source), entries };
-      } catch {
+      } catch (error) {
+        if (error.code === 'EFBIG') return { error: 'too-large' };
+        if (error.code === 'ENOTFILE') return { error: 'source-unavailable' };
         return { error: 'unreadable' };
       }
     },

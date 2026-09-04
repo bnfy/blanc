@@ -1,3 +1,4 @@
+import { decodeAttribute } from './seo-url-utils.mjs';
 const SITE_ORIGIN = new URL(process.env.SITE_ORIGIN || 'https://blancbrowser.com').origin;
 const SITEMAP_URL = `${SITE_ORIGIN}/sitemap.xml`;
 const REQUEST_TIMEOUT_MS = 15_000;
@@ -7,10 +8,7 @@ const USER_AGENT = 'BlancSEOAudit/1.0 (+https://blancbrowser.com/)';
 const errors = [];
 const warnings = [];
 
-const decodeAttribute = (value = '') => value
-  .replaceAll('&amp;', '&')
-  .replaceAll('&quot;', '"')
-  .replaceAll('&#39;', "'");
+
 
 const capture = (html, patterns) => {
   for (const pattern of patterns) {

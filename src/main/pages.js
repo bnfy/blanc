@@ -5,6 +5,7 @@ const { pathToFileURL } = require('url');
 const bookmarks = require('./bookmarks');
 const { parseNetscapeBookmarks } = require('./bookmark-import');
 const { createBrowserDataImportService } = require('./browser-data-import');
+const { readBoundedUtf8 } = require('./bounded-file-read');
 
 const MAX_IMPORT_BYTES = 20 * 1024 * 1024; // 20 MiB
 const history = require('./history');
@@ -154,15 +155,14 @@ function setupPages(hooks = {}) {
     });
     if (picked.canceled || !picked.filePaths.length) return { cancelled: true };
     try {
-      const stat = await fs.promises.stat(picked.filePaths[0]);
-      if (stat.size > MAX_IMPORT_BYTES) return { error: 'too-large' };
-      const html = await fs.promises.readFile(picked.filePaths[0], 'utf8');
+      const html = await readBoundedUtf8(picked.filePaths[0], MAX_IMPORT_BYTES);
       const entries = parseNetscapeBookmarks(html);
       if (!entries.length) return { error: 'empty' };
       const { added, skipped } = bookmarks.importBookmarks(entries);
       hooks.onDataChanged?.();
       return { added, skipped };
-    } catch {
+    } catch (error) {
+      if (error.code === 'EFBIG') return { error: 'too-large' };
       return { error: 'unreadable' };
     }
   });

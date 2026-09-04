@@ -191,10 +191,11 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
-          gh release upload "${{ inputs.tag }}" \
+          gh release upload "$RELEASE_TAG" \
             "dist/$PRODUCT_NAME-Setup-$VERSION.exe" \
             "dist/$PRODUCT_NAME-Setup-$VERSION.exe.blockmap" \
             "dist/windows-signature.json" \
@@ -299,10 +300,11 @@ jobs:
         if: ${{ inputs.mode == 'release' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           PRODUCT_NAME=$(node -p "require('./package.json').productName")
-          gh release upload "${{ inputs.tag }}" \
+          gh release upload "$RELEASE_TAG" \
             "dist/$PRODUCT_NAME-$VERSION.AppImage" \
             "dist/latest-linux.yml" \
             --repo "${{ github.repository }}"

@@ -5,6 +5,7 @@ const os = require('node:os');
 const path = require('node:path');
 const test = require('node:test');
 const { _electron } = require('playwright');
+const { scriptJson } = require('../helpers/html-encoding');
 
 const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const CLIENT_HINTS = [
@@ -129,8 +130,8 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
           'wow64',
         ]);
         const payload = {
-          mode: ${JSON.stringify(mode)},
-          userActivationTrusted: ${JSON.stringify(url.searchParams.get('trusted'))} === 'true',
+          mode: ${scriptJson(mode)},
+          userActivationTrusted: ${scriptJson(url.searchParams.get('trusted'))} === 'true',
           openerAtProvider: !!window.opener,
           userAgent: navigator.userAgent,
           brands: navigator.userAgentData?.brands || [],
@@ -141,8 +142,8 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
           highEntropy,
           requestHeaders,
         };
-        const target = new URL(${JSON.stringify(callbackUrl)});
-        target.searchParams.set('mode', ${JSON.stringify(mode)});
+        const target = new URL(${scriptJson(callbackUrl)});
+        target.searchParams.set('mode', ${scriptJson(mode)});
         target.searchParams.set('payload', JSON.stringify(payload));
         location.replace(target);
       }, 100);
@@ -176,7 +177,7 @@ test('Google OAuth compatibility holds across popup and tab-style flows', { time
       <output id="result"></output>
       <script>
         window.oauthResults = {};
-        const provider = ${JSON.stringify(provider)};
+        const provider = ${scriptJson(provider)};
         document.getElementById('popup-login').addEventListener('click', (event) => {
           window.open(provider + '?mode=popup&trusted=' + event.isTrusted, 'google-oauth', 'popup,width=520,height=680');
         });
