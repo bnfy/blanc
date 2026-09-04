@@ -91,6 +91,26 @@ substitute website tokens for the shared product `--accent`, `--bg`, or other
 product variables. Both light and private-mode product replicas must retain
 their released colors, including when enlarged.
 
+### Blanc Patron website identity
+
+Blanc Patron uses Instrument Serif Regular for its display name and the main
+price numeral, paired with Inter for supporting copy, currency, billing labels,
+and controls. This is a dedicated website
+Patron treatment; other website headings and the app keep their existing
+typefaces. Use the `--site-font-patron` token, regular weight, restrained
+negative tracking, and generous space around the name. Do not use the display
+serif for small text or replace the canonical Sunrise symbol with a letterform.
+
+The homepage offer pairs the monochrome Sunrise symbol with this display name
+on an ink (`--site-accent`) section, using ivory (`--site-bg`) text and a filled
+gold (`--site-gold-on-dark`) button with ink text. Keep the pricing separate
+with a fine rule; retain a light keyboard focus outline and mobile touch target
+of at least 48px. Avoid decorative badges, gradients, and animated ornament.
+
+The font is self-hosted through the pinned `@fontsource/instrument-serif`
+package and loaded on the homepage. Its SIL Open Font License is included at
+`site/public/fonts/instrument-serif-OFL.txt`.
+
 ### Editorial website footer
 
 The shared website footer uses the monochrome Sunrise symbol alone as its

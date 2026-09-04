@@ -28,6 +28,7 @@
   --pill-zoom: 1.15;
 
   /* Website presentation only. Ivory is sampled from the Sunrise source art. */
+  --site-font-patron: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   --site-bg: #F7F0E5;
   --site-bg-rgb: 247, 240, 229;
   --site-surface: #EFE6D8;
@@ -125,7 +126,7 @@ a { color: inherit; }
 .hero .hero-copy { max-width: 650px; margin: 16px auto 0; color: var(--site-text-dim); font-size: clamp(16px, 1.25vw, 18px); line-height: 1.45; text-wrap: balance; }
 .hero-message.scene-change { animation: hero-message-change 420ms ease both; }
 @keyframes hero-message-change { from { opacity: 0.2; } to { opacity: 1; } }
-/* Primary button, shared by the hero, home-close, and feature-close CTAs. */
+/* Primary button, shared by the hero, Patron, and feature-close CTAs. */
 .cta { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 26px; border-radius: var(--radius); background: var(--site-accent); color: var(--site-bg); text-decoration: none; font-family: var(--font-mono); font-size: 14px; white-space: nowrap; transition: opacity 0.15s ease; }
 .cta:hover { opacity: 0.88; }
 
@@ -907,7 +908,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
 /* ---------- home: product proof ---------- */
 .home-main { display: flex; flex-direction: column; gap: 64px; width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 24px 64px; }
 .section-kicker { margin: 0 0 14px; font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.17em; text-transform: uppercase; color: var(--site-gold); }
-.home-feature h2, .home-faq h2, .home-close h2, .download-hero h1, .download-details h2 { margin: 0; font-size: clamp(31px, 4.1vw, 52px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.06; text-wrap: balance; }
+.home-feature h2, .home-faq h2, .download-hero h1, .download-details h2 { margin: 0; font-size: clamp(31px, 4.1vw, 52px); font-weight: 500; letter-spacing: -0.035em; line-height: 1.06; text-wrap: balance; }
 .text-link { display: inline-flex; gap: 8px; margin-top: 22px; color: var(--site-text); text-decoration: none; border-bottom: 1px solid var(--site-border); padding-bottom: 3px; font-family: var(--font-mono); font-size: 12.5px; transition: border-color 0.15s ease, color 0.15s ease; }
 .text-link > span[aria-hidden="true"] { color: var(--site-gold); }
 .text-link:is(:hover, :focus-visible) { border-color: var(--site-gold); color: var(--site-gold); }
@@ -948,11 +949,37 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .faq-page { padding-top: 64px; }
   .faq-page-item { grid-template-columns: 1fr; gap: 16px; }
 }
-.home-close { padding: 64px 24px; border: 1px solid var(--site-border); border-radius: 14px; background: var(--site-surface); text-align: center; }
-.home-close h2 { max-width: 13ch; margin: 0 auto; }
-.home-close > p:not(.section-kicker) { margin: 16px 0 0; color: var(--site-text-dim); font-size: 15px; }
-.home-close .cta { margin-top: 28px; }
-.home-download-mobile { display: none; }
+.home-patron {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 0.72fr);
+  align-items: center; gap: clamp(32px, 5vw, 64px);
+  padding: clamp(32px, 5vw, 64px); border: 1px solid var(--site-accent); border-radius: 18px;
+  background: var(--site-accent); color: var(--site-bg);
+}
+.home-patron .home-patron-mark { display: block; width: 32px; height: 32px; margin-bottom: 36px; }
+.home-patron h2 { margin: 0; font-weight: 400; }
+.home-patron .home-patron-intro { display: block; margin-bottom: 10px; font-size: 14px; line-height: 1.5; }
+.home-patron .home-patron-name { display: block; font-family: var(--site-font-patron); font-size: clamp(52px, 6.5vw, 88px); font-weight: 400; letter-spacing: -0.025em; line-height: 1.04; text-wrap: balance; }
+.home-patron .home-patron-copy p { max-width: 43ch; margin: 24px 0 0; font-size: 15px; line-height: 1.7; text-wrap: pretty; }
+.home-patron .home-patron-offer { min-width: 0; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px 0 12px clamp(24px, 4vw, 56px); border-left: 1px solid color-mix(in srgb, var(--site-gold-on-dark) 28%, transparent); text-align: center; }
+.home-patron .home-patron-price { display: flex; align-items: baseline; gap: 6px; margin: 0; line-height: 1; white-space: nowrap; }
+.home-patron .home-patron-price strong { display: inline-flex; align-items: baseline; gap: 3px; font-weight: 400; }
+.home-patron .home-patron-currency { font-size: 15px; }
+.home-patron .home-patron-amount { font-family: var(--site-font-patron); font-size: 72px; letter-spacing: -0.025em; }
+.home-patron .home-patron-period { font-size: 14px; }
+.home-patron .home-patron-monthly { margin: 12px 0 0; font-size: 14px; line-height: 1.5; }
+.home-patron .home-patron-tax { margin: 8px 0 0; color: color-mix(in srgb, var(--site-bg) 75%, var(--site-accent)); font-size: 12px; line-height: 1.5; }
+.home-patron .cta { width: 100%; max-width: 300px; height: auto; min-height: 52px; margin-top: 28px; padding: 14px 20px; border-radius: 999px; background: var(--site-gold-on-dark); color: var(--site-text); font-family: var(--font-ui); font-size: 14px; font-weight: 500; line-height: 1.5; white-space: normal; text-align: center; }
+.home-patron .cta:hover { background: var(--site-bg); opacity: 1; }
+.home-patron .cta:focus-visible { outline: 2px solid var(--site-bg); outline-offset: 4px; }
+.home-patron .home-patron-reassurance { max-width: 32ch; margin: 16px 0 0; color: color-mix(in srgb, var(--site-bg) 75%, var(--site-accent)); font-size: 12px; line-height: 1.6; text-wrap: balance; }
+@media (max-width: 759px) {
+  .home-patron { grid-template-columns: 1fr; gap: 36px; padding: 40px 24px; text-align: center; }
+  .home-patron .home-patron-mark { margin: 0 auto 32px; }
+  .home-patron .home-patron-name { font-size: clamp(50px, 11vw, 72px); }
+  .home-patron .home-patron-copy p { margin: 22px auto 0; }
+  .home-patron .home-patron-offer { padding: 32px 0 0; border-left: 0; border-top: 1px solid color-mix(in srgb, var(--site-gold-on-dark) 28%, transparent); }
+  .home-patron .cta { max-width: 340px; margin: 26px auto 0; }
+}
 
 /* ---------- download ---------- */
 .download-page { max-width: 1180px; margin: 0 auto; padding: 112px 24px 88px; }
@@ -1220,7 +1247,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   .home-feature-grid { grid-template-columns: 1fr; }
   .home-feature { padding: 28px 24px; }
   .home-faq { grid-template-columns: 1fr; gap: 24px; }
-  .home-close { padding: 40px 20px; }
   /* The feature rows' desktop minimums add up to more than the available
      content width here. Collapse before that math can create page overflow. */
   .feature-hub-row { grid-template-columns: 1fr; gap: 16px; padding: 30px 0 34px; }
@@ -1399,10 +1425,6 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--site-accent); o
   }
   .hero .blanc-mark.hero-sunrise-mark { display: none; }
   .hero-eyebrow { margin-bottom: 14px; font-size: 10.5px; }
-  .home-close .cta { padding: 0; background: transparent; color: var(--site-text-dim); text-decoration: underline; text-underline-offset: 4px; }
-  .home-close .cta:is(:hover, :focus-visible) { color: var(--site-gold); opacity: 1; }
-  .home-download-desktop { display: none; }
-  .home-download-mobile { display: inline; }
   .demo-showcase { margin-top: 42px; padding: 32px 12px 20px; border-radius: 16px; }
   .hero-message { min-height: 148px; }
   .hero h1 { font-size: clamp(32px, 8.7vw, 40px); line-height: 1.08; }
