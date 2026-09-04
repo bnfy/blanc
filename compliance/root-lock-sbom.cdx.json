@@ -200,6 +200,96 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40cacheable/memory@2.2.0",
+      "name": "@cacheable/memory",
+      "version": "2.2.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "0932caa8b22d442122c4401ec03dff8fd0c1dffa3dea0a533c3e1e275bfe0c63a5c594599dc45090662aaa70060ac71877a44d7977c67a2b82a61b0fb6ac887d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40cacheable/memory@2.2.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@cacheable/memory"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@cacheable/memory/-/memory-2.2.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40cacheable/utils@2.5.0",
+      "name": "@cacheable/utils",
+      "version": "2.5.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6ee8a980e5439243d7351e7ec41a43c3b664da7d44bd4eea04908d51c2fbae143ffe47e93973c0bd0e75d4eb34be92d8275a599efb9d372b6442dda1b2ddf0a8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40cacheable/utils@2.5.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@cacheable/utils"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@cacheable/utils/-/utils-2.5.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40colors/colors@1.5.0",
       "name": "@colors/colors",
       "version": "1.5.0",
@@ -1505,6 +1595,366 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40eslint-community/eslint-utils@4.10.1",
+      "name": "@eslint-community/eslint-utils",
+      "version": "4.10.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "72e69d73154513cb032ba89625bb3c4a7d1abf636b8764121908559415bd01a007a87c235ac6474fc2c9e211463e1ec048157675e15d33b1ff0cf8ee96687cae"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40eslint-community/eslint-utils@4.10.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@eslint-community/eslint-utils"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@eslint-community/eslint-utils/-/eslint-utils-4.10.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40eslint-community/regexpp@4.12.2",
+      "name": "@eslint-community/regexpp",
+      "version": "4.12.2",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "12b8924e5b79382f7fed25e445208085f4b1c684948019b7dce1fe224c1b769828aac4ac520ef2dee87e208088fd08380415abdd4da2dfd4699b271bc4cab87b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40eslint-community/regexpp@4.12.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@eslint-community/regexpp"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@eslint-community/regexpp/-/regexpp-4.12.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40eslint/config-array@0.23.5",
+      "name": "@eslint/config-array",
+      "version": "0.23.5",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "63790a2ef0b576f4ce4fea0696a350d572ea2ba0f51d4d985cf739d8d98094965b30c583cc66173223d127c4d80f7f66b83fce4e395998d27889beddbd2acc04"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40eslint/config-array@0.23.5",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@eslint/config-array"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@eslint/config-array/-/config-array-0.23.5.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40eslint/config-helpers@0.7.0",
+      "name": "@eslint/config-helpers",
+      "version": "0.7.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "0ce6ddfca294b14f85685bf83cbc5245e9e95df41698f5d73f7a4f67afcad4f0ab32edaf42930332e41efc1a987a82dccfcae8d1b54317547138981f54476153"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40eslint/config-helpers@0.7.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@eslint/config-helpers"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@eslint/config-helpers/-/config-helpers-0.7.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40eslint/core@1.2.1",
+      "name": "@eslint/core",
+      "version": "1.2.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "330704d4ff806780ba0d69698a7fce98e039e2698867ffb166e26241de12c81dbda00263377d145bdc2428da6d5b672da78704b2f8652d8fc2b10d6ea070e5a1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40eslint/core@1.2.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@eslint/core"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@eslint/core/-/core-1.2.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40eslint/js@10.0.1",
+      "name": "@eslint/js",
+      "version": "10.0.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cde47d939a5de20c6367469b46821ac5d73b2379c392da17664daa3aff6008d5b1de6570127df65518722da46c0e22634ecd31abf4fc99f3edcae5eeec658170"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40eslint/js@10.0.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@eslint/js"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@eslint/js/-/js-10.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40eslint/object-schema@3.0.5",
+      "name": "@eslint/object-schema",
+      "version": "3.0.5",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "bea4da504831ce6f980d274495a77a3e24685f8b7c5460e30adb74e739f89d4f35d14231fee34457bfe5649e8ac054e12993b33b1cd7cb8f1d6be368ec765a33"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40eslint/object-schema@3.0.5",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@eslint/object-schema"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@eslint/object-schema/-/object-schema-3.0.5.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40eslint/plugin-kit@0.7.3",
+      "name": "@eslint/plugin-kit",
+      "version": "0.7.3",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "2243befca114bf06d5a62511660f8fef317be33e49c5ed14809c559e2f91b681d0e8866279768ed3692669da266a9feafa5e9b73f8dd3c61aa4e386e667bb3d5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40eslint/plugin-kit@0.7.3",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@eslint/plugin-kit"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@eslint/plugin-kit/-/plugin-kit-0.7.3.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40ghostery/adblocker-content@2.18.2",
       "name": "@ghostery/adblocker-content",
       "version": "2.18.2",
@@ -1770,6 +2220,231 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/@ghostery/url-parser/-/url-parser-1.3.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40humanfs/core@0.19.2",
+      "name": "@humanfs/core",
+      "version": "0.19.2",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5215cd9be08531671b0a15f2c05c249a1aa3b373d10a67126bf85f0602c86fba10e4735bd704b489c5ac1ad48050d81e7c7788f9e06b03c2357f199b1ec19dbc"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40humanfs/core@0.19.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@humanfs/core"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@humanfs/core/-/core-0.19.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40humanfs/node@0.16.8",
+      "name": "@humanfs/node",
+      "version": "0.16.8",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "804d5e40d67747efa44f3154a5d1a5a66cbc903643fcc2f21ea0f0aa3915408d0931d2350f9d6ccb51fde7c3cd5d890cdab01a73b7b9fc29c8299ac7b4f87705"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40humanfs/node@0.16.8",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@humanfs/node"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@humanfs/node/-/node-0.16.8.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40humanfs/types@0.15.0",
+      "name": "@humanfs/types",
+      "version": "0.15.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "659d70d1aa10930b94b82ed87feeec75e68d7ea42288b71245b7c8d3ca00c6a2eda5742bf402155fb032ec72c3ba22d801a14fbbca0160dabf4088bd5111c9dd"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40humanfs/types@0.15.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@humanfs/types"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@humanfs/types/-/types-0.15.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40humanwhocodes/module-importer@1.0.1",
+      "name": "@humanwhocodes/module-importer",
+      "version": "1.0.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6f1bde57857cbf961be277054d3deb3d281904ea429237cad32e28555549c08b8354144c0d7acfc9744bf7cf22e5aa7d9bd6e7c8412359f9b95a4066b5f7cb7c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40humanwhocodes/module-importer@1.0.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@humanwhocodes/module-importer"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@humanwhocodes/module-importer/-/module-importer-1.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40humanwhocodes/retry@0.4.3",
+      "name": "@humanwhocodes/retry",
+      "version": "0.4.3",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6d5d13828f4ae217cf09e93e68c027f35469a452afdb248341e328499baf4c04b2c0d4e7549080ac2644d855aaa6f21ab4abbb54c44b5a547511acef5610f285"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40humanwhocodes/retry@0.4.3",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@humanwhocodes/retry"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@humanwhocodes/retry/-/retry-0.4.3.tgz"
         }
       ]
     },
@@ -3219,6 +3894,96 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40keyv/bigmap@1.3.1",
+      "name": "@keyv/bigmap",
+      "version": "1.3.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "59bcc4f6c76642d2b2f2facd3daf41467c19879505e2cd4a4e648ad0a5152e8dde7dfe4195034d5839c53a8b8da4a7cf2839e6b3dc729c98ec3188cc693fda15"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40keyv/bigmap@1.3.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@cacheable/memory/node_modules/@keyv/bigmap"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@keyv/bigmap/-/bigmap-1.3.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40keyv/serialize@1.1.1",
+      "name": "@keyv/serialize",
+      "version": "1.1.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7579f715984fbf4512fbb76d26c222d91f9ceea5988917a8121e73527b5609fe284a930d89bf050e14a879dea6dd0c99771e612bb88b164624deb371c2df2f4c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40keyv/serialize@1.1.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@keyv/serialize"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@keyv/serialize/-/serialize-1.1.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40malept/cross-spawn-promise@2.0.0",
       "name": "@malept/cross-spawn-promise",
       "version": "2.0.0",
@@ -4074,6 +4839,96 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40types/esrecurse@4.3.1",
+      "name": "@types/esrecurse",
+      "version": "4.3.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c490406c389fa398697df0c1b8797463ccb0b306e2029fd68bb63f1ad0204a5672200069a72babc55b9e38f13c2d440ec5d9608ba66a71eeeea04a6a3537a253"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/esrecurse@4.3.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@types/esrecurse"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@types/esrecurse/-/esrecurse-4.3.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40types/estree@1.0.9",
+      "name": "@types/estree",
+      "version": "1.0.9",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "1a174f832d5e978fc898fd395f4e54c38730dbf33ddc10949a712f599352b650b310a304e05924f98a680393a21cd426a12ec269f6fc5dadcfc9af26d50af37a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/estree@1.0.9",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@types/estree"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@types/estree/-/estree-1.0.9.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40types/fs-extra@9.0.13",
       "name": "@types/fs-extra",
       "version": "9.0.13",
@@ -4159,6 +5014,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/@types/http-cache-semantics/-/http-cache-semantics-4.2.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40types/json-schema@7.0.15",
+      "name": "@types/json-schema",
+      "version": "7.0.15",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e7e7cff0ff0c14d0be0326420f1ac1da991914f1b3a90594ce949ebae54bbe6f1531ca2b3586af06aa057312bc6d0cf842c6e7e2850411e9b8c032df732b061c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/%40types/json-schema@7.0.15",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@types/json-schema"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@types/json-schema/-/json-schema-7.0.15.tgz"
         }
       ]
     },
@@ -4479,6 +5379,96 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/acorn-jsx@5.3.2",
+      "name": "acorn-jsx",
+      "version": "5.3.2",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "aeaf6cf893617f4202863b435f196527b838d68664e52957b69d0b1f0c80e5c7a3c27eef2a62a9e293eb8ba60478fbf63d4eb9b00b1e81b5ed2229e60c50d781"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/acorn-jsx@5.3.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/acorn-jsx"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/acorn-jsx/-/acorn-jsx-5.3.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/acorn@8.18.0",
+      "name": "acorn",
+      "version": "8.18.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "946abef72af5fc6b8059a558207463befc921b9ff855f288bc2f045b14ad3dd70387f29aec51b7b703fabf8779064adabd48a584802c1b8423f37b74d8b5943d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/acorn@8.18.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/acorn"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/acorn/-/acorn-8.18.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/agent-base@7.1.4",
       "name": "agent-base",
       "version": "7.1.4",
@@ -4519,6 +5509,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/agent-base/-/agent-base-7.1.4.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/ajv@6.15.0",
+      "name": "ajv",
+      "version": "6.15.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7e0171ec77e8abad32b4ad9cec386717c8c8bf362038cc5fba08cb3923078cb20f81e9ea6bb4bba1a6a001352af7d995e8862f376b51982d309d3617ea23db33"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/ajv@6.15.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/eslint/node_modules/ajv"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/ajv/-/ajv-6.15.0.tgz"
         }
       ]
     },
@@ -5739,6 +6774,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/cacheable@2.5.0",
+      "name": "cacheable",
+      "version": "2.5.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "eb473200ecad89bfcecc1c3524d4a8495fdba0ad40b47af20c88ef54193b5db378ba07e4337f92af2edf1233603cc1a03a3b9a64f029f2bb99d02c5a7f0caaf6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/cacheable@2.5.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/cacheable"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/cacheable/-/cacheable-2.5.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/call-bind-apply-helpers@1.0.2",
       "name": "call-bind-apply-helpers",
       "version": "1.0.2",
@@ -6724,6 +7804,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/decompress-response/-/decompress-response-6.0.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/deep-is@0.1.4",
+      "name": "deep-is",
+      "version": "0.1.4",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a083f392c993838fccae289a6063bea245c34fbced9ffc37129b6fffe81221d31d2ac268d2ee027d834524fcbee1228cb82a86c36c319c0f9444c837b7c6bf6d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/deep-is@0.1.4",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/deep-is"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/deep-is/-/deep-is-0.1.4.tgz"
         }
       ]
     },
@@ -8198,7 +9323,7 @@
         },
         {
           "name": "blanc:optional",
-          "value": "true"
+          "value": "false"
         },
         {
           "name": "blanc:workspace",
@@ -8209,6 +9334,411 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/escape-string-regexp/-/escape-string-regexp-4.0.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/eslint-scope@9.1.2",
+      "name": "eslint-scope",
+      "version": "9.1.2",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c52f741f9d5c2b0d2396dc66be61f2d886a2d4b22aadf6f0e7b6fbf70fc9ecc7ef0df90890567e923eb30b7063b54c21d79d07b1249dc5765cb2ebfbda688315"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/eslint-scope@9.1.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/eslint-scope"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/eslint-scope/-/eslint-scope-9.1.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/eslint-visitor-keys@3.4.3",
+      "name": "eslint-visitor-keys",
+      "version": "3.4.3",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c2973e2d77a2ca28acc4f944914cd4eacbf24b57eb20edcc8318f57ddcbb3e6f1883382e6b1d8ddc56bf0ff6a0d56a9b3a9add23eb98eb031497cfdad86fa26a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/eslint-visitor-keys@3.4.3",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/@eslint-community/eslint-utils/node_modules/eslint-visitor-keys"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-3.4.3.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/eslint-visitor-keys@5.0.1",
+      "name": "eslint-visitor-keys",
+      "version": "5.0.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "b43e34787c40df98743c421935e223907a034786238c9a77e1b88cd260efa6505efff981f881c2a870c657ba7117eecc9254ef8a085c08f3d90bbca75b28dd4c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:npm/eslint-visitor-keys@5.0.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/eslint-visitor-keys"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/eslint-visitor-keys/-/eslint-visitor-keys-5.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/eslint@10.10.0",
+      "name": "eslint",
+      "version": "10.10.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "34f5e7eabe73978b844f50c054f68ec335f7aeeb78734c1c9b0ddd58901f3ac4cce7e4e8817a340c38f3f29c26fe12fc73254da47a9e2b82693743639f214537"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/eslint@10.10.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/eslint"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/eslint/-/eslint-10.10.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/espree@11.2.0",
+      "name": "espree",
+      "version": "11.2.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "ee9dc3ad5108a295b50756af0062ee0928758ee6dcd351f624773c078aaa19b966839808f72ba60600028d6a3826521cd38b9fba0e3127749023c1e44bf460cf"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/espree@11.2.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/espree"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/espree/-/espree-11.2.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/esquery@1.7.0",
+      "name": "esquery",
+      "version": "1.7.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "029e86d16430714fcb1ecbcbc0e3757c0417f59a7403663a63f709065f6bfc96d6f74672838ff36c6eb3cca6b639300b10b6ab60798abb41a1a4ce443beed3d2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/esquery@1.7.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/esquery"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/esquery/-/esquery-1.7.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/esrecurse@4.3.0",
+      "name": "esrecurse",
+      "version": "4.3.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "2a67ca2f76fa1be457bcff0dd6faf74ead642ffa021609f63585c4b6a3fcfcbde929aa540381bc70555aa05dd2537db7083e17ca947f7df8a81e692d8bafd36a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/esrecurse@4.3.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/esrecurse"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/esrecurse/-/esrecurse-4.3.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/estraverse@5.3.0",
+      "name": "estraverse",
+      "version": "5.3.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "30c74046e54443388d4de243f0380caa6870475d41450fdc04ffa92ed61d4939dfdcc20ef1f15e8883446d7dfa65d3657d4ffb03d7f7814c38f41de842cbf004"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/estraverse@5.3.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/estraverse"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/estraverse/-/estraverse-5.3.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/esutils@2.0.3",
+      "name": "esutils",
+      "version": "2.0.3",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "915b1ca97938382a7af126747648042958baffc8a3df4d0a0564c9ab7d8ffdd61e5934b02b8d56c93c5a94dd5e46603967d514fcb5fd0fb1564a657d480631ea"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/esutils@2.0.3",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/esutils"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/esutils/-/esutils-2.0.3.tgz"
         }
       ]
     },
@@ -8299,6 +9829,96 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/fast-json-stable-stringify@2.1.0",
+      "name": "fast-json-stable-stringify",
+      "version": "2.1.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "96177fc05f8b93df076684c2b6556b687b5f8795d88a32236a55dc93bb1a52db9a9d20f22ccc671e149710326a1f10fb9ac47c0f4b829aa964c23095f31bf01f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/fast-json-stable-stringify@2.1.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/fast-json-stable-stringify"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/fast-json-stable-stringify/-/fast-json-stable-stringify-2.1.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/fast-levenshtein@2.0.6",
+      "name": "fast-levenshtein",
+      "version": "2.0.6",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "0c25eee887e1a9c92ced364a6371f1a77cbaaa9858e522599ab58c0eb29c11148e5d641d32153d220fcf62bcf2c3fba5f63388ca1d0de0cd2d6c2e61a1d83c77"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/fast-levenshtein@2.0.6",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/fast-levenshtein"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/fast-levenshtein/-/fast-levenshtein-2.0.6.tgz"
         }
       ]
     },
@@ -8439,6 +10059,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/file-entry-cache@11.1.5",
+      "name": "file-entry-cache",
+      "version": "11.1.5",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f8f1531c84c8d3c2481a19cda46348f13f229d4a6065f93718d12a7d3f51db3655da21578370afab34a5fee121b3b4d21ae8d84442c400dc83bd2f058fbf92ed"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/file-entry-cache@11.1.5",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/file-entry-cache"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/file-entry-cache/-/file-entry-cache-11.1.5.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/filelist@1.0.6",
       "name": "filelist",
       "version": "1.0.6",
@@ -8524,6 +10189,141 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/find-up-simple/-/find-up-simple-1.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/find-up@5.0.0",
+      "name": "find-up",
+      "version": "5.0.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "efcfcf5d3d7094b2c3813cc3b3bb23abd873cf4bd70fece7fbbc32a447b87d74310a6766a9f1ac10f4319a2092408dda8c557dd5b552b2f36dac94625ba9c69e"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/find-up@5.0.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/find-up"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/find-up/-/find-up-5.0.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/flat-cache@6.1.23",
+      "name": "flat-cache",
+      "version": "6.1.23",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7fef8163da5393ef7cdf12b514bce52e998cd22d33fa31e6c7740448691444c5ee8d0673d64e70cf05fa8639d0f20a1a0f407eb189c32b5c99e8c4f265f51aa8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/flat-cache@6.1.23",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/flat-cache"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/flat-cache/-/flat-cache-6.1.23.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/flatted@3.4.4",
+      "name": "flatted",
+      "version": "3.4.4",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e7ec9b841640344271687dd7e5ebc015ab54c4b7c41d2afb9fa91827ed50774994aabe1ebbd8087fa1836d61dff112628c7ae38cef06fa56b5e1294bd92792d5"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/flatted@3.4.4",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/flatted"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/flatted/-/flatted-3.4.4.tgz"
         }
       ]
     },
@@ -9163,6 +10963,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/glob-parent@6.0.2",
+      "name": "glob-parent",
+      "version": "6.0.2",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5f1c08f043a1550816a7a8832feddbd2bf3a7f877a017eb3494e791df078c9d084b972d773915c61e3aefa79c67ed4b84c48eeff5d6bb782893d33206df9afe0"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "purl": "pkg:npm/glob-parent@6.0.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/glob-parent"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/glob-parent/-/glob-parent-6.0.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/glob@13.0.6",
       "name": "glob",
       "version": "13.0.6",
@@ -9338,6 +11183,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/global-directory/-/global-directory-4.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/globals@17.12.0",
+      "name": "globals",
+      "version": "17.12.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "71ecc477f0d3cb286df5cbd2494472ca05cf7f2d381ad58eff97ba64fbc7edf0ad8cacfd3d83a6b9ac29870d42b5dd5fe82fb9272a577c60fb6a134c5ef7af04"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/globals@17.12.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/globals"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/globals/-/globals-17.12.0.tgz"
         }
       ]
     },
@@ -9748,6 +11638,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/hashery@1.5.1",
+      "name": "hashery",
+      "version": "1.5.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "899c8a1bdebf2703f3d4de79be3d887b6bd76e1bb8e34cdf51f26f4b012a11b78b96e93b3676a97c6a9aecb1f498eb270f14c5f39331f3f77247a1dfa9c6e66d"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/hashery@1.5.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/hashery"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/hashery/-/hashery-1.5.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/hasown@2.0.4",
       "name": "hasown",
       "version": "2.0.4",
@@ -9788,6 +11723,96 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/hasown/-/hasown-2.0.4.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/hookified@1.15.1",
+      "name": "hookified",
+      "version": "1.15.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "32f1bf725b000ead463ccd8a1a8da7c9f6965729fd9da3e25eba887b88d88d735942ddb7f245b2386aecc9cfc3991010f917bac9ea3ac97ff2a0d086e4a00456"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/hookified@1.15.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/hookified"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/hookified/-/hookified-1.15.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/hookified@2.2.0",
+      "name": "hookified",
+      "version": "2.2.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a7f2e017344de457a80f70cb4ba6e451aa5ec9ee84e1223ac89b3a29eb4435dd7c4be141b61a98ab66a62545a9b79cf4110c301de9a27636393aa24610a9b9b8"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/hookified@2.2.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/qified/node_modules/hookified"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/hookified/-/hookified-2.2.0.tgz"
         }
       ]
     },
@@ -10063,6 +12088,96 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/ignore@5.3.2",
+      "name": "ignore",
+      "version": "5.3.2",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "86c053354a904c3c245ad71d608da2d3a63f9d4044b0d10324a8d676280bbde832f240ee2404bcb91969924710a721172f467fa630f2e4706632344227682afa"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/ignore@5.3.2",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/ignore"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/ignore/-/ignore-5.3.2.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/imurmurhash@0.1.4",
+      "name": "imurmurhash",
+      "version": "0.1.4",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "2665cc67ac2ebc398b88712697dca4cea3ba97015ba1fd061b822470668435d0910c398c5679f2eece47b0880709b6aad30d8cc8f843aa48535204b62d4d8f1c"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/imurmurhash@0.1.4",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/imurmurhash"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/imurmurhash/-/imurmurhash-0.1.4.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/indent-string@5.0.0",
       "name": "indent-string",
       "version": "5.0.0",
@@ -10288,6 +12403,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/is-extglob@2.1.1",
+      "name": "is-extglob",
+      "version": "2.1.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "49b29b00d90deb4dd58b88c466fe3d2de549327e321b0b1bcd9c28ac4a32122badb0dde725875b3b7eb37e1189e90103a4e6481640ed9eae494719af9778eca1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/is-extglob@2.1.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/is-extglob"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/is-extglob/-/is-extglob-2.1.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/is-fullwidth-code-point@3.0.0",
       "name": "is-fullwidth-code-point",
       "version": "3.0.0",
@@ -10328,6 +12488,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/is-glob@4.0.3",
+      "name": "is-glob",
+      "version": "4.0.3",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c5e9526b21c7dfa66013b6568658bba56df884d6cd97c3a3bf92959a4243e2105d0f7b61f137e4f6f61ab0b33e99758e6611648197f184b4a7af046be1e9524a"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/is-glob@4.0.3",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/is-glob"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/is-glob/-/is-glob-4.0.3.tgz"
         }
       ]
     },
@@ -10963,6 +13168,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/json-schema-traverse@0.4.1",
+      "name": "json-schema-traverse",
+      "version": "0.4.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c5b6c21f9742614e53f0b704861ba1ec727cf075ee5b7aac237634cce64529f6441dca5688753f271ce4eb6f41aec69bfe63221d0b62f7030ffbce3944f7b756"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/json-schema-traverse@0.4.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/eslint/node_modules/json-schema-traverse"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/json-schema-traverse/-/json-schema-traverse-0.4.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/json-schema-traverse@1.0.0",
       "name": "json-schema-traverse",
       "version": "1.0.0",
@@ -11003,6 +13253,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/json-schema-traverse/-/json-schema-traverse-1.0.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/json-stable-stringify-without-jsonify@1.0.1",
+      "name": "json-stable-stringify-without-jsonify",
+      "version": "1.0.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "05d6e8cbe97bb40dce196e858f21475a43f92ee0728f54e4df72e3caad1ac72cdd93dfff2528b6bb77cfd504a677528dc2ae9538a606940bbcec28ac562afa3f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/json-stable-stringify-without-jsonify@1.0.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/json-stable-stringify-without-jsonify"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/json-stable-stringify-without-jsonify/-/json-stable-stringify-without-jsonify-1.0.1.tgz"
         }
       ]
     },
@@ -11233,6 +13528,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/keyv@5.6.0",
+      "name": "keyv",
+      "version": "5.6.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "0980c3dd23adb07b725de10e458471daa06da432458d14c65d4b66344306cb360e2a3d53137b7271d961a3b900d547f1f4e616673839d901411802d38abcc34b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/keyv@5.6.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPaths",
+          "value": "node_modules/@cacheable/memory/node_modules/keyv,node_modules/@cacheable/utils/node_modules/keyv,node_modules/cacheable/node_modules/keyv"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/keyv/-/keyv-5.6.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/knuth-shuffle-seeded@1.0.6",
       "name": "knuth-shuffle-seeded",
       "version": "1.0.6",
@@ -11318,6 +13658,96 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/lazy-val/-/lazy-val-1.0.5.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/levn@0.4.1",
+      "name": "levn",
+      "version": "0.4.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f9b4f6b87e04e4b184ee1fe7ddebdc4bfb109495c2a48a7aca6f0e589e5e57afbaec3b2a97f2da693eea24102ddabcdfa1aff94011818710e2c7574cb7691029"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/levn@0.4.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/levn"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/levn/-/levn-0.4.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/locate-path@6.0.0",
+      "name": "locate-path",
+      "version": "6.0.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "88f64ae9e6236f146edee078fd667712c10830914ca80a28a65dd1fb3baad148dc026fcc3ba282c1e0e03df3f77a54f3b6828fdcab67547c539f63470520d553"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/locate-path@6.0.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/locate-path"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/locate-path/-/locate-path-6.0.0.tgz"
         }
       ]
     },
@@ -12538,6 +14968,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/natural-compare@1.4.0",
+      "name": "natural-compare",
+      "version": "1.4.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "396343f1e8b756d342f61ed5eb4a9f7f7495a1b1ebf7de824f0831b9b832418129836f7487d2746eec8408d3497b19059b9b0e6a38791b5d7a45803573c64c4b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/natural-compare@1.4.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/natural-compare"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/natural-compare/-/natural-compare-1.4.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/node-abi@4.33.0",
       "name": "node-abi",
       "version": "4.33.0",
@@ -12943,6 +15418,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/optionator@0.9.4",
+      "name": "optionator",
+      "version": "0.9.4",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e88a50ee6294c5171934b20e6d1d21cfb971b1aa5248860d649c173c6785d264d5a862852178f50d070ca13db64b744e70bc98febcf43d669667d6b25a669df6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/optionator@0.9.4",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/optionator"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/optionator/-/optionator-0.9.4.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/p-cancelable@2.1.1",
       "name": "p-cancelable",
       "version": "2.1.1",
@@ -13033,6 +15553,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/p-locate@5.0.0",
+      "name": "p-locate",
+      "version": "5.0.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "2da363b51594058fbecc1e6713f37071aa0cca548f93e4be647341d53cdd6cc24c9f2e9dca7a401aded7fed97f418ab74c8784ea7c47a696e8d8b1b29ab1b93f"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/p-locate@5.0.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/p-locate"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/p-locate/-/p-locate-5.0.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/pad-right@0.2.2",
       "name": "pad-right",
       "version": "0.2.2",
@@ -13118,6 +15683,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/parse-json/-/parse-json-8.3.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/path-exists@4.0.0",
+      "name": "path-exists",
+      "version": "4.0.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6a4f50cb943b8d86f65b071ecb9169be0d8aa0073f64884b48b392066466ca03ec1b091556dd1f65ad2aaed333fa6ead2530077d943c167981e0c1b82d6cbbff"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/path-exists@4.0.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/path-exists"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/path-exists/-/path-exists-4.0.0.tgz"
         }
       ]
     },
@@ -13618,6 +16228,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/prelude-ls@1.2.1",
+      "name": "prelude-ls",
+      "version": "1.2.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "be47033eb459a354192db9f944b18fa60fd698843ae6aa165a170629ffdbe5ea659246ab5f49bdcfca6909ab789a53aa52c5a9c8db9880edd5472ad81d2cd7e6"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/prelude-ls@1.2.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/prelude-ls"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/prelude-ls/-/prelude-ls-1.2.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/proc-log@6.1.0",
       "name": "proc-log",
       "version": "6.1.0",
@@ -13933,6 +16588,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/punycode@2.3.1",
+      "name": "punycode",
+      "version": "2.3.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "bd8b7b503d54f5683ad77f2c84bb4b3af740bbef03b02fe2945b44547707fb0c9d712a4d136d007d239db9fe8c91115a84be4563b5f5a14ee7295645b5fabc16"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/punycode@2.3.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/punycode"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/punycode/-/punycode-2.3.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/pvtsutils@1.3.6",
       "name": "pvtsutils",
       "version": "1.3.6",
@@ -14018,6 +16718,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/pvutils/-/pvutils-1.1.5.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/qified@0.10.1",
+      "name": "qified",
+      "version": "0.10.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f8ec328208bd2314f578f28669f708f3bb9b4a6c6897ab26c09f910070d0971f7ef5c3f01560e22851423ee5a1afd8a09e51a967dbc340bc3aecde1d71354510"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/qified@0.10.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/qified"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/qified/-/qified-0.10.1.tgz"
         }
       ]
     },
@@ -16811,6 +19556,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/type-check@0.4.0",
+      "name": "type-check",
+      "version": "0.4.0",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5e5794a1cf6ec065ea8d6c176944d9026ccc705679f39f10036befc7552be7121c8b15c83fef0b9c50e0469954df4bacead7aa765b2415fbbe69ee0aefd3a87b"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/type-check@0.4.0",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/type-check"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/type-check/-/type-check-0.4.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/type-fest@0.13.1",
       "name": "type-fest",
       "version": "0.13.1",
@@ -17298,6 +20088,51 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/uri-js@4.4.1",
+      "name": "uri-js",
+      "version": "4.4.1",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "eeb294cb2df7435c9cf7ca50d430262edc17d74f45ed321f5a55b561da3c5a5d628b549e1e279e8741c77cf78bd9f3172bacf4b3c79c2acf5fac2b8b26f9dd06"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "purl": "pkg:npm/uri-js@4.4.1",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/uri-js"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/uri-js/-/uri-js-4.4.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/utf8-byte-length@1.0.5",
       "name": "utf8-byte-length",
       "version": "1.0.5",
@@ -17651,6 +20486,51 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/which/-/which-6.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/word-wrap@1.2.5",
+      "name": "word-wrap",
+      "version": "1.2.5",
+      "scope": "optional",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "04ddb607979a30c23d50cb63ac677983978260fa423c3532d052576d8b1a4f9cd8c6314e7244b9dd2403137a56915a16a475d56f706b61c10de13c1ae7907970"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "purl": "pkg:npm/word-wrap@1.2.5",
+      "properties": [
+        {
+          "name": "blanc:development",
+          "value": "true"
+        },
+        {
+          "name": "blanc:lockPath",
+          "value": "node_modules/word-wrap"
+        },
+        {
+          "name": "blanc:optional",
+          "value": "false"
+        },
+        {
+          "name": "blanc:workspace",
+          "value": "root"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/word-wrap/-/word-wrap-1.2.5.tgz"
         }
       ]
     },
@@ -18157,11 +21037,14 @@
         "pkg:npm/%401password/sdk@0.5.0",
         "pkg:npm/%40cucumber/cucumber@13.2.1",
         "pkg:npm/%40electron/asar@4.3.0",
+        "pkg:npm/%40eslint/js@10.0.1",
         "pkg:npm/%40ghostery/adblocker-electron@2.18.2",
         "pkg:npm/%40ghostery/adblocker@2.18.2",
         "pkg:npm/electron-builder@26.15.3",
         "pkg:npm/electron-updater@6.8.9",
         "pkg:npm/electron@44.1.1",
+        "pkg:npm/eslint@10.10.0",
+        "pkg:npm/globals@17.12.0",
         "pkg:npm/playwright@1.62.1",
         "pkg:npm/sharp@0.35.3"
       ]
@@ -18187,6 +21070,22 @@
     {
       "ref": "pkg:npm/%40babel/helper-validator-identifier@7.29.7",
       "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40cacheable/memory@2.2.0",
+      "dependsOn": [
+        "pkg:npm/%40cacheable/utils@2.5.0",
+        "pkg:npm/%40keyv/bigmap@1.3.1",
+        "pkg:npm/hookified@1.15.1",
+        "pkg:npm/keyv@5.6.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40cacheable/utils@2.5.0",
+      "dependsOn": [
+        "pkg:npm/hashery@1.5.1",
+        "pkg:npm/keyv@5.6.0"
+      ]
     },
     {
       "ref": "pkg:npm/%40colors/colors@1.5.0",
@@ -18431,6 +21330,51 @@
       ]
     },
     {
+      "ref": "pkg:npm/%40eslint-community/eslint-utils@4.10.1",
+      "dependsOn": [
+        "pkg:npm/eslint-visitor-keys@3.4.3"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40eslint-community/regexpp@4.12.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40eslint/config-array@0.23.5",
+      "dependsOn": [
+        "pkg:npm/%40eslint/object-schema@3.0.5",
+        "pkg:npm/debug@4.4.3",
+        "pkg:npm/minimatch@10.2.5"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40eslint/config-helpers@0.7.0",
+      "dependsOn": [
+        "pkg:npm/%40eslint/core@1.2.1"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40eslint/core@1.2.1",
+      "dependsOn": [
+        "pkg:npm/%40types/json-schema@7.0.15"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40eslint/js@10.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40eslint/object-schema@3.0.5",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40eslint/plugin-kit@0.7.3",
+      "dependsOn": [
+        "pkg:npm/%40eslint/core@1.2.1",
+        "pkg:npm/levn@0.4.1"
+      ]
+    },
+    {
       "ref": "pkg:npm/%40ghostery/adblocker-content@2.18.2",
       "dependsOn": [
         "pkg:npm/%40ghostery/adblocker-extended-selectors@2.18.2"
@@ -18471,6 +21415,32 @@
       "dependsOn": [
         "pkg:npm/tldts-experimental@7.4.10"
       ]
+    },
+    {
+      "ref": "pkg:npm/%40humanfs/core@0.19.2",
+      "dependsOn": [
+        "pkg:npm/%40humanfs/types@0.15.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40humanfs/node@0.16.8",
+      "dependsOn": [
+        "pkg:npm/%40humanfs/core@0.19.2",
+        "pkg:npm/%40humanfs/types@0.15.0",
+        "pkg:npm/%40humanwhocodes/retry@0.4.3"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40humanfs/types@0.15.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40humanwhocodes/module-importer@1.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40humanwhocodes/retry@0.4.3",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/%40img/colour@1.1.0",
@@ -18613,6 +21583,17 @@
       ]
     },
     {
+      "ref": "pkg:npm/%40keyv/bigmap@1.3.1",
+      "dependsOn": [
+        "pkg:npm/hashery@1.5.1",
+        "pkg:npm/hookified@1.15.1"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40keyv/serialize@1.1.1",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/%40malept/cross-spawn-promise@2.0.0",
       "dependsOn": [
         "pkg:npm/cross-spawn@7.0.6"
@@ -18724,6 +21705,14 @@
       ]
     },
     {
+      "ref": "pkg:npm/%40types/esrecurse@4.3.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40types/estree@1.0.9",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/%40types/fs-extra@9.0.13",
       "dependsOn": [
         "pkg:npm/%40types/node@24.13.2"
@@ -18731,6 +21720,10 @@
     },
     {
       "ref": "pkg:npm/%40types/http-cache-semantics@4.2.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40types/json-schema@7.0.15",
       "dependsOn": []
     },
     {
@@ -18768,8 +21761,25 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/acorn-jsx@5.3.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/acorn@8.18.0",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/agent-base@7.1.4",
       "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/ajv@6.15.0",
+      "dependsOn": [
+        "pkg:npm/fast-deep-equal@3.1.3",
+        "pkg:npm/fast-json-stable-stringify@2.1.0",
+        "pkg:npm/json-schema-traverse@0.4.1",
+        "pkg:npm/uri-js@4.4.1"
+      ]
     },
     {
       "ref": "pkg:npm/ajv@8.20.0",
@@ -18970,6 +21980,16 @@
       ]
     },
     {
+      "ref": "pkg:npm/cacheable@2.5.0",
+      "dependsOn": [
+        "pkg:npm/%40cacheable/memory@2.2.0",
+        "pkg:npm/%40cacheable/utils@2.5.0",
+        "pkg:npm/hookified@1.15.1",
+        "pkg:npm/keyv@5.6.0",
+        "pkg:npm/qified@0.10.1"
+      ]
+    },
+    {
       "ref": "pkg:npm/call-bind-apply-helpers@1.0.2",
       "dependsOn": [
         "pkg:npm/es-errors@1.3.0",
@@ -19083,6 +22103,10 @@
       "dependsOn": [
         "pkg:npm/mimic-response@3.1.0"
       ]
+    },
+    {
+      "ref": "pkg:npm/deep-is@0.1.4",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/defer-to-connect@2.0.1",
@@ -19299,11 +22323,99 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/eslint-scope@9.1.2",
+      "dependsOn": [
+        "pkg:npm/%40types/esrecurse@4.3.1",
+        "pkg:npm/%40types/estree@1.0.9",
+        "pkg:npm/esrecurse@4.3.0",
+        "pkg:npm/estraverse@5.3.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/eslint-visitor-keys@3.4.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/eslint-visitor-keys@5.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/eslint@10.10.0",
+      "dependsOn": [
+        "pkg:npm/%40eslint-community/eslint-utils@4.10.1",
+        "pkg:npm/%40eslint-community/regexpp@4.12.2",
+        "pkg:npm/%40eslint/config-array@0.23.5",
+        "pkg:npm/%40eslint/config-helpers@0.7.0",
+        "pkg:npm/%40eslint/core@1.2.1",
+        "pkg:npm/%40eslint/plugin-kit@0.7.3",
+        "pkg:npm/%40humanfs/node@0.16.8",
+        "pkg:npm/%40humanwhocodes/module-importer@1.0.1",
+        "pkg:npm/%40humanwhocodes/retry@0.4.3",
+        "pkg:npm/%40types/estree@1.0.9",
+        "pkg:npm/ajv@6.15.0",
+        "pkg:npm/cross-spawn@7.0.6",
+        "pkg:npm/debug@4.4.3",
+        "pkg:npm/escape-string-regexp@4.0.0",
+        "pkg:npm/eslint-scope@9.1.2",
+        "pkg:npm/eslint-visitor-keys@5.0.1",
+        "pkg:npm/espree@11.2.0",
+        "pkg:npm/esquery@1.7.0",
+        "pkg:npm/esutils@2.0.3",
+        "pkg:npm/fast-deep-equal@3.1.3",
+        "pkg:npm/file-entry-cache@11.1.5",
+        "pkg:npm/find-up@5.0.0",
+        "pkg:npm/glob-parent@6.0.2",
+        "pkg:npm/ignore@5.3.2",
+        "pkg:npm/imurmurhash@0.1.4",
+        "pkg:npm/is-glob@4.0.3",
+        "pkg:npm/json-stable-stringify-without-jsonify@1.0.1",
+        "pkg:npm/minimatch@10.2.5",
+        "pkg:npm/natural-compare@1.4.0",
+        "pkg:npm/optionator@0.9.4"
+      ]
+    },
+    {
+      "ref": "pkg:npm/espree@11.2.0",
+      "dependsOn": [
+        "pkg:npm/acorn-jsx@5.3.2",
+        "pkg:npm/acorn@8.18.0",
+        "pkg:npm/eslint-visitor-keys@5.0.1"
+      ]
+    },
+    {
+      "ref": "pkg:npm/esquery@1.7.0",
+      "dependsOn": [
+        "pkg:npm/estraverse@5.3.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/esrecurse@4.3.0",
+      "dependsOn": [
+        "pkg:npm/estraverse@5.3.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/estraverse@5.3.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/esutils@2.0.3",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/exponential-backoff@3.1.3",
       "dependsOn": []
     },
     {
       "ref": "pkg:npm/fast-deep-equal@3.1.3",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/fast-json-stable-stringify@2.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/fast-levenshtein@2.0.6",
       "dependsOn": []
     },
     {
@@ -19321,6 +22433,12 @@
       ]
     },
     {
+      "ref": "pkg:npm/file-entry-cache@11.1.5",
+      "dependsOn": [
+        "pkg:npm/flat-cache@6.1.23"
+      ]
+    },
+    {
       "ref": "pkg:npm/filelist@1.0.6",
       "dependsOn": [
         "pkg:npm/minimatch@5.1.9"
@@ -19328,6 +22446,25 @@
     },
     {
       "ref": "pkg:npm/find-up-simple@1.0.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/find-up@5.0.0",
+      "dependsOn": [
+        "pkg:npm/locate-path@6.0.0",
+        "pkg:npm/path-exists@4.0.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/flat-cache@6.1.23",
+      "dependsOn": [
+        "pkg:npm/cacheable@2.5.0",
+        "pkg:npm/flatted@3.4.4",
+        "pkg:npm/hookified@1.15.1"
+      ]
+    },
+    {
+      "ref": "pkg:npm/flatted@3.4.4",
       "dependsOn": []
     },
     {
@@ -19434,6 +22571,12 @@
       ]
     },
     {
+      "ref": "pkg:npm/glob-parent@6.0.2",
+      "dependsOn": [
+        "pkg:npm/is-glob@4.0.3"
+      ]
+    },
+    {
       "ref": "pkg:npm/glob@13.0.6",
       "dependsOn": [
         "pkg:npm/minimatch@10.2.5",
@@ -19468,6 +22611,10 @@
       "dependsOn": [
         "pkg:npm/ini@4.1.1"
       ]
+    },
+    {
+      "ref": "pkg:npm/globals@17.12.0",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/globalthis@1.0.4",
@@ -19527,10 +22674,24 @@
       ]
     },
     {
+      "ref": "pkg:npm/hashery@1.5.1",
+      "dependsOn": [
+        "pkg:npm/hookified@1.15.1"
+      ]
+    },
+    {
       "ref": "pkg:npm/hasown@2.0.4",
       "dependsOn": [
         "pkg:npm/function-bind@1.1.2"
       ]
+    },
+    {
+      "ref": "pkg:npm/hookified@1.15.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/hookified@2.2.0",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/hosted-git-info@4.1.0",
@@ -19570,6 +22731,14 @@
       ]
     },
     {
+      "ref": "pkg:npm/ignore@5.3.2",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/imurmurhash@0.1.4",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/indent-string@5.0.0",
       "dependsOn": []
     },
@@ -19593,8 +22762,18 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/is-extglob@2.1.1",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/is-fullwidth-code-point@3.0.0",
       "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/is-glob@4.0.3",
+      "dependsOn": [
+        "pkg:npm/is-extglob@2.1.1"
+      ]
     },
     {
       "ref": "pkg:npm/is-installed-globally@1.0.0",
@@ -19662,7 +22841,15 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/json-schema-traverse@0.4.1",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/json-schema-traverse@1.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/json-stable-stringify-without-jsonify@1.0.1",
       "dependsOn": []
     },
     {
@@ -19693,6 +22880,12 @@
       ]
     },
     {
+      "ref": "pkg:npm/keyv@5.6.0",
+      "dependsOn": [
+        "pkg:npm/%40keyv/serialize@1.1.1"
+      ]
+    },
+    {
       "ref": "pkg:npm/knuth-shuffle-seeded@1.0.6",
       "dependsOn": [
         "pkg:npm/seed-random@2.2.0"
@@ -19701,6 +22894,19 @@
     {
       "ref": "pkg:npm/lazy-val@1.0.5",
       "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/levn@0.4.1",
+      "dependsOn": [
+        "pkg:npm/prelude-ls@1.2.1",
+        "pkg:npm/type-check@0.4.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/locate-path@6.0.0",
+      "dependsOn": [
+        "pkg:npm/p-locate@5.0.0"
+      ]
     },
     {
       "ref": "pkg:npm/lodash.escaperegexp@4.1.2",
@@ -19829,6 +23035,10 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/natural-compare@1.4.0",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/node-abi@4.33.0",
       "dependsOn": [
         "pkg:npm/semver@7.8.5"
@@ -19888,6 +23098,17 @@
       ]
     },
     {
+      "ref": "pkg:npm/optionator@0.9.4",
+      "dependsOn": [
+        "pkg:npm/deep-is@0.1.4",
+        "pkg:npm/fast-levenshtein@2.0.6",
+        "pkg:npm/levn@0.4.1",
+        "pkg:npm/prelude-ls@1.2.1",
+        "pkg:npm/type-check@0.4.0",
+        "pkg:npm/word-wrap@1.2.5"
+      ]
+    },
+    {
       "ref": "pkg:npm/p-cancelable@2.1.1",
       "dependsOn": []
     },
@@ -19895,6 +23116,12 @@
       "ref": "pkg:npm/p-limit@3.1.0",
       "dependsOn": [
         "pkg:npm/yocto-queue@0.1.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/p-locate@5.0.0",
+      "dependsOn": [
+        "pkg:npm/p-limit@3.1.0"
       ]
     },
     {
@@ -19910,6 +23137,10 @@
         "pkg:npm/index-to-position@1.2.0",
         "pkg:npm/type-fest@4.41.0"
       ]
+    },
+    {
+      "ref": "pkg:npm/path-exists@4.0.0",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/path-is-absolute@1.0.1",
@@ -19975,6 +23206,10 @@
       ]
     },
     {
+      "ref": "pkg:npm/prelude-ls@1.2.1",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/proc-log@6.1.0",
       "dependsOn": []
     },
@@ -20013,6 +23248,10 @@
       ]
     },
     {
+      "ref": "pkg:npm/punycode@2.3.1",
+      "dependsOn": []
+    },
+    {
       "ref": "pkg:npm/pvtsutils@1.3.6",
       "dependsOn": [
         "pkg:npm/tslib@2.8.1"
@@ -20021,6 +23260,12 @@
     {
       "ref": "pkg:npm/pvutils@1.1.5",
       "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/qified@0.10.1",
+      "dependsOn": [
+        "pkg:npm/hookified@2.2.0"
+      ]
     },
     {
       "ref": "pkg:npm/quick-lru@5.1.1",
@@ -20387,6 +23632,12 @@
       "dependsOn": []
     },
     {
+      "ref": "pkg:npm/type-check@0.4.0",
+      "dependsOn": [
+        "pkg:npm/prelude-ls@1.2.1"
+      ]
+    },
+    {
       "ref": "pkg:npm/type-fest@0.13.1",
       "dependsOn": []
     },
@@ -20439,6 +23690,12 @@
       ]
     },
     {
+      "ref": "pkg:npm/uri-js@4.4.1",
+      "dependsOn": [
+        "pkg:npm/punycode@2.3.1"
+      ]
+    },
+    {
       "ref": "pkg:npm/utf8-byte-length@1.0.5",
       "dependsOn": []
     },
@@ -20484,6 +23741,10 @@
       "dependsOn": [
         "pkg:npm/isexe@4.0.0"
       ]
+    },
+    {
+      "ref": "pkg:npm/word-wrap@1.2.5",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/wrap-ansi@7.0.0",

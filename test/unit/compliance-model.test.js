@@ -119,7 +119,7 @@ test('both lock SBOMs include every unique locked name/version with audited lice
   const site = JSON.parse(generated.files['compliance/site-lock-sbom.cdx.json']);
   // Updating the remaining brace-expansion 1.1.16 copies to 1.1.18 merges
   // their name/version entry with the already-patched copies in the SBOM.
-  assert.equal(root.components.length, 399);
+  assert.equal(root.components.length, 463);
   assert.equal(site.components.length, 295);
   const onePassword = root.components.find((component) => component.name === '@1password/sdk');
   assert.deepEqual(onePassword.licenses, [{ license: { id: 'MIT' } }]);
