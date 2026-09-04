@@ -34,6 +34,8 @@ jobs:
       - run: npm ci
       - name: Dependency compliance artifacts match the lockfiles
         run: npm run compliance:check
+      - name: JavaScript correctness checks
+        run: npm run lint
       - name: Unit regression tests
         run: npm run test:unit
 

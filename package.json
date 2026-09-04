@@ -52,7 +52,8 @@
     "settings:check": "node settings-schema/build.mjs --check",
     "copy:build": "node copy/build.mjs",
     "copy:check": "node copy/build.mjs --check",
-    "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run adblock:check && npm run compliance:check"
+    "substrate:check": "npm run brand:check && npm run tokens:check && npm run settings:check && npm run copy:check && npm run adblock:check && npm run compliance:check",
+    "lint": "eslint \"src/**/*.js\" \"cloudflare/**/src/**/*.js\" --max-warnings 0"
   },
   "author": "",
   "license": "MIT",
@@ -60,9 +61,12 @@
   "devDependencies": {
     "@cucumber/cucumber": "^13.2.1",
     "@electron/asar": "4.3.0",
+    "@eslint/js": "10.0.1",
     "@ghostery/adblocker": "^2.18.2",
     "electron": "^44.1.1",
     "electron-builder": "^26.15.3",
+    "eslint": "10.10.0",
+    "globals": "17.12.0",
     "playwright": "^1.62.1",
     "sharp": "^0.35.3"
   },
