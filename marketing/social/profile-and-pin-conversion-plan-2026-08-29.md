@@ -5,6 +5,14 @@ or account setting changed**.
 
 Public product baseline: `v1.9.1`.
 
+September 4 reconciliation: this is a historical proposal, not current live
+profile evidence. The latest Brave check shows an existing Facebook Featured
+post (Same 12 Tabs), so the older empty-Featured assumption below is superseded.
+Reinspect each field before proposing edits, refresh claims against the current
+public release, and wait for the selected final launch release before new
+release-bound media capture. Profile changes and new posts still require
+separate review under the approved September 4 monitoring plan.
+
 Read-only capture preflight:
 [`start-here-trailer-preflight.mjs`](start-here-trailer-preflight.mjs).
 

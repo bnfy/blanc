@@ -1836,3 +1836,104 @@ Meta promotion remains Active: $30.35 spent, 198 Page visits, 575 views,
 not be treated as website visits or installs. X Chat remains blocked on owner
 passcode setup. No public communication, spending or account-setting changes.
 Full evidence and next action: daily-scorecard-2026-09-04.md.
+
+### 12:50 ET public-surface refresh (September 4)
+
+No public action was taken. Logged-out public profiles were checked in the
+app's built-in browser after the Chrome extension disconnected. Audience: X 11,
+Threads 21, Instagram 103, Facebook 14, TikTok 25, Substack 2 public
+subscribers (3 on the dashboard including the author). All unchanged since the
+12:34–12:43 check. v1.13.0 package requests remain 28 with zero movement since
+September 3. Inbound, DMs, and the Meta ad were not inspectable in this pass.
+
+One same-day opportunity was staged in
+`approval-card-2026-09-04-pentagon-ad-tracking.md`: the Pentagon disabled ad
+tracking on troops' devices (TechCrunch, Hacker News front page). X and
+Threads posts about default-on, built-in blocking are drafted, claim-checked
+against v1.13.0, and awaiting approval. A persistent daily scheduled task,
+`blanc-daily-social-tending`, now carries this loop.
+
+### September 4, 16:14 EDT — Google mobile-query exclusions verified
+
+Using Brave, added campaign-level broad negatives `apk` and `android` to
+“Blanc Browser | US Search | Downloads” (24027915268). Both saved rows and
+40 total negatives were verified; previous count was 38. Daily budget remains
+$10. In the August 28–September 3 export, matching terms accounted for 10 clicks
+and $8.32 of $76.92 campaign spend, with zero reported conversions. This is
+historical affected spend, not achieved savings. No Meta or ChatGPT settings
+changed and no social reply was sent. Facebook's visible inbox and comments
+loaded without a new product question; exhaustive ad-comment coverage remains
+pending. Details: monitoring-check-2026-09-04-1608.md. Monitoring remains ACTIVE
+at 9 a.m., 1 p.m. and 5 p.m. Eastern.
+
+### September 4, 16:20 EDT — tracking and placement review
+
+Read-only Brave review verified Google's GA4 download action, last conversion
+August 19, consent-mode modeling active, and Maximize clicks with no CPC cap.
+Aligned GA4 August 28–September 3 shows six google/cpc sessions with zero
+download events and two download events from AlternativeTo referrals. Website
+and optional desktop telemetry share the property; total/unassigned sessions
+are not a clean website acquisition denominator. Meta reports $32.37 for five
+attributed follows ($6.47 each), with Facebook placement audience counts but
+no follows or spend by placement. No further settings changed; bid editor
+canceled. Details and next measurements: ad-efficiency-review-2026-09-04.md.
+
+### September 4, 16:26 EDT — linking and comment backlog checked
+
+Google auto-tagging is enabled and Blanc property 544287080 is linked with
+app/web metrics on. Separate account tag AW-997979750 flags blancbrowser.com/
+as its only untagged page; that warning is distinct from the existing GA4
+conversion route and was not treated as proof of a broken import. No tracking
+or ad changes made. Meta Ad replies reports no ad-message conversations.
+All four visible Instagram comment threads were inspected; existing answers,
+older opinions/reactions and an old hostile allegation do not call for a new
+routine reply. No communication or moderation action performed. Full evidence:
+ad-efficiency-review-2026-09-04.md.
+
+### September 4, approximately 17:24–17:28 EDT — approved workflow implemented
+
+Resumed in Default mode under the owner's implementation request. Created the explicit ongoing +10/day-per-channel growth goal and updated the existing native heartbeat (same task; 9/13/17 Eastern; ACTIVE), adding comparable daily statuses, the three-measured-miss experiment trigger, September 12 Google comparison and Meta completion review. No duplicate monitor created. The current section of the September 4 scorecard supersedes old X passcode and routine-reply approval blockers.
+
+Late audience observation about 17:24: X 11, Threads 21, Instagram 103, Facebook 14, TikTok 25; Substack 2 external subscribers, excluding Author (dashboard data delayed 27 minutes). Unchanged from earlier today; no comparable 24-hour achievement or miss streak established. Current activity/inboxes did not identify a useful new substantive reply; no public communication sent.
+
+Resolved active Facebook promotion comment coverage: its original public post explicitly says No comments yet. Expanded promotion Details verifies account 208039240841695, end September 9, $13/day. Performance: $32.80 and five ad-attributed follows, $6.56 each. ChatGPT remains paused and ready at account level; no justified new efficiency change. Google retains its earlier exclusions and $10/day. No ad changes or achieved savings in this pass. Deployed consented download-event/import validation remains pending. Details: monitoring-check-2026-09-04-1724.md.
+
+### September 4, approximately 17:35 EDT — live measurement QA completed
+
+Previous goal turn was progress: authoritative monitoring instructions and scorecards changed and exact Meta ownership/end/comment coverage were verified. This continuation adds live measurement evidence rather than another unchanged audience poll.
+
+Brave Tag Assistant confirms deployed G-MN8BLY6GE9, consent opt-in and a single Mac download_click (source_page=download, cta_position=platform-card, platform=mac-arm64). The outgoing hit has tt=internal; GA4's existing Active/Exclude filter exactly matches traffic_type=internal. Landing session labeled blanc_qa / diagnostic / measurement_validation_20260904. This is QA, not new audience, customer acquisition or a paid conversion. One /dl/mac-arm64 request may appear in aggregate counters; the asset navigation was blocked by this Brave session with ERR_BLOCKED_BY_CLIENT, so no completed download or install is claimed.
+
+Tag Assistant reports explicit CSP blocks for Google/DoubleClick collect and Tag Manager diagnostic requests. The main Analytics collection origin is allowed; their effect on paid attribution is unquantified. No policy, tag, filter, ad or budget change was applied. Analytics opt-out was selected afterward and confirmed on reload; debugging ended and the tool reports no active domains. The next step is a bounded consent/CSP review and verification of the existing import from normal non-internal attributed traffic. Detailed evidence: measurement-validation-2026-09-04.md.
+
+### September 4, 17:39 EDT — older operating instructions reconciled
+
+Replaced the September 2 operating plan's lower portfolio thresholds with the
+approved +10 net per channel daily / +70 per channel weekly targets and the
+three-measured-miss trigger. Reconciled routine inbound reply authorization in
+that plan and the experiment pipeline. New posts, creator outreach, profile
+changes and ad changes remain separate review items. Marked the August 29
+profile proposal's empty-Facebook-Featured assumption as superseded by the
+observed existing post; no profile was changed. Clearly labeled the main
+monitoring plan's earlier setup failures as historical so they cannot restart
+completed setup or revive resolved access blockers.
+
+Re-read the existing heartbeat configuration: ACTIVE, same task and daily
+9/13/17 schedule. No duplicate automation, public action, additional audience
+poll, ad change or asset creation in this pass. The next scheduled check is
+September 5 at 9 a.m. Eastern; daily growth awaits comparable observations.
+The existing Pentagon news approval card remains unapproved and needs a fresh
+claim check before use. It was not treated as permission to publish.
+
+### September 4, 17:41 EDT — local consent-withdrawal regression fixed
+
+Continued the bounded measurement review using current code and Google first-party
+documentation in Brave. Found and reproduced a stale ChatGPT ad reference on
+download links after consent withdrawal. Prepared a small local site-script
+fix; four failing behavioral cases now pass, and 23 targeted checks plus the
+site/brand/SEO build pass. This is uncommitted and not deployed. No real ad
+conversion, site publication, campaign edit or public communication occurred.
+Google's unspecified ad-consent states and blocked advertising destinations
+remain a separate review item; no automatic consent grant or broad security
+policy expansion was made. Full inventory, evidence and boundaries are in
+measurement-validation-2026-09-04.md. ChatGPT remains paused.
