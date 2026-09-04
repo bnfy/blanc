@@ -141,6 +141,19 @@ any future candidate must be OFL-licensed, available through fontsource, hold
 "Blanc Patron." on one line at the shipped desktop size, and read editorial
 rather than fashionable.
 
+Reach decision, 4 September 2026: three levels of Newsreader use were
+mocked on the real pages (homepage only; one line per page; every heading).
+The one-line-per-page level was built and reviewed live first, and its serif
+headlines over Inter section headings read as two systems, so the every-
+heading level was adopted instead and deployed the same day (bnfy/blanc#281).
+The homepage demo's headline-and-subline pair was merged at the same time
+into one sentence per scene, set as an Inter figure title, because it
+repeated the hero's shape directly beneath it. The generated share cards and
+press card follow the heading face. The app keeps Inter; giving it
+Newsreader needs its own brief. Social templates under the title rule below
+adopt Newsreader only after the September 2026 launch week, so launch assets
+stay consistent with what was approved before it.
+
 ### Editorial website footer
 
 The shared website footer uses the monochrome Sunrise symbol alone as its
