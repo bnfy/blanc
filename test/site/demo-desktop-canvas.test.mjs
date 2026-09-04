@@ -1,0 +1,210 @@
+// Run against a built site: BLANC_SITE_URL=http://127.0.0.1:4322 node --test test/site/demo-desktop-canvas.test.mjs
+import assert from 'node:assert/strict';
+import { after, before, test } from 'node:test';
+import { chromium, webkit } from 'playwright';
+
+const baseURL = process.env.BLANC_SITE_URL || 'http://127.0.0.1:4322';
+let browser;
+before(async () => {
+  browser = await (process.env.BLANC_SITE_BROWSER === 'webkit' ? webkit : chromium).launch();
+});
+after(async () => { await browser?.close(); });
+
+async function openPage(width, reducedMotion = 'reduce') {
+  const page = await browser.newPage({ viewport: { width, height: 844 }, reducedMotion });
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(baseURL);
+  await page.waitForFunction(() => Number(document.getElementById('demoFrame').style.getPropertyValue('--demo-scale')) > 0);
+  await page.getByRole('button', { name: 'No thanks', exact: true }).click();
+  return { page, errors };
+}
+
+async function geometry(page) {
+  return page.evaluate(() => {
+    const stage = document.getElementById('demoStage');
+    const rect = stage.getBoundingClientRect();
+    const scale = rect.width / stage.offsetWidth;
+    const selectors = ['.pill', '.panel', '.field', '.pnav', '.pacts', '.foot-new', '.foot-act.ws', '.trow .dom', '.demo-bb-clock', '.demo-bb-favs', '.demo-tab-context', '.demo-workspace-switcher', '.demo-glance-header', '.demo-glance-divider'];
+    return {
+      width: stage.offsetWidth,
+      height: getComputedStyle(stage).height,
+      ratio: rect.width / rect.height,
+      overflow: document.documentElement.scrollWidth > innerWidth,
+      items: selectors.map(selector => {
+        const element = stage.querySelector(selector);
+        if (!element) return null;
+        const r = element.getBoundingClientRect();
+        const s = getComputedStyle(element);
+        if (!element.getClientRects().length) return { selector, display: 'none' };
+        return { selector, left: Math.round((r.left - rect.left) / scale), top: Math.round((r.top - rect.top) / scale), width: Math.round(r.width / scale), height: Math.round(r.height / scale), display: s.display, fontSize: s.fontSize };
+      }),
+      shot: document.getElementById('demoShot').getAttribute('src'),
+      glanceShot: document.getElementById('demoGlanceShot').getAttribute('src'),
+    };
+  });
+}
+
+const chapters = ['the island', 'glance split view', 'ad blocker', 'browser commands', 'tab groups', 'workspaces'];
+test('each chapter keeps its desktop geometry and captures at phone widths', { timeout: 60000 }, async () => {
+  const baseline = new Map();
+  for (const width of [1440, 320, 390, 430]) {
+    const { page, errors } = await openPage(width);
+    try {
+      assert.equal(await page.locator('#demoEnlarge').isVisible(), width > 640);
+      for (const chapter of chapters) {
+        if (width <= 640) await page.getByLabel('Demo chapter', { exact: true }).selectOption({ label: chapter });
+        else await page.getByRole('button', { name: `Jump to ${chapter}`, exact: true }).click();
+        await page.waitForTimeout(100); // Settle the scene's deferred end-state actions.
+        const state = await geometry(page);
+        assert.equal(state.width, 900);
+        assert.equal(state.height, '506.25px');
+        assert.ok(Math.abs(state.ratio - 16 / 9) < 0.002);
+        assert.equal(state.overflow, false, `${width}px / ${chapter}`);
+        for (const src of [state.shot, state.glanceShot]) {
+          if (src) assert.ok(src.startsWith('/shots/desktop/'), src);
+        }
+        if (width === 1440) baseline.set(chapter, state.items);
+        else state.items.forEach((item, index) => {
+          const expected = baseline.get(chapter)[index];
+          if (!item || !expected) return assert.equal(item, expected);
+          assert.deepEqual(Object.keys(item), Object.keys(expected));
+          for (const key of Object.keys(item)) {
+            // WebKit rounds transformed fractional pixels at different scales.
+            if (typeof item[key] === 'number') assert.ok(Math.abs(item[key] - expected[key]) <= 1, `${width}px / ${chapter} / ${item.selector} / ${key}`);
+            else assert.equal(item[key], expected[key]);
+          }
+        });
+        if (chapter === 'glance split view') {
+          assert.equal(await page.locator('#demoGlance').getAttribute('data-direction'), 'horizontal');
+        }
+      }
+      assert.deepEqual(errors, []);
+    } finally { await page.close(); }
+  }
+});
+
+test('desktop larger viewer preserves one scene, supports panning, resizing, focus, and restoration', { timeout: 30000 }, async () => {
+  const { page, errors } = await openPage(820);
+  try {
+    await page.getByRole('button', { name: 'Jump to tab groups', exact: true }).click();
+    await page.evaluate(() => { window.originalDemoStage = document.getElementById('demoStage'); });
+    await page.locator('#demoEnlarge').scrollIntoViewIfNeeded();
+    const scrollY = await page.evaluate(() => scrollY);
+    await page.locator('#demoEnlarge').click();
+    await page.waitForFunction(() => document.getElementById('demoViewer').open);
+    assert.equal(await page.locator('#demoScrubToggle').getAttribute('aria-label'), 'Play demo');
+    assert.equal(await page.locator('#demoViewerFit').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#demoViewerHeadline').textContent(), await page.locator('#demoHeadline').textContent());
+    const fits = () => page.evaluate(() => {
+      const viewport = document.getElementById('demoViewerCanvas');
+      const frame = document.getElementById('demoFrame').getBoundingClientRect();
+      return frame.width <= viewport.clientWidth + 1 && frame.height <= viewport.clientHeight + 1;
+    });
+    assert.ok(await fits());
+    await page.locator('#demoViewerActual').click();
+    assert.equal(await page.locator('#demoViewerActual').getAttribute('aria-pressed'), 'true');
+    const panning = await page.evaluate(() => {
+      const viewport = document.getElementById('demoViewerCanvas');
+      const initial = viewport.scrollLeft;
+      viewport.scrollLeft = 0;
+      viewport.scrollTop = 80;
+      return { initial, left: viewport.scrollLeft, top: viewport.scrollTop, width: document.getElementById('demoFrame').getBoundingClientRect().width };
+    });
+    assert.equal(panning.width, 900);
+    assert.ok(panning.initial > 0);
+    assert.equal(panning.left, 0);
+    await page.setViewportSize({ width: 844, height: 390 });
+    await page.waitForFunction(() => document.getElementById('demoViewerCanvas').clientHeight < 506);
+    assert.ok(await page.evaluate(() => {
+      const viewport = document.getElementById('demoViewerCanvas');
+      viewport.scrollTop = 80;
+      return viewport.scrollTop > 0;
+    }));
+    await page.locator('#demoViewerFit').click();
+    assert.ok(await fits());
+    assert.equal(await page.evaluate(() => document.getElementById('demoGlance').dataset.direction), undefined);
+    assert.ok(await page.evaluate(() => document.getElementById('demoStage') === window.originalDemoStage));
+    assert.equal(await page.locator('#demoStage').count(), 1);
+    // Native dialog must keep keyboard focus out of the underlying document.
+    for (let i = 0; i < 15; i++) {
+      await page.keyboard.press('Tab');
+      assert.ok(await page.evaluate(() => document.getElementById('demoViewer').contains(document.activeElement)));
+    }
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('demoViewer').open);
+    // The native close event restores the canvas in a separate task after
+    // the dialog's open flag is cleared.
+    await page.locator('#demoMount #demoStage').waitFor({ state: 'attached' });
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'demoEnlarge');
+    assert.ok(await page.locator('#demoMount #demoStage').count());
+    assert.equal(await page.evaluate(() => document.body.style.position), '');
+    assert.ok(Math.abs(await page.evaluate(() => window.scrollY) - scrollY) < 2);
+    assert.equal(await page.locator('#demoScrubCurrent').textContent(), 'tab groups');
+    await page.locator('#demoEnlarge').click();
+    assert.equal(await page.locator('#demoViewerFit').getAttribute('aria-pressed'), 'true');
+    await page.locator('#demoScrubToggle').click();
+    await page.locator('#demoViewerClose').click();
+    assert.equal(await page.locator('#demoScrubToggle').getAttribute('aria-label'), 'Pause demo');
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});
+
+test('the complete animated sequence runs without coordinate drift or responsive scene changes', { timeout: 60000 }, async () => {
+  const { page, errors } = await openPage(390, 'no-preference');
+  try {
+    await page.clock.install();
+    await page.clock.pauseAt(new Date());
+    await page.locator('#demoScrubToggle').evaluate(button => button.click());
+    await page.locator('#demoChapterSelect').selectOption('0');
+    await page.clock.runFor(100);
+    await page.evaluate(() => {
+      window.demoEvidence = { headlines: [], badShots: [], badDirections: [], cursorPositions: [] };
+      const stage = document.getElementById('demoStage');
+      const headline = document.getElementById('demoHeadline');
+      new MutationObserver(() => {
+        window.demoEvidence.headlines.push(headline.textContent);
+      }).observe(headline, { childList: true });
+      new MutationObserver(() => {
+        for (const id of ['demoShot', 'demoGlanceShot']) {
+          const src = document.getElementById(id).getAttribute('src');
+          if (src && !src.startsWith('/shots/desktop/')) window.demoEvidence.badShots.push(src);
+        }
+        const direction = document.getElementById('demoGlance').dataset.direction;
+        if (direction && direction !== 'horizontal') window.demoEvidence.badDirections.push(direction);
+        const cursor = document.getElementById('demoCursor');
+        if (!cursor.hidden) {
+          window.demoEvidence.cursorPositions.push([parseFloat(cursor.style.getPropertyValue('--cursor-x')), parseFloat(cursor.style.getPropertyValue('--cursor-y'))]);
+        }
+      }).observe(stage, { attributes: true, subtree: true, attributeFilter: ['style', 'src', 'data-direction'] });
+    });
+    await page.locator('#demoScrubToggle').evaluate(button => button.click());
+    // More than one authored loop, including typing, menus, Glance, and blocker actions.
+    await page.clock.runFor(82000);
+    const evidence = await page.evaluate(() => window.demoEvidence);
+    for (const text of ['Resize your', 'Make either tab', 'The page,', 'Browse every', 'Netflix joins', 'Netflix moves', 'Reopen the whole']) {
+      assert.ok(evidence.headlines.some(headline => headline.startsWith(text)), `missing scene: ${text}`);
+    }
+    assert.deepEqual(evidence.badShots, []);
+    assert.deepEqual(evidence.badDirections, []);
+    assert.ok(evidence.cursorPositions.length > 15);
+    assert.ok(evidence.cursorPositions.every(([x, y]) => x >= 4 && x <= 898 && y >= 4 && y <= 505));
+    // Stage-local cursor coordinates reach the far side of the desktop canvas,
+    // rather than being clamped to the phone's display pixels.
+    assert.ok(evidence.cursorPositions.some(([x]) => x > 500));
+    await page.locator('#demoChapterSelect').selectOption('2');
+    await page.clock.runFor(2500);
+    const aimError = await page.evaluate(() => {
+      const stage = document.getElementById('demoStage');
+      const r = stage.getBoundingClientRect();
+      const target = document.getElementById('demoGlanceDivider').getBoundingClientRect();
+      const scale = r.width / stage.offsetWidth;
+      const cursor = document.getElementById('demoCursor');
+      const x = parseFloat(cursor.style.getPropertyValue('--cursor-x'));
+      const y = parseFloat(cursor.style.getPropertyValue('--cursor-y'));
+      return Math.hypot(x - ((target.left + target.width / 2 - r.left) / scale - stage.clientLeft), y - ((target.top + target.height / 2 - r.top) / scale - stage.clientTop));
+    });
+    assert.ok(aimError < 2, `cursor missed the Glance divider by ${aimError}px`);
+    assert.deepEqual(errors, []);
+  } finally { await page.close(); }
+});

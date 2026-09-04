@@ -41,7 +41,7 @@ test('website Island proximity and morph match the released interaction', () => 
   assert.match(styles, /\.demo-stage\.glance-mode \.demo-island \.pill \{ max-width: 100%; \}/);
   assert.match(demoScript, /demo\.style\.maxWidth = `\$\{Math\.max\(0, primaryWidth - 24\)\}px`/);
   assert.match(demoScript, /demo\.style\.removeProperty\('max-width'\)/);
-  assert.match(styles, /#demoStage \.demo-island \{ max-width: calc\(100% - 24px\); \}/);
+  assert.match(styles, /#demoStage \.demo-island \{[^}]*max-width: calc\(100% - 24px\);/);
 });
 
 test('resting website figures show the quiet Plus shortcut in horizontal layouts', () => {

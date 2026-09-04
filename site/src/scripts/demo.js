@@ -34,6 +34,50 @@
   const workspaceSwitcherEl = document.getElementById('demoWorkspaceSwitcher');
   const tabContextEl = document.getElementById('demoTabContext');
   const cursorEl = document.getElementById('demoCursor');
+  const frame = document.getElementById('demoFrame');
+  const mount = document.getElementById('demoMount');
+  const viewer = document.getElementById('demoViewer');
+  const viewerCanvas = document.getElementById('demoViewerCanvas');
+  const viewerHeadline = document.getElementById('demoViewerHeadline');
+  const viewerSubtext = document.getElementById('demoViewerSubtext');
+  const fitButton = document.getElementById('demoViewerFit');
+  const actualButton = document.getElementById('demoViewerActual');
+  const enlargeButton = document.getElementById('demoEnlarge');
+  let actualSize = false;
+
+  // Only the outer presentation scales. All scene geometry stays in the
+  // desktop canvas's coordinates, including values measured during a morph.
+  function canvasPoint(clientX, clientY) {
+    const rect = stage.getBoundingClientRect();
+    const scale = rect.width / stage.offsetWidth || 1;
+    return {
+      x: (clientX - rect.left) / scale - stage.clientLeft,
+      y: (clientY - rect.top) / scale - stage.clientTop,
+    };
+  }
+
+  function canvasRect(element) {
+    const rect = element.getBoundingClientRect();
+    const topLeft = canvasPoint(rect.left, rect.top);
+    const bottomRight = canvasPoint(rect.right, rect.bottom);
+    return {
+      left: topLeft.x, top: topLeft.y,
+      right: bottomRight.x, bottom: bottomRight.y,
+      width: bottomRight.x - topLeft.x, height: bottomRight.y - topLeft.y,
+    };
+  }
+
+  function fitCanvas() {
+    const width = stage.offsetWidth;
+    const height = parseFloat(getComputedStyle(stage).height);
+    const availableWidth = viewer.open ? viewerCanvas.clientWidth : mount.clientWidth;
+    const availableHeight = viewer.open ? viewerCanvas.clientHeight : Infinity;
+    const scale = viewer.open && actualSize ? 1 : Math.min(1, availableWidth / width, availableHeight / height);
+    frame.style.width = `${width * scale}px`;
+    frame.style.setProperty('--demo-scale', String(scale));
+    frame.style.setProperty('--viewer-frame-top', `${viewer.open && !actualSize ? Math.max(0, (availableHeight - height * scale) / 2) : 0}px`);
+    queueProximity();
+  }
 
   // The blank-tab beat renders a miniature of the "billboard" start page. The
   // date, clock, and meridiem use the app's own formats; the blocked line is
@@ -72,10 +116,9 @@
       return;
     }
 
-    const stageRect = stage.getBoundingClientRect();
     if (cursorEl.hidden) {
-      cursorEl.style.setProperty('--cursor-x', `${stageRect.width * 0.78}px`);
-      cursorEl.style.setProperty('--cursor-y', `${stageRect.height * 0.78}px`);
+      cursorEl.style.setProperty('--cursor-x', `${stage.clientWidth * 0.78}px`);
+      cursorEl.style.setProperty('--cursor-y', `${stage.clientHeight * 0.78}px`);
       cursorEl.hidden = false;
       void cursorEl.offsetWidth;
       cursorEl.classList.add('visible');
@@ -88,12 +131,11 @@
         cursorEl.classList.remove('visible');
         return;
       }
-      const targetRect = target.getBoundingClientRect();
-      const currentStageRect = stage.getBoundingClientRect();
-      const targetX = targetRect.left - currentStageRect.left + targetRect.width * (cue.x ?? 0.5);
-      const targetY = targetRect.top - currentStageRect.top + targetRect.height * (cue.y ?? 0.5);
-      const x = Math.max(4, Math.min(currentStageRect.width - 24, targetX));
-      const y = Math.max(4, Math.min(currentStageRect.height - 30, targetY));
+      const targetRect = canvasRect(target);
+      const targetX = targetRect.left + targetRect.width * (cue.x ?? 0.5);
+      const targetY = targetRect.top + targetRect.height * (cue.y ?? 0.5);
+      const x = Math.max(4, Math.min(stage.clientWidth - 24, targetX));
+      const y = Math.max(4, Math.min(stage.clientHeight - 30, targetY));
       cursorEl.style.setProperty('--cursor-x', `${Math.round(x)}px`);
       cursorEl.style.setProperty('--cursor-y', `${Math.round(y)}px`);
       if (cue.click || cue.drag || cue.rightClick) {
@@ -125,8 +167,7 @@
   // The pill's untransformed box is the stable proximity reference. Including
   // its own 2% reaction here would feed growth back into the next frame.
   function pillBox() {
-    const r = demo.getBoundingClientRect();
-    return { left: r.left, top: r.top, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
+    return canvasRect(demo);
   }
 
   function applyProximity() {
@@ -134,10 +175,11 @@
     let k = 0;
     // Nothing moves while the panel is open or the page has lost the cursor —
     // the app holds just as still when it is not the focused application.
-    if (cursor && !reduceMotion.matches && !panelOpen) {
+    if (cursor && !reduceMotion.matches && !paused && !panelOpen) {
       const r = pillBox();
-      const dx = Math.max(r.left - cursor.x, 0, cursor.x - r.right);
-      const dy = Math.max(r.top - cursor.y, 0, cursor.y - r.bottom);
+      const localCursor = canvasPoint(cursor.x, cursor.y);
+      const dx = Math.max(r.left - localCursor.x, 0, localCursor.x - r.right);
+      const dy = Math.max(r.top - localCursor.y, 0, localCursor.y - r.bottom);
       k = smoothstep(1 - Math.min(Math.hypot(dx, dy), PROX_RANGE) / PROX_RANGE);
     }
     demo.style.setProperty('--island-k', k.toFixed(4));
@@ -167,7 +209,7 @@
   let morphTimer = null;
 
   function setPanelOpen(open) {
-    if (panelOpen === open) return;
+    if (panelOpen === open && !paused && !reduceMotion.matches) return;
     panelOpen = open;
     clearTimeout(morphTimer);
     panelEl.classList.remove('morph-start', 'morph-run', 'retracting');
@@ -175,7 +217,7 @@
     panelEl.style.height = '';
     panelEl.style.borderRadius = '';
 
-    if (reduceMotion.matches) {
+    if (reduceMotion.matches || paused) {
       demo.classList.toggle('open', open);
       queueProximity();
       return;
@@ -255,19 +297,9 @@
   const ICON_BASE = '/favicons/';
   const favStyle = (t) => t.fav ? `background-image:url('${ICON_BASE}${t.fav}.ico')` : '';
 
-  /* ---- real page renders for the tabs a scene can land on ----
-     Desktop and mobile layouts are pre-captured and bundled under
-     site/shots/{desktop,mobile}/ rather than pulled live. The live services
-     were unreliable in both directions: mobile-viewport requests 403'd, and a
-     live desktop render silently drifts (and letterboxes) when a site
-     redesigns. Bundling ships a controlled crop that always loads instantly;
-     until an image loads the skeleton bars stay visible. */
+  /* Bundled desktop page captures stay identical at every presentation size.
+     A phone scales the complete desktop window, never the website inside it. */
   const shotEl = document.getElementById('demoShot');
-  // Which render set to use tracks the SAME 560px breakpoint as the compact-
-  // pill CSS, and stays reactive (change listener below) so a rotation across
-  // it never leaves the pill and its background render from different modes.
-  const mobileMq = window.matchMedia('(max-width: 560px)');
-  let MOBILE = mobileMq.matches;
   // Sampled top-edge color of each bundled render, so the island's top strip
   // blends into the page below it (the CSS reads --demo-strip-bg). A scene with
   // no bundled shot falls back to the theme surface (matching the skeleton).
@@ -279,7 +311,7 @@
   const shots = {}; // id -> { src, ready }
   let currentShotId = null;
 
-  const shotSrc = (id) => '/shots/' + (MOBILE ? 'mobile' : 'desktop') + '/' + id + '.jpg';
+  const shotSrc = (id) => '/shots/desktop/' + id + '.jpg';
   const tabShotId = (id) => TABS[id]?.shot || id;
 
   function preloadShot(id) {
@@ -290,20 +322,6 @@
     img.onload = () => { rec.src = src; rec.ready = true; showShot(currentShotId); };
     img.src = src;
   }
-
-  // Crossing the 560px breakpoint (mainly a phone rotation) swaps the desktop
-  // renders for the mobile ones and vice versa. Drop the cached other-mode
-  // shots and refresh only the visible render; later scenes stay on-demand so
-  // a rotation never triggers a second full screenshot download batch.
-  mobileMq.addEventListener('change', (e) => {
-    MOBILE = e.matches;
-    Object.keys(shots).forEach((id) => delete shots[id]);
-    showShot(currentShotId);
-    if (glanceModeVisible) {
-      glanceShotEl.src = shotSrc(tabShotId(glanceTabId));
-      layoutDemoGlance();
-    }
-  });
 
   function showShot(id) {
     currentShotId = id;
@@ -635,15 +653,11 @@
     const show = () => {
       const target = listEl.querySelector(`[data-demo-tab="${menu.tab}"]`);
       if (!target) return;
-      const stageRect = stage.getBoundingClientRect();
-      const targetRect = target.getBoundingClientRect();
-      const mobile = stage.clientWidth <= 560;
-      const menuWidth = mobile
-        ? (menu.mode === 'root' ? 128 : 242)
-        : (menu.mode === 'root' ? 202 : 370);
-      const menuHeight = mobile ? 154 : (menu.inactive ? 370 : 322);
-      const left = Math.max(8, Math.min(stage.clientWidth - menuWidth - 8, targetRect.left - stageRect.left + 110));
-      const top = Math.max(8, Math.min(stage.clientHeight - menuHeight - 8, targetRect.top - stageRect.top - 5));
+      const targetRect = canvasRect(target);
+      const menuWidth = menu.mode === 'root' ? 202 : 370;
+      const menuHeight = menu.inactive ? 370 : 322;
+      const left = Math.max(8, Math.min(stage.clientWidth - menuWidth - 8, targetRect.left + 110));
+      const top = Math.max(8, Math.min(stage.clientHeight - menuHeight - 8, targetRect.top - 5));
       tabContextEl.innerHTML = contextMenuMarkup(menu);
       tabContextEl.style.left = `${Math.round(left)}px`;
       tabContextEl.style.top = `${Math.round(top)}px`;
@@ -813,6 +827,8 @@
   function setHeroMessage(scene) {
     headlineEl.textContent = scene.headline;
     subtextEl.textContent = scene.subtext;
+    viewerHeadline.textContent = scene.headline;
+    viewerSubtext.textContent = scene.subtext;
     heroMessageEl.classList.remove('scene-change');
     void heroMessageEl.offsetWidth; // restart the quiet message transition
     heroMessageEl.classList.add('scene-change');
@@ -1046,6 +1062,9 @@
   const fillEl = document.getElementById('demoScrubFill');
   const currentChapterEl = document.getElementById('demoScrubCurrent');
   const playbackToggleEl = document.getElementById('demoScrubToggle');
+  const chapterSelect = document.getElementById('demoChapterSelect');
+  CHAPTERS.forEach(chapter => chapterSelect.add(new Option(chapter.label, String(chapter.scene))));
+  chapterSelect.addEventListener('change', () => jumpTo(Number(chapterSelect.value)));
   const markerEls = trackEl ? CHAPTERS.map((ch) => {
     const b = document.createElement('button');
     b.type = 'button';
@@ -1090,6 +1109,7 @@
     }
     const active = activeChapter();
     if (currentChapterEl) currentChapterEl.textContent = active.label;
+    chapterSelect.value = String(active.scene);
     markerEls.forEach((m) => {
       const isActive = m._scene === active.scene;
       m.classList.toggle('active', isActive);
@@ -1100,8 +1120,11 @@
 
   function updatePlaybackControl() {
     if (!playbackToggleEl) return;
-    playbackToggleEl.textContent = paused ? 'play' : 'pause';
-    playbackToggleEl.setAttribute('aria-label', paused ? 'Play demo' : 'Pause demo');
+    stage.classList.toggle('is-paused', paused);
+    const action = paused ? 'Play demo' : 'Pause demo';
+    playbackToggleEl.dataset.paused = String(paused);
+    playbackToggleEl.setAttribute('aria-label', action);
+    playbackToggleEl.title = action;
   }
 
   function scheduleNext(delay) {
@@ -1123,6 +1146,7 @@
       remaining = Math.max(0, DUR[idx] - elapsed);
       clearTimeout(timer);
       paused = true;
+      updatePlaybackControl();
       // Resolve the current beat into a stable end state. This stops cursor,
       // typing, and delayed popover movement without stranding the visitor on
       // a half-typed query or an unexplained pre-click frame.
@@ -1154,6 +1178,64 @@
   }
 
   playbackToggleEl?.addEventListener('click', () => setPaused(!paused));
+  const scrub = document.getElementById('demoScrub');
+  let previousBodyStyle = null;
+  let pageScroll = { x: 0, y: 0 };
+
+  function setViewerSize(nextActualSize) {
+    actualSize = nextActualSize;
+    fitButton.setAttribute('aria-pressed', String(!actualSize));
+    actualButton.setAttribute('aria-pressed', String(actualSize));
+    fitCanvas();
+    viewerCanvas.scrollTop = 0;
+    viewerCanvas.scrollLeft = actualSize ? Math.max(0, (viewerCanvas.scrollWidth - viewerCanvas.clientWidth) / 2) : 0;
+  }
+
+  enlargeButton.addEventListener('click', () => {
+    if (viewer.open) return;
+    setPaused(true);
+    cursor = null;
+    pageScroll = { x: window.scrollX, y: window.scrollY };
+    previousBodyStyle = document.body.getAttribute('style');
+    // A fixed body also prevents background scrolling on mobile Safari.
+    Object.assign(document.body.style, {
+      position: 'fixed', top: `${-pageScroll.y}px`, left: `${-pageScroll.x}px`, width: '100%', overflow: 'hidden',
+    });
+    viewerCanvas.append(frame);
+    document.getElementById('demoViewerControls').append(scrub);
+    viewer.showModal();
+    setViewerSize(false);
+  });
+  document.getElementById('demoViewerClose').addEventListener('click', () => viewer.close());
+  fitButton.addEventListener('click', () => setViewerSize(false));
+  actualButton.addEventListener('click', () => setViewerSize(true));
+  viewer.addEventListener('keydown', event => {
+    if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey) return;
+    const controls = [...viewer.querySelectorAll('button:not([disabled]), select:not([disabled]), [tabindex="0"]')]
+      .filter(element => element.getClientRects().length && !element.closest('[inert]'));
+    // Safari can omit buttons from its default tab order. Cycle the visible
+    // viewer controls explicitly so both directions stay usable there too.
+    const current = controls.indexOf(document.activeElement);
+    const next = (current + (event.shiftKey ? -1 : 1) + controls.length) % controls.length;
+    event.preventDefault();
+    controls[next].focus();
+  });
+  viewer.addEventListener('close', () => {
+    mount.append(frame);
+    document.getElementById('demoControlsMount').append(scrub);
+    if (previousBodyStyle === null) document.body.removeAttribute('style');
+    else document.body.setAttribute('style', previousBodyStyle);
+    window.scrollTo({ left: pageScroll.x, top: pageScroll.y, behavior: 'instant' });
+    fitCanvas();
+    enlargeButton.focus({ preventScroll: true });
+  });
+  // Observe the presentation slots, not the fixed canvas. Caption changes and
+  // rotation can resize the viewer even without a window resize event.
+  const canvasObserver = new ResizeObserver(fitCanvas);
+  canvasObserver.observe(mount);
+  canvasObserver.observe(viewerCanvas);
+  viewerCanvas.addEventListener('scroll', queueProximity, { passive: true });
+  fitCanvas();
   reduceMotion.addEventListener('change', (event) => {
     if (event.matches) setPaused(true);
   });
