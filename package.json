@@ -6,6 +6,7 @@
   "main": "src/main/main.js",
   "type": "commonjs",
   "scripts": {
+    "postinstall": "node adblock/seed.mjs --prepare",
     "start": "electron .",
     "predist": "npm run brand:check && npm run icons:windows:check && node scripts/preflight-mac-signing.mjs",
     "dist": "electron-builder",

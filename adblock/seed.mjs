@@ -3,6 +3,7 @@
 //
 //   node adblock/seed.mjs           regenerate the packaged seed
 //   node adblock/seed.mjs --check   fail if committed output is stale
+//   node adblock/seed.mjs --prepare generate the binary against its pinned manifest
 //
 // Startup never invokes this generator and never fetches these inputs.
 
@@ -110,8 +111,22 @@ function check() {
   console.log(`adblock seed check OK — ${manifest.byteLength} bytes (${manifest.seedId}).`);
 }
 
+function prepare() {
+  const generated = generate();
+  // Dependency setup may recreate the ignored binary, but must never silently
+  // approve changed source/dependency inputs by rewriting the tracked manifest.
+  const manifest = fs.readFileSync(OUT_MANIFEST);
+  if (!manifest.equals(generated.manifest)) {
+    throw new Error('Blocker seed manifest mismatch; review inputs and run npm run adblock:build');
+  }
+  fs.writeFileSync(OUT_BIN, generated.seed);
+  console.log(`Prepared pinned blocker seed (${generated.seed.length} bytes).`);
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  process.argv.includes('--check') ? check() : build();
+  if (process.argv.includes('--check')) check();
+  else if (process.argv.includes('--prepare')) prepare();
+  else build();
 }
 
 export { generate };
