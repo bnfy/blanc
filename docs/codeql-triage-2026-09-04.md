@@ -46,3 +46,7 @@ These are tooling correctness fixes in the draft, not deployed runtime fixes. Al
 
 - #22–25 (`site/scripts/verify-parity.mjs`): script/comment removal creates normalized strings for equality comparison of trusted old/new build output. The result is compared in the CLI, never emitted as sanitized HTML or executed. The patterns are not an XSS sanitizer.
 - #34 (`test/unit/site-changelog.test.js`): the test creates an isolated output directory, checks generated JSON, then intentionally appends a newline to verify stale-output detection. There is no authorization decision between checking and modifying a shared sensitive file.
+
+## Test-server HTML injection (#17–19)
+
+Request-derived fixture names now receive HTML text encoding. OAuth query values embedded in script elements use JSON encoding with literal less-than characters escaped, preventing closing-script-tag injection. Malformed percent encoding no longer crashes the fixture name decoder. Unit tests cover payload round trips and actual loopback HTTP responses; full OAuth/acceptance CI remains required. These corrections affect test tooling, not the shipped browser.

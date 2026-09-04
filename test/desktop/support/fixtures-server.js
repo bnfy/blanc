@@ -4,10 +4,14 @@
 // find-in-page scenario when that step is implemented).
 const http = require('node:http');
 const https = require('node:https');
+const { escapeHtml } = require('../../helpers/html-encoding');
 
 function pageBody(req) {
   const raw = req.url || '/';
-  const name = decodeURIComponent(raw.replace(/^\/site\//, '').split('?')[0]) || 'page';
+  let name;
+  try { name = decodeURIComponent(raw.replace(/^\/site\//, '').split('?')[0]) || 'page'; }
+  catch { name = 'invalid path'; }
+  name = escapeHtml(name);
   // Some history/wake scenarios suppress the load counter so pageState stays
   // deterministic. Ordinary site-owned sessionStorage is not unsaved user
   // work and therefore does not prevent this page from becoming quiet.
