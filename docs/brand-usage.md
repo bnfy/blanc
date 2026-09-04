@@ -125,6 +125,15 @@ The font is self-hosted through the pinned `@fontsource-variable/newsreader`
 package and loaded on the homepage. Its SIL Open Font License is included at
 `site/public/fonts/newsreader-OFL.txt`.
 
+Newsreader (Production Type, 2020) was chosen from an open-licensed shortlist
+set in the live Patron card: Libre Caslon Display was the runner-up, Imbue the
+closest match to Instrument Serif's narrow silhouette, and Bodoni Moda, Gloock,
+Sorts Mill Goudy, Fraunces, Hedvig Letters Serif, Ibarra Real Nova, and Ovo
+were reviewed and passed over. Do not reopen the search without a new brief;
+any future candidate must be OFL-licensed, available through fontsource, hold
+"Blanc Patron." on one line at the shipped desktop size, and read editorial
+rather than fashionable.
+
 ### Editorial website footer
 
 The shared website footer uses the monochrome Sunrise symbol alone as its
