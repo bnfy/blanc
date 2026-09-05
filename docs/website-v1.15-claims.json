@@ -2408,7 +2408,7 @@
     {
       "id": "website-115-228",
       "source": "site/src/data/navigation.mjs",
-      "exactWording": "Fourteen guides. No account, no AI, no extension store.",
+      "exactWording": "Less browser. More of what you opened it for.",
       "subject": "Blanc",
       "evidenceGroups": [
         "foundations"

@@ -35,7 +35,6 @@ test('every feature page is reachable from the features menu with its own headli
     ['ad-blocking', 'private-tabs', 'security'],
     ['command-palette', 'reopen-closed-tabs', 'profiles', 'sync', 'workspaces'],
   ].map(group => group.map(slug => `/features/${slug}`)));
-  assert.match(features.foot.note, /^Fourteen guides\./);
   const pages = fs.readdirSync(path.join(ROOT, 'site/src/pages/features')).filter(f => f.endsWith('.astro')).map(f => `/features/${f.replace('.astro', '')}`);
   assert.deepEqual(links.map(l => l.href).sort(), pages.sort(), 'one link per feature page, no more');
   for (const link of links) {

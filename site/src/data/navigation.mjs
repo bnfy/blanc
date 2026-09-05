@@ -30,7 +30,7 @@ export const menus = [
       ] },
     ],
     spotlight: { kind: 'image', image: '/feature-island.png', alt: 'The Blanc island resting over a web page', kicker: 'Start here', title: 'One small island. The whole browser.', copy: 'Back, forward, tabs, search and commands in one floating pill.', href: '/features/island', cta: 'See the island' },
-    foot: { note: 'Fourteen guides. No account, no AI, no extension store.', label: 'All features', href: '/features' },
+    foot: { note: 'Less browser. More of what you opened it for.', label: 'All features', href: '/features' },
   },
   {
     key: 'company',
