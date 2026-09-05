@@ -70,3 +70,47 @@ Var pid
     blancProcessClosed:
   ${endIf}
 !macroend
+
+# Windows only offers an app as a *browser* (Settings > Apps > Default apps,
+# and the http/https choosers) when it is registered under the Default
+# Programs contract: a RegisteredApplications pointer to a Capabilities key
+# that claims the http/https URL and .htm/.html file associations through a
+# ProgId, plus a StartMenuInternet client entry. Electron's
+# setAsDefaultProtocolClient only writes a bare protocol handler, which
+# Windows 10+ ignores for http, so without these keys Blanc never appears in
+# the chooser at all. SHELL_CONTEXT follows the per-user/per-machine install
+# mode that electron-builder's multiUser init already selected, for both the
+# installer and the uninstaller.
+!define BLANC_CLIENT_KEY "Software\Clients\StartMenuInternet\${PRODUCT_NAME}"
+!define BLANC_HTML_PROGID "BlancHTML"
+
+!macro customInstall
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}" "" "Blanc HTML Document"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}" "FriendlyTypeName" "Blanc HTML Document"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\Application" "ApplicationName" "${PRODUCT_NAME}"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\Application" "ApplicationIcon" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\DefaultIcon" "" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\shell\open\command" "" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" "%1"'
+
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}" "" "${PRODUCT_NAME}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\DefaultIcon" "" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\shell\open\command" "" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}"'
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities" "ApplicationName" "${PRODUCT_NAME}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities" "ApplicationDescription" "Blanc Browser"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities" "ApplicationIcon" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\StartMenu" "StartMenuInternet" "${PRODUCT_NAME}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\URLAssociations" "http" "${BLANC_HTML_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\URLAssociations" "https" "${BLANC_HTML_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".htm" "${BLANC_HTML_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".html" "${BLANC_HTML_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".xhtml" "${BLANC_HTML_PROGID}"
+  WriteRegDWORD SHELL_CONTEXT "${BLANC_CLIENT_KEY}\InstallInfo" "IconsVisible" 1
+
+  WriteRegStr SHELL_CONTEXT "Software\RegisteredApplications" "${PRODUCT_NAME}" "${BLANC_CLIENT_KEY}\Capabilities"
+!macroend
+
+!macro customUnInstall
+  DeleteRegValue SHELL_CONTEXT "Software\RegisteredApplications" "${PRODUCT_NAME}"
+  DeleteRegKey SHELL_CONTEXT "${BLANC_CLIENT_KEY}"
+  DeleteRegKey SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}"
+!macroend

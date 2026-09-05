@@ -1,4 +1,4 @@
-const { app, protocol, net, ipcMain, session, dialog } = require('electron');
+const { app, protocol, net, ipcMain, session, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
@@ -402,6 +402,12 @@ function setupPages(hooks = {}) {
       // so a second call only stacks a second identical dialog. Windows
       // registers each scheme silently, so it keeps the explicit https call.
       if (process.platform !== 'darwin') app.setAsDefaultProtocolClient('https');
+      // Windows 10+ ignores a programmatic http/https handler change: the
+      // user must pick the browser in Settings > Default apps, where Blanc
+      // is listed by the installer's StartMenuInternet registration
+      // (build/installer.nsh). Hand off to that page rather than reporting
+      // a silent no-op.
+      if (process.platform === 'win32') shell.openExternal('ms-settings:defaultapps').catch(() => {});
     }
     return defaultBrowserStatus();
   });
