@@ -147,10 +147,10 @@ const openAIAttribution = (() => {
 // ship without the beacon. EasyPrivacy blocks cloudflareinsights.com, so Blanc
 // and other blocker users are never counted — it measures the non-blocking share.
 try {
-  const CF_BEACON_TOKEN = '';
+  const CF_BEACON_TOKEN = '5bb5a98e48364f51b4fea600381c2a0c';
   if (CF_BEACON_TOKEN) {
     const beacon = document.createElement('script');
-    beacon.defer = true;
+    beacon.type = 'module';
     beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
     beacon.setAttribute('data-cf-beacon', JSON.stringify({ token: CF_BEACON_TOKEN }));
     document.head.appendChild(beacon);
