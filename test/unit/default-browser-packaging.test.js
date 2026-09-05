@@ -119,7 +119,9 @@ test('Windows requires both HTTP and HTTPS choices to call Blanc the default bro
 test('native Windows validation installs, inspects, and uninstalls the candidate', () => {
   assert.match(releaseWorkflow, /Verify installed browser registration and uninstall cleanup/);
   assert.match(releaseWorkflow, /verify-windows-browser-registration\.ps1/);
+  assert.match(releaseWorkflow, /-Version \$version/);
   assert.match(windowsInstallGate, /Start-Process[\s\S]+-ArgumentList '\/S'/);
+  assert.match(windowsInstallGate, /DisplayName -eq "\$ProductName \$Version"/);
   assert.match(windowsInstallGate, /Capabilities\\URLAssociations/);
   assert.match(windowsInstallGate, /associations\.http[\s\S]+associations\.https/);
   assert.match(windowsInstallGate, /QuietUninstallString/);

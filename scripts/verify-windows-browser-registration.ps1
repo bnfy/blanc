@@ -1,6 +1,7 @@
 param(
   [Parameter(Mandatory = $true)][string]$Installer,
   [string]$ProductName = 'Blanc',
+  [Parameter(Mandatory = $true)][string]$Version,
   [string]$ProgId = 'BlancURL'
 )
 
@@ -44,9 +45,9 @@ if ($openCommand -notmatch [regex]::Escape("$ProductName.exe") -or $openCommand 
 $uninstallRoot = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall'
 $uninstallEntry = Get-ChildItem $uninstallRoot |
   ForEach-Object { Get-ItemProperty $_.PSPath } |
-  Where-Object { $_.DisplayName -eq $ProductName } |
+  Where-Object { $_.DisplayName -eq "$ProductName $Version" } |
   Select-Object -First 1
-if (-not $uninstallEntry) { throw "uninstall entry is missing for $ProductName" }
+if (-not $uninstallEntry) { throw "uninstall entry is missing for $ProductName $Version" }
 if ($uninstallEntry.QuietUninstallString -notmatch '^"([^"]+)"\s*(.*)$') {
   throw "unexpected QuietUninstallString: $($uninstallEntry.QuietUninstallString)"
 }

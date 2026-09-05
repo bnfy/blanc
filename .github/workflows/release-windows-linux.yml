@@ -194,6 +194,7 @@ jobs:
           ./scripts/verify-windows-browser-registration.ps1 `
             -Installer "dist/$product-Setup-$version.exe" `
             -ProductName $product `
+            -Version $version `
             -ProgId 'BlancURL'
 
       - name: Upload to release
