@@ -43,7 +43,8 @@ test('Product Hunt media matches the declared dimensions and launch wiring', () 
   assert.match(copy, /youtube\.com\/watch\?v=xqUFMUcCjT0/);
   assert.match(provenance, /youtube\.com\/watch\?v=xqUFMUcCjT0/);
   assert.match(provenance, /youtube-nocookie\.com\/embed\/xqUFMUcCjT0/);
-  assert.match(provenance, /draft remains unscheduled/);
+  assert.match(provenance, /September 10 at 12:01 a\.m\. PT \(3:01 a\.m\. ET\)/);
+  assert.match(provenance, /Pre-Launch Dashboard then reported `Scheduled`/);
   assert.notDeepEqual(
     fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'island-resting-1270x760.png')),
     fs.readFileSync(path.join(ROOT, PRODUCT_HUNT_DIR, 'quick-switcher-1270x760.png')),

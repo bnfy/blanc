@@ -411,7 +411,10 @@ The demo is uploaded as unlisted at
 the unpublished Product Hunt draft on September 4. Product Hunt resolved the
 player to `youtube-nocookie.com/embed/xqUFMUcCjT0`, displayed the correct title,
 and reported a 42-second duration. The draft is saved at
-`https://www.producthunt.com/products/blanc-3?launch=blanc-3` and is not scheduled.
+`https://www.producthunt.com/products/blanc-3?launch=blanc-3`. On September 4,
+Anthony authorized scheduling and the live picker confirmed **September 10 at
+12:01 a.m. PT (3:01 a.m. ET)**; the Pre-Launch Dashboard then reported
+`Scheduled` with the matching countdown.
 
 **Name**
 
@@ -633,8 +636,9 @@ drop a full defense where one sentence would do.
 - [ ] The owner's personal Product Hunt account can reach the submission form.
 - [ ] Product Hunt's full YouTube URL is not private, has had processing time,
   and appears in the preview with both stills before **Schedule Launch**.
-- [ ] Product Hunt's live form displays **September 10, 2026** before scheduling;
-      if an earlier channel slipped, every downstream date moved with it.
+- [x] Product Hunt's live form displayed **September 10, 2026** before
+      scheduling; the dashboard now reports `Scheduled` for 12:01 a.m. PT
+      (3:01 a.m. ET). If an earlier channel slips, reschedule Product Hunt too.
 - [ ] Each Reddit community's live rules and the eligibility matrix permit the
       planned post format; every ineligible candidate is explicitly skipped.
 - [ ] The HN account is eligible under the current Show HN restriction.

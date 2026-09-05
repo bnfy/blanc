@@ -39,9 +39,11 @@ secondary labels on September 4.
 YouTube reported no copyright issues and published the replacement as
 unlisted. Product Hunt saved only the video-field change; its draft player
 resolved to `youtube-nocookie.com/embed/xqUFMUcCjT0`, showed the correct title,
-and reported 42 seconds. The draft remains unscheduled. YouTube requires phone
-verification before this channel can upload the matching custom poster, so no
-verification or credential flow was attempted. The cleanest homepage-backed
+and reported 42 seconds. Anthony authorized scheduling on September 4; the live
+picker confirmed September 10 at 12:01 a.m. PT (3:01 a.m. ET), and the
+Pre-Launch Dashboard then reported `Scheduled` with the matching countdown.
+YouTube requires phone verification before this channel can upload the matching
+custom poster, so no verification or credential flow was attempted. The cleanest homepage-backed
 frame among YouTube's three generated choices was selected instead; the exact
 matching poster is retained in the owner's local review output.
 
