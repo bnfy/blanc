@@ -7,6 +7,10 @@ const path = require('node:path');
 const root = path.join(__dirname, '..', '..');
 const pkg = require(path.join(root, 'package.json'));
 const installer = fs.readFileSync(path.join(root, 'build', 'installer.nsh'), 'utf8');
+const releaseWorkflow = fs.readFileSync(
+  path.join(root, '.github', 'workflows', 'release-windows-linux.yml'), 'utf8');
+const windowsInstallGate = fs.readFileSync(
+  path.join(root, 'scripts', 'verify-windows-browser-registration.ps1'), 'utf8');
 const {
   WINDOWS_URL_PROGID, USER_CHOICE_KEY, parseUserChoiceProgId, isWindowsDefaultBrowser,
 } = require('../../src/main/windows-default-browser');
@@ -110,6 +114,16 @@ test('Windows requires both HTTP and HTTPS choices to call Blanc the default bro
     args[1].includes('https') ? 'MSEdgeHTM' : 'BlancURL',
   ].join('');
   assert.equal(isWindowsDefaultBrowser({ execFileSync }), false);
+});
+
+test('native Windows validation installs, inspects, and uninstalls the candidate', () => {
+  assert.match(releaseWorkflow, /Verify installed browser registration and uninstall cleanup/);
+  assert.match(releaseWorkflow, /verify-windows-browser-registration\.ps1/);
+  assert.match(windowsInstallGate, /Start-Process[\s\S]+-ArgumentList '\/S'/);
+  assert.match(windowsInstallGate, /Capabilities\\URLAssociations/);
+  assert.match(windowsInstallGate, /associations\.http[\s\S]+associations\.https/);
+  assert.match(windowsInstallGate, /QuietUninstallString/);
+  assert.match(windowsInstallGate, /uninstaller left one or more browser registration entries behind/);
 });
 
 test('packaged Linux desktop entry verifier requires browser URL handlers', () => {

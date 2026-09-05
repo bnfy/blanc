@@ -186,6 +186,16 @@ jobs:
           }
           $attestation | ConvertTo-Json | Set-Content -Encoding utf8NoBOM dist/windows-signature.json
 
+      - name: Verify installed browser registration and uninstall cleanup
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          $product = node -p "require('./package.json').productName"
+          ./scripts/verify-windows-browser-registration.ps1 `
+            -Installer "dist/$product-Setup-$version.exe" `
+            -ProductName $product `
+            -ProgId 'BlancURL'
+
       - name: Upload to release
         if: ${{ inputs.mode == 'release' }}
         shell: bash
