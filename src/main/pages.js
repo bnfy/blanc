@@ -1,4 +1,5 @@
 const { app, protocol, net, ipcMain, session, dialog, shell } = require('electron');
+const { execFileSync } = require('node:child_process');
 const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
@@ -11,6 +12,7 @@ const history = require('./history');
 const downloads = require('./downloads');
 const settings = require('./settings');
 const { runOnePasswordVerify } = require('./onepassword-verify-flow');
+const { isWindowsDefaultBrowser } = require('./windows-default-browser');
 const supporter = require('./supporter');
 const patron = require('./patron');
 const sync = require('./sync');
@@ -387,8 +389,12 @@ function setupPages(hooks = {}) {
   // Default-browser state lives in LaunchServices/the OS, not settings.json.
   // canSet: a dev run must never register the bare Electron binary as a
   // browser, and Linux has no default-protocol-client API in Electron.
+  // On Windows, isDefaultProtocolClient only echoes our own protocol write,
+  // so the answer comes from the real UserChoice key instead.
   const defaultBrowserStatus = () => ({
-    isDefault: app.isDefaultProtocolClient('http'),
+    isDefault: process.platform === 'win32'
+      ? isWindowsDefaultBrowser({ execFileSync })
+      : app.isDefaultProtocolClient('http'),
     canSet: app.isPackaged && process.platform !== 'linux',
   });
   // newtab joined the allowlist for the onboarding dialog's first step; the
@@ -396,18 +402,19 @@ function setupPages(hooks = {}) {
   handle('pages:default-browser:get', ['settings', 'newtab'], () => defaultBrowserStatus());
   handle('pages:default-browser:set', ['settings', 'newtab'], () => {
     if (defaultBrowserStatus().canSet) {
-      app.setAsDefaultProtocolClient('http');
-      // macOS raises its "change your default web browser?" prompt PER CALL,
-      // and answering it assigns the browser role — http and https together —
-      // so a second call only stacks a second identical dialog. Windows
-      // registers each scheme silently, so it keeps the explicit https call.
-      if (process.platform !== 'darwin') app.setAsDefaultProtocolClient('https');
-      // Windows 10+ ignores a programmatic http/https handler change: the
-      // user must pick the browser in Settings > Default apps, where Blanc
-      // is listed by the installer's StartMenuInternet registration
-      // (build/installer.nsh). Hand off to that page rather than reporting
-      // a silent no-op.
-      if (process.platform === 'win32') shell.openExternal('ms-settings:defaultapps').catch(() => {});
+      if (process.platform === 'win32') {
+        // Windows 10+ ignores a programmatic http/https handler change: the
+        // user must pick the browser in Settings > Default apps, where Blanc
+        // is listed by the installer's StartMenuInternet registration
+        // (build/installer.nsh). Hand off to that page instead of writing a
+        // protocol handler that would only fool isDefaultProtocolClient.
+        shell.openExternal('ms-settings:defaultapps').catch(() => {});
+      } else {
+        // macOS raises its "change your default web browser?" prompt PER
+        // CALL, and answering it assigns the browser role — http and https
+        // together — so one call is the whole request.
+        app.setAsDefaultProtocolClient('http');
+      }
     }
     return defaultBrowserStatus();
   });

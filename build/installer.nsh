@@ -74,8 +74,10 @@ Var pid
 # Windows only offers an app as a *browser* (Settings > Apps > Default apps,
 # and the http/https choosers) when it is registered under the Default
 # Programs contract: a RegisteredApplications pointer to a Capabilities key
-# that claims the http/https URL and .htm/.html file associations through a
-# ProgId, plus a StartMenuInternet client entry. Electron's
+# that claims the http/https URL associations through a ProgId, plus a
+# StartMenuInternet client entry. No .htm/.html file associations: Blanc's
+# argv handling accepts only http(s) URLs, so claiming files would silently
+# drop them. Electron's
 # setAsDefaultProtocolClient only writes a bare protocol handler, which
 # Windows 10+ ignores for http, so without these keys Blanc never appears in
 # the chooser at all. SHELL_CONTEXT follows the per-user/per-machine install
@@ -101,9 +103,6 @@ Var pid
   WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\StartMenu" "StartMenuInternet" "${PRODUCT_NAME}"
   WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\URLAssociations" "http" "${BLANC_HTML_PROGID}"
   WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\URLAssociations" "https" "${BLANC_HTML_PROGID}"
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".htm" "${BLANC_HTML_PROGID}"
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".html" "${BLANC_HTML_PROGID}"
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\FileAssociations" ".xhtml" "${BLANC_HTML_PROGID}"
   WriteRegDWORD SHELL_CONTEXT "${BLANC_CLIENT_KEY}\InstallInfo" "IconsVisible" 1
 
   WriteRegStr SHELL_CONTEXT "Software\RegisteredApplications" "${PRODUCT_NAME}" "${BLANC_CLIENT_KEY}\Capabilities"
