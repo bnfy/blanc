@@ -30,11 +30,6 @@ blocker count close at hand, then expands when you need more.
 
 [Watch the 42-second v1.15.0 Product Hunt tour on YouTube.](https://www.youtube.com/watch?v=xqUFMUcCjT0)
 
-For a quicker look at the Island, this short demo opens the Quick Switcher,
-changes tabs, and shows a live blocker count:
-
-[![Blanc's Island opening into the Quick Switcher, switching tabs, and showing a live blocker count](docs/superpowers/plans/assets/island-demo.gif)](docs/superpowers/plans/assets/island-demo.mp4)
-
 ## Security and trust
 
 Blanc uses Electron and Chromium. Electron is part of the browser's attack
