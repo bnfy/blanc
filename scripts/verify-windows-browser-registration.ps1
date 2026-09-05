@@ -59,7 +59,12 @@ Assert-Equal $uninstall.ExitCode 0 'uninstaller exit code'
 
 $deadline = (Get-Date).AddSeconds(30)
 do {
-  $pointer = Get-ItemPropertyValue -Path $registeredApplications -Name $ProductName -ErrorAction SilentlyContinue
+  $registeredApplicationsKey = Get-Item $registeredApplications -ErrorAction SilentlyContinue
+  $pointer = if ($registeredApplicationsKey) {
+    $registeredApplicationsKey.GetValue($ProductName, $null)
+  } else {
+    $null
+  }
   $registrationRemains = (Test-Path $clientKey) -or (Test-Path $progIdKey) -or ($null -ne $pointer)
   if (-not $registrationRemains) { break }
   Start-Sleep -Seconds 1

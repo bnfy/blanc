@@ -125,6 +125,7 @@ test('native Windows validation installs, inspects, and uninstalls the candidate
   assert.match(windowsInstallGate, /Capabilities\\URLAssociations/);
   assert.match(windowsInstallGate, /associations\.http[\s\S]+associations\.https/);
   assert.match(windowsInstallGate, /QuietUninstallString/);
+  assert.match(windowsInstallGate, /GetValue\(\$ProductName, \$null\)/);
   assert.match(windowsInstallGate, /uninstaller left one or more browser registration entries behind/);
 });
 
