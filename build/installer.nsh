@@ -84,15 +84,17 @@ Var pid
 # mode that electron-builder's multiUser init already selected, for both the
 # installer and the uninstaller.
 !define BLANC_CLIENT_KEY "Software\Clients\StartMenuInternet\${PRODUCT_NAME}"
-!define BLANC_HTML_PROGID "BlancHTML"
+!define BLANC_URL_PROGID "BlancURL"
 
 !macro customInstall
-  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}" "" "Blanc HTML Document"
-  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}" "FriendlyTypeName" "Blanc HTML Document"
-  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\Application" "ApplicationName" "${PRODUCT_NAME}"
-  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\Application" "ApplicationIcon" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
-  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\DefaultIcon" "" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
-  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}\shell\open\command" "" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" "%1"'
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}" "" "Blanc URL"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}" "URL Protocol" ""
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}" "FriendlyTypeName" "Blanc URL"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}\Application" "ApplicationName" "${PRODUCT_NAME}"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}\Application" "ApplicationIcon" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}\DefaultIcon" "" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}\shell" "" "open"
+  WriteRegStr SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}\shell\open\command" "" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" "%1"'
 
   WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}" "" "${PRODUCT_NAME}"
   WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\DefaultIcon" "" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
@@ -101,15 +103,20 @@ Var pid
   WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities" "ApplicationDescription" "Blanc Browser"
   WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities" "ApplicationIcon" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
   WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\StartMenu" "StartMenuInternet" "${PRODUCT_NAME}"
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\URLAssociations" "http" "${BLANC_HTML_PROGID}"
-  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\URLAssociations" "https" "${BLANC_HTML_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\URLAssociations" "http" "${BLANC_URL_PROGID}"
+  WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\Capabilities\URLAssociations" "https" "${BLANC_URL_PROGID}"
   WriteRegDWORD SHELL_CONTEXT "${BLANC_CLIENT_KEY}\InstallInfo" "IconsVisible" 1
 
   WriteRegStr SHELL_CONTEXT "Software\RegisteredApplications" "${PRODUCT_NAME}" "${BLANC_CLIENT_KEY}\Capabilities"
+  # Registration happens after electron-builder creates its shortcuts, so its
+  # earlier shell refresh cannot publish these new associations. Flush the
+  # association cache only after every Default Programs key is in place.
+  System::Call "shell32::SHChangeNotify(i,i,i,i) (0x08000000, 0x1000, 0, 0)"
+  Sleep 1000
 !macroend
 
 !macro customUnInstall
   DeleteRegValue SHELL_CONTEXT "Software\RegisteredApplications" "${PRODUCT_NAME}"
   DeleteRegKey SHELL_CONTEXT "${BLANC_CLIENT_KEY}"
-  DeleteRegKey SHELL_CONTEXT "Software\Classes\${BLANC_HTML_PROGID}"
+  DeleteRegKey SHELL_CONTEXT "Software\Classes\${BLANC_URL_PROGID}"
 !macroend

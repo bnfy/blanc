@@ -1,14 +1,16 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
 const root = path.join(__dirname, '..', '..');
 const pkg = require(path.join(root, 'package.json'));
 const installer = fs.readFileSync(path.join(root, 'build', 'installer.nsh'), 'utf8');
 const {
-  WINDOWS_HTML_PROGID, USER_CHOICE_KEY, parseUserChoiceProgId, isWindowsDefaultBrowser,
+  WINDOWS_URL_PROGID, USER_CHOICE_KEY, parseUserChoiceProgId, isWindowsDefaultBrowser,
 } = require('../../src/main/windows-default-browser');
+const { verifyLinuxDesktopEntry } = require('../../scripts/verify-linux-desktop-entry');
 
 // Windows only lists an app under Settings > Default apps (and in the
 // http/https chooser) when the Default Programs contract is registered:
@@ -20,18 +22,19 @@ test('Windows installer registers Blanc as a browser under the Default Programs 
   assert.match(installer, /!macro customUnInstall\b/);
   assert.ok(installer.includes(`!define BLANC_CLIENT_KEY "${clientKey}"`));
   // The runtime UserChoice check compares against the ProgId the installer registers.
-  assert.ok(installer.includes(`!define BLANC_HTML_PROGID "${WINDOWS_HTML_PROGID}"`));
+  assert.ok(installer.includes(`!define BLANC_URL_PROGID "${WINDOWS_URL_PROGID}"`));
 
   const install = installer.slice(installer.indexOf('!macro customInstall'), installer.indexOf('!macro customUnInstall'));
   const uninstall = installer.slice(installer.indexOf('!macro customUnInstall'));
 
   for (const line of [
     'WriteRegStr SHELL_CONTEXT "Software\\RegisteredApplications" "${PRODUCT_NAME}" "${BLANC_CLIENT_KEY}\\Capabilities"',
-    'WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\\Capabilities\\URLAssociations" "http" "${BLANC_HTML_PROGID}"',
-    'WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\\Capabilities\\URLAssociations" "https" "${BLANC_HTML_PROGID}"',
+    'WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\\Capabilities\\URLAssociations" "http" "${BLANC_URL_PROGID}"',
+    'WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\\Capabilities\\URLAssociations" "https" "${BLANC_URL_PROGID}"',
     'WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\\Capabilities\\StartMenu" "StartMenuInternet" "${PRODUCT_NAME}"',
     'WriteRegStr SHELL_CONTEXT "${BLANC_CLIENT_KEY}\\shell\\open\\command" "" \'"$INSTDIR\\${APP_EXECUTABLE_FILENAME}"\'',
-    'WriteRegStr SHELL_CONTEXT "Software\\Classes\\${BLANC_HTML_PROGID}\\shell\\open\\command" "" \'"$INSTDIR\\${APP_EXECUTABLE_FILENAME}" "%1"\'',
+    'WriteRegStr SHELL_CONTEXT "Software\\Classes\\${BLANC_URL_PROGID}" "URL Protocol" ""',
+    'WriteRegStr SHELL_CONTEXT "Software\\Classes\\${BLANC_URL_PROGID}\\shell\\open\\command" "" \'"$INSTDIR\\${APP_EXECUTABLE_FILENAME}" "%1"\'',
   ]) {
     assert.ok(install.includes(line), `installer writes: ${line}`);
   }
@@ -41,7 +44,7 @@ test('Windows installer registers Blanc as a browser under the Default Programs 
   for (const line of [
     'DeleteRegValue SHELL_CONTEXT "Software\\RegisteredApplications" "${PRODUCT_NAME}"',
     'DeleteRegKey SHELL_CONTEXT "${BLANC_CLIENT_KEY}"',
-    'DeleteRegKey SHELL_CONTEXT "Software\\Classes\\${BLANC_HTML_PROGID}"',
+    'DeleteRegKey SHELL_CONTEXT "Software\\Classes\\${BLANC_URL_PROGID}"',
   ]) {
     assert.ok(uninstall.includes(line), `uninstaller removes: ${line}`);
   }
@@ -50,16 +53,19 @@ test('Windows installer registers Blanc as a browser under the Default Programs 
   // installer must not invite Windows to hand it local .html files.
   assert.doesNotMatch(install, /FileAssociations/);
 
+  const registration = install.indexOf('Software\\RegisteredApplications');
+  const refresh = install.indexOf('shell32::SHChangeNotify');
+  const settle = install.indexOf('Sleep 1000');
+  assert.ok(registration >= 0 && refresh > registration && settle > refresh,
+    'association cache is flushed after registration and allowed to settle');
+  assert.match(install, /SHChangeNotify\(i,i,i,i\) \(0x08000000, 0x1000, 0, 0\)/);
+
   // SHELL_CONTEXT follows the per-user/per-machine install mode; a hard-coded
   // hive would register the wrong half of a per-machine install.
   assert.doesNotMatch(install + uninstall, /WriteReg\w+ HK(CU|LM)|DeleteReg\w+ HK(CU|LM)/);
 });
 
-// Linux desktop environments list default-browser candidates by the desktop
-// entry's Categories and MimeType keys. electron-builder emits
-// x-scheme-handler/* from build.protocols and the rest from linux.mimeTypes
-// and linux.category.
-test('Linux desktop entry advertises Blanc as a web browser', () => {
+test('Linux source configuration advertises only web URL handling', () => {
   const schemes = pkg.build.protocols.flatMap((p) => p.schemes);
   assert.ok(schemes.includes('http') && schemes.includes('https'));
 
@@ -67,9 +73,8 @@ test('Linux desktop entry advertises Blanc as a web browser', () => {
   assert.ok(categories.includes('Network'));
   assert.ok(categories.includes('WebBrowser'));
 
-  const mimeTypes = pkg.build.linux.mimeTypes;
-  assert.ok(mimeTypes.includes('text/html'));
-  assert.ok(mimeTypes.includes('application/xhtml+xml'));
+  assert.equal(pkg.build.linux.mimeTypes, undefined,
+    'local HTML MIME types would claim unsupported file handling');
 });
 
 // Windows 10+ only honours the per-user UserChoice ProgId, which Settings
@@ -79,11 +84,11 @@ test('Windows default status is read from the UserChoice ProgId, not our own han
   const regOutput = [
     '',
     'HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice',
-    '    ProgId    REG_SZ    BlancHTML',
+    '    ProgId    REG_SZ    BlancURL',
     '',
   ].join('\r\n');
-  assert.equal(parseUserChoiceProgId(regOutput), 'BlancHTML');
-  assert.equal(parseUserChoiceProgId(regOutput.replace('BlancHTML', 'ChromeHTML')), 'ChromeHTML');
+  assert.equal(parseUserChoiceProgId(regOutput), 'BlancURL');
+  assert.equal(parseUserChoiceProgId(regOutput.replace('BlancURL', 'ChromeHTML')), 'ChromeHTML');
   assert.equal(parseUserChoiceProgId('ERROR: The system was unable to find the specified registry key or value.'), null);
   assert.equal(parseUserChoiceProgId(undefined), null);
 
@@ -94,6 +99,34 @@ test('Windows default status is read from the UserChoice ProgId, not our own han
   };
   assert.equal(isWindowsDefaultBrowser({ execFileSync }), true);
   assert.deepEqual(calls[0], ['reg.exe', ['query', USER_CHOICE_KEY('http'), '/v', 'ProgId']]);
-  assert.equal(isWindowsDefaultBrowser({ execFileSync: () => regOutput.replace('BlancHTML', 'MSEdgeHTM') }), false);
+  assert.deepEqual(calls[1], ['reg.exe', ['query', USER_CHOICE_KEY('https'), '/v', 'ProgId']]);
+  assert.equal(isWindowsDefaultBrowser({ execFileSync: () => regOutput.replace('BlancURL', 'MSEdgeHTM') }), false);
   assert.equal(isWindowsDefaultBrowser({ execFileSync: () => { throw new Error('exit 1'); } }), false);
+});
+
+test('Windows requires both HTTP and HTTPS choices to call Blanc the default browser', () => {
+  const execFileSync = (_file, args) => [
+    '    ProgId    REG_SZ    ',
+    args[1].includes('https') ? 'MSEdgeHTM' : 'BlancURL',
+  ].join('');
+  assert.equal(isWindowsDefaultBrowser({ execFileSync }), false);
+});
+
+test('packaged Linux desktop entry verifier requires browser URL handlers', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'blanc-desktop-entry-'));
+  const entry = path.join(directory, 'blanc.desktop');
+  fs.writeFileSync(entry, [
+    '[Desktop Entry]',
+    'Name=Blanc',
+    'Categories=Network;WebBrowser;',
+    'MimeType=x-scheme-handler/http;x-scheme-handler/https;',
+    '',
+  ].join('\n'));
+
+  assert.doesNotThrow(() => verifyLinuxDesktopEntry(entry));
+  fs.writeFileSync(entry, fs.readFileSync(entry, 'utf8').replace(
+    'MimeType=x-scheme-handler/http;',
+    'MimeType=text/html;x-scheme-handler/http;',
+  ));
+  assert.throws(() => verifyLinuxDesktopEntry(entry), /unsupported local-file MIME type/);
 });

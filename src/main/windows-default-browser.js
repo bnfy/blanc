@@ -6,9 +6,9 @@
 // HKCU\Software\Classes\<protocol>\shell\open\command with our own exe,
 // i.e. it reads back whatever setAsDefaultProtocolClient last wrote, so it
 // would report "default" the moment Blanc asked to be. The truth is the
-// UserChoice ProgId, which equals the ProgId build/installer.nsh registers
-// when the user actually picked Blanc.
-const WINDOWS_HTML_PROGID = 'BlancHTML';
+// UserChoice ProgIds, which equal the ProgId build/installer.nsh registers
+// when the user actually picked Blanc for both web schemes.
+const WINDOWS_URL_PROGID = 'BlancURL';
 const USER_CHOICE_KEY = (scheme) =>
   `HKCU\\Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\${scheme}\\UserChoice`;
 
@@ -19,20 +19,26 @@ function parseUserChoiceProgId(output) {
   return match ? match[1] : null;
 }
 
-function isWindowsDefaultBrowser({ execFileSync, scheme = 'http', progId = WINDOWS_HTML_PROGID } = {}) {
-  let output;
-  try {
-    output = execFileSync('reg.exe', ['query', USER_CHOICE_KEY(scheme), '/v', 'ProgId'], {
-      encoding: 'utf8',
-      windowsHide: true,
-      timeout: 2000,
-      stdio: ['ignore', 'pipe', 'ignore'],
-    });
-  } catch {
-    // No UserChoice value (fresh profile) or reg.exe failure: not default.
-    return false;
-  }
-  return parseUserChoiceProgId(output) === progId;
+function isWindowsDefaultBrowser({
+  execFileSync,
+  schemes = ['http', 'https'],
+  progId = WINDOWS_URL_PROGID,
+} = {}) {
+  return schemes.every((scheme) => {
+    let output;
+    try {
+      output = execFileSync('reg.exe', ['query', USER_CHOICE_KEY(scheme), '/v', 'ProgId'], {
+        encoding: 'utf8',
+        windowsHide: true,
+        timeout: 2000,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+    } catch {
+      // No UserChoice value (fresh profile) or reg.exe failure: not default.
+      return false;
+    }
+    return parseUserChoiceProgId(output)?.toLowerCase() === progId.toLowerCase();
+  });
 }
 
-module.exports = { WINDOWS_HTML_PROGID, USER_CHOICE_KEY, parseUserChoiceProgId, isWindowsDefaultBrowser };
+module.exports = { WINDOWS_URL_PROGID, USER_CHOICE_KEY, parseUserChoiceProgId, isWindowsDefaultBrowser };

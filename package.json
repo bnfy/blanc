@@ -147,11 +147,7 @@
       "target": [
         "AppImage"
       ],
-      "category": "Network;WebBrowser",
-      "mimeTypes": [
-        "text/html",
-        "application/xhtml+xml"
-      ]
+      "category": "Network;WebBrowser"
     }
   }
 }
