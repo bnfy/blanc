@@ -7,7 +7,9 @@ const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const ledger = JSON.parse(read('docs/website-v1.15-claims.json'));
-const normalize = text => text.replace(/<[^>]*>/g, '').replace(/&rsquo;/g, '’').replace(/&lsquo;/g, '‘').replace(/&amp;/g, '&').replace(/&ldquo;/g, '“').replace(/&rdquo;/g, '”').replace(/\s+/g, ' ').trim();
+const entities = { rsquo: '’', lsquo: '‘', amp: '&', ldquo: '“', rdquo: '”' };
+// Compare source text only; consume incomplete tags and decode entities once.
+const normalize = text => text.replace(/<[^>]*(?:>|$)/g, '').replace(/&(rsquo|lsquo|amp|ldquo|rdquo);/g, (_, name) => entities[name]).replace(/\s+/g, ' ').trim();
 
 test('the website claim ledger resolves to public v1.15.0 and contains no publication blockers', () => {
   assert.equal(ledger.publicRelease, 'v1.15.0');
