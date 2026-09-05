@@ -139,6 +139,24 @@ const openAIAttribution = (() => {
   });
 })();
 
+// Cloudflare Web Analytics: a cookieless page-view beacon with no persistent
+// identifier, so it sits under the same restricted-measurement basis as the
+// denied-state GA4 pings and needs no consent gate. It only loads on non-legal
+// pages because site.js itself is gated by BaseLayout's `analytics` prop.
+// The token is public (it names the site, not an account); leave it empty to
+// ship without the beacon. EasyPrivacy blocks cloudflareinsights.com, so Blanc
+// and other blocker users are never counted — it measures the non-blocking share.
+try {
+  const CF_BEACON_TOKEN = '';
+  if (CF_BEACON_TOKEN) {
+    const beacon = document.createElement('script');
+    beacon.defer = true;
+    beacon.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    beacon.setAttribute('data-cf-beacon', JSON.stringify({ token: CF_BEACON_TOKEN }));
+    document.head.appendChild(beacon);
+  }
+} catch {}
+
 // GA4 Consent Mode: gtag loads with analytics_storage denied by default.
 // Cookieless pings give GA4 modelling signal; full measurement requires opt-in.
 try {
