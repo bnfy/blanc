@@ -19,6 +19,11 @@ const CARDS = [
   'feature-command-palette.png',
   'feature-private-tabs.png',
   'feature-tab-groups.png',
+  'feature-start-page.png',
+  'feature-glance.png',
+  'feature-workspaces.png',
+  'feature-profiles.png',
+  'feature-reopen-closed-tabs.png',
 ];
 
 function png(relativePath) {

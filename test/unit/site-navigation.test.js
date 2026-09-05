@@ -28,6 +28,14 @@ test('every feature page is reachable from the features menu with its own headli
   const { menus } = await import(path.join(ROOT, 'site/src/data/navigation.mjs'));
   const features = menus.find(menu => menu.key === 'features');
   const links = features.groups.flatMap(group => group.links);
+  assert.equal(links.length, 14);
+  assert.deepEqual(features.groups.map(group => group.links.length), [6, 3, 5]);
+  assert.deepEqual(features.groups.map(group => group.links.map(link => link.href)), [
+    ['island', 'start-page', 'glance', 'vertical-tabs', 'tab-groups', 'quiet-tabs'],
+    ['ad-blocking', 'private-tabs', 'security'],
+    ['command-palette', 'reopen-closed-tabs', 'profiles', 'sync', 'workspaces'],
+  ].map(group => group.map(slug => `/features/${slug}`)));
+  assert.match(features.foot.note, /^Fourteen guides\./);
   const pages = fs.readdirSync(path.join(ROOT, 'site/src/pages/features')).filter(f => f.endsWith('.astro')).map(f => `/features/${f.replace('.astro', '')}`);
   assert.deepEqual(links.map(l => l.href).sort(), pages.sort(), 'one link per feature page, no more');
   for (const link of links) {

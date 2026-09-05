@@ -6,6 +6,34 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 
+test('expanded feature guides retain release limitations beside their benefits', () => {
+  const guide = slug => read(`site/src/pages/features/${slug}.astro`);
+  const start = guide('start-page');
+  assert.match(start, /eight|Eight/);
+  assert.match(start, /not cloud-synced/);
+  assert.match(start, /layout preference itself can sync/);
+  assert.match(start, /Private tabs neither contribute to nor receive/);
+  const reopen = guide('reopen-closed-tabs');
+  for (const limit of [/At most one eligible closed page per window/, /about 30 seconds/, /may reload/, /25 entries per window/, /one hour/, /Private tabs never enter Recently Closed/]) assert.match(reopen, limit);
+  const workspaces = guide('workspaces');
+  assert.match(workspaces, /requires an active subscription/);
+  assert.match(workspaces, /membership lapses, existing workspaces remain openable, switchable, and automatically updated/);
+  assert.match(workspaces, /device-local and profile-scoped/);
+  assert.match(workspaces, /do not sync across devices/);
+  assert.match(guide('profiles'), /Profile Sync is available only to Personal/);
+  assert.match(guide('profiles'), /Files you downloaded remain on disk/);
+  assert.match(guide('glance'), /never written to session restore or sync/);
+  assert.match(guide('glance'), /does not search history, Favorites, remote tabs, or another window/);
+  assert.match(guide('security'), /off by default/);
+  assert.match(guide('security'), /not automatic fill/);
+  assert.match(guide('security'), /trades conversational responsiveness/);
+  for (const source of [start, reopen, workspaces, guide('profiles'), guide('glance')]) {
+    assert.doesNotMatch(source, /Blanc automatically (?:organizes|groups) (?:your )?tabs/i);
+    assert.doesNotMatch(source, /(?:Mahjong|Billboard|Named Workspaces) (?:is|are) cloud-synced/i);
+    assert.doesNotMatch(source, /(?:exactly restores|perfectly recovers) every (?:closed )?tab/i);
+  }
+});
+
 test('app chrome and internal pages have no live Google Fonts dependency', () => {
   const files = [
     'src/renderer/index.html',
