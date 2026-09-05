@@ -1,7 +1,7 @@
-# v1.15 website expansion — review handoff
+# v1.15 website expansion — implementation and production evidence
 
-Status: implementation and local verification complete; production rollout
-awaits review and merge. No desktop behavior or app release was changed.
+Status: implemented, merged, and deployed to production on September 4, 2026
+(ET). No desktop behavior or app release was changed.
 
 ## Scope
 
@@ -61,17 +61,48 @@ repository's Playwright CLI. Browser tests use Option-Tab for default macOS
 WebKit link traversal and disable cache for fresh route-response checks;
 site behavior was not changed to bypass those tests.
 
-## Review and rollout still required
+## Review, merge, and production rollout — September 4, 2026 ET
 
-1. Review the local website at `http://127.0.0.1:4321/` and the website-only diff.
-2. Commit the scoped website/tests/provenance/assets, excluding unrelated work;
-   obtain review and merge through the repository workflow.
-3. From the reviewed merged source, run `npm run site:deploy`.
-4. Confirm Cloudflare lists that exact merged SHA as **Production** on branch
-   **main**, not a preview or detached-HEAD deployment.
-5. Spot-check the canonical homepage, five new guides, feature menu, Download,
-   Press downloads, sitemap, and all five public social-card URLs. Record the
-   merged SHA and deployment evidence here before marking rollout complete.
+- Website PR: https://github.com/bnfy/blanc/pull/295, merged at
+  `2026-09-05T02:54:14Z` (September 4, 10:54 p.m. ET).
+- Reviewed PR head: `5d05dcaf1c5772aeb1e32d257f1a19eb6bda788c`.
+- Merged and deployed source: `fa429420b52b25bbec8de8c0884ff41845edd1f1`.
+- All checks passed before merge: Site build, substrate/unit regression,
+  acceptance wiring, OAuth compatibility, JavaScript analysis, and the
+  CodeQL pull-request alert gate. Required checks were not bypassed.
+- The first CodeQL run flagged incomplete-tag stripping and sequential entity
+  decoding in the new test-only claim normalizer. Commit `5d05dca` consumes
+  incomplete tags and decodes entities in one pass. Its targeted tests and
+  subsequent complete CI checks passed; no alert was dismissed or suppressed.
+- CI now fetches public tags for the claim ledger's immutable-release checks.
+- `npm run site:deploy` ran from a clean detached worktree at the merged SHA,
+  reusing the already-tested local dependency installations. The command
+  repeated brand, Astro build, and 24-page/24-URL SEO verification successfully.
+- Cloudflare deployment: `539bd95b-285b-401b-a100-688cf7d5e581`.
+  `wrangler pages deployment list --project-name=blancbrowser
+  --environment=production --json` confirmed **Production**, branch **main**,
+  source **fa42942**, matching the full merged SHA above.
+- Immutable deployment URL: https://539bd95b.getbowser.pages.dev.
+- Canonical site: https://blancbrowser.com.
+- Live SEO audit passed for all 24 sitemap pages and 24 internal HTML
+  destinations. This includes the homepage, feature hub, all five new guides,
+  supporting feature guides, Download, FAQ, and Press.
+- At `2026-09-05T02:55:10Z`, all ten canonical native-capture URLs and five
+  canonical social-card URLs returned HTTP 200 with PNG content types, the
+  expected 1440×900 or 1200×630 dimensions, and SHA-256 hashes identical to the
+  reviewed files in the merged checkout. The published Mahjong capture is the
+  Turtle / Classic replacement recorded in the capture manifest.
+- Canonical Chromium verification passed 12/12 tests with
+  `BLANC_SITE_URL=https://blancbrowser.com node --test --test-concurrency=1
+  test/site/feature-expansion.test.mjs test/site/masthead.test.mjs`.
+  It covered 360/768/1440px layouts, lowercase breadcrumbs, transparent capture
+  corners, all five guides, unique metadata, keyboard access, the fourteen-guide
+  feature hub/menu, compact spotlight, mobile accordions, six no-JavaScript
+  cards, and actual Press PNG downloads. No page errors or overflow were found.
+
+This follow-up record changes documentation only. The production source above
+remains the website rollout commit; a later evidence-only merge does not
+require another deployment.
 
 The disposable capture app is closed and its read-only DMG has been ejected.
 The live dev site on port 4321 and built preview on port 4322 remain available.
